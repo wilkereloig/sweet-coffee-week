@@ -1,0 +1,18 @@
+export const EDITIONS = [
+  { ano: '2016',   nome: 'S&C / Início',        desc: 'A primeira edição. Onde tudo começou.' },
+  { ano: '2017.1', nome: 'Páscoa',              desc: 'Ovos, coelhos e tudo mais que vem com a data.' },
+  { ano: '2017.2', nome: 'Doces do Mundo',      desc: 'Uma viagem por sobremesas de culturas diferentes.' },
+  { ano: '2018.1', nome: 'Namorados',           desc: 'A primeira temporada feita pra duplas afetivas.' },
+  { ano: '2018.2', nome: 'Sabores da Infância', desc: 'Memória, nostalgia e doces de criança.' },
+  { ano: '2019.1', nome: 'Pâtisserie Francesa', desc: 'Releituras refinadas das clássicas da França.' },
+  { ano: '2019.2', nome: 'Contos de Fadas',     desc: 'Um capítulo doce, com personagens dos livros.' },
+  { ano: '2020.1', nome: 'No Ritmo da Música',  desc: 'Combos inspirados em canções, artistas e gêneros.' },
+  { ano: '2020.2', nome: 'Heróis & Vilões',     desc: 'Sabores com superpoderes — e os do lado obscuro.' },
+  { ano: '2021.1', nome: 'Séries',              desc: 'Episódios doces inspirados nas séries que a gente ama.' },
+  { ano: '2021.2', nome: 'Terras Potiguares',   desc: 'A cultura potiguar transformada em sabor.' },
+  { ano: '2022',   nome: 'Movies',              desc: 'Clássicos do cinema viraram combos exclusivos.' },
+  { ano: '2023',   nome: 'Trip',                desc: 'Uma rota pelo mundo, sem sair de Natal.' },
+  { ano: '2024',   nome: 'Books',               desc: 'Combos inspirados em livros, autores e personagens.' },
+  { ano: '2025',   nome: 'Celebration',         desc: 'Comemorando a história das edições passadas.' },
+  { ano: '2026',   nome: 'Lovers',              desc: 'A edição atual. Feito de amor, recriando sabores.', atual: true },
+]
