@@ -42,7 +42,7 @@ export function EdicoesPage({ navigate }) {
                         display: 'inline-block',
                         textAlign: 'left',
                         background: e.atual ? 'var(--lovers-cream)' : 'var(--bg-card)',
-                        borderColor: e.atual ? 'rgba(214,54,72,.3)' : 'var(--line)',
+                        borderColor: e.atual ? 'rgba(135,14,45,.3)' : 'var(--line)',
                         position: 'relative',
                         maxWidth: 460,
                       }}>
@@ -77,7 +77,7 @@ export function EdicoesPage({ navigate }) {
                         height: e.atual ? 22 : 14,
                         borderRadius: 999,
                         background: e.atual ? 'var(--lovers-red)' : 'var(--accent)',
-                        boxShadow: e.atual ? '0 0 0 6px rgba(214,54,72,.18)' : '0 0 0 5px rgba(232,85,58,.12)',
+                        boxShadow: e.atual ? '0 0 0 6px rgba(135,14,45,.18)' : '0 0 0 5px rgba(232,85,58,.12)',
                       }}></div>
                     </div>
                   </div>
