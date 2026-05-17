@@ -61,10 +61,11 @@ Site oficial do festival **Sweet & Coffee Week** com área dedicada à edição 
 ## 5. Código e Configurações Críticas
 
 ### Google Maps API Key
-```js
-// src/pages/lovers/Mapa.jsx — linha 7
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDu7iDigTvRKoASqy7oUYLLdlrNRMT2sqI'
+Chave em `.env.local` (não versionado):
 ```
+VITE_GOOGLE_MAPS_KEY=sua_chave_aqui
+```
+Uso no código: `import.meta.env.VITE_GOOGLE_MAPS_KEY`
 
 ### Padrão correto para inicializar Google Maps (v2 do loader)
 ```js
