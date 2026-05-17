@@ -26,10 +26,10 @@ function heartPin(selected) {
     width:36px;height:36px;
     border-radius:50% 50% 50% 0;
     transform:rotate(-45deg);
-    background:${selected ? '#D63648' : '#FFB4C2'};
-    border:2.5px solid #D63648;
+    background:${selected ? '#870E2D' : '#FFD6E0'};
+    border:2.5px solid #870E2D;
     display:flex;align-items:center;justify-content:center;
-    box-shadow:0 2px 10px rgba(214,54,72,.45);
+    box-shadow:0 2px 10px rgba(135,14,45,.45);
     cursor:pointer;
     transition:background .15s;
   "><span style="transform:rotate(45deg);font-size:13px;line-height:1;">♥</span></div>`
@@ -324,7 +324,7 @@ export function MapaPage({ navigate }) {
                   onChange={e => setSearch(e.target.value)}
                   style={{
                     width: '100%', boxSizing: 'border-box',
-                    border: '1.5px solid rgba(214,54,72,.2)',
+                    border: '1.5px solid rgba(135,14,45,.2)',
                     borderRadius: 10, padding: '9px 12px',
                     fontSize: 13, fontFamily: 'var(--font-lovers-body)',
                     background: '#fff', color: 'var(--lovers-ink)',
@@ -376,7 +376,7 @@ export function MapaPage({ navigate }) {
                   {locLoading ? 'Obtendo localização…' : userLocation ? 'Minha localização ativa' : 'Usar minha localização'}
                 </button>
                 {locError && (
-                  <div className="mono" style={{ fontSize: 11, color: '#D63648', marginBottom: 8, lineHeight: 1.4 }}>
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-red)', marginBottom: 8, lineHeight: 1.4 }}>
                     {locError}
                   </div>
                 )}
@@ -401,7 +401,7 @@ export function MapaPage({ navigate }) {
                       onClick={() => handleListClick(p)}
                       style={{
                         background: selected?.id === p.id ? 'var(--lovers-cream)' : '#fff',
-                        border: `1.5px solid ${selected?.id === p.id ? 'var(--lovers-red)' : 'rgba(214,54,72,.15)'}`,
+                        border: `1.5px solid ${selected?.id === p.id ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
                         borderRadius: 14,
                         padding: '14px 16px',
                         cursor: 'pointer',
@@ -473,7 +473,7 @@ export function MapaPage({ navigate }) {
             position: relative;
             border-radius: 20px;
             overflow: hidden;
-            border: 1px solid rgba(214,54,72,.2);
+            border: 1px solid rgba(135,14,45,.2);
           }
           .mapa-list {
             height: 580px;
@@ -482,7 +482,7 @@ export function MapaPage({ navigate }) {
           }
           .mapa-list::-webkit-scrollbar { width: 4px; }
           .mapa-list::-webkit-scrollbar-thumb {
-            background: rgba(214,54,72,.3);
+            background: rgba(135,14,45,.3);
             border-radius: 4px;
           }
           .mapa-chip {
