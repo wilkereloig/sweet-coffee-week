@@ -11,20 +11,6 @@ export function ComboPage({ navigate }) {
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden', position: 'relative' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
-      {/* Breadcrumb */}
-      <div className="wrap" style={{ position: 'relative', paddingTop: 24, paddingBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
-             className="btn btn-ghost btn-sm" style={{ paddingLeft: 4 }}>
-            <span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><I.arrow /></span>
-            Voltar
-          </a>
-          <span className="mono text-mute">SWEET & COFFEE WEEK LOVERS</span>
-          <span className="mono text-mute">/</span>
-          <span className="mono" style={{ color: 'var(--lovers-red)' }}>COMBOS</span>
-        </div>
-      </div>
-
       {/* Hero */}
       <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
         <div className="wrap">
