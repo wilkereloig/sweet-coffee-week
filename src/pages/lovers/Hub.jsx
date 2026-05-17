@@ -106,11 +106,13 @@ export function LoversPage({ navigate }) {
               <img
                 src="/images/sweet-logo.svg"
                 alt="Sweet & Coffee Week"
+                className="hero-sweet-logo"
                 style={{ width: '85%', display: 'block', margin: '0 auto', position: 'relative', zIndex: 2 }}
               />
               <img
                 src="/images/lovers-logo.svg"
                 alt="Lovers"
+                className="hero-lovers-logo"
                 style={{ width: '60%', display: 'block', margin: '0 auto', marginTop: '-4%', position: 'relative', zIndex: 1 }}
               />
             </div>
@@ -172,6 +174,17 @@ export function LoversPage({ navigate }) {
         .lovers-hero-grid { grid-template-columns: 1fr 1fr !important; }
         .lovers-hero-photo { min-height: 460px; }
         .lovers-hero-content { text-align: left; }
+
+        @keyframes fadeSlideDown {
+          from { opacity: 0; transform: translateY(-24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-sweet-logo { animation: fadeSlideDown .7s cubic-bezier(.22,1,.36,1) both; }
+        .hero-lovers-logo { animation: fadeSlideUp .7s cubic-bezier(.22,1,.36,1) .25s both; }
 
         /* Grid de 4 cards (seção amarela e participantes) */
         .grid-4-cards { grid-template-columns: repeat(4, 1fr); }
