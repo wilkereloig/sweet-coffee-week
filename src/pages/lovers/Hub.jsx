@@ -94,11 +94,7 @@ export function LoversPage({ navigate }) {
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
-      <section style={{ position: 'relative', overflow: 'hidden', background: '#FFF1E6' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E\")", pointerEvents: 'none', zIndex: 0 }} />
-
-
-        <div style={{ position: 'absolute', top: -120, left: -180, width: 720, height: 720, borderRadius: '50%', background: 'var(--lovers-burgundy)', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
+      <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--lovers-yellow)' }}>
 
         <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
           <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
