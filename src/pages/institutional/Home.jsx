@@ -402,7 +402,7 @@ export function HomePage({ navigate }) {
       </section>
 
       <style>{`
-        .home-two-col { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 3vw, 40px); }
+        .home-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 3vw, 40px); }
         @media (max-width: 880px) { .home-two-col { grid-template-columns: 1fr !important; } }
         .home-four-col { grid-template-columns: repeat(4, 1fr); }
         @media (max-width: 880px) { .home-four-col { grid-template-columns: repeat(2, 1fr); } }

@@ -89,9 +89,19 @@ export function LoversPage({ navigate }) {
         <div style={{ position: 'absolute', top: -120, left: -180, width: 720, height: 720, borderRadius: '50%', background: 'var(--lovers-burgundy)', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
 
         <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
-          <div className="hero-inst__grid" style={{ alignItems: 'start', gridTemplateColumns: '1fr' }}>
-            <div>
-              <h1 className="lovers-h1" style={{ margin: '0 0 40px' }}>
+          <div className="hero-inst__grid lovers-hero-grid" style={{ alignItems: 'center' }}>
+
+            {/* Foto placeholder — coluna esquerda no desktop */}
+            <div className="lovers-hero-photo">
+              <PhotoPH
+                label="SWEET LOVERS · COMBO HERO"
+                aspect="4/5"
+              />
+            </div>
+
+            {/* Conteúdo — coluna direita no desktop */}
+            <div className="lovers-hero-content">
+              <h1 className="lovers-h1" style={{ margin: '0 0 40px', textAlign: 'left' }}>
                 Sweet &<br/>
                 Coffee<br/>
                 <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
@@ -103,7 +113,7 @@ export function LoversPage({ navigate }) {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
                 <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
@@ -111,10 +121,10 @@ export function LoversPage({ navigate }) {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
               </div>
 
-              <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '50ch', margin: '0 auto 32px' }}>
+              <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '50ch', margin: '0 0 32px' }}>
                 Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
                    className="btn btn-lovers btn-lg">
                   Ver participantes <I.arrow />
@@ -142,7 +152,7 @@ export function LoversPage({ navigate }) {
         </div>
 
         <div className="wrap mt-4">
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="grid grid-4-cards">
             <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
             <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="pink" />
             <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" rotation={-0.5} color="cyan" />
@@ -152,15 +162,23 @@ export function LoversPage({ navigate }) {
       </section>
 
       <style>{`
+        /* Hero Lovers — 2 colunas no desktop, empilha no mobile */
+        .lovers-hero-grid { grid-template-columns: 1fr 1fr !important; }
+        .lovers-hero-photo { min-height: 460px; }
+        .lovers-hero-content { text-align: left; }
+
+        /* Grid de 4 cards (seção amarela e participantes) */
+        .grid-4-cards { grid-template-columns: repeat(4, 1fr); }
+
         @media (max-width: 880px) {
-          .hero-inst__grid { grid-template-columns: 1fr !important; }
+          .lovers-hero-grid { grid-template-columns: 1fr !important; }
+          .lovers-hero-photo { min-height: 0; aspect-ratio: 4/3; }
+          .lovers-hero-content { text-align: center; }
+          .grid-4-cards { grid-template-columns: repeat(2, 1fr) !important; }
+          .grid-awards { grid-template-columns: 1fr !important; }
         }
-        @media (max-width: 880px) {
-          .section .wrap[style*="1.3fr"] { grid-template-columns: 1fr !important; }
-          .section .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-        @media (max-width: 560px) {
-          .section .grid[style*="repeat(4"] { grid-template-columns: 1fr !important; }
+        @media (max-width: 480px) {
+          .grid-4-cards { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -175,7 +193,7 @@ export function LoversPage({ navigate }) {
             <span className="mono" style={{ color: 'var(--lovers-red)', display: 'block', marginTop: 8 }}>EM BREVE</span>
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 16 }}>
+          <div className="grid grid-4-cards" style={{ marginBottom: 16 }}>
             {[
               { accent: 'var(--lovers-yellow)',  textColor: 'var(--lovers-brown)' },
               { accent: 'var(--lovers-pink)',    textColor: 'var(--lovers-cream)' },
@@ -272,7 +290,7 @@ export function LoversPage({ navigate }) {
             position: 'relative',
           }}>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 48, alignItems: 'center', position: 'relative' }}>
+            <div className="grid-awards" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 48, alignItems: 'center', position: 'relative' }}>
               <div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
                   <I.starFill width={20} height={20} />
@@ -313,16 +331,6 @@ export function LoversPage({ navigate }) {
               </div>
             </div>
           </div>
-          <style>{`
-            @media (max-width: 880px) {
-              .section div[style*="1.4fr 1fr"] { grid-template-columns: 1fr !important; }
-              .section div[style*="repeat(3"] { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-            @media (max-width: 560px) {
-              .section div[style*="repeat(3"] { grid-template-columns: 1fr !important; }
-              .section div[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-          `}</style>
         </div>
       </section>
     </div>

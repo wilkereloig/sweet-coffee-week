@@ -145,6 +145,22 @@ button:disabled { cursor: not-allowed; }
 .divider { height: 1px; background: var(--line); border: 0; margin: 0; }
 .divider-strong { height: 1px; background: var(--line-strong); border: 0; margin: 0; }
 
+/* ---------- HOME LAYOUT ---------- */
+.home-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
+}
+.home-four-col { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 880px) {
+  .home-two-col { grid-template-columns: 1fr; }
+  .home-four-col { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .home-four-col { grid-template-columns: 1fr; }
+}
+
 /* ---------- BOTÕES ---------- */
 .btn {
   display: inline-flex;
