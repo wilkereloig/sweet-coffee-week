@@ -101,49 +101,36 @@ export function LoversPage({ navigate }) {
         <div style={{ position: 'absolute', top: -120, left: -180, width: 720, height: 720, borderRadius: '50%', background: 'var(--lovers-burgundy)', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
 
         <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
-          <div className="hero-inst__grid lovers-hero-grid" style={{ alignItems: 'center' }}>
+          <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
+            <h1 className="lovers-h1" style={{ margin: '0 0 32px' }}>
+              Sweet &<br/>
+              Coffee<br/>
+              <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
+            </h1>
 
-            {/* Foto placeholder — coluna esquerda no desktop */}
-            <div className="lovers-hero-photo">
-              <PhotoPH
-                label="SWEET LOVERS · COMBO HERO"
-                aspect="4/5"
-              />
-            </div>
-
-            {/* Conteúdo — coluna direita no desktop */}
-            <div className="lovers-hero-content">
-              <h1 className="lovers-h1" style={{ margin: '0 0 40px', textAlign: 'left' }}>
-                Sweet &<br/>
-                Coffee<br/>
-                <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
-              </h1>
-
-              <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 24px', marginBottom: 36, display: 'inline-block' }}>
-                <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(38px, 4vw, 54px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
-                  Feito de amor,<br/>recriando sabores.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
-                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
-                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
-              </div>
-
-              <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '50ch', margin: '0 0 32px' }}>
-                Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
+            <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 24px', marginBottom: 32, display: 'inline-block' }}>
+              <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(32px, 4vw, 52px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
+                Feito de amor,<br/>recriando sabores.
               </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
-                   className="btn btn-lovers btn-lg">
-                  Ver participantes <I.arrow />
-                </a>
-              </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
+              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
+              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
+            </div>
+
+            <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, margin: '0 auto 32px', maxWidth: '50ch' }}>
+              Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
+                 className="btn btn-lovers btn-lg">
+                Ver participantes <I.arrow />
+              </a>
+            </div>
           </div>
         </div>
       </section>
