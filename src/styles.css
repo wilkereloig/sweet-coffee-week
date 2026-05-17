@@ -141,6 +141,8 @@ button:disabled { cursor: not-allowed; }
 .section { padding: clamp(56px, 9vw, 128px) 0; position: relative; }
 .section-tight { padding: clamp(40px, 6vw, 80px) 0; }
 .grid { display: grid; gap: clamp(16px, 2vw, 28px); }
+.grid-4-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 2vw, 28px); align-items: stretch; grid-auto-rows: 1fr; }
+.grid-4-cards > * { height: 100%; min-height: 0; }
 .flex { display: flex; }
 .divider { height: 1px; background: var(--line); border: 0; margin: 0; }
 .divider-strong { height: 1px; background: var(--line-strong); border: 0; margin: 0; }

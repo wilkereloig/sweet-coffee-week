@@ -24,7 +24,6 @@ function LoversQuickCard({ label, value, icon, rotation = 0, color = 'burgundy' 
       justifyContent: 'center',
       textAlign: 'center',
       gap: 10,
-      minHeight: 160,
       height: '100%',
     }}>
       <div style={{ color: c }}>
@@ -165,7 +164,7 @@ export function LoversPage({ navigate }) {
         </div>
 
         <div className="wrap mt-4">
-          <div className="grid grid-4-cards">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(16px, 2vw, 28px)', alignItems: 'stretch' }}>
             <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
             <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="pink" />
             <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" rotation={-0.5} color="cyan" />
