@@ -149,7 +149,7 @@ export function LoversPage({ navigate }) {
         </div>
       </section>
 
-      <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
+      <section className="section" style={{ background: 'var(--lovers-pink)' }}>
         <div className="wrap" style={{ maxWidth: 720, margin: '0 auto' }}>
           <div className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
             <span className="dot" style={{ background: 'var(--lovers-burgundy)' }}></span>
