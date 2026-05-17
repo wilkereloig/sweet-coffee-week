@@ -106,12 +106,12 @@ export function LoversPage({ navigate }) {
               <img
                 src="/images/sweet-logo.svg"
                 alt="Sweet & Coffee Week"
-                style={{ width: '85%', display: 'block', margin: '0 auto', position: 'relative', zIndex: 1 }}
+                style={{ width: '85%', display: 'block', margin: '0 auto', position: 'relative', zIndex: 2 }}
               />
               <img
                 src="/images/lovers-logo.svg"
                 alt="Lovers"
-                style={{ width: '80%', display: 'block', margin: '0 auto', marginTop: '-22%', position: 'relative', zIndex: 2 }}
+                style={{ width: '60%', display: 'block', margin: '0 auto', marginTop: '-4%', position: 'relative', zIndex: 1 }}
               />
             </div>
 
