@@ -104,7 +104,7 @@ export function ApoiarPage({ navigate }) {
           </div>
         </div>
         <style>{`
-          @media (max-width: 980px) {
+          @media (max-width: 880px) {
             section .wrap > div[style*="1.1fr 1fr"] { grid-template-columns: 1fr !important; }
           }
           @media (max-width: 560px) {

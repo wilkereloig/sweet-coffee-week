@@ -1,6 +1,6 @@
 import React from 'react'
 import { I, TapeStrip } from '../../components/icons'
-import { PhotoPH } from '../../components/placeholders'
+import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 
@@ -27,16 +27,21 @@ export function ComboDetailPage({ navigate, slug }) {
 
   if (!combo) {
     return (
-      <div className="kv-lovers" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center', padding: '40px 20px' }}>
-        <div style={{ fontSize: 48 }}>☕</div>
-        <div className="lovers-h2">Combo não encontrado</div>
-        <p style={{ color: 'var(--lovers-ink)', opacity: .65, maxWidth: '36ch', margin: 0 }}>
-          O combo que você procura não existe ou ainda não foi publicado.
-        </p>
-        <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
-           className="btn btn-lovers">
-          Ver todos os combos <I.arrow />
-        </a>
+      <div className="kv-lovers" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{ maxWidth: 520, width: '100%' }}>
+          <EmptyState
+            lovers
+            icon="cup"
+            title="Combo não encontrado"
+            subtitle="O combo que você procura não existe ou ainda não foi publicado."
+          />
+          <div style={{ textAlign: 'center', marginTop: 24 }}>
+            <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
+               className="btn btn-lovers">
+              Ver todos os combos <I.arrow />
+            </a>
+          </div>
+        </div>
       </div>
     )
   }
@@ -141,7 +146,7 @@ export function ComboDetailPage({ navigate, slug }) {
       </section>
 
       <style>{`
-        @media (max-width: 980px) {
+        @media (max-width: 880px) {
           section[style*="32px 0 56px"] > .wrap > div[style*="1.3fr"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
@@ -208,7 +213,7 @@ export function ComboDetailPage({ navigate, slug }) {
             </a>
           </div>
           <style>{`
-            @media (max-width: 720px) {
+            @media (max-width: 880px) {
               .section-tight .wrap > div[style*="1fr auto"] { grid-template-columns: 1fr !important; }
             }
           `}</style>

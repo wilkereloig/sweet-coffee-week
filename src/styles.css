@@ -462,7 +462,7 @@ button:disabled { cursor: not-allowed; }
   padding-bottom: 56px;
   border-bottom: 1px solid rgba(255,244,236,.15);
 }
-@media (max-width: 900px) {
+@media (max-width: 880px) {
   .site-footer__top { grid-template-columns: 1fr 1fr; gap: 32px; }
 }
 @media (max-width: 560px) {
@@ -539,7 +539,7 @@ button:disabled { cursor: not-allowed; }
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
-@media (max-width: 720px) {
+@media (max-width: 880px) {
   .hero-inst__strip { grid-template-columns: repeat(2, 1fr); }
 }
 .hero-stat {
@@ -798,3 +798,48 @@ button:disabled { cursor: not-allowed; }
 
 /* page transitions */
 .page-enter { animation: fadeUp .3s ease; }
+
+/* ============================================================
+   CENTRALIZAÇÃO GLOBAL — todas as páginas
+   ============================================================ */
+.page-enter { text-align: center; }
+
+.page-enter h1,
+.page-enter h2,
+.page-enter h3,
+.page-enter h4,
+.page-enter .lovers-h1,
+.page-enter .lovers-h2,
+.page-enter .lovers-h3,
+.page-enter p { margin-left: auto; margin-right: auto; }
+
+.page-enter .eyebrow { justify-content: center; }
+
+.page-enter .grid { justify-items: center; }
+
+/* CTAs / botões em linha */
+.page-enter .btn,
+.page-enter .btn-lovers,
+.page-enter .btn-lg { margin-left: auto; margin-right: auto; }
+
+/* Form: labels centrados, inputs mantêm digitação à esquerda */
+.page-enter label,
+.page-enter .form-label { text-align: center; display: block; }
+.page-enter input,
+.page-enter textarea,
+.page-enter select { text-align: left; }
+
+/* Listas sem bullet à esquerda */
+.page-enter ul,
+.page-enter ol { list-style-position: inside; padding-left: 0; }
+
+/* Overrides para inline styles que assumem alinhamento esquerda */
+.page-enter [style*="space-between"] { justify-content: center !important; }
+.page-enter [style*="flex-start"] { align-items: center !important; }
+.page-enter [style*="flex-end"] { align-items: center !important; }
+.page-enter [style*="textAlign: 'left'"],
+.page-enter [style*="text-align: left"] { text-align: center !important; }
+.page-enter [style*="borderLeft"] {
+  border-left: 0 !important;
+  padding-left: 0 !important;
+}

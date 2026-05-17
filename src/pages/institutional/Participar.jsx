@@ -68,7 +68,7 @@ export function ParticiparPage({ navigate }) {
               </div>
 
               <style>{`
-                @media (max-width: 720px) {
+                @media (max-width: 880px) {
                   form > div[style*="1fr 1fr"] { grid-template-columns: 1fr !important; }
                 }
               `}</style>
@@ -76,7 +76,7 @@ export function ParticiparPage({ navigate }) {
           </div>
         </div>
         <style>{`
-          @media (max-width: 980px) {
+          @media (max-width: 880px) {
             section .wrap > div[style*="1.1fr 1fr"] { grid-template-columns: 1fr !important; }
           }
           @media (max-width: 560px) {

@@ -18,14 +18,15 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
-const SITE_COMING_SOON = false
+const SITE_COMING_SOON = true
 
 export default function App() {
   const [path, navigate] = useRoute()
+  const [bypass, setBypass] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
 
-  if (SITE_COMING_SOON) return <ComingSoonPage />
+  if (SITE_COMING_SOON && !bypass) return <ComingSoonPage onAdminAccess={() => setBypass(true)} />
 
   const route = (() => {
     if (path === '/' || path === '') return 'home'

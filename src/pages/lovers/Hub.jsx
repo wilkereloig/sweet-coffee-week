@@ -1,6 +1,6 @@
 import React from 'react'
 import { I, HeartTiny, TapeStrip } from '../../components/icons'
-import { PhotoPH, ParticipantePH } from '../../components/placeholders'
+import { PhotoPH, ParticipantePH, EmptyState } from '../../components/placeholders'
 
 function LoversQuickCard({ label, value, icon, rotation = 0, color = 'burgundy' }) {
   const IconComp = I[icon] || I.heart
@@ -82,79 +82,66 @@ export function LoversPage({ navigate }) {
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
-      <section className="hero-inst kv-lovers" style={{ position: 'relative' }}>
-        <div className="lovers-bg"></div>
-        <div className="wrap" style={{ position: 'relative' }}>
-          <div className="sticker-decorative extra" style={{ position: 'absolute', top: 240, right: 10, transform: 'rotate(-6deg)', zIndex: 2 }}>
-            <TapeStrip rotate={-3} color="var(--lovers-yellow)">FEITO COM AMOR</TapeStrip>
-          </div>
+      <section style={{ position: 'relative', overflow: 'hidden', background: '#FFF1E6' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E\")", pointerEvents: 'none', zIndex: 0 }} />
 
-          <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 28 }}>
-            <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-            SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO
-          </div>
 
-          <h1 className="lovers-h1" style={{ margin: 0 }}>
-            Sweet &<br/>
-            Coffee<br/>
-            <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
-          </h1>
+        <div style={{ position: 'absolute', top: -120, left: -180, width: 720, height: 720, borderRadius: '50%', background: 'var(--lovers-burgundy)', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
 
-          <div className="hero-inst__grid mt-5" style={{ alignItems: 'start' }}>
+        <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
+          <div className="hero-inst__grid" style={{ alignItems: 'start', gridTemplateColumns: '1fr' }}>
             <div>
-              <p style={{ fontFamily: 'var(--font-script)', fontSize: 52, color: 'var(--lovers-pink)', lineHeight: 1, margin: '0 0 24px', transform: 'rotate(-1.5deg)', display: 'inline-block' }}>
-                Feito de amor, recriando sabores.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
-                <span className="tag tag-lovers"><I.cal width={14} height={14}/> 4 A 14 DE JUNHO</span>
-                <span className="tag tag-pink">NATAL/RN</span>
-                <span className="tag tag-yellow">11 DIAS</span>
+              <h1 className="lovers-h1" style={{ margin: '0 0 40px' }}>
+                Sweet &<br/>
+                Coffee<br/>
+                <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
+              </h1>
+
+              <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 24px', marginBottom: 36, display: 'inline-block' }}>
+                <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(38px, 4vw, 54px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
+                  Feito de amor,<br/>recriando sabores.
+                </p>
               </div>
-              <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '50ch', marginTop: 8 }}>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
+                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
+                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
+              </div>
+
+              <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '50ch', margin: '0 auto 32px' }}>
                 Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
               </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 32 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
                    className="btn btn-lovers btn-lg">
                   Ver participantes <I.arrow />
                 </a>
               </div>
             </div>
-            <div className="hero-photo-col" style={{ position: 'relative', minHeight: 520 }}>
-              <div style={{ position: 'absolute', top: 0, right: 0, width: '95%', transform: 'rotate(1.5deg)' }}>
-                <PhotoPH label="HERO DA EDIÇÃO" aspect="3/5" icon="croissant" lovers size="lg" />
-              </div>
-              <div className="sticker-decorative extra" style={{ position: 'absolute', top: -10, left: 30, transform: 'rotate(-14deg)', zIndex: 3 }}>
-                <span className="sticker sticker-pink">recriando.</span>
-              </div>
-              <div className="sticker-decorative" style={{ position: 'absolute', bottom: 40, left: -10, transform: 'rotate(6deg)', zIndex: 3 }}>
-                <span className="sticker sticker-yellow">16ª edição</span>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
 
       <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
-        <div className="wrap" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 'clamp(28px, 5vw, 80px)' }}>
-          <div>
-            <div className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
-              <span className="dot" style={{ background: 'var(--lovers-burgundy)' }}></span>
-              Sobre a edição
-            </div>
-            <h2 className="lovers-h2 mt-3">
-              A proposta não é repetir.<br/>
-              É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
-            </h2>
+        <div className="wrap" style={{ maxWidth: 720, margin: '0 auto' }}>
+          <div className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
+            <span className="dot" style={{ background: 'var(--lovers-burgundy)' }}></span>
+            Sobre a edição
           </div>
-          <div style={{ paddingTop: 12 }}>
-            <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-brown)', opacity: .85 }}>
-              Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
-            </p>
-          </div>
+          <h2 className="lovers-h2 mt-3" style={{ marginBottom: 16 }}>
+            A proposta não é repetir.<br/>
+            É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
+          </h2>
+          <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-brown)', opacity: .85, margin: 0 }}>
+            Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
+          </p>
         </div>
 
-        <div className="wrap mt-5">
+        <div className="wrap mt-4">
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
             <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="pink" />
@@ -167,9 +154,8 @@ export function LoversPage({ navigate }) {
       <style>{`
         @media (max-width: 880px) {
           .hero-inst__grid { grid-template-columns: 1fr !important; }
-          .hero-photo-col { order: -1; margin-bottom: 24px; min-height: 360px !important; }
         }
-        @media (max-width: 980px) {
+        @media (max-width: 880px) {
           .section .wrap[style*="1.3fr"] { grid-template-columns: 1fr !important; }
           .section .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
         }
@@ -180,15 +166,13 @@ export function LoversPage({ navigate }) {
 
       <section className="section">
         <div className="wrap">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 24, marginBottom: 40 }}>
-            <div>
-              <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}>
-                <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-                PARTICIPANTES
-              </div>
-              <h2 className="lovers-h2 mt-3">Participantes Lovers</h2>
+          <div style={{ marginBottom: 40 }}>
+            <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}>
+              <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
+              PARTICIPANTES
             </div>
-            <span className="mono" style={{ color: 'var(--lovers-red)' }}>EM BREVE</span>
+            <h2 className="lovers-h2 mt-3">Participantes Lovers</h2>
+            <span className="mono" style={{ color: 'var(--lovers-red)', display: 'block', marginTop: 8 }}>EM BREVE</span>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 16 }}>
@@ -209,67 +193,56 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-purple)' }}>
         <div className="wrap">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 24, marginBottom: 40 }}>
-            <div>
-              <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
-                <span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>
-                COMBOS DA EDIÇÃO
-              </div>
-              <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Cada combo,<br/><span style={{ color: 'var(--lovers-yellow)' }}>uma recriação.</span></h2>
+          <div style={{ marginBottom: 40 }}>
+            <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
+              <span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>
+              COMBOS DA EDIÇÃO
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Cada combo,<br/><span style={{ color: 'var(--lovers-yellow)' }}>uma recriação.</span></h2>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16, justifyContent: 'center' }}>
               {['DOCE', 'SALGADO', 'BEBIDA'].map(t => (
                 <span key={t} style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 14px', borderRadius: 999, background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.08em' }}>{t}</span>
               ))}
             </div>
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="card" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
-                <div style={{ position: 'relative' }}>
-                  <PhotoPH label="" aspect="4/3" icon="donut" lovers />
-                  <div style={{
-                    position: 'absolute', top: 12, left: 12,
-                    background: 'var(--lovers-purple)',
-                    color: 'var(--lovers-cream)',
-                    fontFamily: 'var(--font-mono)', fontSize: 11,
-                    letterSpacing: '0.1em', textTransform: 'uppercase',
-                    padding: '4px 10px', borderRadius: 999,
-                  }}>em breve</div>
-                </div>
-                <div style={{ padding: 20 }}>
-                  <div className="mono" style={{ color: 'var(--lovers-red)' }}>NOME DA LOJA</div>
-                  <div className="h-3 mt-1" style={{ color: 'var(--ink-soft)' }}>Nome do combo</div>
-                  <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>tema recriado · bairro</div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
-                    <button className="btn btn-sm btn-secondary" disabled style={{ opacity: .4 }}>Ver combo</button>
-                    <button className="btn btn-sm btn-ghost" disabled style={{ opacity: .4 }}>Traçar rota</button>
-                  </div>
-                </div>
+          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+            <div style={{
+              textAlign: 'center',
+              padding: 'clamp(40px, 6vw, 80px) 24px',
+              border: '1.5px dashed rgba(255,232,210,.4)',
+              borderRadius: 22,
+              background: 'rgba(255,232,210,.06)',
+            }}>
+              <div style={{
+                width: 64, height: 64, margin: '0 auto 20px',
+                borderRadius: 999,
+                background: 'rgba(255,232,210,.12)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--lovers-yellow)',
+              }}>
+                <I.plate width={28} height={28} />
               </div>
-            ))}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 40 }}>
-            <span className="mono" style={{ color: 'rgba(255,232,210,.65)' }}>A lista completa dos combos será publicada antes do início da edição.</span>
+              <div className="lovers-h3" style={{ color: 'var(--lovers-cream)', marginBottom: 8 }}>Combos em breve</div>
+              <div style={{ color: 'rgba(255,232,210,.75)', maxWidth: 440, margin: '0 auto', fontSize: 15 }}>
+                A lista completa dos combos da edição será publicada antes do início do festival.
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="section" style={{ background: 'var(--lovers-cyan)' }}>
         <div className="wrap">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 24, marginBottom: 32 }}>
-            <div>
-              <div className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
-                <span className="dot" style={{ background: 'var(--lovers-brown)' }}></span>
-                MAPA DA DOÇURA LOVERS
-              </div>
-              <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-brown)' }}>Encontre os<br/>participantes,<br/><span style={{ color: 'var(--lovers-burgundy)' }}>trace sua rota.</span></h2>
-              <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .82 }}>Encontre os participantes da edição e trace sua rota para viver o Sweet pela cidade.</p>
+          <div style={{ marginBottom: 32 }}>
+            <div className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
+              <span className="dot" style={{ background: 'var(--lovers-brown)' }}></span>
+              MAPA DA DOÇURA LOVERS
             </div>
+            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-brown)' }}>Encontre os<br/>participantes,<br/><span style={{ color: 'var(--lovers-burgundy)' }}>trace sua rota.</span></h2>
+            <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .82 }}>Encontre os participantes da edição e trace sua rota para viver o Sweet pela cidade.</p>
             <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }} className="btn btn-secondary"
-               style={{ borderColor: 'var(--lovers-brown)', color: 'var(--lovers-brown)' }}>
+               style={{ borderColor: 'var(--lovers-brown)', color: 'var(--lovers-brown)', marginTop: 24, display: 'inline-flex' }}>
               Abrir mapa completo <I.arrow />
             </a>
           </div>

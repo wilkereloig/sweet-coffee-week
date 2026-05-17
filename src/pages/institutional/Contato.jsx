@@ -55,7 +55,7 @@ export function ContatoPage({ navigate }) {
               <p style={{ color: 'rgba(255,244,236,.7)', marginTop: 14, fontSize: 15 }}>
                 Empresa responsável pela elaboração, criação e execução do Sweet & Coffee Week.
               </p>
-              <a href="#" className="btn btn-accent mt-4 btn-sm">Site da F2 <I.arrow /></a>
+              <a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" className="btn btn-accent mt-4 btn-sm">Site da F2 <I.arrow /></a>
             </div>
             <div className="card" style={{ padding: 32 }}>
               <div className="mono mb-2 text-mute">REDES SOCIAIS</div>
@@ -63,7 +63,7 @@ export function ContatoPage({ navigate }) {
               <p className="text-mute mt-3" style={{ fontSize: 15 }}>
                 Acompanhe o festival, novidades de edição e bastidores no Instagram.
               </p>
-              <a href="#" className="btn btn-secondary mt-3 btn-sm">
+              <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer" className="btn btn-secondary mt-3 btn-sm">
                 <I.ig width={14} height={14} /> Abrir Instagram
               </a>
             </div>

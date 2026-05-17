@@ -16,7 +16,7 @@ function RankCard({ pos, marca, edicoes, primeira, ultima }) {
         </div>
       </div>
       <div style={{ width: 80, height: 80, borderRadius: 16, background: 'rgba(43,24,16,.04)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)' }}>
-        <I.cup width={28} height={28} />
+        {[I.cup, I.donut, I.croissant, I.plate][pos % 4]({ width: 28, height: 28 })}
       </div>
     </div>
   )
@@ -60,10 +60,13 @@ export function CuriosidadesPage({ navigate }) {
           </div>
         </div>
         <style>{`
-          @media (max-width: 1080px) {
+          @media (max-width: 1280px) {
+            .section .grid[style*="repeat(5"] { grid-template-columns: repeat(4, 1fr) !important; }
+          }
+          @media (max-width: 1100px) {
             .section .grid[style*="repeat(5"] { grid-template-columns: repeat(3, 1fr) !important; }
           }
-          @media (max-width: 720px) {
+          @media (max-width: 880px) {
             .section .grid[style*="repeat(5"] { grid-template-columns: repeat(2, 1fr) !important; }
           }
         `}</style>
@@ -154,7 +157,7 @@ export function CuriosidadesPage({ navigate }) {
             ))}
           </div>
           <style>{`
-            @media (max-width: 980px) {
+            @media (max-width: 880px) {
               .section .grid[style*="repeat(3, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
             }
             @media (max-width: 560px) {

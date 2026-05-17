@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../components/icons'
+import { EmptyState } from '../../components/placeholders'
 import { PARTICIPANTS } from '../../data/participants'
 import { COMBOS } from '../../data/combos'
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDu7iDigTvRKoASqy7oUYLLdlrNRMT2sqI'
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
@@ -223,20 +224,13 @@ export function MapaPage({ navigate }) {
         <div className="wrap">
 
           {!hasData ? (
-            <div style={{
-              background: 'var(--lovers-cream)',
-              border: '1px solid rgba(214,54,72,.2)',
-              borderRadius: 24,
-              padding: 'clamp(48px, 7vw, 96px)',
-              textAlign: 'center',
-            }}>
-              <div style={{ fontSize: 52, marginBottom: 20 }}>🗺️</div>
-              <h2 className="lovers-h2" style={{ fontSize: 'clamp(24px, 3vw, 36px)', margin: '0 0 16px' }}>
-                Em breve
-              </h2>
-              <p style={{ color: 'var(--lovers-ink)', opacity: .65, maxWidth: '48ch', margin: '0 auto', fontSize: 16, lineHeight: 1.6 }}>
-                O Mapa da Doçura Lovers estará disponível em breve com todos os participantes da edição.
-              </p>
+            <div style={{ maxWidth: 640, margin: '0 auto' }}>
+              <EmptyState
+                lovers
+                icon="pin"
+                title="Mapa em breve"
+                subtitle="O Mapa da Doçura Lovers estará disponível em breve com todos os participantes da edição."
+              />
             </div>
           ) : (
             <div className="mapa-layout">
@@ -252,7 +246,7 @@ export function MapaPage({ navigate }) {
 
                 {/* Card do participante selecionado */}
                 {selected && (
-                  <div style={{
+                  <div className="mapa-selected-card" style={{
                     position: 'absolute', bottom: 16, left: 16, right: 16,
                     zIndex: 1000,
                     background: 'var(--lovers-cream)',
@@ -512,6 +506,20 @@ export function MapaPage({ navigate }) {
             .mapa-layout { grid-template-columns: 1fr; }
             .mapa-container { height: 360px; }
             .mapa-list { height: auto; }
+            .mapa-selected-card {
+              position: fixed !important;
+              bottom: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              border-radius: 20px 20px 0 0 !important;
+              max-height: 40vh;
+              overflow-y: auto;
+              animation: mapaSlideUp .25s ease;
+            }
+            @keyframes mapaSlideUp {
+              from { transform: translateY(100%); }
+              to   { transform: translateY(0); }
+            }
           }
         `}</style>
       </section>

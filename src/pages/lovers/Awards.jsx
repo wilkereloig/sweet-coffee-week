@@ -63,7 +63,7 @@ export function AwardsPage({ navigate }) {
           </div>
         </div>
         <style>{`
-          @media (max-width: 980px) {
+          @media (max-width: 880px) {
             .section .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
           }
           @media (max-width: 560px) {
@@ -74,7 +74,7 @@ export function AwardsPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
         <div className="wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'start' }}>
             <div>
               <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}><span className="dot" style={{ background: 'var(--lovers-red)' }}></span>AVALIAÇÃO</div>
               <h2 className="lovers-h2 mt-3">

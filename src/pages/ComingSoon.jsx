@@ -1,4 +1,5 @@
 import React from 'react'
+import { I } from '../components/icons'
 
 const INSTAGRAM = 'https://www.instagram.com/sweetcoffeeweek'
 
@@ -13,7 +14,12 @@ const C = {
   brown: '#6B2E14',
 }
 
-export function ComingSoonPage() {
+export function ComingSoonPage({ onAdminAccess }) {
+  function handleAdmin() {
+    const pwd = window.prompt('Senha:')
+    if (pwd === 'admineloi' && onAdminAccess) onAdminAccess()
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -234,23 +240,23 @@ export function ComingSoonPage() {
         }}>
           {[
             {
-              icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2l1.8 5.4 5.4 1.8-5.4 1.8L12 16.2l-1.8-5.4L4.8 9l5.4-1.8L12 2zM5 15l.9 2.7 2.7.9-2.7.9L5 22l-.9-2.7L1.4 18.4l2.7-.9L5 15zM19 2l.9 2.7 2.7.9-2.7.9L19 9.2l-.9-2.7-2.7-.9 2.7-.9L19 2z"/></svg>,
+              icon: <I.starFill width={22} height={22} aria-hidden />,
               title: 'Em breve', body: 'Uma nova edição está sendo preparada para surpreender o público com experiências especiais.', bg: '#F0006A', fg: C.cream, dur: '6s', delay: '0s',
             },
             {
-              icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+              icon: <I.heartLine width={22} height={22} aria-hidden />,
               title: 'Participantes', body: 'Docerias, cafeterias, confeitarias e marcas gastronômicas serão reveladas em breve.', bg: '#00B5C8', fg: C.cream, dur: '7.5s', delay: '1s',
             },
             {
-              icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>,
+              icon: <I.cup width={22} height={22} aria-hidden />,
               title: 'Combos exclusivos', body: 'Cada participante vai apresentar uma experiência criada especialmente para o festival.', bg: '#FBBA00', fg: C.ink, dur: '5.5s', delay: '0.5s',
             },
             {
-              icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+              icon: <I.pin width={22} height={22} aria-hidden />,
               title: 'Mapa da Doçura', body: 'Em breve, você poderá descobrir onde viver o Sweet & Coffee Week pela cidade.', bg: '#4E1D82', fg: C.cream, dur: '8s', delay: '1.5s',
             },
             {
-              icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M7 4h10l-1 7H8L7 4z"/><path d="M7 11c-1.5 0-3-1.5-3-3V4"/><path d="M17 11c1.5 0 3-1.5 3-3V4"/></svg>,
+              icon: <I.star width={22} height={22} aria-hidden />,
               title: 'Sweet & Coffee Week Awards', body: 'Depois de experimentar os combos, o público poderá compartilhar sua avaliação da experiência.', bg: '#6B2E14', fg: C.cream, dur: '6.5s', delay: '0.8s',
             },
           ].map((b, i) => (
@@ -401,6 +407,30 @@ export function ComingSoonPage() {
           Sweet &amp; Coffee Week · Natal/RN
         </div>
       </div>
+
+      {/* Botão admin discreto */}
+      <button
+        onClick={handleAdmin}
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '6px 10px',
+          fontFamily: FONT_BODY,
+          fontSize: 11,
+          color: C.ink,
+          opacity: .25,
+          letterSpacing: '.08em',
+          textTransform: 'uppercase',
+          zIndex: 100,
+        }}
+        aria-label="Acesso administrativo"
+      >
+        admin
+      </button>
     </div>
   )
 }

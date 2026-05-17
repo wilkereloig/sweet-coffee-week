@@ -30,7 +30,7 @@ export function HomePage({ navigate }) {
           <div className="home-hero-grid">
             <div className="home-hero-text">
               <h1 className="hero-inst__title" style={{ fontSize: 'clamp(56px, 8.5vw, 144px)' }}>
-                Sweet<br/>
+                Sweet <span className="roman">&amp;</span><br/>
                 <span className="roman">Coffee</span> <span className="accent">Week.</span>
               </h1>
               <p className="hero-inst__sub" style={{ marginTop: 28 }}>
@@ -185,7 +185,7 @@ export function HomePage({ navigate }) {
           .m-d { grid-column: span 8; grid-row: span 3; }
           .m-e { grid-column: span 3; grid-row: span 4; }
           .m-f { grid-column: span 2; grid-row: span 2; }
-          @media (max-width: 980px) {
+          @media (max-width: 880px) {
             .home-mosaic { grid-template-columns: repeat(6, 1fr); grid-auto-rows: 110px; }
             .m-a { grid-column: span 6; grid-row: span 3; }
             .m-b { grid-column: span 3; grid-row: span 3; }
@@ -226,7 +226,7 @@ export function HomePage({ navigate }) {
                 A F2 Experience é a empresa responsável pela elaboração, criação e execução do festival. Desenvolve eventos, ativações, conteúdos e experiências que conectam marcas, pessoas e cidade.
               </p>
               <div style={{ marginTop: 32, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <a href="#" className="btn btn-accent btn-lg">
+                <a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">
                   Conheça a F2 Experience <I.arrow />
                 </a>
                 <a href="#/edicoes" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}
@@ -402,10 +402,10 @@ export function HomePage({ navigate }) {
       </section>
 
       <style>{`
-        .home-two-col { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(28px, 5vw, 80px); }
+        .home-two-col { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 3vw, 40px); }
         @media (max-width: 880px) { .home-two-col { grid-template-columns: 1fr !important; } }
         .home-four-col { grid-template-columns: repeat(4, 1fr); }
-        @media (max-width: 980px) { .home-four-col { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 880px) { .home-four-col { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 560px) { .home-four-col { grid-template-columns: 1fr; } }
       `}</style>
     </div>

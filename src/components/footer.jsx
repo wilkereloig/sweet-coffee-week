@@ -16,7 +16,7 @@ export function SiteFooter({ navigate }) {
               A temporada mais doce de Natal. Um festival gastronômico que reúne marcas, sabores e cidade em uma rota de combos exclusivos.
             </p>
             <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-              <a href="#" aria-label="Instagram" style={{
+              <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer" aria-label="Instagram" style={{
                 width: 42, height: 42, borderRadius: 999,
                 border: '1px solid rgba(255,244,236,.25)',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -42,7 +42,7 @@ export function SiteFooter({ navigate }) {
             <a href="#/participar" onClick={go('/participar')}>Quero participar</a>
             <a href="#/apoiar" onClick={go('/apoiar')}>Quero apoiar</a>
             <a href="#/contato" onClick={go('/contato')}>Contato</a>
-            <a href="#">Imprensa</a>
+            <a href="mailto:imprensa@sweetcoffeeweek.com.br">Imprensa</a>
           </div>
         </div>
 

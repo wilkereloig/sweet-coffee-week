@@ -1,6 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { PhotoPH } from '../../components/placeholders'
+import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 
@@ -48,18 +48,19 @@ export function ComboPage({ navigate }) {
       <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
         <div className="wrap">
           {COMBOS.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 'clamp(40px, 7vw, 96px) 0' }}>
-              <div style={{ fontSize: 48, marginBottom: 20 }}>☕</div>
-              <h2 className="lovers-h2" style={{ fontSize: 'clamp(28px, 4vw, 48px)', margin: '0 0 16px' }}>
-                Em breve
-              </h2>
-              <p style={{ color: 'var(--lovers-ink)', opacity: .65, maxWidth: '40ch', margin: '0 auto', fontSize: 16, lineHeight: 1.6 }}>
-                Os combos da 16ª edição do Sweet & Coffee Week Lovers serão divulgados em breve. Fique de olho!
-              </p>
-              <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
-                 className="btn btn-lovers mt-4" style={{ display: 'inline-flex', marginTop: 28 }}>
-                Sobre a edição <I.arrow />
-              </a>
+            <div style={{ maxWidth: 560, margin: '0 auto' }}>
+              <EmptyState
+                lovers
+                icon="cup"
+                title="Combos em breve"
+                subtitle="Os combos da 16ª edição do Sweet & Coffee Week Lovers serão divulgados em breve. Fique de olho!"
+              />
+              <div style={{ textAlign: 'center', marginTop: 24 }}>
+                <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+                   className="btn btn-lovers">
+                  Sobre a edição <I.arrow />
+                </a>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
