@@ -13,12 +13,25 @@ function LoversQuickCard({ label, value, icon, rotation = 0, color = 'burgundy' 
   }
   const c = colorMap[color] || colorMap.burgundy
   return (
-    <div className="card" style={{ background: 'rgba(255,255,255,.88)', border: '1px solid rgba(135,14,45,.18)', transform: `rotate(${rotation}deg)`, padding: 24 }}>
-      <div style={{ color: c, marginBottom: 16 }}>
+    <div className="card" style={{
+      background: 'rgba(255,255,255,.88)',
+      border: '1px solid rgba(135,14,45,.18)',
+      transform: `rotate(${rotation}deg)`,
+      padding: '28px 24px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      gap: 10,
+      minHeight: 160,
+      height: '100%',
+    }}>
+      <div style={{ color: c }}>
         <IconComp width={28} height={28} />
       </div>
-      <div className="mono" style={{ color: c }}>{label}</div>
-      <div className="lovers-h3" style={{ marginTop: 6, fontSize: 36 }}>{value}</div>
+      <div className="mono" style={{ color: c, letterSpacing: '.1em' }}>{label}</div>
+      <div className="lovers-h3" style={{ fontSize: 'clamp(28px, 3vw, 40px)', lineHeight: 1, margin: 0 }}>{value}</div>
     </div>
   )
 }
