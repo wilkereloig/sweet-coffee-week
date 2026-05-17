@@ -102,11 +102,11 @@ export function LoversPage({ navigate }) {
 
         <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
           <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-            <h1 className="lovers-h1" style={{ margin: '0 0 32px' }}>
-              Sweet &<br/>
-              Coffee<br/>
-              <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers</span><HeartTiny size={56} color="var(--lovers-pink)" />
-            </h1>
+            <img
+              src="/images/lovers-logo.svg"
+              alt="Sweet & Coffee Week Lovers"
+              style={{ width: '100%', maxWidth: 520, margin: '0 auto 32px', display: 'block' }}
+            />
 
             <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 24px', marginBottom: 32, display: 'inline-block' }}>
               <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(32px, 4vw, 52px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
