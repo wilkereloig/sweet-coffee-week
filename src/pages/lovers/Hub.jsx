@@ -97,54 +97,60 @@ export function LoversPage({ navigate }) {
       <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--lovers-yellow)' }}>
 
         <div className="wrap" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(32px, 5vw, 52px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
-          <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: 420, margin: '0 auto 32px' }}>
-              <img
-                src="/images/sweet-logo.svg"
-                alt="Sweet & Coffee Week"
-                className="hero-sweet-logo"
-                style={{ width: '85%', display: 'block', margin: '0 auto', position: 'relative', zIndex: 2 }}
-              />
-              <svg
-                className="hero-lovers-logo"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 894.87 280.95"
-                style={{ width: '60%', display: 'block', margin: '0 auto', marginTop: '-4%', position: 'relative', zIndex: 1 }}
-                aria-label="Lovers"
-              >
-                <g><path fill="#f10767" d="M0,4.73h57.93v221.06h58.32v50.44H0V4.73Z"/></g>
-                <g><path fill="#f10767" d="M113.49,140.28C113.49,50.44,139.1,0,194.27,0s80.38,50.44,80.38,140.28-25.22,140.67-80.38,140.67-80.78-50.44-80.78-140.67Z"/></g>
-                <g className="lovers-heart"><path fill="#7f0018" d="M138.37,140.77c-4.11-19.41-.29-45.26,13.11-58,5.95-5.66,14.52-6.72,21.07-1.74,11.67,8.88,15.04,23.01,18.01,38.31,8.28-21.3,23.84-52.56,45.56-58.69,8.98-2.54,17.34,2.09,19.3,11.38,2.14,10.15.78,20.51-2.36,30.69-13.62,44.09-44.58,88.67-73.31,125.79-17.1-27.03-35.34-55.76-41.37-87.74Z"/></g>
-                <g><path fill="#f10767" d="M272.29,4.73h59.11l26.01,201.75L383.8,4.73h59.11l-48.86,271.49h-72.11L272.29,4.73Z"/></g>
-                <g><path fill="#f10767" d="M450.79,4.73h119v50.44h-61.08v61.47h53.98v52.01h-53.98v57.14h63.04v50.44h-120.97V4.73Z"/></g>
-                <g><path fill="#f10767" d="M587.91,4.73h75.26c44.53,0,72.9,34.28,71.32,86.29-1.58,37.44-17.73,56.74-34.28,66.99l39.8,118.21h-61.08l-28.76-103.63h-5.91v103.63h-56.35V4.73ZM654.11,130.82c13,0,19.7-13.79,19.7-37.83s-6.7-37.43-19.7-37.43h-9.85v75.26h9.85Z"/></g>
-                <g><path fill="#f10767" d="M743.95,198.99h58.71c0,25.61,7.88,31.92,16.94,31.92,9.85,0,16.55-7.49,16.55-24.43,0-15.37-7.88-27.19-26.4-40.59l-17.73-13.01c-31.52-22.85-46.5-50.04-46.5-80.38,0-45.71,28.77-72.5,74.48-72.5s68.56,24.43,68.56,80.78h-58.32c0-28.37-7.49-30.74-13.4-30.74-8.67,0-12.61,9.46-12.61,23.25,0,17.34,8.27,27.58,24.04,38.61l12.21,8.28c27.58,17.34,54.38,39.01,54.38,82.75,0,53.59-37.04,78.02-75.26,78.02-46.1,0-75.66-24.43-75.66-81.96Z"/></g>
-              </svg>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px, 5vw, 64px)', alignItems: 'center' }}>
+
+            {/* Logos — coluna esquerda */}
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ position: 'relative', width: '100%', maxWidth: 380 }}>
+                <img
+                  src="/images/sweet-logo.svg"
+                  alt="Sweet & Coffee Week"
+                  className="hero-sweet-logo"
+                  style={{ width: '85%', display: 'block', margin: '0 auto', position: 'relative', zIndex: 2 }}
+                />
+                <svg
+                  className="hero-lovers-logo"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 894.87 280.95"
+                  style={{ width: '60%', display: 'block', margin: '0 auto', marginTop: '-4%', position: 'relative', zIndex: 1 }}
+                  aria-label="Lovers"
+                >
+                  <g><path fill="#f10767" d="M0,4.73h57.93v221.06h58.32v50.44H0V4.73Z"/></g>
+                  <g><path fill="#f10767" d="M113.49,140.28C113.49,50.44,139.1,0,194.27,0s80.38,50.44,80.38,140.28-25.22,140.67-80.38,140.67-80.78-50.44-80.78-140.67Z"/></g>
+                  <g className="lovers-heart"><path fill="#7f0018" d="M138.37,140.77c-4.11-19.41-.29-45.26,13.11-58,5.95-5.66,14.52-6.72,21.07-1.74,11.67,8.88,15.04,23.01,18.01,38.31,8.28-21.3,23.84-52.56,45.56-58.69,8.98-2.54,17.34,2.09,19.3,11.38,2.14,10.15.78,20.51-2.36,30.69-13.62,44.09-44.58,88.67-73.31,125.79-17.1-27.03-35.34-55.76-41.37-87.74Z"/></g>
+                  <g><path fill="#f10767" d="M272.29,4.73h59.11l26.01,201.75L383.8,4.73h59.11l-48.86,271.49h-72.11L272.29,4.73Z"/></g>
+                  <g><path fill="#f10767" d="M450.79,4.73h119v50.44h-61.08v61.47h53.98v52.01h-53.98v57.14h63.04v50.44h-120.97V4.73Z"/></g>
+                  <g><path fill="#f10767" d="M587.91,4.73h75.26c44.53,0,72.9,34.28,71.32,86.29-1.58,37.44-17.73,56.74-34.28,66.99l39.8,118.21h-61.08l-28.76-103.63h-5.91v103.63h-56.35V4.73ZM654.11,130.82c13,0,19.7-13.79,19.7-37.83s-6.7-37.43-19.7-37.43h-9.85v75.26h9.85Z"/></g>
+                  <g><path fill="#f10767" d="M743.95,198.99h58.71c0,25.61,7.88,31.92,16.94,31.92,9.85,0,16.55-7.49,16.55-24.43,0-15.37-7.88-27.19-26.4-40.59l-17.73-13.01c-31.52-22.85-46.5-50.04-46.5-80.38,0-45.71,28.77-72.5,74.48-72.5s68.56,24.43,68.56,80.78h-58.32c0-28.37-7.49-30.74-13.4-30.74-8.67,0-12.61,9.46-12.61,23.25,0,17.34,8.27,27.58,24.04,38.61l12.21,8.28c27.58,17.34,54.38,39.01,54.38,82.75,0,53.59-37.04,78.02-75.26,78.02-46.1,0-75.66-24.43-75.66-81.96Z"/></g>
+                </svg>
+              </div>
             </div>
 
-            <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 24px', marginBottom: 32, display: 'inline-block' }}>
-              <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(32px, 4vw, 52px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
-                Feito de amor,<br/>recriando sabores.
+            {/* Conteúdo — coluna direita */}
+            <div>
+              <div style={{ borderTop: '2px solid var(--lovers-pink)', borderBottom: '2px solid var(--lovers-pink)', padding: '18px 0', marginBottom: 28 }}>
+                <p style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(28px, 3.5vw, 48px)', color: 'var(--lovers-brown)', lineHeight: 1.18, margin: 0 }}>
+                  Feito de amor,<br/>recriando sabores.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(24px, 3vw, 40px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
+                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 20, fontWeight: 300 }}>·</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
+                <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 20, fontWeight: 300 }}>·</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
+              </div>
+
+              <p style={{ fontSize: 17, color: 'var(--lovers-brown)', opacity: .82, margin: '0 0 28px', maxWidth: '42ch', lineHeight: 1.55 }}>
+                Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
               </p>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
-              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
-              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
-            </div>
-
-            <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, margin: '0 auto 32px', maxWidth: '50ch' }}>
-              Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
-            </p>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
               <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
                  className="btn btn-lovers btn-lg">
                 Ver participantes <I.arrow />
               </a>
             </div>
+
           </div>
         </div>
       </section>
