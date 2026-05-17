@@ -18,7 +18,7 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
-const SITE_COMING_SOON = true
+const SITE_COMING_SOON = import.meta.env.VITE_COMING_SOON === 'true'
 
 export default function App() {
   const [path, navigate] = useRoute()
