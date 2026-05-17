@@ -151,15 +151,15 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-pink)' }}>
         <div className="wrap" style={{ maxWidth: 720, margin: '0 auto' }}>
-          <div className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
-            <span className="dot" style={{ background: 'var(--lovers-burgundy)' }}></span>
+          <div className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
+            <span className="dot" style={{ background: 'var(--lovers-cream)' }}></span>
             Sobre a edição
           </div>
-          <h2 className="lovers-h2 mt-3" style={{ marginBottom: 16 }}>
+          <h2 className="lovers-h2 mt-3" style={{ marginBottom: 16, color: 'var(--lovers-cream)' }}>
             A proposta não é repetir.<br/>
             É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
           </h2>
-          <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-brown)', opacity: .85, margin: 0 }}>
+          <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-cream)', opacity: .92, margin: 0 }}>
             Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
           </p>
         </div>
@@ -167,7 +167,7 @@ export function LoversPage({ navigate }) {
         <div className="wrap mt-4">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(16px, 2vw, 28px)', alignItems: 'stretch' }}>
             <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
-            <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="pink" />
+            <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="yellow" />
             <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" rotation={-0.5} color="cyan" />
             <LoversQuickCard label="SABORES" value="Recriados" icon="cup" rotation={1} color="coral" />
           </div>
