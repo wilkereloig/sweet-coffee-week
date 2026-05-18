@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { I } from './icons'
 
 export function PhotoPH({ label = 'FOTO', aspect = '4/3', icon = 'donut', lovers = false, rotate = 0, size = 'md' }) {
@@ -96,9 +96,9 @@ export function BlurredComboPH({ tema = 'Tema recriado', label = 'EM BREVE' }) {
         </div>
       </div>
       <div style={{ padding: 20 }}>
-        <div className="mono" style={{ color: 'var(--ink-mute)' }}>—</div>
+        <div className="mono" style={{ color: 'var(--ink-mute)' }}>â€”</div>
         <div className="h-3 mt-1" style={{ color: 'var(--ink-soft)' }}>Nome do combo</div>
-        <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>tema · bairro</div>
+        <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>tema Â· bairro</div>
       </div>
     </div>
   )
@@ -119,10 +119,10 @@ export function ParticipantePH({ accent = 'linear-gradient(135deg, #F4D2BB, #E8B
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'var(--font-serif)', fontStyle: 'italic',
           fontSize: 22, color: textColor,
-        }}>—</div>
+        }}>â€”</div>
       </div>
       <div className="h-3" style={{ color: 'var(--ink-soft)' }}>Loja participante</div>
-      <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>bairro · zona</div>
+      <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>bairro Â· zona</div>
     </div>
   )
 }
@@ -198,14 +198,14 @@ export function EmptyState({ title, subtitle, icon = 'cal', lovers = false }) {
     <div style={{
       textAlign: 'center',
       padding: 'clamp(40px, 6vw, 80px) 24px',
-      border: `1.5px dashed ${lovers ? 'rgba(214,54,72,.35)' : 'var(--line-strong)'}`,
+      border: `1.5px dashed ${lovers ? 'rgba(135,14,45,.35)' : 'var(--line-strong)'}`,
       borderRadius: 22,
       background: lovers ? 'rgba(255,241,230,.5)' : 'transparent',
     }}>
       <div style={{
         width: 64, height: 64, margin: '0 auto 20px',
         borderRadius: 999,
-        background: lovers ? 'rgba(214,54,72,.1)' : 'rgba(43,24,16,.06)',
+        background: lovers ? 'rgba(135,14,45,.1)' : 'rgba(43,24,16,.06)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: lovers ? 'var(--lovers-red)' : 'var(--ink-soft)',
       }}>
@@ -216,3 +216,4 @@ export function EmptyState({ title, subtitle, icon = 'cal', lovers = false }) {
     </div>
   )
 }
+
