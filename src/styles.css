@@ -163,6 +163,23 @@ button:disabled { cursor: not-allowed; }
   .home-four-col { grid-template-columns: 1fr; }
 }
 
+/* ETAPA 5: colapsa grids inline 2-col / 4-col em mobile */
+@media (max-width: 720px) {
+  .wrap [style*="1.2fr 1fr"],
+  .wrap [style*="1.1fr 1fr"],
+  .wrap [style*="1.3fr 1fr"],
+  .wrap [style*="repeat(4, 1fr)"],
+  .wrap [style*="repeat(4,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 560px) {
+  .wrap [style*="repeat(3, 1fr)"],
+  .wrap [style*="repeat(3,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ---------- BOTÕES ---------- */
 .btn {
   display: inline-flex;
