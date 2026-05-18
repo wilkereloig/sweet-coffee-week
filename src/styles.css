@@ -198,7 +198,7 @@ button:disabled { cursor: not-allowed; }
 .btn-ghost { background: transparent; color: var(--ink-soft); border-color: transparent; }
 .btn-ghost:hover { background: rgba(43,24,16,.06); color: var(--ink); }
 .btn-lovers { background: var(--lovers-red); color: #fff; text-transform: uppercase; }
-.btn-lovers:hover { background: #B82334; }
+.btn-lovers:hover { background: var(--lovers-rust); }
 .btn-lovers-outline { background: transparent; border: 1px solid var(--lovers-burgundy); color: var(--lovers-burgundy); text-transform: uppercase; }
 .btn-lovers-outline:hover { background: rgba(135,14,45,.06); }
 .kv-lovers .btn { text-transform: uppercase; }
