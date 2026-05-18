@@ -96,9 +96,9 @@ export function BlurredComboPH({ tema = 'Tema recriado', label = 'EM BREVE' }) {
         </div>
       </div>
       <div style={{ padding: 20 }}>
-        <div className="mono" style={{ color: 'var(--ink-mute)' }}>â€”</div>
+        <div className="mono" style={{ color: 'var(--ink-mute)' }}>—</div>
         <div className="h-3 mt-1" style={{ color: 'var(--ink-soft)' }}>Nome do combo</div>
-        <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>tema Â· bairro</div>
+        <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>tema · bairro</div>
       </div>
     </div>
   )
@@ -119,10 +119,10 @@ export function ParticipantePH({ accent = 'linear-gradient(135deg, #F4D2BB, #E8B
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'var(--font-serif)', fontStyle: 'italic',
           fontSize: 22, color: textColor,
-        }}>â€”</div>
+        }}>—</div>
       </div>
       <div className="h-3" style={{ color: 'var(--ink-soft)' }}>Loja participante</div>
-      <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>bairro Â· zona</div>
+      <div className="mono mt-1" style={{ color: 'var(--ink-mute)' }}>bairro · zona</div>
     </div>
   )
 }

@@ -84,7 +84,7 @@ function MapPreview({ lovers = false, pins = 7 }) {
         fontSize: 11,
         letterSpacing: '.1em',
         color: 'var(--ink-soft)',
-      }}>NATAL Â· RN</div>
+      }}>NATAL · RN</div>
     </div>
   )
 }
@@ -129,15 +129,15 @@ export function LoversPage({ navigate }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(135,14,45,.2)', borderBottom: '1px solid rgba(135,14,45,.2)', padding: '14px 0', marginBottom: 28, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4â€“14 JUN</span>
-              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>Â·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL Â· RN</span>
-              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>Â·</span>
+              <span style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 'clamp(28px, 3.5vw, 44px)', color: 'var(--lovers-burgundy)', letterSpacing: '0.04em', lineHeight: 1 }}>4–14 JUN</span>
+              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>NATAL · RN</span>
+              <span style={{ color: 'rgba(135,14,45,.3)', fontSize: 24, lineHeight: 1, fontWeight: 300 }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', color: 'var(--lovers-brown)', opacity: .65, textTransform: 'uppercase' }}>11 DIAS</span>
             </div>
 
             <p style={{ fontSize: 18, color: 'var(--lovers-brown)', opacity: .82, margin: '0 auto 32px', maxWidth: '50ch' }}>
-              Uma ediÃ§Ã£o feita para os Sweet Lovers, revisitando temas que jÃ¡ marcaram a histÃ³ria do festival e recriando sabores com amor, memÃ³ria e criatividade.
+              Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
               <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
@@ -153,20 +153,20 @@ export function LoversPage({ navigate }) {
         <div className="wrap" style={{ maxWidth: 720, margin: '0 auto' }}>
           <div className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
             <span className="dot" style={{ background: 'var(--lovers-cream)' }}></span>
-            Sobre a ediÃ§Ã£o
+            Sobre a edição
           </div>
           <h2 className="lovers-h2 mt-3" style={{ marginBottom: 16, color: 'var(--lovers-cream)' }}>
-            A proposta nÃ£o Ã© repetir.<br/>
-            Ã‰ <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
+            A proposta não é repetir.<br/>
+            É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
           </h2>
           <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-cream)', opacity: .92, margin: 0 }}>
-            Nesta ediÃ§Ã£o, cada participante escolhe um tema que jÃ¡ fez parte da histÃ³ria do Sweet & Coffee Week e cria um combo inÃ©dito inspirado nele. A proposta nÃ£o Ã© repetir: Ã© recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memÃ³ria e criatividade.</span>
+            Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
           </p>
         </div>
 
         <div className="wrap mt-4">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(16px, 2vw, 28px)', alignItems: 'stretch' }}>
-            <LoversQuickCard label="EDIÃ‡ÃƒO" value="16Âª" icon="cal" rotation={-1} color="burgundy" />
+            <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
             <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="yellow" />
             <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" rotation={-0.5} color="cyan" />
             <LoversQuickCard label="SABORES" value="Recriados" icon="cup" rotation={1} color="coral" />
@@ -175,7 +175,7 @@ export function LoversPage({ navigate }) {
       </section>
 
       <style>{`
-        /* Hero Lovers â€” 2 colunas no desktop, empilha no mobile */
+        /* Hero Lovers — 2 colunas no desktop, empilha no mobile */
         .lovers-hero-grid { grid-template-columns: 1fr 1fr !important; }
         .lovers-hero-photo { min-height: 460px; }
         .lovers-hero-content { text-align: left; }
@@ -199,7 +199,7 @@ export function LoversPage({ navigate }) {
         .hero-lovers-logo { animation: fadeSlideUp .7s cubic-bezier(.22,1,.36,1) .25s both; }
         .lovers-heart { transform-origin: 180px 140px; animation: heartbeat 1.4s ease-in-out 1s infinite; }
 
-        /* Grid de 4 cards (seÃ§Ã£o amarela e participantes) */
+        /* Grid de 4 cards (seção amarela e participantes) */
         .grid-4-cards { grid-template-columns: repeat(4, 1fr); }
 
         @media (max-width: 880px) {
@@ -236,7 +236,7 @@ export function LoversPage({ navigate }) {
             ))}
           </div>
           <p className="mono" style={{ textAlign: 'center', marginTop: 24, color: 'var(--ink-mute)' }}>
-            A lista completa dos participantes serÃ¡ publicada antes do inÃ­cio da ediÃ§Ã£o.
+            A lista completa dos participantes será publicada antes do início da edição.
           </p>
         </div>
       </section>
@@ -246,9 +246,9 @@ export function LoversPage({ navigate }) {
           <div style={{ marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
               <span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>
-              COMBOS DA EDIÃ‡ÃƒO
+              COMBOS DA EDIÇÃO
             </div>
-            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Cada combo,<br/><span style={{ color: 'var(--lovers-yellow)' }}>uma recriaÃ§Ã£o.</span></h2>
+            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Cada combo,<br/><span style={{ color: 'var(--lovers-yellow)' }}>uma recriação.</span></h2>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16, justifyContent: 'center' }}>
               {['DOCE', 'SALGADO', 'BEBIDA'].map(t => (
                 <span key={t} style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 14px', borderRadius: 999, background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.08em' }}>{t}</span>
@@ -275,7 +275,7 @@ export function LoversPage({ navigate }) {
               </div>
               <div className="lovers-h3" style={{ color: 'var(--lovers-cream)', marginBottom: 8 }}>Combos em breve</div>
               <div style={{ color: 'rgba(255,232,210,.75)', maxWidth: 440, margin: '0 auto', fontSize: 15 }}>
-                A lista completa dos combos da ediÃ§Ã£o serÃ¡ publicada antes do inÃ­cio do festival.
+                A lista completa dos combos da edição será publicada antes do início do festival.
               </div>
             </div>
           </div>
@@ -287,10 +287,10 @@ export function LoversPage({ navigate }) {
           <div style={{ marginBottom: 32 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
               <span className="dot" style={{ background: 'var(--lovers-brown)' }}></span>
-              MAPA DA DOÃ‡URA LOVERS
+              MAPA DA DOÇURA LOVERS
             </div>
             <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-brown)' }}>Encontre os<br/>participantes,<br/><span style={{ color: 'var(--lovers-burgundy)' }}>trace sua rota.</span></h2>
-            <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .82 }}>Encontre os participantes da ediÃ§Ã£o e trace sua rota para viver o Sweet pela cidade.</p>
+            <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .82 }}>Encontre os participantes da edição e trace sua rota para viver o Sweet pela cidade.</p>
             <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }} className="btn btn-secondary"
                style={{ borderColor: 'var(--lovers-brown)', color: 'var(--lovers-brown)', marginTop: 24, display: 'inline-flex' }}>
               Abrir mapa completo <I.arrow />
@@ -300,7 +300,7 @@ export function LoversPage({ navigate }) {
           <MapPreview lovers />
 
           <p className="mono" style={{ textAlign: 'center', marginTop: 20, color: 'var(--lovers-brown)', opacity: .65 }}>
-            O mapa completo da ediÃ§Ã£o estarÃ¡ disponÃ­vel em breve.
+            O mapa completo da edição estará disponível em breve.
           </p>
         </div>
       </section>
@@ -330,10 +330,10 @@ export function LoversPage({ navigate }) {
                 </div>
                 <h2 className="lovers-h2" style={{ color: 'var(--lovers-ink)', margin: 0 }}>
                   Avalie sua<br/>
-                  <span style={{ color: 'var(--lovers-pink)' }}>experiÃªncia.</span>
+                  <span style={{ color: 'var(--lovers-pink)' }}>experiência.</span>
                 </h2>
                 <p style={{ color: 'var(--lovers-brown)', opacity: .85, fontSize: 17, maxWidth: '52ch', marginTop: 20 }}>
-                  O Sweet & Coffee Week Awards Ã© a premiaÃ§Ã£o do festival. Em breve, vocÃª poderÃ¡ avaliar os combos que experimentou na ediÃ§Ã£o Lovers.
+                  O Sweet & Coffee Week Awards é a premiação do festival. Em breve, você poderá avaliar os combos que experimentou na edição Lovers.
                 </p>
                 <a href="#/lovers/awards" onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}
                    className="btn mt-4"
@@ -346,16 +346,16 @@ export function LoversPage({ navigate }) {
                   background: 'var(--lovers-pink)', color: 'var(--lovers-cream)', padding: 24, borderRadius: 22, transform: 'rotate(2deg)',
                   boxShadow: '0 18px 40px rgba(0,0,0,.18)',
                 }}>
-                  <div className="mono mb-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>SUA AVALIAÃ‡ÃƒO</div>
+                  <div className="mono mb-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>SUA AVALIAÇÃO</div>
                   <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
                     {Array.from({ length: 5 }).map((_, i) => (
                       <I.starFill key={i} width={26} height={26} style={{ color: '#F2B400' }} />
                     ))}
                   </div>
                   <div className="lovers-h3" style={{ fontSize: 26, lineHeight: 1.1, marginTop: 4 }}>
-                    Sua experiÃªncia
+                    Sua experiência
                   </div>
-                  <div className="mono mt-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>AVALIAÃ‡ÃƒO EM BREVE</div>
+                  <div className="mono mt-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>AVALIAÇÃO EM BREVE</div>
                 </div>
                 <div className="sticker-decorative" style={{ position: 'absolute', top: -16, right: -10, transform: 'rotate(12deg)' }}>
                   <span className="sticker">avalie!</span>

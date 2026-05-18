@@ -32,8 +32,8 @@ export function ComboDetailPage({ navigate, slug }) {
           <EmptyState
             lovers
             icon="cup"
-            title="Combo nÃ£o encontrado"
-            subtitle="O combo que vocÃª procura nÃ£o existe ou ainda nÃ£o foi publicado."
+            title="Combo não encontrado"
+            subtitle="O combo que você procura não existe ou ainda não foi publicado."
           />
           <div style={{ textAlign: 'center', marginTop: 24 }}>
             <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
@@ -60,7 +60,7 @@ export function ComboDetailPage({ navigate, slug }) {
                 <span className="sticker">recriado</span>
               </div>
               <div className="sticker-decorative extra" style={{ position: 'absolute', bottom: -16, left: 24, transform: 'rotate(-3deg)' }}>
-                <TapeStrip rotate={-3}>16Âª EDIÃ‡ÃƒO Â· LOVERS</TapeStrip>
+                <TapeStrip rotate={-3}>16ª EDIÇÃO · LOVERS</TapeStrip>
               </div>
             </div>
 
@@ -92,7 +92,7 @@ export function ComboDetailPage({ navigate, slug }) {
                     <span>{participant.neighborhood}</span>
                   </>}
                   {participant?.address && <>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>ENDEREÃ‡O</span>
+                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>ENDEREÇO</span>
                     <span>{participant.address}</span>
                   </>}
                   {participant?.instagram && <>
@@ -112,7 +112,7 @@ export function ComboDetailPage({ navigate, slug }) {
 
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
                 {hasRoute && (
-                  <button className="btn btn-lovers"><I.route /> TraÃ§ar rota</button>
+                  <button className="btn btn-lovers"><I.route /> Traçar rota</button>
                 )}
                 <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
                    className="btn btn-lovers-outline">
@@ -120,7 +120,7 @@ export function ComboDetailPage({ navigate, slug }) {
                 </a>
                 <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
                    className="btn btn-lovers-outline">
-                  Ver mapa da ediÃ§Ã£o
+                  Ver mapa da edição
                 </a>
               </div>
             </div>
@@ -143,23 +143,23 @@ export function ComboDetailPage({ navigate, slug }) {
               O COMBO INCLUI
             </div>
             <h2 className="lovers-h2 mt-3">
-              TrÃªs peÃ§as,<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>uma experiÃªncia.</span>
+              Três peças,<br/>
+              <span style={{ color: 'var(--lovers-pink)' }}>uma experiência.</span>
             </h2>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
             <ComboItemCard n="01" tipo="DOCE"
               titulo={combo.sweetDescription ? combo.name : 'Nome do doce'}
-              desc={combo.sweetDescription || 'DescriÃ§Ã£o do doce em breve.'}
+              desc={combo.sweetDescription || 'Descrição do doce em breve.'}
               icon="donut" />
             <ComboItemCard n="02" tipo="SALGADO"
               titulo={combo.savoryDescription ? combo.name : 'Nome do salgado'}
-              desc={combo.savoryDescription || 'DescriÃ§Ã£o do salgado em breve.'}
+              desc={combo.savoryDescription || 'Descrição do salgado em breve.'}
               icon="croissant" />
             <ComboItemCard n="03" tipo="BEBIDA"
               titulo={combo.drinkDescription ? combo.name : 'Nome da bebida'}
-              desc={combo.drinkDescription || 'DescriÃ§Ã£o da bebida em breve.'}
+              desc={combo.drinkDescription || 'Descrição da bebida em breve.'}
               icon="cup" />
           </div>
         </div>
@@ -185,14 +185,14 @@ export function ComboDetailPage({ navigate, slug }) {
             alignItems: 'center',
           }}>
             <div>
-              <div className="mono" style={{ opacity: .8 }}>NÃƒO PERCA</div>
+              <div className="mono" style={{ opacity: .8 }}>NÃO PERCA</div>
               <div className="lovers-h3" style={{ fontSize: 36, lineHeight: 1.05, marginTop: 6 }}>
-                Confira todos os combos no Mapa da DoÃ§ura
+                Confira todos os combos no Mapa da Doçura
               </div>
             </div>
             <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
                className="btn" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-red)' }}>
-              Ver mapa da ediÃ§Ã£o <I.arrow />
+              Ver mapa da edição <I.arrow />
             </a>
           </div>
           <style>{`
