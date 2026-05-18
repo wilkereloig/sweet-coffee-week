@@ -51,7 +51,7 @@ export function AwardsPage({ navigate }) {
               const IconComp = I[s.icon] || I.star
               return (
                 <div key={s.n} className="card" style={{ background: 'var(--bg-card)', borderColor: 'rgba(135,14,45,.15)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+                  <div className="howit-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
                     <span className="lovers-h3" style={{ fontSize: 44, lineHeight: 1, color: 'var(--lovers-pink)' }}>{s.n}</span>
                     <div style={{ color: 'var(--lovers-red)' }}><IconComp width={26} height={26} /></div>
                   </div>
