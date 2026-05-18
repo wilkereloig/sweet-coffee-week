@@ -881,3 +881,34 @@ button:disabled { cursor: not-allowed; }
 }
 .page-enter .howit-row { justify-content: space-between !important; text-align: left !important; }
 .page-enter .howit-row > * { margin-left: 0 !important; margin-right: 0 !important; }
+
+/* Links bloqueados (Em breve) */
+.sidebar__link.locked {
+  opacity: .5;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: auto;
+}
+.sidebar__link.locked:hover { background: transparent; }
+.lovers-dropdown .locked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  color: var(--ink);
+  opacity: .5;
+  cursor: not-allowed;
+}
+.lovers-dropdown .locked:hover { background: transparent; }
+.footer-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: .5;
+  cursor: not-allowed;
+}

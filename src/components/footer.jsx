@@ -33,9 +33,9 @@ export function SiteFooter({ navigate }) {
           </div>
           <div>
             <h4>Edição atual</h4>
-            <a href="#/lovers/combos" onClick={go('/lovers/combos')}>Combos</a>
-            <a href="#/lovers/mapa" onClick={go('/lovers/mapa')}>Mapa da Doçura</a>
-            <a href="#/lovers/awards" onClick={go('/lovers/awards')}>Sweet & Coffee Week Awards</a>
+            <span className="footer-locked" title="Em breve" aria-disabled="true">Combos <I.lock /></span>
+            <span className="footer-locked" title="Em breve" aria-disabled="true">Mapa da Doçura <I.lock /></span>
+            <span className="footer-locked" title="Em breve" aria-disabled="true">Sweet & Coffee Week Awards <I.lock /></span>
           </div>
           <div>
             <h4>Participar</h4>

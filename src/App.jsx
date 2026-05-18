@@ -47,14 +47,10 @@ export default function App() {
   switch (route) {
     case 'home':         page = <HomePage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = <ComboPage navigate={navigate} />; break
-    case 'combo-detail': {
-      const slug = path.replace('/lovers/combos/', '')
-      page = <ComboDetailPage navigate={navigate} slug={slug} />
-      break
-    }
-    case 'mapa':         page = <MapaPage navigate={navigate} />; break
-    case 'awards':       page = <AwardsPage navigate={navigate} />; break
+    case 'combos':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'combo-detail': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'mapa':         page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'awards':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break

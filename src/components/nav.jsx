@@ -12,9 +12,9 @@ export const NAV_LINKS = [
 
 const LOVERS_LINKS = [
   { id: 'lovers', label: 'Sobre a edição',      href: '#/lovers' },
-  { id: 'combos', label: 'Combos',              href: '#/lovers/combos' },
-  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa' },
-  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards' },
+  { id: 'combos', label: 'Combos',              href: '#/lovers/combos',  locked: true },
+  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa',    locked: true },
+  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards', locked: true },
 ]
 
 const IS_LOVERS_ROUTE = ['lovers', 'combos', 'combo-detail', 'mapa', 'awards']
@@ -79,12 +79,22 @@ function SiteSidebar({ route, navigate, isLovers }) {
           <HeartTiny size={9} color="var(--lovers-cream)" /> Edição Lovers
         </div>
         {LOVERS_LINKS.map((l) => (
-          <a key={l.id}
-             href={l.href}
-             className={`sidebar__link${route === l.id || (l.id === 'combos' && route === 'combo-detail') ? ' lovers-active' : ''}`}
-             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-            {l.label}
-          </a>
+          l.locked ? (
+            <span key={l.id}
+                  className="sidebar__link locked"
+                  title="Em breve"
+                  aria-disabled="true">
+              {l.label}
+              <I.lock />
+            </span>
+          ) : (
+            <a key={l.id}
+               href={l.href}
+               className={`sidebar__link${route === l.id || (l.id === 'combos' && route === 'combo-detail') ? ' lovers-active' : ''}`}
+               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+              {l.label}
+            </a>
+          )
         ))}
       </div>
 
@@ -163,12 +173,19 @@ function LoversDropdown({ route, navigate }) {
             <span className="mono" style={{ fontSize: 10, letterSpacing: '.12em', color: 'var(--lovers-red)' }}>SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO</span>
           </div>
           {LOVERS_LINKS.map((l) => (
-            <a key={l.id}
-               href={l.href}
-               className={route === l.id ? 'active' : ''}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setOpen(false) }}>
-              {l.label}
-            </a>
+            l.locked ? (
+              <span key={l.id} className="locked" title="Em breve" aria-disabled="true">
+                {l.label}
+                <I.lock />
+              </span>
+            ) : (
+              <a key={l.id}
+                 href={l.href}
+                 className={route === l.id ? 'active' : ''}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setOpen(false) }}>
+                {l.label}
+              </a>
+            )
           ))}
         </div>
       )}
@@ -226,12 +243,20 @@ export function SiteHeader({ route, navigate }) {
             <HeartTiny size={11} color="var(--lovers-red)" /> Edição Lovers
           </div>
           {LOVERS_LINKS.map((l) => (
-            <a key={l.id}
-               href={l.href}
-               style={{ color: route === l.id ? 'var(--lovers-red)' : undefined }}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-              {l.label}
-            </a>
+            l.locked ? (
+              <span key={l.id} className="locked" title="Em breve" aria-disabled="true"
+                    style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
+                {l.label}
+                <I.lock />
+              </span>
+            ) : (
+              <a key={l.id}
+                 href={l.href}
+                 style={{ color: route === l.id ? 'var(--lovers-red)' : undefined }}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                {l.label}
+              </a>
+            )
           ))}
         </div>
         </div>

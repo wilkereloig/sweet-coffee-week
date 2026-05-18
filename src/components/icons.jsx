@@ -114,6 +114,12 @@ export const I = {
       <path d="M3 8.5l3.5 3.5 7-8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  lock: (p = {}) => (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" {...p}>
+      <rect x="3" y="7" width="10" height="7" rx="1.4" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
 }
 
 export function LogoMark({ size = 32, color = 'currentColor' }) {
