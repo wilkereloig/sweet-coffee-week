@@ -878,3 +878,5 @@ button:disabled { cursor: not-allowed; }
   border-left: 0 !important;
   padding-left: 0 !important;
 }
+.page-enter .howit-row { justify-content: space-between !important; text-align: left !important; }
+.page-enter .howit-row > * { margin-left: 0 !important; margin-right: 0 !important; }

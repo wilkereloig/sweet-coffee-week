@@ -7,7 +7,7 @@ function HowItWorksCard({ n, title, body, icon }) {
   const IconComp = I[icon] || I.cup
   return (
     <div className="card" style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div className="howit-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 44, lineHeight: 1, color: 'var(--accent)' }}>{n.toString().padStart(2, '0')}</span>
         <div style={{ color: 'var(--ink-soft)' }}><IconComp width={28} height={28} /></div>
       </div>
