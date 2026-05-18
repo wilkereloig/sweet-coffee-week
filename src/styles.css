@@ -11,6 +11,7 @@
   --bg-soft: #FBEADC;
   --bg-card: #FFFFFF;
   --ink: #2B1810;
+  --ink-dark: #1a0e08;
   --ink-soft: #6B4A3A;
   --ink-mute: #9B7A68;
   --line: rgba(43, 24, 16, 0.12);
@@ -202,7 +203,7 @@ button:disabled { cursor: not-allowed; }
 }
 .btn:hover .arrow { transform: translateX(3px); }
 .btn-primary { background: var(--ink); color: var(--bg); }
-.btn-primary:hover { background: #1a0e08; }
+.btn-primary:hover { background: var(--ink-dark); }
 .btn-secondary {
   background: transparent;
   color: var(--ink);
