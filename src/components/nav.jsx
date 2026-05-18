@@ -1,19 +1,19 @@
-﻿import React from 'react'
+import React from 'react'
 import { I, LogoMark, HeartTiny } from './icons'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/' },
   { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
-  { id: 'edicoes',      label: 'EdiÃ§Ãµes',      href: '#/edicoes' },
+  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
   { id: 'participar',   label: 'Participar',   href: '#/participar' },
   { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
   { id: 'contato',      label: 'Contato',      href: '#/contato' },
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers', label: 'Sobre a ediÃ§Ã£o',      href: '#/lovers' },
+  { id: 'lovers', label: 'Sobre a edição',      href: '#/lovers' },
   { id: 'combos', label: 'Combos',              href: '#/lovers/combos' },
-  { id: 'mapa',   label: 'Mapa da DoÃ§ura',      href: '#/lovers/mapa' },
+  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa' },
   { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards' },
 ]
 
@@ -76,7 +76,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
           alignItems: 'center',
           gap: 6,
         }}>
-          <HeartTiny size={9} color="var(--lovers-cream)" /> EdiÃ§Ã£o Lovers
+          <HeartTiny size={9} color="var(--lovers-cream)" /> Edição Lovers
         </div>
         {LOVERS_LINKS.map((l) => (
           <a key={l.id}
@@ -90,7 +90,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
 
       <div style={{ flex: 1 }} />
 
-      <div className="sidebar__credit">RealizaÃ§Ã£o<br />F2 Experience</div>
+      <div className="sidebar__credit">Realização<br />F2 Experience</div>
     </aside>
   )
 }
@@ -99,7 +99,7 @@ function BrandLogo({ isLovers, navigate }) {
   return (
     <a href="#/" className="brand" onClick={(e) => { e.preventDefault(); navigate('/') }}
        style={{ position: 'relative', display: 'inline-block' }}>
-      {/* Logo institucional â€” fica no fluxo normal para definir o tamanho do container */}
+      {/* Logo institucional — fica no fluxo normal para definir o tamanho do container */}
       <img
         src="/images/logo-sweet-coffee-week-header.svg"
         alt="Sweet & Coffee Week"
@@ -111,7 +111,7 @@ function BrandLogo({ isLovers, navigate }) {
           transition: 'opacity .4s ease, transform .4s ease',
         }}
       />
-      {/* Logo Lovers â€” sobreposta em absolute */}
+      {/* Logo Lovers — sobreposta em absolute */}
       <img
         src="/images/sweet-lovers-logo.svg"
         alt="Sweet & Coffee Week Lovers"
@@ -149,7 +149,7 @@ function LoversDropdown({ route, navigate }) {
         aria-expanded={open}
       >
         <HeartTiny size={10} color={isActive ? 'var(--lovers-red)' : 'currentColor'} />
-        EdiÃ§Ã£o Lovers
+        Edição Lovers
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
              style={{ transition: 'transform .15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -160,7 +160,7 @@ function LoversDropdown({ route, navigate }) {
         <div className="lovers-dropdown">
           <div className="lovers-dropdown__header">
             <HeartTiny size={11} color="var(--lovers-red)" />
-            <span className="mono" style={{ fontSize: 10, letterSpacing: '.12em', color: 'var(--lovers-red)' }}>SWEET & COFFEE WEEK LOVERS Â· 16Âª EDIÃ‡ÃƒO</span>
+            <span className="mono" style={{ fontSize: 10, letterSpacing: '.12em', color: 'var(--lovers-red)' }}>SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO</span>
           </div>
           {LOVERS_LINKS.map((l) => (
             <a key={l.id}
@@ -223,7 +223,7 @@ export function SiteHeader({ route, navigate }) {
           ))}
 
           <div className="eyebrow mb-3 mt-4" style={{ color: 'var(--lovers-red)', borderTop: '1px solid var(--line)', paddingTop: 24 }}>
-            <HeartTiny size={11} color="var(--lovers-red)" /> EdiÃ§Ã£o Lovers
+            <HeartTiny size={11} color="var(--lovers-red)" /> Edição Lovers
           </div>
           {LOVERS_LINKS.map((l) => (
             <a key={l.id}
@@ -295,4 +295,3 @@ export function SiteHeader({ route, navigate }) {
     </React.Fragment>
   )
 }
-
