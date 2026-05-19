@@ -527,9 +527,8 @@ function Awards() {
                 Vote nos seus <span style={{ color: 'var(--lovers-pink)' }}>favoritos.</span>
               </h2>
               <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .85, maxWidth: '52ch', margin: '20px 0 0' }}>
-                Depois de provar os combos da edição Lovers, o público também pode participar
-                escolhendo seus favoritos no Sweet Awards. A premiação celebra os destaques da
-                edição e reconhece as criações que mais encantaram os Sweet Lovers.
+                Depois de provar os combos da edição Lovers, o público poderá participar
+                escolhendo seus favoritos no Sweet Awards. A votação será aberta durante a edição.
               </p>
 
               <div className="awards__blocks">
@@ -563,27 +562,27 @@ function Awards() {
                   </a>
                 ) : (
                   <span
-                    className="btn btn-pink btn-lg footer-locked"
-                    data-tooltip="Disponível em 4 de junho"
+                    className="btn btn-pink btn-lg"
                     aria-disabled="true"
-                    style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
+                    style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .45 }}
                   >
-                    Disponível a partir de 4 de junho <I.lock />
+                    Votação em breve <I.lock />
                   </span>
                 )}
-                <button
+                <span
                   className="btn btn-outline btn-lg"
-                  style={{ color: 'var(--lovers-burgundy)', borderColor: 'var(--lovers-burgundy)' }}
+                  aria-disabled="true"
+                  style={{ color: 'var(--lovers-burgundy)', borderColor: 'var(--lovers-burgundy)', cursor: 'not-allowed', opacity: .45 }}
                 >
-                  Conferir regulamento
-                </button>
+                  Regulamento em breve
+                </span>
               </div>
             </div>
 
             <div className="awards__cats">
-              <h5>CATEGORIAS DESTA EDIÇÃO</h5>
               {hasVotingData ? (
                 <>
+                  <h5>CATEGORIAS DESTA EDIÇÃO</h5>
                   <ul>
                     {AWARD_CATS.map((c, i) => (
                       <li key={i}>
@@ -602,9 +601,11 @@ function Awards() {
                   </div>
                 </>
               ) : (
-                <div style={{ padding: '28px 0', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .55, lineHeight: 1.6 }}>
-                  Votação em breve.<br />
-                  Categorias divulgadas em 4 de junho.
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <h5>CATEGORIAS EM BREVE</h5>
+                  <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
+                    As categorias oficiais do Sweet Awards serão divulgadas junto com a abertura da votação.
+                  </p>
                 </div>
               )}
             </div>
