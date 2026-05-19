@@ -175,7 +175,7 @@ function ComoFunciona() {
   return (
     <section id="como" className="section section-como">
       <div className="wrap">
-        <div style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
+        <div style={{ maxWidth: 720, marginBottom: 56 }}>
           <span className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
             <span className="dot" style={{ background: 'var(--lovers-cream)' }} />
             COMO FUNCIONA
@@ -361,7 +361,7 @@ function Mapa() {
   return (
     <section id="mapa" className="section section-mapa">
       <div className="wrap">
-        <div style={{ maxWidth: 720, margin: '0 auto 40px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 720, marginBottom: 40 }}>
           <span className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
             <span className="dot" style={{ background: 'var(--lovers-brown)' }} />
             MAPA · ROTA DOS LOVERS
@@ -369,7 +369,7 @@ function Mapa() {
           <h2 className="lh2" style={{ marginTop: 16 }}>
             Monte sua rota dos <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
           </h2>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, margin: '16px auto 0', maxWidth: '52ch' }}>
+          <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, margin: '16px 0 0', maxWidth: '52ch' }}>
             Escolha os participantes que você quer visitar, veja onde cada um está localizado e
             trace sua rota para aproveitar a edição Sweet &amp; Coffee Week Lovers do seu jeito.
           </p>
