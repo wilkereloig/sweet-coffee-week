@@ -1050,7 +1050,7 @@ button:disabled { cursor: not-allowed; }
 .sobre__block { background: var(--lovers-cream); border-radius: 22px; padding: 28px 22px; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(135,14,45,.1); min-height: 180px; }
 .sobre__block .ico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(135,14,45,.08); color: var(--lovers-burgundy); }
 .sobre__block h4 { margin: 0; font-family: var(--font-lovers-display); font-weight: 700; font-size: 22px; line-height: 1; text-transform: uppercase; color: var(--lovers-brown); }
-.sobre__block p  { margin: 0; font-size: 15px; line-height: 1.5; color: var(--lovers-brown); opacity: .8; }
+.sobre__block p  { margin: 0; font-size: 17px; line-height: 1.5; color: var(--lovers-brown); opacity: .8; }
 .sobre__impact { text-align: center; font-family: var(--font-script); font-weight: 700; font-size: clamp(40px, 6vw, 80px); line-height: 1.05; color: var(--lovers-burgundy); margin: 0; }
 @media (max-width: 880px) { .sobre__grid { grid-template-columns: 1fr; } .sobre__blocks { grid-template-columns: repeat(2, 1fr); } }
 
