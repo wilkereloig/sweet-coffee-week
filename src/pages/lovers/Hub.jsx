@@ -439,12 +439,30 @@ function Mapa() {
             Monte sua rota dos <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
           </h2>
           <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, margin: '16px 0 0', maxWidth: '52ch' }}>
-            Escolha os participantes que você quer visitar, veja onde cada um está localizado e
-            trace sua rota para aproveitar a edição Sweet &amp; Coffee Week Lovers do seu jeito.
+            Em breve você poderá escolher os participantes, ver onde cada loja está localizada e
+            montar sua rota para aproveitar a edição Sweet &amp; Coffee Week Lovers do seu jeito.
           </p>
         </div>
 
-        {!hasMapData && <EmBreve label="Mapa disponível a partir de 4 de junho" />}
+        {!hasMapData && (
+          <div className="mapa__grid">
+            <aside className="mapa__list" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 24px', gap: 16, border: 'none' }}>
+              <h4 style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(24px, 2.4vw, 32px)', textTransform: 'uppercase', color: 'var(--lovers-brown)', margin: 0, lineHeight: 1.1 }}>
+                Mapa em breve
+              </h4>
+              <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
+                Os pontos participantes serão adicionados após a divulgação oficial.
+              </p>
+            </aside>
+            <div className="mapa__map" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(135,14,45,.06)' }}>
+              <div style={{ textAlign: 'center', padding: '32px 24px' }}>
+                <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(26px, 3vw, 40px)', textTransform: 'uppercase', color: 'var(--lovers-burgundy)', opacity: .45, lineHeight: 1.2 }}>
+                  Rota dos Lovers<br />em breve
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mapa__grid" hidden={!hasMapData}>
           <aside className="mapa__list">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px 10px', borderBottom: '1px solid rgba(135,14,45,.12)', marginBottom: 4 }}>
@@ -494,12 +512,11 @@ function Mapa() {
 
         <div className="mapa__cta">
           <span
-            className="btn btn-burgundy btn-lg footer-locked"
-            data-tooltip="Disponível em 4 de junho"
+            className="btn btn-burgundy btn-lg"
             aria-disabled="true"
-            style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
+            style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .45 }}
           >
-            Disponível a partir de 4 de junho <I.lock />
+            Mapa disponível em breve <I.lock />
           </span>
         </div>
 
