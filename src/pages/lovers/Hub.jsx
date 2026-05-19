@@ -70,7 +70,7 @@ function Hero() {
             }}>
               SWEET &amp;<br />COFFEE
             </div>
-            <LoversWordmark width="100%" />
+            <LoversWordmark width="81%" />
           </div>
 
           {/* Direita — texto + data + tiles */}
