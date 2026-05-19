@@ -79,7 +79,7 @@ function Hero() {
       <div className="wrap">
         <div className="hero-v2-grid">
           {/* Esquerda — logotipo empilhado (flex column, gap controlado) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.04em', fontSize: 'clamp(96px, 14vw, 190px)' }}>
+          <div className="hero-logo-lockup" style={{ display: 'flex', flexDirection: 'column', gap: '0.04em' }}>
             <div style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 900,
@@ -88,6 +88,7 @@ function Hero() {
               color: 'var(--lovers-brown)',
               textTransform: 'uppercase',
               letterSpacing: '-.01em',
+              whiteSpace: 'nowrap',
             }}>
               SWEET &amp;
             </div>
@@ -99,10 +100,13 @@ function Hero() {
               color: 'var(--lovers-brown)',
               textTransform: 'uppercase',
               letterSpacing: '-.01em',
+              whiteSpace: 'nowrap',
             }}>
               COFFEE
             </div>
-            <LoversWordmark width="81%" />
+            <div style={{ width: '2.5em', lineHeight: 0 }}>
+              <LoversWordmark width="100%" />
+            </div>
           </div>
 
           {/* Direita — texto + data + tiles */}
@@ -168,9 +172,13 @@ function Hero() {
           gap: 12px;
           aspect-ratio: 3 / 1;
         }
+        .hero-logo-lockup {
+          font-size: clamp(96px, 14vw, 190px);
+        }
         @media (max-width: 720px) {
           .hero-v2-grid { grid-template-columns: 1fr; }
           .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
+          .hero-logo-lockup { font-size: clamp(44px, 18vw, 96px); }
         }
       `}</style>
     </section>
