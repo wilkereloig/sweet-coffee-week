@@ -1,6 +1,12 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 
+/* ── Feature flags ── */
+const hasParticipantsData = false
+const hasCombosData       = false
+const hasMapData          = false
+const hasVotingData       = false
+
 /* ── Data ── */
 const PARTICIPANTS = [
   { name: "Doceria Petrópolis",  cat: "Doceria",      bairro: "Petrópolis",  color: "var(--lovers-burgundy)" },
@@ -49,6 +55,21 @@ const AWARD_CATS = [
   "Melhor combo", "Melhor doce", "Melhor salgado", "Melhor bebida",
   "Melhor apresentação", "Melhor releitura", "Combo mais Lovers", "Destaque do público",
 ]
+
+/* ── Helpers ── */
+
+function EmBreve({ label = 'Disponível a partir de 4 de junho', bg }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: 'clamp(48px, 8vw, 80px) 24px', textAlign: 'center', background: bg }}>
+      <div style={{ width: 52, height: 52, borderRadius: 999, background: 'rgba(63,26,10,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <I.lock />
+      </div>
+      <p style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(20px, 2vw, 26px)', textTransform: 'uppercase', margin: 0, opacity: .7 }}>
+        {label}
+      </p>
+    </div>
+  )
+}
 
 /* ── Sections ── */
 
@@ -258,47 +279,53 @@ function Participantes() {
           </div>
         </div>
 
-        <div className="filters">
-          {filters.map(f => (
-            <button
-              key={f}
-              className={`filter-chip${filter === f ? ' active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
-          <span style={{ marginLeft: 'auto', alignSelf: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-            {shown.length} de {PARTICIPANTS.length}
-          </span>
-        </div>
-
-        <div className="part__grid">
-          {shown.map((p, i) => (
-            <div className="part__card" key={i}>
-              <span className="selo">♥ LOVER</span>
-              <div className="logo" style={{ background: p.color }}>
-                {p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-              </div>
-              <div>
-                <h4 className="name">{p.name}</h4>
-                <div className="meta" style={{ marginTop: 4 }}>{p.cat} · {p.bairro}</div>
-              </div>
-              <div className="actions">
-                <span className="chip" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-burgundy)' }}>
-                  {p.cat}
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45 }}>
-                  Em breve <I.lock />
-                </span>
-              </div>
+        {hasParticipantsData ? (
+          <>
+            <div className="filters">
+              {filters.map(f => (
+                <button
+                  key={f}
+                  className={`filter-chip${filter === f ? ' active' : ''}`}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+              <span style={{ marginLeft: 'auto', alignSelf: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
+                {shown.length} de {PARTICIPANTS.length}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <p style={{ textAlign: 'center', marginTop: 28, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-          A lista completa dos participantes será publicada antes do início da edição.
-        </p>
+            <div className="part__grid">
+              {shown.map((p, i) => (
+                <div className="part__card" key={i}>
+                  <span className="selo">♥ LOVER</span>
+                  <div className="logo" style={{ background: p.color }}>
+                    {p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+                  </div>
+                  <div>
+                    <h4 className="name">{p.name}</h4>
+                    <div className="meta" style={{ marginTop: 4 }}>{p.cat} · {p.bairro}</div>
+                  </div>
+                  <div className="actions">
+                    <span className="chip" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-burgundy)' }}>
+                      {p.cat}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45 }}>
+                      Em breve <I.lock />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ textAlign: 'center', marginTop: 28, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
+              A lista completa dos participantes será publicada antes do início da edição.
+            </p>
+          </>
+        ) : (
+          <EmBreve label="Participantes confirmados a partir de 4 de junho" />
+        )}
       </div>
     </section>
   )
@@ -350,8 +377,7 @@ function Combos() {
           </div>
         </div>
 
-        {/* combos__grid hidden — activate June 4 by removing hidden attr */}
-        <div className="combos__grid" hidden>
+        <div className="combos__grid" hidden={!hasCombosData}>
           {COMBOS.map((c, i) => (
             <article className="combo__card" key={i}>
               <div className="combo__photo" style={{ background: 'var(--lovers-burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -401,7 +427,8 @@ function Mapa() {
           </p>
         </div>
 
-        <div className="mapa__grid">
+        {!hasMapData && <EmBreve label="Mapa disponível a partir de 4 de junho" />}
+        <div className="mapa__grid" hidden={!hasMapData}>
           <aside className="mapa__list">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px 10px', borderBottom: '1px solid rgba(135,14,45,.12)', marginBottom: 4 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .65 }}>
@@ -513,14 +540,20 @@ function Awards() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 32 }}>
-                <span
-                  className="btn btn-pink btn-lg footer-locked"
-                  data-tooltip="Disponível em 4 de junho"
-                  aria-disabled="true"
-                  style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
-                >
-                  Disponível a partir de 4 de junho <I.lock />
-                </span>
+                {hasVotingData ? (
+                  <a href="#/lovers/awards" className="btn btn-pink btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
+                    Votar agora <I.arrow />
+                  </a>
+                ) : (
+                  <span
+                    className="btn btn-pink btn-lg footer-locked"
+                    data-tooltip="Disponível em 4 de junho"
+                    aria-disabled="true"
+                    style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
+                  >
+                    Disponível a partir de 4 de junho <I.lock />
+                  </span>
+                )}
                 <button
                   className="btn btn-outline btn-lg"
                   style={{ color: 'var(--lovers-burgundy)', borderColor: 'var(--lovers-burgundy)' }}
@@ -570,22 +603,34 @@ function FinalCTA() {
           Sweet &amp; Coffee Week.
         </p>
         <div className="ctas">
-          <span
-            className="btn btn-yellow btn-lg footer-locked"
-            data-tooltip="Disponível em 4 de junho"
-            aria-disabled="true"
-            style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
-          >
-            Ver combos <I.lock />
-          </span>
-          <span
-            className="btn btn-pink btn-lg footer-locked"
-            data-tooltip="Disponível em 4 de junho"
-            aria-disabled="true"
-            style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
-          >
-            Montar minha rota <I.lock />
-          </span>
+          {hasCombosData ? (
+            <a href="#/lovers/combos" className="btn btn-yellow btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
+              Ver combos <I.arrow />
+            </a>
+          ) : (
+            <span
+              className="btn btn-yellow btn-lg footer-locked"
+              data-tooltip="Disponível em 4 de junho"
+              aria-disabled="true"
+              style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
+            >
+              Ver combos <I.lock />
+            </span>
+          )}
+          {hasMapData ? (
+            <a href="#/lovers/mapa" className="btn btn-pink btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
+              Montar minha rota <I.arrow />
+            </a>
+          ) : (
+            <span
+              className="btn btn-pink btn-lg footer-locked"
+              data-tooltip="Disponível em 4 de junho"
+              aria-disabled="true"
+              style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
+            >
+              Montar minha rota <I.lock />
+            </span>
+          )}
           <a
             href="https://instagram.com/sweetcoffeeweek"
             target="_blank"
