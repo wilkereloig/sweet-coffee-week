@@ -1,35 +1,47 @@
 ﻿import React from 'react'
-import { I, HeartTiny, TapeStrip } from '../../components/icons'
+import { I, HeartTiny, TapeStrip, Squiggle } from '../../components/icons'
 import { PhotoPH, ParticipantePH, EmptyState } from '../../components/placeholders'
 
 function LoversQuickCard({ label, value, icon, color = 'burgundy' }) {
   const IconComp = I[icon] || I.heart
   const colorMap = {
-    burgundy: 'var(--lovers-burgundy)',
-    pink:     'var(--lovers-pink)',
-    yellow:   'var(--lovers-yellow)',
-    coral:    'var(--lovers-coral)',
-    cyan:     'var(--lovers-cyan)',
+    burgundy: { bg: 'var(--lovers-burgundy)', text: 'var(--lovers-cream)', iconBg: 'rgba(255,232,210,.18)' },
+    pink:     { bg: 'var(--lovers-pink)',     text: 'var(--lovers-cream)', iconBg: 'rgba(255,232,210,.18)' },
+    yellow:   { bg: 'var(--lovers-yellow)',   text: 'var(--lovers-brown)', iconBg: 'rgba(63,26,10,.12)' },
+    coral:    { bg: 'var(--lovers-coral)',    text: 'var(--lovers-cream)', iconBg: 'rgba(255,232,210,.18)' },
+    cyan:     { bg: 'var(--lovers-cyan)',     text: 'var(--lovers-brown)', iconBg: 'rgba(63,26,10,.12)' },
   }
   const c = colorMap[color] || colorMap.burgundy
   return (
     <div className="card" style={{
-      background: 'rgba(255,255,255,.88)',
-      border: '1px solid rgba(135,14,45,.18)',
-      padding: '32px 24px',
+      background: c.bg,
+      border: 'none',
+      padding: 'clamp(28px, 3vw, 44px) clamp(20px, 2vw, 32px)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       textAlign: 'center',
-      gap: 12,
+      gap: 16,
       height: '100%',
     }}>
-      <div style={{ color: c, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: 'rgba(135,14,45,.07)' }}>
-        <IconComp width={24} height={24} />
+      <div style={{
+        color: c.text,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 64, height: 64, borderRadius: '50%',
+        background: c.iconBg,
+      }}>
+        <IconComp width={32} height={32} />
       </div>
-      <div className="mono" style={{ color: c, letterSpacing: '.12em', fontSize: 11 }}>{label}</div>
-      <div className="lovers-h3" style={{ fontSize: 'clamp(26px, 3vw, 38px)', lineHeight: 1, margin: 0 }}>{value}</div>
+      <div className="mono" style={{ color: c.text, letterSpacing: '.14em', fontSize: 11, opacity: .75 }}>{label}</div>
+      <div style={{
+        fontFamily: 'var(--font-lovers-display)',
+        fontSize: 'clamp(40px, 5vw, 64px)',
+        lineHeight: 1,
+        fontWeight: 700,
+        color: c.text,
+        margin: 0,
+      }}>{value}</div>
     </div>
   )
 }
@@ -151,20 +163,21 @@ export function LoversPage({ navigate }) {
       <section className="section" style={{ background: 'var(--lovers-pink)' }}>
         <div className="wrap">
           <div style={{ maxWidth: 720, margin: '0 auto', marginBottom: 'clamp(40px, 5vw, 64px)' }}>
-            <div className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
+            <div className="eyebrow sobre-eyebrow" style={{ color: 'var(--lovers-cream)' }}>
               <span className="dot" style={{ background: 'var(--lovers-cream)' }}></span>
               SOBRE A EDIÇÃO
             </div>
-            <h2 className="lovers-h2 mt-3" style={{ marginBottom: 20, color: 'var(--lovers-cream)' }}>
+            <h2 className="lovers-h2 mt-3 sobre-h2" style={{ marginBottom: 24, color: 'var(--lovers-cream)' }}>
               A proposta não é repetir.<br/>
               É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
             </h2>
-            <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--lovers-cream)', opacity: .92, margin: 0 }}>
+            <Squiggle width={80} color="var(--lovers-cream)" className="sobre-squiggle" />
+            <p className="sobre-p" style={{ fontSize: 20, lineHeight: 1.65, color: 'var(--lovers-cream)', opacity: .92, margin: '20px auto 0', maxWidth: 580 }}>
               Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
             </p>
           </div>
 
-          <div className="grid-4-cards">
+          <div className="grid-4-cards sobre-cards-grid">
             <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" color="burgundy" />
             <LoversQuickCard label="TEMA" value="Lovers" icon="heart" color="yellow" />
             <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" color="cyan" />
@@ -197,6 +210,16 @@ export function LoversPage({ navigate }) {
         .hero-sweet-logo { animation: fadeSlideDown .7s cubic-bezier(.22,1,.36,1) both; }
         .hero-lovers-logo { animation: fadeSlideUp .7s cubic-bezier(.22,1,.36,1) .25s both; }
         .lovers-heart { transform-origin: 180px 140px; animation: heartbeat 1.4s ease-in-out 1s infinite; }
+
+        /* Seção Sobre a edição — animações de entrada */
+        .sobre-eyebrow  { animation: fadeSlideDown .5s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-h2       { animation: fadeSlideUp .6s .1s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-squiggle { animation: fadeSlideUp .5s .2s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-p        { animation: fadeSlideUp .6s .28s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-cards-grid > *:nth-child(1) { animation: fadeSlideUp .6s .36s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-cards-grid > *:nth-child(2) { animation: fadeSlideUp .6s .48s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-cards-grid > *:nth-child(3) { animation: fadeSlideUp .6s .60s cubic-bezier(.22,1,.36,1) both; }
+        .sobre-cards-grid > *:nth-child(4) { animation: fadeSlideUp .6s .72s cubic-bezier(.22,1,.36,1) both; }
 
         /* Grid de 4 cards (seção amarela e participantes) */
         .grid-4-cards { grid-template-columns: repeat(4, 1fr); }
