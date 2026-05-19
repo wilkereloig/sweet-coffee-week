@@ -179,9 +179,9 @@ function Hero() {
 
 function Sobre() {
   const blocks = [
-    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram os 10 anos do festival." },
-    { icon: <I.heart />,    title: "Recriar",   body: "Combos inéditos ou releituras de sabores memoráveis." },
-    { icon: <I.starFill />, title: "Celebrar",  body: "Uma década de Sweet, encontros e histórias." },
+    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram a história do festival." },
+    { icon: <I.heart />,    title: "Recriar",   body: "Combos inéditos inspirados em memórias do Sweet." },
+    { icon: <I.starFill />, title: "Celebrar",  body: "Uma década de encontros, sabores e histórias." },
     { icon: <I.plate />,    title: "Provar",    body: "Doce, salgado e bebida em uma experiência especial." },
   ]
   return (
@@ -196,15 +196,15 @@ function Sobre() {
           </div>
           <div className="sobre__body">
             <div className="sb-p sb-p--lead">
-              Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos de história</strong>, encontros,
+              Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
               sabores e memórias em Natal. Para comemorar essa trajetória, nasce a edição{' '}
-              <em>Sweet &amp; Coffee Week Lovers</em>: uma homenagem ao público que acompanhou, provou,
+              <em>Sweet &amp; Coffee Lovers</em>: uma homenagem ao público que acompanhou, provou,
               compartilhou, votou, marcou os amigos e fez do festival uma tradição afetiva da cidade.
             </div>
             <div className="sb-p">
               Nesta edição, cada participante escolhe um tema que já fez parte da história do
-              Sweet &amp; Coffee Week e cria uma nova experiência a partir dele. A proposta não é
-              apenas repetir: é recriar com amor, memória e sabor.
+              Sweet e cria uma nova experiência a partir dele. A proposta não é
+              repetir: é recriar com amor, memória e sabor.
             </div>
           </div>
         </div>
