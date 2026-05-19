@@ -140,10 +140,10 @@ export function LoversPage({ navigate }) {
               Uma edição feita para os Sweet Lovers, revisitando temas que já marcaram a história do festival e recriando sabores com amor, memória e criatividade.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
-                 className="btn btn-lovers btn-lg">
-                Ver participantes <I.arrow />
-              </a>
+              <span className="btn btn-lovers btn-lg footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true"
+                 style={{ display: 'inline-flex', gap: 8 }}>
+                Disponível a partir de 4 de junho <I.lock />
+              </span>
             </div>
           </div>
         </div>
@@ -222,7 +222,7 @@ export function LoversPage({ navigate }) {
               PARTICIPANTES
             </div>
             <h2 className="lovers-h2 mt-3">Participantes Lovers</h2>
-            <span className="mono" style={{ color: 'var(--lovers-red)', display: 'block', marginTop: 8 }}>EM BREVE</span>
+            <span className="mono" style={{ color: 'var(--lovers-red)', display: 'block', marginTop: 8 }}>DISPONÍVEL A PARTIR DE 4 DE JUNHO</span>
           </div>
 
           <div className="grid grid-4-cards" style={{ marginBottom: 16 }}>
@@ -273,9 +273,9 @@ export function LoversPage({ navigate }) {
               }}>
                 <I.plate width={28} height={28} />
               </div>
-              <div className="lovers-h3" style={{ color: 'var(--lovers-cream)', marginBottom: 8 }}>Combos em breve</div>
+              <div className="lovers-h3" style={{ color: 'var(--lovers-cream)', marginBottom: 8 }}>Combos disponíveis a partir de 4 de junho</div>
               <div style={{ color: 'rgba(255,232,210,.75)', maxWidth: 440, margin: '0 auto', fontSize: 15 }}>
-                A lista completa dos combos da edição será publicada antes do início do festival.
+                A lista completa dos combos da edição será publicada no lançamento da edição.
               </div>
             </div>
           </div>
@@ -291,10 +291,10 @@ export function LoversPage({ navigate }) {
             </div>
             <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-brown)' }}>Encontre os<br/>participantes,<br/><span style={{ color: 'var(--lovers-burgundy)' }}>trace sua rota.</span></h2>
             <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .82 }}>Encontre os participantes da edição e trace sua rota para viver o Sweet pela cidade.</p>
-            <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }} className="btn btn-secondary"
-               style={{ borderColor: 'var(--lovers-brown)', color: 'var(--lovers-brown)', marginTop: 24, display: 'inline-flex' }}>
-              Abrir mapa completo <I.arrow />
-            </a>
+            <span className="btn btn-secondary footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true"
+               style={{ borderColor: 'var(--lovers-brown)', color: 'var(--lovers-brown)', marginTop: 24, display: 'inline-flex', gap: 8 }}>
+              Disponível a partir de 4 de junho <I.lock />
+            </span>
           </div>
 
           <MapPreview lovers />
@@ -333,13 +333,12 @@ export function LoversPage({ navigate }) {
                   <span style={{ color: 'var(--lovers-pink)' }}>experiência.</span>
                 </h2>
                 <p style={{ color: 'var(--lovers-brown)', opacity: .85, fontSize: 17, maxWidth: '52ch', marginTop: 20 }}>
-                  O Sweet & Coffee Week Awards é a premiação do festival. Em breve, você poderá avaliar os combos que experimentou na edição Lovers.
+                  O Sweet & Coffee Week Awards é a premiação do festival. Você poderá avaliar os combos que experimentou na edição Lovers a partir de 4 de junho.
                 </p>
-                <a href="#/lovers/awards" onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}
-                   className="btn mt-4"
-                   style={{ background: 'var(--lovers-pink)', color: 'var(--lovers-cream)' }}>
-                  Acessar Awards <I.arrow />
-                </a>
+                <span className="btn mt-4 footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true"
+                   style={{ background: 'var(--lovers-pink)', color: 'var(--lovers-cream)', display: 'inline-flex', gap: 8 }}>
+                  Disponível a partir de 4 de junho <I.lock />
+                </span>
               </div>
               <div style={{ position: 'relative' }}>
                 <div style={{
@@ -355,7 +354,7 @@ export function LoversPage({ navigate }) {
                   <div className="lovers-h3" style={{ fontSize: 26, lineHeight: 1.1, marginTop: 4 }}>
                     Sua experiência
                   </div>
-                  <div className="mono mt-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>AVALIAÇÃO EM BREVE</div>
+                  <div className="mono mt-2" style={{ color: 'var(--lovers-cream)', opacity: .75 }}>AVALIAÇÃO A PARTIR DE 4 DE JUNHO</div>
                 </div>
                 <div className="sticker-decorative" style={{ position: 'absolute', top: -16, right: -10, transform: 'rotate(12deg)' }}>
                   <span className="sticker">avalie!</span>
