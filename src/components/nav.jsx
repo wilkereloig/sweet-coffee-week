@@ -2,7 +2,7 @@ import React from 'react'
 import { I, LogoMark, HeartTiny } from './icons'
 
 export const NAV_LINKS = [
-  { id: 'home',         label: 'O Sweet',      href: '#/' },
+  { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
   { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades', locked: true },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes',      locked: true },
   { id: 'participar',   label: 'Participar',   href: '#/participar',   locked: true },

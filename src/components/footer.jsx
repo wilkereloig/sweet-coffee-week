@@ -26,7 +26,7 @@ export function SiteFooter({ navigate }) {
 
           <div>
             <h4>O festival</h4>
-            <a href="#/" onClick={go('/')}>O Sweet</a>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">O Sweet <I.lock /></span>
             <a href="#/lovers" onClick={go('/lovers')}>Lovers</a>
             <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Edições <I.lock /></span>
             <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Curiosidades <I.lock /></span>

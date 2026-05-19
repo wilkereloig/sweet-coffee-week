@@ -45,7 +45,7 @@ export default function App() {
 
   let page
   switch (route) {
-    case 'home':         page = <HomePage navigate={navigate} />; break
+    case 'home':         page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
     case 'combos':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     case 'combo-detail': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
