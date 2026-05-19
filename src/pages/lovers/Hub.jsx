@@ -230,10 +230,10 @@ function Sobre() {
 
 function ComoFunciona() {
   const steps = [
-    { n: "01", h: "Escolha um tema",    p: "Cada participante escolhe uma edição ou tema que fez parte da história do Sweet." },
+    { n: "01", h: "Escolha um tema",    p: "Cada participante escolhe um tema histórico do Sweet." },
     { n: "02", h: "Criação do combo",   p: "A loja cria um combo especial com doce, salgado e bebida." },
-    { n: "03", h: "Memória + novidade", p: "O sabor pode ser uma releitura, uma criação inédita ou uma homenagem a um momento marcante." },
-    { n: "04", h: "Rota dos Lovers",    p: "O público escolhe seus favoritos, monta sua rota e vive a edição pela cidade." },
+    { n: "03", h: "Memória + novidade", p: "A proposta é transformar uma lembrança em uma nova experiência." },
+    { n: "04", h: "Rota dos Lovers",    p: "Quando a lista for divulgada, o público poderá escolher seus favoritos e montar sua rota pela cidade." },
   ]
   return (
     <section id="como" className="section section-como">
