@@ -62,7 +62,7 @@ function Hero() {
             <div style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 900,
-              fontSize: 'clamp(72px, 11vw, 152px)',
+              fontSize: 'clamp(96px, 14vw, 190px)',
               lineHeight: .88,
               color: 'var(--lovers-brown)',
               textTransform: 'uppercase',
