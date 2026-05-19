@@ -1127,7 +1127,7 @@ button:disabled { cursor: not-allowed; }
 .awards__block:first-child { border-top: 0; padding-top: 0; }
 .awards__block .num { font-family: var(--font-lovers-display); font-weight: 700; font-size: 32px; line-height: 1; color: var(--lovers-pink); flex: 0 0 auto; min-width: 32px; }
 .awards__block h5 { margin: 0; font-family: var(--font-lovers-display); font-weight: 700; font-size: 20px; line-height: 1; text-transform: uppercase; color: var(--lovers-brown); }
-.awards__block p  { margin: 4px 0 0; font-size: 15px; line-height: 1.5; color: var(--lovers-brown); opacity: .8; }
+.awards__block p  { margin: 4px 0 0; font-size: 17px; line-height: 1.5; color: var(--lovers-brown); opacity: .8; }
 .awards__cats { background: var(--lovers-pink); color: var(--lovers-cream); border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
 .awards__cats h5 { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
 .awards__cats ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 8px; }
