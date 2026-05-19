@@ -33,9 +33,9 @@ export function SiteFooter({ navigate }) {
           </div>
           <div>
             <h4>Edição atual</h4>
-            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Combos <I.lock /></span>
-            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Mapa da Doçura <I.lock /></span>
-            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Sweet & Coffee Week Awards <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true">Combos <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true">Mapa da Doçura <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Disponível em 4 de junho" aria-disabled="true">Sweet & Coffee Week Awards <I.lock /></span>
           </div>
           <div>
             <h4>Participar</h4>

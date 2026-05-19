@@ -12,9 +12,9 @@ export const NAV_LINKS = [
 
 const LOVERS_LINKS = [
   { id: 'lovers', label: 'Sobre a edição',      href: '#/lovers' },
-  { id: 'combos', label: 'Combos',              href: '#/lovers/combos',  locked: true },
-  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa',    locked: true },
-  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards', locked: true },
+  { id: 'combos', label: 'Combos',              href: '#/lovers/combos',  locked: true, tooltip: 'Disponível em 4 de junho' },
+  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa',    locked: true, tooltip: 'Disponível em 4 de junho' },
+  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards', locked: true, tooltip: 'Disponível em 4 de junho' },
 ]
 
 const IS_LOVERS_ROUTE = ['lovers', 'combos', 'combo-detail', 'mapa', 'awards']
@@ -60,7 +60,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
           l.locked ? (
             <span key={l.id}
                   className="sidebar__link locked"
-                  data-tooltip="Em breve"
+                  data-tooltip={l.tooltip || 'Em breve'}
                   aria-disabled="true">
               {l.label}
               <I.lock />
@@ -184,7 +184,7 @@ function LoversDropdown({ route, navigate }) {
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true">
+              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true">
                 {l.label}
                 <I.lock />
               </span>
@@ -218,7 +218,7 @@ export function SiteHeader({ route, navigate }) {
           <nav className="nav-main">
             {NAV_LINKS.map((l) => (
               l.locked ? (
-                <span key={l.id} className="nav-locked" data-tooltip="Em breve" aria-disabled="true">
+                <span key={l.id} className="nav-locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true">
                   {l.label} <I.lock />
                 </span>
               ) : (
@@ -249,7 +249,7 @@ export function SiteHeader({ route, navigate }) {
           <div className="eyebrow mb-3">Institucional</div>
           {NAV_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true"
+              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true"
                     style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
                 {l.label} <I.lock />
               </span>
@@ -267,7 +267,7 @@ export function SiteHeader({ route, navigate }) {
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true"
+              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true"
                     style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
                 {l.label}
                 <I.lock />
