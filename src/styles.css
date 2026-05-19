@@ -1060,7 +1060,7 @@ button:disabled { cursor: not-allowed; }
 .como__card { background: var(--lovers-cream); color: var(--lovers-brown); border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 12px; min-height: 240px; }
 .como__card .step { font-family: var(--font-lovers-display); font-weight: 700; font-size: 56px; line-height: 1; color: var(--lovers-pink); margin: 0; }
 .como__card h4 { margin: 0; font-family: var(--font-lovers-display); font-weight: 700; font-size: 24px; text-transform: uppercase; color: var(--lovers-brown); line-height: 1; }
-.como__card p  { margin: 0; font-size: 15px; line-height: 1.5; color: var(--lovers-brown); opacity: .82; }
+.como__card p  { margin: 0; font-size: 17px; line-height: 1.5; color: var(--lovers-brown); opacity: .82; }
 @media (max-width: 880px) { .como__cards { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .como__cards { grid-template-columns: 1fr; } }
 
