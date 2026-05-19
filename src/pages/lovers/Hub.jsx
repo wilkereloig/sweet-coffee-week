@@ -110,7 +110,7 @@ function Hero() {
           </div>
 
           {/* Direita — texto + data + tiles */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <div className="hero-v2-right" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <p style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 700,
@@ -124,7 +124,7 @@ function Hero() {
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
-            <div>
+            <div className="hero-date-pill">
               <span style={{
                 display: 'inline-block',
                 background: 'var(--lovers-brown)',
@@ -179,6 +179,8 @@ function Hero() {
           .hero-v2-grid { grid-template-columns: 1fr; }
           .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
           .hero-logo-lockup { font-size: clamp(44px, 18vw, 96px); }
+          .hero-date-pill { display: none; }
+          .hero-v2-right { gap: 20px; }
         }
       `}</style>
     </section>
