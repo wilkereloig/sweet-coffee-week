@@ -115,7 +115,7 @@ function Hero() {
               color: 'var(--lovers-brown)',
               margin: 0,
             }}>
-              A edição de 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
+              A edição comemorativa dos 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
               em uma história de sucesso: os{' '}
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
@@ -133,35 +133,23 @@ function Hero() {
                 padding: '12px 36px',
                 borderRadius: 999,
               }}>
-                4 A 14 JUN
+                4 A 14 DE JUNHO
               </span>
             </div>
 
             <div className="hero-v2-tiles">
-              {hasCombosData ? (
-                <div aria-label="23 combos exclusivos" style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>23</div>
-                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>COMBOS<br />EXCLUSIVOS</div>
-                </div>
-              ) : (
-                <div aria-label="Combos em breve" style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', lineHeight: 1.4 }}>COMBOS<br />EM BREVE</div>
-                </div>
-              )}
               <div aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              {hasCombosData ? (
-                <div aria-label="14 temas recriados" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
-                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />RECRIADOS</div>
-                </div>
-              ) : (
-                <div aria-label="Temas em breve" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', lineHeight: 1.4 }}>TEMAS<br />EM BREVE</div>
-                </div>
-              )}
+              <div aria-label="14 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
+              </div>
+              <div aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(32px, 3.5vw, 48px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>4 A 14</div>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>DE<br />JUNHO</div>
+              </div>
             </div>
           </div>
         </div>
