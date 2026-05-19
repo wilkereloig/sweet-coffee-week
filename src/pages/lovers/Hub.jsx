@@ -122,10 +122,6 @@ function Sobre() {
       <div className="wrap">
         <div className="sobre__grid">
           <div>
-            <span className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
-              <span className="dot" style={{ background: 'var(--lovers-burgundy)' }} />
-              SOBRE A EDIÇÃO
-            </span>
             <h2 className="lh2" style={{ marginTop: 16 }}>
               Uma edição feita<br />
               para os <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
@@ -176,10 +172,6 @@ function ComoFunciona() {
     <section id="como" className="section section-como">
       <div className="wrap">
         <div style={{ maxWidth: 720, marginBottom: 56 }}>
-          <span className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
-            <span className="dot" style={{ background: 'var(--lovers-cream)' }} />
-            COMO FUNCIONA
-          </span>
           <h2 className="lh2" style={{ marginTop: 16, color: 'var(--lovers-cream)' }}>
             Como funciona<br />
             a edição <span style={{ color: 'var(--lovers-yellow)' }}>Lovers.</span>
@@ -210,10 +202,6 @@ function Participantes() {
       <div className="wrap">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
           <div>
-            <span className="eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>
-              <span className="dot" style={{ background: 'var(--lovers-burgundy)' }} />
-              PARTICIPANTES LOVERS
-            </span>
             <h2 className="lh2" style={{ marginTop: 16 }}>
               Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
             </h2>
@@ -276,11 +264,7 @@ function Combos() {
       <div className="wrap">
         <div className="combos__intro">
           <div>
-            <span className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
-              <span className="dot" style={{ background: 'var(--lovers-yellow)' }} />
-              OS COMBOS DA EDIÇÃO
-            </span>
-            <h2 className="lh2" style={{ marginTop: 16 }}>
+            <h2 className="lh2">
               Cada combo,<br />
               uma <span style={{ color: 'var(--lovers-yellow)' }}>recriação.</span>
             </h2>
@@ -362,11 +346,7 @@ function Mapa() {
     <section id="mapa" className="section section-mapa">
       <div className="wrap">
         <div style={{ maxWidth: 720, marginBottom: 40 }}>
-          <span className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
-            <span className="dot" style={{ background: 'var(--lovers-brown)' }} />
-            MAPA · ROTA DOS LOVERS
-          </span>
-          <h2 className="lh2" style={{ marginTop: 16 }}>
+          <h2 className="lh2">
             Monte sua rota dos <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
           </h2>
           <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, margin: '16px 0 0', maxWidth: '52ch' }}>
@@ -453,11 +433,7 @@ function Awards() {
 
           <div className="awards__grid">
             <div>
-              <span className="eyebrow" style={{ color: 'var(--lovers-burgundy)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <I.starFill />
-                SWEET AWARDS
-              </span>
-              <h2 className="lh2" style={{ marginTop: 16 }}>
+              <h2 className="lh2">
                 Vote nos seus <span style={{ color: 'var(--lovers-pink)' }}>favoritos.</span>
               </h2>
               <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .85, maxWidth: '52ch', margin: '20px 0 0' }}>
@@ -538,10 +514,6 @@ function FinalCTA() {
   return (
     <section id="cta" className="section section-cta">
       <div className="wrap">
-        <span className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
-          <span className="dot" style={{ background: 'var(--lovers-yellow)' }} />
-          VEM VIVER
-        </span>
         <h2 className="lh1" style={{ marginTop: 16, fontSize: 'clamp(56px, 8vw, 120px)' }}>
           Vem viver essa<br />
           história com a <span style={{ color: 'var(--lovers-yellow)' }}>gente.</span>
