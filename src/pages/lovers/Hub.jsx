@@ -138,18 +138,30 @@ function Hero() {
             </div>
 
             <div className="hero-v2-tiles">
-              <div aria-label="23 combos exclusivos" style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>23</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>COMBOS<br />EXCLUSIVOS</div>
-              </div>
+              {hasCombosData ? (
+                <div aria-label="23 combos exclusivos" style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>23</div>
+                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>COMBOS<br />EXCLUSIVOS</div>
+                </div>
+              ) : (
+                <div aria-label="Combos em breve" style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', lineHeight: 1.4 }}>COMBOS<br />EM BREVE</div>
+                </div>
+              )}
               <div aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div aria-label="14 temas recriados" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />RECRIADOS</div>
-              </div>
+              {hasCombosData ? (
+                <div aria-label="14 temas recriados" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
+                  <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />RECRIADOS</div>
+                </div>
+              ) : (
+                <div aria-label="Temas em breve" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', lineHeight: 1.4 }}>TEMAS<br />EM BREVE</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -352,16 +364,18 @@ function Combos() {
           </div>
         </div>
 
-        <div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .65, marginBottom: 12 }}>
-            NAVEGUE POR TEMA HISTÓRICO
+        {hasCombosData && (
+          <div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .65, marginBottom: 12 }}>
+              NAVEGUE POR TEMA HISTÓRICO
+            </div>
+            <div className="themes">
+              {THEMES.map(t => (
+                <span key={t} className="theme-tag">{t}</span>
+              ))}
+            </div>
           </div>
-          <div className="themes">
-            {THEMES.map(t => (
-              <span key={t} className="theme-tag">{t}</span>
-            ))}
-          </div>
-        </div>
+        )}
 
         <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 18, padding: '28px 36px', background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', borderRadius: 18, maxWidth: 680, marginInline: 'auto' }}>
           <div style={{ width: 44, height: 44, flex: '0 0 auto', borderRadius: 999, background: 'var(--lovers-brown)', color: 'var(--lovers-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -565,22 +579,31 @@ function Awards() {
 
             <div className="awards__cats">
               <h5>CATEGORIAS DESTA EDIÇÃO</h5>
-              <ul>
-                {AWARD_CATS.map((c, i) => (
-                  <li key={i}>
-                    <span className="n">{String(i + 1).padStart(2, '0')}</span>
-                    {c}
-                  </li>
-                ))}
-              </ul>
-              <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,232,210,.18)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 2 }}>
-                  {Array.from({ length: 5 }).map((_, i) => <I.starFill key={i} width={14} height={14} />)}
+              {hasVotingData ? (
+                <>
+                  <ul>
+                    {AWARD_CATS.map((c, i) => (
+                      <li key={i}>
+                        <span className="n">{String(i + 1).padStart(2, '0')}</span>
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                  <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,232,210,.18)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 2 }}>
+                      {Array.from({ length: 5 }).map((_, i) => <I.starFill key={i} width={14} height={14} />)}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+                      Avalie cada combo que provar
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ padding: '28px 0', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .55, lineHeight: 1.6 }}>
+                  Votação em breve.<br />
+                  Categorias divulgadas em 4 de junho.
                 </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase' }}>
-                  Avalie cada combo que provar
-                </span>
-              </div>
+              )}
             </div>
           </div>
         </div>
