@@ -282,7 +282,7 @@ function Participantes() {
             <h2 className="lh2" style={{ marginTop: 16 }}>
               Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
             </h2>
-            <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '56ch', margin: '16px 0 0' }}>
+            <p style={{ fontSize: 19, lineHeight: 1.6, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '56ch', margin: '16px 0 0' }}>
               A lista completa dos participantes será divulgada em breve. Prepare sua rota para
               provar os combos da edição Lovers entre 4 e 14 de junho.
             </p>
@@ -368,7 +368,7 @@ function Combos() {
               Cada combo,<br />
               uma <span style={{ color: 'var(--lovers-yellow)' }}>recriação.</span>
             </h2>
-            <p style={{ fontSize: 17, lineHeight: 1.55, color: 'rgba(255,232,210,.85)', maxWidth: '52ch', margin: '20px 0 0' }}>
+            <p style={{ fontSize: 19, lineHeight: 1.6, color: 'rgba(255,232,210,.85)', maxWidth: '52ch', margin: '20px 0 0' }}>
               Cada combo da edição Lovers nasce de uma memória do Sweet: um tema histórico, uma nova
               criação e três elementos para viver a experiência completa — doce, salgado e bebida.
             </p>
@@ -450,7 +450,7 @@ function Mapa() {
           <h2 className="lh2">
             Monte sua rota dos <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
           </h2>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, margin: '16px 0 0', maxWidth: '52ch' }}>
+          <p style={{ fontSize: 19, lineHeight: 1.6, color: 'var(--lovers-brown)', opacity: .82, margin: '16px 0 0', maxWidth: '52ch' }}>
             Em breve você poderá escolher os participantes, ver onde cada loja está localizada e
             montar sua rota para aproveitar a edição Sweet &amp; Coffee Week Lovers do seu jeito.
           </p>
@@ -462,7 +462,7 @@ function Mapa() {
               <h4 style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(24px, 2.4vw, 32px)', textTransform: 'uppercase', color: 'var(--lovers-brown)', margin: 0, lineHeight: 1.1 }}>
                 Mapa em breve
               </h4>
-              <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
+              <p style={{ fontSize: 16, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
                 Os pontos participantes serão adicionados após a divulgação oficial.
               </p>
             </aside>
@@ -557,7 +557,7 @@ function Awards() {
               <h2 className="lh2">
                 Vote nos seus <span style={{ color: 'var(--lovers-pink)' }}>favoritos.</span>
               </h2>
-              <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .85, maxWidth: '52ch', margin: '20px 0 0' }}>
+              <p style={{ fontSize: 19, lineHeight: 1.6, color: 'var(--lovers-brown)', opacity: .85, maxWidth: '52ch', margin: '20px 0 0' }}>
                 Depois de provar os combos da edição Lovers, o público poderá participar
                 escolhendo seus favoritos no Sweet Awards. A votação será aberta durante a edição.
               </p>
@@ -634,7 +634,7 @@ function Awards() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <h5>CATEGORIAS EM BREVE</h5>
-                  <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
+                  <p style={{ fontSize: 16, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .7, margin: 0 }}>
                     As categorias oficiais do Sweet Awards serão divulgadas junto com a abertura da votação.
                   </p>
                 </div>
