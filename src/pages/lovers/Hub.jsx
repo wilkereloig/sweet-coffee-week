@@ -2,7 +2,7 @@
 import { I, HeartTiny, TapeStrip } from '../../components/icons'
 import { PhotoPH, ParticipantePH, EmptyState } from '../../components/placeholders'
 
-function LoversQuickCard({ label, value, icon, rotation = 0, color = 'burgundy' }) {
+function LoversQuickCard({ label, value, icon, color = 'burgundy' }) {
   const IconComp = I[icon] || I.heart
   const colorMap = {
     burgundy: 'var(--lovers-burgundy)',
@@ -16,21 +16,20 @@ function LoversQuickCard({ label, value, icon, rotation = 0, color = 'burgundy' 
     <div className="card" style={{
       background: 'rgba(255,255,255,.88)',
       border: '1px solid rgba(135,14,45,.18)',
-      transform: `rotate(${rotation}deg)`,
-      padding: '28px 24px',
+      padding: '32px 24px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       textAlign: 'center',
-      gap: 10,
+      gap: 12,
       height: '100%',
     }}>
-      <div style={{ color: c }}>
-        <IconComp width={28} height={28} />
+      <div style={{ color: c, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: 'rgba(135,14,45,.07)' }}>
+        <IconComp width={24} height={24} />
       </div>
-      <div className="mono" style={{ color: c, letterSpacing: '.1em' }}>{label}</div>
-      <div className="lovers-h3" style={{ fontSize: 'clamp(28px, 3vw, 40px)', lineHeight: 1, margin: 0 }}>{value}</div>
+      <div className="mono" style={{ color: c, letterSpacing: '.12em', fontSize: 11 }}>{label}</div>
+      <div className="lovers-h3" style={{ fontSize: 'clamp(26px, 3vw, 38px)', lineHeight: 1, margin: 0 }}>{value}</div>
     </div>
   )
 }
@@ -150,26 +149,26 @@ export function LoversPage({ navigate }) {
       </section>
 
       <section className="section" style={{ background: 'var(--lovers-pink)' }}>
-        <div className="wrap" style={{ maxWidth: 720, margin: '0 auto' }}>
+        <div className="wrap" style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="eyebrow" style={{ color: 'var(--lovers-cream)' }}>
             <span className="dot" style={{ background: 'var(--lovers-cream)' }}></span>
-            Sobre a edição
+            SOBRE A EDIÇÃO
           </div>
-          <h2 className="lovers-h2 mt-3" style={{ marginBottom: 16, color: 'var(--lovers-cream)' }}>
+          <h2 className="lovers-h2 mt-3" style={{ marginBottom: 20, color: 'var(--lovers-cream)' }}>
             A proposta não é repetir.<br/>
             É <span style={{ color: 'var(--lovers-burgundy)' }}>recriar.</span>
           </h2>
-          <p style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--lovers-cream)', opacity: .92, margin: 0 }}>
+          <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--lovers-cream)', opacity: .92, margin: 0 }}>
             Nesta edição, cada participante escolhe um tema que já fez parte da história do Sweet & Coffee Week e cria um combo inédito inspirado nele. A proposta não é repetir: é recriar com <span style={{ fontStyle: 'italic', color: 'var(--lovers-burgundy)', fontWeight: 600 }}>amor, memória e criatividade.</span>
           </p>
         </div>
 
         <div className="wrap mt-4">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(16px, 2vw, 28px)', alignItems: 'stretch' }}>
-            <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" rotation={-1} color="burgundy" />
-            <LoversQuickCard label="TEMA" value="Lovers" icon="heart" rotation={0.5} color="yellow" />
-            <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" rotation={-0.5} color="cyan" />
-            <LoversQuickCard label="SABORES" value="Recriados" icon="cup" rotation={1} color="coral" />
+          <div className="grid-4-cards">
+            <LoversQuickCard label="EDIÇÃO" value="16ª" icon="cal" color="burgundy" />
+            <LoversQuickCard label="TEMA" value="Lovers" icon="heart" color="yellow" />
+            <LoversQuickCard label="COMBOS" value="Exclusivos" icon="plate" color="cyan" />
+            <LoversQuickCard label="SABORES" value="Recriados" icon="cup" color="coral" />
           </div>
         </div>
       </section>
@@ -216,7 +215,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section">
         <div className="wrap">
-          <div style={{ marginBottom: 40 }}>
+          <div style={{ maxWidth: 800, marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}>
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
               PARTICIPANTES
@@ -243,7 +242,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-purple)' }}>
         <div className="wrap">
-          <div style={{ marginBottom: 40 }}>
+          <div style={{ maxWidth: 800, marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
               <span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>
               COMBOS DA EDIÇÃO
@@ -284,7 +283,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-cyan)' }}>
         <div className="wrap">
-          <div style={{ marginBottom: 32 }}>
+          <div style={{ maxWidth: 800, marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
               <span className="dot" style={{ background: 'var(--lovers-brown)' }}></span>
               MAPA DA DOÇURA LOVERS
@@ -306,7 +305,6 @@ export function LoversPage({ navigate }) {
       </section>
 
       <section className="section" style={{
-        padding: 'clamp(48px, 7vw, 96px) 0',
         background: 'var(--lovers-pink)',
         backgroundImage: 'url(/images/bg-01.svg)',
         backgroundSize: '100% 100%',
