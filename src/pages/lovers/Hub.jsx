@@ -54,58 +54,87 @@ const AWARD_CATS = [
 
 function Hero() {
   return (
-    <section id="top" className="hero">
-      <div className="hero__decor hero__decor--tl">
-        <span className="sticker sticker-pink" style={{ fontSize: 20 }}>10 anos</span>
-      </div>
-      <div className="hero__decor hero__decor--tr">
-        <span className="tape">SWEET LOVERS · 16ª EDIÇÃO</span>
-      </div>
-      <div className="hero__decor hero__decor--bl" />
-      <div className="hero__decor hero__decor--br">
-        <span className="sticker sticker-cream" style={{ fontSize: 18 }}>recriando.</span>
-      </div>
-
-      <div className="hero__selo">
-        <span className="num">10</span>
-        <span className="yrs">ANOS</span>
-      </div>
-
-      <div className="hero__inner">
-        <div className="hero__logos">
-          <img className="sweet" src="/images/sweet-logo.svg" alt="Sweet &amp; Coffee Week" />
-          <div style={{ width: '62%', margin: '-3% auto 0' }}>
+    <section id="top" style={{ background: 'var(--lovers-yellow)', overflow: 'hidden', padding: 'clamp(48px, 7vw, 96px) 0' }}>
+      <div className="wrap">
+        <div className="hero-v2-grid">
+          {/* Esquerda — logotipo empilhado */}
+          <div>
+            <div style={{
+              fontFamily: 'var(--font-lovers-display)',
+              fontWeight: 900,
+              fontSize: 'clamp(72px, 11vw, 152px)',
+              lineHeight: .88,
+              color: 'var(--lovers-brown)',
+              textTransform: 'uppercase',
+              letterSpacing: '-.01em',
+            }}>
+              SWEET &amp;<br />COFFEE
+            </div>
             <LoversWordmark width="100%" />
           </div>
-        </div>
 
-        <div className="hero__date-strip">
-          <span className="date">4–14 JUN</span>
-          <span className="sep">·</span>
-          <span className="meta">NATAL · RN</span>
-          <span className="sep">·</span>
-          <span className="meta">ESPECIAL 10 ANOS</span>
-        </div>
+          {/* Direita — texto + data + tiles */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <p style={{
+              fontFamily: 'var(--font-lovers-display)',
+              fontWeight: 700,
+              fontSize: 'clamp(22px, 2.4vw, 34px)',
+              lineHeight: 1.2,
+              color: 'var(--lovers-brown)',
+              margin: 0,
+            }}>
+              A edição de 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
+              em uma história de sucesso: os{' '}
+              <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
+            </p>
 
-        <p className="hero__lead">
-          A edição de 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
-          em uma história de sucesso: os Sweet Lovers.
-        </p>
+            <div>
+              <span style={{
+                display: 'inline-block',
+                background: 'var(--lovers-brown)',
+                color: 'var(--lovers-cream)',
+                fontFamily: 'var(--font-lovers-display)',
+                fontWeight: 700,
+                fontSize: 'clamp(22px, 2.8vw, 38px)',
+                letterSpacing: '.02em',
+                textTransform: 'uppercase',
+                padding: '12px 36px',
+                borderRadius: 999,
+              }}>
+                4 A 14 JUN
+              </span>
+            </div>
 
-        <div className="hero__ctas">
-          <a href="#sobre" className="btn btn-burgundy btn-lg">
-            Sobre a edição <I.arrow />
-          </a>
-          <span
-            className="btn btn-lg footer-locked"
-            data-tooltip="Disponível em 4 de junho"
-            aria-disabled="true"
-            style={{ background: 'var(--lovers-burgundy)', color: 'var(--lovers-cream)', opacity: .55, cursor: 'not-allowed', display: 'inline-flex', gap: 8 }}
-          >
-            Disponível a partir de 4 de junho <I.lock />
-          </span>
+            <div className="hero-v2-tiles">
+              <div style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>23</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>COMBOS<br />EXCLUSIVOS</div>
+              </div>
+              <div style={{ background: 'var(--lovers-cyan)', borderRadius: 16 }} />
+              <div style={{ background: 'var(--lovers-purple)', borderRadius: 16 }} />
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        .hero-v2-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(32px, 5vw, 80px);
+          align-items: center;
+        }
+        .hero-v2-tiles {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          aspect-ratio: 3 / 1;
+        }
+        @media (max-width: 720px) {
+          .hero-v2-grid { grid-template-columns: 1fr; }
+          .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
+        }
+      `}</style>
     </section>
   )
 }
