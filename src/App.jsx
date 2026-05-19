@@ -40,7 +40,7 @@ export default function App() {
 
   let page
   switch (route) {
-    case 'home':         page = <ComingSoonPage />; break
+    case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
     case 'combos':       page = <ComingSoonPage />; break
     case 'combo-detail': page = <ComingSoonPage />; break
