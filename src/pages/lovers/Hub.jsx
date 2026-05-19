@@ -57,18 +57,29 @@ function Hero() {
     <section id="top" style={{ background: 'var(--lovers-yellow)', overflow: 'hidden', padding: 'clamp(48px, 7vw, 96px) 0' }}>
       <div className="wrap">
         <div className="hero-v2-grid">
-          {/* Esquerda — logotipo empilhado */}
-          <div>
+          {/* Esquerda — logotipo empilhado (flex column, gap controlado) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.04em', fontSize: 'clamp(96px, 14vw, 190px)' }}>
             <div style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 900,
-              fontSize: 'clamp(96px, 14vw, 190px)',
+              fontSize: '1em',
               lineHeight: .88,
               color: 'var(--lovers-brown)',
               textTransform: 'uppercase',
               letterSpacing: '-.01em',
             }}>
-              SWEET &amp;<br />COFFEE
+              SWEET &amp;
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-lovers-display)',
+              fontWeight: 900,
+              fontSize: '1em',
+              lineHeight: .88,
+              color: 'var(--lovers-brown)',
+              textTransform: 'uppercase',
+              letterSpacing: '-.01em',
+            }}>
+              COFFEE
             </div>
             <LoversWordmark width="81%" />
           </div>
