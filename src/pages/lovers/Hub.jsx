@@ -198,7 +198,7 @@ function Sobre() {
             <div className="sb-p sb-p--lead">
               Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
               sabores e memórias em Natal. Para comemorar essa trajetória, nasce a edição{' '}
-              <em>Sweet &amp; Coffee Lovers</em>: uma homenagem ao público que acompanhou, provou,
+              <em>Sweet &amp; Coffee Week Lovers</em>: uma homenagem ao público que acompanhou, provou,
               compartilhou, votou, marcou os amigos e fez do festival uma tradição afetiva da cidade.
             </div>
             <div className="sb-p">
