@@ -2,7 +2,7 @@ import React from 'react'
 import { useRoute } from './router'
 import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
-import { SiteFooter } from './components/footer'
+
 
 import { HomePage }        from './pages/institutional/Home'
 import { EdicoesPage }     from './pages/institutional/Edicoes'
@@ -18,15 +18,10 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
-const SITE_COMING_SOON = import.meta.env.VITE_COMING_SOON === 'true'
-
 export default function App() {
   const [path, navigate] = useRoute()
-  const [bypass, setBypass] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
-
-  if (SITE_COMING_SOON && !bypass) return <ComingSoonPage onAdminAccess={() => setBypass(true)} />
 
   const route = (() => {
     if (path === '/' || path === '') return 'home'
@@ -45,17 +40,17 @@ export default function App() {
 
   let page
   switch (route) {
-    case 'home':         page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'home':         page = <ComingSoonPage />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'combo-detail': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'mapa':         page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'awards':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'curiosidades': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'participar':   page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'apoiar':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'edicoes':      page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'contato':      page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'combos':       page = <ComingSoonPage />; break
+    case 'combo-detail': page = <ComingSoonPage />; break
+    case 'mapa':         page = <ComingSoonPage />; break
+    case 'awards':       page = <ComingSoonPage />; break
+    case 'curiosidades': page = <ComingSoonPage />; break
+    case 'participar':   page = <ComingSoonPage />; break
+    case 'apoiar':       page = <ComingSoonPage />; break
+    case 'edicoes':      page = <ComingSoonPage />; break
+    case 'contato':      page = <ComingSoonPage />; break
     default:             page = <HomePage navigate={navigate} />
   }
 
@@ -63,7 +58,7 @@ export default function App() {
     <>
       <SiteHeader route={route} navigate={navigate} />
       <main key={route} className="page-enter">{page}</main>
-      <SiteFooter navigate={navigate} />
+
     </>
   )
 }
