@@ -124,23 +124,6 @@ function Hero() {
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
-            <div className="hero-date-pill">
-              <span style={{
-                display: 'inline-block',
-                background: 'var(--lovers-brown)',
-                color: 'var(--lovers-cream)',
-                fontFamily: 'var(--font-lovers-display)',
-                fontWeight: 700,
-                fontSize: 'clamp(22px, 2.8vw, 38px)',
-                letterSpacing: '.02em',
-                textTransform: 'uppercase',
-                padding: '12px 36px',
-                borderRadius: 999,
-              }}>
-                4 A 14 DE JUNHO
-              </span>
-            </div>
-
             <div className="hero-v2-tiles">
               <div aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
