@@ -2,6 +2,7 @@ import React from 'react'
 import { useRoute } from './router'
 import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
+import { DevViewportSwitcher } from './DevTools'
 
 
 import { HomePage }        from './pages/institutional/Home'
@@ -55,10 +56,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} />
       <main key={route} className="page-enter">{page}</main>
-
-    </>
+    </DevViewportSwitcher>
   )
 }
