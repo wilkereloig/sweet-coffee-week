@@ -121,8 +121,14 @@ function Hero() {
                 <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>23</div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>COMBOS<br />EXCLUSIVOS</div>
               </div>
-              <div style={{ background: 'var(--lovers-cyan)', borderRadius: 16 }} />
-              <div style={{ background: 'var(--lovers-purple)', borderRadius: 16 }} />
+              <div style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
+              </div>
+              <div style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />RECRIADOS</div>
+              </div>
             </div>
           </div>
         </div>
