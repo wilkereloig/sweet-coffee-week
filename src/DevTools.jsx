@@ -2,18 +2,22 @@ import React from 'react'
 
 const MODES = [
   { id: 'desktop', label: 'Desktop', width: null },
-  { id: 'mobile',  label: 'Mobile',  width: 390  },
+  { id: 'mobile',  label: 'Mobile · 390', width: 390 },
 ]
 
 export function DevViewportSwitcher({ children }) {
   const [mode, setMode] = React.useState('desktop')
 
-  if (!import.meta.env.DEV) return children
+  /* Inside an iframe: just render content, no switcher */
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top
 
-  const current = MODES.find(m => m.id === mode)
+  if (!import.meta.env.DEV || isInIframe) return children
+
+  const src = window.location.href
 
   return (
     <>
+      {/* Switcher pill — fixed, always visible */}
       <div style={{
         position: 'fixed', top: 12, right: 12, zIndex: 99999,
         display: 'flex', gap: 3,
@@ -22,6 +26,7 @@ export function DevViewportSwitcher({ children }) {
         padding: '5px 6px', borderRadius: 8,
         fontFamily: 'monospace', fontSize: 11,
         boxShadow: '0 2px 12px rgba(0,0,0,.4)',
+        pointerEvents: 'all',
       }}>
         {MODES.map(m => (
           <button
@@ -34,15 +39,15 @@ export function DevViewportSwitcher({ children }) {
               cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 'inherit',
               letterSpacing: '.04em',
-              transition: 'background .15s, color .15s',
             }}
           >
-            {m.label}{m.width ? ` · ${m.width}` : ''}
+            {m.label}
           </button>
         ))}
       </div>
 
-      {current.width ? (
+      {/* Preview frame — iframe gets its own viewport = correct media queries */}
+      {mode === 'mobile' ? (
         <div style={{
           background: '#111',
           minHeight: '100vh',
@@ -50,18 +55,32 @@ export function DevViewportSwitcher({ children }) {
           justifyContent: 'center',
           alignItems: 'flex-start',
         }}>
-          <div style={{
-            width: current.width,
-            minHeight: '100vh',
-            background: '#fff',
-            boxShadow: '0 0 0 1px rgba(255,255,255,.08), 0 24px 80px rgba(0,0,0,.6)',
-            overflow: 'hidden',
-            position: 'relative',
-          }}>
-            {children}
-          </div>
+          <iframe
+            key="mobile"
+            src={src}
+            title="Mobile Preview"
+            style={{
+              width: 390,
+              height: '100vh',
+              border: 'none',
+              display: 'block',
+              boxShadow: '0 0 0 1px rgba(255,255,255,.08), 0 24px 80px rgba(0,0,0,.6)',
+            }}
+          />
         </div>
-      ) : children}
+      ) : (
+        <iframe
+          key="desktop"
+          src={src}
+          title="Desktop Preview"
+          style={{
+            width: '100%',
+            height: '100vh',
+            border: 'none',
+            display: 'block',
+          }}
+        />
+      )}
     </>
   )
 }
