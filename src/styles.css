@@ -777,6 +777,21 @@ button:disabled { cursor: not-allowed; }
   --logo-back:  var(--lovers-pink);
   --logo-heart: var(--lovers-yellow);
 }
+
+@keyframes loversHeartPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+
+.lovers-wordmark svg #S2 {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: loversHeartPulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lovers-wordmark svg #S2 { animation: none; }
+}
 .lovers-logo--pink {
   --logo-bg:    var(--lovers-yellow);
   --logo-front: var(--lovers-burgundy);

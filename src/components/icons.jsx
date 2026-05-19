@@ -1,5 +1,6 @@
 import React from 'react'
 import loversLogoRaw from '../assets/lovers-logo.svg?raw'
+import loversWordmarkRaw from '../assets/lovers-wordmark.svg?raw'
 
 export const I = {
   arrow: (p = {}) => (
@@ -152,6 +153,17 @@ export function LoversLogo({ size = 200, variant = 'default', className = '' }) 
     <div
       className={`lovers-logo ${variantClass} ${className}`}
       style={{ width: size, height: size, display: 'inline-block' }}
+      dangerouslySetInnerHTML={{ __html: svgHtml }}
+    />
+  )
+}
+
+export function LoversWordmark({ width = 120, className = '' }) {
+  const svgHtml = loversWordmarkRaw.replace(/<svg /, '<svg style="width:100%;height:auto;display:block" ')
+  return (
+    <div
+      className={`lovers-wordmark ${className}`}
+      style={{ width, display: 'inline-block' }}
       dangerouslySetInnerHTML={{ __html: svgHtml }}
     />
   )

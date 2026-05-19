@@ -1,5 +1,5 @@
 import React from 'react'
-import { I, LogoMark, HeartTiny } from './icons'
+import { I, LogoMark, HeartTiny, LoversWordmark } from './icons'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
@@ -77,16 +77,8 @@ function SiteSidebar({ route, navigate, isLovers }) {
       </nav>
 
       <div className="sidebar__lovers">
-        <div className="sidebar__section-label" style={{
-          color: 'var(--lovers-cream)',
-          background: 'var(--lovers-burgundy)',
-          padding: '5px 10px',
-          borderRadius: 6,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-        }}>
-          <HeartTiny size={9} color="var(--lovers-cream)" /> Edição Lovers
+        <div className="sidebar__lovers-badge" style={{ marginBottom: 12 }}>
+          <LoversWordmark width={120} />
         </div>
         {LOVERS_LINKS.map((l) => (
           l.locked ? (
@@ -168,8 +160,7 @@ function LoversDropdown({ route, navigate }) {
         className={`lovers-nav-btn ${isActive ? 'active' : ''}`}
         aria-expanded={open}
       >
-        <HeartTiny size={10} color={isActive ? 'var(--lovers-red)' : 'currentColor'} />
-        Edição Lovers
+        <LoversWordmark width={80} />
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
              style={{ transition: 'transform .15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -262,8 +253,8 @@ export function SiteHeader({ route, navigate }) {
             )
           ))}
 
-          <div className="eyebrow mb-3 mt-4" style={{ color: 'var(--lovers-red)', borderTop: '1px solid var(--line)', paddingTop: 24 }}>
-            <HeartTiny size={11} color="var(--lovers-red)" /> Edição Lovers
+          <div className="eyebrow mb-3 mt-4" style={{ borderTop: '1px solid var(--line)', paddingTop: 24 }}>
+            <LoversWordmark width={100} />
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
