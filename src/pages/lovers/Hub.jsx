@@ -643,8 +643,8 @@ function FinalCTA() {
         </h2>
         <p>
           De 4 a 14 de junho, Natal vai viver uma edição cheia de memórias, sabores e novas
-          descobertas. Escolha seus combos, monte sua rota e venha celebrar os 10 anos do
-          Sweet &amp; Coffee Week.
+          descobertas. Em breve, você poderá conferir os participantes, escolher seus combos e
+          montar sua rota para celebrar os 10 anos do Sweet &amp; Coffee Week.
         </p>
         <div className="ctas">
           {hasCombosData ? (
@@ -658,7 +658,7 @@ function FinalCTA() {
               aria-disabled="true"
               style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
             >
-              Ver combos <I.lock />
+              Combos em breve <I.lock />
             </span>
           )}
           {hasMapData ? (
@@ -672,7 +672,7 @@ function FinalCTA() {
               aria-disabled="true"
               style={{ display: 'inline-flex', gap: 8, cursor: 'not-allowed', opacity: .55 }}
             >
-              Montar minha rota <I.lock />
+              Rota em breve <I.lock />
             </span>
           )}
           <a
