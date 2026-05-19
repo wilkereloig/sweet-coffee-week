@@ -51,11 +51,11 @@ export default function App() {
     case 'combo-detail': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     case 'mapa':         page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     case 'awards':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
-    case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
-    case 'participar':   page = <ParticiparPage navigate={navigate} />; break
-    case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
-    case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
-    case 'contato':      page = <ContatoPage navigate={navigate} />; break
+    case 'curiosidades': page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'participar':   page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'apoiar':       page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'edicoes':      page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
+    case 'contato':      page = <ComingSoonPage onAdminAccess={() => setBypass(true)} />; break
     default:             page = <HomePage navigate={navigate} />
   }
 

@@ -912,3 +912,38 @@ button:disabled { cursor: not-allowed; }
   opacity: .5;
   cursor: not-allowed;
 }
+.nav-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: .5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+/* Tooltip "Em breve" para qualquer elemento [data-tooltip] */
+[data-tooltip] { position: relative; }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--ink, #2B1810);
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 1000;
+}
+[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

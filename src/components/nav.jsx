@@ -3,11 +3,11 @@ import { I, LogoMark, HeartTiny } from './icons'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/' },
-  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
-  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
-  { id: 'participar',   label: 'Participar',   href: '#/participar' },
-  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
-  { id: 'contato',      label: 'Contato',      href: '#/contato' },
+  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades', locked: true },
+  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes',      locked: true },
+  { id: 'participar',   label: 'Participar',   href: '#/participar',   locked: true },
+  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar',       locked: true },
+  { id: 'contato',      label: 'Contato',      href: '#/contato',      locked: true },
 ]
 
 const LOVERS_LINKS = [
@@ -57,12 +57,22 @@ function SiteSidebar({ route, navigate, isLovers }) {
       <nav className="sidebar__nav">
         <div className="sidebar__section-label">Institucional</div>
         {NAV_LINKS.map((l) => (
-          <a key={l.id}
-             href={l.href}
-             className={`sidebar__link${route === l.id ? ' active' : ''}`}
-             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-            {l.label}
-          </a>
+          l.locked ? (
+            <span key={l.id}
+                  className="sidebar__link locked"
+                  data-tooltip="Em breve"
+                  aria-disabled="true">
+              {l.label}
+              <I.lock />
+            </span>
+          ) : (
+            <a key={l.id}
+               href={l.href}
+               className={`sidebar__link${route === l.id ? ' active' : ''}`}
+               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+              {l.label}
+            </a>
+          )
         ))}
       </nav>
 
@@ -174,7 +184,7 @@ function LoversDropdown({ route, navigate }) {
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" title="Em breve" aria-disabled="true">
+              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true">
                 {l.label}
                 <I.lock />
               </span>
@@ -207,12 +217,18 @@ export function SiteHeader({ route, navigate }) {
 
           <nav className="nav-main">
             {NAV_LINKS.map((l) => (
-              <a key={l.id}
-                 href={l.href}
-                 className={route === l.id ? 'active' : ''}
-                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-                {l.label}
-              </a>
+              l.locked ? (
+                <span key={l.id} className="nav-locked" data-tooltip="Em breve" aria-disabled="true">
+                  {l.label} <I.lock />
+                </span>
+              ) : (
+                <a key={l.id}
+                   href={l.href}
+                   className={route === l.id ? 'active' : ''}
+                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+                  {l.label}
+                </a>
+              )
             ))}
           </nav>
 
@@ -232,11 +248,18 @@ export function SiteHeader({ route, navigate }) {
 
           <div className="eyebrow mb-3">Institucional</div>
           {NAV_LINKS.map((l) => (
-            <a key={l.id}
-               href={l.href}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-              {l.label}
-            </a>
+            l.locked ? (
+              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true"
+                    style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
+                {l.label} <I.lock />
+              </span>
+            ) : (
+              <a key={l.id}
+                 href={l.href}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                {l.label}
+              </a>
+            )
           ))}
 
           <div className="eyebrow mb-3 mt-4" style={{ color: 'var(--lovers-red)', borderTop: '1px solid var(--line)', paddingTop: 24 }}>
@@ -244,7 +267,7 @@ export function SiteHeader({ route, navigate }) {
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" title="Em breve" aria-disabled="true"
+              <span key={l.id} className="locked" data-tooltip="Em breve" aria-disabled="true"
                     style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
                 {l.label}
                 <I.lock />

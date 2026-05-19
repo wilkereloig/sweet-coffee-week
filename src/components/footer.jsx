@@ -28,20 +28,20 @@ export function SiteFooter({ navigate }) {
             <h4>O festival</h4>
             <a href="#/" onClick={go('/')}>O Sweet</a>
             <a href="#/lovers" onClick={go('/lovers')}>Lovers</a>
-            <a href="#/edicoes" onClick={go('/edicoes')}>Edições</a>
-            <a href="#/curiosidades" onClick={go('/curiosidades')}>Curiosidades</a>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Edições <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Curiosidades <I.lock /></span>
           </div>
           <div>
             <h4>Edição atual</h4>
-            <span className="footer-locked" title="Em breve" aria-disabled="true">Combos <I.lock /></span>
-            <span className="footer-locked" title="Em breve" aria-disabled="true">Mapa da Doçura <I.lock /></span>
-            <span className="footer-locked" title="Em breve" aria-disabled="true">Sweet & Coffee Week Awards <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Combos <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Mapa da Doçura <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Sweet & Coffee Week Awards <I.lock /></span>
           </div>
           <div>
             <h4>Participar</h4>
-            <a href="#/participar" onClick={go('/participar')}>Quero participar</a>
-            <a href="#/apoiar" onClick={go('/apoiar')}>Quero apoiar</a>
-            <a href="#/contato" onClick={go('/contato')}>Contato</a>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Quero participar <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Quero apoiar <I.lock /></span>
+            <span className="footer-locked" data-tooltip="Em breve" aria-disabled="true">Contato <I.lock /></span>
             <a href="mailto:imprensa@sweetcoffeeweek.com.br">Imprensa</a>
           </div>
         </div>
