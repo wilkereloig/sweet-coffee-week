@@ -215,7 +215,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section">
         <div className="wrap">
-          <div style={{ maxWidth: 800, marginBottom: 40 }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}>
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
               PARTICIPANTES
@@ -242,7 +242,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-purple)' }}>
         <div className="wrap">
-          <div style={{ maxWidth: 800, marginBottom: 40 }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}>
               <span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>
               COMBOS DA EDIÇÃO
@@ -283,7 +283,7 @@ export function LoversPage({ navigate }) {
 
       <section className="section" style={{ background: 'var(--lovers-cyan)' }}>
         <div className="wrap">
-          <div style={{ maxWidth: 800, marginBottom: 40 }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', marginBottom: 40 }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-brown)' }}>
               <span className="dot" style={{ background: 'var(--lovers-brown)' }}></span>
               MAPA DA DOÇURA LOVERS
