@@ -394,37 +394,39 @@ function Combos() {
           </div>
         </div>
 
-        <div className="combos__grid" hidden={!hasCombosData}>
-          {COMBOS.map((c, i) => (
-            <article className="combo__card" key={i}>
-              <div className="combo__photo" style={{ background: 'var(--lovers-burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', opacity: .7 }}>
-                  {c.theme.toUpperCase()}
-                </span>
-              </div>
-              <div className="combo__body">
-                <span className="store">{c.store}</span>
-                <h4 className="name">{c.name}</h4>
-                <div className="combo__items">
-                  <div className="it"><span className="k">DOCE</span><span className="v">{c.doce}</span></div>
-                  <div className="it"><span className="k">SALGADO</span><span className="v">{c.salgado}</span></div>
-                  <div className="it"><span className="k">BEBIDA</span><span className="v">{c.bebida}</span></div>
+        {hasCombosData && (
+          <div className="combos__grid">
+            {COMBOS.map((c, i) => (
+              <article className="combo__card" key={i}>
+                <div className="combo__photo" style={{ background: 'var(--lovers-burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', opacity: .7 }}>
+                    {c.theme.toUpperCase()}
+                  </span>
                 </div>
-                <div className="combo__foot">
-                  <span className="price">{c.price}</span>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn" style={{ padding: '8px 14px', fontSize: 11, background: 'transparent', color: 'var(--lovers-burgundy)', border: '1px solid rgba(135,14,45,.3)' }}>
-                      Adicionar à rota
-                    </button>
-                    <button className="btn btn-burgundy" style={{ padding: '8px 14px', fontSize: 11 }}>
-                      Ver <I.arrow />
-                    </button>
+                <div className="combo__body">
+                  <span className="store">{c.store}</span>
+                  <h4 className="name">{c.name}</h4>
+                  <div className="combo__items">
+                    <div className="it"><span className="k">DOCE</span><span className="v">{c.doce}</span></div>
+                    <div className="it"><span className="k">SALGADO</span><span className="v">{c.salgado}</span></div>
+                    <div className="it"><span className="k">BEBIDA</span><span className="v">{c.bebida}</span></div>
+                  </div>
+                  <div className="combo__foot">
+                    <span className="price">{c.price}</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn" style={{ padding: '8px 14px', fontSize: 11, background: 'transparent', color: 'var(--lovers-burgundy)', border: '1px solid rgba(135,14,45,.3)' }}>
+                        Adicionar à rota
+                      </button>
+                      <button className="btn btn-burgundy" style={{ padding: '8px 14px', fontSize: 11 }}>
+                        Ver <I.arrow />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
@@ -463,52 +465,54 @@ function Mapa() {
             </div>
           </div>
         )}
-        <div className="mapa__grid" hidden={!hasMapData}>
-          <aside className="mapa__list">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px 10px', borderBottom: '1px solid rgba(135,14,45,.12)', marginBottom: 4 }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .65 }}>
-                {MAP_STOPS.length} PARTICIPANTES
-              </span>
-              <button style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-burgundy)', padding: '4px 8px', borderRadius: 999, background: 'rgba(135,14,45,.06)' }}>
-                Filtrar bairro ↓
-              </button>
-            </div>
-            {MAP_STOPS.map((s, i) => (
-              <div className={`row${i === 0 ? ' active' : ''}`} key={i}>
-                <span className="pin-num">{i + 1}</span>
-                <div className="row-body">
-                  <span className="row-name">{s.name}</span>
-                  <span className="row-meta">{s.bairro} · {s.combo}</span>
-                </div>
+        {hasMapData && (
+          <div className="mapa__grid">
+            <aside className="mapa__list">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px 10px', borderBottom: '1px solid rgba(135,14,45,.12)', marginBottom: 4 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .65 }}>
+                  {MAP_STOPS.length} PARTICIPANTES
+                </span>
+                <button style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-burgundy)', padding: '4px 8px', borderRadius: 999, background: 'rgba(135,14,45,.06)' }}>
+                  Filtrar bairro ↓
+                </button>
               </div>
-            ))}
-          </aside>
+              {MAP_STOPS.map((s, i) => (
+                <div className={`row${i === 0 ? ' active' : ''}`} key={i}>
+                  <span className="pin-num">{i + 1}</span>
+                  <div className="row-body">
+                    <span className="row-name">{s.name}</span>
+                    <span className="row-meta">{s.bairro} · {s.combo}</span>
+                  </div>
+                </div>
+              ))}
+            </aside>
 
-          <div className="mapa__map">
-            <svg viewBox="0 0 800 540" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-              <g stroke="rgba(135,14,45,.18)" strokeWidth="1.4" fill="none">
-                <path d="M0 80 L800 120" /><path d="M0 200 L800 240" />
-                <path d="M0 320 L800 360" /><path d="M0 440 L800 480" />
-                <path d="M120 0 L160 540" /><path d="M280 0 L320 540" />
-                <path d="M440 0 L480 540" /><path d="M600 0 L640 540" />
-              </g>
-              <g stroke="var(--lovers-burgundy)" strokeWidth="2.5" fill="none" strokeDasharray="6 6">
-                <path d="M40 480 Q 200 280 320 300 T 600 200 L 760 140" />
-              </g>
-            </svg>
-            {MAP_PINS.map((p, i) => (
-              <div key={i} style={{ position: 'absolute', top: p.top, left: p.left, transform: 'translate(-50%, -100%)', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,.2))', color: 'var(--lovers-burgundy)' }}>
-                <div style={{ position: 'relative' }}>
-                  <I.pinFill width={36} height={36} />
-                  <span style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', color: 'var(--lovers-cream)', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>
-                    {i + 1}
-                  </span>
+            <div className="mapa__map">
+              <svg viewBox="0 0 800 540" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                <g stroke="rgba(135,14,45,.18)" strokeWidth="1.4" fill="none">
+                  <path d="M0 80 L800 120" /><path d="M0 200 L800 240" />
+                  <path d="M0 320 L800 360" /><path d="M0 440 L800 480" />
+                  <path d="M120 0 L160 540" /><path d="M280 0 L320 540" />
+                  <path d="M440 0 L480 540" /><path d="M600 0 L640 540" />
+                </g>
+                <g stroke="var(--lovers-burgundy)" strokeWidth="2.5" fill="none" strokeDasharray="6 6">
+                  <path d="M40 480 Q 200 280 320 300 T 600 200 L 760 140" />
+                </g>
+              </svg>
+              {MAP_PINS.map((p, i) => (
+                <div key={i} style={{ position: 'absolute', top: p.top, left: p.left, transform: 'translate(-50%, -100%)', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,.2))', color: 'var(--lovers-burgundy)' }}>
+                  <div style={{ position: 'relative' }}>
+                    <I.pinFill width={36} height={36} />
+                    <span style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', color: 'var(--lovers-cream)', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>
+                      {i + 1}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <div className="chip" style={{ position: 'absolute', bottom: 16, left: 16 }}>NATAL · RN</div>
+              ))}
+              <div className="chip" style={{ position: 'absolute', bottom: 16, left: 16 }}>NATAL · RN</div>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="mapa__cta">
           <span
