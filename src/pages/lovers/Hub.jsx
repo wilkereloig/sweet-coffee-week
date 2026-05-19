@@ -273,8 +273,8 @@ function Participantes() {
               Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
             </h2>
             <p style={{ fontSize: 17, lineHeight: 1.55, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '56ch', margin: '16px 0 0' }}>
-              Conheça as marcas que fazem parte da edição Sweet &amp; Coffee Week Lovers e prepare
-              sua rota para provar os combos de 4 a 14 de junho.
+              A lista completa dos participantes será divulgada em breve. Prepare sua rota para
+              provar os combos da edição Lovers entre 4 e 14 de junho.
             </p>
           </div>
         </div>
@@ -324,7 +324,24 @@ function Participantes() {
             </p>
           </>
         ) : (
-          <EmBreve label="Participantes confirmados a partir de 4 de junho" />
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45, padding: '6px 16px', border: '1px solid rgba(63,26,10,.18)', borderRadius: 999, cursor: 'not-allowed' }}>
+                Categorias em breve
+              </span>
+            </div>
+            <div className="part__grid">
+              {['Participantes em breve', 'Combos em breve', 'Temas em breve', 'Rota em breve'].map((label, i) => (
+                <div className="part__card" key={i} style={{ opacity: .5 }}>
+                  <div className="logo" style={{ background: 'var(--lovers-cream)', border: '2px dashed rgba(63,26,10,.18)' }} />
+                  <div>
+                    <h4 className="name">{label}</h4>
+                    <div className="meta" style={{ marginTop: 4 }}>A confirmar</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </section>
@@ -342,8 +359,8 @@ function Combos() {
               uma <span style={{ color: 'var(--lovers-yellow)' }}>recriação.</span>
             </h2>
             <p style={{ fontSize: 17, lineHeight: 1.55, color: 'rgba(255,232,210,.85)', maxWidth: '52ch', margin: '20px 0 0' }}>
-              Cada combo da edição Lovers é uma nova leitura de uma memória do Sweet. Um tema antigo,
-              uma criação inédita e três elementos para viver a experiência completa: doce, salgado e bebida.
+              Cada combo da edição Lovers nasce de uma memória do Sweet: um tema histórico, uma nova
+              criação e três elementos para viver a experiência completa — doce, salgado e bebida.
             </p>
           </div>
           <div className="combos__formula">
@@ -352,29 +369,27 @@ function Combos() {
           </div>
         </div>
 
-        {hasCombosData && (
-          <div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .65, marginBottom: 12 }}>
-              NAVEGUE POR TEMA HISTÓRICO
-            </div>
-            <div className="themes">
-              {THEMES.map(t => (
-                <span key={t} className="theme-tag">{t}</span>
-              ))}
-            </div>
+        <div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .65, marginBottom: 12 }}>
+            TEMAS HISTÓRICOS DESTA EDIÇÃO
           </div>
-        )}
+          <div className="themes">
+            {THEMES.map(t => (
+              <span key={t} className="theme-tag">{t}</span>
+            ))}
+          </div>
+        </div>
 
         <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 18, padding: '28px 36px', background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', borderRadius: 18, maxWidth: 680, marginInline: 'auto' }}>
           <div style={{ width: 44, height: 44, flex: '0 0 auto', borderRadius: 999, background: 'var(--lovers-brown)', color: 'var(--lovers-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <I.lock />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', opacity: .7 }}>
-              EM BREVE
-            </div>
             <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 22, lineHeight: 1.1, textTransform: 'uppercase' }}>
-              Combos disponíveis a partir de 4 de junho
+              Combos em breve
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.08em', textTransform: 'none', opacity: .75, marginTop: 4 }}>
+              A lista oficial dos combos será divulgada antes do início da edição.
             </div>
           </div>
         </div>
