@@ -255,7 +255,7 @@ function ComoFunciona() {
   return (
     <section id="como" className="section section-como">
       <div className="wrap">
-        <div className="reveal reveal-left" style={{ maxWidth: 720, marginBottom: 56 }}>
+        <div className="reveal reveal-left" style={{ maxWidth: 720, marginBottom: 40 }}>
           <h2 className="lh2" style={{ marginTop: 16, color: 'var(--lovers-cream)' }}>
             Como funciona<br />
             a edição <span style={{ color: 'var(--lovers-yellow)' }}>Lovers.</span>

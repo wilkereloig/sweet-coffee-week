@@ -1011,6 +1011,22 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
+/* ── Lovers section spacing ── */
+.kv-lovers .section {
+  padding-top: clamp(72px, 8vw, 120px);
+  padding-bottom: clamp(72px, 8vw, 120px);
+}
+@media (max-width: 720px) {
+  .kv-lovers .section { padding-top: 64px; padding-bottom: 64px; }
+}
+@media (max-width: 420px) {
+  .kv-lovers .section { padding-top: 56px; padding-bottom: 56px; }
+}
+.como__cards { margin-top: 0; }
+@media (max-width: 720px) {
+  .section-como .wrap > div:first-child { margin-bottom: 32px !important; }
+}
+
 /* ── Loop animations ── */
 @keyframes loversFloatSoft {
   0%, 100% { transform: translateY(0) rotate(0deg); }
