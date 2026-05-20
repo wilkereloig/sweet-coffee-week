@@ -170,13 +170,17 @@ function LoversDropdown({ route, navigate }) {
       {open && (
         <div className="lovers-dropdown">
           <div className="lovers-dropdown__header">
-            <HeartTiny size={11} color="var(--lovers-red)" />
-            <span className="mono" style={{ fontSize: 10, letterSpacing: '.12em', color: 'var(--lovers-red)' }}>SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO</span>
+            <LoversWordmark width={96} />
+            <div className="lovers-dropdown__header-sub">
+              <HeartTiny size={9} color="var(--lovers-burgundy)" />
+              <span>Sweet &amp; Coffee Week Lovers · 16ª edição</span>
+            </div>
           </div>
           {LOVERS_LINKS.map((l) => (
             l.locked ? (
-              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true">
-                {l.label}
+              <span key={l.id} className="locked" aria-disabled="true">
+                <span style={{ flex: 1 }}>{l.label}</span>
+                <span className="dropdown-soon-badge">em breve</span>
                 <I.lock />
               </span>
             ) : (
@@ -224,9 +228,12 @@ export function SiteHeader({ route, navigate }) {
           </nav>
 
           <div className="nav-cta">
-            <LoversDropdown route={route} navigate={navigate} />
-            <button className="menu-toggle" onClick={() => setMobileOpen(true)}>
-              <I.menu /> Menu
+            <button
+              className="menu-toggle"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <I.menu />
             </button>
           </div>
         </div>
@@ -234,44 +241,57 @@ export function SiteHeader({ route, navigate }) {
 
       {mobileOpen && (
         <div className="mobile-overlay" onClick={() => setMobileOpen(false)}>
-        <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
-          <button className="close" onClick={() => setMobileOpen(false)}><I.close /></button>
+        <div className="mobile-menu mobile-menu--lovers" onClick={(e) => e.stopPropagation()}>
+          <button className="close close--lovers" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><I.close /></button>
 
-          <div className="eyebrow mb-3">Institucional</div>
-          {NAV_LINKS.map((l) => (
-            l.locked ? (
-              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true"
-                    style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
-                {l.label} <I.lock />
-              </span>
-            ) : (
-              <a key={l.id}
-                 href={l.href}
-                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-                {l.label}
-              </a>
-            )
-          ))}
-
-          <div className="eyebrow mb-3 mt-4" style={{ borderTop: '1px solid var(--line)', paddingTop: 24 }}>
-            <LoversWordmark width={100} />
+          <div className="mobile-menu__lovers-head">
+            <LoversWordmark width={112} />
+            <div className="mobile-menu__lovers-head-sub">Sweet &amp; Coffee Week Lovers · 16ª edição</div>
           </div>
-          {LOVERS_LINKS.map((l) => (
-            l.locked ? (
-              <span key={l.id} className="locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true"
-                    style={{ opacity: .5, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'not-allowed' }}>
-                {l.label}
-                <I.lock />
-              </span>
-            ) : (
-              <a key={l.id}
-                 href={l.href}
-                 style={{ color: route === l.id ? 'var(--lovers-red)' : undefined }}
-                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-                {l.label}
-              </a>
-            )
-          ))}
+
+          <div className="mobile-menu__section mobile-menu__section--lovers">
+            {LOVERS_LINKS.map((l) => {
+              const isActive = route === l.id
+              if (l.locked) {
+                return (
+                  <span key={l.id} className="mobile-menu__item mobile-menu__item--locked" aria-disabled="true">
+                    <span className="mobile-menu__item-label">{l.label}</span>
+                    <span className="mobile-menu__item-right">
+                      <span className="mobile-menu__badge">em breve</span>
+                      <I.lock />
+                    </span>
+                  </span>
+                )
+              }
+              return (
+                <a key={l.id}
+                   href={l.href}
+                   className={`mobile-menu__item${isActive ? ' mobile-menu__item--active' : ''}`}
+                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                  <span className="mobile-menu__item-label">{l.label}</span>
+                </a>
+              )
+            })}
+          </div>
+
+          <div className="mobile-menu__section mobile-menu__section--institutional">
+            <div className="mobile-menu__section-title">Institucional</div>
+            {NAV_LINKS.map((l) => (
+              l.locked ? (
+                <span key={l.id} className="mobile-menu__inst-link locked" aria-disabled="true">
+                  {l.label} <I.lock />
+                </span>
+              ) : (
+                <a key={l.id}
+                   href={l.href}
+                   className="mobile-menu__inst-link"
+                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                  {l.label}
+                </a>
+              )
+            ))}
+          </div>
+
         </div>
         </div>
       )}
@@ -304,32 +324,57 @@ export function SiteHeader({ route, navigate }) {
           position: absolute;
           top: calc(100% + 8px);
           right: 0;
-          min-width: 220px;
-          background: var(--bg-card, #fff);
-          border: 1px solid var(--line);
-          border-radius: 16px;
-          box-shadow: 0 12px 40px rgba(43,24,16,.12);
+          width: min(320px, calc(100vw - 32px));
+          background: var(--lovers-cream, #FFE8D2);
+          border: 1.5px solid rgba(135,14,45,.2);
+          border-radius: 20px;
+          box-shadow: 0 16px 48px rgba(43,24,16,.16);
           overflow: hidden;
           z-index: 200;
         }
         .lovers-dropdown__header {
           display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 14px 16px 12px;
+          background: var(--lovers-yellow, #F5B800);
+          border-bottom: 2px solid var(--lovers-pink, #F20567);
+        }
+        .lovers-dropdown__header-sub {
+          display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          background: var(--lovers-cream, #FFF1E6);
-          border-bottom: 1px solid rgba(135,14,45,.15);
+          gap: 5px;
+          font-family: var(--font-mono);
+          font-size: 9px;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+          color: var(--lovers-burgundy, #870E2D);
+          opacity: .85;
         }
         .lovers-dropdown a {
           display: block;
-          padding: 11px 16px;
+          padding: 12px 16px;
           font-size: 14px;
-          color: var(--ink);
+          color: var(--lovers-brown, #3F1A0A);
           text-decoration: none;
+          background: #fff;
           transition: background .1s;
+          border-bottom: 1px solid rgba(135,14,45,.08);
         }
-        .lovers-dropdown a:hover { background: rgba(135,14,45,.05); }
-        .lovers-dropdown a.active { color: var(--lovers-red); font-weight: 600; }
+        .lovers-dropdown a:hover { background: rgba(245,184,0,.1); }
+        .lovers-dropdown a.active { color: var(--lovers-burgundy); font-weight: 700; background: rgba(135,14,45,.06); }
+        .dropdown-soon-badge {
+          font-family: var(--font-mono);
+          font-size: 8px;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+          background: var(--lovers-yellow, #F5B800);
+          color: var(--lovers-brown, #3F1A0A);
+          padding: 2px 6px;
+          border-radius: 999px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
       `}</style>
     </React.Fragment>
   )

@@ -56,9 +56,9 @@ export default function App() {
   }
 
   return (
-    <DevViewportSwitcher>
+    <>
       <SiteHeader route={route} navigate={navigate} />
       <main key={route} className="page-enter">{page}</main>
-    </DevViewportSwitcher>
+    </>
   )
 }
