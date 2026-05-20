@@ -125,7 +125,7 @@ Antes de qualquer tarefa nova:
 
 1. **Ler `CODE_REVIEW_GRAPH.md`** primeiro para mapear o projeto.
 2. Confirmar quais arquivos estão no escopo permitido pela tarefa.
-3. Consultar `CLAUDE.md` (regras gerais do projeto) e este mapa em conjunto.
+3. Se existir um arquivo `CLAUDE.md` ou outro documento de instruções do projeto, consultar junto com este mapa.
 4. Listar os arquivos a serem modificados **antes** de editar qualquer linha.
 5. Manter escopo mínimo — não refatorar fora do pedido.
 
