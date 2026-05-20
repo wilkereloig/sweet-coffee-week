@@ -1,12 +1,12 @@
-/* ============================================================
-   SWEET COFFEE WEEK — Sistema visual
+﻿/* ============================================================
+   SWEET COFFEE WEEK â€” Sistema visual
    Dois KVs:
    - .kv-inst (institucional, perene)
-   - .kv-lovers (campanha 16ª edição)
+   - .kv-lovers (campanha 16Âª ediÃ§Ã£o)
    ============================================================ */
 
 :root {
-  /* INSTITUCIONAL — base */
+  /* INSTITUCIONAL â€” base */
   --bg: #FFF4EC;
   --bg-soft: #FBEADC;
   --bg-card: #FFFFFF;
@@ -22,11 +22,11 @@
   --peach: #F2B6A0;
   --peach-soft: #F9D9CB;
 
-  /* LOVERS — KV 16ª edição (paleta dedicada) */
-  --lovers-brown:    #3F1A0A;   /* deep brown — ink */
+  /* LOVERS â€” KV 16Âª ediÃ§Ã£o (paleta dedicada) */
+  --lovers-brown:    #3F1A0A;   /* deep brown â€” ink */
   --lovers-rust:     #6B2418;
   --lovers-burgundy: #870E2D;   /* primary mark */
-  --lovers-pink:     #F20567;   /* hot pink accent — KV exato */
+  --lovers-pink:     #F20567;   /* hot pink accent â€” KV exato */
   --lovers-coral:    #E12947;   /* red-coral */
   --lovers-cyan:     #00B8CC;   /* ciano KV exato */
   --lovers-yellow:   #F5B800;   /* amarelo KV exato */
@@ -53,7 +53,7 @@
   --font-script: 'Caveat', cursive;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* LOVERS typography — Sofia Comp via Adobe Fonts.
+  /* LOVERS typography â€” Sofia Comp via Adobe Fonts.
      Fallback Caprasimo (Google Fonts) used until kit URL is added.
      See index.html <link id="typekit"> to swap. */
   --font-lovers-display: 'sofia-pro-comp', 'Caprasimo', 'Instrument Serif', Georgia, serif;
@@ -181,7 +181,7 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* ---------- BOTÕES ---------- */
+/* ---------- BOTÃ•ES ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -378,7 +378,7 @@ button:disabled { cursor: not-allowed; }
   z-index: 2;
 }
 
-/* ── MOBILE MENU — LOVERS IDENTITY ── */
+/* â”€â”€ MOBILE MENU â€” LOVERS IDENTITY â”€â”€ */
 .mobile-menu--lovers {
   background: var(--lovers-cream);
 }
@@ -793,7 +793,7 @@ button:disabled { cursor: not-allowed; }
     linear-gradient(180deg, #FFE8D2 0%, #FAD1B0 100%);
 }
 
-/* ---------- LOVERS — KV CAMPANHA ---------- */
+/* ---------- LOVERS â€” KV CAMPANHA ---------- */
 .kv-lovers {
   position: relative;
   font-family: var(--font-lovers-body);
@@ -916,7 +916,7 @@ button:disabled { cursor: not-allowed; }
   .lovers-wordmark svg #S2 { animation: none; }
 }
 
-/* ── Scroll reveal ── */
+/* â”€â”€ Scroll reveal â”€â”€ */
 .reveal {
   opacity: 0;
   transform: translateY(28px);
@@ -1011,7 +1011,7 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* ── Lovers section spacing ── */
+/* â”€â”€ Lovers section spacing â”€â”€ */
 .kv-lovers .section {
   padding-top: clamp(72px, 8vw, 120px);
   padding-bottom: clamp(72px, 8vw, 120px);
@@ -1027,7 +1027,7 @@ button:disabled { cursor: not-allowed; }
   .section-como .wrap > div:first-child { margin-bottom: 32px !important; }
 }
 
-/* ── Loop animations ── */
+/* â”€â”€ Loop animations â”€â”€ */
 @keyframes loversFloatSoft {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%       { transform: translateY(-6px) rotate(-.4deg); }
@@ -1061,7 +1061,7 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* ── Hover microinteractions (desktop only) ── */
+/* â”€â”€ Hover microinteractions (desktop only) â”€â”€ */
 @media (hover: hover) {
   .sobre__block,
   .como__card,
@@ -1080,7 +1080,7 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* ── Hero lockup: Sweet & Coffee + Lovers wordmark ── */
+/* â”€â”€ Hero lockup: Sweet & Coffee + Lovers wordmark â”€â”€ */
 .hero-logo-lockup {
   font-size: clamp(82px, 13vw, 190px);
   display: flex;
@@ -1194,7 +1194,7 @@ button:disabled { cursor: not-allowed; }
 .page-enter { animation: fadeUp .3s ease; }
 
 /* ============================================================
-   CENTRALIZAÇÃO GLOBAL — todas as páginas
+   CENTRALIZAÃ‡ÃƒO GLOBAL â€” todas as pÃ¡ginas
    ============================================================ */
 .page-enter { text-align: center; }
 
@@ -1211,19 +1211,19 @@ button:disabled { cursor: not-allowed; }
 
 .page-enter .grid { justify-items: center; }
 
-/* CTAs / botões em linha */
+/* CTAs / botÃµes em linha */
 .page-enter .btn,
 .page-enter .btn-lovers,
 .page-enter .btn-lg { margin-left: auto; margin-right: auto; }
 
-/* Form: labels centrados, inputs mantêm digitação à esquerda */
+/* Form: labels centrados, inputs mantÃªm digitaÃ§Ã£o Ã  esquerda */
 .page-enter label,
 .page-enter .form-label { text-align: center; display: block; }
 .page-enter input,
 .page-enter textarea,
 .page-enter select { text-align: left; }
 
-/* Listas sem bullet à esquerda */
+/* Listas sem bullet Ã  esquerda */
 .page-enter ul,
 .page-enter ol { list-style-position: inside; padding-left: 0; }
 
@@ -1241,7 +1241,7 @@ button:disabled { cursor: not-allowed; }
 .page-enter .howit-row > * { margin-left: 0 !important; margin-right: 0 !important; }
 
 /* ============================================================
-   LOVERS: desfaz centralização global — alinhamento à esquerda
+   LOVERS: desfaz centralizaÃ§Ã£o global â€” alinhamento Ã  esquerda
    ============================================================ */
 .kv-lovers.page-enter { text-align: left; }
 
@@ -1338,9 +1338,9 @@ button:disabled { cursor: not-allowed; }
   transform: translateX(-50%) translateY(0);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   LOVERS EDITION LANDING — handoff 2026-05-19
-   ═══════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   LOVERS EDITION LANDING â€” handoff 2026-05-19
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .lh1 { font-family: var(--font-lovers-display); font-weight: 700; font-size: clamp(56px, 9vw, 144px); line-height: 0.92; letter-spacing: -.02em; text-transform: uppercase; color: var(--lovers-brown); margin: 0; padding-bottom: .14em; }
 .lh2 { font-family: var(--font-lovers-display); font-weight: 700; font-size: clamp(44px, 6vw, 88px);  line-height: 0.98; letter-spacing: -.01em; text-transform: uppercase; color: var(--lovers-brown); margin: 0; padding-bottom: .12em; }
@@ -1486,7 +1486,7 @@ button:disabled { cursor: not-allowed; }
 .section-cta__footnote { margin-top: clamp(56px, 7vw, 96px); padding-top: 32px; border-top: 1px solid rgba(255,232,210,.15); font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: rgba(255,232,210,.55); text-transform: uppercase; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
 /* ============================================================
-   LOVERS — vertical spacing audit
+   LOVERS â€” vertical spacing audit
    ============================================================ */
 
 .kv-lovers .section {
@@ -1561,56 +1561,3 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
-/* ── Lovers card icon wrappers ── */
-.hero-tile__icon {
-  position: absolute;
-  top: 16px; right: 16px;
-  width: 36px; height: 36px;
-  border-radius: 999px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255,232,210,.22);
-  color: currentColor;
-  opacity: .82;
-}
-.hero-tile__icon svg { width: 20px; height: 20px; }
-
-.como__card-head {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; gap: 16px;
-}
-.como__icon {
-  width: 42px; height: 42px;
-  border-radius: 999px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(242,5,103,.08);
-  color: var(--lovers-pink);
-  flex: 0 0 auto;
-}
-.como__icon svg { width: 22px; height: 22px; }
-
-@media (max-width: 540px) {
-  .hero-tile__icon { width: 30px; height: 30px; top: 14px; right: 14px; }
-  .hero-tile__icon svg { width: 17px; height: 17px; }
-  .como__icon { width: 36px; height: 36px; }
-  .como__icon svg { width: 19px; height: 19px; }
-}
-
-/* ── Icon micro-animations ── */
-@keyframes iconSoftPulse {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.08); }
-}
-@keyframes iconTinyFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%       { transform: translateY(-3px) rotate(-2deg); }
-}
-@keyframes iconSoftSwing {
-  0%, 100% { transform: rotate(0deg); }
-  50%       { transform: rotate(3deg); }
-}
-.icon-anim-pulse svg { animation: iconSoftPulse 2.8s ease-in-out infinite; transform-origin: center; }
-.icon-anim-float svg { animation: iconTinyFloat 3.2s ease-in-out infinite; transform-origin: center; }
-.icon-anim-swing svg { animation: iconSoftSwing 3.1s ease-in-out infinite; transform-origin: center; }
-@media (prefers-reduced-motion: reduce) {
-  .icon-anim-pulse svg, .icon-anim-float svg, .icon-anim-swing svg { animation: none !important; }
-}
