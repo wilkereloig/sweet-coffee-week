@@ -152,7 +152,7 @@ function Hero() {
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
-            <div className="hero-v2-tiles reveal reveal-scale reveal-delay-2">
+            <div className="hero-v2-tiles">
               <div className="reveal reveal-scale reveal-delay-2" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>

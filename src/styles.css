@@ -981,11 +981,11 @@ button:disabled { cursor: not-allowed; }
   .awards__card {
     transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
   }
-  .sobre__block:hover,
-  .como__card:hover,
-  .part__card:hover,
-  .combos__formula:hover,
-  .awards__card:hover {
+  .sobre__block.is-visible:hover,
+  .como__card.is-visible:hover,
+  .part__card.is-visible:hover,
+  .combos__formula.is-visible:hover,
+  .awards__card.is-visible:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 28px rgba(63,26,10,.10);
   }
