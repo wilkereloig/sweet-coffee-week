@@ -1484,3 +1484,79 @@ button:disabled { cursor: not-allowed; }
 .section-cta p { color: rgba(255,232,210,.85); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.6; max-width: 56ch; margin: 28px 0 36px; }
 .section-cta .ctas { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
 .section-cta__footnote { margin-top: clamp(56px, 7vw, 96px); padding-top: 32px; border-top: 1px solid rgba(255,232,210,.15); font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: rgba(255,232,210,.55); text-transform: uppercase; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ============================================================
+   LOVERS — vertical spacing audit
+   ============================================================ */
+
+.kv-lovers .section {
+  padding-top: clamp(72px, 8vw, 112px);
+  padding-bottom: clamp(72px, 8vw, 112px);
+}
+
+.section-como .wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-como .wrap > div:first-child {
+  margin-bottom: 40px !important;
+}
+
+.como__cards {
+  margin-top: 0;
+}
+
+.sobre__grid {
+  margin-bottom: 44px;
+}
+
+.sobre__blocks {
+  margin-bottom: 44px;
+}
+
+.combos__intro {
+  margin-bottom: 36px;
+}
+
+.themes {
+  margin-bottom: 32px;
+}
+
+.section-cta__footnote {
+  margin-top: clamp(48px, 6vw, 80px);
+}
+
+@media (max-width: 720px) {
+  .kv-lovers .section {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .section-como .wrap > div:first-child {
+    margin-bottom: 32px !important;
+  }
+
+  .sobre__grid {
+    margin-bottom: 36px;
+  }
+
+  .sobre__blocks {
+    margin-bottom: 36px;
+  }
+
+  .combos__intro {
+    margin-bottom: 32px;
+  }
+
+  .themes {
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 420px) {
+  .kv-lovers .section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+}
