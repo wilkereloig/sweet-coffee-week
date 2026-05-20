@@ -960,6 +960,34 @@ button:disabled { cursor: not-allowed; }
 .reveal-delay-4 { transition-delay: .32s; }
 .reveal-delay-5 { transition-delay: .40s; }
 
+.reveal-hero-lockup {
+  opacity: 0;
+  transform: translateY(18px) scale(.96);
+  transition:
+    opacity .8s ease,
+    transform .9s cubic-bezier(.22,1,.36,1);
+}
+.reveal-hero-lockup.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.reveal-pop {
+  opacity: 0;
+  transform: translateY(18px) scale(.9) rotate(-1deg);
+}
+.reveal-pop.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotate(0);
+}
+
+@media (max-width: 720px) {
+  .reveal-left,
+  .reveal-right {
+    transform: translateY(24px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal,
   .reveal-left,
