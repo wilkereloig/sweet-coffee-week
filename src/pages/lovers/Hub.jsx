@@ -1,6 +1,33 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 
+/* ── Scroll reveal hook ── */
+function useRevealOnScroll() {
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const els = document.querySelectorAll('.reveal')
+    if (reduce) {
+      els.forEach(el => el.classList.add('is-visible'))
+      return
+    }
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(el => el.classList.add('is-visible'))
+      return
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          io.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' })
+    els.forEach(el => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+}
+
 /* ── Feature flags ── */
 const hasParticipantsData = false
 const hasCombosData       = false
@@ -29,6 +56,7 @@ const COMBOS = [
 ]
 
 const THEMES = [
+  "Início / 2016",
   "Páscoa", "Doces do Mundo", "Namorados", "Sabores da Infância", "Pâtisserie Francesa",
   "Contos de Fadas", "Música", "Heróis & Vilões", "Séries", "Terras Potiguares",
   "Movies", "Trip", "Books", "Celebration",
@@ -79,7 +107,7 @@ function Hero() {
       <div className="wrap">
         <div className="hero-v2-grid">
           {/* Esquerda — logotipo empilhado (flex column, gap controlado) */}
-          <div className="hero-logo-lockup" style={{ display: 'flex', flexDirection: 'column', gap: '0.04em' }}>
+          <div className="hero-logo-lockup reveal reveal-left">
             <div style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 900,
@@ -104,13 +132,13 @@ function Hero() {
             }}>
               COFFEE
             </div>
-            <div style={{ width: '2.5em', lineHeight: 0 }}>
+            <div className="hero-logo-lovers">
               <LoversWordmark width="100%" />
             </div>
           </div>
 
           {/* Direita — texto + data + tiles */}
-          <div className="hero-v2-right" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <div className="hero-v2-right reveal reveal-right reveal-delay-1" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <p style={{
               fontFamily: 'var(--font-lovers-display)',
               fontWeight: 700,
@@ -124,16 +152,16 @@ function Hero() {
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
-            <div className="hero-v2-tiles">
-              <div aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div className="hero-v2-tiles reveal reveal-scale reveal-delay-2">
+              <div className="reveal reveal-scale reveal-delay-2" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div aria-label="14 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>14</div>
+              <div className="reveal reveal-scale reveal-delay-3" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>15</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
               </div>
-              <div aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-scale reveal-delay-4" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(32px, 3.5vw, 48px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>4 A 14</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>DE<br />JUNHO</div>
               </div>
@@ -155,13 +183,9 @@ function Hero() {
           gap: 12px;
           aspect-ratio: 3 / 1;
         }
-        .hero-logo-lockup {
-          font-size: clamp(96px, 14vw, 190px);
-        }
         @media (max-width: 720px) {
           .hero-v2-grid { grid-template-columns: 1fr; }
           .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
-          .hero-logo-lockup { font-size: clamp(44px, 18vw, 96px); }
           .hero-date-pill { display: none; }
           .hero-v2-right { gap: 20px; }
         }
@@ -181,13 +205,13 @@ function Sobre() {
     <section id="sobre" className="section section-sobre">
       <div className="wrap">
         <div className="sobre__grid">
-          <div>
+          <div className="reveal reveal-left">
             <h2 className="lh2" style={{ marginTop: 16 }}>
               Uma edição feita<br />
               para os <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
             </h2>
           </div>
-          <div className="sobre__body">
+          <div className="sobre__body reveal reveal-right reveal-delay-1">
             <div className="sb-p sb-p--lead">
               Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
               sabores e memórias em Natal. Para comemorar essa trajetória, nasce a edição{' '}
@@ -204,7 +228,7 @@ function Sobre() {
 
         <div className="sobre__blocks">
           {blocks.map((b, i) => (
-            <div className="sobre__block" key={i}>
+            <div className={`sobre__block reveal reveal-scale reveal-delay-${i + 1}`} key={i}>
               <div className="ico">{b.icon}</div>
               <h4>{b.title}</h4>
               <p>{b.body}</p>
@@ -212,7 +236,7 @@ function Sobre() {
           ))}
         </div>
 
-        <p className="sobre__impact">
+        <p className="sobre__impact reveal reveal-up reveal-delay-2">
           Não é repetir.<br />
           É recriar com <span style={{ color: 'var(--lovers-pink)' }}>amor.</span>
         </p>
@@ -231,7 +255,7 @@ function ComoFunciona() {
   return (
     <section id="como" className="section section-como">
       <div className="wrap">
-        <div style={{ maxWidth: 720, marginBottom: 56 }}>
+        <div className="reveal reveal-left" style={{ maxWidth: 720, marginBottom: 56 }}>
           <h2 className="lh2" style={{ marginTop: 16, color: 'var(--lovers-cream)' }}>
             Como funciona<br />
             a edição <span style={{ color: 'var(--lovers-yellow)' }}>Lovers.</span>
@@ -240,7 +264,7 @@ function ComoFunciona() {
 
         <div className="como__cards">
           {steps.map((s, i) => (
-            <div className="como__card" key={i}>
+            <div className={`como__card reveal reveal-scale reveal-delay-${i + 1}`} key={i}>
               <div className="step">{s.n}</div>
               <h4>{s.h}</h4>
               <p>{s.p}</p>
@@ -261,7 +285,7 @@ function Participantes() {
     <section id="participantes" className="section section-part">
       <div className="wrap">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
-          <div>
+          <div className="reveal reveal-up">
             <h2 className="lh2" style={{ marginTop: 16 }}>
               Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
             </h2>
@@ -318,14 +342,14 @@ function Participantes() {
           </>
         ) : (
           <>
-            <div style={{ marginBottom: 20 }}>
+            <div className="reveal reveal-up reveal-delay-1" style={{ marginBottom: 20 }}>
               <span style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45, padding: '6px 16px', border: '1px solid rgba(63,26,10,.18)', borderRadius: 999, cursor: 'not-allowed' }}>
                 Categorias em breve
               </span>
             </div>
             <div className="part__grid">
               {['Participantes em breve', 'Combos em breve', 'Temas em breve', 'Rota em breve'].map((label, i) => (
-                <div className="part__card" key={i} style={{ opacity: .5 }}>
+                <div className={`part__card reveal reveal-scale reveal-delay-${i + 1}`} key={i} style={{ opacity: .5 }}>
                   <div className="logo" style={{ background: 'var(--lovers-cream)', border: '2px dashed rgba(63,26,10,.18)' }} />
                   <div>
                     <h4 className="name">{label}</h4>
@@ -346,7 +370,7 @@ function Combos() {
     <section id="combos" className="section section-combos">
       <div className="wrap">
         <div className="combos__intro">
-          <div>
+          <div className="reveal reveal-left">
             <h2 className="lh2">
               Cada combo,<br />
               uma <span style={{ color: 'var(--lovers-yellow)' }}>recriação.</span>
@@ -356,7 +380,7 @@ function Combos() {
               criação e três elementos para viver a experiência completa — doce, salgado e bebida.
             </p>
           </div>
-          <div className="combos__formula">
+          <div className="combos__formula reveal reveal-right reveal-delay-1">
             <span className="label">TODO COMBO LOVERS TEM</span>
             <span className="formula">1 doce + 1 salgado<br />+ 1 bebida</span>
           </div>
@@ -367,13 +391,13 @@ function Combos() {
             TEMAS HISTÓRICOS DESTA EDIÇÃO
           </div>
           <div className="themes">
-            {THEMES.map(t => (
-              <span key={t} className="theme-tag">{t}</span>
+            {THEMES.map((t, i) => (
+              <span key={t} className={`theme-tag reveal reveal-scale reveal-delay-${(i % 5) + 1}`}>{t}</span>
             ))}
           </div>
         </div>
 
-        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 18, padding: '28px 36px', background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', borderRadius: 18, maxWidth: 680, marginInline: 'auto' }}>
+        <div className="reveal reveal-up reveal-delay-2" style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 18, padding: '28px 36px', background: 'var(--lovers-yellow)', color: 'var(--lovers-brown)', borderRadius: 18, maxWidth: 680, marginInline: 'auto' }}>
           <div style={{ width: 44, height: 44, flex: '0 0 auto', borderRadius: 999, background: 'var(--lovers-brown)', color: 'var(--lovers-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <I.lock />
           </div>
@@ -429,7 +453,7 @@ function Mapa() {
   return (
     <section id="mapa" className="section section-mapa">
       <div className="wrap">
-        <div style={{ maxWidth: 720, marginBottom: 40 }}>
+        <div className="reveal reveal-up" style={{ maxWidth: 720, marginBottom: 40 }}>
           <h2 className="lh2">
             Monte sua rota dos <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
           </h2>
@@ -441,7 +465,7 @@ function Mapa() {
 
         {!hasMapData && (
           <div className="mapa__grid">
-            <aside className="mapa__list" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 24px', gap: 16, border: 'none' }}>
+            <aside className="mapa__list reveal reveal-left reveal-delay-1" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 24px', gap: 16, border: 'none' }}>
               <h4 style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(24px, 2.4vw, 32px)', textTransform: 'uppercase', color: 'var(--lovers-brown)', margin: 0, lineHeight: 1.1 }}>
                 Mapa em breve
               </h4>
@@ -449,7 +473,7 @@ function Mapa() {
                 Os pontos participantes serão adicionados após a divulgação oficial.
               </p>
             </aside>
-            <div className="mapa__map" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(135,14,45,.06)' }}>
+            <div className="mapa__map reveal reveal-right reveal-delay-2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(135,14,45,.06)' }}>
               <div style={{ textAlign: 'center', padding: '32px 24px' }}>
                 <div style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 700, fontSize: 'clamp(26px, 3vw, 40px)', textTransform: 'uppercase', color: 'var(--lovers-burgundy)', opacity: .45, lineHeight: 1.2 }}>
                   Rota dos Lovers<br />em breve
@@ -507,7 +531,7 @@ function Mapa() {
           </div>
         )}
 
-        <div className="mapa__cta">
+        <div className="mapa__cta reveal reveal-up reveal-delay-3">
           <span
             className="btn btn-burgundy btn-lg"
             aria-disabled="true"
@@ -517,7 +541,7 @@ function Mapa() {
           </span>
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: 24, fontFamily: 'var(--font-script)', fontSize: 28, color: 'var(--lovers-burgundy)', lineHeight: 1.1 }}>
+        <p className="reveal reveal-up reveal-delay-4" style={{ textAlign: 'center', marginTop: 24, fontFamily: 'var(--font-script)', fontSize: 28, color: 'var(--lovers-burgundy)', lineHeight: 1.1 }}>
           Crie seu roteiro, marque os amigos<br />
           e descubra quais sabores vão fazer parte da sua história.
         </p>
@@ -530,13 +554,13 @@ function Awards() {
   return (
     <section id="awards" className="section section-awards">
       <div className="wrap">
-        <div className="awards__card">
+        <div className="awards__card reveal reveal-scale">
           <div style={{ position: 'absolute', top: -22, right: 40, transform: 'rotate(10deg)', zIndex: 2 }}>
             <span className="sticker">avalie!</span>
           </div>
 
           <div className="awards__grid">
-            <div>
+            <div className="reveal reveal-left">
               <h2 className="lh2">
                 Vote nos seus <span style={{ color: 'var(--lovers-pink)' }}>favoritos.</span>
               </h2>
@@ -546,21 +570,21 @@ function Awards() {
               </p>
 
               <div className="awards__blocks">
-                <div className="awards__block">
+                <div className="awards__block reveal reveal-up reveal-delay-1">
                   <span className="num">01</span>
                   <div>
                     <h5>Vote nos seus favoritos</h5>
                     <p>Escolha os combos que mais marcaram sua experiência.</p>
                   </div>
                 </div>
-                <div className="awards__block">
+                <div className="awards__block reveal reveal-up reveal-delay-2">
                   <span className="num">02</span>
                   <div>
                     <h5>Celebre os participantes</h5>
                     <p>As marcas concorrem em categorias especiais da edição.</p>
                   </div>
                 </div>
-                <div className="awards__block">
+                <div className="awards__block reveal reveal-up reveal-delay-3">
                   <span className="num">03</span>
                   <div>
                     <h5>Acompanhe o resultado</h5>
@@ -569,7 +593,7 @@ function Awards() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 32 }}>
+              <div className="reveal reveal-up reveal-delay-3" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 32 }}>
                 {hasVotingData ? (
                   <a href="#/lovers/awards" className="btn btn-pink btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
                     Votar agora <I.arrow />
@@ -593,7 +617,7 @@ function Awards() {
               </div>
             </div>
 
-            <div className="awards__cats">
+            <div className="awards__cats reveal reveal-right reveal-delay-2">
               {hasVotingData ? (
                 <>
                   <h5>CATEGORIAS DESTA EDIÇÃO</h5>
@@ -634,16 +658,16 @@ function FinalCTA() {
   return (
     <section id="cta" className="section section-cta">
       <div className="wrap">
-        <h2 className="lh1" style={{ marginTop: 16, fontSize: 'clamp(56px, 8vw, 120px)' }}>
+        <h2 className="lh1 reveal reveal-left" style={{ marginTop: 16, fontSize: 'clamp(56px, 8vw, 120px)' }}>
           Vem viver essa<br />
           história com a <span style={{ color: 'var(--lovers-yellow)' }}>gente.</span>
         </h2>
-        <p>
+        <p className="reveal reveal-up reveal-delay-1">
           De 4 a 14 de junho, Natal vai viver uma edição cheia de memórias, sabores e novas
           descobertas. Em breve, você poderá conferir os participantes, escolher seus combos e
           montar sua rota para celebrar os 10 anos do Sweet &amp; Coffee Week.
         </p>
-        <div className="ctas">
+        <div className="ctas reveal reveal-up reveal-delay-2">
           {hasCombosData ? (
             <a href="#/lovers/combos" className="btn btn-yellow btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
               Ver combos <I.arrow />
@@ -683,7 +707,7 @@ function FinalCTA() {
           </a>
         </div>
 
-        <div className="section-cta__footnote">
+        <div className="section-cta__footnote reveal reveal-up reveal-delay-3">
           <span>© 2026 SWEET &amp; COFFEE WEEK · 16ª EDIÇÃO LOVERS</span>
           <span>REALIZAÇÃO · F2 EXPERIENCE</span>
         </div>
@@ -694,6 +718,7 @@ function FinalCTA() {
 
 /* ── Page ── */
 export function LoversPage() {
+  useRevealOnScroll()
   return (
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }} />
