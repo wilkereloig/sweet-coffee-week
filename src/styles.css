@@ -1560,3 +1560,57 @@ button:disabled { cursor: not-allowed; }
     padding-bottom: 56px;
   }
 }
+
+/* ── Lovers card icon wrappers ── */
+.hero-tile__icon {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,232,210,.22);
+  color: currentColor;
+  opacity: .82;
+}
+.hero-tile__icon svg { width: 20px; height: 20px; }
+
+.como__card-head {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px;
+}
+.como__icon {
+  width: 42px; height: 42px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(242,5,103,.08);
+  color: var(--lovers-pink);
+  flex: 0 0 auto;
+}
+.como__icon svg { width: 22px; height: 22px; }
+
+@media (max-width: 540px) {
+  .hero-tile__icon { width: 30px; height: 30px; top: 14px; right: 14px; }
+  .hero-tile__icon svg { width: 17px; height: 17px; }
+  .como__icon { width: 36px; height: 36px; }
+  .como__icon svg { width: 19px; height: 19px; }
+}
+
+/* ── Icon micro-animations ── */
+@keyframes iconSoftPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+@keyframes iconTinyFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-3px) rotate(-2deg); }
+}
+@keyframes iconSoftSwing {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(3deg); }
+}
+.icon-anim-pulse svg { animation: iconSoftPulse 2.8s ease-in-out infinite; transform-origin: center; }
+.icon-anim-float svg { animation: iconTinyFloat 3.2s ease-in-out infinite; transform-origin: center; }
+.icon-anim-swing svg { animation: iconSoftSwing 3.1s ease-in-out infinite; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .icon-anim-pulse svg, .icon-anim-float svg, .icon-anim-swing svg { animation: none !important; }
+}

@@ -1,5 +1,6 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
+import { IconMemory, IconThemes, IconCalendarLovers, IconChooseTheme, IconBuildCombo, IconRecreate, IconRouteLovers } from '../../components/lovers-card-icons'
 
 /* ── Scroll reveal hook ── */
 function useRevealOnScroll() {
@@ -153,15 +154,18 @@ function Hero() {
             </p>
 
             <div className="hero-v2-tiles">
-              <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+                <div className="hero-tile__icon icon-anim-pulse"><IconMemory /></div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+                <div className="hero-tile__icon icon-anim-float"><IconThemes /></div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>15</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+                <div className="hero-tile__icon icon-anim-pulse"><IconCalendarLovers /></div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(32px, 3.5vw, 48px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>4 A 14</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>DE<br />JUNHO</div>
               </div>
@@ -263,13 +267,24 @@ function ComoFunciona() {
         </div>
 
         <div className="como__cards">
-          {steps.map((s, i) => (
-            <div className={`como__card reveal reveal-scale reveal-delay-${i + 1}`} key={i}>
-              <div className="step">{s.n}</div>
-              <h4>{s.h}</h4>
-              <p>{s.p}</p>
-            </div>
-          ))}
+          {steps.map((s, i) => {
+            const [Icon, anim] = [
+              [IconChooseTheme, 'icon-anim-float'],
+              [IconBuildCombo,  'icon-anim-pulse'],
+              [IconRecreate,    'icon-anim-pulse'],
+              [IconRouteLovers, 'icon-anim-swing'],
+            ][i]
+            return (
+              <div className={`como__card reveal reveal-scale reveal-delay-${i + 1}`} key={i}>
+                <div className="como__card-head">
+                  <div className="step">{s.n}</div>
+                  <div className={`como__icon ${anim}`}><Icon /></div>
+                </div>
+                <h4>{s.h}</h4>
+                <p>{s.p}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>
