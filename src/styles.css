@@ -1011,6 +1011,40 @@ button:disabled { cursor: not-allowed; }
   }
 }
 
+/* ── Loop animations ── */
+@keyframes loversFloatSoft {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-6px) rotate(-.4deg); }
+}
+@keyframes loversFloatSoftAlt {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-5px) rotate(.4deg); }
+}
+@keyframes loversBreath {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.025); }
+}
+@keyframes loversWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-2deg); }
+  75%       { transform: rotate(2deg); }
+}
+
+.reveal.is-visible.loop-float     { animation: loversFloatSoft    5.8s ease-in-out infinite; }
+.reveal.is-visible.loop-float-alt { animation: loversFloatSoftAlt 6.4s ease-in-out infinite; }
+.reveal.is-visible.loop-breath    { animation: loversBreath       4.8s ease-in-out infinite; }
+.reveal.is-visible.loop-wiggle    { animation: loversWiggle       3.8s ease-in-out infinite; transform-origin: center; }
+
+.loop-wiggle { transform-origin: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-float, .loop-float-alt, .loop-breath, .loop-wiggle,
+  .reveal.is-visible.loop-float, .reveal.is-visible.loop-float-alt,
+  .reveal.is-visible.loop-breath, .reveal.is-visible.loop-wiggle {
+    animation: none !important;
+  }
+}
+
 /* ── Hover microinteractions (desktop only) ── */
 @media (hover: hover) {
   .sobre__block,

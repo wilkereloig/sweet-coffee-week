@@ -153,15 +153,15 @@ function Hero() {
             </p>
 
             <div className="hero-v2-tiles">
-              <div className="reveal reveal-pop reveal-delay-2" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-3" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>15</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-4" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(32px, 3.5vw, 48px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>4 A 14</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>DE<br />JUNHO</div>
               </div>
@@ -380,7 +380,7 @@ function Combos() {
               criação e três elementos para viver a experiência completa — doce, salgado e bebida.
             </p>
           </div>
-          <div className="combos__formula reveal reveal-right reveal-delay-1">
+          <div className="combos__formula reveal reveal-right reveal-delay-1 loop-breath">
             <span className="label">TODO COMBO LOVERS TEM</span>
             <span className="formula">1 doce + 1 salgado<br />+ 1 bebida</span>
           </div>
@@ -556,7 +556,7 @@ function Awards() {
       <div className="wrap">
         <div className="awards__card reveal reveal-scale">
           <div style={{ position: 'absolute', top: -22, right: 40, transform: 'rotate(10deg)', zIndex: 2 }}>
-            <span className="sticker">avalie!</span>
+            <span className="sticker loop-wiggle">avalie!</span>
           </div>
 
           <div className="awards__grid">
