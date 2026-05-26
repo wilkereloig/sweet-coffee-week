@@ -1,5 +1,6 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
+import { useRoute } from '../../router'
 import { PARTICIPANTS } from '../../data/participants'
 
 /* ── Scroll reveal hook ── */
@@ -75,6 +76,14 @@ const AWARD_CATS = [
 ]
 
 /* ── Helpers ── */
+
+function getInitials(name) {
+  const words = name.replace(/[-]/g, ' ').split(/\s+/).filter(Boolean)
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  const a = words[0][0]
+  const b = words[1][0]
+  return (a + b).toUpperCase()
+}
 
 function EmBreve({ label = 'Disponível a partir de 4 de junho', bg }) {
   return (
@@ -267,6 +276,8 @@ function ComoFunciona() {
 }
 
 function Participantes() {
+  const [, navigate] = useRoute()
+
   return (
     <section id="participantes" className="section section-part participants-section">
       <div className="wrap">
@@ -284,30 +295,61 @@ function Participantes() {
             {PARTICIPANTS.map((p) => {
               const igHandle = p.instagram ? p.instagram.replace('@', '') : null
               const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : null
+              const mapsUrl = p.address
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)}`
+                : null
               return (
                 <div className="participant-card reveal reveal-scale" key={p.id}>
-                  <h4 className="participant-card__name">{p.name}</h4>
-                  {p.instagram && (
-                    <div className="participant-card__instagram">{p.instagram}</div>
-                  )}
-                  {(p.neighborhood || p.address) && (
-                    <div className="participant-card__meta">
-                      {p.neighborhood && <span>{p.neighborhood}</span>}
-                      {p.address && <span className="participant-card__address">{p.address}</span>}
+                  <div className="participant-card__top">
+                    <div className="participant-card__logo">
+                      {p.logo
+                        ? <img className="participant-card__logo-img" src={p.logo} alt={`Logo ${p.name}`} />
+                        : <div className="participant-card__logo-placeholder">{getInitials(p.name)}</div>
+                      }
                     </div>
-                  )}
-                  {igUrl && (
-                    <div className="participant-card__actions">
+                    {igUrl && (
                       <a
                         href={igUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="participant-card__ig-link"
+                        className="participant-card__icon-btn"
+                        aria-label={`Ver Instagram de ${p.name}`}
                       >
-                        Ver perfil <I.arrow />
+                        <I.ig />
                       </a>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  <div className="participant-card__info">
+                    <h4 className="participant-card__name">{p.name}</h4>
+                    {(p.neighborhood || p.address) && (
+                      <div className="participant-card__meta">
+                        {p.neighborhood && <span>{p.neighborhood}</span>}
+                        {p.address && <span className="participant-card__address">{p.address}</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="participant-card__actions">
+                    <a
+                      href={`#/lovers/combos/${p.slug}`}
+                      className="participant-card__combo-btn"
+                      onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}
+                    >
+                      Ver combo
+                    </a>
+                    {mapsUrl && (
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="participant-card__icon-btn participant-card__map-btn"
+                        aria-label={`Abrir endereço de ${p.name} no Google Maps`}
+                      >
+                        <I.pin />
+                      </a>
+                    )}
+                  </div>
                 </div>
               )
             })}

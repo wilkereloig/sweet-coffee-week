@@ -1427,20 +1427,24 @@ button:disabled { cursor: not-allowed; }
 /* ── Participants real data section ── */
 .participants-section__intro { margin-bottom: 40px; }
 .participants-section__lead { font-size: 19px; line-height: 1.6; color: var(--lovers-brown); opacity: .82; max-width: 56ch; margin: 16px 0 0; }
-.participants-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.participant-card { background: #fff; border: 1px solid rgba(135,14,45,.15); border-radius: 22px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.participants-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.participant-card { background: var(--lovers-cream); border: 1px solid rgba(135,14,45,.16); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px; transition: transform .18s, box-shadow .18s, border-color .18s; }
 .participant-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(135,14,45,.12); border-color: rgba(135,14,45,.3); }
-.participant-card__name { font-family: var(--font-lovers-display); font-weight: 700; font-size: 20px; line-height: 1.05; color: var(--lovers-brown); text-transform: uppercase; margin: 0; }
-.participant-card__instagram { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-burgundy); opacity: .75; }
-.participant-card__meta { display: flex; flex-direction: column; gap: 3px; }
+.participant-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.participant-card__logo { width: 56px; height: 56px; flex-shrink: 0; }
+.participant-card__logo-img { width: 56px; height: 56px; border-radius: 14px; object-fit: contain; }
+.participant-card__logo-placeholder { width: 56px; height: 56px; border-radius: 14px; background: var(--lovers-burgundy); display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 700; font-size: 18px; color: var(--lovers-cream); text-transform: uppercase; }
+.participant-card__info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.participant-card__name { font-family: var(--font-lovers-display); font-weight: 700; font-size: 18px; line-height: 1.1; color: var(--lovers-brown); text-transform: uppercase; margin: 0; }
+.participant-card__meta { display: flex; flex-direction: column; gap: 2px; }
 .participant-card__meta span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-brown); opacity: .6; line-height: 1.5; }
-.participant-card__actions { margin-top: auto; padding-top: 8px; }
-.participant-card__ig-link { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-burgundy); text-decoration: none; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(135,14,45,.25); transition: background .15s, border-color .15s; }
-.participant-card__ig-link:hover { background: rgba(135,14,45,.07); border-color: rgba(135,14,45,.45); }
+.participant-card__actions { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.participant-card__combo-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 999px; background: var(--lovers-burgundy); color: var(--lovers-cream); font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; transition: opacity .15s; }
+.participant-card__combo-btn:hover { opacity: .85; }
+.participant-card__icon-btn { width: 36px; height: 36px; flex-shrink: 0; border-radius: 999px; border: 1px solid rgba(135,14,45,.25); display: flex; align-items: center; justify-content: center; color: var(--lovers-burgundy); text-decoration: none; transition: background .15s, border-color .15s; }
+.participant-card__icon-btn:hover { background: rgba(135,14,45,.08); border-color: rgba(135,14,45,.4); }
 .participants-empty { text-align: center; padding: 60px 24px; color: var(--lovers-brown); opacity: .65; font-size: 18px; line-height: 1.6; }
-@media (max-width: 1100px) { .participants-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 880px) { .participants-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 540px) { .participants-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .participants-grid { grid-template-columns: 1fr; } }
 
 .section-combos { background: var(--lovers-purple); color: var(--lovers-cream); }
 .section-combos .lh2 { color: var(--lovers-cream); }
