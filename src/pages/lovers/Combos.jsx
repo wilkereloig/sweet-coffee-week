@@ -111,6 +111,7 @@ export function ComboPage({ navigate }) {
                       {themes.map(t => (
                         <button
                           key={t}
+                          type="button"
                           className={'combos-page__chip' + (filterTheme === t ? ' is-active' : '')}
                           onClick={() => setFilterTheme(prev => prev === t ? null : t)}
                         >
@@ -127,6 +128,7 @@ export function ComboPage({ navigate }) {
                       {neighborhoods.map(n => (
                         <button
                           key={n}
+                          type="button"
                           className={'combos-page__chip' + (filterNeighborhood === n ? ' is-active' : '')}
                           onClick={() => setFilterNeighborhood(prev => prev === n ? null : n)}
                         >
@@ -144,6 +146,7 @@ export function ComboPage({ navigate }) {
                   </span>
                   {hasFilters && (
                     <button
+                      type="button"
                       className="combos-page__clear"
                       onClick={() => { setSearch(''); setFilterTheme(null); setFilterNeighborhood(null) }}
                     >
