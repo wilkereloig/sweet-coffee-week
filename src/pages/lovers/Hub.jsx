@@ -1,5 +1,6 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
+import { PARTICIPANTS } from '../../data/participants'
 
 /* ── Scroll reveal hook ── */
 function useRevealOnScroll() {
@@ -35,17 +36,6 @@ const hasMapData          = false
 const hasVotingData       = false
 
 /* ── Data ── */
-const PARTICIPANTS = [
-  { name: "Doceria Petrópolis",  cat: "Doceria",      bairro: "Petrópolis",  color: "var(--lovers-burgundy)" },
-  { name: "Café Tirol",          cat: "Cafeteria",    bairro: "Tirol",       color: "var(--lovers-pink)" },
-  { name: "Confeitaria Lagoa",   cat: "Confeitaria",  bairro: "Lagoa Nova",  color: "var(--lovers-cyan)" },
-  { name: "Mesa Ponta Negra",    cat: "Restaurante",  bairro: "Ponta Negra", color: "var(--lovers-purple)" },
-  { name: "Doce Capim",          cat: "Doceria",      bairro: "Capim Macio", color: "var(--lovers-coral)" },
-  { name: "Café Mirassol",       cat: "Cafeteria",    bairro: "Mirassol",    color: "var(--lovers-brown)" },
-  { name: "Atelier de Bolos",    cat: "Confeitaria",  bairro: "Tirol",       color: "var(--lovers-yellow)" },
-  { name: "Bistrô Alecrim",      cat: "Restaurante",  bairro: "Alecrim",     color: "var(--lovers-burgundy)" },
-]
-
 const COMBOS = [
   { name: "Romeu, Julieta & Coalho",   store: "Doceria Petrópolis",  theme: "Sabores da Infância",   doce: "Mini-bolo de goiabada caseira com mascarpone",  salgado: "Pão de queijo de coalho recheado",      bebida: "Cappuccino de baunilha",      price: "R$ 42" },
   { name: "Madeleine de Cinema",        store: "Café Tirol",          theme: "Movies",                doce: "Madeleines com chocolate 70%",                  salgado: "Croque-monsieur do cinema mudo",         bebida: "Espresso tonic",              price: "R$ 48" },
@@ -277,88 +267,55 @@ function ComoFunciona() {
 }
 
 function Participantes() {
-  const [filter, setFilter] = React.useState("Todos")
-  const filters = ["Todos", "Doceria", "Cafeteria", "Confeitaria", "Restaurante"]
-  const shown = filter === "Todos" ? PARTICIPANTS : PARTICIPANTS.filter(p => p.cat === filter)
-
   return (
-    <section id="participantes" className="section section-part">
+    <section id="participantes" className="section section-part participants-section">
       <div className="wrap">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
-          <div className="reveal reveal-up">
-            <h2 className="lh2" style={{ marginTop: 16 }}>
-              Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
-            </h2>
-            <p style={{ fontSize: 19, lineHeight: 1.6, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '56ch', margin: '16px 0 0' }}>
-              A lista completa dos participantes será divulgada em breve. Prepare sua rota para
-              provar os combos da edição Lovers entre 4 e 14 de junho.
-            </p>
-          </div>
+        <div className="participants-section__intro reveal reveal-up">
+          <h2 className="lh2" style={{ marginTop: 16 }}>
+            Participantes <span style={{ color: 'var(--lovers-burgundy)' }}>confirmados.</span>
+          </h2>
+          <p className="participants-section__lead">
+            Conheça as marcas que fazem parte da edição Sweet &amp; Coffee Week Lovers.
+          </p>
         </div>
 
-        {hasParticipantsData ? (
-          <>
-            <div className="filters">
-              {filters.map(f => (
-                <button
-                  key={f}
-                  className={`filter-chip${filter === f ? ' active' : ''}`}
-                  onClick={() => setFilter(f)}
-                >
-                  {f}
-                </button>
-              ))}
-              <span style={{ marginLeft: 'auto', alignSelf: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-                {shown.length} de {PARTICIPANTS.length}
-              </span>
-            </div>
-
-            <div className="part__grid">
-              {shown.map((p, i) => (
-                <div className="part__card" key={i}>
-                  <span className="selo">♥ LOVER</span>
-                  <div className="logo" style={{ background: p.color }}>
-                    {p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-                  </div>
-                  <div>
-                    <h4 className="name">{p.name}</h4>
-                    <div className="meta" style={{ marginTop: 4 }}>{p.cat} · {p.bairro}</div>
-                  </div>
-                  <div className="actions">
-                    <span className="chip" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-burgundy)' }}>
-                      {p.cat}
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45 }}>
-                      Em breve <I.lock />
-                    </span>
-                  </div>
+        {PARTICIPANTS.length > 0 ? (
+          <div className="participants-grid">
+            {PARTICIPANTS.map((p) => {
+              const igHandle = p.instagram ? p.instagram.replace('@', '') : null
+              const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : null
+              return (
+                <div className="participant-card reveal reveal-scale" key={p.id}>
+                  <h4 className="participant-card__name">{p.name}</h4>
+                  {p.instagram && (
+                    <div className="participant-card__instagram">{p.instagram}</div>
+                  )}
+                  {(p.neighborhood || p.address) && (
+                    <div className="participant-card__meta">
+                      {p.neighborhood && <span>{p.neighborhood}</span>}
+                      {p.address && <span className="participant-card__address">{p.address}</span>}
+                    </div>
+                  )}
+                  {igUrl && (
+                    <div className="participant-card__actions">
+                      <a
+                        href={igUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="participant-card__ig-link"
+                      >
+                        Ver perfil <I.arrow />
+                      </a>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            <p style={{ textAlign: 'center', marginTop: 28, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-              A lista completa dos participantes será publicada antes do início da edição.
-            </p>
-          </>
+              )
+            })}
+          </div>
         ) : (
-          <>
-            <div className="reveal reveal-up reveal-delay-1" style={{ marginBottom: 20 }}>
-              <span style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45, padding: '6px 16px', border: '1px solid rgba(63,26,10,.18)', borderRadius: 999, cursor: 'not-allowed' }}>
-                Categorias em breve
-              </span>
-            </div>
-            <div className="part__grid">
-              {['Participantes em breve', 'Combos em breve', 'Temas em breve', 'Rota em breve'].map((label, i) => (
-                <div className={`part__card reveal reveal-scale reveal-delay-${i + 1}`} key={i} style={{ opacity: .5 }}>
-                  <div className="logo" style={{ background: 'var(--lovers-cream)', border: '2px dashed rgba(63,26,10,.18)' }} />
-                  <div>
-                    <h4 className="name">{label}</h4>
-                    <div className="meta" style={{ marginTop: 4 }}>A confirmar</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
+          <p className="participants-empty reveal reveal-up reveal-delay-1">
+            Os participantes da edição Sweet &amp; Coffee Week Lovers serão divulgados em breve.
+          </p>
         )}
       </div>
     </section>
