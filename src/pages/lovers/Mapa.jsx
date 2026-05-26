@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../components/icons'
 import { EmptyState } from '../../components/placeholders'
-import { PARTICIPANTS } from '../../data/participants'
-import { COMBOS } from '../../data/combos'
+import { PREVIEW_PARTICIPANTS as PARTICIPANTS } from '../../data/loversPreviewData'
+import { PREVIEW_COMBOS as COMBOS } from '../../data/loversPreviewData'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }

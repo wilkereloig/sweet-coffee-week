@@ -1,8 +1,8 @@
 ﻿import React from 'react'
 import { I, TapeStrip } from '../../components/icons'
 import { PhotoPH, EmptyState } from '../../components/placeholders'
-import { COMBOS } from '../../data/combos'
-import { PARTICIPANTS } from '../../data/participants'
+import { PREVIEW_COMBOS as COMBOS } from '../../data/loversPreviewData'
+import { PREVIEW_PARTICIPANTS as PARTICIPANTS } from '../../data/loversPreviewData'
 
 function ComboItemCard({ n, tipo, titulo, desc, icon }) {
   return (
