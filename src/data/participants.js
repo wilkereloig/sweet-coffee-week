@@ -45,7 +45,7 @@ export const PARTICIPANTS = [
   },
   {
     id: "caffe-basilicos",
-    name: "Caffé Basilicos",
+    name: "Caffè Basilico's",
     slug: "caffe-basilicos",
     logo: "",
     instagram: "@caffe.basilicos",
