@@ -1,11 +1,22 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoPH, EmptyState } from '../../components/placeholders'
-import { PREVIEW_COMBOS as COMBOS } from '../../data/loversPreviewData'
-import { PREVIEW_PARTICIPANTS as PARTICIPANTS } from '../../data/loversPreviewData'
+import { COMBOS } from '../../data/combos'
+import { PARTICIPANTS } from '../../data/participants'
+import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+
+// Preview data is used only when internal pages are enabled for local development.
+const ENABLE_PREVIEW_DATA =
+  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
+
+const participantsData =
+  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
+
+const combosData =
+  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
 
 export function ComboPage({ navigate }) {
-  const getParticipant = (id) => PARTICIPANTS.find(p => p.id === id)
+  const getParticipant = (id) => participantsData.find(p => p.id === id)
 
   return (
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden', position: 'relative' }}>
@@ -33,7 +44,7 @@ export function ComboPage({ navigate }) {
       {/* Grid / Empty state */}
       <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
         <div className="wrap">
-          {COMBOS.length === 0 ? (
+          {combosData.length === 0 ? (
             <div style={{ maxWidth: 560, margin: '0 auto' }}>
               <EmptyState
                 lovers
@@ -50,7 +61,7 @@ export function ComboPage({ navigate }) {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
-              {COMBOS.map(combo => {
+              {combosData.map(combo => {
                 const participant = getParticipant(combo.participantId)
                 const hasRoute = !!(participant?.latitude && participant?.longitude)
                 return (

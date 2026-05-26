@@ -1,8 +1,19 @@
 ﻿import React from 'react'
 import { I, TapeStrip } from '../../components/icons'
 import { PhotoPH, EmptyState } from '../../components/placeholders'
-import { PREVIEW_COMBOS as COMBOS } from '../../data/loversPreviewData'
-import { PREVIEW_PARTICIPANTS as PARTICIPANTS } from '../../data/loversPreviewData'
+import { COMBOS } from '../../data/combos'
+import { PARTICIPANTS } from '../../data/participants'
+import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+
+// Preview data is used only when internal pages are enabled for local development.
+const ENABLE_PREVIEW_DATA =
+  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
+
+const combosSource =
+  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
+
+const participantsSource =
+  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
 
 function ComboItemCard({ n, tipo, titulo, desc, icon }) {
   return (
@@ -21,8 +32,8 @@ function ComboItemCard({ n, tipo, titulo, desc, icon }) {
 }
 
 export function ComboDetailPage({ navigate, slug }) {
-  const combo = COMBOS.find(c => c.slug === slug)
-  const participant = combo ? PARTICIPANTS.find(p => p.id === combo.participantId) : null
+  const combo = combosSource.find(c => c.slug === slug)
+  const participant = combo ? participantsSource.find(p => p.id === combo.participantId) : null
   const hasRoute = !!(participant?.latitude && participant?.longitude)
 
   if (!combo) {

@@ -2,8 +2,19 @@ import React, { useState, useEffect, useRef } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../components/icons'
 import { EmptyState } from '../../components/placeholders'
-import { PREVIEW_PARTICIPANTS as PARTICIPANTS } from '../../data/loversPreviewData'
-import { PREVIEW_COMBOS as COMBOS } from '../../data/loversPreviewData'
+import { PARTICIPANTS } from '../../data/participants'
+import { COMBOS } from '../../data/combos'
+import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+
+// Preview data is used only when internal pages are enabled for local development.
+const ENABLE_PREVIEW_DATA =
+  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
+
+const participantsSource =
+  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
+
+const combosSource =
+  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
@@ -166,9 +177,9 @@ export function MapaPage({ navigate }) {
     )
   }
 
-  const participants = PARTICIPANTS.map(p => ({
+  const participants = participantsSource.map(p => ({
     ...p,
-    combo: COMBOS.find(c => c.participantId === p.id) || null,
+    combo: combosSource.find(c => c.participantId === p.id) || null,
   }))
 
   const neighborhoods = [...new Set(participants.map(p => p.neighborhood).filter(Boolean))]
