@@ -67,7 +67,7 @@ function userPin() {
   "></div>`
 }
 
-function GoogleMap({ participants, selected, onSelect, userLocation }) {
+function GoogleMap({ participants, selected, onSelect, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -75,6 +75,10 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
 
   useEffect(() => {
     if (!mapRef.current) return
+    if (!GOOGLE_MAPS_API_KEY) {
+      onError?.('missing-key')
+      return
+    }
     let cancelled = false
 
     setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
@@ -109,6 +113,7 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
         instanceRef.current = { map, AdvancedMarkerElement }
       } catch (e) {
         console.error('Google Maps error:', e)
+        onError?.('load-error')
       }
     })()
 
@@ -163,6 +168,7 @@ export function MapaPage({ navigate }) {
   const [userLocation, setUserLocation] = useState(null)
   const [locLoading, setLocLoading] = useState(false)
   const [locError, setLocError] = useState(null)
+  const [mapError, setMapError] = useState(null)
 
   function handleLocate() {
     if (userLocation) {
@@ -274,12 +280,23 @@ export function MapaPage({ navigate }) {
 
               {/* Mapa interativo */}
               <div className="mapa-container">
-                <GoogleMap
-                  participants={participants}
-                  selected={selected}
-                  onSelect={setSelected}
-                  userLocation={userLocation}
-                />
+                {mapError ? (
+                  <div className="mapa-fallback">
+                    <div className="mapa-fallback__icon"><I.pin /></div>
+                    <h3>Mapa interativo em configuração</h3>
+                    <p>
+                      Enquanto o mapa é configurado, você pode usar a lista ao lado para abrir os endereços diretamente no Google Maps.
+                    </p>
+                  </div>
+                ) : (
+                  <GoogleMap
+                    participants={participants}
+                    selected={selected}
+                    onSelect={setSelected}
+                    userLocation={userLocation}
+                    onError={setMapError}
+                  />
+                )}
 
                 {/* Card do participante selecionado */}
                 {selected && (
@@ -522,6 +539,46 @@ export function MapaPage({ navigate }) {
           .mapa-list::-webkit-scrollbar-thumb {
             background: rgba(135,14,45,.3);
             border-radius: 4px;
+          }
+          .mapa-fallback {
+            height: 100%;
+            min-height: 360px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            padding: 32px;
+            text-align: center;
+            background:
+              radial-gradient(circle at 20% 20%, rgba(242,5,103,.16), transparent 32%),
+              radial-gradient(circle at 80% 30%, rgba(251,184,0,.18), transparent 34%),
+              var(--lovers-cream);
+            color: var(--lovers-brown);
+          }
+          .mapa-fallback__icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+          }
+          .mapa-fallback h3 {
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(26px, 3vw, 40px);
+            line-height: 1;
+            color: var(--lovers-ink);
+          }
+          .mapa-fallback p {
+            margin: 0;
+            max-width: 42ch;
+            font-size: 15px;
+            line-height: 1.5;
+            opacity: .8;
           }
           .mapa-chip {
             font-family: var(--font-lovers-body);
