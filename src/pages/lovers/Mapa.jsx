@@ -20,6 +20,19 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
+function getMapsSearchUrl(p) {
+  if (!p?.address) return null
+  const query = encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)
+  return `https://www.google.com/maps/search/?api=1&query=${query}`
+}
+
+function getMapsDirectionsUrl(p) {
+  if (p?.latitude && p?.longitude) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`
+  }
+  return getMapsSearchUrl(p)
+}
+
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371
   const dLat = (lat2 - lat1) * Math.PI / 180
@@ -204,6 +217,7 @@ export function MapaPage({ navigate }) {
     })
 
   const hasData = participants.length > 0
+  const hasMissingCoords = participants.some(p => p.address && (!p.latitude || !p.longitude))
 
   function handleListClick(p) {
     setSelected(prev => prev?.id === p.id ? null : p)
@@ -244,6 +258,18 @@ export function MapaPage({ navigate }) {
               />
             </div>
           ) : (
+            <>
+            {hasMissingCoords && (
+              <div className="mono" style={{
+                fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
+                background: 'rgba(135,14,45,.06)',
+                border: '1px solid rgba(135,14,45,.15)',
+                borderRadius: 10, padding: '10px 14px',
+                marginBottom: 16, lineHeight: 1.5,
+              }}>
+                Alguns participantes ainda estão sem pin no mapa, mas você já pode abrir o endereço no Google Maps.
+              </div>
+            )}
             <div className="mapa-layout">
 
               {/* Mapa interativo */}
@@ -308,15 +334,15 @@ export function MapaPage({ navigate }) {
                           Ver combo <I.arrow />
                         </button>
                       )}
-                      {selected.latitude && selected.longitude && (
+                      {getMapsDirectionsUrl(selected) && (
                         <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${selected.latitude},${selected.longitude}`}
+                          href={getMapsDirectionsUrl(selected)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-sm"
                           style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 13 }}
                         >
-                          Traçar rota <I.arrow />
+                          Abrir no mapa <I.arrow />
                         </a>
                       )}
                     </div>
@@ -450,16 +476,16 @@ export function MapaPage({ navigate }) {
                             Ver combo
                           </button>
                         )}
-                        {p.latitude && p.longitude && (
+                        {getMapsDirectionsUrl(p) && (
                           <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                            href={getMapsDirectionsUrl(p)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="btn btn-sm"
                             style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            Traçar rota
+                            Mapa
                           </a>
                         )}
                       </div>
@@ -468,6 +494,7 @@ export function MapaPage({ navigate }) {
                 </div>
               </div>
             </div>
+            </>
           )}
 
         </div>
