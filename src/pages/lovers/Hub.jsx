@@ -1,6 +1,5 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
-import { useRoute } from '../../router'
 import { PARTICIPANTS } from '../../data/participants'
 
 /* ── Scroll reveal hook ── */
@@ -275,9 +274,7 @@ function ComoFunciona() {
   )
 }
 
-function Participantes() {
-  const [, navigate] = useRoute()
-
+function Participantes({ navigate }) {
   return (
     <section id="participantes" className="section section-part participants-section">
       <div className="wrap">
@@ -716,7 +713,7 @@ function FinalCTA() {
 }
 
 /* ── Page ── */
-export function LoversPage() {
+export function LoversPage({ navigate }) {
   useRevealOnScroll()
   return (
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
@@ -724,7 +721,7 @@ export function LoversPage() {
       <Hero />
       <Sobre />
       <ComoFunciona />
-      <Participantes />
+      <Participantes navigate={navigate} />
       <Combos />
       <Mapa />
       <Awards />
