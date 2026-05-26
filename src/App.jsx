@@ -19,6 +19,10 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
+// Internal Lovers pages stay locked in production unless VITE_ENABLE_LOVERS_INTERNAL_PAGES=true.
+const ENABLE_LOVERS_INTERNAL_PAGES =
+  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
+
 export default function App() {
   const [path, navigate] = useRoute()
 
@@ -43,10 +47,10 @@ export default function App() {
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = <ComingSoonPage />; break
-    case 'combo-detail': page = <ComingSoonPage />; break
-    case 'mapa':         page = <ComingSoonPage />; break
-    case 'awards':       page = <ComingSoonPage />; break
+    case 'combos':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboPage navigate={navigate} /> : <ComingSoonPage />; break
+    case 'combo-detail': page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} /> : <ComingSoonPage />; break
+    case 'mapa':         page = ENABLE_LOVERS_INTERNAL_PAGES ? <MapaPage navigate={navigate} /> : <ComingSoonPage />; break
+    case 'awards':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <AwardsPage navigate={navigate} /> : <ComingSoonPage />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break
