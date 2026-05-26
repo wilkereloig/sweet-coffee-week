@@ -23,6 +23,34 @@ import { AwardsPage }     from './pages/lovers/Awards'
 const ENABLE_LOVERS_INTERNAL_PAGES =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
 
+function LoversDevNav({ navigate, route }) {
+  if (!ENABLE_LOVERS_INTERNAL_PAGES) return null
+
+  const items = [
+    { label: 'Sobre',   path: '/lovers',                               match: 'lovers'       },
+    { label: 'Combos',  path: '/lovers/combos',                        match: 'combos'       },
+    { label: 'Mapa',    path: '/lovers/mapa',                          match: 'mapa'         },
+    { label: 'Awards',  path: '/lovers/awards',                        match: 'awards'       },
+    { label: 'Detalhe', path: '/lovers/combos/preview-combo-memorias', match: 'combo-detail' },
+  ]
+
+  return (
+    <nav className="lovers-dev-nav" aria-label="Navegação interna de desenvolvimento Lovers">
+      <span className="lovers-dev-nav__label">DEV LOVERS</span>
+      {items.map(item => (
+        <button
+          key={item.path}
+          type="button"
+          className={'lovers-dev-nav__item' + (route === item.match ? ' is-active' : '')}
+          onClick={() => navigate(item.path)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 export default function App() {
   const [path, navigate] = useRoute()
 
@@ -62,6 +90,7 @@ export default function App() {
   return (
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} />
+      <LoversDevNav navigate={navigate} route={route} />
       <main key={route} className="page-enter">{page}</main>
     </DevViewportSwitcher>
   )
