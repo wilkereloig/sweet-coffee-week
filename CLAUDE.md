@@ -1,5 +1,22 @@
 # Sweet & Coffee Week — Regras do Projeto
 
+## URLs estáveis para QR Codes — REGRA PERMANENTE
+
+URLs públicas dos QR Codes da edição Sweet & Coffee Week Lovers **NÃO podem mudar** depois de definidas.
+
+Padrões fixos:
+- Combo: `https://www.sweetcoffeeweek.com.br/#/lovers/combos/{slug-do-participante}`
+- Premiação: `https://www.sweetcoffeeweek.com.br/#/lovers/awards`
+
+Regras:
+- Nunca alterar rota `#/lovers/combos/:slug` nem `#/lovers/awards`.
+- Slug do combo = slug do participante (mesmo que o nome do combo mude).
+- Não renomear slugs já definidos em `src/data/participants.js`.
+- Não trocar hash routing por path routing.
+- Mudança em URL/rota/slug exige parar e avisar antes — nunca automático.
+
+Detalhamento completo e lista dos 21 slugs congelados: ver seção 9 de `CODE_REVIEW_GRAPH.md`.
+
 ## Grafias oficiais da marca
 
 - Festival: **Sweet & Coffee Week**
