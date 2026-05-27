@@ -145,18 +145,22 @@ function Hero() {
               color: 'var(--lovers-brown)',
               margin: 0,
             }}>
-              A edição comemorativa dos 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
-              em uma história de sucesso: os{' '}
+              A edição comemorativa dos 10 anos reúne participantes, temas históricos e novas criações
+              para homenagear quem transformou o Sweet &amp; Coffee Week em uma história de sucesso: os{' '}
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
             <div className="hero-v2-tiles">
+              <div className="reveal reveal-pop reveal-delay-1 loop-float-alt" aria-label={`${PARTICIPANTS.length} participantes confirmados`} style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>{PARTICIPANTS.length}</div>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>PARTICIPANTES<br />CONFIRMADOS</div>
+              </div>
               <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>15</div>
+              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label={`${THEMES.length} temas históricos`} style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>{THEMES.length}</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
               </div>
               <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -177,13 +181,13 @@ function Hero() {
         }
         .hero-v2-tiles {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 12px;
-          aspect-ratio: 3 / 1;
+          aspect-ratio: 4 / 1;
         }
         @media (max-width: 720px) {
           .hero-v2-grid { grid-template-columns: 1fr; }
-          .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
+          .hero-v2-tiles { grid-template-columns: repeat(2, 1fr); aspect-ratio: 2 / 1; height: auto; }
           .hero-date-pill { display: none; }
           .hero-v2-right { gap: 20px; }
         }
@@ -194,10 +198,10 @@ function Hero() {
 
 function Sobre() {
   const blocks = [
-    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram a história do festival." },
-    { icon: <I.heart />,    title: "Recriar",   body: "Combos inéditos inspirados em memórias do Sweet." },
-    { icon: <I.starFill />, title: "Celebrar",  body: "Uma década de encontros, sabores e histórias." },
-    { icon: <I.plate />,    title: "Provar",    body: "Doce, salgado e bebida em uma experiência especial." },
+    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram os 10 anos do festival." },
+    { icon: <I.heart />,    title: "Recriar",   body: "Novos combos inspirados em memórias do Sweet & Coffee Week." },
+    { icon: <I.starFill />, title: "Celebrar",  body: "Participantes celebrando uma década de encontros e sabores." },
+    { icon: <I.plate />,    title: "Provar",    body: "Cada combo reúne doce, salgado e bebida em uma experiência especial." },
   ]
   return (
     <section id="sobre" className="section section-sobre">
@@ -212,13 +216,14 @@ function Sobre() {
           <div className="sobre__body reveal reveal-right reveal-delay-1">
             <div className="sb-p sb-p--lead">
               Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
-              sabores e memórias em Natal. Para comemorar essa trajetória, nasce a edição{' '}
-              <em>Sweet &amp; Coffee Week Lovers</em>: uma homenagem ao público que acompanhou, provou,
-              compartilhou, votou, marcou os amigos e fez do festival uma tradição afetiva da cidade.
+              sabores e memórias em Natal. Para comemorar essa trajetória, a edição{' '}
+              <em>Sweet &amp; Coffee Week Lovers</em> reúne participantes em uma proposta criada para
+              homenagear o público que acompanhou, provou, compartilhou, votou, marcou os amigos e
+              fez do festival uma tradição afetiva da cidade.
             </div>
             <div className="sb-p">
               Nesta edição, cada participante escolhe um tema que já fez parte da história do
-              Sweet e cria uma nova experiência a partir dele. A proposta não é
+              Sweet &amp; Coffee Week e cria uma nova experiência a partir dele. A proposta não é
               repetir: é recriar com amor, memória e sabor.
             </div>
           </div>
@@ -720,12 +725,7 @@ export function LoversPage({ navigate }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }} />
       <Hero />
       <Sobre />
-      <ComoFunciona />
       <Participantes navigate={navigate} />
-      <Combos />
-      <Mapa />
-      <Awards />
-      <FinalCTA />
     </div>
   )
 }
