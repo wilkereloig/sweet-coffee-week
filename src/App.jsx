@@ -19,37 +19,6 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
-// Development branch only: Lovers internal pages are open for editing.
-// Do not merge this value as true into production.
-const ENABLE_LOVERS_INTERNAL_PAGES = true
-
-function LoversDevNav({ navigate, route }) {
-  if (!ENABLE_LOVERS_INTERNAL_PAGES) return null
-
-  const items = [
-    { label: 'Sobre',   path: '/lovers',                               match: 'lovers'       },
-    { label: 'Combos',  path: '/lovers/combos',                        match: 'combos'       },
-    { label: 'Mapa',    path: '/lovers/mapa',                          match: 'mapa'         },
-    { label: 'Awards',  path: '/lovers/awards',                        match: 'awards'       },
-    { label: 'Detalhe', path: '/lovers/combos/preview-combo-memorias', match: 'combo-detail' },
-  ]
-
-  return (
-    <nav className="lovers-dev-nav" aria-label="Navegação interna de desenvolvimento Lovers">
-      <span className="lovers-dev-nav__label">DEV LOVERS</span>
-      {items.map(item => (
-        <button
-          key={item.path}
-          type="button"
-          className={'lovers-dev-nav__item' + (route === item.match ? ' is-active' : '')}
-          onClick={() => navigate(item.path)}
-        >
-          {item.label}
-        </button>
-      ))}
-    </nav>
-  )
-}
 
 export default function App() {
   const [path, navigate] = useRoute()
@@ -75,10 +44,10 @@ export default function App() {
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboPage navigate={navigate} /> : <ComingSoonPage />; break
-    case 'combo-detail': page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} /> : <ComingSoonPage />; break
-    case 'mapa':         page = ENABLE_LOVERS_INTERNAL_PAGES ? <MapaPage navigate={navigate} /> : <ComingSoonPage />; break
-    case 'awards':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <AwardsPage navigate={navigate} /> : <ComingSoonPage />; break
+    case 'combos':       page = <ComboPage navigate={navigate} />; break
+    case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
+    case 'mapa':         page = <MapaPage navigate={navigate} />; break
+    case 'awards':       page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break
@@ -90,7 +59,6 @@ export default function App() {
   return (
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} />
-      <LoversDevNav navigate={navigate} route={route} />
       <main key={route} className="page-enter">{page}</main>
     </DevViewportSwitcher>
   )

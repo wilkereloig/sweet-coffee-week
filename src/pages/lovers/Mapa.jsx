@@ -17,6 +17,9 @@ const combosSource =
   COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
+if (GOOGLE_MAPS_API_KEY) {
+  setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
+}
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
@@ -80,15 +83,6 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
       return
     }
     let cancelled = false
-
-    setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
-
-    console.log('[Google Maps Debug]', {
-      hasKey: Boolean(GOOGLE_MAPS_API_KEY),
-      keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
-      hostname: window.location.hostname,
-      href: window.location.href,
-    })
 
     const previousAuthFailure = window.gm_authFailure
     window.gm_authFailure = () => {
