@@ -19,21 +19,9 @@ import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 
-// Internal Lovers pages stay locked in production unless VITE_ENABLE_LOVERS_INTERNAL_PAGES=true or localhost uses devLovers=true.
-const isLocalHost =
-  typeof window !== 'undefined' &&
-  ['localhost', '127.0.0.1'].includes(window.location.hostname)
-
-const hasDevLoversParam =
-  typeof window !== 'undefined' &&
-  (
-    window.location.search.includes('devLovers=true') ||
-    window.location.hash.includes('devLovers=true')
-  )
-
-const ENABLE_LOVERS_INTERNAL_PAGES =
-  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true' ||
-  (isLocalHost && hasDevLoversParam)
+// Development branch only: Lovers internal pages are open for editing.
+// Do not merge this value as true into production.
+const ENABLE_LOVERS_INTERNAL_PAGES = true
 
 function LoversDevNav({ navigate, route }) {
   if (!ENABLE_LOVERS_INTERNAL_PAGES) return null
