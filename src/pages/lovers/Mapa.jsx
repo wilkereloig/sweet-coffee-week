@@ -1,26 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { I } from '../../components/icons'
 import { EmptyState } from '../../components/placeholders'
 import { PARTICIPANTS } from '../../data/participants'
 import { COMBOS } from '../../data/combos'
-import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 
-// Preview data is used only when internal pages are enabled for local development.
-const ENABLE_PREVIEW_DATA =
-  import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
+const participantsSource = PARTICIPANTS
+const combosSource = COMBOS
 
-const participantsSource =
-  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
-
-const combosSource =
-  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
-if (GOOGLE_MAPS_API_KEY) {
-  setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
-}
-const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
+const NATAL_CENTER = [-5.7945, -35.2110]
 const NATAL_ZOOM = 13
 
 function getMapsSearchUrl(p) {
@@ -70,99 +59,66 @@ function userPin() {
   "></div>`
 }
 
-function GoogleMap({ participants, selected, onSelect, userLocation, onError }) {
+function heartIcon(selected) {
+  return L.divIcon({
+    html: heartPin(selected),
+    className: '',
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+  })
+}
+
+function userIcon() {
+  return L.divIcon({
+    html: userPin(),
+    className: '',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  })
+}
+
+function LeafletMap({ participants, selected, onSelect, userLocation }) {
+  const containerRef = useRef(null)
   const mapRef = useRef(null)
-  const instanceRef = useRef(null)
   const markersRef = useRef({})
   const userMarkerRef = useRef(null)
 
   useEffect(() => {
-    if (!mapRef.current) return
-    if (!GOOGLE_MAPS_API_KEY) {
-      onError?.('missing-key')
-      return
-    }
-    let cancelled = false
-
-    const previousAuthFailure = window.gm_authFailure
-    window.gm_authFailure = () => {
-      console.error('[Google Maps Auth Failure]')
-      onError?.('auth-failure')
-      if (typeof previousAuthFailure === 'function') previousAuthFailure()
-    }
-
-    ;(async () => {
-      try {
-        const { Map } = await importLibrary('maps')
-        const { Marker } = await importLibrary('marker')
-        if (cancelled || !mapRef.current || instanceRef.current) return
-
-        const map = new Map(mapRef.current, {
-          center: NATAL_CENTER,
-          zoom: NATAL_ZOOM,
-          scrollwheel: false,
-          gestureHandling: 'cooperative',
-        })
-
-        participants.forEach(p => {
-          if (!p.latitude || !p.longitude) return
-          const marker = new Marker({
-            map,
-            position: { lat: p.latitude, lng: p.longitude },
-            title: p.name,
-          })
-          marker.addListener('click', () => onSelect(p))
-          markersRef.current[p.id] = { marker }
-        })
-
-        instanceRef.current = { map, Marker }
-      } catch (e) {
-        console.error('[Google Maps Load Error]', e)
-        onError?.('load-error')
-      }
-    })()
-
-    return () => {
-      cancelled = true
-      window.gm_authFailure = previousAuthFailure
-      Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
-      instanceRef.current = null
-      markersRef.current = {}
-    }
+    if (!containerRef.current || mapRef.current) return
+    const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView(NATAL_CENTER, NATAL_ZOOM)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map)
+    participants.forEach(p => {
+      if (!p.latitude || !p.longitude) return
+      const marker = L.marker([p.latitude, p.longitude], { icon: heartIcon(false) }).addTo(map)
+      marker.on('click', () => onSelect(p))
+      markersRef.current[p.id] = marker
+    })
+    mapRef.current = map
+    return () => { map.remove(); mapRef.current = null; markersRef.current = {} }
   }, [])
 
   useEffect(() => {
-    Object.entries(markersRef.current).forEach(([id, item]) => {
-      if (item.el) item.el.innerHTML = heartPin(selected?.id === id)
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      marker.setIcon(heartIcon(selected?.id === String(id)))
     })
-    if (selected?.latitude && selected?.longitude && instanceRef.current) {
-      instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
+    if (selected?.latitude && selected?.longitude && mapRef.current) {
+      mapRef.current.panTo([selected.latitude, selected.longitude])
     }
   }, [selected])
 
   useEffect(() => {
-    if (!instanceRef.current) return
-    const { map, Marker } = instanceRef.current
-
-    if (userMarkerRef.current) {
-      userMarkerRef.current.map = null
-      userMarkerRef.current = null
-    }
-
+    if (!mapRef.current) return
+    if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null }
     if (userLocation) {
-      userMarkerRef.current = new Marker({
-        map,
-        position: { lat: userLocation.lat, lng: userLocation.lng },
-        title: 'Minha localização',
-      })
-      map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
-      map.setZoom(14)
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon() }).addTo(mapRef.current)
+      mapRef.current.setView([userLocation.lat, userLocation.lng], 14)
     }
   }, [userLocation])
 
-  return (
-    <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-  )
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 }
 
 export function MapaPage({ navigate }) {
@@ -172,8 +128,6 @@ export function MapaPage({ navigate }) {
   const [userLocation, setUserLocation] = useState(null)
   const [locLoading, setLocLoading] = useState(false)
   const [locError, setLocError] = useState(null)
-  const [mapError, setMapError] = useState(null)
-
   function handleLocate() {
     if (userLocation) {
       setUserLocation(null)
@@ -284,23 +238,12 @@ export function MapaPage({ navigate }) {
 
               {/* Mapa interativo */}
               <div className="mapa-container">
-                {mapError ? (
-                  <div className="mapa-fallback">
-                    <div className="mapa-fallback__icon"><I.pin /></div>
-                    <h3>Mapa interativo em configuração</h3>
-                    <p>
-                      Enquanto o mapa é configurado, você pode usar a lista ao lado para abrir os endereços diretamente no Google Maps.
-                    </p>
-                  </div>
-                ) : (
-                  <GoogleMap
-                    participants={participants}
-                    selected={selected}
-                    onSelect={setSelected}
-                    userLocation={userLocation}
-                    onError={setMapError}
-                  />
-                )}
+                <LeafletMap
+                  participants={participants}
+                  selected={selected}
+                  onSelect={setSelected}
+                  userLocation={userLocation}
+                />
 
                 {/* Card do participante selecionado */}
                 {selected && (
@@ -543,46 +486,6 @@ export function MapaPage({ navigate }) {
           .mapa-list::-webkit-scrollbar-thumb {
             background: rgba(135,14,45,.3);
             border-radius: 4px;
-          }
-          .mapa-fallback {
-            height: 100%;
-            min-height: 360px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 14px;
-            padding: 32px;
-            text-align: center;
-            background:
-              radial-gradient(circle at 20% 20%, rgba(242,5,103,.16), transparent 32%),
-              radial-gradient(circle at 80% 30%, rgba(251,184,0,.18), transparent 34%),
-              var(--lovers-cream);
-            color: var(--lovers-brown);
-          }
-          .mapa-fallback__icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-          }
-          .mapa-fallback h3 {
-            margin: 0;
-            font-family: var(--font-lovers-display);
-            font-size: clamp(26px, 3vw, 40px);
-            line-height: 1;
-            color: var(--lovers-ink);
-          }
-          .mapa-fallback p {
-            margin: 0;
-            max-width: 42ch;
-            font-size: 15px;
-            line-height: 1.5;
-            opacity: .8;
           }
           .mapa-chip {
             font-family: var(--font-lovers-body);
