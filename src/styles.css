@@ -1427,24 +1427,25 @@ button:disabled { cursor: not-allowed; }
 /* ── Participants real data section ── */
 .participants-section__intro { margin-bottom: 40px; }
 .participants-section__lead { font-size: 19px; line-height: 1.6; color: var(--lovers-brown); opacity: .82; max-width: 56ch; margin: 16px 0 0; }
-.participants-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
-.participant-card { background: var(--lovers-cream); border: 1px solid rgba(135,14,45,.16); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px; transition: transform .18s, box-shadow .18s, border-color .18s; }
-.participant-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(135,14,45,.12); border-color: rgba(135,14,45,.3); }
-.participant-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.participant-card__logo { width: 56px; height: 56px; flex-shrink: 0; }
-.participant-card__logo-img { width: 56px; height: 56px; border-radius: 14px; object-fit: contain; }
-.participant-card__logo-placeholder { width: 56px; height: 56px; border-radius: 14px; background: var(--lovers-burgundy); display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 700; font-size: 18px; color: var(--lovers-cream); text-transform: uppercase; }
-.participant-card__info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
-.participant-card__name { font-family: var(--font-lovers-display); font-weight: 700; font-size: 18px; line-height: 1.1; color: var(--lovers-brown); text-transform: uppercase; margin: 0; }
-.participant-card__meta { display: flex; flex-direction: column; gap: 2px; }
-.participant-card__meta span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-brown); opacity: .6; line-height: 1.5; }
-.participant-card__actions { display: flex; align-items: center; gap: 8px; margin-top: auto; }
-.participant-card__combo-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 999px; background: var(--lovers-burgundy); color: var(--lovers-cream); font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; transition: opacity .15s; }
-.participant-card__combo-btn:hover { opacity: .85; }
-.participant-card__icon-btn { width: 36px; height: 36px; flex-shrink: 0; border-radius: 999px; border: 1px solid rgba(135,14,45,.25); display: flex; align-items: center; justify-content: center; color: var(--lovers-burgundy); text-decoration: none; transition: background .15s, border-color .15s; }
-.participant-card__icon-btn:hover { background: rgba(135,14,45,.08); border-color: rgba(135,14,45,.4); }
+.participants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.participant-card { position: relative; display: flex; flex-direction: column; min-height: 280px; padding: clamp(20px, 2vw, 28px); border-radius: 28px; background: var(--lovers-cream); border: 1.5px solid color-mix(in srgb, var(--participant-brand, var(--lovers-red)) 28%, transparent); box-shadow: 0 14px 36px rgba(43,24,16,.08); overflow: hidden; transition: transform .18s, box-shadow .18s; }
+.participant-card::before { content: ""; position: absolute; inset: 0; height: 8px; background: var(--participant-brand, var(--lovers-red)); }
+.participant-card:hover { transform: translateY(-3px); box-shadow: 0 20px 44px rgba(43,24,16,.13); }
+.participant-card__logo-area { min-height: 118px; display: flex; align-items: center; justify-content: center; padding: 18px; margin: 8px 0 18px; border-radius: 22px; background: #fff; border: 1px solid rgba(63,26,10,.08); }
+.participant-card__logo-img { display: block; max-width: 100%; max-height: 88px; object-fit: contain; }
+.participant-card__logo-placeholder { width: 82px; height: 82px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: var(--participant-brand, var(--lovers-red)); color: #fff; font-family: var(--font-lovers-display); font-size: 30px; font-weight: 800; }
+.participant-card__name { margin: 0; text-align: center; font-family: var(--font-lovers-display); font-weight: 700; font-size: clamp(18px, 1.6vw, 26px); line-height: 1; color: var(--lovers-brown); text-transform: uppercase; }
+.participant-card__actions { margin-top: auto; padding-top: 22px; display: grid; grid-template-columns: 44px 1fr 44px; gap: 10px; align-items: center; }
+.participant-card--no-map .participant-card__actions { grid-template-columns: 44px 1fr; }
+.participant-card__icon-btn, .participant-card__combo-btn { min-height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--participant-brand, var(--lovers-red)); background: var(--participant-brand, var(--lovers-red)); color: #fff; text-decoration: none; font-family: var(--font-lovers-display); font-weight: 700; transition: transform .18s ease, box-shadow .18s ease; }
+.participant-card__icon-btn { width: 44px; padding: 0; }
+.participant-card__combo-btn { padding: 0 18px; font-size: 14px; letter-spacing: .04em; }
+.participant-card__icon-btn svg { width: 18px; height: 18px; }
+.participant-card__map-btn { background: transparent; color: var(--participant-brand, var(--lovers-red)); }
 .participants-empty { text-align: center; padding: 60px 24px; color: var(--lovers-brown); opacity: .65; font-size: 18px; line-height: 1.6; }
-@media (max-width: 480px) { .participants-grid { grid-template-columns: 1fr; } }
+@media (hover: hover) { .participant-card__icon-btn:hover, .participant-card__combo-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px color-mix(in srgb, var(--participant-brand, var(--lovers-red)) 22%, transparent); } }
+@media (max-width: 540px) { .participant-card { min-height: 250px; } .participant-card__logo-area { min-height: 100px; } .participant-card__logo-img { max-height: 76px; } }
+@media (max-width: 480px) { .participants-grid { grid-template-columns: 1fr 1fr; } }
 
 .section-combos { background: var(--lovers-purple); color: var(--lovers-cream); }
 .section-combos .lh2 { color: var(--lovers-cream); }

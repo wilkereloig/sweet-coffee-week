@@ -295,20 +295,28 @@ function Participantes({ navigate }) {
         {PARTICIPANTS.length > 0 ? (
           <div className="participants-grid">
             {PARTICIPANTS.map((p) => {
+              const brandColor = p.brandColor || 'var(--lovers-red)'
               const igHandle = p.instagram ? p.instagram.replace('@', '') : null
               const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : null
               const mapsUrl = p.address
                 ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)}`
                 : null
               return (
-                <div className="participant-card reveal reveal-scale" key={p.id}>
-                  <div className="participant-card__top">
-                    <div className="participant-card__logo">
-                      {p.logo
-                        ? <img className="participant-card__logo-img" src={p.logo} alt={`Logo ${p.name}`} />
-                        : <div className="participant-card__logo-placeholder">{getInitials(p.name)}</div>
-                      }
-                    </div>
+                <div
+                  className={`participant-card reveal reveal-scale${!mapsUrl ? ' participant-card--no-map' : ''}`}
+                  key={p.id}
+                  style={{ '--participant-brand': brandColor }}
+                >
+                  <div className="participant-card__logo-area">
+                    {p.logo
+                      ? <img className="participant-card__logo-img" src={p.logo} alt={`Logo ${p.name}`} />
+                      : <div className="participant-card__logo-placeholder">{getInitials(p.name)}</div>
+                    }
+                  </div>
+
+                  <h4 className="participant-card__name">{p.name}</h4>
+
+                  <div className="participant-card__actions">
                     {igUrl && (
                       <a
                         href={igUrl}
@@ -320,19 +328,6 @@ function Participantes({ navigate }) {
                         <I.ig />
                       </a>
                     )}
-                  </div>
-
-                  <div className="participant-card__info">
-                    <h4 className="participant-card__name">{p.name}</h4>
-                    {(p.neighborhood || p.address) && (
-                      <div className="participant-card__meta">
-                        {p.neighborhood && <span>{p.neighborhood}</span>}
-                        {p.address && <span className="participant-card__address">{p.address}</span>}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="participant-card__actions">
                     <a
                       href={`#/lovers/combos/${p.slug}`}
                       className="participant-card__combo-btn"
