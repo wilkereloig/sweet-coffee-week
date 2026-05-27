@@ -20,8 +20,13 @@ console.log('[Google Maps Lovers Debug]', {
   withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
 })
 
+console.log('[Google Maps Loader Options]', {
+  hasKey: Boolean(GOOGLE_MAPS_API_KEY),
+  provider: import.meta.env.VITE_LOVERS_MAP_PROVIDER || null,
+})
+
 if (GOOGLE_MAPS_API_KEY) {
-  setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
+  setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
 function getMapsSearchUrl(p) {
@@ -58,7 +63,11 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
   useEffect(() => {
     const previous = window.gm_authFailure
     window.gm_authFailure = () => {
-      console.error('[Google Maps Auth Failure]')
+      console.error('[Google Maps Auth Failure]', {
+        hostname: window.location.hostname,
+        href: window.location.href,
+        keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
+      })
       onError?.('auth-failure')
       if (typeof previous === 'function') previous()
     }
@@ -99,7 +108,12 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
         instanceRef.current = { map, Marker }
       } catch (e) {
-        console.error('[Google Maps Load Error]', e)
+        console.error('[Google Maps Load Error]', {
+          name: e?.name,
+          message: e?.message,
+          stack: e?.stack,
+          error: e,
+        })
         onError?.('load-error')
       }
     })()
