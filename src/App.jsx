@@ -35,6 +35,10 @@ const ENABLE_LOVERS_INTERNAL_PAGES =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true' ||
   (isLocalHost && hasDevLoversParam)
 
+// Temporary production test: allow direct access to Lovers map by URL only.
+// Keep menu locked. Remove or set false after Google Maps validation.
+const ENABLE_LOVERS_MAP_TEST = true
+
 function LoversDevNav({ navigate, route }) {
   if (!ENABLE_LOVERS_INTERNAL_PAGES) return null
 
@@ -90,7 +94,7 @@ export default function App() {
     // Public fallback: QR Code URLs for Lovers internal pages must resolve to the published Lovers page until the internal pages are released.
     case 'combos':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboPage navigate={navigate} /> : <LoversPage navigate={navigate} />; break
     case 'combo-detail': page = ENABLE_LOVERS_INTERNAL_PAGES ? <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} /> : <LoversPage navigate={navigate} />; break
-    case 'mapa':         page = ENABLE_LOVERS_INTERNAL_PAGES ? <MapaPage navigate={navigate} /> : <LoversPage navigate={navigate} />; break
+    case 'mapa':         page = (ENABLE_LOVERS_INTERNAL_PAGES || ENABLE_LOVERS_MAP_TEST) ? <MapaPage navigate={navigate} /> : <LoversPage navigate={navigate} />; break
     case 'awards':       page = ENABLE_LOVERS_INTERNAL_PAGES ? <AwardsPage navigate={navigate} /> : <LoversPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
