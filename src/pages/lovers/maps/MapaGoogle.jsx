@@ -10,21 +10,6 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
-console.log('[Google Maps Lovers Debug]', {
-  hasKey: Boolean(GOOGLE_MAPS_API_KEY),
-  keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
-  hostname: window.location.hostname,
-  href: window.location.href,
-  participantsTotal: PARTICIPANTS.length,
-  withAddress: PARTICIPANTS.filter(p => p.address).length,
-  withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
-})
-
-console.log('[Google Maps Loader Options]', {
-  hasKey: Boolean(GOOGLE_MAPS_API_KEY),
-  provider: import.meta.env.VITE_LOVERS_MAP_PROVIDER || null,
-})
-
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
