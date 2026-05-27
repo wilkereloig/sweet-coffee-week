@@ -10,6 +10,13 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
+console.log('[Mapa Pins]', {
+  total: PARTICIPANTS.length,
+  withAddress: PARTICIPANTS.filter(p => p.address).length,
+  withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
+  withoutCoords: PARTICIPANTS.filter(p => p.address && (!p.latitude || !p.longitude)).map(p => p.name),
+})
+
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
@@ -80,8 +87,9 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
           gestureHandling: 'cooperative',
         })
 
-        participants.forEach(p => {
-          if (!p.latitude || !p.longitude) return
+        const coords = participants.filter(p => p.latitude && p.longitude)
+
+        coords.forEach(p => {
           const marker = new Marker({
             map,
             position: { lat: p.latitude, lng: p.longitude },
@@ -90,6 +98,15 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
           marker.addListener('click', () => onSelect(p))
           markersRef.current[p.id] = marker
         })
+
+        if (coords.length > 1) {
+          const bounds = new google.maps.LatLngBounds()
+          coords.forEach(p => bounds.extend({ lat: p.latitude, lng: p.longitude }))
+          map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 })
+        } else if (coords.length === 1) {
+          map.setCenter({ lat: coords[0].latitude, lng: coords[0].longitude })
+          map.setZoom(15)
+        }
 
         instanceRef.current = { map, Marker }
       } catch (e) {

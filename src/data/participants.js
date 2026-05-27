@@ -27,8 +27,8 @@ export const PARTICIPANTS = [
     address: "Av. Praia de Ponta Negra, 8880",
     neighborhood: "Ponta Negra",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8717906,
+    longitude: -35.1812612,
     openingHours: ""
   },
   {
@@ -57,8 +57,8 @@ export const PARTICIPANTS = [
     address: "Av. Rodrigues Alves, 433",
     neighborhood: "Petrópolis",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.7875951,
+    longitude: -35.1985817,
     openingHours: ""
   },
   {
@@ -102,8 +102,8 @@ export const PARTICIPANTS = [
     address: "Av. Xavier da Silveira, 1190",
     neighborhood: "Lagoa Nova",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8149631,
+    longitude: -35.1996656,
     openingHours: ""
   },
   {
@@ -117,8 +117,8 @@ export const PARTICIPANTS = [
     address: "Av. Praia de Ponta Negra, 8868",
     neighborhood: "Ponta Negra",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8737794,
+    longitude: -35.1808228,
     openingHours: ""
   },
   {
@@ -132,8 +132,8 @@ export const PARTICIPANTS = [
     address: "Av. Maranguape, 741",
     neighborhood: "Panatis III/Potengi",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.7585492,
+    longitude: -35.2598518,
     openingHours: ""
   },
   {
@@ -147,8 +147,8 @@ export const PARTICIPANTS = [
     address: "Rua Ataulfo Alves, 3465",
     neighborhood: "Candelária",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8389204,
+    longitude: -35.2153114,
     openingHours: ""
   },
   {
@@ -177,8 +177,8 @@ export const PARTICIPANTS = [
     address: "Rua Dr. Orlando de Azevedo, 1981",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8570178,
+    longitude: -35.2025025,
     openingHours: ""
   },
   {
@@ -222,8 +222,8 @@ export const PARTICIPANTS = [
     address: "Rua Pinheiro Borges, 648",
     neighborhood: "Barro Vermelho",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.7963797,
+    longitude: -35.2104277,
     openingHours: ""
   },
   {
@@ -237,8 +237,8 @@ export const PARTICIPANTS = [
     address: "Av. Rodrigues Alves, 930",
     neighborhood: "Tirol",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.7887356,
+    longitude: -35.1990022,
     openingHours: ""
   },
   {
@@ -252,8 +252,8 @@ export const PARTICIPANTS = [
     address: "Av. Almirante Alexandrino de Alencar, 1398",
     neighborhood: "Tirol",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8096461,
+    longitude: -35.1977217,
     openingHours: ""
   },
   {
@@ -282,8 +282,8 @@ export const PARTICIPANTS = [
     address: "Av. Eng. Roberto Freire, 2632, Dunnas Shopping, Loja A05/A06",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8517158,
+    longitude: -35.2038929,
     openingHours: ""
   },
   {
@@ -327,8 +327,8 @@ export const PARTICIPANTS = [
     address: "Rua Neuza Farache, 1870, Loja 06, Vela Trade",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
-    latitude: null,
-    longitude: null,
+    latitude: -5.8600199,
+    longitude: -35.1997991,
     openingHours: ""
   },
 ]
