@@ -119,7 +119,76 @@ Regras obrigatórias antes de tocar em qualquer arquivo:
 
 ---
 
-## 9. Como usar este arquivo
+## 9. URLs estáveis para QR Codes — REGRA PERMANENTE
+
+**Esta regra é inegociável. URLs públicas dos QR Codes da edição Sweet & Coffee Week Lovers NÃO podem mudar depois de definidas.**
+
+### Padrões fixos
+
+- **Combo de participante:** `https://www.sweetcoffeeweek.com.br/#/lovers/combos/{slug-do-participante}`
+- **Premiação:** `https://www.sweetcoffeeweek.com.br/#/lovers/awards`
+
+### Regras obrigatórias
+
+1. **Nunca alterar o padrão de rota** `#/lovers/combos/:slug`.
+2. **Nunca alterar a rota da premiação** `#/lovers/awards`.
+3. **O slug do combo é sempre igual ao slug do participante** correspondente.
+
+   Exemplo:
+   ```
+   participant.id:        "adocee-doceria"
+   participant.slug:      "adocee-doceria"
+   combo.participantId:   "adocee-doceria"
+   combo.slug:            "adocee-doceria"
+
+   URL final: https://www.sweetcoffeeweek.com.br/#/lovers/combos/adocee-doceria
+   ```
+4. **Não criar slugs baseados no nome do combo.** O slug do combo continua sendo o slug do participante, mesmo que o nome do combo mude.
+5. **Não renomear slugs já definidos em `src/data/participants.js`.**
+6. **Não trocar hash routing por path routing** nesta edição. Manter formato com `#`.
+7. **Se uma alteração futura exigir mudar URL, rota ou slug, parar e avisar antes.** Nunca executar automaticamente.
+
+### Logos dos participantes
+
+As logos dos participantes da edição Lovers devem ficar em `public/logos/participants/` e usar o nome do slug do participante em PNG. O campo `logo` em `participants.js` deve apontar para `/logos/participants/{slug}.png`.
+
+Exemplos:
+- `public/logos/participants/adocee-doceria.png` → `logo: "/logos/participants/adocee-doceria.png"`
+- `public/logos/participants/parma-doces.png` → `logo: "/logos/participants/parma-doces.png"`
+
+Não renomear os arquivos de logo depois de definidos — o nome do arquivo é o slug do participante.
+
+### Slugs congelados para QR Codes (21 participantes)
+
+```
+adocee-doceria
+bolomania
+caffe-basilicos
+canutos
+caroli-douces
+casa-1190
+casa-de-taipa-tapiocaria
+delicato-bolos
+douce-di-maria
+jolie-cafe-patisserie
+just-food-coffee
+mangai
+mr-cupcake-confeitaria
+o-maestro-cafe
+oli-gastro
+padoca-do-bosque
+paneer-patisserie
+parma-doces
+rollab-confeitaria
+sweet-duo-confeitaria
+wow-cookies
+```
+
+Resultado esperado: páginas de combo dos participantes e página de premiação permanecem com URLs estáveis para criação de QR Codes, mesmo que textos, layouts, nomes de combos ou dados internos mudem depois.
+
+---
+
+## 10. Como usar este arquivo
 
 Antes de qualquer tarefa nova:
 

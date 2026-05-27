@@ -11,10 +11,10 @@ export const NAV_LINKS = [
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers', label: 'Sobre a edição',      href: '#/lovers' },
-  { id: 'combos', label: 'Combos',              href: '#/lovers/combos',  locked: true, tooltip: 'Disponível em 4 de junho' },
-  { id: 'mapa',   label: 'Mapa da Doçura',      href: '#/lovers/mapa',    locked: true, tooltip: 'Disponível em 4 de junho' },
-  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards', locked: true, tooltip: 'Disponível em 4 de junho' },
+  { id: 'lovers', label: 'Sobre a edição',            href: '#/lovers' },
+  { id: 'combos', label: 'Combos',                    href: '#/lovers/combos' },
+  { id: 'mapa',   label: 'Mapa da Doçura',            href: '#/lovers/mapa' },
+  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards' },
 ]
 
 const IS_LOVERS_ROUTE = ['lovers', 'combos', 'combo-detail', 'mapa', 'awards']

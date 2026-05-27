@@ -4,6 +4,7 @@ import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
 import { DevViewportSwitcher } from './DevTools'
 
+
 import { HomePage }        from './pages/institutional/Home'
 import { EdicoesPage }     from './pages/institutional/Edicoes'
 import { CuriosidadesPage } from './pages/institutional/Curiosidades'
@@ -13,7 +14,11 @@ import { ContatoPage }     from './pages/institutional/Contato'
 
 import { ComingSoonPage } from './pages/ComingSoon'
 import { LoversPage }     from './pages/lovers/Hub'
+import { ComboPage }      from './pages/lovers/Combos'
+import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
+import { AwardsPage }     from './pages/lovers/Awards'
+
 
 export default function App() {
   const [path, navigate] = useRoute()
@@ -35,16 +40,14 @@ export default function App() {
     return 'home'
   })()
 
-  // Public fallback: all Lovers internal URLs resolve to the published Lovers page until each internal page is officially released.
   let page
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = <LoversPage navigate={navigate} />; break
-    case 'combo-detail': page = <LoversPage navigate={navigate} />; break
-    // Temporary release: Lovers map is accessible only by direct URL. Menu remains locked.
+    case 'combos':       page = <ComboPage navigate={navigate} />; break
+    case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
     case 'mapa':         page = <MapaPage navigate={navigate} />; break
-    case 'awards':       page = <LoversPage navigate={navigate} />; break
+    case 'awards':       page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break

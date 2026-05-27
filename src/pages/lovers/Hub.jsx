@@ -1,5 +1,6 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
+import { PARTICIPANTS } from '../../data/participants'
 
 /* ── Scroll reveal hook ── */
 function useRevealOnScroll() {
@@ -35,17 +36,6 @@ const hasMapData          = false
 const hasVotingData       = false
 
 /* ── Data ── */
-const PARTICIPANTS = [
-  { name: "Doceria Petrópolis",  cat: "Doceria",      bairro: "Petrópolis",  color: "var(--lovers-burgundy)" },
-  { name: "Café Tirol",          cat: "Cafeteria",    bairro: "Tirol",       color: "var(--lovers-pink)" },
-  { name: "Confeitaria Lagoa",   cat: "Confeitaria",  bairro: "Lagoa Nova",  color: "var(--lovers-cyan)" },
-  { name: "Mesa Ponta Negra",    cat: "Restaurante",  bairro: "Ponta Negra", color: "var(--lovers-purple)" },
-  { name: "Doce Capim",          cat: "Doceria",      bairro: "Capim Macio", color: "var(--lovers-coral)" },
-  { name: "Café Mirassol",       cat: "Cafeteria",    bairro: "Mirassol",    color: "var(--lovers-brown)" },
-  { name: "Atelier de Bolos",    cat: "Confeitaria",  bairro: "Tirol",       color: "var(--lovers-yellow)" },
-  { name: "Bistrô Alecrim",      cat: "Restaurante",  bairro: "Alecrim",     color: "var(--lovers-burgundy)" },
-]
-
 const COMBOS = [
   { name: "Romeu, Julieta & Coalho",   store: "Doceria Petrópolis",  theme: "Sabores da Infância",   doce: "Mini-bolo de goiabada caseira com mascarpone",  salgado: "Pão de queijo de coalho recheado",      bebida: "Cappuccino de baunilha",      price: "R$ 42" },
   { name: "Madeleine de Cinema",        store: "Café Tirol",          theme: "Movies",                doce: "Madeleines com chocolate 70%",                  salgado: "Croque-monsieur do cinema mudo",         bebida: "Espresso tonic",              price: "R$ 48" },
@@ -85,6 +75,14 @@ const AWARD_CATS = [
 ]
 
 /* ── Helpers ── */
+
+function getInitials(name) {
+  const words = name.replace(/[-]/g, ' ').split(/\s+/).filter(Boolean)
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  const a = words[0][0]
+  const b = words[1][0]
+  return (a + b).toUpperCase()
+}
 
 function EmBreve({ label = 'Disponível a partir de 4 de junho', bg }) {
   return (
@@ -147,18 +145,22 @@ function Hero() {
               color: 'var(--lovers-brown)',
               margin: 0,
             }}>
-              A edição comemorativa dos 10 anos feita para homenagear quem transformou o Sweet &amp; Coffee Week
-              em uma história de sucesso: os{' '}
+              A edição comemorativa dos 10 anos reúne participantes, temas históricos e novas criações
+              para homenagear quem transformou o Sweet &amp; Coffee Week em uma história de sucesso: os{' '}
               <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
             </p>
 
             <div className="hero-v2-tiles">
+              <div className="reveal reveal-pop reveal-delay-1 loop-float-alt" aria-label={`${PARTICIPANTS.length} participantes confirmados`} style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>{PARTICIPANTS.length}</div>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>PARTICIPANTES<br />CONFIRMADOS</div>
+              </div>
               <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
               </div>
-              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label="15 temas históricos" style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>15</div>
+              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label={`${THEMES.length} temas históricos`} style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>{THEMES.length}</div>
                 <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
               </div>
               <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -179,13 +181,13 @@ function Hero() {
         }
         .hero-v2-tiles {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 12px;
-          aspect-ratio: 3 / 1;
+          aspect-ratio: 4 / 1;
         }
         @media (max-width: 720px) {
           .hero-v2-grid { grid-template-columns: 1fr; }
-          .hero-v2-tiles { aspect-ratio: auto; height: 120px; }
+          .hero-v2-tiles { grid-template-columns: repeat(2, 1fr); aspect-ratio: 2 / 1; height: auto; }
           .hero-date-pill { display: none; }
           .hero-v2-right { gap: 20px; }
         }
@@ -196,10 +198,10 @@ function Hero() {
 
 function Sobre() {
   const blocks = [
-    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram a história do festival." },
-    { icon: <I.heart />,    title: "Recriar",   body: "Combos inéditos inspirados em memórias do Sweet." },
-    { icon: <I.starFill />, title: "Celebrar",  body: "Uma década de encontros, sabores e histórias." },
-    { icon: <I.plate />,    title: "Provar",    body: "Doce, salgado e bebida em uma experiência especial." },
+    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram os 10 anos do festival." },
+    { icon: <I.heart />,    title: "Recriar",   body: "Novos combos inspirados em memórias do Sweet & Coffee Week." },
+    { icon: <I.starFill />, title: "Celebrar",  body: "Participantes celebrando uma década de encontros e sabores." },
+    { icon: <I.plate />,    title: "Provar",    body: "Cada combo reúne doce, salgado e bebida em uma experiência especial." },
   ]
   return (
     <section id="sobre" className="section section-sobre">
@@ -214,13 +216,14 @@ function Sobre() {
           <div className="sobre__body reveal reveal-right reveal-delay-1">
             <div className="sb-p sb-p--lead">
               Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
-              sabores e memórias em Natal. Para comemorar essa trajetória, nasce a edição{' '}
-              <em>Sweet &amp; Coffee Week Lovers</em>: uma homenagem ao público que acompanhou, provou,
-              compartilhou, votou, marcou os amigos e fez do festival uma tradição afetiva da cidade.
+              sabores e memórias em Natal. Para comemorar essa trajetória, a edição{' '}
+              <em>Sweet &amp; Coffee Week Lovers</em> reúne participantes em uma proposta criada para
+              homenagear o público que acompanhou, provou, compartilhou, votou, marcou os amigos e
+              fez do festival uma tradição afetiva da cidade.
             </div>
             <div className="sb-p">
               Nesta edição, cada participante escolhe um tema que já fez parte da história do
-              Sweet e cria uma nova experiência a partir dele. A proposta não é
+              Sweet &amp; Coffee Week e cria uma nova experiência a partir dele. A proposta não é
               repetir: é recriar com amor, memória e sabor.
             </div>
           </div>
@@ -276,89 +279,82 @@ function ComoFunciona() {
   )
 }
 
-function Participantes() {
-  const [filter, setFilter] = React.useState("Todos")
-  const filters = ["Todos", "Doceria", "Cafeteria", "Confeitaria", "Restaurante"]
-  const shown = filter === "Todos" ? PARTICIPANTS : PARTICIPANTS.filter(p => p.cat === filter)
-
+function Participantes({ navigate }) {
   return (
-    <section id="participantes" className="section section-part">
+    <section id="participantes" className="section section-part participants-section">
       <div className="wrap">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
-          <div className="reveal reveal-up">
-            <h2 className="lh2" style={{ marginTop: 16 }}>
-              Participantes da <span style={{ color: 'var(--lovers-burgundy)' }}>edição.</span>
-            </h2>
-            <p style={{ fontSize: 19, lineHeight: 1.6, color: 'var(--lovers-brown)', opacity: .82, maxWidth: '56ch', margin: '16px 0 0' }}>
-              A lista completa dos participantes será divulgada em breve. Prepare sua rota para
-              provar os combos da edição Lovers entre 4 e 14 de junho.
-            </p>
-          </div>
+        <div className="participants-section__intro reveal reveal-up">
+          <h2 className="lh2" style={{ marginTop: 16 }}>
+            Participantes <span style={{ color: 'var(--lovers-burgundy)' }}>confirmados.</span>
+          </h2>
+          <p className="participants-section__lead">
+            Conheça as marcas que fazem parte da edição Sweet &amp; Coffee Week Lovers.
+          </p>
         </div>
 
-        {hasParticipantsData ? (
-          <>
-            <div className="filters">
-              {filters.map(f => (
-                <button
-                  key={f}
-                  className={`filter-chip${filter === f ? ' active' : ''}`}
-                  onClick={() => setFilter(f)}
+        {PARTICIPANTS.length > 0 ? (
+          <div className="participants-grid">
+            {PARTICIPANTS.map((p) => {
+              const brandColor = p.brandColor || 'var(--lovers-red)'
+              const igHandle = p.instagram ? p.instagram.replace('@', '') : null
+              const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : null
+              const mapsUrl = p.address
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)}`
+                : null
+              return (
+                <div
+                  className={`participant-card reveal reveal-scale${!mapsUrl ? ' participant-card--no-map' : ''}`}
+                  key={p.id}
+                  style={{ '--participant-brand': brandColor }}
                 >
-                  {f}
-                </button>
-              ))}
-              <span style={{ marginLeft: 'auto', alignSelf: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-                {shown.length} de {PARTICIPANTS.length}
-              </span>
-            </div>
+                  <div className="participant-card__logo-area">
+                    {p.logo
+                      ? <img className="participant-card__logo-img" src={p.logo} alt={`Logo ${p.name}`} />
+                      : <div className="participant-card__logo-placeholder">{getInitials(p.name)}</div>
+                    }
+                  </div>
 
-            <div className="part__grid">
-              {shown.map((p, i) => (
-                <div className="part__card" key={i}>
-                  <span className="selo">♥ LOVER</span>
-                  <div className="logo" style={{ background: p.color }}>
-                    {p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-                  </div>
-                  <div>
-                    <h4 className="name">{p.name}</h4>
-                    <div className="meta" style={{ marginTop: 4 }}>{p.cat} · {p.bairro}</div>
-                  </div>
-                  <div className="actions">
-                    <span className="chip" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-burgundy)' }}>
-                      {p.cat}
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45 }}>
-                      Em breve <I.lock />
-                    </span>
+                  <h4 className="participant-card__name">{p.name}</h4>
+
+                  <div className="participant-card__actions">
+                    {igUrl && (
+                      <a
+                        href={igUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="participant-card__icon-btn"
+                        aria-label={`Ver Instagram de ${p.name}`}
+                      >
+                        <I.ig />
+                      </a>
+                    )}
+                    <a
+                      href={`#/lovers/combos/${p.slug}`}
+                      className="participant-card__combo-btn"
+                      onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}
+                    >
+                      Ver combo
+                    </a>
+                    {mapsUrl && (
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="participant-card__icon-btn participant-card__map-btn"
+                        aria-label={`Abrir endereço de ${p.name} no Google Maps`}
+                      >
+                        <I.pin />
+                      </a>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <p style={{ textAlign: 'center', marginTop: 28, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .55 }}>
-              A lista completa dos participantes será publicada antes do início da edição.
-            </p>
-          </>
+              )
+            })}
+          </div>
         ) : (
-          <>
-            <div className="reveal reveal-up reveal-delay-1" style={{ marginBottom: 20 }}>
-              <span style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', opacity: .45, padding: '6px 16px', border: '1px solid rgba(63,26,10,.18)', borderRadius: 999, cursor: 'not-allowed' }}>
-                Categorias em breve
-              </span>
-            </div>
-            <div className="part__grid">
-              {['Participantes em breve', 'Combos em breve', 'Temas em breve', 'Rota em breve'].map((label, i) => (
-                <div className={`part__card reveal reveal-scale reveal-delay-${i + 1}`} key={i} style={{ opacity: .5 }}>
-                  <div className="logo" style={{ background: 'var(--lovers-cream)', border: '2px dashed rgba(63,26,10,.18)' }} />
-                  <div>
-                    <h4 className="name">{label}</h4>
-                    <div className="meta" style={{ marginTop: 4 }}>A confirmar</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
+          <p className="participants-empty reveal reveal-up reveal-delay-1">
+            Os participantes da edição Sweet &amp; Coffee Week Lovers serão divulgados em breve.
+          </p>
         )}
       </div>
     </section>
@@ -717,19 +713,14 @@ function FinalCTA() {
 }
 
 /* ── Page ── */
-export function LoversPage() {
+export function LoversPage({ navigate }) {
   useRevealOnScroll()
   return (
     <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }} />
       <Hero />
       <Sobre />
-      <ComoFunciona />
-      <Participantes />
-      <Combos />
-      <Mapa />
-      <Awards />
-      <FinalCTA />
+      <Participantes navigate={navigate} />
     </div>
   )
 }

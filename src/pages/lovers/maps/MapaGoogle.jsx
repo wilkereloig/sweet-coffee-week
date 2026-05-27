@@ -10,19 +10,24 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
-console.log('[Google Maps Lovers Debug]', {
-  hasKey: Boolean(GOOGLE_MAPS_API_KEY),
-  keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
-  hostname: window.location.hostname,
-  href: window.location.href,
-  participantsTotal: PARTICIPANTS.length,
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
+const PIN_RED = '#D63648'
+const PIN_DARK = '#870E2D'
+const PIN_CREAM = '#FFF1E6'
+
+function buildPinEl(selected) {
+  const el = document.createElement('div')
+  el.style.cssText = 'cursor:pointer;filter:drop-shadow(0 2px 6px rgba(43,24,16,.45));transition:transform .15s'
+  const fill = selected ? PIN_DARK : PIN_RED
+  el.innerHTML = `<svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1C5.924 1 1 5.924 1 12c0 9.5 11 19 11 19S23 21.5 23 12C23 5.924 18.076 1 12 1z" fill="${fill}" stroke="${PIN_CREAM}" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="${PIN_CREAM}"/></svg>`
+  return el
+}
+
+console.log('[Mapa Pins]', {
+  total: PARTICIPANTS.length,
   withAddress: PARTICIPANTS.filter(p => p.address).length,
   withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
-})
-
-console.log('[Google Maps Loader Options]', {
-  hasKey: Boolean(GOOGLE_MAPS_API_KEY),
-  provider: import.meta.env.VITE_LOVERS_MAP_PROVIDER || null,
+  withoutCoords: PARTICIPANTS.filter(p => p.address && (!p.latitude || !p.longitude)).map(p => p.name),
 })
 
 if (GOOGLE_MAPS_API_KEY) {
@@ -85,28 +90,41 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
     ;(async () => {
       try {
         const { Map } = await importLibrary('maps')
-        const { Marker } = await importLibrary('marker')
+        const { AdvancedMarkerElement } = await importLibrary('marker')
         if (cancelled || !mapRef.current || instanceRef.current) return
 
         const map = new Map(mapRef.current, {
           center: NATAL_CENTER,
           zoom: NATAL_ZOOM,
+          mapId: GOOGLE_MAPS_MAP_ID,
           scrollwheel: false,
           gestureHandling: 'cooperative',
         })
 
-        participants.forEach(p => {
-          if (!p.latitude || !p.longitude) return
-          const marker = new Marker({
+        const coords = participants.filter(p => p.latitude && p.longitude)
+
+        coords.forEach(p => {
+          const el = buildPinEl(false)
+          const marker = new AdvancedMarkerElement({
             map,
             position: { lat: p.latitude, lng: p.longitude },
             title: p.name,
+            content: el,
           })
-          marker.addListener('click', () => onSelect(p))
-          markersRef.current[p.id] = marker
+          marker.addListener('gmp-click', () => onSelect(p))
+          markersRef.current[p.id] = { marker, el }
         })
 
-        instanceRef.current = { map, Marker }
+        if (coords.length > 1) {
+          const bounds = new google.maps.LatLngBounds()
+          coords.forEach(p => bounds.extend({ lat: p.latitude, lng: p.longitude }))
+          map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 })
+        } else if (coords.length === 1) {
+          map.setCenter({ lat: coords[0].latitude, lng: coords[0].longitude })
+          map.setZoom(15)
+        }
+
+        instanceRef.current = { map, AdvancedMarkerElement }
       } catch (e) {
         console.error('[Google Maps Load Error]', {
           name: e?.name,
@@ -120,13 +138,19 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
     return () => {
       cancelled = true
-      Object.values(markersRef.current).forEach(marker => { marker.map = null })
+      Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
       instanceRef.current = null
       markersRef.current = {}
     }
   }, [])
 
   useEffect(() => {
+    Object.entries(markersRef.current).forEach(([id, { el }]) => {
+      const isSelected = selected?.id === id
+      const path = el.querySelector('path')
+      if (path) path.setAttribute('fill', isSelected ? PIN_DARK : PIN_RED)
+      el.style.transform = isSelected ? 'scale(1.35)' : 'scale(1)'
+    })
     if (selected?.latitude && selected?.longitude && instanceRef.current) {
       instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
     }
@@ -134,13 +158,16 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
   useEffect(() => {
     if (!instanceRef.current) return
-    const { map, Marker } = instanceRef.current
+    const { map, AdvancedMarkerElement } = instanceRef.current
     if (userMarkerRef.current) { userMarkerRef.current.map = null; userMarkerRef.current = null }
     if (userLocation) {
-      userMarkerRef.current = new Marker({
+      const dot = document.createElement('div')
+      dot.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#4285F4;border:2.5px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)'
+      userMarkerRef.current = new AdvancedMarkerElement({
         map,
         position: { lat: userLocation.lat, lng: userLocation.lng },
         title: 'Minha localização',
+        content: dot,
       })
       map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
       map.setZoom(14)

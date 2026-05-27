@@ -11,3 +11,4 @@ pnpm-debug.log*
 vite.config.js.timestamp-*
 screenshots/
 .claude/
+exports/
