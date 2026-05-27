@@ -17,8 +17,24 @@ const combosSource =
   COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
+if (GOOGLE_MAPS_API_KEY) {
+  setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
+}
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
+
+function getMapsSearchUrl(p) {
+  if (!p?.address) return null
+  const query = encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)
+  return `https://www.google.com/maps/search/?api=1&query=${query}`
+}
+
+function getMapsDirectionsUrl(p) {
+  if (p?.latitude && p?.longitude) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`
+  }
+  return getMapsSearchUrl(p)
+}
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371
@@ -54,7 +70,7 @@ function userPin() {
   "></div>`
 }
 
-function GoogleMap({ participants, selected, onSelect, userLocation }) {
+function GoogleMap({ participants, selected, onSelect, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -62,45 +78,53 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
 
   useEffect(() => {
     if (!mapRef.current) return
+    if (!GOOGLE_MAPS_API_KEY) {
+      onError?.('missing-key')
+      return
+    }
     let cancelled = false
 
-    setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
+    const previousAuthFailure = window.gm_authFailure
+    window.gm_authFailure = () => {
+      console.error('[Google Maps Auth Failure]')
+      onError?.('auth-failure')
+      if (typeof previousAuthFailure === 'function') previousAuthFailure()
+    }
 
     ;(async () => {
       try {
         const { Map } = await importLibrary('maps')
-        const { AdvancedMarkerElement } = await importLibrary('marker')
+        const { Marker } = await importLibrary('marker')
         if (cancelled || !mapRef.current || instanceRef.current) return
 
         const map = new Map(mapRef.current, {
           center: NATAL_CENTER,
           zoom: NATAL_ZOOM,
-          mapId: 'DEMO_MAP_ID',
           scrollwheel: false,
           gestureHandling: 'cooperative',
         })
 
         participants.forEach(p => {
           if (!p.latitude || !p.longitude) return
-          const el = document.createElement('div')
-          el.innerHTML = heartPin(false)
-          const marker = new AdvancedMarkerElement({
+          const marker = new Marker({
             map,
             position: { lat: p.latitude, lng: p.longitude },
-            content: el,
+            title: p.name,
           })
           marker.addListener('click', () => onSelect(p))
-          markersRef.current[p.id] = { marker, el }
+          markersRef.current[p.id] = { marker }
         })
 
-        instanceRef.current = { map, AdvancedMarkerElement }
+        instanceRef.current = { map, Marker }
       } catch (e) {
-        console.error('Google Maps error:', e)
+        console.error('[Google Maps Load Error]', e)
+        onError?.('load-error')
       }
     })()
 
     return () => {
       cancelled = true
+      window.gm_authFailure = previousAuthFailure
       Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
       instanceRef.current = null
       markersRef.current = {}
@@ -108,8 +132,8 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
   }, [])
 
   useEffect(() => {
-    Object.entries(markersRef.current).forEach(([id, { el }]) => {
-      el.innerHTML = heartPin(selected?.id === id)
+    Object.entries(markersRef.current).forEach(([id, item]) => {
+      if (item.el) item.el.innerHTML = heartPin(selected?.id === id)
     })
     if (selected?.latitude && selected?.longitude && instanceRef.current) {
       instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
@@ -118,7 +142,7 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
 
   useEffect(() => {
     if (!instanceRef.current) return
-    const { map, AdvancedMarkerElement } = instanceRef.current
+    const { map, Marker } = instanceRef.current
 
     if (userMarkerRef.current) {
       userMarkerRef.current.map = null
@@ -126,12 +150,10 @@ function GoogleMap({ participants, selected, onSelect, userLocation }) {
     }
 
     if (userLocation) {
-      const el = document.createElement('div')
-      el.innerHTML = userPin()
-      userMarkerRef.current = new AdvancedMarkerElement({
+      userMarkerRef.current = new Marker({
         map,
         position: { lat: userLocation.lat, lng: userLocation.lng },
-        content: el,
+        title: 'Minha localização',
       })
       map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
       map.setZoom(14)
@@ -150,6 +172,7 @@ export function MapaPage({ navigate }) {
   const [userLocation, setUserLocation] = useState(null)
   const [locLoading, setLocLoading] = useState(false)
   const [locError, setLocError] = useState(null)
+  const [mapError, setMapError] = useState(null)
 
   function handleLocate() {
     if (userLocation) {
@@ -204,6 +227,7 @@ export function MapaPage({ navigate }) {
     })
 
   const hasData = participants.length > 0
+  const hasMissingCoords = participants.some(p => p.address && (!p.latitude || !p.longitude))
 
   function handleListClick(p) {
     setSelected(prev => prev?.id === p.id ? null : p)
@@ -244,16 +268,39 @@ export function MapaPage({ navigate }) {
               />
             </div>
           ) : (
+            <>
+            {hasMissingCoords && (
+              <div className="mono" style={{
+                fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
+                background: 'rgba(135,14,45,.06)',
+                border: '1px solid rgba(135,14,45,.15)',
+                borderRadius: 10, padding: '10px 14px',
+                marginBottom: 16, lineHeight: 1.5,
+              }}>
+                Alguns participantes ainda estão sem pin no mapa, mas você já pode abrir o endereço no Google Maps.
+              </div>
+            )}
             <div className="mapa-layout">
 
               {/* Mapa interativo */}
               <div className="mapa-container">
-                <GoogleMap
-                  participants={participants}
-                  selected={selected}
-                  onSelect={setSelected}
-                  userLocation={userLocation}
-                />
+                {mapError ? (
+                  <div className="mapa-fallback">
+                    <div className="mapa-fallback__icon"><I.pin /></div>
+                    <h3>Mapa interativo em configuração</h3>
+                    <p>
+                      Enquanto o mapa é configurado, você pode usar a lista ao lado para abrir os endereços diretamente no Google Maps.
+                    </p>
+                  </div>
+                ) : (
+                  <GoogleMap
+                    participants={participants}
+                    selected={selected}
+                    onSelect={setSelected}
+                    userLocation={userLocation}
+                    onError={setMapError}
+                  />
+                )}
 
                 {/* Card do participante selecionado */}
                 {selected && (
@@ -308,15 +355,15 @@ export function MapaPage({ navigate }) {
                           Ver combo <I.arrow />
                         </button>
                       )}
-                      {selected.latitude && selected.longitude && (
+                      {getMapsDirectionsUrl(selected) && (
                         <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${selected.latitude},${selected.longitude}`}
+                          href={getMapsDirectionsUrl(selected)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-sm"
                           style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 13 }}
                         >
-                          Traçar rota <I.arrow />
+                          Abrir no mapa <I.arrow />
                         </a>
                       )}
                     </div>
@@ -450,16 +497,16 @@ export function MapaPage({ navigate }) {
                             Ver combo
                           </button>
                         )}
-                        {p.latitude && p.longitude && (
+                        {getMapsDirectionsUrl(p) && (
                           <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                            href={getMapsDirectionsUrl(p)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="btn btn-sm"
                             style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            Traçar rota
+                            Mapa
                           </a>
                         )}
                       </div>
@@ -468,6 +515,7 @@ export function MapaPage({ navigate }) {
                 </div>
               </div>
             </div>
+            </>
           )}
 
         </div>
@@ -495,6 +543,46 @@ export function MapaPage({ navigate }) {
           .mapa-list::-webkit-scrollbar-thumb {
             background: rgba(135,14,45,.3);
             border-radius: 4px;
+          }
+          .mapa-fallback {
+            height: 100%;
+            min-height: 360px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            padding: 32px;
+            text-align: center;
+            background:
+              radial-gradient(circle at 20% 20%, rgba(242,5,103,.16), transparent 32%),
+              radial-gradient(circle at 80% 30%, rgba(251,184,0,.18), transparent 34%),
+              var(--lovers-cream);
+            color: var(--lovers-brown);
+          }
+          .mapa-fallback__icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+          }
+          .mapa-fallback h3 {
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(26px, 3vw, 40px);
+            line-height: 1;
+            color: var(--lovers-ink);
+          }
+          .mapa-fallback p {
+            margin: 0;
+            max-width: 42ch;
+            font-size: 15px;
+            line-height: 1.5;
+            opacity: .8;
           }
           .mapa-chip {
             font-family: var(--font-lovers-body);
