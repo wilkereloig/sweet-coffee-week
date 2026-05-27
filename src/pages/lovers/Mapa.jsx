@@ -83,42 +83,54 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
     setOptions({ apiKey: GOOGLE_MAPS_API_KEY, version: 'weekly' })
 
+    console.log('[Google Maps Debug]', {
+      hasKey: Boolean(GOOGLE_MAPS_API_KEY),
+      keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
+      hostname: window.location.hostname,
+      href: window.location.href,
+    })
+
+    const previousAuthFailure = window.gm_authFailure
+    window.gm_authFailure = () => {
+      console.error('[Google Maps Auth Failure]')
+      onError?.('auth-failure')
+      if (typeof previousAuthFailure === 'function') previousAuthFailure()
+    }
+
     ;(async () => {
       try {
         const { Map } = await importLibrary('maps')
-        const { AdvancedMarkerElement } = await importLibrary('marker')
+        const { Marker } = await importLibrary('marker')
         if (cancelled || !mapRef.current || instanceRef.current) return
 
         const map = new Map(mapRef.current, {
           center: NATAL_CENTER,
           zoom: NATAL_ZOOM,
-          mapId: 'DEMO_MAP_ID',
           scrollwheel: false,
           gestureHandling: 'cooperative',
         })
 
         participants.forEach(p => {
           if (!p.latitude || !p.longitude) return
-          const el = document.createElement('div')
-          el.innerHTML = heartPin(false)
-          const marker = new AdvancedMarkerElement({
+          const marker = new Marker({
             map,
             position: { lat: p.latitude, lng: p.longitude },
-            content: el,
+            title: p.name,
           })
           marker.addListener('click', () => onSelect(p))
-          markersRef.current[p.id] = { marker, el }
+          markersRef.current[p.id] = { marker }
         })
 
-        instanceRef.current = { map, AdvancedMarkerElement }
+        instanceRef.current = { map, Marker }
       } catch (e) {
-        console.error('Google Maps error:', e)
+        console.error('[Google Maps Load Error]', e)
         onError?.('load-error')
       }
     })()
 
     return () => {
       cancelled = true
+      window.gm_authFailure = previousAuthFailure
       Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
       instanceRef.current = null
       markersRef.current = {}
@@ -126,8 +138,8 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
   }, [])
 
   useEffect(() => {
-    Object.entries(markersRef.current).forEach(([id, { el }]) => {
-      el.innerHTML = heartPin(selected?.id === id)
+    Object.entries(markersRef.current).forEach(([id, item]) => {
+      if (item.el) item.el.innerHTML = heartPin(selected?.id === id)
     })
     if (selected?.latitude && selected?.longitude && instanceRef.current) {
       instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
@@ -136,7 +148,7 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
   useEffect(() => {
     if (!instanceRef.current) return
-    const { map, AdvancedMarkerElement } = instanceRef.current
+    const { map, Marker } = instanceRef.current
 
     if (userMarkerRef.current) {
       userMarkerRef.current.map = null
@@ -144,12 +156,10 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
     }
 
     if (userLocation) {
-      const el = document.createElement('div')
-      el.innerHTML = userPin()
-      userMarkerRef.current = new AdvancedMarkerElement({
+      userMarkerRef.current = new Marker({
         map,
         position: { lat: userLocation.lat, lng: userLocation.lng },
-        content: el,
+        title: 'Minha localização',
       })
       map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
       map.setZoom(14)
