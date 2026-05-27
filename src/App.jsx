@@ -13,6 +13,7 @@ import { ContatoPage }     from './pages/institutional/Contato'
 
 import { ComingSoonPage } from './pages/ComingSoon'
 import { LoversPage }     from './pages/lovers/Hub'
+import { MapaPage }       from './pages/lovers/Mapa'
 
 export default function App() {
   const [path, navigate] = useRoute()
@@ -41,7 +42,8 @@ export default function App() {
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
     case 'combos':       page = <LoversPage navigate={navigate} />; break
     case 'combo-detail': page = <LoversPage navigate={navigate} />; break
-    case 'mapa':         page = <LoversPage navigate={navigate} />; break
+    // Temporary release: Lovers map is accessible only by direct URL. Menu remains locked.
+    case 'mapa':         page = <MapaPage navigate={navigate} />; break
     case 'awards':       page = <LoversPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
