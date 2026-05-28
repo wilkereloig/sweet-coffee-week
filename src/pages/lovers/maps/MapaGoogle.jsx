@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
@@ -147,6 +147,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     return () => { window.gm_authFailure = previous }
   }, [])
 
+  const [mapReady, setMapReady] = useState(false)
+
   useEffect(() => {
     if (!mapRef.current) return
     if (!GOOGLE_MAPS_API_KEY) { onError?.('missing-key'); return }
@@ -165,41 +167,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         })
 
         const infoWindow = new google.maps.InfoWindow()
-
-        locations.forEach(loc => {
-          const marker = new google.maps.Marker({
-            map,
-            position: { lat: loc.latitude, lng: loc.longitude },
-            title: `${loc.participantName} — ${loc.locationName}`,
-            icon: pinIcon(false),
-          })
-
-          marker.addListener('click', () => {
-            onSelectLocation?.(loc)
-            infoWindow.setContent(`
-              <div style="font-family:sans-serif;max-width:220px;line-height:1.4;">
-                <strong style="font-size:14px;">${loc.participantName}</strong><br/>
-                <span style="font-size:13px;color:#555;">${loc.locationName}</span><br/>
-                <small style="color:#888;">${[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</small><br/>
-                ${loc.address ? `<small style="color:#888;">${loc.address}</small>` : ''}
-              </div>
-            `)
-            infoWindow.open({ anchor: marker, map })
-          })
-
-          markersRef.current[loc.id] = marker
-        })
-
-        if (locations.length > 1) {
-          const bounds = new google.maps.LatLngBounds()
-          locations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
-          map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
-        } else if (locations.length === 1) {
-          map.setCenter({ lat: locations[0].latitude, lng: locations[0].longitude })
-          map.setZoom(15)
-        }
-
         instanceRef.current = { map, infoWindow }
+        setMapReady(true)
       } catch (e) {
         console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
         onError?.('load-error')
@@ -209,10 +178,64 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     return () => {
       cancelled = true
       Object.values(markersRef.current).forEach(m => m.setMap(null))
-      instanceRef.current = null
       markersRef.current = {}
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null)
+        userMarkerRef.current = null
+      }
+      instanceRef.current = null
     }
   }, [])
+
+  // Rebuild markers whenever visible locations change
+  useEffect(() => {
+    if (!instanceRef.current) return
+
+    const { map, infoWindow } = instanceRef.current
+
+    Object.values(markersRef.current).forEach(marker => marker.setMap(null))
+    markersRef.current = {}
+
+    const validLocations = locations.filter(loc =>
+      Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+    )
+
+    validLocations.forEach(loc => {
+      const marker = new google.maps.Marker({
+        map,
+        position: { lat: loc.latitude, lng: loc.longitude },
+        title: `${loc.participantName} — ${loc.locationName}`,
+        icon: pinIcon(false),
+      })
+
+      marker.addListener('click', () => {
+        onSelectLocation?.(loc)
+        infoWindow.setContent(`
+          <div style="font-family:sans-serif;max-width:220px;line-height:1.4;">
+            <strong style="font-size:14px;">${loc.participantName}</strong><br/>
+            <span style="font-size:13px;color:#555;">${loc.locationName}</span><br/>
+            <small style="color:#888;">${[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</small><br/>
+            ${loc.address ? `<small style="color:#888;">${loc.address}</small>` : ''}
+          </div>
+        `)
+        infoWindow.open({ anchor: marker, map })
+      })
+
+      markersRef.current[loc.id] = marker
+    })
+
+    if (validLocations.length > 1) {
+      const bounds = new google.maps.LatLngBounds()
+      validLocations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
+      map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
+    } else if (validLocations.length === 1) {
+      map.panTo({ lat: validLocations[0].latitude, lng: validLocations[0].longitude })
+      map.setZoom(15)
+    } else {
+      map.panTo(NATAL_CENTER)
+      map.setZoom(NATAL_ZOOM)
+    }
+  }, [locations, onSelectLocation, mapReady])
 
   // Highlight selected marker + pan
   useEffect(() => {
@@ -226,7 +249,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         instanceRef.current.map.setZoom(15)
       }
     }
-  }, [selectedLocationId])
+  }, [selectedLocationId, locations])
 
   // User location marker
   useEffect(() => {
@@ -489,12 +512,12 @@ export function MapaGooglePage({ navigate }) {
     setSelectedLocationId(location.id)
   }
 
-  function handleSelectLocation(location) {
+  const handleSelectLocation = useCallback((location) => {
     setSelectedParticipantId(location.participantId)
     setSelectedLocationId(location.id)
     const el = document.getElementById(`map-card-${location.participantId}`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }
+  }, [])
 
   function isInRoute(location) { return routeLocationIds.includes(location.id) }
 
