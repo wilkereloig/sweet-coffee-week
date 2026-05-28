@@ -228,7 +228,7 @@ export function MapaGooglePage({ navigate }) {
       return 0
     })
 
-  const hasData = participants.length > 0
+  const hasData = false
   const hasMissingCoords = participants.some(p => p.address && (!p.latitude || !p.longitude))
 
   function handleListClick(p) {
