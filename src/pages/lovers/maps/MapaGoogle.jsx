@@ -207,6 +207,35 @@ export function MapaGooglePage({ navigate }) {
     combo: COMBOS.find(c => c.participantId === p.id) || null,
   }))
 
+  // Flat list: one entry per unit (location). Used for map pins.
+  // When participant has multiple units, each unit becomes its own pin.
+  // When participant has only 1 unit (or no locations[]), there is a single pin per participant.
+  // eslint-disable-next-line no-unused-vars
+  const mapLocations = participants.flatMap(p => {
+    const units = (p.locations && p.locations.length > 0) ? p.locations : [{
+      id: p.id, name: '', address: p.address, neighborhood: p.neighborhood, city: p.city,
+      latitude: p.latitude, longitude: p.longitude, mapsUrl: p.mapsUrl,
+    }]
+    return units.map(loc => ({
+      id: loc.id || `${p.id}-${loc.name || 'principal'}`,
+      participantId: p.id,
+      participantName: p.name,
+      participantSlug: p.slug,
+      locationName: loc.name || '',
+      name: (units.length > 1 && loc.name) ? `${p.name} — ${loc.name}` : p.name,
+      address: loc.address || '',
+      neighborhood: loc.neighborhood || p.neighborhood || '',
+      city: loc.city || p.city || '',
+      latitude: loc.latitude ?? null,
+      longitude: loc.longitude ?? null,
+      mapsUrl: loc.mapsUrl || '',
+      logo: p.logo,
+      brandColor: p.brandColor,
+      instagram: p.instagram,
+      combo: p.combo,
+    }))
+  })
+
   const neighborhoods = [...new Set(participants.map(p => p.neighborhood).filter(Boolean))]
     .sort()
     .map(n => ({ name: n, count: participants.filter(p => p.neighborhood === n).length }))

@@ -4,16 +4,19 @@
 //   name: "",
 //   slug: "",
 //   logo: "",
-//   brandColor: "",   // provisório: trocar por cor real da marca quando disponível
+//   brandColor: "",
 //   instagram: "",
 //   whatsapp: "",
-//   address: "",
+//   address: "",        // unidade principal (1ª de locations)
 //   neighborhood: "",
 //   city: "",
 //   latitude: null,
 //   longitude: null,
-//   mapsUrl: "",      // link direto Google Maps (CID); sobrepõe geração por endereço
-//   openingHours: ""
+//   mapsUrl: "",
+//   openingHours: "",
+//   locations: [        // todas as unidades (1+); sempre presente
+//     { id, name, address, neighborhood, city, latitude, longitude, mapsUrl }
+//   ]
 // }
 
 export const PARTICIPANTS = [
@@ -31,7 +34,10 @@ export const PARTICIPANTS = [
     latitude: -5.8717906,
     longitude: -35.1812612,
     mapsUrl: "https://maps.google.com/?cid=10659498387037037785",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "adocee-doceria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8880", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8717906, longitude: -35.1812612, mapsUrl: "https://maps.google.com/?cid=10659498387037037785" },
+    ]
   },
   {
     id: "bolomania",
@@ -47,7 +53,10 @@ export const PARTICIPANTS = [
     latitude: -5.878700,
     longitude: -35.177500,
     mapsUrl: "https://maps.google.com/?cid=11450492681847294540",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "bolomania-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Búzios, 9031", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.878700, longitude: -35.177500, mapsUrl: "https://maps.google.com/?cid=11450492681847294540" },
+    ]
   },
   {
     id: "caffe-basilicos",
@@ -63,7 +72,10 @@ export const PARTICIPANTS = [
     latitude: -5.7875951,
     longitude: -35.1985817,
     mapsUrl: "https://maps.google.com/?cid=9124941309187684674",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "caffe-basilicos-petropolis", name: "Petrópolis", address: "Av. Rodrigues Alves, 433", neighborhood: "Petrópolis", city: "Natal/RN", latitude: -5.7875951, longitude: -35.1985817, mapsUrl: "https://maps.google.com/?cid=9124941309187684674" },
+    ]
   },
   {
     id: "canutos",
@@ -73,7 +85,7 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-brown)",
     instagram: "@canutos.coffee",
     whatsapp: "",
-    address: "Av. Engenheiro Roberto Freire, 340",
+    address: "Shopping Cidade Jardim - Av. Engenheiro Roberto Freire, 340, Lj-14a",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
     latitude: -5.856944,
@@ -81,8 +93,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=17931732396072426136",
     openingHours: "",
     locations: [
-      { id: "canutos-cidade-jardim",    name: "Cidade Jardim",    address: "Av. Engenheiro Roberto Freire, 340, Lj-14a (Shopping Cidade Jardim)", neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856944, longitude: -35.203611 },
-      { id: "canutos-nova-parnamirim",  name: "Nova Parnamirim",  address: "R. Anibal Brandão",                                                    neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882800, longitude: -35.210500 },
+      { id: "canutos-cidade-jardim",   name: "Cidade Jardim",   address: "Shopping Cidade Jardim - Av. Engenheiro Roberto Freire, 340, Lj-14a", neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856944, longitude: -35.203611, mapsUrl: "https://maps.google.com/?cid=17931732396072426136" },
+      { id: "canutos-nova-parnamirim", name: "Nova Parnamirim", address: "R. Aníbal Brandão",                                                    neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882800, longitude: -35.210500, mapsUrl: "" },
     ]
   },
   {
@@ -101,11 +113,11 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=16122317279029996390",
     openingHours: "",
     locations: [
-      { id: "caroli-douces-ponta-negra",    name: "Ponta Negra",     address: "Av. Praia de Ponta Negra, 9060",                       neighborhood: "Ponta Negra",     city: "Natal/RN",      latitude: -5.875600, longitude: -35.180200 },
-      { id: "caroli-douces-nova-parnamirim", name: "Nova Parnamirim", address: "Av. Ayrton Senna, 2441, Lojas 30/31 (Rio Grande Mall)", neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.884400, longitude: -35.207800 },
-      { id: "caroli-douces-lagoa-seca",     name: "Lagoa Seca",      address: "R. Pres. Quaresma, 1232",                               neighborhood: "Lagoa Seca",      city: "Natal/RN",      latitude: -5.805500, longitude: -35.206100 },
-      { id: "caroli-douces-zona-norte",     name: "Zona Norte",      address: "Av. Sr. do Bonfim, 4037",                               neighborhood: "Potengi",         city: "Natal/RN",      latitude: -5.748300, longitude: -35.253600 },
-      { id: "caroli-douces-lagoa-nova",     name: "Lagoa Nova",      address: "R. Almeida Barreto, 442",                               neighborhood: "Lagoa Nova",      city: "Natal/RN",      latitude: -5.811800, longitude: -35.205200 },
+      { id: "caroli-douces-ponta-negra",     name: "Ponta Negra",     address: "Av. Praia de Ponta Negra, 9060",                              neighborhood: "Ponta Negra",     city: "Natal/RN",      latitude: -5.875600, longitude: -35.180200, mapsUrl: "https://maps.google.com/?cid=16122317279029996390" },
+      { id: "caroli-douces-nova-parnamirim", name: "Nova Parnamirim", address: "Rio Grande Mall - Av. Ayrton Senna, 2441, Lojas 30/31",       neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.884400, longitude: -35.207800, mapsUrl: "" },
+      { id: "caroli-douces-lagoa-seca",      name: "Lagoa Seca",      address: "R. Pres. Quaresma, 1232",                                     neighborhood: "Lagoa Seca",      city: "Natal/RN",      latitude: -5.805500, longitude: -35.206100, mapsUrl: "" },
+      { id: "caroli-douces-zona-norte",      name: "Zona Norte",      address: "Av. Sr. do Bonfim, 4037",                                     neighborhood: "Potengi",         city: "Natal/RN",      latitude: -5.748300, longitude: -35.253600, mapsUrl: "" },
+      { id: "caroli-douces-lagoa-nova",      name: "Lagoa Nova",      address: "R. Almeida Barreto, 442",                                     neighborhood: "Lagoa Nova",      city: "Natal/RN",      latitude: -5.811800, longitude: -35.205200, mapsUrl: "" },
     ]
   },
   {
@@ -122,7 +134,10 @@ export const PARTICIPANTS = [
     latitude: -5.8149631,
     longitude: -35.1996656,
     mapsUrl: "https://maps.google.com/?cid=12991928301385588552",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "casa-1190-lagoa-nova", name: "Lagoa Nova", address: "Av. Xavier da Silveira, 1190", neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.8149631, longitude: -35.1996656, mapsUrl: "https://maps.google.com/?cid=12991928301385588552" },
+    ]
   },
   {
     id: "casa-de-taipa-tapiocaria",
@@ -138,7 +153,10 @@ export const PARTICIPANTS = [
     latitude: -5.8737794,
     longitude: -35.1808228,
     mapsUrl: "https://maps.google.com/?cid=7706377528852827574",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "casa-de-taipa-tapiocaria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8868", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8737794, longitude: -35.1808228, mapsUrl: "https://maps.google.com/?cid=7706377528852827574" },
+    ]
   },
   {
     id: "delicato-bolos",
@@ -149,12 +167,15 @@ export const PARTICIPANTS = [
     instagram: "@delicato_bolos",
     whatsapp: "",
     address: "Av. Maranguape, 741",
-    neighborhood: "Panatis III/Potengi",
+    neighborhood: "Potengi",
     city: "Natal/RN",
     latitude: -5.7585492,
     longitude: -35.2598518,
     mapsUrl: "https://maps.google.com/?cid=7441970895626009538",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "delicato-bolos-potengi", name: "Potengi", address: "Av. Maranguape, 741", neighborhood: "Potengi", city: "Natal/RN", latitude: -5.7585492, longitude: -35.2598518, mapsUrl: "https://maps.google.com/?cid=7441970895626009538" },
+    ]
   },
   {
     id: "douce-di-maria",
@@ -170,7 +191,10 @@ export const PARTICIPANTS = [
     latitude: -5.8389204,
     longitude: -35.2153114,
     mapsUrl: "https://maps.google.com/?cid=4959753408182331760",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "douce-di-maria-candelaria", name: "Candelária", address: "Rua Ataulfo Alves, 3465", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.8389204, longitude: -35.2153114, mapsUrl: "https://maps.google.com/?cid=4959753408182331760" },
+    ]
   },
   {
     id: "jolie-cafe-patisserie",
@@ -180,7 +204,7 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@joliecafepatisserie",
     whatsapp: "",
-    address: "Av. Ayrton Senna, 1904 - Shopping Cidade Verde",
+    address: "Shopping Cidade Verde - Av. Ayrton Senna, 1904",
     neighborhood: "Nova Parnamirim",
     city: "Parnamirim/RN",
     latitude: -5.882110,
@@ -188,10 +212,10 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
     openingHours: "",
     locations: [
-      { id: "jolie-cafe-cidade-verde", name: "Cidade Verde",  address: "Av. Ayrton Senna, 1904 (Shopping Cidade Verde)", neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882110, longitude: -35.210920 },
-      { id: "jolie-cafe-capim-macio",  name: "Capim Macio",   address: "Av. Miguel Alcídes de Araújo, 1908",             neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856100, longitude: -35.201400 },
-      { id: "jolie-cafe-petropolis",   name: "Petrópolis",    address: "Av. Afonso Pena, 506",                           neighborhood: "Tirol",           city: "Natal/RN",      latitude: -5.790500, longitude: -35.197500 },
-      { id: "jolie-cafe-lagoa-nova",   name: "Lagoa Nova",    address: "R. São José, 2184",                              neighborhood: "Lagoa Nova",      city: "Natal/RN",      latitude: -5.814200, longitude: -35.209700 },
+      { id: "jolie-cafe-cidade-verde", name: "Cidade Verde", address: "Shopping Cidade Verde - Av. Ayrton Senna, 1904", neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882110, longitude: -35.210920, mapsUrl: "https://maps.google.com/?cid=6155464360832551674" },
+      { id: "jolie-cafe-capim-macio",  name: "Capim Macio",  address: "Av. Miguel Alcídes de Araújo, 1908",             neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856100, longitude: -35.201400, mapsUrl: "" },
+      { id: "jolie-cafe-petropolis",   name: "Petrópolis",   address: "Av. Afonso Pena, 506",                           neighborhood: "Tirol",           city: "Natal/RN",      latitude: -5.790500, longitude: -35.197500, mapsUrl: "" },
+      { id: "jolie-cafe-lagoa-nova",   name: "Lagoa Nova",   address: "Rua São José, 2184",                             neighborhood: "Lagoa Nova",      city: "Natal/RN",      latitude: -5.814200, longitude: -35.209700, mapsUrl: "" },
     ]
   },
   {
@@ -208,7 +232,10 @@ export const PARTICIPANTS = [
     latitude: -5.8570178,
     longitude: -35.2025025,
     mapsUrl: "https://maps.google.com/?cid=1388883781383360295",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "just-food-coffee-capim-macio", name: "Capim Macio", address: "Rua Dr. Orlando de Azevedo, 1981", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8570178, longitude: -35.2025025, mapsUrl: "https://maps.google.com/?cid=1388883781383360295" },
+    ]
   },
   {
     id: "mangai",
@@ -218,13 +245,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-cyan)",
     instagram: "@mangairestaurantes",
     whatsapp: "",
-    address: "R. Des. João Vicente da Costa, 8861",
+    address: "Rua Des. João Vicente da Costa, 8861",
     neighborhood: "Ponta Negra",
     city: "Natal/RN",
     latitude: -5.874167,
     longitude: -35.182500,
     mapsUrl: "https://maps.google.com/?cid=1296701487931758722",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "mangai-ponta-negra", name: "Ponta Negra", address: "Rua Des. João Vicente da Costa, 8861", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.874167, longitude: -35.182500, mapsUrl: "https://maps.google.com/?cid=1296701487931758722" },
+    ]
   },
   {
     id: "mr-cupcake-confeitaria",
@@ -234,7 +264,7 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-purple)",
     instagram: "@mrcupcakeconfeitaria",
     whatsapp: "",
-    address: "R. Frei Henrique de Coimbra, 3482",
+    address: "Rua Frei Henrique de Coimbra, 3482",
     neighborhood: "Candelária",
     city: "Natal/RN",
     latitude: -5.839167,
@@ -242,8 +272,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=2208320617330103981",
     openingHours: "",
     locations: [
-      { id: "mr-cupcake-candelaria",      name: "Candelária",       address: "R. Frei Henrique de Coimbra, 3482", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.839167, longitude: -35.214722 },
-      { id: "mr-cupcake-cidade-satelite", name: "Cidade Satélite",  address: "R. Oiti, 20, loja 03",              neighborhood: "Pitimbu",    city: "Natal/RN", latitude: -5.845800, longitude: -35.228300 },
+      { id: "mr-cupcake-candelaria",      name: "Candelária",      address: "Rua Frei Henrique de Coimbra, 3482", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.839167, longitude: -35.214722, mapsUrl: "https://maps.google.com/?cid=2208320617330103981" },
+      { id: "mr-cupcake-cidade-satelite", name: "Cidade Satélite", address: "Rua Oiti, 20, Loja 03",              neighborhood: "Pitimbu",    city: "Natal/RN", latitude: -5.845800, longitude: -35.228300, mapsUrl: "" },
     ]
   },
   {
@@ -260,7 +290,10 @@ export const PARTICIPANTS = [
     latitude: -5.7963797,
     longitude: -35.2104277,
     mapsUrl: "https://maps.google.com/?cid=9380843386229300776",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "o-maestro-cafe-barro-vermelho", name: "Barro Vermelho", address: "Rua Pinheiro Borges, 648", neighborhood: "Barro Vermelho", city: "Natal/RN", latitude: -5.7963797, longitude: -35.2104277, mapsUrl: "https://maps.google.com/?cid=9380843386229300776" },
+    ]
   },
   {
     id: "oli-gastro",
@@ -270,13 +303,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-yellow)",
     instagram: "@oligastro.olimpo",
     whatsapp: "",
-    address: "Av. Rodrigues Alves, 950",
+    address: "Sede do América - Av. Rodrigues Alves, 950",
     neighborhood: "Tirol",
     city: "Natal/RN",
     latitude: -5.7887356,
     longitude: -35.1990022,
     mapsUrl: "https://maps.google.com/?cid=11078498997587378404",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "oli-gastro-tirol", name: "Tirol", address: "Sede do América - Av. Rodrigues Alves, 950", neighborhood: "Tirol", city: "Natal/RN", latitude: -5.7887356, longitude: -35.1990022, mapsUrl: "https://maps.google.com/?cid=11078498997587378404" },
+    ]
   },
   {
     id: "padoca-do-bosque",
@@ -286,13 +322,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-brown)",
     instagram: "@padocadobosque",
     whatsapp: "",
-    address: "Av. Almirante Alexandrino de Alencar, 1398",
+    address: "Av. Alm. Alexandrino de Alencar, 1398",
     neighborhood: "Tirol",
     city: "Natal/RN",
     latitude: -5.8096461,
     longitude: -35.1977217,
     mapsUrl: "https://maps.google.com/?cid=8730356709231337200",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "padoca-do-bosque-tirol", name: "Tirol", address: "Av. Alm. Alexandrino de Alencar, 1398", neighborhood: "Tirol", city: "Natal/RN", latitude: -5.8096461, longitude: -35.1977217, mapsUrl: "https://maps.google.com/?cid=8730356709231337200" },
+    ]
   },
   {
     id: "paneer-patisserie",
@@ -310,8 +349,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=4412840271996621434",
     openingHours: "",
     locations: [
-      { id: "paneer-patisserie-lagoa-nova", name: "Lagoa Nova", address: "Rua dos Tororós, 2523",                   neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.819444, longitude: -35.212778 },
-      { id: "paneer-patisserie-tirol",      name: "Tirol",      address: "Av. Afonso Pena, 893 (Espaço Casa 893)", neighborhood: "Tirol",      city: "Natal/RN", latitude: -5.794200, longitude: -35.198300 },
+      { id: "paneer-patisserie-lagoa-nova", name: "Lagoa Nova", address: "Rua dos Tororós, 2523",                  neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.819444, longitude: -35.212778, mapsUrl: "https://maps.google.com/?cid=4412840271996621434" },
+      { id: "paneer-patisserie-tirol",      name: "Tirol",      address: "Espaço Casa 893 - Av. Afonso Pena, 893", neighborhood: "Tirol",      city: "Natal/RN", latitude: -5.794200, longitude: -35.198300, mapsUrl: "" },
     ]
   },
   {
@@ -322,13 +361,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@parmadoces",
     whatsapp: "",
-    address: "Av. Eng. Roberto Freire, 2632, Dunnas Shopping, Loja A05/A06",
+    address: "Dunnas Shopping - Av. Engenheiro Roberto Freire, 2632, Loja A05/A06",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
     latitude: -5.8517158,
     longitude: -35.2038929,
     mapsUrl: "https://maps.google.com/?cid=1076074248665951297",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "parma-doces-capim-macio", name: "Capim Macio", address: "Dunnas Shopping - Av. Engenheiro Roberto Freire, 2632, Loja A05/A06", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8517158, longitude: -35.2038929, mapsUrl: "https://maps.google.com/?cid=1076074248665951297" },
+    ]
   },
   {
     id: "rollab-confeitaria",
@@ -338,13 +380,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-cyan)",
     instagram: "@sigarollab",
     whatsapp: "",
-    address: "R. Almeida Barreto, 430",
+    address: "Rua Almeida Barreto, 430",
     neighborhood: "Lagoa Nova",
     city: "Natal/RN",
     latitude: -5.811944,
     longitude: -35.205278,
     mapsUrl: "https://maps.google.com/?cid=17531256088081568032",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "rollab-confeitaria-lagoa-nova", name: "Lagoa Nova", address: "Rua Almeida Barreto, 430", neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.811944, longitude: -35.205278, mapsUrl: "https://maps.google.com/?cid=17531256088081568032" },
+    ]
   },
   {
     id: "sweet-duo-confeitaria",
@@ -354,13 +399,16 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@sweetduoconfeitaria",
     whatsapp: "",
-    address: "R. Antônio China, 490",
+    address: "Rua Antônio China, 490",
     neighborhood: "Lagoa Seca",
     city: "Natal/RN",
     latitude: -5.805278,
     longitude: -35.204444,
     mapsUrl: "https://maps.google.com/?cid=17845245524481505898",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "sweet-duo-confeitaria-lagoa-seca", name: "Lagoa Seca", address: "Rua Antônio China, 490", neighborhood: "Lagoa Seca", city: "Natal/RN", latitude: -5.805278, longitude: -35.204444, mapsUrl: "https://maps.google.com/?cid=17845245524481505898" },
+    ]
   },
   {
     id: "wow-cookies",
@@ -370,12 +418,15 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-brown)",
     instagram: "@sigawowcookies",
     whatsapp: "",
-    address: "Rua Neuza Farache, 1870, Loja 06, Vela Trade",
+    address: "Vela Trade - Rua Neuza Farache, 1870, Loja 6",
     neighborhood: "Capim Macio",
     city: "Natal/RN",
     latitude: -5.8600199,
     longitude: -35.1997991,
     mapsUrl: "https://maps.google.com/?cid=1695958296571675087",
-    openingHours: ""
+    openingHours: "",
+    locations: [
+      { id: "wow-cookies-capim-macio", name: "Capim Macio", address: "Vela Trade - Rua Neuza Farache, 1870, Loja 6", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8600199, longitude: -35.1997991, mapsUrl: "https://maps.google.com/?cid=1695958296571675087" },
+    ]
   },
 ]

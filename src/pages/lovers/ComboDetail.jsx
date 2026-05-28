@@ -176,13 +176,59 @@ export function ComboDetailPage({ navigate, slug }) {
                       <I.ig width={16} height={16} /> Instagram
                     </a>
                   )}
-                  {mapsUrl && (
+                  {mapsUrl && (!participant.locations || participant.locations.length <= 1) && (
                     <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                        className="btn btn-lovers-outline">
                       <I.route /> Google Maps
                     </a>
                   )}
                 </div>
+
+                {participant.locations && participant.locations.length > 1 && (
+                  <div style={{ marginTop: 40 }}>
+                    <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
+                      UNIDADES · {participant.locations.length}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {participant.locations.map((loc) => {
+                        const locMapsUrl = loc.mapsUrl || (loc.address
+                          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${loc.address}, ${loc.city || 'Natal/RN'}`)}`
+                          : null)
+                        return (
+                          <div key={loc.id || loc.name} style={{
+                            padding: '14px 16px',
+                            background: 'var(--lovers-cream)',
+                            borderRadius: 14,
+                            border: '1px solid rgba(135,14,45,.2)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 12,
+                            flexWrap: 'wrap',
+                          }}>
+                            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                              <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 16, color: 'var(--lovers-ink)', marginBottom: 2 }}>
+                                {loc.name}
+                              </div>
+                              {loc.address && (
+                                <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-brown)', opacity: .75, lineHeight: 1.4 }}>
+                                  {loc.address}{loc.neighborhood ? ` · ${loc.neighborhood}` : ''}{loc.city ? ` · ${loc.city}` : ''}
+                                </div>
+                              )}
+                            </div>
+                            {locMapsUrl && (
+                              <a href={locMapsUrl} target="_blank" rel="noopener noreferrer"
+                                 className="btn btn-sm"
+                                 style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12, whiteSpace: 'nowrap' }}>
+                                <I.route /> Google Maps
+                              </a>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
