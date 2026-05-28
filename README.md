@@ -83,3 +83,23 @@ VITE_GOOGLE_MAPS_KEY=sua-chave-aqui
 - **Produção:** `sweetcoffeeweek.com.br` (Vercel)
 - **Preview:** `sweet-coffee-preview.vercel.app`
 - Auto-deploy via push para `master`
+
+## Ambientes
+
+### Produção
+- Branch: `master`
+- URL: domínio oficial do Sweet & Coffee Week
+- Uso: site público — não alterar sem aprovação.
+
+### Teste online / Preview
+- Branch: `dev/lovers-internal-pages`
+- Uso: desenvolvimento das páginas internas Lovers, mapa e Minha Rota da Doçura.
+- A Vercel gera Preview Deployments automaticamente a cada push nessa branch.
+- **Não promover para produção** enquanto o conteúdo não estiver aprovado.
+
+### Google Maps no Preview
+Para o mapa funcionar no preview da Vercel:
+1. `VITE_GOOGLE_MAPS_KEY` precisa existir no ambiente **Preview** do projeto Vercel (Settings → Environment Variables → marcar Preview).
+2. A chave precisa permitir o domínio de preview no Google Cloud Console — adicionar `https://*.vercel.app/*` às restrições de HTTP referrer.
+
+> Restrição recomendada: `http://localhost:5173/*`, `https://sweetcoffeeweek.com.br/*`, `https://*.vercel.app/*`.
