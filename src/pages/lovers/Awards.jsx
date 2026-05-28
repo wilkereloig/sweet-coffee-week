@@ -2,7 +2,75 @@
 import { I } from '../../components/icons'
 import { FormFieldPH } from '../../components/placeholders'
 
-export function AwardsPage({ navigate }) {
+export function AwardsPage({ navigate, mode }) {
+  if (mode === 'coming-soon') {
+    return (
+      <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
+
+        <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 56px', position: 'relative' }}>
+          <div className="wrap">
+            <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                <span className="tag tag-lovers">SWEET & COFFEE WEEK AWARDS</span>
+              </div>
+              <h1 className="lovers-h1" style={{ fontSize: 'clamp(48px, 7vw, 96px)', margin: 0 }}>
+                Premiação<br/>
+                <span style={{ color: 'var(--lovers-pink)' }}>em breve.</span>
+              </h1>
+              <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24, lineHeight: 1.6 }}>
+                Em breve você poderá avaliar os combos da edição Lovers e participar da escolha dos destaques do Sweet &amp; Coffee Week Awards.
+              </p>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 'clamp(16px, 2vw, 24px)',
+              maxWidth: 720,
+              margin: '48px auto 0',
+            }}>
+              {[
+                { label: 'Avaliação dos combos',    status: 'Em breve' },
+                { label: 'Participação do público', status: 'Em breve' },
+                { label: 'Resultado dos destaques', status: 'Em breve' },
+              ].map((item) => (
+                <div key={item.label} style={{
+                  padding: 24,
+                  background: 'var(--lovers-cream)',
+                  borderRadius: 18,
+                  border: '1px solid rgba(135,14,45,.2)',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontFamily: 'var(--font-lovers-body)', fontWeight: 700, fontSize: 14, color: 'var(--lovers-ink)', marginBottom: 8 }}>
+                    {item.label}
+                  </div>
+                  <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-red)' }}>
+                    {item.status}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 40 }}>
+              <a href="#/lovers"
+                 onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+                 className="btn btn-lovers">
+                Voltar para a edição <I.arrow />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <style>{`
+          @media (max-width: 600px) {
+            div[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
   return (
     <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>

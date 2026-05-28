@@ -41,15 +41,15 @@ export default function App() {
   })()
 
   let page
-  // Public release control: only individual QR Code combo pages are open.
-  // Combo list, map and awards remain hidden until official release.
+  // Public release control: QR Code pages are open for participant combo placeholders and awards coming soon.
+  // Combo list and map remain hidden until official release.
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
     case 'combos':       page = <LoversPage navigate={navigate} />; break
     case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
     case 'mapa':         page = <LoversPage navigate={navigate} />; break
-    case 'awards':       page = <LoversPage navigate={navigate} />; break
+    case 'awards':       page = <AwardsPage navigate={navigate} mode="coming-soon" />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break
