@@ -1040,32 +1040,48 @@ export function MapaGooglePage({ navigate }) {
               <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
                 <div className="sweet-route-panel" onClick={e => e.stopPropagation()}>
                   <button type="button" className="sweet-route-close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar rota">×</button>
-                  <div className="sweet-route-header">
-                    <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
+
+                  <div className="sweet-route-share-card">
+                    <div className="sweet-route-top">
+                      <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
+                      <span className="sweet-route-date">4 A 14 DE JUNHO</span>
+                    </div>
+
                     <h2>MINHA ROTA LOVERS</h2>
-                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers. Tire um print, compartilhe com os amigos e trace sua rota.</p>
+
+                    <p>Estes são os destinos que eu escolhi para viver o Sweet &amp; Coffee Week Lovers.</p>
+
+                    <div className="sweet-route-summary">
+                      <strong>{routeLocations.length}</strong>
+                      <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
+                    </div>
+
+                    <ol className="sweet-route-list">
+                      {routeLocations.map((location, index) => (
+                        <li className="sweet-route-stop" key={location.id}>
+                          <span className="sweet-route-number">{index + 1}</span>
+                          <div className="sweet-route-stop-content">
+                            <strong>{location.participantName}</strong>
+                            <span>{location.locationName}</span>
+                            <small>{[location.neighborhood, location.city].filter(Boolean).join(' · ')}</small>
+                          </div>
+                          <button type="button" className="sweet-route-remove" onClick={() => removeRouteLocation(location.id)}>REMOVER</button>
+                        </li>
+                      ))}
+                    </ol>
+
+                    {routeLocations.length > 9 && (
+                      <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
+                    )}
+
+                    <div className="sweet-route-footer">
+                      <strong>SWEET &amp; COFFEE WEEK LOVERS</strong>
+                      <span>FEITO DE AMOR, RECRIANDO SABORES</span>
+                    </div>
                   </div>
-                  <div className="sweet-route-summary">
-                    <strong>{routeLocations.length}</strong>
-                    <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
-                  </div>
-                  <ol className="sweet-route-list">
-                    {routeLocations.map((location, index) => (
-                      <li className="sweet-route-stop" key={location.id}>
-                        <span className="sweet-route-number">{index + 1}</span>
-                        <div>
-                          <strong>{location.participantName}</strong>
-                          <span>{location.locationName}</span>
-                          <small>{[location.neighborhood, location.city].filter(Boolean).join(' · ')}</small>
-                          {location.address && <small>{location.address}</small>}
-                        </div>
-                        <button type="button" className="sweet-route-remove" onClick={() => removeRouteLocation(location.id)}>REMOVER</button>
-                      </li>
-                    ))}
-                  </ol>
-                  {routeLocations.length > 9 && (
-                    <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
-                  )}
+
+                  <p className="sweet-route-print-hint">Dica: tire um print desta tela para compartilhar sua rota nos Stories.</p>
+
                   <div className="sweet-route-actions">
                     {routeMapsUrl && (
                       <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary">
@@ -1073,6 +1089,7 @@ export function MapaGooglePage({ navigate }) {
                       </a>
                     )}
                     <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
+                    <button type="button" onClick={() => setIsRoutePanelOpen(false)} className="sweet-route-secondary">FECHAR</button>
                   </div>
                 </div>
               </div>
@@ -1164,91 +1181,138 @@ export function MapaGooglePage({ navigate }) {
           }
           .sweet-route-panel {
             position: relative;
-            width: min(720px, 100%);
-            max-height: min(86vh, 920px);
+            width: min(560px, 100%);
+            max-height: min(92vh, 920px);
             overflow-y: auto;
             border-radius: 32px;
-            background: linear-gradient(135deg, var(--lovers-cream) 0%, #fff4ea 100%);
-            border: 2px solid rgba(135,14,45,.18);
-            box-shadow: 0 30px 80px rgba(43,24,16,.28);
-            padding: clamp(24px, 4vw, 42px);
+            background: rgba(43,24,16,.32);
+            border: 1px solid rgba(255,255,255,.22);
+            box-shadow: 0 30px 80px rgba(43,24,16,.34);
+            padding: clamp(14px, 3vw, 22px);
           }
           .sweet-route-close {
             position: absolute;
-            top: 18px;
-            right: 18px;
-            width: 42px;
-            height: 42px;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            border: 1px solid rgba(135,14,45,.2);
-            background: #fff;
-            color: var(--lovers-red);
-            font-size: 28px;
+            border: 1px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.15);
+            color: var(--lovers-cream);
+            font-size: 24px;
             line-height: 1;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
           }
-          .sweet-route-kicker {
+          .sweet-route-share-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            padding: clamp(24px, 5vw, 42px);
+            background:
+              radial-gradient(circle at 12% 8%, rgba(241,7,103,.24), transparent 30%),
+              radial-gradient(circle at 88% 12%, rgba(255,190,60,.28), transparent 32%),
+              linear-gradient(145deg, var(--lovers-cream) 0%, #fff7ec 48%, #ffd9e8 100%);
+            border: 2px solid rgba(135,14,45,.18);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+          }
+          .sweet-route-share-card::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            border: 1px dashed rgba(135,14,45,.18);
+            border-radius: 22px;
+            pointer-events: none;
+          }
+          .sweet-route-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+          }
+          .sweet-route-kicker,
+          .sweet-route-date {
             display: inline-flex;
+            align-items: center;
             border-radius: 999px;
-            padding: 7px 14px;
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
+            padding: 8px 12px;
             font-family: var(--font-lovers-body);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 900;
             letter-spacing: .1em;
             text-transform: uppercase;
           }
-          .sweet-route-header h2 {
-            margin: 14px 0 8px;
+          .sweet-route-kicker { background: var(--lovers-red); color: var(--lovers-cream); }
+          .sweet-route-date { background: var(--lovers-pink); color: var(--lovers-cream); }
+          .sweet-route-share-card h2 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
             font-family: var(--font-lovers-display);
-            font-size: clamp(38px, 7vw, 72px);
-            line-height: .88;
+            font-size: clamp(44px, 9vw, 76px);
+            line-height: .82;
             color: var(--lovers-ink);
             text-transform: uppercase;
+            letter-spacing: .01em;
           }
-          .sweet-route-header p {
-            max-width: 540px;
-            color: var(--lovers-ink);
+          .sweet-route-share-card > p {
+            position: relative;
+            z-index: 1;
+            margin: 14px 0 0;
+            max-width: 420px;
+            color: var(--lovers-brown);
             font-size: 15px;
-            line-height: 1.5;
-            opacity: .82;
+            line-height: 1.42;
           }
           .sweet-route-summary {
-            margin: 20px 0 18px;
+            position: relative;
+            z-index: 1;
+            margin: 22px 0;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             border-radius: 20px;
             background: var(--lovers-red);
             color: var(--lovers-cream);
-            padding: 10px 18px;
+            padding: 12px 16px;
             font-family: var(--font-lovers-body);
             text-transform: uppercase;
             letter-spacing: .06em;
             font-size: 12px;
             font-weight: 900;
           }
-          .sweet-route-summary strong { font-size: 32px; line-height: 1; font-weight: 900; }
-          .sweet-route-list { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+          .sweet-route-summary strong { font-size: 36px; line-height: 1; font-weight: 900; }
+          .sweet-route-list {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+          }
           .sweet-route-stop {
             display: grid;
-            grid-template-columns: 44px 1fr auto;
-            gap: 14px;
+            grid-template-columns: 42px 1fr auto;
+            gap: 12px;
             align-items: center;
-            padding: 14px;
+            padding: 12px;
             border-radius: 18px;
-            background: rgba(255,255,255,.82);
+            background: rgba(255,255,255,.80);
             border: 1px solid rgba(135,14,45,.14);
           }
           .sweet-route-number {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: var(--lovers-red);
+            background: var(--lovers-pink);
             color: var(--lovers-cream);
             display: flex;
             align-items: center;
@@ -1257,34 +1321,34 @@ export function MapaGooglePage({ navigate }) {
             font-weight: 900;
             font-size: 16px;
           }
-          .sweet-route-stop > div { min-width: 0; }
+          .sweet-route-stop-content { min-width: 0; }
           .sweet-route-stop strong {
             display: block;
             color: var(--lovers-ink);
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: .04em;
-            line-height: 1.1;
+            line-height: 1.05;
           }
           .sweet-route-stop span,
           .sweet-route-stop small {
             display: block;
-            color: var(--lovers-ink);
-            opacity: .72;
+            color: var(--lovers-brown);
+            opacity: .82;
             margin-top: 3px;
-            font-size: 13px;
+            font-size: 12px;
           }
           .sweet-route-remove {
-            border: 1px solid var(--lovers-red);
-            background: transparent;
+            border: 1px solid rgba(135,14,45,.22);
+            background: rgba(255,255,255,.6);
             color: var(--lovers-red);
             border-radius: 999px;
-            min-height: 34px;
-            padding: 0 14px;
+            min-height: 30px;
+            padding: 0 10px;
             font-family: var(--font-lovers-body);
             font-weight: 900;
-            font-size: 11px;
+            font-size: 10px;
             letter-spacing: .06em;
             text-transform: uppercase;
             cursor: pointer;
@@ -1293,16 +1357,49 @@ export function MapaGooglePage({ navigate }) {
           }
           .sweet-route-remove:hover { background: var(--lovers-red); color: var(--lovers-cream); }
           .sweet-route-warning {
+            position: relative;
+            z-index: 1;
             margin-top: 14px;
             color: var(--lovers-red);
             font-weight: 800;
+            font-size: 12px;
+          }
+          .sweet-route-footer {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(135,14,45,.18);
+            display: grid;
+            gap: 4px;
+            text-align: center;
+            color: var(--lovers-red);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+          }
+          .sweet-route-footer strong {
+            font-family: var(--font-lovers-body);
             font-size: 13px;
+            font-weight: 900;
+          }
+          .sweet-route-footer span {
+            font-family: var(--font-lovers-body);
+            font-size: 10px;
+            font-weight: 800;
+          }
+          .sweet-route-print-hint {
+            margin: 14px 4px 0;
+            color: var(--lovers-cream);
+            opacity: .86;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: center;
           }
           .sweet-route-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 24px;
+            gap: 10px;
+            margin-top: 16px;
           }
           .sweet-route-primary {
             display: inline-flex;
@@ -1328,9 +1425,9 @@ export function MapaGooglePage({ navigate }) {
             border-radius: 999px;
             min-height: 48px;
             padding: 0 22px;
-            border: 1px solid var(--lovers-red);
+            border: 1px solid rgba(255,255,255,.4);
             background: transparent;
-            color: var(--lovers-red);
+            color: var(--lovers-cream);
             font-family: var(--font-lovers-body);
             font-weight: 900;
             font-size: 13px;
@@ -1340,11 +1437,13 @@ export function MapaGooglePage({ navigate }) {
           }
           @media (max-width: 560px) {
             .sweet-route-fab { left: 16px; right: 16px; bottom: 16px; }
-            .sweet-route-overlay { padding: 12px; }
-            .sweet-route-panel { border-radius: 24px; padding: 24px; }
-            .sweet-route-stop { grid-template-columns: 36px 1fr; }
-            .sweet-route-remove { grid-column: 2; justify-self: start; margin-top: 4px; }
-            .sweet-route-number { width: 36px; height: 36px; font-size: 14px; }
+            .sweet-route-overlay { padding: 10px; }
+            .sweet-route-panel { border-radius: 24px; padding: 10px; }
+            .sweet-route-share-card { border-radius: 22px; padding: 22px 16px; }
+            .sweet-route-top { align-items: flex-start; flex-direction: column; gap: 8px; }
+            .sweet-route-stop { grid-template-columns: 34px 1fr; }
+            .sweet-route-remove { grid-column: 2; justify-self: start; margin-top: 6px; }
+            .sweet-route-number { width: 34px; height: 34px; font-size: 14px; }
             .sweet-route-actions { flex-direction: column; }
             .sweet-route-primary, .sweet-route-secondary { width: 100%; justify-content: center; }
           }
