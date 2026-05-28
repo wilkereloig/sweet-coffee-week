@@ -298,9 +298,9 @@ function Participantes({ navigate }) {
               const brandColor = p.brandColor || 'var(--lovers-red)'
               const igHandle = p.instagram ? p.instagram.replace('@', '') : null
               const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : null
-              const mapsUrl = p.address
+              const mapsUrl = p.mapsUrl || (p.address
                 ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)}`
-                : null
+                : null)
               return (
                 <div
                   className={`participant-card reveal reveal-scale${!mapsUrl ? ' participant-card--no-map' : ''}`}
@@ -328,13 +328,12 @@ function Participantes({ navigate }) {
                         <I.ig />
                       </a>
                     )}
-                    <a
-                      href={`#/lovers/combos/${p.slug}`}
+                    <button
                       className="participant-card__combo-btn"
-                      onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}
+                      onClick={() => navigate(`/lovers/combos/${p.slug}`)}
                     >
                       Ver combo
-                    </a>
+                    </button>
                     {mapsUrl && (
                       <a
                         href={mapsUrl}

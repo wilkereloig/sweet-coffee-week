@@ -12,6 +12,7 @@
 //   city: "",
 //   latitude: null,
 //   longitude: null,
+//   mapsUrl: "",      // link direto Google Maps (CID); sobrepõe geração por endereço
 //   openingHours: ""
 // }
 
@@ -29,6 +30,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8717906,
     longitude: -35.1812612,
+    mapsUrl: "https://maps.google.com/?cid=10659498387037037785",
     openingHours: ""
   },
   {
@@ -39,11 +41,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@bolomania_natal",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "Av. Praia de Búzios, 9031",
+    neighborhood: "Ponta Negra",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=11450492681847294540",
     openingHours: ""
   },
   {
@@ -59,6 +62,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.7875951,
     longitude: -35.1985817,
+    mapsUrl: "https://maps.google.com/?cid=9124941309187684674",
     openingHours: ""
   },
   {
@@ -69,11 +73,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-brown)",
     instagram: "@canutos.coffee",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "Av. Engenheiro Roberto Freire, 340",
+    neighborhood: "Capim Macio",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=17931732396072426136",
     openingHours: ""
   },
   {
@@ -84,11 +89,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-burgundy)",
     instagram: "@carolidouces",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "Av. Praia de Ponta Negra, 9060",
+    neighborhood: "Ponta Negra",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=16122317279029996390",
     openingHours: ""
   },
   {
@@ -104,6 +110,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8149631,
     longitude: -35.1996656,
+    mapsUrl: "https://maps.google.com/?cid=12991928301385588552",
     openingHours: ""
   },
   {
@@ -119,6 +126,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8737794,
     longitude: -35.1808228,
+    mapsUrl: "https://maps.google.com/?cid=7706377528852827574",
     openingHours: ""
   },
   {
@@ -134,6 +142,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.7585492,
     longitude: -35.2598518,
+    mapsUrl: "https://maps.google.com/?cid=7441970895626009538",
     openingHours: ""
   },
   {
@@ -149,6 +158,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8389204,
     longitude: -35.2153114,
+    mapsUrl: "https://maps.google.com/?cid=4959753408182331760",
     openingHours: ""
   },
   {
@@ -159,11 +169,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@joliecafepatisserie",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
-    city: "Natal/RN",
+    address: "Av. Ayrton Senna, 1904 - Shopping Cidade Verde",
+    neighborhood: "Nova Parnamirim",
+    city: "Parnamirim/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
     openingHours: ""
   },
   {
@@ -179,6 +190,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8570178,
     longitude: -35.2025025,
+    mapsUrl: "https://maps.google.com/?cid=1388883781383360295",
     openingHours: ""
   },
   {
@@ -189,11 +201,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-cyan)",
     instagram: "@mangairestaurantes",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "R. Des. João Vicente da Costa, 8861",
+    neighborhood: "Ponta Negra",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=1296701487931758722",
     openingHours: ""
   },
   {
@@ -204,11 +217,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-purple)",
     instagram: "@mrcupcakeconfeitaria",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "R. Frei Henrique de Coimbra, 3482",
+    neighborhood: "Candelária",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=2208320617330103981",
     openingHours: ""
   },
   {
@@ -224,6 +238,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.7963797,
     longitude: -35.2104277,
+    mapsUrl: "https://maps.google.com/?cid=9380843386229300776",
     openingHours: ""
   },
   {
@@ -234,11 +249,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-yellow)",
     instagram: "@oligastro.olimpo",
     whatsapp: "",
-    address: "Av. Rodrigues Alves, 930",
+    address: "Av. Rodrigues Alves, 950",
     neighborhood: "Tirol",
     city: "Natal/RN",
     latitude: -5.7887356,
     longitude: -35.1990022,
+    mapsUrl: "https://maps.google.com/?cid=11078498997587378404",
     openingHours: ""
   },
   {
@@ -254,6 +270,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8096461,
     longitude: -35.1977217,
+    mapsUrl: "https://maps.google.com/?cid=8730356709231337200",
     openingHours: ""
   },
   {
@@ -264,11 +281,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-burgundy)",
     instagram: "@paneernatal",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "Rua dos Tororós, 2523",
+    neighborhood: "Lagoa Nova",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=4412840271996621434",
     openingHours: ""
   },
   {
@@ -284,6 +302,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8517158,
     longitude: -35.2038929,
+    mapsUrl: "https://maps.google.com/?cid=1076074248665951297",
     openingHours: ""
   },
   {
@@ -294,11 +313,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-cyan)",
     instagram: "@sigarollab",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "R. Almeida Barreto, 430",
+    neighborhood: "Lagoa Nova",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=17531256088081568032",
     openingHours: ""
   },
   {
@@ -309,11 +329,12 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-pink)",
     instagram: "@sweetduoconfeitaria",
     whatsapp: "",
-    address: "",
-    neighborhood: "",
+    address: "R. Antônio China, 490",
+    neighborhood: "Lagoa Seca",
     city: "Natal/RN",
     latitude: null,
     longitude: null,
+    mapsUrl: "https://maps.google.com/?cid=17845245524481505898",
     openingHours: ""
   },
   {
@@ -329,6 +350,7 @@ export const PARTICIPANTS = [
     city: "Natal/RN",
     latitude: -5.8600199,
     longitude: -35.1997991,
+    mapsUrl: "https://maps.google.com/?cid=1695958296571675087",
     openingHours: ""
   },
 ]
