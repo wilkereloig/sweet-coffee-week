@@ -1070,35 +1070,57 @@ export function MapaGooglePage({ navigate }) {
                     </div>
 
                     <ol className="sweet-route-list">
-                      {routeLocations.map((location, index) => (
-                        <li className="sweet-route-stop" key={location.id}>
-                          <span className="sweet-route-number">{index + 1}</span>
-                          <div className="sweet-route-stop-content">
-                            <strong>{location.participantName}</strong>
-                            <span>{location.locationName}</span>
-                            <small>{[location.neighborhood, location.city].filter(Boolean).join(' · ')}</small>
-                            <div className="sweet-route-stop-actions">
-                              <button
-                                type="button"
-                                className="sweet-route-mini-action"
-                                onClick={() => moveRouteLocation(location.id, 'up')}
-                                disabled={index === 0}
-                              >▲ SUBIR</button>
-                              <button
-                                type="button"
-                                className="sweet-route-mini-action"
-                                onClick={() => moveRouteLocation(location.id, 'down')}
-                                disabled={index === routeLocations.length - 1}
-                              >▼ DESCER</button>
-                              <button
-                                type="button"
-                                className="sweet-route-mini-action sweet-route-mini-action--danger"
-                                onClick={() => removeRouteLocation(location.id)}
-                              >REMOVER</button>
+                      {routeLocations.map((location, index) => {
+                        const unitLabel = location.locationName || ''
+                        const neighborhoodLabel = location.neighborhood || ''
+                        const cityLabel = location.city || ''
+                        const shouldShowUnit = unitLabel &&
+                          unitLabel.toLowerCase().trim() !== neighborhoodLabel.toLowerCase().trim()
+                        const locationMeta = [neighborhoodLabel, cityLabel].filter(Boolean).join(' · ')
+                        const logoSrc = location.participantLogo || location.logo
+                        return (
+                          <li className="sweet-route-stop" key={location.id}>
+                            <div className="sweet-route-brand">
+                              {logoSrc
+                                ? <img className="sweet-route-brand-image" src={logoSrc} alt={`Logo ${location.participantName}`} />
+                                : <div className="sweet-route-brand-fallback">{(location.participantName || '?').slice(0, 1)}</div>
+                              }
+                              <span className="sweet-route-stop-badge">{index + 1}</span>
                             </div>
-                          </div>
-                        </li>
-                      ))}
+                            <div className="sweet-route-stop-content">
+                              <strong>{location.participantName}</strong>
+                              {shouldShowUnit && <span>{unitLabel}</span>}
+                              {locationMeta && <small>{locationMeta}</small>}
+                              {location.address && <small>{location.address}</small>}
+                              <div className="sweet-route-stop-actions">
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action"
+                                  aria-label="Mover parada para cima"
+                                  title="Mover para cima"
+                                  onClick={() => moveRouteLocation(location.id, 'up')}
+                                  disabled={index === 0}
+                                >↑</button>
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action"
+                                  aria-label="Mover parada para baixo"
+                                  title="Mover para baixo"
+                                  onClick={() => moveRouteLocation(location.id, 'down')}
+                                  disabled={index === routeLocations.length - 1}
+                                >↓</button>
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action sweet-route-icon-action--danger"
+                                  aria-label="Remover parada"
+                                  title="Remover"
+                                  onClick={() => removeRouteLocation(location.id)}
+                                >×</button>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      })}
                     </ol>
 
                     {routeLocations.length > 9 && (
@@ -1331,70 +1353,133 @@ export function MapaGooglePage({ navigate }) {
           }
           .sweet-route-stop {
             display: grid;
-            grid-template-columns: 42px 1fr;
-            gap: 12px;
+            grid-template-columns: 58px 1fr;
+            gap: 14px;
             align-items: start;
-            padding: 12px;
-            border-radius: 18px;
-            background: rgba(255,255,255,.80);
+            padding: 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.82);
             border: 1px solid rgba(135,14,45,.14);
           }
-          .sweet-route-number {
-            width: 42px;
-            height: 42px;
+          .sweet-route-brand {
+            position: relative;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
-            background: var(--lovers-pink);
-            color: var(--lovers-cream);
+            overflow: visible;
+            flex-shrink: 0;
+          }
+          .sweet-route-brand-image,
+          .sweet-route-brand-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #fff;
+            border: 1.5px solid rgba(135,14,45,.18);
+            box-shadow: 0 6px 16px rgba(43,24,16,.10);
+          }
+          .sweet-route-brand-image {
+            object-fit: cover;
+            object-position: center;
+            display: block;
+          }
+          .sweet-route-brand-fallback {
+            color: var(--lovers-cream);
+            background: var(--lovers-pink);
             font-family: var(--font-lovers-body);
             font-weight: 900;
-            font-size: 16px;
-            flex-shrink: 0;
+            font-size: 22px;
+          }
+          .sweet-route-stop-badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-size: 11px;
+            font-weight: 900;
+            line-height: 1;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(43,24,16,.18);
+            z-index: 2;
           }
           .sweet-route-stop-content { min-width: 0; }
-          .sweet-route-stop strong {
+          .sweet-route-stop-content strong {
             display: block;
             color: var(--lovers-ink);
-            font-size: 15px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: .04em;
             line-height: 1.05;
           }
-          .sweet-route-stop span,
-          .sweet-route-stop small {
+          .sweet-route-stop-content span,
+          .sweet-route-stop-content small {
             display: block;
             color: var(--lovers-brown);
-            opacity: .82;
-            margin-top: 3px;
-            font-size: 12px;
+            margin-top: 4px;
+          }
+          .sweet-route-stop-content span {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-size: 11px;
+            color: var(--lovers-red);
+          }
+          .sweet-route-stop-content small {
+            font-size: 11px;
+            opacity: .78;
+            line-height: 1.35;
           }
           .sweet-route-stop-actions {
+            grid-column: 2;
             display: flex;
-            flex-wrap: wrap;
             gap: 6px;
-            margin-top: 8px;
+            margin-top: 9px;
           }
-          .sweet-route-mini-action {
-            border: 1px solid rgba(135,14,45,.22);
-            background: rgba(255,255,255,.64);
-            color: var(--lovers-red);
+          .sweet-route-icon-action {
+            width: 28px;
+            height: 28px;
             border-radius: 999px;
-            min-height: 28px;
-            padding: 0 10px;
-            font-family: var(--font-lovers-body);
+            border: 1px solid rgba(135,14,45,.22);
+            background: rgba(255,255,255,.68);
+            color: var(--lovers-red);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
             font-weight: 900;
-            font-size: 9px;
-            letter-spacing: .06em;
-            text-transform: uppercase;
+            line-height: 1;
             cursor: pointer;
-            transition: background .15s, color .15s;
+            transition: background .18s ease, color .18s ease, opacity .18s ease, transform .18s ease;
           }
-          .sweet-route-mini-action:hover:not(:disabled) { background: var(--lovers-red); color: var(--lovers-cream); }
-          .sweet-route-mini-action:disabled { opacity: .35; cursor: not-allowed; }
-          .sweet-route-mini-action--danger { border-color: var(--lovers-red); }
+          .sweet-route-icon-action:hover:not(:disabled) {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            transform: translateY(-1px);
+          }
+          .sweet-route-icon-action:disabled { opacity: .32; cursor: not-allowed; }
+          .sweet-route-icon-action--danger { border-color: rgba(135,14,45,.34); }
+          @media (max-width: 560px) {
+            .sweet-route-stop {
+              grid-template-columns: 52px 1fr;
+              gap: 12px;
+              padding: 12px;
+            }
+            .sweet-route-brand { width: 52px; height: 52px; }
+            .sweet-route-stop-actions { gap: 5px; }
+            .sweet-route-icon-action { width: 30px; height: 30px; }
+          }
           .sweet-route-warning {
             position: relative;
             z-index: 1;
