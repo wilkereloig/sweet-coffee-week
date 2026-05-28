@@ -718,6 +718,7 @@ export function MapaGooglePage({ navigate }) {
                     const isActive = selectedParticipantId === p.id
                     const locs = getParticipantLocations(p)
                     const multiUnit = locs.length > 1
+                    const manyUnits = locs.length > 4
 
                     // enrich with distance
                     const locsForCard = locs.map(loc => {
@@ -733,45 +734,31 @@ export function MapaGooglePage({ navigate }) {
                       <div
                         id={`map-card-${p.id}`}
                         key={p.id}
-                        style={{
-                          background: isActive ? 'var(--lovers-cream)' : '#fff',
-                          border: `1.5px solid ${isActive ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
-                          boxShadow: isActive ? '0 18px 42px rgba(135,14,45,.18)' : undefined,
-                          borderRadius: 14, padding: '14px 16px',
-                          transition: 'border-color .15s, background .15s, box-shadow .15s',
-                        }}
+                        className={`map-participant-card${isActive ? ' map-participant-card--active' : ''}`}
                       >
-                        {/* header do card */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: multiUnit ? 10 : 4 }}>
-                          <div>
-                            {!multiUnit && (
-                              <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10, marginBottom: 2 }}>
-                                {locs[0]?.neighborhood}
-                              </div>
-                            )}
-                            <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 18, lineHeight: 1.2, color: 'var(--lovers-ink)' }}>
-                              {p.name}
-                            </div>
-                            {multiUnit && (
-                              <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10, marginTop: 2 }}>
-                                {locs.length} UNIDADES
-                              </div>
-                            )}
-                            {p.combo && (
-                              <div style={{ fontSize: 13, color: 'var(--lovers-brown)', opacity: .75, marginTop: 2 }}>
-                                {p.combo.name}
-                              </div>
-                            )}
-                          </div>
-                          {userLocation && Number.isFinite(minDist) && minDist !== Infinity && (
-                            <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                              {formatDistance(minDist)}
+                        {/* cabeçalho do card */}
+                        <div className="map-card-header">
+                          {p.logo && (
+                            <div className="map-card-logo">
+                              <img src={p.logo} alt={`Logo ${p.name}`} />
                             </div>
                           )}
+                          <div className="map-card-title-group">
+                            <h3>{p.name}</h3>
+                            <div className="map-card-meta">
+                              {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
+                              {userLocation && Number.isFinite(minDist) && minDist !== Infinity
+                                ? ` · ${formatDistance(minDist)}`
+                                : ''}
+                            </div>
+                            {p.combo && (
+                              <div className="map-card-combo">{p.combo.name}</div>
+                            )}
+                          </div>
                         </div>
 
-                        {/* unidades */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: multiUnit ? 8 : 0 }}>
+                        {/* lista de unidades */}
+                        <div className={`map-location-list${manyUnits ? ' map-location-list--many' : ''}`}>
                           {locsForCard.map(loc => {
                             const isLocActive = selectedLocationId === loc.id
                             const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
@@ -781,50 +768,32 @@ export function MapaGooglePage({ navigate }) {
                             return (
                               <div
                                 key={loc.id}
+                                className={`map-location-row${isLocActive ? ' map-location-row--active' : ''}`}
                                 onClick={() => focusLocation(loc)}
-                                style={{
-                                  background: isLocActive ? 'rgba(214,54,72,.08)' : 'transparent',
-                                  borderRadius: 8,
-                                  padding: multiUnit ? '8px 10px' : '4px 0',
-                                  border: multiUnit
-                                    ? `1px solid ${isLocActive ? 'var(--lovers-red)' : 'rgba(135,14,45,.1)'}`
-                                    : 'none',
-                                  boxShadow: isLocActive && multiUnit ? '0 10px 24px rgba(135,14,45,.10)' : undefined,
-                                  cursor: 'pointer',
-                                  transition: 'background .15s, border-color .15s, box-shadow .15s',
-                                }}
                               >
-                                {multiUnit && (
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                                    <div className="mono" style={{ fontSize: 10, color: 'var(--lovers-red)' }}>
-                                      {loc.locationName} · {loc.neighborhood}
-                                    </div>
-                                    {userLocation && distStr && (
-                                      <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600 }}>
-                                        {distStr}
-                                      </div>
-                                    )}
+                                <div className="map-location-topline">
+                                  <strong className="map-location-title">{loc.locationName}</strong>
+                                  {userLocation && distStr && (
+                                    <span className="map-location-distance">{distStr}</span>
+                                  )}
+                                </div>
+
+                                {(loc.neighborhood || loc.city) && (
+                                  <div className="map-location-meta">
+                                    {[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
                                   </div>
                                 )}
-                                {!multiUnit && userLocation && distStr && (
-                                  <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600, marginBottom: 3 }}>
-                                    {distStr}
-                                  </div>
-                                )}
+
                                 {loc.address && (
-                                  <div className="mono" style={{
-                                    fontSize: 11, color: 'var(--lovers-brown)', opacity: .65,
-                                    marginBottom: multiUnit ? 8 : 6, lineHeight: 1.4,
-                                  }}>
-                                    {loc.address}
-                                  </div>
+                                  <div className="map-location-address">{loc.address}</div>
                                 )}
+
                                 <div className="map-location-actions">
                                   {hasCoords && (
                                     <button
                                       type="button"
                                       className={`map-location-action${isLocActive ? ' map-location-action--active' : ''}`}
-                                      onClick={() => focusLocation(loc)}
+                                      onClick={e => { e.stopPropagation(); focusLocation(loc) }}
                                     >
                                       Ver pin
                                     </button>
@@ -844,7 +813,7 @@ export function MapaGooglePage({ navigate }) {
                                     <button
                                       type="button"
                                       className="map-location-action"
-                                      onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
+                                      onClick={e => { e.stopPropagation(); navigate(`/lovers/combos/${p.combo.slug}`) }}
                                     >
                                       Ver combo
                                     </button>
@@ -856,7 +825,7 @@ export function MapaGooglePage({ navigate }) {
                         </div>
 
                         {multiUnit && p.combo?.slug && (
-                          <div style={{ marginTop: 10 }}>
+                          <div style={{ marginTop: 12 }}>
                             <button
                               className="btn btn-lovers btn-sm"
                               style={{ fontSize: 12 }}
@@ -878,6 +847,7 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
+          /* ── layout ── */
           .mapa-layout {
             display: grid;
             grid-template-columns: 1.6fr 1fr;
@@ -901,6 +871,8 @@ export function MapaGooglePage({ navigate }) {
             background: rgba(135,14,45,.3);
             border-radius: 4px;
           }
+
+          /* ── chips de filtro ── */
           .mapa-chip {
             font-family: var(--font-lovers-body);
             font-size: 11px;
@@ -911,29 +883,158 @@ export function MapaGooglePage({ navigate }) {
             transition: background .15s, color .15s;
             white-space: nowrap;
           }
-          .mapa-chip:hover {
-            background: var(--lovers-red);
-            color: #fff;
+          .mapa-chip:hover { background: var(--lovers-red); color: #fff; }
+          .mapa-chip:disabled { opacity: .6; cursor: default; }
+
+          /* ── card do participante ── */
+          .map-participant-card {
+            background: #fff;
+            border: 1.5px solid rgba(135,14,45,.15);
+            border-radius: 18px;
+            padding: 16px;
+            transition: border-color .18s, background .18s, box-shadow .18s;
           }
-          .mapa-chip:disabled {
-            opacity: .6;
-            cursor: default;
+          .map-participant-card--active {
+            background: var(--lovers-cream);
+            border-color: var(--lovers-red);
+            box-shadow: 0 18px 42px rgba(135,14,45,.18);
           }
+
+          /* ── cabeçalho do card ── */
+          .map-card-header {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+          }
+          .map-card-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: #fff;
+            border: 1px solid rgba(135,14,45,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex: 0 0 auto;
+          }
+          .map-card-logo img {
+            max-width: 82%;
+            max-height: 82%;
+            object-fit: contain;
+          }
+          .map-card-title-group {
+            min-width: 0;
+            flex: 1;
+          }
+          .map-card-title-group h3 {
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: 22px;
+            line-height: 1;
+            color: var(--lovers-ink);
+          }
+          .map-card-meta {
+            margin-top: 5px;
+            font-size: 11px;
+            font-family: var(--font-lovers-body);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--lovers-red);
+          }
+          .map-card-combo {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--lovers-brown);
+            opacity: .7;
+          }
+
+          /* ── lista de unidades ── */
+          .map-location-list {
+            display: grid;
+            gap: 8px;
+          }
+          .map-location-list--many {
+            gap: 6px;
+          }
+          .map-location-row {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(135,14,45,.1);
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s, background .18s;
+          }
+          .map-location-row:hover {
+            border-color: rgba(135,14,45,.3);
+          }
+          .map-location-row--active {
+            border-color: var(--lovers-red);
+            background: rgba(135,14,45,.08);
+            box-shadow: 0 8px 20px rgba(135,14,45,.10);
+          }
+          .map-location-list--many .map-location-row {
+            padding: 8px 10px;
+          }
+
+          /* ── conteúdo da unidade ── */
+          .map-location-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+          }
+          .map-location-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--lovers-ink);
+          }
+          .map-location-row--active .map-location-title {
+            color: var(--lovers-red);
+          }
+          .map-location-distance {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--lovers-red);
+            white-space: nowrap;
+            font-family: var(--font-lovers-body);
+          }
+          .map-location-meta {
+            margin-top: 3px;
+            font-size: 10px;
+            font-family: var(--font-lovers-body);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--lovers-red);
+            opacity: .75;
+          }
+          .map-location-address {
+            margin-top: 5px;
+            font-size: 11px;
+            color: var(--lovers-brown);
+            opacity: .65;
+            line-height: 1.4;
+          }
+
+          /* ── botões de ação ── */
           .map-location-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 8px;
           }
           .map-location-action {
             border: 1px solid rgba(135,14,45,.18);
-            background: rgba(255,255,255,.78);
+            background: rgba(255,255,255,.82);
             color: var(--lovers-red);
             border-radius: 999px;
-            min-height: 32px;
-            padding: 0 12px;
+            min-height: 30px;
+            padding: 0 11px;
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 900;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -952,30 +1053,22 @@ export function MapaGooglePage({ navigate }) {
             color: #fff;
             border-color: var(--lovers-red);
           }
-          .map-location-action:hover {
-            transform: translateY(-1px);
-          }
-          input[type=text]:focus {
-            border-color: var(--lovers-red) !important;
-          }
+          .map-location-action:hover { transform: translateY(-1px); }
+
+          input[type=text]:focus { border-color: var(--lovers-red) !important; }
+
+          /* ── responsivo ── */
           @media (max-width: 880px) {
             .mapa-layout { grid-template-columns: 1fr; }
             .mapa-container { height: 360px; }
             .mapa-list { height: auto; }
-            .mapa-selected-card {
-              position: fixed !important;
-              bottom: 0 !important;
-              left: 0 !important;
-              right: 0 !important;
-              border-radius: 20px 20px 0 0 !important;
-              max-height: 40vh;
-              overflow-y: auto;
-              animation: mapaSlideUp .25s ease;
-            }
-            @keyframes mapaSlideUp {
-              from { transform: translateY(100%); }
-              to   { transform: translateY(0); }
-            }
+          }
+          @media (max-width: 560px) {
+            .map-card-logo { width: 44px; height: 44px; border-radius: 12px; }
+            .map-card-title-group h3 { font-size: 19px; }
+            .map-location-topline { flex-direction: column; align-items: flex-start; gap: 2px; }
+            .map-location-actions { gap: 5px; }
+            .map-location-action { min-height: 32px; flex: 1; }
           }
         `}</style>
       </section>
