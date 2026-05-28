@@ -539,6 +539,19 @@ export function MapaGooglePage({ navigate }) {
 
   function clearRoute() { setRouteLocationIds([]) }
 
+  function moveRouteLocation(locationId, direction) {
+    setRouteLocationIds(current => {
+      const index = current.indexOf(locationId)
+      if (index === -1) return current
+      const nextIndex = direction === 'up' ? index - 1 : index + 1
+      if (nextIndex < 0 || nextIndex >= current.length) return current
+      const updated = [...current]
+      const [item] = updated.splice(index, 1)
+      updated.splice(nextIndex, 0, item)
+      return updated
+    })
+  }
+
   // ── derived ui state ───────────────────────────────────────────────────────
 
   const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
@@ -1064,8 +1077,26 @@ export function MapaGooglePage({ navigate }) {
                             <strong>{location.participantName}</strong>
                             <span>{location.locationName}</span>
                             <small>{[location.neighborhood, location.city].filter(Boolean).join(' · ')}</small>
+                            <div className="sweet-route-stop-actions">
+                              <button
+                                type="button"
+                                className="sweet-route-mini-action"
+                                onClick={() => moveRouteLocation(location.id, 'up')}
+                                disabled={index === 0}
+                              >▲ SUBIR</button>
+                              <button
+                                type="button"
+                                className="sweet-route-mini-action"
+                                onClick={() => moveRouteLocation(location.id, 'down')}
+                                disabled={index === routeLocations.length - 1}
+                              >▼ DESCER</button>
+                              <button
+                                type="button"
+                                className="sweet-route-mini-action sweet-route-mini-action--danger"
+                                onClick={() => removeRouteLocation(location.id)}
+                              >REMOVER</button>
+                            </div>
                           </div>
-                          <button type="button" className="sweet-route-remove" onClick={() => removeRouteLocation(location.id)}>REMOVER</button>
                         </li>
                       ))}
                     </ol>
@@ -1300,9 +1331,9 @@ export function MapaGooglePage({ navigate }) {
           }
           .sweet-route-stop {
             display: grid;
-            grid-template-columns: 42px 1fr auto;
+            grid-template-columns: 42px 1fr;
             gap: 12px;
-            align-items: center;
+            align-items: start;
             padding: 12px;
             border-radius: 18px;
             background: rgba(255,255,255,.80);
@@ -1320,6 +1351,7 @@ export function MapaGooglePage({ navigate }) {
             font-family: var(--font-lovers-body);
             font-weight: 900;
             font-size: 16px;
+            flex-shrink: 0;
           }
           .sweet-route-stop-content { min-width: 0; }
           .sweet-route-stop strong {
@@ -1339,23 +1371,30 @@ export function MapaGooglePage({ navigate }) {
             margin-top: 3px;
             font-size: 12px;
           }
-          .sweet-route-remove {
+          .sweet-route-stop-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+          }
+          .sweet-route-mini-action {
             border: 1px solid rgba(135,14,45,.22);
-            background: rgba(255,255,255,.6);
+            background: rgba(255,255,255,.64);
             color: var(--lovers-red);
             border-radius: 999px;
-            min-height: 30px;
+            min-height: 28px;
             padding: 0 10px;
             font-family: var(--font-lovers-body);
             font-weight: 900;
-            font-size: 10px;
+            font-size: 9px;
             letter-spacing: .06em;
             text-transform: uppercase;
             cursor: pointer;
-            white-space: nowrap;
             transition: background .15s, color .15s;
           }
-          .sweet-route-remove:hover { background: var(--lovers-red); color: var(--lovers-cream); }
+          .sweet-route-mini-action:hover:not(:disabled) { background: var(--lovers-red); color: var(--lovers-cream); }
+          .sweet-route-mini-action:disabled { opacity: .35; cursor: not-allowed; }
+          .sweet-route-mini-action--danger { border-color: var(--lovers-red); }
           .sweet-route-warning {
             position: relative;
             z-index: 1;
