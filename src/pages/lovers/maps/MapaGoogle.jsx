@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
@@ -23,28 +23,50 @@ function buildPinEl(selected) {
   return el
 }
 
-console.log('[Mapa Pins]', {
-  total: PARTICIPANTS.length,
-  withAddress: PARTICIPANTS.filter(p => p.address).length,
-  withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
-  withoutCoords: PARTICIPANTS.filter(p => p.address && (!p.latitude || !p.longitude)).map(p => p.name),
-})
+function getParticipantLocations(participant) {
+  const source = Array.isArray(participant.locations) && participant.locations.length > 0
+    ? participant.locations
+    : [{
+        id: `${participant.id}-main`,
+        name: participant.neighborhood || 'Unidade principal',
+        address: participant.address,
+        neighborhood: participant.neighborhood,
+        city: participant.city,
+        latitude: participant.latitude,
+        longitude: participant.longitude,
+        mapsUrl: participant.mapsUrl,
+      }]
 
-if (GOOGLE_MAPS_API_KEY) {
-  setOptions({ key: GOOGLE_MAPS_API_KEY })
+  return source.map((location, index) => ({
+    id: location.id || `${participant.id}-location-${index}`,
+    participantId: participant.id,
+    participantSlug: participant.slug,
+    participantName: participant.name,
+    participantLogo: participant.logo,
+    participantInstagram: participant.instagram,
+    brandColor: participant.brandColor,
+    locationName: location.name || participant.neighborhood || `Unidade ${index + 1}`,
+    address: location.address || participant.address,
+    neighborhood: location.neighborhood || participant.neighborhood,
+    city: location.city || participant.city,
+    latitude: location.latitude ?? null,
+    longitude: location.longitude ?? null,
+    mapsUrl: location.mapsUrl || participant.mapsUrl || '',
+  }))
 }
 
-function getMapsSearchUrl(p) {
-  if (!p?.address) return null
-  const query = encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)
+function getLocationMapsUrl(location) {
+  if (location.mapsUrl) return location.mapsUrl
+  if (Number.isFinite(location.latitude) && Number.isFinite(location.longitude)) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`
+  }
+  if (!location.address) return null
+  const query = encodeURIComponent(`${location.address}, ${location.city || ''}`)
   return `https://www.google.com/maps/search/?api=1&query=${query}`
 }
 
-function getMapsDirectionsUrl(p) {
-  if (p?.latitude && p?.longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`
-  }
-  return getMapsSearchUrl(p)
+if (GOOGLE_MAPS_API_KEY) {
+  setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -59,7 +81,7 @@ function formatDist(km) {
   return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1).replace('.', ',')} km`
 }
 
-function GoogleMap({ participants, selected, onSelect, userLocation, onError }) {
+function GoogleMap({ pinLocations, selectedLocationId, onMarkerClick, userLocation, mapInstanceRef, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -81,10 +103,7 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
   useEffect(() => {
     if (!mapRef.current) return
-    if (!GOOGLE_MAPS_API_KEY) {
-      onError?.('missing-key')
-      return
-    }
+    if (!GOOGLE_MAPS_API_KEY) { onError?.('missing-key'); return }
     let cancelled = false
 
     ;(async () => {
@@ -101,37 +120,32 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
           gestureHandling: 'cooperative',
         })
 
-        const coords = participants.filter(p => p.latitude && p.longitude)
+        if (mapInstanceRef) mapInstanceRef.current = map
 
-        coords.forEach(p => {
+        pinLocations.forEach(loc => {
           const el = buildPinEl(false)
           const marker = new AdvancedMarkerElement({
             map,
-            position: { lat: p.latitude, lng: p.longitude },
-            title: p.name,
+            position: { lat: loc.latitude, lng: loc.longitude },
+            title: `${loc.participantName} — ${loc.locationName}`,
             content: el,
           })
-          marker.addListener('gmp-click', () => onSelect(p))
-          markersRef.current[p.id] = { marker, el }
+          marker.addListener('gmp-click', () => onMarkerClick(loc))
+          markersRef.current[loc.id] = { marker, el }
         })
 
-        if (coords.length > 1) {
+        if (pinLocations.length > 1) {
           const bounds = new google.maps.LatLngBounds()
-          coords.forEach(p => bounds.extend({ lat: p.latitude, lng: p.longitude }))
+          pinLocations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
           map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 })
-        } else if (coords.length === 1) {
-          map.setCenter({ lat: coords[0].latitude, lng: coords[0].longitude })
+        } else if (pinLocations.length === 1) {
+          map.setCenter({ lat: pinLocations[0].latitude, lng: pinLocations[0].longitude })
           map.setZoom(15)
         }
 
         instanceRef.current = { map, AdvancedMarkerElement }
       } catch (e) {
-        console.error('[Google Maps Load Error]', {
-          name: e?.name,
-          message: e?.message,
-          stack: e?.stack,
-          error: e,
-        })
+        console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
         onError?.('load-error')
       }
     })()
@@ -139,6 +153,7 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
     return () => {
       cancelled = true
       Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
+      if (mapInstanceRef) mapInstanceRef.current = null
       instanceRef.current = null
       markersRef.current = {}
     }
@@ -146,15 +161,12 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([id, { el }]) => {
-      const isSelected = selected?.id === id
+      const isSelected = selectedLocationId === id
       const path = el.querySelector('path')
       if (path) path.setAttribute('fill', isSelected ? PIN_DARK : PIN_RED)
       el.style.transform = isSelected ? 'scale(1.35)' : 'scale(1)'
     })
-    if (selected?.latitude && selected?.longitude && instanceRef.current) {
-      instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
-    }
-  }, [selected])
+  }, [selectedLocationId])
 
   useEffect(() => {
     if (!instanceRef.current) return
@@ -178,13 +190,55 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
 }
 
 export function MapaGooglePage({ navigate }) {
-  const [selected, setSelected] = useState(null)
+  const [selectedParticipantId, setSelectedParticipantId] = useState(null)
+  const [selectedLocationId, setSelectedLocationId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterBairro, setFilterBairro] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
   const [locLoading, setLocLoading] = useState(false)
   const [locError, setLocError] = useState(null)
   const [mapError, setMapError] = useState(null)
+  const mapInstanceRef = useRef(null)
+
+  const participants = useMemo(() =>
+    PARTICIPANTS.map(p => ({
+      ...p,
+      combo: COMBOS.find(c => c.participantId === p.id) || null,
+    })),
+  [])
+
+  const allLocations = useMemo(() =>
+    participants.flatMap(getParticipantLocations),
+  [participants])
+
+  const pinLocations = useMemo(() =>
+    allLocations.filter(l => Number.isFinite(l.latitude) && Number.isFinite(l.longitude)),
+  [allLocations])
+
+  console.log('[Mapa Locations]', {
+    participants: participants.length,
+    allLocations: allLocations.length,
+    pinLocations: pinLocations.length,
+    withoutCoords: allLocations
+      .filter(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+      .map(l => `${l.participantName} — ${l.locationName}`)
+  })
+
+  function focusLocation(location) {
+    setSelectedParticipantId(location.participantId)
+    setSelectedLocationId(location.id)
+    if (mapInstanceRef.current && Number.isFinite(location.latitude) && Number.isFinite(location.longitude)) {
+      mapInstanceRef.current.panTo({ lat: location.latitude, lng: location.longitude })
+      mapInstanceRef.current.setZoom(15)
+    }
+  }
+
+  function handleMarkerClick(location) {
+    setSelectedParticipantId(location.participantId)
+    setSelectedLocationId(location.id)
+    const el = document.getElementById(`map-card-${location.participantId}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
 
   function handleLocate() {
     if (userLocation) { setUserLocation(null); setLocError(null); return }
@@ -202,67 +256,56 @@ export function MapaGooglePage({ navigate }) {
     )
   }
 
-  const participants = PARTICIPANTS.map(p => ({
-    ...p,
-    combo: COMBOS.find(c => c.participantId === p.id) || null,
-  }))
-
-  // Flat list: one entry per unit (location). Used for map pins.
-  // When participant has multiple units, each unit becomes its own pin.
-  // When participant has only 1 unit (or no locations[]), there is a single pin per participant.
-  // eslint-disable-next-line no-unused-vars
-  const mapLocations = participants.flatMap(p => {
-    const units = (p.locations && p.locations.length > 0) ? p.locations : [{
-      id: p.id, name: '', address: p.address, neighborhood: p.neighborhood, city: p.city,
-      latitude: p.latitude, longitude: p.longitude, mapsUrl: p.mapsUrl,
-    }]
-    return units.map(loc => ({
-      id: loc.id || `${p.id}-${loc.name || 'principal'}`,
-      participantId: p.id,
-      participantName: p.name,
-      participantSlug: p.slug,
-      locationName: loc.name || '',
-      name: (units.length > 1 && loc.name) ? `${p.name} — ${loc.name}` : p.name,
-      address: loc.address || '',
-      neighborhood: loc.neighborhood || p.neighborhood || '',
-      city: loc.city || p.city || '',
-      latitude: loc.latitude ?? null,
-      longitude: loc.longitude ?? null,
-      mapsUrl: loc.mapsUrl || '',
-      logo: p.logo,
-      brandColor: p.brandColor,
-      instagram: p.instagram,
-      combo: p.combo,
-    }))
-  })
-
-  const neighborhoods = [...new Set(participants.map(p => p.neighborhood).filter(Boolean))]
-    .sort()
-    .map(n => ({ name: n, count: participants.filter(p => p.neighborhood === n).length }))
-
-  const filtered = participants
-    .filter(p => {
-      const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase())
-      const matchBairro = !filterBairro || p.neighborhood === filterBairro
-      return matchSearch && matchBairro
+  const neighborhoods = useMemo(() => {
+    const counts = {}
+    allLocations.forEach(l => {
+      if (l.neighborhood) counts[l.neighborhood] = (counts[l.neighborhood] || 0) + 1
     })
-    .map(p => ({
-      ...p,
-      dist: userLocation && p.latitude && p.longitude
-        ? haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
-        : null,
-    }))
-    .sort((a, b) => {
-      if (a.dist !== null && b.dist !== null) return a.dist - b.dist
-      return 0
-    })
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, count]) => ({ name, count }))
+  }, [allLocations])
 
-  const hasData = false
-  const hasMissingCoords = participants.some(p => p.address && (!p.latitude || !p.longitude))
+  const filteredParticipants = useMemo(() => {
+    const q = search.toLowerCase()
+    return participants
+      .filter(p => {
+        const locs = getParticipantLocations(p)
+        const matchSearch = !q || (
+          p.name.toLowerCase().includes(q) ||
+          locs.some(l =>
+            (l.locationName || '').toLowerCase().includes(q) ||
+            (l.neighborhood || '').toLowerCase().includes(q) ||
+            (l.address || '').toLowerCase().includes(q) ||
+            (l.city || '').toLowerCase().includes(q)
+          )
+        )
+        const matchBairro = !filterBairro ||
+          locs.some(l => l.neighborhood === filterBairro)
+        return matchSearch && matchBairro
+      })
+      .map(p => ({
+        ...p,
+        dist: userLocation && p.latitude && p.longitude
+          ? haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
+          : null,
+      }))
+      .sort((a, b) => {
+        if (a.dist !== null && b.dist !== null) return a.dist - b.dist
+        return 0
+      })
+  }, [participants, search, filterBairro, userLocation])
 
-  function handleListClick(p) {
-    setSelected(prev => prev?.id === p.id ? null : p)
-  }
+  const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+  const hasData = true
+
+  const selectedLocation = useMemo(() =>
+    selectedLocationId ? allLocations.find(l => l.id === selectedLocationId) : null,
+  [selectedLocationId, allLocations])
+
+  const selectedParticipant = useMemo(() =>
+    selectedParticipantId ? participants.find(p => p.id === selectedParticipantId) : null,
+  [selectedParticipantId, participants])
 
   return (
     <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -344,15 +387,16 @@ export function MapaGooglePage({ navigate }) {
                   </div>
                 ) : (
                   <GoogleMap
-                    participants={participants}
-                    selected={selected}
-                    onSelect={setSelected}
+                    pinLocations={pinLocations}
+                    selectedLocationId={selectedLocationId}
+                    onMarkerClick={handleMarkerClick}
                     userLocation={userLocation}
+                    mapInstanceRef={mapInstanceRef}
                     onError={setMapError}
                   />
                 )}
 
-                {selected && (
+                {selectedLocation && (
                   <div className="mapa-selected-card" style={{
                     position: 'absolute', bottom: 16, left: 16, right: 16,
                     zIndex: 1000,
@@ -362,7 +406,7 @@ export function MapaGooglePage({ navigate }) {
                     boxShadow: '0 8px 32px rgba(43,24,16,.2)',
                   }}>
                     <button
-                      onClick={() => setSelected(null)}
+                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
                       style={{
                         position: 'absolute', top: 8, right: 12,
                         background: 'none', border: 'none', cursor: 'pointer',
@@ -370,39 +414,34 @@ export function MapaGooglePage({ navigate }) {
                       }}
                     >×</button>
                     <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, marginBottom: 4 }}>
-                      {selected.neighborhood}
+                      {selectedLocation.locationName} · {selectedLocation.neighborhood}
                     </div>
                     <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4 }}>
-                      {selected.name}
+                      {selectedLocation.participantName}
                     </div>
-                    {selected.combo && (
+                    {selectedParticipant?.combo && (
                       <div style={{ fontSize: 14, color: 'var(--lovers-brown)', opacity: .85, marginBottom: 6 }}>
-                        Combo: <strong>{selected.combo.name}</strong>
+                        Combo: <strong>{selectedParticipant.combo.name}</strong>
                       </div>
                     )}
-                    {selected.address && (
+                    {selectedLocation.address && (
                       <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 4 }}>
-                        {selected.address}
-                      </div>
-                    )}
-                    {selected.openingHours && (
-                      <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 12 }}>
-                        {selected.openingHours}
+                        {selectedLocation.address}
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                      {selected.combo?.slug && (
+                      {selectedParticipant?.combo?.slug && (
                         <button
                           className="btn btn-lovers btn-sm"
-                          onClick={() => navigate(`/lovers/combos/${selected.combo.slug}`)}
+                          onClick={() => navigate(`/lovers/combos/${selectedParticipant.combo.slug}`)}
                           style={{ fontSize: 13 }}
                         >
                           Ver combo <I.arrow />
                         </button>
                       )}
-                      {getMapsDirectionsUrl(selected) && (
+                      {getLocationMapsUrl(selectedLocation) && (
                         <a
-                          href={getMapsDirectionsUrl(selected)}
+                          href={getLocationMapsUrl(selectedLocation)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-sm"
@@ -419,7 +458,7 @@ export function MapaGooglePage({ navigate }) {
               <div className="mapa-list">
                 <input
                   type="text"
-                  placeholder="Buscar participante..."
+                  placeholder="Buscar participante, bairro ou endereço..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   style={{
@@ -475,65 +514,150 @@ export function MapaGooglePage({ navigate }) {
                 )}
 
                 <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
-                  {filtered.length === participants.length
+                  {filteredParticipants.length === participants.length
                     ? `PARTICIPANTES · ${participants.length}`
-                    : `MOSTRANDO · ${filtered.length} de ${participants.length}`}
+                    : `MOSTRANDO · ${filteredParticipants.length} de ${participants.length}`}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {filtered.length === 0 && (
+                  {filteredParticipants.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lovers-brown)', opacity: .5, fontSize: 14 }}>
                       Nenhum participante encontrado
                     </div>
                   )}
-                  {filtered.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => handleListClick(p)}
-                      style={{
-                        background: selected?.id === p.id ? 'var(--lovers-cream)' : '#fff',
-                        border: `1.5px solid ${selected?.id === p.id ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
-                        borderRadius: 14, padding: '14px 16px',
-                        cursor: 'pointer', transition: 'border-color .15s, background .15s',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                        <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10 }}>{p.neighborhood}</div>
-                        {p.dist !== null && (
-                          <div className="mono" style={{ fontSize: 10, color: '#4285F4', fontWeight: 600 }}>{formatDist(p.dist)}</div>
+                  {filteredParticipants.map(p => {
+                    const isActive = selectedParticipantId === p.id
+                    const locs = getParticipantLocations(p)
+                    const multiUnit = locs.length > 1
+
+                    return (
+                      <div
+                        id={`map-card-${p.id}`}
+                        key={p.id}
+                        style={{
+                          background: isActive ? 'var(--lovers-cream)' : '#fff',
+                          border: `1.5px solid ${isActive ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
+                          borderRadius: 14, padding: '14px 16px',
+                          transition: 'border-color .15s, background .15s',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: multiUnit ? 10 : 4 }}>
+                          <div>
+                            {!multiUnit && (
+                              <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10, marginBottom: 2 }}>
+                                {locs[0]?.neighborhood}
+                              </div>
+                            )}
+                            <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 18, lineHeight: 1.2, color: 'var(--lovers-ink)' }}>
+                              {p.name}
+                            </div>
+                            {multiUnit && (
+                              <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10, marginTop: 2 }}>
+                                {locs.length} UNIDADES
+                              </div>
+                            )}
+                            {p.combo && (
+                              <div style={{ fontSize: 13, color: 'var(--lovers-brown)', opacity: .75, marginTop: 2 }}>
+                                {p.combo.name}
+                              </div>
+                            )}
+                          </div>
+                          {p.dist !== null && (
+                            <div className="mono" style={{ fontSize: 10, color: '#4285F4', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                              {formatDist(p.dist)}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: multiUnit ? 8 : 0 }}>
+                          {locs.map(loc => {
+                            const isLocActive = selectedLocationId === loc.id
+                            const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+                            const mapsUrl = getLocationMapsUrl(loc)
+
+                            return (
+                              <div
+                                key={loc.id}
+                                style={{
+                                  background: isLocActive ? 'rgba(214,54,72,.06)' : 'transparent',
+                                  borderRadius: 8,
+                                  padding: multiUnit ? '8px 10px' : 0,
+                                  border: multiUnit
+                                    ? `1px solid ${isLocActive ? 'rgba(214,54,72,.3)' : 'rgba(135,14,45,.1)'}`
+                                    : 'none',
+                                  transition: 'background .15s, border-color .15s',
+                                }}
+                              >
+                                {multiUnit && (
+                                  <div className="mono" style={{ fontSize: 10, color: 'var(--lovers-red)', marginBottom: 3 }}>
+                                    {loc.locationName} · {loc.neighborhood}
+                                  </div>
+                                )}
+                                {loc.address && (
+                                  <div className="mono" style={{
+                                    fontSize: 11, color: 'var(--lovers-brown)', opacity: .65,
+                                    marginBottom: multiUnit ? 8 : 6, lineHeight: 1.4,
+                                  }}>
+                                    {loc.address}
+                                  </div>
+                                )}
+                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                  {hasCoords && (
+                                    <button
+                                      className="btn btn-sm"
+                                      style={{
+                                        background: isLocActive ? 'var(--lovers-red)' : 'transparent',
+                                        color: isLocActive ? '#fff' : 'var(--lovers-red)',
+                                        border: '1.5px solid var(--lovers-red)',
+                                        fontSize: 11, padding: '3px 10px',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => focusLocation(loc)}
+                                    >
+                                      Ver pin
+                                    </button>
+                                  )}
+                                  {mapsUrl && (
+                                    <a
+                                      href={mapsUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-sm"
+                                      style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 11, padding: '3px 10px' }}
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      Mapa
+                                    </a>
+                                  )}
+                                  {!multiUnit && p.combo?.slug && (
+                                    <button
+                                      className="btn btn-lovers btn-sm"
+                                      style={{ fontSize: 11, padding: '3px 10px' }}
+                                      onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
+                                    >
+                                      Ver combo
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {multiUnit && p.combo?.slug && (
+                          <div style={{ marginTop: 10 }}>
+                            <button
+                              className="btn btn-lovers btn-sm"
+                              style={{ fontSize: 12 }}
+                              onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
+                            >
+                              Ver combo
+                            </button>
+                          </div>
                         )}
                       </div>
-                      <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 18, lineHeight: 1.2, color: 'var(--lovers-ink)', marginBottom: 2 }}>
-                        {p.name}
-                      </div>
-                      {p.combo && (
-                        <div style={{ fontSize: 13, color: 'var(--lovers-brown)', opacity: .75 }}>{p.combo.name}</div>
-                      )}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                        {p.combo?.slug && (
-                          <button
-                            className="btn btn-lovers btn-sm"
-                            style={{ fontSize: 12 }}
-                            onClick={(e) => { e.stopPropagation(); navigate(`/lovers/combos/${p.combo.slug}`) }}
-                          >
-                            Ver combo
-                          </button>
-                        )}
-                        {getMapsDirectionsUrl(p) && (
-                          <a
-                            href={getMapsDirectionsUrl(p)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-sm"
-                            style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Mapa
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             </div>
