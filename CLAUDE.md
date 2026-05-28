@@ -1,5 +1,36 @@
 # Sweet & Coffee Week — Regras do Projeto
 
+## Fluxo padrão para qualquer ajuste importante
+
+### Antes de alterar
+
+1. Ler `CODE_REVIEW_GRAPH.md`.
+2. Confirmar branch: `git branch --show-current`
+3. Só continuar se branch for **`dev/lovers-internal-pages`**.
+   - Se estiver em `master`, `main` ou outra branch: **parar e avisar**.
+4. Nunca alterar `master/main`. Nunca publicar produção. Nunca fazer merge. Nunca usar `vercel --prod`. Nunca promover Preview para Production.
+
+### Durante a tarefa
+
+- Fazer apenas as alterações solicitadas.
+- Não alterar rotas, slugs, URLs de QR Codes, configuração de deploy ou arquivos fora do escopo sem autorização.
+
+### Ao finalizar
+
+1. `npm run build`
+   - Build falhou → parar, mostrar erro, não commitar, não fazer push.
+2. `git status`
+3. `git add .` + `git commit -m "tipo: descrição curta"`
+   - Tipos: `fix:` / `feat:` / `style:` / `chore:` / `docs:`
+4. `git push origin dev/lovers-internal-pages`
+5. Informar ao usuário:
+   - commit criado;
+   - branch atualizada;
+   - Preview Deployment da Vercel atualizado automaticamente via push da branch `dev/lovers-internal-pages`;
+   - produção/master não foi alterada.
+
+---
+
 ## URLs estáveis para QR Codes — REGRA PERMANENTE
 
 URLs públicas dos QR Codes da edição Sweet & Coffee Week Lovers **NÃO podem mudar** depois de definidas.
