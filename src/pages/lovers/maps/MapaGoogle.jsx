@@ -10,9 +10,6 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
-const PIN_RED = '#D63648'
-const PIN_DARK = '#870E2D'
-const PIN_CREAM = '#FFF1E6'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -110,15 +107,22 @@ if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
+function pinSvg(selected) {
+  const outer = selected ? '#b80050' : '#f10767'
+  const inner = selected ? '#4a000e' : '#7f0018'
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102.3 141.39">
+    <path fill="${outer}" d="M51.15,0C22.95,0,0,22.9,0,51.05c0,39.08,45.48,86.75,47.42,88.76,2.04,2.12,5.44,2.12,7.47,0,1.94-2.01,47.42-49.68,47.42-88.76,0-28.15-22.95-51.05-51.15-51.05Z"/>
+    <path fill="${inner}" d="M23.13,60.44c-1.98-9.32-.14-21.72,6.3-27.84,2.86-2.72,6.99-3.23,10.13-.84,5.61,4.26,7.23,11.05,8.66,18.39,3.98-10.22,11.47-25.23,21.91-28.17,4.32-1.22,8.34,1,9.28,5.46,1.03,4.87.38,9.84-1.14,14.73-6.55,21.16-21.44,42.56-35.26,60.38-8.23-12.97-17-26.76-19.9-42.12Z"/>
+  </svg>`
+}
+
 function pinIcon(selected) {
+  const w = selected ? 44 : 36
+  const h = selected ? 61 : 50
   return {
-    path: 'M12 1C5.924 1 1 5.924 1 12c0 9.5 11 19 11 19S23 21.5 23 12C23 5.924 18.076 1 12 1z',
-    fillColor: selected ? PIN_DARK : PIN_RED,
-    fillOpacity: 1,
-    strokeColor: PIN_CREAM,
-    strokeWeight: 1.5,
-    scale: selected ? 1.35 : 1,
-    anchor: new google.maps.Point(12, 31),
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg(selected)),
+    scaledSize: new google.maps.Size(w, h),
+    anchor: new google.maps.Point(Math.round(w / 2), h),
   }
 }
 
@@ -252,6 +256,27 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 }
 
+function getLocationDestination(location) {
+  if (Number.isFinite(location.latitude) && Number.isFinite(location.longitude))
+    return `${location.latitude},${location.longitude}`
+  if (location.address) return `${location.address}, ${location.city || ''}`
+  return ''
+}
+
+function getRouteGoogleMapsUrl(routeLocations, userLocation) {
+  const validStops = routeLocations.map(getLocationDestination).filter(Boolean).slice(0, 9)
+  if (validStops.length === 0) return null
+  const origin = userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)
+    ? `${userLocation.lat},${userLocation.lng}` : null
+  const orig = origin ? `origin=${encodeURIComponent(origin)}&` : ''
+  if (validStops.length === 1) {
+    return `https://www.google.com/maps/dir/?api=1&${orig}destination=${encodeURIComponent(validStops[0])}&travelmode=driving`
+  }
+  const dest = encodeURIComponent(validStops[validStops.length - 1])
+  const waypoints = validStops.slice(0, -1).map(encodeURIComponent).join('|')
+  return `https://www.google.com/maps/dir/?api=1&${orig}destination=${dest}&waypoints=${waypoints}&travelmode=driving`
+}
+
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
 export function MapaGooglePage({ navigate }) {
@@ -264,6 +289,13 @@ export function MapaGooglePage({ navigate }) {
   const [locationError, setLocationError] = useState('')
   const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
+  const [routeLocationIds, setRouteLocationIds] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('sweet-lovers-route')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
+  const [isRoutePanelOpen, setIsRoutePanelOpen] = useState(false)
 
   const mapDebug = isMapDebugEnabled()
 
@@ -407,6 +439,22 @@ export function MapaGooglePage({ navigate }) {
     console.log('[Mapa Lovers Diagnostics]', mapDiagnostics)
   }, [mapDebug, mapDiagnostics])
 
+  useEffect(() => {
+    try { window.localStorage.setItem('sweet-lovers-route', JSON.stringify(routeLocationIds)) }
+    catch {}
+  }, [routeLocationIds])
+
+  useEffect(() => {
+    if (!isRoutePanelOpen) return
+    const handler = e => { if (e.key === 'Escape') setIsRoutePanelOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isRoutePanelOpen])
+
+  const routeLocations = useMemo(() =>
+    routeLocationIds.map(id => allLocations.find(l => l.id === id)).filter(Boolean),
+  [routeLocationIds, allLocations])
+
   // ── actions ────────────────────────────────────────────────────────────────
 
   function requestUserLocation() {
@@ -448,6 +496,20 @@ export function MapaGooglePage({ navigate }) {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 
+  function isInRoute(location) { return routeLocationIds.includes(location.id) }
+
+  function toggleRouteLocation(location) {
+    setRouteLocationIds(cur =>
+      cur.includes(location.id) ? cur.filter(id => id !== location.id) : [...cur, location.id]
+    )
+  }
+
+  function removeRouteLocation(locationId) {
+    setRouteLocationIds(cur => cur.filter(id => id !== locationId))
+  }
+
+  function clearRoute() { setRouteLocationIds([]) }
+
   // ── derived ui state ───────────────────────────────────────────────────────
 
   const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
@@ -460,6 +522,8 @@ export function MapaGooglePage({ navigate }) {
   const selectedParticipant = useMemo(() =>
     selectedParticipantId ? participants.find(p => p.id === selectedParticipantId) : null,
   [selectedParticipantId, participants])
+
+  const routeMapsUrl = getRouteGoogleMapsUrl(routeLocations, userLocation)
 
   // ── render ─────────────────────────────────────────────────────────────────
 
@@ -485,7 +549,7 @@ export function MapaGooglePage({ navigate }) {
         </div>
       </section>
 
-      <section style={{ paddingBottom: 80, position: 'relative' }}>
+      <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
         <div className="wrap">
 
           {!hasData ? (
@@ -572,7 +636,7 @@ export function MapaGooglePage({ navigate }) {
                     <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, marginBottom: 4 }}>
                       {selectedLocation.locationName} · {selectedLocation.neighborhood}
                     </div>
-                    <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4 }}>
+                    <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.04em' }}>
                       {selectedLocation.participantName}
                     </div>
                     {selectedParticipant?.combo && (
@@ -612,7 +676,8 @@ export function MapaGooglePage({ navigate }) {
               </div>
 
               {/* ── lista lateral ── */}
-              <div className="mapa-list">
+              <div className="map-sidebar">
+                <div className="map-sidebar-sticky">
 
                 {/* busca */}
                 <input
@@ -731,6 +796,8 @@ export function MapaGooglePage({ navigate }) {
                     </button>
                   )}
                 </div>
+                </div>{/* /map-sidebar-sticky */}
+                <div className="map-sidebar-scroll">
 
                 {/* lista de cards */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -860,6 +927,13 @@ export function MapaGooglePage({ navigate }) {
                                       Ver combo
                                     </button>
                                   )}
+                                  <button
+                                    type="button"
+                                    className={`map-location-action${isInRoute(loc) ? ' map-location-action--selected' : ''}`}
+                                    onClick={e => { e.stopPropagation(); toggleRouteLocation(loc) }}
+                                  >
+                                    {isInRoute(loc) ? 'REMOVER DA ROTA' : 'ADICIONAR À ROTA'}
+                                  </button>
                                 </div>
                               </div>
                             )
@@ -923,9 +997,58 @@ export function MapaGooglePage({ navigate }) {
                     )}
                   </div>
                 )}
-              </div>
+                </div>{/* /map-sidebar-scroll */}
+              </div>{/* /map-sidebar */}
             </div>
-            </>
+
+            {routeLocations.length > 0 && (
+              <button type="button" className="sweet-route-fab" onClick={() => setIsRoutePanelOpen(true)}>
+                MINHA ROTA · {routeLocations.length} {routeLocations.length === 1 ? 'PARADA' : 'PARADAS'}
+              </button>
+            )}
+
+            {isRoutePanelOpen && (
+              <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
+                <div className="sweet-route-panel" onClick={e => e.stopPropagation()}>
+                  <button type="button" className="sweet-route-close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar rota">×</button>
+                  <div className="sweet-route-header">
+                    <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
+                    <h2>MINHA ROTA LOVERS</h2>
+                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers. Tire um print, compartilhe com os amigos e trace sua rota.</p>
+                  </div>
+                  <div className="sweet-route-summary">
+                    <strong>{routeLocations.length}</strong>
+                    <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
+                  </div>
+                  <ol className="sweet-route-list">
+                    {routeLocations.map((location, index) => (
+                      <li className="sweet-route-stop" key={location.id}>
+                        <span className="sweet-route-number">{index + 1}</span>
+                        <div>
+                          <strong>{location.participantName}</strong>
+                          <span>{location.locationName}</span>
+                          <small>{[location.neighborhood, location.city].filter(Boolean).join(' · ')}</small>
+                          {location.address && <small>{location.address}</small>}
+                        </div>
+                        <button type="button" className="sweet-route-remove" onClick={() => removeRouteLocation(location.id)}>REMOVER</button>
+                      </li>
+                    ))}
+                  </ol>
+                  {routeLocations.length > 9 && (
+                    <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
+                  )}
+                  <div className="sweet-route-actions">
+                    {routeMapsUrl && (
+                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary">
+                        ABRIR ROTA NO GOOGLE MAPS
+                      </a>
+                    )}
+                    <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
+                  </div>
+                </div>
+              </div>
+            )}
+</>
           )}
 
         </div>
@@ -945,27 +1068,271 @@ export function MapaGooglePage({ navigate }) {
             overflow: hidden;
             border: 1px solid rgba(135,14,45,.2);
           }
-          .mapa-list {
+          .map-sidebar {
+            display: flex;
+            flex-direction: column;
             height: 580px;
-            overflow-y: auto;
-            padding-right: 4px;
+            min-height: 0;
+            overflow: hidden;
           }
-          .mapa-list::-webkit-scrollbar { width: 4px; }
-          .mapa-list::-webkit-scrollbar-thumb {
-            background: rgba(135,14,45,.3);
-            border-radius: 4px;
+          .map-sidebar-sticky {
+            flex: 0 0 auto;
+            padding-bottom: 14px;
+          }
+          .map-sidebar-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding-right: 6px;
+            padding-bottom: 24px;
+          }
+          .map-sidebar-scroll::-webkit-scrollbar { width: 6px; }
+          .map-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(135,14,45,.35);
+            border-radius: 999px;
+          }
+          .map-sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          /* ── rota ── */
+          .map-location-action--selected {
+            background: var(--lovers-pink);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-pink);
+          }
+          .sweet-route-fab {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 30;
+            border: 0;
+            border-radius: 999px;
+            min-height: 54px;
+            padding: 0 22px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            box-shadow: 0 18px 36px rgba(135,14,45,.28);
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+          }
+          .sweet-route-fab:hover { transform: translateY(-2px); box-shadow: 0 22px 44px rgba(135,14,45,.34); }
+          .sweet-route-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            background: rgba(43,24,16,.52);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+          }
+          .sweet-route-panel {
+            position: relative;
+            width: min(720px, 100%);
+            max-height: min(86vh, 920px);
+            overflow-y: auto;
+            border-radius: 32px;
+            background: linear-gradient(135deg, var(--lovers-cream) 0%, #fff4ea 100%);
+            border: 2px solid rgba(135,14,45,.18);
+            box-shadow: 0 30px 80px rgba(43,24,16,.28);
+            padding: clamp(24px, 4vw, 42px);
+          }
+          .sweet-route-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(135,14,45,.2);
+            background: #fff;
+            color: var(--lovers-red);
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .sweet-route-kicker {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 7px 14px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+          }
+          .sweet-route-header h2 {
+            margin: 14px 0 8px;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(38px, 7vw, 72px);
+            line-height: .88;
+            color: var(--lovers-ink);
+            text-transform: uppercase;
+          }
+          .sweet-route-header p {
+            max-width: 540px;
+            color: var(--lovers-ink);
+            font-size: 15px;
+            line-height: 1.5;
+            opacity: .82;
+          }
+          .sweet-route-summary {
+            margin: 20px 0 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 20px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            padding: 10px 18px;
+            font-family: var(--font-lovers-body);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-size: 12px;
+            font-weight: 900;
+          }
+          .sweet-route-summary strong { font-size: 32px; line-height: 1; font-weight: 900; }
+          .sweet-route-list { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+          .sweet-route-stop {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: 14px;
+            align-items: center;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.82);
+            border: 1px solid rgba(135,14,45,.14);
+          }
+          .sweet-route-number {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 16px;
+          }
+          .sweet-route-stop > div { min-width: 0; }
+          .sweet-route-stop strong {
+            display: block;
+            color: var(--lovers-ink);
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            line-height: 1.1;
+          }
+          .sweet-route-stop span,
+          .sweet-route-stop small {
+            display: block;
+            color: var(--lovers-ink);
+            opacity: .72;
+            margin-top: 3px;
+            font-size: 13px;
+          }
+          .sweet-route-remove {
+            border: 1px solid var(--lovers-red);
+            background: transparent;
+            color: var(--lovers-red);
+            border-radius: 999px;
+            min-height: 34px;
+            padding: 0 14px;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .15s, color .15s;
+          }
+          .sweet-route-remove:hover { background: var(--lovers-red); color: var(--lovers-cream); }
+          .sweet-route-warning {
+            margin-top: 14px;
+            color: var(--lovers-red);
+            font-weight: 800;
+            font-size: 13px;
+          }
+          .sweet-route-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+          }
+          .sweet-route-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            min-height: 48px;
+            padding: 0 22px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border: 1px solid var(--lovers-red);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .15s;
+          }
+          .sweet-route-primary:hover { transform: translateY(-1px); }
+          .sweet-route-secondary {
+            border-radius: 999px;
+            min-height: 48px;
+            padding: 0 22px;
+            border: 1px solid var(--lovers-red);
+            background: transparent;
+            color: var(--lovers-red);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+          }
+          @media (max-width: 560px) {
+            .sweet-route-fab { left: 16px; right: 16px; bottom: 16px; }
+            .sweet-route-overlay { padding: 12px; }
+            .sweet-route-panel { border-radius: 24px; padding: 24px; }
+            .sweet-route-stop { grid-template-columns: 36px 1fr; }
+            .sweet-route-remove { grid-column: 2; justify-self: start; margin-top: 4px; }
+            .sweet-route-number { width: 36px; height: 36px; font-size: 14px; }
+            .sweet-route-actions { flex-direction: column; }
+            .sweet-route-primary, .sweet-route-secondary { width: 100%; justify-content: center; }
           }
 
           /* ── chips de filtro ── */
           .mapa-chip {
             font-family: var(--font-lovers-body);
             font-size: 11px;
+            font-weight: 800;
             padding: 4px 10px;
             border-radius: 20px;
             border: 1.5px solid var(--lovers-red);
             cursor: pointer;
             transition: background .15s, color .15s;
             white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: .05em;
           }
           .mapa-chip:hover { background: var(--lovers-red); color: #fff; }
           .mapa-chip:disabled { opacity: .6; cursor: default; }
@@ -973,7 +1340,7 @@ export function MapaGooglePage({ navigate }) {
           /* ── card do participante ── */
           .map-participant-card {
             background: #fff;
-            border: 1.5px solid rgba(135,14,45,.15);
+            border: 1.5px solid rgba(135,14,45,.22);
             border-radius: 18px;
             padding: 16px;
             transition: border-color .18s, background .18s, box-shadow .18s;
@@ -989,12 +1356,12 @@ export function MapaGooglePage({ navigate }) {
             display: flex;
             gap: 12px;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 18px;
           }
           .map-card-logo {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
             background: #fff;
             border: 1px solid rgba(135,14,45,.12);
             display: flex;
@@ -1002,11 +1369,14 @@ export function MapaGooglePage({ navigate }) {
             justify-content: center;
             overflow: hidden;
             flex: 0 0 auto;
+            padding: 0;
           }
           .map-card-logo img {
-            max-width: 82%;
-            max-height: 82%;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
+            object-position: center;
+            display: block;
           }
           .map-card-title-group {
             min-width: 0;
@@ -1015,17 +1385,21 @@ export function MapaGooglePage({ navigate }) {
           .map-card-title-group h3 {
             margin: 0;
             font-family: var(--font-lovers-display);
-            font-size: 22px;
-            line-height: 1;
+            font-size: clamp(28px, 2.2vw, 38px);
+            line-height: .92;
             color: var(--lovers-ink);
+            text-transform: uppercase;
+            letter-spacing: .015em;
+            text-wrap: balance;
           }
           .map-card-meta {
-            margin-top: 5px;
-            font-size: 11px;
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.2;
             font-family: var(--font-lovers-body);
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: .06em;
+            letter-spacing: .08em;
             color: var(--lovers-red);
           }
           .map-card-combo {
@@ -1038,13 +1412,13 @@ export function MapaGooglePage({ navigate }) {
           /* ── lista de unidades ── */
           .map-location-list {
             display: grid;
-            gap: 8px;
+            gap: 12px;
           }
           .map-location-list--many {
-            gap: 6px;
+            gap: 10px;
           }
           .map-location-row {
-            padding: 10px 12px;
+            padding: 14px;
             border-radius: 12px;
             background: rgba(255,255,255,.74);
             border: 1px solid rgba(135,14,45,.1);
@@ -1056,11 +1430,11 @@ export function MapaGooglePage({ navigate }) {
           }
           .map-location-row--active {
             border-color: var(--lovers-red);
-            background: rgba(135,14,45,.08);
-            box-shadow: 0 8px 20px rgba(135,14,45,.10);
+            background: rgba(214,54,72,.13);
+            box-shadow: 0 8px 20px rgba(214,54,72,.14);
           }
           .map-location-list--many .map-location-row {
-            padding: 8px 10px;
+            padding: 12px;
           }
 
           /* ── conteúdo da unidade ── */
@@ -1071,35 +1445,41 @@ export function MapaGooglePage({ navigate }) {
             gap: 8px;
           }
           .map-location-title {
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 16px;
+            line-height: 1.1;
+            font-weight: 900;
             color: var(--lovers-ink);
+            text-transform: uppercase;
+            letter-spacing: .035em;
           }
           .map-location-row--active .map-location-title {
             color: var(--lovers-red);
           }
           .map-location-distance {
-            font-size: 11px;
+            font-size: 12px;
+            line-height: 1;
             font-weight: 900;
             color: var(--lovers-red);
             white-space: nowrap;
             font-family: var(--font-lovers-body);
+            text-transform: uppercase;
+            letter-spacing: .04em;
           }
           .map-location-meta {
-            margin-top: 3px;
-            font-size: 10px;
+            margin-top: 5px;
+            font-size: 12px;
+            line-height: 1.25;
             font-family: var(--font-lovers-body);
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: .07em;
+            letter-spacing: .08em;
             color: var(--lovers-red);
-            opacity: .75;
           }
           .map-location-address {
-            margin-top: 5px;
-            font-size: 11px;
-            color: var(--lovers-brown);
-            opacity: .65;
+            margin-top: 7px;
+            font-size: 13px;
+            color: var(--lovers-ink);
+            opacity: .82;
             line-height: 1.4;
           }
 
@@ -1111,13 +1491,14 @@ export function MapaGooglePage({ navigate }) {
             margin-top: 8px;
           }
           .map-location-action {
-            border: 1px solid rgba(135,14,45,.18);
+            border: 1px solid rgba(135,14,45,.22);
             background: rgba(255,255,255,.82);
             color: var(--lovers-red);
             border-radius: 999px;
-            min-height: 30px;
-            padding: 0 11px;
-            font-size: 11px;
+            min-height: 36px;
+            padding: 0 16px;
+            font-size: 12px;
+            line-height: 1;
             font-weight: 900;
             text-decoration: none;
             display: inline-flex;
@@ -1126,6 +1507,8 @@ export function MapaGooglePage({ navigate }) {
             cursor: pointer;
             transition: transform .15s, background .15s, color .15s;
             font-family: var(--font-lovers-body);
+            text-transform: uppercase;
+            letter-spacing: .05em;
           }
           .map-location-action--primary {
             background: var(--lovers-red);
@@ -1169,14 +1552,19 @@ export function MapaGooglePage({ navigate }) {
           @media (max-width: 880px) {
             .mapa-layout { grid-template-columns: 1fr; }
             .mapa-container { height: 360px; }
-            .mapa-list { height: auto; }
+            .map-sidebar { height: auto; overflow: visible; }
+            .map-sidebar-scroll { max-height: 70vh; overflow-y: auto; }
           }
           @media (max-width: 560px) {
-            .map-card-logo { width: 44px; height: 44px; border-radius: 12px; }
-            .map-card-title-group h3 { font-size: 19px; }
+            .map-card-logo { width: 56px; height: 56px; border-radius: 13px; }
+            .map-card-title-group h3 { font-size: clamp(24px, 8vw, 30px); line-height: .95; }
+            .map-card-meta { font-size: 11px; }
+            .map-location-title { font-size: 14px; }
+            .map-location-meta { font-size: 10px; }
+            .map-location-address { font-size: 12px; }
             .map-location-topline { flex-direction: column; align-items: flex-start; gap: 2px; }
             .map-location-actions { gap: 5px; }
-            .map-location-action { min-height: 32px; flex: 1; }
+            .map-location-action { min-height: 34px; padding: 0 12px; font-size: 11px; flex: 1; }
           }
         `}</style>
       </section>
