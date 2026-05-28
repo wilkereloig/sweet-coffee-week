@@ -7,7 +7,7 @@
 1. Ler `CODE_REVIEW_GRAPH.md`.
 2. Confirmar branch: `git branch --show-current`
 3. Só continuar se branch for **`dev/lovers-internal-pages`**.
-   - Se estiver em `master`, `main` ou outra branch: **parar e avisar**.
+   - Se estiver em `master`, `main` ou outra branch: **parar e avisar. Não continuar.**
 4. Nunca alterar `master/main`. Nunca publicar produção. Nunca fazer merge. Nunca usar `vercel --prod`. Nunca promover Preview para Production.
 
 ### Durante a tarefa
@@ -15,19 +15,50 @@
 - Fazer apenas as alterações solicitadas.
 - Não alterar rotas, slugs, URLs de QR Codes, configuração de deploy ou arquivos fora do escopo sem autorização.
 
-### Ao finalizar
+### Ao finalizar — fluxo obrigatório
 
-1. `npm run build`
-   - Build falhou → parar, mostrar erro, não commitar, não fazer push.
-2. `git status`
-3. `git add .` + `git commit -m "tipo: descrição curta"`
-   - Tipos: `fix:` / `feat:` / `style:` / `chore:` / `docs:`
-4. `git push origin dev/lovers-internal-pages`
-5. Informar ao usuário:
-   - commit criado;
-   - branch atualizada;
-   - Preview Deployment da Vercel atualizado automaticamente via push da branch `dev/lovers-internal-pages`;
-   - produção/master não foi alterada.
+1. **Build local:**
+   ```
+   npm run build
+   ```
+   - Falhou → parar, mostrar erro, não commitar, não fazer push, não atualizar Vercel.
+
+2. **Verificar alterações:**
+   ```
+   git status
+   ```
+
+3. **Commit:**
+   ```
+   git add .
+   git commit -m "tipo: descrição curta"
+   ```
+   Tipos aceitos: `fix:` / `feat:` / `style:` / `chore:` / `docs:`
+
+4. **Push para branch de desenvolvimento:**
+   ```
+   git push origin dev/lovers-internal-pages
+   ```
+
+5. **Verificar deployments Vercel (se CLI disponível):**
+   ```
+   vercel ls
+   ```
+   - Se pedir escopo/team, informar que o usuário deve conferir pelo painel da Vercel.
+
+6. **Responder ao usuário confirmando:**
+   - Build: passou ou falhou
+   - Commit: hash + mensagem
+   - Push: feito para `dev/lovers-internal-pages`
+   - Preview Deployment: detectado via CLI ou aguardando geração automática pela Vercel
+   - Link de preview: informar se aparecer no terminal; caso contrário, orientar a abrir o painel da Vercel
+
+### Regras absolutas de proteção
+
+- Nunca atualizar produção.
+- Nunca usar `vercel --prod`.
+- Nunca fazer merge para `master/main` sem autorização explícita.
+- O site oficial em `sweetcoffeeweek.com.br` não deve ser afetado por nenhuma dessas operações.
 
 ---
 
