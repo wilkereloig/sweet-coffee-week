@@ -14,6 +14,8 @@ const PIN_RED = '#D63648'
 const PIN_DARK = '#870E2D'
 const PIN_CREAM = '#FFF1E6'
 
+// ─── helpers ────────────────────────────────────────────────────────────────
+
 function getParticipantLocations(participant) {
   const source = Array.isArray(participant.locations) && participant.locations.length > 0
     ? participant.locations
@@ -56,20 +58,52 @@ function getLocationMapsUrl(location) {
   return `https://www.google.com/maps/search/?api=1&query=${query}`
 }
 
+function getDirectionsUrl(location, userLocation) {
+  const destination = Number.isFinite(location.latitude) && Number.isFinite(location.longitude)
+    ? `${location.latitude},${location.longitude}`
+    : location.address
+      ? `${location.address}, ${location.city || ''}`
+      : null
+
+  if (!destination) return getLocationMapsUrl(location)
+
+  const destinationParam = encodeURIComponent(destination)
+
+  if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+    const originParam = encodeURIComponent(`${userLocation.lat},${userLocation.lng}`)
+    return `https://www.google.com/maps/dir/?api=1&origin=${originParam}&destination=${destinationParam}&travelmode=driving`
+  }
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${destinationParam}&travelmode=driving`
+}
+
+function haversineKm(a, b) {
+  if (!a || !b) return null
+  const R = 6371
+  const toRad = v => (v * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+function formatDistance(km) {
+  if (!Number.isFinite(km)) return ''
+  if (km < 1) return `${Math.round(km * 1000)} m`
+  return `${km.toFixed(1).replace('.', ',')} km`
+}
+
+function getParticipantMinDistance(participant, locationsWithDistance) {
+  const distances = locationsWithDistance
+    .filter(l => l.participantId === participant.id && Number.isFinite(l.distanceKm))
+    .map(l => l.distanceKm)
+  return distances.length > 0 ? Math.min(...distances) : Infinity
+}
+
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
-}
-
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-function formatDist(km) {
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1).replace('.', ',')} km`
 }
 
 function pinIcon(selected) {
@@ -84,6 +118,8 @@ function pinIcon(selected) {
   }
 }
 
+// ─── GoogleMap component ─────────────────────────────────────────────────────
+
 function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
@@ -95,7 +131,6 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     window.gm_authFailure = () => {
       console.error('[Google Maps Auth Failure]', {
         hostname: window.location.hostname,
-        href: window.location.href,
         keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
       })
       onError?.('auth-failure')
@@ -171,7 +206,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     }
   }, [])
 
-  // Highlight selected marker + pan to it
+  // Highlight selected marker + pan
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([id, marker]) => {
       marker.setIcon(pinIcon(id === selectedLocationId))
@@ -194,15 +229,16 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       userMarkerRef.current = new google.maps.Marker({
         map,
         position: { lat: userLocation.lat, lng: userLocation.lng },
-        title: 'Minha localização',
+        title: 'Você está aqui',
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          fillColor: '#4285F4',
+          fillColor: '#2E8CFF',
           fillOpacity: 1,
           strokeColor: '#fff',
-          strokeWeight: 2.5,
-          scale: 7,
+          strokeWeight: 3,
+          scale: 8,
         },
+        zIndex: 999,
       })
       map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
       map.setZoom(14)
@@ -212,15 +248,20 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 }
 
+// ─── MapaGooglePage ──────────────────────────────────────────────────────────
+
 export function MapaGooglePage({ navigate }) {
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
   const [selectedLocationId, setSelectedLocationId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterBairro, setFilterBairro] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
-  const [locLoading, setLocLoading] = useState(false)
-  const [locError, setLocError] = useState(null)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
+  const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
+
+  // ── base data ──────────────────────────────────────────────────────────────
 
   const participants = useMemo(() =>
     PARTICIPANTS.map(p => ({
@@ -243,35 +284,27 @@ export function MapaGooglePage({ navigate }) {
       .map(([name, count]) => ({ name, count }))
   }, [allLocations])
 
+  // ── search + bairro filter ─────────────────────────────────────────────────
+
   const filteredParticipants = useMemo(() => {
     const q = search.toLowerCase()
-    return participants
-      .filter(p => {
-        const locs = getParticipantLocations(p)
-        const matchSearch = !q || (
-          p.name.toLowerCase().includes(q) ||
-          locs.some(l =>
-            (l.locationName || '').toLowerCase().includes(q) ||
-            (l.neighborhood || '').toLowerCase().includes(q) ||
-            (l.address || '').toLowerCase().includes(q) ||
-            (l.city || '').toLowerCase().includes(q)
-          )
+    return participants.filter(p => {
+      const locs = getParticipantLocations(p)
+      const matchSearch = !q || (
+        p.name.toLowerCase().includes(q) ||
+        locs.some(l =>
+          (l.locationName || '').toLowerCase().includes(q) ||
+          (l.neighborhood || '').toLowerCase().includes(q) ||
+          (l.address || '').toLowerCase().includes(q) ||
+          (l.city || '').toLowerCase().includes(q)
         )
-        const matchBairro = !filterBairro ||
-          locs.some(l => l.neighborhood === filterBairro)
-        return matchSearch && matchBairro
-      })
-      .map(p => ({
-        ...p,
-        dist: userLocation && p.latitude && p.longitude
-          ? haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
-          : null,
-      }))
-      .sort((a, b) => {
-        if (a.dist !== null && b.dist !== null) return a.dist - b.dist
-        return 0
-      })
-  }, [participants, search, filterBairro, userLocation])
+      )
+      const matchBairro = !filterBairro || locs.some(l => l.neighborhood === filterBairro)
+      return matchSearch && matchBairro
+    })
+  }, [participants, search, filterBairro])
+
+  // ── locations with distance ────────────────────────────────────────────────
 
   const visibleLocations = useMemo(() =>
     filteredParticipants.flatMap(p =>
@@ -287,25 +320,83 @@ export function MapaGooglePage({ navigate }) {
     ),
   [filteredParticipants])
 
-  // All pins (from all participants) — map initializes once, always shows all pins
-  const pinLocations = useMemo(() =>
-    allLocations.filter(l => Number.isFinite(l.latitude) && Number.isFinite(l.longitude)),
-  [allLocations])
+  const visibleLocationsWithDistance = useMemo(() =>
+    visibleLocations.map(loc => {
+      const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+      const distanceKm = userLocation && hasCoords
+        ? haversineKm(userLocation, { lat: loc.latitude, lng: loc.longitude })
+        : null
+      return { ...loc, distanceKm }
+    }),
+  [visibleLocations, userLocation])
 
-  console.log('[Mapa Pins por Unidade]', {
-    participants: participants.length,
-    visibleParticipants: filteredParticipants.length,
-    visibleLocations: visibleLocations.length,
-    pinLocations: pinLocations.length,
-    withoutCoords: visibleLocations
-      .filter(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
-      .map(l => `${l.participantName} — ${l.locationName}`)
-  })
+  const pinLocations = useMemo(() =>
+    visibleLocationsWithDistance.filter(l =>
+      Number.isFinite(l.latitude) && Number.isFinite(l.longitude)
+    ),
+  [visibleLocationsWithDistance])
+
+  // ── distance filter ────────────────────────────────────────────────────────
+
+  const distanceFilteredParticipantIds = useMemo(() => {
+    if (!distanceFilterKm || !userLocation) return null
+    const ids = new Set()
+    visibleLocationsWithDistance.forEach(l => {
+      if (Number.isFinite(l.distanceKm) && l.distanceKm <= distanceFilterKm) {
+        ids.add(l.participantId)
+      }
+    })
+    return ids
+  }, [visibleLocationsWithDistance, distanceFilterKm, userLocation])
+
+  const participantsAfterDistance = useMemo(() => {
+    if (!distanceFilteredParticipantIds) return filteredParticipants
+    return filteredParticipants.filter(p => distanceFilteredParticipantIds.has(p.id))
+  }, [filteredParticipants, distanceFilteredParticipantIds])
+
+  // ── sort by proximity ──────────────────────────────────────────────────────
+
+  const finalParticipants = useMemo(() => {
+    if (!userLocation) return participantsAfterDistance
+    return [...participantsAfterDistance].sort((a, b) => {
+      const da = getParticipantMinDistance(a, visibleLocationsWithDistance)
+      const db = getParticipantMinDistance(b, visibleLocationsWithDistance)
+      return da - db
+    })
+  }, [participantsAfterDistance, userLocation, visibleLocationsWithDistance])
+
+  // ── actions ────────────────────────────────────────────────────────────────
+
+  function requestUserLocation() {
+    setLocationError('')
+    if (!navigator.geolocation) {
+      setLocationError('Seu navegador não suporta localização.')
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocating(false)
+      },
+      err => {
+        console.error('[Mapa Geolocation Error]', err)
+        setLocationError('Não foi possível acessar sua localização.')
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    )
+  }
+
+  function clearUserLocation() {
+    setUserLocation(null)
+    setLocationError('')
+    setDistanceFilterKm(null)
+  }
 
   function focusLocation(location) {
     setSelectedParticipantId(location.participantId)
     setSelectedLocationId(location.id)
-    // GoogleMap handles pan internally via useEffect on selectedLocationId
   }
 
   function handleSelectLocation(location) {
@@ -315,21 +406,7 @@ export function MapaGooglePage({ navigate }) {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 
-  function handleLocate() {
-    if (userLocation) { setUserLocation(null); setLocError(null); return }
-    if (!navigator.geolocation) { setLocError('Geolocalização não suportada neste navegador.'); return }
-    setLocLoading(true)
-    setLocError(null)
-    navigator.geolocation.getCurrentPosition(
-      pos => { setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocLoading(false) },
-      err => {
-        setLocLoading(false)
-        if (err.code === 1) setLocError('Permissão negada. Ative a localização no navegador.')
-        else setLocError('Não foi possível obter sua localização.')
-      },
-      { timeout: 10000 }
-    )
-  }
+  // ── derived ui state ───────────────────────────────────────────────────────
 
   const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
   const hasData = true
@@ -341,6 +418,8 @@ export function MapaGooglePage({ navigate }) {
   const selectedParticipant = useMemo(() =>
     selectedParticipantId ? participants.find(p => p.id === selectedParticipantId) : null,
   [selectedParticipantId, participants])
+
+  // ── render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -391,6 +470,7 @@ export function MapaGooglePage({ navigate }) {
             )}
             <div className="mapa-layout">
 
+              {/* ── mapa ── */}
               <div className="mapa-container">
                 {mapError === 'missing-key' ? (
                   <div style={{
@@ -489,7 +569,10 @@ export function MapaGooglePage({ navigate }) {
                 )}
               </div>
 
+              {/* ── lista lateral ── */}
               <div className="mapa-list">
+
+                {/* busca */}
                 <input
                   type="text"
                   placeholder="Buscar participante, bairro ou endereço..."
@@ -505,7 +588,8 @@ export function MapaGooglePage({ navigate }) {
                   }}
                 />
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                {/* filtros de bairro */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   <button
                     onClick={() => setFilterBairro(null)}
                     className="mapa-chip"
@@ -525,44 +609,109 @@ export function MapaGooglePage({ navigate }) {
                   ))}
                 </div>
 
-                <button
-                  onClick={handleLocate}
-                  disabled={locLoading}
-                  className="mapa-chip"
-                  style={{
-                    width: '100%', marginBottom: 8, padding: '8px 12px',
-                    background: userLocation ? 'var(--lovers-red)' : 'transparent',
-                    color: userLocation ? '#fff' : 'var(--lovers-red)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    opacity: locLoading ? .6 : 1,
-                    cursor: locLoading ? 'default' : 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: 14 }}>📍</span>
-                  {locLoading ? 'Obtendo localização…' : userLocation ? 'Minha localização ativa' : 'Usar minha localização'}
-                </button>
-                {locError && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-red)', marginBottom: 8, lineHeight: 1.4 }}>
-                    {locError}
+                {/* botão localização */}
+                {!userLocation ? (
+                  <button
+                    onClick={requestUserLocation}
+                    disabled={locating}
+                    className="mapa-chip"
+                    style={{
+                      width: '100%', marginBottom: locationError ? 4 : 10, padding: '8px 12px',
+                      background: 'transparent', color: 'var(--lovers-red)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      opacity: locating ? .6 : 1,
+                      cursor: locating ? 'default' : 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>📍</span>
+                    {locating ? 'Localizando…' : 'Usar minha localização'}
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
+                    <div className="mapa-chip" style={{ background: 'var(--lovers-red)', color: '#fff', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
+                      <span style={{ fontSize: 12 }}>📍</span> Localização ativa
+                    </div>
+                    <button
+                      onClick={clearUserLocation}
+                      className="mapa-chip"
+                      style={{ background: 'transparent', color: 'var(--lovers-red)', padding: '6px 10px' }}
+                    >
+                      Limpar
+                    </button>
                   </div>
                 )}
 
+                {/* erro de localização */}
+                {locationError && (
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-red)', marginBottom: 8, lineHeight: 1.4 }}>
+                    {locationError}
+                  </div>
+                )}
+
+                {/* filtros de distância — só quando localização ativa */}
+                {userLocation && (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                    {[null, 2, 5, 10].map(km => (
+                      <button
+                        key={km ?? 'all'}
+                        onClick={() => setDistanceFilterKm(km)}
+                        className="mapa-chip"
+                        style={{
+                          background: distanceFilterKm === km ? 'var(--lovers-red)' : 'transparent',
+                          color: distanceFilterKm === km ? '#fff' : 'var(--lovers-red)',
+                        }}
+                      >
+                        {km === null ? 'Todos' : `Até ${km} km`}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* contagem */}
                 <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
-                  {filteredParticipants.length === participants.length
+                  {finalParticipants.length === participants.length
                     ? `PARTICIPANTES · ${participants.length}`
-                    : `MOSTRANDO · ${filteredParticipants.length} de ${participants.length}`}
+                    : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
                 </div>
 
+                {/* lista de cards */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {filteredParticipants.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lovers-brown)', opacity: .5, fontSize: 14 }}>
-                      Nenhum participante encontrado
+
+                  {/* estado vazio */}
+                  {finalParticipants.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lovers-brown)', opacity: .6, fontSize: 14 }}>
+                      {distanceFilterKm
+                        ? (
+                          <>
+                            <div style={{ marginBottom: 8 }}>Nenhum participante encontrado nesse raio.</div>
+                            <button
+                              className="btn btn-sm"
+                              style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
+                              onClick={() => setDistanceFilterKm(null)}
+                            >
+                              Limpar distância
+                            </button>
+                          </>
+                        )
+                        : 'Nenhum participante encontrado'
+                      }
                     </div>
                   )}
-                  {filteredParticipants.map(p => {
+
+                  {finalParticipants.map(p => {
                     const isActive = selectedParticipantId === p.id
                     const locs = getParticipantLocations(p)
                     const multiUnit = locs.length > 1
+
+                    // enrich with distance
+                    const locsForCard = locs.map(loc => {
+                      const enriched = visibleLocationsWithDistance.find(
+                        l => l.participantId === p.id && l.id === loc.id
+                      )
+                      return enriched || loc
+                    })
+
+                    const minDist = getParticipantMinDistance(p, visibleLocationsWithDistance)
 
                     return (
                       <div
@@ -575,6 +724,7 @@ export function MapaGooglePage({ navigate }) {
                           transition: 'border-color .15s, background .15s',
                         }}
                       >
+                        {/* header do card */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: multiUnit ? 10 : 4 }}>
                           <div>
                             {!multiUnit && (
@@ -596,18 +746,20 @@ export function MapaGooglePage({ navigate }) {
                               </div>
                             )}
                           </div>
-                          {p.dist !== null && (
-                            <div className="mono" style={{ fontSize: 10, color: '#4285F4', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                              {formatDist(p.dist)}
+                          {userLocation && Number.isFinite(minDist) && minDist !== Infinity && (
+                            <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                              {formatDistance(minDist)}
                             </div>
                           )}
                         </div>
 
+                        {/* unidades */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: multiUnit ? 8 : 0 }}>
-                          {locs.map(loc => {
+                          {locsForCard.map(loc => {
                             const isLocActive = selectedLocationId === loc.id
                             const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
-                            const mapsUrl = getLocationMapsUrl(loc)
+                            const directionsUrl = getDirectionsUrl(loc, userLocation)
+                            const distStr = formatDistance(loc.distanceKm)
 
                             return (
                               <div
@@ -623,8 +775,20 @@ export function MapaGooglePage({ navigate }) {
                                 }}
                               >
                                 {multiUnit && (
-                                  <div className="mono" style={{ fontSize: 10, color: 'var(--lovers-red)', marginBottom: 3 }}>
-                                    {loc.locationName} · {loc.neighborhood}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                    <div className="mono" style={{ fontSize: 10, color: 'var(--lovers-red)' }}>
+                                      {loc.locationName} · {loc.neighborhood}
+                                    </div>
+                                    {userLocation && distStr && (
+                                      <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600 }}>
+                                        {distStr}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {!multiUnit && userLocation && distStr && (
+                                  <div className="mono" style={{ fontSize: 10, color: '#2E8CFF', fontWeight: 600, marginBottom: 3 }}>
+                                    {distStr}
                                   </div>
                                 )}
                                 {loc.address && (
@@ -635,38 +799,31 @@ export function MapaGooglePage({ navigate }) {
                                     {loc.address}
                                   </div>
                                 )}
-                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                <div className="map-location-actions">
                                   {hasCoords && (
                                     <button
-                                      className="btn btn-sm"
-                                      style={{
-                                        background: isLocActive ? 'var(--lovers-red)' : 'transparent',
-                                        color: isLocActive ? '#fff' : 'var(--lovers-red)',
-                                        border: '1.5px solid var(--lovers-red)',
-                                        fontSize: 11, padding: '3px 10px',
-                                        cursor: 'pointer',
-                                      }}
+                                      type="button"
+                                      className={`map-location-action${isLocActive ? ' map-location-action--active' : ''}`}
                                       onClick={() => focusLocation(loc)}
                                     >
                                       Ver pin
                                     </button>
                                   )}
-                                  {mapsUrl && (
+                                  {directionsUrl && (
                                     <a
-                                      href={mapsUrl}
+                                      className="map-location-action map-location-action--primary"
+                                      href={directionsUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="btn btn-sm"
-                                      style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 11, padding: '3px 10px' }}
                                       onClick={e => e.stopPropagation()}
                                     >
-                                      Mapa
+                                      Traçar rota
                                     </a>
                                   )}
                                   {!multiUnit && p.combo?.slug && (
                                     <button
-                                      className="btn btn-lovers btn-sm"
-                                      style={{ fontSize: 11, padding: '3px 10px' }}
+                                      type="button"
+                                      className="map-location-action"
                                       onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
                                     >
                                       Ver combo
@@ -737,6 +894,46 @@ export function MapaGooglePage({ navigate }) {
           .mapa-chip:hover {
             background: var(--lovers-red);
             color: #fff;
+          }
+          .mapa-chip:disabled {
+            opacity: .6;
+            cursor: default;
+          }
+          .map-location-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+          }
+          .map-location-action {
+            border: 1px solid rgba(135,14,45,.18);
+            background: rgba(255,255,255,.78);
+            color: var(--lovers-red);
+            border-radius: 999px;
+            min-height: 32px;
+            padding: 0 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform .15s, background .15s, color .15s;
+            font-family: var(--font-lovers-body);
+          }
+          .map-location-action--primary {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-red);
+          }
+          .map-location-action--active {
+            background: var(--lovers-red);
+            color: #fff;
+            border-color: var(--lovers-red);
+          }
+          .map-location-action:hover {
+            transform: translateY(-1px);
           }
           input[type=text]:focus {
             border-color: var(--lovers-red) !important;
