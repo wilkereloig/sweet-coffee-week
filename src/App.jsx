@@ -41,13 +41,15 @@ export default function App() {
   })()
 
   let page
+  // Public release control: only Lovers map is open by direct URL.
+  // Combos, combo details and awards must fall back to LoversPage until officially released.
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
-    case 'combos':       page = <ComboPage navigate={navigate} />; break
-    case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
+    case 'combos':       page = <LoversPage navigate={navigate} />; break
+    case 'combo-detail': page = <LoversPage navigate={navigate} />; break
     case 'mapa':         page = <MapaPage navigate={navigate} />; break
-    case 'awards':       page = <AwardsPage navigate={navigate} />; break
+    case 'awards':       page = <LoversPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break
