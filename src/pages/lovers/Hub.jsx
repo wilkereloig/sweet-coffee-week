@@ -292,7 +292,7 @@ function Participantes({ navigate }) {
           </p>
         </div>
 
-        {PARTICIPANTS.length > 0 ? (
+        {hasParticipantsData && PARTICIPANTS.length > 0 ? (
           <div className="participants-grid">
             {PARTICIPANTS.map((p) => {
               const brandColor = p.brandColor || 'var(--lovers-red)'
