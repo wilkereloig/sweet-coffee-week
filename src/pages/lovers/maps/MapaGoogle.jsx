@@ -103,6 +103,16 @@ function isMapDebugEnabled() {
   return typeof window !== 'undefined' && window.location.href.includes('debug=1')
 }
 
+function normalizeSearchText(value) {
+  // eslint-disable-next-line no-misleading-character-class
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/['']/g, '')
+    .toLowerCase()
+    .trim()
+}
+
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
@@ -348,18 +358,14 @@ export function MapaGooglePage({ navigate }) {
   // ── search + bairro filter ─────────────────────────────────────────────────
 
   const filteredParticipants = useMemo(() => {
-    const q = search.toLowerCase()
+    const q = normalizeSearchText(search)
     return participants.filter(p => {
       const locs = getParticipantLocations(p)
-      const matchSearch = !q || (
-        p.name.toLowerCase().includes(q) ||
-        locs.some(l =>
-          (l.locationName || '').toLowerCase().includes(q) ||
-          (l.neighborhood || '').toLowerCase().includes(q) ||
-          (l.address || '').toLowerCase().includes(q) ||
-          (l.city || '').toLowerCase().includes(q)
-        )
+      const participantText = normalizeSearchText([p.name, p.slug, p.instagram].filter(Boolean).join(' '))
+      const locationsText = normalizeSearchText(
+        locs.map(l => [l.locationName, l.address, l.neighborhood, l.city].filter(Boolean).join(' ')).join(' ')
       )
+      const matchSearch = !q || participantText.includes(q) || locationsText.includes(q)
       const matchBairro = !filterBairro || locs.some(l => l.neighborhood === filterBairro)
       return matchSearch && matchBairro
     })
