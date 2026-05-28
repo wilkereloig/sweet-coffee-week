@@ -667,11 +667,27 @@ export function MapaGooglePage({ navigate }) {
                   </div>
                 )}
 
-                {/* contagem */}
-                <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
-                  {finalParticipants.length === participants.length
-                    ? `PARTICIPANTES · ${participants.length}`
-                    : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
+                {/* contagem + limpar seleção */}
+                <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>
+                    {finalParticipants.length === participants.length
+                      ? `PARTICIPANTES · ${participants.length}`
+                      : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
+                  </span>
+                  {selectedLocationId && (
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 10, color: 'var(--lovers-red)', opacity: .7,
+                        fontFamily: 'var(--font-lovers-body)', fontWeight: 700,
+                        padding: '2px 0', letterSpacing: '0.03em',
+                      }}
+                    >
+                      LIMPAR SELEÇÃO ×
+                    </button>
+                  )}
                 </div>
 
                 {/* lista de cards */}
@@ -720,8 +736,9 @@ export function MapaGooglePage({ navigate }) {
                         style={{
                           background: isActive ? 'var(--lovers-cream)' : '#fff',
                           border: `1.5px solid ${isActive ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
+                          boxShadow: isActive ? '0 18px 42px rgba(135,14,45,.18)' : undefined,
                           borderRadius: 14, padding: '14px 16px',
-                          transition: 'border-color .15s, background .15s',
+                          transition: 'border-color .15s, background .15s, box-shadow .15s',
                         }}
                       >
                         {/* header do card */}
@@ -764,14 +781,17 @@ export function MapaGooglePage({ navigate }) {
                             return (
                               <div
                                 key={loc.id}
+                                onClick={() => focusLocation(loc)}
                                 style={{
-                                  background: isLocActive ? 'rgba(214,54,72,.06)' : 'transparent',
+                                  background: isLocActive ? 'rgba(214,54,72,.08)' : 'transparent',
                                   borderRadius: 8,
-                                  padding: multiUnit ? '8px 10px' : 0,
+                                  padding: multiUnit ? '8px 10px' : '4px 0',
                                   border: multiUnit
-                                    ? `1px solid ${isLocActive ? 'rgba(214,54,72,.3)' : 'rgba(135,14,45,.1)'}`
+                                    ? `1px solid ${isLocActive ? 'var(--lovers-red)' : 'rgba(135,14,45,.1)'}`
                                     : 'none',
-                                  transition: 'background .15s, border-color .15s',
+                                  boxShadow: isLocActive && multiUnit ? '0 10px 24px rgba(135,14,45,.10)' : undefined,
+                                  cursor: 'pointer',
+                                  transition: 'background .15s, border-color .15s, box-shadow .15s',
                                 }}
                               >
                                 {multiUnit && (
