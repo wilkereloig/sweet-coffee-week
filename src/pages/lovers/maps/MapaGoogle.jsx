@@ -102,6 +102,10 @@ function getParticipantMinDistance(participant, locationsWithDistance) {
   return distances.length > 0 ? Math.min(...distances) : Infinity
 }
 
+function isMapDebugEnabled() {
+  return typeof window !== 'undefined' && window.location.href.includes('debug=1')
+}
+
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
@@ -261,6 +265,8 @@ export function MapaGooglePage({ navigate }) {
   const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
 
+  const mapDebug = isMapDebugEnabled()
+
   // ── base data ──────────────────────────────────────────────────────────────
 
   const participants = useMemo(() =>
@@ -364,6 +370,42 @@ export function MapaGooglePage({ navigate }) {
       return da - db
     })
   }, [participantsAfterDistance, userLocation, visibleLocationsWithDistance])
+
+  // ── diagnostics ───────────────────────────────────────────────────────────
+
+  const mapDiagnostics = useMemo(() => {
+    const source = allLocations
+    const withCoords = source.filter(l => Number.isFinite(l.latitude) && Number.isFinite(l.longitude))
+    const withoutCoords = source.filter(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+    const withMapsUrl = source.filter(l => Boolean(l.mapsUrl))
+    const withoutMapsUrl = source.filter(l => !l.mapsUrl)
+
+    const coordMap = new Map()
+    source.forEach(l => {
+      if (!Number.isFinite(l.latitude) || !Number.isFinite(l.longitude)) return
+      const key = `${l.latitude.toFixed(6)},${l.longitude.toFixed(6)}`
+      if (!coordMap.has(key)) coordMap.set(key, [])
+      coordMap.get(key).push(`${l.participantName} — ${l.locationName}`)
+    })
+    const duplicatedCoords = Array.from(coordMap.entries())
+      .filter(([, items]) => items.length > 1)
+      .map(([coords, items]) => ({ coords, items }))
+
+    return {
+      participants: participants.length,
+      units: source.length,
+      withCoords: withCoords.length,
+      withoutCoords: withoutCoords.map(l => `${l.participantName} — ${l.locationName}`),
+      withMapsUrl: withMapsUrl.length,
+      withoutMapsUrl: withoutMapsUrl.map(l => `${l.participantName} — ${l.locationName}`),
+      duplicatedCoords,
+    }
+  }, [participants, allLocations])
+
+  useEffect(() => {
+    if (!mapDebug) return
+    console.log('[Mapa Lovers Diagnostics]', mapDiagnostics)
+  }, [mapDebug, mapDiagnostics])
 
   // ── actions ────────────────────────────────────────────────────────────────
 
@@ -839,6 +881,48 @@ export function MapaGooglePage({ navigate }) {
                     )
                   })}
                 </div>
+
+                {/* painel de diagnóstico — só com debug=1 */}
+                {mapDebug && (
+                  <div className="map-debug-panel">
+                    <strong>Diagnóstico do mapa</strong>
+                    <div>Participantes: {mapDiagnostics.participants}</div>
+                    <div>Unidades: {mapDiagnostics.units}</div>
+                    <div>Com coordenadas: {mapDiagnostics.withCoords}</div>
+                    <div>Sem coordenadas: {mapDiagnostics.withoutCoords.length}</div>
+                    <div>Com Maps URL: {mapDiagnostics.withMapsUrl}</div>
+                    <div>Sem Maps URL: {mapDiagnostics.withoutMapsUrl.length}</div>
+
+                    {mapDiagnostics.withoutCoords.length > 0 && (
+                      <details>
+                        <summary>Unidades sem coordenadas ({mapDiagnostics.withoutCoords.length})</summary>
+                        <ul>
+                          {mapDiagnostics.withoutCoords.map(item => <li key={item}>{item}</li>)}
+                        </ul>
+                      </details>
+                    )}
+
+                    {mapDiagnostics.withoutMapsUrl.length > 0 && (
+                      <details>
+                        <summary>Unidades sem Maps URL ({mapDiagnostics.withoutMapsUrl.length})</summary>
+                        <ul>
+                          {mapDiagnostics.withoutMapsUrl.map(item => <li key={item}>{item}</li>)}
+                        </ul>
+                      </details>
+                    )}
+
+                    {mapDiagnostics.duplicatedCoords.length > 0 && (
+                      <details>
+                        <summary>Coordenadas duplicadas ({mapDiagnostics.duplicatedCoords.length})</summary>
+                        <ul>
+                          {mapDiagnostics.duplicatedCoords.map(group => (
+                            <li key={group.coords}>{group.coords}: {group.items.join(', ')}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             </>
@@ -1056,6 +1140,30 @@ export function MapaGooglePage({ navigate }) {
           .map-location-action:hover { transform: translateY(-1px); }
 
           input[type=text]:focus { border-color: var(--lovers-red) !important; }
+
+          /* ── debug panel ── */
+          .map-debug-panel {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(43,24,16,.06);
+            border: 1px dashed rgba(43,24,16,.24);
+            color: var(--lovers-ink);
+            font-size: 12px;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', monospace;
+          }
+          .map-debug-panel strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--lovers-red);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+          }
+          .map-debug-panel details { margin-top: 8px; }
+          .map-debug-panel summary { cursor: pointer; font-weight: 800; }
+          .map-debug-panel ul { margin: 6px 0 0; padding-left: 18px; }
 
           /* ── responsivo ── */
           @media (max-width: 880px) {
