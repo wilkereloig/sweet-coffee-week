@@ -240,11 +240,13 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       marker.addListener('gmp-click', () => {
         onSelectLocation?.(loc)
         infoWindow.setContent(`
-          <div style="font-family:sans-serif;max-width:220px;line-height:1.4;">
+          <div style="font-family:sans-serif;max-width:240px;line-height:1.4;">
             <strong style="font-size:14px;">${loc.participantName}</strong><br/>
             <span style="font-size:13px;color:#555;">${loc.locationName}</span><br/>
             <small style="color:#888;">${[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</small><br/>
             ${loc.address ? `<small style="color:#888;">${loc.address}</small>` : ''}
+            ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${loc.theme}</div>` : ''}
+            ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${loc.edition}</div>` : ''}
           </div>
         `)
         infoWindow.open({ anchor: marker, map })
@@ -439,6 +441,8 @@ export function MapaGooglePage({ navigate }) {
         participantLogo: p.logo,
         participantInstagram: p.instagram,
         brandColor: p.brandColor,
+        theme: p.theme || null,
+        edition: p.edition || null,
         pinLabel: pinLabelByLocationId[loc.id],
       }))
     ),
@@ -946,6 +950,12 @@ export function MapaGooglePage({ navigate }) {
                             </div>
                             {p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
+                            )}
+                            {p.theme && (
+                              <div className="map-card-theme">
+                                <em>{p.theme}</em>
+                                {p.edition && <span className="map-card-edition">{p.edition}</span>}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1795,6 +1805,32 @@ export function MapaGooglePage({ navigate }) {
             font-size: 12px;
             color: var(--lovers-brown);
             opacity: .7;
+          }
+          .map-card-theme {
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          }
+          .map-card-theme em {
+            font-style: italic;
+            font-size: 12px;
+            color: var(--lovers-brown);
+            line-height: 1.3;
+          }
+          .map-card-edition {
+            display: inline-block;
+            font-family: var(--font-lovers-body);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--lovers-red);
+            background: rgba(214,54,72,.10);
+            border-radius: 999px;
+            padding: 2px 7px;
+            line-height: 1.6;
+            width: fit-content;
           }
 
           /* ── lista de unidades ── */

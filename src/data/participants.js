@@ -14,6 +14,8 @@
 //   longitude: null,
 //   mapsUrl: "",
 //   openingHours: "",
+//   theme: "",          // tema escolhido pelo participante
+//   edition: "",        // edição temática (ex: "Sweet Celebration")
 //   locations: [        // todas as unidades (1+); sempre presente
 //     { id, name, address, neighborhood, city, latitude, longitude, mapsUrl }
 //   ]
@@ -35,6 +37,8 @@ export const PARTICIPANTS = [
     longitude: -35.1812612,
     mapsUrl: "https://maps.google.com/?cid=10659498387037037785",
     openingHours: "",
+    theme: "Brasil na Copa do Mundo",
+    edition: "Sweet Celebration",
     locations: [
       { id: "adocee-doceria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8880", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8717906, longitude: -35.1812612, mapsUrl: "https://maps.google.com/?cid=10659498387037037785" },
     ]
@@ -54,6 +58,8 @@ export const PARTICIPANTS = [
     longitude: -35.177500,
     mapsUrl: "https://maps.google.com/?cid=11450492681847294540",
     openingHours: "",
+    theme: "Japão",
+    edition: "Sweet Trip",
     locations: [
       { id: "bolomania-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Búzios, 9031", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.878700, longitude: -35.177500, mapsUrl: "https://maps.google.com/?cid=11450492681847294540" },
     ]
@@ -73,6 +79,8 @@ export const PARTICIPANTS = [
     longitude: -35.1985817,
     mapsUrl: "https://maps.google.com/?cid=9124941309187684674",
     openingHours: "",
+    theme: "Viagem pela Itália",
+    edition: "Sweet Trip",
     locations: [
       { id: "caffe-basilicos-petropolis", name: "Petrópolis", address: "Av. Rodrigues Alves, 433", neighborhood: "Petrópolis", city: "Natal/RN", latitude: -5.7875951, longitude: -35.1985817, mapsUrl: "https://maps.google.com/?cid=9124941309187684674" },
     ]
@@ -92,6 +100,8 @@ export const PARTICIPANTS = [
     longitude: -35.203611,
     mapsUrl: "https://maps.google.com/?cid=17931732396072426136",
     openingHours: "",
+    theme: "Disney",
+    edition: "Sweet Trip",
     locations: [
       { id: "canutos-cidade-jardim",   name: "Cidade Jardim",   address: "Shopping Cidade Jardim - Av. Engenheiro Roberto Freire, 340, Lj-14a", neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856944, longitude: -35.203611, mapsUrl: "https://maps.google.com/?cid=17931732396072426136" },
       { id: "canutos-nova-parnamirim", name: "Nova Parnamirim", address: "R. Aníbal Brandão",                                                    neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882800, longitude: -35.210500, mapsUrl: "" },
@@ -112,6 +122,8 @@ export const PARTICIPANTS = [
     longitude: -35.180200,
     mapsUrl: "https://maps.google.com/?cid=16122317279029996390",
     openingHours: "",
+    theme: "Caroli in Love: \"É o amor\"",
+    edition: "Sweet Music",
     locations: [
       { id: "caroli-douces-ponta-negra",     name: "Ponta Negra",     address: "Av. Praia de Ponta Negra, 9060",                              neighborhood: "Ponta Negra",     city: "Natal/RN",      latitude: -5.875600, longitude: -35.180200, mapsUrl: "https://maps.google.com/?cid=16122317279029996390" },
       { id: "caroli-douces-nova-parnamirim", name: "Nova Parnamirim", address: "Rio Grande Mall - Av. Ayrton Senna, 2441, Lojas 30/31",       neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.884400, longitude: -35.207800, mapsUrl: "" },
@@ -135,6 +147,8 @@ export const PARTICIPANTS = [
     longitude: -35.1996656,
     mapsUrl: "https://maps.google.com/?cid=12991928301385588552",
     openingHours: "",
+    theme: "The Vampire Diaries",
+    edition: "Sweet Series",
     locations: [
       { id: "casa-1190-lagoa-nova", name: "Lagoa Nova", address: "Av. Xavier da Silveira, 1190", neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.8149631, longitude: -35.1996656, mapsUrl: "https://maps.google.com/?cid=12991928301385588552" },
     ]
@@ -154,6 +168,8 @@ export const PARTICIPANTS = [
     longitude: -35.1808228,
     mapsUrl: "https://maps.google.com/?cid=7706377528852827574",
     openingHours: "",
+    theme: "Aniversário de 25 anos",
+    edition: "Sweet Celebration",
     locations: [
       { id: "casa-de-taipa-tapiocaria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8868", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8737794, longitude: -35.1808228, mapsUrl: "https://maps.google.com/?cid=7706377528852827574" },
     ]
@@ -173,6 +189,8 @@ export const PARTICIPANTS = [
     longitude: -35.2598518,
     mapsUrl: "https://maps.google.com/?cid=7441970895626009538",
     openingHours: "",
+    theme: "Confeitaria Francesa",
+    edition: "Sweet Trip",
     locations: [
       { id: "delicato-bolos-potengi", name: "Potengi", address: "Av. Maranguape, 741", neighborhood: "Potengi", city: "Natal/RN", latitude: -5.7585492, longitude: -35.2598518, mapsUrl: "https://maps.google.com/?cid=7441970895626009538" },
     ]
@@ -192,6 +210,8 @@ export const PARTICIPANTS = [
     longitude: -35.2153114,
     mapsUrl: "https://maps.google.com/?cid=4959753408182331760",
     openingHours: "",
+    theme: "Uma Volta ao Mundo da Doçura",
+    edition: "Sweet Trip",
     locations: [
       { id: "douce-di-maria-candelaria", name: "Candelária", address: "Rua Ataulfo Alves, 3465", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.8389204, longitude: -35.2153114, mapsUrl: "https://maps.google.com/?cid=4959753408182331760" },
     ]
@@ -211,6 +231,8 @@ export const PARTICIPANTS = [
     longitude: -35.210920,
     mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
     openingHours: "",
+    theme: "São João",
+    edition: "Sweet Celebration",
     locations: [
       { id: "jolie-cafe-cidade-verde", name: "Cidade Verde", address: "Shopping Cidade Verde - Av. Ayrton Senna, 1904", neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882110, longitude: -35.210920, mapsUrl: "https://maps.google.com/?cid=6155464360832551674" },
       { id: "jolie-cafe-capim-macio",  name: "Capim Macio",  address: "Av. Miguel Alcídes de Araújo, 1908",             neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856100, longitude: -35.201400, mapsUrl: "" },
@@ -233,6 +255,8 @@ export const PARTICIPANTS = [
     longitude: -35.2025025,
     mapsUrl: "https://maps.google.com/?cid=1388883781383360295",
     openingHours: "",
+    theme: "A Just Encantada",
+    edition: "Contos de Fada",
     locations: [
       { id: "just-food-coffee-capim-macio", name: "Capim Macio", address: "Rua Dr. Orlando de Azevedo, 1981", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8570178, longitude: -35.2025025, mapsUrl: "https://maps.google.com/?cid=1388883781383360295" },
     ]
@@ -252,6 +276,8 @@ export const PARTICIPANTS = [
     longitude: -35.182500,
     mapsUrl: "https://maps.google.com/?cid=1296701487931758722",
     openingHours: "",
+    theme: "\"Isso aqui tá bom demais\"",
+    edition: "Sweet Music",
     locations: [
       { id: "mangai-ponta-negra", name: "Ponta Negra", address: "Rua Des. João Vicente da Costa, 8861", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.874167, longitude: -35.182500, mapsUrl: "https://maps.google.com/?cid=1296701487931758722" },
     ]
@@ -271,6 +297,8 @@ export const PARTICIPANTS = [
     longitude: -35.214722,
     mapsUrl: "https://maps.google.com/?cid=2208320617330103981",
     openingHours: "",
+    theme: "Harry Potter",
+    edition: "Filmes",
     locations: [
       { id: "mr-cupcake-candelaria",      name: "Candelária",      address: "Rua Frei Henrique de Coimbra, 3482", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.839167, longitude: -35.214722, mapsUrl: "https://maps.google.com/?cid=2208320617330103981" },
       { id: "mr-cupcake-cidade-satelite", name: "Cidade Satélite", address: "Rua Oiti, 20, Loja 03",              neighborhood: "Pitimbu",    city: "Natal/RN", latitude: -5.845800, longitude: -35.228300, mapsUrl: "" },
@@ -291,6 +319,8 @@ export const PARTICIPANTS = [
     longitude: -35.2104277,
     mapsUrl: "https://maps.google.com/?cid=9380843386229300776",
     openingHours: "",
+    theme: "Sweet Lover Day",
+    edition: "Sweet Celebration",
     locations: [
       { id: "o-maestro-cafe-barro-vermelho", name: "Barro Vermelho", address: "Rua Pinheiro Borges, 648", neighborhood: "Barro Vermelho", city: "Natal/RN", latitude: -5.7963797, longitude: -35.2104277, mapsUrl: "https://maps.google.com/?cid=9380843386229300776" },
     ]
@@ -310,6 +340,8 @@ export const PARTICIPANTS = [
     longitude: -35.1990022,
     mapsUrl: "https://maps.google.com/?cid=11078498997587378404",
     openingHours: "",
+    theme: "Conexão Natal/Lisboa",
+    edition: "Sweet Trip",
     locations: [
       { id: "oli-gastro-tirol", name: "Tirol", address: "Sede do América - Av. Rodrigues Alves, 950", neighborhood: "Tirol", city: "Natal/RN", latitude: -5.7887356, longitude: -35.1990022, mapsUrl: "https://maps.google.com/?cid=11078498997587378404" },
     ]
@@ -329,6 +361,8 @@ export const PARTICIPANTS = [
     longitude: -35.1977217,
     mapsUrl: "https://maps.google.com/?cid=8730356709231337200",
     openingHours: "",
+    theme: "Vamos Passear no Bosque",
+    edition: "Contos de Fadas",
     locations: [
       { id: "padoca-do-bosque-tirol", name: "Tirol", address: "Av. Alm. Alexandrino de Alencar, 1398", neighborhood: "Tirol", city: "Natal/RN", latitude: -5.8096461, longitude: -35.1977217, mapsUrl: "https://maps.google.com/?cid=8730356709231337200" },
     ]
@@ -348,6 +382,8 @@ export const PARTICIPANTS = [
     longitude: -35.212778,
     mapsUrl: "https://maps.google.com/?cid=4412840271996621434",
     openingHours: "",
+    theme: "Chapeuzinho Vermelho",
+    edition: "Contos de Fadas",
     locations: [
       { id: "paneer-patisserie-lagoa-nova", name: "Lagoa Nova", address: "Rua dos Tororós, 2523",                  neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.819444, longitude: -35.212778, mapsUrl: "https://maps.google.com/?cid=4412840271996621434" },
       { id: "paneer-patisserie-tirol",      name: "Tirol",      address: "Espaço Casa 893 - Av. Afonso Pena, 893", neighborhood: "Tirol",      city: "Natal/RN", latitude: -5.794200, longitude: -35.198300, mapsUrl: "" },
@@ -368,6 +404,8 @@ export const PARTICIPANTS = [
     longitude: -35.2038929,
     mapsUrl: "https://maps.google.com/?cid=1076074248665951297",
     openingHours: "",
+    theme: "Festival da Primavera",
+    edition: "Sweet Celebration",
     locations: [
       { id: "parma-doces-capim-macio", name: "Capim Macio", address: "Dunnas Shopping - Av. Engenheiro Roberto Freire, 2632, Loja A05/A06", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8517158, longitude: -35.2038929, mapsUrl: "https://maps.google.com/?cid=1076074248665951297" },
     ]
@@ -387,6 +425,8 @@ export const PARTICIPANTS = [
     longitude: -35.205278,
     mapsUrl: "https://maps.google.com/?cid=17531256088081568032",
     openingHours: "",
+    theme: "\"Asa Branca\", de Luiz Gonzaga",
+    edition: "Sweet Music",
     locations: [
       { id: "rollab-confeitaria-lagoa-nova", name: "Lagoa Nova", address: "Rua Almeida Barreto, 430", neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.811944, longitude: -35.205278, mapsUrl: "https://maps.google.com/?cid=17531256088081568032" },
     ]
@@ -406,6 +446,8 @@ export const PARTICIPANTS = [
     longitude: -35.204444,
     mapsUrl: "https://maps.google.com/?cid=17845245524481505898",
     openingHours: "",
+    theme: "\"Magic Shop\", do BTS",
+    edition: "Sweet Music",
     locations: [
       { id: "sweet-duo-confeitaria-lagoa-seca", name: "Lagoa Seca", address: "Rua Antônio China, 490", neighborhood: "Lagoa Seca", city: "Natal/RN", latitude: -5.805278, longitude: -35.204444, mapsUrl: "https://maps.google.com/?cid=17845245524481505898" },
     ]
@@ -425,6 +467,8 @@ export const PARTICIPANTS = [
     longitude: -35.1997991,
     mapsUrl: "https://maps.google.com/?cid=1695958296571675087",
     openingHours: "",
+    theme: "Caicó",
+    edition: "Terras Potiguares",
     locations: [
       { id: "wow-cookies-capim-macio", name: "Capim Macio", address: "Vela Trade - Rua Neuza Farache, 1870, Loja 6", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8600199, longitude: -35.1997991, mapsUrl: "https://maps.google.com/?cid=1695958296571675087" },
     ]
