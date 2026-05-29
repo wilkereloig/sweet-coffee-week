@@ -875,16 +875,26 @@ export function MapaGooglePage({ navigate }) {
                       >
                         {/* cabeçalho do card */}
                         <div className="map-card-header">
-                          <div className="map-card-number" aria-label={`Número ${participantNumberById[p.id]} no mapa`}>
-                            {participantNumberById[p.id]}
+                          <div className="map-card-brand">
+                            {p.logo ? (
+                              <div className="map-card-logo">
+                                <img src={p.logo} alt={`Logo ${p.name}`} />
+                              </div>
+                            ) : (
+                              <div className="map-card-logo map-card-logo--empty" aria-hidden="true">
+                                {p.name.slice(0, 1)}
+                              </div>
+                            )}
+                            <span className="map-card-number" aria-label={`Número ${participantNumberById[p.id]} no mapa`}>
+                              {participantNumberById[p.id]}
+                            </span>
                           </div>
-                          {p.logo && (
-                            <div className="map-card-logo">
-                              <img src={p.logo} alt={`Logo ${p.name}`} />
-                            </div>
-                          )}
                           <div className="map-card-title-group">
+                            {p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
                             <h3>{p.name}</h3>
+                            {p.theme && (
+                              <div className="map-card-theme"><em>“{p.theme}”</em></div>
+                            )}
                             <div className="map-card-meta">
                               {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
                               {userLocation && Number.isFinite(minDist) && minDist !== Infinity
@@ -893,12 +903,6 @@ export function MapaGooglePage({ navigate }) {
                             </div>
                             {p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
-                            )}
-                            {p.theme && (
-                              <div className="map-card-theme">
-                                <em>{p.theme}</em>
-                                {p.edition && <span className="map-card-edition">{p.edition}</span>}
-                              </div>
                             )}
                           </div>
                         </div>
@@ -938,38 +942,35 @@ export function MapaGooglePage({ navigate }) {
                                   {hasCoords && (
                                     <button
                                       type="button"
-                                      className={`map-location-action${isLocActive ? ' map-location-action--active' : ''}`}
+                                      className={`map-icon-action${isLocActive ? ' map-icon-action--active' : ''}`}
+                                      title="Ver no mapa"
+                                      aria-label="Ver no mapa"
                                       onClick={e => { e.stopPropagation(); focusLocation(loc) }}
                                     >
-                                      Ver pin
+                                      {isLocActive ? <I.pinFill /> : <I.pin />}
                                     </button>
                                   )}
                                   {directionsUrl && (
                                     <a
-                                      className="map-location-action map-location-action--primary"
+                                      className="map-icon-action map-icon-action--primary"
+                                      title="Traçar rota"
+                                      aria-label="Traçar rota"
                                       href={directionsUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       onClick={e => e.stopPropagation()}
                                     >
-                                      Traçar rota
+                                      <I.route />
                                     </a>
-                                  )}
-                                  {!multiUnit && p.combo?.slug && (
-                                    <button
-                                      type="button"
-                                      className="map-location-action"
-                                      onClick={e => { e.stopPropagation(); navigate(`/lovers/combos/${p.combo.slug}`) }}
-                                    >
-                                      Ver combo
-                                    </button>
                                   )}
                                   <button
                                     type="button"
-                                    className={`map-location-action${isInRoute(loc) ? ' map-location-action--selected' : ''}`}
+                                    className={`map-icon-action map-icon-action--route${isInRoute(loc) ? ' map-icon-action--selected' : ''}`}
+                                    title={isInRoute(loc) ? 'Remover da rota' : 'Adicionar à rota'}
+                                    aria-label={isInRoute(loc) ? 'Remover da rota' : 'Adicionar à rota'}
                                     onClick={e => { e.stopPropagation(); toggleRouteLocation(loc) }}
                                   >
-                                    {isInRoute(loc) ? 'REMOVER DA ROTA' : 'ADICIONAR À ROTA'}
+                                    {isInRoute(loc) ? <I.heart /> : <I.heartLine />}
                                   </button>
                                 </div>
                               </div>
@@ -977,16 +978,14 @@ export function MapaGooglePage({ navigate }) {
                           })}
                         </div>
 
-                        {multiUnit && p.combo?.slug && (
-                          <div style={{ marginTop: 12 }}>
-                            <button
-                              className="btn btn-lovers btn-sm"
-                              style={{ fontSize: 12 }}
-                              onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
-                            >
-                              Ver combo
-                            </button>
-                          </div>
+                        {p.combo?.slug && (
+                          <button
+                            type="button"
+                            className="map-card-combo-btn"
+                            onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
+                          >
+                            Ver combo <I.arrow />
+                          </button>
                         )}
                       </div>
                     )
@@ -1669,7 +1668,7 @@ export function MapaGooglePage({ navigate }) {
             background: #fff;
             border: 1.5px solid rgba(135,14,45,.22);
             border-radius: 18px;
-            padding: 16px;
+            padding: 14px;
             transition: border-color .18s, background .18s, box-shadow .18s;
           }
           .map-participant-card--active {
@@ -1681,35 +1680,24 @@ export function MapaGooglePage({ navigate }) {
           /* ── cabeçalho do card ── */
           .map-card-header {
             display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 18px;
+            gap: 14px;
+            align-items: flex-start;
+            margin-bottom: 14px;
           }
-          .map-card-number {
+          .map-card-brand {
+            position: relative;
             flex: 0 0 auto;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--lovers-red);
-            color: #fff;
-            font-weight: 800;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: system-ui, -apple-system, sans-serif;
           }
           .map-card-logo {
-            width: 72px;
-            height: 72px;
-            border-radius: 16px;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
             background: #fff;
             border: 1px solid rgba(135,14,45,.12);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            flex: 0 0 auto;
             padding: 0;
           }
           .map-card-logo img {
@@ -1719,23 +1707,71 @@ export function MapaGooglePage({ navigate }) {
             object-position: center;
             display: block;
           }
+          .map-card-logo--empty {
+            font-family: var(--font-lovers-display);
+            font-size: 28px;
+            color: var(--lovers-red);
+            text-transform: uppercase;
+          }
+          .map-card-number {
+            position: absolute;
+            right: -7px;
+            bottom: -7px;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-display);
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 24px;
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.18);
+          }
           .map-card-title-group {
             min-width: 0;
             flex: 1;
+            padding-top: 2px;
+          }
+          .map-card-edition-kicker {
+            display: inline-block;
+            font-family: var(--font-lovers-body);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #fff;
+            background: var(--lovers-red);
+            border-radius: 999px;
+            padding: 3px 9px;
+            margin-bottom: 7px;
           }
           .map-card-title-group h3 {
             margin: 0;
             font-family: var(--font-lovers-display);
-            font-size: clamp(28px, 2.2vw, 38px);
-            line-height: .92;
+            font-size: clamp(26px, 2.1vw, 34px);
+            line-height: .9;
             color: var(--lovers-ink);
             text-transform: uppercase;
             letter-spacing: .015em;
             text-wrap: balance;
           }
+          .map-card-theme {
+            margin-top: 6px;
+          }
+          .map-card-theme em {
+            font-style: italic;
+            font-size: 13px;
+            color: var(--lovers-brown);
+            line-height: 1.3;
+          }
           .map-card-meta {
             margin-top: 8px;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.2;
             font-family: var(--font-lovers-body);
             font-weight: 900;
@@ -1749,32 +1785,28 @@ export function MapaGooglePage({ navigate }) {
             color: var(--lovers-brown);
             opacity: .7;
           }
-          .map-card-theme {
-            margin-top: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-          }
-          .map-card-theme em {
-            font-style: italic;
-            font-size: 12px;
-            color: var(--lovers-brown);
-            line-height: 1.3;
-          }
-          .map-card-edition {
-            display: inline-block;
-            font-family: var(--font-lovers-body);
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            color: var(--lovers-red);
-            background: rgba(214,54,72,.10);
+          .map-card-combo-btn {
+            margin-top: 12px;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             border-radius: 999px;
-            padding: 2px 7px;
-            line-height: 1.6;
-            width: fit-content;
+            min-height: 40px;
+            padding: 0 18px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border: 0;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform .15s, background .15s;
           }
+          .map-card-combo-btn:hover { transform: translateY(-1px); background: var(--lovers-pink); }
 
           /* ── lista de unidades ── */
           .map-location-list {
@@ -1850,44 +1882,49 @@ export function MapaGooglePage({ navigate }) {
             line-height: 1.4;
           }
 
-          /* ── botões de ação ── */
+          /* ── botões de ação (ícones) ── */
           .map-location-actions {
             display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 10px;
           }
-          .map-location-action {
-            border: 1px solid rgba(135,14,45,.22);
-            background: rgba(255,255,255,.82);
+          .map-icon-action {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            border: 1.5px solid rgba(135,14,45,.22);
+            background: rgba(255,255,255,.9);
             color: var(--lovers-red);
-            border-radius: 999px;
-            min-height: 36px;
-            padding: 0 16px;
-            font-size: 12px;
-            line-height: 1;
-            font-weight: 900;
-            text-decoration: none;
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform .15s, background .15s, color .15s;
-            font-family: var(--font-lovers-body);
-            text-transform: uppercase;
-            letter-spacing: .05em;
+            text-decoration: none;
+            transition: transform .15s, background .15s, color .15s, border-color .15s;
           }
-          .map-location-action--primary {
+          .map-icon-action svg { width: 18px; height: 18px; }
+          .map-icon-action:hover {
+            transform: translateY(-1px);
             background: var(--lovers-red);
             color: var(--lovers-cream);
             border-color: var(--lovers-red);
           }
-          .map-location-action--active {
+          .map-icon-action--primary {
             background: var(--lovers-red);
-            color: #fff;
+            color: var(--lovers-cream);
             border-color: var(--lovers-red);
           }
-          .map-location-action:hover { transform: translateY(-1px); }
+          .map-icon-action--active {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-red);
+          }
+          .map-icon-action--selected {
+            background: var(--lovers-pink);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-pink);
+          }
 
           input[type=text]:focus { border-color: var(--lovers-red) !important; }
 
