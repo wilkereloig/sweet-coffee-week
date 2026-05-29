@@ -129,7 +129,7 @@ export function MapaGoogle3DPage({ onError }) {
     ;(async () => {
       try {
         const maps3d = await importLibrary('maps3d')
-        const { Map3DElement, Marker3DInteractiveElement, AltitudeMode, PopoverElement } = maps3d
+        const { Map3DElement, Marker3DInteractiveElement, AltitudeMode, PopoverElement, MapMode } = maps3d
         if (cancelled || !containerRef.current || mapElRef.current) return
         if (!Map3DElement || !Marker3DInteractiveElement) throw new Error('maps3d API indisponível')
 
@@ -140,6 +140,8 @@ export function MapaGoogle3DPage({ onError }) {
           range: 9000,
           tilt: 55,
           heading: 0,
+          // mode é OBRIGATÓRIO: sem ele o mapa não renderiza (spinner eterno)
+          mode: MapMode ? MapMode.HYBRID : 'HYBRID',
         })
         map3d.style.width = '100%'
         map3d.style.height = '100%'
