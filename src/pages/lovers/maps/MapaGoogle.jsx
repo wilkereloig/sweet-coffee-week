@@ -549,7 +549,11 @@ export function MapaGooglePage({ navigate }) {
     return [...participantsAfterDistance].sort((a, b) => {
       const da = getParticipantMinDistance(a, visibleLocationsWithDistance)
       const db = getParticipantMinDistance(b, visibleLocationsWithDistance)
-      return da - db
+      const fa = Number.isFinite(da), fb = Number.isFinite(db)
+      if (fa && fb) return da - db
+      if (fa) return -1
+      if (fb) return 1
+      return 0
     })
   }, [participantsAfterDistance, userLocation, visibleLocationsWithDistance])
 
@@ -913,7 +917,10 @@ export function MapaGooglePage({ navigate }) {
 
                   {finalParticipants.map(p => {
                     const isActive = selectedParticipantId === p.id
-                    const locs = getParticipantLocations(p)
+                    const allLocs = getParticipantLocations(p)
+                    const locs = filterBairro
+                      ? allLocs.filter(l => l.neighborhood === filterBairro)
+                      : allLocs
                     const multiUnit = locs.length > 1
                     const manyUnits = locs.length > 4
 
