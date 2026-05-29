@@ -302,7 +302,7 @@ export const PARTICIPANTS = [
     edition: "Filmes",
     locations: [
       { id: "mr-cupcake-candelaria",      name: "Candelária",      address: "Rua Frei Henrique de Coimbra, 3482", neighborhood: "Candelária", city: "Natal/RN", latitude: -5.839167, longitude: -35.214722, mapsUrl: "https://maps.google.com/?cid=2208320617330103981" },
-      { id: "mr-cupcake-cidade-satelite", name: "Cidade Satélite", address: "Rua Oiti, 20, Loja 03",              neighborhood: "Pitimbu",    city: "Natal/RN", latitude: -5.845800, longitude: -35.228300, mapsUrl: "" },
+      { id: "mr-cupcake-cidade-satelite", name: "Cidade Satélite", address: "Rua Oiti, 20, Loja 03",              neighborhood: "Pitimbu",    city: "Natal/RN", latitude: -5.8735183, longitude: -35.2244843, mapsUrl: "https://maps.google.com/?cid=15698441033597148042" },
     ]
   },
   {
