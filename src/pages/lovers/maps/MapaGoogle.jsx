@@ -953,7 +953,7 @@ export function MapaGooglePage({ navigate }) {
                             {p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
                             <h3>{p.name}</h3>
                             {p.theme && (
-                              <div className="map-card-theme"><em>“{p.theme}”</em></div>
+                              <div className="map-card-theme"><em>{p.theme}</em></div>
                             )}
                             <div className="map-card-meta">
                               {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
@@ -963,6 +963,17 @@ export function MapaGooglePage({ navigate }) {
                             </div>
                             {p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
+                            )}
+                            {p.instagram && (
+                              <a
+                                className="map-card-ig"
+                                href={`https://instagram.com/${p.instagram.replace(/^@/, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <I.ig /> {p.instagram}
+                              </a>
                             )}
                           </div>
                         </div>
@@ -984,6 +995,12 @@ export function MapaGooglePage({ navigate }) {
                               >
                                 <div className="map-location-topline">
                                   <strong className="map-location-title">{loc.locationName}</strong>
+                                  {status.state !== 'unknown' && (
+                                    <span className={`map-location-status map-location-status--${status.state}`}>
+                                      <span className="map-location-status-dot" aria-hidden="true"></span>
+                                      <strong>{status.label}</strong>
+                                    </span>
+                                  )}
                                   {userLocation && distStr && (
                                     <span className="map-location-distance">{distStr}</span>
                                   )}
@@ -999,11 +1016,9 @@ export function MapaGooglePage({ navigate }) {
                                   <div className="map-location-address">{loc.address}</div>
                                 )}
 
-                                {status.state !== 'unknown' && (
-                                  <div className={`map-location-status map-location-status--${status.state}`}>
-                                    <span className="map-location-status-dot" aria-hidden="true"></span>
-                                    <strong>{status.label}</strong>
-                                    {status.detail && <span className="map-location-status-detail">· {status.detail}</span>}
+                                {status.detail && (
+                                  <div className={`map-location-status-line map-location-status-line--${status.state}`}>
+                                    {status.detail}
                                   </div>
                                 )}
 
@@ -1740,6 +1755,10 @@ export function MapaGooglePage({ navigate }) {
             padding: 14px;
             transition: border-color .18s, background .18s, box-shadow .18s;
           }
+          .map-participant-card:hover {
+            border-color: rgba(135,14,45,.4);
+            box-shadow: 0 10px 26px rgba(135,14,45,.1);
+          }
           .map-participant-card--active {
             background: var(--lovers-cream);
             border-color: var(--lovers-red);
@@ -1830,14 +1849,30 @@ export function MapaGooglePage({ navigate }) {
             text-wrap: balance;
           }
           .map-card-theme {
-            margin-top: 6px;
+            margin-top: 8px;
+            padding-left: 11px;
+            border-left: 3px solid #F5B800;
           }
           .map-card-theme em {
             font-style: italic;
-            font-size: 13px;
-            color: var(--lovers-brown);
-            line-height: 1.3;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--lovers-ink);
+            line-height: 1.18;
           }
+          .map-card-ig {
+            margin-top: 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-lovers-body);
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--lovers-red);
+            text-decoration: none;
+          }
+          .map-card-ig svg { width: 14px; height: 14px; }
+          .map-card-ig:hover { text-decoration: underline; }
           .map-card-meta {
             margin-top: 8px;
             font-size: 12px;
@@ -1881,6 +1916,8 @@ export function MapaGooglePage({ navigate }) {
           .map-location-list {
             display: grid;
             gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(135,14,45,.12);
           }
           .map-location-list--many {
             gap: 10px;
@@ -1908,11 +1945,13 @@ export function MapaGooglePage({ navigate }) {
           /* ── conteúdo da unidade ── */
           .map-location-topline {
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+            align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
           }
           .map-location-title {
+            flex: 1;
+            min-width: 0;
             font-size: 16px;
             line-height: 1.1;
             font-weight: 900;
@@ -1951,14 +1990,15 @@ export function MapaGooglePage({ navigate }) {
             line-height: 1.4;
           }
           .map-location-status {
-            margin-top: 8px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            line-height: 1.2;
+            gap: 5px;
+            flex: 0 0 auto;
+            font-size: 11px;
+            line-height: 1;
             font-family: var(--font-lovers-body);
-            flex-wrap: wrap;
+            border-radius: 999px;
+            padding: 4px 9px;
           }
           .map-location-status strong {
             font-weight: 900;
@@ -1966,26 +2006,26 @@ export function MapaGooglePage({ navigate }) {
             letter-spacing: .05em;
           }
           .map-location-status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             flex: 0 0 auto;
           }
+          .map-location-status--open { background: rgba(27,138,90,.12); }
           .map-location-status--open strong { color: #1B8A5A; }
-          .map-location-status--open .map-location-status-dot {
-            background: #1B8A5A;
-            box-shadow: 0 0 0 3px rgba(27,138,90,.18);
-          }
+          .map-location-status--open .map-location-status-dot { background: #1B8A5A; }
+          .map-location-status--closed { background: rgba(214,54,72,.1); }
           .map-location-status--closed strong { color: var(--lovers-red); }
-          .map-location-status--closed .map-location-status-dot {
-            background: var(--lovers-red);
-            box-shadow: 0 0 0 3px rgba(214,54,72,.16);
-          }
-          .map-location-status-detail {
-            color: var(--lovers-brown);
-            opacity: .7;
+          .map-location-status--closed .map-location-status-dot { background: var(--lovers-red); }
+          .map-location-status-line {
+            margin-top: 6px;
+            font-size: 12px;
+            font-family: var(--font-lovers-body);
             font-weight: 700;
+            color: var(--lovers-brown);
+            opacity: .75;
           }
+          .map-location-status-line--open { color: #1B8A5A; opacity: .9; }
 
           /* ── botões de ação (ícones) ── */
           .map-location-actions {
