@@ -983,7 +983,6 @@ export function MapaGooglePage({ navigate }) {
                                 onClick={() => focusLocation(loc)}
                               >
                                 <div className="map-location-topline">
-                                  <strong className="map-location-title">{loc.locationName}</strong>
                                   {status.state !== 'unknown' && (
                                     <span className={`map-location-status map-location-status--${status.state}`}>
                                       <span className="map-location-status-dot" aria-hidden="true"></span>
@@ -995,11 +994,9 @@ export function MapaGooglePage({ navigate }) {
                                   )}
                                 </div>
 
-                                {loc.city && (
+                                {(loc.neighborhood || loc.city) && (
                                   <div className="map-location-meta">
-                                    {loc.locationName?.toLowerCase().trim() === loc.neighborhood?.toLowerCase().trim()
-                                      ? loc.city
-                                      : [loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
+                                    {[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
                                   </div>
                                 )}
 
