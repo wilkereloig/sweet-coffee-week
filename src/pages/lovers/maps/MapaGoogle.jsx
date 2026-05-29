@@ -589,6 +589,9 @@ export function MapaGooglePage({ navigate, variant }) {
             <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .85 }}>
               Veja onde estão os participantes da edição e escolha sua próxima parada.
             </p>
+            <a href="#/lovers/mapa-tela-cheia" className="mapa-fullscreen-cta">
+              Abrir mapa em tela cheia
+            </a>
           </div>
         </div>
       </section>
@@ -1156,6 +1159,28 @@ export function MapaGooglePage({ navigate, variant }) {
         </div>
 
         <style>{`
+          /* ── CTA tela cheia (desktop only) ── */
+          .mapa-fullscreen-cta {
+            display: none;
+            margin: 24px auto 0;
+            padding: 12px 28px;
+            border-radius: 999px;
+            background: var(--lovers-red);
+            color: #fff;
+            font-family: var(--font-lovers-body);
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+            box-shadow: 0 6px 18px rgba(214,54,72,.28);
+          }
+          .mapa-fullscreen-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(214,54,72,.36);
+          }
+          @media (min-width: 901px) {
+            .mapa-fullscreen-cta { display: inline-block; }
+          }
           /* ── fullscreen desktop variant ── */
           .mapa-fullscreen .lovers-bg { display: none; }
           .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }
