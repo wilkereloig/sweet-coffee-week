@@ -701,63 +701,6 @@ export function MapaGooglePage({ navigate }) {
                   />
                 )}
 
-                {selectedLocation && (
-                  <div className="mapa-selected-card" style={{
-                    position: 'absolute', bottom: 16, left: 16, right: 16,
-                    zIndex: 1000,
-                    background: 'var(--lovers-cream)',
-                    border: '2px solid var(--lovers-red)',
-                    borderRadius: 16, padding: '16px 20px',
-                    boxShadow: '0 8px 32px rgba(43,24,16,.2)',
-                  }}>
-                    <button
-                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
-                      style={{
-                        position: 'absolute', top: 8, right: 12,
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 20, color: 'var(--lovers-red)', lineHeight: 1,
-                      }}
-                    >×</button>
-                    <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, marginBottom: 4 }}>
-                      {selectedLocation.locationName} · {selectedLocation.neighborhood}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                      {selectedLocation.participantName}
-                    </div>
-                    {selectedParticipant?.combo && (
-                      <div style={{ fontSize: 14, color: 'var(--lovers-brown)', opacity: .85, marginBottom: 6 }}>
-                        Combo: <strong>{selectedParticipant.combo.name}</strong>
-                      </div>
-                    )}
-                    {selectedLocation.address && (
-                      <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 4 }}>
-                        {selectedLocation.address}
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                      {selectedParticipant?.combo?.slug && (
-                        <button
-                          className="btn btn-lovers btn-sm"
-                          onClick={() => navigate(`/lovers/combos/${selectedParticipant.combo.slug}`)}
-                          style={{ fontSize: 13 }}
-                        >
-                          Ver combo <I.arrow />
-                        </button>
-                      )}
-                      {getLocationMapsUrl(selectedLocation) && (
-                        <a
-                          href={getLocationMapsUrl(selectedLocation)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm"
-                          style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 13 }}
-                        >
-                          Abrir no mapa <I.arrow />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* ── lista lateral ── */}
