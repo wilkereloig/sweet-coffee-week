@@ -40,7 +40,7 @@ export const PARTICIPANTS = [
     theme: "Brasil na Copa do Mundo",
     edition: "Sweet Celebration",
     locations: [
-      { id: "adocee-doceria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8880", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8717906, longitude: -35.1812612, mapsUrl: "https://maps.google.com/?cid=10659498387037037785" },
+      { id: "adocee-doceria-ponta-negra", name: "Ponta Negra", address: "Av. Praia de Ponta Negra, 8880", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.8717906, longitude: -35.1812612, mapsUrl: "https://maps.google.com/?cid=10659498387037037785", hours: { 0: [["14:00","20:00"]], 1: [["09:00","21:00"]], 2: [["09:00","21:00"]], 3: [["09:00","21:00"]], 4: [["09:00","21:00"]], 5: [["09:00","22:00"]], 6: [["09:00","22:00"]] } },
     ]
   },
   {

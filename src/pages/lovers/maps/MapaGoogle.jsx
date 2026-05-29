@@ -44,6 +44,7 @@ function getParticipantLocations(participant) {
     latitude: location.latitude ?? null,
     longitude: location.longitude ?? null,
     mapsUrl: location.mapsUrl || participant.mapsUrl || '',
+    hours: location.hours || participant.hours || null,
   }))
 }
 
@@ -92,6 +93,65 @@ function formatDistance(km) {
   if (!Number.isFinite(km)) return ''
   if (km < 1) return `${Math.round(km * 1000)} m`
   return `${km.toFixed(1).replace('.', ',')} km`
+}
+
+const DAY_ABBR = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+
+function formatHourLabel(hhmm) {
+  const [h, m] = hhmm.split(':')
+  return m === '00' ? `${parseInt(h, 10)}h` : `${parseInt(h, 10)}h${m}`
+}
+
+// Status aberto/fechado calculado no fuso de Natal/RN (America/Fortaleza, UTC-3 sem horário de verão)
+function getOpenStatus(hours, now = new Date()) {
+  if (!hours || typeof hours !== 'object') return { state: 'unknown', label: '', detail: '' }
+
+  // hora/dia atuais no fuso da loja
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Fortaleza',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(now)
+  const get = t => parts.find(p => p.type === t)?.value
+  const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const today = weekdayMap[get('weekday')]
+  let hh = parseInt(get('hour'), 10)
+  if (hh === 24) hh = 0
+  const nowMin = hh * 60 + parseInt(get('minute'), 10)
+
+  const toMin = hhmm => {
+    const [h, m] = hhmm.split(':').map(Number)
+    return h * 60 + m
+  }
+  const slotsFor = d => Array.isArray(hours[d]) ? hours[d] : []
+
+  // aberto agora?
+  for (const [open, close] of slotsFor(today)) {
+    if (nowMin >= toMin(open) && nowMin < toMin(close)) {
+      return { state: 'open', label: 'Aberto', detail: `Fecha às ${formatHourLabel(close)}` }
+    }
+  }
+
+  // abre ainda hoje?
+  const laterToday = slotsFor(today)
+    .map(([open]) => open)
+    .filter(open => toMin(open) > nowMin)
+    .sort((a, b) => toMin(a) - toMin(b))
+  if (laterToday.length > 0) {
+    return { state: 'closed', label: 'Fechado', detail: `Abre às ${formatHourLabel(laterToday[0])}` }
+  }
+
+  // próximo dia com horário (até 7 dias à frente)
+  for (let i = 1; i <= 7; i++) {
+    const d = (today + i) % 7
+    const slots = slotsFor(d)
+    if (slots.length > 0) {
+      const open = slots.map(s => s[0]).sort((a, b) => toMin(a) - toMin(b))[0]
+      const when = i === 1 ? 'amanhã' : DAY_ABBR[d]
+      return { state: 'closed', label: 'Fechado', detail: `Abre ${when} às ${formatHourLabel(open)}` }
+    }
+  }
+
+  return { state: 'closed', label: 'Fechado', detail: '' }
 }
 
 function getParticipantMinDistance(participant, locationsWithDistance) {
@@ -914,6 +974,7 @@ export function MapaGooglePage({ navigate }) {
                             const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
                             const directionsUrl = getDirectionsUrl(loc, userLocation)
                             const distStr = formatDistance(loc.distanceKm)
+                            const status = getOpenStatus(loc.hours)
 
                             return (
                               <div
@@ -936,6 +997,14 @@ export function MapaGooglePage({ navigate }) {
 
                                 {loc.address && (
                                   <div className="map-location-address">{loc.address}</div>
+                                )}
+
+                                {status.state !== 'unknown' && (
+                                  <div className={`map-location-status map-location-status--${status.state}`}>
+                                    <span className="map-location-status-dot" aria-hidden="true"></span>
+                                    <strong>{status.label}</strong>
+                                    {status.detail && <span className="map-location-status-detail">· {status.detail}</span>}
+                                  </div>
                                 )}
 
                                 <div className="map-location-actions">
@@ -1880,6 +1949,42 @@ export function MapaGooglePage({ navigate }) {
             color: var(--lovers-ink);
             opacity: .82;
             line-height: 1.4;
+          }
+          .map-location-status {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            line-height: 1.2;
+            font-family: var(--font-lovers-body);
+            flex-wrap: wrap;
+          }
+          .map-location-status strong {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+          }
+          .map-location-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex: 0 0 auto;
+          }
+          .map-location-status--open strong { color: #1B8A5A; }
+          .map-location-status--open .map-location-status-dot {
+            background: #1B8A5A;
+            box-shadow: 0 0 0 3px rgba(27,138,90,.18);
+          }
+          .map-location-status--closed strong { color: var(--lovers-red); }
+          .map-location-status--closed .map-location-status-dot {
+            background: var(--lovers-red);
+            box-shadow: 0 0 0 3px rgba(214,54,72,.16);
+          }
+          .map-location-status-detail {
+            color: var(--lovers-brown);
+            opacity: .7;
+            font-weight: 700;
           }
 
           /* ── botões de ação (ícones) ── */
