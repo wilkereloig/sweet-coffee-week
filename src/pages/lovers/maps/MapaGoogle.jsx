@@ -264,11 +264,58 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           mapId: GOOGLE_MAPS_MAP_ID,
           tilt: 45,
           heading: 0,
-          rotateControl: true,
         })
 
+        // ─── Controles de rotação (par de botões + norte) ───────────────
+        const rotateBy = deg => map.setHeading((((map.getHeading() || 0) + deg) % 360 + 360) % 360)
+        const makeRotateBtn = (label, title, onClick) => {
+          const btn = document.createElement('button')
+          btn.type = 'button'
+          btn.textContent = label
+          btn.title = title
+          btn.setAttribute('aria-label', title)
+          btn.className = 'map-rotate-btn'
+          btn.addEventListener('click', onClick)
+          return btn
+        }
+        const rotateWrap = document.createElement('div')
+        rotateWrap.className = 'map-rotate-controls'
+        rotateWrap.appendChild(makeRotateBtn('⟲', 'Girar à esquerda', () => rotateBy(-45)))
+        rotateWrap.appendChild(makeRotateBtn('⤒', 'Apontar para o norte', () => map.setHeading(0)))
+        rotateWrap.appendChild(makeRotateBtn('⟳', 'Girar à direita', () => rotateBy(45)))
+        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(rotateWrap)
+
+        // ─── Rotação com botão do meio do mouse (pressionar + arrastar) ──
+        const mapDiv = mapRef.current
+        let midDragging = false
+        let lastX = 0
+        const onMouseDown = e => {
+          if (e.button !== 1) return
+          e.preventDefault()
+          midDragging = true
+          lastX = e.clientX
+        }
+        const onMouseMove = e => {
+          if (!midDragging) return
+          const dx = e.clientX - lastX
+          lastX = e.clientX
+          map.setHeading((((map.getHeading() || 0) + dx * 0.5) % 360 + 360) % 360)
+        }
+        const onMouseUp = () => { midDragging = false }
+        const onAuxClick = e => { if (e.button === 1) e.preventDefault() }
+        mapDiv.addEventListener('mousedown', onMouseDown)
+        mapDiv.addEventListener('auxclick', onAuxClick)
+        window.addEventListener('mousemove', onMouseMove)
+        window.addEventListener('mouseup', onMouseUp)
+        const cleanupRotate = () => {
+          mapDiv.removeEventListener('mousedown', onMouseDown)
+          mapDiv.removeEventListener('auxclick', onAuxClick)
+          window.removeEventListener('mousemove', onMouseMove)
+          window.removeEventListener('mouseup', onMouseUp)
+        }
+
         const infoWindow = new google.maps.InfoWindow()
-        instanceRef.current = { map, infoWindow, AdvancedMarkerElement }
+        instanceRef.current = { map, infoWindow, AdvancedMarkerElement, cleanupRotate }
         setMapReady(true)
       } catch (e) {
         console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
@@ -278,6 +325,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
     return () => {
       cancelled = true
+      instanceRef.current?.cleanupRotate?.()
       if (clustererRef.current) {
         clustererRef.current.clearMarkers()
         clustererRef.current = null
@@ -1270,6 +1318,33 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
+          /* ── controles de rotação ── */
+          .map-rotate-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            margin: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+          }
+          .map-rotate-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #fff;
+            color: var(--lovers-red, #D63648);
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+          }
+          .map-rotate-btn:hover { background: var(--lovers-cream, #FFF1E6); }
+          .map-rotate-btn:active { background: #ececec; }
+
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
             position: relative;
