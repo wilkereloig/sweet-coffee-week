@@ -244,8 +244,6 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   }, [])
 
   const [mapReady, setMapReady] = useState(false)
-  const [is3DMode, setIs3DMode] = useState(true)
-  const is3DModeRef = useRef(true)
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -1275,70 +1273,8 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
-          /* ── controles topo (2D/3D + globo) ── */
+          /* ── wrapper do mapa ── */
           .google-map-wrapper { position: relative; width: 100%; height: 100%; }
-          .map-top-controls {
-            position: absolute;
-            right: 14px;
-            top: 14px;
-            z-index: 5;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-end;
-          }
-          .map-3d-toggle,
-          .map-globe-btn {
-            border: 0;
-            border-radius: 999px;
-            min-height: 38px;
-            padding: 0 16px;
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            font-family: var(--font-lovers-body);
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(43,24,16,.22);
-          }
-          .map-globe-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--lovers-cream);
-            color: var(--lovers-red);
-            border: 2px solid var(--lovers-red);
-          }
-          .map-globe-btn:hover { background: var(--lovers-red); color: var(--lovers-cream); }
-
-          /* ── controles de rotação ── */
-          .map-rotate-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-            margin: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-          }
-          .map-rotate-btn {
-            width: 40px;
-            height: 40px;
-            border: none;
-            background: #fff;
-            color: var(--lovers-red, #D63648);
-            font-size: 20px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s;
-          }
-          .map-rotate-btn:hover { background: var(--lovers-cream, #FFF1E6); }
-          .map-rotate-btn:active { background: #ececec; }
 
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
