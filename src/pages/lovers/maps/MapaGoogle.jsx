@@ -262,6 +262,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           scrollwheel: true,
           gestureHandling: 'greedy',
           mapId: GOOGLE_MAPS_MAP_ID,
+          tilt: 45,
+          heading: 0,
         })
 
         const infoWindow = new google.maps.InfoWindow()
