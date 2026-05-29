@@ -124,9 +124,20 @@ function getOpenStatus(hours, now = new Date()) {
   }
   const slotsFor = d => Array.isArray(hours[d]) ? hours[d] : []
 
-  // aberto agora?
+  // aberto agora? (slots de hoje; close <= open = cruza a meia-noite)
   for (const [open, close] of slotsFor(today)) {
-    if (nowMin >= toMin(open) && nowMin < toMin(close)) {
+    const o = toMin(open), c = toMin(close)
+    const openNow = c <= o ? nowMin >= o : nowMin >= o && nowMin < c
+    if (openNow) {
+      return { state: 'open', label: 'Aberto', detail: `Fecha às ${formatHourLabel(close)}` }
+    }
+  }
+
+  // aberto por slot de ontem que cruzou a meia-noite (madrugada de hoje)?
+  const yesterday = (today + 6) % 7
+  for (const [open, close] of slotsFor(yesterday)) {
+    const o = toMin(open), c = toMin(close)
+    if (c <= o && nowMin < c) {
       return { state: 'open', label: 'Aberto', detail: `Fecha às ${formatHourLabel(close)}` }
     }
   }
@@ -173,6 +184,15 @@ function normalizeSearchText(value) {
     .replace(/['']/g, '')
     .toLowerCase()
     .trim()
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 if (GOOGLE_MAPS_API_KEY) {
@@ -301,12 +321,12 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         onSelectLocation?.(loc)
         infoWindow.setContent(`
           <div style="font-family:sans-serif;max-width:240px;line-height:1.4;">
-            <strong style="font-size:14px;">${loc.participantName}</strong><br/>
-            <span style="font-size:13px;color:#555;">${loc.locationName}</span><br/>
-            <small style="color:#888;">${[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</small><br/>
-            ${loc.address ? `<small style="color:#888;">${loc.address}</small>` : ''}
-            ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${loc.theme}</div>` : ''}
-            ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${loc.edition}</div>` : ''}
+            <strong style="font-size:14px;">${escapeHtml(loc.participantName)}</strong><br/>
+            <span style="font-size:13px;color:#555;">${escapeHtml(loc.locationName)}</span><br/>
+            <small style="color:#888;">${escapeHtml([loc.neighborhood, loc.city].filter(Boolean).join(' · '))}</small><br/>
+            ${loc.address ? `<small style="color:#888;">${escapeHtml(loc.address)}</small>` : ''}
+            ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${escapeHtml(loc.theme)}</div>` : ''}
+            ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(loc.edition)}</div>` : ''}
           </div>
         `)
         infoWindow.open({ anchor: marker, map })
@@ -592,6 +612,14 @@ export function MapaGooglePage({ navigate }) {
     if (!mapDebug) return
     console.log('[Mapa Lovers Diagnostics]', mapDiagnostics)
   }, [mapDebug, mapDiagnostics])
+
+  // remove da rota IDs de unidades que não existem mais (lojas removidas)
+  useEffect(() => {
+    setRouteLocationIds(cur => {
+      const valid = cur.filter(id => allLocations.some(l => l.id === id))
+      return valid.length === cur.length ? cur : valid
+    })
+  }, [allLocations])
 
   useEffect(() => {
     try { window.localStorage.setItem('sweet-lovers-route', JSON.stringify(routeLocationIds)) }
