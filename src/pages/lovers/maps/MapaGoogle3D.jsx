@@ -202,7 +202,7 @@ export function MapaGoogle3DPage({ onError }) {
   return (
     <div className="map3d-wrap">
       <style>{`
-        .map3d-wrap { position: relative; width: 100%; height: 100%; }
+        .map3d-wrap { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 50; }
         .map3d-canvas { width: 100%; height: 100%; }
         .map3d-overlay {
           position: absolute; top: 16px; left: 16px; z-index: 5;
