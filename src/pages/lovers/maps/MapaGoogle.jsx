@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
+import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
 import { PARTICIPANTS } from '../../../data/participants'
@@ -133,12 +134,20 @@ function buildPinElement(label, selected) {
   return el
 }
 
+function buildClusterElement(count) {
+  const el = document.createElement('div')
+  el.className = 'lovers-cluster'
+  el.innerHTML = `<span>${count}</span>`
+  return el
+}
+
 // ─── GoogleMap component ─────────────────────────────────────────────────────
 
 function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
+  const clustererRef = useRef(null)
   const userMarkerRef = useRef(null)
 
   useEffect(() => {
@@ -186,6 +195,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
     return () => {
       cancelled = true
+      if (clustererRef.current) {
+        clustererRef.current.clearMarkers()
+        clustererRef.current = null
+      }
       Object.values(markersRef.current).forEach(m => { m.map = null })
       markersRef.current = {}
       if (userMarkerRef.current) {
@@ -196,12 +209,16 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     }
   }, [])
 
-  // Rebuild markers whenever visible locations change
+  // Rebuild markers + clusterer whenever visible locations change
   useEffect(() => {
     if (!instanceRef.current) return
 
     const { map, infoWindow, AdvancedMarkerElement } = instanceRef.current
 
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers()
+      clustererRef.current = null
+    }
     Object.values(markersRef.current).forEach(marker => { marker.map = null })
     markersRef.current = {}
 
@@ -209,9 +226,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
     )
 
+    const newMarkers = []
+
     validLocations.forEach(loc => {
       const marker = new AdvancedMarkerElement({
-        map,
         position: { lat: loc.latitude, lng: loc.longitude },
         title: `${loc.participantName} — ${loc.locationName}`,
         content: buildPinElement(loc.pinLabel, false),
@@ -233,6 +251,20 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       })
 
       markersRef.current[loc.id] = marker
+      newMarkers.push(marker)
+    })
+
+    clustererRef.current = new MarkerClusterer({
+      map,
+      markers: newMarkers,
+      renderer: {
+        render: ({ count, position }) =>
+          new AdvancedMarkerElement({
+            position,
+            content: buildClusterElement(count),
+            zIndex: 1000,
+          }),
+      },
     })
 
     if (validLocations.length > 1) {
@@ -1196,6 +1228,25 @@ export function MapaGooglePage({ navigate }) {
           .lovers-pin--selected { transform: scale(1.25); }
           .lovers-pin--selected .lovers-pin__heart-outer { fill: #b80050; }
           .lovers-pin--selected .lovers-pin__heart-inner { fill: #4a000e; }
+          /* ── cluster ── */
+          .lovers-cluster {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--lovers-red);
+            color: #fff;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(135,14,45,.45);
+            border: 2.5px solid #fff;
+            cursor: pointer;
+            transition: transform .15s;
+          }
+          .lovers-cluster:hover { transform: scale(1.12); }
           /* ── fullscreen desktop variant ── */
           .mapa-fullscreen .lovers-bg { display: none; }
           .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }
