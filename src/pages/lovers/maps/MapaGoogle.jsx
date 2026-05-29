@@ -124,10 +124,10 @@ function pinSvg(selected, label) {
   // badge circular anexado na lateral inferior-direita
   const badge = text ? (() => {
     const cx = 96, cy = 104, r = 34
-    const fontSize = text.length >= 3 ? 30 : text.length === 2 ? 42 : 50
+    const fontSize = text.length >= 3 ? 36 : text.length === 2 ? 50 : 56
     return `
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${outer}" stroke="#ffffff" stroke-width="7"/>
-    <text x="${cx}" y="${cy}" fill="#ffffff" font-family="system-ui,-apple-system,Arial,sans-serif"
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="#F5B800"/>
+    <text x="${cx}" y="${cy}" fill="#3F1A0A" font-family="'Arial Narrow','Roboto Condensed',Impact,sans-serif"
       font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${text}</text>`
   })() : ''
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 152">
