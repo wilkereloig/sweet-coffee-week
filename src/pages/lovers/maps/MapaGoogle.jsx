@@ -117,34 +117,35 @@ if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
-function pinSvg(selected) {
+function pinSvg(selected, label) {
   const outer = selected ? '#b80050' : '#f10767'
   const inner = selected ? '#4a000e' : '#7f0018'
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102.3 141.39">
+  const text = label ? String(label).toUpperCase() : ''
+  // badge circular anexado na lateral inferior-direita
+  const badge = text ? (() => {
+    const cx = 96, cy = 104, r = 34
+    const fontSize = text.length >= 3 ? 30 : text.length === 2 ? 42 : 50
+    return `
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${outer}" stroke="#ffffff" stroke-width="7"/>
+    <text x="${cx}" y="${cy}" fill="#ffffff" font-family="system-ui,-apple-system,Arial,sans-serif"
+      font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${text}</text>`
+  })() : ''
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 152">
     <path fill="${outer}" d="M51.15,0C22.95,0,0,22.9,0,51.05c0,39.08,45.48,86.75,47.42,88.76,2.04,2.12,5.44,2.12,7.47,0,1.94-2.01,47.42-49.68,47.42-88.76,0-28.15-22.95-51.05-51.15-51.05Z"/>
     <path fill="${inner}" d="M23.13,60.44c-1.98-9.32-.14-21.72,6.3-27.84,2.86-2.72,6.99-3.23,10.13-.84,5.61,4.26,7.23,11.05,8.66,18.39,3.98-10.22,11.47-25.23,21.91-28.17,4.32-1.22,8.34,1,9.28,5.46,1.03,4.87.38,9.84-1.14,14.73-6.55,21.16-21.44,42.56-35.26,60.38-8.23-12.97-17-26.76-19.9-42.12Z"/>
+    ${badge}
   </svg>`
 }
 
-function pinIcon(selected) {
-  const w = selected ? 44 : 36
-  const h = selected ? 61 : 50
+function pinIcon(selected, label) {
+  const scale = selected ? 0.42 : 0.34
+  const w = Math.round(134 * scale)
+  const h = Math.round(152 * scale)
   return {
-    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg(selected)),
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg(selected, label)),
     scaledSize: new google.maps.Size(w, h),
-    anchor: new google.maps.Point(Math.round(w / 2), h),
-    labelOrigin: new google.maps.Point(Math.round(w / 2), Math.round(h * 0.36)),
-  }
-}
-
-function pinLabel(text, selected) {
-  if (!text) return undefined
-  return {
-    text: String(text),
-    color: '#ffffff',
-    fontSize: selected ? '13px' : '11px',
-    fontWeight: '800',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    // ponta do coração: x=51.15, y=139 no viewBox 134x152
+    anchor: new google.maps.Point(Math.round((51.15 / 134) * w), Math.round((139 / 152) * h)),
   }
 }
 
@@ -227,9 +228,9 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         map,
         position: { lat: loc.latitude, lng: loc.longitude },
         title: `${loc.participantName} — ${loc.locationName}`,
-        icon: pinIcon(false),
-        label: pinLabel(loc.pinLabel, false),
+        icon: pinIcon(false, loc.pinLabel),
       })
+      marker.pinLabelText = loc.pinLabel
 
       marker.addListener('click', () => {
         onSelectLocation?.(loc)
@@ -264,9 +265,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([id, marker]) => {
       const sel = id === selectedLocationId
-      marker.setIcon(pinIcon(sel))
-      const lbl = marker.getLabel()
-      if (lbl?.text) marker.setLabel(pinLabel(lbl.text, sel))
+      marker.setIcon(pinIcon(sel, marker.pinLabelText))
     })
     if (selectedLocationId && instanceRef.current) {
       const loc = locations.find(l => l.id === selectedLocationId)
