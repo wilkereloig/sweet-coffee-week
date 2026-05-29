@@ -172,8 +172,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         const map = new Map(mapRef.current, {
           center: NATAL_CENTER,
           zoom: NATAL_ZOOM,
-          scrollwheel: false,
-          gestureHandling: 'cooperative',
+          scrollwheel: true,
+          gestureHandling: 'greedy',
         })
 
         const infoWindow = new google.maps.InfoWindow()
