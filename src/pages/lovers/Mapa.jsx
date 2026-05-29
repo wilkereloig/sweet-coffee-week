@@ -17,7 +17,7 @@ export function MapaPage({ navigate, variant }) {
   const [use3D, setUse3D] = useState(want3D())
 
   if (use3D) {
-    return <MapaGoogle3DPage onError={() => setUse3D(false)} />
+    return <MapaGoogle3DPage onError={() => setUse3D(false)} onExit={() => setUse3D(false)} />
   }
-  return <MapaGooglePage navigate={navigate} variant={variant} />
+  return <MapaGooglePage navigate={navigate} variant={variant} onEnter3D={() => setUse3D(true)} />
 }

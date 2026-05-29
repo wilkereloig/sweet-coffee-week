@@ -223,7 +223,7 @@ function buildClusterElement(count) {
 
 // ─── GoogleMap component ─────────────────────────────────────────────────────
 
-function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
+function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError, onEnter3D }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -510,9 +510,16 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   return (
     <div className="google-map-wrapper">
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-      <button type="button" className="map-3d-toggle" onClick={toggle3DMode}>
-        {is3DMode ? '2D' : '3D'}
-      </button>
+      <div className="map-top-controls">
+        <button type="button" className="map-3d-toggle" onClick={toggle3DMode}>
+          {is3DMode ? '2D' : '3D'}
+        </button>
+        {onEnter3D && (
+          <button type="button" className="map-globe-btn" onClick={onEnter3D} title="Abrir globo 3D fotorrealista">
+            🌎 Globo 3D
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -540,7 +547,7 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
-export function MapaGooglePage({ navigate }) {
+export function MapaGooglePage({ navigate, onEnter3D }) {
   const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
   const [selectedLocationId, setSelectedLocationId] = useState(null)
@@ -901,6 +908,7 @@ export function MapaGooglePage({ navigate }) {
                     onSelectLocation={handleSelectLocation}
                     userLocation={userLocation}
                     onError={setMapError}
+                    onEnter3D={onEnter3D}
                   />
                 )}
 
@@ -1378,13 +1386,20 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
-          /* ── toggle 2D/3D ── */
+          /* ── controles topo (2D/3D + globo) ── */
           .google-map-wrapper { position: relative; width: 100%; height: 100%; }
-          .map-3d-toggle {
+          .map-top-controls {
             position: absolute;
             right: 14px;
             top: 14px;
             z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+          }
+          .map-3d-toggle,
+          .map-globe-btn {
             border: 0;
             border-radius: 999px;
             min-height: 38px;
@@ -1399,6 +1414,15 @@ export function MapaGooglePage({ navigate }) {
             cursor: pointer;
             box-shadow: 0 10px 24px rgba(43,24,16,.22);
           }
+          .map-globe-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--lovers-cream);
+            color: var(--lovers-red);
+            border: 2px solid var(--lovers-red);
+          }
+          .map-globe-btn:hover { background: var(--lovers-red); color: var(--lovers-cream); }
 
           /* ── controles de rotação ── */
           .map-rotate-controls {
