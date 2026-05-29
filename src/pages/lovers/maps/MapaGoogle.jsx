@@ -6,6 +6,7 @@ import { PARTICIPANTS } from '../../../data/participants'
 import { COMBOS } from '../../../data/combos'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
 
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
@@ -117,36 +118,19 @@ if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
-function pinSvg(selected, label) {
-  const outer = selected ? '#b80050' : '#f10767'
-  const inner = selected ? '#4a000e' : '#7f0018'
-  const text = label ? String(label).toUpperCase() : ''
-  // badge circular anexado na lateral inferior-direita
-  const badge = text ? (() => {
-    const cx = 96, cy = 104, r = 34
-    const fontSize = text.length >= 3 ? 36 : text.length === 2 ? 50 : 56
-    return `
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="#F5B800"/>
-    <text x="${cx}" y="${cy}" fill="#3F1A0A" font-family="'Arial Narrow','Roboto Condensed',Impact,sans-serif"
-      font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${text}</text>`
-  })() : ''
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 152">
-    <path fill="${outer}" d="M51.15,0C22.95,0,0,22.9,0,51.05c0,39.08,45.48,86.75,47.42,88.76,2.04,2.12,5.44,2.12,7.47,0,1.94-2.01,47.42-49.68,47.42-88.76,0-28.15-22.95-51.05-51.15-51.05Z"/>
-    <path fill="${inner}" d="M23.13,60.44c-1.98-9.32-.14-21.72,6.3-27.84,2.86-2.72,6.99-3.23,10.13-.84,5.61,4.26,7.23,11.05,8.66,18.39,3.98-10.22,11.47-25.23,21.91-28.17,4.32-1.22,8.34,1,9.28,5.46,1.03,4.87.38,9.84-1.14,14.73-6.55,21.16-21.44,42.56-35.26,60.38-8.23-12.97-17-26.76-19.9-42.12Z"/>
-    ${badge}
-  </svg>`
-}
+const HEART_PATHS =
+  '<path class="lovers-pin__heart-outer" d="M51.15,0C22.95,0,0,22.9,0,51.05c0,39.08,45.48,86.75,47.42,88.76,2.04,2.12,5.44,2.12,7.47,0,1.94-2.01,47.42-49.68,47.42-88.76,0-28.15-22.95-51.05-51.15-51.05Z"/>' +
+  '<path class="lovers-pin__heart-inner" d="M23.13,60.44c-1.98-9.32-.14-21.72,6.3-27.84,2.86-2.72,6.99-3.23,10.13-.84,5.61,4.26,7.23,11.05,8.66,18.39,3.98-10.22,11.47-25.23,21.91-28.17,4.32-1.22,8.34,1,9.28,5.46,1.03,4.87.38,9.84-1.14,14.73-6.55,21.16-21.44,42.56-35.26,60.38-8.23-12.97-17-26.76-19.9-42.12Z"/>'
 
-function pinIcon(selected, label) {
-  const scale = selected ? 0.42 : 0.34
-  const w = Math.round(134 * scale)
-  const h = Math.round(152 * scale)
-  return {
-    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg(selected, label)),
-    scaledSize: new google.maps.Size(w, h),
-    // ponta do coração: x=51.15, y=139 no viewBox 134x152
-    anchor: new google.maps.Point(Math.round((51.15 / 134) * w), Math.round((139 / 152) * h)),
-  }
+// Pin como elemento DOM (AdvancedMarkerElement) → permite usar a fonte real dos títulos (Typekit)
+function buildPinElement(label, selected) {
+  const el = document.createElement('div')
+  el.className = 'lovers-pin' + (selected ? ' lovers-pin--selected' : '')
+  const text = label ? String(label).toUpperCase() : ''
+  el.innerHTML =
+    `<svg class="lovers-pin__svg" viewBox="0 0 102.3 141.39" xmlns="http://www.w3.org/2000/svg">${HEART_PATHS}</svg>` +
+    (text ? `<span class="lovers-pin__badge">${text}</span>` : '')
+  return el
 }
 
 // ─── GoogleMap component ─────────────────────────────────────────────────────
@@ -180,6 +164,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     ;(async () => {
       try {
         const { Map } = await importLibrary('maps')
+        const { AdvancedMarkerElement } = await importLibrary('marker')
         if (cancelled || !mapRef.current || instanceRef.current) return
 
         const map = new Map(mapRef.current, {
@@ -187,10 +172,11 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           zoom: NATAL_ZOOM,
           scrollwheel: true,
           gestureHandling: 'greedy',
+          mapId: GOOGLE_MAPS_MAP_ID,
         })
 
         const infoWindow = new google.maps.InfoWindow()
-        instanceRef.current = { map, infoWindow }
+        instanceRef.current = { map, infoWindow, AdvancedMarkerElement }
         setMapReady(true)
       } catch (e) {
         console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
@@ -200,7 +186,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
     return () => {
       cancelled = true
-      Object.values(markersRef.current).forEach(m => m.setMap(null))
+      Object.values(markersRef.current).forEach(m => { m.map = null })
       markersRef.current = {}
       if (userMarkerRef.current) {
         userMarkerRef.current.setMap(null)
@@ -214,9 +200,9 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   useEffect(() => {
     if (!instanceRef.current) return
 
-    const { map, infoWindow } = instanceRef.current
+    const { map, infoWindow, AdvancedMarkerElement } = instanceRef.current
 
-    Object.values(markersRef.current).forEach(marker => marker.setMap(null))
+    Object.values(markersRef.current).forEach(marker => { marker.map = null })
     markersRef.current = {}
 
     const validLocations = locations.filter(loc =>
@@ -224,15 +210,16 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     )
 
     validLocations.forEach(loc => {
-      const marker = new google.maps.Marker({
+      const marker = new AdvancedMarkerElement({
         map,
         position: { lat: loc.latitude, lng: loc.longitude },
         title: `${loc.participantName} — ${loc.locationName}`,
-        icon: pinIcon(false, loc.pinLabel),
+        content: buildPinElement(loc.pinLabel, false),
+        gmpClickable: true,
       })
       marker.pinLabelText = loc.pinLabel
 
-      marker.addListener('click', () => {
+      marker.addListener('gmp-click', () => {
         onSelectLocation?.(loc)
         infoWindow.setContent(`
           <div style="font-family:sans-serif;max-width:220px;line-height:1.4;">
@@ -265,7 +252,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([id, marker]) => {
       const sel = id === selectedLocationId
-      marker.setIcon(pinIcon(sel, marker.pinLabelText))
+      marker.content = buildPinElement(marker.pinLabelText, sel)
+      marker.zIndex = sel ? 999 : 1
     })
     if (selectedLocationId && instanceRef.current) {
       const loc = locations.find(l => l.id === selectedLocationId)
@@ -1175,6 +1163,39 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
+          /* ── pin HTML (AdvancedMarkerElement) ── */
+          .lovers-pin {
+            position: relative;
+            width: 40px;
+            height: 55px;
+            cursor: pointer;
+            transition: transform .15s ease;
+            transform-origin: bottom center;
+          }
+          .lovers-pin__svg { width: 100%; height: 100%; display: block; overflow: visible; }
+          .lovers-pin__heart-outer { fill: #f10767; }
+          .lovers-pin__heart-inner { fill: #7f0018; }
+          .lovers-pin__badge {
+            position: absolute;
+            right: -9px;
+            bottom: 7px;
+            min-width: 25px;
+            height: 25px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-display);
+            font-weight: 700;
+            font-size: 17px;
+            line-height: 25px;
+            text-align: center;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0,0,0,.25);
+          }
+          .lovers-pin--selected { transform: scale(1.25); }
+          .lovers-pin--selected .lovers-pin__heart-outer { fill: #b80050; }
+          .lovers-pin--selected .lovers-pin__heart-inner { fill: #4a000e; }
           /* ── fullscreen desktop variant ── */
           .mapa-fullscreen .lovers-bg { display: none; }
           .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }
