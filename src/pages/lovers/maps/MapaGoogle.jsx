@@ -312,7 +312,8 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
-export function MapaGooglePage({ navigate }) {
+export function MapaGooglePage({ navigate, variant }) {
+  const isFullscreen = variant === 'fullscreen'
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
   const [selectedLocationId, setSelectedLocationId] = useState(null)
   const [search, setSearch] = useState('')
@@ -570,9 +571,10 @@ export function MapaGooglePage({ navigate }) {
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className={`page-enter kv-lovers${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
+      {!isFullscreen && (
       <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
         <div className="wrap">
           <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
@@ -590,6 +592,7 @@ export function MapaGooglePage({ navigate }) {
           </div>
         </div>
       </section>
+      )}
 
       <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
         <div className="wrap">
@@ -1153,6 +1156,34 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
+          /* ── fullscreen desktop variant ── */
+          .mapa-fullscreen .lovers-bg { display: none; }
+          .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }
+          .mapa-fullscreen > section > .wrap { max-width: none; width: 100%; padding: 0; }
+          .mapa-fullscreen .mapa-layout {
+            grid-template-columns: 380px 1fr;
+            gap: 0;
+            height: calc(100vh - 72px);
+            align-items: stretch;
+          }
+          .mapa-fullscreen .mapa-container {
+            height: 100%;
+            border-radius: 0;
+            border: none;
+            order: 2;
+          }
+          .mapa-fullscreen .map-sidebar {
+            height: calc(100vh - 72px);
+            order: 1;
+            border-right: 1px solid rgba(135,14,45,.18);
+            background: var(--lovers-cream);
+            padding: 16px;
+          }
+          @media (max-width: 900px) {
+            .mapa-fullscreen .mapa-layout { grid-template-columns: 1fr; height: auto; }
+            .mapa-fullscreen .mapa-container { height: 60vh; order: 1; }
+            .mapa-fullscreen .map-sidebar { height: auto; order: 2; }
+          }
           /* ── layout ── */
           .mapa-layout {
             display: grid;
