@@ -312,8 +312,8 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
-export function MapaGooglePage({ navigate, variant }) {
-  const isFullscreen = variant === 'fullscreen'
+export function MapaGooglePage({ navigate }) {
+  const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
   const [selectedLocationId, setSelectedLocationId] = useState(null)
   const [search, setSearch] = useState('')
@@ -573,29 +573,6 @@ export function MapaGooglePage({ navigate, variant }) {
   return (
     <div className={`page-enter kv-lovers${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
-
-      {!isFullscreen && (
-      <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-        <div className="wrap">
-          <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-            <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 24, justifyContent: 'center' }}>
-              <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              MAPA DA DOÇURA
-            </div>
-            <h1 className="lovers-h1" style={{ fontSize: 'clamp(48px, 7vw, 96px)', margin: 0 }}>
-              Mapa da Doçura<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>Lovers.</span>
-            </h1>
-            <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .85 }}>
-              Veja onde estão os participantes da edição e escolha sua próxima parada.
-            </p>
-            <a href="#/lovers/mapa-tela-cheia" className="mapa-fullscreen-cta">
-              Abrir mapa em tela cheia
-            </a>
-          </div>
-        </div>
-      </section>
-      )}
 
       <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
         <div className="wrap">
@@ -1159,28 +1136,6 @@ export function MapaGooglePage({ navigate, variant }) {
         </div>
 
         <style>{`
-          /* ── CTA tela cheia (desktop only) ── */
-          .mapa-fullscreen-cta {
-            display: none;
-            margin: 24px auto 0;
-            padding: 12px 28px;
-            border-radius: 999px;
-            background: var(--lovers-red);
-            color: #fff;
-            font-family: var(--font-lovers-body);
-            font-weight: 600;
-            font-size: 15px;
-            text-decoration: none;
-            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-            box-shadow: 0 6px 18px rgba(214,54,72,.28);
-          }
-          .mapa-fullscreen-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(214,54,72,.36);
-          }
-          @media (min-width: 901px) {
-            .mapa-fullscreen-cta { display: inline-block; }
-          }
           /* ── fullscreen desktop variant ── */
           .mapa-fullscreen .lovers-bg { display: none; }
           .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }

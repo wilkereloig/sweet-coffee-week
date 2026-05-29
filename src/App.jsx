@@ -29,7 +29,6 @@ export default function App() {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/lovers/combos/')) return 'combo-detail'
     if (path.startsWith('/lovers/combos'))  return 'combos'
-    if (path.startsWith('/lovers/mapa-tela-cheia')) return 'mapa-fullscreen'
     if (path.startsWith('/lovers/mapa'))    return 'mapa'
     if (path.startsWith('/lovers/awards'))  return 'awards'
     if (path.startsWith('/lovers'))         return 'lovers'
@@ -47,8 +46,7 @@ export default function App() {
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
     case 'combos':       page = <ComboPage navigate={navigate} />; break
     case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
-    case 'mapa':         page = <MapaPage navigate={navigate} />; break
-    case 'mapa-fullscreen': page = <MapaPage navigate={navigate} variant="fullscreen" />; break
+    case 'mapa':         page = <MapaPage navigate={navigate} variant="fullscreen" />; break
     case 'awards':       page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
