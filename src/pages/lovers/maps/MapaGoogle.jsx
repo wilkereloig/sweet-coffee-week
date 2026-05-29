@@ -964,17 +964,6 @@ export function MapaGooglePage({ navigate }) {
                             {p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
-                            {p.instagram && (
-                              <a
-                                className="map-card-ig"
-                                href={`https://instagram.com/${p.instagram.replace(/^@/, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={e => e.stopPropagation()}
-                              >
-                                <I.ig /> {p.instagram}
-                              </a>
-                            )}
                           </div>
                         </div>
 
@@ -1006,9 +995,11 @@ export function MapaGooglePage({ navigate }) {
                                   )}
                                 </div>
 
-                                {(loc.neighborhood || loc.city) && (
+                                {loc.city && (
                                   <div className="map-location-meta">
-                                    {[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
+                                    {loc.locationName?.toLowerCase().trim() === loc.neighborhood?.toLowerCase().trim()
+                                      ? loc.city
+                                      : [loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
                                   </div>
                                 )}
 
@@ -1056,6 +1047,19 @@ export function MapaGooglePage({ navigate }) {
                                   >
                                     {isInRoute(loc) ? <I.heart /> : <I.heartLine />}
                                   </button>
+                                  {loc.participantInstagram && (
+                                    <a
+                                      className="map-icon-action"
+                                      title="Instagram"
+                                      aria-label="Instagram"
+                                      href={`https://instagram.com/${loc.participantInstagram.replace(/^@/, '')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      <I.ig />
+                                    </a>
+                                  )}
                                 </div>
                               </div>
                             )
