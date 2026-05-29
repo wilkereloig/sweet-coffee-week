@@ -133,6 +133,18 @@ function pinIcon(selected) {
     url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg(selected)),
     scaledSize: new google.maps.Size(w, h),
     anchor: new google.maps.Point(Math.round(w / 2), h),
+    labelOrigin: new google.maps.Point(Math.round(w / 2), Math.round(h * 0.36)),
+  }
+}
+
+function pinLabel(text, selected) {
+  if (!text) return undefined
+  return {
+    text: String(text),
+    color: '#ffffff',
+    fontSize: selected ? '13px' : '11px',
+    fontWeight: '800',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
   }
 }
 
@@ -216,6 +228,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         position: { lat: loc.latitude, lng: loc.longitude },
         title: `${loc.participantName} — ${loc.locationName}`,
         icon: pinIcon(false),
+        label: pinLabel(loc.pinLabel, false),
       })
 
       marker.addListener('click', () => {
@@ -250,7 +263,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   // Highlight selected marker + pan
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([id, marker]) => {
-      marker.setIcon(pinIcon(id === selectedLocationId))
+      const sel = id === selectedLocationId
+      marker.setIcon(pinIcon(sel))
+      const lbl = marker.getLabel()
+      if (lbl?.text) marker.setLabel(pinLabel(lbl.text, sel))
     })
     if (selectedLocationId && instanceRef.current) {
       const loc = locations.find(l => l.id === selectedLocationId)
@@ -346,6 +362,26 @@ export function MapaGooglePage({ navigate }) {
     participants.flatMap(getParticipantLocations),
   [participants])
 
+  // ── numeração da legenda (estável, ordem da lista) ──────────────────────────
+  const participantNumberById = useMemo(() => {
+    const map = {}
+    participants.forEach((p, i) => { map[p.id] = i + 1 })
+    return map
+  }, [participants])
+
+  const pinLabelByLocationId = useMemo(() => {
+    const map = {}
+    participants.forEach((p, i) => {
+      const num = i + 1
+      const locs = getParticipantLocations(p)
+      const multi = locs.length > 1
+      locs.forEach((loc, j) => {
+        map[loc.id] = multi ? `${num}${String.fromCharCode(97 + j)}` : `${num}`
+      })
+    })
+    return map
+  }, [participants])
+
   const neighborhoods = useMemo(() => {
     const counts = {}
     allLocations.forEach(l => {
@@ -384,9 +420,10 @@ export function MapaGooglePage({ navigate }) {
         participantLogo: p.logo,
         participantInstagram: p.instagram,
         brandColor: p.brandColor,
+        pinLabel: pinLabelByLocationId[loc.id],
       }))
     ),
-  [filteredParticipants])
+  [filteredParticipants, pinLabelByLocationId])
 
   const visibleLocationsWithDistance = useMemo(() =>
     visibleLocations.map(loc => {
@@ -872,6 +909,9 @@ export function MapaGooglePage({ navigate }) {
                       >
                         {/* cabeçalho do card */}
                         <div className="map-card-header">
+                          <div className="map-card-number" aria-label={`Número ${participantNumberById[p.id]} no mapa`}>
+                            {participantNumberById[p.id]}
+                          </div>
                           {p.logo && (
                             <div className="map-card-logo">
                               <img src={p.logo} alt={`Logo ${p.name}`} />
@@ -1620,6 +1660,20 @@ export function MapaGooglePage({ navigate }) {
             gap: 12px;
             align-items: center;
             margin-bottom: 18px;
+          }
+          .map-card-number {
+            flex: 0 0 auto;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--lovers-red);
+            color: #fff;
+            font-weight: 800;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, sans-serif;
           }
           .map-card-logo {
             width: 72px;
