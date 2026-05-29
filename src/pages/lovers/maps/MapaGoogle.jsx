@@ -244,6 +244,8 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
   }, [])
 
   const [mapReady, setMapReady] = useState(false)
+  const [is3DMode, setIs3DMode] = useState(true)
+  const is3DModeRef = useRef(true)
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -262,8 +264,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           scrollwheel: true,
           gestureHandling: 'greedy',
           mapId: GOOGLE_MAPS_MAP_ID,
+          renderingType: google.maps.RenderingType?.VECTOR,
+          isFractionalZoomEnabled: true,
           tilt: 45,
-          heading: 0,
+          heading: 25,
         })
 
         // ─── Controles de rotação (par de botões + norte) ───────────────
@@ -317,6 +321,21 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
         const infoWindow = new google.maps.InfoWindow()
         instanceRef.current = { map, infoWindow, AdvancedMarkerElement, cleanupRotate }
         setMapReady(true)
+
+        // Aplicar câmera 3D de forma segura (após o mapa assentar)
+        setTimeout(() => {
+          try {
+            map.moveCamera({ center: NATAL_CENTER, zoom: 14.5, tilt: 45, heading: 25 })
+            console.log('[Mapa 3D]', {
+              renderingType: map.getRenderingType?.(),
+              tilt: map.getTilt?.(),
+              heading: map.getHeading?.(),
+              mapId: GOOGLE_MAPS_MAP_ID,
+            })
+          } catch (error) {
+            console.warn('[Mapa 3D] Não foi possível aplicar câmera 3D:', error)
+          }
+        }, 500)
       } catch (e) {
         console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
         onError?.('load-error')
@@ -411,6 +430,20 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       map.panTo(NATAL_CENTER)
       map.setZoom(NATAL_ZOOM)
     }
+
+    // fitBounds reseta tilt/heading — reaplicar câmera 3D se ativo
+    if (is3DModeRef.current) {
+      setTimeout(() => {
+        try {
+          map.moveCamera({
+            center: map.getCenter(),
+            zoom: Math.max(map.getZoom() || 14, 14),
+            tilt: 45,
+            heading: 25,
+          })
+        } catch {}
+      }, 300)
+    }
   }, [locations, onSelectLocation, mapReady])
 
   // Highlight selected marker + pan
@@ -454,7 +487,34 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     }
   }, [userLocation])
 
-  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+  function toggle3DMode() {
+    if (!instanceRef.current?.map) return
+    const map = instanceRef.current.map
+    setIs3DMode(current => {
+      const next = !current
+      is3DModeRef.current = next
+      try {
+        map.moveCamera({
+          center: map.getCenter(),
+          zoom: next ? Math.max(map.getZoom() || 14, 14.5) : map.getZoom(),
+          tilt: next ? 45 : 0,
+          heading: next ? 25 : 0,
+        })
+      } catch (error) {
+        console.warn('[Mapa 3D] Falha ao alternar 3D:', error)
+      }
+      return next
+    })
+  }
+
+  return (
+    <div className="google-map-wrapper">
+      <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+      <button type="button" className="map-3d-toggle" onClick={toggle3DMode}>
+        {is3DMode ? '2D' : '3D'}
+      </button>
+    </div>
+  )
 }
 
 function getLocationDestination(location) {
@@ -1318,6 +1378,28 @@ export function MapaGooglePage({ navigate }) {
         </div>
 
         <style>{`
+          /* ── toggle 2D/3D ── */
+          .google-map-wrapper { position: relative; width: 100%; height: 100%; }
+          .map-3d-toggle {
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            z-index: 5;
+            border: 0;
+            border-radius: 999px;
+            min-height: 38px;
+            padding: 0 16px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(43,24,16,.22);
+          }
+
           /* ── controles de rotação ── */
           .map-rotate-controls {
             display: flex;
