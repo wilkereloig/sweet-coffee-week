@@ -223,7 +223,7 @@ function buildClusterElement(count) {
 
 // ─── GoogleMap component ─────────────────────────────────────────────────────
 
-function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError, onEnter3D }) {
+function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -266,76 +266,11 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           mapId: GOOGLE_MAPS_MAP_ID,
           renderingType: google.maps.RenderingType?.VECTOR,
           isFractionalZoomEnabled: true,
-          tilt: 45,
-          heading: 25,
         })
 
-        // ─── Controles de rotação (par de botões + norte) ───────────────
-        const rotateBy = deg => map.setHeading((((map.getHeading() || 0) + deg) % 360 + 360) % 360)
-        const makeRotateBtn = (label, title, onClick) => {
-          const btn = document.createElement('button')
-          btn.type = 'button'
-          btn.textContent = label
-          btn.title = title
-          btn.setAttribute('aria-label', title)
-          btn.className = 'map-rotate-btn'
-          btn.addEventListener('click', onClick)
-          return btn
-        }
-        const rotateWrap = document.createElement('div')
-        rotateWrap.className = 'map-rotate-controls'
-        rotateWrap.appendChild(makeRotateBtn('⟲', 'Girar à esquerda', () => rotateBy(-45)))
-        rotateWrap.appendChild(makeRotateBtn('⤒', 'Apontar para o norte', () => map.setHeading(0)))
-        rotateWrap.appendChild(makeRotateBtn('⟳', 'Girar à direita', () => rotateBy(45)))
-        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(rotateWrap)
-
-        // ─── Rotação com botão do meio do mouse (pressionar + arrastar) ──
-        const mapDiv = mapRef.current
-        let midDragging = false
-        let lastX = 0
-        const onMouseDown = e => {
-          if (e.button !== 1) return
-          e.preventDefault()
-          midDragging = true
-          lastX = e.clientX
-        }
-        const onMouseMove = e => {
-          if (!midDragging) return
-          const dx = e.clientX - lastX
-          lastX = e.clientX
-          map.setHeading((((map.getHeading() || 0) + dx * 0.5) % 360 + 360) % 360)
-        }
-        const onMouseUp = () => { midDragging = false }
-        const onAuxClick = e => { if (e.button === 1) e.preventDefault() }
-        mapDiv.addEventListener('mousedown', onMouseDown)
-        mapDiv.addEventListener('auxclick', onAuxClick)
-        window.addEventListener('mousemove', onMouseMove)
-        window.addEventListener('mouseup', onMouseUp)
-        const cleanupRotate = () => {
-          mapDiv.removeEventListener('mousedown', onMouseDown)
-          mapDiv.removeEventListener('auxclick', onAuxClick)
-          window.removeEventListener('mousemove', onMouseMove)
-          window.removeEventListener('mouseup', onMouseUp)
-        }
-
         const infoWindow = new google.maps.InfoWindow()
-        instanceRef.current = { map, infoWindow, AdvancedMarkerElement, cleanupRotate }
+        instanceRef.current = { map, infoWindow, AdvancedMarkerElement }
         setMapReady(true)
-
-        // Aplicar câmera 3D de forma segura (após o mapa assentar)
-        setTimeout(() => {
-          try {
-            map.moveCamera({ center: NATAL_CENTER, zoom: 14.5, tilt: 45, heading: 25 })
-            console.log('[Mapa 3D]', {
-              renderingType: map.getRenderingType?.(),
-              tilt: map.getTilt?.(),
-              heading: map.getHeading?.(),
-              mapId: GOOGLE_MAPS_MAP_ID,
-            })
-          } catch (error) {
-            console.warn('[Mapa 3D] Não foi possível aplicar câmera 3D:', error)
-          }
-        }, 500)
       } catch (e) {
         console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
         onError?.('load-error')
@@ -344,7 +279,6 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
     return () => {
       cancelled = true
-      instanceRef.current?.cleanupRotate?.()
       if (clustererRef.current) {
         clustererRef.current.clearMarkers()
         clustererRef.current = null
@@ -430,20 +364,6 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       map.panTo(NATAL_CENTER)
       map.setZoom(NATAL_ZOOM)
     }
-
-    // fitBounds reseta tilt/heading — reaplicar câmera 3D se ativo
-    if (is3DModeRef.current) {
-      setTimeout(() => {
-        try {
-          map.moveCamera({
-            center: map.getCenter(),
-            zoom: Math.max(map.getZoom() || 14, 14),
-            tilt: 45,
-            heading: 25,
-          })
-        } catch {}
-      }, 300)
-    }
   }, [locations, onSelectLocation, mapReady])
 
   // Highlight selected marker + pan
@@ -487,39 +407,9 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
     }
   }, [userLocation])
 
-  function toggle3DMode() {
-    if (!instanceRef.current?.map) return
-    const map = instanceRef.current.map
-    setIs3DMode(current => {
-      const next = !current
-      is3DModeRef.current = next
-      try {
-        map.moveCamera({
-          center: map.getCenter(),
-          zoom: next ? Math.max(map.getZoom() || 14, 14.5) : map.getZoom(),
-          tilt: next ? 45 : 0,
-          heading: next ? 25 : 0,
-        })
-      } catch (error) {
-        console.warn('[Mapa 3D] Falha ao alternar 3D:', error)
-      }
-      return next
-    })
-  }
-
   return (
     <div className="google-map-wrapper">
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-      <div className="map-top-controls">
-        <button type="button" className="map-3d-toggle" onClick={toggle3DMode}>
-          {is3DMode ? '2D' : '3D'}
-        </button>
-        {onEnter3D && (
-          <button type="button" className="map-globe-btn" onClick={onEnter3D} title="Abrir globo 3D fotorrealista">
-            🌎 Globo 3D
-          </button>
-        )}
-      </div>
     </div>
   )
 }
@@ -547,7 +437,7 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
-export function MapaGooglePage({ navigate, onEnter3D }) {
+export function MapaGooglePage({ navigate }) {
   const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
   const [selectedLocationId, setSelectedLocationId] = useState(null)
