@@ -264,6 +264,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
           mapId: GOOGLE_MAPS_MAP_ID,
           tilt: 45,
           heading: 0,
+          rotateControl: true,
         })
 
         const infoWindow = new google.maps.InfoWindow()
