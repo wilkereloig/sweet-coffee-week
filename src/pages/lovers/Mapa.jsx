@@ -19,5 +19,5 @@ export function MapaPage({ navigate, variant }) {
   if (use3D) {
     return <MapaGoogle3DPage onError={() => setUse3D(false)} onExit={() => setUse3D(false)} />
   }
-  return <MapaGooglePage navigate={navigate} variant={variant} onEnter3D={() => setUse3D(true)} />
+  return <MapaGooglePage navigate={navigate} variant={variant} />
 }

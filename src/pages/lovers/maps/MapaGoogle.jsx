@@ -798,7 +798,6 @@ export function MapaGooglePage({ navigate }) {
                     onSelectLocation={handleSelectLocation}
                     userLocation={userLocation}
                     onError={setMapError}
-                    onEnter3D={onEnter3D}
                   />
                 )}
 
