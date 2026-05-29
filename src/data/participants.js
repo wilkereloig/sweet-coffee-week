@@ -93,18 +93,17 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-brown)",
     instagram: "@canutos.coffee",
     whatsapp: "",
-    address: "Shopping Cidade Jardim - Av. Engenheiro Roberto Freire, 340, Lj-14a",
-    neighborhood: "Capim Macio",
-    city: "Natal/RN",
-    latitude: -5.856944,
-    longitude: -35.203611,
-    mapsUrl: "https://maps.google.com/?cid=17931732396072426136",
+    address: "R. Aníbal Brandão",
+    neighborhood: "Nova Parnamirim",
+    city: "Parnamirim/RN",
+    latitude: -5.882800,
+    longitude: -35.210500,
+    mapsUrl: "",
     openingHours: "",
     theme: "Disney",
     edition: "Sweet Trip",
     locations: [
-      { id: "canutos-cidade-jardim",   name: "Cidade Jardim",   address: "Shopping Cidade Jardim - Av. Engenheiro Roberto Freire, 340, Lj-14a", neighborhood: "Capim Macio",     city: "Natal/RN",      latitude: -5.856944, longitude: -35.203611, mapsUrl: "https://maps.google.com/?cid=17931732396072426136" },
-      { id: "canutos-nova-parnamirim", name: "Nova Parnamirim", address: "R. Aníbal Brandão",                                                    neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882800, longitude: -35.210500, mapsUrl: "" },
+      { id: "canutos-nova-parnamirim", name: "Nova Parnamirim", address: "R. Aníbal Brandão", neighborhood: "Nova Parnamirim", city: "Parnamirim/RN", latitude: -5.882800, longitude: -35.210500, mapsUrl: "" },
     ]
   },
   {
@@ -279,7 +278,9 @@ export const PARTICIPANTS = [
     theme: "\"Isso aqui tá bom demais\"",
     edition: "Sweet Music",
     locations: [
-      { id: "mangai-ponta-negra", name: "Ponta Negra", address: "Rua Des. João Vicente da Costa, 8861", neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.874167, longitude: -35.182500, mapsUrl: "https://maps.google.com/?cid=1296701487931758722" },
+      { id: "mangai-ponta-negra", name: "Ponta Negra", address: "Rua Des. João Vicente da Costa, 8861",            neighborhood: "Ponta Negra", city: "Natal/RN", latitude: -5.874167, longitude: -35.182500, mapsUrl: "https://maps.google.com/?cid=1296701487931758722" },
+      { id: "mangai-lagoa-nova",  name: "Lagoa Nova",  address: "Av. Amintas Barros, 3300",                        neighborhood: "Lagoa Nova",  city: "Natal/RN", latitude: -5.823000, longitude: -35.213000, mapsUrl: "" },
+      { id: "mangai-midway",      name: "Midway",      address: "Av. Nevaldo Rocha, 3775 - Área Gourmet, Piso L3", neighborhood: "Tirol",       city: "Natal/RN", latitude: -5.820000, longitude: -35.241000, mapsUrl: "" },
     ]
   },
   {
@@ -375,18 +376,17 @@ export const PARTICIPANTS = [
     brandColor: "var(--lovers-burgundy)",
     instagram: "@paneernatal",
     whatsapp: "",
-    address: "Rua dos Tororós, 2523",
-    neighborhood: "Lagoa Nova",
+    address: "Espaço Casa 893 - Av. Afonso Pena, 893",
+    neighborhood: "Tirol",
     city: "Natal/RN",
-    latitude: -5.819444,
-    longitude: -35.212778,
-    mapsUrl: "https://maps.google.com/?cid=4412840271996621434",
+    latitude: -5.794200,
+    longitude: -35.198300,
+    mapsUrl: "",
     openingHours: "",
     theme: "Chapeuzinho Vermelho",
     edition: "Contos de Fadas",
     locations: [
-      { id: "paneer-patisserie-lagoa-nova", name: "Lagoa Nova", address: "Rua dos Tororós, 2523",                  neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.819444, longitude: -35.212778, mapsUrl: "https://maps.google.com/?cid=4412840271996621434" },
-      { id: "paneer-patisserie-tirol",      name: "Tirol",      address: "Espaço Casa 893 - Av. Afonso Pena, 893", neighborhood: "Tirol",      city: "Natal/RN", latitude: -5.794200, longitude: -35.198300, mapsUrl: "" },
+      { id: "paneer-patisserie-tirol", name: "Tirol", address: "Espaço Casa 893 - Av. Afonso Pena, 893", neighborhood: "Tirol", city: "Natal/RN", latitude: -5.794200, longitude: -35.198300, mapsUrl: "" },
     ]
   },
   {
@@ -428,7 +428,8 @@ export const PARTICIPANTS = [
     theme: "\"Asa Branca\", de Luiz Gonzaga",
     edition: "Sweet Music",
     locations: [
-      { id: "rollab-confeitaria-lagoa-nova", name: "Lagoa Nova", address: "Rua Almeida Barreto, 430", neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.811944, longitude: -35.205278, mapsUrl: "https://maps.google.com/?cid=17531256088081568032" },
+      { id: "rollab-confeitaria-lagoa-nova", name: "Lagoa Nova", address: "Rua Almeida Barreto, 430",                              neighborhood: "Lagoa Nova", city: "Natal/RN", latitude: -5.811944, longitude: -35.205278, mapsUrl: "https://maps.google.com/?cid=17531256088081568032" },
+      { id: "rollab-confeitaria-tirol",      name: "Tirol",      address: "AABB - Av. Hermes de Fonseca, 1017",                     neighborhood: "Tirol",      city: "Natal/RN", latitude: -5.808500, longitude: -35.207000, mapsUrl: "" },
     ]
   },
   {
@@ -471,6 +472,7 @@ export const PARTICIPANTS = [
     edition: "Terras Potiguares",
     locations: [
       { id: "wow-cookies-capim-macio", name: "Capim Macio", address: "Vela Trade - Rua Neuza Farache, 1870, Loja 6", neighborhood: "Capim Macio", city: "Natal/RN", latitude: -5.8600199, longitude: -35.1997991, mapsUrl: "https://maps.google.com/?cid=1695958296571675087" },
+      { id: "wow-cookies-tirol",       name: "Tirol",       address: "Aliança Mall - Rua Jundiaí, 438, Loja 4",    neighborhood: "Tirol",       city: "Natal/RN", latitude: -5.798000,  longitude: -35.204500,  mapsUrl: "" },
     ]
   },
 ]
