@@ -2535,5 +2535,9 @@ button:disabled { cursor: not-allowed; }
 .sidebar__link--lovers.lovers-active .sidebar__link-label,
 .sidebar__link--lovers.lovers-active .sidebar__link-sub { color: var(--lovers-burgundy); }
 .sidebar__link--lovers.lovers-active .sidebar__link-sub { opacity: .76; }
+.sidebar__link--lovers:focus-visible {
+  outline: 2px solid var(--lovers-pink);
+  outline-offset: 2px;
+}
 
 
