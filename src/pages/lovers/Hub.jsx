@@ -1,7 +1,7 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
-import { LoversButton, LoversNavCard, LoversStatCard, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversNavCard, LoversStatCard, LoversStickers, useLoversReveal } from '../../components/lovers'
 
 /* Página /lovers — landing "Sobre a edição" (Lovers Interactive Editorial System).
    Scroll reveal via hook compartilhado useLoversReveal (observa '.lovers-reveal, .reveal'). */
@@ -284,6 +284,7 @@ export function LoversPage({ navigate }) {
   return (
     <div className="page-enter kv-lovers lovers-home lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
+      <LoversStickers page="sobre" />
       <Hero navigate={navigate} />
       <Sobre />
       <ComoFunciona />

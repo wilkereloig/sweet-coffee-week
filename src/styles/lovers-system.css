@@ -155,6 +155,11 @@
 }
 @media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
 
+/* ── Adesivos PNG decorativos por página (LoversStickers) ── */
+.lovers-stickers { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.lovers-sticker-img { position: absolute; height: auto; filter: drop-shadow(0 8px 18px rgba(43,24,16,.18)); }
+@media (max-width: 640px) { .lovers-sticker-img { opacity: .5; width: 64px !important; } }
+
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
 .section-sobre .lovers-phrase {
   background: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 14%, #fff);
