@@ -12,8 +12,23 @@ const ENABLE_PREVIEW_DATA =
 const participantsData =
   PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
 
+// Em desenvolvimento ainda não há combos oficiais (COMBOS vazio). Para o site de
+// preview, derivamos um card por participante real — o slug do combo = slug do
+// participante, e ComboDetail faz fallback por participante quando não há combo.
+const combosFromParticipants = participantsData.map(p => ({
+  id: p.id,
+  participantId: p.id,
+  slug: p.slug,
+  name: p.name,
+  recreatedTheme: p.theme || '',
+}))
+
 const combosData =
-  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
+  COMBOS.length > 0
+    ? COMBOS
+    : ENABLE_PREVIEW_DATA
+      ? PREVIEW_COMBOS
+      : combosFromParticipants
 
 export function ComboPage({ navigate }) {
   const [search, setSearch] = React.useState('')
