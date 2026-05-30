@@ -3,5 +3,12 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
-  "cleanUrls": false
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/mapa", "destination": "/" },
+    { "source": "/rota", "destination": "/" },
+    { "source": "/participantes", "destination": "/" },
+    { "source": "/premiacao", "destination": "/" },
+    { "source": "/lovers/:path*", "destination": "/" }
+  ]
 }
