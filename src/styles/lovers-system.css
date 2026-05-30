@@ -694,7 +694,7 @@
 
 /* Final CTA */
 .awards-final-cta {
-  position: relative; overflow: hidden; text-align: center; border-radius: 32px;
+  position: relative; overflow: hidden; text-align: center; border-radius: 0;
   padding: clamp(40px, 6vw, 80px) clamp(24px, 4vw, 56px);
   background:
     radial-gradient(600px 360px at 50% -20%, rgba(245,184,0,.3), transparent 60%),
@@ -704,6 +704,6 @@
 .awards-final-cta__sticker { position: absolute; top: 18px; right: 22px; transform: rotate(8deg); }
 .awards-final-cta__title { margin: 0; font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(28px, 4.5vw, 56px); line-height: .98; text-transform: uppercase; }
 .awards-final-cta__title span { color: var(--lovers-yellow); }
-.awards-final-cta__text { margin: 16px auto 0; max-width: 50ch; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); }
+.awards-final-cta__text { margin: 16px auto 0; max-width: 50ch; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); text-align: center; }
 .awards-final-cta .lovers-button { margin-top: 26px; }
 .awards-final-cta .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: transparent; }
