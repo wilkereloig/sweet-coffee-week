@@ -1516,9 +1516,13 @@ export function MapaGooglePage({ navigate }) {
           .mapa-hero {
             position: relative;
             z-index: 1;
-            margin-bottom: 26px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
+            padding: clamp(42px, 7vw, 88px) 0 clamp(28px, 4vw, 56px);
           }
+          .mapa-hero__sticker, .mapa-hero__kicker { align-self: center; }
           .mapa-hero__sticker {
             display: inline-flex;
             align-items: center;
@@ -1549,6 +1553,9 @@ export function MapaGooglePage({ navigate }) {
           }
           .mapa-hero__title {
             margin: 0;
+            max-width: 980px;
+            margin-inline: auto;
+            text-align: center;
             font-family: var(--font-lovers-display);
             font-size: clamp(42px, 7vw, 88px);
             line-height: .86;
@@ -1557,18 +1564,22 @@ export function MapaGooglePage({ navigate }) {
             color: var(--lovers-ink);
           }
           .mapa-hero__subtitle {
-            margin: 16px auto 0;
-            max-width: 580px;
+            max-width: 760px;
+            margin: clamp(14px, 2vw, 20px) auto 0;
+            text-align: center;
             font-family: var(--font-lovers-body);
             font-size: clamp(15px, 1.5vw, 18px);
             line-height: 1.45;
             color: var(--lovers-brown);
           }
           .mapa-hero__microcopy {
-            margin: 10px 0 0;
+            max-width: 620px;
+            margin: 12px auto 0;
+            text-align: center;
             font-family: var(--font-lovers-body);
             font-weight: 800;
             font-size: 13px;
+            line-height: 1.4;
             letter-spacing: .02em;
             color: var(--lovers-red);
           }
