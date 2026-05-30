@@ -5,7 +5,7 @@ import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
-import { LoversButton, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
 import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
 
 // Preview data só em desenvolvimento local com a flag ligada.
@@ -128,7 +128,41 @@ function LocationCard({ loc, participant, accent }) {
   )
 }
 
-export function ComboDetailPage({ navigate, slug }) {
+class ComboDetailErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null } }
+  static getDerivedStateFromError(err) { return { err } }
+  componentDidCatch(err) { if (import.meta.env.DEV) console.error('[ComboDetail] render error:', err) }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+          <div style={{ maxWidth: 520, width: '100%' }}>
+            <EmptyState lovers icon="cup" title="Participante em breve" subtitle="Esta página está sendo preparada. Volte em instantes." />
+            {import.meta.env.DEV && (
+              <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, marginTop: 16, color: 'crimson' }}>{String(this.state.err && (this.state.err.stack || this.state.err.message))}</pre>
+            )}
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); this.props.navigate && this.props.navigate('/lovers/participantes') }}>
+                Ver participantes <I.arrow />
+              </LoversButton>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export function ComboDetailPage(props) {
+  return (
+    <ComboDetailErrorBoundary navigate={props.navigate}>
+      <ComboDetailPageInner {...props} />
+    </ComboDetailErrorBoundary>
+  )
+}
+
+function ComboDetailPageInner({ navigate, slug }) {
   useLoversReveal()
 
   // Resolve o slug impresso (QR Code) para o slug interno, caso haja alias.
