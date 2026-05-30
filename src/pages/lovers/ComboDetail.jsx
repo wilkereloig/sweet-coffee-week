@@ -199,7 +199,6 @@ export function ComboDetailPage({ navigate, slug }) {
     <div className="page-enter kv-lovers combo-detail-page lovers-gradient-bg" style={{ overflow: 'hidden', '--cd-accent': accent }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
       <LoversStickers page="combos" />
-      <LoversStickers page="combos" />
 
       {/* 1 ── HERO */}
       <section className="combo-detail-hero">

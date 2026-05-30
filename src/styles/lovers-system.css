@@ -156,7 +156,12 @@
 @media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
 
 /* ── Adesivos PNG decorativos por página (LoversStickers) ── */
-/* Camada de colagem editorial: fica ATRÁS do conteúdo, nunca bloqueia clique. */
+/* Sistema de 3 camadas:
+   C1 background  = wrapper .lovers-gradient-bg (#FFE8D2)
+   C2 adesivos    = .lovers-stickers (z-index 0) — sólidos, sticker-colagem, NUNCA marca d'água
+   C3 conteúdo    = > section / cards / CTAs / mapa (z-index 1+)
+   isolation:isolate no wrapper contém o stacking e impede vazamento sobre nav/header. */
+.lovers-home, .combos-page, .awards-page, .combo-detail-page { isolation: isolate; }
 .lovers-stickers {
   position: absolute; inset: 0; z-index: 0;
   pointer-events: none; overflow: hidden;
@@ -164,9 +169,9 @@
 .lovers-sticker-img {
   position: absolute; display: block;
   max-width: none; height: auto;
+  opacity: 1;
   pointer-events: none; user-select: none;
-  opacity: .92;
-  filter: drop-shadow(0 18px 28px rgba(43,24,16,.14));
+  filter: drop-shadow(0 16px 24px rgba(43,24,16,.16));
   transform-origin: center;
   transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
 }
@@ -178,8 +183,9 @@
 .combo-detail-page > section, .combo-detail-page > footer {
   position: relative; z-index: 1;
 }
+/* Mobile: adesivos menores e sólidos (sem transparência). */
 @media (max-width: 768px) {
-  .lovers-sticker-img { --scale: .78; opacity: .5; }
+  .lovers-sticker-img { --scale: .78; }
 }
 
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
