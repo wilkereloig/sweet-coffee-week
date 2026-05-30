@@ -21,11 +21,13 @@ export function LoversNavCard({
   href,
   onClick,
   variant = 'pink',
+  icon,
   className = '',
 }) {
   const cls = ['lovers-nav-card', BG[variant] || BG.pink, className].filter(Boolean).join(' ')
   return (
     <a href={href} onClick={onClick} className={cls}>
+      {icon && <span className="lovers-nav-card__icon" aria-hidden="true">{icon}</span>}
       {kicker && <span className="lovers-nav-card__kicker">{kicker}</span>}
       {title && <span className="lovers-nav-card__title">{title}</span>}
       {text && <span className="lovers-nav-card__desc">{text}</span>}

@@ -10,13 +10,15 @@ export function LoversSection({
   title,
   subtitle,
   children,
+  variant,
   center = false,
   className = '',
   ...rest
 }) {
   const hasHeader = eyebrow || title || subtitle
+  const variantCls = variant ? ` lovers-section--${variant}` : ''
   return (
-    <section className={`section lovers-section ${className}`.trim()} {...rest}>
+    <section className={`section lovers-section${variantCls} ${className}`.trim()} {...rest}>
       <div className="wrap">
         {hasHeader && (
           <div className={`lovers-section-header${center ? ' is-center' : ''}`}>

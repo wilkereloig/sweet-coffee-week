@@ -1,8 +1,8 @@
 import React from 'react'
 
 const VARIANT = {
-  primary: 'lovers-button-primary',
-  secondary: 'lovers-button-secondary',
+  primary: 'lovers-button--primary',
+  secondary: 'lovers-button--secondary',
   ghost: 'lovers-button--ghost',
   dark: 'lovers-button--dark',
 }
