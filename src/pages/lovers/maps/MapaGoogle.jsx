@@ -823,7 +823,8 @@ export function MapaGooglePage({ navigate }) {
                     className="mapa-chip"
                     style={{
                       width: '100%', marginBottom: locationError ? 4 : 10, padding: '8px 12px',
-                      background: 'transparent', color: 'var(--lovers-red)',
+                      background: 'rgba(255,232,210,.10)', color: 'var(--lovers-cream)',
+                      borderColor: 'rgba(255,232,210,.55)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       opacity: locating ? .6 : 1,
                       cursor: locating ? 'default' : 'pointer',
@@ -834,13 +835,13 @@ export function MapaGooglePage({ navigate }) {
                   </button>
                 ) : (
                   <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
-                    <div className="mapa-chip" style={{ background: 'var(--lovers-red)', color: '#fff', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
+                    <div className="mapa-chip" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-purple)', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
                       <span style={{ fontSize: 12 }}>📍</span> Localização ativa
                     </div>
                     <button
                       onClick={clearUserLocation}
                       className="mapa-chip"
-                      style={{ background: 'transparent', color: 'var(--lovers-red)', padding: '6px 10px' }}
+                      style={{ background: 'transparent', color: 'var(--lovers-cream)', borderColor: 'rgba(255,232,210,.45)', padding: '6px 10px' }}
                     >
                       Limpar
                     </button>
@@ -849,7 +850,7 @@ export function MapaGooglePage({ navigate }) {
 
                 {/* erro de localização */}
                 {locationError && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-red)', marginBottom: 8, lineHeight: 1.4 }}>
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-yellow)', marginBottom: 8, lineHeight: 1.4 }}>
                     {locationError}
                   </div>
                 )}
@@ -863,8 +864,9 @@ export function MapaGooglePage({ navigate }) {
                         onClick={() => setDistanceFilterKm(km)}
                         className="mapa-chip"
                         style={{
-                          background: distanceFilterKm === km ? 'var(--lovers-red)' : 'transparent',
-                          color: distanceFilterKm === km ? '#fff' : 'var(--lovers-red)',
+                          background: distanceFilterKm === km ? 'var(--lovers-cream)' : 'transparent',
+                          color: distanceFilterKm === km ? 'var(--lovers-purple)' : 'var(--lovers-cream)',
+                          borderColor: 'rgba(255,232,210,.45)',
                         }}
                       >
                         {km === null ? 'Todos' : `Até ${km} km`}
@@ -874,7 +876,7 @@ export function MapaGooglePage({ navigate }) {
                 )}
 
                 {/* contagem + limpar seleção */}
-                <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>
                     {finalParticipants.length === participants.length
                       ? `PARTICIPANTES · ${participants.length}`
@@ -886,7 +888,7 @@ export function MapaGooglePage({ navigate }) {
                       onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 10, color: 'var(--lovers-red)', opacity: .7,
+                        fontSize: 10, color: 'rgba(255,232,210,.82)', opacity: .9,
                         fontFamily: 'var(--font-lovers-body)', fontWeight: 700,
                         padding: '2px 0', letterSpacing: '0.03em',
                       }}
@@ -1498,17 +1500,9 @@ export function MapaGooglePage({ navigate }) {
             box-shadow: 0 10px 24px rgba(43,24,16,.16);
           }
           .mapa-floating-panel--sidebar .mapa-search::placeholder { color: rgba(63,26,10,.62); }
-          .mapa-floating-panel--sidebar .mapa-chip {
-            border-color: rgba(255,232,210,.55);
-            color: var(--lovers-cream) !important;
-          }
-          .mapa-floating-panel--sidebar .mapa-chip.is-active,
-          .mapa-floating-panel--sidebar .mapa-chip--active {
-            background: var(--lovers-cream);
-            color: var(--lovers-purple) !important;
-            border-color: var(--lovers-cream);
-          }
-          .mapa-floating-panel--sidebar .mapa-chip:hover { background: var(--lovers-pink); color: #fff !important; }
+          /* cor/contraste dos chips vêm dos estilos inline (creme inativo, roxo-sobre-creme ativo);
+             aqui só borda padrão p/ chips sem cor inline. */
+          .mapa-floating-panel--sidebar .mapa-chip { border-color: rgba(255,232,210,.55); }
           /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
           .map-neighborhood-filters { display: none !important; }
 
