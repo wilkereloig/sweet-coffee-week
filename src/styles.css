@@ -2067,6 +2067,19 @@ button:disabled { cursor: not-allowed; }
 }
 .combos-page__hero-inner > * { margin-inline: auto; }
 
+.combos-page__hero-title {
+  text-align: center;
+  max-width: 1100px;
+  margin-inline: auto;
+  text-wrap: balance;
+}
+/* quebra manual: "Cada loja escolheu" / "uma memória" / "para recriar." */
+.combos-page__hero-title span { display: block; }
+.combos-page__hero-title em {
+  font-style: normal;
+  color: var(--lovers-pink);
+}
+
 .combos-page__hero-desc {
   font-size: 17px;
   color: var(--lovers-ink);

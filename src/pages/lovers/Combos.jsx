@@ -242,9 +242,10 @@ export function ComboPage({ navigate }) {
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
               PARTICIPANTES LOVERS
             </div>
-            <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 6vw, 88px)', lineHeight: 1, marginTop: 16 }}>
-              Cada loja escolheu uma<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>memória para recriar.</span>
+            <h1 className="lovers-h1 combos-page__hero-title" style={{ fontSize: 'clamp(40px, 6vw, 88px)', lineHeight: 1, marginTop: 16 }}>
+              <span>Cada loja escolheu</span>
+              <span><em>uma memória</em></span>
+              <span><em>para recriar.</em></span>
             </h1>
             <p className="combos-page__hero-desc">
               Conheça as lojas participantes da edição Lovers e monte a sua Rota da Doçura.
