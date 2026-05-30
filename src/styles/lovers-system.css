@@ -1,0 +1,107 @@
+/* =====================================================================
+   LOVERS DESIGN SYSTEM — tokens complementares + classes base
+   Convive com src/styles.css. NÃO redefine a paleta nem os componentes
+   já existentes (.lovers-button-*, .lovers-card, .lovers-stat-card,
+   .lovers-nav-card, .lovers-chip, .lovers-badge, .lovers-section,
+   .lovers-hero). Apenas adiciona tokens e variantes novas reutilizáveis.
+   ===================================================================== */
+
+:root {
+  /* Espaçamento */
+  --lovers-space-xs: 8px;
+  --lovers-space-sm: 12px;
+  --lovers-space-md: 20px;
+  --lovers-space-lg: 32px;
+  --lovers-space-xl: 56px;
+
+  /* Radius */
+  --lovers-radius-sm: 14px;
+  --lovers-radius-md: 20px;
+  --lovers-radius-lg: 32px;
+  --lovers-radius-pill: 999px;
+
+  /* Sombras */
+  --lovers-shadow-soft: 0 18px 44px rgba(43, 24, 16, .12);
+  --lovers-shadow-color: 0 20px 60px rgba(214, 54, 72, .18);
+
+  /* Layout / z-index / movimento */
+  --lovers-content-max: 1180px;
+  --lovers-z-base: 1;
+  --lovers-z-raised: 10;
+  --lovers-z-sticky: 60;
+  --lovers-z-overlay: 200;
+  --lovers-transition-fast: 160ms ease;
+  --lovers-transition-med: 260ms ease;
+}
+
+/* ── Shell / layout ── */
+.lovers-page-shell { position: relative; overflow: hidden; }
+.lovers-layout { display: block; }
+.lovers-main { position: relative; z-index: var(--lovers-z-base); }
+.lovers-wrap { max-width: var(--lovers-content-max); margin: 0 auto; padding: 0 clamp(20px, 4vw, 56px); }
+
+/* ── Grids ── */
+.lovers-grid { display: grid; gap: clamp(14px, 2vw, 24px); }
+.lovers-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.lovers-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.lovers-grid-auto { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* ── Botões: variantes complementares (base .lovers-button em styles.css) ── */
+.lovers-button { min-height: 44px; }
+.lovers-button:focus-visible { outline: 2px solid var(--lovers-pink); outline-offset: 2px; }
+.lovers-button--ghost { background: transparent; color: var(--lovers-burgundy); border-color: transparent; }
+.lovers-button--ghost:hover { background: color-mix(in srgb, var(--lovers-burgundy) 10%, transparent); }
+.lovers-button--dark { background: var(--lovers-brown); color: var(--lovers-cream); border-color: var(--lovers-brown); }
+.lovers-button--dark:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(43,24,16,.34); }
+.lovers-button--small { padding: 9px 16px; font-size: 12.5px; min-height: 40px; }
+.lovers-button--full { width: 100%; justify-content: center; }
+
+/* ── Cards: variantes de cor (base .lovers-card em styles.css) ── */
+.lovers-card--pink   { background: var(--lovers-pink);   color: #fff; border-color: transparent; }
+.lovers-card--yellow { background: var(--lovers-yellow); color: var(--lovers-brown); border-color: transparent; }
+.lovers-card--cyan   { background: var(--lovers-cyan);   color: #04282d; border-color: transparent; }
+.lovers-card--purple { background: var(--lovers-purple); color: #fff; border-color: transparent; }
+.lovers-card--cream  { background: var(--lovers-cream);  color: var(--lovers-brown); }
+.lovers-card--dark   { background: var(--lovers-brown);  color: var(--lovers-cream); border-color: transparent; }
+.lovers-card--interactive { cursor: pointer; }
+@media (hover: hover) {
+  .lovers-card--interactive:hover { transform: translateY(-6px); box-shadow: var(--lovers-shadow-color); }
+}
+
+/* ── Badges: variantes complementares (base .lovers-badge em styles.css) ── */
+.lovers-badge--cream { background: var(--lovers-cream); color: var(--lovers-brown); }
+.lovers-badge--dark  { background: var(--lovers-brown); color: var(--lovers-cream); }
+
+/* ── Story card (frase narrativa reutilizável) ── */
+.lovers-story-card {
+  position: relative; padding: clamp(20px, 2vw, 28px); border-radius: var(--lovers-radius-md);
+  background: #fff; border: 1.5px solid color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 28%, transparent);
+  box-shadow: var(--lovers-shadow-soft);
+  font-family: var(--font-lovers-display); font-weight: 800; text-transform: uppercase;
+  color: var(--lovers-brown); line-height: 1.05;
+}
+
+/* ── Reveal reutilizável (hook useLoversReveal adiciona .is-visible) ── */
+.lovers-reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+.lovers-reveal.is-visible { opacity: 1; transform: none; }
+
+/* ── Animações leves (loversFloat/loversPulse já existem em styles.css) ── */
+@keyframes loversLiftIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+.lovers-float { animation: loversFloat 7s ease-in-out infinite; }
+.lovers-pulse { animation: loversPulse 2.4s ease-in-out infinite; }
+.lovers-hover-lift { transition: transform var(--lovers-transition-med), box-shadow var(--lovers-transition-med); }
+@media (hover: hover) { .lovers-hover-lift:hover { transform: translateY(-6px); box-shadow: var(--lovers-shadow-color); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lovers-reveal { opacity: 1; transform: none; transition: none; }
+  .lovers-float, .lovers-pulse, .lovers-hover-lift { animation: none; }
+}
+
+/* ── Responsividade ── */
+@media (max-width: 1024px) { :root { --lovers-space-xl: 44px; } }
+@media (max-width: 768px) {
+  :root { --lovers-space-lg: 24px; --lovers-space-xl: 36px; }
+  .lovers-grid-2, .lovers-grid-3, .lovers-grid-auto { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) { .lovers-wrap { padding: 0 18px; } }
+@media (max-width: 420px) { :root { --lovers-radius-lg: 24px; } }

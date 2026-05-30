@@ -1,6 +1,7 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
+import { LoversNavCard } from '../../components/lovers'
 
 /* ── Scroll reveal hook ── */
 function useRevealOnScroll() {
@@ -693,9 +694,9 @@ function StatCards() {
 /* ── Cards de navegação para as áreas internas ── */
 function NavCards({ navigate }) {
   const cards = [
-    { kicker: 'Participantes', title: 'Escolha seu primeiro combo.', desc: 'Conheça as lojas participantes, veja o tema que cada uma escolheu revisitar e descubra as criações da edição Lovers.', cta: 'Ver participantes', to: '/lovers/participantes', bg: 'lv-bg-pink' },
-    { kicker: 'Rota da Doçura', title: 'Sua rota começa aqui.', desc: 'Encontre as lojas no mapa, salve os destinos que quer visitar e monte sua própria Rota da Doçura.', cta: 'Abrir mapa', to: '/lovers/mapa', bg: 'lv-bg-cyan' },
-    { kicker: 'Premiação', title: 'Provou? Agora conte pra gente.', desc: 'Acompanhe a premiação da edição e participe da avaliação dos combos quando a votação estiver liberada.', cta: 'Ver premiação', to: '/lovers/premiacao', bg: 'lv-bg-purple' },
+    { kicker: 'Participantes', title: 'Escolha seu primeiro combo.', desc: 'Conheça as lojas participantes, veja o tema que cada uma escolheu revisitar e descubra as criações da edição Lovers.', cta: 'Ver participantes', to: '/lovers/participantes', variant: 'pink' },
+    { kicker: 'Rota da Doçura', title: 'Sua rota começa aqui.', desc: 'Encontre as lojas no mapa, salve os destinos que quer visitar e monte sua própria Rota da Doçura.', cta: 'Abrir mapa', to: '/lovers/mapa', variant: 'cyan' },
+    { kicker: 'Premiação', title: 'Provou? Agora conte pra gente.', desc: 'Acompanhe a premiação da edição e participe da avaliação dos combos quando a votação estiver liberada.', cta: 'Ver premiação', to: '/lovers/premiacao', variant: 'purple' },
   ]
   return (
     <section className="section lovers-section" style={{ background: 'var(--lovers-cream)' }}>
@@ -708,15 +709,17 @@ function NavCards({ navigate }) {
         </div>
         <div className="lovers-nav-grid">
           {cards.map((c, i) => (
-            <a key={c.to}
-               href={`#${c.to}`}
-               onClick={(e) => { e.preventDefault(); navigate(c.to) }}
-               className={`lovers-nav-card ${c.bg} reveal reveal-scale reveal-delay-${i + 1}`}>
-              <span className="lovers-nav-card__kicker">{c.kicker}</span>
-              <span className="lovers-nav-card__title">{c.title}</span>
-              <span className="lovers-nav-card__desc">{c.desc}</span>
-              <span className="lovers-nav-card__arrow">{c.cta} →</span>
-            </a>
+            <LoversNavCard
+              key={c.to}
+              variant={c.variant}
+              kicker={c.kicker}
+              title={c.title}
+              text={c.desc}
+              cta={c.cta}
+              href={`#${c.to}`}
+              onClick={(e) => { e.preventDefault(); navigate(c.to) }}
+              className={`reveal reveal-scale reveal-delay-${i + 1}`}
+            />
           ))}
         </div>
       </div>
