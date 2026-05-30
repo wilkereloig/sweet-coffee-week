@@ -31,7 +31,6 @@ export function AwardsPage({ navigate }) {
     <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
       <LoversStickers page="premiacao" />
-      <LoversStickers page="premiacao" />
 
       {/* 1 ── HERO */}
       <section className="awards-hero">
