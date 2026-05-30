@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import { I } from '../../components/icons'
 import { FormFieldPH } from '../../components/placeholders'
+import { LoversButton } from '../../components/lovers'
 
 export function AwardsPage({ navigate, mode }) {
   if (mode === 'coming-soon') {
@@ -158,12 +159,12 @@ export function AwardsPage({ navigate, mode }) {
                 A avaliação será aberta durante o período definido pela organização. Quando estiver disponível, você poderá avaliar os combos que experimentou e ajudar a escolher os destaques da edição.
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
-                <a href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }} className="btn btn-lovers">
+                <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
                   Ver participantes <I.arrow />
-                </a>
-                <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }} className="btn btn-lovers-outline">
+                </LoversButton>
+                <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
                   <I.route /> Abrir mapa da Doçura
-                </a>
+                </LoversButton>
               </div>
             </div>
 

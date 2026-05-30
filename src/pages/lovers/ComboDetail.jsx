@@ -4,6 +4,7 @@ import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+import { LoversButton } from '../../components/lovers'
 
 // Preview data is used only when internal pages are enabled for local development.
 const ENABLE_PREVIEW_DATA =
@@ -171,16 +172,20 @@ export function ComboDetailPage({ navigate, slug }) {
                 </p>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 32 }}>
-                  <a href="#/lovers/participantes"
-                     onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-                     className="btn btn-lovers">
+                  <LoversButton
+                    variant="primary"
+                    href="#/lovers/participantes"
+                    onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
+                  >
                     Ver outros participantes <I.arrow />
-                  </a>
-                  <a href="#/lovers/mapa"
-                     onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-                     className="btn btn-lovers-outline">
+                  </LoversButton>
+                  <LoversButton
+                    variant="secondary"
+                    href="#/lovers/mapa"
+                    onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+                  >
                     Abrir mapa
-                  </a>
+                  </LoversButton>
                   {instagramUrl && (
                     <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
                        className="btn btn-lovers-outline">
