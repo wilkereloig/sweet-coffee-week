@@ -697,7 +697,7 @@ export function MapaGooglePage({ navigate }) {
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className={`page-enter kv-lovers${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className={`page-enter kv-lovers lovers-gradient-bg${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
       <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
