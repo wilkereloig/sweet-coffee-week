@@ -6,6 +6,7 @@ import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton } from '../../components/lovers'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
 
 // Preview data is used only when internal pages are enabled for local development.
 const ENABLE_PREVIEW_DATA =
@@ -114,7 +115,7 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
       style={{ '--card-accent': accent }}
       role="link"
       tabIndex={0}
-      aria-label={`Ver combo de ${name}`}
+      aria-label={`${LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} de ${name}`}
       onClick={go}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go() } }}
     >
@@ -124,12 +125,20 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         </span>
         <span className="participant-showcase-card__stores">{storesLabel(participant)}</span>
 
-        {combo.mainImage ? (
-          <img src={combo.mainImage} alt={`Foto do combo de ${name}`} loading="lazy" />
+        {LOVERS_SHOW_COMBO_DETAILS ? (
+          combo.mainImage ? (
+            <img src={combo.mainImage} alt={`Foto do combo de ${name}`} loading="lazy" />
+          ) : (
+            <div className="participant-showcase-card__photo-placeholder">
+              <CameraIcon />
+              <span>Foto do combo</span>
+            </div>
+          )
         ) : (
-          <div className="participant-showcase-card__photo-placeholder">
-            <CameraIcon />
-            <span>Foto do combo</span>
+          <div className="combo-locked-art" aria-hidden="true">
+            <span className="combo-locked-art__pattern" />
+            <span className="combo-locked-art__badge"><I.heart width={13} height={13} /> Combo em breve</span>
+            <span className="combo-locked-art__title">A criação será revelada em breve.</span>
           </div>
         )}
 
@@ -141,13 +150,13 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
       </div>
 
       <div className="participant-showcase-card__body">
-        <span className="participant-showcase-card__edition">{edition}</span>
+        <span className="participant-showcase-card__edition">{LOVERS_SHOW_COMBO_DETAILS ? edition : 'Edição Lovers'}</span>
         <h3 className="participant-showcase-card__name">{name}</h3>
-        <p className="participant-showcase-card__line"><strong>Tema</strong><span>{theme}</span></p>
+        <p className="participant-showcase-card__line"><strong>Criação</strong><span>{LOVERS_SHOW_COMBO_DETAILS ? theme : 'Em breve'}</span></p>
         <p className="participant-showcase-card__line"><strong>Local</strong><span>{neighborhoodsSummary(participant)}</span></p>
 
         <div className="participant-showcase-card__footer">
-          <span className="participant-showcase-card__cta">Ver combo <I.arrow /></span>
+          <span className="participant-showcase-card__cta">{LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} <I.arrow /></span>
           {handle && (
             <a
               className="participant-showcase-card__ig"

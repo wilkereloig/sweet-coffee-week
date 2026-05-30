@@ -4,6 +4,7 @@ import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
 import { PARTICIPANTS } from '../../../data/participants'
 import { COMBOS } from '../../../data/combos'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../../config/loversRelease'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
@@ -960,9 +961,9 @@ export function MapaGooglePage({ navigate }) {
                             </span>
                           </div>
                           <div className="map-card-title-group">
-                            {p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
+                            {LOVERS_SHOW_COMBO_DETAILS && p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
                             <h3>{p.name}</h3>
-                            {p.theme && (
+                            {LOVERS_SHOW_COMBO_DETAILS && p.theme && (
                               <div className="map-card-theme"><em>{p.theme}</em></div>
                             )}
                             <div className="map-card-meta">
@@ -971,7 +972,7 @@ export function MapaGooglePage({ navigate }) {
                                 ? ` · ${formatDistance(minDist)}`
                                 : ''}
                             </div>
-                            {p.combo && (
+                            {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
                           </div>
@@ -1079,7 +1080,7 @@ export function MapaGooglePage({ navigate }) {
                             className="map-card-combo-btn"
                             onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
                           >
-                            Ver combo <I.arrow />
+                            {LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} <I.arrow />
                           </button>
                         )}
                       </div>
