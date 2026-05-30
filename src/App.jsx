@@ -27,6 +27,8 @@ export default function App() {
 
   const route = (() => {
     if (path === '/' || path === '') return 'home'
+    // ATENÇÃO: rotas de QR Codes já impressos — não alterar #/lovers/combos/:slug
+    // nem #/lovers/awards. Não remover essas linhas sem validar materiais físicos.
     if (path.startsWith('/lovers/combos/')) return 'combo-detail'
     if (path.startsWith('/lovers/combos'))  return 'combos'
     if (path.startsWith('/lovers/participantes')) return 'participantes'

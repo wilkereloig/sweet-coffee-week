@@ -21,6 +21,16 @@ const combosSource =
 const participantsSource =
   PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
 
+// ATENÇÃO: estes slugs/aliases preservam QR Codes já impressos.
+// Não alterar sem validar materiais físicos.
+// Hoje os 21 slugs oficiais batem exatamente com participants.js, então o mapa
+// está vazio. Se algum slug INTERNO mudar no futuro, mapear aqui o slug IMPRESSO
+// para o novo slug interno: { 'slug-impresso': 'novo-slug-interno' }.
+const QR_SLUG_ALIASES = {}
+function resolveQrSlug(slug) {
+  return QR_SLUG_ALIASES[slug] || slug
+}
+
 /* ── Edição → cor (apenas mapeamento visual; não altera os dados) ── */
 const EDITION_COLORS = {
   'Sweet Celebration': 'var(--lovers-yellow)',
@@ -120,10 +130,12 @@ function LocationCard({ loc, participant, accent }) {
 export function ComboDetailPage({ navigate, slug }) {
   useLoversReveal()
 
-  const combo = combosSource.find(c => c.slug === slug)
+  // Resolve o slug impresso (QR Code) para o slug interno, caso haja alias.
+  const resolvedSlug = resolveQrSlug(slug)
+  const combo = combosSource.find(c => c.slug === resolvedSlug)
   const participant =
     (combo && participantsSource.find(p => p.id === combo.participantId)) ||
-    participantsSource.find(p => p.slug === slug || p.id === slug) ||
+    participantsSource.find(p => p.slug === resolvedSlug || p.id === resolvedSlug) ||
     null
 
   // Slug inexistente: estado de erro elegante.
