@@ -2421,10 +2421,14 @@ button:disabled { cursor: not-allowed; }
 .lovers-hero__stat span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
 
 /* hero buttons sobre gradiente escuro */
-.lovers-hero .lovers-button-primary { background: var(--lovers-cream); color: var(--lovers-burgundy); box-shadow: 0 14px 32px rgba(43,24,16,.34); }
-.lovers-hero .lovers-button-primary:hover { background: #fff; transform: translateY(-3px); }
-.lovers-hero .lovers-button-secondary { color: var(--lovers-cream); border-color: rgba(255,255,255,.6); }
-.lovers-hero .lovers-button-secondary:hover { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: var(--lovers-cream); }
+.lovers-hero .lovers-button-primary,
+.lovers-hero .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-burgundy); box-shadow: 0 14px 32px rgba(43,24,16,.34); }
+.lovers-hero .lovers-button-primary:hover,
+.lovers-hero .lovers-button--primary:hover { background: #fff; transform: translateY(-3px); }
+.lovers-hero .lovers-button-secondary,
+.lovers-hero .lovers-button--secondary { color: var(--lovers-cream); border-color: rgba(255,255,255,.6); }
+.lovers-hero .lovers-button-secondary:hover,
+.lovers-hero .lovers-button--secondary:hover { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: var(--lovers-cream); }
 
 /* hero orbs + sticker */
 .lovers-hero .lovers-orb--pink   { width: 250px; height: 250px; top: -70px; right: 7%; }

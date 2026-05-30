@@ -1,7 +1,7 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
-import { LoversNavCard, LoversStatCard, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversNavCard, LoversStatCard, useLoversReveal } from '../../components/lovers'
 
 /* Scroll reveal: hook compartilhado em components/lovers/useLoversReveal (observa '.lovers-reveal, .reveal') */
 
@@ -95,20 +95,20 @@ function Hero({ navigate }) {
               <span>Natal · RN</span>
             </div>
             <div className="lovers-hero__ctas">
-              <a
+              <LoversButton
+                variant="primary"
                 href="#/lovers/participantes"
                 onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-                className="lovers-button lovers-button-primary"
               >
                 Conhecer participantes <I.arrow />
-              </a>
-              <a
+              </LoversButton>
+              <LoversButton
+                variant="secondary"
                 href="#/lovers/mapa"
                 onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-                className="lovers-button lovers-button-secondary"
               >
                 <I.route /> Montar minha rota
-              </a>
+              </LoversButton>
             </div>
             <p className="lovers-hero__micro">Escolha seus destinos, chame os amigos e viva Natal em modo Sweet.</p>
           </div>
