@@ -173,15 +173,29 @@
   pointer-events: none; overflow: hidden;
   opacity: 1; mix-blend-mode: normal;
 }
+/* Adesivos devem ocupar zonas decorativas: cantos, laterais e áreas de respiro.
+   Nunca posicionar stickers no eixo central de títulos, CTAs ou cards.
+   Sem sombra/drop-shadow/glow: aparência de colagem gráfica impressa. */
 .lovers-sticker-img {
   position: absolute; display: block;
   max-width: none; height: auto;
   opacity: 1 !important;
   mix-blend-mode: normal !important;
   pointer-events: none; user-select: none;
-  filter: drop-shadow(0 16px 24px rgba(43,24,16,.16));
+  filter: none;
+  will-change: transform;
   transform-origin: center;
   transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
+}
+/* Zona segura de leitura: blocos importantes acima da camada de adesivos.
+   A solução principal é reposicionar o sticker p/ fora do eixo — esta classe é reforço. */
+.lovers-sticker-safe-content {
+  position: relative;
+  z-index: 3;
+  isolation: isolate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lovers-sticker-img { will-change: auto; }
 }
 /* Seções NÃO criam stacking-context (z-index:auto). Assim a camada de adesivos
    (z-index 1) pinta ACIMA de fundos de seção translúcidos (ex.: hero vinho .88) e
