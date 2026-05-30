@@ -1284,7 +1284,7 @@ export function MapaGooglePage({ navigate }) {
           .mapa-fullscreen .mapa-layout {
             grid-template-columns: 380px 1fr;
             gap: 0;
-            height: calc(100vh - 72px);
+            height: 100vh;
             align-items: stretch;
           }
           .mapa-fullscreen .mapa-container {
@@ -1294,7 +1294,7 @@ export function MapaGooglePage({ navigate }) {
             order: 2;
           }
           .mapa-fullscreen .map-sidebar {
-            height: calc(100vh - 72px);
+            height: 100vh;
             order: 1;
             border-right: 1px solid rgba(135,14,45,.18);
             background: var(--lovers-cream);
