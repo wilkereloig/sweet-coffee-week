@@ -731,7 +731,7 @@ button:disabled { cursor: not-allowed; }
 .lovers-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 0 0 36px 36px;
+  border-radius: 0;
   background:
     radial-gradient(900px 560px at 0% 0%, rgba(242,5,103,.40), transparent 60%),
     radial-gradient(760px 520px at 100% 10%, rgba(0,184,204,.36), transparent 58%),

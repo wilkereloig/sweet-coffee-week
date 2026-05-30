@@ -1356,6 +1356,7 @@ export function MapaGooglePage({ navigate }) {
             position: relative;
             z-index: 1;
             margin-bottom: 26px;
+            text-align: center;
           }
           .mapa-hero__sticker {
             display: inline-flex;
@@ -1395,7 +1396,7 @@ export function MapaGooglePage({ navigate }) {
             color: var(--lovers-ink);
           }
           .mapa-hero__subtitle {
-            margin: 16px 0 0;
+            margin: 16px auto 0;
             max-width: 580px;
             font-family: var(--font-lovers-body);
             font-size: clamp(15px, 1.5vw, 18px);

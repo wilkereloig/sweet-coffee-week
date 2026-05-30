@@ -234,10 +234,7 @@ export function ComboPage({ navigate }) {
               <span style={{ color: 'var(--lovers-pink)' }}>memória para recriar.</span>
             </h1>
             <p className="combos-page__hero-desc">
-              São {combosData.length} participantes revisitando temas que fizeram parte da história do Sweet &amp; Coffee Week. Escolha seu primeiro destino e comece sua rota.
-            </p>
-            <p className="combos-page__hero-desc" style={{ fontSize: 15, opacity: .75, marginTop: 10 }}>
-              Tem Japão, Itália, Disney, São João, Harry Potter, BTS, Luiz Gonzaga, Caicó, contos de fadas e muito mais.
+              Conheça as lojas participantes da edição Lovers e monte a sua Rota da Doçura.
             </p>
             <div style={{ marginTop: 20 }}>
               <LoversButton
@@ -275,16 +272,6 @@ export function ComboPage({ navigate }) {
               {/* Filtros por edição + busca */}
               <div className="participants-filterbar">
                 <div className="participants-filterbar__top">
-                  <label className="participants-search">
-                    <SearchIcon />
-                    <input
-                      type="text"
-                      placeholder="Buscar participante..."
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                      aria-label="Buscar participante"
-                    />
-                  </label>
                   <span className="participants-filterbar__count">
                     {cards.length === combosData.length
                       ? `${combosData.length} participantes`
