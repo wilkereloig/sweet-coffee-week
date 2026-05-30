@@ -4,6 +4,7 @@ import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+import { LoversButton } from '../../components/lovers'
 
 // Preview data is used only when internal pages are enabled for local development.
 const ENABLE_PREVIEW_DATA =
@@ -90,13 +91,13 @@ export function ComboPage({ navigate }) {
               Tem Japão, Itália, Disney, São João, Harry Potter, BTS, Luiz Gonzaga, Caicó, contos de fadas e muito mais.
             </p>
             <div style={{ marginTop: 20 }}>
-              <a
+              <LoversButton
+                variant="secondary"
                 href="#/lovers/mapa"
                 onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-                className="btn btn-lovers-outline"
               >
                 <I.route /> Abrir mapa da Doçura
-              </a>
+              </LoversButton>
             </div>
             {combosData.length === 0 && (
               <div className="combos-page__coming-soon">
@@ -233,22 +234,24 @@ export function ComboPage({ navigate }) {
                             </span>
                           )}
                           <div className="combo-list-card__actions" style={{ marginTop: 'auto', paddingTop: 18 }}>
-                            <a
+                            <LoversButton
+                              variant="primary"
+                              size="small"
                               href={`#/lovers/combos/${combo.slug}`}
                               onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${combo.slug}`) }}
-                              className="btn btn-lovers btn-sm"
                             >
                               Ver combo <I.arrow />
-                            </a>
+                            </LoversButton>
                             {hasRoute && (
-                              <a
+                              <LoversButton
+                                variant="secondary"
+                                size="small"
                                 href={`https://www.google.com/maps/dir/?api=1&destination=${participant.latitude},${participant.longitude}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-lovers-outline btn-sm"
                               >
                                 <I.route /> Traçar rota
-                              </a>
+                              </LoversButton>
                             )}
                           </div>
                         </div>
