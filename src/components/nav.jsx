@@ -225,6 +225,34 @@ function LoversComboRail({ navigate, activeSlug }) {
   )
 }
 
+function LoversMobileNav({ route, navigate }) {
+  const isActive = (id) =>
+    route === id ||
+    (id === 'participantes' && (route === 'combos' || route === 'combo-detail')) ||
+    (id === 'premiacao' && route === 'awards')
+  return (
+    <nav className="lovers-mobile-nav" aria-label="Navegação Sweet & Coffee Week Lovers">
+      <a href="#/lovers"
+         className="lovers-mobile-nav__seal"
+         aria-label="Sweet & Coffee Week Lovers — sobre a edição"
+         onClick={(e) => { e.preventDefault(); navigate('/lovers') }}>
+        <LoversWordmark width={62} />
+      </a>
+      <div className="lovers-mobile-nav__chips">
+        {LOVERS_LINKS.map((l) => (
+          <a key={l.id}
+             href={l.href}
+             className={`lovers-mobile-chip${isActive(l.id) ? ' is-active' : ''}`}
+             aria-current={isActive(l.id) ? 'page' : undefined}
+             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+            {l.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
+}
+
 export function SiteHeader({ route, navigate, path = '' }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const isLovers = IS_LOVERS_ROUTE.includes(route)
@@ -234,6 +262,7 @@ export function SiteHeader({ route, navigate, path = '' }) {
   return (
     <React.Fragment>
       <SiteSidebar route={route} navigate={navigate} isLovers={isLovers} />
+      {isLovers && <LoversMobileNav route={route} navigate={navigate} />}
       {showComboRail && <LoversComboRail navigate={navigate} activeSlug={activeSlug} />}
 
       <header className={`site-header ${isLovers ? 'lovers' : ''}`}>

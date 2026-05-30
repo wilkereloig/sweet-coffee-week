@@ -991,6 +991,88 @@ button:disabled { cursor: not-allowed; }
   box-shadow: inset 3px 0 0 var(--lovers-pink);
 }
 
+/* ── Sidebar desktop Lovers: links em pílula + uppercase ── */
+.site-sidebar .sidebar__link {
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: 12.5px;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+.site-sidebar .sidebar__link:not(.locked):hover { transform: translateX(2px); }
+
+/* ── Mobile nav Lovers: barra sticky compacta + chips horizontais ── */
+.lovers-mobile-nav { display: none; }
+@media (max-width: 1099px) {
+  .site-header.lovers { display: none; }
+  .lovers-mobile-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    padding: 8px 12px;
+    background: var(--lovers-burgundy);
+    border-bottom: 2px solid var(--lovers-pink);
+    box-shadow: 0 6px 18px rgba(43, 24, 16, .20);
+  }
+  .lovers-mobile-nav__seal {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    filter: brightness(0) invert(1);
+    min-height: 44px;
+  }
+  .lovers-mobile-nav__chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 2px 0;
+  }
+  .lovers-mobile-nav__chips::-webkit-scrollbar { display: none; }
+  .lovers-mobile-chip {
+    flex-shrink: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-family: var(--font-lovers-body);
+    font-weight: 800;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--lovers-cream);
+    background: rgba(255, 255, 255, .12);
+    text-decoration: none;
+    transition: background .18s ease, color .18s ease;
+  }
+  .lovers-mobile-chip:focus-visible { outline: 2px solid var(--lovers-yellow); outline-offset: 2px; }
+  .lovers-mobile-chip.is-active { background: var(--lovers-pink); color: #fff; }
+}
+
+/* ── Hardening responsivo geral ── */
+@media (max-width: 767px) {
+  html, body { overflow-x: hidden; max-width: 100%; }
+  .lovers-stat-grid,
+  .lovers-nav-grid { grid-template-columns: 1fr; }
+  /* animações de hover não fazem sentido em toque — evita "transform preso" */
+  .lovers-stat-card:hover,
+  .lovers-nav-card:hover,
+  .lovers-card:hover,
+  .combo-list-card:hover,
+  .participant-card:hover { transform: none; }
+  /* entrada mais sutil no mobile */
+  .lv-anim { animation-duration: .4s; }
+}
+@media (max-width: 420px) {
+  .lovers-mobile-nav__seal { display: none; }
+}
+
 /* ---------- FOOTER ---------- */
 .site-footer {
   background: var(--ink);
