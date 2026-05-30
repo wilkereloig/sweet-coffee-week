@@ -268,9 +268,9 @@ export function ComboDetailPage({ navigate, slug }) {
             subtitle="O combo que você procura não existe ou ainda não foi publicado."
           />
           <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
+            <a href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
                className="btn btn-lovers">
-              Ver todos os combos <I.arrow />
+              Ver participantes <I.arrow />
             </a>
           </div>
         </div>
@@ -346,9 +346,9 @@ export function ComboDetailPage({ navigate, slug }) {
                 {hasRoute && (
                   <button className="btn btn-lovers"><I.route /> Traçar rota</button>
                 )}
-                <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
+                <a href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
                    className="btn btn-lovers-outline">
-                  Voltar para combos
+                  Voltar para participantes
                 </a>
                 <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
                    className="btn btn-lovers-outline">

@@ -1073,6 +1073,12 @@ button:disabled { cursor: not-allowed; }
   .lovers-mobile-nav__seal { display: none; }
 }
 
+/* ── a11y: nav-cards claros (cyan/yellow) usam texto escuro p/ contraste ── */
+.lovers-nav-card.lv-bg-cyan,
+.lovers-nav-card.lv-bg-yellow { color: #04282d; }
+.lovers-nav-card.lv-bg-cyan .lovers-nav-card__kicker,
+.lovers-nav-card.lv-bg-yellow .lovers-nav-card__kicker { opacity: .8; }
+
 /* ---------- FOOTER ---------- */
 .site-footer {
   background: var(--ink);
