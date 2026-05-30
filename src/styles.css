@@ -607,14 +607,14 @@ button:disabled { cursor: not-allowed; }
   .site-sidebar { display: none; }
 }
 
-/* ---------- COMBO RAIL (lista de participantes) ---------- */
+/* ---------- COMBO RAIL (lista de participantes) — OCULTADO a pedido ---------- */
 .combo-rail {
   position: fixed;
   left: var(--sidebar-w);
   top: 0; bottom: 0;
   width: var(--combo-rail-w);
   z-index: 49;
-  display: flex;
+  display: none; /* rail de participantes ocultado (antes: flex) */
   flex-direction: column;
   background: var(--lovers-cream);
   border-right: 1px solid rgba(135, 14, 45, 0.18);
@@ -677,7 +677,7 @@ button:disabled { cursor: not-allowed; }
 @media (min-width: 1100px) {
   main.with-combo-rail,
   .with-combo-rail ~ .site-footer {
-    margin-left: calc(var(--sidebar-w) + var(--combo-rail-w));
+    margin-left: var(--sidebar-w); /* rail ocultado: sem reserva de 264px */
   }
 }
 @media (max-width: 1099px) {
