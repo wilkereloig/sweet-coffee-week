@@ -1,34 +1,9 @@
 import React from 'react'
 import { I, LoversWordmark } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
-import { LoversNavCard } from '../../components/lovers'
+import { LoversNavCard, LoversStatCard, useLoversReveal } from '../../components/lovers'
 
-/* ── Scroll reveal hook ── */
-function useRevealOnScroll() {
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const els = document.querySelectorAll('.reveal')
-    if (reduce) {
-      els.forEach(el => el.classList.add('is-visible'))
-      return
-    }
-    if (!('IntersectionObserver' in window)) {
-      els.forEach(el => el.classList.add('is-visible'))
-      return
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible')
-          io.unobserve(entry.target)
-        }
-      })
-    }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [])
-}
+/* Scroll reveal: hook compartilhado em components/lovers/useLoversReveal (observa '.lovers-reveal, .reveal') */
 
 /* ── Feature flags ── */
 const hasParticipantsData = PARTICIPANTS.length > 0
@@ -661,12 +636,12 @@ function FinalCTA() {
 /* ── Cards de dados (números grandes, coloridos) ── */
 function StatCards() {
   const stats = [
-    { num: '10',   label: 'anos',            text: 'De histórias, filas, fotos, votos, encontros e descobertas.',            bg: 'lv-bg-pink' },
-    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas recriando temas que marcaram a trajetória do festival.',       bg: 'lv-bg-cyan' },
-    { num: '33',   label: 'lojas',           text: 'Mais destinos para visitar, provar e compartilhar.',                    bg: 'lv-bg-yellow' },
-    { num: '15',   label: 'temas históricos', text: 'Viagens, músicas, filmes, séries, contos, celebrações e sabores potiguares.', bg: 'lv-bg-purple' },
-    { num: '4–14', label: 'de junho',        text: 'Onze dias para viver a cidade em clima de Sweet.',                      bg: 'lv-bg-coral' },
-    { num: 'Rota', label: 'da Doçura',       text: 'Monte sua rota, salve seus destinos e descubra por onde começar.',      bg: 'lv-bg-burgundy' },
+    { num: '10',   label: 'anos',            text: 'De histórias, filas, fotos, votos, encontros e descobertas.',            variant: 'pink' },
+    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas recriando temas que marcaram a trajetória do festival.',       variant: 'cyan' },
+    { num: '33',   label: 'lojas',           text: 'Mais destinos para visitar, provar e compartilhar.',                    variant: 'yellow' },
+    { num: '15',   label: 'temas históricos', text: 'Viagens, músicas, filmes, séries, contos, celebrações e sabores potiguares.', variant: 'purple' },
+    { num: '4–14', label: 'de junho',        text: 'Onze dias para viver a cidade em clima de Sweet.',                      variant: 'coral' },
+    { num: 'Rota', label: 'da Doçura',       text: 'Monte sua rota, salve seus destinos e descubra por onde começar.',      variant: 'burgundy' },
   ]
   return (
     <section className="section lovers-section">
@@ -679,11 +654,14 @@ function StatCards() {
         </div>
         <div className="lovers-stat-grid">
           {stats.map((s, i) => (
-            <div key={s.label} className={`lovers-stat-card ${s.bg} reveal reveal-scale reveal-delay-${(i % 5) + 1}`}>
-              <span className="lovers-stat-card__num">{s.num}</span>
-              <span className="lovers-stat-card__label">{s.label}</span>
-              <span className="lovers-stat-card__text">{s.text}</span>
-            </div>
+            <LoversStatCard
+              key={s.label}
+              number={s.num}
+              label={s.label}
+              text={s.text}
+              variant={s.variant}
+              className={`reveal reveal-scale reveal-delay-${(i % 5) + 1}`}
+            />
           ))}
         </div>
       </div>
@@ -728,7 +706,7 @@ function NavCards({ navigate }) {
 }
 
 export function LoversPage({ navigate }) {
-  useRevealOnScroll()
+  useLoversReveal()
   return (
     <div className="page-enter kv-lovers lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
