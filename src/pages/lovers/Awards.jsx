@@ -5,7 +5,7 @@ import { FormFieldPH } from '../../components/placeholders'
 export function AwardsPage({ navigate, mode }) {
   if (mode === 'coming-soon') {
     return (
-      <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
+      <div className="page-enter kv-lovers lovers-gradient-bg" style={{ position: 'relative', overflow: 'hidden' }}>
         <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
         <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 56px', position: 'relative' }}>

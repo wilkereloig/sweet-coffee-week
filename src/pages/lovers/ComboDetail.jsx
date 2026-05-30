@@ -137,11 +137,12 @@ export function ComboDetailPage({ navigate, slug }) {
               {/* Coluna direita: hero copy */}
               <div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-                  <span className="tag tag-lovers">PARTICIPANTE CONFIRMADO</span>
+                  <span className="lovers-badge lovers-badge--pink">PARTICIPANTE CONFIRMADO</span>
+                  {participant.edition && (
+                    <span className="lovers-badge lovers-badge--cyan">{participant.edition}</span>
+                  )}
                   {participant.neighborhood && (
-                    <span className="tag" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-ink)' }}>
-                      {participant.neighborhood.toUpperCase()}
-                    </span>
+                    <span className="lovers-chip">{participant.neighborhood}</span>
                   )}
                 </div>
 
@@ -153,6 +154,13 @@ export function ComboDetailPage({ navigate, slug }) {
                   Combo em breve.
                 </h1>
 
+                {participant.theme && (
+                  <div style={{ marginTop: 22, padding: '18px 20px', borderRadius: 18, background: participant.brandColor || 'var(--lovers-pink)', color: '#fff', maxWidth: 480, boxShadow: '0 12px 30px rgba(43,24,16,.16)' }}>
+                    <div className="mono" style={{ opacity: .85, fontSize: 11, letterSpacing: '.14em' }}>TEMA REVISITADO</div>
+                    <div className="lovers-h3" style={{ fontSize: 24, marginTop: 6, lineHeight: 1.1 }}>{participant.theme}</div>
+                  </div>
+                )}
+
                 <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24, lineHeight: 1.6, maxWidth: 480 }}>
                   Os detalhes do combo deste participante serão divulgados em breve.
                   Em breve você poderá conferir doce, salgado, bebida e todas as
@@ -160,8 +168,8 @@ export function ComboDetailPage({ navigate, slug }) {
                 </p>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 32 }}>
-                  <a href="#/lovers"
-                     onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+                  <a href="#/lovers/participantes"
+                     onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
                      className="btn btn-lovers">
                     Ver participantes <I.arrow />
                   </a>

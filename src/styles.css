@@ -684,6 +684,313 @@ button:disabled { cursor: not-allowed; }
   .combo-rail { display: none; }
 }
 
+/* =====================================================================
+   LOVERS VISUAL SYSTEM — redesign editorial/pop (sticker-colagem)
+   Paleta: pink #F20567 · coral #E12947 · burgundy #870E2D · yellow
+   #F5B800 · cyan #00B8CC · purple #4F2092 · cream #FFE8D2 · brown #3F1A0A
+   ===================================================================== */
+
+/* ── Keyframes ── */
+@keyframes loversFloat {
+  0%, 100% { transform: translateY(0) rotate(var(--lv-rot, 0deg)); }
+  50%      { transform: translateY(-10px) rotate(var(--lv-rot, 0deg)); }
+}
+@keyframes loversFadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes loversPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes loversGradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Backgrounds ── */
+.lovers-gradient-bg {
+  background:
+    radial-gradient(1100px 720px at 8% -10%, rgba(242,5,103,.30), transparent 60%),
+    radial-gradient(900px 640px at 100% 0%, rgba(0,184,204,.28), transparent 58%),
+    radial-gradient(820px 600px at 50% 120%, rgba(245,184,0,.30), transparent 60%),
+    var(--lovers-cream);
+}
+.lovers-sticker-bg {
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(242,5,103,.10) 0 18px, transparent 19px),
+    radial-gradient(circle at 88% 28%, rgba(0,184,204,.12) 0 14px, transparent 15px),
+    radial-gradient(circle at 72% 82%, rgba(245,184,0,.14) 0 22px, transparent 23px),
+    radial-gradient(circle at 24% 88%, rgba(79,32,146,.10) 0 16px, transparent 17px);
+  background-size: 340px 340px, 300px 300px, 380px 380px, 320px 320px;
+}
+
+/* ── Hero ── */
+.lovers-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 36px 36px;
+  background:
+    radial-gradient(900px 560px at 0% 0%, rgba(242,5,103,.40), transparent 60%),
+    radial-gradient(760px 520px at 100% 10%, rgba(0,184,204,.36), transparent 58%),
+    linear-gradient(135deg, var(--lovers-yellow), var(--lovers-coral) 70%, var(--lovers-burgundy));
+  background-size: 160% 160%;
+  animation: loversGradientShift 18s ease-in-out infinite;
+  color: var(--lovers-cream);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lovers-hero { animation: none; }
+}
+.lovers-hero__inner { position: relative; z-index: 2; }
+.lovers-hero__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: .9;
+  pointer-events: none;
+  z-index: 1;
+  animation: loversFloat 7s ease-in-out infinite;
+}
+
+/* ── Section wrapper ── */
+.lovers-section { position: relative; }
+
+/* ── Generic card ── */
+.lovers-card {
+  border-radius: 26px;
+  background: #fff;
+  border: 1.5px solid rgba(135,14,45,.16);
+  box-shadow: 0 16px 40px rgba(43,24,16,.10);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.lovers-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 56px rgba(242,5,103,.20);
+  border-color: rgba(242,5,103,.40);
+}
+
+/* ── Stat cards (números grandes, cor própria) ── */
+.lovers-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+}
+.lovers-stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 26px 22px;
+  color: #fff;
+  min-height: 156px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  box-shadow: 0 14px 34px rgba(43,24,16,.16);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.lovers-stat-card:hover { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 22px 48px rgba(43,24,16,.24); }
+.lovers-stat-card__num {
+  font-family: var(--font-lovers-display);
+  font-weight: 800;
+  font-size: clamp(40px, 5vw, 60px);
+  line-height: .9;
+  letter-spacing: -1px;
+}
+.lovers-stat-card__label {
+  font-family: var(--font-lovers-body);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: .95;
+}
+.lovers-stat-card::after {
+  content: "";
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.16);
+}
+.lv-bg-pink     { background: linear-gradient(150deg, #F20567, #b80050); }
+.lv-bg-cyan     { background: linear-gradient(150deg, #00B8CC, #0a7d8c); color: #04282d; }
+.lv-bg-yellow   { background: linear-gradient(150deg, #F5B800, #e07a00); color: #3F1A0A; }
+.lv-bg-purple   { background: linear-gradient(150deg, #6a31bd, #4F2092); }
+.lv-bg-burgundy { background: linear-gradient(150deg, #b01540, #870E2D); }
+.lv-bg-coral    { background: linear-gradient(150deg, #E12947, #a3132b); }
+.lv-bg-cyan .lovers-stat-card__label,
+.lv-bg-yellow .lovers-stat-card__label { opacity: .85; }
+
+/* ── Nav cards (entrada para áreas) ── */
+.lovers-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.lovers-nav-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 30px 26px 26px;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 16px 40px rgba(43,24,16,.16);
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+.lovers-nav-card:hover { transform: translateY(-8px) scale(1.015); box-shadow: 0 30px 64px rgba(43,24,16,.28); }
+.lovers-nav-card:hover .lovers-nav-card__arrow { transform: translateX(6px); }
+.lovers-nav-card__kicker {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .9;
+}
+.lovers-nav-card__title {
+  font-family: var(--font-lovers-display);
+  font-weight: 800;
+  font-size: clamp(26px, 3vw, 36px);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.lovers-nav-card__desc { font-size: 14px; line-height: 1.45; opacity: .92; max-width: 30ch; }
+.lovers-nav-card__arrow {
+  margin-top: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform .22s ease;
+}
+.lovers-nav-card::before {
+  content: "";
+  position: absolute;
+  bottom: -50px; left: -30px;
+  width: 150px; height: 150px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+}
+
+/* ── Buttons ── */
+.lovers-button,
+.lovers-button-primary,
+.lovers-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-lovers-body);
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  text-decoration: none;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+}
+.lovers-button-primary {
+  background: var(--lovers-pink);
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(242,5,103,.36);
+}
+.lovers-button-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(242,5,103,.46); }
+.lovers-button-secondary {
+  background: transparent;
+  color: var(--lovers-burgundy);
+  border-color: var(--lovers-burgundy);
+}
+.lovers-button-secondary:hover { transform: translateY(-3px); background: var(--lovers-burgundy); color: var(--lovers-cream); }
+
+/* ── Chips & badges ── */
+.lovers-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(242,5,103,.10);
+  color: var(--lovers-burgundy);
+  border: 1.5px solid rgba(242,5,103,.30);
+  font-family: var(--font-lovers-body);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: .02em;
+}
+.lovers-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--lovers-yellow);
+  color: var(--lovers-brown);
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.lovers-badge--cyan   { background: var(--lovers-cyan); color: #04282d; }
+.lovers-badge--purple { background: var(--lovers-purple); color: #fff; }
+.lovers-badge--pink   { background: var(--lovers-pink); color: #fff; }
+
+/* ── Entrance animation utility ── */
+.lv-anim { animation: loversFadeUp .6s ease both; }
+.lv-anim-1 { animation-delay: .06s; }
+.lv-anim-2 { animation-delay: .12s; }
+.lv-anim-3 { animation-delay: .18s; }
+.lv-anim-4 { animation-delay: .24s; }
+.lv-anim-5 { animation-delay: .30s; }
+@media (prefers-reduced-motion: reduce) {
+  .lv-anim { animation: none; }
+}
+
+/* ── Realce: cards de participante (vitrine) ── */
+.participant-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.participant-card:hover { transform: translateY(-6px) rotate(-.6deg); box-shadow: 0 24px 52px color-mix(in srgb, var(--participant-brand, var(--lovers-pink)) 26%, transparent); }
+.participant-card::before { height: 10px; }
+
+/* ── Realce: combo-list-card (listagem participantes) ── */
+.combo-list-card {
+  position: relative;
+  border-radius: 24px !important;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.combo-list-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: var(--card-accent, var(--lovers-pink));
+  z-index: 2;
+}
+.combo-list-card:hover { transform: translateY(-6px); box-shadow: 0 24px 52px rgba(242,5,103,.20) !important; }
+
+/* ── Realce: sidebar / rail estado ativo mais evidente ── */
+.sidebar__link.lovers-active {
+  background: linear-gradient(90deg, rgba(242,5,103,.16), rgba(242,5,103,.04)) !important;
+  border-left: 3px solid var(--lovers-pink);
+  padding-left: 9px;
+}
+.combo-rail__item.is-active {
+  background: linear-gradient(90deg, rgba(242,5,103,.16), transparent) !important;
+  box-shadow: inset 3px 0 0 var(--lovers-pink);
+}
+
 /* ---------- FOOTER ---------- */
 .site-footer {
   background: var(--ink);

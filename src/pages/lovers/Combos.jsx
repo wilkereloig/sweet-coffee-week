@@ -178,38 +178,38 @@ export function ComboPage({ navigate }) {
                 </p>
               ) : (
                 <div className="combos-page__grid">
-                  {filteredCombos.map(combo => {
+                  {filteredCombos.map((combo, i) => {
                     const participant = getParticipant(combo.participantId)
                     const hasRoute = !!(participant?.latitude && participant?.longitude)
+                    const accents = ['var(--lovers-pink)', 'var(--lovers-cyan)', 'var(--lovers-yellow)', 'var(--lovers-purple)', 'var(--lovers-coral)', 'var(--lovers-burgundy)']
+                    const accent = accents[i % accents.length]
                     return (
-                      <article key={combo.id} className="combo-list-card">
-                        <div className="combo-list-card__media">
-                          <PhotoPH label={combo.name} aspect="4/3" icon="plate" lovers />
+                      <article
+                        key={combo.id}
+                        className={`combo-list-card lv-anim lv-anim-${(i % 5) + 1}`}
+                        style={{ '--card-accent': accent }}
+                      >
+                        <div className="combo-list-card__media" style={{ background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '4 / 3', padding: 22 }}>
+                          {participant?.logo
+                            ? <img src={participant.logo} alt={`Logo ${participant?.name || ''}`} style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
+                            : <PhotoPH label={combo.name} aspect="4/3" icon="plate" lovers />}
                         </div>
                         <div className="combo-list-card__body">
-                          <div className="combo-list-card__meta">
-                            {participant?.name && (
-                              <span className="mono combo-list-card__participant">{participant.name}</span>
+                          <div className="combo-list-card__meta" style={{ alignItems: 'center' }}>
+                            {participant?.edition && (
+                              <span className="lovers-badge">{participant.edition}</span>
                             )}
                             {participant?.neighborhood && (
                               <span className="mono combo-list-card__neighborhood">{participant.neighborhood}</span>
                             )}
                           </div>
-                          <h3 className="lovers-h3 combo-list-card__name">{combo.name}</h3>
+                          <h3 className="lovers-h3 combo-list-card__name">{participant?.name || combo.name}</h3>
                           {combo.recreatedTheme && (
-                            <span className="tag tag-lovers combo-list-card__theme">{combo.recreatedTheme}</span>
+                            <span className="tag tag-lovers combo-list-card__theme" style={{ background: accent, color: '#fff', borderColor: 'transparent' }}>
+                              {combo.recreatedTheme}
+                            </span>
                           )}
-                          {combo.description && (
-                            <p className="combo-list-card__desc">{combo.description}</p>
-                          )}
-                          <div className="combo-list-card__items">
-                            <span className="combo-list-card__item">Doce</span>
-                            <span className="combo-list-card__item-sep">+</span>
-                            <span className="combo-list-card__item">Salgado</span>
-                            <span className="combo-list-card__item-sep">+</span>
-                            <span className="combo-list-card__item">Bebida</span>
-                          </div>
-                          <div className="combo-list-card__actions">
+                          <div className="combo-list-card__actions" style={{ marginTop: 'auto', paddingTop: 18 }}>
                             <a
                               href={`#/lovers/combos/${combo.slug}`}
                               onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${combo.slug}`) }}

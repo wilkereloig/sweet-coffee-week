@@ -712,18 +712,82 @@ function FinalCTA() {
 }
 
 /* ── Page ── */
+/* ── Cards de dados (números grandes, coloridos) ── */
+function StatCards() {
+  const stats = [
+    { num: '10', label: 'anos de festival', bg: 'lv-bg-pink' },
+    { num: String(PARTICIPANTS.length || 21), label: 'participantes', bg: 'lv-bg-cyan' },
+    { num: '33', label: 'lojas no mapa', bg: 'lv-bg-yellow' },
+    { num: '15', label: 'temas históricos', bg: 'lv-bg-purple' },
+    { num: '4–14', label: 'de junho', bg: 'lv-bg-coral' },
+    { num: '1', label: 'Rota da Doçura', bg: 'lv-bg-burgundy' },
+  ]
+  return (
+    <section className="section lovers-section">
+      <div className="wrap">
+        <div className="reveal reveal-up" style={{ textAlign: 'center', marginBottom: 36 }}>
+          <span className="lovers-chip">A edição em números</span>
+          <h2 className="lh2" style={{ marginTop: 16 }}>
+            Dez anos de <span style={{ color: 'var(--lovers-pink)' }}>história.</span>
+          </h2>
+        </div>
+        <div className="lovers-stat-grid">
+          {stats.map((s, i) => (
+            <div key={s.label} className={`lovers-stat-card ${s.bg} reveal reveal-scale reveal-delay-${(i % 5) + 1}`}>
+              <span className="lovers-stat-card__num">{s.num}</span>
+              <span className="lovers-stat-card__label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── Cards de navegação para as áreas internas ── */
+function NavCards({ navigate }) {
+  const cards = [
+    { kicker: 'Vitrine', title: 'Participantes', desc: 'As lojas que vão recriar sabores e memórias do festival.', to: '/lovers/participantes', bg: 'lv-bg-pink' },
+    { kicker: 'Rota', title: 'Mapa da Doçura', desc: 'Monte sua rota e descubra onde provar cada combo.', to: '/lovers/mapa', bg: 'lv-bg-cyan' },
+    { kicker: 'Sweet Awards', title: 'Premiação', desc: 'Avalie sua experiência e ajude a eleger os destaques.', to: '/lovers/premiacao', bg: 'lv-bg-purple' },
+  ]
+  return (
+    <section className="section lovers-section" style={{ background: 'var(--lovers-cream)' }}>
+      <div className="wrap">
+        <div className="reveal reveal-up" style={{ textAlign: 'center', marginBottom: 36 }}>
+          <span className="lovers-chip">Explore a edição</span>
+          <h2 className="lh2" style={{ marginTop: 16 }}>
+            Por onde <span style={{ color: 'var(--lovers-burgundy)' }}>começar.</span>
+          </h2>
+        </div>
+        <div className="lovers-nav-grid">
+          {cards.map((c, i) => (
+            <a key={c.to}
+               href={`#${c.to}`}
+               onClick={(e) => { e.preventDefault(); navigate(c.to) }}
+               className={`lovers-nav-card ${c.bg} reveal reveal-scale reveal-delay-${i + 1}`}>
+              <span className="lovers-nav-card__kicker">{c.kicker}</span>
+              <span className="lovers-nav-card__title">{c.title}</span>
+              <span className="lovers-nav-card__desc">{c.desc}</span>
+              <span className="lovers-nav-card__arrow">Acessar →</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function LoversPage({ navigate }) {
   useRevealOnScroll()
   return (
-    <div className="page-enter kv-lovers" style={{ overflow: 'hidden' }}>
-      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }} />
+    <div className="page-enter kv-lovers lovers-gradient-bg" style={{ overflow: 'hidden' }}>
+      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
       <Hero />
       <Sobre />
       <ComoFunciona />
-      <Participantes navigate={navigate} />
-      <Combos />
-      <Mapa />
-      <Awards />
+      <StatCards />
+      <NavCards navigate={navigate} />
       <FinalCTA />
     </div>
   )
