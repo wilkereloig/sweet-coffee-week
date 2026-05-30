@@ -714,6 +714,13 @@ export function MapaGooglePage({ navigate }) {
             </div>
           ) : (
             <>
+            <header className="mapa-hero">
+              <span className="mapa-hero__sticker" aria-hidden="true"><I.heart /> Rota da Doçura</span>
+              <span className="mapa-hero__kicker">Mapa da Doçura</span>
+              <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
+              <p className="mapa-hero__subtitle">Encontre as lojas participantes, veja o que está perto de você e monte sua própria Rota da Doçura.</p>
+              <p className="mapa-hero__microcopy">Você escolhe os destinos. O Sweet te mostra o caminho.</p>
+            </header>
             {hasMissingCoords && (
               <div className="mono" style={{
                 fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
@@ -776,17 +783,11 @@ export function MapaGooglePage({ navigate }) {
                 {/* busca */}
                 <input
                   type="text"
-                  placeholder="Buscar participante, bairro ou endereço..."
+                  className="mapa-search"
+                  aria-label="Buscar participante, bairro ou endereço"
+                  placeholder="Busque por loja, bairro ou tema"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    border: '1.5px solid rgba(135,14,45,.2)',
-                    borderRadius: 10, padding: '9px 12px',
-                    fontSize: 13, fontFamily: 'var(--font-lovers-body)',
-                    background: '#fff', color: 'var(--lovers-ink)',
-                    outline: 'none', marginBottom: 10,
-                  }}
                 />
 
                 {/* filtros de bairro */}
@@ -1150,7 +1151,7 @@ export function MapaGooglePage({ navigate }) {
 
                     <h2>MINHA ROTA LOVERS</h2>
 
-                    <p>Estes são os destinos que eu escolhi para viver o Sweet &amp; Coffee Week Lovers.</p>
+                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers.</p>
 
                     <div className="sweet-route-summary">
                       <strong>{routeLocations.length}</strong>
@@ -1221,7 +1222,7 @@ export function MapaGooglePage({ navigate }) {
                     </div>
                   </div>
 
-                  <p className="sweet-route-print-hint">Dica: tire um print desta tela para compartilhar sua rota nos Stories.</p>
+                  <p className="sweet-route-print-hint">Tire um print, mande para os amigos e combine por onde começar.</p>
 
                   <div className="sweet-route-actions">
                     {routeMapsUrl && (
@@ -1345,6 +1346,105 @@ export function MapaGooglePage({ navigate }) {
           }
           .map-sidebar-scroll::-webkit-scrollbar-track {
             background: transparent;
+          }
+
+          /* ── header editorial ── */
+          .mapa-hero {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 26px;
+          }
+          .mapa-hero__sticker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transform: rotate(-2deg);
+            margin-bottom: 14px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            box-shadow: 0 8px 20px rgba(135,14,45,.16);
+          }
+          .mapa-hero__sticker svg { width: 14px; height: 14px; }
+          .mapa-hero__kicker {
+            display: block;
+            margin-bottom: 8px;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--lovers-red);
+          }
+          .mapa-hero__title {
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(42px, 7vw, 88px);
+            line-height: .86;
+            letter-spacing: .01em;
+            text-transform: uppercase;
+            color: var(--lovers-ink);
+          }
+          .mapa-hero__subtitle {
+            margin: 16px 0 0;
+            max-width: 580px;
+            font-family: var(--font-lovers-body);
+            font-size: clamp(15px, 1.5vw, 18px);
+            line-height: 1.45;
+            color: var(--lovers-brown);
+          }
+          .mapa-hero__microcopy {
+            margin: 10px 0 0;
+            font-family: var(--font-lovers-body);
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: .02em;
+            color: var(--lovers-red);
+          }
+          @media (max-width: 560px) {
+            .mapa-hero { margin-bottom: 18px; }
+            .mapa-hero__title { font-size: clamp(34px, 11vw, 48px); line-height: .9; }
+            .mapa-hero__subtitle { font-size: 14px; }
+            .mapa-hero__sticker { font-size: 11px; padding: 6px 12px; margin-bottom: 12px; }
+            .mapa-hero__kicker { letter-spacing: .16em; }
+          }
+
+          /* ── busca ── */
+          .mapa-search {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1.5px solid rgba(135,14,45,.2);
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-family: var(--font-lovers-body);
+            background: #fff;
+            color: var(--lovers-ink);
+            outline: none;
+            margin-bottom: 12px;
+            transition: border-color .15s, box-shadow .15s;
+          }
+          .mapa-search::placeholder { color: var(--lovers-brown); opacity: .55; }
+          .mapa-search:focus { box-shadow: 0 0 0 3px rgba(214,54,72,.12); }
+
+          /* ── foco visível (a11y) ── */
+          .mapa-chip:focus-visible,
+          .map-icon-action:focus-visible,
+          .map-card-combo-btn:focus-visible,
+          .sweet-route-icon-action:focus-visible,
+          .sweet-route-primary:focus-visible,
+          .sweet-route-secondary:focus-visible,
+          .sweet-route-close:focus-visible,
+          .sweet-route-fab:focus-visible,
+          .mapa-search:focus-visible {
+            outline: 3px solid var(--lovers-pink);
+            outline-offset: 2px;
           }
 
           /* ── rota ── */
@@ -1726,20 +1826,24 @@ export function MapaGooglePage({ navigate }) {
 
           /* ── chips de filtro ── */
           .mapa-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
             font-family: var(--font-lovers-body);
             font-size: 11px;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 20px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 999px;
             border: 1.5px solid var(--lovers-red);
             cursor: pointer;
-            transition: background .15s, color .15s;
+            transition: background .15s, color .15s, box-shadow .15s, transform .15s;
             white-space: nowrap;
             text-transform: uppercase;
-            letter-spacing: .05em;
+            letter-spacing: .06em;
           }
-          .mapa-chip:hover { background: var(--lovers-red); color: #fff; }
-          .mapa-chip:disabled { opacity: .6; cursor: default; }
+          .mapa-chip:hover { background: var(--lovers-red); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(135,14,45,.18); }
+          .mapa-chip:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
 
           /* ── card do participante ── */
           .map-participant-card {
@@ -2028,10 +2132,10 @@ export function MapaGooglePage({ navigate }) {
             margin-top: 10px;
           }
           .map-icon-action {
-            width: 38px;
-            height: 38px;
+            width: 44px;
+            height: 44px;
             flex: 0 0 auto;
-            border: 1.5px solid rgba(135,14,45,.22);
+            border: 2px solid rgba(135,14,45,.24);
             background: rgba(255,255,255,.9);
             color: var(--lovers-red);
             border-radius: 50%;
@@ -2040,14 +2144,15 @@ export function MapaGooglePage({ navigate }) {
             justify-content: center;
             cursor: pointer;
             text-decoration: none;
-            transition: transform .15s, background .15s, color .15s, border-color .15s;
+            transition: transform .15s, background .15s, color .15s, border-color .15s, box-shadow .15s;
           }
-          .map-icon-action svg { width: 18px; height: 18px; }
+          .map-icon-action svg { width: 20px; height: 20px; }
           .map-icon-action:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             background: var(--lovers-red);
             color: var(--lovers-cream);
             border-color: var(--lovers-red);
+            box-shadow: 0 8px 18px rgba(135,14,45,.22);
           }
           .map-icon-action--primary {
             background: var(--lovers-red);
