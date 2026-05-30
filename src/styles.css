@@ -1001,9 +1001,11 @@ button:disabled { cursor: not-allowed; }
 /* ── Mobile nav Lovers: barra sticky compacta + chips horizontais ── */
 .lovers-mobile-nav { display: none; }
 @media (max-width: 959px) {
-  .site-header.lovers { display: none; }
+  /* Nav interna Lovers (barra de chips horizontal) ocultada no mobile — redundante
+     com o menu principal/hambúrguer. O header principal volta a aparecer p/ rotas Lovers,
+     mantendo a navegação acessível. */
   .lovers-mobile-nav {
-    display: flex;
+    display: none !important;
     align-items: center;
     gap: 10px;
     position: sticky;
