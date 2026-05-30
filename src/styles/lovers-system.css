@@ -171,27 +171,40 @@
 .lovers-stickers {
   position: absolute; inset: 0; z-index: 1;
   pointer-events: none; overflow: hidden;
+  opacity: 1; mix-blend-mode: normal;
 }
 .lovers-sticker-img {
   position: absolute; display: block;
   max-width: none; height: auto;
-  opacity: 1;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
   pointer-events: none; user-select: none;
   filter: drop-shadow(0 16px 24px rgba(43,24,16,.16));
   transform-origin: center;
   transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
 }
-/* Conteúdo das páginas Lovers sempre na camada 3 (acima dos adesivos). */
-.lovers-content-layer,
+/* Seções NÃO criam stacking-context (z-index:auto). Assim a camada de adesivos
+   (z-index 1) pinta ACIMA de fundos de seção translúcidos (ex.: hero vinho .88) e
+   o adesivo aparece SÓLIDO, nunca marca d'água. O conteúdo interno é elevado à
+   camada 3 (z-index 2), ficando acima dos adesivos. */
 .lovers-home > section, .lovers-home > footer,
 .combos-page > section, .combos-page > footer,
 .awards-page > section, .awards-page > footer,
 .combo-detail-page > section, .combo-detail-page > footer {
+  position: relative; z-index: auto;
+}
+.lovers-content-layer,
+.lovers-home > section > .wrap, .lovers-home > footer > .wrap,
+.combos-page > section > .wrap, .combos-page > footer > .wrap,
+.awards-page > section > .wrap, .awards-page > footer > .wrap,
+.combo-detail-page > section > .wrap, .combo-detail-page > footer > .wrap,
+.lovers-hero__inner, .awards-hero__inner, .awards-hero__content,
+.combos-page__hero-inner, .combo-detail-hero__content {
   position: relative; z-index: 2;
 }
 /* Mobile: adesivos menores e sólidos — reduz escala, nunca transparência. */
 @media (max-width: 768px) {
-  .lovers-sticker-img { --scale: .78; opacity: 1; }
+  .lovers-sticker-img { --scale: .78; opacity: 1 !important; }
 }
 
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
