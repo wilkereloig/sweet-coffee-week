@@ -1,6 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { PhotoPH, EmptyState } from '../../components/placeholders'
+import { EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
@@ -33,33 +33,166 @@ const combosData =
       ? PREVIEW_COMBOS
       : combosFromParticipants
 
+/* ── Edição → cor (apenas mapeamento visual; não altera a string dos dados) ── */
+const EDITION_COLORS = {
+  'Sweet Celebration': 'var(--lovers-yellow)',
+  'Sweet Trip': 'var(--lovers-cyan)',
+  'Sweet Music': 'var(--lovers-pink)',
+  'Contos de Fadas': 'var(--lovers-purple)',
+  'Sweet Series': 'var(--lovers-burgundy)',
+  'Filmes': 'var(--lovers-coral)',
+  'Terras Potiguares': 'var(--lovers-brown)',
+}
+const EDITION_ORDER = [
+  'Sweet Celebration', 'Sweet Trip', 'Sweet Music',
+  'Contos de Fadas', 'Sweet Series', 'Filmes', 'Terras Potiguares',
+]
+
+// Normaliza pequenas variações da string vinda dos dados (ex.: "Contos de Fada" → "Contos de Fadas").
+function normalizeEdition(edition) {
+  if (!edition) return null
+  const t = String(edition).trim()
+  if (t === 'Contos de Fada') return 'Contos de Fadas'
+  return t
+}
+function editionColor(edition) {
+  return EDITION_COLORS[normalizeEdition(edition)] || 'var(--lovers-pink)'
+}
+function storesLabel(participant) {
+  const n = participant?.locations?.length || 1
+  return n === 1 ? '1 LOJA' : `${n} LOJAS`
+}
+function neighborhoodsSummary(participant) {
+  let list = []
+  if (participant?.locations?.length) {
+    list = [...new Set(participant.locations.map(l => l.neighborhood).filter(Boolean))]
+  }
+  if (!list.length && participant?.neighborhood) list = [participant.neighborhood]
+  if (!list.length) return 'Natal/RN'
+  if (list.length === 1) return list[0]
+  return list.slice(0, -1).join(', ') + ' e ' + list[list.length - 1]
+}
+function igHandle(instagram) {
+  return instagram ? instagram.replace('@', '') : null
+}
+
+function CameraIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7H7l1.4-2h7.2L17 7h2.5A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" strokeLinejoin="round" />
+      <circle cx="12" cy="12.6" r="3.2" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function getInitials(name) {
+  if (!name) return '?'
+  const words = name.replace(/[-]/g, ' ').split(/\s+/).filter(Boolean)
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return (words[0][0] + words[1][0]).toUpperCase()
+}
+
+function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass }) {
+  const accent = editionColor(participant?.edition)
+  const edition = normalizeEdition(participant?.edition) || 'Edição Lovers'
+  const theme = participant?.theme || combo.recreatedTheme || 'Tema em breve'
+  const handle = igHandle(participant?.instagram)
+  const name = participant?.name || combo.name
+  const go = () => navigate(`/lovers/combos/${combo.slug}`)
+
+  return (
+    <article
+      className={`participant-showcase-card ${animClass}`}
+      style={{ '--card-accent': accent }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Ver combo de ${name}`}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go() } }}
+    >
+      <div className="participant-showcase-card__media">
+        <span className="participant-showcase-card__index">
+          <I.pin width={12} height={12} /> #{num}
+        </span>
+        <span className="participant-showcase-card__stores">{storesLabel(participant)}</span>
+
+        {combo.mainImage ? (
+          <img src={combo.mainImage} alt={`Foto do combo de ${name}`} loading="lazy" />
+        ) : (
+          <div className="participant-showcase-card__photo-placeholder">
+            <CameraIcon />
+            <span>Foto do combo</span>
+          </div>
+        )}
+
+        <div className="participant-showcase-card__logo">
+          {participant?.logo
+            ? <img src={participant.logo} alt={`Logo ${name}`} loading="lazy" />
+            : <span className="participant-showcase-card__logo-initials">{getInitials(name)}</span>}
+        </div>
+      </div>
+
+      <div className="participant-showcase-card__body">
+        <span className="participant-showcase-card__edition">{edition}</span>
+        <h3 className="participant-showcase-card__name">{name}</h3>
+        <p className="participant-showcase-card__line"><strong>Tema</strong><span>{theme}</span></p>
+        <p className="participant-showcase-card__line"><strong>Local</strong><span>{neighborhoodsSummary(participant)}</span></p>
+
+        <div className="participant-showcase-card__footer">
+          <span className="participant-showcase-card__cta">Ver combo <I.arrow /></span>
+          {handle && (
+            <a
+              className="participant-showcase-card__ig"
+              href={`https://www.instagram.com/${handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`Instagram de ${name}`}
+            >
+              @{handle}
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
+  )
+}
+
 export function ComboPage({ navigate }) {
   const [search, setSearch] = React.useState('')
-  const [filterTheme, setFilterTheme] = React.useState(null)
-  const [filterNeighborhood, setFilterNeighborhood] = React.useState(null)
+  const [filterEdition, setFilterEdition] = React.useState(null)
 
   const isPreviewMode = ENABLE_PREVIEW_DATA && COMBOS.length === 0
 
   const getParticipant = (id) => participantsData.find(p => p.id === id)
 
-  const themes = [...new Set(combosData.map(c => c.recreatedTheme).filter(Boolean))].sort()
-  const neighborhoods = [...new Set(
-    combosData.map(c => getParticipant(c.participantId)?.neighborhood).filter(Boolean)
-  )].sort()
+  // Edições presentes, na ordem oficial da edição.
+  const editionsPresent = EDITION_ORDER.filter(ed =>
+    combosData.some(c => normalizeEdition(getParticipant(c.participantId)?.edition) === ed)
+  )
 
-  const hasFilters = !!(search || filterTheme || filterNeighborhood)
+  const hasFilters = !!(search || filterEdition)
 
-  const filteredCombos = combosData.filter(combo => {
-    const participant = getParticipant(combo.participantId)
-    const q = search.toLowerCase()
-    const matchSearch = !search ||
-      combo.name.toLowerCase().includes(q) ||
-      participant?.name?.toLowerCase().includes(q) ||
-      combo.recreatedTheme?.toLowerCase().includes(q)
-    const matchTheme = !filterTheme || combo.recreatedTheme === filterTheme
-    const matchNeighborhood = !filterNeighborhood || participant?.neighborhood === filterNeighborhood
-    return matchSearch && matchTheme && matchNeighborhood
-  })
+  const cards = combosData
+    .map((combo, idx) => ({ combo, num: idx + 1, participant: getParticipant(combo.participantId) }))
+    .filter(({ combo, participant }) => {
+      const q = search.trim().toLowerCase()
+      const matchSearch = !q ||
+        (participant?.name || combo.name || '').toLowerCase().includes(q) ||
+        (participant?.theme || combo.recreatedTheme || '').toLowerCase().includes(q) ||
+        (participant?.edition || '').toLowerCase().includes(q) ||
+        (participant?.neighborhood || '').toLowerCase().includes(q)
+      const matchEdition = !filterEdition || normalizeEdition(participant?.edition) === filterEdition
+      return matchSearch && matchEdition
+    })
 
   return (
     <div className="page-enter kv-lovers combos-page lovers-gradient-bg">
@@ -101,31 +234,20 @@ export function ComboPage({ navigate }) {
                 <I.route /> Abrir mapa da Doçura
               </LoversButton>
             </div>
-            {combosData.length === 0 && (
-              <div className="combos-page__coming-soon">
-                <span className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, display: 'block', marginBottom: 6 }}>EM BREVE</span>
-                Os combos oficiais da edição Sweet & Coffee Week Lovers serão divulgados em breve.
-              </div>
-            )}
           </div>
         </div>
       </section>
 
       {/* Content */}
-      <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
+      <section className="section" style={{ background: 'var(--lovers-cream)' }}>
         <div className="wrap">
-          {combosData.length > 0 && (
-            <p style={{ textAlign: 'center', fontFamily: 'var(--font-lovers-display)', fontWeight: 800, textTransform: 'uppercase', fontSize: 'clamp(20px, 2.6vw, 32px)', color: 'var(--lovers-brown)', margin: '0 0 clamp(24px, 3vw, 40px)', lineHeight: 1.05 }}>
-              Qual tema você quer reviver primeiro?
-            </p>
-          )}
           {combosData.length === 0 ? (
             <div style={{ maxWidth: 560, margin: '0 auto' }}>
               <EmptyState
                 lovers
                 icon="cup"
-                title="Combos em breve"
-                subtitle="Os combos oficiais da edição Sweet & Coffee Week Lovers serão divulgados em breve."
+                title="Participantes em breve"
+                subtitle="Os participantes da edição Sweet & Coffee Week Lovers serão divulgados em breve."
               />
               <div style={{ textAlign: 'center', marginTop: 24 }}>
                 <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
@@ -136,132 +258,76 @@ export function ComboPage({ navigate }) {
             </div>
           ) : (
             <>
-              {/* Filters */}
-              <div className="combos-page__filters">
-                <input
-                  type="text"
-                  className="combos-page__search"
-                  placeholder="Busque por loja, tema, edição ou bairro"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-                {themes.length > 0 && (
-                  <div className="combos-page__filter-group">
-                    <span className="combos-page__filter-label mono">Temas da edição</span>
-                    <div className="combos-page__chips">
-                      {themes.map(t => (
-                        <button
-                          key={t}
-                          type="button"
-                          className={'combos-page__chip' + (filterTheme === t ? ' is-active' : '')}
-                          onClick={() => setFilterTheme(prev => prev === t ? null : t)}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {neighborhoods.length > 0 && (
-                  <div className="combos-page__filter-group">
-                    <span className="combos-page__filter-label mono">Regiões da rota</span>
-                    <div className="combos-page__chips">
-                      {neighborhoods.map(n => (
-                        <button
-                          key={n}
-                          type="button"
-                          className={'combos-page__chip' + (filterNeighborhood === n ? ' is-active' : '')}
-                          onClick={() => setFilterNeighborhood(prev => prev === n ? null : n)}
-                        >
-                          {n}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="combos-page__filter-footer">
-                  <span className="mono combos-page__count">
-                    {filteredCombos.length === combosData.length
+              {/* Filtros por edição + busca */}
+              <div className="participants-filterbar">
+                <div className="participants-filterbar__top">
+                  <label className="participants-search">
+                    <SearchIcon />
+                    <input
+                      type="text"
+                      placeholder="Buscar participante..."
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      aria-label="Buscar participante"
+                    />
+                  </label>
+                  <span className="participants-filterbar__count">
+                    {cards.length === combosData.length
                       ? `${combosData.length} participantes`
-                      : `${filteredCombos.length} de ${combosData.length} participantes`}
+                      : `${cards.length} de ${combosData.length}`}
                   </span>
+                </div>
+
+                <div className="participants-filterbar__chips" role="group" aria-label="Filtrar por edição">
+                  <button
+                    type="button"
+                    className={'participants-chip' + (!filterEdition ? ' is-active' : '')}
+                    aria-pressed={!filterEdition}
+                    onClick={() => setFilterEdition(null)}
+                  >
+                    Todas
+                  </button>
+                  {editionsPresent.map(ed => (
+                    <button
+                      key={ed}
+                      type="button"
+                      className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
+                      aria-pressed={filterEdition === ed}
+                      onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
+                    >
+                      <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
+                      {ed}
+                    </button>
+                  ))}
                   {hasFilters && (
                     <button
                       type="button"
-                      className="combos-page__clear"
-                      onClick={() => { setSearch(''); setFilterTheme(null); setFilterNeighborhood(null) }}
+                      className="participants-filterbar__clear"
+                      onClick={() => { setSearch(''); setFilterEdition(null) }}
                     >
-                      Limpar filtros ×
+                      Limpar ×
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Grid */}
-              {filteredCombos.length === 0 ? (
+              {/* Grid de participantes */}
+              {cards.length === 0 ? (
                 <p className="combos-page__no-results">
-                  Nenhum participante encontrado por aqui. Tente outro nome, tema ou bairro.
+                  Nenhum participante encontrado por aqui. Tente outro nome, tema ou edição.
                 </p>
               ) : (
                 <div className="combos-page__grid">
-                  {filteredCombos.map((combo, i) => {
-                    const participant = getParticipant(combo.participantId)
-                    const hasRoute = !!(participant?.latitude && participant?.longitude)
-                    const accents = ['var(--lovers-pink)', 'var(--lovers-cyan)', 'var(--lovers-yellow)', 'var(--lovers-purple)', 'var(--lovers-coral)', 'var(--lovers-burgundy)']
-                    const accent = accents[i % accents.length]
-                    return (
-                      <article
-                        key={combo.id}
-                        className={`combo-list-card lv-anim lv-anim-${(i % 5) + 1}`}
-                        style={{ '--card-accent': accent }}
-                      >
-                        <div className="combo-list-card__media" style={{ background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '4 / 3', padding: 22 }}>
-                          {combo.mainImage
-                            ? <img src={combo.mainImage} alt={`Foto do combo ${participant?.name || combo.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 18 }} />
-                            : participant?.logo
-                            ? <img src={participant.logo} alt={`Logo ${participant?.name || ''}`} style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
-                            : <PhotoPH label={combo.name} aspect="4/3" icon="plate" lovers />}
-                        </div>
-                        <div className="combo-list-card__body">
-                          <div className="combo-list-card__meta" style={{ alignItems: 'center' }}>
-                            {participant?.edition && (
-                              <span className="lovers-badge">{participant.edition}</span>
-                            )}
-                            {participant?.neighborhood && (
-                              <span className="mono combo-list-card__neighborhood">{participant.neighborhood}</span>
-                            )}
-                          </div>
-                          <h3 className="lovers-h3 combo-list-card__name">{participant?.name || combo.name}</h3>
-                          {combo.recreatedTheme && (
-                            <span className="tag tag-lovers combo-list-card__theme" style={{ background: accent, color: '#fff', borderColor: 'transparent' }}>
-                              {combo.recreatedTheme}
-                            </span>
-                          )}
-                          <div className="combo-list-card__actions" style={{ marginTop: 'auto', paddingTop: 18 }}>
-                            <LoversButton
-                              variant="primary"
-                              size="small"
-                              href={`#/lovers/combos/${combo.slug}`}
-                              onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${combo.slug}`) }}
-                            >
-                              Ver combo <I.arrow />
-                            </LoversButton>
-                            {hasRoute && (
-                              <LoversButton
-                                variant="secondary"
-                                size="small"
-                                href={`https://www.google.com/maps/dir/?api=1&destination=${participant.latitude},${participant.longitude}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <I.route /> Traçar rota
-                              </LoversButton>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    )
-                  })}
+                  {cards.map(({ combo, num, participant }, i) => (
+                    <ParticipantShowcaseCard
+                      key={combo.id}
+                      combo={combo}
+                      num={num}
+                      participant={participant}
+                      navigate={navigate}
+                      animClass={`lv-anim lv-anim-${(i % 5) + 1}`}
+                    />
+                  ))}
                 </div>
               )}
             </>

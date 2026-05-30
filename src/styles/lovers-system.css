@@ -249,3 +249,139 @@
     line-height: .95;
   }
 }
+
+/* =====================================================================
+   PARTICIPANTES (/lovers/participantes) — FASE 3
+   Filterbar por edição + showcase card. Aditivo; cor por edição via
+   --card-accent. Substitui visualmente o antigo .combo-list-card.
+   ===================================================================== */
+
+/* Grid: 3 desktop / 2 tablet / 1 mobile */
+.combos-page__grid { grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 2.4vw, 30px); }
+@media (max-width: 1024px) { .combos-page__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px)  { .combos-page__grid { grid-template-columns: 1fr; } }
+
+/* Filterbar */
+.participants-filterbar { display: flex; flex-direction: column; gap: 16px; margin-bottom: clamp(26px, 3vw, 42px); }
+.participants-filterbar__top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.participants-search {
+  display: inline-flex; align-items: center; gap: 10px; flex: 1; min-width: 220px; max-width: 440px;
+  padding: 11px 18px; border-radius: 999px; background: #fff;
+  border: 1.5px solid rgba(135,14,45,.18); color: var(--lovers-brown);
+}
+.participants-search svg { flex-shrink: 0; opacity: .5; }
+.participants-search input {
+  border: 0; outline: 0; background: transparent; width: 100%;
+  font-family: var(--font-lovers-body); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--lovers-brown);
+}
+.participants-search input::placeholder { color: var(--lovers-brown); opacity: .5; }
+.participants-search:focus-within { border-color: var(--lovers-pink); }
+.participants-filterbar__count { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-burgundy); white-space: nowrap; }
+.participants-filterbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid rgba(135,14,45,.14); }
+.participants-chip {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  padding: 7px 15px; border-radius: 999px;
+  background: #fff; border: 1.5px solid rgba(135,14,45,.2); color: var(--lovers-burgundy);
+  font-family: var(--font-lovers-body); font-weight: 700; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.participants-chip__dot { width: 9px; height: 9px; border-radius: 999px; background: var(--chip-dot, var(--lovers-pink)); flex-shrink: 0; }
+@media (hover: hover) { .participants-chip:hover { border-color: var(--lovers-burgundy); } }
+.participants-chip.is-active { background: var(--lovers-burgundy); color: #fff; border-color: transparent; }
+.participants-chip:focus-visible { outline: 2px solid var(--lovers-pink); outline-offset: 2px; }
+.participants-filterbar__clear { background: none; border: 0; cursor: pointer; font-family: var(--font-lovers-body); font-size: 12px; color: var(--lovers-red); opacity: .8; padding: 4px 6px; }
+.participants-filterbar__clear:hover { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .participants-chip { transition: none; } }
+
+/* Showcase card */
+.participant-showcase-card {
+  position: relative; display: flex; flex-direction: column; text-align: left;
+  border-radius: 26px; overflow: hidden; background: #fff; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 30%, transparent);
+  box-shadow: 0 18px 44px rgba(43,24,16,.12);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+@media (hover: hover) {
+  .participant-showcase-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 28px 60px color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 26%, rgba(43,24,16,.2));
+  }
+}
+.participant-showcase-card:focus-visible { outline: 3px solid var(--card-accent, var(--lovers-pink)); outline-offset: 3px; }
+
+.participant-showcase-card__media {
+  position: relative; aspect-ratio: 16 / 11; overflow: hidden; color: #fff;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 14px, transparent 14px 28px),
+    linear-gradient(150deg, color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 92%, #000), var(--card-accent, var(--lovers-pink)));
+}
+.participant-showcase-card__media > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.participant-showcase-card__index,
+.participant-showcase-card__stores {
+  position: absolute; top: 14px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  padding: 5px 11px; border-radius: 999px;
+}
+.participant-showcase-card__index  { left: 14px; background: rgba(43,24,16,.55); color: #fff; }
+.participant-showcase-card__stores { right: 14px; background: var(--lovers-yellow); color: var(--lovers-brown); text-transform: uppercase; }
+
+.participant-showcase-card__photo-placeholder {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,.9);
+}
+.participant-showcase-card__photo-placeholder span {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+}
+
+.participant-showcase-card__logo {
+  position: absolute; left: 18px; bottom: -22px; z-index: 4;
+  width: 72px; height: 72px; border-radius: 18px; overflow: hidden; background: #fff;
+  box-shadow: 0 12px 28px rgba(43,24,16,.22);
+  display: flex; align-items: center; justify-content: center;
+}
+.participant-showcase-card__logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; display: block; }
+.participant-showcase-card__logo-initials { font-family: var(--font-lovers-display); font-weight: 800; font-size: 26px; color: var(--card-accent, var(--lovers-pink)); }
+
+.participant-showcase-card__body { display: flex; flex-direction: column; gap: 8px; padding: 34px 22px 20px; flex: 1; }
+.participant-showcase-card__edition {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 16%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 86%, #000);
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.participant-showcase-card__edition::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: var(--card-accent, var(--lovers-pink)); }
+.participant-showcase-card__name {
+  margin: 2px 0 0; font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(22px, 2vw, 27px); line-height: 1; text-transform: uppercase; color: var(--lovers-brown);
+}
+.participant-showcase-card__line { margin: 0; display: flex; gap: 8px; font-size: 13px; line-height: 1.4; color: var(--lovers-brown); }
+.participant-showcase-card__line strong {
+  flex-shrink: 0; padding-top: 1px; font-family: var(--font-mono); font-weight: 700;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--card-accent, var(--lovers-pink));
+}
+.participant-showcase-card__line span {
+  opacity: .85; overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+}
+.participant-showcase-card__footer {
+  margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(135,14,45,.12);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.participant-showcase-card__cta {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--lovers-burgundy);
+}
+.participant-showcase-card__cta svg { transition: transform .2s ease; }
+@media (hover: hover) { .participant-showcase-card:hover .participant-showcase-card__cta svg { transform: translateX(4px); } }
+.participant-showcase-card__ig {
+  max-width: 46%; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .04em; color: var(--lovers-brown); opacity: .6;
+}
+.participant-showcase-card__ig:hover { opacity: 1; color: var(--lovers-pink); }
+@media (prefers-reduced-motion: reduce) {
+  .participant-showcase-card, .participant-showcase-card__cta svg { transition: none; }
+}
