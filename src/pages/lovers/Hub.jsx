@@ -201,7 +201,7 @@ function NavCards({ navigate }) {
     { kicker: 'Premiação', title: 'Provou? Agora conte pra gente.', desc: 'Acompanhe a premiação da edição e participe da avaliação dos combos quando a votação estiver liberada.', cta: 'Ver premiação', to: '/lovers/premiacao', variant: 'purple' },
   ]
   return (
-    <section className="section lovers-section" style={{ background: 'var(--lovers-cream)' }}>
+    <section className="section lovers-section" style={{ background: 'rgba(255,232,210,.86)' }}>
       <div className="wrap">
         <div className="lovers-section-header is-center reveal reveal-up">
           <span className="lovers-eyebrow">Explore a edição</span>

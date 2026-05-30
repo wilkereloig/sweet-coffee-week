@@ -141,7 +141,7 @@
    Classes específicas da landing "Sobre a edição". Aditivo; não redefine
    paleta nem componentes base. Carrega após styles.css (vence empates).
    ===================================================================== */
-.lovers-home { position: relative; }
+.lovers-home { position: relative; background: #FFE8D2; }
 
 /* ── Hero: decoração extra (2º sticker flutuante + orb roxo) ── */
 .lovers-hero .lovers-orb--purple { width: 150px; height: 150px; bottom: 8%; right: 32%; animation-delay: -3.2s; }
