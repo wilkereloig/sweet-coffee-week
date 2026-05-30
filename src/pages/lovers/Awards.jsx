@@ -1,6 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { LoversButton, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
 
 const STEPS = [
   { n: '01', icon: 'plate', t: 'Prove',       b: 'Visite os participantes e descubra as criações da edição Lovers.', accent: 'var(--lovers-pink)' },
