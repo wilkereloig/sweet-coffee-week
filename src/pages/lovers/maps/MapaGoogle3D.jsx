@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { PARTICIPANTS } from '../../../data/participants'
 import { COMBOS } from '../../../data/combos'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../../config/loversRelease'
 
 // Mapa 3D fotorrealista (Google Photorealistic 3D Tiles via maps3d, beta).
 // Provider opt-in (ver Mapa.jsx). Em erro de API → onError → fallback 2D.
@@ -172,8 +173,8 @@ export function MapaGoogle3DPage({ onError, onExit }) {
       if (loc.address) moreParts.push(`<div class="m3c-row"><span>📍</span><span>${escapeHtml(loc.address)}</span></div>`)
       if (loc.openingHours) moreParts.push(`<div class="m3c-row"><span>🕒</span><span>${escapeHtml(loc.openingHours).replace(/\n/g, '<br>')}</span></div>`)
       if (status.detail) moreParts.push(`<div class="m3c-row m3c-row--status m3c-row--${status.state}"><span>•</span><span>${escapeHtml(status.detail)}</span></div>`)
-      if (loc.comboName) moreParts.push(`<div class="m3c-row"><span>🍫</span><span>${escapeHtml(loc.comboName)}</span></div>`)
-      if (loc.hasCombo) moreParts.push(`<a class="m3c-combo-btn" href="#/lovers/combos/${escapeHtml(loc.comboSlug)}">Ver combo →</a>`)
+      if (LOVERS_SHOW_COMBO_DETAILS && loc.comboName) moreParts.push(`<div class="m3c-row"><span>🍫</span><span>${escapeHtml(loc.comboName)}</span></div>`)
+      if (loc.hasCombo) moreParts.push(`<a class="m3c-combo-btn" href="#/lovers/combos/${escapeHtml(loc.comboSlug)}">${LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo →' : 'Ver participante →'}</a>`)
       if (waDigits) moreParts.push(`<a class="m3c-row m3c-row--link" href="https://wa.me/${waDigits}" target="_blank" rel="noopener"><span>📞</span><span>WhatsApp</span></a>`)
 
       const detailsHtml = moreParts.length
@@ -186,9 +187,9 @@ export function MapaGoogle3DPage({ onError, onExit }) {
         <div class="m3c-head">
           ${logoHtml}
           <div class="m3c-titles">
-            ${loc.edition ? `<span class="m3c-kicker">${escapeHtml(loc.edition)}</span>` : ''}
+            ${LOVERS_SHOW_COMBO_DETAILS && loc.edition ? `<span class="m3c-kicker">${escapeHtml(loc.edition)}</span>` : ''}
             <strong class="m3c-name">${escapeHtml(loc.participantName)}</strong>
-            ${loc.theme ? `<span class="m3c-theme">${escapeHtml(loc.theme)}</span>` : ''}
+            ${LOVERS_SHOW_COMBO_DETAILS && loc.theme ? `<span class="m3c-theme">${escapeHtml(loc.theme)}</span>` : ''}
           </div>
         </div>
         <div class="m3c-sub">

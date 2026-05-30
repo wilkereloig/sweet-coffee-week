@@ -1,6 +1,7 @@
 import React from 'react'
 import { I, LogoMark, HeartTiny, LoversWordmark } from './icons'
 import { PARTICIPANTS } from '../data/participants'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../config/loversRelease'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
@@ -218,7 +219,7 @@ function LoversComboRail({ navigate, activeSlug }) {
              className={`combo-rail__item${p.slug === activeSlug ? ' is-active' : ''}`}
              onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}>
             <span className="combo-rail__name">{p.name}</span>
-            {p.theme && <span className="combo-rail__theme">{p.theme}</span>}
+            {LOVERS_SHOW_COMBO_DETAILS && p.theme && <span className="combo-rail__theme">{p.theme}</span>}
           </a>
         ))}
       </nav>

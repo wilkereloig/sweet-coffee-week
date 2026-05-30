@@ -786,7 +786,7 @@ export function MapaGooglePage({ navigate }) {
                   type="text"
                   className="mapa-search"
                   aria-label="Buscar participante, bairro ou endereço"
-                  placeholder="Busque por loja, bairro ou tema"
+                  placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />

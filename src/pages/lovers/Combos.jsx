@@ -199,12 +199,24 @@ export function ComboPage({ navigate }) {
     .map((combo, idx) => ({ combo, num: idx + 1, participant: getParticipant(combo.participantId) }))
     .filter(({ combo, participant }) => {
       const q = search.trim().toLowerCase()
-      const matchSearch = !q ||
+      // Dados sempre seguros para busca (não revelam a criação): nome, bairro,
+      // instagram e os campos públicos das unidades.
+      const safe = !q ||
         (participant?.name || combo.name || '').toLowerCase().includes(q) ||
-        (participant?.theme || combo.recreatedTheme || '').toLowerCase().includes(q) ||
-        (participant?.edition || '').toLowerCase().includes(q) ||
-        (participant?.neighborhood || '').toLowerCase().includes(q)
-      const matchEdition = !filterEdition || normalizeEdition(participant?.edition) === filterEdition
+        (participant?.neighborhood || '').toLowerCase().includes(q) ||
+        (participant?.instagram || '').toLowerCase().includes(q) ||
+        (participant?.locations || []).some(loc =>
+          [loc.name, loc.neighborhood, loc.address, loc.city]
+            .filter(Boolean).join(' ').toLowerCase().includes(q))
+      // Tema/edição só entram no match quando a revelação está liberada.
+      const matchSearch = LOVERS_SHOW_COMBO_DETAILS
+        ? (safe ||
+            (participant?.theme || combo.recreatedTheme || '').toLowerCase().includes(q) ||
+            (participant?.edition || '').toLowerCase().includes(q))
+        : safe
+      const matchEdition = LOVERS_SHOW_COMBO_DETAILS
+        ? (!filterEdition || normalizeEdition(participant?.edition) === filterEdition)
+        : true
       return matchSearch && matchEdition
     })
 
@@ -279,43 +291,45 @@ export function ComboPage({ navigate }) {
                   </span>
                 </div>
 
-                <div className="participants-filterbar__chips" role="group" aria-label="Filtrar por edição">
-                  <button
-                    type="button"
-                    className={'participants-chip' + (!filterEdition ? ' is-active' : '')}
-                    aria-pressed={!filterEdition}
-                    onClick={() => setFilterEdition(null)}
-                  >
-                    Todas
-                  </button>
-                  {editionsPresent.map(ed => (
-                    <button
-                      key={ed}
-                      type="button"
-                      className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
-                      aria-pressed={filterEdition === ed}
-                      onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
-                    >
-                      <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
-                      {ed}
-                    </button>
-                  ))}
-                  {hasFilters && (
+                {LOVERS_SHOW_COMBO_DETAILS && (
+                  <div className="participants-filterbar__chips" role="group" aria-label="Filtrar por edição">
                     <button
                       type="button"
-                      className="participants-filterbar__clear"
-                      onClick={() => { setSearch(''); setFilterEdition(null) }}
+                      className={'participants-chip' + (!filterEdition ? ' is-active' : '')}
+                      aria-pressed={!filterEdition}
+                      onClick={() => setFilterEdition(null)}
                     >
-                      Limpar ×
+                      Todas
                     </button>
-                  )}
-                </div>
+                    {editionsPresent.map(ed => (
+                      <button
+                        key={ed}
+                        type="button"
+                        className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
+                        aria-pressed={filterEdition === ed}
+                        onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
+                      >
+                        <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
+                        {ed}
+                      </button>
+                    ))}
+                    {hasFilters && (
+                      <button
+                        type="button"
+                        className="participants-filterbar__clear"
+                        onClick={() => { setSearch(''); setFilterEdition(null) }}
+                      >
+                        Limpar ×
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Grid de participantes */}
               {cards.length === 0 ? (
                 <p className="combos-page__no-results">
-                  Nenhum participante encontrado por aqui. Tente outro nome, tema ou edição.
+                  Nenhum participante encontrado por aqui. Tente outro nome, bairro ou unidade.
                 </p>
               ) : (
                 <div className="combos-page__grid">

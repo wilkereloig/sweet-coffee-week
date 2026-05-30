@@ -8,3 +8,7 @@
 // Para revelar, definir VITE_SHOW_LOVERS_COMBO_DETAILS=true no ambiente.
 export const LOVERS_SHOW_COMBO_DETAILS =
   import.meta.env.VITE_SHOW_LOVERS_COMBO_DETAILS === 'true'
+
+// Atalho semântico: quando os detalhes NÃO estão revelados, a área pública
+// está "travada" (sem env → false → LOCKED true).
+export const LOVERS_PUBLIC_LOCKED = !LOVERS_SHOW_COMBO_DETAILS
