@@ -2345,6 +2345,7 @@ button:disabled { cursor: not-allowed; }
 .lovers-orb--cyan   { background: radial-gradient(circle at 32% 30%, #5fe3f0, var(--lovers-cyan)); }
 .lovers-orb--yellow { background: radial-gradient(circle at 32% 30%, #ffd34d, var(--lovers-yellow)); }
 .lovers-orb--purple { background: radial-gradient(circle at 32% 30%, #9a63dd, var(--lovers-purple)); }
+.lovers-orb { display: none; } /* círculos desfocados substituídos pelos adesivos PNG (LoversStickers) */
 
 .lovers-sticker {
   display: inline-flex; align-items: center; gap: 6px;
