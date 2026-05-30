@@ -156,9 +156,11 @@
 @media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
 
 /* ── Adesivos PNG decorativos por página (LoversStickers) ── */
-.lovers-stickers { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
-.lovers-sticker-img { position: absolute; height: auto; filter: drop-shadow(0 8px 18px rgba(43,24,16,.18)); }
-@media (max-width: 640px) { .lovers-sticker-img { opacity: .5; width: 64px !important; } }
+.lovers-stickers { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.lovers-sticker-img { position: absolute; height: auto; opacity: .6; filter: drop-shadow(0 8px 18px rgba(43,24,16,.18)); }
+/* Conteúdo do Hub sempre acima da camada de adesivos (z-index 0) */
+.lovers-home > section, .lovers-home > footer { position: relative; z-index: 1; }
+@media (max-width: 640px) { .lovers-sticker-img { opacity: .4; width: 84px !important; } }
 
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
 .section-sobre .lovers-phrase {
