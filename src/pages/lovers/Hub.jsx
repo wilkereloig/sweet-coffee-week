@@ -664,8 +664,8 @@ function FinalCTA() {
         </p>
         <div className="ctas reveal reveal-up reveal-delay-2">
           {hasCombosData ? (
-            <a href="#/lovers/combos" className="btn btn-yellow btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
-              Ver combos <I.arrow />
+            <a href="#/lovers/participantes" className="btn btn-yellow btn-lg" style={{ display: 'inline-flex', gap: 8 }}>
+              Ver participantes <I.arrow />
             </a>
           ) : (
             <span

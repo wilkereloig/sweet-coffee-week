@@ -12,13 +12,13 @@ export const NAV_LINKS = [
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers', label: 'Sobre a edição',            href: '#/lovers' },
-  { id: 'combos', label: 'Combos',                    href: '#/lovers/combos' },
-  { id: 'mapa',   label: 'Mapa da Doçura',            href: '#/lovers/mapa' },
-  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards' },
+  { id: 'lovers',        label: 'Sobre a edição',  href: '#/lovers' },
+  { id: 'participantes', label: 'Participantes',    href: '#/lovers/participantes' },
+  { id: 'mapa',          label: 'Mapa da Doçura',   href: '#/lovers/mapa' },
+  { id: 'premiacao',     label: 'Premiação',        href: '#/lovers/premiacao' },
 ]
 
-const IS_LOVERS_ROUTE = ['lovers', 'combos', 'combo-detail', 'mapa', 'awards']
+const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
@@ -93,7 +93,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
           ) : (
             <a key={l.id}
                href={l.href}
-               className={`sidebar__link${route === l.id || (l.id === 'combos' && route === 'combo-detail') ? ' lovers-active' : ''}`}
+               className={`sidebar__link${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && route === 'awards') ? ' lovers-active' : ''}`}
                onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
               {l.label}
             </a>
@@ -207,7 +207,7 @@ function LoversComboRail({ navigate, activeSlug }) {
   return (
     <aside className="combo-rail">
       <div className="combo-rail__head">
-        <span className="combo-rail__eyebrow">Combos · participantes</span>
+        <span className="combo-rail__eyebrow">Participantes</span>
         <span className="combo-rail__count">{participants.length}</span>
       </div>
       <nav className="combo-rail__list">
@@ -228,7 +228,7 @@ function LoversComboRail({ navigate, activeSlug }) {
 export function SiteHeader({ route, navigate, path = '' }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const isLovers = IS_LOVERS_ROUTE.includes(route)
-  const showComboRail = route === 'combos' || route === 'combo-detail'
+  const showComboRail = route === 'participantes' || route === 'combos' || route === 'combo-detail'
   const activeSlug = route === 'combo-detail' ? path.split('/').pop() : null
 
   return (

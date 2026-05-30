@@ -74,11 +74,11 @@ export function ComboPage({ navigate }) {
               SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO
             </div>
             <h1 className="lovers-h1" style={{ fontSize: 'clamp(56px, 8vw, 112px)', lineHeight: 1, marginTop: 16 }}>
-              Combos da<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>edição.</span>
+              Participantes<br/>
+              <span style={{ color: 'var(--lovers-pink)' }}>da edição.</span>
             </h1>
             <p className="combos-page__hero-desc">
-              Cada combo reúne um doce, um salgado e uma bebida — tudo recriado em torno de um tema da história do festival.
+              Conheça as lojas que vão recriar sabores, memórias e temas históricos do Sweet &amp; Coffee Week Lovers.
             </p>
             {combosData.length === 0 && (
               <div className="combos-page__coming-soon">
@@ -115,7 +115,7 @@ export function ComboPage({ navigate }) {
                 <input
                   type="text"
                   className="combos-page__search"
-                  placeholder="Buscar combo ou participante…"
+                  placeholder="Buscar participante…"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -156,8 +156,8 @@ export function ComboPage({ navigate }) {
                 <div className="combos-page__filter-footer">
                   <span className="mono combos-page__count">
                     {filteredCombos.length === combosData.length
-                      ? `${combosData.length} combos`
-                      : `${filteredCombos.length} de ${combosData.length} combos`}
+                      ? `${combosData.length} participantes`
+                      : `${filteredCombos.length} de ${combosData.length} participantes`}
                   </span>
                   {hasFilters && (
                     <button

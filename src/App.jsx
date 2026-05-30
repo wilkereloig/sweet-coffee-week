@@ -29,8 +29,10 @@ export default function App() {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/lovers/combos/')) return 'combo-detail'
     if (path.startsWith('/lovers/combos'))  return 'combos'
+    if (path.startsWith('/lovers/participantes')) return 'participantes'
     if (path.startsWith('/lovers/mapa'))    return 'mapa'
     if (path.startsWith('/lovers/awards'))  return 'awards'
+    if (path.startsWith('/lovers/premiacao')) return 'premiacao'
     if (path.startsWith('/lovers'))         return 'lovers'
     if (path.startsWith('/curiosidades'))   return 'curiosidades'
     if (path.startsWith('/participar'))     return 'participar'
@@ -44,10 +46,12 @@ export default function App() {
   switch (route) {
     case 'home':         page = <LoversPage navigate={navigate} />; break
     case 'lovers':       page = <LoversPage navigate={navigate} />; break
+    case 'participantes': page = <ComboPage navigate={navigate} />; break
     case 'combos':       page = <ComboPage navigate={navigate} />; break
     case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
     case 'mapa':         page = <MapaPage navigate={navigate} variant="fullscreen" />; break
     case 'awards':       page = <AwardsPage navigate={navigate} />; break
+    case 'premiacao':    page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break
     case 'participar':   page = <ComingSoonPage />; break
     case 'apoiar':       page = <ComingSoonPage />; break
@@ -59,7 +63,7 @@ export default function App() {
   return (
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} path={path} />
-      <main key={route} className={`page-enter${route === 'combos' || route === 'combo-detail' ? ' with-combo-rail' : ''}`}>{page}</main>
+      <main key={route} className={`page-enter${['participantes', 'combos', 'combo-detail'].includes(route) ? ' with-combo-rail' : ''}`}>{page}</main>
     </DevViewportSwitcher>
   )
 }
