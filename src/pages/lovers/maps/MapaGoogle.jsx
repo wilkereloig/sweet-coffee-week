@@ -698,7 +698,7 @@ export function MapaGooglePage({ navigate }) {
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className={`page-enter kv-lovers lovers-gradient-bg mapa-wide${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className={`page-enter kv-lovers lovers-gradient-bg mapa-wide mapa-scene${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
       <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
@@ -1247,6 +1247,20 @@ export function MapaGooglePage({ navigate }) {
           .google-map-wrapper { position: relative; width: 100%; height: 100%; }
           /* esticar largura: soltar o max-width do container só na página do mapa */
           .mapa-wide > section > .wrap { max-width: none; }
+          /* cenário ilustrado: imagem cobre a página inteira do mapa */
+          .mapa-scene {
+            background-image: url('/mapa-lovers-site-3840.webp');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+            min-height: 100svh;
+          }
+          /* véu creme translúcido por cima da arte, atrás do conteúdo, p/ leitura */
+          .mapa-scene > section { background: rgba(255,241,230,.42) !important; }
+          /* painéis legíveis sobre o cenário */
+          .mapa-scene .map-sidebar-sticky,
+          .mapa-scene .map-sidebar-scroll { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
