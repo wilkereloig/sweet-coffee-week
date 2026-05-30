@@ -715,12 +715,7 @@ button:disabled { cursor: not-allowed; }
 }
 .lovers-sticker-bg {
   position: relative;
-  background:
-    radial-gradient(circle at 12% 20%, rgba(242,5,103,.10) 0 18px, transparent 19px),
-    radial-gradient(circle at 88% 28%, rgba(0,184,204,.12) 0 14px, transparent 15px),
-    radial-gradient(circle at 72% 82%, rgba(245,184,0,.14) 0 22px, transparent 23px),
-    radial-gradient(circle at 24% 88%, rgba(79,32,146,.10) 0 16px, transparent 17px);
-  background-size: 340px 340px, 300px 300px, 380px 380px, 320px 320px;
+  background: #FFE8D2;
 }
 
 /* ── Hero ── */
@@ -984,12 +979,12 @@ button:disabled { cursor: not-allowed; }
 
 /* ── Realce: sidebar / rail estado ativo mais evidente ── */
 .sidebar__link.lovers-active {
-  background: linear-gradient(90deg, rgba(242,5,103,.16), rgba(242,5,103,.04)) !important;
+  background: rgba(242,5,103,.12) !important;
   border-left: 3px solid var(--lovers-pink);
   padding-left: 9px;
 }
 .combo-rail__item.is-active {
-  background: linear-gradient(90deg, rgba(242,5,103,.16), transparent) !important;
+  background: rgba(242,5,103,.12) !important;
   box-shadow: inset 3px 0 0 var(--lovers-pink);
 }
 
