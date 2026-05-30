@@ -31,9 +31,9 @@ function useRevealOnScroll() {
 
 /* ── Feature flags ── */
 const hasParticipantsData = PARTICIPANTS.length > 0
-const hasCombosData       = false
-const hasMapData          = false
-const hasVotingData       = false
+const hasCombosData       = true
+const hasMapData          = true
+const hasVotingData       = true
 
 /* ── Data ── */
 const COMBOS = [
@@ -719,7 +719,12 @@ export function LoversPage({ navigate }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }} />
       <Hero />
       <Sobre />
+      <ComoFunciona />
       <Participantes navigate={navigate} />
+      <Combos />
+      <Mapa />
+      <Awards />
+      <FinalCTA />
     </div>
   )
 }
