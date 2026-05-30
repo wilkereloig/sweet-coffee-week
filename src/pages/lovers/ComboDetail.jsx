@@ -4,6 +4,7 @@ import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton } from '../../components/lovers'
 
 // Preview data is used only when internal pages are enabled for local development.
@@ -11,15 +12,25 @@ const ENABLE_PREVIEW_DATA =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
 
 const combosSource =
-  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
+  COMBOS.length > 0
+    ? COMBOS.map(combo => ({ ...combo, ...(COMBO_PHOTOS[combo.slug] || {}) }))
+    : ENABLE_PREVIEW_DATA
+      ? PREVIEW_COMBOS
+      : []
 
 const participantsSource =
   PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
 
-function ComboItemCard({ n, tipo, titulo, desc, icon }) {
+function ComboItemCard({ n, tipo, titulo, desc, icon, image }) {
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid rgba(135,14,45,.15)' }}>
-      <PhotoPH label={tipo} aspect="4/3" icon={icon} lovers />
+      {image ? (
+        <div style={{ aspectRatio: '4/3', background: '#fff', overflow: 'hidden' }}>
+          <img src={image} alt={`${tipo} do combo`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        </div>
+      ) : (
+        <PhotoPH label={tipo} aspect="4/3" icon={icon} lovers />
+      )}
       <div style={{ padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <span className="mono" style={{ color: 'var(--lovers-red)' }}>{tipo}</span>
@@ -28,6 +39,34 @@ function ComboItemCard({ n, tipo, titulo, desc, icon }) {
         <div className="h-3 mt-2">{titulo}</div>
         <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 12, lineHeight: 1.55 }}>{desc}</p>
       </div>
+    </div>
+  )
+}
+
+function ComboPhotoGallery({ photos = [], label }) {
+  if (!photos.length) return null
+  return (
+    <div style={{ marginTop: 36 }}>
+      <div className="mono mb-2" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
+        FOTOS DO COMBO
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
+        {photos.slice(0, 8).map((photo, index) => (
+          <div key={photo} style={{ aspectRatio: '1 / 1', borderRadius: 14, overflow: 'hidden', background: '#fff', border: '1px solid rgba(135,14,45,.14)' }}>
+            <img
+              src={photo}
+              alt={`${label} - foto ${index + 1}`}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+        ))}
+      </div>
+      <style>{`
+        @media (max-width: 700px) {
+          div[style*="repeat(4, minmax(0, 1fr))"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+      `}</style>
     </div>
   )
 }
@@ -54,6 +93,7 @@ export function ComboDetailPage({ navigate, slug }) {
     : null
 
   const participant = participantFromCombo || participantFromSlug
+  const participantPhotos = participant ? COMBO_PHOTOS[participant.slug] : null
   const hasRoute = !!(participant?.latitude && participant?.longitude)
 
   if (!combo && participant) {
@@ -90,7 +130,13 @@ export function ComboDetailPage({ navigate, slug }) {
                   aspectRatio: '4/3',
                   overflow: 'hidden',
                 }}>
-                  {participant.logo ? (
+                  {participantPhotos?.mainImage ? (
+                    <img
+                      src={participantPhotos.mainImage}
+                      alt={`Foto do combo ${participant.name}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : participant.logo ? (
                     <img
                       src={participant.logo}
                       alt={`Logo ${participant.name}`}
@@ -251,6 +297,8 @@ export function ComboDetailPage({ navigate, slug }) {
                     </p>
                   </div>
                 )}
+
+                <ComboPhotoGallery photos={participantPhotos?.gallery || []} label={participant.name} />
               </div>
             </div>
           </div>
@@ -301,7 +349,17 @@ export function ComboDetailPage({ navigate, slug }) {
         <div className="wrap">
           <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'start' }}>
             <div style={{ position: 'relative' }}>
-              <PhotoPH label="FOTO PRINCIPAL DO COMBO COMPLETO" aspect="5/4" icon="plate" lovers size="lg" />
+              {combo.mainImage ? (
+                <div style={{ aspectRatio: '5/4', borderRadius: 28, overflow: 'hidden', background: '#fff', border: '1px solid rgba(135,14,45,.15)' }}>
+                  <img
+                    src={combo.mainImage}
+                    alt={`Foto principal do combo ${combo.name}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </div>
+              ) : (
+                <PhotoPH label="FOTO PRINCIPAL DO COMBO COMPLETO" aspect="5/4" icon="plate" lovers size="lg" />
+              )}
               <div className="sticker-decorative" style={{ position: 'absolute', top: 20, right: -16, transform: 'rotate(8deg)' }}>
                 <span className="sticker">recriado</span>
               </div>
@@ -398,16 +456,20 @@ export function ComboDetailPage({ navigate, slug }) {
             <ComboItemCard n="01" tipo="DOCE"
               titulo={combo.sweetDescription ? combo.name : 'Nome do doce'}
               desc={combo.sweetDescription || 'Descrição do doce em breve.'}
-              icon="donut" />
+              icon="donut"
+              image={combo.gallery?.[1] || combo.sweetImage} />
             <ComboItemCard n="02" tipo="SALGADO"
               titulo={combo.savoryDescription ? combo.name : 'Nome do salgado'}
               desc={combo.savoryDescription || 'Descrição do salgado em breve.'}
-              icon="croissant" />
+              icon="croissant"
+              image={combo.gallery?.[2] || combo.savoryImage} />
             <ComboItemCard n="03" tipo="BEBIDA"
               titulo={combo.drinkDescription ? combo.name : 'Nome da bebida'}
               desc={combo.drinkDescription || 'Descrição da bebida em breve.'}
-              icon="cup" />
+              icon="cup"
+              image={combo.gallery?.[3] || combo.drinkImage} />
           </div>
+          <ComboPhotoGallery photos={combo.gallery || []} label={combo.name} />
         </div>
       </section>
 

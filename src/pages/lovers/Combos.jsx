@@ -4,6 +4,7 @@ import { PhotoPH, EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton } from '../../components/lovers'
 
 // Preview data is used only when internal pages are enabled for local development.
@@ -22,11 +23,12 @@ const combosFromParticipants = participantsData.map(p => ({
   slug: p.slug,
   name: p.name,
   recreatedTheme: p.theme || '',
+  ...(COMBO_PHOTOS[p.slug] || {}),
 }))
 
 const combosData =
   COMBOS.length > 0
-    ? COMBOS
+    ? COMBOS.map(combo => ({ ...combo, ...(COMBO_PHOTOS[combo.slug] || {}) }))
     : ENABLE_PREVIEW_DATA
       ? PREVIEW_COMBOS
       : combosFromParticipants
@@ -214,7 +216,9 @@ export function ComboPage({ navigate }) {
                         style={{ '--card-accent': accent }}
                       >
                         <div className="combo-list-card__media" style={{ background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '4 / 3', padding: 22 }}>
-                          {participant?.logo
+                          {combo.mainImage
+                            ? <img src={combo.mainImage} alt={`Foto do combo ${participant?.name || combo.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 18 }} />
+                            : participant?.logo
                             ? <img src={participant.logo} alt={`Logo ${participant?.name || ''}`} style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
                             : <PhotoPH label={combo.name} aspect="4/3" icon="plate" lovers />}
                         </div>
