@@ -77,7 +77,8 @@ export function ComboDetailPage({ navigate, slug }) {
           <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
             <div className="combo-soon-grid">
               {/* Coluna esquerda: logo */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative' }}>
+                <span className="lovers-sticker lovers-sticker--cyan" style={{ position: 'absolute', top: -14, left: -10, transform: 'rotate(-8deg)', zIndex: 3 }} aria-hidden="true">recriado</span>
                 <div style={{
                   background: '#fff',
                   borderRadius: 24,

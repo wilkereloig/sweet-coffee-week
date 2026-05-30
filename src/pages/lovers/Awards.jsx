@@ -120,10 +120,11 @@ export function AwardsPage({ navigate, mode }) {
               { n: '02', icon: 'star',   t: 'Avalie', b: 'Quando a votação abrir, conte quais combos conquistaram você.' },
               { n: '03', icon: 'heart',  t: 'Torça', b: 'Acompanhe os destaques da edição e compartilhe seus favoritos.' },
               { n: '04', icon: 'check',  t: 'Compartilhe', b: 'Marque os amigos, poste sua rota e mostre seu momento Sweet.' },
-            ].map((s) => {
+            ].map((s, i) => {
               const IconComp = I[s.icon] || I.star
+              const accent = ['var(--lovers-pink)', 'var(--lovers-yellow)', 'var(--lovers-cyan)', 'var(--lovers-purple)'][i % 4]
               return (
-                <div key={s.n} className="card" style={{ background: 'var(--bg-card)', borderColor: 'rgba(135,14,45,.15)' }}>
+                <div key={s.n} className="card" style={{ background: 'var(--bg-card)', borderColor: 'rgba(135,14,45,.15)', borderTop: `5px solid ${accent}` }}>
                   <div className="howit-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
                     <span className="lovers-h3" style={{ fontSize: 44, lineHeight: 1, color: 'var(--lovers-pink)' }}>{s.n}</span>
                     <div style={{ color: 'var(--lovers-red)' }}><IconComp width={26} height={26} /></div>

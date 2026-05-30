@@ -111,6 +111,11 @@ export function ComboPage({ navigate }) {
       {/* Content */}
       <section className="section" style={{ background: 'var(--lovers-yellow)' }}>
         <div className="wrap">
+          {combosData.length > 0 && (
+            <p style={{ textAlign: 'center', fontFamily: 'var(--font-lovers-display)', fontWeight: 800, textTransform: 'uppercase', fontSize: 'clamp(20px, 2.6vw, 32px)', color: 'var(--lovers-brown)', margin: '0 0 clamp(24px, 3vw, 40px)', lineHeight: 1.05 }}>
+              Qual tema você quer reviver primeiro?
+            </p>
+          )}
           {combosData.length === 0 ? (
             <div style={{ maxWidth: 560, margin: '0 auto' }}>
               <EmptyState
