@@ -363,6 +363,13 @@
   font-family: var(--font-lovers-body); font-weight: 700;
   font-size: 13px; line-height: 1.35; opacity: .95;
 }
+.combo-locked-art__logo {
+  position: relative; z-index: 1;
+  width: 64px; height: 64px; border-radius: 16px; overflow: hidden;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 20px rgba(43,24,16,.22); margin-bottom: 4px;
+}
+.combo-locked-art__logo img { width: 100%; height: 100%; object-fit: contain; padding: 7px; display: block; }
 
 .participant-showcase-card__logo {
   position: absolute; left: 18px; bottom: -22px; z-index: 4;

@@ -137,16 +137,21 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         ) : (
           <div className="combo-locked-art" aria-hidden="true">
             <span className="combo-locked-art__pattern" />
+            {participant?.logo && (
+              <span className="combo-locked-art__logo"><img src={participant.logo} alt="" loading="lazy" /></span>
+            )}
             <span className="combo-locked-art__badge"><I.heart width={13} height={13} /> Combo em breve</span>
             <span className="combo-locked-art__title">A criação será revelada em breve.</span>
           </div>
         )}
 
-        <div className="participant-showcase-card__logo">
-          {participant?.logo
-            ? <img src={participant.logo} alt={`Logo ${name}`} loading="lazy" />
-            : <span className="participant-showcase-card__logo-initials">{getInitials(name)}</span>}
-        </div>
+        {LOVERS_SHOW_COMBO_DETAILS && (
+          <div className="participant-showcase-card__logo">
+            {participant?.logo
+              ? <img src={participant.logo} alt={`Logo ${name}`} loading="lazy" />
+              : <span className="participant-showcase-card__logo-initials">{getInitials(name)}</span>}
+          </div>
+        )}
       </div>
 
       <div className="participant-showcase-card__body">
