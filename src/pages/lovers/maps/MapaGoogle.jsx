@@ -697,7 +697,7 @@ export function MapaGooglePage({ navigate }) {
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className={`page-enter kv-lovers lovers-gradient-bg${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className={`page-enter kv-lovers lovers-gradient-bg mapa-wide${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
       <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
@@ -1244,6 +1244,8 @@ export function MapaGooglePage({ navigate }) {
         <style>{`
           /* ── wrapper do mapa ── */
           .google-map-wrapper { position: relative; width: 100%; height: 100%; }
+          /* esticar largura: soltar o max-width do container só na página do mapa */
+          .mapa-wide > section > .wrap { max-width: none; }
 
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
