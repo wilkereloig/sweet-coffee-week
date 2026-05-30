@@ -1868,7 +1868,7 @@ button:disabled { cursor: not-allowed; }
 .sobre__block .ico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(135,14,45,.08); color: var(--lovers-burgundy); }
 .sobre__block h4 { margin: 0; font-family: var(--font-lovers-display); font-weight: 700; font-size: 22px; line-height: 1; text-transform: uppercase; color: var(--lovers-brown); }
 .sobre__block p  { margin: 0; font-size: 17px; line-height: 1.5; color: var(--lovers-brown); opacity: .8; }
-.sobre__impact { text-align: center; font-family: var(--font-script); font-weight: 700; font-size: clamp(40px, 6vw, 80px); line-height: 1.05; color: var(--lovers-burgundy); margin: 0; }
+.sobre__impact { text-align: center; font-family: var(--font-lovers-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.035em; font-size: clamp(38px, 6.5vw, 92px); line-height: .92; color: var(--lovers-brown); margin: 0; }
 @media (max-width: 880px) { .sobre__grid { grid-template-columns: 1fr; } .sobre__blocks { grid-template-columns: repeat(2, 1fr); } }
 
 .section-como { background: var(--lovers-pink); color: var(--lovers-cream); }

@@ -229,3 +229,23 @@
 .lovers-final-cta .lf-btn-yellow:hover { background: #ffce3a; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(245,184,0,.46); }
 .lovers-final-cta .lovers-button--secondary { background: transparent; color: var(--lovers-cream); border-color: rgba(255,232,210,.5); }
 .lovers-final-cta .lovers-button--secondary:hover { background: var(--lovers-cream); color: var(--lovers-brown); border-color: var(--lovers-cream); }
+
+/* ── Sobre: frase de impacto — display editorial, NUNCA script/cursiva ── */
+.sobre__impact {
+  font-family: var(--font-lovers-display) !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  line-height: .92;
+  font-size: clamp(38px, 6.5vw, 92px);
+  color: var(--lovers-brown);
+  text-align: center;
+}
+.sobre__impact span { color: var(--lovers-pink); }
+@media (max-width: 560px) {
+  .sobre__impact {
+    font-size: clamp(34px, 11vw, 54px);
+    letter-spacing: -0.025em;
+    line-height: .95;
+  }
+}
