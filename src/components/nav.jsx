@@ -1,5 +1,6 @@
 import React from 'react'
 import { I, LogoMark, HeartTiny, LoversWordmark } from './icons'
+import { PARTICIPANTS } from '../data/participants'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
@@ -198,13 +199,42 @@ function LoversDropdown({ route, navigate }) {
   )
 }
 
-export function SiteHeader({ route, navigate }) {
+function LoversComboRail({ navigate, activeSlug }) {
+  const participants = [...PARTICIPANTS]
+    .filter(p => p.slug && p.name)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  return (
+    <aside className="combo-rail">
+      <div className="combo-rail__head">
+        <span className="combo-rail__eyebrow">Combos · participantes</span>
+        <span className="combo-rail__count">{participants.length}</span>
+      </div>
+      <nav className="combo-rail__list">
+        {participants.map(p => (
+          <a key={p.slug}
+             href={`#/lovers/combos/${p.slug}`}
+             className={`combo-rail__item${p.slug === activeSlug ? ' is-active' : ''}`}
+             onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}>
+            <span className="combo-rail__name">{p.name}</span>
+            {p.theme && <span className="combo-rail__theme">{p.theme}</span>}
+          </a>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+export function SiteHeader({ route, navigate, path = '' }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const isLovers = IS_LOVERS_ROUTE.includes(route)
+  const showComboRail = route === 'combos' || route === 'combo-detail'
+  const activeSlug = route === 'combo-detail' ? path.split('/').pop() : null
 
   return (
     <React.Fragment>
       <SiteSidebar route={route} navigate={navigate} isLovers={isLovers} />
+      {showComboRail && <LoversComboRail navigate={navigate} activeSlug={activeSlug} />}
 
       <header className={`site-header ${isLovers ? 'lovers' : ''}`}>
         <div className="site-header__inner">

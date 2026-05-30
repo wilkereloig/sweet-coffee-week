@@ -58,8 +58,8 @@ export default function App() {
 
   return (
     <DevViewportSwitcher>
-      <SiteHeader route={route} navigate={navigate} />
-      <main key={route} className="page-enter">{page}</main>
+      <SiteHeader route={route} navigate={navigate} path={path} />
+      <main key={route} className={`page-enter${route === 'combos' || route === 'combo-detail' ? ' with-combo-rail' : ''}`}>{page}</main>
     </DevViewportSwitcher>
   )
 }
