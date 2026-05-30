@@ -71,15 +71,27 @@ export function ComboPage({ navigate }) {
             )}
             <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 8, justifyContent: 'center' }}>
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              SWEET & COFFEE WEEK LOVERS · 16ª EDIÇÃO
+              PARTICIPANTES LOVERS
             </div>
-            <h1 className="lovers-h1" style={{ fontSize: 'clamp(56px, 8vw, 112px)', lineHeight: 1, marginTop: 16 }}>
-              Participantes<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>da edição.</span>
+            <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 6vw, 88px)', lineHeight: 1, marginTop: 16 }}>
+              Cada loja escolheu uma<br/>
+              <span style={{ color: 'var(--lovers-pink)' }}>memória para recriar.</span>
             </h1>
             <p className="combos-page__hero-desc">
-              Conheça as lojas que vão recriar sabores, memórias e temas históricos do Sweet &amp; Coffee Week Lovers.
+              São {combosData.length} participantes revisitando temas que fizeram parte da história do Sweet &amp; Coffee Week. Escolha seu primeiro destino e comece sua rota.
             </p>
+            <p className="combos-page__hero-desc" style={{ fontSize: 15, opacity: .75, marginTop: 10 }}>
+              Tem Japão, Itália, Disney, São João, Harry Potter, BTS, Luiz Gonzaga, Caicó, contos de fadas e muito mais.
+            </p>
+            <div style={{ marginTop: 20 }}>
+              <a
+                href="#/lovers/mapa"
+                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+                className="btn btn-lovers-outline"
+              >
+                <I.route /> Abrir mapa da Doçura
+              </a>
+            </div>
             {combosData.length === 0 && (
               <div className="combos-page__coming-soon">
                 <span className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, display: 'block', marginBottom: 6 }}>EM BREVE</span>
@@ -115,13 +127,13 @@ export function ComboPage({ navigate }) {
                 <input
                   type="text"
                   className="combos-page__search"
-                  placeholder="Buscar participante…"
+                  placeholder="Busque por loja, tema, edição ou bairro"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
                 {themes.length > 0 && (
                   <div className="combos-page__filter-group">
-                    <span className="combos-page__filter-label mono">TEMA</span>
+                    <span className="combos-page__filter-label mono">Temas da edição</span>
                     <div className="combos-page__chips">
                       {themes.map(t => (
                         <button
@@ -138,7 +150,7 @@ export function ComboPage({ navigate }) {
                 )}
                 {neighborhoods.length > 0 && (
                   <div className="combos-page__filter-group">
-                    <span className="combos-page__filter-label mono">BAIRRO</span>
+                    <span className="combos-page__filter-label mono">Regiões da rota</span>
                     <div className="combos-page__chips">
                       {neighborhoods.map(n => (
                         <button
@@ -174,7 +186,7 @@ export function ComboPage({ navigate }) {
               {/* Grid */}
               {filteredCombos.length === 0 ? (
                 <p className="combos-page__no-results">
-                  Nenhum combo encontrado para os filtros aplicados.
+                  Nenhum participante encontrado por aqui. Tente outro nome, tema ou bairro.
                 </p>
               ) : (
                 <div className="combos-page__grid">

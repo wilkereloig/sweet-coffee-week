@@ -80,17 +80,17 @@ export function AwardsPage({ navigate, mode }) {
           <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 24, justifyContent: 'center' }}>
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              SWEET & COFFEE WEEK AWARDS · AVALIAÇÃO DO PÚBLICO
+              PREMIAÇÃO LOVERS
             </div>
-            <h1 className="lovers-h1" style={{ fontSize: 'clamp(48px, 7vw, 96px)', margin: 0 }}>
-              Sweet & Coffee<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>Awards.</span>
+            <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 6vw, 84px)', margin: 0 }}>
+              Provou? Agora<br/>
+              <span style={{ color: 'var(--lovers-pink)' }}>conte pra gente.</span>
             </h1>
-            <p style={{ fontFamily: 'var(--font-script)', fontSize: 36, color: 'var(--lovers-red)', margin: '20px 0 0', transform: 'rotate(-1deg)', display: 'inline-block' }}>
-              Avalie sua experiência na edição Sweet & Coffee Week Lovers.
+            <p style={{ fontFamily: 'var(--font-script)', fontSize: 32, color: 'var(--lovers-red)', margin: '20px 0 0', transform: 'rotate(-1deg)', display: 'inline-block' }}>
+              Depois de viver a rota, chega a hora de escolher os destaques da edição.
             </p>
             <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24 }}>
-              O Sweet & Coffee Week Awards é a premiação do festival. Nesta etapa, os Sweet Lovers podem avaliar os combos que experimentaram a partir de critérios definidos pela organização.
+              A avaliação dos combos será liberada em breve. Enquanto isso, vá salvando seus favoritos, montando sua rota e preparando suas apostas.
             </p>
           </div>
         </div>
@@ -106,15 +106,15 @@ export function AwardsPage({ navigate, mode }) {
         <div className="wrap">
           <div className="mb-5" style={{ textAlign: 'center' }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-yellow)' }}><span className="dot" style={{ background: 'var(--lovers-yellow)' }}></span>Como funciona</div>
-            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Quatro passos pra avaliar.</h2>
+            <h2 className="lovers-h2 mt-3" style={{ color: 'var(--lovers-cream)' }}>Como você vai participar.</h2>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             {[
-              { n: '01', icon: 'plate',  t: 'Experimente os combos', b: 'Visite os participantes da edição Sweet & Coffee Week Lovers e experimente os combos criados para a edição.' },
-              { n: '02', icon: 'heart',  t: 'Acesse o formulário', b: 'Acesse o formulário de avaliação durante o período definido pela organização.' },
-              { n: '03', icon: 'check',  t: 'Avalie sua experiência', b: 'Preencha os critérios de avaliação disponíveis no formulário para cada combo experimentado.' },
-              { n: '04', icon: 'star',   t: 'Acompanhe os resultados', b: 'Os resultados do Sweet & Coffee Week Awards serão divulgados nos canais oficiais ao final da edição.' },
+              { n: '01', icon: 'plate',  t: 'Prove', b: 'Visite os participantes e descubra as criações da edição Lovers.' },
+              { n: '02', icon: 'star',   t: 'Avalie', b: 'Quando a votação abrir, conte quais combos conquistaram você.' },
+              { n: '03', icon: 'heart',  t: 'Torça', b: 'Acompanhe os destaques da edição e compartilhe seus favoritos.' },
+              { n: '04', icon: 'check',  t: 'Compartilhe', b: 'Marque os amigos, poste sua rota e mostre seu momento Sweet.' },
             ].map((s) => {
               const IconComp = I[s.icon] || I.star
               return (
@@ -144,27 +144,21 @@ export function AwardsPage({ navigate, mode }) {
         <div className="wrap">
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'start' }}>
             <div>
-              <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}><span className="dot" style={{ background: 'var(--lovers-red)' }}></span>AVALIAÇÃO</div>
+              <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}><span className="dot" style={{ background: 'var(--lovers-red)' }}></span>EM BREVE</div>
               <h2 className="lovers-h2 mt-3">
-                Sua avaliação<br/><span style={{ color: 'var(--lovers-burgundy)' }}>importa.</span>
+                A votação ainda<br/><span style={{ color: 'var(--lovers-burgundy)' }}>não começou.</span>
               </h2>
               <p className="lead mt-3" style={{ color: 'var(--lovers-ink)', opacity: .85 }}>
-                A avaliação será aberta durante o período definido pela organização. Os critérios oficiais estarão disponíveis no formulário. Os resultados do Sweet & Coffee Week Awards serão divulgados nos canais oficiais do festival.
+                A avaliação será aberta durante o período definido pela organização. Quando estiver disponível, você poderá avaliar os combos que experimentou e ajudar a escolher os destaques da edição.
               </p>
-              <ul style={{ listStyle: 'none', padding: 0, marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <li style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                  <span style={{ color: 'var(--lovers-red)' }}><I.check /></span>
-                  <span>Avalie apenas os combos que você experimentou</span>
-                </li>
-                <li style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                  <span style={{ color: 'var(--lovers-red)' }}><I.check /></span>
-                  <span>Os critérios de avaliação estarão disponíveis no formulário</span>
-                </li>
-                <li style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                  <span style={{ color: 'var(--lovers-red)' }}><I.check /></span>
-                  <span>A avaliação será aberta durante o período do festival</span>
-                </li>
-              </ul>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
+                <a href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }} className="btn btn-lovers">
+                  Ver participantes <I.arrow />
+                </a>
+                <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }} className="btn btn-lovers-outline">
+                  <I.route /> Abrir mapa da Doçura
+                </a>
+              </div>
             </div>
 
             <div className="card" style={{

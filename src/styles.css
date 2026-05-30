@@ -2334,4 +2334,184 @@ button:disabled { cursor: not-allowed; }
   .combos-page__grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* =====================================================================
+   LOVERS INTERACTIVE EDITORIAL SYSTEM — Etapa 1 (/lovers + navegação)
+   Aditivo, não-destrutivo. Escopo .kv-lovers. Paleta travada.
+   pink #F20567 · coral #E12947 · burgundy #870E2D · yellow #F5B800
+   cyan #00B8CC · purple #4F2092 · cream #FFE8D2 · brown #3F1A0A
+   ===================================================================== */
+
+/* ── Decoração: orbs + stickers (camada não-interativa) ── */
+.lovers-decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.lovers-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: .5;
+  animation: loversFloat 9s ease-in-out infinite;
+}
+.lovers-orb--pink   { background: radial-gradient(circle at 32% 30%, #ff5ca0, var(--lovers-pink)); }
+.lovers-orb--cyan   { background: radial-gradient(circle at 32% 30%, #5fe3f0, var(--lovers-cyan)); }
+.lovers-orb--yellow { background: radial-gradient(circle at 32% 30%, #ffd34d, var(--lovers-yellow)); }
+.lovers-orb--purple { background: radial-gradient(circle at 32% 30%, #9a63dd, var(--lovers-purple)); }
+
+.lovers-sticker {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 999px;
+  background: var(--lovers-yellow); color: var(--lovers-brown);
+  font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: 13px; letter-spacing: .04em; text-transform: uppercase;
+  box-shadow: 0 8px 22px rgba(43,24,16,.24); border: 2px solid #fff;
+}
+.lovers-sticker--pink   { background: var(--lovers-pink);   color: #fff; }
+.lovers-sticker--cyan   { background: var(--lovers-cyan);   color: #04282d; }
+.lovers-sticker--purple { background: var(--lovers-purple); color: #fff; }
+
+/* ── Hero editorial (sobrescreve .lovers-hero p/ contraste de texto creme) ── */
+.lovers-hero {
+  background:
+    radial-gradient(720px 440px at 88% 6%, rgba(0,184,204,.50), transparent 60%),
+    radial-gradient(820px 540px at 2% 104%, rgba(245,184,0,.40), transparent 58%),
+    radial-gradient(760px 520px at 16% -6%, rgba(242,5,103,.55), transparent 60%),
+    linear-gradient(150deg, var(--lovers-burgundy), #a3132b 52%, var(--lovers-purple));
+  background-size: 180% 180%;
+  padding: clamp(52px, 8vw, 112px) 0 clamp(60px, 9vw, 124px);
+}
+.lovers-hero__inner { position: relative; z-index: 2; }
+.lovers-hero__grid {
+  display: grid; grid-template-columns: 1.05fr 1fr;
+  gap: clamp(32px, 5vw, 72px); align-items: center;
+}
+.lovers-hero__brand { display: flex; flex-direction: column; align-items: flex-start; gap: .06em; }
+.lovers-hero__lockup {
+  margin: 0; font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(58px, 8.4vw, 124px); line-height: .84; letter-spacing: -.018em;
+  text-transform: uppercase; color: var(--lovers-cream); text-shadow: 0 8px 26px rgba(43,12,20,.4);
+}
+.lovers-hero__wordmark { width: clamp(180px, 26vw, 300px); margin-top: .1em; }
+.lovers-hero__wordmark svg { display: block; width: 100%; height: auto; }
+
+.lovers-hero__content { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.lovers-hero__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; border-radius: 999px;
+  background: rgba(255,255,255,.16); border: 1.5px solid rgba(255,255,255,.4); color: var(--lovers-cream);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}
+.lovers-hero__tagline {
+  margin: 0; font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(28px, 3.4vw, 48px); line-height: 1.0; letter-spacing: -.01em;
+  text-transform: uppercase; color: var(--lovers-cream);
+}
+.lovers-hero__tagline span { color: var(--lovers-yellow); }
+.lovers-hero__date {
+  display: inline-flex; align-items: baseline; gap: 10px; padding: 10px 18px; border-radius: 16px;
+  background: var(--lovers-brown); color: var(--lovers-cream); box-shadow: 0 12px 28px rgba(43,24,16,.34);
+}
+.lovers-hero__date strong { font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(20px, 2.4vw, 30px); letter-spacing: .02em; color: var(--lovers-yellow); }
+.lovers-hero__date span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.lovers-hero__lead { margin: 0; max-width: 46ch; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: rgba(255,232,210,.94); }
+.lovers-hero__lead strong { color: #fff; font-weight: 700; }
+.lovers-hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.lovers-hero__stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.lovers-hero__stat {
+  display: inline-flex; align-items: baseline; gap: 7px; padding: 8px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); color: var(--lovers-cream);
+}
+.lovers-hero__stat b { font-family: var(--font-lovers-display); font-weight: 900; font-size: 18px; }
+.lovers-hero__stat span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
+
+/* hero buttons sobre gradiente escuro */
+.lovers-hero .lovers-button-primary { background: var(--lovers-cream); color: var(--lovers-burgundy); box-shadow: 0 14px 32px rgba(43,24,16,.34); }
+.lovers-hero .lovers-button-primary:hover { background: #fff; transform: translateY(-3px); }
+.lovers-hero .lovers-button-secondary { color: var(--lovers-cream); border-color: rgba(255,255,255,.6); }
+.lovers-hero .lovers-button-secondary:hover { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: var(--lovers-cream); }
+
+/* hero orbs + sticker */
+.lovers-hero .lovers-orb--pink   { width: 250px; height: 250px; top: -70px; right: 7%; }
+.lovers-hero .lovers-orb--cyan   { width: 180px; height: 180px; bottom: -50px; left: 3%; animation-delay: -2.4s; }
+.lovers-hero .lovers-orb--yellow { width: 120px; height: 120px; top: 44%; right: 40%; animation-delay: -4.6s; }
+.lovers-hero__sticker { position: absolute; top: 7%; right: 6%; transform: rotate(9deg); z-index: 3; animation: loversFloat 7s ease-in-out infinite; }
+
+@media (max-width: 880px) {
+  .lovers-hero__grid { grid-template-columns: 1fr; gap: 26px; }
+  .lovers-hero__sticker { top: 14px; right: 14px; }
+  .lovers-hero .lovers-orb--yellow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lovers-orb, .lovers-hero__sticker { animation: none; }
+}
+
+/* ── Section header (eyebrow + título + lead) ── */
+.lovers-section-header { max-width: 760px; margin: 0 0 clamp(30px, 4vw, 52px); }
+.lovers-section-header.is-center { margin-inline: auto; text-align: center; }
+.lovers-section-header.is-center .lovers-eyebrow { justify-content: center; }
+.lovers-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--lovers-pink);
+}
+.lovers-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+.lovers-section-header.is-center .lovers-eyebrow::before { display: none; }
+.lovers-section__title { margin: 0; font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(34px, 5vw, 70px); line-height: .96; letter-spacing: -.01em; text-transform: uppercase; color: var(--lovers-brown); }
+.lovers-section__lead { margin: 18px 0 0; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: var(--lovers-brown); opacity: .82; max-width: 60ch; }
+.lovers-section-header.is-center .lovers-section__lead { margin-inline: auto; }
+
+/* ── Conceito (blocos visuais coloridos) ── */
+.lovers-concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: clamp(14px, 1.6vw, 20px); }
+.lovers-concept-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px;
+  padding: clamp(24px, 2.4vw, 32px); border-radius: 26px; background: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 30%, transparent);
+  box-shadow: 0 16px 38px rgba(43,24,16,.08); transition: transform .2s ease, box-shadow .2s ease;
+}
+.lovers-concept-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 8px; background: var(--lv-accent, var(--lovers-pink)); }
+.lovers-concept-card__top { display: flex; align-items: center; justify-content: space-between; }
+.lovers-concept-card__icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 16%, #fff); color: var(--lv-accent, var(--lovers-pink)); }
+.lovers-concept-card__num { font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; color: var(--lv-accent, var(--lovers-pink)); }
+.lovers-concept-card h3 { margin: 0; font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(20px, 2vw, 26px); line-height: 1; text-transform: uppercase; color: var(--lovers-brown); }
+.lovers-concept-card p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--lovers-brown); opacity: .82; }
+@media (hover: hover) { .lovers-concept-card:hover { transform: translateY(-6px); box-shadow: 0 26px 54px color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 24%, transparent); } }
+
+/* ── Motion utilities (aliases) ── */
+.lovers-motion-fade { animation: loversFadeUp .6s ease both; }
+.lovers-motion-float { animation: loversFloat 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lovers-motion-fade, .lovers-motion-float { animation: none; } }
+
+/* ── Navegação: sidebar Lovers (desktop) refino ── */
+.site-sidebar.lovers .sidebar__lovers { border-top-color: rgba(135,14,45,.18); }
+.site-sidebar.lovers .sidebar__link:focus-visible { outline: 2px solid var(--lovers-pink); outline-offset: 2px; border-radius: 12px; }
+.site-sidebar.lovers .sidebar__link.lovers-active { color: var(--lovers-burgundy); }
+
+/* ── Navegação: mobile chips refino (barra sticky já definida acima) ── */
+@media (max-width: 1099px) {
+  .lovers-mobile-chip { border: 1px solid rgba(255,255,255,.18); }
+  .lovers-mobile-chip.is-active { box-shadow: 0 4px 14px rgba(242,5,103,.5); border-color: transparent; }
+}
+
+/* ── Storytelling: hero note/micro, frases narrativas, texto em stat-card ── */
+.lovers-hero__note { margin: -2px 0 0; max-width: 52ch; font-size: clamp(14px, 1.3vw, 16px); line-height: 1.55; color: rgba(255,232,210,.78); }
+.lovers-hero__micro { margin: 8px 0 0; font-family: var(--font-script); font-size: clamp(20px, 2vw, 27px); line-height: 1.2; color: var(--lovers-yellow); }
+
+.lovers-phrase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: clamp(12px, 1.4vw, 18px); }
+.lovers-phrase {
+  margin: 0; position: relative;
+  padding: clamp(20px, 2vw, 28px) clamp(18px, 2vw, 24px) clamp(20px, 2vw, 28px) clamp(28px, 2.4vw, 34px);
+  border-radius: 20px; background: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 28%, transparent);
+  box-shadow: 0 14px 32px rgba(43,24,16,.07);
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1.05; text-transform: uppercase; color: var(--lovers-brown);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.lovers-phrase::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 6px; border-radius: 999px; background: var(--lv-accent, var(--lovers-pink)); }
+@media (hover: hover) { .lovers-phrase:hover { transform: translateY(-5px); box-shadow: 0 22px 44px color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 22%, transparent); } }
+
+.lovers-stat-card { display: flex; flex-direction: column; }
+.lovers-stat-card__text { margin-top: 10px; font-family: var(--font-lovers-body); font-weight: 500; font-size: 13px; line-height: 1.45; opacity: .92; text-transform: none; letter-spacing: 0; }
+
+/* ── Navegação: texto auxiliar nos links Lovers da sidebar (desktop) ── */
+.site-sidebar.lovers .sidebar__link--lovers { display: flex; flex-direction: column; gap: 1px; line-height: 1.12; padding-top: 8px; padding-bottom: 8px; }
+.site-sidebar.lovers .sidebar__link-label { font-weight: 700; }
+.site-sidebar.lovers .sidebar__link-sub { font-size: 9.5px; font-weight: 500; letter-spacing: .02em; text-transform: none; opacity: .58; }
+.site-sidebar.lovers .sidebar__link--lovers.lovers-active .sidebar__link-sub { opacity: .72; }
+
 

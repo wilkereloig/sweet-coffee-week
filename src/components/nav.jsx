@@ -12,10 +12,10 @@ export const NAV_LINKS = [
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers',        label: 'Sobre a edição',  href: '#/lovers' },
-  { id: 'participantes', label: 'Participantes',    href: '#/lovers/participantes' },
-  { id: 'mapa',          label: 'Mapa da Doçura',   href: '#/lovers/mapa' },
-  { id: 'premiacao',     label: 'Premiação',        href: '#/lovers/premiacao' },
+  { id: 'lovers',        label: 'Sobre a edição',  sub: 'Entenda a edição',      href: '#/lovers' },
+  { id: 'participantes', label: 'Participantes',    sub: 'Escolha seus combos',   href: '#/lovers/participantes' },
+  { id: 'mapa',          label: 'Mapa da Doçura',   sub: 'Monte sua rota',        href: '#/lovers/mapa' },
+  { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
 ]
 
 const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
@@ -93,9 +93,10 @@ function SiteSidebar({ route, navigate, isLovers }) {
           ) : (
             <a key={l.id}
                href={l.href}
-               className={`sidebar__link${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && route === 'awards') ? ' lovers-active' : ''}`}
+               className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && route === 'awards') ? ' lovers-active' : ''}`}
                onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-              {l.label}
+              <span className="sidebar__link-label">{l.label}</span>
+              {l.sub && <span className="sidebar__link-sub">{l.sub}</span>}
             </a>
           )
         ))}

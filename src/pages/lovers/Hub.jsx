@@ -36,14 +36,8 @@ const hasMapData          = true
 const hasVotingData       = true
 
 /* ── Data ── */
-const COMBOS = [
-  { name: "Romeu, Julieta & Coalho",   store: "Doceria Petrópolis",  theme: "Sabores da Infância",   doce: "Mini-bolo de goiabada caseira com mascarpone",  salgado: "Pão de queijo de coalho recheado",      bebida: "Cappuccino de baunilha",      price: "R$ 42" },
-  { name: "Madeleine de Cinema",        store: "Café Tirol",          theme: "Movies",                doce: "Madeleines com chocolate 70%",                  salgado: "Croque-monsieur do cinema mudo",         bebida: "Espresso tonic",              price: "R$ 48" },
-  { name: "Sweet Trip · Marrakech",     store: "Confeitaria Lagoa",   theme: "Trip",                  doce: "Baklava de pistache & rosa",                    salgado: "Pastilla de frango especiada",           bebida: "Chá de menta marroquino",     price: "R$ 52" },
-  { name: "Capítulo Doce",              store: "Atelier de Bolos",    theme: "Books",                 doce: "Bolo de livro · camadas de mel e nozes",        salgado: "Sanduíche aberto de pera & queijo azul", bebida: "Latte de cardamomo",          price: "R$ 46" },
-  { name: "Heroína do Café",            store: "Café Mirassol",       theme: "Heróis & Vilões",       doce: "Brownie de cacau & framboesa",                  salgado: "Empanada de carne defumada",             bebida: "Cold brew de laranja",        price: "R$ 44" },
-  { name: "Potiguar Lovers",            store: "Bistrô Alecrim",      theme: "Terras Potiguares",     doce: "Doce de leite com castanha de caju",            salgado: "Carne de sol em pão de mandioca",        bebida: "Suco de cajá",               price: "R$ 56" },
-]
+// Conteúdo demonstrativo removido (FASE 1). Os combos reais virão de src/data/combos.js.
+const COMBOS = []
 
 const THEMES = [
   "Início / 2016",
@@ -52,22 +46,10 @@ const THEMES = [
   "Movies", "Trip", "Books", "Celebration",
 ]
 
-const MAP_STOPS = [
-  { name: "Doceria Petrópolis", bairro: "Petrópolis",  combo: "Romeu, Julieta & Coalho" },
-  { name: "Café Tirol",         bairro: "Tirol",        combo: "Madeleine de Cinema" },
-  { name: "Confeitaria Lagoa",  bairro: "Lagoa Nova",   combo: "Sweet Trip · Marrakech" },
-  { name: "Atelier de Bolos",   bairro: "Tirol",        combo: "Capítulo Doce" },
-  { name: "Café Mirassol",      bairro: "Mirassol",     combo: "Heroína do Café" },
-  { name: "Bistrô Alecrim",     bairro: "Alecrim",      combo: "Potiguar Lovers" },
-  { name: "Doce Capim",         bairro: "Capim Macio",  combo: "—" },
-  { name: "Mesa Ponta Negra",   bairro: "Ponta Negra",  combo: "—" },
-]
+// Paradas/pins demonstrativos removidos (FASE 1). Mapa real em /lovers/mapa (MapaGoogle).
+const MAP_STOPS = []
 
-const MAP_PINS = [
-  { top: "22%", left: "18%" }, { top: "30%", left: "44%" }, { top: "38%", left: "62%" },
-  { top: "55%", left: "32%" }, { top: "70%", left: "70%" }, { top: "60%", left: "12%" },
-  { top: "78%", left: "44%" }, { top: "20%", left: "78%" },
-]
+const MAP_PINS = []
 
 const AWARD_CATS = [
   "Melhor combo", "Melhor doce", "Melhor salgado", "Melhor bebida",
@@ -99,149 +81,105 @@ function EmBreve({ label = 'Disponível a partir de 4 de junho', bg }) {
 
 /* ── Sections ── */
 
-function Hero() {
+function Hero({ navigate }) {
   return (
-    <section id="top" style={{ background: 'var(--lovers-yellow)', overflow: 'hidden', padding: 'clamp(48px, 7vw, 96px) 0' }}>
-      <div className="wrap">
-        <div className="hero-v2-grid">
-          {/* Esquerda — logotipo empilhado (flex column, gap controlado) */}
-          <div className="hero-logo-lockup reveal reveal-hero-lockup">
-            <div style={{
-              fontFamily: 'var(--font-lovers-display)',
-              fontWeight: 900,
-              fontSize: '1em',
-              lineHeight: .88,
-              color: 'var(--lovers-brown)',
-              textTransform: 'uppercase',
-              letterSpacing: '-.01em',
-              whiteSpace: 'nowrap',
-            }}>
-              SWEET &amp;
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-lovers-display)',
-              fontWeight: 900,
-              fontSize: '1em',
-              lineHeight: .88,
-              color: 'var(--lovers-brown)',
-              textTransform: 'uppercase',
-              letterSpacing: '-.01em',
-              whiteSpace: 'nowrap',
-            }}>
-              COFFEE
-            </div>
-            <div className="hero-logo-lovers">
-              <LoversWordmark width="100%" />
-            </div>
-          </div>
+    <section id="top" className="lovers-hero">
+      <div className="lovers-decor" aria-hidden="true">
+        <span className="lovers-orb lovers-orb--pink" />
+        <span className="lovers-orb lovers-orb--cyan" />
+        <span className="lovers-orb lovers-orb--yellow" />
+      </div>
+      <span className="lovers-sticker lovers-sticker--pink lovers-hero__sticker" aria-hidden="true">10 anos ♥</span>
 
-          {/* Direita — texto + data + tiles */}
-          <div className="hero-v2-right reveal reveal-right reveal-delay-1" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <p style={{
-              fontFamily: 'var(--font-lovers-display)',
-              fontWeight: 700,
-              fontSize: 'clamp(22px, 2.4vw, 34px)',
-              lineHeight: 1.2,
-              color: 'var(--lovers-brown)',
-              margin: 0,
-            }}>
-              A edição comemorativa dos 10 anos reúne participantes, temas históricos e novas criações
-              para homenagear quem transformou o Sweet &amp; Coffee Week em uma história de sucesso: os{' '}
-              <span style={{ color: 'var(--lovers-pink)' }}>Sweet Lovers.</span>
+      <div className="wrap lovers-hero__inner">
+        <div className="lovers-hero__grid">
+          {/* Marca */}
+          <h1 className="lovers-hero__brand reveal reveal-hero-lockup" aria-label="Sweet & Coffee Week Lovers">
+            <span className="lovers-hero__lockup" aria-hidden="true">Sweet &amp;<br />Coffee Week</span>
+            <span className="lovers-hero__wordmark" aria-hidden="true"><LoversWordmark width="100%" /></span>
+          </h1>
+
+          {/* Conteúdo */}
+          <div className="lovers-hero__content reveal reveal-right reveal-delay-1">
+            <span className="lovers-hero__eyebrow">10 anos de Sweet &amp; Coffee Week</span>
+            <h2 className="lovers-hero__tagline">
+              Existe um antes e<br />depois do <span>Sweet.</span>
+            </h2>
+            <p className="lovers-hero__lead">
+              O Sweet nunca foi só sobre sair para comer um combo. Foi sobre transformar confeitarias em
+              experiências, doces em assunto da cidade e encontros em memória.
             </p>
-
-            <div className="hero-v2-tiles">
-              <div className="reveal reveal-pop reveal-delay-1 loop-float-alt" aria-label={`${PARTICIPANTS.length} participantes confirmados`} style={{ background: 'var(--lovers-pink)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>{PARTICIPANTS.length}</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>PARTICIPANTES<br />CONFIRMADOS</div>
-              </div>
-              <div className="reveal reveal-pop reveal-delay-2 loop-float" aria-label="10 anos de história" style={{ background: 'var(--lovers-cyan)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-brown)', lineHeight: 1 }}>10</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-brown)', marginTop: 8, lineHeight: 1.4 }}>ANOS DE<br />HISTÓRIA</div>
-              </div>
-              <div className="reveal reveal-pop reveal-delay-3 loop-float-alt" aria-label={`${THEMES.length} temas históricos`} style={{ background: 'var(--lovers-purple)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(40px, 4vw, 56px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>{THEMES.length}</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>TEMAS<br />HISTÓRICOS</div>
-              </div>
-              <div className="reveal reveal-pop reveal-delay-4 loop-float" aria-label="4 a 14 de junho" style={{ background: 'var(--lovers-brown)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-lovers-display)', fontWeight: 900, fontSize: 'clamp(32px, 3.5vw, 48px)', color: 'var(--lovers-cream)', lineHeight: 1 }}>4 A 14</div>
-                <div aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--lovers-cream)', marginTop: 8, lineHeight: 1.4 }}>DE<br />JUNHO</div>
-              </div>
+            <p className="lovers-hero__note">
+              Agora, 10 anos depois, os temas mais amados do festival voltam em novas versões — uma edição
+              feita para quem viveu, compartilhou, fotografou, votou, fez rota e ajudou a transformar o
+              Sweet &amp; Coffee Week numa história de sucesso.
+            </p>
+            <div className="lovers-hero__date">
+              <strong>4 A 14 DE JUNHO</strong>
+              <span>Natal · RN</span>
             </div>
+            <div className="lovers-hero__ctas">
+              <a
+                href="#/lovers/participantes"
+                onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
+                className="lovers-button lovers-button-primary"
+              >
+                Conhecer participantes <I.arrow />
+              </a>
+              <a
+                href="#/lovers/mapa"
+                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+                className="lovers-button lovers-button-secondary"
+              >
+                <I.route /> Montar minha rota
+              </a>
+            </div>
+            <p className="lovers-hero__micro">Escolha seus destinos, chame os amigos e viva Natal em modo Sweet.</p>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .hero-v2-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: clamp(32px, 5vw, 80px);
-          align-items: center;
-        }
-        .hero-v2-tiles {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          aspect-ratio: 4 / 1;
-        }
-        @media (max-width: 720px) {
-          .hero-v2-grid { grid-template-columns: 1fr; }
-          .hero-v2-tiles { grid-template-columns: repeat(2, 1fr); aspect-ratio: 2 / 1; height: auto; }
-          .hero-date-pill { display: none; }
-          .hero-v2-right { gap: 20px; }
-        }
-      `}</style>
     </section>
   )
 }
 
 function Sobre() {
-  const blocks = [
-    { icon: <I.cal />,      title: "Revisitar", body: "Temas que marcaram os 10 anos do festival." },
-    { icon: <I.heart />,    title: "Recriar",   body: "Novos combos inspirados em memórias do Sweet & Coffee Week." },
-    { icon: <I.starFill />, title: "Celebrar",  body: "Participantes celebrando uma década de encontros e sabores." },
-    { icon: <I.plate />,    title: "Provar",    body: "Cada combo reúne doce, salgado e bebida em uma experiência especial." },
+  const phrases = [
+    { t: 'Quem esperou o mapa.',             accent: 'var(--lovers-pink)' },
+    { t: 'Quem marcou os amigos.',           accent: 'var(--lovers-cyan)' },
+    { t: 'Quem fotografou antes de provar.', accent: 'var(--lovers-yellow)' },
+    { t: 'Quem fez rota.',                   accent: 'var(--lovers-purple)' },
+    { t: 'Quem votou.',                      accent: 'var(--lovers-coral)' },
+    { t: 'Quem voltou.',                     accent: 'var(--lovers-burgundy)' },
   ]
   return (
     <section id="sobre" className="section section-sobre">
       <div className="wrap">
-        <div className="sobre__grid">
-          <div className="reveal reveal-left">
-            <h2 className="lh2" style={{ marginTop: 16 }}>
-              Uma edição feita<br />
-              para os <span style={{ color: 'var(--lovers-burgundy)' }}>Lovers.</span>
-            </h2>
-          </div>
-          <div className="sobre__body reveal reveal-right reveal-delay-1">
-            <div className="sb-p sb-p--lead">
-              Em 2026, o Sweet &amp; Coffee Week celebra <strong>10 anos</strong> de encontros,
-              sabores e memórias em Natal. Para comemorar essa trajetória, a edição{' '}
-              <em>Sweet &amp; Coffee Week Lovers</em> reúne participantes em uma proposta criada para
-              homenagear o público que acompanhou, provou, compartilhou, votou, marcou os amigos e
-              fez do festival uma tradição afetiva da cidade.
-            </div>
-            <div className="sb-p">
-              Nesta edição, cada participante escolhe um tema que já fez parte da história do
-              Sweet &amp; Coffee Week e cria uma nova experiência a partir dele. A proposta não é
-              repetir: é recriar com amor, memória e sabor.
-            </div>
-          </div>
+        <div className="lovers-section-header reveal reveal-up">
+          <span className="lovers-eyebrow">A edição</span>
+          <h2 className="lovers-section__title">
+            Feito de amor,<br />
+            recriando <span style={{ color: 'var(--lovers-burgundy)' }}>sabores.</span>
+          </h2>
+          <p className="lovers-section__lead">
+            Essa edição é sobre os nossos principais ingredientes: os <strong>Sweet Lovers</strong>.
+          </p>
         </div>
 
-        <div className="sobre__blocks">
-          {blocks.map((b, i) => (
-            <div className={`sobre__block reveal reveal-scale reveal-delay-${i + 1}`} key={i}>
-              <div className="ico">{b.icon}</div>
-              <h4>{b.title}</h4>
-              <p>{b.body}</p>
-            </div>
+        <div className="lovers-phrase-grid">
+          {phrases.map((p, i) => (
+            <p
+              className={`lovers-phrase reveal reveal-scale reveal-delay-${(i % 5) + 1}`}
+              key={i}
+              style={{ '--lv-accent': p.accent }}
+            >
+              {p.t}
+            </p>
           ))}
         </div>
 
-        <p className="sobre__impact reveal reveal-up reveal-delay-2">
-          Não é repetir.<br />
-          É recriar com <span style={{ color: 'var(--lovers-pink)' }}>amor.</span>
+        <p className="sobre__impact reveal reveal-up reveal-delay-2" style={{ marginTop: 'clamp(36px, 5vw, 64px)' }}>
+          Essa edição é para quem<br />
+          fez parte da <span style={{ color: 'var(--lovers-pink)' }}>história.</span>
         </p>
       </div>
     </section>
@@ -250,19 +188,26 @@ function Sobre() {
 
 function ComoFunciona() {
   const steps = [
-    { n: "01", h: "Escolha um tema",    p: "Cada participante escolhe um tema histórico do Sweet." },
-    { n: "02", h: "Criação do combo",   p: "A loja cria um combo especial com doce, salgado e bebida." },
-    { n: "03", h: "Memória + novidade", p: "A proposta é transformar uma lembrança em uma nova experiência." },
-    { n: "04", h: "Rota dos Lovers",    p: "Quando a lista for divulgada, o público poderá escolher seus favoritos e montar sua rota pela cidade." },
+    { n: "01", h: "Uma memória do Sweet",      p: "Cada loja escolheu um tema que já fez parte da trajetória do festival." },
+    { n: "02", h: "Uma nova criação",          p: "O tema volta reinterpretado em um combo especial." },
+    { n: "03", h: "Uma rota pela cidade",      p: "Você escolhe seus destinos e monta sua própria Rota da Doçura." },
+    { n: "04", h: "Uma experiência para viver", p: "No Sweet, você não sai só para comer. Você sai para viver uma história." },
   ]
   return (
     <section id="como" className="section section-como">
       <div className="wrap">
-        <div className="reveal reveal-left" style={{ maxWidth: 720, marginBottom: 40 }}>
-          <h2 className="lh2" style={{ marginTop: 16, color: 'var(--lovers-cream)' }}>
-            Como funciona<br />
-            a edição <span style={{ color: 'var(--lovers-yellow)' }}>Lovers.</span>
+        <div className="lovers-section-header reveal reveal-left" style={{ marginBottom: 'clamp(28px, 3vw, 44px)' }}>
+          <span className="lovers-eyebrow" style={{ color: 'var(--lovers-yellow)' }}>Como funciona</span>
+          <h2 className="lovers-section__title" style={{ color: 'var(--lovers-cream)' }}>
+            Os temas voltaram.<br />
+            Mas os sabores são <span style={{ color: 'var(--lovers-yellow)' }}>novos.</span>
           </h2>
+          <p className="lovers-section__lead" style={{ color: 'rgba(255,232,210,.9)' }}>
+            Para celebrar os 10 anos do Sweet &amp; Coffee Week, cada participante escolheu um tema que
+            marcou a história do festival e transformou essa memória em uma nova experiência. Tem filme,
+            série, viagem, música, conto de fada, celebração, sabor potiguar e universo que muita gente
+            viveu junto.
+          </p>
         </div>
 
         <div className="como__cards">
@@ -715,20 +660,20 @@ function FinalCTA() {
 /* ── Cards de dados (números grandes, coloridos) ── */
 function StatCards() {
   const stats = [
-    { num: '10', label: 'anos de festival', bg: 'lv-bg-pink' },
-    { num: String(PARTICIPANTS.length || 21), label: 'participantes', bg: 'lv-bg-cyan' },
-    { num: '33', label: 'lojas no mapa', bg: 'lv-bg-yellow' },
-    { num: '15', label: 'temas históricos', bg: 'lv-bg-purple' },
-    { num: '4–14', label: 'de junho', bg: 'lv-bg-coral' },
-    { num: '1', label: 'Rota da Doçura', bg: 'lv-bg-burgundy' },
+    { num: '10',   label: 'anos',            text: 'De histórias, filas, fotos, votos, encontros e descobertas.',            bg: 'lv-bg-pink' },
+    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas recriando temas que marcaram a trajetória do festival.',       bg: 'lv-bg-cyan' },
+    { num: '33',   label: 'lojas',           text: 'Mais destinos para visitar, provar e compartilhar.',                    bg: 'lv-bg-yellow' },
+    { num: '15',   label: 'temas históricos', text: 'Viagens, músicas, filmes, séries, contos, celebrações e sabores potiguares.', bg: 'lv-bg-purple' },
+    { num: '4–14', label: 'de junho',        text: 'Onze dias para viver a cidade em clima de Sweet.',                      bg: 'lv-bg-coral' },
+    { num: 'Rota', label: 'da Doçura',       text: 'Monte sua rota, salve seus destinos e descubra por onde começar.',      bg: 'lv-bg-burgundy' },
   ]
   return (
     <section className="section lovers-section">
       <div className="wrap">
-        <div className="reveal reveal-up" style={{ textAlign: 'center', marginBottom: 36 }}>
-          <span className="lovers-chip">A edição em números</span>
-          <h2 className="lh2" style={{ marginTop: 16 }}>
-            Dez anos de <span style={{ color: 'var(--lovers-pink)' }}>história.</span>
+        <div className="lovers-section-header is-center reveal reveal-up">
+          <span className="lovers-eyebrow">A edição em números</span>
+          <h2 className="lovers-section__title">
+            Uma década em <span style={{ color: 'var(--lovers-pink)' }}>modo Sweet.</span>
           </h2>
         </div>
         <div className="lovers-stat-grid">
@@ -736,6 +681,7 @@ function StatCards() {
             <div key={s.label} className={`lovers-stat-card ${s.bg} reveal reveal-scale reveal-delay-${(i % 5) + 1}`}>
               <span className="lovers-stat-card__num">{s.num}</span>
               <span className="lovers-stat-card__label">{s.label}</span>
+              <span className="lovers-stat-card__text">{s.text}</span>
             </div>
           ))}
         </div>
@@ -747,17 +693,17 @@ function StatCards() {
 /* ── Cards de navegação para as áreas internas ── */
 function NavCards({ navigate }) {
   const cards = [
-    { kicker: 'Vitrine', title: 'Participantes', desc: 'As lojas que vão recriar sabores e memórias do festival.', to: '/lovers/participantes', bg: 'lv-bg-pink' },
-    { kicker: 'Rota', title: 'Mapa da Doçura', desc: 'Monte sua rota e descubra onde provar cada combo.', to: '/lovers/mapa', bg: 'lv-bg-cyan' },
-    { kicker: 'Sweet Awards', title: 'Premiação', desc: 'Avalie sua experiência e ajude a eleger os destaques.', to: '/lovers/premiacao', bg: 'lv-bg-purple' },
+    { kicker: 'Participantes', title: 'Escolha seu primeiro combo.', desc: 'Conheça as lojas participantes, veja o tema que cada uma escolheu revisitar e descubra as criações da edição Lovers.', cta: 'Ver participantes', to: '/lovers/participantes', bg: 'lv-bg-pink' },
+    { kicker: 'Rota da Doçura', title: 'Sua rota começa aqui.', desc: 'Encontre as lojas no mapa, salve os destinos que quer visitar e monte sua própria Rota da Doçura.', cta: 'Abrir mapa', to: '/lovers/mapa', bg: 'lv-bg-cyan' },
+    { kicker: 'Premiação', title: 'Provou? Agora conte pra gente.', desc: 'Acompanhe a premiação da edição e participe da avaliação dos combos quando a votação estiver liberada.', cta: 'Ver premiação', to: '/lovers/premiacao', bg: 'lv-bg-purple' },
   ]
   return (
     <section className="section lovers-section" style={{ background: 'var(--lovers-cream)' }}>
       <div className="wrap">
-        <div className="reveal reveal-up" style={{ textAlign: 'center', marginBottom: 36 }}>
-          <span className="lovers-chip">Explore a edição</span>
-          <h2 className="lh2" style={{ marginTop: 16 }}>
-            Por onde <span style={{ color: 'var(--lovers-burgundy)' }}>começar.</span>
+        <div className="lovers-section-header is-center reveal reveal-up">
+          <span className="lovers-eyebrow">Explore a edição</span>
+          <h2 className="lovers-section__title">
+            Por onde você vai <span style={{ color: 'var(--lovers-burgundy)' }}>começar?</span>
           </h2>
         </div>
         <div className="lovers-nav-grid">
@@ -769,7 +715,7 @@ function NavCards({ navigate }) {
               <span className="lovers-nav-card__kicker">{c.kicker}</span>
               <span className="lovers-nav-card__title">{c.title}</span>
               <span className="lovers-nav-card__desc">{c.desc}</span>
-              <span className="lovers-nav-card__arrow">Acessar →</span>
+              <span className="lovers-nav-card__arrow">{c.cta} →</span>
             </a>
           ))}
         </div>
@@ -783,7 +729,7 @@ export function LoversPage({ navigate }) {
   return (
     <div className="page-enter kv-lovers lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
-      <Hero />
+      <Hero navigate={navigate} />
       <Sobre />
       <ComoFunciona />
       <StatCards />

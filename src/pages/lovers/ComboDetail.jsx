@@ -137,46 +137,44 @@ export function ComboDetailPage({ navigate, slug }) {
               {/* Coluna direita: hero copy */}
               <div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-                  <span className="lovers-badge lovers-badge--pink">PARTICIPANTE CONFIRMADO</span>
+                  <span className="lovers-badge lovers-badge--pink">PARTICIPANTE LOVERS</span>
                   {participant.edition && (
-                    <span className="lovers-badge lovers-badge--cyan">{participant.edition}</span>
+                    <span className="lovers-badge lovers-badge--cyan">Edição revisitada: {participant.edition}</span>
                   )}
-                  {participant.neighborhood && (
-                    <span className="lovers-chip">{participant.neighborhood}</span>
-                  )}
+                  <span className="lovers-badge">COMBO EM BREVE</span>
                 </div>
 
-                <div className="mono mb-2" style={{ color: 'var(--lovers-red)' }}>
+                <h1 className="lovers-h1" style={{ fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 1, margin: 0 }}>
                   {participant.name}
-                </div>
-
-                <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 5.5vw, 72px)', lineHeight: 1, margin: 0 }}>
-                  Combo em breve.
                 </h1>
 
                 {participant.theme && (
-                  <div style={{ marginTop: 22, padding: '18px 20px', borderRadius: 18, background: participant.brandColor || 'var(--lovers-pink)', color: '#fff', maxWidth: 480, boxShadow: '0 12px 30px rgba(43,24,16,.16)' }}>
-                    <div className="mono" style={{ opacity: .85, fontSize: 11, letterSpacing: '.14em' }}>TEMA REVISITADO</div>
-                    <div className="lovers-h3" style={{ fontSize: 24, marginTop: 6, lineHeight: 1.1 }}>{participant.theme}</div>
-                  </div>
+                  <>
+                    <p style={{ fontSize: 16, color: 'var(--lovers-ink)', opacity: .8, margin: '16px 0 10px' }}>
+                      Este participante escolheu revisitar:
+                    </p>
+                    <div style={{ padding: '18px 20px', borderRadius: 18, background: participant.brandColor || 'var(--lovers-pink)', color: '#fff', maxWidth: 480, boxShadow: '0 12px 30px rgba(43,24,16,.16)' }}>
+                      <div className="mono" style={{ opacity: .85, fontSize: 11, letterSpacing: '.14em' }}>TEMA ESCOLHIDO</div>
+                      <div className="lovers-h3" style={{ fontSize: 24, marginTop: 6, lineHeight: 1.1 }}>{participant.theme}</div>
+                    </div>
+                  </>
                 )}
 
                 <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24, lineHeight: 1.6, maxWidth: 480 }}>
-                  Os detalhes do combo deste participante serão divulgados em breve.
-                  Em breve você poderá conferir doce, salgado, bebida e todas as
-                  informações da experiência criada para a edição Sweet &amp; Coffee Week Lovers.
+                  Essa criação ainda está saindo do forno. Em breve você vai conhecer o combo que esta loja
+                  preparou especialmente para a edição Sweet &amp; Coffee Week Lovers.
                 </p>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 32 }}>
                   <a href="#/lovers/participantes"
                      onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
                      className="btn btn-lovers">
-                    Ver participantes <I.arrow />
+                    Ver outros participantes <I.arrow />
                   </a>
                   <a href="#/lovers/mapa"
                      onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
                      className="btn btn-lovers-outline">
-                    Ver mapa da edição
+                    Abrir mapa
                   </a>
                   {instagramUrl && (
                     <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
@@ -194,9 +192,12 @@ export function ComboDetailPage({ navigate, slug }) {
 
                 {participant.locations && participant.locations.length > 1 && (
                   <div style={{ marginTop: 40 }}>
-                    <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
-                      UNIDADES · {participant.locations.length}
+                    <div className="mono mb-2" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
+                      ONDE ENCONTRAR · {participant.locations.length} UNIDADES
                     </div>
+                    <p style={{ fontSize: 15, color: 'var(--lovers-ink)', opacity: .8, margin: '0 0 14px', lineHeight: 1.5 }}>
+                      Confira as unidades participantes antes de sair para a rota.
+                    </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {participant.locations.map((loc) => {
                         const locMapsUrl = loc.mapsUrl || (loc.address
@@ -235,6 +236,9 @@ export function ComboDetailPage({ navigate, slug }) {
                         )
                       })}
                     </div>
+                    <p style={{ fontSize: 14, color: 'var(--lovers-red)', fontFamily: 'var(--font-mono)', letterSpacing: '.04em', margin: '16px 0 0' }}>
+                      Salve esse destino e coloque na sua Rota da Doçura.
+                    </p>
                   </div>
                 )}
               </div>
