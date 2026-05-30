@@ -156,11 +156,31 @@
 @media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
 
 /* ── Adesivos PNG decorativos por página (LoversStickers) ── */
-.lovers-stickers { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.lovers-sticker-img { position: absolute; height: auto; opacity: .6; filter: drop-shadow(0 8px 18px rgba(43,24,16,.18)); }
-/* Conteúdo do Hub sempre acima da camada de adesivos (z-index 0) */
-.lovers-home > section, .lovers-home > footer { position: relative; z-index: 1; }
-@media (max-width: 640px) { .lovers-sticker-img { opacity: .4; width: 84px !important; } }
+/* Camada de colagem editorial: fica ATRÁS do conteúdo, nunca bloqueia clique. */
+.lovers-stickers {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+}
+.lovers-sticker-img {
+  position: absolute; display: block;
+  max-width: none; height: auto;
+  pointer-events: none; user-select: none;
+  opacity: .92;
+  filter: drop-shadow(0 18px 28px rgba(43,24,16,.14));
+  transform-origin: center;
+  transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
+}
+/* Conteúdo das páginas Lovers sempre acima da camada de adesivos (z-index 0).
+   Wrapper de cada página tem overflow:hidden + seções position:relative. */
+.lovers-home > section, .lovers-home > footer,
+.combos-page > section, .combos-page > footer,
+.awards-page > section, .awards-page > footer,
+.combo-detail-page > section, .combo-detail-page > footer {
+  position: relative; z-index: 1;
+}
+@media (max-width: 768px) {
+  .lovers-sticker-img { --scale: .78; opacity: .5; }
+}
 
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
 .section-sobre .lovers-phrase {

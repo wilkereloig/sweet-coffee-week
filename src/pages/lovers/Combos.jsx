@@ -5,7 +5,7 @@ import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
-import { LoversButton } from '../../components/lovers'
+import { LoversButton, LoversStickers } from '../../components/lovers'
 import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
 
 // Preview data is used only when internal pages are enabled for local development.
@@ -221,8 +221,9 @@ export function ComboPage({ navigate }) {
     })
 
   return (
-    <div className="page-enter kv-lovers combos-page lovers-gradient-bg">
+    <div className="page-enter kv-lovers combos-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
+      <LoversStickers page="participantes" />
 
       {/* Hero */}
       <section className="combos-page__hero">
