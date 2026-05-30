@@ -156,14 +156,20 @@
 @media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
 
 /* ── Adesivos PNG decorativos por página (LoversStickers) ── */
-/* Sistema de 3 camadas:
-   C1 background  = wrapper .lovers-gradient-bg (#FFE8D2)
-   C2 adesivos    = .lovers-stickers (z-index 0) — sólidos, sticker-colagem, NUNCA marca d'água
-   C3 conteúdo    = > section / cards / CTAs / mapa (z-index 1+)
+/* Sistema de 3 camadas (z-index dentro do wrapper isolado):
+   C1 background  = .lovers-bg / .lovers-bg-layer (z-index 0)
+   C2 adesivos    = .lovers-stickers (z-index 1) — sólidos, sticker-colagem, NUNCA marca d'água
+   C3 conteúdo    = > section / footer / .lovers-content-layer (z-index 2)
    isolation:isolate no wrapper contém o stacking e impede vazamento sobre nav/header. */
-.lovers-home, .combos-page, .awards-page, .combo-detail-page { isolation: isolate; }
-.lovers-stickers {
+.lovers-home, .combos-page, .awards-page, .combo-detail-page {
+  position: relative; isolation: isolate;
+}
+.lovers-bg, .lovers-bg-layer {
   position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+.lovers-stickers {
+  position: absolute; inset: 0; z-index: 1;
   pointer-events: none; overflow: hidden;
 }
 .lovers-sticker-img {
@@ -175,17 +181,17 @@
   transform-origin: center;
   transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
 }
-/* Conteúdo das páginas Lovers sempre acima da camada de adesivos (z-index 0).
-   Wrapper de cada página tem overflow:hidden + seções position:relative. */
+/* Conteúdo das páginas Lovers sempre na camada 3 (acima dos adesivos). */
+.lovers-content-layer,
 .lovers-home > section, .lovers-home > footer,
 .combos-page > section, .combos-page > footer,
 .awards-page > section, .awards-page > footer,
 .combo-detail-page > section, .combo-detail-page > footer {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
 }
-/* Mobile: adesivos menores e sólidos (sem transparência). */
+/* Mobile: adesivos menores e sólidos — reduz escala, nunca transparência. */
 @media (max-width: 768px) {
-  .lovers-sticker-img { --scale: .78; }
+  .lovers-sticker-img { --scale: .78; opacity: 1; }
 }
 
 /* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
@@ -214,27 +220,37 @@
 @media (max-width: 540px) { .lovers-step-grid { grid-template-columns: 1fr; } }
 .lovers-step-card {
   position: relative; overflow: hidden; isolation: isolate;
-  display: flex; flex-direction: column; gap: 8px;
-  padding: clamp(28px, 2.8vw, 38px) clamp(22px, 2.2vw, 30px) clamp(24px, 2.4vw, 32px);
-  border-radius: 26px; background: var(--lovers-cream); color: var(--lovers-brown);
-  box-shadow: 0 18px 44px rgba(43,24,16,.18); min-height: 230px;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 10px;
+  aspect-ratio: 1 / 1; min-height: 0;
+  padding: clamp(24px, 2.8vw, 38px);
+  border-radius: 28px;
+  background: var(--lv-accent, var(--lovers-pink));
+  color: var(--lovers-cream);
+  box-shadow: 0 18px 44px rgba(43,24,16,.18);
   transition: transform .22s ease, box-shadow .22s ease;
 }
-.lovers-step-card::before {
-  content: ""; position: absolute; inset: 0 0 auto 0; height: 8px;
-  background: var(--lv-accent, var(--lovers-pink));
+.lovers-step-card::before { content: none; }
+.lovers-step-card::after {
+  content: ""; position: absolute; width: 42%; aspect-ratio: 1;
+  right: -12%; bottom: -14%; border-radius: 999px;
+  background: rgba(255,255,255,.16); pointer-events: none; z-index: 0;
 }
 .lovers-step-card__num {
-  position: absolute; top: -2px; right: 12px; z-index: -1; pointer-events: none;
+  position: absolute; top: -4px; right: 14px; z-index: 0; pointer-events: none;
   font-family: var(--font-lovers-display); font-weight: 900; letter-spacing: -.04em;
   font-size: clamp(96px, 12vw, 148px); line-height: .8;
-  color: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 24%, transparent);
+  color: rgba(255,255,255,.22);
 }
 .lovers-step-card__title {
-  margin: 6px 0 0; font-family: var(--font-lovers-display); font-weight: 800;
-  font-size: clamp(22px, 2.2vw, 28px); line-height: 1; text-transform: uppercase; color: var(--lovers-brown);
+  margin: 0; position: relative; z-index: 2;
+  font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(22px, 2.2vw, 28px); line-height: 1; text-transform: uppercase;
+  color: var(--lovers-cream);
 }
-.lovers-step-card__text { margin: 0; font-size: 16px; line-height: 1.5; color: var(--lovers-brown); opacity: .82; }
+.lovers-step-card__text {
+  margin: 0; position: relative; z-index: 2;
+  font-size: 16px; line-height: 1.5; color: var(--lovers-cream); opacity: .92;
+}
 @media (hover: hover) {
   .lovers-step-card:hover {
     transform: translateY(-6px) rotate(-.5deg);
@@ -242,6 +258,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) { .lovers-step-card { transition: none; } }
+@media (max-width: 540px) {
+  .lovers-step-card { aspect-ratio: auto; min-height: 220px; }
+}
 
 /* ── Nav cards: foco visível por teclado ── */
 .lovers-nav-card:focus-visible { outline: 3px solid var(--lovers-yellow); outline-offset: 3px; }

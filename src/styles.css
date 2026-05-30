@@ -568,7 +568,7 @@ button:disabled { cursor: not-allowed; }
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 .sidebar__lovers-badge {
   font-family: var(--font-mono);
