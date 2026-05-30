@@ -59,12 +59,18 @@ export function ComboPage({ navigate }) {
   })
 
   return (
-    <div className="page-enter kv-lovers combos-page">
+    <div className="page-enter kv-lovers combos-page lovers-gradient-bg">
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
       {/* Hero */}
       <section className="combos-page__hero">
-        <div className="wrap">
+        <div className="lovers-decor" aria-hidden="true">
+          <span className="lovers-orb lovers-orb--pink" style={{ width: 190, height: 190, top: -50, left: '5%' }} />
+          <span className="lovers-orb lovers-orb--cyan" style={{ width: 130, height: 130, top: 30, right: '7%' }} />
+          <span className="lovers-orb lovers-orb--yellow" style={{ width: 90, height: 90, bottom: 6, left: '44%' }} />
+        </div>
+        <span className="lovers-sticker lovers-sticker--purple" style={{ position: 'absolute', top: 18, right: 18, transform: 'rotate(8deg)', zIndex: 3 }} aria-hidden="true">21 lojas ♥</span>
+        <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
           <div className="combos-page__hero-inner">
             {isPreviewMode && (
               <div className="preview-badge">PREVIEW INTERNO</div>

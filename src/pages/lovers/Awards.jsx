@@ -72,11 +72,16 @@ export function AwardsPage({ navigate, mode }) {
   }
 
   return (
-    <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className="page-enter kv-lovers lovers-gradient-bg" style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
       <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-        <div className="wrap">
+        <div className="lovers-decor" aria-hidden="true">
+          <span className="lovers-orb lovers-orb--pink" style={{ width: 190, height: 190, top: -50, left: '4%' }} />
+          <span className="lovers-orb lovers-orb--yellow" style={{ width: 120, height: 120, top: 20, right: '6%' }} />
+        </div>
+        <span className="lovers-sticker lovers-sticker--pink" style={{ position: 'absolute', top: 16, right: 18, transform: 'rotate(-8deg)', zIndex: 3 }} aria-hidden="true">avalie!</span>
+        <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
             <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 24, justifyContent: 'center' }}>
               <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>

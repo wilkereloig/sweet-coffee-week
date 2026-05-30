@@ -66,11 +66,15 @@ export function ComboDetailPage({ navigate, slug }) {
       .toUpperCase()
 
     return (
-      <div className="page-enter kv-lovers" style={{ overflow: 'hidden', position: 'relative' }}>
+      <div className="page-enter kv-lovers lovers-gradient-bg" style={{ overflow: 'hidden', position: 'relative' }}>
         <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
         <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-          <div className="wrap">
+          <div className="lovers-decor" aria-hidden="true">
+            <span className="lovers-orb lovers-orb--pink" style={{ width: 200, height: 200, top: -60, right: '4%' }} />
+            <span className="lovers-orb lovers-orb--cyan" style={{ width: 130, height: 130, bottom: -30, left: '2%' }} />
+          </div>
+          <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
             <div className="combo-soon-grid">
               {/* Coluna esquerda: logo */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
