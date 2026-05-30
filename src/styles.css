@@ -313,7 +313,7 @@ button:disabled { cursor: not-allowed; }
 
 /* mobile nav */
 .menu-toggle { display: none; }
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
   .nav-main { display: none; }
   .menu-toggle {
     display: inline-flex;
@@ -599,11 +599,11 @@ button:disabled { cursor: not-allowed; }
   opacity: 0.6;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   .site-header { display: none; }
   main, .site-footer { margin-left: var(--sidebar-w); }
 }
-@media (max-width: 1099px) {
+@media (max-width: 1023px) {
   .site-sidebar { display: none; }
 }
 
@@ -674,13 +674,13 @@ button:disabled { cursor: not-allowed; }
   line-height: 1.3;
   color: rgba(135, 14, 45, 0.6);
 }
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   main.with-combo-rail,
   .with-combo-rail ~ .site-footer {
     margin-left: var(--sidebar-w); /* rail ocultado: sem reserva de 264px */
   }
 }
-@media (max-width: 1099px) {
+@media (max-width: 1023px) {
   .combo-rail { display: none; }
 }
 
@@ -1003,7 +1003,7 @@ button:disabled { cursor: not-allowed; }
 
 /* ── Mobile nav Lovers: barra sticky compacta + chips horizontais ── */
 .lovers-mobile-nav { display: none; }
-@media (max-width: 1099px) {
+@media (max-width: 1023px) {
   .site-header.lovers { display: none; }
   .lovers-mobile-nav {
     display: flex;
@@ -2480,7 +2480,7 @@ button:disabled { cursor: not-allowed; }
 .site-sidebar.lovers .sidebar__link.lovers-active { color: var(--lovers-burgundy); }
 
 /* ── Navegação: mobile chips refino (barra sticky já definida acima) ── */
-@media (max-width: 1099px) {
+@media (max-width: 1023px) {
   .lovers-mobile-chip { border: 1px solid rgba(255,255,255,.18); }
   .lovers-mobile-chip.is-active { box-shadow: 0 4px 14px rgba(242,5,103,.5); border-color: transparent; }
 }
