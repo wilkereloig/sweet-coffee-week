@@ -733,10 +733,10 @@ export function MapaGooglePage({ navigate }) {
                 Alguns participantes ainda estão sem pin no mapa, mas você já pode abrir o endereço no Google Maps.
               </div>
             )}
-            <div className="mapa-layout">
+            <div className="mapa-layout mapa-floating-layout">
 
               {/* ── mapa ── */}
-              <div className="mapa-container">
+              <div className="mapa-container mapa-floating-panel mapa-floating-panel--map">
                 {mapError === 'missing-key' ? (
                   <div style={{
                     height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -778,7 +778,7 @@ export function MapaGooglePage({ navigate }) {
               </div>
 
               {/* ── lista lateral ── */}
-              <div className="map-sidebar">
+              <div className="map-sidebar mapa-floating-panel mapa-floating-panel--sidebar">
                 <div className="map-sidebar-sticky">
 
                 {/* busca */}
@@ -791,7 +791,9 @@ export function MapaGooglePage({ navigate }) {
                   onChange={e => setSearch(e.target.value)}
                 />
 
-                {/* filtros de bairro — ocultados na versão pública do mapa (lógica preservada) */}
+                {/* Filtros por bairro ocultados nesta versão pública do mapa para simplificar
+                   a experiência. A lógica (filterBairro, neighborhoods) permanece preservada. */}
+                {false && (
                 <div className="map-neighborhood-filters" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   <button
                     onClick={() => setFilterBairro(null)}
@@ -811,6 +813,7 @@ export function MapaGooglePage({ navigate }) {
                     </button>
                   ))}
                 </div>
+                )}
 
                 {/* botão localização */}
                 {!userLocation ? (
@@ -1417,47 +1420,97 @@ export function MapaGooglePage({ navigate }) {
             .mapa-fullscreen { --map-panel-radius: 22px; }
             .mapa-fullscreen .map-sidebar { height: 70svh; }
           }
-          /* ── layout ── */
-          .mapa-layout {
+          /* ── layout flutuante (padrão): lista esquerda, mapa direita ──
+             Painéis de mesma altura flutuando sobre o cenário, margens + radius. */
+          .mapa-floating-layout {
+            --map-page-margin: clamp(18px, 4vw, 72px);
+            --map-panel-gap: clamp(18px, 2vw, 34px);
+            --map-panel-radius: clamp(28px, 3vw, 48px);
+            --map-floating-panel-h: min(760px, calc(100svh - 190px));
+            width: min(100% - calc(var(--map-page-margin) * 2), 1540px);
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
-            gap: 24px;
-            align-items: start;
+            grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+            gap: var(--map-panel-gap);
+            align-items: stretch;
           }
-          .mapa-container {
-            height: 580px;
+          .mapa-floating-panel {
             position: relative;
-            border-radius: 20px;
             overflow: hidden;
-            border: 1px solid rgba(135,14,45,.2);
+            border-radius: var(--map-panel-radius);
+            min-height: 620px;
+            height: var(--map-floating-panel-h);
+            max-height: 820px;
+            box-shadow: 0 24px 70px rgba(43,24,16,.24);
+            border: 1px solid rgba(255,232,210,.22);
           }
-          .map-sidebar {
+          /* lista flutua à esquerda (coluna estreita) */
+          .mapa-floating-panel--sidebar {
+            order: 1;
             display: flex;
             flex-direction: column;
-            height: 580px;
-            min-height: 0;
-            overflow: hidden;
+            background: rgba(79,32,146,.96);
+            color: var(--lovers-cream);
           }
-          .map-sidebar-sticky {
+          /* mapa flutua à direita (coluna larga) */
+          .mapa-floating-panel--map {
+            order: 2;
+            background: rgba(79,32,146,.84);
+          }
+          /* Google Map preenche todo o painel */
+          .mapa-floating-panel--map .mapa-container,
+          .mapa-floating-panel--map .google-map-wrapper,
+          .mapa-floating-panel--map .google-map-wrapper > div {
+            width: 100%; height: 100%; min-height: 100%;
+          }
+          /* sidebar: topo fixo + lista rolável internamente */
+          .mapa-floating-panel--sidebar .map-sidebar-sticky {
             flex: 0 0 auto;
-            padding-bottom: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            padding: clamp(18px, 2vw, 26px);
+            background: rgba(79,32,146,.98);
           }
-          .map-sidebar-scroll {
+          .mapa-floating-panel--sidebar .map-sidebar-scroll {
             flex: 1 1 auto;
             min-height: 0;
             overflow-y: auto;
-            overscroll-behavior: contain;
-            padding-right: 6px;
-            padding-bottom: 24px;
+            overflow-x: hidden;
+            padding: 0 clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
+            scrollbar-color: rgba(255,232,210,.52) rgba(255,232,210,.14);
+            scrollbar-width: thin;
           }
-          .map-sidebar-scroll::-webkit-scrollbar { width: 6px; }
-          .map-sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(135,14,45,.35);
-            border-radius: 999px;
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar { width: 8px; }
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255,232,210,.14); border-radius: 999px;
           }
-          .map-sidebar-scroll::-webkit-scrollbar-track {
-            background: transparent;
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,232,210,.52); border-radius: 999px;
           }
+          /* contraste sobre painel roxo: troca textos vermelhos por creme */
+          .mapa-floating-panel--sidebar .mono { color: var(--lovers-cream) !important; }
+          .mapa-floating-panel--sidebar .mono button { color: var(--lovers-cream) !important; }
+          .mapa-floating-panel--sidebar .mapa-search {
+            width: 100%;
+            background: #fff; color: var(--lovers-brown);
+            border: 1.5px solid rgba(255,232,210,.72);
+            box-shadow: 0 10px 24px rgba(43,24,16,.16);
+          }
+          .mapa-floating-panel--sidebar .mapa-search::placeholder { color: rgba(63,26,10,.62); }
+          .mapa-floating-panel--sidebar .mapa-chip {
+            border-color: rgba(255,232,210,.55);
+            color: var(--lovers-cream) !important;
+          }
+          .mapa-floating-panel--sidebar .mapa-chip.is-active,
+          .mapa-floating-panel--sidebar .mapa-chip--active {
+            background: var(--lovers-cream);
+            color: var(--lovers-purple) !important;
+            border-color: var(--lovers-cream);
+          }
+          .mapa-floating-panel--sidebar .mapa-chip:hover { background: var(--lovers-pink); color: #fff !important; }
+          /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
+          .map-neighborhood-filters { display: none !important; }
 
           /* ── header editorial ── */
           .mapa-hero {
@@ -2308,12 +2361,19 @@ export function MapaGooglePage({ navigate }) {
           .map-debug-panel summary { cursor: pointer; font-weight: 800; }
           .map-debug-panel ul { margin: 6px 0 0; padding-left: 18px; }
 
-          /* ── responsivo ── */
-          @media (max-width: 880px) {
-            .mapa-layout { grid-template-columns: 1fr; }
-            .mapa-container { height: 360px; }
-            .map-sidebar { height: auto; overflow: visible; }
-            .map-sidebar-scroll { max-height: 70vh; overflow-y: auto; }
+          /* ── responsivo: empilha painéis — mapa primeiro, lista depois ── */
+          @media (max-width: 860px) {
+            .mapa-floating-layout {
+              width: calc(100% - 28px);
+              grid-template-columns: 1fr;
+              gap: 16px;
+            }
+            .mapa-floating-panel { height: auto; min-height: 0; max-height: none; }
+            .mapa-floating-panel--map { height: 52svh; min-height: 360px; max-height: 520px; order: 1; }
+            .mapa-floating-panel--sidebar { height: min(680px, 72svh); min-height: 480px; max-height: 720px; order: 2; }
+          }
+          @media (max-width: 480px) {
+            .mapa-floating-layout { --map-panel-radius: 22px; }
           }
           @media (max-width: 560px) {
             .map-card-logo { width: 56px; height: 56px; border-radius: 13px; }
