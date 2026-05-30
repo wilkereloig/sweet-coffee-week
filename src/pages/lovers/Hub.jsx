@@ -30,7 +30,7 @@ function useRevealOnScroll() {
 }
 
 /* ── Feature flags ── */
-const hasParticipantsData = false
+const hasParticipantsData = PARTICIPANTS.length > 0
 const hasCombosData       = false
 const hasMapData          = false
 const hasVotingData       = false
