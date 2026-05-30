@@ -140,3 +140,92 @@
   background: var(--lovers-cream); border: 1.5px solid color-mix(in srgb, var(--lovers-burgundy) 14%, transparent);
   box-shadow: var(--lovers-shadow-soft); padding: clamp(24px, 3vw, 40px);
 }
+
+/* =====================================================================
+   LOVERS HOME (/lovers) — Interactive Editorial System
+   Classes específicas da landing "Sobre a edição". Aditivo; não redefine
+   paleta nem componentes base. Carrega após styles.css (vence empates).
+   ===================================================================== */
+.lovers-home { position: relative; }
+
+/* ── Hero: decoração extra (2º sticker flutuante + orb roxo) ── */
+.lovers-hero .lovers-orb--purple { width: 150px; height: 150px; bottom: 8%; right: 32%; animation-delay: -3.2s; }
+.lovers-hero__sticker2 {
+  position: absolute; bottom: 9%; left: 5%; transform: rotate(-7deg); z-index: 3;
+  animation: loversFloat 8s ease-in-out infinite;
+}
+@media (max-width: 880px) {
+  .lovers-hero .lovers-orb--purple,
+  .lovers-hero__sticker2 { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .lovers-hero__sticker2 { animation: none; } }
+
+/* ── Sobre: frases como stickers expressivos (cores alternadas + leve rotação) ── */
+.section-sobre .lovers-phrase {
+  background: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 14%, #fff);
+  border-color: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 45%, transparent);
+}
+.section-sobre .lovers-phrase::before { width: 8px; }
+.section-sobre .lovers-phrase.is-visible:nth-child(odd)  { transform: rotate(-1.2deg); }
+.section-sobre .lovers-phrase.is-visible:nth-child(even) { transform: rotate(1.2deg); }
+@media (hover: hover) {
+  .section-sobre .lovers-phrase.is-visible:nth-child(odd):hover,
+  .section-sobre .lovers-phrase.is-visible:nth-child(even):hover { transform: translateY(-6px) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-sobre .lovers-phrase.is-visible:nth-child(odd),
+  .section-sobre .lovers-phrase.is-visible:nth-child(even) { transform: none; }
+}
+
+/* ── Como funciona: step cards editoriais (número gigante de fundo) ── */
+.lovers-step-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 1.6vw, 20px);
+}
+@media (max-width: 880px) { .lovers-step-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .lovers-step-grid { grid-template-columns: 1fr; } }
+.lovers-step-card {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(28px, 2.8vw, 38px) clamp(22px, 2.2vw, 30px) clamp(24px, 2.4vw, 32px);
+  border-radius: 26px; background: var(--lovers-cream); color: var(--lovers-brown);
+  box-shadow: 0 18px 44px rgba(43,24,16,.18); min-height: 230px;
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.lovers-step-card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 8px;
+  background: var(--lv-accent, var(--lovers-pink));
+}
+.lovers-step-card__num {
+  position: absolute; top: -2px; right: 12px; z-index: -1; pointer-events: none;
+  font-family: var(--font-lovers-display); font-weight: 900; letter-spacing: -.04em;
+  font-size: clamp(96px, 12vw, 148px); line-height: .8;
+  color: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 24%, transparent);
+}
+.lovers-step-card__title {
+  margin: 6px 0 0; font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(22px, 2.2vw, 28px); line-height: 1; text-transform: uppercase; color: var(--lovers-brown);
+}
+.lovers-step-card__text { margin: 0; font-size: 16px; line-height: 1.5; color: var(--lovers-brown); opacity: .82; }
+@media (hover: hover) {
+  .lovers-step-card:hover {
+    transform: translateY(-6px) rotate(-.5deg);
+    box-shadow: 0 28px 60px color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 30%, rgba(43,24,16,.18));
+  }
+}
+@media (prefers-reduced-motion: reduce) { .lovers-step-card { transition: none; } }
+
+/* ── Nav cards: foco visível por teclado ── */
+.lovers-nav-card:focus-visible { outline: 3px solid var(--lovers-yellow); outline-offset: 3px; }
+
+/* ── Final CTA: parágrafos + botões sobre fundo marrom ── */
+.lovers-final-cta p { margin: 22px 0 0; }
+.lovers-final-cta__sub { opacity: .8; }
+.lovers-final-cta .ctas { margin-top: 34px; }
+.lovers-final-cta .lf-btn-yellow {
+  background: var(--lovers-yellow); color: var(--lovers-brown); border-color: transparent;
+  box-shadow: 0 10px 26px rgba(245,184,0,.34);
+}
+.lovers-final-cta .lf-btn-yellow:hover { background: #ffce3a; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(245,184,0,.46); }
+.lovers-final-cta .lovers-button--secondary { background: transparent; color: var(--lovers-cream); border-color: rgba(255,232,210,.5); }
+.lovers-final-cta .lovers-button--secondary:hover { background: var(--lovers-cream); color: var(--lovers-brown); border-color: var(--lovers-cream); }
