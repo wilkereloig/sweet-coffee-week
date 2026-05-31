@@ -269,73 +269,55 @@ function ComboDetailPageInner({ navigate, slug }) {
             <div className="wrap lovers-safe-wrap combo-detail-hero__grid combo-detail-hero__grid--combo">
               {/* fotos (primeiro no mobile, coluna esquerda no desktop) */}
               <div className="combo-detail-hero__media combo-detail-hero__media--combo">
-                <span className="lovers-sticker lovers-sticker--cyan combo-detail-hero__sticker" aria-hidden="true">recriado ♥</span>
+                {priceLabel && <span className="lovers-sticker lovers-sticker--cyan combo-detail-hero__sticker">{priceLabel}</span>}
                 <ComboHeroPhotos photos={gallery} label={combo?.name || name} />
               </div>
 
               {/* informações do combo */}
               <div className="combo-detail-hero__content">
-                <span className="combo-detail-hero__kicker">O combo</span>
                 <h1 className="combo-detail-hero__name">{combo?.name || name}</h1>
                 {combo?.name && <p className="combo-detail-hero__by">por {name}</p>}
 
-                {theme && (
-                  <span className="combo-detail-hero__memoria">
-                    <span className="combo-detail-hero__memoria-dot" aria-hidden="true" />
-                    Releitura · {theme} · {edition}
-                  </span>
-                )}
+                {/* Badge "Releitura · tema · edição" oculto por ora (não revelar tema/edição). */}
 
                 {combo?.description && <p className="combo-detail-hero__intro">{combo.description}</p>}
                 {priceLabel && <div className="combo-detail-hero__price">{priceLabel}</div>}
 
-                <div className="combo-detail-hero__badges">
-                  <span className="combo-detail-badge"><span className="combo-detail-badge__dot" />Sweet &amp; Coffee Week Lovers</span>
-                </div>
-
-                <div className="combo-detail-hero__ctas">
-                  {locations[0] && directionsUrl(locations[0], participant) && (
-                    <LoversButton variant="primary" href={directionsUrl(locations[0], participant)} target="_blank" rel="noopener noreferrer">
-                      <I.route /> Traçar rota
-                    </LoversButton>
-                  )}
-                  <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-                    <I.map width={18} height={18} /> Abrir mapa da doçura
-                  </LoversButton>
-                  {instagram && (
-                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer">
+                {instagram && (
+                  <div className="combo-detail-hero__ctas combo-detail-hero__ctas--single">
+                    <LoversButton variant="secondary" size="small" href={instagram} target="_blank" rel="noopener noreferrer">
                       <I.ig /> Ver Instagram
                     </LoversButton>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
 
-          {/* 2 ── ITENS DO COMBO (cards com foto grande no topo) */}
-          {comboItems.length > 0 && (
-            <section className="section combo-detail-section">
-              <div className="wrap lovers-safe-wrap">
-                <div className="combo-detail-section__head lovers-reveal">
-                  <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O que vem no combo</span>
-                  <h2 className="combo-detail-section__title">Itens do combo.</h2>
-                </div>
-                <div className="combo-detail-items">
-                  {comboItems.map(it => (
-                    <article className="combo-detail-item-card lovers-reveal" key={it.k}>
-                      <div className="combo-detail-item-card__media">
-                        {it.img
-                          ? <img src={it.img} alt={`${it.k} — ${combo?.name || name}`} loading="lazy" />
-                          : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
-                      </div>
-                      <span className="combo-detail-item-card__k">{it.k}</span>
-                      {it.v && <p className="combo-detail-item-card__v">{it.v}</p>}
-                    </article>
-                  ))}
-                </div>
+          {/* 2 ── ITENS DO COMBO (cards foto-topo). Sem dados → 3 placeholders "Em breve". */}
+          <section className="section combo-detail-section">
+            <div className="wrap lovers-safe-wrap">
+              <div className="combo-detail-section__head lovers-reveal">
+                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O que vem no combo</span>
+                <h2 className="combo-detail-section__title">Itens do combo.</h2>
               </div>
-            </section>
-          )}
+              <div className="combo-detail-items">
+                {(comboItems.length ? comboItems : [{ k: 'Doce' }, { k: 'Salgado' }, { k: 'Bebida' }]).map(it => (
+                  <article className="combo-detail-item-card lovers-reveal" key={it.k}>
+                    <div className="combo-detail-item-card__media">
+                      {it.img
+                        ? <img src={it.img} alt={`${it.k} — ${combo?.name || name}`} loading="lazy" />
+                        : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
+                    </div>
+                    <span className="combo-detail-item-card__k">{it.k}</span>
+                    {it.v
+                      ? <p className="combo-detail-item-card__v">{it.v}</p>
+                      : <p className="combo-detail-item-card__v combo-detail-item-card__v--soon">Em breve</p>}
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
         </>
       )}
 

@@ -1126,11 +1126,42 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .combo-detail-hero--combo .combo-detail-hero__badges,
   .combo-detail-hero--combo .combo-detail-hero__ctas { justify-content: flex-start; }
   .combo-detail-hero__items { max-width: none; }
+
+  /* foto começa no topo: anula o padding-top:150px que limpa o header overlay
+     (styles.css) — só na rota do combo. Header transparente passa por cima da foto. */
+  body.route-combo-detail .kv-lovers > .combo-detail-hero--combo:first-of-type { padding-top: 0; }
+  .combo-detail-hero--combo { padding-top: 0; }
+  /* sombra no topo da foto p/ logo/menu do header ficarem legíveis sobre a imagem */
+  .combo-detail-hero__media--combo { position: relative; }
+  .combo-detail-hero__media--combo::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 120px; z-index: 2;
+    background: linear-gradient(to bottom, rgba(43,12,20,.45), transparent); pointer-events: none;
+  }
+  /* foto preenche a tela: media full-bleed (escapa o padding do wrap) */
+  .combo-detail-hero__media--combo {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+  .combo-detail-hero--combo .combo-detail-hero__sticker { left: 16px; }
+  .combo-hero-photos { gap: 8px; }
+  .combo-hero-photos__main,
+  .combo-hero-photos__placeholder {
+    aspect-ratio: auto; min-height: 62svh; border-radius: 0; border-left: 0; border-right: 0;
+  }
+  .combo-hero-photos__thumbs { padding: 0 16px; }
 }
 @media (max-width: 600px) {
   .combo-detail-hero--combo .combo-detail-hero__ctas { width: 100%; }
   .combo-detail-hero--combo .combo-detail-hero__ctas .lovers-button { width: 100%; justify-content: center; }
 }
+/* CTA único (só Instagram): discreto — não estica, opacidade reduzida */
+.combo-detail-hero__ctas--single { width: auto !important; }
+.combo-detail-hero__ctas--single .lovers-button {
+  width: auto !important; opacity: .82;
+  border-color: rgba(255,232,210,.35);
+}
+.combo-detail-hero__ctas--single .lovers-button:hover { opacity: 1; }
 
 /* =====================================================================
    PREMIAÇÃO / AWARDS (/lovers/premiacao + /lovers/awards) — FASE 5
