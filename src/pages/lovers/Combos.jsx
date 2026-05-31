@@ -157,9 +157,9 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
       <div className="participant-showcase-card__body">
         <span className="participant-showcase-card__edition">{LOVERS_SHOW_COMBO_DETAILS ? edition : 'Edição Lovers'}</span>
         <h3 className="participant-showcase-card__name">{name}</h3>
-        {LOVERS_SHOW_COMBO_DETAILS
-          ? <p className="participant-showcase-card__line"><strong>Criação</strong><span>{theme}</span></p>
-          : <span className="participant-showcase-card__soon"><I.heart width={12} height={12} /> Combo em breve</span>}
+        {LOVERS_SHOW_COMBO_DETAILS && (
+          <p className="participant-showcase-card__line"><strong>Criação</strong><span>{theme}</span></p>
+        )}
         <p className="participant-showcase-card__line"><strong>Local</strong><span>{neighborhoodsSummary(participant)}</span></p>
 
         <div className="participant-showcase-card__footer">
