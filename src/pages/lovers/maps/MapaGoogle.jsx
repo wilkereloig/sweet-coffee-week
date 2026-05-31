@@ -1066,7 +1066,9 @@ export function MapaGooglePage({ navigate }) {
                                       rel="noopener noreferrer"
                                       onClick={e => e.stopPropagation()}
                                     >
-                                      <I.route />
+                                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5-3.5 3.5z" />
+                                      </svg>
                                     </a>
                                   )}
                                   <button
