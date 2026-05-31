@@ -95,7 +95,7 @@ function Hero({ navigate }) {
           </h1>
 
           <p className="lovers-hero__lead lovers-text-wrap">
-            De 4 a 14 de junho, Natal entra na rota mais doce do ano com combos especiais
+            Uma celebração da comunidade que faz o festival acontecer, com combos especiais
             criados por lojas que fazem parte dessa história.
           </p>
 
@@ -123,12 +123,12 @@ function Hero({ navigate }) {
   )
 }
 
-function Sobre() {
-  const chips = [
-    { t: 'Quem esperou o mapa',             accent: 'var(--lovers-pink)' },
-    { t: 'Quem marcou os amigos',           accent: 'var(--lovers-cyan)' },
-    { t: 'Quem fotografou antes de provar', accent: 'var(--lovers-yellow)' },
-    { t: 'Quem fez rota',                   accent: 'var(--lovers-purple)' },
+function OQueEComoFunciona() {
+  const steps = [
+    { n: '01', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)' },
+    { n: '02', h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)' },
+    { n: '03', h: 'Você monta sua rota',            p: 'Escolha os participantes, visite as lojas e descubra a cidade através dos sabores.',          accent: 'var(--lovers-cyan)' },
+    { n: '04', h: 'Combo padrão',                   p: '1 doce + 1 salgado + 1 bebida por R$ 38,90.',                                                 accent: 'var(--lovers-purple)' },
   ]
   return (
     <section id="sobre" className="section section-sobre">
@@ -144,26 +144,31 @@ function Sobre() {
 
           <div className="lovers-concept__copy reveal reveal-up reveal-delay-1">
             <p className="lovers-concept__text">
-              Esta edição não é sobre amor romântico. É sobre os <strong>Sweet Lovers</strong>:
-              pessoas que acompanham o festival, visitam as lojas, fotografam combos, marcam os
-              amigos, votam, compartilham e transformam cada edição em uma experiência coletiva.
+              Não é sobre amor romântico. É sobre os <strong>Sweet Lovers</strong>: quem acompanha
+              o festival, visita as lojas, fotografa, marca os amigos, vota e transforma cada edição
+              em uma experiência coletiva. Nos 10 anos, o público é o grande homenageado.
             </p>
-            <p className="lovers-concept__text">
-              Na edição especial de 10 anos, o público é o grande homenageado.
-            </p>
-
             <div className="lovers-concept__highlight">
-              Sweet Lovers são fãs, clientes, amigos, famílias, grupos e pessoas que vivem o
-              festival como roteiro, memória e descoberta.
+              Sweet Lovers são fãs, clientes, amigos, famílias e grupos que vivem o festival como
+              roteiro, memória e descoberta.
             </div>
+          </div>
+        </div>
 
-            <div className="lovers-concept__chips">
-              {chips.map((c, i) => (
-                <span className="lovers-concept-chip" key={i} style={{ '--lv-accent': c.accent }}>
-                  {c.t}
-                </span>
-              ))}
-            </div>
+        <div className="lovers-concept__how reveal reveal-up">
+          <span className="lovers-eyebrow lovers-concept__how-label">Como funciona</span>
+          <div className="lovers-step-grid">
+            {steps.map((s, i) => (
+              <article
+                className={`lovers-step-card reveal reveal-scale reveal-delay-${i + 1}`}
+                key={s.n}
+                style={{ '--lv-accent': s.accent }}
+              >
+                <span className="lovers-step-card__num" aria-hidden="true">{s.n}</span>
+                <h3 className="lovers-step-card__title">{s.h}</h3>
+                <p className="lovers-step-card__text">{s.p}</p>
+              </article>
+            ))}
           </div>
         </div>
       </div>
@@ -171,73 +176,23 @@ function Sobre() {
   )
 }
 
-function ComoFunciona() {
-  const steps = [
-    { n: '01', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)' },
-    { n: '02', h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)' },
-    { n: '03', h: 'Você monta sua rota',            p: 'Escolha os participantes, visite as lojas e descubra a cidade através dos sabores.',          accent: 'var(--lovers-cyan)' },
-    { n: '04', h: 'Combo padrão',                   p: '1 doce + 1 salgado + 1 bebida por R$ 38,90.',                                                 accent: 'var(--lovers-purple)' },
-  ]
-  return (
-    <section id="como" className="section section-como">
-      <div className="wrap lovers-safe-wrap">
-        <div className="lovers-section-header reveal reveal-left" style={{ marginBottom: 'clamp(28px, 3vw, 44px)' }}>
-          <span className="lovers-eyebrow" style={{ color: 'var(--lovers-yellow)' }}>Como funciona</span>
-          <h2 className="lovers-section__title" style={{ color: 'var(--lovers-cream)' }}>
-            A memória volta.<br />
-            O sabor é <span style={{ color: 'var(--lovers-yellow)' }}>novo.</span>
-          </h2>
-          <p className="lovers-section__lead" style={{ color: 'rgba(255,232,210,.9)' }}>
-            Na edição Lovers, cada participante revisita uma lembrança da história do Sweet &amp; Coffee
-            Week e transforma essa inspiração em uma nova experiência.
-          </p>
-        </div>
-
-        <div className="lovers-step-grid">
-          {steps.map((s, i) => (
-            <article
-              className={`lovers-step-card reveal reveal-scale reveal-delay-${i + 1}`}
-              key={s.n}
-              style={{ '--lv-accent': s.accent }}
-            >
-              <span className="lovers-step-card__num" aria-hidden="true">{s.n}</span>
-              <h3 className="lovers-step-card__title">{s.h}</h3>
-              <p className="lovers-step-card__text">{s.p}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ── Cards de dados (números grandes, coloridos) ── */
-function StatCards() {
+/* ── Faixa de números (slim, inline) ── */
+function StatsStrip() {
   const stats = [
-    { num: '10',   label: 'anos de Sweet',  text: 'Uma década de histórias, sabores, fotos e encontros pela cidade.',          variant: 'pink' },
-    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas criando novas experiências para a edição Lovers.',          variant: 'cyan' },
-    { num: '4–14', label: 'de junho',       text: 'Onze dias para visitar, provar e montar sua própria rota.',                variant: 'coral' },
-    { num: 'R$ 38,90', label: 'combo padrão', text: '1 doce + 1 salgado + 1 bebida em cada experiência participante.',         variant: 'purple' },
+    { num: '10',       label: 'anos de Sweet' },
+    { num: String(PARTICIPANTS.length || 21), label: 'participantes' },
+    { num: '4–14 jun', label: 'de festival' },
+    { num: 'R$ 38,90', label: 'combo padrão' },
   ]
   return (
-    <section className="section lovers-section">
+    <section className="section lovers-stats-section">
       <div className="wrap lovers-safe-wrap">
-        <div className="lovers-section-header is-center reveal reveal-up">
-          <span className="lovers-eyebrow">A edição em números</span>
-          <h2 className="lovers-section__title">
-            Tudo pronto para <span style={{ color: 'var(--lovers-pink)' }}>viver a rota.</span>
-          </h2>
-        </div>
-        <div className="lovers-stat-grid">
+        <div className="lovers-stats-strip reveal reveal-up">
           {stats.map((s, i) => (
-            <LoversStatCard
-              key={s.label}
-              number={s.num}
-              label={s.label}
-              text={s.text}
-              variant={s.variant}
-              className={`reveal reveal-scale reveal-delay-${(i % 5) + 1}`}
-            />
+            <div className="lovers-stats-strip__item" key={s.label}>
+              <strong className="lovers-stats-strip__num">{s.num}</strong>
+              <span className="lovers-stats-strip__label">{s.label}</span>
+            </div>
           ))}
         </div>
       </div>
@@ -281,43 +236,6 @@ function NavCards({ navigate }) {
   )
 }
 
-function RotaDaDocura({ navigate }) {
-  return (
-    <section className="section lovers-route-section">
-      <div className="wrap lovers-safe-wrap">
-        <div className="lovers-route-card reveal reveal-up">
-          <div className="lovers-route-card__content">
-            <span className="lovers-eyebrow">Rota da Doçura</span>
-            <h2 className="lovers-section__title">Monte sua rota pela cidade.</h2>
-            <p>
-              A edição Lovers espalha sabores por diferentes pontos de Natal e região. Use o mapa
-              para encontrar os participantes, escolher suas paradas e viver o Sweet no seu próprio ritmo.
-            </p>
-            <div className="lovers-route-card__ctas">
-              <LoversButton
-                variant="primary"
-                href="#/lovers/mapa"
-                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-              >
-                <I.map width={18} height={18} /> Abrir mapa da doçura
-              </LoversButton>
-            </div>
-            <p className="lovers-route-card__micro">
-              O mapa mostra os pontos participantes e ajuda você a planejar sua experiência.
-            </p>
-          </div>
-
-          <div className="lovers-route-card__aside">
-            <span className="lovers-route-card__icon" aria-hidden="true"><I.map width={26} height={26} /></span>
-            <h3>Dica Sweet Lover</h3>
-            <p>Salve seus favoritos, combine com os amigos e descubra novas lojas pelo caminho.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function FinalCTA({ navigate }) {
   return (
     <section id="cta" className="section section-cta lovers-final-cta">
@@ -343,16 +261,7 @@ function FinalCTA({ navigate }) {
             >
               Começar pelos participantes <I.arrow />
             </LoversButton>
-            <LoversButton
-              variant="secondary"
-              href="#/lovers/mapa"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-            >
-              <I.map width={18} height={18} /> Abrir mapa da doçura
-            </LoversButton>
           </div>
-
-          <p className="lovers-final-cta__micro">De 4 a 14 de junho · Natal/RN</p>
 
           <a className="lovers-final-cta__ig"
              href="https://instagram.com/sweetcoffeeweek"
@@ -378,11 +287,9 @@ export function LoversPage({ navigate }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
       <LoversStickers page="sobre" />
       <Hero navigate={navigate} />
-      <Sobre />
-      <ComoFunciona />
-      <StatCards />
+      <OQueEComoFunciona />
+      <StatsStrip />
       <NavCards navigate={navigate} />
-      <RotaDaDocura navigate={navigate} />
       <FinalCTA navigate={navigate} />
     </div>
   )
