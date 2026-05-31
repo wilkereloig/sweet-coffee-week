@@ -896,6 +896,19 @@
 .combo-detail-combo-card__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-yellow); }
 .combo-detail-combo-card__value { font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(18px, 2vw, 24px); text-transform: uppercase; }
 .combo-detail-combo-card__price { font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(24px, 3vw, 34px); color: var(--lovers-yellow); }
+.combo-detail-combo-card__soon-badge {
+  display: inline-flex; align-items: center; gap: 7px; margin-bottom: 4px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,232,210,.14); border: 1px solid rgba(255,232,210,.34);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--lovers-yellow);
+}
+.combo-detail-combo-card__soon-badge svg { display: block; }
+.combo-detail-combo-card__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+@media (max-width: 600px) {
+  .combo-detail-combo-card__ctas { width: 100%; }
+  .combo-detail-combo-card__ctas .lovers-button { width: 100%; justify-content: center; }
+}
 .combo-detail-combo-card__items { display: grid; gap: 10px; margin-top: 22px; }
 .combo-detail-combo-card__item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.14); }
 .combo-detail-combo-card__item-k { flex: 0 0 80px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-yellow); }
