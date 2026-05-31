@@ -725,6 +725,8 @@ export function MapaGooglePage({ navigate }) {
       const QR = await import('qrcode')
       const qr = await QR.toDataURL(url, { margin: 1, width: 240, color: { dark: '#3a0f1e', light: '#ffffff' } })
       setQrDataUrl(qr)
+      // garante que as webfonts (Typekit/Google) estejam carregadas antes de rasterizar
+      if (document.fonts && document.fonts.ready) { try { await document.fonts.ready } catch {} }
       // espera o QR pintar antes de capturar
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
       const { toBlob } = await import('html-to-image')
@@ -796,13 +798,13 @@ export function MapaGooglePage({ navigate }) {
           ) : (
             <>
             <div className="mapa-topbar" role="toolbar" aria-label="Ações do mapa">
-              <button type="button" className="mapa-topbar__btn" onClick={() => setSearchOpen(true)}>
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--search" onClick={() => setSearchOpen(true)}>
                 <I.search width={16} height={16} /><span>Buscar</span>
               </button>
-              <button type="button" className="mapa-topbar__btn" onClick={() => setIsRoutePanelOpen(true)}>
-                <I.route width={16} height={16} /><span>Minha rota{routeLocationIds.length ? ` · ${routeLocationIds.length}` : ''}</span>
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--route" onClick={() => setIsRoutePanelOpen(true)}>
+                <I.heart width={16} height={16} /><span>Minha rota{routeLocationIds.length ? ` · ${routeLocationIds.length}` : ''}</span>
               </button>
-              <button type="button" className="mapa-topbar__btn" onClick={requestUserLocation} disabled={locating}>
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--near" onClick={requestUserLocation} disabled={locating}>
                 <I.pin width={16} height={16} /><span>{locating ? 'Localizando…' : 'Perto de mim'}</span>
               </button>
             </div>
@@ -1288,36 +1290,55 @@ export function MapaGooglePage({ navigate }) {
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
             position: relative;
-            width: 40px;
-            height: 55px;
+            width: 28px;
+            height: 38px;
             cursor: pointer;
             transition: transform .15s ease;
             transform-origin: bottom center;
+          }
+          /* área de toque acessível (>=44px) mesmo com pin pequeno */
+          .lovers-pin::before {
+            content: ''; position: absolute; left: 50%; top: 45%;
+            width: 44px; height: 44px; transform: translate(-50%,-50%);
           }
           .lovers-pin__svg { width: 100%; height: 100%; display: block; overflow: visible; }
           .lovers-pin__heart-outer { fill: #f10767; }
           .lovers-pin__heart-inner { fill: #7f0018; }
           .lovers-pin__badge {
             position: absolute;
-            right: -9px;
-            bottom: 7px;
-            min-width: 25px;
-            height: 25px;
-            padding: 0 5px;
+            right: -6px;
+            bottom: 5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
             border-radius: 999px;
             background: #F5B800;
             color: #3F1A0A;
             font-family: var(--font-lovers-display);
             font-weight: 700;
-            font-size: 17px;
-            line-height: 25px;
+            font-size: 12px;
+            line-height: 18px;
             text-align: center;
             box-sizing: border-box;
             box-shadow: 0 1px 3px rgba(0,0,0,.25);
           }
-          .lovers-pin--selected { transform: scale(1.25); }
+          .lovers-pin--selected { transform: scale(1.3); z-index: 10; }
           .lovers-pin--selected .lovers-pin__heart-outer { fill: #b80050; }
           .lovers-pin--selected .lovers-pin__heart-inner { fill: #4a000e; }
+          /* halo pulsante (radar) no pin selecionado */
+          .lovers-pin--selected::after {
+            content: ''; position: absolute; left: 50%; top: 40%;
+            width: 24px; height: 24px; transform: translate(-50%,-50%);
+            border-radius: 50%; background: rgba(242,5,103,.45);
+            animation: loversPinHalo 1.8s ease-out infinite; pointer-events: none; z-index: -1;
+          }
+          @keyframes loversPinHalo {
+            0%   { transform: translate(-50%,-50%) scale(.6); opacity: .7; }
+            100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .lovers-pin--selected::after { animation: none; opacity: 0; }
+          }
           /* ── painéis flutuantes desktop (lista esquerda / mapa direita) ──
              Variáveis de espaçamento p/ blocos flutuando sobre o cenário. */
           .mapa-fullscreen {
@@ -1534,13 +1555,16 @@ export function MapaGooglePage({ navigate }) {
             background: rgba(255,255,255,.92); color: var(--lovers-brown);
             border: 1px solid rgba(135,14,45,.18);
             font-family: var(--font-lovers-body); font-weight: 700;
-            font-size: 12.5px; letter-spacing: .02em; cursor: pointer;
+            font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
             box-shadow: 0 4px 14px rgba(43,24,16,.10);
             transition: transform .15s, box-shadow .15s, background .15s;
           }
-          .mapa-topbar__btn:hover { transform: translateY(-1px); background: #fff; box-shadow: 0 8px 20px rgba(43,24,16,.16); }
+          .mapa-topbar__btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(43,24,16,.18); }
           .mapa-topbar__btn:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
           .mapa-topbar__btn svg { flex-shrink: 0; }
+          .mapa-topbar__btn--search { background: var(--lovers-yellow); color: #3a0f1e; border-color: transparent; }
+          .mapa-topbar__btn--route { background: var(--lovers-pink); color: #fff; border-color: transparent; }
+          .mapa-topbar__btn--near { background: var(--lovers-purple); color: #fff; border-color: transparent; }
 
           /* ── Modal de busca + filtro ── */
           .mapa-search-modal {
@@ -1590,9 +1614,9 @@ export function MapaGooglePage({ navigate }) {
           .sweet-story__more { text-align: center; font-family: var(--font-mono); font-size: 28px; opacity: .85; margin: 20px 0 0; }
           .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(58,15,30,.22); }
           .sweet-story__qr { width: 150px; height: 150px; border-radius: 18px; background: #fff; padding: 10px; box-sizing: border-box; }
-          .sweet-story__cta { display: flex; flex-direction: column; gap: 6px; }
-          .sweet-story__cta strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 46px; text-transform: uppercase; }
-          .sweet-story__cta span { font-family: var(--font-mono); font-size: 28px; color: #870e2d; }
+          .sweet-story__cta { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+          .sweet-story__cta strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 40px; line-height: 1.1; text-transform: uppercase; }
+          .sweet-story__cta span { font-family: var(--font-mono); font-size: 26px; color: #870e2d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
           /* ── Tela "Minha rota" fullscreen ── */
           .sweet-route-screen { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; background: #F5B800; color: #3a0f1e; }
