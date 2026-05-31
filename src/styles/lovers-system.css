@@ -156,7 +156,7 @@
 .lovers-hero__media { position: relative; }
 .lovers-hero__actions { display: flex; flex-wrap: wrap; gap: var(--lovers-space-sm); margin-top: var(--lovers-space-xs); }
 .lovers-hero--gradient {
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: var(--lovers-cream);
 }
 
@@ -172,7 +172,7 @@
    Classes específicas da landing "Sobre a edição". Aditivo; não redefine
    paleta nem componentes base. Carrega após styles.css (vence empates).
    ===================================================================== */
-.lovers-home { position: relative; background: #FFE8D2; }
+.lovers-home { position: relative; background: var(--lovers-cream); }
 
 /* ── Hero: decoração extra (2º sticker flutuante + orb roxo) ── */
 .lovers-hero .lovers-orb--purple { width: 150px; height: 150px; bottom: 8%; right: 32%; animation-delay: -3.2s; }
@@ -805,7 +805,7 @@
 .combo-detail-hero {
   position: relative; overflow: hidden; color: var(--lovers-cream);
   padding: clamp(44px, 7vw, 96px) 0 clamp(44px, 7vw, 88px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
 }
 .combo-detail-hero__grid {
   position: relative; z-index: 2;
@@ -943,7 +943,7 @@
   width: min(100%, 1280px); margin-inline: auto;
   border-radius: clamp(28px, 3vw, 46px);
   padding: clamp(40px, 7vw, 92px) clamp(24px, 6vw, 80px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: #fff;
   box-shadow: 0 24px 70px rgba(43,24,16,.24);
 }
@@ -973,7 +973,7 @@
 .awards-hero {
   position: relative; overflow: hidden; color: var(--lovers-cream);
   padding: clamp(48px, 8vw, 110px) 0 clamp(48px, 8vw, 100px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
 }
 .awards-hero__inner { position: relative; z-index: 2; }
 .awards-hero__content { max-width: 700px; }
@@ -1077,7 +1077,7 @@
   width: min(100%, 1280px); margin-inline: auto;
   border-radius: clamp(28px, 3vw, 46px);
   padding: clamp(40px, 7vw, 92px) clamp(24px, 6vw, 80px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: #fff;
   box-shadow: 0 24px 70px rgba(43,24,16,.24);
 }
