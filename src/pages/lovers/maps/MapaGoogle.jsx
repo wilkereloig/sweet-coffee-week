@@ -716,11 +716,7 @@ export function MapaGooglePage({ navigate }) {
           ) : (
             <>
             <header className="mapa-hero">
-              <span className="mapa-hero__sticker" aria-hidden="true"><I.heart /> Rota da Doçura</span>
-              <span className="mapa-hero__kicker">Mapa da Doçura</span>
               <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
-              <p className="mapa-hero__subtitle">Encontre as lojas participantes, veja o que está perto de você e monte sua própria Rota da Doçura.</p>
-              <p className="mapa-hero__microcopy">Você escolhe os destinos. O Sweet te mostra o caminho.</p>
             </header>
             {hasMissingCoords && (
               <div className="mono" style={{
@@ -830,8 +826,8 @@ export function MapaGooglePage({ navigate }) {
                       cursor: locating ? 'default' : 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>📍</span>
-                    {locating ? 'Localizando…' : 'Usar minha localização'}
+                    <I.pin width={16} height={16} />
+                    {locating ? 'Localizando…' : 'Ver participantes perto de mim'}
                   </button>
                 ) : (
                   <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
@@ -879,7 +875,7 @@ export function MapaGooglePage({ navigate }) {
                 <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>
                     {finalParticipants.length === participants.length
-                      ? `PARTICIPANTES · ${participants.length}`
+                      ? `${participants.length} PARTICIPANTES · ${allLocations.length} LOJAS`
                       : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
                   </span>
                   {selectedLocationId && (
@@ -949,8 +945,26 @@ export function MapaGooglePage({ navigate }) {
                         key={p.id}
                         className={`map-participant-card${isActive ? ' map-participant-card--active' : ''}`}
                       >
-                        {/* cabeçalho do card */}
-                        <div className="map-card-header">
+                        {/* cabeçalho do card — clicável: expande/recolhe + seleciona no mapa */}
+                        <div
+                          className="map-card-header"
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isActive}
+                          onClick={() => {
+                            if (isActive) { setSelectedParticipantId(null); setSelectedLocationId(null) }
+                            else if (locsForCard[0]) { focusLocation(locsForCard[0]) }
+                            else { setSelectedParticipantId(p.id) }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              if (isActive) { setSelectedParticipantId(null); setSelectedLocationId(null) }
+                              else if (locsForCard[0]) { focusLocation(locsForCard[0]) }
+                              else { setSelectedParticipantId(p.id) }
+                            }
+                          }}
+                        >
                           <div className="map-card-brand">
                             {p.logo ? (
                               <div className="map-card-logo">
@@ -981,9 +995,13 @@ export function MapaGooglePage({ navigate }) {
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
                           </div>
+                          <span className="map-card-chevron" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                          </span>
                         </div>
 
-                        {/* lista de unidades */}
+                        {/* lista de unidades — visível só quando expandido */}
+                        {isActive && (<>
                         <div className={`map-location-list${manyUnits ? ' map-location-list--many' : ''}`}>
                           {locsForCard.map(loc => {
                             const isLocActive = selectedLocationId === loc.id
@@ -1048,7 +1066,9 @@ export function MapaGooglePage({ navigate }) {
                                       rel="noopener noreferrer"
                                       onClick={e => e.stopPropagation()}
                                     >
-                                      <I.route />
+                                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5-3.5 3.5z" />
+                                      </svg>
                                     </a>
                                   )}
                                   <button
@@ -1088,6 +1108,7 @@ export function MapaGooglePage({ navigate }) {
                             {LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} <I.arrow />
                           </button>
                         )}
+                        </>)}
                       </div>
                     )
                   })}
@@ -2037,9 +2058,19 @@ export function MapaGooglePage({ navigate }) {
           .map-card-header {
             display: flex;
             gap: 14px;
-            align-items: flex-start;
-            margin-bottom: 14px;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+            border-radius: 14px;
           }
+          .map-participant-card--active .map-card-header { margin-bottom: 14px; }
+          .map-card-header:focus-visible { outline: 2px solid var(--lovers-pink, #f20567); outline-offset: 2px; }
+          .map-card-chevron {
+            margin-left: auto; flex: 0 0 auto; display: flex; align-items: center;
+            color: rgba(135,14,45,.5); transition: transform .2s ease;
+          }
+          .map-participant-card--active .map-card-chevron { transform: rotate(180deg); }
+          @media (prefers-reduced-motion: reduce) { .map-card-chevron { transition: none; } }
           .map-card-brand {
             position: relative;
             flex: 0 0 auto;
@@ -2319,25 +2350,28 @@ export function MapaGooglePage({ navigate }) {
           .map-icon-action svg { width: 20px; height: 20px; }
           .map-icon-action:hover {
             transform: translateY(-2px);
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+            filter: brightness(.93);
             box-shadow: 0 8px 18px rgba(135,14,45,.22);
           }
+          /* 4 ações com cores distintas (preenchidas) */
+          .map-icon-action[title="Ver no mapa"] {
+            background: var(--lovers-cyan); color: #04282d; border-color: var(--lovers-cyan);
+          }
           .map-icon-action--primary {
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+            background: var(--lovers-pink); color: #fff; border-color: var(--lovers-pink);
           }
-          .map-icon-action--active {
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+          .map-icon-action--route {
+            background: var(--lovers-purple); color: #fff; border-color: var(--lovers-purple);
           }
-          .map-icon-action--selected {
-            background: var(--lovers-pink);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-pink);
+          .map-icon-action[title="Instagram"] {
+            background: var(--lovers-yellow); color: var(--lovers-brown); border-color: var(--lovers-yellow);
+          }
+          /* estados de seleção vencem (specificity 2 classes + ordem) */
+          .map-icon-action.map-icon-action--active {
+            background: var(--lovers-red); color: var(--lovers-cream); border-color: var(--lovers-red);
+          }
+          .map-icon-action.map-icon-action--selected {
+            background: var(--lovers-red); color: var(--lovers-cream); border-color: var(--lovers-red);
           }
 
           input[type=text]:focus { border-color: var(--lovers-red) !important; }

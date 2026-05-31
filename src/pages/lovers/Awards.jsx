@@ -43,14 +43,6 @@ export function AwardsPage({ navigate }) {
             Em breve, você vai poder acompanhar as ações da edição, participar das experiências
             especiais e celebrar os favoritos do Sweet &amp; Coffee Week Lovers.
           </p>
-          <div className="lovers-public-hero__actions">
-            <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
-              Ver participantes <I.arrow />
-            </LoversButton>
-            <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-              <I.map width={18} height={18} /> Abrir mapa da doçura
-            </LoversButton>
-          </div>
         </div>
       </section>
 
@@ -60,10 +52,6 @@ export function AwardsPage({ navigate }) {
           <div className="lovers-public-section__header lovers-reveal">
             <span className="lovers-eyebrow" style={{ justifyContent: 'center' }}>Em breve</span>
             <h2 className="lovers-public-section__title">A premiação está sendo preparada.</h2>
-            <p className="lovers-public-section__lead">
-              Estamos organizando os próximos passos para que os Sweet Lovers possam acompanhar,
-              participar e celebrar a edição.
-            </p>
           </div>
           <div className="lovers-public-card-grid">
             {SOON_CARDS.map((c, i) => (
@@ -86,9 +74,6 @@ export function AwardsPage({ navigate }) {
         <div className="wrap lovers-safe-wrap">
           <div className="awards-final-cta lovers-reveal">
             <h2 className="awards-final-cta__title">Enquanto isso, <span>monte sua rota.</span></h2>
-            <p className="awards-final-cta__text">
-              Conheça os participantes, escolha suas paradas e acompanhe as novidades pelo Instagram oficial.
-            </p>
             <div className="awards-final-cta__ctas">
               <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
                 Ver participantes <I.arrow />

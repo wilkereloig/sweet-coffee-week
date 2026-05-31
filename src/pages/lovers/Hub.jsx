@@ -128,7 +128,7 @@ function OQueEComoFunciona() {
     { n: '01', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)' },
     { n: '02', h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)' },
     { n: '03', h: 'Você monta sua rota',            p: 'Escolha os participantes, visite as lojas e descubra a cidade através dos sabores.',          accent: 'var(--lovers-cyan)' },
-    { n: '04', h: 'Combo padrão',                   p: '1 doce + 1 salgado + 1 bebida por R$ 38,90.',                                                 accent: 'var(--lovers-purple)' },
+    { n: '04', h: 'R$ 38,90',                       p: 'Combo padrão: 1 doce + 1 salgado + 1 bebida.',                                                accent: 'var(--lovers-purple)' },
   ]
   return (
     <section id="sobre" className="section section-sobre">
@@ -140,18 +140,6 @@ function OQueEComoFunciona() {
               Lovers é sobre quem<br />
               faz o <span style={{ color: 'var(--lovers-burgundy)' }}>Sweet acontecer.</span>
             </h2>
-          </div>
-
-          <div className="lovers-concept__copy reveal reveal-up reveal-delay-1">
-            <p className="lovers-concept__text">
-              Não é sobre amor romântico. É sobre os <strong>Sweet Lovers</strong>: quem acompanha
-              o festival, visita as lojas, fotografa, marca os amigos, vota e transforma cada edição
-              em uma experiência coletiva. Nos 10 anos, o público é o grande homenageado.
-            </p>
-            <div className="lovers-concept__highlight">
-              Sweet Lovers são fãs, clientes, amigos, famílias e grupos que vivem o festival como
-              roteiro, memória e descoberta.
-            </div>
           </div>
         </div>
 
@@ -288,7 +276,6 @@ export function LoversPage({ navigate }) {
       <LoversStickers page="sobre" />
       <Hero navigate={navigate} />
       <OQueEComoFunciona />
-      <StatsStrip />
       <NavCards navigate={navigate} />
       <FinalCTA navigate={navigate} />
     </div>
