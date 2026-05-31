@@ -173,10 +173,10 @@ function Sobre() {
 
 function ComoFunciona() {
   const steps = [
-    { n: '01', h: 'Uma memória do Sweet',       p: 'Cada loja escolheu um tema que já fez parte da trajetória do festival.',            accent: 'var(--lovers-pink)' },
-    { n: '02', h: 'Uma nova criação',           p: 'O tema volta reinterpretado em um combo especial.',                                accent: 'var(--lovers-yellow)' },
-    { n: '03', h: 'Uma rota pela cidade',       p: 'Você escolhe seus destinos e monta sua própria Rota da Doçura.',                   accent: 'var(--lovers-cyan)' },
-    { n: '04', h: 'Uma experiência para viver', p: 'No Sweet, você não sai só para comer. Você sai para viver uma história.',          accent: 'var(--lovers-purple)' },
+    { n: '01', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)' },
+    { n: '02', h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)' },
+    { n: '03', h: 'Você monta sua rota',            p: 'Escolha os participantes, visite as lojas e descubra a cidade através dos sabores.',          accent: 'var(--lovers-cyan)' },
+    { n: '04', h: 'Combo padrão',                   p: '1 doce + 1 salgado + 1 bebida por R$ 38,90.',                                                 accent: 'var(--lovers-purple)' },
   ]
   return (
     <section id="como" className="section section-como">
@@ -184,14 +184,12 @@ function ComoFunciona() {
         <div className="lovers-section-header reveal reveal-left" style={{ marginBottom: 'clamp(28px, 3vw, 44px)' }}>
           <span className="lovers-eyebrow" style={{ color: 'var(--lovers-yellow)' }}>Como funciona</span>
           <h2 className="lovers-section__title" style={{ color: 'var(--lovers-cream)' }}>
-            Os temas voltaram.<br />
-            Mas os sabores são <span style={{ color: 'var(--lovers-yellow)' }}>novos.</span>
+            A memória volta.<br />
+            O sabor é <span style={{ color: 'var(--lovers-yellow)' }}>novo.</span>
           </h2>
           <p className="lovers-section__lead" style={{ color: 'rgba(255,232,210,.9)' }}>
-            Para celebrar os 10 anos do Sweet &amp; Coffee Week, cada participante escolheu um tema que
-            marcou a história do festival e transformou essa memória em uma nova experiência. Tem filme,
-            série, viagem, música, conto de fada, celebração, sabor potiguar e universo que muita gente
-            viveu junto.
+            Na edição Lovers, cada participante revisita uma lembrança da história do Sweet &amp; Coffee
+            Week e transforma essa inspiração em uma nova experiência.
           </p>
         </div>
 
