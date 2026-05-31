@@ -256,7 +256,7 @@ export function ComboPage({ navigate }) {
                 href="#/lovers/mapa"
                 onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
               >
-                <I.route /> Abrir mapa da Doçura
+                <I.map width={18} height={18} /> Abrir mapa da Doçura
               </LoversButton>
             </div>
           </div>
