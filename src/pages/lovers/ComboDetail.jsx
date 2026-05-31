@@ -389,7 +389,7 @@ function ComboDetailPageInner({ navigate, slug }) {
           <div className="combo-detail-final-cta lovers-reveal">
             <span className="lovers-sticker lovers-sticker--purple combo-detail-final-cta__sticker" aria-hidden="true">rota da doçura</span>
             <h2 className="combo-detail-final-cta__title">
-              Salve esse destino e coloque<br />na sua <span>Rota da Doçura.</span>
+              Salve esse destino e coloque na sua <span>Rota da Doçura.</span>
             </h2>
             <div className="combo-detail-final-cta__ctas">
               <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>

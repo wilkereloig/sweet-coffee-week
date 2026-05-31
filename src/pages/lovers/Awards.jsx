@@ -85,7 +85,7 @@ export function AwardsPage({ navigate }) {
       <section className="section awards-section" style={{ paddingTop: 0 }}>
         <div className="wrap lovers-safe-wrap">
           <div className="awards-final-cta lovers-reveal">
-            <h2 className="awards-final-cta__title">Enquanto isso,<br /><span>monte sua rota.</span></h2>
+            <h2 className="awards-final-cta__title">Enquanto isso, <span>monte sua rota.</span></h2>
             <p className="awards-final-cta__text">
               Conheça os participantes, escolha suas paradas e acompanhe as novidades pelo Instagram oficial.
             </p>
