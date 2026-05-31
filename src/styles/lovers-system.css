@@ -1093,6 +1093,7 @@
 /* Final CTA */
 .awards-final-cta {
   position: relative; isolation: isolate; overflow: hidden; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
   width: min(100%, 1280px); margin-inline: auto;
   border-radius: clamp(28px, 3vw, 46px);
   padding: clamp(36px, 5.5vw, 68px) clamp(24px, 6vw, 72px);
