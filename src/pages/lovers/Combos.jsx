@@ -125,7 +125,6 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         <span className="participant-showcase-card__index">
           <I.pin width={12} height={12} /> #{num}
         </span>
-        <span className="participant-showcase-card__stores">{storesLabel(participant)}</span>
         {status.state !== 'unknown' && (
           <span className={`participant-showcase-card__open participant-showcase-card__open--${status.state}`}>
             <span className="participant-showcase-card__open-dot" />{status.label}
