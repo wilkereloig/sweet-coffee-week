@@ -495,6 +495,8 @@ body.route-awards       { --lovers-hero-bg: var(--lovers-purple); --lovers-hero-
 .lovers-tabbar { display: none; }
 /* esconde a tabbar quando a tela "Minha rota" fullscreen está aberta */
 body.route-overlay-open .lovers-tabbar { display: none !important; }
+/* tabbar some ao rolar (controlado por JS na página do mapa) */
+body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity: 0; pointer-events: none; }
 @media (max-width: 768px) {
   body.route-mapa .site-header { display: none !important; }
   main.page-enter { padding-bottom: var(--tabbar-h); }
@@ -506,6 +508,7 @@ body.route-overlay-open .lovers-tabbar { display: none !important; }
     border-top: 1px solid rgba(255, 232, 210, .18);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -8px 24px rgba(43, 24, 16, .28);
+    transition: transform .28s ease, opacity .28s ease;
   }
   .lovers-tabbar__item {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;

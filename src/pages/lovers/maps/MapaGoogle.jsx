@@ -474,6 +474,10 @@ export function MapaGooglePage({ navigate }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+  useEffect(() => {
+    document.body.classList.toggle('lovers-tabbar-hidden', !barVisible)
+    return () => document.body.classList.remove('lovers-tabbar-hidden')
+  }, [barVisible])
 
   const mapDebug = isMapDebugEnabled()
 
@@ -810,11 +814,11 @@ export function MapaGooglePage({ navigate }) {
           ) : (
             <>
             {!barVisible && (
-              <button type="button" className="mapa-topbar-fab" aria-label="Mostrar ações do mapa" onClick={() => setBarVisible(true)}>
-                <I.search width={18} height={18} />
+              <button type="button" className="mapa-tabbar-fab" aria-label="Mostrar menu" onClick={() => setBarVisible(true)}>
+                <I.menu width={20} height={20} />
               </button>
             )}
-            <div className={`mapa-topbar${barVisible ? '' : ' mapa-topbar--hidden'}`} role="toolbar" aria-label="Ações do mapa">
+            <div className="mapa-topbar" role="toolbar" aria-label="Ações do mapa">
               <button type="button" className="mapa-topbar__btn mapa-topbar__btn--search" onClick={() => setSearchOpen(true)}>
                 <I.search width={16} height={16} /><span>Buscar</span>
               </button>
@@ -1571,13 +1575,12 @@ export function MapaGooglePage({ navigate }) {
             padding: 10px 0 12px;
             transition: transform .28s ease, opacity .28s ease;
           }
-          .mapa-topbar--hidden { transform: translateY(-140%); opacity: 0; pointer-events: none; }
-          .mapa-topbar-fab {
-            position: sticky; top: 10px; z-index: 21; margin: 6px 0 0 auto; display: flex;
-            width: 46px; height: 46px; align-items: center; justify-content: center;
+          .mapa-tabbar-fab {
+            position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 305;
+            display: flex; width: 50px; height: 50px; align-items: center; justify-content: center;
             border: 0; border-radius: 999px; cursor: pointer;
             background: var(--lovers-pink); color: #fff;
-            box-shadow: 0 6px 18px rgba(43,24,16,.28);
+            box-shadow: 0 8px 22px rgba(43,24,16,.34);
           }
           .mapa-topbar__btn {
             display: inline-flex; align-items: center; gap: 7px;
