@@ -462,6 +462,18 @@ export function MapaGooglePage({ navigate }) {
     document.body.classList.toggle('route-overlay-open', isRoutePanelOpen)
     return () => document.body.classList.remove('route-overlay-open')
   }, [isRoutePanelOpen])
+  // barra de ações some ao rolar pra baixo; FAB reexibe
+  const [barVisible, setBarVisible] = useState(true)
+  useEffect(() => {
+    let lastY = window.scrollY || 0
+    const onScroll = () => {
+      const y = window.scrollY || 0
+      if (y > lastY + 8 && y > 90) setBarVisible(false)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const mapDebug = isMapDebugEnabled()
 
@@ -797,7 +809,12 @@ export function MapaGooglePage({ navigate }) {
             </div>
           ) : (
             <>
-            <div className="mapa-topbar" role="toolbar" aria-label="Ações do mapa">
+            {!barVisible && (
+              <button type="button" className="mapa-topbar-fab" aria-label="Mostrar ações do mapa" onClick={() => setBarVisible(true)}>
+                <I.search width={18} height={18} />
+              </button>
+            )}
+            <div className={`mapa-topbar${barVisible ? '' : ' mapa-topbar--hidden'}`} role="toolbar" aria-label="Ações do mapa">
               <button type="button" className="mapa-topbar__btn mapa-topbar__btn--search" onClick={() => setSearchOpen(true)}>
                 <I.search width={16} height={16} /><span>Buscar</span>
               </button>
@@ -1454,8 +1471,12 @@ export function MapaGooglePage({ navigate }) {
               min-height: 0;
               max-height: none;
             }
-            .mapa-fullscreen .mapa-container { min-height: 360px; height: 52svh; max-height: 520px; order: 1; }
-            .mapa-fullscreen .map-sidebar { height: min(680px, 72svh); min-height: 480px; max-height: 720px; order: 2; }
+            .mapa-fullscreen .mapa-container { min-height: 360px; height: 48svh; max-height: 520px; order: 1; }
+            .mapa-fullscreen .map-sidebar { height: auto; min-height: 0; max-height: none; order: 2; }
+            /* mapa fixo no topo (abaixo da barra), lista rola na página */
+            .mapa-fullscreen .mapa-floating-panel--map { position: sticky; top: 56px; z-index: 4; }
+            .mapa-fullscreen .mapa-floating-panel { min-height: 0; }
+            .mapa-floating-panel--sidebar .map-sidebar-scroll { overflow: visible; }
           }
           @media (max-width: 480px) {
             .mapa-fullscreen { --map-panel-radius: 22px; }
@@ -1548,6 +1569,15 @@ export function MapaGooglePage({ navigate }) {
             position: sticky; top: 0; z-index: 20;
             display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
             padding: 10px 0 12px;
+            transition: transform .28s ease, opacity .28s ease;
+          }
+          .mapa-topbar--hidden { transform: translateY(-140%); opacity: 0; pointer-events: none; }
+          .mapa-topbar-fab {
+            position: sticky; top: 10px; z-index: 21; margin: 6px 0 0 auto; display: flex;
+            width: 46px; height: 46px; align-items: center; justify-content: center;
+            border: 0; border-radius: 999px; cursor: pointer;
+            background: var(--lovers-pink); color: #fff;
+            box-shadow: 0 6px 18px rgba(43,24,16,.28);
           }
           .mapa-topbar__btn {
             display: inline-flex; align-items: center; gap: 7px;
