@@ -473,6 +473,8 @@
 .section-sobre .lovers-concept__how-label { display: inline-flex; justify-content: center; }
 .section-sobre .lovers-concept__head .lovers-eyebrow::before,
 .section-sobre .lovers-concept__how-label::before { display: none; }
+/* Conteúdo dos step cards alinhado à esquerda (label "Como funciona" segue centrada) */
+.section-sobre .lovers-step-card { text-align: left; }
 
 /* ── Faixa de números slim (inline, divisores) ── */
 .lovers-stats-section { padding-top: clamp(8px, 2vw, 20px); }
