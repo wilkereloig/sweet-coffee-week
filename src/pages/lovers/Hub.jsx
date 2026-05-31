@@ -288,7 +288,6 @@ export function LoversPage({ navigate }) {
       <LoversStickers page="sobre" />
       <Hero navigate={navigate} />
       <OQueEComoFunciona />
-      <StatsStrip />
       <NavCards navigate={navigate} />
       <FinalCTA navigate={navigate} />
     </div>
