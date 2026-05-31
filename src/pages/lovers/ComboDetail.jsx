@@ -6,7 +6,6 @@ import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
-import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
 
 // Preview data só em desenvolvimento local com a flag ligada.
 const ENABLE_PREVIEW_DATA =
@@ -57,6 +56,18 @@ function getInitials(name) {
 }
 function instagramUrl(instagram) {
   return instagram ? `https://www.instagram.com/${instagram.replace('@', '')}` : null
+}
+// Formata preço para BRL. Aceita número (49.9) ou string já formatada ("R$ 49,90").
+function formatPrice(price) {
+  if (price == null || price === '') return null
+  if (typeof price === 'number') {
+    return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+  const n = Number(String(price).replace(/[^\d,.-]/g, '').replace(',', '.'))
+  if (!isNaN(n) && /^[\d.,\s]+$/.test(String(price).trim())) {
+    return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+  return String(price) // já vem formatado/textual
 }
 function mapsSearchUrl(loc, participant) {
   if (loc?.mapsUrl) return loc.mapsUrl
@@ -213,19 +224,18 @@ function ComboDetailPageInner({ navigate, slug }) {
   const name = participant?.name || combo?.name || 'Participante'
   const theme = participant?.theme || combo?.recreatedTheme || null
   const instagram = instagramUrl(participant?.instagram)
-  const gallery = combo?.gallery || COMBO_PHOTOS[participant?.slug]?.gallery || []
+  // Fotos ainda NÃO reveladas: só usa gallery vinda do próprio combo (vazia por ora).
+  // Não puxar de COMBO_PHOTOS até liberarmos as fotos. Sem foto → placeholder.
+  const gallery = combo?.gallery || []
 
   const comboItems = combo
     ? [
-        { k: 'Doce', v: combo.sweetDescription },
-        { k: 'Salgado', v: combo.savoryDescription },
-        { k: 'Bebida', v: combo.drinkDescription },
-      ].filter(it => it.v)
+        { k: 'Doce', v: combo.sweetDescription, img: combo.sweetImage },
+        { k: 'Salgado', v: combo.savoryDescription, img: combo.savoryImage },
+        { k: 'Bebida', v: combo.drinkDescription, img: combo.drinkImage },
+      ].filter(it => it.v || it.img)
     : []
-  const hasComboData = !!(combo && (combo.description || comboItems.length))
-  const reveal = LOVERS_SHOW_COMBO_DETAILS
-  const showCombo = reveal && hasComboData
-
+  const priceLabel = formatPrice(combo?.price)
   const locations =
     participant?.locations && participant.locations.length
       ? participant.locations
@@ -248,7 +258,7 @@ function ComboDetailPageInner({ navigate, slug }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
       <LoversStickers page="combos" />
 
-      {showCombo ? (
+      {(
         <>
           {/* 1 ── HERO DO COMBO — fotos em destaque + nome/descrição/preço/itens/CTAs */}
           <section className="combo-detail-hero combo-detail-hero--combo">
@@ -260,33 +270,28 @@ function ComboDetailPageInner({ navigate, slug }) {
               {/* fotos (primeiro no mobile, coluna esquerda no desktop) */}
               <div className="combo-detail-hero__media combo-detail-hero__media--combo">
                 <span className="lovers-sticker lovers-sticker--cyan combo-detail-hero__sticker" aria-hidden="true">recriado ♥</span>
-                <ComboHeroPhotos photos={gallery} label={combo.name || name} />
+                <ComboHeroPhotos photos={gallery} label={combo?.name || name} />
               </div>
 
               {/* informações do combo */}
               <div className="combo-detail-hero__content">
                 <span className="combo-detail-hero__kicker">O combo</span>
-                <h1 className="combo-detail-hero__name">{combo.name || name}</h1>
-                <p className="combo-detail-hero__by">por {name}</p>
+                <h1 className="combo-detail-hero__name">{combo?.name || name}</h1>
+                {combo?.name && <p className="combo-detail-hero__by">por {name}</p>}
 
-                {combo.description && <p className="combo-detail-hero__intro">{combo.description}</p>}
-                {combo.price && <div className="combo-detail-hero__price">{combo.price}</div>}
+                {theme && (
+                  <span className="combo-detail-hero__memoria">
+                    <span className="combo-detail-hero__memoria-dot" aria-hidden="true" />
+                    Releitura · {theme} · {edition}
+                  </span>
+                )}
+
+                {combo?.description && <p className="combo-detail-hero__intro">{combo.description}</p>}
+                {priceLabel && <div className="combo-detail-hero__price">{priceLabel}</div>}
 
                 <div className="combo-detail-hero__badges">
                   <span className="combo-detail-badge"><span className="combo-detail-badge__dot" />Sweet &amp; Coffee Week Lovers</span>
                 </div>
-
-                {/* 2 ── ITENS DO COMBO (dentro do hero) */}
-                {comboItems.length > 0 && (
-                  <div className="combo-detail-hero__items">
-                    {comboItems.map(it => (
-                      <div className="combo-detail-hero__item" key={it.k}>
-                        <span className="combo-detail-hero__item-k">{it.k}</span>
-                        <span className="combo-detail-hero__item-v">{it.v}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 <div className="combo-detail-hero__ctas">
                   {locations[0] && directionsUrl(locations[0], participant) && (
@@ -307,98 +312,34 @@ function ComboDetailPageInner({ navigate, slug }) {
             </div>
           </section>
 
-          {/* 3 ── MEMÓRIA RECRIADA (tema/edição — conteúdo secundário) */}
-          <section className="section combo-detail-section">
-            <div className="wrap lovers-safe-wrap">
-              <article className="combo-detail-theme-card lovers-reveal">
-                <span className="lovers-sticker lovers-sticker--pink combo-detail-theme-card__sticker" aria-hidden="true">10 anos ♥</span>
-                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>Memória recriada</span>
-                <p className="combo-detail-theme-card__lead">
-                  Para celebrar os 10 anos do Sweet, esta criação revisita uma memória do festival com um
-                  novo olhar para a edição Lovers.
-                </p>
-                <div className="combo-detail-theme-card__highlights">
-                  <div className="combo-detail-theme-card__highlight">
-                    <span className="combo-detail-theme-card__label">Tema</span>
-                    <span className="combo-detail-theme-card__value">{theme || 'Tema em breve'}</span>
-                  </div>
-                  <div className="combo-detail-theme-card__highlight">
-                    <span className="combo-detail-theme-card__label">Edição revisitada</span>
-                    <span className="combo-detail-theme-card__value">{edition}</span>
-                  </div>
+          {/* 2 ── ITENS DO COMBO (cards com foto grande no topo) */}
+          {comboItems.length > 0 && (
+            <section className="section combo-detail-section">
+              <div className="wrap lovers-safe-wrap">
+                <div className="combo-detail-section__head lovers-reveal">
+                  <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O que vem no combo</span>
+                  <h2 className="combo-detail-section__title">Itens do combo.</h2>
                 </div>
-              </article>
-            </div>
-          </section>
-        </>
-      ) : (
-        <>
-          {/* HERO SEGURO — só dados públicos do participante, nada do combo */}
-          <section className="combo-detail-hero">
-            <div className="lovers-decor" aria-hidden="true">
-              <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, right: '6%' }} />
-              <span className="lovers-orb lovers-orb--cyan" style={{ width: 150, height: 150, bottom: -50, left: '3%' }} />
-            </div>
-            <div className="wrap lovers-safe-wrap combo-detail-hero__grid">
-              <div className="combo-detail-hero__media">
-                <div className="combo-detail-hero__logo">
-                  {participant?.logo
-                    ? <img src={participant.logo} alt={`Logo ${name}`} />
-                    : <span className="combo-detail-hero__logo-initials">{getInitials(name)}</span>}
+                <div className="combo-detail-items">
+                  {comboItems.map(it => (
+                    <article className="combo-detail-item-card lovers-reveal" key={it.k}>
+                      <div className="combo-detail-item-card__media">
+                        {it.img
+                          ? <img src={it.img} alt={`${it.k} — ${combo?.name || name}`} loading="lazy" />
+                          : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
+                      </div>
+                      <span className="combo-detail-item-card__k">{it.k}</span>
+                      {it.v && <p className="combo-detail-item-card__v">{it.v}</p>}
+                    </article>
+                  ))}
                 </div>
               </div>
-
-              <div className="combo-detail-hero__content">
-                <span className="combo-detail-hero__kicker">Participante Lovers</span>
-                <h1 className="combo-detail-hero__name">{name}</h1>
-                <p className="combo-detail-hero__intro">
-                  Esta loja faz parte da Sweet &amp; Coffee Week Lovers. O combo será revelado em breve.
-                </p>
-                <div className="combo-detail-hero__badges">
-                  <span className="combo-detail-badge combo-detail-badge--soft">Combo em breve</span>
-                </div>
-                <div className="combo-detail-hero__ctas">
-                  <LoversButton variant="secondary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
-                    Voltar para participantes
-                  </LoversButton>
-                  <LoversButton variant="primary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-                    <I.map width={18} height={18} /> Abrir mapa da doçura
-                  </LoversButton>
-                  {instagram && (
-                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer">
-                      <I.ig /> Ver Instagram
-                    </LoversButton>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* CARD COMBO EM BREVE — sem foto, tema, edição, descrição ou itens */}
-          <section className="section combo-detail-section">
-            <div className="wrap lovers-safe-wrap">
-              <article className="combo-detail-combo-card combo-detail-combo-card--soon lovers-reveal">
-                <span className="combo-detail-combo-card__soon-badge"><I.heart width={13} height={13} /> Combo em breve</span>
-                <h2 className="combo-detail-combo-card__title">Combo em breve</h2>
-                <p className="combo-detail-combo-card__text">
-                  A criação desta loja será revelada em breve. Enquanto isso, você já pode salvar o participante
-                  na sua rota e acompanhar as novidades da edição.
-                </p>
-                <div className="combo-detail-combo-card__ctas">
-                  <LoversButton variant="primary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-                    <I.map width={18} height={18} /> Abrir mapa da doçura
-                  </LoversButton>
-                  <LoversButton variant="secondary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
-                    Ver outros participantes <I.arrow />
-                  </LoversButton>
-                </div>
-              </article>
-            </div>
-          </section>
+            </section>
+          )}
         </>
       )}
 
-      {/* ── ONDE ENCONTRAR (compartilhado) ── */}
+      {/* ── ONDE ENCONTRAR ── */}
       {locations.length > 0 && (
         <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
           <div className="wrap lovers-safe-wrap">

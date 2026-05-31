@@ -25,7 +25,7 @@ export const LOVERS_STICKERS = {
   ],
   // /lovers/combos/:slug — áreas vazias; nunca sobre nome/logo/CTA/endereço.
   combos: [
-    { src: '/images/adesivos/sobre-3.png',       style: { top: '12%',    right: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.09' } },
+    { src: '/images/adesivos/sobre-3.png',       style: { top: '48%',    right: '-13%', width: 'clamp(150px,15vw,300px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.09' } },
     { src: '/images/adesivos/Prancheta%203.png', style: { bottom: '10%', left: '-12%',  width: 'clamp(190px,21vw,420px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.11' } },
   ],
   // /lovers/premiacao — hero alinhado à esquerda: stickers à direita/cantos, longe do título.

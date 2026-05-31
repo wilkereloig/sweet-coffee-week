@@ -19,7 +19,7 @@ const LOVERS_LINKS = [
   { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
 ]
 
-const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
+const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
