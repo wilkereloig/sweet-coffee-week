@@ -480,6 +480,16 @@
    Tab bar inferior (estilo app) — só no /lovers/mapa em mobile.
    Header é escondido p/ dar destaque ao mapa em telas pequenas.
    ===================================================================== */
+/* ── Cor de acento por página: hero (.lovers-public-hero) e barra inferior
+   (.lovers-tabbar) compartilham --lovers-hero-bg → sempre a mesma cor.
+   Home (route-home/route-lovers) não define accent → mantém amarelo/burgundy. ── */
+body.route-participantes,
+body.route-combos,
+body.route-combo-detail { --lovers-hero-bg: var(--lovers-pink);   --lovers-hero-ink: #fff; }
+body.route-mapa         { --lovers-hero-bg: var(--lovers-cyan);   --lovers-hero-ink: #04282d; }
+body.route-premiacao,
+body.route-awards       { --lovers-hero-bg: var(--lovers-purple); --lovers-hero-ink: #fff; }
+
 .lovers-tabbar { display: none; }
 @media (max-width: 768px) {
   body.route-mapa .site-header { display: none !important; }
@@ -487,7 +497,7 @@
   .lovers-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
     display: flex; align-items: stretch; justify-content: space-around;
-    background: var(--lovers-burgundy);
+    background: var(--lovers-hero-bg, var(--lovers-burgundy));
     border-top: 1px solid rgba(255, 232, 210, .18);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -8px 24px rgba(43, 24, 16, .28);
@@ -495,14 +505,14 @@
   .lovers-tabbar__item {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
     padding: 7px 4px; text-decoration: none;
-    color: rgba(255, 232, 210, .68);
+    color: color-mix(in srgb, var(--lovers-hero-ink, #FFE8D2) 66%, transparent);
     font-family: var(--font-lovers-body); font-weight: 800;
     font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
     transition: color .15s ease;
   }
   .lovers-tabbar__item svg { display: block; }
-  .lovers-tabbar__item.is-active { color: var(--lovers-yellow); }
-  .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-yellow); outline-offset: -2px; border-radius: 10px; }
+  .lovers-tabbar__item.is-active { color: var(--lovers-hero-ink, var(--lovers-yellow)); }
+  .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-hero-ink, var(--lovers-yellow)); outline-offset: -2px; border-radius: 10px; }
 }
 
 /* ── Faixa de números slim (inline, divisores) ── */
@@ -1190,7 +1200,7 @@
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--lovers-burgundy); opacity: .9;
+  color: inherit; opacity: .82;
 }
 .lovers-public-hero__title {
   max-width: 1100px; margin: 14px auto 0;
