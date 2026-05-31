@@ -322,40 +322,43 @@ function FinalCTA({ navigate }) {
   return (
     <section id="cta" className="section section-cta lovers-final-cta">
       <div className="wrap lovers-safe-wrap">
-        <h2 className="lh1 reveal reveal-left" style={{ marginTop: 16, fontSize: 'clamp(56px, 8vw, 120px)' }}>
-          Vem viver essa<br />
-          história com a <span style={{ color: 'var(--lovers-yellow)' }}>gente.</span>
-        </h2>
-        <p className="reveal reveal-up reveal-delay-1">
-          De 4 a 14 de junho, Natal vai viver uma edição cheia de memórias, sabores e novas descobertas.
-        </p>
-        <p className="lovers-final-cta__sub reveal reveal-up reveal-delay-1">
-          Escolha seus participantes, monte sua rota e celebre os 10 anos do Sweet &amp; Coffee Week.
-        </p>
-        <div className="ctas reveal reveal-up reveal-delay-2">
-          <LoversButton
-            variant="primary"
-            href="#/lovers/participantes"
-            onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-          >
-            Ver participantes <I.arrow />
-          </LoversButton>
-          <LoversButton
-            variant="primary"
-            className="lf-btn-yellow"
-            href="#/lovers/mapa"
-            onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-          >
-            <I.route /> Montar minha rota
-          </LoversButton>
-          <LoversButton
-            variant="secondary"
-            href="https://instagram.com/sweetcoffeeweek"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <I.ig /> Seguir no Instagram
-          </LoversButton>
+        <div className="lovers-final-cta__inner reveal reveal-up">
+          <span className="lovers-eyebrow">Sweet &amp; Coffee Week Lovers</span>
+
+          <h2 className="lovers-final-cta__title">
+            Feito de amor,<br />
+            recriando <span>sabores.</span>
+          </h2>
+
+          <p className="lovers-final-cta__text">
+            Essa edição é um convite para revisitar a história do Sweet, descobrir novas
+            criações e viver Natal em modo doce.
+          </p>
+
+          <div className="lovers-final-cta__actions">
+            <LoversButton
+              variant="primary"
+              href="#/lovers/participantes"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
+            >
+              Começar pelos participantes <I.arrow />
+            </LoversButton>
+            <LoversButton
+              variant="secondary"
+              href="#/lovers/mapa"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+            >
+              <I.map width={18} height={18} /> Abrir mapa da doçura
+            </LoversButton>
+          </div>
+
+          <p className="lovers-final-cta__micro">De 4 a 14 de junho · Natal/RN</p>
+
+          <a className="lovers-final-cta__ig"
+             href="https://instagram.com/sweetcoffeeweek"
+             target="_blank" rel="noopener noreferrer">
+            <I.ig width={14} height={14} /> @sweetcoffeeweek
+          </a>
         </div>
 
         <div className="section-cta__footnote reveal reveal-up reveal-delay-3">

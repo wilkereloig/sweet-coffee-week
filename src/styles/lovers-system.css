@@ -380,6 +380,49 @@
 @media (max-width: 860px) {
   .lovers-route-card { grid-template-columns: 1fr; padding: clamp(24px, 7vw, 42px); }
 }
+
+/* ── Fechamento / CTA final ── */
+.lovers-final-cta { position: relative; overflow: hidden; background: transparent; }
+.lovers-final-cta__inner {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: clamp(16px, 2vw, 24px);
+  padding: clamp(40px, 7vw, 92px) clamp(24px, 6vw, 88px);
+  border-radius: clamp(32px, 4vw, 56px);
+  background: var(--lovers-burgundy); color: var(--lovers-cream);
+  overflow: hidden;
+}
+.lovers-final-cta__inner .lovers-eyebrow { color: var(--lovers-pink); }
+.lovers-final-cta__title {
+  margin: 0; max-width: 900px;
+  font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(48px, 8vw, 110px); line-height: .86; letter-spacing: -.035em;
+  text-transform: uppercase; color: var(--lovers-cream);
+}
+.lovers-final-cta__title span { color: var(--lovers-yellow); }
+.lovers-final-cta__text {
+  max-width: 680px; margin: 0;
+  font-size: clamp(16px, 1.5vw, 20px); line-height: 1.55; color: rgba(255, 232, 210, .9);
+}
+.lovers-final-cta__actions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px;
+}
+.lovers-final-cta__micro {
+  margin: 0; font-family: var(--font-lovers-body);
+  font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(255, 232, 210, .72);
+}
+.lovers-final-cta__ig {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-lovers-body); font-size: 12px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(255, 232, 210, .82); text-decoration: none;
+}
+.lovers-final-cta__ig:hover { color: var(--lovers-yellow); }
+@media (max-width: 640px) {
+  .lovers-final-cta__actions { width: 100%; }
+  .lovers-final-cta__actions .lovers-button { width: 100%; justify-content: center; }
+}
 .lovers-hero--simple .lovers-hero__lead {
   font-family: var(--font-lovers-display); font-weight: 700;
   font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-brown);
