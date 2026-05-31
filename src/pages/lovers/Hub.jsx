@@ -82,7 +82,7 @@ function Sobre() {
   ]
   return (
     <section id="sobre" className="section section-sobre">
-      <div className="wrap">
+      <div className="wrap lovers-safe-wrap">
         <div className="lovers-section-header reveal reveal-up">
           <span className="lovers-eyebrow">A edição</span>
           <h2 className="lovers-section__title">
@@ -124,7 +124,7 @@ function ComoFunciona() {
   ]
   return (
     <section id="como" className="section section-como">
-      <div className="wrap">
+      <div className="wrap lovers-safe-wrap">
         <div className="lovers-section-header reveal reveal-left" style={{ marginBottom: 'clamp(28px, 3vw, 44px)' }}>
           <span className="lovers-eyebrow" style={{ color: 'var(--lovers-yellow)' }}>Como funciona</span>
           <h2 className="lovers-section__title" style={{ color: 'var(--lovers-cream)' }}>
@@ -169,7 +169,7 @@ function StatCards() {
   ]
   return (
     <section className="section lovers-section">
-      <div className="wrap">
+      <div className="wrap lovers-safe-wrap">
         <div className="lovers-section-header is-center reveal reveal-up">
           <span className="lovers-eyebrow">A edição em números</span>
           <h2 className="lovers-section__title">
@@ -202,7 +202,7 @@ function NavCards({ navigate }) {
   ]
   return (
     <section className="section lovers-section" style={{ background: 'rgba(255,232,210,.86)' }}>
-      <div className="wrap">
+      <div className="wrap lovers-safe-wrap">
         <div className="lovers-section-header is-center reveal reveal-up">
           <span className="lovers-eyebrow">Explore a edição</span>
           <h2 className="lovers-section__title">
@@ -232,7 +232,7 @@ function NavCards({ navigate }) {
 function FinalCTA({ navigate }) {
   return (
     <section id="cta" className="section section-cta lovers-final-cta">
-      <div className="wrap">
+      <div className="wrap lovers-safe-wrap">
         <h2 className="lh1 reveal reveal-left" style={{ marginTop: 16, fontSize: 'clamp(56px, 8vw, 120px)' }}>
           Vem viver essa<br />
           história com a <span style={{ color: 'var(--lovers-yellow)' }}>gente.</span>

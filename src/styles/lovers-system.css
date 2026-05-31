@@ -197,6 +197,44 @@
 @media (prefers-reduced-motion: reduce) {
   .lovers-sticker-img { will-change: auto; }
 }
+
+/* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
+.lovers-safe-wrap {
+  width: min(100% - clamp(40px, 12vw, 220px), 1120px);
+  margin-inline: auto;
+}
+.lovers-text-wrap {
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+.lovers-narrow-wrap {
+  width: min(100%, 640px);
+  margin-inline: auto;
+}
+.lovers-card-grid {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+.lovers-section-stack {
+  display: grid;
+  gap: clamp(24px, 4vw, 48px);
+}
+.lovers-centered-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.lovers-centered-stack > * { margin-inline: auto; }
+@media (max-width: 1024px) {
+  .lovers-safe-wrap { width: min(100% - 48px, 1120px); }
+}
+@media (max-width: 768px) {
+  .lovers-safe-wrap { width: min(100% - 32px, 1120px); }
+  .lovers-text-wrap,
+  .lovers-narrow-wrap,
+  .lovers-card-grid { width: 100%; }
+}
 /* Seções NÃO criam stacking-context (z-index:auto). Assim a camada de adesivos
    (z-index 1) pinta ACIMA de fundos de seção translúcidos (ex.: hero vinho .88) e
    o adesivo aparece SÓLIDO, nunca marca d'água. O conteúdo interno é elevado à
