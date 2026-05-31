@@ -404,6 +404,24 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
+// Lê os ids de parada da rota a partir do hash (#/lovers/mapa?rota=id1,id2,...)
+function readRouteIdsFromHash() {
+  try {
+    const h = window.location.hash || ''
+    const qi = h.indexOf('?')
+    if (qi === -1) return null
+    const rota = new URLSearchParams(h.slice(qi + 1)).get('rota')
+    if (!rota) return null
+    return rota.split(',').map(s => s.trim()).filter(Boolean)
+  } catch { return null }
+}
+
+// Monta a URL compartilhável da rota
+function buildRouteShareUrl(ids) {
+  const base = `${window.location.origin}${window.location.pathname}#/lovers/mapa`
+  return ids && ids.length ? `${base}?rota=${ids.join(',')}` : base
+}
+
 export function MapaGooglePage({ navigate }) {
   const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
@@ -416,6 +434,8 @@ export function MapaGooglePage({ navigate }) {
   const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
   const [routeLocationIds, setRouteLocationIds] = useState(() => {
+    const fromUrl = readRouteIdsFromHash()
+    if (fromUrl && fromUrl.length) return fromUrl
     try {
       const saved = window.localStorage.getItem('sweet-lovers-route')
       return saved ? JSON.parse(saved) : []
@@ -423,6 +443,10 @@ export function MapaGooglePage({ navigate }) {
   })
   const [isRoutePanelOpen, setIsRoutePanelOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [qrDataUrl, setQrDataUrl] = useState('')
+  const storyRef = useRef(null)
 
   const mapDebug = isMapDebugEnabled()
 
@@ -668,6 +692,46 @@ export function MapaGooglePage({ navigate }) {
 
   function clearRoute() { setRouteLocationIds([]) }
 
+  function copyRouteLink() {
+    const url = buildRouteShareUrl(routeLocationIds)
+    try {
+      navigator.clipboard?.writeText(url)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch { /* clipboard indisponível */ }
+  }
+
+  // Gera imagem 9:16 do card de rota e dispara o compartilhamento nativo (IG Stories) — fallback: download
+  async function shareStory() {
+    if (!routeLocationIds.length || sharing) return
+    setSharing(true)
+    try {
+      const url = buildRouteShareUrl(routeLocationIds)
+      const QR = await import('qrcode')
+      const qr = await QR.toDataURL(url, { margin: 1, width: 240, color: { dark: '#3a0f1e', light: '#ffffff' } })
+      setQrDataUrl(qr)
+      // espera o QR pintar antes de capturar
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const { toBlob } = await import('html-to-image')
+      const blob = await toBlob(storyRef.current, { pixelRatio: 1, width: 1080, height: 1920, cacheBust: true, backgroundColor: '#3a0f1e' })
+      if (!blob) throw new Error('falha ao gerar imagem')
+      const file = new File([blob], 'minha-rota-lovers.png', { type: 'image/png' })
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Minha Rota Lovers', text: 'Minha rota no Sweet & Coffee Week Lovers 💜 sweetcoffeeweek.com.br' })
+      } else {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = 'minha-rota-lovers.png'
+        a.click()
+        URL.revokeObjectURL(a.href)
+      }
+    } catch (e) {
+      console.error('[share story]', e)
+    } finally {
+      setSharing(false)
+    }
+  }
+
   function moveRouteLocation(locationId, direction) {
     setRouteLocationIds(current => {
       const index = current.indexOf(locationId)
@@ -721,7 +785,7 @@ export function MapaGooglePage({ navigate }) {
                 <I.search width={16} height={16} /><span>Buscar</span>
               </button>
               <button type="button" className="mapa-topbar__btn" onClick={() => setIsRoutePanelOpen(true)}>
-                <I.route width={16} height={16} /><span>Minha rota</span>
+                <I.route width={16} height={16} /><span>Minha rota{routeLocationIds.length ? ` · ${routeLocationIds.length}` : ''}</span>
               </button>
               <button type="button" className="mapa-topbar__btn" onClick={requestUserLocation} disabled={locating}>
                 <I.pin width={16} height={16} /><span>{locating ? 'Localizando…' : 'Perto de mim'}</span>
@@ -1168,17 +1232,57 @@ export function MapaGooglePage({ navigate }) {
                   <p className="sweet-route-print-hint">Tire um print, mande para os amigos e combine por onde começar.</p>
 
                   <div className="sweet-route-actions">
+                    <button type="button" onClick={shareStory} disabled={sharing || !routeLocations.length} className="sweet-route-primary">
+                      {sharing ? 'GERANDO IMAGEM…' : 'COMPARTILHAR ROTA (STORIES)'}
+                    </button>
                     {routeMapsUrl && (
-                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary">
-                        ABRIR ROTA NO GOOGLE MAPS
+                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary sweet-route-primary--alt">
+                        ABRIR NO GOOGLE MAPS
                       </a>
                     )}
+                    <button type="button" onClick={copyRouteLink} className="sweet-route-secondary">{linkCopied ? 'LINK COPIADO ✓' : 'COPIAR LINK DA ROTA'}</button>
                     <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
                     <button type="button" onClick={() => setIsRoutePanelOpen(false)} className="sweet-route-secondary">FECHAR</button>
                   </div>
                 </div>
               </div>
             )}
+
+            {/* Card 9:16 off-screen para exportar imagem do Stories */}
+            <div className="sweet-story-stage" aria-hidden="true">
+              <div className="sweet-story" ref={storyRef}>
+                <div className="sweet-story__head">
+                  <span className="sweet-story__kicker">SWEET &amp; COFFEE WEEK LOVERS</span>
+                  <h2 className="sweet-story__title">MINHA ROTA<br/>DA DOÇURA</h2>
+                  <span className="sweet-story__date">4 A 14 DE JUNHO · NATAL/RN</span>
+                </div>
+                <ol className="sweet-story__list">
+                  {routeLocations.slice(0, 8).map((loc, i) => {
+                    const logoSrc = loc.participantLogo || loc.logo
+                    return (
+                      <li key={loc.id} className="sweet-story__stop">
+                        <span className="sweet-story__num">{i + 1}</span>
+                        <div className="sweet-story__logo">
+                          {logoSrc ? <img src={logoSrc} alt="" /> : <span>{(loc.participantName || '?').slice(0, 1)}</span>}
+                        </div>
+                        <div className="sweet-story__info">
+                          <strong>{loc.participantName}</strong>
+                          <span>{[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</span>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+                {routeLocations.length > 8 && <p className="sweet-story__more">+ {routeLocations.length - 8} paradas na minha rota</p>}
+                <div className="sweet-story__foot">
+                  {qrDataUrl && <img className="sweet-story__qr" src={qrDataUrl} alt="" />}
+                  <div className="sweet-story__cta">
+                    <strong>Monte a sua rota</strong>
+                    <span>sweetcoffeeweek.com.br</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 </>
           )}
 
@@ -1484,6 +1588,37 @@ export function MapaGooglePage({ navigate }) {
           .mapa-search-modal__panel .mapa-search { width: 100%; }
           .mapa-search-modal__filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
           .mapa-search-modal__filters .mapa-chip { color: var(--lovers-red); border-color: rgba(214,54,72,.4); }
+
+          /* botão secundário-primário (Abrir no Maps) */
+          .sweet-route-primary--alt { background: var(--lovers-purple); }
+
+          /* ── Card 9:16 do Stories (renderizado off-screen, exportado como imagem) ── */
+          .sweet-story-stage { position: fixed; top: 0; left: -10000px; width: 1080px; height: 1920px; pointer-events: none; z-index: -1; }
+          .sweet-story {
+            width: 1080px; height: 1920px; box-sizing: border-box;
+            padding: 96px 84px; display: flex; flex-direction: column;
+            background: linear-gradient(165deg, #5a2497 0%, #3a0f1e 100%);
+            color: #fff; font-family: var(--font-lovers-body);
+          }
+          .sweet-story__head { text-align: center; }
+          .sweet-story__kicker { font-family: var(--font-mono); font-size: 26px; letter-spacing: .26em; opacity: .82; }
+          .sweet-story__title { font-family: var(--font-lovers-display); font-weight: 900; font-size: 118px; line-height: .9; text-transform: uppercase; margin: 26px 0 18px; }
+          .sweet-story__date { font-family: var(--font-mono); font-size: 26px; letter-spacing: .14em; color: #F5B800; }
+          .sweet-story__list { list-style: none; margin: 64px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; flex: 1; justify-content: center; }
+          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: rgba(255,255,255,.10); border-radius: 28px; padding: 22px 30px; }
+          .sweet-story__num { flex: 0 0 auto; width: 62px; height: 62px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 900; font-size: 38px; }
+          .sweet-story__logo { flex: 0 0 auto; width: 100px; height: 100px; border-radius: 22px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+          .sweet-story__logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+          .sweet-story__logo span { color: #3a0f1e; font-family: var(--font-lovers-display); font-weight: 900; font-size: 46px; }
+          .sweet-story__info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+          .sweet-story__info strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 44px; line-height: 1; text-transform: uppercase; }
+          .sweet-story__info span { font-family: var(--font-mono); font-size: 24px; opacity: .8; }
+          .sweet-story__more { text-align: center; font-family: var(--font-mono); font-size: 28px; opacity: .85; margin: 20px 0 0; }
+          .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(255,255,255,.25); }
+          .sweet-story__qr { width: 150px; height: 150px; border-radius: 18px; background: #fff; padding: 10px; box-sizing: border-box; }
+          .sweet-story__cta { display: flex; flex-direction: column; gap: 6px; }
+          .sweet-story__cta strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 46px; text-transform: uppercase; }
+          .sweet-story__cta span { font-family: var(--font-mono); font-size: 28px; color: #F5B800; }
           /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
           .map-neighborhood-filters { display: none !important; }
 
