@@ -296,7 +296,9 @@ export function ComboPage({ navigate }) {
             </div>
           ) : (
             <>
-              {/* Filtros por edição + busca */}
+              {/* Filtros por edição + busca — só quando a revelação está liberada.
+                  No estado travado, a faixa resumo acima já comunica a contagem. */}
+              {LOVERS_SHOW_COMBO_DETAILS && (
               <div className="participants-filterbar">
                 <div className="participants-filterbar__top">
                   <span className="participants-filterbar__count">
@@ -306,7 +308,7 @@ export function ComboPage({ navigate }) {
                   </span>
                 </div>
 
-                {LOVERS_SHOW_COMBO_DETAILS && (
+                {(
                   <div className="participants-filterbar__chips" role="group" aria-label="Filtrar por edição">
                     <button
                       type="button"
@@ -340,6 +342,7 @@ export function ComboPage({ navigate }) {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Grid de participantes */}
               {cards.length === 0 ? (

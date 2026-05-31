@@ -1213,6 +1213,15 @@
 }
 .participant-showcase-card__soon svg { display: block; }
 
+/* Quebra de linha equilibrada nos títulos editoriais — evita órfãos
+   (ex.: "ROTA." sozinha) e quebras feias de <br/> em larguras intermediárias. */
+.lovers-public-hero__title,
+.lovers-public-section__title,
+.combo-detail-hero__name,
+.combo-detail-combo-card__title,
+.combo-detail-final-cta__title,
+.awards-final-cta__title { text-wrap: balance; }
+
 /* ── Card público: badge + título + texto (premiação "em breve" etc.) ── */
 .lovers-public-card__badge {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
