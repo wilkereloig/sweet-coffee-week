@@ -875,7 +875,7 @@ export function MapaGooglePage({ navigate }) {
                 <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>
                     {finalParticipants.length === participants.length
-                      ? `PARTICIPANTES · ${participants.length}`
+                      ? `${participants.length} PARTICIPANTES · ${allLocations.length} LOJAS`
                       : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
                   </span>
                   {selectedLocationId && (
