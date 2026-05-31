@@ -12,7 +12,7 @@ function LoversCountdown() {
   const [now, setNow] = React.useState(() => new Date())
 
   React.useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 60 * 1000)
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -20,25 +20,57 @@ function LoversCountdown() {
   const end = new Date('2026-06-14T23:59:59-03:00')
   const diff = start.getTime() - now.getTime()
 
-  let label = ''
+  let isCounting = false
+  let prefix = ''
+  let message = ''
+  let days = 0, hours = 0, minutes = 0, seconds = 0
+
   if (now > end) {
-    label = 'Edição encerrada'
+    message = 'Edição encerrada'
   } else if (diff <= 0) {
-    label = 'A edição Lovers começou!'
+    message = 'A edição Lovers começou!'
   } else {
-    const totalMinutes = Math.max(0, Math.floor(diff / 60000))
-    const days = Math.floor(totalMinutes / (60 * 24))
-    const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
-    const minutes = totalMinutes % 60
-    label = days > 0
-      ? `Faltam ${days} dias · ${String(hours).padStart(2, '0')}h · ${String(minutes).padStart(2, '0')}min`
-      : `Começa em ${String(hours).padStart(2, '0')}h · ${String(minutes).padStart(2, '0')}min`
+    isCounting = true
+    const totalSeconds = Math.max(0, Math.floor(diff / 1000))
+    days = Math.floor(totalSeconds / 86400)
+    hours = Math.floor((totalSeconds % 86400) / 3600)
+    minutes = Math.floor((totalSeconds % 3600) / 60)
+    seconds = totalSeconds % 60
+    prefix = days > 0 ? 'Faltam' : 'Começa em'
   }
 
   return (
     <div className="lovers-countdown" aria-label="Contagem regressiva para a edição Lovers">
-      <span className="lovers-countdown__label">{label}</span>
-      <span className="lovers-countdown__date">4 a 14 de junho · Natal/RN</span>
+      {isCounting ? (
+        <>
+          <span className="lovers-countdown__eyebrow">{prefix}</span>
+          <div className="lovers-countdown__grid">
+            {days > 0 && (
+              <span className="lovers-countdown__unit">
+                <strong>{days}</strong>
+                <small>{days === 1 ? 'dia' : 'dias'}</small>
+              </span>
+            )}
+            <span className="lovers-countdown__unit">
+              <strong>{String(hours).padStart(2, '0')}</strong>
+              <small>horas</small>
+            </span>
+            <span className="lovers-countdown__unit">
+              <strong>{String(minutes).padStart(2, '0')}</strong>
+              <small>min</small>
+            </span>
+            <span className="lovers-countdown__unit lovers-countdown__unit--seconds" key={seconds}>
+              <strong>{String(seconds).padStart(2, '0')}</strong>
+              <small>seg</small>
+            </span>
+          </div>
+        </>
+      ) : (
+        <strong className="lovers-countdown__message">{message}</strong>
+      )}
+      <span className="lovers-countdown__date">
+        {now > end ? 'Obrigado por viver essa história com a gente.' : '4 a 14 de junho · Natal/RN'}
+      </span>
     </div>
   )
 }
