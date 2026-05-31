@@ -716,11 +716,7 @@ export function MapaGooglePage({ navigate }) {
           ) : (
             <>
             <header className="mapa-hero">
-              <span className="mapa-hero__sticker" aria-hidden="true"><I.heart /> Rota da Doçura</span>
-              <span className="mapa-hero__kicker">Mapa da Doçura</span>
               <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
-              <p className="mapa-hero__subtitle">Encontre as lojas participantes, veja o que está perto de você e monte sua própria Rota da Doçura.</p>
-              <p className="mapa-hero__microcopy">Você escolhe os destinos. O Sweet te mostra o caminho.</p>
             </header>
             {hasMissingCoords && (
               <div className="mono" style={{
