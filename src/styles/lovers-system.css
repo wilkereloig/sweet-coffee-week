@@ -236,36 +236,47 @@
   .lovers-card-grid { width: 100%; }
 }
 
-/* ── Hero simplificado (composição central, sem release longo) ── */
-.lovers-hero--simple { text-align: center; }
+/* ── Hero simplificado (composição central, sem release longo) — fundo amarelo Lovers ── */
+.lovers-hero--simple {
+  text-align: center;
+  background: var(--lovers-yellow);
+  color: var(--lovers-brown);
+}
 .lovers-hero--simple .lovers-hero__inner { position: relative; z-index: 2; }
 .lovers-hero__copy { gap: clamp(16px, 2.4vw, 26px); }
 .lovers-hero--simple .lovers-hero__eyebrow {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--lovers-cream); opacity: .88;
+  color: var(--lovers-burgundy); opacity: .9;
 }
 .lovers-hero--simple .lovers-hero__brand { width: min(100%, 680px); margin: 0 auto; }
 .lovers-hero--simple .lovers-hero__lockup {
   display: block; font-family: var(--font-lovers-display); font-weight: 800;
   font-size: clamp(20px, 3vw, 30px); line-height: 1; letter-spacing: .02em;
-  text-transform: uppercase; color: var(--lovers-cream); margin-bottom: 8px;
+  text-transform: uppercase; color: var(--lovers-brown); margin-bottom: 8px;
 }
 .lovers-hero--simple .lovers-hero__wordmark { display: block; color: var(--lovers-pink); }
 .lovers-hero--simple .lovers-hero__lead {
   font-family: var(--font-lovers-display); font-weight: 700;
-  font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-cream);
+  font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-brown);
 }
 .lovers-hero--simple .lovers-hero__note {
-  font-size: clamp(15px, 1.6vw, 18px); line-height: 1.5; color: rgba(255,232,210,.86);
+  font-size: clamp(15px, 1.6vw, 18px); line-height: 1.5; color: rgba(63,26,10,.82);
 }
 .lovers-hero--simple .lovers-hero__date {
   display: inline-flex; align-items: baseline; gap: 10px; margin-top: 4px;
   font-family: var(--font-mono); letter-spacing: .04em;
 }
-.lovers-hero--simple .lovers-hero__date strong { color: var(--lovers-yellow); font-size: 15px; }
-.lovers-hero--simple .lovers-hero__date span { color: rgba(255,232,210,.8); font-size: 12px; }
+.lovers-hero--simple .lovers-hero__date strong { color: var(--lovers-burgundy); font-size: 15px; }
+.lovers-hero--simple .lovers-hero__date span { color: rgba(63,26,10,.72); font-size: 12px; }
+/* CTAs com contraste sobre amarelo */
+.lovers-hero--simple .lovers-button--primary {
+  background: var(--lovers-burgundy); color: var(--lovers-cream); border-color: transparent;
+}
+.lovers-hero--simple .lovers-button--secondary {
+  color: var(--lovers-brown); border-color: rgba(63,26,10,.42); background: transparent;
+}
 .lovers-cta-row-center {
   display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
 }
