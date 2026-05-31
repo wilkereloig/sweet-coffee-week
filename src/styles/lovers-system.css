@@ -1041,6 +1041,59 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 }
 
 /* =====================================================================
+   HERO DO COMBO (/lovers/combos/:slug com showCombo=true)
+   Fotos em destaque + info do combo. Mobile: fotos primeiro, info depois.
+   ===================================================================== */
+.combo-detail-hero--combo { background: var(--lovers-burgundy); }
+.combo-detail-hero__grid--combo {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  align-items: center;
+}
+.combo-detail-hero__media--combo { display: block; width: 100%; }
+
+.combo-hero-photos { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.combo-hero-photos__main {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden;
+  background: rgba(255,255,255,.08); box-shadow: 0 22px 60px rgba(43,24,16,.34);
+  border: 3px solid color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 55%, #fff);
+}
+.combo-hero-photos__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.combo-hero-photos__thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.combo-hero-photos__thumb { aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: rgba(255,255,255,.08); }
+.combo-hero-photos__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.combo-hero-photos--empty { width: 100%; }
+.combo-hero-photos__placeholder {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 32%, var(--lovers-burgundy)), var(--lovers-burgundy));
+  border: 2px dashed rgba(255,232,210,.4); color: rgba(255,232,210,.85);
+  font-family: var(--font-lovers-display); font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; font-size: 15px; text-align: center; padding: 16px;
+}
+.combo-hero-photos__placeholder svg { width: 34px; height: 34px; opacity: .8; }
+
+.combo-detail-hero__by { margin: 8px 0 0; font-family: var(--font-lovers-body); font-weight: 700; font-size: 15px; letter-spacing: .02em; color: rgba(255,232,210,.9); }
+.combo-detail-hero__price { margin: 16px 0 0; font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(24px, 3vw, 36px); color: var(--lovers-yellow); }
+.combo-detail-hero__items { display: grid; gap: 2px; margin: 18px 0 0; width: 100%; max-width: 480px; }
+.combo-detail-hero__item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,232,210,.18); }
+.combo-detail-hero__item:first-child { border-top: 0; }
+.combo-detail-hero__item-k { flex: 0 0 76px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-yellow); padding-top: 2px; }
+.combo-detail-hero__item-v { color: rgba(255,232,210,.92); font-size: 15px; line-height: 1.5; }
+
+@media (max-width: 860px) {
+  /* fotos primeiro (media vem antes no DOM); info alinhada à esquerda p/ leitura */
+  .combo-detail-hero__grid--combo { grid-template-columns: 1fr; justify-items: stretch; text-align: left; }
+  .combo-detail-hero--combo .combo-detail-hero__content { align-items: flex-start; width: 100%; }
+  .combo-detail-hero--combo .combo-detail-hero__badges,
+  .combo-detail-hero--combo .combo-detail-hero__ctas { justify-content: flex-start; }
+  .combo-detail-hero__items { max-width: none; }
+}
+@media (max-width: 600px) {
+  .combo-detail-hero--combo .combo-detail-hero__ctas { width: 100%; }
+  .combo-detail-hero--combo .combo-detail-hero__ctas .lovers-button { width: 100%; justify-content: center; }
+}
+
+/* =====================================================================
    PREMIAÇÃO / AWARDS (/lovers/premiacao + /lovers/awards) — FASE 5
    Página "em breve" viva e colorida. Aditivo.
    ===================================================================== */
