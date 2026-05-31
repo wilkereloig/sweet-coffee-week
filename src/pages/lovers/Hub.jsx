@@ -248,9 +248,9 @@ function StatCards() {
 /* ── Cards de navegação para as áreas internas ── */
 function NavCards({ navigate }) {
   const cards = [
-    { kicker: 'Participantes', title: 'Escolha seu primeiro combo.', desc: 'Conheça as lojas participantes, veja o tema que cada uma escolheu revisitar e descubra as criações da edição Lovers.', cta: 'Ver participantes', to: '/lovers/participantes', variant: 'pink' },
-    { kicker: 'Rota da Doçura', title: 'Sua rota começa aqui.', desc: 'Encontre as lojas no mapa, salve os destinos que quer visitar e monte sua própria Rota da Doçura.', cta: 'Abrir mapa', to: '/lovers/mapa', variant: 'cyan' },
-    { kicker: 'Premiação', title: 'Provou? Agora conte pra gente.', desc: 'Acompanhe a premiação da edição e participe da avaliação dos combos quando a votação estiver liberada.', cta: 'Ver premiação', to: '/lovers/premiacao', variant: 'purple' },
+    { kicker: 'Participantes', title: 'Conheça as lojas da edição.', desc: 'Veja quem faz parte da Sweet & Coffee Week Lovers e escolha por onde começar.', cta: 'Ver participantes', to: '/lovers/participantes', variant: 'pink' },
+    { kicker: 'Mapa da Doçura', title: 'Monte sua rota pela cidade.', desc: 'Encontre os pontos participantes no mapa e planeje suas paradas.', cta: 'Abrir mapa', to: '/lovers/mapa', variant: 'cyan' },
+    { kicker: 'Premiação', title: 'Acompanhe as ações da edição.', desc: 'Fique por dentro das experiências especiais e das novidades da premiação.', cta: 'Ver premiação', to: '/lovers/premiacao', variant: 'purple' },
   ]
   return (
     <section className="section lovers-section" style={{ background: 'rgba(255,232,210,.86)' }}>
@@ -258,7 +258,7 @@ function NavCards({ navigate }) {
         <div className="lovers-section-header is-center reveal reveal-up">
           <span className="lovers-eyebrow">Explore a edição</span>
           <h2 className="lovers-section__title">
-            Por onde você vai <span style={{ color: 'var(--lovers-burgundy)' }}>começar?</span>
+            Escolha seu próximo <span style={{ color: 'var(--lovers-burgundy)' }}>passo.</span>
           </h2>
         </div>
         <div className="lovers-nav-grid">
