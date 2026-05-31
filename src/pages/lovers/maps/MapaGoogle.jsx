@@ -945,8 +945,26 @@ export function MapaGooglePage({ navigate }) {
                         key={p.id}
                         className={`map-participant-card${isActive ? ' map-participant-card--active' : ''}`}
                       >
-                        {/* cabeçalho do card */}
-                        <div className="map-card-header">
+                        {/* cabeçalho do card — clicável: expande/recolhe + seleciona no mapa */}
+                        <div
+                          className="map-card-header"
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isActive}
+                          onClick={() => {
+                            if (isActive) { setSelectedParticipantId(null); setSelectedLocationId(null) }
+                            else if (locsForCard[0]) { focusLocation(locsForCard[0]) }
+                            else { setSelectedParticipantId(p.id) }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              if (isActive) { setSelectedParticipantId(null); setSelectedLocationId(null) }
+                              else if (locsForCard[0]) { focusLocation(locsForCard[0]) }
+                              else { setSelectedParticipantId(p.id) }
+                            }
+                          }}
+                        >
                           <div className="map-card-brand">
                             {p.logo ? (
                               <div className="map-card-logo">
@@ -977,9 +995,13 @@ export function MapaGooglePage({ navigate }) {
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
                           </div>
+                          <span className="map-card-chevron" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                          </span>
                         </div>
 
-                        {/* lista de unidades */}
+                        {/* lista de unidades — visível só quando expandido */}
+                        {isActive && (<>
                         <div className={`map-location-list${manyUnits ? ' map-location-list--many' : ''}`}>
                           {locsForCard.map(loc => {
                             const isLocActive = selectedLocationId === loc.id
@@ -1084,6 +1106,7 @@ export function MapaGooglePage({ navigate }) {
                             {LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} <I.arrow />
                           </button>
                         )}
+                        </>)}
                       </div>
                     )
                   })}
@@ -2033,9 +2056,19 @@ export function MapaGooglePage({ navigate }) {
           .map-card-header {
             display: flex;
             gap: 14px;
-            align-items: flex-start;
-            margin-bottom: 14px;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+            border-radius: 14px;
           }
+          .map-participant-card--active .map-card-header { margin-bottom: 14px; }
+          .map-card-header:focus-visible { outline: 2px solid var(--lovers-pink, #f20567); outline-offset: 2px; }
+          .map-card-chevron {
+            margin-left: auto; flex: 0 0 auto; display: flex; align-items: center;
+            color: rgba(135,14,45,.5); transition: transform .2s ease;
+          }
+          .map-participant-card--active .map-card-chevron { transform: rotate(180deg); }
+          @media (prefers-reduced-motion: reduce) { .map-card-chevron { transition: none; } }
           .map-card-brand {
             position: relative;
             flex: 0 0 auto;
