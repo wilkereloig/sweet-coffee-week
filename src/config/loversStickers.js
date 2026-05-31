@@ -30,7 +30,7 @@ export const LOVERS_STICKERS = {
   ],
   // /lovers/premiacao — hero alinhado à esquerda: stickers à direita/cantos, longe do título.
   premiacao: [
-    { src: '/images/adesivos/sobre-2.png',       style: { top: '10%',   right: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } },
+    { src: '/images/adesivos/sobre-2.png',       style: { top: '32%',   right: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } },
     { src: '/images/adesivos/Prancheta%202.png', style: { top: '52%',   left: '-13%', width: 'clamp(190px,21vw,420px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.10' } },
     { src: '/images/adesivos/sobre-6.png',       style: { bottom: '6%',  right: '-11%', width: 'clamp(160px,17vw,330px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.12' } },
   ],

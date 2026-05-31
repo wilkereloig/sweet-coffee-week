@@ -1304,6 +1304,11 @@ export function MapaGooglePage({ navigate }) {
           }
           /* véu creme translúcido por cima da arte, atrás do conteúdo, p/ leitura */
           .mapa-scene > section { background: rgba(255,241,230,.42) !important; }
+          /* sem faixa creme no rodapé: a arte do mapa preenche até o fim (a folga
+             do tabbar já vem do paddingBottom do <section>) */
+          @media (max-width: 768px) {
+            body.route-mapa main.page-enter { padding-bottom: 0 !important; }
+          }
           /* painéis legíveis sobre o cenário */
           .mapa-scene .map-sidebar-sticky,
           .mapa-scene .map-sidebar-scroll { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -1579,7 +1584,7 @@ export function MapaGooglePage({ navigate }) {
             position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 305;
             display: flex; width: 50px; height: 50px; align-items: center; justify-content: center;
             border: 0; border-radius: 999px; cursor: pointer;
-            background: var(--lovers-pink); color: #fff;
+            background: var(--lovers-cyan); color: #fff;
             box-shadow: 0 8px 22px rgba(43,24,16,.34);
           }
           .mapa-topbar__btn {
@@ -2281,10 +2286,11 @@ export function MapaGooglePage({ navigate }) {
             font-family: var(--font-lovers-display);
             font-weight: 700;
             font-size: 14px;
-            line-height: 24px;
-            text-align: center;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-sizing: border-box;
-            border: 2px solid #fff;
             box-shadow: 0 2px 6px rgba(0,0,0,.18);
           }
           .map-card-title-group {
