@@ -827,7 +827,7 @@ export function MapaGooglePage({ navigate }) {
                     }}
                   >
                     <span style={{ fontSize: 14 }}>📍</span>
-                    {locating ? 'Localizando…' : 'Usar minha localização'}
+                    {locating ? 'Localizando…' : 'Ver participantes perto de mim'}
                   </button>
                 ) : (
                   <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
