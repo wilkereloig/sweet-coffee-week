@@ -2350,25 +2350,28 @@ export function MapaGooglePage({ navigate }) {
           .map-icon-action svg { width: 20px; height: 20px; }
           .map-icon-action:hover {
             transform: translateY(-2px);
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+            filter: brightness(.93);
             box-shadow: 0 8px 18px rgba(135,14,45,.22);
           }
+          /* 4 ações com cores distintas (preenchidas) */
+          .map-icon-action[title="Ver no mapa"] {
+            background: var(--lovers-cyan); color: #04282d; border-color: var(--lovers-cyan);
+          }
           .map-icon-action--primary {
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+            background: var(--lovers-pink); color: #fff; border-color: var(--lovers-pink);
           }
-          .map-icon-action--active {
-            background: var(--lovers-red);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-red);
+          .map-icon-action--route {
+            background: var(--lovers-purple); color: #fff; border-color: var(--lovers-purple);
           }
-          .map-icon-action--selected {
-            background: var(--lovers-pink);
-            color: var(--lovers-cream);
-            border-color: var(--lovers-pink);
+          .map-icon-action[title="Instagram"] {
+            background: var(--lovers-yellow); color: var(--lovers-brown); border-color: var(--lovers-yellow);
+          }
+          /* estados de seleção vencem (specificity 2 classes + ordem) */
+          .map-icon-action.map-icon-action--active {
+            background: var(--lovers-red); color: var(--lovers-cream); border-color: var(--lovers-red);
+          }
+          .map-icon-action.map-icon-action--selected {
+            background: var(--lovers-red); color: var(--lovers-cream); border-color: var(--lovers-red);
           }
 
           input[type=text]:focus { border-color: var(--lovers-red) !important; }
