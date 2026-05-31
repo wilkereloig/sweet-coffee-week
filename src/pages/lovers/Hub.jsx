@@ -1,7 +1,7 @@
 import React from 'react'
-import { I, LoversWordmark } from '../../components/icons'
+import { I } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
-import { LoversButton, LoversNavCard, LoversStatCard, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversNavCard, LoversStickers, useLoversReveal } from '../../components/lovers'
 
 /* Página /lovers — landing "Sobre a edição" (Lovers Interactive Editorial System).
    Scroll reveal via hook compartilhado useLoversReveal (observa '.lovers-reveal, .reveal'). */
