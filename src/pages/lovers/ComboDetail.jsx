@@ -6,6 +6,7 @@ import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { getOpenStatus, participantHours } from '../../utils/openStatus'
 
 // Preview data só em desenvolvimento local com a flag ligada.
 const ENABLE_PREVIEW_DATA =
@@ -236,6 +237,7 @@ function ComboDetailPageInner({ navigate, slug }) {
       ].filter(it => it.v || it.img)
     : []
   const priceLabel = formatPrice(combo?.price)
+  const openStatus = getOpenStatus(participantHours(participant))
   const locations =
     participant?.locations && participant.locations.length
       ? participant.locations
@@ -330,6 +332,12 @@ function ComboDetailPageInner({ navigate, slug }) {
               <h2 className="combo-detail-section__title">
                 {locations.length === 1 ? 'A unidade participante.' : `${locations.length} unidades participantes.`}
               </h2>
+              {openStatus.state !== 'unknown' && (
+                <span className={`combo-detail-open combo-detail-open--${openStatus.state}`}>
+                  <span className="combo-detail-open__dot" />
+                  {openStatus.label}{openStatus.detail ? ` · ${openStatus.detail}` : ''}
+                </span>
+              )}
               <p className="combo-detail-section__lead">
                 Confira a unidade participante antes de sair para a rota.
               </p>
