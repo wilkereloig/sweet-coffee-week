@@ -1115,6 +1115,8 @@
 .awards-final-cta__text { margin: 14px auto 0; max-width: 46ch; font-size: 16px; line-height: 1.55; color: rgba(255,255,255,.9); text-align: center; }
 .awards-final-cta .lovers-button { margin-top: 22px; }
 .awards-final-cta .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: transparent; box-shadow: 0 14px 32px rgba(0,0,0,.22); }
+.awards-final-cta .lovers-button--secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.6); }
+.awards-final-cta .lovers-button--secondary:hover { background: #fff; color: var(--lovers-burgundy); border-color: #fff; }
 
 /* =====================================================================
    LOVERS PUBLIC — base reutilizável (heros / seções / cards)
@@ -1270,7 +1272,8 @@
 
 /* ── Fechamento da premiação: linha de CTAs + link Instagram pequeno ── */
 .awards-final-cta__ctas {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 26px;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px;
+  width: 100%; margin-top: 26px;
 }
 .awards-final-cta__ig {
   display: inline-flex; align-items: center; gap: 6px; margin-top: 22px;
