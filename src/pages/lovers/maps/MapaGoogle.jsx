@@ -728,7 +728,7 @@ export function MapaGooglePage({ navigate }) {
       // espera o QR pintar antes de capturar
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
       const { toBlob } = await import('html-to-image')
-      const blob = await toBlob(storyRef.current, { pixelRatio: 1, width: 1080, height: 1920, cacheBust: true, backgroundColor: '#3a0f1e' })
+      const blob = await toBlob(storyRef.current, { pixelRatio: 1, width: 1080, height: 1920, cacheBust: true, backgroundColor: '#F5B800' })
       if (!blob) throw new Error('falha ao gerar imagem')
       const file = new File([blob], 'minha-rota-lovers.png', { type: 'image/png' })
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1239,13 +1239,9 @@ export function MapaGooglePage({ navigate }) {
                 </div>
                 <ol className="sweet-story__list">
                   {routeLocations.slice(0, 8).map((loc, i) => {
-                    const logoSrc = loc.participantLogo || loc.logo
                     return (
                       <li key={loc.id} className="sweet-story__stop">
                         <span className="sweet-story__num">{i + 1}</span>
-                        <div className="sweet-story__logo">
-                          {logoSrc ? <img src={logoSrc} alt="" /> : <span>{(loc.participantName || '?').slice(0, 1)}</span>}
-                        </div>
                         <div className="sweet-story__info">
                           <strong>{loc.participantName}</strong>
                           <span>{[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</span>
@@ -1586,14 +1582,11 @@ export function MapaGooglePage({ navigate }) {
           .sweet-story__title { font-family: var(--font-lovers-display); font-weight: 900; font-size: 118px; line-height: .9; text-transform: uppercase; margin: 26px 0 18px; }
           .sweet-story__date { font-family: var(--font-mono); font-size: 26px; letter-spacing: .14em; color: #870e2d; font-weight: 700; }
           .sweet-story__list { list-style: none; margin: 64px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; flex: 1; justify-content: center; }
-          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: #fff; border-radius: 28px; padding: 22px 30px; }
+          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: #fff; border-radius: 28px; padding: 26px 34px; }
           .sweet-story__num { flex: 0 0 auto; width: 62px; height: 62px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 900; font-size: 38px; }
-          .sweet-story__logo { flex: 0 0 auto; width: 100px; height: 100px; border-radius: 22px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-          .sweet-story__logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
-          .sweet-story__logo span { color: #3a0f1e; font-family: var(--font-lovers-display); font-weight: 900; font-size: 46px; }
-          .sweet-story__info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-          .sweet-story__info strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 44px; line-height: 1; text-transform: uppercase; }
-          .sweet-story__info span { font-family: var(--font-mono); font-size: 24px; opacity: .8; }
+          .sweet-story__info { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+          .sweet-story__info strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 44px; line-height: 1.05; text-transform: uppercase; color: #3a0f1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-story__info span { font-family: var(--font-mono); font-size: 24px; opacity: .8; color: #3a0f1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
           .sweet-story__more { text-align: center; font-family: var(--font-mono); font-size: 28px; opacity: .85; margin: 20px 0 0; }
           .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(58,15,30,.22); }
           .sweet-story__qr { width: 150px; height: 150px; border-radius: 18px; background: #fff; padding: 10px; box-sizing: border-box; }
