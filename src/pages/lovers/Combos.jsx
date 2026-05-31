@@ -243,35 +243,8 @@ export function ComboPage({ navigate }) {
           <p className="lovers-public-hero__lead">
             Conheça as lojas que fazem parte da Sweet &amp; Coffee Week Lovers e planeje suas visitas pela cidade.
           </p>
-          <div className="lovers-public-hero__actions">
-            <LoversButton
-              variant="primary"
-              href="#/lovers/mapa"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-            >
-              <I.map width={18} height={18} /> Abrir mapa da doçura
-            </LoversButton>
-            <LoversButton
-              variant="secondary"
-              href="#/lovers"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
-            >
-              Sobre a edição
-            </LoversButton>
-          </div>
         </div>
       </section>
-
-      {/* Faixa resumo */}
-      {combosData.length > 0 && (
-        <div className="combos-page__summary">
-          <div className="wrap lovers-safe-wrap">
-            <p className="combos-page__summary-count">
-              {combosData.length} participantes esperando por você.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       <section className="section" style={{ background: 'var(--lovers-cream)' }}>
