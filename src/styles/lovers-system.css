@@ -235,6 +235,66 @@
   .lovers-narrow-wrap,
   .lovers-card-grid { width: 100%; }
 }
+
+/* ── Hero simplificado (composição central, sem release longo) ── */
+.lovers-hero--simple { text-align: center; }
+.lovers-hero--simple .lovers-hero__inner { position: relative; z-index: 2; }
+.lovers-hero__copy { gap: clamp(16px, 2.4vw, 26px); }
+.lovers-hero--simple .lovers-hero__eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--lovers-cream); opacity: .88;
+}
+.lovers-hero--simple .lovers-hero__brand { width: min(100%, 680px); margin: 0 auto; }
+.lovers-hero--simple .lovers-hero__lockup {
+  display: block; font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(20px, 3vw, 30px); line-height: 1; letter-spacing: .02em;
+  text-transform: uppercase; color: var(--lovers-cream); margin-bottom: 8px;
+}
+.lovers-hero--simple .lovers-hero__wordmark { display: block; color: var(--lovers-pink); }
+.lovers-hero--simple .lovers-hero__lead {
+  font-family: var(--font-lovers-display); font-weight: 700;
+  font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-cream);
+}
+.lovers-hero--simple .lovers-hero__note {
+  font-size: clamp(15px, 1.6vw, 18px); line-height: 1.5; color: rgba(255,232,210,.86);
+}
+.lovers-hero--simple .lovers-hero__date {
+  display: inline-flex; align-items: baseline; gap: 10px; margin-top: 4px;
+  font-family: var(--font-mono); letter-spacing: .04em;
+}
+.lovers-hero--simple .lovers-hero__date strong { color: var(--lovers-yellow); font-size: 15px; }
+.lovers-hero--simple .lovers-hero__date span { color: rgba(255,232,210,.8); font-size: 12px; }
+.lovers-cta-row-center {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
+}
+
+/* ── Seção conceito "O que é Lovers?" ── */
+.lovers-concept__grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(28px, 4vw, 64px); align-items: start;
+}
+.lovers-concept__head .lovers-section__title { margin-top: 8px; }
+.lovers-concept__copy { display: grid; gap: clamp(16px, 2vw, 22px); max-width: 620px; }
+.lovers-concept__text { font-size: clamp(15px, 1.5vw, 17px); line-height: 1.6; color: var(--lovers-brown); }
+.lovers-concept__highlight {
+  background: var(--lovers-burgundy); color: var(--lovers-cream);
+  border-radius: 20px; padding: clamp(18px, 2.2vw, 26px);
+  font-family: var(--font-lovers-display); font-weight: 700;
+  font-size: clamp(16px, 1.8vw, 20px); line-height: 1.35;
+}
+.lovers-concept__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.lovers-concept-chip {
+  display: inline-flex; align-items: center; padding: 7px 14px; border-radius: 999px;
+  background: color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 16%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--lv-accent, var(--lovers-pink)) 50%, transparent);
+  color: var(--lovers-brown); font-weight: 700; font-size: 13px;
+}
+@media (max-width: 860px) {
+  .lovers-concept__grid { grid-template-columns: 1fr; }
+  .lovers-concept__copy { max-width: none; }
+}
 /* Seções NÃO criam stacking-context (z-index:auto). Assim a camada de adesivos
    (z-index 1) pinta ACIMA de fundos de seção translúcidos (ex.: hero vinho .88) e
    o adesivo aparece SÓLIDO, nunca marca d'água. O conteúdo interno é elevado à

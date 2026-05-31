@@ -10,60 +10,52 @@ import { LoversButton, LoversNavCard, LoversStatCard, LoversStickers, useLoversR
 
 function Hero({ navigate }) {
   return (
-    <section id="top" className="lovers-hero">
+    <section id="top" className="lovers-hero lovers-hero--simple">
       <div className="lovers-decor" aria-hidden="true">
         <span className="lovers-orb lovers-orb--pink" />
         <span className="lovers-orb lovers-orb--cyan" />
         <span className="lovers-orb lovers-orb--yellow" />
         <span className="lovers-orb lovers-orb--purple" />
       </div>
-      <span className="lovers-sticker lovers-sticker--pink lovers-hero__sticker" aria-hidden="true">10 anos ♥</span>
-      <span className="lovers-sticker lovers-sticker--cyan lovers-hero__sticker2" aria-hidden="true">Rota da Doçura</span>
 
-      <div className="wrap lovers-hero__inner">
-        <div className="lovers-hero__grid">
-          {/* Marca */}
-          <h1 className="lovers-hero__brand reveal reveal-hero-lockup" aria-label="Sweet & Coffee Week Lovers">
+      <div className="wrap lovers-safe-wrap lovers-hero__inner">
+        <div className="lovers-hero__copy lovers-centered-stack reveal reveal-up">
+          <span className="lovers-hero__eyebrow">Especial 10 anos</span>
+
+          <h1 className="lovers-hero__brand" aria-label="Sweet & Coffee Week Lovers">
             <span className="lovers-hero__lockup" aria-hidden="true">Sweet &amp;<br />Coffee Week</span>
             <span className="lovers-hero__wordmark" aria-hidden="true"><LoversWordmark width="100%" /></span>
           </h1>
 
-          {/* Conteúdo */}
-          <div className="lovers-hero__content reveal reveal-right reveal-delay-1">
-            <span className="lovers-hero__eyebrow">10 anos de Sweet &amp; Coffee Week</span>
-            <h2 className="lovers-hero__tagline">
-              Existe um antes e<br />depois do <span>Sweet.</span>
-            </h2>
-            <p className="lovers-hero__lead">
-              O Sweet nunca foi só sobre sair para comer um combo. Foi sobre transformar confeitarias em
-              experiências, doces em assunto da cidade e encontros em memória.
-            </p>
-            <p className="lovers-hero__note">
-              Agora, 10 anos depois, os temas mais amados do festival voltam em novas versões — uma edição
-              feita para quem viveu, compartilhou, fotografou, votou, fez rota e ajudou a transformar o
-              Sweet &amp; Coffee Week numa história de sucesso.
-            </p>
-            <div className="lovers-hero__date">
-              <strong>4 A 14 DE JUNHO</strong>
-              <span>Natal · RN</span>
-            </div>
-            <div className="lovers-hero__ctas">
-              <LoversButton
-                variant="primary"
-                href="#/lovers/participantes"
-                onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-              >
-                Conhecer participantes <I.arrow />
-              </LoversButton>
-              <LoversButton
-                variant="secondary"
-                href="#/lovers/mapa"
-                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-              >
-                <I.route /> Montar minha rota
-              </LoversButton>
-            </div>
-            <p className="lovers-hero__micro">Escolha seus destinos, chame os amigos e viva Natal em modo Sweet.</p>
+          <p className="lovers-hero__lead lovers-text-wrap">
+            Uma edição feita para quem viveu, compartilhou e ajudou a transformar o Sweet
+            em uma história de 10 anos.
+          </p>
+          <p className="lovers-hero__note lovers-text-wrap">
+            De 4 a 14 de junho, Natal entra na rota mais doce do ano com combos especiais
+            criados por lojas que fazem parte dessa história.
+          </p>
+
+          <div className="lovers-hero__date">
+            <strong>4 A 14 DE JUNHO</strong>
+            <span>Natal · RN</span>
+          </div>
+
+          <div className="lovers-hero__ctas lovers-cta-row-center">
+            <LoversButton
+              variant="primary"
+              href="#/lovers/participantes"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
+            >
+              Ver participantes <I.arrow />
+            </LoversButton>
+            <LoversButton
+              variant="secondary"
+              href="#/lovers/mapa"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+            >
+              <I.map width={18} height={18} /> Abrir mapa da doçura
+            </LoversButton>
           </div>
         </div>
       </div>
@@ -72,44 +64,48 @@ function Hero({ navigate }) {
 }
 
 function Sobre() {
-  const phrases = [
-    { t: 'Quem esperou o mapa.',             accent: 'var(--lovers-pink)' },
-    { t: 'Quem marcou os amigos.',           accent: 'var(--lovers-cyan)' },
-    { t: 'Quem fotografou antes de provar.', accent: 'var(--lovers-yellow)' },
-    { t: 'Quem fez rota.',                   accent: 'var(--lovers-purple)' },
-    { t: 'Quem votou.',                      accent: 'var(--lovers-coral)' },
-    { t: 'Quem voltou.',                     accent: 'var(--lovers-burgundy)' },
+  const chips = [
+    { t: 'Quem esperou o mapa',             accent: 'var(--lovers-pink)' },
+    { t: 'Quem marcou os amigos',           accent: 'var(--lovers-cyan)' },
+    { t: 'Quem fotografou antes de provar', accent: 'var(--lovers-yellow)' },
+    { t: 'Quem fez rota',                   accent: 'var(--lovers-purple)' },
   ]
   return (
     <section id="sobre" className="section section-sobre">
-      <div className="wrap lovers-safe-wrap">
-        <div className="lovers-section-header reveal reveal-up">
-          <span className="lovers-eyebrow">A edição</span>
-          <h2 className="lovers-section__title">
-            Feito de amor,<br />
-            recriando <span style={{ color: 'var(--lovers-burgundy)' }}>sabores.</span>
-          </h2>
-          <p className="lovers-section__lead">
-            Essa edição é sobre os nossos principais ingredientes: os <strong>Sweet Lovers</strong>.
-          </p>
-        </div>
+      <div className="wrap lovers-safe-wrap lovers-concept">
+        <div className="lovers-concept__grid">
+          <div className="lovers-concept__head reveal reveal-up">
+            <span className="lovers-eyebrow">O que é a edição Lovers?</span>
+            <h2 className="lovers-section__title">
+              Lovers é sobre quem<br />
+              faz o <span style={{ color: 'var(--lovers-burgundy)' }}>Sweet acontecer.</span>
+            </h2>
+          </div>
 
-        <div className="lovers-phrase-grid">
-          {phrases.map((p, i) => (
-            <p
-              className={`lovers-phrase reveal reveal-scale reveal-delay-${(i % 5) + 1}`}
-              key={i}
-              style={{ '--lv-accent': p.accent }}
-            >
-              {p.t}
+          <div className="lovers-concept__copy reveal reveal-up reveal-delay-1">
+            <p className="lovers-concept__text">
+              Esta edição não é sobre amor romântico. É sobre os <strong>Sweet Lovers</strong>:
+              pessoas que acompanham o festival, visitam as lojas, fotografam combos, marcam os
+              amigos, votam, compartilham e transformam cada edição em uma experiência coletiva.
             </p>
-          ))}
-        </div>
+            <p className="lovers-concept__text">
+              Na edição especial de 10 anos, o público é o grande homenageado.
+            </p>
 
-        <p className="sobre__impact reveal reveal-up reveal-delay-2" style={{ marginTop: 'clamp(36px, 5vw, 64px)' }}>
-          Essa edição é para quem<br />
-          fez parte da <span style={{ color: 'var(--lovers-pink)' }}>história.</span>
-        </p>
+            <div className="lovers-concept__highlight">
+              Sweet Lovers são fãs, clientes, amigos, famílias, grupos e pessoas que vivem o
+              festival como roteiro, memória e descoberta.
+            </div>
+
+            <div className="lovers-concept__chips">
+              {chips.map((c, i) => (
+                <span className="lovers-concept-chip" key={i} style={{ '--lv-accent': c.accent }}>
+                  {c.t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )
