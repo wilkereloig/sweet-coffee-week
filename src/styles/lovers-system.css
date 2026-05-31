@@ -1172,3 +1172,27 @@
 }
 .lovers-public-card:focus-visible { outline: 3px solid var(--card-accent, var(--lovers-pink)); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .lovers-public-card { transition: none; } }
+
+/* ── Participantes: faixa resumo (abaixo do hero) ── */
+.combos-page__summary { text-align: center; padding: clamp(28px, 4vw, 44px) 0 clamp(4px, 1vw, 10px); }
+.combos-page__summary-count {
+  margin: 0;
+  font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(24px, 3.2vw, 42px); line-height: 1; letter-spacing: -.02em;
+  text-transform: uppercase; color: var(--lovers-burgundy);
+}
+.combos-page__summary-sub {
+  margin: 10px auto 0; max-width: 48ch;
+  font-size: clamp(14px, 1.4vw, 16px); line-height: 1.5; color: var(--lovers-brown); opacity: .8;
+}
+
+/* ── Participantes: badge "combo em breve" no corpo do card (estado travado) ── */
+.participant-showcase-card__soon {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  margin: 2px 0; padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 88%, #000);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.participant-showcase-card__soon svg { display: block; }

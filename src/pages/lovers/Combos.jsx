@@ -157,7 +157,9 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
       <div className="participant-showcase-card__body">
         <span className="participant-showcase-card__edition">{LOVERS_SHOW_COMBO_DETAILS ? edition : 'Edição Lovers'}</span>
         <h3 className="participant-showcase-card__name">{name}</h3>
-        <p className="participant-showcase-card__line"><strong>Criação</strong><span>{LOVERS_SHOW_COMBO_DETAILS ? theme : 'Em breve'}</span></p>
+        {LOVERS_SHOW_COMBO_DETAILS
+          ? <p className="participant-showcase-card__line"><strong>Criação</strong><span>{theme}</span></p>
+          : <span className="participant-showcase-card__soon"><I.heart width={12} height={12} /> Combo em breve</span>}
         <p className="participant-showcase-card__line"><strong>Local</strong><span>{neighborhoodsSummary(participant)}</span></p>
 
         <div className="participant-showcase-card__footer">
@@ -225,43 +227,54 @@ export function ComboPage({ navigate }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
       <LoversStickers page="participantes" />
 
-      {/* Hero */}
-      <section className="combos-page__hero">
+      {/* Hero — sistema Lovers (lovers-public-hero) */}
+      <section className="lovers-public-hero">
         <div className="lovers-decor" aria-hidden="true">
           <span className="lovers-orb lovers-orb--pink" style={{ width: 190, height: 190, top: -50, left: '5%' }} />
           <span className="lovers-orb lovers-orb--cyan" style={{ width: 130, height: 130, top: 30, right: '7%' }} />
           <span className="lovers-orb lovers-orb--yellow" style={{ width: 90, height: 90, bottom: 6, left: '44%' }} />
         </div>
-        <span className="lovers-sticker lovers-sticker--purple" style={{ position: 'absolute', top: 18, right: 18, transform: 'rotate(8deg)', zIndex: 3 }} aria-hidden="true">21 lojas ♥</span>
-        <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
-          <div className="combos-page__hero-inner">
-            {isPreviewMode && (
-              <div className="preview-badge">PREVIEW INTERNO</div>
-            )}
-            <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 8, justifyContent: 'center' }}>
-              <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              PARTICIPANTES LOVERS
-            </div>
-            <h1 className="lovers-h1 combos-page__hero-title" style={{ fontSize: 'clamp(40px, 6vw, 88px)', lineHeight: 1, marginTop: 16 }}>
-              <span>Cada loja escolheu</span>
-              <span><em>uma memória</em></span>
-              <span><em>para recriar.</em></span>
-            </h1>
-            <p className="combos-page__hero-desc">
-              Conheça as lojas participantes da edição Lovers e monte a sua Rota da Doçura.
-            </p>
-            <div style={{ marginTop: 20 }}>
-              <LoversButton
-                variant="secondary"
-                href="#/lovers/mapa"
-                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-              >
-                <I.map width={18} height={18} /> Abrir mapa da Doçura
-              </LoversButton>
-            </div>
+        <div className="wrap lovers-safe-wrap lovers-public-hero__inner">
+          {isPreviewMode && (
+            <div className="preview-badge">PREVIEW INTERNO</div>
+          )}
+          <span className="lovers-public-hero__eyebrow">Participantes Lovers</span>
+          <h1 className="lovers-public-hero__title">Escolha por onde começar sua rota.</h1>
+          <p className="lovers-public-hero__lead">
+            Conheça as lojas que fazem parte da Sweet &amp; Coffee Week Lovers e planeje suas visitas pela cidade.
+          </p>
+          <div className="lovers-public-hero__actions">
+            <LoversButton
+              variant="primary"
+              href="#/lovers/mapa"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+            >
+              <I.map width={18} height={18} /> Abrir mapa da doçura
+            </LoversButton>
+            <LoversButton
+              variant="secondary"
+              href="#/lovers"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+            >
+              Sobre a edição
+            </LoversButton>
           </div>
         </div>
       </section>
+
+      {/* Faixa resumo */}
+      {combosData.length > 0 && (
+        <div className="combos-page__summary">
+          <div className="wrap lovers-safe-wrap">
+            <p className="combos-page__summary-count">
+              {combosData.length} participantes esperando por você.
+            </p>
+            <p className="combos-page__summary-sub">
+              Toque em uma loja para ver endereço, unidades e perfil.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <section className="section" style={{ background: 'var(--lovers-cream)' }}>
