@@ -465,6 +465,15 @@
 .lovers-concept__how { margin-top: clamp(36px, 5vw, 64px); }
 .lovers-concept__how-label { display: block; margin-bottom: clamp(16px, 2vw, 24px); color: var(--lovers-pink); }
 
+/* Conceito centralizado (copy removido — alinhamento ao centro) */
+.section-sobre .lovers-concept__grid { grid-template-columns: 1fr; justify-items: center; }
+.section-sobre .lovers-concept__head,
+.section-sobre .lovers-concept__how { text-align: center; }
+.section-sobre .lovers-concept__head .lovers-eyebrow,
+.section-sobre .lovers-concept__how-label { display: inline-flex; justify-content: center; }
+.section-sobre .lovers-concept__head .lovers-eyebrow::before,
+.section-sobre .lovers-concept__how-label::before { display: none; }
+
 /* ── Faixa de números slim (inline, divisores) ── */
 .lovers-stats-section { padding-top: clamp(8px, 2vw, 20px); }
 .lovers-stats-strip {
