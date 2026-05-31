@@ -214,12 +214,10 @@ function ComoFunciona() {
 /* ── Cards de dados (números grandes, coloridos) ── */
 function StatCards() {
   const stats = [
-    { num: '10',   label: 'anos',            text: 'De histórias, filas, fotos, votos, encontros e descobertas.',            variant: 'pink' },
-    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas recriando temas que marcaram a trajetória do festival.',       variant: 'cyan' },
-    { num: '33',   label: 'lojas',           text: 'Mais destinos para visitar, provar e compartilhar.',                    variant: 'yellow' },
-    { num: '15',   label: 'temas históricos', text: 'Viagens, músicas, filmes, séries, contos, celebrações e sabores potiguares.', variant: 'purple' },
-    { num: '4–14', label: 'de junho',        text: 'Onze dias para viver a cidade em clima de Sweet.',                      variant: 'coral' },
-    { num: 'Rota', label: 'da Doçura',       text: 'Monte sua rota, salve seus destinos e descubra por onde começar.',      variant: 'burgundy' },
+    { num: '10',   label: 'anos de Sweet',  text: 'Uma década de histórias, sabores, fotos e encontros pela cidade.',          variant: 'pink' },
+    { num: String(PARTICIPANTS.length || 21), label: 'participantes', text: 'Lojas criando novas experiências para a edição Lovers.',          variant: 'cyan' },
+    { num: '4–14', label: 'de junho',       text: 'Onze dias para visitar, provar e montar sua própria rota.',                variant: 'coral' },
+    { num: 'R$ 38,90', label: 'combo padrão', text: '1 doce + 1 salgado + 1 bebida em cada experiência participante.',         variant: 'purple' },
   ]
   return (
     <section className="section lovers-section">
@@ -227,7 +225,7 @@ function StatCards() {
         <div className="lovers-section-header is-center reveal reveal-up">
           <span className="lovers-eyebrow">A edição em números</span>
           <h2 className="lovers-section__title">
-            Uma década em <span style={{ color: 'var(--lovers-pink)' }}>modo Sweet.</span>
+            Tudo pronto para <span style={{ color: 'var(--lovers-pink)' }}>viver a rota.</span>
           </h2>
         </div>
         <div className="lovers-stat-grid">
