@@ -341,6 +341,45 @@
 @media (max-width: 380px) {
   .lovers-countdown__grid { grid-template-columns: 1fr; }
 }
+
+/* ── Seção Rota da Doçura (convite ao mapa) ── */
+.lovers-route-section { position: relative; background: var(--lovers-cream); }
+.lovers-route-card {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+  gap: clamp(24px, 4vw, 56px); align-items: stretch;
+  padding: clamp(28px, 5vw, 72px); border-radius: clamp(32px, 4vw, 56px);
+  background: var(--lovers-pink); color: var(--lovers-cream);
+}
+.lovers-route-card__content, .lovers-route-card__aside { position: relative; z-index: 2; }
+.lovers-route-card .lovers-eyebrow,
+.lovers-route-card .lovers-section__title,
+.lovers-route-card p { color: inherit; }
+.lovers-route-card__content p {
+  max-width: 620px; margin: 14px 0 0;
+  font-size: clamp(16px, 1.4vw, 19px); line-height: 1.55; opacity: .94;
+}
+.lovers-route-card__ctas { margin-top: clamp(18px, 2.4vw, 28px); }
+.lovers-route-card__micro {
+  margin-top: 12px; font-size: 13px; line-height: 1.4; opacity: .78;
+}
+.lovers-route-card__aside {
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  padding: clamp(22px, 3vw, 36px); border-radius: 32px;
+  background: rgba(255, 232, 210, .16); border: 1px solid rgba(255, 232, 210, .26);
+}
+.lovers-route-card__icon {
+  width: 58px; height: 58px; display: grid; place-items: center; border-radius: 999px;
+  background: var(--lovers-yellow); color: var(--lovers-brown);
+}
+.lovers-route-card__aside h3 {
+  margin: 0; font-family: var(--font-lovers-display);
+  font-size: clamp(24px, 3vw, 38px); line-height: .95; text-transform: uppercase;
+}
+.lovers-route-card__aside p { margin: 0; line-height: 1.45; }
+@media (max-width: 860px) {
+  .lovers-route-card { grid-template-columns: 1fr; padding: clamp(24px, 7vw, 42px); }
+}
 .lovers-hero--simple .lovers-hero__lead {
   font-family: var(--font-lovers-display); font-weight: 700;
   font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-brown);

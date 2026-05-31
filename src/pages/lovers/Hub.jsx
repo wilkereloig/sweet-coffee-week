@@ -281,6 +281,43 @@ function NavCards({ navigate }) {
   )
 }
 
+function RotaDaDocura({ navigate }) {
+  return (
+    <section className="section lovers-route-section">
+      <div className="wrap lovers-safe-wrap">
+        <div className="lovers-route-card reveal reveal-up">
+          <div className="lovers-route-card__content">
+            <span className="lovers-eyebrow">Rota da Doçura</span>
+            <h2 className="lovers-section__title">Monte sua rota pela cidade.</h2>
+            <p>
+              A edição Lovers espalha sabores por diferentes pontos de Natal e região. Use o mapa
+              para encontrar os participantes, escolher suas paradas e viver o Sweet no seu próprio ritmo.
+            </p>
+            <div className="lovers-route-card__ctas">
+              <LoversButton
+                variant="primary"
+                href="#/lovers/mapa"
+                onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+              >
+                <I.map width={18} height={18} /> Abrir mapa da doçura
+              </LoversButton>
+            </div>
+            <p className="lovers-route-card__micro">
+              O mapa mostra os pontos participantes e ajuda você a planejar sua experiência.
+            </p>
+          </div>
+
+          <div className="lovers-route-card__aside">
+            <span className="lovers-route-card__icon" aria-hidden="true"><I.map width={26} height={26} /></span>
+            <h3>Dica Sweet Lover</h3>
+            <p>Salve seus favoritos, combine com os amigos e descubra novas lojas pelo caminho.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function FinalCTA({ navigate }) {
   return (
     <section id="cta" className="section section-cta lovers-final-cta">
@@ -342,6 +379,7 @@ export function LoversPage({ navigate }) {
       <ComoFunciona />
       <StatCards />
       <NavCards navigate={navigate} />
+      <RotaDaDocura navigate={navigate} />
       <FinalCTA navigate={navigate} />
     </div>
   )
