@@ -269,9 +269,6 @@ export function ComboPage({ navigate }) {
             <p className="combos-page__summary-count">
               {combosData.length} participantes esperando por você.
             </p>
-            <p className="combos-page__summary-sub">
-              Toque em uma loja para ver endereço, unidades e perfil.
-            </p>
           </div>
         </div>
       )}
