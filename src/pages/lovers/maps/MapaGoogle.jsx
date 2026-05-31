@@ -422,6 +422,7 @@ export function MapaGooglePage({ navigate }) {
     } catch { return [] }
   })
   const [isRoutePanelOpen, setIsRoutePanelOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const mapDebug = isMapDebugEnabled()
 
@@ -715,9 +716,46 @@ export function MapaGooglePage({ navigate }) {
             </div>
           ) : (
             <>
-            <header className="mapa-hero">
-              <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
-            </header>
+            <div className="mapa-topbar" role="toolbar" aria-label="Ações do mapa">
+              <button type="button" className="mapa-topbar__btn" onClick={() => setSearchOpen(true)}>
+                <I.search width={16} height={16} /><span>Buscar</span>
+              </button>
+              <button type="button" className="mapa-topbar__btn" onClick={() => setIsRoutePanelOpen(true)}>
+                <I.route width={16} height={16} /><span>Minha rota</span>
+              </button>
+              <button type="button" className="mapa-topbar__btn" onClick={requestUserLocation} disabled={locating}>
+                <I.pin width={16} height={16} /><span>{locating ? 'Localizando…' : 'Perto de mim'}</span>
+              </button>
+            </div>
+            {searchOpen && (
+              <div className="mapa-search-modal" role="dialog" aria-modal="true" onClick={() => setSearchOpen(false)}>
+                <div className="mapa-search-modal__panel" onClick={e => e.stopPropagation()}>
+                  <div className="mapa-search-modal__head">
+                    <strong>Buscar e filtrar</strong>
+                    <button type="button" className="mapa-search-modal__close" onClick={() => setSearchOpen(false)} aria-label="Fechar"><I.close width={18} height={18} /></button>
+                  </div>
+                  <input
+                    type="text"
+                    className="mapa-search"
+                    autoFocus
+                    aria-label="Buscar participante, bairro ou endereço"
+                    placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  <div className="mapa-search-modal__filters">
+                    <button onClick={() => setFilterBairro(null)} className="mapa-chip" style={{ background: !filterBairro ? 'var(--lovers-red)' : 'transparent', color: !filterBairro ? '#fff' : 'var(--lovers-red)' }}>
+                      Todos · {participants.length}
+                    </button>
+                    {neighborhoods.map(n => (
+                      <button key={n.name} onClick={() => setFilterBairro(prev => prev === n.name ? null : n.name)} className="mapa-chip" style={{ background: filterBairro === n.name ? 'var(--lovers-red)' : 'transparent', color: filterBairro === n.name ? '#fff' : 'var(--lovers-red)' }}>
+                        {n.name} · {n.count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             {hasMissingCoords && (
               <div className="mono" style={{
                 fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
@@ -775,125 +813,7 @@ export function MapaGooglePage({ navigate }) {
 
               {/* ── lista lateral ── */}
               <div className="map-sidebar mapa-floating-panel mapa-floating-panel--sidebar">
-                <div className="map-sidebar-sticky">
-
-                {/* busca */}
-                <input
-                  type="text"
-                  className="mapa-search"
-                  aria-label="Buscar participante, bairro ou endereço"
-                  placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-
-                {/* Filtros por bairro ocultados nesta versão pública do mapa para simplificar
-                   a experiência. A lógica (filterBairro, neighborhoods) permanece preservada. */}
-                {false && (
-                <div className="map-neighborhood-filters" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                  <button
-                    onClick={() => setFilterBairro(null)}
-                    className="mapa-chip"
-                    style={{ background: !filterBairro ? 'var(--lovers-red)' : 'transparent', color: !filterBairro ? '#fff' : 'var(--lovers-red)' }}
-                  >
-                    Todos · {participants.length}
-                  </button>
-                  {neighborhoods.map(n => (
-                    <button
-                      key={n.name}
-                      onClick={() => setFilterBairro(prev => prev === n.name ? null : n.name)}
-                      className="mapa-chip"
-                      style={{ background: filterBairro === n.name ? 'var(--lovers-red)' : 'transparent', color: filterBairro === n.name ? '#fff' : 'var(--lovers-red)' }}
-                    >
-                      {n.name} · {n.count}
-                    </button>
-                  ))}
-                </div>
-                )}
-
-                {/* botão localização */}
-                {!userLocation ? (
-                  <button
-                    onClick={requestUserLocation}
-                    disabled={locating}
-                    className="mapa-chip"
-                    style={{
-                      width: '100%', marginBottom: locationError ? 4 : 10, padding: '8px 12px',
-                      background: 'rgba(255,232,210,.10)', color: 'var(--lovers-cream)',
-                      borderColor: 'rgba(255,232,210,.55)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      opacity: locating ? .6 : 1,
-                      cursor: locating ? 'default' : 'pointer',
-                    }}
-                  >
-                    <I.pin width={16} height={16} />
-                    {locating ? 'Localizando…' : 'Ver participantes perto de mim'}
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
-                    <div className="mapa-chip" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-purple)', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
-                      <span style={{ fontSize: 12 }}>📍</span> Localização ativa
-                    </div>
-                    <button
-                      onClick={clearUserLocation}
-                      className="mapa-chip"
-                      style={{ background: 'transparent', color: 'var(--lovers-cream)', borderColor: 'rgba(255,232,210,.45)', padding: '6px 10px' }}
-                    >
-                      Limpar
-                    </button>
-                  </div>
-                )}
-
-                {/* erro de localização */}
-                {locationError && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-yellow)', marginBottom: 8, lineHeight: 1.4 }}>
-                    {locationError}
-                  </div>
-                )}
-
-                {/* filtros de distância — só quando localização ativa */}
-                {userLocation && (
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                    {[null, 2, 5, 10].map(km => (
-                      <button
-                        key={km ?? 'all'}
-                        onClick={() => setDistanceFilterKm(km)}
-                        className="mapa-chip"
-                        style={{
-                          background: distanceFilterKm === km ? 'var(--lovers-cream)' : 'transparent',
-                          color: distanceFilterKm === km ? 'var(--lovers-purple)' : 'var(--lovers-cream)',
-                          borderColor: 'rgba(255,232,210,.45)',
-                        }}
-                      >
-                        {km === null ? 'Todos' : `Até ${km} km`}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* contagem + limpar seleção */}
-                <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>
-                    {finalParticipants.length === participants.length
-                      ? `${participants.length} PARTICIPANTES · ${allLocations.length} LOJAS`
-                      : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
-                  </span>
-                  {selectedLocationId && (
-                    <button
-                      type="button"
-                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 10, color: 'rgba(255,232,210,.82)', opacity: .9,
-                        fontFamily: 'var(--font-lovers-body)', fontWeight: 700,
-                        padding: '2px 0', letterSpacing: '0.03em',
-                      }}
-                    >
-                      LIMPAR SELEÇÃO ×
-                    </button>
-                  )}
-                </div>
-                </div>{/* /map-sidebar-sticky */}
+                {/* controles (busca/localização/filtros/contagem) movidos para a barra superior — sidebar mostra só os participantes */}
                 <div className="map-sidebar-scroll">
 
                 {/* lista de cards */}
@@ -1159,11 +1079,7 @@ export function MapaGooglePage({ navigate }) {
               </div>{/* /map-sidebar */}
             </div>
 
-            {routeLocations.length > 0 && (
-              <button type="button" className="sweet-route-fab" onClick={() => setIsRoutePanelOpen(true)}>
-                MINHA ROTA · {routeLocations.length} {routeLocations.length === 1 ? 'PARADA' : 'PARADAS'}
-              </button>
-            )}
+            {/* FAB removido — "Minha rota" agora vive na barra superior (.mapa-topbar) */}
 
             {isRoutePanelOpen && (
               <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
@@ -1500,7 +1416,7 @@ export function MapaGooglePage({ navigate }) {
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 0 clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
+            padding: clamp(16px, 2.4vw, 24px) clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
             scrollbar-color: rgba(255,232,210,.52) rgba(255,232,210,.14);
             scrollbar-width: thin;
           }
@@ -1524,6 +1440,50 @@ export function MapaGooglePage({ navigate }) {
           /* cor/contraste dos chips vêm dos estilos inline (creme inativo, roxo-sobre-creme ativo);
              aqui só borda padrão p/ chips sem cor inline. */
           .mapa-floating-panel--sidebar .mapa-chip { border-color: rgba(255,232,210,.55); }
+
+          /* ── Barra superior do mapa (ações discretas) ── */
+          .mapa-topbar {
+            position: sticky; top: 0; z-index: 20;
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            padding: 10px 0 12px;
+          }
+          .mapa-topbar__btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 999px;
+            background: rgba(255,255,255,.92); color: var(--lovers-brown);
+            border: 1px solid rgba(135,14,45,.18);
+            font-family: var(--font-lovers-body); font-weight: 700;
+            font-size: 12.5px; letter-spacing: .02em; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(43,24,16,.10);
+            transition: transform .15s, box-shadow .15s, background .15s;
+          }
+          .mapa-topbar__btn:hover { transform: translateY(-1px); background: #fff; box-shadow: 0 8px 20px rgba(43,24,16,.16); }
+          .mapa-topbar__btn:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+          .mapa-topbar__btn svg { flex-shrink: 0; }
+
+          /* ── Modal de busca + filtro ── */
+          .mapa-search-modal {
+            position: fixed; inset: 0; z-index: 400;
+            background: rgba(43,24,16,.45);
+            -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 12vh 16px 16px;
+          }
+          .mapa-search-modal__panel {
+            width: 100%; max-width: 460px;
+            background: var(--lovers-cream); color: var(--lovers-brown);
+            border-radius: 22px; padding: 18px;
+            box-shadow: 0 30px 70px rgba(43,24,16,.4);
+          }
+          .mapa-search-modal__head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+            font-family: var(--font-lovers-display); font-size: 18px; text-transform: uppercase;
+          }
+          .mapa-search-modal__close { background: none; border: 0; cursor: pointer; color: var(--lovers-brown); padding: 4px; line-height: 0; }
+          .mapa-search-modal__panel .mapa-search { width: 100%; }
+          .mapa-search-modal__filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+          .mapa-search-modal__filters .mapa-chip { color: var(--lovers-red); border-color: rgba(214,54,72,.4); }
           /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
           .map-neighborhood-filters { display: none !important; }
 
@@ -2002,8 +1962,12 @@ export function MapaGooglePage({ navigate }) {
             text-transform: uppercase;
             cursor: pointer;
           }
+          @media (max-width: 768px) {
+            /* sobe o FAB acima da barra inferior fixa (.lovers-tabbar) para não ficar escondido */
+            .sweet-route-fab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+          }
           @media (max-width: 560px) {
-            .sweet-route-fab { left: 16px; right: 16px; bottom: 16px; }
+            .sweet-route-fab { left: 16px; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
             .sweet-route-overlay { padding: 10px; }
             .sweet-route-panel { border-radius: 24px; padding: 10px; }
             .sweet-route-share-card { border-radius: 22px; padding: 22px 16px; }
