@@ -87,7 +87,7 @@ function Hero({ navigate }) {
 
       <div className="wrap lovers-safe-wrap lovers-hero__inner">
         <div className="lovers-hero__copy lovers-centered-stack reveal reveal-up">
-          <span className="lovers-hero__eyebrow">Sweet &amp; Coffee Week Lovers · Especial 10 anos</span>
+          <span className="lovers-hero__eyebrow">Especial 10 anos</span>
 
           <h1 className="lovers-hero__main-title">
             Uma edição feita para quem viveu, compartilhou e ajudou a transformar o{' '}
