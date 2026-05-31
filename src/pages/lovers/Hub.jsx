@@ -141,18 +141,6 @@ function OQueEComoFunciona() {
               faz o <span style={{ color: 'var(--lovers-burgundy)' }}>Sweet acontecer.</span>
             </h2>
           </div>
-
-          <div className="lovers-concept__copy reveal reveal-up reveal-delay-1">
-            <p className="lovers-concept__text">
-              Não é sobre amor romântico. É sobre os <strong>Sweet Lovers</strong>: quem acompanha
-              o festival, visita as lojas, fotografa, marca os amigos, vota e transforma cada edição
-              em uma experiência coletiva. Nos 10 anos, o público é o grande homenageado.
-            </p>
-            <div className="lovers-concept__highlight">
-              Sweet Lovers são fãs, clientes, amigos, famílias e grupos que vivem o festival como
-              roteiro, memória e descoberta.
-            </div>
-          </div>
         </div>
 
         <div className="lovers-concept__how reveal reveal-up">
