@@ -257,6 +257,20 @@
   text-transform: uppercase; color: var(--lovers-brown); margin-bottom: 8px;
 }
 .lovers-hero--simple .lovers-hero__wordmark { display: block; color: var(--lovers-pink); }
+/* Hero conduzido pela mensagem: a frase vira o H1 (sem lockup gigante) */
+.lovers-hero__main-title {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: var(--font-lovers-display);
+  font-weight: 900;
+  font-size: clamp(32px, 5vw, 72px);
+  line-height: .98;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  color: var(--lovers-brown);
+  text-align: center;
+}
+.lovers-hero__main-title span { color: var(--lovers-pink); }
 .lovers-hero--simple .lovers-hero__lead {
   font-family: var(--font-lovers-display); font-weight: 700;
   font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-brown);

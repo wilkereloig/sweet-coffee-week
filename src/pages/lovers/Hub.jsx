@@ -10,7 +10,7 @@ import { LoversButton, LoversNavCard, LoversStatCard, LoversStickers, useLoversR
 
 function Hero({ navigate }) {
   return (
-    <section id="top" className="lovers-hero lovers-hero--simple">
+    <section id="top" className="lovers-hero lovers-hero--simple lovers-hero--message">
       <div className="lovers-decor" aria-hidden="true">
         <span className="lovers-orb lovers-orb--pink" />
         <span className="lovers-orb lovers-orb--cyan" />
@@ -20,18 +20,14 @@ function Hero({ navigate }) {
 
       <div className="wrap lovers-safe-wrap lovers-hero__inner">
         <div className="lovers-hero__copy lovers-centered-stack reveal reveal-up">
-          <span className="lovers-hero__eyebrow">Especial 10 anos</span>
+          <span className="lovers-hero__eyebrow">Sweet &amp; Coffee Week Lovers · Especial 10 anos</span>
 
-          <h1 className="lovers-hero__brand" aria-label="Sweet & Coffee Week Lovers">
-            <span className="lovers-hero__lockup" aria-hidden="true">Sweet &amp;<br />Coffee Week</span>
-            <span className="lovers-hero__wordmark" aria-hidden="true"><LoversWordmark width="100%" /></span>
+          <h1 className="lovers-hero__main-title">
+            Uma edição feita para quem viveu, compartilhou e ajudou a transformar o{' '}
+            <span>Sweet</span> em uma história de <span>10 anos</span>.
           </h1>
 
           <p className="lovers-hero__lead lovers-text-wrap">
-            Uma edição feita para quem viveu, compartilhou e ajudou a transformar o Sweet
-            em uma história de 10 anos.
-          </p>
-          <p className="lovers-hero__note lovers-text-wrap">
             De 4 a 14 de junho, Natal entra na rota mais doce do ano com combos especiais
             criados por lojas que fazem parte dessa história.
           </p>
