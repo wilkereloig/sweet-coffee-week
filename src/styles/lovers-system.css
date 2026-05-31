@@ -1130,11 +1130,12 @@
   max-width: 1100px; margin: 14px auto 0;
   font-family: var(--font-lovers-display); font-weight: 900;
   font-size: clamp(32px, 5vw, 72px); line-height: .98; letter-spacing: -.02em;
-  text-transform: uppercase; color: inherit;
+  text-transform: uppercase; color: inherit; text-align: center;
 }
 .lovers-public-hero__lead {
   max-width: 680px; margin: 18px auto 0;
   font-size: clamp(16px, 1.6vw, 20px); line-height: 1.55; color: inherit; opacity: .88;
+  text-align: center;
 }
 .lovers-public-hero__actions {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
@@ -1154,11 +1155,12 @@
   margin: 10px 0 0;
   font-family: var(--font-lovers-display); font-weight: 800;
   font-size: clamp(28px, 4vw, 56px); line-height: 1; letter-spacing: -.01em;
-  text-transform: uppercase; color: var(--lovers-brown);
+  text-transform: uppercase; color: var(--lovers-brown); text-align: center;
 }
 .lovers-public-section__lead {
   margin: 14px auto 0; max-width: 60ch;
   font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; color: var(--lovers-brown); opacity: .82;
+  text-align: center;
 }
 
 /* ── Grid + card público (3 → 2 → 1; cor de acento via --card-accent) ── */
@@ -1192,11 +1194,12 @@
   margin: 0;
   font-family: var(--font-lovers-display); font-weight: 900;
   font-size: clamp(24px, 3.2vw, 42px); line-height: 1; letter-spacing: -.02em;
-  text-transform: uppercase; color: var(--lovers-burgundy);
+  text-transform: uppercase; color: var(--lovers-burgundy); text-align: center;
 }
 .combos-page__summary-sub {
   margin: 10px auto 0; max-width: 48ch;
   font-size: clamp(14px, 1.4vw, 16px); line-height: 1.5; color: var(--lovers-brown); opacity: .8;
+  text-align: center;
 }
 
 /* ── Participantes: badge "combo em breve" no corpo do card (estado travado) ── */
