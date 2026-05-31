@@ -8,6 +8,41 @@ import { LoversButton, LoversNavCard, LoversStatCard, LoversStickers, useLoversR
 
 /* ── Sections ── */
 
+function LoversCountdown() {
+  const [now, setNow] = React.useState(() => new Date())
+
+  React.useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60 * 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const start = new Date('2026-06-04T00:00:00-03:00')
+  const end = new Date('2026-06-14T23:59:59-03:00')
+  const diff = start.getTime() - now.getTime()
+
+  let label = ''
+  if (now > end) {
+    label = 'Edição encerrada'
+  } else if (diff <= 0) {
+    label = 'A edição Lovers começou!'
+  } else {
+    const totalMinutes = Math.max(0, Math.floor(diff / 60000))
+    const days = Math.floor(totalMinutes / (60 * 24))
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+    const minutes = totalMinutes % 60
+    label = days > 0
+      ? `Faltam ${days} dias · ${String(hours).padStart(2, '0')}h · ${String(minutes).padStart(2, '0')}min`
+      : `Começa em ${String(hours).padStart(2, '0')}h · ${String(minutes).padStart(2, '0')}min`
+  }
+
+  return (
+    <div className="lovers-countdown" aria-label="Contagem regressiva para a edição Lovers">
+      <span className="lovers-countdown__label">{label}</span>
+      <span className="lovers-countdown__date">4 a 14 de junho · Natal/RN</span>
+    </div>
+  )
+}
+
 function Hero({ navigate }) {
   return (
     <section id="top" className="lovers-hero lovers-hero--simple lovers-hero--message">
@@ -32,10 +67,7 @@ function Hero({ navigate }) {
             criados por lojas que fazem parte dessa história.
           </p>
 
-          <div className="lovers-hero__date">
-            <strong>4 A 14 DE JUNHO</strong>
-            <span>Natal · RN</span>
-          </div>
+          <LoversCountdown />
 
           <div className="lovers-hero__ctas lovers-cta-row-center">
             <LoversButton

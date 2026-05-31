@@ -271,6 +271,30 @@
   text-align: center;
 }
 .lovers-hero__main-title span { color: var(--lovers-pink); }
+/* Contagem regressiva no Hero (pill marrom sobre amarelo) */
+.lovers-countdown {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; width: fit-content; max-width: 100%;
+  margin-top: clamp(18px, 2vw, 28px);
+  padding: 14px 24px; border-radius: 999px;
+  background: var(--lovers-brown); color: var(--lovers-cream);
+  box-shadow: 0 14px 30px rgba(43, 24, 16, .18);
+}
+.lovers-countdown__label {
+  font-family: var(--font-lovers-display);
+  font-size: clamp(14px, 1.4vw, 18px); line-height: 1; font-weight: 900;
+  letter-spacing: .03em; text-transform: uppercase; color: var(--lovers-pink);
+}
+.lovers-countdown__date {
+  font-family: var(--font-lovers-body);
+  font-size: 12px; line-height: 1; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--lovers-cream); opacity: .86;
+}
+@media (max-width: 560px) {
+  .lovers-countdown { width: 100%; padding: 13px 18px; border-radius: 24px; gap: 6px; }
+  .lovers-countdown__label, .lovers-countdown__date { width: 100%; text-align: center; }
+}
 .lovers-hero--simple .lovers-hero__lead {
   font-family: var(--font-lovers-display); font-weight: 700;
   font-size: clamp(18px, 2.2vw, 26px); line-height: 1.25; color: var(--lovers-brown);
