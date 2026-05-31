@@ -107,7 +107,7 @@ export default function App() {
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} path={path} />
       <main key={route} className={`page-enter${['participantes', 'combos', 'combo-detail'].includes(route) ? ' with-combo-rail' : ''}`}>{page}</main>
-      {route === 'mapa' && <LoversTabBar route={route} navigate={navigate} />}
+      <LoversTabBar route={route} navigate={navigate} />
     </DevViewportSwitcher>
   )
 }

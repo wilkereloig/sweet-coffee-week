@@ -483,7 +483,7 @@
 .lovers-tabbar { display: none; }
 @media (max-width: 768px) {
   body.route-mapa .site-header { display: none !important; }
-  body.route-mapa main.page-enter { padding-bottom: 72px; }
+  main.page-enter { padding-bottom: 72px; }
   .lovers-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
     display: flex; align-items: stretch; justify-content: space-around;
