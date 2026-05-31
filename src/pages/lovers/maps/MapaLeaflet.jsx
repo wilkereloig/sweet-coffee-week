@@ -5,6 +5,7 @@ import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
 import { PARTICIPANTS } from '../../../data/participants'
 import { COMBOS } from '../../../data/combos'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../../config/loversRelease'
 
 const participantsSource = PARTICIPANTS
 const combosSource = COMBOS
@@ -258,7 +259,7 @@ export function MapaLeafletPage({ navigate }) {
                     <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4 }}>
                       {selected.name}
                     </div>
-                    {selected.combo && (
+                    {LOVERS_SHOW_COMBO_DETAILS && selected.combo && (
                       <div style={{ fontSize: 14, color: 'var(--lovers-brown)', opacity: .85, marginBottom: 6 }}>
                         Combo: <strong>{selected.combo.name}</strong>
                       </div>
@@ -389,7 +390,7 @@ export function MapaLeafletPage({ navigate }) {
                       <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 18, lineHeight: 1.2, color: 'var(--lovers-ink)', marginBottom: 2 }}>
                         {p.name}
                       </div>
-                      {p.combo && (
+                      {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
                         <div style={{ fontSize: 13, color: 'var(--lovers-brown)', opacity: .75 }}>{p.combo.name}</div>
                       )}
                       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>

@@ -1,0 +1,14 @@
+// Flag de revelação pública dos combos — edição Sweet & Coffee Week Lovers.
+//
+// FALSE  = esconde foto, nome, descrição, itens e TEMA do combo em toda a área
+//          pública (lançamento sem revelar as criações dos participantes).
+// TRUE   = revela os detalhes do combo.
+//
+// O padrão SEGURO é esconder: sem a env definida, o valor é false.
+// Para revelar, definir VITE_SHOW_LOVERS_COMBO_DETAILS=true no ambiente.
+export const LOVERS_SHOW_COMBO_DETAILS =
+  import.meta.env.VITE_SHOW_LOVERS_COMBO_DETAILS === 'true'
+
+// Atalho semântico: quando os detalhes NÃO estão revelados, a área pública
+// está "travada" (sem env → false → LOCKED true).
+export const LOVERS_PUBLIC_LOCKED = !LOVERS_SHOW_COMBO_DETAILS

@@ -1,386 +1,430 @@
-﻿import React from 'react'
-import { I, TapeStrip } from '../../components/icons'
-import { PhotoPH, EmptyState } from '../../components/placeholders'
+import React from 'react'
+import { I } from '../../components/icons'
+import { EmptyState } from '../../components/placeholders'
 import { COMBOS } from '../../data/combos'
 import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
+import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
 
-// Preview data is used only when internal pages are enabled for local development.
+// Preview data só em desenvolvimento local com a flag ligada.
 const ENABLE_PREVIEW_DATA =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
 
 const combosSource =
-  COMBOS.length > 0 ? COMBOS : ENABLE_PREVIEW_DATA ? PREVIEW_COMBOS : []
+  COMBOS.length > 0
+    ? COMBOS.map(combo => ({ ...combo, ...(COMBO_PHOTOS[combo.slug] || {}) }))
+    : ENABLE_PREVIEW_DATA
+      ? PREVIEW_COMBOS
+      : []
 
 const participantsSource =
   PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
 
-function ComboItemCard({ n, tipo, titulo, desc, icon }) {
+// ATENÇÃO: estes slugs/aliases preservam QR Codes já impressos.
+// Não alterar sem validar materiais físicos.
+// Hoje os 21 slugs oficiais batem exatamente com participants.js, então o mapa
+// está vazio. Se algum slug INTERNO mudar no futuro, mapear aqui o slug IMPRESSO
+// para o novo slug interno: { 'slug-impresso': 'novo-slug-interno' }.
+const QR_SLUG_ALIASES = {}
+function resolveQrSlug(slug) {
+  return QR_SLUG_ALIASES[slug] || slug
+}
+
+/* ── Edição → cor (apenas mapeamento visual; não altera os dados) ── */
+const EDITION_COLORS = {
+  'Sweet Celebration': 'var(--lovers-yellow)',
+  'Sweet Trip': 'var(--lovers-cyan)',
+  'Sweet Music': 'var(--lovers-pink)',
+  'Contos de Fadas': 'var(--lovers-purple)',
+  'Sweet Series': 'var(--lovers-burgundy)',
+  'Filmes': 'var(--lovers-coral)',
+  'Terras Potiguares': 'var(--lovers-brown)',
+}
+function normalizeEdition(edition) {
+  if (!edition) return null
+  const t = String(edition).trim()
+  return t === 'Contos de Fada' ? 'Contos de Fadas' : t
+}
+function editionAccent(participant) {
+  return EDITION_COLORS[normalizeEdition(participant?.edition)] || participant?.brandColor || 'var(--lovers-pink)'
+}
+function getInitials(name) {
+  if (!name) return '?'
+  const w = name.replace(/[-]/g, ' ').split(/\s+/).filter(Boolean)
+  return (w.length === 1 ? w[0].slice(0, 2) : w[0][0] + w[1][0]).toUpperCase()
+}
+function instagramUrl(instagram) {
+  return instagram ? `https://www.instagram.com/${instagram.replace('@', '')}` : null
+}
+function mapsSearchUrl(loc, participant) {
+  if (loc?.mapsUrl) return loc.mapsUrl
+  const address = loc?.address || participant?.address
+  const city = loc?.city || participant?.city || 'Natal/RN'
+  return address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, ${city}`)}`
+    : null
+}
+function directionsUrl(loc, participant) {
+  const lat = loc?.latitude ?? participant?.latitude
+  const lng = loc?.longitude ?? participant?.longitude
+  if (lat && lng) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+  return mapsSearchUrl(loc, participant)
+}
+
+function ComboPhotoGallery({ photos = [], label }) {
+  if (!photos.length) return null
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid rgba(135,14,45,.15)' }}>
-      <PhotoPH label={tipo} aspect="4/3" icon={icon} lovers />
-      <div style={{ padding: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span className="mono" style={{ color: 'var(--lovers-red)' }}>{tipo}</span>
-          <span className="lovers-h3" style={{ fontSize: 32, color: 'rgba(135,14,45,.35)' }}>{n}</span>
-        </div>
-        <div className="h-3 mt-2">{titulo}</div>
-        <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 12, lineHeight: 1.55 }}>{desc}</p>
+    <div className="combo-detail-gallery">
+      <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent, var(--lovers-pink))' }}>Fotos do combo</span>
+      <div className="combo-detail-gallery__grid">
+        {photos.slice(0, 8).map((photo, index) => (
+          <div className="combo-detail-gallery__item" key={photo}>
+            <img
+              src={photo}
+              alt={`${label} — foto ${index + 1}`}
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-function getInstagramUrl(instagram) {
-  if (!instagram) return null
-  return `https://www.instagram.com/${instagram.replace('@', '')}`
+function LocationCard({ loc, participant, accent }) {
+  const name = loc.name || participant.neighborhood || participant.name
+  const maps = mapsSearchUrl(loc, participant)
+  const dir = directionsUrl(loc, participant)
+  return (
+    <article className="combo-detail-location-card lovers-reveal" style={{ '--cd-accent': accent }}>
+      <div className="combo-detail-location-card__head">
+        <span className="combo-detail-location-card__pin" aria-hidden="true"><I.pin /></span>
+        <div>
+          <h3 className="combo-detail-location-card__name">{name}</h3>
+          {(loc.neighborhood || loc.city) && (
+            <span className="combo-detail-location-card__where">
+              {[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
+            </span>
+          )}
+        </div>
+      </div>
+      {loc.address && <p className="combo-detail-location-card__addr">{loc.address}</p>}
+      {loc.openingHours && <p className="combo-detail-location-card__hours">{loc.openingHours}</p>}
+      <div className="combo-detail-location-card__actions">
+        {maps && (
+          <LoversButton variant="secondary" size="small" href={maps} target="_blank" rel="noopener noreferrer">
+            <I.pin /> Abrir no mapa
+          </LoversButton>
+        )}
+        {dir && (
+          <LoversButton variant="primary" size="small" href={dir} target="_blank" rel="noopener noreferrer">
+            <I.route /> Traçar rota
+          </LoversButton>
+        )}
+      </div>
+    </article>
+  )
 }
 
-function getMapsSearchUrl(p) {
-  if (!p?.address) return null
-  const query = encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)
-  return `https://www.google.com/maps/search/?api=1&query=${query}`
-}
-
-export function ComboDetailPage({ navigate, slug }) {
-  const combo = combosSource.find(c => c.slug === slug)
-  const participantFromCombo = combo
-    ? participantsSource.find(p => p.id === combo.participantId)
-    : null
-
-  const participantFromSlug = !combo
-    ? participantsSource.find(p => p.slug === slug || p.id === slug)
-    : null
-
-  const participant = participantFromCombo || participantFromSlug
-  const hasRoute = !!(participant?.latitude && participant?.longitude)
-
-  if (!combo && participant) {
-    const instagramUrl = getInstagramUrl(participant.instagram)
-    const mapsUrl = participant.mapsUrl || getMapsSearchUrl(participant)
-    const initials = participant.name
-      .split(' ')
-      .slice(0, 2)
-      .map(w => w[0])
-      .join('')
-      .toUpperCase()
-
-    return (
-      <div className="page-enter kv-lovers" style={{ overflow: 'hidden', position: 'relative' }}>
-        <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
-
-        <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-          <div className="wrap">
-            <div className="combo-soon-grid">
-              {/* Coluna esquerda: logo */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <div style={{
-                  background: '#fff',
-                  borderRadius: 24,
-                  border: '1px solid rgba(135,14,45,.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  aspectRatio: '4/3',
-                  overflow: 'hidden',
-                }}>
-                  {participant.logo ? (
-                    <img
-                      src={participant.logo}
-                      alt={`Logo ${participant.name}`}
-                      style={{ maxWidth: '72%', maxHeight: '72%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <div style={{
-                      fontFamily: 'var(--font-lovers-display)',
-                      fontSize: 'clamp(48px, 8vw, 96px)',
-                      fontWeight: 800,
-                      color: 'var(--lovers-red)',
-                      opacity: .25,
-                      letterSpacing: '-2px',
-                    }}>
-                      {initials}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{
-                  padding: 24,
-                  background: 'var(--lovers-cream)',
-                  borderRadius: 18,
-                  border: '1px solid rgba(135,14,45,.2)',
-                }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', rowGap: 14, columnGap: 20, fontSize: 14 }}>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>PARTICIPANTE</span>
-                    <span style={{ fontWeight: 600 }}>{participant.name}</span>
-
-                    {participant.neighborhood && <>
-                      <span className="mono" style={{ color: 'var(--lovers-red)' }}>BAIRRO</span>
-                      <span>{participant.neighborhood}</span>
-                    </>}
-
-                    {participant.address && <>
-                      <span className="mono" style={{ color: 'var(--lovers-red)' }}>ENDEREÇO</span>
-                      <span>{participant.address}</span>
-                    </>}
-
-                    {participant.instagram && <>
-                      <span className="mono" style={{ color: 'var(--lovers-red)' }}>INSTAGRAM</span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <I.ig width={14} height={14} /> {participant.instagram}
-                      </span>
-                    </>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Coluna direita: hero copy */}
-              <div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-                  <span className="tag tag-lovers">PARTICIPANTE CONFIRMADO</span>
-                  {participant.neighborhood && (
-                    <span className="tag" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-ink)' }}>
-                      {participant.neighborhood.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mono mb-2" style={{ color: 'var(--lovers-red)' }}>
-                  {participant.name}
-                </div>
-
-                <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 5.5vw, 72px)', lineHeight: 1, margin: 0 }}>
-                  Combo em breve.
-                </h1>
-
-                <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24, lineHeight: 1.6, maxWidth: 480 }}>
-                  Os detalhes do combo deste participante serão divulgados em breve.
-                  Em breve você poderá conferir doce, salgado, bebida e todas as
-                  informações da experiência criada para a edição Sweet &amp; Coffee Week Lovers.
-                </p>
-
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 32 }}>
-                  <a href="#/lovers"
-                     onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
-                     className="btn btn-lovers">
-                    Ver participantes <I.arrow />
-                  </a>
-                  <a href="#/lovers/mapa"
-                     onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-                     className="btn btn-lovers-outline">
-                    Ver mapa da edição
-                  </a>
-                  {instagramUrl && (
-                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
-                       className="btn btn-lovers-outline">
-                      <I.ig width={16} height={16} /> Instagram
-                    </a>
-                  )}
-                  {mapsUrl && (
-                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                       className="btn btn-lovers-outline">
-                      <I.route /> Google Maps
-                    </a>
-                  )}
-                </div>
-              </div>
+class ComboDetailErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null } }
+  static getDerivedStateFromError(err) { return { err } }
+  componentDidCatch(err) { if (import.meta.env.DEV) console.error('[ComboDetail] render error:', err) }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+          <div style={{ maxWidth: 520, width: '100%' }}>
+            <EmptyState lovers icon="cup" title="Participante em breve" subtitle="Esta página está sendo preparada. Volte em instantes." />
+            {import.meta.env.DEV && (
+              <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, marginTop: 16, color: 'crimson' }}>{String(this.state.err && (this.state.err.stack || this.state.err.message))}</pre>
+            )}
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); this.props.navigate && this.props.navigate('/lovers/participantes') }}>
+                Ver participantes <I.arrow />
+              </LoversButton>
             </div>
           </div>
-        </section>
-
-        <style>{`
-          .combo-soon-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: clamp(28px, 4vw, 56px);
-            align-items: start;
-          }
-          @media (max-width: 768px) {
-            .combo-soon-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
-      </div>
-    )
+        </div>
+      )
+    }
+    return this.props.children
   }
+}
 
-  if (!combo) {
+export function ComboDetailPage(props) {
+  return (
+    <ComboDetailErrorBoundary navigate={props.navigate}>
+      <ComboDetailPageInner {...props} />
+    </ComboDetailErrorBoundary>
+  )
+}
+
+function ComboDetailPageInner({ navigate, slug }) {
+  useLoversReveal()
+
+  // Resolve o slug impresso (QR Code) para o slug interno, caso haja alias.
+  const resolvedSlug = resolveQrSlug(slug)
+  const combo = combosSource.find(c => c.slug === resolvedSlug)
+  const participant =
+    (combo && participantsSource.find(p => p.id === combo.participantId)) ||
+    participantsSource.find(p => p.slug === resolvedSlug || p.id === resolvedSlug) ||
+    null
+
+  // Slug inexistente: estado de erro elegante.
+  if (!participant && !combo) {
     return (
-      <div className="kv-lovers" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+      <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
         <div style={{ maxWidth: 520, width: '100%' }}>
           <EmptyState
             lovers
             icon="cup"
-            title="Combo não encontrado"
-            subtitle="O combo que você procura não existe ou ainda não foi publicado."
+            title="Participante não encontrado"
+            subtitle="A página que você procura não existe ou ainda não foi publicada."
           />
           <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
-               className="btn btn-lovers">
-              Ver todos os combos <I.arrow />
-            </a>
+            <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
+              Ver participantes <I.arrow />
+            </LoversButton>
           </div>
         </div>
       </div>
     )
   }
 
+  const accent = editionAccent(participant)
+  const edition = normalizeEdition(participant?.edition) || 'Edição Lovers'
+  const name = participant?.name || combo?.name || 'Participante'
+  const theme = participant?.theme || combo?.recreatedTheme || null
+  const instagram = instagramUrl(participant?.instagram)
+  const gallery = combo?.gallery || COMBO_PHOTOS[participant?.slug]?.gallery || []
+
+  const comboItems = combo
+    ? [
+        { k: 'Doce', v: combo.sweetDescription },
+        { k: 'Salgado', v: combo.savoryDescription },
+        { k: 'Bebida', v: combo.drinkDescription },
+      ].filter(it => it.v)
+    : []
+  const hasComboData = !!(combo && (combo.description || comboItems.length))
+  const reveal = LOVERS_SHOW_COMBO_DETAILS
+  const showCombo = reveal && hasComboData
+
+  const locations =
+    participant?.locations && participant.locations.length
+      ? participant.locations
+      : participant?.address
+        ? [{
+            id: 'main',
+            name: participant.neighborhood || name,
+            address: participant.address,
+            neighborhood: participant.neighborhood,
+            city: participant.city,
+            mapsUrl: participant.mapsUrl,
+            openingHours: participant.openingHours,
+            latitude: participant.latitude,
+            longitude: participant.longitude,
+          }]
+        : []
+
   return (
-    <div className="page-enter kv-lovers" style={{ overflow: 'hidden', position: 'relative' }}>
-      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
+    <div className="page-enter kv-lovers combo-detail-page lovers-gradient-bg" style={{ overflow: 'hidden', '--cd-accent': accent }}>
+      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
+      <LoversStickers page="combos" />
 
-      {/* Hero */}
-      <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-        <div className="wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'start' }}>
-            <div style={{ position: 'relative' }}>
-              <PhotoPH label="FOTO PRINCIPAL DO COMBO COMPLETO" aspect="5/4" icon="plate" lovers size="lg" />
-              <div className="sticker-decorative" style={{ position: 'absolute', top: 20, right: -16, transform: 'rotate(8deg)' }}>
-                <span className="sticker">recriado</span>
-              </div>
-              <div className="sticker-decorative extra" style={{ position: 'absolute', bottom: -16, left: 24, transform: 'rotate(-3deg)' }}>
-                <TapeStrip rotate={-3}>16ª EDIÇÃO · LOVERS</TapeStrip>
-              </div>
+      {/* 1 ── HERO */}
+      <section className="combo-detail-hero">
+        <div className="lovers-decor" aria-hidden="true">
+          <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, right: '6%' }} />
+          <span className="lovers-orb lovers-orb--cyan" style={{ width: 150, height: 150, bottom: -50, left: '3%' }} />
+        </div>
+        <div className="wrap combo-detail-hero__grid">
+          <div className="combo-detail-hero__media">
+            {reveal && <span className="lovers-sticker lovers-sticker--cyan combo-detail-hero__sticker" aria-hidden="true">recriado ♥</span>}
+            <div className="combo-detail-hero__logo">
+              {participant?.logo
+                ? <img src={participant.logo} alt={`Logo ${name}`} />
+                : <span className="combo-detail-hero__logo-initials">{getInitials(name)}</span>}
+            </div>
+          </div>
+
+          <div className="combo-detail-hero__content">
+            <span className="combo-detail-hero__kicker">Participante Lovers</span>
+            <h1 className="combo-detail-hero__name">{name}</h1>
+
+            {reveal ? (
+              <>
+                <p className="combo-detail-hero__intro">Este participante escolheu revisitar:</p>
+                <div className="combo-detail-hero__theme">{theme || 'Tema em breve'}</div>
+              </>
+            ) : (
+              <>
+                <p className="combo-detail-hero__intro">Participante da edição Lovers.</p>
+                <div className="combo-detail-hero__theme">Combo em breve</div>
+              </>
+            )}
+
+            <div className="combo-detail-hero__badges">
+              {reveal && <span className="combo-detail-badge"><span className="combo-detail-badge__dot" />Edição revisitada: {edition}</span>}
+              {!showCombo && <span className="combo-detail-badge combo-detail-badge--soft">Combo em breve</span>}
             </div>
 
-            <div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-                <span className="tag tag-lovers">PARTICIPANTE</span>
-                {participant?.neighborhood && (
-                  <span className="tag" style={{ background: 'rgba(135,14,45,.08)', color: 'var(--lovers-ink)' }}>
-                    {participant.neighborhood.toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="mono mb-2" style={{ color: 'var(--lovers-red)' }}>
-                {participant?.name || 'NOME DA LOJA'}
-              </div>
-              <h1 className="lovers-h1" style={{ fontSize: 'clamp(40px, 5.5vw, 72px)', lineHeight: 1, margin: 0 }}>
-                {combo.name}<br/>
-                <span style={{ color: 'var(--lovers-pink)' }}>Lovers.</span>
-              </h1>
+            {!showCombo && (
+              <p className="combo-detail-hero__note">
+                Essa criação ainda está saindo do forno. Em breve você vai conhecer o combo que esta loja
+                preparou especialmente para a edição Sweet &amp; Coffee Week Lovers.
+              </p>
+            )}
 
-              <div style={{ marginTop: 28, padding: 24, background: 'var(--lovers-cream)', borderRadius: 18, border: '1px solid rgba(135,14,45,.2)' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', rowGap: 14, columnGap: 24, fontSize: 14 }}>
-                  {combo.recreatedTheme && <>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>TEMA RECRIADO</span>
-                    <span className="lovers-h3" style={{ fontSize: 20 }}>{combo.recreatedTheme}</span>
-                  </>}
-                  {participant?.neighborhood && <>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>BAIRRO</span>
-                    <span>{participant.neighborhood}</span>
-                  </>}
-                  {participant?.address && <>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>ENDEREÇO</span>
-                    <span>{participant.address}</span>
-                  </>}
-                  {participant?.instagram && <>
-                    <span className="mono" style={{ color: 'var(--lovers-red)' }}>INSTAGRAM</span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <I.ig width={14} height={14} /> {participant.instagram}
-                    </span>
-                  </>}
-                </div>
-              </div>
-
-              {combo.description && (
-                <p style={{ fontSize: 17, color: 'var(--lovers-ink)', opacity: .82, marginTop: 24, lineHeight: 1.55 }}>
-                  {combo.description}
-                </p>
+            <div className="combo-detail-hero__ctas">
+              <LoversButton variant="secondary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
+                Voltar para participantes
+              </LoversButton>
+              <LoversButton variant="primary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
+                <I.route /> Abrir mapa da Doçura
+              </LoversButton>
+              {instagram && (
+                <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer">
+                  <I.ig /> Ver Instagram
+                </LoversButton>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
-                {hasRoute && (
-                  <button className="btn btn-lovers"><I.route /> Traçar rota</button>
+      {/* 2 ── O TEMA ESCOLHIDO */}
+      <section className="section combo-detail-section">
+        <div className="wrap">
+          <article className="combo-detail-theme-card lovers-reveal">
+            {reveal ? (
+              <>
+                <span className="lovers-sticker lovers-sticker--pink combo-detail-theme-card__sticker" aria-hidden="true">10 anos ♥</span>
+                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O tema escolhido</span>
+                <p className="combo-detail-theme-card__lead">
+                  Para celebrar os 10 anos do Sweet, este participante mergulhou em uma memória do festival e
+                  transformou esse universo em uma nova experiência.
+                </p>
+                <div className="combo-detail-theme-card__highlights">
+                  <div className="combo-detail-theme-card__highlight">
+                    <span className="combo-detail-theme-card__label">Tema</span>
+                    <span className="combo-detail-theme-card__value">{theme || 'Tema em breve'}</span>
+                  </div>
+                  <div className="combo-detail-theme-card__highlight">
+                    <span className="combo-detail-theme-card__label">Edição revisitada</span>
+                    <span className="combo-detail-theme-card__value">{edition}</span>
+                  </div>
+                </div>
+                <p className="combo-detail-theme-card__note">
+                  É uma releitura feita para quem viveu, acompanhou ou sempre quis descobrir esse capítulo da
+                  história do Sweet &amp; Coffee Week.
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="lovers-sticker lovers-sticker--pink combo-detail-theme-card__sticker" aria-hidden="true">10 anos ♥</span>
+                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>A criação</span>
+                <p className="combo-detail-theme-card__lead">A criação vem aí.</p>
+                <p className="combo-detail-theme-card__note">
+                  Cada participante preparou uma experiência especial para a edição Lovers. Os detalhes serão
+                  revelados em breve.
+                </p>
+              </>
+            )}
+          </article>
+        </div>
+      </section>
+
+      {/* 3 ── O COMBO */}
+      <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <article className="combo-detail-combo-card lovers-reveal">
+            {showCombo ? (
+              <>
+                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O combo</span>
+                <h2 className="combo-detail-combo-card__title">{combo.name || name}</h2>
+                {combo.description && <p className="combo-detail-combo-card__text">{combo.description}</p>}
+                {comboItems.length > 0 && (
+                  <div className="combo-detail-combo-card__items">
+                    {comboItems.map(it => (
+                      <div className="combo-detail-combo-card__item" key={it.k}>
+                        <span className="combo-detail-combo-card__item-k">{it.k}</span>
+                        <span className="combo-detail-combo-card__item-v">{it.v}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                <a href="#/lovers/combos" onClick={(e) => { e.preventDefault(); navigate('/lovers/combos') }}
-                   className="btn btn-lovers-outline">
-                  Voltar para combos
-                </a>
-                <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-                   className="btn btn-lovers-outline">
-                  Ver mapa da edição
-                </a>
-              </div>
-            </div>
-          </div>
+                {combo.price && <div className="combo-detail-combo-card__price">{combo.price}</div>}
+              </>
+            ) : (
+              <>
+                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O combo</span>
+                <h2 className="combo-detail-combo-card__title">O combo vem aí.</h2>
+                <p className="combo-detail-combo-card__text">
+                  A criação será revelada em breve. Quando estiver disponível, você vai conhecer aqui a
+                  experiência completa que esta loja preparou para a edição Sweet &amp; Coffee Week Lovers.
+                </p>
+                <div className="combo-detail-combo-card__meta">
+                  <div className="combo-detail-combo-card__formula">
+                    <span className="combo-detail-combo-card__label">Combo</span>
+                    <span className="combo-detail-combo-card__value">Experiência completa</span>
+                  </div>
+                  <div className="combo-detail-combo-card__price-box">
+                    <span className="combo-detail-combo-card__label">Valor</span>
+                    <span className="combo-detail-combo-card__price">R$ 38,90</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {reveal && <ComboPhotoGallery photos={gallery} label={name} />}
+          </article>
         </div>
       </section>
 
-      <style>{`
-        @media (max-width: 880px) {
-          section[style*="32px 0 56px"] > .wrap > div[style*="1.3fr"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-
-      {/* O combo inclui */}
-      <section className="section" style={{ background: 'var(--lovers-cream)' }}>
-        <div className="wrap">
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div className="eyebrow" style={{ color: 'var(--lovers-red)' }}>
-              <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              O COMBO INCLUI
+      {/* 4 ── ONDE ENCONTRAR */}
+      {locations.length > 0 && (
+        <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <div className="combo-detail-section__head lovers-reveal">
+              <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>Onde encontrar</span>
+              <h2 className="combo-detail-section__title">
+                {locations.length === 1 ? 'A unidade participante.' : `${locations.length} unidades participantes.`}
+              </h2>
+              <p className="combo-detail-section__lead">
+                Confira a unidade participante antes de sair para a rota.
+              </p>
             </div>
-            <h2 className="lovers-h2 mt-3">
-              Três peças,<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>uma experiência.</span>
+            <div className="combo-detail-location-grid">
+              {locations.map((loc, i) => (
+                <LocationCard key={loc.id || i} loc={loc} participant={participant} accent={accent} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5 ── FECHAMENTO */}
+      <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="combo-detail-final-cta lovers-reveal">
+            <span className="lovers-sticker lovers-sticker--purple combo-detail-final-cta__sticker" aria-hidden="true">rota da doçura</span>
+            <h2 className="combo-detail-final-cta__title">
+              Salve esse destino e coloque<br />na sua <span>Rota da Doçura.</span>
             </h2>
-          </div>
-
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            <ComboItemCard n="01" tipo="DOCE"
-              titulo={combo.sweetDescription ? combo.name : 'Nome do doce'}
-              desc={combo.sweetDescription || 'Descrição do doce em breve.'}
-              icon="donut" />
-            <ComboItemCard n="02" tipo="SALGADO"
-              titulo={combo.savoryDescription ? combo.name : 'Nome do salgado'}
-              desc={combo.savoryDescription || 'Descrição do salgado em breve.'}
-              icon="croissant" />
-            <ComboItemCard n="03" tipo="BEBIDA"
-              titulo={combo.drinkDescription ? combo.name : 'Nome da bebida'}
-              desc={combo.drinkDescription || 'Descrição da bebida em breve.'}
-              icon="cup" />
-          </div>
-        </div>
-      </section>
-
-      <style>{`
-        @media (max-width: 880px) {
-          .section .grid[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-
-      {/* CTA Mapa */}
-      <section className="section-tight">
-        <div className="wrap">
-          <div style={{
-            padding: 'clamp(28px, 4vw, 56px)',
-            background: 'var(--lovers-red)',
-            color: 'var(--lovers-cream)',
-            borderRadius: 32,
-            display: 'grid',
-            gridTemplateColumns: '1fr auto',
-            gap: 24,
-            alignItems: 'center',
-          }}>
-            <div>
-              <div className="mono" style={{ opacity: .8 }}>NÃO PERCA</div>
-              <div className="lovers-h3" style={{ fontSize: 36, lineHeight: 1.05, marginTop: 6 }}>
-                Confira todos os combos no Mapa da Doçura
-              </div>
+            <div className="combo-detail-final-cta__ctas">
+              <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
+                Ver outros participantes <I.arrow />
+              </LoversButton>
+              <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
+                <I.route /> Abrir mapa
+              </LoversButton>
             </div>
-            <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-               className="btn" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-red)' }}>
-              Ver mapa da edição <I.arrow />
-            </a>
           </div>
-          <style>{`
-            @media (max-width: 880px) {
-              .section-tight .wrap > div[style*="1fr auto"] { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
         </div>
       </section>
     </div>
   )
 }
-

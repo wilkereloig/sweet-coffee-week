@@ -1,5 +1,7 @@
 import React from 'react'
 import { I, LogoMark, HeartTiny, LoversWordmark } from './icons'
+import { PARTICIPANTS } from '../data/participants'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../config/loversRelease'
 
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
@@ -11,13 +13,13 @@ export const NAV_LINKS = [
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers', label: 'Sobre a edição',            href: '#/lovers' },
-  { id: 'combos', label: 'Combos',                    href: '#/lovers/combos' },
-  { id: 'mapa',   label: 'Mapa da Doçura',            href: '#/lovers/mapa' },
-  { id: 'awards', label: 'Sweet & Coffee Week Awards', href: '#/lovers/awards' },
+  { id: 'lovers',        label: 'Sobre a edição',  sub: 'Entenda a edição',      href: '#/lovers' },
+  { id: 'participantes', label: 'Participantes',    sub: 'Escolha seus combos',   href: '#/lovers/participantes' },
+  { id: 'mapa',          label: 'Mapa da Doçura',   sub: 'Monte sua rota',        href: '#/lovers/mapa' },
+  { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
 ]
 
-const IS_LOVERS_ROUTE = ['lovers', 'combos', 'combo-detail', 'mapa', 'awards']
+const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
@@ -92,9 +94,10 @@ function SiteSidebar({ route, navigate, isLovers }) {
           ) : (
             <a key={l.id}
                href={l.href}
-               className={`sidebar__link${route === l.id || (l.id === 'combos' && route === 'combo-detail') ? ' lovers-active' : ''}`}
+               className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && route === 'awards') ? ' lovers-active' : ''}`}
                onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-              {l.label}
+              <span className="sidebar__link-label">{l.label}</span>
+              {l.sub && <span className="sidebar__link-sub">{l.sub}</span>}
             </a>
           )
         ))}
@@ -198,13 +201,71 @@ function LoversDropdown({ route, navigate }) {
   )
 }
 
-export function SiteHeader({ route, navigate }) {
+function LoversComboRail({ navigate, activeSlug }) {
+  const participants = [...PARTICIPANTS]
+    .filter(p => p.slug && p.name)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  return (
+    <aside className="combo-rail">
+      <div className="combo-rail__head">
+        <span className="combo-rail__eyebrow">Participantes</span>
+        <span className="combo-rail__count">{participants.length}</span>
+      </div>
+      <nav className="combo-rail__list">
+        {participants.map(p => (
+          <a key={p.slug}
+             href={`#/lovers/combos/${p.slug}`}
+             className={`combo-rail__item${p.slug === activeSlug ? ' is-active' : ''}`}
+             onClick={(e) => { e.preventDefault(); navigate(`/lovers/combos/${p.slug}`) }}>
+            <span className="combo-rail__name">{p.name}</span>
+            {LOVERS_SHOW_COMBO_DETAILS && p.theme && <span className="combo-rail__theme">{p.theme}</span>}
+          </a>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+function LoversMobileNav({ route, navigate }) {
+  const isActive = (id) =>
+    route === id ||
+    (id === 'participantes' && (route === 'combos' || route === 'combo-detail')) ||
+    (id === 'premiacao' && route === 'awards')
+  return (
+    <nav className="lovers-mobile-nav" aria-label="Navegação Sweet & Coffee Week Lovers">
+      <a href="#/lovers"
+         className="lovers-mobile-nav__seal"
+         aria-label="Sweet & Coffee Week Lovers — sobre a edição"
+         onClick={(e) => { e.preventDefault(); navigate('/lovers') }}>
+        <LoversWordmark width={62} />
+      </a>
+      <div className="lovers-mobile-nav__chips">
+        {LOVERS_LINKS.map((l) => (
+          <a key={l.id}
+             href={l.href}
+             className={`lovers-mobile-chip${isActive(l.id) ? ' is-active' : ''}`}
+             aria-current={isActive(l.id) ? 'page' : undefined}
+             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+            {l.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
+}
+
+export function SiteHeader({ route, navigate, path = '' }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const isLovers = IS_LOVERS_ROUTE.includes(route)
+  const showComboRail = route === 'participantes' || route === 'combos' || route === 'combo-detail'
+  const activeSlug = route === 'combo-detail' ? path.split('/').pop() : null
 
   return (
     <React.Fragment>
       <SiteSidebar route={route} navigate={navigate} isLovers={isLovers} />
+      {isLovers && <LoversMobileNav route={route} navigate={navigate} />}
+      {showComboRail && <LoversComboRail navigate={navigate} activeSlug={activeSlug} />}
 
       <header className={`site-header ${isLovers ? 'lovers' : ''}`}>
         <div className="site-header__inner">

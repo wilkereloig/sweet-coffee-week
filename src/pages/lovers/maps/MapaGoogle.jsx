@@ -1,65 +1,222 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import { I } from '../../../components/icons'
 import { EmptyState } from '../../../components/placeholders'
 import { PARTICIPANTS } from '../../../data/participants'
 import { COMBOS } from '../../../data/combos'
+import { LOVERS_SHOW_COMBO_DETAILS } from '../../../config/loversRelease'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY
+const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
 
 const NATAL_CENTER = { lat: -5.7945, lng: -35.2110 }
 const NATAL_ZOOM = 13
 
-const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
-const PIN_RED = '#D63648'
-const PIN_DARK = '#870E2D'
-const PIN_CREAM = '#FFF1E6'
 
-function buildPinEl(selected) {
-  const el = document.createElement('div')
-  el.style.cssText = 'cursor:pointer;filter:drop-shadow(0 2px 6px rgba(43,24,16,.45));transition:transform .15s'
-  const fill = selected ? PIN_DARK : PIN_RED
-  el.innerHTML = `<svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1C5.924 1 1 5.924 1 12c0 9.5 11 19 11 19S23 21.5 23 12C23 5.924 18.076 1 12 1z" fill="${fill}" stroke="${PIN_CREAM}" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="${PIN_CREAM}"/></svg>`
-  return el
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function getParticipantLocations(participant) {
+  const source = Array.isArray(participant.locations) && participant.locations.length > 0
+    ? participant.locations
+    : [{
+        id: `${participant.id}-main`,
+        name: participant.neighborhood || 'Unidade principal',
+        address: participant.address,
+        neighborhood: participant.neighborhood,
+        city: participant.city,
+        latitude: participant.latitude,
+        longitude: participant.longitude,
+        mapsUrl: participant.mapsUrl,
+      }]
+
+  return source.map((location, index) => ({
+    id: location.id || `${participant.id}-location-${index}`,
+    participantId: participant.id,
+    participantSlug: participant.slug,
+    participantName: participant.name,
+    participantLogo: participant.logo,
+    participantInstagram: participant.instagram,
+    brandColor: participant.brandColor,
+    locationName: location.name || participant.neighborhood || `Unidade ${index + 1}`,
+    address: location.address || participant.address,
+    neighborhood: location.neighborhood || participant.neighborhood,
+    city: location.city || participant.city,
+    latitude: location.latitude ?? null,
+    longitude: location.longitude ?? null,
+    mapsUrl: location.mapsUrl || participant.mapsUrl || '',
+    hours: location.hours || participant.hours || null,
+  }))
 }
 
-console.log('[Mapa Pins]', {
-  total: PARTICIPANTS.length,
-  withAddress: PARTICIPANTS.filter(p => p.address).length,
-  withCoords: PARTICIPANTS.filter(p => p.latitude && p.longitude).length,
-  withoutCoords: PARTICIPANTS.filter(p => p.address && (!p.latitude || !p.longitude)).map(p => p.name),
-})
+function getLocationMapsUrl(location) {
+  if (location.mapsUrl) return location.mapsUrl
+  if (Number.isFinite(location.latitude) && Number.isFinite(location.longitude)) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`
+  }
+  if (!location.address) return null
+  const query = encodeURIComponent(`${location.address}, ${location.city || ''}`)
+  return `https://www.google.com/maps/search/?api=1&query=${query}`
+}
+
+function getDirectionsUrl(location, userLocation) {
+  const destination = Number.isFinite(location.latitude) && Number.isFinite(location.longitude)
+    ? `${location.latitude},${location.longitude}`
+    : location.address
+      ? `${location.address}, ${location.city || ''}`
+      : null
+
+  if (!destination) return getLocationMapsUrl(location)
+
+  const destinationParam = encodeURIComponent(destination)
+
+  if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+    const originParam = encodeURIComponent(`${userLocation.lat},${userLocation.lng}`)
+    return `https://www.google.com/maps/dir/?api=1&origin=${originParam}&destination=${destinationParam}&travelmode=driving`
+  }
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${destinationParam}&travelmode=driving`
+}
+
+function haversineKm(a, b) {
+  if (!a || !b) return null
+  const R = 6371
+  const toRad = v => (v * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+function formatDistance(km) {
+  if (!Number.isFinite(km)) return ''
+  if (km < 1) return `${Math.round(km * 1000)} m`
+  return `${km.toFixed(1).replace('.', ',')} km`
+}
+
+const DAY_ABBR = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+
+function formatHourLabel(hhmm) {
+  const [h, m] = hhmm.split(':')
+  return m === '00' ? `${parseInt(h, 10)}h` : `${parseInt(h, 10)}h${m}`
+}
+
+// Status aberto/fechado calculado no fuso de Natal/RN (America/Fortaleza, UTC-3 sem horário de verão)
+function getOpenStatus(hours, now = new Date()) {
+  if (!hours || typeof hours !== 'object') return { state: 'unknown', label: '', detail: '' }
+
+  // hora/dia atuais no fuso da loja
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Fortaleza',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(now)
+  const get = t => parts.find(p => p.type === t)?.value
+  const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const today = weekdayMap[get('weekday')]
+  let hh = parseInt(get('hour'), 10)
+  if (hh === 24) hh = 0
+  const nowMin = hh * 60 + parseInt(get('minute'), 10)
+
+  const toMin = hhmm => {
+    const [h, m] = hhmm.split(':').map(Number)
+    return h * 60 + m
+  }
+  const slotsFor = d => Array.isArray(hours[d]) ? hours[d] : []
+
+  // aberto agora? (slots de hoje; close <= open = cruza a meia-noite)
+  for (const [open, close] of slotsFor(today)) {
+    const o = toMin(open), c = toMin(close)
+    const openNow = c <= o ? nowMin >= o : nowMin >= o && nowMin < c
+    if (openNow) {
+      return { state: 'open', label: 'Aberto', detail: `Fecha às ${formatHourLabel(close)}` }
+    }
+  }
+
+  // aberto por slot de ontem que cruzou a meia-noite (madrugada de hoje)?
+  const yesterday = (today + 6) % 7
+  for (const [open, close] of slotsFor(yesterday)) {
+    const o = toMin(open), c = toMin(close)
+    if (c <= o && nowMin < c) {
+      return { state: 'open', label: 'Aberto', detail: `Fecha às ${formatHourLabel(close)}` }
+    }
+  }
+
+  // abre ainda hoje?
+  const laterToday = slotsFor(today)
+    .map(([open]) => open)
+    .filter(open => toMin(open) > nowMin)
+    .sort((a, b) => toMin(a) - toMin(b))
+  if (laterToday.length > 0) {
+    return { state: 'closed', label: 'Fechado', detail: `Abre às ${formatHourLabel(laterToday[0])}` }
+  }
+
+  // próximo dia com horário (até 7 dias à frente)
+  for (let i = 1; i <= 7; i++) {
+    const d = (today + i) % 7
+    const slots = slotsFor(d)
+    if (slots.length > 0) {
+      const open = slots.map(s => s[0]).sort((a, b) => toMin(a) - toMin(b))[0]
+      const when = i === 1 ? 'amanhã' : DAY_ABBR[d]
+      return { state: 'closed', label: 'Fechado', detail: `Abre ${when} às ${formatHourLabel(open)}` }
+    }
+  }
+
+  return { state: 'closed', label: 'Fechado', detail: '' }
+}
+
+function getParticipantMinDistance(participant, locationsWithDistance) {
+  const distances = locationsWithDistance
+    .filter(l => l.participantId === participant.id && Number.isFinite(l.distanceKm))
+    .map(l => l.distanceKm)
+  return distances.length > 0 ? Math.min(...distances) : Infinity
+}
+
+function isMapDebugEnabled() {
+  return typeof window !== 'undefined' && window.location.href.includes('debug=1')
+}
+
+function normalizeSearchText(value) {
+  // eslint-disable-next-line no-misleading-character-class
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/['']/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 if (GOOGLE_MAPS_API_KEY) {
   setOptions({ key: GOOGLE_MAPS_API_KEY })
 }
 
-function getMapsSearchUrl(p) {
-  if (!p?.address) return null
-  const query = encodeURIComponent(`${p.address}, ${p.city || 'Natal/RN'}`)
-  return `https://www.google.com/maps/search/?api=1&query=${query}`
+const HEART_PATHS =
+  '<path class="lovers-pin__heart-outer" d="M51.15,0C22.95,0,0,22.9,0,51.05c0,39.08,45.48,86.75,47.42,88.76,2.04,2.12,5.44,2.12,7.47,0,1.94-2.01,47.42-49.68,47.42-88.76,0-28.15-22.95-51.05-51.15-51.05Z"/>' +
+  '<path class="lovers-pin__heart-inner" d="M23.13,60.44c-1.98-9.32-.14-21.72,6.3-27.84,2.86-2.72,6.99-3.23,10.13-.84,5.61,4.26,7.23,11.05,8.66,18.39,3.98-10.22,11.47-25.23,21.91-28.17,4.32-1.22,8.34,1,9.28,5.46,1.03,4.87.38,9.84-1.14,14.73-6.55,21.16-21.44,42.56-35.26,60.38-8.23-12.97-17-26.76-19.9-42.12Z"/>'
+
+// Pin como elemento DOM (AdvancedMarkerElement) → permite usar a fonte real dos títulos (Typekit)
+function buildPinElement(label, selected) {
+  const el = document.createElement('div')
+  el.className = 'lovers-pin' + (selected ? ' lovers-pin--selected' : '')
+  const text = label ? String(label).toUpperCase() : ''
+  el.innerHTML =
+    `<svg class="lovers-pin__svg" viewBox="0 0 102.3 141.39" xmlns="http://www.w3.org/2000/svg">${HEART_PATHS}</svg>` +
+    (text ? `<span class="lovers-pin__badge">${text}</span>` : '')
+  return el
 }
 
-function getMapsDirectionsUrl(p) {
-  if (p?.latitude && p?.longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`
-  }
-  return getMapsSearchUrl(p)
-}
+// ─── GoogleMap component ─────────────────────────────────────────────────────
 
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-function formatDist(km) {
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1).replace('.', ',')} km`
-}
-
-function GoogleMap({ participants, selected, onSelect, userLocation, onError }) {
+function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -70,7 +227,6 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
     window.gm_authFailure = () => {
       console.error('[Google Maps Auth Failure]', {
         hostname: window.location.hostname,
-        href: window.location.href,
         keyStart: GOOGLE_MAPS_API_KEY ? GOOGLE_MAPS_API_KEY.slice(0, 8) : null,
       })
       onError?.('auth-failure')
@@ -79,12 +235,11 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
     return () => { window.gm_authFailure = previous }
   }, [])
 
+  const [mapReady, setMapReady] = useState(false)
+
   useEffect(() => {
     if (!mapRef.current) return
-    if (!GOOGLE_MAPS_API_KEY) {
-      onError?.('missing-key')
-      return
-    }
+    if (!GOOGLE_MAPS_API_KEY) { onError?.('missing-key'); return }
     let cancelled = false
 
     ;(async () => {
@@ -96,168 +251,457 @@ function GoogleMap({ participants, selected, onSelect, userLocation, onError }) 
         const map = new Map(mapRef.current, {
           center: NATAL_CENTER,
           zoom: NATAL_ZOOM,
+          scrollwheel: true,
+          gestureHandling: 'greedy',
           mapId: GOOGLE_MAPS_MAP_ID,
-          scrollwheel: false,
-          gestureHandling: 'cooperative',
+          renderingType: google.maps.RenderingType?.VECTOR,
+          isFractionalZoomEnabled: true,
         })
 
-        const coords = participants.filter(p => p.latitude && p.longitude)
-
-        coords.forEach(p => {
-          const el = buildPinEl(false)
-          const marker = new AdvancedMarkerElement({
-            map,
-            position: { lat: p.latitude, lng: p.longitude },
-            title: p.name,
-            content: el,
-          })
-          marker.addListener('gmp-click', () => onSelect(p))
-          markersRef.current[p.id] = { marker, el }
-        })
-
-        if (coords.length > 1) {
-          const bounds = new google.maps.LatLngBounds()
-          coords.forEach(p => bounds.extend({ lat: p.latitude, lng: p.longitude }))
-          map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 })
-        } else if (coords.length === 1) {
-          map.setCenter({ lat: coords[0].latitude, lng: coords[0].longitude })
-          map.setZoom(15)
-        }
-
-        instanceRef.current = { map, AdvancedMarkerElement }
+        const infoWindow = new google.maps.InfoWindow()
+        instanceRef.current = { map, infoWindow, AdvancedMarkerElement }
+        setMapReady(true)
       } catch (e) {
-        console.error('[Google Maps Load Error]', {
-          name: e?.name,
-          message: e?.message,
-          stack: e?.stack,
-          error: e,
-        })
+        console.error('[Google Maps Load Error]', { name: e?.name, message: e?.message, error: e })
         onError?.('load-error')
       }
     })()
 
     return () => {
       cancelled = true
-      Object.values(markersRef.current).forEach(({ marker }) => { marker.map = null })
-      instanceRef.current = null
+      Object.values(markersRef.current).forEach(m => { m.map = null })
       markersRef.current = {}
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null)
+        userMarkerRef.current = null
+      }
+      instanceRef.current = null
     }
   }, [])
 
-  useEffect(() => {
-    Object.entries(markersRef.current).forEach(([id, { el }]) => {
-      const isSelected = selected?.id === id
-      const path = el.querySelector('path')
-      if (path) path.setAttribute('fill', isSelected ? PIN_DARK : PIN_RED)
-      el.style.transform = isSelected ? 'scale(1.35)' : 'scale(1)'
-    })
-    if (selected?.latitude && selected?.longitude && instanceRef.current) {
-      instanceRef.current.map.panTo({ lat: selected.latitude, lng: selected.longitude })
-    }
-  }, [selected])
-
+  // Rebuild markers + clusterer whenever visible locations change
   useEffect(() => {
     if (!instanceRef.current) return
-    const { map, AdvancedMarkerElement } = instanceRef.current
-    if (userMarkerRef.current) { userMarkerRef.current.map = null; userMarkerRef.current = null }
+
+    const { map, infoWindow, AdvancedMarkerElement } = instanceRef.current
+
+    Object.values(markersRef.current).forEach(marker => { marker.map = null })
+    markersRef.current = {}
+
+    const validLocations = locations.filter(loc =>
+      Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+    )
+
+    validLocations.forEach(loc => {
+      const marker = new AdvancedMarkerElement({
+        position: { lat: loc.latitude, lng: loc.longitude },
+        title: `${loc.participantName} — ${loc.locationName}`,
+        content: buildPinElement(loc.pinLabel, false),
+        gmpClickable: true,
+      })
+      marker.pinLabelText = loc.pinLabel
+      marker.map = map
+
+      marker.addListener('gmp-click', () => {
+        onSelectLocation?.(loc)
+        infoWindow.setContent(`
+          <div style="font-family:sans-serif;max-width:240px;line-height:1.4;">
+            <strong style="font-size:14px;">${escapeHtml(loc.participantName)}</strong><br/>
+            <span style="font-size:13px;color:#555;">${escapeHtml(loc.locationName)}</span><br/>
+            <small style="color:#888;">${escapeHtml([loc.neighborhood, loc.city].filter(Boolean).join(' · '))}</small><br/>
+            ${loc.address ? `<small style="color:#888;">${escapeHtml(loc.address)}</small>` : ''}
+            ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${escapeHtml(loc.theme)}</div>` : ''}
+            ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(loc.edition)}</div>` : ''}
+          </div>
+        `)
+        infoWindow.open({ anchor: marker, map })
+      })
+
+      markersRef.current[loc.id] = marker
+    })
+
+    if (validLocations.length > 1) {
+      const bounds = new google.maps.LatLngBounds()
+      validLocations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
+      map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
+    } else if (validLocations.length === 1) {
+      map.panTo({ lat: validLocations[0].latitude, lng: validLocations[0].longitude })
+      map.setZoom(15)
+    } else {
+      map.panTo(NATAL_CENTER)
+      map.setZoom(NATAL_ZOOM)
+    }
+  }, [locations, onSelectLocation, mapReady])
+
+  // Highlight selected marker + pan
+  useEffect(() => {
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      const sel = id === selectedLocationId
+      marker.content = buildPinElement(marker.pinLabelText, sel)
+      marker.zIndex = sel ? 999 : 1
+    })
+    if (selectedLocationId && instanceRef.current) {
+      const loc = locations.find(l => l.id === selectedLocationId)
+      if (loc && Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)) {
+        instanceRef.current.map.panTo({ lat: loc.latitude, lng: loc.longitude })
+        instanceRef.current.map.setZoom(15)
+      }
+    }
+  }, [selectedLocationId, locations])
+
+  // User location marker
+  useEffect(() => {
+    if (!instanceRef.current) return
+    const { map } = instanceRef.current
+    if (userMarkerRef.current) { userMarkerRef.current.setMap(null); userMarkerRef.current = null }
     if (userLocation) {
-      const dot = document.createElement('div')
-      dot.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#4285F4;border:2.5px solid white;box-shadow:0 2px 4px rgba(0,0,0,.3)'
-      userMarkerRef.current = new AdvancedMarkerElement({
+      userMarkerRef.current = new google.maps.Marker({
         map,
         position: { lat: userLocation.lat, lng: userLocation.lng },
-        title: 'Minha localização',
-        content: dot,
+        title: 'Você está aqui',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: '#2E8CFF',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 3,
+          scale: 8,
+        },
+        zIndex: 999,
       })
       map.panTo({ lat: userLocation.lat, lng: userLocation.lng })
       map.setZoom(14)
     }
   }, [userLocation])
 
-  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+  return (
+    <div className="google-map-wrapper">
+      <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+    </div>
+  )
 }
 
+function getLocationDestination(location) {
+  if (Number.isFinite(location.latitude) && Number.isFinite(location.longitude))
+    return `${location.latitude},${location.longitude}`
+  if (location.address) return `${location.address}, ${location.city || ''}`
+  return ''
+}
+
+function getRouteGoogleMapsUrl(routeLocations, userLocation) {
+  const validStops = routeLocations.map(getLocationDestination).filter(Boolean).slice(0, 9)
+  if (validStops.length === 0) return null
+  const origin = userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)
+    ? `${userLocation.lat},${userLocation.lng}` : null
+  const orig = origin ? `origin=${encodeURIComponent(origin)}&` : ''
+  if (validStops.length === 1) {
+    return `https://www.google.com/maps/dir/?api=1&${orig}destination=${encodeURIComponent(validStops[0])}&travelmode=driving`
+  }
+  const dest = encodeURIComponent(validStops[validStops.length - 1])
+  const waypoints = validStops.slice(0, -1).map(encodeURIComponent).join('|')
+  return `https://www.google.com/maps/dir/?api=1&${orig}destination=${dest}&waypoints=${waypoints}&travelmode=driving`
+}
+
+// ─── MapaGooglePage ──────────────────────────────────────────────────────────
+
 export function MapaGooglePage({ navigate }) {
-  const [selected, setSelected] = useState(null)
+  const isFullscreen = true
+  const [selectedParticipantId, setSelectedParticipantId] = useState(null)
+  const [selectedLocationId, setSelectedLocationId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterBairro, setFilterBairro] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
-  const [locLoading, setLocLoading] = useState(false)
-  const [locError, setLocError] = useState(null)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
+  const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
+  const [routeLocationIds, setRouteLocationIds] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('sweet-lovers-route')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
+  const [isRoutePanelOpen, setIsRoutePanelOpen] = useState(false)
 
-  function handleLocate() {
-    if (userLocation) { setUserLocation(null); setLocError(null); return }
-    if (!navigator.geolocation) { setLocError('Geolocalização não suportada neste navegador.'); return }
-    setLocLoading(true)
-    setLocError(null)
+  const mapDebug = isMapDebugEnabled()
+
+  // ── base data ──────────────────────────────────────────────────────────────
+
+  const participants = useMemo(() =>
+    PARTICIPANTS.map(p => ({
+      ...p,
+      combo: COMBOS.find(c => c.participantId === p.id) || null,
+    })),
+  [])
+
+  const allLocations = useMemo(() =>
+    participants.flatMap(getParticipantLocations),
+  [participants])
+
+  // ── numeração da legenda (estável, ordem da lista) ──────────────────────────
+  const participantNumberById = useMemo(() => {
+    const map = {}
+    participants.forEach((p, i) => { map[p.id] = i + 1 })
+    return map
+  }, [participants])
+
+  const pinLabelByLocationId = useMemo(() => {
+    const map = {}
+    participants.forEach((p, i) => {
+      const num = i + 1
+      const locs = getParticipantLocations(p)
+      const multi = locs.length > 1
+      locs.forEach((loc, j) => {
+        map[loc.id] = multi ? `${num}${String.fromCharCode(97 + j)}` : `${num}`
+      })
+    })
+    return map
+  }, [participants])
+
+  const neighborhoods = useMemo(() => {
+    const counts = {}
+    allLocations.forEach(l => {
+      if (l.neighborhood) counts[l.neighborhood] = (counts[l.neighborhood] || 0) + 1
+    })
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, count]) => ({ name, count }))
+  }, [allLocations])
+
+  // ── search + bairro filter ─────────────────────────────────────────────────
+
+  const filteredParticipants = useMemo(() => {
+    const q = normalizeSearchText(search)
+    return participants.filter(p => {
+      const locs = getParticipantLocations(p)
+      const participantText = normalizeSearchText([p.name, p.slug, p.instagram].filter(Boolean).join(' '))
+      const locationsText = normalizeSearchText(
+        locs.map(l => [l.locationName, l.address, l.neighborhood, l.city].filter(Boolean).join(' ')).join(' ')
+      )
+      const matchSearch = !q || participantText.includes(q) || locationsText.includes(q)
+      const matchBairro = !filterBairro || locs.some(l => l.neighborhood === filterBairro)
+      return matchSearch && matchBairro
+    })
+  }, [participants, search, filterBairro])
+
+  // ── locations with distance ────────────────────────────────────────────────
+
+  const visibleLocations = useMemo(() =>
+    filteredParticipants.flatMap(p =>
+      getParticipantLocations(p).map(loc => ({
+        ...loc,
+        participantId: p.id,
+        participantSlug: p.slug,
+        participantName: p.name,
+        participantLogo: p.logo,
+        participantInstagram: p.instagram,
+        brandColor: p.brandColor,
+        theme: p.theme || null,
+        edition: p.edition || null,
+        pinLabel: pinLabelByLocationId[loc.id],
+      }))
+    ),
+  [filteredParticipants, pinLabelByLocationId])
+
+  const visibleLocationsWithDistance = useMemo(() =>
+    visibleLocations.map(loc => {
+      const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+      const distanceKm = userLocation && hasCoords
+        ? haversineKm(userLocation, { lat: loc.latitude, lng: loc.longitude })
+        : null
+      return { ...loc, distanceKm }
+    }),
+  [visibleLocations, userLocation])
+
+  const pinLocations = useMemo(() =>
+    visibleLocationsWithDistance.filter(l =>
+      Number.isFinite(l.latitude) && Number.isFinite(l.longitude)
+    ),
+  [visibleLocationsWithDistance])
+
+  // ── distance filter ────────────────────────────────────────────────────────
+
+  const distanceFilteredParticipantIds = useMemo(() => {
+    if (!distanceFilterKm || !userLocation) return null
+    const ids = new Set()
+    visibleLocationsWithDistance.forEach(l => {
+      if (Number.isFinite(l.distanceKm) && l.distanceKm <= distanceFilterKm) {
+        ids.add(l.participantId)
+      }
+    })
+    return ids
+  }, [visibleLocationsWithDistance, distanceFilterKm, userLocation])
+
+  const participantsAfterDistance = useMemo(() => {
+    if (!distanceFilteredParticipantIds) return filteredParticipants
+    return filteredParticipants.filter(p => distanceFilteredParticipantIds.has(p.id))
+  }, [filteredParticipants, distanceFilteredParticipantIds])
+
+  // ── sort by proximity ──────────────────────────────────────────────────────
+
+  const finalParticipants = useMemo(() => {
+    if (!userLocation) return participantsAfterDistance
+    return [...participantsAfterDistance].sort((a, b) => {
+      const da = getParticipantMinDistance(a, visibleLocationsWithDistance)
+      const db = getParticipantMinDistance(b, visibleLocationsWithDistance)
+      const fa = Number.isFinite(da), fb = Number.isFinite(db)
+      if (fa && fb) return da - db
+      if (fa) return -1
+      if (fb) return 1
+      return 0
+    })
+  }, [participantsAfterDistance, userLocation, visibleLocationsWithDistance])
+
+  // ── diagnostics ───────────────────────────────────────────────────────────
+
+  const mapDiagnostics = useMemo(() => {
+    const source = allLocations
+    const withCoords = source.filter(l => Number.isFinite(l.latitude) && Number.isFinite(l.longitude))
+    const withoutCoords = source.filter(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+    const withMapsUrl = source.filter(l => Boolean(l.mapsUrl))
+    const withoutMapsUrl = source.filter(l => !l.mapsUrl)
+
+    const coordMap = new Map()
+    source.forEach(l => {
+      if (!Number.isFinite(l.latitude) || !Number.isFinite(l.longitude)) return
+      const key = `${l.latitude.toFixed(6)},${l.longitude.toFixed(6)}`
+      if (!coordMap.has(key)) coordMap.set(key, [])
+      coordMap.get(key).push(`${l.participantName} — ${l.locationName}`)
+    })
+    const duplicatedCoords = Array.from(coordMap.entries())
+      .filter(([, items]) => items.length > 1)
+      .map(([coords, items]) => ({ coords, items }))
+
+    return {
+      participants: participants.length,
+      units: source.length,
+      withCoords: withCoords.length,
+      withoutCoords: withoutCoords.map(l => `${l.participantName} — ${l.locationName}`),
+      withMapsUrl: withMapsUrl.length,
+      withoutMapsUrl: withoutMapsUrl.map(l => `${l.participantName} — ${l.locationName}`),
+      duplicatedCoords,
+    }
+  }, [participants, allLocations])
+
+  useEffect(() => {
+    if (!mapDebug) return
+    console.log('[Mapa Lovers Diagnostics]', mapDiagnostics)
+  }, [mapDebug, mapDiagnostics])
+
+  // remove da rota IDs de unidades que não existem mais (lojas removidas)
+  useEffect(() => {
+    setRouteLocationIds(cur => {
+      const valid = cur.filter(id => allLocations.some(l => l.id === id))
+      return valid.length === cur.length ? cur : valid
+    })
+  }, [allLocations])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('sweet-lovers-route', JSON.stringify(routeLocationIds)) }
+    catch {}
+  }, [routeLocationIds])
+
+  useEffect(() => {
+    if (!isRoutePanelOpen) return
+    const handler = e => { if (e.key === 'Escape') setIsRoutePanelOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isRoutePanelOpen])
+
+  const routeLocations = useMemo(() =>
+    routeLocationIds.map(id => allLocations.find(l => l.id === id)).filter(Boolean),
+  [routeLocationIds, allLocations])
+
+  // ── actions ────────────────────────────────────────────────────────────────
+
+  function requestUserLocation() {
+    setLocationError('')
+    if (!navigator.geolocation) {
+      setLocationError('Seu navegador não suporta localização.')
+      return
+    }
+    setLocating(true)
     navigator.geolocation.getCurrentPosition(
-      pos => { setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocLoading(false) },
-      err => {
-        setLocLoading(false)
-        if (err.code === 1) setLocError('Permissão negada. Ative a localização no navegador.')
-        else setLocError('Não foi possível obter sua localização.')
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocating(false)
       },
-      { timeout: 10000 }
+      err => {
+        console.error('[Mapa Geolocation Error]', err)
+        setLocationError('Não foi possível acessar sua localização.')
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     )
   }
 
-  const participants = PARTICIPANTS.map(p => ({
-    ...p,
-    combo: COMBOS.find(c => c.participantId === p.id) || null,
-  }))
-
-  const neighborhoods = [...new Set(participants.map(p => p.neighborhood).filter(Boolean))]
-    .sort()
-    .map(n => ({ name: n, count: participants.filter(p => p.neighborhood === n).length }))
-
-  const filtered = participants
-    .filter(p => {
-      const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase())
-      const matchBairro = !filterBairro || p.neighborhood === filterBairro
-      return matchSearch && matchBairro
-    })
-    .map(p => ({
-      ...p,
-      dist: userLocation && p.latitude && p.longitude
-        ? haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
-        : null,
-    }))
-    .sort((a, b) => {
-      if (a.dist !== null && b.dist !== null) return a.dist - b.dist
-      return 0
-    })
-
-  const hasData = false
-  const hasMissingCoords = participants.some(p => p.address && (!p.latitude || !p.longitude))
-
-  function handleListClick(p) {
-    setSelected(prev => prev?.id === p.id ? null : p)
+  function clearUserLocation() {
+    setUserLocation(null)
+    setLocationError('')
+    setDistanceFilterKm(null)
   }
 
+  function focusLocation(location) {
+    setSelectedParticipantId(location.participantId)
+    setSelectedLocationId(location.id)
+  }
+
+  const handleSelectLocation = useCallback((location) => {
+    setSelectedParticipantId(location.participantId)
+    setSelectedLocationId(location.id)
+    const el = document.getElementById(`map-card-${location.participantId}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [])
+
+  function isInRoute(location) { return routeLocationIds.includes(location.id) }
+
+  function toggleRouteLocation(location) {
+    setRouteLocationIds(cur =>
+      cur.includes(location.id) ? cur.filter(id => id !== location.id) : [...cur, location.id]
+    )
+  }
+
+  function removeRouteLocation(locationId) {
+    setRouteLocationIds(cur => cur.filter(id => id !== locationId))
+  }
+
+  function clearRoute() { setRouteLocationIds([]) }
+
+  function moveRouteLocation(locationId, direction) {
+    setRouteLocationIds(current => {
+      const index = current.indexOf(locationId)
+      if (index === -1) return current
+      const nextIndex = direction === 'up' ? index - 1 : index + 1
+      if (nextIndex < 0 || nextIndex >= current.length) return current
+      const updated = [...current]
+      const [item] = updated.splice(index, 1)
+      updated.splice(nextIndex, 0, item)
+      return updated
+    })
+  }
+
+  // ── derived ui state ───────────────────────────────────────────────────────
+
+  const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+  const hasData = true
+
+  const selectedLocation = useMemo(() =>
+    selectedLocationId ? allLocations.find(l => l.id === selectedLocationId) : null,
+  [selectedLocationId, allLocations])
+
+  const selectedParticipant = useMemo(() =>
+    selectedParticipantId ? participants.find(p => p.id === selectedParticipantId) : null,
+  [selectedParticipantId, participants])
+
+  const routeMapsUrl = getRouteGoogleMapsUrl(routeLocations, userLocation)
+
+  // ── render ─────────────────────────────────────────────────────────────────
+
   return (
-    <div className="page-enter kv-lovers" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className={`page-enter kv-lovers lovers-gradient-bg mapa-wide mapa-scene${isFullscreen ? ' mapa-fullscreen' : ''}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
 
-      <section style={{ padding: 'clamp(40px, 6vw, 80px) 0 48px', position: 'relative' }}>
-        <div className="wrap">
-          <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-            <div className="eyebrow" style={{ color: 'var(--lovers-red)', marginBottom: 24, justifyContent: 'center' }}>
-              <span className="dot" style={{ background: 'var(--lovers-red)' }}></span>
-              MAPA DA DOÇURA
-            </div>
-            <h1 className="lovers-h1" style={{ fontSize: 'clamp(48px, 7vw, 96px)', margin: 0 }}>
-              Mapa da Doçura<br/>
-              <span style={{ color: 'var(--lovers-pink)' }}>Lovers.</span>
-            </h1>
-            <p className="lead mt-3" style={{ color: 'var(--lovers-brown)', opacity: .85 }}>
-              Veja onde estão os participantes da edição e escolha sua próxima parada.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section style={{ paddingBottom: 80, position: 'relative' }}>
+      <section style={{ paddingBottom: 80, position: 'relative', background: 'rgba(255,241,230,.32)' }}>
         <div className="wrap">
 
           {!hasData ? (
@@ -271,6 +715,13 @@ export function MapaGooglePage({ navigate }) {
             </div>
           ) : (
             <>
+            <header className="mapa-hero">
+              <span className="mapa-hero__sticker" aria-hidden="true"><I.heart /> Rota da Doçura</span>
+              <span className="mapa-hero__kicker">Mapa da Doçura</span>
+              <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
+              <p className="mapa-hero__subtitle">Encontre as lojas participantes, veja o que está perto de você e monte sua própria Rota da Doçura.</p>
+              <p className="mapa-hero__microcopy">Você escolhe os destinos. O Sweet te mostra o caminho.</p>
+            </header>
             {hasMissingCoords && (
               <div className="mono" style={{
                 fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
@@ -282,9 +733,10 @@ export function MapaGooglePage({ navigate }) {
                 Alguns participantes ainda estão sem pin no mapa, mas você já pode abrir o endereço no Google Maps.
               </div>
             )}
-            <div className="mapa-layout">
+            <div className="mapa-layout mapa-floating-layout">
 
-              <div className="mapa-container">
+              {/* ── mapa ── */}
+              <div className="mapa-container mapa-floating-panel mapa-floating-panel--map">
                 {mapError === 'missing-key' ? (
                   <div style={{
                     height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -315,95 +767,34 @@ export function MapaGooglePage({ navigate }) {
                   </div>
                 ) : (
                   <GoogleMap
-                    participants={participants}
-                    selected={selected}
-                    onSelect={setSelected}
+                    locations={pinLocations}
+                    selectedLocationId={selectedLocationId}
+                    onSelectLocation={handleSelectLocation}
                     userLocation={userLocation}
                     onError={setMapError}
                   />
                 )}
 
-                {selected && (
-                  <div className="mapa-selected-card" style={{
-                    position: 'absolute', bottom: 16, left: 16, right: 16,
-                    zIndex: 1000,
-                    background: 'var(--lovers-cream)',
-                    border: '2px solid var(--lovers-red)',
-                    borderRadius: 16, padding: '16px 20px',
-                    boxShadow: '0 8px 32px rgba(43,24,16,.2)',
-                  }}>
-                    <button
-                      onClick={() => setSelected(null)}
-                      style={{
-                        position: 'absolute', top: 8, right: 12,
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 20, color: 'var(--lovers-red)', lineHeight: 1,
-                      }}
-                    >×</button>
-                    <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 11, marginBottom: 4 }}>
-                      {selected.neighborhood}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 22, lineHeight: 1.1, color: 'var(--lovers-ink)', marginBottom: 4 }}>
-                      {selected.name}
-                    </div>
-                    {selected.combo && (
-                      <div style={{ fontSize: 14, color: 'var(--lovers-brown)', opacity: .85, marginBottom: 6 }}>
-                        Combo: <strong>{selected.combo.name}</strong>
-                      </div>
-                    )}
-                    {selected.address && (
-                      <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 4 }}>
-                        {selected.address}
-                      </div>
-                    )}
-                    {selected.openingHours && (
-                      <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 12 }}>
-                        {selected.openingHours}
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                      {selected.combo?.slug && (
-                        <button
-                          className="btn btn-lovers btn-sm"
-                          onClick={() => navigate(`/lovers/combos/${selected.combo.slug}`)}
-                          style={{ fontSize: 13 }}
-                        >
-                          Ver combo <I.arrow />
-                        </button>
-                      )}
-                      {getMapsDirectionsUrl(selected) && (
-                        <a
-                          href={getMapsDirectionsUrl(selected)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm"
-                          style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 13 }}
-                        >
-                          Abrir no mapa <I.arrow />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              <div className="mapa-list">
+              {/* ── lista lateral ── */}
+              <div className="map-sidebar mapa-floating-panel mapa-floating-panel--sidebar">
+                <div className="map-sidebar-sticky">
+
+                {/* busca */}
                 <input
                   type="text"
-                  placeholder="Buscar participante..."
+                  className="mapa-search"
+                  aria-label="Buscar participante, bairro ou endereço"
+                  placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    border: '1.5px solid rgba(135,14,45,.2)',
-                    borderRadius: 10, padding: '9px 12px',
-                    fontSize: 13, fontFamily: 'var(--font-lovers-body)',
-                    background: '#fff', color: 'var(--lovers-ink)',
-                    outline: 'none', marginBottom: 10,
-                  }}
                 />
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                {/* Filtros por bairro ocultados nesta versão pública do mapa para simplificar
+                   a experiência. A lógica (filterBairro, neighborhoods) permanece preservada. */}
+                {false && (
+                <div className="map-neighborhood-filters" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   <button
                     onClick={() => setFilterBairro(null)}
                     className="mapa-chip"
@@ -422,156 +813,1583 @@ export function MapaGooglePage({ navigate }) {
                     </button>
                   ))}
                 </div>
+                )}
 
-                <button
-                  onClick={handleLocate}
-                  disabled={locLoading}
-                  className="mapa-chip"
-                  style={{
-                    width: '100%', marginBottom: 8, padding: '8px 12px',
-                    background: userLocation ? 'var(--lovers-red)' : 'transparent',
-                    color: userLocation ? '#fff' : 'var(--lovers-red)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    opacity: locLoading ? .6 : 1,
-                    cursor: locLoading ? 'default' : 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: 14 }}>📍</span>
-                  {locLoading ? 'Obtendo localização…' : userLocation ? 'Minha localização ativa' : 'Usar minha localização'}
-                </button>
-                {locError && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-red)', marginBottom: 8, lineHeight: 1.4 }}>
-                    {locError}
+                {/* botão localização */}
+                {!userLocation ? (
+                  <button
+                    onClick={requestUserLocation}
+                    disabled={locating}
+                    className="mapa-chip"
+                    style={{
+                      width: '100%', marginBottom: locationError ? 4 : 10, padding: '8px 12px',
+                      background: 'rgba(255,232,210,.10)', color: 'var(--lovers-cream)',
+                      borderColor: 'rgba(255,232,210,.55)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      opacity: locating ? .6 : 1,
+                      cursor: locating ? 'default' : 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>📍</span>
+                    {locating ? 'Localizando…' : 'Usar minha localização'}
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
+                    <div className="mapa-chip" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-purple)', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
+                      <span style={{ fontSize: 12 }}>📍</span> Localização ativa
+                    </div>
+                    <button
+                      onClick={clearUserLocation}
+                      className="mapa-chip"
+                      style={{ background: 'transparent', color: 'var(--lovers-cream)', borderColor: 'rgba(255,232,210,.45)', padding: '6px 10px' }}
+                    >
+                      Limpar
+                    </button>
                   </div>
                 )}
 
-                <div className="mono mb-3" style={{ color: 'var(--lovers-red)', fontSize: 12 }}>
-                  {filtered.length === participants.length
-                    ? `PARTICIPANTES · ${participants.length}`
-                    : `MOSTRANDO · ${filtered.length} de ${participants.length}`}
-                </div>
+                {/* erro de localização */}
+                {locationError && (
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-yellow)', marginBottom: 8, lineHeight: 1.4 }}>
+                    {locationError}
+                  </div>
+                )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {filtered.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lovers-brown)', opacity: .5, fontSize: 14 }}>
-                      Nenhum participante encontrado
-                    </div>
-                  )}
-                  {filtered.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => handleListClick(p)}
+                {/* filtros de distância — só quando localização ativa */}
+                {userLocation && (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                    {[null, 2, 5, 10].map(km => (
+                      <button
+                        key={km ?? 'all'}
+                        onClick={() => setDistanceFilterKm(km)}
+                        className="mapa-chip"
+                        style={{
+                          background: distanceFilterKm === km ? 'var(--lovers-cream)' : 'transparent',
+                          color: distanceFilterKm === km ? 'var(--lovers-purple)' : 'var(--lovers-cream)',
+                          borderColor: 'rgba(255,232,210,.45)',
+                        }}
+                      >
+                        {km === null ? 'Todos' : `Até ${km} km`}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* contagem + limpar seleção */}
+                <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>
+                    {finalParticipants.length === participants.length
+                      ? `PARTICIPANTES · ${participants.length}`
+                      : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
+                  </span>
+                  {selectedLocationId && (
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
                       style={{
-                        background: selected?.id === p.id ? 'var(--lovers-cream)' : '#fff',
-                        border: `1.5px solid ${selected?.id === p.id ? 'var(--lovers-red)' : 'rgba(135,14,45,.15)'}`,
-                        borderRadius: 14, padding: '14px 16px',
-                        cursor: 'pointer', transition: 'border-color .15s, background .15s',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 10, color: 'rgba(255,232,210,.82)', opacity: .9,
+                        fontFamily: 'var(--font-lovers-body)', fontWeight: 700,
+                        padding: '2px 0', letterSpacing: '0.03em',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                        <div className="mono" style={{ color: 'var(--lovers-red)', fontSize: 10 }}>{p.neighborhood}</div>
-                        {p.dist !== null && (
-                          <div className="mono" style={{ fontSize: 10, color: '#4285F4', fontWeight: 600 }}>{formatDist(p.dist)}</div>
-                        )}
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-lovers-display)', fontSize: 18, lineHeight: 1.2, color: 'var(--lovers-ink)', marginBottom: 2 }}>
-                        {p.name}
-                      </div>
-                      {p.combo && (
-                        <div style={{ fontSize: 13, color: 'var(--lovers-brown)', opacity: .75 }}>{p.combo.name}</div>
-                      )}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                      LIMPAR SELEÇÃO ×
+                    </button>
+                  )}
+                </div>
+                </div>{/* /map-sidebar-sticky */}
+                <div className="map-sidebar-scroll">
+
+                {/* lista de cards */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                  {/* estado vazio */}
+                  {finalParticipants.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--lovers-brown)', opacity: .6, fontSize: 14 }}>
+                      {distanceFilterKm
+                        ? (
+                          <>
+                            <div style={{ marginBottom: 8 }}>Nenhum participante encontrado nesse raio.</div>
+                            <button
+                              className="btn btn-sm"
+                              style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
+                              onClick={() => setDistanceFilterKm(null)}
+                            >
+                              Limpar distância
+                            </button>
+                          </>
+                        )
+                        : 'Nenhum participante encontrado'
+                      }
+                    </div>
+                  )}
+
+                  {finalParticipants.map(p => {
+                    const isActive = selectedParticipantId === p.id
+                    const allLocs = getParticipantLocations(p)
+                    const locs = filterBairro
+                      ? allLocs.filter(l => l.neighborhood === filterBairro)
+                      : allLocs
+                    const multiUnit = locs.length > 1
+                    const manyUnits = locs.length > 4
+
+                    // enrich with distance
+                    const locsForCard = locs.map(loc => {
+                      const enriched = visibleLocationsWithDistance.find(
+                        l => l.participantId === p.id && l.id === loc.id
+                      )
+                      return enriched || loc
+                    })
+
+                    const minDist = getParticipantMinDistance(p, visibleLocationsWithDistance)
+
+                    return (
+                      <div
+                        id={`map-card-${p.id}`}
+                        key={p.id}
+                        className={`map-participant-card${isActive ? ' map-participant-card--active' : ''}`}
+                      >
+                        {/* cabeçalho do card */}
+                        <div className="map-card-header">
+                          <div className="map-card-brand">
+                            {p.logo ? (
+                              <div className="map-card-logo">
+                                <img src={p.logo} alt={`Logo ${p.name}`} />
+                              </div>
+                            ) : (
+                              <div className="map-card-logo map-card-logo--empty" aria-hidden="true">
+                                {p.name.slice(0, 1)}
+                              </div>
+                            )}
+                            <span className="map-card-number" aria-label={`Número ${participantNumberById[p.id]} no mapa`}>
+                              {participantNumberById[p.id]}
+                            </span>
+                          </div>
+                          <div className="map-card-title-group">
+                            {LOVERS_SHOW_COMBO_DETAILS && p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
+                            <h3>{p.name}</h3>
+                            {LOVERS_SHOW_COMBO_DETAILS && p.theme && (
+                              <div className="map-card-theme"><em>{p.theme}</em></div>
+                            )}
+                            <div className="map-card-meta">
+                              {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
+                              {userLocation && Number.isFinite(minDist) && minDist !== Infinity
+                                ? ` · ${formatDistance(minDist)}`
+                                : ''}
+                            </div>
+                            {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
+                              <div className="map-card-combo">{p.combo.name}</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* lista de unidades */}
+                        <div className={`map-location-list${manyUnits ? ' map-location-list--many' : ''}`}>
+                          {locsForCard.map(loc => {
+                            const isLocActive = selectedLocationId === loc.id
+                            const hasCoords = Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)
+                            const directionsUrl = getDirectionsUrl(loc, userLocation)
+                            const distStr = formatDistance(loc.distanceKm)
+                            const status = getOpenStatus(loc.hours)
+
+                            return (
+                              <div
+                                key={loc.id}
+                                className={`map-location-row${isLocActive ? ' map-location-row--active' : ''}`}
+                                onClick={() => focusLocation(loc)}
+                              >
+                                <div className="map-location-topline">
+                                  {status.state !== 'unknown' && (
+                                    <span className={`map-location-status map-location-status--${status.state}`}>
+                                      <span className="map-location-status-dot" aria-hidden="true"></span>
+                                      <strong>{status.label}</strong>
+                                    </span>
+                                  )}
+                                  {userLocation && distStr && (
+                                    <span className="map-location-distance">{distStr}</span>
+                                  )}
+                                </div>
+
+                                {(loc.neighborhood || loc.city) && (
+                                  <div className="map-location-meta">
+                                    {[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}
+                                  </div>
+                                )}
+
+                                {loc.address && (
+                                  <div className="map-location-address">{loc.address}</div>
+                                )}
+
+                                {status.detail && (
+                                  <div className={`map-location-status-line map-location-status-line--${status.state}`}>
+                                    {status.detail}
+                                  </div>
+                                )}
+
+                                <div className="map-location-actions">
+                                  {hasCoords && (
+                                    <button
+                                      type="button"
+                                      className={`map-icon-action${isLocActive ? ' map-icon-action--active' : ''}`}
+                                      title="Ver no mapa"
+                                      aria-label="Ver no mapa"
+                                      onClick={e => { e.stopPropagation(); focusLocation(loc) }}
+                                    >
+                                      {isLocActive ? <I.pinFill /> : <I.pin />}
+                                    </button>
+                                  )}
+                                  {directionsUrl && (
+                                    <a
+                                      className="map-icon-action map-icon-action--primary"
+                                      title="Traçar rota"
+                                      aria-label="Traçar rota"
+                                      href={directionsUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      <I.route />
+                                    </a>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className={`map-icon-action map-icon-action--route${isInRoute(loc) ? ' map-icon-action--selected' : ''}`}
+                                    title={isInRoute(loc) ? 'Remover da rota' : 'Adicionar à rota'}
+                                    aria-label={isInRoute(loc) ? 'Remover da rota' : 'Adicionar à rota'}
+                                    onClick={e => { e.stopPropagation(); toggleRouteLocation(loc) }}
+                                  >
+                                    {isInRoute(loc) ? <I.heart /> : <I.heartLine />}
+                                  </button>
+                                  {loc.participantInstagram && (
+                                    <a
+                                      className="map-icon-action"
+                                      title="Instagram"
+                                      aria-label="Instagram"
+                                      href={`https://instagram.com/${loc.participantInstagram.replace(/^@/, '')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      <I.ig />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+
                         {p.combo?.slug && (
                           <button
-                            className="btn btn-lovers btn-sm"
-                            style={{ fontSize: 12 }}
-                            onClick={(e) => { e.stopPropagation(); navigate(`/lovers/combos/${p.combo.slug}`) }}
+                            type="button"
+                            className="map-card-combo-btn"
+                            onClick={() => navigate(`/lovers/combos/${p.combo.slug}`)}
                           >
-                            Ver combo
+                            {LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo' : 'Ver participante'} <I.arrow />
                           </button>
                         )}
-                        {getMapsDirectionsUrl(p) && (
-                          <a
-                            href={getMapsDirectionsUrl(p)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-sm"
-                            style={{ background: 'var(--lovers-red)', color: 'var(--lovers-cream)', border: 0, fontSize: 12 }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Mapa
-                          </a>
-                        )}
                       </div>
+                    )
+                  })}
+                </div>
+
+                {/* painel de diagnóstico — só com debug=1 */}
+                {mapDebug && (
+                  <div className="map-debug-panel">
+                    <strong>Diagnóstico do mapa</strong>
+                    <div>Participantes: {mapDiagnostics.participants}</div>
+                    <div>Unidades: {mapDiagnostics.units}</div>
+                    <div>Com coordenadas: {mapDiagnostics.withCoords}</div>
+                    <div>Sem coordenadas: {mapDiagnostics.withoutCoords.length}</div>
+                    <div>Com Maps URL: {mapDiagnostics.withMapsUrl}</div>
+                    <div>Sem Maps URL: {mapDiagnostics.withoutMapsUrl.length}</div>
+
+                    {mapDiagnostics.withoutCoords.length > 0 && (
+                      <details>
+                        <summary>Unidades sem coordenadas ({mapDiagnostics.withoutCoords.length})</summary>
+                        <ul>
+                          {mapDiagnostics.withoutCoords.map(item => <li key={item}>{item}</li>)}
+                        </ul>
+                      </details>
+                    )}
+
+                    {mapDiagnostics.withoutMapsUrl.length > 0 && (
+                      <details>
+                        <summary>Unidades sem Maps URL ({mapDiagnostics.withoutMapsUrl.length})</summary>
+                        <ul>
+                          {mapDiagnostics.withoutMapsUrl.map(item => <li key={item}>{item}</li>)}
+                        </ul>
+                      </details>
+                    )}
+
+                    {mapDiagnostics.duplicatedCoords.length > 0 && (
+                      <details>
+                        <summary>Coordenadas duplicadas ({mapDiagnostics.duplicatedCoords.length})</summary>
+                        <ul>
+                          {mapDiagnostics.duplicatedCoords.map(group => (
+                            <li key={group.coords}>{group.coords}: {group.items.join(', ')}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </div>
+                )}
+                </div>{/* /map-sidebar-scroll */}
+              </div>{/* /map-sidebar */}
+            </div>
+
+            {routeLocations.length > 0 && (
+              <button type="button" className="sweet-route-fab" onClick={() => setIsRoutePanelOpen(true)}>
+                MINHA ROTA · {routeLocations.length} {routeLocations.length === 1 ? 'PARADA' : 'PARADAS'}
+              </button>
+            )}
+
+            {isRoutePanelOpen && (
+              <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
+                <div className="sweet-route-panel" onClick={e => e.stopPropagation()}>
+                  <button type="button" className="sweet-route-close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar rota">×</button>
+
+                  <div className="sweet-route-share-card">
+                    <div className="sweet-route-top">
+                      <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
+                      <span className="sweet-route-date">4 A 14 DE JUNHO</span>
                     </div>
-                  ))}
+
+                    <h2>MINHA ROTA LOVERS</h2>
+
+                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers.</p>
+
+                    <div className="sweet-route-summary">
+                      <strong>{routeLocations.length}</strong>
+                      <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
+                    </div>
+
+                    <ol className="sweet-route-list">
+                      {routeLocations.map((location, index) => {
+                        const unitLabel = location.locationName || ''
+                        const neighborhoodLabel = location.neighborhood || ''
+                        const cityLabel = location.city || ''
+                        const shouldShowUnit = unitLabel &&
+                          unitLabel.toLowerCase().trim() !== neighborhoodLabel.toLowerCase().trim()
+                        const locationMeta = [neighborhoodLabel, cityLabel].filter(Boolean).join(' · ')
+                        const logoSrc = location.participantLogo || location.logo
+                        return (
+                          <li className="sweet-route-stop" key={location.id}>
+                            <div className="sweet-route-brand">
+                              {logoSrc
+                                ? <img className="sweet-route-brand-image" src={logoSrc} alt={`Logo ${location.participantName}`} />
+                                : <div className="sweet-route-brand-fallback">{(location.participantName || '?').slice(0, 1)}</div>
+                              }
+                              <span className="sweet-route-stop-badge">{index + 1}</span>
+                            </div>
+                            <div className="sweet-route-stop-content">
+                              <strong>{location.participantName}</strong>
+                              {shouldShowUnit && <span>{unitLabel}</span>}
+                              {locationMeta && <small>{locationMeta}</small>}
+                              {location.address && <small>{location.address}</small>}
+                              <div className="sweet-route-stop-actions">
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action"
+                                  aria-label="Mover parada para cima"
+                                  title="Mover para cima"
+                                  onClick={() => moveRouteLocation(location.id, 'up')}
+                                  disabled={index === 0}
+                                >↑</button>
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action"
+                                  aria-label="Mover parada para baixo"
+                                  title="Mover para baixo"
+                                  onClick={() => moveRouteLocation(location.id, 'down')}
+                                  disabled={index === routeLocations.length - 1}
+                                >↓</button>
+                                <button
+                                  type="button"
+                                  className="sweet-route-icon-action sweet-route-icon-action--danger"
+                                  aria-label="Remover parada"
+                                  title="Remover"
+                                  onClick={() => removeRouteLocation(location.id)}
+                                >×</button>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ol>
+
+                    {routeLocations.length > 9 && (
+                      <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
+                    )}
+
+                    <div className="sweet-route-footer">
+                      <strong>SWEET &amp; COFFEE WEEK LOVERS</strong>
+                      <span>FEITO DE AMOR, RECRIANDO SABORES</span>
+                    </div>
+                  </div>
+
+                  <p className="sweet-route-print-hint">Tire um print, mande para os amigos e combine por onde começar.</p>
+
+                  <div className="sweet-route-actions">
+                    {routeMapsUrl && (
+                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary">
+                        ABRIR ROTA NO GOOGLE MAPS
+                      </a>
+                    )}
+                    <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
+                    <button type="button" onClick={() => setIsRoutePanelOpen(false)} className="sweet-route-secondary">FECHAR</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            </>
+            )}
+</>
           )}
 
         </div>
 
         <style>{`
-          .mapa-layout {
-            display: grid;
-            grid-template-columns: 1.6fr 1fr;
-            gap: 24px;
-            align-items: start;
+          /* ── wrapper do mapa ── */
+          .google-map-wrapper { position: relative; width: 100%; height: 100%; }
+          /* esticar largura: soltar o max-width do container só na página do mapa */
+          .mapa-wide > section > .wrap { max-width: none; }
+          /* cenário ilustrado: imagem cobre a página inteira do mapa */
+          .mapa-scene {
+            background-image: url('/mapa-lovers-site-3840.webp');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+            min-height: 100svh;
           }
-          .mapa-container {
-            height: 580px;
+          /* véu creme translúcido por cima da arte, atrás do conteúdo, p/ leitura */
+          .mapa-scene > section { background: rgba(255,241,230,.42) !important; }
+          /* painéis legíveis sobre o cenário */
+          .mapa-scene .map-sidebar-sticky,
+          .mapa-scene .map-sidebar-scroll { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+
+          /* ── pin HTML (AdvancedMarkerElement) ── */
+          .lovers-pin {
             position: relative;
-            border-radius: 20px;
+            width: 40px;
+            height: 55px;
+            cursor: pointer;
+            transition: transform .15s ease;
+            transform-origin: bottom center;
+          }
+          .lovers-pin__svg { width: 100%; height: 100%; display: block; overflow: visible; }
+          .lovers-pin__heart-outer { fill: #f10767; }
+          .lovers-pin__heart-inner { fill: #7f0018; }
+          .lovers-pin__badge {
+            position: absolute;
+            right: -9px;
+            bottom: 7px;
+            min-width: 25px;
+            height: 25px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-display);
+            font-weight: 700;
+            font-size: 17px;
+            line-height: 25px;
+            text-align: center;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0,0,0,.25);
+          }
+          .lovers-pin--selected { transform: scale(1.25); }
+          .lovers-pin--selected .lovers-pin__heart-outer { fill: #b80050; }
+          .lovers-pin--selected .lovers-pin__heart-inner { fill: #4a000e; }
+          /* ── painéis flutuantes desktop (lista esquerda / mapa direita) ──
+             Variáveis de espaçamento p/ blocos flutuando sobre o cenário. */
+          .mapa-fullscreen {
+            --map-page-margin: clamp(20px, 4vw, 72px);
+            --map-panel-gap: clamp(18px, 2vw, 34px);
+            --map-panel-radius: clamp(28px, 3vw, 48px);
+            --map-floating-panel-h: min(760px, calc(100svh - 200px));
+          }
+          .mapa-fullscreen .lovers-bg { display: none; }
+          .mapa-fullscreen > section { padding: 0 !important; background: transparent !important; }
+          .mapa-fullscreen > section > .wrap { max-width: none; width: 100%; padding: 0; }
+          /* header compacto integrado ao cenário, antes dos painéis */
+          .mapa-fullscreen .mapa-hero {
+            margin: clamp(18px, 3vw, 36px) auto clamp(14px, 1.6vw, 22px);
+            padding: 0 var(--map-page-margin);
+          }
+          /* dois painéis flutuantes de MESMA altura (limite fixo) */
+          .mapa-fullscreen .mapa-layout {
+            width: min(100% - calc(var(--map-page-margin) * 2), 1540px);
+            margin: 0 auto clamp(20px, 3vw, 40px);
+            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+            gap: var(--map-panel-gap);
+            height: var(--map-floating-panel-h);
+            min-height: 620px;
+            max-height: 820px;
+            align-items: stretch;
+          }
+          /* painel do mapa flutua à direita, cantos arredondados, moldura roxa */
+          .mapa-fullscreen .mapa-container {
+            height: 100%;
+            min-height: 0;
+            border-radius: var(--map-panel-radius);
             overflow: hidden;
-            border: 1px solid rgba(135,14,45,.2);
+            border: 1px solid rgba(255,232,210,.22);
+            box-shadow: 0 24px 70px rgba(43,24,16,.24);
+            order: 2;
           }
-          .mapa-list {
-            height: 580px;
+          .mapa-fullscreen .mapa-container .google-map-wrapper,
+          .mapa-fullscreen .mapa-container .google-map-wrapper > div {
+            width: 100%; height: 100%; min-height: 100%;
+          }
+          /* painel da lista flutua à esquerda — flex column, rolagem interna */
+          .mapa-fullscreen .map-sidebar {
+            height: 100%;
+            min-height: 0;
+            order: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,232,210,.22);
+            border-radius: var(--map-panel-radius);
+            overflow: hidden;
+            background: rgba(82,43,127,.94);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 24px 70px rgba(43,24,16,.24);
+            padding: 0;
+            color: var(--lovers-cream);
+          }
+          .mapa-fullscreen .map-sidebar-sticky {
+            flex: 0 0 auto;
+            padding: clamp(16px, 1.6vw, 22px) clamp(16px, 1.6vw, 22px) 14px;
+            background: rgba(82,43,127,.96);
+          }
+          .mapa-fullscreen .map-sidebar-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
-            padding-right: 4px;
+            overflow-x: hidden;
+            padding: 0 clamp(16px, 1.6vw, 22px) clamp(16px, 1.6vw, 22px);
+            scrollbar-color: rgba(255,232,210,.48) transparent;
           }
-          .mapa-list::-webkit-scrollbar { width: 4px; }
-          .mapa-list::-webkit-scrollbar-thumb {
-            background: rgba(135,14,45,.3);
-            border-radius: 4px;
+          /* ocultar filtros por bairro (lógica preservada no JSX) */
+          .mapa-fullscreen .map-neighborhood-filters { display: none; }
+          /* contraste sobre painel roxo: contador + busca + botão localização */
+          .mapa-fullscreen .map-sidebar .mono { color: var(--lovers-cream) !important; }
+          .mapa-fullscreen .map-sidebar .mapa-search {
+            background: #fff; color: var(--lovers-brown);
+            border-color: rgba(255,232,210,.68);
           }
-          .mapa-chip {
+          .mapa-fullscreen .map-sidebar .mapa-search::placeholder { color: rgba(63,26,10,.62); }
+          /* botão "Usar minha localização" e chips de distância: outline creme legível */
+          .mapa-fullscreen .map-sidebar .mapa-chip {
+            border-color: rgba(255,232,210,.5);
+            color: var(--lovers-cream) !important;
+          }
+          .mapa-fullscreen .map-sidebar .mapa-chip:hover { background: var(--lovers-pink); color: #fff !important; }
+          /* scrollbar discreta (WebKit) */
+          .mapa-fullscreen .map-sidebar-scroll::-webkit-scrollbar { width: 8px; }
+          .mapa-fullscreen .map-sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255,232,210,.14); border-radius: 999px;
+          }
+          .mapa-fullscreen .map-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,232,210,.48); border-radius: 999px;
+          }
+          .mapa-fullscreen .map-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,232,210,.68);
+          }
+          /* tablet: reduz sidebar/gap/margens */
+          @media (max-width: 1180px) {
+            .mapa-fullscreen .mapa-layout { grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); }
+          }
+          /* mobile: empilha — mapa primeiro, lista depois, alturas controladas */
+          @media (max-width: 860px) {
+            .mapa-fullscreen {
+              --map-page-margin: 16px;
+              --map-panel-gap: 16px;
+              --map-panel-radius: 26px;
+            }
+            .mapa-fullscreen .mapa-layout {
+              width: calc(100% - 28px);
+              grid-template-columns: 1fr;
+              height: auto;
+              min-height: 0;
+              max-height: none;
+            }
+            .mapa-fullscreen .mapa-container { min-height: 360px; height: 52svh; max-height: 520px; order: 1; }
+            .mapa-fullscreen .map-sidebar { height: min(680px, 72svh); min-height: 480px; max-height: 720px; order: 2; }
+          }
+          @media (max-width: 480px) {
+            .mapa-fullscreen { --map-panel-radius: 22px; }
+            .mapa-fullscreen .map-sidebar { height: 70svh; }
+          }
+          /* ── layout flutuante (padrão): lista esquerda, mapa direita ──
+             Painéis de mesma altura flutuando sobre o cenário, margens + radius. */
+          .mapa-floating-layout {
+            --map-page-margin: clamp(18px, 4vw, 72px);
+            --map-panel-gap: clamp(18px, 2vw, 34px);
+            --map-panel-radius: clamp(28px, 3vw, 48px);
+            --map-floating-panel-h: min(760px, calc(100svh - 190px));
+            width: min(100% - calc(var(--map-page-margin) * 2), 1540px);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+            gap: var(--map-panel-gap);
+            align-items: stretch;
+          }
+          .mapa-floating-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--map-panel-radius);
+            min-height: 620px;
+            height: var(--map-floating-panel-h);
+            max-height: 820px;
+            box-shadow: 0 24px 70px rgba(43,24,16,.24);
+            border: 1px solid rgba(255,232,210,.22);
+          }
+          /* lista flutua à esquerda (coluna estreita) */
+          .mapa-floating-panel--sidebar {
+            order: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(79,32,146,.96);
+            color: var(--lovers-cream);
+          }
+          /* mapa flutua à direita (coluna larga) */
+          .mapa-floating-panel--map {
+            order: 2;
+            background: rgba(79,32,146,.84);
+          }
+          /* Google Map preenche todo o painel */
+          .mapa-floating-panel--map .mapa-container,
+          .mapa-floating-panel--map .google-map-wrapper,
+          .mapa-floating-panel--map .google-map-wrapper > div {
+            width: 100%; height: 100%; min-height: 100%;
+          }
+          /* sidebar: topo fixo + lista rolável internamente */
+          .mapa-floating-panel--sidebar .map-sidebar-sticky {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            padding: clamp(18px, 2vw, 26px);
+            background: rgba(79,32,146,.98);
+          }
+          .mapa-floating-panel--sidebar .map-sidebar-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
+            scrollbar-color: rgba(255,232,210,.52) rgba(255,232,210,.14);
+            scrollbar-width: thin;
+          }
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar { width: 8px; }
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255,232,210,.14); border-radius: 999px;
+          }
+          .mapa-floating-panel--sidebar .map-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,232,210,.52); border-radius: 999px;
+          }
+          /* contraste sobre painel roxo: troca textos vermelhos por creme */
+          .mapa-floating-panel--sidebar .mono { color: var(--lovers-cream) !important; }
+          .mapa-floating-panel--sidebar .mono button { color: var(--lovers-cream) !important; }
+          .mapa-floating-panel--sidebar .mapa-search {
+            width: 100%;
+            background: #fff; color: var(--lovers-brown);
+            border: 1.5px solid rgba(255,232,210,.72);
+            box-shadow: 0 10px 24px rgba(43,24,16,.16);
+          }
+          .mapa-floating-panel--sidebar .mapa-search::placeholder { color: rgba(63,26,10,.62); }
+          /* cor/contraste dos chips vêm dos estilos inline (creme inativo, roxo-sobre-creme ativo);
+             aqui só borda padrão p/ chips sem cor inline. */
+          .mapa-floating-panel--sidebar .mapa-chip { border-color: rgba(255,232,210,.55); }
+          /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
+          .map-neighborhood-filters { display: none !important; }
+
+          /* ── header editorial ── */
+          .mapa-hero {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: clamp(42px, 7vw, 88px) 0 clamp(28px, 4vw, 56px);
+          }
+          .mapa-hero__sticker, .mapa-hero__kicker { align-self: center; }
+          .mapa-hero__sticker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transform: rotate(-2deg);
+            margin-bottom: 14px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            box-shadow: 0 8px 20px rgba(135,14,45,.16);
+          }
+          .mapa-hero__sticker svg { width: 14px; height: 14px; }
+          .mapa-hero__kicker {
+            display: block;
+            margin-bottom: 8px;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--lovers-red);
+          }
+          .mapa-hero__title {
+            margin: 0;
+            max-width: 980px;
+            margin-inline: auto;
+            text-align: center;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(42px, 7vw, 88px);
+            line-height: .86;
+            letter-spacing: .01em;
+            text-transform: uppercase;
+            color: var(--lovers-ink);
+          }
+          .mapa-hero__subtitle {
+            max-width: 760px;
+            margin: clamp(14px, 2vw, 20px) auto 0;
+            text-align: center;
+            font-family: var(--font-lovers-body);
+            font-size: clamp(15px, 1.5vw, 18px);
+            line-height: 1.45;
+            color: var(--lovers-brown);
+          }
+          .mapa-hero__microcopy {
+            max-width: 620px;
+            margin: 12px auto 0;
+            text-align: center;
+            font-family: var(--font-lovers-body);
+            font-weight: 800;
+            font-size: 13px;
+            line-height: 1.4;
+            letter-spacing: .02em;
+            color: var(--lovers-red);
+          }
+          @media (max-width: 560px) {
+            .mapa-hero { margin-bottom: 18px; }
+            .mapa-hero__title { font-size: clamp(34px, 11vw, 48px); line-height: .9; }
+            .mapa-hero__subtitle { font-size: 14px; }
+            .mapa-hero__sticker { font-size: 11px; padding: 6px 12px; margin-bottom: 12px; }
+            .mapa-hero__kicker { letter-spacing: .16em; }
+          }
+
+          /* ── busca ── */
+          .mapa-search {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1.5px solid rgba(135,14,45,.2);
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-family: var(--font-lovers-body);
+            background: #fff;
+            color: var(--lovers-ink);
+            outline: none;
+            margin-bottom: 12px;
+            transition: border-color .15s, box-shadow .15s;
+          }
+          .mapa-search::placeholder { color: var(--lovers-brown); opacity: .55; }
+          .mapa-search:focus { box-shadow: 0 0 0 3px rgba(214,54,72,.12); }
+
+          /* ── foco visível (a11y) ── */
+          .mapa-chip:focus-visible,
+          .map-icon-action:focus-visible,
+          .map-card-combo-btn:focus-visible,
+          .sweet-route-icon-action:focus-visible,
+          .sweet-route-primary:focus-visible,
+          .sweet-route-secondary:focus-visible,
+          .sweet-route-close:focus-visible,
+          .sweet-route-fab:focus-visible,
+          .mapa-search:focus-visible {
+            outline: 3px solid var(--lovers-pink);
+            outline-offset: 2px;
+          }
+
+          /* ── rota ── */
+          .map-location-action--selected {
+            background: var(--lovers-pink);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-pink);
+          }
+          .sweet-route-fab {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 30;
+            border: 0;
+            border-radius: 999px;
+            min-height: 54px;
+            padding: 0 22px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            box-shadow: 0 18px 36px rgba(135,14,45,.28);
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+          }
+          .sweet-route-fab:hover { transform: translateY(-2px); box-shadow: 0 22px 44px rgba(135,14,45,.34); }
+          .sweet-route-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            background: rgba(43,24,16,.52);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+          }
+          .sweet-route-panel {
+            position: relative;
+            width: min(560px, 100%);
+            max-height: min(92vh, 920px);
+            overflow-y: auto;
+            border-radius: 32px;
+            background: rgba(43,24,16,.32);
+            border: 1px solid rgba(255,255,255,.22);
+            box-shadow: 0 30px 80px rgba(43,24,16,.34);
+            padding: clamp(14px, 3vw, 22px);
+          }
+          .sweet-route-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.15);
+            color: var(--lovers-cream);
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+          }
+          .sweet-route-share-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            padding: clamp(24px, 5vw, 42px);
+            background:
+              radial-gradient(circle at 12% 8%, rgba(241,7,103,.24), transparent 30%),
+              radial-gradient(circle at 88% 12%, rgba(255,190,60,.28), transparent 32%),
+              linear-gradient(145deg, var(--lovers-cream) 0%, #fff7ec 48%, #ffd9e8 100%);
+            border: 2px solid rgba(135,14,45,.18);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+          }
+          .sweet-route-share-card::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            border: 1px dashed rgba(135,14,45,.18);
+            border-radius: 22px;
+            pointer-events: none;
+          }
+          .sweet-route-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+          }
+          .sweet-route-kicker,
+          .sweet-route-date {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-family: var(--font-lovers-body);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+          }
+          .sweet-route-kicker { background: var(--lovers-red); color: var(--lovers-cream); }
+          .sweet-route-date { background: var(--lovers-pink); color: var(--lovers-cream); }
+          .sweet-route-share-card h2 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(44px, 9vw, 76px);
+            line-height: .82;
+            color: var(--lovers-ink);
+            text-transform: uppercase;
+            letter-spacing: .01em;
+          }
+          .sweet-route-share-card > p {
+            position: relative;
+            z-index: 1;
+            margin: 14px 0 0;
+            max-width: 420px;
+            color: var(--lovers-brown);
+            font-size: 15px;
+            line-height: 1.42;
+          }
+          .sweet-route-summary {
+            position: relative;
+            z-index: 1;
+            margin: 22px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 20px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            padding: 12px 16px;
+            font-family: var(--font-lovers-body);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-size: 12px;
+            font-weight: 900;
+          }
+          .sweet-route-summary strong { font-size: 36px; line-height: 1; font-weight: 900; }
+          .sweet-route-list {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+          }
+          .sweet-route-stop {
+            display: grid;
+            grid-template-columns: 58px 1fr;
+            gap: 14px;
+            align-items: start;
+            padding: 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.82);
+            border: 1px solid rgba(135,14,45,.14);
+          }
+          .sweet-route-brand {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            overflow: visible;
+            flex-shrink: 0;
+          }
+          .sweet-route-brand-image,
+          .sweet-route-brand-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1.5px solid rgba(135,14,45,.18);
+            box-shadow: 0 6px 16px rgba(43,24,16,.10);
+          }
+          .sweet-route-brand-image {
+            object-fit: cover;
+            object-position: center;
+            display: block;
+          }
+          .sweet-route-brand-fallback {
+            color: var(--lovers-cream);
+            background: var(--lovers-pink);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 22px;
+          }
+          .sweet-route-stop-badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
             font-family: var(--font-lovers-body);
             font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
+            font-weight: 900;
+            line-height: 1;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(43,24,16,.18);
+            z-index: 2;
+          }
+          .sweet-route-stop-content { min-width: 0; }
+          .sweet-route-stop-content strong {
+            display: block;
+            color: var(--lovers-ink);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            line-height: 1.05;
+          }
+          .sweet-route-stop-content span,
+          .sweet-route-stop-content small {
+            display: block;
+            color: var(--lovers-brown);
+            margin-top: 4px;
+          }
+          .sweet-route-stop-content span {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-size: 11px;
+            color: var(--lovers-red);
+          }
+          .sweet-route-stop-content small {
+            font-size: 11px;
+            opacity: .78;
+            line-height: 1.35;
+          }
+          .sweet-route-stop-actions {
+            grid-column: 2;
+            display: flex;
+            gap: 6px;
+            margin-top: 9px;
+          }
+          .sweet-route-icon-action {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: 1px solid rgba(135,14,45,.22);
+            background: rgba(255,255,255,.68);
+            color: var(--lovers-red);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+            cursor: pointer;
+            transition: background .18s ease, color .18s ease, opacity .18s ease, transform .18s ease;
+          }
+          .sweet-route-icon-action:hover:not(:disabled) {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            transform: translateY(-1px);
+          }
+          .sweet-route-icon-action:disabled { opacity: .32; cursor: not-allowed; }
+          .sweet-route-icon-action--danger { border-color: rgba(135,14,45,.34); }
+          @media (max-width: 560px) {
+            .sweet-route-stop {
+              grid-template-columns: 52px 1fr;
+              gap: 12px;
+              padding: 12px;
+            }
+            .sweet-route-brand { width: 52px; height: 52px; }
+            .sweet-route-stop-actions { gap: 5px; }
+            .sweet-route-icon-action { width: 30px; height: 30px; }
+          }
+          .sweet-route-warning {
+            position: relative;
+            z-index: 1;
+            margin-top: 14px;
+            color: var(--lovers-red);
+            font-weight: 800;
+            font-size: 12px;
+          }
+          .sweet-route-footer {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(135,14,45,.18);
+            display: grid;
+            gap: 4px;
+            text-align: center;
+            color: var(--lovers-red);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+          }
+          .sweet-route-footer strong {
+            font-family: var(--font-lovers-body);
+            font-size: 13px;
+            font-weight: 900;
+          }
+          .sweet-route-footer span {
+            font-family: var(--font-lovers-body);
+            font-size: 10px;
+            font-weight: 800;
+          }
+          .sweet-route-print-hint {
+            margin: 14px 4px 0;
+            color: var(--lovers-cream);
+            opacity: .86;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: center;
+          }
+          .sweet-route-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+          }
+          .sweet-route-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            min-height: 48px;
+            padding: 0 22px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border: 1px solid var(--lovers-red);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .15s;
+          }
+          .sweet-route-primary:hover { transform: translateY(-1px); }
+          .sweet-route-secondary {
+            border-radius: 999px;
+            min-height: 48px;
+            padding: 0 22px;
+            border: 1px solid rgba(255,255,255,.4);
+            background: transparent;
+            color: var(--lovers-cream);
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+          }
+          @media (max-width: 560px) {
+            .sweet-route-fab { left: 16px; right: 16px; bottom: 16px; }
+            .sweet-route-overlay { padding: 10px; }
+            .sweet-route-panel { border-radius: 24px; padding: 10px; }
+            .sweet-route-share-card { border-radius: 22px; padding: 22px 16px; }
+            .sweet-route-top { align-items: flex-start; flex-direction: column; gap: 8px; }
+            .sweet-route-stop { grid-template-columns: 34px 1fr; }
+            .sweet-route-remove { grid-column: 2; justify-self: start; margin-top: 6px; }
+            .sweet-route-number { width: 34px; height: 34px; font-size: 14px; }
+            .sweet-route-actions { flex-direction: column; }
+            .sweet-route-primary, .sweet-route-secondary { width: 100%; justify-content: center; }
+          }
+
+          /* ── chips de filtro ── */
+          .mapa-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            font-family: var(--font-lovers-body);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 999px;
             border: 1.5px solid var(--lovers-red);
             cursor: pointer;
-            transition: background .15s, color .15s;
+            transition: background .15s, color .15s, box-shadow .15s, transform .15s;
             white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: .06em;
           }
-          .mapa-chip:hover {
-            background: var(--lovers-red);
+          .mapa-chip:hover { background: var(--lovers-red); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(135,14,45,.18); }
+          .mapa-chip:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+
+          /* ── card do participante ── */
+          .map-participant-card {
+            background: #fff;
+            border: 1.5px solid rgba(135,14,45,.22);
+            border-radius: 18px;
+            padding: 14px;
+            transition: border-color .18s, background .18s, box-shadow .18s;
+          }
+          .map-participant-card:hover {
+            border-color: rgba(135,14,45,.4);
+            box-shadow: 0 10px 26px rgba(135,14,45,.1);
+          }
+          .map-participant-card--active {
+            background: var(--lovers-cream);
+            border-color: var(--lovers-red);
+            box-shadow: 0 18px 42px rgba(135,14,45,.18);
+          }
+
+          /* ── cabeçalho do card ── */
+          .map-card-header {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            margin-bottom: 14px;
+          }
+          .map-card-brand {
+            position: relative;
+            flex: 0 0 auto;
+          }
+          .map-card-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: #fff;
+            border: 1px solid rgba(135,14,45,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 0;
+          }
+          .map-card-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+          }
+          .map-card-logo--empty {
+            font-family: var(--font-lovers-display);
+            font-size: 28px;
+            color: var(--lovers-red);
+            text-transform: uppercase;
+          }
+          .map-card-number {
+            position: absolute;
+            right: -7px;
+            bottom: -7px;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #F5B800;
+            color: #3F1A0A;
+            font-family: var(--font-lovers-display);
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 24px;
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.18);
+          }
+          .map-card-title-group {
+            min-width: 0;
+            flex: 1;
+            padding-top: 2px;
+          }
+          .map-card-edition-kicker {
+            display: inline-block;
+            font-family: var(--font-lovers-body);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .1em;
             color: #fff;
+            background: var(--lovers-red);
+            border-radius: 999px;
+            padding: 3px 9px;
+            margin-bottom: 7px;
           }
-          input[type=text]:focus {
-            border-color: var(--lovers-red) !important;
+          .map-card-title-group h3 {
+            margin: 0;
+            font-family: var(--font-lovers-display);
+            font-size: clamp(26px, 2.1vw, 34px);
+            line-height: .9;
+            color: var(--lovers-ink);
+            text-transform: uppercase;
+            letter-spacing: .015em;
+            text-wrap: balance;
           }
-          @media (max-width: 880px) {
-            .mapa-layout { grid-template-columns: 1fr; }
-            .mapa-container { height: 360px; }
-            .mapa-list { height: auto; }
-            .mapa-selected-card {
-              position: fixed !important;
-              bottom: 0 !important;
-              left: 0 !important;
-              right: 0 !important;
-              border-radius: 20px 20px 0 0 !important;
-              max-height: 40vh;
-              overflow-y: auto;
-              animation: mapaSlideUp .25s ease;
+          .map-card-theme {
+            margin-top: 8px;
+            padding-left: 11px;
+            border-left: 3px solid #F5B800;
+          }
+          .map-card-theme em {
+            font-style: italic;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--lovers-ink);
+            line-height: 1.18;
+          }
+          .map-card-ig {
+            margin-top: 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-lovers-body);
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--lovers-red);
+            text-decoration: none;
+          }
+          .map-card-ig svg { width: 14px; height: 14px; }
+          .map-card-ig:hover { text-decoration: underline; }
+          .map-card-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.2;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--lovers-red);
+          }
+          .map-card-combo {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--lovers-brown);
+            opacity: .7;
+          }
+          .map-card-combo-btn {
+            margin-top: 12px;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 999px;
+            min-height: 40px;
+            padding: 0 18px;
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border: 0;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform .15s, background .15s;
+          }
+          .map-card-combo-btn:hover { transform: translateY(-1px); background: var(--lovers-pink); }
+
+          /* ── lista de unidades ── */
+          .map-location-list {
+            display: grid;
+            gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(135,14,45,.12);
+          }
+          .map-location-list--many {
+            gap: 10px;
+          }
+          .map-location-row {
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(135,14,45,.1);
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s, background .18s;
+          }
+          .map-location-row:hover {
+            border-color: rgba(135,14,45,.3);
+          }
+          .map-location-row--active {
+            border-color: var(--lovers-red);
+            background: rgba(214,54,72,.13);
+            box-shadow: 0 8px 20px rgba(214,54,72,.14);
+          }
+          .map-location-list--many .map-location-row {
+            padding: 12px;
+          }
+
+          /* ── conteúdo da unidade ── */
+          .map-location-topline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+          }
+          .map-location-title {
+            flex: 1;
+            min-width: 0;
+            font-size: 16px;
+            line-height: 1.1;
+            font-weight: 900;
+            color: var(--lovers-ink);
+            text-transform: uppercase;
+            letter-spacing: .035em;
+          }
+          .map-location-row--active .map-location-title {
+            color: var(--lovers-red);
+          }
+          .map-location-distance {
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 900;
+            color: var(--lovers-red);
+            white-space: nowrap;
+            font-family: var(--font-lovers-body);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+          }
+          .map-location-meta {
+            margin-top: 5px;
+            font-size: 12px;
+            line-height: 1.25;
+            font-family: var(--font-lovers-body);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--lovers-red);
+          }
+          .map-location-address {
+            margin-top: 7px;
+            font-size: 13px;
+            color: var(--lovers-ink);
+            opacity: .82;
+            line-height: 1.4;
+          }
+          .map-location-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex: 0 0 auto;
+            font-size: 11px;
+            line-height: 1;
+            font-family: var(--font-lovers-body);
+            border-radius: 999px;
+            padding: 4px 9px;
+          }
+          .map-location-status strong {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+          }
+          .map-location-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex: 0 0 auto;
+          }
+          .map-location-status--open { background: rgba(27,138,90,.12); }
+          .map-location-status--open strong { color: #1B8A5A; }
+          .map-location-status--open .map-location-status-dot { background: #1B8A5A; }
+          .map-location-status--closed { background: rgba(214,54,72,.1); }
+          .map-location-status--closed strong { color: var(--lovers-red); }
+          .map-location-status--closed .map-location-status-dot { background: var(--lovers-red); }
+          .map-location-status-line {
+            margin-top: 6px;
+            font-size: 12px;
+            font-family: var(--font-lovers-body);
+            font-weight: 700;
+            color: var(--lovers-brown);
+            opacity: .75;
+          }
+          .map-location-status-line--open { color: #1B8A5A; opacity: .9; }
+
+          /* ── botões de ação (ícones) ── */
+          .map-location-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+          }
+          .map-icon-action {
+            width: 44px;
+            height: 44px;
+            flex: 0 0 auto;
+            border: 2px solid rgba(135,14,45,.24);
+            background: rgba(255,255,255,.9);
+            color: var(--lovers-red);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform .15s, background .15s, color .15s, border-color .15s, box-shadow .15s;
+          }
+          .map-icon-action svg { width: 20px; height: 20px; }
+          .map-icon-action:hover {
+            transform: translateY(-2px);
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-red);
+            box-shadow: 0 8px 18px rgba(135,14,45,.22);
+          }
+          .map-icon-action--primary {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-red);
+          }
+          .map-icon-action--active {
+            background: var(--lovers-red);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-red);
+          }
+          .map-icon-action--selected {
+            background: var(--lovers-pink);
+            color: var(--lovers-cream);
+            border-color: var(--lovers-pink);
+          }
+
+          input[type=text]:focus { border-color: var(--lovers-red) !important; }
+
+          /* ── debug panel ── */
+          .map-debug-panel {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(43,24,16,.06);
+            border: 1px dashed rgba(43,24,16,.24);
+            color: var(--lovers-ink);
+            font-size: 12px;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', monospace;
+          }
+          .map-debug-panel strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--lovers-red);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+          }
+          .map-debug-panel details { margin-top: 8px; }
+          .map-debug-panel summary { cursor: pointer; font-weight: 800; }
+          .map-debug-panel ul { margin: 6px 0 0; padding-left: 18px; }
+
+          /* ── responsivo: empilha painéis — mapa primeiro, lista depois ── */
+          @media (max-width: 860px) {
+            .mapa-floating-layout {
+              width: calc(100% - 28px);
+              grid-template-columns: 1fr;
+              gap: 16px;
             }
-            @keyframes mapaSlideUp {
-              from { transform: translateY(100%); }
-              to   { transform: translateY(0); }
-            }
+            .mapa-floating-panel { height: auto; min-height: 0; max-height: none; }
+            .mapa-floating-panel--map { height: 52svh; min-height: 360px; max-height: 520px; order: 1; }
+            .mapa-floating-panel--sidebar { height: min(680px, 72svh); min-height: 480px; max-height: 720px; order: 2; }
+          }
+          @media (max-width: 480px) {
+            .mapa-floating-layout { --map-panel-radius: 22px; }
+          }
+          @media (max-width: 560px) {
+            .map-card-logo { width: 56px; height: 56px; border-radius: 13px; }
+            .map-card-title-group h3 { font-size: clamp(24px, 8vw, 30px); line-height: .95; }
+            .map-card-meta { font-size: 11px; }
+            .map-location-title { font-size: 14px; }
+            .map-location-meta { font-size: 10px; }
+            .map-location-address { font-size: 12px; }
+            .map-location-topline { flex-direction: column; align-items: flex-start; gap: 2px; }
+            .map-location-actions { gap: 5px; }
+            .map-location-action { min-height: 34px; padding: 0 12px; font-size: 11px; flex: 1; }
           }
         `}</style>
       </section>
