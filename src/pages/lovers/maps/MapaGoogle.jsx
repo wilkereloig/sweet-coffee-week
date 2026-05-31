@@ -826,7 +826,7 @@ export function MapaGooglePage({ navigate }) {
                       cursor: locating ? 'default' : 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>📍</span>
+                    <I.pin width={16} height={16} />
                     {locating ? 'Localizando…' : 'Ver participantes perto de mim'}
                   </button>
                 ) : (
