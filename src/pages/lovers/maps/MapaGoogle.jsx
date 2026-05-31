@@ -216,7 +216,7 @@ function buildPinElement(label, selected) {
 
 // ─── GoogleMap component ─────────────────────────────────────────────────────
 
-function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
+function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError, onToggleRoute, getIsInRoute }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -304,6 +304,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
       marker.addListener('gmp-click', () => {
         onSelectLocation?.(loc)
+        const inRoute = getIsInRoute ? getIsInRoute(loc) : false
         infoWindow.setContent(`
           <div style="font-family:sans-serif;max-width:240px;line-height:1.4;">
             <strong style="font-size:14px;">${escapeHtml(loc.participantName)}</strong><br/>
@@ -312,9 +313,14 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
             ${loc.address ? `<small style="color:#888;">${escapeHtml(loc.address)}</small>` : ''}
             ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${escapeHtml(loc.theme)}</div>` : ''}
             ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(loc.edition)}</div>` : ''}
+            <button id="iw-route-btn" type="button" style="margin-top:10px;width:100%;padding:8px 10px;border:0;border-radius:999px;cursor:pointer;font-weight:700;font-size:12px;background:${inRoute ? '#eee' : '#F20567'};color:${inRoute ? '#3a0f1e' : '#fff'};">${inRoute ? '✓ Na minha rota — remover' : '+ Adicionar à minha rota'}</button>
           </div>
         `)
         infoWindow.open({ anchor: marker, map })
+        google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+          const btn = document.getElementById('iw-route-btn')
+          if (btn) btn.onclick = () => { onToggleRoute?.(loc); infoWindow.close() }
+        })
       })
 
       markersRef.current[loc.id] = marker
@@ -447,6 +453,15 @@ export function MapaGooglePage({ navigate }) {
   const [sharing, setSharing] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState('')
   const storyRef = useRef(null)
+  // espelho dos ids da rota p/ o callback do pin (InfoWindow) ler o estado atual sem recriar marcadores
+  const routeIdsRef = useRef(routeLocationIds)
+  useEffect(() => { routeIdsRef.current = routeLocationIds }, [routeLocationIds])
+  const getIsInRoute = useCallback((loc) => routeIdsRef.current.includes(loc.id), [])
+  // esconde a tabbar inferior enquanto a tela "Minha rota" (fullscreen) está aberta
+  useEffect(() => {
+    document.body.classList.toggle('route-overlay-open', isRoutePanelOpen)
+    return () => document.body.classList.remove('route-overlay-open')
+  }, [isRoutePanelOpen])
 
   const mapDebug = isMapDebugEnabled()
 
@@ -680,11 +695,11 @@ export function MapaGooglePage({ navigate }) {
 
   function isInRoute(location) { return routeLocationIds.includes(location.id) }
 
-  function toggleRouteLocation(location) {
+  const toggleRouteLocation = useCallback((location) => {
     setRouteLocationIds(cur =>
       cur.includes(location.id) ? cur.filter(id => id !== location.id) : [...cur, location.id]
     )
-  }
+  }, [])
 
   function removeRouteLocation(locationId) {
     setRouteLocationIds(cur => cur.filter(id => id !== locationId))
@@ -870,6 +885,8 @@ export function MapaGooglePage({ navigate }) {
                     onSelectLocation={handleSelectLocation}
                     userLocation={userLocation}
                     onError={setMapError}
+                    onToggleRoute={toggleRouteLocation}
+                    getIsInRoute={getIsInRoute}
                   />
                 )}
 
@@ -1146,105 +1163,69 @@ export function MapaGooglePage({ navigate }) {
             {/* FAB removido — "Minha rota" agora vive na barra superior (.mapa-topbar) */}
 
             {isRoutePanelOpen && (
-              <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
-                <div className="sweet-route-panel" onClick={e => e.stopPropagation()}>
-                  <button type="button" className="sweet-route-close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar rota">×</button>
+              <div className="sweet-route-screen" role="dialog" aria-modal="true">
+                <header className="sweet-route-screen__head">
+                  <button type="button" className="sweet-route-screen__close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar">←</button>
+                  <div className="sweet-route-screen__titles">
+                    <h2>Minha rota</h2>
+                    <span>{routeLocations.length} {routeLocations.length === 1 ? 'parada' : 'paradas'}</span>
+                  </div>
+                  {routeLocations.length > 0 && (
+                    <details className="sweet-route-menu">
+                      <summary aria-label="Mais ações">⋯</summary>
+                      <div className="sweet-route-menu__pop">
+                        <button type="button" onClick={copyRouteLink}>{linkCopied ? 'Link copiado ✓' : 'Copiar link da rota'}</button>
+                        <button type="button" onClick={clearRoute}>Limpar rota</button>
+                      </div>
+                    </details>
+                  )}
+                </header>
 
-                  <div className="sweet-route-share-card">
-                    <div className="sweet-route-top">
-                      <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
-                      <span className="sweet-route-date">4 A 14 DE JUNHO</span>
+                <div className="sweet-route-screen__body">
+                  {routeLocations.length === 0 ? (
+                    <div className="sweet-route-empty">
+                      <strong>Sua rota está vazia</strong>
+                      <p>Toque nos pins do mapa (ou nos cards) para adicionar participantes à sua rota.</p>
                     </div>
-
-                    <h2>MINHA ROTA LOVERS</h2>
-
-                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers.</p>
-
-                    <div className="sweet-route-summary">
-                      <strong>{routeLocations.length}</strong>
-                      <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
-                    </div>
-
-                    <ol className="sweet-route-list">
+                  ) : (
+                    <ol className="sweet-route-stops">
                       {routeLocations.map((location, index) => {
-                        const unitLabel = location.locationName || ''
-                        const neighborhoodLabel = location.neighborhood || ''
-                        const cityLabel = location.city || ''
-                        const shouldShowUnit = unitLabel &&
-                          unitLabel.toLowerCase().trim() !== neighborhoodLabel.toLowerCase().trim()
-                        const locationMeta = [neighborhoodLabel, cityLabel].filter(Boolean).join(' · ')
-                        const logoSrc = location.participantLogo || location.logo
+                        const locationMeta = [location.neighborhood, location.city].filter(Boolean).join(' · ')
                         return (
                           <li className="sweet-route-stop" key={location.id}>
-                            <div className="sweet-route-brand">
-                              {logoSrc
-                                ? <img className="sweet-route-brand-image" src={logoSrc} alt={`Logo ${location.participantName}`} />
-                                : <div className="sweet-route-brand-fallback">{(location.participantName || '?').slice(0, 1)}</div>
-                              }
-                              <span className="sweet-route-stop-badge">{index + 1}</span>
-                            </div>
-                            <div className="sweet-route-stop-content">
+                            <span className="sweet-route-stop__num">{index + 1}</span>
+                            <div className="sweet-route-stop__info">
                               <strong>{location.participantName}</strong>
-                              {shouldShowUnit && <span>{unitLabel}</span>}
-                              {locationMeta && <small>{locationMeta}</small>}
-                              {location.address && <small>{location.address}</small>}
-                              <div className="sweet-route-stop-actions">
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action"
-                                  aria-label="Mover parada para cima"
-                                  title="Mover para cima"
-                                  onClick={() => moveRouteLocation(location.id, 'up')}
-                                  disabled={index === 0}
-                                >↑</button>
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action"
-                                  aria-label="Mover parada para baixo"
-                                  title="Mover para baixo"
-                                  onClick={() => moveRouteLocation(location.id, 'down')}
-                                  disabled={index === routeLocations.length - 1}
-                                >↓</button>
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action sweet-route-icon-action--danger"
-                                  aria-label="Remover parada"
-                                  title="Remover"
-                                  onClick={() => removeRouteLocation(location.id)}
-                                >×</button>
-                              </div>
+                              {locationMeta && <span>{locationMeta}</span>}
                             </div>
+                            <details className="sweet-route-stop__menu">
+                              <summary aria-label="Ações da parada">⋮</summary>
+                              <div className="sweet-route-stop__pop">
+                                <button type="button" disabled={index === 0} onClick={(e) => { moveRouteLocation(location.id, 'up'); e.currentTarget.closest('details').open = false }}>Subir</button>
+                                <button type="button" disabled={index === routeLocations.length - 1} onClick={(e) => { moveRouteLocation(location.id, 'down'); e.currentTarget.closest('details').open = false }}>Descer</button>
+                                <button type="button" className="is-danger" onClick={(e) => { e.currentTarget.closest('details').open = false; removeRouteLocation(location.id) }}>Remover</button>
+                              </div>
+                            </details>
                           </li>
                         )
                       })}
                     </ol>
-
-                    {routeLocations.length > 9 && (
-                      <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
-                    )}
-
-                    <div className="sweet-route-footer">
-                      <strong>SWEET &amp; COFFEE WEEK LOVERS</strong>
-                      <span>FEITO DE AMOR, RECRIANDO SABORES</span>
-                    </div>
-                  </div>
-
-                  <p className="sweet-route-print-hint">Tire um print, mande para os amigos e combine por onde começar.</p>
-
-                  <div className="sweet-route-actions">
-                    <button type="button" onClick={shareStory} disabled={sharing || !routeLocations.length} className="sweet-route-primary">
-                      {sharing ? 'GERANDO IMAGEM…' : 'COMPARTILHAR ROTA (STORIES)'}
-                    </button>
-                    {routeMapsUrl && (
-                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary sweet-route-primary--alt">
-                        ABRIR NO GOOGLE MAPS
-                      </a>
-                    )}
-                    <button type="button" onClick={copyRouteLink} className="sweet-route-secondary">{linkCopied ? 'LINK COPIADO ✓' : 'COPIAR LINK DA ROTA'}</button>
-                    <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
-                    <button type="button" onClick={() => setIsRoutePanelOpen(false)} className="sweet-route-secondary">FECHAR</button>
-                  </div>
+                  )}
+                  {routeLocations.length > 9 && (
+                    <p className="sweet-route-note">O Google Maps usa as primeiras 9 paradas no trajeto.</p>
+                  )}
                 </div>
+
+                <footer className="sweet-route-screen__foot">
+                  <button type="button" onClick={shareStory} disabled={sharing || !routeLocations.length} className="sweet-route-cta">
+                    {sharing ? 'Gerando imagem…' : 'Compartilhar'}
+                  </button>
+                  {routeMapsUrl && (
+                    <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-cta sweet-route-cta--ghost">
+                      Abrir no Maps
+                    </a>
+                  )}
+                </footer>
               </div>
             )}
 
@@ -1597,15 +1578,15 @@ export function MapaGooglePage({ navigate }) {
           .sweet-story {
             width: 1080px; height: 1920px; box-sizing: border-box;
             padding: 96px 84px; display: flex; flex-direction: column;
-            background: linear-gradient(165deg, #5a2497 0%, #3a0f1e 100%);
-            color: #fff; font-family: var(--font-lovers-body);
+            background: #F5B800;
+            color: #3a0f1e; font-family: var(--font-lovers-body);
           }
           .sweet-story__head { text-align: center; }
-          .sweet-story__kicker { font-family: var(--font-mono); font-size: 26px; letter-spacing: .26em; opacity: .82; }
+          .sweet-story__kicker { font-family: var(--font-mono); font-size: 26px; letter-spacing: .26em; opacity: .7; }
           .sweet-story__title { font-family: var(--font-lovers-display); font-weight: 900; font-size: 118px; line-height: .9; text-transform: uppercase; margin: 26px 0 18px; }
-          .sweet-story__date { font-family: var(--font-mono); font-size: 26px; letter-spacing: .14em; color: #F5B800; }
+          .sweet-story__date { font-family: var(--font-mono); font-size: 26px; letter-spacing: .14em; color: #870e2d; font-weight: 700; }
           .sweet-story__list { list-style: none; margin: 64px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; flex: 1; justify-content: center; }
-          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: rgba(255,255,255,.10); border-radius: 28px; padding: 22px 30px; }
+          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: #fff; border-radius: 28px; padding: 22px 30px; }
           .sweet-story__num { flex: 0 0 auto; width: 62px; height: 62px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 900; font-size: 38px; }
           .sweet-story__logo { flex: 0 0 auto; width: 100px; height: 100px; border-radius: 22px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
           .sweet-story__logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
@@ -1614,11 +1595,49 @@ export function MapaGooglePage({ navigate }) {
           .sweet-story__info strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 44px; line-height: 1; text-transform: uppercase; }
           .sweet-story__info span { font-family: var(--font-mono); font-size: 24px; opacity: .8; }
           .sweet-story__more { text-align: center; font-family: var(--font-mono); font-size: 28px; opacity: .85; margin: 20px 0 0; }
-          .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(255,255,255,.25); }
+          .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(58,15,30,.22); }
           .sweet-story__qr { width: 150px; height: 150px; border-radius: 18px; background: #fff; padding: 10px; box-sizing: border-box; }
           .sweet-story__cta { display: flex; flex-direction: column; gap: 6px; }
           .sweet-story__cta strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 46px; text-transform: uppercase; }
-          .sweet-story__cta span { font-family: var(--font-mono); font-size: 28px; color: #F5B800; }
+          .sweet-story__cta span { font-family: var(--font-mono); font-size: 28px; color: #870e2d; }
+
+          /* ── Tela "Minha rota" fullscreen ── */
+          .sweet-route-screen { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; background: #F5B800; color: #3a0f1e; }
+          .sweet-route-screen__head { display: flex; align-items: center; gap: 14px; padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 14px; border-bottom: 1px solid rgba(58,15,30,.16); }
+          .sweet-route-screen__close { width: 42px; height: 42px; border-radius: 999px; border: 0; background: rgba(58,15,30,.10); color: #3a0f1e; font-size: 22px; cursor: pointer; flex: 0 0 auto; }
+          .sweet-route-screen__titles { flex: 1; display: flex; flex-direction: column; }
+          .sweet-route-screen__titles h2 { margin: 0; font-family: var(--font-lovers-display); font-weight: 800; font-size: 26px; text-transform: uppercase; line-height: 1; }
+          .sweet-route-screen__titles span { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; opacity: .7; margin-top: 4px; }
+          .sweet-route-menu { position: relative; flex: 0 0 auto; }
+          .sweet-route-menu summary { list-style: none; width: 42px; height: 42px; border-radius: 999px; background: rgba(58,15,30,.10); color: #3a0f1e; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
+          .sweet-route-menu summary::-webkit-details-marker { display: none; }
+          .sweet-route-menu__pop { position: absolute; right: 0; top: 48px; background: #fff; color: var(--lovers-brown); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.35); display: flex; flex-direction: column; min-width: 210px; overflow: hidden; z-index: 2; }
+          .sweet-route-menu__pop button { background: none; border: 0; text-align: left; padding: 14px 16px; font-size: 14px; cursor: pointer; font-family: var(--font-lovers-body); color: var(--lovers-brown); }
+          .sweet-route-menu__pop button:hover { background: rgba(0,0,0,.05); }
+          .sweet-route-screen__body { flex: 1; overflow-y: auto; padding: 18px; }
+          .sweet-route-empty { text-align: center; margin: 16vh auto 0; max-width: 280px; }
+          .sweet-route-empty strong { display: block; font-family: var(--font-lovers-display); font-size: 26px; text-transform: uppercase; margin-bottom: 10px; }
+          .sweet-route-empty p { font-size: 15px; opacity: .8; line-height: 1.5; }
+          .sweet-route-stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+          .sweet-route-stop { position: relative; display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 18px; padding: 14px 56px 14px 16px; }
+          .sweet-route-stop__num { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; }
+          .sweet-route-stop__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; color: #3a0f1e; }
+          .sweet-route-stop__info strong { font-family: var(--font-lovers-display); font-weight: 700; font-size: 17px; line-height: 1.1; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-route-stop__info span { font-family: var(--font-mono); font-size: 11px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-route-stop__menu { position: absolute; top: 8px; right: 10px; }
+          .sweet-route-stop__menu summary { list-style: none; width: 40px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; color: #3a0f1e; cursor: pointer; }
+          .sweet-route-stop__menu summary::-webkit-details-marker { display: none; }
+          .sweet-route-stop__menu summary:hover { background: rgba(58,15,30,.08); }
+          .sweet-route-stop__pop { position: absolute; right: 0; top: 44px; z-index: 3; background: #fff; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.28); display: flex; flex-direction: column; min-width: 160px; overflow: hidden; }
+          .sweet-route-stop__pop button { background: none; border: 0; text-align: left; padding: 13px 16px; font-size: 14px; font-family: var(--font-lovers-body); color: #3a0f1e; cursor: pointer; }
+          .sweet-route-stop__pop button:hover { background: rgba(0,0,0,.05); }
+          .sweet-route-stop__pop button:disabled { opacity: .35; cursor: default; }
+          .sweet-route-stop__pop button.is-danger { color: #c41024; }
+          .sweet-route-note { text-align: center; font-family: var(--font-mono); font-size: 12px; opacity: .7; margin-top: 16px; }
+          .sweet-route-screen__foot { display: flex; gap: 10px; padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(58,15,30,.16); }
+          .sweet-route-cta { flex: 1; text-align: center; padding: 16px; border-radius: 999px; border: 0; cursor: pointer; font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; text-transform: uppercase; background: #F20567; color: #fff; text-decoration: none; }
+          .sweet-route-cta--ghost { background: transparent; border: 1.5px solid rgba(58,15,30,.45); color: #3a0f1e; }
+          .sweet-route-cta:disabled { opacity: .5; cursor: default; }
           /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
           .map-neighborhood-filters { display: none !important; }
 

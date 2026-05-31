@@ -490,10 +490,15 @@ body.route-mapa         { --lovers-hero-bg: var(--lovers-cyan);   --lovers-hero-
 body.route-premiacao,
 body.route-awards       { --lovers-hero-bg: var(--lovers-purple); --lovers-hero-ink: #fff; }
 
+/* altura da tabbar inferior (mobile) — usada p/ folga do conteúdo */
+:root { --tabbar-h: calc(66px + env(safe-area-inset-bottom, 0px)); }
 .lovers-tabbar { display: none; }
+/* esconde a tabbar quando a tela "Minha rota" fullscreen está aberta */
+body.route-overlay-open .lovers-tabbar { display: none !important; }
 @media (max-width: 768px) {
   body.route-mapa .site-header { display: none !important; }
-  main.page-enter { padding-bottom: 72px; }
+  main.page-enter { padding-bottom: var(--tabbar-h); }
+  .site-footer { padding-bottom: var(--tabbar-h); }
   .lovers-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
     display: flex; align-items: stretch; justify-content: space-around;
