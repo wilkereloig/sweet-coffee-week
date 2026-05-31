@@ -3,6 +3,37 @@ import { useRoute } from './router'
 import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
 import { DevViewportSwitcher } from './DevTools'
+import { I } from './components/icons'
+
+// Tab bar inferior estilo app — só no mapa (mobile). Navegação rápida Lovers.
+const LOVERS_TABS = [
+  { label: 'Sobre',      to: '/lovers',               icon: 'heart', match: ['home', 'lovers'] },
+  { label: 'Lojas',      to: '/lovers/participantes', icon: 'pin',   match: ['participantes', 'combos', 'combo-detail'] },
+  { label: 'Mapa',       to: '/lovers/mapa',          icon: 'map',   match: ['mapa'] },
+  { label: 'Premiação',  to: '/lovers/premiacao',     icon: 'star',  match: ['premiacao', 'awards'] },
+]
+function LoversTabBar({ route, navigate }) {
+  return (
+    <nav className="lovers-tabbar" aria-label="Navegação Lovers">
+      {LOVERS_TABS.map(t => {
+        const Ic = I[t.icon] || I.map
+        const active = t.match.includes(route)
+        return (
+          <a
+            key={t.to}
+            href={`#${t.to}`}
+            className={`lovers-tabbar__item${active ? ' is-active' : ''}`}
+            aria-current={active ? 'page' : undefined}
+            onClick={(e) => { e.preventDefault(); navigate(t.to) }}
+          >
+            <Ic width={20} height={20} />
+            <span>{t.label}</span>
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
 
 
 import { HomePage }        from './pages/institutional/Home'
@@ -67,10 +98,16 @@ export default function App() {
     default:             page = <HomePage navigate={navigate} />
   }
 
+  React.useEffect(() => {
+    document.body.classList.toggle('route-mapa', route === 'mapa')
+    return () => document.body.classList.remove('route-mapa')
+  }, [route])
+
   return (
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} path={path} />
       <main key={route} className={`page-enter${['participantes', 'combos', 'combo-detail'].includes(route) ? ' with-combo-rail' : ''}`}>{page}</main>
+      {route === 'mapa' && <LoversTabBar route={route} navigate={navigate} />}
     </DevViewportSwitcher>
   )
 }

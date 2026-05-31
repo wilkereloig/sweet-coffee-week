@@ -476,6 +476,35 @@
 /* Conteúdo dos step cards alinhado à esquerda (label "Como funciona" segue centrada) */
 .section-sobre .lovers-step-card { text-align: left; }
 
+/* =====================================================================
+   Tab bar inferior (estilo app) — só no /lovers/mapa em mobile.
+   Header é escondido p/ dar destaque ao mapa em telas pequenas.
+   ===================================================================== */
+.lovers-tabbar { display: none; }
+@media (max-width: 768px) {
+  body.route-mapa .site-header { display: none !important; }
+  body.route-mapa main.page-enter { padding-bottom: 72px; }
+  .lovers-tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
+    display: flex; align-items: stretch; justify-content: space-around;
+    background: var(--lovers-burgundy);
+    border-top: 1px solid rgba(255, 232, 210, .18);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 24px rgba(43, 24, 16, .28);
+  }
+  .lovers-tabbar__item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 7px 4px; text-decoration: none;
+    color: rgba(255, 232, 210, .68);
+    font-family: var(--font-lovers-body); font-weight: 800;
+    font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+    transition: color .15s ease;
+  }
+  .lovers-tabbar__item svg { display: block; }
+  .lovers-tabbar__item.is-active { color: var(--lovers-yellow); }
+  .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-yellow); outline-offset: -2px; border-radius: 10px; }
+}
+
 /* ── Faixa de números slim (inline, divisores) ── */
 .lovers-stats-section { padding-top: clamp(8px, 2vw, 20px); }
 .lovers-stats-strip {
