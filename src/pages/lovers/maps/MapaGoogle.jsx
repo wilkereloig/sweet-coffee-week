@@ -474,6 +474,12 @@ export function MapaGooglePage({ navigate }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+  // some sozinha após 2s sem rolar (FAB reexibe e o timer reinicia)
+  useEffect(() => {
+    if (!barVisible) return
+    const t = setTimeout(() => setBarVisible(false), 2000)
+    return () => clearTimeout(t)
+  }, [barVisible])
   useEffect(() => {
     document.body.classList.toggle('lovers-tabbar-hidden', !barVisible)
     return () => document.body.classList.remove('lovers-tabbar-hidden')
