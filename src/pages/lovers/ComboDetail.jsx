@@ -320,7 +320,7 @@ function ComboDetailPageInner({ navigate, slug }) {
       {/* 3 ── O COMBO / COMBO EM BREVE */}
       <section className="section combo-detail-section" style={{ paddingTop: reveal ? 0 : undefined }}>
         <div className="wrap lovers-safe-wrap">
-          <article className="combo-detail-combo-card lovers-reveal">
+          <article className={`combo-detail-combo-card lovers-reveal${showCombo ? '' : ' combo-detail-combo-card--soon'}`}>
             {showCombo ? (
               <>
                 <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O combo</span>

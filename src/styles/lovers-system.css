@@ -904,6 +904,25 @@
   font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--lovers-yellow);
 }
 .combo-detail-combo-card__soon-badge svg { display: block; }
+
+/* Estado travado: card claro (creme + accent) — quebra a monotonia escura
+   da página e alinha com os cards creme do sistema (espelha theme-card). */
+.combo-detail-combo-card--soon {
+  background: var(--lovers-cream);
+  color: var(--lovers-brown);
+  border: 1.5px solid color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 28%, transparent);
+}
+.combo-detail-combo-card--soon::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 8px;
+  background: var(--cd-accent, var(--lovers-pink));
+}
+.combo-detail-combo-card--soon .combo-detail-combo-card__title { color: var(--lovers-brown); }
+.combo-detail-combo-card--soon .combo-detail-combo-card__text { color: var(--lovers-brown); opacity: .82; }
+.combo-detail-combo-card--soon .combo-detail-combo-card__soon-badge {
+  background: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 88%, #000);
+  border-color: transparent;
+}
 .combo-detail-combo-card__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
 @media (max-width: 600px) {
   .combo-detail-combo-card__ctas { width: 100%; }
