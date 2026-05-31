@@ -2,27 +2,24 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
 
-const STEPS = [
-  { n: '01', icon: 'plate', t: 'Prove',       b: 'Visite os participantes e descubra as criações da edição Lovers.', accent: 'var(--lovers-pink)' },
-  { n: '02', icon: 'star',  t: 'Avalie',      b: 'Quando a votação abrir, conte quais combos conquistaram você.',     accent: 'var(--lovers-yellow)' },
-  { n: '03', icon: 'heart', t: 'Torça',       b: 'Acompanhe os destaques da edição e compartilhe seus favoritos.',    accent: 'var(--lovers-cyan)' },
-  { n: '04', icon: 'check', t: 'Compartilhe', b: 'Marque os amigos, poste sua rota e mostre seu momento Sweet.',      accent: 'var(--lovers-purple)' },
+// Cards "em breve" — linguagem segura (sem afirmar mecânica não confirmada).
+const SOON_CARDS = [
+  {
+    accent: 'var(--lovers-pink)',
+    t: 'Avaliação dos combos',
+    b: 'Quando a votação estiver disponível, o público poderá acompanhar as instruções por aqui.',
+  },
+  {
+    accent: 'var(--lovers-yellow)',
+    t: 'Experiências especiais',
+    b: 'Ações e ativações da edição serão divulgadas nos canais oficiais do Sweet.',
+  },
+  {
+    accent: 'var(--lovers-cyan)',
+    t: 'Favoritos da edição',
+    b: 'A premiação vai celebrar momentos, escolhas e experiências vividas pelos Sweet Lovers.',
+  },
 ]
-
-const CHECKLIST = [
-  'Escolha os participantes que quer visitar.',
-  'Monte sua Rota da Doçura.',
-  'Fotografe seus combos favoritos.',
-  'Acompanhe @sweetcoffeeweek para saber quando a avaliação abrir.',
-]
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
-      <path d="m5 12.5 4.5 4.5L19 7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 export function AwardsPage({ navigate }) {
   useLoversReveal()
@@ -32,124 +29,79 @@ export function AwardsPage({ navigate }) {
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
       <LoversStickers page="premiacao" />
 
-      {/* 1 ── HERO */}
-      <section className="awards-hero">
+      {/* 1 ── HERO (sistema Lovers) */}
+      <section className="lovers-public-hero">
         <div className="lovers-decor" aria-hidden="true">
           <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, left: '4%' }} />
           <span className="lovers-orb lovers-orb--yellow" style={{ width: 130, height: 130, top: 30, right: '8%' }} />
           <span className="lovers-orb lovers-orb--cyan" style={{ width: 150, height: 150, bottom: -50, left: '38%' }} />
         </div>
-        <span className="lovers-sticker lovers-sticker--pink awards-hero__sticker" aria-hidden="true">avalie! ♥</span>
-        <div className="wrap awards-hero__inner">
-          <div className="awards-hero__content">
-            <span className="awards-hero__kicker">Premiação Lovers</span>
-            <h1 className="awards-hero__title">Provou? Agora<br /><span>conte pra gente.</span></h1>
-            <p className="awards-hero__subtitle">
-              Depois de viver a rota, chega a hora de participar da escolha dos destaques da edição.
+        <div className="wrap lovers-safe-wrap lovers-public-hero__inner">
+          <span className="lovers-public-hero__eyebrow">Premiação Lovers</span>
+          <h1 className="lovers-public-hero__title">Sua experiência também faz parte da edição.</h1>
+          <p className="lovers-public-hero__lead">
+            Em breve, você vai poder acompanhar as ações da edição, participar das experiências
+            especiais e celebrar os favoritos do Sweet &amp; Coffee Week Lovers.
+          </p>
+          <div className="lovers-public-hero__actions">
+            <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
+              Ver participantes <I.arrow />
+            </LoversButton>
+            <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
+              <I.map width={18} height={18} /> Abrir mapa da doçura
+            </LoversButton>
+          </div>
+        </div>
+      </section>
+
+      {/* 2 ── EM BREVE (3 cards) */}
+      <section className="lovers-public-section">
+        <div className="wrap lovers-safe-wrap">
+          <div className="lovers-public-section__header lovers-reveal">
+            <span className="lovers-eyebrow" style={{ justifyContent: 'center' }}>Em breve</span>
+            <h2 className="lovers-public-section__title">A premiação está sendo preparada.</h2>
+            <p className="lovers-public-section__lead">
+              Estamos organizando os próximos passos para que os Sweet Lovers possam acompanhar,
+              participar e celebrar a edição.
             </p>
-            <p className="awards-hero__text">
-              A avaliação dos combos será liberada em breve. Enquanto isso, vá salvando seus favoritos,
-              montando sua rota e preparando suas apostas.
+          </div>
+          <div className="lovers-public-card-grid">
+            {SOON_CARDS.map((c, i) => (
+              <article
+                key={c.t}
+                className={`lovers-public-card lovers-reveal lv-anim-${i + 1}`}
+                style={{ '--card-accent': c.accent }}
+              >
+                <span className="lovers-public-card__badge"><I.heart width={12} height={12} /> Em breve</span>
+                <h3 className="lovers-public-card__title">{c.t}</h3>
+                <p className="lovers-public-card__text">{c.b}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3 ── FECHAMENTO */}
+      <section className="section awards-section" style={{ paddingTop: 0 }}>
+        <div className="wrap lovers-safe-wrap">
+          <div className="awards-final-cta lovers-reveal">
+            <h2 className="awards-final-cta__title">Enquanto isso, <span>monte sua rota.</span></h2>
+            <p className="awards-final-cta__text">
+              Conheça os participantes, escolha suas paradas e acompanhe as novidades pelo Instagram oficial.
             </p>
-            <span className="awards-hero__badge">Em breve</span>
-            <div className="awards-hero__ctas">
+            <div className="awards-final-cta__ctas">
               <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
                 Ver participantes <I.arrow />
               </LoversButton>
               <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-                <I.route /> Abrir mapa da Doçura
+                <I.map width={18} height={18} /> Abrir mapa da doçura
               </LoversButton>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2 ── COMO FUNCIONA (steps) */}
-      <section className="section awards-section">
-        <div className="wrap">
-          <div className="awards-section__head is-center lovers-reveal">
-            <span className="lovers-eyebrow">Como funciona</span>
-            <h2 className="awards-section__title">Como você vai participar.</h2>
-          </div>
-          <div className="awards-steps">
-            {STEPS.map((s, i) => {
-              const Ic = I[s.icon] || I.star
-              return (
-                <article key={s.n} className={`awards-step-card lv-anim lv-anim-${i + 1}`} style={{ '--card-accent': s.accent }}>
-                  <div className="awards-step-card__top">
-                    <span className="awards-step-card__num">{s.n}</span>
-                    <span className="awards-step-card__icon" aria-hidden="true"><Ic width={24} height={24} /></span>
-                  </div>
-                  <h3 className="awards-step-card__title">{s.t}</h3>
-                  <p className="awards-step-card__text">{s.b}</p>
-                </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* 3 ── A VOTAÇÃO AINDA NÃO COMEÇOU */}
-      <section className="section awards-section" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <article className="awards-info-card lovers-reveal">
-            <div className="awards-info-card__body">
-              <span className="lovers-eyebrow" style={{ color: 'var(--lovers-burgundy)' }}>Em breve</span>
-              <h2 className="awards-info-card__title">A votação ainda<br /><span>não começou.</span></h2>
-              <p className="awards-info-card__text">
-                A avaliação será aberta durante o período definido pela organização. Quando estiver disponível,
-                você poderá avaliar os combos que experimentou e ajudar a escolher os destaques da edição.
-              </p>
-              <p className="awards-info-card__micro">
-                Enquanto isso, monte sua rota, visite os participantes e salve seus favoritos.
-              </p>
-              <div className="awards-info-card__ctas">
-                <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
-                  Ver participantes <I.arrow />
-                </LoversButton>
-                <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}>
-                  <I.route /> Abrir mapa
-                </LoversButton>
-              </div>
-            </div>
-            <div className="awards-info-card__aside" aria-hidden="true">
-              <span className="awards-info-card__seal"><I.starFill width={34} height={34} /></span>
-              <span className="awards-info-card__seal-text">Sweet &amp; Coffee Week Awards</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      {/* 4 ── COMO SE PREPARAR (checklist) */}
-      <section className="section awards-section" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <div className="awards-section__head lovers-reveal">
-            <span className="lovers-eyebrow">Como se preparar</span>
-            <h2 className="awards-section__title">Enquanto isso, vá<br />montando sua lista.</h2>
-          </div>
-          <ul className="awards-checklist">
-            {CHECKLIST.map((item, i) => (
-              <li key={i} className="awards-checklist__item lovers-reveal">
-                <span className="awards-checklist__check" aria-hidden="true"><CheckIcon /></span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* 5 ── FECHAMENTO */}
-      <section className="section awards-section" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <div className="awards-final-cta lovers-reveal">
-            <span className="lovers-sticker lovers-sticker--cyan awards-final-cta__sticker" aria-hidden="true">vem pro sweet ♥</span>
-            <h2 className="awards-final-cta__title">O Sweet também é feito<br />por <span>quem participa.</span></h2>
-            <p className="awards-final-cta__text">
-              Cada visita, foto, voto e indicação ajuda a contar a história dessa edição.
-            </p>
-            <LoversButton variant="primary" href="#/lovers/participantes" onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
-              Começar pelos participantes <I.arrow />
-            </LoversButton>
+            <a className="awards-final-cta__ig"
+               href="https://instagram.com/sweetcoffeeweek"
+               target="_blank" rel="noopener noreferrer">
+              <I.ig width={14} height={14} /> @sweetcoffeeweek
+            </a>
           </div>
         </div>
       </section>

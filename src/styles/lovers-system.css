@@ -1,4 +1,35 @@
 /* =====================================================================
+   LOVERS PUBLIC PAGE SYSTEM
+
+   Página matriz / referência visual: /lovers (Hub.jsx).
+
+   Usar em:
+   - /lovers
+   - /lovers/participantes
+   - /lovers/combos/:slug
+   - /lovers/premiacao
+
+   Não aplicar automaticamente em:
+   - /lovers/mapa  (composição própria: mapa, painéis flutuantes, lógica
+     interativa — não recebe lovers-public-hero, stickers genéricos nem
+     as regras gerais de imagem/layout desta seção.)
+
+   Regras:
+   1. Conteúdo em zona segura central (.lovers-safe-wrap / .lovers-text-wrap).
+   2. Adesivos sólidos, sem sombra, nas bordas/cantos (.lovers-stickers).
+   3. Nenhum adesivo atrás de título, texto, CTA ou card (conteúdo na camada
+      z2, adesivos na z1 — ver bloco "Adesivos PNG decorativos").
+   4. Heros editoriais com kicker, título, lead e CTAs (.lovers-public-hero).
+   5. Cards curtos, coloridos, arredondados e responsivos (.lovers-public-card).
+   6. Enquanto LOVERS_SHOW_COMBO_DETAILS=false (VITE_SHOW_LOVERS_COMBO_DETAILS
+      != 'true'), não revelar tema/foto/detalhes de combo — usar bloco
+      "combo em breve" (.combo-locked-art).
+
+   Classes-base reutilizáveis: ver seção "LOVERS PUBLIC — base reutilizável"
+   no fim deste arquivo. CTA "abrir mapa" usa o ícone I.map (não I.route).
+   ===================================================================== */
+
+/* =====================================================================
    LOVERS DESIGN SYSTEM — tokens complementares + classes base
    Convive com src/styles.css. NÃO redefine a paleta nem os componentes
    já existentes (.lovers-button-*, .lovers-card, .lovers-stat-card,
@@ -125,7 +156,7 @@
 .lovers-hero__media { position: relative; }
 .lovers-hero__actions { display: flex; flex-wrap: wrap; gap: var(--lovers-space-sm); margin-top: var(--lovers-space-xs); }
 .lovers-hero--gradient {
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: var(--lovers-cream);
 }
 
@@ -141,7 +172,7 @@
    Classes específicas da landing "Sobre a edição". Aditivo; não redefine
    paleta nem componentes base. Carrega após styles.css (vence empates).
    ===================================================================== */
-.lovers-home { position: relative; background: #FFE8D2; }
+.lovers-home { position: relative; background: var(--lovers-cream); }
 
 /* ── Hero: decoração extra (2º sticker flutuante + orb roxo) ── */
 .lovers-hero .lovers-orb--purple { width: 150px; height: 150px; bottom: 8%; right: 32%; animation-delay: -3.2s; }
@@ -175,7 +206,10 @@
 }
 /* Adesivos devem ocupar zonas decorativas: cantos, laterais e áreas de respiro.
    Nunca posicionar stickers no eixo central de títulos, CTAs ou cards.
-   Sem sombra/drop-shadow/glow: aparência de colagem gráfica impressa. */
+   Sem sombra/drop-shadow/glow: aparência de colagem gráfica impressa.
+   Stickers decorativos devem ser posicionados via config em zonas
+   laterais/cantos (src/config/loversStickers.js — left/right negativos,
+   fora do eixo central de leitura). */
 .lovers-sticker-img {
   position: absolute; display: block;
   max-width: none; height: auto;
@@ -771,7 +805,7 @@
 .combo-detail-hero {
   position: relative; overflow: hidden; color: var(--lovers-cream);
   padding: clamp(44px, 7vw, 96px) 0 clamp(44px, 7vw, 88px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
 }
 .combo-detail-hero__grid {
   position: relative; z-index: 2;
@@ -862,6 +896,38 @@
 .combo-detail-combo-card__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-yellow); }
 .combo-detail-combo-card__value { font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(18px, 2vw, 24px); text-transform: uppercase; }
 .combo-detail-combo-card__price { font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(24px, 3vw, 34px); color: var(--lovers-yellow); }
+.combo-detail-combo-card__soon-badge {
+  display: inline-flex; align-items: center; gap: 7px; margin-bottom: 4px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,232,210,.14); border: 1px solid rgba(255,232,210,.34);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--lovers-yellow);
+}
+.combo-detail-combo-card__soon-badge svg { display: block; }
+
+/* Estado travado: card claro (creme + accent) — quebra a monotonia escura
+   da página e alinha com os cards creme do sistema (espelha theme-card). */
+.combo-detail-combo-card--soon {
+  background: var(--lovers-cream);
+  color: var(--lovers-brown);
+  border: 1.5px solid color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 28%, transparent);
+}
+.combo-detail-combo-card--soon::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 8px;
+  background: var(--cd-accent, var(--lovers-pink));
+}
+.combo-detail-combo-card--soon .combo-detail-combo-card__title { color: var(--lovers-brown); }
+.combo-detail-combo-card--soon .combo-detail-combo-card__text { color: var(--lovers-brown); opacity: .82; }
+.combo-detail-combo-card--soon .combo-detail-combo-card__soon-badge {
+  background: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 88%, #000);
+  border-color: transparent;
+}
+.combo-detail-combo-card__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+@media (max-width: 600px) {
+  .combo-detail-combo-card__ctas { width: 100%; }
+  .combo-detail-combo-card__ctas .lovers-button { width: 100%; justify-content: center; }
+}
 .combo-detail-combo-card__items { display: grid; gap: 10px; margin-top: 22px; }
 .combo-detail-combo-card__item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.14); }
 .combo-detail-combo-card__item-k { flex: 0 0 80px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-yellow); }
@@ -896,7 +962,7 @@
   width: min(100%, 1280px); margin-inline: auto;
   border-radius: clamp(28px, 3vw, 46px);
   padding: clamp(40px, 7vw, 92px) clamp(24px, 6vw, 80px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: #fff;
   box-shadow: 0 24px 70px rgba(43,24,16,.24);
 }
@@ -926,7 +992,7 @@
 .awards-hero {
   position: relative; overflow: hidden; color: var(--lovers-cream);
   padding: clamp(48px, 8vw, 110px) 0 clamp(48px, 8vw, 100px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
 }
 .awards-hero__inner { position: relative; z-index: 2; }
 .awards-hero__content { max-width: 700px; }
@@ -1030,7 +1096,7 @@
   width: min(100%, 1280px); margin-inline: auto;
   border-radius: clamp(28px, 3vw, 46px);
   padding: clamp(40px, 7vw, 92px) clamp(24px, 6vw, 80px);
-  background: #870E2D;
+  background: var(--lovers-burgundy);
   color: #fff;
   box-shadow: 0 24px 70px rgba(43,24,16,.24);
 }
@@ -1048,3 +1114,165 @@
 .awards-final-cta__text { margin: 16px auto 0; max-width: 50ch; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); text-align: center; }
 .awards-final-cta .lovers-button { margin-top: 26px; }
 .awards-final-cta .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-burgundy); border-color: transparent; }
+
+/* =====================================================================
+   LOVERS PUBLIC — base reutilizável (heros / seções / cards)
+
+   Classes genéricas extraídas da página matriz /lovers, para padronizar
+   /lovers/participantes, /lovers/combos/:slug e /lovers/premiacao nas
+   próximas etapas. NÃO usar em /lovers/mapa. Aditivo: nenhuma página
+   referencia estas classes ainda (zero impacto visual atual).
+
+   Convivem com a base já existente (não substituem):
+   - zona segura: .lovers-safe-wrap / .lovers-text-wrap / .lovers-narrow-wrap
+   - layout:      .lovers-card-grid / .lovers-section-stack / .lovers-centered-stack
+   - cabeçalho:   .lovers-section-header / .lovers-eyebrow / .lovers-section__title
+   ===================================================================== */
+
+/* ── Hero público editorial ──
+   Fundo via token --lovers-hero-bg (default amarelo da matriz; internas
+   podem sobrescrever para burgundy). Texto via --lovers-hero-ink. */
+.lovers-public-hero {
+  position: relative; overflow: hidden; text-align: center;
+  padding: clamp(56px, 9vw, 120px) 0 clamp(44px, 7vw, 92px);
+  background: var(--lovers-hero-bg, var(--lovers-yellow));
+  color: var(--lovers-hero-ink, var(--lovers-brown));
+}
+.lovers-public-hero__inner { position: relative; z-index: 2; }
+.lovers-public-hero__eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--lovers-burgundy); opacity: .9;
+}
+.lovers-public-hero__title {
+  max-width: 1100px; margin: 14px auto 0;
+  font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(32px, 5vw, 72px); line-height: .98; letter-spacing: -.02em;
+  text-transform: uppercase; color: inherit; text-align: center;
+}
+.lovers-public-hero__lead {
+  max-width: 680px; margin: 18px auto 0;
+  font-size: clamp(16px, 1.6vw, 20px); line-height: 1.55; color: inherit; opacity: .88;
+  text-align: center;
+}
+.lovers-public-hero__actions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+  margin-top: clamp(20px, 3vw, 30px);
+}
+@media (max-width: 640px) {
+  .lovers-public-hero__actions { width: 100%; }
+  .lovers-public-hero__actions .lovers-button { width: 100%; justify-content: center; }
+}
+
+/* ── Seção pública (cabeçalho centralizado curto) ── */
+.lovers-public-section { position: relative; padding: clamp(40px, 6vw, 88px) 0; }
+.lovers-public-section__header {
+  max-width: 760px; margin: 0 auto clamp(28px, 4vw, 48px); text-align: center;
+}
+.lovers-public-section__title {
+  margin: 10px 0 0;
+  font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(28px, 4vw, 56px); line-height: 1; letter-spacing: -.01em;
+  text-transform: uppercase; color: var(--lovers-brown); text-align: center;
+}
+.lovers-public-section__lead {
+  margin: 14px auto 0; max-width: 60ch;
+  font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; color: var(--lovers-brown); opacity: .82;
+  text-align: center;
+}
+
+/* ── Grid + card público (3 → 2 → 1; cor de acento via --card-accent) ── */
+.lovers-public-card-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: clamp(18px, 2.4vw, 30px);
+  width: min(100%, 1120px); margin-inline: auto;
+}
+@media (max-width: 1024px) { .lovers-public-card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px)  { .lovers-public-card-grid { grid-template-columns: 1fr; } }
+.lovers-public-card {
+  position: relative; display: flex; flex-direction: column; gap: 10px; text-align: left;
+  padding: clamp(22px, 2.6vw, 32px); border-radius: var(--lovers-radius-lg);
+  background: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 28%, transparent);
+  box-shadow: var(--lovers-shadow-soft);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+@media (hover: hover) {
+  .lovers-public-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 28px 60px color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 26%, rgba(43,24,16,.2));
+  }
+}
+.lovers-public-card:focus-visible { outline: 3px solid var(--card-accent, var(--lovers-pink)); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .lovers-public-card { transition: none; } }
+
+/* ── Participantes: faixa resumo (abaixo do hero) ── */
+.combos-page__summary { text-align: center; padding: clamp(28px, 4vw, 44px) 0 clamp(4px, 1vw, 10px); }
+.combos-page__summary-count {
+  margin: 0;
+  font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(24px, 3.2vw, 42px); line-height: 1; letter-spacing: -.02em;
+  text-transform: uppercase; color: var(--lovers-burgundy); text-align: center;
+}
+.combos-page__summary-sub {
+  margin: 10px auto 0; max-width: 48ch;
+  font-size: clamp(14px, 1.4vw, 16px); line-height: 1.5; color: var(--lovers-brown); opacity: .8;
+  text-align: center;
+}
+
+/* ── Participantes: badge "combo em breve" no corpo do card (estado travado) ── */
+.participant-showcase-card__soon {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  margin: 2px 0; padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 88%, #000);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.participant-showcase-card__soon svg { display: block; }
+
+/* Quebra de linha equilibrada nos títulos editoriais — evita órfãos
+   (ex.: "ROTA." sozinha) e quebras feias de <br/> em larguras intermediárias. */
+.lovers-public-hero__title,
+.lovers-public-section__title,
+.combo-detail-hero__name,
+.combo-detail-combo-card__title,
+.combo-detail-final-cta__title,
+.awards-final-cta__title { text-wrap: balance; }
+
+/* ── Card público: badge + título + texto (premiação "em breve" etc.) ── */
+.lovers-public-card__badge {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 88%, #000);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.lovers-public-card__badge svg { display: block; }
+.lovers-public-card__title {
+  margin: 4px 0 0;
+  font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(20px, 2vw, 26px); line-height: 1.02; text-transform: uppercase;
+  color: var(--lovers-brown);
+}
+.lovers-public-card__text {
+  margin: 0; font-size: 15px; line-height: 1.55; color: var(--lovers-brown); opacity: .82;
+}
+
+/* ── Fechamento da premiação: linha de CTAs + link Instagram pequeno ── */
+.awards-final-cta__ctas {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 26px;
+}
+.awards-final-cta__ig {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+  font-family: var(--font-lovers-body); font-size: 12px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(255,255,255,.82); text-decoration: none;
+}
+.awards-final-cta__ig:hover { color: var(--lovers-yellow); }
+@media (max-width: 600px) {
+  .awards-final-cta__ctas { width: 100%; }
+  .awards-final-cta__ctas .lovers-button { width: 100%; justify-content: center; }
+}
