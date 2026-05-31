@@ -1196,3 +1196,39 @@
   font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
 }
 .participant-showcase-card__soon svg { display: block; }
+
+/* ── Card público: badge + título + texto (premiação "em breve" etc.) ── */
+.lovers-public-card__badge {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 14%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 88%, #000);
+  font-family: var(--font-lovers-body); font-weight: 800;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.lovers-public-card__badge svg { display: block; }
+.lovers-public-card__title {
+  margin: 4px 0 0;
+  font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: clamp(20px, 2vw, 26px); line-height: 1.02; text-transform: uppercase;
+  color: var(--lovers-brown);
+}
+.lovers-public-card__text {
+  margin: 0; font-size: 15px; line-height: 1.55; color: var(--lovers-brown); opacity: .82;
+}
+
+/* ── Fechamento da premiação: linha de CTAs + link Instagram pequeno ── */
+.awards-final-cta__ctas {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 26px;
+}
+.awards-final-cta__ig {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+  font-family: var(--font-lovers-body); font-size: 12px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(255,255,255,.82); text-decoration: none;
+}
+.awards-final-cta__ig:hover { color: var(--lovers-yellow); }
+@media (max-width: 600px) {
+  .awards-final-cta__ctas { width: 100%; }
+  .awards-final-cta__ctas .lovers-button { width: 100%; justify-content: center; }
+}
