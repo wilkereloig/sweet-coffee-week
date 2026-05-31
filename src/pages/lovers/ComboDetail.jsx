@@ -334,6 +334,12 @@ function ComboDetailPageInner({ navigate, slug }) {
                 Confira a unidade participante antes de sair para a rota.
               </p>
             </div>
+            {participant?.takeAwayOnly && (
+              <div className="combo-detail-takeaway-notice lovers-reveal" role="note">
+                <span className="combo-detail-takeaway-notice__tag"><I.cup width={15} height={15} /> Só Take Away</span>
+                <span>Esta loja trabalha apenas com retirada (Take Away) — não há atendimento no local. Passe para retirar seu combo.</span>
+              </div>
+            )}
             <div className="combo-detail-location-grid">
               {locations.map((loc, i) => (
                 <LocationCard key={loc.id || i} loc={loc} participant={participant} accent={accent} />

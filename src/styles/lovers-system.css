@@ -998,6 +998,21 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .combo-detail-gallery__item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (max-width: 640px) { .combo-detail-gallery__grid { grid-template-columns: repeat(2, 1fr); } }
 
+/* Aviso Take Away (loja sem atendimento no local) */
+.combo-detail-takeaway-notice {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  margin: 0 0 18px; padding: 14px 18px; border-radius: 16px;
+  background: color-mix(in srgb, var(--lovers-yellow) 22%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--lovers-yellow) 60%, var(--lovers-brown));
+  color: var(--lovers-brown); font-size: 14.5px; line-height: 1.5;
+}
+.combo-detail-takeaway-notice__tag {
+  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+  padding: 5px 12px; border-radius: 999px; background: var(--lovers-yellow); color: var(--lovers-brown);
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+}
+.combo-detail-takeaway-notice__tag svg { display: block; }
+
 /* Onde encontrar */
 .combo-detail-location-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
 .combo-detail-location-card {
