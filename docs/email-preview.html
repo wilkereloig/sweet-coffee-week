@@ -1,96 +1,18 @@
-// =============================================================================
-// Edge Function: send-vote-email
-// Envia o e-mail de agradecimento após o voto no Sweet Awards.
-// Garante 1 envio por e-mail (dedup na tabela public.vote_emails).
-//
-// Deploy:
-//   supabase functions deploy send-vote-email
-//
-// Secrets necessárias (Dashboard → Edge Functions → send-vote-email → Secrets,
-// ou: supabase secrets set CHAVE=valor):
-//   RESEND_API_KEY   -> chave da API Resend (https://resend.com)
-//   EMAIL_FROM       -> remetente verificado, ex: "Sweet & Coffee Week <ola@sweetcoffeeweek.com.br>"
-// Já disponíveis no ambiente da função (injetadas pelo Supabase):
-//   SUPABASE_URL
-//   SUPABASE_SERVICE_ROLE_KEY
-// =============================================================================
-
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
-
-const emailOk = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
-  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
-
-  let payload: { email?: string; nome?: string }
-  try { payload = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
-
-  const email = (payload.email || '').trim().toLowerCase()
-  const nome = (payload.nome || '').trim()
-  if (!emailOk(email)) return json({ error: 'email_invalido' }, 400)
-
-  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-  const EMAIL_FROM = Deno.env.get('EMAIL_FROM')
-
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
-
-  // Dedup: tenta marcar como enviado. Se já existe, não reenvia.
-  const { error: insErr } = await supabase
-    .from('vote_emails')
-    .insert({ email })
-  if (insErr) {
-    // 23505 = unique_violation → já recebeu e-mail antes. Sucesso silencioso.
-    if ((insErr as { code?: string }).code === '23505') return json({ skipped: 'already_sent' })
-    return json({ error: 'db_error', detail: insErr.message }, 500)
-  }
-
-  // Sem provedor configurado ainda → marca como "pronto" sem enviar.
-  if (!RESEND_API_KEY || !EMAIL_FROM) {
-    return json({ queued: true, note: 'email_provider_nao_configurado' })
-  }
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [email],
-      subject: 'Seu voto foi recebido, Sweet Lover 💛',
-      html: renderEmail(nome),
-    }),
-  })
-
-  if (!res.ok) {
-    // Falhou no envio → libera o e-mail pra nova tentativa futura.
-    await supabase.from('vote_emails').delete().eq('email', email)
-    return json({ error: 'resend_error', detail: await res.text() }, 502)
-  }
-
-  return json({ sent: true })
-})
-
-// ── Template HTML — identidade Sweet & Coffee Week Lovers ────────────────────
-function renderEmail(nome: string): string {
-  const ola = nome ? `Oi, ${nome.split(' ')[0]}!` : 'Oi, Sweet Lover!'
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — E-mail de agradecimento (Sweet Awards)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
 </style>
+<!--
+  PREVIEW do template do e-mail pós-voto.
+  FONTE OFICIAL: supabase/functions/send-vote-email/index.ts (função renderEmail).
+  Este arquivo é só para visualizar no navegador. Se editar aqui, atualize
+  também o index.ts (ou peça para o assistente sincronizar).
+-->
 </head>
 <body style="margin:0;padding:0;background:#F5B800;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5B800;">
@@ -114,7 +36,7 @@ function renderEmail(nome: string): string {
 
         <!-- Corpo -->
         <tr><td style="padding:22px 32px 6px;color:#3F1A0A;font-size:16px;line-height:1.65;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
-          <p style="margin:0 0 15px;font-weight:700;font-size:17px;">${ola}</p>
+          <p style="margin:0 0 15px;font-weight:700;font-size:17px;">Oi, Ana!</p>
           <p style="margin:0 0 15px;">Recebemos sua avaliação no <strong>Sweet Awards</strong>.</p>
           <p style="margin:0 0 15px;">Obrigado por participar do <strong>Sweet &amp; Coffee Week Lovers</strong> e ajudar a escolher os destaques desta edição. Sua opinião faz parte da história do festival.</p>
           <p style="margin:0 0 15px;">Continue aproveitando os combos, visitando os participantes e compartilhando seus momentos com <a href="https://instagram.com/sweetcoffeeweek" style="color:#D63648;font-weight:700;text-decoration:none;">@sweetcoffeeweek</a>.</p>
@@ -142,5 +64,4 @@ function renderEmail(nome: string): string {
     </td></tr>
   </table>
 </body>
-</html>`
-}
+</html>
