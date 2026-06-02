@@ -89,32 +89,27 @@ function renderEmail(nome: string): string {
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@500&display=swap');
 </style>
 </head>
-<body style="margin:0;padding:0;background:#F5B800;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5B800;">
+<body style="margin:0;padding:0;background:#FFF4EC;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF4EC;">
     <tr><td align="center" style="padding:28px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFF1E6;border-radius:28px;overflow:hidden;border:3px solid #870E2D;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFF4EC;border-radius:26px;overflow:hidden;border:3px solid #4F2092;">
 
-        <!-- Cabeçalho amarelo: logo + eyebrow -->
-        <tr><td style="background:#F5B800;padding:32px 28px 22px;text-align:center;">
-          <img src="https://www.sweetcoffeeweek.com.br/images/email-logo-lovers.png" alt="Sweet &amp; Coffee Week Lovers" width="132" height="131" style="display:inline-block;width:132px;height:auto;border:0;" />
-          <div style="margin-top:16px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#870E2D;">Sweet Awards · 16ª edição</div>
+        <!-- Hero roxo: logo + eyebrow + título sofia/Baloo -->
+        <tr><td style="background:#4F2092;padding:34px 30px 32px;text-align:center;">
+          <img src="https://www.sweetcoffeeweek.com.br/images/email-logo-lovers.png" alt="Sweet &amp; Coffee Week Lovers" width="118" height="117" style="display:inline-block;width:118px;height:auto;border:0;" />
+          <div style="margin:16px 0 14px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#F5B800;">Sweet Awards · 16ª edição</div>
+          <h1 style="margin:0;font-family:'Baloo 2','DM Sans',sans-serif;font-weight:800;font-size:38px;line-height:1.02;text-transform:uppercase;color:#FFFFFF;">Seu voto foi recebido</h1>
         </td></tr>
 
         <!-- Divisória rosa -->
         <tr><td style="height:6px;background:#F20567;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-        <!-- Título (fonte display) -->
-        <tr><td style="padding:36px 30px 4px;text-align:center;">
-          <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#870E2D;margin-bottom:10px;">Votação confirmada</div>
-          <h1 style="margin:0;font-family:'Caprasimo','Georgia',serif;font-size:40px;line-height:1.02;text-transform:uppercase;color:#D63648;">Seu voto foi recebido</h1>
-        </td></tr>
-
-        <!-- Corpo -->
-        <tr><td style="padding:22px 32px 6px;color:#3F1A0A;font-size:16px;line-height:1.65;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
-          <p style="margin:0 0 15px;font-weight:700;font-size:17px;">${ola}</p>
+        <!-- Corpo creme -->
+        <tr><td style="padding:30px 32px 6px;color:#3F1A0A;font-size:16px;line-height:1.65;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
+          <p style="margin:0 0 15px;font-family:'Baloo 2','DM Sans',sans-serif;font-weight:700;font-size:20px;color:#870E2D;">${ola}</p>
           <p style="margin:0 0 15px;">Recebemos sua avaliação no <strong>Sweet Awards</strong>.</p>
           <p style="margin:0 0 15px;">Obrigado por participar do <strong>Sweet &amp; Coffee Week Lovers</strong> e ajudar a escolher os destaques desta edição. Sua opinião faz parte da história do festival.</p>
           <p style="margin:0 0 15px;">Continue aproveitando os combos, visitando os participantes e compartilhando seus momentos com <a href="https://instagram.com/sweetcoffeeweek" style="color:#D63648;font-weight:700;text-decoration:none;">@sweetcoffeeweek</a>.</p>
@@ -122,20 +117,20 @@ function renderEmail(nome: string): string {
         </td></tr>
 
         <!-- Botão CTA -->
-        <tr><td style="padding:16px 30px 4px;text-align:center;">
-          <a href="https://www.sweetcoffeeweek.com.br/#/lovers/participantes" style="display:inline-block;font-family:'DM Sans',Helvetica,Arial,sans-serif;background:#D63648;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:15px 30px;border-radius:999px;">Ver os participantes →</a>
+        <tr><td style="padding:16px 30px 6px;text-align:center;">
+          <a href="https://www.sweetcoffeeweek.com.br/#/lovers/participantes" style="display:inline-block;font-family:'Baloo 2','DM Sans',sans-serif;background:#D63648;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:15px 32px;border-radius:999px;">Ver os participantes →</a>
         </td></tr>
 
         <!-- Assinatura -->
         <tr><td style="padding:20px 32px 30px;color:#3F1A0A;font-size:16px;line-height:1.5;font-family:'DM Sans',Helvetica,Arial,sans-serif;">
           <p style="margin:0;">Com carinho,</p>
-          <p style="margin:4px 0 0;font-weight:700;color:#870E2D;">Eline Eulália e equipe Sweet &amp; Coffee Week</p>
+          <p style="margin:4px 0 0;font-family:'Baloo 2','DM Sans',sans-serif;font-weight:700;color:#870E2D;">Eline Eulália e equipe Sweet &amp; Coffee Week</p>
         </td></tr>
 
-        <!-- Rodapé vinho -->
-        <tr><td style="background:#870E2D;padding:20px 28px;text-align:center;">
-          <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#FFF1E6;">@sweetcoffeeweek</div>
-          <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#F5B800;margin-top:5px;">sweetcoffeeweek.com.br</div>
+        <!-- Rodapé roxo -->
+        <tr><td style="background:#4F2092;padding:20px 28px;text-align:center;">
+          <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#FFFFFF;">@sweetcoffeeweek</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#F5B800;margin-top:6px;">sweetcoffeeweek.com.br</div>
         </td></tr>
 
       </table>
