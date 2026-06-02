@@ -235,6 +235,12 @@ function LocationCard({ loc, participant, accent }) {
         </span>
       )}
       {loc.openingHours && <p className="combo-detail-location-card__hours">{loc.openingHours}</p>}
+      {loc.access && (
+        <p className="combo-detail-location-card__access" role="note">
+          <span className="combo-detail-location-card__access-icon" aria-hidden="true"><I.lock width={14} height={14} /></span>
+          {loc.access}
+        </p>
+      )}
       <div className="combo-detail-location-card__actions">
         {loc.id ? (
           <LoversButton variant="secondary" size="small" href={`#/lovers/mapa?loja=${encodeURIComponent(loc.id)}`}>

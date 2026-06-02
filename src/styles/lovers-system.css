@@ -1156,6 +1156,21 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .combo-detail-location-card__where { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--lovers-brown); opacity: .6; }
 .combo-detail-location-card__addr { margin: 0; font-size: 14px; line-height: 1.5; color: var(--lovers-brown); opacity: .85; }
 .combo-detail-location-card__hours { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--lovers-brown); opacity: .7; white-space: pre-line; }
+.combo-detail-location-card__access {
+  display: flex; align-items: center; gap: 9px;
+  margin: 2px 0 0; padding: 9px 13px; border-radius: 12px;
+  background: color-mix(in srgb, var(--lovers-pink) 14%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--lovers-pink) 55%, var(--lovers-brown));
+  color: var(--lovers-brown);
+  font-family: var(--font-lovers-display); font-weight: 700;
+  font-size: 13px; line-height: 1.35; letter-spacing: .01em;
+}
+.combo-detail-location-card__access-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 24px; height: 24px; border-radius: 999px;
+  background: var(--lovers-pink); color: #fff;
+}
+.combo-detail-location-card__access-icon svg { display: block; }
 .combo-detail-location-card__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
 
 /* Final CTA */
