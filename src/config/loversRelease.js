@@ -4,10 +4,10 @@
 //          pública (lançamento sem revelar as criações dos participantes).
 // TRUE   = revela os detalhes do combo.
 //
-// O padrão SEGURO é esconder: sem a env definida, o valor é false.
-// Para revelar, definir VITE_SHOW_LOVERS_COMBO_DETAILS=true no ambiente.
+// Combos LIBERADOS por padrão: sem env, o valor é true (revelado).
+// Para esconder novamente, definir VITE_SHOW_LOVERS_COMBO_DETAILS=false no ambiente.
 export const LOVERS_SHOW_COMBO_DETAILS =
-  import.meta.env.VITE_SHOW_LOVERS_COMBO_DETAILS === 'true'
+  import.meta.env.VITE_SHOW_LOVERS_COMBO_DETAILS !== 'false'
 
 // Atalho semântico: quando os detalhes NÃO estão revelados, a área pública
 // está "travada" (sem env → false → LOCKED true).

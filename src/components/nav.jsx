@@ -19,7 +19,7 @@ const LOVERS_LINKS = [
   { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
 ]
 
-const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
+const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
@@ -118,7 +118,7 @@ function BrandLogo({ isLovers, navigate }) {
       <img
         src="/images/logo-sweet-coffee-week-header.svg"
         alt="Sweet & Coffee Week"
-        height={48}
+        height={96}
         style={{
           display: 'block',
           opacity: isLovers ? 0 : 1,
@@ -130,13 +130,13 @@ function BrandLogo({ isLovers, navigate }) {
       <img
         src="/images/sweet-lovers-logo.svg"
         alt="Sweet & Coffee Week Lovers"
-        height={48}
+        height={96}
         style={{
           display: 'block',
           position: 'absolute',
-          top: 0, left: 0,
+          top: 0, left: '50%',
           opacity: isLovers ? 1 : 0,
-          transform: isLovers ? 'scale(1)' : 'scale(.88)',
+          transform: isLovers ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(.88)',
           transition: 'opacity .4s ease, transform .4s ease',
           pointerEvents: 'none',
         }}

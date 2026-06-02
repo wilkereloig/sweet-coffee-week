@@ -342,6 +342,7 @@ export const PARTICIPANTS = [
     longitude: -35.2153114,
     mapsUrl: "https://maps.google.com/?cid=4959753408182331760",
     openingHours: "Segunda a sábado: 8h às 18h",
+    takeAwayOnly: true,
     theme: "Uma Volta ao Mundo da Doçura",
     edition: "Sweet Trip",
     locations: [

@@ -480,29 +480,47 @@
    Tab bar inferior (estilo app) — só no /lovers/mapa em mobile.
    Header é escondido p/ dar destaque ao mapa em telas pequenas.
    ===================================================================== */
+/* ── Cor de acento por página: hero (.lovers-public-hero) e barra inferior
+   (.lovers-tabbar) compartilham --lovers-hero-bg → sempre a mesma cor.
+   Home (route-home/route-lovers) não define accent → mantém amarelo/burgundy. ── */
+body.route-participantes,
+body.route-combos,
+body.route-combo-detail { --lovers-hero-bg: var(--lovers-pink);   --lovers-hero-ink: #fff; }
+body.route-mapa         { --lovers-hero-bg: var(--lovers-cyan);   --lovers-hero-ink: #04282d; }
+body.route-premiacao,
+body.route-awards       { --lovers-hero-bg: var(--lovers-purple); --lovers-hero-ink: #fff; }
+
+/* altura da tabbar inferior (mobile) — usada p/ folga do conteúdo */
+:root { --tabbar-h: calc(66px + env(safe-area-inset-bottom, 0px)); }
 .lovers-tabbar { display: none; }
+/* esconde a tabbar quando a tela "Minha rota" fullscreen está aberta */
+body.route-overlay-open .lovers-tabbar { display: none !important; }
+/* tabbar some ao rolar (controlado por JS na página do mapa) */
+body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity: 0; pointer-events: none; }
 @media (max-width: 768px) {
   body.route-mapa .site-header { display: none !important; }
-  main.page-enter { padding-bottom: 72px; }
+  main.page-enter { padding-bottom: var(--tabbar-h); }
+  .site-footer { padding-bottom: var(--tabbar-h); }
   .lovers-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
     display: flex; align-items: stretch; justify-content: space-around;
-    background: var(--lovers-burgundy);
+    background: var(--lovers-hero-bg, var(--lovers-burgundy));
     border-top: 1px solid rgba(255, 232, 210, .18);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -8px 24px rgba(43, 24, 16, .28);
+    transition: transform .28s ease, opacity .28s ease;
   }
   .lovers-tabbar__item {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
     padding: 7px 4px; text-decoration: none;
-    color: rgba(255, 232, 210, .68);
+    color: color-mix(in srgb, var(--lovers-hero-ink, #FFE8D2) 66%, transparent);
     font-family: var(--font-lovers-body); font-weight: 800;
     font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
     transition: color .15s ease;
   }
   .lovers-tabbar__item svg { display: block; }
-  .lovers-tabbar__item.is-active { color: var(--lovers-yellow); }
-  .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-yellow); outline-offset: -2px; border-radius: 10px; }
+  .lovers-tabbar__item.is-active { color: var(--lovers-hero-ink, var(--lovers-yellow)); }
+  .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-hero-ink, var(--lovers-yellow)); outline-offset: -2px; border-radius: 10px; }
 }
 
 /* ── Faixa de números slim (inline, divisores) ── */
@@ -691,7 +709,35 @@
 }
 .participants-search input::placeholder { color: var(--lovers-brown); opacity: .5; }
 .participants-search:focus-within { border-color: var(--lovers-pink); }
+.participants-filterbar__counts { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; }
+/* Stats da barra: número em destaque (display) + label pequeno (mono) */
+.participants-stat { display: inline-flex; flex-direction: column; gap: 3px; }
+.participants-stat__num {
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 26px; line-height: 1;
+  color: var(--lovers-burgundy); display: inline-flex; align-items: center; gap: 7px;
+}
+.participants-stat__label {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--lovers-burgundy) 58%, transparent);
+}
+.participants-stat--open .participants-stat__num { color: #1c7a43; }
+.participants-stat--open .participants-stat__label { color: #1c7a43; opacity: .82; }
+.participants-stat__sep { width: 1px; height: 30px; align-self: center; background: rgba(135,14,45,.16); }
+.participants-stat__filtered {
+  align-self: center; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-red);
+}
+@media (max-width: 768px) { .participants-stat__num { font-size: 22px; } .participants-stat__sep { height: 26px; } }
 .participants-filterbar__count { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--lovers-burgundy); white-space: nowrap; }
+.participants-filterbar__count--muted { color: color-mix(in srgb, var(--lovers-burgundy) 55%, transparent); }
+.participants-filterbar__count--open { display: inline-flex; align-items: center; gap: 7px; color: #1c7a43; }
+.participants-filterbar__live-dot {
+  width: 8px; height: 8px; border-radius: 999px; background: #1c7a43; flex-shrink: 0;
+  animation: loversOpenPulse 1.8s ease-in-out infinite;
+}
+.participants-chip--open.is-active { background: #1c7a43; border-color: transparent; color: #fff; }
+.participants-chip--open.is-active .participants-chip__dot { background: #fff; }
+@media (prefers-reduced-motion: reduce) { .participants-filterbar__live-dot { animation: none; } }
 .participants-filterbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid rgba(135,14,45,.14); }
 .participants-chip {
   display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
@@ -707,6 +753,27 @@
 .participants-filterbar__clear { background: none; border: 0; cursor: pointer; font-family: var(--font-lovers-body); font-size: 12px; color: var(--lovers-red); opacity: .8; padding: 4px 6px; }
 .participants-filterbar__clear:hover { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .participants-chip { transition: none; } }
+
+/* Toggle "Filtrar por edição": só mobile. Desktop mostra os chips inline. */
+.participants-filterbar__editions-toggle { display: none; }
+.participants-filterbar__editions { display: contents; }
+@media (max-width: 768px) {
+  .participants-filterbar__editions-toggle {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    padding: 7px 15px; border-radius: 999px;
+    background: #fff; border: 1.5px solid rgba(135,14,45,.2); color: var(--lovers-burgundy);
+    font-family: var(--font-lovers-body); font-weight: 700; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .participants-filterbar__editions-toggle.has-value { background: var(--lovers-burgundy); color: #fff; border-color: transparent; }
+  .participants-filterbar__editions-chevron {
+    width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 5px solid currentColor; transition: transform .2s ease;
+  }
+  .participants-filterbar__editions-toggle.is-open .participants-filterbar__editions-chevron { transform: rotate(180deg); }
+  .participants-filterbar__editions { display: flex; flex-wrap: wrap; gap: 8px; flex-basis: 100%; width: 100%; }
+  .participants-filterbar__editions:not(.is-open) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .participants-filterbar__editions-chevron { transition: none; } }
 
 /* Showcase card */
 .participant-showcase-card {
@@ -725,12 +792,22 @@
 .participant-showcase-card:focus-visible { outline: 3px solid var(--card-accent, var(--lovers-pink)); outline-offset: 3px; }
 
 .participant-showcase-card__media {
-  position: relative; aspect-ratio: 16 / 11; overflow: hidden; color: #fff;
+  position: relative; aspect-ratio: 1081 / 1441; color: #fff;
+  /* sem overflow:hidden: o topo já é arredondado pelo overflow do .article;
+     assim o logo (bottom:-22px) não é cortado. */
   background:
     repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 14px, transparent 14px 28px),
     var(--card-accent, var(--lovers-pink));
 }
 .participant-showcase-card__media > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Loop de fotos do combo no card (todas as fotos, troca 2s, cross-fade) */
+.participant-showcase-card__photo-loop { position: absolute; inset: 0; width: 100%; height: 100%; }
+.participant-showcase-card__photo-loop-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transition: opacity .7s ease;
+}
+.participant-showcase-card__photo-loop-img.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .participant-showcase-card__photo-loop-img { transition: none; } }
 
 .participant-showcase-card__index,
 .participant-showcase-card__stores {
@@ -789,7 +866,7 @@
   box-shadow: 0 12px 28px rgba(43,24,16,.22);
   display: flex; align-items: center; justify-content: center;
 }
-.participant-showcase-card__logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; display: block; }
+.participant-showcase-card__logo img { width: 100%; height: 100%; object-fit: cover; padding: 0; display: block; }
 .participant-showcase-card__logo-initials { font-family: var(--font-lovers-display); font-weight: 800; font-size: 26px; color: var(--card-accent, var(--lovers-pink)); }
 
 .participant-showcase-card__body { display: flex; flex-direction: column; gap: 8px; padding: 34px 22px 20px; flex: 1; }
@@ -813,6 +890,13 @@
 .participant-showcase-card__line span {
   opacity: .85; overflow: hidden; text-overflow: ellipsis;
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+}
+/* "Criação" em destaque — detalhe importante do combo */
+.participant-showcase-card__line--feature { align-items: baseline; }
+.participant-showcase-card__line--feature span {
+  opacity: 1; font-family: var(--font-lovers-display); font-weight: 800;
+  font-size: 16px; line-height: 1.2; color: var(--card-accent, var(--lovers-pink));
+  -webkit-line-clamp: 2;
 }
 .participant-showcase-card__footer {
   margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(135,14,45,.12);
@@ -980,6 +1064,67 @@
 .combo-detail-gallery__item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (max-width: 640px) { .combo-detail-gallery__grid { grid-template-columns: repeat(2, 1fr); } }
 
+/* Status aberto/fechado — chip na página do combo */
+.combo-detail-open {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+  padding: 6px 13px; border-radius: 999px;
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 12.5px; letter-spacing: .02em;
+}
+.combo-detail-open__dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; flex: 0 0 auto; }
+.combo-detail-open--open { background: rgba(34,160,90,.14); color: #1c7a43; }
+.combo-detail-open--closed { background: rgba(135,14,45,.12); color: var(--lovers-red); }
+/* pulso "ao vivo" quando aberto */
+.combo-detail-open--open .combo-detail-open__dot { animation: loversOpenPulse 1.8s ease-in-out infinite; }
+.combo-detail-open--open { animation: loversOpenBadge 2.4s ease-in-out infinite; transform-origin: left center; }
+@media (prefers-reduced-motion: reduce) { .combo-detail-open--open { animation: none; } }
+
+@keyframes loversOpenPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34,160,90,.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(34,160,90,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,160,90,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .combo-detail-open--open .combo-detail-open__dot,
+  .participant-showcase-card__open--open .participant-showcase-card__open-dot { animation: none; }
+}
+
+/* Status aberto/fechado — chip no card de participante */
+.participant-showcase-card__open {
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 999px;
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 11px; letter-spacing: .03em;
+  text-transform: uppercase; backdrop-filter: blur(4px);
+}
+.participant-showcase-card__open-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+.participant-showcase-card__open--open { background: rgba(255,255,255,.92); color: #1c7a43; }
+.participant-showcase-card__open--closed { background: rgba(255,255,255,.92); color: var(--lovers-red); }
+.participant-showcase-card__open--open .participant-showcase-card__open-dot { animation: loversOpenPulse 1.8s ease-in-out infinite; }
+/* chip "Loja aberta": respiro + brilho em loop para chamar atenção */
+.participant-showcase-card__open--open { animation: loversOpenBadge 2.4s ease-in-out infinite; transform-origin: center; }
+@keyframes loversOpenBadge {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,160,90,0); }
+  50%      { transform: scale(1.06); box-shadow: 0 6px 18px rgba(34,160,90,.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .participant-showcase-card__open--open { animation: none; }
+}
+
+/* Aviso Take Away (loja sem atendimento no local) */
+.combo-detail-takeaway-notice {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  margin: 0 0 18px; padding: 14px 18px; border-radius: 16px;
+  background: color-mix(in srgb, var(--lovers-yellow) 22%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--lovers-yellow) 60%, var(--lovers-brown));
+  color: var(--lovers-brown); font-size: 14.5px; line-height: 1.5;
+}
+.combo-detail-takeaway-notice__tag {
+  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+  padding: 5px 12px; border-radius: 999px; background: var(--lovers-yellow); color: var(--lovers-brown);
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+}
+.combo-detail-takeaway-notice__tag svg { display: block; }
+
 /* Onde encontrar */
 .combo-detail-location-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
 .combo-detail-location-card {
@@ -1021,6 +1166,183 @@
   .combo-detail-hero__content { display: flex; flex-direction: column; align-items: center; }
   .combo-detail-hero__badges, .combo-detail-hero__ctas { justify-content: center; }
 }
+
+/* =====================================================================
+   HERO DO COMBO (/lovers/combos/:slug com showCombo=true)
+   Fotos em destaque + info do combo. Mobile: fotos primeiro, info depois.
+   ===================================================================== */
+.combo-detail-hero--combo { background: var(--lovers-burgundy); }
+.combo-detail-hero__grid--combo {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  align-items: center;
+}
+.combo-detail-hero__media--combo { display: block; width: 100%; }
+
+.combo-hero-photos { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.combo-hero-photos__main {
+  position: relative; width: 100%; aspect-ratio: 1081 / 1441; border-radius: 24px; overflow: hidden;
+  background: rgba(255,255,255,.08); box-shadow: 0 22px 60px rgba(43,24,16,.34);
+  border: 3px solid color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 55%, #fff);
+}
+.combo-hero-photos__main-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transition: opacity .8s ease;
+}
+.combo-hero-photos__main-img.is-active { opacity: 1; }
+/* Setas de navegação do hero (param o loop ao clicar) */
+.combo-hero-photos__nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 999px; cursor: pointer; color: var(--lovers-burgundy);
+  background: rgba(255,255,255,.88); box-shadow: 0 6px 18px rgba(43,24,16,.28);
+  transition: background .2s ease, transform .2s ease;
+}
+.combo-hero-photos__nav--prev { left: 12px; }
+.combo-hero-photos__nav--next { right: 12px; }
+@media (hover: hover) { .combo-hero-photos__nav:hover { background: #fff; transform: translateY(-50%) scale(1.06); } }
+.combo-hero-photos__nav:focus-visible { outline: 2px solid var(--lovers-pink); outline-offset: 2px; }
+.combo-hero-photos__count {
+  position: absolute; right: 12px; bottom: 12px; z-index: 3;
+  padding: 4px 10px; border-radius: 999px; background: rgba(43,24,16,.6); color: #fff;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .combo-hero-photos__main-img { transition: none; }
+  .combo-hero-photos__nav { transition: none; }
+}
+.combo-hero-photos--empty { width: 100%; }
+.combo-hero-photos__placeholder {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 32%, var(--lovers-burgundy)), var(--lovers-burgundy));
+  border: 2px dashed rgba(255,232,210,.4); color: rgba(255,232,210,.85);
+  font-family: var(--font-lovers-display); font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; font-size: 15px; text-align: center; padding: 16px;
+}
+.combo-hero-photos__placeholder svg { width: 34px; height: 34px; opacity: .8; }
+
+.combo-detail-hero__by { margin: 8px 0 0; font-family: var(--font-lovers-body); font-weight: 700; font-size: 15px; letter-spacing: .02em; color: rgba(255,232,210,.9); }
+/* Nome do combo + ícone discreto do Instagram ao lado */
+.combo-detail-hero__namerow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.combo-detail-hero__ig {
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,232,210,.4); color: rgba(255,232,210,.9);
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.combo-detail-hero__ig svg { width: 19px; height: 19px; }
+@media (hover: hover) { .combo-detail-hero__ig:hover { background: rgba(255,232,210,.95); color: var(--lovers-burgundy); border-color: transparent; } }
+.combo-detail-hero__ig:focus-visible { outline: 2px solid var(--lovers-pink); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .combo-detail-hero__ig { transition: none; } }
+
+/* Criação em destaque no hero do combo */
+.combo-detail-hero__creation { margin: 16px 0 0; display: inline-flex; flex-direction: column; gap: 4px; }
+.combo-detail-hero__creation-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,232,210,.7); }
+.combo-detail-hero__creation-value { font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(20px, 2.6vw, 28px); line-height: 1.12; color: var(--lovers-yellow); }
+.combo-detail-hero__price { margin: 16px 0 0; font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(24px, 3vw, 36px); color: var(--lovers-yellow); }
+.combo-detail-hero__items { display: grid; gap: 2px; margin: 18px 0 0; width: 100%; max-width: 480px; }
+.combo-detail-hero__item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,232,210,.18); }
+.combo-detail-hero__item:first-child { border-top: 0; }
+.combo-detail-hero__item-k { flex: 0 0 76px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--lovers-yellow); padding-top: 2px; }
+.combo-detail-hero__item-v { color: rgba(255,232,210,.92); font-size: 15px; line-height: 1.5; }
+
+/* Badge "Memória recriada" compacto (linha única) dentro do hero */
+.combo-detail-hero__memoria {
+  display: inline-flex; align-items: center; gap: 8px; margin: 14px 0 0;
+  padding: 7px 14px; border-radius: 999px;
+  background: rgba(255,232,210,.12); border: 1px solid rgba(255,232,210,.34);
+  font-family: var(--font-lovers-body); font-weight: 700; font-size: 12.5px;
+  letter-spacing: .02em; color: var(--lovers-cream);
+}
+.combo-detail-hero__memoria-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--lovers-yellow); flex: 0 0 auto; }
+
+/* ── Itens do combo (cards com foto grande no topo) ── */
+.combo-detail-items {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+}
+.combo-detail-item-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  background: #fff; border-radius: 22px; border: 1.5px solid rgba(135,14,45,.14);
+  box-shadow: 0 14px 36px rgba(43,24,16,.08);
+}
+.combo-detail-item-card__media {
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
+  background: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 10%, #fff);
+}
+.combo-detail-item-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Loop de fotos (2 opções de salgado/bebida): cross-fade entre as imagens. */
+.combo-item-loop { position: relative; width: 100%; height: 100%; }
+.combo-item-loop__img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transition: opacity .8s ease;
+}
+.combo-item-loop__img.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .combo-item-loop__img { transition: none; }
+}
+.combo-detail-item-card__ph {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 70%, #000);
+}
+.combo-detail-item-card__ph svg { width: 30px; height: 30px; opacity: .55; }
+.combo-detail-item-card__k {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 4px;
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 20px; line-height: 1;
+  color: var(--lovers-brown); text-transform: none; letter-spacing: 0;
+}
+.combo-detail-item-card__icon { display: inline-flex; color: var(--cd-accent, var(--lovers-pink)); }
+.combo-detail-item-card__icon svg { width: 22px; height: 22px; }
+/* Contato do estabelecimento (Instagram + WhatsApp) */
+.combo-detail-contact__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.combo-detail-item-card__v { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--lovers-brown); }
+.combo-detail-item-card__v--soon { opacity: .55; font-style: italic; }
+@media (max-width: 768px) {
+  .combo-detail-items { grid-template-columns: 1fr; gap: 14px; }
+}
+
+@media (max-width: 860px) {
+  /* fotos primeiro (media vem antes no DOM); info alinhada à esquerda p/ leitura */
+  .combo-detail-hero__grid--combo { grid-template-columns: 1fr; justify-items: stretch; text-align: left; }
+  .combo-detail-hero--combo .combo-detail-hero__content { align-items: flex-start; width: 100%; }
+  .combo-detail-hero--combo .combo-detail-hero__badges,
+  .combo-detail-hero--combo .combo-detail-hero__ctas { justify-content: flex-start; }
+  .combo-detail-hero__items { max-width: none; }
+
+  /* foto começa no topo: anula o padding-top:150px que limpa o header overlay
+     (styles.css) — só na rota do combo. Header transparente passa por cima da foto. */
+  body.route-combo-detail .kv-lovers > .combo-detail-hero--combo:first-of-type { padding-top: 0; }
+  .combo-detail-hero--combo { padding-top: 0; }
+  /* sombra no topo da foto p/ logo/menu do header ficarem legíveis sobre a imagem */
+  .combo-detail-hero__media--combo { position: relative; }
+  .combo-detail-hero__media--combo::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 120px; z-index: 2;
+    background: linear-gradient(to bottom, rgba(43,12,20,.45), transparent); pointer-events: none;
+  }
+  /* foto preenche a tela: media full-bleed (escapa o padding do wrap) */
+  .combo-detail-hero__media--combo {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+  .combo-detail-hero--combo .combo-detail-hero__sticker { left: 16px; }
+  .combo-hero-photos { gap: 8px; }
+  .combo-hero-photos__main,
+  .combo-hero-photos__placeholder {
+    aspect-ratio: auto; min-height: 62svh; border-radius: 0; border-left: 0; border-right: 0;
+  }
+  .combo-hero-photos__thumbs { padding: 0 16px; }
+}
+@media (max-width: 600px) {
+  .combo-detail-hero--combo .combo-detail-hero__ctas { width: 100%; }
+  .combo-detail-hero--combo .combo-detail-hero__ctas .lovers-button { width: 100%; justify-content: center; }
+}
+/* CTA único (só Instagram): discreto — não estica, opacidade reduzida */
+.combo-detail-hero__ctas--single { width: auto !important; }
+.combo-detail-hero__ctas--single .lovers-button {
+  width: auto !important; opacity: .82;
+  border-color: rgba(255,232,210,.35);
+}
+.combo-detail-hero__ctas--single .lovers-button:hover { opacity: 1; }
 
 /* =====================================================================
    PREMIAÇÃO / AWARDS (/lovers/premiacao + /lovers/awards) — FASE 5
@@ -1190,7 +1512,7 @@
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--lovers-burgundy); opacity: .9;
+  color: inherit; opacity: .82;
 }
 .lovers-public-hero__title {
   max-width: 1100px; margin: 14px auto 0;

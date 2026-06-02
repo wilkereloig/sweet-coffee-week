@@ -44,6 +44,12 @@ export const I = {
       <path d="M9 3v13M15 6v13" stroke="currentColor" strokeWidth="1.4"/>
     </svg>
   ),
+  search: (p = {}) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...p}>
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="m20 20-3.6-3.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
   cal: (p = {}) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...p}>
       <rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" strokeWidth="1.4"/>

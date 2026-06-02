@@ -7,6 +7,7 @@ import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewDa
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers } from '../../components/lovers'
 import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
+import { getOpenStatus, participantHours } from '../../utils/openStatus'
 
 // Preview data is used only when internal pages are enabled for local development.
 const ENABLE_PREVIEW_DATA =
@@ -77,6 +78,21 @@ function igHandle(instagram) {
   return instagram ? instagram.replace('@', '') : null
 }
 
+// Lojas (unidades) de um participante. Sem locations → conta como 1.
+function participantStores(p) {
+  return (p?.locations?.length) || 1
+}
+// Quantas unidades do participante estão abertas agora (por horário de cada loja).
+function openLocationsCount(p) {
+  const locs = p?.locations?.length
+    ? p.locations
+    : (participantHours(p) ? [{ hours: participantHours(p) }] : [])
+  return locs.filter(l => getOpenStatus(l.hours).state === 'open').length
+}
+function isParticipantOpenNow(p) {
+  return openLocationsCount(p) > 0
+}
+
 function CameraIcon() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
@@ -101,12 +117,39 @@ function getInitials(name) {
   return (words[0][0] + words[1][0]).toUpperCase()
 }
 
+// Foto do card em loop: passa por todas as fotos do combo (gallery), trocando
+// a cada 2s com cross-fade. Com 1 foto, fica estática.
+function CardPhotoLoop({ images = [], alt }) {
+  const [idx, setIdx] = React.useState(0)
+  React.useEffect(() => {
+    if (images.length < 2) return
+    const t = setInterval(() => setIdx(i => (i + 1) % images.length), 4000)
+    return () => clearInterval(t)
+  }, [images.length])
+  if (!images.length) return null
+  if (images.length === 1) return <img src={images[0]} alt={alt} loading="lazy" />
+  return (
+    <div className="participant-showcase-card__photo-loop">
+      {images.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={'participant-showcase-card__photo-loop-img' + (i === idx ? ' is-active' : '')}
+        />
+      ))}
+    </div>
+  )
+}
+
 function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass }) {
   const accent = editionColor(participant?.edition)
   const edition = normalizeEdition(participant?.edition) || 'Edição Lovers'
   const theme = participant?.theme || combo.recreatedTheme || 'Tema em breve'
   const handle = igHandle(participant?.instagram)
   const name = participant?.name || combo.name
+  const status = getOpenStatus(participantHours(participant))
   const go = () => navigate(`/lovers/combos/${combo.slug}`)
 
   return (
@@ -123,11 +166,18 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         <span className="participant-showcase-card__index">
           <I.pin width={12} height={12} /> #{num}
         </span>
-        <span className="participant-showcase-card__stores">{storesLabel(participant)}</span>
+        {status.state !== 'unknown' && (
+          <span className={`participant-showcase-card__open participant-showcase-card__open--${status.state}`}>
+            <span className="participant-showcase-card__open-dot" />{status.state === 'open' ? 'Loja aberta' : 'Loja fechada'}
+          </span>
+        )}
 
         {LOVERS_SHOW_COMBO_DETAILS ? (
-          combo.mainImage ? (
-            <img src={combo.mainImage} alt={`Foto do combo de ${name}`} loading="lazy" />
+          (combo.gallery && combo.gallery.length) || combo.mainImage ? (
+            <CardPhotoLoop
+              images={combo.gallery && combo.gallery.length ? combo.gallery : [combo.mainImage]}
+              alt={`Foto do combo de ${name}`}
+            />
           ) : (
             <div className="participant-showcase-card__photo-placeholder">
               <CameraIcon />
@@ -158,7 +208,7 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         <span className="participant-showcase-card__edition">{LOVERS_SHOW_COMBO_DETAILS ? edition : 'Edição Lovers'}</span>
         <h3 className="participant-showcase-card__name">{name}</h3>
         {LOVERS_SHOW_COMBO_DETAILS && (
-          <p className="participant-showcase-card__line"><strong>Criação</strong><span>{theme}</span></p>
+          <p className="participant-showcase-card__line participant-showcase-card__line--feature"><strong>Criação</strong><span>{theme}</span></p>
         )}
         <p className="participant-showcase-card__line"><strong>Local</strong><span>{neighborhoodsSummary(participant)}</span></p>
 
@@ -185,8 +235,20 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
 export function ComboPage({ navigate }) {
   const [search, setSearch] = React.useState('')
   const [filterEdition, setFilterEdition] = React.useState(null)
+  const [onlyOpen, setOnlyOpen] = React.useState(false)
+  const [editionsOpen, setEditionsOpen] = React.useState(false) // mobile: expande chips de edição
+  // Re-renderiza a cada 60s para manter contagem de "abertas agora" atualizada.
+  const [, setTick] = React.useState(0)
+  React.useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 60000)
+    return () => clearInterval(t)
+  }, [])
 
   const isPreviewMode = ENABLE_PREVIEW_DATA && COMBOS.length === 0
+
+  // Totais para a barra: lojas (unidades) e quantas estão abertas neste momento.
+  const totalLojas = participantsData.reduce((n, p) => n + participantStores(p), 0)
+  const openLojas = participantsData.reduce((n, p) => n + openLocationsCount(p), 0)
 
   const getParticipant = (id) => participantsData.find(p => p.id === id)
 
@@ -195,7 +257,7 @@ export function ComboPage({ navigate }) {
     combosData.some(c => normalizeEdition(getParticipant(c.participantId)?.edition) === ed)
   )
 
-  const hasFilters = !!(search || filterEdition)
+  const hasFilters = !!(search || filterEdition || onlyOpen)
 
   const cards = combosData
     .map((combo, idx) => ({ combo, num: idx + 1, participant: getParticipant(combo.participantId) }))
@@ -219,7 +281,8 @@ export function ComboPage({ navigate }) {
       const matchEdition = LOVERS_SHOW_COMBO_DETAILS
         ? (!filterEdition || normalizeEdition(participant?.edition) === filterEdition)
         : true
-      return matchSearch && matchEdition
+      const matchOpen = !onlyOpen || isParticipantOpenNow(participant)
+      return matchSearch && matchEdition && matchOpen
     })
 
   return (
@@ -271,10 +334,26 @@ export function ComboPage({ navigate }) {
               {LOVERS_SHOW_COMBO_DETAILS && (
               <div className="participants-filterbar">
                 <div className="participants-filterbar__top">
-                  <span className="participants-filterbar__count">
-                    {cards.length === combosData.length
-                      ? `${combosData.length} participantes`
-                      : `${cards.length} de ${combosData.length}`}
+                  <span className="participants-filterbar__counts">
+                    <span className="participants-stat">
+                      <span className="participants-stat__num">{combosData.length}</span>
+                      <span className="participants-stat__label">participantes</span>
+                    </span>
+                    <span className="participants-stat__sep" aria-hidden="true" />
+                    <span className="participants-stat">
+                      <span className="participants-stat__num">{totalLojas}</span>
+                      <span className="participants-stat__label">lojas</span>
+                    </span>
+                    <span className="participants-stat__sep" aria-hidden="true" />
+                    <span className="participants-stat participants-stat--open">
+                      <span className="participants-stat__num">
+                        <span className="participants-filterbar__live-dot" aria-hidden="true" />{openLojas}
+                      </span>
+                      <span className="participants-stat__label">{openLojas === 1 ? 'aberta agora' : 'abertas agora'}</span>
+                    </span>
+                    {cards.length !== combosData.length && (
+                      <span className="participants-stat__filtered">{cards.length} no filtro</span>
+                    )}
                   </span>
                 </div>
 
@@ -288,23 +367,45 @@ export function ComboPage({ navigate }) {
                     >
                       Todas
                     </button>
-                    {editionsPresent.map(ed => (
-                      <button
-                        key={ed}
-                        type="button"
-                        className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
-                        aria-pressed={filterEdition === ed}
-                        onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
-                      >
-                        <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
-                        {ed}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      className={'participants-chip participants-chip--open' + (onlyOpen ? ' is-active' : '')}
+                      aria-pressed={onlyOpen}
+                      onClick={() => setOnlyOpen(v => !v)}
+                    >
+                      <span className="participants-chip__dot" style={{ '--chip-dot': '#1c7a43' }} />
+                      Abertas agora
+                    </button>
+                    <button
+                      type="button"
+                      className={'participants-filterbar__editions-toggle' + (editionsOpen ? ' is-open' : '') + (filterEdition ? ' has-value' : '')}
+                      aria-expanded={editionsOpen}
+                      onClick={() => setEditionsOpen(v => !v)}
+                    >
+                      {filterEdition ? (
+                        <><span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[filterEdition] }} />{filterEdition}</>
+                      ) : 'Filtrar por edição'}
+                      <span className="participants-filterbar__editions-chevron" aria-hidden="true" />
+                    </button>
+                    <div className={'participants-filterbar__editions' + (editionsOpen ? ' is-open' : '')}>
+                      {editionsPresent.map(ed => (
+                        <button
+                          key={ed}
+                          type="button"
+                          className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
+                          aria-pressed={filterEdition === ed}
+                          onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
+                        >
+                          <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
+                          {ed}
+                        </button>
+                      ))}
+                    </div>
                     {hasFilters && (
                       <button
                         type="button"
                         className="participants-filterbar__clear"
-                        onClick={() => { setSearch(''); setFilterEdition(null) }}
+                        onClick={() => { setSearch(''); setFilterEdition(null); setOnlyOpen(false) }}
                       >
                         Limpar ×
                       </button>

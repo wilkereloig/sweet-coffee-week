@@ -99,8 +99,9 @@ export default function App() {
   }
 
   React.useEffect(() => {
-    document.body.classList.toggle('route-mapa', route === 'mapa')
-    return () => document.body.classList.remove('route-mapa')
+    const cls = `route-${route}`
+    document.body.classList.add(cls)
+    return () => document.body.classList.remove(cls)
   }, [route])
 
   return (

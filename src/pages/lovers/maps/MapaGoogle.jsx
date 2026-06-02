@@ -216,7 +216,7 @@ function buildPinElement(label, selected) {
 
 // ─── GoogleMap component ─────────────────────────────────────────────────────
 
-function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError }) {
+function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocation, onError, onToggleRoute, getIsInRoute }) {
   const mapRef = useRef(null)
   const instanceRef = useRef(null)
   const markersRef = useRef({})
@@ -304,6 +304,7 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
 
       marker.addListener('gmp-click', () => {
         onSelectLocation?.(loc)
+        const inRoute = getIsInRoute ? getIsInRoute(loc) : false
         infoWindow.setContent(`
           <div style="font-family:sans-serif;max-width:240px;line-height:1.4;">
             <strong style="font-size:14px;">${escapeHtml(loc.participantName)}</strong><br/>
@@ -312,15 +313,25 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
             ${loc.address ? `<small style="color:#888;">${escapeHtml(loc.address)}</small>` : ''}
             ${loc.theme ? `<div style="margin-top:6px;font-size:12px;color:#D63648;font-style:italic;">${escapeHtml(loc.theme)}</div>` : ''}
             ${loc.edition ? `<div style="margin-top:2px;font-size:10px;font-weight:800;color:#D63648;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(loc.edition)}</div>` : ''}
+            <button id="iw-route-btn" type="button" style="margin-top:10px;width:100%;padding:8px 10px;border:0;border-radius:999px;cursor:pointer;font-weight:700;font-size:12px;background:${inRoute ? '#eee' : '#F20567'};color:${inRoute ? '#3a0f1e' : '#fff'};">${inRoute ? '✓ Na minha rota — remover' : '+ Adicionar à minha rota'}</button>
           </div>
         `)
         infoWindow.open({ anchor: marker, map })
+        google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+          const btn = document.getElementById('iw-route-btn')
+          if (btn) btn.onclick = () => { onToggleRoute?.(loc); infoWindow.close() }
+        })
       })
 
       markersRef.current[loc.id] = marker
     })
 
-    if (validLocations.length > 1) {
+    // Deep-link ?loja=<id>: sempre dá zoom fechado no pin escolhido (não enquadra todos).
+    const focusLoc = selectedLocationId && validLocations.find(l => l.id === selectedLocationId)
+    if (focusLoc) {
+      map.panTo({ lat: focusLoc.latitude, lng: focusLoc.longitude })
+      map.setZoom(17)
+    } else if (validLocations.length > 1) {
       const bounds = new google.maps.LatLngBounds()
       validLocations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
       map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
@@ -344,10 +355,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       const loc = locations.find(l => l.id === selectedLocationId)
       if (loc && Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)) {
         instanceRef.current.map.panTo({ lat: loc.latitude, lng: loc.longitude })
-        instanceRef.current.map.setZoom(15)
+        instanceRef.current.map.setZoom(17)
       }
     }
-  }, [selectedLocationId, locations])
+  }, [selectedLocationId, locations, mapReady])
 
   // User location marker
   useEffect(() => {
@@ -404,10 +415,39 @@ function getRouteGoogleMapsUrl(routeLocations, userLocation) {
 
 // ─── MapaGooglePage ──────────────────────────────────────────────────────────
 
+// Lê os ids de parada da rota a partir do hash (#/lovers/mapa?rota=id1,id2,...)
+function readRouteIdsFromHash() {
+  try {
+    const h = window.location.hash || ''
+    const qi = h.indexOf('?')
+    if (qi === -1) return null
+    const rota = new URLSearchParams(h.slice(qi + 1)).get('rota')
+    if (!rota) return null
+    return rota.split(',').map(s => s.trim()).filter(Boolean)
+  } catch { return null }
+}
+
+// Lê o id da loja a focar a partir do hash (#/lovers/mapa?loja=<id>)
+function readLojaFromHash() {
+  try {
+    const h = window.location.hash || ''
+    const qi = h.indexOf('?')
+    if (qi === -1) return null
+    const loja = new URLSearchParams(h.slice(qi + 1)).get('loja')
+    return loja ? loja.trim() : null
+  } catch { return null }
+}
+
+// Monta a URL compartilhável da rota
+function buildRouteShareUrl(ids) {
+  const base = `${window.location.origin}${window.location.pathname}#/lovers/mapa`
+  return ids && ids.length ? `${base}?rota=${ids.join(',')}` : base
+}
+
 export function MapaGooglePage({ navigate }) {
   const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
-  const [selectedLocationId, setSelectedLocationId] = useState(null)
+  const [selectedLocationId, setSelectedLocationId] = useState(() => readLojaFromHash())
   const [search, setSearch] = useState('')
   const [filterBairro, setFilterBairro] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -416,12 +456,50 @@ export function MapaGooglePage({ navigate }) {
   const [distanceFilterKm, setDistanceFilterKm] = useState(null)
   const [mapError, setMapError] = useState(null)
   const [routeLocationIds, setRouteLocationIds] = useState(() => {
+    const fromUrl = readRouteIdsFromHash()
+    if (fromUrl && fromUrl.length) return fromUrl
     try {
       const saved = window.localStorage.getItem('sweet-lovers-route')
       return saved ? JSON.parse(saved) : []
     } catch { return [] }
   })
   const [isRoutePanelOpen, setIsRoutePanelOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [qrDataUrl, setQrDataUrl] = useState('')
+  const storyRef = useRef(null)
+  // espelho dos ids da rota p/ o callback do pin (InfoWindow) ler o estado atual sem recriar marcadores
+  const routeIdsRef = useRef(routeLocationIds)
+  useEffect(() => { routeIdsRef.current = routeLocationIds }, [routeLocationIds])
+  const getIsInRoute = useCallback((loc) => routeIdsRef.current.includes(loc.id), [])
+  // esconde a tabbar inferior enquanto a tela "Minha rota" (fullscreen) está aberta
+  useEffect(() => {
+    document.body.classList.toggle('route-overlay-open', isRoutePanelOpen)
+    return () => document.body.classList.remove('route-overlay-open')
+  }, [isRoutePanelOpen])
+  // barra de ações some ao rolar pra baixo; FAB reexibe
+  const [barVisible, setBarVisible] = useState(true)
+  useEffect(() => {
+    let lastY = window.scrollY || 0
+    const onScroll = () => {
+      const y = window.scrollY || 0
+      if (y > lastY + 8 && y > 90) setBarVisible(false)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  // some sozinha após 2s sem rolar (FAB reexibe e o timer reinicia)
+  useEffect(() => {
+    if (!barVisible) return
+    const t = setTimeout(() => setBarVisible(false), 2000)
+    return () => clearTimeout(t)
+  }, [barVisible])
+  useEffect(() => {
+    document.body.classList.toggle('lovers-tabbar-hidden', !barVisible)
+    return () => document.body.classList.remove('lovers-tabbar-hidden')
+  }, [barVisible])
 
   const mapDebug = isMapDebugEnabled()
 
@@ -655,17 +733,59 @@ export function MapaGooglePage({ navigate }) {
 
   function isInRoute(location) { return routeLocationIds.includes(location.id) }
 
-  function toggleRouteLocation(location) {
+  const toggleRouteLocation = useCallback((location) => {
     setRouteLocationIds(cur =>
       cur.includes(location.id) ? cur.filter(id => id !== location.id) : [...cur, location.id]
     )
-  }
+  }, [])
 
   function removeRouteLocation(locationId) {
     setRouteLocationIds(cur => cur.filter(id => id !== locationId))
   }
 
   function clearRoute() { setRouteLocationIds([]) }
+
+  function copyRouteLink() {
+    const url = buildRouteShareUrl(routeLocationIds)
+    try {
+      navigator.clipboard?.writeText(url)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch { /* clipboard indisponível */ }
+  }
+
+  // Gera imagem 9:16 do card de rota e dispara o compartilhamento nativo (IG Stories) — fallback: download
+  async function shareStory() {
+    if (!routeLocationIds.length || sharing) return
+    setSharing(true)
+    try {
+      const url = buildRouteShareUrl(routeLocationIds)
+      const QR = await import('qrcode')
+      const qr = await QR.toDataURL(url, { margin: 1, width: 240, color: { dark: '#3a0f1e', light: '#ffffff' } })
+      setQrDataUrl(qr)
+      // garante que as webfonts (Typekit/Google) estejam carregadas antes de rasterizar
+      if (document.fonts && document.fonts.ready) { try { await document.fonts.ready } catch {} }
+      // espera o QR pintar antes de capturar
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const { toBlob } = await import('html-to-image')
+      const blob = await toBlob(storyRef.current, { pixelRatio: 1, width: 1080, height: 1920, cacheBust: true, backgroundColor: '#F5B800' })
+      if (!blob) throw new Error('falha ao gerar imagem')
+      const file = new File([blob], 'minha-rota-lovers.png', { type: 'image/png' })
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Minha Rota Lovers', text: 'Minha rota no Sweet & Coffee Week Lovers 💜 sweetcoffeeweek.com.br' })
+      } else {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = 'minha-rota-lovers.png'
+        a.click()
+        URL.revokeObjectURL(a.href)
+      }
+    } catch (e) {
+      console.error('[share story]', e)
+    } finally {
+      setSharing(false)
+    }
+  }
 
   function moveRouteLocation(locationId, direction) {
     setRouteLocationIds(current => {
@@ -683,6 +803,15 @@ export function MapaGooglePage({ navigate }) {
   // ── derived ui state ───────────────────────────────────────────────────────
 
   const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+
+  // Deep-link ?loja=<id>: abre o painel do participante da loja focada (uma vez).
+  const deepLinkedRef = useRef(false)
+  useEffect(() => {
+    if (deepLinkedRef.current) return
+    if (!selectedLocationId || selectedParticipantId) return
+    const loc = allLocations.find(l => l.id === selectedLocationId)
+    if (loc) { setSelectedParticipantId(loc.participantId); deepLinkedRef.current = true }
+  }, [selectedLocationId, selectedParticipantId, allLocations])
   const hasData = true
 
   const selectedLocation = useMemo(() =>
@@ -715,9 +844,51 @@ export function MapaGooglePage({ navigate }) {
             </div>
           ) : (
             <>
-            <header className="mapa-hero">
-              <h1 className="mapa-hero__title">Sua rota começa aqui.</h1>
-            </header>
+            {!barVisible && (
+              <button type="button" className="mapa-tabbar-fab" aria-label="Mostrar menu" onClick={() => setBarVisible(true)}>
+                <I.menu width={20} height={20} />
+              </button>
+            )}
+            <div className="mapa-topbar" role="toolbar" aria-label="Ações do mapa">
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--search" onClick={() => setSearchOpen(true)}>
+                <I.search width={16} height={16} /><span>Buscar</span>
+              </button>
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--route" onClick={() => setIsRoutePanelOpen(true)}>
+                <I.heart width={16} height={16} /><span>Minha rota{routeLocationIds.length ? ` · ${routeLocationIds.length}` : ''}</span>
+              </button>
+              <button type="button" className="mapa-topbar__btn mapa-topbar__btn--near" onClick={requestUserLocation} disabled={locating}>
+                <I.pin width={16} height={16} /><span>{locating ? 'Localizando…' : 'Perto de mim'}</span>
+              </button>
+            </div>
+            {searchOpen && (
+              <div className="mapa-search-modal" role="dialog" aria-modal="true" onClick={() => setSearchOpen(false)}>
+                <div className="mapa-search-modal__panel" onClick={e => e.stopPropagation()}>
+                  <div className="mapa-search-modal__head">
+                    <strong>Buscar e filtrar</strong>
+                    <button type="button" className="mapa-search-modal__close" onClick={() => setSearchOpen(false)} aria-label="Fechar"><I.close width={18} height={18} /></button>
+                  </div>
+                  <input
+                    type="text"
+                    className="mapa-search"
+                    autoFocus
+                    aria-label="Buscar participante, bairro ou endereço"
+                    placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  <div className="mapa-search-modal__filters">
+                    <button onClick={() => setFilterBairro(null)} className="mapa-chip" style={{ background: !filterBairro ? 'var(--lovers-red)' : 'transparent', color: !filterBairro ? '#fff' : 'var(--lovers-red)' }}>
+                      Todos · {participants.length}
+                    </button>
+                    {neighborhoods.map(n => (
+                      <button key={n.name} onClick={() => setFilterBairro(prev => prev === n.name ? null : n.name)} className="mapa-chip" style={{ background: filterBairro === n.name ? 'var(--lovers-red)' : 'transparent', color: filterBairro === n.name ? '#fff' : 'var(--lovers-red)' }}>
+                        {n.name} · {n.count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             {hasMissingCoords && (
               <div className="mono" style={{
                 fontSize: 12, color: 'var(--lovers-brown)', opacity: .7,
@@ -768,6 +939,8 @@ export function MapaGooglePage({ navigate }) {
                     onSelectLocation={handleSelectLocation}
                     userLocation={userLocation}
                     onError={setMapError}
+                    onToggleRoute={toggleRouteLocation}
+                    getIsInRoute={getIsInRoute}
                   />
                 )}
 
@@ -775,125 +948,7 @@ export function MapaGooglePage({ navigate }) {
 
               {/* ── lista lateral ── */}
               <div className="map-sidebar mapa-floating-panel mapa-floating-panel--sidebar">
-                <div className="map-sidebar-sticky">
-
-                {/* busca */}
-                <input
-                  type="text"
-                  className="mapa-search"
-                  aria-label="Buscar participante, bairro ou endereço"
-                  placeholder={LOVERS_SHOW_COMBO_DETAILS ? 'Busque por loja, bairro ou tema' : 'Busque por participante, bairro ou unidade'}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-
-                {/* Filtros por bairro ocultados nesta versão pública do mapa para simplificar
-                   a experiência. A lógica (filterBairro, neighborhoods) permanece preservada. */}
-                {false && (
-                <div className="map-neighborhood-filters" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                  <button
-                    onClick={() => setFilterBairro(null)}
-                    className="mapa-chip"
-                    style={{ background: !filterBairro ? 'var(--lovers-red)' : 'transparent', color: !filterBairro ? '#fff' : 'var(--lovers-red)' }}
-                  >
-                    Todos · {participants.length}
-                  </button>
-                  {neighborhoods.map(n => (
-                    <button
-                      key={n.name}
-                      onClick={() => setFilterBairro(prev => prev === n.name ? null : n.name)}
-                      className="mapa-chip"
-                      style={{ background: filterBairro === n.name ? 'var(--lovers-red)' : 'transparent', color: filterBairro === n.name ? '#fff' : 'var(--lovers-red)' }}
-                    >
-                      {n.name} · {n.count}
-                    </button>
-                  ))}
-                </div>
-                )}
-
-                {/* botão localização */}
-                {!userLocation ? (
-                  <button
-                    onClick={requestUserLocation}
-                    disabled={locating}
-                    className="mapa-chip"
-                    style={{
-                      width: '100%', marginBottom: locationError ? 4 : 10, padding: '8px 12px',
-                      background: 'rgba(255,232,210,.10)', color: 'var(--lovers-cream)',
-                      borderColor: 'rgba(255,232,210,.55)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      opacity: locating ? .6 : 1,
-                      cursor: locating ? 'default' : 'pointer',
-                    }}
-                  >
-                    <I.pin width={16} height={16} />
-                    {locating ? 'Localizando…' : 'Ver participantes perto de mim'}
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
-                    <div className="mapa-chip" style={{ background: 'var(--lovers-cream)', color: 'var(--lovers-purple)', flex: 1, textAlign: 'center', padding: '6px 10px' }}>
-                      <span style={{ fontSize: 12 }}>📍</span> Localização ativa
-                    </div>
-                    <button
-                      onClick={clearUserLocation}
-                      className="mapa-chip"
-                      style={{ background: 'transparent', color: 'var(--lovers-cream)', borderColor: 'rgba(255,232,210,.45)', padding: '6px 10px' }}
-                    >
-                      Limpar
-                    </button>
-                  </div>
-                )}
-
-                {/* erro de localização */}
-                {locationError && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--lovers-yellow)', marginBottom: 8, lineHeight: 1.4 }}>
-                    {locationError}
-                  </div>
-                )}
-
-                {/* filtros de distância — só quando localização ativa */}
-                {userLocation && (
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                    {[null, 2, 5, 10].map(km => (
-                      <button
-                        key={km ?? 'all'}
-                        onClick={() => setDistanceFilterKm(km)}
-                        className="mapa-chip"
-                        style={{
-                          background: distanceFilterKm === km ? 'var(--lovers-cream)' : 'transparent',
-                          color: distanceFilterKm === km ? 'var(--lovers-purple)' : 'var(--lovers-cream)',
-                          borderColor: 'rgba(255,232,210,.45)',
-                        }}
-                      >
-                        {km === null ? 'Todos' : `Até ${km} km`}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* contagem + limpar seleção */}
-                <div className="mono mb-3" style={{ color: 'var(--lovers-cream)', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>
-                    {finalParticipants.length === participants.length
-                      ? `${participants.length} PARTICIPANTES · ${allLocations.length} LOJAS`
-                      : `MOSTRANDO · ${finalParticipants.length} de ${participants.length}`}
-                  </span>
-                  {selectedLocationId && (
-                    <button
-                      type="button"
-                      onClick={() => { setSelectedParticipantId(null); setSelectedLocationId(null) }}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 10, color: 'rgba(255,232,210,.82)', opacity: .9,
-                        fontFamily: 'var(--font-lovers-body)', fontWeight: 700,
-                        padding: '2px 0', letterSpacing: '0.03em',
-                      }}
-                    >
-                      LIMPAR SELEÇÃO ×
-                    </button>
-                  )}
-                </div>
-                </div>{/* /map-sidebar-sticky */}
+                {/* controles (busca/localização/filtros/contagem) movidos para a barra superior — sidebar mostra só os participantes */}
                 <div className="map-sidebar-scroll">
 
                 {/* lista de cards */}
@@ -980,17 +1035,10 @@ export function MapaGooglePage({ navigate }) {
                             </span>
                           </div>
                           <div className="map-card-title-group">
-                            {LOVERS_SHOW_COMBO_DETAILS && p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
                             <h3>{p.name}</h3>
                             {LOVERS_SHOW_COMBO_DETAILS && p.theme && (
                               <div className="map-card-theme"><em>{p.theme}</em></div>
                             )}
-                            <div className="map-card-meta">
-                              {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
-                              {userLocation && Number.isFinite(minDist) && minDist !== Infinity
-                                ? ` · ${formatDistance(minDist)}`
-                                : ''}
-                            </div>
                             {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
@@ -1159,110 +1207,106 @@ export function MapaGooglePage({ navigate }) {
               </div>{/* /map-sidebar */}
             </div>
 
-            {routeLocations.length > 0 && (
-              <button type="button" className="sweet-route-fab" onClick={() => setIsRoutePanelOpen(true)}>
-                MINHA ROTA · {routeLocations.length} {routeLocations.length === 1 ? 'PARADA' : 'PARADAS'}
-              </button>
-            )}
+            {/* FAB removido — "Minha rota" agora vive na barra superior (.mapa-topbar) */}
 
             {isRoutePanelOpen && (
-              <div className="sweet-route-overlay" role="dialog" aria-modal="true" onClick={() => setIsRoutePanelOpen(false)}>
-                <div className="sweet-route-panel" onClick={e => e.stopPropagation()}>
-                  <button type="button" className="sweet-route-close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar rota">×</button>
+              <div className="sweet-route-screen" role="dialog" aria-modal="true">
+                <header className="sweet-route-screen__head">
+                  <button type="button" className="sweet-route-screen__close" onClick={() => setIsRoutePanelOpen(false)} aria-label="Fechar">←</button>
+                  <div className="sweet-route-screen__titles">
+                    <h2>Minha rota</h2>
+                    <span>{routeLocations.length} {routeLocations.length === 1 ? 'parada' : 'paradas'}</span>
+                  </div>
+                  {routeLocations.length > 0 && (
+                    <details className="sweet-route-menu">
+                      <summary aria-label="Mais ações">⋯</summary>
+                      <div className="sweet-route-menu__pop">
+                        <button type="button" onClick={copyRouteLink}>{linkCopied ? 'Link copiado ✓' : 'Copiar link da rota'}</button>
+                        <button type="button" onClick={clearRoute}>Limpar rota</button>
+                      </div>
+                    </details>
+                  )}
+                </header>
 
-                  <div className="sweet-route-share-card">
-                    <div className="sweet-route-top">
-                      <span className="sweet-route-kicker">ROTA DA DOÇURA</span>
-                      <span className="sweet-route-date">4 A 14 DE JUNHO</span>
+                <div className="sweet-route-screen__body">
+                  {routeLocations.length === 0 ? (
+                    <div className="sweet-route-empty">
+                      <strong>Sua rota está vazia</strong>
+                      <p>Toque nos pins do mapa (ou nos cards) para adicionar participantes à sua rota.</p>
                     </div>
-
-                    <h2>MINHA ROTA LOVERS</h2>
-
-                    <p>Estes são os destinos que você escolheu para viver o Sweet &amp; Coffee Week Lovers.</p>
-
-                    <div className="sweet-route-summary">
-                      <strong>{routeLocations.length}</strong>
-                      <span>{routeLocations.length === 1 ? 'PARADA ESCOLHIDA' : 'PARADAS ESCOLHIDAS'}</span>
-                    </div>
-
-                    <ol className="sweet-route-list">
+                  ) : (
+                    <ol className="sweet-route-stops">
                       {routeLocations.map((location, index) => {
-                        const unitLabel = location.locationName || ''
-                        const neighborhoodLabel = location.neighborhood || ''
-                        const cityLabel = location.city || ''
-                        const shouldShowUnit = unitLabel &&
-                          unitLabel.toLowerCase().trim() !== neighborhoodLabel.toLowerCase().trim()
-                        const locationMeta = [neighborhoodLabel, cityLabel].filter(Boolean).join(' · ')
-                        const logoSrc = location.participantLogo || location.logo
+                        const locationMeta = [location.neighborhood, location.city].filter(Boolean).join(' · ')
                         return (
                           <li className="sweet-route-stop" key={location.id}>
-                            <div className="sweet-route-brand">
-                              {logoSrc
-                                ? <img className="sweet-route-brand-image" src={logoSrc} alt={`Logo ${location.participantName}`} />
-                                : <div className="sweet-route-brand-fallback">{(location.participantName || '?').slice(0, 1)}</div>
-                              }
-                              <span className="sweet-route-stop-badge">{index + 1}</span>
-                            </div>
-                            <div className="sweet-route-stop-content">
+                            <span className="sweet-route-stop__num">{index + 1}</span>
+                            <div className="sweet-route-stop__info">
                               <strong>{location.participantName}</strong>
-                              {shouldShowUnit && <span>{unitLabel}</span>}
-                              {locationMeta && <small>{locationMeta}</small>}
-                              {location.address && <small>{location.address}</small>}
-                              <div className="sweet-route-stop-actions">
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action"
-                                  aria-label="Mover parada para cima"
-                                  title="Mover para cima"
-                                  onClick={() => moveRouteLocation(location.id, 'up')}
-                                  disabled={index === 0}
-                                >↑</button>
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action"
-                                  aria-label="Mover parada para baixo"
-                                  title="Mover para baixo"
-                                  onClick={() => moveRouteLocation(location.id, 'down')}
-                                  disabled={index === routeLocations.length - 1}
-                                >↓</button>
-                                <button
-                                  type="button"
-                                  className="sweet-route-icon-action sweet-route-icon-action--danger"
-                                  aria-label="Remover parada"
-                                  title="Remover"
-                                  onClick={() => removeRouteLocation(location.id)}
-                                >×</button>
-                              </div>
+                              {locationMeta && <span>{locationMeta}</span>}
                             </div>
+                            <details className="sweet-route-stop__menu">
+                              <summary aria-label="Ações da parada">⋮</summary>
+                              <div className="sweet-route-stop__pop">
+                                <button type="button" disabled={index === 0} onClick={(e) => { moveRouteLocation(location.id, 'up'); e.currentTarget.closest('details').open = false }}>Subir</button>
+                                <button type="button" disabled={index === routeLocations.length - 1} onClick={(e) => { moveRouteLocation(location.id, 'down'); e.currentTarget.closest('details').open = false }}>Descer</button>
+                                <button type="button" className="is-danger" onClick={(e) => { e.currentTarget.closest('details').open = false; removeRouteLocation(location.id) }}>Remover</button>
+                              </div>
+                            </details>
                           </li>
                         )
                       })}
                     </ol>
+                  )}
+                  {routeLocations.length > 9 && (
+                    <p className="sweet-route-note">O Google Maps usa as primeiras 9 paradas no trajeto.</p>
+                  )}
+                </div>
 
-                    {routeLocations.length > 9 && (
-                      <p className="sweet-route-warning">O Google Maps aceita um número limitado de paradas. O link usará as primeiras 9 paradas.</p>
-                    )}
+                <footer className="sweet-route-screen__foot">
+                  <button type="button" onClick={shareStory} disabled={sharing || !routeLocations.length} className="sweet-route-cta">
+                    {sharing ? 'Gerando imagem…' : 'Compartilhar'}
+                  </button>
+                  {routeMapsUrl && (
+                    <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-cta sweet-route-cta--ghost">
+                      Abrir no Maps
+                    </a>
+                  )}
+                </footer>
+              </div>
+            )}
 
-                    <div className="sweet-route-footer">
-                      <strong>SWEET &amp; COFFEE WEEK LOVERS</strong>
-                      <span>FEITO DE AMOR, RECRIANDO SABORES</span>
-                    </div>
-                  </div>
-
-                  <p className="sweet-route-print-hint">Tire um print, mande para os amigos e combine por onde começar.</p>
-
-                  <div className="sweet-route-actions">
-                    {routeMapsUrl && (
-                      <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-primary">
-                        ABRIR ROTA NO GOOGLE MAPS
-                      </a>
-                    )}
-                    <button type="button" onClick={clearRoute} className="sweet-route-secondary">LIMPAR ROTA</button>
-                    <button type="button" onClick={() => setIsRoutePanelOpen(false)} className="sweet-route-secondary">FECHAR</button>
+            {/* Card 9:16 off-screen para exportar imagem do Stories */}
+            <div className="sweet-story-stage" aria-hidden="true">
+              <div className="sweet-story" ref={storyRef}>
+                <div className="sweet-story__head">
+                  <span className="sweet-story__kicker">SWEET &amp; COFFEE WEEK LOVERS</span>
+                  <h2 className="sweet-story__title">MINHA ROTA<br/>DA DOÇURA</h2>
+                  <span className="sweet-story__date">4 A 14 DE JUNHO · NATAL/RN</span>
+                </div>
+                <ol className="sweet-story__list">
+                  {routeLocations.slice(0, 8).map((loc, i) => {
+                    return (
+                      <li key={loc.id} className="sweet-story__stop">
+                        <span className="sweet-story__num">{i + 1}</span>
+                        <div className="sweet-story__info">
+                          <strong>{loc.participantName}</strong>
+                          <span>{[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</span>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+                {routeLocations.length > 8 && <p className="sweet-story__more">+ {routeLocations.length - 8} paradas na minha rota</p>}
+                <div className="sweet-story__foot">
+                  {qrDataUrl && <img className="sweet-story__qr" src={qrDataUrl} alt="" />}
+                  <div className="sweet-story__cta">
+                    <strong>Monte a sua rota</strong>
+                    <span>sweetcoffeeweek.com.br</span>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 </>
           )}
 
@@ -1284,6 +1328,11 @@ export function MapaGooglePage({ navigate }) {
           }
           /* véu creme translúcido por cima da arte, atrás do conteúdo, p/ leitura */
           .mapa-scene > section { background: rgba(255,241,230,.42) !important; }
+          /* sem faixa creme no rodapé: a arte do mapa preenche até o fim (a folga
+             do tabbar já vem do paddingBottom do <section>) */
+          @media (max-width: 768px) {
+            body.route-mapa main.page-enter { padding-bottom: 0 !important; }
+          }
           /* painéis legíveis sobre o cenário */
           .mapa-scene .map-sidebar-sticky,
           .mapa-scene .map-sidebar-scroll { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -1291,36 +1340,55 @@ export function MapaGooglePage({ navigate }) {
           /* ── pin HTML (AdvancedMarkerElement) ── */
           .lovers-pin {
             position: relative;
-            width: 40px;
-            height: 55px;
+            width: 28px;
+            height: 38px;
             cursor: pointer;
             transition: transform .15s ease;
             transform-origin: bottom center;
+          }
+          /* área de toque acessível (>=44px) mesmo com pin pequeno */
+          .lovers-pin::before {
+            content: ''; position: absolute; left: 50%; top: 45%;
+            width: 44px; height: 44px; transform: translate(-50%,-50%);
           }
           .lovers-pin__svg { width: 100%; height: 100%; display: block; overflow: visible; }
           .lovers-pin__heart-outer { fill: #f10767; }
           .lovers-pin__heart-inner { fill: #7f0018; }
           .lovers-pin__badge {
             position: absolute;
-            right: -9px;
-            bottom: 7px;
-            min-width: 25px;
-            height: 25px;
-            padding: 0 5px;
+            right: -6px;
+            bottom: 5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
             border-radius: 999px;
             background: #F5B800;
             color: #3F1A0A;
             font-family: var(--font-lovers-display);
             font-weight: 700;
-            font-size: 17px;
-            line-height: 25px;
+            font-size: 12px;
+            line-height: 18px;
             text-align: center;
             box-sizing: border-box;
             box-shadow: 0 1px 3px rgba(0,0,0,.25);
           }
-          .lovers-pin--selected { transform: scale(1.25); }
+          .lovers-pin--selected { transform: scale(1.3); z-index: 10; }
           .lovers-pin--selected .lovers-pin__heart-outer { fill: #b80050; }
           .lovers-pin--selected .lovers-pin__heart-inner { fill: #4a000e; }
+          /* halo pulsante (radar) no pin selecionado */
+          .lovers-pin--selected::after {
+            content: ''; position: absolute; left: 50%; top: 40%;
+            width: 24px; height: 24px; transform: translate(-50%,-50%);
+            border-radius: 50%; background: rgba(242,5,103,.45);
+            animation: loversPinHalo 1.8s ease-out infinite; pointer-events: none; z-index: -1;
+          }
+          @keyframes loversPinHalo {
+            0%   { transform: translate(-50%,-50%) scale(.6); opacity: .7; }
+            100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .lovers-pin--selected::after { animation: none; opacity: 0; }
+          }
           /* ── painéis flutuantes desktop (lista esquerda / mapa direita) ──
              Variáveis de espaçamento p/ blocos flutuando sobre o cenário. */
           .mapa-fullscreen {
@@ -1436,8 +1504,12 @@ export function MapaGooglePage({ navigate }) {
               min-height: 0;
               max-height: none;
             }
-            .mapa-fullscreen .mapa-container { min-height: 360px; height: 52svh; max-height: 520px; order: 1; }
-            .mapa-fullscreen .map-sidebar { height: min(680px, 72svh); min-height: 480px; max-height: 720px; order: 2; }
+            .mapa-fullscreen .mapa-container { min-height: 360px; height: 48svh; max-height: 520px; order: 1; }
+            .mapa-fullscreen .map-sidebar { height: auto; min-height: 0; max-height: none; order: 2; }
+            /* mapa fixo no topo (abaixo da barra), lista rola na página */
+            .mapa-fullscreen .mapa-floating-panel--map { position: sticky; top: 56px; z-index: 4; }
+            .mapa-fullscreen .mapa-floating-panel { min-height: 0; }
+            .mapa-floating-panel--sidebar .map-sidebar-scroll { overflow: visible; }
           }
           @media (max-width: 480px) {
             .mapa-fullscreen { --map-panel-radius: 22px; }
@@ -1500,7 +1572,7 @@ export function MapaGooglePage({ navigate }) {
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 0 clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
+            padding: clamp(16px, 2.4vw, 24px) clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px);
             scrollbar-color: rgba(255,232,210,.52) rgba(255,232,210,.14);
             scrollbar-width: thin;
           }
@@ -1524,6 +1596,127 @@ export function MapaGooglePage({ navigate }) {
           /* cor/contraste dos chips vêm dos estilos inline (creme inativo, roxo-sobre-creme ativo);
              aqui só borda padrão p/ chips sem cor inline. */
           .mapa-floating-panel--sidebar .mapa-chip { border-color: rgba(255,232,210,.55); }
+
+          /* ── Barra superior do mapa (ações discretas) ── */
+          .mapa-topbar {
+            position: sticky; top: 0; z-index: 20;
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            padding: 10px 0 12px;
+            transition: transform .28s ease, opacity .28s ease;
+          }
+          .mapa-tabbar-fab {
+            position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 305;
+            display: flex; width: 50px; height: 50px; align-items: center; justify-content: center;
+            border: 0; border-radius: 999px; cursor: pointer;
+            background: var(--lovers-cyan); color: #fff;
+            box-shadow: 0 8px 22px rgba(43,24,16,.34);
+          }
+          .mapa-topbar__btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 999px;
+            background: rgba(255,255,255,.92); color: var(--lovers-brown);
+            border: 1px solid rgba(135,14,45,.18);
+            font-family: var(--font-lovers-body); font-weight: 700;
+            font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(43,24,16,.10);
+            transition: transform .15s, box-shadow .15s, background .15s;
+          }
+          .mapa-topbar__btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(43,24,16,.18); }
+          .mapa-topbar__btn:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+          .mapa-topbar__btn svg { flex-shrink: 0; }
+          .mapa-topbar__btn--search { background: var(--lovers-yellow); color: #3a0f1e; border-color: transparent; }
+          .mapa-topbar__btn--route { background: var(--lovers-pink); color: #fff; border-color: transparent; }
+          .mapa-topbar__btn--near { background: var(--lovers-purple); color: #fff; border-color: transparent; }
+
+          /* ── Modal de busca + filtro ── */
+          .mapa-search-modal {
+            position: fixed; inset: 0; z-index: 400;
+            background: rgba(43,24,16,.45);
+            -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 12vh 16px 16px;
+          }
+          .mapa-search-modal__panel {
+            width: 100%; max-width: 460px;
+            background: var(--lovers-cream); color: var(--lovers-brown);
+            border-radius: 22px; padding: 18px;
+            box-shadow: 0 30px 70px rgba(43,24,16,.4);
+          }
+          .mapa-search-modal__head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+            font-family: var(--font-lovers-display); font-size: 18px; text-transform: uppercase;
+          }
+          .mapa-search-modal__close { background: none; border: 0; cursor: pointer; color: var(--lovers-brown); padding: 4px; line-height: 0; }
+          .mapa-search-modal__panel .mapa-search { width: 100%; }
+          .mapa-search-modal__filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+          .mapa-search-modal__filters .mapa-chip { color: var(--lovers-red); border-color: rgba(214,54,72,.4); }
+
+          /* botão secundário-primário (Abrir no Maps) */
+          .sweet-route-primary--alt { background: var(--lovers-purple); }
+
+          /* ── Card 9:16 do Stories (renderizado off-screen, exportado como imagem) ── */
+          .sweet-story-stage { position: fixed; top: 0; left: -10000px; width: 1080px; height: 1920px; pointer-events: none; z-index: -1; }
+          .sweet-story {
+            width: 1080px; height: 1920px; box-sizing: border-box;
+            padding: 96px 84px; display: flex; flex-direction: column;
+            background: #F5B800;
+            color: #3a0f1e; font-family: var(--font-lovers-body);
+          }
+          .sweet-story__head { text-align: center; }
+          .sweet-story__kicker { font-family: var(--font-mono); font-size: 26px; letter-spacing: .26em; opacity: .7; }
+          .sweet-story__title { font-family: var(--font-lovers-display); font-weight: 900; font-size: 118px; line-height: .9; text-transform: uppercase; margin: 26px 0 18px; }
+          .sweet-story__date { font-family: var(--font-mono); font-size: 26px; letter-spacing: .14em; color: #870e2d; font-weight: 700; }
+          .sweet-story__list { list-style: none; margin: 64px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; flex: 1; justify-content: center; }
+          .sweet-story__stop { display: flex; align-items: center; gap: 28px; background: #fff; border-radius: 28px; padding: 26px 34px; }
+          .sweet-story__num { flex: 0 0 auto; width: 62px; height: 62px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 900; font-size: 38px; }
+          .sweet-story__info { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+          .sweet-story__info strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 44px; line-height: 1.05; text-transform: uppercase; color: #3a0f1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-story__info span { font-family: var(--font-mono); font-size: 24px; opacity: .8; color: #3a0f1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-story__more { text-align: center; font-family: var(--font-mono); font-size: 28px; opacity: .85; margin: 20px 0 0; }
+          .sweet-story__foot { display: flex; align-items: center; gap: 34px; margin-top: 54px; padding-top: 42px; border-top: 2px solid rgba(58,15,30,.22); }
+          .sweet-story__qr { width: 150px; height: 150px; border-radius: 18px; background: #fff; padding: 10px; box-sizing: border-box; }
+          .sweet-story__cta { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+          .sweet-story__cta strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 40px; line-height: 1.1; text-transform: uppercase; }
+          .sweet-story__cta span { font-family: var(--font-mono); font-size: 26px; color: #870e2d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+          /* ── Tela "Minha rota" fullscreen ── */
+          .sweet-route-screen { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; background: #F5B800; color: #3a0f1e; }
+          .sweet-route-screen__head { display: flex; align-items: center; gap: 14px; padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 14px; border-bottom: 1px solid rgba(58,15,30,.16); }
+          .sweet-route-screen__close { width: 42px; height: 42px; border-radius: 999px; border: 0; background: rgba(58,15,30,.10); color: #3a0f1e; font-size: 22px; cursor: pointer; flex: 0 0 auto; }
+          .sweet-route-screen__titles { flex: 1; display: flex; flex-direction: column; }
+          .sweet-route-screen__titles h2 { margin: 0; font-family: var(--font-lovers-display); font-weight: 800; font-size: 26px; text-transform: uppercase; line-height: 1; }
+          .sweet-route-screen__titles span { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; opacity: .7; margin-top: 4px; }
+          .sweet-route-menu { position: relative; flex: 0 0 auto; }
+          .sweet-route-menu summary { list-style: none; width: 42px; height: 42px; border-radius: 999px; background: rgba(58,15,30,.10); color: #3a0f1e; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
+          .sweet-route-menu summary::-webkit-details-marker { display: none; }
+          .sweet-route-menu__pop { position: absolute; right: 0; top: 48px; background: #fff; color: var(--lovers-brown); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.35); display: flex; flex-direction: column; min-width: 210px; overflow: hidden; z-index: 2; }
+          .sweet-route-menu__pop button { background: none; border: 0; text-align: left; padding: 14px 16px; font-size: 14px; cursor: pointer; font-family: var(--font-lovers-body); color: var(--lovers-brown); }
+          .sweet-route-menu__pop button:hover { background: rgba(0,0,0,.05); }
+          .sweet-route-screen__body { flex: 1; overflow-y: auto; padding: 18px; }
+          .sweet-route-empty { text-align: center; margin: 16vh auto 0; max-width: 280px; }
+          .sweet-route-empty strong { display: block; font-family: var(--font-lovers-display); font-size: 26px; text-transform: uppercase; margin-bottom: 10px; }
+          .sweet-route-empty p { font-size: 15px; opacity: .8; line-height: 1.5; }
+          .sweet-route-stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+          .sweet-route-stop { position: relative; display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 18px; padding: 14px 56px 14px 16px; }
+          .sweet-route-stop__num { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 999px; background: #F20567; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; }
+          .sweet-route-stop__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; color: #3a0f1e; }
+          .sweet-route-stop__info strong { font-family: var(--font-lovers-display); font-weight: 700; font-size: 17px; line-height: 1.1; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-route-stop__info span { font-family: var(--font-mono); font-size: 11px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+          .sweet-route-stop__menu { position: absolute; top: 8px; right: 10px; }
+          .sweet-route-stop__menu summary { list-style: none; width: 40px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; color: #3a0f1e; cursor: pointer; }
+          .sweet-route-stop__menu summary::-webkit-details-marker { display: none; }
+          .sweet-route-stop__menu summary:hover { background: rgba(58,15,30,.08); }
+          .sweet-route-stop__pop { position: absolute; right: 0; top: 44px; z-index: 3; background: #fff; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.28); display: flex; flex-direction: column; min-width: 160px; overflow: hidden; }
+          .sweet-route-stop__pop button { background: none; border: 0; text-align: left; padding: 13px 16px; font-size: 14px; font-family: var(--font-lovers-body); color: #3a0f1e; cursor: pointer; }
+          .sweet-route-stop__pop button:hover { background: rgba(0,0,0,.05); }
+          .sweet-route-stop__pop button:disabled { opacity: .35; cursor: default; }
+          .sweet-route-stop__pop button.is-danger { color: #c41024; }
+          .sweet-route-note { text-align: center; font-family: var(--font-mono); font-size: 12px; opacity: .7; margin-top: 16px; }
+          .sweet-route-screen__foot { display: flex; gap: 10px; padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(58,15,30,.16); }
+          .sweet-route-cta { flex: 1; text-align: center; padding: 16px; border-radius: 999px; border: 0; cursor: pointer; font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; text-transform: uppercase; background: #F20567; color: #fff; text-decoration: none; }
+          .sweet-route-cta--ghost { background: transparent; border: 1.5px solid rgba(58,15,30,.45); color: #3a0f1e; }
+          .sweet-route-cta:disabled { opacity: .5; cursor: default; }
           /* filtros por bairro ocultos de verdade (estados/funções preservados no JSX) */
           .map-neighborhood-filters { display: none !important; }
 
@@ -2002,8 +2195,12 @@ export function MapaGooglePage({ navigate }) {
             text-transform: uppercase;
             cursor: pointer;
           }
+          @media (max-width: 768px) {
+            /* sobe o FAB acima da barra inferior fixa (.lovers-tabbar) para não ficar escondido */
+            .sweet-route-fab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+          }
           @media (max-width: 560px) {
-            .sweet-route-fab { left: 16px; right: 16px; bottom: 16px; }
+            .sweet-route-fab { left: 16px; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
             .sweet-route-overlay { padding: 10px; }
             .sweet-route-panel { border-radius: 24px; padding: 10px; }
             .sweet-route-share-card { border-radius: 22px; padding: 22px 16px; }
@@ -2113,10 +2310,11 @@ export function MapaGooglePage({ navigate }) {
             font-family: var(--font-lovers-display);
             font-weight: 700;
             font-size: 14px;
-            line-height: 24px;
-            text-align: center;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-sizing: border-box;
-            border: 2px solid #fff;
             box-shadow: 0 2px 6px rgba(0,0,0,.18);
           }
           .map-card-title-group {
@@ -2149,8 +2347,6 @@ export function MapaGooglePage({ navigate }) {
           }
           .map-card-theme {
             margin-top: 8px;
-            padding-left: 11px;
-            border-left: 3px solid #F5B800;
           }
           .map-card-theme em {
             font-style: italic;
