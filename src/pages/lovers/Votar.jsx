@@ -75,7 +75,6 @@ export function VotarPage({ navigate }) {
   const [notes, setNotes] = React.useState(blankNotes)
   const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
 
-  // O regulamento aparece antes de qualquer preenchimento. Quem já foi lembrado pelo navegador pula só os dados pessoais.
   const needsIdentityStep = !remembered || editingId
   const steps = ['regulamento', ...(needsIdentityStep ? ['voce'] : []), 'avaliacao', 'final']
   const [stepIdx, setStepIdx] = React.useState(0)
@@ -118,17 +117,17 @@ export function VotarPage({ navigate }) {
     }
     const { error } = await supabase.rpc('submit_vote', payload)
     if (error) { setStatus('error'); setErrorMsg('Não foi possível registrar seu voto. Tente novamente.'); return }
-    saveVoter({ ...identity }) // lembra pros próximos votos
+    saveVoter({ ...identity })
     setStatus('done')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function voteAnother() {
-    setParticipante('') // deixa escolher outra loja
+    setParticipante('')
     setNotes(blankNotes())
     setExtra({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
     setStatus('idle')
-    setStepIdx(0) // começa novamente pelo regulamento
+    setStepIdx(0)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -180,7 +179,6 @@ export function VotarPage({ navigate }) {
 
   return (
     <Shell>
-      {/* progresso */}
       <div className="awards-steps lovers-reveal" aria-label={`Etapa ${stepIdx + 1} de ${steps.length}: ${STEP_LABELS[step]}`}>
         {steps.map((s, i) => (
           <span key={s} className={'awards-steps__dot' + (i <= stepIdx ? ' is-done' : '')} />
@@ -194,7 +192,6 @@ export function VotarPage({ navigate }) {
         {STEP_HINTS[step]} {stepIdx >= steps.length - 2 ? 'Falta pouco.' : ''}
       </p>
 
-      {/* quem está votando (quando lembrado) */}
       {remembered && !editingId && (
         <div className="awards-voter-chip lovers-reveal">
           <span><strong>{identity.nome}</strong> · {identity.email}</span>
@@ -202,13 +199,10 @@ export function VotarPage({ navigate }) {
         </div>
       )}
 
-      {/* STEP: regulamento */}
       {step === 'regulamento' && (
         <>
           <div className="awards-reg lovers-reveal">
-            <div className="awards-reg__toggle" aria-expanded="true">
-              Regulamento da votação
-            </div>
+            <div className="awards-reg__toggle" aria-expanded="true">Regulamento da votação</div>
             <p className="awards-form__hint">
               Antes de votar, confira as regras principais. Depois disso, é só preencher seus dados e dar as notas do combo.
             </p>
@@ -222,7 +216,6 @@ export function VotarPage({ navigate }) {
         </>
       )}
 
-      {/* STEP: você (dados) */}
       {step === 'voce' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
@@ -258,7 +251,6 @@ export function VotarPage({ navigate }) {
         </>
       )}
 
-      {/* STEP: avaliação (participante + notas) */}
       {step === 'avaliacao' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
@@ -289,7 +281,6 @@ export function VotarPage({ navigate }) {
         </>
       )}
 
-      {/* STEP: final (opinião opcional + enviar) */}
       {step === 'final' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
@@ -302,7 +293,7 @@ export function VotarPage({ navigate }) {
             <label className="awards-field"><span>O que pode melhorar?</span>
               <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
             <label className="awards-field"><span>Tema pra uma próxima edição?</span>
-              <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema')} placeholder='Se não souber, escreva "não sei informar".' /></label>
+              <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder='Se não souber, escreva "não sei informar".' /></label>
           </fieldset>
           {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
           <p className="awards-form__hint lovers-reveal" style={{ textAlign: 'center', marginTop: 10 }}>
