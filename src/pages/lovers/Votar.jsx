@@ -27,10 +27,6 @@ function readLojaFromHash() {
   const slug = hashParams().get('loja')
   return slug && nameBySlug[slug] ? slug : null
 }
-// Preview: ?preview=1 ignora a trava de abertura da votação (uso interno/QA).
-function readPreviewFromHash() {
-  return hashParams().get('preview') === '1'
-}
 
 function RatingScale({ value, onChange, name }) {
   return (
@@ -52,10 +48,8 @@ export function VotarPage({ navigate }) {
   useLoversReveal()
   const nowD = new Date()
   const closed = nowD > new Date(AWARDS_VOTING.closesAt)
-  const previewMode = readPreviewFromHash()
-  // Trava de abertura: pública bloqueada até opensAt; preview ignora a trava.
-  const notOpen = nowD < new Date(AWARDS_VOTING.opensAt) && !previewMode
-
+  // Liberado por link: o formulário abre para quem acessa a URL. A trava de data
+  // fica só na página Awards (botão público aparece a partir de opensAt).
   const presetLoja = readLojaFromHash()
   const saved = loadVoter()
   const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.genero && saved.follows)
@@ -170,9 +164,6 @@ export function VotarPage({ navigate }) {
   if (closed) {
     return <Shell><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
   }
-  if (notOpen) {
-    return <Shell><p className="awards-results__intro">A votação do Sweet Awards abre dia 04 de junho. Volte a partir dessa data para avaliar os combos que você experimentou.</p></Shell>
-  }
 
   if (status === 'done') {
     return (
@@ -201,11 +192,6 @@ export function VotarPage({ navigate }) {
         {meta.hint && <p className="awards-progress__hint">{meta.hint}</p>}
       </div>
 
-      {previewMode && (
-        <p className="awards-form__hint lovers-reveal" style={{ textAlign: 'center', marginBottom: 18 }}>
-          🔎 Modo preview — a votação ainda não está aberta ao público. Os envios feitos aqui gravam de verdade.
-        </p>
-      )}
 
       {/* quem está votando (quando lembrado) */}
       {remembered && !editingId && (
