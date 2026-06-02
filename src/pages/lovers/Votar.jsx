@@ -121,6 +121,14 @@ export function VotarPage({ navigate }) {
   }
   const meta = STEP_META[step] || {}
   const progressPct = Math.round(((safeStepIdx + 1) / steps.length) * 100)
+  // Cor do preenchimento por etapa (paleta Lovers progressiva).
+  const STEP_COLORS = {
+    regras:    'var(--lovers-pink)',
+    voce:      'var(--lovers-yellow)',
+    avaliacao: 'var(--lovers-red)',
+    final:     'var(--lovers-burgundy)',
+  }
+  const stepColor = STEP_COLORS[step] || 'var(--lovers-red)'
 
   const setId = (k, v) => setIdentity(s => ({ ...s, [k]: v }))
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
@@ -203,7 +211,7 @@ export function VotarPage({ navigate }) {
           <span className="awards-progress__count">Passo {safeStepIdx + 1} de {steps.length}</span>
         </div>
         <div className="awards-progress__track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
-          <div className="awards-progress__fill" style={{ width: progressPct + '%' }} />
+          <div className="awards-progress__fill" style={{ width: progressPct + '%', background: stepColor }} />
         </div>
         {meta.hint && <p className="awards-progress__hint">{meta.hint}</p>}
       </div>

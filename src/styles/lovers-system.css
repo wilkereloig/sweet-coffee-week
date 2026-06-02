@@ -131,6 +131,7 @@
 @media (prefers-reduced-motion: reduce) {
   .lovers-reveal { opacity: 1; transform: none; transition: none; }
   .lovers-float, .lovers-pulse, .lovers-hover-lift { animation: none; }
+  .awards-progress__fill::after { animation: none; }
 }
 
 /* ── Responsividade ── */
@@ -1434,7 +1435,19 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .awards-progress__name { font-family: var(--font-lovers-display); font-weight: 800; font-size: 19px; color: var(--lovers-burgundy); text-transform: uppercase; }
 .awards-progress__count { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--lovers-burgundy) 60%, transparent); white-space: nowrap; }
 .awards-progress__track { height: 8px; border-radius: 999px; background: rgba(135,14,45,.14); overflow: hidden; }
-.awards-progress__fill { height: 100%; border-radius: 999px; background: var(--lovers-red); transition: width .35s cubic-bezier(.4,0,.2,1); }
+.awards-progress__fill {
+  position: relative; overflow: hidden;
+  height: 100%; border-radius: 999px; background: var(--lovers-red);
+  transition: width .4s cubic-bezier(.4,0,.2,1), background .45s ease;
+}
+/* Brilho deslizante (shimmer) percorrendo o preenchimento */
+.awards-progress__fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,.55) 50%, transparent 75%);
+  transform: translateX(-100%);
+  animation: awardsShimmer 1.9s ease-in-out infinite;
+}
+@keyframes awardsShimmer { to { transform: translateX(100%); } }
 .awards-progress__hint { margin: 9px 0 0; font-size: 14.5px; line-height: 1.5; color: color-mix(in srgb, var(--lovers-brown) 78%, transparent); }
 
 /* Texto de aceite antes do envio */
