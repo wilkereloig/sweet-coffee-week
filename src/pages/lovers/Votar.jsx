@@ -44,6 +44,21 @@ function RatingScale({ value, onChange, name }) {
 
 const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
+// Instagram: garante "@" no começo automaticamente (sem o usuário digitar).
+function formatInstagram(v) {
+  const s = (v || '').replace(/@/g, '').replace(/\s/g, '')
+  return s ? '@' + s : ''
+}
+// Telefone BR: formata (DD) XXXXX-XXXX conforme digita (só números entram).
+function formatPhone(v) {
+  const d = (v || '').replace(/\D/g, '').slice(0, 11)
+  if (d.length === 0) return ''
+  if (d.length <= 2) return '(' + d
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
 // Shell em nível de módulo (NÃO definir dentro de VotarPage — senão cada render
 // cria um tipo de componente novo e o React remonta tudo: input perde foco a cada
 // tecla e o reveal reseta. Mantém a árvore estável entre renders).
@@ -250,9 +265,9 @@ export function VotarPage({ navigate }) {
             <label className="awards-field"><span>Nome completo <i>*</i></span>
               <input type="text" value={identity.nome} onChange={e => setId('nome', e.target.value)} /></label>
             <label className="awards-field"><span>Contato telefônico <i>*</i></span>
-              <input type="tel" value={identity.telefone} onChange={e => setId('telefone', e.target.value)} placeholder="WhatsApp/celular" /></label>
+              <input type="tel" inputMode="numeric" value={identity.telefone} onChange={e => setId('telefone', formatPhone(e.target.value))} placeholder="(00) 00000-0000" /></label>
             <label className="awards-field"><span>Instagram <i>*</i></span>
-              <input type="text" value={identity.instagram} onChange={e => setId('instagram', e.target.value)} placeholder="@seuperfil" /></label>
+              <input type="text" value={identity.instagram} onChange={e => setId('instagram', formatInstagram(e.target.value))} placeholder="@seuperfil" /></label>
             <div className="awards-field"><span>Como você se identifica? <i>*</i></span>
               <div className="awards-radios">
                 {GENDER_OPTIONS.map(g => (
