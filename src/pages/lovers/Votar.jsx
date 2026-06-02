@@ -45,7 +45,6 @@ function RatingScale({ value, onChange, name }) {
 const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
 export function VotarPage({ navigate }) {
-  useLoversReveal()
   const nowD = new Date()
   const closed = nowD > new Date(AWARDS_VOTING.closesAt)
   // Liberado por link: o formulário abre para quem acessa a URL. A trava de data
@@ -71,6 +70,9 @@ export function VotarPage({ navigate }) {
   // do range — senão `step` fica undefined, nenhuma etapa renderiza e dá tela branca.
   const safeStepIdx = Math.min(stepIdx, steps.length - 1)
   const step = steps[safeStepIdx]
+  // Re-observa o reveal a cada troca de etapa — senão o conteúdo da nova etapa
+  // monta com opacity:0 e nunca recebe `is-visible` (ficaria "em branco").
+  useLoversReveal('.lovers-reveal, .reveal', step)
   React.useEffect(() => {
     if (stepIdx > steps.length - 1) setStepIdx(steps.length - 1)
   }, [steps.length, stepIdx])

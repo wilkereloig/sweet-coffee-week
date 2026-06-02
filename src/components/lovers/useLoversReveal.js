@@ -7,7 +7,7 @@ import React from 'react'
  *
  * Reaproveita a mesma mecânica do hook antigo de Hub.jsx, mas compartilhável.
  */
-export function useLoversReveal(selector = '.lovers-reveal, .reveal') {
+export function useLoversReveal(selector = '.lovers-reveal, .reveal', dep) {
   React.useEffect(() => {
     if (typeof window === 'undefined') return
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -26,5 +26,5 @@ export function useLoversReveal(selector = '.lovers-reveal, .reveal') {
     }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' })
     els.forEach(el => io.observe(el))
     return () => io.disconnect()
-  }, [selector])
+  }, [selector, dep])
 }
