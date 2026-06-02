@@ -1,5 +1,6 @@
 import React from 'react'
 import { trackPageView } from './lib/analytics'
+import { applyPageMeta } from './lib/pageMeta'
 
 export function useRoute() {
   // Hash-first: preserva TODAS as rotas de QR Codes impressos (#/lovers/...).
@@ -11,8 +12,14 @@ export function useRoute() {
   }
   const [path, setPath] = React.useState(parse)
   React.useEffect(() => {
+    applyPageMeta(parse())
     trackPageView() // page_view da carga inicial (só envia se já houver consentimento)
-    const onChange = () => { setPath(parse()); window.scrollTo({ top: 0 }); trackPageView() }
+    const onChange = () => {
+      const next = parse()
+      setPath(next); window.scrollTo({ top: 0 })
+      applyPageMeta(next) // título correto ANTES do page_view
+      trackPageView()
+    }
     window.addEventListener('hashchange', onChange)
     window.addEventListener('popstate', onChange)
     return () => {

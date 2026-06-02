@@ -54,6 +54,36 @@ Para ranquear por loja (nome do participante):
 |---|---|---|
 | `page_view` | `page_path`, `page_location`, `page_title` | A cada troca de rota (dedupe contra duplicado). |
 | `view_participante` | `slug`, `nome` | Ao abrir a página de um combo/participante. |
+| `click_whatsapp` | `slug`, `nome` | Clique no botão WhatsApp da loja. |
+| `click_instagram` | `slug`, `nome` | Clique no botão Instagram da loja. |
+| `click_mapa` | `slug`, `nome` | Clique em "Abrir no mapa" no card da unidade. |
+
+### Marcar como conversão
+Em **Administrador → Eventos**, ligue a chave *Marcar como conversão* nos
+eventos que representam intenção real (ex.: `click_whatsapp`, `click_mapa`).
+Depois eles aparecem nos relatórios de conversão por participante.
+
+---
+
+## Origem dos QR Codes (de onde vem o tráfego)
+
+O GA4 capta **automaticamente** os parâmetros `utm_*` da URL — não precisa de
+código. Como as rotas dos QR usam hash (`#/...`), os UTMs vão **antes** do `#`,
+na query string, sem alterar a rota impressa:
+
+```
+https://www.sweetcoffeeweek.com.br/?utm_source=cartaz&utm_medium=qrcode&utm_campaign=lovers2026#/lovers/combos/rollab-confeitaria
+```
+
+- `utm_source` = onde está o QR (ex.: `cartaz`, `embalagem`, `vitrine`, `instagram`)
+- `utm_medium` = `qrcode`
+- `utm_campaign` = `lovers2026`
+
+Ver em **Relatórios → Aquisição → Aquisição de tráfego** (dimensão *Origem/Mídia*).
+
+> QR Codes **já impressos** não têm UTM → aparecem como "(direct)". Não há como
+> retroagir. Use UTM só em materiais **novos**. As rotas existentes (sem UTM)
+> continuam funcionando normalmente — nada quebra.
 
 ---
 

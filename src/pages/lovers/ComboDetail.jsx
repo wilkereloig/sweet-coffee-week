@@ -244,11 +244,13 @@ function LocationCard({ loc, participant, accent }) {
       )}
       <div className="combo-detail-location-card__actions">
         {loc.id ? (
-          <LoversButton variant="secondary" size="small" href={`#/lovers/mapa?loja=${encodeURIComponent(loc.id)}`}>
+          <LoversButton variant="secondary" size="small" href={`#/lovers/mapa?loja=${encodeURIComponent(loc.id)}`}
+            onClick={() => trackEvent('click_mapa', { slug: participant?.slug, nome: loc.name || participant?.name })}>
             <I.pin /> Abrir no mapa
           </LoversButton>
         ) : maps && (
-          <LoversButton variant="secondary" size="small" href={maps} target="_blank" rel="noopener noreferrer">
+          <LoversButton variant="secondary" size="small" href={maps} target="_blank" rel="noopener noreferrer"
+            onClick={() => trackEvent('click_mapa', { slug: participant?.slug, nome: loc.name || participant?.name })}>
             <I.pin /> Abrir no mapa
           </LoversButton>
         )}
@@ -456,12 +458,14 @@ function ComboDetailPageInner({ navigate, slug }) {
                 </div>
                 <div className="combo-detail-contact__actions lovers-reveal">
                   {instagram && (
-                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer">
+                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer"
+                      onClick={() => trackEvent('click_instagram', { slug: participant?.slug || resolvedSlug, nome: name })}>
                       <I.ig /> Instagram
                     </LoversButton>
                   )}
                   {whatsappUrl && (
-                    <LoversButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    <LoversButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                      onClick={() => trackEvent('click_whatsapp', { slug: participant?.slug || resolvedSlug, nome: name })}>
                       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z"/></svg>
                       WhatsApp
                     </LoversButton>
