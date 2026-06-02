@@ -5,6 +5,7 @@ import { SiteHeader } from './components/nav'
 import { DevViewportSwitcher } from './DevTools'
 import { I } from './components/icons'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { CookieConsent } from './components/CookieConsent'
 
 // Tab bar inferior estilo app — só no mapa (mobile). Navegação rápida Lovers.
 const LOVERS_TABS = [
@@ -117,6 +118,7 @@ export default function App() {
         <ErrorBoundary key={route}>{page}</ErrorBoundary>
       </main>
       <LoversTabBar route={route} navigate={navigate} />
+      <CookieConsent />
     </DevViewportSwitcher>
   )
 }

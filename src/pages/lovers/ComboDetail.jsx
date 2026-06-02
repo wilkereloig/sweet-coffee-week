@@ -8,6 +8,7 @@ import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
 import { getOpenStatus, participantHours, openSummary } from '../../utils/openStatus'
 import { AWARDS_VOTING } from '../../data/sweetAwards'
+import { trackEvent } from '../../lib/analytics'
 
 const awardsVotingOpen = () => {
   const n = new Date()
@@ -300,6 +301,16 @@ function ComboDetailPageInner({ navigate, slug }) {
     (combo && participantsSource.find(p => p.id === combo.participantId)) ||
     participantsSource.find(p => p.slug === resolvedSlug || p.id === resolvedSlug) ||
     null
+
+  // Analytics: registra visualização do participante (GA4). Hook antes de qualquer
+  // early-return para respeitar as regras de hooks do React.
+  React.useEffect(() => {
+    if (!participant) return
+    trackEvent('view_participante', {
+      slug: participant.slug || resolvedSlug,
+      nome: participant.name,
+    })
+  }, [participant?.id])
 
   // Slug inexistente: estado de erro elegante.
   if (!participant && !combo) {
