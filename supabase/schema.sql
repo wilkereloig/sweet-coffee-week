@@ -63,10 +63,20 @@ create table if not exists public.feedback_geral (
   updated_at timestamptz not null default now()
 );
 
+-- ── Controle de e-mail de agradecimento (1 envio por e-mail) ─────────────────
+-- A Edge Function `send-vote-email` insere aqui (service-role). Se o e-mail já
+-- existir, NÃO reenvia — garante "1 e-mail por pessoa", mesmo votando em vários.
+create table if not exists public.vote_emails (
+  email text primary key,
+  sent_at timestamptz not null default now()
+);
+
 -- ── RLS: nada de acesso direto. Tudo passa pelas funções abaixo. ─────────────
 alter table public.votos          enable row level security;
 alter table public.feedback_geral enable row level security;
 alter table public.awards_config  enable row level security;
+alter table public.vote_emails    enable row level security;
+-- (sem policies = nenhum acesso anônimo; a Edge Function usa service-role)
 -- (sem policies = nenhum acesso anônimo direto de select/insert/update/delete)
 
 -- ── RPC: registrar voto (valida + upsert "último vale") ──────────────────────

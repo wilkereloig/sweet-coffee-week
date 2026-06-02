@@ -1422,6 +1422,19 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .awards-steps__dot { width: 28px; height: 6px; border-radius: 999px; background: rgba(135,14,45,.18); transition: background .2s ease; }
 .awards-steps__dot.is-done { background: var(--lovers-red); }
 .awards-steps__label { margin-left: 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--lovers-burgundy) 65%, transparent); }
+
+/* Barra de progresso do formulário de votação */
+.awards-progress { margin-bottom: 22px; }
+.awards-progress__top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.awards-progress__name { font-family: var(--font-lovers-display); font-weight: 800; font-size: 17px; color: var(--lovers-burgundy); }
+.awards-progress__count { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--lovers-burgundy) 60%, transparent); white-space: nowrap; }
+.awards-progress__track { height: 8px; border-radius: 999px; background: rgba(135,14,45,.14); overflow: hidden; }
+.awards-progress__fill { height: 100%; border-radius: 999px; background: var(--lovers-red); transition: width .35s cubic-bezier(.4,0,.2,1); }
+.awards-progress__hint { margin: 9px 0 0; font-size: 13px; line-height: 1.45; color: color-mix(in srgb, var(--lovers-brown) 78%, transparent); }
+
+/* Texto de aceite antes do envio */
+.awards-consent { margin: 0; padding: 14px 16px; border-radius: 14px; background: color-mix(in srgb, var(--lovers-red) 6%, #fff); border: 1px solid rgba(135,14,45,.14); font-size: 13px; line-height: 1.5; color: var(--lovers-brown); }
+
 .awards-voter-chip {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   margin-bottom: 18px; padding: 12px 16px; border-radius: 14px; background: #fff;
