@@ -305,9 +305,13 @@ export function VotarPage({ navigate }) {
                 </select>
               </label>
             )}
+            <p className="awards-scale-note">
+              Dê uma nota de <strong>5 a 10</strong> em cada critério: <strong>5</strong> é o mais baixo
+              e <strong>10</strong> significa excelente. Quanto maior a nota, melhor a sua avaliação.
+            </p>
             {AWARDS_CATEGORIES.map(c => (
               <div className="awards-rating lovers-reveal" key={c.key}>
-                <div className="awards-rating__head"><strong>{c.label}</strong><span>{c.question} <i>*</i></span></div>
+                <div className="awards-rating__head"><strong>{c.label.replace(/^Melhor\s+/i, '')}</strong><span>{c.question} <i>*</i></span></div>
                 <RatingScale name={c.label} value={notes[c.key]} onChange={v => setNote(c.key, v)} />
               </div>
             ))}

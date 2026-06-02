@@ -1391,6 +1391,13 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .awards-chip-radio input { display: none; }
 
 .awards-rating { padding: 14px; border-radius: 14px; background: var(--lovers-cream); border: 1px solid rgba(135,14,45,.12); }
+.awards-scale-note {
+  margin: 0 0 16px; padding: 12px 16px; border-radius: 14px;
+  background: color-mix(in srgb, var(--lovers-yellow) 22%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--lovers-yellow) 60%, var(--lovers-brown));
+  color: var(--lovers-brown); font-size: 14px; line-height: 1.55;
+}
+.awards-scale-note strong { color: var(--lovers-burgundy); font-weight: 800; }
 .awards-rating__head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
 .awards-rating__head strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 17.5px; color: var(--lovers-burgundy); text-transform: uppercase; }
 .awards-rating__head span { font-size: 14.5px; color: var(--lovers-brown); }
