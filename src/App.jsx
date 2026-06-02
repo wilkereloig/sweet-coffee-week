@@ -4,6 +4,7 @@ import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
 import { DevViewportSwitcher } from './DevTools'
 import { I } from './components/icons'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Tab bar inferior estilo app — só no mapa (mobile). Navegação rápida Lovers.
 const LOVERS_TABS = [
@@ -112,7 +113,9 @@ export default function App() {
   return (
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} path={path} />
-      <main key={route} className={`page-enter${['participantes', 'combos', 'combo-detail'].includes(route) ? ' with-combo-rail' : ''}`}>{page}</main>
+      <main key={route} className={`page-enter${['participantes', 'combos', 'combo-detail'].includes(route) ? ' with-combo-rail' : ''}`}>
+        <ErrorBoundary key={route}>{page}</ErrorBoundary>
+      </main>
       <LoversTabBar route={route} navigate={navigate} />
     </DevViewportSwitcher>
   )

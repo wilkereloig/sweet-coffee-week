@@ -95,8 +95,8 @@ export function VotarPage({ navigate }) {
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
   const setEx = (k, v) => setExtra(s => ({ ...s, [k]: v }))
 
-  const idValid = emailOk(identity.email) && identity.nome.trim() && identity.telefone.trim() &&
-    identity.instagram.trim() && identity.genero && identity.follows
+  const idValid = emailOk(identity.email) && (identity.nome || '').trim() && (identity.telefone || '').trim() &&
+    (identity.instagram || '').trim() && identity.genero && identity.follows
   const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
 
   function goNext() {
