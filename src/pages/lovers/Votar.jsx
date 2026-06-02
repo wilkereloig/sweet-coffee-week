@@ -16,14 +16,16 @@ function loadVoter() {
 function saveVoter(v) {
   try { window.localStorage.setItem(LS_KEY, JSON.stringify(v)) } catch { /* ignore */ }
 }
-function readLojaFromHash() {
+function hashParams() {
   try {
     const h = window.location.hash || ''
     const qi = h.indexOf('?')
-    if (qi === -1) return null
-    const slug = new URLSearchParams(h.slice(qi + 1)).get('loja')
-    return slug && nameBySlug[slug] ? slug : null
-  } catch { return null }
+    return qi === -1 ? new URLSearchParams() : new URLSearchParams(h.slice(qi + 1))
+  } catch { return new URLSearchParams() }
+}
+function readLojaFromHash() {
+  const slug = hashParams().get('loja')
+  return slug && nameBySlug[slug] ? slug : null
 }
 
 function RatingScale({ value, onChange, name }) {
@@ -42,25 +44,12 @@ function RatingScale({ value, onChange, name }) {
 
 const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
-const STEP_LABELS = {
-  regulamento: 'Regras rápidas',
-  voce: 'Seus dados',
-  avaliacao: 'Notas do combo',
-  final: 'Finalizar',
-}
-const STEP_HINTS = {
-  regulamento: 'Leia as regras principais antes de começar. É rápido.',
-  voce: 'Preencha seus dados uma vez. O navegador pode lembrar para os próximos votos.',
-  avaliacao: 'Dê notas de 5 a 10 para o participante que você experimentou.',
-  final: 'As perguntas finais são opcionais. Você já está no fim.',
-}
-
 export function VotarPage({ navigate }) {
   useLoversReveal()
   const nowD = new Date()
   const closed = nowD > new Date(AWARDS_VOTING.closesAt)
-  const notOpen = nowD < new Date(AWARDS_VOTING.opensAt)
-
+  // Liberado por link: o formulário abre para quem acessa a URL. A trava de data
+  // fica só na página Awards (botão público aparece a partir de opensAt).
   const presetLoja = readLojaFromHash()
   const saved = loadVoter()
   const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.genero && saved.follows)
@@ -75,13 +64,21 @@ export function VotarPage({ navigate }) {
   const [notes, setNotes] = React.useState(blankNotes)
   const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
 
-  const needsIdentityStep = !remembered || editingId
-  const steps = ['regulamento', ...(needsIdentityStep ? ['voce'] : []), 'avaliacao', 'final']
+  // Passos: quem não é lembrado vê regras + dados; lembrado pula pra "notas".
+  const steps = remembered ? ['avaliacao', 'final'] : ['regras', 'voce', 'avaliacao', 'final']
   const [stepIdx, setStepIdx] = React.useState(0)
   const step = steps[stepIdx]
   const [status, setStatus] = React.useState('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
-  const progress = Math.round(((stepIdx + 1) / steps.length) * 100)
+
+  const STEP_META = {
+    regras:    { label: 'Regras rápidas', hint: 'É rápido — só uma olhada antes de começar.' },
+    voce:      { label: 'Seus dados',     hint: 'Falta pouco. Usamos só pra validar seu voto.' },
+    avaliacao: { label: 'Notas do combo', hint: 'Toque na nota que melhor representa sua experiência.' },
+    final:     { label: 'Finalizar',      hint: 'Essa parte é opcional — ajuda o Sweet, mas não impede o envio.' },
+  }
+  const meta = STEP_META[step] || {}
+  const progressPct = Math.round(((stepIdx + 1) / steps.length) * 100)
 
   const setId = (k, v) => setIdentity(s => ({ ...s, [k]: v }))
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
@@ -117,17 +114,24 @@ export function VotarPage({ navigate }) {
     }
     const { error } = await supabase.rpc('submit_vote', payload)
     if (error) { setStatus('error'); setErrorMsg('Não foi possível registrar seu voto. Tente novamente.'); return }
-    saveVoter({ ...identity })
+    saveVoter({ ...identity }) // lembra pros próximos votos
+    // E-mail de agradecimento (best-effort, 1x por e-mail — dedup na Edge Function).
+    // Silencioso: se a função não estiver implantada/configurada, não quebra o fluxo.
+    try {
+      await supabase.functions.invoke('send-vote-email', {
+        body: { email: identity.email, nome: identity.nome },
+      })
+    } catch { /* ignore — e-mail é opcional, voto já foi registrado */ }
     setStatus('done')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function voteAnother() {
-    setParticipante('')
+    setParticipante('') // deixa escolher outra loja
     setNotes(blankNotes())
     setExtra({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
     setStatus('idle')
-    setStepIdx(0)
+    setStepIdx(0) // remembered=true agora → começa em "avaliação"
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -157,9 +161,6 @@ export function VotarPage({ navigate }) {
     </div>
   )
 
-  if (notOpen) {
-    return <Shell><p className="awards-results__intro">A votação do Sweet Awards abre dia 04 de junho. Volte a partir dessa data para avaliar os combos que você experimentou.</p></Shell>
-  }
   if (closed) {
     return <Shell><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
   }
@@ -179,19 +180,20 @@ export function VotarPage({ navigate }) {
 
   return (
     <Shell>
-      <div className="awards-steps lovers-reveal" aria-label={`Etapa ${stepIdx + 1} de ${steps.length}: ${STEP_LABELS[step]}`}>
-        {steps.map((s, i) => (
-          <span key={s} className={'awards-steps__dot' + (i <= stepIdx ? ' is-done' : '')} />
-        ))}
-        <span className="awards-steps__label">{STEP_LABELS[step]} · {stepIdx + 1} de {steps.length}</span>
+      {/* progresso */}
+      <div className="awards-progress lovers-reveal">
+        <div className="awards-progress__top">
+          <span className="awards-progress__name">{meta.label}</span>
+          <span className="awards-progress__count">Passo {stepIdx + 1} de {steps.length}</span>
+        </div>
+        <div className="awards-progress__track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
+          <div className="awards-progress__fill" style={{ width: progressPct + '%' }} />
+        </div>
+        {meta.hint && <p className="awards-progress__hint">{meta.hint}</p>}
       </div>
-      <div className="lovers-reveal" aria-hidden="true" style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,.55)', overflow: 'hidden', margin: '10px 0 8px' }}>
-        <span style={{ display: 'block', height: '100%', width: `${progress}%`, borderRadius: 999, background: 'var(--lovers-pink)', transition: 'width .25s ease' }} />
-      </div>
-      <p className="awards-form__hint lovers-reveal" style={{ textAlign: 'center', marginBottom: 18 }}>
-        {STEP_HINTS[step]} {stepIdx >= steps.length - 2 ? 'Falta pouco.' : ''}
-      </p>
 
+
+      {/* quem está votando (quando lembrado) */}
       {remembered && !editingId && (
         <div className="awards-voter-chip lovers-reveal">
           <span><strong>{identity.nome}</strong> · {identity.email}</span>
@@ -199,28 +201,26 @@ export function VotarPage({ navigate }) {
         </div>
       )}
 
-      {step === 'regulamento' && (
+      {/* STEP: regras rápidas */}
+      {step === 'regras' && (
         <>
-          <div className="awards-reg lovers-reveal">
-            <div className="awards-reg__toggle" aria-expanded="true">Regulamento da votação</div>
-            <p className="awards-form__hint">
-              Antes de votar, confira as regras principais. Depois disso, é só preencher seus dados e dar as notas do combo.
-            </p>
-            <ul className="awards-reg__list">
+          <fieldset className="awards-fieldset lovers-reveal">
+            <legend className="awards-legend">Regras rápidas</legend>
+            <ul className="awards-reg__list" style={{ padding: '4px 4px 4px 20px' }}>
               {AWARDS_TEXTS.regulamento.map((r, i) => <li key={i}>{r}</li>)}
             </ul>
-          </div>
+          </fieldset>
           <div className="awards-wizard-nav">
             <LoversButton variant="primary" onClick={goNext}>Começar votação <I.arrow /></LoversButton>
           </div>
         </>
       )}
 
+      {/* STEP: você (dados) */}
       {step === 'voce' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Seus dados</legend>
-            <p className="awards-form__hint">Usamos essas informações apenas para validar sua participação, evitar votos duplicados e entrar em contato em caso de premiação.</p>
             <label className="awards-field"><span>E-mail <i>*</i></span>
               <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" /></label>
             <label className="awards-field"><span>Nome completo <i>*</i></span>
@@ -251,11 +251,11 @@ export function VotarPage({ navigate }) {
         </>
       )}
 
+      {/* STEP: avaliação (participante + notas) */}
       {step === 'avaliacao' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Avaliação do combo</legend>
-            <p className="awards-form__hint">Toque na nota que melhor representa sua experiência. 5 é a menor nota e 10 é a maior.</p>
             {presetLoja ? (
               <div className="awards-preset">Avaliando: <strong>{nameBySlug[participante]}</strong></div>
             ) : (
@@ -274,18 +274,18 @@ export function VotarPage({ navigate }) {
             ))}
           </fieldset>
           <div className="awards-wizard-nav">
-            <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
+            {stepIdx > 0 && <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>}
             <LoversButton variant="primary" disabled={!notesValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
             {!notesValid && <span className="awards-form__hint">Escolha a loja e dê nota em todas as categorias.</span>}
           </div>
         </>
       )}
 
+      {/* STEP: final (opinião opcional + enviar) */}
       {step === 'final' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Quase lá <small>(opcional)</small></legend>
-            <p className="awards-form__hint">Essa parte ajuda a melhorar as próximas edições, mas não impede o envio da sua avaliação.</p>
             <label className="awards-field"><span>Alguma observação sobre o combo ou a experiência?</span>
               <textarea rows={2} value={extra.obs} onChange={e => setEx('obs', e.target.value)} /></label>
             <label className="awards-field"><span>O que você mais gostou na edição?</span>
@@ -296,7 +296,7 @@ export function VotarPage({ navigate }) {
               <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder='Se não souber, escreva "não sei informar".' /></label>
           </fieldset>
           {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
-          <p className="awards-form__hint lovers-reveal" style={{ textAlign: 'center', marginTop: 10 }}>
+          <p className="awards-consent">
             Ao enviar sua avaliação, você confirma que leu o regulamento e autoriza o uso dos dados informados para validação da votação, auditoria e contato em caso de premiação.
           </p>
           <div className="awards-wizard-nav">

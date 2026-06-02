@@ -19,7 +19,7 @@ const LOVERS_LINKS = [
   { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
 ]
 
-const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao']
+const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
@@ -94,7 +94,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
           ) : (
             <a key={l.id}
                href={l.href}
-               className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && route === 'awards') ? ' lovers-active' : ''}`}
+               className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && (route === 'awards' || route === 'votar')) ? ' lovers-active' : ''}`}
                onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
               <span className="sidebar__link-label">{l.label}</span>
               {l.sub && <span className="sidebar__link-sub">{l.sub}</span>}
@@ -231,7 +231,7 @@ function LoversMobileNav({ route, navigate }) {
   const isActive = (id) =>
     route === id ||
     (id === 'participantes' && (route === 'combos' || route === 'combo-detail')) ||
-    (id === 'premiacao' && route === 'awards')
+    (id === 'premiacao' && (route === 'awards' || route === 'votar'))
   return (
     <nav className="lovers-mobile-nav" aria-label="Navegação Sweet & Coffee Week Lovers">
       <a href="#/lovers"
