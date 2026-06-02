@@ -92,10 +92,10 @@ function renderEmail(nome: string): string {
     <tr><td align="center" style="padding:28px 16px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFF1E6;border-radius:28px;overflow:hidden;border:3px solid #870E2D;">
 
-        <!-- Topo amarelo + stickers -->
-        <tr><td style="background:#F5B800;padding:26px 28px 18px;text-align:center;">
-          <div style="font-size:26px;line-height:1;letter-spacing:2px;">☕ 🍩 💛 📸 🏆</div>
-          <div style="margin-top:14px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#870E2D;">Sweet &amp; Coffee Week Lovers</div>
+        <!-- Topo amarelo + stickers + logo -->
+        <tr><td style="background:#F5B800;padding:24px 28px 20px;text-align:center;">
+          <div style="font-size:24px;line-height:1;letter-spacing:2px;margin-bottom:12px;">☕ 🍩 💛 📸 🏆</div>
+          <img src="https://www.sweetcoffeeweek.com.br/images/email-logo-lovers.png" alt="Sweet &amp; Coffee Week Lovers" width="120" height="119" style="display:inline-block;width:120px;height:auto;border:0;" />
         </td></tr>
 
         <!-- Título grande caixa alta -->
@@ -112,6 +112,11 @@ function renderEmail(nome: string): string {
           <p style="margin:0 0 14px;">Obrigado por participar do <strong>Sweet &amp; Coffee Week Lovers</strong> e ajudar a escolher os destaques desta edição. Sua opinião faz parte da história do festival.</p>
           <p style="margin:0 0 14px;">Continue aproveitando os combos, visitando os participantes e compartilhando seus momentos com <a href="https://instagram.com/sweetcoffeeweek" style="color:#D63648;font-weight:700;text-decoration:none;">@sweetcoffeeweek</a>.</p>
           <p style="margin:0 0 14px;">E fica de olho: ainda este ano, uma nova edição do <strong>Sweet &amp; Coffee Week</strong> vem aí. ✨</p>
+        </td></tr>
+
+        <!-- Botão CTA -->
+        <tr><td style="padding:8px 30px 4px;text-align:center;">
+          <a href="https://www.sweetcoffeeweek.com.br/#/lovers/participantes" style="display:inline-block;background:#D63648;color:#ffffff;text-decoration:none;font-weight:800;font-size:15px;padding:14px 28px;border-radius:999px;">Ver os participantes →</a>
         </td></tr>
 
         <!-- Assinatura -->
