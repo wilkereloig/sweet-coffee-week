@@ -63,8 +63,11 @@ export function VotarPage({ navigate }) {
   const [notes, setNotes] = React.useState(blankNotes)
   const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
 
-  // Passos: quem não é lembrado vê regras + dados; lembrado pula pra "notas".
-  const steps = remembered ? ['avaliacao', 'final'] : ['regras', 'voce', 'avaliacao', 'final']
+  // Passos: novo votante vê regras + dados; lembrado pula pra "notas", mas, ao
+  // clicar "Editar", mostra a etapa "Seus dados" pra corrigir os próprios dados.
+  const steps = remembered
+    ? (editingId ? ['voce', 'avaliacao', 'final'] : ['avaliacao', 'final'])
+    : ['regras', 'voce', 'avaliacao', 'final']
   const [stepIdx, setStepIdx] = React.useState(0)
   // Clamp: se `steps` encolher (ex.: usuário vira "lembrado"), impede stepIdx fora
   // do range — senão `step` fica undefined, nenhuma etapa renderiza e dá tela branca.

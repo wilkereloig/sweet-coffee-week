@@ -25,6 +25,12 @@ export function useLoversReveal(selector = '.lovers-reveal, .reveal', dep) {
       })
     }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' })
     els.forEach(el => io.observe(el))
-    return () => io.disconnect()
+    // Safety net: garante visibilidade mesmo se o observer não disparar
+    // (troca de etapa, layouts sem scroll, devices/navegadores específicos).
+    // Sem isso, um `.lovers-reveal` poderia ficar preso em opacity:0 = tela "em branco".
+    const failsafe = window.setTimeout(() => {
+      document.querySelectorAll(selector).forEach(el => el.classList.add('is-visible'))
+    }, 1200)
+    return () => { io.disconnect(); window.clearTimeout(failsafe) }
   }, [selector, dep])
 }
