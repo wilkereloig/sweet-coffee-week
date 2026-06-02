@@ -15,6 +15,34 @@
 </head>
 <body class="stickers-medium">
 <div id="root"></div>
+<script>
+/* Reporter global de erro — captura QUALQUER erro (inclusive antes/fora do React)
+   e mostra na tela em vez de deixar em branco. Diagnostico para devices especificos. */
+(function () {
+  function show(title, detail) {
+    try {
+      var root = document.getElementById('root');
+      if (root && root.children.length > 0 && !root.getAttribute('data-err')) return;
+      if (!root) return;
+      root.setAttribute('data-err', '1');
+      root.innerHTML =
+        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#FFF1E6;font-family:Helvetica,Arial,sans-serif">' +
+        '<div style="max-width:560px;width:100%;background:#fff;border-radius:18px;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,.12);color:#3F1A0A">' +
+        '<h1 style="margin:0 0 8px;font-size:20px;color:#D63648">Erro detectado</h1>' +
+        '<p style="margin:0 0 12px;font-size:14px">Mande um print desta tela.</p>' +
+        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:12px;background:#FBEADC;border-radius:10px;padding:12px;margin:0;max-height:60vh;overflow:auto;color:#6B4A3A">' +
+        String(title) + '\n\n' + String(detail || '') + '</pre></div></div>';
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    show(e.message || 'window.error', (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + ((e.error && e.error.stack) || ''));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason || {};
+    show('unhandledrejection: ' + (r.message || r), (r.stack || ''));
+  });
+})();
+</script>
 <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
