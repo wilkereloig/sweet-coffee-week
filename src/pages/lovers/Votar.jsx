@@ -44,6 +44,37 @@ function RatingScale({ value, onChange, name }) {
 
 const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
+// Shell em nível de módulo (NÃO definir dentro de VotarPage — senão cada render
+// cria um tipo de componente novo e o React remonta tudo: input perde foco a cada
+// tecla e o reveal reseta. Mantém a árvore estável entre renders).
+function Shell({ navigate, closed, children }) {
+  return (
+    <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
+      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
+      <LoversStickers page="premiacao" />
+      <section className="lovers-public-hero">
+        <div className="lovers-decor" aria-hidden="true">
+          <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, left: '4%' }} />
+          <span className="lovers-orb lovers-orb--yellow" style={{ width: 130, height: 130, top: 30, right: '8%' }} />
+        </div>
+        <div className="wrap lovers-safe-wrap lovers-public-hero__inner">
+          <span className="lovers-public-hero__eyebrow">{AWARDS_TEXTS.hero.eyebrow}</span>
+          <h1 className="lovers-public-hero__title">{closed ? AWARDS_TEXTS.closed.title : AWARDS_TEXTS.hero.title}</h1>
+        </div>
+      </section>
+      <section className="section awards-section">
+        <div className="wrap lovers-safe-wrap awards-form-wrap">
+          {children}
+          <div style={{ textAlign: 'center', marginTop: 26 }}>
+            <a href="#/lovers/awards" className="awards-back-link"
+               onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}>← Voltar para o Sweet Awards</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 export function VotarPage({ navigate }) {
   const nowD = new Date()
   const closed = nowD > new Date(AWARDS_VOTING.closesAt)
@@ -146,39 +177,13 @@ export function VotarPage({ navigate }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const Shell = ({ children }) => (
-    <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
-      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
-      <LoversStickers page="premiacao" />
-      <section className="lovers-public-hero">
-        <div className="lovers-decor" aria-hidden="true">
-          <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, left: '4%' }} />
-          <span className="lovers-orb lovers-orb--yellow" style={{ width: 130, height: 130, top: 30, right: '8%' }} />
-        </div>
-        <div className="wrap lovers-safe-wrap lovers-public-hero__inner">
-          <span className="lovers-public-hero__eyebrow">{AWARDS_TEXTS.hero.eyebrow}</span>
-          <h1 className="lovers-public-hero__title">{closed ? AWARDS_TEXTS.closed.title : AWARDS_TEXTS.hero.title}</h1>
-        </div>
-      </section>
-      <section className="section awards-section">
-        <div className="wrap lovers-safe-wrap awards-form-wrap">
-          {children}
-          <div style={{ textAlign: 'center', marginTop: 26 }}>
-            <a href="#/lovers/awards" className="awards-back-link"
-               onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}>← Voltar para o Sweet Awards</a>
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-
   if (closed) {
-    return <Shell><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
+    return <Shell navigate={navigate} closed={closed}><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
   }
 
   if (status === 'done') {
     return (
-      <Shell>
+      <Shell navigate={navigate} closed={closed}>
         <div className="awards-success lovers-reveal">
           <span className="awards-success__check" aria-hidden="true"><I.heart width={26} height={26} /></span>
           <h2 className="awards-success__title">{AWARDS_TEXTS.success.title}</h2>
@@ -190,7 +195,7 @@ export function VotarPage({ navigate }) {
   }
 
   return (
-    <Shell>
+    <Shell navigate={navigate} closed={closed}>
       {/* progresso */}
       <div className="awards-progress lovers-reveal">
         <div className="awards-progress__top">
