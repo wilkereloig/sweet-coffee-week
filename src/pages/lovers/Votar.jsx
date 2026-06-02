@@ -67,7 +67,13 @@ export function VotarPage({ navigate }) {
   // Passos: quem não é lembrado vê regras + dados; lembrado pula pra "notas".
   const steps = remembered ? ['avaliacao', 'final'] : ['regras', 'voce', 'avaliacao', 'final']
   const [stepIdx, setStepIdx] = React.useState(0)
-  const step = steps[stepIdx]
+  // Clamp: se `steps` encolher (ex.: usuário vira "lembrado"), impede stepIdx fora
+  // do range — senão `step` fica undefined, nenhuma etapa renderiza e dá tela branca.
+  const safeStepIdx = Math.min(stepIdx, steps.length - 1)
+  const step = steps[safeStepIdx]
+  React.useEffect(() => {
+    if (stepIdx > steps.length - 1) setStepIdx(steps.length - 1)
+  }, [steps.length, stepIdx])
   const [status, setStatus] = React.useState('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
 
@@ -78,7 +84,7 @@ export function VotarPage({ navigate }) {
     final:     { label: 'Finalizar',      hint: 'Essa parte é opcional — ajuda o Sweet, mas não impede o envio.' },
   }
   const meta = STEP_META[step] || {}
-  const progressPct = Math.round(((stepIdx + 1) / steps.length) * 100)
+  const progressPct = Math.round(((safeStepIdx + 1) / steps.length) * 100)
 
   const setId = (k, v) => setIdentity(s => ({ ...s, [k]: v }))
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
@@ -184,7 +190,7 @@ export function VotarPage({ navigate }) {
       <div className="awards-progress lovers-reveal">
         <div className="awards-progress__top">
           <span className="awards-progress__name">{meta.label}</span>
-          <span className="awards-progress__count">Passo {stepIdx + 1} de {steps.length}</span>
+          <span className="awards-progress__count">Passo {safeStepIdx + 1} de {steps.length}</span>
         </div>
         <div className="awards-progress__track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
           <div className="awards-progress__fill" style={{ width: progressPct + '%' }} />
@@ -274,7 +280,7 @@ export function VotarPage({ navigate }) {
             ))}
           </fieldset>
           <div className="awards-wizard-nav">
-            {stepIdx > 0 && <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>}
+            {safeStepIdx > 0 && <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>}
             <LoversButton variant="primary" disabled={!notesValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
             {!notesValid && <span className="awards-form__hint">Escolha a loja e dê nota em todas as categorias.</span>}
           </div>
