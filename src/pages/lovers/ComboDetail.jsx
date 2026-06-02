@@ -12,15 +12,26 @@ import { getOpenStatus, participantHours } from '../../utils/openStatus'
 const ENABLE_PREVIEW_DATA =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
 
+const participantsSource =
+  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
+
+// Sem combos oficiais (COMBOS vazio): deriva um combo por participante real e
+// anexa as fotos de COMBO_PHOTOS (slug do combo = slug do participante).
+const combosFromParticipants = participantsSource.map(p => ({
+  id: p.id,
+  participantId: p.id,
+  slug: p.slug,
+  name: p.name,
+  recreatedTheme: p.theme || '',
+  ...(COMBO_PHOTOS[p.slug] || {}),
+}))
+
 const combosSource =
   COMBOS.length > 0
     ? COMBOS.map(combo => ({ ...combo, ...(COMBO_PHOTOS[combo.slug] || {}) }))
     : ENABLE_PREVIEW_DATA
       ? PREVIEW_COMBOS
-      : []
-
-const participantsSource =
-  PARTICIPANTS.length > 0 ? PARTICIPANTS : ENABLE_PREVIEW_DATA ? PREVIEW_PARTICIPANTS : []
+      : combosFromParticipants
 
 // ATENÇÃO: estes slugs/aliases preservam QR Codes já impressos.
 // Não alterar sem validar materiais físicos.
@@ -85,13 +96,65 @@ function directionsUrl(loc, participant) {
   return mapsSearchUrl(loc, participant)
 }
 
+// Ícones por tipo de item do combo (doce, salgado, bebida).
+const svgProps = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+const ITEM_ICONS = {
+  Doce: (
+    <svg {...svgProps}><path d="M6 11h12l-1.2 8.4a1 1 0 0 1-1 .6H8.2a1 1 0 0 1-1-.6L6 11z" /><path d="M5 11a7 5 0 0 1 14 0" /><path d="M12 4v3" /></svg>
+  ),
+  Salgado: (
+    <svg {...svgProps}><path d="M4 10a8 4 0 0 1 16 0H4z" /><path d="M4 13.5h16" /><path d="M5 16.5h14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" /></svg>
+  ),
+  Bebida: (
+    <svg {...svgProps}><path d="M7 5h10l-1.2 14.2a1 1 0 0 1-1 .8H9.2a1 1 0 0 1-1-.8L7 5z" /><path d="M8 9h8" /><path d="M13 2l-2 3" /></svg>
+  ),
+}
+
+// Foto do item do combo. Com 2+ fotos (ex.: 2 opções de salgado/bebida),
+// alterna entre elas em loop com cross-fade. Com 1 foto, fica estática.
+function LoopingImage({ images = [], alt }) {
+  const [idx, setIdx] = React.useState(0)
+  React.useEffect(() => {
+    if (images.length < 2) return
+    const t = setInterval(() => setIdx(i => (i + 1) % images.length), 2600)
+    return () => clearInterval(t)
+  }, [images.length])
+  if (!images.length) return null
+  if (images.length === 1) {
+    return <img src={images[0]} alt={alt} loading="lazy" />
+  }
+  return (
+    <div className="combo-item-loop">
+      {images.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={'combo-item-loop__img' + (i === idx ? ' is-active' : '')}
+        />
+      ))}
+    </div>
+  )
+}
+
 // Fotos do combo em destaque: imagem principal grande + miniaturas complementares.
 // Sem foto → placeholder elegante (nunca quebra o layout). Só é renderizado
 // dentro do ramo showCombo=true, então nunca expõe foto no estado bloqueado.
 function ComboHeroPhotos({ photos = [], label }) {
-  const main = photos[0]
-  const rest = photos.slice(1, 5)
-  if (!main) {
+  const [idx, setIdx] = React.useState(0)
+  const [paused, setPaused] = React.useState(false)
+  React.useEffect(() => {
+    if (paused || photos.length < 2) return
+    const t = setInterval(() => setIdx(i => (i + 1) % photos.length), 4000)
+    return () => clearInterval(t)
+  }, [photos.length, paused])
+  // Clicar numa seta navega e PARA o loop automático.
+  const goTo = (delta) => {
+    setPaused(true)
+    setIdx(i => (i + delta + photos.length) % photos.length)
+  }
+  if (!photos.length) {
     return (
       <div className="combo-hero-photos combo-hero-photos--empty">
         <div className="combo-hero-photos__placeholder">
@@ -101,20 +164,41 @@ function ComboHeroPhotos({ photos = [], label }) {
       </div>
     )
   }
+  const safeIdx = idx % photos.length
   return (
     <div className="combo-hero-photos">
       <div className="combo-hero-photos__main">
-        <img src={main} alt={`${label} — foto 1`} loading="eager" />
+        {photos.map((photo, i) => (
+          <img
+            key={photo}
+            src={photo}
+            alt={`${label} — foto ${i + 1}`}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            className={'combo-hero-photos__main-img' + (i === safeIdx ? ' is-active' : '')}
+          />
+        ))}
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              className="combo-hero-photos__nav combo-hero-photos__nav--prev"
+              onClick={() => goTo(-1)}
+              aria-label="Foto anterior"
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
+            </button>
+            <button
+              type="button"
+              className="combo-hero-photos__nav combo-hero-photos__nav--next"
+              onClick={() => goTo(1)}
+              aria-label="Próxima foto"
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+            </button>
+            <span className="combo-hero-photos__count" aria-hidden="true">{safeIdx + 1}/{photos.length}</span>
+          </>
+        )}
       </div>
-      {rest.length > 0 && (
-        <div className="combo-hero-photos__thumbs">
-          {rest.map((photo, index) => (
-            <div className="combo-hero-photos__thumb" key={photo}>
-              <img src={photo} alt={`${label} — foto ${index + 2}`} loading="lazy" />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -139,14 +223,13 @@ function LocationCard({ loc, participant, accent }) {
       {loc.address && <p className="combo-detail-location-card__addr">{loc.address}</p>}
       {loc.openingHours && <p className="combo-detail-location-card__hours">{loc.openingHours}</p>}
       <div className="combo-detail-location-card__actions">
-        {maps && (
-          <LoversButton variant="secondary" size="small" href={maps} target="_blank" rel="noopener noreferrer">
+        {loc.id ? (
+          <LoversButton variant="secondary" size="small" href={`#/lovers/mapa?loja=${encodeURIComponent(loc.id)}`}>
             <I.pin /> Abrir no mapa
           </LoversButton>
-        )}
-        {dir && (
-          <LoversButton variant="primary" size="small" href={dir} target="_blank" rel="noopener noreferrer">
-            <I.route /> Traçar rota
+        ) : maps && (
+          <LoversButton variant="secondary" size="small" href={maps} target="_blank" rel="noopener noreferrer">
+            <I.pin /> Abrir no mapa
           </LoversButton>
         )}
       </div>
@@ -225,16 +308,19 @@ function ComboDetailPageInner({ navigate, slug }) {
   const name = participant?.name || combo?.name || 'Participante'
   const theme = participant?.theme || combo?.recreatedTheme || null
   const instagram = instagramUrl(participant?.instagram)
-  // Fotos ainda NÃO reveladas: só usa gallery vinda do próprio combo (vazia por ora).
-  // Não puxar de COMBO_PHOTOS até liberarmos as fotos. Sem foto → placeholder.
+  const whatsappUrl = participant?.whatsapp
+    ? `https://wa.me/${String(participant.whatsapp).replace(/\D/g, '')}`
+    : null
+  // Fotos liberadas: gallery vem do combo (COMBO_PHOTOS por slug). Sem foto → placeholder.
   const gallery = combo?.gallery || []
 
+  const asImgs = (arr, single) => (arr && arr.length ? arr : single ? [single] : [])
   const comboItems = combo
     ? [
-        { k: 'Doce', v: combo.sweetDescription, img: combo.sweetImage },
-        { k: 'Salgado', v: combo.savoryDescription, img: combo.savoryImage },
-        { k: 'Bebida', v: combo.drinkDescription, img: combo.drinkImage },
-      ].filter(it => it.v || it.img)
+        { k: 'Doce', v: combo.sweetDescription, imgs: asImgs(combo.sweetImages, combo.sweetImage) },
+        { k: 'Salgado', v: combo.savoryDescription, imgs: asImgs(combo.savoryImages, combo.savoryImage) },
+        { k: 'Bebida', v: combo.drinkDescription, imgs: asImgs(combo.drinkImages, combo.drinkImage) },
+      ].filter(it => it.v || it.imgs.length)
     : []
   const priceLabel = formatPrice(combo?.price)
   const openStatus = getOpenStatus(participantHours(participant))
@@ -278,20 +364,17 @@ function ComboDetailPageInner({ navigate, slug }) {
               {/* informações do combo */}
               <div className="combo-detail-hero__content">
                 <h1 className="combo-detail-hero__name">{combo?.name || name}</h1>
-                {combo?.name && <p className="combo-detail-hero__by">por {name}</p>}
 
-                {/* Badge "Releitura · tema · edição" oculto por ora (não revelar tema/edição). */}
+                {theme && (
+                  <p className="combo-detail-hero__creation">
+                    <span className="combo-detail-hero__creation-label">Criação</span>
+                    <span className="combo-detail-hero__creation-value">{theme}</span>
+                  </p>
+                )}
 
                 {combo?.description && <p className="combo-detail-hero__intro">{combo.description}</p>}
                 {priceLabel && <div className="combo-detail-hero__price">{priceLabel}</div>}
 
-                {instagram && (
-                  <div className="combo-detail-hero__ctas combo-detail-hero__ctas--single">
-                    <LoversButton variant="secondary" size="small" href={instagram} target="_blank" rel="noopener noreferrer">
-                      <I.ig /> Ver Instagram
-                    </LoversButton>
-                  </div>
-                )}
               </div>
             </div>
           </section>
@@ -300,26 +383,52 @@ function ComboDetailPageInner({ navigate, slug }) {
           <section className="section combo-detail-section">
             <div className="wrap lovers-safe-wrap">
               <div className="combo-detail-section__head lovers-reveal">
-                <span className="lovers-eyebrow" style={{ color: 'var(--cd-accent)' }}>O que vem no combo</span>
                 <h2 className="combo-detail-section__title">Itens do combo.</h2>
               </div>
               <div className="combo-detail-items">
                 {(comboItems.length ? comboItems : [{ k: 'Doce' }, { k: 'Salgado' }, { k: 'Bebida' }]).map(it => (
                   <article className="combo-detail-item-card lovers-reveal" key={it.k}>
                     <div className="combo-detail-item-card__media">
-                      {it.img
-                        ? <img src={it.img} alt={`${it.k} — ${combo?.name || name}`} loading="lazy" />
+                      {it.imgs && it.imgs.length
+                        ? <LoopingImage images={it.imgs} alt={`${it.k} — ${combo?.name || name}`} />
                         : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
                     </div>
-                    <span className="combo-detail-item-card__k">{it.k}</span>
-                    {it.v
-                      ? <p className="combo-detail-item-card__v">{it.v}</p>
-                      : <p className="combo-detail-item-card__v combo-detail-item-card__v--soon">Em breve</p>}
+                    <span className="combo-detail-item-card__k">
+                      {ITEM_ICONS[it.k] && <span className="combo-detail-item-card__icon" aria-hidden="true">{ITEM_ICONS[it.k]}</span>}
+                      {it.k}
+                    </span>
+                    <p className={'combo-detail-item-card__v' + (it.v ? '' : ' combo-detail-item-card__v--soon')}>
+                      {it.v || 'Descrição em breve'}
+                    </p>
                   </article>
                 ))}
               </div>
             </div>
           </section>
+          {/* 3 ── CONTATO do estabelecimento (Instagram + WhatsApp) */}
+          {(instagram || whatsappUrl) && (
+            <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+              <div className="wrap lovers-safe-wrap">
+                <div className="combo-detail-section__head lovers-reveal">
+                  <h2 className="combo-detail-section__title">Contato.</h2>
+                  <p className="combo-detail-section__lead">Fale direto com {name}.</p>
+                </div>
+                <div className="combo-detail-contact__actions lovers-reveal">
+                  {instagram && (
+                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer">
+                      <I.ig /> Instagram
+                    </LoversButton>
+                  )}
+                  {whatsappUrl && (
+                    <LoversButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z"/></svg>
+                      WhatsApp
+                    </LoversButton>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
         </>
       )}
 
@@ -335,7 +444,7 @@ function ComboDetailPageInner({ navigate, slug }) {
               {openStatus.state !== 'unknown' && (
                 <span className={`combo-detail-open combo-detail-open--${openStatus.state}`}>
                   <span className="combo-detail-open__dot" />
-                  {openStatus.label}{openStatus.detail ? ` · ${openStatus.detail}` : ''}
+                  {openStatus.state === 'open' ? 'Loja aberta' : 'Loja fechada'}{openStatus.detail ? ` · ${openStatus.detail}` : ''}
                 </span>
               )}
               <p className="combo-detail-section__lead">

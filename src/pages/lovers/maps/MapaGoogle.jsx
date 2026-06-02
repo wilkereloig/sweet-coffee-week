@@ -326,7 +326,12 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       markersRef.current[loc.id] = marker
     })
 
-    if (validLocations.length > 1) {
+    // Deep-link ?loja=<id>: sempre dá zoom fechado no pin escolhido (não enquadra todos).
+    const focusLoc = selectedLocationId && validLocations.find(l => l.id === selectedLocationId)
+    if (focusLoc) {
+      map.panTo({ lat: focusLoc.latitude, lng: focusLoc.longitude })
+      map.setZoom(17)
+    } else if (validLocations.length > 1) {
       const bounds = new google.maps.LatLngBounds()
       validLocations.forEach(loc => bounds.extend({ lat: loc.latitude, lng: loc.longitude }))
       map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
@@ -350,10 +355,10 @@ function GoogleMap({ locations, selectedLocationId, onSelectLocation, userLocati
       const loc = locations.find(l => l.id === selectedLocationId)
       if (loc && Number.isFinite(loc.latitude) && Number.isFinite(loc.longitude)) {
         instanceRef.current.map.panTo({ lat: loc.latitude, lng: loc.longitude })
-        instanceRef.current.map.setZoom(15)
+        instanceRef.current.map.setZoom(17)
       }
     }
-  }, [selectedLocationId, locations])
+  }, [selectedLocationId, locations, mapReady])
 
   // User location marker
   useEffect(() => {
@@ -422,6 +427,17 @@ function readRouteIdsFromHash() {
   } catch { return null }
 }
 
+// Lê o id da loja a focar a partir do hash (#/lovers/mapa?loja=<id>)
+function readLojaFromHash() {
+  try {
+    const h = window.location.hash || ''
+    const qi = h.indexOf('?')
+    if (qi === -1) return null
+    const loja = new URLSearchParams(h.slice(qi + 1)).get('loja')
+    return loja ? loja.trim() : null
+  } catch { return null }
+}
+
 // Monta a URL compartilhável da rota
 function buildRouteShareUrl(ids) {
   const base = `${window.location.origin}${window.location.pathname}#/lovers/mapa`
@@ -431,7 +447,7 @@ function buildRouteShareUrl(ids) {
 export function MapaGooglePage({ navigate }) {
   const isFullscreen = true
   const [selectedParticipantId, setSelectedParticipantId] = useState(null)
-  const [selectedLocationId, setSelectedLocationId] = useState(null)
+  const [selectedLocationId, setSelectedLocationId] = useState(() => readLojaFromHash())
   const [search, setSearch] = useState('')
   const [filterBairro, setFilterBairro] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -787,6 +803,15 @@ export function MapaGooglePage({ navigate }) {
   // ── derived ui state ───────────────────────────────────────────────────────
 
   const hasMissingCoords = allLocations.some(l => !Number.isFinite(l.latitude) || !Number.isFinite(l.longitude))
+
+  // Deep-link ?loja=<id>: abre o painel do participante da loja focada (uma vez).
+  const deepLinkedRef = useRef(false)
+  useEffect(() => {
+    if (deepLinkedRef.current) return
+    if (!selectedLocationId || selectedParticipantId) return
+    const loc = allLocations.find(l => l.id === selectedLocationId)
+    if (loc) { setSelectedParticipantId(loc.participantId); deepLinkedRef.current = true }
+  }, [selectedLocationId, selectedParticipantId, allLocations])
   const hasData = true
 
   const selectedLocation = useMemo(() =>
@@ -1010,17 +1035,10 @@ export function MapaGooglePage({ navigate }) {
                             </span>
                           </div>
                           <div className="map-card-title-group">
-                            {LOVERS_SHOW_COMBO_DETAILS && p.edition && <span className="map-card-edition-kicker">{p.edition}</span>}
                             <h3>{p.name}</h3>
                             {LOVERS_SHOW_COMBO_DETAILS && p.theme && (
                               <div className="map-card-theme"><em>{p.theme}</em></div>
                             )}
-                            <div className="map-card-meta">
-                              {multiUnit ? `${locs.length} unidades` : locs[0]?.neighborhood}
-                              {userLocation && Number.isFinite(minDist) && minDist !== Infinity
-                                ? ` · ${formatDistance(minDist)}`
-                                : ''}
-                            </div>
                             {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
                               <div className="map-card-combo">{p.combo.name}</div>
                             )}
@@ -2329,8 +2347,6 @@ export function MapaGooglePage({ navigate }) {
           }
           .map-card-theme {
             margin-top: 8px;
-            padding-left: 11px;
-            border-left: 3px solid #F5B800;
           }
           .map-card-theme em {
             font-style: italic;
