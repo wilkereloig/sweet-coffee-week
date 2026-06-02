@@ -15,6 +15,18 @@ const CATEGORY_ACCENTS = [
   'var(--lovers-burgundy)', 'var(--lovers-coral)', 'var(--lovers-brown)', 'var(--lovers-red)',
 ]
 
+const svgP = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+const CAT_ICONS = {
+  melhor_combo: <svg {...svgP}><path d="M7 4h10v3a5 5 0 0 1-10 0V4Z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M10 13.5v2.5M14 13.5v2.5M8.5 20h7" /><path d="M9 20a3 3 0 0 1 6 0" /></svg>,
+  encantamento: <svg {...svgP}><path d="M4.5 9 6 5h12l1.5 4" /><path d="M5 9h14v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9Z" /><path d="M4.5 9a2 2 0 0 0 3.75 0 2 2 0 0 0 3.75 0 2 2 0 0 0 3.75 0 2 2 0 0 0 3.75 0" /></svg>,
+  apresentacao: <svg {...svgP}><rect x="3" y="7" width="18" height="13" rx="2.5" /><path d="M8.5 7 10 4.6h4L15.5 7" /><circle cx="12" cy="13.2" r="3.1" /></svg>,
+  atendimento: <svg {...svgP}><path d="M4 13v-1a8 8 0 0 1 16 0v1" /><rect x="3" y="13" width="3.2" height="6" rx="1.4" /><rect x="17.8" y="13" width="3.2" height="6" rx="1.4" /><path d="M18.5 19a3.5 3 0 0 1-3.5 3h-2" /></svg>,
+  criatividade: <svg {...svgP}><path d="M9.5 18h5M10.5 21h3" /><path d="M12 3a6 6 0 0 0-3.8 10.6c.8.7 1 1.2 1 2.4h5.6c0-1.2.2-1.7 1-2.4A6 6 0 0 0 12 3Z" /></svg>,
+  salgado: <svg {...svgP}><path d="M4 10a8 4 0 0 1 16 0H4z" /><path d="M4 13.5h16" /><path d="M5 16.5h14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" /></svg>,
+  doce: <svg {...svgP}><path d="M6 11h12l-1.2 8.4a1 1 0 0 1-1 .6H8.2a1 1 0 0 1-1-.6L6 11z" /><path d="M5 11a7 5 0 0 1 14 0" /><path d="M12 4v3" /></svg>,
+  bebida: <svg {...svgP}><path d="M7 5h10l-1.2 14.2a1 1 0 0 1-1 .8H9.2a1 1 0 0 1-1-.8L7 5z" /><path d="M8 9h8" /><path d="M13 2l-2 3" /></svg>,
+}
+
 const MEDALS = ['1º', '2º', '3º']
 function Results({ rows }) {
   const byCat = {}
@@ -58,6 +70,7 @@ export function AwardsPage({ navigate }) {
   useLoversReveal()
   const [rankings, setRankings] = React.useState([])
   const now = new Date()
+  const notOpen = now < new Date(AWARDS_VOTING.opensAt)
   const votingOpen = now >= new Date(AWARDS_VOTING.opensAt) && now <= new Date(AWARDS_VOTING.closesAt)
 
   React.useEffect(() => {
@@ -142,7 +155,7 @@ export function AwardsPage({ navigate }) {
             {AWARDS_CATEGORIES.map((c, i) => (
               <article className="awards-cat-card lovers-reveal" key={c.key}
                 style={{ '--card-accent': CATEGORY_ACCENTS[i % CATEGORY_ACCENTS.length] }}>
-                <span className="awards-cat-card__dot" aria-hidden="true" />
+                <span className="awards-cat-card__icon" aria-hidden="true">{CAT_ICONS[c.key]}</span>
                 <h3 className="awards-cat-card__title">{c.label}</h3>
                 <p className="awards-cat-card__text">{AWARDS_CATEGORY_BLURB[c.key]}</p>
               </article>
@@ -174,7 +187,7 @@ export function AwardsPage({ navigate }) {
               </>
             ) : (
               <>
-                <h2 className="awards-final-cta__title">{hasResults ? 'Parabéns aos vencedores!' : 'Em breve, os vencedores.'}</h2>
+                <h2 className="awards-final-cta__title">{hasResults ? 'Parabéns aos vencedores!' : notOpen ? <>A votação abre <span>dia 04 de junho.</span></> : 'Em breve, os vencedores.'}</h2>
                 <div className="awards-final-cta__ctas">
                   <LoversButton variant="secondary" href="#/lovers/participantes"
                     onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>
