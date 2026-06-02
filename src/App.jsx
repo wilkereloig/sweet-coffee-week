@@ -13,8 +13,10 @@ const LOVERS_TABS = [
   { label: 'Premiação',  to: '/lovers/premiacao',     icon: 'star',  match: ['premiacao', 'awards'] },
 ]
 function LoversTabBar({ route, navigate }) {
+  const activeIndex = LOVERS_TABS.findIndex(t => t.match.includes(route))
   return (
-    <nav className="lovers-tabbar" aria-label="Navegação Lovers">
+    <nav className="lovers-tabbar" aria-label="Navegação Lovers" style={{ '--tab-index': activeIndex }}>
+      {activeIndex >= 0 && <span className="lovers-tabbar__pill" aria-hidden="true" />}
       {LOVERS_TABS.map(t => {
         const Ic = I[t.icon] || I.map
         const active = t.match.includes(route)
@@ -49,6 +51,7 @@ import { ComboPage }      from './pages/lovers/Combos'
 import { ComboDetailPage } from './pages/lovers/ComboDetail'
 import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
+import { VotarPage }      from './pages/lovers/Votar'
 
 
 export default function App() {
@@ -69,6 +72,7 @@ export default function App() {
     if (path.startsWith('/lovers/combos'))  return 'combos'
     if (path.startsWith('/lovers/participantes')) return 'participantes'
     if (path.startsWith('/lovers/mapa'))    return 'mapa'
+    if (path.startsWith('/lovers/votar'))   return 'votar'
     if (path.startsWith('/lovers/awards'))  return 'awards'
     if (path.startsWith('/lovers/premiacao')) return 'premiacao'
     if (path.startsWith('/lovers'))         return 'lovers'
@@ -88,6 +92,7 @@ export default function App() {
     case 'combos':       page = <ComboPage navigate={navigate} />; break
     case 'combo-detail': page = <ComboDetailPage navigate={navigate} slug={path.split('/').pop()} />; break
     case 'mapa':         page = <MapaPage navigate={navigate} variant="fullscreen" />; break
+    case 'votar':        page = <VotarPage navigate={navigate} />; break
     case 'awards':       page = <AwardsPage navigate={navigate} />; break
     case 'premiacao':    page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break

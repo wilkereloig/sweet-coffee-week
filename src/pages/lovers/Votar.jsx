@@ -1,0 +1,281 @@
+import React from 'react'
+import { I } from '../../components/icons'
+import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { supabase } from '../../lib/supabase'
+import {
+  AWARDS_VOTING, AWARDS_CATEGORIES, AWARDS_SCALE, GENDER_OPTIONS,
+  AWARDS_PARTICIPANTS, AWARDS_TEXTS,
+} from '../../data/sweetAwards'
+
+const LS_KEY = 'sweet-awards-voter'
+const nameBySlug = Object.fromEntries(AWARDS_PARTICIPANTS.map(p => [p.slug, p.name]))
+
+function loadVoter() {
+  try { return JSON.parse(window.localStorage.getItem(LS_KEY)) || null } catch { return null }
+}
+function saveVoter(v) {
+  try { window.localStorage.setItem(LS_KEY, JSON.stringify(v)) } catch { /* ignore */ }
+}
+function readLojaFromHash() {
+  try {
+    const h = window.location.hash || ''
+    const qi = h.indexOf('?')
+    if (qi === -1) return null
+    const slug = new URLSearchParams(h.slice(qi + 1)).get('loja')
+    return slug && nameBySlug[slug] ? slug : null
+  } catch { return null }
+}
+
+function RatingScale({ value, onChange, name }) {
+  return (
+    <div className="awards-scale" role="radiogroup" aria-label={name}>
+      {AWARDS_SCALE.map(n => (
+        <button key={n} type="button"
+          className={'awards-scale__btn' + (value === n ? ' is-active' : '')}
+          aria-pressed={value === n} onClick={() => onChange(n)}>
+          {n}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
+
+export function VotarPage({ navigate }) {
+  useLoversReveal()
+  const nowD = new Date()
+  const closed = nowD > new Date(AWARDS_VOTING.closesAt)
+  const notOpen = nowD < new Date(AWARDS_VOTING.opensAt)
+
+  const presetLoja = readLojaFromHash()
+  const saved = loadVoter()
+  const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.genero && saved.follows)
+
+  const [identity, setIdentity] = React.useState(() => saved || {
+    email: '', nome: '', telefone: '', instagram: '', genero: '', follows: false,
+  })
+  const [editingId, setEditingId] = React.useState(!remembered)
+
+  const blankNotes = () => Object.fromEntries(AWARDS_CATEGORIES.map(c => [c.key, null]))
+  const [participante, setParticipante] = React.useState(presetLoja || '')
+  const [notes, setNotes] = React.useState(blankNotes)
+  const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
+
+  // Passos: quem não é lembrado começa em "você"; lembrado pula pra "avaliação".
+  const steps = remembered ? ['avaliacao', 'final'] : ['voce', 'avaliacao', 'final']
+  const [stepIdx, setStepIdx] = React.useState(0)
+  const step = steps[stepIdx]
+  const [status, setStatus] = React.useState('idle')
+  const [errorMsg, setErrorMsg] = React.useState('')
+  const [regOpen, setRegOpen] = React.useState(false)
+
+  const setId = (k, v) => setIdentity(s => ({ ...s, [k]: v }))
+  const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
+  const setEx = (k, v) => setExtra(s => ({ ...s, [k]: v }))
+
+  const idValid = emailOk(identity.email) && identity.nome.trim() && identity.telefone.trim() &&
+    identity.instagram.trim() && identity.genero && identity.follows
+  const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
+
+  function goNext() {
+    if (step === 'voce' && !idValid) return
+    if (step === 'avaliacao' && !notesValid) return
+    setStepIdx(i => Math.min(i + 1, steps.length - 1))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  function goBack() {
+    setStepIdx(i => Math.max(i - 1, 0))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handleSubmit() {
+    if (!idValid || !notesValid || status === 'sending') return
+    setStatus('sending'); setErrorMsg('')
+    const payload = {
+      p_email: identity.email, p_nome: identity.nome, p_telefone: identity.telefone,
+      p_instagram: identity.instagram, p_genero: identity.genero, p_participante: participante,
+      p_nota_combo: notes.melhor_combo, p_nota_encantamento: notes.encantamento,
+      p_nota_apresentacao: notes.apresentacao, p_nota_atendimento: notes.atendimento,
+      p_nota_criatividade: notes.criatividade, p_nota_salgado: notes.salgado,
+      p_nota_doce: notes.doce, p_nota_bebida: notes.bebida,
+      p_obs: extra.obs || null, p_gostou: extra.gostou || null,
+      p_melhorar: extra.melhorar || null, p_sugestao_tema: extra.sugestao_tema || null,
+    }
+    const { error } = await supabase.rpc('submit_vote', payload)
+    if (error) { setStatus('error'); setErrorMsg('Não foi possível registrar seu voto. Tente novamente.'); return }
+    saveVoter({ ...identity }) // lembra pros próximos votos
+    setStatus('done')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function voteAnother() {
+    setParticipante('') // deixa escolher outra loja
+    setNotes(blankNotes())
+    setExtra({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
+    setStatus('idle')
+    setStepIdx(0) // remembered=true agora → começa em "avaliação"
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const Shell = ({ children }) => (
+    <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
+      <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
+      <LoversStickers page="premiacao" />
+      <section className="lovers-public-hero">
+        <div className="lovers-decor" aria-hidden="true">
+          <span className="lovers-orb lovers-orb--pink" style={{ width: 220, height: 220, top: -70, left: '4%' }} />
+          <span className="lovers-orb lovers-orb--yellow" style={{ width: 130, height: 130, top: 30, right: '8%' }} />
+        </div>
+        <div className="wrap lovers-safe-wrap lovers-public-hero__inner">
+          <span className="lovers-public-hero__eyebrow">{AWARDS_TEXTS.hero.eyebrow}</span>
+          <h1 className="lovers-public-hero__title">{closed ? AWARDS_TEXTS.closed.title : AWARDS_TEXTS.hero.title}</h1>
+        </div>
+      </section>
+      <section className="section awards-section">
+        <div className="wrap lovers-safe-wrap awards-form-wrap">
+          {children}
+          <div style={{ textAlign: 'center', marginTop: 26 }}>
+            <a href="#/lovers/awards" className="awards-back-link"
+               onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}>← Voltar para o Sweet Awards</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+
+  if (notOpen) {
+    return <Shell><p className="awards-results__intro">A votação do Sweet Awards abre dia 04 de junho. Volte a partir dessa data para avaliar os combos que você experimentou.</p></Shell>
+  }
+  if (closed) {
+    return <Shell><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
+  }
+
+  if (status === 'done') {
+    return (
+      <Shell>
+        <div className="awards-success lovers-reveal">
+          <span className="awards-success__check" aria-hidden="true"><I.heart width={26} height={26} /></span>
+          <h2 className="awards-success__title">{AWARDS_TEXTS.success.title}</h2>
+          <p className="awards-success__body">{AWARDS_TEXTS.success.body}</p>
+          <LoversButton variant="primary" onClick={voteAnother}>Avaliar outro participante <I.arrow /></LoversButton>
+        </div>
+      </Shell>
+    )
+  }
+
+  return (
+    <Shell>
+      {/* progresso */}
+      <div className="awards-steps lovers-reveal" aria-hidden="true">
+        {steps.map((s, i) => (
+          <span key={s} className={'awards-steps__dot' + (i <= stepIdx ? ' is-done' : '')} />
+        ))}
+        <span className="awards-steps__label">Passo {stepIdx + 1} de {steps.length}</span>
+      </div>
+
+      {/* quem está votando (quando lembrado) */}
+      {remembered && !editingId && (
+        <div className="awards-voter-chip lovers-reveal">
+          <span><strong>{identity.nome}</strong> · {identity.email}</span>
+          <button type="button" onClick={() => { setEditingId(true); setStepIdx(0) }}>Não é você? Editar</button>
+        </div>
+      )}
+
+      {/* STEP: você (dados) */}
+      {step === 'voce' && (
+        <>
+          <div className="awards-reg lovers-reveal">
+            <button type="button" className="awards-reg__toggle" aria-expanded={regOpen} onClick={() => setRegOpen(v => !v)}>
+              Regulamento da votação
+              <span className={'awards-reg__chevron' + (regOpen ? ' is-open' : '')} aria-hidden="true" />
+            </button>
+            {regOpen && <ul className="awards-reg__list">{AWARDS_TEXTS.regulamento.map((r, i) => <li key={i}>{r}</li>)}</ul>}
+          </div>
+          <fieldset className="awards-fieldset lovers-reveal">
+            <legend className="awards-legend">Seus dados</legend>
+            <label className="awards-field"><span>E-mail <i>*</i></span>
+              <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" /></label>
+            <label className="awards-field"><span>Nome completo <i>*</i></span>
+              <input type="text" value={identity.nome} onChange={e => setId('nome', e.target.value)} /></label>
+            <label className="awards-field"><span>Contato telefônico <i>*</i></span>
+              <input type="tel" value={identity.telefone} onChange={e => setId('telefone', e.target.value)} placeholder="WhatsApp/celular" /></label>
+            <label className="awards-field"><span>Instagram <i>*</i></span>
+              <input type="text" value={identity.instagram} onChange={e => setId('instagram', e.target.value)} placeholder="@seuperfil" /></label>
+            <div className="awards-field"><span>Como você se identifica? <i>*</i></span>
+              <div className="awards-radios">
+                {GENDER_OPTIONS.map(g => (
+                  <label key={g} className={'awards-chip-radio' + (identity.genero === g ? ' is-active' : '')}>
+                    <input type="radio" name="genero" value={g} checked={identity.genero === g} onChange={() => setId('genero', g)} />{g}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <label className="awards-follow">
+              <input type="checkbox" checked={identity.follows} onChange={e => setId('follows', e.target.checked)} />
+              <span>Sigo <a href="https://instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer">@sweetcoffeeweek</a> no Instagram. <i>*</i></span>
+            </label>
+          </fieldset>
+          <div className="awards-wizard-nav">
+            <LoversButton variant="primary" disabled={!idValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
+            {!idValid && <span className="awards-form__hint">Preencha todos os campos obrigatórios (*).</span>}
+          </div>
+        </>
+      )}
+
+      {/* STEP: avaliação (participante + notas) */}
+      {step === 'avaliacao' && (
+        <>
+          <fieldset className="awards-fieldset lovers-reveal">
+            <legend className="awards-legend">Avaliação do combo</legend>
+            {presetLoja ? (
+              <div className="awards-preset">Avaliando: <strong>{nameBySlug[participante]}</strong></div>
+            ) : (
+              <label className="awards-field"><span>O combo de qual participante você vai avaliar? <i>*</i></span>
+                <select value={participante} onChange={e => setParticipante(e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {AWARDS_PARTICIPANTS.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
+                </select>
+              </label>
+            )}
+            {AWARDS_CATEGORIES.map(c => (
+              <div className="awards-rating lovers-reveal" key={c.key}>
+                <div className="awards-rating__head"><strong>{c.label}</strong><span>{c.question} <i>*</i></span></div>
+                <RatingScale name={c.label} value={notes[c.key]} onChange={v => setNote(c.key, v)} />
+              </div>
+            ))}
+          </fieldset>
+          <div className="awards-wizard-nav">
+            {steps[0] === 'voce' && <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>}
+            <LoversButton variant="primary" disabled={!notesValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
+            {!notesValid && <span className="awards-form__hint">Escolha a loja e dê nota em todas as categorias.</span>}
+          </div>
+        </>
+      )}
+
+      {/* STEP: final (opinião opcional + enviar) */}
+      {step === 'final' && (
+        <>
+          <fieldset className="awards-fieldset lovers-reveal">
+            <legend className="awards-legend">Quase lá <small>(opcional)</small></legend>
+            <label className="awards-field"><span>Alguma observação sobre o combo ou a experiência?</span>
+              <textarea rows={2} value={extra.obs} onChange={e => setEx('obs', e.target.value)} /></label>
+            <label className="awards-field"><span>O que você mais gostou na edição?</span>
+              <textarea rows={2} value={extra.gostou} onChange={e => setEx('gostou', e.target.value)} /></label>
+            <label className="awards-field"><span>O que pode melhorar?</span>
+              <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
+            <label className="awards-field"><span>Tema pra uma próxima edição?</span>
+              <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder='Se não souber, escreva "não sei informar".' /></label>
+          </fieldset>
+          {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
+          <div className="awards-wizard-nav">
+            <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
+            <LoversButton variant="primary" disabled={status === 'sending'} onClick={handleSubmit}>
+              {status === 'sending' ? 'Enviando…' : 'Enviar avaliação'} <I.arrow />
+            </LoversButton>
+          </div>
+        </>
+      )}
+    </Shell>
+  )
+}

@@ -7,6 +7,12 @@ import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewDa
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
 import { getOpenStatus, participantHours } from '../../utils/openStatus'
+import { AWARDS_VOTING } from '../../data/sweetAwards'
+
+const awardsVotingOpen = () => {
+  const n = new Date()
+  return n >= new Date(AWARDS_VOTING.opensAt) && n <= new Date(AWARDS_VOTING.closesAt)
+}
 
 // Preview data só em desenvolvimento local com a flag ligada.
 const ENABLE_PREVIEW_DATA =
@@ -375,6 +381,17 @@ function ComboDetailPageInner({ navigate, slug }) {
                 {combo?.description && <p className="combo-detail-hero__intro">{combo.description}</p>}
                 {priceLabel && <div className="combo-detail-hero__price">{priceLabel}</div>}
 
+                {(combo?.slug || participant?.slug) && awardsVotingOpen() && (
+                  <div className="combo-detail-hero__ctas combo-detail-hero__ctas--single">
+                    <LoversButton
+                      variant="primary"
+                      href={`#/lovers/votar?loja=${combo?.slug || participant?.slug}`}
+                      onClick={(e) => { e.preventDefault(); navigate(`/lovers/votar?loja=${combo?.slug || participant?.slug}`) }}
+                    >
+                      <I.star width={18} height={18} /> Avaliar este combo
+                    </LoversButton>
+                  </div>
+                )}
               </div>
             </div>
           </section>

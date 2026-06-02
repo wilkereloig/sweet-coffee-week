@@ -521,6 +521,17 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .lovers-tabbar__item svg { display: block; }
   .lovers-tabbar__item.is-active { color: var(--lovers-hero-ink, var(--lovers-yellow)); }
   .lovers-tabbar__item:focus-visible { outline: 2px solid var(--lovers-hero-ink, var(--lovers-yellow)); outline-offset: -2px; border-radius: 10px; }
+  /* Pílula deslizante sob o item ativo */
+  .lovers-tabbar__item { position: relative; z-index: 1; }
+  .lovers-tabbar__pill {
+    position: absolute; z-index: 0; pointer-events: none;
+    top: 4px; bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+    left: 4px; width: calc((100% - 8px) / 4);
+    border-radius: 14px; background: rgba(255, 232, 210, .16);
+    transform: translateX(calc(var(--tab-index, 0) * 100%));
+    transition: transform .35s cubic-bezier(.34, 1.3, .64, 1);
+  }
+  @media (prefers-reduced-motion: reduce) { .lovers-tabbar__pill { transition: none; } }
 }
 
 /* ── Faixa de números slim (inline, divisores) ── */
@@ -1294,6 +1305,123 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .combo-detail-item-card__icon svg { width: 22px; height: 22px; }
 /* Contato do estabelecimento (Instagram + WhatsApp) */
 .combo-detail-contact__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ════════ Sweet Awards — votação ════════ */
+.awards-hero__sub { margin-top: 10px; opacity: .9; font-size: 14px; }
+.awards-section { background: var(--lovers-cream); }
+.awards-form-wrap { max-width: 640px; margin: 0 auto; }
+
+.awards-reg { margin-bottom: 22px; border: 1.5px solid rgba(135,14,45,.18); border-radius: 16px; background: #fff; overflow: hidden; }
+.awards-reg__toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 18px; background: none; border: 0; cursor: pointer;
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 13px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--lovers-burgundy);
+}
+.awards-reg__chevron { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid currentColor; transition: transform .2s ease; }
+.awards-reg__chevron.is-open { transform: rotate(180deg); }
+.awards-reg__list { margin: 0; padding: 0 22px 16px 36px; display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; line-height: 1.45; color: var(--lovers-brown); }
+
+.awards-form { display: flex; flex-direction: column; gap: 22px; }
+.awards-fieldset { border: 0; margin: 0; padding: 20px; background: #fff; border-radius: 18px; box-shadow: 0 12px 30px rgba(43,24,16,.07); display: flex; flex-direction: column; gap: 16px; }
+.awards-legend {
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 19px; color: var(--lovers-burgundy);
+  padding: 0 0 2px;
+}
+.awards-legend small { font-family: var(--font-lovers-body); font-weight: 600; font-size: 12px; opacity: .6; text-transform: none; }
+.awards-field { display: flex; flex-direction: column; gap: 7px; }
+.awards-field > span { font-family: var(--font-lovers-body); font-weight: 700; font-size: 13.5px; color: var(--lovers-brown); }
+.awards-field i { color: var(--lovers-red); font-style: normal; }
+.awards-field input, .awards-field textarea, .awards-field select {
+  width: 100%; padding: 11px 14px; border-radius: 12px; border: 1.5px solid rgba(135,14,45,.2);
+  background: var(--lovers-cream); color: var(--lovers-ink); font-family: var(--font-lovers-body); font-size: 15px;
+}
+.awards-field textarea { resize: vertical; }
+.awards-field input:focus, .awards-field textarea:focus, .awards-field select:focus { outline: 2px solid var(--lovers-pink); outline-offset: 1px; border-color: transparent; }
+
+.awards-radios { display: flex; flex-wrap: wrap; gap: 8px; }
+.awards-chip-radio {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 8px 14px; border-radius: 999px; border: 1.5px solid rgba(135,14,45,.2); background: #fff;
+  font-family: var(--font-lovers-body); font-weight: 700; font-size: 13px; color: var(--lovers-burgundy);
+}
+.awards-chip-radio.is-active { background: var(--lovers-burgundy); color: #fff; border-color: transparent; }
+.awards-chip-radio input { display: none; }
+
+.awards-rating { padding: 14px; border-radius: 14px; background: var(--lovers-cream); border: 1px solid rgba(135,14,45,.12); }
+.awards-rating__head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.awards-rating__head strong { font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; color: var(--lovers-burgundy); }
+.awards-rating__head span { font-size: 13px; color: var(--lovers-brown); }
+.awards-rating__head i { color: var(--lovers-red); font-style: normal; }
+.awards-scale { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.awards-scale__btn {
+  padding: 12px 0; border-radius: 12px; border: 1.5px solid rgba(135,14,45,.22); background: #fff; cursor: pointer;
+  font-family: var(--font-lovers-display); font-weight: 800; font-size: 17px; color: var(--lovers-burgundy);
+  transition: transform .12s ease, background .15s ease, color .15s ease;
+}
+@media (hover: hover) { .awards-scale__btn:hover { border-color: var(--lovers-pink); } }
+.awards-scale__btn.is-active { background: var(--lovers-red); color: #fff; border-color: transparent; transform: translateY(-2px); }
+
+.awards-follow { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--lovers-brown); }
+.awards-follow input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--lovers-red); }
+.awards-follow a { color: var(--lovers-red); font-weight: 700; }
+.awards-follow i { color: var(--lovers-red); font-style: normal; }
+
+.awards-form__error { color: var(--lovers-red); font-weight: 700; font-size: 14px; }
+.awards-form__submit { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.awards-form__hint { font-size: 12.5px; color: color-mix(in srgb, var(--lovers-brown) 70%, transparent); }
+
+.awards-success { max-width: 560px; margin: 0 auto; text-align: center; background: #fff; border-radius: 22px; padding: 40px 28px; box-shadow: 0 18px 44px rgba(43,24,16,.12); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.awards-success__check { width: 64px; height: 64px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--lovers-red) 14%, #fff); color: var(--lovers-red); }
+.awards-success__title { font-family: var(--font-lovers-display); font-weight: 800; font-size: 28px; color: var(--lovers-burgundy); margin: 0; }
+.awards-success__body { font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); margin: 0; }
+
+/* Resultado / ranking */
+.awards-results__intro { max-width: 620px; margin: 12px auto 0; text-align: center; font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); }
+.awards-results__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-top: 26px; }
+.awards-result-card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 14px 36px rgba(43,24,16,.08); }
+.awards-result-card__title { font-family: var(--font-lovers-display); font-weight: 800; font-size: 20px; color: var(--lovers-burgundy); margin: 0 0 4px; }
+.awards-result-card__blurb { font-size: 12.5px; line-height: 1.4; color: color-mix(in srgb, var(--lovers-brown) 75%, transparent); margin: 0 0 14px; }
+.awards-result-card__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.awards-result-card__row { display: flex; align-items: center; gap: 12px; }
+.awards-result-card__medal { flex: 0 0 auto; width: 30px; font-family: var(--font-lovers-display); font-weight: 800; font-size: 16px; color: var(--lovers-red); }
+.awards-result-card__row--1 .awards-result-card__medal { color: #C8A100; }
+.awards-result-card__photo { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; background: var(--lovers-cream); }
+.awards-result-card__name { font-family: var(--font-lovers-body); font-weight: 700; font-size: 14.5px; color: var(--lovers-ink); }
+.awards-result-card__empty { font-size: 13px; color: color-mix(in srgb, var(--lovers-brown) 60%, transparent); }
+@media (prefers-reduced-motion: reduce) { .awards-scale__btn { transition: none; } }
+
+/* Premiação (informativa): como funciona + categorias */
+.awards-howto-note { max-width: 620px; margin: 22px auto 0; text-align: center; font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); }
+.awards-cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 24px; }
+.awards-cat-card {
+  position: relative; background: #fff; border-radius: 16px; padding: 18px 18px 18px 20px;
+  box-shadow: 0 12px 30px rgba(43,24,16,.07); border-left: 5px solid var(--card-accent, var(--lovers-pink));
+}
+.awards-cat-card__dot { display: none; }
+.awards-cat-card__title { font-family: var(--font-lovers-display); font-weight: 800; font-size: 18px; color: var(--lovers-burgundy); margin: 0 0 5px; }
+.awards-cat-card__text { font-size: 13px; line-height: 1.45; color: var(--lovers-brown); margin: 0; }
+.awards-back-link { font-family: var(--font-lovers-body); font-weight: 700; font-size: 14px; color: var(--lovers-burgundy); text-decoration: none; }
+.awards-back-link:hover { text-decoration: underline; }
+
+/* Wizard de votação (anti-fadiga) */
+.awards-steps { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.awards-steps__dot { width: 28px; height: 6px; border-radius: 999px; background: rgba(135,14,45,.18); transition: background .2s ease; }
+.awards-steps__dot.is-done { background: var(--lovers-red); }
+.awards-steps__label { margin-left: 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--lovers-burgundy) 65%, transparent); }
+.awards-voter-chip {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 18px; padding: 12px 16px; border-radius: 14px; background: #fff;
+  border: 1.5px solid rgba(135,14,45,.16); font-size: 13.5px; color: var(--lovers-brown);
+}
+.awards-voter-chip button { background: none; border: 0; cursor: pointer; color: var(--lovers-red); font-weight: 700; font-size: 13px; }
+.awards-preset {
+  padding: 12px 16px; border-radius: 12px; background: color-mix(in srgb, var(--cd-accent, var(--lovers-pink)) 12%, #fff);
+  font-size: 15px; color: var(--lovers-brown);
+}
+.awards-preset strong { color: var(--lovers-burgundy); }
+.awards-wizard-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; }
+.awards-wizard-nav .awards-form__hint { flex-basis: 100%; }
 .combo-detail-item-card__v { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--lovers-brown); }
 .combo-detail-item-card__v--soon { opacity: .55; font-style: italic; }
 @media (max-width: 768px) {
