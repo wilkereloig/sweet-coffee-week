@@ -62,13 +62,13 @@ export function VotarPage({ navigate }) {
   const [notes, setNotes] = React.useState(blankNotes)
   const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
 
-  // Passos: quem não é lembrado começa em "você"; lembrado pula pra "avaliação".
-  const steps = remembered ? ['avaliacao', 'final'] : ['voce', 'avaliacao', 'final']
+  // O regulamento aparece antes de qualquer preenchimento. Quem já foi lembrado pelo navegador pula só os dados pessoais.
+  const needsIdentityStep = !remembered || editingId
+  const steps = ['regulamento', ...(needsIdentityStep ? ['voce'] : []), 'avaliacao', 'final']
   const [stepIdx, setStepIdx] = React.useState(0)
   const step = steps[stepIdx]
   const [status, setStatus] = React.useState('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
-  const [regOpen, setRegOpen] = React.useState(false)
 
   const setId = (k, v) => setIdentity(s => ({ ...s, [k]: v }))
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
@@ -114,7 +114,7 @@ export function VotarPage({ navigate }) {
     setNotes(blankNotes())
     setExtra({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
     setStatus('idle')
-    setStepIdx(0) // remembered=true agora → começa em "avaliação"
+    setStepIdx(0) // começa novamente pelo regulamento
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -182,16 +182,29 @@ export function VotarPage({ navigate }) {
         </div>
       )}
 
+      {/* STEP: regulamento */}
+      {step === 'regulamento' && (
+        <>
+          <div className="awards-reg lovers-reveal">
+            <div className="awards-reg__toggle" aria-expanded="true">
+              Regulamento da votação
+            </div>
+            <p className="awards-form__hint">
+              Leia as regras antes de preencher o formulário. Ao continuar, você declara que está de acordo com o regulamento do Sweet Awards.
+            </p>
+            <ul className="awards-reg__list">
+              {AWARDS_TEXTS.regulamento.map((r, i) => <li key={i}>{r}</li>)}
+            </ul>
+          </div>
+          <div className="awards-wizard-nav">
+            <LoversButton variant="primary" onClick={goNext}>Li e quero continuar <I.arrow /></LoversButton>
+          </div>
+        </>
+      )}
+
       {/* STEP: você (dados) */}
       {step === 'voce' && (
         <>
-          <div className="awards-reg lovers-reveal">
-            <button type="button" className="awards-reg__toggle" aria-expanded={regOpen} onClick={() => setRegOpen(v => !v)}>
-              Regulamento da votação
-              <span className={'awards-reg__chevron' + (regOpen ? ' is-open' : '')} aria-hidden="true" />
-            </button>
-            {regOpen && <ul className="awards-reg__list">{AWARDS_TEXTS.regulamento.map((r, i) => <li key={i}>{r}</li>)}</ul>}
-          </div>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Seus dados</legend>
             <label className="awards-field"><span>E-mail <i>*</i></span>
@@ -217,6 +230,7 @@ export function VotarPage({ navigate }) {
             </label>
           </fieldset>
           <div className="awards-wizard-nav">
+            <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
             <LoversButton variant="primary" disabled={!idValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
             {!idValid && <span className="awards-form__hint">Preencha todos os campos obrigatórios (*).</span>}
           </div>
@@ -246,7 +260,7 @@ export function VotarPage({ navigate }) {
             ))}
           </fieldset>
           <div className="awards-wizard-nav">
-            {steps[0] === 'voce' && <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>}
+            <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
             <LoversButton variant="primary" disabled={!notesValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
             {!notesValid && <span className="awards-form__hint">Escolha a loja e dê nota em todas as categorias.</span>}
           </div>
