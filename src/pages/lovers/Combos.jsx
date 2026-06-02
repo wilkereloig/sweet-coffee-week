@@ -7,7 +7,7 @@ import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewDa
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers } from '../../components/lovers'
 import { LOVERS_SHOW_COMBO_DETAILS } from '../../config/loversRelease'
-import { getOpenStatus, participantHours } from '../../utils/openStatus'
+import { getOpenStatus, participantHours, openSummary } from '../../utils/openStatus'
 
 // Preview data is used only when internal pages are enabled for local development.
 const ENABLE_PREVIEW_DATA =
@@ -149,7 +149,7 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
   const theme = participant?.theme || combo.recreatedTheme || 'Tema em breve'
   const handle = igHandle(participant?.instagram)
   const name = participant?.name || combo.name
-  const status = getOpenStatus(participantHours(participant))
+  const status = openSummary(participant)
   const go = () => navigate(`/lovers/combos/${combo.slug}`)
 
   return (
@@ -168,7 +168,7 @@ function ParticipantShowcaseCard({ combo, num, participant, navigate, animClass 
         </span>
         {status.state !== 'unknown' && (
           <span className={`participant-showcase-card__open participant-showcase-card__open--${status.state}`}>
-            <span className="participant-showcase-card__open-dot" />{status.state === 'open' ? 'Loja aberta' : 'Loja fechada'}
+            <span className="participant-showcase-card__open-dot" />{status.text}
           </span>
         )}
 

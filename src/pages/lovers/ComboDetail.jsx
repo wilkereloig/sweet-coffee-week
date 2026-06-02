@@ -6,7 +6,7 @@ import { PARTICIPANTS } from '../../data/participants'
 import { PREVIEW_PARTICIPANTS, PREVIEW_COMBOS } from '../../data/loversPreviewData'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
-import { getOpenStatus, participantHours } from '../../utils/openStatus'
+import { getOpenStatus, participantHours, openSummary } from '../../utils/openStatus'
 import { AWARDS_VOTING } from '../../data/sweetAwards'
 
 const awardsVotingOpen = () => {
@@ -213,6 +213,7 @@ function LocationCard({ loc, participant, accent }) {
   const name = loc.name || participant.neighborhood || participant.name
   const maps = mapsSearchUrl(loc, participant)
   const dir = directionsUrl(loc, participant)
+  const st = getOpenStatus(loc.hours) // status por endereço (cada loja tem seu horário)
   return (
     <article className="combo-detail-location-card lovers-reveal" style={{ '--cd-accent': accent }}>
       <div className="combo-detail-location-card__head">
@@ -227,6 +228,12 @@ function LocationCard({ loc, participant, accent }) {
         </div>
       </div>
       {loc.address && <p className="combo-detail-location-card__addr">{loc.address}</p>}
+      {st.state !== 'unknown' && (
+        <span className={`combo-detail-open combo-detail-open--${st.state}`} style={{ marginBottom: 6 }}>
+          <span className="combo-detail-open__dot" />
+          {st.label}{st.detail ? ` · ${st.detail}` : ''}
+        </span>
+      )}
       {loc.openingHours && <p className="combo-detail-location-card__hours">{loc.openingHours}</p>}
       <div className="combo-detail-location-card__actions">
         {loc.id ? (
@@ -329,7 +336,7 @@ function ComboDetailPageInner({ navigate, slug }) {
       ].filter(it => it.v || it.imgs.length)
     : []
   const priceLabel = formatPrice(combo?.price)
-  const openStatus = getOpenStatus(participantHours(participant))
+  const openStatus = openSummary(participant)
   const locations =
     participant?.locations && participant.locations.length
       ? participant.locations
@@ -461,7 +468,7 @@ function ComboDetailPageInner({ navigate, slug }) {
               {openStatus.state !== 'unknown' && (
                 <span className={`combo-detail-open combo-detail-open--${openStatus.state}`}>
                   <span className="combo-detail-open__dot" />
-                  {openStatus.state === 'open' ? 'Loja aberta' : 'Loja fechada'}{openStatus.detail ? ` · ${openStatus.detail}` : ''}
+                  {openStatus.text}
                 </span>
               )}
               <p className="combo-detail-section__lead">

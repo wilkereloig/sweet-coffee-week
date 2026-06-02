@@ -73,3 +73,19 @@ export function participantHours(participant) {
   const loc = (participant.locations || []).find(l => l.hours && typeof l.hours === 'object')
   return loc ? loc.hours : null
 }
+
+// Resumo aberto/fechado considerando TODOS os endereços (não só o primeiro).
+// Multi-endereço → "X de N abertas"; 1 endereço → "Loja aberta/fechada".
+export function openSummary(participant, now = new Date()) {
+  const locs = participant?.locations?.length
+    ? participant.locations
+    : (participantHours(participant) ? [{ hours: participantHours(participant) }] : [])
+  const known = locs.filter(l => l.hours && typeof l.hours === 'object')
+  const n = known.length
+  if (n === 0) return { state: 'unknown', text: '' }
+  const openN = known.filter(l => getOpenStatus(l.hours, now).state === 'open').length
+  if (openN === 0) return { state: 'closed', text: n === 1 ? 'Loja fechada' : 'Todas fechadas' }
+  if (n === 1) return { state: 'open', text: 'Loja aberta' }
+  if (openN === n) return { state: 'open', text: 'Todas abertas' }
+  return { state: 'open', text: `${openN} de ${n} abertas` }
+}
