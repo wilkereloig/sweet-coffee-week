@@ -192,6 +192,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not (select results_published from public.awards_config where id) then
     return; -- vazio enquanto não liberado
@@ -336,6 +337,7 @@ grant execute on function public.get_feedback_report(text) to anon, authenticate
 create or replace function public.get_rankings_admin(p_secret text)
 returns table (categoria text, posicao int, participante_slug text, media numeric, avaliacoes int)
 language plpgsql security definer set search_path = public as $$
+#variable_conflict use_column
 begin
   if not public.admin_ok(p_secret) then return; end if;
   return query
