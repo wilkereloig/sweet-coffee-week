@@ -5,12 +5,13 @@
 //   participantId: "",
 //   slug: "",
 //   name: "",
-//   description: "",       <- parágrafo de abertura
-//   sweetDescription: "",  <- item doce
-//   savoryDescription: "", <- item salgado
-//   drinkDescription: "",  <- bebida
+//   description: "",                         <- parágrafo de abertura
+//   sweet:  { name: "", desc: "" },          <- item doce  (name em destaque)
+//   savory: { name: "", desc: "" },          <- item salgado
+//   drink:  { name: "", desc: "" },          <- bebida (name pode ser "" quando é só "escolha entre…")
 //   price: ""
 // }
+// Douce di Maria não tem combo fixo: usa boxItems (Sweet Box).
 
 export const COMBOS = [
   {
@@ -20,9 +21,9 @@ export const COMBOS = [
     slug: "adocee-doceria",
     name: "Adocee Doceria",
     description: "O coração do sweetlover bate mais forte, a torcida vibra… É a Sweet marcando golaço!",
-    sweetDescription: "Delícia de Chocolate com Cocada. Massa macia de chocolate recheada com cocada cremosa e finalizada com irresistível Buttercream. Um doce que é gol de placa!",
-    savoryDescription: "Bolinho de Frango Crocante. Massa artesanal recheada com frango refogado às ervas finas, cremoso Catupiry e finalizado com crocante empanado de farinha panko. Um salgado digno de torcida!",
-    drinkDescription: "Escolha entre Refrigerante Mine, Café ou Água; porque todo combo campeão merece sua bebida favorita.",
+    sweet: { name: "Delícia de Chocolate com Cocada", desc: "Massa macia de chocolate recheada com cocada cremosa e finalizada com irresistível Buttercream. Um doce que é gol de placa!" },
+    savory: { name: "Bolinho de Frango Crocante", desc: "Massa artesanal recheada com frango refogado às ervas finas, cremoso Catupiry e finalizado com crocante empanado de farinha panko. Um salgado digno de torcida!" },
+    drink: { name: "", desc: "Escolha entre Refrigerante Mine, Café ou Água; porque todo combo campeão merece sua bebida favorita." },
     price: "",
   },
   {
@@ -32,9 +33,9 @@ export const COMBOS = [
     slug: "bolomania",
     name: "Bolomania",
     description: "Suba no Monte Fuji sem sair do lugar!",
-    sweetDescription: "Sabores do Monte Fuji. Vulcão chiffon de 3 chocolates, recheado com brigadeiro de Matcha e chocolate branco, coberto com mousse de leite aveludado e geleia artesanal de morango. Um doce que te leva direto ao topo do Monte Fuji!",
-    savoryDescription: "Oishii Tonkatsu. Pão artesanal de leite e queijo, recheado com lombo suíno suculento, coberto com molho Tonkatsu, picles de cebola roxa, repolho crocante e a autêntica maionese japonesa Kewpie. Uma explosão de sabores que é puro Japão!",
-    drinkDescription: "Hanami. Bebida inspirada nas sakuras do Japão: refrescante e com toque cítrico de limão, morango e hibisco, perfeita para brindar momentos marcantes e floridos! Ou café expresso ou água.",
+    sweet: { name: "Sabores do Monte Fuji", desc: "Vulcão chiffon de 3 chocolates, recheado com brigadeiro de Matcha e chocolate branco, coberto com mousse de leite aveludado e geleia artesanal de morango. Um doce que te leva direto ao topo do Monte Fuji!" },
+    savory: { name: "Oishii Tonkatsu", desc: "Pão artesanal de leite e queijo, recheado com lombo suíno suculento, coberto com molho Tonkatsu, picles de cebola roxa, repolho crocante e a autêntica maionese japonesa Kewpie. Uma explosão de sabores que é puro Japão!" },
+    drink: { name: "Hanami", desc: "Bebida inspirada nas sakuras do Japão: refrescante e com toque cítrico de limão, morango e hibisco, perfeita para brindar momentos marcantes e floridos! Ou café expresso ou água." },
     price: "",
   },
   {
@@ -44,9 +45,9 @@ export const COMBOS = [
     slug: "caffe-basilicos",
     name: "Caffè Basilico's",
     description: "Benvenuti a una dolce avventura!",
-    sweetDescription: "Delizie al Cioccolato. Nossa releitura sofisticada da clássica palha italiana, feita com chocolate intenso, textura cremosa e o equilíbrio perfeito entre suavidade e crocância. Um doce que é puro charme italiano!",
-    savoryDescription: "Corneto al Gamberi ou Pollo. Camarões salteados ao creme de gorgonzola dentro de uma massa artesanal, ou frango com gorgonzola. Cada mordida é uma viagem ao sabor da Itália!",
-    drinkDescription: "Cappuccino Maison, água ou refrigerante, porque todo combo italiano merece a bebida certa.",
+    sweet: { name: "Delizie al Cioccolato", desc: "Nossa releitura sofisticada da clássica palha italiana, feita com chocolate intenso, textura cremosa e o equilíbrio perfeito entre suavidade e crocância. Um doce que é puro charme italiano!" },
+    savory: { name: "Corneto al Gamberi ou Pollo", desc: "Camarões salteados ao creme de gorgonzola dentro de uma massa artesanal, ou frango com gorgonzola. Cada mordida é uma viagem ao sabor da Itália!" },
+    drink: { name: "", desc: "Cappuccino Maison, água ou refrigerante, porque todo combo italiano merece a bebida certa." },
     price: "",
   },
   {
@@ -56,9 +57,9 @@ export const COMBOS = [
     slug: "canutos",
     name: "Canuto's",
     description: "Na Disney a magia nunca acaba.",
-    sweetDescription: "Esfera Mágica de Chocolate. Deliciosa esfera de chocolate com recheio de cheesecake e geleia de morango, sobre uma base de brownie macia. Um doce digno de contos de fadas!",
-    savoryDescription: "Frango Frito com Fritas. Crocante, suculento e saboroso, perfeito para acompanhar essa aventura mágica.",
-    drinkDescription: "Milkshake de caramelo salgado para fechar com chave de ouro.",
+    sweet: { name: "Esfera Mágica de Chocolate", desc: "Deliciosa esfera de chocolate com recheio de cheesecake e geleia de morango, sobre uma base de brownie macia. Um doce digno de contos de fadas!" },
+    savory: { name: "Frango Frito com Fritas", desc: "Crocante, suculento e saboroso, perfeito para acompanhar essa aventura mágica." },
+    drink: { name: "Milkshake de caramelo salgado", desc: "Para fechar com chave de ouro." },
     price: "",
   },
   {
@@ -68,9 +69,9 @@ export const COMBOS = [
     slug: "caroli-douces",
     name: "Caroli Douces",
     description: "É o AMOR… Que mexe com a nossa cabeça e deixa a gente como?",
-    sweetDescription: "Cake Lover. Massa de chocolate do melhor bolo do mundo, com creme branco, morango e recheio de brigadeiro. Um doce que é amor à primeira mordida!",
-    savoryDescription: "Coxinha é o Amor. Frango ou frango com catupiry. Ou, para os vegetarianos, porção com 6 mini bolinhas de queijo. Porque todo amor merece um salgado delicioso.",
-    drinkDescription: "Limonada Paixão. Com um toque de morango e chantilly suave. Refrescante e doce na medida certa, perfeita pra brindar o amor!",
+    sweet: { name: "Cake Lover", desc: "Massa de chocolate do melhor bolo do mundo, com creme branco, morango e recheio de brigadeiro. Um doce que é amor à primeira mordida!" },
+    savory: { name: "Coxinha é o Amor", desc: "Frango ou frango com catupiry. Ou, para os vegetarianos, porção com 6 mini bolinhas de queijo. Porque todo amor merece um salgado delicioso." },
+    drink: { name: "Limonada Paixão", desc: "Com um toque de morango e chantilly suave. Refrescante e doce na medida certa, perfeita pra brindar o amor!" },
     price: "",
   },
   {
@@ -80,9 +81,9 @@ export const COMBOS = [
     slug: "casa-1190",
     name: "Casa 1190 - Restaurant e Coffee",
     description: "A noite cai em Mystic Falls… e os sabores ganham vida!",
-    sweetDescription: "Waffle Dark. Escuro como a noite de Mystic Falls, macio e intenso, servido com brigadeiro 50% cacau, geleia artesanal de morango e finalizado com chantilly cremoso. Um doce que desperta o mistério e a magia da série!",
-    savoryDescription: "Dark Roast. Pão dark, levemente amanteigado, recheado com costela bovina desfiada lentamente, queijo azul cremoso e redução artesanal de vinho tinto. Um salgado profundo e cheio de personalidade, como os vampiros de Mystic Falls.",
-    drinkDescription: "Soda de Morango. Refrescante, com geleia artesanal de morango, toque cítrico de limão e água gaseificada. Um brinde que combina com encontros secretos e histórias inesquecíveis!",
+    sweet: { name: "Waffle Dark", desc: "Escuro como a noite de Mystic Falls, macio e intenso, servido com brigadeiro 50% cacau, geleia artesanal de morango e finalizado com chantilly cremoso. Um doce que desperta o mistério e a magia da série!" },
+    savory: { name: "Dark Roast", desc: "Pão dark, levemente amanteigado, recheado com costela bovina desfiada lentamente, queijo azul cremoso e redução artesanal de vinho tinto. Um salgado profundo e cheio de personalidade, como os vampiros de Mystic Falls." },
+    drink: { name: "Soda de Morango", desc: "Refrescante, com geleia artesanal de morango, toque cítrico de limão e água gaseificada. Um brinde que combina com encontros secretos e histórias inesquecíveis!" },
     price: "",
   },
   {
@@ -92,9 +93,9 @@ export const COMBOS = [
     slug: "casa-de-taipa-tapiocaria",
     name: "Casa de Taipa Tapiocaria",
     description: "25 anos de história, sabor e tradição… e cada mordida é uma festa!",
-    sweetDescription: "Tapioca Cartola. Banana caramelizada, queijo, canela, calda de chocolate e castanha de caju. Uma explosão de sabores que mistura carinho, memória e tradição doce da nossa terra.",
-    savoryDescription: "Dadinho de Cuscuz. Três unidades de dadinho de cuscuz com carne de sol, crocante por fora, macio por dentro. Um clássico nordestino que é pura lembrança afetiva!",
-    drinkDescription: "Café coado na mesa ou água sem gás. Nada como um toque simples e aconchegante pra fechar essa experiência.",
+    sweet: { name: "Tapioca Cartola", desc: "Banana caramelizada, queijo, canela, calda de chocolate e castanha de caju. Uma explosão de sabores que mistura carinho, memória e tradição doce da nossa terra." },
+    savory: { name: "Dadinho de Cuscuz", desc: "Três unidades de dadinho de cuscuz com carne de sol, crocante por fora, macio por dentro. Um clássico nordestino que é pura lembrança afetiva!" },
+    drink: { name: "", desc: "Café coado na mesa ou água sem gás. Nada como um toque simples e aconchegante pra fechar essa experiência." },
     price: "",
   },
   {
@@ -104,9 +105,9 @@ export const COMBOS = [
     slug: "delicato-bolos",
     name: "Delicato Bolos",
     description: "Bonjour, Sweet Lovers! Entre profiteroles, croissants e borbulhas refrescantes, cada mordida é uma viagem pelas ruas de Paris.",
-    sweetDescription: "Profiteroles Crème au Chocolat. Massa choux delicada, recheada com brigadeiro de crème brûlée, finalizada com Nibs de cacau e flor de sal potiguar, e acompanhada de calda de chocolate. Um clássico francês com toque especial da nossa terra.",
-    savoryDescription: "Croissant Provençal. Folhado dourado, recheado com creme de queijo, tomate confit e pesto de manjericão, realçado pelo toque da nossa castanha. Sabor, elegância e tradição em cada mordida!",
-    drinkDescription: "Soleil Caja. Soda potiguar borbulhante feita com suco de caja, acidez do limão e doçura do xarope de framboesa. Ou substitua por café ou água.",
+    sweet: { name: "Profiteroles Crème au Chocolat", desc: "Massa choux delicada, recheada com brigadeiro de crème brûlée, finalizada com Nibs de cacau e flor de sal potiguar, e acompanhada de calda de chocolate. Um clássico francês com toque especial da nossa terra." },
+    savory: { name: "Croissant Provençal", desc: "Folhado dourado, recheado com creme de queijo, tomate confit e pesto de manjericão, realçado pelo toque da nossa castanha. Sabor, elegância e tradição em cada mordida!" },
+    drink: { name: "Soleil Caja", desc: "Soda potiguar borbulhante feita com suco de caja, acidez do limão e doçura do xarope de framboesa. Ou substitua por café ou água." },
     price: "",
   },
   {
@@ -126,9 +127,6 @@ export const COMBOS = [
       { country: "Austrália", emoji: "🍓", name: "Pavlova de frutas vermelhas", desc: "Leve, doce e elegante como uma manhã australiana." },
       { country: "Portugal", emoji: "🥧", name: "Pastel de Nata", desc: "O clássico que atravessa gerações e conquista corações." },
     ],
-    sweetDescription: "",
-    savoryDescription: "",
-    drinkDescription: "",
     price: "",
   },
   {
@@ -138,9 +136,9 @@ export const COMBOS = [
     slug: "jolie-cafe-patisserie",
     name: "Jolie Café Pâtisserie",
     description: "Ó o arraiá dos Sweet Lovers chegando! A Jolie Café Pâtisserie traz o clima de São João direto para o seu combo: cores, sabores e criatividade.",
-    sweetDescription: "Croissant de Lamber os Beiço. Croissant recheado com creme de pudim, caramelo amanteigado com flor de sal e pipoca caramelada. Doce que é puro amor e nostalgia junina!",
-    savoryDescription: "Coxinha Boa da Gota ou Bolinhas de Comer Rezando. Coxinha de fraldinha desmanchando, preparada lentamente no molho, finalizada com cheiro verde. Ou, para vegetarianos, bolinhas de queijo crocantes com aioli de cheiro verde.",
-    drinkDescription: "Doce Mel ou Cafezin. Soda refrescante de cajá com limão, cítrica na medida certa. Ou cafezin quentinho para completar a experiência.",
+    sweet: { name: "Croissant de Lamber os Beiço", desc: "Croissant recheado com creme de pudim, caramelo amanteigado com flor de sal e pipoca caramelada. Doce que é puro amor e nostalgia junina!" },
+    savory: { name: "Coxinha Boa da Gota ou Bolinhas de Comer Rezando", desc: "Coxinha de fraldinha desmanchando, preparada lentamente no molho, finalizada com cheiro verde. Ou, para vegetarianos, bolinhas de queijo crocantes com aioli de cheiro verde." },
+    drink: { name: "Doce Mel ou Cafezin", desc: "Soda refrescante de cajá com limão, cítrica na medida certa. Ou cafezin quentinho para completar a experiência." },
     price: "",
   },
   {
@@ -150,9 +148,9 @@ export const COMBOS = [
     slug: "just-food-coffee",
     name: "Just Food&Coffee",
     description: "Seja bem-vindo à floresta encantada dos sabores! Entre árvores, musgo e cabanas doces, os contos de fada ganham vida na sua mesa.",
-    sweetDescription: "A Cabana Encantada. Bolo de chocolate recheado com brigadeiro de castanha de caju, coberto com brigadeiro belga ao leite e finalizado com merengue maçaricado. A sensação acolhedora de uma cabana no meio da floresta, como no clássico João e Maria!",
-    savoryDescription: "Croissant Artesanal. Recheado com creme de frango, requeijão e ervas, servido em pé e finalizado com farofa verde que lembra o musgo da floresta.",
-    drinkDescription: "Bebida Frutada. Gaseificada de frutas vermelhas com hibisco, limão e maçã vermelha picada. Um toque lúdico que remete às clássicas maçãs dos contos de fada.",
+    sweet: { name: "A Cabana Encantada", desc: "Bolo de chocolate recheado com brigadeiro de castanha de caju, coberto com brigadeiro belga ao leite e finalizado com merengue maçaricado. A sensação acolhedora de uma cabana no meio da floresta, como no clássico João e Maria!" },
+    savory: { name: "Croissant Artesanal", desc: "Recheado com creme de frango, requeijão e ervas, servido em pé e finalizado com farofa verde que lembra o musgo da floresta." },
+    drink: { name: "Bebida Frutada", desc: "Gaseificada de frutas vermelhas com hibisco, limão e maçã vermelha picada. Um toque lúdico que remete às clássicas maçãs dos contos de fada." },
     price: "",
   },
   {
@@ -162,9 +160,9 @@ export const COMBOS = [
     slug: "mangai",
     name: "Mangai",
     description: "Olha, quem tá fora quer entrar, mas quem tá dentro não sai. Inspirado no clássico de Dominguinhos, o combo do Mangai é nordeste puro: sabor, alegria e memória afetiva.",
-    sweetDescription: "Cartola de Ouro Petit. Banana frita na chapa, coberta com queijo de manteiga derretido, chocolate em pó, canela, açúcar e sorvete artesanal de creme. Um doce que é poesia nordestina!",
-    savoryDescription: "Mini Hambúrguer Arretado. Pão brioche, hambúrguer de carne bovina, queijo de manteiga derretido, bacon, tomate e alface. Sabor forte, marcante e cheio de brasilidade.",
-    drinkDescription: "Suco de Laranja. Refrescante, cítrico e leve, perfeito pra acompanhar cada pedacinho desse combo.",
+    sweet: { name: "Cartola de Ouro Petit", desc: "Banana frita na chapa, coberta com queijo de manteiga derretido, chocolate em pó, canela, açúcar e sorvete artesanal de creme. Um doce que é poesia nordestina!" },
+    savory: { name: "Mini Hambúrguer Arretado", desc: "Pão brioche, hambúrguer de carne bovina, queijo de manteiga derretido, bacon, tomate e alface. Sabor forte, marcante e cheio de brasilidade." },
+    drink: { name: "Suco de Laranja", desc: "Refrescante, cítrico e leve, perfeito pra acompanhar cada pedacinho desse combo." },
     price: "",
   },
   {
@@ -174,9 +172,9 @@ export const COMBOS = [
     slug: "mr-cupcake-confeitaria",
     name: "Mr. Cupcake Confeitaria",
     description: "Qual casa o Chapéu Seletor escolheria para você? Grifinória, Sonserina, Corvinal ou Lufa-Lufa?",
-    sweetDescription: "Mr. Mini Cake Chapéu Seletor. Mini cake de chocolate com mousse de chocolate e calda de caramelo mágico Dedos de Mel. Ao cortar, o Chapéu Seletor revela sua casa. Um doce que é pura magia e nostalgia!",
-    savoryDescription: "Mr. Coxinha de Frango de Hogwarts. Nossa clássica coxinha de frango ganha versão inspirada nos banquetes do castelo mais famoso do mundo bruxo. Crocante, cremosa e cheia de encanto!",
-    drinkDescription: "Mr. Soda Poção Polissuco. Bebida de maçã verde inspirada nas poções mágicas de Hogwarts. Refrescante, misteriosa e com aparência digna de uma aula do Professor Snape.",
+    sweet: { name: "Mr. Mini Cake Chapéu Seletor", desc: "Mini cake de chocolate com mousse de chocolate e calda de caramelo mágico Dedos de Mel. Ao cortar, o Chapéu Seletor revela sua casa. Um doce que é pura magia e nostalgia!" },
+    savory: { name: "Mr. Coxinha de Frango de Hogwarts", desc: "Nossa clássica coxinha de frango ganha versão inspirada nos banquetes do castelo mais famoso do mundo bruxo. Crocante, cremosa e cheia de encanto!" },
+    drink: { name: "Mr. Soda Poção Polissuco", desc: "Bebida de maçã verde inspirada nas poções mágicas de Hogwarts. Refrescante, misteriosa e com aparência digna de uma aula do Professor Snape." },
     price: "",
   },
   {
@@ -186,9 +184,9 @@ export const COMBOS = [
     slug: "o-maestro-cafe",
     name: "O Maestro Café",
     description: "É dia de celebrar quem faz a Sweet Coffee ser inesquecível: os Sweet Lovers!",
-    sweetDescription: "O Primeiro Beijo. Base de castanha de caju recheada com creme Chiboust e coulis de morango, finalizada com espuma de cream cheese e vinagrete de morangos frescos. Um doce pensado para quem viveu e ama cada momento da Sweet Coffee Week!",
-    savoryDescription: "Delirium Lovers. Pão de macaxeira macio e artesanal, recheado com salada Coleslaw e almôndegas de frango, finalizado com molho Supreme da casa e picles de cebola roxa. Ou recheado com caponata para vegetarianos.",
-    drinkDescription: "Sweet Drink. Bebida gelada de frutas vermelhas, com toque cítrico e espuma da casa. Refrescante, delicada e perfeita para brindar os sabores que marcaram esses 10 anos.",
+    sweet: { name: "O Primeiro Beijo", desc: "Base de castanha de caju recheada com creme Chiboust e coulis de morango, finalizada com espuma de cream cheese e vinagrete de morangos frescos. Um doce pensado para quem viveu e ama cada momento da Sweet Coffee Week!" },
+    savory: { name: "Delirium Lovers", desc: "Pão de macaxeira macio e artesanal, recheado com salada Coleslaw e almôndegas de frango, finalizado com molho Supreme da casa e picles de cebola roxa. Ou recheado com caponata para vegetarianos." },
+    drink: { name: "Sweet Drink", desc: "Bebida gelada de frutas vermelhas, com toque cítrico e espuma da casa. Refrescante, delicada e perfeita para brindar os sabores que marcaram esses 10 anos." },
     price: "",
   },
   {
@@ -198,9 +196,9 @@ export const COMBOS = [
     slug: "oli-gastro",
     name: "Olí Gastrô",
     description: "De Natal a Lisboa… sem sair da sua mesa!",
-    sweetDescription: "Baba de Camelo. Doce típico português transformado em um brigadeiro com textura leve que derrete na boca.",
-    savoryDescription: "Toast de Chouriço com Pasta de Azeitona. Salgado saboroso, crocante e cheio de personalidade, trazendo a essência da gastronomia portuguesa.",
-    drinkDescription: "Meia de leite, café expresso ou água mineral com Petit Four de Pastel de Natal.",
+    sweet: { name: "Baba de Camelo", desc: "Doce típico português transformado em um brigadeiro com textura leve que derrete na boca." },
+    savory: { name: "Toast de Chouriço com Pasta de Azeitona", desc: "Salgado saboroso, crocante e cheio de personalidade, trazendo a essência da gastronomia portuguesa." },
+    drink: { name: "", desc: "Meia de leite, café expresso ou água mineral com Petit Four de Pastel de Natal." },
     price: "",
   },
   {
@@ -210,9 +208,9 @@ export const COMBOS = [
     slug: "padoca-do-bosque",
     name: "Padoca do Bosque",
     description: "Vamos passear no bosque? A Padoca do Bosque convida você a passear pelo universo de contos de fada, onde cada mordida e gole é magia pura.",
-    sweetDescription: "Cestinha de Frutas do Bosque. Massa folhada recheada com cheesecake de frutas vermelhas, inspirada na história da Chapeuzinho Vermelho. Um doce que é puro encanto e memórias da infância.",
-    savoryDescription: "Trio de Coxinhas – Três Porquinhos. Cícero: Coxinha de Costela Suína com Barbecue. Heitor: Coxinha de Peperoni com Cream Cheese. Prático: Coxinha de Frango.",
-    drinkDescription: "Bebida Encantada. Suco de maçã verde com morango, ou café preto / café com leite. Refrescante e perfeito para esse passeio mágico pelo bosque.",
+    sweet: { name: "Cestinha de Frutas do Bosque", desc: "Massa folhada recheada com cheesecake de frutas vermelhas, inspirada na história da Chapeuzinho Vermelho. Um doce que é puro encanto e memórias da infância." },
+    savory: { name: "Trio de Coxinhas – Três Porquinhos", desc: "Cícero: Coxinha de Costela Suína com Barbecue. Heitor: Coxinha de Peperoni com Cream Cheese. Prático: Coxinha de Frango." },
+    drink: { name: "Bebida Encantada", desc: "Suco de maçã verde com morango, ou café preto / café com leite. Refrescante e perfeito para esse passeio mágico pelo bosque." },
     price: "",
   },
   {
@@ -222,9 +220,9 @@ export const COMBOS = [
     slug: "paneer-patisserie",
     name: "Paneer Pâtisserie",
     description: "CHAPEUZINHO: Que boca tão grande você tem! LOBO: É para comer o combo do Sweet & Coffee Week todinho só pra mim!",
-    sweetDescription: "Mufim Red Velvet (Velvet da Chapeuzinho). Cobertura de chantininho, dois mini cookies de limão siciliano com chocolate branco e geleia de morango.",
-    savoryDescription: "Trouxinha da Vovó. Folhado amanteigado recheado com queijo e presunto, quentinho e acolhedor, como um abraço da vovó.",
-    drinkDescription: "Porção Encantada. Soda italiana de frutas vermelhas, refrescante, divertida e perfeita para brindar o final feliz da história.",
+    sweet: { name: "Mufim Red Velvet (Velvet da Chapeuzinho)", desc: "Cobertura de chantininho, dois mini cookies de limão siciliano com chocolate branco e geleia de morango." },
+    savory: { name: "Trouxinha da Vovó", desc: "Folhado amanteigado recheado com queijo e presunto, quentinho e acolhedor, como um abraço da vovó." },
+    drink: { name: "Porção Encantada", desc: "Soda italiana de frutas vermelhas, refrescante, divertida e perfeita para brindar o final feliz da história." },
     price: "",
   },
   {
@@ -234,9 +232,9 @@ export const COMBOS = [
     slug: "parma-doces",
     name: "Parma Doces",
     description: "A primavera chegou na mesa dos Sweet Lovers!",
-    sweetDescription: "Jarrinho de Flor. Cremoso de chocolate, bolo de chocolate molhadinho, chocoball drageadas e creme de Kinder Bueno. A calda de chocolate servida à parte deixa cada colherada florescer na boca.",
-    savoryDescription: "Baguete Gratinada. Baguete artesanal recheada com cremoso molho de bacon, pedacinhos suculentos de frango e finalizada com mussarela maçaricada. Um salgado quentinho, saboroso e acolhedor.",
-    drinkDescription: "Café ou água, porque até os momentos mais simples merecem pausa, cuidado e presença.",
+    sweet: { name: "Jarrinho de Flor", desc: "Cremoso de chocolate, bolo de chocolate molhadinho, chocoball drageadas e creme de Kinder Bueno. A calda de chocolate servida à parte deixa cada colherada florescer na boca." },
+    savory: { name: "Baguete Gratinada", desc: "Baguete artesanal recheada com cremoso molho de bacon, pedacinhos suculentos de frango e finalizada com mussarela maçaricada. Um salgado quentinho, saboroso e acolhedor." },
+    drink: { name: "", desc: "Café ou água, porque até os momentos mais simples merecem pausa, cuidado e presença." },
     price: "",
   },
   {
@@ -246,9 +244,9 @@ export const COMBOS = [
     slug: "rollab-confeitaria",
     name: "Rollab Confeitaria",
     description: "Eu preguntei a Deus do céu, por que tamanha judiação? A Rollab transforma o clássico 'Asa Branca' em sabores que celebram o Nordeste, a tradição e a memória afetiva.",
-    sweetDescription: "Bolo Pamonha com Mousse de Banana. Bolo super macio, com mousse de banana frita na manteiga da terra, crocante de cacau e creme de queijo de manteiga. Um doce que é pura brasilidade e memória afetiva.",
-    savoryDescription: "Macaquinho do Sertão. Crosta dourada por fora, recheio de baião de dois com carne de sol, bacon e queijo de manteiga, finalizado com toque de maionese de rapadura e picles de maxixe. Um salgado que é sertanejo e saboroso até o último pedaço!",
-    drinkDescription: "Soda de Acerola da Casa, Café do Sítio ou água mineral.",
+    sweet: { name: "Bolo Pamonha com Mousse de Banana", desc: "Bolo super macio, com mousse de banana frita na manteiga da terra, crocante de cacau e creme de queijo de manteiga. Um doce que é pura brasilidade e memória afetiva." },
+    savory: { name: "Macaquinho do Sertão", desc: "Crosta dourada por fora, recheio de baião de dois com carne de sol, bacon e queijo de manteiga, finalizado com toque de maionese de rapadura e picles de maxixe. Um salgado que é sertanejo e saboroso até o último pedaço!" },
+    drink: { name: "", desc: "Soda de Acerola da Casa, Café do Sítio ou água mineral." },
     price: "",
   },
   {
@@ -258,9 +256,9 @@ export const COMBOS = [
     slug: "sweet-duo-confeitaria",
     name: "Sweet Duo Confeitaria",
     description: "Temos Sweet Lovers & Armys por aí? Sinta a energia desse show!",
-    sweetDescription: "LY Croffle. Croffle crocante e amanteigado, ponta banhada em chocolate, com morangos frescos, creme aveludado, lascas de chocolate branco e suspiros. Um doce que é puro 'Love Yourself' em cada mordida!",
-    savoryDescription: "Arirang Chicken. Frango frito super crocante, servido tradicional ou com molho agridoce brilhante, trazendo contraste de sabores inspirado na Coreia. Crocância, sabor intenso e aquele toque que só quem entende o BTS sente!",
-    drinkDescription: "Magic Shop Dalgona. Café gelado cremoso com leite, gelo e chocolate. Também dá pra escolher Coca-Cola normal ou zero, ou água mineral.",
+    sweet: { name: "LY Croffle", desc: "Croffle crocante e amanteigado, ponta banhada em chocolate, com morangos frescos, creme aveludado, lascas de chocolate branco e suspiros. Um doce que é puro 'Love Yourself' em cada mordida!" },
+    savory: { name: "Arirang Chicken", desc: "Frango frito super crocante, servido tradicional ou com molho agridoce brilhante, trazendo contraste de sabores inspirado na Coreia. Crocância, sabor intenso e aquele toque que só quem entende o BTS sente!" },
+    drink: { name: "Magic Shop Dalgona", desc: "Café gelado cremoso com leite, gelo e chocolate. Também dá pra escolher Coca-Cola normal ou zero, ou água mineral." },
     price: "",
   },
   {
@@ -270,9 +268,9 @@ export const COMBOS = [
     slug: "wow-cookies",
     name: "Wow Cookies",
     description: "Direto do coração do Seridó pra Sweet Coffee Week.",
-    sweetDescription: "Cookie Romeu e Julieta. Uma releitura doce da combinação que atravessa gerações no Nordeste: queijo com goiabada. Macio, equilibrado e cheio de personalidade.",
-    savoryDescription: "Cookie Salgado de Carne de Sol. Inspirado na clássica carne de sol seridoense. Massa que derrete na boca e recheio cremoso de carne de sol desfiada. Um cookie que é puro sabor nordestino.",
-    drinkDescription: "Café Expresso. Porque toda boa conversa no interior termina com um cafezinho fresquinho. Também pode ser substituído por água ou Coca-Cola.",
+    sweet: { name: "Cookie Romeu e Julieta", desc: "Uma releitura doce da combinação que atravessa gerações no Nordeste: queijo com goiabada. Macio, equilibrado e cheio de personalidade." },
+    savory: { name: "Cookie Salgado de Carne de Sol", desc: "Inspirado na clássica carne de sol seridoense. Massa que derrete na boca e recheio cremoso de carne de sol desfiada. Um cookie que é puro sabor nordestino." },
+    drink: { name: "Café Expresso", desc: "Porque toda boa conversa no interior termina com um cafezinho fresquinho. Também pode ser substituído por água ou Coca-Cola." },
     price: "",
   },
 ]

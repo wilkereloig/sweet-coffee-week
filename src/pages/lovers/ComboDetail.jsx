@@ -355,12 +355,14 @@ function ComboDetailPageInner({ navigate, slug }) {
   const gallery = combo?.gallery || []
 
   const asImgs = (arr, single) => (arr && arr.length ? arr : single ? [single] : [])
+  // Nome em destaque + descrição. Suporta o formato estruturado { name, desc }
+  // e o formato antigo (string única em sweetDescription/…).
   const comboItems = combo
     ? [
-        { k: 'Doce', v: combo.sweetDescription, imgs: asImgs(combo.sweetImages, combo.sweetImage) },
-        { k: 'Salgado', v: combo.savoryDescription, imgs: asImgs(combo.savoryImages, combo.savoryImage) },
-        { k: 'Bebida', v: combo.drinkDescription, imgs: asImgs(combo.drinkImages, combo.drinkImage) },
-      ].filter(it => it.v || it.imgs.length)
+        { k: 'Doce', name: combo.sweet?.name, v: combo.sweet?.desc ?? combo.sweetDescription, imgs: asImgs(combo.sweetImages, combo.sweetImage) },
+        { k: 'Salgado', name: combo.savory?.name, v: combo.savory?.desc ?? combo.savoryDescription, imgs: asImgs(combo.savoryImages, combo.savoryImage) },
+        { k: 'Bebida', name: combo.drink?.name, v: combo.drink?.desc ?? combo.drinkDescription, imgs: asImgs(combo.drinkImages, combo.drinkImage) },
+      ].filter(it => it.v || it.name || it.imgs.length)
     : []
   const priceLabel = formatPrice(combo?.price)
   const openStatus = openSummary(participant)
@@ -471,6 +473,7 @@ function ComboDetailPageInner({ navigate, slug }) {
                           {ITEM_ICONS[it.k] && <span className="combo-detail-item-card__icon" aria-hidden="true">{ITEM_ICONS[it.k]}</span>}
                           {it.k}
                         </span>
+                        {it.name && <h3 className="combo-detail-item-card__name">{it.name}</h3>}
                         <p className={'combo-detail-item-card__v' + (it.v ? '' : ' combo-detail-item-card__v--soon')}>
                           {it.v || 'Descrição em breve'}
                         </p>
@@ -527,6 +530,19 @@ function ComboDetailPageInner({ navigate, slug }) {
               )}
               <p className="combo-detail-section__lead">
                 Confira a unidade participante antes de sair para a rota.
+              </p>
+              <p className="combo-detail-hours-disclaimer" role="note">
+                <span className="combo-detail-hours-disclaimer__icon" aria-hidden="true">⚠️</span>
+                <span>
+                  Os horários podem sofrer alterações. Em caso de dúvida, confira direto no{' '}
+                  {instagram ? (
+                    <a href={instagram} target="_blank" rel="noopener noreferrer" className="combo-detail-hours-disclaimer__link">
+                      Instagram do participante
+                    </a>
+                  ) : (
+                    'Instagram do participante'
+                  )}.
+                </span>
               </p>
             </div>
             {participant?.takeAwayOnly && (

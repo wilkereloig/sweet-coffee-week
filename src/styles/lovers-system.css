@@ -1477,12 +1477,22 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 }
 .combo-detail-item-card__ph svg { width: 30px; height: 30px; opacity: .55; }
 .combo-detail-item-card__k {
-  display: inline-flex; align-items: center; gap: 8px; margin-top: 4px;
-  font-family: var(--font-lovers-display); font-weight: 800; font-size: 20px; line-height: 1;
-  color: var(--lovers-brown); text-transform: none; letter-spacing: 0;
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 4px;
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px; line-height: 1;
+  color: var(--cd-accent, var(--lovers-pink)); text-transform: uppercase; letter-spacing: .12em;
 }
 .combo-detail-item-card__icon { display: inline-flex; color: var(--cd-accent, var(--lovers-pink)); }
-.combo-detail-item-card__icon svg { width: 22px; height: 22px; }
+.combo-detail-item-card__icon svg { width: 18px; height: 18px; }
+/* Nome do item em destaque — o título principal de cada card */
+.combo-detail-item-card__name {
+  margin: 2px 0 0;
+  font-family: var(--font-lovers-display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.12;
+  color: var(--lovers-burgundy);
+  letter-spacing: 0;
+}
 /* Contato do estabelecimento (Instagram + WhatsApp) */
 .combo-detail-contact__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
@@ -1704,11 +1714,38 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .awards-field.is-guiding > textarea,
   .awards-field.is-guiding > select { animation: none; }
 }
-.combo-detail-item-card__v { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--lovers-brown); }
+.combo-detail-item-card__v { margin: 2px 0 0; font-size: 15.5px; line-height: 1.62; color: color-mix(in srgb, var(--lovers-brown) 90%, #000); }
 .combo-detail-item-card__v--soon { opacity: .55; font-style: italic; }
 @media (max-width: 768px) {
   .combo-detail-items { grid-template-columns: 1fr; gap: 14px; }
+  .combo-detail-item-card { padding: 16px; gap: 11px; }
+  .combo-detail-item-card__name { font-size: 21px; }
+  .combo-detail-item-card__v { font-size: 16px; }
 }
+
+/* Aviso de horário — horários podem mudar, conferir no Instagram */
+.combo-detail-hours-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding: 12px 15px;
+  max-width: 620px;
+  border-radius: 14px;
+  background: rgba(245, 184, 0, 0.14);
+  border: 1px solid rgba(245, 184, 0, 0.4);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--lovers-brown);
+}
+.combo-detail-hours-disclaimer__icon { flex-shrink: 0; font-size: 15px; line-height: 1.4; }
+.combo-detail-hours-disclaimer__link {
+  color: var(--lovers-burgundy);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.combo-detail-hours-disclaimer__link:hover { color: var(--lovers-red); }
 
 /* Sweet Box — lista vertical de itens (ex.: Douce di Maria, sem combo fixo) */
 .combo-box-list {
