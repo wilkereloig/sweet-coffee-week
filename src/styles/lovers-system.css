@@ -1213,6 +1213,42 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .combo-detail-final-cta .lovers-button--secondary { color: #fff; border-color: rgba(255,255,255,.6); background: transparent; }
 .combo-detail-final-cta .lovers-button--secondary:hover { background: #fff; color: var(--lovers-burgundy); border-color: #fff; }
 
+/* Bloco "Já experimentou? Avalie o combo" — convite à votação do Sweet Awards */
+.combo-detail-rate {
+  position: relative; isolation: isolate; overflow: hidden; text-align: center;
+  width: min(100%, 1280px); margin-inline: auto;
+  border-radius: clamp(28px, 3vw, 46px);
+  padding: clamp(36px, 6vw, 80px) clamp(24px, 6vw, 80px);
+  background: var(--lovers-purple);
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(43, 24, 16, .24);
+}
+.combo-detail-rate__sticker { position: absolute; top: clamp(18px, 2vw, 28px); right: clamp(18px, 2vw, 32px); transform: rotate(8deg); }
+.combo-detail-rate__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; margin-bottom: 14px; border-radius: 50%;
+  background: var(--lovers-yellow); color: var(--lovers-purple);
+}
+.combo-detail-rate__title {
+  margin: 0; font-family: var(--font-lovers-display); font-weight: 900;
+  font-size: clamp(26px, 4vw, 48px); line-height: 1; text-transform: uppercase;
+  color: #fff;
+}
+.combo-detail-rate__lead {
+  max-width: 560px; margin: 14px auto 0;
+  font-size: clamp(15px, 1.6vw, 18px); line-height: 1.5; color: rgba(255, 255, 255, .92);
+}
+.combo-detail-rate__lead strong { color: var(--lovers-yellow); }
+.combo-detail-rate__note {
+  display: inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 999px;
+  background: rgba(255, 255, 255, .16); color: #fff; font-weight: 700; font-size: 13px;
+}
+.combo-detail-rate__ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
+.combo-detail-rate .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-purple); border-color: transparent; }
+@media (max-width: 860px) {
+  .combo-detail-rate__sticker { position: static; display: inline-block; margin: 0 auto 14px; transform: rotate(4deg); }
+}
+
 /* Responsivo */
 @media (max-width: 860px) {
   .combo-detail-hero__grid { grid-template-columns: 1fr; gap: 26px; justify-items: center; text-align: center; }

@@ -15,6 +15,14 @@ const awardsVotingOpen = () => {
   return n >= new Date(AWARDS_VOTING.opensAt) && n <= new Date(AWARDS_VOTING.closesAt)
 }
 
+// Fase da votação para o bloco "Já experimentou?": antes de abrir, aberta ou encerrada.
+const awardsPhase = () => {
+  const n = new Date()
+  if (n < new Date(AWARDS_VOTING.opensAt)) return 'before'
+  if (n > new Date(AWARDS_VOTING.closesAt)) return 'closed'
+  return 'open'
+}
+
 // Preview data só em desenvolvimento local com a flag ligada.
 const ENABLE_PREVIEW_DATA =
   import.meta.env.VITE_ENABLE_LOVERS_INTERNAL_PAGES === 'true'
@@ -510,6 +518,48 @@ function ComboDetailPageInner({ navigate, slug }) {
           </div>
         </section>
       )}
+
+      {/* ── JÁ EXPERIMENTOU? AVALIE O COMBO ── */}
+      {(combo?.slug || participant?.slug) && (() => {
+        const voteSlug = combo?.slug || participant?.slug
+        const phase = awardsPhase()
+        return (
+          <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+            <div className="wrap lovers-safe-wrap">
+              <div className="combo-detail-rate lovers-reveal">
+                <span className="lovers-sticker lovers-sticker--pink combo-detail-rate__sticker" aria-hidden="true">sweet awards</span>
+                <span className="combo-detail-rate__icon" aria-hidden="true"><I.star width={30} height={30} /></span>
+                <h2 className="combo-detail-rate__title">Já provou esse combo?</h2>
+                <p className="combo-detail-rate__lead">
+                  Conte pra gente como foi. Sua nota ajuda a eleger os destaques do <strong>Sweet &amp; Coffee Week Awards</strong>.
+                </p>
+                {phase === 'before' && (
+                  <span className="combo-detail-rate__note">A votação abre em 04/06.</span>
+                )}
+                <div className="combo-detail-rate__ctas">
+                  {phase !== 'closed' ? (
+                    <LoversButton
+                      variant="primary"
+                      href={`#/lovers/votar?loja=${voteSlug}`}
+                      onClick={(e) => { e.preventDefault(); trackEvent('click_avaliar', { slug: voteSlug, nome: name, origem: 'combo_detail_bloco' }); navigate(`/lovers/votar?loja=${voteSlug}`) }}
+                    >
+                      <I.star width={18} height={18} /> Avaliar este combo
+                    </LoversButton>
+                  ) : (
+                    <LoversButton
+                      variant="primary"
+                      href="#/lovers/awards"
+                      onClick={(e) => { e.preventDefault(); navigate('/lovers/awards') }}
+                    >
+                      Ver resultados do Sweet Awards <I.arrow />
+                    </LoversButton>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )
+      })()}
 
       {/* ── FECHAMENTO (compartilhado) ── */}
       <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
