@@ -1760,6 +1760,18 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 }
 .combo-detail-hours-disclaimer__link:hover { color: var(--lovers-red); }
 
+/* CTA "Votar no Sweet Awards" — pulso + brilho em loop para chamar atenção */
+@keyframes loversCtaPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 22px rgba(242, 5, 103, .28); }
+  50%      { transform: scale(1.045); box-shadow: 0 12px 34px rgba(242, 5, 103, .5); }
+}
+.lovers-cta-pulse {
+  animation: loversCtaPulse 1.8s ease-in-out infinite;
+  will-change: transform;
+}
+.lovers-cta-pulse:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .lovers-cta-pulse { animation: none; } }
+
 /* Explicação curta sob cada critério de avaliação (form de votação) */
 .awards-rating__help {
   display: block;

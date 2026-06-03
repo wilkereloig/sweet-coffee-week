@@ -108,7 +108,7 @@ export function AwardsPage({ navigate }) {
           </p>
           {votingOpen && (
             <div style={{ marginTop: 22 }}>
-              <LoversButton variant="primary" href="#/lovers/votar"
+              <LoversButton variant="primary" href="#/lovers/votar" className="lovers-cta-pulse"
                 onClick={(e) => { e.preventDefault(); navigate('/lovers/votar') }}>
                 {AWARDS_TEXTS.cta} <I.arrow />
               </LoversButton>
