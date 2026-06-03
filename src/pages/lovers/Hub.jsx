@@ -1,7 +1,23 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
-import { LoversButton, LoversNavCard, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversNavCard, LoversStickers, useLoversReveal, ShareCardModal } from '../../components/lovers'
+
+/* CTA da carteirinha Sweet Lover — abre o card 9:16 pra compartilhar.
+   Nome reaproveitado do voto (localStorage), se houver. */
+function CarteirinhaCTA() {
+  const [open, setOpen] = React.useState(false)
+  let nome = ''
+  try { nome = (JSON.parse(window.localStorage.getItem('sweet-awards-voter')) || {}).nome || '' } catch { /* ignore */ }
+  return (
+    <>
+      <LoversButton variant="secondary" onClick={() => setOpen(true)}>
+        <I.heart width={16} height={16} /> Minha carteirinha Sweet Lover
+      </LoversButton>
+      <ShareCardModal open={open} onClose={() => setOpen(false)} variant="carteirinha" data={{ nome }} />
+    </>
+  )
+}
 
 /* Página /lovers — landing "Sobre a edição" (Lovers Interactive Editorial System).
    Scroll reveal via hook compartilhado useLoversReveal (observa '.lovers-reveal, .reveal'). */
@@ -256,6 +272,10 @@ function FinalCTA({ navigate }) {
              target="_blank" rel="noopener noreferrer">
             <I.ig width={14} height={14} /> @sweetcoffeeweek
           </a>
+
+          <div style={{ marginTop: 18, display: 'flex', justifyContent: 'center' }}>
+            <CarteirinhaCTA />
+          </div>
         </div>
 
         <div className="section-cta__footnote reveal reveal-up reveal-delay-3">

@@ -254,6 +254,31 @@
   .lovers-sticker-wrap { transform: none; transition: none; }
 }
 
+/* ── Modal de compartilhamento (ShareCardModal) ── */
+.share-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(43, 24, 16, .66);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.share-modal__panel {
+  background: var(--lovers-cream, #FFE8D2); border-radius: 24px; padding: 18px;
+  width: min(100%, 420px); max-height: 92vh; overflow: auto; position: relative;
+  text-align: center; box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
+}
+.share-modal__close {
+  position: absolute; top: 8px; right: 12px; background: transparent; border: 0;
+  font-size: 20px; color: var(--lovers-burgundy); cursor: pointer; line-height: 1;
+}
+.share-modal__preview { display: flex; justify-content: center; margin: 8px 0 12px; }
+.share-card-capture { border-radius: 18px; overflow: hidden; box-shadow: 0 12px 30px rgba(43, 24, 16, .25); }
+.share-modal__hint { margin: 0 0 12px; font-size: 14px; color: var(--lovers-brown); }
+.share-modal__actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.share-modal__actions .lovers-button { width: 100%; justify-content: center; }
+.share-modal__copy { background: transparent; border: 0; color: var(--lovers-red); font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px; }
+@media (max-width: 420px) {
+  .share-card-capture { transform: scale(.86); transform-origin: top center; margin-bottom: -88px; }
+}
+
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
 .lovers-safe-wrap {
   width: min(100% - clamp(40px, 12vw, 220px), 1120px);

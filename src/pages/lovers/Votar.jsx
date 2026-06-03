@@ -1,6 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversStickers, useLoversReveal, ShareCardModal } from '../../components/lovers'
 import { supabase } from '../../lib/supabase'
 import {
   AWARDS_VOTING, AWARDS_CATEGORIES, AWARDS_SCALE, GENDER_OPTIONS,
@@ -149,6 +149,7 @@ export function VotarPage({ navigate }) {
   }, [safeStepIdx])
   const [status, setStatus] = React.useState('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
+  const [shareOpen, setShareOpen] = React.useState(false)
 
   const STEP_META = {
     regras:    { label: 'Regras rápidas', hint: 'É rápido — só uma olhada antes de começar.' },
@@ -286,8 +287,15 @@ export function VotarPage({ navigate }) {
           <span className="awards-success__check" aria-hidden="true"><I.heart width={26} height={26} /></span>
           <h2 className="awards-success__title">{AWARDS_TEXTS.success.title}</h2>
           <p className="awards-success__body">{AWARDS_TEXTS.success.body}</p>
-          <LoversButton variant="primary" onClick={voteAnother}>Avaliar outro participante <I.arrow /></LoversButton>
+          <LoversButton variant="primary" onClick={() => setShareOpen(true)}><I.ig width={18} height={18} /> Compartilhar minha avaliação</LoversButton>
+          <LoversButton variant="secondary" onClick={voteAnother}>Avaliar outro participante <I.arrow /></LoversButton>
         </div>
+        <ShareCardModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          variant="meutop"
+          data={{ nome: identity.nome, participante: nameBySlug[participante], nota: notes.melhor_combo }}
+        />
       </Shell>
     )
   }
