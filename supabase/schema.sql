@@ -35,6 +35,7 @@ create table if not exists public.votos (
   genero text,
   escolaridade text,
   faixa_etaria text,
+  aceita_comunicacao boolean not null default false,
   participante_slug text not null,
   -- nota_combo deixou de ser coletada (prêmio "Melhor Combo" = média de doce+salgado+bebida).
   -- Mantida (nullable) para preservar votos antigos.
@@ -121,7 +122,8 @@ create or replace function public.submit_vote(
   p_obs text default null,
   p_gostou text default null,
   p_melhorar text default null,
-  p_sugestao_tema text default null
+  p_sugestao_tema text default null,
+  p_aceita_comunicacao boolean default false
 )
 returns void
 language plpgsql
@@ -178,6 +180,7 @@ begin
       email = v_email, nome = trim(p_nome), telefone = trim(p_telefone),
       instagram = trim(p_instagram), genero = p_genero,
       escolaridade = p_escolaridade, faixa_etaria = p_faixa_etaria,
+      aceita_comunicacao = p_aceita_comunicacao,
       nota_encantamento = p_nota_encantamento,
       nota_apresentacao = p_nota_apresentacao, nota_atendimento = p_nota_atendimento,
       nota_criatividade = p_nota_criatividade, nota_salgado = p_nota_salgado,
@@ -185,11 +188,11 @@ begin
     where id = v_id;
   else
     insert into public.votos (
-      email, nome, telefone, instagram, genero, escolaridade, faixa_etaria, participante_slug,
+      email, nome, telefone, instagram, genero, escolaridade, faixa_etaria, aceita_comunicacao, participante_slug,
       nota_encantamento, nota_apresentacao, nota_atendimento,
       nota_criatividade, nota_salgado, nota_doce, nota_bebida, obs, updated_at
     ) values (
-      v_email, trim(p_nome), trim(p_telefone), trim(p_instagram), p_genero, p_escolaridade, p_faixa_etaria, v_part,
+      v_email, trim(p_nome), trim(p_telefone), trim(p_instagram), p_genero, p_escolaridade, p_faixa_etaria, p_aceita_comunicacao, v_part,
       p_nota_encantamento, p_nota_apresentacao, p_nota_atendimento,
       p_nota_criatividade, p_nota_salgado, p_nota_doce, p_nota_bebida, p_obs, now()
     );
@@ -210,7 +213,7 @@ end;
 $$;
 
 grant execute on function public.submit_vote(
-  text,text,text,text,text,text,text,text,int,int,int,int,int,int,int,text,text,text,text
+  text,text,text,text,text,text,text,text,int,int,int,int,int,int,int,text,text,text,text,boolean
 ) to anon, authenticated;
 
 -- ── RPC: ranking (só devolve se results_published = true) ────────────────────

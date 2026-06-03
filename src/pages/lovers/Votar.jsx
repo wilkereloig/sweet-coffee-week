@@ -123,6 +123,7 @@ export function VotarPage({ navigate }) {
   const [participante, setParticipante] = React.useState(presetLoja || '')
   const [notes, setNotes] = React.useState(blankNotes)
   const [extra, setExtra] = React.useState({ obs: '', gostou: '', melhorar: '', sugestao_tema: '' })
+  const [aceitaComunicacao, setAceitaComunicacao] = React.useState(false)
 
   // Passos: novo votante vê regras + dados; lembrado pula pra "notas", mas, ao
   // clicar "Editar", mostra a etapa "Seus dados" pra corrigir os próprios dados.
@@ -196,7 +197,6 @@ export function VotarPage({ navigate }) {
       ...AWARDS_CATEGORIES.map(c => ({ id: c.key, empty: notes[c.key] == null })),
     ]) :
     step === 'final' ? firstEmpty([
-      { id: 'obs',           empty: !(extra.obs || '').trim() },
       { id: 'gostou',        empty: !(extra.gostou || '').trim() },
       { id: 'melhorar',      empty: !(extra.melhorar || '').trim() },
       { id: 'sugestao_tema', empty: !(extra.sugestao_tema || '').trim() },
@@ -246,6 +246,7 @@ export function VotarPage({ navigate }) {
       p_nota_doce: notes.doce, p_nota_bebida: notes.bebida,
       p_obs: extra.obs || null, p_gostou: extra.gostou || null,
       p_melhorar: extra.melhorar || null, p_sugestao_tema: extra.sugestao_tema || null,
+      p_aceita_comunicacao: aceitaComunicacao,
     }
     const { error } = await supabase.rpc('submit_vote', payload)
     if (error) { setStatus('error'); setErrorMsg('Não foi possível registrar seu voto. Tente novamente.'); return }
@@ -451,14 +452,16 @@ export function VotarPage({ navigate }) {
               Essas respostas são <strong>ouro pra gente</strong> 💛 Ajudam os participantes a evoluírem e
               guiam as próximas edições do Sweet. Leva menos de 1 minuto — conta pra gente?
             </p>
-            <label className={'awards-field' + g('obs')}><span>Alguma observação sobre o combo ou a experiência?</span>
-              <textarea rows={2} value={extra.obs} onChange={e => setEx('obs', e.target.value)} /></label>
-            <label className={'awards-field' + g('gostou')}><span>O que você mais gostou na edição?</span>
+            <label className={'awards-field' + g('gostou')}><span>O que você mais gostou do Sweet &amp; Coffee Week?</span>
               <textarea rows={2} value={extra.gostou} onChange={e => setEx('gostou', e.target.value)} /></label>
-            <label className={'awards-field' + g('melhorar')}><span>O que pode melhorar?</span>
+            <label className={'awards-field' + g('melhorar')}><span>O que você menos gostou ou que pode melhorar no Sweet &amp; Coffee Week?</span>
               <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
-            <label className={'awards-field' + g('sugestao_tema')}><span>Tema pra uma próxima edição?</span>
+            <label className={'awards-field' + g('sugestao_tema')}><span>Qual o tema deveria ser usado no próximo Sweet &amp; Coffee Week?</span>
               <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder="Solta a imaginação — qualquer ideia é bem-vinda 💛" /></label>
+            <label className="awards-follow" style={{ marginTop: 4 }}>
+              <input type="checkbox" checked={aceitaComunicacao} onChange={e => setAceitaComunicacao(e.target.checked)} />
+              <span>Quero receber em primeira mão novidades, promoções e as próximas edições do Sweet &amp; Coffee Week e seus parceiros.</span>
+            </label>
           </fieldset>
           {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
           <p className="awards-consent">

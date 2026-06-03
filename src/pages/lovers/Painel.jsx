@@ -186,7 +186,7 @@ function Auditoria({ secret }) {
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum voto registrado ainda.</p>
-  const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade',
+  const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade', 'aceita_comunicacao',
     'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento']
   return (
     <div style={card}>
