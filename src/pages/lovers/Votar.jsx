@@ -153,6 +153,30 @@ export function VotarPage({ navigate }) {
     (identity.instagram || '').trim() && identity.genero && identity.follows
   const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
 
+  // Destaque-guia: id do PRÓXIMO campo vazio da etapa atual. Recebe glow pulsante
+  // (.is-guiding) sinalizando o que preencher. Some quando tudo está preenchido.
+  const firstEmpty = (items) => { const hit = items.find(it => it.empty); return hit ? hit.id : null }
+  const guideId =
+    step === 'voce' ? firstEmpty([
+      { id: 'email',     empty: !emailOk(identity.email) },
+      { id: 'nome',      empty: !(identity.nome || '').trim() },
+      { id: 'telefone',  empty: !(identity.telefone || '').trim() },
+      { id: 'instagram', empty: !(identity.instagram || '').trim() },
+      { id: 'genero',    empty: !identity.genero },
+      { id: 'follows',   empty: !identity.follows },
+    ]) :
+    step === 'avaliacao' ? firstEmpty([
+      ...(presetLoja ? [] : [{ id: 'participante', empty: !participante }]),
+      ...AWARDS_CATEGORIES.map(c => ({ id: c.key, empty: notes[c.key] == null })),
+    ]) :
+    step === 'final' ? firstEmpty([
+      { id: 'obs',           empty: !(extra.obs || '').trim() },
+      { id: 'gostou',        empty: !(extra.gostou || '').trim() },
+      { id: 'melhorar',      empty: !(extra.melhorar || '').trim() },
+      { id: 'sugestao_tema', empty: !(extra.sugestao_tema || '').trim() },
+    ]) : null
+  const g = (id) => (guideId === id ? ' is-guiding' : '')
+
   function goNext() {
     if (step === 'voce' && !idValid) return
     if (step === 'avaliacao' && !notesValid) return
@@ -260,15 +284,15 @@ export function VotarPage({ navigate }) {
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Seus dados</legend>
-            <label className="awards-field"><span>E-mail <i>*</i></span>
+            <label className={'awards-field' + g('email')}><span>E-mail <i>*</i></span>
               <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" /></label>
-            <label className="awards-field"><span>Nome completo <i>*</i></span>
+            <label className={'awards-field' + g('nome')}><span>Nome completo <i>*</i></span>
               <input type="text" value={identity.nome} onChange={e => setId('nome', e.target.value)} /></label>
-            <label className="awards-field"><span>Contato telefônico <i>*</i></span>
+            <label className={'awards-field' + g('telefone')}><span>Contato telefônico <i>*</i></span>
               <input type="tel" inputMode="numeric" value={identity.telefone} onChange={e => setId('telefone', formatPhone(e.target.value))} placeholder="(00) 00000-0000" /></label>
-            <label className="awards-field"><span>Instagram <i>*</i></span>
+            <label className={'awards-field' + g('instagram')}><span>Instagram <i>*</i></span>
               <input type="text" value={identity.instagram} onChange={e => setId('instagram', formatInstagram(e.target.value))} placeholder="@seuperfil" /></label>
-            <div className="awards-field"><span>Como você se identifica? <i>*</i></span>
+            <div className={'awards-field' + g('genero')}><span>Como você se identifica? <i>*</i></span>
               <div className="awards-radios">
                 {GENDER_OPTIONS.map(g => (
                   <label key={g} className={'awards-chip-radio' + (identity.genero === g ? ' is-active' : '')}>
@@ -277,7 +301,7 @@ export function VotarPage({ navigate }) {
                 ))}
               </div>
             </div>
-            <label className="awards-follow">
+            <label className={'awards-follow' + g('follows')}>
               <input type="checkbox" checked={identity.follows} onChange={e => setId('follows', e.target.checked)} />
               <span>Sigo <a href="https://instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer">@sweetcoffeeweek</a> no Instagram. <i>*</i></span>
             </label>
@@ -298,7 +322,7 @@ export function VotarPage({ navigate }) {
             {presetLoja ? (
               <div className="awards-preset">Avaliando: <strong>{nameBySlug[participante]}</strong></div>
             ) : (
-              <label className="awards-field"><span>O combo de qual participante você vai avaliar? <i>*</i></span>
+              <label className={'awards-field' + g('participante')}><span>O combo de qual participante você vai avaliar? <i>*</i></span>
                 <select value={participante} onChange={e => setParticipante(e.target.value)}>
                   <option value="">Selecione…</option>
                   {AWARDS_PARTICIPANTS.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
@@ -310,7 +334,7 @@ export function VotarPage({ navigate }) {
               e <strong>10</strong> significa excelente. Quanto maior a nota, melhor a sua avaliação.
             </p>
             {AWARDS_CATEGORIES.map(c => (
-              <div className="awards-rating lovers-reveal" key={c.key}>
+              <div className={'awards-rating lovers-reveal' + g(c.key)} key={c.key}>
                 <div className="awards-rating__head"><strong>{c.label.replace(/^Melhor\s+/i, '')}</strong><span>{c.question} <i>*</i></span></div>
                 <RatingScale name={c.label} value={notes[c.key]} onChange={v => setNote(c.key, v)} />
               </div>
@@ -333,13 +357,13 @@ export function VotarPage({ navigate }) {
               Essas respostas são <strong>ouro pra gente</strong> 💛 Ajudam os participantes a evoluírem e
               guiam as próximas edições do Sweet. Leva menos de 1 minuto — conta pra gente?
             </p>
-            <label className="awards-field"><span>Alguma observação sobre o combo ou a experiência?</span>
+            <label className={'awards-field' + g('obs')}><span>Alguma observação sobre o combo ou a experiência?</span>
               <textarea rows={2} value={extra.obs} onChange={e => setEx('obs', e.target.value)} /></label>
-            <label className="awards-field"><span>O que você mais gostou na edição?</span>
+            <label className={'awards-field' + g('gostou')}><span>O que você mais gostou na edição?</span>
               <textarea rows={2} value={extra.gostou} onChange={e => setEx('gostou', e.target.value)} /></label>
-            <label className="awards-field"><span>O que pode melhorar?</span>
+            <label className={'awards-field' + g('melhorar')}><span>O que pode melhorar?</span>
               <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
-            <label className="awards-field"><span>Tema pra uma próxima edição?</span>
+            <label className={'awards-field' + g('sugestao_tema')}><span>Tema pra uma próxima edição?</span>
               <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder="Solta a imaginação — qualquer ideia é bem-vinda 💛" /></label>
           </fieldset>
           {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
