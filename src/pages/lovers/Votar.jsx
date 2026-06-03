@@ -125,6 +125,14 @@ export function VotarPage({ navigate }) {
   React.useEffect(() => {
     if (stepIdx > steps.length - 1) setStepIdx(steps.length - 1)
   }, [steps.length, stepIdx])
+  // Ao trocar de etapa, leva a tela ao topo do FORMULÁRIO (não ao topo da página),
+  // para a pessoa já enxergar o campo que precisa preencher. Não rola na 1ª carga.
+  const topRef = React.useRef(null)
+  const firstStepRender = React.useRef(true)
+  React.useEffect(() => {
+    if (firstStepRender.current) { firstStepRender.current = false; return }
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [safeStepIdx])
   const [status, setStatus] = React.useState('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
 
@@ -181,11 +189,9 @@ export function VotarPage({ navigate }) {
     if (step === 'voce' && !idValid) return
     if (step === 'avaliacao' && !notesValid) return
     setStepIdx(i => Math.min(i + 1, steps.length - 1))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   function goBack() {
     setStepIdx(i => Math.max(i - 1, 0))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleSubmit() {
@@ -244,7 +250,7 @@ export function VotarPage({ navigate }) {
   return (
     <Shell navigate={navigate} closed={closed}>
       {/* progresso */}
-      <div className="awards-progress lovers-reveal">
+      <div className="awards-progress lovers-reveal" ref={topRef} style={{ scrollMarginTop: 16 }}>
         <div className="awards-progress__top">
           <span className="awards-progress__name">{meta.label}</span>
           <span className="awards-progress__count">Passo {safeStepIdx + 1} de {steps.length}</span>

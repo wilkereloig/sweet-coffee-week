@@ -1578,6 +1578,30 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .awards-follow.is-guiding::before,
   .awards-rating.is-guiding::before { animation: none; }
 }
+/* Campo de texto: a linha contorna o PRÓPRIO controle (não o rótulo). Borda
+   transparente + dupla camada (creme no padding-box, gradiente no border-box).
+   O anel do wrapper é suprimido quando ele embrulha um único controle. */
+.awards-field.is-guiding:has(> input, > textarea, > select)::before { display: none; }
+.awards-field.is-guiding > input,
+.awards-field.is-guiding > textarea,
+.awards-field.is-guiding > select {
+  border-color: transparent; border-width: 2.5px;
+  background:
+    linear-gradient(var(--lovers-cream), var(--lovers-cream)) padding-box,
+    conic-gradient(from var(--guide-angle),
+      transparent 0deg,
+      var(--lovers-yellow) 45deg,
+      var(--lovers-red) 95deg,
+      var(--lovers-pink) 130deg,
+      transparent 175deg,
+      transparent 360deg) border-box;
+  animation: awardsGuideSpin 2.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .awards-field.is-guiding > input,
+  .awards-field.is-guiding > textarea,
+  .awards-field.is-guiding > select { animation: none; }
+}
 .combo-detail-item-card__v { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--lovers-brown); }
 .combo-detail-item-card__v--soon { opacity: .55; font-style: italic; }
 @media (max-width: 768px) {
