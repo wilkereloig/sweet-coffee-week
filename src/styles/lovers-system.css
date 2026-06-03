@@ -306,6 +306,40 @@
 .promo-share__lead strong { color: var(--lovers-red); }
 .promo-share__btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
+/* ── Cabine de foto (PhotoBoothModal) ── */
+.pb-panel { width: min(100%, 440px); }
+.pb-choose { text-align: center; display: flex; flex-direction: column; gap: 12px; padding: 8px 4px; }
+.pb-choose .lovers-button { width: 100%; justify-content: center; }
+.pb-title { margin: 4px 0 0; font-family: var(--font-lovers-display); text-transform: uppercase; color: var(--lovers-burgundy); font-size: 24px; }
+.pb-sub { margin: 0 0 6px; color: var(--lovers-brown); font-size: 14px; line-height: 1.5; }
+.pb-err { color: var(--lovers-red); font-size: 13px; margin: 4px 0 0; }
+.pb-stage {
+  width: 360px; height: 640px; position: relative; margin: 0 auto 12px;
+  border-radius: 18px; overflow: hidden; background: #1a1014; touch-action: none;
+}
+.pb-photo, .pb-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pb-video { transform: scaleX(-1); }
+.pb-frame {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  border: 6px solid var(--lovers-purple); border-radius: 18px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.pb-frame__top { background: var(--lovers-purple); color: #fff; font-family: var(--font-lovers-display); font-size: 12px; letter-spacing: 1px; text-align: center; padding: 9px 6px; text-transform: uppercase; }
+.pb-frame__bottom { background: var(--lovers-purple); color: #fff; display: flex; justify-content: space-between; padding: 8px 12px; font-size: 10px; font-weight: 700; }
+.pb-sticker { position: absolute; width: 92px; z-index: 4; cursor: grab; touch-action: none; }
+.pb-sticker img { width: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.pb-sticker.is-sel { outline: 2px dashed rgba(255, 255, 255, .9); outline-offset: 3px; border-radius: 6px; }
+.pb-sticker__del { position: absolute; top: -12px; left: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-red); color: #fff; border: 2px solid #fff; font-size: 12px; cursor: pointer; line-height: 1; padding: 0; z-index: 6; }
+.pb-sticker__handle { position: absolute; bottom: -12px; right: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-yellow); border: 2px solid #fff; cursor: nwse-resize; display: block; touch-action: none; z-index: 6; }
+.pb-palette { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; }
+.pb-palette__item { flex: 0 0 auto; width: 54px; height: 54px; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }
+.pb-palette__item img { width: 100%; height: 100%; object-fit: contain; }
+.pb-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.pb-actions .lovers-button { width: 100%; justify-content: center; }
+@media (max-width: 412px) {
+  .pb-stage { transform: scale(.84); transform-origin: top center; margin-bottom: -90px; }
+}
+
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
 .lovers-safe-wrap {
   width: min(100% - clamp(40px, 12vw, 220px), 1120px);

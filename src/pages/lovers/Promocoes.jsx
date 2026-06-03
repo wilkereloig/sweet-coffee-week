@@ -1,6 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { LoversButton, LoversStickers, useLoversReveal, ShareCardModal } from '../../components/lovers'
+import { LoversButton, LoversStickers, useLoversReveal, ShareCardModal, PhotoBoothModal } from '../../components/lovers'
 
 function readNome() {
   try { return (JSON.parse(window.localStorage.getItem('sweet-awards-voter')) || {}).nome || '' } catch { return '' }
@@ -15,6 +15,7 @@ const PURPLE = '#4F2092'
 export function PromocoesPage({ navigate }) {
   useLoversReveal()
   const [shareVariant, setShareVariant] = React.useState(null)
+  const [boothOpen, setBoothOpen] = React.useState(false)
   const nome = readNome()
   return (
     <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
@@ -91,6 +92,9 @@ export function PromocoesPage({ navigate }) {
               <LoversButton variant="primary" onClick={() => setShareVariant('meutop')}><I.star width={16} height={16} /> Minha avaliação</LoversButton>
               <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}><I.map width={16} height={16} /> Minha rota</LoversButton>
             </div>
+            <div style={{ marginTop: 14 }}>
+              <LoversButton variant="primary" onClick={() => setBoothOpen(true)}><I.cup width={16} height={16} /> Foto com moldura</LoversButton>
+            </div>
           </div>
         </div>
       </section>
@@ -101,6 +105,7 @@ export function PromocoesPage({ navigate }) {
         variant={shareVariant || 'carteirinha'}
         data={{ nome }}
       />
+      <PhotoBoothModal open={boothOpen} onClose={() => setBoothOpen(false)} />
     </div>
   )
 }
