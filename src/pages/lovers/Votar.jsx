@@ -325,16 +325,12 @@ export function VotarPage({ navigate }) {
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Avaliação do combo</legend>
-            {presetLoja ? (
-              <div className="awards-preset">Avaliando: <strong>{nameBySlug[participante]}</strong></div>
-            ) : (
-              <label className={'awards-field' + g('participante')}><span>O combo de qual participante você vai avaliar? <i>*</i></span>
-                <select value={participante} onChange={e => setParticipante(e.target.value)}>
-                  <option value="">Selecione…</option>
-                  {AWARDS_PARTICIPANTS.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
-                </select>
-              </label>
-            )}
+            <label className={'awards-field' + g('participante')}><span>O combo de qual participante você vai avaliar? <i>*</i></span>
+              <select value={participante} onChange={e => setParticipante(e.target.value)}>
+                <option value="">Selecione…</option>
+                {AWARDS_PARTICIPANTS.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
+              </select>
+            </label>
             <p className="awards-scale-note">
               Dê uma nota de <strong>5 a 10</strong> em cada critério: <strong>5</strong> é o mais baixo
               e <strong>10</strong> significa excelente. Quanto maior a nota, melhor a sua avaliação.
