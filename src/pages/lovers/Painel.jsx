@@ -13,6 +13,7 @@ const SUSPEITO_LABEL = {
   instagram_multi_email: 'Mesmo Instagram em e-mails diferentes',
   nome_multi_email: 'Mesmo nome em 3+ e-mails',
   notas_max: 'Todas as 8 notas no máximo (10)',
+  email_bounce: 'E-mail voltou (bounce/spam) — endereço inválido',
 }
 
 function toCsv(rows) {

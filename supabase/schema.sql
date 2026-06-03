@@ -80,8 +80,14 @@ create table if not exists public.feedback_geral (
 -- existir, NÃO reenvia — garante "1 e-mail por pessoa", mesmo votando em vários.
 create table if not exists public.vote_emails (
   email text primary key,
-  sent_at timestamptz not null default now()
+  sent_at timestamptz not null default now(),
+  status text not null default 'sent',
+  bounced_at timestamptz
 );
+-- Para bancos já existentes (idempotente):
+alter table public.vote_emails
+  add column if not exists status text not null default 'sent',
+  add column if not exists bounced_at timestamptz;
 
 -- ── RLS: nada de acesso direto. Tudo passa pelas funções abaixo. ─────────────
 alter table public.votos          enable row level security;
@@ -139,6 +145,17 @@ begin
 
   -- e-mail minimamente válido
   if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then raise exception 'email_invalido'; end if;
+
+  -- A2: bloqueia domínios falsos/descartáveis e typos comuns (mesma lista do front)
+  if split_part(v_email, '@', 2) = any (array[
+    'gmail.con','gmail.co','gmial.com','gmai.com','gnail.com','gmail.cm','gmail.comm',
+    'hotmail.con','hotmail.co','hotmial.com','outlook.con','outlook.co',
+    'yahoo.con','yaho.com','yahoo.co','icloud.con',
+    'mailinator.com','tempmail.com','temp-mail.org','10minutemail.com','guerrillamail.com',
+    'yopmail.com','trashmail.com','sharklasers.com','getnada.com','maildrop.cc',
+    'throwawaymail.com','mailnesia.com','dispostable.com','fakeinbox.com']) then
+    raise exception 'email_dominio_invalido';
+  end if;
 
   -- 1 voto por pessoa × participante. Identidade = e-mail OU telefone (só dígitos).
   -- Se já existe voto desta pessoa NESTE participante, "último vale" (atualiza).
@@ -427,6 +444,13 @@ begin
   where v.nota_combo = 10 and v.nota_encantamento = 10 and v.nota_apresentacao = 10
     and v.nota_atendimento = 10 and v.nota_criatividade = 10 and v.nota_salgado = 10
     and v.nota_doce = 10 and v.nota_bebida = 10
+  group by lower(v.email)
+  union all
+  -- e-mail que voltou (bounce) ou foi denunciado — marcado pela resend-webhook
+  select 'email_bounce'::text, lower(v.email),
+         count(*)::int, string_agg(distinct v.participante_slug, ', ')
+  from public.votos v
+  join public.vote_emails e on e.email = lower(v.email) and e.status = 'bounced'
   group by lower(v.email)
   order by 1, 3 desc;
 end;

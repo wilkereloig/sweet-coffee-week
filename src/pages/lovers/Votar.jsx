@@ -44,6 +44,19 @@ function RatingScale({ value, onChange, name }) {
 
 const emailOk = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
+// A2: domínios falsos/descartáveis e typos comuns — bloqueados (sem provar posse,
+// mas barra lixo). Mesma lista do banco (submit_vote).
+const BAD_EMAIL_DOMAINS = new Set([
+  'gmail.con', 'gmail.co', 'gmial.com', 'gmai.com', 'gnail.com', 'gmail.cm', 'gmail.comm',
+  'hotmail.con', 'hotmail.co', 'hotmial.com', 'outlook.con', 'outlook.co',
+  'yahoo.con', 'yaho.com', 'yahoo.co', 'icloud.con',
+  'mailinator.com', 'tempmail.com', 'temp-mail.org', '10minutemail.com', 'guerrillamail.com',
+  'yopmail.com', 'trashmail.com', 'sharklasers.com', 'getnada.com', 'maildrop.cc',
+  'throwawaymail.com', 'mailnesia.com', 'dispostable.com', 'fakeinbox.com',
+])
+const emailDomain = e => ((e || '').trim().toLowerCase().split('@')[1] || '')
+const emailValid = e => emailOk(e) && !BAD_EMAIL_DOMAINS.has(emailDomain(e))
+
 // Instagram: garante "@" no começo automaticamente (sem o usuário digitar).
 function formatInstagram(v) {
   const s = (v || '').replace(/@/g, '').replace(/\s/g, '')
@@ -158,7 +171,7 @@ export function VotarPage({ navigate }) {
   const setNote = (k, v) => setNotes(n => ({ ...n, [k]: v }))
   const setEx = (k, v) => setExtra(s => ({ ...s, [k]: v }))
 
-  const idValid = emailOk(identity.email) && (identity.nome || '').trim() && (identity.telefone || '').trim() &&
+  const idValid = emailValid(identity.email) && (identity.nome || '').trim() && (identity.telefone || '').trim() &&
     (identity.instagram || '').trim() && identity.genero && identity.follows
   const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
 
@@ -167,7 +180,7 @@ export function VotarPage({ navigate }) {
   const firstEmpty = (items) => { const hit = items.find(it => it.empty); return hit ? hit.id : null }
   const guideId =
     step === 'voce' ? firstEmpty([
-      { id: 'email',     empty: !emailOk(identity.email) },
+      { id: 'email',     empty: !emailValid(identity.email) },
       { id: 'nome',      empty: !(identity.nome || '').trim() },
       { id: 'telefone',  empty: !(identity.telefone || '').trim() },
       { id: 'instagram', empty: !(identity.instagram || '').trim() },
@@ -303,7 +316,10 @@ export function VotarPage({ navigate }) {
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Seus dados</legend>
             <label className={'awards-field' + g('email')}><span>E-mail <i>*</i></span>
-              <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" /></label>
+              <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" />
+              {identity.email && !emailValid(identity.email) && (
+                <span className="awards-form__hint" style={{ color: 'var(--lovers-red)' }}>Confira o e-mail — domínio inválido ou não aceito.</span>
+              )}</label>
             <label className={'awards-field' + g('nome')}><span>Nome completo <i>*</i></span>
               <input type="text" value={identity.nome} onChange={e => setId('nome', e.target.value)} /></label>
             <label className={'awards-field' + g('telefone')}><span>Contato telefônico <i>*</i></span>
