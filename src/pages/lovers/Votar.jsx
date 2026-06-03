@@ -329,6 +329,10 @@ export function VotarPage({ navigate }) {
         <>
           <fieldset className="awards-fieldset lovers-reveal">
             <legend className="awards-legend">Quase lá <small>(opcional)</small></legend>
+            <p className="awards-scale-note">
+              Essas respostas são <strong>ouro pra gente</strong> 💛 Ajudam os participantes a evoluírem e
+              guiam as próximas edições do Sweet. Leva menos de 1 minuto — conta pra gente?
+            </p>
             <label className="awards-field"><span>Alguma observação sobre o combo ou a experiência?</span>
               <textarea rows={2} value={extra.obs} onChange={e => setEx('obs', e.target.value)} /></label>
             <label className="awards-field"><span>O que você mais gostou na edição?</span>
@@ -336,7 +340,7 @@ export function VotarPage({ navigate }) {
             <label className="awards-field"><span>O que pode melhorar?</span>
               <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
             <label className="awards-field"><span>Tema pra uma próxima edição?</span>
-              <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder='Se não souber, escreva "não sei informar".' /></label>
+              <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder="Solta a imaginação — qualquer ideia é bem-vinda 💛" /></label>
           </fieldset>
           {status === 'error' && <p className="awards-form__error">{errorMsg}</p>}
           <p className="awards-consent">

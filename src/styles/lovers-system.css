@@ -1530,7 +1530,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .awards-progress__hint { margin: 9px 0 0; font-size: 14.5px; line-height: 1.5; color: color-mix(in srgb, var(--lovers-brown) 78%, transparent); }
 
 /* Texto de aceite antes do envio */
-.awards-consent { margin: 0; padding: 15px 17px; border-radius: 14px; background: color-mix(in srgb, var(--lovers-red) 6%, #fff); border: 1px solid rgba(135,14,45,.14); font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); }
+.awards-consent { margin: 20px 0 0; padding: 15px 17px; border-radius: 14px; background: color-mix(in srgb, var(--lovers-red) 6%, #fff); border: 1px solid rgba(135,14,45,.14); font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); }
 
 .awards-voter-chip {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
