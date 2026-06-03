@@ -20,23 +20,31 @@ export const LOVERS_STICKERS = {
     { src: A(35), style: { top: '58%',   right: '-10%', width: 'clamp(150px,16vw,300px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.09' } }, // menina + coração
     { src: A(31), style: { bottom: '8%', left: '-8%',   width: 'clamp(150px,16vw,300px)', '--rot': '8deg',  '--scale': '1', '--parallax': '0.11' } }, // Natal cidade mais doce
     { src: A(17), style: { bottom: '3%', right: '-10%', width: 'clamp(160px,17vw,330px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.07' } }, // café derramando corações
+    { src: A(25), style: { top: '44%',   right: '-9%',  width: 'clamp(140px,14vw,270px)', '--rot': '5deg',  '--scale': '1', '--parallax': '0.08' } }, // SWEET LOVER CLUB
+    { src: A(33), style: { top: '76%',   left: '-8%',   width: 'clamp(150px,16vw,300px)', '--rot': '-7deg', '--scale': '1', '--parallax': '0.11' } }, // descobri, experimentei, amei
   ],
   // /lovers/participantes — explorar + rota + comida.
   participantes: [
     { src: A(47), style: { top: '32%',   left: '-10%',  width: 'clamp(180px,20vw,400px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.10' } }, // mapa com rota
     { src: A(3),  style: { top: '30%',   right: '-11%', width: 'clamp(150px,15vw,300px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } }, // lupa + bolo
     { src: A(6),  style: { bottom: '6%', left: '-9%',   width: 'clamp(170px,18vw,360px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.12' } }, // café + bolo + croissant
+    { src: A(15), style: { top: '56%',   right: '-10%', width: 'clamp(150px,16vw,310px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.09' } }, // pin + rota + café + cupcake
+    { src: A(41), style: { bottom: '8%', right: '-10%', width: 'clamp(140px,14vw,270px)', '--rot': '-7deg', '--scale': '1', '--parallax': '0.11' } }, // câmera (fotos)
   ],
   // /lovers/combos/:slug — comida + fotos. Áreas vazias; nunca sobre nome/CTA.
   combos: [
     { src: A(12), style: { top: '46%',    right: '-12%', width: 'clamp(160px,16vw,320px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.09' } }, // latte + salgado + doce
     { src: A(37), style: { bottom: '10%', left: '-11%',  width: 'clamp(150px,15vw,300px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.11' } }, // selo "feito de amor"
+    { src: A(42), style: { top: '20%',    left: '-11%',  width: 'clamp(140px,14vw,270px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.08' } }, // polaroid coração (foto)
+    { src: A(14), style: { bottom: '42%', right: '-12%', width: 'clamp(140px,14vw,260px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.10' } }, // balão café (lovers)
   ],
   // /lovers/premiacao (e /votar) — troféu, coroa, presente.
   premiacao: [
     { src: A(10), style: { top: '30%',   right: '-10%', width: 'clamp(150px,16vw,300px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } }, // troféu
     { src: A(50), style: { top: '52%',   left: '-11%',  width: 'clamp(160px,17vw,330px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.10' } }, // coração com coroa
     { src: A(5),  style: { bottom: '6%', right: '-9%',  width: 'clamp(170px,18vw,360px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.12' } }, // presente / prêmio surpresa
+    { src: A(29), style: { bottom: '32%', left: '-11%', width: 'clamp(150px,16vw,300px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.10' } }, // meu Sweet Notes (avaliar)
+    { src: A(27), style: { top: '76%',   right: '-10%', width: 'clamp(140px,14vw,270px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } }, // Sweet Lover de carteirinha
   ],
   mapa: [],
 }
