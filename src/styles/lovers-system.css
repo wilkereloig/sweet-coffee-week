@@ -1710,6 +1710,75 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .combo-detail-items { grid-template-columns: 1fr; gap: 14px; }
 }
 
+/* Sweet Box — lista vertical de itens (ex.: Douce di Maria, sem combo fixo) */
+.combo-box-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 760px;
+}
+.combo-box-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 4px;
+  border-bottom: 1px solid rgba(135, 14, 45, 0.12);
+}
+.combo-box-list__item:last-child { border-bottom: none; }
+.combo-box-list__emoji {
+  font-size: 26px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+.combo-box-list__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.combo-box-list__name {
+  font-family: var(--font-lovers-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--lovers-burgundy);
+  line-height: 1.2;
+}
+.combo-box-list__country {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--lovers-yellow);
+  color: var(--lovers-brown);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.combo-box-list__desc {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--lovers-brown);
+}
+.combo-box-list__note {
+  margin: 22px 0 0;
+  max-width: 760px;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--lovers-brown);
+  opacity: .8;
+}
+@media (max-width: 768px) {
+  .combo-box-list__item { gap: 12px; padding: 15px 2px; }
+  .combo-box-list__emoji { font-size: 22px; }
+  .combo-box-list__name { font-size: 16.5px; }
+}
+
 @media (max-width: 860px) {
   /* fotos primeiro (media vem antes no DOM); info alinhada à esquerda p/ leitura */
   .combo-detail-hero__grid--combo { grid-template-columns: 1fr; justify-items: stretch; text-align: left; }

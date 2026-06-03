@@ -430,30 +430,55 @@ function ComboDetailPageInner({ navigate, slug }) {
             </div>
           </section>
 
-          {/* 2 ── ITENS DO COMBO (cards foto-topo). Sem dados → 3 placeholders "Em breve". */}
+          {/* 2 ── ITENS DO COMBO. Sweet Box (boxItems) → lista vertical; senão cards foto-topo. */}
           <section className="section combo-detail-section">
             <div className="wrap lovers-safe-wrap">
-              <div className="combo-detail-section__head lovers-reveal">
-                <h2 className="combo-detail-section__title">Itens do combo.</h2>
-              </div>
-              <div className="combo-detail-items">
-                {(comboItems.length ? comboItems : [{ k: 'Doce' }, { k: 'Salgado' }, { k: 'Bebida' }]).map(it => (
-                  <article className="combo-detail-item-card lovers-reveal" key={it.k}>
-                    <div className="combo-detail-item-card__media">
-                      {it.imgs && it.imgs.length
-                        ? <LoopingImage images={it.imgs} alt={`${it.k} — ${combo?.name || name}`} />
-                        : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
-                    </div>
-                    <span className="combo-detail-item-card__k">
-                      {ITEM_ICONS[it.k] && <span className="combo-detail-item-card__icon" aria-hidden="true">{ITEM_ICONS[it.k]}</span>}
-                      {it.k}
-                    </span>
-                    <p className={'combo-detail-item-card__v' + (it.v ? '' : ' combo-detail-item-card__v--soon')}>
-                      {it.v || 'Descrição em breve'}
-                    </p>
-                  </article>
-                ))}
-              </div>
+              {combo?.boxItems?.length ? (
+                <>
+                  <div className="combo-detail-section__head lovers-reveal">
+                    <h2 className="combo-detail-section__title">{combo.boxLabel || 'Itens da Sweet Box.'}</h2>
+                  </div>
+                  <ol className="combo-box-list lovers-reveal">
+                    {combo.boxItems.map((it, i) => (
+                      <li className="combo-box-list__item" key={it.country || i}>
+                        <span className="combo-box-list__emoji" aria-hidden="true">{it.emoji}</span>
+                        <div className="combo-box-list__body">
+                          <span className="combo-box-list__name">
+                            {it.country && <span className="combo-box-list__country">{it.country}</span>}
+                            {it.name}
+                          </span>
+                          {it.desc && <span className="combo-box-list__desc">{it.desc}</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                  {combo.boxNote && <p className="combo-box-list__note lovers-reveal">{combo.boxNote}</p>}
+                </>
+              ) : (
+                <>
+                  <div className="combo-detail-section__head lovers-reveal">
+                    <h2 className="combo-detail-section__title">Itens do combo.</h2>
+                  </div>
+                  <div className="combo-detail-items">
+                    {(comboItems.length ? comboItems : [{ k: 'Doce' }, { k: 'Salgado' }, { k: 'Bebida' }]).map(it => (
+                      <article className="combo-detail-item-card lovers-reveal" key={it.k}>
+                        <div className="combo-detail-item-card__media">
+                          {it.imgs && it.imgs.length
+                            ? <LoopingImage images={it.imgs} alt={`${it.k} — ${combo?.name || name}`} />
+                            : <div className="combo-detail-item-card__ph" aria-hidden="true"><I.cup /></div>}
+                        </div>
+                        <span className="combo-detail-item-card__k">
+                          {ITEM_ICONS[it.k] && <span className="combo-detail-item-card__icon" aria-hidden="true">{ITEM_ICONS[it.k]}</span>}
+                          {it.k}
+                        </span>
+                        <p className={'combo-detail-item-card__v' + (it.v ? '' : ' combo-detail-item-card__v--soon')}>
+                          {it.v || 'Descrição em breve'}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </section>
           {/* 3 ── CONTATO do estabelecimento (Instagram + WhatsApp) */}

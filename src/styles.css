@@ -542,6 +542,7 @@ button:disabled { cursor: not-allowed; }
   display: flex;
   justify-content: center;
   margin-bottom: 32px;
+  flex-shrink: 0;
 }
 .sidebar__nav {
   display: flex;
