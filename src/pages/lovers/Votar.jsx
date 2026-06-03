@@ -93,8 +93,9 @@ function Shell({ navigate, closed, children }) {
 export function VotarPage({ navigate }) {
   const nowD = new Date()
   const closed = nowD > new Date(AWARDS_VOTING.closesAt)
-  // Liberado por link: o formulário abre para quem acessa a URL. A trava de data
-  // fica só na página Awards (botão público aparece a partir de opensAt).
+  // A votação só abre a partir de opensAt (04/06). Antes disso o formulário fica
+  // travado, mesmo via link/QR — evita votos antes da abertura oficial.
+  const notOpen = nowD < new Date(AWARDS_VOTING.opensAt)
   const presetLoja = readLojaFromHash()
   const saved = loadVoter()
   const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.genero && saved.follows)
@@ -232,6 +233,17 @@ export function VotarPage({ navigate }) {
 
   if (closed) {
     return <Shell navigate={navigate} closed={closed}><p className="awards-results__intro">{AWARDS_TEXTS.closed.body}</p></Shell>
+  }
+
+  if (notOpen) {
+    const abre = new Date(AWARDS_VOTING.opensAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+    return (
+      <Shell navigate={navigate} closed={false}>
+        <p className="awards-results__intro">
+          A votação do Sweet Awards ainda não começou. Abre no dia <strong>{abre}</strong>. Volte pra avaliar seus combos favoritos! 💛
+        </p>
+      </Shell>
+    )
   }
 
   if (status === 'done') {

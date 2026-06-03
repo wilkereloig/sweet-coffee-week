@@ -11,11 +11,17 @@ create extension if not exists pgcrypto;
 create table if not exists public.awards_config (
   id boolean primary key default true,
   results_published boolean not null default false,
+  opens_at  timestamptz not null default '2026-06-04T00:00:00-03:00',
+  closes_at timestamptz not null default '2026-06-14T23:59:59-03:00',
   constraint awards_config_singleton check (id)
 );
 insert into public.awards_config (id, results_published)
 values (true, false)
 on conflict (id) do nothing;
+-- Para bancos já existentes (idempotente):
+alter table public.awards_config
+  add column if not exists opens_at  timestamptz not null default '2026-06-04T00:00:00-03:00',
+  add column if not exists closes_at timestamptz not null default '2026-06-14T23:59:59-03:00';
 
 -- ── Votos (1 por usuário × participante) ─────────────────────────────────────
 create table if not exists public.votos (
@@ -116,7 +122,14 @@ declare
   v_phone text := regexp_replace(coalesce(p_telefone, ''), '\D', '', 'g');
   v_part  text := trim(p_participante);
   v_id    uuid;
+  v_opens timestamptz;
+  v_closes timestamptz;
 begin
+  -- janela oficial: bloqueia voto antes da abertura e depois do fim (defense-in-depth)
+  select opens_at, closes_at into v_opens, v_closes from public.awards_config where id;
+  if now() < v_opens then raise exception 'votacao_nao_aberta'; end if;
+  if now() > v_closes then raise exception 'votacao_encerrada'; end if;
+
   -- obrigatórios
   if v_email = '' or v_email is null then raise exception 'email_obrigatorio'; end if;
   if coalesce(trim(p_nome),'')      = '' then raise exception 'nome_obrigatorio'; end if;
