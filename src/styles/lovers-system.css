@@ -300,6 +300,11 @@
 .promo-card .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-purple); border-color: transparent; }
 .promo-card .lovers-button--secondary { color: #fff; border-color: rgba(255, 255, 255, .6); background: transparent; }
 .promo-card .lovers-button--secondary:hover { background: #fff; color: var(--lovers-purple); border-color: #fff; }
+.promo-share { margin-top: 30px; text-align: center; }
+.promo-share__title { margin: 0; font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(22px, 3.2vw, 34px); text-transform: uppercase; color: var(--lovers-burgundy); }
+.promo-share__lead { margin: 8px 0 18px; font-size: clamp(14px, 1.6vw, 17px); color: var(--lovers-brown); }
+.promo-share__lead strong { color: var(--lovers-red); }
+.promo-share__btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
 .lovers-safe-wrap {

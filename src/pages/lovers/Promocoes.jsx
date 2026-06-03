@@ -1,6 +1,10 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { LoversButton, LoversStickers, useLoversReveal } from '../../components/lovers'
+import { LoversButton, LoversStickers, useLoversReveal, ShareCardModal } from '../../components/lovers'
+
+function readNome() {
+  try { return (JSON.parse(window.localStorage.getItem('sweet-awards-voter')) || {}).nome || '' } catch { return '' }
+}
 
 // Arquivo do mapa imprimível da Rota da Doçura (com espaços de carimbo).
 // Coloque o arquivo em: public/mapa-rota-da-docura.pdf
@@ -10,6 +14,8 @@ const PURPLE = '#4F2092'
 
 export function PromocoesPage({ navigate }) {
   useLoversReveal()
+  const [shareVariant, setShareVariant] = React.useState(null)
+  const nome = readNome()
   return (
     <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
@@ -75,8 +81,26 @@ export function PromocoesPage({ navigate }) {
               </LoversButton>
             </div>
           </article>
+
+          {/* Botões de compartilhamento (share cards) */}
+          <div className="promo-share lovers-reveal">
+            <h2 className="promo-share__title">Mostre que você é Sweet Lover</h2>
+            <p className="promo-share__lead">Gere seu card e compartilhe no Story marcando <strong>@sweetcoffeeweek</strong> 💛</p>
+            <div className="promo-share__btns">
+              <LoversButton variant="primary" onClick={() => setShareVariant('carteirinha')}><I.heart width={16} height={16} /> Minha carteirinha</LoversButton>
+              <LoversButton variant="primary" onClick={() => setShareVariant('meutop')}><I.star width={16} height={16} /> Minha avaliação</LoversButton>
+              <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}><I.map width={16} height={16} /> Minha rota</LoversButton>
+            </div>
+          </div>
         </div>
       </section>
+
+      <ShareCardModal
+        open={!!shareVariant}
+        onClose={() => setShareVariant(null)}
+        variant={shareVariant || 'carteirinha'}
+        data={{ nome }}
+      />
     </div>
   )
 }
