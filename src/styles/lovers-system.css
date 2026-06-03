@@ -216,9 +216,18 @@
    Stickers decorativos devem ser posicionados via config em zonas
    laterais/cantos (src/config/loversStickers.js — left/right negativos,
    fora do eixo central de leitura). */
+/* Wrapper posicionado (recebe top/left/right/bottom/width) — leva o PARALLAX do
+   scroll via --py (translateY). A img dentro faz o FLOAT idle. Camadas separadas
+   pra os dois movimentos não se sobrescreverem. */
+.lovers-sticker-wrap {
+  position: absolute; display: block; pointer-events: none;
+  will-change: transform;
+  transform: translateY(var(--py, 0px));
+  transition: transform .12s linear;
+}
 .lovers-sticker-img {
-  position: absolute; display: block;
-  max-width: none; height: auto;
+  position: static; display: block;
+  width: 100%; max-width: none; height: auto;
   opacity: 1 !important;
   mix-blend-mode: normal !important;
   pointer-events: none; user-select: none;
@@ -226,6 +235,12 @@
   will-change: transform;
   transform-origin: center;
   transform: rotate(var(--rot, 0deg)) scale(var(--scale, 1));
+  animation: loversStickerFloat 5.5s ease-in-out infinite;
+}
+/* Float idle: sobe/desce devagar, preservando rotação/escala. */
+@keyframes loversStickerFloat {
+  0%, 100% { transform: translateY(0)     rotate(var(--rot, 0deg)) scale(var(--scale, 1)); }
+  50%      { transform: translateY(-10px) rotate(var(--rot, 0deg)) scale(var(--scale, 1)); }
 }
 /* Zona segura de leitura: blocos importantes acima da camada de adesivos.
    A solução principal é reposicionar o sticker p/ fora do eixo — esta classe é reforço. */
@@ -235,7 +250,8 @@
   isolation: isolate;
 }
 @media (prefers-reduced-motion: reduce) {
-  .lovers-sticker-img { will-change: auto; }
+  .lovers-sticker-img { will-change: auto; animation: none; }
+  .lovers-sticker-wrap { transform: none; transition: none; }
 }
 
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */

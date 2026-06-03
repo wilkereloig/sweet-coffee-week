@@ -1,38 +1,42 @@
-// Adesivos decorativos por página. Arquivos em public/images/adesivos/.
-// Cada item posiciona um PNG na CAMADA 2 (atrás do conteúdo, sólido — sem opacity).
-// Tamanho via width clamp; rotação via --rot; escala via --scale (responsiva no CSS).
-// Sticker-colagem: presença visual forte, recorte parcial nas laterais (left/right negativos),
-// posicionados em áreas de respiro — nunca por cima de texto/cards/CTAs.
-// Arquivos com espaço no nome precisam de %20.
-// Zonas seguras: stickers ficam em cantos/laterais, sempre com recorte parcial
-// (left/right negativos), FORA do eixo central de leitura (hero/títulos/CTAs).
-// Evitar top entre ~20% e ~45% no centro. --parallax: intensidade p/ futuro scroll.
+// Adesivos decorativos por página. Arquivos em public/images/adesivos-site/.
+// Posicionados na CAMADA 2 (atrás do conteúdo, sólidos — sem opacity), em zonas
+// de respiro (cantos/laterais, com recorte parcial via left/right negativos),
+// nunca por cima de texto/cards/CTAs.
+// Mapeamento TEMÁTICO por página:
+//   sobre        → identidade/lovers (lettering, corações, "Sweet Lover")
+//   participantes→ explorar/rota/comida (mapa, lupa, café+bolo)
+//   combos       → comida/fotos ("feito de amor", latte+salgado+doce)
+//   premiacao    → troféu, coroa, presente (prêmios)
+// --rot rotação · --scale escala · --parallax intensidade do parallax no scroll.
+// Espaço no nome do arquivo = %20.
+const A = (n) => `/images/adesivos-site/adesivo%20(${n}).png`
+
 export const LOVERS_STICKERS = {
-  // /lovers — sobre: hero (faixa top<28%) fica LIMPO; stickers nas bordas das seções de baixo.
+  // /lovers — sobre: identidade Lovers. Hero (top<28%) limpo.
   sobre: [
-    { src: '/images/adesivos/sobre-3.png', style: { top: '34%',    left: '-12%', width: 'clamp(180px,20vw,400px)', '--rot': '5deg',  '--scale': '1', '--parallax': '0.10' } },
-    { src: '/images/adesivos/sobre-2.png', style: { top: '30%',    right: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } },
-    { src: '/images/adesivos/sobre-4.png', style: { top: '62%',    left: '-12%', width: 'clamp(170px,18vw,360px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.12' } },
-    { src: '/images/adesivos/sobre-1.png', style: { top: '58%',    right: '-13%', width: 'clamp(180px,20vw,400px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } },
-    { src: '/images/adesivos/sobre-5.png', style: { bottom: '8%',  left: '-11%', width: 'clamp(160px,17vw,330px)', '--rot': '9deg',  '--scale': '1', '--parallax': '0.11' } },
-    { src: '/images/adesivos/sobre-6.png', style: { bottom: '2%',  right: '-13%', width: 'clamp(180px,20vw,400px)', '--rot': '-5deg', '--scale': '1', '--parallax': '0.07' } },
+    { src: A(43), style: { top: '32%',   left: '-10%',  width: 'clamp(170px,19vw,380px)', '--rot': '-5deg', '--scale': '1', '--parallax': '0.10' } }, // lettering Sweet Lover
+    { src: A(44), style: { top: '30%',   right: '-10%', width: 'clamp(150px,16vw,300px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } }, // coração SWEET LOVERS
+    { src: A(19), style: { top: '60%',   left: '-9%',   width: 'clamp(200px,22vw,440px)', '--rot': '-4deg', '--scale': '1', '--parallax': '0.12' } }, // trio Sweet Lover
+    { src: A(35), style: { top: '58%',   right: '-10%', width: 'clamp(150px,16vw,300px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.09' } }, // menina + coração
+    { src: A(31), style: { bottom: '8%', left: '-8%',   width: 'clamp(150px,16vw,300px)', '--rot': '8deg',  '--scale': '1', '--parallax': '0.11' } }, // Natal cidade mais doce
+    { src: A(17), style: { bottom: '3%', right: '-10%', width: 'clamp(160px,17vw,330px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.07' } }, // café derramando corações
   ],
-  // /lovers/participantes — título centralizado: bordas laterais, longe do centro.
+  // /lovers/participantes — explorar + rota + comida.
   participantes: [
-    { src: '/images/adesivos/sobre-1.png',       style: { top: '34%',  left: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '-7deg', '--scale': '1', '--parallax': '0.10' } },
-    { src: '/images/adesivos/Prancheta%202.png', style: { top: '30%',  right: '-12%', width: 'clamp(190px,21vw,420px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.08' } },
-    { src: '/images/adesivos/sobre-5.png',       style: { bottom: '6%', left: '-11%', width: 'clamp(160px,17vw,330px)', '--rot': '8deg',  '--scale': '1', '--parallax': '0.12' } },
+    { src: A(47), style: { top: '32%',   left: '-10%',  width: 'clamp(180px,20vw,400px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.10' } }, // mapa com rota
+    { src: A(3),  style: { top: '30%',   right: '-11%', width: 'clamp(150px,15vw,300px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } }, // lupa + bolo
+    { src: A(6),  style: { bottom: '6%', left: '-9%',   width: 'clamp(170px,18vw,360px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.12' } }, // café + bolo + croissant
   ],
-  // /lovers/combos/:slug — áreas vazias; nunca sobre nome/logo/CTA/endereço.
+  // /lovers/combos/:slug — comida + fotos. Áreas vazias; nunca sobre nome/CTA.
   combos: [
-    { src: '/images/adesivos/sobre-3.png',       style: { top: '48%',    right: '-13%', width: 'clamp(150px,15vw,300px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.09' } },
-    { src: '/images/adesivos/Prancheta%203.png', style: { bottom: '10%', left: '-12%',  width: 'clamp(190px,21vw,420px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.11' } },
+    { src: A(12), style: { top: '46%',    right: '-12%', width: 'clamp(160px,16vw,320px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.09' } }, // latte + salgado + doce
+    { src: A(37), style: { bottom: '10%', left: '-11%',  width: 'clamp(150px,15vw,300px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.11' } }, // selo "feito de amor"
   ],
-  // /lovers/premiacao — hero alinhado à esquerda: stickers à direita/cantos, longe do título.
+  // /lovers/premiacao (e /votar) — troféu, coroa, presente.
   premiacao: [
-    { src: '/images/adesivos/sobre-2.png',       style: { top: '32%',   right: '-12%', width: 'clamp(160px,17vw,330px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } },
-    { src: '/images/adesivos/Prancheta%202.png', style: { top: '52%',   left: '-13%', width: 'clamp(190px,21vw,420px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.10' } },
-    { src: '/images/adesivos/sobre-6.png',       style: { bottom: '6%',  right: '-11%', width: 'clamp(160px,17vw,330px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.12' } },
+    { src: A(10), style: { top: '30%',   right: '-10%', width: 'clamp(150px,16vw,300px)', '--rot': '-8deg', '--scale': '1', '--parallax': '0.09' } }, // troféu
+    { src: A(50), style: { top: '52%',   left: '-11%',  width: 'clamp(160px,17vw,330px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.10' } }, // coração com coroa
+    { src: A(5),  style: { bottom: '6%', right: '-9%',  width: 'clamp(170px,18vw,360px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.12' } }, // presente / prêmio surpresa
   ],
   mapa: [],
 }
