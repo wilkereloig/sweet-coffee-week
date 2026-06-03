@@ -155,7 +155,7 @@ function Resultados({ secret }) {
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0 }}>
         Prévia do ranking (calculado das médias). Não depende de publicar o resultado no site.
       </p>
-      {AWARDS_CATEGORIES.map(c => {
+      {[{ key: 'melhor_combo', label: 'Melhor Combo (média Doce + Salgado + Bebida)' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))].map(c => {
         const list = byCat[c.key] || []
         if (!list.length) return null
         return (
@@ -186,8 +186,8 @@ function Auditoria({ secret }) {
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum voto registrado ainda.</p>
-  const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero',
-    'nota_combo', 'nota_encantamento', 'nota_apresentacao', 'nota_atendimento', 'nota_criatividade', 'nota_salgado', 'nota_doce', 'nota_bebida']
+  const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade',
+    'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento']
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>

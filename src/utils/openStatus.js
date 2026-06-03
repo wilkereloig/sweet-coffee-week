@@ -9,16 +9,22 @@ function formatHourLabel(hhmm) {
   return m === '00' ? `${parseInt(h, 10)}h` : `${parseInt(h, 10)}h${m}`
 }
 
-export function getOpenStatus(hours, now = new Date()) {
+// `dateOverrides` (opcional): exceções por DATA específica, no formato
+// { 'YYYY-MM-DD': [["15:00","21:00"], ...] } onde [] = fechado nesse dia.
+// Sobrepõe o horário do dia-da-semana apenas para a data informada (ex.: um
+// domingo que não abre, mas os outros domingos abrem normalmente).
+export function getOpenStatus(hours, now = new Date(), dateOverrides = null) {
   if (!hours || typeof hours !== 'object') return { state: 'unknown', label: '', detail: '' }
 
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Fortaleza',
-    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+    weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
   }).formatToParts(now)
   const get = t => parts.find(p => p.type === t)?.value
   const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
   const today = weekdayMap[get('weekday')]
+  const isoToday = `${get('year')}-${get('month')}-${get('day')}`
   let hh = parseInt(get('hour'), 10)
   if (hh === 24) hh = 0
   const nowMin = hh * 60 + parseInt(get('minute'), 10)
@@ -27,7 +33,14 @@ export function getOpenStatus(hours, now = new Date()) {
     const [h, m] = hhmm.split(':').map(Number)
     return h * 60 + m
   }
-  const slotsFor = d => (Array.isArray(hours[d]) ? hours[d] : [])
+  // Slots de um dia-da-semana. Para HOJE, uma exceção por data (dateOverrides)
+  // tem prioridade sobre o horário padrão do dia-da-semana.
+  const slotsFor = d => {
+    if (d === today && dateOverrides && Object.prototype.hasOwnProperty.call(dateOverrides, isoToday)) {
+      return Array.isArray(dateOverrides[isoToday]) ? dateOverrides[isoToday] : []
+    }
+    return Array.isArray(hours[d]) ? hours[d] : []
+  }
 
   // aberto agora? (slots de hoje; close <= open = cruza a meia-noite)
   for (const [open, close] of slotsFor(today)) {
@@ -83,7 +96,7 @@ export function openSummary(participant, now = new Date()) {
   const known = locs.filter(l => l.hours && typeof l.hours === 'object')
   const n = known.length
   if (n === 0) return { state: 'unknown', text: '' }
-  const openN = known.filter(l => getOpenStatus(l.hours, now).state === 'open').length
+  const openN = known.filter(l => getOpenStatus(l.hours, now, l.dateOverrides).state === 'open').length
   if (openN === 0) return { state: 'closed', text: n === 1 ? 'Loja fechada' : 'Todas fechadas' }
   if (n === 1) return { state: 'open', text: 'Loja aberta' }
   if (openN === n) return { state: 'open', text: 'Todas abertas' }

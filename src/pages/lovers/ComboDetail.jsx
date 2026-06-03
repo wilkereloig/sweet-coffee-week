@@ -222,7 +222,7 @@ function LocationCard({ loc, participant, accent }) {
   const name = loc.name || participant.neighborhood || participant.name
   const maps = mapsSearchUrl(loc, participant)
   const dir = directionsUrl(loc, participant)
-  const st = getOpenStatus(loc.hours) // status por endereço (cada loja tem seu horário)
+  const st = getOpenStatus(loc.hours, undefined, loc.dateOverrides) // status por endereço (cada loja tem seu horário + exceções por data)
   return (
     <article className="combo-detail-location-card lovers-reveal" style={{ '--cd-accent': accent }}>
       <div className="combo-detail-location-card__head">
@@ -484,32 +484,6 @@ function ComboDetailPageInner({ navigate, slug }) {
               )}
             </div>
           </section>
-          {/* 3 ── CONTATO do estabelecimento (Instagram + WhatsApp) */}
-          {(instagram || whatsappUrl) && (
-            <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
-              <div className="wrap lovers-safe-wrap">
-                <div className="combo-detail-section__head lovers-reveal">
-                  <h2 className="combo-detail-section__title">Contato.</h2>
-                  <p className="combo-detail-section__lead">Fale direto com {name}.</p>
-                </div>
-                <div className="combo-detail-contact__actions lovers-reveal">
-                  {instagram && (
-                    <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer"
-                      onClick={() => trackEvent('click_instagram', { slug: participant?.slug || resolvedSlug, nome: name })}>
-                      <I.ig /> Instagram
-                    </LoversButton>
-                  )}
-                  {whatsappUrl && (
-                    <LoversButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                      onClick={() => trackEvent('click_whatsapp', { slug: participant?.slug || resolvedSlug, nome: name })}>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z"/></svg>
-                      WhatsApp
-                    </LoversButton>
-                  )}
-                </div>
-              </div>
-            </section>
-          )}
         </>
       )}
 
@@ -555,6 +529,33 @@ function ComboDetailPageInner({ navigate, slug }) {
               {locations.map((loc, i) => (
                 <LocationCard key={loc.id || i} loc={loc} participant={participant} accent={accent} />
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── CONTATO do estabelecimento (Instagram + WhatsApp) ── */}
+      {(instagram || whatsappUrl) && (
+        <section className="section combo-detail-section" style={{ paddingTop: 0 }}>
+          <div className="wrap lovers-safe-wrap">
+            <div className="combo-detail-section__head lovers-reveal">
+              <h2 className="combo-detail-section__title">Contato.</h2>
+              <p className="combo-detail-section__lead">Fale direto com {name}.</p>
+            </div>
+            <div className="combo-detail-contact__actions lovers-reveal">
+              {instagram && (
+                <LoversButton variant="secondary" href={instagram} target="_blank" rel="noopener noreferrer"
+                  onClick={() => trackEvent('click_instagram', { slug: participant?.slug || resolvedSlug, nome: name })}>
+                  <I.ig /> Instagram
+                </LoversButton>
+              )}
+              {whatsappUrl && (
+                <LoversButton variant="primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                  onClick={() => trackEvent('click_whatsapp', { slug: participant?.slug || resolvedSlug, nome: name })}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z"/></svg>
+                  WhatsApp
+                </LoversButton>
+              )}
             </div>
           </div>
         </section>

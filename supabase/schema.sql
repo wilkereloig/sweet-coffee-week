@@ -33,8 +33,12 @@ create table if not exists public.votos (
   telefone text not null,
   instagram text not null,
   genero text,
+  escolaridade text,
+  faixa_etaria text,
   participante_slug text not null,
-  nota_combo        smallint not null,
+  -- nota_combo deixou de ser coletada (prêmio "Melhor Combo" = média de doce+salgado+bebida).
+  -- Mantida (nullable) para preservar votos antigos.
+  nota_combo        smallint,
   nota_encantamento smallint not null,
   nota_apresentacao smallint not null,
   nota_atendimento  smallint not null,
@@ -104,8 +108,9 @@ create or replace function public.submit_vote(
   p_telefone text,
   p_instagram text,
   p_genero text,
+  p_escolaridade text,
+  p_faixa_etaria text,
   p_participante text,
-  p_nota_combo int,
   p_nota_encantamento int,
   p_nota_apresentacao int,
   p_nota_atendimento int,
@@ -172,19 +177,20 @@ begin
     update public.votos set
       email = v_email, nome = trim(p_nome), telefone = trim(p_telefone),
       instagram = trim(p_instagram), genero = p_genero,
-      nota_combo = p_nota_combo, nota_encantamento = p_nota_encantamento,
+      escolaridade = p_escolaridade, faixa_etaria = p_faixa_etaria,
+      nota_encantamento = p_nota_encantamento,
       nota_apresentacao = p_nota_apresentacao, nota_atendimento = p_nota_atendimento,
       nota_criatividade = p_nota_criatividade, nota_salgado = p_nota_salgado,
       nota_doce = p_nota_doce, nota_bebida = p_nota_bebida, obs = p_obs, updated_at = now()
     where id = v_id;
   else
     insert into public.votos (
-      email, nome, telefone, instagram, genero, participante_slug,
-      nota_combo, nota_encantamento, nota_apresentacao, nota_atendimento,
+      email, nome, telefone, instagram, genero, escolaridade, faixa_etaria, participante_slug,
+      nota_encantamento, nota_apresentacao, nota_atendimento,
       nota_criatividade, nota_salgado, nota_doce, nota_bebida, obs, updated_at
     ) values (
-      v_email, trim(p_nome), trim(p_telefone), trim(p_instagram), p_genero, v_part,
-      p_nota_combo, p_nota_encantamento, p_nota_apresentacao, p_nota_atendimento,
+      v_email, trim(p_nome), trim(p_telefone), trim(p_instagram), p_genero, p_escolaridade, p_faixa_etaria, v_part,
+      p_nota_encantamento, p_nota_apresentacao, p_nota_atendimento,
       p_nota_criatividade, p_nota_salgado, p_nota_doce, p_nota_bebida, p_obs, now()
     );
   end if;
@@ -204,7 +210,7 @@ end;
 $$;
 
 grant execute on function public.submit_vote(
-  text,text,text,text,text,text,int,int,int,int,int,int,int,int,text,text,text,text
+  text,text,text,text,text,text,text,text,int,int,int,int,int,int,int,text,text,text,text
 ) to anon, authenticated;
 
 -- ── RPC: ranking (só devolve se results_published = true) ────────────────────
@@ -233,8 +239,8 @@ begin
     select
       participante_slug,
       count(*)::int as n,
-      avg(nota_combo)        as m_combo,
-      avg(nota_encantamento) as m_encantamento,
+      (avg(nota_doce) + avg(nota_salgado) + avg(nota_bebida)) / 3.0 as m_combo,
+      avg(nota_encantamento) as m_envolvimento,
       avg(nota_apresentacao) as m_apresentacao,
       avg(nota_atendimento)  as m_atendimento,
       avg(nota_criatividade) as m_criatividade,
@@ -246,7 +252,7 @@ begin
   ),
   cats as (
     select * from (values
-      ('melhor_combo'),('encantamento'),('apresentacao'),('atendimento'),
+      ('melhor_combo'),('envolvimento'),('apresentacao'),('atendimento'),
       ('criatividade'),('salgado'),('doce'),('bebida')
     ) as c(categoria)
   ),
@@ -257,7 +263,7 @@ begin
       a.n as avaliacoes,
       case c.categoria
         when 'melhor_combo' then a.m_combo
-        when 'encantamento' then a.m_encantamento
+        when 'envolvimento' then a.m_envolvimento
         when 'apresentacao' then a.m_apresentacao
         when 'atendimento'  then a.m_atendimento
         when 'criatividade' then a.m_criatividade
@@ -270,7 +276,7 @@ begin
         order by
           case c.categoria
             when 'melhor_combo' then a.m_combo
-            when 'encantamento' then a.m_encantamento
+            when 'envolvimento' then a.m_envolvimento
             when 'apresentacao' then a.m_apresentacao
             when 'atendimento'  then a.m_atendimento
             when 'criatividade' then a.m_criatividade
@@ -373,7 +379,7 @@ begin
   return query
   with agg as (
     select participante_slug, count(*)::int as n,
-      avg(nota_combo) m_combo, avg(nota_encantamento) m_encantamento,
+      (avg(nota_doce) + avg(nota_salgado) + avg(nota_bebida)) / 3.0 m_combo, avg(nota_encantamento) m_envolvimento,
       avg(nota_apresentacao) m_apresentacao, avg(nota_atendimento) m_atendimento,
       avg(nota_criatividade) m_criatividade, avg(nota_salgado) m_salgado,
       avg(nota_doce) m_doce, avg(nota_bebida) m_bebida
@@ -385,13 +391,13 @@ begin
   ranked as (
     select c.categoria, a.participante_slug, a.n as avaliacoes,
       case c.categoria
-        when 'melhor_combo' then a.m_combo when 'encantamento' then a.m_encantamento
+        when 'melhor_combo' then a.m_combo when 'envolvimento' then a.m_envolvimento
         when 'apresentacao' then a.m_apresentacao when 'atendimento' then a.m_atendimento
         when 'criatividade' then a.m_criatividade when 'salgado' then a.m_salgado
         when 'doce' then a.m_doce when 'bebida' then a.m_bebida end as media,
       row_number() over (partition by c.categoria order by
         case c.categoria
-          when 'melhor_combo' then a.m_combo when 'encantamento' then a.m_encantamento
+          when 'melhor_combo' then a.m_combo when 'envolvimento' then a.m_envolvimento
           when 'apresentacao' then a.m_apresentacao when 'atendimento' then a.m_atendimento
           when 'criatividade' then a.m_criatividade when 'salgado' then a.m_salgado
           when 'doce' then a.m_doce when 'bebida' then a.m_bebida end desc nulls last,
@@ -441,7 +447,7 @@ begin
          count(*)::int,
          string_agg(distinct v.participante_slug, ', ')
   from public.votos v
-  where v.nota_combo = 10 and v.nota_encantamento = 10 and v.nota_apresentacao = 10
+  where v.nota_encantamento = 10 and v.nota_apresentacao = 10
     and v.nota_atendimento = 10 and v.nota_criatividade = 10 and v.nota_salgado = 10
     and v.nota_doce = 10 and v.nota_bebida = 10
   group by lower(v.email)

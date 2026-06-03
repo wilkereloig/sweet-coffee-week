@@ -1590,27 +1590,40 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 
 /* Premiação (informativa): como funciona + categorias */
 .awards-howto-note { max-width: 620px; margin: 22px auto 0; text-align: center; font-size: 14.5px; line-height: 1.55; color: var(--lovers-brown); }
-.awards-cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 24px; }
+.awards-cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 18px; margin-top: 26px; }
 .awards-cat-card {
-  position: relative; background: #fff; border-radius: 18px; padding: 20px; overflow: hidden;
-  box-shadow: 0 12px 30px rgba(43,24,16,.07); border: 1px solid rgba(135,14,45,.08);
-  transition: transform .2s ease, box-shadow .2s ease;
+  position: relative; display: flex; flex-direction: column; isolation: isolate;
+  background: #fff; border-radius: 22px; padding: 24px 22px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(43,24,16,.08);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 22%, transparent);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
+/* brilho suave do accent no canto superior, atrás do conteúdo */
 .awards-cat-card::before {
-  content: ''; position: absolute; inset: 0 0 auto 0; height: 4px;
-  background: var(--card-accent, var(--lovers-pink));
+  content: ''; position: absolute; z-index: -1; top: -40px; right: -40px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 30%, transparent) 0%, transparent 70%);
+  opacity: .55; transition: opacity .22s ease;
 }
-@media (hover: hover) { .awards-cat-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(43,24,16,.13); } }
+@media (hover: hover) {
+  .awards-cat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 22px 48px rgba(43,24,16,.15);
+    border-color: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 45%, transparent);
+  }
+  .awards-cat-card:hover::before { opacity: .9; }
+}
 .awards-cat-card__icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 46px; height: 46px; border-radius: 13px; margin-bottom: 12px;
+  width: 54px; height: 54px; border-radius: 16px; margin-bottom: 15px;
   color: var(--card-accent, var(--lovers-pink));
-  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 14%, #fff);
+  background: color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 16%, #fff);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--card-accent, var(--lovers-pink)) 30%, transparent);
 }
-.awards-cat-card__icon svg { width: 26px; height: 26px; }
-.awards-cat-card__title { font-family: var(--font-lovers-display); font-weight: 800; font-size: 18px; color: var(--lovers-burgundy); margin: 0 0 5px; }
-.awards-cat-card__text { font-size: 13px; line-height: 1.45; color: var(--lovers-brown); margin: 0; }
-@media (prefers-reduced-motion: reduce) { .awards-cat-card { transition: none; } }
+.awards-cat-card__icon svg { width: 28px; height: 28px; }
+.awards-cat-card__title { font-family: var(--font-lovers-display); font-weight: 800; font-size: 19.5px; line-height: 1.15; color: var(--lovers-burgundy); margin: 0 0 7px; }
+.awards-cat-card__text { font-size: 13.5px; line-height: 1.55; color: color-mix(in srgb, var(--lovers-brown) 92%, #000); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .awards-cat-card { transition: none; } .awards-cat-card:hover { transform: none; } }
 .awards-back-link { font-family: var(--font-lovers-body); font-weight: 700; font-size: 15px; color: var(--lovers-burgundy); text-decoration: none; }
 .awards-back-link:hover { text-decoration: underline; }
 
@@ -1746,6 +1759,17 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   text-underline-offset: 2px;
 }
 .combo-detail-hours-disclaimer__link:hover { color: var(--lovers-red); }
+
+/* Explicação curta sob cada critério de avaliação (form de votação) */
+.awards-rating__help {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--lovers-brown);
+  opacity: .72;
+  font-style: italic;
+}
 
 /* Sweet Box — lista vertical de itens (ex.: Douce di Maria, sem combo fixo) */
 .combo-box-list {

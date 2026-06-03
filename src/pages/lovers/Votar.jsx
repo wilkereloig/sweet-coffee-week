@@ -4,6 +4,7 @@ import { LoversButton, LoversStickers, useLoversReveal, ShareCardModal } from '.
 import { supabase } from '../../lib/supabase'
 import {
   AWARDS_VOTING, AWARDS_CATEGORIES, AWARDS_SCALE, GENDER_OPTIONS,
+  ESCOLARIDADE_OPTIONS, FAIXA_ETARIA_OPTIONS,
   AWARDS_PARTICIPANTS, AWARDS_TEXTS,
 } from '../../data/sweetAwards'
 
@@ -111,10 +112,10 @@ export function VotarPage({ navigate }) {
   const notOpen = nowD < new Date(AWARDS_VOTING.opensAt)
   const presetLoja = readLojaFromHash()
   const saved = loadVoter()
-  const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.genero && saved.follows)
+  const remembered = !!(saved && emailOk(saved.email) && saved.nome && saved.telefone && saved.instagram && saved.faixa_etaria && saved.escolaridade && saved.genero && saved.follows)
 
   const [identity, setIdentity] = React.useState(() => saved || {
-    email: '', nome: '', telefone: '', instagram: '', genero: '', follows: false,
+    email: '', nome: '', telefone: '', instagram: '', faixa_etaria: '', escolaridade: '', genero: '', follows: false,
   })
   const [editingId, setEditingId] = React.useState(!remembered)
 
@@ -173,7 +174,7 @@ export function VotarPage({ navigate }) {
   const setEx = (k, v) => setExtra(s => ({ ...s, [k]: v }))
 
   const idValid = emailValid(identity.email) && (identity.nome || '').trim() && (identity.telefone || '').trim() &&
-    (identity.instagram || '').trim() && identity.genero && identity.follows
+    (identity.instagram || '').trim() && identity.faixa_etaria && identity.escolaridade && identity.genero && identity.follows
   const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
 
   // Destaque-guia: id do PRÓXIMO campo vazio da etapa atual. Recebe glow pulsante
@@ -184,7 +185,9 @@ export function VotarPage({ navigate }) {
       { id: 'email',     empty: !emailValid(identity.email) },
       { id: 'nome',      empty: !(identity.nome || '').trim() },
       { id: 'telefone',  empty: !(identity.telefone || '').trim() },
-      { id: 'instagram', empty: !(identity.instagram || '').trim() },
+      { id: 'instagram',   empty: !(identity.instagram || '').trim() },
+      { id: 'faixa_etaria', empty: !identity.faixa_etaria },
+      { id: 'escolaridade', empty: !identity.escolaridade },
       { id: 'genero',    empty: !identity.genero },
       { id: 'follows',   empty: !identity.follows },
     ]) :
@@ -234,8 +237,10 @@ export function VotarPage({ navigate }) {
     setStatus('sending'); setErrorMsg('')
     const payload = {
       p_email: identity.email, p_nome: identity.nome, p_telefone: identity.telefone,
-      p_instagram: identity.instagram, p_genero: identity.genero, p_participante: participante,
-      p_nota_combo: notes.melhor_combo, p_nota_encantamento: notes.encantamento,
+      p_instagram: identity.instagram, p_genero: identity.genero,
+      p_escolaridade: identity.escolaridade, p_faixa_etaria: identity.faixa_etaria,
+      p_participante: participante,
+      p_nota_encantamento: notes.envolvimento,
       p_nota_apresentacao: notes.apresentacao, p_nota_atendimento: notes.atendimento,
       p_nota_criatividade: notes.criatividade, p_nota_salgado: notes.salgado,
       p_nota_doce: notes.doce, p_nota_bebida: notes.bebida,
@@ -294,7 +299,10 @@ export function VotarPage({ navigate }) {
           open={shareOpen}
           onClose={() => setShareOpen(false)}
           variant="meutop"
-          data={{ nome: identity.nome, participante: nameBySlug[participante], nota: notes.melhor_combo }}
+          data={{ nome: identity.nome, participante: nameBySlug[participante], nota: (() => {
+            const ns = [notes.doce, notes.salgado, notes.bebida].filter(n => n != null)
+            return ns.length ? Math.round((ns.reduce((a, b) => a + b, 0) / ns.length) * 10) / 10 : null
+          })() }}
         />
       </Shell>
     )
@@ -360,6 +368,24 @@ export function VotarPage({ navigate }) {
               <input type="tel" inputMode="numeric" value={identity.telefone} onChange={e => setId('telefone', formatPhone(e.target.value))} placeholder="(00) 00000-0000" /></label>
             <label className={'awards-field' + g('instagram')}><span>Instagram <i>*</i></span>
               <input type="text" value={identity.instagram} onChange={e => setId('instagram', formatInstagram(e.target.value))} placeholder="@seuperfil" /></label>
+            <div className={'awards-field' + g('faixa_etaria')}><span>Qual a sua faixa etária? <i>*</i></span>
+              <div className="awards-radios">
+                {FAIXA_ETARIA_OPTIONS.map(opt => (
+                  <label key={opt} className={'awards-chip-radio' + (identity.faixa_etaria === opt ? ' is-active' : '')}>
+                    <input type="radio" name="faixa_etaria" value={opt} checked={identity.faixa_etaria === opt} onChange={() => setId('faixa_etaria', opt)} />{opt}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className={'awards-field' + g('escolaridade')}><span>Qual a sua escolaridade? <i>*</i></span>
+              <div className="awards-radios">
+                {ESCOLARIDADE_OPTIONS.map(opt => (
+                  <label key={opt} className={'awards-chip-radio' + (identity.escolaridade === opt ? ' is-active' : '')}>
+                    <input type="radio" name="escolaridade" value={opt} checked={identity.escolaridade === opt} onChange={() => setId('escolaridade', opt)} />{opt}
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className={'awards-field' + g('genero')}><span>Como você se identifica? <i>*</i></span>
               <div className="awards-radios">
                 {GENDER_OPTIONS.map(g => (
@@ -399,7 +425,11 @@ export function VotarPage({ navigate }) {
             </p>
             {AWARDS_CATEGORIES.map(c => (
               <div className={'awards-rating lovers-reveal' + g(c.key)} key={c.key}>
-                <div className="awards-rating__head"><strong>{c.label.replace(/^Melhor\s+/i, '')}</strong><span>{c.question} <i>*</i></span></div>
+                <div className="awards-rating__head">
+                  <strong>{c.label.replace(/^Melhor\s+/i, '')}</strong>
+                  <span>{c.question} <i>*</i></span>
+                  {c.help && <small className="awards-rating__help">{c.help}</small>}
+                </div>
                 <RatingScale name={c.label} value={notes[c.key]} onChange={v => setNote(c.key, v)} />
               </div>
             ))}

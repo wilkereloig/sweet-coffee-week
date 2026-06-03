@@ -457,6 +457,8 @@ export const PARTICIPANTS = [
         mapsUrl: "https://maps.app.goo.gl/LAmKyybkSgtYqP4h8",
         openingHours: "15h às 21h",
         hours: { 0: [["15:00","21:00"]], 1: [["15:00","21:00"]], 2: [["15:00","21:00"]], 3: [["15:00","21:00"]], 4: [["15:00","21:00"]], 5: [["15:00","21:00"]], 6: [["15:00","21:00"]] },
+        // Exceção: NÃO abre no domingo 07/06 (mas abre normalmente no domingo 14/06).
+        dateOverrides: { "2026-06-07": [] },
       },
     ],
   },
