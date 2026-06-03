@@ -101,6 +101,12 @@ function SiteSidebar({ route, navigate, isLovers }) {
             </a>
           )
         ))}
+        <a href="#/lovers/painel"
+           className={`sidebar__link sidebar__link--lovers${route === 'painel' ? ' lovers-active' : ''}`}
+           onClick={(e) => { e.preventDefault(); navigate('/lovers/painel') }}>
+          <span className="sidebar__link-label">Painel Sweet Awards</span>
+          <span className="sidebar__link-sub">Área administrativa</span>
+        </a>
       </div>
 
       <div style={{ flex: 1 }} />
@@ -351,6 +357,15 @@ export function SiteHeader({ route, navigate, path = '' }) {
                 </a>
               )
             ))}
+          </div>
+
+          <div className="mobile-menu__section mobile-menu__section--institutional">
+            <div className="mobile-menu__section-title">Administração</div>
+            <a href="#/lovers/painel"
+               className="mobile-menu__inst-link"
+               onClick={(e) => { e.preventDefault(); navigate('/lovers/painel'); setMobileOpen(false) }}>
+              Painel Sweet Awards
+            </a>
           </div>
 
         </div>
