@@ -279,6 +279,28 @@
   .share-card-capture { transform: scale(.86); transform-origin: top center; margin-bottom: -88px; }
 }
 
+/* ── Página Promoções ── */
+.promo-intro { color: var(--lovers-brown); font-size: clamp(15px, 1.7vw, 18px); line-height: 1.6; margin-bottom: 26px; }
+.promo-intro p { margin: 0 0 14px; }
+.promo-intro strong { color: var(--lovers-burgundy); }
+.promo-card {
+  position: relative; isolation: isolate; overflow: hidden;
+  border-radius: clamp(24px, 3vw, 40px); padding: clamp(28px, 5vw, 56px);
+  background: var(--promo-accent, var(--lovers-purple)); color: #fff;
+  box-shadow: 0 24px 70px rgba(43, 24, 16, .24);
+}
+.promo-card__sticker { position: absolute; top: clamp(16px, 2vw, 26px); right: clamp(16px, 2vw, 30px); transform: rotate(8deg); }
+.promo-card__title { margin: 6px 0 0; font-family: var(--font-lovers-display); font-weight: 900; font-size: clamp(26px, 4vw, 46px); line-height: 1; text-transform: uppercase; }
+.promo-card__lead { margin: 14px 0 0; font-size: clamp(16px, 1.9vw, 20px); font-weight: 700; color: var(--lovers-yellow); }
+.promo-card__text { margin: 16px 0 0; font-size: clamp(15px, 1.6vw, 17px); line-height: 1.6; color: rgba(255, 255, 255, .94); }
+.promo-card__list { margin: 16px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; font-size: clamp(15px, 1.6vw, 17px); line-height: 1.55; color: rgba(255, 255, 255, .94); }
+.promo-card__list strong { color: #fff; }
+.promo-card__tagline { margin: 22px 0 0; font-family: var(--font-lovers-display); font-weight: 800; font-size: clamp(18px, 2.4vw, 26px); text-transform: uppercase; color: var(--lovers-yellow); }
+.promo-card__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.promo-card .lovers-button--primary { background: var(--lovers-cream); color: var(--lovers-purple); border-color: transparent; }
+.promo-card .lovers-button--secondary { color: #fff; border-color: rgba(255, 255, 255, .6); background: transparent; }
+.promo-card .lovers-button--secondary:hover { background: #fff; color: var(--lovers-purple); border-color: #fff; }
+
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
 .lovers-safe-wrap {
   width: min(100% - clamp(40px, 12vw, 220px), 1120px);

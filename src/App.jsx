@@ -55,6 +55,7 @@ import { MapaPage }       from './pages/lovers/Mapa'
 import { AwardsPage }     from './pages/lovers/Awards'
 import { VotarPage }      from './pages/lovers/Votar'
 import { PainelPage }     from './pages/lovers/Painel'
+import { PromocoesPage }  from './pages/lovers/Promocoes'
 
 
 export default function App() {
@@ -75,6 +76,7 @@ export default function App() {
     if (path.startsWith('/lovers/combos'))  return 'combos'
     if (path.startsWith('/lovers/participantes')) return 'participantes'
     if (path.startsWith('/lovers/mapa'))    return 'mapa'
+    if (path.startsWith('/lovers/promocoes')) return 'promocoes'
     if (path.startsWith('/lovers/painel'))  return 'painel'
     if (path.startsWith('/lovers/votar'))   return 'votar'
     if (path.startsWith('/lovers/awards'))  return 'awards'
@@ -98,6 +100,7 @@ export default function App() {
     case 'mapa':         page = <MapaPage navigate={navigate} variant="fullscreen" />; break
     case 'votar':        page = <VotarPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
+    case 'promocoes':    page = <PromocoesPage navigate={navigate} />; break
     case 'awards':       page = <AwardsPage navigate={navigate} />; break
     case 'premiacao':    page = <AwardsPage navigate={navigate} />; break
     case 'curiosidades': page = <ComingSoonPage />; break

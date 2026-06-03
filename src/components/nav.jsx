@@ -17,6 +17,7 @@ const LOVERS_LINKS = [
   { id: 'participantes', label: 'Participantes',    sub: 'Escolha seus combos',   href: '#/lovers/participantes' },
   { id: 'mapa',          label: 'Mapa da Doçura',   sub: 'Monte sua rota',        href: '#/lovers/mapa' },
   { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
+  { id: 'promocoes',     label: 'Promoções',        sub: 'Brindes e ações',       href: '#/lovers/promocoes' },
 ]
 
 const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar']
