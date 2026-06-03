@@ -156,7 +156,7 @@ export function VotarPage({ navigate }) {
     regras:    { label: 'Regras rápidas', hint: 'É rápido — só uma olhada antes de começar.' },
     voce:      { label: 'Seus dados',     hint: 'Falta pouco. Usamos só pra validar seu voto.' },
     avaliacao: { label: 'Notas do combo', hint: 'Toque na nota que melhor representa sua experiência.' },
-    final:     { label: 'Finalizar',      hint: 'Essa parte é opcional — ajuda o Sweet, mas não impede o envio.' },
+    final:     { label: 'Finalizar',      hint: 'Suas respostas aqui ajudam muito o Sweet a evoluir. Conta pra gente?' },
   }
   const meta = STEP_META[step] || {}
   const progressPct = Math.round(((safeStepIdx + 1) / steps.length) * 100)
@@ -446,7 +446,7 @@ export function VotarPage({ navigate }) {
       {step === 'final' && (
         <>
           <fieldset className="awards-fieldset lovers-reveal">
-            <legend className="awards-legend">Quase lá <small>(opcional)</small></legend>
+            <legend className="awards-legend">Quase lá</legend>
             <p className="awards-scale-note">
               Essas respostas são <strong>ouro pra gente</strong> 💛 Ajudam os participantes a evoluírem e
               guiam as próximas edições do Sweet. Leva menos de 1 minuto — conta pra gente?
