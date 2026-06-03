@@ -199,8 +199,28 @@ export function VotarPage({ navigate }) {
     ]) : null
   const g = (id) => (guideId === id ? ' is-guiding' : '')
 
+  // Checa se o DOMÍNIO do e-mail existe (DNS/MX) via Edge Function, com debounce.
+  // Falha de rede não bloqueia (não punir quem tem e-mail válido se o check cair).
+  const [domainBad, setDomainBad] = React.useState(false)
+  const [domainChecking, setDomainChecking] = React.useState(false)
+  React.useEffect(() => {
+    const email = identity.email
+    setDomainBad(false)
+    if (!emailValid(email)) { setDomainChecking(false); return }
+    let alive = true
+    setDomainChecking(true)
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('check-email-domain', { body: { email } })
+        if (alive && data) setDomainBad(data.valid === false)
+      } catch { /* sem rede/erro → não bloqueia */ }
+      if (alive) setDomainChecking(false)
+    }, 600)
+    return () => { alive = false; clearTimeout(t) }
+  }, [identity.email])
+
   function goNext() {
-    if (step === 'voce' && !idValid) return
+    if (step === 'voce' && (!idValid || domainChecking || domainBad)) return
     if (step === 'avaliacao' && !notesValid) return
     setStepIdx(i => Math.min(i + 1, steps.length - 1))
   }
@@ -319,6 +339,12 @@ export function VotarPage({ navigate }) {
               <input type="email" value={identity.email} onChange={e => setId('email', e.target.value)} placeholder="seu@email.com" />
               {identity.email && !emailValid(identity.email) && (
                 <span className="awards-form__hint" style={{ color: 'var(--lovers-red)' }}>Confira o e-mail — domínio inválido ou não aceito.</span>
+              )}
+              {emailValid(identity.email) && domainChecking && (
+                <span className="awards-form__hint">Verificando o domínio do e-mail…</span>
+              )}
+              {emailValid(identity.email) && !domainChecking && domainBad && (
+                <span className="awards-form__hint" style={{ color: 'var(--lovers-red)' }}>Esse domínio de e-mail não existe. Confira o endereço.</span>
               )}</label>
             <label className={'awards-field' + g('nome')}><span>Nome completo <i>*</i></span>
               <input type="text" value={identity.nome} onChange={e => setId('nome', e.target.value)} /></label>
@@ -342,7 +368,7 @@ export function VotarPage({ navigate }) {
           </fieldset>
           <div className="awards-wizard-nav">
             <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
-            <LoversButton variant="primary" disabled={!idValid} onClick={goNext}>Continuar <I.arrow /></LoversButton>
+            <LoversButton variant="primary" disabled={!idValid || domainChecking || domainBad} onClick={goNext}>Continuar <I.arrow /></LoversButton>
             {!idValid && <span className="awards-form__hint">Preencha todos os campos obrigatórios (*).</span>}
           </div>
         </>
