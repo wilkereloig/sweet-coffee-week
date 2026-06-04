@@ -133,7 +133,7 @@ export function AwardsPage({ navigate }) {
             <article className="lovers-public-card lovers-reveal lv-anim-2" style={{ '--card-accent': 'var(--lovers-yellow)' }}>
               <span className="lovers-public-card__badge"><I.star width={12} height={12} /> Passo 2</span>
               <h3 className="lovers-public-card__title">Dê notas de 5 a 10</h3>
-              <p className="lovers-public-card__text">Avalie o participante em 8 categorias. A nota 5 é a menor e 10 a maior.</p>
+              <p className="lovers-public-card__text">Avalie o participante em 7 categorias. A nota 5 é a menor e 10 a maior.</p>
             </article>
             <article className="lovers-public-card lovers-reveal lv-anim-3" style={{ '--card-accent': 'var(--lovers-cyan)' }}>
               <span className="lovers-public-card__badge"><I.pin width={12} height={12} /> Passo 3</span>
