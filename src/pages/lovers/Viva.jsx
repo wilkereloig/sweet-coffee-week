@@ -13,7 +13,7 @@ const MAPA_ROTA_FILE = '/mapa-rota-da-docura.pdf'
 // Card de accordion: cabeçalho clicável + corpo que expande na própria página.
 function VivaCard({ id, open, onToggle, icon, eyebrow, title, tag, children }) {
   return (
-    <article className={'viva-card lovers-reveal' + (open ? ' is-open' : '')}>
+    <article className={'viva-card' + (open ? ' is-open' : '')}>
       <button className="viva-card__head" onClick={() => onToggle(id)} aria-expanded={open}>
         <span className="viva-card__icon" aria-hidden="true">{icon}</span>
         <span className="viva-card__heading">
