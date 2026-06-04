@@ -361,9 +361,44 @@
 .pb-palette__item img { width: 100%; height: 100%; object-fit: contain; }
 .pb-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .pb-actions .lovers-button { width: 100%; justify-content: center; }
-@media (max-width: 412px) {
-  .pb-stage { transform: scale(.84); transform-origin: top center; margin-bottom: -90px; }
+/* Edição: escala o stage 360x640 para caber centralizado (scale via JS em --fit). */
+.pb-stage-wrap { width: 100%; display: flex; justify-content: center; overflow: hidden; margin: 0 auto 12px; }
+.pb-stage-scale { width: 360px; }
+
+/* ── Câmera em tela cheia ── */
+.pb-camera { position: fixed; inset: 0; z-index: 10000; background: #000; overflow: hidden; }
+.pb-camera__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pb-camera__video--mirror { transform: scaleX(-1); }
+.pb-camera__loading {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; color: #fff; font-size: 14px;
+  background: rgba(0, 0, 0, .5);
 }
+.pb-camera__top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+  display: flex; justify-content: space-between;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 0;
+}
+.pb-camera__bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 26px);
+}
+.pb-camera__icon {
+  width: 46px; height: 46px; border-radius: 50%; border: 0;
+  background: rgba(0, 0, 0, .4); color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+}
+.pb-camera__icon:disabled { opacity: .5; cursor: default; }
+.pb-shutter {
+  width: 74px; height: 74px; border-radius: 50%; background: transparent;
+  border: 4px solid #fff; padding: 5px; cursor: pointer;
+}
+.pb-shutter span { display: block; width: 100%; height: 100%; border-radius: 50%; background: #fff; transition: transform .1s; }
+.pb-shutter:active span { transform: scale(.9); }
+.pb-shutter:disabled { opacity: .5; cursor: default; }
+.pb-zoom--cam { width: min(420px, 84%); color: #fff; }
+.pb-zoom--cam input[type="range"] { accent-color: #fff; }
 
 /* ── Zona segura central — protege texto/cards/CTAs dos adesivos laterais ── */
 .lovers-safe-wrap {

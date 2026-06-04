@@ -26,9 +26,11 @@ export function PhotoBoothModal({ open, onClose }) {
   const [multiCam, setMultiCam] = React.useState(false)
   const [zoomCap, setZoomCap] = React.useState(null) // { min, max, step } se o device expõe zoom
   const [zoom, setZoom] = React.useState(1)
+  const [fit, setFit] = React.useState(1) // escala do stage 360x640 p/ caber no painel (centralização)
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
+  const wrapRef = React.useRef(null)
   const fileRef = React.useRef(null)
   const drag = React.useRef(null)
 
@@ -36,11 +38,32 @@ export function PhotoBoothModal({ open, onClose }) {
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null }
   }, [])
 
+  // Mede a largura disponível e escala o stage (base 360px) para caber centralizado.
+  React.useEffect(() => {
+    if (!open || mode !== 'edit') return
+    const measure = () => {
+      const w = wrapRef.current ? wrapRef.current.clientWidth : 360
+      setFit(Math.min(1, w / 360))
+    }
+    measure()
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+    if (ro && wrapRef.current) ro.observe(wrapRef.current)
+    window.addEventListener('resize', measure)
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure) }
+  }, [open, mode])
+
   React.useEffect(() => {
     if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1) }
   }, [open, stopCam])
 
   React.useEffect(() => () => stopCam(), [stopCam])
+
+  // Esconde o menu inferior (tabbar) enquanto a cabine está aberta — evita sobreposição nos botões.
+  React.useEffect(() => {
+    if (!open) return
+    document.body.classList.add('route-overlay-open')
+    return () => document.body.classList.remove('route-overlay-open')
+  }, [open])
 
   async function startCam(which) {
     const want = which || facing
@@ -197,6 +220,34 @@ export function PhotoBoothModal({ open, onClose }) {
 
   if (!open) return null
 
+  // Câmera em tela cheia: vídeo cobre a tela; captura → volta para a edição (adesivos).
+  if (mode === 'selfie') {
+    return (
+      <div className="pb-camera" role="dialog" aria-modal="true">
+        <video ref={videoRef} playsInline muted
+          className={'pb-camera__video' + (facing === 'user' ? ' pb-camera__video--mirror' : '')} />
+        {camStarting && <div className="pb-camera__loading"><span className="pb-spinner" />Iniciando câmera…</div>}
+        <div className="pb-camera__top">
+          <button className="pb-camera__icon" onClick={() => { stopCam(); setMode('choose') }} aria-label="Voltar">‹</button>
+          {multiCam && (
+            <button className="pb-camera__icon" onClick={switchCam} disabled={camStarting} aria-label="Trocar câmera" title="Trocar câmera">⟲</button>
+          )}
+        </div>
+        <div className="pb-camera__bottom">
+          {zoomCap && (
+            <div className="pb-zoom pb-zoom--cam">
+              <span aria-hidden="true">−</span>
+              <input type="range" min={zoomCap.min} max={zoomCap.max} step={zoomCap.step} value={zoom}
+                onChange={(e) => applyZoom(parseFloat(e.target.value))} aria-label="Zoom da câmera" />
+              <span aria-hidden="true">+</span>
+            </div>
+          )}
+          <button className="pb-shutter" onClick={capture} disabled={camStarting} aria-label="Capturar"><span /></button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="share-modal" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="share-modal__panel pb-panel" onClick={(e) => e.stopPropagation()}>
@@ -213,50 +264,29 @@ export function PhotoBoothModal({ open, onClose }) {
           </div>
         )}
 
-        {mode === 'selfie' && (
-          <div className="pb-selfie">
-            <div className="pb-stage">
-              <video ref={videoRef} playsInline muted className={'pb-video' + (facing === 'user' ? ' pb-video--mirror' : '')} />
-              {camStarting && <div className="pb-loading"><span className="pb-spinner" />Iniciando câmera…</div>}
-              {multiCam && (
-                <button className="pb-switch" onClick={switchCam} disabled={camStarting} aria-label="Trocar câmera" title="Trocar câmera">⟲</button>
-              )}
-              <PbFrame />
-            </div>
-            {zoomCap && (
-              <div className="pb-zoom">
-                <span aria-hidden="true">−</span>
-                <input type="range" min={zoomCap.min} max={zoomCap.max} step={zoomCap.step} value={zoom}
-                  onChange={(e) => applyZoom(parseFloat(e.target.value))} aria-label="Zoom da câmera" />
-                <span aria-hidden="true">+</span>
-              </div>
-            )}
-            <div className="pb-actions">
-              <button className="lovers-button lovers-button--primary" onClick={capture} disabled={camStarting}>Capturar</button>
-              <button className="lovers-button lovers-button--secondary" onClick={() => { stopCam(); setMode('choose') }}>Voltar</button>
-            </div>
-          </div>
-        )}
-
         {mode === 'edit' && (
           <div className="pb-edit">
-            <div ref={stageRef} className="pb-stage" onPointerDown={() => setSel(null)}>
-              {imgSrc && <img className="pb-photo" src={imgSrc} alt="" />}
-              {stickers.map(st => (
-                <div key={st.id}
-                  className={'pb-sticker' + (sel === st.id ? ' is-sel' : '')}
-                  style={{ left: st.x, top: st.y, transform: `translate(-50%,-50%) rotate(${st.rot}deg) scale(${st.scale})` }}
-                  onPointerDown={(e) => onStickerDown(e, st)}>
-                  <img src={st.src} alt="" draggable="false" />
-                  {sel === st.id && (
-                    <>
-                      <button className="pb-sticker__del" onPointerDown={(e) => { e.stopPropagation(); removeSticker(st.id) }}>✕</button>
-                      <span className="pb-sticker__handle" onPointerDown={(e) => onHandleDown(e, st)} />
-                    </>
-                  )}
+            <div className="pb-stage-wrap" ref={wrapRef} style={{ height: 640 * fit }}>
+              <div className="pb-stage-scale" style={{ transform: `scale(${fit})`, transformOrigin: 'top center' }}>
+                <div ref={stageRef} className="pb-stage" onPointerDown={() => setSel(null)}>
+                  {imgSrc && <img className="pb-photo" src={imgSrc} alt="" />}
+                  {stickers.map(st => (
+                    <div key={st.id}
+                      className={'pb-sticker' + (sel === st.id ? ' is-sel' : '')}
+                      style={{ left: st.x, top: st.y, transform: `translate(-50%,-50%) rotate(${st.rot}deg) scale(${st.scale})` }}
+                      onPointerDown={(e) => onStickerDown(e, st)}>
+                      <img src={st.src} alt="" draggable="false" />
+                      {sel === st.id && (
+                        <>
+                          <button className="pb-sticker__del" onPointerDown={(e) => { e.stopPropagation(); removeSticker(st.id) }}>✕</button>
+                          <span className="pb-sticker__handle" onPointerDown={(e) => onHandleDown(e, st)} />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  <PbFrame />
                 </div>
-              ))}
-              <PbFrame />
+              </div>
             </div>
             <div className="pb-palette">
               {PALETTE.map(n => (
