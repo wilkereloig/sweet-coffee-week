@@ -356,9 +356,17 @@
 .pb-sticker.is-sel { outline: 2px dashed rgba(255, 255, 255, .9); outline-offset: 3px; border-radius: 6px; }
 .pb-sticker__del { position: absolute; top: -12px; left: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-red); color: #fff; border: 2px solid #fff; font-size: 12px; cursor: pointer; line-height: 1; padding: 0; z-index: 6; }
 .pb-sticker__handle { position: absolute; bottom: -12px; right: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-yellow); border: 2px solid #fff; cursor: nwse-resize; display: block; touch-action: none; z-index: 6; }
-.pb-palette { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; }
-.pb-palette__item { flex: 0 0 auto; width: 54px; height: 54px; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }
-.pb-palette__item img { width: 100%; height: 100%; object-fit: contain; }
+.pb-palette-hint { margin: 2px 0 6px; font-size: 12px; color: var(--lovers-brown); text-align: center; }
+.pb-palette { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 12px; }
+.pb-palette__item { position: relative; flex: 0 0 auto; width: 54px; height: 54px; }
+.pb-palette__add { display: block; width: 100%; height: 100%; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }
+.pb-palette__add img { width: 100%; height: 100%; object-fit: contain; }
+.pb-palette__dl {
+  position: absolute; top: 1px; right: 1px; width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #fff; background: var(--lovers-purple); color: #fff;
+  font-size: 12px; line-height: 1; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+}
 .pb-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .pb-actions .lovers-button { width: 100%; justify-content: center; }
 /* Edição: escala o stage 360x640 para caber centralizado (scale via JS em --fit). */

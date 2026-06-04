@@ -150,6 +150,17 @@ export function PhotoBoothModal({ open, onClose }) {
   }
   function removeSticker(id) { setStickers(s => s.filter(k => k.id !== id)); setSel(null) }
 
+  // Baixa o PNG do adesivo (original, transparente) para a galeria.
+  async function downloadSticker(n) {
+    try {
+      const res = await fetch(A(n))
+      const blob = await res.blob()
+      const file = new File([blob], `sweet-lover-adesivo-${n}.png`, { type: 'image/png' })
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] })
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); URL.revokeObjectURL(a.href) }
+    } catch (e) { if (import.meta.env.DEV) console.error('[sticker dl]', e) }
+  }
+
   function onStickerDown(e, st) {
     e.stopPropagation()
     setSel(st.id)
@@ -288,11 +299,15 @@ export function PhotoBoothModal({ open, onClose }) {
                 </div>
               </div>
             </div>
+            <p className="pb-palette-hint">Toque pra colar na foto · <span aria-hidden="true">⤓</span> pra baixar o adesivo</p>
             <div className="pb-palette">
               {PALETTE.map(n => (
-                <button key={n} className="pb-palette__item" onClick={() => addSticker(n)}>
-                  <img src={A(n)} alt="" loading="lazy" />
-                </button>
+                <div key={n} className="pb-palette__item">
+                  <button className="pb-palette__add" onClick={() => addSticker(n)} aria-label="Adicionar adesivo à foto">
+                    <img src={A(n)} alt="" loading="lazy" />
+                  </button>
+                  <button className="pb-palette__dl" onClick={() => downloadSticker(n)} aria-label="Baixar adesivo em PNG" title="Baixar PNG">⤓</button>
+                </div>
               ))}
             </div>
             <div className="pb-actions">
