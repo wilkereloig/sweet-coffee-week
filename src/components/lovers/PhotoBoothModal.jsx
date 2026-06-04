@@ -19,6 +19,13 @@ export function PhotoBoothModal({ open, onClose }) {
   const [sel, setSel] = React.useState(null)
   const [busy, setBusy] = React.useState(false)
   const [camErr, setCamErr] = React.useState('')
+  const [facing, setFacing] = React.useState(() => {
+    try { return sessionStorage.getItem('pb-facing') || 'user' } catch { return 'user' }
+  })
+  const [camStarting, setCamStarting] = React.useState(false)
+  const [multiCam, setMultiCam] = React.useState(false)
+  const [zoomCap, setZoomCap] = React.useState(null) // { min, max, step } se o device expõe zoom
+  const [zoom, setZoom] = React.useState(1)
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
@@ -30,22 +37,64 @@ export function PhotoBoothModal({ open, onClose }) {
   }, [])
 
   React.useEffect(() => {
-    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr('') }
+    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1) }
   }, [open, stopCam])
 
   React.useEffect(() => () => stopCam(), [stopCam])
 
-  async function startSelfie() {
-    setCamErr(''); setMode('selfie')
+  async function startCam(which) {
+    const want = which || facing
+    setCamErr(''); setCamStarting(true); setMode('selfie')
+    stopCam(); setZoomCap(null); setZoom(1)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } }, audio: false })
+      // Resolução genérica (sem forçar retrato 1080x1920): evita o modo recortado/zoom
+      // agressivo que o Android escolhia. O recorte 9:16 fica no CSS e na captura.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: want }, width: { ideal: 1280 }, height: { ideal: 1280 } },
+        audio: false,
+      })
       streamRef.current = stream
       await new Promise(r => requestAnimationFrame(r))
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play().catch(() => {}) }
+      // Capacidades do device: zoom óptico/digital e quantas câmeras existem.
+      try {
+        const track = stream.getVideoTracks()[0]
+        const caps = track && track.getCapabilities ? track.getCapabilities() : null
+        if (caps && caps.zoom && caps.zoom.max > caps.zoom.min) {
+          setZoomCap({ min: caps.zoom.min, max: caps.zoom.max, step: caps.zoom.step || 0.1 })
+          const st = track.getSettings ? track.getSettings() : {}
+          setZoom(st.zoom || caps.zoom.min)
+        }
+      } catch {}
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices()
+        setMultiCam(devs.filter(d => d.kind === 'videoinput').length > 1)
+      } catch {}
+      try { sessionStorage.setItem('pb-facing', want) } catch {}
     } catch (e) {
-      setCamErr('Não foi possível acessar a câmera. Use "Enviar foto".')
-      setMode('choose')
+      const msg = e && e.name === 'NotAllowedError'
+        ? 'Permissão de câmera negada. Libere o acesso nas configurações do navegador ou use "Enviar foto".'
+        : e && e.name === 'NotFoundError'
+        ? 'Nenhuma câmera encontrada. Use "Enviar foto".'
+        : 'Não foi possível acessar a câmera. Use "Enviar foto".'
+      setCamErr(msg); setMode('choose')
+    } finally {
+      setCamStarting(false)
     }
+  }
+
+  function startSelfie() { startCam(facing) }
+
+  function switchCam() {
+    const next = facing === 'user' ? 'environment' : 'user'
+    setFacing(next)
+    startCam(next)
+  }
+
+  function applyZoom(v) {
+    setZoom(v)
+    const track = streamRef.current && streamRef.current.getVideoTracks()[0]
+    if (track && track.applyConstraints) track.applyConstraints({ advanced: [{ zoom: v }] }).catch(() => {})
   }
 
   function capture() {
@@ -59,7 +108,7 @@ export function PhotoBoothModal({ open, onClose }) {
     const canvas = document.createElement('canvas')
     canvas.width = 1080; canvas.height = 1920
     const ctx = canvas.getContext('2d')
-    ctx.translate(1080, 0); ctx.scale(-1, 1) // espelha selfie
+    if (facing === 'user') { ctx.translate(1080, 0); ctx.scale(-1, 1) } // espelha só a câmera frontal
     ctx.drawImage(v, sx, sy, sw, sh, 0, 0, 1080, 1920)
     setImgSrc(canvas.toDataURL('image/jpeg', 0.92))
     stopCam(); setMode('edit')
@@ -167,11 +216,23 @@ export function PhotoBoothModal({ open, onClose }) {
         {mode === 'selfie' && (
           <div className="pb-selfie">
             <div className="pb-stage">
-              <video ref={videoRef} playsInline muted className="pb-video" />
+              <video ref={videoRef} playsInline muted className={'pb-video' + (facing === 'user' ? ' pb-video--mirror' : '')} />
+              {camStarting && <div className="pb-loading"><span className="pb-spinner" />Iniciando câmera…</div>}
+              {multiCam && (
+                <button className="pb-switch" onClick={switchCam} disabled={camStarting} aria-label="Trocar câmera" title="Trocar câmera">⟲</button>
+              )}
               <PbFrame />
             </div>
+            {zoomCap && (
+              <div className="pb-zoom">
+                <span aria-hidden="true">−</span>
+                <input type="range" min={zoomCap.min} max={zoomCap.max} step={zoomCap.step} value={zoom}
+                  onChange={(e) => applyZoom(parseFloat(e.target.value))} aria-label="Zoom da câmera" />
+                <span aria-hidden="true">+</span>
+              </div>
+            )}
             <div className="pb-actions">
-              <button className="lovers-button lovers-button--primary" onClick={capture}>Capturar</button>
+              <button className="lovers-button lovers-button--primary" onClick={capture} disabled={camStarting}>Capturar</button>
               <button className="lovers-button lovers-button--secondary" onClick={() => { stopCam(); setMode('choose') }}>Voltar</button>
             </div>
           </div>
