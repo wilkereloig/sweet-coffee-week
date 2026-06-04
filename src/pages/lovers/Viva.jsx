@@ -34,7 +34,7 @@ export function VivaPage({ navigate }) {
   useLoversReveal()
   const [shareVariant, setShareVariant] = React.useState(null)
   const [boothOpen, setBoothOpen] = React.useState(false)
-  const [openCard, setOpenCard] = React.useState('rota') // primeiro card já aberto
+  const [openCard, setOpenCard] = React.useState(null) // todos recolhidos ao abrir
   const nome = readNome()
 
   const toggle = (id) => setOpenCard(cur => (cur === id ? null : id))

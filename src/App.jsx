@@ -13,7 +13,7 @@ const LOVERS_TABS = [
   { label: 'Lojas',      to: '/lovers/participantes', icon: 'pin',   match: ['participantes', 'combos', 'combo-detail'] },
   { label: 'Mapa',       to: '/lovers/mapa',          icon: 'map',   match: ['mapa'] },
   { label: 'Premiação',  to: '/lovers/premiacao',     icon: 'star',  match: ['premiacao', 'awards'] },
-  { label: 'Viva',       to: '/lovers/viva',          icon: 'cup',   match: ['viva'] },
+  { label: 'Viva o Sweet', to: '/lovers/viva',        icon: 'cup',   match: ['viva'] },
 ]
 function LoversTabBar({ route, navigate }) {
   const activeIndex = LOVERS_TABS.findIndex(t => t.match.includes(route))
