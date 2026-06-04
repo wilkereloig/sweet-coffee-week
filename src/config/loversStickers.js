@@ -68,5 +68,12 @@ export const LOVERS_STICKERS = {
     { src: A(46), style: { bottom: '46%',right: '-9%',  width: 'clamp(110px,12vw,210px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.12' } },
     { src: A(1),  style: { top: '90%',   left: '-9%',   width: 'clamp(120px,13vw,230px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.10' } },
   ],
+  // /lovers/viva — leve e arejado (cards são o foco). Poucos adesivos, bem nas bordas.
+  viva: [
+    { src: A(43), style: { top: '40%',   left: '-13%',  width: 'clamp(110px,12vw,200px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.10' } },
+    { src: A(10), style: { top: '30%',   right: '-13%', width: 'clamp(110px,12vw,200px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } },
+    { src: A(31), style: { bottom: '7%', left: '-13%',  width: 'clamp(110px,12vw,200px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.11' } },
+    { src: A(5),  style: { bottom: '9%', right: '-13%', width: 'clamp(110px,12vw,200px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.09' } },
+  ],
   mapa: [],
 }
