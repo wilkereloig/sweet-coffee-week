@@ -241,6 +241,26 @@ export function PhotoBoothModal({ open, onClose }) {
     } catch (e) { if (import.meta.env.DEV) console.error('[photobooth dl]', e) }
     finally { setBusy(false) }
   }
+  // Compartilha as figurinhas (PNGs) direto pelo share sheet (WhatsApp etc.).
+  async function shareStickers() {
+    if (busy) return; setBusy(true)
+    try {
+      const files = await Promise.all(PALETTE.map(async n => {
+        const res = await fetch(A(n))
+        const blob = await res.blob()
+        return new File([blob], `sweet-lover-figurinha-${n}.png`, { type: 'image/png' })
+      }))
+      const text = 'Figurinhas do Sweet & Coffee Week Lovers 💛 @sweetcoffeeweek'
+      if (navigator.canShare && navigator.canShare({ files })) await navigator.share({ files, text })
+      else if (navigator.canShare && navigator.canShare({ files: [files[0]] })) {
+        // Plataforma não aceita múltiplos arquivos: compartilha um a um.
+        for (const f of files) await navigator.share({ files: [f] })
+      } else {
+        files.forEach(f => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click(); URL.revokeObjectURL(a.href) })
+      }
+    } catch (e) { if (import.meta.env.DEV) console.error('[share stickers]', e) }
+    finally { setBusy(false) }
+  }
 
   if (!open) return null
 
@@ -328,6 +348,7 @@ export function PhotoBoothModal({ open, onClose }) {
                 <button className="pb-actbtn" disabled={busy} onClick={doDownload}>⤓ Baixar foto</button>
                 <button className={'pb-actbtn' + (dlMode ? ' is-on' : '')} onClick={() => setDlMode(m => !m)} aria-pressed={dlMode}>⤓ Baixar adesivos</button>
               </div>
+              <button className="pb-actbtn pb-actbtn--full" disabled={busy} onClick={shareStickers}>↗ Compartilhar figurinhas</button>
               <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setDlMode(false); setMode('choose') }}>Trocar foto</button>
             </div>
           </div>

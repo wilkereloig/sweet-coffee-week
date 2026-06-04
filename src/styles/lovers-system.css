@@ -422,6 +422,7 @@
 }
 .pb-actbtn.is-on { background: var(--lovers-purple); color: #fff; }
 .pb-actbtn:disabled { opacity: .5; cursor: default; }
+.pb-actbtn--full { width: 100%; }
 /* Edição: escala o stage 360x640 para caber centralizado (scale via JS em --fit). */
 .pb-stage-wrap { width: 100%; display: flex; justify-content: center; overflow: hidden; margin: 0 auto 12px; }
 .pb-stage-scale { width: 360px; }
