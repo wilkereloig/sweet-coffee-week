@@ -2539,14 +2539,29 @@ button:disabled { cursor: not-allowed; }
    Classes diretas (sem gate .site-sidebar.lovers) p/ valer em todo contexto.
    Exclusivas de links Lovers — não afetam links institucionais. ── */
 .sidebar__link--lovers {
+  position: relative;
   display: grid;
-  gap: 5px;
+  gap: 4px;
   align-items: start;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding: 11px 12px 11px 18px;
+  border-radius: 12px;
   line-height: 1.12;
   white-space: normal;
+  transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
 }
+/* barra de destaque à esquerda — cresce no hover e fica cheia no item ativo */
+.sidebar__link--lovers::before {
+  content: '';
+  position: absolute; left: 7px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 0; border-radius: 99px;
+  background: var(--lovers-pink);
+  transition: height .18s ease, background .18s ease;
+}
+.sidebar__link--lovers:hover {
+  background: rgba(242, 5, 103, .07);
+  transform: translateX(2px);
+}
+.sidebar__link--lovers:hover::before { height: 52%; }
 .sidebar__link-label {
   display: block;
   font-family: var(--font-lovers-body);
@@ -2556,23 +2571,36 @@ button:disabled { cursor: not-allowed; }
   letter-spacing: .035em;
   text-transform: uppercase;
   color: var(--lovers-brown);
+  transition: color .16s ease;
 }
 .sidebar__link-sub {
   display: block;
   font-family: var(--font-lovers-body);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: .045em;
   text-transform: uppercase;
-  color: rgba(63, 26, 10, .72);
+  color: rgba(63, 26, 10, .6);
 }
+.sidebar__link--lovers.lovers-active {
+  background: linear-gradient(90deg, rgba(242, 5, 103, .14), rgba(242, 5, 103, .04));
+  box-shadow: inset 0 0 0 1px rgba(242, 5, 103, .18);
+  border-left: none;
+  padding-left: 18px;
+}
+.sidebar__link--lovers.lovers-active::before { height: 66%; background: var(--lovers-red); }
+.sidebar__link--lovers.lovers-active:hover { transform: none; }
 .sidebar__link--lovers.lovers-active .sidebar__link-label,
 .sidebar__link--lovers.lovers-active .sidebar__link-sub { color: var(--lovers-burgundy); }
-.sidebar__link--lovers.lovers-active .sidebar__link-sub { opacity: .76; }
+.sidebar__link--lovers.lovers-active .sidebar__link-sub { opacity: .78; }
 .sidebar__link--lovers:focus-visible {
   outline: 2px solid var(--lovers-pink);
   outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__link--lovers { transition: none; }
+  .sidebar__link--lovers:hover { transform: none; }
 }
 
 
