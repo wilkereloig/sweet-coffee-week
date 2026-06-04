@@ -27,6 +27,7 @@ export function PhotoBoothModal({ open, onClose }) {
   const [zoomCap, setZoomCap] = React.useState(null) // { min, max, step } se o device expõe zoom
   const [zoom, setZoom] = React.useState(1)
   const [fit, setFit] = React.useState(1) // escala do stage 360x640 p/ caber no painel (centralização)
+  const [exporting, setExporting] = React.useState(false) // durante export: zera o scale (html-to-image quebra com transform)
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
@@ -202,10 +203,18 @@ export function PhotoBoothModal({ open, onClose }) {
   }
 
   async function exportBlob() {
-    setSel(null)
+    setSel(null); setExporting(true)
+    // Espera o React re-renderizar o stage em escala 1:1 (sem transform) antes de capturar.
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-    const { toBlob } = await import('html-to-image')
-    return toBlob(stageRef.current, { pixelRatio: 3, width: 360, height: 640, cacheBust: true })
+    try {
+      const { toBlob } = await import('html-to-image')
+      return await toBlob(stageRef.current, {
+        pixelRatio: 3, width: 360, height: 640, cacheBust: true,
+        style: { transform: 'none' },
+      })
+    } finally {
+      setExporting(false)
+    }
   }
   async function doShare() {
     if (busy) return; setBusy(true)
@@ -278,7 +287,7 @@ export function PhotoBoothModal({ open, onClose }) {
         {mode === 'edit' && (
           <div className="pb-edit">
             <div className="pb-stage-wrap" ref={wrapRef} style={{ height: 640 * fit }}>
-              <div className="pb-stage-scale" style={{ transform: `scale(${fit})`, transformOrigin: 'top center' }}>
+              <div className="pb-stage-scale" style={{ transform: exporting ? 'none' : `scale(${fit})`, transformOrigin: 'top center' }}>
                 <div ref={stageRef} className="pb-stage" onPointerDown={() => setSel(null)}>
                   {imgSrc && <img className="pb-photo" src={imgSrc} alt="" />}
                   {stickers.map(st => (
