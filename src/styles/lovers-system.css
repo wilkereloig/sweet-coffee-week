@@ -275,6 +275,18 @@
 .share-modal__actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .share-modal__actions .lovers-button { width: 100%; justify-content: center; }
 .share-modal__copy { background: transparent; border: 0; color: var(--lovers-red); font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px; }
+
+/* Cabine em tela cheia (edge-to-edge) — choose e edit */
+.share-modal.pb-modal { padding: 0; align-items: stretch; justify-content: stretch; }
+.pb-modal .share-modal__panel {
+  width: 100%; max-width: none; height: 100vh; height: 100dvh; max-height: 100dvh;
+  border-radius: 0; overflow: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  display: flex; flex-direction: column;
+}
+.pb-modal .pb-choose { flex: 1; justify-content: center; }
+.pb-modal .pb-edit { flex: 1; display: flex; flex-direction: column; }
+.pb-modal .pb-edit .pb-actions { margin-top: auto; }
 @media (max-width: 420px) {
   .share-card-capture { transform: scale(.86); transform-origin: top center; margin-bottom: -88px; }
 }

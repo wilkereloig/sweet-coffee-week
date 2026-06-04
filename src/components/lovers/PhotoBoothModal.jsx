@@ -270,7 +270,7 @@ export function PhotoBoothModal({ open, onClose }) {
   }
 
   return (
-    <div className="share-modal" role="dialog" aria-modal="true" onClick={onClose}>
+    <div className="share-modal pb-modal" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="share-modal__panel pb-panel" onClick={(e) => e.stopPropagation()}>
         <button className="share-modal__close" onClick={onClose} aria-label="Fechar">✕</button>
 
