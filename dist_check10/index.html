@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sweet & Coffee Week</title>
+<meta name="description" content="Sweet & Coffee Week Lovers: a rota da doçura por Natal. Combos especiais em confeitarias e cafés, mapa dos participantes e o Sweet Awards." />
+<link rel="icon" type="image/svg+xml" href="/favicon-sweet.svg" />
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
+
+<!-- Open Graph / Twitter — preview ao compartilhar (WhatsApp/Instagram/Facebook).
+     Estático: crawlers sociais não executam JS. Para card com imagem, adicionar
+     uma capa 1200x630 em /public e definir og:image abaixo. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Sweet & Coffee Week" />
+<meta property="og:url" content="https://www.sweetcoffeeweek.com.br/" />
+<meta property="og:title" content="Sweet & Coffee Week Lovers" />
+<meta property="og:description" content="A rota da doçura: combos especiais nas confeitarias e cafés de Natal." />
+<meta property="og:image" content="https://www.sweetcoffeeweek.com.br/favicon-512.png" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Sweet & Coffee Week Lovers" />
+<meta name="twitter:description" content="A rota da doçura: combos especiais nas confeitarias e cafés de Natal." />
+<meta name="twitter:image" content="https://www.sweetcoffeeweek.com.br/favicon-512.png" />
+
+<!-- Dados estruturados — ajuda o Google a exibir marca/logo no resultado -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Sweet & Coffee Week",
+  "url": "https://www.sweetcoffeeweek.com.br/",
+  "logo": "https://www.sweetcoffeeweek.com.br/images/email-logo-lovers.png",
+  "sameAs": ["https://instagram.com/sweetcoffeeweek"]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Sweet & Coffee Week",
+  "url": "https://www.sweetcoffeeweek.com.br/"
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Caveat:wght@500;600;700&family=Caprasimo&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="https://use.typekit.net/kgh7res.css" />
+
+<!-- Google Analytics 4 + Consent Mode (LGPD) — coleta só após aceite no banner -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FM5ZJXL3MV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied'
+  });
+  try {
+    if (localStorage.getItem('scw_consent') === 'granted') {
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+    }
+  } catch (e) {}
+  gtag('config', 'G-FM5ZJXL3MV', { send_page_view: false });
+</script>
+  <script type="module" crossorigin src="/assets/index-DALcaoO_.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CtDShv1s.css">
+</head>
+<body class="stickers-medium">
+<div id="root"></div>
+<script>
+/* Reporter global de erro — captura QUALQUER erro (inclusive antes/fora do React)
+   e mostra na tela em vez de deixar em branco. Diagnostico para devices especificos. */
+(function () {
+  function show(title, detail) {
+    try {
+      var root = document.getElementById('root');
+      if (root && root.children.length > 0 && !root.getAttribute('data-err')) return;
+      if (!root) return;
+      root.setAttribute('data-err', '1');
+      root.innerHTML =
+        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#FFF1E6;font-family:Helvetica,Arial,sans-serif">' +
+        '<div style="max-width:560px;width:100%;background:#fff;border-radius:18px;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,.12);color:#3F1A0A">' +
+        '<h1 style="margin:0 0 8px;font-size:20px;color:#D63648">Erro detectado</h1>' +
+        '<p style="margin:0 0 12px;font-size:14px">Mande um print desta tela.</p>' +
+        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:12px;background:#FBEADC;border-radius:10px;padding:12px;margin:0;max-height:60vh;overflow:auto;color:#6B4A3A">' +
+        String(title) + '\n\n' + String(detail || '') + '</pre></div></div>';
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    show(e.message || 'window.error', (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + ((e.error && e.error.stack) || ''));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason || {};
+    show('unhandledrejection: ' + (r.message || r), (r.stack || ''));
+  });
+})();
+</script>
+</body>
+</html>

@@ -28,6 +28,7 @@ export function PhotoBoothModal({ open, onClose }) {
   const [zoom, setZoom] = React.useState(1)
   const [fit, setFit] = React.useState(1) // escala do stage 360x640 p/ caber no painel (centralização)
   const [exporting, setExporting] = React.useState(false) // durante export: zera o scale (html-to-image quebra com transform)
+  const [dlMode, setDlMode] = React.useState(false) // modo "baixar adesivos": toque no adesivo baixa em vez de colar
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
@@ -304,25 +305,27 @@ export function PhotoBoothModal({ open, onClose }) {
                       )}
                     </div>
                   ))}
-                  <PbFrame />
                 </div>
               </div>
             </div>
-            <p className="pb-palette-hint">Toque pra colar na foto · <span aria-hidden="true">⤓</span> pra baixar o adesivo</p>
-            <div className="pb-palette">
+            <p className="pb-palette-hint">{dlMode ? 'Toque num adesivo pra baixar em PNG' : 'Toque pra colar na foto'}</p>
+            <div className={'pb-palette' + (dlMode ? ' is-dl' : '')}>
               {PALETTE.map(n => (
-                <div key={n} className="pb-palette__item">
-                  <button className="pb-palette__add" onClick={() => addSticker(n)} aria-label="Adicionar adesivo à foto">
-                    <img src={A(n)} alt="" loading="lazy" />
-                  </button>
-                  <button className="pb-palette__dl" onClick={() => downloadSticker(n)} aria-label="Baixar adesivo em PNG" title="Baixar PNG">⤓</button>
-                </div>
+                <button key={n} className="pb-palette__item"
+                  onClick={() => (dlMode ? downloadSticker(n) : addSticker(n))}
+                  aria-label={dlMode ? 'Baixar adesivo em PNG' : 'Adicionar adesivo à foto'}>
+                  <img src={A(n)} alt="" loading="lazy" />
+                  {dlMode && <span className="pb-palette__dlmark" aria-hidden="true">⤓</span>}
+                </button>
               ))}
             </div>
             <div className="pb-actions">
               <button className="lovers-button lovers-button--primary" disabled={busy} onClick={doShare}>{busy ? 'Gerando…' : 'Compartilhar'}</button>
-              <button className="lovers-button lovers-button--secondary" disabled={busy} onClick={doDownload}>Baixar</button>
-              <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setMode('choose') }}>Trocar foto</button>
+              <div className="pb-actions__row">
+                <button className="pb-actbtn" disabled={busy} onClick={doDownload}>⤓ Baixar foto</button>
+                <button className={'pb-actbtn' + (dlMode ? ' is-on' : '')} onClick={() => setDlMode(m => !m)} aria-pressed={dlMode}>⤓ Baixar adesivos</button>
+              </div>
+              <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setDlMode(false); setMode('choose') }}>Trocar foto</button>
             </div>
           </div>
         )}

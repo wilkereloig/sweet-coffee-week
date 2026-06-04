@@ -279,10 +279,44 @@
   .share-card-capture { transform: scale(.86); transform-origin: top center; margin-bottom: -88px; }
 }
 
-/* ── Página Promoções ── */
+/* ── Página Promoções / Viva o Sweet ── */
 .promo-intro { color: var(--lovers-brown); font-size: clamp(15px, 1.7vw, 18px); line-height: 1.6; margin-bottom: 26px; }
 .promo-intro p { margin: 0 0 14px; }
 .promo-intro strong { color: var(--lovers-burgundy); }
+
+/* Cards accordion (Viva o Sweet) */
+.viva-cards { display: flex; flex-direction: column; gap: 14px; }
+.viva-card {
+  border-radius: 20px; overflow: hidden; background: var(--lovers-cream, #FFF1E6);
+  border: 2px solid color-mix(in srgb, var(--lovers-purple) 22%, transparent);
+  box-shadow: 0 10px 30px rgba(43, 24, 16, .10);
+}
+.viva-card__head {
+  width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 15px 16px; border: 0; background: transparent; cursor: pointer;
+  color: var(--lovers-burgundy); font-family: var(--font-lovers-body);
+}
+.viva-card__icon {
+  display: flex; width: 40px; height: 40px; flex: 0 0 40px; align-items: center; justify-content: center;
+  border-radius: 12px; background: color-mix(in srgb, var(--lovers-purple) 14%, transparent); color: var(--lovers-purple);
+}
+.viva-card__heading { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.viva-card__eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--lovers-purple); }
+.viva-card__title { font-family: var(--font-lovers-display); font-size: clamp(18px, 2.4vw, 22px); line-height: 1.1; }
+.viva-card__tag { flex: 0 0 auto; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #fff; background: var(--lovers-red); border-radius: 999px; padding: 4px 9px; }
+.viva-card__chev { flex: 0 0 auto; font-size: 20px; color: var(--lovers-purple); transition: transform .28s ease; }
+.viva-card.is-open .viva-card__chev { transform: rotate(180deg); }
+.viva-card__body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+.viva-card.is-open .viva-card__body { grid-template-rows: 1fr; }
+.viva-card__inner { overflow: hidden; min-height: 0; }
+.viva-card.is-open .viva-card__inner { padding: 0 16px 18px; }
+.viva-card__inner .promo-card__lead { color: var(--lovers-burgundy); font-weight: 700; margin: 0 0 10px; }
+.viva-card__inner .promo-card__text { color: var(--lovers-brown); margin: 0 0 10px; line-height: 1.55; }
+.viva-card__inner .promo-card__list { color: var(--lovers-brown); margin: 0 0 12px; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; line-height: 1.5; }
+.viva-card__inner .promo-card__list strong, .viva-card__inner .promo-card__text strong, .viva-card__inner .promo-card__lead strong { color: var(--lovers-burgundy); }
+.viva-card__inner .promo-card__tagline { color: var(--lovers-purple); font-weight: 800; margin: 0 0 14px; }
+.viva-card__inner .promo-card__ctas,
+.viva-card__inner .promo-share__btns { display: flex; flex-wrap: wrap; gap: 10px; }
 .promo-card {
   position: relative; isolation: isolate; overflow: hidden;
   border-radius: clamp(24px, 3vw, 40px); padding: clamp(28px, 5vw, 56px);
@@ -358,17 +392,24 @@
 .pb-sticker__handle { position: absolute; bottom: -12px; right: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-yellow); border: 2px solid #fff; cursor: nwse-resize; display: block; touch-action: none; z-index: 6; }
 .pb-palette-hint { margin: 2px 0 6px; font-size: 12px; color: var(--lovers-brown); text-align: center; }
 .pb-palette { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 12px; }
-.pb-palette__item { position: relative; flex: 0 0 auto; width: 54px; height: 54px; }
-.pb-palette__add { display: block; width: 100%; height: 100%; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }
-.pb-palette__add img { width: 100%; height: 100%; object-fit: contain; }
-.pb-palette__dl {
-  position: absolute; top: 1px; right: 1px; width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid #fff; background: var(--lovers-purple); color: #fff;
-  font-size: 12px; line-height: 1; cursor: pointer; padding: 0;
+.pb-palette__item { position: relative; flex: 0 0 auto; width: 54px; height: 54px; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }
+.pb-palette__item img { width: 100%; height: 100%; object-fit: contain; }
+.pb-palette.is-dl .pb-palette__item { outline: 2px solid var(--lovers-purple); outline-offset: -2px; }
+.pb-palette__dlmark {
+  position: absolute; top: 1px; right: 1px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--lovers-purple); color: #fff; font-size: 11px; line-height: 1;
   display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
 }
-.pb-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.pb-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .pb-actions .lovers-button { width: 100%; justify-content: center; }
+.pb-actions__row { display: flex; gap: 8px; }
+.pb-actbtn {
+  flex: 1; padding: 10px 8px; border-radius: 999px; border: 2px solid var(--lovers-purple);
+  background: transparent; color: var(--lovers-purple); cursor: pointer;
+  font-family: var(--font-lovers-body); font-weight: 800; font-size: 13px; white-space: nowrap;
+}
+.pb-actbtn.is-on { background: var(--lovers-purple); color: #fff; }
+.pb-actbtn:disabled { opacity: .5; cursor: default; }
 /* Edição: escala o stage 360x640 para caber centralizado (scale via JS em --fit). */
 .pb-stage-wrap { width: 100%; display: flex; justify-content: center; overflow: hidden; margin: 0 auto 12px; }
 .pb-stage-scale { width: 360px; }
@@ -702,7 +743,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   .lovers-tabbar__pill {
     position: absolute; z-index: 0; pointer-events: none;
     top: 4px; bottom: calc(4px + env(safe-area-inset-bottom, 0px));
-    left: 4px; width: calc((100% - 8px) / 4);
+    left: 4px; width: calc((100% - 8px) / 5);
     border-radius: 14px; background: rgba(255, 232, 210, .16);
     transform: translateX(calc(var(--tab-index, 0) * 100%));
     transition: transform .35s cubic-bezier(.34, 1.3, .64, 1);
