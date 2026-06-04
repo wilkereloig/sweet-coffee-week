@@ -20,7 +20,7 @@ const LOVERS_LINKS = [
   { id: 'viva',          label: 'Viva o Sweet',     sub: 'Ações e experiências',   href: '#/lovers/viva' },
 ]
 
-const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar']
+const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar', 'viva']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (

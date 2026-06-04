@@ -112,19 +112,7 @@ export function VivaPage({ navigate }) {
               </div>
             </VivaCard>
 
-            {/* Card 3 — Cards de compartilhamento */}
-            <VivaCard id="share" open={openCard === 'share'} onToggle={toggle}
-              icon={<I.heart width={22} height={22} />}
-              eyebrow="Compartilhe" title="Mostre que você é Sweet Lover">
-              <p className="promo-card__lead">Gere seu card e compartilhe no Story marcando <strong>@sweetcoffeeweek</strong> 💛</p>
-              <div className="promo-share__btns">
-                <LoversButton variant="primary" onClick={() => setShareVariant('carteirinha')}><I.heart width={16} height={16} /> Minha carteirinha</LoversButton>
-                <LoversButton variant="primary" onClick={() => setShareVariant('meutop')}><I.star width={16} height={16} /> Minha avaliação</LoversButton>
-                <LoversButton variant="secondary" href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}><I.map width={16} height={16} /> Minha rota</LoversButton>
-              </div>
-            </VivaCard>
-
-            {/* Card 4 — Placeholder (a definir) */}
+            {/* Card 3 — Placeholder (a definir) */}
             <VivaCard id="embreve" open={openCard === 'embreve'} onToggle={toggle}
               icon={<I.star width={22} height={22} />}
               eyebrow="Em breve" title="Novas ações chegando" tag="Em breve">
