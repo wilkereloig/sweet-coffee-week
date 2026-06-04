@@ -234,7 +234,10 @@ export function PhotoBoothModal({ open, onClose }) {
     try {
       const blob = await exportBlob()
       if (!blob) throw new Error('sem imagem')
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sweet-lovers-foto.png'; a.click(); URL.revokeObjectURL(a.href)
+      const file = new File([blob], 'sweet-lovers-foto.png', { type: 'image/png' })
+      // Web Share API → no celular abre "Salvar Imagem" (vai pro rolo da câmera).
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] })
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); URL.revokeObjectURL(a.href) }
     } catch (e) { if (import.meta.env.DEV) console.error('[photobooth dl]', e) }
     finally { setBusy(false) }
   }
