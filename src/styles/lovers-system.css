@@ -938,7 +938,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 /* Filterbar */
 .participants-filterbar { display: flex; flex-direction: column; gap: 16px; margin-bottom: clamp(26px, 3vw, 42px); }
 .participants-filterbar__top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.participants-filterbar__tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.participants-filterbar__tools { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 .participants-search {
   display: flex; align-items: center; gap: 10px; flex: 1 1 240px; min-width: 200px; max-width: 460px;
   height: 44px; padding: 0 16px; border-radius: 14px; background: #fff;
