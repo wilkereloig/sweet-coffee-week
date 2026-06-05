@@ -236,6 +236,7 @@ export function ComboPage({ navigate }) {
   const [search, setSearch] = React.useState('')
   const [filterEdition, setFilterEdition] = React.useState(null)
   const [onlyOpen, setOnlyOpen] = React.useState(false)
+  const [sortBy, setSortBy] = React.useState('padrao')
   const [editionsOpen, setEditionsOpen] = React.useState(false) // mobile: expande chips de edição
   // Re-renderiza a cada 60s para manter contagem de "abertas agora" atualizada.
   const [, setTick] = React.useState(0)
@@ -284,6 +285,22 @@ export function ComboPage({ navigate }) {
       const matchOpen = !onlyOpen || isParticipantOpenNow(participant)
       return matchSearch && matchEdition && matchOpen
     })
+
+  // Ordenação da lista (não altera os dados; só a exibição).
+  const cardName = (c) => (c.participant?.name || c.combo.name || '')
+  const cardHood = (c) => {
+    const p = c.participant
+    const fromLoc = p?.locations?.map(l => l.neighborhood).filter(Boolean)[0]
+    return fromLoc || p?.neighborhood || ''
+  }
+  const cmpName = (a, b) => cardName(a).localeCompare(cardName(b), 'pt', { sensitivity: 'base' })
+  const sortedCards = [...cards]
+  if (sortBy === 'az') sortedCards.sort(cmpName)
+  else if (sortBy === 'za') sortedCards.sort((a, b) => cmpName(b, a))
+  else if (sortBy === 'abertas') sortedCards.sort((a, b) =>
+    (isParticipantOpenNow(a.participant) ? 0 : 1) - (isParticipantOpenNow(b.participant) ? 0 : 1) || cmpName(a, b))
+  else if (sortBy === 'bairro') sortedCards.sort((a, b) =>
+    cardHood(a).localeCompare(cardHood(b), 'pt', { sensitivity: 'base' }) || cmpName(a, b))
 
   return (
     <div className="page-enter kv-lovers combos-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
@@ -365,6 +382,24 @@ export function ComboPage({ navigate }) {
                       aria-label="Buscar participante, tema ou combo"
                     />
                   </label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    aria-label="Ordenar participantes"
+                    className="participants-sort"
+                    style={{
+                      padding: '11px 16px', borderRadius: 999, background: '#fff',
+                      border: '1.5px solid rgba(135,14,45,.18)', color: 'var(--lovers-brown)',
+                      fontFamily: 'var(--font-lovers-body)', fontSize: 13, letterSpacing: '.04em',
+                      textTransform: 'uppercase', cursor: 'pointer',
+                    }}
+                  >
+                    <option value="padrao">Ordem padrão</option>
+                    <option value="az">Nome: A → Z</option>
+                    <option value="za">Nome: Z → A</option>
+                    <option value="abertas">Abertas agora primeiro</option>
+                    <option value="bairro">Por bairro</option>
+                  </select>
                 </div>
 
                 {(
@@ -399,7 +434,7 @@ export function ComboPage({ navigate }) {
                 </p>
               ) : (
                 <div className="combos-page__grid">
-                  {cards.map(({ combo, num, participant }, i) => (
+                  {sortedCards.map(({ combo, num, participant }, i) => (
                     <ParticipantShowcaseCard
                       key={combo.id}
                       combo={combo}
