@@ -355,18 +355,20 @@ export function ComboPage({ navigate }) {
                       <span className="participants-stat__filtered">{cards.length} no filtro</span>
                     )}
                   </span>
+                  <label className="participants-search">
+                    <SearchIcon />
+                    <input
+                      type="search"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Buscar participante, tema ou combo"
+                      aria-label="Buscar participante, tema ou combo"
+                    />
+                  </label>
                 </div>
 
                 {(
-                  <div className="participants-filterbar__chips" role="group" aria-label="Filtrar por edição">
-                    <button
-                      type="button"
-                      className={'participants-chip' + (!filterEdition ? ' is-active' : '')}
-                      aria-pressed={!filterEdition}
-                      onClick={() => setFilterEdition(null)}
-                    >
-                      Todas
-                    </button>
+                  <div className="participants-filterbar__chips" role="group" aria-label="Filtros">
                     <button
                       type="button"
                       className={'participants-chip participants-chip--open' + (onlyOpen ? ' is-active' : '')}
@@ -376,31 +378,6 @@ export function ComboPage({ navigate }) {
                       <span className="participants-chip__dot" style={{ '--chip-dot': '#1c7a43' }} />
                       Abertas agora
                     </button>
-                    <button
-                      type="button"
-                      className={'participants-filterbar__editions-toggle' + (editionsOpen ? ' is-open' : '') + (filterEdition ? ' has-value' : '')}
-                      aria-expanded={editionsOpen}
-                      onClick={() => setEditionsOpen(v => !v)}
-                    >
-                      {filterEdition ? (
-                        <><span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[filterEdition] }} />{filterEdition}</>
-                      ) : 'Filtrar por edição'}
-                      <span className="participants-filterbar__editions-chevron" aria-hidden="true" />
-                    </button>
-                    <div className={'participants-filterbar__editions' + (editionsOpen ? ' is-open' : '')}>
-                      {editionsPresent.map(ed => (
-                        <button
-                          key={ed}
-                          type="button"
-                          className={'participants-chip' + (filterEdition === ed ? ' is-active' : '')}
-                          aria-pressed={filterEdition === ed}
-                          onClick={() => setFilterEdition(prev => prev === ed ? null : ed)}
-                        >
-                          <span className="participants-chip__dot" style={{ '--chip-dot': EDITION_COLORS[ed] }} />
-                          {ed}
-                        </button>
-                      ))}
-                    </div>
                     {hasFilters && (
                       <button
                         type="button"
