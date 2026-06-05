@@ -62,7 +62,7 @@ export const LOVERS_STICKERS = {
     { src: A(5),  style: { bottom: '6%', right: '-9%',  width: 'clamp(170px,18vw,360px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.12' } },
     { src: A(29), style: { bottom: '32%',left: '-11%',  width: 'clamp(150px,16vw,300px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.10' } },
     { src: A(27), style: { top: '76%',   right: '-10%', width: 'clamp(140px,14vw,270px)', '--rot': '7deg',  '--scale': '1', '--parallax': '0.08' } },
-    { src: A(33), style: { top: '14%',   left: '-10%',  width: 'clamp(140px,15vw,280px)', '--rot': '-7deg', '--scale': '1', '--parallax': '0.09' } },
+    { src: A(33), style: { top: '34%',   left: '-10%',  width: 'clamp(140px,15vw,280px)', '--rot': '-7deg', '--scale': '1', '--parallax': '0.09' } },
     { src: A(23), style: { top: '40%',   right: '-9%',  width: 'clamp(130px,14vw,250px)', '--rot': '6deg',  '--scale': '1', '--parallax': '0.11' } },
     { src: A(8),  style: { bottom: '20%',left: '-10%',  width: 'clamp(120px,13vw,240px)', '--rot': '8deg',  '--scale': '1', '--parallax': '0.08' } },
     { src: A(46), style: { bottom: '46%',right: '-9%',  width: 'clamp(110px,12vw,210px)', '--rot': '-6deg', '--scale': '1', '--parallax': '0.12' } },
