@@ -384,6 +384,15 @@ export function ComboPage({ navigate }) {
                       aria-label="Buscar participante, tema ou combo"
                     />
                   </label>
+                  <button
+                    type="button"
+                    className={'participants-chip participants-chip--open' + (onlyOpen ? ' is-active' : '')}
+                    aria-pressed={onlyOpen}
+                    onClick={() => setOnlyOpen(v => !v)}
+                  >
+                    <span className="participants-chip__dot" style={{ '--chip-dot': '#1c7a43' }} />
+                    Abertas
+                  </button>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
@@ -396,30 +405,16 @@ export function ComboPage({ navigate }) {
                     <option value="abertas">Abertas agora primeiro</option>
                     <option value="bairro">Por bairro</option>
                   </select>
-                </div>
-
-                {(
-                  <div className="participants-filterbar__chips" role="group" aria-label="Filtros">
+                  {hasFilters && (
                     <button
                       type="button"
-                      className={'participants-chip participants-chip--open' + (onlyOpen ? ' is-active' : '')}
-                      aria-pressed={onlyOpen}
-                      onClick={() => setOnlyOpen(v => !v)}
+                      className="participants-filterbar__clear"
+                      onClick={() => { setSearch(''); setFilterEdition(null); setOnlyOpen(false) }}
                     >
-                      <span className="participants-chip__dot" style={{ '--chip-dot': '#1c7a43' }} />
-                      Abertas agora
+                      Limpar ×
                     </button>
-                    {hasFilters && (
-                      <button
-                        type="button"
-                        className="participants-filterbar__clear"
-                        onClick={() => { setSearch(''); setFilterEdition(null); setOnlyOpen(false) }}
-                      >
-                        Limpar ×
-                      </button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               )}
 
