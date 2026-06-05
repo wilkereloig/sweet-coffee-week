@@ -374,7 +374,7 @@ export const PARTICIPANTS = [
     latitude: -5.8966397,
     longitude: -35.1982122,
     mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
-    openingHours: "Todos os dias: 12h às 21h",
+    openingHours: "Todos os dias: 12h às 20h",
     theme: "São João",
     edition: "Sweet Celebration",
     locations: [
@@ -387,8 +387,8 @@ export const PARTICIPANTS = [
         latitude: -5.8966397,
         longitude: -35.1982122,
         mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
-        openingHours: "Todos os dias: 12h às 21h",
-        hours: { 0: [["12:00","21:00"]], 1: [["12:00","21:00"]], 2: [["12:00","21:00"]], 3: [["12:00","21:00"]], 4: [["12:00","21:00"]], 5: [["12:00","21:00"]], 6: [["12:00","21:00"]] },
+        openingHours: "Todos os dias: 12h às 20h",
+        hours: { 0: [["12:00","20:00"]], 1: [["12:00","20:00"]], 2: [["12:00","20:00"]], 3: [["12:00","20:00"]], 4: [["12:00","20:00"]], 5: [["12:00","20:00"]], 6: [["12:00","20:00"]] },
       },
       {
         id: "jolie-cafe-capim-macio",
