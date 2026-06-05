@@ -112,7 +112,7 @@ function PainelDados({ secret, onLogout }) {
           <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-          {[['resultados', 'Resultados'], ['auditoria', 'Auditoria'], ['suspeitos', 'Suspeitos']].map(([k, l]) => (
+          {[['resultados', 'Resultados'], ['auditoria', 'Auditoria'], ['pesquisa', 'Pesquisa'], ['suspeitos', 'Suspeitos']].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={'lovers-button ' + (tab === k ? 'lovers-button--primary' : 'lovers-button--secondary')}>
               {l}
@@ -121,6 +121,7 @@ function PainelDados({ secret, onLogout }) {
         </div>
         {tab === 'resultados' && <Resultados secret={secret} />}
         {tab === 'auditoria' && <Auditoria secret={secret} />}
+        {tab === 'pesquisa' && <Pesquisa secret={secret} />}
         {tab === 'suspeitos' && <Suspeitos secret={secret} />}
       </div>
     </div>
@@ -201,6 +202,42 @@ function Auditoria({ secret }) {
             {rows.map((r, i) => (
               <tr key={r.id || i}>
                 {cols.map(c => <td key={c} style={td}>{c === 'participante_slug' ? partName(r[c]) : c === 'created_at' ? new Date(r[c]).toLocaleString('pt-BR') : String(r[c] ?? '')}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function Pesquisa({ secret }) {
+  const { loading, rows, error } = useRpc('get_feedback_admin', secret)
+  if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
+  if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
+  if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhuma resposta de pesquisa ainda.</p>
+  const tdWrap = { ...td, whiteSpace: 'normal', minWidth: 220, maxWidth: 360 }
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+        <strong style={{ color: 'var(--lovers-burgundy)' }}>{rows.length} resposta(s) de pesquisa</strong>
+        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-pesquisa.csv', toCsv(rows))}>Exportar CSV</button>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr>
+            <th style={th}>created_at</th><th style={th}>nome</th><th style={th}>email</th>
+            <th style={th}>gostou</th><th style={th}>melhorar</th><th style={th}>sugestao_tema</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.email || i}>
+                <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString('pt-BR') : ''}</td>
+                <td style={td}>{String(r.nome ?? '')}</td>
+                <td style={td}>{String(r.email ?? '')}</td>
+                <td style={tdWrap}>{String(r.gostou ?? '')}</td>
+                <td style={tdWrap}>{String(r.melhorar ?? '')}</td>
+                <td style={tdWrap}>{String(r.sugestao_tema ?? '')}</td>
               </tr>
             ))}
           </tbody>
