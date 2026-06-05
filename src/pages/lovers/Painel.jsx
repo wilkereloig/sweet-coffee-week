@@ -37,8 +37,8 @@ function download(filename, text) {
 }
 
 const card = { background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 12px 30px rgba(43,24,16,.08)', marginBottom: 18 }
-const th = { textAlign: 'left', padding: '8px 10px', fontSize: 13, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
-const td = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
+const th = { textAlign: 'left', padding: '10px 12px', fontSize: 14, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
+const td = { padding: '11px 12px', fontSize: 14.5, lineHeight: 1.5, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
 
 export function PainelPage() {
   const [secret, setSecret] = React.useState(() => {
