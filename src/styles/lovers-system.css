@@ -1511,6 +1511,8 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
   max-width: 560px; margin: 14px auto 0;
   font-size: clamp(15px, 1.6vw, 18px); line-height: 1.5; color: rgba(255, 255, 255, .92);
 }
+/* vence o reset .kv-lovers.page-enter p { margin-inline: 0 } para manter o lead centrado */
+.kv-lovers.page-enter .combo-detail-rate__lead { margin-left: auto; margin-right: auto; }
 .combo-detail-rate__lead strong { color: var(--lovers-yellow); }
 .combo-detail-rate__note {
   display: inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 999px;
