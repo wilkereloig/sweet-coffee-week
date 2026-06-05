@@ -7,8 +7,44 @@ import React from 'react'
 // coloque /moldura-lovers.png e troque o bloco <PbFrame/> por
 // <img className="pb-frame-img" src="/moldura-lovers.png" alt="" />.
 
-const A = (n) => `/images/adesivos-site/adesivo%20(${n}).png`
-const PALETTE = [43, 44, 50, 10, 8, 17, 35, 31, 25, 46, 21, 1, 5, 33]
+// Todos os adesivos disponíveis no photobooth (v2 + antigos clássicos)
+const PALETTE = [
+  // v2: identidade/lovers
+  `/images/adesivos-site/adesivo-v2%20(2).png`,   // EU VIVI
+  `/images/adesivos-site/adesivo-v2%20(15).png`,  // AMEI
+  `/images/adesivos-site/adesivo-v2%20(14).png`,  // FAVORITO
+  `/images/adesivos-site/adesivo-v2%20(4).png`,   // Memórias
+  `/images/adesivos-site/adesivo-v2%20(6).png`,   // coração amarelo
+  `/images/adesivos-site/adesivo-v2%20(16).png`,  // polegar + coração
+  // v2: premiação/avaliação
+  `/images/adesivos-site/adesivo-v2%20(8).png`,   // MEU VOTO
+  `/images/adesivos-site/adesivo-v2%20(9).png`,   // Avalie (pink)
+  `/images/adesivos-site/adesivo-v2%20(10).png`,  // AVALIE!
+  `/images/adesivos-site/adesivo-v2%20(7).png`,   // carimbo roxo
+  `/images/adesivos-site/adesivo-v2%20(13).png`,  // celular c/ estrelas
+  // v2: rota/explorar
+  `/images/adesivos-site/adesivo-v2%20(5).png`,   // PARTIU ROTA
+  `/images/adesivos-site/adesivo-v2%20(3).png`,   // mapa colorido
+  `/images/adesivos-site/adesivo-v2%20(1).png`,   // mapa c/ pin
+  // v2: combos/comida
+  `/images/adesivos-site/adesivo-v2%20(17).png`,  // cupcake + café
+  `/images/adesivos-site/adesivo-v2%20(19).png`,  // chocolates
+  `/images/adesivos-site/adesivo-v2%20(11).png`,  // câmera + foto
+  `/images/adesivos-site/adesivo-v2%20(12).png`,  // COMBOS QUE A GENTE AMA
+  // antigos clássicos
+  `/images/adesivos-site/adesivo%20(43).png`,
+  `/images/adesivos-site/adesivo%20(44).png`,
+  `/images/adesivos-site/adesivo%20(50).png`,
+  `/images/adesivos-site/adesivo%20(10).png`,
+  `/images/adesivos-site/adesivo%20(8).png`,
+  `/images/adesivos-site/adesivo%20(17).png`,
+  `/images/adesivos-site/adesivo%20(35).png`,
+  `/images/adesivos-site/adesivo%20(31).png`,
+  `/images/adesivos-site/adesivo%20(25).png`,
+  `/images/adesivos-site/adesivo%20(1).png`,
+  `/images/adesivos-site/adesivo%20(5).png`,
+  `/images/adesivos-site/adesivo%20(33).png`,
+]
 
 let _sid = 0
 
@@ -147,17 +183,18 @@ export function PhotoBoothModal({ open, onClose }) {
     reader.readAsDataURL(f)
   }
 
-  function addSticker(n) {
-    setStickers(s => [...s, { id: ++_sid, src: A(n), x: 180, y: 320, scale: 1, rot: 0 }])
+  function addSticker(src) {
+    setStickers(s => [...s, { id: ++_sid, src, x: 180, y: 320, scale: 1, rot: 0 }])
   }
   function removeSticker(id) { setStickers(s => s.filter(k => k.id !== id)); setSel(null) }
 
   // Baixa o PNG do adesivo (original, transparente) para a galeria.
-  async function downloadSticker(n) {
+  async function downloadSticker(src) {
     try {
-      const res = await fetch(A(n))
+      const res = await fetch(src)
       const blob = await res.blob()
-      const file = new File([blob], `sweet-lover-adesivo-${n}.png`, { type: 'image/png' })
+      const name = src.split('/').pop().replace(/%20/g, ' ')
+      const file = new File([blob], name, { type: 'image/png' })
       if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] })
       else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); URL.revokeObjectURL(a.href) }
     } catch (e) { if (import.meta.env.DEV) console.error('[sticker dl]', e) }
@@ -245,10 +282,10 @@ export function PhotoBoothModal({ open, onClose }) {
   async function shareStickers() {
     if (busy) return; setBusy(true)
     try {
-      const files = await Promise.all(PALETTE.map(async n => {
-        const res = await fetch(A(n))
+      const files = await Promise.all(PALETTE.map(async (src, i) => {
+        const res = await fetch(src)
         const blob = await res.blob()
-        return new File([blob], `sweet-lover-figurinha-${n}.png`, { type: 'image/png' })
+        return new File([blob], `sweet-lover-figurinha-${i + 1}.png`, { type: 'image/png' })
       }))
       const text = 'Figurinhas do Sweet & Coffee Week Lovers 💛 @sweetcoffeeweek'
       if (navigator.canShare && navigator.canShare({ files })) await navigator.share({ files, text })
@@ -333,11 +370,11 @@ export function PhotoBoothModal({ open, onClose }) {
             </div>
             <p className="pb-palette-hint">{dlMode ? 'Toque num adesivo pra baixar em PNG' : 'Toque pra colar na foto'}</p>
             <div className={'pb-palette' + (dlMode ? ' is-dl' : '')}>
-              {PALETTE.map(n => (
-                <button key={n} className="pb-palette__item"
-                  onClick={() => (dlMode ? downloadSticker(n) : addSticker(n))}
+              {PALETTE.map((src, i) => (
+                <button key={src} className="pb-palette__item"
+                  onClick={() => (dlMode ? downloadSticker(src) : addSticker(src))}
                   aria-label={dlMode ? 'Baixar adesivo em PNG' : 'Adicionar adesivo à foto'}>
-                  <img src={A(n)} alt="" loading="lazy" />
+                  <img src={src} alt="" loading="lazy" />
                   {dlMode && <span className="pb-palette__dlmark" aria-hidden="true">⤓</span>}
                 </button>
               ))}

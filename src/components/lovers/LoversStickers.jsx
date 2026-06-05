@@ -1,5 +1,5 @@
 import React from 'react'
-import { LOVERS_STICKERS } from '../../config/loversStickers'
+import { POOLS, pickStickers } from '../../config/loversStickers'
 
 // Parallax no scroll: cada wrapper desliza vertical conforme a posição na tela,
 // proporcional ao data-parallax. Bounded (em torno do próprio elemento), suave,
@@ -38,7 +38,8 @@ function useStickerParallax() {
 }
 
 export function LoversStickers({ page, className = '' }) {
-  const items = LOVERS_STICKERS[page] || []
+  // Sorteia a cada mount — adesivos e posições mudam a cada abertura/refresh de página.
+  const items = React.useMemo(() => pickStickers(POOLS[page] || []), [page])
   const ref = useStickerParallax()
   if (!items.length) return null
   return (
