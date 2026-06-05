@@ -372,6 +372,8 @@ export function ComboPage({ navigate }) {
                       <span className="participants-stat__filtered">{cards.length} no filtro</span>
                     )}
                   </span>
+                </div>
+                <div className="participants-filterbar__tools">
                   <label className="participants-search">
                     <SearchIcon />
                     <input
@@ -387,12 +389,6 @@ export function ComboPage({ navigate }) {
                     onChange={(e) => setSortBy(e.target.value)}
                     aria-label="Ordenar participantes"
                     className="participants-sort"
-                    style={{
-                      padding: '11px 16px', borderRadius: 999, background: '#fff',
-                      border: '1.5px solid rgba(135,14,45,.18)', color: 'var(--lovers-brown)',
-                      fontFamily: 'var(--font-lovers-body)', fontSize: 13, letterSpacing: '.04em',
-                      textTransform: 'uppercase', cursor: 'pointer',
-                    }}
                   >
                     <option value="padrao">Ordem padrão</option>
                     <option value="az">Nome: A → Z</option>
