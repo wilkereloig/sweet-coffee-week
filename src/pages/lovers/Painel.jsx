@@ -217,16 +217,21 @@ function Pesquisa({ secret }) {
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhuma resposta de pesquisa ainda.</p>
   const tdWrap = { ...td, whiteSpace: 'normal', minWidth: 220, maxWidth: 360 }
+  const partsLabel = (r) => (r.participantes || []).map(partName).join(', ')
+  const csvRows = rows.map(r => ({
+    created_at: r.created_at, nome: r.nome, email: r.email,
+    participantes: partsLabel(r), gostou: r.gostou, melhorar: r.melhorar, sugestao_tema: r.sugestao_tema,
+  }))
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
         <strong style={{ color: 'var(--lovers-burgundy)' }}>{rows.length} resposta(s) de pesquisa</strong>
-        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-pesquisa.csv', toCsv(rows))}>Exportar CSV</button>
+        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-pesquisa.csv', toCsv(csvRows))}>Exportar CSV</button>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>
-            <th style={th}>created_at</th><th style={th}>nome</th><th style={th}>email</th>
+            <th style={th}>created_at</th><th style={th}>nome</th><th style={th}>email</th><th style={th}>participante(s)</th>
             <th style={th}>gostou</th><th style={th}>melhorar</th><th style={th}>sugestao_tema</th>
           </tr></thead>
           <tbody>
@@ -235,6 +240,7 @@ function Pesquisa({ secret }) {
                 <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString('pt-BR') : ''}</td>
                 <td style={td}>{String(r.nome ?? '')}</td>
                 <td style={td}>{String(r.email ?? '')}</td>
+                <td style={tdWrap}>{partsLabel(r)}</td>
                 <td style={tdWrap}>{String(r.gostou ?? '')}</td>
                 <td style={tdWrap}>{String(r.melhorar ?? '')}</td>
                 <td style={tdWrap}>{String(r.sugestao_tema ?? '')}</td>
