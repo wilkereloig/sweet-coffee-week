@@ -921,6 +921,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .lovers-home .lovers-nav-card__desc { font-size: clamp(18px, 1.8vw, 22px); max-width: none; }
 /* fontes maiores no Hub estouravam a caixa 1:1 e cortavam o texto -> altura cresce ao conteudo (grid iguala por stretch) */
 .lovers-home .lovers-nav-card { aspect-ratio: auto; min-height: clamp(280px, 24vw, 380px); }
+.lovers-home .lovers-step-card { aspect-ratio: auto; min-height: clamp(220px, 18vw, 280px); }
 
 /* ── Final CTA: parágrafos + botões sobre fundo marrom ── */
 .lovers-final-cta p { margin: 22px 0 0; }
