@@ -50,17 +50,7 @@ export function SiteFooter({ navigate }) {
           <div>© 2026 SWEET & COFFEE WEEK — TODOS OS DIREITOS RESERVADOS</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             REALIZAÇÃO
-            <span style={{
-              padding: '5px 12px',
-              border: '1px solid rgba(255,244,236,.25)',
-              borderRadius: 999,
-              color: 'var(--bg)',
-              fontFamily: 'var(--font-serif)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              letterSpacing: 0,
-              textTransform: 'none',
-            }}>F2 Experience</span>
+            <a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" aria-label="F2 Experience"><img src="/images/logo-f2experience.svg" alt="F2 Experience" style={{ height: 20, width: 'auto', display: 'block' }} /></a>
           </div>
         </div>
       </div>

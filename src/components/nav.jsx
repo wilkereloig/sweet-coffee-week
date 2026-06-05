@@ -112,7 +112,7 @@ function SiteSidebar({ route, navigate, isLovers }) {
 
       <div style={{ flex: 1 }} />
 
-      <div className="sidebar__credit">Realização<br />F2 Experience</div>
+      <div className="sidebar__credit">Realização<br /><a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" aria-label="F2 Experience" style={{ display: 'inline-block', marginTop: 4 }}><img src="/images/logo-f2experience.svg" alt="F2 Experience" style={{ height: 18, width: 'auto', display: 'block' }} /></a></div>
     </aside>
   )
 }

@@ -1039,9 +1039,6 @@ export function MapaGooglePage({ navigate }) {
                             {LOVERS_SHOW_COMBO_DETAILS && p.theme && (
                               <div className="map-card-theme"><em>{p.theme}</em></div>
                             )}
-                            {LOVERS_SHOW_COMBO_DETAILS && p.combo && (
-                              <div className="map-card-combo">{p.combo.name}</div>
-                            )}
                           </div>
                           <span className="map-card-chevron" aria-hidden="true">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -2202,8 +2199,8 @@ export function MapaGooglePage({ navigate }) {
           .map-participant-card {
             background: #fff;
             border: 1.5px solid rgba(135,14,45,.22);
-            border-radius: 18px;
-            padding: 14px;
+            border-radius: 16px;
+            padding: 10px;
             transition: border-color .18s, background .18s, box-shadow .18s;
           }
           .map-participant-card:hover {
@@ -2238,9 +2235,9 @@ export function MapaGooglePage({ navigate }) {
             flex: 0 0 auto;
           }
           .map-card-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             background: #fff;
             border: 1px solid rgba(135,14,45,.12);
             display: flex;
@@ -2303,22 +2300,23 @@ export function MapaGooglePage({ navigate }) {
           .map-card-title-group h3 {
             margin: 0;
             font-family: var(--font-lovers-display);
-            font-size: clamp(26px, 2.1vw, 34px);
-            line-height: .9;
+            font-size: clamp(18px, 1.6vw, 22px);
+            line-height: .95;
             color: var(--lovers-ink);
             text-transform: uppercase;
             letter-spacing: .015em;
             text-wrap: balance;
           }
           .map-card-theme {
-            margin-top: 8px;
+            margin-top: 4px;
           }
           .map-card-theme em {
             font-style: italic;
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--lovers-ink);
             line-height: 1.18;
+            text-transform: uppercase;
           }
           .map-card-ig {
             margin-top: 9px;

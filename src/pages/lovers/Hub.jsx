@@ -2,6 +2,10 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { PARTICIPANTS } from '../../data/participants'
 import { LoversButton, LoversNavCard, LoversStickers, useLoversReveal, ShareCardModal } from '../../components/lovers'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
+
+// Fotos principais dos combos para a faixa deslizante do hero.
+const HERO_STRIP_IMAGES = PARTICIPANTS.map(p => COMBO_PHOTOS[p.slug]?.mainImage).filter(Boolean)
 
 /* CTA da carteirinha Sweet Lover — abre o card 9:16 pra compartilhar.
    Nome reaproveitado do voto (localStorage), se houver. */
@@ -106,45 +110,36 @@ function Hero({ navigate }) {
           <span className="lovers-hero__eyebrow">Especial 10 anos</span>
 
           <h1 className="lovers-hero__main-title">
-            Uma edição feita para quem viveu, compartilhou e ajudou a transformar o{' '}
-            <span>Sweet</span> em uma história de <span>10 anos</span>.
+            Bem-vindo à edição <span>Lovers</span>.
           </h1>
 
           <p className="lovers-hero__lead lovers-text-wrap">
             Uma celebração da comunidade que faz o festival acontecer, com combos especiais
             criados por lojas que fazem parte dessa história.
           </p>
-
-          <LoversCountdown />
-
-          <div className="lovers-hero__ctas lovers-cta-row-center">
-            <LoversButton
-              variant="primary"
-              href="#/lovers/participantes"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-            >
-              Ver participantes <I.arrow />
-            </LoversButton>
-            <LoversButton
-              variant="secondary"
-              href="#/lovers/mapa"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
-            >
-              <I.map width={18} height={18} /> Abrir mapa da doçura
-            </LoversButton>
-          </div>
         </div>
       </div>
+
+      {HERO_STRIP_IMAGES.length > 0 && (
+        <div className="lovers-hero__strip" aria-hidden="true">
+          <div className="lovers-hero__strip-track">
+            {[...HERO_STRIP_IMAGES, ...HERO_STRIP_IMAGES].map((src, i) => (
+              <span className="lovers-hero__strip-tile" key={i}>
+                <img src={src} alt="" loading="lazy" decoding="async" width={220} height={150} />
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   )
 }
 
 function OQueEComoFunciona() {
   const steps = [
-    { n: '01', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)' },
-    { n: '02', h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)' },
-    { n: '03', h: 'Você monta sua rota',            p: 'Escolha os participantes, visite as lojas e descubra a cidade através dos sabores.',          accent: 'var(--lovers-cyan)' },
-    { n: '04', h: 'R$ 38,90',                       p: 'Combo padrão: 1 doce + 1 salgado + 1 bebida.',                                                accent: 'var(--lovers-purple)' },
+    { n: '01', icon: 'heart', h: 'Cada loja escolheu uma memória', p: 'Os participantes revisitam temas que já fizeram parte da história do Sweet & Coffee Week.', accent: 'var(--lovers-pink)',   ink: 'var(--lovers-cream)' },
+    { n: '02', icon: 'star',  h: 'A proposta é recriar',           p: 'Não é repetir combos antigos. É criar uma nova versão, com novos sabores e um novo olhar.',  accent: 'var(--lovers-yellow)', ink: 'var(--lovers-burgundy)' },
+    { n: '04', icon: 'plate', h: 'R$ 38,90',                       p: 'Combo padrão: 1 doce + 1 salgado + 1 bebida — ou Sweet Box.',                                                accent: 'var(--lovers-purple)', ink: 'var(--lovers-cream)', price: true },
   ]
   return (
     <section id="sobre" className="section section-sobre">
@@ -154,7 +149,7 @@ function OQueEComoFunciona() {
             <span className="lovers-eyebrow">O que é a edição Lovers?</span>
             <h2 className="lovers-section__title">
               Lovers é sobre quem<br />
-              faz o <span style={{ color: 'var(--lovers-burgundy)' }}>Sweet acontecer.</span>
+              faz o <span style={{ color: 'var(--lovers-pink)' }}>Sweet acontecer.</span>
             </h2>
           </div>
         </div>
@@ -164,11 +159,10 @@ function OQueEComoFunciona() {
           <div className="lovers-step-grid">
             {steps.map((s, i) => (
               <article
-                className={`lovers-step-card reveal reveal-scale reveal-delay-${i + 1}`}
+                className={`lovers-step-card${s.price ? ' lovers-step-card--price' : ''} reveal reveal-scale reveal-delay-${i + 1}`}
                 key={s.n}
-                style={{ '--lv-accent': s.accent }}
+                style={{ '--lv-accent': s.accent, '--lv-ink': s.ink }}
               >
-                <span className="lovers-step-card__num" aria-hidden="true">{s.n}</span>
                 <h3 className="lovers-step-card__title">{s.h}</h3>
                 <p className="lovers-step-card__text">{s.p}</p>
               </article>
@@ -244,43 +238,20 @@ function FinalCTA({ navigate }) {
   return (
     <section id="cta" className="section section-cta lovers-final-cta">
       <div className="wrap lovers-safe-wrap">
-        <div className="lovers-final-cta__inner reveal reveal-up">
-          <span className="lovers-eyebrow">Sweet &amp; Coffee Week Lovers</span>
-
-          <h2 className="lovers-final-cta__title">
-            Feito de amor,<br />
-            recriando <span>sabores.</span>
-          </h2>
-
-          <p className="lovers-final-cta__text">
-            Essa edição é um convite para revisitar a história do Sweet, descobrir novas
-            criações e viver Natal em modo doce.
-          </p>
-
-          <div className="lovers-final-cta__actions">
-            <LoversButton
-              variant="primary"
-              href="#/lovers/participantes"
-              onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}
-            >
-              Começar pelos participantes <I.arrow />
-            </LoversButton>
-          </div>
-
-          <a className="lovers-final-cta__ig"
-             href="https://instagram.com/sweetcoffeeweek"
-             target="_blank" rel="noopener noreferrer">
-            <I.ig width={14} height={14} /> @sweetcoffeeweek
-          </a>
-
-          <div style={{ marginTop: 18, display: 'flex', justifyContent: 'center' }}>
-            <CarteirinhaCTA />
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <LoversButton
+            variant="primary"
+            href="https://instagram.com/sweetcoffeeweek"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <I.ig width={18} height={18} /> Siga no Instagram
+          </LoversButton>
         </div>
 
         <div className="section-cta__footnote reveal reveal-up reveal-delay-3">
           <span>© 2026 SWEET &amp; COFFEE WEEK · 16ª EDIÇÃO LOVERS</span>
-          <span>REALIZAÇÃO · F2 EXPERIENCE</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>REALIZAÇÃO · <a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" aria-label="F2 Experience" style={{ display: 'inline-flex' }}><img src="/images/logo-f2experience.svg" alt="F2 Experience" style={{ height: 16, width: 'auto' }} /></a></span>
         </div>
       </div>
     </section>

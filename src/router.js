@@ -16,9 +16,15 @@ export function useRoute() {
     trackPageView() // page_view da carga inicial (só envia se já houver consentimento)
     const onChange = () => {
       const next = parse()
-      setPath(next); window.scrollTo({ top: 0 })
+      setPath(next)
       applyPageMeta(next) // título correto ANTES do page_view
       trackPageView()
+      // Rola pro topo APÓS o novo conteúdo montar — senão páginas altas abrem no meio/fim.
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+        document.documentElement.scrollTop = 0
+        if (document.body) document.body.scrollTop = 0
+      })
     }
     window.addEventListener('hashchange', onChange)
     window.addEventListener('popstate', onChange)

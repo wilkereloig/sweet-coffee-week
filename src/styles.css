@@ -1988,7 +1988,7 @@ button:disabled { cursor: not-allowed; }
 .section-cta .lh1 { color: var(--lovers-cream); }
 .section-cta p { color: rgba(255,232,210,.85); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.6; max-width: 56ch; margin: 28px 0 36px; }
 .section-cta .ctas { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
-.section-cta__footnote { margin-top: clamp(56px, 7vw, 96px); padding-top: 32px; border-top: 1px solid rgba(255,232,210,.15); font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: rgba(255,232,210,.55); text-transform: uppercase; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.section-cta__footnote { margin-top: clamp(56px, 7vw, 96px); padding-top: 32px; border-top: 1px solid rgba(135,14,45,.18); font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: rgba(135,14,45,.62); text-transform: uppercase; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
 /* ============================================================
    LOVERS â€” vertical spacing audit

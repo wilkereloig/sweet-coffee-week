@@ -527,7 +527,7 @@
   margin: 0 auto;
   font-family: var(--font-lovers-display);
   font-weight: 900;
-  font-size: clamp(32px, 5vw, 72px);
+  font-size: clamp(38px, 4vw, 52px);
   line-height: .98;
   letter-spacing: -.02em;
   text-transform: uppercase;
@@ -678,7 +678,7 @@
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: clamp(28px, 4vw, 64px); align-items: start;
 }
-.lovers-concept__head .lovers-section__title { margin-top: 8px; }
+.lovers-concept__head .lovers-section__title { margin-top: 8px; font-size: clamp(38px, 4vw, 52px); }
 .lovers-concept__copy { display: grid; gap: clamp(16px, 2vw, 22px); max-width: 620px; }
 .lovers-concept__text { font-size: clamp(15px, 1.5vw, 17px); line-height: 1.6; color: var(--lovers-brown); }
 .lovers-concept__highlight {
@@ -704,6 +704,8 @@
 .section-sobre .lovers-concept__head .lovers-eyebrow::before,
 .section-sobre .lovers-concept__how-label::before { display: none; }
 /* Conteúdo dos step cards alinhado à esquerda (label "Como funciona" segue centrada) */
+.section-sobre { background: var(--lovers-brown); }
+.section-sobre .lovers-section__title { color: var(--lovers-cream); }
 .section-sobre .lovers-step-card { text-align: left; }
 
 /* =====================================================================
@@ -847,9 +849,9 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 @media (max-width: 540px) { .lovers-step-grid { grid-template-columns: 1fr; } }
 .lovers-step-card {
   position: relative; overflow: hidden; isolation: isolate;
-  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;
-  min-height: clamp(190px, 17vw, 224px);
-  padding: clamp(22px, 2.4vw, 30px);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+  aspect-ratio: 1 / 1; min-height: clamp(190px, 17vw, 224px);
+  padding: clamp(30px, 3.2vw, 44px);
   border-radius: 28px;
   background: var(--lv-accent, var(--lovers-pink));
   color: var(--lovers-cream);
@@ -860,23 +862,30 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .lovers-step-card::after {
   content: ""; position: absolute; width: 42%; aspect-ratio: 1;
   right: -12%; bottom: -14%; border-radius: 999px;
-  background: rgba(255,255,255,.16); pointer-events: none; z-index: 0;
+  background: color-mix(in srgb, var(--lv-ink, #fff) 12%, transparent); pointer-events: none; z-index: 0;
 }
 .lovers-step-card__num {
   position: absolute; top: 6px; right: 16px; z-index: 0; pointer-events: none;
   font-family: var(--font-lovers-display); font-weight: 900; letter-spacing: -.04em;
   font-size: clamp(54px, 6vw, 82px); line-height: .8;
-  color: rgba(255,255,255,.16);
+  color: color-mix(in srgb, var(--lv-ink, #fff) 18%, transparent);
 }
 .lovers-step-card__title {
   margin: 0; position: relative; z-index: 2;
   font-family: var(--font-lovers-display); font-weight: 800;
-  font-size: clamp(21px, 2vw, 26px); line-height: 1.02; text-transform: uppercase;
-  color: var(--lovers-cream);
+  font-size: clamp(38px, 4vw, 52px); line-height: 1.04; text-transform: uppercase;
+  color: var(--lv-ink, var(--lovers-cream));
 }
 .lovers-step-card__text {
   margin: 0; position: relative; z-index: 2;
-  font-size: 15px; line-height: 1.5; color: var(--lovers-cream); opacity: .96;
+  font-size: clamp(18px, 1.8vw, 22px); line-height: 1.5; color: var(--lv-ink, var(--lovers-cream)); opacity: .9;
+}
+.lovers-step-card__icon {
+  position: absolute; top: 16px; left: 18px; z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 13px;
+  background: color-mix(in srgb, var(--lv-ink, #fff) 16%, transparent);
+  color: var(--lv-ink, var(--lovers-cream));
 }
 @media (hover: hover) {
   .lovers-step-card:hover {
@@ -886,11 +895,30 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 }
 @media (prefers-reduced-motion: reduce) { .lovers-step-card { transition: none; } }
 @media (max-width: 540px) {
-  .lovers-step-card { aspect-ratio: auto; min-height: 220px; }
+  .lovers-step-card { aspect-ratio: 1 / 1; min-height: 0; }
 }
+
+/* ── Hero: faixa deslizante com fotos dos combos ── */
+.lovers-hero__strip {
+  position: relative; width: 100%; margin-top: clamp(22px, 3vw, 38px); overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.lovers-hero__strip-track { display: flex; gap: 14px; width: max-content; animation: lovers-hero-strip 60s linear infinite; }
+.lovers-hero__strip-tile {
+  flex: 0 0 auto; width: clamp(280px, 36vw, 440px); aspect-ratio: 22 / 15;
+  border-radius: 16px; overflow: hidden; box-shadow: 0 8px 22px rgba(43,24,16,.16); background: rgba(0,0,0,.05);
+}
+.lovers-hero__strip-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@keyframes lovers-hero-strip { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .lovers-hero__strip-track { animation: none; } }
 
 /* ── Nav cards: foco visível por teclado ── */
 .lovers-nav-card:focus-visible { outline: 3px solid var(--lovers-yellow); outline-offset: 3px; }
+.lovers-nav-grid .lovers-nav-card { justify-content: space-between; padding: clamp(30px, 3.2vw, 44px); }
+.lovers-home .lovers-section__title { font-size: clamp(38px, 4vw, 52px); }
+.lovers-home .lovers-nav-card__title { font-size: clamp(38px, 4vw, 52px); }
+.lovers-home .lovers-nav-card__desc { font-size: clamp(18px, 1.8vw, 22px); max-width: none; }
 
 /* ── Final CTA: parágrafos + botões sobre fundo marrom ── */
 .lovers-final-cta p { margin: 22px 0 0; }
