@@ -237,6 +237,8 @@ export function ComboPage({ navigate }) {
   const [filterEdition, setFilterEdition] = React.useState(null)
   const [onlyOpen, setOnlyOpen] = React.useState(false)
   const [sortBy, setSortBy] = React.useState('padrao')
+  const [searchActive, setSearchActive] = React.useState(false)
+  const searchExpanded = searchActive || search.trim().length > 0
   const [editionsOpen, setEditionsOpen] = React.useState(false) // mobile: expande chips de edição
   // Re-renderiza a cada 60s para manter contagem de "abertas agora" atualizada.
   const [, setTick] = React.useState(0)
@@ -305,7 +307,7 @@ export function ComboPage({ navigate }) {
   return (
     <div className="page-enter kv-lovers combos-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .35 }}></div>
-      <LoversStickers page="participantes" />
+      {sortedCards.length >= 6 && <LoversStickers page="participantes" />}
 
       {/* Hero — sistema Lovers (lovers-public-hero) */}
       <section className="lovers-public-hero">
@@ -373,8 +375,8 @@ export function ComboPage({ navigate }) {
                     )}
                   </span>
                 </div>
-                <div className="participants-filterbar__tools">
-                  <label className="participants-search" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 90px', minWidth: 80, maxWidth: 560 }}>
+                <div className="participants-filterbar__tools" style={{ flexWrap: searchExpanded ? 'wrap' : 'nowrap' }}>
+                  <label className="participants-search" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: searchExpanded ? '1 1 100%' : '1 1 90px', minWidth: searchExpanded ? 240 : 80, maxWidth: searchExpanded ? 'none' : 560 }}>
                     <SearchIcon />
                     <input
                       type="search"
@@ -382,6 +384,8 @@ export function ComboPage({ navigate }) {
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Buscar participante, tema ou combo"
                       aria-label="Buscar participante, tema ou combo"
+                      onFocus={() => setSearchActive(true)}
+                      onBlur={() => setSearchActive(false)}
                       style={{ flex: 1, minWidth: 0 }}
                     />
                   </label>
