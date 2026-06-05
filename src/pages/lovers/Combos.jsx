@@ -374,7 +374,7 @@ export function ComboPage({ navigate }) {
                   </span>
                 </div>
                 <div className="participants-filterbar__tools">
-                  <label className="participants-search">
+                  <label className="participants-search" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 300px', minWidth: 200, maxWidth: 560 }}>
                     <SearchIcon />
                     <input
                       type="search"
@@ -382,6 +382,7 @@ export function ComboPage({ navigate }) {
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Buscar participante, tema ou combo"
                       aria-label="Buscar participante, tema ou combo"
+                      style={{ flex: 1, minWidth: 0 }}
                     />
                   </label>
                   <button
