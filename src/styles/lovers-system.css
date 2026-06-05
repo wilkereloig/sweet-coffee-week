@@ -900,7 +900,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 
 /* ── Hero: faixa deslizante com fotos dos combos ── */
 .lovers-hero__strip {
-  position: relative; width: 100%; margin-top: clamp(22px, 3vw, 38px); overflow: hidden;
+  position: relative; z-index: 2; width: 100%; margin-top: clamp(22px, 3vw, 38px); overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
           mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 }

@@ -264,13 +264,11 @@ export function LoversPage({ navigate }) {
   return (
     <div className="page-enter kv-lovers lovers-home lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
+      <LoversStickers page="sobre" />
       <Hero navigate={navigate} />
-      <div style={{ position: 'relative', isolation: 'isolate' }}>
-        <LoversStickers page="sobre" />
-        <OQueEComoFunciona />
-        <NavCards navigate={navigate} />
-        <FinalCTA navigate={navigate} />
-      </div>
+      <OQueEComoFunciona />
+      <NavCards navigate={navigate} />
+      <FinalCTA navigate={navigate} />
     </div>
   )
 }
