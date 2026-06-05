@@ -1221,7 +1221,6 @@ export function MapaGooglePage({ navigate }) {
                     <details className="sweet-route-menu">
                       <summary aria-label="Mais ações">⋯</summary>
                       <div className="sweet-route-menu__pop">
-                        <button type="button" onClick={copyRouteLink}>{linkCopied ? 'Link copiado ✓' : 'Copiar link da rota'}</button>
                         <button type="button" onClick={clearRoute}>Limpar rota</button>
                       </div>
                     </details>
@@ -1264,11 +1263,8 @@ export function MapaGooglePage({ navigate }) {
                 </div>
 
                 <footer className="sweet-route-screen__foot">
-                  <button type="button" onClick={shareStory} disabled={sharing || !routeLocations.length} className="sweet-route-cta">
-                    {sharing ? 'Gerando imagem…' : 'Compartilhar'}
-                  </button>
                   {routeMapsUrl && (
-                    <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-cta sweet-route-cta--ghost">
+                    <a href={routeMapsUrl} target="_blank" rel="noopener noreferrer" className="sweet-route-cta">
                       Abrir no Maps
                     </a>
                   )}
@@ -1276,37 +1272,6 @@ export function MapaGooglePage({ navigate }) {
               </div>
             )}
 
-            {/* Card 9:16 off-screen para exportar imagem do Stories */}
-            <div className="sweet-story-stage" aria-hidden="true">
-              <div className="sweet-story" ref={storyRef}>
-                <div className="sweet-story__head">
-                  <span className="sweet-story__kicker">SWEET &amp; COFFEE WEEK LOVERS</span>
-                  <h2 className="sweet-story__title">MINHA ROTA<br/>DA DOÇURA</h2>
-                  <span className="sweet-story__date">4 A 14 DE JUNHO · NATAL/RN</span>
-                </div>
-                <ol className="sweet-story__list">
-                  {routeLocations.slice(0, 8).map((loc, i) => {
-                    return (
-                      <li key={loc.id} className="sweet-story__stop">
-                        <span className="sweet-story__num">{i + 1}</span>
-                        <div className="sweet-story__info">
-                          <strong>{loc.participantName}</strong>
-                          <span>{[loc.neighborhood, loc.city].filter(Boolean).join(' · ')}</span>
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ol>
-                {routeLocations.length > 8 && <p className="sweet-story__more">+ {routeLocations.length - 8} paradas na minha rota</p>}
-                <div className="sweet-story__foot">
-                  {qrDataUrl && <img className="sweet-story__qr" src={qrDataUrl} alt="" />}
-                  <div className="sweet-story__cta">
-                    <strong>Monte a sua rota</strong>
-                    <span>sweetcoffeeweek.com.br</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 </>
           )}
 
