@@ -37,9 +37,9 @@ function useStickerParallax() {
   return ref
 }
 
-export function LoversStickers({ page, className = '' }) {
+export function LoversStickers({ page, count, className = '' }) {
   // Sorteia a cada mount — adesivos e posições mudam a cada abertura/refresh de página.
-  const items = React.useMemo(() => pickStickers(POOLS[page] || []), [page])
+  const items = React.useMemo(() => pickStickers(POOLS[page] || [], count), [page, count])
   const ref = useStickerParallax()
   if (!items.length) return null
   return (

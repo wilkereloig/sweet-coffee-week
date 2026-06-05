@@ -42,7 +42,7 @@ export function VivaPage({ navigate }) {
   return (
     <div className="page-enter kv-lovers awards-page lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .3 }} />
-      <LoversStickers page="viva" />
+      <LoversStickers page="viva" count={4} />
 
       {/* Hero / abertura */}
       <section className="lovers-public-hero">
