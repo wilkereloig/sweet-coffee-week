@@ -411,7 +411,10 @@ export function PhotoBoothModal({ open, onClose }) {
                 <button className={'pb-actbtn' + (dlMode ? ' is-on' : '')} onClick={() => setDlMode(m => !m)} aria-pressed={dlMode}>⤓ Baixar adesivos</button>
               </div>
               <button className="pb-actbtn pb-actbtn--full" disabled={busy} onClick={shareStickers}>↗ Compartilhar figurinhas</button>
-              <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setDlMode(false); setFrame(null); setMode('choose') }}>Trocar foto</button>
+              <div className="pb-actions__row">
+                <button className="pb-actbtn" onClick={() => { setStickers([]); setDlMode(false); setFrame(null); setSel(null); startSelfie() }}>📷 Nova selfie</button>
+                <button className="pb-actbtn" onClick={() => { setStickers([]); setDlMode(false); setFrame(null); setSel(null); fileRef.current && fileRef.current.click() }}>🖼 Enviar foto</button>
+              </div>
             </div>
           </div>
         )}

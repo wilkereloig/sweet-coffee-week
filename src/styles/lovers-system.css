@@ -278,6 +278,19 @@
 
 /* Cabine em tela cheia (edge-to-edge) — choose e edit */
 .share-modal.pb-modal { padding: 0; align-items: stretch; justify-content: stretch; }
+/* Botão fechar fixo — fica visível mesmo com scroll */
+.pb-modal .share-modal__close {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: 14px;
+  z-index: 200;
+  background: rgba(255,255,255,.88);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  font-size: 16px;
+}
 .pb-modal .share-modal__panel {
   width: 100%; max-width: none; height: 100vh; height: 100dvh; max-height: 100dvh;
   border-radius: 0; overflow: auto;
