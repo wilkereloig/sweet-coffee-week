@@ -287,6 +287,7 @@ export function PhotoBoothModal({ open, onClose }) {
       const { toBlob } = await import('html-to-image')
       return await toBlob(stageRef.current, {
         pixelRatio: 3, width: 360, height: 640, cacheBust: true,
+        backgroundColor: '#ffffff',
         style: { transform: 'none' },
       })
     } finally {
