@@ -419,13 +419,15 @@ export function PhotoBoothModal({ open, onClose }) {
       <div className="share-modal__panel pb-panel" onClick={(e) => e.stopPropagation()}>
         <button className="share-modal__close" onClick={onClose} aria-label="Fechar">✕</button>
 
+        {/* Input de arquivo sempre montado — usado em choose E edit (senão fileRef fica null) */}
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+
         {mode === 'choose' && (
           <div className="pb-choose">
             <h2 className="pb-title">Foto Sweet Lover</h2>
             <p className="pb-sub">Tire uma selfie ou envie a foto do combo, coloque a moldura e os adesivos, e poste no seu Story 💛</p>
             <button className="lovers-button lovers-button--primary" onClick={startSelfie}>Tirar selfie</button>
             <button className="lovers-button lovers-button--secondary" onClick={() => fileRef.current && fileRef.current.click()}>Enviar foto</button>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
             {camErr && <p className="pb-err">{camErr}</p>}
           </div>
         )}
