@@ -402,6 +402,14 @@
 .pb-sticker.is-sel { outline: 2px dashed rgba(255, 255, 255, .9); outline-offset: 3px; border-radius: 6px; }
 .pb-sticker__del { position: absolute; top: -12px; left: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-red); color: #fff; border: 2px solid #fff; font-size: 12px; cursor: pointer; line-height: 1; padding: 0; z-index: 6; }
 .pb-sticker__handle { position: absolute; bottom: -12px; right: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--lovers-yellow); border: 2px solid #fff; cursor: nwse-resize; display: block; touch-action: none; z-index: 6; }
+/* Seletor de molduras */
+.pb-frames { display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 6px 2px 4px; margin-bottom: 4px; }
+.pb-frames__item { flex: 0 0 auto; width: 46px; height: 82px; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: rgba(135,14,45,.07); cursor: pointer; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: border-color .15s; }
+.pb-frames__item.is-sel { border-color: var(--lovers-pink, #e75480); }
+.pb-frames__item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.pb-frames__none { font-size: 18px; color: #aaa; line-height: 1; }
+/* Frame overlay no stage (PNG opaco nas bordas, transparente no centro) */
+.pb-frame-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 3; }
 .pb-palette-hint { margin: 2px 0 6px; font-size: 12px; color: var(--lovers-brown); text-align: center; }
 .pb-palette { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 12px; }
 .pb-palette__item { position: relative; flex: 0 0 auto; width: 54px; height: 54px; border: 0; background: rgba(135, 14, 45, .06); border-radius: 12px; cursor: pointer; padding: 5px; }

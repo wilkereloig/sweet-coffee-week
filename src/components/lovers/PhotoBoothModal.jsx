@@ -46,6 +46,11 @@ const PALETTE = [
   `/images/adesivos-site/adesivo%20(33).png`,
 ]
 
+const FRAMES = [
+  { src: '/images/moldura-lovers-1.png', label: 'Rosa' },
+  { src: '/images/moldura-lovers-2.png', label: 'Roxa' },
+]
+
 let _sid = 0
 
 export function PhotoBoothModal({ open, onClose }) {
@@ -65,6 +70,7 @@ export function PhotoBoothModal({ open, onClose }) {
   const [fit, setFit] = React.useState(1) // escala do stage 360x640 p/ caber no painel (centralização)
   const [exporting, setExporting] = React.useState(false) // durante export: zera o scale (html-to-image quebra com transform)
   const [dlMode, setDlMode] = React.useState(false) // modo "baixar adesivos": toque no adesivo baixa em vez de colar
+  const [frame, setFrame] = React.useState(null) // src da moldura ativa, ou null
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
@@ -91,7 +97,7 @@ export function PhotoBoothModal({ open, onClose }) {
   }, [open, mode])
 
   React.useEffect(() => {
-    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1) }
+    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1); setFrame(null) }
   }, [open, stopCam])
 
   React.useEffect(() => () => stopCam(), [stopCam])
@@ -351,6 +357,7 @@ export function PhotoBoothModal({ open, onClose }) {
               <div className="pb-stage-scale" style={{ transform: exporting ? 'none' : `scale(${fit})`, transformOrigin: 'top center' }}>
                 <div ref={stageRef} className="pb-stage" onPointerDown={() => setSel(null)}>
                   {imgSrc && <img className="pb-photo" src={imgSrc} alt="" />}
+                  {frame && <img className="pb-frame-img" src={frame} alt="" draggable="false" />}
                   {stickers.map(st => (
                     <div key={st.id}
                       className={'pb-sticker' + (sel === st.id ? ' is-sel' : '')}
@@ -367,6 +374,25 @@ export function PhotoBoothModal({ open, onClose }) {
                   ))}
                 </div>
               </div>
+            </div>
+            <div className="pb-frames" role="group" aria-label="Escolher moldura">
+              <button
+                className={'pb-frames__item' + (!frame ? ' is-sel' : '')}
+                onClick={() => setFrame(null)}
+                aria-label="Sem moldura"
+              >
+                <span className="pb-frames__none">✕</span>
+              </button>
+              {FRAMES.map(f => (
+                <button
+                  key={f.src}
+                  className={'pb-frames__item' + (frame === f.src ? ' is-sel' : '')}
+                  onClick={() => setFrame(f.src)}
+                  aria-label={`Moldura ${f.label}`}
+                >
+                  <img src={f.src} alt={f.label} loading="lazy" />
+                </button>
+              ))}
             </div>
             <p className="pb-palette-hint">{dlMode ? 'Toque num adesivo pra baixar em PNG' : 'Toque pra colar na foto'}</p>
             <div className={'pb-palette' + (dlMode ? ' is-dl' : '')}>
@@ -386,7 +412,7 @@ export function PhotoBoothModal({ open, onClose }) {
                 <button className={'pb-actbtn' + (dlMode ? ' is-on' : '')} onClick={() => setDlMode(m => !m)} aria-pressed={dlMode}>⤓ Baixar adesivos</button>
               </div>
               <button className="pb-actbtn pb-actbtn--full" disabled={busy} onClick={shareStickers}>↗ Compartilhar figurinhas</button>
-              <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setDlMode(false); setMode('choose') }}>Trocar foto</button>
+              <button className="share-modal__copy" onClick={() => { setImgSrc(null); setStickers([]); setDlMode(false); setFrame(null); setMode('choose') }}>Trocar foto</button>
             </div>
           </div>
         )}
