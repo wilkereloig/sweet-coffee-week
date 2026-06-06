@@ -490,6 +490,7 @@ export function PhotoBoothModal({ open, onClose }) {
                 <button className="pb-actbtn" disabled={busy} onClick={doDownload}>⤓ Baixar foto</button>
                 <button className={'pb-actbtn' + (dlMode ? ' is-on' : '')} onClick={() => setDlMode(m => !m)} aria-pressed={dlMode}>⤓ Baixar adesivos</button>
               </div>
+              <button className="pb-actbtn pb-actbtn--full" disabled={!frame} onClick={() => frame && downloadSticker(frame)}>⤓ Baixar moldura em PNG</button>
               <button className="pb-actbtn pb-actbtn--full" disabled={busy} onClick={shareStickers}>↗ Compartilhar figurinhas</button>
               <div className="pb-actions__row">
                 <button className="pb-actbtn" onClick={() => { setStickers([]); setDlMode(false); setFrame(null); setSel(null); startSelfie() }}>📷 Nova selfie</button>
