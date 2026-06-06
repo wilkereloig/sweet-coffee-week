@@ -47,8 +47,7 @@ const PALETTE = [
 ]
 
 const FRAMES = [
-  { src: '/images/moldura-lovers%20(1).png', label: 'Rosa' },
-  { src: '/images/moldura-lovers%20(2).png', label: 'Roxa' },
+  { src: '/images/moldura-namorados%2016.png', label: 'Namorados' },
 ]
 
 let _sid = 0
