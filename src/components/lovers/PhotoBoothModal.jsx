@@ -50,6 +50,29 @@ const FRAMES = [
   { src: '/images/moldura-namorados%2016.png', label: 'Namorados' },
 ]
 
+// Carrega uma imagem (dataURL ou URL same-origin) num HTMLImageElement.
+function loadImg(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.decoding = 'async'
+    img.src = src
+  })
+}
+
+// Desenha img cobrindo o retângulo (object-fit: cover), centralizado.
+function drawCover(ctx, img, dx, dy, dw, dh) {
+  const iw = img.naturalWidth || img.width
+  const ih = img.naturalHeight || img.height
+  if (!iw || !ih) return
+  const ir = iw / ih, dr = dw / dh
+  let sw, sh, sx, sy
+  if (ir > dr) { sh = ih; sw = sh * dr; sx = (iw - sw) / 2; sy = 0 }
+  else { sw = iw; sh = sw / dr; sx = 0; sy = (ih - sh) / 2 }
+  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
+}
+
 let _sid = 0
 
 export function PhotoBoothModal({ open, onClose }) {
@@ -279,20 +302,42 @@ export function PhotoBoothModal({ open, onClose }) {
     window.removeEventListener('pointerup', onUp)
   }
 
+  // Compõe a foto final num canvas nativo (drawImage), sem html-to-image.
+  // Confiável no iOS/Safari — evita o blank/preto do foreignObject+SVG com imagens grandes.
+  // Coordenadas no espaço do stage 360x640, rasterizado a 3x = 1080x1920.
   async function exportBlob() {
-    setSel(null); setExporting(true)
-    // Espera o React re-renderizar o stage em escala 1:1 (sem transform) antes de capturar.
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-    try {
-      const { toBlob } = await import('html-to-image')
-      return await toBlob(stageRef.current, {
-        pixelRatio: 3, width: 360, height: 640, cacheBust: true,
-        backgroundColor: '#ffffff',
-        style: { transform: 'none' },
-      })
-    } finally {
-      setExporting(false)
+    setSel(null)
+    const W = 360, H = 640, S = 3
+    const canvas = document.createElement('canvas')
+    canvas.width = W * S; canvas.height = H * S
+    const ctx = canvas.getContext('2d')
+    ctx.scale(S, S)
+    // Fundo branco (sem alpha) — Instagram Stories renderiza PNG transparente como preto.
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, W, H)
+    // Foto base (object-fit: cover)
+    if (imgSrc) {
+      try { drawCover(ctx, await loadImg(imgSrc), 0, 0, W, H) } catch { /* ignore */ }
     }
+    // Moldura (object-fit: fill → estica pro stage inteiro)
+    if (frameData) {
+      try { ctx.drawImage(await loadImg(frameData), 0, 0, W, H) } catch { /* ignore */ }
+    }
+    // Adesivos: centro em (x,y), largura base 92px, rotação e escala em torno do centro.
+    for (const st of stickers) {
+      try {
+        const im = await loadImg(st.src)
+        const w = 92
+        const h = 92 * ((im.naturalHeight || 1) / (im.naturalWidth || 1))
+        ctx.save()
+        ctx.translate(st.x, st.y)
+        ctx.rotate((st.rot || 0) * Math.PI / 180)
+        ctx.scale(st.scale || 1, st.scale || 1)
+        ctx.drawImage(im, -w / 2, -h / 2, w, h)
+        ctx.restore()
+      } catch { /* pula adesivo que falhar */ }
+    }
+    return await new Promise(res => canvas.toBlob(res, 'image/png'))
   }
   async function doShare() {
     if (busy) return; setBusy(true)
