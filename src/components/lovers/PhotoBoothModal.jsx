@@ -70,6 +70,8 @@ export function PhotoBoothModal({ open, onClose }) {
   const [exporting, setExporting] = React.useState(false) // durante export: zera o scale (html-to-image quebra com transform)
   const [dlMode, setDlMode] = React.useState(false) // modo "baixar adesivos": toque no adesivo baixa em vez de colar
   const [frame, setFrame] = React.useState(null) // src da moldura ativa, ou null
+  const [frameData, setFrameData] = React.useState(null) // dataURL da moldura (embute no export e carrega rápido)
+  const frameCache = React.useRef({}) // src -> dataURL
   const videoRef = React.useRef(null)
   const streamRef = React.useRef(null)
   const stageRef = React.useRef(null)
@@ -96,8 +98,40 @@ export function PhotoBoothModal({ open, onClose }) {
   }, [open, mode])
 
   React.useEffect(() => {
-    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1); setFrame(null) }
+    if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1); setFrame(null); setFrameData(null) }
   }, [open, stopCam])
+
+  // Converte um src de moldura em dataURL (cacheado). Necessário pro html-to-image
+  // embutir a moldura no PNG exportado — sem isso, baixava branco.
+  const toDataURL = React.useCallback(async (src) => {
+    if (frameCache.current[src]) return frameCache.current[src]
+    const res = await fetch(src)
+    const blob = await res.blob()
+    const data = await new Promise((resolve, reject) => {
+      const fr = new FileReader()
+      fr.onload = () => resolve(String(fr.result))
+      fr.onerror = reject
+      fr.readAsDataURL(blob)
+    })
+    frameCache.current[src] = data
+    return data
+  }, [])
+
+  // Pré-carrega todas as molduras como dataURL ao abrir (seleção instantânea + export confiável).
+  React.useEffect(() => {
+    if (!open) return
+    FRAMES.forEach(f => { toDataURL(f.src).catch(() => {}) })
+  }, [open, toDataURL])
+
+  // Quando a moldura ativa muda, resolve o dataURL correspondente.
+  React.useEffect(() => {
+    let alive = true
+    if (!frame) { setFrameData(null); return }
+    toDataURL(frame)
+      .then(data => { if (alive) setFrameData(data) })
+      .catch(() => { if (alive) setFrameData(frame) }) // fallback: src de rede
+    return () => { alive = false }
+  }, [frame, toDataURL])
 
   React.useEffect(() => () => stopCam(), [stopCam])
 
@@ -356,7 +390,7 @@ export function PhotoBoothModal({ open, onClose }) {
               <div className="pb-stage-scale" style={{ transform: exporting ? 'none' : `scale(${fit})`, transformOrigin: 'top center' }}>
                 <div ref={stageRef} className="pb-stage" onPointerDown={() => setSel(null)}>
                   {imgSrc && <img className="pb-photo" src={imgSrc} alt="" />}
-                  {frame && <img className="pb-frame-img" src={frame} alt="" draggable="false" />}
+                  {frameData && <img className="pb-frame-img" src={frameData} alt="" draggable="false" />}
                   {stickers.map(st => (
                     <div key={st.id}
                       className={'pb-sticker' + (sel === st.id ? ' is-sel' : '')}
