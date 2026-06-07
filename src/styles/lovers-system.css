@@ -894,8 +894,9 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 .lovers-step-card__title {
   margin: 0; position: relative; z-index: 2;
   font-family: var(--font-lovers-display); font-weight: 800;
-  font-size: clamp(38px, 4vw, 52px); line-height: 1.04; text-transform: uppercase;
+  font-size: clamp(24px, 2.4vw, 32px); line-height: 1.08; text-transform: uppercase;
   color: var(--lv-ink, var(--lovers-cream));
+  hyphens: none; word-break: normal; overflow-wrap: break-word;
 }
 .lovers-step-card__text {
   margin: 0; position: relative; z-index: 2;
