@@ -863,7 +863,7 @@ body.lovers-tabbar-hidden .lovers-tabbar { transform: translateY(120%); opacity:
 
 /* ── Como funciona: step cards editoriais (número gigante de fundo) ── */
 .lovers-step-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(3, 1fr);
   gap: clamp(14px, 1.6vw, 20px);
 }
 @media (max-width: 880px) { .lovers-step-grid { grid-template-columns: repeat(2, 1fr); } }
