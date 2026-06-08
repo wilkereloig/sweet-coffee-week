@@ -1,12 +1,28 @@
 import React from 'react'
 import { supabase } from '../../lib/supabase'
 import { AWARDS_CATEGORIES, AWARDS_PARTICIPANTS } from '../../data/sweetAwards'
+import { PARTICIPANTS } from '../../data/participants'
 
 // Painel admin (oculto): resultados, auditoria e votos suspeitos.
 // Acesso por senha — validada no banco (admin_ping). Nenhum dado sem a senha.
 const SS_KEY = 'sweet-admin-secret'
 const nameBySlug = Object.fromEntries(AWARDS_PARTICIPANTS.map(p => [p.slug, p.name]))
 const partName = (slug) => nameBySlug[slug] || slug
+const logoBySlug = Object.fromEntries(PARTICIPANTS.map(p => [p.slug, p.logo]))
+
+// Logo do participante em círculo, com fallback pra inicial do nome se faltar/quebrar.
+function LogoCircle({ slug, name, size = 46 }) {
+  const src = logoBySlug[slug]
+  const [err, setErr] = React.useState(false)
+  const initial = String(name || '?').trim().charAt(0).toUpperCase()
+  return (
+    <span style={{ width: size, height: size, flex: '0 0 auto', borderRadius: '50%', background: '#fff', border: '2px solid rgba(135,14,45,.15)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', color: 'var(--lovers-burgundy)', fontWeight: 800, fontSize: Math.round(size * 0.42) }}>
+      {src && !err
+        ? <img src={src} alt="" onError={() => setErr(true)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        : initial}
+    </span>
+  )
+}
 
 const SUSPEITO_LABEL = {
   telefone_multi_email: 'Mesmo telefone em e-mails diferentes',
@@ -276,26 +292,36 @@ function Rankings({ secret }) {
         if (!list.length) return null
         return (
           <div style={card} key={c.key}>
-            <h2 style={{ margin: '0 0 14px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
-            {list.map(r => {
-              const media = Number(r.media)
-              const pct = Math.max(3, Math.min(100, (media / 10) * 100))
-              const top = r.posicao <= 3
-              return (
-                <div key={r.posicao} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid rgba(135,14,45,.06)' }}>
-                  <span style={{ width: 34, textAlign: 'center', fontSize: top ? 22 : 15, fontWeight: 700, color: 'var(--lovers-brown)' }}>{medal[r.posicao - 1] || r.posicao}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
-                      <strong style={{ color: 'var(--lovers-burgundy)', fontSize: 16.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{partName(r.participante_slug)}</strong>
-                      <span style={{ color: 'var(--lovers-brown)', fontSize: 14.5, whiteSpace: 'nowrap' }}><strong style={{ fontSize: 19, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</strong> · {r.avaliacoes} aval.</span>
+            <h2 style={{ margin: '0 0 16px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              {list.map(r => {
+                const media = Number(r.media)
+                const pct = Math.max(3, Math.min(100, (media / 10) * 100))
+                const top = r.posicao <= 3
+                return (
+                  <div key={r.posicao} style={{
+                    flex: '1 1 300px', minWidth: 260, display: 'flex', flexDirection: 'column', gap: 11,
+                    padding: '16px 18px', borderRadius: 16,
+                    background: top ? 'rgba(231,84,128,.06)' : '#fff',
+                    border: top ? '2px solid var(--lovers-pink, #e75480)' : '1px solid rgba(135,14,45,.12)',
+                    boxShadow: top ? '0 8px 22px rgba(214,54,72,.12)' : '0 4px 14px rgba(43,24,16,.05)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                      <span style={{ width: 30, textAlign: 'center', fontSize: top ? 24 : 16, fontWeight: 800, color: 'var(--lovers-brown)' }}>{medal[r.posicao - 1] || `${r.posicao}º`}</span>
+                      <LogoCircle slug={r.participante_slug} name={partName(r.participante_slug)} size={48} />
+                      <strong style={{ flex: 1, minWidth: 0, color: 'var(--lovers-burgundy)', fontSize: 16.5, lineHeight: 1.25 }}>{partName(r.participante_slug)}</strong>
                     </div>
-                    <div style={{ height: 9, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</span>
+                      <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>{r.avaliacoes} avaliações</span>
+                    </div>
+                    <div style={{ height: 10, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', borderRadius: 6, background: top ? 'linear-gradient(90deg, var(--lovers-pink, #e75480), var(--lovers-red))' : 'var(--lovers-purple)' }} />
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )
       })}
