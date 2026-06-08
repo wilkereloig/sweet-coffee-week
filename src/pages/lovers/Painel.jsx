@@ -270,12 +270,20 @@ function Pager({ page, totalPages, onPage }) {
 
 function Auditoria({ secret, maxHeight }) {
   const { loading, rows, error } = useRpcAll('get_audit_report', secret)
+  const fb = useRpcAll('get_feedback_admin', secret) // pesquisa, p/ juntar às notas por e-mail
   const [page, setPage] = React.useState(1)
-  if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
+  if (loading || fb.loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum voto registrado ainda.</p>
+  // Mapa e-mail → resposta da pesquisa (1 por pessoa). Repete nas linhas de quem votou em várias lojas.
+  const fbByEmail = {}
+  ;(fb.rows || []).forEach(f => { if (f.email) fbByEmail[String(f.email).toLowerCase()] = f })
+  const fbOf = (r) => fbByEmail[String(r.email || '').toLowerCase()] || {}
+  const fbCols = ['gostou', 'melhorar', 'sugestao_tema']
   const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade', 'aceita_comunicacao',
-    'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento']
+    'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento', ...fbCols]
+  const tdWrap = { ...td, whiteSpace: 'normal', minWidth: 200, maxWidth: 340 }
+  const rowsCsv = rows.map(r => { const f = fbOf(r); return { ...r, gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '' } })
   const totalPages = Math.ceil(rows.length / PER_PAGE)
   const cur = Math.min(page, totalPages)
   const start = (cur - 1) * PER_PAGE
@@ -286,7 +294,7 @@ function Auditoria({ secret, maxHeight }) {
         <strong style={{ color: 'var(--lovers-burgundy)' }}>
           {rows.length} voto(s) · página {cur} de {totalPages} (mostrando {start + 1}–{start + slice.length})
         </strong>
-        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rows))}>Exportar CSV (todos)</button>
+        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rowsCsv))}>Exportar CSV (todos)</button>
       </div>
       <ScrollX maxHeight={maxHeight}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -294,7 +302,9 @@ function Auditoria({ secret, maxHeight }) {
           <tbody>
             {slice.map((r, i) => (
               <tr key={r.id || start + i}>
-                {cols.map(c => <td key={c} style={td}>{c === 'participante_slug' ? partName(r[c]) : c === 'created_at' ? new Date(r[c]).toLocaleString('pt-BR') : String(r[c] ?? '')}</td>)}
+                {cols.map(c => fbCols.includes(c)
+                  ? <td key={c} style={tdWrap}>{String(fbOf(r)[c] ?? '')}</td>
+                  : <td key={c} style={td}>{c === 'participante_slug' ? partName(r[c]) : c === 'created_at' ? new Date(r[c]).toLocaleString('pt-BR') : String(r[c] ?? '')}</td>)}
               </tr>
             ))}
           </tbody>
