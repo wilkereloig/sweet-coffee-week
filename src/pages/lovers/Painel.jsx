@@ -37,8 +37,8 @@ function download(filename, text) {
 }
 
 const card = { background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 12px 30px rgba(43,24,16,.08)', marginBottom: 18 }
-const th = { textAlign: 'left', padding: '10px 12px', fontSize: 14, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
-const td = { padding: '11px 12px', fontSize: 14.5, lineHeight: 1.5, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
+const th = { textAlign: 'left', padding: '12px 14px', fontSize: 15, fontWeight: 700, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
+const td = { padding: '13px 14px', fontSize: 15.5, lineHeight: 1.55, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
 
 // Análise qualitativa da pesquisa (síntese das respostas abertas — gostou/melhorar/temas).
 // Estática: gerada a partir das respostas do banco. Atualizar quando quiser reanalisar.
@@ -142,7 +142,7 @@ function PainelDados({ secret, onLogout }) {
   const [tab, setTab] = React.useState('geral')
   return (
     <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '100vh', padding: '24px 16px 80px' }}>
-      <div style={{ maxWidth: 'min(1760px, 96vw)', margin: '0 auto' }}>
+      <div style={{ maxWidth: 'min(1760px, 96vw)', margin: '0 auto', textAlign: 'left' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase' }}>Painel Sweet Awards</h1>
           <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
@@ -267,7 +267,7 @@ function Rankings({ secret }) {
   const totalAval = rows.reduce((s, r) => s + (Number(r.avaliacoes) || 0), 0)
   return (
     <>
-      <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0 }}>
+      <p style={{ color: 'var(--lovers-brown)', fontSize: 15, marginTop: 0 }}>
         Prévia do ranking (médias). Não depende de publicar o resultado no site. · {totalAval} avaliações somadas.
       </p>
       {cats.map(c => {
@@ -275,7 +275,7 @@ function Rankings({ secret }) {
         if (!list.length) return null
         return (
           <div style={card} key={c.key}>
-            <h2 style={{ margin: '0 0 14px', fontSize: 18, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
+            <h2 style={{ margin: '0 0 14px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
             {list.map(r => {
               const media = Number(r.media)
               const pct = Math.max(3, Math.min(100, (media / 10) * 100))
@@ -285,8 +285,8 @@ function Rankings({ secret }) {
                   <span style={{ width: 34, textAlign: 'center', fontSize: top ? 22 : 15, fontWeight: 700, color: 'var(--lovers-brown)' }}>{medal[r.posicao - 1] || r.posicao}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
-                      <strong style={{ color: 'var(--lovers-burgundy)', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{partName(r.participante_slug)}</strong>
-                      <span style={{ color: 'var(--lovers-brown)', fontSize: 13, whiteSpace: 'nowrap' }}><strong style={{ fontSize: 16, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</strong> · {r.avaliacoes} aval.</span>
+                      <strong style={{ color: 'var(--lovers-burgundy)', fontSize: 16.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{partName(r.participante_slug)}</strong>
+                      <span style={{ color: 'var(--lovers-brown)', fontSize: 14.5, whiteSpace: 'nowrap' }}><strong style={{ fontSize: 19, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</strong> · {r.avaliacoes} aval.</span>
                     </div>
                     <div style={{ height: 9, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', borderRadius: 6, background: top ? 'linear-gradient(90deg, var(--lovers-pink, #e75480), var(--lovers-red))' : 'var(--lovers-purple)' }} />
@@ -306,22 +306,22 @@ function Rankings({ secret }) {
 function ResumoPesquisa() {
   const A = AI_PESQUISA
   const colCard = { ...card, flex: '1 1 320px', minWidth: 280, marginBottom: 0 }
-  const li = { marginBottom: 9, fontSize: 14, lineHeight: 1.55, color: 'var(--lovers-brown)' }
-  const h3 = { margin: '0 0 10px', fontSize: 17, color: 'var(--lovers-burgundy)' }
-  const par = { margin: 0, fontSize: 14.5, lineHeight: 1.65, color: 'var(--lovers-brown)' }
+  const li = { marginBottom: 12, fontSize: 16, lineHeight: 1.65, color: 'var(--lovers-ink, #3a1d12)' }
+  const h3 = { margin: '0 0 12px', fontSize: 20, color: 'var(--lovers-burgundy)' }
+  const par = { margin: 0, fontSize: 17, lineHeight: 1.7, color: 'var(--lovers-ink, #3a1d12)' }
   return (
     <div style={{ marginTop: 18 }}>
-      <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 22, margin: '0 0 4px' }}>Resumo da Pesquisa — Análise</h2>
-      <p style={{ color: 'var(--lovers-brown)', fontSize: 13, marginTop: 0, marginBottom: 14 }}>
+      <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 27, margin: '0 0 4px' }}>Resumo da Pesquisa — Análise</h2>
+      <p style={{ color: 'var(--lovers-brown)', fontSize: 14.5, marginTop: 0, marginBottom: 16 }}>
         Síntese qualitativa das respostas abertas (gostou · melhorar · temas). Análise de {A.data} · {A.nRespostas} respostas.
       </p>
 
       <div style={card}>
         <h3 style={h3}>📊 Avaliação geral</h3>
         <p style={par}>{A.avaliacaoGeral}</p>
-        <p style={{ margin: '12px 0 0', fontSize: 13.5 }}>
+        <p style={{ margin: '14px 0 0', fontSize: 16, lineHeight: 1.6 }}>
           <strong style={{ color: 'var(--lovers-burgundy)' }}>Satisfação percebida:</strong>{' '}
-          <span style={{ color: 'var(--lovers-brown)' }}>{A.notaPercebida}</span>
+          <span style={{ color: 'var(--lovers-ink, #3a1d12)' }}>{A.notaPercebida}</span>
         </p>
       </div>
 
