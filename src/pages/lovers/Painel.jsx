@@ -635,7 +635,6 @@ function Auditoria({ secret, maxHeight }) {
         <strong style={{ color: 'var(--lovers-burgundy)' }}>
           {rows.length} voto(s) · página {cur} de {totalPages} (mostrando {start + 1}–{start + slice.length})
         </strong>
-        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rowsCsv))}>Exportar CSV (todos)</button>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ fontSize: 13, color: 'var(--lovers-brown)' }}>Ordenar:</span>
@@ -679,7 +678,6 @@ function Pesquisa({ secret, maxHeight }) {
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
         <strong style={{ color: 'var(--lovers-burgundy)' }}>{rows.length} resposta(s) de pesquisa</strong>
-        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-pesquisa.csv', toCsv(csvRows))}>Exportar CSV</button>
       </div>
       <ScrollX maxHeight={maxHeight}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
