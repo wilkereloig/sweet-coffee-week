@@ -204,8 +204,7 @@ function Geral({ secret }) {
   }
   return (
     <>
-      <section style={sec}><h2 style={h}>📋 Auditoria (todos os votos)</h2><Auditoria secret={secret} maxHeight={480} /></section>
-      <section style={sec}><h2 style={h}>💬 Pesquisa</h2><Pesquisa secret={secret} maxHeight={480} /></section>
+      <section style={sec}><h2 style={h}>📋 Auditoria (votos + respostas da pesquisa)</h2><Auditoria secret={secret} maxHeight={480} /></section>
       <section style={sec}><h2 style={h}>⚠️ Suspeitos</h2><Suspeitos secret={secret} /></section>
     </>
   )
