@@ -130,7 +130,7 @@ function PainelDados({ secret, onLogout }) {
 }
 
 // Wrapper de tabela larga: barra de rolagem horizontal no TOPO + embaixo, sincronizadas.
-function ScrollX({ children }) {
+function ScrollX({ children, maxHeight }) {
   const topRef = React.useRef(null)
   const botRef = React.useRef(null)
   const [w, setW] = React.useState(0)
@@ -149,7 +149,7 @@ function ScrollX({ children }) {
       <div ref={topRef} onScroll={syncFromTop} style={{ overflowX: 'auto', overflowY: 'hidden' }} aria-hidden="true">
         <div style={{ width: w, height: 1 }} />
       </div>
-      <div ref={botRef} onScroll={syncFromBot} style={{ overflowX: 'auto' }}>
+      <div ref={botRef} onScroll={syncFromBot} style={{ overflowX: 'auto', overflowY: maxHeight ? 'auto' : 'visible', maxHeight: maxHeight || undefined }}>
         {children}
       </div>
     </>
@@ -204,8 +204,8 @@ function Geral({ secret }) {
   }
   return (
     <>
-      <section style={sec}><h2 style={h}>📋 Auditoria (todos os votos)</h2><Auditoria secret={secret} /></section>
-      <section style={sec}><h2 style={h}>💬 Pesquisa</h2><Pesquisa secret={secret} /></section>
+      <section style={sec}><h2 style={h}>📋 Auditoria (todos os votos)</h2><Auditoria secret={secret} maxHeight={480} /></section>
+      <section style={sec}><h2 style={h}>💬 Pesquisa</h2><Pesquisa secret={secret} maxHeight={480} /></section>
       <section style={sec}><h2 style={h}>⚠️ Suspeitos</h2><Suspeitos secret={secret} /></section>
     </>
   )
@@ -268,7 +268,7 @@ function Pager({ page, totalPages, onPage }) {
   )
 }
 
-function Auditoria({ secret }) {
+function Auditoria({ secret, maxHeight }) {
   const { loading, rows, error } = useRpcAll('get_audit_report', secret)
   const [page, setPage] = React.useState(1)
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
@@ -288,7 +288,7 @@ function Auditoria({ secret }) {
         </strong>
         <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rows))}>Exportar CSV (todos)</button>
       </div>
-      <ScrollX>
+      <ScrollX maxHeight={maxHeight}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{cols.map(c => <th key={c} style={th}>{c}</th>)}</tr></thead>
           <tbody>
@@ -305,7 +305,7 @@ function Auditoria({ secret }) {
   )
 }
 
-function Pesquisa({ secret }) {
+function Pesquisa({ secret, maxHeight }) {
   const { loading, rows, error } = useRpc('get_feedback_admin', secret)
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
@@ -322,7 +322,7 @@ function Pesquisa({ secret }) {
         <strong style={{ color: 'var(--lovers-burgundy)' }}>{rows.length} resposta(s) de pesquisa</strong>
         <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-pesquisa.csv', toCsv(csvRows))}>Exportar CSV</button>
       </div>
-      <div style={{ overflowX: 'auto' }}>
+      <ScrollX maxHeight={maxHeight}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>
             <th style={th}>created_at</th><th style={th}>nome</th><th style={th}>email</th><th style={th}>participante(s)</th>
@@ -342,7 +342,7 @@ function Pesquisa({ secret }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollX>
     </div>
   )
 }
