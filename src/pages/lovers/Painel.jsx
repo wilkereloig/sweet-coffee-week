@@ -297,7 +297,7 @@ async function buildAndDownloadXlsx(votos, feedback) {
   const cats = [{ key: 'melhor_combo', label: 'Melhor Combo' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))]
   const slugs = Object.keys(byPart)
 
-  const ws1 = wb.addWorksheet('Resultados')
+  const ws1 = wb.addWorksheet('Resultados (Média pura)')
   ws1.columns = [
     { header: 'Categoria', key: 'cat', width: 34 }, { header: 'Posição', key: 'pos', width: 10 },
     { header: 'Participante', key: 'part', width: 32 }, { header: 'Média', key: 'media', width: 10 },
@@ -308,6 +308,23 @@ async function buildAndDownloadXlsx(votos, feedback) {
     arr.forEach((x, i) => ws1.addRow({ cat: c.label, pos: ['🥇 1º', '🥈 2º', '🥉 3º'][i], part: partName(x.s), media: Number(x.m.toFixed(2)), aval: x.n }))
   }
   styleHeader(ws1)
+
+  // ── Ranking ponderado (bayesiano, justo): score = (n/(n+m))·média + (m/(n+m))·média geral; mín. BAYES_MIN aval. ──
+  const ws1b = wb.addWorksheet('Resultados (Ponderada)')
+  ws1b.columns = [
+    { header: 'Categoria', key: 'cat', width: 34 }, { header: 'Posição', key: 'pos', width: 10 },
+    { header: 'Participante', key: 'part', width: 32 }, { header: 'Score', key: 'score', width: 10 },
+    { header: 'Média real', key: 'media', width: 11 }, { header: 'Avaliações', key: 'aval', width: 12 },
+  ]
+  for (const c of cats) {
+    const elig = slugs.map(s => ({ s, n: byPart[s].n, m: mediaCat(byPart[s], c.key) })).filter(x => x.n >= BAYES_MIN)
+    const sumN = elig.reduce((a, x) => a + x.n, 0)
+    const C = sumN ? elig.reduce((a, x) => a + x.m * x.n, 0) / sumN : 0
+    const arr = elig.map(x => ({ ...x, score: (x.n / (x.n + BAYES_M)) * x.m + (BAYES_M / (x.n + BAYES_M)) * C }))
+      .sort((a, b) => b.score - a.score || b.n - a.n).slice(0, 3)
+    arr.forEach((x, i) => ws1b.addRow({ cat: c.label, pos: ['🥇 1º', '🥈 2º', '🥉 3º'][i], part: partName(x.s), score: Number(x.score.toFixed(2)), media: Number(x.m.toFixed(2)), aval: x.n }))
+  }
+  styleHeader(ws1b)
 
   // ── Análise da pesquisa ──
   const A = AI_PESQUISA
