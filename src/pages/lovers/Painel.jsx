@@ -263,9 +263,146 @@ function Geral({ secret }) {
   )
 }
 
+// Gera o Excel (.xlsx) formatado: Resultados + Análise + Votos + Pesquisa.
+async function buildAndDownloadXlsx(votos, feedback) {
+  const ExcelJS = (await import('exceljs')).default
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'Sweet & Coffee Week Lovers'
+
+  const BURGUNDY = 'FF8B0E2D', CREAM = 'FFFFF1E6'
+  const styleHeader = (ws) => {
+    const r = ws.getRow(1); r.height = 22
+    r.eachCell(c => {
+      c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 }
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BURGUNDY } }
+      c.alignment = { vertical: 'middle' }
+    })
+    ws.views = [{ state: 'frozen', ySplit: 1 }]
+    if (ws.columnCount > 0) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: ws.columnCount } }
+  }
+  const zebra = (ws) => { ws.eachRow((row, i) => { if (i > 1 && i % 2 === 0) row.eachCell(c => { if (!c.fill) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CREAM } } }) }) }
+
+  // ── Ranking (média pura) ──
+  const fieldByKey = Object.fromEntries(AWARDS_CATEGORIES.map(c => [c.key, c.field]))
+  const byPart = {}
+  for (const v of votos) {
+    const s = v.participante_slug; if (!s) continue
+    const p = byPart[s] || (byPart[s] = { n: 0, sums: {} })
+    p.n++
+    for (const c of AWARDS_CATEGORIES) p.sums[c.field] = (p.sums[c.field] || 0) + Number(v[c.field] || 0)
+  }
+  const mediaCat = (p, key) => key === 'melhor_combo'
+    ? ((p.sums.nota_doce + p.sums.nota_salgado + p.sums.nota_bebida) / 3) / p.n
+    : (p.sums[fieldByKey[key]] || 0) / p.n
+  const cats = [{ key: 'melhor_combo', label: 'Melhor Combo' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))]
+  const slugs = Object.keys(byPart)
+
+  const ws1 = wb.addWorksheet('Resultados')
+  ws1.columns = [
+    { header: 'Categoria', key: 'cat', width: 34 }, { header: 'Posição', key: 'pos', width: 10 },
+    { header: 'Participante', key: 'part', width: 32 }, { header: 'Média', key: 'media', width: 10 },
+    { header: 'Avaliações', key: 'aval', width: 12 },
+  ]
+  for (const c of cats) {
+    const arr = slugs.map(s => ({ s, n: byPart[s].n, m: mediaCat(byPart[s], c.key) })).sort((a, b) => b.m - a.m || b.n - a.n).slice(0, 3)
+    arr.forEach((x, i) => ws1.addRow({ cat: c.label, pos: ['🥇 1º', '🥈 2º', '🥉 3º'][i], part: partName(x.s), media: Number(x.m.toFixed(2)), aval: x.n }))
+  }
+  styleHeader(ws1)
+
+  // ── Análise da pesquisa ──
+  const A = AI_PESQUISA
+  const ws2 = wb.addWorksheet('Análise da Pesquisa')
+  ws2.columns = [{ header: 'Seção', key: 'sec', width: 26 }, { header: 'Conteúdo', key: 'txt', width: 120 }]
+  const addBlock = (titulo, itens) => { itens.forEach((t, i) => ws2.addRow({ sec: i === 0 ? titulo : '', txt: t })) }
+  ws2.addRow({ sec: 'Avaliação geral', txt: A.avaliacaoGeral })
+  ws2.addRow({ sec: 'Satisfação percebida', txt: A.notaPercebida })
+  addBlock('Pontos fortes', A.pontosFortes)
+  addBlock('Pontos a melhorar', A.pontosMelhorar)
+  addBlock('Temas mais sugeridos', A.temas)
+  ws2.addRow({ sec: 'Conclusão', txt: A.conclusao })
+  ws2.getColumn('txt').alignment = { wrapText: true, vertical: 'top' }
+  ws2.getColumn('sec').font = { bold: true, color: { argb: BURGUNDY } }
+  styleHeader(ws2)
+
+  // ── Votos (notas + respostas da pesquisa por e-mail) ──
+  const fbByEmail = {}
+  feedback.forEach(f => { if (f.email) fbByEmail[String(f.email).toLowerCase()] = f })
+  const vcols = ['created_at', 'participante', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade', 'aceita_comunicacao',
+    'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento', 'gostou', 'melhorar', 'sugestao_tema']
+  const ws3 = wb.addWorksheet('Votos')
+  ws3.columns = vcols.map(c => ({ header: c, key: c, width: ['gostou', 'melhorar', 'sugestao_tema'].includes(c) ? 40 : c === 'email' ? 26 : c === 'participante' || c === 'nome' ? 24 : 14 }))
+  for (const v of votos) {
+    const f = fbByEmail[String(v.email || '').toLowerCase()] || {}
+    ws3.addRow({
+      ...v, participante: partName(v.participante_slug),
+      created_at: v.created_at ? new Date(v.created_at).toLocaleString('pt-BR') : '',
+      gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '',
+    })
+  }
+  styleHeader(ws3)
+
+  // ── Pesquisa ──
+  const ws4 = wb.addWorksheet('Pesquisa')
+  ws4.columns = [
+    { header: 'created_at', key: 'created_at', width: 18 }, { header: 'nome', key: 'nome', width: 24 },
+    { header: 'email', key: 'email', width: 26 }, { header: 'participantes', key: 'participantes', width: 36 },
+    { header: 'gostou', key: 'gostou', width: 44 }, { header: 'melhorar', key: 'melhorar', width: 44 },
+    { header: 'sugestao_tema', key: 'sugestao_tema', width: 30 },
+  ]
+  for (const f of feedback) {
+    ws4.addRow({
+      created_at: f.created_at ? new Date(f.created_at).toLocaleString('pt-BR') : '',
+      nome: f.nome ?? '', email: f.email ?? '',
+      participantes: (f.participantes || []).map(partName).join(', '),
+      gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '',
+    })
+  }
+  ;['gostou', 'melhorar', 'sugestao_tema'].forEach(k => { ws4.getColumn(k).alignment = { wrapText: true, vertical: 'top' } })
+  styleHeader(ws4)
+
+  zebra(ws1)
+  const buf = await wb.xlsx.writeBuffer()
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob); a.download = 'sweet-awards-relatorio.xlsx'; a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function ExportButton({ secret }) {
+  const [busy, setBusy] = React.useState(false)
+  const run = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      const fetchAll = async (fn) => {
+        let all = [], from = 0, page = 1000
+        while (true) {
+          const { data, error } = await supabase.rpc(fn, { p_secret: secret }).range(from, from + page - 1)
+          if (error) throw error
+          all = all.concat(data || [])
+          if (!data || data.length < page) break
+          from += page
+        }
+        return all
+      }
+      const [votos, feedback] = await Promise.all([fetchAll('get_audit_report'), fetchAll('get_feedback_admin')])
+      await buildAndDownloadXlsx(votos, feedback)
+    } catch (e) { if (import.meta.env.DEV) console.error('[export xlsx]', e); window.alert('Erro ao gerar o Excel. Tente novamente.') }
+    finally { setBusy(false) }
+  }
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button className="lovers-button lovers-button--primary" disabled={busy} onClick={run}>
+        {busy ? 'Gerando Excel…' : '📊 Baixar Excel (relatório + dados)'}
+      </button>
+    </div>
+  )
+}
+
 function Resultados({ secret }) {
   return (
     <>
+      <ExportButton secret={secret} />
       <Rankings secret={secret} />
       <ResumoPesquisa secret={secret} />
     </>
