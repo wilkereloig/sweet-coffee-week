@@ -161,7 +161,10 @@ function PainelDados({ secret, onLogout }) {
       <div style={{ maxWidth: 'min(1760px, 96vw)', margin: '0 auto', textAlign: 'left' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase' }}>Painel Sweet Awards</h1>
-          <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <ExportButton secret={secret} />
+            <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
           {[['geral', 'Visão Geral', '📊'], ['resultados', 'Resultados', '🏆'], ['auditoria', 'Auditoria', '📋'], ['pesquisa', 'Pesquisa', '💬'], ['suspeitos', 'Suspeitos', '⚠️']].map(([k, l, ic]) => (
@@ -408,18 +411,15 @@ function ExportButton({ secret }) {
     finally { setBusy(false) }
   }
   return (
-    <div style={{ marginBottom: 16 }}>
-      <button className="lovers-button lovers-button--primary" disabled={busy} onClick={run}>
-        {busy ? 'Gerando Excel…' : '📊 Baixar Excel (relatório + dados)'}
-      </button>
-    </div>
+    <button className="lovers-button lovers-button--primary" disabled={busy} onClick={run}>
+      {busy ? 'Gerando Excel…' : '📊 Baixar Excel'}
+    </button>
   )
 }
 
 function Resultados({ secret }) {
   return (
     <>
-      <ExportButton secret={secret} />
       <Rankings secret={secret} />
       <ResumoPesquisa secret={secret} />
     </>
