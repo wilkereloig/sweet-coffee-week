@@ -693,9 +693,11 @@ function Suspeitos({ secret }) {
   const { loading, rows, error } = useRpc('get_suspicious_votes', secret)
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Analisando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
-  if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum padrão suspeito encontrado. 🎉</p>
+  // "Todas as 8 notas no máximo" NÃO é suspeito — dar 10 em tudo é entusiasmo legítimo.
+  const visiveis = rows.filter(r => r.tipo !== 'notas_max')
+  if (!visiveis.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum padrão suspeito encontrado. 🎉</p>
   const byTipo = {}
-  rows.forEach(r => { (byTipo[r.tipo] = byTipo[r.tipo] || []).push(r) })
+  visiveis.forEach(r => { (byTipo[r.tipo] = byTipo[r.tipo] || []).push(r) })
   return (
     <>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0 }}>
