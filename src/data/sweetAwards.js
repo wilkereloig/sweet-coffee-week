@@ -4,10 +4,10 @@
 
 import { PARTICIPANTS } from './participants'
 
-// Janela oficial da votação (fuso de Natal/RN). Inclusivo: abre 04/06, fecha fim do dia 14/06.
+// Janela oficial da votação (fuso de Natal/RN). Inclusivo: abre 04/06, fecha fim do dia 16/06.
 export const AWARDS_VOTING = {
   opensAt: '2026-06-03T00:00:00-03:00',
-  closesAt: '2026-06-14T23:59:59-03:00',
+  closesAt: '2026-06-16T23:59:59-03:00',
 }
 
 // Categorias oficiais. `key` casa com get_rankings(); `field` = coluna de nota em `votos`.
@@ -56,7 +56,7 @@ export const AWARDS_TEXTS = {
     'Siga o perfil oficial @sweetcoffeeweek no Instagram.',
     'Preencha corretamente os dados solicitados no formulário.',
     'Avalie apenas combos que você experimentou.',
-    'Válido só para combos da edição Sweet & Coffee Week Lovers (04 a 14 de junho).',
+    'Válido só para combos da edição Sweet & Coffee Week Lovers (04 a 16 de junho).',
     'Você pode avaliar todos os estabelecimentos que visitar.',
     'Apenas 1 voto por estabelecimento, por participante.',
     'Havendo mais de um envio para o mesmo estabelecimento com o mesmo nome, e-mail, telefone ou Instagram, vale o último voto registrado.',
@@ -75,7 +75,7 @@ export const AWARDS_TEXTS = {
   },
   closed: {
     title: 'Votação encerrada',
-    body: 'A votação do Sweet Awards aconteceu de 04 a 14 de junho. Em breve divulgamos os vencedores.',
+    body: 'A votação do Sweet Awards aconteceu de 04 a 16 de junho. Em breve divulgamos os vencedores.',
   },
   results: {
     eyebrow: 'Sweet Awards',

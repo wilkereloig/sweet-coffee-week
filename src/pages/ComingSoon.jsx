@@ -201,7 +201,7 @@ export function ComingSoonPage({ onAdminAccess }) {
           marginBottom: 36,
           animation: 'fadeSlideUp .7s ease .6s both, scalePulse 3s ease-in-out 1.3s infinite',
         }}>
-          ✦ 4 a 14 de junho ✦
+          ✦ 4 a 16 de junho ✦
         </div>
 
         {/* Texto de apoio */}

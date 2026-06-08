@@ -37,7 +37,7 @@ function LoversCountdown() {
   }, [])
 
   const start = new Date('2026-06-04T00:00:00-03:00')
-  const end = new Date('2026-06-14T23:59:59-03:00')
+  const end = new Date('2026-06-16T23:59:59-03:00')
   const diff = start.getTime() - now.getTime()
 
   let isCounting = false
@@ -89,7 +89,7 @@ function LoversCountdown() {
         <strong className="lovers-countdown__message">{message}</strong>
       )}
       <span className="lovers-countdown__date">
-        {now > end ? 'Obrigado por viver essa história com a gente.' : '4 a 14 de junho · Natal/RN'}
+        {now > end ? 'Obrigado por viver essa história com a gente.' : '4 a 16 de junho · Natal/RN'}
       </span>
     </div>
   )
