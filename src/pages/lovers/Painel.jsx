@@ -489,11 +489,11 @@ function Rankings({ secret }) {
         {tabBtn('pura', 'Média pura')}
         {tabBtn('ponderada', 'Ponderada (justa)')}
       </div>
-      <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0, marginBottom: 16 }}>
+      <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0, marginBottom: 16, lineHeight: 1.6 }}>
         {metodo === 'ponderada'
-          ? `Ponderada (bayesiana): score = (n/(n+${BAYES_M}))·média + (${BAYES_M}/(n+${BAYES_M}))·média geral. Mínimo de ${BAYES_MIN} avaliações pra concorrer. Reduz a vantagem de quem teve pouquíssimos votos.`
-          : 'Média pura: ordena pela média simples (desempate por nº de avaliações). É o cálculo usado hoje no site público.'}
-        {' '}· {totalAval} avaliações somadas. Afeta só esta prévia — o site público usa média pura.
+          ? `Cálculo ponderado (mais justo): mistura a nota de cada loja com a média geral de todas, dando mais peso a quem recebeu mais avaliações. Assim uma loja com pouquíssimos votos não vai pro topo por acaso — a nota dela fica perto da média geral até juntar votos suficientes, e vai "subindo" para a própria média conforme recebe mais avaliações. Só concorrem lojas com pelo menos ${BAYES_MIN} avaliações. (Tecnicamente: peso da nota própria = n ÷ (n + ${BAYES_M}), onde n é o nº de avaliações.)`
+          : 'Média simples: a nota é a média pura das avaliações; em caso de empate, vence quem teve mais avaliações. É o cálculo usado hoje no site público — por isso uma loja com poucos votos pode aparecer no topo.'}
+        {' '}Baseado em {totalAval} avaliações no total. Isto muda só esta prévia do painel — o site público continua usando a média simples.
       </p>
       {cats.map(c => {
         const list = buildTop(c.key)
