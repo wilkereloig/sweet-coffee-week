@@ -106,7 +106,7 @@ function PainelDados({ secret, onLogout }) {
   const [tab, setTab] = React.useState('geral')
   return (
     <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '100vh', padding: '24px 16px 80px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ maxWidth: 'min(1760px, 96vw)', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase' }}>Painel Sweet Awards</h1>
           <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
@@ -126,6 +126,33 @@ function PainelDados({ secret, onLogout }) {
         {tab === 'suspeitos' && <Suspeitos secret={secret} />}
       </div>
     </div>
+  )
+}
+
+// Wrapper de tabela larga: barra de rolagem horizontal no TOPO + embaixo, sincronizadas.
+function ScrollX({ children }) {
+  const topRef = React.useRef(null)
+  const botRef = React.useRef(null)
+  const [w, setW] = React.useState(0)
+  React.useEffect(() => {
+    const measure = () => setW(botRef.current ? botRef.current.scrollWidth : 0)
+    measure()
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+    if (ro && botRef.current) ro.observe(botRef.current)
+    window.addEventListener('resize', measure)
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure) }
+  }, [children])
+  const syncFromTop = () => { if (botRef.current && topRef.current) botRef.current.scrollLeft = topRef.current.scrollLeft }
+  const syncFromBot = () => { if (botRef.current && topRef.current) topRef.current.scrollLeft = botRef.current.scrollLeft }
+  return (
+    <>
+      <div ref={topRef} onScroll={syncFromTop} style={{ overflowX: 'auto', overflowY: 'hidden' }} aria-hidden="true">
+        <div style={{ width: w, height: 1 }} />
+      </div>
+      <div ref={botRef} onScroll={syncFromBot} style={{ overflowX: 'auto' }}>
+        {children}
+      </div>
+    </>
   )
 }
 
@@ -261,7 +288,7 @@ function Auditoria({ secret }) {
         </strong>
         <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rows))}>Exportar CSV (todos)</button>
       </div>
-      <div style={{ overflowX: 'auto' }}>
+      <ScrollX>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{cols.map(c => <th key={c} style={th}>{c}</th>)}</tr></thead>
           <tbody>
@@ -272,7 +299,7 @@ function Auditoria({ secret }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollX>
       <Pager page={cur} totalPages={totalPages} onPage={setPage} />
     </div>
   )
