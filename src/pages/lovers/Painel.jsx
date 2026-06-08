@@ -144,6 +144,29 @@ function useRpc(fn, secret) {
   return state
 }
 
+// Busca TODOS os registros de uma RPC set-returning, contornando o limite de 1000
+// linhas do PostgREST: lê em blocos de 1000 via .range() até esgotar. Somente leitura.
+function useRpcAll(fn, secret, pageSize = 1000) {
+  const [state, setState] = React.useState({ loading: true, rows: [], error: '' })
+  React.useEffect(() => {
+    let alive = true
+    setState({ loading: true, rows: [], error: '' })
+    ;(async () => {
+      let all = [], from = 0
+      while (true) {
+        const { data, error } = await supabase.rpc(fn, { p_secret: secret }).range(from, from + pageSize - 1)
+        if (error) { if (alive) setState({ loading: false, rows: [], error: error.message || 'Erro' }); return }
+        all = all.concat(data || [])
+        if (!data || data.length < pageSize) break
+        from += pageSize
+      }
+      if (alive) setState({ loading: false, rows: all, error: '' })
+    })()
+    return () => { alive = false }
+  }, [fn, secret, pageSize])
+  return state
+}
+
 // Painel único: empilha todas as seções (somente leitura) num só lugar.
 function Geral({ secret }) {
   const sec = { marginBottom: 28 }
@@ -200,31 +223,57 @@ function Resultados({ secret }) {
   )
 }
 
+const PER_PAGE = 300
+
+function Pager({ page, totalPages, onPage }) {
+  if (totalPages <= 1) return null
+  const btn = (p, label, active) => (
+    <button key={label ?? p} onClick={() => onPage(p)}
+      className={'lovers-button ' + (active ? 'lovers-button--primary' : 'lovers-button--secondary')}
+      style={{ minWidth: 40, padding: '6px 10px', justifyContent: 'center' }}>
+      {label ?? p}
+    </button>
+  )
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
+      {Array.from({ length: totalPages }, (_, i) => btn(i + 1, undefined, page === i + 1))}
+    </div>
+  )
+}
+
 function Auditoria({ secret }) {
-  const { loading, rows, error } = useRpc('get_audit_report', secret)
+  const { loading, rows, error } = useRpcAll('get_audit_report', secret)
+  const [page, setPage] = React.useState(1)
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum voto registrado ainda.</p>
   const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade', 'aceita_comunicacao',
     'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento']
+  const totalPages = Math.ceil(rows.length / PER_PAGE)
+  const cur = Math.min(page, totalPages)
+  const start = (cur - 1) * PER_PAGE
+  const slice = rows.slice(start, start + PER_PAGE)
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-        <strong style={{ color: 'var(--lovers-burgundy)' }}>{rows.length} voto(s)</strong>
-        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rows))}>Exportar CSV</button>
+        <strong style={{ color: 'var(--lovers-burgundy)' }}>
+          {rows.length} voto(s) · página {cur} de {totalPages} (mostrando {start + 1}–{start + slice.length})
+        </strong>
+        <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rows))}>Exportar CSV (todos)</button>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{cols.map(c => <th key={c} style={th}>{c}</th>)}</tr></thead>
           <tbody>
-            {rows.map((r, i) => (
-              <tr key={r.id || i}>
+            {slice.map((r, i) => (
+              <tr key={r.id || start + i}>
                 {cols.map(c => <td key={c} style={td}>{c === 'participante_slug' ? partName(r[c]) : c === 'created_at' ? new Date(r[c]).toLocaleString('pt-BR') : String(r[c] ?? '')}</td>)}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <Pager page={cur} totalPages={totalPages} onPage={setPage} />
     </div>
   )
 }
