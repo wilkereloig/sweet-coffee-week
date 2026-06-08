@@ -103,7 +103,7 @@ export function PainelPage() {
 }
 
 function PainelDados({ secret, onLogout }) {
-  const [tab, setTab] = React.useState('resultados')
+  const [tab, setTab] = React.useState('geral')
   return (
     <div className="kv-lovers lovers-gradient-bg" style={{ minHeight: '100vh', padding: '24px 16px 80px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -112,13 +112,14 @@ function PainelDados({ secret, onLogout }) {
           <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-          {[['resultados', 'Resultados'], ['auditoria', 'Auditoria'], ['pesquisa', 'Pesquisa'], ['suspeitos', 'Suspeitos']].map(([k, l]) => (
+          {[['geral', 'Visão Geral'], ['resultados', 'Resultados'], ['auditoria', 'Auditoria'], ['pesquisa', 'Pesquisa'], ['suspeitos', 'Suspeitos']].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={'lovers-button ' + (tab === k ? 'lovers-button--primary' : 'lovers-button--secondary')}>
               {l}
             </button>
           ))}
         </div>
+        {tab === 'geral' && <Geral secret={secret} />}
         {tab === 'resultados' && <Resultados secret={secret} />}
         {tab === 'auditoria' && <Auditoria secret={secret} />}
         {tab === 'pesquisa' && <Pesquisa secret={secret} />}
@@ -141,6 +142,24 @@ function useRpc(fn, secret) {
     return () => { alive = false }
   }, [fn, secret])
   return state
+}
+
+// Painel único: empilha todas as seções (somente leitura) num só lugar.
+function Geral({ secret }) {
+  const sec = { marginBottom: 28 }
+  const h = {
+    margin: '0 0 12px', fontFamily: 'var(--font-lovers-display)',
+    color: 'var(--lovers-burgundy)', textTransform: 'uppercase',
+    fontSize: 22, borderBottom: '2px solid rgba(135,14,45,.12)', paddingBottom: 6,
+  }
+  return (
+    <>
+      <section style={sec}><h2 style={h}>🏆 Resultados</h2><Resultados secret={secret} /></section>
+      <section style={sec}><h2 style={h}>📋 Auditoria (todos os votos)</h2><Auditoria secret={secret} /></section>
+      <section style={sec}><h2 style={h}>💬 Pesquisa</h2><Pesquisa secret={secret} /></section>
+      <section style={sec}><h2 style={h}>⚠️ Suspeitos</h2><Suspeitos secret={secret} /></section>
+    </>
+  )
 }
 
 function Resultados({ secret }) {
