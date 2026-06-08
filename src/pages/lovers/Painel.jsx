@@ -40,33 +40,40 @@ const card = { background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 
 const th = { textAlign: 'left', padding: '10px 12px', fontSize: 14, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
 const td = { padding: '11px 12px', fontSize: 14.5, lineHeight: 1.5, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
 
-// Normaliza texto p/ agrupar: minúsculas, sem acento, espaços colapsados.
-const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ')
-// Palavras vazias PT + genéricas do contexto (não contam como "termo mais citado").
-const STOP = new Set(('de a o e que do da em um para com nao uma os no se na por mais as dos como mas ao ele das tem seu sua ou quando muito nos ja eu tambem so pelo pela ate isso ela entre era depois sem mesmo aos seus quem nas me esse eles voce essa num nem suas meu minha numa pelos elas qual lhe deles essas esses pelas este dele tu te voces vos lhes meus minhas teu tua nosso nossa nossos nossas dela delas esta estes estas aquele aquela isto aquilo estou estamos estao foi foram ser estar tudo todo toda todos todas ter sao the sweet coffee week edicao foi mto pra pro aqui tá ta').split(' '))
-// Agrupa respostas iguais (ex.: temas) por frequência. Mantém 1 grafia original p/ exibir.
-function freqRespostas(rows, field) {
-  const m = {}
-  for (const r of rows) {
-    const raw = String(r[field] ?? '').trim()
-    if (!raw) continue
-    const k = norm(raw); if (!k) continue
-    if (!m[k]) m[k] = { label: raw, count: 0 }
-    m[k].count++
-  }
-  return Object.values(m).sort((a, b) => b.count - a.count)
-}
-// Conta palavras/termos mais citados num campo de texto livre.
-function freqTermos(rows, field, topN = 15) {
-  const m = {}
-  for (const r of rows) {
-    const t = norm(r[field]); if (!t) continue
-    for (const w of t.split(/[^a-z0-9]+/)) {
-      if (w.length < 3 || STOP.has(w)) continue
-      m[w] = (m[w] || 0) + 1
-    }
-  }
-  return Object.entries(m).map(([term, count]) => ({ label: term, count })).sort((a, b) => b.count - a.count).slice(0, topN)
+// Análise qualitativa da pesquisa (síntese das respostas abertas — gostou/melhorar/temas).
+// Estática: gerada a partir das respostas do banco. Atualizar quando quiser reanalisar.
+const AI_PESQUISA = {
+  data: '08/06/2026',
+  nRespostas: 602,
+  avaliacaoGeral: 'O público recebeu a edição 2026 do Sweet & Coffee Week Lovers de forma majoritariamente muito positiva e afetiva, com forte sentimento de tradição e pertencimento — muitos respondem simplesmente "tudo", "amei tudo" ou "perfeito" e dizem aguardar o evento todo ano. O tom geral é de entusiasmo, sustentado por três pilares: a variedade de estabelecimentos, a criatividade dos combos e o custo-benefício. A satisfação percebida é alta, evidenciada pelo fato de a resposta mais frequente sobre o que melhorar ter sido "nada" (43 vezes), além de dezenas de "tudo perfeito". Ainda assim, há um conjunto consistente de críticas construtivas — sobretudo preço, curta duração e a percepção de que o tema desta edição ficou "solto"/genérico. No conjunto, é um evento consolidado e querido, cujas ressalvas são pontuais e ligadas a ajustes de formato, não à proposta em si.',
+  notaPercebida: 'Muito alta — predomínio massivo de elogios ("tudo", "perfeito") e "nada a melhorar" como resposta mais comum; críticas construtivas, pontuais e concentradas em preço, duração e no tema solto desta edição.',
+  pontosFortes: [
+    'Variedade e quantidade de participantes — o público valoriza ter muitas docerias/cafés e combos diferentes espalhados pela cidade para escolher e "maratonar".',
+    'Criatividade e originalidade dos combos — apontada como o coração do evento, com destaque para apresentações caprichadas e combinações inusitadas (Bolomania e Rollab citados como exemplos).',
+    'Custo-benefício e preço acessível — o preço fixo permite experimentar várias delícias por valor justo, ampliando o acesso à alta confeitaria.',
+    'Temática e imersão — o público adora quando a loja incorpora o tema com decoração, música e ambientação, transformando o combo em experiência (cenários "instagramáveis").',
+    'Descobrir lugares novos — o evento funciona como roteiro/passeio: conhecer cafeterias e docerias inéditas é um valor recorrente.',
+    'Qualidade da comida e do atendimento — doces e salgados descritos como deliciosos, com elogios à simpatia, rapidez e organização das melhores lojas.',
+    'O ritual do mapa/cartela de carimbos — celebrado como divertido e um estímulo a visitar mais estabelecimentos.',
+  ],
+  pontosMelhorar: [
+    'Preço — a crítica concreta mais recorrente; muitos acham os combos cada vez mais caros a cada edição e pedem valores mais acessíveis.',
+    'Duração/dias — queixa muito frequente de que 10 dias é pouco; o pedido predominante é estender para 15 dias ou o mês inteiro.',
+    'Tema "solto"/genérico — grande volume de comentários de que o tema livre ficou confuso e sem unidade; parte do público prefere um tema único e direcionado.',
+    'Filas, lotação e combos esgotados — relatos de espera longa e de combos que acabam cedo por falta de preparo das lojas para a demanda.',
+    'Falta de criatividade e padronização entre lojas — alguns combos vistos como "mais do mesmo" (coxinha + bolo); pedem curadoria para nivelar qualidade.',
+    'Opções para restrições alimentares — pedidos por mais alternativas vegetarianas, veganas, sem glúten e sem lactose, e mais variedade de bebidas.',
+    'Distribuição geográfica — concentração na Zona Sul; demanda por mais participantes na Zona Norte, Parnamirim e São Gonçalo, e divulgação com mais antecedência.',
+  ],
+  temas: [
+    'Cultura pop e audiovisual (os mais pedidos): novelas, séries, filmes, Disney, animes, musicais, Alice no País das Maravilhas, Barbie — desejo de temas narrativos e nostálgicos com cenários fotografáveis.',
+    'Brasilidade e regionalismo: São João, folclore brasileiro, Nordeste, estados do Brasil, MPB — apego à identidade local e a temáticas afetivas.',
+    'Nostalgia e décadas: anos 90, anos 2000, infância — o público quer reviver memórias, casando bem com combos comemorativos.',
+    'Entretenimento e hobbies: jogos/games, esportes, Copa do Mundo, livros, bandas de rock — universos com fãs engajados que geram identificação.',
+    'Mundo e viagens: países, viagens — apetite por "turismo gastronômico" temático.',
+    'Conceituais e sazonais: Halloween, dia dos namorados, estações do ano, cores — temas-curinga flexíveis, que ainda assim pedem um fio condutor único.',
+  ],
+  conclusao: 'Para a próxima edição, preservar o que já encanta — variedade, criatividade, custo-benefício e o ritual do mapa — enquanto se atacam três frentes claras: definir um tema único e marcante (cultura pop/audiovisual e brasilidades são os caminhos mais pedidos), estender a duração para cerca de 15 dias e conter a alta de preços com valor percebido coerente. Vale criar uma curadoria mínima de criatividade e padrão entre as lojas, garantir estoque para a demanda (evitando combos esgotados e filas) e ampliar a inclusão — mais opções vegetarianas, veganas e sem glúten e maior distribuição geográfica (Zona Norte, Parnamirim, São Gonçalo).',
 }
 
 export function PainelPage() {
@@ -295,51 +302,48 @@ function Rankings({ secret }) {
   )
 }
 
-// Barra horizontal de frequência (label + contagem).
-function FreqBar({ label, count, max, color }) {
-  return (
-    <div style={{ marginBottom: 9 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13.5, marginBottom: 3 }}>
-        <span style={{ color: 'var(--lovers-burgundy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-        <strong style={{ color: 'var(--lovers-brown)' }}>{count}</strong>
-      </div>
-      <div style={{ height: 8, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.max(4, (count / max) * 100)}%`, height: '100%', background: color, borderRadius: 6 }} />
-      </div>
-    </div>
-  )
-}
-
-// Resumo agregado da pesquisa (temas sugeridos + termos mais citados em gostou/melhorar).
-function ResumoPesquisa({ secret }) {
-  const { loading, rows, error } = useRpcAll('get_feedback_admin', secret)
-  if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando pesquisa…</p>
-  if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
-  if (!rows.length) return null
-  const temas = freqRespostas(rows, 'sugestao_tema')
-  const gostou = freqTermos(rows, 'gostou')
-  const melhorar = freqTermos(rows, 'melhorar')
-  const Block = ({ emoji, title, note, items, color }) => {
-    const max = items.length ? items[0].count : 1
-    return (
-      <div style={{ ...card, flex: '1 1 300px', minWidth: 270, marginBottom: 0 }}>
-        <h3 style={{ margin: '0 0 2px', fontSize: 17, color: 'var(--lovers-burgundy)' }}>{emoji} {title}</h3>
-        <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--lovers-brown)', opacity: .8 }}>{note}</p>
-        {items.length ? items.slice(0, 15).map((it, i) => <FreqBar key={i} label={it.label} count={it.count} max={max} color={color} />)
-          : <p style={{ color: 'var(--lovers-brown)', fontSize: 13 }}>Sem dados ainda.</p>}
-      </div>
-    )
-  }
+// Resumo da pesquisa: análise qualitativa (texto da AI_PESQUISA), não contagem de palavras.
+function ResumoPesquisa() {
+  const A = AI_PESQUISA
+  const colCard = { ...card, flex: '1 1 320px', minWidth: 280, marginBottom: 0 }
+  const li = { marginBottom: 9, fontSize: 14, lineHeight: 1.55, color: 'var(--lovers-brown)' }
+  const h3 = { margin: '0 0 10px', fontSize: 17, color: 'var(--lovers-burgundy)' }
+  const par = { margin: 0, fontSize: 14.5, lineHeight: 1.65, color: 'var(--lovers-brown)' }
   return (
     <div style={{ marginTop: 18 }}>
-      <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 22, margin: '0 0 4px' }}>Resumo da Pesquisa</h2>
+      <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 22, margin: '0 0 4px' }}>Resumo da Pesquisa — Análise</h2>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 13, marginTop: 0, marginBottom: 14 }}>
-        {rows.length} resposta(s). <strong>Temas</strong>: respostas iguais agrupadas. <strong>Gostou / Melhorar</strong>: termos mais citados (frequência de palavras, não IA de sentimento).
+        Síntese qualitativa das respostas abertas (gostou · melhorar · temas). Análise de {A.data} · {A.nRespostas} respostas.
       </p>
+
+      <div style={card}>
+        <h3 style={h3}>📊 Avaliação geral</h3>
+        <p style={par}>{A.avaliacaoGeral}</p>
+        <p style={{ margin: '12px 0 0', fontSize: 13.5 }}>
+          <strong style={{ color: 'var(--lovers-burgundy)' }}>Satisfação percebida:</strong>{' '}
+          <span style={{ color: 'var(--lovers-brown)' }}>{A.notaPercebida}</span>
+        </p>
+      </div>
+
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <Block emoji="🎨" title="Temas mais sugeridos" note="Para a próxima edição" items={temas} color="var(--lovers-purple)" />
-        <Block emoji="💛" title="O que mais gostaram" note="Palavras mais citadas" items={gostou} color="var(--lovers-pink, #e75480)" />
-        <Block emoji="🔧" title="O que pode melhorar" note="Palavras mais citadas" items={melhorar} color="var(--lovers-red)" />
+        <div style={colCard}>
+          <h3 style={h3}>💛 Pontos fortes</h3>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>{A.pontosFortes.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+        </div>
+        <div style={colCard}>
+          <h3 style={h3}>🔧 Pontos a melhorar</h3>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>{A.pontosMelhorar.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+        </div>
+      </div>
+
+      <div style={{ ...card, marginTop: 16 }}>
+        <h3 style={h3}>🎨 Temas mais sugeridos (próxima edição)</h3>
+        <ul style={{ margin: 0, paddingLeft: 18 }}>{A.temas.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+      </div>
+
+      <div style={card}>
+        <h3 style={h3}>✅ Conclusão &amp; recomendações</h3>
+        <p style={par}>{A.conclusao}</p>
       </div>
     </div>
   )
