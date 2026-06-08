@@ -272,34 +272,87 @@ function Resultados({ secret }) {
   )
 }
 
+// Pesos do método ponderado (bayesiano).
+const BAYES_M = 20       // "votos a priori": quanto puxa pra média geral
+const BAYES_MIN = 5      // mínimo de avaliações pra concorrer no modo ponderado
+
 function Rankings({ secret }) {
-  const { loading, rows, error } = useRpc('get_rankings_admin', secret)
+  // Computa o ranking a partir dos votos crus (sem depender de get_rankings_admin),
+  // pra permitir alternar entre média pura e ponderada (bayesiana) no próprio painel.
+  const { loading, rows, error } = useRpcAll('get_audit_report', secret)
+  const [metodo, setMetodo] = React.useState('pura') // 'pura' | 'ponderada'
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Ainda não há votos para calcular o ranking.</p>
-  const byCat = {}
-  rows.forEach(r => { (byCat[r.categoria] = byCat[r.categoria] || []).push(r) })
+
   const medal = ['🥇', '🥈', '🥉']
   const cats = [{ key: 'melhor_combo', label: 'Melhor Combo (média Doce + Salgado + Bebida)' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))]
-  const totalAval = rows.reduce((s, r) => s + (Number(r.avaliacoes) || 0), 0)
+  const fieldByKey = Object.fromEntries(AWARDS_CATEGORIES.map(c => [c.key, c.field]))
+
+  // Agrega notas por participante.
+  const byPart = {}
+  for (const v of rows) {
+    const s = v.participante_slug
+    if (!s) continue
+    const p = byPart[s] || (byPart[s] = { n: 0, sums: {} })
+    p.n++
+    for (const c of AWARDS_CATEGORIES) p.sums[c.field] = (p.sums[c.field] || 0) + Number(v[c.field] || 0)
+  }
+  const mediaCat = (p, key) => {
+    if (!p.n) return 0
+    if (key === 'melhor_combo') return ((p.sums.nota_doce + p.sums.nota_salgado + p.sums.nota_bebida) / 3) / p.n
+    return (p.sums[fieldByKey[key]] || 0) / p.n
+  }
+  const slugs = Object.keys(byPart)
+  const totalAval = rows.length
+
+  // Monta o top 3 de uma categoria conforme o método escolhido.
+  const buildTop = (key) => {
+    let arr = slugs.map(s => ({ slug: s, n: byPart[s].n, media: mediaCat(byPart[s], key) }))
+    if (metodo === 'ponderada') {
+      const elig = arr.filter(x => x.n >= BAYES_MIN)
+      const sumN = elig.reduce((a, x) => a + x.n, 0)
+      const C = sumN ? elig.reduce((a, x) => a + x.media * x.n, 0) / sumN : 0
+      arr = elig.map(x => ({ ...x, score: (x.n / (x.n + BAYES_M)) * x.media + (BAYES_M / (x.n + BAYES_M)) * C }))
+      arr.sort((a, b) => b.score - a.score || b.n - a.n)
+    } else {
+      arr = arr.map(x => ({ ...x, score: x.media }))
+      arr.sort((a, b) => b.media - a.media || b.n - a.n)
+    }
+    return arr.slice(0, 3).map((x, i) => ({ ...x, posicao: i + 1 }))
+  }
+
+  const tabBtn = (k, l) => (
+    <button onClick={() => setMetodo(k)}
+      className={'lovers-button ' + (metodo === k ? 'lovers-button--primary' : 'lovers-button--secondary')}
+      style={{ padding: '6px 14px', fontSize: 13.5 }}>{l}</button>
+  )
+
   return (
     <>
-      <p style={{ color: 'var(--lovers-brown)', fontSize: 15, marginTop: 0 }}>
-        Prévia do ranking (médias). Não depende de publicar o resultado no site. · {totalAval} avaliações somadas.
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>Cálculo:</span>
+        {tabBtn('pura', 'Média pura')}
+        {tabBtn('ponderada', 'Ponderada (justa)')}
+      </div>
+      <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0, marginBottom: 16 }}>
+        {metodo === 'ponderada'
+          ? `Ponderada (bayesiana): score = (n/(n+${BAYES_M}))·média + (${BAYES_M}/(n+${BAYES_M}))·média geral. Mínimo de ${BAYES_MIN} avaliações pra concorrer. Reduz a vantagem de quem teve pouquíssimos votos.`
+          : 'Média pura: ordena pela média simples (desempate por nº de avaliações). É o cálculo usado hoje no site público.'}
+        {' '}· {totalAval} avaliações somadas. Afeta só esta prévia — o site público usa média pura.
       </p>
       {cats.map(c => {
-        const list = (byCat[c.key] || []).slice().sort((a, b) => a.posicao - b.posicao)
+        const list = buildTop(c.key)
         if (!list.length) return null
         return (
           <div style={card} key={c.key}>
             <h2 style={{ margin: '0 0 16px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {list.map(r => {
-                const media = Number(r.media)
-                const pct = Math.max(3, Math.min(100, (media / 10) * 100))
+                const pct = Math.max(3, Math.min(100, (r.score / 10) * 100))
                 const top = r.posicao <= 3
                 return (
-                  <div key={r.posicao} style={{
+                  <div key={r.slug} style={{
                     flex: '1 1 300px', minWidth: 260, display: 'flex', flexDirection: 'column', gap: 11,
                     padding: '16px 18px', borderRadius: 16,
                     background: top ? 'rgba(231,84,128,.06)' : '#fff',
@@ -308,12 +361,14 @@ function Rankings({ secret }) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                       <span style={{ width: 30, textAlign: 'center', fontSize: top ? 24 : 16, fontWeight: 800, color: 'var(--lovers-brown)' }}>{medal[r.posicao - 1] || `${r.posicao}º`}</span>
-                      <LogoCircle slug={r.participante_slug} name={partName(r.participante_slug)} size={48} />
-                      <strong style={{ flex: 1, minWidth: 0, color: 'var(--lovers-burgundy)', fontSize: 16.5, lineHeight: 1.25 }}>{partName(r.participante_slug)}</strong>
+                      <LogoCircle slug={r.slug} name={partName(r.slug)} size={48} />
+                      <strong style={{ flex: 1, minWidth: 0, color: 'var(--lovers-burgundy)', fontSize: 16.5, lineHeight: 1.25 }}>{partName(r.slug)}</strong>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</span>
-                      <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>{r.avaliacoes} avaliações</span>
+                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{r.score.toFixed(2)}</span>
+                      <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>
+                        {metodo === 'ponderada' ? `média ${r.media.toFixed(2)} · ` : ''}{r.n} aval.
+                      </span>
                     </div>
                     <div style={{ height: 10, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', borderRadius: 6, background: top ? 'linear-gradient(90deg, var(--lovers-pink, #e75480), var(--lovers-red))' : 'var(--lovers-purple)' }} />
