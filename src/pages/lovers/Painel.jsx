@@ -40,6 +40,35 @@ const card = { background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 
 const th = { textAlign: 'left', padding: '10px 12px', fontSize: 14, color: 'var(--lovers-burgundy)', borderBottom: '2px solid rgba(135,14,45,.15)', whiteSpace: 'nowrap' }
 const td = { padding: '11px 12px', fontSize: 14.5, lineHeight: 1.5, borderBottom: '1px solid rgba(135,14,45,.08)', whiteSpace: 'nowrap' }
 
+// Normaliza texto p/ agrupar: minúsculas, sem acento, espaços colapsados.
+const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ')
+// Palavras vazias PT + genéricas do contexto (não contam como "termo mais citado").
+const STOP = new Set(('de a o e que do da em um para com nao uma os no se na por mais as dos como mas ao ele das tem seu sua ou quando muito nos ja eu tambem so pelo pela ate isso ela entre era depois sem mesmo aos seus quem nas me esse eles voce essa num nem suas meu minha numa pelos elas qual lhe deles essas esses pelas este dele tu te voces vos lhes meus minhas teu tua nosso nossa nossos nossas dela delas esta estes estas aquele aquela isto aquilo estou estamos estao foi foram ser estar tudo todo toda todos todas ter sao the sweet coffee week edicao foi mto pra pro aqui tá ta').split(' '))
+// Agrupa respostas iguais (ex.: temas) por frequência. Mantém 1 grafia original p/ exibir.
+function freqRespostas(rows, field) {
+  const m = {}
+  for (const r of rows) {
+    const raw = String(r[field] ?? '').trim()
+    if (!raw) continue
+    const k = norm(raw); if (!k) continue
+    if (!m[k]) m[k] = { label: raw, count: 0 }
+    m[k].count++
+  }
+  return Object.values(m).sort((a, b) => b.count - a.count)
+}
+// Conta palavras/termos mais citados num campo de texto livre.
+function freqTermos(rows, field, topN = 15) {
+  const m = {}
+  for (const r of rows) {
+    const t = norm(r[field]); if (!t) continue
+    for (const w of t.split(/[^a-z0-9]+/)) {
+      if (w.length < 3 || STOP.has(w)) continue
+      m[w] = (m[w] || 0) + 1
+    }
+  }
+  return Object.entries(m).map(([term, count]) => ({ label: term, count })).sort((a, b) => b.count - a.count).slice(0, topN)
+}
+
 export function PainelPage() {
   const [secret, setSecret] = React.useState(() => {
     try { return window.sessionStorage.getItem(SS_KEY) || '' } catch { return '' }
@@ -211,6 +240,15 @@ function Geral({ secret }) {
 }
 
 function Resultados({ secret }) {
+  return (
+    <>
+      <Rankings secret={secret} />
+      <ResumoPesquisa secret={secret} />
+    </>
+  )
+}
+
+function Rankings({ secret }) {
   const { loading, rows, error } = useRpc('get_rankings_admin', secret)
   if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
@@ -218,34 +256,92 @@ function Resultados({ secret }) {
   const byCat = {}
   rows.forEach(r => { (byCat[r.categoria] = byCat[r.categoria] || []).push(r) })
   const medal = ['🥇', '🥈', '🥉']
+  const cats = [{ key: 'melhor_combo', label: 'Melhor Combo (média Doce + Salgado + Bebida)' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))]
+  const totalAval = rows.reduce((s, r) => s + (Number(r.avaliacoes) || 0), 0)
   return (
     <>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0 }}>
-        Prévia do ranking (calculado das médias). Não depende de publicar o resultado no site.
+        Prévia do ranking (médias). Não depende de publicar o resultado no site. · {totalAval} avaliações somadas.
       </p>
-      {[{ key: 'melhor_combo', label: 'Melhor Combo (média Doce + Salgado + Bebida)' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))].map(c => {
-        const list = byCat[c.key] || []
+      {cats.map(c => {
+        const list = (byCat[c.key] || []).slice().sort((a, b) => a.posicao - b.posicao)
         if (!list.length) return null
         return (
           <div style={card} key={c.key}>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead><tr><th style={th}>#</th><th style={th}>Participante</th><th style={th}>Média</th><th style={th}>Avaliações</th></tr></thead>
-              <tbody>
-                {list.slice().sort((a, b) => a.posicao - b.posicao).map(r => (
-                  <tr key={r.posicao}>
-                    <td style={td}>{medal[r.posicao - 1] || r.posicao}</td>
-                    <td style={td}>{partName(r.participante_slug)}</td>
-                    <td style={td}><strong>{Number(r.media).toFixed(2)}</strong></td>
-                    <td style={td}>{r.avaliacoes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h2 style={{ margin: '0 0 14px', fontSize: 18, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
+            {list.map(r => {
+              const media = Number(r.media)
+              const pct = Math.max(3, Math.min(100, (media / 10) * 100))
+              const top = r.posicao <= 3
+              return (
+                <div key={r.posicao} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid rgba(135,14,45,.06)' }}>
+                  <span style={{ width: 34, textAlign: 'center', fontSize: top ? 22 : 15, fontWeight: 700, color: 'var(--lovers-brown)' }}>{medal[r.posicao - 1] || r.posicao}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
+                      <strong style={{ color: 'var(--lovers-burgundy)', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{partName(r.participante_slug)}</strong>
+                      <span style={{ color: 'var(--lovers-brown)', fontSize: 13, whiteSpace: 'nowrap' }}><strong style={{ fontSize: 16, color: 'var(--lovers-burgundy)' }}>{media.toFixed(2)}</strong> · {r.avaliacoes} aval.</span>
+                    </div>
+                    <div style={{ height: 9, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', borderRadius: 6, background: top ? 'linear-gradient(90deg, var(--lovers-pink, #e75480), var(--lovers-red))' : 'var(--lovers-purple)' }} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )
       })}
     </>
+  )
+}
+
+// Barra horizontal de frequência (label + contagem).
+function FreqBar({ label, count, max, color }) {
+  return (
+    <div style={{ marginBottom: 9 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13.5, marginBottom: 3 }}>
+        <span style={{ color: 'var(--lovers-burgundy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        <strong style={{ color: 'var(--lovers-brown)' }}>{count}</strong>
+      </div>
+      <div style={{ height: 8, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
+        <div style={{ width: `${Math.max(4, (count / max) * 100)}%`, height: '100%', background: color, borderRadius: 6 }} />
+      </div>
+    </div>
+  )
+}
+
+// Resumo agregado da pesquisa (temas sugeridos + termos mais citados em gostou/melhorar).
+function ResumoPesquisa({ secret }) {
+  const { loading, rows, error } = useRpcAll('get_feedback_admin', secret)
+  if (loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando pesquisa…</p>
+  if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
+  if (!rows.length) return null
+  const temas = freqRespostas(rows, 'sugestao_tema')
+  const gostou = freqTermos(rows, 'gostou')
+  const melhorar = freqTermos(rows, 'melhorar')
+  const Block = ({ emoji, title, note, items, color }) => {
+    const max = items.length ? items[0].count : 1
+    return (
+      <div style={{ ...card, flex: '1 1 300px', minWidth: 270, marginBottom: 0 }}>
+        <h3 style={{ margin: '0 0 2px', fontSize: 17, color: 'var(--lovers-burgundy)' }}>{emoji} {title}</h3>
+        <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--lovers-brown)', opacity: .8 }}>{note}</p>
+        {items.length ? items.slice(0, 15).map((it, i) => <FreqBar key={i} label={it.label} count={it.count} max={max} color={color} />)
+          : <p style={{ color: 'var(--lovers-brown)', fontSize: 13 }}>Sem dados ainda.</p>}
+      </div>
+    )
+  }
+  return (
+    <div style={{ marginTop: 18 }}>
+      <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 22, margin: '0 0 4px' }}>Resumo da Pesquisa</h2>
+      <p style={{ color: 'var(--lovers-brown)', fontSize: 13, marginTop: 0, marginBottom: 14 }}>
+        {rows.length} resposta(s). <strong>Temas</strong>: respostas iguais agrupadas. <strong>Gostou / Melhorar</strong>: termos mais citados (frequência de palavras, não IA de sentimento).
+      </p>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <Block emoji="🎨" title="Temas mais sugeridos" note="Para a próxima edição" items={temas} color="var(--lovers-purple)" />
+        <Block emoji="💛" title="O que mais gostaram" note="Palavras mais citadas" items={gostou} color="var(--lovers-pink, #e75480)" />
+        <Block emoji="🔧" title="O que pode melhorar" note="Palavras mais citadas" items={melhorar} color="var(--lovers-red)" />
+      </div>
+    </div>
   )
 }
 
@@ -271,6 +367,7 @@ function Auditoria({ secret, maxHeight }) {
   const { loading, rows, error } = useRpcAll('get_audit_report', secret)
   const fb = useRpcAll('get_feedback_admin', secret) // pesquisa, p/ juntar às notas por e-mail
   const [page, setPage] = React.useState(1)
+  const [sort, setSort] = React.useState('participante') // 'participante' | 'data_desc' | 'data_asc'
   if (loading || fb.loading) return <p style={{ color: 'var(--lovers-brown)' }}>Carregando…</p>
   if (error) return <p style={{ color: 'var(--lovers-red)' }}>{error}</p>
   if (!rows.length) return <p style={{ color: 'var(--lovers-brown)' }}>Nenhum voto registrado ainda.</p>
@@ -282,11 +379,16 @@ function Auditoria({ secret, maxHeight }) {
   const cols = ['created_at', 'participante_slug', 'nome', 'email', 'telefone', 'instagram', 'genero', 'faixa_etaria', 'escolaridade', 'aceita_comunicacao',
     'nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento', ...fbCols]
   const tdWrap = { ...td, whiteSpace: 'normal', minWidth: 200, maxWidth: 340 }
-  const rowsCsv = rows.map(r => { const f = fbOf(r); return { ...r, gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '' } })
-  const totalPages = Math.ceil(rows.length / PER_PAGE)
+  const ts = (r) => { const t = new Date(r.created_at).getTime(); return isNaN(t) ? 0 : t }
+  const sorted = rows.slice().sort((a, b) =>
+    sort === 'data_desc' ? ts(b) - ts(a)
+    : sort === 'data_asc' ? ts(a) - ts(b)
+    : (partName(a.participante_slug).localeCompare(partName(b.participante_slug), 'pt-BR') || ts(a) - ts(b)))
+  const rowsCsv = sorted.map(r => { const f = fbOf(r); return { ...r, gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '' } })
+  const totalPages = Math.ceil(sorted.length / PER_PAGE)
   const cur = Math.min(page, totalPages)
   const start = (cur - 1) * PER_PAGE
-  const slice = rows.slice(start, start + PER_PAGE)
+  const slice = sorted.slice(start, start + PER_PAGE)
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
@@ -294,6 +396,14 @@ function Auditoria({ secret, maxHeight }) {
           {rows.length} voto(s) · página {cur} de {totalPages} (mostrando {start + 1}–{start + slice.length})
         </strong>
         <button className="lovers-button lovers-button--secondary" onClick={() => download('sweet-awards-votos.csv', toCsv(rowsCsv))}>Exportar CSV (todos)</button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontSize: 13, color: 'var(--lovers-brown)' }}>Ordenar:</span>
+        {[['participante', 'Participante (A–Z)'], ['data_desc', 'Data (recentes)'], ['data_asc', 'Data (antigos)']].map(([k, l]) => (
+          <button key={k} onClick={() => { setSort(k); setPage(1) }}
+            className={'lovers-button ' + (sort === k ? 'lovers-button--primary' : 'lovers-button--secondary')}
+            style={{ padding: '6px 12px', fontSize: 13 }}>{l}</button>
+        ))}
       </div>
       <ScrollX maxHeight={maxHeight}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
