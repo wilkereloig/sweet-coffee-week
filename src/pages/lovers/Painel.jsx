@@ -148,10 +148,11 @@ function PainelDados({ secret, onLogout }) {
           <button onClick={onLogout} className="lovers-button lovers-button--secondary">Sair</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-          {[['geral', 'Visão Geral'], ['resultados', 'Resultados'], ['auditoria', 'Auditoria'], ['pesquisa', 'Pesquisa'], ['suspeitos', 'Suspeitos']].map(([k, l]) => (
+          {[['geral', 'Visão Geral', '📊'], ['resultados', 'Resultados', '🏆'], ['auditoria', 'Auditoria', '📋'], ['pesquisa', 'Pesquisa', '💬'], ['suspeitos', 'Suspeitos', '⚠️']].map(([k, l, ic]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={'lovers-button ' + (tab === k ? 'lovers-button--primary' : 'lovers-button--secondary')}>
-              {l}
+              className={'lovers-button ' + (tab === k ? 'lovers-button--primary' : 'lovers-button--secondary')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <span aria-hidden="true" style={{ fontSize: 16 }}>{ic}</span> {l}
             </button>
           ))}
         </div>
