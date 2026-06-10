@@ -177,6 +177,8 @@ export function VotarPage({ navigate }) {
   const idValid = emailValid(identity.email) && (identity.nome || '').trim() && (identity.telefone || '').trim() &&
     (identity.instagram || '').trim() && identity.faixa_etaria && identity.escolaridade && identity.genero && identity.follows
   const notesValid = !!participante && AWARDS_CATEGORIES.every(c => notes[c.key] != null)
+  // Passo final: as 3 perguntas abertas agora são obrigatórias.
+  const finalValid = !!(extra.gostou || '').trim() && !!(extra.melhorar || '').trim() && !!(extra.sugestao_tema || '').trim()
 
   // Destaque-guia: id do PRÓXIMO campo vazio da etapa atual. Recebe glow pulsante
   // (.is-guiding) sinalizando o que preencher. Some quando tudo está preenchido.
@@ -233,7 +235,7 @@ export function VotarPage({ navigate }) {
   }
 
   async function handleSubmit() {
-    if (!idValid || !notesValid || status === 'sending') return
+    if (!idValid || !notesValid || !finalValid || status === 'sending') return
     setStatus('sending'); setErrorMsg('')
     const payload = {
       p_email: identity.email, p_nome: identity.nome, p_telefone: identity.telefone,
@@ -452,11 +454,11 @@ export function VotarPage({ navigate }) {
               Essas respostas são <strong>ouro pra gente</strong> 💛 Ajudam os participantes a evoluírem e
               guiam as próximas edições do Sweet. Leva menos de 1 minuto — conta pra gente?
             </p>
-            <label className={'awards-field' + g('gostou')}><span>O que você mais gostou do Sweet &amp; Coffee Week?</span>
+            <label className={'awards-field' + g('gostou')}><span>O que você mais gostou do Sweet &amp; Coffee Week? <i>*</i></span>
               <textarea rows={2} value={extra.gostou} onChange={e => setEx('gostou', e.target.value)} /></label>
-            <label className={'awards-field' + g('melhorar')}><span>O que você menos gostou ou que pode melhorar no Sweet &amp; Coffee Week?</span>
+            <label className={'awards-field' + g('melhorar')}><span>O que você menos gostou ou que pode melhorar no Sweet &amp; Coffee Week? <i>*</i></span>
               <textarea rows={2} value={extra.melhorar} onChange={e => setEx('melhorar', e.target.value)} /></label>
-            <label className={'awards-field' + g('sugestao_tema')}><span>Qual o tema deveria ser usado no próximo Sweet &amp; Coffee Week?</span>
+            <label className={'awards-field' + g('sugestao_tema')}><span>Qual o tema deveria ser usado no próximo Sweet &amp; Coffee Week? <i>*</i></span>
               <textarea rows={2} value={extra.sugestao_tema} onChange={e => setEx('sugestao_tema', e.target.value)} placeholder="Solta a imaginação — qualquer ideia é bem-vinda 💛" /></label>
             <label className="awards-follow" style={{ marginTop: 4 }}>
               <input type="checkbox" checked={aceitaComunicacao} onChange={e => setAceitaComunicacao(e.target.checked)} />
@@ -469,9 +471,10 @@ export function VotarPage({ navigate }) {
           </p>
           <div className="awards-wizard-nav">
             <LoversButton variant="secondary" onClick={goBack}>Voltar</LoversButton>
-            <LoversButton variant="primary" disabled={status === 'sending'} onClick={handleSubmit}>
+            <LoversButton variant="primary" disabled={status === 'sending' || !finalValid} onClick={handleSubmit}>
               {status === 'sending' ? 'Enviando…' : 'Enviar avaliação'} <I.arrow />
             </LoversButton>
+            {!finalValid && <span className="awards-form__hint">Responda todas as perguntas obrigatórias (*).</span>}
           </div>
         </>
       )}
