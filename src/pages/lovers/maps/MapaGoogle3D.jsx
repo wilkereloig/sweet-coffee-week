@@ -171,7 +171,7 @@ export function MapaGoogle3DPage({ onError, onExit }) {
       // caixa "Ver mais" — só com o que existir
       const moreParts = []
       if (loc.address) moreParts.push(`<div class="m3c-row"><span>📍</span><span>${escapeHtml(loc.address)}</span></div>`)
-      if (loc.openingHours) moreParts.push(`<div class="m3c-row"><span>🕒</span><span>${escapeHtml(loc.openingHours).replace(/\n/g, '<br>')}</span></div>`)
+      if (loc.openingHours) moreParts.push(`<div class="m3c-row"><span>🕒</span><span>${escapeHtml(loc.openingHours).replace(/\n/g, '<br>')}</span></div><div class="m3c-row m3c-row--note"><span></span><span>⚠️ Horário durante o Sweet &amp; Coffee Week. Pode ser diferente do horário regular da loja.</span></div>`)
       if (status.detail) moreParts.push(`<div class="m3c-row m3c-row--status m3c-row--${status.state}"><span>•</span><span>${escapeHtml(status.detail)}</span></div>`)
       if (LOVERS_SHOW_COMBO_DETAILS && loc.comboName) moreParts.push(`<div class="m3c-row"><span>🍫</span><span>${escapeHtml(loc.comboName)}</span></div>`)
       if (loc.hasCombo) moreParts.push(`<a class="m3c-combo-btn" href="#/lovers/combos/${escapeHtml(loc.comboSlug)}">${LOVERS_SHOW_COMBO_DETAILS ? 'Ver combo →' : 'Ver participante →'}</a>`)

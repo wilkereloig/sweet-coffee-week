@@ -243,7 +243,10 @@ function LocationCard({ loc, participant, accent }) {
           {st.label}{st.detail ? ` · ${st.detail}` : ''}
         </span>
       )}
-      {loc.openingHours && <p className="combo-detail-location-card__hours">{loc.openingHours}</p>}
+      {loc.openingHours && <>
+        <p className="combo-detail-location-card__hours">{loc.openingHours}</p>
+        <p className="combo-detail-location-card__hours-note">⚠️ Horário de funcionamento durante o Sweet &amp; Coffee Week. Pode ser diferente do horário regular da loja.</p>
+      </>}
       {loc.access && (
         <p className="combo-detail-location-card__access" role="note">
           <span className="combo-detail-location-card__access-icon" aria-hidden="true"><I.lock width={14} height={14} /></span>

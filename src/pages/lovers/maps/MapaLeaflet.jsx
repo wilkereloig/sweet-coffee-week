@@ -270,9 +270,14 @@ export function MapaLeafletPage({ navigate }) {
                       </div>
                     )}
                     {selected.openingHours && (
-                      <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 12 }}>
-                        {selected.openingHours}
-                      </div>
+                      <>
+                        <div className="mono" style={{ fontSize: 12, color: 'var(--lovers-brown)', opacity: .6, marginBottom: 4 }}>
+                          {selected.openingHours}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--lovers-brown)', opacity: .5, marginBottom: 12 }}>
+                          ⚠️ Horário durante o Sweet &amp; Coffee Week. Pode ser diferente do horário regular da loja.
+                        </div>
+                      </>
                     )}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                       {selected.combo?.slug && (
