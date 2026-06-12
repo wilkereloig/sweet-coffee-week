@@ -124,6 +124,14 @@ export function PhotoBoothModal({ open, onClose }) {
     if (!open) { stopCam(); setMode('choose'); setImgSrc(null); setStickers([]); setSel(null); setCamErr(''); setZoomCap(null); setZoom(1); setFrame(null); setFrameData(null) }
   }, [open, stopCam])
 
+  // Ao abrir, vai direto pra câmera (pula a tela de escolha). Se a câmera for
+  // negada, startCam cai de volta pra 'choose' com o botão "Enviar foto".
+  const openedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (open && !openedRef.current) { openedRef.current = true; startCam(facing) }
+    if (!open) openedRef.current = false
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Converte um src de moldura em dataURL (cacheado). Necessário pro html-to-image
   // embutir a moldura no PNG exportado — sem isso, baixava branco.
   const toDataURL = React.useCallback(async (src) => {
@@ -241,7 +249,7 @@ export function PhotoBoothModal({ open, onClose }) {
     const f = e.target.files && e.target.files[0]
     if (!f) return
     const reader = new FileReader()
-    reader.onload = () => { setImgSrc(String(reader.result)); setMode('edit') }
+    reader.onload = () => { stopCam(); setImgSrc(String(reader.result)); setMode('edit') }
     reader.readAsDataURL(f)
   }
 
@@ -390,11 +398,12 @@ export function PhotoBoothModal({ open, onClose }) {
   if (mode === 'selfie') {
     return (
       <div className="pb-camera" role="dialog" aria-modal="true">
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
         <video ref={videoRef} playsInline muted
           className={'pb-camera__video' + (facing === 'user' ? ' pb-camera__video--mirror' : '')} />
         {camStarting && <div className="pb-camera__loading"><span className="pb-spinner" />Iniciando câmera…</div>}
         <div className="pb-camera__top">
-          <button className="pb-camera__icon" onClick={() => { stopCam(); setMode('choose') }} aria-label="Voltar">‹</button>
+          <button className="pb-camera__icon" onClick={() => { stopCam(); onClose() }} aria-label="Fechar">‹</button>
           {multiCam && (
             <button className="pb-camera__icon" onClick={switchCam} disabled={camStarting} aria-label="Trocar câmera" title="Trocar câmera">⟲</button>
           )}
@@ -408,7 +417,14 @@ export function PhotoBoothModal({ open, onClose }) {
               <span aria-hidden="true">+</span>
             </div>
           )}
-          <button className="pb-shutter" onClick={capture} disabled={camStarting} aria-label="Capturar"><span /></button>
+          <div className="pb-camera__controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+            <button className="pb-shutter" onClick={capture} disabled={camStarting} aria-label="Capturar"><span /></button>
+            <button type="button" onClick={() => fileRef.current && fileRef.current.click()}
+              aria-label="Enviar foto do rolo"
+              style={{ position: 'absolute', right: 24, background: 'rgba(0,0,0,.45)', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              🖼 Enviar foto
+            </button>
+          </div>
         </div>
       </div>
     )
