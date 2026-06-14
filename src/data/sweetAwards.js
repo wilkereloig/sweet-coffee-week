@@ -7,7 +7,7 @@ import { PARTICIPANTS } from './participants'
 // Janela oficial da votação (fuso de Natal/RN). Inclusivo: abre 04/06, fecha fim do dia 16/06.
 export const AWARDS_VOTING = {
   opensAt: '2026-06-03T00:00:00-03:00',
-  closesAt: '2026-06-16T23:59:59-03:00',
+  closesAt: '2026-06-15T23:59:59-03:00',
 }
 
 // Categorias oficiais. `key` casa com get_rankings(); `field` = coluna de nota em `votos`.
