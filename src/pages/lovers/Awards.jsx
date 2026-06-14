@@ -128,7 +128,7 @@ export function AwardsPage({ navigate }) {
             <article className="lovers-public-card lovers-reveal lv-anim-1" style={{ '--card-accent': 'var(--lovers-pink)' }}>
               <span className="lovers-public-card__badge"><I.heart width={12} height={12} /> Passo 1</span>
               <h3 className="lovers-public-card__title">Experimente um combo</h3>
-              <p className="lovers-public-card__text">Visite os participantes e prove os combos da edição, de 04 a 16 de junho.</p>
+              <p className="lovers-public-card__text">Visite os participantes e prove os combos da edição, de 04 a 14 de junho.</p>
             </article>
             <article className="lovers-public-card lovers-reveal lv-anim-2" style={{ '--card-accent': 'var(--lovers-yellow)' }}>
               <span className="lovers-public-card__badge"><I.star width={12} height={12} /> Passo 2</span>
@@ -190,7 +190,7 @@ export function AwardsPage({ navigate }) {
               </>
             ) : (
               <>
-                <h2 className="awards-final-cta__title">{hasResults ? 'Parabéns aos vencedores!' : notOpen ? <>A votação abre <span>dia 04 de junho.</span></> : 'Em breve, os vencedores.'}</h2>
+                <h2 className="awards-final-cta__title">{hasResults ? 'Parabéns aos vencedores!' : notOpen ? <>A votação abre <span>dia 04 de junho.</span></> : <>Votação encerrada. <span>Acompanhe @sweetcoffeeweek para os resultados.</span></>}</h2>
                 <div className="awards-final-cta__ctas">
                   <LoversButton variant="secondary" href="#/lovers/participantes"
                     onClick={(e) => { e.preventDefault(); navigate('/lovers/participantes') }}>

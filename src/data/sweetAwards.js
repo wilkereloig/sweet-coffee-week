@@ -56,7 +56,7 @@ export const AWARDS_TEXTS = {
     'Siga o perfil oficial @sweetcoffeeweek no Instagram.',
     'Preencha corretamente os dados solicitados no formulário.',
     'Avalie apenas combos que você experimentou.',
-    'Válido só para combos da edição Sweet & Coffee Week Lovers (04 a 16 de junho).',
+    'Válido só para combos da edição Sweet & Coffee Week Lovers (04 a 14 de junho).',
     'Você pode avaliar todos os estabelecimentos que visitar.',
     'Apenas 1 voto por estabelecimento, por participante.',
     'Havendo mais de um envio para o mesmo estabelecimento com o mesmo nome, e-mail, telefone ou Instagram, vale o último voto registrado.',
@@ -75,7 +75,7 @@ export const AWARDS_TEXTS = {
   },
   closed: {
     title: 'Votação encerrada',
-    body: 'A votação do Sweet Awards aconteceu de 04 a 16 de junho. Em breve divulgamos os vencedores.',
+    body: 'A votação do Sweet Awards foi encerrada. 💛 Obrigado a quem participou! Os vencedores serão divulgados em breve no @sweetcoffeeweek.',
   },
   results: {
     eyebrow: 'Sweet Awards',

@@ -37,7 +37,7 @@ function LoversCountdown() {
   }, [])
 
   const start = new Date('2026-06-04T00:00:00-03:00')
-  const end = new Date('2026-06-16T23:59:59-03:00')
+  const end = new Date('2026-06-15T23:59:59-03:00')
   const diff = start.getTime() - now.getTime()
 
   let isCounting = false
@@ -89,7 +89,7 @@ function LoversCountdown() {
         <strong className="lovers-countdown__message">{message}</strong>
       )}
       <span className="lovers-countdown__date">
-        {now > end ? 'Obrigado por viver essa história com a gente.' : '4 a 16 de junho · Natal/RN'}
+        {now > end ? 'Obrigado por viver essa história com a gente.' : '4 a 14 de junho · Natal/RN'}
       </span>
     </div>
   )
@@ -258,6 +258,46 @@ function FinalCTA({ navigate }) {
   )
 }
 
+/* ── Banner de estado do evento (automático por data) ──
+   Festival: 04–14/06. Votação: até 15/06 23:59. A partir de 16/06: encerrada.
+   - até 14/06: sem banner (festival rolando)
+   - 15/06: último dia de votação + agradecimento
+   - 16/06+: votação encerrada, aguardar resultado no Instagram */
+function EventBanner({ navigate }) {
+  const now = new Date()
+  const festEnd = new Date('2026-06-14T23:59:59-03:00')
+  const voteEnd = new Date('2026-06-15T23:59:59-03:00')
+  if (now <= festEnd) return null
+  const closed = now > voteEnd
+  return (
+    <section className="wrap lovers-safe-wrap" style={{ paddingTop: 18, paddingBottom: 0 }}>
+      <div style={{
+        background: 'var(--lovers-cream)', border: '2px solid var(--lovers-red)', borderRadius: 18,
+        padding: '18px 20px', textAlign: 'center', boxShadow: '0 12px 30px rgba(135,14,45,.12)',
+      }}>
+        {closed ? (
+          <p style={{ margin: 0, color: 'var(--lovers-burgundy)', fontSize: 16, lineHeight: 1.5 }}>
+            💛 <strong>Obrigado por viver a edição Lovers com a gente!</strong> A votação do Sweet Awards foi encerrada.
+            Acompanhe <a href="https://instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer"
+              style={{ color: 'var(--lovers-red)', fontWeight: 700 }}>@sweetcoffeeweek</a> pra ver os vencedores.
+          </p>
+        ) : (
+          <>
+            <p style={{ margin: '0 0 14px', color: 'var(--lovers-burgundy)', fontSize: 16, lineHeight: 1.5 }}>
+              💛 <strong>Último dia pra votar no Sweet Awards!</strong> O festival foi de 04 a 14, mas a votação vai até hoje à meia-noite.
+              Obrigado por viver a edição Lovers com a gente — ainda dá tempo de avaliar seus combos favoritos.
+            </p>
+            <LoversButton variant="primary" href="#/lovers/votar"
+              onClick={(e) => { e.preventDefault(); navigate('/lovers/votar') }}>
+              Votar agora <I.arrow />
+            </LoversButton>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
 /* ── Page ── */
 export function LoversPage({ navigate }) {
   useLoversReveal()
@@ -265,6 +305,7 @@ export function LoversPage({ navigate }) {
     <div className="page-enter kv-lovers lovers-home lovers-gradient-bg" style={{ overflow: 'hidden' }}>
       <div className="lovers-bg" style={{ position: 'fixed', inset: 0, opacity: .25 }} />
       <LoversStickers page="sobre" />
+      <EventBanner navigate={navigate} />
       <Hero navigate={navigate} />
       <OQueEComoFunciona />
       <NavCards navigate={navigate} />
