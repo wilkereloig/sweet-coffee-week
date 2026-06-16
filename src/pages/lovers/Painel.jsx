@@ -394,16 +394,14 @@ function ExportButton({ secret }) {
     if (busy) return
     setBusy(true)
     try {
+      // RPC SETOF/TABLE do Supabase retorna todas as linhas numa chamada (sem
+      // db-max-rows configurado). Paginar com .range() encadeado no .rpc() dava
+      // erro na 2ª página (>1000 linhas) — por isso o export quebrava ao passar
+      // de 1000 votos. Chamada única é mais simples e robusta.
       const fetchAll = async (fn) => {
-        let all = [], from = 0, page = 1000
-        while (true) {
-          const { data, error } = await supabase.rpc(fn, { p_secret: secret }).range(from, from + page - 1)
-          if (error) throw error
-          all = all.concat(data || [])
-          if (!data || data.length < page) break
-          from += page
-        }
-        return all
+        const { data, error } = await supabase.rpc(fn, { p_secret: secret })
+        if (error) throw error
+        return data || []
       }
       const [votos, feedback] = await Promise.all([fetchAll('get_audit_report'), fetchAll('get_feedback_admin')])
       await buildAndDownloadXlsx(votos, feedback)
