@@ -311,18 +311,41 @@ async function buildAndDownloadXlsx(votos, feedback) {
   const wb = new ExcelJS.Workbook()
   wb.creator = 'Sweet & Coffee Week Lovers'
 
-  const BURGUNDY = 'FF8B0E2D', CREAM = 'FFFFF1E6'
-  const styleHeader = (ws) => {
-    const r = ws.getRow(1); r.height = 22
-    r.eachCell(c => {
-      c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 }
-      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BURGUNDY } }
+  const BURGUNDY = 'FF8B0E2D', CREAM = 'FFFFF1E6', RED = 'FFD63648', PURPLE = 'FF7A3B9E', INK = 'FF2B1810', SOFT = 'FFF7E3D8'
+  const HEADER = 'FFB3204A', GOLD = 'FFFFE39A', SILVER = 'FFE6E6EA', BRONZE = 'FFF2CFB0'
+  const thinB = { style: 'thin', color: { argb: 'FFE3CBBE' } }
+  // Decora uma aba tabular: insere banner no topo, estiliza o cabeçalho, congela,
+  // aplica autofiltro, zebra e bordas leves. Chamar DEPOIS de inserir todas as linhas.
+  const decorate = (ws, title, sub) => {
+    const nCols = ws.columnCount || 1
+    ws.spliceRows(1, 0, []) // insere o banner como nova linha 1; cabeçalho vai p/ linha 2
+    ws.mergeCells(1, 1, 1, nCols)
+    const b = ws.getCell(1, 1)
+    b.value = sub ? `${title}   —   ${sub}` : title
+    b.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 14 }
+    b.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BURGUNDY } }
+    b.alignment = { vertical: 'middle', indent: 1 }
+    ws.getRow(1).height = 26
+    const hr = ws.getRow(2); hr.height = 20
+    hr.eachCell(c => {
+      c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11.5 }
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER } }
       c.alignment = { vertical: 'middle' }
+      c.border = { bottom: { style: 'thin', color: { argb: BURGUNDY } } }
     })
-    ws.views = [{ state: 'frozen', ySplit: 1 }]
-    if (ws.columnCount > 0) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: ws.columnCount } }
+    ws.views = [{ state: 'frozen', ySplit: 2 }]
+    if (nCols > 0) ws.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: nCols } }
+    ws.eachRow((row, i) => { if (i >= 3) row.eachCell(c => { if (!c.fill && i % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CREAM } }; c.border = { bottom: thinB } }) })
   }
-  const zebra = (ws) => { ws.eachRow((row, i) => { if (i > 1 && i % 2 === 0) row.eachCell(c => { if (!c.fill) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CREAM } } }) }) }
+  // Pinta a célula de posição (col) com ouro/prata/bronze nos 1º/2º/3º.
+  const medals = (ws, col) => {
+    ws.eachRow((row, i) => {
+      if (i < 3) return
+      const v = String(row.getCell(col).value || '')
+      const argb = v.includes('1º') ? GOLD : v.includes('2º') ? SILVER : v.includes('3º') ? BRONZE : null
+      if (argb) { const c = row.getCell(col); c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb } }; c.font = { bold: true, color: { argb: INK } } }
+    })
+  }
 
   // ── Ranking (média pura) ──
   const fieldByKey = Object.fromEntries(AWARDS_CATEGORIES.map(c => [c.key, c.field]))
@@ -349,7 +372,7 @@ async function buildAndDownloadXlsx(votos, feedback) {
     const arr = slugs.map(s => ({ s, n: byPart[s].n, m: mediaCat(byPart[s], c.key) })).sort((a, b) => b.m - a.m || b.n - a.n).slice(0, 3)
     arr.forEach((x, i) => ws1.addRow({ cat: c.label, pos: ['🥇 1º', '🥈 2º', '🥉 3º'][i], part: partName(x.s), media: Number(x.m.toFixed(2)), aval: x.n }))
   }
-  styleHeader(ws1)
+  decorate(ws1, 'Resultados — Média pura'); medals(ws1, 2)
 
   // ── Ranking ponderado (bayesiano, justo): score = (n/(n+m))·média + (m/(n+m))·média geral; mín. BAYES_MIN aval. ──
   const ws1b = wb.addWorksheet('Resultados (Ponderada)')
@@ -366,11 +389,10 @@ async function buildAndDownloadXlsx(votos, feedback) {
       .sort((a, b) => b.score - a.score || b.n - a.n).slice(0, 3)
     arr.forEach((x, i) => ws1b.addRow({ cat: c.label, pos: ['🥇 1º', '🥈 2º', '🥉 3º'][i], part: partName(x.s), score: Number(x.score.toFixed(2)), media: Number(x.m.toFixed(2)), aval: x.n }))
   }
-  styleHeader(ws1b)
+  decorate(ws1b, 'Resultados — Ponderada (justa)'); medals(ws1b, 2)
 
   // ── Análise da pesquisa (formatada: banner, seções coloridas, barras de frequência, citações) ──
   const A = AI_PESQUISA
-  const RED = 'FFD63648', PURPLE = 'FF7A3B9E', INK = 'FF2B1810', SOFT = 'FFF7E3D8'
   const ws2 = wb.addWorksheet('Análise da Pesquisa', { views: [{ showGridLines: false }] })
   ws2.columns = [{ width: 30 }, { width: 64 }, { width: 26 }, { width: 12 }]
   let R = 0
@@ -454,7 +476,7 @@ async function buildAndDownloadXlsx(votos, feedback) {
       gostou: f.gostou ?? '', melhorar: f.melhorar ?? '', sugestao_tema: f.sugestao_tema ?? '',
     })
   }
-  styleHeader(ws3)
+  decorate(ws3, 'Votos', 'notas + respostas da pesquisa por e-mail')
 
   // ── Pesquisa ──
   const ws4 = wb.addWorksheet('Pesquisa')
@@ -473,9 +495,8 @@ async function buildAndDownloadXlsx(votos, feedback) {
     })
   }
   ;['gostou', 'melhorar', 'sugestao_tema'].forEach(k => { ws4.getColumn(k).alignment = { wrapText: true, vertical: 'top' } })
-  styleHeader(ws4)
+  decorate(ws4, 'Pesquisa', 'respostas abertas (gostou · melhorar · tema)')
 
-  zebra(ws1)
   const buf = await wb.xlsx.writeBuffer()
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
   const a = document.createElement('a')
