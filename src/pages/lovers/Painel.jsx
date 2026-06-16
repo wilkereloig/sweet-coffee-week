@@ -90,6 +90,45 @@ const AI_PESQUISA = {
     'Datas comemorativas, jogos/esportes e lírico-fantasia: ~55 menções a Natal, Páscoa, São João, Carnaval e namorados (alinhar o tema ao calendário); ~85 a games/geek e esportes (futebol, Fórmula 1, Copa); e ~70 a temas líricos como cores, signos, estações do ano, magia/contos de fada — além do pedido de uma edição "revival" só com os combos campeões de anos anteriores.',
   ],
   conclusao: 'Para a próxima edição, a recomendação acionável é preservar o que encanta (descoberta de lugares, criatividade do combo doce+salgado+bebida e o preço único como porta de entrada) e atacar os dois gargalos que a base maior tornou inequívocos. Primeiro, repensar tempo e calendário: estender para ~14-15 dias e fugir do congestionamento de junho (Copa, São João, Dia dos Namorados), já que "mais dias" foi o pedido isolado mais citado (117 vezes). Segundo, voltar a um tema único, claro e fechado — a abordagem comemorativa "abrangente" diluiu a "magia" do desafio criativo coletivo e prejudicou a comparação na votação; um tema forte e bem definido (os mais pedidos são audiovisual/cultura pop e brasilidade/regionalismo, seguidos de música) resolveria simultaneamente o engajamento das casas e a percepção de valor. Em paralelo, estabelecer um padrão mínimo de curadoria para o selo (fidelidade entre foto e entrega, decoração/ambientação temática, tamanho de porção, e capacitação da equipe sobre o festival), oferecer alternativas de bebida ao refrigerante/soda, gerir melhor filas e estoque diário, e ampliar a cobertura para zonas hoje mal atendidas (Zona Norte de Natal). Uma melhoria de produto simples e barata, pedida diretamente: incluir um campo de texto livre na avaliação de cada combo, para capturar o "porquê" da nota.',
+  // Citações reais (verbatim do banco), representativas. tipo: gostou | melhorar | tema.
+  citacoes: [
+    { tipo: 'gostou', texto: 'A oportunidade de conhecer novos lugares e experimentar novos sabores.' },
+    { tipo: 'gostou', texto: 'A diversidade dos combos, a criatividade voou nessa edição.' },
+    { tipo: 'gostou', texto: 'Adorei a experiência do combo pelo preço único e a oportunidade de conhecer várias cafeterias pela cidade.' },
+    { tipo: 'gostou', texto: 'Tudo muito lindo, gostoso e criativo. O que eu mais gostei foi as temáticas e o preço dos combos.' },
+    { tipo: 'gostou', texto: 'A vibe de ter um motivo para sair visitando docerias e marcar com amigas.' },
+    { tipo: 'melhorar', texto: 'Tempo maior de disponibilidade dos combos (mais dias da semana).' },
+    { tipo: 'melhorar', texto: 'Não deixar os temas tão abertos, um tema central pode ser uma excelente saída.' },
+    { tipo: 'melhorar', texto: 'Eu não gosto muito dessas bebidas doces, no geral. Poderia ter opção de suco ou refrigerante.' },
+    { tipo: 'melhorar', texto: 'Achei que o tema desse ano ficou solto, não senti a experiência imersiva em um tema específico.' },
+    { tipo: 'tema', texto: 'Uma temática interessante seria "brasilidade": comidas típicas brasileiras de vários estados.' },
+    { tipo: 'tema', texto: 'Combos baseados em comidas ou doces que ficaram famosas em filmes, séries e desenhos.' },
+    { tipo: 'tema', texto: 'Combos inspirados em estilos musicais (forró, pagode, MPB, rock) ou em eventos históricos.' },
+  ],
+  // Contagens reais (SQL, buckets por palavra-chave) — para gráficos de barras. Não somam o total (não exclusivas).
+  fortesFreq: [
+    { label: 'Combo / sabor', n: 574 },
+    { label: 'Criatividade / tema', n: 363 },
+    { label: 'Variedade / descoberta', n: 306 },
+    { label: 'Preço acessível', n: 82 },
+    { label: 'Atendimento', n: 38 },
+  ],
+  queixasFreq: [
+    { label: 'Tempo / duração do evento', n: 231 },
+    { label: 'Tema solto / genérico', n: 130 },
+    { label: 'Preço / valor', n: 129 },
+    { label: 'Bebida do combo', n: 112 },
+    { label: 'Fila / atendimento / esgotado', n: 65 },
+    { label: 'Variedade / opções (dietas)', n: 61 },
+  ],
+  temasFreq: [
+    { label: 'Audiovisual / Cultura pop', n: 286 },
+    { label: 'Brasilidade / Regional', n: 167 },
+    { label: 'Música', n: 138 },
+    { label: 'Países / Mundo', n: 107 },
+    { label: 'Nostalgia / Décadas', n: 78 },
+    { label: 'Datas comemorativas', n: 48 },
+  ],
 }
 
 export function PainelPage() {
@@ -394,14 +433,20 @@ function ExportButton({ secret }) {
     if (busy) return
     setBusy(true)
     try {
-      // RPC SETOF/TABLE do Supabase retorna todas as linhas numa chamada (sem
-      // db-max-rows configurado). Paginar com .range() encadeado no .rpc() dava
-      // erro na 2ª página (>1000 linhas) — por isso o export quebrava ao passar
-      // de 1000 votos. Chamada única é mais simples e robusta.
+      // Pagina em blocos de 1000 via .range() (mesmo padrão do useRpcAll, que
+      // funciona na Auditoria) — contorna o limite de 1000 linhas do PostgREST
+      // sem truncar. Chamada única truncaria a 1000 e falsearia o relatório.
       const fetchAll = async (fn) => {
-        const { data, error } = await supabase.rpc(fn, { p_secret: secret })
-        if (error) throw error
-        return data || []
+        let all = [], from = 0
+        const page = 1000
+        for (;;) {
+          const { data, error } = await supabase.rpc(fn, { p_secret: secret }).range(from, from + page - 1)
+          if (error) throw error
+          all = all.concat(data || [])
+          if (!data || data.length < page) break
+          from += page
+        }
+        return all
       }
       const [votos, feedback] = await Promise.all([fetchAll('get_audit_report'), fetchAll('get_feedback_admin')])
       await buildAndDownloadXlsx(votos, feedback)
@@ -536,18 +581,90 @@ function Rankings({ secret }) {
   )
 }
 
-// Resumo da pesquisa: análise qualitativa (texto da AI_PESQUISA), não contagem de palavras.
-function ResumoPesquisa() {
+// ── Helpers visuais do relatório (sem libs externas) ──
+function StatBar({ label, n, max, suffix, color }) {
+  const pct = max > 0 ? Math.round((n / max) * 100) : 0
+  return (
+    <div style={{ marginBottom: 11 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14.5, marginBottom: 4, color: 'var(--lovers-ink, #3a1d12)' }}>
+        <span>{label}</span><strong style={{ color: 'var(--lovers-burgundy)', whiteSpace: 'nowrap' }}>{n}{suffix || ''}</strong>
+      </div>
+      <div style={{ height: 10, borderRadius: 6, background: 'rgba(135,14,45,.10)', overflow: 'hidden' }}>
+        <div style={{ width: pct + '%', height: '100%', background: color || 'var(--lovers-red)', borderRadius: 6 }} />
+      </div>
+    </div>
+  )
+}
+
+function QuoteCard({ tipo, texto }) {
+  const meta = {
+    gostou:   { cor: 'var(--lovers-red)',            tag: '💛 O que gostou' },
+    melhorar: { cor: 'var(--lovers-burgundy)',       tag: '🔧 O que melhorar' },
+    tema:     { cor: 'var(--lovers-purple, #7a3b9e)', tag: '🎨 Sugestão de tema' },
+  }[tipo] || { cor: 'var(--lovers-red)', tag: '' }
+  return (
+    <figure style={{ margin: 0, flex: '1 1 280px', minWidth: 250, background: '#fff', borderRadius: 14, padding: '14px 16px', borderLeft: `4px solid ${meta.cor}`, boxShadow: '0 8px 20px rgba(43,24,16,.06)' }}>
+      <figcaption style={{ fontSize: 12, fontWeight: 700, color: meta.cor, marginBottom: 6, textTransform: 'uppercase', letterSpacing: .3 }}>{meta.tag}</figcaption>
+      <blockquote style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: 'var(--lovers-ink, #3a1d12)', fontStyle: 'italic' }}>“{texto}”</blockquote>
+    </figure>
+  )
+}
+
+const NOTE_FIELDS = ['nota_atendimento', 'nota_criatividade', 'nota_apresentacao', 'nota_doce', 'nota_salgado', 'nota_bebida', 'nota_encantamento']
+
+// Resumo da pesquisa: análise qualitativa CURADA (AI_PESQUISA) + métricas calculadas
+// AO VIVO do banco (sentimento, demografia, menções por participante). Híbrido.
+function ResumoPesquisa({ secret }) {
   const A = AI_PESQUISA
+  const votos = useRpcAll('get_audit_report', secret)
+  const fb = useRpcAll('get_feedback_admin', secret)
+  const live = React.useMemo(() => {
+    if (votos.loading || fb.loading || votos.error || fb.error) return null
+    const rowAvg = (v) => {
+      const ns = NOTE_FIELDS.map(k => Number(v[k])).filter(x => !isNaN(x) && x > 0)
+      return ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : null
+    }
+    const groupAvg = (key) => {
+      const m = {}
+      votos.rows.forEach(v => { const a = rowAvg(v); if (a == null) return; const k = (v[key] || '—'); (m[k] || (m[k] = { s: 0, n: 0 })); m[k].s += a; m[k].n++ })
+      return Object.entries(m).map(([k, o]) => ({ k, n: o.n, avg: o.s / o.n })).sort((a, b) => b.n - a.n)
+    }
+    // Sentimento: % de "melhorar" sem crítica real (vazio / nada / tudo perfeito…).
+    const noCrit = /^(nada|nenhum[ao]?|nada a (melhorar|declarar|reclamar|acrescentar)|tudo (perfeito|otimo|ótimo|certo|maravilhoso|ok|bom|certinho)|sem (comentarios|comentários)|n[/.]?a|nao|não|nada no momento|por enquanto nada|continuar assim|esta(va)? (otimo|ótimo|perfeito|bom))[.!]?$/i
+    const totFb = fb.rows.length
+    const semCrit = fb.rows.filter(f => { const t = (f.melhorar || '').trim(); return t === '' || noCrit.test(t) }).length
+    // Menções nominais por participante (palavra mais longa do nome, ≥4 letras).
+    const norm = (s) => (s || '').toLowerCase().replace(/['’`]/g, '')
+    const needles = AWARDS_PARTICIPANTS.map(p => {
+      const clean = norm(p.name)
+      const longest = clean.split(/\s+/).filter(w => w.length >= 4).sort((a, b) => b.length - a.length)[0] || clean
+      return { name: p.name, needle: longest }
+    })
+    const ment = needles.map(p => {
+      let elogio = 0, critica = 0
+      fb.rows.forEach(f => { if (norm(f.gostou).includes(p.needle)) elogio++; if (norm(f.melhorar).includes(p.needle)) critica++ })
+      return { name: p.name, elogio, critica }
+    })
+    return {
+      nVotos: votos.rows.length, nFb: totFb, semCrit,
+      pctSemCrit: totFb ? Math.round((semCrit / totFb) * 100) : 0,
+      porFaixa: groupAvg('faixa_etaria'), porGenero: groupAvg('genero'),
+      topElogio: ment.filter(m => m.elogio > 0).sort((a, b) => b.elogio - a.elogio).slice(0, 8),
+      topCritica: ment.filter(m => m.critica > 0).sort((a, b) => b.critica - a.critica).slice(0, 8),
+    }
+  }, [votos.loading, votos.error, votos.rows, fb.loading, fb.error, fb.rows])
+
   const colCard = { ...card, flex: '1 1 320px', minWidth: 280, marginBottom: 0 }
   const li = { marginBottom: 12, fontSize: 16, lineHeight: 1.65, color: 'var(--lovers-ink, #3a1d12)' }
-  const h3 = { margin: '0 0 12px', fontSize: 20, color: 'var(--lovers-burgundy)' }
+  const h3 = { margin: '0 0 14px', fontSize: 20, color: 'var(--lovers-burgundy)' }
   const par = { margin: 0, fontSize: 17, lineHeight: 1.7, color: 'var(--lovers-ink, #3a1d12)' }
+  const maxN = (arr, sel) => Math.max(1, ...arr.map(sel || (x => x.n)))
+
   return (
     <div style={{ marginTop: 18 }}>
       <h2 style={{ fontFamily: 'var(--font-lovers-display)', color: 'var(--lovers-burgundy)', textTransform: 'uppercase', fontSize: 27, margin: '0 0 4px' }}>Resumo da Pesquisa — Análise</h2>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14.5, marginTop: 0, marginBottom: 16 }}>
-        Síntese qualitativa das respostas abertas (gostou · melhorar · temas). Análise de {A.data} · {A.nRespostas} respostas.
+        Síntese qualitativa (curada) + métricas calculadas ao vivo do banco. Narrativa de {A.data} · {A.nRespostas} respostas.
       </p>
 
       <div style={card}>
@@ -559,23 +676,79 @@ function ResumoPesquisa() {
         </p>
       </div>
 
+      <div style={card}>
+        <h3 style={h3}>📈 Indicadores ao vivo</h3>
+        {!live ? <p style={{ color: 'var(--lovers-brown)' }}>{(votos.error || fb.error) ? 'Erro ao carregar dados.' : 'Calculando do banco…'}</p> : (
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 220px', minWidth: 200, textAlign: 'center', background: 'var(--lovers-cream)', borderRadius: 14, padding: '16px 14px' }}>
+              <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--lovers-red)', lineHeight: 1 }}>{live.pctSemCrit}%</div>
+              <div style={{ fontSize: 13.5, color: 'var(--lovers-brown)', marginTop: 6 }}>responderam <strong>sem nenhuma crítica</strong> no campo "melhorar" ({live.semCrit} de {live.nFb})</div>
+            </div>
+            <div style={{ flex: '1 1 220px', minWidth: 200, textAlign: 'center', background: 'var(--lovers-cream)', borderRadius: 14, padding: '16px 14px' }}>
+              <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--lovers-burgundy)', lineHeight: 1 }}>{live.nVotos}</div>
+              <div style={{ fontSize: 13.5, color: 'var(--lovers-brown)', marginTop: 6 }}>votos computados · <strong>{live.nFb}</strong> respostas de pesquisa</div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={colCard}>
-          <h3 style={h3}>💛 Pontos fortes</h3>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>{A.pontosFortes.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+          <h3 style={h3}>💛 Pontos fortes (menções)</h3>
+          {A.fortesFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.fortesFreq)} color="var(--lovers-red)" />)}
+          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosFortes.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
         </div>
         <div style={colCard}>
-          <h3 style={h3}>🔧 Pontos a melhorar</h3>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>{A.pontosMelhorar.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+          <h3 style={h3}>🔧 Pontos a melhorar (menções)</h3>
+          {A.queixasFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.queixasFreq)} color="var(--lovers-burgundy)" />)}
+          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosMelhorar.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
         </div>
       </div>
 
       <div style={{ ...card, marginTop: 16 }}>
         <h3 style={h3}>🎨 Temas mais sugeridos (próxima edição)</h3>
-        <ul style={{ margin: 0, paddingLeft: 18 }}>{A.temas.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div style={{ flex: '1 1 280px', minWidth: 260 }}>
+            {A.temasFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.temasFreq)} color="var(--lovers-purple, #7a3b9e)" />)}
+          </div>
+          <ul style={{ flex: '1 1 320px', margin: 0, paddingLeft: 18 }}>{A.temas.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+        </div>
       </div>
 
-      <div style={card}>
+      {live && (live.topElogio.length > 0 || live.topCritica.length > 0) && (
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 16 }}>
+          <div style={colCard}>
+            <h3 style={h3}>🏆 Mais citadas em elogios</h3>
+            {live.topElogio.map((m, i) => <StatBar key={i} label={`${i + 1}. ${m.name}`} n={m.elogio} max={maxN(live.topElogio, x => x.elogio)} color="var(--lovers-red)" />)}
+          </div>
+          <div style={colCard}>
+            <h3 style={h3}>📉 Mais citadas em críticas</h3>
+            {live.topCritica.length ? live.topCritica.map((m, i) => <StatBar key={i} label={`${i + 1}. ${m.name}`} n={m.critica} max={maxN(live.topCritica, x => x.critica)} color="var(--lovers-burgundy)" />) : <p style={{ color: 'var(--lovers-brown)' }}>Sem menções críticas nominais relevantes.</p>}
+          </div>
+        </div>
+      )}
+
+      {live && (
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 16 }}>
+          <div style={colCard}>
+            <h3 style={h3}>👥 Por faixa etária <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--lovers-brown)' }}>(nota média)</span></h3>
+            {live.porFaixa.map((x, i) => <StatBar key={i} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porFaixa)} suffix=" votos" color="var(--lovers-red)" />)}
+          </div>
+          <div style={colCard}>
+            <h3 style={h3}>🧑‍🤝‍🧑 Por gênero <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--lovers-brown)' }}>(nota média)</span></h3>
+            {live.porGenero.map((x, i) => <StatBar key={i} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porGenero)} suffix=" votos" color="var(--lovers-burgundy)" />)}
+          </div>
+        </div>
+      )}
+
+      <div style={{ ...card, marginTop: 16 }}>
+        <h3 style={h3}>💬 Na voz do público (respostas reais)</h3>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          {A.citacoes.map((c, i) => <QuoteCard key={i} tipo={c.tipo} texto={c.texto} />)}
+        </div>
+      </div>
+
+      <div style={{ ...card, marginTop: 16 }}>
         <h3 style={h3}>✅ Conclusão &amp; recomendações</h3>
         <p style={par}>{A.conclusao}</p>
       </div>
