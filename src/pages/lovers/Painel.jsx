@@ -368,20 +368,76 @@ async function buildAndDownloadXlsx(votos, feedback) {
   }
   styleHeader(ws1b)
 
-  // ── Análise da pesquisa ──
+  // ── Análise da pesquisa (formatada: banner, seções coloridas, barras de frequência, citações) ──
   const A = AI_PESQUISA
-  const ws2 = wb.addWorksheet('Análise da Pesquisa')
-  ws2.columns = [{ header: 'Seção', key: 'sec', width: 26 }, { header: 'Conteúdo', key: 'txt', width: 120 }]
-  const addBlock = (titulo, itens) => { itens.forEach((t, i) => ws2.addRow({ sec: i === 0 ? titulo : '', txt: t })) }
-  ws2.addRow({ sec: 'Avaliação geral', txt: A.avaliacaoGeral })
-  ws2.addRow({ sec: 'Satisfação percebida', txt: A.notaPercebida })
-  addBlock('Pontos fortes', A.pontosFortes)
-  addBlock('Pontos a melhorar', A.pontosMelhorar)
-  addBlock('Temas mais sugeridos', A.temas)
-  ws2.addRow({ sec: 'Conclusão', txt: A.conclusao })
-  ws2.getColumn('txt').alignment = { wrapText: true, vertical: 'top' }
-  ws2.getColumn('sec').font = { bold: true, color: { argb: BURGUNDY } }
-  styleHeader(ws2)
+  const RED = 'FFD63648', PURPLE = 'FF7A3B9E', INK = 'FF2B1810', SOFT = 'FFF7E3D8'
+  const ws2 = wb.addWorksheet('Análise da Pesquisa', { views: [{ showGridLines: false }] })
+  ws2.columns = [{ width: 30 }, { width: 64 }, { width: 26 }, { width: 12 }]
+  let R = 0
+  const estH = (text, perLine) => Math.min(440, Math.max(20, Math.ceil((String(text).length + 1) / perLine) * 15 + 6))
+  const banner = (text, sub) => {
+    R++; let row = ws2.getRow(R); row.getCell(1).value = text; ws2.mergeCells(`A${R}:D${R}`)
+    const c = row.getCell(1)
+    c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 16 }
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BURGUNDY } }
+    c.alignment = { vertical: 'middle', indent: 1 }; row.height = 30
+    if (sub) { R++; const r2 = ws2.getRow(R); r2.getCell(1).value = sub; ws2.mergeCells(`A${R}:D${R}`); const cc = r2.getCell(1); cc.font = { italic: true, color: { argb: 'FF6B4A3A' }, size: 11 }; cc.alignment = { vertical: 'middle', indent: 1 }; r2.height = 18 }
+  }
+  const section = (text) => {
+    R++; const row = ws2.getRow(R); row.getCell(1).value = text; ws2.mergeCells(`A${R}:D${R}`)
+    const c = row.getCell(1)
+    c.font = { bold: true, color: { argb: BURGUNDY }, size: 13 }
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CREAM } }
+    c.alignment = { vertical: 'middle', indent: 1 }
+    c.border = { bottom: { style: 'thin', color: { argb: BURGUNDY } } }; row.height = 24
+  }
+  const paragraph = (text) => {
+    R++; const row = ws2.getRow(R); row.getCell(1).value = text; ws2.mergeCells(`A${R}:D${R}`)
+    const c = row.getCell(1)
+    c.font = { color: { argb: INK }, size: 11 }
+    c.alignment = { wrapText: true, vertical: 'top', indent: 1 }; row.height = estH(text, 120)
+  }
+  const bullet = (text) => {
+    R++; const row = ws2.getRow(R); row.getCell(1).value = '•  ' + text; ws2.mergeCells(`A${R}:D${R}`)
+    const c = row.getCell(1)
+    c.font = { color: { argb: INK }, size: 11 }
+    c.alignment = { wrapText: true, vertical: 'top', indent: 1 }; row.height = estH(text, 116)
+  }
+  const barRow = (label, n, max, argb) => {
+    R++; const row = ws2.getRow(R)
+    row.getCell(1).value = label; row.getCell(3).value = '█'.repeat(Math.max(1, Math.round((n / max) * 22))); row.getCell(4).value = n
+    row.getCell(1).font = { color: { argb: INK }, size: 11 }; row.getCell(1).alignment = { indent: 1 }
+    row.getCell(3).font = { color: { argb }, size: 11 }; row.getCell(3).alignment = { horizontal: 'left' }
+    row.getCell(4).font = { bold: true, color: { argb: BURGUNDY }, size: 11 }; row.getCell(4).alignment = { horizontal: 'left' }
+    row.height = 18
+  }
+  const quote = (tipo, text) => {
+    const tag = tipo === 'gostou' ? '💛 Gostou' : tipo === 'melhorar' ? '🔧 Melhorar' : '🎨 Tema'
+    const argb = tipo === 'gostou' ? RED : tipo === 'melhorar' ? BURGUNDY : PURPLE
+    R++; const row = ws2.getRow(R); row.getCell(1).value = tag; row.getCell(2).value = '“' + text + '”'; ws2.mergeCells(`B${R}:D${R}`)
+    row.getCell(1).font = { bold: true, color: { argb }, size: 10 }; row.getCell(1).alignment = { vertical: 'top', indent: 1 }
+    const cb = row.getCell(2)
+    cb.font = { italic: true, color: { argb: INK }, size: 11 }
+    cb.alignment = { wrapText: true, vertical: 'top' }
+    cb.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SOFT } }; row.height = estH(text, 96)
+  }
+  const spacer = () => { R++; ws2.getRow(R).height = 6 }
+  const bars = (arr, argb) => { const mx = Math.max(1, ...arr.map(x => x.n)); arr.forEach(x => barRow(x.label, x.n, mx, argb)) }
+
+  banner('Sweet Awards — Análise da Pesquisa', `Análise de ${A.data} · ${A.nRespostas} respostas · síntese qualitativa + frequências reais`)
+  spacer()
+  section('📊 Avaliação geral'); paragraph(A.avaliacaoGeral)
+  section('Satisfação percebida'); paragraph(A.notaPercebida)
+  spacer()
+  section('💛 Pontos fortes — frequência de menções'); bars(A.fortesFreq, RED); A.pontosFortes.forEach(bullet)
+  spacer()
+  section('🔧 Pontos a melhorar — frequência de menções'); bars(A.queixasFreq, BURGUNDY); A.pontosMelhorar.forEach(bullet)
+  spacer()
+  section('🎨 Temas mais sugeridos — frequência'); bars(A.temasFreq, PURPLE); A.temas.forEach(bullet)
+  spacer()
+  section('💬 Na voz do público (respostas reais)'); A.citacoes.forEach(c => quote(c.tipo, c.texto))
+  spacer()
+  section('✅ Conclusão & recomendações'); paragraph(A.conclusao)
 
   // ── Votos (notas + respostas da pesquisa por e-mail) ──
   const fbByEmail = {}
