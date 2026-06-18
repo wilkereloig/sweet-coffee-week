@@ -563,22 +563,37 @@ function Rankings({ secret }) {
   const cats = [{ key: 'melhor_combo', label: 'Melhor Combo (média Doce + Salgado + Bebida)' }, ...AWARDS_CATEGORIES.map(c => ({ key: c.key, label: c.label }))]
   const fieldByKey = Object.fromEntries(AWARDS_CATEGORIES.map(c => [c.key, c.field]))
 
-  // Agrega notas por participante.
+  // Agrega notas por participante. Além das somas (p/ médias), conta também
+  // "avaliações positivas" por categoria: voto com nota ≥ 9 (escala 5–10).
+  // No combo, o voto é positivo quando a média Doce+Salgado+Bebida ≥ 9.
+  const POS_MIN = 9
   const byPart = {}
   for (const v of rows) {
     const s = v.participante_slug
     if (!s) continue
-    const p = byPart[s] || (byPart[s] = { n: 0, sums: {} })
+    const p = byPart[s] || (byPart[s] = { n: 0, sums: {}, pos: {} })
     p.n++
-    for (const c of AWARDS_CATEGORIES) p.sums[c.field] = (p.sums[c.field] || 0) + Number(v[c.field] || 0)
+    for (const c of AWARDS_CATEGORIES) {
+      const val = Number(v[c.field] || 0)
+      p.sums[c.field] = (p.sums[c.field] || 0) + val
+      if (val >= POS_MIN) p.pos[c.field] = (p.pos[c.field] || 0) + 1
+    }
+    const combo = (Number(v.nota_doce || 0) + Number(v.nota_salgado || 0) + Number(v.nota_bebida || 0)) / 3
+    if (combo >= POS_MIN) p.pos.melhor_combo = (p.pos.melhor_combo || 0) + 1
   }
   const mediaCat = (p, key) => {
     if (!p.n) return 0
     if (key === 'melhor_combo') return ((p.sums.nota_doce + p.sums.nota_salgado + p.sums.nota_bebida) / 3) / p.n
     return (p.sums[fieldByKey[key]] || 0) / p.n
   }
+  const posCat = (p, key) => key === 'melhor_combo' ? (p.pos.melhor_combo || 0) : (p.pos[fieldByKey[key]] || 0)
   const slugs = Object.keys(byPart)
   const totalAval = rows.length
+
+  // Corte do método "Aprovação": só as 10 casas mais votadas (no total) disputam.
+  // Lista única, vale pra todas as categorias — evita comparar volumes desiguais.
+  const POS_CUT = 10
+  const cutSet = new Set([...slugs].sort((a, b) => byPart[b].n - byPart[a].n).slice(0, POS_CUT))
 
   // Monta o top 3 de uma categoria conforme o método escolhido.
   const buildTop = (key) => {
@@ -589,6 +604,13 @@ function Rankings({ secret }) {
       const C = sumN ? elig.reduce((a, x) => a + x.media * x.n, 0) / sumN : 0
       arr = elig.map(x => ({ ...x, score: (x.n / (x.n + BAYES_M)) * x.media + (BAYES_M / (x.n + BAYES_M)) * C }))
       arr.sort((a, b) => b.score - a.score || b.n - a.n)
+    } else if (metodo === 'positivas') {
+      // Só as 10 casas mais votadas disputam; entre elas, % sobre a líder:
+      // quem tem mais avaliações positivas (nota ≥ 9) na categoria = 100%.
+      arr = arr.filter(x => cutSet.has(x.slug)).map(x => ({ ...x, positivas: posCat(byPart[x.slug], key) }))
+      const maxPos = Math.max(0, ...arr.map(x => x.positivas))
+      arr = arr.map(x => ({ ...x, score: maxPos ? (x.positivas / maxPos) * 100 : 0 }))
+      arr.sort((a, b) => b.positivas - a.positivas || b.n - a.n)
     } else {
       arr = arr.map(x => ({ ...x, score: x.media }))
       arr.sort((a, b) => b.media - a.media || b.n - a.n)
@@ -608,10 +630,13 @@ function Rankings({ secret }) {
         <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>Cálculo:</span>
         {tabBtn('pura', 'Média pura')}
         {tabBtn('ponderada', 'Ponderada (justa)')}
+        {tabBtn('positivas', 'Aprovação (% positivas)')}
       </div>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0, marginBottom: 16, lineHeight: 1.6 }}>
         {metodo === 'ponderada'
           ? `Cálculo ponderado (mais justo): mistura a nota de cada loja com a média geral de todas, dando mais peso a quem recebeu mais avaliações. Assim uma loja com pouquíssimos votos não vai pro topo por acaso — a nota dela fica perto da média geral até juntar votos suficientes, e vai "subindo" para a própria média conforme recebe mais avaliações. Só concorrem lojas com pelo menos ${BAYES_MIN} avaliações. (Tecnicamente: peso da nota própria = n ÷ (n + ${BAYES_M}), onde n é o nº de avaliações.)`
+          : metodo === 'positivas'
+          ? `Aprovação (% positivas): em duas etapas. 1) Corte — só as ${POS_CUT} casas mais votadas no total entram na disputa (evita comparar volumes muito diferentes). 2) Entre elas, conta as avaliações positivas (nota 9 ou 10; no combo, média Doce+Salgado+Bebida ≥ 9) de cada categoria. A casa com mais positivas vira 100% e as outras aparecem em proporção (positivas ÷ maior nº de positivas × 100). Mede a melhor experiência — quantidade de voto não é qualidade.`
           : 'Média simples: a nota é a média pura das avaliações; em caso de empate, vence quem teve mais avaliações. É o cálculo usado hoje no site público — por isso uma loja com poucos votos pode aparecer no topo.'}
         {' '}Baseado em {totalAval} avaliações no total. Isto muda só esta prévia do painel — o site público continua usando a média simples.
       </p>
@@ -623,7 +648,7 @@ function Rankings({ secret }) {
             <h2 style={{ margin: '0 0 16px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {list.map(r => {
-                const pct = Math.max(3, Math.min(100, (r.score / 10) * 100))
+                const pct = Math.max(3, Math.min(100, metodo === 'positivas' ? r.score : (r.score / 10) * 100))
                 const top = r.posicao <= 3
                 return (
                   <div key={r.slug} style={{
@@ -639,9 +664,9 @@ function Rankings({ secret }) {
                       <strong style={{ flex: 1, minWidth: 0, color: 'var(--lovers-burgundy)', fontSize: 16.5, lineHeight: 1.25 }}>{partName(r.slug)}</strong>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{r.score.toFixed(2)}</span>
+                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{metodo === 'positivas' ? `${Math.round(r.score)}%` : r.score.toFixed(2)}</span>
                       <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>
-                        {metodo === 'ponderada' ? `média ${r.media.toFixed(2)} · ` : ''}{r.n} aval.
+                        {metodo === 'ponderada' ? `média ${r.media.toFixed(2)} · ` : ''}{metodo === 'positivas' ? `${r.positivas} positivas · ` : ''}{r.n} aval.
                       </span>
                     </div>
                     <div style={{ height: 10, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
