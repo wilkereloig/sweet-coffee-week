@@ -594,6 +594,9 @@ function Rankings({ secret }) {
   // Lista única, vale pra todas as categorias — evita comparar volumes desiguais.
   const POS_CUT = 10
   const cutSet = new Set([...slugs].sort((a, b) => byPart[b].n - byPart[a].n).slice(0, POS_CUT))
+  // Piso do método "Taxa de aprovação": só concorre quem tem ≥ RATE_MIN avaliações
+  // (corta fluke de amostra pequena sem premiar tamanho — a taxa é volume-independente).
+  const RATE_MIN = 30
 
   // Monta o top 3 de uma categoria conforme o método escolhido.
   const buildTop = (key) => {
@@ -611,6 +614,14 @@ function Rankings({ secret }) {
       const maxPos = Math.max(0, ...arr.map(x => x.positivas))
       arr = arr.map(x => ({ ...x, score: maxPos ? (x.positivas / maxPos) * 100 : 0 }))
       arr.sort((a, b) => b.positivas - a.positivas || b.n - a.n)
+    } else if (metodo === 'taxa') {
+      // Taxa de aprovação: % dos votos da própria loja que foram positivos (nota ≥ 9).
+      // Volume-independente; só concorre quem tem ≥ RATE_MIN avaliações.
+      arr = arr.filter(x => x.n >= RATE_MIN).map(x => {
+        const positivas = posCat(byPart[x.slug], key)
+        return { ...x, positivas, score: x.n ? (positivas / x.n) * 100 : 0 }
+      })
+      arr.sort((a, b) => b.score - a.score || b.n - a.n)
     } else {
       arr = arr.map(x => ({ ...x, score: x.media }))
       arr.sort((a, b) => b.media - a.media || b.n - a.n)
@@ -631,12 +642,15 @@ function Rankings({ secret }) {
         {tabBtn('pura', 'Média pura')}
         {tabBtn('ponderada', 'Ponderada (justa)')}
         {tabBtn('positivas', 'Aprovação (% positivas)')}
+        {tabBtn('taxa', 'Taxa de aprovação')}
       </div>
       <p style={{ color: 'var(--lovers-brown)', fontSize: 14, marginTop: 0, marginBottom: 16, lineHeight: 1.6 }}>
         {metodo === 'ponderada'
           ? `Cálculo ponderado (mais justo): mistura a nota de cada loja com a média geral de todas, dando mais peso a quem recebeu mais avaliações. Assim uma loja com pouquíssimos votos não vai pro topo por acaso — a nota dela fica perto da média geral até juntar votos suficientes, e vai "subindo" para a própria média conforme recebe mais avaliações. Só concorrem lojas com pelo menos ${BAYES_MIN} avaliações. (Tecnicamente: peso da nota própria = n ÷ (n + ${BAYES_M}), onde n é o nº de avaliações.)`
           : metodo === 'positivas'
-          ? `Aprovação (% positivas): em duas etapas. 1) Corte — só as ${POS_CUT} casas mais votadas no total entram na disputa (evita comparar volumes muito diferentes). 2) Entre elas, conta as avaliações positivas (nota 9 ou 10; no combo, média Doce+Salgado+Bebida ≥ 9) de cada categoria. A casa com mais positivas vira 100% e as outras aparecem em proporção (positivas ÷ maior nº de positivas × 100). Mede a melhor experiência — quantidade de voto não é qualidade.`
+          ? `Aprovação (% positivas): em duas etapas. 1) Corte — só as ${POS_CUT} casas mais votadas no total entram na disputa (evita comparar volumes muito diferentes). 2) Entre elas, conta as avaliações positivas (nota 9 ou 10; no combo, média Doce+Salgado+Bebida ≥ 9) de cada categoria. A casa com mais positivas vira 100% e as outras aparecem em proporção (positivas ÷ maior nº de positivas × 100). Mede a melhor experiência — quantidade de voto não é qualidade. Atenção: como conta o nº absoluto de positivas, ainda favorece quem tem mais votos.`
+          : metodo === 'taxa'
+          ? `Taxa de aprovação (o mais justo p/ qualidade): % dos votos de cada loja que foram positivos — nota 9 ou 10 (no combo, média Doce+Salgado+Bebida ≥ 9). Como é proporção da própria loja, independe do tamanho: uma casa pequena e excelente pode vencer uma grande. Só concorre quem tem pelo menos ${RATE_MIN} avaliações na categoria (corta o acaso de amostra pequena). Empate: vence quem teve mais avaliações.`
           : 'Média simples: a nota é a média pura das avaliações; em caso de empate, vence quem teve mais avaliações. É o cálculo usado hoje no site público — por isso uma loja com poucos votos pode aparecer no topo.'}
         {' '}Baseado em {totalAval} avaliações no total. Isto muda só esta prévia do painel — o site público continua usando a média simples.
       </p>
@@ -648,7 +662,8 @@ function Rankings({ secret }) {
             <h2 style={{ margin: '0 0 16px', fontSize: 20, color: 'var(--lovers-burgundy)' }}>{c.label}</h2>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {list.map(r => {
-                const pct = Math.max(3, Math.min(100, metodo === 'positivas' ? r.score : (r.score / 10) * 100))
+                const isPct = metodo === 'positivas' || metodo === 'taxa'
+                const pct = Math.max(3, Math.min(100, isPct ? r.score : (r.score / 10) * 100))
                 const top = r.posicao <= 3
                 return (
                   <div key={r.slug} style={{
@@ -664,9 +679,9 @@ function Rankings({ secret }) {
                       <strong style={{ flex: 1, minWidth: 0, color: 'var(--lovers-burgundy)', fontSize: 16.5, lineHeight: 1.25 }}>{partName(r.slug)}</strong>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{metodo === 'positivas' ? `${Math.round(r.score)}%` : r.score.toFixed(2)}</span>
+                      <span style={{ fontSize: 27, fontWeight: 800, color: 'var(--lovers-burgundy)' }}>{isPct ? `${Math.round(r.score)}%` : r.score.toFixed(2)}</span>
                       <span style={{ fontSize: 14, color: 'var(--lovers-brown)' }}>
-                        {metodo === 'ponderada' ? `média ${r.media.toFixed(2)} · ` : ''}{metodo === 'positivas' ? `${r.positivas} positivas · ` : ''}{r.n} aval.
+                        {metodo === 'ponderada' ? `média ${r.media.toFixed(2)} · ` : ''}{isPct ? `${r.positivas} positivas · ` : ''}{r.n} aval.
                       </span>
                     </div>
                     <div style={{ height: 10, background: 'rgba(135,14,45,.08)', borderRadius: 6, overflow: 'hidden' }}>
