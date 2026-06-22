@@ -2,170 +2,165 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
 
-function RankCard({ pos, marca, edicoes, primeira, ultima }) {
+function CuriosityCard({ tag, title, body, icon }) {
+  const Icon = I[icon] || I.star
   return (
-    <div className="card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 24, alignItems: 'center' }}>
-      <div style={{ width: 64, textAlign: 'center', fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 56, lineHeight: 1, color: 'var(--accent)' }}>
-        {pos.toString().padStart(2, '0')}
-      </div>
-      <div>
-        <div className="h-3">{marca}</div>
-        <div className="mono mt-1 text-mute">PARTICIPOU EM {edicoes} EDIÇÕES</div>
-        <div className="text-mute mt-2" style={{ fontSize: 14 }}>
-          De <span style={{ fontStyle: 'italic' }}>{primeira}</span> até <span style={{ fontStyle: 'italic' }}>{ultima}</span>
-        </div>
-      </div>
-      <div style={{ width: 80, height: 80, borderRadius: 16, background: 'rgba(43,24,16,.04)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)' }}>
-        {[I.cup, I.donut, I.croissant, I.plate][pos % 4]({ width: 28, height: 28 })}
-      </div>
-    </div>
+    <article className="curiosity-card card">
+      <div className="curiosity-card__icon"><Icon width={24} height={24} /></div>
+      <span>{tag}</span>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </article>
   )
 }
 
 export function CuriosidadesPage({ navigate }) {
+  const cards = [
+    {
+      tag: 'Formato',
+      title: 'O combo é a assinatura do Sweet.',
+      body: 'A estrutura mais reconhecida do festival combina doce, salgado e bebida em uma experiência única, criada especialmente para o tema da edição.',
+      icon: 'plate',
+    },
+    {
+      tag: 'Cidade',
+      title: 'O mapa transforma consumo em roteiro.',
+      body: 'O público não escolhe apenas um produto: escolhe lojas, bairros, horários, encontros e caminhos para viver a temporada.',
+      icon: 'map',
+    },
+    {
+      tag: 'Comunidade',
+      title: 'Sweet Lovers são parte da marca.',
+      body: 'Quem prova, fotografa, vota, marca os amigos e acompanha cada edição ajudou o Sweet a se tornar uma tradição afetiva.',
+      icon: 'heart',
+    },
+    {
+      tag: 'Criação',
+      title: 'Cada tema vira uma pequena narrativa.',
+      body: 'Cinema, música, livros, viagens, infância e cultura potiguar já foram traduzidos em sabores, nomes, vitrines e experiências.',
+      icon: 'star',
+    },
+  ]
+
+  const glossary = [
+    ['Sweet Lovers', 'Público apaixonado pelo festival: pessoas que fazem rota, compartilham combos, votam e acompanham a história do Sweet.'],
+    ['Mapa da Doçura', 'Ferramenta que reúne participantes, endereços e rotas para o público planejar visitas durante a edição.'],
+    ['Sweet Awards', 'Premiação que reconhece destaques da edição em categorias como combo, bebida, doce, atendimento, apresentação e criatividade.'],
+    ['Combo', 'Criação exclusiva do participante para a edição, normalmente composta por 1 doce, 1 salgado e 1 bebida.'],
+    ['Edição temática', 'Cada temporada parte de um conceito central que orienta comunicação, cardápio, narrativa e experiência nas lojas.'],
+    ['Rota da Doçura', 'Dinâmica de circulação e descoberta que incentiva o público a visitar diferentes participantes e colecionar memórias.'],
+  ]
+
   return (
-    <div className="page-enter">
-      <section style={{ padding: 'clamp(48px, 7vw, 96px) 0 32px' }}>
-        <div className="wrap">
-          <div className="eyebrow"><span className="dot"></span>CURIOSIDADES DO SWEET</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 'clamp(28px, 5vw, 80px)', alignItems: 'end', marginTop: 16 }}>
-            <h1 className="hero-inst__title" style={{ fontSize: 'clamp(48px, 8vw, 128px)' }}>
-              Curiosidades<br/><span className="roman">do Sweet.</span>
-            </h1>
-            <p className="lead" style={{ paddingBottom: 8 }}>
-              Rankings, memórias e números que contam a história do festival ao longo das suas 16 edições.
-            </p>
+    <div className="page-enter curiosidades-page">
+      <section className="curiosidades-hero">
+        <div className="wrap curiosidades-hero__grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Por dentro do Sweet</span>
+            <h1>Curiosidades, termos e bastidores do festival.</h1>
           </div>
+          <p className="lead">
+            Uma página para explicar o que faz o Sweet & Coffee Week ser mais do que uma semana de doces e cafés: formato, comunidade, mapa, votação, temas e memória afetiva.
+          </p>
+        </div>
+      </section>
+
+      <section className="section curiosity-photo-section">
+        <div className="wrap curiosity-photo-grid">
+          <div className="curiosity-photo-grid__big">
+            <PhotoEditorial label="SWEET LOVERS" caption="Pessoas, fotos, mapas, cafés e combos: o festival vivido pelo público." aspect="16/9" tone="warm" />
+          </div>
+          <PhotoEditorial label="VITRINES" caption="Cada loja interpreta o tema do seu jeito." aspect="4/5" tone="coffee" />
         </div>
       </section>
 
       <section className="section" style={{ background: 'var(--bg-soft)' }}>
         <div className="wrap">
-          <div className="eyebrow mb-3"><span className="dot"></span>NÚMEROS RÁPIDOS</div>
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-            {[
-              { n: '16',       l: 'TOTAL DE EDIÇÕES' },
-              { n: '+200',     l: 'TOTAL DE PARTICIPANTES' },
-              { n: '+540',     l: 'TOTAL DE COMBOS CRIADOS' },
-              { n: 'Movies',   l: 'TEMA COM MAIS PARTICIPANTES' },
-              { n: 'Tirol',    l: 'BAIRRO COM MAIS PARTICIPANTES' },
-            ].map((s, i) => (
-              <div key={i} className="card" style={{ background: 'var(--bg-card)' }}>
-                <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(28px, 3vw, 44px)', lineHeight: 1, color: 'var(--accent)' }}>
-                  {s.n}
-                </div>
-                <div className="mono mt-3 text-mute" style={{ fontSize: 11 }}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <style>{`
-          @media (max-width: 1280px) {
-            .section .grid[style*="repeat(5"] { grid-template-columns: repeat(4, 1fr) !important; }
-          }
-          @media (max-width: 1100px) {
-            .section .grid[style*="repeat(5"] { grid-template-columns: repeat(3, 1fr) !important; }
-          }
-          @media (max-width: 880px) {
-            .section .grid[style*="repeat(5"] { grid-template-columns: repeat(2, 1fr) !important; }
-          }
-        `}</style>
-      </section>
-
-      <section className="section">
-        <div className="wrap">
-          <div style={{ marginBottom: 40 }}>
-            <div className="eyebrow"><span className="dot"></span>QUEM MAIS PARTICIPOU DO SWEET</div>
-            <h2 className="h-1 mt-3">Ranking de presença.</h2>
-          </div>
-          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            <RankCard pos={1} marca="Doceria Placeholder I"       edicoes={14} primeira="S&C 2016"          ultima="Lovers 2026" />
-            <RankCard pos={2} marca="Cafeteria Placeholder II"    edicoes={12} primeira="Páscoa 2017"        ultima="Lovers 2026" />
-            <RankCard pos={3} marca="Confeitaria Placeholder III" edicoes={10} primeira="Doces do Mundo"     ultima="Celebration 2025" />
-            <RankCard pos={4} marca="Restaurante Placeholder IV"  edicoes={9}  primeira="Namorados 2018"     ultima="Celebration 2025" />
-            <RankCard pos={5} marca="Marca Gastronômica V"        edicoes={8}  primeira="Pâtisserie 2019"    ultima="Books 2024" />
-            <RankCard pos={6} marca="Doceria Placeholder VI"      edicoes={7}  primeira="Heróis & Vilões"    ultima="Trip 2023" />
-          </div>
-          <style>{`
-            @media (max-width: 880px) {
-              .section .grid[style*="1fr 1fr"] { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
-        </div>
-      </section>
-
-      <section className="section" style={{ paddingTop: 80, paddingBottom: 40 }}>
-        <div className="wrap">
-          <div style={{ marginBottom: 40 }}>
-            <div className="eyebrow"><span className="dot"></span>FOTOS DAS EDIÇÕES</div>
-            <h2 className="h-2 mt-2">Memória do festival.</h2>
-          </div>
-          <div className="curi-mosaic">
-            <PhotoEditorial label="2016 · S&C" aspect="3/4" tone="warm" />
-            <PhotoEditorial label="2019 · PÂTISSERIE" aspect="3/4" tone="cream" />
-            <PhotoEditorial label="2022 · MOVIES" aspect="3/4" tone="dark" />
-            <PhotoEditorial label="2023 · TRIP" aspect="3/4" tone="cool" />
-            <PhotoEditorial label="2025 · CELEBRATION" aspect="3/4" tone="coffee" />
-          </div>
-          <style>{`
-            .curi-mosaic { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-            @media (max-width: 880px) { .curi-mosaic { grid-template-columns: repeat(3, 1fr); }
-              .curi-mosaic > figure:nth-child(n+4) { display: none; }
-            }
-            @media (max-width: 560px) { .curi-mosaic { grid-template-columns: repeat(2, 1fr); }
-              .curi-mosaic > figure:nth-child(n+3) { display: none; }
-            }
-          `}</style>
-        </div>
-      </section>
-
-      <section className="section" style={{ background: 'var(--ink)', color: 'var(--bg)' }}>
-        <div className="wrap">
-          <div style={{ marginBottom: 40 }}>
-            <div className="eyebrow" style={{ color: 'rgba(255,244,236,.55)' }}>
-              <span className="dot" style={{ background: 'var(--accent)' }}></span>
-              MAIORES VENCEDORES DO SWEET & COFFEE WEEK AWARDS
+          <div className="curiosity-section-head">
+            <div>
+              <span className="eyebrow"><span className="dot"></span>O que faz o Sweet ser Sweet</span>
+              <h2>As camadas da experiência.</h2>
             </div>
-            <h2 className="h-1 mt-3" style={{ color: 'var(--bg)' }}>Hall da Doçura.</h2>
+            <p>Esses pontos ajudam o público, participantes, imprensa e parceiros a entenderem a lógica do festival.</p>
           </div>
-
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {[
-              { pos: 1, marca: 'Doceria Placeholder I',  premios: 7, categorias: ['Melhor Combo', 'Mais Criativo', 'Mais Afetivo'], edicoes: ['Movies','Trip','Lovers'] },
-              { pos: 2, marca: 'Confeitaria II',          premios: 5, categorias: ['Melhor Combo', 'Atendimento'],                  edicoes: ['Books','Celebration'] },
-              { pos: 3, marca: 'Cafeteria III',           premios: 4, categorias: ['Mais Criativo'],                                edicoes: ['Séries','Trip'] },
-              { pos: 4, marca: 'Marca IV',                premios: 3, categorias: ['Mais Afetivo'],                                 edicoes: ['Sabores da Infância'] },
-              { pos: 5, marca: 'Doceria V',               premios: 3, categorias: ['Atendimento'],                                  edicoes: ['Movies','Books'] },
-              { pos: 6, marca: 'Marca VI',                premios: 2, categorias: ['Melhor Combo'],                                 edicoes: ['Terras Potiguares'] },
-            ].map((w) => (
-              <div key={w.pos} className="card" style={{ background: 'rgba(255,244,236,.04)', color: 'var(--bg)', borderColor: 'rgba(255,244,236,.12)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 56, lineHeight: 1, color: 'var(--peach)' }}>{w.pos.toString().padStart(2,'0')}</div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="mono" style={{ color: 'rgba(255,244,236,.5)' }}>PRÊMIOS</div>
-                    <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 36, lineHeight: 1, marginTop: 4 }}>{w.premios}</div>
-                  </div>
-                </div>
-                <div className="h-3 mt-3" style={{ color: 'var(--bg)' }}>{w.marca}</div>
-                <div style={{ marginTop: 14, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {w.categorias.map((c, i) => (
-                    <span key={i} className="tag" style={{ fontSize: 10, background: 'rgba(255,244,236,.06)', color: 'var(--peach)' }}>{c}</span>
-                  ))}
-                </div>
-                <div className="mono mt-3" style={{ fontSize: 11, color: 'rgba(255,244,236,.45)' }}>VENCEU EM: {w.edicoes.join(' · ')}</div>
-              </div>
-            ))}
+          <div className="curiosity-card-grid">
+            {cards.map((card) => <CuriosityCard key={card.title} {...card} />)}
           </div>
-          <style>{`
-            @media (max-width: 880px) {
-              .section .grid[style*="repeat(3, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-            @media (max-width: 560px) {
-              .section .grid[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
         </div>
       </section>
+
+      <section className="section glossary-section">
+        <div className="wrap glossary-grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Glossário do festival</span>
+            <h2>Palavras que aparecem em toda edição.</h2>
+            <p>Uma base simples para o novo site explicar melhor as dinâmicas sem pesar a comunicação.</p>
+          </div>
+          <div className="glossary-list">
+            {glossary.map(([term, description]) => (
+              <article key={term}>
+                <h3>{term}</h3>
+                <p>{description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section curiosity-dark">
+        <div className="wrap curiosity-dark__grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Em construção permanente</span>
+            <h2>O próximo passo é transformar memória em acervo.</h2>
+          </div>
+          <div>
+            <p>
+              Esta página já deixa preparada a linguagem para receber rankings reais, fotos históricas, listas de participantes por edição, vencedores do Sweet Awards e bastidores enviados pela organização.
+            </p>
+            <a href="#/edicoes" className="btn btn-accent btn-lg" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
+              Ver edições <I.arrow />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <style>{`
+        .curiosidades-hero { padding: clamp(54px, 8vw, 112px) 0 34px; }
+        .curiosidades-hero__grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
+        .curiosidades-hero h1 { font-family: var(--font-serif); font-size: clamp(56px, 8vw, 130px); line-height: .88; letter-spacing: -.06em; margin: 20px 0 0; color: var(--ink); }
+        .curiosidades-hero p { color: var(--ink-soft); }
+        .curiosity-photo-section { padding-top: 28px; }
+        .curiosity-photo-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; align-items: stretch; }
+        .curiosity-photo-grid__big > figure, .curiosity-photo-grid > figure { height: 100%; min-height: 460px; aspect-ratio: auto !important; }
+        .curiosity-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 36px; }
+        .curiosity-section-head h2, .glossary-grid h2, .curiosity-dark h2 { font-family: var(--font-serif); font-size: clamp(40px, 6vw, 86px); line-height: .95; letter-spacing: -.045em; margin: 14px 0 0; }
+        .curiosity-section-head p { max-width: 440px; color: var(--ink-soft); line-height: 1.6; }
+        .curiosity-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .curiosity-card { min-height: 300px; display: flex; flex-direction: column; }
+        .curiosity-card__icon { color: var(--accent); margin-bottom: 26px; }
+        .curiosity-card span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
+        .curiosity-card h2 { font-size: 25px; line-height: 1.05; margin: 12px 0 0; color: var(--ink); }
+        .curiosity-card p { margin: auto 0 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+        .glossary-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
+        .glossary-grid > div:first-child p { color: var(--ink-soft); line-height: 1.65; max-width: 44ch; }
+        .glossary-list { display: grid; gap: 12px; }
+        .glossary-list article { display: grid; grid-template-columns: .34fr 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+        .glossary-list h3 { margin: 0; font-size: 20px; color: var(--ink); }
+        .glossary-list p { margin: 0; color: var(--ink-soft); line-height: 1.6; }
+        .curiosity-dark { background: var(--ink); color: var(--bg); }
+        .curiosity-dark__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
+        .curiosity-dark h2 { color: var(--bg); }
+        .curiosity-dark p { color: rgba(255,244,236,.72); line-height: 1.7; font-size: 17px; }
+        @media (max-width: 1040px) {
+          .curiosidades-hero__grid, .curiosity-photo-grid, .glossary-grid, .curiosity-dark__grid { grid-template-columns: 1fr; }
+          .curiosity-card-grid { grid-template-columns: repeat(2, 1fr); }
+          .curiosity-section-head { flex-direction: column; align-items: flex-start; }
+          .curiosity-photo-grid__big > figure, .curiosity-photo-grid > figure { min-height: 340px; }
+        }
+        @media (max-width: 620px) {
+          .curiosity-card-grid, .glossary-list article { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </div>
   )
 }
