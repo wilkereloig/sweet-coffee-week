@@ -1,5 +1,5 @@
 import React from 'react'
-import { I, LoversLogo, HeartTiny, TapeStrip } from '../../components/icons'
+import { I } from '../../components/icons'
 import { PhotoEditorial, LogoPH } from '../../components/placeholders'
 import { PARTNERS } from '../../data/partners'
 
@@ -242,103 +242,6 @@ export function HomePage({ navigate }) {
           <style>{`
             @media (max-width: 880px) {
               .home-f2 { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
-        </div>
-      </section>
-
-      <section className="section" style={{ paddingTop: 40, paddingBottom: 120 }}>
-        <div className="wrap">
-          <div className="home-edition kv-lovers" style={{
-            position: 'relative',
-            background: 'var(--lovers-bg-deep, #FAD1B0)',
-            borderRadius: 32,
-            overflow: 'hidden',
-          }}>
-            {/* Gradiente de fundo da identidade Lovers */}
-            <div className="lovers-bg" style={{ position: 'absolute', inset: 0, opacity: .55, pointerEvents: 'none' }} />
-
-            <div className="home-edition__grid" style={{ position: 'relative' }}>
-
-              {/* Coluna da foto com decorativos */}
-              <div className="home-edition__photo" style={{ position: 'relative' }}>
-                <PhotoEditorial label="SWEET & COFFEE WEEK LOVERS · COMBO HERO" caption="Foto principal da campanha — combo da edição Lovers." aspect="1/1" tone="warm" />
-                <div style={{ position: 'absolute', bottom: 24, left: 20, zIndex: 2 }}>
-                  <TapeStrip rotate={-2}>16ª EDIÇÃO · LOVERS</TapeStrip>
-                </div>
-                <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 2 }}>
-                  <span className="sticker sticker-pink" style={{ transform: 'rotate(8deg)', display: 'inline-block' }}>
-                    recriando.
-                  </span>
-                </div>
-              </div>
-
-              {/* Coluna de texto */}
-              <div className="home-edition__text">
-
-                {/* Badge */}
-                <div style={{ marginBottom: 24 }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    background: 'var(--lovers-burgundy)', color: 'var(--lovers-cream)',
-                    padding: '5px 14px', borderRadius: 999,
-                    fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.1em',
-                  }}>
-                    <HeartTiny size={10} color="var(--lovers-cream)" /> EDIÇÃO ENCERRADA
-                  </span>
-                </div>
-
-                {/* Logo da edição */}
-                <img
-                  src="/images/sweet-lovers-logo.svg"
-                  alt="Sweet & Coffee Week Lovers 16ª Edição"
-                  style={{ height: 110, width: 'auto', display: 'block', marginBottom: 28 }}
-                />
-
-                {/* Título */}
-                <h2 className="lovers-h1" style={{ margin: 0, fontSize: 'clamp(40px, 5.5vw, 80px)', lineHeight: 1 }}>
-                  Sweet &<br/>
-                  Coffee <span style={{ color: 'var(--lovers-pink)' }}>Lovers.</span>
-                </h2>
-
-                <p style={{ fontFamily: 'var(--font-script)', fontSize: 30, color: 'var(--lovers-burgundy)', lineHeight: 1, margin: '20px 0 0' }}>
-                  Feito de amor, recriando sabores.
-                </p>
-
-                <p style={{ color: 'var(--lovers-brown)', opacity: .82, fontSize: 17, maxWidth: '44ch', marginTop: 20, lineHeight: 1.55 }}>
-                  A 16ª edição do Sweet & Coffee Week celebrou os Sweet Lovers com combos inspirados em temas que marcaram a história do festival.
-                </p>
-
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
-                  <a href="#/vencedores" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}
-                     className="btn btn-lovers btn-lg">
-                    Ver os vencedores <I.arrow />
-                  </a>
-                  <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer"
-                     className="btn btn-lg" style={{ background: 'transparent', color: 'var(--lovers-burgundy)', border: '1px solid var(--lovers-burgundy)' }}>
-                    Acompanhe no Instagram
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <style>{`
-            .home-edition__grid {
-              display: grid;
-              grid-template-columns: 1fr 1.1fr;
-              align-items: stretch;
-            }
-            .home-edition__photo { min-height: 560px; }
-            .home-edition__photo > figure { border-radius: 0; }
-            .home-edition__text {
-              padding: clamp(40px, 5vw, 80px);
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            @media (max-width: 880px) {
-              .home-edition__grid { grid-template-columns: 1fr; }
-              .home-edition__photo { min-height: 0; aspect-ratio: 4/3; }
             }
           `}</style>
         </div>
