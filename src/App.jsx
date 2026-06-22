@@ -6,8 +6,13 @@ import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 
-import { ComingSoonPage } from './pages/ComingSoon'
 import { AgradecimentoPage } from './pages/institutional/Agradecimento'
+import { HomePage }         from './pages/institutional/Home'
+import { CuriosidadesPage } from './pages/institutional/Curiosidades'
+import { EdicoesPage }      from './pages/institutional/Edicoes'
+import { ParticiparPage }   from './pages/institutional/Participar'
+import { ApoiarPage }       from './pages/institutional/Apoiar'
+import { ContatoPage }      from './pages/institutional/Contato'
 
 // Rotas antigas da edição Lovers (incluindo QR Codes impressos #/lovers/...).
 // A edição foi encerrada: redirecionam para a home (página de vencedores).
@@ -29,6 +34,7 @@ export default function App() {
   const route = (() => {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/vencedores')) return 'vencedores'
+    if (path.startsWith('/o-sweet'))    return 'o-sweet'
     if (path.startsWith('/curiosidades')) return 'curiosidades'
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'
@@ -41,11 +47,12 @@ export default function App() {
   switch (route) {
     case 'home':
     case 'vencedores':   page = <AgradecimentoPage navigate={navigate} />; break
-    case 'curiosidades':
-    case 'participar':
-    case 'apoiar':
-    case 'edicoes':
-    case 'contato':      page = <ComingSoonPage />; break
+    case 'o-sweet':      page = <HomePage navigate={navigate} />; break
+    case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
+    case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
+    case 'participar':   page = <ParticiparPage navigate={navigate} />; break
+    case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
+    case 'contato':      page = <ContatoPage navigate={navigate} />; break
     default:             page = <AgradecimentoPage navigate={navigate} />
   }
 

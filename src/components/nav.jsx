@@ -2,13 +2,13 @@ import React from 'react'
 import { I } from './icons'
 
 export const NAV_LINKS = [
-  { id: 'home',         label: 'O Sweet',      href: '#/',             locked: true },
-  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades', locked: true },
-  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes',      locked: true },
+  { id: 'o-sweet',      label: 'O Sweet',      href: '#/o-sweet' },
+  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
+  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
   { id: 'vencedores',   label: 'Sweet Awards', href: '#/vencedores' },
-  { id: 'participar',   label: 'Participar',   href: '#/participar',   locked: true },
-  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar',       locked: true },
-  { id: 'contato',      label: 'Contato',      href: '#/contato',      locked: true },
+  { id: 'participar',   label: 'Participar',   href: '#/participar' },
+  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
+  { id: 'contato',      label: 'Contato',      href: '#/contato' },
 ]
 
 function SiteSidebar({ route, navigate }) {
