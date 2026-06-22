@@ -19,6 +19,12 @@
     { "source": "/rota", "destination": "/" },
     { "source": "/participantes", "destination": "/" },
     { "source": "/premiacao", "destination": "/" },
+    { "source": "/edicoes", "destination": "/" },
+    { "source": "/curiosidades", "destination": "/" },
+    { "source": "/participar", "destination": "/" },
+    { "source": "/apoiar", "destination": "/" },
+    { "source": "/contato", "destination": "/" },
+    { "source": "/edicoes/:path*", "destination": "/" },
     { "source": "/lovers/:path*", "destination": "/" }
   ]
 }
