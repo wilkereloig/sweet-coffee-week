@@ -40,13 +40,13 @@ export function HomePage({ navigate }) {
                 Um festival gastronômico que reúne docerias, cafeterias, confeitarias, restaurantes e marcas da cidade em uma rota de combos exclusivos criados especialmente para cada edição.
               </p>
               <div className="hero-inst__meta">
-                <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+                <a href="#/vencedores" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}
                    className="btn btn-primary btn-lg">
-                  Conheça a edição Lovers <I.arrow />
+                  Vencedores da edição Lovers <I.arrow />
                 </a>
-                <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+                <a href="#/edicoes" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}
                    className="btn btn-secondary btn-lg">
-                  Ver mapa da edição
+                  Todas as edições
                 </a>
               </div>
             </div>
@@ -284,7 +284,7 @@ export function HomePage({ navigate }) {
                     padding: '5px 14px', borderRadius: 999,
                     fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.1em',
                   }}>
-                    <HeartTiny size={10} color="var(--lovers-cream)" /> EDIÇÃO EM CURSO
+                    <HeartTiny size={10} color="var(--lovers-cream)" /> EDIÇÃO ENCERRADA
                   </span>
                 </div>
 
@@ -306,17 +306,17 @@ export function HomePage({ navigate }) {
                 </p>
 
                 <p style={{ color: 'var(--lovers-brown)', opacity: .82, fontSize: 17, maxWidth: '44ch', marginTop: 20, lineHeight: 1.55 }}>
-                  A 16ª edição do Sweet & Coffee Week celebra os Sweet Lovers com combos inspirados em temas que marcaram a história do festival.
+                  A 16ª edição do Sweet & Coffee Week celebrou os Sweet Lovers com combos inspirados em temas que marcaram a história do festival.
                 </p>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
-                  <a href="#/lovers" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}
+                  <a href="#/vencedores" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}
                      className="btn btn-lovers btn-lg">
-                    Conhecer a edição <I.arrow />
+                    Ver os vencedores <I.arrow />
                   </a>
-                  <a href="#/lovers/mapa" onClick={(e) => { e.preventDefault(); navigate('/lovers/mapa') }}
+                  <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer"
                      className="btn btn-lg" style={{ background: 'transparent', color: 'var(--lovers-burgundy)', border: '1px solid var(--lovers-burgundy)' }}>
-                    Abrir mapa
+                    Acompanhe no Instagram
                   </a>
                 </div>
               </div>

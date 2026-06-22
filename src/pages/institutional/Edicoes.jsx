@@ -48,7 +48,7 @@ export function EdicoesPage({ navigate }) {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
                           <span className="mono" style={{ color: e.atual ? 'var(--lovers-red)' : 'var(--ink-mute)' }}>{e.ano}</span>
-                          {e.atual && <span className="tag tag-lovers">EDIÇÃO ATUAL</span>}
+                          {e.atual && <span className="tag tag-lovers">ÚLTIMA EDIÇÃO</span>}
                         </div>
                         <div style={{
                           fontFamily: e.atual ? 'var(--font-lovers-display)' : 'var(--font-serif)',
@@ -63,9 +63,9 @@ export function EdicoesPage({ navigate }) {
                           {e.desc}
                         </p>
                         {e.atual && (
-                          <a href="#/lovers" onClick={(ev) => { ev.preventDefault(); navigate('/lovers') }}
+                          <a href="#/vencedores" onClick={(ev) => { ev.preventDefault(); navigate('/vencedores') }}
                              className="btn btn-lovers btn-sm" style={{ marginTop: 14 }}>
-                            Ver edição <I.arrow />
+                            Ver vencedores <I.arrow />
                           </a>
                         )}
                       </div>
