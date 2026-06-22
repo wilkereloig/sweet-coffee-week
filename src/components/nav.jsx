@@ -1,26 +1,26 @@
 import React from 'react'
-import { I, LogoMark, HeartTiny, LoversWordmark } from './icons'
+import { I, HeartTiny, LoversWordmark } from './icons'
 import { PARTICIPANTS } from '../data/participants'
 import { LOVERS_SHOW_COMBO_DETAILS } from '../config/loversRelease'
 
 export const NAV_LINKS = [
-  { id: 'home',         label: 'O Sweet',      href: '#/', locked: true },
-  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades', locked: true },
-  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes',      locked: true },
-  { id: 'participar',   label: 'Participar',   href: '#/participar',   locked: true },
-  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar',       locked: true },
-  { id: 'contato',      label: 'Contato',      href: '#/contato',      locked: true },
+  { id: 'home',         label: 'O Sweet',      href: '#/' },
+  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
+  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
+  { id: 'participar',   label: 'Participar',   href: '#/participar' },
+  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
+  { id: 'contato',      label: 'Contato',      href: '#/contato' },
 ]
 
 const LOVERS_LINKS = [
-  { id: 'lovers',        label: 'Sobre a edição',  sub: 'Entenda a edição',      href: '#/lovers' },
-  { id: 'participantes', label: 'Participantes',    sub: 'Escolha seus combos',   href: '#/lovers/participantes' },
-  { id: 'mapa',          label: 'Mapa da Doçura',   sub: 'Monte sua rota',        href: '#/lovers/mapa' },
-  { id: 'premiacao',     label: 'Premiação',        sub: 'Avalie seus favoritos', href: '#/lovers/premiacao' },
+  { id: 'lovers',        label: 'Arquivo Lovers',  sub: 'Especial 10 anos',       href: '#/lovers' },
+  { id: 'participantes', label: 'Participantes',    sub: 'Combos e lojas',         href: '#/lovers/participantes' },
+  { id: 'mapa',          label: 'Mapa da Doçura',   sub: 'Rota da edição',         href: '#/lovers/mapa' },
+  { id: 'premiacao',     label: 'Premiação',        sub: 'Sweet Awards',           href: '#/lovers/premiacao' },
   { id: 'viva',          label: 'Viva o Sweet',     sub: 'Ações e experiências',   href: '#/lovers/viva' },
 ]
 
-const IS_LOVERS_ROUTE = ['home', 'lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar', 'viva']
+const IS_LOVERS_ROUTE = ['lovers', 'participantes', 'combos', 'combo-detail', 'mapa', 'awards', 'premiacao', 'votar', 'viva']
 
 function SiteSidebar({ route, navigate, isLovers }) {
   return (
@@ -60,22 +60,12 @@ function SiteSidebar({ route, navigate, isLovers }) {
       <nav className="sidebar__nav">
         <div className="sidebar__section-label">Institucional</div>
         {NAV_LINKS.map((l) => (
-          l.locked ? (
-            <span key={l.id}
-                  className="sidebar__link locked"
-                  data-tooltip={l.tooltip || 'Em breve'}
-                  aria-disabled="true">
-              {l.label}
-              <I.lock />
-            </span>
-          ) : (
-            <a key={l.id}
-               href={l.href}
-               className={`sidebar__link${route === l.id ? ' active' : ''}`}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-              {l.label}
-            </a>
-          )
+          <a key={l.id}
+             href={l.href}
+             className={`sidebar__link${route === l.id ? ' active' : ''}`}
+             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+            {l.label}
+          </a>
         ))}
       </nav>
 
@@ -83,24 +73,15 @@ function SiteSidebar({ route, navigate, isLovers }) {
         <div className="sidebar__lovers-badge" style={{ marginBottom: 12 }}>
           <LoversWordmark width={120} />
         </div>
+        <div className="sidebar__section-label" style={{ marginBottom: 8 }}>Edição arquivada</div>
         {LOVERS_LINKS.map((l) => (
-          l.locked ? (
-            <span key={l.id}
-                  className="sidebar__link locked"
-                  title="Em breve"
-                  aria-disabled="true">
-              {l.label}
-              <I.lock />
-            </span>
-          ) : (
-            <a key={l.id}
-               href={l.href}
-               className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && (route === 'awards' || route === 'votar')) ? ' lovers-active' : ''}`}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-              <span className="sidebar__link-label">{l.label}</span>
-              {l.sub && <span className="sidebar__link-sub">{l.sub}</span>}
-            </a>
-          )
+          <a key={l.id}
+             href={l.href}
+             className={`sidebar__link sidebar__link--lovers${route === l.id || (l.id === 'participantes' && (route === 'combos' || route === 'combo-detail')) || (l.id === 'premiacao' && (route === 'awards' || route === 'votar')) ? ' lovers-active' : ''}`}
+             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+            <span className="sidebar__link-label">{l.label}</span>
+            {l.sub && <span className="sidebar__link-sub">{l.sub}</span>}
+          </a>
         ))}
         <a href="#/lovers/painel"
            className={`sidebar__link sidebar__link--lovers${route === 'painel' ? ' lovers-active' : ''}`}
@@ -121,7 +102,6 @@ function BrandLogo({ isLovers, navigate }) {
   return (
     <a href="#/" className="brand" onClick={(e) => { e.preventDefault(); navigate('/') }}
        style={{ position: 'relative', display: 'inline-block' }}>
-      {/* Logo institucional — fica no fluxo normal para definir o tamanho do container */}
       <img
         src="/images/logo-sweet-coffee-week-header.svg"
         alt="Sweet & Coffee Week"
@@ -133,7 +113,6 @@ function BrandLogo({ isLovers, navigate }) {
           transition: 'opacity .4s ease, transform .4s ease',
         }}
       />
-      {/* Logo Lovers — sobreposta em absolute */}
       <img
         src="/images/sweet-lovers-logo.svg"
         alt="Sweet & Coffee Week Lovers"
@@ -183,24 +162,16 @@ function LoversDropdown({ route, navigate }) {
             <LoversWordmark width={96} />
             <div className="lovers-dropdown__header-sub">
               <HeartTiny size={9} color="var(--lovers-burgundy)" />
-              <span>Sweet &amp; Coffee Week Lovers · 16ª edição</span>
+              <span>Arquivo da edição · Especial 10 anos</span>
             </div>
           </div>
           {LOVERS_LINKS.map((l) => (
-            l.locked ? (
-              <span key={l.id} className="locked" aria-disabled="true">
-                <span style={{ flex: 1 }}>{l.label}</span>
-                <span className="dropdown-soon-badge">em breve</span>
-                <I.lock />
-              </span>
-            ) : (
-              <a key={l.id}
-                 href={l.href}
-                 className={route === l.id ? 'active' : ''}
-                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setOpen(false) }}>
-                {l.label}
-              </a>
-            )
+            <a key={l.id}
+               href={l.href}
+               className={route === l.id ? 'active' : ''}
+               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setOpen(false) }}>
+              {l.label}
+            </a>
           ))}
         </div>
       )}
@@ -243,7 +214,7 @@ function LoversMobileNav({ route, navigate }) {
     <nav className="lovers-mobile-nav" aria-label="Navegação Sweet & Coffee Week Lovers">
       <a href="#/lovers"
          className="lovers-mobile-nav__seal"
-         aria-label="Sweet & Coffee Week Lovers — sobre a edição"
+         aria-label="Sweet & Coffee Week Lovers — arquivo da edição"
          onClick={(e) => { e.preventDefault(); navigate('/lovers') }}>
         <LoversWordmark width={62} />
       </a>
@@ -280,22 +251,17 @@ export function SiteHeader({ route, navigate, path = '' }) {
 
           <nav className="nav-main">
             {NAV_LINKS.map((l) => (
-              l.locked ? (
-                <span key={l.id} className="nav-locked" data-tooltip={l.tooltip || 'Em breve'} aria-disabled="true">
-                  {l.label} <I.lock />
-                </span>
-              ) : (
-                <a key={l.id}
-                   href={l.href}
-                   className={route === l.id ? 'active' : ''}
-                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-                  {l.label}
-                </a>
-              )
+              <a key={l.id}
+                 href={l.href}
+                 className={route === l.id ? 'active' : ''}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+                {l.label}
+              </a>
             ))}
           </nav>
 
           <div className="nav-cta">
+            <LoversDropdown route={route} navigate={navigate} />
             <button
               className="menu-toggle"
               onClick={() => setMobileOpen(true)}
@@ -314,49 +280,30 @@ export function SiteHeader({ route, navigate, path = '' }) {
 
           <div className="mobile-menu__lovers-head">
             <LoversWordmark width={112} />
-            <div className="mobile-menu__lovers-head-sub">Sweet &amp; Coffee Week Lovers · 16ª edição</div>
-          </div>
-
-          <div className="mobile-menu__section mobile-menu__section--lovers">
-            {LOVERS_LINKS.map((l) => {
-              const isActive = route === l.id
-              if (l.locked) {
-                return (
-                  <span key={l.id} className="mobile-menu__item mobile-menu__item--locked" aria-disabled="true">
-                    <span className="mobile-menu__item-label">{l.label}</span>
-                    <span className="mobile-menu__item-right">
-                      <span className="mobile-menu__badge">em breve</span>
-                      <I.lock />
-                    </span>
-                  </span>
-                )
-              }
-              return (
-                <a key={l.id}
-                   href={l.href}
-                   className={`mobile-menu__item${isActive ? ' mobile-menu__item--active' : ''}`}
-                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-                  <span className="mobile-menu__item-label">{l.label}</span>
-                </a>
-              )
-            })}
+            <div className="mobile-menu__lovers-head-sub">Arquivo da edição · Especial 10 anos</div>
           </div>
 
           <div className="mobile-menu__section mobile-menu__section--institutional">
-            <div className="mobile-menu__section-title">Institucional</div>
+            <div className="mobile-menu__section-title">Site do festival</div>
             {NAV_LINKS.map((l) => (
-              l.locked ? (
-                <span key={l.id} className="mobile-menu__inst-link locked" aria-disabled="true">
-                  {l.label} <I.lock />
-                </span>
-              ) : (
-                <a key={l.id}
-                   href={l.href}
-                   className="mobile-menu__inst-link"
-                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-                  {l.label}
-                </a>
-              )
+              <a key={l.id}
+                 href={l.href}
+                 className={`mobile-menu__inst-link${route === l.id ? ' active' : ''}`}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                {l.label}
+              </a>
+            ))}
+          </div>
+
+          <div className="mobile-menu__section mobile-menu__section--lovers">
+            <div className="mobile-menu__section-title">Edição Lovers</div>
+            {LOVERS_LINKS.map((l) => (
+              <a key={l.id}
+                 href={l.href}
+                 className={`mobile-menu__item${route === l.id ? ' mobile-menu__item--active' : ''}`}
+                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
+                <span className="mobile-menu__item-label">{l.label}</span>
+              </a>
             ))}
           </div>
 
@@ -440,18 +387,6 @@ export function SiteHeader({ route, navigate, path = '' }) {
         }
         .lovers-dropdown a:hover { background: rgba(245,184,0,.1); }
         .lovers-dropdown a.active { color: var(--lovers-burgundy); font-weight: 700; background: rgba(135,14,45,.06); }
-        .dropdown-soon-badge {
-          font-family: var(--font-mono);
-          font-size: 8px;
-          letter-spacing: .1em;
-          text-transform: uppercase;
-          background: var(--lovers-yellow, #F5B800);
-          color: var(--lovers-brown, #3F1A0A);
-          padding: 2px 6px;
-          border-radius: 999px;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
       `}</style>
     </React.Fragment>
   )
