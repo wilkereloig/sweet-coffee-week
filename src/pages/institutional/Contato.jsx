@@ -1,83 +1,134 @@
 import React from 'react'
 import { I } from '../../components/icons'
+import { PhotoEditorial } from '../../components/placeholders'
+
+function ContactCard({ tag, title, body, contact, button, route, href, navigate, dark = false }) {
+  return (
+    <article className={`contact-card${dark ? ' is-dark' : ''}`}>
+      <span>{tag}</span>
+      <h2>{title}</h2>
+      <p>{body}</p>
+      <strong>{contact}</strong>
+      <a
+        href={route ? `#${route}` : href}
+        onClick={(e) => { if (route) { e.preventDefault(); navigate(route) } }}
+        target={href && href.startsWith('http') ? '_blank' : undefined}
+        rel={href && href.startsWith('http') ? 'noopener noreferrer' : undefined}
+        className={`btn ${dark ? 'btn-accent' : 'btn-secondary'} btn-sm`}
+      >
+        {button} <I.arrow />
+      </a>
+    </article>
+  )
+}
 
 export function ContatoPage({ navigate }) {
   return (
-    <div className="page-enter">
-      <section style={{ padding: 'clamp(48px, 7vw, 96px) 0 32px' }}>
-        <div className="wrap">
-          <div className="eyebrow"><span className="dot"></span>CONTATO</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 'clamp(28px, 5vw, 80px)', alignItems: 'end', marginTop: 16 }}
-               className="contato-hero">
-            <h1 className="hero-inst__title" style={{ fontSize: 'clamp(48px, 8vw, 128px)' }}>
-              Vamos<br/>
-              <span style={{ fontStyle: 'italic' }}>conversar?</span>
-            </h1>
-            <p className="lead" style={{ paddingBottom: 8 }}>
-              Imprensa, comercial, organização, dúvidas do público — escolha o canal e a gente responde.
+    <div className="page-enter contato-page">
+      <section className="contato-hero">
+        <div className="wrap contato-hero__grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Contato</span>
+            <h1>Vamos conversar sobre o Sweet?</h1>
+            <p className="lead">
+              Para público, imprensa, marcas participantes, patrocinadores e parceiros: escolha o caminho mais próximo do que você precisa.
             </p>
           </div>
-        </div>
-        <style>{`
-          @media (max-width: 880px) {
-            .contato-hero { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
-      </section>
-
-      <section className="section" style={{ paddingTop: 40 }}>
-        <div className="wrap">
-          <div className="contato-grid">
-            {[
-              { tag: 'GERAL',      t: 'Fale com a organização',    d: 'Dúvidas, parcerias e informações sobre o festival.',           c: 'contato@sweetcoffeeweek.com.br',  btn: 'Enviar e-mail' },
-              { tag: 'IMPRENSA',   t: 'Pauta, entrevista, release', d: 'Material de imprensa e contato da assessoria.',               c: 'imprensa@sweetcoffeeweek.com.br',  btn: 'Enviar e-mail' },
-              { tag: 'COMERCIAL',  t: 'Patrocínio e parcerias',     d: 'Quer apoiar a próxima edição? Falamos com sua marca.',         c: 'comercial@sweetcoffeeweek.com.br', btn: 'Enviar e-mail' },
-              { tag: 'PARTICIPAR', t: 'Sua marca quer participar?', d: 'Para docerias, cafeterias e marcas gastronômicas.',            c: 'Formulário rápido de interesse',  btn: 'Abrir formulário', route: '/participar' },
-            ].map((c, i) => (
-              <div key={i} className="card" style={{ padding: 32 }}>
-                <span className="tag tag-accent">{c.tag}</span>
-                <div className="h-2 mt-3" style={{ fontSize: 28 }}>{c.t}</div>
-                <p className="text-mute mt-3" style={{ fontSize: 15 }}>{c.d}</p>
-                <div className="mono mt-4" style={{ color: 'var(--accent)' }}>{c.c}</div>
-                <a href={c.route || `mailto:${c.c}`}
-                   onClick={(e) => { if (c.route) { e.preventDefault(); navigate(c.route) } }}
-                   className="btn btn-secondary mt-3 btn-sm">
-                  {c.btn} <I.arrow />
-                </a>
-              </div>
-            ))}
-          </div>
-
-          <div className="contato-row mt-5">
-            <div className="card" style={{ padding: 32, background: 'var(--ink)', color: 'var(--bg)', border: 0 }}>
-              <div className="mono mb-2" style={{ color: 'var(--peach)' }}>REALIZAÇÃO</div>
-              <div className="h-2" style={{ color: 'var(--bg)' }}>F2 Experience</div>
-              <p style={{ color: 'rgba(255,244,236,.7)', marginTop: 14, fontSize: 15 }}>
-                Empresa responsável pela elaboração, criação e execução do Sweet & Coffee Week.
-              </p>
-              <a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" className="btn btn-accent mt-4 btn-sm">Site da F2 <I.arrow /></a>
-            </div>
-            <div className="card" style={{ padding: 32 }}>
-              <div className="mono mb-2 text-mute">REDES SOCIAIS</div>
-              <div className="h-2" style={{ fontSize: 26 }}>@sweetcoffeeweek</div>
-              <p className="text-mute mt-3" style={{ fontSize: 15 }}>
-                Acompanhe o festival, novidades de edição e bastidores no Instagram.
-              </p>
-              <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer" className="btn btn-secondary mt-3 btn-sm">
-                <I.ig width={14} height={14} /> Abrir Instagram
-              </a>
-            </div>
+          <div className="contato-hero__photo">
+            <PhotoEditorial label="BASTIDORES DO FESTIVAL" caption="Organização, marcas, parceiros e Sweet Lovers construindo a temporada." aspect="4/5" tone="warm" />
           </div>
         </div>
-
-        <style>{`
-          .contato-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-          .contato-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-          @media (max-width: 880px) {
-            .contato-grid, .contato-row { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
       </section>
+
+      <section className="section contato-cards-section">
+        <div className="wrap contato-cards-grid">
+          <ContactCard
+            tag="Público"
+            title="Dúvidas sobre o festival"
+            body="Informações gerais, edição atual, mapa, combos, horários, votação e experiência do público."
+            contact="@sweetcoffeeweek"
+            button="Abrir Instagram"
+            href="https://www.instagram.com/sweetcoffeeweek"
+            navigate={navigate}
+          />
+          <ContactCard
+            tag="Participantes"
+            title="Sua marca quer entrar na rota?"
+            body="Pré-cadastro para docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas."
+            contact="Formulário de interesse"
+            button="Quero participar"
+            route="/participar"
+            navigate={navigate}
+          />
+          <ContactCard
+            tag="Comercial"
+            title="Patrocínio e parcerias"
+            body="Cotas, ativações, apoio institucional, mídia, brindes, experiências e propostas comerciais."
+            contact="Área de apoio"
+            button="Quero apoiar"
+            route="/apoiar"
+            navigate={navigate}
+            dark
+          />
+          <ContactCard
+            tag="Realização"
+            title="F2 Experience"
+            body="Empresa responsável por estratégia, criação, comunicação e desenvolvimento do projeto Sweet & Coffee Week."
+            contact="f2experience.com.br"
+            button="Conhecer a F2"
+            href="https://f2experience.com.br"
+            navigate={navigate}
+          />
+        </div>
+      </section>
+
+      <section className="section contato-editorial">
+        <div className="wrap contato-editorial__grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Comunicação direta</span>
+            <h2>O Instagram continua sendo o canal mais vivo do festival.</h2>
+            <p>
+              É por lá que o Sweet anuncia edições, participantes, bastidores, chamadas de votação, premiações, rotas, avisos importantes e conteúdos enviados pelos Sweet Lovers.
+            </p>
+            <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">
+              <I.ig width={16} height={16} /> Seguir @sweetcoffeeweek
+            </a>
+          </div>
+          <div className="contato-editorial__photos">
+            <PhotoEditorial label="FEED" caption="Conteúdo, lançamentos e bastidores." aspect="1/1" tone="coffee" />
+            <PhotoEditorial label="STORIES" caption="Avisos rápidos e interação com o público." aspect="9/16" tone="cream" />
+          </div>
+        </div>
+      </section>
+
+      <style>{`
+        .contato-hero { padding: clamp(54px, 8vw, 112px) 0 48px; }
+        .contato-hero__grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
+        .contato-hero h1, .contato-editorial h2 { font-family: var(--font-serif); font-size: clamp(54px, 8vw, 130px); line-height: .88; letter-spacing: -.06em; margin: 18px 0 0; color: var(--ink); }
+        .contato-hero h1 { max-width: 10ch; }
+        .contato-hero .lead { color: var(--ink-soft); line-height: 1.65; max-width: 54ch; }
+        .contato-hero__photo { border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(43,24,16,.16); }
+        .contato-cards-section { background: var(--bg-soft); }
+        .contato-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .contact-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; min-height: 310px; display: flex; flex-direction: column; }
+        .contact-card > span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+        .contact-card h2 { font-size: 25px; line-height: 1.05; margin: 18px 0 0; color: var(--ink); }
+        .contact-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 14px 0 0; }
+        .contact-card strong { display: block; margin-top: auto; color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; }
+        .contact-card .btn { align-self: flex-start; margin-top: 16px; }
+        .contact-card.is-dark { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+        .contact-card.is-dark h2, .contact-card.is-dark strong { color: var(--bg); }
+        .contact-card.is-dark p { color: rgba(255,244,236,.7); }
+        .contact-card.is-dark > span { color: var(--peach); }
+        .contato-editorial__grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
+        .contato-editorial p { color: var(--ink-soft); line-height: 1.7; max-width: 55ch; }
+        .contato-editorial__photos { display: grid; grid-template-columns: .9fr .7fr; gap: 18px; align-items: end; }
+        .contato-editorial__photos > figure:first-child { transform: rotate(-2deg); }
+        .contato-editorial__photos > figure:last-child { transform: rotate(3deg); }
+        @media (max-width: 1120px) { .contato-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) { .contato-hero__grid, .contato-editorial__grid { grid-template-columns: 1fr; } }
+        @media (max-width: 620px) { .contato-cards-grid, .contato-editorial__photos { grid-template-columns: 1fr; } }
+      `}</style>
     </div>
   )
 }
