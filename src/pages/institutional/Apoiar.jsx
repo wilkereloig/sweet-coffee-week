@@ -58,10 +58,10 @@ export function ApoiarPage({ navigate }) {
     'Patrocínio oficial',
     'Apoio institucional',
     'Ativação de marca',
-    'Produto / insumo / serviço',
+    'Produto, insumo ou serviço',
     'Mídia e divulgação',
     'Espaço para experiência',
-    'Premiação / brindes',
+    'Premiação ou brindes',
     'Outra proposta',
   ]
 
@@ -70,13 +70,16 @@ export function ApoiarPage({ navigate }) {
       <section className="apoiar-hero">
         <div className="wrap apoiar-hero__grid">
           <div>
-            <span className="eyebrow"><span className="dot"></span>Para parceiros e patrocinadores</span>
+            <span className="eyebrow"><span className="dot"></span>Para marcas, parceiros e patrocinadores</span>
             <h1>Associe sua marca à temporada mais doce de Natal.</h1>
             <p className="lead">
               O Sweet & Coffee Week conecta marcas a um público urbano, engajado e interessado em gastronomia, experiência, lifestyle, circulação pela cidade e consumo local.
             </p>
+            <p className="lead">
+              Apoiar o Sweet & Coffee Week é fazer parte de uma campanha com presença digital, ativação urbana, relacionamento com empreendedores, conteúdo espontâneo do público e alto potencial de memória.
+            </p>
             <div className="apoiar-hero__actions">
-              <a href="#form-apoiar" className="btn btn-accent btn-lg">Tenho interesse <I.arrow /></a>
+              <a href="#form-apoiar" className="btn btn-accent btn-lg">Tenho interesse em apoiar <I.arrow /></a>
               <a href="#/contato" className="btn btn-secondary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/contato') }}>Falar com a organização</a>
             </div>
           </div>
@@ -96,12 +99,38 @@ export function ApoiarPage({ navigate }) {
       <section className="section" style={{ background: 'var(--bg-soft)' }}>
         <div className="wrap apoiar-intro">
           <div>
-            <span className="eyebrow"><span className="dot"></span>Plataforma de marca</span>
-            <h2>O Sweet é mídia, experiência e cidade ao mesmo tempo.</h2>
+            <span className="eyebrow"><span className="dot"></span>Visibilidade com experiência</span>
+            <h2>O Sweet & Coffee Week é mídia, conteúdo e cidade ao mesmo tempo.</h2>
           </div>
-          <p>
-            Apoiar o Sweet significa participar de uma campanha com narrativa própria, presença digital, circulação em lojas, relacionamento com empreendedores, conteúdo espontâneo do público e alto potencial de ativação local.
-          </p>
+          <div className="apoiar-intro__text">
+            <p>
+              O festival não acontece em um único lugar. Ele se espalha pela cidade, pelos pontos de venda, pelo mapa, pelas redes sociais, pelas conversas do público, pelas fotos dos combos e pela votação do Sweet Awards.
+            </p>
+            <p>
+              Por isso, uma marca apoiadora não entra apenas como logotipo. Ela pode fazer parte da experiência: na comunicação, nos materiais da edição, nas ativações, nos brindes, nos prêmios, nos conteúdos e nos momentos de contato com os Sweet Lovers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section apoiar-paths-section apoiar-where-section">
+        <div className="wrap">
+          <div className="apoiar-section-head">
+            <div>
+              <span className="eyebrow"><span className="dot"></span>Onde a marca pode aparecer</span>
+              <h2>Presença em diferentes pontos da jornada.</h2>
+            </div>
+          </div>
+          <div className="partner-path-grid">
+            <PartnerPath title="Redes sociais" body="Posts, Reels, stories, chamadas de edição, bastidores, divulgação de participantes e conteúdos especiais." icon="ig" />
+            <PartnerPath title="Site oficial" body="Página institucional, página da edição, mapa, área de participantes, Sweet Awards e páginas comerciais." icon="search" />
+            <PartnerPath title="Materiais impressos" body="Cartazes, adesivos, sinalização, cartões, materiais de ponto de venda e peças de apoio." icon="plate" />
+            <PartnerPath title="Pontos participantes" body="Aplicação de marca em vitrines, balcões, displays, cardápios, QR codes ou ativações combinadas." icon="pin" />
+            <PartnerPath title="Mapa da Doçura" body="Presença na ferramenta que guia o público pela rota da edição." icon="map" />
+            <PartnerPath title="Sweet Awards" body="Possibilidade de apoio à votação, à divulgação dos vencedores, a prêmios ou a categorias especiais." icon="star" />
+            <PartnerPath title="Brindes e experiências" body="Distribuição de gifts, cupons, amostras, vouchers, experiências ou ações promocionais." icon="donut" />
+            <PartnerPath title="Conteúdo editorial" body="Participação em narrativas da edição, bastidores, listas, entrevistas, ativações ou conteúdos de marca." icon="heart" />
+          </div>
         </div>
       </section>
 
@@ -114,10 +143,42 @@ export function ApoiarPage({ navigate }) {
             </div>
           </div>
           <div className="partner-path-grid">
-            <PartnerPath title="Patrocínio" body="Cotas para marcas que querem aparecer como apoiadoras oficiais da edição e da comunicação do festival." icon="star" />
-            <PartnerPath title="Ativação" body="Ações presenciais ou digitais que conectam sua marca à rota, aos participantes e aos Sweet Lovers." icon="heart" />
-            <PartnerPath title="Produto ou serviço" body="Apoios por meio de brindes, insumos, experiências, tecnologia, mídia, espaço ou premiações." icon="plate" />
-            <PartnerPath title="Institucional" body="Parcerias com entidades, instituições, shoppings, projetos de cidade, turismo, cultura e economia criativa." icon="pin" />
+            <PartnerPath title="Patrocínio oficial" body="Para marcas que querem aparecer como apoiadoras da edição e da comunicação institucional do festival." icon="star" />
+            <PartnerPath title="Ativação de marca" body="Para marcas que querem criar uma ação presencial, digital ou híbrida conectada à rota, aos participantes ou aos Sweet Lovers." icon="route" />
+            <PartnerPath title="Produto, insumo ou serviço" body="Para empresas que desejam apoiar com brindes, ingredientes, embalagens, tecnologia, mídia, estrutura, prêmios ou soluções úteis à operação." icon="plate" />
+            <PartnerPath title="Apoio institucional" body="Para entidades, shoppings, projetos de cidade, turismo, cultura, educação, empreendedorismo e economia criativa." icon="pin" />
+            <PartnerPath title="Mídia e divulgação" body="Para veículos, creators, portais, rádios, TVs, podcasts ou canais que queiram se conectar ao festival." icon="cup" />
+          </div>
+        </div>
+      </section>
+
+      <section className="section apoiar-why-section">
+        <div className="wrap">
+          <div className="apoiar-section-head">
+            <div>
+              <span className="eyebrow"><span className="dot"></span>Por que apoiar</span>
+              <h2>Uma marca apoiadora entra em uma memória coletiva.</h2>
+            </div>
+          </div>
+          <div className="apoiar-why-grid">
+            <div className="apoiar-why-text">
+              <p>
+                O Sweet & Coffee Week movimenta desejo, deslocamento, conversa e registro. As pessoas salvam combos, combinam rotas, fotografam pratos, compartilham experiências e acompanham os resultados.
+              </p>
+              <p>
+                A marca apoiadora se conecta a esse comportamento de forma natural, dentro de uma experiência positiva, afetiva e ligada à cidade.
+              </p>
+            </div>
+            <ul className="apoiar-pills">
+              <li>Visibilidade local</li>
+              <li>Associação com gastronomia e criatividade</li>
+              <li>Contato com público engajado</li>
+              <li>Presença em campanha proprietária</li>
+              <li>Ativação em pontos de venda</li>
+              <li>Conteúdo compartilhável</li>
+              <li>Relacionamento com empreendedores</li>
+              <li>Participação em uma tradição de Natal</li>
+            </ul>
           </div>
         </div>
       </section>
@@ -126,7 +187,7 @@ export function ApoiarPage({ navigate }) {
         <div className="wrap apoiar-form-grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Proposta comercial</span>
-            <h2>Conte como sua marca quer entrar no Sweet.</h2>
+            <h2>Conte como sua marca quer entrar no Sweet & Coffee Week.</h2>
             <p>
               A partir do interesse, a organização pode avaliar possibilidades de patrocínio, apoio, mídia, ativações, brindes, experiências presenciais ou ações sob medida para próximas edições.
             </p>
@@ -141,7 +202,9 @@ export function ApoiarPage({ navigate }) {
               <DarkField label="WhatsApp" placeholder="(00) 00000-0000" />
               <DarkField label="E-mail" type="email" placeholder="contato@empresa.com" />
               <DarkField full label="Instagram ou site" placeholder="@empresa  ·  empresa.com.br" />
+              <DarkField full label="Segmento da empresa" placeholder="Em que mercado sua marca atua" />
               <DarkField full label="Tipo de interesse" type="select" options={opcoes} />
+              <DarkField full label="Verba estimada ou formato de apoio" placeholder="Faixa de investimento ou tipo de contrapartida que imaginam" />
               <DarkField full label="Mensagem" type="textarea" placeholder="Conte um pouco sobre sua marca e o tipo de apoio que vocês imaginam" />
             </div>
             <div className="apoiar-form__footer">
@@ -164,8 +227,15 @@ export function ApoiarPage({ navigate }) {
         .apoiar-photo-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; align-items: stretch; }
         .apoiar-photo-grid__wide > figure, .apoiar-photo-grid > figure { height: 100%; min-height: 440px; aspect-ratio: auto !important; }
         .apoiar-intro { display: grid; grid-template-columns: .95fr 1.05fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
-        .apoiar-intro p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; }
+        .apoiar-intro__text { display: flex; flex-direction: column; gap: 18px; }
+        .apoiar-intro p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; margin: 0; }
         .apoiar-section-head { margin-bottom: 34px; }
+        .apoiar-where-section { background: var(--bg-soft); }
+        .apoiar-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
+        .apoiar-why-text { display: flex; flex-direction: column; gap: 18px; }
+        .apoiar-why-text p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; margin: 0; }
+        .apoiar-pills { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
+        .apoiar-pills li { background: var(--bg-card); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .02em; color: var(--ink); }
         .partner-path-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .partner-path { background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; min-height: 260px; display: flex; flex-direction: column; }
         .partner-path svg { color: var(--accent); margin-bottom: 26px; }
@@ -180,7 +250,7 @@ export function ApoiarPage({ navigate }) {
         .apoiar-form__footer { margin-top: 28px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
         .apoiar-form__footer span { font-size: 11px; color: rgba(255,244,236,.55); }
         @media (max-width: 1040px) {
-          .apoiar-hero__grid, .apoiar-photo-grid, .apoiar-intro, .apoiar-form-grid { grid-template-columns: 1fr; }
+          .apoiar-hero__grid, .apoiar-photo-grid, .apoiar-intro, .apoiar-why-grid, .apoiar-form-grid { grid-template-columns: 1fr; }
           .partner-path-grid { grid-template-columns: repeat(2, 1fr); }
           .apoiar-photo-grid__wide > figure, .apoiar-photo-grid > figure { min-height: 340px; }
         }

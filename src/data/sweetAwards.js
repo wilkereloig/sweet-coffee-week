@@ -20,7 +20,7 @@ export const AWARDS_CATEGORIES = [
   { key: 'doce',         field: 'nota_doce',         label: 'Doce',                 question: 'Qual nota você dá para o doce?',                   help: 'Sabor e qualidade do item doce.' },
   { key: 'salgado',      field: 'nota_salgado',      label: 'Salgado',              question: 'Qual nota você dá para o salgado?',                help: 'Sabor e qualidade do item salgado.' },
   { key: 'bebida',       field: 'nota_bebida',       label: 'Bebida',               question: 'Qual nota você dá para a bebida?',                 help: 'Sabor e harmonia da bebida.' },
-  { key: 'envolvimento', field: 'nota_encantamento', label: 'Envolvimento em Loja', question: 'Qual nota você dá para o envolvimento da loja com o tema?', help: 'Como a loja viveu o tema: ativação, ações, cenários, vestimenta diferenciada, espaço instagramável — tudo que envolveu o tema dentro da loja.' },
+  { key: 'envolvimento', field: 'nota_encantamento', label: 'Encantamento em Loja', question: 'Qual nota você dá para o encantamento da loja com o tema?', help: 'Como a loja viveu o tema: ativação, ações, cenários, vestimenta diferenciada, espaço instagramável — tudo que encantou o público dentro da loja.' },
 ]
 
 // Escala de notas: 5 (menor) a 10 (maior).
@@ -44,7 +44,7 @@ export const AWARDS_TEXTS = {
     intro:
       'O Sweet & Coffee Week Lovers quer saber quais foram os grandes destaques desta edição. ' +
       'Depois de experimentar um combo, avalie o participante nas categorias do Sweet Awards: ' +
-      'Atendimento, Criatividade, Apresentação, Doce, Salgado, Bebida e Envolvimento em Loja. ' +
+      'Atendimento, Criatividade, Apresentação, Doce, Salgado, Bebida e Encantamento em Loja. ' +
       'O prêmio de Melhor Combo sai da média entre Doce, Salgado e Bebida.',
     sub:
       'Em cada categoria são reconhecidos os participantes em 1º, 2º e 3º lugar, de acordo com as avaliações do público. ' +

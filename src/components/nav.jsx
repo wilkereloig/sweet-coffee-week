@@ -2,7 +2,7 @@ import React from 'react'
 import { I } from './icons'
 
 export const NAV_LINKS = [
-  { id: 'home',         label: 'O Sweet',      href: '#/' },
+  { id: 'home',         label: 'O Festival',   href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
   { id: 'vencedores',   label: 'Sweet Awards', href: '#/vencedores' },
   { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },

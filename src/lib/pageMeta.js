@@ -13,19 +13,19 @@ export function metaForPath(path) {
   const p = path || '/'
 
   if (p.startsWith('/edicoes'))
-    return { title: `Edições · ${BASE}`, description: 'Linha do tempo das edições do Sweet & Coffee Week desde 2016.' }
+    return { title: `Edições | ${BASE}`, description: 'Veja a linha do tempo das edições do Sweet & Coffee Week, com temas, períodos, participantes e memórias do festival desde 2016.' }
   if (p.startsWith('/vencedores') || p.startsWith('/premiacao'))
-    return { title: `Sweet Awards · ${BASE}`, description: 'Resultado da premiação do Sweet & Coffee Week Awards.' }
+    return { title: `Sweet Awards | Vencedores do ${BASE}`, description: 'Confira os vencedores do Sweet Awards, premiação que reconhece os destaques de cada edição do Sweet & Coffee Week a partir da avaliação do público.' }
   if (p.startsWith('/curiosidades'))
-    return { title: `Curiosidades · ${BASE}`, description: 'Termos, tradições, bastidores e dinâmicas do festival.' }
+    return { title: `Curiosidades | Por dentro do ${BASE}`, description: 'Descubra rankings, bastidores, dados curiosos e histórias que ajudam a contar a trajetória do Sweet & Coffee Week em Natal.' }
   if (p.startsWith('/participar'))
-    return { title: `Participar · ${BASE}`, description: 'Pré-cadastro para marcas gastronômicas interessadas nas próximas edições.' }
+    return { title: `Participar | Inscreva sua marca no ${BASE}`, description: 'Docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas podem demonstrar interesse em participar das próximas edições do Sweet & Coffee Week.' }
   if (p.startsWith('/apoiar'))
-    return { title: `Apoiar · ${BASE}`, description: 'Patrocínio, apoio, ativações e parcerias com o festival.' }
+    return { title: `Apoiar | Patrocínio e parcerias ${BASE}`, description: 'Conheça oportunidades de apoio, patrocínio e ativação de marca no Sweet & Coffee Week, festival gastronômico que movimenta Natal e conecta marcas aos Sweet Lovers.' }
   if (p.startsWith('/contato'))
-    return { title: `Contato · ${BASE}`, description: 'Canais de contato do Sweet & Coffee Week.' }
+    return { title: `Contato | ${BASE}`, description: 'Fale com a organização do Sweet & Coffee Week para dúvidas, imprensa, participação, patrocínio, parcerias e informações gerais.' }
 
-  return { title: BASE, description: 'Festival gastronômico de doces e cafés em Natal/RN. A temporada mais doce da cidade.' }
+  return { title: `${BASE} | Festival gastronômico em Natal/RN`, description: 'Conheça o Sweet & Coffee Week, festival gastronômico criado em Natal que reúne marcas locais em uma rota de combos exclusivos, temas criativos e experiências por tempo limitado.' }
 }
 
 // Aplica title + meta description no documento.

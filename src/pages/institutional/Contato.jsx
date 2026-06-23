@@ -29,9 +29,9 @@ export function ContatoPage({ navigate }) {
         <div className="wrap contato-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Contato</span>
-            <h1>Vamos conversar sobre o Sweet?</h1>
+            <h1>Vamos conversar sobre o Sweet &amp; Coffee Week?</h1>
             <p className="lead">
-              Para público, imprensa, marcas participantes, patrocinadores e parceiros: escolha o caminho mais próximo do que você precisa.
+              Para público, imprensa, marcas participantes, patrocinadores e parceiros: escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.
             </p>
           </div>
           <div className="contato-hero__photo">
@@ -45,7 +45,7 @@ export function ContatoPage({ navigate }) {
           <ContactCard
             tag="Público"
             title="Dúvidas sobre o festival"
-            body="Informações gerais, edição atual, mapa, combos, horários, votação e experiência do público."
+            body="Informações sobre edição atual, participantes, combos, horários, mapa, votação, resultados e experiência do público."
             contact="@sweetcoffeeweek"
             button="Abrir Instagram"
             href="https://www.instagram.com/sweetcoffeeweek"
@@ -54,7 +54,7 @@ export function ContatoPage({ navigate }) {
           <ContactCard
             tag="Participantes"
             title="Sua marca quer entrar na rota?"
-            body="Pré-cadastro para docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas."
+            body="Pré-cadastro para docerias, cafeterias, confeitarias, restaurantes, sorveterias e marcas gastronômicas interessadas em futuras edições."
             contact="Formulário de interesse"
             button="Quero participar"
             route="/participar"
@@ -63,7 +63,7 @@ export function ContatoPage({ navigate }) {
           <ContactCard
             tag="Comercial"
             title="Patrocínio e parcerias"
-            body="Cotas, ativações, apoio institucional, mídia, brindes, experiências e propostas comerciais."
+            body="Cotas, ativações, apoio institucional, mídia, brindes, experiências, premiações e propostas comerciais para marcas apoiadoras."
             contact="Área de apoio"
             button="Quero apoiar"
             route="/apoiar"
@@ -71,12 +71,21 @@ export function ContatoPage({ navigate }) {
             dark
           />
           <ContactCard
+            tag="Imprensa"
+            title="Pautas, entrevistas e informações oficiais"
+            body="Canal para veículos, jornalistas, creators e produtores de conteúdo que desejam falar sobre o Sweet & Coffee Week."
+            contact="Contato via Instagram"
+            button="Falar com a organização"
+            href="https://www.instagram.com/sweetcoffeeweek"
+            navigate={navigate}
+          />
+          <ContactCard
             tag="Realização"
             title="F2 Experience"
-            body="Empresa responsável por estratégia, criação, comunicação e desenvolvimento do projeto Sweet & Coffee Week."
-            contact="f2experience.com.br"
+            body="Empresa responsável pela realização do Sweet & Coffee Week, atuando na estratégia, criação, comunicação e desenvolvimento do festival como plataforma de experiência."
+            contact="www.f2experience.com.br"
             button="Conhecer a F2"
-            href="https://f2experience.com.br"
+            href="https://www.f2experience.com.br"
             navigate={navigate}
           />
         </div>
@@ -88,7 +97,7 @@ export function ContatoPage({ navigate }) {
             <span className="eyebrow"><span className="dot"></span>Comunicação direta</span>
             <h2>O Instagram continua sendo o canal mais vivo do festival.</h2>
             <p>
-              É por lá que o Sweet anuncia edições, participantes, bastidores, chamadas de votação, premiações, rotas, avisos importantes e conteúdos enviados pelos Sweet Lovers.
+              É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, rotas, avisos importantes e conteúdos enviados pelos Sweet Lovers.
             </p>
             <a href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">
               <I.ig width={16} height={16} /> Seguir @sweetcoffeeweek
@@ -109,7 +118,7 @@ export function ContatoPage({ navigate }) {
         .contato-hero .lead { color: var(--ink-soft); line-height: 1.65; max-width: 54ch; }
         .contato-hero__photo { border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(43,24,16,.16); }
         .contato-cards-section { background: var(--bg-soft); }
-        .contato-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .contato-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
         .contact-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; min-height: 310px; display: flex; flex-direction: column; }
         .contact-card > span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
         .contact-card h2 { font-size: 25px; line-height: 1.05; margin: 18px 0 0; color: var(--ink); }
@@ -125,8 +134,9 @@ export function ContatoPage({ navigate }) {
         .contato-editorial__photos { display: grid; grid-template-columns: .9fr .7fr; gap: 18px; align-items: end; }
         .contato-editorial__photos > figure:first-child { transform: rotate(-2deg); }
         .contato-editorial__photos > figure:last-child { transform: rotate(3deg); }
-        @media (max-width: 1120px) { .contato-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1120px) { .contato-cards-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 900px) { .contato-hero__grid, .contato-editorial__grid { grid-template-columns: 1fr; } }
+        @media (max-width: 820px) { .contato-cards-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 620px) { .contato-cards-grid, .contato-editorial__photos { grid-template-columns: 1fr; } }
       `}</style>
     </div>

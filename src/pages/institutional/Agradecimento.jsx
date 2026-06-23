@@ -1,6 +1,7 @@
 import React from 'react'
 
-// Página institucional do Sweet & Coffee Week Awards, com vencedores da edição mais recente.
+// Página Sweet Awards (rota #/vencedores) — a premiação do Sweet & Coffee Week.
+// Apresenta os vencedores da edição mais recente (16ª: Sweet & Coffee Week Lovers).
 // Cada categoria é apresentada pelo post do Instagram (@sweetcoffeeweek) embutido no card.
 // São 8 categorias = 8 posts.
 //
@@ -27,14 +28,14 @@ const C = {
 // (ex.: https://www.instagram.com/p/XXXXXXXXXXX/ ou .../reel/XXXXXXXXXXX/).
 // PREENCHER os 8 links abaixo (deixe '' enquanto não houver o post).
 const AWARDS = [
-  { key: 'melhor_combo', label: 'Melhor Combo',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/', color: C.red },
-  { key: 'atendimento',  label: 'Atendimento',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan },
-  { key: 'criatividade', label: 'Criatividade',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow },
-  { key: 'apresentacao', label: 'Apresentação',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.purple },
-  { key: 'doce',         label: 'Doce',                 post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.red },
-  { key: 'salgado',      label: 'Salgado',              post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan },
-  { key: 'bebida',       label: 'Bebida',               post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow },
-  { key: 'envolvimento', label: 'Encantamento em Loja', post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/', color: C.purple },
+  { key: 'melhor_combo', label: 'Melhor Combo',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/', color: C.red,    desc: 'Reconhece o conjunto que mais se destacou na edição, considerando a experiência completa do combo.' },
+  { key: 'atendimento',  label: 'Atendimento',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan,   desc: 'Reconhece o cuidado, a simpatia, a agilidade e a experiência de recepção oferecida ao público.' },
+  { key: 'criatividade', label: 'Criatividade',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow, desc: 'Reconhece a proposta mais original, autoral e conectada ao tema da edição.' },
+  { key: 'apresentacao', label: 'Apresentação',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.purple, desc: 'Reconhece o combo com maior impacto visual, capricho de montagem e cuidado estético.' },
+  { key: 'doce',         label: 'Doce',                 post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.red,    desc: 'Reconhece o item doce que mais se destacou em sabor, execução e conexão com a proposta.' },
+  { key: 'salgado',      label: 'Salgado',              post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan,   desc: 'Reconhece o item salgado que mais se destacou dentro da composição do combo.' },
+  { key: 'bebida',       label: 'Bebida',               post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow, desc: 'Reconhece a bebida com melhor sabor, harmonia e presença na experiência.' },
+  { key: 'envolvimento', label: 'Encantamento em Loja', post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/', color: C.purple, desc: 'Reconhece o participante que mais envolveu o público no tema da edição por meio de ambientação, atendimento, cenário, detalhes visuais ou experiência no ponto de venda.' },
 ]
 
 // Converte uma URL de post/reel do Instagram na sua versão "/embed" (iframe).
@@ -88,6 +89,14 @@ function AwardCard({ award }) {
         }}>
           {award.label}
         </div>
+        {award.desc && (
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 12.5, lineHeight: 1.45, fontWeight: 500,
+            color: '#fff', opacity: .92, margin: '8px 0 0',
+          }}>
+            {award.desc}
+          </p>
+        )}
       </div>
 
       {/* post do Instagram embutido (ou placeholder enquanto não há link) */}
@@ -142,7 +151,7 @@ export function AgradecimentoPage() {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1080, margin: '0 auto' }}>
 
-        {/* HERO — agradecimento */}
+        {/* HERO — Sweet Awards */}
         <header style={{ textAlign: 'center', marginBottom: 'clamp(48px, 7vw, 80px)', animation: 'awFade .7s ease both' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24,
@@ -150,52 +159,99 @@ export function AgradecimentoPage() {
             textTransform: 'uppercase', color: C.red,
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red }} />
-            Sweet &amp; Coffee Week Awards
+            Sweet Awards
           </div>
 
           <h1 style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(40px, 8vw, 92px)', lineHeight: .97,
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(38px, 7vw, 84px)', lineHeight: .99,
             fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 0 22px',
           }}>
-            Os vencedores do<br />
-            <span style={{ color: C.red }}>Sweet Awards</span>.
+            Os destaques escolhidos pelos <span style={{ color: C.red }}>Sweet Lovers</span>.
           </h1>
 
           <p style={{
             fontFamily: FONT_BODY, fontSize: 'clamp(18px, 2.2vw, 22px)', lineHeight: 1.65,
-            color: C.ink, opacity: .72, maxWidth: '54ch', margin: '0 auto',
+            color: C.ink, opacity: .72, maxWidth: '58ch', margin: '0 auto 18px',
           }}>
-            O Sweet &amp; Coffee Week Awards reconhece os participantes que mais se destacaram
-            na experiência do festival. Em cada categoria, o resultado celebra o trabalho das
-            marcas, a resposta do público e os sabores que marcaram a edição.
+            O Sweet Awards é a premiação do Sweet &amp; Coffee Week. A cada edição, o público
+            avalia os participantes e ajuda a reconhecer as experiências que mais se destacaram
+            na rota.
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 19px)', lineHeight: 1.65,
+            color: C.ink, opacity: .68, maxWidth: '58ch', margin: '0 auto',
+          }}>
+            Mais do que um ranking, o Sweet Awards é uma forma de celebrar o trabalho das marcas
+            participantes, valorizar a criatividade dos combos e registrar a memória de cada
+            edição do festival.
           </p>
         </header>
 
-        {/* SWEET AWARDS — vencedores */}
+        {/* RESULTADO MAIS RECENTE */}
+        <section style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)', animation: 'awFade .7s ease .05s both' }}>
+          <div style={{
+            fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
+            textTransform: 'uppercase', color: C.red, marginBottom: 12,
+          }}>
+            Resultado mais recente
+          </div>
+          <h2 style={{
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(26px, 4.6vw, 46px)', lineHeight: 1.04,
+            fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 18px', maxWidth: '20ch',
+          }}>
+            Vencedores da 16ª edição: Sweet &amp; Coffee Week Lovers.
+          </h2>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .72, maxWidth: '58ch', margin: '0 auto 16px',
+          }}>
+            A 16ª edição do Sweet &amp; Coffee Week celebrou os 10 anos do festival com uma
+            homenagem aos Sweet Lovers, às marcas participantes e à cidade que construiu essa
+            história.
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .68, maxWidth: '58ch', margin: '0 auto',
+          }}>
+            Depois de viver a rota, provar os combos e avaliar suas experiências, o público
+            ajudou a escolher os destaques da edição. Confira os vencedores do Sweet Awards nas
+            categorias oficiais.
+          </p>
+        </section>
+
+        {/* SWEET AWARDS — vencedores no Instagram */}
         <section>
           <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 4vw, 44px)', animation: 'awFade .7s ease .1s both' }}>
-            <div style={{
-              fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
-              textTransform: 'uppercase', color: C.red, marginBottom: 12,
-            }}>
-              Os melhores da edição
-            </div>
             <h2 style={{
-              fontFamily: FONT_DISPLAY, fontSize: 'clamp(28px, 5vw, 52px)', lineHeight: 1,
-              fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 0 14px',
+              fontFamily: FONT_DISPLAY, fontSize: 'clamp(26px, 4.6vw, 48px)', lineHeight: 1.04,
+              fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 14px', maxWidth: '18ch',
             }}>
-              Sweet Awards
+              Veja os vencedores no Instagram oficial.
             </h2>
             <p style={{
               fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
-              color: C.ink, opacity: .68, maxWidth: '52ch', margin: '0 auto',
+              color: C.ink, opacity: .68, maxWidth: '56ch', margin: '0 auto 22px',
             }}>
-              Confira os resultados publicados no Instagram oficial do festival. Cada categoria
-              registra um destaque da edição e ajuda a contar a memória do Sweet &amp; Coffee Week.
+              Os resultados da 16ª edição foram publicados no Instagram do Sweet &amp; Coffee Week.
+              Cada categoria abaixo reúne o post oficial com os vencedores e destaques da edição.
             </p>
+            <a
+              href={INSTAGRAM}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                background: C.red, color: C.cream, borderRadius: 100, padding: '13px 30px',
+                fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(14px, 1.7vw, 16px)',
+                letterSpacing: '.02em', textDecoration: 'none',
+              }}
+            >
+              <InstagramIcon />
+              Acompanhar @sweetcoffeeweek
+            </a>
             <div style={{
               fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.12em',
-              textTransform: 'uppercase', color: C.ink, opacity: .45, marginTop: 18,
+              textTransform: 'uppercase', color: C.ink, opacity: .45, marginTop: 22,
             }}>
               Resultados da edição Sweet &amp; Coffee Week Lovers · 2026
             </div>
@@ -211,13 +267,67 @@ export function AgradecimentoPage() {
           </div>
         </section>
 
-        {/* CTA Instagram */}
+        {/* ACERVO HISTÓRICO — depois dos posts */}
+        <section style={{
+          marginTop: 'clamp(48px, 7vw, 80px)',
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,.08)',
+          borderRadius: 22,
+          boxShadow: '0 10px 30px rgba(0,0,0,.06)',
+          padding: 'clamp(28px, 5vw, 48px)',
+          textAlign: 'center',
+          animation: 'awFade .7s ease both',
+        }}>
+          <div style={{
+            fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
+            textTransform: 'uppercase', color: C.purple, marginBottom: 12,
+          }}>
+            Histórico Sweet Awards
+          </div>
+          <h2 style={{
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px, 4.2vw, 42px)', lineHeight: 1.04,
+            fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 16px', maxWidth: '22ch',
+          }}>
+            Em breve, os vencedores de outras edições.
+          </h2>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .72, maxWidth: '60ch', margin: '0 auto 14px',
+          }}>
+            O acervo do Sweet Awards está sendo organizado para reunir os vencedores das edições
+            anteriores do Sweet &amp; Coffee Week. A ideia é preservar a memória do festival,
+            valorizar as marcas que fizeram parte dessa trajetória e mostrar como a premiação
+            evoluiu ao longo dos anos.
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .68, maxWidth: '60ch', margin: '0 auto',
+          }}>
+            Em breve, esta área poderá ser consultada por edição, categoria, participante e
+            colocação.
+          </p>
+        </section>
+
+        {/* Agradecimento de fechamento */}
         <div style={{ textAlign: 'center', marginTop: 'clamp(48px, 7vw, 80px)' }}>
           <p style={{
             fontFamily: FONT_DISPLAY, fontSize: 'clamp(20px, 3vw, 32px)', lineHeight: 1.2,
-            fontWeight: 700, color: C.ink, margin: '0 0 24px',
+            fontWeight: 700, color: C.ink, margin: '0 auto 16px', maxWidth: '24ch',
           }}>
             Até a próxima edição. <span style={{ color: C.red }}>A doçura continua.</span>
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .72, maxWidth: '54ch', margin: '0 auto 8px',
+          }}>
+            Obrigado a cada participante, parceiro e Sweet Lover que ajudou a viver essa edição
+            pela cidade.
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
+            color: C.ink, opacity: .68, maxWidth: '54ch', margin: '0 auto 28px',
+          }}>
+            Foram dias de combos especiais, encontros, rotas e descobertas pela cidade.
           </p>
           <a
             href={INSTAGRAM}
@@ -227,11 +337,11 @@ export function AgradecimentoPage() {
               display: 'inline-flex', alignItems: 'center', gap: 10,
               background: C.red, color: C.cream, borderRadius: 100, padding: '14px 36px',
               fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(15px, 1.8vw, 17px)',
-              letterSpacing: '.02em', textDecoration: 'none', textTransform: 'uppercase',
+              letterSpacing: '.02em', textDecoration: 'none',
             }}
           >
             <InstagramIcon />
-            Acompanhe no Instagram
+            Acompanhar @sweetcoffeeweek
           </a>
         </div>
 
@@ -247,7 +357,7 @@ export function AgradecimentoPage() {
             Realização
           </div>
           <img
-            src="/images/logo-f2-experience.svg"
+            src="/images/logo-f2experience.svg"
             alt="F2 Experience"
             style={{ height: 28, maxWidth: 140, objectFit: 'contain', opacity: .55 }}
             onError={e => { e.target.style.display = 'none' }}
