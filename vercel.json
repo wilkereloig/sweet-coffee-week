@@ -18,6 +18,7 @@
     { "source": "/mapa", "destination": "/" },
     { "source": "/rota", "destination": "/" },
     { "source": "/participantes", "destination": "/" },
+    { "source": "/vencedores", "destination": "/" },
     { "source": "/premiacao", "destination": "/" },
     { "source": "/edicoes", "destination": "/" },
     { "source": "/curiosidades", "destination": "/" },

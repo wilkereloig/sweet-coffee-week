@@ -17,38 +17,38 @@ function CuriosityCard({ tag, title, body, icon }) {
 export function CuriosidadesPage({ navigate }) {
   const cards = [
     {
-      tag: 'Formato',
-      title: 'O combo é a assinatura do Sweet.',
-      body: 'A estrutura mais reconhecida do festival combina doce, salgado e bebida em uma experiência única, criada especialmente para o tema da edição.',
+      tag: 'Combo',
+      title: 'O combo é a assinatura do festival.',
+      body: 'Doce, salgado e bebida se encontram em uma criação exclusiva, disponível por tempo limitado.',
       icon: 'plate',
     },
     {
-      tag: 'Cidade',
-      title: 'O mapa transforma consumo em roteiro.',
-      body: 'O público não escolhe apenas um produto: escolhe lojas, bairros, horários, encontros e caminhos para viver a temporada.',
+      tag: 'Mapa',
+      title: 'A cidade vira roteiro.',
+      body: 'O mapa ajuda o público a encontrar participantes, organizar visitas e descobrir novos endereços.',
       icon: 'map',
     },
     {
-      tag: 'Comunidade',
-      title: 'Sweet Lovers são parte da marca.',
-      body: 'Quem prova, fotografa, vota, marca os amigos e acompanha cada edição ajudou o Sweet a se tornar uma tradição afetiva.',
+      tag: 'Sweet Lovers',
+      title: 'O público também constrói o Sweet.',
+      body: 'Fotos, comentários, votos, marcações e indicações transformam a edição em conversa coletiva.',
       icon: 'heart',
     },
     {
-      tag: 'Criação',
-      title: 'Cada tema vira uma pequena narrativa.',
-      body: 'Cinema, música, livros, viagens, infância e cultura potiguar já foram traduzidos em sabores, nomes, vitrines e experiências.',
+      tag: 'Sweet Awards',
+      title: 'Os destaques viram premiação.',
+      body: 'A premiação reconhece experiências que marcaram o público e valoriza o trabalho dos participantes.',
       icon: 'star',
     },
   ]
 
   const glossary = [
-    ['Sweet Lovers', 'Público apaixonado pelo festival: pessoas que fazem rota, compartilham combos, votam e acompanham a história do Sweet.'],
-    ['Mapa da Doçura', 'Ferramenta que reúne participantes, endereços e rotas para o público planejar visitas durante a edição.'],
-    ['Sweet Awards', 'Premiação que reconhece destaques da edição em categorias como combo, bebida, doce, atendimento, apresentação e criatividade.'],
-    ['Combo', 'Criação exclusiva do participante para a edição, normalmente composta por 1 doce, 1 salgado e 1 bebida.'],
-    ['Edição temática', 'Cada temporada parte de um conceito central que orienta comunicação, cardápio, narrativa e experiência nas lojas.'],
-    ['Rota da Doçura', 'Dinâmica de circulação e descoberta que incentiva o público a visitar diferentes participantes e colecionar memórias.'],
+    ['Sweet Lovers', 'Público que acompanha o festival, visita participantes, prova combos, compartilha experiências e ajuda a espalhar o Sweet pela cidade.'],
+    ['Mapa da Doçura', 'Mapa da edição com participantes, endereços e caminhos para montar a rota.'],
+    ['Sweet Awards', 'Premiação que reconhece os destaques da edição.'],
+    ['Combo', 'Criação exclusiva do participante para a edição, geralmente com doce, salgado e bebida.'],
+    ['Edição temática', 'Temporada inspirada por um conceito central que guia sabores, comunicação e experiência.'],
+    ['Rota da Doçura', 'Jeito de viver o festival visitando diferentes participantes e colecionando experiências.'],
   ]
 
   return (
@@ -57,10 +57,10 @@ export function CuriosidadesPage({ navigate }) {
         <div className="wrap curiosidades-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Por dentro do Sweet</span>
-            <h1>Curiosidades, termos e bastidores do festival.</h1>
+            <h1>O que faz o Sweet ser Sweet.</h1>
           </div>
           <p className="lead">
-            Uma página para explicar o que faz o Sweet & Coffee Week ser mais do que uma semana de doces e cafés: formato, comunidade, mapa, votação, temas e memória afetiva.
+            Por trás de cada edição existe um jeito próprio de viver o festival: escolher combos, montar rotas, visitar lojas, fotografar, votar, acompanhar os resultados e guardar histórias.
           </p>
         </div>
       </section>
@@ -68,9 +68,9 @@ export function CuriosidadesPage({ navigate }) {
       <section className="section curiosity-photo-section">
         <div className="wrap curiosity-photo-grid">
           <div className="curiosity-photo-grid__big">
-            <PhotoEditorial label="SWEET LOVERS" caption="Pessoas, fotos, mapas, cafés e combos: o festival vivido pelo público." aspect="16/9" tone="warm" />
+            <PhotoEditorial label="SWEET LOVERS" caption="O público que prova, indica, fotografa, vota e acompanha o festival edição após edição." aspect="16/9" tone="warm" />
           </div>
-          <PhotoEditorial label="VITRINES" caption="Cada loja interpreta o tema do seu jeito." aspect="4/5" tone="coffee" />
+          <PhotoEditorial label="VITRINES E COMBOS" caption="Cada participante interpreta o tema no cardápio, no atendimento e na experiência em loja." aspect="4/5" tone="coffee" />
         </div>
       </section>
 
@@ -79,9 +79,9 @@ export function CuriosidadesPage({ navigate }) {
           <div className="curiosity-section-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>O que faz o Sweet ser Sweet</span>
-              <h2>As camadas da experiência.</h2>
+              <h2>Pequenas tradições que criam comunidade.</h2>
             </div>
-            <p>Esses pontos ajudam o público, participantes, imprensa e parceiros a entenderem a lógica do festival.</p>
+            <p>O Sweet também é feito dos gestos que se repetem a cada edição: esperar o tema, descobrir os participantes, salvar combos, chamar amigos, montar a rota e escolher os favoritos.</p>
           </div>
           <div className="curiosity-card-grid">
             {cards.map((card) => <CuriosityCard key={card.title} {...card} />)}
@@ -93,8 +93,8 @@ export function CuriosidadesPage({ navigate }) {
         <div className="wrap glossary-grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Glossário do festival</span>
-            <h2>Palavras que aparecem em toda edição.</h2>
-            <p>Uma base simples para o novo site explicar melhor as dinâmicas sem pesar a comunicação.</p>
+            <h2>Palavras que acompanham o festival.</h2>
+            <p>Alguns nomes aparecem edição após edição e ajudam a contar como o público vive o Sweet.</p>
           </div>
           <div className="glossary-list">
             {glossary.map(([term, description]) => (
@@ -110,12 +110,12 @@ export function CuriosidadesPage({ navigate }) {
       <section className="section curiosity-dark">
         <div className="wrap curiosity-dark__grid">
           <div>
-            <span className="eyebrow"><span className="dot"></span>Em construção permanente</span>
-            <h2>O próximo passo é transformar memória em acervo.</h2>
+            <span className="eyebrow"><span className="dot"></span>Memória afetiva</span>
+            <h2>O Sweet é feito de temas, sabores e pessoas.</h2>
           </div>
           <div>
             <p>
-              Esta página já deixa preparada a linguagem para receber rankings reais, fotos históricas, listas de participantes por edição, vencedores do Sweet Awards e bastidores enviados pela organização.
+              Cada edição deixa um rastro: um combo favorito, uma cafeteria descoberta, uma foto salva, um amigo marcado, uma rota feita no fim de semana e uma história para lembrar.
             </p>
             <a href="#/edicoes" className="btn btn-accent btn-lg" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
               Ver edições <I.arrow />

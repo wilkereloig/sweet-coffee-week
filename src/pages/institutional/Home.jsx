@@ -69,10 +69,10 @@ export function HomePage({ navigate }) {
 
           <div className="festival-hero__media">
             <div className="festival-hero__photo festival-hero__photo--main">
-              <PhotoEditorial label="FOTO GRANDE · COMBO DA EDIÇÃO" caption="Doce, salgado e bebida: a assinatura gastronômica do Sweet." aspect="4/5" tone="coffee" />
+              <PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Criações feitas por participantes especialmente para cada edição." aspect="4/5" tone="coffee" />
             </div>
             <div className="festival-hero__photo festival-hero__photo--float">
-              <PhotoEditorial label="ROTA PELA CIDADE" caption="Lojas, mapa, amigos e descobertas." aspect="1/1" tone="warm" />
+              <PhotoEditorial label="ROTA DA DOÇURA" caption="O público circulando pela cidade em busca de novos sabores." aspect="1/1" tone="warm" />
             </div>
           </div>
         </div>
@@ -109,16 +109,16 @@ export function HomePage({ navigate }) {
           <div className="festival-section-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Festival em movimento</span>
-              <h2 className="festival-section-title">Fotos grandes, apetite e presença de cidade.</h2>
+              <h2 className="festival-section-title">A cidade vira rota. O combo vira memória.</h2>
             </div>
             <p>
-              A nova estrutura do site foi pensada para receber imagens editoriais fortes: combos em primeiro plano, lojas cheias, vitrines, bastidores, pessoas na rota e detalhes da edição.
+              Durante o Sweet, cada participante se torna um ponto de parada. Tem vitrine preparada, atendimento especial, doce, salgado, café, foto, indicação de amigo e aquela vontade de descobrir o próximo endereço.
             </p>
           </div>
           <div className="festival-photo-grid">
-            <div className="festival-photo-grid__wide"><PhotoEditorial label="HERO DE CAMPANHA" caption="Imagem principal da edição ou combo mais fotogênico." aspect="16/9" tone="warm" /></div>
-            <PhotoEditorial label="PESSOAS" caption="Sweet Lovers vivendo o roteiro." aspect="4/5" tone="cream" />
-            <PhotoEditorial label="BASTIDORES" caption="Preparo, vitrine e equipe participante." aspect="4/5" tone="dark" />
+            <div className="festival-photo-grid__wide"><PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Doces, salgados e bebidas criados especialmente para o tema da edição." aspect="16/9" tone="warm" /></div>
+            <PhotoEditorial label="SWEET LOVERS NA ROTA" caption="Público visitando lojas, fotografando combos e compartilhando descobertas." aspect="4/5" tone="cream" />
+            <PhotoEditorial label="EXPERIÊNCIA EM LOJA" caption="Vitrines, atendimento e detalhes que fazem cada participante entrar no clima do festival." aspect="4/5" tone="dark" />
           </div>
         </div>
       </section>
@@ -128,15 +128,15 @@ export function HomePage({ navigate }) {
           <div className="festival-section-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Como funciona</span>
-              <h2 className="festival-section-title">Da ideia ao roteiro.</h2>
+              <h2 className="festival-section-title">Como o Sweet acontece.</h2>
             </div>
-            <p>O Sweet é desenhado como campanha, experiência de consumo e movimento urbano ao mesmo tempo.</p>
+            <p>O festival começa com um tema, ganha forma nos combos dos participantes e se espalha pela rota do público.</p>
           </div>
           <div className="festival-steps-grid">
-            <Step n="01" title="Tema da edição" body="A organização lança um conceito central capaz de inspirar sabores, nomes, decoração, conteúdo e narrativa." icon="cal" />
-            <Step n="02" title="Criação dos combos" body="As marcas participantes desenvolvem uma experiência exclusiva, normalmente com doce, salgado e bebida." icon="plate" />
-            <Step n="03" title="Rota pela cidade" body="O público acessa o site, escolhe os participantes, monta o percurso e transforma a visita em programa." icon="map" />
-            <Step n="04" title="Comunidade e premiação" body="Os Sweet Lovers fotografam, compartilham, indicam, votam e ajudam a eleger os destaques da edição." icon="star" />
+            <Step n="01" title="Tema da edição" body="Cada temporada parte de um conceito criativo que orienta sabores, nomes, comunicação e experiência em loja." icon="cal" />
+            <Step n="02" title="Combos exclusivos" body="Os participantes criam uma proposta especial, geralmente com doce, salgado e bebida, disponível por tempo limitado." icon="plate" />
+            <Step n="03" title="Rota pela cidade" body="O público acessa o site, conhece os endereços, escolhe os combos e monta sua própria rota." icon="map" />
+            <Step n="04" title="Sweet Awards" body="Ao final da experiência, os destaques são reconhecidos em categorias como combo, doce, bebida, atendimento, apresentação e criatividade." icon="star" />
           </div>
         </div>
       </section>
@@ -187,7 +187,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="eyebrow"><span className="dot"></span>Próximas temporadas</span>
             <h2>Quer fazer parte do próximo Sweet?</h2>
-            <p>O site agora também funciona como porta de entrada para marcas participantes, patrocinadores, apoiadores, imprensa e parceiros estratégicos.</p>
+            <p>O Sweet abre espaço para marcas gastronômicas, patrocinadores, apoiadores e parceiros que querem participar de uma experiência com presença de cidade, conteúdo e público engajado.</p>
           </div>
           <div className="festival-cta__actions">
             <a href="#/participar" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/participar') }}>Quero participar <I.arrow /></a>

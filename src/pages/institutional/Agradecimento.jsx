@@ -1,11 +1,11 @@
 import React from 'react'
 
-// Página institucional de encerramento da edição Sweet & Coffee Week Lovers (16ª edição).
-// Agradecimento + vencedores do Sweet Awards. Cada categoria é apresentada pelo
-// post do Instagram (@sweetcoffeeweek) embutido no card. São 8 categorias = 8 posts.
+// Página institucional do Sweet & Coffee Week Awards, com vencedores da edição mais recente.
+// Cada categoria é apresentada pelo post do Instagram (@sweetcoffeeweek) embutido no card.
+// São 8 categorias = 8 posts.
 //
-// Página AUTOSSUFICIENTE: não depende dos componentes/CSS da seção Lovers
-// (que será removida). Usa apenas inline styles, no padrão institucional.
+// Página AUTOSSUFICIENTE: não depende de componentes/CSS de páginas removidas.
+// Usa apenas inline styles, no padrão institucional.
 
 const INSTAGRAM = 'https://www.instagram.com/sweetcoffeeweek'
 
@@ -150,24 +150,24 @@ export function AgradecimentoPage() {
             textTransform: 'uppercase', color: C.red,
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red }} />
-            Sweet &amp; Coffee Week Lovers · 16ª edição
+            Sweet &amp; Coffee Week Awards
           </div>
 
           <h1 style={{
             fontFamily: FONT_DISPLAY, fontSize: 'clamp(40px, 8vw, 92px)', lineHeight: .97,
             fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 0 22px',
           }}>
-            Obrigado por viver<br />
-            a edição <span style={{ color: C.red }}>Lovers</span>.
+            Os vencedores do<br />
+            <span style={{ color: C.red }}>Sweet Awards</span>.
           </h1>
 
           <p style={{
             fontFamily: FONT_BODY, fontSize: 'clamp(18px, 2.2vw, 22px)', lineHeight: 1.65,
             color: C.ink, opacity: .72, maxWidth: '54ch', margin: '0 auto',
           }}>
-            Foram dias de combos especiais, encontros e muita doçura pela cidade.
-            Obrigado a cada participante, parceiro e sweetlover que fez parte desta edição.
-            Agora é hora de celebrar os grandes destaques do <strong>Sweet Awards</strong>.
+            O Sweet &amp; Coffee Week Awards reconhece os participantes que mais se destacaram
+            na experiência do festival. Em cada categoria, o resultado celebra o trabalho das
+            marcas, a resposta do público e os sabores que marcaram a edição.
           </p>
         </header>
 
@@ -190,9 +190,15 @@ export function AgradecimentoPage() {
               fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
               color: C.ink, opacity: .68, maxWidth: '52ch', margin: '0 auto',
             }}>
-              Foram 8 categorias escolhidas pelo público. Veja o post de cada vencedor,
-              direto do Instagram do @sweetcoffeeweek.
+              Confira os resultados publicados no Instagram oficial do festival. Cada categoria
+              registra um destaque da edição e ajuda a contar a memória do Sweet &amp; Coffee Week.
             </p>
+            <div style={{
+              fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.12em',
+              textTransform: 'uppercase', color: C.ink, opacity: .45, marginTop: 18,
+            }}>
+              Resultados da edição Sweet &amp; Coffee Week Lovers · 2026
+            </div>
           </div>
 
           <div style={{

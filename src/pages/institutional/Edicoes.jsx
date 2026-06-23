@@ -3,9 +3,9 @@ import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
 import { EDITIONS } from '../../data/editions'
 
-function EditionCard({ edition, index, navigate }) {
+function EditionCard({ edition, index }) {
   return (
-    <article className={`edition-card${edition.atual ? ' is-featured' : ''}`}>
+    <article className="edition-card">
       <div className="edition-card__media">
         <PhotoEditorial
           label={`${edition.ano} · ${edition.nome}`}
@@ -17,16 +17,10 @@ function EditionCard({ edition, index, navigate }) {
       <div className="edition-card__content">
         <div className="edition-card__meta">
           <span>{edition.ano}</span>
-          {edition.atual && <strong>Especial 10 anos</strong>}
         </div>
         <h2>{edition.nome}</h2>
         <p className="edition-card__stage">{edition.etapa}</p>
         <p>{edition.desc}</p>
-        {edition.atual && (
-          <a href="#/vencedores" className="btn btn-lovers btn-sm" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}>
-            Ver vencedores <I.arrow />
-          </a>
-        )}
       </div>
     </article>
   )
@@ -45,10 +39,10 @@ export function EdicoesPage({ navigate }) {
           </div>
           <div className="editions-hero__copy">
             <p className="lead">
-              Desde 2016, cada edição do Sweet abre um novo universo criativo para as marcas participantes e transforma Natal em uma rota gastronômica temporária.
+              Desde 2016, o Sweet & Coffee Week transforma temas em experiências gastronômicas. Cada edição propõe um universo criativo e convida as marcas participantes a traduzirem esse conceito em sabores, nomes, apresentações e encontros.
             </p>
             <p>
-              Esta linha do tempo organiza os temas que construíram a identidade do festival: Páscoa, infância, música, cinema, literatura, viagens, cultura potiguar, celebrações e a edição Lovers de 10 anos.
+              A linha do tempo reúne os temas que ajudaram a construir a identidade do festival e a relação afetiva do público com a rota mais doce de Natal.
             </p>
           </div>
         </div>
@@ -63,12 +57,15 @@ export function EdicoesPage({ navigate }) {
             <span className="eyebrow"><span className="dot"></span>Como ler essa história</span>
             <h2>O tema é o ponto de partida.</h2>
             <p>
-              Cada edição propõe um território criativo. A partir dele, os participantes criam sabores, nomes, apresentações, ativações e experiências em loja. O resultado é uma memória coletiva construída por marcas, público e cidade.
+              O tema é o ponto de partida. A partir dele, cada participante cria sua própria interpretação: uma receita, uma memória, uma referência cultural, uma apresentação ou uma experiência em loja. O resultado é um festival sempre novo, mas reconhecível em sua essência.
             </p>
             <div className="editions-feature__tags">
               <span>Combos exclusivos</span>
               <span>Tempo limitado</span>
               <span>Mapa da Doçura</span>
+              <span>Participantes locais</span>
+              <span>Experiências em loja</span>
+              <span>Comunidade Sweet Lovers</span>
               <span>Sweet Awards</span>
             </div>
           </div>
@@ -82,12 +79,12 @@ export function EdicoesPage({ navigate }) {
               <span className="eyebrow"><span className="dot"></span>16 edições</span>
               <h2>Linha do tempo oficial.</h2>
             </div>
-            <p>Uma base para o novo design do site, para páginas de arquivo e para a futura consolidação de participantes e vencedores por edição.</p>
+            <p>Cada edição registra um capítulo da história do festival e mostra como a gastronomia local transformou referências em experiências para o público.</p>
           </div>
 
           <div className="edition-grid">
             {EDITIONS.map((edition, index) => (
-              <EditionCard key={edition.slug} edition={edition} index={index} navigate={navigate} />
+              <EditionCard key={edition.slug} edition={edition} index={index} />
             ))}
           </div>
         </div>
@@ -97,11 +94,12 @@ export function EdicoesPage({ navigate }) {
         <div className="wrap editions-cta">
           <div>
             <span className="eyebrow"><span className="dot"></span>Próximo capítulo</span>
-            <h2>Agora a história também vira ferramenta.</h2>
-            <p>Com as edições organizadas, o site pode evoluir para ter páginas individuais, galerias, rankings, participantes, premiações e memória visual de cada temporada.</p>
+            <h2>A história do Sweet continua crescendo.</h2>
+            <p>Novos temas, novas marcas e novas rotas seguem construindo essa experiência coletiva pela cidade.</p>
           </div>
-          <div>
+          <div className="editions-cta__actions">
             <a href="#/participar" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/participar') }}>Quero participar <I.arrow /></a>
+            <a href="#/apoiar" className="btn btn-accent btn-lg" onClick={(e) => { e.preventDefault(); navigate('/apoiar') }}>Quero apoiar</a>
           </div>
         </div>
       </section>
@@ -135,9 +133,8 @@ export function EdicoesPage({ navigate }) {
         .edition-card__stage { color: var(--accent) !important; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .1em; font-size: 10px !important; margin: 14px 0 8px !important; }
         .edition-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
         .edition-card .btn { margin-top: auto; align-self: flex-start; }
-        .edition-card.is-featured { background: var(--lovers-cream); border-color: rgba(135,14,45,.28); }
-        .edition-card.is-featured h2 { color: var(--lovers-burgundy); }
         .editions-cta { background: linear-gradient(135deg, var(--bg-card), var(--bg-soft)); border: 1px solid var(--line); border-radius: 32px; padding: clamp(34px, 5vw, 70px); display: flex; justify-content: space-between; align-items: center; gap: 28px; }
+        .editions-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
         .editions-cta h2 { font-family: var(--font-serif); font-size: clamp(38px, 5vw, 78px); line-height: .95; letter-spacing: -.045em; margin: 12px 0 0; }
         .editions-cta p { color: var(--ink-soft); max-width: 58ch; line-height: 1.65; }
         @media (max-width: 1180px) { .edition-grid { grid-template-columns: repeat(3, 1fr); } }

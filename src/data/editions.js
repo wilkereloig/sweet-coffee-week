@@ -124,8 +124,7 @@ export const EDITIONS = [
     nome: 'Lovers',
     slug: 'lovers',
     etapa: 'Especial 10 anos',
-    desc: 'Uma homenagem aos Sweet Lovers: o público, as marcas e a cidade que transformaram o Sweet em tradição afetiva de Natal.',
-    visual: 'Stickers, mapa, câmera, celular, café, doce, corações de pertencimento e ícones das edições antigas.',
-    atual: true,
+    desc: 'Edição comemorativa que homenageou os Sweet Lovers e revisitou temas, memórias e sabores que marcaram a trajetória do festival.',
+    visual: 'Mapa, stickers, câmera, celular, café, doce, rota, corações de pertencimento e referências das edições anteriores.',
   },
 ]

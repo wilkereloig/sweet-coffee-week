@@ -4,8 +4,8 @@ import { I } from './icons'
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Sweet',      href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
-  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
   { id: 'vencedores',   label: 'Sweet Awards', href: '#/vencedores' },
+  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
   { id: 'participar',   label: 'Participar',   href: '#/participar' },
   { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
   { id: 'contato',      label: 'Contato',      href: '#/contato' },
@@ -37,14 +37,6 @@ function SiteSidebar({ route, navigate }) {
       </nav>
 
       <div style={{ flex: 1 }} />
-
-      {/* Acesso administrativo — painel da votação do Sweet Awards (dados preservados). */}
-      <a href="#/lovers/painel"
-         className={`sidebar__link${route === 'painel' ? ' active' : ''}`}
-         onClick={(e) => { e.preventDefault(); navigate('/lovers/painel') }}
-         style={{ fontSize: 12, opacity: .5 }}>
-        Painel Sweet Awards
-      </a>
 
       <div className="sidebar__credit">Realização<br /><a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" aria-label="F2 Experience" style={{ display: 'inline-block', marginTop: 4 }}><img src="/images/logo-f2experience.svg" alt="F2 Experience" style={{ height: 18, width: 'auto', display: 'block' }} /></a></div>
     </aside>
@@ -114,12 +106,6 @@ export function SiteHeader({ route, navigate }) {
                   {l.label}
                 </a>
               ))}
-              <a href="#/lovers/painel"
-                 className="mobile-menu__inst-link"
-                 onClick={(e) => { e.preventDefault(); navigate('/lovers/painel'); setMobileOpen(false) }}
-                 style={{ opacity: .6 }}>
-                Painel Sweet Awards
-              </a>
             </div>
           </div>
         </div>

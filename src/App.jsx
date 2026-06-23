@@ -20,7 +20,7 @@ import { PainelPage }       from './pages/lovers/Painel'
 // limpos /mapa, /premiacao, /participantes) são encaminhadas para a home.
 // EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
 // para consultar e exportar a votação (dados preservados no Supabase).
-const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes', '/premiacao']
+const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
@@ -38,6 +38,7 @@ export default function App() {
   const route = (() => {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/vencedores'))   return 'vencedores'
+    if (path.startsWith('/premiacao'))    return 'vencedores'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/curiosidades')) return 'curiosidades'
     if (path.startsWith('/participar'))   return 'participar'
