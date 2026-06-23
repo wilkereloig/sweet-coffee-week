@@ -14,6 +14,8 @@ import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { AgradecimentoPage } from './pages/institutional/Agradecimento'
 import { PainelPage }       from './pages/lovers/Painel'
+import { HomeVarA }         from './pages/institutional/HomeVarA'
+import { HomeVarB }         from './pages/institutional/HomeVarB'
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
@@ -37,6 +39,8 @@ export default function App() {
 
   const route = (() => {
     if (path === '/' || path === '') return 'home'
+    if (path.startsWith('/home-a'))       return 'home-a'
+    if (path.startsWith('/home-b'))       return 'home-b'
     if (path.startsWith('/vencedores'))   return 'vencedores'
     if (path.startsWith('/premiacao'))    return 'vencedores'
     if (path.startsWith('/edicoes'))      return 'edicoes'
@@ -51,6 +55,8 @@ export default function App() {
   let page
   switch (route) {
     case 'home':         page = <HomePage navigate={navigate} />; break
+    case 'home-a':       page = <HomeVarA navigate={navigate} />; break
+    case 'home-b':       page = <HomeVarB navigate={navigate} />; break
     case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
     case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
@@ -66,6 +72,17 @@ export default function App() {
     document.body.classList.add(cls)
     return () => document.body.classList.remove(cls)
   }, [route])
+
+  // Previews de design da nova home renderizam full-bleed, sem o chrome do site.
+  const isHomePreview = route === 'home-a' || route === 'home-b'
+
+  if (isHomePreview) {
+    return (
+      <DevViewportSwitcher>
+        <ErrorBoundary key={route}>{page}</ErrorBoundary>
+      </DevViewportSwitcher>
+    )
+  }
 
   return (
     <DevViewportSwitcher>
