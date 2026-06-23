@@ -1,0 +1,63 @@
+/* Nexa Slab — self-hosted (woff2). Família única "Nexa Slab" com peso/estilo.
+   Arquivos em public/fonts/nexa-slab/ (servidos em /fonts/nexa-slab/). */
+
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabThin.woff2') format('woff2');
+  font-weight: 100; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlab-Light.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlab-Book.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabBookItalic.woff2') format('woff2');
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabRegularItalic.woff2') format('woff2');
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabBoldItalic.woff2') format('woff2');
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlab-xBold.woff2') format('woff2');
+  font-weight: 800; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabHeavy.woff2') format('woff2');
+  font-weight: 850; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabBlack.woff2') format('woff2');
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab';
+  src: url('/fonts/nexa-slab/NexaSlabBlackItalic.woff2') format('woff2');
+  font-weight: 900; font-style: italic; font-display: swap;
+}

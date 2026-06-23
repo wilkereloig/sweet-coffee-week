@@ -3,265 +3,245 @@ import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
 import { EDITIONS } from '../../data/editions'
 
-function Stat({ value, label, icon = 'star' }) {
-  const Icon = I[icon] || I.star
-  return (
-    <div className="festival-stat">
-      <div className="festival-stat__icon"><Icon width={18} height={18} /></div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  )
-}
+const STEPS = [
+  { n: '01', t: 'Tema da edição', d: 'Cada temporada parte de um conceito criativo que orienta sabores, nomes, comunicação e experiência em loja.' },
+  { n: '02', t: 'Combos exclusivos', d: 'Os participantes criam uma proposta especial — doce, salgado e bebida — disponível por tempo limitado.' },
+  { n: '03', t: 'Rota pela cidade', d: 'O público acessa o site, conhece os endereços, escolhe os combos e monta a própria rota de sabores.' },
+  { n: '04', t: 'Sweet Awards', d: 'Ao final, os destaques são reconhecidos: combo, doce, bebida, atendimento, apresentação e criatividade.' },
+]
 
-function Step({ n, title, body, icon }) {
-  const Icon = I[icon] || I.cup
-  return (
-    <article className="festival-step card">
-      <div className="festival-step__top">
-        <span>{n}</span>
-        <Icon width={26} height={26} />
-      </div>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </article>
-  )
-}
+const PILLARS = [
+  { t: 'Movimenta marcas', d: 'Gera tráfego, venda, repertório de produto, conteúdo e relacionamento com novos públicos.' },
+  { t: 'Cria memória', d: 'Cada tema vira história: infância, cinema, livros, viagens, música e celebrações.' },
+  { t: 'Ativa a cidade', d: 'O público circula por bairros, conhece endereços e monta a própria rota de cafeterias e docerias.' },
+  { t: 'Forma comunidade', d: 'Os Sweet Lovers acompanham, comentam, votam, fotografam e esperam a próxima edição.' },
+]
 
-function Feature({ title, body, icon }) {
-  const Icon = I[icon] || I.heart
-  return (
-    <article className="festival-feature">
-      <div><Icon width={24} height={24} /></div>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </article>
-  )
-}
+const STATS = [
+  { v: '16', l: 'edições desde 2016' },
+  { v: '+34 mil', l: 'combos vendidos' },
+  { v: '+R$ 712 mil', l: 'movimentados na cidade' },
+  { v: '+10 mi', l: 'views no Instagram' },
+]
 
 export function HomePage({ navigate }) {
   const lastEditions = EDITIONS.slice(-4)
+  const go = (path) => (e) => { e.preventDefault(); navigate(path) }
 
   return (
-    <div className="page-enter festival-home">
-      <section className="festival-hero">
-        <div className="wrap festival-hero__grid">
-          <div className="festival-hero__copy">
-            <span className="eyebrow"><span className="dot"></span>FESTIVAL GASTRONÔMICO · NATAL/RN · DESDE 2016</span>
-            <h1 className="festival-hero__title">
+    <div className="page-enter hm">
+      {/* HERO */}
+      <section className="hm-hero">
+        <div className="wrap hm-hero__grid">
+          <div>
+            <span className="eyebrow"><span className="dot"></span>Festival gastronômico · Natal/RN · desde 2016</span>
+            <h1 className="hm-title">
               A temporada<br />mais doce<br /><span>de Natal.</span>
             </h1>
-            <p className="festival-hero__lead">
-              O Sweet & Coffee Week transforma cafeterias, docerias, confeitarias, restaurantes e marcas autorais em uma rota de experiências criadas por tempo limitado.
-            </p>
-            <p className="festival-hero__text">
-              A cada edição, um novo tema inspira combos exclusivos, vitrines, histórias, fotos, encontros e rotas pela cidade. Não é só provar um doce: é viver o festival.
-            </p>
-            <div className="festival-hero__actions">
-              <a href="#/edicoes" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
-                Ver edições <I.arrow />
-              </a>
-              <a href="#/vencedores" className="btn btn-secondary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}>
-                Sweet Awards
-              </a>
-            </div>
           </div>
-
-          <div className="festival-hero__media">
-            <div className="festival-hero__photo festival-hero__photo--main">
-              <PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Criações feitas por participantes especialmente para cada edição." aspect="4/5" tone="coffee" />
-            </div>
-            <div className="festival-hero__photo festival-hero__photo--float">
-              <PhotoEditorial label="ROTA DA DOÇURA" caption="O público circulando pela cidade em busca de novos sabores." aspect="1/1" tone="warm" />
-            </div>
-          </div>
-        </div>
-
-        <div className="wrap festival-stat-strip">
-          <Stat value="16" label="edições realizadas desde 2016" icon="cal" />
-          <Stat value="+34 mil" label="combos vendidos nas últimas edições" icon="plate" />
-          <Stat value="+R$ 712 mil" label="movimentados diretamente" icon="star" />
-          <Stat value="+10 mi" label="visualizações no Instagram" icon="heart" />
-        </div>
-      </section>
-
-      <section className="section festival-intro">
-        <div className="wrap festival-two-col">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>O que é o Sweet</span>
-            <h2 className="festival-section-title">
-              Um circuito de sabor, cidade e comunidade.
-            </h2>
-          </div>
-          <div className="festival-copy-stack">
+          <div className="hm-hero__copy">
             <p className="lead">
-              O Sweet & Coffee Week é um festival gastronômico criado em Natal para aproximar o público das marcas locais por meio de combos exclusivos, criados especialmente para cada edição.
+              O Sweet &amp; Coffee Week transforma cafeterias, docerias e confeitarias numa rota de combos
+              exclusivos, criados por tempo limitado.
             </p>
             <p>
-              O formato clássico reúne <strong>1 doce + 1 salgado + 1 bebida</strong>, sempre conectado ao tema da temporada. Mas a experiência vai além do prato: envolve roteiro, mapa, fotos, votação, decoração, atendimento, memória afetiva e conteúdo compartilhado pelos Sweet Lovers.
+              A cada edição, um novo tema inspira sabores, vitrines, histórias e encontros pela cidade.
+              Não é só provar um doce — é viver o festival.
             </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section festival-photo-band">
-        <div className="wrap">
-          <div className="festival-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Festival em movimento</span>
-              <h2 className="festival-section-title">A cidade vira rota. O combo vira memória.</h2>
+            <div className="hm-hero__actions">
+              <a href="#/edicoes" className="btn btn-primary btn-lg" onClick={go('/edicoes')}>Ver edições <I.arrow /></a>
+              <a href="#/participar" className="btn btn-accent btn-lg" onClick={go('/participar')}>Quero participar</a>
             </div>
-            <p>
-              Durante o Sweet, cada participante se torna um ponto de parada. Tem vitrine preparada, atendimento especial, doce, salgado, café, foto, indicação de amigo e aquela vontade de descobrir o próximo endereço.
-            </p>
-          </div>
-          <div className="festival-photo-grid">
-            <div className="festival-photo-grid__wide"><PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Doces, salgados e bebidas criados especialmente para o tema da edição." aspect="16/9" tone="warm" /></div>
-            <PhotoEditorial label="SWEET LOVERS NA ROTA" caption="Público visitando lojas, fotografando combos e compartilhando descobertas." aspect="4/5" tone="cream" />
-            <PhotoEditorial label="EXPERIÊNCIA EM LOJA" caption="Vitrines, atendimento e detalhes que fazem cada participante entrar no clima do festival." aspect="4/5" tone="dark" />
           </div>
         </div>
       </section>
 
-      <section className="section" style={{ background: 'var(--bg-soft)' }}>
+      {/* O QUE É — foto + painel escuro */}
+      <section className="section hm-feature">
+        <div className="wrap hm-feature__grid">
+          <div className="hm-feature__photo">
+            <PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Doces, salgados e bebidas criados especialmente para o tema de cada edição." aspect="16/10" tone="coffee" />
+          </div>
+          <div className="hm-feature__panel">
+            <span className="eyebrow"><span className="dot"></span>O que é o Sweet</span>
+            <h2>Um circuito de sabor, cidade e comunidade.</h2>
+            <p>
+              Festival gastronômico criado em Natal para aproximar o público das marcas locais por meio
+              de combos exclusivos. O formato clássico reúne 1 doce + 1 salgado + 1 bebida, sempre
+              conectado ao tema da temporada — mas a experiência vai além do prato.
+            </p>
+            <div className="hm-tags">
+              <span>Combos exclusivos</span>
+              <span>Tempo limitado</span>
+              <span>Mapa da Doçura</span>
+              <span>Participantes locais</span>
+              <span>Sweet Lovers</span>
+              <span>Sweet Awards</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section className="section hm-stats-section">
+        <div className="wrap hm-stats">
+          {STATS.map((s) => (
+            <div className="hm-stat" key={s.l}>
+              <strong>{s.v}</strong>
+              <span>{s.l}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA */}
+      <section className="section hm-steps-section" style={{ background: 'var(--bg-soft)' }}>
         <div className="wrap">
-          <div className="festival-section-head">
+          <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Como funciona</span>
-              <h2 className="festival-section-title">Como o Sweet acontece.</h2>
+              <h2>Como o Sweet acontece.</h2>
             </div>
             <p>O festival começa com um tema, ganha forma nos combos dos participantes e se espalha pela rota do público.</p>
           </div>
-          <div className="festival-steps-grid">
-            <Step n="01" title="Tema da edição" body="Cada temporada parte de um conceito criativo que orienta sabores, nomes, comunicação e experiência em loja." icon="cal" />
-            <Step n="02" title="Combos exclusivos" body="Os participantes criam uma proposta especial, geralmente com doce, salgado e bebida, disponível por tempo limitado." icon="plate" />
-            <Step n="03" title="Rota pela cidade" body="O público acessa o site, conhece os endereços, escolhe os combos e monta sua própria rota." icon="map" />
-            <Step n="04" title="Sweet Awards" body="Ao final da experiência, os destaques são reconhecidos em categorias como combo, doce, bebida, atendimento, apresentação e criatividade." icon="star" />
-          </div>
-        </div>
-      </section>
-
-      <section className="section festival-dark">
-        <div className="wrap festival-dark__grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Por que o Sweet importa</span>
-            <h2 className="festival-section-title">O festival virou tradição afetiva de Natal.</h2>
-            <p>
-              Ao longo de uma década, o Sweet deixou de ser apenas uma ação promocional e se tornou uma plataforma de visibilidade para marcas locais, uma vitrine da economia criativa e uma experiência coletiva de descoberta gastronômica.
-            </p>
-          </div>
-          <div className="festival-feature-grid">
-            <Feature title="Movimenta marcas" body="Gera tráfego, venda, repertório de produto, conteúdo e relacionamento com novos públicos." icon="plate" />
-            <Feature title="Cria memória" body="Cada tema vira história: infância, cinema, livros, viagens, música, terras potiguares e celebrações." icon="heart" />
-            <Feature title="Ativa a cidade" body="O público circula por bairros, conhece endereços e monta sua própria rota de cafeterias e docerias." icon="pin" />
-            <Feature title="Forma comunidade" body="Os Sweet Lovers acompanham, comentam, votam, fotografam e esperam a próxima edição." icon="star" />
-          </div>
-        </div>
-      </section>
-
-      <section className="section festival-editions-preview">
-        <div className="wrap">
-          <div className="festival-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Memória do festival</span>
-              <h2 className="festival-section-title">Cada edição abre um novo universo.</h2>
-            </div>
-            <a href="#/edicoes" className="btn btn-ghost" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
-              Ver linha do tempo <I.arrow />
-            </a>
-          </div>
-          <div className="festival-edition-cards">
-            {lastEditions.map((edition) => (
-              <article className={`festival-edition-card${edition.atual ? ' is-lovers' : ''}`} key={edition.slug}>
-                <span>{edition.ano}</span>
-                <h3>{edition.nome}</h3>
-                <p>{edition.desc}</p>
+          <div className="hm-steps">
+            {STEPS.map((s) => (
+              <article className="hm-step" key={s.n}>
+                <span className="hm-step__n">{s.n}</span>
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section festival-cta-section">
-        <div className="wrap festival-cta">
+      {/* POR QUE IMPORTA */}
+      <section className="section hm-why">
+        <div className="wrap">
+          <div className="hm-head">
+            <div>
+              <span className="eyebrow"><span className="dot"></span>Por que o Sweet importa</span>
+              <h2>O festival virou tradição<br />afetiva de Natal.</h2>
+            </div>
+            <p>Em uma década, o Sweet deixou de ser uma ação promocional e virou plataforma de visibilidade para as marcas locais e a economia criativa.</p>
+          </div>
+          <div className="hm-pillars">
+            {PILLARS.map((p) => (
+              <article className="hm-pillar" key={p.t}>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* EDIÇÕES PREVIEW */}
+      <section className="section hm-editions" style={{ background: 'var(--bg-soft)' }}>
+        <div className="wrap">
+          <div className="hm-head">
+            <div>
+              <span className="eyebrow"><span className="dot"></span>Memória do festival</span>
+              <h2>Cada edição abre um novo universo.</h2>
+            </div>
+            <a href="#/edicoes" className="btn btn-ghost" onClick={go('/edicoes')}>Ver linha do tempo <I.arrow /></a>
+          </div>
+          <div className="hm-ed-grid">
+            {lastEditions.map((ed, i) => (
+              <article className="hm-ed-card" key={ed.slug}>
+                <div className="hm-ed-card__media">
+                  <PhotoEditorial label={`${ed.ano} · ${ed.nome}`} aspect="4/5" tone={i % 4 === 0 ? 'coffee' : i % 4 === 1 ? 'warm' : i % 4 === 2 ? 'cream' : 'dark'} />
+                </div>
+                <div className="hm-ed-card__body">
+                  <span>{ed.ano}</span>
+                  <h3>{ed.nome}</h3>
+                  <p>{ed.desc}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="section hm-cta-section">
+        <div className="wrap hm-cta">
           <div>
             <span className="eyebrow"><span className="dot"></span>Próximas temporadas</span>
             <h2>Quer fazer parte do próximo Sweet?</h2>
-            <p>O Sweet abre espaço para marcas gastronômicas, patrocinadores, apoiadores e parceiros que querem participar de uma experiência com presença de cidade, conteúdo e público engajado.</p>
+            <p>O Sweet abre espaço para marcas gastronômicas, patrocinadores e apoiadores que querem uma experiência com presença de cidade, conteúdo e público engajado.</p>
           </div>
-          <div className="festival-cta__actions">
-            <a href="#/participar" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/participar') }}>Quero participar <I.arrow /></a>
-            <a href="#/apoiar" className="btn btn-accent btn-lg" onClick={(e) => { e.preventDefault(); navigate('/apoiar') }}>Quero apoiar</a>
+          <div className="hm-cta__actions">
+            <a href="#/participar" className="btn btn-primary btn-lg" onClick={go('/participar')}>Quero participar <I.arrow /></a>
+            <a href="#/apoiar" className="btn btn-accent btn-lg" onClick={go('/apoiar')}>Quero apoiar</a>
           </div>
         </div>
       </section>
 
       <style>{`
-        .festival-home { overflow: hidden; }
-        .festival-hero { padding: clamp(48px, 7vw, 96px) 0 48px; position: relative; }
-        .festival-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 78%; background: radial-gradient(circle at 74% 12%, rgba(232,85,58,.18), transparent 34%), radial-gradient(circle at 12% 18%, rgba(232,201,168,.55), transparent 36%); pointer-events: none; }
-        .festival-hero__grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.03fr) minmax(340px, .97fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
-        .festival-hero__title { font-family: var(--font-serif); font-size: clamp(64px, 10vw, 156px); line-height: .86; letter-spacing: -.06em; margin: 22px 0 0; color: var(--ink); }
-        .festival-hero__title span { color: var(--accent); font-style: italic; }
-        .festival-hero__lead { font-size: clamp(20px, 2vw, 30px); line-height: 1.18; max-width: 15ch; margin: 28px 0 0; color: var(--ink); }
-        .festival-hero__text { max-width: 54ch; color: var(--ink-soft); font-size: 16px; line-height: 1.65; margin-top: 18px; }
-        .festival-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-        .festival-hero__media { min-height: 620px; position: relative; }
-        .festival-hero__photo--main { width: min(460px, 88%); margin-left: auto; box-shadow: 0 24px 70px rgba(43,24,16,.18); border-radius: 24px; overflow: hidden; }
-        .festival-hero__photo--float { position: absolute; left: 0; bottom: 28px; width: min(260px, 46%); box-shadow: 0 20px 55px rgba(43,24,16,.18); border-radius: 20px; overflow: hidden; transform: rotate(-4deg); }
-        .festival-stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 42px; position: relative; }
-        .festival-stat { background: var(--bg-card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; min-height: 118px; display: flex; flex-direction: column; justify-content: space-between; }
-        .festival-stat__icon { color: var(--accent); }
-        .festival-stat strong { font-family: var(--font-serif); font-style: italic; font-size: clamp(30px, 3vw, 46px); line-height: 1; color: var(--ink); }
-        .festival-stat span { color: var(--ink-soft); font-size: 13px; line-height: 1.35; }
-        .festival-two-col { display: grid; grid-template-columns: .95fr 1.05fr; gap: clamp(32px, 6vw, 88px); align-items: start; }
-        .festival-section-title { font-family: var(--font-serif); font-size: clamp(42px, 6vw, 92px); line-height: .95; letter-spacing: -.045em; margin: 14px 0 0; color: var(--ink); }
-        .festival-copy-stack p { font-size: 17px; line-height: 1.7; color: var(--ink-soft); }
-        .festival-photo-band { padding-top: 40px; }
-        .festival-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 36px; }
-        .festival-section-head > p { max-width: 460px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
-        .festival-photo-grid { display: grid; grid-template-columns: 1.4fr .75fr .75fr; gap: 18px; align-items: stretch; }
-        .festival-photo-grid__wide { min-height: 420px; }
-        .festival-photo-grid__wide > figure { height: 100%; aspect-ratio: auto !important; }
-        .festival-steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .festival-step__top { display: flex; justify-content: space-between; align-items: center; color: var(--accent); margin-bottom: 26px; }
-        .festival-step__top span { font-family: var(--font-serif); font-style: italic; font-size: 42px; line-height: 1; }
-        .festival-step h3 { font-size: 22px; margin: 0; color: var(--ink); }
-        .festival-step p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
-        .festival-dark { background: var(--ink); color: var(--bg); }
-        .festival-dark .festival-section-title { color: var(--bg); }
-        .festival-dark p { color: rgba(255,244,236,.72); font-size: 17px; line-height: 1.7; max-width: 54ch; }
-        .festival-dark__grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
-        .festival-feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        .festival-feature { border: 1px solid rgba(255,244,236,.12); border-radius: 20px; padding: 24px; background: rgba(255,244,236,.04); }
-        .festival-feature > div { color: var(--peach); margin-bottom: 22px; }
-        .festival-feature h3 { color: var(--bg); font-size: 21px; margin: 0; }
-        .festival-feature p { color: rgba(255,244,236,.68); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
-        .festival-edition-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-        .festival-edition-card { border: 1px solid var(--line); background: var(--bg-card); border-radius: 22px; padding: 24px; min-height: 230px; display: flex; flex-direction: column; }
-        .festival-edition-card span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-mute); }
-        .festival-edition-card h3 { font-family: var(--font-serif); font-style: italic; font-size: 36px; line-height: .95; margin: 18px 0 0; color: var(--ink); }
-        .festival-edition-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: auto 0 0; }
-        .festival-edition-card.is-lovers { background: var(--lovers-cream); border-color: rgba(135,14,45,.26); }
-        .festival-edition-card.is-lovers h3 { color: var(--lovers-burgundy); }
-        .festival-cta { border-radius: 32px; background: linear-gradient(135deg, var(--bg-soft), #fff); border: 1px solid var(--line); padding: clamp(34px, 5vw, 70px); display: flex; justify-content: space-between; align-items: center; gap: 28px; }
-        .festival-cta h2 { font-family: var(--font-serif); font-size: clamp(38px, 5vw, 80px); line-height: .95; letter-spacing: -.045em; margin: 12px 0 0; color: var(--ink); }
-        .festival-cta p { color: var(--ink-soft); max-width: 56ch; line-height: 1.65; }
-        .festival-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
-        @media (max-width: 1040px) {
-          .festival-hero__grid, .festival-two-col, .festival-dark__grid { grid-template-columns: 1fr; }
-          .festival-hero__media { min-height: 520px; }
-          .festival-stat-strip, .festival-steps-grid, .festival-edition-cards { grid-template-columns: repeat(2, 1fr); }
-          .festival-photo-grid { grid-template-columns: 1fr 1fr; }
-          .festival-photo-grid__wide { grid-column: 1 / -1; }
-          .festival-section-head, .festival-cta { align-items: flex-start; flex-direction: column; }
-          .festival-cta__actions { justify-content: flex-start; }
+        .hm { overflow: hidden; }
+
+        .hm-hero { padding: clamp(54px, 8vw, 112px) 0 42px; }
+        .hm-hero__grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
+        .hm-title { font-family: var(--font-serif); font-size: clamp(58px, 9vw, 142px); line-height: .9; letter-spacing: -.04em; margin: 20px 0 0; color: var(--ink); }
+        .hm-title span { color: var(--accent); font-style: italic; }
+        .hm-hero__copy p { color: var(--ink-soft); font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
+        .hm-hero__copy .lead { color: var(--ink); }
+        .hm-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+
+        .hm-feature { padding-top: 28px; }
+        .hm-feature__grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: stretch; }
+        .hm-feature__photo > figure { height: 100%; aspect-ratio: auto !important; min-height: 460px; }
+        .hm-feature__panel { background: var(--ink); color: var(--bg); border-radius: 24px; padding: clamp(28px, 4vw, 52px); display: flex; flex-direction: column; justify-content: flex-end; }
+        .hm-feature__panel h2 { color: var(--bg); font-family: var(--font-serif); font-size: clamp(32px, 4vw, 58px); line-height: .96; letter-spacing: -.03em; margin: 18px 0 0; }
+        .hm-feature__panel p { color: rgba(255,244,236,.74); line-height: 1.65; margin: 16px 0 0; }
+        .hm-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+        .hm-tags span { border: 1px solid rgba(255,244,236,.2); border-radius: 999px; padding: 7px 11px; color: var(--peach); font-family: var(--font-slab); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+
+        .hm-stats-section { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(40px, 6vw, 72px); }
+        .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .hm-stat { border: 1px solid var(--line); border-radius: 22px; padding: 26px 24px; background: var(--bg-card); }
+        .hm-stat strong { display: block; font-family: var(--font-serif); font-size: clamp(34px, 3.4vw, 52px); line-height: 1; color: var(--accent); }
+        .hm-stat span { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
+
+        .hm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 40px; }
+        .hm-head h2 { font-family: var(--font-serif); font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); }
+        .hm-head > p { max-width: 460px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+
+        .hm-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .hm-step { background: var(--bg-card); border: 1px solid var(--line); border-radius: 24px; padding: 26px 24px; }
+        .hm-step__n { font-family: var(--font-serif); font-size: 44px; line-height: 1; color: var(--accent); }
+        .hm-step h3 { font-size: 20px; margin: 20px 0 0; color: var(--ink); }
+        .hm-step p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
+
+        .hm-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .hm-pillar { border-top: 2px solid var(--accent); padding: 18px 0 0; }
+        .hm-pillar h3 { font-family: var(--font-serif); font-size: 24px; margin: 0; color: var(--ink); }
+        .hm-pillar p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
+
+        .hm-ed-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+        .hm-ed-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
+        .hm-ed-card__media { min-height: 240px; }
+        .hm-ed-card__media > figure { height: 100%; border-radius: 0 !important; aspect-ratio: auto !important; }
+        .hm-ed-card__body { padding: 22px; display: flex; flex-direction: column; flex: 1; }
+        .hm-ed-card__body span { font-family: var(--font-slab); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); }
+        .hm-ed-card__body h3 { font-family: var(--font-serif); font-style: italic; font-size: 30px; line-height: .95; margin: 14px 0 0; color: var(--ink); }
+        .hm-ed-card__body p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 12px 0 0; }
+
+        .hm-cta { background: linear-gradient(135deg, var(--bg-card), var(--bg-soft)); border: 1px solid var(--line); border-radius: 32px; padding: clamp(34px, 5vw, 70px); display: flex; justify-content: space-between; align-items: center; gap: 28px; }
+        .hm-cta h2 { font-family: var(--font-serif); font-size: clamp(38px, 5vw, 78px); line-height: .96; letter-spacing: -.04em; margin: 12px 0 0; color: var(--ink); }
+        .hm-cta p { color: var(--ink-soft); max-width: 56ch; line-height: 1.65; margin-top: 14px; }
+        .hm-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+
+        @media (max-width: 1180px) { .hm-steps, .hm-pillars, .hm-ed-grid, .hm-stats { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) {
+          .hm-hero__grid, .hm-feature__grid { grid-template-columns: 1fr; }
+          .hm-head, .hm-cta { flex-direction: column; align-items: flex-start; }
+          .hm-feature__photo > figure { min-height: 340px; }
         }
-        @media (max-width: 640px) {
-          .festival-hero__media { min-height: 0; display: grid; gap: 14px; }
-          .festival-hero__photo--main, .festival-hero__photo--float { position: static; width: 100%; transform: none; }
-          .festival-stat-strip, .festival-steps-grid, .festival-feature-grid, .festival-edition-cards, .festival-photo-grid { grid-template-columns: 1fr; }
-          .festival-photo-grid__wide { min-height: 0; }
+        @media (max-width: 560px) {
+          .hm-stats, .hm-steps, .hm-pillars, .hm-ed-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
