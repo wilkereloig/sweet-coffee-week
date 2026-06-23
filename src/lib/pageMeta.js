@@ -39,10 +39,22 @@ export function metaForPath(path) {
     return { title: `Votar · ${BASE} Awards`, description: 'Vote no seu combo favorito do Sweet & Coffee Week Awards.' }
   if (p.startsWith('/lovers/awards') || p.startsWith('/lovers/premiacao') || p === '/premiacao')
     return { title: `Awards · ${BASE}`, description: 'A premiação do Sweet & Coffee Week Lovers.' }
-  if (p.startsWith('/lovers'))
-    return { title: `${BASE} Lovers`, description: 'A edição Lovers do Sweet & Coffee Week.' }
+  if (p.startsWith('/lovers') || p.startsWith('/edicoes/lovers'))
+    return { title: `Arquivo Lovers · ${BASE}`, description: 'Arquivo da edição especial Sweet & Coffee Week Lovers — os 10 anos do festival.' }
 
-  return { title: BASE, description: 'A próxima edição do Sweet & Coffee Week está chegando.' }
+  // Institucional permanente.
+  if (p.startsWith('/edicoes'))
+    return { title: `Edições · ${BASE}`, description: 'A história do Sweet & Coffee Week: temas, memórias e sabores de cada edição desde 2016.' }
+  if (p.startsWith('/curiosidades'))
+    return { title: `Curiosidades · ${BASE}`, description: 'Curiosidades, termos e bastidores do festival Sweet & Coffee Week.' }
+  if (p.startsWith('/participar'))
+    return { title: `Participar · ${BASE}`, description: 'Leve sua marca para o Sweet & Coffee Week — pré-cadastro para participantes.' }
+  if (p.startsWith('/apoiar'))
+    return { title: `Apoiar · ${BASE}`, description: 'Patrocínio, parcerias e apoio ao festival Sweet & Coffee Week.' }
+  if (p.startsWith('/contato'))
+    return { title: `Contato · ${BASE}`, description: 'Fale com a organização do Sweet & Coffee Week.' }
+
+  return { title: BASE, description: 'A temporada mais doce de Natal — o festival gastronômico Sweet & Coffee Week.' }
 }
 
 // Aplica title + meta description no documento.
