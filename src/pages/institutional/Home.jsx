@@ -61,8 +61,8 @@ export function HomePage({ navigate }) {
               <a href="#/edicoes" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
                 Ver edições <I.arrow />
               </a>
-              <a href="#/lovers" className="btn btn-secondary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}>
-                Arquivo Lovers
+              <a href="#/vencedores" className="btn btn-secondary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}>
+                Sweet Awards
               </a>
             </div>
           </div>

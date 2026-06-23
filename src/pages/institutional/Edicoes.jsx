@@ -23,8 +23,8 @@ function EditionCard({ edition, index, navigate }) {
         <p className="edition-card__stage">{edition.etapa}</p>
         <p>{edition.desc}</p>
         {edition.atual && (
-          <a href="#/lovers" className="btn btn-lovers btn-sm" onClick={(e) => { e.preventDefault(); navigate('/lovers') }}>
-            Ver arquivo Lovers <I.arrow />
+          <a href="#/vencedores" className="btn btn-lovers btn-sm" onClick={(e) => { e.preventDefault(); navigate('/vencedores') }}>
+            Ver vencedores <I.arrow />
           </a>
         )}
       </div>
