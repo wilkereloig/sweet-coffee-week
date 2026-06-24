@@ -1,6 +1,5 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { PhotoEditorial } from '../../components/placeholders'
 
 const STEPS = [
   { n: '01', t: 'Tema da edição', d: 'Cada edição parte de um universo criativo. Já teve Páscoa, Doces do Mundo, Sabores da Infância, Pâtisserie Francesa, Contos de Fadas, Música, Heróis & Vilões, Séries, Terras Potiguares, Movies, Trip, Books, Celebration e Lovers.' },
@@ -117,33 +116,40 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* O QUE É — foto + painel escuro */}
-      <section className="section hm-feature">
-        <div className="wrap hm-feature__grid">
-          <div className="hm-feature__photo">
-            <PhotoEditorial label="COMBOS EXCLUSIVOS" caption="Doces, salgados e bebidas criados especialmente para o tema de cada edição." aspect="16/10" tone="coffee" />
+      {/* O QUE É — circuito de sabor: colagem de fotos reais + tags sticker */}
+      <section className="section hm-about">
+        <div className="wrap">
+          <div className="hm-about__head">
+            <h2>Um circuito de sabor,<br />cidade e comunidade.</h2>
+            <div className="hm-about__text">
+              <p>
+                O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por
+                meio de uma experiência simples, criativa e altamente compartilhável.
+              </p>
+              <p>
+                O formato clássico do festival reúne <strong>1 doce + 1 salgado + 1 bebida</strong>,
+                criados especialmente para o tema da edição e oferecidos por tempo limitado. Mas o festival
+                vai além do combo: ele cria uma temporada na cidade — o público acompanha o lançamento do
+                tema, conhece os participantes, salva seus combos favoritos, monta roteiros, visita lojas,
+                fotografa, vota no Sweet Awards e transforma cada parada em uma memória.
+              </p>
+            </div>
           </div>
-          <div className="hm-feature__panel">
-            <span className="eyebrow"><span className="dot"></span>O que é o Sweet &amp; Coffee Week</span>
-            <h2>Um circuito de sabor, cidade e comunidade.</h2>
-            <p>
-              O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por meio
-              de uma experiência simples, criativa e altamente compartilhável.
-            </p>
-            <p>
-              O formato clássico do festival reúne 1 doce + 1 salgado + 1 bebida, criados especialmente para
-              o tema da edição e oferecidos por tempo limitado. Mas o festival vai além do combo: ele cria
-              uma temporada na cidade — o público acompanha o lançamento do tema, conhece os participantes,
-              salva seus combos favoritos, monta roteiros, visita lojas, fotografa, vota no Sweet Awards e
-              transforma cada parada em uma memória.
-            </p>
-            <div className="hm-tags">
-              <span>Combos exclusivos</span>
-              <span>Tema da edição</span>
-              <span>Tempo limitado</span>
-              <span>Mapa da Doçura</span>
-              <span>Sweet Lovers</span>
-              <span>Sweet Awards</span>
+
+          <div className="hm-about__collage">
+            <figure className="hm-collage__cell hm-collage__cell--a">
+              <img src="/images/combos/caffe-basilicos/main.jpg" alt="Combo de uma loja participante do Sweet & Coffee Week" loading="lazy" />
+            </figure>
+            <figure className="hm-collage__cell hm-collage__cell--b">
+              <img src="/images/combos/delicato-bolos/main.jpg" alt="Doce de uma loja participante do Sweet & Coffee Week" loading="lazy" />
+            </figure>
+            <figure className="hm-collage__cell hm-collage__cell--c">
+              <img src="/images/combos/douce-di-maria/main.jpg" alt="Combo de uma loja participante do Sweet & Coffee Week" loading="lazy" />
+            </figure>
+            <div className="hm-about__tags">
+              <span className="hm-tag hm-tag--coral">combos exclusivos<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
+              <span className="hm-tag hm-tag--cyan">tema da edição<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
+              <span className="hm-tag hm-tag--yellow">11 dias de festival<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
             </div>
           </div>
         </div>
@@ -277,7 +283,9 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__photo::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.10) 2.5px, transparent 3.5px); background-size: 40px 40px; opacity: .45; z-index: 1; }
         .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
         .hm .swc-hero__blob { position: absolute; top: -7%; right: -4%; width: clamp(150px, 18vw, 300px); height: clamp(150px, 18vw, 300px); background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
-        .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(26px, 4vw, 56px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+        .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+        /* onda orgânica cream: hero (chocolate/foto) derrete na seção creme */
+        .hm .swc-hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: clamp(54px, 7vw, 120px); background: url('/images/shapes/wave-cream-bottom.svg') bottom center / 100% 100% no-repeat; z-index: 5; pointer-events: none; }
         .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
         @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
         @keyframes swcFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
@@ -291,14 +299,30 @@ export function HomePage({ navigate }) {
           .hm .swc-hero__blob { width: 120px; height: 120px; }
         }
 
-        .hm-feature { padding-top: 28px; }
-        .hm-feature__grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: stretch; }
-        .hm-feature__photo > figure { height: 100%; aspect-ratio: auto !important; min-height: 460px; }
-        .hm-feature__panel { background: var(--ink); color: var(--bg); border-radius: 24px; padding: clamp(28px, 4vw, 52px); display: flex; flex-direction: column; justify-content: flex-end; }
-        .hm-feature__panel h2 { color: var(--bg); font-family: var(--font-serif); font-size: clamp(32px, 4vw, 58px); line-height: .96; letter-spacing: -.03em; margin: 18px 0 0; }
-        .hm-feature__panel p { color: rgba(255,244,236,.74); line-height: 1.65; margin: 16px 0 0; }
-        .hm-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-        .hm-tags span { border: 1px solid rgba(255,244,236,.2); border-radius: 999px; padding: 7px 11px; color: var(--peach); font-family: var(--font-slab); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+        .hm-about { padding-top: clamp(38px, 5vw, 72px); }
+        .hm-about__head { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(30px, 4vw, 54px); }
+        .hm-about__head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(38px, 5.6vw, 88px); line-height: .95; letter-spacing: -.03em; color: var(--swc-chocolate); margin: 0; }
+        .hm-about__text p { color: var(--ink-soft); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; margin: 0 0 14px; }
+        .hm-about__text strong { color: var(--swc-chocolate); }
+        .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
+        .hm-collage__cell { margin: 0; min-height: clamp(240px, 30vw, 380px); overflow: hidden; background: var(--swc-coffee); }
+        .hm-collage__cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .hm-about__tags { position: absolute; left: clamp(16px, 2vw, 28px); bottom: clamp(16px, 2vw, 26px); display: flex; flex-wrap: wrap; gap: 12px; z-index: 2; }
+        .hm-tag { display: inline-flex; align-items: center; gap: 12px; padding: 11px 11px 11px 20px; border-radius: 16px; font-family: var(--font-display); font-weight: 700; font-size: clamp(15px, 1.4vw, 20px); line-height: 1.05; color: #fff; box-shadow: 0 12px 28px rgba(56,22,16,.26); }
+        .hm-tag--coral { background: var(--swc-coral); }
+        .hm-tag--cyan { background: var(--swc-cyan); }
+        .hm-tag--yellow { background: var(--swc-yellow); color: var(--swc-chocolate); }
+        .hm-tag__ic { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px; flex: none; }
+        .hm-tag--coral .hm-tag__ic { background: var(--swc-yellow); color: var(--swc-chocolate); }
+        .hm-tag--cyan .hm-tag__ic { background: var(--swc-coral); color: #fff; }
+        .hm-tag--yellow .hm-tag__ic { background: var(--swc-chocolate); color: var(--swc-cream); }
+        @media (max-width: 760px) {
+          .hm-about__head { grid-template-columns: 1fr; }
+          .hm-about__collage { grid-template-columns: 1fr 1fr; }
+          .hm-tag { font-size: 14px; padding: 9px 9px 9px 16px; gap: 9px; }
+          .hm-tag__ic { width: 28px; height: 28px; border-radius: 9px; }
+        }
+        @media (max-width: 480px) { .hm-about__collage { grid-template-columns: 1fr; } }
 
         .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .hm-stat { border: 1px solid var(--line); border-radius: 22px; padding: 26px 24px; background: var(--bg-card); }
