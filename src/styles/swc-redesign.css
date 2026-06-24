@@ -204,6 +204,30 @@
 .edition-card__facts dt { color: var(--swc-coffee) !important; }
 .edition-card__fact dd { color: var(--swc-chocolate) !important; }
 
+/* Edições — acentos de shape da marca nas seções */
+.editions-hero, .editions-list, .editions-cta-section { position: relative; overflow: hidden; }
+.editions-hero > .wrap,
+.editions-list > .wrap,
+.editions-cta-section > .wrap { position: relative; z-index: 1; }
+.editions-hero::before {
+  content: ""; position: absolute; top: -44px; right: -28px;
+  width: clamp(100px, 11vw, 180px); aspect-ratio: 298.86 / 373.58;
+  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
+  transform: rotate(20deg); z-index: 0; pointer-events: none;
+}
+.editions-list::before {
+  content: ""; position: absolute; bottom: -54px; left: -42px;
+  width: clamp(120px, 13vw, 210px); aspect-ratio: 1;
+  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
+  z-index: 0; pointer-events: none; opacity: .92;
+}
+.editions-cta-section::before {
+  content: ""; position: absolute; top: -22px; right: 7%;
+  width: clamp(64px, 7vw, 104px); aspect-ratio: 1;
+  background: url('/images/shapes/shape-star-cyan.svg') center/contain no-repeat;
+  z-index: 0; pointer-events: none;
+}
+
 /* ============================================================
    PARALLAX sutil na foto do hero (scroll-driven, Chromium).
    Base scale 1.08 garante que o translate não revele bordas.
