@@ -2,10 +2,14 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
 
-function ContactCard({ tag, title, body, contact, button, route, href, navigate, dark = false }) {
+function ContactCard({ tag, title, body, contact, button, route, href, navigate, dark = false, icon, badge = 'coral' }) {
+  const Icon = icon || I.cup
   return (
     <article className={`contact-card${dark ? ' is-dark' : ''}`}>
-      <span>{tag}</span>
+      <header className="contact-card__head">
+        <span className={`contact-card__badge is-${badge}`} aria-hidden="true"><Icon width={20} height={20} /></span>
+        <span className="contact-card__tag">{tag}</span>
+      </header>
       <h2>{title}</h2>
       <p>{body}</p>
       <strong>{contact}</strong>
@@ -26,10 +30,12 @@ export function ContatoPage({ navigate }) {
   return (
     <div className="page-enter contato-page">
       <section className="contato-hero">
+        <img src="/images/shapes/shape-flower-coral.svg" alt="" className="contato-hero__shape contato-hero__shape--flower" aria-hidden="true" />
+        <img src="/images/shapes/shape-star-cyan.svg" alt="" className="contato-hero__shape contato-hero__shape--star" aria-hidden="true" />
         <div className="wrap contato-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Contato</span>
-            <h1>Vamos conversar sobre o Sweet &amp; Coffee Week?</h1>
+            <h1>Vamos conversar sobre o <span className="hl">Sweet &amp; Coffee Week</span>?</h1>
             <p className="lead">
               Para público, imprensa, marcas participantes, patrocinadores e parceiros: escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.
             </p>
@@ -50,6 +56,8 @@ export function ContatoPage({ navigate }) {
             button="Abrir Instagram"
             href="https://www.instagram.com/sweetcoffeeweek"
             navigate={navigate}
+            icon={I.cup}
+            badge="coral"
           />
           <ContactCard
             tag="Participantes"
@@ -59,6 +67,8 @@ export function ContatoPage({ navigate }) {
             button="Quero participar"
             route="/participar"
             navigate={navigate}
+            icon={I.donut}
+            badge="cyan"
           />
           <ContactCard
             tag="Comercial"
@@ -69,6 +79,8 @@ export function ContatoPage({ navigate }) {
             route="/apoiar"
             navigate={navigate}
             dark
+            icon={I.croissant}
+            badge="yellow"
           />
           <ContactCard
             tag="Imprensa"
@@ -78,6 +90,8 @@ export function ContatoPage({ navigate }) {
             button="Falar com a organização"
             href="https://www.instagram.com/sweetcoffeeweek"
             navigate={navigate}
+            icon={I.search}
+            badge="coffee"
           />
           <ContactCard
             tag="Realização"
@@ -87,15 +101,19 @@ export function ContatoPage({ navigate }) {
             button="Conhecer a F2"
             href="https://www.f2experience.com.br"
             navigate={navigate}
+            icon={I.star}
+            badge="coral"
           />
         </div>
       </section>
 
       <section className="section contato-editorial">
+        <img src="/images/shapes/shape-flower-coral.svg" alt="" className="contato-editorial__shape contato-editorial__shape--flower" aria-hidden="true" />
+        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" className="contato-editorial__shape contato-editorial__shape--arrow" aria-hidden="true" />
         <div className="wrap contato-editorial__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Comunicação direta</span>
-            <h2>O Instagram continua sendo o canal mais vivo do festival.</h2>
+            <h2>O Instagram continua sendo o <span className="hl">canal mais vivo</span> do festival.</h2>
             <p>
               É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, rotas, avisos importantes e conteúdos enviados pelos Sweet Lovers.
             </p>
@@ -111,33 +129,59 @@ export function ContatoPage({ navigate }) {
       </section>
 
       <style>{`
-        .contato-hero { padding: clamp(54px, 8vw, 112px) 0 48px; }
-        .contato-hero__grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
+        .contato-hero { position: relative; overflow: hidden; padding: clamp(54px, 8vw, 112px) 0 48px; }
+        .contato-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
         .contato-hero h1, .contato-editorial h2 { font-family: var(--font-serif); font-size: clamp(54px, 8vw, 130px); line-height: .88; letter-spacing: -.06em; margin: 18px 0 0; color: var(--ink); }
-        .contato-hero h1 { max-width: 10ch; }
-        .contato-hero .lead { color: var(--ink-soft); line-height: 1.65; max-width: 54ch; }
+        .contato-hero h1 { max-width: 12ch; }
+        .contato-hero h1 .hl, .contato-editorial h2 .hl { color: var(--swc-coral); }
+        .contato-hero .lead { color: var(--ink-soft); line-height: 1.65; max-width: 54ch; margin-top: 22px; }
         .contato-hero__photo { border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(43,24,16,.16); }
+        .contato-hero__shape { position: absolute; pointer-events: none; z-index: 0; opacity: .9; }
+        .contato-hero__shape--flower { width: clamp(80px, 12vw, 150px); top: -22px; right: 6%; transform: rotate(-12deg); }
+        .contato-hero__shape--star { width: clamp(46px, 6vw, 74px); bottom: 30px; left: -14px; }
+
         .contato-cards-section { background: var(--bg-soft); }
-        .contato-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-        .contact-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; min-height: 310px; display: flex; flex-direction: column; }
-        .contact-card > span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-        .contact-card h2 { font-size: 25px; line-height: 1.05; margin: 18px 0 0; color: var(--ink); }
+        .contato-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .contact-card { position: relative; background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 28px; min-height: 320px; display: flex; flex-direction: column; transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .28s ease; }
+        .contact-card:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(43,24,16,.14); border-color: var(--swc-coral); }
+        .contact-card__head { display: flex; align-items: center; gap: 12px; }
+        .contact-card__badge { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: #fff; flex-shrink: 0; box-shadow: 0 6px 16px rgba(43,24,16,.16); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+        .contact-card:hover .contact-card__badge { transform: rotate(-6deg) scale(1.06); }
+        .contact-card__badge.is-coral { background: var(--swc-coral); }
+        .contact-card__badge.is-cyan { background: var(--swc-cyan); }
+        .contact-card__badge.is-yellow { background: var(--swc-yellow); color: var(--swc-chocolate); }
+        .contact-card__badge.is-coffee { background: var(--swc-coffee); }
+        .contact-card__tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+        .contact-card h2 { font-size: 25px; line-height: 1.05; margin: 20px 0 0; color: var(--ink); }
         .contact-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 14px 0 0; }
-        .contact-card strong { display: block; margin-top: auto; color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; }
+        .contact-card strong { display: block; margin-top: auto; padding-top: 18px; color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; }
         .contact-card .btn { align-self: flex-start; margin-top: 16px; }
         .contact-card.is-dark { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+        .contact-card.is-dark:hover { border-color: var(--swc-yellow); box-shadow: 0 22px 50px rgba(0,0,0,.3); }
         .contact-card.is-dark h2, .contact-card.is-dark strong { color: var(--bg); }
         .contact-card.is-dark p { color: rgba(255,244,236,.7); }
-        .contact-card.is-dark > span { color: var(--peach); }
-        .contato-editorial__grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
-        .contato-editorial p { color: var(--ink-soft); line-height: 1.7; max-width: 55ch; }
+        .contact-card.is-dark .contact-card__tag { color: var(--peach); }
+
+        .contato-editorial { position: relative; overflow: hidden; }
+        .contato-editorial__grid { position: relative; z-index: 1; display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
+        .contato-editorial p { color: var(--ink-soft); line-height: 1.7; max-width: 55ch; margin-top: 20px; }
+        .contato-editorial .btn { margin-top: 28px; }
         .contato-editorial__photos { display: grid; grid-template-columns: .9fr .7fr; gap: 18px; align-items: end; }
         .contato-editorial__photos > figure:first-child { transform: rotate(-2deg); }
         .contato-editorial__photos > figure:last-child { transform: rotate(3deg); }
+        .contato-editorial__shape { position: absolute; pointer-events: none; z-index: 0; opacity: .9; }
+        .contato-editorial__shape--flower { width: clamp(60px, 8vw, 104px); top: 12px; left: -18px; transform: rotate(14deg); }
+        .contato-editorial__shape--arrow { width: clamp(64px, 9vw, 120px); bottom: -10px; right: 4%; transform: rotate(8deg); }
+
         @media (max-width: 1120px) { .contato-cards-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 900px) { .contato-hero__grid, .contato-editorial__grid { grid-template-columns: 1fr; } }
         @media (max-width: 820px) { .contato-cards-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 620px) { .contato-cards-grid, .contato-editorial__photos { grid-template-columns: 1fr; } }
+        @media (max-width: 620px) {
+          .contato-cards-grid, .contato-editorial__photos { grid-template-columns: 1fr; }
+          .contact-card { min-height: 0; }
+          .contato-hero__shape--flower { right: -10px; width: 84px; }
+          .contato-editorial__shape--arrow { display: none; }
+        }
       `}</style>
     </div>
   )

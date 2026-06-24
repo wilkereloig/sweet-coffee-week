@@ -2,10 +2,13 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
 
-function CuriosityCard({ tag, title, body, icon }) {
+const CURIOSITY_ACCENTS = ['coral', 'yellow', 'cyan', 'chocolate']
+
+function CuriosityCard({ tag, title, body, icon, index = 0 }) {
   const Icon = I[icon] || I.star
+  const accent = CURIOSITY_ACCENTS[index % CURIOSITY_ACCENTS.length]
   return (
-    <article className="curiosity-card card">
+    <article className={`curiosity-card card curiosity-card--${accent}`} data-index={index}>
       <div className="curiosity-card__icon"><Icon width={24} height={24} /></div>
       <span>{tag}</span>
       <h2>{title}</h2>
@@ -53,7 +56,7 @@ export function CuriosidadesPage({ navigate }) {
     { tag: 'Pioneiros', title: 'Participantes pioneiros', icon: 'heart' },
   ]
 
-  const rankingEmptyMessage = 'Acervo em organização. Em breve, este ranking será atualizado com os dados oficiais do Sweet & Coffee Week.'
+  const rankingEmptyMessage = 'Em breve, este ranking será atualizado com os dados oficiais do Sweet & Coffee Week.'
 
   const glossary = [
     ['Sweet Lovers', 'O público apaixonado pelo festival: pessoas que acompanham, provam, fotografam, votam e compartilham a experiência.'],
@@ -67,10 +70,12 @@ export function CuriosidadesPage({ navigate }) {
   return (
     <div className="page-enter curiosidades-page">
       <section className="curiosidades-hero">
+        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-star" onError={(e) => { e.target.style.display = 'none' }} />
+        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-flower" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap curiosidades-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Curiosidades</span>
-            <h1>Por dentro do Sweet &amp; Coffee Week.</h1>
+            <h1>Por dentro do <span className="curi-accent-word">Sweet &amp; Coffee Week</span>.</h1>
           </div>
           <div className="curiosidades-hero__lead">
             <p>
@@ -102,12 +107,13 @@ export function CuriosidadesPage({ navigate }) {
             <p>O Sweet &amp; Coffee Week é feito de camadas: tema, combo, rota, público, votação, conteúdo e memória. É essa combinação que transforma cada edição em uma experiência de cidade.</p>
           </div>
           <div className="curiosity-card-grid">
-            {cards.map((card) => <CuriosityCard key={card.title} {...card} />)}
+            {cards.map((card, i) => <CuriosityCard key={card.title} {...card} index={i} />)}
           </div>
         </div>
       </section>
 
-      <section className="section">
+      <section className="section ranking-section">
+        <img src="/images/shapes/shape-badge-choco.svg" alt="" aria-hidden className="curi-shape curi-shape--ranking" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap">
           <div className="curiosity-section-head">
             <div>
@@ -117,16 +123,21 @@ export function CuriosidadesPage({ navigate }) {
             <p>Com os dados históricos organizados, esta página poderá revelar curiosidades sobre quem mais participou, quem mais venceu, quais temas mais engajaram e quais edições movimentaram mais a cidade.</p>
           </div>
           <div className="ranking-card-grid">
-            {rankings.map((rank) => {
+            {rankings.map((rank, i) => {
               const Icon = I[rank.icon] || I.star
+              const accent = CURIOSITY_ACCENTS[i % CURIOSITY_ACCENTS.length]
               return (
-                <article key={rank.title} className="ranking-card card">
+                <article key={rank.title} className={`ranking-card card ranking-card--${accent}`}>
                   <div className="ranking-card__head">
-                    <span className="ranking-card__icon"><Icon width={20} height={20} /></span>
-                    <span className="ranking-card__tag">{rank.tag}</span>
+                    <span className="ranking-card__icon"><Icon width={22} height={22} /></span>
+                    <span className="ranking-card__num">{String(i + 1).padStart(2, '0')}</span>
                   </div>
+                  <span className="ranking-card__tag">{rank.tag}</span>
                   <h3>{rank.title}</h3>
-                  <p className="ranking-card__empty">{rankingEmptyMessage}</p>
+                  <div className="ranking-card__status">
+                    <span className="ranking-card__chip"><span className="ranking-card__chip-dot"></span>Acervo em organização</span>
+                    <p>{rankingEmptyMessage}</p>
+                  </div>
                 </article>
               )
             })}
@@ -142,10 +153,13 @@ export function CuriosidadesPage({ navigate }) {
             <p>Alguns nomes aparecem edição após edição e ajudam a contar como o público vive o Sweet &amp; Coffee Week.</p>
           </div>
           <div className="glossary-list">
-            {glossary.map(([term, description]) => (
+            {glossary.map(([term, description], i) => (
               <article key={term}>
-                <h3>{term}</h3>
-                <p>{description}</p>
+                <span className="glossary-list__num">{String(i + 1).padStart(2, '0')}</span>
+                <div className="glossary-list__body">
+                  <h3>{term}</h3>
+                  <p>{description}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -153,6 +167,7 @@ export function CuriosidadesPage({ navigate }) {
       </section>
 
       <section className="section curiosity-dark">
+        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden className="curi-shape curi-shape--dark" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap curiosity-dark__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Memória afetiva</span>
@@ -170,10 +185,22 @@ export function CuriosidadesPage({ navigate }) {
       </section>
 
       <style>{`
-        .curiosidades-hero { padding: clamp(54px, 8vw, 112px) 0 34px; }
-        .curiosidades-hero__grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
-        .curiosidades-hero h1 { font-family: var(--font-serif); font-size: clamp(56px, 8vw, 130px); line-height: .88; letter-spacing: -.06em; margin: 20px 0 0; color: var(--ink); }
-        .curiosidades-hero__lead { display: grid; gap: 16px; }
+        .curiosidades-page { position: relative; overflow-x: clip; }
+        .curi-shape { position: absolute; pointer-events: none; z-index: 0; }
+        .curi-shape--hero-star { top: clamp(24px, 7vw, 90px); right: clamp(-18px, -1vw, 12px); width: clamp(70px, 10vw, 132px); transform: rotate(-10deg); opacity: .92; animation: curiFloat 8s ease-in-out infinite; }
+        .curi-shape--hero-flower { bottom: -34px; left: clamp(-26px, -2vw, 6px); width: clamp(58px, 8vw, 104px); transform: rotate(8deg); opacity: .9; animation: curiFloat 9s ease-in-out infinite reverse; }
+        .curi-shape--ranking { top: clamp(-14px, -1vw, 8px); right: clamp(-22px, 1vw, 30px); width: clamp(64px, 8vw, 116px); transform: rotate(12deg); opacity: .85; }
+        .curi-shape--dark { bottom: clamp(-18px, -1vw, 10px); right: clamp(-16px, 2vw, 40px); width: clamp(58px, 8vw, 108px); transform: rotate(-8deg); opacity: .9; }
+        @keyframes curiFloat { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-12px) rotate(-6deg); } }
+        @media (prefers-reduced-motion: reduce) { .curi-shape { animation: none !important; } }
+
+        .curiosidades-hero { position: relative; padding: clamp(54px, 8vw, 112px) 0 40px; overflow: hidden; }
+        .curiosidades-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.18fr .82fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
+        .curiosidades-hero h1 { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: clamp(54px, 8.4vw, 138px); line-height: .86; letter-spacing: -.055em; margin: 22px 0 0; color: var(--ink); text-wrap: balance; }
+        .curi-accent-word { color: var(--swc-coral, var(--accent)); }
+        .curiosidades-hero__lead { display: grid; gap: 16px; padding-bottom: 6px; }
+        .curiosidades-hero__lead { position: relative; }
+        .curiosidades-hero__lead::before { content: ''; position: absolute; left: -22px; top: 4px; bottom: 4px; width: 3px; border-radius: 3px; background: var(--swc-coral, var(--accent)); opacity: .55; }
         .curiosidades-hero p { color: var(--ink-soft); margin: 0; line-height: 1.6; }
         .curiosity-photo-section { padding-top: 28px; }
         .curiosity-photo-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; align-items: stretch; }
@@ -181,37 +208,75 @@ export function CuriosidadesPage({ navigate }) {
         .curiosity-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 36px; }
         .curiosity-section-head h2, .glossary-grid h2, .curiosity-dark h2 { font-family: var(--font-serif); font-size: clamp(40px, 6vw, 86px); line-height: .95; letter-spacing: -.045em; margin: 14px 0 0; }
         .curiosity-section-head p { max-width: 440px; color: var(--ink-soft); line-height: 1.6; }
-        .curiosity-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .curiosity-card { min-height: 300px; display: flex; flex-direction: column; }
-        .curiosity-card__icon { color: var(--accent); margin-bottom: 26px; }
-        .curiosity-card span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
-        .curiosity-card h2 { font-size: 25px; line-height: 1.05; margin: 12px 0 0; color: var(--ink); }
-        .curiosity-card p { margin: auto 0 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+        /* ── O que faz único: cards assimétricos, acento alternado ── */
+        .curiosity-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 16px; }
+        .curiosity-card { position: relative; min-height: 300px; display: flex; flex-direction: column; padding-top: clamp(22px, 2.4vw, 30px); border-top: 3px solid var(--c-accent, var(--accent)); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
+        .curiosity-card::after { content: ''; position: absolute; right: -38px; top: -38px; width: 96px; height: 96px; border-radius: 50%; background: var(--c-accent, var(--accent)); opacity: .07; transition: transform .4s ease, opacity .4s ease; }
+        .curiosity-card:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(56,22,16,.12); }
+        .curiosity-card:hover::after { transform: scale(1.35); opacity: .12; }
+        .curiosity-card--coral { --c-accent: var(--swc-coral, #F65D74); }
+        .curiosity-card--yellow { --c-accent: var(--swc-yellow, #FDBB1A); }
+        .curiosity-card--cyan { --c-accent: var(--swc-cyan, #01AFCC); }
+        .curiosity-card--chocolate { --c-accent: var(--swc-coffee, #6A2C15); }
+        /* primeiro card em destaque (assimetria) */
+        .curiosity-card[data-index="0"] { grid-column: span 2; }
+        .curiosity-card[data-index="0"] h2 { font-size: clamp(28px, 3.2vw, 40px); }
+        .curiosity-card__icon { position: relative; z-index: 1; color: var(--c-accent, var(--accent)); margin-bottom: clamp(20px, 3vw, 30px); }
+        .curiosity-card span { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-accent, var(--ink-mute)); font-weight: 600; }
+        .curiosity-card h2 { position: relative; z-index: 1; font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 25px; line-height: 1.02; letter-spacing: -.02em; margin: 12px 0 0; color: var(--ink); }
+        .curiosity-card p { position: relative; z-index: 1; margin: auto 0 0; padding-top: 18px; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+
+        /* ── Rankings do acervo: módulos editoriais ── */
+        .ranking-section { position: relative; overflow: hidden; }
         .ranking-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .ranking-card { min-height: 240px; display: flex; flex-direction: column; }
-        .ranking-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-        .ranking-card__icon { color: var(--accent); display: inline-flex; }
-        .ranking-card__tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
-        .ranking-card h3 { font-size: 21px; line-height: 1.1; margin: 0; color: var(--ink); }
-        .ranking-card__empty { margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+        .ranking-card { position: relative; min-height: 256px; display: flex; flex-direction: column; padding-top: clamp(20px, 2.2vw, 28px); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
+        .ranking-card::before { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: var(--c-accent, var(--accent)); }
+        .ranking-card:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(56,22,16,.12); }
+        .ranking-card--coral { --c-accent: var(--swc-coral, #F65D74); }
+        .ranking-card--yellow { --c-accent: var(--swc-yellow, #FDBB1A); }
+        .ranking-card--cyan { --c-accent: var(--swc-cyan, #01AFCC); }
+        .ranking-card--chocolate { --c-accent: var(--swc-coffee, #6A2C15); }
+        .ranking-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .ranking-card__icon { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: var(--c-accent, var(--accent)); }
+        .ranking-card__num { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 34px; line-height: 1; letter-spacing: -.04em; color: var(--c-accent, var(--ink)); opacity: .28; }
+        .ranking-card__tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-accent, var(--ink-mute)); font-weight: 600; }
+        .ranking-card h3 { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 21px; line-height: 1.06; letter-spacing: -.015em; margin: 8px 0 0; color: var(--ink); }
+        .ranking-card__status { margin: auto 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+        .ranking-card__chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+        .ranking-card__chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-accent, var(--accent)); animation: curiPulse 2.4s ease-in-out infinite; }
+        @keyframes curiPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+        @media (prefers-reduced-motion: reduce) { .ranking-card__chip-dot { animation: none; } }
+        .ranking-card__status p { margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; }
         .glossary-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
         .glossary-grid > div:first-child p { color: var(--ink-soft); line-height: 1.65; max-width: 44ch; }
-        .glossary-list { display: grid; gap: 12px; }
-        .glossary-list article { display: grid; grid-template-columns: .34fr 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); }
-        .glossary-list h3 { margin: 0; font-size: 20px; color: var(--ink); }
-        .glossary-list p { margin: 0; color: var(--ink-soft); line-height: 1.6; }
-        .curiosity-dark { background: var(--ink); color: var(--bg); }
+        .glossary-list { display: grid; }
+        .glossary-list article { display: grid; grid-template-columns: auto 1fr; gap: clamp(18px, 3vw, 36px); align-items: baseline; padding: clamp(22px, 3vw, 32px) 0; border-top: 1px solid var(--line); transition: padding-left .3s ease; }
+        .glossary-list article:first-child { border-top: 0; padding-top: 6px; }
+        .glossary-list article:hover { padding-left: 6px; }
+        .glossary-list__num { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--swc-coral, var(--accent)); padding-top: .55em; }
+        .glossary-list__body { display: grid; gap: 8px; }
+        .glossary-list h3 { margin: 0; font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: clamp(26px, 3.4vw, 42px); line-height: 1; letter-spacing: -.03em; color: var(--ink); }
+        .glossary-list p { margin: 0; color: var(--ink-soft); line-height: 1.6; max-width: 60ch; }
+        .curiosity-dark { position: relative; background: var(--ink); color: var(--bg); overflow: hidden; }
+        .curiosity-dark__grid { position: relative; z-index: 1; }
         .curiosity-dark__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
         .curiosity-dark h2 { color: var(--bg); }
         .curiosity-dark p { color: rgba(255,244,236,.72); line-height: 1.7; font-size: 17px; }
         @media (max-width: 1040px) {
           .curiosidades-hero__grid, .curiosity-photo-grid, .glossary-grid, .curiosity-dark__grid { grid-template-columns: 1fr; }
+          .curiosidades-hero__lead::before { display: none; }
           .curiosity-card-grid, .ranking-card-grid { grid-template-columns: repeat(2, 1fr); }
+          .curiosity-card[data-index="0"] { grid-column: span 2; }
           .curiosity-section-head { flex-direction: column; align-items: flex-start; }
           .curiosity-photo-grid__big > figure, .curiosity-photo-grid > figure { min-height: 340px; }
         }
         @media (max-width: 620px) {
-          .curiosity-card-grid, .ranking-card-grid, .glossary-list article { grid-template-columns: 1fr; }
+          .curiosity-card-grid, .ranking-card-grid { grid-template-columns: 1fr; }
+          .curiosity-card[data-index="0"] { grid-column: auto; }
+          .curiosity-card[data-index="0"] h2 { font-size: 25px; }
+          .glossary-list__num { padding-top: .35em; }
+          .curi-shape--hero-star { width: 64px; right: -8px; }
+          .curi-shape--hero-flower { width: 54px; }
         }
       `}</style>
     </div>

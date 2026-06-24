@@ -67,15 +67,26 @@ function InstagramIcon({ size = 18 }) {
 function AwardCard({ award }) {
   const embed = toEmbedUrl(award.post)
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#fff',
-      border: `1px solid rgba(0,0,0,.08)`,
-      borderRadius: 22,
-      overflow: 'hidden',
-      boxShadow: '0 10px 30px rgba(0,0,0,.06)',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#fff',
+        border: `2px solid ${award.color}`,
+        borderRadius: 24,
+        overflow: 'hidden',
+        boxShadow: '0 16px 40px rgba(56,22,16,.12)',
+        transition: 'transform .25s ease, box-shadow .25s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 22px 52px rgba(56,22,16,.20)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none'
+        e.currentTarget.style.boxShadow = '0 16px 40px rgba(56,22,16,.12)'
+      }}
+    >
       {/* cabeçalho colorido com a categoria */}
       <div style={{ background: award.color, padding: '16px 20px 14px', color: '#fff' }}>
         <div style={{
@@ -152,40 +163,70 @@ export function AgradecimentoPage() {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1080, margin: '0 auto' }}>
 
-        {/* HERO — Sweet Awards */}
-        <header style={{ textAlign: 'center', marginBottom: 'clamp(48px, 7vw, 80px)', animation: 'awFade .7s ease both' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24,
-            fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, letterSpacing: '.14em',
-            textTransform: 'uppercase', color: C.red,
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red }} />
-            Sweet Awards
+        {/* HERO — Sweet Awards (banda chocolate, cara de premiação) */}
+        <header style={{
+          position: 'relative',
+          background: C.ink,
+          borderRadius: 'clamp(20px, 3vw, 36px)',
+          padding: 'clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px)',
+          textAlign: 'center',
+          marginBottom: 'clamp(48px, 7vw, 80px)',
+          overflow: 'hidden',
+          boxShadow: '0 24px 60px rgba(56,22,16,.28)',
+          animation: 'awFade .7s ease both',
+        }}>
+          {/* acentos de marca */}
+          <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden
+            style={{
+              position: 'absolute', top: 'clamp(-18px, -2vw, -8px)', right: 'clamp(-20px, -1vw, 24px)',
+              width: 'clamp(80px, 12vw, 150px)', pointerEvents: 'none', opacity: .9, zIndex: 0,
+              transform: 'rotate(-12deg)',
+            }}
+            onError={e => { e.target.style.display = 'none' }}
+          />
+          <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden
+            style={{
+              position: 'absolute', bottom: 'clamp(-16px, -1vw, 16px)', left: 'clamp(-14px, -1vw, 28px)',
+              width: 'clamp(60px, 9vw, 110px)', pointerEvents: 'none', opacity: .85, zIndex: 0,
+              transform: 'rotate(8deg)',
+            }}
+            onError={e => { e.target.style.display = 'none' }}
+          />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24,
+              fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, letterSpacing: '.14em',
+              textTransform: 'uppercase', color: C.red,
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red }} />
+              Sweet Awards
+            </div>
+
+            <h1 style={{
+              fontFamily: FONT_DISPLAY, fontSize: 'clamp(38px, 7vw, 84px)', lineHeight: .99,
+              fontWeight: 700, textTransform: 'uppercase', color: C.cream, margin: '0 0 22px',
+            }}>
+              Os destaques escolhidos pelos <span style={{ color: C.yellow }}>Sweet Lovers</span>.
+            </h1>
+
+            <p style={{
+              fontFamily: FONT_BODY, fontSize: 'clamp(18px, 2.2vw, 22px)', lineHeight: 1.65,
+              color: C.cream, opacity: .82, maxWidth: '58ch', margin: '0 auto 18px',
+            }}>
+              O Sweet Awards é a premiação do Sweet &amp; Coffee Week. A cada edição, o público
+              avalia os participantes e ajuda a reconhecer as experiências que mais se destacaram
+              na rota.
+            </p>
+            <p style={{
+              fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 19px)', lineHeight: 1.65,
+              color: C.cream, opacity: .72, maxWidth: '58ch', margin: '0 auto',
+            }}>
+              Mais do que um ranking, o Sweet Awards é uma forma de celebrar o trabalho das marcas
+              participantes, valorizar a criatividade dos combos e registrar a memória de cada
+              edição do festival.
+            </p>
           </div>
-
-          <h1 style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(38px, 7vw, 84px)', lineHeight: .99,
-            fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 0 22px',
-          }}>
-            Os destaques escolhidos pelos <span style={{ color: C.red }}>Sweet Lovers</span>.
-          </h1>
-
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(18px, 2.2vw, 22px)', lineHeight: 1.65,
-            color: C.ink, opacity: .72, maxWidth: '58ch', margin: '0 auto 18px',
-          }}>
-            O Sweet Awards é a premiação do Sweet &amp; Coffee Week. A cada edição, o público
-            avalia os participantes e ajuda a reconhecer as experiências que mais se destacaram
-            na rota.
-          </p>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 19px)', lineHeight: 1.65,
-            color: C.ink, opacity: .68, maxWidth: '58ch', margin: '0 auto',
-          }}>
-            Mais do que um ranking, o Sweet Awards é uma forma de celebrar o trabalho das marcas
-            participantes, valorizar a criatividade dos combos e registrar a memória de cada
-            edição do festival.
-          </p>
         </header>
 
         {/* RESULTADO MAIS RECENTE */}
@@ -270,6 +311,7 @@ export function AgradecimentoPage() {
 
         {/* ACERVO HISTÓRICO — depois dos posts */}
         <section style={{
+          position: 'relative',
           marginTop: 'clamp(48px, 7vw, 80px)',
           background: '#fff',
           border: '1px solid rgba(0,0,0,.08)',
@@ -277,8 +319,18 @@ export function AgradecimentoPage() {
           boxShadow: '0 10px 30px rgba(0,0,0,.06)',
           padding: 'clamp(28px, 5vw, 48px)',
           textAlign: 'center',
+          overflow: 'hidden',
           animation: 'awFade .7s ease both',
         }}>
+          <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden
+            style={{
+              position: 'absolute', top: 'clamp(-22px, -2vw, -10px)', right: 'clamp(-22px, -2vw, -10px)',
+              width: 'clamp(70px, 11vw, 130px)', pointerEvents: 'none', opacity: .9, zIndex: 0,
+              transform: 'rotate(14deg)',
+            }}
+            onError={e => { e.target.style.display = 'none' }}
+          />
+          <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{
             fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
             textTransform: 'uppercase', color: C.purple, marginBottom: 12,
@@ -307,6 +359,7 @@ export function AgradecimentoPage() {
             Em breve, esta área poderá ser consultada por edição, categoria, participante e
             colocação.
           </p>
+          </div>
         </section>
 
         {/* Agradecimento de fechamento */}
