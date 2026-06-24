@@ -17,23 +17,76 @@ const PILLARS = [
 ]
 
 const STATS = [
-  { v: '16', l: 'edições realizadas desde 2016' },
-  { v: '+34 mil', l: 'combos vendidos nas últimas edições' },
-  { v: '+R$ 712 mil', l: 'movimentados diretamente' },
-  { v: '+10 mi', l: 'visualizações no Instagram' },
+  { to: 16,  prefix: '',     suffix: '',     l: 'edições realizadas desde 2016' },
+  { to: 34,  prefix: '+',    suffix: ' mil', l: 'combos vendidos nas últimas edições' },
+  { to: 712, prefix: '+R$ ', suffix: ' mil', l: 'movimentados diretamente' },
+  { to: 10,  prefix: '+',    suffix: ' mi',  l: 'visualizações no Instagram' },
 ]
+
+// Greeting dinâmico do hero: saudação por horário de Natal/RN + temperatura
+// real via open-meteo (sem chave, CORS ok). Fallback gracioso se a API falhar.
+function useHeroGreeting() {
+  const [temp, setTemp] = React.useState(null)
+  const [greeting, setGreeting] = React.useState('Doce dia')
+  React.useEffect(() => {
+    try {
+      const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Recife', hour: '2-digit', hour12: false }))
+      setGreeting(h >= 5 && h < 12 ? 'Doce dia' : h >= 18 || h < 5 ? 'Doce noite' : 'Doce tarde')
+    } catch { /* mantém padrão */ }
+    let alive = true
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=-5.79&longitude=-35.21&current=temperature_2m')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d && d.current && d.current.temperature_2m != null) setTemp(Math.round(d.current.temperature_2m)) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
+  return { greeting, temp }
+}
+
+// Count-up animado quando entra na viewport (respeita reduced-motion).
+function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
+  const ref = React.useRef(null)
+  const [val, setVal] = React.useState(0)
+  const done = React.useRef(false)
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setVal(to); return }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting && !done.current) {
+          done.current = true
+          const start = performance.now()
+          const tick = (now) => {
+            const p = Math.min(1, (now - start) / duration)
+            const eased = 1 - Math.pow(1 - p, 3)
+            setVal(Math.round(to * eased))
+            if (p < 1) requestAnimationFrame(tick)
+          }
+          requestAnimationFrame(tick)
+        }
+      })
+    }, { threshold: 0.4 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [to, duration])
+  return <span ref={ref}>{prefix}{val.toLocaleString('pt-BR')}{suffix}</span>
+}
 
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
+  const { greeting, temp } = useHeroGreeting()
 
   return (
     <div className="page-enter hm">
       {/* HERO — nova direção visual (referência campanha) */}
       <section className="swc-hero">
         <div className="swc-hero__copy">
-          <span className="swc-hero__eyebrow">Festival gastronômico · Natal/RN · desde 2016</span>
+          <span className="swc-hero__eyebrow">{greeting} :){temp != null ? ` ${temp}ºC` : ''} | Natal</span>
           <h1 className="swc-hero__title">
-            O festival<br />mais <span>doce</span><br />de Natal.
+            <span className="swc-hero__line">O festival</span>
+            <span className="swc-hero__line">mais <span className="swc-hero__hl">doce</span></span>
+            <span className="swc-hero__line">de Natal.</span>
           </h1>
           <div className="swc-hero__text">
             <p>
@@ -129,7 +182,7 @@ export function HomePage({ navigate }) {
           <div className="hm-stats">
             {STATS.map((s) => (
               <div className="hm-stat" key={s.l}>
-                <strong>{s.v}</strong>
+                <strong><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} /></strong>
                 <span>{s.l}</span>
               </div>
             ))}
@@ -210,7 +263,12 @@ export function HomePage({ navigate }) {
           font-size: clamp(46px, 6.4vw, 104px); line-height: .92; letter-spacing: -.02em;
           margin: 0 0 clamp(22px, 3vw, 36px);
         }
-        .hm .swc-hero__title span { color: var(--swc-coral); }
+        .hm .swc-hero__hl { color: var(--swc-coral); }
+        .hm .swc-hero__line { display: block; animation: swcLineIn .65s cubic-bezier(.2,.7,.2,1) both; }
+        .hm .swc-hero__line:nth-child(1) { animation-delay: .10s; }
+        .hm .swc-hero__line:nth-child(2) { animation-delay: .22s; }
+        .hm .swc-hero__line:nth-child(3) { animation-delay: .34s; }
+        @keyframes swcLineIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
         .hm .swc-hero__text { max-width: 42ch; }
         .hm .swc-hero__text p { color: rgba(254,240,221,.86); font-family: var(--font-sans); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.6; margin: 0 0 16px; }
         .hm .swc-hero__photo { position: absolute; top: 0; right: 0; bottom: 0; width: 56%; z-index: 1; background: linear-gradient(135deg, #3D2417 0%, #6B3F22 55%, #2D1A0E 100%); overflow: hidden; }
