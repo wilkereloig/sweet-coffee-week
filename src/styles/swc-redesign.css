@@ -1,0 +1,141 @@
+/* ============================================================
+   SWC — NOVA DIREÇÃO VISUAL (campanha gastronômica premium/pop)
+   Carregado por último em main.jsx → vence o cascade.
+   Só afeta páginas institucionais (sidebar/header sem .lovers).
+   ============================================================ */
+
+:root {
+  /* Reskin dos tokens institucionais para o novo palette */
+  --bg: #FEF0DD;
+  --bg-soft: #F8E4C1;
+  --bg-card: #FFFBF3;
+  --ink: #381610;
+  --ink-dark: #2A0F09;
+  --ink-soft: #7A4632;
+  --ink-mute: #A77B61;
+  --line: rgba(56, 22, 16, 0.12);
+  --line-strong: rgba(56, 22, 16, 0.26);
+
+  --accent: #F65D74;        /* coral SWC */
+  --accent-deep: #E0455C;
+  --peach: #FBD9A0;
+  --peach-soft: #F8E4C1;
+
+  /* Paleta oficial SWC */
+  --swc-chocolate: #381610;
+  --swc-coffee: #6A2C15;
+  --swc-cream: #FEF0DD;
+  --swc-cream-2: #F8E4C1;
+  --swc-coral: #F65D74;
+  --swc-yellow: #FDBB1A;
+  --swc-cyan: #01AFCC;
+
+  --font-display: 'Nexa Slab', 'nexa', 'Caprasimo', Georgia, serif;
+
+  --sidebar-w: 284px;
+}
+
+/* ---------- Acessibilidade: respeita reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Botões institucionais ----------
+   Primário = amarelo (texto chocolate). Accent = cyan (texto claro). */
+.btn-primary { background: var(--swc-yellow); color: var(--swc-chocolate); font-weight: 700; }
+.btn-primary:hover { background: #EBA600; }
+.btn-accent { background: var(--swc-cyan); color: #fff; font-weight: 700; }
+.btn-accent:hover { background: #0498B2; }
+.btn-secondary { border-color: var(--swc-chocolate); color: var(--swc-chocolate); }
+
+/* ============================================================
+   SIDEBAR INSTITUCIONAL — referência (creme, slab lowercase,
+   ativo cyan + chevron amarelo)
+   ============================================================ */
+.site-sidebar:not(.lovers) {
+  width: var(--sidebar-w);
+  background: var(--swc-cream);
+  border-right: 1px solid var(--line);
+  padding: 34px 24px 26px;
+}
+.site-sidebar:not(.lovers) .sidebar__brand { margin-bottom: 40px; }
+.site-sidebar:not(.lovers) .sidebar__section-label { display: none; }
+.site-sidebar:not(.lovers) .sidebar__nav { gap: 4px; }
+
+.site-sidebar:not(.lovers) .sidebar__link {
+  font-family: var(--font-display);
+  text-transform: lowercase;
+  font-size: clamp(20px, 1.5vw, 25px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--swc-chocolate);
+  padding: 7px 4px 7px 14px;
+  border-radius: 8px;
+  border-left: 0;
+  position: relative;
+  transition: color .16s ease, transform .16s ease;
+}
+.site-sidebar:not(.lovers) .sidebar__link:hover {
+  background: transparent;
+  color: var(--swc-coffee);
+  transform: translateX(3px);
+}
+.site-sidebar:not(.lovers) .sidebar__link.active {
+  background: transparent;
+  color: var(--swc-cyan);
+  font-weight: 700;
+  border-left: 0;
+  padding-left: 14px;
+}
+/* chevron amarelo ► à esquerda do item ativo */
+.site-sidebar:not(.lovers) .sidebar__link.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid var(--swc-yellow);
+}
+.site-sidebar:not(.lovers) .sidebar__credit { opacity: 0.75; }
+
+/* Realça o crédito F2 na sidebar */
+.site-sidebar:not(.lovers) .sidebar__credit a { display: inline-block; margin-top: 6px; }
+
+/* ============================================================
+   Desfaz a CENTRALIZAÇÃO GLOBAL em páginas institucionais.
+   Nova direção = editorial left-aligned. (Lovers já é left;
+   carregado por último → vence o bloco antigo de styles.css.)
+   ============================================================ */
+.page-enter { text-align: left; }
+.page-enter h1,
+.page-enter h2,
+.page-enter h3,
+.page-enter h4,
+.page-enter p { margin-left: 0; margin-right: 0; }
+.page-enter .eyebrow { justify-content: flex-start; }
+.page-enter .grid { justify-items: stretch; }
+.page-enter .btn,
+.page-enter .btn-lg,
+.page-enter .btn-lovers { margin-left: 0; margin-right: 0; }
+.page-enter label,
+.page-enter .form-label { text-align: left; }
+.page-enter ul,
+.page-enter ol { list-style-position: outside; padding-left: 1.1em; }
+.page-enter [style*="space-between"] { justify-content: space-between !important; }
+.page-enter [style*="flex-start"] { align-items: flex-start !important; }
+.page-enter [style*="flex-end"] { align-items: flex-end !important; }
+.page-enter [style*="textAlign: 'left'"],
+.page-enter [style*="text-align: left"] { text-align: left !important; }
+
+/* Eyebrow institucional no novo tom (dot coral) */
+.page-enter .eyebrow .dot { background: var(--swc-coral); }

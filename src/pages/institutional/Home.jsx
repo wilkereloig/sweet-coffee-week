@@ -28,31 +28,37 @@ export function HomePage({ navigate }) {
 
   return (
     <div className="page-enter hm">
-      {/* HERO */}
-      <section className="hm-hero">
-        <div className="wrap hm-hero__grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Festival gastronômico · Natal/RN · desde 2016</span>
-            <h1 className="hm-title">
-              A temporada<br />mais doce<br /><span>de Natal.</span>
-            </h1>
-          </div>
-          <div className="hm-hero__copy">
-            <p className="lead">
-              O Sweet &amp; Coffee Week é o festival gastronômico que transforma Natal em uma rota de sabores,
-              encontros e descobertas.
+      {/* HERO — nova direção visual (referência campanha) */}
+      <section className="swc-hero">
+        <div className="swc-hero__copy">
+          <span className="swc-hero__eyebrow">Festival gastronômico · Natal/RN · desde 2016</span>
+          <h1 className="swc-hero__title">
+            O festival<br />mais <span>doce</span><br />de Natal.
+          </h1>
+          <div className="swc-hero__text">
+            <p>
+              O Sweet &amp; Coffee Week é o festival gastronômico que transforma Natal em uma rota de
+              sabores, encontros e descobertas.
             </p>
             <p>
-              A cada edição, cafeterias, docerias, confeitarias, restaurantes e marcas autorais criam combos
-              exclusivos por tempo limitado, inspirados em um tema central. O público escolhe seus favoritos,
-              monta sua rota, visita os participantes, compartilha experiências e ajuda a construir uma das
-              tradições mais afetivas da gastronomia potiguar.
+              A cada edição, cafeterias, docerias, confeitarias, restaurantes e marcas autorais criam
+              combos exclusivos por tempo limitado, inspirados em um tema central.
             </p>
-            <div className="hm-hero__actions">
-              <a href="#/edicoes" className="btn btn-primary btn-lg" onClick={go('/edicoes')}>Explorar edições <I.arrow /></a>
-              <a href="#/participar" className="btn btn-accent btn-lg" onClick={go('/participar')}>Participar como marca</a>
-            </div>
           </div>
+        </div>
+
+        <div className="swc-hero__actions">
+          <a href="#/participar" className="btn btn-primary btn-lg" onClick={go('/participar')}>Quero participar <I.arrow /></a>
+          <a href="#/edicoes" className="btn btn-accent btn-lg" onClick={go('/edicoes')}>Conhecer edições</a>
+        </div>
+
+        <div className="swc-hero__photo">
+          <img
+            src="/images/hero-festival.jpg"
+            alt="Combo gastronômico do Sweet & Coffee Week"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          <span className="swc-hero__blob" aria-hidden="true"></span>
         </div>
       </section>
 
@@ -181,13 +187,49 @@ export function HomePage({ navigate }) {
       <style>{`
         .hm { overflow: hidden; }
 
-        .hm-hero { padding: clamp(54px, 8vw, 112px) 0 42px; }
-        .hm-hero__grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
-        .hm-title { font-family: var(--font-serif); font-size: clamp(58px, 9vw, 142px); line-height: .9; letter-spacing: -.04em; margin: 20px 0 0; color: var(--ink); }
-        .hm-title span { color: var(--accent); font-style: italic; }
-        .hm-hero__copy p { color: var(--ink-soft); font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
-        .hm-hero__copy .lead { color: var(--ink); }
-        .hm-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+        /* HERO — split chocolate + foto, blob coral, CTAs (left-aligned;
+           prefixo .hm vence a centralização global de .page-enter) */
+        .hm .swc-hero { position: relative; min-height: calc(100vh - 1px); background: var(--swc-chocolate); overflow: hidden; isolation: isolate; }
+        .hm .swc-hero, .hm .swc-hero * { text-align: left; }
+        .hm .swc-hero__copy {
+          position: relative; z-index: 2; width: 52%; min-height: calc(100vh - 1px); box-sizing: border-box;
+          padding: clamp(40px, 6vw, 96px) clamp(28px, 3.5vw, 60px) clamp(40px, 6vw, 84px);
+          display: flex; flex-direction: column; justify-content: center; background: var(--swc-chocolate);
+          clip-path: polygon(0 0, 100% 0, 100% 5%, 93.5% 13%, 100% 23%, 94% 34%, 100% 45%, 93.5% 56%, 100% 67%, 94% 78%, 100% 89%, 100% 100%, 0 100%);
+          animation: swcHeroIn .7s cubic-bezier(.2,.7,.2,1) both;
+        }
+        .hm .swc-hero__eyebrow {
+          display: inline-block; width: fit-content; max-width: 100%;
+          font-family: var(--font-display); font-style: italic; font-weight: 700;
+          font-size: clamp(14px, 1.3vw, 19px); color: var(--swc-cream);
+          padding-bottom: 12px; border-bottom: 3px solid var(--swc-yellow);
+          margin: 0 0 clamp(22px, 3vw, 38px);
+        }
+        .hm .swc-hero__title {
+          font-family: var(--font-display); font-weight: 700; color: var(--swc-cream);
+          font-size: clamp(46px, 6.4vw, 104px); line-height: .92; letter-spacing: -.02em;
+          margin: 0 0 clamp(22px, 3vw, 36px);
+        }
+        .hm .swc-hero__title span { color: var(--swc-coral); }
+        .hm .swc-hero__text { max-width: 42ch; }
+        .hm .swc-hero__text p { color: rgba(254,240,221,.86); font-family: var(--font-sans); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.6; margin: 0 0 16px; }
+        .hm .swc-hero__photo { position: absolute; top: 0; right: 0; bottom: 0; width: 56%; z-index: 1; background: linear-gradient(135deg, #3D2417 0%, #6B3F22 55%, #2D1A0E 100%); overflow: hidden; }
+        .hm .swc-hero__photo::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.10) 2.5px, transparent 3.5px); background-size: 40px 40px; opacity: .45; z-index: 1; }
+        .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
+        .hm .swc-hero__blob { position: absolute; top: -6%; right: -5%; width: clamp(130px, 15vw, 230px); height: clamp(130px, 15vw, 230px); background: var(--swc-coral); border-radius: 46% 54% 63% 37% / 47% 38% 62% 53%; z-index: 3; animation: swcFloat 7s ease-in-out infinite; }
+        .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(26px, 4vw, 56px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+        .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
+        @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+        @keyframes swcFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+
+        @media (max-width: 900px) {
+          .hm .swc-hero { display: block; min-height: 0; }
+          .hm .swc-hero__copy { width: 100%; min-height: 0; clip-path: none; padding: clamp(32px,7vw,56px) clamp(22px,6vw,40px) clamp(28px,6vw,44px); }
+          .hm .swc-hero__actions { position: static; flex-direction: column; align-items: stretch; right: auto; bottom: auto; padding: 0 clamp(22px,6vw,40px) clamp(28px,7vw,40px); }
+          .hm .swc-hero__actions .btn { width: 100%; justify-content: center; }
+          .hm .swc-hero__photo { position: relative; width: 100%; height: 42vh; min-height: 280px; }
+          .hm .swc-hero__blob { width: 120px; height: 120px; }
+        }
 
         .hm-feature { padding-top: 28px; }
         .hm-feature__grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: stretch; }
