@@ -1,6 +1,17 @@
 import React from 'react'
 import { I } from '../../components/icons'
 
+// Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
+// do coração acompanha o fundo do badge via --ph-cut.
+function PinHeart({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 22s7-6.2 7-11.5A7 7 0 1 0 5 10.5C5 15.8 12 22 12 22Z" fill="currentColor" />
+      <path d="M12 14.2s-3.5-2-3.5-4.5a1.95 1.95 0 0 1 3.5-1.15A1.95 1.95 0 0 1 15.5 9.7C15.5 12.2 12 14.2 12 14.2Z" fill="var(--ph-cut, #fff)" />
+    </svg>
+  )
+}
+
 const STEPS = [
   { n: '01', t: 'Tema da edição', d: 'Cada edição parte de um universo criativo. Já teve Páscoa, Doces do Mundo, Sabores da Infância, Pâtisserie Francesa, Contos de Fadas, Música, Heróis & Vilões, Séries, Terras Potiguares, Movies, Trip, Books, Celebration e Lovers.' },
   { n: '02', t: 'Criação dos combos', d: 'As marcas participantes desenvolvem uma experiência exclusiva conectada ao tema: sabor, nome, apresentação, decoração, embalagem e narrativa.' },
@@ -147,9 +158,18 @@ export function HomePage({ navigate }) {
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Combo de uma loja participante do Sweet & Coffee Week" loading="lazy" />
             </figure>
             <div className="hm-about__tags">
-              <span className="hm-tag hm-tag--coral">combos exclusivos<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
-              <span className="hm-tag hm-tag--cyan">tema da edição<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
-              <span className="hm-tag hm-tag--yellow">11 dias de festival<i className="hm-tag__ic"><I.heart width={16} height={16} /></i></span>
+              <span className="hm-card hm-card--coral">
+                <i className="hm-card__ic"><PinHeart size={20} /></i>
+                <span className="hm-card__label">combos<br />exclusivos</span>
+              </span>
+              <span className="hm-card hm-card--cyan">
+                <i className="hm-card__ic"><PinHeart size={20} /></i>
+                <span className="hm-card__label">tema da<br />edição</span>
+              </span>
+              <span className="hm-card hm-card--yellow">
+                <i className="hm-card__ic"><PinHeart size={20} /></i>
+                <span className="hm-card__label">11 dias<br />de festival</span>
+              </span>
             </div>
           </div>
         </div>
@@ -263,8 +283,12 @@ export function HomePage({ navigate }) {
           display: inline-block; width: fit-content; max-width: 100%;
           font-family: var(--font-display); font-style: italic; font-weight: 700;
           font-size: clamp(14px, 1.3vw, 19px); color: var(--swc-cream);
-          padding-bottom: 12px; border-bottom: 3px solid var(--swc-yellow);
+          padding-bottom: 0; border-bottom: 0;
           margin: 0 0 clamp(22px, 3vw, 38px);
+        }
+        .hm .swc-hero__eyebrow::after {
+          content: ""; display: block; width: clamp(120px, 13vw, 188px);
+          height: 5px; border-radius: 3px; background: var(--swc-yellow); margin-top: 12px;
         }
         .hm .swc-hero__title {
           font-family: var(--font-display); font-weight: 700; color: var(--swc-cream);
@@ -282,7 +306,7 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__photo { position: absolute; top: 0; right: 0; bottom: 0; width: 56%; z-index: 1; background: linear-gradient(135deg, #3D2417 0%, #6B3F22 55%, #2D1A0E 100%); overflow: hidden; }
         .hm .swc-hero__photo::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.10) 2.5px, transparent 3.5px); background-size: 40px 40px; opacity: .45; z-index: 1; }
         .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
-        .hm .swc-hero__blob { position: absolute; top: -7%; right: -4%; width: clamp(150px, 18vw, 300px); height: clamp(150px, 18vw, 300px); background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
+        .hm .swc-hero__blob { position: absolute; top: -8%; right: -5%; width: clamp(160px, 20vw, 330px); height: clamp(160px, 20vw, 330px); background: url('/images/shapes/shape-splat-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
         .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
         /* onda orgânica cream: hero (chocolate/foto) derrete na seção creme */
         .hm .swc-hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: clamp(54px, 7vw, 120px); background: url('/images/shapes/wave-cream-bottom.svg') bottom center / 100% 100% no-repeat; z-index: 5; pointer-events: none; }
@@ -307,22 +331,29 @@ export function HomePage({ navigate }) {
         .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
         .hm-collage__cell { margin: 0; min-height: clamp(240px, 30vw, 380px); overflow: hidden; background: var(--swc-coffee); }
         .hm-collage__cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .hm-about__tags { position: absolute; left: clamp(16px, 2vw, 28px); bottom: clamp(16px, 2vw, 26px); display: flex; flex-wrap: wrap; gap: 12px; z-index: 2; }
-        .hm-tag { display: inline-flex; align-items: center; gap: 12px; padding: 11px 11px 11px 20px; border-radius: 16px; font-family: var(--font-display); font-weight: 700; font-size: clamp(15px, 1.4vw, 20px); line-height: 1.05; color: #fff; box-shadow: 0 12px 28px rgba(56,22,16,.26); }
-        .hm-tag--coral { background: var(--swc-coral); }
-        .hm-tag--cyan { background: var(--swc-cyan); }
-        .hm-tag--yellow { background: var(--swc-yellow); color: var(--swc-chocolate); }
-        .hm-tag__ic { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px; flex: none; }
-        .hm-tag--coral .hm-tag__ic { background: var(--swc-yellow); color: var(--swc-chocolate); }
-        .hm-tag--cyan .hm-tag__ic { background: var(--swc-coral); color: #fff; }
-        .hm-tag--yellow .hm-tag__ic { background: var(--swc-chocolate); color: var(--swc-cream); }
+        /* cards coloridos sobrepostos na base da colagem (referência KV) */
+        .hm-about__tags { position: absolute; left: clamp(16px, 2vw, 28px); right: clamp(16px, 2vw, 28px); bottom: clamp(16px, 2vw, 26px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1.4vw, 20px); z-index: 2; }
+        .hm-card { position: relative; display: flex; align-items: flex-end; min-height: clamp(94px, 9vw, 128px); padding: clamp(15px, 1.5vw, 22px); border-radius: clamp(14px, 1.4vw, 20px); box-shadow: 0 14px 32px rgba(56, 22, 16, .30); }
+        .hm-card__label { font-family: var(--font-display); font-weight: 800; font-size: clamp(16px, 1.7vw, 26px); line-height: 1.02; letter-spacing: -.01em; color: var(--swc-chocolate); }
+        .hm-card__ic { position: absolute; top: clamp(11px, 1.2vw, 16px); right: clamp(11px, 1.2vw, 16px); display: inline-flex; align-items: center; justify-content: center; width: clamp(38px, 3.4vw, 48px); height: clamp(38px, 3.4vw, 48px); border-radius: clamp(11px, 1vw, 15px); flex: none; }
+        .hm-card--coral { background: var(--swc-coral); }
+        .hm-card--cyan { background: var(--swc-cyan); }
+        .hm-card--yellow { background: var(--swc-yellow); }
+        .hm-card--coral .hm-card__ic { background: var(--swc-yellow); color: var(--swc-chocolate); --ph-cut: var(--swc-yellow); }
+        .hm-card--cyan .hm-card__ic { background: var(--swc-coral); color: #fff; --ph-cut: var(--swc-coral); }
+        .hm-card--yellow .hm-card__ic { background: var(--swc-chocolate); color: var(--swc-coral); --ph-cut: var(--swc-chocolate); }
         @media (max-width: 760px) {
           .hm-about__head { grid-template-columns: 1fr; }
           .hm-about__collage { grid-template-columns: 1fr 1fr; }
-          .hm-tag { font-size: 14px; padding: 9px 9px 9px 16px; gap: 9px; }
-          .hm-tag__ic { width: 28px; height: 28px; border-radius: 9px; }
+          /* cards saem da sobreposição e descem para baixo das fotos */
+          .hm-about__tags { position: static; left: auto; right: auto; bottom: auto; margin-top: 14px; }
+          .hm-card { min-height: 0; }
+          .hm-card__label { font-size: 16px; }
         }
-        @media (max-width: 480px) { .hm-about__collage { grid-template-columns: 1fr; } }
+        @media (max-width: 480px) {
+          .hm-about__collage { grid-template-columns: 1fr; }
+          .hm-about__tags { grid-template-columns: 1fr; }
+        }
 
         .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .hm-stat { border: 1px solid var(--line); border-radius: 22px; padding: 26px 24px; background: var(--bg-card); }
