@@ -12,7 +12,7 @@
   --ink: #381610;
   --ink-dark: #2A0F09;
   --ink-soft: #7A4632;
-  --ink-mute: #A77B61;
+  --ink-mute: #8A5E45;
   --line: rgba(56, 22, 16, 0.12);
   --line-strong: rgba(56, 22, 16, 0.26);
 
@@ -226,6 +226,33 @@
   width: clamp(64px, 7vw, 104px); aspect-ratio: 1;
   background: url('/images/shapes/shape-star-cyan.svg') center/contain no-repeat;
   z-index: 0; pointer-events: none;
+}
+
+/* ============================================================
+   AUDIT FIXES (impeccable)
+   ============================================================ */
+
+/* P1 — corta o eyebrow repetido em toda seção (tell de IA "kicker em
+   toda seção"). Mantém só o do hero (fora de section.section) e os
+   sistemas de número/etapa (Processo). Os h2 já se sustentam sozinhos. */
+.page-enter section.section .eyebrow { display: none; }
+
+/* P3 — foco visível institucional (a11y) */
+.page-enter a:focus-visible,
+.page-enter button:focus-visible,
+.site-sidebar:not(.lovers) a:focus-visible,
+.site-sidebar:not(.lovers) .sidebar__link:focus-visible,
+.mobile-menu:not(.mobile-menu--lovers) a:focus-visible {
+  outline: 3px solid var(--swc-coral);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* P2 — quebra a uniformidade do grid de benefícios (Participar):
+   primeiro card vira destaque largo em telas grandes. */
+@media (min-width: 900px) {
+  .participar-benefits-grid { grid-auto-flow: dense; }
+  .participar-benefits-grid > *:first-child { grid-column: span 2; }
 }
 
 /* ============================================================

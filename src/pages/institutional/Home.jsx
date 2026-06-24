@@ -108,7 +108,9 @@ export function HomePage({ navigate }) {
         <div className="swc-hero__photo">
           <img
             src="/images/hero-festival.jpg"
-            alt="Combo gastronômico do Sweet & Coffee Week"
+            alt="Bolo de cenoura com cobertura de chocolate, segurado nas mãos — combo do Sweet & Coffee Week"
+            decoding="async"
+            fetchpriority="high"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
           <span className="swc-hero__blob" aria-hidden="true"></span>
