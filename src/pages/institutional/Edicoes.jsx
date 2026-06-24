@@ -1,6 +1,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoEditorial } from '../../components/placeholders'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { EDITIONS } from '../../data/editions'
 
 function EditionCard({ edition, index }) {
@@ -9,7 +10,8 @@ function EditionCard({ edition, index }) {
     <article className="edition-card">
       <div className="edition-card__media">
         <PhotoEditorial
-          label={`${edition.ano} · ${edition.nome}`}
+          src={COMBO_PHOTOS[index % COMBO_PHOTOS.length]}
+          alt={`Combo de uma marca participante do Sweet & Coffee Week`}
           caption={edition.visual}
           aspect="4/5"
           tone={index % 4 === 0 ? 'coffee' : index % 4 === 1 ? 'warm' : index % 4 === 2 ? 'cream' : 'dark'}
@@ -72,7 +74,7 @@ export function EdicoesPage({ navigate }) {
       <section className="section editions-feature">
         <div className="wrap editions-feature__grid">
           <div className="editions-feature__photo">
-            <PhotoEditorial label="ARQUIVO DO FESTIVAL" caption="Fotos, vitrines, pessoas e combos que contam a trajetória do Sweet & Coffee Week." aspect="16/10" tone="coffee" />
+            <PhotoEditorial src="/images/combos/o-maestro-cafe/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Fotos, vitrines, pessoas e combos que contam a trajetória do Sweet & Coffee Week." aspect="16/10" tone="coffee" />
           </div>
           <div className="editions-feature__panel">
             <span className="eyebrow"><span className="dot"></span>Como ler essa história</span>

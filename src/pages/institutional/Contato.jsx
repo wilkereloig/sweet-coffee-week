@@ -41,7 +41,7 @@ export function ContatoPage({ navigate }) {
             </p>
           </div>
           <div className="contato-hero__photo">
-            <PhotoEditorial label="BASTIDORES DO FESTIVAL" caption="Organização, marcas, parceiros e Sweet Lovers construindo a temporada." aspect="4/5" tone="warm" />
+            <PhotoEditorial src="/images/combos/just-food-coffee/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Organização, marcas, parceiros e Sweet Lovers construindo a temporada." aspect="4/5" tone="warm" />
           </div>
         </div>
       </section>
@@ -122,8 +122,8 @@ export function ContatoPage({ navigate }) {
             </a>
           </div>
           <div className="contato-editorial__photos">
-            <PhotoEditorial label="FEED" caption="Conteúdo, lançamentos e bastidores." aspect="1/1" tone="coffee" />
-            <PhotoEditorial label="STORIES" caption="Avisos rápidos e interação com o público." aspect="9/16" tone="cream" />
+            <PhotoEditorial src="/images/combos/wow-cookies/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Conteúdo, lançamentos e bastidores." aspect="1/1" tone="coffee" />
+            <PhotoEditorial src="/images/combos/caroli-douces/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Avisos rápidos e interação com o público." aspect="9/16" tone="cream" />
           </div>
         </div>
       </section>

@@ -89,15 +89,15 @@ export function ApoiarPage({ navigate }) {
             </div>
           </div>
           <div className="apoiar-hero__media">
-            <PhotoEditorial label="ATIVAÇÃO DE MARCA" caption="Marcas podem entrar no festival por patrocínio, experiência, produto, mídia ou ação promocional." aspect="4/5" tone="dark" />
+            <PhotoEditorial src="/images/combos/rollab-confeitaria/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Marcas podem entrar no festival por patrocínio, experiência, produto, mídia ou ação promocional." aspect="4/5" tone="dark" />
           </div>
         </div>
       </section>
 
       <section className="section apoiar-photo-band">
         <div className="wrap apoiar-photo-grid">
-          <div className="apoiar-photo-grid__wide"><PhotoEditorial label="PÚBLICO EM ROTA" caption="Pessoas circulando, fotografando e compartilhando experiências da edição." aspect="16/9" tone="warm" /></div>
-          <PhotoEditorial label="PONTO DE VENDA" caption="Presença de marca, vitrine e comunicação no local." aspect="4/5" tone="cream" />
+          <div className="apoiar-photo-grid__wide"><PhotoEditorial src="/images/combos/mangai/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Pessoas circulando, fotografando e compartilhando experiências da edição." aspect="16/9" tone="warm" /></div>
+          <PhotoEditorial src="/images/combos/parma-doces/main.jpg" alt="Vitrine de uma marca participante do Sweet & Coffee Week" caption="Presença de marca, vitrine e comunicação no local." aspect="4/5" tone="cream" />
         </div>
       </section>
 

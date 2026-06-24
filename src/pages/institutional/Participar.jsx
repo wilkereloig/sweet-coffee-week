@@ -65,7 +65,7 @@ export function ParticiparPage({ navigate }) {
             </div>
           </div>
           <div className="participar-hero__photo">
-            <PhotoEditorial label="MARCA PARTICIPANTE" caption="Combo exclusivo, vitrine preparada e experiência para o público do Sweet & Coffee Week." aspect="4/5" tone="warm" />
+            <PhotoEditorial src="/images/combos/paneer-patisserie/main.jpg" alt="Combo exclusivo de uma marca participante do Sweet & Coffee Week" caption="Combo exclusivo, vitrine preparada e experiência para o público do Sweet & Coffee Week." aspect="4/5" tone="warm" />
           </div>
         </div>
       </section>

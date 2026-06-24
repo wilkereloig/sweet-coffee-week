@@ -16,7 +16,7 @@ export function PhotoPH({ label = 'FOTO', aspect = '4/3', icon = 'donut', lovers
   )
 }
 
-export function PhotoEditorial({ label = 'FOTO DO FESTIVAL', caption = '', aspect = '4/5', tone = 'warm', full = false }) {
+export function PhotoEditorial({ label = 'FOTO DO FESTIVAL', caption = '', aspect = '4/5', tone = 'warm', full = false, src = '', alt = '' }) {
   const toneStyles = {
     warm:   'linear-gradient(180deg, #E8C9A8 0%, #B68458 60%, #8A5B30 100%)',
     cool:   'linear-gradient(180deg, #C9C1B0 0%, #8B8470 60%, #564E3F 100%)',
@@ -36,34 +36,49 @@ export function PhotoEditorial({ label = 'FOTO DO FESTIVAL', caption = '', aspec
         width: '100%',
       }}
     >
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage:
-          'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 50%),' +
-          'radial-gradient(ellipse at 70% 80%, rgba(0,0,0,.20), transparent 60%)',
-      }}/>
-      <span style={{
-        position: 'absolute', top: 16, left: 16,
-        background: 'rgba(255,244,236,.18)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        color: 'rgba(255,244,236,.92)',
-        padding: '6px 10px',
-        borderRadius: 6,
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        letterSpacing: '.14em',
-        textTransform: 'uppercase',
-        border: '1px solid rgba(255,244,236,.22)',
-      }}>{label}</span>
+      {src ? (
+        // Foto real: cobre a figura; caption fica legível sobre gradiente inferior.
+        <img
+          src={src}
+          alt={alt || caption || label}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <React.Fragment>
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage:
+              'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 50%),' +
+              'radial-gradient(ellipse at 70% 80%, rgba(0,0,0,.20), transparent 60%)',
+          }}/>
+          <span style={{
+            position: 'absolute', top: 16, left: 16,
+            background: 'rgba(255,244,236,.18)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            color: 'rgba(255,244,236,.92)',
+            padding: '6px 10px',
+            borderRadius: 6,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            letterSpacing: '.14em',
+            textTransform: 'uppercase',
+            border: '1px solid rgba(255,244,236,.22)',
+          }}>{label}</span>
+        </React.Fragment>
+      )}
       {caption && (
         <figcaption style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          padding: '20px 20px 18px',
-          color: 'rgba(255,244,236,.92)',
-          background: 'linear-gradient(180deg, transparent, rgba(0,0,0,.55))',
+          padding: '24px 20px 18px',
+          color: 'rgba(255,244,236,.95)',
+          background: 'linear-gradient(180deg, transparent, rgba(0,0,0,.62))',
           fontFamily: 'var(--font-sans)',
           fontSize: 13,
+          lineHeight: 1.45,
           letterSpacing: 0.01,
         }}>{caption}</figcaption>
       )}

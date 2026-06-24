@@ -91,9 +91,9 @@ export function CuriosidadesPage({ navigate }) {
       <section className="section curiosity-photo-section">
         <div className="wrap curiosity-photo-grid">
           <div className="curiosity-photo-grid__big">
-            <PhotoEditorial label="SWEET LOVERS" caption="O público que prova, indica, fotografa, vota e acompanha o festival edição após edição." aspect="16/9" tone="warm" />
+            <PhotoEditorial src="/images/combos/casa-1190/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="O público que prova, indica, fotografa, vota e acompanha o festival edição após edição." aspect="16/9" tone="warm" />
           </div>
-          <PhotoEditorial label="VITRINES E COMBOS" caption="Cada participante interpreta o tema no cardápio, no atendimento e na experiência em loja." aspect="4/5" tone="coffee" />
+          <PhotoEditorial src="/images/combos/jolie-cafe-patisserie/main.jpg" alt="Vitrine e combo de uma marca participante do Sweet & Coffee Week" caption="Cada participante interpreta o tema no cardápio, no atendimento e na experiência em loja." aspect="4/5" tone="coffee" />
         </div>
       </section>
 
@@ -250,9 +250,9 @@ export function CuriosidadesPage({ navigate }) {
         .glossary-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
         .glossary-grid > div:first-child p { color: var(--ink-soft); line-height: 1.65; max-width: 44ch; }
         .glossary-list { display: grid; }
-        .glossary-list article { display: grid; grid-template-columns: auto 1fr; gap: clamp(18px, 3vw, 36px); align-items: baseline; padding: clamp(22px, 3vw, 32px) 0; border-top: 1px solid var(--line); transition: padding-left .3s ease; }
+        .glossary-list article { display: grid; grid-template-columns: auto 1fr; gap: clamp(18px, 3vw, 36px); align-items: baseline; padding: clamp(22px, 3vw, 32px) 0; border-top: 1px solid var(--line); transition: transform .3s ease; }
         .glossary-list article:first-child { border-top: 0; padding-top: 6px; }
-        .glossary-list article:hover { padding-left: 6px; }
+        .glossary-list article:hover { transform: translateX(6px); }
         .glossary-list__num { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--swc-coral, var(--accent)); padding-top: .55em; }
         .glossary-list__body { display: grid; gap: 8px; }
         .glossary-list h3 { margin: 0; font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: clamp(26px, 3.4vw, 42px); line-height: 1; letter-spacing: -.03em; color: var(--ink); }
