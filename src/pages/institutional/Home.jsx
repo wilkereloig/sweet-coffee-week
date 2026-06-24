@@ -216,7 +216,7 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__photo { position: absolute; top: 0; right: 0; bottom: 0; width: 56%; z-index: 1; background: linear-gradient(135deg, #3D2417 0%, #6B3F22 55%, #2D1A0E 100%); overflow: hidden; }
         .hm .swc-hero__photo::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.10) 2.5px, transparent 3.5px); background-size: 40px 40px; opacity: .45; z-index: 1; }
         .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
-        .hm .swc-hero__blob { position: absolute; top: -6%; right: -5%; width: clamp(130px, 15vw, 230px); height: clamp(130px, 15vw, 230px); background: var(--swc-coral); border-radius: 46% 54% 63% 37% / 47% 38% 62% 53%; z-index: 3; animation: swcFloat 7s ease-in-out infinite; }
+        .hm .swc-hero__blob { position: absolute; top: -7%; right: -4%; width: clamp(150px, 18vw, 300px); height: clamp(150px, 18vw, 300px); background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
         .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(26px, 4vw, 56px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
         .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
         @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }

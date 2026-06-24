@@ -202,3 +202,49 @@
 /* fact pills (período / participantes) no tom novo */
 .edition-card__facts dt { color: var(--swc-coffee) !important; }
 .edition-card__fact dd { color: var(--swc-chocolate) !important; }
+
+/* ============================================================
+   PARALLAX sutil na foto do hero (scroll-driven, Chromium).
+   Base scale 1.08 garante que o translate não revele bordas.
+   ============================================================ */
+.hm .swc-hero__photo img { transform: scale(1.08); will-change: transform; }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hm .swc-hero__photo img {
+      animation: swcHeroParallax linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+  }
+}
+@keyframes swcHeroParallax {
+  from { transform: scale(1.08) translateY(-20px); }
+  to   { transform: scale(1.08) translateY(36px); }
+}
+
+/* ============================================================
+   FORMAS ORGÂNICAS — acentos nas seções da Home (peek nos cantos)
+   ============================================================ */
+.hm .section { position: relative; overflow: hidden; }
+.hm .section > .wrap { position: relative; z-index: 1; }
+/* selo chocolate como marca d'água atrás do "O que é" */
+.hm .hm-feature::before {
+  content: ""; position: absolute; top: -64px; left: -76px;
+  width: clamp(150px, 17vw, 280px); aspect-ratio: 1;
+  background: url('/images/shapes/shape-badge-choco.svg') center/contain no-repeat;
+  opacity: .06; z-index: 0; pointer-events: none;
+}
+/* seta amarela peekando no "Como funciona" */
+.hm .hm-steps-section::before {
+  content: ""; position: absolute; top: -30px; right: -26px;
+  width: clamp(80px, 9vw, 140px); aspect-ratio: 298.86 / 373.58;
+  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
+  transform: rotate(16deg); z-index: 0; pointer-events: none;
+}
+/* flor coral no bloco de Realização */
+.hm .hm-cta-section::before {
+  content: ""; position: absolute; bottom: -52px; left: -38px;
+  width: clamp(120px, 14vw, 220px); aspect-ratio: 1;
+  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
+  z-index: 0; pointer-events: none;
+}
