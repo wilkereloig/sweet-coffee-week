@@ -139,3 +139,66 @@
 
 /* Eyebrow institucional no novo tom (dot coral) */
 .page-enter .eyebrow .dot { background: var(--swc-coral); }
+
+/* ============================================================
+   SCROLL-REVEAL — sem JS (animation-timeline: view(), Chromium).
+   Fallback gracioso: navegadores sem suporte mostram normal.
+   Só institucional (classes não existem no painel Lovers).
+   ============================================================ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hm-step, .hm-stat, .hm-pillar,
+    .edition-card,
+    .curiosity-card, .ranking-card, .glossary-list article,
+    .participar-benefit, .participar-step,
+    .partner-path, .apoiar-card,
+    .contact-card {
+      animation: swcReveal both linear;
+      animation-timeline: view();
+      animation-range: entry 2% entry 46%;
+    }
+  }
+}
+@keyframes swcReveal {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   DRAWER MOBILE institucional — creme + slab lowercase
+   ============================================================ */
+.mobile-menu:not(.mobile-menu--lovers) { background: var(--swc-cream); }
+.mobile-menu:not(.mobile-menu--lovers) .mobile-menu__section-title {
+  font-family: var(--font-mono);
+  color: var(--swc-coffee);
+  opacity: .6;
+}
+.mobile-menu:not(.mobile-menu--lovers) .mobile-menu__inst-link {
+  font-family: var(--font-display);
+  text-transform: lowercase;
+  font-size: clamp(26px, 8vw, 34px);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--swc-chocolate);
+  padding: 8px 0;
+}
+.mobile-menu:not(.mobile-menu--lovers) .close { color: var(--swc-chocolate); }
+
+/* ============================================================
+   EDIÇÕES — cards editoriais alternados (creme / creme dourado)
+   + ano em destaque grande
+   ============================================================ */
+.edition-grid .edition-card { background: var(--swc-cream); }
+.edition-grid .edition-card:nth-child(even) { background: var(--swc-cream-2); }
+.edition-card__meta span {
+  font-family: var(--font-display) !important;
+  font-size: clamp(26px, 2.4vw, 40px) !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  text-transform: none !important;
+  color: var(--swc-chocolate) !important;
+  font-weight: 700 !important;
+}
+/* fact pills (período / participantes) no tom novo */
+.edition-card__facts dt { color: var(--swc-coffee) !important; }
+.edition-card__fact dd { color: var(--swc-chocolate) !important; }

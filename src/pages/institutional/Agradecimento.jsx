@@ -10,17 +10,18 @@ import React from 'react'
 
 const INSTAGRAM = 'https://www.instagram.com/sweetcoffeeweek'
 
-const FONT_DISPLAY = "'sofia-pro-comp', 'Caprasimo', serif"
-const FONT_BODY    = "'sofia-pro-comp', 'DM Sans', sans-serif"
+const FONT_DISPLAY = "'Nexa Slab', 'nexa', 'Caprasimo', Georgia, serif"
+const FONT_BODY    = "'nexa-text', 'nexa', 'DM Sans', system-ui, sans-serif"
 
+// Palette SWC (alinhado ao novo sistema visual institucional)
 const C = {
-  cream: '#FFF8F0',
-  red:   '#F0006A',
-  yellow:'#FBBA00',
-  cyan:  '#00B5C8',
-  purple:'#4E1D82',
-  ink:   '#1E0806',
-  brown: '#6B2E14',
+  cream: '#FEF0DD',
+  red:   '#F65D74',   /* coral */
+  yellow:'#FDBB1A',
+  cyan:  '#01AFCC',
+  purple:'#6A2C15',   /* coffee — variação nos headers dos cards */
+  ink:   '#381610',   /* chocolate */
+  brown: '#6A2C15',
 }
 
 // As 8 categorias oficiais do Sweet Awards (ver src/data/sweetAwards.js).
