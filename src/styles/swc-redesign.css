@@ -93,18 +93,19 @@
   border-left: 0;
   padding-left: 14px;
 }
-/* chevron amarelo ► à esquerda do item ativo */
+/* seta orgânica amarela (shape oficial da marca) à esquerda do item ativo */
+.site-sidebar:not(.lovers) .sidebar__link { padding-left: 24px; }
+.site-sidebar:not(.lovers) .sidebar__link.active { padding-left: 24px; }
 .site-sidebar:not(.lovers) .sidebar__link.active::before {
   content: "";
   position: absolute;
-  left: -10px;
+  left: -2px;
   top: 50%;
   transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 12px solid var(--swc-yellow);
+  width: 16px;
+  height: 20px;
+  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
+  border: 0;
 }
 .site-sidebar:not(.lovers) .sidebar__credit { opacity: 0.75; }
 
