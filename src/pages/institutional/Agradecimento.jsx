@@ -6,41 +6,43 @@ import React from 'react'
 // São 8 categorias = 8 posts.
 //
 // Página AUTOSSUFICIENTE: não depende de componentes/CSS de páginas removidas.
-// Usa apenas inline styles, no padrão institucional.
+// Usa apenas inline styles + um <style> interno (reduced-motion, foco, grid responsivo).
 
 const INSTAGRAM = 'https://www.instagram.com/sweetcoffeeweek'
 
-const FONT_DISPLAY = "'Nexa Slab', 'nexa', 'Caprasimo', Georgia, serif"
+const FONT_DISPLAY = "'Nexa Slab', 'nexa', Georgia, serif"
 const FONT_BODY    = "'nexa-text', 'nexa', 'DM Sans', system-ui, sans-serif"
 
-// Palette SWC (alinhado ao novo sistema visual institucional)
+// Paleta SWC (alinhada ao DESIGN.md — sem cores fora do sistema).
 const C = {
-  cream: '#FEF0DD',
-  red:   '#F65D74',   /* coral */
-  yellow:'#FDBB1A',
-  cyan:  '#01AFCC',
-  purple:'#6A2C15',   /* coffee — variação nos headers dos cards */
-  ink:   '#381610',   /* chocolate */
-  brown: '#6A2C15',
+  cream:     '#FEF0DD',
+  cream2:    '#F8E4C1',
+  coral:     '#F65D74',
+  yellow:    '#FDBB1A',
+  cyan:      '#01AFCC',
+  coffee:    '#6A2C15',
+  chocolate: '#381610',
 }
 
+// Cor de texto legível sobre o header colorido do card (contraste ≥ 4.5:1):
+// chocolate sobre amarelo, creme sobre coral/cyan/coffee.
+const textOn = (bg) => (bg === C.yellow ? C.chocolate : C.cream)
+
 // As 8 categorias oficiais do Sweet Awards (ver src/data/sweetAwards.js).
-// `post` = URL do post do Instagram que apresenta a categoria/vencedor
-// (ex.: https://www.instagram.com/p/XXXXXXXXXXX/ ou .../reel/XXXXXXXXXXX/).
-// PREENCHER os 8 links abaixo (deixe '' enquanto não houver o post).
+// `post` = URL do post do Instagram que apresenta a categoria/vencedor.
+// NÃO renomear labels nem a key interna (vínculo com sweetAwards.js).
 const AWARDS = [
-  { key: 'melhor_combo', label: 'Melhor Combo',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/', color: C.red,    desc: 'Reconhece o conjunto que mais se destacou na edição, considerando a experiência completa do combo.' },
-  { key: 'atendimento',  label: 'Atendimento',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan,   desc: 'Reconhece o cuidado, a simpatia, a agilidade e a experiência de recepção oferecida ao público.' },
-  { key: 'criatividade', label: 'Criatividade',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow, desc: 'Reconhece a proposta mais original, autoral e conectada ao tema da edição.' },
-  { key: 'apresentacao', label: 'Apresentação',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.purple, desc: 'Reconhece o combo com maior impacto visual, capricho de montagem e cuidado estético.' },
-  { key: 'doce',         label: 'Doce',                 post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.red,    desc: 'Reconhece o item doce que mais se destacou em sabor, execução e conexão com a proposta.' },
-  { key: 'salgado',      label: 'Salgado',              post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan,   desc: 'Reconhece o item salgado que mais se destacou dentro da composição do combo.' },
-  { key: 'bebida',       label: 'Bebida',               post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow, desc: 'Reconhece a bebida com melhor sabor, harmonia e presença na experiência.' },
-  { key: 'envolvimento', label: 'Encantamento em Loja', post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/', color: C.purple, desc: 'Reconhece o participante que mais envolveu o público no tema da edição por meio de ambientação, atendimento, cenário, detalhes visuais ou experiência no ponto de venda.' },
+  { key: 'melhor_combo', label: 'Melhor Combo',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/', color: C.coral,  desc: 'O conjunto que mais se destacou na experiência completa do combo.' },
+  { key: 'atendimento',  label: 'Atendimento',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan,   desc: 'Cuidado, simpatia e agilidade na recepção do público.' },
+  { key: 'criatividade', label: 'Criatividade',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow, desc: 'A proposta mais original e autoral, conectada ao tema da edição.' },
+  { key: 'apresentacao', label: 'Apresentação',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.coffee, desc: 'Maior impacto visual, capricho de montagem e cuidado estético.' },
+  { key: 'doce',         label: 'Doce',                 post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.coral,  desc: 'O doce que mais se destacou em sabor, execução e conexão com a proposta.' },
+  { key: 'salgado',      label: 'Salgado',              post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan,   desc: 'O salgado que mais brilhou dentro da composição do combo.' },
+  { key: 'bebida',       label: 'Bebida',               post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow, desc: 'A bebida com melhor sabor, harmonia e presença na experiência.' },
+  { key: 'envolvimento', label: 'Encantamento em Loja', post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/', color: C.coffee, desc: 'Quem mais envolveu o público no tema, pela ambientação e pela experiência no ponto de venda.' },
 ]
 
 // Converte uma URL de post/reel do Instagram na sua versão "/embed" (iframe).
-// Aceita com ou sem o usuário no caminho: /p/CODE/, /sweetcoffeeweek/p/CODE/, /reel/CODE/.
 function toEmbedUrl(url) {
   if (!url) return ''
   try {
@@ -53,6 +55,11 @@ function toEmbedUrl(url) {
   }
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+
 function InstagramIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -64,76 +71,122 @@ function InstagramIcon({ size = 18 }) {
   )
 }
 
-function AwardCard({ award }) {
+// Selo/medalha de premiação (rosácea + estrela + fitas). Usa currentColor,
+// então adapta automaticamente à cor de texto do header de cada categoria.
+function Seal({ size = 40 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true" style={{ flex: 'none' }}>
+      <circle cx="24" cy="19" r="13" stroke="currentColor" strokeWidth="2" />
+      <path d="M24 11l2.5 5 5.5.8-4 3.9.9 5.5L24 23.5l-4.9 2.7.9-5.5-4-3.9 5.5-.8L24 11Z" fill="currentColor" />
+      <path d="M17 30l-3 11 10-4.5L34 41l-3-11" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="none" />
+    </svg>
+  )
+}
+
+function EmbedFrame({ award }) {
   const embed = toEmbedUrl(award.post)
+  if (embed) {
+    return (
+      <iframe
+        src={embed}
+        title={`Sweet Awards — ${award.label}`}
+        loading="lazy"
+        style={{ width: '100%', height: 540, border: 'none', display: 'block', background: '#fff' }}
+      />
+    )
+  }
+  return (
+    <div style={{
+      height: 540, display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center',
+      color: C.coffee, background: `repeating-linear-gradient(45deg, #fff, #fff 12px, ${C.cream} 12px, ${C.cream} 24px)`,
+    }}>
+      <span style={{ color: award.color }}><InstagramIcon size={28} /></span>
+      <span style={{ fontFamily: FONT_BODY, fontSize: 14, maxWidth: '24ch' }}>
+        Post do Instagram desta categoria entra aqui.
+      </span>
+    </div>
+  )
+}
+
+function AwardCard({ award, feature = false }) {
+  const onText = textOn(award.color)
+
+  const hoverIn = (e) => {
+    e.currentTarget.style.boxShadow = '0 22px 52px rgba(56,22,16,.22)'
+    if (!prefersReducedMotion()) e.currentTarget.style.transform = 'translateY(-4px)'
+  }
+  const hoverOut = (e) => {
+    e.currentTarget.style.boxShadow = '0 16px 40px rgba(56,22,16,.12)'
+    e.currentTarget.style.transform = 'none'
+  }
+
+  const header = (
+    <div style={{ background: award.color, padding: feature ? 'clamp(24px,3vw,38px)' : '18px 20px 16px', color: onText }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
+        <div>
+          {feature && (
+            <span style={{
+              display: 'inline-block', background: C.cream, color: C.chocolate,
+              fontFamily: FONT_BODY, fontSize: 11, fontWeight: 700, letterSpacing: '.14em',
+              textTransform: 'uppercase', padding: '5px 12px', borderRadius: 100, marginBottom: 14,
+            }}>
+              Grande prêmio
+            </span>
+          )}
+          <div style={{
+            fontFamily: FONT_DISPLAY, fontWeight: 700, textTransform: 'uppercase',
+            fontSize: feature ? 'clamp(30px,4vw,46px)' : 'clamp(21px,2.6vw,27px)',
+            lineHeight: feature ? 0.98 : 1.02, textWrap: 'balance',
+          }}>
+            {award.label}
+          </div>
+        </div>
+        <span style={{ color: onText, opacity: 0.92 }}><Seal size={feature ? 58 : 40} /></span>
+      </div>
+      {award.desc && (
+        <p style={{
+          fontFamily: FONT_BODY, fontSize: feature ? 14 : 12, lineHeight: 1.5, fontWeight: 500,
+          color: onText, margin: feature ? '14px 0 0' : '10px 0 0', maxWidth: '46ch',
+        }}>
+          {award.desc}
+        </p>
+      )}
+    </div>
+  )
+
+  if (feature) {
+    return (
+      <div
+        className="aw-card aw-card--feature"
+        style={{
+          background: '#fff', border: `2px solid ${award.color}`, borderRadius: 28, overflow: 'hidden',
+          boxShadow: '0 16px 40px rgba(56,22,16,.12)', transition: 'transform .25s ease, box-shadow .25s ease',
+        }}
+        onMouseEnter={hoverIn}
+        onMouseLeave={hoverOut}
+      >
+        <div className="aw-feature-inner">
+          {header}
+          <EmbedFrame award={award} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
+      className="aw-card"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        background: '#fff',
-        border: `2px solid ${award.color}`,
-        borderRadius: 24,
-        overflow: 'hidden',
-        boxShadow: '0 16px 40px rgba(56,22,16,.12)',
-        transition: 'transform .25s ease, box-shadow .25s ease',
+        display: 'flex', flexDirection: 'column', background: '#fff',
+        border: `2px solid ${award.color}`, borderRadius: 24, overflow: 'hidden',
+        boxShadow: '0 16px 40px rgba(56,22,16,.12)', transition: 'transform .25s ease, box-shadow .25s ease',
       }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-4px)'
-        e.currentTarget.style.boxShadow = '0 22px 52px rgba(56,22,16,.20)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = 'none'
-        e.currentTarget.style.boxShadow = '0 16px 40px rgba(56,22,16,.12)'
-      }}
+      onMouseEnter={hoverIn}
+      onMouseLeave={hoverOut}
     >
-      {/* cabeçalho colorido com a categoria */}
-      <div style={{ background: award.color, padding: '16px 20px 14px', color: '#fff' }}>
-        <div style={{
-          fontFamily: FONT_BODY, fontSize: 10.5, fontWeight: 700, letterSpacing: '.16em',
-          textTransform: 'uppercase', opacity: .9, marginBottom: 4,
-        }}>
-          Sweet Awards
-        </div>
-        <div style={{
-          fontFamily: FONT_DISPLAY, fontSize: 'clamp(20px, 2.6vw, 26px)', lineHeight: 1.02,
-          fontWeight: 700, textTransform: 'uppercase',
-        }}>
-          {award.label}
-        </div>
-        {award.desc && (
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 12.5, lineHeight: 1.45, fontWeight: 500,
-            color: '#fff', opacity: .92, margin: '8px 0 0',
-          }}>
-            {award.desc}
-          </p>
-        )}
-      </div>
-
-      {/* post do Instagram embutido (ou placeholder enquanto não há link) */}
-      {embed ? (
-        <iframe
-          src={embed}
-          title={`Sweet Awards — ${award.label}`}
-          loading="lazy"
-          allowtransparency="true"
-          frameBorder="0"
-          scrolling="no"
-          style={{ width: '100%', height: 540, border: 'none', display: 'block', background: '#fff' }}
-        />
-      ) : (
-        <div style={{
-          height: 540, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center',
-          color: C.brown, background: 'repeating-linear-gradient(45deg, #fff, #fff 12px, #FFF3E6 12px, #FFF3E6 24px)',
-        }}>
-          <span style={{ color: award.color }}><InstagramIcon size={28} /></span>
-          <span style={{ fontFamily: FONT_BODY, fontSize: 14, opacity: .7, maxWidth: '24ch' }}>
-            Post do Instagram desta categoria entra aqui.
-          </span>
-        </div>
-      )}
+      {header}
+      <EmbedFrame award={award} />
     </div>
   )
 }
@@ -150,238 +203,109 @@ export function AgradecimentoPage() {
     }}>
       <style>{`
         @keyframes awFade { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+          * { animation: none !important; transition: none !important; }
+        }
+        a:focus-visible, button:focus-visible { outline: 3px solid ${C.coral}; outline-offset: 3px; border-radius: 100px; }
+        .aw-grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+        .aw-feature-inner { display: grid; grid-template-columns: 1fr; }
+        @media (min-width: 760px) {
+          .aw-grid { grid-template-columns: repeat(2, 1fr); }
+          .aw-card--feature { grid-column: 1 / -1; }
+          .aw-feature-inner { grid-template-columns: 0.85fr 1.15fr; align-items: stretch; }
+        }
       `}</style>
 
-      {/* fundo decorativo */}
+      {/* fundo decorativo (acentos da marca, dentro da paleta) */}
       <div aria-hidden style={{
         position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
         background: [
-          'radial-gradient(ellipse 70% 50% at 85% 5%, rgba(251,186,0,.30) 0%, transparent 65%)',
-          'radial-gradient(ellipse 50% 40% at 8% 92%, rgba(240,0,106,.12) 0%, transparent 65%)',
+          'radial-gradient(ellipse 70% 50% at 85% 5%, rgba(253,187,26,.28) 0%, transparent 65%)',
+          'radial-gradient(ellipse 50% 40% at 8% 92%, rgba(246,93,116,.12) 0%, transparent 65%)',
         ].join(','),
       }} />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1080, margin: '0 auto' }}>
 
-        {/* HERO — Sweet Awards (banda chocolate, cara de premiação) */}
+        {/* HERO — abertura de cerimônia */}
         <header style={{
           position: 'relative',
-          background: C.ink,
+          background: C.chocolate,
           borderRadius: 'clamp(20px, 3vw, 36px)',
-          padding: 'clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px)',
+          padding: 'clamp(44px, 6vw, 80px) clamp(24px, 5vw, 64px)',
           textAlign: 'center',
-          marginBottom: 'clamp(48px, 7vw, 80px)',
+          marginBottom: 'clamp(40px, 6vw, 64px)',
           overflow: 'hidden',
           boxShadow: '0 24px 60px rgba(56,22,16,.28)',
           animation: 'awFade .7s ease both',
         }}>
-          {/* acentos de marca */}
           <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden
-            style={{
-              position: 'absolute', top: 'clamp(-18px, -2vw, -8px)', right: 'clamp(-20px, -1vw, 24px)',
-              width: 'clamp(80px, 12vw, 150px)', pointerEvents: 'none', opacity: .9, zIndex: 0,
-              transform: 'rotate(-12deg)',
-            }}
-            onError={e => { e.target.style.display = 'none' }}
-          />
+            style={{ position: 'absolute', top: 'clamp(-18px,-2vw,-8px)', right: 'clamp(-20px,-1vw,24px)', width: 'clamp(80px,12vw,150px)', pointerEvents: 'none', opacity: .9, zIndex: 0, transform: 'rotate(-12deg)' }}
+            onError={e => { e.target.style.display = 'none' }} />
           <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden
-            style={{
-              position: 'absolute', bottom: 'clamp(-16px, -1vw, 16px)', left: 'clamp(-14px, -1vw, 28px)',
-              width: 'clamp(60px, 9vw, 110px)', pointerEvents: 'none', opacity: .85, zIndex: 0,
-              transform: 'rotate(8deg)',
-            }}
-            onError={e => { e.target.style.display = 'none' }}
-          />
+            style={{ position: 'absolute', bottom: 'clamp(-16px,-1vw,16px)', left: 'clamp(-14px,-1vw,28px)', width: 'clamp(60px,9vw,110px)', pointerEvents: 'none', opacity: .85, zIndex: 0, transform: 'rotate(8deg)' }}
+            onError={e => { e.target.style.display = 'none' }} />
 
           <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ color: C.yellow, display: 'inline-flex', justifyContent: 'center', marginBottom: 18 }}>
+              <Seal size={64} />
+            </div>
+
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24,
+              display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18,
               fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, letterSpacing: '.14em',
-              textTransform: 'uppercase', color: C.red,
+              textTransform: 'uppercase', color: C.coral,
             }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red }} />
-              Sweet Awards
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.coral }} />
+              Sweet Awards · 16ª edição
             </div>
 
             <h1 style={{
               fontFamily: FONT_DISPLAY, fontSize: 'clamp(38px, 7vw, 84px)', lineHeight: .99,
-              fontWeight: 700, textTransform: 'uppercase', color: C.cream, margin: '0 0 22px',
+              fontWeight: 700, textTransform: 'uppercase', color: C.cream, margin: '0 0 16px', textWrap: 'balance',
             }}>
-              Os destaques escolhidos pelos <span style={{ color: C.yellow }}>Sweet Lovers</span>.
+              Os vencedores escolhidos pelos <span style={{ color: C.yellow }}>Sweet Lovers</span>.
             </h1>
 
-            <p style={{
-              fontFamily: FONT_BODY, fontSize: 'clamp(18px, 2.2vw, 22px)', lineHeight: 1.65,
-              color: C.cream, opacity: .82, maxWidth: '58ch', margin: '0 auto 18px',
+            <div style={{
+              fontFamily: FONT_DISPLAY, fontSize: 'clamp(14px, 1.8vw, 19px)', fontWeight: 700,
+              letterSpacing: '.04em', textTransform: 'uppercase', color: C.cream, opacity: .9, marginBottom: 22,
             }}>
-              O Sweet Awards é a premiação do Sweet &amp; Coffee Week. A cada edição, o público
-              avalia os participantes e ajuda a reconhecer as experiências que mais se destacaram
-              na rota.
-            </p>
+              8 categorias premiadas · edição Lovers · 2026
+            </div>
+
             <p style={{
-              fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 19px)', lineHeight: 1.65,
-              color: C.cream, opacity: .72, maxWidth: '58ch', margin: '0 auto',
+              fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 20px)', lineHeight: 1.6,
+              color: C.cream, maxWidth: '60ch', margin: '0 auto',
             }}>
-              Mais do que um ranking, o Sweet Awards é uma forma de celebrar o trabalho das marcas
-              participantes, valorizar a criatividade dos combos e registrar a memória de cada
-              edição do festival.
+              O Sweet Awards é a premiação do Sweet &amp; Coffee Week: a cada edição, o público avalia os
+              participantes e reconhece as experiências que mais se destacaram na rota.
             </p>
           </div>
         </header>
 
-        {/* RESULTADO MAIS RECENTE */}
-        <section style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)', animation: 'awFade .7s ease .05s both' }}>
-          <div style={{
-            fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
-            textTransform: 'uppercase', color: C.red, marginBottom: 12,
-          }}>
-            Resultado mais recente
-          </div>
+        {/* TRANSIÇÃO PARA OS VENCEDORES (left-aligned, sem kickers repetidos) */}
+        <section style={{ marginBottom: 'clamp(28px, 4vw, 44px)', animation: 'awFade .7s ease .05s both' }}>
           <h2 style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(26px, 4.6vw, 46px)', lineHeight: 1.04,
-            fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 18px', maxWidth: '20ch',
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(28px, 4.6vw, 52px)', lineHeight: 1.0,
+            fontWeight: 700, textTransform: 'uppercase', color: C.chocolate, margin: '0 0 16px',
+            maxWidth: '20ch', textWrap: 'balance',
           }}>
             Vencedores da 16ª edição: Sweet &amp; Coffee Week Lovers.
           </h2>
           <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .72, maxWidth: '58ch', margin: '0 auto 16px',
+            fontFamily: FONT_BODY, fontSize: 'clamp(16px, 1.9vw, 19px)', lineHeight: 1.6,
+            color: C.chocolate, maxWidth: '62ch', margin: '0 0 12px',
           }}>
-            A 16ª edição do Sweet &amp; Coffee Week celebrou os 10 anos do festival com uma
-            homenagem aos Sweet Lovers, às marcas participantes e à cidade que construiu essa
-            história.
+            A 16ª edição celebrou os 10 anos do festival com uma homenagem aos Sweet Lovers, às marcas
+            participantes e à cidade que construiu essa história.
           </p>
           <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .68, maxWidth: '58ch', margin: '0 auto',
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.8vw, 18px)', lineHeight: 1.6,
+            color: C.coffee, maxWidth: '62ch', margin: '0 0 22px',
           }}>
-            Depois de viver a rota, provar os combos e avaliar suas experiências, o público
-            ajudou a escolher os destaques da edição. Confira os vencedores do Sweet Awards nas
-            categorias oficiais.
-          </p>
-        </section>
-
-        {/* SWEET AWARDS — vencedores no Instagram */}
-        <section>
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 4vw, 44px)', animation: 'awFade .7s ease .1s both' }}>
-            <h2 style={{
-              fontFamily: FONT_DISPLAY, fontSize: 'clamp(26px, 4.6vw, 48px)', lineHeight: 1.04,
-              fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 14px', maxWidth: '18ch',
-            }}>
-              Veja os vencedores no Instagram oficial.
-            </h2>
-            <p style={{
-              fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
-              color: C.ink, opacity: .68, maxWidth: '56ch', margin: '0 auto 22px',
-            }}>
-              Os resultados da 16ª edição foram publicados no Instagram do Sweet &amp; Coffee Week.
-              Cada categoria abaixo reúne o post oficial com os vencedores e destaques da edição.
-            </p>
-            <a
-              href={INSTAGRAM}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 10,
-                background: C.red, color: C.cream, borderRadius: 100, padding: '13px 30px',
-                fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(14px, 1.7vw, 16px)',
-                letterSpacing: '.02em', textDecoration: 'none',
-              }}
-            >
-              <InstagramIcon />
-              Acompanhar @sweetcoffeeweek
-            </a>
-            <div style={{
-              fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.12em',
-              textTransform: 'uppercase', color: C.ink, opacity: .45, marginTop: 22,
-            }}>
-              Resultados da edição Sweet &amp; Coffee Week Lovers · 2026
-            </div>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
-            gap: 20,
-            animation: 'awFade .7s ease .2s both',
-          }}>
-            {AWARDS.map(a => <AwardCard key={a.key} award={a} />)}
-          </div>
-        </section>
-
-        {/* ACERVO HISTÓRICO — depois dos posts */}
-        <section style={{
-          position: 'relative',
-          marginTop: 'clamp(48px, 7vw, 80px)',
-          background: '#fff',
-          border: '1px solid rgba(0,0,0,.08)',
-          borderRadius: 22,
-          boxShadow: '0 10px 30px rgba(0,0,0,.06)',
-          padding: 'clamp(28px, 5vw, 48px)',
-          textAlign: 'center',
-          overflow: 'hidden',
-          animation: 'awFade .7s ease both',
-        }}>
-          <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden
-            style={{
-              position: 'absolute', top: 'clamp(-22px, -2vw, -10px)', right: 'clamp(-22px, -2vw, -10px)',
-              width: 'clamp(70px, 11vw, 130px)', pointerEvents: 'none', opacity: .9, zIndex: 0,
-              transform: 'rotate(14deg)',
-            }}
-            onError={e => { e.target.style.display = 'none' }}
-          />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{
-            fontFamily: FONT_BODY, fontSize: 12, fontWeight: 700, letterSpacing: '.16em',
-            textTransform: 'uppercase', color: C.purple, marginBottom: 12,
-          }}>
-            Histórico Sweet Awards
-          </div>
-          <h2 style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px, 4.2vw, 42px)', lineHeight: 1.04,
-            fontWeight: 700, textTransform: 'uppercase', color: C.ink, margin: '0 auto 16px', maxWidth: '22ch',
-          }}>
-            Em breve, os vencedores de outras edições.
-          </h2>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .72, maxWidth: '60ch', margin: '0 auto 14px',
-          }}>
-            O acervo do Sweet Awards está sendo organizado para reunir os vencedores das edições
-            anteriores do Sweet &amp; Coffee Week. A ideia é preservar a memória do festival,
-            valorizar as marcas que fizeram parte dessa trajetória e mostrar como a premiação
-            evoluiu ao longo dos anos.
-          </p>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .68, maxWidth: '60ch', margin: '0 auto',
-          }}>
-            Em breve, esta área poderá ser consultada por edição, categoria, participante e
-            colocação.
-          </p>
-          </div>
-        </section>
-
-        {/* Agradecimento de fechamento */}
-        <div style={{ textAlign: 'center', marginTop: 'clamp(48px, 7vw, 80px)' }}>
-          <p style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(20px, 3vw, 32px)', lineHeight: 1.2,
-            fontWeight: 700, color: C.ink, margin: '0 auto 16px', maxWidth: '24ch',
-          }}>
-            Até a próxima edição. <span style={{ color: C.red }}>A doçura continua.</span>
-          </p>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .72, maxWidth: '54ch', margin: '0 auto 8px',
-          }}>
-            Obrigado a cada participante, parceiro e Sweet Lover que ajudou a viver essa edição
-            pela cidade.
-          </p>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.65,
-            color: C.ink, opacity: .68, maxWidth: '54ch', margin: '0 auto 28px',
-          }}>
-            Foram dias de combos especiais, encontros, rotas e descobertas pela cidade.
+            O público viveu a rota, provou os combos e ajudou a escolher os destaques — conheça os
+            vencedores por categoria.
           </p>
           <a
             href={INSTAGRAM}
@@ -389,7 +313,84 @@ export function AgradecimentoPage() {
             rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,
-              background: C.red, color: C.cream, borderRadius: 100, padding: '14px 36px',
+              background: C.yellow, color: C.chocolate, borderRadius: 100, padding: '14px 30px',
+              fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(14px, 1.7vw, 16px)',
+              letterSpacing: '.02em', textDecoration: 'none',
+            }}
+          >
+            <InstagramIcon />
+            Ver todos os vencedores no Instagram
+          </a>
+        </section>
+
+        {/* SWEET AWARDS — 8 categorias (8 embeds), com 1 grande prêmio em destaque */}
+        <section className="aw-grid" style={{ animation: 'awFade .7s ease .1s both' }}>
+          {AWARDS.map((a, i) => <AwardCard key={a.key} award={a} feature={i === 0} />)}
+        </section>
+
+        {/* ACERVO HISTÓRICO — rebaixado (creme-2), gancho funcional preservado */}
+        <section style={{
+          position: 'relative',
+          marginTop: 'clamp(44px, 7vw, 72px)',
+          background: C.cream2,
+          border: '1px solid rgba(56,22,16,.08)',
+          borderRadius: 22,
+          boxShadow: '0 8px 24px rgba(56,22,16,.06)',
+          padding: 'clamp(28px, 5vw, 48px)',
+          textAlign: 'center',
+          overflow: 'hidden',
+          animation: 'awFade .7s ease both',
+        }}>
+          <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden
+            style={{ position: 'absolute', top: 'clamp(-22px,-2vw,-10px)', right: 'clamp(-22px,-2vw,-10px)', width: 'clamp(70px,11vw,130px)', pointerEvents: 'none', opacity: .9, zIndex: 0, transform: 'rotate(14deg)' }}
+            onError={e => { e.target.style.display = 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{
+              fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px, 4.2vw, 42px)', lineHeight: 1.04,
+              fontWeight: 700, textTransform: 'uppercase', color: C.chocolate, margin: '0 auto 14px',
+              maxWidth: '22ch', textWrap: 'balance',
+            }}>
+              Em breve, os vencedores de outras edições.
+            </h2>
+            <p style={{
+              fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
+              color: C.chocolate, maxWidth: '60ch', margin: '0 auto 12px',
+            }}>
+              O acervo do Sweet Awards está sendo organizado para reunir os vencedores das edições
+              anteriores do Sweet &amp; Coffee Week e preservar a memória do festival.
+            </p>
+            <p style={{
+              fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
+              color: C.coffee, maxWidth: '60ch', margin: '0 auto',
+            }}>
+              Em breve, esta área poderá ser consultada por edição, categoria, participante e colocação.
+            </p>
+          </div>
+        </section>
+
+        {/* FECHAMENTO + CTA de comunidade (secundário) */}
+        <div style={{ textAlign: 'center', marginTop: 'clamp(44px, 7vw, 72px)' }}>
+          <p style={{
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(20px, 3vw, 32px)', lineHeight: 1.2,
+            fontWeight: 700, color: C.chocolate, margin: '0 auto 16px', maxWidth: '24ch', textWrap: 'balance',
+          }}>
+            Até a próxima edição. <span style={{ color: C.coral }}>A doçura continua.</span>
+          </p>
+          <p style={{
+            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
+            color: C.chocolate, maxWidth: '56ch', margin: '0 auto 26px',
+          }}>
+            Obrigado a cada participante, parceiro e Sweet Lover que viveu essa edição pela cidade — entre
+            combos, encontros e descobertas.
+          </p>
+          <a
+            href={INSTAGRAM}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              background: 'transparent', color: C.chocolate, border: `2px solid ${C.chocolate}`,
+              borderRadius: 100, padding: '13px 32px',
               fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(15px, 1.8vw, 17px)',
               letterSpacing: '.02em', textDecoration: 'none',
             }}
@@ -401,11 +402,11 @@ export function AgradecimentoPage() {
 
         {/* Realização */}
         <div style={{
-          marginTop: 64, paddingTop: 32, borderTop: `1px solid rgba(240,0,106,.15)`,
+          marginTop: 64, paddingTop: 32, borderTop: '1px solid rgba(246,93,116,.15)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
           <div style={{
-            fontFamily: FONT_BODY, fontSize: 13, color: C.ink, opacity: .45,
+            fontFamily: FONT_BODY, fontSize: 13, color: C.chocolate, opacity: .5,
             letterSpacing: '.1em', textTransform: 'uppercase',
           }}>
             Realização
@@ -413,7 +414,7 @@ export function AgradecimentoPage() {
           <img
             src="/images/logo-f2experience.svg"
             alt="F2 Experience"
-            style={{ height: 28, maxWidth: 140, objectFit: 'contain', opacity: .55 }}
+            style={{ height: 28, maxWidth: 140, objectFit: 'contain', opacity: .6 }}
             onError={e => { e.target.style.display = 'none' }}
           />
         </div>
