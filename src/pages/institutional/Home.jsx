@@ -295,7 +295,7 @@ export function HomePage({ navigate }) {
           font-size: clamp(46px, 6.4vw, 104px); line-height: .92; letter-spacing: -.02em;
           margin: 0 0 clamp(22px, 3vw, 36px);
         }
-        .hm .swc-hero__hl { color: var(--swc-coral); }
+        .hm .swc-hero__hl { color: var(--pink); }
         .hm .swc-hero__line { display: block; animation: swcLineIn .65s cubic-bezier(.2,.7,.2,1) both; }
         .hm .swc-hero__line:nth-child(1) { animation-delay: .10s; }
         .hm .swc-hero__line:nth-child(2) { animation-delay: .22s; }
@@ -303,9 +303,9 @@ export function HomePage({ navigate }) {
         @keyframes swcLineIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
         .hm .swc-hero__text { max-width: 42ch; }
         .hm .swc-hero__text p { color: rgba(254,240,221,.86); font-family: var(--font-sans); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.6; margin: 0 0 16px; }
-        .hm .swc-hero__photo { position: absolute; top: 0; right: 0; bottom: 0; width: 56%; z-index: 1; background: linear-gradient(135deg, #3D2417 0%, #6B3F22 55%, #2D1A0E 100%); overflow: hidden; }
-        .hm .swc-hero__photo::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at center, rgba(255,255,255,.10) 2.5px, transparent 3.5px); background-size: 40px 40px; opacity: .45; z-index: 1; }
-        .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
+        /* PhotoBadge — foto recortada na silhueta do selo da marca (handoff v2) */
+        .hm .swc-hero__photo { position: absolute; top: 50%; right: clamp(8px, 3vw, 56px); transform: translateY(-48%); width: clamp(280px, 42vw, 560px); aspect-ratio: 1 / 1; z-index: 1; overflow: visible; filter: drop-shadow(0 26px 52px rgba(43,24,16,.42)); }
+        .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-mask: var(--mask-badge) center / contain no-repeat; mask: var(--mask-badge) center / contain no-repeat; }
         .hm .swc-hero__blob { position: absolute; top: -8%; right: -5%; width: clamp(160px, 20vw, 330px); height: clamp(160px, 20vw, 330px); background: url('/images/shapes/shape-splat-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
         .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
         /* onda orgânica cream: hero (chocolate/foto) derrete na seção creme */
@@ -319,7 +319,7 @@ export function HomePage({ navigate }) {
           .hm .swc-hero__copy { width: 100%; min-height: 0; clip-path: none; padding: clamp(32px,7vw,56px) clamp(22px,6vw,40px) clamp(28px,6vw,44px); }
           .hm .swc-hero__actions { position: static; flex-direction: column; align-items: stretch; right: auto; bottom: auto; padding: 0 clamp(22px,6vw,40px) clamp(28px,7vw,40px); }
           .hm .swc-hero__actions .btn { width: 100%; justify-content: center; }
-          .hm .swc-hero__photo { position: relative; width: 100%; height: 42vh; min-height: 280px; }
+          .hm .swc-hero__photo { position: relative; top: auto; right: auto; transform: none; width: min(80vw, 360px); height: auto; aspect-ratio: 1 / 1; min-height: 0; margin: 4px auto 8px; }
           .hm .swc-hero__blob { width: 120px; height: 120px; }
         }
 

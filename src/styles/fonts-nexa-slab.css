@@ -61,3 +61,15 @@
   src: url('/fonts/nexa-slab/NexaSlabBlackItalic.woff2') format('woff2');
   font-weight: 900; font-style: italic; font-display: swap;
 }
+
+/* Alias dedicado p/ a cut mais pesada (display de campanha) — sem ambiguidade de peso. */
+@font-face {
+  font-family: 'Nexa Slab Black';
+  src: url('/fonts/nexa-slab/NexaSlabBlack.woff2') format('woff2');
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Slab Black';
+  src: url('/fonts/nexa-slab/NexaSlabBlackItalic.woff2') format('woff2');
+  font-weight: 900; font-style: italic; font-display: swap;
+}

@@ -5,32 +5,88 @@
    ============================================================ */
 
 :root {
-  /* Reskin dos tokens institucionais para o novo palette */
-  --bg: #FEF0DD;
-  --bg-soft: #F8E4C1;
-  --bg-card: #FFFBF3;
-  --ink: #381610;
-  --ink-dark: #2A0F09;
-  --ink-soft: #7A4632;
-  --ink-mute: #8A5E45;
-  --line: rgba(56, 22, 16, 0.12);
-  --line-strong: rgba(56, 22, 16, 0.26);
+  /* ===== HANDOFF v2 — paleta de campanha (cream paper + chocolate + 4 acentos) ===== */
+  /* Papel / neutros */
+  --cream:       #FFF1E6;
+  --cream-deep:  #FBE6D2;
+  --cream-card:  #FFF8F0;
+  --paper-line:  #EAD7C4;
+  /* Chocolate (tinta) */
+  --choco:       #3A2114;
+  --choco-deep:  #2B1810;
+  /* Acentos pop */
+  --coral:       #E8553A;  --coral-deep:  #C13E25;   /* accent primário */
+  --pink:        #F2548A;  --pink-deep:   #D63648;   /* "doce" */
+  --cyan:        #2BC4E8;  --cyan-deep:   #149FC0;
+  --yellow:      #F8B511;  --yellow-deep: #D9960A;
+  --peach:       #F2B6A0;
+  /* Texto sobre cada acento */
+  --on-coral: #FFF1E6;  --on-pink: #2B1810;  --on-cyan: #FFFFFF;  --on-yellow: #2B1810;  --on-choco: #FFF1E6;
 
-  --accent: #F65D74;        /* coral SWC */
-  --accent-deep: #E0455C;
-  --peach: #FBD9A0;
-  --peach-soft: #F8E4C1;
+  /* Aliases semânticos institucionais (mapeados pro v2) */
+  --bg: var(--cream);
+  --bg-soft: var(--cream-deep);
+  --bg-card: var(--cream-card);
+  --surface-card: var(--cream-card);
+  --surface-dark: var(--choco);
+  --ink: var(--choco-deep);
+  --ink-dark: var(--choco-deep);
+  --ink-soft: #6B4A38;
+  --ink-mute: #A6856F;
+  --line: var(--paper-line);
+  --line-strong: rgba(43, 24, 16, 0.22);
+  --accent: var(--coral);
+  --accent-deep: var(--coral-deep);
+  --peach-soft: var(--cream-deep);
 
-  /* Paleta oficial SWC */
-  --swc-chocolate: #381610;
-  --swc-coffee: #6A2C15;
-  --swc-cream: #FEF0DD;
-  --swc-cream-2: #F8E4C1;
-  --swc-coral: #F65D74;
-  --swc-yellow: #FDBB1A;
-  --swc-cyan: #01AFCC;
+  /* Pontes p/ os tokens --swc-* já usados nas páginas (mudam de cor sozinhas) */
+  --swc-chocolate: var(--choco-deep);
+  --swc-coffee: var(--ink-soft);
+  --swc-cream: var(--cream);
+  --swc-cream-2: var(--cream-deep);
+  --swc-coral: var(--coral);
+  --swc-pink: var(--pink);
+  --swc-yellow: var(--yellow);
+  --swc-cyan: var(--cyan);
 
-  --font-display: 'Nexa Slab', 'nexa', 'Caprasimo', Georgia, serif;
+  /* Tipografia v2 — Nexa Slab carrega tudo; mono só p/ eyebrow */
+  --font-display: 'Nexa Slab Black', 'Nexa Slab', Georgia, serif;
+  --font-heading: 'Nexa Slab', Georgia, serif;
+  --font-body:    'Nexa Slab', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Escala de tipo / line-height / tracking */
+  --fs-display-xl: clamp(64px, 11vw, 160px);
+  --fs-display-lg: clamp(48px, 8vw, 112px);
+  --fs-display-md: clamp(38px, 5.5vw, 72px);
+  --fs-h1: clamp(34px, 4vw, 56px);
+  --fs-h2: clamp(28px, 3vw, 42px);
+  --fs-h3: clamp(22px, 2vw, 28px);
+  --fs-lead: clamp(19px, 1.6vw, 26px);
+  --lh-display: 0.88; --lh-tight: 0.95; --lh-snug: 1.18; --lh-body: 1.65;
+  --ls-display: -0.04em; --ls-tight: -0.02em; --ls-eyebrow: 0.16em;
+
+  /* Raios */
+  --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-xl: 32px; --r-pill: 999px;
+
+  /* Sombras (chocolate quente, sticker) */
+  --shadow-sm:  0 2px 8px rgba(43,24,16,.10);
+  --shadow-md:  0 14px 36px rgba(43,24,16,.14);
+  --shadow-lg:  0 24px 70px rgba(43,24,16,.18);
+  --shadow-pop: 0 6px 0 rgba(43,24,16,.18);
+
+  /* Motion */
+  --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --dur-fast: 140ms; --dur-base: 240ms; --dur-slow: 420ms;
+  --ring: var(--cyan-deep);
+
+  /* Silhueta do selo da marca — máscara p/ recortar imagem (PhotoBadge) */
+  --mask-badge: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 376 374'><path fill='%23fff' d='M193.44,4.36l6.81-3.12c4.54-2.08,9.84-1.52,13.85,1.46l6.01,4.47c3.19,2.37,7.26,3.24,11.14,2.37l7.31-1.64c4.87-1.09,9.94.56,13.24,4.3l4.95,5.62c2.63,2.98,6.43,4.68,10.4,4.63l7.49-.08c4.99-.05,9.61,2.61,12.06,6.96l3.67,6.53c1.95,3.47,5.31,5.91,9.21,6.69l7.34,1.48c4.89.98,8.86,4.55,10.35,9.32l2.24,7.15c1.19,3.8,3.97,6.89,7.62,8.46l6.87,2.97c4.58,1.98,7.72,6.3,8.18,11.26l.7,7.46c.37,3.96,2.45,7.56,5.69,9.86l6.11,4.33c4.07,2.89,6.24,7.76,5.66,12.72l-.86,7.44c-.46,3.95.83,7.91,3.52,10.83l5.07,5.51c3.38,3.67,4.49,8.89,2.89,13.62l-2.39,7.1c-1.27,3.77-.84,7.9,1.19,11.33l3.81,6.44c2.54,4.29,2.54,9.63,0,13.92l-3.81,6.44c-2.03,3.42-2.46,7.56-1.19,11.33l2.39,7.1c1.59,4.73.48,9.95-2.89,13.62l-5.07,5.51c-2.69,2.93-3.98,6.88-3.52,10.83l.86,7.44c.58,4.96-1.6,9.83-5.66,12.72l-6.11,4.33c-3.24,2.3-5.32,5.9-5.69,9.86l-.7,7.46c-.47,4.97-3.6,9.28-8.18,11.26l-6.87,2.97c-3.65,1.58-6.43,4.67-7.62,8.46l-2.24,7.15c-1.49,4.76-5.46,8.33-10.35,9.32l-7.34,1.48c-3.9.78-7.26,3.23-9.21,6.69l-3.67,6.53c-2.45,4.35-7.07,7.02-12.06,6.96l-7.49-.08c-3.98-.04-7.78,1.65-10.4,4.63l-4.95,5.62c-3.3,3.74-8.37,5.39-13.24,4.3l-7.31-1.64c-3.88-.87-7.95,0-11.14,2.37l-6.01,4.47c-4,2.98-9.31,3.53-13.85,1.46l-6.81-3.12c-3.62-1.66-7.77-1.66-11.39,0l-6.81,3.12c-4.54,2.08-9.84,1.52-13.85-1.46l-6.01-4.47c-3.19-2.37-7.26-3.24-11.14-2.37l-7.31,1.64c-4.87,1.09-9.94-.56-13.24-4.3l-4.95-5.62c-2.63-2.98-6.43-4.68-10.4-4.63l-7.49.08c-4.99.05-9.61-2.61-12.06-6.96l-3.67-6.53c-1.95-3.47-5.31-5.91-9.21-6.69l-7.34-1.48c-4.89-.98-8.86-4.56-10.35-9.32l-2.24-7.15c-1.19-3.8-3.97-6.89-7.62-8.46l-6.87-2.97c-4.58-1.98-7.72-6.3-8.18-11.26l-.7-7.46c-.37-3.96-2.45-7.56-5.69-9.86l-6.11-4.33c-4.07-2.89-6.24-7.76-5.66-12.72l.86-7.44c.46-3.95-.83-7.91-3.52-10.83l-5.07-5.51c-3.38-3.67-4.49-8.89-2.89-13.62l2.39-7.1c1.27-3.77.84-7.9-1.19-11.33l-3.81-6.44c-2.54-4.29-2.54-9.63,0-13.92l3.81-6.44c2.03-3.42,2.46-7.56,1.19-11.33l-2.39-7.1c-1.59-4.73-.48-9.95,2.89-13.62l5.07-5.51c2.69-2.93,3.98-6.88,3.52-10.83l-.86-7.44c-.58-4.96,1.6-9.83,5.66-12.72l6.11-4.33c3.24-2.3,5.32-5.9,5.69-9.86l.7-7.46c.47-4.97,3.6-9.28,8.18-11.26l6.87-2.97c3.65-1.58,6.43-4.67,7.62-8.46l2.24-7.15c1.49-4.76,5.46-8.33,10.35-9.32l7.34-1.48c3.9-.78,7.26-3.23,9.21-6.69l3.67-6.53c2.45-4.35,7.07-7.02,12.06-6.96l7.49.08c3.98.04,7.78-1.65,10.4-4.63l4.95-5.62c3.3-3.74,8.37-5.39,13.24-4.3l7.31,1.64c3.88.87,7.95,0,11.14-2.37l6.01-4.47c4-2.98,9.31-3.53,13.85-1.46l6.81,3.12c3.62,1.66,7.77,1.66,11.39,0Z'/></svg>");
+
+  /* Fontes institucionais antigas → Nexa Slab (unifica o slab de campanha) */
+  --font-serif: var(--font-heading);
+  --font-sans: var(--font-body);
 
   --sidebar-w: 284px;
 }
@@ -47,11 +103,12 @@
 
 /* ---------- Botões institucionais ----------
    Primário = amarelo (texto chocolate). Accent = cyan (texto claro). */
-.btn-primary { background: var(--swc-yellow); color: var(--swc-chocolate); font-weight: 700; }
-.btn-primary:hover { background: #EBA600; }
-.btn-accent { background: var(--swc-cyan); color: #fff; font-weight: 700; }
-.btn-accent:hover { background: #0498B2; }
-.btn-secondary { border-color: var(--swc-chocolate); color: var(--swc-chocolate); }
+.btn-primary { background: var(--yellow); color: var(--on-yellow); font-weight: 800; box-shadow: none; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+.btn-primary:hover { background: var(--yellow-deep); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn-accent { background: var(--cyan); color: var(--on-cyan); font-weight: 800; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+.btn-accent:hover { background: var(--cyan-deep); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn-secondary { border-color: var(--choco-deep); color: var(--choco-deep); }
+.btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
 
 /* ============================================================
    SIDEBAR INSTITUCIONAL — referência (creme, slab lowercase,
