@@ -20,6 +20,11 @@ import { PainelPage }       from './pages/lovers/Painel'
 // limpos /mapa, /premiacao, /participantes) são encaminhadas para a home.
 // EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
 // para consultar e exportar a votação (dados preservados no Supabase).
+// Publicação temporária focada em Awards: enquanto true, todo o site público
+// renderiza só a página de vencedores (/vencedores e alias /premiacao). O painel
+// interno (/lovers/painel) continua acessível, mas fora de qualquer menu/header.
+const AWARDS_ONLY_PUBLICATION = true
+
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
@@ -36,6 +41,10 @@ export default function App() {
   }, [path, navigate])
 
   const route = (() => {
+    // Painel interno segue acessível mesmo em modo Awards-only (não aparece em menu).
+    if (path.startsWith('/lovers/painel')) return 'painel'
+    // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
+    if (AWARDS_ONLY_PUBLICATION) return 'vencedores'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/vencedores'))   return 'vencedores'
     if (path.startsWith('/premiacao'))    return 'vencedores'

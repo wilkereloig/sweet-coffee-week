@@ -31,15 +31,16 @@ const textOn = (bg) => (bg === C.yellow || bg === C.cyan ? C.chocolate : C.cream
 
 // As 8 categorias oficiais do Sweet Awards (ver src/data/sweetAwards.js).
 // `post` = URL do post do Instagram que apresenta a categoria/vencedor.
-// NÃO renomear labels nem a key interna (vínculo com sweetAwards.js).
+// A KEY interna é o vínculo com sweetAwards.js — NÃO renomear keys.
+// `label` é só exibição: a página pública usa o prefixo "Melhor".
 const AWARDS = [
   { key: 'melhor_combo', label: 'Melhor Combo',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/', color: C.coral,  desc: 'O conjunto que mais se destacou na experiência completa do combo.' },
-  { key: 'atendimento',  label: 'Atendimento',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan,   desc: 'Cuidado, simpatia e agilidade na recepção do público.' },
-  { key: 'criatividade', label: 'Criatividade',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow, desc: 'A proposta mais original e autoral, conectada ao tema da edição.' },
-  { key: 'apresentacao', label: 'Apresentação',         post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.coffee, desc: 'Maior impacto visual, capricho de montagem e cuidado estético.' },
-  { key: 'doce',         label: 'Doce',                 post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.coral,  desc: 'O doce que mais se destacou em sabor, execução e conexão com a proposta.' },
-  { key: 'salgado',      label: 'Salgado',              post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan,   desc: 'O salgado que mais brilhou dentro da composição do combo.' },
-  { key: 'bebida',       label: 'Bebida',               post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow, desc: 'A bebida com melhor sabor, harmonia e presença na experiência.' },
+  { key: 'atendimento',  label: 'Melhor Atendimento',   post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/', color: C.cyan,   desc: 'Cuidado, simpatia e agilidade na recepção do público.' },
+  { key: 'criatividade', label: 'Melhor Criatividade',  post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/', color: C.yellow, desc: 'A proposta mais original e autoral, conectada ao tema da edição.' },
+  { key: 'apresentacao', label: 'Melhor Apresentação',  post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/', color: C.coffee, desc: 'Maior impacto visual, capricho de montagem e cuidado estético.' },
+  { key: 'doce',         label: 'Melhor Doce',          post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/', color: C.coral,  desc: 'O doce que mais se destacou em sabor, execução e conexão com a proposta.' },
+  { key: 'salgado',      label: 'Melhor Salgado',       post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/', color: C.cyan,   desc: 'O salgado que mais brilhou dentro da composição do combo.' },
+  { key: 'bebida',       label: 'Melhor Bebida',        post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/', color: C.yellow, desc: 'A bebida com melhor sabor, harmonia e presença na experiência.' },
   { key: 'envolvimento', label: 'Encantamento em Loja', post: 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/', color: C.coffee, desc: 'Quem mais envolveu o público no tema, pela ambientação e pela experiência no ponto de venda.' },
 ]
 
@@ -86,26 +87,52 @@ function Seal({ size = 40 }) {
 
 function EmbedFrame({ award }) {
   const embed = toEmbedUrl(award.post)
-  if (embed) {
-    return (
-      <iframe
-        src={embed}
-        title={`Sweet Awards — ${award.label}`}
-        loading="lazy"
-        style={{ width: '100%', height: 540, border: 'none', display: 'block', background: '#fff' }}
-      />
-    )
-  }
+  // Link externo sempre presente: se o embed do Instagram não carregar
+  // (rede/bloqueio), o público ainda abre o post pelo botão abaixo.
+  const fallbackLink = (
+    <a
+      href={award.post}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        padding: '12px 16px', borderTop: `1px solid rgba(56,22,16,.10)`,
+        fontFamily: FONT_BODY, fontSize: 14, fontWeight: 700, color: C.coffee,
+        textDecoration: 'none', background: '#fff',
+      }}
+    >
+      <span style={{ color: award.color }}><InstagramIcon size={16} /></span>
+      Ver no Instagram
+    </a>
+  )
+
   return (
-    <div style={{
-      height: 540, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center',
-      color: C.coffee, background: `repeating-linear-gradient(45deg, #fff, #fff 12px, ${C.cream} 12px, ${C.cream} 24px)`,
-    }}>
-      <span style={{ color: award.color }}><InstagramIcon size={28} /></span>
-      <span style={{ fontFamily: FONT_BODY, fontSize: 14, maxWidth: '24ch' }}>
-        Post do Instagram desta categoria entra aqui.
-      </span>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {embed ? (
+        <iframe
+          src={embed}
+          title={`Sweet Awards — ${award.label}`}
+          loading="lazy"
+          style={{ width: '100%', height: 540, border: 'none', display: 'block', background: '#fff' }}
+        />
+      ) : (
+        <a
+          href={award.post}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            height: 540, display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center', textDecoration: 'none',
+            color: C.coffee, background: `repeating-linear-gradient(45deg, #fff, #fff 12px, ${C.cream} 12px, ${C.cream} 24px)`,
+          }}
+        >
+          <span style={{ color: award.color }}><InstagramIcon size={28} /></span>
+          <span style={{ fontFamily: FONT_BODY, fontSize: 14, fontWeight: 700, maxWidth: '24ch' }}>
+            Abrir o post desta categoria no Instagram
+          </span>
+        </a>
+      )}
+      {fallbackLink}
     </div>
   )
 }
@@ -244,13 +271,6 @@ export function AgradecimentoPage() {
           boxShadow: '0 24px 60px rgba(56,22,16,.28)',
           animation: 'awFade .7s ease both',
         }}>
-          <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden
-            style={{ position: 'absolute', top: 'clamp(-18px,-2vw,-8px)', right: 'clamp(-20px,-1vw,24px)', width: 'clamp(80px,12vw,150px)', pointerEvents: 'none', opacity: .9, zIndex: 0, transform: 'rotate(-12deg)' }}
-            onError={e => { e.target.style.display = 'none' }} />
-          <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden
-            style={{ position: 'absolute', bottom: 'clamp(-16px,-1vw,16px)', left: 'clamp(-14px,-1vw,28px)', width: 'clamp(60px,9vw,110px)', pointerEvents: 'none', opacity: .85, zIndex: 0, transform: 'rotate(8deg)' }}
-            onError={e => { e.target.style.display = 'none' }} />
-
           <div style={{ position: 'relative', zIndex: 1 }}>
             <img
               src="/images/email-logo-lovers.png"
@@ -266,71 +286,25 @@ export function AgradecimentoPage() {
               textTransform: 'uppercase', color: C.coral,
             }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.coral }} />
-              Sweet Awards · 16ª edição
+              Sweet Awards 2026
             </div>
 
             <h1 style={{
               fontFamily: FONT_DISPLAY, fontSize: 'clamp(38px, 7vw, 84px)', lineHeight: .99,
-              fontWeight: 700, textTransform: 'uppercase', color: C.cream, margin: '0 0 16px', textWrap: 'balance',
+              fontWeight: 700, textTransform: 'uppercase', color: C.cream, margin: '0 0 18px', textWrap: 'balance',
             }}>
-              Os vencedores escolhidos pelos <span style={{ color: C.yellow }}>Sweet Lovers</span>.
+              Confira os vencedores da <span style={{ color: C.yellow }}>edição Lovers</span>.
             </h1>
-
-            <div style={{
-              fontFamily: FONT_DISPLAY, fontSize: 'clamp(14px, 1.8vw, 19px)', fontWeight: 700,
-              letterSpacing: '.04em', textTransform: 'uppercase', color: C.cream, opacity: .9, marginBottom: 22,
-            }}>
-              8 categorias premiadas · edição Lovers · 2026
-            </div>
 
             <p style={{
               fontFamily: FONT_BODY, fontSize: 'clamp(16px, 2vw, 20px)', lineHeight: 1.6,
               color: C.cream, maxWidth: '60ch', margin: '0 auto',
             }}>
-              O Sweet Awards é a premiação do Sweet &amp; Coffee Week: a cada edição, o público avalia os
-              participantes e reconhece as experiências que mais se destacaram na rota.
+              A 16ª edição do Sweet &amp; Coffee Week Lovers celebrou os combos que mais se destacaram na
+              avaliação do público. Veja abaixo os resultados oficiais por categoria.
             </p>
           </div>
         </header>
-
-        {/* TRANSIÇÃO PARA OS VENCEDORES (left-aligned, sem kickers repetidos) */}
-        <section style={{ marginBottom: 'clamp(28px, 4vw, 44px)', animation: 'awFade .7s ease .05s both' }}>
-          <h2 style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(28px, 4.6vw, 52px)', lineHeight: 1.0,
-            fontWeight: 700, textTransform: 'uppercase', color: C.chocolate, margin: '0 0 16px',
-            maxWidth: '20ch', textWrap: 'balance',
-          }}>
-            Vencedores da 16ª edição: Sweet &amp; Coffee Week Lovers.
-          </h2>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(16px, 1.9vw, 19px)', lineHeight: 1.6,
-            color: C.chocolate, maxWidth: '62ch', margin: '0 0 12px',
-          }}>
-            A 16ª edição celebrou os 10 anos do festival com uma homenagem aos Sweet Lovers, às marcas
-            participantes e à cidade que construiu essa história.
-          </p>
-          <p style={{
-            fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.8vw, 18px)', lineHeight: 1.6,
-            color: C.coffee, maxWidth: '62ch', margin: '0 0 22px',
-          }}>
-            O público viveu a rota, provou os combos e ajudou a escolher os destaques — conheça os
-            vencedores por categoria.
-          </p>
-          <a
-            href={INSTAGRAM}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 10,
-              background: C.yellow, color: C.chocolate, borderRadius: 100, padding: '14px 30px',
-              fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(14px, 1.7vw, 16px)',
-              letterSpacing: '.02em', textDecoration: 'none',
-            }}
-          >
-            <InstagramIcon />
-            Ver todos os vencedores no Instagram
-          </a>
-        </section>
 
         {/* SWEET AWARDS — 8 categorias (8 embeds), com 1 grande prêmio em destaque */}
         <section className="aw-grid">
@@ -350,9 +324,6 @@ export function AgradecimentoPage() {
           overflow: 'hidden',
           animation: 'awFade .7s ease both',
         }}>
-          <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden
-            style={{ position: 'absolute', top: 'clamp(-22px,-2vw,-10px)', right: 'clamp(-22px,-2vw,-10px)', width: 'clamp(70px,11vw,130px)', pointerEvents: 'none', opacity: .9, zIndex: 0, transform: 'rotate(14deg)' }}
-            onError={e => { e.target.style.display = 'none' }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{
               fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px, 4.2vw, 42px)', lineHeight: 1.04,
@@ -377,20 +348,21 @@ export function AgradecimentoPage() {
           </div>
         </section>
 
-        {/* FECHAMENTO + CTA de comunidade (secundário) */}
+        {/* FECHAMENTO + CTA de comunidade */}
         <div style={{ textAlign: 'center', marginTop: 'clamp(44px, 7vw, 72px)' }}>
           <p style={{
-            fontFamily: FONT_DISPLAY, fontSize: 'clamp(20px, 3vw, 32px)', lineHeight: 1.2,
-            fontWeight: 700, color: C.chocolate, margin: '0 auto 16px', maxWidth: '24ch', textWrap: 'balance',
+            fontFamily: FONT_DISPLAY, fontSize: 'clamp(26px, 4vw, 44px)', lineHeight: 1.1,
+            fontWeight: 700, textTransform: 'uppercase', color: C.chocolate, margin: '0 auto 16px',
+            maxWidth: '18ch', textWrap: 'balance',
           }}>
-            Até a próxima edição. <span style={{ color: C.coral }}>A doçura continua.</span>
+            A doçura <span style={{ color: C.coral }}>continua.</span>
           </p>
           <p style={{
             fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
-            color: C.chocolate, maxWidth: '56ch', margin: '0 auto 26px',
+            color: C.chocolate, maxWidth: '54ch', margin: '0 auto 26px',
           }}>
-            Obrigado a cada participante, parceiro e Sweet Lover que viveu essa edição pela cidade — entre
-            combos, encontros e descobertas.
+            Acompanhe o @sweetcoffeeweek para rever os vencedores, compartilhar os resultados e ficar por
+            dentro das próximas edições.
           </p>
           <a
             href={INSTAGRAM}
@@ -398,14 +370,14 @@ export function AgradecimentoPage() {
             rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,
-              background: 'transparent', color: C.chocolate, border: `2px solid ${C.chocolate}`,
-              borderRadius: 100, padding: '13px 32px',
+              background: C.yellow, color: C.chocolate, border: 'none',
+              borderRadius: 100, padding: '15px 36px',
               fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(15px, 1.8vw, 17px)',
               letterSpacing: '.02em', textDecoration: 'none',
             }}
           >
             <InstagramIcon />
-            Acompanhar @sweetcoffeeweek
+            Ver no Instagram
           </a>
         </div>
 
