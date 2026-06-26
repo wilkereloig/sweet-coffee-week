@@ -10,23 +10,24 @@ import React from 'react'
 
 const INSTAGRAM = 'https://www.instagram.com/sweetcoffeeweek'
 
-const FONT_DISPLAY = "'Nexa Slab', 'nexa', Georgia, serif"
+const FONT_DISPLAY = "'sofia-pro-comp', 'Nexa Slab', 'nexa', Georgia, sans-serif"
 const FONT_BODY    = "'nexa-text', 'nexa', 'DM Sans', system-ui, sans-serif"
 
-// Paleta SWC (alinhada ao DESIGN.md — sem cores fora do sistema).
+// Paleta KV Lovers exata (cores oficiais da edição — ver styles.css :root --lovers-*).
+// Mantém as MESMAS keys p/ re-vestir a página inteira no KV da edição Lovers.
 const C = {
-  cream:     '#FEF0DD',
-  cream2:    '#F8E4C1',
-  coral:     '#F65D74',
-  yellow:    '#FDBB1A',
-  cyan:      '#01AFCC',
-  coffee:    '#6A2C15',
-  chocolate: '#381610',
+  cream:     '#FFE8D2',  // --lovers-cream (canvas)
+  cream2:    '#F7D9B5',
+  coral:     '#F20567',  // --lovers-pink (hot pink accent KV)
+  yellow:    '#F5B800',  // --lovers-yellow
+  cyan:      '#00B8CC',  // --lovers-cyan
+  coffee:    '#870E2D',  // --lovers-burgundy (primary mark)
+  chocolate: '#3F1A0A',  // --lovers-brown (ink)
 }
 
-// Cor de texto legível sobre o header colorido do card (contraste ≥ 4.5:1):
-// chocolate sobre amarelo, creme sobre coral/cyan/coffee.
-const textOn = (bg) => (bg === C.yellow ? C.chocolate : C.cream)
+// Cor de texto legível sobre o header colorido do card.
+// Fundos claros (amarelo, cyan) recebem texto brown; demais recebem cream.
+const textOn = (bg) => (bg === C.yellow || bg === C.cyan ? C.chocolate : C.cream)
 
 // As 8 categorias oficiais do Sweet Awards (ver src/data/sweetAwards.js).
 // `post` = URL do post do Instagram que apresenta a categoria/vencedor.
@@ -109,8 +110,9 @@ function EmbedFrame({ award }) {
   )
 }
 
-function AwardCard({ award, feature = false }) {
+function AwardCard({ award, feature = false, index = 0 }) {
   const onText = textOn(award.color)
+  const enter = { animation: 'awRise .6s cubic-bezier(.22,1,.36,1) both', animationDelay: `${0.08 * index}s` }
 
   const hoverIn = (e) => {
     e.currentTarget.style.boxShadow = '0 22px 52px rgba(56,22,16,.22)'
@@ -122,7 +124,7 @@ function AwardCard({ award, feature = false }) {
   }
 
   const header = (
-    <div style={{ background: award.color, padding: feature ? 'clamp(24px,3vw,38px)' : '18px 20px 16px', color: onText }}>
+    <div style={{ backgroundColor: award.color, backgroundImage: 'linear-gradient(155deg, rgba(255,255,255,.18), rgba(0,0,0,.10))', padding: feature ? 'clamp(24px,3vw,38px)' : '18px 20px 16px', color: onText }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
         <div>
           {feature && (
@@ -162,6 +164,7 @@ function AwardCard({ award, feature = false }) {
         style={{
           background: '#fff', border: `2px solid ${award.color}`, borderRadius: 28, overflow: 'hidden',
           boxShadow: '0 16px 40px rgba(56,22,16,.12)', transition: 'transform .25s ease, box-shadow .25s ease',
+          ...enter,
         }}
         onMouseEnter={hoverIn}
         onMouseLeave={hoverOut}
@@ -181,6 +184,7 @@ function AwardCard({ award, feature = false }) {
         display: 'flex', flexDirection: 'column', background: '#fff',
         border: `2px solid ${award.color}`, borderRadius: 24, overflow: 'hidden',
         boxShadow: '0 16px 40px rgba(56,22,16,.12)', transition: 'transform .25s ease, box-shadow .25s ease',
+        ...enter,
       }}
       onMouseEnter={hoverIn}
       onMouseLeave={hoverOut}
@@ -203,6 +207,7 @@ export function AgradecimentoPage() {
     }}>
       <style>{`
         @keyframes awFade { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+        @keyframes awRise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
         @media (prefers-reduced-motion: reduce) {
           * { animation: none !important; transition: none !important; }
         }
@@ -247,9 +252,13 @@ export function AgradecimentoPage() {
             onError={e => { e.target.style.display = 'none' }} />
 
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ color: C.yellow, display: 'inline-flex', justifyContent: 'center', marginBottom: 18 }}>
-              <Seal size={64} />
-            </div>
+            <img
+              src="/images/email-logo-lovers.png"
+              alt="Sweet &amp; Coffee Week Lovers"
+              width="136" height="136"
+              style={{ display: 'block', width: 136, height: 136, margin: '0 auto 20px', filter: 'drop-shadow(0 12px 26px rgba(0,0,0,.42))' }}
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
 
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18,
@@ -324,8 +333,8 @@ export function AgradecimentoPage() {
         </section>
 
         {/* SWEET AWARDS — 8 categorias (8 embeds), com 1 grande prêmio em destaque */}
-        <section className="aw-grid" style={{ animation: 'awFade .7s ease .1s both' }}>
-          {AWARDS.map((a, i) => <AwardCard key={a.key} award={a} feature={i === 0} />)}
+        <section className="aw-grid">
+          {AWARDS.map((a, i) => <AwardCard key={a.key} award={a} feature={i === 0} index={i} />)}
         </section>
 
         {/* ACERVO HISTÓRICO — rebaixado (creme-2), gancho funcional preservado */}
