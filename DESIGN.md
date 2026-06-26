@@ -1,140 +1,141 @@
-# Sweet & Coffee Week — Design System
+# Sweet & Coffee Week — Design System (v2 · handoff Claude Design)
 
-Festival gastronômico de Natal/RN. Site institucional + edições temáticas, premiação
-(**Sweet Awards**) e comunidade (**Sweet Lovers**). A linguagem visual é uma **campanha
-editorial gastronômica**: ousada, pop, afetiva e proprietária — nunca institucional-genérico
-nem cara de template/IA.
+Festival gastronômico de Natal/RN. Linguagem de **campanha editorial gastronômica**:
+papel creme, tinta chocolate e quatro acentos pop (coral, pink, cyan, amarelo). Estética
+**sticker-forward** — recortes orgânicos, selo da marca, tipografia de cartaz. Nunca
+institucional-genérico nem cara de template/IA.
 
-**Register:** brand (o design É o produto).
-**Stack:** Vite + React (JSX), hash router custom, CSS global + `<style>` por página.
+**Register:** brand (o design É o produto). **Stack:** Vite + React (JSX), hash router,
+tokens em `src/styles/swc-redesign.css` (`:root`), fontes self-hosted.
 
 ---
 
 ## 1. Cor
 
-Sistema em dois níveis. Os tokens vivem em `src/styles/swc-redesign.css` (`:root`) e
-reskinam os tokens institucionais (`--bg`, `--ink`, `--accent`…).
+Tokens canônicos no `:root` de `src/styles/swc-redesign.css`. Pontes `--swc-*` e legados
+(`--bg`, `--ink`, `--accent`…) mapeiam pro v2.
 
-### Paleta principal (base — domina o site)
+### Papel / tinta (base — domina, ~80%)
 | Token | Hex | Uso |
 |---|---|---|
-| `--swc-chocolate` | `#381610` | Fundos de impacto, títulos escuros, texto sobre áreas claras, hero, cards premium |
-| `--swc-coffee` | `#6A2C15` | Detalhes gráficos, sombras quentes, shapes, hover de menu, divisórias |
-| `--swc-cream` | `#FEF0DD` | Fundo geral do site, sidebar, áreas de respiro |
-| `--swc-cream-2` | `#F8E4C1` | Seções alternadas, cards claros, blocos editoriais |
+| `--cream` | `#FFF1E6` | fundo da página |
+| `--cream-deep` | `#FBE6D2` | seção alternada |
+| `--cream-card` | `#FFF8F0` | superfície de card elevado |
+| `--paper-line` | `#EAD7C4` | hairline sobre creme |
+| `--choco` | `#3A2114` | painel escuro / banda hero |
+| `--choco-deep` / `--ink` | `#2B1810` | tinta / texto padrão |
+| `--ink-soft` | `#6B4A38` | texto secundário |
+| `--ink-mute` | `#A6856F` | labels/captions |
 
-### Acentos (energia — entram pontuais, nunca como base)
-| Token | Hex | Uso |
-|---|---|---|
-| `--swc-coral` | `#F65D74` | Palavra de destaque no título, blobs, selos, acentos de premiação |
-| `--swc-yellow` | `#FDBB1A` | Botão principal (texto chocolate), marcador do menu ativo, sublinhados |
-| `--swc-cyan` | `#01AFCC` | Botão secundário, item de menu ativo, labels de navegação |
+### Acentos pop (energia — pontuais, ~20%)
+| Token | Hex | `-deep` (pressed) | Uso |
+|---|---|---|---|
+| `--coral` | `#E8553A` | `#C13E25` | **accent primário**, botões/energia |
+| `--pink` | `#F2548A` | `#D63648` | **"doce"**, destaque quente |
+| `--cyan` | `#2BC4E8` | `#149FC0` | secundário, item de menu ativo, focus ring |
+| `--yellow` | `#F8B511` | `#D9960A` | botão principal, marcador do menu |
+| `--peach` | `#F2B6A0` | — | tint quente |
 
-### Regra de proporção (obrigatória)
-- **70%** cremes + marrons
-- **20%** chocolate / marrom escuro
-- **10%** acentos (coral, amarelo, cyan)
-
-Acentos nunca tomam conta da tela. Contraste de corpo de texto ≥ 4.5:1 (não usar cinza
-claro "por elegância" sobre creme).
+**Texto sobre acento:** `--on-coral` #FFF1E6 · `--on-pink` #2B1810 · `--on-cyan` #FFF · `--on-yellow` #2B1810 · `--on-choco` #FFF1E6.
+**Proporção:** ~80% creme+chocolate · ~20% acentos. Contraste corpo ≥ 4.5:1 (usar os `--on-*`).
 
 ---
 
 ## 2. Tipografia
 
-Pareamento por **contraste de eixo** (slab + sans). Nunca duas sans parecidas.
+Uma família proprietária carrega tudo: **Nexa Slab** (self-hosted, `public/fonts/nexa-slab/`,
+@font-face em `src/styles/fonts-nexa-slab.css`). Mono só p/ eyebrow.
 
-| Papel | Família | Notas |
+| Token | Família | Papel |
 |---|---|---|
-| Display / títulos / menu / CTAs / números | **Nexa Slab** (`--swc-font-display`) | Self-hosted em `public/fonts/nexa-slab/`. Pesos 700–900. `line-height` ~0.9, `letter-spacing` -0.02 a -0.045em. Menu em **caixa baixa** por direção visual. |
-| Corpo / formulários / microcopy | **DM Sans** (`--swc-font-body`) | Google Fonts. `line-height` 1.55–1.7. |
+| `--font-display` | `Nexa Slab Black`, Nexa Slab | headlines de campanha (peso 900) |
+| `--font-heading` | `Nexa Slab` | títulos de seção/card |
+| `--font-body` | `Nexa Slab` | parágrafos, UI |
+| `--font-mono` | `JetBrains Mono` | eyebrows / meta |
 
-- Títulos com presença de cartaz, quebras expressivas, `text-wrap: balance`.
-- Teto de display ~96px (clamp max). Comprimento de linha de corpo 65–75ch.
-
----
-
-## 3. Layout & estrutura
-
-- **Sidebar fixa creme** à esquerda (260–300px, `--sidebar-w: 284px`): logo grande no topo,
-  menu vertical slab lowercase, crédito F2 no rodapé. Item ativo em **cyan + marcador
-  amarelo** (shape da marca). No mobile: vira header + drawer fullscreen creme.
-- **Hero editorial:** bloco chocolate + foto gastronômica grande à direita, **recorte
-  orgânico** (`clip-path`) entre os dois, **onda creme** na transição p/ a próxima seção,
-  palavra de destaque em coral, CTAs amarelo + cyan.
-- Layout **assimétrico, left-aligned**. Grids variados (evitar grade uniforme repetida).
-- **Shapes orgânicos da marca** espalhados nos cantos/seções (`public/images/shapes/`):
-  flor coral, estrela cyan, seta amarela, selo choco, splat coral, onda creme.
-- **Cards coloridos sobrepostos** (coral/cyan/yellow) sobre fotos, com badge squircle.
+Legados `--font-serif`/`--font-sans` → mapeados p/ Nexa Slab.
+**Escala (clamp):** `--fs-display-xl/lg/md`, `--fs-h1` clamp(34,4vw,56) … `--fs-eyebrow` 13px.
+**Line-height:** display 0.88 / tight 0.95 / snug 1.18 / body 1.65. **Tracking:** display -0.04em / tight -0.02em / eyebrow 0.16em. Títulos com `text-wrap: balance`.
 
 ---
 
-## 4. Componentes
+## 3. Tokens de forma / efeito / motion
 
-- **Botões:** `.btn-primary` amarelo (texto chocolate) · `.btn-accent` cyan (texto claro) ·
-  `.btn-secondary` borda chocolate. Grandes, pop, memoráveis.
-- **Eyebrow:** usar com parcimônia — NÃO repetir kicker em toda seção (tell de IA). No hero,
-  barra amarela curta destacada abaixo do texto.
-- **Foto editorial** (`PhotoEditorial`, `src/components/placeholders.jsx`): aceita `src`
-  (foto real) com caption sobre gradiente inferior; sem `src` cai num gradiente de tom.
-  **Sempre preferir foto real** (acervo em `public/images/combos/*`, ver
-  `src/data/comboPhotos.js`).
-- **Cards de destaque:** fundo de acento, label slab chocolate, ícone em badge squircle.
+- **Raios:** `--r-sm` 8 · `--r-md` 14 (chip) · `--r-lg` 22 (card) · `--r-xl` 32 (feature) · `--r-pill` 999 (botão/tag).
+- **Sombras:** `--shadow-sm` `0 2px 8px` · `--shadow-md` `0 14px 36px` · `--shadow-lg` `0 24px 70px` · `--shadow-pop` `0 6px 0` (drop chunky de sticker). Todas em rgba(43,24,16).
+- **Motion:** `--ease-pop` `cubic-bezier(.34,1.56,.64,1)` (bouncy, intencional) · `--ease-out` `cubic-bezier(.22,.61,.36,1)`; dur 140/240/420ms.
+- **Focus:** `--ring` = `--cyan-deep`; `:focus-visible { outline:3px solid var(--ring); offset:3px }`.
+- **Selo da marca:** `--mask-badge` (data-URI SVG da silhueta escalopada) — aplicar como `mask` p/ recortar imagem/bloco no formato do selo (**PhotoBadge**).
+- **Espaço/layout:** escala 4px (`--sp-*`), `--sp-section` clamp(56,8vw,120), `--wrap-max` 1200, `--wrap-pad` clamp(20,5vw,64).
 
 ---
 
-## 5. Motion
+## 4. Componentes (do handoff)
 
-Movimento com intenção, nunca enfeite. Materiais: transform/opacity (+ blur/clip-path quando
-agrega). Ease-out exponencial, sem bounce.
-- Hero: entrada por linha do título, foto com zoom/parallax sutil, shapes flutuando.
-- Seções: scroll-reveal (revela conteúdo já visível por padrão).
-- Números: count-up ao entrar na viewport.
-- **`@media (prefers-reduced-motion: reduce)` obrigatório** em tudo.
-
----
-
-## 6. Voz & copy
-
-Gastronômica, afetiva, urbana, de comunidade. Memória afetiva de Natal/RN. Convida a
-circular pela cidade, montar rota, fotografar, votar, lembrar.
+Todos aceitam `variant`/`accent` da paleta pop (default em parênteses).
+- **Button** — pill sticker. variant(coral)·size sm/md/lg·uppercase·outline·fullWidth. Flat em repouso; hover escurece p/ `-deep` + lift 1px + `--shadow-sm`; focus-visible ring.
+- **Sticker** — chip mono-caps girado. variant(pink)·rotate(-3)·shadow. Mono 12px, `0.1em`, `--r-md`.
+- **Card** — card editorial elevado. eyebrow·title·body·accent(coral) top-rail|none·badge·dark. Surface `--cream-card`, `--r-lg`, `--shadow-md`, 1px `--paper-line`. Dark = chocolate + texto creme.
+- **FeatureTag** — bloco sticker colorido com badge de canto. variant(pink) fill·badge(choco) chip·rotate(0). Min 210×128, `--r-lg`, `--shadow-md`, título 24/800.
+- **SideNav** — sidebar fixa. items·logoSrc·width(280). Ativo `--cyan-deep` + seta amarela (shape da marca); hover coral. Mobile = top bar/drawer.
+- **SectionHeader** — intro de seção. eyebrow (dot+label)·title·lead·align(left)·dark. Título `--fs-h1`/800/`--ls-tight`. **Não repetir eyebrow em toda seção.**
+- **StepCard** — card de processo numerado. number("01")·title·body·accent(coral). Numeral display 56px/900.
+- **StatBlock** — métrica grande. value·label·accent(coral) top-rule 3px·dark. Value `--font-display` 900, clamp(40,5vw,60).
+- **PhotoBadge** — imagem recortada na silhueta do selo via `--mask-badge`. src·size(100%, 1:1).
 
 ---
 
-## 7. Grafias oficiais da marca (obrigatório)
+## 5. Home (exemplo de referência)
 
-**Permitido:** Sweet & Coffee Week · SWC · Sweet Awards · Sweet Lovers · Sweet & Coffee Week
-Lovers.
-**Proibido:** "Sweet Coffee Week", "Sweet Coffee", "Sweet Coffee Awards", "Sweet & Coffee
-Lovers", "Sweet" sozinho para o festival.
-Categoria de premiação: **"Encantamento em Loja"** (nunca "Envolvimento em Loja").
+Shell duas colunas: **SideNav fixa** (creme, logo no topo) + conteúdo rolando. Container único
+(max 1200px, padding fluido). Fundos alternam: cream → cream-deep → cream → **banda chocolate** → cream → cream-deep.
+
+1. **Abertura (hero)** — kicker itálico com barra amarela; headline "O festival mais **doce** de Natal." ("doce" em pink); 2 parágrafos; 2 CTAs pill (amarelo + cyan) no canto inferior direito; **PhotoBadge** grande à direita sangrando p/ a seção 2. Camadas: shapes → foto → texto/controles.
+2. **O que é** — SectionHeader + faixa de 3 fotos, cada uma com **FeatureTag** sobreposto (combos exclusivos / tema da edição / 11 dias).
+3. **Como funciona** — SectionHeader + 4 **StepCard** (01–04, coral/pink/cyan/yellow).
+4. **Números** (banda chocolate) — SectionHeader dark + 4 **StatBlock** (16 · +34 mil · +R$ 712 mil · +10 mi).
+5. **Por que importa** — SectionHeader + 4 **Card** com top-rail de acento.
+6. **Realização** — heading + parágrafo F2 + Button.
+
+---
+
+## 6. Voz & grafias
+
+Voz gastronômica, afetiva, urbana, de comunidade (memória de Natal/RN).
+**Grafias oficiais (obrigatório):** Sweet & Coffee Week · SWC · Sweet Awards · Sweet Lovers · Sweet & Coffee Week Lovers. Nunca "Sweet Coffee Week", "Sweet" sozinho. Premiação tem a categoria **"Encantamento em Loja"** (nunca "Envolvimento").
+
+---
+
+## 7. Acessibilidade
+
+Contraste ≥ 4.5:1 (usar `--on-*`); `prefers-reduced-motion: reduce` obrigatório em toda
+animação; `:focus-visible` ring cyan; `alt` em imagens, `aria-hidden` em decorativos; alvos
+de toque confortáveis no mobile.
 
 ---
 
 ## 8. Faça / Não faça
 
-**Faça:** foto real grande e sensorial; recortes orgânicos; tipografia de campanha; cores
-proprietárias; acentos pontuais; movimento na rolagem; mobile desenhado (não só empilhado).
-
-**Não faça:** layout de template; cards todos iguais; eyebrow/kicker em toda seção;
-numeração 01/02/03 como scaffold em toda seção; acentos dominando; placeholders no lugar de
-foto real; gradient-text; glassmorphism decorativo; side-stripe borders; animação exagerada.
+**Faça:** foto real grande (PhotoBadge no hero); recortes orgânicos + selo; tipografia de
+cartaz; 4 acentos pontuais; sombra sticker; movimento com intenção; mobile desenhado.
+**Não faça:** template; cards todos iguais; eyebrow em toda seção; numeração como scaffold
+em tudo; acento dominando; placeholder no lugar de foto; gradient-text; glassmorphism;
+side-stripe borders; misturar identidade Lovers (burgundy/Sofia Pro) no institucional.
 
 ---
 
 ## 9. Onde vive no código
 
 ```
-src/styles/swc-redesign.css      # tokens SWC + sidebar + reveal + shapes (carrega por último)
-src/styles/fonts-nexa-slab.css   # @font-face Nexa Slab
-src/components/nav.jsx           # sidebar + header + drawer mobile
-src/components/icons.jsx         # ícones SVG da marca
+src/styles/swc-redesign.css      # tokens v2 (:root) + pontes + sidebar + botões + reveal
+src/styles/fonts-nexa-slab.css   # @font-face Nexa Slab (+ alias Nexa Slab Black)
+src/components/nav.jsx           # SideNav + header + drawer mobile
 src/components/placeholders.jsx  # PhotoEditorial (foto real / gradiente)
 src/data/comboPhotos.js          # pool de fotos reais de combos
 src/pages/institutional/         # Home, Edicoes, Curiosidades, Participar, Apoiar, Contato, Agradecimento (Sweet Awards)
-public/images/shapes/            # shapes orgânicos da marca (.svg)
-public/fonts/nexa-slab/          # fontes self-hosted (.woff2)
+public/images/shapes/            # shapes da marca (.svg) — star, flower, badge, arrow, splat, wave
+public/fonts/nexa-slab/          # Nexa Slab woff2 (Thin→Black)
 ```
 
-> Identidade Lovers (`src/pages/lovers/`, `src/styles/lovers-system.css`) é um sistema
-> separado (burgundy/Sofia Pro) — **nunca misturar** com o institucional.
+Origem dos tokens: handoff "Sweet & Coffee Week Design System" (Claude Design). Identidade
+Lovers (`src/pages/lovers/`, `lovers-system.css`) é sistema separado — **nunca misturar**.

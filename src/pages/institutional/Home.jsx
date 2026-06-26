@@ -198,7 +198,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* NÚMEROS */}
-      <section className="section hm-why">
+      <section className="section hm-why hm-numbers">
         <div className="wrap">
           <div className="hm-head">
             <div>
@@ -355,24 +355,46 @@ export function HomePage({ navigate }) {
           .hm-about__tags { grid-template-columns: 1fr; }
         }
 
-        .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-stat { border: 1px solid var(--line); border-radius: 22px; padding: 26px 24px; background: var(--bg-card); }
-        .hm-stat strong { display: block; font-family: var(--font-serif); font-size: clamp(34px, 3.4vw, 52px); line-height: 1; color: var(--accent); }
-        .hm-stat span { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
-
         .hm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 40px; }
-        .hm-head h2 { font-family: var(--font-serif); font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); }
+        .hm-head h2 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); }
         .hm-head > p { max-width: 460px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
 
+        /* StepCard v2 — card sticker, numeral display 900, acento por passo */
         .hm-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-step { background: var(--bg-card); border: 1px solid var(--line); border-radius: 24px; padding: 26px 24px; }
-        .hm-step__n { font-family: var(--font-serif); font-size: 44px; line-height: 1; color: var(--accent); }
-        .hm-step h3 { font-size: 20px; margin: 20px 0 0; color: var(--ink); }
+        .hm-step { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 26px 24px; box-shadow: var(--shadow-md); }
+        .hm-step__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(46px, 5vw, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
+        .hm-step:nth-child(1) .hm-step__n { color: var(--coral); }
+        .hm-step:nth-child(2) .hm-step__n { color: var(--pink); }
+        .hm-step:nth-child(3) .hm-step__n { color: var(--cyan-deep); }
+        .hm-step:nth-child(4) .hm-step__n { color: var(--yellow-deep); }
+        .hm-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: 20px; margin: 18px 0 0; color: var(--ink); }
         .hm-step p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
 
+        /* StatBlock v2 — banda chocolate, valor display 900, top-rule por acento */
+        .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 28px; }
+        .hm-stat { border: 0; border-top: 3px solid var(--coral); border-radius: 0; padding: 16px 0 0; background: transparent; }
+        .hm-stat strong { display: block; font-family: var(--font-display); font-weight: 900; font-size: clamp(40px, 5vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--accent); }
+        .hm-stat span { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
+        .hm-numbers { background: var(--choco); }
+        .hm-numbers .hm-head h2 { color: var(--cream); }
+        .hm-numbers .hm-head > p { color: rgba(255,241,230,.78); }
+        .hm-numbers .hm-head .eyebrow { color: var(--pink); }
+        .hm-numbers .hm-stat:nth-child(1) { border-top-color: var(--coral); }
+        .hm-numbers .hm-stat:nth-child(2) { border-top-color: var(--pink); }
+        .hm-numbers .hm-stat:nth-child(3) { border-top-color: var(--cyan); }
+        .hm-numbers .hm-stat:nth-child(4) { border-top-color: var(--yellow); }
+        .hm-numbers .hm-stat strong { color: var(--cream); }
+        .hm-numbers .hm-stat span { color: rgba(255,241,230,.75); }
+
+        /* Card v2 — pilar com top-rail de acento, superfície elevada */
         .hm-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-pillar { border-top: 2px solid var(--accent); padding: 18px 0 0; }
-        .hm-pillar h3 { font-family: var(--font-serif); font-size: 24px; margin: 0; color: var(--ink); }
+        .hm-pillar { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 28px 22px 24px; box-shadow: var(--shadow-md); }
+        .hm-pillar::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--coral); }
+        .hm-pillar:nth-child(1)::before { background: var(--coral); }
+        .hm-pillar:nth-child(2)::before { background: var(--pink); }
+        .hm-pillar:nth-child(3)::before { background: var(--cyan); }
+        .hm-pillar:nth-child(4)::before { background: var(--yellow); }
+        .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: 22px; margin: 0; color: var(--ink); }
         .hm-pillar p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
 
         .hm-cta { background: linear-gradient(135deg, var(--bg-card), var(--bg-soft)); border: 1px solid var(--line); border-radius: 32px; padding: clamp(34px, 5vw, 70px); display: flex; justify-content: space-between; align-items: center; gap: 28px; }
