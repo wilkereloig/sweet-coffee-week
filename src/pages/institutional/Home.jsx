@@ -123,7 +123,6 @@ export function HomePage({ navigate }) {
             fetchpriority="high"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <span className="swc-hero__blob" aria-hidden="true"></span>
         </div>
       </section>
 
@@ -131,7 +130,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-about">
         <div className="wrap">
           <div className="hm-about__head">
-            <h2>Um circuito de sabor,<br />cidade e comunidade.</h2>
+            <h2>Um circuito de <span className="hl" style={{ '--hl': 'var(--coral)' }}>sabor</span>,<br />cidade e comunidade.</h2>
             <div className="hm-about__text">
               <p>
                 O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por
@@ -176,12 +175,12 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="section hm-steps-section" style={{ background: 'var(--bg-soft)' }}>
+      <section className="section hm-steps-section" style={{ background: 'var(--cream-deep)' }}>
         <div className="wrap">
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Como funciona</span>
-              <h2>Do tema ao roteiro:<br />tudo começa com uma ideia.</h2>
+              <h2>Do tema ao roteiro:<br />tudo começa com uma <span className="hl" style={{ '--hl': 'var(--cyan-deep)' }}>ideia</span>.</h2>
             </div>
             <p>O festival começa com um tema, ganha forma nos combos dos participantes e se espalha pela rota do público.</p>
           </div>
@@ -203,7 +202,7 @@ export function HomePage({ navigate }) {
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>O Sweet &amp; Coffee Week em números</span>
-              <h2>Uma década movimentando<br />marcas, pessoas e memórias.</h2>
+              <h2>Uma década movimentando<br /><span className="hl-w">marcas</span>, <span className="hl-w" style={{ '--hl-delay': '.5s' }}>pessoas</span> e <span className="hl-w" style={{ '--hl-delay': '1s' }}>memórias</span>.</h2>
             </div>
             <p>Desde 2016, o festival cresceu junto com a cena gastronômica de Natal: gera fluxo para os participantes, visibilidade para marcas locais, conteúdo espontâneo nas redes e uma relação de pertencimento com o público.</p>
           </div>
@@ -219,12 +218,12 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* POR QUE IMPORTA */}
-      <section className="section hm-why" style={{ background: 'var(--bg-soft)' }}>
+      <section className="section hm-why">
         <div className="wrap">
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Mais que um festival</span>
-              <h2>O Sweet &amp; Coffee Week virou<br />uma tradição afetiva de Natal.</h2>
+              <h2>O Sweet &amp; Coffee Week virou<br />uma <span className="hl" style={{ '--hl': 'var(--coral)' }}>tradição afetiva</span> de Natal.</h2>
             </div>
             <p>Começou como uma rota gastronômica e se consolidou como plataforma de experiência, visibilidade e memória para a cidade — para o público, para os participantes e para parceiros de marca.</p>
           </div>
@@ -239,23 +238,23 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* REALIZAÇÃO */}
+      {/* REALIZAÇÃO — 2 colunas editorial (handoff v2) */}
       <section className="section hm-cta-section">
-        <div className="wrap hm-cta">
-          <div>
+        <div className="wrap hm-realizacao">
+          <div className="hm-realizacao__head">
             <span className="eyebrow"><span className="dot"></span>Realização</span>
-            <h2>Uma realização<br />da F2 Experience.</h2>
+            <h2>Uma realização<br />da <span className="hl" style={{ '--hl': 'var(--coral)' }}>F2 Experience</span>.</h2>
+          </div>
+          <div className="hm-realizacao__body">
             <p>
               O Sweet &amp; Coffee Week é realizado pela F2 Experience, empresa especializada em criar
               experiências, campanhas, ativações e projetos que conectam marcas, pessoas e cidade. No
               festival, a F2 Experience assina a estratégia, a criação, a comunicação e o desenvolvimento
               como plataforma de marca, conteúdo, experiência e economia criativa.
             </p>
-          </div>
-          <div className="hm-cta__actions">
             <a
               href="https://www.f2experience.com.br"
-              className="btn btn-primary btn-lg"
+              className="btn btn-primary btn-lg btn-sticker"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -266,17 +265,17 @@ export function HomePage({ navigate }) {
       </section>
 
       <style>{`
-        .hm { overflow: hidden; }
+        .hm { overflow-x: clip; }
 
         /* HERO — split chocolate + foto, blob coral, CTAs (left-aligned;
            prefixo .hm vence a centralização global de .page-enter) */
-        .hm .swc-hero { position: relative; min-height: calc(100vh - 1px); background: var(--swc-chocolate); overflow: hidden; isolation: isolate; }
+        .hm .swc-hero { position: relative; min-height: calc(100dvh - 1px); background: var(--swc-chocolate); overflow: visible; isolation: isolate; z-index: 2; }
+        .hm .hm-about { position: relative; z-index: 3; }
         .hm .swc-hero, .hm .swc-hero * { text-align: left; }
         .hm .swc-hero__copy {
-          position: relative; z-index: 2; width: 52%; min-height: calc(100vh - 1px); box-sizing: border-box;
-          padding: clamp(40px, 6vw, 96px) clamp(28px, 3.5vw, 60px) clamp(40px, 6vw, 84px);
-          display: flex; flex-direction: column; justify-content: center; background: var(--swc-chocolate);
-          clip-path: polygon(0 0, 100% 0, 100% 5%, 93.5% 13%, 100% 23%, 94% 34%, 100% 45%, 93.5% 56%, 100% 67%, 94% 78%, 100% 89%, 100% 100%, 0 100%);
+          position: relative; z-index: 2; width: 52%; min-height: calc(100dvh - 1px); box-sizing: border-box;
+          padding: clamp(40px, 6vw, 96px) var(--hm-gutter) clamp(40px, 6vw, 84px);
+          display: flex; flex-direction: column; justify-content: center; background: transparent;
           animation: swcHeroIn .7s cubic-bezier(.2,.7,.2,1) both;
         }
         .hm .swc-hero__eyebrow {
@@ -293,9 +292,30 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__title {
           font-family: var(--font-display); font-weight: 700; color: var(--swc-cream);
           font-size: clamp(46px, 6.4vw, 104px); line-height: .92; letter-spacing: -.02em;
-          margin: 0 0 clamp(22px, 3vw, 36px);
+          margin: 0 0 clamp(22px, 3vw, 36px); text-wrap: balance;
         }
         .hm .swc-hero__hl { color: var(--pink); }
+        /* Destaque de palavra nos títulos: itálico + brilho em loop (background-clip text) */
+        .hm .hl {
+          font-style: italic; font-weight: inherit; white-space: nowrap;
+          background: linear-gradient(90deg, var(--hl, var(--coral)) 0%, var(--hl, var(--coral)) 38%, color-mix(in srgb, var(--hl, var(--coral)) 38%, white) 50%, var(--hl, var(--coral)) 62%, var(--hl, var(--coral)) 100%);
+          background-size: 220% 100%;
+          -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; color: transparent;
+          animation: swcHlShimmer 3.4s linear infinite;
+        }
+        @keyframes swcHlShimmer { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
+        /* Destaque: itálico colorido + sublinhado que desenha uma vez e fica */
+        .hm .hl-w { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--pink)); }
+        .hm .hl-w::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: -.04em; height: .1em; border-radius: 4px;
+          background: var(--hl, var(--pink)); transform: scaleX(0); transform-origin: left center;
+          animation: swcUnderlineDraw .65s ease-out forwards; animation-delay: var(--hl-delay, 0s);
+        }
+        @keyframes swcUnderlineDraw {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
         .hm .swc-hero__line { display: block; animation: swcLineIn .65s cubic-bezier(.2,.7,.2,1) both; }
         .hm .swc-hero__line:nth-child(1) { animation-delay: .10s; }
         .hm .swc-hero__line:nth-child(2) { animation-delay: .22s; }
@@ -304,12 +324,18 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__text { max-width: 42ch; }
         .hm .swc-hero__text p { color: rgba(254,240,221,.86); font-family: var(--font-sans); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.6; margin: 0 0 16px; }
         /* PhotoBadge — foto recortada na silhueta do selo da marca (handoff v2) */
-        .hm .swc-hero__photo { position: absolute; top: 50%; right: clamp(8px, 3vw, 56px); transform: translateY(-48%); width: clamp(280px, 42vw, 560px); aspect-ratio: 1 / 1; z-index: 1; overflow: visible; filter: drop-shadow(0 26px 52px rgba(43,24,16,.42)); }
-        .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-mask: var(--mask-badge) center / contain no-repeat; mask: var(--mask-badge) center / contain no-repeat; }
-        .hm .swc-hero__blob { position: absolute; top: -8%; right: -5%; width: clamp(160px, 20vw, 330px); height: clamp(160px, 20vw, 330px); background: url('/images/shapes/shape-splat-coral.svg') center/contain no-repeat; z-index: 3; animation: swcFloat 7s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.18)); }
-        .hm .swc-hero__actions { position: absolute; right: clamp(22px, 3vw, 52px); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
-        /* onda orgânica cream: hero (chocolate/foto) derrete na seção creme */
-        .hm .swc-hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: clamp(54px, 7vw, 120px); background: url('/images/shapes/wave-cream-bottom.svg') bottom center / 100% 100% no-repeat; z-index: 5; pointer-events: none; }
+        .hm .swc-hero__photo { position: absolute; top: clamp(-280px, -14vw, -150px); bottom: auto; right: clamp(-260px, -13vw, -130px); transform: none; transform-origin: center; width: clamp(640px, 76vw, 1320px); aspect-ratio: 1 / 1; z-index: 1; overflow: visible; filter: drop-shadow(0 30px 60px rgba(43,24,16,.5)); -webkit-mask: var(--mask-badge) center / contain no-repeat; mask: var(--mask-badge) center / contain no-repeat; }
+        .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: center; }
+        /* badge gira com o scroll; a foto contra-rotaciona p/ ficar em pé */
+        @supports (animation-timeline: scroll()) {
+          @media (prefers-reduced-motion: no-preference) {
+            .hm .swc-hero__photo { animation: swcBadgeSpin linear both; animation-timeline: scroll(root); animation-range: 0 130vh; }
+            .hm .swc-hero__photo img { animation: swcBadgeSpinCounter linear both; animation-timeline: scroll(root); animation-range: 0 130vh; }
+          }
+        }
+        @keyframes swcBadgeSpin { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
+        @keyframes swcBadgeSpinCounter { from { transform: scale(1.45) rotate(0deg); } to { transform: scale(1.45) rotate(-90deg); } }
+        .hm .swc-hero__actions { position: absolute; right: var(--hm-gutter); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
         .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
         @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
         @keyframes swcFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
@@ -320,12 +346,11 @@ export function HomePage({ navigate }) {
           .hm .swc-hero__actions { position: static; flex-direction: column; align-items: stretch; right: auto; bottom: auto; padding: 0 clamp(22px,6vw,40px) clamp(28px,7vw,40px); }
           .hm .swc-hero__actions .btn { width: 100%; justify-content: center; }
           .hm .swc-hero__photo { position: relative; top: auto; right: auto; transform: none; width: min(80vw, 360px); height: auto; aspect-ratio: 1 / 1; min-height: 0; margin: 4px auto 8px; }
-          .hm .swc-hero__blob { width: 120px; height: 120px; }
         }
 
         .hm-about { padding-top: clamp(38px, 5vw, 72px); }
         .hm-about__head { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(30px, 4vw, 54px); }
-        .hm-about__head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(38px, 5.6vw, 88px); line-height: .95; letter-spacing: -.03em; color: var(--swc-chocolate); margin: 0; }
+        .hm-about__head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(38px, 5.6vw, 88px); line-height: .95; letter-spacing: -.03em; color: var(--swc-chocolate); margin: 0; text-wrap: balance; }
         .hm-about__text p { color: var(--ink-soft); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; margin: 0 0 14px; }
         .hm-about__text strong { color: var(--swc-chocolate); }
         .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
@@ -356,12 +381,13 @@ export function HomePage({ navigate }) {
         }
 
         .hm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 40px; }
-        .hm-head h2 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); }
+        .hm-head h2 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); text-wrap: balance; }
         .hm-head > p { max-width: 460px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
 
         /* StepCard v2 — card sticker, numeral display 900, acento por passo */
         .hm-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-step { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 26px 24px; box-shadow: var(--shadow-md); }
+        .hm-step { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 26px 24px; box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-step:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
         .hm-step__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(46px, 5vw, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
         .hm-step:nth-child(1) .hm-step__n { color: var(--coral); }
         .hm-step:nth-child(2) .hm-step__n { color: var(--pink); }
@@ -373,8 +399,8 @@ export function HomePage({ navigate }) {
         /* StatBlock v2 — banda chocolate, valor display 900, top-rule por acento */
         .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 28px; }
         .hm-stat { border: 0; border-top: 3px solid var(--coral); border-radius: 0; padding: 16px 0 0; background: transparent; }
-        .hm-stat strong { display: block; font-family: var(--font-display); font-weight: 900; font-size: clamp(40px, 5vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--accent); }
-        .hm-stat span { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
+        .hm-stat strong { display: block; font-family: var(--font-display); font-weight: 900; font-size: clamp(38px, 4.6vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .hm-stat > span { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
         .hm-numbers { background: var(--choco); }
         .hm-numbers .hm-head h2 { color: var(--cream); }
         .hm-numbers .hm-head > p { color: rgba(255,241,230,.78); }
@@ -383,12 +409,30 @@ export function HomePage({ navigate }) {
         .hm-numbers .hm-stat:nth-child(2) { border-top-color: var(--pink); }
         .hm-numbers .hm-stat:nth-child(3) { border-top-color: var(--cyan); }
         .hm-numbers .hm-stat:nth-child(4) { border-top-color: var(--yellow); }
-        .hm-numbers .hm-stat strong { color: var(--cream); }
-        .hm-numbers .hm-stat span { color: rgba(255,241,230,.75); }
+        .hm-numbers .hm-stat strong { color: var(--on); }
+        /* Números em 2 colunas: esquerda título+texto, direita 4 cards (2x2) */
+        .hm-numbers .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
+        .hm-numbers .hm-head { display: block; margin-bottom: 0; }
+        .hm-numbers .hm-head > p { margin-top: 18px; max-width: none; }
+        .hm-numbers .hm-stats { grid-template-columns: 1fr; gap: 16px; }
+        @media (max-width: 900px) { .hm-numbers .wrap { grid-template-columns: 1fr; } }
+
+        /* Stat: espaçamento proporcional + label maior */
+        .hm-numbers .hm-stat { border-top: 0; position: relative; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: 26px 24px; overflow: hidden; transition: transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out); }
+        .hm-numbers .hm-stat:hover { transform: translateY(-3px); filter: brightness(1.06); }
+        .hm-numbers .hm-stat:nth-child(1) { --c: var(--coral); --on: var(--on-coral); }
+        .hm-numbers .hm-stat:nth-child(2) { --c: var(--pink); --on: var(--on-pink); }
+        .hm-numbers .hm-stat:nth-child(3) { --c: var(--cyan); --on: var(--on-cyan); }
+        .hm-numbers .hm-stat:nth-child(4) { --c: var(--yellow); --on: var(--on-yellow); }
+        .hm-numbers .hm-stat strong { margin-bottom: 14px; }
+        .hm-numbers .hm-stat > span { font-size: clamp(14.5px, 1.05vw, 17px); line-height: 1.5; margin-top: 12px; color: var(--on); opacity: .82; }
+
+        .hm-numbers .hm-stat > span { color: rgba(255,241,230,.75); }
 
         /* Card v2 — pilar com top-rail de acento, superfície elevada */
         .hm-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-pillar { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 28px 22px 24px; box-shadow: var(--shadow-md); }
+        .hm-pillar { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 28px 22px 24px; box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-pillar:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
         .hm-pillar::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--coral); }
         .hm-pillar:nth-child(1)::before { background: var(--coral); }
         .hm-pillar:nth-child(2)::before { background: var(--pink); }
@@ -397,15 +441,19 @@ export function HomePage({ navigate }) {
         .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: 22px; margin: 0; color: var(--ink); }
         .hm-pillar p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
 
-        .hm-cta { background: linear-gradient(135deg, var(--bg-card), var(--bg-soft)); border: 1px solid var(--line); border-radius: 32px; padding: clamp(34px, 5vw, 70px); display: flex; justify-content: space-between; align-items: center; gap: 28px; }
-        .hm-cta h2 { font-family: var(--font-serif); font-size: clamp(38px, 5vw, 78px); line-height: .96; letter-spacing: -.04em; margin: 12px 0 0; color: var(--ink); }
-        .hm-cta p { color: var(--ink-soft); max-width: 56ch; line-height: 1.65; margin-top: 14px; }
-        .hm-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+        /* Realização v2 — banda cream-deep, 2 colunas editorial, Button sticker */
+        .hm-cta-section { background: var(--cream-deep); }
+        .hm-realizacao { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
+        .hm-realizacao__head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(38px, 5vw, 78px); line-height: .96; letter-spacing: -.04em; margin: 0; color: var(--ink); text-wrap: balance; }
+        .hm-realizacao__body p { color: var(--ink-soft); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; margin: 0 0 28px; max-width: 56ch; }
+        .btn-sticker { box-shadow: var(--shadow-pop); transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+        .btn-sticker:hover { transform: translateY(-2px); box-shadow: 0 9px 0 rgba(43,24,16,.20); }
 
         @media (max-width: 1180px) { .hm-steps, .hm-pillars, .hm-stats { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 900px) {
           .hm-hero__grid, .hm-feature__grid { grid-template-columns: 1fr; }
-          .hm-head, .hm-cta { flex-direction: column; align-items: flex-start; }
+          .hm-head { flex-direction: column; align-items: flex-start; }
+          .hm-realizacao { grid-template-columns: 1fr; gap: 18px; }
           .hm-feature__photo > figure { min-height: 340px; }
         }
         @media (max-width: 560px) {
