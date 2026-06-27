@@ -109,7 +109,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-about">
         <div className="wrap">
           <div className="hm-about__head">
-            <h2>Um circuito de <span className="hl" style={{ '--hl': 'var(--coral)' }}>sabor</span>,<br />cidade e comunidade.</h2>
+            <h2>Um circuito de <span className="hl-w" style={{ '--hl': 'var(--coral)' }}>sabor</span>,<br />cidade e comunidade.</h2>
             <div className="hm-about__text">
               <p>
                 O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por
@@ -158,7 +158,7 @@ export function HomePage({ navigate }) {
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Como funciona</span>
-              <h2>Do tema ao roteiro:<br />tudo começa com uma <span className="hl" style={{ '--hl': 'var(--cyan-deep)' }}>ideia</span>.</h2>
+              <h2>Do tema ao roteiro:<br />tudo começa com uma <span className="hl-w" style={{ '--hl': 'var(--cyan-deep)' }}>ideia</span>.</h2>
             </div>
             <p>O festival começa com um tema, ganha forma nos combos dos participantes e se espalha pela rota do público.</p>
           </div>
@@ -201,7 +201,7 @@ export function HomePage({ navigate }) {
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>Mais que um festival</span>
-              <h2>O Sweet &amp; Coffee Week virou<br />uma <span className="hl" style={{ '--hl': 'var(--coral)' }}>tradição afetiva</span> de Natal.</h2>
+              <h2>O Sweet &amp; Coffee Week virou<br />uma <span className="hl-w" style={{ '--hl': 'var(--coral)' }}>tradição afetiva</span> de Natal.</h2>
             </div>
             <p>Começou como uma rota gastronômica e se consolidou como plataforma de experiência, visibilidade e memória para a cidade — para o público, para os participantes e para parceiros de marca.</p>
           </div>
@@ -221,7 +221,7 @@ export function HomePage({ navigate }) {
         <div className="wrap hm-realizacao">
           <div className="hm-realizacao__head">
             <span className="eyebrow"><span className="dot"></span>Realização</span>
-            <h2>Uma realização<br />da <span className="hl" style={{ '--hl': 'var(--coral)' }}>F2 Experience</span>.</h2>
+            <h2>Uma realização<br />da <span className="hl-w" style={{ '--hl': 'var(--coral)' }}>F2 Experience</span>.</h2>
           </div>
           <div className="hm-realizacao__body">
             <p>
@@ -273,17 +273,8 @@ export function HomePage({ navigate }) {
           margin: 0 0 clamp(22px, 3vw, 36px); text-wrap: balance;
         }
         .hm .swc-hero__hl { color: var(--pink); }
-        /* Destaque de palavra nos títulos: itálico + brilho em loop (background-clip text) */
-        .hm .hl {
-          font-style: italic; font-weight: inherit; white-space: nowrap;
-          background: linear-gradient(90deg, var(--hl, var(--coral)) 0%, var(--hl, var(--coral)) 38%, color-mix(in srgb, var(--hl, var(--coral)) 38%, white) 50%, var(--hl, var(--coral)) 62%, var(--hl, var(--coral)) 100%);
-          background-size: 220% 100%;
-          -webkit-background-clip: text; background-clip: text;
-          -webkit-text-fill-color: transparent; color: transparent;
-          animation: swcHlShimmer 3.4s linear infinite;
-        }
-        @keyframes swcHlShimmer { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
-        /* Destaque: itálico colorido + sublinhado que desenha uma vez e fica */
+        /* Destaque único de palavra nos títulos: itálico, cor sólida + sublinhado
+           que desenha uma vez e fica. Cor por seção via --hl inline. */
         .hm .hl-w { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--pink)); }
         .hm .hl-w::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: -.04em; height: .1em; border-radius: 4px;
@@ -326,10 +317,10 @@ export function HomePage({ navigate }) {
           .hm .swc-hero__photo { position: relative; top: auto; right: auto; transform: none; width: min(80vw, 360px); height: auto; aspect-ratio: 1 / 1; min-height: 0; margin: 4px auto 8px; }
         }
 
-        .hm-about { padding-top: clamp(38px, 5vw, 72px); }
-        .hm-about__head { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(30px, 4vw, 54px); }
-        .hm-about__head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(38px, 5.6vw, 88px); line-height: .95; letter-spacing: -.03em; color: var(--swc-chocolate); margin: 0; text-wrap: balance; }
-        .hm-about__text p { color: var(--ink-soft); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; margin: 0 0 14px; }
+        .hm-about { padding-top: var(--sp-8); }
+        .hm-about__head { display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--sp-7); align-items: end; margin-bottom: var(--sp-8); }
+        .hm-about__head h2 { font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .96; letter-spacing: -.04em; color: var(--swc-chocolate); margin: 0; text-wrap: balance; }
+        .hm-about__text p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.55; margin: 0 0 var(--sp-4); max-width: 60ch; text-wrap: pretty; }
         .hm-about__text strong { color: var(--swc-chocolate); }
         .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
         .hm-collage__cell { margin: 0; min-height: clamp(240px, 30vw, 380px); overflow: hidden; background: var(--swc-coffee); }
@@ -358,21 +349,21 @@ export function HomePage({ navigate }) {
           .hm-about__tags { grid-template-columns: 1fr; }
         }
 
-        .hm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 40px; }
-        .hm-head h2 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -.04em; margin: 14px 0 0; color: var(--ink); text-wrap: balance; }
-        .hm-head > p { max-width: 460px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+        .hm-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--sp-7); margin-bottom: var(--sp-8); }
+        .hm-head h2 { font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .96; letter-spacing: -.04em; margin: var(--sp-4) 0 0; color: var(--ink); text-wrap: balance; }
+        .hm-head > p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.55; margin: 0; text-wrap: pretty; }
 
-        /* StepCard v2 — card sticker, numeral display 900, acento por passo */
-        .hm-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-step { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 26px 24px; box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        /* StepCard — card sticker, numeral display 900, acento por passo */
+        .hm-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }
+        .hm-step { container-type: inline-size; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-step:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-        .hm-step__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(46px, 5vw, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
+        .hm-step__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(44px, 12cqi, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
         .hm-step:nth-child(1) .hm-step__n { color: var(--coral); }
         .hm-step:nth-child(2) .hm-step__n { color: var(--pink); }
         .hm-step:nth-child(3) .hm-step__n { color: var(--cyan-deep); }
         .hm-step:nth-child(4) .hm-step__n { color: var(--yellow-deep); }
-        .hm-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: 20px; margin: 18px 0 0; color: var(--ink); }
-        .hm-step p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
+        .hm-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: var(--sp-4) 0 0; color: var(--ink); }
+        .hm-step p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.55; margin: var(--sp-3) 0 0; }
 
         /* StatBlock v2 — banda chocolate, valor display 900, top-rule por acento */
         .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 28px; }
@@ -389,53 +380,59 @@ export function HomePage({ navigate }) {
         .hm-numbers .hm-stat:nth-child(4) { border-top-color: var(--yellow); }
         .hm-numbers .hm-stat strong { color: var(--on); }
         /* Números em 2 colunas: esquerda título+texto, direita 4 cards (2x2) */
-        .hm-numbers .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
+        .hm-numbers .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-7); align-items: start; }
         .hm-numbers .hm-head { display: block; margin-bottom: 0; }
-        .hm-numbers .hm-head > p { margin-top: 18px; max-width: none; }
-        .hm-numbers .hm-stats { grid-template-columns: 1fr; gap: 16px; }
+        .hm-numbers .hm-head > p { margin-top: var(--sp-5); max-width: none; }
+        .hm-numbers .hm-stats { grid-template-columns: 1fr; gap: var(--sp-4); }
         @media (max-width: 900px) { .hm-numbers .wrap { grid-template-columns: 1fr; } }
 
-        /* Stat: espaçamento proporcional + label maior */
-        .hm-numbers .hm-stat { border-top: 0; position: relative; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: 26px 24px; overflow: hidden; transition: transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out); }
+        /* Stat card colorido — texto contraste-safe por card (--on) */
+        .hm-numbers .hm-stat { border-top: 0; position: relative; container-type: inline-size; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: var(--sp-6); overflow: hidden; transition: transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out); }
         .hm-numbers .hm-stat:hover { transform: translateY(-3px); filter: brightness(1.06); }
-        .hm-numbers .hm-stat:nth-child(1) { --c: var(--coral); --on: var(--on-coral); }
-        .hm-numbers .hm-stat:nth-child(2) { --c: var(--pink); --on: var(--on-pink); }
-        .hm-numbers .hm-stat:nth-child(3) { --c: var(--cyan); --on: var(--on-cyan); }
+        .hm-numbers .hm-stat:nth-child(1) { --c: var(--coral);  --on: var(--on-coral); }
+        .hm-numbers .hm-stat:nth-child(2) { --c: var(--pink);   --on: var(--on-pink); }
+        .hm-numbers .hm-stat:nth-child(3) { --c: var(--cyan);   --on: var(--choco); }
         .hm-numbers .hm-stat:nth-child(4) { --c: var(--yellow); --on: var(--on-yellow); }
-        .hm-numbers .hm-stat strong { margin-bottom: 14px; }
-        .hm-numbers .hm-stat > span { font-size: clamp(14.5px, 1.05vw, 17px); line-height: 1.5; margin-top: 12px; color: var(--on); opacity: .82; }
+        .hm-numbers .hm-stat strong { font-size: clamp(36px, 18cqi, 60px); margin-bottom: var(--sp-3); color: var(--on); }
+        .hm-numbers .hm-stat > span { font-size: clamp(14px, 4.4cqi, 17px); line-height: 1.5; margin-top: var(--sp-3); color: var(--on); opacity: .92; }
 
-        .hm-numbers .hm-stat > span { color: rgba(255,241,230,.75); }
-
-        /* Card v2 — pilar com top-rail de acento, superfície elevada */
-        .hm-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .hm-pillar { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: 28px 22px 24px; box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        /* Card — pilar com top-rail de acento, superfície elevada */
+        .hm-pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }
+        .hm-pillar { position: relative; overflow: hidden; container-type: inline-size; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-pillar:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
         .hm-pillar::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--coral); }
         .hm-pillar:nth-child(1)::before { background: var(--coral); }
         .hm-pillar:nth-child(2)::before { background: var(--pink); }
         .hm-pillar:nth-child(3)::before { background: var(--cyan); }
         .hm-pillar:nth-child(4)::before { background: var(--yellow); }
-        .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: 22px; margin: 0; color: var(--ink); }
-        .hm-pillar p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: 10px 0 0; }
+        .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: 0; color: var(--ink); }
+        .hm-pillar p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.55; margin: var(--sp-3) 0 0; }
 
         /* Realização v2 — banda cream-deep, 2 colunas editorial, Button sticker */
         .hm-cta-section { background: var(--cream-deep); }
-        .hm-realizacao { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
-        .hm-realizacao__head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(38px, 5vw, 78px); line-height: .96; letter-spacing: -.04em; margin: 0; color: var(--ink); text-wrap: balance; }
-        .hm-realizacao__body p { color: var(--ink-soft); font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; margin: 0 0 28px; max-width: 56ch; }
+        .hm-realizacao { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-7); align-items: start; }
+        .hm-realizacao__head h2 { font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .96; letter-spacing: -.04em; margin: 0; color: var(--ink); text-wrap: balance; }
+        .hm-realizacao__body p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.55; margin: 0 0 var(--sp-6); max-width: 60ch; text-wrap: pretty; }
         .btn-sticker { box-shadow: var(--shadow-pop); transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
         .btn-sticker:hover { transform: translateY(-2px); box-shadow: 0 9px 0 rgba(43,24,16,.20); }
 
-        @media (max-width: 1180px) { .hm-steps, .hm-pillars, .hm-stats { grid-template-columns: repeat(2, 1fr); } }
+        /* Grids de card reflui sozinho via auto-fit; sem breakpoints rígidos. */
         @media (max-width: 900px) {
           .hm-hero__grid, .hm-feature__grid { grid-template-columns: 1fr; }
           .hm-head { flex-direction: column; align-items: flex-start; }
-          .hm-realizacao { grid-template-columns: 1fr; gap: 18px; }
+          .hm-realizacao { grid-template-columns: 1fr; gap: var(--sp-6); }
           .hm-feature__photo > figure { min-height: 340px; }
         }
-        @media (max-width: 560px) {
-          .hm-stats, .hm-steps, .hm-pillars { grid-template-columns: 1fr; }
+        /* Celular: card ocupa a largura toda (evita coluna estreita demais) */
+        @media (max-width: 520px) {
+          .hm-steps, .hm-pillars { grid-template-columns: 1fr; }
+        }
+
+        /* Acessibilidade: sem movimento → conteúdo estático, sublinhado já desenhado */
+        @media (prefers-reduced-motion: reduce) {
+          .hm .swc-hero__copy,
+          .hm .swc-hero__line { animation: none; opacity: 1; transform: none; }
+          .hm .hl-w::after { animation: none; transform: scaleX(1); }
         }
       `}</style>
     </div>

@@ -81,6 +81,16 @@
   --dur-fast: 140ms; --dur-base: 240ms; --dur-slow: 420ms;
   --ring: var(--cyan-deep);
 
+  /* Escala de espaçamento (base 4pt, fluida). Usar em gap/margin/padding. */
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: clamp(18px, 2vw, 24px);
+  --sp-6: clamp(24px, 3vw, 32px);
+  --sp-7: clamp(32px, 4vw, 48px);
+  --sp-8: clamp(40px, 5vw, 64px);
+  --sp-9: clamp(56px, 7vw, 96px);
+
   /* Espaçamento vertical editorial entre seções (handoff v2) */
   --sp-section: clamp(56px, 11.5vw, 220px);
   /* Grid horizontal único da Home: recuo lateral + largura máx do conteúdo.
