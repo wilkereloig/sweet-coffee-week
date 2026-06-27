@@ -381,7 +381,9 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
     top: 100%;
     transform: translateY(-50%);
     margin: 0;
-    z-index: 3;
+    /* atrás do fundo translúcido da barra: metade de cima passa sob a barra,
+       metade de baixo vaza no hero (efeito de camada/profundidade) */
+    z-index: -1;
   }
   body.route-home .brand img { height: clamp(116px, 11vw, 160px); }
 }
