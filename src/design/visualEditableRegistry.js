@@ -40,6 +40,7 @@ const RAW = [
   { id: 'home.about.title', label: 'O que é · Título', type: 'text' },
   { id: 'home.about.text', label: 'O que é · Texto', type: 'text' },
   { id: 'home.about.collage', label: 'O que é · Mídia', type: 'media' },
+  { id: 'home.about.heart', label: 'O que é · Coração', type: 'decorative' },
   { id: 'home.process.section', label: 'Como funciona · Seção', type: 'block' },
   { id: 'home.stats.section', label: 'Números · Seção', type: 'block' },
   { id: 'home.realizacao.section', label: 'Realização · Seção', type: 'block' },

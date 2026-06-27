@@ -68,6 +68,7 @@ export function HomePage({ navigate }) {
   const ovAboutTitle = useVisualOverride('home.about.title')
   const ovAboutText = useVisualOverride('home.about.text')
   const ovAboutCollage = useVisualOverride('home.about.collage')
+  const ovAboutHeart = useVisualOverride('home.about.heart')
   const ovProcess = useVisualOverride('home.process.section')
   const ovStats = useVisualOverride('home.stats.section')
   const ovRealizacao = useVisualOverride('home.realizacao.section')
@@ -147,7 +148,7 @@ export function HomePage({ navigate }) {
             <div className="hm-about__photo">
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
             </div>
-            <span className="hm-about__heart" aria-hidden="true">
+            <span className="hm-about__heart" aria-hidden="true" {...ovAboutHeart}>
               <img src="/images/shapes/shape-heart-yellow.svg" alt="" />
             </span>
           </div>
