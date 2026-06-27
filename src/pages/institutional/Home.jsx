@@ -392,10 +392,10 @@ export function HomePage({ navigate }) {
         /* REALIZAÇÃO — assinatura na identidade da F2 Experience.
            Corte duro para a "pele" da F2: fundo preto, Helvetica Extended,
            acentos magenta/violeta/verde e o espectro de marca da F2. */
-        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtThn.ttf') format('truetype'); font-weight: 100; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExt.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBd.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBlk.ttf') format('truetype'); font-weight: 900; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtThn.woff2') format('woff2'); font-weight: 100; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExt.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBd.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBlk.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
 
         .hm .hm-f2 { background: #000; --f2-magenta: #E50053; --f2-violet: #512FB9; --f2-green: #05D975; padding-block: clamp(48px, 6.5vw, 84px); }
         .hm-f2__inner { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(20px, 2.6vw, 30px); text-align: left; font-family: 'Helvetica Ext', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
