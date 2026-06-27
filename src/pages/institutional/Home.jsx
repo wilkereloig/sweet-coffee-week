@@ -336,16 +336,20 @@ export function HomePage({ navigate }) {
 
         /* StepCard — card sticker, numeral display 900, acento por passo */
         .hm-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }
-        .hm-step { container-type: inline-size; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-step { container-type: inline-size; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-step:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-        .hm-step__n { display: inline-block; padding-bottom: var(--sp-2); border-bottom: 3px solid currentColor; font-family: var(--font-display); font-weight: 900; font-size: clamp(44px, 12cqi, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
+        .hm-step__n { display: inline-block; align-self: flex-start; padding-bottom: var(--sp-2); border-bottom: 3px solid currentColor; font-family: var(--font-display); font-weight: 900; font-size: clamp(44px, 12cqi, 56px); line-height: 1; letter-spacing: -.03em; color: var(--coral); }
         .hm-step:nth-child(1) .hm-step__n { color: var(--coral); }
         .hm-step:nth-child(2) .hm-step__n { color: var(--pink); }
         .hm-step:nth-child(3) .hm-step__n { color: var(--cyan-deep); }
         .hm-step:nth-child(4) .hm-step__n { color: var(--yellow-deep); }
         .hm-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: var(--sp-4) 0 0; color: var(--ink); }
         .hm-step p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.4; margin: var(--sp-3) 0 0; }
-        .hm-step__k { display: inline-block; margin-top: var(--sp-5); padding: 4px 11px; border-radius: 999px; background: rgba(43,24,16,.07); color: var(--ink-soft); font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+        .hm-step__k { align-self: flex-start; margin-top: auto; padding: 4px 11px; border-radius: 999px; background: var(--coral); color: #fff; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+        .hm-step:nth-child(1) .hm-step__k { background: var(--coral); color: #fff; }
+        .hm-step:nth-child(2) .hm-step__k { background: var(--pink); color: #fff; }
+        .hm-step:nth-child(3) .hm-step__k { background: var(--cyan-deep); color: #fff; }
+        .hm-step:nth-child(4) .hm-step__k { background: var(--yellow-deep); color: #3a1d10; }
 
         /* StatBlock v2 — banda chocolate, valor display 900, top-rule por acento */
         .hm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 28px; }
@@ -411,9 +415,10 @@ export function HomePage({ navigate }) {
         .hm-f2__cta { display: inline-flex; align-items: center; gap: 9px; padding: 12px 22px; background: var(--f2-magenta); color: #fff; font-weight: 700; font-size: clamp(12px, 1vw, 14px); letter-spacing: .04em; text-transform: uppercase; transition: background .2s ease, transform .2s ease, color .2s ease; }
         .hm-f2__cta:hover { background: #fff; color: #000; transform: translateX(4px); }
         .hm-f2__cta svg { width: 16px; height: 16px; }
-        .hm-f2__spectrum { width: 100%; max-width: 260px; height: 5px; background: linear-gradient(90deg, var(--f2-magenta) 0%, var(--f2-violet) 52%, var(--f2-green) 100%); }
+        .hm-f2__spectrum { width: 100%; max-width: 260px; height: 5px; background-image: linear-gradient(90deg, var(--f2-magenta), var(--f2-violet), var(--f2-green), var(--f2-magenta), var(--f2-violet), var(--f2-green), var(--f2-magenta)); background-size: 200% 100%; animation: f2Spectrum 4s linear infinite; }
+        @keyframes f2Spectrum { from { background-position: 0% 0; } to { background-position: 100% 0; } }
         @media (max-width: 760px) { .hm-f2__grid { grid-template-columns: 1fr; gap: 20px; align-items: start; } }
-        @media (prefers-reduced-motion: reduce) { .hm-f2__cta { transition: none; } }
+        @media (prefers-reduced-motion: reduce) { .hm-f2__cta { transition: none; } .hm-f2__spectrum { animation: none; } }
         .btn-sticker { box-shadow: var(--shadow-pop); transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
         .btn-sticker:hover { transform: translateY(-2px); box-shadow: 0 9px 0 rgba(43,24,16,.20); }
 
