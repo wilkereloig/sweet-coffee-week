@@ -1,5 +1,8 @@
 import React from 'react'
 import { I } from '../../components/icons'
+import { useDesignAdjustment } from '../../design/useDesignAdjustment'
+import { DesignModePanel } from '../../design/DesignModePanel'
+import { isDesignModeEnabled } from '../../design/layoutAdjustments'
 
 // Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
 // do coração acompanha o fundo do badge via --ph-cut.
@@ -59,6 +62,15 @@ function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
 
+  // Design Mode — ajustes editáveis (no-op visual enquanto no default).
+  const designOn = isDesignModeEnabled()
+  const edHeroPhoto = useDesignAdjustment('home.hero.photo')
+  const edHeroTitle = useDesignAdjustment('home.hero.title')
+  const edAbout = useDesignAdjustment('home.about.collage')
+  const edStats = useDesignAdjustment('home.stats.section')
+  const edSteps = useDesignAdjustment('home.steps.section')
+  const edRealizacao = useDesignAdjustment('home.realizacao.section')
+
   return (
     <div className="page-enter hm">
       {/* HERO — nova direção visual (referência campanha) */}
@@ -67,7 +79,7 @@ export function HomePage({ navigate }) {
           <img src="/images/shapes/shape-seal-choco.svg" alt="" />
         </div>
 
-        <div className="swc-hero__photo">
+        <div className="swc-hero__photo" style={edHeroPhoto.style}>
           <img
             src="/images/hero-festival.jpg"
             alt="Sobremesa autoral do Sweet & Coffee Week"
@@ -78,7 +90,7 @@ export function HomePage({ navigate }) {
         </div>
 
         <div className="swc-hero__copy">
-          <h1 className="swc-hero__title">
+          <h1 className="swc-hero__title" style={edHeroTitle.style}>
             <span className="swc-hero__line">O festival mais</span>
             <span className="swc-hero__line"><span className="swc-hero__hl">doce</span> de Natal.</span>
           </h1>
@@ -96,7 +108,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* NÚMEROS */}
-      <section className="section hm-why hm-numbers">
+      <section className="section hm-why hm-numbers" style={edStats.style}>
         <div className="wrap">
           <div className="hm-numbers__head">
             <h2>Números que contam uma <span className="hl-w">história</span>.</h2>
@@ -130,7 +142,7 @@ export function HomePage({ navigate }) {
             </div>
           </div>
 
-          <div className="hm-about__media">
+          <div className="hm-about__media" style={edAbout.style}>
             <div className="hm-about__photo">
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
             </div>
@@ -142,7 +154,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="section hm-steps-section">
+      <section className="section hm-steps-section" style={edSteps.style}>
         <div className="wrap">
           <div className="hm-head">
             <h2>Do tema à <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>: como o festival movimenta a cidade.</h2>
@@ -162,7 +174,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* REALIZAÇÃO — 2 colunas editorial (handoff v2) */}
-      <section className="section hm-cta-section">
+      <section className="section hm-cta-section" style={edRealizacao.style}>
         <div className="wrap hm-realizacao">
           <div className="hm-realizacao__head">
             <h2>Uma realização da <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>F2 Experience</span>.</h2>
@@ -399,6 +411,8 @@ export function HomePage({ navigate }) {
           .hm .hl-w::after { animation: none; transform: scaleX(1); }
         }
       `}</style>
+
+      {designOn && <DesignModePanel page="home" />}
     </div>
   )
 }
