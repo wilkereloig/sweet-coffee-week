@@ -1,8 +1,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
-import { useDesignAdjustment } from '../../design/useDesignAdjustment'
-import { DesignModePanel } from '../../design/DesignModePanel'
-import { isDesignModeEnabled } from '../../design/layoutAdjustments'
+import { useVisualOverride } from '../../design/useVisualOverride'
+import { VisualRefinementProvider } from '../../design/VisualRefinementProvider'
 
 // Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
 // do coração acompanha o fundo do badge via --ph-cut.
@@ -62,15 +61,16 @@ function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
 
-  // Design Mode — ajustes editáveis (no-op visual enquanto no default).
-  const designOn = isDesignModeEnabled()
-  const edHeroPhoto = useDesignAdjustment('home.hero.photo')
-  const edHeroTitle = useDesignAdjustment('home.hero.title')
-  const edHeroActions = useDesignAdjustment('home.hero.actions')
-  const edAbout = useDesignAdjustment('home.about.collage')
-  const edProcess = useDesignAdjustment('home.process.section')
-  const edStats = useDesignAdjustment('home.stats.section')
-  const edRealizacao = useDesignAdjustment('home.realizacao.section')
+  // Visual Refinement Mode — overrides lidos de visualOverrides.json (no-op se vazio).
+  const ovHeroTitle = useVisualOverride('home.hero.title')
+  const ovHeroText = useVisualOverride('home.hero.text')
+  const ovHeroPhoto = useVisualOverride('home.hero.photo')
+  const ovAboutTitle = useVisualOverride('home.about.title')
+  const ovAboutText = useVisualOverride('home.about.text')
+  const ovAboutCollage = useVisualOverride('home.about.collage')
+  const ovProcess = useVisualOverride('home.process.section')
+  const ovStats = useVisualOverride('home.stats.section')
+  const ovRealizacao = useVisualOverride('home.realizacao.section')
 
   return (
     <div className="page-enter hm">
@@ -80,7 +80,7 @@ export function HomePage({ navigate }) {
           <img src="/images/shapes/shape-seal-choco.svg" alt="" />
         </div>
 
-        <div className="swc-hero__photo" data-editable-id="home.hero.photo" style={edHeroPhoto.style}>
+        <div className="swc-hero__photo" {...ovHeroPhoto}>
           <img
             src="/images/hero-festival.jpg"
             alt="Sobremesa autoral do Sweet & Coffee Week"
@@ -91,11 +91,11 @@ export function HomePage({ navigate }) {
         </div>
 
         <div className="swc-hero__copy">
-          <h1 className="swc-hero__title" data-editable-id="home.hero.title" style={edHeroTitle.style}>
+          <h1 className="swc-hero__title" {...ovHeroTitle}>
             <span className="swc-hero__line">O festival mais</span>
             <span className="swc-hero__line"><span className="swc-hero__hl">doce</span> de Natal.</span>
           </h1>
-          <div className="swc-hero__text" data-editable-id="home.hero.actions" style={edHeroActions.style}>
+          <div className="swc-hero__text" {...ovHeroText}>
             <p>
               O Sweet &amp; Coffee Week é o festival gastronômico que transforma Natal em uma rota de
               sabores, encontros e descobertas.
@@ -109,7 +109,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* NÚMEROS */}
-      <section className="section hm-why hm-numbers" data-editable-id="home.stats.section" style={edStats.style}>
+      <section className="section hm-why hm-numbers" {...ovStats}>
         <div className="wrap">
           <div className="hm-numbers__head">
             <h2>Números que contam uma <span className="hl-w">história</span>.</h2>
@@ -129,8 +129,8 @@ export function HomePage({ navigate }) {
       <section className="section hm-about">
         <div className="wrap hm-about__grid">
           <div className="hm-about__head">
-            <h2>Um circuito de <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>sabor</span>, <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>cidade</span> e <span className="hl-w" style={{ '--hl': 'var(--pink)' }}>comunidade</span>.</h2>
-            <div className="hm-about__text">
+            <h2 {...ovAboutTitle}>Um circuito de <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>sabor</span>, <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>cidade</span> e <span className="hl-w" style={{ '--hl': 'var(--pink)' }}>comunidade</span>.</h2>
+            <div className="hm-about__text" {...ovAboutText}>
               <p>
                 O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por
                 meio de uma experiência simples, criativa e altamente compartilhável.
@@ -143,7 +143,7 @@ export function HomePage({ navigate }) {
             </div>
           </div>
 
-          <div className="hm-about__media" data-editable-id="home.about.collage" style={edAbout.style}>
+          <div className="hm-about__media" {...ovAboutCollage}>
             <div className="hm-about__photo">
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
             </div>
@@ -155,7 +155,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="section hm-steps-section" data-editable-id="home.process.section" style={edProcess.style}>
+      <section className="section hm-steps-section" {...ovProcess}>
         <div className="wrap">
           <div className="hm-head">
             <h2>Do tema à <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>: como o festival movimenta a cidade.</h2>
@@ -175,7 +175,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* REALIZAÇÃO — 2 colunas editorial (handoff v2) */}
-      <section className="section hm-cta-section" data-editable-id="home.realizacao.section" style={edRealizacao.style}>
+      <section className="section hm-cta-section" {...ovRealizacao}>
         <div className="wrap hm-realizacao">
           <div className="hm-realizacao__head">
             <h2>Uma realização da <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>F2 Experience</span>.</h2>
@@ -413,7 +413,7 @@ export function HomePage({ navigate }) {
         }
       `}</style>
 
-      {designOn && <DesignModePanel page="home" />}
+      <VisualRefinementProvider page="home" />
     </div>
   )
 }
