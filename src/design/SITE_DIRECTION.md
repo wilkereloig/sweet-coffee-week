@@ -165,10 +165,33 @@ Regras medidas e validadas na Home — base para as próximas páginas.
 
 ### Ritmo vertical entre seções
 
-- Padrão único: **`.section`** = `padding-block: clamp(56px, 9vw, 128px)`.
-- Bandas de cor (números, processo) usam o **mesmo** ritmo `.section` — não criar
-  padding vertical custom por seção sem intenção clara (evita bandas com alturas
-  diferentes).
+- Na Home, `.hm .section` **sobrescreve** o `.section` global e usa o token
+  **`--sp-section`** = `clamp(48px, 8vw, 128px)` (swc-redesign.css). Mobile
+  compacto (48px), desktop generoso mas sem buracos (teto 128px).
+  ⚠️ O valor anterior `clamp(56px, 11.5vw, 220px)` inflava demais (≈440px entre
+  seções em telas largas) — não voltar a isso.
+- Bandas de cor (números, processo) usam o **mesmo** ritmo — não criar padding
+  vertical custom por seção sem intenção clara (evita bandas com alturas
+  diferentes). Exceção: `.hm-f2` tem cap próprio `clamp(48px, 6.5vw, 84px)`.
+
+### Tipografia responsiva — quebras e pontuação órfã
+
+Regra validada em desktop, tablet e mobile (375px → 1440px):
+
+- **Nenhuma linha pode conter só pontuação** (`:`, `,`, `.`). A causa raiz é o
+  destaque `.hl-w { display: inline-block }`: o box vira token atômico e a
+  pontuação seguinte (nó de texto vizinho) ganha oportunidade de quebra própria.
+- **Solução:** agrupar palavra-destaque **+ sua pontuação** num
+  `<span className="keep-together">` (`.hm .keep-together { white-space: nowrap }`).
+  Ex.: `<span className="keep-together"><span className="hl-w">memória</span>:</span>`.
+- **O espaço fica FORA do wrapper** → a quebra natural entre grupos é preservada;
+  só o par palavra+sinal é protegido.
+- `white-space: nowrap` **só em grupos curtos** (palavra + sinal). Nunca em frase
+  inteira — causa overflow horizontal.
+- `text-wrap: balance` (títulos) e `pretty` (parágrafos) podem ficar — convivem
+  com os grupos `keep-together` (tratam o grupo como um único token).
+- Antes de aprovar qualquer página: revisar os títulos grandes em **mobile,
+  tablet e desktop** e confirmar que nenhum sinal sobra órfão.
 
 ### Grids & breakpoints
 
@@ -204,5 +227,82 @@ Regras medidas e validadas na Home — base para as próximas páginas.
 
 ---
 
+## 10. Motion System
+
+Referência de animação do site institucional. Tokens e classes vivem em
+**`src/styles/motion-system.css`** (importado em `main.jsx`). Aplicar via classes
+utilitárias opt-in; começar pela Home e replicar nas próximas páginas.
+
+### Princípios
+
+1. Movimento **editorial, leve e intencional** — reforça leitura e hierarquia.
+2. Dá vida sem parecer brinquedo ou template genérico.
+3. Acompanha a **narrativa** da página (entradas ajudam a entender sequência).
+4. Hover é **feedback**, não distração. Cards e botões: microinteração discreta.
+5. Decorativo pode ter movimento orgânico **muito** sutil.
+6. Só anima `transform` e `opacity` (sem layout shift). Nunca `width/height/top/left`.
+7. `prefers-reduced-motion: reduce` → tudo estático (conteúdo visível, sem animação).
+
+### Quando usar / quando NÃO usar
+
+- **Usar:** entrada de seção/cards ao cruzar a viewport, hover de card/botão,
+  count-up de números, reveal orgânico de imagem, float decorativo discreto.
+- **Não usar:** animação só por decoração, efeito genérico sem relação com o
+  conteúdo, movimento pesado no load, nada que cause "pulo" de layout.
+
+### Tokens
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--motion-fast` | `160ms` | hover / feedback imediato |
+| `--motion-base` | `260ms` | transições e entradas padrão |
+| `--motion-slow` | `520ms` | entradas calmas / institucionais |
+| `--ease-out-soft` | `cubic-bezier(.2,.7,.2,1)` | desaceleração natural (entrada/hover) |
+| `--ease-spring-soft` | `cubic-bezier(.16,1,.3,1)` | mola gentil, sem overshoot exagerado |
+| `--motion-rise` | `18px` | deslocamento das entradas |
+
+> Tokens legados (`--dur-fast/base/slow`, `--ease-out`, `--ease-pop`) em
+> swc-redesign.css continuam válidos; o Motion System é a camada canônica daqui
+> pra frente. O hero da Home já usava `cubic-bezier(.2,.7,.2,1)` (= `--ease-out-soft`).
+
+### Classes utilitárias
+
+| Classe | Comportamento |
+|---|---|
+| `.motion-section-in` | entrada suave (rise+fade) ao entrar na viewport |
+| `.motion-stagger` | filhos diretos entram em sequência (delays por `nth-child`) |
+| `.motion-image-reveal` | imagem/colagem com reveal orgânico (zoom-out leve) |
+| `.motion-card-hover` | hover de card: `translateY(-4px)` + sombra |
+| `.motion-button-hover` | hover de botão: `translateY(-2px)`, `:active` volta |
+| `.motion-float-soft` | float decorativo infinito, muito sutil (±6px) |
+
+Entradas são **scroll-driven** (`animation-timeline: view()`, progressive
+enhancement): conteúdo visível por padrão, animação só onde houver suporte — sem
+flash, sem JS.
+
+### Comportamento por área (Home)
+
+- **Hero** — texto entra em linhas escalonadas (`swcLineIn`), sublinhado desenha
+  uma vez (`swcUnderlineDraw`); easing já alinhado ao `--ease-out-soft`. Sem
+  movimento pesado no load.
+- **"O que é"** — título/texto revelam ao entrar; a foto usa `.motion-image-reveal`
+  (zoom-out leve, sem "pular").
+- **Cards de processo / Pilares** — entrada em sequência; hover discreto
+  (`translateY` + sombra), sem shift de layout.
+- **Números** — count-up animado na viewport (`CountUp`, respeita reduced-motion);
+  hover discreto que não compete com a leitura.
+- **Realização (F2)** — entrada mais calma; espectro de marca com loop sutil
+  (`f2Spectrum`); CTA com feedback claro no hover.
+- **Menu/Header** — transições de cor no hover/ativo apenas; sem exagero.
+
+### Acessibilidade
+
+`prefers-reduced-motion: reduce` zera entradas, floats, hovers e o espectro F2
+(conteúdo permanece visível, sublinhados já desenhados). Verificar sempre antes
+de aprovar uma página.
+
+---
+
 _Fonte de verdade da Home: `src/pages/institutional/Home.jsx`._
+_Fonte de verdade do movimento: `src/styles/motion-system.css`._
 _Atualizar este documento sempre que o padrão da Home mudar._

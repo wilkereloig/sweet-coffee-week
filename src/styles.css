@@ -362,14 +362,11 @@ button:disabled { cursor: not-allowed; }
 body.route-home .site-header {
   position: fixed;
   left: 0; right: 0; top: 0;
-  /* fade chega a 0 antes da borda inferior da caixa (78%) — evita a linha/seam
-     visível que sobra quando o gradiente ainda tem alpha no corte do box */
-  background: linear-gradient(
-    to bottom,
-    rgba(56, 22, 16, 0.62) 0%,
-    rgba(56, 22, 16, 0.18) 60%,
-    rgba(56, 22, 16, 0) 78%
-  );
+  /* SEM gradiente no header: qualquer degradê com alpha tem uma borda de caixa
+     (em ~139px) onde o slope/hue muda e o olho lê uma linha (Mach band). O
+     escurecimento do topo do hero já vem do .swc-hero::after (945px, sem corte
+     de box). Todas as seções da Home são escuras → menu legível ao rolar. */
+  background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-bottom-color: transparent;

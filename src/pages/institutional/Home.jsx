@@ -121,7 +121,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-why hm-numbers" {...ovStats}>
         <div className="wrap">
           <div className="hm-numbers__head">
-            <h2>Números que contam uma <span className="hl-w">história</span>.</h2>
+            <h2>Números que contam uma <span className="keep-together"><span className="hl-w">história</span>.</span></h2>
           </div>
           <div className="hm-stats">
             {STATS.map((s) => (
@@ -138,7 +138,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-about">
         <div className="wrap hm-about__grid">
           <div className="hm-about__head">
-            <h2 {...ovAboutTitle}>Um circuito de <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>sabor</span>, <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>cidade</span> e <span className="hl-w" style={{ '--hl': 'var(--pink)' }}>comunidade</span>.</h2>
+            <h2 {...ovAboutTitle}>Um circuito de <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>sabor</span>,</span> <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>cidade</span> e <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--pink)' }}>comunidade</span>.</span></h2>
             <div className="hm-about__text" {...ovAboutText}>
               <p>
                 O Sweet &amp; Coffee Week nasceu em Natal para aproximar o público das marcas locais por
@@ -153,7 +153,7 @@ export function HomePage({ navigate }) {
           </div>
 
           <div className="hm-about__media" {...ovAboutCollage}>
-            <div className="hm-about__photo">
+            <div className="hm-about__photo motion-image-reveal">
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
             </div>
             <span className="hm-about__heart" aria-hidden="true" {...ovAboutHeart}>
@@ -167,7 +167,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-steps-section" {...ovProcess}>
         <div className="wrap">
           <div className="hm-head">
-            <h2>Do tema à <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>: como o festival movimenta a cidade.</h2>
+            <h2>Do tema à <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>:</span> como o festival movimenta a cidade.</h2>
             <p>Cada edição nasce de uma ideia criativa, ganha forma nos combos dos participantes e se espalha por Natal como uma rota de sabores, encontros e descobertas.</p>
           </div>
           <div className="hm-steps">
@@ -224,6 +224,12 @@ export function HomePage({ navigate }) {
 
       <style>{`
         .hm { overflow-x: clip; }
+
+        /* Antipontuação órfã: agrupa palavra-destaque + sua pontuação numa
+           unidade que não quebra. Usar SÓ em grupos curtos (palavra+sinal),
+           nunca em frase inteira — senão causa overflow. O espaço fica fora
+           do wrapper, então a quebra natural entre grupos é preservada. */
+        .hm .keep-together { white-space: nowrap; }
 
         /* HERO — split chocolate + foto, blob coral, CTAs (left-aligned;
            prefixo .hm vence a centralização global de .page-enter) */
