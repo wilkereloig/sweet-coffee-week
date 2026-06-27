@@ -66,9 +66,10 @@ export function HomePage({ navigate }) {
   const designOn = isDesignModeEnabled()
   const edHeroPhoto = useDesignAdjustment('home.hero.photo')
   const edHeroTitle = useDesignAdjustment('home.hero.title')
+  const edHeroActions = useDesignAdjustment('home.hero.actions')
   const edAbout = useDesignAdjustment('home.about.collage')
+  const edProcess = useDesignAdjustment('home.process.section')
   const edStats = useDesignAdjustment('home.stats.section')
-  const edSteps = useDesignAdjustment('home.steps.section')
   const edRealizacao = useDesignAdjustment('home.realizacao.section')
 
   return (
@@ -79,7 +80,7 @@ export function HomePage({ navigate }) {
           <img src="/images/shapes/shape-seal-choco.svg" alt="" />
         </div>
 
-        <div className="swc-hero__photo" style={edHeroPhoto.style}>
+        <div className="swc-hero__photo" data-editable-id="home.hero.photo" style={edHeroPhoto.style}>
           <img
             src="/images/hero-festival.jpg"
             alt="Sobremesa autoral do Sweet & Coffee Week"
@@ -90,11 +91,11 @@ export function HomePage({ navigate }) {
         </div>
 
         <div className="swc-hero__copy">
-          <h1 className="swc-hero__title" style={edHeroTitle.style}>
+          <h1 className="swc-hero__title" data-editable-id="home.hero.title" style={edHeroTitle.style}>
             <span className="swc-hero__line">O festival mais</span>
             <span className="swc-hero__line"><span className="swc-hero__hl">doce</span> de Natal.</span>
           </h1>
-          <div className="swc-hero__text">
+          <div className="swc-hero__text" data-editable-id="home.hero.actions" style={edHeroActions.style}>
             <p>
               O Sweet &amp; Coffee Week é o festival gastronômico que transforma Natal em uma rota de
               sabores, encontros e descobertas.
@@ -108,7 +109,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* NÚMEROS */}
-      <section className="section hm-why hm-numbers" style={edStats.style}>
+      <section className="section hm-why hm-numbers" data-editable-id="home.stats.section" style={edStats.style}>
         <div className="wrap">
           <div className="hm-numbers__head">
             <h2>Números que contam uma <span className="hl-w">história</span>.</h2>
@@ -142,7 +143,7 @@ export function HomePage({ navigate }) {
             </div>
           </div>
 
-          <div className="hm-about__media" style={edAbout.style}>
+          <div className="hm-about__media" data-editable-id="home.about.collage" style={edAbout.style}>
             <div className="hm-about__photo">
               <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
             </div>
@@ -154,7 +155,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="section hm-steps-section" style={edSteps.style}>
+      <section className="section hm-steps-section" data-editable-id="home.process.section" style={edProcess.style}>
         <div className="wrap">
           <div className="hm-head">
             <h2>Do tema à <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>: como o festival movimenta a cidade.</h2>
@@ -174,7 +175,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* REALIZAÇÃO — 2 colunas editorial (handoff v2) */}
-      <section className="section hm-cta-section" style={edRealizacao.style}>
+      <section className="section hm-cta-section" data-editable-id="home.realizacao.section" style={edRealizacao.style}>
         <div className="wrap hm-realizacao">
           <div className="hm-realizacao__head">
             <h2>Uma realização da <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>F2 Experience</span>.</h2>

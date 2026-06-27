@@ -1,7 +1,8 @@
-// Painel de desenvolvimento do Design Mode.
-// Lista os elementos editáveis da página, mostra controles (slider + input),
-// aplica ao vivo via store e exporta CSS/JSON para revisão manual.
-// Renderizado apenas quando isDesignModeEnabled() é true (ver Home.jsx).
+// Painel de desenvolvimento do Design Mode (MVP).
+// Lista os elementos editáveis da página, mostra X/Y/scale/rotate (slider + input),
+// aplica ao vivo via store e exporta JSON/CSS para revisão manual.
+// Aparece só quando isDesignModeEnabled() é true (gating em Home.jsx).
+// Abre/fecha via FAB (canto inferior direito) ou atalho Ctrl+Shift+D.
 
 import React from 'react'
 import { elementsForPage } from './editableElements'
@@ -15,50 +16,25 @@ import {
   toJSON,
 } from './layoutAdjustments'
 
-// Definição de cada controle: rótulo, faixa e passo.
-const CONTROL_META = {
-  x: { label: 'X', min: -400, max: 400, step: 1, unit: 'px', def: 0 },
-  y: { label: 'Y', min: -400, max: 400, step: 1, unit: 'px', def: 0 },
-  scale: { label: 'Scale', min: 0.5, max: 2, step: 0.01, unit: '', def: 1 },
-  rotate: { label: 'Rotate', min: -45, max: 45, step: 0.5, unit: '°', def: 0 },
-  width: { label: 'Width', min: 120, max: 1200, step: 1, unit: 'px', def: null },
-  z: { label: 'z-index', min: 0, max: 50, step: 1, unit: '', def: null },
-}
+// Controles do MVP: rótulo, faixa e passo.
+const CONTROLS = [
+  { key: 'x', label: 'X', min: -400, max: 400, step: 1, def: 0 },
+  { key: 'y', label: 'Y', min: -400, max: 400, step: 1, def: 0 },
+  { key: 'scale', label: 'Scale', min: 0.5, max: 2, step: 0.01, def: 1 },
+  { key: 'rotate', label: 'Rotate', min: -45, max: 45, step: 0.5, def: 0 },
+]
 
-function Control({ id, adj, name }) {
-  const meta = CONTROL_META[name]
-  const raw = adj[name]
-  const value = raw == null ? meta.def : raw
-  // Para width/z (default null): slider parte do mínimo; input vazio = limpar.
-  const sliderValue = value == null ? meta.min : value
-
-  const onSlider = (e) => setAdjustment(id, { [name]: Number(e.target.value) })
-  const onInput = (e) => {
+function Control({ id, adj, meta }) {
+  const value = adj[meta.key]
+  const onChange = (e) => {
     const v = e.target.value
-    if (v === '') return setAdjustment(id, { [name]: meta.def })
-    setAdjustment(id, { [name]: Number(v) })
+    setAdjustment(id, { [meta.key]: v === '' ? meta.def : Number(v) })
   }
-
   return (
     <label style={S.ctrl}>
       <span style={S.ctrlLabel}>{meta.label}</span>
-      <input
-        type="range"
-        min={meta.min}
-        max={meta.max}
-        step={meta.step}
-        value={sliderValue}
-        onChange={onSlider}
-        style={S.range}
-      />
-      <input
-        type="number"
-        step={meta.step}
-        value={value == null ? '' : value}
-        placeholder={meta.def == null ? 'auto' : String(meta.def)}
-        onChange={onInput}
-        style={S.num}
-      />
+      <input type="range" min={meta.min} max={meta.max} step={meta.step} value={value} onChange={onChange} style={S.range} />
+      <input type="number" step={meta.step} value={value} onChange={onChange} style={S.num} />
     </label>
   )
 }
@@ -68,8 +44,7 @@ function Row({ el }) {
   const [adj, setAdj] = React.useState(() => getAdjustment(el.id))
   React.useEffect(() => subscribe(() => setAdj(getAdjustment(el.id))), [el.id])
 
-  const touched =
-    adj.x !== 0 || adj.y !== 0 || adj.scale !== 1 || adj.rotate !== 0 || adj.width != null || adj.z != null
+  const touched = adj.x !== 0 || adj.y !== 0 || adj.scale !== 1 || adj.rotate !== 0
 
   return (
     <div style={S.row}>
@@ -85,10 +60,11 @@ function Row({ el }) {
           </button>
         )}
       </div>
+      {el.note && open && <p style={S.note}>{el.note}</p>}
       {open && (
         <div style={S.controls}>
-          {el.controls.map((name) => (
-            <Control key={name} id={el.id} adj={adj} name={name} />
+          {CONTROLS.map((meta) => (
+            <Control key={meta.key} id={el.id} adj={adj} meta={meta} />
           ))}
         </div>
       )}
@@ -97,9 +73,21 @@ function Row({ el }) {
 }
 
 export function DesignModePanel({ page = 'home' }) {
-  const [collapsed, setCollapsed] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
   const [copied, setCopied] = React.useState('')
   const els = elementsForPage(page)
+
+  // Atalho Ctrl+Shift+D abre/fecha o painel.
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+        e.preventDefault()
+        setOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const copy = async (kind) => {
     const text = kind === 'css' ? toCSS() : toJSON()
@@ -108,14 +96,13 @@ export function DesignModePanel({ page = 'home' }) {
       setCopied(kind)
       setTimeout(() => setCopied(''), 1400)
     } catch {
-      // fallback: seleciona via prompt para cópia manual
       window.prompt('Copie manualmente:', text)
     }
   }
 
-  if (collapsed) {
+  if (!open) {
     return (
-      <button type="button" onClick={() => setCollapsed(false)} style={S.fab} title="Abrir Design Mode">
+      <button type="button" onClick={() => setOpen(true)} style={S.fab} title="Design Mode (Ctrl+Shift+D)">
         ✎
       </button>
     )
@@ -126,7 +113,7 @@ export function DesignModePanel({ page = 'home' }) {
       <div style={S.header}>
         <strong style={S.title}>Design Mode</strong>
         <span style={S.badge}>dev</span>
-        <button type="button" onClick={() => setCollapsed(true)} style={S.close} title="Minimizar">
+        <button type="button" onClick={() => setOpen(false)} style={S.close} title="Fechar (Ctrl+Shift+D)">
           –
         </button>
       </div>
@@ -138,11 +125,11 @@ export function DesignModePanel({ page = 'home' }) {
       </div>
 
       <div style={S.actions}>
-        <button type="button" onClick={() => copy('css')} style={S.btn}>
-          {copied === 'css' ? '✓ copiado' : 'Copiar CSS'}
-        </button>
         <button type="button" onClick={() => copy('json')} style={S.btn}>
           {copied === 'json' ? '✓ copiado' : 'Copiar JSON'}
+        </button>
+        <button type="button" onClick={() => copy('css')} style={S.btn}>
+          {copied === 'css' ? '✓ copiado' : 'Copiar CSS'}
         </button>
         <button
           type="button"
@@ -151,7 +138,7 @@ export function DesignModePanel({ page = 'home' }) {
           }}
           style={{ ...S.btn, ...S.btnDanger }}
         >
-          Resetar ajustes
+          Resetar
         </button>
       </div>
     </aside>
@@ -164,8 +151,7 @@ const S = {
     position: 'fixed', right: 16, bottom: 16, zIndex: 99999, width: 320, maxHeight: '80vh',
     display: 'flex', flexDirection: 'column', background: '#1c1410', color: '#f3e9e1',
     border: '1px solid rgba(255,255,255,.12)', borderRadius: 14,
-    boxShadow: '0 18px 50px rgba(0,0,0,.5)', font: '13px/1.4 system-ui, sans-serif',
-    overflow: 'hidden',
+    boxShadow: '0 18px 50px rgba(0,0,0,.5)', font: '13px/1.4 system-ui, sans-serif', overflow: 'hidden',
   },
   header: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,.1)' },
   title: { fontSize: 13, letterSpacing: '.02em' },
@@ -177,6 +163,7 @@ const S = {
   rowToggle: { flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', border: 'none', background: 'transparent', color: '#f3e9e1', cursor: 'pointer', textAlign: 'left', font: 'inherit' },
   rowReset: { width: 26, height: 26, border: 'none', borderRadius: 6, background: 'transparent', color: '#caa', cursor: 'pointer', fontSize: 14 },
   dot: { width: 7, height: 7, borderRadius: '50%', background: '#e7b27a' },
+  note: { margin: '0 6px 6px', padding: '6px 8px', borderRadius: 6, background: 'rgba(231,178,122,.12)', color: '#e7b27a', fontSize: 11 },
   controls: { display: 'grid', gap: 8, padding: '4px 6px 12px' },
   ctrl: { display: 'grid', gridTemplateColumns: '54px 1fr 56px', alignItems: 'center', gap: 8 },
   ctrlLabel: { fontSize: 11, color: '#c9b8aa' },

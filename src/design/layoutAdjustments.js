@@ -1,15 +1,18 @@
-// Store de ajustes do Design Mode.
-// - Valores base (defaults) por elemento.
+// Store de ajustes do Design Mode (MVP).
+// - Valores base (defaults) por elemento: x, y, scale, rotate.
 // - Persistência TEMPORÁRIA em localStorage (nunca grava no código).
 // - Pub/sub para o painel e os elementos atualizarem ao vivo.
-// - Serializadores para "Copiar CSS" e "Copiar JSON".
+// - Serializadores "Copiar JSON" / "Copiar CSS" com formato fixo.
 // Nada aqui altera produção: tudo vive no navegador até você revisar e aplicar à mão.
 
-import { EDITABLE_ELEMENTS, findElement } from './editableElements'
+import { EDITABLE_ELEMENTS } from './editableElements'
 
 const STORAGE_KEY = 'swc_design_adjustments_v1'
 
-export const DEFAULTS = { x: 0, y: 0, scale: 1, rotate: 0, width: null, z: null }
+// Flag local para ligar o painel fora de DEV (ex.: testar num preview).
+export const ENABLE_DESIGN_MODE = false
+
+export const DEFAULTS = { x: 0, y: 0, scale: 1, rotate: 0 }
 
 function readStorage() {
   try {
@@ -49,7 +52,7 @@ export function getAll() {
   return state
 }
 
-// Aplica um patch parcial { x?, y?, scale?, ... } a um id.
+// Aplica um patch parcial { x?, y?, scale?, rotate? } a um id.
 export function setAdjustment(id, patch) {
   const next = { ...getAdjustment(id), ...patch }
   state = { ...state, [id]: next }
@@ -73,22 +76,14 @@ export function resetAll() {
 }
 
 export function isDefault(adj) {
-  return (
-    adj.x === 0 &&
-    adj.y === 0 &&
-    adj.scale === 1 &&
-    adj.rotate === 0 &&
-    (adj.width == null) &&
-    (adj.z == null)
-  )
+  return adj.x === 0 && adj.y === 0 && adj.scale === 1 && adj.rotate === 0
 }
 
-// Constrói o objeto de estilo inline aplicado ao elemento.
-// Só injeta transform/vars quando o ajuste é diferente do default,
-// para não criar transform/stacking context em elementos não tocados.
+// Estilo inline aplicado ao elemento. Só injeta transform/vars quando o ajuste
+// é diferente do default, para não criar transform/stacking em nós não tocados.
 export function styleFor(adj) {
   if (isDefault(adj)) return {}
-  const style = {
+  return {
     '--edit-x': `${adj.x}px`,
     '--edit-y': `${adj.y}px`,
     '--edit-scale': `${adj.scale}`,
@@ -96,58 +91,43 @@ export function styleFor(adj) {
     transform:
       'translate(var(--edit-x, 0px), var(--edit-y, 0px)) scale(var(--edit-scale, 1)) rotate(var(--edit-rotate, 0deg))',
   }
-  if (adj.width != null) style.width = `${adj.width}px`
-  if (adj.z != null) style.zIndex = adj.z
-  return style
 }
 
-// --- Serializadores -------------------------------------------------------
+// --- Serializadores (formato fixo do MVP) ---------------------------------
 
-function transformDecl(adj) {
-  const parts = []
-  if (adj.x !== 0 || adj.y !== 0) parts.push(`translate(${adj.x}px, ${adj.y}px)`)
-  if (adj.scale !== 1) parts.push(`scale(${adj.scale})`)
-  if (adj.rotate !== 0) parts.push(`rotate(${adj.rotate}deg)`)
-  return parts.join(' ')
+function transformStr(adj) {
+  return `translate(${adj.x}px, ${adj.y}px) scale(${adj.scale}) rotate(${adj.rotate}deg)`
 }
 
-// Gera CSS pronto para revisão (uma regra por elemento ajustado).
+// CSS por data-editable-id, snapshot de todos os elementos registrados.
+//   [data-editable-id="home.hero.photo"] {
+//     transform: translate(0px, 0px) scale(1) rotate(0deg);
+//   }
 export function toCSS() {
-  const blocks = []
-  for (const el of EDITABLE_ELEMENTS) {
+  return EDITABLE_ELEMENTS.map((el) => {
     const adj = getAdjustment(el.id)
-    if (isDefault(adj)) continue
-    const decls = []
-    const t = transformDecl(adj)
-    if (t) decls.push(`  transform: ${t};`)
-    if (adj.width != null) decls.push(`  width: ${adj.width}px;`)
-    if (adj.z != null) decls.push(`  z-index: ${adj.z};`)
-    if (!decls.length) continue
-    blocks.push(`/* ${el.id} — ${el.label} */\n${el.selector} {\n${decls.join('\n')}\n}`)
-  }
-  return blocks.join('\n\n') || '/* nenhum ajuste aplicado */'
+    return `[data-editable-id="${el.id}"] {\n  transform: ${transformStr(adj)};\n}`
+  }).join('\n\n')
 }
 
-// Gera JSON só com os ids efetivamente ajustados.
+// JSON snapshot de todos os elementos registrados.
+//   { "home.hero.photo": { "x": 0, "y": 0, "scale": 1, "rotate": 0 } }
 export function toJSON() {
   const out = {}
-  for (const id of Object.keys(state)) {
-    const adj = getAdjustment(id)
-    if (isDefault(adj)) continue
-    if (!findElement(id)) continue
-    out[id] = adj
-  }
+  for (const el of EDITABLE_ELEMENTS) out[el.id] = getAdjustment(el.id)
   return JSON.stringify(out, null, 2)
 }
 
 // --- Gating ---------------------------------------------------------------
-// Painel só aparece em DEV, com ?design=1 na URL, ou flag localStorage swc_design=1.
+// Painel só aparece em DEV, com a flag ENABLE_DESIGN_MODE, ?design=1 na URL,
+// ou localStorage swc_design=1. Em build de produção sem flag: não renderiza.
 export function isDesignModeEnabled() {
   try {
     if (import.meta.env && import.meta.env.DEV) return true
   } catch {
     /* import.meta indisponível */
   }
+  if (ENABLE_DESIGN_MODE) return true
   try {
     const hay = `${location.search} ${location.hash}`
     if (/[?&]design=1\b/.test(hay)) return true
