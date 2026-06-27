@@ -1,3 +1,11 @@
+/*
+ * PÁGINA-MÃE DO INSTITUCIONAL — "O Festival".
+ * Referência principal do sistema institucional do Sweet & Coffee Week:
+ * define o padrão visual, editorial e estrutural das demais páginas
+ * (Edições, Curiosidades, Participar, Apoiar, Contato).
+ * Antes de propor/replicar mudanças em outras páginas, ler:
+ *   src/design/SITE_DIRECTION.md
+ */
 import React from 'react'
 import { I } from '../../components/icons'
 import { useVisualOverride } from '../../design/useVisualOverride'
@@ -356,7 +364,8 @@ export function HomePage({ navigate }) {
         .hm-stat { border: 0; border-top: 3px solid var(--coral); border-radius: 0; padding: 16px 0 0; background: transparent; }
         .hm-stat strong { display: block; font-family: var(--font-display); font-weight: 900; font-size: clamp(38px, 4.6vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
         .hm-stat > span { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
-        .hm .hm-numbers { background: #5e3018; padding-block: calc(var(--sp-section) * .82); }
+        /* ritmo vertical = .section padrão (mesma altura das outras bandas; consistência) */
+        .hm .hm-numbers { background: #5e3018; }
         .hm-numbers__head { text-align: center; margin: 0 auto var(--sp-7); }
         .hm-numbers__head h2 { color: var(--cream); font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .98; letter-spacing: -.04em; margin: 0 auto; text-wrap: balance; }
         .hm-numbers .hm-stat:nth-child(1) { border-top-color: var(--coral); }
@@ -371,15 +380,15 @@ export function HomePage({ navigate }) {
         @media (max-width: 420px) { .hm-numbers .hm-stats { grid-template-columns: 1fr; } }
 
         /* Stat card colorido — texto contraste-safe por card (--on) */
-        .hm-numbers .hm-stat { border-top: 0; position: relative; container-type: inline-size; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: var(--sp-6) var(--sp-6); min-height: clamp(148px, 12vw, 178px); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; box-shadow: 0 6px 16px rgba(43,24,16,.14); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-numbers .hm-stat { border-top: 0; position: relative; container-type: inline-size; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: var(--sp-5) var(--sp-5) var(--sp-6); min-width: 0; min-height: clamp(148px, 12vw, 178px); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--sp-3); box-shadow: 0 6px 16px rgba(43,24,16,.14); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-numbers .hm-stat:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(43,24,16,.26); }
         .hm-numbers .hm-stat:nth-child(1) { --c: var(--yellow); --on: var(--on-yellow); }
         .hm-numbers .hm-stat:nth-child(2) { --c: var(--pink);   --on: var(--on-pink); }
         .hm-numbers .hm-stat:nth-child(3) { --c: var(--cyan);   --on: var(--choco); }
         .hm-numbers .hm-stat:nth-child(4) { --c: var(--yellow); --on: var(--on-yellow); }
         .hm-numbers .hm-stat__k { align-self: flex-start; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-style: normal; color: var(--on); opacity: .68; margin-bottom: var(--sp-4); }
-        .hm-numbers .hm-stat strong { font-size: clamp(40px, 19cqi, 60px); line-height: .92; letter-spacing: -.03em; margin: 0 0 6px; color: var(--on); }
-        .hm-numbers .hm-stat > span { font-size: clamp(15px, 5cqi, 19px); line-height: 1.4; margin-top: 0; color: var(--on); opacity: .9; font-weight: 600; }
+        .hm-numbers .hm-stat strong { font-size: clamp(34px, 15cqi, 52px); line-height: .9; letter-spacing: -.035em; margin: 0; max-width: 100%; color: var(--on); }
+        .hm-numbers .hm-stat > span { font-size: clamp(15px, 4.6cqi, 18px); line-height: 1.3; margin: 0; max-width: 95%; color: var(--on); opacity: 1; font-weight: 700; text-wrap: pretty; }
 
         /* Card — pilar com top-rail de acento, superfície elevada */
         .hm-pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }
