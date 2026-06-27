@@ -48,9 +48,9 @@ function BrandLogo({ navigate }) {
     <a href="#/" className="brand" onClick={(e) => { e.preventDefault(); navigate('/') }}
        style={{ display: 'inline-block' }}>
       <img
-        src="/images/logo-sweet-coffee-week-header.svg"
+        src="/images/logo-seal-sweet-coffee.svg"
         alt="Sweet & Coffee Week"
-        height={96}
+        height={72}
         style={{ display: 'block' }}
       />
     </a>
@@ -59,14 +59,23 @@ function BrandLogo({ navigate }) {
 
 export function SiteHeader({ route, navigate }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [scrolled, setScrolled] = React.useState(false)
+
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Home: barra transparente sobre o hero escuro até rolar; demais páginas: sólida.
+  const transparent = route === 'home' && !scrolled
 
   return (
     <React.Fragment>
-      <SiteSidebar route={route} navigate={navigate} />
-
-      <header className="site-header">
+      <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
         <div className="site-header__inner">
-          <BrandLogo navigate={navigate} />
+          <BrandLogo navigate={navigate} light={transparent} />
 
           <nav className="nav-main">
             {NAV_LINKS.map((l) => (

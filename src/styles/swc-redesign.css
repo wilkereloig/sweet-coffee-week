@@ -95,7 +95,7 @@
   --sp-section: clamp(56px, 11.5vw, 220px);
   /* Grid horizontal único da Home: recuo lateral + largura máx do conteúdo.
      Hero e todas as seções compartilham → conteúdo alinha na mesma linha. */
-  --hm-gutter: clamp(28px, 11.5vw, 220px);
+  --hm-gutter: clamp(28px, 11.5vw, 150px);
   --hm-content-max: 1440px;
 
   /* Silhueta do selo da marca — máscara p/ recortar imagem (PhotoBadge) */

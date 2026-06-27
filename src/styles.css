@@ -306,18 +306,28 @@ button:disabled { cursor: not-allowed; }
 .nav-main {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-left: auto;
   font-size: 14px;
 }
 .nav-main a {
-  padding: 8px 14px;
-  border-radius: 999px;
+  position: relative;
+  padding: 8px 12px;
   color: var(--ink-soft);
-  transition: color .15s ease, background .15s ease;
-  font-weight: 500;
+  transition: color .15s ease;
+  font-weight: 700;
+  text-transform: lowercase;
 }
-.nav-main a:hover { color: var(--ink); background: rgba(43,24,16,.05); }
-.nav-main a.active { color: var(--ink); background: rgba(43,24,16,.07); }
+.nav-main a:hover { color: var(--ink); }
+.nav-main a.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+.nav-main a.active::after {
+  content: '';
+  position: absolute;
+  left: 12px; right: 12px; bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
 .nav-cta {
   display: flex;
   align-items: center;
@@ -346,6 +356,34 @@ button:disabled { cursor: not-allowed; }
   }
   .menu-toggle svg { width: 20px; height: 20px; }
   .menu-toggle:hover { opacity: 1; }
+}
+
+/* HOME: barra transparente sobre o hero escuro; vira sólida ao rolar */
+body.route-home .site-header {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  background: rgba(56, 22, 16, 0.5);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+body.route-home .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); }
+body.route-home .site-header .nav-main a:hover { color: #fff; }
+body.route-home .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
+body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
+
+/* HOME desktop: logo grande, centro fixo na borda inferior da barra (metade vaza no hero) */
+@media (min-width: 960px) {
+  body.route-home .site-header__inner { position: relative; padding-block: 50px; }
+  body.route-home .brand {
+    position: absolute;
+    left: var(--pad);
+    top: 100%;
+    transform: translateY(-50%);
+    margin: 0;
+    z-index: 3;
+  }
+  body.route-home .brand img { height: clamp(116px, 11vw, 160px); }
 }
 .mobile-overlay {
   position: fixed;
@@ -616,13 +654,8 @@ button:disabled { cursor: not-allowed; }
   opacity: 0.6;
 }
 
-@media (min-width: 960px) {
-  .site-header { display: none; }
-  main, .site-footer { margin-left: var(--sidebar-w); }
-}
-@media (max-width: 959px) {
-  .site-sidebar { display: none; }
-}
+/* sidebar removido — nav agora é a barra de topo em todas as larguras */
+.site-sidebar { display: none; }
 
 /* ---------- COMBO RAIL (lista de participantes) — OCULTADO a pedido ---------- */
 .combo-rail {
