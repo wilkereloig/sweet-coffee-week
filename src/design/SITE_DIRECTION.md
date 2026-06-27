@@ -157,8 +157,11 @@ Regras medidas e validadas na Home — base para as próximas páginas.
 - O **hero** é exceção intencional: bloco centrado, `max-width: 920px`, padding
   próprio `clamp(24px,6vw,64px)`. Não alinha ao gutter das seções porque é
   full-bleed centrado — não replicar esse paradigma em seções normais.
-- Header usa o mesmo container/gutter (`--pad` no `.site-header__inner`) → menu
-  alinhado à mesma coluna do conteúdo.
+- Header (route-home, desktop ≥960) segue o **mesmo grid do conteúdo**:
+  `max-width: none` + `padding-inline: var(--hm-gutter)`. Logo encosta no gutter
+  esquerdo, menu no direito — alinhados às bordas dos cards/títulos. O `.nav-cta`
+  (hambúrguer, oculto no desktop) é `display:none` para o menu encostar no gutter
+  direito sem sobra de `gap`.
 
 ### Ritmo vertical entre seções
 

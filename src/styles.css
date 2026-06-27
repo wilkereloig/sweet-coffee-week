@@ -381,10 +381,11 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
 
 /* HOME desktop: logo grande, centro fixo na borda inferior da barra (metade vaza no hero) */
 @media (min-width: 960px) {
-  body.route-home .site-header__inner { position: relative; padding-block: 50px; }
+  /* menu segue o mesmo grid do conteúdo (.hm .wrap): full-width + recuo --hm-gutter */
+  body.route-home .site-header__inner { position: relative; max-width: none; padding-block: 50px; padding-inline: var(--hm-gutter); }
   body.route-home .brand {
     position: absolute;
-    left: var(--pad);
+    left: var(--hm-gutter);
     top: 100%;
     transform: translateY(-50%);
     margin: 0;
@@ -393,6 +394,8 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
     z-index: -1;
   }
   body.route-home .brand img { height: clamp(116px, 11vw, 160px); }
+  /* hambúrguer oculto no desktop: remove o nav-cta vazio p/ o menu encostar no gutter direito */
+  body.route-home .nav-cta { display: none; }
 }
 .mobile-overlay {
   position: fixed;
