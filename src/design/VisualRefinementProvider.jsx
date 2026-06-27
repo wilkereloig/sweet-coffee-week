@@ -13,12 +13,10 @@ import { VisualRefinementPanel } from './VisualRefinementPanel'
 export const ENABLE_VISUAL_REFINEMENT = false
 
 export function isRefinementEnabled() {
+  // Só em DEV ou via flag de compilação. Sem bypass por URL: em produção a
+  // ferramenta não pode ser ligada por um query param (?refine=1) qualquer.
   try { if (import.meta.env && import.meta.env.DEV) return true } catch { /* noop */ }
-  if (ENABLE_VISUAL_REFINEMENT) return true
-  try {
-    if (/[?&]refine=1\b/.test(`${location.search} ${location.hash}`)) return true
-  } catch { /* noop */ }
-  return false
+  return ENABLE_VISUAL_REFINEMENT
 }
 
 export function VisualRefinementProvider({ page = 'home' }) {

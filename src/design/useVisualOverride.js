@@ -11,7 +11,7 @@
 
 import React from 'react'
 import fileOverrides from './visualOverrides.json'
-import { findVisualElement, breakpointForWidth } from './visualEditableRegistry'
+import { findVisualElement, breakpointForWidth, elementsForPage } from './visualEditableRegistry'
 
 const LS_KEY = 'swc_visual_overrides_working_v1'
 
@@ -75,8 +75,13 @@ export function resetElement(id) {
 }
 
 export function resetPage(page) {
-  for (const el of Object.keys(fileOverrides)) cleared.add(el)
-  working = {}
+  const ids = elementsForPage(page).map((e) => e.id)
+  const next = { ...working }
+  for (const id of ids) {
+    cleared.add(id)
+    delete next[id]
+  }
+  working = next
   persist()
   emit()
 }
