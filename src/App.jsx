@@ -23,7 +23,7 @@ import { PainelPage }       from './pages/lovers/Painel'
 // Publicação temporária focada em Awards: enquanto true, todo o site público
 // renderiza só a página de vencedores (/vencedores e alias /premiacao). O painel
 // interno (/lovers/painel) continua acessível, mas fora de qualquer menu/header.
-const AWARDS_ONLY_PUBLICATION = true
+const AWARDS_ONLY_PUBLICATION = false
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
