@@ -362,7 +362,14 @@ button:disabled { cursor: not-allowed; }
 body.route-home .site-header {
   position: fixed;
   left: 0; right: 0; top: 0;
-  background: rgba(56, 22, 16, 0.5);
+  /* fade chega a 0 antes da borda inferior da caixa (78%) — evita a linha/seam
+     visível que sobra quando o gradiente ainda tem alpha no corte do box */
+  background: linear-gradient(
+    to bottom,
+    rgba(56, 22, 16, 0.62) 0%,
+    rgba(56, 22, 16, 0.18) 60%,
+    rgba(56, 22, 16, 0) 78%
+  );
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-bottom-color: transparent;
