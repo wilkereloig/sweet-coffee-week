@@ -179,6 +179,7 @@ export function HomePage({ navigate }) {
       <section className="section hm-f2" {...ovRealizacao}>
         <div className="wrap hm-f2__inner">
           <div className="hm-f2__brandrow">
+            <span className="hm-f2__eyebrow">Realização</span>
             <a
               className="hm-f2__brand"
               href="https://www.f2experience.com.br"
@@ -188,7 +189,6 @@ export function HomePage({ navigate }) {
             >
               <img src="/images/logo-f2experience.svg" alt="F2 Experience" />
             </a>
-            <span className="hm-f2__eyebrow">Realização</span>
           </div>
           <div className="hm-f2__grid">
             <h2 className="hm-f2__title">
@@ -399,7 +399,7 @@ export function HomePage({ navigate }) {
 
         .hm .hm-f2 { background: #000; --f2-magenta: #E50053; --f2-violet: #512FB9; --f2-green: #05D975; padding-block: clamp(48px, 6.5vw, 84px); }
         .hm-f2__inner { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(20px, 2.6vw, 30px); text-align: left; font-family: 'Helvetica Ext', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        .hm-f2__brandrow { display: flex; align-items: center; gap: 16px; }
+        .hm-f2__brandrow { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
         .hm-f2__brand { display: block; line-height: 0; }
         .hm-f2__brand img { width: clamp(140px, 17vw, 200px); height: auto; }
         .hm-f2__eyebrow { font-size: clamp(10px, .85vw, 12px); font-weight: 700; letter-spacing: .4em; text-transform: uppercase; color: #fff; opacity: .42; }
