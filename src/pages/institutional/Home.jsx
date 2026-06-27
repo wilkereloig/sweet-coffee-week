@@ -418,10 +418,8 @@ export function HomePage({ navigate }) {
 
         /* Grids de card reflui sozinho via auto-fit; sem breakpoints rígidos. */
         @media (max-width: 900px) {
-          .hm-hero__grid, .hm-feature__grid { grid-template-columns: 1fr; }
           .hm-head { flex-direction: column; align-items: flex-start; }
           .hm-realizacao { grid-template-columns: 1fr; gap: var(--sp-6); }
-          .hm-feature__photo > figure { min-height: 340px; }
         }
         /* Celular: card ocupa a largura toda (evita coluna estreita demais) */
         @media (max-width: 520px) {
