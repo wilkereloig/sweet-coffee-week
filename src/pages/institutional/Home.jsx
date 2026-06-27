@@ -266,7 +266,7 @@ export function HomePage({ navigate }) {
         .hm-about__media { position: relative; }
         .hm-about__photo { width: 100%; aspect-ratio: 1 / 1; -webkit-mask: var(--mask-badge) center / contain no-repeat; mask: var(--mask-badge) center / contain no-repeat; }
         .hm-about__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .hm-about__heart { position: absolute; left: 3%; bottom: 13%; width: clamp(72px, 9vw, 124px); color: var(--yellow); filter: drop-shadow(0 8px 18px rgba(43,24,16,.4)); }
+        .hm-about__heart { position: absolute; left: -6%; bottom: 9%; width: clamp(72px, 9vw, 124px); color: var(--yellow); filter: drop-shadow(0 8px 18px rgba(43,24,16,.4)); }
         .hm-about__heart img { display: block; width: 100%; height: auto; }
         @media (max-width: 860px) { .hm-about__grid { grid-template-columns: 1fr; gap: var(--sp-7); } .hm-about__media { max-width: 420px; margin: 0 auto; } }
         .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
