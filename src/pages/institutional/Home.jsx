@@ -175,28 +175,36 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* REALIZAÇÃO — 2 colunas editorial (handoff v2) */}
-      <section className="section hm-cta-section" {...ovRealizacao}>
-        <div className="wrap hm-realizacao">
-          <div className="hm-realizacao__head">
-            <h2>Uma realização da <span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>F2 Experience</span>.</h2>
-          </div>
-          <div className="hm-realizacao__body">
-            <p>
-              O Sweet &amp; Coffee Week é realizado pela F2 Experience, empresa especializada em criar
-              experiências, campanhas e ativações que conectam marcas, pessoas e cidade.
-              No festival, a F2 assina a estratégia, a criação, a comunicação e o desenvolvimento
-              do projeto como plataforma de marca, conteúdo, experiência e economia criativa.
-            </p>
-            <a
-              href="https://www.f2experience.com.br"
-              className="btn btn-primary btn-lg btn-sticker"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Conhecer a F2 Experience <I.arrow />
-            </a>
-          </div>
+      {/* REALIZAÇÃO — assinatura na identidade da F2 Experience */}
+      <section className="section hm-f2" {...ovRealizacao}>
+        <div className="wrap hm-f2__inner">
+          <span className="hm-f2__eyebrow">Realização</span>
+          <a
+            className="hm-f2__brand"
+            href="https://www.f2experience.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="F2 Experience"
+          >
+            <img src="/images/logo-f2experience.svg" alt="F2 Experience" />
+          </a>
+          <h2 className="hm-f2__title">
+            Há mais de 20 anos transformando <em>estratégia</em> em criatividade.
+          </h2>
+          <p className="hm-f2__text">
+            O Sweet &amp; Coffee Week é uma realização da F2 Experience — live marketing que conecta
+            marcas, pessoas e cidade. A F2 assina a estratégia, a criação, a comunicação e o
+            desenvolvimento do festival como plataforma de marca, conteúdo e experiência.
+          </p>
+          <a
+            className="hm-f2__cta"
+            href="https://www.f2experience.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Conhecer a F2 Experience <I.arrow />
+          </a>
+          <span className="hm-f2__spectrum" aria-hidden="true" />
         </div>
       </section>
 
@@ -375,11 +383,27 @@ export function HomePage({ navigate }) {
         .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: 0; color: var(--ink); }
         .hm-pillar p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.4; margin: var(--sp-3) 0 0; }
 
-        /* Realização v2 — banda cream-deep arejada, 2 colunas editorial, Button sticker */
-        .hm .hm-cta-section { background: #5e3018; padding-block: calc(var(--sp-section) * 1.12); }
-        .hm-realizacao { display: block; max-width: 760px; margin: 0 auto; text-align: center; }
-        .hm-realizacao__head h2 { font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .96; letter-spacing: -.04em; margin: 0 auto var(--sp-6); color: var(--cream); text-wrap: balance; }
-        .hm-realizacao__body p { color: rgba(255,241,230,.82); font-size: var(--fs-lead); line-height: 1.4; margin: 0 auto var(--sp-6); max-width: 60ch; text-wrap: pretty; }
+        /* REALIZAÇÃO — assinatura na identidade da F2 Experience.
+           Corte duro para a "pele" da F2: fundo preto, Helvetica Extended,
+           acentos magenta/violeta/verde e o espectro de marca da F2. */
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtThn.ttf') format('truetype'); font-weight: 100; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExt.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBd.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Helvetica Ext'; src: url('/fonts/helvetica-ext/HelveticaExtBlk.ttf') format('truetype'); font-weight: 900; font-style: normal; font-display: swap; }
+
+        .hm .hm-f2 { background: #000; --f2-magenta: #E50053; --f2-violet: #512FB9; --f2-green: #05D975; padding-block: clamp(76px, 11vw, 148px); }
+        .hm-f2__inner { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: clamp(18px, 2.6vw, 32px); text-align: left; font-family: 'Helvetica Ext', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .hm-f2__eyebrow { font-size: clamp(11px, 1vw, 13px); font-weight: 700; letter-spacing: .42em; text-transform: uppercase; color: #fff; opacity: .5; }
+        .hm-f2__brand { display: block; line-height: 0; }
+        .hm-f2__brand img { width: clamp(180px, 27vw, 300px); height: auto; }
+        .hm-f2__title { margin: 0; max-width: 17ch; font-weight: 100; font-size: clamp(30px, 5.2vw, 66px); line-height: 1.03; letter-spacing: -.015em; color: #fff; }
+        .hm-f2__title em { font-style: normal; font-weight: 900; color: var(--f2-magenta); }
+        .hm-f2__text { margin: 0; max-width: 60ch; font-weight: 300; font-size: clamp(15px, 1.4vw, 19px); line-height: 1.55; color: rgba(255,255,255,.7); }
+        .hm-f2__cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; background: var(--f2-magenta); color: #fff; font-weight: 700; font-size: clamp(13px, 1.05vw, 15px); letter-spacing: .04em; text-transform: uppercase; transition: background .2s ease, transform .2s ease, color .2s ease; }
+        .hm-f2__cta:hover { background: #fff; color: #000; transform: translateX(4px); }
+        .hm-f2__cta svg { width: 18px; height: 18px; }
+        .hm-f2__spectrum { width: 100%; max-width: 320px; height: 6px; margin-top: 6px; background: linear-gradient(90deg, var(--f2-magenta) 0%, var(--f2-violet) 52%, var(--f2-green) 100%); }
+        @media (prefers-reduced-motion: reduce) { .hm-f2__cta { transition: none; } }
         .btn-sticker { box-shadow: var(--shadow-pop); transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
         .btn-sticker:hover { transform: translateY(-2px); box-shadow: 0 9px 0 rgba(43,24,16,.20); }
 
