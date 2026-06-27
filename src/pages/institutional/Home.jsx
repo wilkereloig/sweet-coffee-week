@@ -13,45 +13,25 @@ function PinHeart({ size = 20 }) {
 }
 
 const STEPS = [
-  { n: '01', t: 'Tema da edição', d: 'Cada edição parte de um universo criativo. Já teve Páscoa, Doces do Mundo, Sabores da Infância, Pâtisserie Francesa, Contos de Fadas, Música, Heróis & Vilões, Séries, Terras Potiguares, Movies, Trip, Books, Celebration e Lovers.' },
-  { n: '02', t: 'Criação dos combos', d: 'As marcas participantes desenvolvem uma experiência exclusiva conectada ao tema: sabor, nome, apresentação, decoração, embalagem e narrativa.' },
-  { n: '03', t: 'Rota pela cidade', d: 'O público acessa o site, descobre os participantes, escolhe seus favoritos e monta sua própria rota de cafeterias, docerias e restaurantes.' },
-  { n: '04', t: 'Sweet Awards', d: 'Depois de provar, os Sweet Lovers avaliam os destaques da edição e ajudam a reconhecer os melhores combos, doces, salgados, bebidas, atendimentos, apresentações e experiências em loja.' },
+  { n: '01', t: 'Tema da edição', d: 'Cada edição parte de um universo criativo — já foram 16 temas, de Páscoa a Lovers, de Contos de Fadas a Terras Potiguares.' },
+  { n: '02', t: 'Criação dos combos', d: 'As marcas criam um combo exclusivo conectado ao tema — com sabor, nome, apresentação e narrativa próprios.' },
+  { n: '03', t: 'Rota pela cidade', d: 'O público acessa o site, descobre os participantes e monta sua própria rota pelo mapa da cidade.' },
+  { n: '04', t: 'Sweet Awards', d: 'Depois de provar, o público avalia os destaques da edição e reconhece os melhores combos, categorias e experiências.' },
 ]
 
 const PILLARS = [
-  { t: 'Movimenta marcas', d: 'Gera tráfego, venda, repertório de produto, conteúdo e relacionamento com novos públicos.' },
-  { t: 'Cria memória', d: 'Cada tema vira história: infância, cinema, livros, viagens, música e celebrações.' },
-  { t: 'Ativa a cidade', d: 'O público circula por bairros, conhece endereços e monta a própria rota de cafeterias e docerias.' },
-  { t: 'Forma comunidade', d: 'Os Sweet Lovers acompanham, comentam, votam, fotografam e esperam a próxima edição.' },
+  { t: 'Movimenta marcas', d: 'Gera tráfego, venda, conteúdo e novos públicos para cada participante.' },
+  { t: 'Cria memória', d: 'Cada tema vira história — e o público guarda com afeto.' },
+  { t: 'Ativa a cidade', d: 'O público circula por bairros, descobre endereços novos e faz da cidade um roteiro.' },
+  { t: 'Forma comunidade', d: 'Os Sweet Lovers acompanham, comentam, avaliam, fotografam e já esperam a próxima edição.' },
 ]
 
 const STATS = [
-  { to: 16,  prefix: '',     suffix: '',     l: 'edições realizadas desde 2016' },
+  { to: 16,  prefix: '',     suffix: '',     l: 'edições desde 2016' },
   { to: 34,  prefix: '+',    suffix: ' mil', l: 'combos vendidos nas últimas edições' },
   { to: 712, prefix: '+R$ ', suffix: ' mil', l: 'movimentados diretamente' },
   { to: 10,  prefix: '+',    suffix: ' mi',  l: 'visualizações no Instagram' },
 ]
-
-// Greeting dinâmico do hero: saudação por horário de Natal/RN + temperatura
-// real via open-meteo (sem chave, CORS ok). Fallback gracioso se a API falhar.
-function useHeroGreeting() {
-  const [temp, setTemp] = React.useState(null)
-  const [greeting, setGreeting] = React.useState('Doce dia')
-  React.useEffect(() => {
-    try {
-      const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Recife', hour: '2-digit', hour12: false }))
-      setGreeting(h >= 5 && h < 12 ? 'Doce dia' : h >= 18 || h < 5 ? 'Doce noite' : 'Doce tarde')
-    } catch { /* mantém padrão */ }
-    let alive = true
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=-5.79&longitude=-35.21&current=temperature_2m')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (alive && d && d.current && d.current.temperature_2m != null) setTemp(Math.round(d.current.temperature_2m)) })
-      .catch(() => {})
-    return () => { alive = false }
-  }, [])
-  return { greeting, temp }
-}
 
 // Count-up animado quando entra na viewport (respeita reduced-motion).
 function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
@@ -85,14 +65,13 @@ function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
 
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
-  const { greeting, temp } = useHeroGreeting()
 
   return (
     <div className="page-enter hm">
       {/* HERO — nova direção visual (referência campanha) */}
       <section className="swc-hero">
         <div className="swc-hero__copy">
-          <span className="swc-hero__eyebrow">{greeting} :){temp != null ? ` ${temp}ºC` : ''} | Natal</span>
+          <span className="swc-hero__eyebrow">Festival gastronômico · Natal, RN</span>
           <h1 className="swc-hero__title">
             <span className="swc-hero__line">O festival</span>
             <span className="swc-hero__line">mais <span className="swc-hero__hl">doce</span></span>
@@ -137,11 +116,10 @@ export function HomePage({ navigate }) {
                 meio de uma experiência simples, criativa e altamente compartilhável.
               </p>
               <p>
-                O formato clássico do festival reúne <strong>1 doce + 1 salgado + 1 bebida</strong>,
-                criados especialmente para o tema da edição e oferecidos por tempo limitado. Mas o festival
-                vai além do combo: ele cria uma temporada na cidade — o público acompanha o lançamento do
-                tema, conhece os participantes, salva seus combos favoritos, monta roteiros, visita lojas,
-                fotografa, vota no Sweet Awards e transforma cada parada em uma memória.
+                O formato clássico reúne <strong>1 doce + 1 salgado + 1 bebida</strong> em um combo criado
+                especialmente para o tema da edição. Mas o festival vai além do cardápio: ele cria uma
+                temporada na cidade, movimenta endereços, ativa vitrines, gera conteúdo e transforma cada
+                visita em memória.
               </p>
             </div>
           </div>
@@ -202,9 +180,9 @@ export function HomePage({ navigate }) {
           <div className="hm-head">
             <div>
               <span className="eyebrow"><span className="dot"></span>O Sweet &amp; Coffee Week em números</span>
-              <h2>Uma década movimentando<br /><span className="hl-w">marcas</span>, <span className="hl-w" style={{ '--hl-delay': '.5s' }}>pessoas</span> e <span className="hl-w" style={{ '--hl-delay': '1s' }}>memórias</span>.</h2>
+              <h2>Números que contam uma <span className="hl-w">história</span> de cidade.</h2>
             </div>
-            <p>Desde 2016, o festival cresceu junto com a cena gastronômica de Natal: gera fluxo para os participantes, visibilidade para marcas locais, conteúdo espontâneo nas redes e uma relação de pertencimento com o público.</p>
+            <p>Desde 2016, o Sweet &amp; Coffee Week faz parte do calendário de Natal — e cada edição deixa um rastro de movimento, conteúdo e pertencimento.</p>
           </div>
           <div className="hm-stats">
             {STATS.map((s) => (
@@ -248,9 +226,9 @@ export function HomePage({ navigate }) {
           <div className="hm-realizacao__body">
             <p>
               O Sweet &amp; Coffee Week é realizado pela F2 Experience, empresa especializada em criar
-              experiências, campanhas, ativações e projetos que conectam marcas, pessoas e cidade. No
-              festival, a F2 Experience assina a estratégia, a criação, a comunicação e o desenvolvimento
-              como plataforma de marca, conteúdo, experiência e economia criativa.
+              experiências, campanhas e ativações que conectam marcas, pessoas e cidade.
+              No festival, a F2 assina a estratégia, a criação, a comunicação e o desenvolvimento
+              do projeto como plataforma de marca, conteúdo, experiência e economia criativa.
             </p>
             <a
               href="https://www.f2experience.com.br"
