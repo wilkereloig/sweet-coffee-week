@@ -70,8 +70,6 @@ export function CuriosidadesPage({ navigate }) {
   return (
     <div className="page-enter curiosidades-page">
       <section className="curiosidades-hero">
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-star" onError={(e) => { e.target.style.display = 'none' }} />
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-flower" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap curiosidades-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Curiosidades</span>
@@ -113,7 +111,6 @@ export function CuriosidadesPage({ navigate }) {
       </section>
 
       <section className="section ranking-section">
-        <img src="/images/shapes/shape-badge-choco.svg" alt="" aria-hidden className="curi-shape curi-shape--ranking" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap">
           <div className="curiosity-section-head">
             <div>
@@ -167,7 +164,6 @@ export function CuriosidadesPage({ navigate }) {
       </section>
 
       <section className="section curiosity-dark">
-        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden className="curi-shape curi-shape--dark" onError={(e) => { e.target.style.display = 'none' }} />
         <div className="wrap curiosity-dark__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Memória afetiva</span>
@@ -186,13 +182,6 @@ export function CuriosidadesPage({ navigate }) {
 
       <style>{`
         .curiosidades-page { position: relative; overflow-x: clip; }
-        .curi-shape { position: absolute; pointer-events: none; z-index: 0; }
-        .curi-shape--hero-star { top: clamp(24px, 7vw, 90px); right: clamp(-18px, -1vw, 12px); width: clamp(70px, 10vw, 132px); transform: rotate(-10deg); opacity: .92; animation: curiFloat 8s ease-in-out infinite; }
-        .curi-shape--hero-flower { bottom: -34px; left: clamp(-26px, -2vw, 6px); width: clamp(58px, 8vw, 104px); transform: rotate(8deg); opacity: .9; animation: curiFloat 9s ease-in-out infinite reverse; }
-        .curi-shape--ranking { top: clamp(-14px, -1vw, 8px); right: clamp(-22px, 1vw, 30px); width: clamp(64px, 8vw, 116px); transform: rotate(12deg); opacity: .85; }
-        .curi-shape--dark { bottom: clamp(-18px, -1vw, 10px); right: clamp(-16px, 2vw, 40px); width: clamp(58px, 8vw, 108px); transform: rotate(-8deg); opacity: .9; }
-        @keyframes curiFloat { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-12px) rotate(-6deg); } }
-        @media (prefers-reduced-motion: reduce) { .curi-shape { animation: none !important; } }
 
         .curiosidades-hero { position: relative; padding: clamp(54px, 8vw, 112px) 0 40px; overflow: hidden; }
         .curiosidades-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.18fr .82fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
@@ -275,8 +264,6 @@ export function CuriosidadesPage({ navigate }) {
           .curiosity-card[data-index="0"] { grid-column: auto; }
           .curiosity-card[data-index="0"] h2 { font-size: 25px; }
           .glossary-list__num { padding-top: .35em; }
-          .curi-shape--hero-star { width: 64px; right: -8px; }
-          .curi-shape--hero-flower { width: 54px; }
         }
       `}</style>
     </div>

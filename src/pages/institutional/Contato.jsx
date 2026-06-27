@@ -30,8 +30,6 @@ export function ContatoPage({ navigate }) {
   return (
     <div className="page-enter contato-page">
       <section className="contato-hero">
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" className="contato-hero__shape contato-hero__shape--flower" aria-hidden="true" />
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" className="contato-hero__shape contato-hero__shape--star" aria-hidden="true" />
         <div className="wrap contato-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Contato</span>
@@ -108,8 +106,6 @@ export function ContatoPage({ navigate }) {
       </section>
 
       <section className="section contato-editorial">
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" className="contato-editorial__shape contato-editorial__shape--flower" aria-hidden="true" />
-        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" className="contato-editorial__shape contato-editorial__shape--arrow" aria-hidden="true" />
         <div className="wrap contato-editorial__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Comunicação direta</span>
@@ -136,9 +132,6 @@ export function ContatoPage({ navigate }) {
         .contato-hero h1 .hl, .contato-editorial h2 .hl { color: var(--swc-coral); }
         .contato-hero .lead { color: var(--ink-soft); line-height: 1.65; max-width: 54ch; margin-top: 22px; }
         .contato-hero__photo { border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(43,24,16,.16); }
-        .contato-hero__shape { position: absolute; pointer-events: none; z-index: 0; opacity: .9; }
-        .contato-hero__shape--flower { width: clamp(80px, 12vw, 150px); top: -22px; right: 6%; transform: rotate(-12deg); }
-        .contato-hero__shape--star { width: clamp(46px, 6vw, 74px); bottom: 30px; left: -14px; }
 
         .contato-cards-section { background: var(--bg-soft); }
         .contato-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
@@ -169,9 +162,6 @@ export function ContatoPage({ navigate }) {
         .contato-editorial__photos { display: grid; grid-template-columns: .9fr .7fr; gap: 18px; align-items: end; }
         .contato-editorial__photos > figure:first-child { transform: rotate(-2deg); }
         .contato-editorial__photos > figure:last-child { transform: rotate(3deg); }
-        .contato-editorial__shape { position: absolute; pointer-events: none; z-index: 0; opacity: .9; }
-        .contato-editorial__shape--flower { width: clamp(60px, 8vw, 104px); top: 12px; left: -18px; transform: rotate(14deg); }
-        .contato-editorial__shape--arrow { width: clamp(64px, 9vw, 120px); bottom: -10px; right: 4%; transform: rotate(8deg); }
 
         @media (max-width: 1120px) { .contato-cards-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 900px) { .contato-hero__grid, .contato-editorial__grid { grid-template-columns: 1fr; } }
@@ -179,8 +169,6 @@ export function ContatoPage({ navigate }) {
         @media (max-width: 620px) {
           .contato-cards-grid, .contato-editorial__photos { grid-template-columns: 1fr; }
           .contact-card { min-height: 0; }
-          .contato-hero__shape--flower { right: -10px; width: 84px; }
-          .contato-editorial__shape--arrow { display: none; }
         }
       `}</style>
     </div>

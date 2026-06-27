@@ -281,29 +281,10 @@ html { scroll-behavior: smooth; }
 .edition-card__facts dt { color: var(--swc-coffee) !important; }
 .edition-card__fact dd { color: var(--swc-chocolate) !important; }
 
-/* Edições — acentos de shape da marca nas seções */
-.editions-hero, .editions-list, .editions-cta-section { position: relative; overflow: hidden; }
+/* Edições — z-index do conteúdo (acentos de shape decorativos removidos) */
 .editions-hero > .wrap,
 .editions-list > .wrap,
 .editions-cta-section > .wrap { position: relative; z-index: 1; }
-.editions-hero::before {
-  content: ""; position: absolute; top: -44px; right: -28px;
-  width: clamp(100px, 11vw, 180px); aspect-ratio: 298.86 / 373.58;
-  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
-  transform: rotate(20deg); z-index: 0; pointer-events: none;
-}
-.editions-list::before {
-  content: ""; position: absolute; bottom: -54px; left: -42px;
-  width: clamp(120px, 13vw, 210px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none; opacity: .92;
-}
-.editions-cta-section::before {
-  content: ""; position: absolute; top: -22px; right: 7%;
-  width: clamp(64px, 7vw, 104px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-star-cyan.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none;
-}
 
 /* ============================================================
    AUDIT FIXES (impeccable)
@@ -352,31 +333,11 @@ html { scroll-behavior: smooth; }
 }
 
 /* ============================================================
-   FORMAS ORGÂNICAS — acentos nas seções da Home (peek nos cantos)
+   Home — base de seção (gutter + ritmo). Shapes decorativos de
+   canto removidos (não usar formas sangrando nas bordas).
    ============================================================ */
 .hm .section { position: relative; overflow: hidden; padding-top: var(--sp-section); padding-bottom: var(--sp-section); }
 .hm .section > .wrap { position: relative; z-index: 1; }
 /* Grid horizontal único: conteúdo das seções alinhado à esquerda (não centralizado),
    mesma gutter e largura máx do hero → tudo na mesma linha vertical. */
 .hm .wrap { max-width: none; margin-inline: 0; padding-inline: var(--hm-gutter); }
-/* selo chocolate como marca d'água atrás do "O que é" */
-.hm .hm-feature::before {
-  content: ""; position: absolute; top: -64px; left: -76px;
-  width: clamp(150px, 17vw, 280px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-badge-choco.svg') center/contain no-repeat;
-  opacity: .06; z-index: 0; pointer-events: none;
-}
-/* seta amarela peekando no "Como funciona" */
-.hm .hm-steps-section::before {
-  content: ""; position: absolute; top: -30px; right: -26px;
-  width: clamp(80px, 9vw, 140px); aspect-ratio: 298.86 / 373.58;
-  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
-  transform: rotate(16deg); z-index: 0; pointer-events: none;
-}
-/* flor coral no bloco de Realização */
-.hm .hm-cta-section::before {
-  content: ""; position: absolute; bottom: -52px; left: -38px;
-  width: clamp(120px, 14vw, 220px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none;
-}

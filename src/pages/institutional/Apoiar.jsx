@@ -71,8 +71,6 @@ export function ApoiarPage({ navigate }) {
   return (
     <div className="page-enter apoiar-page">
       <section className="apoiar-hero">
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden className="apoiar-hero__shape apoiar-hero__shape--flower" onError={e => { e.target.style.display = 'none' }} />
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden className="apoiar-hero__shape apoiar-hero__shape--star" onError={e => { e.target.style.display = 'none' }} />
         <div className="wrap apoiar-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Para marcas, parceiros e patrocinadores</span>
@@ -119,7 +117,6 @@ export function ApoiarPage({ navigate }) {
       </section>
 
       <section className="section apoiar-paths-section apoiar-where-section">
-        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden className="apoiar-where-section__shape" onError={e => { e.target.style.display = 'none' }} />
         <div className="wrap">
           <div className="apoiar-section-head">
             <div>
@@ -190,7 +187,6 @@ export function ApoiarPage({ navigate }) {
       </section>
 
       <section id="form-apoiar" className="section apoiar-form-section">
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden className="apoiar-form-section__shape" onError={e => { e.target.style.display = 'none' }} />
         <div className="wrap apoiar-form-grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Proposta comercial</span>
@@ -225,9 +221,6 @@ export function ApoiarPage({ navigate }) {
       <style>{`
         .apoiar-hero { position: relative; overflow: hidden; padding: clamp(54px, 8vw, 112px) 0 48px; }
         .apoiar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
-        .apoiar-hero__shape { position: absolute; z-index: 0; pointer-events: none; }
-        .apoiar-hero__shape--flower { top: -6%; right: -3%; width: clamp(120px, 16vw, 260px); opacity: .9; transform: rotate(-8deg); }
-        .apoiar-hero__shape--star { bottom: 6%; left: -3%; width: clamp(70px, 8vw, 130px); opacity: .8; transform: rotate(10deg); }
         .apoiar-hero h1, .apoiar-intro h2, .apoiar-section-head h2, .apoiar-form-grid h2 { font-family: var(--font-serif); font-size: clamp(48px, 7vw, 118px); line-height: .9; letter-spacing: -.055em; margin: 18px 0 0; color: var(--ink); }
         .apoiar-hero h1 { max-width: 11ch; }
         .apoiar-hero h1 em { font-style: normal; color: var(--swc-coral, #F65D74); }
@@ -242,7 +235,6 @@ export function ApoiarPage({ navigate }) {
         .apoiar-intro p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; margin: 0; }
         .apoiar-section-head { margin-bottom: 34px; }
         .apoiar-where-section { position: relative; overflow: hidden; background: var(--bg-soft); }
-        .apoiar-where-section__shape { position: absolute; top: clamp(-30px, -2vw, -10px); right: clamp(-24px, 2vw, 40px); width: clamp(72px, 9vw, 130px); opacity: .85; transform: rotate(-12deg); pointer-events: none; z-index: 0; }
         .apoiar-where-section .wrap { position: relative; z-index: 1; }
         .apoiar-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
         .apoiar-why-text { display: flex; flex-direction: column; gap: 18px; }
@@ -270,7 +262,6 @@ export function ApoiarPage({ navigate }) {
         .partner-path h3 { font-size: 24px; line-height: 1.05; margin: 0; color: var(--ink); }
         .partner-path p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: auto 0 0; }
         .apoiar-form-section { position: relative; overflow: hidden; background: var(--ink); color: var(--bg); }
-        .apoiar-form-section__shape { position: absolute; top: clamp(-26px, -2vw, -6px); right: clamp(-20px, 3vw, 60px); width: clamp(80px, 10vw, 150px); opacity: .85; transform: rotate(14deg); pointer-events: none; z-index: 0; }
         .apoiar-form-grid { position: relative; z-index: 1; display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
         .apoiar-form-grid h2 { color: var(--bg); }
         .apoiar-form-grid p { color: rgba(255,244,236,.72); line-height: 1.7; }
@@ -289,9 +280,6 @@ export function ApoiarPage({ navigate }) {
         }
         @media (max-width: 640px) {
           .partner-path-grid, .apoiar-form__fields { grid-template-columns: 1fr; }
-          .apoiar-hero__shape--star, .apoiar-where-section__shape { display: none; }
-          .apoiar-hero__shape--flower { width: 96px; top: -2%; right: -6%; opacity: .7; }
-          .apoiar-form-section__shape { width: 76px; opacity: .65; }
           .partner-path { min-height: 0; }
         }
       `}</style>

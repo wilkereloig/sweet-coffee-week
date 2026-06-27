@@ -47,8 +47,6 @@ export function ParticiparPage({ navigate }) {
   return (
     <div className="page-enter participar-page">
       <section className="participar-hero">
-        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden="true" className="participar-shape participar-shape--hero-arrow" />
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden="true" className="participar-shape participar-shape--hero-flower" />
         <div className="wrap participar-hero__grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Para estabelecimentos</span>
@@ -71,7 +69,6 @@ export function ParticiparPage({ navigate }) {
       </section>
 
       <section className="section participar-benefits-section">
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden="true" className="participar-shape participar-shape--benefits-star" />
         <div className="wrap">
           <div className="participar-section-head">
             <div>
@@ -139,7 +136,6 @@ export function ParticiparPage({ navigate }) {
       </section>
 
       <section className="section participar-process-section">
-        <img src="/images/shapes/shape-badge-choco.svg" alt="" aria-hidden="true" className="participar-shape participar-shape--process-badge" />
         <div className="wrap">
           <div className="participar-section-head">
             <div>
@@ -154,7 +150,6 @@ export function ParticiparPage({ navigate }) {
       </section>
 
       <section id="form-participar" className="section participar-form-section">
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden="true" className="participar-shape participar-shape--form-flower" />
         <div className="wrap participar-form-grid">
           <div>
             <span className="eyebrow"><span className="dot"></span>Cadastro de interesse</span>
@@ -195,15 +190,8 @@ export function ParticiparPage({ navigate }) {
       </section>
 
       <style>{`
-        /* SHAPES decorativos */
         .participar-page section { position: relative; overflow: hidden; }
         .participar-page .wrap { position: relative; z-index: 1; }
-        .participar-shape { position: absolute; pointer-events: none; z-index: 0; user-select: none; }
-        .participar-shape--hero-arrow { top: clamp(40px, 8vw, 96px); right: clamp(-30px, 2vw, 40px); width: clamp(90px, 12vw, 170px); transform: rotate(8deg); opacity: .9; }
-        .participar-shape--hero-flower { bottom: -36px; left: -40px; width: clamp(120px, 14vw, 200px); transform: rotate(-12deg); opacity: .55; }
-        .participar-shape--benefits-star { top: -34px; right: clamp(-26px, 3vw, 60px); width: clamp(70px, 9vw, 128px); transform: rotate(-10deg); opacity: .8; }
-        .participar-shape--process-badge { bottom: -46px; left: -44px; width: clamp(120px, 15vw, 210px); transform: rotate(14deg); opacity: .5; }
-        .participar-shape--form-flower { top: -50px; right: -50px; width: clamp(130px, 16vw, 220px); transform: rotate(18deg); opacity: .45; }
 
         .participar-hero { padding: clamp(54px, 8vw, 112px) 0 48px; }
         .participar-hero__grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
@@ -282,9 +270,6 @@ export function ParticiparPage({ navigate }) {
         @media (max-width: 640px) {
           .participar-benefits-grid, .participar-steps-grid, .participar-form__fields { grid-template-columns: 1fr; }
           .participar-step::after { display: none; }
-          .participar-shape { opacity: .35; }
-          .participar-shape--hero-arrow { width: 84px; right: -12px; }
-          .participar-shape--hero-flower, .participar-shape--process-badge, .participar-shape--form-flower { display: none; }
           .participar-benefit { min-height: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
