@@ -22,7 +22,7 @@ const STEPS = [
 const STATS = [
   { to: 16,  prefix: '',  suffix: '',    l: 'edições' },
   { to: 34,  prefix: '+', suffix: 'mil', l: 'combos vendidos' },
-  { to: 720, prefix: '+', suffix: 'mil', l: 'movimentados diretamente' },
+  { to: 712, prefix: '+R$ ', suffix: ' mil', l: 'movimentados diretamente' },
   { to: 10,  prefix: '+', suffix: 'mi',  l: 'visualizações no Instagram' },
 ]
 
