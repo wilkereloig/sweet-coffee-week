@@ -43,16 +43,41 @@ function SiteSidebar({ route, navigate }) {
   )
 }
 
+// Logos do header que se alternam a cada 10s (selo padrão ⇄ selo 10 anos),
+// com crossfade + leve "carimbo". Respeita prefers-reduced-motion (fica no 1º).
+const BRAND_LOGOS = [
+  { src: '/images/logo-seal-sweet-coffee.svg', alt: 'Sweet & Coffee Week' },
+  { src: '/images/selo-10-anos.svg', alt: 'Sweet & Coffee Week — 10 anos' },
+]
+
 function BrandLogo({ navigate }) {
+  const [idx, setIdx] = React.useState(0)
+
+  React.useEffect(() => {
+    const reduce =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce || BRAND_LOGOS.length <= 1) return
+    const id = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      setIdx((i) => (i + 1) % BRAND_LOGOS.length)
+    }, 10000)
+    return () => clearInterval(id)
+  }, [])
+
   return (
-    <a href="#/" className="brand" onClick={(e) => { e.preventDefault(); navigate('/') }}
-       style={{ display: 'inline-block' }}>
-      <img
-        src="/images/logo-seal-sweet-coffee.svg"
-        alt="Sweet & Coffee Week"
-        height={72}
-        style={{ display: 'block' }}
-      />
+    <a href="#/" className="brand brand-cycle" onClick={(e) => { e.preventDefault(); navigate('/') }}>
+      {BRAND_LOGOS.map((l, i) => (
+        <img
+          key={l.src}
+          src={l.src}
+          alt={i === idx ? l.alt : ''}
+          aria-hidden={i === idx ? undefined : 'true'}
+          height={72}
+          className={'brand-cycle__img' + (i === idx ? ' is-in' : '')}
+          decoding="async"
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+      ))}
     </a>
   )
 }

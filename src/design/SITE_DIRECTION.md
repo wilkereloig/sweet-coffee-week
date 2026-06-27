@@ -257,9 +257,10 @@ utilitárias opt-in; começar pela Home e replicar nas próximas páginas.
 | `--motion-fast` | `160ms` | hover / feedback imediato |
 | `--motion-base` | `260ms` | transições e entradas padrão |
 | `--motion-slow` | `520ms` | entradas calmas / institucionais |
+| `--motion-reveal` | `720ms` | revelação de seção/imagem (a mais longa) |
 | `--ease-out-soft` | `cubic-bezier(.2,.7,.2,1)` | desaceleração natural (entrada/hover) |
 | `--ease-spring-soft` | `cubic-bezier(.16,1,.3,1)` | mola gentil, sem overshoot exagerado |
-| `--motion-rise` | `18px` | deslocamento das entradas |
+| `--motion-rise` | `22px` | deslocamento das entradas |
 
 > Tokens legados (`--dur-fast/base/slow`, `--ease-out`, `--ease-pop`) em
 > swc-redesign.css continuam válidos; o Motion System é a camada canônica daqui
@@ -269,16 +270,21 @@ utilitárias opt-in; começar pela Home e replicar nas próximas páginas.
 
 | Classe | Comportamento |
 |---|---|
-| `.motion-section-in` | entrada suave (rise+fade) ao entrar na viewport |
-| `.motion-stagger` | filhos diretos entram em sequência (delays por `nth-child`) |
-| `.motion-image-reveal` | imagem/colagem com reveal orgânico (zoom-out leve) |
+| `.motion-reveal` / `.motion-reveal-up` | entrada rise+fade (sobe) ao revelar |
+| `.motion-reveal-left` / `.motion-reveal-right` | entrada lateral suave |
+| `.motion-stagger` | filhos diretos entram em sequência (delay 80ms por `nth-child`) |
+| `.motion-image-reveal` | imagem com reveal orgânico (zoom-out leve `scale 1.045→1`) |
 | `.motion-card-hover` | hover de card: `translateY(-4px)` + sombra |
 | `.motion-button-hover` | hover de botão: `translateY(-2px)`, `:active` volta |
+| `.motion-press` | feedback tátil: `scale(.97)` no `:active` |
 | `.motion-float-soft` | float decorativo infinito, muito sutil (±6px) |
 
-Entradas são **scroll-driven** (`animation-timeline: view()`, progressive
-enhancement): conteúdo visível por padrão, animação só onde houver suporte — sem
-flash, sem JS.
+Entradas são **observer-driven**: a classe define o estado oculto; o hook
+**`src/hooks/useRevealOnScroll.js`** (`IntersectionObserver`) adiciona `.is-in`
+quando o elemento entra na viewport e a transição leva ao estado visível. Anima
+**uma vez** por elemento, confiável em todo navegador (não depende de
+`animation-timeline`). Sem suporte a IO ou em reduced-motion → revela tudo na hora.
+Na Home, `HomePage` chama `useRevealOnScroll(rootRef)` no `.hm`.
 
 ### Comportamento por área (Home)
 
@@ -303,6 +309,71 @@ de aprovar uma página.
 
 ---
 
+## 11. Fotos & galerias
+
+As áreas de foto da Home não dependem de uma imagem fixa: usam o **acervo vivo**
+da última edição (combos dos participantes), com troca sutil.
+
+### Princípios
+
+- Fotos do festival devem dar sensação de **acervo vivo**, não de banner.
+- Evitar depender de **uma única imagem fixa** quando há acervo disponível.
+- Galerias **sutis e integradas** ao layout — sem setas, sem aparência de slider.
+- As fotos reforçam a **experiência real** do festival (combos, marcas, cidade).
+- A Home define o padrão de galerias para as próximas páginas.
+
+### Componente
+
+- **`src/components/PhotoRotator.jsx`** — crossfade automático (fade + leve scale).
+  Props: `images` (lista `{src, alt, participant?, type?}`), `interval`,
+  `className`, `eager` (prioriza a 1ª imagem). `object-fit: cover`, imagens
+  empilhadas (sem layout shift), `loading="lazy"` salvo a 1ª do hero, `onError`
+  esconde imagem que falhar. Pausa com aba oculta.
+- **`prefers-reduced-motion: reduce`** → não rotaciona; mostra a 1ª imagem estática.
+
+### Dados
+
+- **`src/data/homeGalleries.js`** — `heroGalleryImages`, `aboutGalleryImages`,
+  `comboGalleryImages`. Derivados de `PARTICIPANTS` (nomes/slugs corretos),
+  referenciando só `main.jpg` de cada combo. `about` usa subconjunto equilibrado
+  (~8), não o acervo inteiro — performance.
+
+### Aplicação na Home
+
+- **Hero** — `PhotoRotator` (`eager`, ~5200ms) dentro de `.swc-hero__photo`,
+  preservando a foto full-bleed e o overlay. Abre com `hero-festival.jpg`.
+- **"O que é"** — `PhotoRotator` (~6800ms) dentro de `.hm-about__photo`,
+  herdando a máscara badge. Intervalo diferente do hero → sensação orgânica.
+- A "colagem de 3 células" (`.hm-about__collage`/`.hm-card`) é CSS **não
+  renderizado** (legado); o DOM real tem 1 foto mascarada — por isso 1 rotator.
+- Intervalos sugeridos: hero 4500–6000ms; colagens 5000–7500ms (variar entre
+  instâncias).
+
+---
+
+## 12. Caminhos institucionais (conversão)
+
+A Home não só explica o festival — **conduz** o usuário para os próximos passos.
+Antes da Realização há uma seção-ponte (`.hm-paths`) com **duas colunas**:
+
+- **Participar** (`#/participar`, eyebrow "Para estabelecimentos") — cafeterias,
+  docerias, confeitarias, restaurantes e marcas autorais que querem entrar nas
+  próximas edições.
+- **Apoiar** (`#/apoiar`, eyebrow "Para marcas e parceiros") — patrocínio,
+  ativações, conteúdo, brindes e presença nos pontos participantes.
+
+Regras: linguagem institucional e convidativa; falar em **"interesse"** /
+**"próximas edições"** (nunca prometer participação/patrocínio automático); sem
+formulário (só chamada + CTA); cards cream sobre banda escura, acentos distintos
+por coluna (coral / cyan-deep); CTA navega via `go('/rota')` (href `#/rota` de
+fallback). Desktop 2 colunas, mobile empilha (≤760px).
+
+> Padrão reutilizável: este bloco de "duas chamadas lado a lado" pode conduzir o
+> usuário para páginas estratégicas em outras telas institucionais.
+
+---
+
 _Fonte de verdade da Home: `src/pages/institutional/Home.jsx`._
 _Fonte de verdade do movimento: `src/styles/motion-system.css`._
+_Fonte de verdade das galerias: `src/components/PhotoRotator.jsx` + `src/data/homeGalleries.js`._
 _Atualizar este documento sempre que o padrão da Home mudar._

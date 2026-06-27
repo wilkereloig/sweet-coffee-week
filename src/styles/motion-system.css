@@ -3,98 +3,169 @@
    Referência de animação do site. Doc: src/design/SITE_DIRECTION.md (§ Motion System).
 
    Princípios: movimento editorial, leve e intencional. Reforça leitura e
-   hierarquia — nunca decoração pura. Só anima transform/opacity (sem layout
-   shift). Tudo desligado em prefers-reduced-motion: reduce.
+   hierarquia — nunca decoração pura. Só anima transform/opacity/filter (sem
+   layout shift). Tudo desligado em prefers-reduced-motion: reduce.
 
-   Uso: classes utilitárias opt-in (não afetam quem não as usa). Aplicar
-   primeiro na Home/O Festival; replicar nas próximas páginas via estas classes.
+   Reveals são observer-driven: a classe define o estado OCULTO; o hook
+   useRevealOnScroll (IntersectionObserver) adiciona `.is-in` quando o elemento
+   entra na viewport e a transição leva ao estado visível. Confiável em todo
+   navegador (não depende de animation-timeline). Anima uma vez.
+
+   Presença: viagem maior + easing de mola (chegada que "pousa") + blur-in
+   (foco entrando). Perceptível, mas sem escala exagerada nem cara de template.
    ============================================================================ */
 
 :root {
-  /* Durações — escala de 3 níveis */
+  /* Durações — escala */
   --motion-fast: 160ms;   /* hover/feedback imediato */
-  --motion-base: 260ms;   /* transições e entradas padrão */
-  --motion-slow: 520ms;   /* entradas mais calmas/institucionais */
+  --motion-base: 260ms;   /* transições padrão */
+  --motion-slow: 560ms;   /* entradas em sequência (stagger) */
+  --motion-reveal: 760ms; /* revelação de seção/imagem (a mais longa) */
 
-  /* Easing — saída suave (desaceleração natural) e mola gentil (sem overshoot exagerado) */
+  /* Easing — saída suave e mola gentil (chegada com leve "pouso", sem overshoot feio) */
   --ease-out-soft: cubic-bezier(.2, .7, .2, 1);
   --ease-spring-soft: cubic-bezier(.16, 1, .3, 1);
 
-  /* Deslocamento padrão das entradas (pequeno, editorial) */
-  --motion-rise: 18px;
+  /* Deslocamento das entradas (editorial, mas visível) */
+  --motion-rise: 44px;
+  --motion-blur: 8px;
 }
 
-/* ---- Keyframes base (transform + opacity apenas) -------------------------- */
-@keyframes msRiseIn   { from { opacity: 0; transform: translateY(var(--motion-rise)); } to { opacity: 1; transform: none; } }
-@keyframes msImageIn  { from { opacity: 0; transform: scale(1.04); }                   to { opacity: 1; transform: none; } }
-@keyframes msFloatSoft{ 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* ---- Float orgânico (decorativo, muito sutil) ---------------------------- */
+@keyframes msFloatSoft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
-/* ---- Entrada de seção / itens -------------------------------------------- *
- * Scroll-driven (progressive enhancement): conteúdo é visível por padrão; a
- * animação só realça onde animation-timeline é suportado. Sem JS, sem flash. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .motion-section-in {
-      animation: msRiseIn both linear;
-      animation-timeline: view();
-      animation-range: entry 0% cover 16%;
-    }
-    /* Stagger: filhos diretos entram em sequência conforme cruzam a viewport */
-    .motion-stagger > * {
-      animation: msRiseIn both linear;
-      animation-timeline: view();
-      animation-range: entry 0% cover 16%;
-    }
-    .motion-stagger > *:nth-child(2) { animation-range: entry 4%  cover 20%; }
-    .motion-stagger > *:nth-child(3) { animation-range: entry 8%  cover 24%; }
-    .motion-stagger > *:nth-child(4) { animation-range: entry 12% cover 28%; }
-    .motion-stagger > *:nth-child(5) { animation-range: entry 16% cover 32%; }
-    .motion-stagger > *:nth-child(6) { animation-range: entry 20% cover 36%; }
-
-    /* Imagem/colagem: reveal orgânico (leve zoom-out), nunca "pulando" */
-    .motion-image-reveal {
-      animation: msImageIn both linear;
-      animation-timeline: view();
-      animation-range: entry 0% cover 22%;
-    }
-  }
+/* ============================================================================
+   REVEAL — estado oculto → .is-in visível (toggle pelo IntersectionObserver)
+   ============================================================================ */
+.motion-reveal,
+.motion-reveal-up,
+.motion-reveal-left,
+.motion-reveal-right,
+.motion-image-reveal {
+  opacity: 0;
+  filter: blur(var(--motion-blur));
+  transition: opacity var(--motion-reveal) var(--ease-out-soft),
+              transform var(--motion-reveal) var(--ease-spring-soft),
+              filter var(--motion-reveal) var(--ease-out-soft);
+  will-change: opacity, transform, filter;
 }
+.motion-reveal,
+.motion-reveal-up    { transform: translateY(var(--motion-rise)); }
+.motion-reveal-left  { transform: translateX(calc(var(--motion-rise) * -1.4)); }
+.motion-reveal-right { transform: translateX(calc(var(--motion-rise) *  1.4)); }
+.motion-image-reveal { transform: scale(1.08); }
 
-/* ---- Hover de card — feedback de profundidade discreto ------------------- */
+.motion-reveal.is-in,
+.motion-reveal-up.is-in,
+.motion-reveal-left.is-in,
+.motion-reveal-right.is-in,
+.motion-image-reveal.is-in { opacity: 1; transform: none; filter: none; }
+
+/* ---- Stagger — filhos diretos entram em sequência (perceptível) ---------- */
+.motion-stagger > * {
+  opacity: 0;
+  transform: translateY(var(--motion-rise));
+  filter: blur(calc(var(--motion-blur) * .75));
+  transition: opacity var(--motion-slow) var(--ease-out-soft),
+              transform var(--motion-slow) var(--ease-spring-soft),
+              filter var(--motion-slow) var(--ease-out-soft);
+  will-change: opacity, transform, filter;
+}
+.motion-stagger.is-in > * { opacity: 1; transform: none; filter: none; }
+.motion-stagger.is-in > *:nth-child(1) { transition-delay: 0ms; }
+.motion-stagger.is-in > *:nth-child(2) { transition-delay: 120ms; }
+.motion-stagger.is-in > *:nth-child(3) { transition-delay: 240ms; }
+.motion-stagger.is-in > *:nth-child(4) { transition-delay: 360ms; }
+.motion-stagger.is-in > *:nth-child(5) { transition-delay: 480ms; }
+.motion-stagger.is-in > *:nth-child(6) { transition-delay: 600ms; }
+
+/* ============================================================================
+   HOVER / PRESS — feedback (transform/opacity/box-shadow), discreto mas vivo
+   ============================================================================ */
 .motion-card-hover {
-  transition: transform var(--motion-base) var(--ease-out-soft),
+  transition: transform var(--motion-base) var(--ease-spring-soft),
               box-shadow var(--motion-base) var(--ease-out-soft);
-  will-change: transform;
 }
-.motion-card-hover:hover { transform: translateY(-4px); }
+.motion-card-hover:hover { transform: translateY(-6px) scale(1.012); }
 
-/* ---- Hover de botão — convidativo, sem saltar ---------------------------- */
 .motion-button-hover {
-  transition: transform var(--motion-fast) var(--ease-out-soft),
+  transition: transform var(--motion-fast) var(--ease-spring-soft),
               box-shadow var(--motion-fast) var(--ease-out-soft),
               background var(--motion-fast) var(--ease-out-soft),
               color var(--motion-fast) var(--ease-out-soft);
 }
-.motion-button-hover:hover { transform: translateY(-2px); }
+.motion-button-hover:hover { transform: translateY(-3px); }
 .motion-button-hover:active { transform: translateY(0); }
 
-/* ---- Float orgânico para elementos decorativos (muito sutil) ------------- */
+/* Press tátil — leve recuo ao clicar (botões/links acionáveis) */
+.motion-press { transition: transform var(--motion-fast) var(--ease-out-soft); }
+.motion-press:active { transform: scale(.96); }
+
+/* Float decorativo */
 @media (prefers-reduced-motion: no-preference) {
   .motion-float-soft { animation: msFloatSoft 6s ease-in-out infinite; }
 }
 
-/* ---- Acessibilidade: sem movimento → conteúdo estático ------------------- */
+/* ============================================================================
+   ACESSIBILIDADE — sem movimento → conteúdo estático e visível
+   ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .motion-section-in,
-  .motion-stagger > *,
+  .motion-reveal,
+  .motion-reveal-up,
+  .motion-reveal-left,
+  .motion-reveal-right,
   .motion-image-reveal,
-  .motion-float-soft {
-    animation: none !important;
+  .motion-stagger > * {
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
+    transition: none !important;
   }
   .motion-card-hover,
-  .motion-button-hover { transition: none; }
+  .motion-button-hover,
+  .motion-press { transition: none; }
   .motion-card-hover:hover,
-  .motion-button-hover:hover { transform: none; }
+  .motion-button-hover:hover,
+  .motion-press:active { transform: none; }
+  .motion-float-soft { animation: none; }
+}
+
+/* ============================================================================
+   PHOTO ROTATOR — galeria crossfade (componente src/components/PhotoRotator.jsx)
+   Imagens empilhadas; só a ativa visível. Sem layout shift. Herda o tamanho/
+   máscara do pai (hero/about). Sem setas — integra ao layout.
+   ============================================================================ */
+.photo-rotator { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.photo-rotator__img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transform: scale(1.015);
+  transition: opacity 900ms var(--ease-out-soft), transform 1400ms var(--ease-out-soft);
+  will-change: opacity;
+}
+.photo-rotator__img.is-active { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-rotator__img { transition: none; transform: none; }
+}
+
+/* ============================================================================
+   BRAND CYCLE — logos do header alternando (selo ⇄ 10 anos), crossfade + carimbo
+   Grid empilhado: ambos no mesmo célula → container do tamanho do maior, sem
+   layout shift. Ancorado à esquerda (justify-items:start).
+   ============================================================================ */
+.brand-cycle { display: inline-grid; justify-items: start; align-items: center; line-height: 0; transform-origin: left center; transition: transform 380ms var(--ease-out-soft); }
+/* Ao rolar a página, as logos encolhem e permanecem numa escala menor */
+.site-header.scrolled .brand-cycle { transform: scale(.62); }
+@media (prefers-reduced-motion: reduce) { .brand-cycle { transition: none; } }
+.brand-cycle__img {
+  grid-area: 1 / 1; height: 72px; width: auto; display: block;
+  opacity: 0; transform: scale(.9) rotate(-4deg); transform-origin: left center;
+  transition: opacity 600ms var(--ease-out-soft), transform 600ms var(--ease-spring-soft);
+  will-change: opacity, transform;
+}
+.brand-cycle__img.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-cycle__img { transition: none; }
+  .brand-cycle__img:not(.is-in) { display: none; }
 }

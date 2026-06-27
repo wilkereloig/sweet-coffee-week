@@ -10,6 +10,9 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { useVisualOverride } from '../../design/useVisualOverride'
 import { VisualRefinementProvider } from '../../design/VisualRefinementProvider'
+import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { PhotoRotator } from '../../components/PhotoRotator'
+import { heroGalleryImages, aboutGalleryImages } from '../../data/homeGalleries'
 
 // Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
 // do coração acompanha o fundo do badge via --ph-cut.
@@ -69,6 +72,10 @@ function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
 
+  // Motion System — revela seções/cards ao entrarem na viewport (IntersectionObserver).
+  const rootRef = React.useRef(null)
+  useRevealOnScroll(rootRef)
+
   // Visual Refinement Mode — overrides lidos de visualOverrides.json (no-op se vazio).
   const ovHeroTitle = useVisualOverride('home.hero.title')
   const ovHeroText = useVisualOverride('home.hero.text')
@@ -82,21 +89,15 @@ export function HomePage({ navigate }) {
   const ovRealizacao = useVisualOverride('home.realizacao.section')
 
   return (
-    <div className="page-enter hm">
+    <div className="page-enter hm" ref={rootRef}>
       {/* HERO — nova direção visual (referência campanha) */}
       <section className="swc-hero">
         <div className="swc-hero__splat" aria-hidden="true">
-          <img src="/images/shapes/shape-seal-choco.svg" alt="" />
+          <span className="swc-hero__splat__shape" />
         </div>
 
         <div className="swc-hero__photo" {...ovHeroPhoto}>
-          <img
-            src="/images/hero-festival.jpg"
-            alt="Sobremesa autoral do Sweet & Coffee Week"
-            decoding="async"
-            fetchpriority="high"
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
+          <PhotoRotator images={heroGalleryImages} interval={5200} eager className="swc-hero__rotator" />
         </div>
 
         <div className="swc-hero__copy">
@@ -120,10 +121,10 @@ export function HomePage({ navigate }) {
       {/* NÚMEROS */}
       <section className="section hm-why hm-numbers" {...ovStats}>
         <div className="wrap">
-          <div className="hm-numbers__head">
+          <div className="hm-numbers__head motion-reveal-up">
             <h2>Números que contam uma <span className="keep-together"><span className="hl-w">história</span>.</span></h2>
           </div>
-          <div className="hm-stats">
+          <div className="hm-stats motion-stagger">
             {STATS.map((s) => (
               <div className="hm-stat" key={s.l}>
                 <strong><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} /></strong>
@@ -137,7 +138,7 @@ export function HomePage({ navigate }) {
       {/* O QUE É — circuito de sabor: colagem de fotos reais + tags sticker */}
       <section className="section hm-about">
         <div className="wrap hm-about__grid">
-          <div className="hm-about__head">
+          <div className="hm-about__head motion-reveal-up">
             <h2 {...ovAboutTitle}>Um circuito de <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--yellow)' }}>sabor</span>,</span> <span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>cidade</span> e <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--pink)' }}>comunidade</span>.</span></h2>
             <div className="hm-about__text" {...ovAboutText}>
               <p>
@@ -154,7 +155,7 @@ export function HomePage({ navigate }) {
 
           <div className="hm-about__media" {...ovAboutCollage}>
             <div className="hm-about__photo motion-image-reveal">
-              <img src="/images/combos/douce-di-maria/main.jpg" alt="Produção artesanal de uma marca participante do Sweet & Coffee Week" loading="lazy" />
+              <PhotoRotator images={aboutGalleryImages} interval={6800} className="hm-about__rotator" />
             </div>
             <span className="hm-about__heart" aria-hidden="true" {...ovAboutHeart}>
               <img src="/images/shapes/shape-heart-yellow.svg" alt="" />
@@ -166,11 +167,11 @@ export function HomePage({ navigate }) {
       {/* COMO FUNCIONA */}
       <section className="section hm-steps-section" {...ovProcess}>
         <div className="wrap">
-          <div className="hm-head">
+          <div className="hm-head motion-reveal-up">
             <h2>Do tema à <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--cyan)' }}>memória</span>:</span> como o festival movimenta a cidade.</h2>
             <p>Cada edição nasce de uma ideia criativa, ganha forma nos combos dos participantes e se espalha por Natal como uma rota de sabores, encontros e descobertas.</p>
           </div>
-          <div className="hm-steps">
+          <div className="hm-steps motion-stagger">
             {STEPS.map((s) => (
               <article className="hm-step" key={s.n}>
                 <span className="hm-step__n">{s.n}</span>
@@ -183,9 +184,37 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
+      {/* CAMINHOS INSTITUCIONAIS — ponte para Participar / Apoiar */}
+      <section className="section hm-paths">
+        <div className="wrap">
+          <div className="hm-head motion-reveal-up">
+            <h2>Faça parte das <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>próximas edições</span>.</span></h2>
+            <p>O Sweet &amp; Coffee Week é construído junto com marcas, estabelecimentos e parceiros que acreditam na força das experiências locais.</p>
+          </div>
+          <div className="hm-paths__grid motion-stagger">
+            <article className="hm-path">
+              <span className="hm-path__eyebrow">Para estabelecimentos</span>
+              <h3>Quer colocar sua marca na rota?</h3>
+              <p>Se você tem uma cafeteria, doceria, confeitaria, restaurante ou marca autoral e quer participar das próximas edições, esse é o caminho para apresentar seu interesse e entender como o festival funciona.</p>
+              <a className="hm-path__cta motion-press" href="#/participar" onClick={go('/participar')}>
+                Quero participar <I.arrow />
+              </a>
+            </article>
+            <article className="hm-path">
+              <span className="hm-path__eyebrow">Para marcas e parceiros</span>
+              <h3>Quer apoiar o festival?</h3>
+              <p>Empresas, instituições e marcas parceiras podem se conectar ao Sweet &amp; Coffee Week por meio de patrocínio, ativações, conteúdo, brindes, experiências e presença nos pontos participantes.</p>
+              <a className="hm-path__cta motion-press" href="#/apoiar" onClick={go('/apoiar')}>
+                Quero apoiar <I.arrow />
+              </a>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* REALIZAÇÃO — assinatura na identidade da F2 Experience */}
       <section className="section hm-f2" {...ovRealizacao}>
-        <div className="wrap hm-f2__inner">
+        <div className="wrap hm-f2__inner motion-reveal">
           <div className="hm-f2__brandrow">
             <span className="hm-f2__eyebrow">Realização</span>
             <a
@@ -209,7 +238,7 @@ export function HomePage({ navigate }) {
                 desenvolvimento do festival.
               </p>
               <a
-                className="hm-f2__cta"
+                className="hm-f2__cta motion-press"
                 href="https://www.f2experience.com.br"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -240,7 +269,19 @@ export function HomePage({ navigate }) {
         .hm .hm-about { position: relative; z-index: 3; }
         /* respingo de chocolate ancorado no topo-esquerdo, vazando o canto (atrás da logo) */
         .hm .swc-hero__splat { position: absolute; top: clamp(-300px, -22vw, -180px); left: clamp(-210px, -15vw, -120px); width: clamp(440px, 48vw, 720px); z-index: 2; pointer-events: none; color: #6a2c15; }
-        .hm .swc-hero__splat img { display: block; width: 100%; height: auto; filter: drop-shadow(0 18px 44px rgba(43,24,16,.45)); }
+        /* Respingo recolorido via máscara (cor controlável por token) + rotação
+           bem devagar. Coral destaca do marrom/creme dos logos sem brigar. */
+        .hm .swc-hero__splat__shape {
+          display: block; width: 100%; aspect-ratio: 1212.59 / 1201.31;
+          background: var(--yellow, #F4B43C);
+          -webkit-mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat;
+          mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat;
+          filter: drop-shadow(0 18px 44px rgba(43,24,16,.45));
+          transform-origin: 50% 50%;
+          animation: splatSpin 100s linear infinite;
+        }
+        @keyframes splatSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .hm .swc-hero__splat__shape { animation: none; } }
         .hm .swc-hero, .hm .swc-hero * { text-align: center; }
         .hm .swc-hero__copy {
           position: relative; z-index: 4; width: 100%; max-width: 920px; margin: 0 auto; min-height: calc(100dvh - 1px); box-sizing: border-box;
@@ -289,6 +330,8 @@ export function HomePage({ navigate }) {
         /* foto de fundo full-bleed cobrindo o hero inteiro */
         .hm .swc-hero__photo { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
         .hm .swc-hero__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        /* Galeria do hero a 50% — suaviza o fundo sob o título (about fica 100%) */
+        .hm .swc-hero__rotator { opacity: .5; }
         .hm .swc-hero__actions { position: absolute; right: var(--hm-gutter); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
         .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
         @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
@@ -358,7 +401,7 @@ export function HomePage({ navigate }) {
         .hm-step:nth-child(3) .hm-step__n { color: var(--cyan-deep); }
         .hm-step:nth-child(4) .hm-step__n { color: var(--yellow-deep); }
         .hm-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: var(--sp-4) 0 0; color: var(--ink); }
-        .hm-step p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.4; margin: var(--sp-3) 0 0; }
+        .hm-step p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.4; margin: var(--sp-3) 0 var(--sp-5); }
         .hm-step__k { align-self: flex-start; margin-top: auto; padding: 4px 11px; border-radius: 999px; background: var(--coral); color: #fff; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
         .hm-step:nth-child(1) .hm-step__k { background: var(--coral); color: #fff; }
         .hm-step:nth-child(2) .hm-step__k { background: var(--pink); color: #fff; }
@@ -408,6 +451,27 @@ export function HomePage({ navigate }) {
         .hm-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 5cqi, 22px); margin: 0; color: var(--ink); }
         .hm-pillar p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 15px); line-height: 1.4; margin: var(--sp-3) 0 0; }
 
+        /* CAMINHOS INSTITUCIONAIS — ponte Participar/Apoiar. Banda #381610
+           (entre steps #5e3018 e F2 #000): degradê descendente até o preto.
+           Cards cream sobre escuro, mesma linguagem dos step cards. */
+        .hm .hm-paths { background: #381610; }
+        /* banda escura: head em creme (igual steps) — senão o texto some no fundo */
+        .hm-paths .hm-head h2 { color: var(--cream); }
+        .hm-paths .hm-head > p { color: rgba(255, 241, 230, .82); }
+        .hm-paths__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+        .hm-path { display: flex; flex-direction: column; align-items: flex-start; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-7); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
+        .hm-path:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .hm-path__eyebrow { font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 var(--sp-4); }
+        .hm-path h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(20px, 2.4vw, 28px); line-height: 1.05; letter-spacing: -.02em; color: var(--ink); margin: 0 0 var(--sp-3); text-wrap: balance; }
+        .hm-path p { color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.45; margin: 0 0 var(--sp-6); text-wrap: pretty; }
+        .hm-path__cta { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 9px; padding: 12px 22px; border-radius: 999px; background: var(--accent); color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 14px; letter-spacing: .02em; transition: transform var(--motion-fast) var(--ease-out-soft), filter var(--motion-fast) var(--ease-out-soft); }
+        .hm-path__cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .hm-path__cta svg { width: 16px; height: 16px; }
+        /* Coluna 2 (apoiar) muda o acento para cyan-deep — diferencia os dois caminhos */
+        .hm-path:nth-child(2) .hm-path__eyebrow { color: var(--cyan-deep); }
+        .hm-path:nth-child(2) .hm-path__cta { background: var(--cyan-deep); }
+        @media (max-width: 760px) { .hm-paths__grid { grid-template-columns: 1fr; } }
+
         /* REALIZAÇÃO — assinatura na identidade da F2 Experience.
            Corte duro para a "pele" da F2: fundo preto, Helvetica Extended,
            acentos magenta/violeta/verde e o espectro de marca da F2. */
@@ -447,20 +511,10 @@ export function HomePage({ navigate }) {
           .hm-steps, .hm-pillars { grid-template-columns: 1fr; }
         }
 
-        /* Reveal on-scroll (scroll-driven, progressive enhancement). Conteúdo é
-           visível por padrão; a animação só realça onde suportada. Sem JS. */
-        @keyframes swcReveal { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-        @supports (animation-timeline: view()) {
-          @media (prefers-reduced-motion: no-preference) {
-            .hm .hm-about__head, .hm .hm-head, .hm .hm-realizacao,
-            .hm-steps > *, .hm-pillars > *, .hm-stats > * {
-              animation: swcReveal both linear; animation-timeline: view(); animation-range: entry 0% cover 16%;
-            }
-            .hm-steps > *:nth-child(2), .hm-pillars > *:nth-child(2), .hm-stats > *:nth-child(2) { animation-range: entry 4% cover 20%; }
-            .hm-steps > *:nth-child(3), .hm-pillars > *:nth-child(3), .hm-stats > *:nth-child(3) { animation-range: entry 8% cover 24%; }
-            .hm-steps > *:nth-child(4), .hm-pillars > *:nth-child(4), .hm-stats > *:nth-child(4) { animation-range: entry 12% cover 28%; }
-          }
-        }
+        /* Reveal de seções/cards agora é observer-driven (useRevealOnScroll +
+           classes .motion-reveal*/.motion-stagger do motion-system.css).
+           O bloco scroll-driven (@supports animation-timeline) foi removido para
+           não animar duas vezes. */
 
         /* Acessibilidade: sem movimento → conteúdo estático, sublinhado já desenhado */
         @media (prefers-reduced-motion: reduce) {
