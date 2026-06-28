@@ -39,7 +39,7 @@ function EditionAccordion({ e }) {
         {hasResults && (
           <div className="hist-cats">
             {e.awards.map((a) => (
-              <div className="hist-cat" key={a.category}>
+              <div className="hist-cat" key={`${a.category}-${a.track || ''}`}>
                 <h4>{a.category}{a.track ? <span className="hist-cat__track"> · {a.track}</span> : null}</h4>
                 <ol className="hist-winners">
                   {a.winners.map((w, i) => (
