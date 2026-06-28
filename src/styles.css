@@ -391,7 +391,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 /* HOME: barra transparente sobre o hero escuro; vira sólida ao rolar */
-body.route-home .site-header {
+body:not(.route-painel) .site-header {
   position: fixed;
   left: 0; right: 0; top: 0;
   /* SEM gradiente no header: qualquer degradê com alpha tem uma borda de caixa
@@ -406,7 +406,7 @@ body.route-home .site-header {
 /* Scrim de topo: sombra escura fixa atrás do menu, esmaece até transparente (sem
    barra sólida). Mantém o menu claro legível sobre QUALQUER seção (inclusive as
    claras, ex.: Números em creme). Termina em alpha 0 → sem linha/seam. */
-body.route-home .site-header::before {
+body:not(.route-painel) .site-header::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
@@ -418,10 +418,10 @@ body.route-home .site-header::before {
   pointer-events: none;
   z-index: -1;
 }
-body.route-home .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
-body.route-home .site-header .nav-main a:hover { color: #fff; }
-body.route-home .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
-body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
+body:not(.route-painel) .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
+body:not(.route-painel) .site-header .nav-main a:hover { color: #fff; }
+body:not(.route-painel) .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
+body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
 
 /* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
    barra full-width alinhada ao grid do conteúdo (--hm-gutter), logo prominente,
@@ -436,8 +436,8 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
 
   /* HOME: logo grande flutuando — centro fixo na borda inferior da barra
      (metade vaza no hero escuro); barra transparente. */
-  body.route-home .site-header__inner { position: relative; padding-block: 50px; }
-  body.route-home .brand {
+  body:not(.route-painel) .site-header__inner { position: relative; padding-block: 50px; }
+  body:not(.route-painel) .brand {
     position: absolute;
     left: var(--hm-gutter);
     top: 100%;
@@ -448,10 +448,18 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
     z-index: -1;
     transition: top .4s var(--ease-out-soft, ease), transform .4s var(--ease-out-soft, ease);
   }
-  body.route-home .brand img { height: clamp(116px, 11vw, 160px); }
+  body:not(.route-painel) .brand img { height: clamp(116px, 11vw, 160px); }
   /* Ao rolar: logo sobe pro centro da barra, encolhe e fica à frente — alinhada ao menu */
-  body.route-home .site-header.scrolled .brand { top: 50%; z-index: 5; }
-  body.route-home .site-header.scrolled .brand-cycle { transform: translateY(-50%) scale(.62); }
+  body:not(.route-painel) .site-header.scrolled .brand { top: 50%; z-index: 5; }
+  body:not(.route-painel) .site-header.scrolled .brand-cycle { transform: translateY(-50%) scale(.62); }
+}
+/* Header agora é FIXO em todas as páginas públicas (idêntico à Home). Home e
+   Participar têm hero escuro com folga própria no topo; as demais ganham folga
+   aqui p/ o conteúdo não ficar sob a barra fixa nem sob a logo flutuante
+   (a logo vira um crest acima do título). Painel fica de fora. */
+body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
+@media (min-width: 960px) {
+  body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
 }
 .mobile-overlay {
   position: fixed;

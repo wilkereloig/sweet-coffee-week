@@ -1,286 +1,342 @@
+/*
+ * PÁGINA INSTITUCIONAL — "Apoiar".
+ * Captação de patrocinadores/apoiadores/parceiros, no sistema da Home/O Festival
+ * (tokens, containers, cards, Motion System, bandas chocolate × creme). Curta e
+ * de conversão: CTA cedo, valor objetivo, onde a marca aparece, formas de apoio
+ * e um formulário HONESTO (sem backend: copia os dados e abre o Instagram oficial
+ * — não simula envio). Header/menu/rodapé GLOBAIS (App.jsx).
+ */
 import React from 'react'
 import { I } from '../../components/icons'
-import { PhotoEditorial } from '../../components/placeholders'
+import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 
-const darkFieldBase = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 15,
-  padding: '14px 16px',
-  border: '1px solid rgba(255,244,236,.22)',
-  borderRadius: 12,
-  background: 'rgba(255,244,236,.05)',
-  color: 'var(--bg)',
-  outline: 'none',
-  width: '100%',
-}
+const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 
-function DarkField({ label, placeholder, type = 'text', full = false, options }) {
-  if (type === 'select') {
-    return (
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, gridColumn: full ? '1 / -1' : undefined }}>
-        <span className="mono" style={{ textTransform: 'uppercase', letterSpacing: '.1em', color: 'rgba(255,244,236,.55)' }}>{label}</span>
-        <select style={darkFieldBase}>
-          <option value="">{placeholder || 'Selecione'}</option>
-          {(options || []).map((o, i) => <option key={i} style={{ color: 'var(--ink)' }}>{o}</option>)}
-        </select>
-      </label>
-    )
-  }
-  if (type === 'textarea') {
-    return (
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, gridColumn: full ? '1 / -1' : undefined }}>
-        <span className="mono" style={{ textTransform: 'uppercase', letterSpacing: '.1em', color: 'rgba(255,244,236,.55)' }}>{label}</span>
-        <textarea rows={4} placeholder={placeholder} style={{ ...darkFieldBase, resize: 'vertical', minHeight: 110 }} />
-      </label>
-    )
-  }
-  return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 8, gridColumn: full ? '1 / -1' : undefined }}>
-      <span className="mono" style={{ textTransform: 'uppercase', letterSpacing: '.1em', color: 'rgba(255,244,236,.55)' }}>{label}</span>
-      <input type={type} placeholder={placeholder} style={darkFieldBase} />
-    </label>
-  )
-}
+// Por que apoiar — 6 argumentos curtos. Acento por card (rotação coral/pink/
+// cyan/yellow), ícone só do conjunto existente em icons.jsx.
+const VALUE = [
+  { icon: 'star', t: 'Campanha proprietária', d: 'Sua marca entra em uma campanha de cidade, com identidade, calendário e comunicação próprios do festival.' },
+  { icon: 'croissant', t: 'Economia criativa', d: 'Associação a um movimento de gastronomia autoral, marcas locais e cultura urbana de Natal.' },
+  { icon: 'heart', t: 'Público engajado', d: 'Contato com os Sweet Lovers — um público que prova, fotografa, compartilha e circula pela cidade.' },
+  { icon: 'pin', t: 'Ativação em PDV', d: 'Presença nos pontos de venda das marcas participantes durante toda a temporada do festival.' },
+  { icon: 'ig', t: 'Conteúdo compartilhável', d: 'Combos, bastidores e experiências que viram conteúdo espontâneo nas redes do público e das marcas.' },
+  { icon: 'cup', t: 'Sweet Awards e experiências', d: 'Espaço em premiações, brindes e experiências especiais que reconhecem os destaques de cada edição.' },
+]
 
-const PATH_ACCENTS = ['coral', 'yellow', 'cyan', 'choco']
+// Onde a marca pode aparecer — pontos de contato reais do festival.
+const TOUCHPOINTS = [
+  { icon: 'ig', t: 'Redes sociais', d: 'Posts, stories e chamadas no Instagram oficial.' },
+  { icon: 'search', t: 'Site oficial', d: 'Presença nas páginas institucionais do festival.' },
+  { icon: 'plate', t: 'Marcas participantes', d: 'Conexão com as docerias, cafeterias e confeitarias da rota.' },
+  { icon: 'pin', t: 'Materiais de PDV', d: 'Sinalização e materiais nos pontos de venda.' },
+  { icon: 'star', t: 'Sweet Awards', d: 'Associação à premiação dos destaques da edição.' },
+  { icon: 'cup', t: 'Conteúdo editorial', d: 'Curiosidades, histórico e bastidores do festival.' },
+  { icon: 'heart', t: 'Brindes e experiências', d: 'Ações especiais para o público e para os Sweet Lovers.' },
+]
 
-function PartnerPath({ title, body, icon, index = 0 }) {
-  const Icon = I[icon] || I.star
-  const accent = PATH_ACCENTS[index % PATH_ACCENTS.length]
-  return (
-    <article className={`partner-path partner-path--${accent}`}>
-      <span className="partner-path__badge"><Icon width={24} height={24} /></span>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </article>
-  )
-}
+// Formas de apoio — poucos formatos, claros. Acento por card.
+const PATHS = [
+  { hl: 'var(--coral)', t: 'Patrocínio oficial', d: 'Cotas de patrocínio com presença em campanha, comunicação e ativações ao longo da temporada.' },
+  { hl: 'var(--pink)', t: 'Ativação de marca', d: 'Ações, experiências e presença da marca nos pontos de contato com o público.' },
+  { hl: 'var(--cyan-deep)', t: 'Produto, insumo ou serviço', d: 'Apoio com produtos, insumos, equipamentos ou serviços úteis às marcas e à organização.' },
+  { hl: 'var(--yellow-deep)', t: 'Mídia e divulgação', d: 'Parcerias de mídia, veículos e creators que ampliam o alcance do festival.' },
+  { hl: 'var(--coral-deep)', t: 'Apoio institucional', d: 'Instituições e entidades que somam credibilidade e suporte ao Sweet & Coffee Week.' },
+]
+
+const SEGMENTOS = ['Alimentos e bebidas', 'Varejo', 'Serviços', 'Mídia / comunicação', 'Instituição / entidade', 'Indústria', 'Outro']
+const INTERESSES = ['Patrocínio oficial', 'Ativação de marca', 'Produto, insumo ou serviço', 'Mídia e divulgação', 'Apoio institucional', 'Ainda quero entender as opções']
 
 export function ApoiarPage({ navigate }) {
-  const opcoes = [
-    'Patrocínio oficial',
-    'Apoio institucional',
-    'Ativação de marca',
-    'Produto, insumo ou serviço',
-    'Mídia e divulgação',
-    'Espaço para experiência',
-    'Premiação ou brindes',
-    'Outra proposta',
-  ]
+  const rootRef = React.useRef(null)
+  useRevealOnScroll(rootRef)
+
+  const scrollTo = (id) => (e) => {
+    e.preventDefault()
+    const el = typeof document !== 'undefined' && document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const [form, setForm] = React.useState({ empresa: '', responsavel: '', whatsapp: '', email: '', segmento: '', interesse: '', mensagem: '' })
+  const [status, setStatus] = React.useState(null) // null | 'sent' | 'fallback'
+  const onChange = (field) => (e) => {
+    setForm((f) => ({ ...f, [field]: e.target.value }))
+    if (status) setStatus(null)
+  }
+  const canSend = form.empresa.trim() && form.responsavel.trim() && (form.whatsapp.trim() || form.email.trim())
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    if (!canSend) return
+    const linhas = [
+      'Interesse em apoiar o Sweet & Coffee Week:',
+      '',
+      `Empresa: ${form.empresa.trim()}`,
+      `Responsável: ${form.responsavel.trim()}`,
+    ]
+    if (form.whatsapp.trim()) linhas.push(`WhatsApp: ${form.whatsapp.trim()}`)
+    if (form.email.trim()) linhas.push(`E-mail: ${form.email.trim()}`)
+    if (form.segmento.trim()) linhas.push(`Segmento: ${form.segmento.trim()}`)
+    if (form.interesse.trim()) linhas.push(`Tipo de interesse: ${form.interesse.trim()}`)
+    if (form.mensagem.trim()) linhas.push('', form.mensagem.trim())
+    const texto = linhas.join('\n')
+
+    let copied = false
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(texto)
+        copied = true
+      }
+    } catch { copied = false }
+
+    if (typeof window !== 'undefined') window.open(INSTAGRAM_URL, '_blank', 'noopener,noreferrer')
+    setStatus(copied ? 'sent' : 'fallback')
+  }
 
   return (
-    <div className="page-enter apoiar-page">
+    <div className="page-enter apoiar-page" ref={rootRef}>
+      {/* 1 — HERO com CTA cedo (banda chocolate) */}
       <section className="apoiar-hero">
-        <div className="wrap apoiar-hero__grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Para marcas, parceiros e patrocinadores</span>
-            <h1>Associe sua marca à temporada <em>mais doce</em> de Natal.</h1>
-            <p className="lead">
-              O Sweet & Coffee Week conecta marcas a um público urbano, engajado e interessado em gastronomia, experiência, lifestyle, circulação pela cidade e consumo local.
-            </p>
-            <p className="lead">
-              Apoiar o Sweet & Coffee Week é fazer parte de uma campanha com presença digital, ativação urbana, relacionamento com empreendedores, conteúdo espontâneo do público e alto potencial de memória.
-            </p>
-            <div className="apoiar-hero__actions">
-              <a href="#form-apoiar" className="btn btn-accent btn-lg">Tenho interesse em apoiar <I.arrow /></a>
-              <a href="#/contato" className="btn btn-secondary btn-lg" onClick={(e) => { e.preventDefault(); navigate('/contato') }}>Falar com a organização</a>
-            </div>
-          </div>
-          <div className="apoiar-hero__media">
-            <PhotoEditorial src="/images/combos/rollab-confeitaria/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Marcas podem entrar no festival por patrocínio, experiência, produto, mídia ou ação promocional." aspect="4/5" tone="dark" />
+        <span className="apoiar-hero__seal" aria-hidden="true"><span className="apoiar-hero__seal__shape" /></span>
+        <div className="wrap apoiar-hero__inner motion-reveal-up">
+          <span className="apoiar-eyebrow"><span className="apoiar-eyebrow__dot" />Apoiar</span>
+          <h1>Associe sua marca à temporada mais <span className="keep-together"><span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
+          <p>
+            O Sweet &amp; Coffee Week conecta marcas a um público urbano, engajado e interessado em gastronomia, experiência, circulação pela cidade e consumo local — em uma campanha proprietária que acontece todos os anos.
+          </p>
+          <div className="apoiar-hero__cta">
+            <a href="#form-apoiar" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('form-apoiar')}>Tenho interesse em apoiar <I.arrow /></a>
+            <a href="#formas-apoio" className="apoiar-hero__link motion-press" onClick={scrollTo('formas-apoio')}>Ver possibilidades de apoio <I.arrowDown /></a>
           </div>
         </div>
       </section>
 
-      <section className="section apoiar-photo-band">
-        <div className="wrap apoiar-photo-grid">
-          <div className="apoiar-photo-grid__wide"><PhotoEditorial src="/images/combos/mangai/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="Pessoas circulando, fotografando e compartilhando experiências da edição." aspect="16/9" tone="warm" /></div>
-          <PhotoEditorial src="/images/combos/parma-doces/main.jpg" alt="Vitrine de uma marca participante do Sweet & Coffee Week" caption="Presença de marca, vitrine e comunicação no local." aspect="4/5" tone="cream" />
-        </div>
-      </section>
-
-      <section className="section" style={{ background: 'var(--bg-soft)' }}>
-        <div className="wrap apoiar-intro">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Visibilidade com experiência</span>
-            <h2>O Sweet & Coffee Week é mídia, conteúdo e cidade ao mesmo tempo.</h2>
-          </div>
-          <div className="apoiar-intro__text">
-            <p>
-              O festival não acontece em um único lugar. Ele se espalha pela cidade, pelos pontos de venda, pelo mapa, pelas redes sociais, pelas conversas do público, pelas fotos dos combos e pela votação do Sweet Awards.
-            </p>
-            <p>
-              Por isso, uma marca apoiadora não entra apenas como logotipo. Ela pode fazer parte da experiência: na comunicação, nos materiais da edição, nas ativações, nos brindes, nos prêmios, nos conteúdos e nos momentos de contato com os Sweet Lovers.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section apoiar-paths-section apoiar-where-section">
+      {/* 2 — BLOCO DE VALOR */}
+      <section className="section apoiar-value-section">
         <div className="wrap">
-          <div className="apoiar-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Onde a marca pode aparecer</span>
-              <h2>Presença em diferentes pontos da jornada.</h2>
-            </div>
+          <div className="apoiar-head motion-reveal-up">
+            <h2>Por que apoiar o <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>Sweet</span></h2>
+            <p>Mais do que visibilidade: associação a um movimento de cidade que conecta marcas, gastronomia e público.</p>
           </div>
-          <div className="partner-path-grid">
-            <PartnerPath index={0} title="Redes sociais" body="Posts, Reels, stories, chamadas de edição, bastidores, divulgação de participantes e conteúdos especiais." icon="ig" />
-            <PartnerPath index={1} title="Site oficial" body="Página institucional, página da edição, mapa, área de participantes, Sweet Awards e páginas comerciais." icon="search" />
-            <PartnerPath index={2} title="Materiais impressos" body="Cartazes, adesivos, sinalização, cartões, materiais de ponto de venda e peças de apoio." icon="plate" />
-            <PartnerPath index={3} title="Pontos participantes" body="Aplicação de marca em vitrines, balcões, displays, cardápios, QR codes ou ativações combinadas." icon="pin" />
-            <PartnerPath index={4} title="Mapa da Doçura" body="Presença na ferramenta que guia o público pela rota da edição." icon="map" />
-            <PartnerPath index={5} title="Sweet Awards" body="Possibilidade de apoio à votação, à divulgação dos vencedores, a prêmios ou a categorias especiais." icon="star" />
-            <PartnerPath index={6} title="Brindes e experiências" body="Distribuição de gifts, cupons, amostras, vouchers, experiências ou ações promocionais." icon="donut" />
-            <PartnerPath index={7} title="Conteúdo editorial" body="Participação em narrativas da edição, bastidores, listas, entrevistas, ativações ou conteúdos de marca." icon="heart" />
+          <div className="apoiar-value motion-stagger">
+            {VALUE.map((v) => {
+              const Icon = I[v.icon] || I.star
+              return (
+                <article className="apoiar-vcard" key={v.t}>
+                  <span className="apoiar-vcard__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
+                  <h3>{v.t}</h3>
+                  <p>{v.d}</p>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      <section className="section apoiar-paths-section">
+      {/* 3 — ONDE A MARCA PODE APARECER */}
+      <section className="section apoiar-where-section">
         <div className="wrap">
-          <div className="apoiar-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Formas de apoio</span>
-              <h2>Da cota oficial à experiência personalizada.</h2>
-            </div>
+          <div className="apoiar-head motion-reveal-up">
+            <h2>Onde a sua marca pode <span className="apoiar-hl" style={{ '--hl': 'var(--cyan-deep)' }}>aparecer</span></h2>
+            <p>Pontos de contato reais do festival, da rede social ao ponto de venda.</p>
           </div>
-          <div className="partner-path-grid">
-            <PartnerPath index={0} title="Patrocínio oficial" body="Para marcas que querem aparecer como apoiadoras da edição e da comunicação institucional do festival." icon="star" />
-            <PartnerPath index={1} title="Ativação de marca" body="Para marcas que querem criar uma ação presencial, digital ou híbrida conectada à rota, aos participantes ou aos Sweet Lovers." icon="route" />
-            <PartnerPath index={2} title="Produto, insumo ou serviço" body="Para empresas que desejam apoiar com brindes, ingredientes, embalagens, tecnologia, mídia, estrutura, prêmios ou soluções úteis à operação." icon="plate" />
-            <PartnerPath index={3} title="Apoio institucional" body="Para entidades, shoppings, projetos de cidade, turismo, cultura, educação, empreendedorismo e economia criativa." icon="pin" />
-            <PartnerPath index={4} title="Mídia e divulgação" body="Para veículos, creators, portais, rádios, TVs, podcasts ou canais que queiram se conectar ao festival." icon="cup" />
-          </div>
+          <ul className="apoiar-where motion-stagger">
+            {TOUCHPOINTS.map((t) => {
+              const Icon = I[t.icon] || I.star
+              return (
+                <li className="apoiar-where__item" key={t.t}>
+                  <span className="apoiar-where__ic" aria-hidden="true"><Icon width={18} height={18} /></span>
+                  <div>
+                    <strong>{t.t}</strong>
+                    <span>{t.d}</span>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
         </div>
       </section>
 
-      <section className="section apoiar-why-section">
+      {/* 4 — FORMAS DE APOIO */}
+      <section id="formas-apoio" className="section apoiar-paths-section">
         <div className="wrap">
-          <div className="apoiar-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Por que apoiar</span>
-              <h2>Uma marca apoiadora entra em uma memória coletiva.</h2>
-            </div>
+          <div className="apoiar-head motion-reveal-up">
+            <h2>Formas de <span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>apoio</span></h2>
+            <p>Formatos flexíveis — do patrocínio oficial ao apoio com produto, mídia ou estrutura.</p>
           </div>
-          <div className="apoiar-why-grid">
-            <div className="apoiar-why-text">
-              <p>
-                O Sweet & Coffee Week movimenta desejo, deslocamento, conversa e registro. As pessoas salvam combos, combinam rotas, fotografam pratos, compartilham experiências e acompanham os resultados.
-              </p>
-              <p>
-                A marca apoiadora se conecta a esse comportamento de forma natural, dentro de uma experiência positiva, afetiva e ligada à cidade.
-              </p>
-            </div>
-            <ul className="apoiar-pills">
-              <li>Visibilidade local</li>
-              <li>Associação com gastronomia e criatividade</li>
-              <li>Contato com público engajado</li>
-              <li>Presença em campanha proprietária</li>
-              <li>Ativação em pontos de venda</li>
-              <li>Conteúdo compartilhável</li>
-              <li>Relacionamento com empreendedores</li>
-              <li>Participação em uma tradição de Natal</li>
-            </ul>
+          <div className="apoiar-paths motion-stagger">
+            {PATHS.map((p) => (
+              <article className="apoiar-path" key={p.t} style={{ '--hl': p.hl }}>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* 5 — FORM + FECHAMENTO (banda chocolate) */}
       <section id="form-apoiar" className="section apoiar-form-section">
         <div className="wrap apoiar-form-grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Proposta comercial</span>
-            <h2>Conte como sua marca quer entrar no Sweet & Coffee Week.</h2>
-            <p>
-              A partir do interesse, a organização pode avaliar possibilidades de patrocínio, apoio, mídia, ativações, brindes, experiências presenciais ou ações sob medida para próximas edições.
-            </p>
+          <div className="apoiar-form-intro motion-reveal-up">
+            <h2 className="apoiar-form-intro__h">Vamos construir uma parceria para a <span className="apoiar-hl" style={{ '--hl': 'var(--yellow)' }}>próxima edição</span>?</h2>
+            <p>Conte rapidamente sobre sua marca e o tipo de apoio que faz sentido. A organização retorna o contato para desenhar a melhor forma de participar.</p>
+            <ul className="apoiar-form-intro__list">
+              <li><span aria-hidden="true"><I.check width={15} height={15} /></span> Resposta pelos canais oficiais</li>
+              <li><span aria-hidden="true"><I.check width={15} height={15} /></span> Formatos sob medida para a marca</li>
+              <li><span aria-hidden="true"><I.check width={15} height={15} /></span> Sem compromisso no primeiro contato</li>
+            </ul>
           </div>
 
-          <form className="card apoiar-form" onSubmit={(e) => e.preventDefault()}>
-            <div className="mono mb-4" style={{ color: 'var(--peach)' }}>FORMULÁRIO DE APOIO</div>
+          <form className="apoiar-form motion-reveal-up" onSubmit={onSubmit} noValidate aria-label="Formulário de interesse em apoiar">
             <div className="apoiar-form__fields">
-              <DarkField full label="Nome da empresa" placeholder="Empresa interessada" />
-              <DarkField label="Nome do responsável" placeholder="Seu nome" />
-              <DarkField label="Cargo" placeholder="Sua função na empresa" />
-              <DarkField label="WhatsApp" placeholder="(00) 00000-0000" />
-              <DarkField label="E-mail" type="email" placeholder="contato@empresa.com" />
-              <DarkField full label="Instagram ou site" placeholder="@empresa  ·  empresa.com.br" />
-              <DarkField full label="Segmento da empresa" placeholder="Em que mercado sua marca atua" />
-              <DarkField full label="Tipo de interesse" type="select" options={opcoes} />
-              <DarkField full label="Verba estimada ou formato de apoio" placeholder="Faixa de investimento ou tipo de contrapartida que imaginam" />
-              <DarkField full label="Mensagem" type="textarea" placeholder="Conte um pouco sobre sua marca e o tipo de apoio que vocês imaginam" />
+              <label className="apoiar-field apoiar-field--full">
+                <span>Empresa *</span>
+                <input type="text" value={form.empresa} onChange={onChange('empresa')} placeholder="Nome da sua marca/empresa" required aria-required="true" />
+              </label>
+              <label className="apoiar-field">
+                <span>Responsável *</span>
+                <input type="text" value={form.responsavel} onChange={onChange('responsavel')} placeholder="Seu nome" autoComplete="name" required aria-required="true" />
+              </label>
+              <label className="apoiar-field">
+                <span>WhatsApp</span>
+                <input type="tel" value={form.whatsapp} onChange={onChange('whatsapp')} placeholder="(00) 00000-0000" autoComplete="tel" />
+              </label>
+              <label className="apoiar-field">
+                <span>E-mail</span>
+                <input type="email" value={form.email} onChange={onChange('email')} placeholder="contato@empresa.com" autoComplete="email" />
+              </label>
+              <label className="apoiar-field">
+                <span>Segmento</span>
+                <select value={form.segmento} onChange={onChange('segmento')}>
+                  <option value="">Selecione</option>
+                  {SEGMENTOS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </label>
+              <label className="apoiar-field apoiar-field--full">
+                <span>Tipo de interesse</span>
+                <select value={form.interesse} onChange={onChange('interesse')}>
+                  <option value="">Selecione</option>
+                  {INTERESSES.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </label>
+              <label className="apoiar-field apoiar-field--full">
+                <span>Mensagem</span>
+                <textarea value={form.mensagem} onChange={onChange('mensagem')} rows={3} placeholder="Conte o que sua marca tem em mente" />
+              </label>
             </div>
-            <div className="apoiar-form__footer">
-              <span className="mono">CONTATO COMERCIAL PARA PRÓXIMAS EDIÇÕES</span>
-              <button className="btn btn-accent btn-lg">Enviar proposta <I.arrow /></button>
-            </div>
+            <button type="submit" className="btn btn-primary btn-lg motion-press apoiar-form__send" disabled={!canSend}>
+              Enviar interesse <I.arrow />
+            </button>
+            <p className="apoiar-form__note">
+              O envio não fecha proposta automaticamente. A organização retorna para alinhar formato, contrapartidas e disponibilidade de cada edição.
+            </p>
+            <p className="apoiar-form__status" role="status" aria-live="polite">
+              {status === 'sent' &&
+                'Copiamos seus dados e abrimos o Instagram @sweetcoffeeweek — cole na mensagem para falar com a organização. Obrigado pelo interesse em apoiar o Sweet & Coffee Week.'}
+              {status === 'fallback' &&
+                'O formulário ainda será conectado. Por enquanto, fale com a organização pelo Instagram @sweetcoffeeweek.'}
+            </p>
           </form>
         </div>
       </section>
 
       <style>{`
-        .apoiar-hero { position: relative; overflow: hidden; padding: clamp(54px, 8vw, 112px) 0 48px; }
-        .apoiar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
-        .apoiar-hero h1, .apoiar-intro h2, .apoiar-section-head h2, .apoiar-form-grid h2 { font-family: var(--font-serif); font-size: clamp(48px, 7vw, 118px); line-height: .9; letter-spacing: -.055em; margin: 18px 0 0; color: var(--ink); }
-        .apoiar-hero h1 { max-width: 11ch; }
-        .apoiar-hero h1 em { font-style: normal; color: var(--swc-coral, #F65D74); }
-        .apoiar-hero .lead { color: var(--ink-soft); max-width: 58ch; line-height: 1.65; }
-        .apoiar-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-        .apoiar-hero__media { border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(43,24,16,.16); }
-        .apoiar-photo-band { padding-top: 24px; }
-        .apoiar-photo-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; align-items: stretch; }
-        .apoiar-photo-grid__wide > figure, .apoiar-photo-grid > figure { height: 100%; min-height: 440px; aspect-ratio: auto !important; }
-        .apoiar-intro { display: grid; grid-template-columns: .95fr 1.05fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
-        .apoiar-intro__text { display: flex; flex-direction: column; gap: 18px; }
-        .apoiar-intro p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; margin: 0; }
-        .apoiar-section-head { margin-bottom: 34px; }
-        .apoiar-where-section { position: relative; overflow: hidden; background: var(--bg-soft); }
-        .apoiar-where-section .wrap { position: relative; z-index: 1; }
-        .apoiar-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
-        .apoiar-why-text { display: flex; flex-direction: column; gap: 18px; }
-        .apoiar-why-text p { color: var(--ink-soft); font-size: 18px; line-height: 1.7; margin: 0; }
-        .apoiar-pills { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
-        .apoiar-pills li { position: relative; background: var(--bg-card); border: 1px solid var(--line); border-radius: 999px; padding: 11px 18px 11px 30px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .02em; color: var(--ink); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
-        .apoiar-pills li::before { content: ''; position: absolute; left: 15px; top: 50%; width: 7px; height: 7px; border-radius: 999px; transform: translateY(-50%); }
-        .apoiar-pills li:nth-child(4n+1)::before { background: var(--swc-coral, #F65D74); }
-        .apoiar-pills li:nth-child(4n+2)::before { background: var(--swc-yellow, #FDBB1A); }
-        .apoiar-pills li:nth-child(4n+3)::before { background: var(--swc-cyan, #01AFCC); }
-        .apoiar-pills li:nth-child(4n)::before { background: var(--swc-coffee, #6A2C15); }
-        .apoiar-pills li:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: 0 8px 20px rgba(56,22,16,.10); }
-        .partner-path-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .partner-path { position: relative; overflow: hidden; background: var(--bg-card); border: 1px solid var(--line); border-radius: 22px; padding: 28px; min-height: 268px; display: flex; flex-direction: column; transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
-        .partner-path::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--pp-accent, var(--accent)); opacity: 0; transition: opacity .22s ease; }
-        .partner-path:hover { transform: translateY(-4px); border-color: var(--pp-accent, var(--accent)); box-shadow: 0 20px 44px rgba(56,22,16,.14); }
-        .partner-path:hover::after { opacity: 1; }
-        .partner-path__badge { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; margin-bottom: 24px; background: var(--pp-badge-bg, rgba(246,93,116,.12)); color: var(--pp-accent, var(--accent)); transition: transform .22s ease; }
-        .partner-path:hover .partner-path__badge { transform: rotate(-6deg) scale(1.05); }
-        .partner-path__badge svg { display: block; }
-        .partner-path--coral { --pp-accent: var(--swc-coral, #F65D74); --pp-badge-bg: rgba(246,93,116,.14); }
-        .partner-path--yellow { --pp-accent: var(--swc-yellow, #FDBB1A); --pp-badge-bg: rgba(253,187,26,.18); }
-        .partner-path--cyan { --pp-accent: var(--swc-cyan, #01AFCC); --pp-badge-bg: rgba(1,175,204,.14); }
-        .partner-path--choco { --pp-accent: var(--swc-coffee, #6A2C15); --pp-badge-bg: rgba(106,44,21,.12); }
-        .partner-path h3 { font-size: 24px; line-height: 1.05; margin: 0; color: var(--ink); }
-        .partner-path p { color: var(--ink-soft); font-size: 14px; line-height: 1.55; margin: auto 0 0; }
-        .apoiar-form-section { position: relative; overflow: hidden; background: var(--ink); color: var(--bg); }
-        .apoiar-form-grid { position: relative; z-index: 1; display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
-        .apoiar-form-grid h2 { color: var(--bg); }
-        .apoiar-form-grid p { color: rgba(255,244,236,.72); line-height: 1.7; }
-        .apoiar-form { position: relative; padding: clamp(30px, 4vw, 52px); background: rgba(255,244,236,.045); color: var(--bg); border: 1px solid rgba(255,244,236,.14); border-radius: 26px; box-shadow: 0 30px 80px rgba(0,0,0,.32); }
-        .apoiar-form::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 26px 26px 0 0; background: linear-gradient(90deg, var(--swc-coral, #F65D74), var(--swc-yellow, #FDBB1A) 50%, var(--swc-cyan, #01AFCC)); }
-        .apoiar-form .mono { letter-spacing: .14em; }
-        .apoiar-form__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 24px; }
-        .apoiar-form input:focus, .apoiar-form select:focus, .apoiar-form textarea:focus { border-color: var(--swc-yellow, #FDBB1A) !important; background: rgba(255,244,236,.08) !important; }
-        .apoiar-form__footer { margin-top: 34px; padding-top: 24px; border-top: 1px solid rgba(255,244,236,.12); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .apoiar-form__footer span { font-size: 11px; letter-spacing: .04em; color: rgba(255,244,236,.55); }
-        .apoiar-form__footer .btn { box-shadow: 0 14px 32px rgba(1,175,204,.30); }
-        @media (max-width: 1040px) {
-          .apoiar-hero__grid, .apoiar-photo-grid, .apoiar-intro, .apoiar-why-grid, .apoiar-form-grid { grid-template-columns: 1fr; }
-          .partner-path-grid { grid-template-columns: repeat(2, 1fr); }
-          .apoiar-photo-grid__wide > figure, .apoiar-photo-grid > figure { min-height: 340px; }
+        .apoiar-page { overflow-x: clip; }
+        .apoiar-page section { position: relative; }
+        .apoiar-page .wrap { position: relative; z-index: 1; }
+        .apoiar-page .keep-together { white-space: nowrap; }
+        .apoiar-hl { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--coral)); }
+        .apoiar-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
+        .apoiar-page h1, .apoiar-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
+
+        .apoiar-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); margin: 0 0 var(--sp-4); }
+        .apoiar-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+
+        .apoiar-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
+        .apoiar-head h2 { font-size: var(--fs-display-md); line-height: .98; }
+        .apoiar-head p { max-width: 58ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
+
+        /* 1 — HERO chocolate */
+        .apoiar-hero { background: #381610; isolation: isolate; overflow: clip; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 100px); }
+        @media (min-width: 960px) { .apoiar-hero { padding-top: clamp(196px, 17vw, 244px); } }
+        .apoiar-hero__seal { position: absolute; top: clamp(-480px, -42vw, -270px); right: clamp(-450px, -33vw, -210px); width: clamp(960px, 102vw, 1560px); z-index: 0; pointer-events: none; }
+        .apoiar-hero__seal__shape { display: block; width: 100%; aspect-ratio: 1 / 1; background: rgba(248,181,17,.14); -webkit-mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; transform-origin: 50% 50%; animation: apoiarSeal 140s linear infinite; }
+        @keyframes apoiarSeal { to { transform: rotate(360deg); } }
+        .apoiar-hero__inner { max-width: 900px; }
+        .apoiar-hero h1 { color: var(--cream); font-size: clamp(40px, 5.2vw, 82px); line-height: .95; max-width: 15ch; }
+        .apoiar-hero p { margin: var(--sp-5) 0 0; max-width: 60ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+        .apoiar-hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin-top: var(--sp-6); }
+        .apoiar-hero__cta .btn { min-height: 52px; }
+        .apoiar-hero__link { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
+        .apoiar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
+        .apoiar-hero__link:hover svg { transform: translateY(3px); }
+
+        /* 2 — VALOR */
+        .apoiar-value-section { background: var(--cream); }
+        .apoiar-value { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+        .apoiar-vcard { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
+        .apoiar-vcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .apoiar-vcard__ic { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; color: #fff; margin-bottom: var(--sp-4); box-shadow: 0 8px 20px rgba(43,24,16,.16); }
+        .apoiar-value .apoiar-vcard:nth-child(4n+1) .apoiar-vcard__ic { background: var(--coral); }
+        .apoiar-value .apoiar-vcard:nth-child(4n+2) .apoiar-vcard__ic { background: var(--pink); }
+        .apoiar-value .apoiar-vcard:nth-child(4n+3) .apoiar-vcard__ic { background: var(--cyan-deep); }
+        .apoiar-value .apoiar-vcard:nth-child(4n+4) .apoiar-vcard__ic { background: var(--yellow-deep); }
+        .apoiar-vcard h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.12; margin: 0 0 var(--sp-3); color: var(--ink); }
+        .apoiar-vcard p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
+
+        /* 3 — ONDE APARECER */
+        .apoiar-where-section { background: var(--cream-deep, var(--bg-soft)); }
+        .apoiar-where { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-3); max-width: 920px; margin-inline: auto; }
+        .apoiar-where__item { display: flex; align-items: flex-start; gap: 14px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
+        .apoiar-where__ic { flex: 0 0 auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(232,85,58,.12); color: var(--coral-deep); }
+        .apoiar-where__item div { display: flex; flex-direction: column; gap: 3px; }
+        .apoiar-where__item strong { font-family: var(--font-heading); font-weight: 800; font-size: 15.5px; color: var(--ink); }
+        .apoiar-where__item span { color: var(--ink-soft); font-size: 13.5px; line-height: 1.45; }
+
+        /* 4 — FORMAS DE APOIO */
+        .apoiar-paths-section { background: var(--cream); }
+        .apoiar-paths { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+        .apoiar-path { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-7); box-shadow: var(--shadow-md); }
+        .apoiar-path::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); }
+        .apoiar-path h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.14; margin: 0 0 var(--sp-3); color: var(--ink); text-wrap: balance; }
+        .apoiar-path p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
+
+        /* 5 — FORM (banda chocolate) + fechamento */
+        .apoiar-form-section { background: #5e3018; }
+        .apoiar-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
+        .apoiar-form-intro { padding-top: var(--sp-3); }
+        .apoiar-form-intro__h { color: var(--cream); font-size: clamp(28px, 3.2vw, 46px); line-height: 1.02; }
+        .apoiar-form-intro p { margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; max-width: 46ch; text-wrap: pretty; }
+        .apoiar-form-intro__list { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+        .apoiar-form-intro__list li { display: flex; align-items: center; gap: 10px; color: rgba(255,241,230,.92); font-size: 14.5px; font-weight: 600; }
+        .apoiar-form-intro__list span { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--yellow); color: var(--choco, #2B1810); }
+
+        .apoiar-form { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 26px; padding: clamp(22px, 2.6vw, 38px); box-shadow: 0 30px 80px rgba(0,0,0,.34); }
+        .apoiar-form__fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+        .apoiar-field { display: flex; flex-direction: column; gap: 7px; }
+        .apoiar-field--full { grid-column: 1 / -1; }
+        .apoiar-field > span { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+        .apoiar-field :is(input, select, textarea) { font-family: var(--font-sans); font-size: 15px; padding: 12px 14px; min-height: 46px; border: 1px solid var(--line-strong, var(--paper-line)); border-radius: 12px; background: var(--bg-card); color: var(--ink); width: 100%; transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease), box-shadow var(--motion-fast, .16s) var(--ease-out-soft, ease); }
+        .apoiar-field textarea { resize: vertical; min-height: 84px; }
+        .apoiar-field :is(input, select, textarea):focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 4px rgba(232,85,58,.16); }
+        .apoiar-form__send { width: 100%; justify-content: center; min-height: 50px; margin: var(--sp-5) 0 0; }
+        .apoiar-form__send:disabled { opacity: .5; cursor: not-allowed; }
+        .apoiar-form__note { margin: var(--sp-4) 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
+        .apoiar-form__status { margin: var(--sp-3) 0 0; font-size: 13.5px; line-height: 1.5; color: var(--coral-deep); }
+        .apoiar-form__status:empty { margin: 0; }
+
+        /* RESPONSIVO */
+        @media (max-width: 980px) {
+          .apoiar-value, .apoiar-paths { grid-template-columns: repeat(2, 1fr); }
+          .apoiar-form-grid { grid-template-columns: 1fr; gap: var(--sp-7); }
         }
         @media (max-width: 640px) {
-          .partner-path-grid, .apoiar-form__fields { grid-template-columns: 1fr; }
-          .partner-path { min-height: 0; }
+          .apoiar-value, .apoiar-paths, .apoiar-where, .apoiar-form__fields { grid-template-columns: 1fr; }
+          .apoiar-hero__cta .btn { width: 100%; justify-content: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .apoiar-vcard, .apoiar-hero__link svg, .apoiar-form__send { transition: none; }
+          .apoiar-hero__seal__shape { animation: none; }
         }
       `}</style>
     </div>

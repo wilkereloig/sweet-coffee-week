@@ -107,8 +107,10 @@ export function SiteHeader({ route, navigate }) {
     }
   }, [mobileOpen])
 
-  // Home: barra transparente sobre o hero escuro até rolar; demais páginas: sólida.
-  const transparent = route === 'home' && !scrolled
+  // Header idêntico à Home em todas as páginas públicas: transparente sobre o
+  // topo até rolar (o scrim de topo garante legibilidade do menu claro sobre
+  // qualquer fundo). Painel interno fica de fora (mantém barra sólida padrão).
+  const transparent = route !== 'painel' && !scrolled
 
   return (
     <React.Fragment>

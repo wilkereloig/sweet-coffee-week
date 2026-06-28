@@ -13,6 +13,7 @@ import { CuriosidadesPage } from './pages/institutional/Curiosidades'
 import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
+import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { AgradecimentoPage } from './pages/institutional/Agradecimento'
 import { PainelPage }       from './pages/lovers/Painel'
 
@@ -24,12 +25,31 @@ import { PainelPage }       from './pages/lovers/Painel'
 // Publicação temporária focada em Awards: enquanto true, todo o site público
 // renderiza só a página de vencedores (/vencedores e alias /premiacao). O painel
 // interno (/lovers/painel) continua acessível, mas fora de qualquer menu/header.
-const AWARDS_ONLY_PUBLICATION = false
+const AWARDS_ONLY_PUBLICATION = true
+
+// PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
+// Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
+// de produção acima. Liga apenas em dois casos seguros e NUNCA no domínio oficial:
+//   - servidor de desenvolvimento (import.meta.env.DEV);
+//   - deploy de Preview (ex.: *.vercel.app) acessado com ?preview=1 na URL.
+// No domínio de produção (sweetcoffeeweek.com.br) não libera nem com ?preview=1,
+// para não vazar páginas ainda não publicadas. É aditivo: não altera a flag.
+const INSTITUTIONAL_PREVIEW = (() => {
+  try {
+    if (import.meta.env && import.meta.env.DEV) return true
+    if (typeof window === 'undefined') return false
+    const host = window.location.hostname || ''
+    if (/(^|\.)sweetcoffeeweek\.com\.br$/i.test(host)) return false
+    return new URLSearchParams(window.location.search).has('preview')
+  } catch {
+    return false
+  }
+})()
 
 // Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
 // 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
 // liberar quando o institucional/Awards forem revisados.
-const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar', 'contato']
+const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar', 'contato', 'historico-awards']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
@@ -50,11 +70,14 @@ export default function App() {
     // Painel interno segue acessível mesmo em modo Awards-only (não aparece em menu).
     if (path.startsWith('/lovers/painel')) return 'painel'
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
-    if (AWARDS_ONLY_PUBLICATION) return 'vencedores'
+    // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
+    // de rotas normal assume — sem alterar a flag de produção.
+    if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'vencedores'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/vencedores'))   return 'vencedores'
     if (path.startsWith('/premiacao'))    return 'vencedores'
     if (path.startsWith('/edicoes'))      return 'edicoes'
+    if (path.startsWith('/historico-sweet-awards')) return 'historico-awards'
     if (path.startsWith('/curiosidades')) return 'curiosidades'
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'
@@ -71,6 +94,7 @@ export default function App() {
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
+    case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
     case 'vencedores':   page = <AgradecimentoPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     default:             page = <HomePage navigate={navigate} />

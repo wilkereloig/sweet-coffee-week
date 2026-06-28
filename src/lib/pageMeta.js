@@ -18,6 +18,8 @@ export function metaForPath(path) {
     return { title: `Sweet Awards | Vencedores do ${BASE}`, description: 'Confira os vencedores do Sweet Awards, premiação que reconhece os destaques de cada edição do Sweet & Coffee Week a partir da avaliação do público.' }
   if (p.startsWith('/curiosidades'))
     return { title: `Curiosidades | Por dentro do ${BASE}`, description: 'Descubra rankings, bastidores, dados curiosos e histórias que ajudam a contar a trajetória do Sweet & Coffee Week em Natal.' }
+  if (p.startsWith('/historico-sweet-awards'))
+    return { title: `Histórico do Sweet Awards | ${BASE}`, description: 'Veja o histórico de vencedores do Sweet Awards por edição, trilha e categoria, com os destaques premiados de cada ano do Sweet & Coffee Week desde as primeiras premiações registradas.' }
   if (p.startsWith('/participar'))
     return { title: `Participar | Inscreva sua marca no ${BASE}`, description: 'Docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas podem demonstrar interesse em participar das próximas edições do Sweet & Coffee Week.' }
   if (p.startsWith('/apoiar'))

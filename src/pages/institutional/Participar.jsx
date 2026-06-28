@@ -1,11 +1,15 @@
 /*
  * PÁGINA INSTITUCIONAL — "Participar".
- * Função: CONVERSÃO de marcas interessadas (não conta tudo do festival — isso é
- * da Home). Página curta, ordenada pela intenção do usuário: convite + form no
- * topo → valor → prova social → processo → volta à ação. Usa o header/menu
- * GLOBAL (src/components/nav.jsx via App.jsx) — sem navegação própria. Segue a
- * direção da página-mãe "O Festival" (Home.jsx) e src/design/SITE_DIRECTION.md:
- * mesma régua de container (.section + .wrap), tokens, ritmo e Motion System.
+ * Função: CONVERSÃO de marcas interessadas. Página curta, mas EDITORIAL —
+ * irmã da página-mãe "O Festival" (Home.jsx): mesmo ritmo de bandas (chocolate
+ * × creme), mesma régua de container (.section + .wrap), mesmos tokens, mesmo
+ * Motion System, e o mesmo motivo de FOTO REAL recortada no selo da marca
+ * (--mask-badge). Usa o header/menu GLOBAL (src/components/nav.jsx via App.jsx)
+ * — sem navegação própria. Direção: src/design/SITE_DIRECTION.md.
+ *
+ * Imagens: só acervo REAL do festival (combos em /images/combos/<slug>/main.jpg
+ * e /images/hero-festival.jpg). Nada de foto inventada. Retrato de pessoa e logo
+ * de marca dos depoimentos ainda não existem → placeholder seguro (iniciais).
  */
 import React from 'react'
 import { I } from '../../components/icons'
@@ -15,38 +19,44 @@ import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 const INSTAGRAM_HANDLE = '@sweetcoffeeweek'
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 
-// Por que participar — 4 argumentos curtos (acento por card).
+// Foto de combo real por slug (toda pasta de combo tem main.jpg — sem 404).
+const combo = (slug) => `/images/combos/${slug}/main.jpg`
+
+// Composição do hero — recortes reais que explicam a participação (combo / loja
+// / experiência). hero-festival.jpg é a foto-assinatura.
+const HERO_SHOTS = [
+  { src: '/images/hero-festival.jpg', alt: 'Sobremesa autoral de uma edição do Sweet & Coffee Week' },
+  { src: combo('caffe-basilicos'), alt: 'Combo do Caffè Basílicos em loja' },
+  { src: combo('jolie-cafe-patisserie'), alt: 'Combo da Jolie Café & Patisserie' },
+]
+
+// Por que participar — 4 argumentos, cada card com FOTO real dentro (acervo de
+// combos/festival). A foto vira parte da composição, não ilustração solta.
 const PILLARS = [
-  { icon: 'star', t: 'Visibilidade para a marca', d: 'Sua marca entra em uma campanha de cidade, com comunicação própria e presença nos canais do festival.' },
-  { icon: 'pin', t: 'Movimento em loja', d: 'O festival cria motivo de visita, rota e descoberta de novos endereços.' },
-  { icon: 'plate', t: 'Combo exclusivo', d: 'Cada participante cria um combo conectado ao tema da edição.' },
-  { icon: 'heart', t: 'Conexão com os Sweet Lovers', d: 'O público compartilha, avalia, indica e acompanha a experiência.' },
+  { icon: 'star', img: combo('caffe-basilicos'), imgAlt: 'Vitrine e combo de uma marca participante', t: 'Visibilidade para a marca', d: 'Sua marca entra em uma campanha de cidade, com comunicação própria e presença nos canais do festival.' },
+  { icon: 'pin', img: combo('casa-1190'), imgAlt: 'Movimento em loja durante o festival', t: 'Movimento em loja', d: 'O festival cria motivo de visita, rota e descoberta de novos endereços.' },
+  { icon: 'plate', img: combo('delicato-bolos'), imgAlt: 'Combo exclusivo criado para a edição', t: 'Combo exclusivo', d: 'Cada participante cria um combo conectado ao tema da edição.' },
+  { icon: 'heart', img: combo('bolomania'), imgAlt: 'Público experimentando os combos da edição', t: 'Conexão com os Sweet Lovers', d: 'O público compartilha, avalia, indica e acompanha a experiência.' },
 ]
 
-// Depoimentos REAIS (não inventar / não editar o sentido). Jolie em destaque
-// (transformação forte: reconhecimento + faturamento); os demais em cards menores.
+// Depoimentos REAIS (não inventar / não editar o sentido). Os 5 cards têm a
+// MESMA hierarquia visual — nenhum em destaque diferente.
 //
-// Identidade visual por depoimento — retrato da pessoa + logo da marca.
-// Os assets NÃO existem no projeto ainda. Estrutura pronta para recebê-los:
-// quando chegarem, preencher `personPhoto`/`brandLogo` com os caminhos reais.
-// Convenção sugerida (alinhada aos slugs dos combos em /images/combos/):
-//   retrato → /images/depoimentos/<slug>.jpg
-//   logo    → /images/logos/<slug>.svg
-// Enquanto null: avatar de iniciais (humaniza, sem inventar rosto) + nome da
-// marca em texto. NÃO usar foto de combo como retrato (identidade errada).
-const TESTI_LEAD = {
-  quote: 'Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.',
-  personName: 'Carol Barreto', brandName: 'Jolie', slug: 'jolie-cafe-patisserie',
-  personPhoto: null, brandLogo: null, tag: 'Faturamento',
-}
-const TESTI_REST = [
-  { quote: 'É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos e ganhar visibilidade.', personName: 'João Dantas', brandName: 'O Maestro', slug: 'o-maestro-cafe', personPhoto: null, brandLogo: null, tag: 'Visibilidade' },
-  { quote: 'O Sweet Coffee hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.', personName: 'Fernando Gurgel', brandName: 'Paneer', slug: 'paneer-patisserie', personPhoto: null, brandLogo: null, tag: 'Novos públicos' },
-  { quote: 'O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.', personName: 'César e Tiago', brandName: 'Mr. Cupcake', slug: 'mr-cupcake-confeitaria', personPhoto: null, brandLogo: null, tag: 'Movimento em loja' },
-  { quote: 'Foi além das expectativas. Foram 11 dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.', personName: 'Edvan Barreto', brandName: 'Casa 1190', slug: 'casa-1190', personPhoto: null, brandLogo: null, tag: 'Experiência intensa' },
+// Cada card carrega retrato da pessoa + identidade da marca. Os assets NÃO
+// existem no projeto ainda; estrutura pronta para recebê-los — quando chegarem,
+// preencher `personPhoto`/`brandLogo` com os caminhos reais.
+// Logos REAIS das marcas: reutilizadas dos dados de participantes (Lovers) em
+// /logos/participants/<slug>.png. Retrato da pessoa ainda não existe → avatar de
+// iniciais. onError no <img> volta ao monograma se o arquivo faltar.
+const TESTIMONIALS = [
+  { quote: 'Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.', personName: 'Carol Barreto', brandName: 'Jolie', slug: 'jolie', personPhoto: null, brandLogo: '/logos/participants/jolie-cafe-patisserie.png', tag: 'Faturamento' },
+  { quote: 'É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos e ganhar visibilidade.', personName: 'João Dantas', brandName: 'O Maestro', slug: 'o-maestro', personPhoto: null, brandLogo: '/logos/participants/o-maestro-cafe.png', tag: 'Visibilidade' },
+  { quote: 'O Sweet Coffee hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.', personName: 'Fernando Gurgel', brandName: 'Paneer', slug: 'paneer', personPhoto: null, brandLogo: '/logos/participants/paneer-patisserie.png', tag: 'Novos públicos' },
+  { quote: 'O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.', personName: 'César e Tiago', brandName: 'Mr. Cupcake', slug: 'mr-cupcake', personPhoto: null, brandLogo: '/logos/participants/mr-cupcake-confeitaria.png', tag: 'Movimento em loja' },
+  { quote: 'Foi além das expectativas. Foram 11 dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.', personName: 'Edvan Barreto', brandName: 'Casa 1190', slug: 'casa-1190', personPhoto: null, brandLogo: '/logos/participants/casa-1190.png', tag: 'Experiência intensa' },
 ]
 
-// Iniciais da pessoa para o avatar placeholder (ignora "e"/"&" de duplas).
+// Iniciais para os placeholders (ignora "e"/"&" de duplas; máx. 2 letras).
 function initialsOf(name) {
   return name
     .split(/[\s&]+/)
@@ -57,13 +67,16 @@ function initialsOf(name) {
     .toUpperCase()
 }
 
-// Card de depoimento: cabeçalho (retrato/iniciais + nome + marca + logo) →
-// fala → tag. Retrato e logo só renderizam se o asset existir; senão, fallback
-// seguro (iniciais + nome em texto). onError esconde imagem quebrada.
-function Testimonial({ t, lead = false }) {
+// Card de depoimento — hierarquia ÚNICA para todos: aspas → fala → rodapé
+// (retrato + nome/marca + marca). Retrato: foto da pessoa ou avatar de iniciais.
+// Marca: logo real ou monograma. onError esconde a imagem quebrada e mantém o
+// fallback. A tag fica fixada na base (margin-top auto) p/ alinhar entre cards.
+function Testimonial({ t, featured = false }) {
   return (
-    <figure className={`participar-quote${lead ? ' participar-quote--lead' : ''}`}>
-      <div className="participar-quote__head">
+    <figure className={`participar-quote${featured ? ' participar-quote--lead' : ''}`}>
+      <span className="participar-quote__mark" aria-hidden="true">&ldquo;</span>
+      <blockquote>{t.quote}</blockquote>
+      <figcaption className="participar-quote__foot">
         <span className="participar-av" aria-hidden={t.personPhoto ? undefined : 'true'}>
           <span className="participar-av__txt">{initialsOf(t.personName)}</span>
           {t.personPhoto && (
@@ -74,12 +87,12 @@ function Testimonial({ t, lead = false }) {
           <span className="participar-quote__name">{t.personName}</span>
           <span className="participar-quote__brand">{t.brandName}</span>
         </span>
-        {t.brandLogo && (
-          <img className="participar-quote__logo" src={t.brandLogo} alt={`Logo ${t.brandName}`} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-        )}
-      </div>
-      {lead && <span className="participar-quote__mark" aria-hidden="true">&ldquo;</span>}
-      <blockquote>{t.quote}</blockquote>
+        <span className="participar-brandmark" title={t.brandName} aria-label={`Marca ${t.brandName}`}>
+          {t.brandLogo
+            ? <img src={t.brandLogo} alt={`Logo ${t.brandName}`} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            : <span className="participar-brandmark__txt" aria-hidden="true">{initialsOf(t.brandName)}</span>}
+        </span>
+      </figcaption>
       {t.tag && <span className="participar-quote__tag">{t.tag}</span>}
     </figure>
   )
@@ -153,25 +166,36 @@ export function ParticiparPage() {
 
   return (
     <div className="page-enter participar-page" ref={rootRef}>
-      {/* 1 — CONVITE + FORMULÁRIO (primeira dobra, conversão) */}
+      {/* 1 — HERO EDITORIAL (banda chocolate, como a Home) + FORM integrado */}
       <section id="topo-form" className="participar-hero">
+        <span className="participar-hero__seal" aria-hidden="true">
+          <span className="participar-hero__seal__shape" />
+        </span>
         <div className="wrap participar-hero__grid">
-          {/* coluna esquerda: convite editorial */}
+          {/* coluna esquerda: convite editorial + pequena composição visual */}
           <div className="participar-hero__copy motion-reveal-up">
-            <span className="participar-eyebrow"><span className="participar-eyebrow__dot" />Para marcas participantes</span>
             <h1>Leve sua marca para a rota mais <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
-            <p className="participar-lead">
+            <p className="participar-lead participar-lead--onDark">
               O Sweet &amp; Coffee Week conecta marcas gastronômicas ao público por meio de combos exclusivos, experiências criativas e uma temporada de descoberta pela cidade.
             </p>
-            <p className="participar-lead participar-lead--sm">
+            <p className="participar-lead participar-lead--sm participar-lead--onDark">
               Preencha o interesse para entrar no radar das próximas edições. A participação passa por curadoria e disponibilidade de vagas.
             </p>
             <a href="#depoimentos-participantes" className="participar-hero__link motion-press" onClick={scrollTo('depoimentos-participantes')}>
               Ver depoimentos de participantes <I.arrow />
             </a>
+
+            {/* recortes reais: combo / loja / experiência */}
+            <div className="participar-shots" aria-hidden="true">
+              {HERO_SHOTS.map((s, i) => (
+                <span className="participar-shots__item" key={s.src}>
+                  <img src={s.src} alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* coluna direita: formulário curto */}
+          {/* coluna direita: formulário curto, card creme sobre o chocolate */}
           <form className="participar-form motion-reveal-up" onSubmit={onSubmit} noValidate aria-label="Formulário de interesse">
             <div className="participar-form__head">
               <h2>Tenho interesse em participar</h2>
@@ -222,28 +246,34 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      {/* 2 — BLOCO CURTO DE VALOR */}
+      {/* 2 — VALOR: por que participar (4 cards com foto real dentro) */}
       <section className="section participar-why">
         <div className="wrap">
           <div className="participar-head motion-reveal-up">
             <h2>Participar é colocar sua marca em <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--coral)' }}>movimento</span>.</span></h2>
             <p>O festival cria uma temporada de visibilidade, visita e descoberta, conectando marcas locais aos Sweet Lovers.</p>
           </div>
-          <div className="participar-pillars motion-stagger">
+          <div className="participar-cards motion-stagger">
             {PILLARS.map((p) => {
               const Icon = I[p.icon] || I.star
               return (
-                <article className="participar-pillar" key={p.t}>
-                  <span className="participar-pillar__ic"><Icon width={22} height={22} /></span>
-                  <h3>{p.t}</h3>
-                  <p>{p.d}</p>
+                <article className="participar-card" key={p.t}>
+                  <div className="participar-card__media">
+                    <img src={p.img} alt={p.imgAlt} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.closest('.participar-card__media').classList.add('is-empty') }} />
+                    <span className="participar-card__ic"><Icon width={20} height={20} /></span>
+                  </div>
+                  <div className="participar-card__body">
+                    <h3>{p.t}</h3>
+                    <p>{p.d}</p>
+                  </div>
                 </article>
               )
             })}
           </div>
-          <p className="participar-why__note">
-            Voltado para docerias, cafeterias, confeitarias, restaurantes, sorveterias, empórios e marcas gastronômicas com atendimento ao público.
-          </p>
+          <div className="participar-elig motion-reveal-up">
+            <span className="participar-elig__ic" aria-hidden="true"><I.star width={18} height={18} /></span>
+            <p><strong>Quem pode participar:</strong> docerias, cafeterias, confeitarias, restaurantes, sorveterias, empórios e marcas gastronômicas com atendimento ao público.</p>
+          </div>
         </div>
       </section>
 
@@ -255,21 +285,25 @@ export function ParticiparPage() {
             <p>Marcas que viveram o Sweet &amp; Coffee Week contam como o festival ajudou a gerar visibilidade, novos públicos e movimento real em loja.</p>
           </div>
 
-          <div className="motion-reveal-up">
-            <Testimonial t={TESTI_LEAD} lead />
-          </div>
-
-          <div className="participar-testi__grid motion-stagger">
-            {TESTI_REST.map((t) => <Testimonial key={t.slug} t={t} />)}
+          <div className="participar-testi__layout">
+            <div className="motion-reveal-up">
+              <Testimonial t={TESTIMONIALS[0]} featured />
+            </div>
+            <div className="participar-testi__grid motion-stagger">
+              {TESTIMONIALS.slice(1).map((t) => <Testimonial key={t.slug} t={t} />)}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 4 — PROCESSO SIMPLES (3 etapas) */}
+      {/* 4 — PROCESSO (banda chocolate, como os steps da Home) */}
       <section className="section participar-process">
         <div className="wrap">
-          <div className="participar-head motion-reveal-up">
-            <h2>Como funciona o <span className="participar-hl" style={{ '--hl': 'var(--coral)' }}>processo</span></h2>
+          <div className="participar-head participar-head--onDark motion-reveal-up">
+            <span className="participar-process__art" aria-hidden="true">
+              <img src={combo('caroli-douces')} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+            </span>
+            <h2>Como funciona o <span className="participar-hl" style={{ '--hl': 'var(--yellow)' }}>processo</span></h2>
             <p>Da inscrição de interesse à entrada na rota, cada edição passa por curadoria, criação e preparação junto aos participantes.</p>
           </div>
           <ol className="participar-steps motion-stagger">
@@ -289,6 +323,9 @@ export function ParticiparPage() {
       {/* 5 — FECHAMENTO (volta ao formulário, sem novo form) */}
       <section className="section participar-close">
         <div className="wrap participar-close__inner motion-reveal-up">
+          <span className="participar-close__shape" aria-hidden="true">
+            <img src="/images/shapes/shape-heart-yellow.svg" alt="" />
+          </span>
           <h2>Quer fazer parte de uma próxima edição?</h2>
           <p>Preencha o formulário de interesse no início da página e conte um pouco sobre sua marca.</p>
           <a href="#topo-form" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('topo-form')}>
@@ -310,10 +347,6 @@ export function ParticiparPage() {
         .participar-hl { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--coral)); }
         .participar-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); transform: scaleX(1); transform-origin: left center; }
 
-        /* Eyebrow — etiqueta de seção. */
-        .participar-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 var(--sp-4); }
-        .participar-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
-
         /* Títulos — display heading, mesma régua da Home. */
         .participar-page h1,
         .participar-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
@@ -322,20 +355,40 @@ export function ParticiparPage() {
         .participar-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
         .participar-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .participar-head p { max-width: 56ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
+        .participar-head--onDark h2 { color: var(--cream); }
+        .participar-head--onDark p { color: rgba(255,241,230,.82); }
 
-        /* 1 — CONVITE + FORM */
-        .participar-hero { padding: clamp(116px, 17vw, 160px) 0 clamp(48px, 7vw, 88px); }
-        .participar-hero__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
-        .participar-hero__copy { padding-top: clamp(0px, 1vw, 12px); }
-        .participar-hero h1 { font-size: clamp(40px, 5.4vw, 84px); line-height: .94; max-width: 14ch; }
+        /* ============ 1 — HERO (banda chocolate, igual à Home) ============ */
+        .participar-hero { background: #381610; isolation: isolate; overflow: clip; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 104px); }
+        /* Desktop: header fixo + logo-selo flutuante exigem folga extra no topo p/
+           o H1 (canto sup.-esq.) não colidir com a logo — vira crest acima do título. */
+        @media (min-width: 960px) { .participar-hero { padding-top: clamp(196px, 17vw, 244px); } }
+        /* selo de marca girando devagar no canto (motivo da Home) */
+        .participar-hero__seal { position: absolute; top: clamp(-480px, -42vw, -270px); right: clamp(-450px, -33vw, -210px); width: clamp(960px, 102vw, 1560px); z-index: 0; pointer-events: none; }
+        .participar-hero__seal__shape { display: block; width: 100%; aspect-ratio: 1 / 1; background: rgba(248,181,17,.16); -webkit-mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; transform-origin: 50% 50%; animation: participarSeal 120s linear infinite; }
+        @keyframes participarSeal { to { transform: rotate(360deg); } }
+        .participar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr .98fr; gap: clamp(28px, 5vw, 76px); align-items: center; }
+        .participar-hero__copy { padding-top: clamp(0px, 1vw, 10px); }
+        .participar-hero h1 { color: var(--cream); font-size: clamp(40px, 5.4vw, 86px); line-height: .94; max-width: 14ch; }
         .participar-lead { margin: var(--sp-5) 0 0; max-width: 50ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .participar-lead--sm { font-size: 16px; line-height: 1.55; color: var(--ink-soft); margin-top: var(--sp-4); }
-        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--accent); }
+        .participar-lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); }
+        .participar-lead--onDark { color: rgba(255,241,230,.9); }
+        .participar-lead--onDark.participar-lead--sm { color: rgba(255,241,230,.72); }
+        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
         .participar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast) var(--ease-out-soft); }
         .participar-hero__link:hover svg { transform: translateX(4px); }
 
-        /* FORM (card no hero) */
-        .participar-form { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 26px; padding: clamp(22px, 2.6vw, 36px); box-shadow: 0 24px 70px rgba(43,24,16,.12); }
+        /* recortes reais do hero — 3 fotos sobrepostas, leve rotação */
+        .participar-shots { display: flex; align-items: center; margin-top: clamp(26px, 3vw, 40px); }
+        .participar-shots__item { width: clamp(74px, 8vw, 104px); height: clamp(74px, 8vw, 104px); border-radius: 18px; overflow: hidden; border: 3px solid #381610; box-shadow: 0 14px 30px rgba(0,0,0,.34); background: var(--swc-coffee); }
+        .participar-shots__item + .participar-shots__item { margin-left: clamp(-22px, -2vw, -16px); }
+        .participar-shots__item:nth-child(1) { transform: rotate(-5deg); }
+        .participar-shots__item:nth-child(2) { transform: rotate(2deg); z-index: 1; }
+        .participar-shots__item:nth-child(3) { transform: rotate(6deg); }
+        .participar-shots__item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* FORM (card creme sobre o chocolate) */
+        .participar-form { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 26px; padding: clamp(22px, 2.6vw, 38px); box-shadow: 0 30px 80px rgba(0,0,0,.34); }
         .participar-form__head h2 { font-size: clamp(24px, 2.4vw, 30px); line-height: 1.05; }
         .participar-form__head p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 8px 0 var(--sp-5); }
         .participar-form__fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
@@ -351,87 +404,112 @@ export function ParticiparPage() {
         .participar-form__status { margin: var(--sp-3) 0 0; font-size: 13.5px; line-height: 1.5; color: var(--coral-deep); }
         .participar-form__status:empty { margin: 0; }
 
-        /* 2 — VALOR */
-        .participar-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
-        .participar-pillar { position: relative; overflow: hidden; display: flex; flex-direction: column; container-type: inline-size; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
-        .participar-pillar:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .participar-pillar::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--coral); }
-        .participar-pillar:nth-child(1)::before { background: var(--coral); }
-        .participar-pillar:nth-child(2)::before { background: var(--pink); }
-        .participar-pillar:nth-child(3)::before { background: var(--cyan); }
-        .participar-pillar:nth-child(4)::before { background: var(--yellow); }
-        .participar-pillar__ic { width: 50px; height: 50px; border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: var(--sp-5); color: #fff; }
-        .participar-pillar:nth-child(1) .participar-pillar__ic { background: var(--coral); }
-        .participar-pillar:nth-child(2) .participar-pillar__ic { background: var(--pink); }
-        .participar-pillar:nth-child(3) .participar-pillar__ic { background: var(--cyan-deep); }
-        .participar-pillar:nth-child(4) .participar-pillar__ic { background: var(--yellow-deep); }
-        .participar-pillar h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 5cqi, 21px); line-height: 1.1; margin: 0; color: var(--ink); }
-        .participar-pillar p { color: var(--ink-soft); font-size: clamp(13.5px, 3.6cqi, 14.5px); line-height: 1.45; margin: var(--sp-3) 0 0; }
-        .participar-why__note { max-width: 70ch; margin: var(--sp-6) auto 0; text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.5; opacity: .85; }
+        /* ============ 2 — VALOR (cards com foto real) ============ */
+        .participar-why { background: var(--cream); }
+        .participar-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
+        .participar-card { display: flex; flex-direction: column; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
+        .participar-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .participar-card__media { position: relative; aspect-ratio: 16 / 11; overflow: hidden; background: var(--swc-coffee); }
+        .participar-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--motion-slow, .6s) var(--ease-out-soft); }
+        .participar-card:hover .participar-card__media img { transform: scale(1.05); }
+        .participar-card__media.is-empty { aspect-ratio: 16 / 7; }
+        .participar-card__media.is-empty img { display: none; }
+        /* ícone-selo na quina da foto (acento por card) */
+        .participar-card__ic { position: absolute; left: 14px; bottom: 14px; width: 42px; height: 42px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 20px rgba(43,24,16,.28); }
+        .participar-card:nth-child(1) .participar-card__ic { background: var(--coral); }
+        .participar-card:nth-child(2) .participar-card__ic { background: var(--pink); }
+        .participar-card:nth-child(3) .participar-card__ic { background: var(--cyan-deep); }
+        .participar-card:nth-child(4) .participar-card__ic { background: var(--yellow-deep); }
+        .participar-card__body { padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+        .participar-card__body h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.4vw, 21px); line-height: 1.1; margin: 0; color: var(--ink); }
+        .participar-card__body p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.45; margin: 0; }
+        .participar-elig { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: var(--sp-6) auto 0; padding: clamp(16px, 2vw, 22px) clamp(20px, 2.4vw, 30px); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+        .participar-elig__ic { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--coral); color: #fff; }
+        .participar-elig p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; text-wrap: pretty; }
+        .participar-elig strong { color: var(--ink); font-weight: 800; }
+        @media (max-width: 520px) { .participar-elig { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; } }
 
-        /* 3 — DEPOIMENTOS */
-        .participar-testi { background: var(--cream); }
-        .participar-quote { position: relative; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
+        /* ============ 3 — DEPOIMENTOS (destaque Jolie + grid 2 col) ============ */
+        .participar-testi { background: var(--cream-deep, var(--bg-soft)); }
+        /* destaque em largura total, depois grade de 2 colunas (nunca 5 finas) */
+        .participar-testi__layout { display: flex; flex-direction: column; gap: var(--sp-4); }
+        .participar-testi__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); align-items: stretch; }
+        .participar-quote { position: relative; height: 100%; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
         .participar-quote:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .participar-quote__mark { font-family: var(--font-heading); font-weight: 800; font-size: 48px; line-height: .6; color: var(--coral); opacity: .45; margin-bottom: var(--sp-3); }
-        .participar-quote blockquote { margin: 0 0 var(--sp-4); color: var(--ink); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; }
-        .participar-quote__name { font-family: var(--font-heading); font-weight: 800; font-size: 15.5px; line-height: 1.15; color: var(--ink); }
-        .participar-quote__brand { font-size: 13.5px; line-height: 1.2; color: var(--ink-soft); }
-        /* cabeçalho: retrato/iniciais + nome/marca + logo */
-        .participar-quote__head { display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-4); }
-        .participar-quote__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .participar-av { position: relative; flex: 0 0 auto; width: 48px; height: 48px; border-radius: 999px; overflow: hidden; display: grid; place-items: center; background: var(--coral); color: #fff; }
-        .participar-av__txt { font-family: var(--font-heading); font-weight: 800; font-size: 16px; letter-spacing: .01em; }
+        .participar-quote__mark { font-family: var(--font-heading); font-weight: 800; font-size: 44px; line-height: .6; color: var(--coral); opacity: .4; margin-bottom: var(--sp-3); }
+        .participar-quote blockquote { margin: 0 0 var(--sp-5); color: var(--ink); font-size: clamp(15px, 1.05vw, 16.5px); line-height: 1.55; text-wrap: pretty; }
+        /* rodapé: retrato + nome/marca + marca — empurrado p/ base (alinha cards) */
+        .participar-quote__foot { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: var(--sp-5); border-top: 1px solid var(--paper-line); }
+        .participar-quote__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+        .participar-quote__name { font-family: var(--font-heading); font-weight: 800; font-size: 15px; line-height: 1.15; color: var(--ink); }
+        .participar-quote__brand { font-size: 13px; line-height: 1.2; color: var(--ink-soft); }
+        /* retrato da pessoa (foto) ou avatar de iniciais — círculo */
+        .participar-av { position: relative; flex: 0 0 auto; width: 46px; height: 46px; border-radius: 999px; overflow: hidden; display: grid; place-items: center; background: var(--coral); color: #fff; }
+        .participar-av__txt { font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: .01em; }
         .participar-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .participar-quote__logo { margin-left: auto; flex: 0 0 auto; max-height: 30px; max-width: 96px; width: auto; height: auto; object-fit: contain; opacity: .9; }
-        /* acento do avatar por card (rotação coral/pink/cyan/yellow) */
+        /* marca: logo real ou monograma — quadrado-suave, neutro (não compete com o avatar) */
+        .participar-brandmark { flex: 0 0 auto; width: 60px; height: 60px; border-radius: 15px; overflow: hidden; display: grid; place-items: center; background: #fff; border: 1px solid var(--paper-line); }
+        .participar-brandmark img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+        .participar-quote--lead .participar-brandmark { width: 68px; height: 68px; border-radius: 17px; }
+        .participar-brandmark__txt { font-family: var(--font-heading); font-weight: 800; font-size: 14px; letter-spacing: .01em; color: var(--ink); }
+        /* acento do avatar por card: destaque coral; grade rotaciona pink/cyan/yellow/coral-deep */
         .participar-quote--lead .participar-av { background: var(--coral); }
-        .participar-testi__grid .participar-quote:nth-child(1) .participar-av { background: var(--coral); }
-        .participar-testi__grid .participar-quote:nth-child(2) .participar-av { background: var(--pink); }
-        .participar-testi__grid .participar-quote:nth-child(3) .participar-av { background: var(--cyan-deep); }
-        .participar-testi__grid .participar-quote:nth-child(4) .participar-av { background: var(--yellow-deep); }
-        /* tag opcional — apoio, sem dominar */
-        .participar-quote__tag { align-self: flex-start; margin-top: auto; padding: 5px 12px; border-radius: 999px; background: rgba(232,85,58,.1); color: var(--coral-deep); font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-        /* lead: depoimento âncora (Jolie) — destaque editorial, citação grande */
-        .participar-quote--lead { padding: clamp(28px, 3.4vw, 48px); margin-bottom: var(--sp-4); background: linear-gradient(180deg, #FFFBF6, var(--cream-card)); }
-        .participar-quote--lead .participar-quote__mark { font-size: 64px; }
-        .participar-quote--lead blockquote { font-size: clamp(19px, 2.1vw, 28px); line-height: 1.32; font-family: var(--font-heading); font-weight: 700; letter-spacing: -.01em; color: var(--ink); max-width: 40ch; }
-        .participar-quote--lead .participar-quote__name { font-size: 17px; }
-        /* demais: grade de 4 cards menores */
-        .participar-testi__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
+        .participar-testi__grid .participar-quote:nth-child(1) .participar-av { background: var(--pink); }
+        .participar-testi__grid .participar-quote:nth-child(2) .participar-av { background: var(--cyan-deep); }
+        .participar-testi__grid .participar-quote:nth-child(3) .participar-av { background: var(--yellow-deep); }
+        .participar-testi__grid .participar-quote:nth-child(4) .participar-av { background: var(--coral-deep); }
+        /* tag — apoio, fixada na base abaixo do rodapé */
+        .participar-quote__tag { align-self: flex-start; margin-top: var(--sp-4); padding: 5px 12px; border-radius: 999px; background: rgba(232,85,58,.1); color: var(--coral-deep); font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        /* DESTAQUE (Jolie) — largura total, citação grande, leitura confortável */
+        .participar-quote--lead { padding: clamp(28px, 3.4vw, 48px); background: linear-gradient(180deg, #FFFBF6, var(--cream-card)); }
+        .participar-quote--lead .participar-quote__mark { font-size: 64px; margin-bottom: var(--sp-2); }
+        .participar-quote--lead blockquote { font-size: clamp(19px, 2vw, 28px); line-height: 1.34; font-family: var(--font-heading); font-weight: 700; letter-spacing: -.01em; color: var(--ink); max-width: 46ch; }
+        .participar-quote--lead .participar-quote__name { font-size: 16.5px; }
+        .participar-quote--lead .participar-av { width: 54px; height: 54px; }
+        .participar-quote--lead .participar-av__txt { font-size: 17px; }
+        /* tablet/mobile: grade vira 1 coluna (cards nunca finos demais) */
+        @media (max-width: 680px) { .participar-testi__grid { grid-template-columns: 1fr; } }
 
-        /* 4 — PROCESSO */
-        .participar-process { background: var(--bg-soft); }
+        /* ============ 4 — PROCESSO (banda chocolate) ============ */
+        .participar-process { background: #5e3018; }
+        /* crest: foto real recortada no selo da marca (motivo da Home) */
+        .participar-process__art { width: clamp(86px, 9vw, 118px); aspect-ratio: 1 / 1; margin-bottom: var(--sp-2); }
+        .participar-process__art img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-mask: var(--mask-badge) center / contain no-repeat; mask: var(--mask-badge) center / contain no-repeat; }
         .participar-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); list-style: none; margin: 0; padding: 0; }
         .participar-step { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
         .participar-step:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .participar-step__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(36px, 4vw, 48px); line-height: .9; letter-spacing: -.03em; color: var(--coral); }
+        .participar-step__n { align-self: flex-start; padding-bottom: var(--sp-2); border-bottom: 3px solid currentColor; font-family: var(--font-display); font-weight: 900; font-size: clamp(36px, 4vw, 50px); line-height: .9; letter-spacing: -.03em; color: var(--coral); }
         .participar-step:nth-child(1) .participar-step__n { color: var(--coral); }
         .participar-step:nth-child(2) .participar-step__n { color: var(--pink); }
         .participar-step:nth-child(3) .participar-step__n { color: var(--cyan-deep); }
         .participar-step h3 { font-family: var(--font-heading); font-weight: 800; font-size: 19px; line-height: 1.12; margin: 0; color: var(--ink); }
-        .participar-step p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0; }
+        .participar-step p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: var(--sp-2) 0 0; }
 
-        /* 5 — FECHAMENTO */
+        /* ============ 5 — FECHAMENTO ============ */
+        .participar-close { background: var(--cream); }
         .participar-close__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 620px; margin: 0 auto; }
+        .participar-close__shape { width: clamp(48px, 5vw, 64px); }
+        .participar-close__shape img { width: 100%; height: auto; display: block; transform-origin: center; animation: participarHeart 1.6s ease-in-out infinite; }
+        @keyframes participarHeart { 0%,100% { transform: scale(1); } 18% { transform: scale(1.1); } 36% { transform: scale(1); } 54% { transform: scale(1.06); } 72% { transform: scale(1); } }
         .participar-close h2 { font-size: clamp(28px, 3.4vw, 46px); line-height: 1.02; }
         .participar-close p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
         .participar-close .btn { min-height: 50px; margin: var(--sp-3) 0 0; }
 
-        /* RESPONSIVO */
+        /* ============ RESPONSIVO ============ */
         @media (max-width: 980px) {
           /* hero empilha: copy primeiro, form logo depois (ordem do DOM) */
-          .participar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
-          .participar-pillars { grid-template-columns: repeat(2, 1fr); }
-          .participar-testi__grid { grid-template-columns: repeat(2, 1fr); }
+          .participar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
+          .participar-cards { grid-template-columns: repeat(2, 1fr); }
           .participar-steps { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
-          .participar-pillars, .participar-testi__grid, .participar-form__fields { grid-template-columns: 1fr; }
+          .participar-cards, .participar-form__fields { grid-template-columns: 1fr; }
+          .participar-shots__item { width: 76px; height: 76px; }
           .participar-close .btn { width: 100%; justify-content: center; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .participar-pillar, .participar-quote, .participar-step, .participar-hero__link svg, .participar-form__send { transition: none; }
+          .participar-card, .participar-quote, .participar-step, .participar-hero__link svg, .participar-form__send, .participar-card__media img { transition: none; }
+          .participar-hero__seal__shape, .participar-close__shape img { animation: none; }
         }
       `}</style>
     </div>
