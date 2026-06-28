@@ -427,6 +427,66 @@ confortável (≥44px no botão), sem overflow horizontal. Respeita
 
 ---
 
+## 10. Validação mobile & header/menu (padrão p/ todo o institucional)
+
+Régua de responsividade validada na Home/O Festival — base obrigatória para as
+próximas páginas institucionais.
+
+### Ferramenta de validação
+
+- Script: **`tests/responsive.mjs`** (Playwright, já em devDependencies).
+- Roda contra o **build de produção** via `vite preview` — NÃO contra o dev
+  server. Em DEV o `DevViewportSwitcher` embrulha o app num `<iframe>`, então o
+  header real não fica no documento de topo; só o preview reflete o site real.
+- Comandos:
+  ```
+  npm run build              # exigido antes (dist no Dropbox → build separado)
+  npm run test:responsive    # todos os viewports
+  npm run test:mobile        # só telefones (390/414/430)
+  ```
+- Gera screenshots em `tests/screenshots/` (gitignored) para revisão visual.
+- Sai com código 1 se houver overflow horizontal ou falha dura.
+
+### Viewports oficiais de teste
+
+`390×844` · `414×896` · `430×932` (telefones) · `768×1024` · `1024×768` ·
+`1366×768`. Breakpoint do nav mobile (hambúrguer): **`max-width: 959px`**.
+
+### Regras do header (mobile, ≤959px)
+
+- **Logo sempre à esquerda**, alinhada ao gutter do conteúdo da Home
+  (**`--hm-gutter`** = `clamp(28px, 11.5vw, 150px)`) — o `.site-header__inner`
+  usa `justify-content: space-between` + `padding-inline: var(--hm-gutter)`
+  (com `max(..., env(safe-area-inset-*))`). Nunca centralizar a logo.
+- **Botão de menu sempre à direita** (`.nav-cta` com `margin-left:auto`), área de
+  toque **≥44×44px**.
+- Logo enxuta no mobile: `.brand img { height: clamp(40px, 11vw, 52px) }` (a base
+  72px do `.brand-cycle__img` é grande demais p/ a barra).
+- Header em uma única linha — não pode quebrar nem encostar nas bordas.
+
+### Regras do menu mobile
+
+- Padrão para as próximas páginas: lista institucional como navegação principal
+  (`.mobile-menu__inst-link`), full-opacity, **`min-height: 48px`**, `font-size:16px`,
+  divisórias sutis (`--line`), tipografia/cor institucionais (`--ink`).
+- Overlay escuro com `.mobile-menu` deslizando pela direita; respeita
+  `env(safe-area-inset-right/bottom)`.
+- Fecha de **3 formas**: clique fora (overlay), clique em link, e **tecla Esc**
+  (handler em `SiteHeader`, que também trava o scroll do fundo com
+  `body.overflow:hidden` enquanto aberto).
+- Links do menu (7): O Festival · Edições · Sweet Awards · Curiosidades ·
+  Participar · Apoiar · Contato. **Não** incluir painel interno.
+
+### Checklist obrigatório por página
+
+- [ ] zero overflow horizontal em todos os viewports;
+- [ ] logo à esquerda / botão à direita / gutter consistente header↔seções↔footer;
+- [ ] menu abre, fecha (fora/link/Esc) e tem toque confortável;
+- [ ] sem quebras tipográficas ruins / pontuação órfã no mobile;
+- [ ] cards e botões não colados nas bordas; imagens sem cortes acidentais.
+
+---
+
 _Fonte de verdade da Home: `src/pages/institutional/Home.jsx`._
 _Fonte de verdade do movimento: `src/styles/motion-system.css`._
 _Fonte de verdade das galerias: `src/components/PhotoRotator.jsx` + `src/data/homeGalleries.js`._

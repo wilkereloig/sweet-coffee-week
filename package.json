@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test:responsive": "node tests/responsive.mjs",
+    "test:mobile": "node tests/responsive.mjs --mobile",
     "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs"
   },
   "dependencies": {

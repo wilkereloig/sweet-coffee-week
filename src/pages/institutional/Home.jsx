@@ -33,10 +33,10 @@ const STEPS = [
 ]
 
 const STATS = [
-  { to: 16,  prefix: '',  suffix: '',    l: 'edições' },
-  { to: 34,  prefix: '+', suffix: 'mil', l: 'combos vendidos' },
-  { to: 712, prefix: '+R$ ', suffix: ' mil', l: 'movimentados diretamente' },
-  { to: 10,  prefix: '+', suffix: 'mi',  l: 'visualizações no Instagram' },
+  { to: 16,  prefix: '',     suffix: '',         unit: 'edições', l: 'desde 2016' },
+  { to: 34,  prefix: '+',    suffix: ' mil',     unit: 'combos', l: 'vendidos nas últimas edições' },
+  { to: 712, prefix: '+R$ ', suffix: ' mil', unit: '', l: 'movimentados diretamente' },
+  { to: 10,  prefix: '+',    suffix: ' milhões', unit: '', l: 'de visualizações no Instagram' },
 ]
 
 // Count-up animado quando entra na viewport (respeita reduced-motion).
@@ -127,8 +127,8 @@ export function HomePage({ navigate }) {
           <div className="hm-stats motion-stagger">
             {STATS.map((s) => (
               <div className="hm-stat" key={s.l}>
-                <strong><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} /></strong>
-                <span>{s.l}</span>
+                <strong><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} />{s.unit ? <span className="hm-stat__unit"> {s.unit}</span> : null}</strong>
+                <span className="hm-stat__support">{s.l}</span>
               </div>
             ))}
           </div>
@@ -434,15 +434,16 @@ export function HomePage({ navigate }) {
         @media (max-width: 420px) { .hm-numbers .hm-stats { grid-template-columns: 1fr; } }
 
         /* Stat card colorido — texto contraste-safe por card (--on) */
-        .hm-numbers .hm-stat { border-top: 0; position: relative; container-type: inline-size; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: var(--sp-5) var(--sp-5) var(--sp-6); min-width: 0; min-height: clamp(148px, 12vw, 178px); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--sp-3); box-shadow: 0 6px 16px rgba(43,24,16,.14); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-numbers .hm-stat { border-top: 0; position: relative; container-type: inline-size; --c: var(--coral); --on: var(--on-coral); background: var(--c); border: 0; border-radius: var(--r-lg); padding: var(--sp-5) var(--sp-5) var(--sp-6); min-width: 0; min-height: clamp(162px, 13vw, 190px); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--sp-2); box-shadow: 0 6px 16px rgba(43,24,16,.14); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-numbers .hm-stat:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(43,24,16,.26); }
         .hm-numbers .hm-stat:nth-child(1) { --c: var(--yellow); --on: var(--on-yellow); }
         .hm-numbers .hm-stat:nth-child(2) { --c: var(--pink);   --on: var(--on-pink); }
         .hm-numbers .hm-stat:nth-child(3) { --c: var(--cyan);   --on: var(--choco); }
         .hm-numbers .hm-stat:nth-child(4) { --c: var(--yellow); --on: var(--on-yellow); }
         .hm-numbers .hm-stat__k { align-self: flex-start; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-style: normal; color: var(--on); opacity: .68; margin-bottom: var(--sp-4); }
-        .hm-numbers .hm-stat strong { font-size: clamp(34px, 15cqi, 52px); line-height: .9; letter-spacing: -.035em; margin: 0; max-width: 100%; color: var(--on); }
-        .hm-numbers .hm-stat > span { font-size: clamp(15px, 4.6cqi, 18px); line-height: 1.3; margin: 0; max-width: 95%; color: var(--on); opacity: 1; font-weight: 700; text-wrap: pretty; }
+        .hm-numbers .hm-stat strong { display: block; font-size: clamp(26px, 9.5cqi, 38px); line-height: 1.02; letter-spacing: -.03em; margin: 0; max-width: 100%; color: var(--on); white-space: normal; text-wrap: balance; }
+        .hm-numbers .hm-stat__unit { font-weight: 700; }
+        .hm-numbers .hm-stat__support { display: block; font-size: clamp(15.5px, 5.2cqi, 18.5px); line-height: 1.34; margin: 0; max-width: 100%; color: var(--on); opacity: .94; font-weight: 600; text-wrap: pretty; }
 
         /* Card — pilar com top-rail de acento, superfície elevada */
         .hm-pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }

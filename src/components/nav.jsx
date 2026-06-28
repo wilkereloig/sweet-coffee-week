@@ -94,6 +94,19 @@ export function SiteHeader({ route, navigate }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Menu mobile aberto: fecha com Esc e trava o scroll do fundo.
+  React.useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false) }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [mobileOpen])
+
   // Home: barra transparente sobre o hero escuro até rolar; demais páginas: sólida.
   const transparent = route === 'home' && !scrolled
 

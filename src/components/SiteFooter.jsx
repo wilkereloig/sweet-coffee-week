@@ -5,14 +5,6 @@ import { NAV_LINKS } from './nav'
 const INSTAGRAM_HANDLE = '@sweetcoffeeweek'
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 
-// Informações essenciais do institucional (fonte única p/ o rodapé).
-const FOOTER_INFO = [
-  'Festival gastronômico criado em Natal/RN.',
-  'Combos por edição: 1 doce + 1 salgado + 1 bebida.',
-  'Realização: F2 Experience.',
-  'Canal principal: Instagram oficial.',
-]
-
 /**
  * Rodapé institucional do Sweet & Coffee Week.
  * Componente global do institucional — usar em todas as páginas institucionais,
@@ -82,14 +74,11 @@ export function SiteFooter({ navigate }) {
             <a className="site-footer__ig" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
               {INSTAGRAM_HANDLE}
             </a>
-            <p className="site-footer__realiza">
-              Realização<br /><strong>F2 Experience</strong>
-            </p>
           </div>
 
           {/* Navegação institucional — mesma navegação interna do header */}
           <nav className="site-footer__col site-footer__nav" aria-label="Navegação institucional">
-            <h3 className="site-footer__h">Navegação</h3>
+            <h3 className="site-footer__h">Navegue</h3>
             <ul>
               {NAV_LINKS.map((l) => (
                 <li key={l.id}>
@@ -99,34 +88,23 @@ export function SiteFooter({ navigate }) {
             </ul>
           </nav>
 
-          {/* Informações essenciais */}
-          <div className="site-footer__col site-footer__info">
-            <h3 className="site-footer__h">O festival</h3>
-            <ul>
-              {FOOTER_INFO.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ul>
-          </div>
-
           {/* Caixa de sugestões */}
           <div className="site-footer__col site-footer__suggest">
-            <h3 className="site-footer__h">Tem uma sugestão para o festival?</h3>
+            <h3 className="site-footer__h">Tem uma ideia para o festival?</h3>
             <p className="site-footer__suggest-help">
-              Conta pra gente uma ideia, participante, tema ou melhoria que você gostaria de ver
-              nas próximas edições.
+              Sugira um tema, indique um participante ou conte o que você gostaria de ver nas próximas edições.
             </p>
             <form className="site-footer__form" onSubmit={onSubmit} noValidate>
               <label className="site-footer__field">
-                <span>Nome <em>(opcional)</em></span>
+                <span>Nome, se quiser</span>
                 <input type="text" value={form.nome} onChange={onChange('nome')} autoComplete="name" />
               </label>
               <label className="site-footer__field">
-                <span>E-mail ou Instagram <em>(opcional)</em></span>
+                <span>E-mail ou Instagram, se quiser</span>
                 <input type="text" value={form.contato} onChange={onChange('contato')} />
               </label>
               <label className="site-footer__field">
-                <span>Sugestão <em>(obrigatório)</em></span>
+                <span>Sua sugestão</span>
                 <textarea
                   value={form.sugestao}
                   onChange={onChange('sugestao')}
@@ -143,7 +121,7 @@ export function SiteFooter({ navigate }) {
               {status === 'sent' &&
                 'Copiamos sua sugestão e abrimos o Instagram @sweetcoffeeweek — é só colar na mensagem. Obrigado por contribuir com o Sweet & Coffee Week.'}
               {status === 'fallback' &&
-                'O formulário ainda será conectado. Por enquanto, envie sua sugestão pelo Instagram @sweetcoffeeweek.'}
+                'O envio ainda será conectado. Por enquanto, mande sua sugestão pelo Instagram @sweetcoffeeweek.'}
             </p>
           </div>
         </div>
