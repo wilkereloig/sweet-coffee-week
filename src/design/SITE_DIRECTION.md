@@ -157,11 +157,20 @@ Regras medidas e validadas na Home — base para as próximas páginas.
 - O **hero** é exceção intencional: bloco centrado, `max-width: 920px`, padding
   próprio `clamp(24px,6vw,64px)`. Não alinha ao gutter das seções porque é
   full-bleed centrado — não replicar esse paradigma em seções normais.
-- Header (route-home, desktop ≥960) segue o **mesmo grid do conteúdo**:
-  `max-width: none` + `padding-inline: var(--hm-gutter)`. Logo encosta no gutter
-  esquerdo, menu no direito — alinhados às bordas dos cards/títulos. O `.nav-cta`
-  (hambúrguer, oculto no desktop) é `display:none` para o menu encostar no gutter
-  direito sem sobra de `gap`.
+- Header (desktop ≥960) segue o **mesmo grid do conteúdo** em **todas as páginas
+  institucionais** (não só na Home): `.site-header__inner` usa `max-width: none` +
+  `padding-inline: var(--hm-gutter)`. Logo encosta no gutter esquerdo, menu no
+  direito — alinhados às bordas dos cards/títulos. O `.nav-cta` (hambúrguer, oculto
+  no desktop) é `display:none` para o menu encostar no gutter direito sem sobra de
+  `gap`. Logo prominente e consistente: `.brand img { height: clamp(72px,6vw,96px) }`.
+- A **Home** mantém um tratamento exclusivo sobre o seu hero escuro (overrides
+  `body.route-home`): barra **transparente** + scrim de topo, links em **creme** e
+  **logo grande flutuante** (`position:absolute; top:100%`, `clamp(116px,11vw,160px)`)
+  que sobe/encolhe ao rolar. As demais páginas usam a **mesma estrutura/alinhamento**,
+  porém com **barra sólida legível** (fundo claro translúcido, links escuros) — o
+  transparente+creme depende do hero escuro e não se replica em topo claro.
+  Mobile (≤959) já é unificado para todas: logo à esquerda no `--hm-gutter`, botão à
+  direita (≥44px). Páginas **Lovers** no desktop usam a sidebar própria (não o header).
 
 ### Ritmo vertical entre seções
 

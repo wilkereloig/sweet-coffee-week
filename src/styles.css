@@ -423,10 +423,20 @@ body.route-home .site-header .nav-main a:hover { color: #fff; }
 body.route-home .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
 body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
 
-/* HOME desktop: logo grande, centro fixo na borda inferior da barra (metade vaza no hero) */
+/* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
+   barra full-width alinhada ao grid do conteúdo (--hm-gutter), logo prominente,
+   hambúrguer oculto. A Home adiciona o tratamento transparente + logo flutuante
+   sobre o hero (overrides abaixo); as demais ficam com barra sólida legível. */
 @media (min-width: 960px) {
-  /* menu segue o mesmo grid do conteúdo (.hm .wrap): full-width + recuo --hm-gutter */
-  body.route-home .site-header__inner { position: relative; max-width: none; padding-block: 50px; padding-inline: var(--hm-gutter); }
+  .site-header__inner { max-width: none; padding-inline: var(--hm-gutter); }
+  /* hambúrguer oculto no desktop: remove o nav-cta vazio p/ o menu encostar no gutter direito */
+  .nav-cta { display: none; }
+  /* logo prominente e consistente (inline, centrada na barra) */
+  .brand img { height: clamp(72px, 6vw, 96px); width: auto; }
+
+  /* HOME: logo grande flutuando — centro fixo na borda inferior da barra
+     (metade vaza no hero escuro); barra transparente. */
+  body.route-home .site-header__inner { position: relative; padding-block: 50px; }
   body.route-home .brand {
     position: absolute;
     left: var(--hm-gutter);
@@ -442,8 +452,6 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
   /* Ao rolar: logo sobe pro centro da barra, encolhe e fica à frente — alinhada ao menu */
   body.route-home .site-header.scrolled .brand { top: 50%; z-index: 5; }
   body.route-home .site-header.scrolled .brand-cycle { transform: translateY(-50%) scale(.62); }
-  /* hambúrguer oculto no desktop: remove o nav-cta vazio p/ o menu encostar no gutter direito */
-  body.route-home .nav-cta { display: none; }
 }
 .mobile-overlay {
   position: fixed;
