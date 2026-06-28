@@ -114,7 +114,7 @@ export function ApoiarPage({ navigate }) {
       <section className="section apoiar-value-section">
         <div className="wrap">
           <div className="apoiar-head motion-reveal-up">
-            <h2>Por que apoiar o <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>Sweet</span></h2>
+            <h2>Por que apoiar o <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>Sweet &amp; Coffee Week</span></h2>
             <p>Mais do que visibilidade: associação a um movimento de cidade que conecta marcas, gastronomia e público.</p>
           </div>
           <div className="apoiar-value motion-stagger">
@@ -249,7 +249,7 @@ export function ApoiarPage({ navigate }) {
         .apoiar-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
         .apoiar-page h1, .apoiar-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
 
-        .apoiar-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); margin: 0 0 var(--sp-4); }
+        .apoiar-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent, var(--yellow)); margin: 0 0 var(--sp-4); }
         .apoiar-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
 
         .apoiar-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }

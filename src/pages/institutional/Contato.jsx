@@ -54,7 +54,7 @@ export function ContatoPage({ navigate }) {
       <section className="contato-hero">
         <div className="wrap contato-hero__inner motion-reveal-up">
           <span className="contato-eyebrow"><span className="contato-eyebrow__dot" />Contato</span>
-          <h1>Vamos conversar sobre o <span className="keep-together"><span className="contato-hl" style={{ '--hl': 'var(--pink)' }}>Sweet</span>?</span></h1>
+          <h1>Vamos conversar sobre o <span className="keep-together"><span className="contato-hl" style={{ '--hl': 'var(--pink)' }}>Sweet &amp; Coffee Week</span>?</span></h1>
           <p>Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.</p>
         </div>
       </section>
@@ -87,7 +87,7 @@ export function ContatoPage({ navigate }) {
         .contato-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
         .contato-page h1, .contato-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
 
-        .contato-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); margin: 0 0 var(--sp-4); }
+        .contato-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent, var(--yellow)); margin: 0 0 var(--sp-4); }
         .contato-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
 
         /* 1 — HERO chocolate */

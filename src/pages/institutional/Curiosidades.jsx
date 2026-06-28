@@ -77,7 +77,7 @@ export function CuriosidadesPage({ navigate }) {
         <Sticker name="shape-star-cyan" className="cur-hero__st1" />
         <div className="wrap cur-hero__grid">
           <div className="cur-hero__copy motion-reveal-up">
-            <span className="cur-eyebrow"><span className="cur-eyebrow__dot" />Curiosidades · arquivo do Sweet</span>
+            <span className="cur-eyebrow"><span className="cur-eyebrow__dot" />Curiosidades · arquivo do festival</span>
             <h1>Uma história contada em temas, marcas e <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--pink)' }}>Sweet Lovers</span>.</span></h1>
             <p>
               Desde 2016, o Sweet &amp; Coffee Week reúne marcas gastronômicas de Natal em edições temáticas. Esta página abre o arquivo do festival para mostrar recorrências, recordes e os momentos que marcaram a trajetória.
@@ -147,7 +147,7 @@ export function CuriosidadesPage({ navigate }) {
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
             <h2>As maiores <span className="cur-hl" style={{ '--hl': 'var(--yellow-deep)' }}>edições</span></h2>
-            <p>Por número de participações — a expansão do Sweet como circuito de cidade.</p>
+            <p>Por número de participações — a expansão do festival como circuito de cidade.</p>
           </div>
           <ol className="cur-rank motion-stagger">
             {biggestEditions.map((e, i) => (
@@ -195,7 +195,7 @@ export function CuriosidadesPage({ navigate }) {
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
             <h2>Marcas que fazem parte da <span className="cur-hl" style={{ '--hl': 'var(--pink)' }}>história</span></h2>
-            <p>Um recorte das marcas presentes no acervo do Sweet. Como os nomes vêm de posts de diferentes anos, recorrências consideram variações de grafia — é uma leitura, não um ranking fechado.</p>
+            <p>Um recorte das marcas presentes no acervo do festival. Como os nomes vêm de posts de diferentes anos, recorrências consideram variações de grafia — é uma leitura, não um ranking fechado.</p>
           </div>
           <ul className="cur-wall motion-stagger">
             {BRANDS.map(([slug, name]) => (
@@ -240,7 +240,7 @@ export function CuriosidadesPage({ navigate }) {
         /* 1 — HERO chocolate + colagem */
         .cur-hero { background: #381610; isolation: isolate; overflow: clip; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 96px); }
         @media (min-width: 960px) { .cur-hero { padding-top: clamp(196px, 17vw, 244px); } }
-        .cur-hero .cur-eyebrow { color: var(--yellow); }
+        .cur-hero .cur-eyebrow { color: var(--page-accent, var(--yellow)); }
         .cur-hero__st1 { top: 8%; right: 6%; width: 120px; opacity: .5; transform: rotate(8deg); }
         .cur-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(28px, 5vw, 76px); align-items: center; }
         .cur-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 78px); line-height: .96; max-width: 15ch; }

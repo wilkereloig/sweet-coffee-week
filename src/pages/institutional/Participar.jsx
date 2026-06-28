@@ -374,7 +374,7 @@ export function ParticiparPage() {
         .participar-lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); }
         .participar-lead--onDark { color: rgba(255,241,230,.9); }
         .participar-lead--onDark.participar-lead--sm { color: rgba(255,241,230,.72); }
-        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
+        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--page-accent, var(--yellow)); }
         .participar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast) var(--ease-out-soft); }
         .participar-hero__link:hover svg { transform: translateX(4px); }
 

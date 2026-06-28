@@ -420,7 +420,7 @@ body:not(.route-painel) .site-header::before {
 }
 body:not(.route-painel) .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
 body:not(.route-painel) .site-header .nav-main a:hover { color: #fff; }
-body:not(.route-painel) .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
+body:not(.route-painel) .site-header .nav-main a.active { color: var(--page-accent, var(--cyan, #4fc3d9)); }
 body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
 
 /* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
@@ -461,6 +461,26 @@ body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route
 @media (min-width: 960px) {
   body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
 }
+/* ============================================================
+   SISTEMA DE COR POR PÁGINA (institucional).
+   Cada rota seta --page-accent (+ soft p/ fundos, dark p/ texto sobre claro).
+   Consomem: item ativo do menu (texto + underline via currentColor), eyebrow do
+   hero e detalhes da página. Home/painel mantêm o padrão (não recebem tema).
+   Acessibilidade: o ativo também tem peso/itálico/underline — nunca só cor.
+   ============================================================ */
+body {
+  --page-accent: var(--cyan, #2BC4E8);
+  --page-accent-soft: rgba(43, 196, 232, .16);
+  --page-accent-dark: var(--cyan-deep, #149FC0);
+}
+body.route-edicoes          { --page-accent: #2BC4E8; --page-accent-soft: rgba(43,196,232,.16);  --page-accent-dark: #149FC0; }
+body.route-vencedores,
+body.route-historico-awards { --page-accent: #F2548A; --page-accent-soft: rgba(242,84,138,.16);  --page-accent-dark: #C8275C; }
+body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
+body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
+body.route-apoiar           { --page-accent: #7FC24A; --page-accent-soft: rgba(127,194,74,.18);  --page-accent-dark: #4D7F2A; }
+body.route-contato          { --page-accent: #B38CFF; --page-accent-soft: rgba(179,140,255,.20); --page-accent-dark: #6E48B8; }
+
 .mobile-overlay {
   position: fixed;
   inset: 0;
@@ -642,7 +662,7 @@ body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route
 }
 .mobile-menu__inst-link:last-child { border-bottom: 0; }
 .mobile-menu__inst-link.locked { cursor: not-allowed; }
-.mobile-menu__inst-link.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+.mobile-menu__inst-link.active { color: var(--page-accent-dark, var(--cyan-deep, #1f7a8c)); font-weight: 800; font-style: italic; }
 .mobile-menu__inst-link:focus-visible { outline: 2px solid var(--cyan-deep, #1f7a8c); outline-offset: 2px; border-radius: 5px; }
 
 /* ---------- RODAPÉ INSTITUCIONAL ---------- */
