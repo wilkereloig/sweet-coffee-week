@@ -30,6 +30,7 @@ function SiteSidebar({ route, navigate }) {
           <a key={l.id}
              href={l.href}
              className={`sidebar__link${route === l.id ? ' active' : ''}`}
+             aria-current={route === l.id ? 'page' : undefined}
              onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
             {l.label}
           </a>
@@ -107,6 +108,7 @@ export function SiteHeader({ route, navigate }) {
               <a key={l.id}
                  href={l.href}
                  className={route === l.id ? 'active' : ''}
+                 aria-current={route === l.id ? 'page' : undefined}
                  onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
                 {l.label}
               </a>
@@ -135,7 +137,8 @@ export function SiteHeader({ route, navigate }) {
               {NAV_LINKS.map((l) => (
                 <a key={l.id}
                    href={l.href}
-                   className="mobile-menu__inst-link"
+                   className={`mobile-menu__inst-link${route === l.id ? ' active' : ''}`}
+                   aria-current={route === l.id ? 'page' : undefined}
                    onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
                   {l.label}
                 </a>

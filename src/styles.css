@@ -314,19 +314,41 @@ button:disabled { cursor: not-allowed; }
   position: relative;
   padding: 8px 12px;
   color: var(--ink-soft);
-  transition: color .15s ease;
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              opacity var(--motion-base, 260ms) var(--ease-out-soft, ease);
   font-weight: 700;
   text-transform: lowercase;
 }
-.nav-main a:hover { color: var(--ink); }
-.nav-main a.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
-.nav-main a.active::after {
+/* Underline unificado: desenha do canto esquerdo (transform, sem layout shift) */
+.nav-main a::after {
   content: '';
   position: absolute;
-  left: 12px; right: 12px; bottom: 0;
+  left: 12px; right: 12px; bottom: 2px;
   height: 2px;
   border-radius: 2px;
   background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--motion-base, 260ms) var(--ease-out-soft, ease);
+}
+.nav-main a:hover { color: var(--ink); }
+.nav-main a:hover::after,
+.nav-main a:focus-visible::after,
+.nav-main a.active::after { transform: scaleX(1); }
+.nav-main a.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+/* Foco por teclado — destaque claro, não só cor */
+.nav-main a:focus-visible {
+  outline: 2px solid var(--cyan-deep, #1f7a8c);
+  outline-offset: 2px;
+  border-radius: 5px;
+  color: var(--ink);
+}
+/* Grupo: ao passar o mouse na área do menu, itens não-alvo suavizam.
+   O ativo nunca apaga. Sem layout shift (só opacity). */
+.nav-main:hover a:not(:hover):not(.active) { opacity: .5; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-main a,
+  .nav-main a::after { transition: none; }
 }
 .nav-cta {
   display: flex;
@@ -371,7 +393,22 @@ body.route-home .site-header {
   -webkit-backdrop-filter: none;
   border-bottom-color: transparent;
 }
-body.route-home .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease); }
+/* Scrim de topo: sombra escura fixa atrás do menu, esmaece até transparente (sem
+   barra sólida). Mantém o menu claro legível sobre QUALQUER seção (inclusive as
+   claras, ex.: Números em creme). Termina em alpha 0 → sem linha/seam. */
+body.route-home .site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 240%;
+  background: linear-gradient(to bottom,
+              rgba(43, 24, 16, 0.62) 0%,
+              rgba(43, 24, 16, 0.30) 42%,
+              rgba(43, 24, 16, 0) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+body.route-home .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
 body.route-home .site-header .nav-main a:hover { color: #fff; }
 body.route-home .site-header .nav-main a.active { color: var(--cyan, #4fc3d9); }
 body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
@@ -571,6 +608,101 @@ body.route-home .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
   line-height: 1.2;
 }
 .mobile-menu__inst-link.locked { cursor: not-allowed; }
+.mobile-menu__inst-link.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+.mobile-menu__inst-link:focus-visible { outline: 2px solid var(--cyan-deep, #1f7a8c); outline-offset: 2px; border-radius: 5px; }
+
+/* ---------- RODAPÉ INSTITUCIONAL ---------- */
+/* Componente global do institucional (src/components/SiteFooter.jsx). Usa
+   .section (ritmo vertical) + .wrap (largura/gutter do container principal),
+   mesma régua da Home. Doc: src/design/SITE_DIRECTION.md (§ Rodapé). */
+.site-footer { background: var(--ink); color: rgba(255, 244, 236, 0.86); }
+.site-footer .wrap { width: 100%; }
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.7fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+.site-footer__col { min-width: 0; }
+.site-footer__h {
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--peach); margin: 0 0 16px;
+}
+/* Identidade */
+.site-footer__name {
+  display: inline-block; font-family: var(--font-display, var(--font-heading));
+  font-size: clamp(22px, 2.2vw, 28px); font-weight: 800; color: #FEF0DD;
+  line-height: 1.05; margin-bottom: 12px;
+}
+.site-footer__tagline { margin: 0 0 16px; font-size: 15px; line-height: 1.5; max-width: 34ch; }
+.site-footer__ig {
+  display: inline-block; font-weight: 800; color: var(--cyan, #4fc3d9);
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__ig:hover { color: #FEF0DD; }
+.site-footer__realiza { margin: 18px 0 0; font-size: 13px; line-height: 1.4; opacity: .8; }
+.site-footer__realiza strong { color: #FEF0DD; font-weight: 800; }
+/* Listas (navegação + info) */
+.site-footer__nav ul, .site-footer__info ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.site-footer__nav a {
+  color: rgba(255, 244, 236, 0.82); font-weight: 600; text-transform: lowercase;
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__nav a:hover { color: #FEF0DD; }
+.site-footer__nav a:focus-visible,
+.site-footer__ig:focus-visible,
+.site-footer__name:focus-visible { outline: 2px solid var(--cyan, #4fc3d9); outline-offset: 3px; border-radius: 4px; }
+.site-footer__info li { font-size: 14px; line-height: 1.5; }
+/* Caixa de sugestões */
+.site-footer__suggest-help { margin: 0 0 16px; font-size: 14px; line-height: 1.5; opacity: .9; }
+.site-footer__form { display: grid; gap: 12px; }
+.site-footer__field { display: grid; gap: 6px; }
+.site-footer__field > span { font-size: 12.5px; font-weight: 700; color: rgba(255, 244, 236, 0.78); }
+.site-footer__field em { font-style: normal; font-weight: 500; opacity: .65; }
+.site-footer__field input,
+.site-footer__field textarea {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;
+  padding: 11px 13px; border-radius: 10px; color: #FEF0DD;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 244, 236, 0.18);
+  transition: border-color var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              background var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__field textarea { resize: vertical; min-height: 76px; }
+.site-footer__field input::placeholder,
+.site-footer__field textarea::placeholder { color: rgba(255, 244, 236, 0.4); }
+.site-footer__field input:focus,
+.site-footer__field textarea:focus {
+  outline: none; border-color: var(--cyan, #4fc3d9); background: rgba(255, 255, 255, 0.12);
+}
+.site-footer__send {
+  justify-self: start; margin-top: 2px; padding: 12px 22px; border: 0; border-radius: 999px;
+  font: inherit; font-weight: 800; cursor: pointer; color: var(--ink);
+  background: var(--accent); min-height: 44px;
+  transition: transform var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              background var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              opacity var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__send:hover { transform: translateY(-2px); }
+.site-footer__send:active { transform: translateY(0); }
+.site-footer__send:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.site-footer__send:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
+.site-footer__status:empty { display: none; }
+.site-footer__status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--peach); }
+@media (max-width: 900px) {
+  .site-footer__grid { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
+  .site-footer__brand, .site-footer__suggest { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .site-footer__grid { grid-template-columns: 1fr; gap: 32px; }
+  .site-footer__tagline { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__send, .site-footer__ig, .site-footer__nav a,
+  .site-footer__field input, .site-footer__field textarea { transition: none; }
+  .site-footer__send:hover { transform: none; }
+}
 .mobile-menu__inst-link svg { width: 11px; height: 11px; opacity: .6; }
 
 /* ---------- SIDEBAR DESKTOP ---------- */

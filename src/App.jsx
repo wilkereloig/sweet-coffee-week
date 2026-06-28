@@ -5,6 +5,7 @@ import { SiteHeader } from './components/nav'
 import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
+import { SiteFooter } from './components/SiteFooter'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
@@ -24,6 +25,11 @@ import { PainelPage }       from './pages/lovers/Painel'
 // renderiza só a página de vencedores (/vencedores e alias /premiacao). O painel
 // interno (/lovers/painel) continua acessível, mas fora de qualquer menu/header.
 const AWARDS_ONLY_PUBLICATION = false
+
+// Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
+// 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
+// liberar quando o institucional/Awards forem revisados.
+const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar', 'contato']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
@@ -82,6 +88,7 @@ export default function App() {
       <main key={route} className="page-enter">
         <ErrorBoundary key={route}>{page}</ErrorBoundary>
       </main>
+      {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} />}
       <CookieConsent />
     </DevViewportSwitcher>
   )

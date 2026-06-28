@@ -307,15 +307,19 @@ export function HomePage({ navigate }) {
           margin: 0 0 clamp(24px, 3vw, 40px); text-wrap: balance;
         }
         .hm .swc-hero__hl { position: relative; color: var(--pink); }
-        .hm .swc-hero__hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .02em; height: .11em; border-radius: 4px; background: var(--swc-yellow); }
+        .hm .swc-hero__hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .02em; height: .11em; border-radius: 4px; background: var(--swc-yellow); transform: scaleX(1); transform-origin: left center; animation: swcUnderlineDraw .65s ease-out .5s both; }
+        .hm .swc-hero__hl:hover::after { animation: hmUnderlineBreathe .7s var(--ease-out-soft); }
+        /* Entrada desenha uma vez; no hover a linha encurta/estica no comprimento (ancorada à esquerda, sem scale) */
+        @keyframes hmUnderlineBreathe { 0% { right: 0; } 50% { right: 42%; } 100% { right: 0; } }
         /* Destaque único de palavra nos títulos: itálico, cor sólida + sublinhado
            que desenha uma vez e fica. Cor por seção via --hl inline. */
         .hm .hl-w { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--pink)); }
         .hm .hl-w::after {
-          content: ''; position: absolute; left: 0; right: 0; bottom: -.04em; height: .1em; border-radius: 4px;
-          background: var(--hl, var(--pink)); transform: scaleX(0); transform-origin: left center;
-          animation: swcUnderlineDraw .65s ease-out forwards; animation-delay: var(--hl-delay, 0s);
+          content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px;
+          background: var(--hl, var(--pink)); transform: scaleX(1); transform-origin: left center;
+          animation: swcUnderlineDraw .65s ease-out var(--hl-delay, 0s) both;
         }
+        .hm .hl-w:hover::after { animation: hmUnderlineBreathe .7s var(--ease-out-soft); }
         @keyframes swcUnderlineDraw {
           from { transform: scaleX(0); }
           to   { transform: scaleX(1); }
@@ -353,7 +357,8 @@ export function HomePage({ navigate }) {
         .hm-about__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
         /* Coração ancorado no canto inferior-esquerdo da mídia, 37% da largura dela
            (responsivo: % relativo a .hm-about__media). Ajuste fino aprovado no Visual Refinement. */
-        .hm-about__heart { position: absolute; left: 0; bottom: 0; width: 37%; color: var(--yellow); filter: drop-shadow(0 8px 18px rgba(43,24,16,.4)); }
+        .hm-about__heart { position: absolute; left: 0; bottom: 0; width: 37%; color: var(--yellow); filter: drop-shadow(0 8px 18px rgba(43,24,16,.4)); transform-origin: center; animation: hmHeartPulse 1.5s ease-in-out infinite; }
+        @keyframes hmHeartPulse { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.08); } 30% { transform: scale(1); } 45% { transform: scale(1.05); } 60% { transform: scale(1); } }
         .hm-about__heart img { display: block; width: 100%; height: auto; }
         @media (max-width: 860px) { .hm-about__grid { grid-template-columns: 1fr; gap: var(--sp-7); } .hm-about__media { max-width: 420px; margin: 0 auto; } }
         .hm-about__collage { position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; border-radius: 26px; overflow: hidden; }
@@ -414,9 +419,9 @@ export function HomePage({ navigate }) {
         .hm-stat strong { display: block; font-family: var(--font-display); font-weight: 900; font-size: clamp(38px, 4.6vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
         .hm-stat > span { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
         /* ritmo vertical = .section padrão (mesma altura das outras bandas; consistência) */
-        .hm .hm-numbers { background: #5e3018; }
+        .hm .hm-numbers { background: var(--cream); }
         .hm-numbers__head { text-align: center; margin: 0 auto var(--sp-7); }
-        .hm-numbers__head h2 { color: var(--cream); font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .98; letter-spacing: -.04em; margin: 0 auto; text-wrap: balance; }
+        .hm-numbers__head h2 { color: var(--ink); font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .98; letter-spacing: -.04em; margin: 0 auto; text-wrap: balance; }
         .hm-numbers .hm-stat:nth-child(1) { border-top-color: var(--coral); }
         .hm-numbers .hm-stat:nth-child(2) { border-top-color: var(--pink); }
         .hm-numbers .hm-stat:nth-child(3) { border-top-color: var(--cyan); }
@@ -520,7 +525,11 @@ export function HomePage({ navigate }) {
         @media (prefers-reduced-motion: reduce) {
           .hm .swc-hero__copy,
           .hm .swc-hero__line { animation: none; opacity: 1; transform: none; }
-          .hm .hl-w::after { animation: none; transform: scaleX(1); }
+          .hm .hl-w::after,
+          .hm .hl-w:hover::after,
+          .hm .swc-hero__hl::after,
+          .hm .swc-hero__hl:hover::after { animation: none; transform: scaleX(1); right: 0; }
+          .hm-about__heart { animation: none; transform: none; }
         }
       `}</style>
 

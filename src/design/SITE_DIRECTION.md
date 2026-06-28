@@ -299,7 +299,28 @@ Na Home, `HomePage` chama `useRevealOnScroll(rootRef)` no `.hm`.
   hover discreto que não compete com a leitura.
 - **Realização (F2)** — entrada mais calma; espectro de marca com loop sutil
   (`f2Spectrum`); CTA com feedback claro no hover.
-- **Menu/Header** — transições de cor no hover/ativo apenas; sem exagero.
+- **Menu/Header** — ver subseção dedicada abaixo (estados de navegação).
+
+### Menu / Header — estados de navegação (referência p/ todas as páginas)
+
+Comportamento canônico do `.nav-main` (desktop) e espelhado no menu mobile.
+**Regra de ouro: nada de layout shift no hover** — só `transform`, `opacity` e
+pseudo-elementos.
+
+- **Página atual** — item com `.active` + `aria-current="page"`: cor de acento
+  (`--cyan-deep`, ou `--cyan` no route-home), itálico/peso e **underline desenhado**
+  (`::after` `scaleX(1)`, âncora à esquerda). O estado ativo respeita a **rota
+  calculada no app** (ex.: `vencedores` quando renderizada), não o item clicado.
+- **Hover** — underline desenha do canto esquerdo (`::after` `scaleX(0)→1`,
+  `transform`, sem mexer em largura real) + cor reforça. Transição suave
+  (`--motion-base` / `--ease-out-soft`).
+- **Itens inativos** — legíveis em repouso. Quando o grupo está em hover
+  (`.nav-main:hover a:not(:hover):not(.active)`), os não-alvos baixam opacidade
+  (`.5`); o ativo **nunca** apaga. Ao sair do menu, tudo volta.
+- **Foco por teclado** — `:focus-visible` com `outline` claro (não depende só de
+  cor) + underline; funciona igual ao hover.
+- **Reduced-motion** — transições zeradas; estados (ativo/hover/foco) continuam
+  legíveis, underline instantâneo.
 
 ### Acessibilidade
 
@@ -370,6 +391,39 @@ fallback). Desktop 2 colunas, mobile empilha (≤760px).
 
 > Padrão reutilizável: este bloco de "duas chamadas lado a lado" pode conduzir o
 > usuário para páginas estratégicas em outras telas institucionais.
+
+---
+
+## 13. Rodapé institucional
+
+Componente **global do institucional**: `src/components/SiteFooter.jsx`. Integrado
+no `App.jsx` via `FOOTER_ROUTES` e renderizado após o `<main>`. Aparece em todas as
+páginas institucionais **exceto o painel interno** (`route === 'painel'`).
+`vencedores` fica de fora por ora (Awards publicado ainda não revisado com footer) —
+liberar quando revisado. Lista atual: `home, edicoes, curiosidades, participar,
+apoiar, contato`.
+
+**Régua:** usa `.section` (ritmo vertical) + `.wrap` (largura/gutter do container) —
+mesma da Home, sem direção visual paralela. Banda escura (`--ink`) com texto cream;
+acentos `--peach`/`--cyan`/`--accent`. CSS reutilizável em `styles.css`
+(`.site-footer*`).
+
+**Conteúdo:** (1) identidade — nome, tagline, Instagram `@sweetcoffeeweek`,
+Realização F2; (2) navegação institucional (reusa `NAV_LINKS`, mesma navegação
+interna do header — não duplica rota); (3) informações essenciais; (4) caixa de
+sugestão.
+
+**Sugestão (envio honesto, sem backend):** form com estado local (nome/contato
+opcionais, sugestão obrigatória). No envio: copia o texto pro clipboard e abre o
+Instagram oficial (canal real) — **não** simula envio falso. Confirmação clara via
+`role="status"` (sucesso → "copiamos + abrimos o Instagram"; fallback →
+"envie pelo @sweetcoffeeweek"). `TODO(backend)`: conectar a um endpoint
+(Formspree/Supabase) quando o institucional tiver coleta própria e então trocar o
+fluxo.
+
+**Responsivo:** grid 4 col → 2 col (≤900px) → 1 col (≤560px); campos com toque
+confortável (≥44px no botão), sem overflow horizontal. Respeita
+`prefers-reduced-motion`.
 
 ---
 

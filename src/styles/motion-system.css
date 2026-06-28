@@ -107,6 +107,23 @@
 }
 
 /* ============================================================================
+   HOVER DE SEÇÃO — Home institucional (mira classes existentes; só transform/
+   opacity/filter, sem layout shift). Reforça o que já vive na página.
+   ============================================================================ */
+/* Caminhos Participar/Apoiar — card sobe + seta desliza ------------------- */
+.hm-path { transition: transform var(--motion-base) var(--ease-spring-soft),
+                       box-shadow var(--motion-base) var(--ease-out-soft); }
+.hm-path:hover { transform: translateY(-5px); box-shadow: 0 22px 44px rgba(43,24,16,.16); }
+.hm-path__cta svg { transition: transform var(--motion-base) var(--ease-spring-soft); }
+.hm-path__cta:hover svg { transform: translateX(5px); }
+
+/* Foto "O que é" — zoom suave ao passar o mouse -------------------------- */
+.hm-about__media:hover .photo-rotator__img.is-active { transform: scale(1.04); }
+
+/* Coração — batida acelera no hover (pulso base em Home.jsx) -------------- */
+.hm-about__heart:hover { animation-duration: .7s; }
+
+/* ============================================================================
    ACESSIBILIDADE — sem movimento → conteúdo estático e visível
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -128,6 +145,11 @@
   .motion-button-hover:hover,
   .motion-press:active { transform: none; }
   .motion-float-soft { animation: none; }
+  /* hover de seção (Home) — estático */
+  .hm-path:hover,
+  .hm-path__cta:hover svg,
+  .hm-about__media:hover .photo-rotator__img.is-active { transform: none; }
+  .hm-path:hover { box-shadow: none; }
 }
 
 /* ============================================================================
