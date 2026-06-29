@@ -1,0 +1,38 @@
+/* src/styles/pesquisa.css — KV atual do site (institucional, terracota).
+   Usa as CSS vars globais de src/styles.css; fallbacks para robustez. */
+.pesquisa { background: var(--bg, #FFF4EC); color: var(--ink, #2B1810); min-height: 100vh; }
+.pesquisa__wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 96px; }
+.pesquisa__intro h1 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  color: var(--ink, #2B1810); font-size: clamp(2.2rem, 6vw, 3.2rem); line-height: 1.05; margin: 0 0 12px;
+}
+.pesquisa__intro p { font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink-soft, #6B4A3A); font-size: 1.05rem; line-height: 1.5; margin: 0 0 28px; }
+.pesquisa__secao { margin: 28px 0; }
+.pesquisa__secao > h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  color: var(--accent, #E8553A); font-size: 1.6rem; margin: 0 0 16px;
+}
+.pesquisa__q { background: var(--bg-card, #fff); border-radius: 14px; padding: 18px 18px 14px; margin: 0 0 16px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.pesquisa__q legend, .pesquisa__q .pesquisa__label {
+  font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 1.02rem; color: var(--ink, #2B1810); margin: 0 0 12px; display: block;
+}
+.pesquisa__q .req { color: var(--accent, #E8553A); }
+.pesquisa__opt { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink, #2B1810); cursor: pointer; }
+.pesquisa__opt input { width: 18px; height: 18px; accent-color: var(--accent, #E8553A); }
+.pesquisa__opt--disabled { opacity: .45; cursor: not-allowed; }
+.pesquisa__outro-input, .pesquisa__texto {
+  width: 100%; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--bg-soft, #e4d6c9); border-radius: 10px;
+  font-family: 'DM Sans', system-ui, sans-serif; font-size: 1rem; color: var(--ink, #2B1810); background: var(--bg-card, #fff);
+}
+.pesquisa__hint { font-size: .85rem; color: var(--ink-mute, #9B7A68); margin: 4px 0 0; }
+.pesquisa__erro { color: var(--accent-deep, #C13E25); font-size: .85rem; margin: 6px 0 0; }
+.pesquisa__submit {
+  margin-top: 8px; width: 100%; padding: 16px; border: 0; border-radius: 999px;
+  background: var(--ink, #2B1810); color: var(--bg, #FFF4EC); font-family: 'DM Sans', system-ui, sans-serif; font-weight: 700;
+  font-size: 1.1rem; cursor: pointer;
+}
+.pesquisa__submit:hover { background: var(--ink-dark, #1a0e08); }
+.pesquisa__submit:disabled { opacity: .6; cursor: not-allowed; }
+.pesquisa__sucesso { text-align: center; padding: 80px 20px; }
+.pesquisa__sucesso h1 { font-family: 'Instrument Serif', Georgia, serif; color: var(--accent, #E8553A); font-size: clamp(2.2rem, 7vw, 3.4rem); }
+.pesquisa__sucesso p { font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink-soft, #6B4A3A); font-size: 1.1rem; }
