@@ -157,7 +157,7 @@ export function ContatoPage({ navigate }) {
         .contact-card strong { display: block; margin-top: auto; padding-top: 18px; color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; }
         .contact-card .btn { align-self: flex-start; margin-top: 16px; }
         .contact-card.is-dark { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-        .contact-card.is-dark:hover { border-color: var(--swc-yellow); box-shadow: 0 22px 50px rgba(0,0,0,.3); }
+        .contact-card.is-dark:hover { border-color: var(--swc-yellow); box-shadow: 0 22px 50px rgba(43,24,16,.3); }
         .contact-card.is-dark h2, .contact-card.is-dark strong { color: var(--bg); }
         .contact-card.is-dark p { color: rgba(255,244,236,.7); }
         .contact-card.is-dark .contact-card__tag { color: var(--peach); }

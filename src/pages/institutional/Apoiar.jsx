@@ -274,7 +274,7 @@ export function ApoiarPage({ navigate }) {
         .apoiar-form-grid { position: relative; z-index: 1; display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
         .apoiar-form-grid h2 { color: var(--bg); }
         .apoiar-form-grid p { color: rgba(255,244,236,.72); line-height: 1.7; }
-        .apoiar-form { position: relative; padding: clamp(30px, 4vw, 52px); background: rgba(255,244,236,.045); color: var(--bg); border: 1px solid rgba(255,244,236,.14); border-radius: 26px; box-shadow: 0 30px 80px rgba(0,0,0,.32); }
+        .apoiar-form { position: relative; padding: clamp(30px, 4vw, 52px); background: rgba(255,244,236,.045); color: var(--bg); border: 1px solid rgba(255,244,236,.14); border-radius: 26px; box-shadow: 0 30px 80px rgba(43,24,16,.32); }
         .apoiar-form::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 26px 26px 0 0; background: linear-gradient(90deg, var(--swc-coral, #F65D74), var(--swc-yellow, #FDBB1A) 50%, var(--swc-cyan, #01AFCC)); }
         .apoiar-form .mono { letter-spacing: .14em; }
         .apoiar-form__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 24px; }

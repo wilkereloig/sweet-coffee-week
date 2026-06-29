@@ -336,7 +336,7 @@ export function HomePage({ navigate }) {
         @keyframes swcBadgeSpin { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
         @keyframes swcBadgeSpinCounter { from { transform: scale(1.45) rotate(0deg); } to { transform: scale(1.45) rotate(-90deg); } }
         .hm .swc-hero__actions { position: absolute; right: var(--hm-gutter); bottom: clamp(92px, 13vh, 150px); z-index: 4; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
-        .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(0,0,0,.28); font-weight: 700; }
+        .hm .swc-hero__actions .btn { margin: 0 !important; box-shadow: 0 12px 30px rgba(43,24,16,.28); font-weight: 700; }
         @keyframes swcHeroIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
         @keyframes swcFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
 
