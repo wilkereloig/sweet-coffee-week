@@ -481,6 +481,34 @@ body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(2
 body.route-apoiar           { --page-accent: #7FC24A; --page-accent-soft: rgba(127,194,74,.18);  --page-accent-dark: #4D7F2A; }
 body.route-contato          { --page-accent: #B38CFF; --page-accent-soft: rgba(179,140,255,.20); --page-accent-dark: #6E48B8; }
 
+/* ============================================================
+   HEROS — altura 1080px (desktop) + fundo na cor-acento da página
+   (item ativo do menu). Pedido do cliente. Acentos são claros/
+   saturados → texto em tinta escura. No mobile vira 100svh p/ não
+   criar tela gigante vazia. Home mantém foto/overlay/texto claro
+   (fundo-acento aparece tingindo a foto). Awards (/vencedores) usa
+   sistema próprio (Lovers, inline) e é tratado à parte.
+   ============================================================ */
+.ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero {
+  background: var(--page-accent) !important;
+  min-height: 1080px;
+  display: flex;
+  align-items: center;
+  padding-top: clamp(110px, 13vw, 150px) !important;
+  padding-bottom: clamp(56px, 7vw, 90px) !important;
+}
+.ed-hero > .wrap, .cur-hero > .wrap, .participar-hero > .wrap,
+.apoiar-hero > .wrap, .contato-hero > .wrap, .hist-hero > .wrap { width: 100%; }
+:is(.ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero) :is(h1, p) { color: var(--ink) !important; }
+.ed-hl, .cur-hl, .hist-hl { color: var(--ink) !important; }
+.ed-hl::after, .cur-hl::after { background: var(--ink) !important; }
+/* Home: fundo-acento sob a foto + altura 1080; foto/overlay/texto claro preservados */
+.hm .swc-hero { background: var(--page-accent) !important; min-height: 1080px !important; }
+@media (max-width: 960px) {
+  .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero { min-height: 100svh; }
+  .hm .swc-hero { min-height: 100svh !important; }
+}
+
 .mobile-overlay {
   position: fixed;
   inset: 0;
