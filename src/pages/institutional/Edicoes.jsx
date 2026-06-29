@@ -104,8 +104,8 @@ function EditionLogoSlot({ e }) {
   return (
     <div className="edx-logo is-fallback" role="img" aria-label={`Logo da edição ${e.theme} pendente`}>
       <span className="edx-logo__fb">
-        <span className="edx-logo__fb-tag">Logo da edição</span>
-        <span className="edx-logo__fb-name">pendente · {e.theme}</span>
+        <span className="edx-logo__fb-tag">Logo pendente</span>
+        <span className="edx-logo__fb-name">{e.theme}</span>
       </span>
     </div>
   )
@@ -123,7 +123,7 @@ function EditionPhotoSlot({ e }) {
         {lead
           ? <img src={lead.src} alt={`Combo do acervo recente — edição ${e.theme}`} loading="lazy" decoding="async"
               onError={(ev) => { const w = ev.currentTarget.closest('.edx-photo__main'); if (w) w.classList.add('is-fallback') }} />
-          : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span>Foto principal pendente</span></span>}
+          : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span className="edx-slot-fb__t">Foto principal pendente</span><span className="edx-slot-fb__s">Adicionar imagem da edição</span></span>}
       </figure>
       <div className="edx-photo__mini">
         {[0, 1, 2].map((idx) => {
@@ -174,6 +174,7 @@ function EditionSlide({ e }) {
 function EditionNav({ active, onPick }) {
   return (
     <nav className="edx-nav" aria-label="Navegar pelas edições">
+      <p className="edx-nav__now" aria-live="polite">{pad2(active + 1)} de {pad2(TOTAL)} — {PANELS[active].theme}</p>
       <ul className="edx-nav__list">
         {PANELS.map((e, i) => (
           <li key={e.code}>
@@ -303,7 +304,7 @@ export function EdicoesPage() {
         <section
           ref={outerRef}
           className="edx-stage"
-          style={{ height: `${TOTAL * 100}vh` }}
+          style={{ height: `${TOTAL * 135}vh` }}
           aria-label="Apresentação das edições"
         >
           <div className="edx-sticky">
@@ -370,6 +371,7 @@ export function EdicoesPage() {
 
         /* NAV — régua de apresentação na BASE da seção sticky (livre do menu) */
         .edx-nav { padding: var(--sp-3) var(--page-gutter); background: color-mix(in srgb, var(--cream) 88%, transparent); border-top: 1px solid var(--paper-line); }
+        .edx-nav__now { max-width: var(--page-max); margin: 0 auto var(--sp-2); font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft); }
         .edx-nav__list { list-style: none; margin: 0 auto; padding: 0; max-width: var(--page-max); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
         .edx-nav__item { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 48px; padding: 7px 9px; border: 1px solid var(--paper-line); border-radius: 10px; background: var(--cream-card); color: var(--ink-soft); cursor: pointer; transition: border-color .16s, color .16s, background .16s; }
         .edx-nav__item:hover { color: var(--ink); border-color: var(--page-accent, var(--cyan)); }
@@ -383,7 +385,7 @@ export function EdicoesPage() {
         .edx-progress span { display: block; height: 100%; background: var(--page-accent, var(--cyan)); transition: width .2s ease; }
 
         /* SLIDE */
-        .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; }
+        .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); }
         .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
         .edx-slide__left { min-width: 0; }
         .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
@@ -392,7 +394,7 @@ export function EdicoesPage() {
         .edx-slide__code { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 11px; }
         .edx-slide__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; color: var(--ink); margin: var(--sp-4) 0 0; text-wrap: balance; }
         .edx-slide__etapa { display: inline-block; margin-top: 8px; font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--tone); }
-        .edx-slide__lead { margin: var(--sp-4) 0 0; max-width: 52ch; color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .edx-slide__lead { margin: var(--sp-4) 0 0; max-width: 48ch; color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .edx-slide__meta { list-style: none; margin: var(--sp-5) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
         .edx-slide__meta li { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink); }
         .edx-slide__meta svg { color: var(--tone); }
@@ -424,6 +426,8 @@ export function EdicoesPage() {
         .edx-photo__main.is-fallback img, .edx-photo__thumb.is-fallback img { display: none; }
         .edx-slot-fb { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--ink-soft); font-family: var(--font-sans); font-size: 13px; font-weight: 700; text-align: center; padding: 12px; }
         .edx-slot-fb svg { color: var(--tone); }
+        .edx-slot-fb__t { font-size: 13px; }
+        .edx-slot-fb__s { font-size: 11px; font-weight: 600; color: var(--ink-soft); opacity: .82; }
         .edx-slot-fb--sm { font-size: 10.5px; gap: 0; }
 
         /* BADGE */
