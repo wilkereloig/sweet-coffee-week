@@ -563,7 +563,8 @@ const styles = `
   padding-top: var(--swa-content-start); padding-bottom: clamp(56px, 8vw, 104px);
   display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(32px, 5vw, 72px); align-items: end;
 }
-.swa-hero--lean .swa-hero__inner { grid-template-columns: 1fr; align-items: start; max-width: 900px; padding-bottom: clamp(40px, 6vw, 72px); }
+/* lean: 1 coluna em largura cheia (conteúdo no mesmo gutter da Home, não centralizado) */
+.swa-hero--lean .swa-hero__inner { grid-template-columns: 1fr; align-items: start; padding-bottom: clamp(40px, 6vw, 72px); }
 .swa-hero--lean .swa-hero__title { margin-top: 0; }
 .swa-current__ig { margin-top: 22px; align-self: flex-start; }
 .swa-hero__title {
