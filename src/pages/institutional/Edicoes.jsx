@@ -138,7 +138,6 @@ function EditionPhotoSlot({ e }) {
           )
         })}
       </div>
-      {hasPhotos && <figcaption className="edx-photo__cap">Combos do acervo recente</figcaption>}
     </div>
   )
 }
@@ -413,11 +412,12 @@ export function EdicoesPage() {
         .edx-logo__fb-name { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); line-height: 1.15; }
 
         /* PHOTO SLOT */
-        .edx-photo { display: grid; gap: 10px; }
-        .edx-photo__main { position: relative; margin: 0; aspect-ratio: 4 / 3; min-height: clamp(340px, 46vh, 500px); border-radius: 18px; overflow: hidden; background: var(--swc-coffee, #6A2C15); box-shadow: var(--shadow-lg); }
+        .edx-photo { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .edx-photo__main { position: relative; margin: 0; width: 100%; aspect-ratio: 4 / 3; min-height: clamp(340px, 46vh, 500px); border-radius: 18px; overflow: hidden; background: var(--swc-coffee, #6A2C15); box-shadow: var(--shadow-lg); }
         .edx-slot-fb__tag { position: absolute; top: 12px; left: 12px; font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 10px; }
         .edx-photo__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .edx-photo__mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .edx-photo__mini { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .edx-photo__thumb { margin: 0; }
         .edx-photo__thumb { position: relative; margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--swc-coffee, #6A2C15); }
         .edx-photo__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .edx-photo__cap { font-size: 12px; color: var(--ink-soft); }
