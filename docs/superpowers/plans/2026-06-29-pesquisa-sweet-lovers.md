@@ -4,14 +4,14 @@
 
 **Goal:** Publicar a "Pesquisa Sweet Lovers" como página branded no site, gravando respostas no Supabase, para ser disparada por campanha do Brevo à lista da votação Lovers.
 
-**Architecture:** Página React data-driven (`#/lovers/pesquisa`, wrapper `.kv-lovers`) que lê o e-mail do parâmetro `?e=` (merge tag do Brevo), valida as respostas no cliente e grava via RPC `submit_pesquisa` no Supabase do Sweet Awards (mesmo projeto/padrão da votação: RLS sem policy + função `security definer`). Leitura/export pelo dashboard Supabase via RPC admin `get_pesquisa_report`.
+**Architecture:** Página React data-driven (`#/lovers/pesquisa`, **KV atual do site** — sem `.kv-lovers`) que lê o e-mail do parâmetro `?e=` (merge tag do Brevo), valida as respostas no cliente e grava via RPC `submit_pesquisa` no Supabase do Sweet Awards (mesmo projeto/padrão da votação: RLS sem policy + função `security definer`). Leitura/export pelo dashboard Supabase via RPC admin `get_pesquisa_report`. Disparo da pesquisa: edge function `sync-brevo-contacts` empurra os e-mails da votação (tabela `votos`) para uma lista do Brevo via API; a campanha é montada/disparada no painel do Brevo.
 
 **Tech Stack:** Vite + React 18 (JSX), hash router custom (`src/router.js`), `@supabase/supabase-js` (client em `src/lib/supabase.js`), SQL Postgres colado no SQL Editor do Supabase.
 
 ## Global Constraints
 
 - Branch de trabalho: `dev/site-completo`. Nunca tocar `master`/produção, nunca `vercel --prod`, nunca merge sem autorização.
-- Identidade visual **Lovers** apenas (`.kv-lovers`, `--lovers-red #D63648`, `--lovers-cream #FFF1E6`, `--font-lovers-display`, `--font-lovers-body`). Nunca misturar com institucional.
+- Identidade visual = **KV atual do site** (institucional). Usar as CSS vars globais de `src/styles.css`: `--bg #FFF4EC`, `--bg-soft #FBEADC`, `--bg-card #FFFFFF`, `--ink #2B1810`, `--ink-soft #6B4A3A`, `--accent #E8553A` (terracota). Tipografia Instrument Serif (display) + DM Sans (corpo). **Sem** wrapper `.kv-lovers` nem paleta Lovers.
 - Grafias oficiais: "Sweet & Coffee Week", "Sweet & Coffee Week Lovers". Nunca "Sweet Coffee Week"/"Sweet Coffee".
 - Não alterar rotas/slugs congelados de QR (`#/lovers/combos/:slug`, `#/lovers/awards`). A rota nova `#/lovers/pesquisa` é aditiva.
 - Usar `Edit` em arquivos existentes (não reescrever). Escopo mínimo.
@@ -25,9 +25,10 @@
 
 - **Create** `src/data/pesquisaLovers.js` — fonte única das 15 perguntas (intro + 7 seções). Sem lógica.
 - **Create** `src/pages/lovers/Pesquisa.jsx` — página da pesquisa: render data-driven, estado, validação, submit ao Supabase, tela de sucesso.
-- **Create** `src/styles/pesquisa-lovers.css` — estilos da pesquisa (KV Lovers), importado pela página.
+- **Create** `src/styles/pesquisa.css` — estilos da pesquisa (KV atual do site), importado pela página.
 - **Modify** `src/App.jsx` — importar a página, isentar `/lovers/pesquisa` do redirect legacy e do modo Awards-only, adicionar rota+case.
 - **Modify** `supabase/schema.sql` — append: tabela `pesquisa_lovers` + RPC `submit_pesquisa` (anon) + RPC `get_pesquisa_report` (admin).
+- **Create** `supabase/functions/sync-brevo-contacts/index.ts` — edge function: lê e-mails distintos de `votos` e importa numa lista do Brevo via API (Task 6).
 
 Fora de escopo (tarefa futura opcional): integrar a leitura no `src/pages/lovers/Painel.jsx`. v1 lê/exporta pelo dashboard Supabase.
 
@@ -330,7 +331,7 @@ git commit -m "feat: tabela e RPCs da Pesquisa Sweet Lovers no Supabase"
 
 **Files:**
 - Create: `src/pages/lovers/Pesquisa.jsx`
-- Create: `src/styles/pesquisa-lovers.css`
+- Create: `src/styles/pesquisa.css`
 
 **Interfaces:**
 - Consumes: `PESQUISA_INTRO`, `PESQUISA_SECOES` (Task 1); `supabase` de `src/lib/supabase.js`; RPC `submit_pesquisa` (Task 2).
@@ -339,42 +340,44 @@ git commit -m "feat: tabela e RPCs da Pesquisa Sweet Lovers no Supabase"
 - [ ] **Step 1: Criar os estilos**
 
 ```css
-/* src/styles/pesquisa-lovers.css — KV Lovers */
-.pesquisa { background: var(--lovers-cream, #FFF1E6); color: #2B1810; min-height: 100vh; }
+/* src/styles/pesquisa.css — KV atual do site (institucional, terracota).
+   Usa as CSS vars globais de src/styles.css; fallbacks para robustez. */
+.pesquisa { background: var(--bg, #FFF4EC); color: var(--ink, #2B1810); min-height: 100vh; }
 .pesquisa__wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 96px; }
 .pesquisa__intro h1 {
-  font-family: var(--font-lovers-display, 'Caprasimo', serif);
-  color: var(--lovers-red, #D63648); font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 12px;
+  font-family: 'Instrument Serif', Georgia, serif;
+  color: var(--ink, #2B1810); font-size: clamp(2.2rem, 6vw, 3.2rem); line-height: 1.05; margin: 0 0 12px;
 }
-.pesquisa__intro p { font-family: var(--font-lovers-body, 'DM Sans', sans-serif); font-size: 1.05rem; line-height: 1.5; margin: 0 0 28px; }
+.pesquisa__intro p { font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink-soft, #6B4A3A); font-size: 1.05rem; line-height: 1.5; margin: 0 0 28px; }
 .pesquisa__secao { margin: 28px 0; }
 .pesquisa__secao > h2 {
-  font-family: var(--font-lovers-display, 'Caprasimo', serif);
-  color: var(--lovers-red, #D63648); font-size: 1.4rem; margin: 0 0 16px;
+  font-family: 'Instrument Serif', Georgia, serif;
+  color: var(--accent, #E8553A); font-size: 1.6rem; margin: 0 0 16px;
 }
-.pesquisa__q { background: #fff; border-radius: 14px; padding: 18px 18px 14px; margin: 0 0 16px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.pesquisa__q { background: var(--bg-card, #fff); border-radius: 14px; padding: 18px 18px 14px; margin: 0 0 16px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
 .pesquisa__q legend, .pesquisa__q .pesquisa__label {
-  font-family: var(--font-lovers-body, 'DM Sans', sans-serif); font-weight: 600; font-size: 1.02rem; margin: 0 0 12px; display: block;
+  font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 1.02rem; color: var(--ink, #2B1810); margin: 0 0 12px; display: block;
 }
-.pesquisa__q .req { color: var(--lovers-red, #D63648); }
-.pesquisa__opt { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-family: var(--font-lovers-body, 'DM Sans', sans-serif); cursor: pointer; }
-.pesquisa__opt input { width: 18px; height: 18px; accent-color: var(--lovers-red, #D63648); }
+.pesquisa__q .req { color: var(--accent, #E8553A); }
+.pesquisa__opt { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink, #2B1810); cursor: pointer; }
+.pesquisa__opt input { width: 18px; height: 18px; accent-color: var(--accent, #E8553A); }
 .pesquisa__opt--disabled { opacity: .45; cursor: not-allowed; }
 .pesquisa__outro-input, .pesquisa__texto {
-  width: 100%; margin-top: 6px; padding: 10px 12px; border: 1px solid #e4d6c9; border-radius: 10px;
-  font-family: var(--font-lovers-body, 'DM Sans', sans-serif); font-size: 1rem; background: #fff;
+  width: 100%; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--bg-soft, #e4d6c9); border-radius: 10px;
+  font-family: 'DM Sans', system-ui, sans-serif; font-size: 1rem; color: var(--ink, #2B1810); background: var(--bg-card, #fff);
 }
-.pesquisa__hint { font-size: .85rem; color: #8a6f5d; margin: 4px 0 0; }
-.pesquisa__erro { color: var(--lovers-red, #D63648); font-size: .85rem; margin: 6px 0 0; }
+.pesquisa__hint { font-size: .85rem; color: var(--ink-mute, #9B7A68); margin: 4px 0 0; }
+.pesquisa__erro { color: var(--accent-deep, #C13E25); font-size: .85rem; margin: 6px 0 0; }
 .pesquisa__submit {
   margin-top: 8px; width: 100%; padding: 16px; border: 0; border-radius: 999px;
-  background: var(--lovers-red, #D63648); color: #fff; font-family: var(--font-lovers-display, 'Caprasimo', serif);
-  font-size: 1.15rem; cursor: pointer;
+  background: var(--ink, #2B1810); color: var(--bg, #FFF4EC); font-family: 'DM Sans', system-ui, sans-serif; font-weight: 700;
+  font-size: 1.1rem; cursor: pointer;
 }
+.pesquisa__submit:hover { background: var(--ink-dark, #1a0e08); }
 .pesquisa__submit:disabled { opacity: .6; cursor: not-allowed; }
 .pesquisa__sucesso { text-align: center; padding: 80px 20px; }
-.pesquisa__sucesso h1 { font-family: var(--font-lovers-display, 'Caprasimo', serif); color: var(--lovers-red, #D63648); font-size: clamp(2rem, 7vw, 3.2rem); }
-.pesquisa__sucesso p { font-family: var(--font-lovers-body, 'DM Sans', sans-serif); font-size: 1.1rem; }
+.pesquisa__sucesso h1 { font-family: 'Instrument Serif', Georgia, serif; color: var(--accent, #E8553A); font-size: clamp(2.2rem, 7vw, 3.4rem); }
+.pesquisa__sucesso p { font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink-soft, #6B4A3A); font-size: 1.1rem; }
 ```
 
 - [ ] **Step 2: Criar a página**
@@ -384,7 +387,7 @@ git commit -m "feat: tabela e RPCs da Pesquisa Sweet Lovers no Supabase"
 import React from 'react'
 import { PESQUISA_INTRO, PESQUISA_SECOES } from '../../data/pesquisaLovers'
 import { supabase } from '../../lib/supabase'
-import '../../styles/pesquisa-lovers.css'
+import '../../styles/pesquisa.css'
 
 const OUTRO = 'Outro'
 
@@ -479,7 +482,7 @@ export function PesquisaPage() {
 
   if (enviado) {
     return (
-      <div className="kv-lovers pesquisa">
+      <div className="pesquisa">
         <div className="pesquisa__sucesso">
           <h1>Valeu, Sweet Lover! 🍫</h1>
           <p>Sua resposta foi registrada. Boa sorte nos brindes do Sweet &amp; Coffee Week!</p>
@@ -524,7 +527,7 @@ export function PesquisaPage() {
   }
 
   return (
-    <div className="kv-lovers pesquisa">
+    <div className="pesquisa">
       <form className="pesquisa__wrap" onSubmit={onSubmit} noValidate>
         <div className="pesquisa__intro">
           <h1>{PESQUISA_INTRO.titulo}</h1>
@@ -573,7 +576,7 @@ Expected: build conclui sem erro (a página ainda não está roteada; só valida
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/pages/lovers/Pesquisa.jsx src/styles/pesquisa-lovers.css
+git add src/pages/lovers/Pesquisa.jsx src/styles/pesquisa.css
 git commit -m "feat: página Pesquisa Sweet Lovers (form + submit Supabase)"
 ```
 
@@ -635,7 +638,7 @@ git commit -m "feat: rota pública #/lovers/pesquisa (isenta do modo Awards-only
 
 - [ ] **Step 1: Subir o preview e abrir a pesquisa**
 
-Iniciar o dev server e navegar para `#/lovers/pesquisa?e=teste@exemplo.com` (usar as ferramentas preview_*). A página deve renderizar com o KV Lovers (cream + vermelho), intro, campo nome, 7 seções, 15 perguntas.
+Iniciar o dev server e navegar para `#/lovers/pesquisa?e=teste@exemplo.com` (usar as ferramentas preview_*). A página deve renderizar com o **KV atual do site** (fundo `--bg #FFF4EC`, acento terracota `--accent`, Instrument Serif + DM Sans), intro, campo nome, 7 seções, 15 perguntas.
 
 - [ ] **Step 2: Validar regras no preview**
 
@@ -663,18 +666,121 @@ Expected: build verde; push para a branch de desenvolvimento (nunca master).
 
 ---
 
+### Task 6: Edge function — sync de contatos pro Brevo
+
+**Files:**
+- Create: `supabase/functions/sync-brevo-contacts/index.ts`
+
+**Interfaces:**
+- Consumes: tabela `public.votos` (coluna `email`, `nome`) via service-role; API Brevo `POST /v3/contacts/import`.
+- Produces: endpoint HTTP POST que, autenticado por segredo, importa os e-mails distintos da votação numa lista do Brevo. Independente das Tasks 1-5 (o disparo da campanha é manual no painel do Brevo).
+
+**Secrets (Dashboard → Edge Functions → Secrets, ou `supabase secrets set`):**
+- `BREVO_API_KEY` — chave da API do Brevo (painel Brevo → SMTP & API → API Keys).
+- `BREVO_LIST_ID` — id numérico da lista de destino no Brevo.
+- `SYNC_SECRET` — segredo arbitrário forte; protege a função de chamadas não autorizadas.
+- Injetadas pelo Supabase: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+- [ ] **Step 1: Criar a edge function**
+
+```ts
+// supabase/functions/sync-brevo-contacts/index.ts
+// Importa os e-mails distintos da votação (public.votos) para uma lista do Brevo.
+// Deploy:  supabase functions deploy sync-brevo-contacts
+// Chamar (1x, quando quiser sincronizar):
+//   curl -X POST "<PROJECT_URL>/functions/v1/sync-brevo-contacts" \
+//        -H "content-type: application/json" -d '{"secret":"<SYNC_SECRET>"}'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
+const emailOk = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
+
+  let payload: { secret?: string }
+  try { payload = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
+
+  const SYNC_SECRET = Deno.env.get('SYNC_SECRET')
+  if (!SYNC_SECRET || payload.secret !== SYNC_SECRET) return json({ error: 'unauthorized' }, 401)
+
+  const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY')
+  const BREVO_LIST_ID = Deno.env.get('BREVO_LIST_ID')
+  if (!BREVO_API_KEY || !BREVO_LIST_ID) return json({ error: 'brevo_nao_configurado' }, 500)
+
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+  const { data, error } = await supabase.from('votos').select('email, nome')
+  if (error) return json({ error: 'db_error', detail: error.message }, 500)
+
+  // distinct por e-mail (minúsculo), preserva o primeiro nome visto
+  const map = new Map<string, string>()
+  for (const row of data ?? []) {
+    const e = (row.email || '').trim().toLowerCase()
+    if (!emailOk(e) || map.has(e)) continue
+    map.set(e, (row.nome || '').trim())
+  }
+  const contatos = [...map.entries()].map(([email, nome]) => ({ email, attributes: { NOME: nome } }))
+  if (contatos.length === 0) return json({ imported: 0, note: 'sem_emails' })
+
+  const res = await fetch('https://api.brevo.com/v3/contacts/import', {
+    method: 'POST',
+    headers: { 'api-key': BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      listIds: [Number(BREVO_LIST_ID)],
+      updateExistingContacts: true,
+      emptyContactsAttributes: false,
+      jsonBody: contatos,
+    }),
+  })
+  if (!res.ok) return json({ error: 'brevo_error', detail: await res.text() }, 502)
+  return json({ imported: contatos.length, brevo: await res.json() })
+})
+```
+
+- [ ] **Step 2: Deploy e configuração**
+
+```bash
+supabase secrets set BREVO_API_KEY=xkeysib-... BREVO_LIST_ID=2 SYNC_SECRET=<segredo-forte>
+supabase functions deploy sync-brevo-contacts
+```
+(O Wilke cria a API key e a lista no painel do Brevo e informa o `BREVO_LIST_ID`.)
+
+- [ ] **Step 3: Executar o sync e conferir**
+
+```bash
+curl -X POST "https://dgfmoibynftadsyjcclg.supabase.co/functions/v1/sync-brevo-contacts" \
+  -H "content-type: application/json" -d '{"secret":"<SYNC_SECRET>"}'
+```
+Expected: `{"imported": <n>, ...}`. Conferir no painel do Brevo que os contatos entraram na lista. Depois, montar e disparar a campanha no Brevo com o botão apontando para `https://www.sweetcoffeeweek.com.br/#/lovers/pesquisa?e={{contact.EMAIL}}`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add supabase/functions/sync-brevo-contacts/index.ts
+git commit -m "feat: edge function sync de contatos da votação pro Brevo"
+```
+
+---
+
 ## Self-Review
 
 **Spec coverage:**
 - 15 perguntas / 7 seções → Task 1 (data) + Task 3 (render). ✔
-- KV Lovers / `.kv-lovers` → Task 3 (CSS + wrapper). ✔
+- KV atual do site (terracota, Instrument Serif + DM Sans, sem `.kv-lovers`) → Task 3 (CSS com vars globais + wrapper `.pesquisa`). ✔
 - Identificação por `?e=` + Nome opcional → Task 3 (`getEmailFromUrl`, campo nome). ✔
 - Destino Supabase, padrão da votação → Task 2 (RLS sem policy + RPC security definer). ✔
 - Leitura/export admin → Task 2 (`get_pesquisa_report`); export pelo dashboard Supabase (Painel React = fora de escopo, flagado). ✔
 - Rota `#/lovers/pesquisa` sem tocar slugs congelados → Task 4. ✔ (descoberta nova: isenção dos bloqueios Awards-only/legacy — coberta na Task 4.)
 - Validação obrigatórias + limites "até N" + "Outro" → Task 3 (`validar`, `toggleMulti`, `renderOpcoes`). ✔
 - Tela de sucesso → Task 3 (`enviado`). ✔
-- Brevo (config manual) → fora de escopo, documentado no spec. ✔
+- Brevo: sync de contatos da votação → Task 6 (edge function `sync-brevo-contacts`). Desenho/disparo da campanha = manual no painel do Brevo. ✔
 
 **Placeholder scan:** sem TBD/TODO; todo passo com código/SQL/comando reais. ✔
 
@@ -686,3 +792,5 @@ Expected: build verde; push para a branch de desenvolvimento (nunca master).
 - Supabase free pausa se ocioso; se pausar no disparo, o insert falha → tratado com `erroGeral` (não perde silenciosamente, pede retry).
 - `?e=` é "melhor esforço" (link encaminhado pode não bater) → por isso o campo Nome opcional.
 - A Task 2 depende do Wilke rodar o `schema.sql` no dashboard antes do teste de gravação.
+- Task 6 (Brevo): a função usa service-role e lê todos os e-mails da votação — por isso o guard `SYNC_SECRET` é obrigatório; nunca expor esse segredo no front. Importar/disparar pressupõe consentimento dos contatos (foram coletados na votação). `contacts/import` num único `jsonBody` aguenta esta escala; se a lista crescer muito (milhares), dividir em lotes.
+- Tasks 1-5 e Task 6 são independentes: a pesquisa funciona sem o sync, e o sync funciona sem a página. Podem ser executadas/revisadas separadamente.

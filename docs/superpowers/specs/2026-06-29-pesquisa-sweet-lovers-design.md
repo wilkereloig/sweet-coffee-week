@@ -6,16 +6,23 @@
 
 ## Objetivo
 
-Criar uma pesquisa de perfil branded ("Pesquisa Sweet Lovers") como página no
-site, com a identidade visual **Lovers** (`.kv-lovers`). A pesquisa é enviada por
-e-mail (campanha no **Brevo**) para a lista de contatos coletada na votação da
-premiação Sweet & Coffee Week Lovers. As respostas são gravadas no **Supabase**
-(mesmo projeto/padrão da votação) e ficam visíveis/exportáveis no Painel.
+Criar uma pesquisa de perfil ("Pesquisa Sweet Lovers") como página no site, com a
+**identidade visual atual do site** (institucional/terracota — `--bg`, `--ink`,
+`--accent`, Instrument Serif + DM Sans). **Não** usa a paleta Lovers. A pesquisa é
+enviada por e-mail (campanha no **Brevo**) para a lista de contatos coletada na
+votação da premiação Sweet & Coffee Week Lovers. As respostas são gravadas no
+**Supabase** (mesmo projeto/padrão da votação) e ficam exportáveis (dashboard
+Supabase via RPC admin). Os contatos da votação são sincronizados para uma lista
+do Brevo por uma **edge function** (`sync-brevo-contacts`); a campanha em si é
+montada/disparada manualmente no painel do Brevo.
 
 ## Decisões tomadas
 
 - **Onde vive:** página nova no próprio site React, rota `#/lovers/pesquisa`.
-  Reusa o KV Lovers já existente (fontes, cores, componentes). Não cria infra nova.
+  Usa o **KV atual do site** (vars globais de `src/styles.css`: `--bg`, `--ink`,
+  `--accent` terracota; Instrument Serif + DM Sans). Sem `.kv-lovers`. A rota é
+  isenta dos bloqueios `AWARDS_ONLY_PUBLICATION` e legacy-redirect (igual ao
+  painel), pra ficar pública. Não cria infra nova.
 - **Destino das respostas:** Supabase, reusando o padrão da votação
   (`src/lib/supabase.js`, projeto `dgfmoibynftadsyjcclg`, publishable key
   client-safe). Nada de Formspree/Sheets — dado próprio, sem cap de volume.
@@ -160,19 +167,23 @@ RLS na tabela bloqueia acesso direto anon; gravação só pela RPC.
 A criação da tabela + RPCs vai por migration, alinhada às migrations existentes
 do projeto Supabase da votação.
 
-## Painel
+## Leitura / export (v1)
 
-Estender `src/pages/lovers/Painel.jsx` com uma aba/seção "Pesquisa": lista as
-respostas via `pesquisa_list` e exporta XLSX, reaproveitando o mecanismo de
-export já presente para a votação. Mesmo login por senha (sessionStorage).
+v1: respostas lidas/exportadas pelo **dashboard do Supabase** (Table editor / SQL
+Editor → export CSV), ou via RPC admin `get_pesquisa_report(p_secret)` (mesma senha
+do painel). Integrar uma aba "Pesquisa" no `src/pages/lovers/Painel.jsx` (lista +
+export XLSX, reusando o mecanismo da votação) fica como **tarefa futura opcional** —
+não bloqueia o uso.
 
-## Brevo (fora do escopo de código)
+## Brevo
 
-- Wilke configura no painel do Brevo: campanha para a lista da votação Lovers,
-  com botão/CTA apontando para
+- **Em escopo (código):** edge function `sync-brevo-contacts` lê os e-mails
+  distintos de `public.votos` e os importa numa lista do Brevo via API
+  (`POST /v3/contacts/import`). Protegida por `SYNC_SECRET`; key em `BREVO_API_KEY`.
+- **Manual (no painel do Brevo):** montar e disparar a campanha para a lista, com
+  botão/CTA apontando para
   `https://www.sweetcoffeeweek.com.br/#/lovers/pesquisa?e={{contact.EMAIL}}`.
-- Opcional (futuro): e-mail HTML branded Lovers — pode ser entregue depois como
-  tarefa separada.
+- Opcional (futuro): e-mail HTML branded — tarefa separada.
 
 ## Fora de escopo
 
