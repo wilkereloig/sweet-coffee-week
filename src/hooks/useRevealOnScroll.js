@@ -40,7 +40,11 @@ export function useRevealOnScroll(rootRef, deps = []) {
           }
         })
       },
-      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' }
+      // threshold 0: revela assim que qualquer pixel entra (o rootMargin negativo
+      // controla o gatilho). threshold positivo quebrava em elementos mais altos
+      // que a viewport — ex.: a timeline de Edições (~7700px) nunca atingia 15%
+      // de fração visível e os cards ficavam invisíveis.
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' }
     )
 
     els.forEach((el) => io.observe(el))
