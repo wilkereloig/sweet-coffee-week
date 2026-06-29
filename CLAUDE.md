@@ -57,13 +57,37 @@ Tokens de referência:
 ```css
 --page-max:        1180px;
 --page-gutter:     clamp(20px, 4vw, 64px);
---hero-top-space:  clamp(120px, 16vh, 190px);
 --section-y:       clamp(72px, 10vw, 140px);
 ```
 
 Regras: topo da hero deve respirar; conteúdo não pode brigar com o menu; alinhamentos
 consistentes; elementos seguem grid; nada solto por acaso; evitar blocos grandes
 vazios sem função.
+
+### 4.1 Zona de segurança entre menu e hero (REGRA ESTRUTURAL)
+
+Todas as páginas internas devem respeitar uma **zona de segurança** entre o
+header/menu e o conteúdo da hero. O **fundo** da hero pode subir até o topo da
+página, mas o **conteúdo** da hero (títulos, textos, imagens, cards, etc.) só pode
+começar **depois** do offset de segurança do header. Nenhum elemento da hero deve
+sobrepor, competir ou encostar visualmente no menu principal.
+
+Implementação reutilizável — tokens globais em `src/styles.css` (bloco `body`):
+```css
+--header-safe-offset:  clamp(120px, 14vh, 168px);  /* header útil + logo que vaza */
+--hero-top-clearance:  clamp(32px, 4vw, 56px);     /* folga visual extra */
+--hero-content-start:  calc(var(--header-safe-offset) + var(--hero-top-clearance));
+```
+
+Como aplicar (estrutura wrapper/inner, **não** gambiarra em elemento isolado):
+- **wrapper da hero** (`.X-hero`): fundo full-bleed, pode ir até o topo;
+- **inner da hero** (`.X-hero__inner` / `.wrap`): `padding-top: var(--hero-content-start)`.
+
+Consumido por: regra global `.cur-hero/.participar-hero/.apoiar-hero/.contato-hero/
+.hist-hero` (styles.css) e pela hero auto-contida da Edições (`.edx-hero__inner`).
+Vale também em tablet/mobile (os tokens já fazem clamp). Proibido: `margin-top`
+solto, empurrão manual no título, `position: absolute` improvisado, ajuste que só
+funcione numa tela.
 
 ## 5. Elementos soltos
 
@@ -73,6 +97,11 @@ blobs, rabiscos, ícones ou ornamentos só para "decorar".
 Todo elemento visual precisa ter função: estruturar layout, indicar hierarquia,
 representar dado, organizar conteúdo, apoiar fotografia ou reforçar identidade da
 página. Se não tiver função clara, remover.
+
+**Não usar eyebrow/kicker acima dos títulos** — texto curto em caixa-alta antes do
+H1/H2 (ex.: "APOIE O FESTIVAL", "O FESTIVAL"), com ou sem bolinha/dot. Preferência
+já registrada do usuário: o título abre a seção direto, sem rótulo por cima. Vale
+para todas as páginas institucionais (exceto a Home, que não se mexe — §9).
 
 ## 6. Stickers e ilustrações
 
@@ -139,10 +168,21 @@ categorias do Sweet Awards; primeiras vezes; momentos marcantes.
 
 ## 12. Página Sweet Awards
 
-**Ainda precisa ser redesenhada** (reconstrução planejada). Deve ter aparência de
-premiação/hall de vencedores — não apenas embeds ou lista de posts —, com linguagem
-institucional, visual e celebrativa. Usar dados reais de `src/data/sweetCoffeeHistory.js`,
-`src/data/loversAwardsResults.js` e demais dados estruturados.
+**Reconstruída** em `src/pages/institutional/SweetAwards.jsx` (rota `vencedores` /
+`premiacao` em `App.jsx`; o antigo `Agradecimento.jsx` foi aposentado mas mantido no
+disco). Aparência de premiação/hall de vencedores — não embeds de Instagram. Identidade
+**institucional do festival** (espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha),
+NUNCA o KV Lovers. Estrutura: hero institucional → o que é → categorias (8 oficiais +
+históricas computadas) → vencedores da edição atual (Lovers 2026.1, em destaque) →
+histórico por edição (accordion com trilhas Júri Técnico/Sweet Lovers separadas, empates
+preservados, nota p/ 2016–2018 sem premiação) → CTA final.
+
+Regra de dados (cruzar fontes, não inventar): descrições das categorias vêm de
+`sweetCoffeeHistory.js` (edição 2026.1); **pódios da edição atual vêm de
+`loversAwardsResults.js`** (na base histórica os pódios de 2026.1 estão vazios de
+propósito); histórico das demais edições vem de `sweetCoffeeHistory.js`. Selo dourado de
+1º lugar é a única peça celebrativa (codifica a colocação — não é sticker). Logos reais
+via `resolveParticipant` (fallback em iniciais).
 
 ## 13. Página Participar
 
@@ -201,7 +241,8 @@ coluna; manter logos/fotos proporcionais.
 Sempre que o usuário disser que não gosta de algo ou aprovar uma nova regra de layout,
 **atualizar este arquivo**. Exemplos já registrados: "não gosto de elementos soltos";
 "não quero stickers"; "hero com conteúdo ancorado embaixo"; "formulário em destaque";
-"não usar cores fora da paleta"; "hero não pode ter 1080px fixo".
+"não usar cores fora da paleta"; "hero não pode ter 1080px fixo"; "zona de segurança
+entre menu e hero" (ver 4.1).
 
 ---
 

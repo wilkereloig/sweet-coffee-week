@@ -472,13 +472,22 @@ body {
   --page-accent: var(--cyan, #2BC4E8);
   --page-accent-soft: rgba(43, 196, 232, .16);
   --page-accent-dark: var(--cyan-deep, #149FC0);
+
+  /* ZONA DE SEGURANÇA HEADER ↔ HERO (reutilizável em todas as páginas internas).
+     --header-safe-offset = altura útil do header fixo + a logo que vaza no hero;
+     --hero-top-clearance = folga visual extra; --hero-content-start = onde o
+     conteúdo da hero (título/texto/cards/imagens) pode começar. O fundo da hero
+     pode subir até o topo; o CONTEÚDO só começa depois de --hero-content-start. */
+  --header-safe-offset: clamp(120px, 14vh, 168px);
+  --hero-top-clearance: clamp(32px, 4vw, 56px);
+  --hero-content-start: calc(var(--header-safe-offset) + var(--hero-top-clearance));
 }
 body.route-edicoes          { --page-accent: #2BC4E8; --page-accent-soft: rgba(43,196,232,.16);  --page-accent-dark: #149FC0; }
 body.route-vencedores,
 body.route-historico-awards { --page-accent: #F2548A; --page-accent-soft: rgba(242,84,138,.16);  --page-accent-dark: #C8275C; }
 body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
 body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
-body.route-apoiar           { --page-accent: #7FC24A; --page-accent-soft: rgba(127,194,74,.18);  --page-accent-dark: #4D7F2A; }
+body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
 body.route-contato          { --page-accent: #B38CFF; --page-accent-soft: rgba(179,140,255,.20); --page-accent-dark: #6E48B8; }
 
 /* ============================================================
@@ -494,7 +503,8 @@ body.route-contato          { --page-accent: #B38CFF; --page-accent-soft: rgba(1
   min-height: 1080px;
   display: flex;
   align-items: center;
-  padding-top: clamp(110px, 13vw, 150px) !important;
+  /* zona de segurança header↔hero (token global) — conteúdo nunca encosta no menu */
+  padding-top: var(--hero-content-start) !important;
   padding-bottom: clamp(56px, 7vw, 90px) !important;
 }
 .ed-hero > .wrap, .cur-hero > .wrap, .participar-hero > .wrap,

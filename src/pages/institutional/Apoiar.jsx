@@ -24,14 +24,66 @@ const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 // interações, alcance), na ordem de prioridade do brief.
 const HERO_STATS = SUPPORT_METRICS_BIG
 
+// Ícones próprios dos cards "por que apoiar" — desenhados para o contexto de
+// cada argumento (não ícones genéricos reaproveitados). 24×24, traço currentColor.
+const ICO = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
+const CARD_ICONS = {
+  // visibilidade → olho (ser visto / atenção)
+  visibilidade: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <path d="M2.5 12s3.4-6.3 9.5-6.3S21.5 12 21.5 12s-3.4 6.3-9.5 6.3S2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  ),
+  // consumo local → vitrine/loja com toldo (PDV na cidade)
+  loja: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <path d="M4.2 9.5 5.4 5.4h13.2l1.2 4.1" />
+      <path d="M3.8 9.5h16.4c0 1.6-1.2 2.7-2.7 2.7a2.7 2.7 0 0 1-2.5-1.6 2.7 2.7 0 0 1-5 0 2.7 2.7 0 0 1-2.5 1.6c-1.5 0-2.7-1.1-2.7-2.7Z" />
+      <path d="M5.3 12.4V19.5h13.4V12.4" />
+      <path d="M10 19.5V15h4v4.5" />
+    </svg>
+  ),
+  // presença real → pino de localização (estar no mapa/na loja)
+  presenca: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <path d="M12 21s6.4-5.5 6.4-10.4A6.4 6.4 0 0 0 5.6 10.6C5.6 15.5 12 21 12 21Z" />
+      <circle cx="12" cy="10.4" r="2.4" />
+    </svg>
+  ),
+  // economia criativa → faísca/estrela de 4 pontas (autoral, criação)
+  criativa: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <path d="M11 3.5 12.7 9l5.3 1.7-5.3 1.7L11 17.9l-1.7-5.5L4 10.7 9.3 9 11 3.5Z" />
+      <path d="M18.5 3.5v3.4M16.8 5.2h3.4" />
+    </svg>
+  ),
+  // comunidade Sweet Lovers → duas pessoas (público/comunidade)
+  comunidade: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <circle cx="9" cy="8.4" r="3" />
+      <path d="M3.6 19a5.4 5.4 0 0 1 10.8 0" />
+      <path d="M16 5.8a3 3 0 0 1 0 5.6" />
+      <path d="M16.6 13.4A5.4 5.4 0 0 1 20.4 19" />
+    </svg>
+  ),
+  // conteúdo → câmera (registro/posts antes, durante e depois)
+  conteudo: (p = {}) => (
+    <svg viewBox="0 0 24 24" width={p.width || 22} height={p.height || 22} {...ICO}>
+      <path d="M3.5 8.3h3l1.3-2h6.4l1.3 2h3A1.5 1.5 0 0 1 20 9.8V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 2 18V9.8a1.5 1.5 0 0 1 1.5-1.5Z" />
+      <circle cx="11" cy="13.4" r="3.2" />
+    </svg>
+  ),
+}
+
 // Por que apoiar — 6 argumentos curtos (máx. ~2 linhas). Acento por card.
 const VALUE = [
-  { icon: 'star', t: 'Visibilidade qualificada', d: 'Sua marca aparece em uma temporada de público ativo, conteúdo diário e alta circulação digital.' },
-  { icon: 'route', t: 'Conexão com consumo local', d: 'O festival leva pessoas para cafeterias, docerias, restaurantes e marcas autorais da cidade.' },
-  { icon: 'pin', t: 'Presença em experiência real', d: 'A marca participa de algo vivido na loja, no mapa, nas redes e na memória do público.' },
-  { icon: 'croissant', t: 'Associação à economia criativa', d: 'Gastronomia, conteúdo, design, fotografia, atendimento e turismo urbano em movimento.' },
-  { icon: 'heart', t: 'Comunidade Sweet Lovers', d: 'O público não só consome: fotografa, avalia, compartilha e acompanha os resultados.' },
-  { icon: 'ig', t: 'Conteúdo antes, durante e depois', d: 'O apoio aparece no lançamento, nos posts, no site, no Sweet Awards e nas ações promocionais.' },
+  { ic: 'visibilidade', t: 'Visibilidade qualificada', d: 'Sua marca aparece em uma temporada de público ativo, conteúdo diário e alta circulação digital.' },
+  { ic: 'loja', t: 'Conexão com consumo local', d: 'O festival leva pessoas para cafeterias, docerias, restaurantes e marcas autorais da cidade.' },
+  { ic: 'presenca', t: 'Presença em experiência real', d: 'A marca participa de algo vivido na loja, no mapa, nas redes e na memória do público.' },
+  { ic: 'criativa', t: 'Associação à economia criativa', d: 'Gastronomia, conteúdo, design, fotografia, atendimento e turismo urbano em movimento.' },
+  { ic: 'comunidade', t: 'Comunidade Sweet Lovers', d: 'O público não só consome: fotografa, avalia, compartilha e acompanha os resultados.' },
+  { ic: 'conteudo', t: 'Conteúdo antes, durante e depois', d: 'O apoio aparece no lançamento, nos posts, no site, no Sweet Awards e nas ações promocionais.' },
 ]
 
 // Onde a marca pode aparecer — 4 grupos por ponto de contato (lista enxuta).
@@ -114,7 +166,6 @@ export function ApoiarPage() {
         <div className="wrap apoiar-hero__grid">
           {/* esquerda: argumento + dados rápidos + CTAs */}
           <div className="apoiar-hero__copy motion-reveal-up">
-            <span className="apoiar-eyebrow"><span className="apoiar-eyebrow__dot" /> Apoie o festival</span>
             <h1>Sua marca dentro da temporada mais <span className="keep-together"><span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
             <p className="apoiar-hero__lead">
               Apoiar o Sweet &amp; Coffee Week é conectar sua marca a uma comunidade ativa, a negócios locais e a uma experiência gastronômica que movimenta Natal há 10 anos.
@@ -205,10 +256,10 @@ export function ApoiarPage() {
           </div>
           <div className="apoiar-value motion-stagger">
             {VALUE.map((v) => {
-              const Icon = I[v.icon] || I.star
+              const Icon = CARD_ICONS[v.ic] || CARD_ICONS.visibilidade
               return (
                 <article className="apoiar-vcard" key={v.t}>
-                  <span className="apoiar-vcard__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
+                  <span className="apoiar-vcard__ic" aria-hidden="true"><Icon width={22} height={22} /></span>
                   <h3>{v.t}</h3>
                   <p>{v.d}</p>
                 </article>
@@ -221,26 +272,28 @@ export function ApoiarPage() {
       {/* 3 — NÚMEROS QUE MOSTRAM A FORÇA DO FESTIVAL */}
       <section className="section apoiar-metrics-section">
         <div className="wrap">
-          <div className="apoiar-head motion-reveal-up">
-            <h2>Números que mostram a <span className="apoiar-hl" style={{ '--hl': 'var(--cyan-deep)' }}>força</span> do festival</h2>
+          <div className="apoiar-head apoiar-head--dark motion-reveal-up">
+            <h2>Números que mostram a <span className="apoiar-hl" style={{ '--hl': 'var(--page-accent)' }}>força</span> do festival</h2>
             <p>Os dados digitais e comerciais mostram que o Sweet &amp; Coffee Week já reúne audiência, recorrência e intenção de consumo.</p>
           </div>
-          <div className="apoiar-metrics-big motion-stagger">
-            {SUPPORT_METRICS_BIG.map((m) => (
-              <article className="apoiar-metric apoiar-metric--big" key={m.label}>
-                <strong className="apoiar-metric__v">{m.value}</strong>
-                <span className="apoiar-metric__l">{m.label}</span>
-                <span className="apoiar-metric__d">{m.detail}</span>
-              </article>
-            ))}
-          </div>
-          <div className="apoiar-metrics-grid motion-stagger">
-            {SUPPORT_METRICS_SUPPORT.map((m) => (
-              <article className="apoiar-metric" key={m.label}>
-                <strong className="apoiar-metric__v">{m.value}</strong>
-                <span className="apoiar-metric__l">{m.label}</span>
-              </article>
-            ))}
+          <div className="apoiar-placar motion-stagger">
+            <div className="apoiar-placar__lead">
+              {SUPPORT_METRICS_BIG.map((m, i) => (
+                <div className="apoiar-stat apoiar-stat--lead" key={m.label} style={{ '--c': ['var(--yellow)', 'var(--pink)', 'var(--page-accent)'][i] }}>
+                  <strong className="apoiar-stat__v">{m.value}</strong>
+                  <span className="apoiar-stat__l">{m.label}</span>
+                  <span className="apoiar-stat__d">{m.detail}</span>
+                </div>
+              ))}
+            </div>
+            <div className="apoiar-placar__sub">
+              {SUPPORT_METRICS_SUPPORT.map((m) => (
+                <div className="apoiar-stat" key={m.label}>
+                  <strong className="apoiar-stat__v">{m.value}</strong>
+                  <span className="apoiar-stat__l">{m.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -315,9 +368,6 @@ export function ApoiarPage() {
         .apoiar-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
         .apoiar-page h1, .apoiar-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
 
-        .apoiar-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); margin: 0 0 var(--sp-4); }
-        .apoiar-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
-
         .apoiar-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
         .apoiar-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .apoiar-head p { max-width: 58ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
@@ -379,21 +429,25 @@ export function ApoiarPage() {
         .apoiar-vcard h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.12; margin: 0 0 var(--sp-3); color: var(--ink); }
         .apoiar-vcard p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
 
-        /* ============ 3 — NÚMEROS ============ */
-        .apoiar-metrics-section { background: var(--cream-deep, var(--bg-soft)); }
-        .apoiar-metrics-big { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-4); }
-        .apoiar-metric--big { padding: clamp(26px, 3vw, 40px); }
-        .apoiar-metric--big::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--coral); }
-        .apoiar-metrics-big .apoiar-metric:nth-child(2)::before { background: var(--pink); }
-        .apoiar-metrics-big .apoiar-metric:nth-child(3)::before { background: var(--cyan-deep); }
-        .apoiar-metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-        .apoiar-metric { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); }
-        .apoiar-metric__v { font-family: var(--font-display, var(--font-heading)); font-weight: 900; line-height: .95; letter-spacing: -.03em; color: var(--ink); font-size: clamp(30px, 3.4vw, 46px); }
-        .apoiar-metric--big .apoiar-metric__v { font-size: clamp(40px, 5vw, 66px); color: var(--coral-deep); }
-        .apoiar-metrics-big .apoiar-metric:nth-child(2) .apoiar-metric__v { color: var(--pink); }
-        .apoiar-metrics-big .apoiar-metric:nth-child(3) .apoiar-metric__v { color: var(--cyan-deep); }
-        .apoiar-metric__l { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; color: var(--ink); }
-        .apoiar-metric__d { color: var(--ink-soft); font-size: 13.5px; line-height: 1.45; margin-top: 4px; text-wrap: pretty; }
+        /* ============ 3 — NÚMEROS (placar editorial em banda espresso) ============ */
+        /* sem cards: faixas grandes separadas por filetes finos — leitura de placar,
+           não de grid de caixas. Identidade do festival (espresso + creme + acentos). */
+        .apoiar-metrics-section { background: #2B1810; }
+        .apoiar-head--dark h2 { color: var(--cream); }
+        .apoiar-head--dark p { color: rgba(255,241,230,.72); }
+        .apoiar-placar { border-top: 1px solid rgba(255,241,230,.16); }
+        .apoiar-placar__lead { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .apoiar-placar__sub { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,241,230,.16); }
+        .apoiar-stat { position: relative; padding: clamp(22px, 3vw, 38px) clamp(18px, 2.4vw, 32px); }
+        /* filetes: vertical entre colunas, horizontal entre as faixas do sub */
+        .apoiar-placar__lead .apoiar-stat + .apoiar-stat,
+        .apoiar-placar__sub .apoiar-stat:not(:nth-child(3n+1)) { border-left: 1px solid rgba(255,241,230,.16); }
+        .apoiar-placar__sub .apoiar-stat:nth-child(n+4) { border-top: 1px solid rgba(255,241,230,.16); }
+        .apoiar-stat__v { display: block; font-family: var(--font-display, var(--font-heading)); font-weight: 900; line-height: .9; letter-spacing: -.03em; color: var(--cream); font-size: clamp(26px, 2.8vw, 38px); }
+        .apoiar-stat--lead .apoiar-stat__v { color: var(--c, var(--yellow)); font-size: clamp(40px, 5.4vw, 70px); }
+        .apoiar-stat__l { display: block; margin-top: 8px; font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--cream); }
+        .apoiar-stat--lead .apoiar-stat__l { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,241,230,.82); }
+        .apoiar-stat__d { display: block; margin-top: 10px; color: rgba(255,241,230,.58); font-size: 13px; line-height: 1.45; max-width: 30ch; text-wrap: pretty; }
 
         /* ============ 4 — ONDE APARECER (4 grupos) ============ */
         .apoiar-where-section { background: var(--cream); }
@@ -434,11 +488,17 @@ export function ApoiarPage() {
         @media (max-width: 980px) {
           .apoiar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
           .apoiar-value, .apoiar-where { grid-template-columns: repeat(2, 1fr); }
-          .apoiar-metrics-big, .apoiar-metrics-grid { grid-template-columns: repeat(2, 1fr); }
           .apoiar-audience { grid-template-columns: 1fr; gap: var(--sp-6); }
+          .apoiar-placar__lead { grid-template-columns: 1fr; }
+          .apoiar-placar__sub { grid-template-columns: repeat(2, 1fr); }
+          .apoiar-placar .apoiar-stat { border-left: none !important; }
+          .apoiar-placar__lead .apoiar-stat + .apoiar-stat { border-top: 1px solid rgba(255,241,230,.16); }
+          .apoiar-placar__sub .apoiar-stat:not(:nth-child(2n+1)) { border-left: 1px solid rgba(255,241,230,.16) !important; }
         }
         @media (max-width: 640px) {
-          .apoiar-value, .apoiar-where, .apoiar-form__fields, .apoiar-metrics-big, .apoiar-metrics-grid, .apoiar-audience__list { grid-template-columns: 1fr; }
+          .apoiar-value, .apoiar-where, .apoiar-form__fields, .apoiar-audience__list { grid-template-columns: 1fr; }
+          .apoiar-placar__sub { grid-template-columns: 1fr; }
+          .apoiar-placar__sub .apoiar-stat { border-left: none !important; border-top: 1px solid rgba(255,241,230,.16); }
           .apoiar-hero__cta .btn { width: 100%; justify-content: center; }
           .apoiar-close .btn { width: 100%; justify-content: center; }
         }
