@@ -275,12 +275,26 @@ export function EdicoesPage() {
       {/* HERO editorial — altura proporcional (não 1080), topo livre do menu */}
       <section className="edx-hero">
         <div className="edx-wrap edx-hero__inner">
-          <span className="edx-hero__eyebrow">Edições</span>
-          <h1 className="edx-hero__title">A história do <span className="edx-hl">Sweet &amp; Coffee Week</span>, edição por edição.</h1>
-          <p className="edx-hero__text">De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal.</p>
-          <div className="edx-hero__hint" aria-hidden="true">
-            <span>Role para percorrer as 16 edições</span>
-            <I.arrow />
+          <div className="edx-hero__copy">
+            <span className="edx-hero__eyebrow">Edições</span>
+            <h1 className="edx-hero__title">A história do <span className="edx-hl">Sweet &amp; Coffee Week</span>, edição por edição.</h1>
+            <p className="edx-hero__text">De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal.</p>
+            <div className="edx-hero__hint" aria-hidden="true">
+              <span>Role para percorrer as 16 edições</span>
+              <I.arrow />
+            </div>
+          </div>
+          <div className="edx-hero__preview" aria-hidden="true">
+            <figure className="edx-hero__tile edx-hero__tile--photo">
+              <img src={comboMain('delicato-bolos')} alt="" loading="lazy" decoding="async" onError={(ev) => { const w = ev.currentTarget.closest('.edx-hero__tile'); if (w) w.classList.add('is-empty') }} />
+              <figcaption><span className="edx-hero__tnum">14 / 2024</span><strong>Books</strong></figcaption>
+            </figure>
+            <div className="edx-hero__tile edx-hero__tile--block edx-hero__tile--b1">
+              <span className="edx-hero__tnum">01 / 2016</span><strong>Início</strong>
+            </div>
+            <div className="edx-hero__tile edx-hero__tile--block edx-hero__tile--b2">
+              <span className="edx-hero__tnum">16 / 2026.1</span><strong>Lovers</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -328,13 +342,26 @@ export function EdicoesPage() {
         .edx-hl { color: var(--page-accent, var(--cyan)); font-style: italic; }
 
         /* HERO — altura proporcional, topo livre (não encosta no menu) */
-        .edx-hero { background: #381610; color: var(--cream); min-height: clamp(680px, 86vh, 920px); display: flex; align-items: flex-end; padding: var(--hero-top-space) 0 clamp(56px, 9vh, 110px); }
-        .edx-hero__inner { width: 100%; }
+        .edx-hero { background: #381610; color: var(--cream); min-height: clamp(680px, 86vh, 920px); display: flex; align-items: flex-end; padding: var(--hero-top-space) 0 clamp(56px, 9vh, 110px); overflow: clip; }
+        .edx-hero__inner { width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 80px); align-items: end; }
         .edx-hero__eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }
-        .edx-hero__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(38px, 6vw, 84px); line-height: .98; max-width: 18ch; margin: var(--sp-4) 0 0; color: var(--cream); text-wrap: balance; }
-        .edx-hero__text { max-width: 56ch; margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+        .edx-hero__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(38px, 5.4vw, 78px); line-height: .98; max-width: 16ch; margin: var(--sp-4) 0 0; color: var(--cream); text-wrap: balance; }
+        .edx-hero__text { max-width: 50ch; margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .edx-hero__hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-7); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }
         .edx-hero__hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
+        /* Prévia editorial dos painéis (1 foto real + 2 blocos da paleta) — sem stickers */
+        .edx-hero__preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .edx-hero__tile { position: relative; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+        .edx-hero__tile--photo { grid-column: 1 / -1; aspect-ratio: 16 / 10; background: var(--swc-coffee, #6A2C15); box-shadow: 0 22px 60px rgba(0,0,0,.42); }
+        .edx-hero__tile--photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .edx-hero__tile--photo.is-empty img { display: none; }
+        .edx-hero__tile--photo figcaption { position: relative; z-index: 1; padding: 16px; background: linear-gradient(transparent, rgba(43,24,16,.74)); color: var(--cream); display: flex; flex-direction: column; gap: 2px; }
+        .edx-hero__tile--block { aspect-ratio: 4 / 3; color: var(--ink); padding: 16px; }
+        .edx-hero__tile--b1 { background: var(--page-accent, var(--cyan)); }
+        .edx-hero__tile--b2 { background: var(--peach, #F7D9B5); }
+        .edx-hero__tnum { font-family: var(--font-display); font-weight: 900; font-size: 13px; letter-spacing: .02em; opacity: .92; }
+        .edx-hero__tile strong { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.05; }
+        @media (max-width: 860px) { .edx-hero__inner { grid-template-columns: 1fr; } .edx-hero__preview { max-width: 440px; } }
 
         /* STAGE — desktop sticky horizontal */
         .edx-stage { position: relative; background: var(--cream); }
@@ -360,8 +387,8 @@ export function EdicoesPage() {
         .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; }
         .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(20px,3vh,40px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: 1.02fr 1.1fr; gap: clamp(28px, 4vw, 72px); align-items: center; }
         .edx-slide__left { min-width: 0; }
-        .edx-slide__index { display: flex; align-items: baseline; gap: 12px; }
-        .edx-slide__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(26px, 3vw, 40px); letter-spacing: -.02em; color: var(--tone); line-height: 1; }
+        .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
+        .edx-slide__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 4vw, 60px); letter-spacing: -.03em; color: var(--tone); line-height: 1; }
         .edx-slide__num span { font-size: .5em; color: var(--ink-soft); }
         .edx-slide__code { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 11px; }
         .edx-slide__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; color: var(--ink); margin: var(--sp-4) 0 0; text-wrap: balance; }
