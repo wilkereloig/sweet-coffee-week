@@ -465,3 +465,56 @@ begin
 end;
 $$;
 grant execute on function public.get_suspicious_votes(text) to anon, authenticated;
+
+-- =============================================================================
+-- Pesquisa Sweet Lovers — perfil de público (disparada por e-mail via Brevo)
+-- Mesmo padrão de segurança da votação: RLS sem policy + RPC security definer.
+-- =============================================================================
+create table if not exists public.pesquisa_lovers (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  email text,
+  nome text,
+  respostas jsonb not null,
+  user_agent text
+);
+create index if not exists pesquisa_lovers_created_idx on public.pesquisa_lovers (created_at);
+
+alter table public.pesquisa_lovers enable row level security;
+-- (sem policies = nenhum acesso anônimo direto; gravação só pela RPC abaixo)
+
+-- ── RPC: gravar resposta da pesquisa (anon) ──────────────────────────────────
+create or replace function public.submit_pesquisa(
+  p_email text,
+  p_nome text,
+  p_respostas jsonb,
+  p_user_agent text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email text := nullif(lower(trim(coalesce(p_email, ''))), '');
+begin
+  if p_respostas is null or jsonb_typeof(p_respostas) <> 'object'
+     or p_respostas = '{}'::jsonb then
+    raise exception 'respostas_obrigatorias';
+  end if;
+  insert into public.pesquisa_lovers (email, nome, respostas, user_agent)
+  values (v_email, nullif(trim(coalesce(p_nome, '')), ''), p_respostas, p_user_agent);
+end;
+$$;
+grant execute on function public.submit_pesquisa(text, text, jsonb, text) to anon, authenticated;
+
+-- ── RPC: relatório da pesquisa (admin, mesma senha do painel) ────────────────
+create or replace function public.get_pesquisa_report(p_secret text)
+returns setof public.pesquisa_lovers
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.admin_ok(p_secret) then return; end if;
+  return query select * from public.pesquisa_lovers order by created_at;
+end;
+$$;
+grant execute on function public.get_pesquisa_report(text) to anon, authenticated;
