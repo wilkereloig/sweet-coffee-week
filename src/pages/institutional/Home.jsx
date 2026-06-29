@@ -39,15 +39,19 @@ const STATS = [
   { to: 10,  prefix: '+',    suffix: ' milhões', unit: '', l: 'de visualizações no Instagram' },
 ]
 
-// SWEET NA MÍDIA — chancela de credibilidade (números compactos) + imprensa.
-// Marca: 10 anos de história e 16 edições realizadas (SEMPRE 16, nunca 15).
-const mediaStats = [
-  { value: '10 anos', label: 'de história' },
-  { value: '16 edições', label: 'realizadas' },
-  { value: '+34 mil', label: 'combos vendidos' },
-  { value: '+R$ 712 mil', label: 'movimentados diretamente' },
-  { value: '+10 milhões', label: 'de visualizações' },
-  { value: '+5 milhões', label: 'de impressões digitais' },
+// SWEET & COFFEE WEEK NA MÍDIA — prova de credibilidade enxuta: selos rápidos +
+// 6 cards de imprensa + lista secundária recolhida + faixa "o que a imprensa reforça".
+const mediaSeals = [
+  '10 anos de história',
+  '16 edições realizadas',
+  'Cobertura recorrente na imprensa',
+  'Fonte acadêmica / UFRN',
+]
+
+const mediaReinforce = [
+  'O festival movimenta marcas locais.',
+  'Cada edição transforma tema em experiência.',
+  'Os Sweet Lovers ajudaram a criar uma tradição afetiva em Natal.',
 ]
 
 // Matérias reais na imprensa. Links externos abrem em nova aba. Sem logos dos
@@ -56,28 +60,21 @@ const mediaStats = [
 // NOTA: algumas URLs externas trazem "15a-edicao"/"15o-ano" (matérias de 2025) —
 // é só o link da matéria; o dado institucional do site é "16 edições realizadas".
 const mediaCards = [
-  { outlet: 'Agora RN', date: '2024', title: 'O evento mais doce da capital potiguar', description: 'Matéria sobre a origem do Sweet & Coffee Week, a visão de Eline Eulália, o formato dos combos e a evolução do festival para uma experiência temática.', href: 'https://agorarn.com.br/ultimas/sweet-coffee-week-evento-mais-doce-natal/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
-  { outlet: 'NOVO Notícias', date: '2024', title: 'A semana mais doce do ano vai começar', description: 'Reportagem sobre a força dos Sweet Lovers, o impacto nas pequenas docerias, o engajamento do público e o fomento ao mercado local.', href: 'https://www.novonoticias.com.br/atencao-sweet-lovers-a-semana-mais-doce-do-ano-vai-comecar/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
-  { outlet: 'Sebrae-RN', date: '2021', title: 'Produtos terroir em destaque', description: 'Fonte institucional sobre a edição Terras Potiguares, com foco em ingredientes regionais, produtores locais e economia criativa.', href: 'https://rn.agenciasebrae.com.br/arquivo/produtos-terroir-serao-destaques-na-sweet-coffee-week-2021/', cta: 'Ler matéria', category: 'Institucional', featured: true },
-  { outlet: 'Diário do RN', date: '2026', title: '10 anos e economia criativa', description: 'Cobertura que posiciona o Sweet & Coffee Week como evento consolidado no calendário gastronômico de Natal e como força da economia criativa local.', href: 'https://diariodorn.com.br/sweet-coffee-week-chega-aos-10-anos-e-reforca-forca-da-economia-criativa-em-natal/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
-  { outlet: '96 FM', date: '2026', title: 'Sweet Coffee Week celebra 10 anos', description: 'Matéria sobre a edição comemorativa, os temas revisitados, a experiência dos Sweet Lovers e o fortalecimento das marcas participantes.', href: 'https://96fm.com.br/post/sweet-coffee-week-celebra-10-anos', cta: 'Ler matéria', category: 'Rádio e portal', featured: true },
-  { outlet: '98 FM Natal', date: '2024', title: 'Gastronomia, cultura e criatividade', description: 'Reportagem sobre o impacto do festival na economia criativa, na circulação pela cidade e na visibilidade de marcas locais.', href: 'https://98fmnatal.com.br/ultimas/sweet-coffee-week-comeca-hoje-e-movimenta-a-economia-criativa-em-natal/339772/', cta: 'Ler matéria', category: 'Rádio e portal', featured: true },
-  { outlet: 'Tribuna do Norte', date: '2026', title: 'Edição 10 anos do Sweet Coffee Week', description: 'Cobertura sobre a edição comemorativa de 2026, o formato de 11 dias, os combos temáticos e a celebração da memória afetiva.', href: 'https://blog.tribunadonorte.com.br/territoriolivre/de-04-a-14-de-junho-ocorre-o-sweet-coffee-week-2026-edicao-10-anos/', cta: 'Ler matéria', category: 'Imprensa tradicional', featured: false },
-  { outlet: 'Conversa Gastronômica', date: '2024', title: 'Livraria da Doçura', description: 'Cobertura da edição Books, com participantes em Natal e Parnamirim e combos inspirados em livros, histórias e personagens.', href: 'https://conversagastronomica.com/14a-sweet-coffee-week-acontece-entre-os-dias-14-e-24-de-novembro-em-natal-e-parnamirim/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },
-  { outlet: 'Hilneth Correia', date: '2019', title: 'O sabor dos contos de fadas', description: 'Registro da edição Contos de Fadas, que reuniu confeitarias, cenários, experiências temáticas e grande apelo visual.', href: 'https://hilnethcorreia.com.br/2019/09/07/7a-sweet-coffee-week-traz-o-sabor-dos-contos-de-fadas/', cta: 'Ler matéria', category: 'Coluna social', featured: false },
-  { outlet: 'TV Ponta Negra', date: '2023', title: 'Entrevista com Eline Eulália', description: 'Registro audiovisual com a idealizadora do evento, reforçando a história, a força da marca e a relevância do festival para a cena gastronômica de Natal.', href: 'https://www.youtube.com/watch?v=1lPd434s3rk', cta: 'Assistir entrevista', category: 'Vídeo', featured: false },
-  { outlet: 'UFRN', date: '2022', title: 'Doce experiência: um estudo sobre o festival', description: 'Registro acadêmico que reconhece o Sweet & Coffee Week como festival criado em Natal, com edições temáticas que combinam gastronomia, experiência e comportamento de consumo.', href: 'https://repositorioslatinoamericanos.uchile.cl/handle/2250/8603735', cta: 'Ver estudo', category: 'Acadêmico', featured: false },
-  { outlet: 'Conversa Gastronômica', date: '2017', title: 'Sweet & Coffee Week celebra o amor em combos especiais', description: 'Matéria sobre a edição Namorados, mostrando que o formato de combos temáticos já era reconhecido pela mídia desde as primeiras edições.', href: 'https://conversagastronomica.com/sweet-e-coffee-celebra-o-amor-em-combos-a-r1890/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },
-  { outlet: 'Conversa Gastronômica', date: '2018', title: 'Sabores da infância em destaque', description: 'Cobertura da edição que resgatou receitas de família, lanches de escola, memórias de casa de avó e sabores afetivos.', href: 'https://conversagastronomica.com/5a-sweet-coffee-resgata-sabores-da-infancia/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },
-  { outlet: 'Conversa Gastronômica', date: '2019', title: 'Heróis e vilões em Natal', description: 'Matéria sobre a edição inspirada em cultura pop, com combos temáticos, estabelecimentos participantes e adaptação criativa do festival.', href: 'https://conversagastronomica.com/herois-e-viloes-trazem-combos-a-r2090-de-12-a-22-de-novembro-em-natal/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },
-  { outlet: 'NOVO Notícias', date: '2023', title: 'Uma volta ao mundo em 11 dias', description: 'Cobertura da edição Trip, que propôs uma jornada gastronômica por sabores, destinos e culturas do mundo.', href: 'https://www.novonoticias.com.br/sweet-coffee-week-proporciona-uma-volta-ao-mundo-em-11-dias/', cta: 'Ler matéria', category: 'Imprensa local', featured: false },
-  { outlet: 'Thaisa Galvão', date: '2023', title: 'Sweet Coffee Week Trip', description: 'Registro da edição de 2023, com destaque para a proposta de transformar destinos e viagens em experiências gastronômicas.', href: 'https://www.thaisagalvao.com.br/2023/10/29/sweet-coffee-week-comeca-fia-2-de-novembro-e-reunira--32-docerias-de-natal', cta: 'Ler matéria', category: 'Coluna', featured: false },
-  { outlet: 'Blog do BG', date: '2025', title: 'Sweet Coffee Week Celebration', description: 'Cobertura da edição Celebration, com tema voltado a festas, encontros, celebrações e experiências de doçura em Natal.', href: 'https://www.blogdobg.com.br/sweet-coffee-week-2025-a-maior-celebracao-da-docura-do-brasil-chega-a-15a-edicao/', cta: 'Ler matéria', category: 'Portal local', featured: false },
-  { outlet: 'O Potengi', date: '2025', title: 'Celebration reúne marcas locais', description: 'Matéria sobre a edição Celebration, reforçando continuidade, participação de estabelecimentos e presença do festival na cena gastronômica local.', href: 'https://opotengi.com.br/sweet-coffee-celebration-chega-aos-15o-ano-reunindo-mais-de-25-estabelecimentos/', cta: 'Ler matéria', category: 'Portal local', featured: false },
-  { outlet: 'BZ Notícias', date: '2021', title: 'Cultura potiguar invade o festival', description: 'Registro relacionado à edição Terras Potiguares, com foco na valorização da cultura, dos sabores e dos ingredientes do Rio Grande do Norte.', href: 'https://bznoticias.com.br/noticia/cultura-potiguar-invade-a-sweet-coffee-week', cta: 'Ler matéria', category: 'Imprensa local', featured: false },
-  { outlet: 'Tribuna do Norte', date: '2020', title: 'Adaptação e delivery na Páscoa', description: 'Registro do período de adaptação do festival em contexto de isolamento, com campanha de Páscoa e estratégia de entrega.', href: 'https://tribunadonorte.com.br/economia/vendas-de-ovos-de-pascoa-devem-se-manter-estaveis/', cta: 'Ler matéria', category: 'Imprensa tradicional', featured: false },
-  { outlet: 'NOVO Notícias', date: '2023', title: 'Eline Eulália em programa nacional', description: 'Aparição de mídia da idealizadora do festival, reforçando sua presença pública no universo gastronômico e afetivo.', href: 'https://www.novonoticias.com.br/jornalista-potiguar-ensina-receita-de-familia-em-reality-da-tv-globo/', cta: 'Ler matéria', category: 'Aparição da idealizadora', featured: false },
-  { outlet: 'Blog do BG', date: '2023', title: 'Idealizadora do festival em destaque', description: 'Repercussão da participação de Eline Eulália em programa nacional, reforçando sua ligação com gastronomia, memória afetiva e o Sweet & Coffee Week.', href: 'https://www.blogdobg.com.br/potiguar-ensina-receita-de-familia-em-programa-global-eline-eulalia-e-a-idealizadora-da-sweet-coffee-week/', cta: 'Ler matéria', category: 'Aparição da idealizadora', featured: false },
+  { outlet: 'Agora RN', date: '2024', title: 'Origem e trajetória', description: 'Eline Eulália conta como o festival nasceu e evoluiu para uma experiência temática.', href: 'https://agorarn.com.br/ultimas/sweet-coffee-week-evento-mais-doce-natal/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
+  { outlet: 'NOVO Notícias', date: '2024', title: 'Comunidade Sweet Lovers', description: 'Matéria destaca o público, o engajamento e o impacto nas pequenas docerias.', href: 'https://www.novonoticias.com.br/atencao-sweet-lovers-a-semana-mais-doce-do-ano-vai-comecar/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
+  { outlet: 'Agência Sebrae', date: '2021', title: 'Ingredientes potiguares', description: 'Registro da edição Terras Potiguares e da valorização de produtores locais.', href: 'https://rn.agenciasebrae.com.br/arquivo/produtos-terroir-serao-destaques-na-sweet-coffee-week-2021/', cta: 'Ler matéria', category: 'Institucional', featured: true },
+  { outlet: 'Diário do RN', date: '2026', title: 'Economia criativa', description: 'Cobertura sobre os 10 anos e a força do festival no calendário gastronômico.', href: 'https://diariodorn.com.br/sweet-coffee-week-chega-aos-10-anos-e-reforca-forca-da-economia-criativa-em-natal/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
+  { outlet: '96 FM', date: '2026', title: 'Edição comemorativa', description: 'Destaque para a edição de 10 anos e para os temas revisitados pelos participantes.', href: 'https://96fm.com.br/post/sweet-coffee-week-celebra-10-anos', cta: 'Ler matéria', category: 'Rádio', featured: true },
+  { outlet: 'UFRN', date: '2022', title: 'Fonte acadêmica', description: 'O festival também aparece como objeto de estudo sobre experiência gastronômica em Natal.', href: 'https://repositorioslatinoamericanos.uchile.cl/handle/2250/8603735', cta: 'Ver estudo', category: 'Acadêmico', featured: true },
+  // Secundárias — lista compacta (revelada por "Ver mais matérias"). Sem cards grandes.
+  { outlet: '98 FM Natal', date: '2024', title: 'Gastronomia e criatividade', href: 'https://98fmnatal.com.br/ultimas/sweet-coffee-week-comeca-hoje-e-movimenta-a-economia-criativa-em-natal/339772/', cta: 'Ler matéria', category: 'Rádio', featured: false },
+  { outlet: 'Tribuna do Norte', date: '2026', title: 'Edição de 10 anos', href: 'https://blog.tribunadonorte.com.br/territoriolivre/de-04-a-14-de-junho-ocorre-o-sweet-coffee-week-2026-edicao-10-anos/', cta: 'Ler matéria', category: 'Imprensa tradicional', featured: false },
+  { outlet: 'Conversa Gastronômica', date: '2024', title: 'Edição Books', href: 'https://conversagastronomica.com/14a-sweet-coffee-week-acontece-entre-os-dias-14-e-24-de-novembro-em-natal-e-parnamirim/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },
+  { outlet: 'Hilneth Correia', date: '2019', title: 'Edição Contos de Fadas', href: 'https://hilnethcorreia.com.br/2019/09/07/7a-sweet-coffee-week-traz-o-sabor-dos-contos-de-fadas/', cta: 'Ler matéria', category: 'Coluna', featured: false },
+  { outlet: 'TV Ponta Negra', date: '2023', title: 'Entrevista com a idealizadora', href: 'https://www.youtube.com/watch?v=1lPd434s3rk', cta: 'Assistir', category: 'Vídeo', featured: false },
+  { outlet: 'Thaisa Galvão', date: '2023', title: 'Edição Trip', href: 'https://www.thaisagalvao.com.br/2023/10/29/sweet-coffee-week-comeca-fia-2-de-novembro-e-reunira--32-docerias-de-natal', cta: 'Ler matéria', category: 'Coluna', featured: false },
+  { outlet: 'Blog do BG', date: '2025', title: 'Edição Celebration', href: 'https://www.blogdobg.com.br/sweet-coffee-week-2025-a-maior-celebracao-da-docura-do-brasil-chega-a-15a-edicao/', cta: 'Ler matéria', category: 'Portal local', featured: false },
+  { outlet: 'O Potengi', date: '2025', title: 'Celebration reúne marcas locais', href: 'https://opotengi.com.br/sweet-coffee-celebration-chega-aos-15o-ano-reunindo-mais-de-25-estabelecimentos/', cta: 'Ler matéria', category: 'Portal local', featured: false },
 ]
 const mediaFeatured = mediaCards.filter((c) => c.featured)
 const mediaExtra = mediaCards.filter((c) => !c.featured)
@@ -260,45 +257,23 @@ export function HomePage({ navigate }) {
       <section id="sweet-na-midia" className="section hm-media">
         <div className="wrap">
           <div className="hm-head hm-media__head motion-reveal-up">
-            <span className="hm-media__eyebrow">Sweet &amp; Coffee Week na mídia</span>
-            <h2>10 anos de história, <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>16 edições</span></span> realizadas e uma trajetória reconhecida pela imprensa</h2>
-            <p>
-              O Sweet &amp; Coffee Week nasceu em Natal e se consolidou como uma das experiências gastronômicas mais afetivas e criativas do Rio Grande do Norte. Ao longo de sua trajetória, o festival ganhou espaço na imprensa por movimentar a economia criativa, fortalecer marcas locais, valorizar a gastronomia potiguar e criar uma comunidade fiel de Sweet Lovers.
-            </p>
-            <p className="hm-media__sub">
-              De reportagens sobre empreendedorismo e impacto econômico a matérias sobre memória afetiva, ingredientes regionais e experiências temáticas, o festival vem sendo reconhecido por transformar doces, cafés e combos em uma verdadeira temporada de descobertas pela cidade.
-            </p>
+            <span className="hm-media__eyebrow">Na mídia</span>
+            <h2>Uma história que também ganhou <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>espaço na imprensa</span>.</span></h2>
+            <p>Reportagens, entrevistas e registros acadêmicos ajudam a contar como o Sweet &amp; Coffee Week se tornou uma tradição gastronômica e afetiva de Natal.</p>
           </div>
 
-          {/* Números — chancela de credibilidade compacta (≠ seção Números) */}
-          <h3 className="hm-media__kicker motion-reveal-up">Reconhecimento que se traduz em impacto</h3>
-          <ul className="hm-media__stats motion-stagger">
-            {mediaStats.map((s) => (
-              <li className="hm-media__stat" key={s.label}>
-                <strong>{s.value}</strong>
-                <span>{s.label}</span>
-              </li>
-            ))}
+          {/* Selos rápidos de credibilidade — não repetidos nos cards */}
+          <ul className="hm-media__seals motion-stagger">
+            {mediaSeals.map((s) => <li className="hm-media__seal" key={s}>{s}</li>)}
           </ul>
-          <p className="hm-media__statnote">
-            Mais do que um circuito gastronômico, o festival atua como plataforma de visibilidade para cafeterias, docerias, confeitarias, restaurantes, marcas autorais e empreendedores criativos.
-          </p>
 
-          {/* Destaques na imprensa — 6 em destaque + "Ver mais" revela o restante */}
-          <h3 className="hm-media__cards-title motion-reveal-up">Destaques na imprensa</h3>
+          {/* 6 cards de imprensa em destaque */}
           <div className="hm-media__grid motion-stagger">
             {mediaFeatured.map((c) => <MediaCard c={c} key={c.href} />)}
           </div>
 
           {mediaExtra.length > 0 && (
             <>
-              <div
-                id="sweet-media-extra"
-                className="hm-media__grid hm-media__grid--extra"
-                hidden={!mediaOpen}
-              >
-                {mediaExtra.map((c) => <MediaCard c={c} key={c.href} />)}
-              </div>
               <div className="hm-media__more">
                 <button
                   type="button"
@@ -310,16 +285,27 @@ export function HomePage({ navigate }) {
                   {mediaOpen ? 'Ver menos' : 'Ver mais matérias'}
                 </button>
               </div>
+              <ul id="sweet-media-extra" className="hm-media__list" hidden={!mediaOpen}>
+                {mediaExtra.map((c) => (
+                  <li className="hm-media__row" key={c.href}>
+                    <span className="hm-media__row-outlet">{c.outlet}</span>
+                    <span className="hm-media__row-theme">{c.title}{c.date ? ` · ${c.date}` : ''}</span>
+                    <a className="hm-media__row-link" href={c.href} target="_blank" rel="noopener noreferrer" aria-label={`${c.cta || 'Ler'} na ${c.outlet}`}>
+                      {c.cta || 'Ler'} <I.arrow />
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </>
           )}
 
-          <p className="hm-media__statnote hm-media__after">
-            Da imprensa local à gastronomia especializada, de fontes institucionais a registros acadêmicos e audiovisuais, o Sweet &amp; Coffee Week construiu uma presença pública que acompanha sua evolução como evento, marca e movimento criativo de Natal.
-          </p>
-
-          <p className="hm-media__close motion-reveal-up">
-            O Sweet &amp; Coffee Week é feito por marcas, sabores e pessoas. Uma história que começou em 2016 e segue adoçando Natal com criatividade, afeto e reconhecimento.
-          </p>
+          {/* O que a imprensa reforça — 3 frases curtas */}
+          <div className="hm-media__reinforce motion-reveal-up">
+            <h3>O que a imprensa reforça</h3>
+            <ul>
+              {mediaReinforce.map((r) => <li key={r}>{r}</li>)}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -599,50 +585,53 @@ export function HomePage({ navigate }) {
         /* SWEET NA MÍDIA — banda creme (clipping/imprensa). Cabeçalho editorial,
            faixa-chancela de números (compacta, ≠ seção Números) e cards de mídia. */
         .hm .hm-media { background: var(--cream); }
-        .hm-media__head { max-width: 880px; }
+        .hm-media__head { max-width: 720px; }
         .hm-media__head h2 { font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; }
         .hm-media__eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
-        .hm-media__head p { max-width: 64ch; }
-        .hm-media__sub { font-size: 16px !important; line-height: 1.55; opacity: .92; }
+        .hm-media__head p { max-width: 56ch; }
 
-        /* Faixa-chancela: 6 números em grade com divisórias hairline (gap 1px sobre
-           fundo paper-line). Compacta, neutra — chancela, não estatística-herói. */
-        .hm-media__stats { list-style: none; margin: var(--sp-7) 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--paper-line); border: 1px solid var(--paper-line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); }
-        .hm-media__stat { background: var(--cream-card); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 5px; padding: var(--sp-5) var(--sp-3); }
-        .hm-media__stat strong { font-family: var(--font-display); font-weight: 900; font-size: clamp(19px, 2.1vw, 30px); line-height: 1; letter-spacing: -.02em; color: var(--accent); white-space: nowrap; }
-        .hm-media__stat span { font-size: 12.5px; line-height: 1.3; color: var(--ink-soft); text-wrap: balance; }
-        .hm-media__statnote { max-width: 72ch; margin: var(--sp-5) auto 0; text-align: center; color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; text-wrap: pretty; }
+        /* Selos rápidos de credibilidade (pílulas) */
+        .hm-media__seals { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+        .hm-media__seal { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--coral-deep); background: rgba(232,85,58,.08); border: 1px solid rgba(232,85,58,.2); border-radius: 999px; padding: 8px 16px; }
+        .hm-media__seal::before { content: ''; width: 7px; height: 7px; border-radius: 999px; background: var(--coral); }
 
-        /* mini-título antes dos números (chancela) */
-        .hm-media__kicker { text-align: center; font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--coral-deep); margin: var(--sp-8) 0 var(--sp-4); }
-
-        /* Destaques na imprensa — 6 cards (3/2/1 col), selo textual do veículo */
-        .hm-media__cards-title { text-align: center; font-family: var(--font-heading); font-weight: 800; font-size: clamp(20px, 2vw, 26px); letter-spacing: -.02em; color: var(--ink); margin: var(--sp-8) 0 var(--sp-6); }
-        /* cabeçalho do card: selo do veículo + badge de categoria */
+        /* 6 cards (3/2/1 col), selo textual do veículo */
+        .hm-media__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); margin-top: var(--sp-8); }
         .hm-media__card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: var(--sp-4); }
         .hm-media__card-head .hm-media__outlet { margin-bottom: 0; }
         .hm-media__cat { font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 10px; }
         .hm-media__date { margin-left: auto; font-family: var(--font-sans); font-size: 12px; font-weight: 700; color: var(--ink-soft); opacity: .8; font-variant-numeric: tabular-nums; }
-        /* matérias extras (reveladas por "Ver mais") + botão centralizado */
-        .hm-media__grid--extra { margin-top: var(--sp-4); }
-        .hm-media__grid--extra[hidden] { display: none; }
-        .hm-media__more { display: flex; justify-content: center; margin-top: var(--sp-6); }
-        .hm-media__after { margin-top: var(--sp-6); }
-        .hm-media__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-        .hm-media__card { display: flex; flex-direction: column; align-items: flex-start; height: 100%; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+        .hm-media__card { display: flex; flex-direction: column; align-items: flex-start; height: 100%; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
         .hm-media__card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
         .hm-media__outlet { display: inline-block; padding: 5px 12px; border-radius: 999px; background: rgba(232,85,58,.1); color: var(--coral-deep); font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--sp-4); }
         .hm-media__card h4 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.16; color: var(--ink); margin: 0 0 var(--sp-3); text-wrap: balance; }
-        .hm-media__card p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0 0 var(--sp-5); text-wrap: pretty; }
+        .hm-media__card p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: 0 0 var(--sp-5); text-wrap: pretty; }
         .hm-media__link { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-weight: 700; font-size: 14px; color: var(--accent); }
         .hm-media__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .hm-media__link:hover svg { transform: translateX(4px); }
         .hm-media__link:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; border-radius: 4px; }
-        .hm-media__close { max-width: 60ch; margin: var(--sp-8) auto 0; text-align: center; color: var(--ink); font-family: var(--font-heading); font-weight: 700; font-size: clamp(16px, 1.3vw, 20px); line-height: 1.4; text-wrap: pretty; }
 
-        @media (max-width: 860px) { .hm-media__stats { grid-template-columns: repeat(3, 1fr); } .hm-media__grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 560px) { .hm-media__grid { grid-template-columns: 1fr; } }
-        @media (max-width: 480px) { .hm-media__stats { grid-template-columns: repeat(2, 1fr); } }
+        /* Ver mais + lista secundária compacta (linhas, não cards) */
+        .hm-media__more { display: flex; justify-content: center; margin-top: var(--sp-6); }
+        .hm-media__list { list-style: none; margin: var(--sp-5) auto 0; padding: 0; max-width: 760px; }
+        .hm-media__list[hidden] { display: none; }
+        .hm-media__row { display: grid; grid-template-columns: minmax(120px, auto) 1fr auto; align-items: center; gap: var(--sp-4); padding: var(--sp-4) 0; border-top: 1px solid var(--paper-line); }
+        .hm-media__row:last-child { border-bottom: 1px solid var(--paper-line); }
+        .hm-media__row-outlet { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--coral-deep); }
+        .hm-media__row-theme { font-size: 14.5px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hm-media__row-link { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-weight: 700; font-size: 13px; color: var(--accent); white-space: nowrap; }
+        .hm-media__row-link svg { width: 14px; height: 14px; }
+        .hm-media__row-link:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; border-radius: 4px; }
+
+        /* O que a imprensa reforça — faixa final de 3 frases */
+        .hm-media__reinforce { margin-top: var(--sp-8); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6) var(--sp-7); box-shadow: var(--shadow-sm); }
+        .hm-media__reinforce h3 { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--coral-deep); margin: 0 0 var(--sp-5); }
+        .hm-media__reinforce ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
+        .hm-media__reinforce li { position: relative; padding-left: 18px; font-family: var(--font-heading); font-weight: 700; font-size: clamp(15px, 1.3vw, 18px); line-height: 1.3; color: var(--ink); text-wrap: balance; }
+        .hm-media__reinforce li::before { content: ''; position: absolute; left: 0; top: .42em; width: 8px; height: 8px; border-radius: 999px; background: var(--coral); }
+
+        @media (max-width: 860px) { .hm-media__grid { grid-template-columns: repeat(2, 1fr); } .hm-media__reinforce ul { grid-template-columns: 1fr; gap: var(--sp-4); } }
+        @media (max-width: 560px) { .hm-media__grid { grid-template-columns: 1fr; } .hm-media__row { grid-template-columns: 1fr auto; } .hm-media__row-theme { grid-column: 1 / -1; white-space: normal; } }
         @media (prefers-reduced-motion: reduce) { .hm-media__card, .hm-media__link svg { transition: none; } }
 
         /* CAMINHOS INSTITUCIONAIS — ponte Participar/Apoiar. Banda #381610
