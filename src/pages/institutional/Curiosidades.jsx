@@ -56,7 +56,7 @@ const MOMENTOS = [
   { hl: 'var(--coral)', t: 'A primeira premiação encontrada veio em 2019', d: 'Na edição Pâtisserie Francesa, o primeiro resultado de Melhor Combo: Jolie em 1º, Mr Cupcake em 2º e Sonho de Brownie em 3º.', photo: combo('jolie-cafe-patisserie'), brand: 'Jolie' },
   { hl: 'var(--pink)', t: 'O Sweet Awards ficou mais completo', d: 'A partir de Heróis & Vilões e Terras Potiguares, a premiação passa a reconhecer atendimento, criatividade, apresentação, sabor, bebida e salgado.', sticker: 'shape-star-cyan' },
   { hl: 'var(--cyan-deep)', t: 'O público virou parte da memória', d: 'As avaliações dos Sweet Lovers transformaram o festival em uma comunidade que prova, indica e reconhece os destaques de cada edição.', sticker: 'shape-heart-yellow' },
-  { hl: 'var(--yellow-deep)', t: 'Lovers entra como capítulo comemorativo', d: 'A edição Sweet & Coffee Week Lovers, de 2026, integra o histórico como parte da celebração dos 10 anos. Seus resultados completos entram no acervo conforme forem estruturados.', sticker: 'shape-flower-coral' },
+  { hl: 'var(--yellow-deep)', t: 'Lovers entra como capítulo comemorativo', d: 'A edição Sweet & Coffee Week Lovers, de 2026, integra o histórico como parte da celebração dos 10 anos — e seus resultados já entram nos rankings desta página, como a 16ª edição do festival.', sticker: 'shape-flower-coral' },
 ]
 
 // Adesivo gráfico (shape SVG) — decorativo, some se faltar o arquivo.

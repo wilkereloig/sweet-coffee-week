@@ -1,25 +1,20 @@
 /*
  * CÁLCULOS DO ACERVO — Sweet & Coffee Week.
- * Deriva rankings REAIS (presenças, vitórias, pódios, líderes por categoria) a
- * partir de src/data/sweetHistory.js. Nada hardcoded solto; nada inventado.
+ * Fonte oficial: src/data/sweetCoffeeHistory.js (SWEET_COFFEE_HISTORY, 16 edições
+ * 2016–2026.1, com participantAliases/categoryAliases). Os pódios da 16ª edição
+ * (Lovers 2026.1) vêm de src/data/loversAwardsResults.js quando a base ainda não
+ * os traz estruturados. Nada inventado; empates preservados.
  *
- * Duas normalizações distintas:
- *  - resolveParticipant() (participantAssets): nome → LOGO/asset (só marcas com logo).
- *  - canonName() aqui: nome → IDENTIDADE canônica p/ ranking, tratando variações de
- *    grafia ao longo dos anos (ex.: "Bocaditos Doceria & Café" == "Bocaditos").
- *
- * Regras (espelham sweetHistory.js):
- *  - Vitória = 1º lugar. Pódio = 1º/2º/3º. Empate = colocação repetida conta ambos.
- *  - Trilhas (Júri Técnico / Sweet Lovers) somam juntas nos totais; cada entrada de
- *    vencedor conta uma vez.
- *  - Lovers 2026.1 NÃO está estruturada aqui → fica fora dos cálculos (capítulo
- *    editorial só, sem supor resultado).
+ * Deriva rankings REAIS: presenças recorrentes, vitórias (1º), pódios (1º–3º),
+ * líderes por categoria e evolução das categorias. Logos via resolveParticipant
+ * (fallback textual). Mantém a mesma API consumida por Curiosidades.jsx.
  */
-import { sweetEditions } from './sweetHistory'
+import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory'
+import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults'
 import { resolveParticipant } from './participantAssets'
 
-// Normalização base (igual à do resolver de assets): minúsculas, sem acento,
-// "&"→" e ", pontuação/espaços colapsados.
+const { edicoes = [], participantAliases = {}, categoryAliases = {} } = SWEET_COFFEE_HISTORY
+
 const norm = (s) =>
   (s || '')
     .toLowerCase()
@@ -29,90 +24,62 @@ const norm = (s) =>
     .trim()
     .replace(/\s+/g, ' ')
 
-// ---- Aliases manuais de IDENTIDADE p/ ranking (canônico → variações no acervo).
-// Cobre as marcas que recorrem / premiam; long tail cai no próprio nome (norm).
-const RANK_ALIASES = {
-  'Mr. Cupcake': ['Mr Cupcake', 'Mr. Cupcake'],
-  "Canuto's": ['Canutos', "Canuto's", "Canuto’s"],
-  "Duart's": ['Duarts', "Duart's", "Duart’s", "Duart's Confeitaria"],
-  'O Maestro Café': ['O Maestro', 'O Maestro Café', 'O Maestro Café & Art'],
-  'Just Food&Coffee': ['Just', 'Just Coffee', 'Just Food&Coffee'],
-  'Cecília Mindêlo': ['Cecilia Mindelo', 'Cecília Mindelo', 'Cecília Mindêlo', 'Cecilia Mindêlo', 'Cecilia Brownie', 'Cecilia Mindêlo Brownies', 'Cecília Mindêlo Brownies'],
-  "Bell's": ["Bell's", "Bell's Cafeteria", "Bell's Café"],
-  'Suisse Brownie': ['Suisse', 'Suisse Brownie', 'Swiss Brownie'],
-  'Chocolateria Sandra Maia': ['Sandra Maia', 'Chocolateria Sandra Maia', 'Chocolateria Sandra Maia'],
-  'Atelier Mine Confeitaria': ['Atelier Mine', 'Atelier Mine Confeitaria', 'Mine', 'Mine Confeitaria'],
-  'Casa dos Salgados Gourmet': ['Casa dos Salgados', 'Casa dos Salgados Gourmet'],
-  'Marlon Vinicius': ['Marlon', 'Marlon Gastronomia', 'Marlon Vinicius', 'Marlon Doceria'],
-  'Bocaditos': ['Bocaditos', 'Bocaditos Doceria & Café', 'Bocaditos Confeitaria Artesanal'],
-  'Caroli Douces': ['Caroli', 'Caroli Douces'],
-  'Rafaela Fontes': ['Rafaela Fontes', 'Chocolateria Rafaela Fontes', 'Rafaela Fontes Chocolateria'],
-  'Bella Douces': ['Bella Petit', 'Bella Peti', 'Bella Pettit', 'Bella Douces'],
-  'Very Sugar': ['Very Sugar', 'Verysugar'],
-  'Cássia Ribeiro': ['Cássia Ribeiro', 'Cassia Ribeiro'],
-  'Jolie': ['Jolie', 'Jolie Pâtisserie', 'Jolie Parissiere', 'Jolie Parisiere', 'Jolie Pâtisserie'],
-  'Bolomania': ['Bolomania', 'Bolo Mania'],
-  "Jana's Cakes": ["Jana's Cakes", "Jana's Cake", "Confeitaria Jana's Cakes"],
-  'Realize Gourmet': ['Realize', 'Realize Gourmet'],
-  'Chapelatto': ['Chapelatto', 'Chapelatto Coffee Shop'],
-  'Barões do Café': ['Barões', 'Barões do Café'],
-  'Frans Café': ['Frans Café', 'Franz Café', 'Frans Cidade Jardim', 'Frans Cidade Verde', 'Frans Cidade'],
-  'Das Melo': ['Das Melo'],
-  'Momento Gourmet': ['Momento Gourmet'],
-  'Recanto da Prosa': ['Recanto da Prosa'],
-  'Daniel Bezerra': ['Daniel Bezerra'],
-  'Douce di Maria': ['Douce di Maria'],
-  'Delicato': ['Delicato'],
-  'Sweet Duo': ['Sweet Duo'],
-  'Adocee': ['Adocee'],
-  'Mangai': ['Mangai'],
-  'Paneer': ['Paneer'],
-  'Parma Doces': ['Parma', 'Parma Doces'],
-  'Boca D’Água': ["Boca D'Água", "Boca D'Água Delicatessen", "Boca D'Água"],
-}
-
+// Inverte os mapas oficiais (canônico → [variações]) em norm(variação) → canônico.
 const NORM_TO_CANON = {}
-for (const [canon, variants] of Object.entries(RANK_ALIASES)) {
+for (const [canon, variants] of Object.entries(participantAliases)) {
+  NORM_TO_CANON[norm(canon)] = canon
   for (const v of variants) NORM_TO_CANON[norm(v)] = canon
 }
+const NORM_TO_CAT = {}
+for (const [canon, variants] of Object.entries(categoryAliases)) {
+  NORM_TO_CAT[norm(canon)] = canon
+  for (const v of variants) NORM_TO_CAT[norm(v)] = canon
+}
 
-// Nome → identidade canônica (display). Cai no próprio nome se não houver alias.
 export function normalizeParticipantName(name) {
   return NORM_TO_CANON[norm(name)] || (name || '').trim()
 }
-
-// Categorias: agrupa rótulos equivalentes ao longo dos anos.
-const CATEGORY_ALIASES = {
-  'Melhor Combo': ['Melhor Combo'],
-  'Melhor Doce': ['Melhor Doce'],
-  'Melhor Bebida': ['Melhor Bebida'],
-  'Melhor Salgado': ['Melhor Salgado'],
-  'Melhor Sabor': ['Melhor Sabor'],
-  'Melhor Atendimento': ['Melhor Atendimento'],
-  'Melhor Criatividade': ['Melhor Criatividade'],
-  'Melhor Apresentação': ['Melhor Apresentação'],
-  'Encantamento em Loja': ['Melhor Envolvimento', 'Encantamento de Loja', 'Melhor Encantamento', 'Envolvimento e Encantamento em Loja'],
-  'Delivery / Takeaway': ['Melhor Takeaway/Delivery', 'Melhor Delivery'],
-}
-const NORM_TO_CAT = {}
-for (const [canon, variants] of Object.entries(CATEGORY_ALIASES)) {
-  for (const v of variants) NORM_TO_CAT[norm(v)] = canon
-}
 function canonCategory(c) {
-  return NORM_TO_CAT[norm(c)] || c
+  return NORM_TO_CAT[norm(c)] || (c || '').trim()
 }
-
-// asset (logo/fallback) a partir do nome canônico
 export function getParticipantAsset(name) {
   return resolveParticipant(name)
 }
 
+// Normaliza a premiação de uma edição → [{ category, track, winners:[{place,pos,name}] }].
+// Para 2026.1 (Lovers), usa loversAwardsResults se a base não trouxer pódios.
+function editionAwards(ed) {
+  let cats = (ed.premiacao && ed.premiacao.categorias) || []
+  if (ed.id === '2026.1' && cats.length === 0) {
+    cats = LOVERS_2026_AWARDS_RESULTS.premiacao.categorias
+  }
+  return cats.map((c) => ({
+    category: canonCategory(c.categoria),
+    track: c.trilha || null,
+    winners: (c.colocacoes || []).flatMap((p) =>
+      (p.nomes || []).map((n) => ({ place: `${p.pos}º`, pos: p.pos, name: normalizeParticipantName(n) }))
+    ),
+  }))
+}
+
+// Modelo interno uniforme das 16 edições.
+const EDITIONS = edicoes.map((ed) => ({
+  id: ed.id,
+  code: ed.id,
+  ordem: ed.ordem,
+  theme: ed.tema || ed.nome,
+  participantsCount: ed.participantesCount,
+  participants: ed.participantes || [],
+  status: ed.premiacao && ed.premiacao.status,
+  awards: editionAwards(ed),
+}))
+
 // ---- PRESENÇAS: marca recorrente = aparece em N edições (nome canônico). ----
 export function getParticipantAppearances() {
   const map = new Map()
-  for (const e of sweetEditions) {
+  for (const e of EDITIONS) {
     const seen = new Set()
-    for (const raw of e.participants || []) {
+    for (const raw of e.participants) {
       const name = normalizeParticipantName(raw)
       const key = norm(name)
       if (!key || seen.has(key)) continue
@@ -127,16 +94,12 @@ export function getParticipantAppearances() {
   return [...map.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
 }
 
-// ---- Premiação: achata todos os vencedores estruturados. ----
 function collectAwardEntries() {
   const rows = []
-  for (const e of sweetEditions) {
-    for (const a of e.awards || []) {
-      const category = canonCategory(a.category)
-      for (const w of a.winners || []) {
-        const pos = parseInt(w.place, 10)
-        const name = normalizeParticipantName(w.name)
-        rows.push({ key: norm(name), name, pos, category, code: e.code, theme: e.theme, track: a.track || null })
+  for (const e of EDITIONS) {
+    for (const a of e.awards) {
+      for (const w of a.winners) {
+        rows.push({ key: norm(w.name), name: w.name, pos: w.pos, category: a.category, code: e.code, theme: e.theme, track: a.track })
       }
     }
   }
@@ -159,12 +122,10 @@ function aggregate(rows) {
 export function getAwardWins() {
   return aggregate(collectAwardEntries().filter((r) => r.pos === 1))
 }
-
 export function getAwardPodiums() {
   return aggregate(collectAwardEntries().filter((r) => r.pos >= 1 && r.pos <= 3))
 }
 
-// Top por contagem dentro de uma lista, INCLUINDO empates no topo.
 function topWithTies(rows) {
   const m = new Map()
   for (const r of rows) {
@@ -177,7 +138,6 @@ function topWithTies(rows) {
   return { leaders: arr.filter((x) => x.n === top), n: top }
 }
 
-// ---- Líderes por categoria: marca com mais vitórias e mais pódios (com empates). ----
 export function getCategoryLeaders() {
   const rows = collectAwardEntries()
   const byCat = {}
@@ -192,13 +152,11 @@ export function getCategoryLeaders() {
   return out
 }
 
-// ---- Marcos da evolução das categorias (nº de categorias distintas por edição
-// que TEM premiação estruturada). Usado p/ mini timeline de evolução. ----
 export function getCategoryEvolution() {
-  return sweetEditions
-    .filter((e) => e.awards && e.awards.length > 0)
+  return EDITIONS
+    .filter((e) => e.awards.length > 0)
     .map((e) => {
-      const cats = new Set(e.awards.map((a) => canonCategory(a.category)))
+      const cats = new Set(e.awards.map((a) => a.category))
       const tracks = new Set(e.awards.map((a) => a.track).filter(Boolean))
       return { code: e.code, theme: e.theme, categories: cats.size, tracks: [...tracks] }
     })
