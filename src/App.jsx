@@ -14,7 +14,7 @@ import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
-import { AgradecimentoPage } from './pages/institutional/Agradecimento'
+import { SweetAwardsPage }  from './pages/institutional/SweetAwards'
 import { PainelPage }       from './pages/lovers/Painel'
 import { PesquisaPage }     from './pages/lovers/Pesquisa'
 
@@ -99,7 +99,7 @@ export default function App() {
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
-    case 'vencedores':   page = <AgradecimentoPage navigate={navigate} />; break
+    case 'vencedores':   page = <SweetAwardsPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
     default:             page = <HomePage navigate={navigate} />
