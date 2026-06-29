@@ -104,9 +104,8 @@ function EditionLogoSlot({ e }) {
   return (
     <div className="edx-logo is-fallback" role="img" aria-label={`Logo da edição ${e.theme} pendente`}>
       <span className="edx-logo__fb">
-        <span className="edx-logo__fb-code">{e.code}</span>
-        <span className="edx-logo__fb-tag">Logo da edição pendente</span>
-        <span className="edx-logo__fb-name">{e.theme}</span>
+        <span className="edx-logo__fb-tag">Logo da edição</span>
+        <span className="edx-logo__fb-name">pendente · {e.theme}</span>
       </span>
     </div>
   )
@@ -124,7 +123,7 @@ function EditionPhotoSlot({ e }) {
         {lead
           ? <img src={lead.src} alt={`Combo do acervo recente — edição ${e.theme}`} loading="lazy" decoding="async"
               onError={(ev) => { const w = ev.currentTarget.closest('.edx-photo__main'); if (w) w.classList.add('is-fallback') }} />
-          : <span className="edx-slot-fb"><I.cal width={20} height={20} /><span>Foto da edição pendente</span></span>}
+          : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span>Foto principal pendente</span></span>}
       </figure>
       <div className="edx-photo__mini">
         {[0, 1, 2].map((idx) => {
@@ -308,7 +307,6 @@ export function EdicoesPage() {
           aria-label="Apresentação das edições"
         >
           <div className="edx-sticky">
-            <EditionNav active={active} onPick={pick} />
             <div className="edx-viewport">
               <div ref={trackRef} className="edx-track" style={{ width: `${TOTAL * 100}vw` }}>
                 {PANELS.map((e) => <EditionSlide e={e} key={e.code} />)}
@@ -317,6 +315,7 @@ export function EdicoesPage() {
             <div className="edx-progress" aria-hidden="true">
               <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
             </div>
+            <EditionNav active={active} onPick={pick} />
           </div>
         </section>
       ) : (
@@ -366,11 +365,11 @@ export function EdicoesPage() {
         /* STAGE — desktop sticky horizontal */
         .edx-stage { position: relative; background: var(--cream); }
         .edx-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        .edx-viewport { flex: 1; overflow: hidden; }
+        .edx-viewport { flex: 1; overflow: hidden; padding-top: clamp(80px, 11vh, 130px); }
         .edx-track { display: flex; height: 100%; will-change: transform; }
 
-        /* NAV — barra discreta de edições */
-        .edx-nav { padding: clamp(74px, 9vh, 104px) var(--page-gutter) var(--sp-3); }
+        /* NAV — régua de apresentação na BASE da seção sticky (livre do menu) */
+        .edx-nav { padding: var(--sp-3) var(--page-gutter); background: color-mix(in srgb, var(--cream) 88%, transparent); border-top: 1px solid var(--paper-line); }
         .edx-nav__list { list-style: none; margin: 0 auto; padding: 0; max-width: var(--page-max); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
         .edx-nav__item { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 48px; padding: 7px 9px; border: 1px solid var(--paper-line); border-radius: 10px; background: var(--cream-card); color: var(--ink-soft); cursor: pointer; transition: border-color .16s, color .16s, background .16s; }
         .edx-nav__item:hover { color: var(--ink); border-color: var(--page-accent, var(--cyan)); }
@@ -385,7 +384,7 @@ export function EdicoesPage() {
 
         /* SLIDE */
         .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; }
-        .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(20px,3vh,40px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: 1.02fr 1.1fr; gap: clamp(28px, 4vw, 72px); align-items: center; }
+        .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
         .edx-slide__left { min-width: 0; }
         .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
         .edx-slide__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 4vw, 60px); letter-spacing: -.03em; color: var(--tone); line-height: 1; }
@@ -406,15 +405,15 @@ export function EdicoesPage() {
         .edx-logo--seal .edx-logo__fb { display: none; }
         .edx-logo--seal.is-fallback img { display: none; }
         .edx-logo--seal.is-fallback .edx-logo__fb { display: flex; }
-        .edx-logo.is-fallback { border: 1.5px dashed color-mix(in srgb, var(--tone) 55%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 8%, var(--cream-card)); width: auto; min-width: clamp(140px, 16vw, 200px); aspect-ratio: auto; padding: var(--sp-4); }
-        .edx-logo__fb { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
-        .edx-logo__fb-code { font-family: var(--font-display); font-weight: 900; font-size: 14px; color: var(--tone); }
-        .edx-logo__fb-tag { font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
-        .edx-logo__fb-name { font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--ink); line-height: 1.1; }
+        .edx-logo.is-fallback { width: min(300px, 100%); min-height: 96px; max-height: 132px; aspect-ratio: auto; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); border-radius: 14px; padding: 14px 16px; place-items: center start; }
+        .edx-logo__fb { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
+        .edx-logo__fb-tag { font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+        .edx-logo__fb-name { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); line-height: 1.15; }
 
         /* PHOTO SLOT */
         .edx-photo { display: grid; gap: 10px; }
-        .edx-photo__main { position: relative; margin: 0; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; background: var(--swc-coffee, #6A2C15); box-shadow: var(--shadow-lg); }
+        .edx-photo__main { position: relative; margin: 0; aspect-ratio: 4 / 3; min-height: clamp(340px, 46vh, 500px); border-radius: 18px; overflow: hidden; background: var(--swc-coffee, #6A2C15); box-shadow: var(--shadow-lg); }
+        .edx-slot-fb__tag { position: absolute; top: 12px; left: 12px; font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 10px; }
         .edx-photo__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .edx-photo__mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .edx-photo__thumb { position: relative; margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--swc-coffee, #6A2C15); }
