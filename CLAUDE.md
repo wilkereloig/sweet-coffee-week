@@ -99,8 +99,8 @@ Variações incorretas a evitar: "Sweet Coffee Week", "Sweet Coffee", "Sweet Cof
 
 ### Institucional
 - Páginas: `src/pages/institutional/` (Home, Curiosidades, Edições, Participar, Apoiar, Contato)
-- Paleta: terracotta (`--bg`, `--ink`, `--accent`, `--peach`)
-- Tipografia: Instrument Serif + DM Sans
+- Sistema vigente: `src/styles/swc-redesign.css` (paleta v2 creme/chocolate + acentos coral/rosa/ciano/amarelo; Nexa Slab). Ver **Regras de layout institucional** abaixo.
+- Tokens semânticos compatíveis: `--bg`, `--ink`, `--accent`, `--peach` seguem válidos (mapeados para a paleta v2).
 
 ### Edição Lovers
 - Páginas: `src/pages/lovers/` (Hub, Combos, Mapa, Awards)
@@ -110,6 +110,42 @@ Variações incorretas a evitar: "Sweet Coffee Week", "Sweet Coffee", "Sweet Cof
 - Fontes via CSS custom properties: `--font-lovers-display`, `--font-lovers-body`
 
 Nunca aplicar estilos Lovers em páginas Institucionais nem vice-versa, a menos que explicitamente pedido.
+
+## Regras de layout institucional
+
+O sistema visual institucional vigente está em `src/styles/swc-redesign.css` (carregado por último em `src/main.jsx`, vence o cascade). É a fonte de verdade para tokens, tipografia, paleta e formas da marca nas páginas institucionais. As páginas (`src/pages/institutional/`) trazem o markup + um bloco `<style>` próprio com as classes específicas de cada página.
+
+### Sistema único — não duplicar tokens
+- Paleta de campanha (v2): papel creme (`--cream`, `--cream-deep`, `--cream-card`), tinta chocolate (`--choco`, `--choco-deep`) e 4 acentos pop — coral (`--coral`), rosa/doce (`--pink`), ciano (`--cyan`), amarelo (`--yellow`). Pontes `--swc-coral/--swc-cyan/--swc-yellow/--swc-chocolate/--swc-coffee/--swc-cream` são usadas nas páginas.
+- Tipografia institucional: **Nexa Slab** (`--font-display`, `--font-heading`, `--font-body`); mono só no eyebrow.
+- Tokens de layout já existentes — **reutilizar, não recriar**: largura/recuo do conteúdo via `.wrap` (`--maxw`/`--pad`) e, na Home, `--hm-gutter`/`--hm-content-max`; ritmo vertical entre seções via `--sp-section`/`.section`; sombras quentes via `--shadow-sm/md/lg` (sempre `rgba(43,24,16,…)`, nunca preto puro `rgba(0,0,0,…)`); raios `--r-*`.
+
+### Margem de segurança do header / hero
+- Desktop (≥960px): sidebar fixa (`--sidebar-w`), sem header no topo — `main` recebe `margin-left`. Mobile/tablet (<960px): header `sticky` (em fluxo), o conteúdo já começa abaixo dele.
+- Toda hero interna usa recuo de topo padrão `padding: clamp(54px, 8vw, 112px) 0 …` e container `.wrap`. Conteúdo (título, foto, cards, botões) nunca invade o header. Resolver respiro de hero de forma estrutural (padding da seção), nunca com `margin-top` solto.
+- Seções que carregam formas decorativas posicionadas (`position: absolute`) devem ser `position: relative; overflow: hidden;` para evitar overflow horizontal no mobile.
+
+### Formas da marca x stickers
+- As formas orgânicas (`/images/shapes/shape-*.svg`: arrow-yellow, flower-coral, star-cyan, badge-choco, splat-coral) são **linguagem oficial da marca**, aplicadas de forma sistemática (peek nos cantos, `aria-hidden`, `pointer-events: none`, dentro de seção com `overflow: hidden`). Mantê-las.
+- O que é proibido: stickers/doodles/blobs aleatórios fora desse sistema, ornamentos sem função, ícones decorativos soltos que competem com texto ou foto. Todo elemento visual deve organizar, hierarquizar, conduzir leitura ou destacar dado/foto/logo.
+
+### Paleta
+- Usar apenas a paleta v2 acima (creme, bege, rosa, amarelo, ciano, coral/vermelho, marrom, vinho nos contextos Lovers). Não criar cores novas, não usar roxo/verde/cinza frio nem preto puro sem necessidade.
+
+### Áreas de foto, placeholders e logos
+- Usar `PhotoEditorial`/`.media-ph*` como áreas de foto editoriais; sempre `alt` e `onError` de fallback. Placeholder deve parecer parte do design, não erro técnico (ex.: "Foto pendente", "Galeria pendente").
+- Logos reais com `object-fit: contain`, limite de altura e `alt`. Não inventar logo nem hotlinkar imagem externa.
+
+### Texto e nomenclatura
+- Não usar "Sweet" sozinho para falar do festival. Usar **Sweet & Coffee Week**, **SCW** (após apresentar o nome), "o festival", "a edição", "o evento". Evitar "o Sweet", "do Sweet", "história do Sweet", "Sweet na mídia".
+- Nomes oficiais preservados: **Sweet Awards**, **Sweet Lovers**, **Sweet & Coffee Week Lovers**.
+- Priorizar clareza, objetividade e tom afetivo institucional; menos repetição.
+
+### CTAs e formulários
+- Cada página tem uma ação principal clara. Em **Participar** e **Apoiar**, o formulário é o objetivo principal: manter em destaque, com CTA da hero ancorando até ele (`#form-participar` / `#form-apoiar`), labels claros e botão evidente.
+
+### Referência
+- **Home / O Festival** é a página de referência do sistema. Não reconstruí-la nem alterá-la profundamente — apenas pequenos ajustes (desalinhamentos, margem, sombras quentes, texto repetido).
 
 ## Estrutura do projeto
 
