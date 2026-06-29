@@ -176,7 +176,6 @@ export function HistoricoAwardsPage({ navigate }) {
           <span className="hist-hero__sealnum">★</span>
         </span>
         <div className="wrap hist-hero__inner motion-reveal-up">
-          <span className="hist-eyebrow"><span className="hist-eyebrow__dot" />Sweet Awards</span>
           <h1>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></h1>
           <p>
             Edição após edição, o Sweet Awards eleva ao pódio os combos, sabores, apresentações, atendimentos e experiências que mais encantaram o Sweet &amp; Coffee Week. Aqui ficam registradas as marcas que viraram memória do festival.

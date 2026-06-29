@@ -178,7 +178,6 @@ export function EdicoesPage({ navigate }) {
         <Sticker name="shape-star-cyan" className="ed-hero__st1" />
         <div className="wrap ed-hero__grid">
           <div className="ed-hero__copy motion-reveal-up">
-            <span className="ed-eyebrow"><span className="ed-eyebrow__dot" />Edições · linha do tempo</span>
             <h1>Uma trajetória contada em temas, sabores e <span className="keep-together"><span className="ed-hl" style={{ '--hl': 'var(--page-accent)' }}>memórias</span>.</span></h1>
             <p>
               Desde 2016, cada edição do Sweet &amp; Coffee Week abriu um novo universo criativo para marcas participantes e Sweet Lovers. Esta página acompanha essa evolução em uma linha do tempo visual do festival.

@@ -10,7 +10,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { sweetEditions, historyStats, biggestEditions, AWARD_STATUS } from '../../data/sweetHistory'
+import { sweetEditions, historyStats, AWARD_STATUS } from '../../data/sweetHistory'
 
 const combo = (slug) => `/images/combos/${slug}/main.jpg`
 const logoSrc = (slug) => `/logos/participants/${slug}.png`
@@ -77,7 +77,6 @@ export function CuriosidadesPage({ navigate }) {
         <Sticker name="shape-star-cyan" className="cur-hero__st1" />
         <div className="wrap cur-hero__grid">
           <div className="cur-hero__copy motion-reveal-up">
-            <span className="cur-eyebrow"><span className="cur-eyebrow__dot" />Curiosidades · arquivo do festival</span>
             <h1>Uma história contada em temas, marcas e <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--pink)' }}>Sweet Lovers</span>.</span></h1>
             <p>
               Desde 2016, o Sweet &amp; Coffee Week reúne marcas gastronômicas de Natal em edições temáticas. Esta página abre o arquivo do festival para mostrar recorrências, recordes e os momentos que marcaram a trajetória.
@@ -136,26 +135,6 @@ export function CuriosidadesPage({ navigate }) {
                     ? <div className="cur-chips">{e.participants.map((p) => <span className="cur-chip" key={p}>{p}</span>)}</div>
                     : <p className="cur-edi__pending">{e.participantsCount} participantes — lista nominal em breve no acervo.</p>}
                 </details>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* 4 — MAIORES EDIÇÕES (pódio + barras) */}
-      <section className="section cur-biggest">
-        <div className="wrap">
-          <div className="cur-head motion-reveal-up">
-            <h2>As maiores <span className="cur-hl" style={{ '--hl': 'var(--yellow-deep)' }}>edições</span></h2>
-            <p>Por número de participações — a expansão do festival como circuito de cidade.</p>
-          </div>
-          <ol className="cur-rank motion-stagger">
-            {biggestEditions.map((e, i) => (
-              <li className={`cur-rank__item${i === 0 ? ' is-top' : ''}`} key={e.id}>
-                <span className="cur-rank__pos">{i + 1}º</span>
-                <span className="cur-rank__name">{e.theme} <em>· {e.code}</em></span>
-                <span className="cur-rank__bar"><span style={{ width: `${(e.participantsCount / biggestEditions[0].participantsCount) * 100}%` }} /></span>
-                <span className="cur-rank__num">{e.participantsCount}</span>
               </li>
             ))}
           </ol>

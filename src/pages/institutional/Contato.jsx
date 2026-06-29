@@ -53,7 +53,6 @@ export function ContatoPage({ navigate }) {
       {/* 1 — HERO (banda chocolate) */}
       <section className="contato-hero">
         <div className="wrap contato-hero__inner motion-reveal-up">
-          <span className="contato-eyebrow"><span className="contato-eyebrow__dot" />Contato</span>
           <h1>Vamos conversar sobre o <span className="keep-together"><span className="contato-hl" style={{ '--hl': 'var(--pink)' }}>Sweet &amp; Coffee Week</span>?</span></h1>
           <p>Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.</p>
         </div>

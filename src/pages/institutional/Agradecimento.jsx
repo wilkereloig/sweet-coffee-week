@@ -330,21 +330,29 @@ export function AgradecimentoPage() {
               fontWeight: 700, textTransform: 'uppercase', color: C.chocolate, margin: '0 auto 14px',
               maxWidth: '22ch', textWrap: 'balance',
             }}>
-              Em breve, os vencedores de outras edições.
+              Os vencedores de todas as edições.
             </h2>
             <p style={{
               fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
-              color: C.chocolate, maxWidth: '60ch', margin: '0 auto 12px',
+              color: C.chocolate, maxWidth: '60ch', margin: '0 auto 22px',
             }}>
-              O acervo do Sweet Awards está sendo organizado para reunir os vencedores das edições
-              anteriores do Sweet &amp; Coffee Week e preservar a memória do festival.
+              O histórico do Sweet Awards reúne os premiados das edições anteriores do
+              Sweet &amp; Coffee Week — por edição, trilha e categoria — preservando a memória
+              do festival.
             </p>
-            <p style={{
-              fontFamily: FONT_BODY, fontSize: 'clamp(15px, 1.9vw, 18px)', lineHeight: 1.6,
-              color: C.coffee, maxWidth: '60ch', margin: '0 auto',
-            }}>
-              Em breve, esta área poderá ser consultada por edição, categoria, participante e colocação.
-            </p>
+            <a
+              href="#/historico-sweet-awards"
+              onClick={() => { if (typeof window !== 'undefined') window.scrollTo(0, 0) }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                background: C.coffee, color: C.cream, border: 'none',
+                borderRadius: 100, padding: '15px 36px',
+                fontFamily: FONT_BODY, fontWeight: 700, fontSize: 'clamp(15px, 1.8vw, 17px)',
+                letterSpacing: '.02em', textDecoration: 'none',
+              }}
+            >
+              Ver histórico do Sweet Awards
+            </a>
           </div>
         </section>
 

@@ -98,7 +98,6 @@ export function ApoiarPage({ navigate }) {
       <section className="apoiar-hero">
         <span className="apoiar-hero__seal" aria-hidden="true"><span className="apoiar-hero__seal__shape" /></span>
         <div className="wrap apoiar-hero__inner motion-reveal-up">
-          <span className="apoiar-eyebrow"><span className="apoiar-eyebrow__dot" />Apoiar</span>
           <h1>Associe sua marca à temporada mais <span className="keep-together"><span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
           <p>
             O Sweet &amp; Coffee Week conecta marcas a um público urbano, engajado e interessado em gastronomia, experiência, circulação pela cidade e consumo local — em uma campanha proprietária que acontece todos os anos.
