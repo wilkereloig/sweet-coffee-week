@@ -332,17 +332,24 @@ export function EdicoesPage() {
 
       <style>{`
         .edx-page {
-          --page-max: 1180px;
-          --page-gutter: clamp(20px, 4vw, 64px);
-          --hero-top-space: clamp(120px, 16vh, 190px);
+          /* container alinhado à Home (.wrap → --maxw 1280 / --pad clamp(20,4vw,56)) */
+          --page-max: 1280px;
+          --page-gutter: clamp(20px, 4vw, 56px);
+          /* zona de segurança header↔hero — mesmos tokens globais (styles.css :body),
+             redefinidos aqui pois .edx-page é auto-contida (escapa da regra global de hero). */
+          --header-safe-offset: clamp(120px, 14vh, 168px);
+          --hero-top-clearance: clamp(32px, 4vw, 56px);
+          --hero-content-start: calc(var(--header-safe-offset) + var(--hero-top-clearance));
           overflow-x: clip;
         }
         .edx-wrap { max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); }
         .edx-hl { color: var(--page-accent, var(--cyan)); font-style: italic; }
 
         /* HERO — altura proporcional, topo livre (não encosta no menu) */
-        .edx-hero { background: #381610; color: var(--cream); min-height: clamp(680px, 86vh, 920px); display: flex; align-items: flex-end; padding: var(--hero-top-space) 0 clamp(56px, 9vh, 110px); overflow: clip; }
-        .edx-hero__inner { width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 80px); align-items: end; }
+        /* wrapper: fundo full-bleed pode subir até o topo; só o padding-bottom aqui */
+        .edx-hero { background: #381610; color: var(--cream); min-height: clamp(680px, 86vh, 920px); display: flex; align-items: flex-end; padding: 0 0 clamp(56px, 9vh, 110px); overflow: clip; }
+        /* inner: conteúdo começa após a zona de segurança do header (nunca encosta no menu) */
+        .edx-hero__inner { width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 80px); align-items: end; padding-top: var(--hero-content-start); }
         .edx-hero__eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }
         .edx-hero__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(38px, 5.4vw, 78px); line-height: .98; max-width: 16ch; margin: var(--sp-4) 0 0; color: var(--cream); text-wrap: balance; }
         .edx-hero__text { max-width: 50ch; margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }

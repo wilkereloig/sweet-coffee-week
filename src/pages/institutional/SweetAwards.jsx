@@ -524,7 +524,8 @@ const styles = `
   font-family: var(--font-sans);
 }
 .swa em { font-style: italic; }
-.swa-wrap { max-width: 1180px; margin: 0 auto; padding-inline: clamp(20px, 4vw, 64px); }
+/* container alinhado à Home (.wrap → --maxw 1280 / --pad clamp(20,4vw,56)) */
+.swa-wrap { max-width: 1280px; margin: 0 auto; padding-inline: clamp(20px, 4vw, 56px); }
 .swa-sec { padding-block: clamp(64px, 9vw, 132px); }
 .swa-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
@@ -558,7 +559,7 @@ const styles = `
 /* ── HERO ─────────────────────────────────────────────────────────────────── */
 .swa-hero { background: var(--swa-espresso); color: var(--swa-cream); overflow: clip; }
 .swa-hero__inner {
-  max-width: 1180px; margin: 0 auto; padding-inline: clamp(20px, 4vw, 64px);
+  max-width: 1280px; margin: 0 auto; padding-inline: clamp(20px, 4vw, 56px);
   padding-top: var(--swa-content-start); padding-bottom: clamp(56px, 8vw, 104px);
   display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(32px, 5vw, 72px); align-items: end;
 }

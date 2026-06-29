@@ -53,11 +53,19 @@ Não deixar textos, imagens ou componentes colados no menu principal.
 A hero das páginas **não deve ter altura fixa de 1080px**. Usar altura proporcional
 ao conteúdo, com respiro no topo e conteúdo principal ancorado mais para baixo.
 
-Tokens de referência:
+**Margem horizontal — REGRA: igual à Home em TODAS as páginas.** O container canônico
+é o `.wrap` da Home (`src/styles.css`): `max-width: var(--maxw)` = **1280px**,
+`padding: 0 var(--pad)` = **clamp(20px, 4vw, 56px)**. Toda página institucional deve
+usar exatamente essa margem — `.wrap` direto, ou, se tiver container próprio, replicar
+1280px / clamp(20px,4vw,56px). Não criar largura/gutter divergentes (ex.: 1180px ou
+clamp ...,64px): quebra o alinhamento vertical entre as páginas. Já alinhados a este
+padrão: Edições (`--page-max`/`--page-gutter`) e Sweet Awards (`.swa-wrap`/`.swa-hero__inner`).
+
+Tokens reais (Home):
 ```css
---page-max:        1180px;
---page-gutter:     clamp(20px, 4vw, 64px);
---section-y:       clamp(72px, 10vw, 140px);
+--maxw:      1280px;                    /* largura máx. do conteúdo (.wrap) */
+--pad:       clamp(20px, 4vw, 56px);    /* gutter lateral (.wrap) */
+--section-y: clamp(72px, 10vw, 140px);  /* ritmo vertical de seção */
 ```
 
 Regras: topo da hero deve respirar; conteúdo não pode brigar com o menu; alinhamentos
