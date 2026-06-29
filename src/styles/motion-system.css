@@ -184,6 +184,7 @@
   opacity: 0; transform: scale(.9) rotate(-4deg); transform-origin: left center;
   transition: opacity 600ms var(--ease-out-soft), transform 600ms var(--ease-spring-soft);
   will-change: opacity, transform;
+  filter: drop-shadow(0 4px 10px rgba(43, 24, 16, .28));
 }
 .brand-cycle__img.is-in { opacity: 1; transform: none; }
 
