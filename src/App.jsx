@@ -16,6 +16,7 @@ import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { AgradecimentoPage } from './pages/institutional/Agradecimento'
 import { PainelPage }       from './pages/lovers/Painel'
+import { PesquisaPage }     from './pages/lovers/Pesquisa'
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
@@ -54,6 +55,7 @@ const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar'
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
+  if (path.startsWith('/lovers/pesquisa')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
 }
 
@@ -69,6 +71,8 @@ export default function App() {
   const route = (() => {
     // Painel interno segue acessível mesmo em modo Awards-only (não aparece em menu).
     if (path.startsWith('/lovers/painel')) return 'painel'
+    // Pesquisa Sweet Lovers: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
+    if (path.startsWith('/lovers/pesquisa')) return 'pesquisa'
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
@@ -97,6 +101,7 @@ export default function App() {
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
     case 'vencedores':   page = <AgradecimentoPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
+    case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
     default:             page = <HomePage navigate={navigate} />
   }
 
