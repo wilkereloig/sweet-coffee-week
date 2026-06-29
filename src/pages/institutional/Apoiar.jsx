@@ -310,11 +310,18 @@ export function ApoiarPage() {
               const Icon = I[g.icon] || I.star
               return (
                 <article className="apoiar-where__card" key={g.t} style={{ '--hl': g.hl }}>
-                  <span className="apoiar-where__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
-                  <h3>{g.t}</h3>
-                  <ul>
-                    {g.items.map((it) => <li key={it}>{it}</li>)}
-                  </ul>
+                  {/* Slot de foto reservado — moldura editorial até a foto real chegar.
+                      Quando houver asset: trocar o placeholder por <img src=... alt=... />. */}
+                  <div className="apoiar-where__media" role="img" aria-label={`Foto de ${g.t} (pendente)`}>
+                    <span className="apoiar-where__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
+                    <span className="apoiar-where__ph">Foto pendente</span>
+                  </div>
+                  <div className="apoiar-where__body">
+                    <h3>{g.t}</h3>
+                    <ul>
+                      {g.items.map((it) => <li key={it}>{it}</li>)}
+                    </ul>
+                  </div>
                 </article>
               )
             })}
@@ -452,9 +459,14 @@ export function ApoiarPage() {
         /* ============ 4 — ONDE APARECER (4 grupos) ============ */
         .apoiar-where-section { background: var(--cream); }
         .apoiar-where { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
-        .apoiar-where__card { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); }
-        .apoiar-where__card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); }
-        .apoiar-where__ic { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: #fff; background: var(--hl, var(--coral)); margin-bottom: var(--sp-4); box-shadow: 0 8px 20px rgba(43,24,16,.16); }
+        .apoiar-where__card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+        .apoiar-where__card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; z-index: 2; background: var(--hl, var(--coral)); }
+        /* slot de foto reservado: moldura editorial; vira <img object-fit:cover> depois */
+        .apoiar-where__media { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; background: var(--cream-deep, var(--bg-soft)); border-bottom: 1px solid var(--paper-line); overflow: hidden; }
+        .apoiar-where__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .apoiar-where__ph { font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); opacity: .55; }
+        .apoiar-where__ic { position: absolute; left: 12px; bottom: 12px; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: var(--hl, var(--coral)); box-shadow: 0 8px 20px rgba(43,24,16,.28); }
+        .apoiar-where__body { padding: var(--sp-5); }
         .apoiar-where__card h3 { font-family: var(--font-heading); font-weight: 800; font-size: 18px; line-height: 1.1; margin: 0 0 var(--sp-3); color: var(--ink); }
         .apoiar-where__card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
         .apoiar-where__card li { position: relative; padding-left: 16px; color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
