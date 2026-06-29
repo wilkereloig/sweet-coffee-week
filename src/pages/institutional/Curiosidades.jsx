@@ -99,7 +99,6 @@ export function CuriosidadesPage({ navigate }) {
     <div className="page-enter cur-page" ref={rootRef}>
       {/* 1 — HERO editorial: convite de arquivo + colagem real */}
       <section className="cur-hero">
-        <Sticker name="shape-star-cyan" className="cur-hero__st1" />
         <div className="wrap cur-hero__grid">
           <div className="cur-hero__copy motion-reveal-up">
             <h1>O lado mais curioso da história do <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>Sweet &amp; Coffee Week</span>.</span></h1>
@@ -140,7 +139,6 @@ export function CuriosidadesPage({ navigate }) {
 
       {/* 3 — HALL DOS PREMIADOS (vitórias e pódios, separados) */}
       <section className="section cur-hall">
-        <Sticker name="shape-splat-coral" className="cur-hall__st" />
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
             <h2>Hall dos <span className="cur-hl" style={{ '--hl': 'var(--pink)' }}>premiados</span></h2>
@@ -215,7 +213,6 @@ export function CuriosidadesPage({ navigate }) {
 
       {/* 5 — AS CATEGORIAS TAMBÉM CONTAM A HISTÓRIA (mini timeline de marcos) */}
       <section className="section cur-evo">
-        <Sticker name="shape-star-cyan" className="cur-evo__st" />
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
             <h2>As categorias também contam a <span className="cur-hl" style={{ '--hl': 'var(--yellow-deep)' }}>história</span></h2>
@@ -244,7 +241,6 @@ export function CuriosidadesPage({ navigate }) {
 
       {/* 6 — PRIMEIRAS VEZES E MOMENTOS MARCANTES */}
       <section className="section cur-moments">
-        <Sticker name="shape-flower-coral" className="cur-moments__st" />
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
             <h2>Primeiras vezes e momentos <span className="cur-hl" style={{ '--hl': 'var(--coral)' }}>marcantes</span></h2>
@@ -257,9 +253,7 @@ export function CuriosidadesPage({ navigate }) {
                     <img src={c.photo} alt={`Combo da ${c.brand} no Sweet & Coffee Week`} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.closest('.cur-card__media').classList.add('is-empty') }} />
                     <span className="cur-card__logo"><LogoChip name={c.brand} size={52} /></span>
                   </div>
-                ) : (
-                  c.sticker && <Sticker name={c.sticker} className="cur-card__st" />
-                )}
+                ) : null}
                 <div className="cur-card__body">
                   <h3>{c.t}</h3>
                   <p>{c.d}</p>
@@ -272,7 +266,6 @@ export function CuriosidadesPage({ navigate }) {
 
       {/* 7 — CTA Histórico do Sweet Awards */}
       <section className="section cur-cta">
-        <Sticker name="shape-heart-yellow" className="cur-cta__st" />
         <div className="wrap cur-cta__inner motion-reveal-up">
           <h2>Quer ver resultado por resultado?</h2>
           <p>O histórico do Sweet Awards reúne categorias, edições, vencedores e pódios de cada temporada.</p>

@@ -175,7 +175,6 @@ export function EdicoesPage({ navigate }) {
     <div className="page-enter ed-page" ref={rootRef}>
       {/* 1 — HERO editorial: convite + colagem real do acervo */}
       <section className="ed-hero">
-        <Sticker name="shape-star-cyan" className="ed-hero__st1" />
         <div className="wrap ed-hero__grid">
           <div className="ed-hero__copy motion-reveal-up">
             <h1>Uma trajetória contada em temas, sabores e <span className="keep-together"><span className="ed-hl" style={{ '--hl': 'var(--page-accent)' }}>memórias</span>.</span></h1>
@@ -196,7 +195,6 @@ export function EdicoesPage({ navigate }) {
             <span className="ed-hero__seal" aria-hidden="true">
               <img src={TEN_YEARS_SEAL} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none' }} />
             </span>
-            <Sticker name="shape-heart-yellow" className="ed-hero__st2" />
           </div>
         </div>
       </section>
@@ -223,7 +221,6 @@ export function EdicoesPage({ navigate }) {
 
       {/* 3 — LINHA DO TEMPO (16 edições conectadas) */}
       <section className="section ed-timeline-section">
-        <Sticker name="shape-splat-coral" className="ed-timeline__st" />
         <div className="wrap">
           <div className="ed-head motion-reveal-up">
             <h2>A evolução, edição por <span className="ed-hl" style={{ '--hl': 'var(--page-accent)' }}>edição</span></h2>
@@ -310,7 +307,6 @@ export function EdicoesPage({ navigate }) {
 
       {/* 4 — CTA */}
       <section className="section ed-cta">
-        <Sticker name="shape-heart-yellow" className="ed-cta__st" />
         <div className="wrap ed-cta__inner motion-reveal-up">
           <h2>Cada edição abriu um novo universo criativo.</h2>
           <p>Explore os bastidores e os números do festival, ou veja quem foi premiado a cada ano.</p>
