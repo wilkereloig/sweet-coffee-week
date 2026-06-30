@@ -32,12 +32,27 @@ const OFFICIAL_CATEGORIES = (CURRENT_EDITION?.premiacao?.categorias || []).map((
   desc: c.descricao || '',
 }))
 
+// Posts oficiais da premiação no Instagram (@sweetcoffeeweek), 1 por categoria da
+// edição Lovers 2026.1. Mapeados pelo NOME da categoria (string idêntica na fonte
+// loversAwardsResults.js). URLs originárias da antiga página Agradecimento.
+const CATEGORY_POSTS = {
+  'Melhor Combo':         'https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/',
+  'Melhor Atendimento':   'https://www.instagram.com/sweetcoffeeweek/p/DZ22cPZlIw0/',
+  'Melhor Criatividade':  'https://www.instagram.com/sweetcoffeeweek/p/DZ3HpCMFI9u/',
+  'Melhor Apresentação':  'https://www.instagram.com/sweetcoffeeweek/p/DZ284XpFL5r/',
+  'Melhor Doce':          'https://www.instagram.com/sweetcoffeeweek/p/DZ2wGJxFOOu/',
+  'Melhor Salgado':       'https://www.instagram.com/sweetcoffeeweek/p/DZ2n4hrlgdI/',
+  'Melhor Bebida':        'https://www.instagram.com/sweetcoffeeweek/p/DZ2hWvzFkT9/',
+  'Encantamento em Loja': 'https://www.instagram.com/sweetcoffeeweek/p/DZ3NQVsFF2p/',
+}
+
 // Pódios da edição atual (Lovers 2026.1), com a descrição oficial acoplada.
 const CURRENT_RESULTS = LOVERS_2026_AWARDS_RESULTS.premiacao.categorias.map((c) => ({
   name: c.categoria,
   key: c.key,
   desc: OFFICIAL_CATEGORIES.find((o) => o.key === c.key)?.desc || '',
   colocacoes: c.colocacoes,
+  post: CATEGORY_POSTS[c.categoria] || null,
 }))
 
 // Categorias históricas que também fizeram parte da premiação, mas não são oficiais
@@ -196,6 +211,13 @@ function CurrentCategoryCard({ cat }) {
           ))}
         </ul>
       )}
+
+      {cat.post && (
+        <a className="swa-win__ig" href={cat.post} target="_blank" rel="noopener noreferrer"
+           aria-label={`Ver ${cat.name} no Instagram`}>
+          Ver no Instagram <span aria-hidden="true">↗</span>
+        </a>
+      )}
     </article>
   )
 }
@@ -329,10 +351,10 @@ export function SweetAwardsPage() {
               A edição Lovers celebrou os 10 anos do festival e reconheceu os participantes
               que mais se destacaram nas avaliações dos Sweet Lovers.
             </p>
-            {/* Link interino para o perfil oficial. Quando os posts da premiação
-                chegarem, dá para apontar cada categoria/colocação ao seu post. */}
+            {/* Cada categoria abaixo aponta para o post oficial da premiação no
+                Instagram (CATEGORY_POSTS). Este botão leva ao perfil do festival. */}
             <a className="swa-btn swa-btn--gold swa-current__ig" href="https://www.instagram.com/sweetcoffeeweek" target="_blank" rel="noopener noreferrer">
-              Ver a premiação no Instagram
+              Acompanhe @sweetcoffeeweek
             </a>
           </header>
           <div className="swa-current__grid">
@@ -622,6 +644,9 @@ const styles = `
 .swa-place-label { font-family: var(--font-slab); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a5d00; }
 .swa-win__rest { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .swa-win__rest-row { display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid var(--swa-line-ink); }
+.swa-win__ig { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-slab); font-weight: 700; font-size: 13px; letter-spacing: .02em; color: #8a5d00; text-decoration: none; border-bottom: 1.5px solid rgba(248,181,17,.5); padding-bottom: 1px; transition: color .18s ease, border-color .18s ease; }
+.swa-win__ig:hover { color: #2B1810; border-color: #2B1810; }
+.swa-win__ig:focus-visible { outline: 2px solid var(--swa-gold); outline-offset: 3px; border-radius: 3px; }
 .swa-honoree-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; min-width: 0; }
 .swa-honoree { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
 .swa-honoree__name { font-family: var(--font-slab); font-weight: 700; font-size: 15px; line-height: 1.1; }
