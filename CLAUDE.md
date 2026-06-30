@@ -45,6 +45,15 @@ Evitar: roxo, verde, cinzas frios aleatórios, pretos puros, cores externas que 
 pertençam à identidade. Reutilizar variáveis CSS existentes; não inserir hex
 aleatórios fora da paleta.
 
+**Acento por página = fundo da hero.** Cada rota define `--page-accent` em
+`body.route-*` (`src/styles.css`) e a regra global das heros institucionais usa esse
+token como **fundo cheio** (`background: var(--page-accent) !important`) com texto em
+tinta escura. Logo o acento tem que ser um **tom claro e dentro da paleta** (contraste
+com `--ink`). Acentos atuais: Edições ciano `#2BC4E8` · Awards/Histórico rosa `#F2548A`
+· Curiosidades amarelo `#F8B511` · Participar coral `#F2693C` · Apoiar azul `#1B86C9` ·
+Contato peach `#F2B6A0`. (Contato já foi lavanda `#B38CFF` — roxo, fora da paleta;
+corrigido.) Ao criar/editar rota, nunca usar roxo/verde/lavanda como `--page-accent`.
+
 ## 4. Margens, grid e respiro
 
 Todas as páginas internas devem respeitar o sistema de margens da Home/O Festival.

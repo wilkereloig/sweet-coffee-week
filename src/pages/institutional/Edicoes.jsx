@@ -275,7 +275,6 @@ export function EdicoesPage() {
       <section className="edx-hero">
         <div className="edx-wrap edx-hero__inner">
           <div className="edx-hero__copy">
-            <span className="edx-hero__eyebrow">Edições</span>
             <h1 className="edx-hero__title">A história do <span className="edx-hl">Sweet &amp; Coffee Week</span>, edição por edição.</h1>
             <p className="edx-hero__text">De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal.</p>
             <div className="edx-hero__hint" aria-hidden="true">
@@ -350,7 +349,6 @@ export function EdicoesPage() {
         .edx-hero { background: #381610; color: var(--cream); min-height: clamp(680px, 86vh, 920px); display: flex; align-items: flex-end; padding: 0 0 clamp(56px, 9vh, 110px); overflow: clip; }
         /* inner: conteúdo começa após a zona de segurança do header (nunca encosta no menu) */
         .edx-hero__inner { width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 80px); align-items: end; padding-top: var(--hero-content-start); }
-        .edx-hero__eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }
         .edx-hero__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(38px, 5.4vw, 78px); line-height: .98; max-width: 16ch; margin: var(--sp-4) 0 0; color: var(--cream); text-wrap: balance; }
         .edx-hero__text { max-width: 50ch; margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .edx-hero__hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-7); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }

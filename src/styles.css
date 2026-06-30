@@ -488,7 +488,7 @@ body.route-historico-awards { --page-accent: #F2548A; --page-accent-soft: rgba(2
 body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
 body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
 body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
-body.route-contato          { --page-accent: #B38CFF; --page-accent-soft: rgba(179,140,255,.20); --page-accent-dark: #6E48B8; }
+body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
 
 /* ============================================================
    HEROS — altura 1080px (desktop) + fundo na cor-acento da página
