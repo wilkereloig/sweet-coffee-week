@@ -139,7 +139,7 @@ src/styles/fonts-nexa-slab.css   # @font-face Nexa Slab (+ alias Nexa Slab Black
 src/components/nav.jsx           # SideNav + header + drawer mobile
 src/components/placeholders.jsx  # PhotoEditorial (foto real / gradiente)
 src/data/comboPhotos.js          # pool de fotos reais de combos
-src/pages/institutional/         # Home, Edicoes, Curiosidades, Participar, Apoiar, Contato, Agradecimento (Sweet Awards)
+src/pages/institutional/         # Home, Edicoes, Curiosidades, Participar, Apoiar, Contato, SweetAwards, HistoricoAwards
 public/images/shapes/            # shapes da marca (.svg) — star, flower, badge, arrow, splat, wave
 public/fonts/nexa-slab/          # Nexa Slab woff2 (Thin→Black)
 ```

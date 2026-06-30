@@ -186,8 +186,7 @@ categorias do Sweet Awards; primeiras vezes; momentos marcantes.
 ## 12. Página Sweet Awards
 
 **Reconstruída** em `src/pages/institutional/SweetAwards.jsx` (rota `vencedores` /
-`premiacao` em `App.jsx`; o antigo `Agradecimento.jsx` foi aposentado mas mantido no
-disco). Aparência de premiação/hall de vencedores — não embeds de Instagram. Identidade
+`premiacao` em `App.jsx`; o antigo `Agradecimento.jsx` foi removido). Aparência de premiação/hall de vencedores — não embeds de Instagram. Identidade
 **institucional do festival** (espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha),
 NUNCA o KV Lovers. Estrutura: hero institucional → o que é → categorias (8 oficiais +
 históricas computadas) → vencedores da edição atual (Lovers 2026.1, em destaque) →

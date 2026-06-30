@@ -11,8 +11,7 @@ export const SWEET_COFFEE_HISTORY = {
       "Acervo de criação da agência (Experience)",
       "Dados consolidados no projeto ChatGPT/Claude para a edição Sweet & Coffee Week Lovers 2026.1",
       "src/data/participants.js",
-      "src/data/sweetAwards.js",
-      "src/pages/institutional/Agradecimento.jsx"
+      "src/data/sweetAwards.js"
     ],
     "observacoes": {
       "trilhas": "trilha pode ser 'juri_tecnico', 'sweet_lovers' ou null (quando a peça não distingue trilha).",
