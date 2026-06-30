@@ -116,9 +116,12 @@ export default function App() {
     return () => document.body.classList.remove(cls)
   }, [route])
 
+  // Áreas internas (painéis) são tela cheia: sem header/menu público.
+  const isInternal = route === 'painel' || route === 'painel-admin'
+
   return (
     <DevViewportSwitcher>
-      <SiteHeader route={route} navigate={navigate} path={path} />
+      {!isInternal && <SiteHeader route={route} navigate={navigate} path={path} />}
       <main key={route} className="page-enter">
         <ErrorBoundary key={route}>
           <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
