@@ -116,10 +116,12 @@ const BRAND_LOGOS = [
   { src: '/images/selo-10-anos.svg', alt: 'Sweet & Coffee Week — 10 anos' },
 ]
 
-function BrandLogo({ navigate }) {
+function BrandLogo({ navigate, route }) {
+  const isHome = route === 'home'
   const [idx, setIdx] = React.useState(0)
 
   React.useEffect(() => {
+    if (!isHome) { setIdx(0); return }
     const reduce =
       window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce || BRAND_LOGOS.length <= 1) return
@@ -128,7 +130,7 @@ function BrandLogo({ navigate }) {
       setIdx((i) => (i + 1) % BRAND_LOGOS.length)
     }, 10000)
     return () => clearInterval(id)
-  }, [])
+  }, [isHome])
 
   return (
     <a href="#/" className="brand brand-cycle" onClick={(e) => { e.preventDefault(); navigate('/') }}>
@@ -181,7 +183,7 @@ export function SiteHeader({ route, navigate }) {
     <React.Fragment>
       <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
         <div className="site-header__inner">
-          <BrandLogo navigate={navigate} light={transparent} />
+          <BrandLogo navigate={navigate} light={transparent} route={route} />
 
           <nav className="nav-main">
             {NAV_LINKS.map((l) => (
