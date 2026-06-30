@@ -20,7 +20,6 @@ export function PesquisaPage() {
 
   // step: 0 = intro, 1-7 = seções
   const [step, setStep]       = React.useState(0)
-  const [nome, setNome]       = React.useState('')
   const [multi, setMulti]     = React.useState({}) // qid -> string[]
   const [single, setSingle]   = React.useState({}) // qid -> string
   const [texto, setTexto]     = React.useState({}) // qid -> string
@@ -93,7 +92,7 @@ export function PesquisaPage() {
     try {
       const { error } = await supabase.rpc('submit_pesquisa', {
         p_email:      email || null,
-        p_nome:       nome  || null,
+        p_nome:       null,
         p_respostas:  montarRespostas(),
         p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       })
@@ -167,18 +166,7 @@ export function PesquisaPage() {
           <div className="pesquisa__intro-screen">
             <h1>{PESQUISA_INTRO.titulo}</h1>
             <p>{PESQUISA_INTRO.texto}</p>
-            <div className="pesquisa__nome-wrap">
-              <label htmlFor="pesquisa-nome">Como podemos te chamar? (opcional)</label>
-              <input
-                id="pesquisa-nome"
-                className="pesquisa__outro-input"
-                type="text"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                placeholder="Seu nome"
-                autoComplete="name"
-              />
-            </div>
+
             <div className="pesquisa__nav">
               <button className="pesquisa__btn pesquisa__btn--next" onClick={avancar} type="button">
                 Começar pesquisa →

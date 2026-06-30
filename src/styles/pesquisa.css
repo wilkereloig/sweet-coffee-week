@@ -37,21 +37,6 @@
   max-width: 520px;
 }
 
-.pesquisa__nome-wrap {
-  text-align: left;
-  max-width: 400px;
-  margin: 0 auto 36px;
-}
-
-.pesquisa__nome-wrap label {
-  display: block;
-  font-family: var(--font-sans, system-ui, sans-serif);
-  font-weight: 600;
-  font-size: .92rem;
-  color: var(--ink-soft, #6B4A3A);
-  margin: 0 0 8px;
-}
-
 /* ── barra de progresso ── */
 .pesquisa__progress {
   margin: 0 0 32px;
