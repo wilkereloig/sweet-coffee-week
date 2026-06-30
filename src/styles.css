@@ -452,6 +452,9 @@ body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9;
   /* Ao rolar: logo sobe pro centro da barra, encolhe e fica à frente — alinhada ao menu */
   body:not(.route-painel) .site-header.scrolled .brand { top: 50%; z-index: 5; }
   body:not(.route-painel) .site-header.scrolled .brand-cycle { transform: translateY(-50%) scale(.62); }
+  /* Logo grande flutuante no desktop: bottom da logo ≈ header-inner (~120px) + metade
+     da logo (5.5vw). Safe-offset cobre esse valor p/ o conteúdo não sobrepor a logo. */
+  body { --header-safe-offset: clamp(196px, calc(120px + 6vw), 252px); }
 }
 /* Header agora é FIXO em todas as páginas públicas (idêntico à Home). Home e
    Participar têm hero escuro com folga própria no topo; as demais ganham folga
@@ -2824,15 +2827,17 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .sidebar__link--lovers::before {
   content: '';
   position: absolute; left: 7px; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 0; border-radius: 99px;
+  width: 3px; height: 66%; border-radius: 99px;
   background: var(--lovers-pink);
-  transition: height .18s ease, background .18s ease;
+  transform: translateY(-50%) scaleY(0);
+  transform-origin: center;
+  transition: transform .18s ease, background .18s ease;
 }
 .sidebar__link--lovers:hover {
   background: rgba(242, 5, 103, .07);
   transform: translateX(2px);
 }
-.sidebar__link--lovers:hover::before { height: 52%; }
+.sidebar__link--lovers:hover::before { transform: translateY(-50%) scaleY(0.79); }
 .sidebar__link-label {
   display: block;
   font-family: var(--font-lovers-body);
@@ -2860,7 +2865,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   border-left: none;
   padding-left: 18px;
 }
-.sidebar__link--lovers.lovers-active::before { height: 66%; background: var(--lovers-red); }
+.sidebar__link--lovers.lovers-active::before { transform: translateY(-50%) scaleY(1); background: var(--lovers-red); }
 .sidebar__link--lovers.lovers-active:hover { transform: none; }
 .sidebar__link--lovers.lovers-active .sidebar__link-label,
 .sidebar__link--lovers.lovers-active .sidebar__link-sub { color: var(--lovers-burgundy); }
