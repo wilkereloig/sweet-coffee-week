@@ -362,19 +362,22 @@ button:disabled { cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border-radius: 999px;
-  border: none;
-  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--lovers-brown) 28%, transparent);
+  background: color-mix(in srgb, var(--lovers-brown) 6%, transparent);
   color: var(--lovers-brown);
-  opacity: .72;
   cursor: pointer;
-  transition: opacity var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+  transition: background var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              border-color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
-.login-toggle svg { width: 20px; height: 20px; }
-.login-toggle:hover { opacity: 1; }
+.login-toggle svg { width: 19px; height: 19px; }
+.login-toggle:hover {
+  background: color-mix(in srgb, var(--lovers-brown) 12%, transparent);
+  border-color: color-mix(in srgb, var(--lovers-brown) 45%, transparent);
+}
 
 /* mobile nav */
 .menu-toggle { display: none; }
@@ -442,6 +445,16 @@ body:not(.route-painel) .site-header .nav-main a { color: rgba(255, 244, 236, 0.
 body:not(.route-painel) .site-header .nav-main a:hover { color: #fff; }
 body:not(.route-painel) .site-header .nav-main a.active { color: var(--page-accent, var(--cyan, #4fc3d9)); }
 body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
+/* Botão de acesso sobre o hero escuro: aro e ícone em creme claro */
+body:not(.route-painel) .site-header .login-toggle {
+  color: #FEF0DD;
+  border-color: rgba(254, 240, 221, 0.45);
+  background: rgba(254, 240, 221, 0.08);
+}
+body:not(.route-painel) .site-header .login-toggle:hover {
+  border-color: rgba(254, 240, 221, 0.75);
+  background: rgba(254, 240, 221, 0.16);
+}
 
 /* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
    barra full-width alinhada ao grid do conteúdo (--hm-gutter), logo prominente,
