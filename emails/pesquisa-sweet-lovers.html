@@ -43,11 +43,8 @@
           <!-- ── topo creme com selo 10 anos ── -->
           <tr>
             <td align="center" bgcolor="#FBEBD8" style="background-color:#FBEBD8;padding:38px 24px 30px;">
-              <!-- TROQUE o src abaixo pela URL que o Brevo gerar ao subir o PNG do selo
-                   (Brevo → editor → bloco de imagem → upload de selo-10-anos.png).
-                   A URL canônica abaixo passa a valer quando o site for publicado. -->
               <img class="selo"
-                   src="https://www.sweetcoffeeweek.com.br/images/selo-10-anos.png"
+                   src="https://dgfmoibynftadsyjcclg.supabase.co/storage/v1/object/public/assets/selo-10-anos.png"
                    width="160" height="121"
                    alt="Sweet &amp; Coffee Week — 10 anos"
                    style="width:160px;height:auto;margin:0 auto;">
@@ -61,7 +58,7 @@
           <tr>
             <td class="px-pad" style="padding:40px 48px 8px;">
               <h1 class="title" style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.1;font-weight:normal;color:#2B1810;">
-                {% if contact.FIRSTNAME %}Ei, {{contact.FIRSTNAME}}!{% else %}Ei, Sweet Lover!{% endif %}
+                Ei, {{ contact.FIRSTNAME | default : "Sweet Lover" }}!
               </h1>
               <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#5A4234;">
                 Você fez parte da nossa história ao votar no <strong style="color:#2B1810;">Sweet Awards</strong> — e a gente quer continuar com você por perto.
@@ -80,7 +77,7 @@
             <td align="center" class="px-pad" style="padding:0 48px 8px;">
               <!--[if mso]>
               <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
-                href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
+                href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={{ contact.FIRSTNAME | default : "" }}"
                 style="height:54px;v-text-anchor:middle;width:280px;" arcsize="50%" stroke="f" fillcolor="#E8553A">
                 <w:anchorlock/>
                 <center style="color:#ffffff;font-family:Helvetica Neue,Arial,sans-serif;font-size:16px;font-weight:700;">
@@ -90,7 +87,7 @@
               <![endif]-->
               <!--[if !mso]><!-->
               <a class="cta"
-                 href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
+                 href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={{ contact.FIRSTNAME | default : "" }}"
                  style="display:inline-block;padding:17px 40px;background-color:#E8553A;color:#ffffff;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;text-decoration:none;border-radius:999px;letter-spacing:.01em;">
                 Responder a pesquisa &rarr;
               </a>
