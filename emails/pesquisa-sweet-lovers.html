@@ -11,17 +11,14 @@
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings>
     <o:PixelsPerInch>96</o:PixelsPerInch>
   </o:OfficeDocumentSettings></xml></noscript><![endif]-->
+  <!-- Web font de títulos: Zilla Slab (Google Fonts, OFL — livre p/ e-mail).
+       Slab serif geométrica, parecida com a Nexa Slab. Enhancement: só
+       clientes que suportam web font (Apple/iOS Mail) renderizam; Gmail/
+       Outlook caem no fallback Georgia, sem quebra. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* Web font da marca — enhancement: só clientes que suportam @font-face
-       (Apple Mail, iOS Mail) renderizam Nexa Slab; Gmail/Outlook caem no
-       fallback Georgia, sem quebra. */
-    @font-face {
-      font-family: 'Nexa Slab';
-      font-style: normal;
-      font-weight: 700;
-      font-display: swap;
-      src: url('https://dgfmoibynftadsyjcclg.supabase.co/storage/v1/object/public/assets/fonts/NexaSlab-Bold.woff2') format('woff2');
-    }
     body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
     table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
     img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
@@ -67,7 +64,7 @@
           <!-- ── corpo ── -->
           <tr>
             <td class="px-pad" style="padding:40px 48px 8px;">
-              <h1 class="title" style="margin:0 0 20px;font-family:'Nexa Slab',Georgia,'Times New Roman',serif;font-size:34px;line-height:1.1;font-weight:700;color:#2B1810;">
+              <h1 class="title" style="margin:0 0 20px;font-family:'Zilla Slab',Georgia,'Times New Roman',serif;font-size:34px;line-height:1.1;font-weight:700;color:#2B1810;">
                 Ei, {{ contact.FIRSTNAME | default : "Sweet Lover" }}!
               </h1>
               <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#5A4234;">
@@ -117,7 +114,7 @@
           <!-- ── rodapé espresso ── -->
           <tr>
             <td align="center" bgcolor="#2B1810" style="background-color:#2B1810;padding:28px 32px;">
-              <p style="margin:0 0 6px;font-family:'Nexa Slab',Georgia,'Times New Roman',serif;font-size:15px;font-weight:700;letter-spacing:.04em;color:#FBEBD8;">
+              <p style="margin:0 0 6px;font-family:'Zilla Slab',Georgia,'Times New Roman',serif;font-size:15px;font-weight:700;letter-spacing:.04em;color:#FBEBD8;">
                 Sweet &amp; Coffee Week
               </p>
               <p style="margin:0 0 14px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.06em;color:#C9A98E;text-transform:uppercase;">
