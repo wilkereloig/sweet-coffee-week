@@ -227,6 +227,11 @@ afeto e credibilidade.
 ## 16. Dados históricos
 
 Fontes principais (verificar antes de criar rankings/históricos/cards):
+- `ACERVO.md` (raiz) — **resumo legível por IA** de TODO o acervo (16 edições,
+  Sweet Awards + vencedores com empates, Lovers 2026.1, 21 participantes, métricas,
+  curiosidades). Transcrição fiel das fontes abaixo; para gerar texto/responder usar
+  o `ACERVO.md`, mas o **código em `src/data/` é a verdade** (se divergir, vale o
+  código — e atualize o `ACERVO.md`);
 - `src/data/sweetCoffeeHistory.js` — **base oficial, 16 edições (inclui Lovers)**;
 - `src/data/loversAwardsResults.js` — resultados da 16ª edição (Lovers);
 - `src/data/participants.js`, `src/data/sweetAwards.js`, `src/data/editions.js`.
