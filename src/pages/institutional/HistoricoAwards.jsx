@@ -18,7 +18,8 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { sweetEditions, AWARD_STATUS } from '../../data/sweetHistory'
+import { sweetEditions } from '../../data/sweetHistory'
+import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
 
 function StatusBadge({ status }) {

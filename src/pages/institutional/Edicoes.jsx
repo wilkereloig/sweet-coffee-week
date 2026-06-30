@@ -21,8 +21,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { EDITIONS } from '../../data/editions'
-import { AWARD_STATUS } from '../../data/sweetHistory'
-import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
+import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark, TEN_YEARS_SEAL } from '../../data/editionAssets'
 

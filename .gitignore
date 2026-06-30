@@ -1,6 +1,6 @@
 node_modules
 dist
-dist_check*/
+dist*/
 public/images/adesivos-site/giphy/
 .vercel
 .env

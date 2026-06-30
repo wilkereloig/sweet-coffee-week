@@ -2,6 +2,16 @@
 // Fonte principal: sweet_coffee_data.json + dados consolidados da edição Lovers no projeto.
 // Não usar "Sweet" sozinho para se referir ao festival; usar Sweet & Coffee Week, SCW, o festival ou a edição.
 
+// Mapa de rótulo/tom por status de premiação. Fonte de verdade única (antes vivia em
+// sweetHistory.js, base legada de 15 edições). Consumido por Edicoes.jsx e HistoricoAwards.jsx.
+export const AWARD_STATUS = {
+  'nao-teve':       { label: 'Não teve premiação',        tone: 'muted'  },
+  'nao-encontrada': { label: 'Premiação não encontrada',  tone: 'warn'   },
+  'completa':       { label: 'Premiação completa',         tone: 'ok'     },
+  'parcial':        { label: 'Premiação parcial',          tone: 'info'   },
+  'a-conferir':     { label: 'A conferir',                 tone: 'info'   },
+}
+
 export const SWEET_COFFEE_HISTORY = {
   "meta": {
     "titulo": "Sweet & Coffee Week — Base Histórica Geral",
