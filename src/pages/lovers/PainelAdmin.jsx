@@ -71,7 +71,7 @@ const S = {
 
 // ── Aba Formulários ───────────────────────────────────────────────────────────
 
-const BREVO_LINK = 'https://www.sweetcoffeeweek.com.br/#/lovers/pesquisa?e={{contact.EMAIL}}&n={{contact.FIRSTNAME}}'
+const BREVO_LINK = 'https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={{contact.FIRSTNAME}}'
 
 function AbaFormularios({ total, loading }) {
   const [copied, setCopied] = React.useState(false)
@@ -96,7 +96,7 @@ function AbaFormularios({ total, loading }) {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <button style={S.btn} onClick={copy}>{copied ? '✓ Copiado!' : 'Copiar link Brevo'}</button>
               <a
-                href="#/lovers/pesquisa?e=preview@admin.com&n=Preview"
+                href="#/pesquisa?e=preview@admin.com&n=Preview"
                 target="_blank" rel="noreferrer"
                 style={S.ghost}
               >

@@ -59,8 +59,6 @@ const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar'
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
-  if (path.startsWith('/lovers/pesquisa')) return false
-  if (path.startsWith('/lovers/painel-admin')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
 }
 
@@ -74,11 +72,11 @@ export default function App() {
   }, [path, navigate])
 
   const route = (() => {
-    // Painel interno segue acessível mesmo em modo Awards-only (não aparece em menu).
-    if (path.startsWith('/lovers/painel-admin')) return 'painel-admin'
+    // Rotas internas: acessíveis mesmo em modo Awards-only (não aparecem em menu).
+    if (path.startsWith('/painel-admin')) return 'painel-admin'
     if (path.startsWith('/lovers/painel')) return 'painel'
-    // Pesquisa Sweet Lovers: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
-    if (path.startsWith('/lovers/pesquisa')) return 'pesquisa'
+    // Pesquisa: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
+    if (path.startsWith('/pesquisa')) return 'pesquisa'
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
