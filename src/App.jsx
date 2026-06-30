@@ -15,7 +15,7 @@ import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { SweetAwardsPage }  from './pages/institutional/SweetAwards'
-import { PesquisaPage }     from './pages/lovers/Pesquisa'
+import { PesquisaPage }     from './pages/institutional/Pesquisa'
 import { PainelAdminPage } from './pages/institutional/PainelAdmin'
 
 // Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,

@@ -119,7 +119,7 @@ export function PesquisaPage() {
         <div className="pesquisa__wrap">
           <div className="pesquisa__sucesso">
             <h1>Valeu, Sweet Lover! 🍫</h1>
-            <p>Sua resposta foi registrada. Boa sorte nos brindes do Sweet &amp; Coffee Week!</p>
+            <p>Sua resposta foi registrada. Obrigado por ajudar a moldar o Sweet &amp; Coffee Week!</p>
           </div>
         </div>
       </div>
