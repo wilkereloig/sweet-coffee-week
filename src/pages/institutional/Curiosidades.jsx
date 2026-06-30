@@ -269,7 +269,7 @@ export function CuriosidadesPage({ navigate }) {
         <div className="wrap cur-cta__inner motion-reveal-up">
           <h2>Quer ver resultado por resultado?</h2>
           <p>O histórico do Sweet Awards reúne categorias, edições, vencedores e pódios de cada temporada.</p>
-          <a href="#/historico-sweet-awards" className="btn btn-primary btn-lg motion-press" onClick={go('/historico-sweet-awards')}>
+          <a href="#/sweet-awards" className="btn btn-primary btn-lg motion-press" onClick={go('/sweet-awards')}>
             Ver histórico do Sweet Awards <I.arrow />
           </a>
         </div>

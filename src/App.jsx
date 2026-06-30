@@ -85,7 +85,7 @@ export default function App() {
     if (path.startsWith('/vencedores'))   return 'vencedores'
     if (path.startsWith('/premiacao'))    return 'vencedores'
     if (path.startsWith('/edicoes'))      return 'edicoes'
-    if (path.startsWith('/historico-sweet-awards')) return 'historico-awards'
+    if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
     if (path.startsWith('/curiosidades')) return 'curiosidades'
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'

@@ -69,7 +69,7 @@ function LoginDropdown({ navigate }) {
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Festival',   href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
-  { id: 'historico-awards', label: 'Sweet Awards', href: '#/historico-sweet-awards' },
+  { id: 'historico-awards', label: 'Sweet Awards', href: '#/sweet-awards' },
   { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
   { id: 'participar',   label: 'Participar',   href: '#/participar' },
   { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },

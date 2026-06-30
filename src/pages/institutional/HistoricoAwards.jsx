@@ -1,6 +1,6 @@
 /*
  * PÁGINA INSTITUCIONAL — "Hall dos vencedores do Sweet Awards".
- * Rota: #/historico-sweet-awards. NÃO é a página Sweet Awards publicada
+ * Rota: #/sweet-awards (alias antigo #/historico-sweet-awards). NÃO é a página Sweet Awards publicada
  * (SweetAwards/vencedores) — é o acervo histórico das premiações 2016–2026.
  *
  * Hall of fame data-driven (src/data/sweetHistory.js):
