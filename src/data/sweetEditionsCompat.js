@@ -51,7 +51,10 @@ export const sweetEditions = SWEET_COFFEE_HISTORY.edicoes.map((e) => {
     theme: e.tema || e.nome, // 2016 tem tema:null → fallback p/ não renderizar vazio.
     participantsCount: e.participantesCount,
     awardsStatus: prem.status,
-    awardsNote: prem.observacao || null,
+    // a observacao da 2026.1 é uma nota de bastidor ("Resultado oficial da Premiação
+    // da 16ª edição...") — fora da voz pública; o título + badge já comunicam. Demais
+    // edições mantêm a observacao (ex.: "Votação do público...").
+    awardsNote: e.id === LOVERS_2026_AWARDS_RESULTS.id ? null : (prem.observacao || null),
     awards: toAwards(prem.categorias),
     honorableMention: mh ? { category: mh.categoria, names: mh.nomes || [] } : null,
     sponsors: toSponsors(e.patrocinadores),

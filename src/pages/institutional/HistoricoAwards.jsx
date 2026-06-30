@@ -184,16 +184,6 @@ export function HistoricoAwardsPage({ navigate }) {
         </div>
       </section>
 
-      {/* 2 — TRANSPARÊNCIA */}
-      <section className="section hist-intro">
-        <div className="wrap">
-          <div className="hist-transp motion-reveal-up">
-            <span className="hist-transp__ic" aria-hidden="true"><I.star width={18} height={18} /></span>
-            <p>Este hall reúne resultados encontrados em posts, cards e acervo do Sweet &amp; Coffee Week. Algumas edições iniciais não tiveram premiação, e nem toda marca vencedora tem logo no acervo — nesses casos mostramos um monograma. Quando um resultado não foi localizado, a página informa o status em vez de completar dados por suposição.</p>
-          </div>
-        </div>
-      </section>
-
       {/* 3 — ACORDEÕES POR EDIÇÃO (mais recentes primeiro) */}
       <section className="section hist-list-section">
         <div className="wrap">

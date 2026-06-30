@@ -14,7 +14,6 @@ import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
-import { SweetAwardsPage }  from './pages/institutional/SweetAwards'
 import { PesquisaPage }     from './pages/institutional/Pesquisa'
 import { PainelAdminPage } from './pages/institutional/PainelAdmin'
 
@@ -28,8 +27,9 @@ const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({
 // EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
 // para consultar e exportar a votação (dados preservados no Supabase).
 // Publicação temporária focada em Awards: enquanto true, todo o site público
-// renderiza só a página de vencedores (/vencedores e alias /premiacao). O painel
-// interno (/lovers/painel) continua acessível, mas fora de qualquer menu/header.
+// renderiza só a página oficial do Sweet Awards — o Hall dos vencedores
+// (#/sweet-awards, route 'historico-awards'). O painel interno (/lovers/painel)
+// continua acessível, mas fora de qualquer menu/header.
 const AWARDS_ONLY_PUBLICATION = true
 
 // PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
@@ -80,10 +80,8 @@ export default function App() {
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
-    if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'vencedores'
+    if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'historico-awards'
     if (path === '/' || path === '') return 'home'
-    if (path.startsWith('/vencedores'))   return 'vencedores'
-    if (path.startsWith('/premiacao'))    return 'vencedores'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
     if (path.startsWith('/curiosidades')) return 'curiosidades'
@@ -103,7 +101,6 @@ export default function App() {
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
-    case 'vencedores':   page = <SweetAwardsPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
     case 'painel-admin': page = <PainelAdminPage navigate={navigate} />; break
