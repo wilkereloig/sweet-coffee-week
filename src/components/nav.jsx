@@ -19,7 +19,7 @@ function LoginDropdown({ navigate }) {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        className="menu-toggle"
+        className="login-toggle"
         onClick={() => setOpen(o => !o)}
         aria-label="Acesso"
         aria-expanded={open}

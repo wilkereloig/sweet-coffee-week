@@ -356,6 +356,26 @@ button:disabled { cursor: not-allowed; }
   gap: 10px;
 }
 
+/* Botão de acesso (login) — visível em TODAS as larguras (desktop + mobile),
+   ao contrário do hambúrguer (.menu-toggle), que só aparece no mobile. */
+.login-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--lovers-brown);
+  opacity: .72;
+  cursor: pointer;
+  transition: opacity var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.login-toggle svg { width: 20px; height: 20px; }
+.login-toggle:hover { opacity: 1; }
+
 /* mobile nav */
 .menu-toggle { display: none; }
 @media (max-width: 959px) {
@@ -429,8 +449,9 @@ body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9;
    sobre o hero (overrides abaixo); as demais ficam com barra sólida legível. */
 @media (min-width: 960px) {
   .site-header__inner { max-width: none; padding-inline: var(--hm-gutter); }
-  /* hambúrguer oculto no desktop: remove o nav-cta vazio p/ o menu encostar no gutter direito */
-  .nav-cta { display: none; }
+  /* hambúrguer fica oculto no desktop (.menu-toggle), mas o nav-cta segue visível
+     p/ mostrar o botão de acesso (.login-toggle). */
+  .nav-cta { display: flex; }
   /* logo prominente e consistente (inline, centrada na barra) */
   .brand img { height: clamp(72px, 6vw, 96px); width: auto; }
 
