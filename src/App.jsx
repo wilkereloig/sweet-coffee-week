@@ -16,6 +16,7 @@ import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { SweetAwardsPage }  from './pages/institutional/SweetAwards'
 import { PesquisaPage }     from './pages/lovers/Pesquisa'
+import { PainelAdminPage } from './pages/lovers/PainelAdmin'
 
 // Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
 // carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
@@ -59,6 +60,7 @@ const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
   if (path.startsWith('/lovers/pesquisa')) return false
+  if (path.startsWith('/lovers/painel-admin')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
 }
 
@@ -73,6 +75,7 @@ export default function App() {
 
   const route = (() => {
     // Painel interno segue acessível mesmo em modo Awards-only (não aparece em menu).
+    if (path.startsWith('/lovers/painel-admin')) return 'painel-admin'
     if (path.startsWith('/lovers/painel')) return 'painel'
     // Pesquisa Sweet Lovers: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
     if (path.startsWith('/lovers/pesquisa')) return 'pesquisa'
@@ -105,6 +108,7 @@ export default function App() {
     case 'vencedores':   page = <SweetAwardsPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
+    case 'painel-admin': page = <PainelAdminPage navigate={navigate} />; break
     default:             page = <HomePage navigate={navigate} />
   }
 
