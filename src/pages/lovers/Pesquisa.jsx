@@ -6,17 +6,20 @@ import '../../styles/pesquisa.css'
 const OUTRO = 'Outro'
 const TOTAL = PESQUISA_SECOES.length // 7
 
-function getEmailFromUrl() {
+function getUrlParams() {
   try {
     const hash = window.location.hash || ''
     const qs = hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : window.location.search.replace(/^\?/, '')
-    const e = new URLSearchParams(qs).get('e')
-    return e ? e.trim() : ''
-  } catch { return '' }
+    const p = new URLSearchParams(qs)
+    return {
+      email: (p.get('e') || '').trim(),
+      nome:  (p.get('n') || '').trim(),
+    }
+  } catch { return { email: '', nome: '' } }
 }
 
 export function PesquisaPage() {
-  const email = React.useMemo(getEmailFromUrl, [])
+  const { email, nome: nomeUrl } = React.useMemo(getUrlParams, [])
 
   // step: 0 = intro, 1-7 = seções
   const [step, setStep]       = React.useState(0)
@@ -91,8 +94,8 @@ export function PesquisaPage() {
     setEnviando(true)
     try {
       const { error } = await supabase.rpc('submit_pesquisa', {
-        p_email:      email || null,
-        p_nome:       null,
+        p_email:      email    || null,
+        p_nome:       nomeUrl  || null,
         p_respostas:  montarRespostas(),
         p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       })
@@ -164,8 +167,11 @@ export function PesquisaPage() {
       <div className="pesquisa">
         <div className="pesquisa__wrap">
           <div className="pesquisa__intro-screen">
-            <h1>{PESQUISA_INTRO.titulo}</h1>
-            <p>{PESQUISA_INTRO.texto}</p>
+            <h1>{nomeUrl ? `Ei, ${nomeUrl}!` : PESQUISA_INTRO.titulo}</h1>
+            <p>{nomeUrl
+              ? PESQUISA_INTRO.texto.replace(/^Ei, Sweet Lover! ?/, '')
+              : PESQUISA_INTRO.texto}
+            </p>
 
             <div className="pesquisa__nav">
               <button className="pesquisa__btn pesquisa__btn--next" onClick={avancar} type="button">
