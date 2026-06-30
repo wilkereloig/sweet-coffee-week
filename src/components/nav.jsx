@@ -1,6 +1,71 @@
 import React from 'react'
 import { I } from './icons'
 
+function LoginDropdown({ navigate }) {
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef(null)
+
+  React.useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  const go = (path) => { setOpen(false); navigate(path) }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        className="menu-toggle"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Acesso"
+        aria-expanded={open}
+        style={{ opacity: open ? 1 : undefined }}
+      >
+        <I.user />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+          background: '#fff', borderRadius: 14, padding: '6px',
+          boxShadow: '0 8px 32px rgba(43,24,16,.18), 0 0 0 1px rgba(43,24,16,.06)',
+          minWidth: 210, zIndex: 200,
+        }}>
+          <button
+            disabled
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '10px 14px', border: 0, borderRadius: 9,
+              background: 'transparent', textAlign: 'left', cursor: 'not-allowed',
+              fontFamily: 'inherit', fontSize: 14, color: '#B0907C', gap: 10,
+            }}
+          >
+            <span>Área do Participante</span>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '2px 8px' }}>
+              Em breve
+            </span>
+          </button>
+          <button
+            onClick={() => go('/painel-admin')}
+            style={{
+              display: 'block', width: '100%', padding: '10px 14px', border: 0, borderRadius: 9,
+              background: 'transparent', textAlign: 'left', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 700, color: '#2B1810',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#FFF4EC'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            Área Admin →
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export const NAV_LINKS = [
   { id: 'home',         label: 'O Festival',   href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
@@ -131,6 +196,7 @@ export function SiteHeader({ route, navigate }) {
           </nav>
 
           <div className="nav-cta">
+            <LoginDropdown navigate={navigate} />
             <button
               className="menu-toggle"
               onClick={() => setMobileOpen(true)}
@@ -158,6 +224,23 @@ export function SiteHeader({ route, navigate }) {
                   {l.label}
                 </a>
               ))}
+            </div>
+
+            <div className="mobile-menu__section" style={{ borderTop: '1px solid rgba(242,182,160,.4)', paddingTop: 20, marginTop: 4 }}>
+              <div className="mobile-menu__section-title">Acesso</div>
+              <button
+                disabled
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, color: '#B0907C', cursor: 'not-allowed' }}
+              >
+                <span>Área do Participante</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '2px 8px' }}>Em breve</span>
+              </button>
+              <button
+                style={{ display: 'block', width: '100%', padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#2B1810', cursor: 'pointer' }}
+                onClick={() => { navigate('/painel-admin'); setMobileOpen(false) }}
+              >
+                Área Admin →
+              </button>
             </div>
           </div>
         </div>

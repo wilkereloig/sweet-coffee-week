@@ -127,6 +127,12 @@ export const I = {
       <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   ),
+  user: (p = {}) => (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+      <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M2.5 15.5c0-3.038 2.91-5.5 6.5-5.5s6.5 2.462 6.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
 }
 
 export function LogoMark({ size = 32, color = 'currentColor' }) {

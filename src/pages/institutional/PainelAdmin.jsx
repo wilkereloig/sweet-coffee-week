@@ -1,6 +1,7 @@
 import React from 'react'
 import { supabase } from '../../lib/supabase'
 import { PESQUISA_SECOES } from '../../data/pesquisaLovers'
+import { PARTICIPANTS } from '../../data/participants'
 
 const SS_KEY = 'sweet-admin-secret' // mesma chave do painel de votação
 
@@ -214,6 +215,80 @@ function AbaRespostas({ rows, loading }) {
   )
 }
 
+// ── Aba Participantes ─────────────────────────────────────────────────────────
+
+const COMBO_BASE = 'https://www.sweetcoffeeweek.com.br/#/lovers/combos/'
+
+function SecaoParticipantes() {
+  const [copied, setCopied] = React.useState(null)
+
+  const copyCombo = (slug) => {
+    navigator.clipboard.writeText(COMBO_BASE + slug).then(() => {
+      setCopied(slug)
+      setTimeout(() => setCopied(null), 2000)
+    })
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div>
+          <span style={{ ...S.stat, fontSize: 32 }}>{PARTICIPANTS.length}</span>
+          <div style={{ fontSize: 13, color: '#9B7A68', marginTop: 2 }}>participantes cadastrados</div>
+        </div>
+        <div style={{ fontSize: 13, color: '#9B7A68', lineHeight: 1.6 }}>
+          Dados lidos do arquivo estático <code style={{ background: '#FFF4EC', padding: '1px 6px', borderRadius: 4 }}>src/data/participants.js</code>.<br />
+          Edição de dados via PR no repositório.
+        </div>
+      </div>
+
+      <div style={{ overflowX: 'auto', borderRadius: 16, boxShadow: '0 1px 4px rgba(43,24,16,.08)' }}>
+        <table style={S.table}>
+          <thead>
+            <tr>
+              <th style={S.th}>#</th>
+              <th style={S.th}>Nome</th>
+              <th style={S.th}>Bairro</th>
+              <th style={S.th}>Instagram</th>
+              <th style={S.th}>WhatsApp</th>
+              <th style={S.th}>Unidades</th>
+              <th style={{ ...S.th, width: 130 }}>Combo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {PARTICIPANTS.map((p, i) => (
+              <tr key={p.id} style={{ background: i % 2 === 0 ? '#fff' : '#FDFAF8' }}>
+                <td style={{ ...S.td, color: '#9B7A68', fontSize: 12 }}>{i + 1}</td>
+                <td style={{ ...S.td, fontWeight: 700 }}>{p.name}</td>
+                <td style={{ ...S.td, color: '#6B4A3A' }}>{p.neighborhood || '—'}</td>
+                <td style={S.td}>
+                  {p.instagram
+                    ? <a href={`https://instagram.com/${p.instagram.replace('@','')}`} target="_blank" rel="noreferrer" style={{ color: '#E8553A', textDecoration: 'none' }}>{p.instagram}</a>
+                    : <span style={{ color: '#9B7A68' }}>—</span>}
+                </td>
+                <td style={S.td}>
+                  {p.whatsapp
+                    ? <a href={`https://wa.me/${p.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" style={{ color: '#E8553A', textDecoration: 'none' }}>{p.whatsapp}</a>
+                    : <span style={{ color: '#9B7A68' }}>—</span>}
+                </td>
+                <td style={{ ...S.td, textAlign: 'center' }}>{(p.locations || []).length}</td>
+                <td style={S.td}>
+                  <button
+                    style={{ ...S.ghost, padding: '4px 12px', fontSize: 12, whiteSpace: 'nowrap' }}
+                    onClick={() => copyCombo(p.slug)}
+                  >
+                    {copied === p.slug ? '✓ Copiado!' : 'Copiar link'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ── Gate de senha ─────────────────────────────────────────────────────────────
 
 function PasswordGate({ onAuth }) {
@@ -306,7 +381,7 @@ export function PainelAdminPage() {
 
         {/* abas */}
         <div style={S.tabs} role="tablist">
-          {[['formularios', 'Formulários'], ['respostas', 'Respostas']].map(([id, label]) => (
+          {[['formularios', 'Formulários'], ['respostas', 'Respostas'], ['participantes', 'Participantes']].map(([id, label]) => (
             <button
               key={id}
               role="tab"
@@ -320,12 +395,18 @@ export function PainelAdminPage() {
                   {rows.length}
                 </span>
               )}
+              {id === 'participantes' && (
+                <span style={{ marginLeft: 8, background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '1px 8px', fontSize: 11, fontWeight: 700 }}>
+                  {PARTICIPANTS.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
-        {tab === 'formularios' && <AbaFormularios total={rows.length} loading={loading} />}
-        {tab === 'respostas'   && <AbaRespostas rows={rows} loading={loading} />}
+        {tab === 'formularios'   && <AbaFormularios total={rows.length} loading={loading} />}
+        {tab === 'respostas'     && <AbaRespostas rows={rows} loading={loading} />}
+        {tab === 'participantes' && <SecaoParticipantes />}
       </div>
     </div>
   )
