@@ -1,160 +1,132 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:v="urn:schemas-microsoft-com:vml">
+<html lang="pt-BR" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
   <title>Pesquisa Sweet Lovers</title>
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings>
     <o:PixelsPerInch>96</o:PixelsPerInch>
   </o:OfficeDocumentSettings></xml></noscript><![endif]-->
   <style>
-    /* reset mínimo */
     body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
     table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
-    img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
-    /* link sem underline azul */
+    img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
     a[x-apple-data-detectors] { color:inherit!important; text-decoration:none!important; }
-    /* mobile */
-    @media only screen and (max-width:600px) {
-      .card  { padding:28px 20px 24px!important; }
-      .title { font-size:26px!important; }
-      .cta   { padding:14px 28px!important; font-size:15px!important; }
+    .px { font-size:0; line-height:0; }
+    @media only screen and (max-width:620px) {
+      .container { width:100%!important; }
+      .px-pad   { padding-left:24px!important; padding-right:24px!important; }
+      .title    { font-size:30px!important; line-height:1.08!important; }
+      .selo     { width:128px!important; height:auto!important; }
+      .cta      { display:block!important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background-color:#FFF4EC;">
+<body style="margin:0;padding:0;background-color:#F4E3D2;">
 
-<!-- wrapper -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-       style="background-color:#FFF4EC;">
-  <tr>
-    <td align="center" style="padding:40px 16px 48px;">
+  <!-- preheader oculto -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F4E3D2;">
+    Sua opinião ajuda a moldar os próximos 10 anos do festival. São 3 minutinhos.
+  </div>
 
-      <!-- container 560px -->
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0"
-             width="560" style="max-width:560px;width:100%;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#F4E3D2;">
+    <tr>
+      <td align="center" style="padding:36px 12px 48px;">
 
-        <!-- ── logo / wordmark ── -->
-        <tr>
-          <td align="center" style="padding:0 0 28px;">
-            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;
-                      font-size:11px;letter-spacing:0.22em;text-transform:uppercase;
-                      color:#E8553A;">
-              Sweet &amp; Coffee Week
-            </p>
-          </td>
-        </tr>
+        <table role="presentation" class="container" cellspacing="0" cellpadding="0" border="0" width="600"
+               style="width:600px;max-width:600px;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(43,24,16,.10);">
 
-        <!-- ── card principal ── -->
-        <tr>
-          <td class="card"
-              style="background-color:#FFFFFF;border-radius:20px;
-                     padding:40px 40px 36px;
-                     box-shadow:0 2px 8px rgba(43,24,16,.08);">
+          <!-- ── topo creme com selo 10 anos ── -->
+          <tr>
+            <td align="center" bgcolor="#FBEBD8" style="background-color:#FBEBD8;padding:38px 24px 30px;">
+              <!-- TROQUE o src abaixo pela URL que o Brevo gerar ao subir o PNG do selo
+                   (Brevo → editor → bloco de imagem → upload de selo-10-anos.png).
+                   A URL canônica abaixo passa a valer quando o site for publicado. -->
+              <img class="selo"
+                   src="https://www.sweetcoffeeweek.com.br/images/selo-10-anos.png"
+                   width="160" height="121"
+                   alt="Sweet &amp; Coffee Week — 10 anos"
+                   style="width:160px;height:auto;margin:0 auto;">
+            </td>
+          </tr>
 
-            <!-- saudação personalizada -->
-            <h1 class="title"
-                style="margin:0 0 18px;
-                       font-family:Georgia,'Times New Roman',serif;
-                       font-size:30px;line-height:1.1;font-weight:normal;
-                       color:#2B1810;">
-              {% if contact.FIRSTNAME %}Ei, {{contact.FIRSTNAME}}!{% else %}Ei, Sweet Lover!{% endif %}
-            </h1>
+          <!-- ── filete dourado ── -->
+          <tr><td class="px" height="4" bgcolor="#F8B511" style="background-color:#F8B511;line-height:4px;font-size:0;">&nbsp;</td></tr>
 
-            <!-- corpo -->
-            <p style="margin:0 0 14px;
-                      font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                      font-size:16px;line-height:1.7;color:#6B4A3A;">
-              Você participou da votação do Sweet Awards — e a gente adorou ter você por aqui.
-            </p>
-            <p style="margin:0 0 32px;
-                      font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                      font-size:16px;line-height:1.7;color:#6B4A3A;">
-              Queremos te conhecer melhor para tornar o
-              <strong style="color:#2B1810;">Sweet &amp; Coffee Week</strong>
-              cada vez mais especial para você. São só 3 minutinhos e suas respostas
-              fazem muita diferença!
-            </p>
+          <!-- ── corpo ── -->
+          <tr>
+            <td class="px-pad" style="padding:40px 48px 8px;">
+              <h1 class="title" style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.1;font-weight:normal;color:#2B1810;">
+                {% if contact.FIRSTNAME %}Ei, {{contact.FIRSTNAME}}!{% else %}Ei, Sweet Lover!{% endif %}
+              </h1>
+              <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#5A4234;">
+                Você fez parte da nossa história ao votar no <strong style="color:#2B1810;">Sweet Awards</strong> — e a gente quer continuar com você por perto.
+              </p>
+              <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#5A4234;">
+                O <strong style="color:#2B1810;">Sweet &amp; Coffee Week</strong> está completando <strong style="color:#2B1810;">10 anos</strong>. Pra tornar as próximas edições ainda mais a sua cara, queremos te conhecer melhor.
+              </p>
+              <p style="margin:0 0 30px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#5A4234;">
+                São só <strong style="color:#2B1810;">3 minutinhos</strong> — e cada resposta faz diferença de verdade.
+              </p>
+            </td>
+          </tr>
 
-            <!-- CTA -->
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-              <tr>
-                <td align="center">
-                  <!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
-                    href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
-                    style="height:52px;v-text-anchor:middle;width:260px;"
-                    arcsize="50%" stroke="f" fillcolor="#E8553A">
-                    <w:anchorlock/>
-                    <center style="color:#ffffff;font-family:Helvetica Neue,Arial,sans-serif;font-size:16px;font-weight:700;">
-                      Responder a pesquisa →
-                    </center>
-                  </v:roundrect>
-                  <![endif]-->
-                  <!--[if !mso]><!-->
-                  <a class="cta"
-                     href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
-                     style="display:inline-block;padding:16px 36px;
-                            background-color:#E8553A;color:#ffffff;
-                            font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                            font-size:16px;font-weight:700;text-decoration:none;
-                            border-radius:999px;letter-spacing:0.01em;
-                            mso-hide:all;">
-                    Responder a pesquisa →
-                  </a>
-                  <!--<![endif]-->
-                </td>
-              </tr>
-            </table>
-
-            <!-- nota -->
-            <p style="margin:28px 0 0;
-                      font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                      font-size:13px;line-height:1.55;color:#9B7A68;text-align:center;">
-              Leva menos de 3 minutos. Suas respostas ajudam a moldar as próximas edições do festival.
-            </p>
-
-          </td>
-        </tr>
-
-        <!-- ── divisor peach ── -->
-        <tr>
-          <td style="padding:24px 0 0;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-              <tr>
-                <td style="border-top:1px solid #F2B6A0;font-size:0;line-height:0;">&nbsp;</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- ── footer ── -->
-        <tr>
-          <td align="center" style="padding:20px 0 0;">
-            <p style="margin:0 0 6px;
-                      font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                      font-size:12px;color:#9B7A68;">
-              Sweet &amp; Coffee Week · Natal / RN
-            </p>
-            <p style="margin:0;
-                      font-family:Helvetica Neue,Arial,Helvetica,sans-serif;
-                      font-size:12px;color:#9B7A68;line-height:1.5;">
-              Você recebeu este e-mail porque participou do Sweet Awards 2026.
-              <br>
-              <a href="{{unsubscribe}}"
-                 style="color:#9B7A68;text-decoration:underline;">
-                Descadastrar
+          <!-- ── CTA ── -->
+          <tr>
+            <td align="center" class="px-pad" style="padding:0 48px 8px;">
+              <!--[if mso]>
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
+                style="height:54px;v-text-anchor:middle;width:280px;" arcsize="50%" stroke="f" fillcolor="#E8553A">
+                <w:anchorlock/>
+                <center style="color:#ffffff;font-family:Helvetica Neue,Arial,sans-serif;font-size:16px;font-weight:700;">
+                  Responder a pesquisa &rarr;
+                </center>
+              </v:roundrect>
+              <![endif]-->
+              <!--[if !mso]><!-->
+              <a class="cta"
+                 href="https://www.sweetcoffeeweek.com.br/#/pesquisa?e={{contact.EMAIL}}&n={% if contact.FIRSTNAME %}{{contact.FIRSTNAME}}{% endif %}"
+                 style="display:inline-block;padding:17px 40px;background-color:#E8553A;color:#ffffff;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;text-decoration:none;border-radius:999px;letter-spacing:.01em;">
+                Responder a pesquisa &rarr;
               </a>
-            </p>
-          </td>
-        </tr>
+              <!--<![endif]-->
+            </td>
+          </tr>
 
-      </table>
-    </td>
-  </tr>
-</table>
+          <!-- ── nota ── -->
+          <tr>
+            <td class="px-pad" align="center" style="padding:22px 48px 40px;">
+              <p style="margin:0;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:13px;line-height:1.55;color:#9B7A68;">
+                Leva menos de 3 minutos · suas respostas moldam as próximas edições
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── rodapé espresso ── -->
+          <tr>
+            <td align="center" bgcolor="#2B1810" style="background-color:#2B1810;padding:28px 32px;">
+              <p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:15px;letter-spacing:.04em;color:#FBEBD8;">
+                Sweet &amp; Coffee Week
+              </p>
+              <p style="margin:0 0 14px;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.06em;color:#C9A98E;text-transform:uppercase;">
+                Natal / RN · 10 anos
+              </p>
+              <p style="margin:0;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#9B7A68;">
+                Você recebeu este e-mail porque participou do Sweet Awards.<br>
+                <a href="{{unsubscribe}}" style="color:#C9A98E;text-decoration:underline;">Descadastrar</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 
 </body>
 </html>
