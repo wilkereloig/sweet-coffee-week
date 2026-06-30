@@ -174,14 +174,13 @@ export function SiteHeader({ route, navigate }) {
     }
   }, [mobileOpen])
 
-  // Header idêntico à Home em todas as páginas públicas: transparente sobre o
-  // topo até rolar (o scrim de topo garante legibilidade do menu claro sobre
-  // qualquer fundo). Painel interno fica de fora (mantém barra sólida padrão).
+  // Fora da Home, logo sempre compacta (estado menor) — sem esperar scroll.
+  const isCompact = scrolled || route !== 'home'
   const transparent = route !== 'painel' && !scrolled
 
   return (
     <React.Fragment>
-      <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
+      <header className={`site-header${isCompact ? ' scrolled' : ''}`}>
         <div className="site-header__inner">
           <BrandLogo navigate={navigate} light={transparent} route={route} />
 
