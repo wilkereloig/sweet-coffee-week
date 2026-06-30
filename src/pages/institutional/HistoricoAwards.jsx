@@ -1,7 +1,7 @@
 /*
  * PÁGINA INSTITUCIONAL — "Hall dos vencedores do Sweet Awards".
  * Rota: #/historico-sweet-awards. NÃO é a página Sweet Awards publicada
- * (SweetAwards/vencedores) — é o acervo histórico das premiações 2016–2025.
+ * (SweetAwards/vencedores) — é o acervo histórico das premiações 2016–2026.
  *
  * Hall of fame data-driven (src/data/sweetHistory.js):
  *  - acordeões por edição (acessíveis, fechados por padrão, mais recentes primeiro);
@@ -18,7 +18,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { sweetEditions } from '../../data/sweetHistory'
+import { sweetEditions } from '../../data/sweetEditionsCompat'
 import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
 
@@ -199,7 +199,7 @@ export function HistoricoAwardsPage({ navigate }) {
         <div className="wrap">
           <div className="hist-head motion-reveal-up">
             <h2>O pódio de cada <span className="hist-hl hist-hl--coral">edição</span></h2>
-            <p>Quinze edições de 2016 a 2025. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de votação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
+            <p>Dezesseis edições de 2016 a 2026. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de votação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
           </div>
           <div className="hist-list motion-stagger">
             {ordered.map((e, i) => <EditionAccordion e={e} key={e.id} defaultOpen={i === 0} />)}
