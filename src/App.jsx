@@ -15,8 +15,11 @@ import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { SweetAwardsPage }  from './pages/institutional/SweetAwards'
-import { PainelPage }       from './pages/lovers/Painel'
 import { PesquisaPage }     from './pages/lovers/Pesquisa'
+
+// Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
+// carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
+const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({ default: m.PainelPage })))
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
@@ -115,7 +118,11 @@ export default function App() {
     <DevViewportSwitcher>
       <SiteHeader route={route} navigate={navigate} path={path} />
       <main key={route} className="page-enter">
-        <ErrorBoundary key={route}>{page}</ErrorBoundary>
+        <ErrorBoundary key={route}>
+          <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
+            {page}
+          </React.Suspense>
+        </ErrorBoundary>
       </main>
       {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} />}
       <CookieConsent />

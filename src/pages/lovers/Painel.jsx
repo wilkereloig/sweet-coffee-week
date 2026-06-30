@@ -2,6 +2,7 @@ import React from 'react'
 import { supabase } from '../../lib/supabase'
 import { AWARDS_CATEGORIES, AWARDS_PARTICIPANTS } from '../../data/sweetAwards'
 import { PARTICIPANTS } from '../../data/participants'
+import '../../styles/lovers-system.css'  // carregado sob demanda via lazy do Painel
 
 // Painel admin (oculto): resultados, auditoria e votos suspeitos.
 // Acesso por senha — validada no banco (admin_ping). Nenhum dado sem a senha.
