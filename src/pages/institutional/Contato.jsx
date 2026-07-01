@@ -7,9 +7,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { Hero, HeroHL } from '../../components/layout/Hero'
-import { AnimatedSection, StaggerContainer } from '../../components/motion'
+import { PageShell, PageHero, HeroHL, PageSection, CTASection, CardsGrid } from '../../components/layout'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 // Cards por intenção — cada um aponta para um caminho real (rota interna ou o
@@ -45,36 +43,29 @@ function ContactCard({ p, navigate }) {
 }
 
 export function ContatoPage({ navigate }) {
-  const rootRef = React.useRef(null)
-  useRevealOnScroll(rootRef)
-
   return (
-    <div className="page-enter contato-page" ref={rootRef}>
-      {/* 1 — HERO (componente <Hero> — fonte única do hero institucional) */}
-      <Hero
+    <PageShell name="contato">
+      {/* 1 — HERO (componente <PageHero> — fonte única do hero institucional) */}
+      <PageHero
         title={<>Vamos conversar sobre o <span className="keep-together"><HeroHL color="var(--pink)">Sweet &amp; Coffee Week</HeroHL>?</span></>}
         subtitle="Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet & Coffee Week."
       />
 
       {/* 2 — CARDS POR INTENÇÃO */}
-      <section className="section contato-cards-section">
-        <div className="wrap">
-          <StaggerContainer className="contato-cards">
-            {PATHS.map((p) => <ContactCard key={p.tag} p={p} navigate={navigate} />)}
-          </StaggerContainer>
-        </div>
-      </section>
+      <PageSection className="contato-cards-section">
+        <CardsGrid className="contato-cards">
+          {PATHS.map((p) => <ContactCard key={p.tag} p={p} navigate={navigate} />)}
+        </CardsGrid>
+      </PageSection>
 
       {/* 3 — CANAL VIVO (Instagram) */}
-      <section className="section contato-live">
-        <AnimatedSection className="wrap contato-live__inner">
-          <h2>O Instagram é o canal mais <span className="contato-hl" style={{ '--hl': 'var(--coral)' }}>vivo</span> do festival.</h2>
-          <p>É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, avisos e conteúdos enviados pelos Sweet Lovers.</p>
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg motion-press">
-            <I.ig width={16} height={16} /> Seguir {INSTAGRAM_HANDLE}
-          </a>
-        </AnimatedSection>
-      </section>
+      <CTASection className="contato-live" innerClassName="contato-live__inner">
+        <h2>O Instagram é o canal mais <span className="contato-hl" style={{ '--hl': 'var(--coral)' }}>vivo</span> do festival.</h2>
+        <p>É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, avisos e conteúdos enviados pelos Sweet Lovers.</p>
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg motion-press">
+          <I.ig width={16} height={16} /> Seguir {INSTAGRAM_HANDLE}
+        </a>
+      </CTASection>
 
       <style>{`
         .contato-page { overflow-x: clip; }
@@ -124,6 +115,6 @@ export function ContatoPage({ navigate }) {
           .contato-card, .contato-card__cta svg { transition: none; }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }

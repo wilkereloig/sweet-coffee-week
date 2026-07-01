@@ -10,8 +10,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { Hero } from '../../components/layout/Hero'
+import { PageShell, PageHero } from '../../components/layout'
 import {
   getParticipantAppearances,
   getAwardWins,
@@ -83,14 +82,12 @@ function LogoChip({ name, size = 46 }) {
 const namesOf = (leaders) => leaders.map((l) => l.name).join(' e ')
 
 export function CuriosidadesPage({ navigate }) {
-  const rootRef = React.useRef(null)
-  useRevealOnScroll(rootRef)
   const go = (path) => (e) => { e.preventDefault(); navigate(path); if (typeof window !== 'undefined') window.scrollTo(0, 0) }
 
   return (
-    <div className="page-enter cur-page" ref={rootRef}>
-      {/* 1 — HERO editorial (componente <Hero> — fonte única do hero institucional) */}
-      <Hero
+    <PageShell name="cur">
+      {/* 1 — HERO editorial (componente <PageHero> — fonte única do hero institucional) */}
+      <PageHero
         title={<>O lado mais curioso da história do <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>Sweet &amp; Coffee Week</span>.</span></>}
         subtitle="Participantes recorrentes, marcas premiadas, categorias que nasceram com o tempo e achados do acervo ajudam a contar a trajetória do festival para além da linha do tempo."
       />
@@ -404,6 +401,6 @@ export function CuriosidadesPage({ navigate }) {
           .cur-card, .cur-cat, .cur-card__media img { transition: none; }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }

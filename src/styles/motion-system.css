@@ -15,21 +15,10 @@
    (foco entrando). Perceptível, mas sem escala exagerada nem cara de template.
    ============================================================================ */
 
-:root {
-  /* Durações — escala */
-  --motion-fast: 160ms;   /* hover/feedback imediato */
-  --motion-base: 260ms;   /* transições padrão */
-  --motion-slow: 560ms;   /* entradas em sequência (stagger) */
-  --motion-reveal: 760ms; /* revelação de seção/imagem (a mais longa) */
-
-  /* Easing — saída suave e mola gentil (chegada com leve "pouso", sem overshoot feio) */
-  --ease-out-soft: cubic-bezier(.2, .7, .2, 1);
-  --ease-spring-soft: cubic-bezier(.16, 1, .3, 1);
-
-  /* Deslocamento das entradas (editorial, mas visível) */
-  --motion-rise: 44px;
-  --motion-blur: 8px;
-}
+/* Tokens de motion (--motion-*, --ease-*-soft, --motion-rise/blur) foram
+   CENTRALIZADOS em src/styles/layout-tokens.css (fonte única dos knobs globais).
+   Custom props resolvem no uso, então as regras abaixo continuam válidas.
+   Ajustar duração/easing/deslocamento = editar layout-tokens.css. */
 
 /* ---- Float orgânico (decorativo, muito sutil) ---------------------------- */
 @keyframes msFloatSoft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }

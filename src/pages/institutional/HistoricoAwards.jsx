@@ -17,8 +17,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { Hero } from '../../components/layout/Hero'
+import { PageShell, PageHero } from '../../components/layout'
 import { sweetEditions } from '../../data/sweetEditionsCompat'
 import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -252,8 +251,6 @@ const EVOLUTION = [
 ]
 
 export function HistoricoAwardsPage({ navigate }) {
-  const rootRef = React.useRef(null)
-  useRevealOnScroll(rootRef)
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
   // Scroll suave até o destaque da edição atual (âncora criada na seção Premiação 2026.1).
   const scrollToCurrent = (ev) => {
@@ -268,9 +265,9 @@ export function HistoricoAwardsPage({ navigate }) {
   const ordered = [...sweetEditions].reverse().filter((e) => e.id !== '2026.1')
 
   return (
-    <div className="page-enter hist-page" ref={rootRef}>
-      {/* 1 — HERO hall of fame (componente <Hero> — fonte única do hero institucional) */}
-      <Hero
+    <PageShell name="hist">
+      {/* 1 — HERO hall of fame (componente <PageHero> — fonte única do hero institucional) */}
+      <PageHero
         title={<>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></>}
         subtitle="Os combos, sabores e marcas que encantaram o Sweet & Coffee Week — edição após edição."
         actions={<a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>}
@@ -501,6 +498,6 @@ export function HistoricoAwardsPage({ navigate }) {
           .swa-cat:hover { transform: none; box-shadow: var(--shadow-md); }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }
