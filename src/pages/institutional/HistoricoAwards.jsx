@@ -331,7 +331,8 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
 
         /* card de categoria (edição atual) */
-        .swa-cat { display: flex; flex-direction: column; gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); }
+        .swa-cat { display: flex; flex-direction: column; gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); transition: transform var(--dur-base, .26s) var(--ease-out, ease), box-shadow var(--dur-base, .26s) var(--ease-out, ease); }
+        .swa-cat:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .swa-cat > h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: var(--ink); margin: 0; }
         .swa-cat__champ { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-md); background: color-mix(in srgb, var(--page-accent-soft) 60%, var(--cream)); border: 1px solid color-mix(in srgb, var(--page-accent) 22%, transparent); }
         .swa-cat__champ .hist-medal { width: 30px; height: 30px; font-size: 14px; }
@@ -445,9 +446,11 @@ export function HistoricoAwardsPage({ navigate }) {
           .hist-cta__row .btn { width: 100%; justify-content: center; }
         }
 
-        /* Reduced motion: sem rotação do chevron nem transições locais */
+        /* Reduced motion: sem rotação do chevron nem transições/hover locais */
         @media (prefers-reduced-motion: reduce) {
           .hist-edi__chev svg { transition: none; }
+          .swa-cat { transition: none; }
+          .swa-cat:hover { transform: none; box-shadow: var(--shadow-md); }
         }
       `}</style>
     </div>
