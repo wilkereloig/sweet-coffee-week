@@ -23,7 +23,10 @@
 .hero--chocolate { background: #2B1810;            color: var(--cream); }
 
 .hero__inner { width: 100%; }
-.hero__copy  { max-width: 840px; }
+/* Conteúdo do hero SEMPRE alinhado à esquerda (título/lead/ações/extras). Sobrepõe
+   o text-align:center herdado de .page-enter (styles.css) — declaração direta vence
+   herança, sem !important. Vale p/ todas as páginas do <PageHero>. */
+.hero__copy  { max-width: 840px; text-align: left; }
 
 /* layout 2 colunas quando há aside (form/mídia) */
 .hero--split .hero__inner {
