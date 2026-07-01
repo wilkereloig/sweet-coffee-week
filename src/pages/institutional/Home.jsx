@@ -227,6 +227,38 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
+      {/* CONVITE DUPLO — ponte para Participar / Apoiar (logo abaixo da Hero) */}
+      <section className="section hm-invite-section">
+        <div className="wrap">
+          <div className="hm-head motion-reveal-up">
+            <h2>Faça parte da <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>próxima edição</span>.</span></h2>
+            <p>O Sweet &amp; Coffee Week é feito por marcas, parceiros e pessoas que acreditam na força da experiência. A cada edição, cafeterias, docerias, confeitarias, restaurantes e apoiadores se unem para transformar Natal em um roteiro de sabores, encontros e descobertas.</p>
+          </div>
+          <div className="hm-invite-grid motion-stagger">
+            <article className="hm-invite-card hm-invite-card--participar">
+              <span className="hm-invite-card__icon" aria-hidden="true"><I.cup /></span>
+              <h3 className="hm-invite-card__title">Quero participar</h3>
+              <p className="hm-invite-card__text">Crie um combo exclusivo, receba novos públicos e faça sua marca viver a próxima edição do Sweet &amp; Coffee Week. O festival é uma oportunidade para movimentar a loja, contar uma história por meio dos sabores e se conectar com os Sweet Lovers.</p>
+              <div className="hm-invite-card__actions">
+                <a className="hm-invite-card__cta motion-press" href="#/participar" onClick={go('/participar')}>
+                  Ver como participar <I.arrow />
+                </a>
+              </div>
+            </article>
+            <article className="hm-invite-card hm-invite-card--apoiar">
+              <span className="hm-invite-card__icon" aria-hidden="true"><I.heart /></span>
+              <h3 className="hm-invite-card__title">Quero apoiar</h3>
+              <p className="hm-invite-card__text">Associe sua marca a uma plataforma que movimenta gastronomia, economia criativa e experiências em Natal. Apoiar o Sweet &amp; Coffee Week é fazer parte de uma história construída com marcas locais, público engajado e presença viva na cidade.</p>
+              <div className="hm-invite-card__actions">
+                <a className="hm-invite-card__cta motion-press" href="#/apoiar" onClick={go('/apoiar')}>
+                  Conhecer oportunidades <I.arrow />
+                </a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* NÚMEROS — composição editorial assimétrica (ver componente NumbersSection) */}
       <NumbersSection ovStats={ovStats} />
 
@@ -724,6 +756,24 @@ export function HomePage({ navigate }) {
         /* Coluna 2 (apoiar) muda o acento para cyan-deep — diferencia os dois caminhos */
         .hm-path:nth-child(2) .hm-path__eyebrow { color: var(--cyan-deep); }
         .hm-path:nth-child(2) .hm-path__cta { background: var(--cyan-deep); }
+        /* CONVITE DUPLO — cards Participar/Apoiar (abaixo da Hero). Reusa a linguagem
+           dos hm-path (cream-card + pílula), classes próprias p/ não vazar global. */
+        .hm-invite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 3vw, 32px); margin-top: clamp(32px, 4vw, 52px); align-items: stretch; }
+        .hm-invite-card { display: flex; flex-direction: column; align-items: flex-start; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-7); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
+        .hm-invite-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .hm-invite-card__icon { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); margin-bottom: var(--sp-5); }
+        .hm-invite-card__icon svg { width: 26px; height: 26px; }
+        .hm-invite-card__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(21px, 2.4vw, 28px); line-height: 1.05; letter-spacing: -.02em; color: var(--ink); margin: 0 0 var(--sp-3); text-wrap: balance; }
+        .hm-invite-card__text { color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; margin: 0 0 var(--sp-6); text-wrap: pretty; }
+        .hm-invite-card__actions { margin-top: auto; }
+        .hm-invite-card__cta { display: inline-flex; align-items: center; gap: 9px; padding: 13px 24px; border-radius: 999px; background: var(--accent); color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 14.5px; letter-spacing: .02em; transition: transform var(--motion-fast) var(--ease-out-soft), filter var(--motion-fast) var(--ease-out-soft); }
+        .hm-invite-card__cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .hm-invite-card__cta svg { width: 16px; height: 16px; }
+        .hm-invite-card--apoiar .hm-invite-card__icon { background: color-mix(in srgb, var(--cyan-deep) 14%, transparent); color: var(--cyan-deep); }
+        .hm-invite-card--apoiar .hm-invite-card__cta { background: var(--cyan-deep); }
+        @media (max-width: 720px) {
+          .hm-invite-grid { grid-template-columns: 1fr; }
+        }
         @media (max-width: 760px) { .hm-paths__grid { grid-template-columns: 1fr; } }
 
         /* REALIZAÇÃO — assinatura na identidade da F2 Experience.
