@@ -290,9 +290,10 @@ export function HistoricoAwardsPage({ navigate }) {
           <div className="hist-head motion-reveal-up">
             <h2>Como o Sweet Awards <span className="hist-hl hist-hl--cyan">evoluiu</span></h2>
           </div>
-          <div className="hist-evo motion-stagger">
-            {EVOLUTION.map((c) => (
-              <article className="hist-evo__card" key={c.t} style={{ '--hl': c.hl }}>
+          <div className="hist-evo hist-evo--strip motion-stagger">
+            {EVOLUTION.map((c, i) => (
+              <article className="hist-evo__step" key={c.t} style={{ '--hl': c.hl }}>
+                <span className="hist-evo__num" aria-hidden="true">{i + 1}</span>
                 <h3>{c.t}</h3>
                 <p>{c.d}</p>
               </article>
@@ -434,13 +435,16 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-badge--muted { background: rgba(43,24,16,.08); color: var(--ink-soft); }
         .hist-badge--info { background: var(--page-accent-soft); color: var(--page-accent-dark); }
 
-        /* 4 — EVOLUÇÃO */
+        /* 4 — EVOLUÇÃO (faixa enxuta: 4 marcos em linha) */
         .hist-evo-section { background: var(--cream-deep, var(--bg-soft)); }
-        .hist-evo { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); }
-        .hist-evo__card { position: relative; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-7); box-shadow: var(--shadow-md); }
-        .hist-evo__card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); }
-        .hist-evo__card h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.14; margin: 0 0 var(--sp-3); color: var(--ink); text-wrap: balance; }
-        .hist-evo__card p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
+        .hist-evo--strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; }
+        .hist-evo__step { padding: 0 var(--sp-5); }
+        .hist-evo__step:first-child { padding-left: 0; }
+        .hist-evo__step:last-child { padding-right: 0; }
+        .hist-evo__step + .hist-evo__step { border-left: 1px solid var(--paper-line); }
+        .hist-evo__num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; font-family: var(--font-display); font-weight: 900; font-size: 14px; color: #fff; background: var(--hl, var(--coral)); margin-bottom: var(--sp-4); }
+        .hist-evo__step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(15px, 1.3vw, 17px); line-height: 1.18; margin: 0 0 var(--sp-3); color: var(--ink); text-wrap: balance; }
+        .hist-evo__step p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
 
         /* 5 — CTA */
         .hist-cta { background: #5e3018; }
@@ -451,8 +455,15 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-cta__row .btn { min-height: 48px; }
 
         /* RESPONSIVO */
+        @media (max-width: 860px) {
+          .hist-evo--strip { grid-template-columns: repeat(2, 1fr); gap: var(--sp-5) var(--sp-6); }
+          .hist-evo__step { padding: 0; border-left: 0; }
+          .hist-evo__step + .hist-evo__step { border-left: 0; }
+        }
         @media (max-width: 700px) {
-          .hist-evo { grid-template-columns: 1fr; }
+          .hist-evo--strip { grid-template-columns: 1fr; gap: 0; }
+          .hist-evo__step { padding: var(--sp-5) 0; border-top: 1px solid var(--paper-line); }
+          .hist-evo__step:first-child { padding-top: 0; border-top: 0; }
           .hist-edi > summary { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
           .hist-edi__champ { margin: 0; max-width: 100%; }
           .hist-edi__meta { width: 100%; }
