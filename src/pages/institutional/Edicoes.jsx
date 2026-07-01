@@ -88,15 +88,16 @@ function StatusBadge({ status, special }) {
   return <span className={`edx-badge edx-badge--${s.tone}`}>{s.label}</span>
 }
 
-// Slot da marca da edição — espaço SEMPRE reservado. Lovers usa o selo dos 10 anos;
-// demais mostram fallback claro (não finge ser logo real).
+// Slot da marca da edição — espaço SEMPRE reservado. Logo REAL do acervo (uma por
+// edição); se o arquivo faltar/quebrar, cai no fallback editorial claro (nunca finge).
 function EditionLogoSlot({ e }) {
-  if (e.special) {
+  const logo = e.mark && e.mark.logo
+  if (logo) {
     return (
-      <div className="edx-logo edx-logo--seal">
-        <img src={TEN_YEARS_SEAL} alt={`Selo de 10 anos — edição ${e.theme}`} loading="lazy" decoding="async"
+      <div className="edx-logo edx-logo--real">
+        <img src={logo} alt={`Logo da edição ${e.theme}`} loading="lazy" decoding="async"
           onError={(ev) => { const w = ev.currentTarget.closest('.edx-logo'); if (w) w.classList.add('is-fallback') }} />
-        <span className="edx-logo__fb"><span className="edx-logo__fb-tag">Logo da edição pendente</span><span className="edx-logo__fb-name">{e.theme}</span></span>
+        <span className="edx-logo__fb"><span className="edx-logo__fb-tag">Logo pendente</span><span className="edx-logo__fb-name">{e.theme}</span></span>
       </div>
     )
   }
@@ -410,6 +411,13 @@ export function EdicoesPage() {
         .edx-logo--seal .edx-logo__fb { display: none; }
         .edx-logo--seal.is-fallback img { display: none; }
         .edx-logo--seal.is-fallback .edx-logo__fb { display: flex; }
+        /* logo real da edição (acervo) — mesma lógica do selo: contain + fallback no erro */
+        .edx-logo--real { width: clamp(96px, 9vw, 128px); }
+        .edx-logo--real img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(43,24,16,.2)); }
+        .edx-logo--real .edx-logo__fb { display: none; }
+        .edx-logo--real.is-fallback { width: min(300px, 100%); aspect-ratio: auto; min-height: 96px; max-height: 132px; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); padding: 14px 16px; place-items: center start; }
+        .edx-logo--real.is-fallback img { display: none; }
+        .edx-logo--real.is-fallback .edx-logo__fb { display: flex; }
         .edx-logo.is-fallback { width: min(300px, 100%); min-height: 96px; max-height: 132px; aspect-ratio: auto; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); border-radius: 14px; padding: 14px 16px; place-items: center start; }
         .edx-logo__fb { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
         .edx-logo__fb-tag { font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
