@@ -251,7 +251,7 @@ export function HistoricoAwardsPage({ navigate }) {
       <section className="hist-hero">
         <div className="wrap hist-hero__inner motion-reveal-up">
           <h1>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></h1>
-          <p>Os combos e marcas que os Sweet Lovers elegeram, edição após edição.</p>
+          <p>Os combos, sabores e marcas que encantaram o Sweet &amp; Coffee Week — edição após edição.</p>
           <div className="hist-hero__cta">
             <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>
           </div>
@@ -276,7 +276,7 @@ export function HistoricoAwardsPage({ navigate }) {
         <div className="wrap">
           <div className="hist-head motion-reveal-up">
             <h2>O pódio de cada <span className="hist-hl hist-hl--coral">edição</span></h2>
-            <p>As edições anteriores, de 2016 a 2025. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de votação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
+            <p>As edições anteriores, de 2016 a 2025. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de avaliação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
           </div>
           <div className="hist-list motion-stagger">
             {ordered.map((e) => <EditionAccordion e={e} key={e.id} />)}
