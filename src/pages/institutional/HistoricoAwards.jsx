@@ -72,6 +72,15 @@ function CategoryCard({ a }) {
   )
 }
 
+// Card de destaque da edição atual (esqueleto — campeão em destaque na Task 3).
+function CurrentCategoryCard({ a }) {
+  return (
+    <article className="swa-cat">
+      <h3>{a.category}</h3>
+    </article>
+  )
+}
+
 // Agrupa categorias por trilha preservando a ordem original dos dados.
 function groupByTrack(awards) {
   const groups = []
@@ -173,6 +182,9 @@ export function HistoricoAwardsPage({ navigate }) {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   const ordered = [...sweetEditions].reverse() // mais recentes primeiro
+  // Edição atual (Lovers 2026.1) — pódios já cruzados de loversAwardsResults no adapter.
+  const CURRENT = sweetEditions.find((e) => e.id === '2026.1')
+  const CURRENT_AWARDS = CURRENT?.awards || []
 
   return (
     <div className="page-enter hist-page" ref={rootRef}>
@@ -183,6 +195,19 @@ export function HistoricoAwardsPage({ navigate }) {
           <p>Os combos e marcas que os Sweet Lovers elegeram, edição após edição.</p>
           <div className="hist-hero__cta">
             <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>
+          </div>
+        </div>
+      </section>
+
+      {/* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */}
+      <section id="premiacao-atual" className="section swa-current">
+        <div className="wrap">
+          <div className="hist-head motion-reveal-up">
+            <h2>Premiação <span className="hist-hl">Lovers 2026.1</span></h2>
+            <p>As oito categorias eleitas pelos Sweet Lovers na edição mais recente do festival.</p>
+          </div>
+          <div className="swa-current__grid motion-stagger">
+            {CURRENT_AWARDS.map((a) => <CurrentCategoryCard a={a} key={a.category} />)}
           </div>
         </div>
       </section>
@@ -252,6 +277,10 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-hero h1 .hist-hl { color: var(--page-accent); }
         .hist-hero p { margin: var(--sp-4) 0 0; max-width: 52ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .hist-hero__cta { margin-top: var(--sp-5); }
+
+        /* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */
+        .swa-current { background: var(--cream); }
+        .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
 
         /* 2 — TRANSPARÊNCIA */
         .hist-intro { background: var(--cream); padding-bottom: 0; }
