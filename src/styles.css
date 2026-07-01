@@ -549,9 +549,10 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 :is(.ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero) :is(h1, p) { color: var(--ink) !important; }
 .ed-hl, .cur-hl, .hist-hl { color: var(--ink) !important; }
 .ed-hl::after, .cur-hl::after { background: var(--ink) !important; }
-/* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu),
-   sob a foto + altura 1080; foto/overlay/texto claro preservados. */
-.hm .swc-hero { background: #2B1810 !important; min-height: 1080px !important; }
+/* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
+   Altura vem do .swc-hero inline (faixa proporcional, §4) — sem override fixo aqui.
+   Foto/overlay/texto claro preservados. */
+.hm .swc-hero { background: #2B1810 !important; }
 @media (max-width: 960px) {
   .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero { min-height: clamp(360px, 58svh, 520px); }
   .hm .swc-hero { min-height: 100svh !important; }

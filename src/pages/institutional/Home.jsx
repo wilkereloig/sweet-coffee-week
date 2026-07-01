@@ -12,6 +12,7 @@ import { useVisualOverride } from '../../design/useVisualOverride'
 import { VisualRefinementProvider } from '../../design/VisualRefinementProvider'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { PhotoRotator } from '../../components/PhotoRotator'
+import { PhotoEditorial } from '../../components/placeholders'
 import { heroGalleryImages, aboutGalleryImages } from '../../data/homeGalleries'
 
 // Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
@@ -33,10 +34,10 @@ const STEPS = [
 ]
 
 const STATS = [
-  { to: 16,  prefix: '',     suffix: '',         unit: 'edições', l: 'desde 2016' },
-  { to: 34,  prefix: '+',    suffix: ' mil',     unit: 'combos', l: 'vendidos nas últimas edições' },
-  { to: 712, prefix: '+R$ ', suffix: ' mil', unit: '', l: 'movimentados diretamente' },
-  { to: 10,  prefix: '+',    suffix: ' milhões', unit: '', l: 'de visualizações no Instagram' },
+  { to: 16,  prefix: '',  suffix: '',         cap: 'edições desde 2016' },
+  { to: 100, prefix: '+', suffix: '',         cap: 'marcas participantes', accent: true },
+  { to: 34,  prefix: '+', suffix: ' mil',     cap: 'combos vendidos' },
+  { to: 18,  prefix: '+', suffix: ' milhões', cap: 'visualizações no Instagram' },
 ]
 
 // SWEET & COFFEE WEEK NA MÍDIA — prova de credibilidade enxuta: selos rápidos +
@@ -134,6 +135,46 @@ function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
   return <span ref={ref}>{prefix}{val.toLocaleString('pt-BR')}{suffix}</span>
 }
 
+// NÚMEROS — "ficha de uma década". Os 4 números do festival num quadrante editorial
+// dividido por fios (sem cards), com 1 acento coral no dinheiro; foto duotone como
+// âncora. Tipo carrega a peça: Nexa Slab nos números, Nexa nos rótulos (sem mono).
+// Reveal + CountUp; reduced-motion seguro (sem animação custom).
+function NumbersSection({ ovStats }) {
+  return (
+    <section className="section hm-why hm-numbers" {...ovStats}>
+      <div className="wrap">
+        {/* Linha 1 — 2 colunas: foto (esq.) + título da seção (dir.) */}
+        <div className="hm-fct__top">
+          <figure className="hm-fct__photo motion-image-reveal">
+            <PhotoEditorial
+              tone="coffee"
+              aspect="4/5"
+              label=""
+              src={/* TODO: foto Sweet Lovers / loja cheia em duotone */ ''}
+              alt=""
+            />
+          </figure>
+
+          <div className="hm-fct__head motion-reveal-up">
+            <h2>O tamanho de uma <span className="keep-together"><span className="hl-w">década</span>.</span></h2>
+            <p className="hm-fct__lead">De 2016 a 2026, o Sweet &amp; Coffee Week virou tradição de Natal — e os números acompanharam.</p>
+          </div>
+        </div>
+
+        {/* Linha 2 — largura cheia: os números da década */}
+        <dl className="hm-fct__nums motion-stagger">
+          {STATS.map((s) => (
+            <div className={`hm-fct__cell${s.accent ? ' hm-fct__cell--accent' : ''}`} key={s.cap}>
+              <dt className="hm-fct__num"><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} /></dt>
+              <dd className="hm-fct__label">{s.cap}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 export function HomePage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
 
@@ -186,22 +227,8 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* NÚMEROS */}
-      <section className="section hm-why hm-numbers" {...ovStats}>
-        <div className="wrap">
-          <div className="hm-numbers__head motion-reveal-up">
-            <h2>Números que contam uma <span className="keep-together"><span className="hl-w">história</span>.</span></h2>
-          </div>
-          <div className="hm-stats motion-stagger">
-            {STATS.map((s) => (
-              <div className="hm-stat" key={s.l}>
-                <strong><CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} />{s.unit ? <span className="hm-stat__unit"> {s.unit}</span> : null}</strong>
-                <span className="hm-stat__support">{s.l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* NÚMEROS — composição editorial assimétrica (ver componente NumbersSection) */}
+      <NumbersSection ovStats={ovStats} />
 
       {/* O QUE É — circuito de sabor: colagem de fotos reais + tags sticker */}
       <section className="section hm-about">
@@ -387,7 +414,7 @@ export function HomePage({ navigate }) {
 
         /* HERO — split chocolate + foto, blob coral, CTAs (left-aligned;
            prefixo .hm vence a centralização global de .page-enter) */
-        .hm .swc-hero { position: relative; min-height: calc(100dvh - 1px); background: #381610; overflow: visible; isolation: isolate; z-index: 2; }
+        .hm .swc-hero { position: relative; min-height: clamp(600px, 82vh, 840px); background: #381610; overflow: visible; isolation: isolate; z-index: 2; }
         /* degradê top-down na seção toda: escurece o topo (menu legível em toda a largura) e revela a foto embaixo */
         /* overlay marrom sobre a foto full-bleed: legibilidade do menu (topo) e do texto */
         .hm .swc-hero::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to bottom, rgba(43,24,16,.82) 0%, rgba(43,24,16,.5) 28%, rgba(43,24,16,.5) 68%, rgba(43,24,16,.74) 100%); }
@@ -409,7 +436,7 @@ export function HomePage({ navigate }) {
         @media (prefers-reduced-motion: reduce) { .hm .swc-hero__splat__shape { animation: none; } }
         .hm .swc-hero, .hm .swc-hero * { text-align: center; }
         .hm .swc-hero__copy {
-          position: relative; z-index: 4; width: 100%; max-width: 920px; margin: 0 auto; min-height: calc(100dvh - 1px); box-sizing: border-box;
+          position: relative; z-index: 4; width: 100%; max-width: 920px; margin: 0 auto; min-height: clamp(600px, 82vh, 840px); box-sizing: border-box;
           padding: clamp(96px, 12vw, 160px) clamp(24px, 6vw, 64px) clamp(48px, 7vw, 96px);
           display: flex; flex-direction: column; justify-content: center; align-items: center;
           background: transparent;
@@ -569,6 +596,50 @@ export function HomePage({ navigate }) {
         .hm-numbers .hm-stat strong { display: block; font-size: clamp(26px, 9.5cqi, 38px); line-height: 1.02; letter-spacing: -.03em; margin: 0; max-width: 100%; color: var(--on); white-space: normal; text-wrap: balance; }
         .hm-numbers .hm-stat__unit { font-weight: 700; }
         .hm-numbers .hm-stat__support { display: block; font-size: clamp(15.5px, 5.2cqi, 18.5px); line-height: 1.34; margin: 0; max-width: 100%; color: var(--on); opacity: .94; font-weight: 600; text-wrap: pretty; }
+
+        /* ════ NÚMEROS — "ficha de uma década" (quadrante editorial) ════
+           Banda creme. Foto duotone à esquerda; à direita, cabeça + 4 números num
+           quadrante 2×2 dividido por fios internos (sem cards). 1 acento coral (o
+           dinheiro). Só Nexa — sem mono. */
+        .hm .hm-fct__top { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+        .hm-fct__photo { position: relative; margin: 0; }
+        .hm-fct__photo > figure { border-radius: 14px !important; box-shadow: 0 24px 60px rgba(43,24,16,.26); }
+        .hm-fct__photo > figure > span { display: none !important; }
+        .hm-fct__cap { margin-top: var(--sp-3); font-family: var(--font-sans); font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-mute, var(--ink-soft)); }
+
+        .hm-fct__head { max-width: none; }
+        .hm-fct__eyebrow { display: inline-block; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--coral); margin-bottom: var(--sp-3); }
+        .hm-fct__head h2 { color: var(--ink); font-family: var(--font-heading); font-weight: 800; font-size: var(--fs-display-md); line-height: .98; letter-spacing: -.04em; margin: 0; text-wrap: balance; }
+        .hm-fct__lead { margin: var(--sp-4) 0 0; color: var(--ink-soft); font-size: clamp(15px, 1.3vw, 17px); line-height: 1.5; max-width: 52ch; }
+
+        /* Linha de números — faixa cheia, 4 colunas divididas por fios verticais (sem caixas) */
+        .hm-fct__nums { display: grid; grid-template-columns: repeat(4, 1fr); margin: clamp(40px, 5vw, 64px) 0 0; padding-top: clamp(28px, 3.5vw, 44px); border-top: 1px solid var(--paper-line, var(--line)); }
+        .hm-fct__cell { padding: 0 clamp(20px, 2.6vw, 34px); }
+        .hm-fct__cell:first-child { padding-left: 0; }
+        .hm-fct__cell:not(:first-child) { border-left: 1px solid var(--paper-line, var(--line)); }
+        .hm-fct__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(38px, 5vw, 66px); line-height: .9; letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
+        .hm-fct__cell:nth-child(1) .hm-fct__num { color: var(--coral); }
+        .hm-fct__cell:nth-child(2) .hm-fct__num { color: var(--pink); }
+        .hm-fct__cell:nth-child(3) .hm-fct__num { color: var(--cyan); }
+        .hm-fct__cell:nth-child(4) .hm-fct__num { color: var(--yellow); }
+        .hm-fct__label { margin: 10px 0 0; font-family: var(--font-sans); font-size: clamp(13px, 1.1vw, 15px); font-weight: 600; line-height: 1.3; color: var(--ink-soft); }
+
+        @media (max-width: 860px) {
+          .hm .hm-fct__top { grid-template-columns: 1fr; gap: clamp(24px, 6vw, 36px); }
+          .hm-fct__photo { max-width: 360px; }
+          .hm-fct__head { max-width: none; }
+          .hm-fct__nums { grid-template-columns: 1fr 1fr; margin-top: clamp(28px, 6vw, 40px); }
+          .hm-fct__cell { padding: clamp(18px, 3vw, 24px) clamp(16px, 4vw, 26px); }
+          .hm-fct__cell:nth-child(odd) { padding-left: 0; border-left: 0; }
+          .hm-fct__cell:nth-child(even) { border-left: 1px solid var(--paper-line, var(--line)); }
+          .hm-fct__cell:nth-child(n+3) { border-top: 1px solid var(--paper-line, var(--line)); }
+        }
+        @media (max-width: 480px) {
+          .hm-fct__nums { grid-template-columns: 1fr; padding-top: clamp(22px, 6vw, 30px); }
+          .hm-fct__cell { padding: 16px 0 !important; border-left: 0 !important; }
+          .hm-fct__cell:nth-child(n+2) { border-top: 1px solid var(--paper-line, var(--line)); }
+          .hm-fct__num { font-size: clamp(38px, 13vw, 58px); }
+        }
 
         /* Card — pilar com top-rail de acento, superfície elevada */
         .hm-pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); }
