@@ -51,16 +51,16 @@ export const SWEET_COFFEE_HISTORY = {
       "participantesCount": 13,
       "participantes": [
         "LaSweets por Larissa Pio",
-        "Bocaditos Doceria & Café",
+        "Bocaditos",
         "Liliane Moura Confiserie",
-        "Jolie Pâtisserie",
+        "Jolie Café Pâtisserie",
         "Margarita Café & Ateliê de Doces",
         "Realize Gourmet",
         "Rafaela Fontes Chocolateria",
         "Chapelatto Coffee Shop",
-        "Jana's Cakes",
-        "Cecilia Mindêlo Brownies",
-        "Boca D'Água Delicatessen",
+        "Jona's Cakes",
+        "Cecília Mindêlo",
+        "Boca D'Água",
         "Rosa Lemos Chocolate & Café",
         "Barões do Café"
       ],
@@ -83,21 +83,21 @@ export const SWEET_COFFEE_HISTORY = {
       "participantes": [
         "Realize Gourmet",
         "Engenho Doce",
-        "Confeitaria Jana's Cakes",
+        "Jona's Cakes",
         "Doce Arthe Confeitaria",
         "Barões do Café",
-        "Boca D'Água Delicatessen",
+        "Boca D'Água",
         "Casa de Taipa Tapiocaria",
         "TuttiMac",
         "Berlin Cafeteria",
         "FitNeza Coffee",
         "Chocolateria Sandra Maia",
-        "Bocaditos Confeitaria Artesanal",
+        "Bocaditos",
         "Very Sugar",
-        "Jolie Pâtisserie",
-        "Cecilia Mindêlo",
+        "Jolie Café Pâtisserie",
+        "Cecília Mindêlo",
         "Chapelatto Coffee Shop",
-        "Chocolateria Rafaela Fontes"
+        "Rafaela Fontes Chocolateria"
       ],
       "premiacao": {
         "status": "nao-teve",
@@ -119,24 +119,24 @@ export const SWEET_COFFEE_HISTORY = {
         "Barões do Café",
         "Boca D'Água",
         "Café da Ordem",
-        "Caroli",
+        "Caroli Douces",
         "Croasonho",
-        "Daguia",
+        "Daguia Tortas Finas",
         "Suisse Brownie",
-        "Berlin",
+        "Berlin Cafeteria",
         "Bocaditos",
         "Bolo da Vovó",
-        "Cecilia Mindêlo",
-        "Crooks",
+        "Cecília Mindêlo",
+        "Crooks Cookies",
         "Engenho Doce",
         "Fritz",
-        "Jana's Cake",
-        "Jolie Parissiere",
-        "La Sweets",
-        "Pinga Fogo",
-        "Rafaela Fontes",
-        "Realize",
-        "Sandra Maia",
+        "Jona's Cakes",
+        "Jolie Café Pâtisserie",
+        "LaSweets por Larissa Pio",
+        "Pinga Fogo Doceria",
+        "Rafaela Fontes Chocolateria",
+        "Realize Gourmet",
+        "Chocolateria Sandra Maia",
         "Very Sugar"
       ],
       "premiacao": {
@@ -157,24 +157,24 @@ export const SWEET_COFFEE_HISTORY = {
       "participantesCount": 21,
       "participantes": [
         "A Doceria",
-        "Barões",
-        "Berlim",
+        "Barões do Café",
+        "Berlin Cafeteria",
         "Bolo da Vovó",
-        "Caroli",
-        "Cecilia Brownie",
-        "Chapelatto",
-        "Crooks",
-        "Daguia",
-        "Fitneza",
-        "Jana's Cake",
-        "La Sweets",
+        "Caroli Douces",
+        "Cecília Mindêlo",
+        "Chapelatto Coffee Shop",
+        "Crooks Cookies",
+        "Daguia Tortas Finas",
+        "FitNeza Coffee",
+        "Jona's Cakes",
+        "LaSweets por Larissa Pio",
         "Mr Brownie",
         "Paddy's",
-        "Parma",
-        "Rafaela Fontes",
+        "Parma Doces",
+        "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
-        "Sandra Maia",
-        "Swiss Brownie",
+        "Chocolateria Sandra Maia",
+        "Suisse Brownie",
         "The Brownie Factory",
         "Very Sugar"
       ],
@@ -202,22 +202,22 @@ export const SWEET_COFFEE_HISTORY = {
         "Bolo da Vovó",
         "Cacau Show",
         "Caroli Douces",
-        "Cecilia Mindêlo",
-        "Chapelatto",
+        "Cecília Mindêlo",
+        "Chapelatto Coffee Shop",
         "Chocolateria Sandra Maia",
-        "Crooks",
-        "Daguia",
+        "Crooks Cookies",
+        "Daguia Tortas Finas",
         "Das Melo",
         "Edileuza Doces Finos",
-        "Fitneza",
-        "Jana's Cakes",
-        "Jolie Pâtisserie",
-        "La Sweets",
-        "Mr Cupcake",
+        "FitNeza Coffee",
+        "Jona's Cakes",
+        "Jolie Café Pâtisserie",
+        "LaSweets por Larissa Pio",
+        "Mr. Cupcake Confeitaria",
         "Parma Doces",
-        "Rafaela Fontes",
+        "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
-        "Sodiê",
+        "Sodiê Doces",
         "Suisse Brownie",
         "Very Sugar"
       ],
@@ -238,31 +238,31 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "15 a 25 de maio de 2019",
       "participantesCount": 28,
       "participantes": [
-        "Siga Balzac Café",
+        "Balzac Café",
         "Boca D'Água",
         "Bocaditos",
         "Bolo da Vovó",
         "Cacau Show",
         "Caffeina",
         "Café Brigadeiro",
-        "Caroli",
+        "Caroli Douces",
         "Casa Nacre",
-        "Cecília Mindelo",
-        "Chapelatto",
+        "Cecília Mindêlo",
+        "Chapelatto Coffee Shop",
         "Crooks Cookies",
         "Cuore di Panna",
         "Das Melo",
-        "Fitneza",
+        "FitNeza Coffee",
         "Flor e Flor",
         "Flora Cafeteria",
         "Frans Café",
-        "Jolie",
-        "La Sweets",
-        "Mr Cupcake",
+        "Jolie Café Pâtisserie",
+        "LaSweets por Larissa Pio",
+        "Mr. Cupcake Confeitaria",
         "Parma Doces",
-        "Rafaela Fontes",
+        "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
-        "Sodiê",
+        "Sodiê Doces",
         "Sonho de Brownie",
         "Suisse Brownie",
         "Very Sugar"
@@ -278,13 +278,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Jolie"
+                  "Jolie Café Pâtisserie"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -309,8 +309,8 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "05 a 15 de setembro de 2019",
       "participantesCount": 36,
       "participantes": [
-        "Atelier Mine",
-        "Siga Balzac",
+        "Atelier Mine Confeitaria",
+        "Balzac Café",
         "Boca D'Água",
         "Bocaditos",
         "Bolo da Vovó",
@@ -318,28 +318,28 @@ export const SWEET_COFFEE_HISTORY = {
         "Café Brigadeiro",
         "Caffeina",
         "Camila Melo",
-        "Caroli",
+        "Caroli Douces",
         "Casa Nacre",
-        "Casa de Taipa",
-        "Cecilia Mindelo",
-        "Chapelatto",
+        "Casa de Taipa Tapiocaria",
+        "Cecília Mindêlo",
+        "Chapelatto Coffee Shop",
         "Chef Fits",
         "Cookorote",
-        "Crooks",
+        "Crooks Cookies",
         "Cuore di Panna",
         "Das Melo",
-        "Edileuza Doces",
+        "Edileuza Doces Finos",
         "Flor e Flor",
-        "Flora Café",
+        "Flora Cafeteria",
         "Frans Café",
-        "Jana's Cake",
-        "Jolie",
-        "Mr Cupcake",
+        "Jona's Cakes",
+        "Jolie Café Pâtisserie",
+        "Mr. Cupcake Confeitaria",
         "Nick Buffet",
-        "Paneer",
+        "Paneer Pâtisserie",
         "Parma Doces",
         "Pinga Fogo Doceria",
-        "Rafaela Fontes",
+        "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
         "Sodiê Doces",
         "Sonho de Brownie",
@@ -363,13 +363,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Chapelatto"
+                  "Chapelatto Coffee Shop"
                 ]
               }
             ]
@@ -413,19 +413,19 @@ export const SWEET_COFFEE_HISTORY = {
         "Café Brigadeiro",
         "Papo de Anjo",
         "Atelier Mine Confeitaria",
-        "Bella Pettit",
+        "Bella Petit",
         "Bocaditos",
         "Cecília Mindêlo",
         "Momento Gourmet",
-        "Caroli",
+        "Caroli Douces",
         "Casa Nacre",
         "Casa dos Salgados Gourmet",
         "Cuore di Panna",
         "Das Melo",
         "Kopenhagen",
         "Stephany Santos",
-        "Macarons Cookorote",
-        "Rafaela Fontes",
+        "Cookorote",
+        "Rafaela Fontes Chocolateria",
         "Very Sugar"
       ],
       "premiacao": {
@@ -445,7 +445,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Rafaela Fontes"
+                  "Rafaela Fontes Chocolateria"
                 ]
               },
               {
@@ -471,15 +471,15 @@ export const SWEET_COFFEE_HISTORY = {
       "participantesCount": 27,
       "participantes": [
         "Bella Petit",
-        "Bell's",
+        "Bell's Café",
         "Bocaditos",
         "Café Brigadeiro",
         "Café com Bike",
-        "Caroli",
-        "Casa de Taipa",
+        "Caroli Douces",
+        "Casa de Taipa Tapiocaria",
         "Casa dos Salgados Gourmet",
         "Casa Nacre",
-        "Cecilia Mindelo",
+        "Cecília Mindêlo",
         "Chocolatudos",
         "Cookorote",
         "Das Melo",
@@ -487,18 +487,17 @@ export const SWEET_COFFEE_HISTORY = {
         "Dolce Gelato",
         "Edileuza Doces Finos",
         "Frans Café",
-        "Jolie",
+        "Jolie Café Pâtisserie",
         "Mangai",
-        "Mine Confeitaria",
+        "Atelier Mine Confeitaria",
         "Momento Gourmet",
-        "Mr Cupcake",
-        "Paneer",
-        "Rafaela Fontes",
+        "Mr. Cupcake Confeitaria",
+        "Paneer Pâtisserie",
+        "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
         "Suisse Brownie",
         "Very Sugar"
       ],
-      "observacaoParticipantes": "O acervo também traz uma logo 'Kyara' (possível 28º participante / substituição) — a conferir.",
       "premiacao": {
         "status": "completa",
         "observacao": "Sweet Awards. Melhor Combo teve Júri Técnico e Sweet Lovers; demais categorias sem distinção de trilha nas peças.",
@@ -516,14 +515,14 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
                   "Cookorote",
-                  "Paneer"
+                  "Paneer Pâtisserie"
                 ]
               }
             ]
@@ -535,7 +534,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -589,13 +588,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Jolie"
+                  "Jolie Café Pâtisserie"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               }
             ]
@@ -619,7 +618,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               }
             ]
@@ -631,7 +630,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -643,7 +642,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Jolie"
+                  "Jolie Café Pâtisserie"
                 ]
               }
             ]
@@ -655,7 +654,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -667,7 +666,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Jolie"
+                  "Jolie Café Pâtisserie"
                 ]
               }
             ]
@@ -688,32 +687,32 @@ export const SWEET_COFFEE_HISTORY = {
       "participantes": [
         "Lulu Café",
         "Bem Eu Confeitaria",
-        "Aumer",
-        "Bell's",
+        "Aumer Restaurante",
+        "Bell's Café",
         "Café Leviz",
-        "Casa dos Salgados",
+        "Casa dos Salgados Gourmet",
         "Bendita Confeitaria",
-        "Chocolatudo",
+        "Chocolatudos",
         "Cacau Show",
-        "Marlon Gastronomia",
-        "Bella Peti",
+        "Marlon Vinicius",
+        "Bella Petit",
         "Cássia Ribeiro",
-        "Paneer",
+        "Paneer Pâtisserie",
         "Casa Nacre",
         "Royal Trudel",
-        "Franz Café",
+        "Frans Café",
         "Very Sugar",
         "Cecília Mindêlo",
         "Bocaditos",
-        "Rafaela Fontes",
+        "Rafaela Fontes Chocolateria",
         "Caroli Douces",
-        "Mine",
+        "Atelier Mine Confeitaria",
         "Das Melo",
         "Mangai",
-        "Suisse",
-        "Mr Cupcake",
+        "Suisse Brownie",
+        "Mr. Cupcake Confeitaria",
         "Momento Gourmet",
-        "Radio Café",
+        "Rádio Café",
         "Carol Dantas",
         "Café Brigadeiro"
       ],
@@ -782,7 +781,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Marlon Gastronomia"
+                  "Marlon Vinicius"
                 ]
               },
               {
@@ -830,7 +829,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -848,7 +847,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bell's Cafeteria"
+                  "Bell's Café"
                 ]
               },
               {
@@ -872,7 +871,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -885,7 +884,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Bell's Cafeteria"
+                  "Bell's Café"
                 ]
               }
             ]
@@ -897,7 +896,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -909,7 +908,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Bell's Cafeteria"
+                  "Bell's Café"
                 ]
               }
             ]
@@ -921,13 +920,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Bell's Cafeteria"
+                  "Bell's Café"
                 ]
               },
               {
@@ -957,7 +956,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               }
             ]
@@ -969,7 +968,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -993,7 +992,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bell's Cafeteria"
+                  "Bell's Café"
                 ]
               },
               {
@@ -1005,7 +1004,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Casa dos Salgados"
+                  "Casa dos Salgados Gourmet"
                 ]
               }
             ]
@@ -1014,9 +1013,9 @@ export const SWEET_COFFEE_HISTORY = {
         "mencaoHonrosa": {
           "categoria": "Envolvimento e Encantamento em Loja",
           "nomes": [
-            "Mr Cupcake",
-            "Rafaela Fontes",
-            "Chocolatudos por Laís",
+            "Mr. Cupcake Confeitaria",
+            "Rafaela Fontes Chocolateria",
+            "Chocolatudos",
             "Atelier Mine Confeitaria"
           ]
         }
@@ -1033,34 +1032,34 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "18 a 28 de novembro de 2021",
       "participantesCount": 30,
       "participantes": [
-        "Atelier Mine",
+        "Atelier Mine Confeitaria",
         "Aumer Restaurante",
         "Bell's Café",
-        "Bem Eu",
-        "Bendita",
+        "Bem Eu Confeitaria",
+        "Bendita Confeitaria",
         "Bocaditos",
         "Café Brigadeiro",
         "Carol Dantas",
-        "Caroli",
+        "Caroli Douces",
         "Cássia Ribeiro",
-        "Cecília Mindelo",
+        "Cecília Mindêlo",
         "Chefit",
         "Chocolatudos",
         "Da Terra",
         "Delizeu",
         "Doce Lelê",
         "Douce Bien",
-        "Duart's",
+        "Duart's Confeitaria",
         "Frans Cidade Jardim",
         "Frans Cidade Verde",
         "Le Paradis",
-        "Lulu Cake",
-        "Marlon Doceria",
-        "Mr Cupcake",
-        "Paneer",
+        "Lulu Café",
+        "Marlon Vinicius",
+        "Mr. Cupcake Confeitaria",
+        "Paneer Pâtisserie",
         "Parma Doces",
         "Recanto da Prosa",
-        "Sandra Maia Chocolateria",
+        "Chocolateria Sandra Maia",
         "Suisse Brownie",
         "Very Sugar"
       ],
@@ -1081,13 +1080,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Caroli"
+                  "Caroli Douces"
                 ]
               }
             ]
@@ -1099,13 +1098,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Caroli"
+                  "Caroli Douces"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -1129,7 +1128,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Sandra Maia"
+                  "Chocolateria Sandra Maia"
                 ]
               },
               {
@@ -1177,13 +1176,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Mine"
+                  "Atelier Mine Confeitaria"
                 ]
               }
             ]
@@ -1201,13 +1200,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Mine"
+                  "Atelier Mine Confeitaria"
                 ]
               }
             ]
@@ -1219,13 +1218,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bem Eu"
+                  "Bem Eu Confeitaria"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               },
               {
@@ -1243,13 +1242,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -1267,7 +1266,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
@@ -1291,13 +1290,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -1315,13 +1314,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -1339,13 +1338,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
@@ -1363,13 +1362,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Mr Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Mine"
+                  "Atelier Mine Confeitaria"
                 ]
               },
               {
@@ -1415,18 +1414,18 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "06 a 16 de outubro de 2022",
       "participantesCount": 33,
       "participantes": [
-        "Adocee",
+        "Adocee Doceria",
         "Aroma Café",
-        "Aumer",
-        "Bell's",
-        "Bem Eu",
+        "Aumer Restaurante",
+        "Bell's Café",
+        "Bem Eu Confeitaria",
         "Bistrô NL",
         "Bocaditos",
         "Café Leviz",
         "Canuto's",
-        "Caramel",
+        "Caramel Healthy Food",
         "Caroli Douces",
-        "Cecilia Mindêlo",
+        "Cecília Mindêlo",
         "Chocolateria Sandra Maia",
         "Cássia Ribeiro",
         "Daniel Bezerra",
@@ -1435,7 +1434,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Doce Lelê",
         "Doce Suspiro",
         "Douce di Maria",
-        "Duart's",
+        "Duart's Confeitaria",
         "Kfé da Vila",
         "Mangai",
         "Marlon Vinicius",
@@ -1444,8 +1443,8 @@ export const SWEET_COFFEE_HISTORY = {
         "Recanto da Prosa",
         "Rádio Café",
         "Suisse Brownie",
-        "Sweet Duo",
-        "Verysugar",
+        "Sweet Duo Confeitaria",
+        "Very Sugar",
         "Wanessa Cakes",
         "Woyla Pedrosa"
       ],
@@ -1460,7 +1459,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               },
               {
@@ -1472,7 +1471,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1496,7 +1495,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               }
             ]
@@ -1508,7 +1507,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               },
               {
@@ -1544,7 +1543,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1562,13 +1561,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Adocee"
+                  "Adocee Doceria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1580,13 +1579,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
@@ -1604,7 +1603,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               },
               {
@@ -1616,7 +1615,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               }
             ]
@@ -1672,10 +1671,10 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "02 a 12 de novembro de 2023",
       "participantesCount": 32,
       "participantes": [
-        "Adocee",
+        "Adocee Doceria",
         "Aroma Café",
         "Bocaditos",
-        "Canutos",
+        "Canuto's",
         "Caracol",
         "Carcará",
         "Caroli Douces",
@@ -1685,22 +1684,22 @@ export const SWEET_COFFEE_HISTORY = {
         "Dekacau",
         "Delicato",
         "Douce di Maria",
-        "Duarts",
+        "Duart's Confeitaria",
         "Fabiana Melo",
         "Jefferson Albano",
-        "Just Coffee",
+        "Just Food&Coffee",
         "Kale do Bem",
         "Lu Doces",
         "Mangai",
         "Marlon Vinicius",
         "Mint Coffee",
-        "O Maestro",
-        "Parma",
+        "O Maestro Café",
+        "Parma Doces",
         "Petit Poti",
         "Pudinharia",
-        "Radio Café",
-        "Suisse",
-        "Sweet Duo",
+        "Rádio Café",
+        "Suisse Brownie",
+        "Sweet Duo Confeitaria",
         "Wanessa Cakes",
         "Wow Cookies",
         "Xodó"
@@ -1716,19 +1715,19 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Canutos"
+                  "Canuto's"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1740,20 +1739,20 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Canutos"
+                  "Canuto's"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Adocee"
+                  "Adocee Doceria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Marlon",
-                  "Suisse"
+                  "Marlon Vinicius",
+                  "Suisse Brownie"
                 ]
               }
             ]
@@ -1765,7 +1764,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Sweet Duo"
+                  "Sweet Duo Confeitaria"
                 ]
               },
               {
@@ -1778,7 +1777,7 @@ export const SWEET_COFFEE_HISTORY = {
                 "pos": 3,
                 "nomes": [
                   "Dedo de Moça",
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               }
             ]
@@ -1790,20 +1789,20 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Canutos"
+                  "Canuto's"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Just Coffee"
+                  "Just Food&Coffee"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Adocee",
-                  "Marlon"
+                  "Adocee Doceria",
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1815,20 +1814,20 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Adocee"
+                  "Adocee Doceria"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Suisse",
-                  "Duarts"
+                  "Suisse Brownie",
+                  "Duart's Confeitaria"
                 ]
               }
             ]
@@ -1846,14 +1845,14 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Sweet Duo",
-                  "Duarts"
+                  "Sweet Duo Confeitaria",
+                  "Duart's Confeitaria"
                 ]
               }
             ]
@@ -1865,20 +1864,20 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Canutos"
+                  "Canuto's"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Duarts",
-                  "Marlon"
+                  "Duart's Confeitaria",
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1890,20 +1889,20 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Canutos"
+                  "Canuto's"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "O Maestro"
+                  "O Maestro Café"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
                   "Douce di Maria",
-                  "Marlon"
+                  "Marlon Vinicius"
                 ]
               }
             ]
@@ -1922,34 +1921,34 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "14 a 24 de novembro de 2024",
       "participantesCount": 29,
       "participantes": [
-        "Adocee",
+        "Adocee Doceria",
         "Bella Douces",
-        "Bell's",
+        "Bell's Café",
         "Bocaditos",
-        "Bolo Mania",
-        "Canutos",
-        "Caramel",
+        "Bolomania",
+        "Canuto's",
+        "Caramel Healthy Food",
         "Carcará",
-        "Caroli",
-        "Casa Bauduco",
+        "Caroli Douces",
+        "Casa Bauducco",
         "Casa Moscou",
         "Dedo de Moça",
         "Delicato",
         "Diva Café",
-        "Duart's",
+        "Duart's Confeitaria",
         "Fabiana Melo",
         "Jefferson Albano",
-        "Just",
+        "Just Food&Coffee",
         "Lu Doces",
         "Mangai",
-        "Marlon",
-        "O Maestro",
-        "Parma",
+        "Marlon Vinicius",
+        "O Maestro Café",
+        "Parma Doces",
         "Puro Café",
         "Sol e Café",
         "Suisse Brownie",
-        "Sweet Duo",
-        "Wanessa Cake",
+        "Sweet Duo Confeitaria",
+        "Wanessa Cakes",
         "Wow Cookies"
       ],
       "premiacao": {
@@ -1999,7 +1998,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Sweet Duo"
+                  "Sweet Duo Confeitaria"
                 ]
               }
             ]
@@ -2017,7 +2016,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               },
               {
@@ -2065,7 +2064,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "O Maestro Café & Art"
+                  "O Maestro Café"
                 ]
               },
               {
@@ -2109,7 +2108,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "O Maestro Café & Art"
+                  "O Maestro Café"
                 ]
               },
               {
@@ -2145,30 +2144,30 @@ export const SWEET_COFFEE_HISTORY = {
       "periodo": "06 a 16 de novembro de 2025",
       "participantesCount": 26,
       "participantes": [
-        "Adocee",
+        "Adocee Doceria",
         "Aroma Café",
         "Bella Douces",
         "Bolomania",
         "Canuto's",
-        "Caramel",
-        "Caroli",
-        "Casa Baudocco",
+        "Caramel Healthy Food",
+        "Caroli Douces",
+        "Casa Bauducco",
         "Delicato",
-        "Duart's",
+        "Duart's Confeitaria",
         "Estação Açaí",
         "Fabiana Melo",
-        "Jolie",
+        "Jolie Café Pâtisserie",
         "Just Food&Coffee",
         "Mangai",
         "Marlon Vinicius",
-        "Mr. Cupcake",
+        "Mr. Cupcake Confeitaria",
         "O Maestro Café",
         "Padoca do Bosque",
-        "Paneer",
-        "Parma",
-        "Rollab",
+        "Paneer Pâtisserie",
+        "Parma Doces",
+        "Rollab Confeitaria",
         "Suisse Brownie",
-        "Sweet Duo",
+        "Sweet Duo Confeitaria",
         "Território Mexicano",
         "Wow Cookies"
       ],
@@ -2207,7 +2206,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Jolie"
+                  "Jolie Café Pâtisserie"
                 ]
               },
               {
@@ -2243,7 +2242,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Mr. Cupcake"
+                  "Mr. Cupcake Confeitaria"
                 ]
               }
             ]
@@ -2255,7 +2254,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Rollab"
+                  "Rollab Confeitaria"
                 ]
               },
               {
@@ -2315,7 +2314,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Duart's"
+                  "Duart's Confeitaria"
                 ]
               }
             ]
@@ -2339,7 +2338,7 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 3,
                 "nomes": [
-                  "Rollab"
+                  "Rollab Confeitaria"
                 ]
               }
             ]
@@ -2517,7 +2516,8 @@ export const SWEET_COFFEE_HISTORY = {
       "Cecilia Mindelo",
       "Cecília Mindêlo",
       "Cecilia Brownie",
-      "Cecilia Mindêlo Brownies"
+      "Cecilia Mindêlo Brownies",
+      "Cecilia Mindêlo"
     ],
     "Caroli Douces": [
       "Caroli",
@@ -2580,6 +2580,119 @@ export const SWEET_COFFEE_HISTORY = {
       "Paneer",
       "Paneer Pâtisserie",
       "Paneer Patisserie"
+    ],
+    "Bell's Café": [
+      "Bell's",
+      "Bell's Café",
+      "Bell's Cafeteria"
+    ],
+    "LaSweets por Larissa Pio": [
+      "La Sweets",
+      "LaSweets",
+      "LaSweets por Larissa Pio"
+    ],
+    "Jona's Cakes": [
+      "Jana's Cakes",
+      "Jana's Cake",
+      "Jona's Cakes"
+    ],
+    "Boca D'Água": [
+      "Boca D'Água",
+      "Boca D'Água Delicatessen"
+    ],
+    "Rafaela Fontes Chocolateria": [
+      "Rafaela Fontes",
+      "Rafaela Fontes Chocolateria",
+      "Chocolateria Rafaela Fontes"
+    ],
+    "Chocolateria Sandra Maia": [
+      "Sandra Maia",
+      "Chocolateria Sandra Maia"
+    ],
+    "Berlin Cafeteria": [
+      "Berlin",
+      "Berlim",
+      "Berlin Cafeteria"
+    ],
+    "FitNeza Coffee": [
+      "Fitneza",
+      "FitNeza Coffee"
+    ],
+    "Realize Gourmet": [
+      "Realize",
+      "Realize Gourmet"
+    ],
+    "Daguia Tortas Finas": [
+      "Daguia",
+      "Daguia Tortas Finas"
+    ],
+    "Crooks Cookies": [
+      "Crooks",
+      "Crooks Cookies"
+    ],
+    "Frans Café": [
+      "Frans Café",
+      "Franz Café",
+      "Frans Cidade Jardim",
+      "Frans Cidade Verde"
+    ],
+    "Balzac Café": [
+      "Balzac Café",
+      "Siga Balzac",
+      "Siga Balzac Café"
+    ],
+    "Flora Cafeteria": [
+      "Flora Cafeteria",
+      "Flora Café"
+    ],
+    "Casa de Taipa Tapiocaria": [
+      "Casa de Taipa",
+      "Casa de Taipa Tapiocaria"
+    ],
+    "Lulu Café": [
+      "Lulu Café",
+      "Lulu Cake"
+    ],
+    "Caramel Healthy Food": [
+      "Caramel",
+      "Caramel Healthy Food"
+    ],
+    "Casa Bauducco": [
+      "Casa Bauduco",
+      "Casa Baudocco",
+      "Casa Bauducco"
+    ],
+    "Adocee Doceria": [
+      "Adocee",
+      "Adocee Doceria"
+    ],
+    "Sweet Duo Confeitaria": [
+      "Sweet Duo",
+      "Sweet Duo Confeitaria"
+    ],
+    "Wanessa Cakes": [
+      "Wanessa Cake",
+      "Wanessa Cakes"
+    ],
+    "Chefit": [
+      "Chefit",
+      "Chef Fits"
+    ],
+    "Bem Eu Confeitaria": [
+      "Bem Eu",
+      "Bem Eu Confeitaria"
+    ],
+    "Sodiê Doces": [
+      "Sodiê",
+      "Sodiê Doces"
+    ],
+    "Edileuza Doces Finos": [
+      "Edileuza Doces",
+      "Edileuza Doces Finos"
+    ],
+    "Pinga Fogo Doceria": [
+      "Pinga Fogo",
+      "Pinga Fogo Doceria"
     ]
   },
   "categoryAliases": {
