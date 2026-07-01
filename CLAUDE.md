@@ -213,6 +213,14 @@ Segue a lógica visual da Home. Deve ter: proposta clara; imagens/fotos quando
 disponíveis; depoimentos; **formulário em destaque**; linguagem voltada a participantes;
 visual editorial e comercial. Não deve parecer formulário genérico.
 
+**Hero bespoke (exceção ao `<PageHero>`).** A hero de Participar (e a de Apoiar, §14)
+tem o **formulário integrado** + banda chocolate própria + selo girando + shots —
+estrutura de landing de conversão, distinta da hero institucional simples. Fica
+**fora** do componente `PageHero`, como Home (§9) e Edições (§10) já são. As demais
+seções dessas páginas usam o kit de layout (`PageShell`/`PageSection`/`SectionHeader`/
+`CardsGrid`/`CTASection`, `src/components/layout/`). Não migrar essas heros p/ PageHero
+sem pedido explícito.
+
 ## 14. Página Apoiar
 
 Lógica parecida com Participar. Precisa de: **formulário em destaque**; explicação

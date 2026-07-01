@@ -13,7 +13,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { PageShell, PageSection, SectionHeader, CTASection, CardsGrid } from '../../components/layout'
 
 // Canal oficial de contato (único definido no projeto) — mesmo do rodapé.
 const INSTAGRAM_HANDLE = '@sweetcoffeeweek'
@@ -111,10 +111,6 @@ const NEGOCIOS = [
 ]
 
 export function ParticiparPage() {
-  // Motion System — revela seções/cards ao entrarem na viewport.
-  const rootRef = React.useRef(null)
-  useRevealOnScroll(rootRef)
-
   // Âncora suave interna (sem mexer no hash → não quebra o hash-router).
   const scrollTo = (id) => (e) => {
     e.preventDefault()
@@ -165,8 +161,10 @@ export function ParticiparPage() {
   }
 
   return (
-    <div className="page-enter participar-page" ref={rootRef}>
-      {/* 1 — HERO EDITORIAL (banda chocolate, como a Home) + FORM integrado */}
+    <PageShell name="participar">
+      {/* 1 — HERO EDITORIAL (banda chocolate própria + FORM integrado).
+           BESPOKE por design: hero de conversão com formulário é exceção ao
+           <PageHero> — mesma lógica de Home/Edições (CLAUDE.md §13). Não migrar. */}
       <section id="topo-form" className="participar-hero">
         <span className="participar-hero__seal" aria-hidden="true">
           <span className="participar-hero__seal__shape" />
@@ -247,92 +245,87 @@ export function ParticiparPage() {
       </section>
 
       {/* 2 — VALOR: por que participar (4 cards com foto real dentro) */}
-      <section className="section participar-why">
-        <div className="wrap">
-          <div className="participar-head motion-reveal-up">
-            <h2>Participar é colocar sua marca em <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--coral)' }}>movimento</span>.</span></h2>
-            <p>O festival cria uma temporada de visibilidade, visita e descoberta, conectando marcas locais aos Sweet Lovers.</p>
-          </div>
-          <div className="participar-cards motion-stagger">
-            {PILLARS.map((p) => {
-              const Icon = I[p.icon] || I.star
-              return (
-                <article className="participar-card" key={p.t}>
-                  <div className="participar-card__media">
-                    <img src={p.img} alt={p.imgAlt} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.closest('.participar-card__media').classList.add('is-empty') }} />
-                    <span className="participar-card__ic"><Icon width={20} height={20} /></span>
-                  </div>
-                  <div className="participar-card__body">
-                    <h3>{p.t}</h3>
-                    <p>{p.d}</p>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-          <div className="participar-elig motion-reveal-up">
-            <span className="participar-elig__ic" aria-hidden="true"><I.star width={18} height={18} /></span>
-            <p><strong>Quem pode participar:</strong> docerias, cafeterias, confeitarias, restaurantes, sorveterias, empórios e marcas gastronômicas com atendimento ao público.</p>
-          </div>
+      <PageSection className="participar-why">
+        <SectionHeader
+          className="participar-head motion-reveal-up"
+          title={<>Participar é colocar sua marca em <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--coral)' }}>movimento</span>.</span></>}
+          lead="O festival cria uma temporada de visibilidade, visita e descoberta, conectando marcas locais aos Sweet Lovers."
+        />
+        <CardsGrid className="participar-cards">
+          {PILLARS.map((p) => {
+            const Icon = I[p.icon] || I.star
+            return (
+              <article className="participar-card" key={p.t}>
+                <div className="participar-card__media">
+                  <img src={p.img} alt={p.imgAlt} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.closest('.participar-card__media').classList.add('is-empty') }} />
+                  <span className="participar-card__ic"><Icon width={20} height={20} /></span>
+                </div>
+                <div className="participar-card__body">
+                  <h3>{p.t}</h3>
+                  <p>{p.d}</p>
+                </div>
+              </article>
+            )
+          })}
+        </CardsGrid>
+        <div className="participar-elig motion-reveal-up">
+          <span className="participar-elig__ic" aria-hidden="true"><I.star width={18} height={18} /></span>
+          <p><strong>Quem pode participar:</strong> docerias, cafeterias, confeitarias, restaurantes, sorveterias, empórios e marcas gastronômicas com atendimento ao público.</p>
         </div>
-      </section>
+      </PageSection>
 
       {/* 3 — PROVA SOCIAL: depoimentos (Jolie em destaque + 4 menores) */}
-      <section id="depoimentos-participantes" className="section participar-testi">
-        <div className="wrap">
-          <div className="participar-head motion-reveal-up">
-            <h2>Quem participou, sentiu o <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--cyan-deep)' }}>movimento</span>.</span></h2>
-            <p>Marcas que viveram o Sweet &amp; Coffee Week contam como o festival ajudou a gerar visibilidade, novos públicos e movimento real em loja.</p>
-          </div>
+      <PageSection id="depoimentos-participantes" className="participar-testi">
+        <SectionHeader
+          className="participar-head motion-reveal-up"
+          title={<>Quem participou, sentiu o <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--cyan-deep)' }}>movimento</span>.</span></>}
+          lead="Marcas que viveram o Sweet & Coffee Week contam como o festival ajudou a gerar visibilidade, novos públicos e movimento real em loja."
+        />
 
-          <div className="participar-testi__layout">
-            <div className="motion-reveal-up">
-              <Testimonial t={TESTIMONIALS[0]} featured />
-            </div>
-            <div className="participar-testi__grid motion-stagger">
-              {TESTIMONIALS.slice(1).map((t) => <Testimonial key={t.slug} t={t} />)}
-            </div>
+        <div className="participar-testi__layout">
+          <div className="motion-reveal-up">
+            <Testimonial t={TESTIMONIALS[0]} featured />
+          </div>
+          <div className="participar-testi__grid motion-stagger">
+            {TESTIMONIALS.slice(1).map((t) => <Testimonial key={t.slug} t={t} />)}
           </div>
         </div>
-      </section>
+      </PageSection>
 
-      {/* 4 — PROCESSO (banda chocolate, como os steps da Home) */}
-      <section className="section participar-process">
-        <div className="wrap">
-          <div className="participar-head participar-head--onDark motion-reveal-up">
-            <span className="participar-process__art" aria-hidden="true">
-              <img src={combo('caroli-douces')} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
-            </span>
-            <h2>Como funciona o <span className="participar-hl" style={{ '--hl': 'var(--yellow)' }}>processo</span></h2>
-            <p>Da inscrição de interesse à entrada na rota, cada edição passa por curadoria, criação e preparação junto aos participantes.</p>
-          </div>
-          <ol className="participar-steps motion-stagger">
-            {STEPS.map((s) => (
-              <li className="participar-step" key={s.n}>
-                <span className="participar-step__n">{s.n}</span>
-                <div>
-                  <h3>{s.t}</h3>
-                  <p>{s.d}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+      {/* 4 — PROCESSO (banda chocolate, como os steps da Home) — head com crest
+           fica bespoke (SectionHeader não comporta a arte antes do título) */}
+      <PageSection className="participar-process">
+        <div className="participar-head participar-head--onDark motion-reveal-up">
+          <span className="participar-process__art" aria-hidden="true">
+            <img src={combo('caroli-douces')} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+          </span>
+          <h2>Como funciona o <span className="participar-hl" style={{ '--hl': 'var(--yellow)' }}>processo</span></h2>
+          <p>Da inscrição de interesse à entrada na rota, cada edição passa por curadoria, criação e preparação junto aos participantes.</p>
         </div>
-      </section>
+        <ol className="participar-steps motion-stagger">
+          {STEPS.map((s) => (
+            <li className="participar-step" key={s.n}>
+              <span className="participar-step__n">{s.n}</span>
+              <div>
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </PageSection>
 
       {/* 5 — FECHAMENTO (volta ao formulário, sem novo form) */}
-      <section className="section participar-close">
-        <div className="wrap participar-close__inner motion-reveal-up">
-          <span className="participar-close__shape" aria-hidden="true">
-            <img src="/images/shapes/shape-heart-yellow.svg" alt="" />
-          </span>
-          <h2>Quer fazer parte de uma próxima edição?</h2>
-          <p>Preencha o formulário de interesse no início da página e conte um pouco sobre sua marca.</p>
-          <a href="#topo-form" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('topo-form')}>
-            Voltar ao formulário <I.arrow />
-          </a>
-        </div>
-      </section>
+      <CTASection className="participar-close" innerClassName="participar-close__inner">
+        <span className="participar-close__shape" aria-hidden="true">
+          <img src="/images/shapes/shape-heart-yellow.svg" alt="" />
+        </span>
+        <h2>Quer fazer parte de uma próxima edição?</h2>
+        <p>Preencha o formulário de interesse no início da página e conte um pouco sobre sua marca.</p>
+        <a href="#topo-form" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('topo-form')}>
+          Voltar ao formulário <I.arrow />
+        </a>
+      </CTASection>
 
       <style>{`
         .participar-page { overflow-x: clip; }
@@ -512,6 +505,6 @@ export function ParticiparPage() {
           .participar-hero__seal__shape, .participar-close__shape img { animation: none; }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }
