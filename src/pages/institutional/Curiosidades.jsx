@@ -313,7 +313,7 @@ export function CuriosidadesPage({ navigate }) {
         @media (min-width: 960px) { .cur-hero { padding-top: clamp(196px, 17vw, 244px); } }
         .cur-hero__st1 { top: 8%; right: 6%; width: 120px; opacity: .5; transform: rotate(8deg); }
         .cur-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(28px, 5vw, 76px); align-items: center; }
-        .cur-hero h1 { color: var(--cream); font-size: clamp(36px, 4.6vw, 70px); line-height: .98; max-width: 17ch; }
+        .cur-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 17ch; }
         .cur-hero p { margin: var(--sp-5) 0 0; max-width: 54ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .cur-frame { margin: 0; overflow: hidden; border-radius: 16px; border: 4px solid var(--cream); box-shadow: 0 20px 50px rgba(0,0,0,.38); background: var(--swc-coffee, #6A2C15); }
         .cur-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }

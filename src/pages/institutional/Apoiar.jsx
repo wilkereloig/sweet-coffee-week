@@ -388,7 +388,7 @@ export function ApoiarPage() {
         @keyframes apoiarSeal { to { transform: rotate(360deg); } }
         .apoiar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr .98fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
         .apoiar-hero__copy { padding-top: clamp(0px, 1vw, 12px); }
-        .apoiar-hero h1 { color: var(--cream); font-size: clamp(38px, 4.8vw, 76px); line-height: .96; max-width: 15ch; }
+        .apoiar-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 15ch; }
         .apoiar-hero__lead { margin: var(--sp-5) 0 0; max-width: 52ch; color: rgba(255,241,230,.88); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .apoiar-hero__lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); color: rgba(255,241,230,.72); }
 

@@ -93,7 +93,7 @@ export function ContatoPage({ navigate }) {
         .contato-hero { background: #381610; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 96px); }
         @media (min-width: 960px) { .contato-hero { padding-top: clamp(196px, 17vw, 244px); } }
         .contato-hero__inner { max-width: 840px; }
-        .contato-hero h1 { color: var(--cream); font-size: clamp(40px, 5.4vw, 86px); line-height: .95; max-width: 14ch; }
+        .contato-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 14ch; }
         .contato-hero p { margin: var(--sp-5) 0 0; max-width: 56ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
 
         /* 2 — CARDS POR INTENÇÃO */

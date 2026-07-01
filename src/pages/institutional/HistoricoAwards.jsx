@@ -354,7 +354,7 @@ export function HistoricoAwardsPage({ navigate }) {
         /* 1 — HERO chocolate compacto (page na exclusão global de top-padding) */
         .hist-hero { background: #381610; padding: var(--hero-content-start) 0 clamp(32px, 5vw, 56px); overflow: hidden; }
         .hist-hero__inner { max-width: 880px; position: relative; z-index: 1; }
-        .hist-hero h1 { color: var(--cream); font-size: clamp(36px, 4.4vw, 64px); line-height: .98; max-width: 16ch; }
+        .hist-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 16ch; }
         .hist-hero h1 .hist-hl { color: var(--page-accent); }
         .hist-hero p { margin: var(--sp-4) 0 0; max-width: 52ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .hist-hero__cta { margin-top: var(--sp-5); }

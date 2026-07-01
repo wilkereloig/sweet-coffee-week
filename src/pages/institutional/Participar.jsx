@@ -369,7 +369,7 @@ export function ParticiparPage() {
         @keyframes participarSeal { to { transform: rotate(360deg); } }
         .participar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr .98fr; gap: clamp(28px, 5vw, 76px); align-items: center; }
         .participar-hero__copy { padding-top: clamp(0px, 1vw, 10px); }
-        .participar-hero h1 { color: var(--cream); font-size: clamp(40px, 5.4vw, 86px); line-height: .94; max-width: 14ch; }
+        .participar-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 14ch; }
         .participar-lead { margin: var(--sp-5) 0 0; max-width: 50ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
         .participar-lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); }
         .participar-lead--onDark { color: rgba(255,241,230,.9); }

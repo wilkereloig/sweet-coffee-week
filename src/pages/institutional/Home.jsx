@@ -84,7 +84,8 @@ const mediaExtra = mediaCards.filter((c) => !c.featured)
 // link externo (nova aba). aria-label descritivo (sem "clique aqui").
 function MediaCard({ c }) {
   return (
-    <article className="hm-media__card">
+    <div className="t-tilt">
+    <article className="hm-media__card t-tilt-card">
       <div className="hm-media__card-head">
         <span className="hm-media__outlet">{c.outlet}</span>
         {c.category && <span className="hm-media__cat">{c.category}</span>}
@@ -101,7 +102,9 @@ function MediaCard({ c }) {
       >
         {c.cta} <I.arrow />
       </a>
+      <div className="t-tilt-glare" aria-hidden="true"></div>
     </article>
+    </div>
   )
 }
 
@@ -145,19 +148,8 @@ function NumbersSection({ ovStats }) {
       <div className="wrap">
         {/* Linha 1 — 2 colunas: foto (esq.) + título da seção (dir.) */}
         <div className="hm-fct__top">
-          <figure className="hm-fct__photo motion-image-reveal">
-            <PhotoEditorial
-              tone="coffee"
-              aspect="4/5"
-              label=""
-              src={/* TODO: foto Sweet Lovers / loja cheia em duotone */ ''}
-              alt=""
-            />
-          </figure>
-
-          <div className="hm-fct__head motion-reveal-up">
+          <div className="hm-fct__head motion-reveal-right">
             <h2>O tamanho de uma <span className="keep-together"><span className="hl-w">década</span>.</span></h2>
-            <p className="hm-fct__lead">De 2016 a 2026, o Sweet &amp; Coffee Week virou tradição de Natal — e os números acompanharam.</p>
           </div>
         </div>
 
@@ -181,6 +173,53 @@ export function HomePage({ navigate }) {
   // Motion System — revela seções/cards ao entrarem na viewport (IntersectionObserver).
   const rootRef = React.useRef(null)
   useRevealOnScroll(rootRef)
+
+  // transitions.dev — card hover tilt 3D (.t-tilt/.t-tilt-card). Pointer-only;
+  // achata sob prefers-reduced-motion. Liga em todos os .t-tilt sob rootRef.
+  React.useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const MAX = 9
+    const cleanups = []
+    root.querySelectorAll('.t-tilt').forEach((tilt) => {
+      const card = tilt.querySelector('.t-tilt-card')
+      if (!card) return
+      const reset = () => {
+        tilt.classList.remove('is-hover')
+        card.classList.remove('is-tilting')
+        card.style.setProperty('--tilt-rx', '0deg')
+        card.style.setProperty('--tilt-ry', '0deg')
+      }
+      const track = (e) => {
+        if (reduce.matches) return
+        const r = tilt.getBoundingClientRect()
+        const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width))
+        const py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))
+        tilt.classList.add('is-hover')
+        card.classList.add('is-tilting')
+        card.style.setProperty('--tilt-ry', ((px - 0.5) * MAX).toFixed(2) + 'deg')
+        card.style.setProperty('--tilt-rx', ((0.5 - py) * MAX).toFixed(2) + 'deg')
+        card.style.setProperty('--tilt-gx', (px * 100).toFixed(1) + '%')
+        card.style.setProperty('--tilt-gy', (py * 100).toFixed(1) + '%')
+      }
+      const down = (e) => { if (e.pointerType !== 'mouse') { try { tilt.setPointerCapture(e.pointerId) } catch (_) {} } }
+      const leave = (e) => { if (e.pointerType === 'mouse') reset() }
+      tilt.addEventListener('pointerdown', down)
+      tilt.addEventListener('pointermove', track)
+      tilt.addEventListener('pointerup', reset)
+      tilt.addEventListener('pointercancel', reset)
+      tilt.addEventListener('pointerleave', leave)
+      cleanups.push(() => {
+        tilt.removeEventListener('pointerdown', down)
+        tilt.removeEventListener('pointermove', track)
+        tilt.removeEventListener('pointerup', reset)
+        tilt.removeEventListener('pointercancel', reset)
+        tilt.removeEventListener('pointerleave', leave)
+      })
+    })
+    return () => cleanups.forEach((fn) => fn())
+  }, [])
 
   // "Sweet na mídia" — revela matérias extras além das 6 em destaque.
   const [mediaOpen, setMediaOpen] = React.useState(false)
@@ -227,35 +266,21 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* CONVITE DUPLO — ponte para Participar / Apoiar (logo abaixo da Hero) */}
-      <section className="section hm-invite-section">
-        <div className="wrap">
-          <div className="hm-head motion-reveal-up">
-            <h2>Faça parte da <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>próxima edição</span>.</span></h2>
-            <p>O Sweet &amp; Coffee Week é feito por marcas, parceiros e pessoas que acreditam na força da experiência. A cada edição, cafeterias, docerias, confeitarias, restaurantes e apoiadores se unem para transformar Natal em um roteiro de sabores, encontros e descobertas.</p>
-          </div>
-          <div className="hm-invite-grid motion-stagger">
-            <article className="hm-invite-card hm-invite-card--participar">
-              <span className="hm-invite-card__icon" aria-hidden="true"><I.cup /></span>
-              <h3 className="hm-invite-card__title">Quero participar</h3>
-              <p className="hm-invite-card__text">Crie um combo exclusivo, receba novos públicos e faça sua marca viver a próxima edição do Sweet &amp; Coffee Week. O festival é uma oportunidade para movimentar a loja, contar uma história por meio dos sabores e se conectar com os Sweet Lovers.</p>
-              <div className="hm-invite-card__actions">
-                <a className="hm-invite-card__cta motion-press" href="#/participar" onClick={go('/participar')}>
-                  Ver como participar <I.arrow />
-                </a>
-              </div>
-            </article>
-            <article className="hm-invite-card hm-invite-card--apoiar">
-              <span className="hm-invite-card__icon" aria-hidden="true"><I.heart /></span>
-              <h3 className="hm-invite-card__title">Quero apoiar</h3>
-              <p className="hm-invite-card__text">Associe sua marca a uma plataforma que movimenta gastronomia, economia criativa e experiências em Natal. Apoiar o Sweet &amp; Coffee Week é fazer parte de uma história construída com marcas locais, público engajado e presença viva na cidade.</p>
-              <div className="hm-invite-card__actions">
-                <a className="hm-invite-card__cta motion-press" href="#/apoiar" onClick={go('/apoiar')}>
-                  Conhecer oportunidades <I.arrow />
-                </a>
-              </div>
-            </article>
-          </div>
+      {/* SPLIT full-bleed — Participar (claro) | Apoiar (espresso), logo abaixo da Hero */}
+      <section className="hm-split-cta">
+        <div className="hm-split-cta__grid motion-stagger">
+          <article className="hm-split-cta__card hm-split-cta__card--participant">
+            <span className="hm-split-cta__label"><I.cup /> Para marcas gastronômicas</span>
+            <h2 className="hm-split-cta__title">Sua marca na rota mais doce de Natal.</h2>
+            <p className="hm-split-cta__text">Crie um combo exclusivo, atraia novos públicos e viva a próxima edição do Sweet &amp; Coffee Week com os Sweet Lovers.</p>
+            <a className="hm-split-cta__button motion-press" href="#/participar" onClick={go('/participar')}>Quero participar <I.arrow /></a>
+          </article>
+          <article className="hm-split-cta__card hm-split-cta__card--partner">
+            <span className="hm-split-cta__label"><I.heart /> Para marcas parceiras</span>
+            <h2 className="hm-split-cta__title">Apoie uma experiência que move a cidade.</h2>
+            <p className="hm-split-cta__text">Associe sua marca a um festival que conecta gastronomia, economia criativa, conteúdo e público engajado.</p>
+            <a className="hm-split-cta__button motion-press" href="#/apoiar" onClick={go('/apoiar')}>Quero apoiar <I.arrow /></a>
+          </article>
         </div>
       </section>
 
@@ -364,34 +389,6 @@ export function HomePage({ navigate }) {
             <ul>
               {mediaReinforce.map((r) => <li key={r}>{r}</li>)}
             </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* CAMINHOS INSTITUCIONAIS — ponte para Participar / Apoiar */}
-      <section className="section hm-paths">
-        <div className="wrap">
-          <div className="hm-head motion-reveal-up">
-            <h2>Faça parte das <span className="keep-together"><span className="hl-w" style={{ '--hl': 'var(--coral)' }}>próximas edições</span>.</span></h2>
-            <p>O Sweet &amp; Coffee Week é construído junto com marcas, estabelecimentos e parceiros que acreditam na força das experiências locais.</p>
-          </div>
-          <div className="hm-paths__grid motion-stagger">
-            <article className="hm-path">
-              <span className="hm-path__eyebrow">Para estabelecimentos</span>
-              <h3>Quer colocar sua marca na rota?</h3>
-              <p>Se você tem uma cafeteria, doceria, confeitaria, restaurante ou marca autoral e quer participar das próximas edições, esse é o caminho para apresentar seu interesse e entender como o festival funciona.</p>
-              <a className="hm-path__cta motion-press" href="#/participar" onClick={go('/participar')}>
-                Quero participar <I.arrow />
-              </a>
-            </article>
-            <article className="hm-path">
-              <span className="hm-path__eyebrow">Para marcas e parceiros</span>
-              <h3>Quer apoiar o festival?</h3>
-              <p>Empresas, instituições e marcas parceiras podem se conectar ao Sweet &amp; Coffee Week por meio de patrocínio, ativações, conteúdo, brindes, experiências e presença nos pontos participantes.</p>
-              <a className="hm-path__cta motion-press" href="#/apoiar" onClick={go('/apoiar')}>
-                Quero apoiar <I.arrow />
-              </a>
-            </article>
           </div>
         </div>
       </section>
@@ -633,7 +630,7 @@ export function HomePage({ navigate }) {
            Banda creme. Foto duotone à esquerda; à direita, cabeça + 4 números num
            quadrante 2×2 dividido por fios internos (sem cards). 1 acento coral (o
            dinheiro). Só Nexa — sem mono. */
-        .hm .hm-fct__top { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+        .hm .hm-fct__top { display: block; }
         .hm-fct__photo { position: relative; margin: 0; }
         .hm-fct__photo > figure { border-radius: 14px !important; box-shadow: 0 24px 60px rgba(43,24,16,.26); }
         .hm-fct__photo > figure > span { display: none !important; }
@@ -756,23 +753,40 @@ export function HomePage({ navigate }) {
         /* Coluna 2 (apoiar) muda o acento para cyan-deep — diferencia os dois caminhos */
         .hm-path:nth-child(2) .hm-path__eyebrow { color: var(--cyan-deep); }
         .hm-path:nth-child(2) .hm-path__cta { background: var(--cyan-deep); }
-        /* CONVITE DUPLO — cards Participar/Apoiar (abaixo da Hero). Reusa a linguagem
-           dos hm-path (cream-card + pílula), classes próprias p/ não vazar global. */
-        .hm-invite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 3vw, 32px); margin-top: clamp(32px, 4vw, 52px); align-items: stretch; }
-        .hm-invite-card { display: flex; flex-direction: column; align-items: flex-start; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-7); box-shadow: var(--shadow-md); transition: transform var(--motion-base) var(--ease-out-soft), box-shadow var(--motion-base) var(--ease-out-soft); }
-        .hm-invite-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .hm-invite-card__icon { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); margin-bottom: var(--sp-5); }
-        .hm-invite-card__icon svg { width: 26px; height: 26px; }
-        .hm-invite-card__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(21px, 2.4vw, 28px); line-height: 1.05; letter-spacing: -.02em; color: var(--ink); margin: 0 0 var(--sp-3); text-wrap: balance; }
-        .hm-invite-card__text { color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; margin: 0 0 var(--sp-6); text-wrap: pretty; }
-        .hm-invite-card__actions { margin-top: auto; }
-        .hm-invite-card__cta { display: inline-flex; align-items: center; gap: 9px; padding: 13px 24px; border-radius: 999px; background: var(--accent); color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 14.5px; letter-spacing: .02em; transition: transform var(--motion-fast) var(--ease-out-soft), filter var(--motion-fast) var(--ease-out-soft); }
-        .hm-invite-card__cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
-        .hm-invite-card__cta svg { width: 16px; height: 16px; }
-        .hm-invite-card--apoiar .hm-invite-card__icon { background: color-mix(in srgb, var(--cyan-deep) 14%, transparent); color: var(--cyan-deep); }
-        .hm-invite-card--apoiar .hm-invite-card__cta { background: var(--cyan-deep); }
+        /* SPLIT full-bleed — estilos: coluna clara (participante) + coluna espresso
+           (apoiador), sem gap/radius, edge-to-edge. */
+        .hm-split-cta__grid { display: grid; grid-template-columns: 1fr 1fr; }
+        .hm-split-cta__card { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: clamp(44px, 6vw, 104px) clamp(28px, 6vw, 92px); min-height: clamp(380px, 42vw, 560px); }
+        .hm-split-cta__card--participant { background: var(--cream); }
+        .hm-split-cta__card--partner { background: var(--ink); }
+        .hm-split-cta__label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: var(--sp-4); }
+        .hm-split-cta__label svg { width: 16px; height: 16px; opacity: .85; }
+        .hm-split-cta__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(28px, 3.2vw, 44px); line-height: 1.02; letter-spacing: -.03em; color: var(--ink); margin: 0 0 var(--sp-4); text-wrap: balance; max-width: 16ch; }
+        .hm-split-cta__text { color: var(--ink-soft); font-size: clamp(15px, 1.1vw, 17px); line-height: 1.5; margin: 0 0 var(--sp-6); text-wrap: pretty; max-width: 40ch; }
+        .hm-split-cta__button { margin-top: var(--sp-2); display: inline-flex; align-items: center; gap: 9px; padding: 14px 26px; border-radius: 999px; background: var(--accent); color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 15px; letter-spacing: .01em; transition: transform var(--motion-fast) var(--ease-out-soft), filter var(--motion-fast) var(--ease-out-soft); }
+        .hm-split-cta__button:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .hm-split-cta__button svg { width: 16px; height: 16px; }
+        .hm-split-cta__card--partner .hm-split-cta__label { color: rgba(247,217,203,.72); }
+        .hm-split-cta__card--partner .hm-split-cta__title { color: var(--cream); }
+        .hm-split-cta__card--partner .hm-split-cta__text { color: rgba(247,217,203,.82); }
+        .hm-split-cta__card--partner .hm-split-cta__button { background: var(--cream); color: var(--ink); }
+
+        /* transitions.dev — card hover tilt 3D (cards de mídia). Wrapper .t-tilt (plano) + .t-tilt-card (inclina) + glare. */
+        :root {
+          --tilt-perspective: 1000px; --tilt-return: 1000ms; --tilt-return-ease: cubic-bezier(0.22, 1, 0.36, 1);
+          --tilt-follow: 400ms; --tilt-follow-ease: cubic-bezier(0.22, 1, 0.36, 1);
+          --tilt-glare-opacity: .32; --tilt-glare-fade: 300ms; --tilt-glare-ease: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .hm .t-tilt { touch-action: none; height: 100%; }
+        .hm .t-tilt-card { position: relative; overflow: hidden; height: 100%; transform: perspective(var(--tilt-perspective)) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)); transform-style: preserve-3d; transition: transform var(--tilt-return) var(--tilt-return-ease); will-change: transform; }
+        .hm .t-tilt-card.is-tilting { transition: transform var(--tilt-follow) var(--tilt-follow-ease); }
+        .hm .t-tilt-glare { position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen; border-radius: inherit; background: radial-gradient(circle 95px at var(--tilt-gx, 50%) var(--tilt-gy, 50%), rgba(255,255,255,.48), rgba(255,255,255,.06) 52%, rgba(255,255,255,0) 84%), radial-gradient(circle 200px at var(--tilt-gx, 50%) var(--tilt-gy, 50%), rgba(255,255,255,.22), rgba(255,255,255,.04) 58%, rgba(255,255,255,0) 78%), radial-gradient(circle 360px at var(--tilt-gx, 50%) var(--tilt-gy, 50%), rgba(255,255,255,.10), rgba(255,255,255,0) 88%); transition: opacity var(--tilt-glare-fade) var(--tilt-glare-ease); }
+        .hm .t-tilt.is-hover .t-tilt-glare { opacity: var(--tilt-glare-opacity); }
+        @media (prefers-reduced-motion: reduce) { .hm .t-tilt-card { transform: none !important; transition: none !important; } }
         @media (max-width: 720px) {
-          .hm-invite-grid { grid-template-columns: 1fr; }
+          .hm-split-cta__grid { grid-template-columns: 1fr; }
+          .hm-split-cta__card { min-height: auto; padding: clamp(40px, 9vw, 64px) clamp(24px, 7vw, 40px); }
+          .hm-split-cta__title { max-width: none; }
         }
         @media (max-width: 760px) { .hm-paths__grid { grid-template-columns: 1fr; } }
 
