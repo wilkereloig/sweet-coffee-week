@@ -15,7 +15,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { PageShell, PageSection, SectionHeader, CTASection, CardsGrid } from '../../components/layout'
 import { SUPPORT_METRICS_BIG, SUPPORT_METRICS_SUPPORT } from '../../data/supportMetrics'
 
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
@@ -111,9 +111,6 @@ const SEGMENTOS = ['Alimentos e bebidas', 'Varejo', 'Serviços', 'Mídia / comun
 const INTERESSES = ['Apoio institucional', 'Patrocínio', 'Ativação de marca', 'Brinde / produto', 'Mídia / parceria', 'Outra possibilidade']
 
 export function ApoiarPage() {
-  const rootRef = React.useRef(null)
-  useRevealOnScroll(rootRef)
-
   // Âncora suave (não mexe no hash → não quebra o hash-router).
   const scrollTo = (id) => (e) => {
     e.preventDefault()
@@ -159,8 +156,10 @@ export function ApoiarPage() {
   }
 
   return (
-    <div className="page-enter apoiar-page" ref={rootRef}>
-      {/* 1 — HERO com FORMULÁRIO em destaque (banda chocolate, 2 colunas) */}
+    <PageShell name="apoiar">
+      {/* 1 — HERO com FORMULÁRIO em destaque (banda chocolate própria + FORM
+           integrado). BESPOKE por design: exceção ao <PageHero> — mesma lógica
+           de Home/Edições/Participar (CLAUDE.md §13). Não migrar. */}
       <section className="apoiar-hero">
         <span className="apoiar-hero__seal" aria-hidden="true"><span className="apoiar-hero__seal__shape" /></span>
         <div className="wrap apoiar-hero__grid">
@@ -248,123 +247,114 @@ export function ApoiarPage() {
       </section>
 
       {/* 2 — POR QUE APOIAR */}
-      <section className="section apoiar-value-section">
-        <div className="wrap">
-          <div className="apoiar-head motion-reveal-up">
-            <h2>Por que apoiar o <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>Sweet &amp; Coffee Week</span>?</h2>
-            <p>O festival une visibilidade, consumo local, conteúdo espontâneo e uma comunidade que acompanha cada edição de perto.</p>
-          </div>
-          <div className="apoiar-value motion-stagger">
-            {VALUE.map((v) => {
-              const Icon = CARD_ICONS[v.ic] || CARD_ICONS.visibilidade
-              return (
-                <article className="apoiar-vcard" key={v.t}>
-                  <span className="apoiar-vcard__ic" aria-hidden="true"><Icon width={22} height={22} /></span>
-                  <h3>{v.t}</h3>
-                  <p>{v.d}</p>
-                </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+      <PageSection className="apoiar-value-section">
+        <SectionHeader
+          className="apoiar-head motion-reveal-up"
+          title={<>Por que apoiar o <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>Sweet &amp; Coffee Week</span>?</>}
+          lead="O festival une visibilidade, consumo local, conteúdo espontâneo e uma comunidade que acompanha cada edição de perto."
+        />
+        <CardsGrid className="apoiar-value">
+          {VALUE.map((v) => {
+            const Icon = CARD_ICONS[v.ic] || CARD_ICONS.visibilidade
+            return (
+              <article className="apoiar-vcard" key={v.t}>
+                <span className="apoiar-vcard__ic" aria-hidden="true"><Icon width={22} height={22} /></span>
+                <h3>{v.t}</h3>
+                <p>{v.d}</p>
+              </article>
+            )
+          })}
+        </CardsGrid>
+      </PageSection>
 
       {/* 3 — NÚMEROS QUE MOSTRAM A FORÇA DO FESTIVAL */}
-      <section className="section apoiar-metrics-section">
-        <div className="wrap">
-          <div className="apoiar-head apoiar-head--dark motion-reveal-up">
-            <h2>Números que mostram a <span className="apoiar-hl" style={{ '--hl': 'var(--page-accent)' }}>força</span> do festival</h2>
-            <p>Os dados digitais e comerciais mostram que o Sweet &amp; Coffee Week já reúne audiência, recorrência e intenção de consumo.</p>
+      <PageSection className="apoiar-metrics-section">
+        <SectionHeader
+          className="apoiar-head apoiar-head--dark motion-reveal-up"
+          title={<>Números que mostram a <span className="apoiar-hl" style={{ '--hl': 'var(--page-accent)' }}>força</span> do festival</>}
+          lead="Os dados digitais e comerciais mostram que o Sweet & Coffee Week já reúne audiência, recorrência e intenção de consumo."
+        />
+        <div className="apoiar-placar motion-stagger">
+          <div className="apoiar-placar__lead">
+            {SUPPORT_METRICS_BIG.map((m, i) => (
+              <div className="apoiar-stat apoiar-stat--lead" key={m.label} style={{ '--c': ['var(--yellow)', 'var(--pink)', 'var(--page-accent)'][i] }}>
+                <strong className="apoiar-stat__v">{m.value}</strong>
+                <span className="apoiar-stat__l">{m.label}</span>
+                <span className="apoiar-stat__d">{m.detail}</span>
+              </div>
+            ))}
           </div>
-          <div className="apoiar-placar motion-stagger">
-            <div className="apoiar-placar__lead">
-              {SUPPORT_METRICS_BIG.map((m, i) => (
-                <div className="apoiar-stat apoiar-stat--lead" key={m.label} style={{ '--c': ['var(--yellow)', 'var(--pink)', 'var(--page-accent)'][i] }}>
-                  <strong className="apoiar-stat__v">{m.value}</strong>
-                  <span className="apoiar-stat__l">{m.label}</span>
-                  <span className="apoiar-stat__d">{m.detail}</span>
-                </div>
-              ))}
-            </div>
-            <div className="apoiar-placar__sub">
-              {SUPPORT_METRICS_SUPPORT.map((m) => (
-                <div className="apoiar-stat" key={m.label}>
-                  <strong className="apoiar-stat__v">{m.value}</strong>
-                  <span className="apoiar-stat__l">{m.label}</span>
-                </div>
-              ))}
-            </div>
+          <div className="apoiar-placar__sub">
+            {SUPPORT_METRICS_SUPPORT.map((m) => (
+              <div className="apoiar-stat" key={m.label}>
+                <strong className="apoiar-stat__v">{m.value}</strong>
+                <span className="apoiar-stat__l">{m.label}</span>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
+      </PageSection>
 
       {/* 4 — ONDE SUA MARCA PODE APARECER */}
-      <section id="onde-aparece" className="section apoiar-where-section">
-        <div className="wrap">
-          <div className="apoiar-head motion-reveal-up">
-            <h2>Onde sua marca entra na <span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>experiência</span></h2>
-            <p>O apoio pode aparecer em diferentes pontos da jornada: antes, durante e depois do festival.</p>
-          </div>
-          <div className="apoiar-where motion-stagger">
-            {TOUCHPOINTS.map((g) => {
-              const Icon = I[g.icon] || I.star
-              return (
-                <article className="apoiar-where__card" key={g.t} style={{ '--hl': g.hl }}>
-                  {/* Slot de foto reservado — moldura editorial até a foto real chegar.
-                      Quando houver asset: trocar o placeholder por <img src=... alt=... />. */}
-                  <div className="apoiar-where__media" role="img" aria-label={`Foto de ${g.t} (pendente)`}>
-                    <span className="apoiar-where__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
-                    <span className="apoiar-where__ph">Foto pendente</span>
-                  </div>
-                  <div className="apoiar-where__body">
-                    <h3>{g.t}</h3>
-                    <ul>
-                      {g.items.map((it) => <li key={it}>{it}</li>)}
-                    </ul>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+      <PageSection id="onde-aparece" className="apoiar-where-section">
+        <SectionHeader
+          className="apoiar-head motion-reveal-up"
+          title={<>Onde sua marca entra na <span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>experiência</span></>}
+          lead="O apoio pode aparecer em diferentes pontos da jornada: antes, durante e depois do festival."
+        />
+        <CardsGrid className="apoiar-where">
+          {TOUCHPOINTS.map((g) => {
+            const Icon = I[g.icon] || I.star
+            return (
+              <article className="apoiar-where__card" key={g.t} style={{ '--hl': g.hl }}>
+                {/* Slot de foto reservado — moldura editorial até a foto real chegar.
+                    Quando houver asset: trocar o placeholder por <img src=... alt=... />. */}
+                <div className="apoiar-where__media" role="img" aria-label={`Foto de ${g.t} (pendente)`}>
+                  <span className="apoiar-where__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
+                  <span className="apoiar-where__ph">Foto pendente</span>
+                </div>
+                <div className="apoiar-where__body">
+                  <h3>{g.t}</h3>
+                  <ul>
+                    {g.items.map((it) => <li key={it}>{it}</li>)}
+                  </ul>
+                </div>
+              </article>
+            )
+          })}
+        </CardsGrid>
+      </PageSection>
 
       {/* 5 — QUEM VIVE O SWEET & COFFEE WEEK */}
-      <section className="section apoiar-audience-section">
-        <div className="wrap apoiar-audience">
-          <div className="apoiar-audience__copy motion-reveal-up">
-            <h2>Quem vive o <span className="apoiar-hl" style={{ '--hl': 'var(--yellow-deep)' }}>Sweet &amp; Coffee Week</span></h2>
-            <p>O público do festival é urbano, conectado, interessado em experiências gastronômicas e altamente ativo nas redes sociais.</p>
-          </div>
-          <ul className="apoiar-audience__list motion-stagger">
-            {AUDIENCE.map((a) => (
-              <li key={a}><span aria-hidden="true"><I.check width={15} height={15} /></span>{a}</li>
-            ))}
-          </ul>
+      <PageSection className="apoiar-audience-section" wrapClassName="apoiar-audience">
+        <div className="apoiar-audience__copy motion-reveal-up">
+          <h2>Quem vive o <span className="apoiar-hl" style={{ '--hl': 'var(--yellow-deep)' }}>Sweet &amp; Coffee Week</span></h2>
+          <p>O público do festival é urbano, conectado, interessado em experiências gastronômicas e altamente ativo nas redes sociais.</p>
         </div>
-      </section>
+        <ul className="apoiar-audience__list motion-stagger">
+          {AUDIENCE.map((a) => (
+            <li key={a}><span aria-hidden="true"><I.check width={15} height={15} /></span>{a}</li>
+          ))}
+        </ul>
+      </PageSection>
 
       {/* 6 — CREDIBILIDADE E MÍDIA */}
-      <section className="section apoiar-media-section">
-        <div className="wrap apoiar-media">
-          <div className="apoiar-media__copy motion-reveal-up">
-            <h2>Um festival que também vira <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>notícia</span></h2>
-            <p>O Sweet &amp; Coffee Week já apareceu em veículos locais, rádios, fontes institucionais e registros acadêmicos, reforçando sua relevância para a gastronomia e a economia criativa de Natal.</p>
-          </div>
-          <ul className="apoiar-media__list motion-stagger" aria-label="Veículos que noticiaram o festival">
-            {MEDIA.map((m) => <li key={m}>{m}</li>)}
-          </ul>
+      <PageSection className="apoiar-media-section" wrapClassName="apoiar-media">
+        <div className="apoiar-media__copy motion-reveal-up">
+          <h2>Um festival que também vira <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>notícia</span></h2>
+          <p>O Sweet &amp; Coffee Week já apareceu em veículos locais, rádios, fontes institucionais e registros acadêmicos, reforçando sua relevância para a gastronomia e a economia criativa de Natal.</p>
         </div>
-      </section>
+        <ul className="apoiar-media__list motion-stagger" aria-label="Veículos que noticiaram o festival">
+          {MEDIA.map((m) => <li key={m}>{m}</li>)}
+        </ul>
+      </PageSection>
 
       {/* 7 — CTA FINAL (banda chocolate) → volta ao formulário */}
-      <section className="section apoiar-close-section">
-        <div className="wrap apoiar-close motion-reveal-up">
-          <h2>Vamos construir uma proposta para a sua <span className="apoiar-hl" style={{ '--hl': 'var(--yellow)' }}>marca</span>?</h2>
-          <p>Conte para a organização como sua empresa deseja se conectar ao Sweet &amp; Coffee Week.</p>
-          <a href="#form-apoiar" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('form-apoiar')}>Falar sobre apoio <I.arrow /></a>
-        </div>
-      </section>
+      <CTASection className="apoiar-close-section" innerClassName="apoiar-close">
+        <h2>Vamos construir uma proposta para a sua <span className="apoiar-hl" style={{ '--hl': 'var(--yellow)' }}>marca</span>?</h2>
+        <p>Conte para a organização como sua empresa deseja se conectar ao Sweet &amp; Coffee Week.</p>
+        <a href="#form-apoiar" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('form-apoiar')}>Falar sobre apoio <I.arrow /></a>
+      </CTASection>
 
       <style>{`
         .apoiar-page { overflow-x: clip; }
@@ -519,6 +509,6 @@ export function ApoiarPage() {
           .apoiar-hero__seal__shape { animation: none; }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }
