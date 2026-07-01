@@ -58,7 +58,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Realize Gourmet",
         "Rafaela Fontes Chocolateria",
         "Chapelatto Coffee Shop",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "Cecília Mindêlo",
         "Boca D'Água",
         "Rosa Lemos Chocolate & Café",
@@ -83,7 +83,7 @@ export const SWEET_COFFEE_HISTORY = {
       "participantes": [
         "Realize Gourmet",
         "Engenho Doce",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "Doce Arthe Confeitaria",
         "Barões do Café",
         "Boca D'Água",
@@ -130,7 +130,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Crooks Cookies",
         "Engenho Doce",
         "Fritz",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "Jolie Café Pâtisserie",
         "LaSweets por Larissa Pio",
         "Pinga Fogo Doceria",
@@ -154,7 +154,7 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Namorados",
       "tema": "Namorados",
       "periodo": "07 a 16 de junho de 2018",
-      "participantesCount": 21,
+      "participantesCount": 19,
       "participantes": [
         "A Doceria",
         "Barões do Café",
@@ -166,16 +166,14 @@ export const SWEET_COFFEE_HISTORY = {
         "Crooks Cookies",
         "Daguia Tortas Finas",
         "FitNeza Coffee",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "LaSweets por Larissa Pio",
-        "Mr Brownie",
-        "Paddy's",
+        "Mr. Cupcake Confeitaria",
         "Parma Doces",
         "Rafaela Fontes Chocolateria",
         "Realize Gourmet",
         "Chocolateria Sandra Maia",
         "Suisse Brownie",
-        "The Brownie Factory",
         "Very Sugar"
       ],
       "premiacao": {
@@ -210,7 +208,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Das Melo",
         "Edileuza Doces Finos",
         "FitNeza Coffee",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "Jolie Café Pâtisserie",
         "LaSweets por Larissa Pio",
         "Mr. Cupcake Confeitaria",
@@ -307,8 +305,9 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Contos de Fadas",
       "tema": "Contos de Fadas",
       "periodo": "05 a 15 de setembro de 2019",
-      "participantesCount": 36,
+      "participantesCount": 37,
       "participantes": [
+        "LaSweets por Larissa Pio",
         "Atelier Mine Confeitaria",
         "Balzac Café",
         "Boca D'Água",
@@ -332,7 +331,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Flor e Flor",
         "Flora Cafeteria",
         "Frans Café",
-        "Jona's Cakes",
+        "Jana's Cakes",
         "Jolie Café Pâtisserie",
         "Mr. Cupcake Confeitaria",
         "Nick Buffet",
@@ -407,7 +406,7 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C No Ritmo da Música",
       "tema": "No Ritmo da Música",
       "periodo": "julho de 2020 (encerramento 19–20/jul; início aprox.)",
-      "participantesCount": 18,
+      "participantesCount": 20,
       "participantes": [
         "Petra Holanda",
         "Café Brigadeiro",
@@ -426,34 +425,75 @@ export const SWEET_COFFEE_HISTORY = {
         "Stephany Santos",
         "Cookorote",
         "Rafaela Fontes Chocolateria",
-        "Very Sugar"
+        "Very Sugar",
+        "Crooks Cookie Shop",
+        "Realize Gourmet"
       ],
       "premiacao": {
         "status": "completa",
-        "observacao": "Votação do público (categoria única: Melhor Combo).",
+        "observacao": "Votação do público (Sweet Awards) em 7 categorias.",
         "categorias": [
           {
             "categoria": "Melhor Combo",
             "trilha": null,
             "colocacoes": [
-              {
-                "pos": 1,
-                "nomes": [
-                  "Bocaditos"
-                ]
-              },
-              {
-                "pos": 2,
-                "nomes": [
-                  "Rafaela Fontes Chocolateria"
-                ]
-              },
-              {
-                "pos": 3,
-                "nomes": [
-                  "Momento Gourmet"
-                ]
-              }
+              { "pos": 1, "nomes": ["Bocaditos"] },
+              { "pos": 2, "nomes": ["Rafaela Fontes Chocolateria"] },
+              { "pos": 3, "nomes": ["Momento Gourmet"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Atendimento",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Casa dos Salgados Gourmet"] },
+              { "pos": 2, "nomes": ["Momento Gourmet"] },
+              { "pos": 3, "nomes": ["Bocaditos"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Criatividade",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Cookorote"] },
+              { "pos": 2, "nomes": ["Bocaditos"] },
+              { "pos": 3, "nomes": ["Caroli Douces"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Sabor",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Bocaditos"] },
+              { "pos": 2, "nomes": ["Atelier Mine Confeitaria", "Rafaela Fontes Chocolateria"] },
+              { "pos": 3, "nomes": ["Momento Gourmet"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Apresentação",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Rafaela Fontes Chocolateria"] },
+              { "pos": 2, "nomes": ["Bocaditos"] },
+              { "pos": 3, "nomes": ["Momento Gourmet"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Take Away",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Cuore di Panna"] },
+              { "pos": 2, "nomes": ["Rafaela Fontes Chocolateria"] },
+              { "pos": 3, "nomes": ["Atelier Mine Confeitaria"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Delivery",
+            "trilha": null,
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Café Brigadeiro"] },
+              { "pos": 2, "nomes": ["Casa dos Salgados Gourmet"] },
+              { "pos": 3, "nomes": ["Bocaditos"] }
             ]
           }
         ]
@@ -1378,6 +1418,24 @@ export const SWEET_COFFEE_HISTORY = {
                 ]
               }
             ]
+          },
+          {
+            "categoria": "Melhor Envolvimento/Encantamento em Loja",
+            "trilha": "juri_tecnico",
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Bocaditos"] },
+              { "pos": 2, "nomes": ["Atelier Mine Confeitaria"] },
+              { "pos": 3, "nomes": ["Mr. Cupcake Confeitaria"] }
+            ]
+          },
+          {
+            "categoria": "Melhor Delivery/Takeaway",
+            "trilha": "sweet_lovers",
+            "colocacoes": [
+              { "pos": 1, "nomes": ["Bell's Café"] },
+              { "pos": 2, "nomes": ["Delizeu"] },
+              { "pos": 3, "nomes": ["Marlon Vinicius"] }
+            ]
           }
         ]
       },
@@ -1412,11 +1470,13 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Movies",
       "tema": "Movies",
       "periodo": "06 a 16 de outubro de 2022",
-      "participantesCount": 33,
+      "participantesCount": 35,
       "participantes": [
         "Adocee Doceria",
         "Aroma Café",
         "Aumer Restaurante",
+        "KNVE Casa Café",
+        "Supermercado Nordestão",
         "Bell's Café",
         "Bem Eu Confeitaria",
         "Bistrô NL",
@@ -1446,7 +1506,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Sweet Duo Confeitaria",
         "Very Sugar",
         "Wanessa Cakes",
-        "Woyla Pedrosa"
+        "Wolya Pedrosa"
       ],
       "premiacao": {
         "status": "completa",
@@ -1609,7 +1669,8 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Canuto's"
+                  "Canuto's",
+                  "Daniel Bezerra"
                 ]
               },
               {
@@ -1669,7 +1730,7 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Trip",
       "tema": "Trip",
       "periodo": "02 a 12 de novembro de 2023",
-      "participantesCount": 32,
+      "participantesCount": 33,
       "participantes": [
         "Adocee Doceria",
         "Aroma Café",
@@ -1677,6 +1738,7 @@ export const SWEET_COFFEE_HISTORY = {
         "Canuto's",
         "Caracol",
         "Carcará",
+        "Doce Lelê",
         "Caroli Douces",
         "Chocolateria Sandra Maia",
         "Daniel Bezerra",
@@ -1770,13 +1832,13 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 2,
                 "nomes": [
-                  "Douce di Maria"
+                  "Douce di Maria",
+                  "Dedo de Moça"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
-                  "Dedo de Moça",
                   "O Maestro Café"
                 ]
               }
@@ -2123,6 +2185,15 @@ export const SWEET_COFFEE_HISTORY = {
                   "Bella Douces"
                 ]
               }
+            ]
+          },
+          {
+            "categoria": "Melhor Encantamento em Loja",
+            "trilha": "sweet_lovers",
+            "colocacoes": [
+              { "pos": 1, "nomes": ["O Maestro Café"] },
+              { "pos": 2, "nomes": ["Delicato"] },
+              { "pos": 3, "nomes": ["Marlon Vinicius"] }
             ]
           }
         ]
