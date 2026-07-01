@@ -9,6 +9,7 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { Hero, HeroHL } from '../../components/layout/Hero'
+import { AnimatedSection, StaggerContainer } from '../../components/motion'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 // Cards por intenção — cada um aponta para um caminho real (rota interna ou o
@@ -58,21 +59,21 @@ export function ContatoPage({ navigate }) {
       {/* 2 — CARDS POR INTENÇÃO */}
       <section className="section contato-cards-section">
         <div className="wrap">
-          <div className="contato-cards motion-stagger">
+          <StaggerContainer className="contato-cards">
             {PATHS.map((p) => <ContactCard key={p.tag} p={p} navigate={navigate} />)}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* 3 — CANAL VIVO (Instagram) */}
       <section className="section contato-live">
-        <div className="wrap contato-live__inner motion-reveal-up">
+        <AnimatedSection className="wrap contato-live__inner">
           <h2>O Instagram é o canal mais <span className="contato-hl" style={{ '--hl': 'var(--coral)' }}>vivo</span> do festival.</h2>
           <p>É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, avisos e conteúdos enviados pelos Sweet Lovers.</p>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg motion-press">
             <I.ig width={16} height={16} /> Seguir {INSTAGRAM_HANDLE}
           </a>
-        </div>
+        </AnimatedSection>
       </section>
 
       <style>{`
