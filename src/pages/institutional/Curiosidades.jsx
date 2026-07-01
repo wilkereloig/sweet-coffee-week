@@ -11,6 +11,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { Hero } from '../../components/layout/Hero'
 import {
   getParticipantAppearances,
   getAwardWins,
@@ -64,15 +65,6 @@ function Sticker({ name, className = '', style }) {
   return <img src={shape(name)} alt="" aria-hidden="true" className={`cur-sticker ${className}`} style={style} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none' }} />
 }
 
-// Moldura inclinada com foto real do acervo — some o bloco inteiro se faltar.
-function Frame({ src, alt, className = '', tone = 'coffee' }) {
-  return (
-    <figure className={`cur-frame cur-frame--${tone} ${className}`}>
-      <img src={src} alt={alt} loading="lazy" decoding="async" onError={(e) => { const f = e.currentTarget.closest('.cur-frame'); if (f) f.style.display = 'none' }} />
-    </figure>
-  )
-}
-
 // Logo do participante com fallback textual (iniciais). Nunca inventa imagem.
 function LogoChip({ name, size = 46 }) {
   const a = getParticipantAsset(name)
@@ -97,23 +89,11 @@ export function CuriosidadesPage({ navigate }) {
 
   return (
     <div className="page-enter cur-page" ref={rootRef}>
-      {/* 1 — HERO editorial: convite de arquivo + colagem real */}
-      <section className="cur-hero">
-        <div className="wrap cur-hero__grid">
-          <div className="cur-hero__copy motion-reveal-up">
-            <h1>O lado mais curioso da história do <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>Sweet &amp; Coffee Week</span>.</span></h1>
-            <p>
-              Participantes recorrentes, marcas premiadas, categorias que nasceram com o tempo e achados do acervo ajudam a contar a trajetória do festival para além da linha do tempo.
-            </p>
-          </div>
-          <div className="cur-hero__collage motion-reveal-up" aria-hidden="false">
-            <Frame src={combo('jolie-cafe-patisserie')} alt="Combo da Jolie no acervo do Sweet & Coffee Week" className="cur-hero__f1" tone="coffee" />
-            <Frame src={combo('delicato-bolos')} alt="Combo da Delicato no acervo do Sweet & Coffee Week" className="cur-hero__f2" tone="warm" />
-            <Frame src={combo('caffe-basilicos')} alt="Combo do Caffè Basílicos no acervo do Sweet & Coffee Week" className="cur-hero__f3" tone="cream" />
-            <span className="cur-hero__seal" aria-hidden="true"><img src="/images/selo-10anos.svg" alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} /></span>
-          </div>
-        </div>
-      </section>
+      {/* 1 — HERO editorial (componente <Hero> — fonte única do hero institucional) */}
+      <Hero
+        title={<>O lado mais curioso da história do <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>Sweet &amp; Coffee Week</span>.</span></>}
+        subtitle="Participantes recorrentes, marcas premiadas, categorias que nasceram com o tempo e achados do acervo ajudam a contar a trajetória do festival para além da linha do tempo."
+      />
 
       {/* 2 — MARCAS QUE ATRAVESSARAM EDIÇÕES (presenças recorrentes) */}
       <section className="section cur-recur">
@@ -309,22 +289,7 @@ export function CuriosidadesPage({ navigate }) {
         .cur-logo__fb { font-family: var(--font-display); font-weight: 900; font-size: 15px; color: var(--ink); letter-spacing: -.02em; }
 
         /* 1 — HERO chocolate + colagem */
-        .cur-hero { background: #381610; isolation: isolate; overflow: clip; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 96px); }
-        @media (min-width: 960px) { .cur-hero { padding-top: clamp(196px, 17vw, 244px); } }
-        .cur-hero__st1 { top: 8%; right: 6%; width: 120px; opacity: .5; transform: rotate(8deg); }
-        .cur-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(28px, 5vw, 76px); align-items: center; }
-        .cur-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 17ch; }
-        .cur-hero p { margin: var(--sp-5) 0 0; max-width: 54ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .cur-frame { margin: 0; overflow: hidden; border-radius: 16px; border: 4px solid var(--cream); box-shadow: 0 20px 50px rgba(0,0,0,.38); background: var(--swc-coffee, #6A2C15); }
-        .cur-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .cur-hero__collage { position: relative; height: clamp(300px, 38vw, 460px); }
-        .cur-hero__collage .cur-frame { position: absolute; }
-        .cur-hero__f1 { width: 56%; aspect-ratio: 3/4; left: 2%; top: 6%; transform: rotate(-5deg); z-index: 2; }
-        .cur-hero__f2 { width: 46%; aspect-ratio: 4/5; right: 4%; top: 0; transform: rotate(4deg); z-index: 1; }
-        .cur-hero__f3 { width: 44%; aspect-ratio: 4/3; right: 8%; bottom: 2%; transform: rotate(-3deg); z-index: 3; }
-        .cur-hero__seal { position: absolute; left: -2%; bottom: 4%; width: clamp(72px, 9vw, 110px); z-index: 4; animation: curSeal 90s linear infinite; transform-origin: 50% 50%; }
-        .cur-hero__seal img { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 18px rgba(0,0,0,.35)); }
-        @keyframes curSeal { to { transform: rotate(360deg); } }
+        /* HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
 
         /* 2 — RECORRENTES (ranking visual) */
         .cur-recur { background: var(--cream); }
@@ -421,8 +386,6 @@ export function CuriosidadesPage({ navigate }) {
 
         /* RESPONSIVO */
         @media (max-width: 960px) {
-          .cur-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); }
-          .cur-hero__collage { height: clamp(280px, 64vw, 380px); max-width: 460px; }
           .cur-hall__grid { grid-template-columns: 1fr; }
           .cur-cats__grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -439,7 +402,6 @@ export function CuriosidadesPage({ navigate }) {
         }
         @media (prefers-reduced-motion: reduce) {
           .cur-card, .cur-cat, .cur-card__media img { transition: none; }
-          .cur-hero__seal { animation: none; }
         }
       `}</style>
     </div>

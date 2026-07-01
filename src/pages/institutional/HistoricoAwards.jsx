@@ -18,6 +18,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { Hero } from '../../components/layout/Hero'
 import { sweetEditions } from '../../data/sweetEditionsCompat'
 import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -268,16 +269,12 @@ export function HistoricoAwardsPage({ navigate }) {
 
   return (
     <div className="page-enter hist-page" ref={rootRef}>
-      {/* 1 — HERO hall of fame (compacto) */}
-      <section className="hist-hero">
-        <div className="wrap hist-hero__inner motion-reveal-up">
-          <h1>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></h1>
-          <p>Os combos, sabores e marcas que encantaram o Sweet &amp; Coffee Week — edição após edição.</p>
-          <div className="hist-hero__cta">
-            <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>
-          </div>
-        </div>
-      </section>
+      {/* 1 — HERO hall of fame (componente <Hero> — fonte única do hero institucional) */}
+      <Hero
+        title={<>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></>}
+        subtitle="Os combos, sabores e marcas que encantaram o Sweet & Coffee Week — edição após edição."
+        actions={<a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>}
+      />
 
       {/* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */}
       <section id="premiacao-atual" className="section swa-current">
@@ -352,12 +349,7 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-head p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
 
         /* 1 — HERO chocolate compacto (page na exclusão global de top-padding) */
-        .hist-hero { background: #381610; padding: var(--hero-content-start) 0 clamp(32px, 5vw, 56px); overflow: hidden; }
-        .hist-hero__inner { max-width: 880px; position: relative; z-index: 1; }
-        .hist-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 16ch; }
-        .hist-hero h1 .hist-hl { color: var(--page-accent); }
-        .hist-hero p { margin: var(--sp-4) 0 0; max-width: 52ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .hist-hero__cta { margin-top: var(--sp-5); }
+        /* HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
 
         /* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */
         .swa-current { background: var(--cream); }

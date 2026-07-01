@@ -5,66 +5,10 @@
    - .kv-lovers (campanha 16Âª ediÃ§Ã£o)
    ============================================================ */
 
-:root {
-  /* INSTITUCIONAL â€” base */
-  --bg: #FFF4EC;
-  --bg-soft: #FBEADC;
-  --bg-card: #FFFFFF;
-  --ink: #2B1810;
-  --ink-dark: #1a0e08;
-  --ink-soft: #6B4A3A;
-  --ink-mute: #9B7A68;
-  --line: rgba(43, 24, 16, 0.12);
-  --line-strong: rgba(43, 24, 16, 0.28);
-
-  --accent: #E8553A;       /* terracota */
-  --accent-deep: #C13E25;
-  --peach: #F2B6A0;
-  --peach-soft: #F9D9CB;
-
-  /* LOVERS â€” KV 16Âª ediÃ§Ã£o (paleta dedicada) */
-  --lovers-brown:    #3F1A0A;   /* deep brown â€” ink */
-  --lovers-rust:     #6B2418;
-  --lovers-burgundy: #870E2D;   /* primary mark */
-  --lovers-pink:     #F20567;   /* hot pink accent â€” KV exato */
-  --lovers-coral:    #E12947;   /* red-coral */
-  --lovers-cyan:     #00B8CC;   /* ciano KV exato */
-  --lovers-yellow:   #F5B800;   /* amarelo KV exato */
-  --lovers-cream:    #FFE8D2;   /* canvas */
-  --lovers-purple:   #4F2092;
-
-  /* Semantic Lovers tokens (used across pages) */
-  --lovers-bg:       var(--lovers-cream);
-  --lovers-bg-deep:  #FAD1B0;
-  --lovers-red:      var(--lovers-burgundy);
-  --lovers-ink:      var(--lovers-brown);
-
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 22px;
-  --radius-xl: 32px;
-
-  --shadow-1: 0 1px 2px rgba(43,24,16,.06), 0 4px 12px rgba(43,24,16,.04);
-  --shadow-2: 0 4px 12px rgba(43,24,16,.08), 0 18px 40px rgba(43,24,16,.06);
-  --shadow-3: 0 12px 36px rgba(43,24,16,.12), 0 32px 80px rgba(43,24,16,.10);
-
-  --font-serif: 'Nexa Slab', 'nexa', Georgia, serif;
-  --font-sans: 'nexa-text', 'nexa', system-ui, -apple-system, sans-serif;
-  --font-slab: 'Nexa Slab', 'nexa', Georgia, serif;
-  --font-script: 'Caveat', cursive;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-  /* LOVERS typography â€” Sofia Comp via Adobe Fonts.
-     Fallback Caprasimo (Google Fonts) used until kit URL is added.
-     See index.html <link id="typekit"> to swap. */
-  --font-lovers-display: 'sofia-pro-comp', 'Caprasimo', 'Instrument Serif', Georgia, serif;
-  --font-lovers-body:    'sofia-pro-comp', 'DM Sans', system-ui, sans-serif;
-
-  --maxw: 1280px;
-  --pad: clamp(20px, 4vw, 56px);
-  --sidebar-w: 240px;
-  --combo-rail-w: 264px;
-}
+/* :root de tokens v1 REMOVIDO (ETAPA 3). Antes duplicava/divergia do v2.
+   Agora: tokens v1-only → src/styles/tokens.css (carrega 1º);
+   paleta/tinta/escala/tipo v2 → src/styles/swc-redesign.css.
+   Um token, um lugar — mudar cor/fonte base = editar tokens.css ou swc-redesign.css. */
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -528,15 +472,20 @@ body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(2
 body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
 
 /* ============================================================
-   HEROS — faixa proporcional ao conteúdo (não mais 1080px fixo, ver
-   CLAUDE.md §4) + fundo na cor-acento da página (item ativo do menu).
-   Acentos são claros/saturados → texto em tinta escura. Conteúdo
-   ancorado abaixo da zona de segurança do header; altura acompanha o
-   conteúdo com um piso de faixa de cor. Home mantém foto/overlay/1080
-   próprio (à parte). Awards (/vencedores) usa sistema Lovers inline.
+   HEROS (LEGADO) — regra global que controla os heros das páginas AINDA
+   NÃO migradas para o componente <Hero> (src/components/layout/Hero.jsx +
+   src/styles/hero.css). Conforme cada página migra, sai desta lista; quando
+   todas migrarem, esta regra pode ser removida (ver plano ETAPA 2).
+   Já migrados p/ <Hero>: Contato, Curiosidades, Sweet Awards. Pendente decisão
+   de direção (faixa-acento×chocolate): Participar, Apoiar (heros com form).
+   Fora por design: Home (.swc-hero, §9), Edições (.edx-hero, apresentação).
+   Seletores mortos removidos (.ed-hero / .ed-hl nunca existiram no markup).
+
+   Faixa proporcional (não 1080px fixo, §4) + fundo na cor-acento da página;
+   acentos claros → texto em tinta escura; conteúdo abaixo da zona de
+   segurança do header (§4.1).
    ============================================================ */
-.ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero {
-  background: var(--page-accent) !important;
+.participar-hero, .apoiar-hero {
   min-height: clamp(440px, 62vh, 660px);
   display: flex;
   align-items: center;
@@ -544,17 +493,24 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   padding-top: var(--hero-content-start) !important;
   padding-bottom: clamp(56px, 7vw, 90px) !important;
 }
-.ed-hero > .wrap, .cur-hero > .wrap, .participar-hero > .wrap,
-.apoiar-hero > .wrap, .contato-hero > .wrap, .hist-hero > .wrap { width: 100%; }
-:is(.ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero) :is(h1, p) { color: var(--ink) !important; }
-.ed-hl, .cur-hl, .hist-hl { color: var(--ink) !important; }
-.ed-hl::after, .cur-hl::after { background: var(--ink) !important; }
+.participar-hero > .wrap, .apoiar-hero > .wrap { width: 100%; }
+/* Participar: acento coral claro (#F2693C) → texto escuro passa AA. */
+.participar-hero { background: var(--page-accent) !important; }
+.participar-hero :is(h1, p) { color: var(--ink) !important; }
+/* Apoiar: acento azul #1B86C9 reprova AA com texto claro E escuro (branco ~3.97:1).
+   Usa a variante ESCURA do mesmo token (--page-accent-dark #0F5C8C, paleta §3) +
+   texto claro (decisão C5) → ~7:1. Mantém a direção faixa-acento (azul), só legível.
+   O CSS local da Apoiar (Apoiar.jsx) já colore stats/link/form em tom claro. */
+.apoiar-hero { background: var(--page-accent-dark) !important; }
+.apoiar-hero :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
+.cur-hl, .hist-hl { color: var(--ink) !important; }
+.cur-hl::after { background: var(--ink) !important; }
 /* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
    Altura vem do .swc-hero inline (faixa proporcional, §4) — sem override fixo aqui.
    Foto/overlay/texto claro preservados. */
 .hm .swc-hero { background: #2B1810 !important; }
 @media (max-width: 960px) {
-  .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero { min-height: clamp(360px, 58svh, 520px); }
+  .participar-hero, .apoiar-hero { min-height: clamp(360px, 58svh, 520px); }
   .hm .swc-hero { min-height: 100svh !important; }
 }
 

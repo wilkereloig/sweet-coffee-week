@@ -8,9 +8,8 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-
-const INSTAGRAM_HANDLE = '@sweetcoffeeweek'
-const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
+import { Hero, HeroHL } from '../../components/layout/Hero'
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 // Cards por intenção — cada um aponta para um caminho real (rota interna ou o
 // canal oficial). Acento do selo por card (coral/cyan/yellow/coffee/pink).
@@ -50,13 +49,11 @@ export function ContatoPage({ navigate }) {
 
   return (
     <div className="page-enter contato-page" ref={rootRef}>
-      {/* 1 — HERO (banda chocolate) */}
-      <section className="contato-hero">
-        <div className="wrap contato-hero__inner motion-reveal-up">
-          <h1>Vamos conversar sobre o <span className="keep-together"><span className="contato-hl" style={{ '--hl': 'var(--pink)' }}>Sweet &amp; Coffee Week</span>?</span></h1>
-          <p>Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.</p>
-        </div>
-      </section>
+      {/* 1 — HERO (componente <Hero> — fonte única do hero institucional) */}
+      <Hero
+        title={<>Vamos conversar sobre o <span className="keep-together"><HeroHL color="var(--pink)">Sweet &amp; Coffee Week</HeroHL>?</span></>}
+        subtitle="Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet & Coffee Week."
+      />
 
       {/* 2 — CARDS POR INTENÇÃO */}
       <section className="section contato-cards-section">
@@ -89,12 +86,7 @@ export function ContatoPage({ navigate }) {
         .contato-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent, var(--yellow)); margin: 0 0 var(--sp-4); }
         .contato-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
 
-        /* 1 — HERO chocolate */
-        .contato-hero { background: #381610; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 96px); }
-        @media (min-width: 960px) { .contato-hero { padding-top: clamp(196px, 17vw, 244px); } }
-        .contato-hero__inner { max-width: 840px; }
-        .contato-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 14ch; }
-        .contato-hero p { margin: var(--sp-5) 0 0; max-width: 56ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+        /* 1 — HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
 
         /* 2 — CARDS POR INTENÇÃO */
         .contato-cards-section { background: var(--cream); }
