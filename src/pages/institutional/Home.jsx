@@ -14,6 +14,7 @@ import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { PhotoRotator } from '../../components/PhotoRotator'
 import { PhotoEditorial } from '../../components/placeholders'
 import { heroGalleryImages, aboutGalleryImages } from '../../data/homeGalleries'
+import { festivalStats as STATS } from '../../data/festivalFacts'
 
 // Ícone pin-coração dos cards da colagem (referência KV). A cor do "recorte"
 // do coração acompanha o fundo do badge via --ph-cut.
@@ -31,13 +32,6 @@ const STEPS = [
   { n: '02', t: 'Combos exclusivos', k: 'Movimenta marcas', d: 'Os participantes transformam o tema em um combo especial com doce, salgado e bebida — criado por tempo limitado para a edição.' },
   { n: '03', t: 'Rota pela cidade', k: 'Ativa Natal', d: 'O público descobre endereços, visita lojas, compartilha experiências e faz a cidade circular em torno do festival.' },
   { n: '04', t: 'Sweet Awards', k: 'Forma comunidade', d: 'Depois de provar, os Sweet Lovers avaliam os destaques da edição e ajudam a reconhecer os melhores combos, sabores e experiências.' },
-]
-
-const STATS = [
-  { to: 16,  prefix: '',  suffix: '',         cap: 'edições desde 2016' },
-  { to: 100, prefix: '+', suffix: '',         cap: 'marcas participantes', accent: true },
-  { to: 34,  prefix: '+', suffix: ' mil',     cap: 'combos vendidos' },
-  { to: 18,  prefix: '+', suffix: ' milhões', cap: 'visualizações no Instagram' },
 ]
 
 // SWEET & COFFEE WEEK NA MÍDIA — prova de credibilidade enxuta: selos rápidos +
