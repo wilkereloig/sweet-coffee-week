@@ -145,6 +145,9 @@ function EditionAccordion({ e, defaultOpen }) {
   const hasResults = e.awards && e.awards.length > 0
   const groups = hasResults ? groupByTrack(e.awards) : []
   const multiTrack = groups.filter((g) => g.track).length > 1
+  // Campeão do Melhor Combo desta edição (1º lugar) para adiantar no resumo, quando houver.
+  const combo1 = ((e.awards || []).find((a) => /melhor combo/i.test(a.category))?.winners || [])
+    .filter((w) => w.place.startsWith('1')).map((w) => w.name)
   return (
     <details className="hist-edi" {...(defaultOpen ? { open: true } : {})}>
       <summary>
@@ -152,6 +155,13 @@ function EditionAccordion({ e, defaultOpen }) {
           <span className="hist-edi__code">{e.code}</span>
           <span className="hist-edi__theme">{e.theme}</span>
         </span>
+        {combo1.length > 0 && (
+          <span className="hist-edi__champ">
+            <span className="hist-medal hist-medal--gold hist-edi__champmedal" aria-hidden="true">1</span>
+            <WinnerLogo name={combo1[0]} />
+            <span className="hist-edi__champname"><span className="sr-place">Campeão Melhor Combo: </span>{combo1.join(', ')}</span>
+          </span>
+        )}
         <span className="hist-edi__meta">
           <span className="hist-edi__part">{e.participantsCount} participantes</span>
           <StatusBadge status={e.awardsStatus} />
@@ -229,10 +239,11 @@ export function HistoricoAwardsPage({ navigate }) {
     const el = document.getElementById('premiacao-atual')
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-  const ordered = [...sweetEditions].reverse() // mais recentes primeiro
   // Edição atual (Lovers 2026.1) — pódios já cruzados de loversAwardsResults no adapter.
   const CURRENT = sweetEditions.find((e) => e.id === '2026.1')
   const CURRENT_AWARDS = CURRENT?.awards || []
+  // Histórico = demais edições, mais recentes primeiro (a 2026.1 já está no destaque acima).
+  const ordered = [...sweetEditions].reverse().filter((e) => e.id !== '2026.1')
 
   return (
     <div className="page-enter hist-page" ref={rootRef}>
@@ -265,10 +276,10 @@ export function HistoricoAwardsPage({ navigate }) {
         <div className="wrap">
           <div className="hist-head motion-reveal-up">
             <h2>O pódio de cada <span className="hist-hl hist-hl--coral">edição</span></h2>
-            <p>Dezesseis edições de 2016 a 2026. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de votação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
+            <p>As edições anteriores, de 2016 a 2025. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de votação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
           </div>
           <div className="hist-list motion-stagger">
-            {ordered.map((e, i) => <EditionAccordion e={e} key={e.id} defaultOpen={i === 0} />)}
+            {ordered.map((e) => <EditionAccordion e={e} key={e.id} />)}
           </div>
         </div>
       </section>
@@ -366,6 +377,10 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-edi__id { display: flex; align-items: baseline; gap: 12px; min-width: 0; flex-wrap: wrap; }
         .hist-edi__code { font-family: var(--font-display); font-weight: 900; font-size: clamp(18px, 1.8vw, 24px); letter-spacing: -.02em; color: var(--page-accent); }
         .hist-edi__theme { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 19px); color: var(--ink); }
+        .hist-edi__champ { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; margin-right: var(--sp-5); min-width: 0; }
+        .hist-edi__champmedal { width: 20px; height: 20px; font-size: 11px; }
+        .hist-edi__champ .hist-brand { width: 26px; height: 26px; }
+        .hist-edi__champname { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22ch; }
         .hist-edi__meta { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
         .hist-edi__part { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
         .hist-edi__chev { display: grid; place-items: center; flex: 0 0 auto; }
@@ -439,6 +454,7 @@ export function HistoricoAwardsPage({ navigate }) {
         @media (max-width: 700px) {
           .hist-evo { grid-template-columns: 1fr; }
           .hist-edi > summary { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+          .hist-edi__champ { margin: 0; max-width: 100%; }
           .hist-edi__meta { width: 100%; }
           .hist-edi__chev { margin-left: auto; }
         }
