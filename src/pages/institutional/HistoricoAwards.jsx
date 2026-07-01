@@ -21,6 +21,20 @@ import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { sweetEditions } from '../../data/sweetEditionsCompat'
 import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
+import { editionMark } from '../../data/editionAssets'
+
+// Cor por categoria (edição atual) — ajuda a distinguir os 8 cards. Só tons da paleta
+// oficial (§3): rosa, ciano, amarelo, coral, azul, terracota, peach, marrom.
+const CATEGORY_TONE = {
+  'Melhor Combo':        '#F2548A',
+  'Melhor Atendimento':  '#2BC4E8',
+  'Melhor Apresentação': '#F8B511',
+  'Melhor Doce':         '#F2693C',
+  'Melhor Bebida':       '#1B86C9',
+  'Melhor Salgado':      '#E8553A',
+  'Melhor Criatividade': '#C8275C',
+  'Encantamento em Loja':'#6B4A3A',
+}
 
 function StatusBadge({ status }) {
   const s = AWARD_STATUS[status] || AWARD_STATUS['a-conferir']
@@ -90,7 +104,7 @@ function CurrentCategoryCard({ a }) {
   const champ = groups.find((g) => g.place.startsWith('1'))
   const runners = groups.filter((g) => !g.place.startsWith('1'))
   return (
-    <article className="swa-cat">
+    <article className="swa-cat" style={{ '--cat': CATEGORY_TONE[a.category] || 'var(--page-accent)' }}>
       <h3>{a.category}</h3>
       {champ && (
         <div className="swa-cat__champ">
@@ -148,9 +162,16 @@ function EditionAccordion({ e, defaultOpen }) {
   // Campeão do Melhor Combo desta edição (1º lugar) para adiantar no resumo, quando houver.
   const combo1 = ((e.awards || []).find((a) => /melhor combo/i.test(a.category))?.winners || [])
     .filter((w) => w.place.startsWith('1')).map((w) => w.name)
+  const mark = editionMark(e.id)
   return (
     <details className="hist-edi" {...(defaultOpen ? { open: true } : {})}>
       <summary>
+        {mark.logo && (
+          <span className="hist-edi__logo" aria-hidden="true">
+            <img src={mark.logo} alt="" loading="lazy" decoding="async"
+              onError={(ev) => { const w = ev.currentTarget.closest('.hist-edi__logo'); if (w) w.style.display = 'none' }} />
+          </span>
+        )}
         <span className="hist-edi__id">
           <span className="hist-edi__code">{e.code}</span>
           <span className="hist-edi__theme">{e.theme}</span>
@@ -343,23 +364,25 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
 
         /* card de categoria (edição atual) */
-        .swa-cat { display: flex; flex-direction: column; gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); transition: transform var(--dur-base, .26s) var(--ease-out, ease), box-shadow var(--dur-base, .26s) var(--ease-out, ease); }
+        .swa-cat { --cat: var(--page-accent); display: flex; flex-direction: column; gap: var(--sp-4); background: color-mix(in srgb, var(--cat) 7%, var(--cream-card)); border: 1px solid color-mix(in srgb, var(--cat) 26%, var(--paper-line)); border-top: 4px solid var(--cat); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); transition: transform var(--dur-base, .26s) var(--ease-out, ease), box-shadow var(--dur-base, .26s) var(--ease-out, ease); }
         .swa-cat:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .swa-cat > h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: var(--ink); margin: 0; }
-        .swa-cat__champ { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-md); background: color-mix(in srgb, var(--page-accent-soft) 60%, var(--cream)); border: 1px solid color-mix(in srgb, var(--page-accent) 22%, transparent); }
+        .swa-cat > h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: color-mix(in srgb, var(--cat) 62%, var(--ink)); margin: 0; }
+        .swa-cat__champ { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-md); background: color-mix(in srgb, var(--cat) 16%, var(--cream)); border: 1px solid color-mix(in srgb, var(--cat) 32%, transparent); }
         .swa-cat__champ .hist-medal { width: 30px; height: 30px; font-size: 14px; }
+        /* logo preenche a caixa (pedido do cliente) — cover em vez de contain */
+        .swa-cat .hist-brand--img img { object-fit: cover; padding: 0; }
         .swa-cat__champbrands { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
         .swa-cat__champ-one { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .swa-cat__champ .hist-brand { width: clamp(72px, 12vw, 92px); height: clamp(72px, 12vw, 92px); border-radius: 14px; }
+        .swa-cat__champ .hist-brand { width: clamp(64px, 10vw, 84px); height: clamp(64px, 10vw, 84px); border-radius: 14px; }
         .swa-cat__champ .hist-brand__mono { font-size: clamp(20px, 3vw, 28px); }
-        .swa-cat__champname { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.15; color: var(--ink); overflow-wrap: anywhere; }
+        .swa-cat__champname { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.15; color: var(--ink); overflow-wrap: break-word; }
         .swa-cat__runners { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
         .swa-cat__runners li { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .swa-cat__runners .hist-brand { width: 40px; height: 40px; }
         .swa-cat__runners .hist-brand__mono { font-size: 13px; }
         .swa-cat__runnernames { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; }
         .swa-cat__runner-one { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
-        .swa-cat__runnername { font-size: 14px; color: var(--ink-soft); line-height: 1.25; overflow-wrap: anywhere; }
+        .swa-cat__runnername { font-size: 14px; color: var(--ink-soft); line-height: 1.25; overflow-wrap: break-word; }
 
         /* 2 — TRANSPARÊNCIA */
         .hist-intro { background: var(--cream); padding-bottom: 0; }
@@ -381,7 +404,11 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-edi__champ { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; margin-right: var(--sp-5); min-width: 0; }
         .hist-edi__champmedal { width: 20px; height: 20px; font-size: 11px; }
         .hist-edi__champ .hist-brand { width: 26px; height: 26px; }
+        .hist-edi__champ .hist-brand--img img { object-fit: cover; padding: 0; }
         .hist-edi__champname { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22ch; }
+        /* logo real da edição no resumo do acordeão */
+        .hist-edi__logo { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 11px; overflow: hidden; background: #fff; border: 1px solid var(--paper-line); display: grid; place-items: center; }
+        .hist-edi__logo img { width: 100%; height: 100%; object-fit: cover; }
         .hist-edi__meta { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
         .hist-edi__part { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
         .hist-edi__chev { display: grid; place-items: center; flex: 0 0 auto; }
