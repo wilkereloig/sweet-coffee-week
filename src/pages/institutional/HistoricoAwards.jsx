@@ -166,21 +166,24 @@ export function HistoricoAwardsPage({ navigate }) {
   const rootRef = React.useRef(null)
   useRevealOnScroll(rootRef)
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
+  // Scroll suave até o destaque da edição atual (âncora criada na seção Premiação 2026.1).
+  const scrollToCurrent = (ev) => {
+    ev.preventDefault()
+    const el = document.getElementById('premiacao-atual')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   const ordered = [...sweetEditions].reverse() // mais recentes primeiro
 
   return (
     <div className="page-enter hist-page" ref={rootRef}>
-      {/* 1 — HERO hall of fame */}
+      {/* 1 — HERO hall of fame (compacto) */}
       <section className="hist-hero">
-        <span className="hist-hero__seal" aria-hidden="true">
-          <img src="/images/shapes/shape-seal-choco.svg" alt="" />
-          <span className="hist-hero__sealnum">★</span>
-        </span>
         <div className="wrap hist-hero__inner motion-reveal-up">
           <h1>Hall dos vencedores do <span className="keep-together"><span className="hist-hl">Sweet Awards</span></span></h1>
-          <p>
-            Edição após edição, o Sweet Awards eleva ao pódio os combos, sabores, apresentações, atendimentos e experiências que mais encantaram o Sweet &amp; Coffee Week. Aqui ficam registradas as marcas que viraram memória do festival.
-          </p>
+          <p>Os combos e marcas que os Sweet Lovers elegeram, edição após edição.</p>
+          <div className="hist-hero__cta">
+            <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Ver premiação 2026 <I.arrow /></a>
+          </div>
         </div>
       </section>
 
@@ -242,17 +245,13 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .hist-head p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
 
-        /* 1 — HERO chocolate (page na exclusão global de top-padding) */
-        .hist-hero { background: #381610; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 96px); overflow: hidden; }
-        @media (min-width: 960px) { .hist-hero { padding-top: clamp(196px, 17vw, 244px); } }
+        /* 1 — HERO chocolate compacto (page na exclusão global de top-padding) */
+        .hist-hero { background: #381610; padding: var(--hero-content-start) 0 clamp(32px, 5vw, 56px); overflow: hidden; }
         .hist-hero__inner { max-width: 880px; position: relative; z-index: 1; }
-        .hist-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 76px); line-height: .96; max-width: 16ch; }
+        .hist-hero h1 { color: var(--cream); font-size: clamp(36px, 4.4vw, 64px); line-height: .98; max-width: 16ch; }
         .hist-hero h1 .hist-hl { color: var(--page-accent); }
-        .hist-hero p { margin: var(--sp-5) 0 0; max-width: 60ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .hist-hero__seal { position: absolute; top: clamp(96px, 13vw, 150px); right: clamp(-30px, 2vw, 40px); width: clamp(120px, 18vw, 230px); aspect-ratio: 1; display: grid; place-items: center; opacity: .9; pointer-events: none; }
-        .hist-hero__seal img { width: 100%; height: 100%; display: block; }
-        .hist-hero__sealnum { position: absolute; font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 5vw, 60px); color: var(--page-accent); }
-        @media (max-width: 760px) { .hist-hero__seal { opacity: .28; right: -22px; top: auto; bottom: 8px; } }
+        .hist-hero p { margin: var(--sp-4) 0 0; max-width: 52ch; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+        .hist-hero__cta { margin-top: var(--sp-5); }
 
         /* 2 — TRANSPARÊNCIA */
         .hist-intro { background: var(--cream); padding-bottom: 0; }
