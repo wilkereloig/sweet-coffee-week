@@ -72,11 +72,59 @@ function CategoryCard({ a }) {
   )
 }
 
-// Card de destaque da edição atual (esqueleto — campeão em destaque na Task 3).
+// Reagrupa a lista achatada de winners ({place,name}) por colocação, preservando a
+// ordem e os empates (vários nomes na mesma colocação → um grupo com vários nomes).
+function groupByPlace(winners) {
+  const order = []
+  const map = new Map()
+  for (const w of winners) {
+    if (!map.has(w.place)) { map.set(w.place, []); order.push(w.place) }
+    map.get(w.place).push(w.name)
+  }
+  return order.map((place) => ({ place, names: map.get(place) }))
+}
+
+// Card de destaque da edição atual: campeão grande (logo real) + prata/bronze abaixo.
 function CurrentCategoryCard({ a }) {
+  const groups = groupByPlace(a.winners)
+  const champ = groups.find((g) => g.place.startsWith('1'))
+  const runners = groups.filter((g) => !g.place.startsWith('1'))
   return (
     <article className="swa-cat">
       <h3>{a.category}</h3>
+      {champ && (
+        <div className="swa-cat__champ">
+          <span className="hist-medal hist-medal--gold" aria-hidden="true">1</span>
+          <div className="swa-cat__champbrands">
+            {champ.names.map((name) => (
+              <div className="swa-cat__champ-one" key={name}>
+                <WinnerLogo name={name} />
+                <span className="swa-cat__champname"><span className="sr-place">1º lugar: </span>{name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {runners.length > 0 && (
+        <ul className="swa-cat__runners">
+          {runners.map((g) => {
+            const tone = g.place.startsWith('2') ? 'silver' : 'bronze'
+            return (
+              <li key={g.place}>
+                <span className={`hist-medal hist-medal--${tone}`} aria-hidden="true">{g.place.replace('º', '')}</span>
+                <span className="swa-cat__runnernames">
+                  {g.names.map((name) => (
+                    <span className="swa-cat__runner-one" key={name}>
+                      <WinnerLogo name={name} />
+                      <span className="swa-cat__runnername"><span className="sr-place">{g.place} lugar: </span>{name}</span>
+                    </span>
+                  ))}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </article>
   )
 }
@@ -281,6 +329,24 @@ export function HistoricoAwardsPage({ navigate }) {
         /* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */
         .swa-current { background: var(--cream); }
         .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
+
+        /* card de categoria (edição atual) */
+        .swa-cat { display: flex; flex-direction: column; gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); }
+        .swa-cat > h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: var(--ink); margin: 0; }
+        .swa-cat__champ { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-md); background: color-mix(in srgb, var(--page-accent-soft) 60%, var(--cream)); border: 1px solid color-mix(in srgb, var(--page-accent) 22%, transparent); }
+        .swa-cat__champ .hist-medal { width: 30px; height: 30px; font-size: 14px; }
+        .swa-cat__champbrands { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+        .swa-cat__champ-one { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .swa-cat__champ .hist-brand { width: clamp(72px, 12vw, 92px); height: clamp(72px, 12vw, 92px); border-radius: 14px; }
+        .swa-cat__champ .hist-brand__mono { font-size: clamp(20px, 3vw, 28px); }
+        .swa-cat__champname { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.15; color: var(--ink); overflow-wrap: anywhere; }
+        .swa-cat__runners { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .swa-cat__runners li { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .swa-cat__runners .hist-brand { width: 40px; height: 40px; }
+        .swa-cat__runners .hist-brand__mono { font-size: 13px; }
+        .swa-cat__runnernames { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; }
+        .swa-cat__runner-one { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+        .swa-cat__runnername { font-size: 14px; color: var(--ink-soft); line-height: 1.25; overflow-wrap: anywhere; }
 
         /* 2 — TRANSPARÊNCIA */
         .hist-intro { background: var(--cream); padding-bottom: 0; }
