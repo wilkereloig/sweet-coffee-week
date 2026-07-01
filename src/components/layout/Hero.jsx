@@ -6,8 +6,9 @@ import React from 'react'
  * editar este componente + src/styles/hero.css. Nada de ajustar página por página.
  *
  * FORA deste componente (por design):
- *  - Home (§9, página-mãe, não se mexe) → mantém .swc-hero;
- *  - Edições (apresentação horizontal) → mantém .edx-hero.
+ *  - Home (§9, página-mãe, não se mexe) → mantém .swc-hero.
+ * (Edições agora USA este componente: só o corpo horizontal é auto-contido; a
+ *  hero segue o padrão institucional — fundo no acento da rota + tinta escura.)
  *
  * variant:
  *  - 'accent'    → fundo = --page-accent (cor do item ativo do menu), texto --ink.

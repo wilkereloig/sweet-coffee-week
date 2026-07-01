@@ -3,7 +3,8 @@
    Mudar a aparência de TODOS os heros institucionais = editar AQUI (um lugar só).
    NÃO fazer ajuste de hero página por página (ver AI_RULES.md).
 
-   Fora daqui, por design: Home (§9, .swc-hero) e Edições (.edx-hero).
+   Fora daqui, por design: só a Home (§9, .swc-hero). Edições usa este hero
+   (só o corpo horizontal é auto-contido).
    Preserva o render atual: faixa no acento da página (--page-accent) + tinta
    escura, conteúdo ancorado abaixo da zona de segurança do header (§4.1),
    margem canônica .wrap (§4).

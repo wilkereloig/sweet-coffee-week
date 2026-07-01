@@ -20,6 +20,8 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
+import { PageHero, HeroHL } from '../../components/layout'
+import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { EDITIONS } from '../../data/editions'
 import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -194,8 +196,12 @@ function EditionNav({ active, onPick }) {
 }
 
 export function EdicoesPage() {
+  const pageRef = React.useRef(null)
   const outerRef = React.useRef(null)
   const trackRef = React.useRef(null)
+  // Observer de reveal p/ o <PageHero> (usa .motion-reveal-up; aqui não há
+  // PageShell, então a página provê o observer — igual às demais institucionais).
+  useRevealOnScroll(pageRef)
   const [active, setActive] = React.useState(0)
   const [horizontal, setHorizontal] = React.useState(false)
 
@@ -271,19 +277,18 @@ export function EdicoesPage() {
 
   return (
     <div className="page-enter edx-page">
-      {/* HERO editorial — altura proporcional (não 1080), topo livre do menu */}
-      <section className="edx-hero">
-        <div className="edx-wrap edx-hero__inner">
-          <div className="edx-hero__copy">
-            <h1 className="edx-hero__title">A história do <span className="edx-hl">Sweet &amp; Coffee Week</span>, edição por edição.</h1>
-            <p className="edx-hero__text">De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal.</p>
-            <div className="edx-hero__hint" aria-hidden="true">
-              <span>Role para percorrer as 16 edições</span>
-              <I.arrow />
-            </div>
-          </div>
+      {/* HERO institucional — mesma peça das demais páginas (<PageHero>): fundo no
+          acento da rota (ciano) + tinta escura, altura proporcional e .wrap canônico.
+          O hint de scroll fica como conteúdo extra (função: avisa da apresentação). */}
+      <PageHero
+        title={<>A história do <HeroHL color="var(--coral)">Sweet &amp; Coffee Week</HeroHL>, edição por edição.</>}
+        subtitle="De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal."
+      >
+        <div className="edx-hero-hint" aria-hidden="true">
+          <span>Role para percorrer as 16 edições</span>
+          <I.arrow />
         </div>
-      </section>
+      </PageHero>
 
       {horizontal ? (
         /* DESKTOP — apresentação horizontal scroll-driven */
@@ -332,28 +337,11 @@ export function EdicoesPage() {
         .edx-wrap { max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); }
         .edx-hl { color: var(--page-accent, var(--cyan)); font-style: italic; }
 
-        /* HERO — altura proporcional, topo livre (não encosta no menu) */
-        /* wrapper: fundo full-bleed pode subir até o topo; só o padding-bottom aqui */
-        .edx-hero { background: #381610; color: var(--cream); min-height: clamp(620px, 82vh, 840px); display: flex; align-items: flex-end; padding: 0 0 clamp(48px, 7.5vh, 92px); overflow: clip; }
-        /* inner: conteúdo começa após a zona de segurança do header (nunca encosta no menu) */
-        .edx-hero__inner { width: 100%; display: block; padding-top: var(--hero-content-start); }
-        .edx-hero__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(38px, 5vw, 80px); line-height: .98; max-width: 16ch; margin: var(--sp-4) 0 0; color: var(--cream); text-wrap: balance; }
-        .edx-hero__text { max-width: 50ch; margin: var(--sp-5) 0 0; color: rgba(255,241,230,.85); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .edx-hero__hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-7); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--page-accent, var(--cyan)); }
-        .edx-hero__hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
-        /* Prévia editorial dos painéis (1 foto real + 2 blocos da paleta) — sem stickers */
-        .edx-hero__preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        .edx-hero__tile { position: relative; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
-        .edx-hero__tile--photo { grid-column: 1 / -1; aspect-ratio: 16 / 10; background: var(--swc-coffee, #6A2C15); box-shadow: 0 22px 60px rgba(0,0,0,.42); }
-        .edx-hero__tile--photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .edx-hero__tile--photo.is-empty img { display: none; }
-        .edx-hero__tile--photo figcaption { position: relative; z-index: 1; padding: 16px; background: linear-gradient(transparent, rgba(43,24,16,.74)); color: var(--cream); display: flex; flex-direction: column; gap: 2px; }
-        .edx-hero__tile--block { aspect-ratio: 4 / 3; color: var(--ink); padding: 16px; }
-        .edx-hero__tile--b1 { background: var(--page-accent, var(--cyan)); }
-        .edx-hero__tile--b2 { background: var(--peach, #F7D9B5); }
-        .edx-hero__tnum { font-family: var(--font-display); font-weight: 900; font-size: 13px; letter-spacing: .02em; opacity: .92; }
-        .edx-hero__tile strong { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.05; }
-        @media (max-width: 860px) { .edx-hero__inner { grid-template-columns: 1fr; } .edx-hero__preview { max-width: 440px; } }
+        /* HERO — agora o componente <PageHero> + src/styles/hero.css (fonte única):
+           fundo no acento da rota (ciano) + tinta escura, como as demais páginas.
+           Só o hint de scroll é específico desta apresentação (função, não enfeite). */
+        .edx-hero-hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-6); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); opacity: .72; }
+        .edx-hero-hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
 
         /* STAGE — desktop sticky horizontal */
         .edx-stage { position: relative; background: var(--cream); }
