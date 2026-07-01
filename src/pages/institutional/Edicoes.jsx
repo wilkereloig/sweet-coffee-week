@@ -24,21 +24,11 @@ import { PageHero, HeroHL } from '../../components/layout'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { EDITIONS } from '../../data/editions'
 import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
-import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark, TEN_YEARS_SEAL } from '../../data/editionAssets'
 
-const comboMain = (slug) => `/images/combos/${slug}/main.jpg`
-
-// Slugs com pasta de combo real no acervo (/public/images/combos/<slug>/main.jpg).
-const COMBO_SLUGS = new Set([
-  'adocee-doceria', 'bolomania', 'caffe-basilicos', 'canutos', 'caroli-douces',
-  'casa-1190', 'delicato-bolos', 'douce-di-maria', 'jolie-cafe-patisserie',
-  'just-food-coffee', 'mangai', 'mr-cupcake-confeitaria', 'o-maestro-cafe',
-  'padoca-do-bosque', 'paneer-patisserie', 'parma-doces', 'rollab-confeitaria',
-  'sweet-duo-confeitaria', 'wow-cookies',
-])
-// Edições cujas fotos de combo do acervo plausivelmente pertencem (recentes).
-const RECENT_PHOTO_EDITIONS = new Set(['2024', '2025', '2026.1'])
+// Fotos por edição — acervo normalizado em /images/edicoes/<code>/ (main + 1..3).
+// Uma foto por participante, selecionadas das pastas "web" do acervo (compressas).
+const editionPhoto = (code, file) => `/images/edicoes/${code}/${file}.webp`
 
 // Base oficial (16 edições, inclui Lovers) indexada por id/código.
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
@@ -46,18 +36,10 @@ const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.i
 // Acento por edição — só cores da paleta oficial.
 const TONES = ['coral', 'pink', 'cyan', 'yellow']
 
-function comboThumbsFor(code, names) {
-  if (!RECENT_PHOTO_EDITIONS.has(code)) return []
-  const resolved = (names || []).map((n) => resolveParticipant(n))
-  const seen = new Set()
-  const out = []
-  for (const p of resolved) {
-    if (!p.slug || !COMBO_SLUGS.has(p.slug) || seen.has(p.slug)) continue
-    seen.add(p.slug)
-    out.push({ slug: p.slug, name: p.name, src: comboMain(p.slug) })
-    if (out.length >= 4) break
-  }
-  return out
+// main + 3 mini por edição. onError no <img> (EditionPhotoSlot) cai no fallback
+// "pendente" se algum arquivo faltar — nunca inventa imagem.
+function comboThumbsFor(code, theme) {
+  return ['main', '1', '2', '3'].map((f) => ({ name: theme, src: editionPhoto(code, f) }))
 }
 
 // 16 painéis: editorial (editions.js) + oficial (sweetCoffeeHistory).
@@ -76,7 +58,7 @@ const PANELS = EDITIONS.map((ed, i) => {
     special,
     mark: editionMark(ed.ano),
     lead: (ed.desc || '').split('\n\n')[0] || '',
-    thumbs: comboThumbsFor(ed.ano, h.participantes),
+    thumbs: comboThumbsFor(ed.ano, h.tema || ed.nome),
     tone: TONES[i % TONES.length],
   }
 })
