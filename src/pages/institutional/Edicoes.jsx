@@ -25,10 +25,11 @@ import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { EDITIONS } from '../../data/editions'
 import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { editionMark, TEN_YEARS_SEAL } from '../../data/editionAssets'
+import { EDITION_GALLERY } from '../../data/editionGallery'
+import { PhotoRotator } from '../../components/PhotoRotator'
 
-// Fotos por edição — acervo normalizado em /images/edicoes/<code>/ (main + 1..3).
-// Uma foto por participante, selecionadas das pastas "web" do acervo (compressas).
-const editionPhoto = (code, file) => `/images/edicoes/${code}/${file}.webp`
+// Galeria rotativa por edição — acervo normalizado (/images/edicoes/<code>/NN.webp,
+// varios participantes). Manifesto: src/data/editionGallery.js.
 
 // Base oficial (16 edições, inclui Lovers) indexada por id/código.
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
@@ -36,10 +37,9 @@ const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.i
 // Acento por edição — só cores da paleta oficial.
 const TONES = ['coral', 'pink', 'cyan', 'yellow']
 
-// main + 3 mini por edição. onError no <img> (EditionPhotoSlot) cai no fallback
-// "pendente" se algum arquivo faltar — nunca inventa imagem.
-function comboThumbsFor(code, theme) {
-  return ['main', '1', '2', '3'].map((f) => ({ name: theme, src: editionPhoto(code, f) }))
+// {src, alt}[] p/ o PhotoRotator; vazio => slot cai no fallback "pendente".
+function editionGalleryFor(code, theme) {
+  return (EDITION_GALLERY[code] || []).map((src) => ({ src, alt: `Combo do acervo — edição ${theme}` }))
 }
 
 // 16 painéis: editorial (editions.js) + oficial (sweetCoffeeHistory).
@@ -58,7 +58,7 @@ const PANELS = EDITIONS.map((ed, i) => {
     special,
     mark: editionMark(ed.ano),
     lead: (ed.desc || '').split('\n\n')[0] || '',
-    thumbs: comboThumbsFor(ed.ano, h.tema || ed.nome),
+    gallery: editionGalleryFor(ed.ano, h.tema || ed.nome),
     tone: TONES[i % TONES.length],
   }
 })
@@ -97,26 +97,27 @@ function EditionLogoSlot({ e }) {
 
 // Slot de fotos — foto principal + mini galeria. Fotos reais (combos do acervo
 // recente) quando existem; senão fallback "pendente". Nunca inventa imagem.
+// Foto principal + 3 mini, TODAS rotativas (crossfade via PhotoRotator) por
+// subconjuntos da galeria da edição — mostra vários participantes trocando, não
+// fotos fixas. Fallback "pendente" quando a edição não tem fotos no acervo.
 function EditionPhotoSlot({ e }) {
-  const hasPhotos = e.thumbs.length > 0
-  const lead = hasPhotos ? e.thumbs[0] : null
-  const mini = hasPhotos ? e.thumbs.slice(1, 4) : []
+  const g = e.gallery
+  const has = g.length > 0
+  const sub = (k) => g.filter((_, i) => i % 3 === k)   // 3 trilhas intercaladas
   return (
     <div className="edx-photo">
-      <figure className={`edx-photo__main${hasPhotos ? '' : ' is-fallback'}`}>
-        {lead
-          ? <img src={lead.src} alt={`Combo do acervo recente — edição ${e.theme}`} loading="lazy" decoding="async"
-              onError={(ev) => { const w = ev.currentTarget.closest('.edx-photo__main'); if (w) w.classList.add('is-fallback') }} />
+      <figure className={`edx-photo__main${has ? '' : ' is-fallback'}`}>
+        {has
+          ? <PhotoRotator images={g} interval={4200} />
           : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span className="edx-slot-fb__t">Foto principal pendente</span><span className="edx-slot-fb__s">Adicionar imagem da edição</span></span>}
       </figure>
       <div className="edx-photo__mini">
-        {[0, 1, 2].map((idx) => {
-          const t = mini[idx]
+        {[0, 1, 2].map((k) => {
+          const s = has ? sub(k) : []
           return (
-            <figure className={`edx-photo__thumb${t ? '' : ' is-fallback'}`} key={idx}>
-              {t
-                ? <img src={t.src} alt={`Combo ${t.name} — acervo recente`} loading="lazy" decoding="async"
-                    onError={(ev) => { const w = ev.currentTarget.closest('.edx-photo__thumb'); if (w) w.classList.add('is-fallback') }} />
+            <figure className={`edx-photo__thumb${s.length ? '' : ' is-fallback'}`} key={k}>
+              {s.length
+                ? <PhotoRotator images={s} interval={5200 + k * 700} />
                 : <span className="edx-slot-fb edx-slot-fb--sm"><span>Galeria pendente</span></span>}
             </figure>
           )
