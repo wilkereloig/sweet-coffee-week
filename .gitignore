@@ -15,3 +15,6 @@ screenshots/
 .claude/
 exports/
 **/.impeccable/
+.devserver.log
+por.traineddata
+skills-lock.json

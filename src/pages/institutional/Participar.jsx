@@ -496,7 +496,7 @@ export function ParticiparPage() {
         .participar-close .btn { min-height: 50px; margin: var(--sp-3) 0 0; }
 
         /* ============ RESPONSIVO ============ */
-        @media (max-width: 980px) {
+        @media (max-width: 960px) { /* breakpoint tablet canônico do institucional (§ escala) */
           /* hero empilha: copy primeiro, form logo depois (ordem do DOM) */
           .participar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
           .participar-cards { grid-template-columns: repeat(2, 1fr); }

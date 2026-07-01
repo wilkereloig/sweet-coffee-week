@@ -120,6 +120,13 @@ H1/H2 (ex.: "APOIE O FESTIVAL", "O FESTIVAL"), com ou sem bolinha/dot. Preferên
 já registrada do usuário: o título abre a seção direto, sem rótulo por cima. Vale
 para todas as páginas institucionais (exceto a Home, que não se mexe — §9).
 
+**Não usar a fonte mono (`var(--font-mono)`, JetBrains Mono) em rótulos/labels/
+eyebrows/metadados institucionais.** Preferência registrada (rejeitada 2x: chip do
+Sweet Awards e rótulos da seção Números). Para rótulos institucionais usar **Nexa**:
+`var(--font-sans)` ou `var(--font-slab)`. Caixa-alta + letter-spacing podem ficar — o
+que incomoda é a face mono, não o caixa-alta. (DESIGN.md §2 "mono só p/ eyebrow" está
+desatualizado; vale esta regra.)
+
 ## 6. Stickers e ilustrações
 
 **Não usar stickers por padrão nas páginas institucionais.** Stickers só em materiais
@@ -243,6 +250,16 @@ Não inventar dados. Não criar ranking fake. Não esconder ausência de dado im
 Validar em desktop, tablet e mobile. No mobile: evitar sticky horizontal complexo;
 evitar overflow lateral; manter leitura clara; botões tocáveis; reorganizar grids em
 coluna; manter logos/fotos proporcionais.
+
+**Escala de breakpoints canônica (institucional).** Não existe token de breakpoint
+(CSS não aceita `var()` em `@media`), então a consistência é por convenção. Ao criar
+ou ajustar `@media (max-width: …)`, preferir a escala: **1080 · 960 · 720 · 560 ·
+420**. O reflow principal desktop→tablet (grid de 2 colunas → 1) é **960px** em todo
+o institucional (Participar/Apoiar já alinhados; antes divergiam em 980). Os `959px`
+(styles.css) são propositais (pareados com `min-width: 960`, "abaixo de 960"). Valores
+fora da escala só quando o conteúdo daquele bloco exigir ponto próprio — nunca por
+inércia/cópia. Não renumerar em massa breakpoints já calibrados: alinhar só os
+outliers do reflow principal.
 
 ## 18. Validação antes de finalizar
 

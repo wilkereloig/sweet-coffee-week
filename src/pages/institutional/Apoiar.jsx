@@ -497,7 +497,7 @@ export function ApoiarPage() {
         .apoiar-close .btn { min-height: 50px; margin: var(--sp-3) 0 0; }
 
         /* ============ RESPONSIVO ============ */
-        @media (max-width: 980px) {
+        @media (max-width: 960px) { /* breakpoint tablet canônico do institucional (§ escala) */
           .apoiar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
           .apoiar-value, .apoiar-where { grid-template-columns: repeat(2, 1fr); }
           .apoiar-audience { grid-template-columns: 1fr; gap: var(--sp-6); }
