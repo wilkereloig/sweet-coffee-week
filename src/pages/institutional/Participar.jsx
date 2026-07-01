@@ -172,7 +172,7 @@ export function ParticiparPage() {
         <div className="wrap participar-hero__grid">
           {/* coluna esquerda: convite editorial + pequena composição visual */}
           <div className="participar-hero__copy motion-reveal-up">
-            <h1>Leve sua marca para a rota mais <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
+            <h1>Mostre seu interesse em participar da <span className="keep-together"><span className="participar-hl" style={{ '--hl': 'var(--pink)' }}>17ª edição</span>.</span></h1>
             <p className="participar-lead participar-lead--onDark">
               O Sweet &amp; Coffee Week conecta marcas gastronômicas ao público por meio de combos exclusivos, experiências criativas e uma temporada de descoberta pela cidade.
             </p>
