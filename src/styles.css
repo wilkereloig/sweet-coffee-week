@@ -528,16 +528,16 @@ body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(2
 body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
 
 /* ============================================================
-   HEROS — altura 1080px (desktop) + fundo na cor-acento da página
-   (item ativo do menu). Pedido do cliente. Acentos são claros/
-   saturados → texto em tinta escura. No mobile vira 100svh p/ não
-   criar tela gigante vazia. Home mantém foto/overlay/texto claro
-   (fundo-acento aparece tingindo a foto). Awards (/vencedores) usa
-   sistema próprio (Lovers, inline) e é tratado à parte.
+   HEROS — faixa proporcional ao conteúdo (não mais 1080px fixo, ver
+   CLAUDE.md §4) + fundo na cor-acento da página (item ativo do menu).
+   Acentos são claros/saturados → texto em tinta escura. Conteúdo
+   ancorado abaixo da zona de segurança do header; altura acompanha o
+   conteúdo com um piso de faixa de cor. Home mantém foto/overlay/1080
+   próprio (à parte). Awards (/vencedores) usa sistema Lovers inline.
    ============================================================ */
 .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero {
   background: var(--page-accent) !important;
-  min-height: 1080px;
+  min-height: clamp(440px, 62vh, 660px);
   display: flex;
   align-items: center;
   /* zona de segurança header↔hero (token global) — conteúdo nunca encosta no menu */
@@ -553,7 +553,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
    sob a foto + altura 1080; foto/overlay/texto claro preservados. */
 .hm .swc-hero { background: #2B1810 !important; min-height: 1080px !important; }
 @media (max-width: 960px) {
-  .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero { min-height: 100svh; }
+  .ed-hero, .cur-hero, .participar-hero, .apoiar-hero, .contato-hero, .hist-hero { min-height: clamp(360px, 58svh, 520px); }
   .hm .swc-hero { min-height: 100svh !important; }
 }
 
