@@ -18,6 +18,7 @@ exports/
 .devserver.log
 por.traineddata
 skills-lock.json
+.agents/
 
 # Acervo bruto (fonte local; usar /images/edicoes normalizado no site)
 public/images/EDIÇÕES DO FESTIVAL/

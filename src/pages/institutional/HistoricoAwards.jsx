@@ -3,7 +3,7 @@
  * Rota: #/sweet-awards (alias antigo #/historico-sweet-awards). NÃO é a página Sweet Awards publicada
  * (SweetAwards/vencedores) — é o acervo histórico das premiações 2016–2026.
  *
- * Hall of fame data-driven (src/data/sweetHistory.js):
+ * Hall of fame data-driven (src/data/sweetCoffeeHistory.js via sweetEditionsCompat.js):
  *  - acordeões por edição (acessíveis, fechados por padrão, mais recentes primeiro);
  *  - dentro de cada edição "completa": trilhas (Júri Técnico / Sweet Lovers) com
  *    badges no acento da página (pink), cada categoria é um card com pódio de
@@ -339,8 +339,6 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-hl--coral { color: var(--coral); }
         .hist-hl--cyan { color: var(--cyan-deep); }
         .hist-page h1, .hist-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
-        .hist-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent); margin: 0 0 var(--sp-4); }
-        .hist-eyebrow__dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
         .hist-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
         .hist-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .hist-head p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }

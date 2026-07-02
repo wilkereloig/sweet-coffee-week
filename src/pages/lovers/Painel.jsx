@@ -813,13 +813,13 @@ function ResumoPesquisa({ secret }) {
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={colCard}>
           <h3 style={h3}>💛 Pontos fortes (menções)</h3>
-          {A.fortesFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.fortesFreq)} color="var(--lovers-red)" />)}
-          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosFortes.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+          {A.fortesFreq.map((x) => <StatBar key={x.label} label={x.label} n={x.n} max={maxN(A.fortesFreq)} color="var(--lovers-red)" />)}
+          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosFortes.map((x) => <li key={x} style={li}>{x}</li>)}</ul>
         </div>
         <div style={colCard}>
           <h3 style={h3}>🔧 Pontos a melhorar (menções)</h3>
-          {A.queixasFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.queixasFreq)} color="var(--lovers-burgundy)" />)}
-          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosMelhorar.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+          {A.queixasFreq.map((x) => <StatBar key={x.label} label={x.label} n={x.n} max={maxN(A.queixasFreq)} color="var(--lovers-burgundy)" />)}
+          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>{A.pontosMelhorar.map((x) => <li key={x} style={li}>{x}</li>)}</ul>
         </div>
       </div>
 
@@ -827,9 +827,9 @@ function ResumoPesquisa({ secret }) {
         <h3 style={h3}>🎨 Temas mais sugeridos (próxima edição)</h3>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div style={{ flex: '1 1 280px', minWidth: 260 }}>
-            {A.temasFreq.map((x, i) => <StatBar key={i} label={x.label} n={x.n} max={maxN(A.temasFreq)} color="var(--lovers-purple, #7a3b9e)" />)}
+            {A.temasFreq.map((x) => <StatBar key={x.label} label={x.label} n={x.n} max={maxN(A.temasFreq)} color="var(--lovers-purple, #7a3b9e)" />)}
           </div>
-          <ul style={{ flex: '1 1 320px', margin: 0, paddingLeft: 18 }}>{A.temas.map((x, i) => <li key={i} style={li}>{x}</li>)}</ul>
+          <ul style={{ flex: '1 1 320px', margin: 0, paddingLeft: 18 }}>{A.temas.map((x) => <li key={x} style={li}>{x}</li>)}</ul>
         </div>
       </div>
 
@@ -837,11 +837,11 @@ function ResumoPesquisa({ secret }) {
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 16 }}>
           <div style={colCard}>
             <h3 style={h3}>🏆 Mais citadas em elogios</h3>
-            {live.topElogio.map((m, i) => <StatBar key={i} label={`${i + 1}. ${m.name}`} n={m.elogio} max={maxN(live.topElogio, x => x.elogio)} color="var(--lovers-red)" />)}
+            {live.topElogio.map((m, i) => <StatBar key={m.name} label={`${i + 1}. ${m.name}`} n={m.elogio} max={maxN(live.topElogio, x => x.elogio)} color="var(--lovers-red)" />)}
           </div>
           <div style={colCard}>
             <h3 style={h3}>📉 Mais citadas em críticas</h3>
-            {live.topCritica.length ? live.topCritica.map((m, i) => <StatBar key={i} label={`${i + 1}. ${m.name}`} n={m.critica} max={maxN(live.topCritica, x => x.critica)} color="var(--lovers-burgundy)" />) : <p style={{ color: 'var(--lovers-brown)' }}>Sem menções críticas nominais relevantes.</p>}
+            {live.topCritica.length ? live.topCritica.map((m, i) => <StatBar key={m.name} label={`${i + 1}. ${m.name}`} n={m.critica} max={maxN(live.topCritica, x => x.critica)} color="var(--lovers-burgundy)" />) : <p style={{ color: 'var(--lovers-brown)' }}>Sem menções críticas nominais relevantes.</p>}
           </div>
         </div>
       )}
@@ -850,11 +850,11 @@ function ResumoPesquisa({ secret }) {
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 16 }}>
           <div style={colCard}>
             <h3 style={h3}>👥 Por faixa etária <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--lovers-brown)' }}>(nota média)</span></h3>
-            {live.porFaixa.map((x, i) => <StatBar key={i} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porFaixa)} suffix=" votos" color="var(--lovers-red)" />)}
+            {live.porFaixa.map((x) => <StatBar key={x.k} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porFaixa)} suffix=" votos" color="var(--lovers-red)" />)}
           </div>
           <div style={colCard}>
             <h3 style={h3}>🧑‍🤝‍🧑 Por gênero <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--lovers-brown)' }}>(nota média)</span></h3>
-            {live.porGenero.map((x, i) => <StatBar key={i} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porGenero)} suffix=" votos" color="var(--lovers-burgundy)" />)}
+            {live.porGenero.map((x) => <StatBar key={x.k} label={`${x.k} — ${x.avg.toFixed(1)}/10`} n={x.n} max={maxN(live.porGenero)} suffix=" votos" color="var(--lovers-burgundy)" />)}
           </div>
         </div>
       )}
@@ -862,7 +862,7 @@ function ResumoPesquisa({ secret }) {
       <div style={{ ...card, marginTop: 16 }}>
         <h3 style={h3}>💬 Na voz do público (respostas reais)</h3>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          {A.citacoes.map((c, i) => <QuoteCard key={i} tipo={c.tipo} texto={c.texto} />)}
+          {A.citacoes.map((c) => <QuoteCard key={c.texto} tipo={c.tipo} texto={c.texto} />)}
         </div>
       </div>
 

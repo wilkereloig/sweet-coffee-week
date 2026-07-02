@@ -251,7 +251,8 @@ Fontes principais (verificar antes de criar rankings/históricos/cards):
 - `src/data/participants.js`, `src/data/sweetAwards.js`, `src/data/editions.js`.
 
 Não inventar dados. Não criar ranking fake. Não esconder ausência de dado importante.
-(`src/data/sweetHistory.js` é base antiga de 15 edições — migrar páginas que ainda a usam.)
+(Migração da base antiga `sweetHistory.js` concluída: nenhuma página a importa mais; as
+páginas consomem `sweetCoffeeHistory.js` direto ou via `sweetEditionsCompat.js`.)
 
 ## 17. Responsividade
 
