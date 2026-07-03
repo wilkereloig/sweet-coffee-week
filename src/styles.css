@@ -1338,7 +1338,13 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 
 /* ── Hardening responsivo geral ── */
 @media (max-width: 767px) {
-  html, body { overflow-x: hidden; max-width: 100%; }
+  /* overflow-x: clip (NUNCA hidden) — hidden+visible ainda aciona a promoção do
+     spec CSS (overflow-y vira auto mesmo declarado "visible"), criando 2 scroll
+     containers redundantes (html+body) e quebrando position:sticky em qualquer
+     descendente (confirmado ao vivo: bodyOverflowY computava "auto"). clip é o
+     único valor que NÃO aciona essa promoção — mantém overflow-y como visible de
+     verdade, sem abrir mão da proteção contra overflow horizontal. */
+  html, body { overflow-x: clip; max-width: 100%; }
   .lovers-stat-grid,
   .lovers-nav-grid { grid-template-columns: 1fr; }
   /* animações de hover não fazem sentido em toque — evita "transform preso" */
