@@ -21,14 +21,23 @@ import {
 } from '../../data/sweetHistoryStats'
 
 const combo = (slug) => `/images/combos/${slug}/main.jpg`
-const shape = (name) => `/images/shapes/${name}.svg`
 
 // ---- dados calculados (puros, no load do módulo) ----
-const RECURRING = getParticipantAppearances().slice(0, 8)
+const ALL_APPEARANCES = getParticipantAppearances()
+const RECURRING = ALL_APPEARANCES.slice(0, 8)
 const WINS = getAwardWins().slice(0, 6)
 const PODIUMS = getAwardPodiums().slice(0, 6)
 const LEADERS = getCategoryLeaders()
 const EVOLUTION = getCategoryEvolution()
+
+// Faixa "o acervo em números" — contagens reais (recorde 36 = 2019.2 Contos de Fadas,
+// ver ACERVO.md §8). Marcas distintas derivadas da base com nomes normalizados.
+const STATS = [
+  { n: '16', label: 'edições realizadas', sub: '2016 a 2026' },
+  { n: '10', label: 'anos de festival', sub: 'de Início a Lovers' },
+  { n: String(ALL_APPEARANCES.length), label: 'marcas já passaram pela rota', sub: 'nomes normalizados' },
+  { n: '36', label: 'participantes no recorde', sub: 'Contos de Fadas · 2019.2' },
+]
 
 // Categorias destacadas em cards (ordem editorial). Só entram se houver dado.
 const CATEGORY_CARDS = [
@@ -51,18 +60,15 @@ const EVO_MARCOS = [
   { code: '2025', theme: 'Celebration', text: 'A fase recente firma sete categorias por edição, do combo ao encantamento em loja.' },
 ]
 
-// Momentos marcantes — cards editoriais reais (Card 1 com foto/logo reais da Jolie).
-const MOMENTOS = [
-  { hl: 'var(--coral)', t: 'A primeira premiação encontrada veio em 2019', d: 'Na edição Pâtisserie Francesa, o primeiro resultado de Melhor Combo: Jolie em 1º, Mr Cupcake em 2º e Sonho de Brownie em 3º.', photo: combo('jolie-cafe-patisserie'), brand: 'Jolie' },
-  { hl: 'var(--pink)', t: 'O Sweet Awards ficou mais completo', d: 'A partir de Heróis & Vilões e Terras Potiguares, a premiação passa a reconhecer atendimento, criatividade, apresentação, sabor, bebida e salgado.', sticker: 'shape-star-cyan' },
-  { hl: 'var(--cyan-deep)', t: 'O público virou parte da memória', d: 'As avaliações dos Sweet Lovers transformaram o festival em uma comunidade que prova, indica e reconhece os destaques de cada edição.', sticker: 'shape-heart-yellow' },
-  { hl: 'var(--yellow-deep)', t: 'Lovers entra como capítulo comemorativo', d: 'A edição Sweet & Coffee Week Lovers, de 2026, integra o histórico como parte da celebração dos 10 anos — e seus resultados já entram nos rankings desta página, como a 16ª edição do festival.', sticker: 'shape-flower-coral' },
+// Achados do acervo — fatos reais deduzíveis das fontes (ACERVO.md §8; nada inventado).
+const ACHADOS = [
+  { hl: 'var(--coral)', t: 'A primeira premiação veio só na 7ª edição', d: 'De 2016 a 2018 o festival não teve premiação. O Sweet Awards estreia em 2019, na Pâtisserie Francesa, com uma única categoria: Melhor Combo — Jolie em 1º, Mr Cupcake em 2º e Sonho de Brownie em 3º.', photo: combo('jolie-cafe-patisserie'), brand: 'Jolie' },
+  { hl: 'var(--cyan-deep)', t: 'O recorde da rota é dos Contos de Fadas', d: 'A edição 2019.2 reuniu 36 participantes — quase o triplo da primeira edição, que começou com 13. Nenhuma outra temporada chegou lá até hoje.' },
+  { hl: 'var(--pink)', t: 'Só existe uma Menção Honrosa na história', d: 'Em Séries (2021.1), a categoria Envolvimento e Encantamento em Loja registrou uma menção honrosa para quatro marcas, sem ordem de colocação — caso único no acervo.' },
+  { hl: 'var(--yellow-deep)', t: 'Tem pódio dividido no acervo — e ficou assim', d: 'Vários 2º e 3º lugares terminaram empatados e foram preservados: de Cookorote e Paneer em Heróis & Vilões (2020.2) a Parma e Bolomania no Melhor Doce da edição Lovers.' },
+  { hl: 'var(--coral-deep)', t: 'O voto virou dois: júri e público', d: 'Desde Heróis & Vilões (2020.2), o Sweet Awards corre em duas trilhas — o Júri Técnico e os Sweet Lovers — e as duas contam nos rankings desta página.' },
+  { hl: 'var(--cyan-deep)', t: 'Na Lovers, cada marca revisitou uma edição', d: 'A 16ª edição, comemorativa dos 10 anos, deu a cada participante um tema do passado para recriar — e teve marca com cinco unidades na rota, caso da Caroli Douces.' },
 ]
-
-// Adesivo gráfico (shape SVG) — decorativo, some se faltar o arquivo.
-function Sticker({ name, className = '', style }) {
-  return <img src={shape(name)} alt="" aria-hidden="true" className={`cur-sticker ${className}`} style={style} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-}
 
 // Logo do participante com fallback textual (iniciais). Nunca inventa imagem.
 function LogoChip({ name, size = 46 }) {
@@ -92,7 +98,22 @@ export function CuriosidadesPage({ navigate }) {
         subtitle="Participantes recorrentes, marcas premiadas, categorias que nasceram com o tempo e achados do acervo ajudam a contar a trajetória do festival para além da linha do tempo."
       />
 
-      {/* 2 — MARCAS QUE ATRAVESSARAM EDIÇÕES (presenças recorrentes) */}
+      {/* 2 — O ACERVO EM NÚMEROS (faixa compacta de contagens reais) */}
+      <section className="section cur-stats">
+        <div className="wrap">
+          <ul className="cur-stats__row motion-stagger">
+            {STATS.map((s) => (
+              <li className="cur-stat" key={s.label}>
+                <strong className="cur-stat__n">{s.n}</strong>
+                <span className="cur-stat__label">{s.label}</span>
+                <span className="cur-stat__sub">{s.sub}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* 3 — MARCAS QUE ATRAVESSARAM EDIÇÕES (presenças recorrentes) */}
       <section className="section cur-recur">
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
@@ -216,14 +237,15 @@ export function CuriosidadesPage({ navigate }) {
         </div>
       </section>
 
-      {/* 6 — PRIMEIRAS VEZES E MOMENTOS MARCANTES */}
+      {/* 7 — ACHADOS DO ACERVO (fatos reais, primeiras vezes e casos únicos) */}
       <section className="section cur-moments">
         <div className="wrap">
           <div className="cur-head motion-reveal-up">
-            <h2>Primeiras vezes e momentos <span className="cur-hl" style={{ '--hl': 'var(--coral)' }}>marcantes</span></h2>
+            <h2>Achados do <span className="cur-hl" style={{ '--hl': 'var(--coral)' }}>acervo</span></h2>
+            <p>Primeiras vezes, recordes e casos únicos que só quem abre o arquivo do festival descobre — tudo deduzido dos registros das 16 edições.</p>
           </div>
           <div className="cur-cards motion-stagger">
-            {MOMENTOS.map((c) => (
+            {ACHADOS.map((c) => (
               <article className={`cur-card${c.photo ? ' cur-card--photo' : ''}`} key={c.t} style={{ '--hl': c.hl }}>
                 {c.photo ? (
                   <div className="cur-card__media">
@@ -278,8 +300,6 @@ export function CuriosidadesPage({ navigate }) {
         .cur-head p { max-width: 62ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; margin: 0; text-wrap: pretty; }
         .cur-note { max-width: 70ch; margin: var(--sp-5) auto 0; text-align: center; color: var(--ink-soft); font-size: 13px; line-height: 1.5; opacity: .85; }
 
-        .cur-sticker { position: absolute; pointer-events: none; opacity: .9; width: 96px; height: auto; z-index: 0; }
-
         /* logo chip reutilizável */
         .cur-logo { flex: 0 0 auto; display: grid; place-items: center; border-radius: 14px; background: #fff; border: 1px solid var(--paper-line); overflow: hidden; box-shadow: 0 6px 16px rgba(43,24,16,.14); }
         .cur-logo img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
@@ -288,7 +308,15 @@ export function CuriosidadesPage({ navigate }) {
         /* 1 — HERO chocolate + colagem */
         /* HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
 
-        /* 2 — RECORRENTES (ranking visual) */
+        /* 2 — O ACERVO EM NÚMEROS (faixa) */
+        .cur-stats { background: var(--cream); padding-bottom: 0; }
+        .cur-stats__row { list-style: none; margin: 0 auto; padding: var(--sp-5) var(--sp-6); max-width: 1040px; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+        .cur-stat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; }
+        .cur-stat__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(30px, 3.4vw, 44px); line-height: 1; color: var(--page-accent-dark, var(--yellow-deep)); font-variant-numeric: tabular-nums; }
+        .cur-stat__label { font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--ink); line-height: 1.15; text-wrap: balance; }
+        .cur-stat__sub { font-family: var(--font-sans); font-size: 11.5px; color: var(--ink-soft); }
+
+        /* 3 — RECORRENTES (ranking visual) */
         .cur-recur { background: var(--cream); }
         .cur-recur__list { list-style: none; margin: 0 auto; padding: 0; max-width: 880px; display: flex; flex-direction: column; gap: var(--sp-3); }
         .cur-recur__item { display: grid; grid-template-columns: 40px 46px 1fr auto; align-items: center; column-gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-5); box-shadow: var(--shadow-md); }
@@ -348,10 +376,10 @@ export function CuriosidadesPage({ navigate }) {
         .cur-evo__pill { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--cyan-deep); background: rgba(20,159,192,.12); padding: 3px 10px; border-radius: 999px; }
         .cur-evo__card p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; text-wrap: pretty; }
 
-        /* 6 — MOMENTOS (cards ricos) */
+        /* 7 — ACHADOS DO ACERVO (cards de fatos) */
         .cur-moments { background: var(--cream); overflow: clip; }
-        .cur-moments__st { right: -24px; top: 30px; width: 130px; opacity: .16; transform: rotate(14deg); }
-        .cur-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); position: relative; z-index: 1; }
+        .cur-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); position: relative; z-index: 1; }
+        .cur-card--photo { grid-row: span 2; }
         .cur-card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
         .cur-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .cur-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); z-index: 2; }
@@ -385,9 +413,12 @@ export function CuriosidadesPage({ navigate }) {
         @media (max-width: 960px) {
           .cur-hall__grid { grid-template-columns: 1fr; }
           .cur-cats__grid { grid-template-columns: repeat(2, 1fr); }
+          .cur-cards { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 720px) {
           .cur-cards { grid-template-columns: 1fr; }
+          .cur-card--photo { grid-row: auto; }
+          .cur-stats__row { grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); }
           .cur-edcta__inner { flex-direction: column; align-items: flex-start; }
           .cur-edcta .btn { width: 100%; justify-content: center; }
         }
