@@ -12,6 +12,7 @@ import { useVisualOverride } from '../../design/useVisualOverride'
 import { VisualRefinementProvider } from '../../design/VisualRefinementProvider'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { PhotoRotator } from '../../components/PhotoRotator'
+import { PressFlipbook } from '../../components/PressFlipbook'
 import { PhotoEditorial } from '../../components/placeholders'
 import { heroGalleryImages, aboutGalleryImages } from '../../data/homeGalleries'
 import { festivalStats as STATS } from '../../data/festivalFacts'
@@ -90,34 +91,6 @@ function buildMediaPages(leads, briefs) {
   })
 }
 const mediaPages = buildMediaPages(mediaFeatured, mediaExtra)
-
-// Card de mídia — selo do veículo + badge de categoria, título, descrição e
-// link externo (nova aba). aria-label descritivo (sem "clique aqui").
-function MediaCard({ c }) {
-  return (
-    <div className="t-tilt">
-    <article className="hm-media__card t-tilt-card">
-      <div className="hm-media__card-head">
-        <span className="hm-media__outlet">{c.outlet}</span>
-        {c.category && <span className="hm-media__cat">{c.category}</span>}
-        {c.date && <time className="hm-media__date" dateTime={c.date}>{c.date}</time>}
-      </div>
-      <h4>{c.title}</h4>
-      <p>{c.description}</p>
-      <a
-        className="hm-media__link motion-press"
-        href={c.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${c.cta} na ${c.outlet} sobre o Sweet & Coffee Week`}
-      >
-        {c.cta} <I.arrow />
-      </a>
-      <div className="t-tilt-glare" aria-hidden="true"></div>
-    </article>
-    </div>
-  )
-}
 
 // Count-up animado quando entra na viewport (respeita reduced-motion).
 function CountUp({ to, prefix = '', suffix = '', duration = 1400 }) {
@@ -232,9 +205,6 @@ export function HomePage({ navigate }) {
     return () => cleanups.forEach((fn) => fn())
   }, [])
 
-  // "Sweet na mídia" — revela matérias extras além das 6 em destaque.
-  const [mediaOpen, setMediaOpen] = React.useState(false)
-
   // Visual Refinement Mode — overrides lidos de visualOverrides.json (no-op se vazio).
   const ovHeroTitle = useVisualOverride('home.hero.title')
   const ovHeroText = useVisualOverride('home.hero.text')
@@ -347,8 +317,9 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* SWEET NA MÍDIA — credibilidade institucional: chancela + imprensa.
-          Banda creme (quebra a sequência escura, estética de clipping). */}
+      {/* SWEET NA MÍDIA — capa de jornal: masthead, selos como dateline e
+          spread principal (PressFlipbook) que vira de página, com caixa
+          lateral fixa pras 3 frases de reforço. Banda creme. */}
       <section id="sweet-na-midia" className="section hm-media">
         <div className="wrap">
           <div className="hm-head hm-media__head motion-reveal-up">
@@ -357,49 +328,22 @@ export function HomePage({ navigate }) {
             <p>Reportagens, entrevistas e registros acadêmicos ajudam a contar como o Sweet &amp; Coffee Week se tornou uma tradição gastronômica e afetiva de Natal.</p>
           </div>
 
-          {/* Selos rápidos de credibilidade — não repetidos nos cards */}
-          <ul className="hm-media__seals motion-stagger">
-            {mediaSeals.map((s) => <li className="hm-media__seal" key={s}>{s}</li>)}
+          {/* Dateline — selos de credibilidade como tira de jornal (não pílula) */}
+          <ul className="hm-media__dateline motion-reveal-up">
+            {mediaSeals.map((s) => <li key={s}>{s}</li>)}
           </ul>
 
-          {/* 6 cards de imprensa em destaque */}
-          <div className="hm-media__grid motion-stagger">
-            {mediaFeatured.map((c) => <MediaCard c={c} key={c.href} />)}
-          </div>
+          {/* Spread que vira de página + caixa lateral fixa */}
+          <div className="hm-media__grid">
+            <PressFlipbook pages={mediaPages} interval={7500} autoPlay />
 
-          {mediaExtra.length > 0 && (
-            <>
-              <div className="hm-media__more">
-                <button
-                  type="button"
-                  className="btn btn-secondary motion-press"
-                  aria-expanded={mediaOpen}
-                  aria-controls="sweet-media-extra"
-                  onClick={() => setMediaOpen((v) => !v)}
-                >
-                  {mediaOpen ? 'Ver menos' : 'Ver mais matérias'}
-                </button>
-              </div>
-              <ul id="sweet-media-extra" className="hm-media__list" hidden={!mediaOpen}>
-                {mediaExtra.map((c) => (
-                  <li className="hm-media__row" key={c.href}>
-                    <span className="hm-media__row-outlet">{c.outlet}</span>
-                    <span className="hm-media__row-theme">{c.title}{c.date ? ` · ${c.date}` : ''}</span>
-                    <a className="hm-media__row-link" href={c.href} target="_blank" rel="noopener noreferrer" aria-label={`${c.cta || 'Ler'} na ${c.outlet}`}>
-                      {c.cta || 'Ler'} <I.arrow />
-                    </a>
-                  </li>
-                ))}
+            <aside className="hm-media__side motion-reveal-up">
+              <h3>O que a imprensa reforça</h3>
+              <ul>
+                {mediaReinforce.map((r) => <li key={r}>{r}</li>)}
               </ul>
-            </>
-          )}
-
-          {/* O que a imprensa reforça — 3 frases curtas */}
-          <div className="hm-media__reinforce motion-reveal-up">
-            <h3>O que a imprensa reforça</h3>
-            <ul>
-              {mediaReinforce.map((r) => <li key={r}>{r}</li>)}
-            </ul>
+              <p>Fixo — não vira com as páginas.</p>
+            </aside>
           </div>
         </div>
       </section>
@@ -696,54 +640,35 @@ export function HomePage({ navigate }) {
         /* SWEET NA MÍDIA — banda creme (clipping/imprensa). Cabeçalho editorial,
            faixa-chancela de números (compacta, ≠ seção Números) e cards de mídia. */
         .hm .hm-media { background: var(--cream); }
-        .hm-media__head { max-width: 720px; }
+        .hm-media__head { max-width: 640px; }
         .hm-media__head h2 { font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; }
         .hm-media__eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
         .hm-media__head p { max-width: 56ch; }
 
-        /* Selos rápidos de credibilidade (pílulas) */
-        .hm-media__seals { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-3); }
-        .hm-media__seal { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--coral-deep); background: rgba(232,85,58,.08); border: 1px solid rgba(232,85,58,.2); border-radius: 999px; padding: 8px 16px; }
-        .hm-media__seal::before { content: ''; width: 7px; height: 7px; border-radius: 999px; background: var(--coral); }
+        /* Dateline — selos de credibilidade como tira de jornal (convenção de
+           dateline/masthead, não pílula/chip) */
+        .hm-media__dateline {
+          list-style: none; margin: var(--sp-6) 0 0; padding: var(--sp-3) 0;
+          border-top: 2px solid var(--ink); border-bottom: 1px solid var(--paper-line);
+          display: flex; flex-wrap: wrap; row-gap: 6px;
+          font-family: var(--font-sans); font-size: 11.5px; font-weight: 700;
+          letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft);
+        }
+        .hm-media__dateline li:not(:last-child)::after { content: '·'; margin: 0 14px; opacity: .5; font-weight: 400; }
 
-        /* 6 cards (3/2/1 col), selo textual do veículo */
-        .hm-media__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); margin-top: var(--sp-8); }
-        .hm-media__card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: var(--sp-4); }
-        .hm-media__card-head .hm-media__outlet { margin-bottom: 0; }
-        .hm-media__cat { font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 10px; }
-        .hm-media__date { margin-left: auto; font-family: var(--font-sans); font-size: 12px; font-weight: 700; color: var(--ink-soft); opacity: .8; font-variant-numeric: tabular-nums; }
-        .hm-media__card { display: flex; flex-direction: column; align-items: flex-start; height: 100%; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-md); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
-        .hm-media__card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-        .hm-media__outlet { display: inline-block; padding: 5px 12px; border-radius: 999px; background: rgba(232,85,58,.1); color: var(--coral-deep); font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--sp-4); }
-        .hm-media__card h4 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.16; color: var(--ink); margin: 0 0 var(--sp-3); text-wrap: balance; }
-        .hm-media__card p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: 0 0 var(--sp-5); text-wrap: pretty; }
-        .hm-media__link { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-weight: 700; font-size: 14px; color: var(--accent); }
-        .hm-media__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .hm-media__link:hover svg { transform: translateX(4px); }
-        .hm-media__link:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; border-radius: 4px; }
+        /* Spread (PressFlipbook) + caixa lateral fixa */
+        .hm-media__grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: var(--sp-5); align-items: stretch; margin-top: var(--sp-7); }
 
-        /* Ver mais + lista secundária compacta (linhas, não cards) */
-        .hm-media__more { display: flex; justify-content: center; margin-top: var(--sp-6); }
-        .hm-media__list { list-style: none; margin: var(--sp-5) auto 0; padding: 0; max-width: 760px; }
-        .hm-media__list[hidden] { display: none; }
-        .hm-media__row { display: grid; grid-template-columns: minmax(120px, auto) 1fr auto; align-items: center; gap: var(--sp-4); padding: var(--sp-4) 0; border-top: 1px solid var(--paper-line); }
-        .hm-media__row:last-child { border-bottom: 1px solid var(--paper-line); }
-        .hm-media__row-outlet { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--coral-deep); }
-        .hm-media__row-theme { font-size: 14.5px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .hm-media__row-link { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-weight: 700; font-size: 13px; color: var(--accent); white-space: nowrap; }
-        .hm-media__row-link svg { width: 14px; height: 14px; }
-        .hm-media__row-link:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; border-radius: 4px; }
+        .hm-media__side { background: var(--ink); border-radius: var(--r-lg); padding: var(--sp-6); color: var(--cream); display: flex; flex-direction: column; }
+        .hm-media__side h3 { font-family: var(--font-sans); font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--yellow); border-bottom: 2px solid var(--yellow); padding-bottom: var(--sp-3); margin: 0 0 var(--sp-4); }
+        .hm-media__side ul { list-style: none; margin: 0; padding: 0; }
+        .hm-media__side li { font-family: var(--font-heading); font-size: 15px; line-height: 1.45; padding: var(--sp-3) 0; border-bottom: 1px solid rgba(255,241,230,.14); }
+        .hm-media__side li:last-of-type { border-bottom: none; }
+        .hm-media__side li::before { content: '“'; color: var(--coral); font-size: 20px; margin-right: 4px; }
+        .hm-media__side p { font-family: var(--font-sans); font-size: 12px; opacity: .6; margin: var(--sp-4) 0 0; }
 
-        /* O que a imprensa reforça — faixa final de 3 frases */
-        .hm-media__reinforce { margin-top: var(--sp-8); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6) var(--sp-7); box-shadow: var(--shadow-sm); }
-        .hm-media__reinforce h3 { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--coral-deep); margin: 0 0 var(--sp-5); }
-        .hm-media__reinforce ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
-        .hm-media__reinforce li { position: relative; padding-left: 18px; font-family: var(--font-heading); font-weight: 700; font-size: clamp(15px, 1.3vw, 18px); line-height: 1.3; color: var(--ink); text-wrap: balance; }
-        .hm-media__reinforce li::before { content: ''; position: absolute; left: 0; top: .42em; width: 8px; height: 8px; border-radius: 999px; background: var(--coral); }
-
-        @media (max-width: 860px) { .hm-media__grid { grid-template-columns: repeat(2, 1fr); } .hm-media__reinforce ul { grid-template-columns: 1fr; gap: var(--sp-4); } }
-        @media (max-width: 560px) { .hm-media__grid { grid-template-columns: 1fr; } .hm-media__row { grid-template-columns: 1fr auto; } .hm-media__row-theme { grid-column: 1 / -1; white-space: normal; } }
-        @media (prefers-reduced-motion: reduce) { .hm-media__card, .hm-media__link svg { transition: none; } }
+        @media (max-width: 960px) { .hm-media__grid { grid-template-columns: 1fr; } }
+        @media (max-width: 560px) { .hm-media__dateline { font-size: 10.5px; } }
 
         /* CAMINHOS INSTITUCIONAIS — ponte Participar/Apoiar. Banda #381610
            (entre steps #5e3018 e F2 #000): degradê descendente até o preto.
