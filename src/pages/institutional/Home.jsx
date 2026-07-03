@@ -52,7 +52,8 @@ const mediaReinforce = [
 
 // Matérias reais na imprensa. Links externos abrem em nova aba. Sem logos dos
 // veículos no projeto → selo textual com o nome do veículo + badge de categoria.
-// 6 em destaque (featured) sempre visíveis; o restante revela via "Ver mais".
+// 6 em destaque (featured) viram manchete de página no PressFlipbook; o
+// restante vira nota (brief), distribuído entre as páginas por buildMediaPages.
 // NOTA: algumas URLs externas trazem "15a-edicao"/"15o-ano" (matérias de 2025) —
 // é só o link da matéria; o dado institucional do site é "16 edições realizadas".
 const mediaCards = [
@@ -62,7 +63,7 @@ const mediaCards = [
   { outlet: 'Diário do RN', date: '2026', title: 'Economia criativa', description: 'Cobertura sobre os 10 anos e a força do festival no calendário gastronômico.', href: 'https://diariodorn.com.br/sweet-coffee-week-chega-aos-10-anos-e-reforca-forca-da-economia-criativa-em-natal/', cta: 'Ler matéria', category: 'Imprensa local', featured: true },
   { outlet: '96 FM', date: '2026', title: 'Edição comemorativa', description: 'Destaque para a edição de 10 anos e para os temas revisitados pelos participantes.', href: 'https://96fm.com.br/post/sweet-coffee-week-celebra-10-anos', cta: 'Ler matéria', category: 'Rádio', featured: true },
   { outlet: 'UFRN', date: '2022', title: 'Fonte acadêmica', description: 'O festival também aparece como objeto de estudo sobre experiência gastronômica em Natal.', href: 'https://repositorioslatinoamericanos.uchile.cl/handle/2250/8603735', cta: 'Ver estudo', category: 'Acadêmico', featured: true },
-  // Secundárias — lista compacta (revelada por "Ver mais matérias"). Sem cards grandes.
+  // Secundárias (briefs) — sem card grande; aparecem junto da manchete da página.
   { outlet: '98 FM Natal', date: '2024', title: 'Gastronomia e criatividade', href: 'https://98fmnatal.com.br/ultimas/sweet-coffee-week-comeca-hoje-e-movimenta-a-economia-criativa-em-natal/339772/', cta: 'Ler matéria', category: 'Rádio', featured: false },
   { outlet: 'Tribuna do Norte', date: '2026', title: 'Edição de 10 anos', href: 'https://blog.tribunadonorte.com.br/territoriolivre/de-04-a-14-de-junho-ocorre-o-sweet-coffee-week-2026-edicao-10-anos/', cta: 'Ler matéria', category: 'Imprensa tradicional', featured: false },
   { outlet: 'Conversa Gastronômica', date: '2024', title: 'Edição Books', href: 'https://conversagastronomica.com/14a-sweet-coffee-week-acontece-entre-os-dias-14-e-24-de-novembro-em-natal-e-parnamirim/', cta: 'Ler matéria', category: 'Gastronomia', featured: false },

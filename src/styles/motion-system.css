@@ -206,8 +206,10 @@
 .press-flipbook__page--base { position: relative; z-index: 1; }
 .press-flipbook__page--over {
   z-index: 2; transform: rotateY(0deg); opacity: 1;
-  transition: transform var(--dur-flip, 600ms) var(--ease-out-soft),
-              opacity var(--dur-flip, 600ms) var(--ease-out-soft);
+  /* 600ms tem que casar com FLIP_MS em PressFlipbook.jsx — é o tempo que o
+     componente espera antes de remover essa camada do DOM. */
+  transition: transform 600ms var(--ease-out-soft),
+              opacity 600ms var(--ease-out-soft);
 }
 .press-flipbook__page--out-next { transform-origin: left center; }
 .press-flipbook__page--out-prev { transform-origin: right center; }
