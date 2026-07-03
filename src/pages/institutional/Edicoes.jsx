@@ -132,9 +132,9 @@ function EditionPhotoSlot({ e, live }) {
   )
 }
 
-function EditionSlide({ e, live = true }) {
+function EditionSlide({ e, live = true, active = false }) {
   return (
-    <article className="edx-slide" id={`edx-panel-${e.number - 1}`} style={{ '--tone': `var(--${e.tone}, var(--page-accent))` }} aria-roledescription="slide" aria-label={`Edição ${e.number} de ${TOTAL} — ${e.theme} (${e.code})`}>
+    <article className={`edx-slide${active ? ' is-active' : ''}`} id={`edx-panel-${e.number - 1}`} style={{ '--tone': `var(--${e.tone}, var(--page-accent))` }} aria-roledescription="slide" aria-label={`Edição ${e.number} de ${TOTAL} — ${e.theme} (${e.code})`}>
       <div className="edx-slide__inner">
         <div className="edx-slide__left">
           <div className="edx-slide__index">
@@ -315,7 +315,7 @@ export function EdicoesPage() {
           aria-label="Apresentação das edições — use as setas do teclado para navegar"
         >
           <div ref={trackRef} className="edx-track">
-            {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
+            {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} active={i === active} />)}
           </div>
           <div className="edx-progress" aria-hidden="true">
             <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
@@ -391,6 +391,19 @@ export function EdicoesPage() {
 
         /* SLIDE */
         .edx-slide { min-width: 100vw; flex-shrink: 0; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); scroll-snap-align: start; scroll-snap-stop: always; }
+        .edx-stage .edx-slide__left, .edx-stage .edx-slide__right {
+          transition: opacity .45s var(--ease-out-soft, ease), transform .45s var(--ease-out-soft, ease);
+        }
+        .edx-stage .edx-slide:not(.is-active) .edx-slide__left,
+        .edx-stage .edx-slide:not(.is-active) .edx-slide__right {
+          opacity: .82;
+          transform: translateY(6px);
+        }
+        .edx-stage .edx-slide.is-active .edx-slide__left,
+        .edx-stage .edx-slide.is-active .edx-slide__right {
+          opacity: 1;
+          transform: translateY(0);
+        }
         .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
         .edx-slide__left { min-width: 0; }
         .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-5); }
@@ -465,7 +478,7 @@ export function EdicoesPage() {
           .edx-slide__title { font-size: clamp(26px, 8vw, 38px); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .edx-progress span, .edx-nav__item { transition: none; }
+          .edx-progress span, .edx-nav__item, .edx-slide__left, .edx-slide__right { transition: none; }
         }
       `}</style>
     </div>
