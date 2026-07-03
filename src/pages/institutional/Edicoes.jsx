@@ -277,6 +277,20 @@ export function EdicoesPage() {
     }
   }, [horizontal])
 
+  // Desktop: setas do teclado navegam entre edições quando a apresentação está focada.
+  React.useEffect(() => {
+    if (!horizontal) return
+    const stage = stageRef.current
+    if (!stage) return
+    const onKey = (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      e.preventDefault()
+      pick(active + (e.key === 'ArrowRight' ? 1 : -1))
+    }
+    stage.addEventListener('keydown', onKey)
+    return () => stage.removeEventListener('keydown', onKey)
+  }, [horizontal, active, pick])
+
   return (
     <div className="page-enter edx-page">
       {/* HERO institucional — mesma peça das demais páginas (<PageHero>): fundo no
@@ -297,7 +311,8 @@ export function EdicoesPage() {
         <section
           ref={stageRef}
           className="edx-stage"
-          aria-label="Apresentação das edições"
+          tabIndex={0}
+          aria-label="Apresentação das edições — use as setas do teclado para navegar"
         >
           <div ref={trackRef} className="edx-track">
             {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
@@ -345,6 +360,7 @@ export function EdicoesPage() {
            vertical é redirecionado por JS enquanto o cursor está sobre a seção
            (ver useEffect "onWheel" no componente). */
         .edx-stage { position: relative; height: 100vh; background: var(--cream); display: flex; flex-direction: column; outline: none; }
+        .edx-stage:focus-visible { box-shadow: inset 0 0 0 3px var(--page-accent, var(--cyan)); }
         .edx-track {
           flex: 1;
           display: flex;
