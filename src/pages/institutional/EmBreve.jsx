@@ -47,27 +47,36 @@ function BrandChip({ name, size = 40 }) {
   )
 }
 
-// Card do post de resultado no Instagram. Instagram bloqueia embed e hotlink de
-// imagem para visitantes deslogados, então o "post real" precisa da imagem
-// hospedada no próprio site: coloque a print/arte do post em
-// /public/images/awards-lovers/<key>.jpg (ex.: melhor_combo.jpg). Existindo o
-// arquivo, o card mostra a imagem real linkando pro post; senão, cai num card-link
-// elegante (sem quebrar). Nunca inventa imagem.
-function PostCard({ post, imgKey, categoria }) {
-  const [noImg, setNoImg] = React.useState(false)
+// URL de post/reel do Instagram -> versão "/embed" (iframe server-rendered do IG,
+// que carrega o card do post mesmo com o visitante deslogado — ao contrário do
+// widget blockquote+embed.js, que colapsa). Mesmo método do site anterior.
+function toEmbedUrl(url) {
+  try {
+    const m = new URL(url.trim()).pathname.match(/\/(p|reel|tv)\/([^/]+)/)
+    return m ? `https://www.instagram.com/${m[1]}/${m[2]}/embed` : ''
+  } catch { return '' }
+}
+
+// Card do post real: iframe do /embed + barra "Ver no Instagram" (fallback sempre
+// clicável se o iframe não carregar por rede/bloqueio).
+function PostCard({ post, categoria }) {
+  const embed = toEmbedUrl(post)
   return (
-    <a className="eb-post" href={post} target="_blank" rel="noopener noreferrer" aria-label={`Ver o post de resultado de ${categoria} no Instagram`}>
-      {!noImg && (
-        <span className="eb-post__media">
-          <img src={`/images/awards-lovers/${imgKey}.jpg`} alt={`Post do resultado de ${categoria} no Instagram`} loading="lazy" decoding="async" onError={() => setNoImg(true)} />
-        </span>
+    <div className="eb-post">
+      {embed && (
+        <iframe
+          className="eb-post__frame"
+          src={embed}
+          title={`Sweet Awards — ${categoria} no Instagram`}
+          loading="lazy"
+        />
       )}
-      <span className="eb-post__bar">
+      <a className="eb-post__bar" href={post} target="_blank" rel="noopener noreferrer">
         <I.ig width={15} height={15} />
-        <span>{noImg ? 'Ver post do resultado' : 'Ver no Instagram'}</span>
+        <span>Ver no Instagram</span>
         <I.arrow />
-      </span>
-    </a>
+      </a>
+    </div>
   )
 }
 
@@ -119,7 +128,7 @@ export function EmBrevePage() {
                     </li>
                   ))}
                 </ol>
-                {c.post && <PostCard post={c.post} imgKey={c.key} categoria={c.categoria} />}
+                {c.post && <PostCard post={c.post} categoria={c.categoria} />}
               </article>
             ))}
           </div>
@@ -173,14 +182,12 @@ export function EmBrevePage() {
         .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
         .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
         .eb-place--ouro .eb-place__names { font-size: 16px; }
-        /* card do post no Instagram (imagem real quando disponível + barra link) */
-        .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
-        .eb-post:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(43,24,16,.14); }
-        .eb-post__media { display: block; aspect-ratio: 1 / 1; background: #f4ece3; }
-        .eb-post__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .eb-post__bar { display: flex; align-items: center; gap: 8px; padding: 11px 14px; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; }
+        /* card do post no Instagram (iframe /embed + barra link) */
+        .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; }
+        .eb-post__frame { width: 100%; height: 540px; border: 0; display: block; background: #fff; }
+        .eb-post__bar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--paper-line, rgba(43,24,16,.12)); font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
         .eb-post__bar svg:last-child { margin-left: auto; transition: transform .16s ease; }
-        .eb-post:hover .eb-post__bar svg:last-child { transform: translateX(3px); }
+        .eb-post__bar:hover svg:last-child { transform: translateX(3px); }
 
         /* 3 — FECHO */
         .eb-foot { background: #2B1810; color: rgba(255,241,230,.8); }
