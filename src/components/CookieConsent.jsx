@@ -35,31 +35,31 @@ export function CookieConsent() {
       {/* Estilo self-contained: o CSS canônico vive em lovers-system.css, que só
           carrega no painel/Lovers. Aqui garante o banner estilizado em toda página. */}
       <style>{`
+        /* Caixa flutuante discreta no canto inferior esquerdo. */
         .cookie-consent {
-          position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+          position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px);
+          z-index: 1000; width: min(340px, calc(100vw - 24px));
           background: #2B1810; color: #FFF1E6;
-          box-shadow: 0 -8px 30px rgba(43,24,16,.28);
-          border-top: 2px solid #F8B511;
+          border: 1px solid rgba(248,181,17,.35); border-radius: 16px;
+          box-shadow: 0 12px 34px rgba(43,24,16,.32);
           animation: cookieUp .35s cubic-bezier(.16,1,.3,1);
         }
-        @keyframes cookieUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes cookieUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .cookie-consent__inner {
-          max-width: 1280px; margin: 0 auto;
-          padding: clamp(14px, 2.4vw, 20px) clamp(20px, 4vw, 56px);
-          display: flex; align-items: center; gap: clamp(14px, 2.5vw, 28px);
-          flex-wrap: wrap;
+          padding: 16px 18px;
+          display: flex; flex-direction: column; gap: 12px;
         }
         .cookie-consent__text {
-          margin: 0; flex: 1 1 320px;
+          margin: 0;
           font-family: var(--font-sans, system-ui, sans-serif);
-          font-size: 14px; line-height: 1.5; color: rgba(255,241,230,.9);
+          font-size: 12.5px; line-height: 1.45; color: rgba(255,241,230,.82);
         }
-        .cookie-consent__actions { display: flex; gap: 10px; flex: 0 0 auto; }
+        .cookie-consent__actions { display: flex; gap: 8px; }
         .cookie-consent__btn {
           appearance: none; cursor: pointer; border: 0;
-          padding: 11px 22px; border-radius: 999px;
+          padding: 8px 16px; border-radius: 999px;
           font-family: var(--font-sans, system-ui, sans-serif);
-          font-size: 14px; font-weight: 700; line-height: 1;
+          font-size: 13px; font-weight: 700; line-height: 1;
           transition: transform .16s ease, background .16s ease, border-color .16s ease;
         }
         .cookie-consent__btn:hover { transform: translateY(-1px); }
@@ -67,14 +67,10 @@ export function CookieConsent() {
         .cookie-consent__btn--primary { background: #F8B511; color: #2B1810; }
         .cookie-consent__btn--primary:hover { background: #ffc633; }
         .cookie-consent__btn--ghost {
-          background: transparent; color: #FFF1E6;
-          border: 1px solid rgba(255,241,230,.35);
+          background: transparent; color: rgba(255,241,230,.85);
+          border: 1px solid rgba(255,241,230,.28);
         }
-        .cookie-consent__btn--ghost:hover { border-color: rgba(255,241,230,.7); background: rgba(255,241,230,.08); }
-        @media (max-width: 560px) {
-          .cookie-consent__actions { width: 100%; }
-          .cookie-consent__btn { flex: 1; }
-        }
+        .cookie-consent__btn--ghost:hover { border-color: rgba(255,241,230,.6); background: rgba(255,241,230,.06); }
         @media (prefers-reduced-motion: reduce) {
           .cookie-consent { animation: none; }
           .cookie-consent__btn { transition: none; }
