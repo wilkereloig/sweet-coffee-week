@@ -185,7 +185,7 @@ function EditionNav({ active, onPick }) {
 
 export function EdicoesPage() {
   const pageRef = React.useRef(null)
-  const outerRef = React.useRef(null)
+  const stageRef = React.useRef(null)
   const trackRef = React.useRef(null)
   // Observer de reveal p/ o <PageHero> (usa .motion-reveal-up; aqui não há
   // PageShell, então a página provê o observer — igual às demais institucionais).
@@ -205,30 +205,45 @@ export function EdicoesPage() {
     return () => { mqWide.removeEventListener('change', evaluate); mqMotion.removeEventListener('change', evaluate) }
   }, [])
 
-  // Scroll-driven: vertical → translateX do trilho. rAF, sem listener pesado.
+  // Desktop: trilho nativamente scrollável (scroll-snap). O wheel vertical do
+  // mouse/trackpad é redirecionado pra scrollLeft ENQUANTO o cursor está sobre a
+  // seção; nas bordas (1ª edição rolando pra cima / 16ª rolando pra baixo) o evento
+  // não é interceptado — a página rola normal (sai pro hero acima / rodapé abaixo).
   React.useEffect(() => {
     if (!horizontal) return
-    const outer = outerRef.current
     const track = trackRef.current
-    if (!outer || !track) return
+    if (!track) return
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return // gesto já é horizontal — deixa nativo
+      const max = track.scrollWidth - track.clientWidth
+      const atStart = track.scrollLeft <= 0
+      const atEnd = track.scrollLeft >= max - 1
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return // borda — libera scroll da página
+      e.preventDefault()
+      track.scrollLeft += e.deltaY
+    }
+    track.addEventListener('wheel', onWheel, { passive: false })
+    return () => track.removeEventListener('wheel', onWheel)
+  }, [horizontal])
+
+  // Desktop: progresso + índice ativo vêm do scroll horizontal nativo do trilho.
+  React.useEffect(() => {
+    if (!horizontal) return
+    const track = trackRef.current
+    if (!track) return
     let raf = 0
     const update = () => {
       raf = 0
-      const vh = window.innerHeight
-      const vw = window.innerWidth
-      const dist = outer.offsetHeight - vh // distância de scroll vertical útil
-      const passed = Math.min(Math.max(-outer.getBoundingClientRect().top, 0), dist)
-      const progress = dist > 0 ? passed / dist : 0
-      const maxX = (TOTAL - 1) * vw
-      track.style.transform = `translate3d(${-progress * maxX}px,0,0)`
+      const max = track.scrollWidth - track.clientWidth
+      const progress = max > 0 ? track.scrollLeft / max : 0
       const idx = Math.round(progress * (TOTAL - 1))
       setActive((prev) => (prev === idx ? prev : idx))
     }
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
     update()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    track.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll, { passive: true })
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf) }
+    return () => { track.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [horizontal])
 
   // Modo vertical: observa qual painel está visível p/ acender o chip ativo.
@@ -248,17 +263,16 @@ export function EdicoesPage() {
     return () => io.disconnect()
   }, [horizontal])
 
-  // Clique na navegação → rola até a edição (horizontal: posição de scroll; vertical: o painel).
+  // Clique na navegação → rola até a edição (horizontal: scrollLeft nativo do
+  // trilho; vertical: scrollIntoView do painel).
   const pick = React.useCallback((i) => {
-    if (typeof window === 'undefined') return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (horizontal && outerRef.current) {
-      const outer = outerRef.current
-      const dist = outer.offsetHeight - window.innerHeight
-      const top = outer.offsetTop + (i / (TOTAL - 1)) * dist
-      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
+    const clamped = Math.min(Math.max(i, 0), TOTAL - 1)
+    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (horizontal && trackRef.current) {
+      const track = trackRef.current
+      track.scrollTo({ left: clamped * track.clientWidth, behavior: reduce ? 'auto' : 'smooth' })
     } else {
-      const el = document.getElementById(`edx-panel-${i}`)
+      const el = document.getElementById(`edx-panel-${clamped}`)
       if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
     }
   }, [horizontal])
@@ -281,22 +295,17 @@ export function EdicoesPage() {
       {horizontal ? (
         /* DESKTOP — apresentação horizontal scroll-driven */
         <section
-          ref={outerRef}
+          ref={stageRef}
           className="edx-stage"
-          style={{ height: `${TOTAL * 135}vh` }}
           aria-label="Apresentação das edições"
         >
-          <div className="edx-sticky">
-            <div className="edx-viewport">
-              <div ref={trackRef} className="edx-track" style={{ width: `${TOTAL * 100}vw` }}>
-                {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
-              </div>
-            </div>
-            <div className="edx-progress" aria-hidden="true">
-              <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
-            </div>
-            <EditionNav active={active} onPick={pick} />
+          <div ref={trackRef} className="edx-track">
+            {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
           </div>
+          <div className="edx-progress" aria-hidden="true">
+            <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
+          </div>
+          <EditionNav active={active} onPick={pick} />
         </section>
       ) : (
         /* MOBILE / reduced-motion — painéis verticais + chips */
@@ -331,11 +340,23 @@ export function EdicoesPage() {
         .edx-hero-hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-6); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); opacity: .72; }
         .edx-hero-hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
 
-        /* STAGE — desktop sticky horizontal */
-        .edx-stage { position: relative; background: var(--cream); }
-        .edx-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        .edx-viewport { flex: 1; overflow: hidden; padding-top: clamp(80px, 11vh, 130px); }
-        .edx-track { display: flex; height: 100%; will-change: transform; }
+        /* STAGE — bloco normal de 100vh no fluxo da página (sem scroll-jack). O
+           trilho é nativamente scrollável na horizontal (scroll-snap); o wheel
+           vertical é redirecionado por JS enquanto o cursor está sobre a seção
+           (ver useEffect "onWheel" no componente). */
+        .edx-stage { position: relative; height: 100vh; background: var(--cream); display: flex; flex-direction: column; outline: none; }
+        .edx-track {
+          flex: 1;
+          display: flex;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x mandatory;
+          scroll-behavior: smooth;
+          padding-top: clamp(80px, 11vh, 130px);
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .edx-track::-webkit-scrollbar { display: none; }
 
         /* NAV — régua de apresentação na BASE da seção sticky (livre do menu) */
         .edx-nav { padding: var(--sp-3) var(--page-gutter); background: color-mix(in srgb, var(--cream) 88%, transparent); border-top: 1px solid var(--paper-line); }
@@ -353,7 +374,7 @@ export function EdicoesPage() {
         .edx-progress span { display: block; height: 100%; background: var(--page-accent, var(--cyan)); transition: width .2s ease; }
 
         /* SLIDE */
-        .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); }
+        .edx-slide { min-width: 100vw; flex-shrink: 0; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); scroll-snap-align: start; scroll-snap-stop: always; }
         .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
         .edx-slide__left { min-width: 0; }
         .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
