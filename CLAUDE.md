@@ -289,7 +289,9 @@ Sempre que o usuário disser que não gosta de algo ou aprovar uma nova regra de
 **atualizar este arquivo**. Exemplos já registrados: "não gosto de elementos soltos";
 "não quero stickers"; "hero com conteúdo ancorado embaixo"; "formulário em destaque";
 "não usar cores fora da paleta"; "hero não pode ter 1080px fixo"; "zona de segurança
-entre menu e hero" (ver 4.1).
+entre menu e hero" (ver 4.1); "Contato é página simples, SEM hero" (jul/2026 — título
+compacto direto na seção de cards, com padding-top = --hero-content-start; não
+reintroduzir PageHero ali).
 
 ---
 
