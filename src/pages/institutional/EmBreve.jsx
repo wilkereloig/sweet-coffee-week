@@ -47,27 +47,31 @@ function BrandChip({ name, size = 40 }) {
   )
 }
 
-// Carrega o embed.js oficial do Instagram (uma vez) e processa os blockquotes.
-// Antes de processar, cada .instagram-media mostra o link de fallback embutido —
-// se o script falhar (adblock/rede), o card continua clicável pro post real.
-function useInstagramEmbeds(count) {
-  React.useEffect(() => {
-    const process = () => { if (window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process() }
-    if (window.instgrm && window.instgrm.Embeds) { process(); return }
-    let s = document.getElementById('ig-embed-js')
-    if (s) { s.addEventListener('load', process); return () => s.removeEventListener('load', process) }
-    s = document.createElement('script')
-    s.id = 'ig-embed-js'
-    s.async = true
-    s.src = 'https://www.instagram.com/embed.js'
-    s.addEventListener('load', process)
-    document.body.appendChild(s)
-    return () => s.removeEventListener('load', process)
-  }, [count])
+// Card do post de resultado no Instagram. Instagram bloqueia embed e hotlink de
+// imagem para visitantes deslogados, então o "post real" precisa da imagem
+// hospedada no próprio site: coloque a print/arte do post em
+// /public/images/awards-lovers/<key>.jpg (ex.: melhor_combo.jpg). Existindo o
+// arquivo, o card mostra a imagem real linkando pro post; senão, cai num card-link
+// elegante (sem quebrar). Nunca inventa imagem.
+function PostCard({ post, imgKey, categoria }) {
+  const [noImg, setNoImg] = React.useState(false)
+  return (
+    <a className="eb-post" href={post} target="_blank" rel="noopener noreferrer" aria-label={`Ver o post de resultado de ${categoria} no Instagram`}>
+      {!noImg && (
+        <span className="eb-post__media">
+          <img src={`/images/awards-lovers/${imgKey}.jpg`} alt={`Post do resultado de ${categoria} no Instagram`} loading="lazy" decoding="async" onError={() => setNoImg(true)} />
+        </span>
+      )}
+      <span className="eb-post__bar">
+        <I.ig width={15} height={15} />
+        <span>{noImg ? 'Ver post do resultado' : 'Ver no Instagram'}</span>
+        <I.arrow />
+      </span>
+    </a>
+  )
 }
 
 export function EmBrevePage() {
-  useInstagramEmbeds(CATEGORIES.length)
   return (
     <div className="eb-page">
       {/* 1 — AVISO "EM BREVE" */}
@@ -115,20 +119,7 @@ export function EmBrevePage() {
                     </li>
                   ))}
                 </ol>
-                {c.post && (
-                  <div className="eb-cat__embed">
-                    <blockquote
-                      className="instagram-media"
-                      data-instgrm-permalink={c.post}
-                      data-instgrm-version="14"
-                      style={{ margin: 0, width: '100%', minWidth: 0, background: '#fff', borderRadius: 12 }}
-                    >
-                      <a className="eb-cat__post" href={c.post} target="_blank" rel="noopener noreferrer">
-                        <I.ig width={14} height={14} /> Ver post do resultado no Instagram <I.arrow />
-                      </a>
-                    </blockquote>
-                  </div>
-                )}
+                {c.post && <PostCard post={c.post} imgKey={c.key} categoria={c.categoria} />}
               </article>
             ))}
           </div>
@@ -182,13 +173,14 @@ export function EmBrevePage() {
         .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
         .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
         .eb-place--ouro .eb-place__names { font-size: 16px; }
-        .eb-cat__embed { margin-top: auto; padding-top: var(--sp-4, 16px); }
-        .eb-cat__post { display: inline-flex; align-items: center; gap: 7px; padding: 12px 14px; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
-        .eb-cat__post svg:last-child { transition: transform .16s ease; }
-        .eb-cat__post:hover svg:last-child { transform: translateX(3px); }
-        /* embed do Instagram: contido no card, sem estourar largura */
-        .eb-cat__embed .instagram-media { margin: 0 !important; min-width: 0 !important; width: 100% !important; }
-        .eb-cat__embed iframe.instagram-media { min-width: 0 !important; }
+        /* card do post no Instagram (imagem real quando disponível + barra link) */
+        .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+        .eb-post:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(43,24,16,.14); }
+        .eb-post__media { display: block; aspect-ratio: 1 / 1; background: #f4ece3; }
+        .eb-post__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .eb-post__bar { display: flex; align-items: center; gap: 8px; padding: 11px 14px; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; }
+        .eb-post__bar svg:last-child { margin-left: auto; transition: transform .16s ease; }
+        .eb-post:hover .eb-post__bar svg:last-child { transform: translateX(3px); }
 
         /* 3 — FECHO */
         .eb-foot { background: #2B1810; color: rgba(255,241,230,.8); }
