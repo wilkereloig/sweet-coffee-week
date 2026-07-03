@@ -12,6 +12,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
+import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { LOVERS_2026_AWARDS_RESULTS } from '../../data/loversAwardsResults'
 import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -81,11 +82,13 @@ function PostCard({ post, categoria }) {
 }
 
 export function EmBrevePage() {
+  const rootRef = React.useRef(null)
+  useRevealOnScroll(rootRef, [])
   return (
-    <div className="eb-page">
+    <div className="eb-page" ref={rootRef}>
       {/* 1 — AVISO "EM BREVE" */}
       <header className="eb-hero">
-        <div className="eb-wrap eb-hero__inner">
+        <div className="eb-wrap eb-hero__inner motion-stagger">
           <img className="eb-hero__logo" src="/images/logo-sweet-coffee-week.svg" alt="Sweet & Coffee Week" />
           <p className="eb-hero__soon">Em breve</p>
           <h1>O novo site do <span className="eb-nowrap">Sweet &amp; Coffee Week</span> está chegando.</h1>
@@ -102,7 +105,7 @@ export function EmBrevePage() {
       {/* 2 — SWEET AWARDS DA ÚLTIMA EDIÇÃO */}
       <section className="eb-awards">
         <div className="eb-wrap">
-          <div className="eb-head">
+          <div className="eb-head motion-reveal-up">
             <h2>Sweet Awards — <span className="eb-hl">Lovers 2026.1</span></h2>
             <p>
               O resultado oficial da premiação da 16ª edição, na avaliação dos Sweet Lovers.
@@ -111,7 +114,7 @@ export function EmBrevePage() {
           </div>
           <div className="eb-grid">
             {CATEGORIES.map((c) => (
-              <article className="eb-cat" key={c.key}>
+              <article className="eb-cat motion-reveal-up" key={c.key}>
                 <h3>{c.categoria}</h3>
                 {c.descricao && <p className="eb-cat__desc">{c.descricao}</p>}
                 <ol className="eb-podium">
