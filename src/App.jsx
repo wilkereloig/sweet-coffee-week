@@ -30,7 +30,9 @@ const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({
 // renderiza só a página oficial do Sweet Awards — o Hall dos vencedores
 // (#/sweet-awards, route 'historico-awards'). O painel interno (/lovers/painel)
 // continua acessível, mas fora de qualquer menu/header.
-const AWARDS_ONLY_PUBLICATION = true
+// DESLIGADO em jul/2026 (autorização do Wilke): site institucional completo
+// publicado — Home, Edições, Curiosidades, Participar, Apoiar, Contato + Awards.
+const AWARDS_ONLY_PUBLICATION = false
 
 // PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
