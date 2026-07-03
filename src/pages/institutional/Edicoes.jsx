@@ -35,7 +35,7 @@ import { PhotoRotator } from '../../components/PhotoRotator'
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
 
 // Acento por edição — só cores da paleta oficial.
-const TONES = ['coral', 'pink', 'cyan', 'yellow']
+const TONES = ['coral', 'pink', 'cyan', 'yellow', 'peach', 'choco']
 
 // {src, alt}[] p/ o PhotoRotator; vazio => slot cai no fallback "pendente".
 function editionGalleryFor(code, theme) {
@@ -393,21 +393,21 @@ export function EdicoesPage() {
         .edx-slide { min-width: 100vw; flex-shrink: 0; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); scroll-snap-align: start; scroll-snap-stop: always; }
         .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
         .edx-slide__left { min-width: 0; }
-        .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
+        .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-5); }
         .edx-slide__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 4vw, 60px); letter-spacing: -.03em; color: var(--tone); line-height: 1; }
         .edx-slide__num span { font-size: .5em; color: var(--ink-soft); }
         .edx-slide__code { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 11px; }
-        .edx-slide__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; color: var(--ink); margin: var(--sp-4) 0 0; text-wrap: balance; }
+        .edx-slide__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; color: var(--ink); margin: var(--sp-5) 0 0; text-wrap: balance; }
         .edx-slide__etapa { display: inline-block; margin-top: 8px; font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--tone); }
-        .edx-slide__lead { margin: var(--sp-4) 0 0; max-width: 48ch; color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .edx-slide__lead { margin: var(--sp-6) 0 0; max-width: 52ch; color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .edx-slide__meta { list-style: none; margin: var(--sp-5) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
         .edx-slide__meta li { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink); }
         .edx-slide__meta svg { color: var(--tone); }
         .edx-meta--dot::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: var(--tone); margin-right: 8px; vertical-align: middle; }
-        .edx-slide__status { margin-top: var(--sp-4); }
+        .edx-slide__status { margin-top: var(--sp-5); }
 
         /* LOGO SLOT */
-        .edx-logo { position: relative; width: clamp(88px, 8vw, 120px); aspect-ratio: 1; margin-top: var(--sp-5); border-radius: 16px; display: grid; place-items: center; overflow: hidden; }
+        .edx-logo { position: relative; width: clamp(88px, 8vw, 120px); aspect-ratio: 1; margin-top: var(--sp-6); border-radius: 16px; display: grid; place-items: center; overflow: hidden; }
         /* img absoluta: a row auto do grid cresce pro tamanho intrínseco da imagem e o overflow:hidden cortava a logo */
         .edx-logo--seal img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,.25)); }
         .edx-logo--seal .edx-logo__fb { display: none; }
