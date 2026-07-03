@@ -366,13 +366,14 @@ export function EdicoesPage() {
 
         /* LOGO SLOT */
         .edx-logo { position: relative; width: clamp(88px, 8vw, 120px); aspect-ratio: 1; margin-top: var(--sp-5); border-radius: 16px; display: grid; place-items: center; overflow: hidden; }
-        .edx-logo--seal img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,.25)); }
+        /* img absoluta: a row auto do grid cresce pro tamanho intrínseco da imagem e o overflow:hidden cortava a logo */
+        .edx-logo--seal img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,.25)); }
         .edx-logo--seal .edx-logo__fb { display: none; }
         .edx-logo--seal.is-fallback img { display: none; }
         .edx-logo--seal.is-fallback .edx-logo__fb { display: flex; }
         /* logo real da edição (acervo) — mesma lógica do selo: contain + fallback no erro */
         .edx-logo--real { width: clamp(96px, 9vw, 128px); }
-        .edx-logo--real img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(43,24,16,.2)); }
+        .edx-logo--real img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(43,24,16,.2)); }
         .edx-logo--real .edx-logo__fb { display: none; }
         .edx-logo--real.is-fallback { width: min(300px, 100%); aspect-ratio: auto; min-height: 96px; max-height: 132px; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); padding: 14px 16px; place-items: center start; }
         .edx-logo--real.is-fallback img { display: none; }
