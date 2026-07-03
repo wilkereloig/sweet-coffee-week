@@ -22,3 +22,6 @@ skills-lock.json
 
 # Acervo bruto (fonte local; usar /images/edicoes normalizado no site)
 public/images/EDIÇÕES DO FESTIVAL/
+
+# Brainstorming visual companion (superpowers skill)
+.superpowers/
