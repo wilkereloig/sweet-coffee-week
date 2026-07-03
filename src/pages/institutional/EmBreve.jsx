@@ -178,7 +178,7 @@ export function EmBrevePage() {
         .eb-place--bronze .eb-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
         .eb-place__brands { display: inline-flex; gap: 6px; }
         .eb-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); overflow: hidden; }
-        .eb-brand img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+        .eb-brand img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
         .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
         .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
         .eb-place--ouro .eb-place__names { font-size: 16px; }
