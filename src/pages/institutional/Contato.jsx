@@ -7,7 +7,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { PageShell, PageHero, HeroHL, PageSection, CTASection, CardsGrid } from '../../components/layout'
+import { PageShell, PageSection, CTASection, CardsGrid } from '../../components/layout'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 // Cards por intenção — cada um aponta para um caminho real (rota interna ou o
@@ -45,20 +45,19 @@ function ContactCard({ p, navigate }) {
 export function ContatoPage({ navigate }) {
   return (
     <PageShell name="contato">
-      {/* 1 — HERO (componente <PageHero> — fonte única do hero institucional) */}
-      <PageHero
-        title={<>Vamos conversar sobre o <span className="keep-together"><HeroHL color="var(--pink)">Sweet &amp; Coffee Week</HeroHL>?</span></>}
-        subtitle="Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet & Coffee Week."
-      />
-
-      {/* 2 — CARDS POR INTENÇÃO */}
+      {/* 1 — CABEÇALHO COMPACTO + CARDS POR INTENÇÃO (página simples, sem hero;
+           o padding-top respeita a zona de segurança do menu — CLAUDE.md §4.1) */}
       <PageSection className="contato-cards-section">
+        <header className="contato-head motion-reveal-up">
+          <h1>Fale com o <span className="contato-hl" style={{ '--hl': 'var(--page-accent, var(--pink))' }}>festival</span></h1>
+          <p>Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.</p>
+        </header>
         <CardsGrid className="contato-cards">
           {PATHS.map((p) => <ContactCard key={p.tag} p={p} navigate={navigate} />)}
         </CardsGrid>
       </PageSection>
 
-      {/* 3 — CANAL VIVO (Instagram) */}
+      {/* 2 — CANAL VIVO (Instagram) */}
       <CTASection className="contato-live" innerClassName="contato-live__inner">
         <h2>O Instagram é o canal mais <span className="contato-hl" style={{ '--hl': 'var(--coral)' }}>vivo</span> do festival.</h2>
         <p>É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, avisos e conteúdos enviados pelos Sweet Lovers.</p>
@@ -75,10 +74,11 @@ export function ContatoPage({ navigate }) {
         .contato-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
         .contato-page h1, .contato-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
 
-        /* 1 — HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
-
-        /* 2 — CARDS POR INTENÇÃO */
-        .contato-cards-section { background: var(--cream); }
+        /* 1 — CABEÇALHO COMPACTO + CARDS POR INTENÇÃO */
+        .contato-cards-section { background: var(--cream); padding-top: var(--hero-content-start); }
+        .contato-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 720px; margin: 0 auto var(--sp-7); }
+        .contato-head h1 { font-size: clamp(34px, 4.6vw, 60px); line-height: 1; }
+        .contato-head p { max-width: 54ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; margin: 0; text-wrap: pretty; }
         .contato-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
         .contato-card { display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
         .contato-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -95,7 +95,7 @@ export function ContatoPage({ navigate }) {
         .contato-card__cta svg { width: 15px; height: 15px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .contato-card__cta:hover svg { transform: translateX(3px); }
 
-        /* 3 — CANAL VIVO */
+        /* 2 — CANAL VIVO */
         .contato-live { background: var(--cream-deep, var(--bg-soft)); }
         .contato-live__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 680px; margin: 0 auto; }
         .contato-live h2 { font-size: clamp(26px, 3vw, 44px); line-height: 1.02; }
@@ -103,8 +103,8 @@ export function ContatoPage({ navigate }) {
         .contato-live .btn { min-height: 50px; margin-top: var(--sp-3); }
 
         /* RESPONSIVO */
-        @media (max-width: 900px) { .contato-cards { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) {
+        @media (max-width: 960px) { .contato-cards { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) {
           .contato-cards { grid-template-columns: 1fr; }
           .contato-live .btn { width: 100%; justify-content: center; }
         }
