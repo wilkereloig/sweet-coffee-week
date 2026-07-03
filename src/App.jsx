@@ -16,6 +16,7 @@ import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { PesquisaPage }     from './pages/institutional/Pesquisa'
 import { PainelAdminPage } from './pages/institutional/PainelAdmin'
+import { EmBrevePage } from './pages/institutional/EmBreve'
 
 // Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
 // carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
@@ -33,6 +34,13 @@ const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({
 // DESLIGADO em jul/2026 (autorização do Wilke): site institucional completo
 // publicado — Home, Edições, Curiosidades, Participar, Apoiar, Contato + Awards.
 const AWARDS_ONLY_PUBLICATION = false
+
+// Publicação "EM BREVE" (jul/2026, decisão do Wilke): enquanto true, o domínio
+// oficial mostra só a landing EmBreve — aviso do novo site + Sweet Awards da
+// edição Lovers 2026.1 com links pros posts de resultado no Instagram.
+// Painéis internos e /pesquisa continuam acessíveis; o institucional completo
+// segue visível em DEV e em previews *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
+const COMING_SOON_PUBLICATION = true
 
 // PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
@@ -83,6 +91,10 @@ export default function App() {
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
     if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'historico-awards'
+    // Modo "em breve": toda rota pública renderiza a landing (ver flag acima).
+    if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
+    // Rota direta p/ revisar a landing em DEV/preview.
+    if (path.startsWith('/em-breve')) return 'em-breve'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
@@ -106,6 +118,7 @@ export default function App() {
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
     case 'painel-admin': page = <PainelAdminPage navigate={navigate} />; break
+    case 'em-breve':     page = <EmBrevePage />; break
     default:             page = <HomePage navigate={navigate} />
   }
 
@@ -115,8 +128,9 @@ export default function App() {
     return () => document.body.classList.remove(cls)
   }, [route])
 
-  // Áreas internas (painéis) são tela cheia: sem header/menu público.
-  const isInternal = route === 'painel' || route === 'painel-admin'
+  // Áreas internas (painéis) e a landing "em breve" são tela cheia: sem
+  // header/menu público (na landing, o menu levaria sempre pra ela mesma).
+  const isInternal = route === 'painel' || route === 'painel-admin' || route === 'em-breve'
 
   return (
     <DevViewportSwitcher>

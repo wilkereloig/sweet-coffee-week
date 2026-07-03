@@ -437,10 +437,11 @@ body:not(.route-painel) .site-header .login-toggle:hover {
 /* Header agora é FIXO em todas as páginas públicas (idêntico à Home). Home e
    Participar têm hero escuro com folga própria no topo; as demais ganham folga
    aqui p/ o conteúdo não ficar sob a barra fixa nem sob a logo flutuante
-   (a logo vira um crest acima do título). Painel fica de fora. */
-body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
+   (a logo vira um crest acima do título). Painel e a landing "em breve"
+   (sem header público) ficam de fora. */
+body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
 @media (min-width: 960px) {
-  body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
+  body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
 }
 /* ============================================================
    SISTEMA DE COR POR PÁGINA (institucional).
