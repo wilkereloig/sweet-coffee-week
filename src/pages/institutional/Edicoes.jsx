@@ -35,7 +35,7 @@ import { PhotoRotator } from '../../components/PhotoRotator'
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
 
 // Acento por edição — só cores da paleta oficial.
-const TONES = ['coral', 'pink', 'cyan', 'yellow', 'peach', 'choco']
+const TONES = ['coral', 'pink', 'cyan', 'yellow', 'peach']
 
 // {src, alt}[] p/ o PhotoRotator; vazio => slot cai no fallback "pendente".
 function editionGalleryFor(code, theme) {
