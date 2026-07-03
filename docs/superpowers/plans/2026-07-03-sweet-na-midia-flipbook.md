@@ -714,7 +714,7 @@ Substituir por:
 .hm-media__side ul { list-style: none; margin: 0; padding: 0; }
 .hm-media__side li { font-family: var(--font-heading); font-size: 15px; line-height: 1.45; padding: var(--sp-3) 0; border-bottom: 1px solid rgba(255,241,230,.14); }
 .hm-media__side li:last-of-type { border-bottom: none; }
-.hm-media__side li::before { content: '\201C'; color: var(--coral); font-size: 20px; margin-right: 4px; }
+.hm-media__side li::before { content: '“'; color: var(--coral); font-size: 20px; margin-right: 4px; }
 .hm-media__side p { font-family: var(--font-sans); font-size: 12px; opacity: .6; margin: var(--sp-4) 0 0; }
 
 @media (max-width: 960px) { .hm-media__grid { grid-template-columns: 1fr; } }
