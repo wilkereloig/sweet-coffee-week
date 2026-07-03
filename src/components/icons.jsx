@@ -13,6 +13,16 @@ export const I = {
       <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  chevronLeft: (p = {}) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  chevronRight: (p = {}) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   cup: (p = {}) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...p}>
       <path d="M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9Z" stroke="currentColor" strokeWidth="1.4"/>

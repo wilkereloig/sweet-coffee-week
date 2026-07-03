@@ -251,13 +251,15 @@
 
 .press-flipbook__nav { display: flex; align-items: center; justify-content: center; gap: var(--sp-4); margin-top: var(--sp-5); }
 .press-flipbook__navbtn {
-  width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--paper-line);
-  background: var(--cream-card); color: var(--ink); font-size: 16px; line-height: 1;
+  width: 44px; height: 44px; border-radius: 999px; border: none;
+  background: var(--coral); color: #fff;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
-  transition: background var(--motion-fast) var(--ease-out-soft), border-color var(--motion-fast) var(--ease-out-soft);
+  box-shadow: 0 6px 16px rgba(232,85,58,.35);
+  transition: background var(--motion-fast) var(--ease-out-soft), transform var(--motion-fast) var(--ease-out-soft);
 }
-.press-flipbook__navbtn:hover { background: var(--coral); border-color: var(--coral); color: #fff; }
-.press-flipbook__navbtn:focus-visible { outline: 2px solid var(--coral-deep); outline-offset: 2px; }
+.press-flipbook__navbtn svg { width: 18px; height: 18px; }
+.press-flipbook__navbtn:hover { background: var(--coral-deep); transform: scale(1.06); }
+.press-flipbook__navbtn:focus-visible { outline: 2px solid var(--coral-deep); outline-offset: 3px; }
 .press-flipbook__dots { display: flex; align-items: center; gap: 6px; }
 .press-flipbook__dot { width: 7px; height: 7px; padding: 0; border: none; border-radius: 999px; background: var(--paper-line); cursor: pointer; transition: all var(--motion-fast) var(--ease-out-soft); }
 .press-flipbook__dot.is-active { width: 20px; border-radius: 4px; background: var(--coral); }

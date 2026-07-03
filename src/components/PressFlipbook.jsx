@@ -150,7 +150,7 @@ export function PressFlipbook({ pages, interval = 7500, autoPlay = true }) {
       </div>
 
       <div className="press-flipbook__nav">
-        <button type="button" className="press-flipbook__navbtn" onClick={() => { stop(); prev() }} aria-label="Página anterior">‹</button>
+        <button type="button" className="press-flipbook__navbtn" onClick={() => { stop(); prev() }} aria-label="Página anterior"><I.chevronLeft /></button>
         <div className="press-flipbook__dots">
           {list.map((p, i) => (
             <button
@@ -163,7 +163,7 @@ export function PressFlipbook({ pages, interval = 7500, autoPlay = true }) {
             />
           ))}
         </div>
-        <button type="button" className="press-flipbook__navbtn" onClick={() => { stop(); next() }} aria-label="Próxima página">›</button>
+        <button type="button" className="press-flipbook__navbtn" onClick={() => { stop(); next() }} aria-label="Próxima página"><I.chevronRight /></button>
         <span className="press-flipbook__count" aria-hidden="true">Página {page + 1} de {count}</span>
       </div>
       <span className="press-flipbook__sr" role="status" aria-live="polite" ref={liveRef} />
