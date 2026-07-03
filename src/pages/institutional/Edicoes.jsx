@@ -307,7 +307,7 @@ export function EdicoesPage() {
       </PageHero>
 
       {horizontal ? (
-        /* DESKTOP — apresentação horizontal scroll-driven */
+        /* DESKTOP — trilho horizontal nativo (scroll-snap) + wheel-redirect */
         <section
           ref={stageRef}
           className="edx-stage"
