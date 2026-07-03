@@ -39,6 +39,11 @@ const SHOTS = join(__dirname, 'screenshots')
 
 const PORT = 5179
 const BASE = `http://localhost:${PORT}`
+// A raiz pública (#/) publica hoje a landing "em breve" (App.jsx:
+// COMING_SOON_PUBLICATION), sem header/menu. ?preview=1 é o bypass oficial
+// (INSTITUTIONAL_PREVIEW em App.jsx) p/ revisar o institucional completo sem
+// tocar na flag de produção — é o que este teste precisa validar (Home real).
+const HOME_URL = `${BASE}/?preview=1#/`
 
 // Viewports oficiais (ver SITE_DIRECTION.md). phone => isMobile + toque.
 const VIEWPORTS = [
@@ -150,7 +155,7 @@ async function run() {
       page.setDefaultTimeout(4000)
       const issues = []
 
-      await page.goto(`${BASE}/#/`, { waitUntil: 'load', timeout: 15000 })
+      await page.goto(HOME_URL, { waitUntil: 'load', timeout: 15000 })
       await page.waitForTimeout(600) // assenta fontes/animações de entrada
 
       const L = await page.evaluate(readLayout)
@@ -250,7 +255,7 @@ async function run() {
         }
 
         // volta pra Home p/ a próxima iteração começar limpa
-        await page.goto(`${BASE}/#/`, { waitUntil: 'domcontentloaded' }).catch(() => {})
+        await page.goto(HOME_URL, { waitUntil: 'domcontentloaded' }).catch(() => {})
       }
 
       results.push({ vp, L, issues })
