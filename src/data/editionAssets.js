@@ -1,12 +1,11 @@
 /*
  * RESOLVEDOR DE MARCAS DE EDIÇÃO → ASSETS (regra global de acervo).
- * As marcas/logos por edição AINDA NÃO existem no acervo do projeto
- * (não há /public/images/editions/<id>/logo.png). Então este resolvedor:
- *   - reserva o espaço da marca no layout;
- *   - devolve fallback editorial (tema/label) quando não há logo;
- *   - documenta o caminho esperado do asset para quando as marcas forem criadas;
- *   - NUNCA inventa logo nem usa imagem aleatória.
- * Quando os arquivos chegarem, basta preencher EXISTING_MARKS[code] = caminho.
+ * Todos os 16 logos/marcas de edição já existem no acervo
+ * (/public/images/editions/<code>/logo.png, entregues jun/2026).
+ * Este resolvedor mapeia cada edição ao seu logo real via EXISTING_MARKS.
+ * Inclui fallback `is-fallback` como rede de segurança (arquivo ausente/quebrado):
+ *   - quando logo existe: retorna caminho real;
+ *   - fallback: devolve tema/label editorial (nunca inventa logo nem usa imagem aleatória).
  */
 import { sweetEditions } from './sweetEditionsCompat'
 
