@@ -94,12 +94,20 @@
         String(title) + '\n\n' + String(detail || '') + '</pre></div></div>';
     } catch (e) {}
   }
+  // Só reporta erro do NOSSO código (mesma origem). Ignora ruído de terceiros que
+  // não deve derrubar a tela: embeds do Instagram (cross-origin -> "Script error."
+  // sem filename), extensões do browser (chrome-extension://), scripts externos.
+  function ours(fn) { return typeof fn === 'string' && fn.indexOf(location.origin) === 0; }
   window.addEventListener('error', function (e) {
-    show(e.message || 'window.error', (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + ((e.error && e.error.stack) || ''));
+    var fn = e.filename || '';
+    if (!fn || e.message === 'Script error.' || !ours(fn)) return;
+    show(e.message || 'window.error', fn + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + ((e.error && e.error.stack) || ''));
   });
   window.addEventListener('unhandledrejection', function (e) {
     var r = e.reason || {};
-    show('unhandledrejection: ' + (r.message || r), (r.stack || ''));
+    var stack = r.stack || '';
+    if (!stack || stack.indexOf(location.origin) === -1) return; // só rejeições do nosso código
+    show('unhandledrejection: ' + (r.message || r), stack);
   });
 })();
 </script>
