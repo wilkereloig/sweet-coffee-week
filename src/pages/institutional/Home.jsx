@@ -74,6 +74,23 @@ const mediaCards = [
 const mediaFeatured = mediaCards.filter((c) => c.featured)
 const mediaExtra = mediaCards.filter((c) => !c.featured)
 
+// Agrupa em páginas do PressFlipbook: 1 manchete (lead) por página + notas
+// (briefs) distribuídas o mais igual possível — sem hardcode de índice, pra não
+// precisar remapear se mediaCards crescer.
+function buildMediaPages(leads, briefs) {
+  if (!leads.length) return []
+  const per = Math.floor(briefs.length / leads.length)
+  const remainder = briefs.length % leads.length
+  let cursor = 0
+  return leads.map((lead, i) => {
+    const count = per + (i < remainder ? 1 : 0)
+    const pageBriefs = briefs.slice(cursor, cursor + count)
+    cursor += count
+    return { lead, briefs: pageBriefs }
+  })
+}
+const mediaPages = buildMediaPages(mediaFeatured, mediaExtra)
+
 // Card de mídia — selo do veículo + badge de categoria, título, descrição e
 // link externo (nova aba). aria-label descritivo (sem "clique aqui").
 function MediaCard({ c }) {
