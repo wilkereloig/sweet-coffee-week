@@ -88,7 +88,7 @@ export function EmBrevePage() {
         <div className="eb-wrap eb-hero__inner">
           <img className="eb-hero__logo" src="/images/logo-sweet-coffee-week.svg" alt="Sweet & Coffee Week" />
           <p className="eb-hero__soon">Em breve</p>
-          <h1>O novo site do Sweet &amp; Coffee Week está chegando.</h1>
+          <h1>O novo site do <span className="eb-nowrap">Sweet &amp; Coffee Week</span> está chegando.</h1>
           <p className="eb-hero__sub">
             Estamos preparando a casa das 16 edições, das marcas e das memórias do festival.
             Enquanto isso, reveja quem brilhou no Sweet Awards da edição Sweet &amp; Coffee Week Lovers.
@@ -155,6 +155,7 @@ export function EmBrevePage() {
         .eb-hero__logo { width: clamp(150px, 18vw, 220px); height: auto; }
         .eb-hero__soon { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #F8B511; margin: var(--sp-4, 16px) 0 0; }
         .eb-hero h1 { font-size: clamp(30px, 4.4vw, 56px); line-height: 1.02; max-width: 18ch; color: var(--cream, #FFF1E6); }
+        .eb-nowrap { white-space: nowrap; }
         .eb-hero__sub { max-width: 58ch; margin: 0; font-size: var(--fs-lead, 17px); line-height: 1.5; color: rgba(255,241,230,.85); text-wrap: pretty; }
         .eb-btn { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; padding: 12px 26px; border-radius: 999px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; text-decoration: none; margin-top: var(--sp-3, 12px); transition: transform .18s ease; }
         .eb-btn:hover { transform: translateY(-2px); }
