@@ -15,7 +15,7 @@ Mapa da estrutura do site. Atualizar sempre que rotas/arquitetura mudarem.
 | `/participar` | `ParticiparPage` | Como participar |
 | `/apoiar` | `ApoiarPage` | Patrocínio / apoio |
 | `/contato` | `ContatoPage` | Form de contato + endereço |
-| `/vencedores` · `/premiacao` | `AgradecimentoPage` | Sweet Awards (vencedores) |
+| `/vencedores` · `/premiacao` | `SweetAwardsPage` | Sweet Awards (vencedores) |
 | `/lovers/painel` | `PainelPage` | Painel interno de votação (Supabase, CSV) |
 | `/lovers/combos/*`, `/lovers/awards`, `/mapa`, `/rota`, `/participantes` | → redirect Home | QR antigos preservados (não alterar) |
 
@@ -30,7 +30,7 @@ site-sweet-coffee-week/
 │   ├── theme.js         # applyPalette() no init
 │   ├── DevTools.jsx     # DevViewportSwitcher (preview)
 │   ├── pages/
-│   │   ├── institutional/  Home · Edicoes · Curiosidades · Participar · Apoiar · Contato · Agradecimento
+│   │   ├── institutional/  Home · Edicoes · Curiosidades · Participar · Apoiar · Contato · SweetAwards · HistoricoAwards
 │   │   └── lovers/         Painel (admin votação)
 │   ├── components/  nav.jsx · icons.jsx · placeholders.jsx · CookieConsent.jsx · ErrorBoundary.jsx
 │   ├── data/        editions.js · participants.js (21 slugs congelados) · comboPhotos.js · sweetAwards.js

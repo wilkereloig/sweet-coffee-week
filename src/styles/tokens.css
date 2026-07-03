@@ -1,0 +1,57 @@
+/* ============================================================
+   TOKENS — fonte única dos tokens institucionais que NÃO vivem no
+   sistema v2 (src/styles/swc-redesign.css :root). Carregado 1º em main.jsx.
+
+   Contexto: antes havia DOIS :root concorrentes — styles.css (v1) e
+   swc-redesign.css (v2) — definindo os MESMOS nomes com valores diferentes
+   (--bg, --ink, --sidebar-w, fontes...). O v2 sempre vencia (carrega por
+   último). O :root v1 foi REMOVIDO de styles.css; os tokens que só existiam
+   nele (sem conflito) foram para cá. Regra: UM token, UM lugar.
+
+   Paleta/tinta/escala/tipo v2 → swc-redesign.css.
+   Raios+sombras legadas, fontes auxiliares, layout e paleta Lovers → aqui.
+
+   ⚠️ ATENÇÃO — src/theme.js: aplica 6 tokens (--bg, --bg-soft, --ink, --accent,
+   --accent-deep, --peach) via style.setProperty() no :root em RUNTIME. Estilo
+   inline vence QUALQUER :root de CSS. Hoje --bg=#FFF4EC / --bg-soft=#FBEADC
+   (valores v1) vêm de lá, não do CSS. Para mudar esses 6, editar theme.js.
+   (Reconciliar theme.js × swc-redesign é etapa futura — muda --bg num fio.)
+   ============================================================ */
+:root {
+  /* Layout / container canônico (CLAUDE.md §4) */
+  --maxw: 1280px;
+  --pad: clamp(20px, 4vw, 56px);
+  --combo-rail-w: 264px;   /* legado (.combo-rail é CSS morto — remover na limpeza) */
+
+  /* Raios legados (o v2 usa --r-sm/--r-md/--r-lg/--r-xl) */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+
+  /* Sombras legadas (o v2 usa --shadow-sm/md/lg/pop) */
+  --shadow-1: 0 1px 2px rgba(43,24,16,.06), 0 4px 12px rgba(43,24,16,.04);
+  --shadow-2: 0 4px 12px rgba(43,24,16,.08), 0 18px 40px rgba(43,24,16,.06);
+  --shadow-3: 0 12px 36px rgba(43,24,16,.12), 0 32px 80px rgba(43,24,16,.10);
+
+  /* Fontes auxiliares (serif/sans/heading/body/mono vivem em swc-redesign.css) */
+  --font-slab: 'Nexa Slab', 'nexa', Georgia, serif;
+  --font-script: 'Caveat', cursive;
+  --font-lovers-display: 'sofia-pro-comp', 'Caprasimo', 'Instrument Serif', Georgia, serif;
+  --font-lovers-body:    'sofia-pro-comp', 'DM Sans', system-ui, sans-serif;
+
+  /* Paleta Lovers (KV 16a edicao) — base sempre carregada */
+  --lovers-brown:    #3F1A0A;
+  --lovers-rust:     #6B2418;
+  --lovers-burgundy: #870E2D;
+  --lovers-pink:     #F20567;
+  --lovers-coral:    #E12947;
+  --lovers-cyan:     #00B8CC;
+  --lovers-yellow:   #F5B800;
+  --lovers-cream:    #FFE8D2;
+  --lovers-purple:   #4F2092;
+  --lovers-bg:       var(--lovers-cream);
+  --lovers-bg-deep:  #FAD1B0;
+  --lovers-red:      var(--lovers-burgundy);
+  --lovers-ink:      var(--lovers-brown);
+}

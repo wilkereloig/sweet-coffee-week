@@ -66,7 +66,14 @@ Legados `--font-serif`/`--font-sans` → mapeados p/ Nexa Slab.
 - **Motion:** `--ease-pop` `cubic-bezier(.34,1.56,.64,1)` (bouncy, intencional) · `--ease-out` `cubic-bezier(.22,.61,.36,1)`; dur 140/240/420ms.
 - **Focus:** `--ring` = `--cyan-deep`; `:focus-visible { outline:3px solid var(--ring); offset:3px }`.
 - **Selo da marca:** `--mask-badge` (data-URI SVG da silhueta escalopada) — aplicar como `mask` p/ recortar imagem/bloco no formato do selo (**PhotoBadge**).
-- **Espaço/layout:** escala 4px (`--sp-*`), `--sp-section` clamp(56,8vw,120), `--wrap-max` 1200, `--wrap-pad` clamp(20,5vw,64).
+- **Espaço/layout:** escala 4px (`--sp-*`), `--sp-section` clamp(56,8vw,120).
+- **Margem horizontal (REGRA — mesma em todas as páginas):** o container canônico é
+  `.wrap` da Home → `max-width: var(--maxw)` = **1280px**, `padding: 0 var(--pad)` =
+  **clamp(20px, 4vw, 56px)** (`src/styles.css`). **Toda página institucional deve usar
+  exatamente essa margem.** Use `.wrap` direto; se a página tiver container próprio
+  (ex.: Edições `--page-max`/`--page-gutter`, Sweet Awards `.swa-wrap`/`.swa-hero__inner`),
+  ele DEVE replicar 1280px / clamp(20px,4vw,56px). Não criar largura/gutter divergentes
+  (ex.: 1180px ou clamp ...,64px) — quebra o alinhamento vertical entre as páginas.
 
 ---
 
@@ -132,7 +139,7 @@ src/styles/fonts-nexa-slab.css   # @font-face Nexa Slab (+ alias Nexa Slab Black
 src/components/nav.jsx           # SideNav + header + drawer mobile
 src/components/placeholders.jsx  # PhotoEditorial (foto real / gradiente)
 src/data/comboPhotos.js          # pool de fotos reais de combos
-src/pages/institutional/         # Home, Edicoes, Curiosidades, Participar, Apoiar, Contato, Agradecimento (Sweet Awards)
+src/pages/institutional/         # Home, Edicoes, Curiosidades, Participar, Apoiar, Contato, SweetAwards, HistoricoAwards
 public/images/shapes/            # shapes da marca (.svg) — star, flower, badge, arrow, splat, wave
 public/fonts/nexa-slab/          # Nexa Slab woff2 (Thin→Black)
 ```

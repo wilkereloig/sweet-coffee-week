@@ -81,11 +81,23 @@
   --dur-fast: 140ms; --dur-base: 240ms; --dur-slow: 420ms;
   --ring: var(--cyan-deep);
 
-  /* Espaçamento vertical editorial entre seções (handoff v2) */
-  --sp-section: clamp(56px, 11.5vw, 220px);
+  /* Escala de espaçamento (base 4pt, fluida). Usar em gap/margin/padding. */
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: clamp(18px, 2vw, 24px);
+  --sp-6: clamp(24px, 3vw, 32px);
+  --sp-7: clamp(32px, 4vw, 48px);
+  --sp-8: clamp(40px, 5vw, 64px);
+  --sp-9: clamp(56px, 7vw, 96px);
+
+  /* Espaçamento vertical editorial entre seções (handoff v2).
+     Ritmo responsivo: mobile compacto (48px), desktop generoso mas sem buracos
+     (teto 128px). Antes era 11.5vw/220px — inflava demais em telas largas. */
+  --sp-section: clamp(48px, 8vw, 128px);
   /* Grid horizontal único da Home: recuo lateral + largura máx do conteúdo.
      Hero e todas as seções compartilham → conteúdo alinha na mesma linha. */
-  --hm-gutter: clamp(28px, 11.5vw, 220px);
+  --hm-gutter: clamp(28px, 11.5vw, 150px);
   --hm-content-max: 1440px;
 
   /* Silhueta do selo da marca — máscara p/ recortar imagem (PhotoBadge) */
@@ -271,29 +283,10 @@ html { scroll-behavior: smooth; }
 .edition-card__facts dt { color: var(--swc-coffee) !important; }
 .edition-card__fact dd { color: var(--swc-chocolate) !important; }
 
-/* Edições — acentos de shape da marca nas seções */
-.editions-hero, .editions-list, .editions-cta-section { position: relative; overflow: hidden; }
+/* Edições — z-index do conteúdo (acentos de shape decorativos removidos) */
 .editions-hero > .wrap,
 .editions-list > .wrap,
 .editions-cta-section > .wrap { position: relative; z-index: 1; }
-.editions-hero::before {
-  content: ""; position: absolute; top: -44px; right: -28px;
-  width: clamp(100px, 11vw, 180px); aspect-ratio: 298.86 / 373.58;
-  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
-  transform: rotate(20deg); z-index: 0; pointer-events: none;
-}
-.editions-list::before {
-  content: ""; position: absolute; bottom: -54px; left: -42px;
-  width: clamp(120px, 13vw, 210px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none; opacity: .92;
-}
-.editions-cta-section::before {
-  content: ""; position: absolute; top: -22px; right: 7%;
-  width: clamp(64px, 7vw, 104px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-star-cyan.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none;
-}
 
 /* ============================================================
    AUDIT FIXES (impeccable)
@@ -342,31 +335,24 @@ html { scroll-behavior: smooth; }
 }
 
 /* ============================================================
-   FORMAS ORGÂNICAS — acentos nas seções da Home (peek nos cantos)
+   Home — base de seção (gutter + ritmo). Shapes decorativos de
+   canto removidos (não usar formas sangrando nas bordas).
    ============================================================ */
 .hm .section { position: relative; overflow: hidden; padding-top: var(--sp-section); padding-bottom: var(--sp-section); }
 .hm .section > .wrap { position: relative; z-index: 1; }
 /* Grid horizontal único: conteúdo das seções alinhado à esquerda (não centralizado),
    mesma gutter e largura máx do hero → tudo na mesma linha vertical. */
 .hm .wrap { max-width: none; margin-inline: 0; padding-inline: var(--hm-gutter); }
-/* selo chocolate como marca d'água atrás do "O que é" */
-.hm .hm-feature::before {
-  content: ""; position: absolute; top: -64px; left: -76px;
-  width: clamp(150px, 17vw, 280px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-badge-choco.svg') center/contain no-repeat;
-  opacity: .06; z-index: 0; pointer-events: none;
-}
-/* seta amarela peekando no "Como funciona" */
-.hm .hm-steps-section::before {
-  content: ""; position: absolute; top: -30px; right: -26px;
-  width: clamp(80px, 9vw, 140px); aspect-ratio: 298.86 / 373.58;
-  background: url('/images/shapes/shape-arrow-yellow.svg') center/contain no-repeat;
-  transform: rotate(16deg); z-index: 0; pointer-events: none;
-}
-/* flor coral no bloco de Realização */
-.hm .hm-cta-section::before {
-  content: ""; position: absolute; bottom: -52px; left: -38px;
-  width: clamp(120px, 14vw, 220px); aspect-ratio: 1;
-  background: url('/images/shapes/shape-flower-coral.svg') center/contain no-repeat;
-  z-index: 0; pointer-events: none;
+/* Páginas institucionais: mesmo gutter proporcional da Home (11.5vw, teto 150px).
+   max-width:none remove o cap de 1280px — conteúdo full-width, recuado pelo gutter. */
+body.route-edicoes       .page-enter .wrap,
+body.route-vencedores    .page-enter .wrap,
+body.route-historico-awards .page-enter .wrap,
+body.route-curiosidades  .page-enter .wrap,
+body.route-participar    .page-enter .wrap,
+body.route-apoiar        .page-enter .wrap,
+body.route-contato       .page-enter .wrap {
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: var(--hm-gutter);
 }

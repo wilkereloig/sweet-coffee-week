@@ -1,6 +1,6 @@
 node_modules
 dist
-dist_check*/
+dist*/
 public/images/adesivos-site/giphy/
 .vercel
 .env
@@ -14,3 +14,11 @@ vite.config.js.timestamp-*
 screenshots/
 .claude/
 exports/
+**/.impeccable/
+.devserver.log
+por.traineddata
+skills-lock.json
+.agents/
+
+# Acervo bruto (fonte local; usar /images/edicoes normalizado no site)
+public/images/EDIÇÕES DO FESTIVAL/

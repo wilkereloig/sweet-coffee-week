@@ -5,66 +5,10 @@
    - .kv-lovers (campanha 16Âª ediÃ§Ã£o)
    ============================================================ */
 
-:root {
-  /* INSTITUCIONAL â€” base */
-  --bg: #FFF4EC;
-  --bg-soft: #FBEADC;
-  --bg-card: #FFFFFF;
-  --ink: #2B1810;
-  --ink-dark: #1a0e08;
-  --ink-soft: #6B4A3A;
-  --ink-mute: #9B7A68;
-  --line: rgba(43, 24, 16, 0.12);
-  --line-strong: rgba(43, 24, 16, 0.28);
-
-  --accent: #E8553A;       /* terracota */
-  --accent-deep: #C13E25;
-  --peach: #F2B6A0;
-  --peach-soft: #F9D9CB;
-
-  /* LOVERS â€” KV 16Âª ediÃ§Ã£o (paleta dedicada) */
-  --lovers-brown:    #3F1A0A;   /* deep brown â€” ink */
-  --lovers-rust:     #6B2418;
-  --lovers-burgundy: #870E2D;   /* primary mark */
-  --lovers-pink:     #F20567;   /* hot pink accent â€” KV exato */
-  --lovers-coral:    #E12947;   /* red-coral */
-  --lovers-cyan:     #00B8CC;   /* ciano KV exato */
-  --lovers-yellow:   #F5B800;   /* amarelo KV exato */
-  --lovers-cream:    #FFE8D2;   /* canvas */
-  --lovers-purple:   #4F2092;
-
-  /* Semantic Lovers tokens (used across pages) */
-  --lovers-bg:       var(--lovers-cream);
-  --lovers-bg-deep:  #FAD1B0;
-  --lovers-red:      var(--lovers-burgundy);
-  --lovers-ink:      var(--lovers-brown);
-
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 22px;
-  --radius-xl: 32px;
-
-  --shadow-1: 0 1px 2px rgba(43,24,16,.06), 0 4px 12px rgba(43,24,16,.04);
-  --shadow-2: 0 4px 12px rgba(43,24,16,.08), 0 18px 40px rgba(43,24,16,.06);
-  --shadow-3: 0 12px 36px rgba(43,24,16,.12), 0 32px 80px rgba(43,24,16,.10);
-
-  --font-serif: 'Nexa Slab', 'nexa', Georgia, serif;
-  --font-sans: 'nexa-text', 'nexa', system-ui, -apple-system, sans-serif;
-  --font-slab: 'Nexa Slab', 'nexa', Georgia, serif;
-  --font-script: 'Caveat', cursive;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-  /* LOVERS typography â€” Sofia Comp via Adobe Fonts.
-     Fallback Caprasimo (Google Fonts) used until kit URL is added.
-     See index.html <link id="typekit"> to swap. */
-  --font-lovers-display: 'sofia-pro-comp', 'Caprasimo', 'Instrument Serif', Georgia, serif;
-  --font-lovers-body:    'sofia-pro-comp', 'DM Sans', system-ui, sans-serif;
-
-  --maxw: 1280px;
-  --pad: clamp(20px, 4vw, 56px);
-  --sidebar-w: 240px;
-  --combo-rail-w: 264px;
-}
+/* :root de tokens v1 REMOVIDO (ETAPA 3). Antes duplicava/divergia do v2.
+   Agora: tokens v1-only → src/styles/tokens.css (carrega 1º);
+   paleta/tinta/escala/tipo v2 → src/styles/swc-redesign.css.
+   Um token, um lugar — mudar cor/fonte base = editar tokens.css ou swc-redesign.css. */
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -306,47 +250,270 @@ button:disabled { cursor: not-allowed; }
 .nav-main {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-left: auto;
   font-size: 14px;
 }
 .nav-main a {
-  padding: 8px 14px;
-  border-radius: 999px;
+  position: relative;
+  padding: 8px 12px;
   color: var(--ink-soft);
-  transition: color .15s ease, background .15s ease;
-  font-weight: 500;
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              opacity var(--motion-base, 260ms) var(--ease-out-soft, ease);
+  font-weight: 700;
+  text-transform: lowercase;
 }
-.nav-main a:hover { color: var(--ink); background: rgba(43,24,16,.05); }
-.nav-main a.active { color: var(--ink); background: rgba(43,24,16,.07); }
+/* Underline unificado: desenha do canto esquerdo (transform, sem layout shift) */
+.nav-main a::after {
+  content: '';
+  position: absolute;
+  left: 12px; right: 12px; bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--motion-base, 260ms) var(--ease-out-soft, ease);
+}
+.nav-main a:hover { color: var(--ink); }
+.nav-main a:hover::after,
+.nav-main a:focus-visible::after,
+.nav-main a.active::after { transform: scaleX(1); }
+.nav-main a.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+/* Foco por teclado — destaque claro, não só cor */
+.nav-main a:focus-visible {
+  outline: 2px solid var(--cyan-deep, #1f7a8c);
+  outline-offset: 2px;
+  border-radius: 5px;
+  color: var(--ink);
+}
+/* Grupo: ao passar o mouse na área do menu, itens não-alvo suavizam.
+   O ativo nunca apaga. Sem layout shift (só opacity). */
+.nav-main:hover a:not(:hover):not(.active) { opacity: .5; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-main a,
+  .nav-main a::after { transition: none; }
+}
 .nav-cta {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* Botão de acesso (login) — visível em TODAS as larguras (desktop + mobile),
+   ao contrário do hambúrguer (.menu-toggle), que só aparece no mobile. */
+.login-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--lovers-brown) 28%, transparent);
+  background: color-mix(in srgb, var(--lovers-brown) 6%, transparent);
+  color: var(--lovers-brown);
+  cursor: pointer;
+  transition: background var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              border-color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.login-toggle svg { width: 19px; height: 19px; }
+.login-toggle:hover {
+  background: color-mix(in srgb, var(--lovers-brown) 12%, transparent);
+  border-color: color-mix(in srgb, var(--lovers-brown) 45%, transparent);
+}
+
 /* mobile nav */
 .menu-toggle { display: none; }
 @media (max-width: 959px) {
   .nav-main { display: none; }
-  .site-header__inner { position: relative; justify-content: center; }
-  .nav-cta { position: absolute; right: var(--pad); top: 50%; transform: translateY(-50%); }
+  /* Logo à ESQUERDA, botão à DIREITA — mesmo gutter lateral do conteúdo da Home
+     (--hm-gutter), respeitando a safe-area de telas com notch. Sem centralizar. */
+  .site-header__inner {
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 12px;
+    padding-left: max(var(--hm-gutter), env(safe-area-inset-left));
+    padding-right: max(var(--hm-gutter), env(safe-area-inset-right));
+  }
+  .nav-cta { margin-left: auto; }
+  /* Logo enxuta no mobile — a base (72px) é grande demais p/ a barra */
+  .brand img { height: clamp(40px, 11vw, 52px); width: auto; }
   .menu-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 44px;
-    height: 40px;
+    height: 44px;
     padding: 0;
     border-radius: 999px;
     border: none;
     background: transparent;
     color: var(--lovers-brown);
-    opacity: .55;
+    opacity: .7;
     cursor: pointer;
   }
-  .menu-toggle svg { width: 20px; height: 20px; }
+  .menu-toggle svg { width: 22px; height: 22px; }
   .menu-toggle:hover { opacity: 1; }
 }
+
+/* HOME: barra transparente sobre o hero escuro; vira sólida ao rolar */
+body:not(.route-painel) .site-header {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  /* SEM gradiente no header: qualquer degradê com alpha tem uma borda de caixa
+     (em ~139px) onde o slope/hue muda e o olho lê uma linha (Mach band). O
+     escurecimento do topo do hero já vem do .swc-hero::after (945px, sem corte
+     de box). Todas as seções da Home são escuras → menu legível ao rolar. */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+/* Scrim de topo: sombra escura fixa atrás do menu, esmaece até transparente (sem
+   barra sólida). Mantém o menu claro legível sobre QUALQUER seção (inclusive as
+   claras, ex.: Números em creme). Termina em alpha 0 → sem linha/seam. */
+body:not(.route-painel) .site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 240%;
+  background: linear-gradient(to bottom,
+              rgba(43, 24, 16, 0.62) 0%,
+              rgba(43, 24, 16, 0.30) 42%,
+              rgba(43, 24, 16, 0) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+body:not(.route-painel) .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
+body:not(.route-painel) .site-header .nav-main a:hover { color: #fff; }
+body:not(.route-painel) .site-header .nav-main a.active { color: var(--page-accent, var(--cyan, #4fc3d9)); }
+body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
+/* Botão de acesso sobre o hero escuro: aro e ícone em creme claro */
+body:not(.route-painel) .site-header .login-toggle {
+  color: #FEF0DD;
+  border-color: rgba(254, 240, 221, 0.45);
+  background: rgba(254, 240, 221, 0.08);
+}
+body:not(.route-painel) .site-header .login-toggle:hover {
+  border-color: rgba(254, 240, 221, 0.75);
+  background: rgba(254, 240, 221, 0.16);
+}
+
+/* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
+   barra full-width alinhada ao grid do conteúdo (--hm-gutter), logo prominente,
+   hambúrguer oculto. A Home adiciona o tratamento transparente + logo flutuante
+   sobre o hero (overrides abaixo); as demais ficam com barra sólida legível. */
+@media (min-width: 960px) {
+  .site-header__inner { max-width: none; padding-inline: var(--hm-gutter); }
+  /* hambúrguer fica oculto no desktop (.menu-toggle), mas o nav-cta segue visível
+     p/ mostrar o botão de acesso (.login-toggle). */
+  .nav-cta { display: flex; }
+  /* logo prominente e consistente (inline, centrada na barra) */
+  .brand img { height: clamp(72px, 6vw, 96px); width: auto; }
+
+  /* HOME: logo grande flutuando — centro fixo na borda inferior da barra
+     (metade vaza no hero escuro); barra transparente. */
+  body:not(.route-painel) .site-header__inner { position: relative; padding-block: 50px; }
+  body:not(.route-painel) .brand {
+    position: absolute;
+    left: var(--hm-gutter);
+    top: 100%;
+    transform: translateY(-50%);
+    margin: 0;
+    /* atrás do fundo translúcido da barra: metade de cima passa sob a barra,
+       metade de baixo vaza no hero (efeito de camada/profundidade) */
+    z-index: -1;
+    transition: top .4s var(--ease-out-soft, ease), transform .4s var(--ease-out-soft, ease);
+  }
+  body:not(.route-painel) .brand img { height: clamp(116px, 11vw, 160px); }
+  /* Ao rolar: logo sobe pro centro da barra, encolhe e fica à frente — alinhada ao menu */
+  body:not(.route-painel) .site-header.scrolled .brand { top: 50%; z-index: 5; }
+  body:not(.route-painel) .site-header.scrolled .brand-cycle { transform: translateY(-50%) scale(.62); }
+  /* Logo grande flutuante no desktop: bottom da logo ≈ header-inner (~120px) + metade
+     da logo (5.5vw). Safe-offset cobre esse valor p/ o conteúdo não sobrepor a logo. */
+  body { --header-safe-offset: clamp(196px, calc(120px + 6vw), 252px); }
+}
+/* Header agora é FIXO em todas as páginas públicas (idêntico à Home). Home e
+   Participar têm hero escuro com folga própria no topo; as demais ganham folga
+   aqui p/ o conteúdo não ficar sob a barra fixa nem sob a logo flutuante
+   (a logo vira um crest acima do título). Painel fica de fora. */
+body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
+@media (min-width: 960px) {
+  body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
+}
+/* ============================================================
+   SISTEMA DE COR POR PÁGINA (institucional).
+   Cada rota seta --page-accent (+ soft p/ fundos, dark p/ texto sobre claro).
+   Consomem: item ativo do menu (texto + underline via currentColor), eyebrow do
+   hero e detalhes da página. Home/painel mantêm o padrão (não recebem tema).
+   Acessibilidade: o ativo também tem peso/itálico/underline — nunca só cor.
+   ============================================================ */
+body {
+  --page-accent: var(--cyan, #2BC4E8);
+  --page-accent-soft: rgba(43, 196, 232, .16);
+  --page-accent-dark: var(--cyan-deep, #149FC0);
+
+  /* ZONA DE SEGURANÇA HEADER ↔ HERO (reutilizável em todas as páginas internas).
+     --header-safe-offset = altura útil do header fixo + a logo que vaza no hero;
+     --hero-top-clearance = folga visual extra; --hero-content-start = onde o
+     conteúdo da hero (título/texto/cards/imagens) pode começar. O fundo da hero
+     pode subir até o topo; o CONTEÚDO só começa depois de --hero-content-start. */
+  --header-safe-offset: clamp(120px, 14vh, 168px);
+  --hero-top-clearance: clamp(32px, 4vw, 56px);
+  --hero-content-start: calc(var(--header-safe-offset) + var(--hero-top-clearance));
+}
+body.route-edicoes          { --page-accent: #2BC4E8; --page-accent-soft: rgba(43,196,232,.16);  --page-accent-dark: #149FC0; }
+body.route-vencedores,
+body.route-historico-awards { --page-accent: #F2548A; --page-accent-soft: rgba(242,84,138,.16);  --page-accent-dark: #C8275C; }
+body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
+body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
+body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
+body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
+
+/* ============================================================
+   HEROS (LEGADO) — regra global que controla os heros das páginas AINDA
+   NÃO migradas para o componente <Hero> (src/components/layout/Hero.jsx +
+   src/styles/hero.css). Conforme cada página migra, sai desta lista; quando
+   todas migrarem, esta regra pode ser removida (ver plano ETAPA 2).
+   Já migrados p/ <Hero>: Contato, Curiosidades, Sweet Awards. Pendente decisão
+   de direção (faixa-acento×chocolate): Participar, Apoiar (heros com form).
+   Fora por design: Home (.swc-hero, §9), Edições (.edx-hero, apresentação).
+   Seletores mortos removidos (.ed-hero / .ed-hl nunca existiram no markup).
+
+   Faixa proporcional (não 1080px fixo, §4) + fundo na cor-acento da página;
+   acentos claros → texto em tinta escura; conteúdo abaixo da zona de
+   segurança do header (§4.1).
+   ============================================================ */
+.participar-hero, .apoiar-hero {
+  min-height: clamp(440px, 62vh, 660px);
+  display: flex;
+  align-items: center;
+  /* zona de segurança header↔hero (token global) — conteúdo nunca encosta no menu */
+  padding-top: var(--hero-content-start) !important;
+  padding-bottom: clamp(56px, 7vw, 90px) !important;
+}
+.participar-hero > .wrap, .apoiar-hero > .wrap { width: 100%; }
+/* Participar: acento coral claro (#F2693C) → texto escuro passa AA. */
+.participar-hero { background: var(--page-accent) !important; }
+.participar-hero :is(h1, p) { color: var(--ink) !important; }
+/* Apoiar: acento azul #1B86C9 reprova AA com texto claro E escuro (branco ~3.97:1).
+   Usa a variante ESCURA do mesmo token (--page-accent-dark #0F5C8C, paleta §3) +
+   texto claro (decisão C5) → ~7:1. Mantém a direção faixa-acento (azul), só legível.
+   O CSS local da Apoiar (Apoiar.jsx) já colore stats/link/form em tom claro. */
+.apoiar-hero { background: var(--page-accent-dark) !important; }
+.apoiar-hero :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
+.cur-hl, .hist-hl { color: var(--ink) !important; }
+.cur-hl::after { background: var(--ink) !important; }
+/* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
+   Altura vem do .swc-hero inline (faixa proporcional, §4) — sem override fixo aqui.
+   Foto/overlay/texto claro preservados. */
+.hm .swc-hero { background: #2B1810 !important; }
+@media (max-width: 960px) {
+  .participar-hero, .apoiar-hero { min-height: clamp(360px, 58svh, 520px); }
+  .hm .swc-hero { min-height: 100svh !important; }
+}
+
 .mobile-overlay {
   position: fixed;
   inset: 0;
@@ -367,7 +534,11 @@ button:disabled { cursor: not-allowed; }
   bottom: 0;
   width: min(340px, 88vw);
   background: var(--bg);
-  padding: 80px var(--pad) 40px;
+  /* margem interna confortável + safe-area (notch à direita, gesture bar embaixo) */
+  padding-top: 76px;
+  padding-left: var(--pad);
+  padding-right: max(var(--pad), env(safe-area-inset-right));
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -383,7 +554,7 @@ button:disabled { cursor: not-allowed; }
   position: absolute;
   top: 20px;
   right: var(--pad);
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   border-radius: 999px;
   background: var(--ink);
   color: var(--bg);
@@ -491,35 +662,133 @@ button:disabled { cursor: not-allowed; }
   text-transform: uppercase;
   white-space: nowrap;
 }
+/* Menu institucional = navegação principal do mobile (não mais lista secundária).
+   Links full-opacity, área de toque ≥48px, tipografia institucional. */
 .mobile-menu__section--institutional {
-  margin-top: 26px;
-  padding-top: 22px;
-  border-top: 1px solid rgba(63,26,10,.16);
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
 }
 .mobile-menu__section-title {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--lovers-brown);
-  opacity: .5;
-  margin-bottom: 12px;
+  color: var(--ink);
+  opacity: .45;
+  margin-bottom: 8px;
 }
 .mobile-menu__inst-link {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 0;
-  font-family: var(--font-lovers-body, var(--font-body));
-  font-size: 14px;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 4px;
+  font-size: 16px;
+  font-weight: 600;
   font-style: normal;
-  color: var(--lovers-brown);
-  opacity: .5;
+  color: var(--ink);
+  opacity: 1;
   text-decoration: none;
-  border-bottom: 0;
+  border-bottom: 1px solid var(--line);
   line-height: 1.2;
 }
+.mobile-menu__inst-link:last-child { border-bottom: 0; }
 .mobile-menu__inst-link.locked { cursor: not-allowed; }
+.mobile-menu__inst-link.active { color: var(--page-accent-dark, var(--cyan-deep, #1f7a8c)); font-weight: 800; font-style: italic; }
+.mobile-menu__inst-link:focus-visible { outline: 2px solid var(--cyan-deep, #1f7a8c); outline-offset: 2px; border-radius: 5px; }
+
+/* ---------- RODAPÉ INSTITUCIONAL ---------- */
+/* Componente global do institucional (src/components/SiteFooter.jsx). Usa
+   .section (ritmo vertical) + .wrap (largura/gutter do container principal),
+   mesma régua da Home. Doc: src/design/SITE_DIRECTION.md (§ Rodapé). */
+.site-footer { background: var(--ink); color: rgba(255, 244, 236, 0.86); }
+.site-footer .wrap { width: 100%; }
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.8fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+.site-footer__col { min-width: 0; }
+.site-footer__h {
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--peach); margin: 0 0 16px;
+}
+/* Identidade */
+.site-footer__name {
+  display: inline-block; font-family: var(--font-display, var(--font-heading));
+  font-size: clamp(22px, 2.2vw, 28px); font-weight: 800; color: #FEF0DD;
+  line-height: 1.05; margin-bottom: 12px;
+}
+.site-footer__tagline { margin: 0 0 16px; font-size: 15px; line-height: 1.5; max-width: 34ch; }
+.site-footer__ig {
+  display: inline-block; font-weight: 800; color: var(--cyan, #4fc3d9);
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__ig:hover { color: #FEF0DD; }
+.site-footer__realiza { margin: 18px 0 0; font-size: 13px; line-height: 1.4; opacity: .8; }
+.site-footer__realiza strong { color: #FEF0DD; font-weight: 800; }
+/* Listas (navegação + info) */
+.site-footer__nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.site-footer__nav a {
+  color: rgba(255, 244, 236, 0.82); font-weight: 600; text-transform: lowercase;
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__nav a:hover { color: #FEF0DD; }
+.site-footer__nav a:focus-visible,
+.site-footer__ig:focus-visible,
+.site-footer__name:focus-visible { outline: 2px solid var(--cyan, #4fc3d9); outline-offset: 3px; border-radius: 4px; }
+/* Caixa de sugestões */
+.site-footer__suggest-help { margin: 0 0 16px; font-size: 14px; line-height: 1.5; opacity: .9; }
+.site-footer__form { display: grid; gap: 12px; }
+.site-footer__field { display: grid; gap: 6px; }
+.site-footer__field > span { font-size: 12.5px; font-weight: 700; color: rgba(255, 244, 236, 0.78); }
+.site-footer__field em { font-style: normal; font-weight: 500; opacity: .65; }
+.site-footer__field input,
+.site-footer__field textarea {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;
+  padding: 11px 13px; border-radius: 10px; color: #FEF0DD;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 244, 236, 0.18);
+  transition: border-color var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              background var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__field textarea { resize: vertical; min-height: 76px; }
+.site-footer__field input::placeholder,
+.site-footer__field textarea::placeholder { color: rgba(255, 244, 236, 0.4); }
+.site-footer__field input:focus,
+.site-footer__field textarea:focus {
+  outline: none; border-color: var(--cyan, #4fc3d9); background: rgba(255, 255, 255, 0.12);
+}
+.site-footer__send {
+  justify-self: start; margin-top: 2px; padding: 12px 22px; border: 0; border-radius: 999px;
+  font: inherit; font-weight: 800; cursor: pointer; color: var(--ink);
+  background: var(--accent); min-height: 44px;
+  transition: transform var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              background var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              opacity var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__send:hover { transform: translateY(-2px); }
+.site-footer__send:active { transform: translateY(0); }
+.site-footer__send:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.site-footer__send:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
+.site-footer__status:empty { display: none; }
+.site-footer__status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--peach); }
+@media (max-width: 900px) {
+  .site-footer__grid { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
+  .site-footer__brand, .site-footer__suggest { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .site-footer__grid { grid-template-columns: 1fr; gap: 32px; }
+  .site-footer__tagline { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__send, .site-footer__ig, .site-footer__nav a,
+  .site-footer__field input, .site-footer__field textarea { transition: none; }
+  .site-footer__send:hover { transform: none; }
+}
 .mobile-menu__inst-link svg { width: 11px; height: 11px; opacity: .6; }
 
 /* ---------- SIDEBAR DESKTOP ---------- */
@@ -616,13 +885,8 @@ button:disabled { cursor: not-allowed; }
   opacity: 0.6;
 }
 
-@media (min-width: 960px) {
-  .site-header { display: none; }
-  main, .site-footer { margin-left: var(--sidebar-w); }
-}
-@media (max-width: 959px) {
-  .site-sidebar { display: none; }
-}
+/* sidebar removido — nav agora é a barra de topo em todas as larguras */
+.site-sidebar { display: none; }
 
 /* ---------- COMBO RAIL (lista de participantes) — OCULTADO a pedido ---------- */
 .combo-rail {
@@ -2554,15 +2818,17 @@ button:disabled { cursor: not-allowed; }
 .sidebar__link--lovers::before {
   content: '';
   position: absolute; left: 7px; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 0; border-radius: 99px;
+  width: 3px; height: 66%; border-radius: 99px;
   background: var(--lovers-pink);
-  transition: height .18s ease, background .18s ease;
+  transform: translateY(-50%) scaleY(0);
+  transform-origin: center;
+  transition: transform .18s ease, background .18s ease;
 }
 .sidebar__link--lovers:hover {
   background: rgba(242, 5, 103, .07);
   transform: translateX(2px);
 }
-.sidebar__link--lovers:hover::before { height: 52%; }
+.sidebar__link--lovers:hover::before { transform: translateY(-50%) scaleY(0.79); }
 .sidebar__link-label {
   display: block;
   font-family: var(--font-lovers-body);
@@ -2590,7 +2856,7 @@ button:disabled { cursor: not-allowed; }
   border-left: none;
   padding-left: 18px;
 }
-.sidebar__link--lovers.lovers-active::before { height: 66%; background: var(--lovers-red); }
+.sidebar__link--lovers.lovers-active::before { transform: translateY(-50%) scaleY(1); background: var(--lovers-red); }
 .sidebar__link--lovers.lovers-active:hover { transform: none; }
 .sidebar__link--lovers.lovers-active .sidebar__link-label,
 .sidebar__link--lovers.lovers-active .sidebar__link-sub { color: var(--lovers-burgundy); }

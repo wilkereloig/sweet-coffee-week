@@ -1,142 +1,206 @@
+/*
+ * PÁGINA INSTITUCIONAL — Curiosidades do Sweet & Coffee Week.
+ * Arquivo afetivo e inteligente: transforma o acervo histórico (sweetHistory.js)
+ * em achados visuais — presenças recorrentes, hall dos premiados, referências por
+ * categoria, evolução do Sweet Awards e momentos marcantes. NÃO é "festival em
+ * números", NÃO repete a página Edições (sem timeline completa de edições) e NÃO
+ * mostra placeholders vazios. Rankings calculados em sweetHistoryStats.js (nada
+ * inventado; logos via resolver com fallback textual). Acento da página: amarelo
+ * (var(--page-accent), de body.route-curiosidades). Header/menu/rodapé GLOBAIS.
+ */
 import React from 'react'
 import { I } from '../../components/icons'
-import { PhotoEditorial } from '../../components/placeholders'
+import { PageShell, PageHero } from '../../components/layout'
+import {
+  getParticipantAppearances,
+  getAwardWins,
+  getAwardPodiums,
+  getCategoryLeaders,
+  getCategoryEvolution,
+  getParticipantAsset,
+} from '../../data/sweetHistoryStats'
 
-const CURIOSITY_ACCENTS = ['coral', 'yellow', 'cyan', 'chocolate']
+const combo = (slug) => `/images/combos/${slug}/main.jpg`
 
-function CuriosityCard({ tag, title, body, icon, index = 0 }) {
-  const Icon = I[icon] || I.star
-  const accent = CURIOSITY_ACCENTS[index % CURIOSITY_ACCENTS.length]
+// ---- dados calculados (puros, no load do módulo) ----
+const ALL_APPEARANCES = getParticipantAppearances()
+const RECURRING = ALL_APPEARANCES.slice(0, 8)
+const WINS = getAwardWins().slice(0, 6)
+const PODIUMS = getAwardPodiums().slice(0, 6)
+const LEADERS = getCategoryLeaders()
+const EVOLUTION = getCategoryEvolution()
+
+// Faixa "o acervo em números" — contagens reais (recorde 36 = 2019.2 Contos de Fadas,
+// ver ACERVO.md §8). Marcas distintas derivadas da base com nomes normalizados.
+const STATS = [
+  { n: '16', label: 'edições realizadas', sub: '2016 a 2026' },
+  { n: '10', label: 'anos de festival', sub: 'de Início a Lovers' },
+  { n: String(ALL_APPEARANCES.length), label: 'marcas já passaram pela rota', sub: 'nomes normalizados' },
+  { n: '36', label: 'participantes no recorde', sub: 'Contos de Fadas · 2019.2' },
+]
+
+// Categorias destacadas em cards (ordem editorial). Só entram se houver dado.
+const CATEGORY_CARDS = [
+  { key: 'Melhor Combo', hl: 'var(--coral)' },
+  { key: 'Melhor Doce', hl: 'var(--pink)' },
+  { key: 'Melhor Bebida', hl: 'var(--cyan-deep)' },
+  { key: 'Melhor Salgado', hl: 'var(--yellow-deep)' },
+  { key: 'Melhor Atendimento', hl: 'var(--coral-deep)' },
+  { key: 'Melhor Criatividade', hl: 'var(--cyan-deep)' },
+  { key: 'Melhor Apresentação', hl: 'var(--pink)' },
+  { key: 'Encantamento em Loja', hl: 'var(--coral)' },
+  { key: 'Melhor Sabor', hl: 'var(--yellow-deep)' },
+].filter((c) => LEADERS[c.key] && (LEADERS[c.key].wins.leaders.length || LEADERS[c.key].podiums.leaders.length))
+
+// Marcos da evolução (curados sobre fatos reais do acervo).
+const EVO_MARCOS = [
+  { code: '2019.1', theme: 'Pâtisserie Francesa', text: 'A primeira premiação encontrada: uma categoria única, Melhor Combo, na votação do público.' },
+  { code: '2020.2', theme: 'Heróis & Vilões', text: 'O Sweet Awards ganha corpo — múltiplas categorias e a distinção entre Júri Técnico e Sweet Lovers.' },
+  { code: '2021.2', theme: 'Terras Potiguares', text: 'Trilhas de Júri Técnico e Sweet Lovers consolidadas, em parceria com o Sebrae/RN e foco regional.' },
+  { code: '2025', theme: 'Celebration', text: 'A fase recente firma sete categorias por edição, do combo ao encantamento em loja.' },
+]
+
+// Achados do acervo — fatos reais deduzíveis das fontes (ACERVO.md §8; nada inventado).
+const ACHADOS = [
+  { hl: 'var(--coral)', t: 'A primeira premiação veio só na 7ª edição', d: 'De 2016 a 2018 o festival não teve premiação. O Sweet Awards estreia em 2019, na Pâtisserie Francesa, com uma única categoria: Melhor Combo — Jolie em 1º, Mr Cupcake em 2º e Sonho de Brownie em 3º.', photo: combo('jolie-cafe-patisserie'), brand: 'Jolie' },
+  { hl: 'var(--cyan-deep)', t: 'O recorde da rota é dos Contos de Fadas', d: 'A edição 2019.2 reuniu 36 participantes — quase o triplo da primeira edição, que começou com 13. Nenhuma outra temporada chegou lá até hoje.' },
+  { hl: 'var(--pink)', t: 'Só existe uma Menção Honrosa na história', d: 'Em Séries (2021.1), a categoria Envolvimento e Encantamento em Loja registrou uma menção honrosa para quatro marcas, sem ordem de colocação — caso único no acervo.' },
+  { hl: 'var(--yellow-deep)', t: 'Tem pódio dividido no acervo — e ficou assim', d: 'Vários 2º e 3º lugares terminaram empatados e foram preservados: de Cookorote e Paneer em Heróis & Vilões (2020.2) a Parma e Bolomania no Melhor Doce da edição Lovers.' },
+  { hl: 'var(--coral-deep)', t: 'O voto virou dois: júri e público', d: 'Desde Heróis & Vilões (2020.2), o Sweet Awards corre em duas trilhas — o Júri Técnico e os Sweet Lovers — e as duas contam nos rankings desta página.' },
+  { hl: 'var(--cyan-deep)', t: 'Na Lovers, cada marca revisitou uma edição', d: 'A 16ª edição, comemorativa dos 10 anos, deu a cada participante um tema do passado para recriar — e teve marca com cinco unidades na rota, caso da Caroli Douces.' },
+]
+
+// Logo do participante com fallback textual (iniciais). Nunca inventa imagem.
+function LogoChip({ name, size = 46 }) {
+  const a = getParticipantAsset(name)
+  const [broken, setBroken] = React.useState(false)
+  const show = a.logo && !broken
   return (
-    <article className={`curiosity-card card curiosity-card--${accent}`} data-index={index}>
-      <div className="curiosity-card__icon"><Icon width={24} height={24} /></div>
-      <span>{tag}</span>
-      <h2>{title}</h2>
-      <p>{body}</p>
-    </article>
+    <span className="cur-logo" style={{ width: size, height: size }}>
+      {show
+        ? <img src={a.logo} alt={`Logo ${name}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+        : <span className="cur-logo__fb" aria-hidden="true">{a.fallback}</span>}
+    </span>
   )
 }
 
+// Lista de nomes (com empates) → "A e B"
+const namesOf = (leaders) => leaders.map((l) => l.name).join(' e ')
+
 export function CuriosidadesPage({ navigate }) {
-  const cards = [
-    {
-      tag: 'Combo',
-      title: 'O combo é a assinatura.',
-      body: 'Doce, salgado e bebida formam a estrutura clássica do festival.',
-      icon: 'plate',
-    },
-    {
-      tag: 'Tema',
-      title: 'O tema guia a criação.',
-      body: 'Cada edição abre um universo criativo para os participantes.',
-      icon: 'star',
-    },
-    {
-      tag: 'Mapa',
-      title: 'O mapa cria a rota.',
-      body: 'O público circula por lojas, bairros e descobertas.',
-      icon: 'map',
-    },
-    {
-      tag: 'Sweet Lovers',
-      title: 'Os Sweet Lovers constroem a memória.',
-      body: 'Quem prova, fotografa, vota e compartilha também conta a história do festival.',
-      icon: 'heart',
-    },
-  ]
-
-  const rankings = [
-    { tag: 'Participação', title: 'Participantes com mais edições', icon: 'star' },
-    { tag: 'Sweet Awards', title: 'Maiores vencedores do Sweet Awards', icon: 'star' },
-    { tag: 'Pódios', title: 'Participantes com mais pódios', icon: 'star' },
-    { tag: 'Categorias', title: 'Campeões por categoria', icon: 'plate' },
-    { tag: 'Rota', title: 'Bairros mais presentes na rota', icon: 'map' },
-    { tag: 'Recordes', title: 'Edições com mais participantes', icon: 'star' },
-    { tag: 'Estreias', title: 'Marcas estreantes por edição', icon: 'heart' },
-    { tag: 'Pioneiros', title: 'Participantes pioneiros', icon: 'heart' },
-  ]
-
-  const rankingEmptyMessage = 'Em breve, este ranking será atualizado com os dados oficiais do Sweet & Coffee Week.'
-
-  const glossary = [
-    ['Sweet Lovers', 'O público apaixonado pelo festival: pessoas que acompanham, provam, fotografam, votam e compartilham a experiência.'],
-    ['Mapa da Doçura', 'Ferramenta que reúne participantes, endereços e rotas para o público planejar suas visitas.'],
-    ['Combo', 'Criação exclusiva do participante para a edição, normalmente formada por doce, salgado e bebida.'],
-    ['Sweet Awards', 'Premiação que reconhece os destaques da edição a partir da avaliação do público.'],
-    ['Edição temática', 'Cada temporada do Sweet & Coffee Week parte de um conceito central que orienta cardápio, comunicação, experiência e narrativa.'],
-    ['Rota SWC', 'O percurso que cada pessoa monta para visitar seus participantes favoritos durante a edição.'],
-  ]
+  const go = (path) => (e) => { e.preventDefault(); navigate(path); if (typeof window !== 'undefined') window.scrollTo(0, 0) }
 
   return (
-    <div className="page-enter curiosidades-page">
-      <section className="curiosidades-hero">
-        <img src="/images/shapes/shape-star-cyan.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-star" onError={(e) => { e.target.style.display = 'none' }} />
-        <img src="/images/shapes/shape-flower-coral.svg" alt="" aria-hidden className="curi-shape curi-shape--hero-flower" onError={(e) => { e.target.style.display = 'none' }} />
-        <div className="wrap curiosidades-hero__grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Curiosidades</span>
-            <h1>Por dentro do <span className="curi-accent-word">Sweet &amp; Coffee Week</span>.</h1>
-          </div>
-          <div className="curiosidades-hero__lead">
-            <p>
-              Toda edição do Sweet &amp; Coffee Week deixa histórias, números, rankings e bastidores que ajudam a contar a evolução do festival.
-            </p>
-            <p>
-              Esta página reúne curiosidades sobre participantes, vencedores, temas, bairros, recordes e movimentos que fizeram o Sweet &amp; Coffee Week se tornar uma tradição afetiva de Natal.
-            </p>
-          </div>
-        </div>
-      </section>
+    <PageShell name="cur">
+      {/* 1 — HERO editorial (componente <PageHero> — fonte única do hero institucional) */}
+      <PageHero
+        title={<>O lado mais curioso da história do <span className="keep-together"><span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>Sweet &amp; Coffee Week</span>.</span></>}
+        subtitle="Participantes recorrentes, marcas premiadas, categorias que nasceram com o tempo e achados do acervo ajudam a contar a trajetória do festival para além da linha do tempo."
+      />
 
-      <section className="section curiosity-photo-section">
-        <div className="wrap curiosity-photo-grid">
-          <div className="curiosity-photo-grid__big">
-            <PhotoEditorial src="/images/combos/casa-1190/main.jpg" alt="Combo de uma marca participante do Sweet & Coffee Week" caption="O público que prova, indica, fotografa, vota e acompanha o festival edição após edição." aspect="16/9" tone="warm" />
-          </div>
-          <PhotoEditorial src="/images/combos/jolie-cafe-patisserie/main.jpg" alt="Vitrine e combo de uma marca participante do Sweet & Coffee Week" caption="Cada participante interpreta o tema no cardápio, no atendimento e na experiência em loja." aspect="4/5" tone="coffee" />
-        </div>
-      </section>
-
-      <section className="section" style={{ background: 'var(--bg-soft)' }}>
+      {/* 2 — O ACERVO EM NÚMEROS (faixa compacta de contagens reais) */}
+      <section className="section cur-stats">
         <div className="wrap">
-          <div className="curiosity-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>O que faz o festival ser único</span>
-              <h2>Mais que uma semana de doces e cafés.</h2>
-            </div>
-            <p>O Sweet &amp; Coffee Week é feito de camadas: tema, combo, rota, público, votação, conteúdo e memória. É essa combinação que transforma cada edição em uma experiência de cidade.</p>
+          <ul className="cur-stats__row motion-stagger">
+            {STATS.map((s) => (
+              <li className="cur-stat" key={s.label}>
+                <strong className="cur-stat__n">{s.n}</strong>
+                <span className="cur-stat__label">{s.label}</span>
+                <span className="cur-stat__sub">{s.sub}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* 3 — MARCAS QUE ATRAVESSARAM EDIÇÕES (presenças recorrentes) */}
+      <section className="section cur-recur">
+        <div className="wrap">
+          <div className="cur-head motion-reveal-up">
+            <h2>Marcas que atravessaram <span className="cur-hl" style={{ '--hl': 'var(--page-accent, var(--yellow))' }}>edições</span></h2>
+            <p>Alguns participantes aparecem em diferentes fases do Sweet &amp; Coffee Week e ajudam a construir a memória afetiva do festival, ano após ano. Quem voltou mais vezes para a rota:</p>
           </div>
-          <div className="curiosity-card-grid">
-            {cards.map((card, i) => <CuriosityCard key={card.title} {...card} index={i} />)}
+          <ol className="cur-recur__list motion-stagger">
+            {RECURRING.map((p, i) => (
+              <li className={`cur-recur__item${i === 0 ? ' is-top' : ''}`} key={p.key}>
+                <span className="cur-recur__pos">{i + 1}º</span>
+                <LogoChip name={p.name} />
+                <span className="cur-recur__name">{p.name}</span>
+                <span className="cur-recur__themes">{p.themes.slice(0, 3).join(' · ')}{p.themes.length > 3 ? '…' : ''}</span>
+                <span className="cur-recur__count"><strong>{p.count}</strong><span>edições</span></span>
+              </li>
+            ))}
+          </ol>
+          <p className="cur-note">Presenças contadas por marca, com nomes normalizados para tratar variações de grafia ao longo dos anos.</p>
+        </div>
+      </section>
+
+      {/* 3 — HALL DOS PREMIADOS (vitórias e pódios, separados) */}
+      <section className="section cur-hall">
+        <div className="wrap">
+          <div className="cur-head motion-reveal-up">
+            <h2>Hall dos <span className="cur-hl" style={{ '--hl': 'var(--pink)' }}>premiados</span></h2>
+            <p>O Sweet Awards revela marcas que apareceram várias vezes entre os destaques. Vitórias contam apenas 1º lugar; pódios somam 1º, 2º e 3º — somando Júri Técnico e Sweet Lovers.</p>
+          </div>
+          <div className="cur-hall__grid motion-stagger">
+            <div className="cur-hall__col">
+              <h3 className="cur-hall__title"><span className="cur-hall__medal cur-hall__medal--gold" aria-hidden="true" />Mais vitórias <em>(1º lugar)</em></h3>
+              <ol className="cur-hall__rank">
+                {WINS.map((p, i) => (
+                  <li className={`cur-hall__row${i === 0 ? ' is-top' : ''}`} key={p.key}>
+                    <span className="cur-hall__pos">{i + 1}</span>
+                    <LogoChip name={p.name} size={42} />
+                    <span className="cur-hall__info"><span className="cur-hall__name">{p.name}</span><span className="cur-hall__cats">{p.cats.slice(0, 3).join(' · ')}</span></span>
+                    <span className="cur-hall__total">{p.total}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="cur-hall__col">
+              <h3 className="cur-hall__title"><span className="cur-hall__medal cur-hall__medal--bronze" aria-hidden="true" />Mais pódios <em>(1º a 3º)</em></h3>
+              <ol className="cur-hall__rank">
+                {PODIUMS.map((p, i) => (
+                  <li className={`cur-hall__row${i === 0 ? ' is-top' : ''}`} key={p.key}>
+                    <span className="cur-hall__pos">{i + 1}</span>
+                    <LogoChip name={p.name} size={42} />
+                    <span className="cur-hall__info"><span className="cur-hall__name">{p.name}</span><span className="cur-hall__cats">{p.cats.slice(0, 3).join(' · ')}</span></span>
+                    <span className="cur-hall__total">{p.total}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="section ranking-section">
-        <img src="/images/shapes/shape-badge-choco.svg" alt="" aria-hidden className="curi-shape curi-shape--ranking" onError={(e) => { e.target.style.display = 'none' }} />
+      {/* 4 — QUEM VIROU REFERÊNCIA EM CADA CATEGORIA */}
+      <section className="section cur-cats">
         <div className="wrap">
-          <div className="curiosity-section-head">
-            <div>
-              <span className="eyebrow"><span className="dot"></span>Rankings do acervo</span>
-              <h2>Os rankings do acervo SWC.</h2>
-            </div>
-            <p>Com os dados históricos organizados, esta página poderá revelar curiosidades sobre quem mais participou, quem mais venceu, quais temas mais engajaram e quais edições movimentaram mais a cidade.</p>
+          <div className="cur-head motion-reveal-up">
+            <h2>Quem virou referência em cada <span className="cur-hl" style={{ '--hl': 'var(--cyan-deep)' }}>categoria</span></h2>
+            <p>De Melhor Combo a Melhor Bebida, os resultados históricos mostram participantes que se destacaram repetidamente em áreas específicas da experiência. Empates aparecem como empate.</p>
           </div>
-          <div className="ranking-card-grid">
-            {rankings.map((rank, i) => {
-              const Icon = I[rank.icon] || I.star
-              const accent = CURIOSITY_ACCENTS[i % CURIOSITY_ACCENTS.length]
+          <div className="cur-cats__grid motion-stagger">
+            {CATEGORY_CARDS.map((c) => {
+              const L = LEADERS[c.key]
               return (
-                <article key={rank.title} className={`ranking-card card ranking-card--${accent}`}>
-                  <div className="ranking-card__head">
-                    <span className="ranking-card__icon"><Icon width={22} height={22} /></span>
-                    <span className="ranking-card__num">{String(i + 1).padStart(2, '0')}</span>
+                <article className="cur-cat" key={c.key} style={{ '--hl': c.hl }}>
+                  <h3 className="cur-cat__name">{c.key}</h3>
+                  <div className="cur-cat__lead">
+                    <span className="cur-cat__label">Mais vitórias</span>
+                    {L.wins.leaders.length ? (
+                      <div className="cur-cat__who">
+                        <LogoChip name={L.wins.leaders[0].name} size={38} />
+                        <span className="cur-cat__txt">{namesOf(L.wins.leaders)} <em>· {L.wins.n}×</em></span>
+                      </div>
+                    ) : <span className="cur-cat__txt cur-cat__txt--dim">—</span>}
                   </div>
-                  <span className="ranking-card__tag">{rank.tag}</span>
-                  <h3>{rank.title}</h3>
-                  <div className="ranking-card__status">
-                    <span className="ranking-card__chip"><span className="ranking-card__chip-dot"></span>Acervo em organização</span>
-                    <p>{rankingEmptyMessage}</p>
+                  <div className="cur-cat__lead">
+                    <span className="cur-cat__label">Mais pódios</span>
+                    <div className="cur-cat__who">
+                      <LogoChip name={L.podiums.leaders[0].name} size={38} />
+                      <span className="cur-cat__txt">{namesOf(L.podiums.leaders)} <em>· {L.podiums.n}×</em></span>
+                    </div>
                   </div>
                 </article>
               )
@@ -145,20 +209,53 @@ export function CuriosidadesPage({ navigate }) {
         </div>
       </section>
 
-      <section className="section glossary-section">
-        <div className="wrap glossary-grid">
-          <div>
-            <span className="eyebrow"><span className="dot"></span>Glossário do festival</span>
-            <h2>Palavras que fazem parte do universo SWC.</h2>
-            <p>Alguns nomes aparecem edição após edição e ajudam a contar como o público vive o Sweet &amp; Coffee Week.</p>
+      {/* 5 — AS CATEGORIAS TAMBÉM CONTAM A HISTÓRIA (mini timeline de marcos) */}
+      <section className="section cur-evo">
+        <div className="wrap">
+          <div className="cur-head motion-reveal-up">
+            <h2>As categorias também contam a <span className="cur-hl" style={{ '--hl': 'var(--yellow-deep)' }}>história</span></h2>
+            <p>No começo, a premiação encontrada era mais simples. Com o tempo, o Sweet Awards passou a reconhecer não só o combo, mas sabor, bebida, salgado, criatividade, apresentação, atendimento e encantamento em loja.</p>
           </div>
-          <div className="glossary-list">
-            {glossary.map(([term, description], i) => (
-              <article key={term}>
-                <span className="glossary-list__num">{String(i + 1).padStart(2, '0')}</span>
-                <div className="glossary-list__body">
-                  <h3>{term}</h3>
-                  <p>{description}</p>
+          <ol className="cur-evo__line motion-stagger">
+            {EVO_MARCOS.map((m) => {
+              const ev = EVOLUTION.find((x) => x.code === m.code)
+              return (
+                <li className="cur-evo__step" key={m.code}>
+                  <span className="cur-evo__node" aria-hidden="true" />
+                  <div className="cur-evo__card">
+                    <div className="cur-evo__top">
+                      <span className="cur-evo__code">{m.code}</span>
+                      <span className="cur-evo__theme">{m.theme}</span>
+                      {ev && <span className="cur-evo__pill">{ev.categories} categoria{ev.categories > 1 ? 's' : ''}</span>}
+                    </div>
+                    <p>{m.text}</p>
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+      </section>
+
+      {/* 7 — ACHADOS DO ACERVO (fatos reais, primeiras vezes e casos únicos) */}
+      <section className="section cur-moments">
+        <div className="wrap">
+          <div className="cur-head motion-reveal-up">
+            <h2>Achados do <span className="cur-hl" style={{ '--hl': 'var(--coral)' }}>acervo</span></h2>
+            <p>Primeiras vezes, recordes e casos únicos que só quem abre o arquivo do festival descobre — tudo deduzido dos registros das 16 edições.</p>
+          </div>
+          <div className="cur-cards motion-stagger">
+            {ACHADOS.map((c) => (
+              <article className={`cur-card${c.photo ? ' cur-card--photo' : ''}`} key={c.t} style={{ '--hl': c.hl }}>
+                {c.photo ? (
+                  <div className="cur-card__media">
+                    <img src={c.photo} alt={`Combo da ${c.brand} no Sweet & Coffee Week`} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.closest('.cur-card__media').classList.add('is-empty') }} />
+                    <span className="cur-card__logo"><LogoChip name={c.brand} size={52} /></span>
+                  </div>
+                ) : null}
+                <div className="cur-card__body">
+                  <h3>{c.t}</h3>
+                  <p>{c.d}</p>
                 </div>
               </article>
             ))}
@@ -166,119 +263,175 @@ export function CuriosidadesPage({ navigate }) {
         </div>
       </section>
 
-      <section className="section curiosity-dark">
-        <img src="/images/shapes/shape-arrow-yellow.svg" alt="" aria-hidden className="curi-shape curi-shape--dark" onError={(e) => { e.target.style.display = 'none' }} />
-        <div className="wrap curiosity-dark__grid">
+      {/* 7 — CTA Histórico do Sweet Awards */}
+      <section className="section cur-cta">
+        <div className="wrap cur-cta__inner motion-reveal-up">
+          <h2>Quer ver resultado por resultado?</h2>
+          <p>O histórico do Sweet Awards reúne categorias, edições, vencedores e pódios de cada temporada.</p>
+          <a href="#/sweet-awards" className="btn btn-primary btn-lg motion-press" onClick={go('/sweet-awards')}>
+            Ver histórico do Sweet Awards <I.arrow />
+          </a>
+        </div>
+      </section>
+
+      {/* 8 — CTA discreto p/ Edições (Curiosidades não mostra todas as edições) */}
+      <section className="section cur-edcta">
+        <div className="wrap cur-edcta__inner motion-reveal-up">
           <div>
-            <span className="eyebrow"><span className="dot"></span>Memória afetiva</span>
-            <h2>O festival é feito de temas, sabores e pessoas.</h2>
+            <h3>Quer ver a trajetória completa?</h3>
+            <p>A página Edições reúne a linha do tempo visual do Sweet &amp; Coffee Week, com temas, marcas, fotos e memórias de cada temporada.</p>
           </div>
-          <div>
-            <p>
-              Cada edição deixa um rastro: um combo favorito, uma cafeteria descoberta, uma foto salva, um amigo marcado, uma rota feita no fim de semana e uma história para lembrar.
-            </p>
-            <a href="#/edicoes" className="btn btn-accent btn-lg" onClick={(e) => { e.preventDefault(); navigate('/edicoes') }}>
-              Ver edições <I.arrow />
-            </a>
-          </div>
+          <a href="#/edicoes" className="btn btn-ghost motion-press" onClick={go('/edicoes')}>
+            Ver edições do festival <I.arrow />
+          </a>
         </div>
       </section>
 
       <style>{`
-        .curiosidades-page { position: relative; overflow-x: clip; }
-        .curi-shape { position: absolute; pointer-events: none; z-index: 0; }
-        .curi-shape--hero-star { top: clamp(24px, 7vw, 90px); right: clamp(-18px, -1vw, 12px); width: clamp(70px, 10vw, 132px); transform: rotate(-10deg); opacity: .92; animation: curiFloat 8s ease-in-out infinite; }
-        .curi-shape--hero-flower { bottom: -34px; left: clamp(-26px, -2vw, 6px); width: clamp(58px, 8vw, 104px); transform: rotate(8deg); opacity: .9; animation: curiFloat 9s ease-in-out infinite reverse; }
-        .curi-shape--ranking { top: clamp(-14px, -1vw, 8px); right: clamp(-22px, 1vw, 30px); width: clamp(64px, 8vw, 116px); transform: rotate(12deg); opacity: .85; }
-        .curi-shape--dark { bottom: clamp(-18px, -1vw, 10px); right: clamp(-16px, 2vw, 40px); width: clamp(58px, 8vw, 108px); transform: rotate(-8deg); opacity: .9; }
-        @keyframes curiFloat { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-12px) rotate(-6deg); } }
-        @media (prefers-reduced-motion: reduce) { .curi-shape { animation: none !important; } }
+        .cur-page { overflow-x: clip; }
+        .cur-page section { position: relative; }
+        .cur-page .keep-together { white-space: nowrap; }
+        .cur-hl { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--coral)); }
+        .cur-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
+        .cur-page h1, .cur-page h2, .cur-page h3 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
 
-        .curiosidades-hero { position: relative; padding: clamp(54px, 8vw, 112px) 0 40px; overflow: hidden; }
-        .curiosidades-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.18fr .82fr; gap: clamp(32px, 6vw, 90px); align-items: end; }
-        .curiosidades-hero h1 { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: clamp(54px, 8.4vw, 138px); line-height: .86; letter-spacing: -.055em; margin: 22px 0 0; color: var(--ink); text-wrap: balance; }
-        .curi-accent-word { color: var(--swc-coral, var(--accent)); }
-        .curiosidades-hero__lead { display: grid; gap: 16px; padding-bottom: 6px; }
-        .curiosidades-hero__lead { position: relative; }
-        .curiosidades-hero__lead::before { content: ''; position: absolute; left: -22px; top: 4px; bottom: 4px; width: 3px; border-radius: 3px; background: var(--swc-coral, var(--accent)); opacity: .55; }
-        .curiosidades-hero p { color: var(--ink-soft); margin: 0; line-height: 1.6; }
-        .curiosity-photo-section { padding-top: 28px; }
-        .curiosity-photo-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; align-items: stretch; }
-        .curiosity-photo-grid__big > figure, .curiosity-photo-grid > figure { height: 100%; min-height: 460px; aspect-ratio: auto !important; }
-        .curiosity-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 36px; }
-        .curiosity-section-head h2, .glossary-grid h2, .curiosity-dark h2 { font-family: var(--font-serif); font-size: clamp(40px, 6vw, 86px); line-height: .95; letter-spacing: -.045em; margin: 14px 0 0; }
-        .curiosity-section-head p { max-width: 440px; color: var(--ink-soft); line-height: 1.6; }
-        /* ── O que faz único: cards assimétricos, acento alternado ── */
-        .curiosity-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 16px; }
-        .curiosity-card { position: relative; min-height: 300px; display: flex; flex-direction: column; padding-top: clamp(22px, 2.4vw, 30px); border-top: 3px solid var(--c-accent, var(--accent)); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
-        .curiosity-card::after { content: ''; position: absolute; right: -38px; top: -38px; width: 96px; height: 96px; border-radius: 50%; background: var(--c-accent, var(--accent)); opacity: .07; transition: transform .4s ease, opacity .4s ease; }
-        .curiosity-card:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(56,22,16,.12); }
-        .curiosity-card:hover::after { transform: scale(1.35); opacity: .12; }
-        .curiosity-card--coral { --c-accent: var(--swc-coral, #F65D74); }
-        .curiosity-card--yellow { --c-accent: var(--swc-yellow, #FDBB1A); }
-        .curiosity-card--cyan { --c-accent: var(--swc-cyan, #01AFCC); }
-        .curiosity-card--chocolate { --c-accent: var(--swc-coffee, #6A2C15); }
-        /* primeiro card em destaque (assimetria) */
-        .curiosity-card[data-index="0"] { grid-column: span 2; }
-        .curiosity-card[data-index="0"] h2 { font-size: clamp(28px, 3.2vw, 40px); }
-        .curiosity-card__icon { position: relative; z-index: 1; color: var(--c-accent, var(--accent)); margin-bottom: clamp(20px, 3vw, 30px); }
-        .curiosity-card span { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-accent, var(--ink-mute)); font-weight: 600; }
-        .curiosity-card h2 { position: relative; z-index: 1; font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 25px; line-height: 1.02; letter-spacing: -.02em; margin: 12px 0 0; color: var(--ink); }
-        .curiosity-card p { position: relative; z-index: 1; margin: auto 0 0; padding-top: 18px; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+        .cur-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 780px; margin: 0 auto var(--sp-7); }
+        .cur-head h2 { font-size: var(--fs-display-md); line-height: .98; }
+        .cur-head p { max-width: 62ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; margin: 0; text-wrap: pretty; }
+        .cur-note { max-width: 70ch; margin: var(--sp-5) auto 0; text-align: center; color: var(--ink-soft); font-size: 13px; line-height: 1.5; opacity: .85; }
 
-        /* ── Rankings do acervo: módulos editoriais ── */
-        .ranking-section { position: relative; overflow: hidden; }
-        .ranking-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .ranking-card { position: relative; min-height: 256px; display: flex; flex-direction: column; padding-top: clamp(20px, 2.2vw, 28px); overflow: hidden; transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
-        .ranking-card::before { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: var(--c-accent, var(--accent)); }
-        .ranking-card:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(56,22,16,.12); }
-        .ranking-card--coral { --c-accent: var(--swc-coral, #F65D74); }
-        .ranking-card--yellow { --c-accent: var(--swc-yellow, #FDBB1A); }
-        .ranking-card--cyan { --c-accent: var(--swc-cyan, #01AFCC); }
-        .ranking-card--chocolate { --c-accent: var(--swc-coffee, #6A2C15); }
-        .ranking-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .ranking-card__icon { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: var(--c-accent, var(--accent)); }
-        .ranking-card__num { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 34px; line-height: 1; letter-spacing: -.04em; color: var(--c-accent, var(--ink)); opacity: .28; }
-        .ranking-card__tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-accent, var(--ink-mute)); font-weight: 600; }
-        .ranking-card h3 { font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: 21px; line-height: 1.06; letter-spacing: -.015em; margin: 8px 0 0; color: var(--ink); }
-        .ranking-card__status { margin: auto 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
-        .ranking-card__chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
-        .ranking-card__chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-accent, var(--accent)); animation: curiPulse 2.4s ease-in-out infinite; }
-        @keyframes curiPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
-        @media (prefers-reduced-motion: reduce) { .ranking-card__chip-dot { animation: none; } }
-        .ranking-card__status p { margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; }
-        .glossary-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 90px); align-items: start; }
-        .glossary-grid > div:first-child p { color: var(--ink-soft); line-height: 1.65; max-width: 44ch; }
-        .glossary-list { display: grid; }
-        .glossary-list article { display: grid; grid-template-columns: auto 1fr; gap: clamp(18px, 3vw, 36px); align-items: baseline; padding: clamp(22px, 3vw, 32px) 0; border-top: 1px solid var(--line); transition: transform .3s ease; }
-        .glossary-list article:first-child { border-top: 0; padding-top: 6px; }
-        .glossary-list article:hover { transform: translateX(6px); }
-        .glossary-list__num { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--swc-coral, var(--accent)); padding-top: .55em; }
-        .glossary-list__body { display: grid; gap: 8px; }
-        .glossary-list h3 { margin: 0; font-family: var(--font-display, var(--font-serif)); font-weight: 800; font-size: clamp(26px, 3.4vw, 42px); line-height: 1; letter-spacing: -.03em; color: var(--ink); }
-        .glossary-list p { margin: 0; color: var(--ink-soft); line-height: 1.6; max-width: 60ch; }
-        .curiosity-dark { position: relative; background: var(--ink); color: var(--bg); overflow: hidden; }
-        .curiosity-dark__grid { position: relative; z-index: 1; }
-        .curiosity-dark__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
-        .curiosity-dark h2 { color: var(--bg); }
-        .curiosity-dark p { color: rgba(255,244,236,.72); line-height: 1.7; font-size: 17px; }
-        @media (max-width: 1040px) {
-          .curiosidades-hero__grid, .curiosity-photo-grid, .glossary-grid, .curiosity-dark__grid { grid-template-columns: 1fr; }
-          .curiosidades-hero__lead::before { display: none; }
-          .curiosity-card-grid, .ranking-card-grid { grid-template-columns: repeat(2, 1fr); }
-          .curiosity-card[data-index="0"] { grid-column: span 2; }
-          .curiosity-section-head { flex-direction: column; align-items: flex-start; }
-          .curiosity-photo-grid__big > figure, .curiosity-photo-grid > figure { min-height: 340px; }
+        /* logo chip reutilizável */
+        .cur-logo { flex: 0 0 auto; display: grid; place-items: center; border-radius: 14px; background: #fff; border: 1px solid var(--paper-line); overflow: hidden; box-shadow: 0 6px 16px rgba(43,24,16,.14); }
+        .cur-logo img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+        .cur-logo__fb { font-family: var(--font-display); font-weight: 900; font-size: 15px; color: var(--ink); letter-spacing: -.02em; }
+
+        /* 1 — HERO chocolate + colagem */
+        /* HERO: agora no componente <Hero> + src/styles/hero.css (fonte única). */
+
+        /* 2 — O ACERVO EM NÚMEROS (faixa) */
+        .cur-stats { background: var(--cream); padding-bottom: 0; }
+        .cur-stats__row { list-style: none; margin: 0 auto; padding: var(--sp-5) var(--sp-6); max-width: 1040px; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+        .cur-stat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; }
+        .cur-stat__n { font-family: var(--font-display); font-weight: 900; font-size: clamp(30px, 3.4vw, 44px); line-height: 1; color: var(--page-accent-dark, var(--yellow-deep)); font-variant-numeric: tabular-nums; }
+        .cur-stat__label { font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--ink); line-height: 1.15; text-wrap: balance; }
+        .cur-stat__sub { font-family: var(--font-sans); font-size: 11.5px; color: var(--ink-soft); }
+
+        /* 3 — RECORRENTES (ranking visual) */
+        .cur-recur { background: var(--cream); }
+        .cur-recur__list { list-style: none; margin: 0 auto; padding: 0; max-width: 880px; display: flex; flex-direction: column; gap: var(--sp-3); }
+        .cur-recur__item { display: grid; grid-template-columns: 40px 46px 1fr auto; align-items: center; column-gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-5); box-shadow: var(--shadow-md); }
+        .cur-recur__item.is-top { border-color: rgba(248,181,17,.6); background: linear-gradient(180deg, #FFFBF2, var(--cream-card)); }
+        .cur-recur__pos { font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--page-accent-dark, var(--coral)); }
+        .cur-recur__item.is-top .cur-recur__pos { color: var(--yellow-deep); }
+        .cur-recur__name { font-family: var(--font-heading); font-weight: 800; font-size: clamp(15px, 1.5vw, 18px); color: var(--ink); }
+        .cur-recur__themes { grid-column: 3; font-size: 12.5px; color: var(--ink-soft); }
+        .cur-recur__count { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+        .cur-recur__count strong { font-family: var(--font-display); font-weight: 900; font-size: clamp(22px, 2.4vw, 30px); color: var(--ink); font-variant-numeric: tabular-nums; }
+        .cur-recur__count span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); margin-top: 3px; }
+
+        /* 3 — HALL (2 colunas) */
+        .cur-hall { background: var(--cream-deep, var(--bg-soft)); overflow: clip; }
+        .cur-hall__st { right: -28px; top: 36px; width: 150px; opacity: .14; transform: rotate(12deg); }
+        .cur-hall__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); position: relative; z-index: 1; }
+        .cur-hall__col { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); }
+        .cur-hall__title { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.7vw, 20px); color: var(--ink); margin: 0 0 var(--sp-5); }
+        .cur-hall__title em { font-style: normal; font-weight: 600; font-size: 13px; color: var(--ink-soft); }
+        .cur-hall__medal { width: 16px; height: 16px; border-radius: 999px; flex: 0 0 auto; box-shadow: inset 0 0 0 2px rgba(0,0,0,.12); }
+        .cur-hall__medal--gold { background: linear-gradient(160deg, #FFE08A, #E8A20C); }
+        .cur-hall__medal--bronze { background: linear-gradient(160deg, #E8B084, #B06A38); }
+        .cur-hall__rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+        .cur-hall__row { display: grid; grid-template-columns: 24px 42px 1fr auto; align-items: center; column-gap: var(--sp-3); }
+        .cur-hall__pos { font-family: var(--font-display); font-weight: 900; font-size: 16px; color: var(--ink-soft); text-align: center; }
+        .cur-hall__row.is-top .cur-hall__pos { color: var(--yellow-deep); }
+        .cur-hall__info { display: flex; flex-direction: column; min-width: 0; }
+        .cur-hall__name { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); line-height: 1.1; }
+        .cur-hall__cats { font-size: 11.5px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cur-hall__total { font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--pink); font-variant-numeric: tabular-nums; }
+
+        /* 4 — CATEGORIAS (cards) */
+        .cur-cats { background: var(--cream); }
+        .cur-cats__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+        .cur-cat { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: var(--sp-3); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease); }
+        .cur-cat:hover { transform: translateY(-3px); }
+        .cur-cat::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); }
+        .cur-cat__name { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.6vw, 19px); color: var(--ink); margin-bottom: var(--sp-2); }
+        .cur-cat__lead { display: flex; flex-direction: column; gap: 7px; }
+        .cur-cat__label { font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--hl, var(--coral)); }
+        .cur-cat__who { display: flex; align-items: center; gap: 10px; }
+        .cur-cat__txt { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.2; }
+        .cur-cat__txt em { font-style: normal; font-weight: 800; color: var(--ink-soft); }
+        .cur-cat__txt--dim { color: var(--ink-soft); }
+
+        /* 5 — EVOLUÇÃO (mini timeline marcos) */
+        .cur-evo { background: var(--cream-deep, var(--bg-soft)); overflow: clip; }
+        .cur-evo__st { left: -26px; top: 30px; width: 140px; opacity: .14; transform: rotate(-10deg); }
+        .cur-evo__line { list-style: none; margin: 0 auto; padding: 0 0 0 var(--sp-5); max-width: 820px; position: relative; z-index: 1; display: flex; flex-direction: column; gap: var(--sp-5); }
+        .cur-evo__line::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: linear-gradient(var(--yellow-deep), var(--paper-line)); opacity: .5; }
+        .cur-evo__step { position: relative; }
+        .cur-evo__node { position: absolute; left: calc(-1 * var(--sp-5) + 1px); top: 16px; width: 15px; height: 15px; border-radius: 999px; background: var(--yellow-deep); box-shadow: 0 0 0 4px var(--cream-deep, var(--bg-soft)); }
+        .cur-evo__card { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
+        .cur-evo__top { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+        .cur-evo__code { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--yellow-deep); }
+        .cur-evo__theme { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); }
+        .cur-evo__pill { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--cyan-deep); background: rgba(20,159,192,.12); padding: 3px 10px; border-radius: 999px; }
+        .cur-evo__card p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; text-wrap: pretty; }
+
+        /* 7 — ACHADOS DO ACERVO (cards de fatos) */
+        .cur-moments { background: var(--cream); overflow: clip; }
+        .cur-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); position: relative; z-index: 1; }
+        .cur-card--photo { grid-row: span 2; }
+        .cur-card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
+        .cur-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .cur-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--hl, var(--coral)); z-index: 2; }
+        .cur-card__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--swc-coffee, #6A2C15); }
+        .cur-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--motion-slow, .6s) var(--ease-out-soft, ease); }
+        .cur-card--photo:hover .cur-card__media img { transform: scale(1.05); }
+        .cur-card__media.is-empty { aspect-ratio: 16 / 5; }
+        .cur-card__media.is-empty img { display: none; }
+        .cur-card__logo { position: absolute; left: 14px; bottom: 14px; }
+        .cur-card__st { position: absolute; right: -16px; top: -16px; width: 96px; opacity: .2; transform: rotate(12deg); }
+        .cur-card__body { padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-3); }
+        .cur-card h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.14; margin: 0; color: var(--ink); text-wrap: balance; }
+        .cur-card p { color: var(--ink-soft); font-size: 15px; line-height: 1.5; margin: 0; text-wrap: pretty; }
+
+        /* 7 — CTA histórico */
+        .cur-cta { background: #5e3018; overflow: clip; }
+        .cur-cta__st { right: 8%; top: 24px; width: 90px; opacity: .3; transform: rotate(-10deg); }
+        .cur-cta__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+        .cur-cta h2 { color: var(--cream); font-size: clamp(26px, 3vw, 42px); line-height: 1.04; }
+        .cur-cta p { color: rgba(255,241,230,.82); font-size: var(--fs-lead); line-height: 1.4; margin: 0; }
+        .cur-cta .btn { min-height: 50px; margin: var(--sp-3) 0 0; }
+
+        /* 8 — CTA edições (discreto) */
+        .cur-edcta { background: var(--cream); }
+        .cur-edcta__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-5); flex-wrap: wrap; max-width: 920px; margin: 0 auto; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6) var(--sp-7); box-shadow: var(--shadow-sm); }
+        .cur-edcta__inner h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 1.8vw, 23px); color: var(--ink); margin: 0 0 6px; }
+        .cur-edcta__inner p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.45; max-width: 52ch; }
+        .cur-edcta .btn { flex: 0 0 auto; }
+
+        /* RESPONSIVO */
+        @media (max-width: 960px) {
+          .cur-hall__grid { grid-template-columns: 1fr; }
+          .cur-cats__grid { grid-template-columns: repeat(2, 1fr); }
+          .cur-cards { grid-template-columns: repeat(2, 1fr); }
         }
-        @media (max-width: 620px) {
-          .curiosity-card-grid, .ranking-card-grid { grid-template-columns: 1fr; }
-          .curiosity-card[data-index="0"] { grid-column: auto; }
-          .curiosity-card[data-index="0"] h2 { font-size: 25px; }
-          .glossary-list__num { padding-top: .35em; }
-          .curi-shape--hero-star { width: 64px; right: -8px; }
-          .curi-shape--hero-flower { width: 54px; }
+        @media (max-width: 720px) {
+          .cur-cards { grid-template-columns: 1fr; }
+          .cur-card--photo { grid-row: auto; }
+          .cur-stats__row { grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); }
+          .cur-edcta__inner { flex-direction: column; align-items: flex-start; }
+          .cur-edcta .btn { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 560px) {
+          .cur-cats__grid { grid-template-columns: 1fr; }
+          .cur-recur__item { grid-template-columns: 32px 42px 1fr auto; row-gap: 4px; }
+          .cur-recur__themes { grid-column: 3 / span 2; }
+          .cur-cta .btn { width: 100%; justify-content: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cur-card, .cur-cat, .cur-card__media img { transition: none; }
         }
       `}</style>
-    </div>
+    </PageShell>
   )
 }
