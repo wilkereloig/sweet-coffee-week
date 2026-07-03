@@ -205,8 +205,9 @@ export function EdicoesPage() {
     return () => { mqWide.removeEventListener('change', evaluate); mqMotion.removeEventListener('change', evaluate) }
   }, [])
 
-  // Desktop: trilho nativamente scrollável (scroll-snap). O wheel vertical do
-  // mouse/trackpad é redirecionado pra scrollLeft ENQUANTO o cursor está sobre a
+  // Desktop: trilho nativamente scrollável (overflow-x:auto, sem scroll-snap-type —
+  // ver comentário no CSS do .edx-track). O wheel vertical do mouse/trackpad é
+  // redirecionado pra scrollLeft ENQUANTO o cursor está sobre a
   // seção; nas bordas (1ª edição rolando pra cima / 16ª rolando pra baixo) o evento
   // não é interceptado — a página rola normal (sai pro hero acima / rodapé abaixo).
   React.useEffect(() => {
@@ -307,7 +308,7 @@ export function EdicoesPage() {
       </PageHero>
 
       {horizontal ? (
-        /* DESKTOP — trilho horizontal nativo (scroll-snap) + wheel-redirect */
+        /* DESKTOP — trilho horizontal nativo (overflow-x:auto) + wheel-redirect */
         <section
           ref={stageRef}
           className="edx-stage"
@@ -356,9 +357,22 @@ export function EdicoesPage() {
         .edx-hero-hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
 
         /* STAGE — bloco normal de 100vh no fluxo da página (sem scroll-jack). O
-           trilho é nativamente scrollável na horizontal (scroll-snap); o wheel
-           vertical é redirecionado por JS enquanto o cursor está sobre a seção
-           (ver useEffect "onWheel" no componente). */
+           trilho é nativamente scrollável na horizontal; o wheel vertical é
+           redirecionado por JS enquanto o cursor está sobre a seção (ver useEffect
+           "onWheel" no componente). SEM scroll-snap-type aqui de propósito: testado
+           ao vivo e "mandatory" reverte qualquer incremento pequeno de scrollLeft
+           de volta pro painel atual — um scroll de mouse real (~100-120px por
+           "clique") nunca ultrapassa o limiar de 50% pra confirmar o snap no
+           próximo painel, então o wheel-redirect simplesmente não se movia.
+           Cliques na navegação/teclado já pousam exatos via scrollTo(); não
+           dependem de CSS snap pra alinhar. Também SEM scroll-behavior:smooth
+           aqui — testado ao vivo e a versão CSS da propriedade faz o wheel-redirect
+           (que escreve scrollLeft várias vezes em rajada, uma por evento de wheel)
+           ler um valor ainda "no meio da animação" a cada escrita, então as escritas
+           se sobrepõem em vez de acumular (5 ticks reais de ~120px cada resultavam em
+           ~0px de movimento líquido). A suavidade dos saltos de clique/teclado não
+           depende disso: scrollTo() já recebe behavior:'smooth' na própria
+           chamada (ver pick()), independente do CSS. */
         .edx-stage { position: relative; height: 100vh; background: var(--cream); display: flex; flex-direction: column; outline: none; }
         .edx-stage:focus-visible { box-shadow: inset 0 0 0 3px var(--page-accent, var(--cyan)); }
         .edx-track {
@@ -366,8 +380,6 @@ export function EdicoesPage() {
           display: flex;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x mandatory;
-          scroll-behavior: smooth;
           padding-top: clamp(80px, 11vh, 130px);
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
@@ -390,7 +402,7 @@ export function EdicoesPage() {
         .edx-progress span { display: block; height: 100%; background: var(--page-accent, var(--cyan)); transition: width .2s ease; }
 
         /* SLIDE */
-        .edx-slide { min-width: 100vw; flex-shrink: 0; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); scroll-snap-align: start; scroll-snap-stop: always; }
+        .edx-slide { min-width: 100vw; flex-shrink: 0; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); }
         .edx-stage .edx-slide__left, .edx-stage .edx-slide__right {
           transition: opacity .45s var(--ease-out-soft, ease), transform .45s var(--ease-out-soft, ease);
         }
