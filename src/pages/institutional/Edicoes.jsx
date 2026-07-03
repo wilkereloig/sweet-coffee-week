@@ -100,15 +100,20 @@ function EditionLogoSlot({ e }) {
 // Foto principal + 3 mini, TODAS rotativas (crossfade via PhotoRotator) por
 // subconjuntos da galeria da edição — mostra vários participantes trocando, não
 // fotos fixas. Fallback "pendente" quando a edição não tem fotos no acervo.
-function EditionPhotoSlot({ e }) {
+// `live`: só o slide ativo (e vizinhos) monta a galeria rotativa completa. Slides
+// distantes mostram 1 foto estática por figura — evita ~380 <img> + dezenas de
+// setInterval montados de uma vez (freeze no 1º carregamento). Visual idêntico no
+// slide em foco; ao chegar, o rotator já está ativo.
+function EditionPhotoSlot({ e, live }) {
   const g = e.gallery
   const has = g.length > 0
   const sub = (k) => g.filter((_, i) => i % 3 === k)   // 3 trilhas intercaladas
+  const track = (imgs) => (live ? imgs : imgs.slice(0, 1))  // fora de foco: 1 img, sem timer
   return (
     <div className="edx-photo">
       <figure className={`edx-photo__main${has ? '' : ' is-fallback'}`}>
         {has
-          ? <PhotoRotator images={g} interval={4200} />
+          ? <PhotoRotator images={track(g)} interval={4200} />
           : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span className="edx-slot-fb__t">Foto principal pendente</span><span className="edx-slot-fb__s">Adicionar imagem da edição</span></span>}
       </figure>
       <div className="edx-photo__mini">
@@ -117,7 +122,7 @@ function EditionPhotoSlot({ e }) {
           return (
             <figure className={`edx-photo__thumb${s.length ? '' : ' is-fallback'}`} key={k}>
               {s.length
-                ? <PhotoRotator images={s} interval={5200 + k * 700} />
+                ? <PhotoRotator images={track(s)} interval={5200 + k * 700} />
                 : <span className="edx-slot-fb edx-slot-fb--sm"><span>Galeria pendente</span></span>}
             </figure>
           )
@@ -127,7 +132,7 @@ function EditionPhotoSlot({ e }) {
   )
 }
 
-function EditionSlide({ e }) {
+function EditionSlide({ e, live = true }) {
   return (
     <article className="edx-slide" id={`edx-panel-${e.number - 1}`} style={{ '--tone': `var(--${e.tone}, var(--page-accent))` }} aria-roledescription="slide" aria-label={`Edição ${e.number} de ${TOTAL} — ${e.theme} (${e.code})`}>
       <div className="edx-slide__inner">
@@ -147,7 +152,7 @@ function EditionSlide({ e }) {
           <div className="edx-slide__status"><StatusBadge status={e.status} special={e.special} /></div>
         </div>
         <div className="edx-slide__right">
-          <EditionPhotoSlot e={e} />
+          <EditionPhotoSlot e={e} live={live} />
         </div>
       </div>
     </article>
@@ -284,7 +289,7 @@ export function EdicoesPage() {
           <div className="edx-sticky">
             <div className="edx-viewport">
               <div ref={trackRef} className="edx-track" style={{ width: `${TOTAL * 100}vw` }}>
-                {PANELS.map((e) => <EditionSlide e={e} key={e.code} />)}
+                {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
               </div>
             </div>
             <div className="edx-progress" aria-hidden="true">
@@ -300,7 +305,7 @@ export function EdicoesPage() {
             <EditionNav active={active} onPick={pick} />
           </div>
           <div className="edx-stack__list">
-            {PANELS.map((e) => <EditionSlide e={e} key={e.code} />)}
+            {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
           </div>
         </section>
       )}
