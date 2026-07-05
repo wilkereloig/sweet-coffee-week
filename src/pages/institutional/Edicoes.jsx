@@ -184,7 +184,7 @@ function EditionNav({ active, onPick }) {
   )
 }
 
-export function EdicoesPage() {
+export function EdicoesPage({ navigate }) {
   const pageRef = React.useRef(null)
   const outerRef = React.useRef(null)
   // Observer de reveal p/ o <PageHero> (usa .motion-reveal-up; aqui não há
@@ -232,6 +232,8 @@ export function EdicoesPage() {
     if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }, [horizontal])
 
+  const go = (path) => (e) => { e.preventDefault(); navigate(path); if (typeof window !== 'undefined') window.scrollTo(0, 0) }
+
   return (
     <div className="page-enter edx-page">
       {/* HERO institucional — mesma peça das demais páginas (<PageHero>): fundo no
@@ -275,7 +277,7 @@ export function EdicoesPage() {
               </button>
             )}
 
-            {active < TOTAL - 1 && (
+            {active < TOTAL - 1 ? (
               <button
                 type="button"
                 className="edx-arrow edx-arrow--next"
@@ -284,6 +286,14 @@ export function EdicoesPage() {
               >
                 <I.chevronRight width={22} height={22} />
               </button>
+            ) : (
+              <a
+                href="/sweet-awards"
+                className="edx-arrow edx-arrow--cta"
+                onClick={go('/sweet-awards')}
+              >
+                Ver os vencedores no Sweet Awards
+              </a>
             )}
 
             <p className="edx-counter" aria-live="polite">
@@ -304,6 +314,11 @@ export function EdicoesPage() {
           </div>
           <div className="edx-stack__list">
             {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
+          </div>
+          <div className="edx-stack__cta">
+            <a href="/sweet-awards" className="edx-arrow edx-arrow--cta" onClick={go('/sweet-awards')}>
+              Ver os vencedores no Sweet Awards
+            </a>
           </div>
         </section>
       )}
@@ -357,6 +372,13 @@ export function EdicoesPage() {
         .edx-arrow:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; }
         .edx-arrow--prev { left: clamp(12px, 2vw, 32px); }
         .edx-arrow--next { right: clamp(12px, 2vw, 32px); }
+
+        .edx-arrow--cta { width: auto; height: auto; padding: 14px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
+        .edx-arrow--cta:hover { background: var(--cyan-deep); color: var(--cream); transform: translateY(-50%) scale(1.03); }
+
+        .edx-stack__cta { display: flex; justify-content: center; padding: 0 var(--page-gutter) var(--section-y, clamp(56px, 12vw, 96px)); }
+        .edx-stack__cta .edx-arrow--cta { position: static; transform: none; }
+        .edx-stack__cta .edx-arrow--cta:hover { transform: scale(1.03); }
 
         .edx-counter { position: absolute; top: clamp(20px, 3vh, 32px); left: 50%; transform: translateX(-50%); z-index: 4; margin: 0; font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft); background: color-mix(in srgb, var(--cream) 85%, transparent); border-radius: 999px; padding: 6px 16px; white-space: nowrap; }
 
