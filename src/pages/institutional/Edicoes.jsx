@@ -22,6 +22,7 @@ import React from 'react'
 import { I } from '../../components/icons'
 import { PageHero, HeroHL } from '../../components/layout'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
+import { useSteppedPresentation } from '../../hooks/useSteppedPresentation'
 import { EDITIONS } from '../../data/editions'
 import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { editionMark, TEN_YEARS_SEAL } from '../../data/editionAssets'
@@ -186,7 +187,6 @@ function EditionNav({ active, onPick }) {
 export function EdicoesPage() {
   const pageRef = React.useRef(null)
   const outerRef = React.useRef(null)
-  const trackRef = React.useRef(null)
   // Observer de reveal p/ o <PageHero> (usa .motion-reveal-up; aqui não há
   // PageShell, então a página provê o observer — igual às demais institucionais).
   useRevealOnScroll(pageRef)
@@ -205,31 +205,7 @@ export function EdicoesPage() {
     return () => { mqWide.removeEventListener('change', evaluate); mqMotion.removeEventListener('change', evaluate) }
   }, [])
 
-  // Scroll-driven: vertical → translateX do trilho. rAF, sem listener pesado.
-  React.useEffect(() => {
-    if (!horizontal) return
-    const outer = outerRef.current
-    const track = trackRef.current
-    if (!outer || !track) return
-    let raf = 0
-    const update = () => {
-      raf = 0
-      const vh = window.innerHeight
-      const vw = window.innerWidth
-      const dist = outer.offsetHeight - vh // distância de scroll vertical útil
-      const passed = Math.min(Math.max(-outer.getBoundingClientRect().top, 0), dist)
-      const progress = dist > 0 ? passed / dist : 0
-      const maxX = (TOTAL - 1) * vw
-      track.style.transform = `translate3d(${-progress * maxX}px,0,0)`
-      const idx = Math.round(progress * (TOTAL - 1))
-      setActive((prev) => (prev === idx ? prev : idx))
-    }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf) }
-  }, [horizontal])
+  useSteppedPresentation({ enabled: horizontal, stageRef: outerRef, total: TOTAL, active, setActive })
 
   // Modo vertical: observa qual painel está visível p/ acender o chip ativo.
   React.useEffect(() => {
@@ -248,19 +224,12 @@ export function EdicoesPage() {
     return () => io.disconnect()
   }, [horizontal])
 
-  // Clique na navegação → rola até a edição (horizontal: posição de scroll; vertical: o painel).
   const pick = React.useCallback((i) => {
+    if (horizontal) { setActive(i); return }
     if (typeof window === 'undefined') return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (horizontal && outerRef.current) {
-      const outer = outerRef.current
-      const dist = outer.offsetHeight - window.innerHeight
-      const top = outer.offsetTop + (i / (TOTAL - 1)) * dist
-      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
-    } else {
-      const el = document.getElementById(`edx-panel-${i}`)
-      if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-    }
+    const el = document.getElementById(`edx-panel-${i}`)
+    if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }, [horizontal])
 
   return (
@@ -283,12 +252,14 @@ export function EdicoesPage() {
         <section
           ref={outerRef}
           className="edx-stage"
-          style={{ height: `${TOTAL * 135}vh` }}
+          style={{ height: '130vh' }}
+          role="region"
+          aria-roledescription="carousel"
           aria-label="Apresentação das edições"
         >
           <div className="edx-sticky">
             <div className="edx-viewport">
-              <div ref={trackRef} className="edx-track" style={{ width: `${TOTAL * 100}vw` }}>
+              <div className="edx-track" style={{ width: `${TOTAL * 100}vw`, transform: `translateX(${-active * 100}vw)` }}>
                 {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
               </div>
             </div>
@@ -335,7 +306,7 @@ export function EdicoesPage() {
         .edx-stage { position: relative; background: var(--cream); }
         .edx-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         .edx-viewport { flex: 1; overflow: hidden; padding-top: clamp(80px, 11vh, 130px); }
-        .edx-track { display: flex; height: 100%; will-change: transform; }
+        .edx-track { display: flex; height: 100%; will-change: transform; transition: transform var(--motion-slow) var(--ease-spring-soft); }
 
         /* NAV — régua de apresentação na BASE da seção sticky (livre do menu) */
         .edx-nav { padding: var(--sp-3) var(--page-gutter); background: color-mix(in srgb, var(--cream) 88%, transparent); border-top: 1px solid var(--paper-line); }
