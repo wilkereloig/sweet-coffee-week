@@ -373,7 +373,7 @@ export function EdicoesPage({ navigate }) {
         .edx-arrow--prev { left: clamp(12px, 2vw, 32px); }
         .edx-arrow--next { right: clamp(12px, 2vw, 32px); }
 
-        .edx-arrow--cta { width: auto; height: auto; padding: 14px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
+        .edx-arrow--cta { right: clamp(12px, 2vw, 32px); width: auto; height: auto; padding: 14px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
         .edx-arrow--cta:hover { background: var(--cyan-deep); color: var(--cream); transform: translateY(-50%) scale(1.03); }
 
         .edx-stack__cta { display: flex; justify-content: center; padding: 0 var(--page-gutter) var(--section-y, clamp(56px, 12vw, 96px)); }
