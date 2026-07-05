@@ -263,6 +263,33 @@ export function EdicoesPage() {
                 {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
               </div>
             </div>
+
+            {active > 0 && (
+              <button
+                type="button"
+                className="edx-arrow edx-arrow--prev"
+                onClick={() => setActive((a) => Math.max(a - 1, 0))}
+                aria-label="Edição anterior"
+              >
+                <I.chevronLeft width={22} height={22} />
+              </button>
+            )}
+
+            {active < TOTAL - 1 && (
+              <button
+                type="button"
+                className="edx-arrow edx-arrow--next"
+                onClick={() => setActive((a) => Math.min(a + 1, TOTAL - 1))}
+                aria-label="Próxima edição"
+              >
+                <I.chevronRight width={22} height={22} />
+              </button>
+            )}
+
+            <p className="edx-counter" aria-live="polite">
+              {pad2(active + 1)} / {pad2(TOTAL)} — {PANELS[active].theme}
+            </p>
+
             <div className="edx-progress" aria-hidden="true">
               <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
             </div>
@@ -322,6 +349,21 @@ export function EdicoesPage() {
         /* PROGRESS */
         .edx-progress { height: 3px; background: var(--paper-line); }
         .edx-progress span { display: block; height: 100%; background: var(--page-accent, var(--cyan)); transition: width .2s ease; }
+
+        /* SETAS — controle principal da apresentação (substituem o texto .edx-nav__now
+           no desktop; o contador flutuante assume esse papel). */
+        .edx-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 999px; border: none; background: color-mix(in srgb, var(--ink) 55%, transparent); color: var(--cream); cursor: pointer; transition: background var(--motion-fast) var(--ease-out-soft), transform var(--motion-fast) var(--ease-out-soft); }
+        .edx-arrow:hover { background: color-mix(in srgb, var(--ink) 75%, transparent); transform: translateY(-50%) scale(1.06); }
+        .edx-arrow:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 3px; }
+        .edx-arrow--prev { left: clamp(12px, 2vw, 32px); }
+        .edx-arrow--next { right: clamp(12px, 2vw, 32px); }
+
+        .edx-counter { position: absolute; top: clamp(20px, 3vh, 32px); left: 50%; transform: translateX(-50%); z-index: 4; margin: 0; font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft); background: color-mix(in srgb, var(--cream) 85%, transparent); border-radius: 999px; padding: 6px 16px; white-space: nowrap; }
+
+        /* o contador flutuante substitui a leitura de progresso no desktop —
+           esconde o texto duplicado da barra inferior só nesse modo (mobile mantém,
+           não tem contador flutuante lá). */
+        .edx-sticky .edx-nav__now { display: none; }
 
         /* SLIDE */
         .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); }
