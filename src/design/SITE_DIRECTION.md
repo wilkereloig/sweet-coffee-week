@@ -355,7 +355,7 @@ da última edição (combos dos participantes), com troca sutil.
 ### Componente
 
 - **`src/components/PhotoRotator.jsx`** — crossfade automático (fade + leve scale).
-  Props: `images` (lista `{src, alt, participant?, type?}`), `interval`,
+  Props: `images` (lista `{src, alt, edition?, type?}`), `interval`,
   `className`, `eager` (prioriza a 1ª imagem). `object-fit: cover`, imagens
   empilhadas (sem layout shift), `loading="lazy"` salvo a 1ª do hero, `onError`
   esconde imagem que falhar. Pausa com aba oculta.
@@ -363,15 +363,16 @@ da última edição (combos dos participantes), com troca sutil.
 
 ### Dados
 
-- **`src/data/homeGalleries.js`** — `heroGalleryImages`, `aboutGalleryImages`,
-  `comboGalleryImages`. Derivados de `PARTICIPANTS` (nomes/slugs corretos),
-  referenciando só `main.jpg` de cada combo. `about` usa subconjunto equilibrado
-  (~8), não o acervo inteiro — performance.
+- **`src/data/homeGalleries.js`** — `heroGalleryImages`, `aboutGalleryImages`.
+  Curadoria manual sobre o acervo das 16 edições
+  (`/images/edicoes/<code>/NN.webp`): 1 foto por edição, ordem cronológica
+  (2016 → 2026.1), frames DIFERENTES entre hero e "O que é" (sem repetição).
 
 ### Aplicação na Home
 
 - **Hero** — `PhotoRotator` (`eager`, ~5200ms) dentro de `.swc-hero__photo`,
-  preservando a foto full-bleed e o overlay. Abre com `hero-festival.jpg`.
+  preservando a foto full-bleed e o overlay. Abre com a foto curada da
+  primeira edição (2016) e percorre a década em ordem cronológica.
 - **"O que é"** — `PhotoRotator` (~6800ms) dentro de `.hm-about__photo`,
   herdando a máscara badge. Intervalo diferente do hero → sensação orgânica.
 - A "colagem de 3 células" (`.hm-about__collage`/`.hm-card`) é CSS **não

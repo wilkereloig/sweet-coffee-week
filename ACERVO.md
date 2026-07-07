@@ -478,7 +478,7 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 - **Logos de participantes:** todos os 21 da edição Lovers têm logo em `/logos/participants/<slug>.png` (fonte: `participants.js`). O resolvedor `participantAssets.js` (`resolveParticipant`) conecta grafias históricas à logo real; quando não há logo, devolve **fallback textual de iniciais** — nunca inventa logo.
 - **Fotos de combo:** existem em `/images/combos/<slug>/main.jpg`. `comboPhotos.js` lista 19 fotos (faltam, nessa lista específica, `oli-gastro` e `casa-de-taipa-tapiocaria`); `homeGalleries.js` deriva 1 foto por participante de `PARTICIPANTS` (21).
 - **Logos de edição (marca por edição):** **não existem no acervo** (`editionAssets.js`: `EXISTING_MARKS` vazio). O resolvedor reserva o espaço e devolve fallback editorial (tema/label); caminho esperado: `/images/editions/<code>/logo.png`. Único asset de marca de edição existente hoje: **selo dos 10 anos** (`/images/selo-10anos.svg`), usado pela edição Lovers.
-- **Outros:** `hero-festival.jpg` (foto-assinatura da Home).
+- **Outros:** a Home e o hero de Participar abrem por combos reais (`main.jpg`); não há mais foto-assinatura avulsa (`hero-festival.jpg` foi removido).
 
 ### 6.3 Marcas recorrentes ao longo da história (derivado dos dados)
 

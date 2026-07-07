@@ -7,9 +7,9 @@
  * (--mask-badge). Usa o header/menu GLOBAL (src/components/nav.jsx via App.jsx)
  * — sem navegação própria. Direção: src/design/SITE_DIRECTION.md.
  *
- * Imagens: só acervo REAL do festival (combos em /images/combos/<slug>/main.jpg
- * e /images/hero-festival.jpg). Nada de foto inventada. Retrato de pessoa e logo
- * de marca dos depoimentos ainda não existem → placeholder seguro (iniciais).
+ * Imagens: só acervo REAL do festival (combos em /images/combos/<slug>/main.jpg).
+ * Nada de foto inventada. Retrato de pessoa e logo de marca dos depoimentos
+ * ainda não existem → placeholder seguro (iniciais).
  */
 import React from 'react'
 import { I } from '../../components/icons'
@@ -23,9 +23,9 @@ const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 const combo = (slug) => `/images/combos/${slug}/main.jpg`
 
 // Composição do hero — recortes reais que explicam a participação (combo / loja
-// / experiência). hero-festival.jpg é a foto-assinatura.
+// / experiência). Abre com o combo-assinatura (patisserie premium).
 const HERO_SHOTS = [
-  { src: '/images/hero-festival.jpg', alt: 'Sobremesa autoral de uma edição do Sweet & Coffee Week' },
+  { src: combo('douce-di-maria'), alt: 'Sobremesa autoral de uma edição do Sweet & Coffee Week' },
   { src: combo('caffe-basilicos'), alt: 'Combo do Caffè Basílicos em loja' },
   { src: combo('jolie-cafe-patisserie'), alt: 'Combo da Jolie Café & Patisserie' },
 ]
