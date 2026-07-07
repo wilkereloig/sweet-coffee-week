@@ -186,6 +186,14 @@ Não repetir a página Edições. **Não incluir**: timeline completa das 16 edi
 cronológica de todas as edições; cards de todas as edições; ranking de "maiores
 edições"; "edições com mais participantes" como destaque.
 
+**Edições não competem entre si (rejeição registrada, jul/2026).** Nenhum gráfico ou
+dado que compare edições umas com as outras — ex.: gráfico de linha de "participantes
+por edição" com pico/recorde foi rejeitado no redesign ("parece competição entre
+edições, isso não deve ocorrer"). Comparação/ranking só entre **participantes**
+(premiados, recorrentes), nunca entre edições. Linha do tempo permitida apenas como
+**marcos/primeiras vezes** (criação do Sweet Awards, trilhas de júri, Menção Honrosa
+única, edição comemorativa), sem números de tamanho por edição.
+
 Deve mostrar (com dados reais do acervo): achados do acervo; rankings criativos; marcas
 recorrentes; participantes mais premiados; vencedores por categoria; evolução das
 categorias do Sweet Awards; primeiras vezes; momentos marcantes.
