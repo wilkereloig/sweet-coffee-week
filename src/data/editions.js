@@ -6,7 +6,7 @@ export const EDITIONS = [
     etapa: 'A estreia',
     periodo: null,
     participantes: null,
-    desc: 'A primeira edição marcou o nascimento do Sweet & Coffee Week em Natal. Foi o início de uma proposta que se tornaria assinatura do festival: reunir marcas locais em uma rota de combos especiais, criados por tempo limitado.\n\nO público conheceu uma nova forma de viver cafeterias, docerias e confeitarias na cidade. Mais do que uma ação promocional, o Sweet & Coffee Week apresentou uma experiência de descoberta: visitar lugares, provar criações inéditas e participar de um roteiro gastronômico coletivo.',
+    desc: 'A primeira edição marcou o nascimento do Sweet & Coffee Week em Natal. Foi o ponto de partida de uma ideia simples, mas muito potente: reunir marcas locais em um circuito gastronômico com combos especiais, criados exclusivamente para um período limitado.\n\nMais do que apresentar produtos, a edição inaugural apresentou uma nova forma de viver cafeterias, docerias e confeitarias na cidade. O público passou a circular por diferentes endereços, descobrir marcas, experimentar combinações inéditas e transformar a visita a uma loja em programa de lazer.\n\nEssa primeira edição tem um valor especial porque deu origem à comunidade que cresceria junto com o festival. Foi ali que o Sweet & Coffee Week começou a construir sua identidade: uma mistura de doçura, café, descoberta, afeto e criatividade local.\n\nPara o público, a 1ª edição representa o começo de tudo. O primeiro convite para provar Natal de um jeito diferente.',
     visual: 'Xícara, vitrine, bolo, colher, balcão de cafeteria e o primeiro selo do festival.',
   },
   {
@@ -16,7 +16,7 @@ export const EDITIONS = [
     etapa: 'Chocolate e presente',
     periodo: null,
     participantes: null,
-    desc: 'A edição de Páscoa levou o Sweet & Coffee Week para um território altamente afetivo: chocolate, presente, família e celebração. Os participantes criaram combos inspirados nos símbolos pascais e no desejo de transformar a data em experiência gastronômica.\n\nFoi uma edição importante para mostrar que o festival poderia se conectar a momentos sazonais do calendário e transformar datas comemorativas em rotas de consumo, memória e compartilhamento.',
+    desc: 'A edição Páscoa trouxe para o Sweet & Coffee Week uma das datas mais afetivas e aguardadas do calendário gastronômico. O chocolate, os ovos, os recheios cremosos, os presentes e os símbolos pascais serviram como ponto de partida para criações especiais.\n\nFoi uma edição importante para mostrar que o festival tinha força para se conectar com momentos sazonais e transformar datas comemorativas em experiências de sabor. A Páscoa deixou de ser apenas uma data de compra de chocolate e ganhou uma camada de descoberta, roteiro e experimentação.\n\nOs participantes puderam explorar combinações mais indulgentes, doces mais marcantes, cafés intensos e apresentações com apelo de presente. Para o público, a experiência era viver a Páscoa fora do óbvio: não apenas comprar um produto, mas sair pela cidade em busca de sabores criados especialmente para aquele momento.\n\nA edição consolidou o Sweet & Coffee Week como um evento capaz de unir desejo, memória e ocasião.',
     visual: 'Ovos, coelhos, chocolate derretido, cestas e embalagens presenteáveis.',
   },
   {
@@ -26,7 +26,7 @@ export const EDITIONS = [
     etapa: 'Viagem gastronômica',
     periodo: null,
     participantes: null,
-    desc: 'Com Doces do Mundo, o Sweet & Coffee Week ampliou seu repertório criativo e convidou o público a viajar por culturas, países e sobremesas internacionais sem sair de Natal.\n\nCada participante pôde traduzir um destino em sabores, apresentação e narrativa. A edição abriu caminho para uma das grandes forças do festival: transformar um tema em experiência cultural, sensorial e fotogênica.',
+    desc: 'Com Doces do Mundo, o Sweet & Coffee Week abriu uma das suas primeiras grandes portas criativas: a viagem gastronômica. A proposta convidava os participantes a buscarem inspiração em países, culturas, sobremesas internacionais e sabores de diferentes partes do mundo.\n\nEssa edição ampliou o repertório do festival. O público não visitava apenas uma cafeteria ou doceria; ele era convidado a viajar sem sair de Natal. Cada combo podia representar um país, uma memória de viagem, uma confeitaria clássica, uma sobremesa típica ou uma interpretação autoral de sabores internacionais.\n\nDoces do Mundo mostrou que o Sweet & Coffee Week podia ser também uma experiência cultural. A comida passou a funcionar como passaporte simbólico: cada doce, salgado e bebida abria uma nova possibilidade de descoberta.\n\nFoi uma edição que ajudou a fortalecer a vocação temática do festival e preparou o caminho para edições cada vez mais imersivas.',
     visual: 'Globo, mala, passaporte, carimbos, bandeiras e mapas.',
   },
   {
@@ -36,7 +36,7 @@ export const EDITIONS = [
     etapa: 'Afeto à mesa',
     periodo: null,
     participantes: null,
-    desc: 'A edição Namorados trouxe uma atmosfera de encontro, carinho e experiências compartilhadas. Os combos passaram a conversar com presentes, encontros a dois, sabores delicados e momentos especiais.\n\nO tema reforçou um ponto essencial do Sweet & Coffee Week: a comida como memória. O público não buscava apenas um doce, um salgado e uma bebida, mas uma experiência para viver com alguém.',
+    desc: 'A edição Namorados trouxe uma atmosfera de afeto, encontros e experiências compartilhadas. O tema dialogava com o amor, os presentes, os momentos a dois e a vontade de transformar uma saída para comer em uma lembrança especial.\n\nOs combos passaram a explorar cores, sabores e apresentações mais delicadas, muitas vezes pensadas para serem divididas ou presenteadas. Chocolate, morango, cafés especiais, sobremesas românticas e embalagens com apelo afetivo ganharam espaço nas criações.\n\nMas o maior valor dessa edição foi mostrar que o Sweet & Coffee Week não é apenas sobre consumo. É sobre criar momentos. A ida a uma loja participante podia virar encontro, surpresa, convite, foto, conversa e memória.\n\nNamorados reforçou um dos pilares mais importantes do festival: a gastronomia como experiência emocional. O público não buscava apenas provar um combo; buscava viver uma ocasião.',
     visual: 'Corações, mesas para dois, envelopes, fitas e embalagens de presente.',
   },
   {
@@ -46,7 +46,7 @@ export const EDITIONS = [
     etapa: 'Memória afetiva',
     periodo: null,
     participantes: null,
-    desc: 'Uma das edições mais nostálgicas do Sweet & Coffee Week, Sabores da Infância resgatou lembranças de lancheira, casa de avó, festa infantil, recreio, bolo caseiro e guloseimas que marcaram gerações.\n\nA edição mostrou a força da memória afetiva dentro do festival. Cada combo podia funcionar como uma lembrança em forma de sabor, aproximando o público das marcas por meio de histórias pessoais e coletivas.',
+    desc: 'Sabores da Infância foi uma das edições mais afetivas da trajetória do Sweet & Coffee Week. O tema convidou participantes e público a voltarem para lembranças simples, familiares e emocionais: lanche da escola, bolo de vó, festa infantil, recreio, receitas de casa, sobremesas antigas e sabores que marcaram gerações.\n\nA edição trabalhou a nostalgia como ingrediente principal. Cada combo podia despertar uma lembrança: o doce que parecia feito em casa, o salgado que lembrava lancheira, a bebida que remetia à infância ou a apresentação que trazia de volta brincadeiras, cores e símbolos de outros tempos.\n\nPara o público, essa edição teve um apelo muito forte porque conectava sabor e memória afetiva. Não era apenas sobre experimentar algo novo, mas sobre reencontrar sensações conhecidas em uma versão criativa.\n\nSabores da Infância mostrou que o Sweet & Coffee Week também é um festival de histórias pessoais. Cada pessoa podia provar um combo e lembrar de um momento da própria vida.',
     visual: 'Pipa, balão, brinquedos, lancheira, pirulito, caderno e bolo de vó.',
   },
   {
@@ -56,7 +56,7 @@ export const EDITIONS = [
     etapa: 'Técnica e elegância',
     periodo: null,
     participantes: null,
-    desc: 'A edição Pâtisserie Francesa levou o Sweet & Coffee Week para o universo da confeitaria clássica. Massas, cremes, vitrines, macarons, éclairs, croissants e referências francesas inspiraram criações mais refinadas e apresentações mais elaboradas.\n\nFoi uma edição importante para elevar o repertório estético e técnico do festival, incentivando participantes a trabalharem com mais sofisticação visual e gastronômica.',
+    desc: 'A edição Pâtisserie Francesa trouxe sofisticação, técnica e elegância para o centro do festival. Inspirada na tradição da confeitaria francesa, essa edição convidou os participantes a explorarem massas, cremes, folhados, macarons, éclairs, tartelettes, croissants e apresentações mais refinadas.\n\nFoi uma edição importante para elevar o padrão visual e gastronômico do Sweet & Coffee Week. As criações passaram a dialogar com um universo mais técnico, delicado e clássico, aproximando o público de referências da confeitaria internacional.\n\nPara os participantes, o tema era um desafio de execução e apresentação. Para o público, era uma oportunidade de experimentar interpretações acessíveis de uma confeitaria associada à delicadeza, ao cuidado e ao detalhe.\n\nPâtisserie Francesa reforçou que o festival podia transitar entre o popular e o sofisticado. O Sweet & Coffee Week continuava acessível, mas abria espaço para criações mais elaboradas, com estética mais refinada e narrativa mais gastronômica.',
     visual: 'Croissant, éclair, macaron, vitrine francesa, flor-de-lis e molduras clássicas.',
   },
   {
@@ -66,7 +66,7 @@ export const EDITIONS = [
     etapa: 'Imaginação',
     periodo: null,
     participantes: null,
-    desc: 'Em Contos de Fadas, o Sweet & Coffee Week mergulhou em um universo lúdico, mágico e visual. Castelos, coroas, poções, florestas encantadas, maçãs, livros e personagens inspiraram doces, salgados, bebidas e ambientações.\n\nFoi uma edição com grande força instagramável, reforçando a capacidade do festival de transformar lojas em cenários e combos em pequenas narrativas comestíveis.',
+    desc: 'Contos de Fadas transformou o Sweet & Coffee Week em um universo lúdico. Castelos, florestas encantadas, coroas, poções, personagens, vilões, princesas, livros mágicos e histórias clássicas serviram como inspiração para combos criativos e cheios de apelo visual.\n\nEssa edição teve grande força imagética. As lojas puderam trabalhar decoração, ambientação, nomes fantasiosos, cores vibrantes e apresentações que pareciam sair de uma narrativa encantada. O combo deixava de ser apenas uma combinação de itens e passava a parecer parte de uma história.\n\nPara o público, a edição estimulava a curiosidade e a vontade de fotografar. Cada loja podia se transformar em cenário, e cada combo podia representar um pequeno capítulo desse mundo mágico.\n\nContos de Fadas reforçou a capacidade do Sweet & Coffee Week de criar experiências instagramáveis, emocionais e narrativas. Foi uma edição que aproximou gastronomia, fantasia e entretenimento.',
     visual: 'Castelos, coroas, maçãs, livros mágicos, estrelas e varinhas.',
   },
   {
@@ -76,7 +76,7 @@ export const EDITIONS = [
     etapa: 'Trilha sonora',
     periodo: null,
     participantes: null,
-    desc: 'A edição No Ritmo da Música traduziu estilos musicais, artistas, playlists, shows e memórias sonoras em experiências gastronômicas.\n\nEm um período desafiador para o setor, o Sweet & Coffee Week mostrou capacidade de adaptação e manteve sua força criativa. A música funcionou como ponto de encontro entre energia, nostalgia, cultura pop e sabor.',
+    desc: 'No Ritmo da Música levou o festival para o universo das trilhas sonoras, dos artistas, dos gêneros musicais e das sensações provocadas pelo som. A proposta convidava os participantes a criarem combos inspirados em músicas, ritmos, shows, playlists, palcos e memórias sonoras.\n\nA edição tinha energia, movimento e personalidade. Cada combo podia traduzir um estilo musical: algo mais pop, mais clássico, mais romântico, mais intenso, mais brasileiro ou mais nostálgico. A música virava sabor, cor, textura e nome.\n\nRealizada em um período desafiador para o setor gastronômico, essa edição também mostrou a capacidade de adaptação do Sweet & Coffee Week. Mesmo diante de um contexto mais complexo, o festival manteve sua força criativa e ajudou a manter o público conectado às marcas locais.\n\nNo Ritmo da Música reforçou que o Sweet & Coffee Week acompanha o comportamento das pessoas. Afinal, assim como a música, comida também cria memória, emoção e pertencimento.',
     visual: 'Vinil, microfone, fone, notas musicais, palco e equalizador.',
   },
   {
@@ -86,7 +86,7 @@ export const EDITIONS = [
     etapa: 'Cultura pop',
     periodo: null,
     participantes: null,
-    desc: 'Heróis & Vilões trouxe para o Sweet & Coffee Week uma linguagem gráfica, intensa e cheia de contrastes. O tema permitiu explorar dualidades como claro e escuro, doce e amargo, poder e tentação.\n\nA edição dialogou com quadrinhos, filmes, personagens e universos de aventura, reforçando o festival como uma plataforma capaz de transformar referências populares em experiências gastronômicas criativas.',
+    desc: 'Heróis & Vilões trouxe a cultura pop para o centro da experiência gastronômica. Quadrinhos, filmes, personagens, poderes, missões, dualidades e conflitos entre bem e mal serviram como inspiração para criações marcantes.\n\nEssa edição permitiu aos participantes explorar contrastes: doce e amargo, claro e escuro, suave e intenso, heróico e sombrio. Os combos podiam brincar com cores fortes, nomes impactantes, apresentações dramáticas e sabores mais ousados.\n\nPara o público, a edição tinha apelo imediato. Era divertida, visual, reconhecível e cheia de referências. Ao mesmo tempo, exigia cuidado criativo para não depender apenas de personagens famosos, mas transformar o tema em narrativa gastronômica autoral.\n\nHeróis & Vilões consolidou o Sweet & Coffee Week como um festival flexível, capaz de conversar com cultura pop, entretenimento e fandoms sem perder sua essência gastronômica.',
     visual: 'Máscaras, capas, raios, escudos, explosões de HQ e emblemas.',
   },
   {
@@ -96,7 +96,7 @@ export const EDITIONS = [
     etapa: 'Maratona de sabores',
     periodo: null,
     participantes: null,
-    desc: 'A edição Séries conectou o Sweet & Coffee Week ao comportamento do público e ao crescimento da cultura dos streamings. Personagens, episódios, temporadas, fandoms, maratonas e comfort food inspiraram os combos.\n\nO tema aproximou o festival da linguagem pop contemporânea e reforçou a ideia de comunidade: assim como as séries criam fãs, o Sweet & Coffee Week também construiu seus próprios Sweet Lovers.',
+    desc: 'A edição Séries dialogou diretamente com o comportamento do público em uma época marcada pelo crescimento dos streamings, das maratonas e das comunidades de fãs em torno de universos narrativos.\n\nO tema permitiu que os participantes criassem combos inspirados em episódios, temporadas, personagens, gêneros e atmosferas de séries. Comfort food, pipoca, café para acompanhar uma maratona, doces de sofá e salgados com clima de entretenimento ganharam espaço como territórios criativos.\n\nPara o público, a edição tinha um ponto de identificação muito forte. Quase todo mundo tem uma série favorita, uma cena marcante, um personagem querido ou uma história que acompanhou por muito tempo. O combo funcionava como uma forma de materializar essa relação afetiva.\n\nSéries reforçou o posicionamento pop do Sweet & Coffee Week e mostrou como o festival consegue traduzir hábitos culturais contemporâneos em experiências gastronômicas.',
     visual: 'Tela, controle remoto, sofá, botão play, legenda, pipoca e frames.',
   },
   {
@@ -106,7 +106,7 @@ export const EDITIONS = [
     etapa: 'Identidade local',
     periodo: null,
     participantes: null,
-    desc: 'Terras Potiguares foi um dos marcos mais importantes da história do Sweet & Coffee Week. A edição aproximou o festival da identidade gastronômica do Rio Grande do Norte, valorizando ingredientes, produtores, paisagens e memórias locais.\n\nCaju, castanha, coco, queijo coalho, nata, mel de engenho, frutas regionais e outros sabores do território potiguar ganharam protagonismo nos combos. Mais do que uma edição temática, foi uma celebração da cultura local e da potência criativa da gastronomia urbana de Natal.',
+    desc: 'Terras Potiguares foi uma das edições mais importantes da história do Sweet & Coffee Week. O tema colocou o Rio Grande do Norte no centro da criação, valorizando ingredientes locais, produtores regionais, memória gastronômica e identidade cultural.\n\nCaju, castanha, nata, queijo coalho, coco, mel de engenho, frutas regionais, camarão e outros elementos do território potiguar ganharam protagonismo nos combos. A proposta era transformar sabores conhecidos do estado em experiências criativas, contemporâneas e especiais.\n\nEssa edição aproximou o festival da cadeia produtiva local e reforçou o orgulho de consumir ingredientes do próprio território. Mais do que uma edição temática, Terras Potiguares funcionou como uma homenagem ao RN: suas paisagens, seus sabores, sua cultura e sua forma de receber.\n\nPara o público, a experiência tinha um valor diferente. Era uma oportunidade de reconhecer Natal e o Rio Grande do Norte no prato, no copo, no aroma e na memória.',
     visual: 'Caju, castanha, coco, queijo coalho, nata, sol, dunas, mar e símbolos de Natal.',
   },
   {
@@ -116,7 +116,7 @@ export const EDITIONS = [
     etapa: 'Cinema',
     periodo: null,
     participantes: null,
-    desc: 'Em Movies, o Sweet & Coffee Week transformou a experiência da tela grande em sabor. Filmes, gêneros cinematográficos, cenas clássicas, pipoca, tapete vermelho, protagonistas e vilões inspiraram os participantes.\n\nA edição reforçou o festival como entretenimento gastronômico: cada combo podia parecer uma cena, um roteiro ou uma sessão especial criada para o público viver e compartilhar.',
+    desc: 'Movies levou o cinema para dentro das cafeterias, docerias e restaurantes participantes. Filmes, gêneros cinematográficos, cenas marcantes, pipoca, tapete vermelho, claquetes, câmeras e a experiência da sala de cinema inspiraram os combos da edição.\n\nA proposta era transformar referências audiovisuais em sabor. Um combo podia lembrar uma comédia romântica, uma aventura, um clássico, um musical, um suspense ou uma sessão especial com pipoca e café. O cinema virava doce, salgado, bebida e apresentação.\n\nPara o público, Movies tinha um apelo muito forte porque unia duas experiências de lazer muito queridas: comer bem e assistir histórias. O festival passou a funcionar como uma espécie de sessão gastronômica pela cidade.\n\nEssa edição reforçou o potencial do Sweet & Coffee Week como entretenimento. Cada loja podia criar sua própria cena, seu próprio roteiro e seu próprio protagonista em forma de combo.',
     visual: 'Claquete, ingresso, pipoca, projetor, câmera, rolo de filme e tapete vermelho.',
   },
   {
@@ -126,7 +126,7 @@ export const EDITIONS = [
     etapa: 'Rota pelo mundo',
     periodo: null,
     participantes: null,
-    desc: 'A edição Trip levou os Sweet Lovers a uma viagem sensorial. Mapas, malas, passaportes, destinos, culturas e lembranças de viagem inspiraram uma rota de sabores pelo mundo.\n\nA proposta tinha tudo a ver com a lógica do próprio Sweet & Coffee Week: circular, descobrir, experimentar e montar um roteiro. O público viajou por diferentes referências gastronômicas sem sair de Natal e região.',
+    desc: 'Trip transformou o Sweet & Coffee Week em uma volta ao mundo sensorial. Viagens, destinos, culturas, aeroportos, mapas, passaportes, malas, cartões-postais e sabores internacionais serviram como ponto de partida para os participantes.\n\nA edição convidava o público a embarcar em uma jornada gastronômica por Natal e região. Cada loja podia representar um destino, uma memória de viagem, uma culinária típica ou uma interpretação afetiva de algum lugar do Brasil ou do mundo.\n\nTrip se conectou muito bem com a própria lógica do festival: montar roteiro, escolher paradas, circular pela cidade e descobrir experiências diferentes. O público não apenas provava combos; ele criava seu próprio percurso.\n\nEssa edição reforçou a ideia de que o Sweet & Coffee Week é também uma rota. Uma forma de passear pela cidade, conhecer novos endereços e viajar por sabores sem precisar sair de Natal.',
     visual: 'Mala, passaporte, avião, bússola, câmera, postal, mapa e carimbos.',
   },
   {
@@ -136,7 +136,7 @@ export const EDITIONS = [
     etapa: 'Literatura e café',
     periodo: null,
     participantes: null,
-    desc: 'A edição Books, também conhecida como Livraria da Doçura, transformou livros, personagens, capítulos, gêneros literários e o prazer de ler acompanhado de um café em experiências gastronômicas.\n\nFoi uma edição de forte dimensão narrativa: cada combo podia ser lido como uma história. O tema reforçou o lado cultural do Sweet & Coffee Week e sua capacidade de aproximar gastronomia, imaginação e memória.',
+    desc: 'Books, também lembrada pela atmosfera de Livraria da Doçura, aproximou o Sweet & Coffee Week do universo da literatura. Livros, personagens, capítulos, bibliotecas, livrarias, romances, fantasias, mistérios, clássicos e histórias contemporâneas inspiraram os combos da edição.\n\nA proposta era transformar leitura em experiência gastronômica. Cada combo podia funcionar como uma página aberta: um sabor que remetia a um personagem, uma bebida que lembrava um cenário, um doce inspirado em uma emoção ou um salgado pensado como parte de uma narrativa.\n\nPara o público, Books teve um apelo cultural e afetivo muito especial. A edição falava com quem ama café, doces e boas histórias, uma combinação quase natural. Afinal, poucas coisas combinam tanto quanto leitura e café.\n\nBooks reforçou a dimensão narrativa do Sweet & Coffee Week. Cada participante podia contar uma história por meio do cardápio, e cada cliente podia provar um novo capítulo do festival.',
     visual: 'Livro aberto, marcador, óculos, pena, máquina de escrever, biblioteca e xícara.',
   },
   {
@@ -146,7 +146,7 @@ export const EDITIONS = [
     etapa: 'Festa e rito',
     periodo: null,
     participantes: null,
-    desc: 'Celebration celebrou grandes festas, encontros e rituais de comemoração. Carnaval, São João, Oscar, aniversários, bailes, festas natalinas e celebrações afetivas inspiraram os participantes.\n\nA edição marcou uma transição simbólica para o ciclo dos 10 anos do Sweet & Coffee Week, preparando o público para uma nova fase do festival: mais institucional, mais comunitária e mais ligada à memória construída ao longo da década.',
+    desc: 'Celebration marcou uma edição comemorativa, festiva e simbólica. O tema reuniu grandes festas, rituais, encontros e momentos de celebração como fonte de inspiração para os combos.\n\nCarnaval, São João, Oscar, Natal, aniversários, bailes, festas populares, encontros afetivos e celebrações imaginárias abriram caminhos criativos para os participantes. A edição tinha brilho, cor, energia e sensação de comemoração coletiva.\n\nCelebration também teve um papel importante na trajetória do Sweet & Coffee Week: preparar o público para o ciclo dos 10 anos de história. Ao celebrar festas e encontros, a edição também celebrava tudo que o festival construiu desde 2016.\n\nPara o público, Celebration era um convite para brindar a doçura, reencontrar marcas queridas e viver o festival como uma festa espalhada pela cidade.',
     visual: 'Confete, bolo, balões, convite, fogos, bandeirinhas e palco.',
   },
   {
@@ -156,7 +156,7 @@ export const EDITIONS = [
     etapa: 'Especial 10 anos',
     periodo: '4 a 14 de junho de 2026',
     participantes: 21,
-    desc: 'A edição Sweet & Coffee Week Lovers celebrou os 10 anos do festival homenageando quem sempre esteve no centro dessa história: os Sweet Lovers.\n\nA proposta convidou os participantes a revisitar temas que marcaram a trajetória do Sweet & Coffee Week e recriá-los com novos sabores, novas histórias e um olhar contemporâneo. Não era sobre repetir combos antigos. Era sobre transformar memória em novidade.\n\nA edição reforçou o Sweet & Coffee Week como comunidade: público, marcas, parceiros e cidade unidos por uma década de descobertas, cafés, doces, encontros e experiências.',
+    desc: 'Sweet & Coffee Week Lovers celebrou os 10 anos do festival colocando no centro quem sempre fez essa história acontecer: o público. A edição homenageou os Sweet Lovers, as marcas participantes, a cidade de Natal e as memórias construídas ao longo de uma década.\n\nCom a assinatura "Feito de amor, recriando sabores", a proposta convidou os participantes a revisitar temas antigos da trajetória do Sweet & Coffee Week e criar novas interpretações. O ponto de partida era a memória, mas o resultado precisava ser inédito. Não era repetir. Era recriar.\n\nA edição funcionou como um grande arquivo afetivo do festival. Páscoa, Doces do Mundo, Namorados, Sabores da Infância, Pâtisserie Francesa, Contos de Fadas, Música, Heróis & Vilões, Séries, Terras Potiguares, Movies, Trip, Books e Celebration voltaram como inspiração para novos combos.\n\nSweet & Coffee Week Lovers reforçou que o festival não é apenas uma rota gastronômica. É uma comunidade. Uma tradição afetiva de Natal construída por quem prova, fotografa, indica, vota, compartilha e vive cada edição.',
     visual: 'Stickers, mapa, câmera, celular, café, doce, corações de pertencimento e ícones das edições antigas.',
   },
 ]
