@@ -103,11 +103,9 @@ function EditionPodium({ e, go }) {
           )
         })}
       </ul>
-      {e.special ? (
-        <a href="/sweet-awards" className="edx-cta" onClick={go('/sweet-awards')}>Ver os vencedores no Sweet Awards</a>
-      ) : (
-        <a href="/sweet-awards" className="edx-podio__link" onClick={go('/sweet-awards')}>Pódio completo no Sweet Awards</a>
-      )}
+      <a href="/sweet-awards" className="edx-podio__link" onClick={go('/sweet-awards')}>
+        {e.special ? 'Ver todos os vencedores' : 'Pódio completo no Sweet Awards'}
+      </a>
     </div>
   )
 }
@@ -235,11 +233,13 @@ function EditionScene({ e, live, near = true, offset = 0, go }) {
       <div className="edx-scene__body">
         <p className="edx-scene__lead">{e.lead}</p>
         <StatusNote e={e} />
-        <EditionPodium e={e} go={go} />
       </div>
 
-      {/* camada 4 — bloco flutuante de participantes (canto direito no desktop) */}
-      <EditionParticipants e={e} />
+      {/* camada 4 — rail flutuante (canto direito no desktop): pódio + participantes */}
+      <div className="edx-rail">
+        <EditionPodium e={e} go={go} />
+        <EditionParticipants e={e} />
+      </div>
 
       <Filmstrip e={{ ...e, gallery: live ? e.gallery : [] }} current={heroShot} onPick={setPicked} />
     </article>
@@ -426,8 +426,12 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__body { margin: 0 auto; max-width: var(--page-max); }
         .edx-scene__lead { margin: 12px 0 0; font-size: clamp(14px, .95vw, 15.5px); line-height: 1.55; color: color-mix(in srgb, var(--cream) 84%, transparent); }
 
-        /* PÓDIO */
-        .edx-podio { margin-top: clamp(16px, 2.4vh, 26px); padding-top: clamp(12px, 1.8vh, 18px); border-top: 1px solid color-mix(in srgb, var(--cream) 22%, transparent); }
+        /* RAIL flutuante (canto direito da grade): pódio + participantes empilhados.
+           Ancorado ao topo da zona segura; largura fixa; cada card é translúcido. */
+        .edx-rail { position: absolute; z-index: 3; top: var(--hero-content-start); right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2)); width: clamp(210px, 20vw, 290px); display: flex; flex-direction: column; gap: 12px; }
+
+        /* PÓDIO — card no rail */
+        .edx-podio { background: color-mix(in srgb, var(--ink) 76%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; padding: 13px 15px; }
         .edx-podio__t { font-family: var(--font-heading); font-weight: 800; font-size: 13.5px; color: var(--cream); margin: 0 0 10px; }
         .edx-podio__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
         .edx-podio__row { display: flex; align-items: center; gap: 12px; }
@@ -451,10 +455,9 @@ export function EdicoesPage({ navigate }) {
         .edx-cta:hover { transform: translateY(-2px); background: var(--cyan-deep); color: var(--cream); }
         .edx-cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
 
-        /* PARTICIPANTES — card clicável, ancorado à borda direita da grade (1280).
-           Colapsado só mostra o gatilho; abre com reveal (grid-rows 0fr→1fr).
-           A lista aberta rola e é capada p/ terminar acima da seta 'próxima' (50vh). */
-        .edx-parts { position: absolute; z-index: 3; top: var(--hero-content-start); right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2)); width: clamp(196px, 19vw, 280px); background: color-mix(in srgb, var(--ink) 76%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; }
+        /* PARTICIPANTES — card clicável (filho do rail). Colapsado só mostra o
+           gatilho; abre com reveal (grid-rows 0fr→1fr); a lista rola. */
+        .edx-parts { width: 100%; background: color-mix(in srgb, var(--ink) 76%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; }
         .edx-parts__toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 11px 14px; background: none; border: 0; border-radius: 14px; cursor: pointer; text-align: left; transition: background var(--motion-fast) var(--ease-out-soft); }
         .edx-parts__toggle:hover { background: color-mix(in srgb, var(--cream) 8%, transparent); }
         .edx-parts__toggle:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
@@ -465,7 +468,9 @@ export function EdicoesPage({ navigate }) {
         .edx-parts__reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-med) cubic-bezier(.16,1,.3,1); }
         .edx-parts.is-open .edx-parts__reveal { grid-template-rows: 1fr; }
         .edx-parts__list { min-height: 0; margin: 0; padding: 0 8px 0 14px; list-style: none; overflow: hidden; display: grid; gap: 5px; }
-        .edx-parts.is-open .edx-parts__list { overflow-y: auto; max-height: calc(50vh - var(--hero-content-start) - 96px); padding-bottom: 12px; scrollbar-width: thin; }
+        /* lista curta e rolável: com o pódio acima no rail, a soma tem que ficar
+           acima da filmstrip mesmo na Lovers (pódio de 3 linhas). */
+        .edx-parts.is-open .edx-parts__list { overflow-y: auto; max-height: min(20vh, 176px); padding-bottom: 12px; scrollbar-width: thin; }
         .edx-parts__list li { font-family: var(--font-heading); font-weight: 700; font-size: 13.5px; line-height: 1.2; color: var(--cream); }
 
         /* FILMSTRIP */
@@ -526,13 +531,14 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: 8px; }
         .edx-stack .edx-scene__body > * { max-width: none; }
         .edx-stack .edx-scene__lead { color: var(--ink-soft); }
-        .edx-stack .edx-podio { border-top-color: var(--paper-line); }
+        .edx-stack .edx-rail { position: static; width: auto; margin: 16px var(--page-gutter) 0; gap: 14px; }
+        .edx-stack .edx-podio { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
         .edx-stack .edx-podio__t, .edx-stack .edx-podio__win { color: var(--ink); }
         .edx-stack .edx-podio__cat { color: var(--ink-soft); }
         .edx-stack .edx-podio__logo { border: 1px solid var(--paper-line); }
         .edx-stack .edx-podio__link { color: var(--ink); }
         .edx-stack .edx-badge { background: rgba(43,24,16,.07); color: var(--ink-soft); }
-        .edx-stack .edx-parts { position: static; width: auto; margin: 16px var(--page-gutter) 0; background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
+        .edx-stack .edx-parts { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
         .edx-stack .edx-parts__t { color: var(--ink-soft); }
         .edx-stack .edx-parts__toggle:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
         .edx-stack .edx-parts__toggle:hover .edx-parts__t { color: var(--ink); }
