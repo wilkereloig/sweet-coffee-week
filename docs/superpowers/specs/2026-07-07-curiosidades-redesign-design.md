@@ -1,8 +1,9 @@
-# Spec — Redesign da página Curiosidades ("Direção D: dados que se movem")
+# Spec — Redesign da página Curiosidades ("dados que se movem", tratamento Direção E)
 
-**Data:** 2026-07-07 · **Branch:** `worktree-curiosidades` · **Status:** aprovada pelo Wilke (mock v4)
-**Mock de referência:** artifact `curiosidades-direcao-d.html` (v4) — scratchpad da sessão; serve de
-referência visual, não de código a copiar.
+**Data:** 2026-07-07 · **Branch:** `worktree-curiosidades` · **Status:** aprovada pelo Wilke (mock Direção E)
+**Mock de referência:** artifact `curiosidades-direcao-e.html` — scratchpad da sessão; serve de
+referência visual, não de código a copiar. (A Direção D/v4 tinha o mesmo conteúdo com tratamento
+alternado chocolate/creme + eyebrows; foi substituída pela E.)
 
 ## 1. Objetivo
 
@@ -13,8 +14,19 @@ mudam juntos — não é polish, é reconstrução.
 
 ## 2. Decisões já tomadas (não reabrir)
 
-- **Direção D aprovada** (dados animados). Direções B (cards editoriais) e C (explorador com filtros)
-  rejeitadas — C especialmente por duplicar a linguagem interativa da página Edições.
+- **Direção "dados animados" aprovada com tratamento E (anti-template)**. Direções B (cards
+  editoriais) e C (explorador com filtros) rejeitadas — C especialmente por duplicar a linguagem
+  interativa da página Edições. O tratamento E acrescenta, sobre a D:
+  - **zero eyebrows/kickers** acima de títulos (reforça CLAUDE.md §5) — título abre a seção direto,
+    com lead curto abaixo quando precisar;
+  - **tema creme único na página inteira**, com **um só bloco chocolate deliberado** (a seção de
+    homenagens, S3) — nada de alternância clara/escura seção a seção; as demais seções variam só
+    dentro da família creme (`--cream` / `--cream-deep`);
+  - **assimetria com hierarquia**: contadores como split assimétrico (número-herói gigante + lista
+    empilhada), cards de Melhor Combo em grid 1.6fr+1fr+1fr (líder pesa mais);
+  - **cada seção com família de layout própria** (split de stat, timeline, waffle+filmstrip,
+    barras, cards hierárquicos) — nenhuma família repetida;
+  - **zero em-dash** em texto visível da página (usar vírgula, ponto ou dois-pontos).
 - **Edições não competem entre si** (rejeição registrada no CLAUDE.md §11, jul/2026). O gráfico de
   linha "participantes por edição" com pico/recorde foi rejeitado ("parece competição entre edições").
   Ranking/comparação só entre **participantes**. Linha do tempo só como **marcos/primeiras vezes**.
@@ -31,15 +43,17 @@ mudam juntos — não é polish, é reconstrução.
 
 ## 3. Estrutura da página (ordem das seções)
 
-Hero institucional padrão da rota (acento amarelo `#F8B511`, `--hero-content-start`, sem eyebrow),
-depois seções alternando fundo chocolate/creme:
+Hero institucional padrão da rota (acento amarelo `#F8B511`, `--hero-content-start`, sem eyebrow).
+Página inteira em tema creme; **só S3 é bloco chocolate**. Sem eyebrow em nenhuma seção — H2 abre
+direto, lead curto abaixo quando precisar.
 
-### S1 — "O festival em número" (fundo chocolate)
-4 contadores animados (count-up ~1,2s ease-out ao entrar na tela): **16** edições realizadas ·
-**10** anos de festival · **21** marcas na edição Lovers · **6×** marcas que revivem a mesma edição.
-Números em `--yellow`, legendas em creme translúcido.
+### S1 — "O festival em números" (creme)
+Split assimétrico (~1.1fr/1fr): à esquerda, número-herói **10** gigante (count-up, `--yellow-deep`,
+clamp até ~220px) com legenda "anos de festival"; à direita, lista empilhada com hairlines
+(`--paper-line`) entre itens: **16** edições realizadas · **21** marcas na edição Lovers · **6×**
+marcas escolheram reviver a mesma edição. Mobile: empilha em coluna.
 
-### S2 — "Primeiras vezes: os marcos que mudaram o festival" (fundo creme)
+### S2 — "Os marcos que mudaram o festival" (creme, tinte `--cream-deep`)
 Timeline horizontal de **5 marcos** (linha preenche com scaleX ~1,6s; itens revelam em stagger):
 1. **2016 — A estreia** (nasce o festival em Natal);
 2. **2019.1 — Nasce o Sweet Awards** (edição Pâtisserie Francesa cria a premiação);
@@ -50,7 +64,7 @@ Timeline horizontal de **5 marcos** (linha preenche com scaleX ~1,6s; itens reve
 foram derivadas do histórico transcrito; a base é a verdade (CLAUDE.md §16).
 Sem número de participantes por edição. Mobile: empilha em coluna, sem trilho.
 
-### S3 — "Homenagem: 21 marcas, 7 edições revividas" (fundo chocolate)
+### S3 — "A edição que a Lovers mais quis reviver" (o ÚNICO bloco chocolate da página)
 **Gráfico de unidades**: 1 chip circular por marca (logo real de `participants.js`/`resolveParticipant`),
 agrupados em linhas pela edição homenageada, ordenadas por contagem:
 Sweet Trip 6 · Sweet Celebration 5 · Sweet Music 4 · Contos de Fadas 3 · Sweet Series 1 · Filmes 1 ·
@@ -63,7 +77,7 @@ têm pasta em `/images/combos/`** → fallback editorial "Foto do combo pendente
 Nota da seção: 8 das 15 edições anteriores não foram escolhidas por ninguém, incluindo a
 Pâtisserie Francesa (2019.1), que criou o Sweet Awards.
 
-### S4 — "Hall dos premiados" (fundo creme)
+### S4 — "Quem mais venceu em dez anos de Sweet Awards" (creme)
 Barras horizontais animadas (transform scaleX, nunca width) — **vitórias de 1º lugar** por
 participante, somando Júri Técnico + Sweet Lovers, 2019–2026.1. Cada linha: chip de marca (logo real
 p/ quem está na Lovers; iniciais p/ marcas históricas — Bocaditos, Marlon Vinicius, Cássia Ribeiro),
@@ -72,9 +86,10 @@ count-up. **Números do mock são prévia manual — recalcular via `getAwardWin
 `sweetHistoryStats.js` na implementação.** Empates preservados (empate real em 5º no mock).
 Tooltip por linha. Top ~7 com empates; sem "ver todos".
 
-### S5 — "O prêmio mais disputado: Melhor Combo" (fundo chocolate)
-3 cards de vencedores múltiplos: **Bocaditos 4×** (2019.2, 2020.1, 2020.2-Júri, 2021.2-Júri) ·
-**O Maestro Café 2×** · **Mr. Cupcake 2×** — ⚠️ recontar na base na implementação. Cada card:
+### S5 — "Melhor Combo: vitórias repetidas" (creme, tinte `--cream-deep`)
+Grid hierárquico **1.6fr + 1fr + 1fr** (líder pesa mais; mobile empilha): **Bocaditos 4×**
+(2019.2, 2020.1, 2020.2-Júri, 2021.2-Júri) · **O Maestro Café 2×** · **Mr. Cupcake 2×** —
+⚠️ recontar na base na implementação. Cada card:
 - foto do combo **atual** na Lovers com legenda explícita "Foto: combo atual na Lovers 2026.1"
   (a foto não é da vitória histórica — a legenda diz isso);
 - Bocaditos (fora da Lovers, sem asset): moldura editorial "Marca histórica — sem registro de combo
