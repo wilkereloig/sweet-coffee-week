@@ -21,7 +21,6 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
-import { PageHero, HeroHL } from '../../components/layout'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { useSteppedPresentation } from '../../hooks/useSteppedPresentation'
 import { EDITIONS } from '../../data/editions'
@@ -48,6 +47,7 @@ const PANELS = EDITIONS.map((ed, i) => {
     theme: h.tema || ed.nome,
     periodo: h.periodo || ed.periodo,
     participantsCount: h.participantesCount != null ? h.participantesCount : ed.participantes,
+    participants: Array.isArray(h.participantes) ? h.participantes : [],
     status: (h.premiacao && h.premiacao.status) || null,
     special: ed.ano === '2026.1',
     mark: editionMark(ed.ano),
@@ -128,6 +128,39 @@ function EditionPodium({ e, go }) {
         <a href="/sweet-awards" className="edx-podio__link" onClick={go('/sweet-awards')}>Pódio completo no Sweet Awards</a>
       )}
     </div>
+  )
+}
+
+// Bloco flutuante com os nomes reais dos participantes da edição (fonte:
+// sweetCoffeeHistory). Colapsado por padrão: clicar abre a lista com animação
+// (grid-template-rows 0fr→1fr). Desktop: card ancorado ao canto da grade;
+// mobile: entra no fluxo do corpo. Some quando a edição não lista nomes.
+function EditionParticipants({ e }) {
+  const list = e.participants
+  const [open, setOpen] = React.useState(false)
+  // Fecha ao trocar de edição (o componente é remontado por key, mas garante o
+  // reset caso o React reuse a instância entre cenas vizinhas).
+  React.useEffect(() => { setOpen(false) }, [e.code])
+  if (!list.length) return null
+  const panelId = `edx-parts-${e.code}`
+  return (
+    <aside className={`edx-parts${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="edx-parts__toggle"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="edx-parts__t">Quem participou · {list.length}</span>
+        <span className="edx-parts__chev" aria-hidden="true"><I.chevronRight width={16} height={16} /></span>
+      </button>
+      <div className="edx-parts__reveal" id={panelId} role="region" aria-label={`Participantes da edição ${e.theme}`}>
+        <ul className="edx-parts__list">
+          {list.map((n) => <li key={n}>{n}</li>)}
+        </ul>
+      </div>
+    </aside>
   )
 }
 
@@ -225,6 +258,9 @@ function EditionScene({ e, live, near = true, offset = 0, go }) {
         <EditionPodium e={e} go={go} />
       </div>
 
+      {/* camada 4 — bloco flutuante de participantes (canto direito no desktop) */}
+      <EditionParticipants e={e} />
+
       <Filmstrip e={{ ...e, gallery: live ? e.gallery : [] }} current={heroShot} onPick={setPicked} />
     </article>
   )
@@ -307,22 +343,6 @@ export function EdicoesPage({ navigate }) {
 
   return (
     <div className="page-enter edx-page">
-      {/* HERO institucional (fundo no acento da rota) + capa-índice: a filmstrip
-          cronológica das 16 edições anuncia a apresentação e pula direto. */}
-      <PageHero
-        title={<>A história do <HeroHL color="var(--coral)">Sweet &amp; Coffee Week</HeroHL>, edição por edição.</>}
-        subtitle="De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal."
-      >
-        <div className="edx-capa" role="group" aria-label="Ir direto para uma edição">
-          {PANELS.map((e, i) => (
-            <button type="button" key={e.code} className="edx-capa__th" onClick={() => pick(i)} aria-label={`Ir para a edição ${e.code}: ${e.theme}`}>
-              {e.scene[0] ? <img src={e.scene[0]} alt="" loading="lazy" decoding="async" /> : <span className="edx-capa__fb">{e.code}</span>}
-              <span className="edx-capa__y" aria-hidden="true">{e.special ? 'Lovers' : e.code}</span>
-            </button>
-          ))}
-        </div>
-      </PageHero>
-
       {horizontal ? (
         /* DESKTOP — apresentação horizontal scroll-driven */
         <section
@@ -393,15 +413,6 @@ export function EdicoesPage({ navigate }) {
           overflow-x: clip;
         }
 
-        /* CAPA — filmstrip cronológica no hero */
-        .edx-capa { display: flex; gap: 8px; margin-top: var(--sp-6); overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-        .edx-capa__th { position: relative; flex: 0 0 auto; width: 84px; aspect-ratio: 4/3; border: 2px solid transparent; border-radius: 10px; overflow: hidden; padding: 0; background: var(--cream-card); cursor: pointer; transition: transform var(--motion-fast) var(--ease-out-soft), border-color .16s; }
-        .edx-capa__th:hover { transform: translateY(-3px); border-color: var(--ink); }
-        .edx-capa__th:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-        .edx-capa__th img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .edx-capa__y { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 6px 4px; font-family: var(--font-sans); font-size: 10px; font-weight: 700; color: var(--cream); background: linear-gradient(0deg, rgba(43,24,16,.78), rgba(43,24,16,0)); text-align: left; }
-        .edx-capa__fb { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-heading); font-weight: 800; font-size: 13px; color: var(--ink-soft); }
-
         /* STAGE — desktop sticky horizontal */
         .edx-stage { position: relative; background: var(--ink); }
         .edx-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -433,7 +444,7 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
         .edx-scene__body > * { max-width: min(46%, 560px); }
         .edx-scene__body { margin: 0 auto; max-width: var(--page-max); }
-        .edx-scene__lead { margin: 12px 0 0; font-size: clamp(14px, .95vw, 15.5px); line-height: 1.55; color: color-mix(in srgb, var(--cream) 78%, transparent); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .edx-scene__lead { margin: 12px 0 0; font-size: clamp(14px, .95vw, 15.5px); line-height: 1.55; color: color-mix(in srgb, var(--cream) 84%, transparent); }
 
         /* LOGO SLOT — sobre foto escura */
         /* fundo chocolate no slot: as logos do acervo são brancas (invisíveis em claro) */
@@ -471,6 +482,23 @@ export function EdicoesPage({ navigate }) {
         .edx-cta { display: inline-block; margin-top: 16px; padding: 13px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; transition: transform var(--motion-fast) var(--ease-out-soft), background var(--motion-fast) var(--ease-out-soft); }
         .edx-cta:hover { transform: translateY(-2px); background: var(--cyan-deep); color: var(--cream); }
         .edx-cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+
+        /* PARTICIPANTES — card clicável, ancorado à borda direita da grade (1280).
+           Colapsado só mostra o gatilho; abre com reveal (grid-rows 0fr→1fr).
+           A lista aberta rola e é capada p/ terminar acima da seta 'próxima' (50vh). */
+        .edx-parts { position: absolute; z-index: 3; top: var(--hero-content-start); right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2)); width: clamp(196px, 19vw, 280px); background: color-mix(in srgb, var(--ink) 76%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; }
+        .edx-parts__toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 11px 14px; background: none; border: 0; border-radius: 14px; cursor: pointer; text-align: left; transition: background var(--motion-fast) var(--ease-out-soft); }
+        .edx-parts__toggle:hover { background: color-mix(in srgb, var(--cream) 8%, transparent); }
+        .edx-parts__toggle:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+        .edx-parts__t { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--cream) 80%, transparent); }
+        .edx-parts__toggle:hover .edx-parts__t { color: var(--cream); }
+        .edx-parts__chev { display: inline-flex; flex: 0 0 auto; color: color-mix(in srgb, var(--cream) 72%, transparent); transform: rotate(90deg); transition: transform var(--motion-med) var(--ease-spring-soft); }
+        .edx-parts.is-open .edx-parts__chev { transform: rotate(-90deg); }
+        .edx-parts__reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-med) cubic-bezier(.16,1,.3,1); }
+        .edx-parts.is-open .edx-parts__reveal { grid-template-rows: 1fr; }
+        .edx-parts__list { min-height: 0; margin: 0; padding: 0 8px 0 14px; list-style: none; overflow: hidden; display: grid; gap: 5px; }
+        .edx-parts.is-open .edx-parts__list { overflow-y: auto; max-height: calc(50vh - var(--hero-content-start) - 96px); padding-bottom: 12px; scrollbar-width: thin; }
+        .edx-parts__list li { font-family: var(--font-heading); font-weight: 700; font-size: 13.5px; line-height: 1.2; color: var(--cream); }
 
         /* FILMSTRIP */
         .edx-strip { position: absolute; left: 0; right: 0; bottom: 56px; z-index: 3; display: flex; gap: 8px; max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
@@ -529,7 +557,7 @@ export function EdicoesPage({ navigate }) {
         /* corpo volta pro papel creme */
         .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: 8px; }
         .edx-stack .edx-scene__body > * { max-width: none; }
-        .edx-stack .edx-scene__lead { color: var(--ink-soft); -webkit-line-clamp: 8; }
+        .edx-stack .edx-scene__lead { color: var(--ink-soft); }
         .edx-stack .edx-logo.is-fallback, .edx-stack .edx-logo--real.is-fallback { background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); border-color: color-mix(in srgb, var(--tone) 38%, var(--paper-line)); }
         .edx-stack .edx-logo__fb-tag { color: var(--ink-soft); }
         .edx-stack .edx-logo__fb-name { color: var(--ink); }
@@ -539,6 +567,14 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-podio__logo { border: 1px solid var(--paper-line); }
         .edx-stack .edx-podio__link { color: var(--ink); }
         .edx-stack .edx-badge { background: rgba(43,24,16,.07); color: var(--ink-soft); }
+        .edx-stack .edx-parts { position: static; width: auto; margin: 16px var(--page-gutter) 0; background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
+        .edx-stack .edx-parts__t { color: var(--ink-soft); }
+        .edx-stack .edx-parts__toggle:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+        .edx-stack .edx-parts__toggle:hover .edx-parts__t { color: var(--ink); }
+        .edx-stack .edx-parts__toggle:focus-visible { outline-color: var(--ink); }
+        .edx-stack .edx-parts__chev { color: var(--ink-soft); }
+        .edx-stack .edx-parts.is-open .edx-parts__list { max-height: 280px; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+        .edx-stack .edx-parts__list li { color: var(--ink); }
         .edx-stack .edx-strip { position: static; padding-block: 14px 22px; }
         .edx-stack .edx-strip__th { background: var(--cream-card); }
 
@@ -565,11 +601,10 @@ export function EdicoesPage({ navigate }) {
           .edx-scene__num { font-size: 15vw; }
         }
         @media (max-width: 540px) {
-          .edx-capa__th { width: 68px; }
           .edx-stack .edx-scene__head { margin-top: -104px; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .edx-progress span, .edx-anos__item, .edx-capa__th, .edx-scene__media img { transition: none; }
+          .edx-progress span, .edx-anos__item, .edx-scene__media img, .edx-parts__reveal, .edx-parts__chev { transition: none; }
           .edx-scene__media img { transform: none; }
         }
       `}</style>

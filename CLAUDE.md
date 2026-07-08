@@ -182,8 +182,9 @@ do festival. Reconstruída jul/2026 (spec: `docs/superpowers/specs/
   como cabeçalho com título sobreposto, corpo em fundo creme);
 - sequência direta de 1 a 16 (não dividir por fases; a década é carregada por tom +
   fotografia, sem interstícios de era);
-- **hero-capa**: faixa ciano institucional + filmstrip cronológica clicável (pula direto
-  pra qualquer edição). Sem hint de scroll (a capa já anuncia a apresentação);
+- **sem hero separada**: a página abre direto na cena 1 (2016) — a apresentação É a
+  página. O título/intro institucional foi removido a pedido (jul/2026); não
+  reintroduzir hero em Edições sem solicitação;
 - controles = **timeline de anos** (não chips numerados) + setas + barra de progresso;
 - painel Lovers especial (selo 10 anos, pódio de trilhas Júri/Sweet Lovers, CTA único
   pro Sweet Awards); **epílogo** curto aponta pra Curiosidades;
