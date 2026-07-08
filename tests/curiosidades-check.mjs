@@ -24,8 +24,9 @@ const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--stric
 })
 await new Promise((r) => setTimeout(r, 3500))
 
-const browser = await chromium.launch()
+let browser = null
 try {
+  browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
   await page.goto(URL, { waitUntil: 'networkidle' })
   await page.waitForTimeout(800)
@@ -43,12 +44,17 @@ try {
   const bars = await page.locator('.cx-bar-row').count()
   bars >= 5 ? ok(`hall dos premiados com ${bars} linhas`) : fail(`hall: só ${bars} linhas (esperava 5+)`)
 
-  const leadTxt = await page.locator('.cx-combocard--lead .cx-combocard-n').textContent()
-  const otherTxts = await page.locator('.cx-combocard:not(.cx-combocard--lead) .cx-combocard-n').allTextContents()
-  const leadN = parseInt(leadTxt, 10)
-  Number.isFinite(leadN) && otherTxts.every((t) => parseInt(t, 10) <= leadN)
-    ? ok(`card líder do Melhor Combo com ${leadN} vitórias (maior de todos)`)
-    : fail(`card líder do Melhor Combo inconsistente (líder=${leadTxt}, demais=${otherTxts.join(',')})`)
+  const leadLoc = page.locator('.cx-combocard--lead .cx-combocard-n')
+  if ((await leadLoc.count()) === 0) {
+    fail('card líder do Melhor Combo ausente')
+  } else {
+    const leadTxt = await leadLoc.first().textContent()
+    const otherTxts = await page.locator('.cx-combocard:not(.cx-combocard--lead) .cx-combocard-n').allTextContents()
+    const leadN = parseInt(leadTxt, 10)
+    Number.isFinite(leadN) && otherTxts.every((t) => parseInt(t, 10) <= leadN)
+      ? ok(`card líder do Melhor Combo com ${leadN} vitórias (maior de todos)`)
+      : fail(`card líder do Melhor Combo inconsistente (líder=${leadTxt}, demais=${otherTxts.join(',')})`)
+  }
 
   const eyebrows = await page.locator('.cx-eyebrow, .eyebrow').count()
   eyebrows === 0 ? ok('zero eyebrows nas seções') : fail(`eyebrows na página: ${eyebrows} (esperava 0)`)
@@ -62,10 +68,15 @@ try {
   const rm = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' })
   await rm.goto(URL, { waitUntil: 'networkidle' })
   await rm.waitForTimeout(400)
-  const opacity = await rm.locator('.cx-unit').first().evaluate((el) => getComputedStyle(el).opacity)
-  opacity === '1' ? ok('reduced-motion mostra estado final imediato') : fail(`reduced-motion: opacity ${opacity} (esperava 1)`)
+  const rmUnit = rm.locator('.cx-unit').first()
+  if ((await rmUnit.count()) === 0) {
+    fail('reduced-motion: nenhum .cx-unit na página')
+  } else {
+    const opacity = await rmUnit.evaluate((el) => getComputedStyle(el).opacity)
+    opacity === '1' ? ok('reduced-motion mostra estado final imediato') : fail(`reduced-motion: opacity ${opacity} (esperava 1)`)
+  }
 } finally {
-  await browser.close()
+  if (browser) await browser.close()
   server.kill('SIGTERM')
 }
 
