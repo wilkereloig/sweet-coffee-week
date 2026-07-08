@@ -25,8 +25,8 @@ import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { useSteppedPresentation } from '../../hooks/useSteppedPresentation'
 import { EDITIONS } from '../../data/editions'
 import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
-import { editionMark } from '../../data/editionAssets'
 import { EDITION_GALLERY } from '../../data/editionGallery'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { getEditionHighlights, sceneShotsFor } from '../../data/editionHighlights'
 import { resolveParticipant } from '../../data/participantAssets'
 import { PhotoRotator } from '../../components/PhotoRotator'
@@ -39,7 +39,11 @@ const TONES = ['coral', 'pink', 'cyan', 'yellow']
 // 16 cenas: editorial (editions.js) + oficial (sweetCoffeeHistory) + destaques.
 const PANELS = EDITIONS.map((ed, i) => {
   const h = histById[ed.ano] || {}
-  const gallery = EDITION_GALLERY[ed.ano] || []
+  const editionWebp = EDITION_GALLERY[ed.ano] || []
+  // Galeria (filmstrip): na edição Lovers, 1 combo principal por participante
+  // (COMBO_PHOTOS = /images/combos/<slug>/main.jpg). Históricas usam o acervo webp
+  // (não há foto de combo por participante das edições antigas).
+  const gallery = ed.ano === '2026.1' ? COMBO_PHOTOS : editionWebp
   return {
     code: ed.ano,
     slug: ed.slug,
@@ -50,10 +54,9 @@ const PANELS = EDITIONS.map((ed, i) => {
     participants: Array.isArray(h.participantes) ? h.participantes : [],
     status: (h.premiacao && h.premiacao.status) || null,
     special: ed.ano === '2026.1',
-    mark: editionMark(ed.ano),
     lead: (ed.desc || '').split('\n\n')[0] || '',
     gallery,
-    scene: sceneShotsFor(ed.ano, gallery),
+    scene: sceneShotsFor(ed.ano, editionWebp),
     highlights: getEditionHighlights(ed.ano),
     tone: TONES[i % TONES.length],
   }
@@ -63,28 +66,6 @@ const pad2 = (n) => String(n).padStart(2, '0')
 
 // Rótulo curto da trilha (só Lovers tem trilhas distintas no pódio-resumo).
 const TRILHA_LABEL = { juri_tecnico: 'Júri Técnico', sweet_lovers: 'Sweet Lovers' }
-
-// Slot da marca da edição — espaço SEMPRE reservado; fallback honesto.
-function EditionLogoSlot({ e }) {
-  const logo = e.mark && e.mark.logo
-  if (logo) {
-    return (
-      <div className="edx-logo edx-logo--real">
-        <img src={logo} alt={`Logo da edição ${e.theme}`} loading="lazy" decoding="async"
-          onError={(ev) => { const w = ev.currentTarget.closest('.edx-logo'); if (w) w.classList.add('is-fallback') }} />
-        <span className="edx-logo__fb"><span className="edx-logo__fb-tag">Logo pendente</span><span className="edx-logo__fb-name">{e.theme}</span></span>
-      </div>
-    )
-  }
-  return (
-    <div className="edx-logo is-fallback" role="img" aria-label={`Logo da edição ${e.theme} pendente`}>
-      <span className="edx-logo__fb">
-        <span className="edx-logo__fb-tag">Logo pendente</span>
-        <span className="edx-logo__fb-name">{e.theme}</span>
-      </span>
-    </div>
-  )
-}
 
 // Pódio-resumo da edição — só dados reais (1º lugares; empates lado a lado).
 function EditionPodium({ e, go }) {
@@ -252,7 +233,6 @@ function EditionScene({ e, live, near = true, offset = 0, go }) {
 
       {/* camada 3 — corpo editorial */}
       <div className="edx-scene__body">
-        <EditionLogoSlot e={e} />
         <p className="edx-scene__lead">{e.lead}</p>
         <StatusNote e={e} />
         <EditionPodium e={e} go={go} />
@@ -446,18 +426,6 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__body { margin: 0 auto; max-width: var(--page-max); }
         .edx-scene__lead { margin: 12px 0 0; font-size: clamp(14px, .95vw, 15.5px); line-height: 1.55; color: color-mix(in srgb, var(--cream) 84%, transparent); }
 
-        /* LOGO SLOT — sobre foto escura */
-        /* fundo chocolate no slot: as logos do acervo são brancas (invisíveis em claro) */
-        .edx-logo { position: relative; display: inline-grid; place-items: center; width: clamp(84px, 7vw, 108px); aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--ink) 42%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 22%, transparent); }
-        .edx-logo--real img { position: absolute; inset: 8%; width: 84%; height: 84%; object-fit: contain; }
-        .edx-logo--real .edx-logo__fb { display: none; }
-        .edx-logo--real.is-fallback img { display: none; }
-        .edx-logo--real.is-fallback .edx-logo__fb { display: flex; }
-        .edx-logo.is-fallback, .edx-logo--real.is-fallback { width: auto; max-width: 100%; aspect-ratio: auto; background: color-mix(in srgb, var(--ink) 32%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 32%, transparent); padding: 9px 14px; place-items: center start; }
-        .edx-logo__fb { display: flex; flex-direction: column; gap: 2px; text-align: left; }
-        .edx-logo__fb-tag { font-family: var(--font-sans); font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--cream) 72%, transparent); }
-        .edx-logo__fb-name { font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--cream); line-height: 1.15; }
-
         /* PÓDIO */
         .edx-podio { margin-top: clamp(16px, 2.4vh, 26px); padding-top: clamp(12px, 1.8vh, 18px); border-top: 1px solid color-mix(in srgb, var(--cream) 22%, transparent); }
         .edx-podio__t { font-family: var(--font-heading); font-weight: 800; font-size: 13.5px; color: var(--cream); margin: 0 0 10px; }
@@ -558,9 +526,6 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: 8px; }
         .edx-stack .edx-scene__body > * { max-width: none; }
         .edx-stack .edx-scene__lead { color: var(--ink-soft); }
-        .edx-stack .edx-logo.is-fallback, .edx-stack .edx-logo--real.is-fallback { background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); border-color: color-mix(in srgb, var(--tone) 38%, var(--paper-line)); }
-        .edx-stack .edx-logo__fb-tag { color: var(--ink-soft); }
-        .edx-stack .edx-logo__fb-name { color: var(--ink); }
         .edx-stack .edx-podio { border-top-color: var(--paper-line); }
         .edx-stack .edx-podio__t, .edx-stack .edx-podio__win { color: var(--ink); }
         .edx-stack .edx-podio__cat { color: var(--ink-soft); }
@@ -588,8 +553,6 @@ export function EdicoesPage({ navigate }) {
           .edx-scene__head { padding-top: calc(var(--header-safe-offset) - 12px); }
           .edx-scene__title { font-size: clamp(30px, 4.6vh, 44px); }
           .edx-scene__lead { -webkit-line-clamp: 2; margin-top: 8px; }
-          .edx-logo { width: 64px; }
-          .edx-logo.is-fallback, .edx-logo--real.is-fallback { padding: 6px 10px; }
           .edx-podio { margin-top: 12px; padding-top: 10px; }
           .edx-podio__list { gap: 6px; }
           .edx-scene__body { padding-bottom: 108px; }
