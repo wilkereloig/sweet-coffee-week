@@ -24,7 +24,7 @@ import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { useSteppedPresentation } from '../../hooks/useSteppedPresentation'
 import { EDITIONS } from '../../data/editions'
-import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
+import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { EDITION_GALLERY } from '../../data/editionGallery'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { getEditionHighlights, sceneShotsFor } from '../../data/editionHighlights'
@@ -54,7 +54,7 @@ const PANELS = EDITIONS.map((ed, i) => {
     participants: Array.isArray(h.participantes) ? h.participantes : [],
     status: (h.premiacao && h.premiacao.status) || null,
     special: ed.ano === '2026.1',
-    lead: (ed.desc || '').split('\n\n')[0] || '',
+    paragraphs: (ed.desc || '').split('\n\n').map((s) => s.trim()).filter(Boolean),
     gallery,
     scene: sceneShotsFor(ed.ano, editionWebp),
     highlights: getEditionHighlights(ed.ano),
@@ -143,13 +143,6 @@ function EditionParticipants({ e }) {
   )
 }
 
-// Badge de status só quando NÃO há pódio (ausência honesta, sem placeholder).
-function StatusNote({ e }) {
-  if (e.highlights) return null
-  if (!e.status) return null
-  const s = AWARD_STATUS[e.status] || AWARD_STATUS['a-conferir']
-  return <span className={`edx-badge edx-badge--${s.tone}`}>{s.label}</span>
-}
 
 // Filmstrip do acervo da edição — thumbs estáticas com scroll-snap; clique
 // troca a foto-cena. Só monta no slide em foco (e vizinhos): 16 × ~12 imgs de
@@ -231,11 +224,13 @@ function EditionScene({ e, live, near = true, offset = 0, go }) {
 
       {/* camada 3 — corpo editorial */}
       <div className="edx-scene__body">
-        <p className="edx-scene__lead">{e.lead}</p>
-        <StatusNote e={e} />
+        <div className="edx-scene__text">
+          {e.paragraphs.map((p, i) => <p key={i} className="edx-scene__lead">{p}</p>)}
+        </div>
       </div>
 
-      {/* camada 4 — rail flutuante (canto direito no desktop): pódio + participantes */}
+      {/* camada 4 — rail flutuante (canto direito no desktop): pódio (ou nota de
+          status) + participantes */}
       <div className="edx-rail">
         <EditionPodium e={e} go={go} />
         <EditionParticipants e={e} />
@@ -424,7 +419,8 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
         .edx-scene__body > * { max-width: min(46%, 560px); }
         .edx-scene__body { margin: 0 auto; max-width: var(--page-max); }
-        .edx-scene__lead { margin: 12px 0 0; font-size: clamp(14px, .95vw, 15.5px); line-height: 1.55; color: color-mix(in srgb, var(--cream) 84%, transparent); }
+        .edx-scene__text { margin-top: 12px; display: grid; gap: 8px; }
+        .edx-scene__lead { margin: 0; font-size: clamp(12.5px, .85vw, 14px); line-height: 1.5; color: color-mix(in srgb, var(--cream) 84%, transparent); }
 
         /* RAIL flutuante (canto direito da grade): pódio + participantes empilhados.
            Ancorado ao topo da zona segura; largura fixa; cada card é translúcido. */
@@ -446,9 +442,6 @@ export function EdicoesPage({ navigate }) {
         .edx-podio__link { display: inline-block; margin-top: 12px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--cream); text-decoration: underline; text-underline-offset: 3px; opacity: .88; }
         .edx-podio__link:hover { opacity: 1; }
         .edx-podio__link:focus-visible, .edx-strip__th:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
-
-        /* BADGE (só sem pódio) */
-        .edx-badge { display: inline-flex; margin-top: 14px; align-items: center; font-family: var(--font-sans); font-size: 12px; font-weight: 700; padding: 6px 13px; border-radius: 999px; background: color-mix(in srgb, var(--cream) 16%, transparent); color: color-mix(in srgb, var(--cream) 85%, transparent); }
 
         /* CTA (Lovers + epílogo) */
         .edx-cta { display: inline-block; margin-top: 16px; padding: 13px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; transition: transform var(--motion-fast) var(--ease-out-soft), background var(--motion-fast) var(--ease-out-soft); }
@@ -537,7 +530,6 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-podio__cat { color: var(--ink-soft); }
         .edx-stack .edx-podio__logo { border: 1px solid var(--paper-line); }
         .edx-stack .edx-podio__link { color: var(--ink); }
-        .edx-stack .edx-badge { background: rgba(43,24,16,.07); color: var(--ink-soft); }
         .edx-stack .edx-parts { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
         .edx-stack .edx-parts__t { color: var(--ink-soft); }
         .edx-stack .edx-parts__toggle:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
