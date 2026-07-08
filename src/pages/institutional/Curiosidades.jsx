@@ -242,7 +242,7 @@ function SecHall() {
   return (
     <section className="cx-sec" ref={ref} data-in={inView}>
       <div className="wrap">
-        <h2>Quem mais venceu em {MILE.festivalYears ?? 10} anos de Sweet Awards</h2>
+        <h2>Quem mais venceu na história do Sweet Awards</h2>
         <p className="cx-lead">Vitórias de 1º lugar somando Júri Técnico e Sweet Lovers. Empates preservados.</p>
         <div className="cx-barchart">
           {WINS.map((w, i) => {
