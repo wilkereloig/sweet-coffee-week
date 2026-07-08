@@ -268,7 +268,7 @@ function SecHall() {
             )
           })}
         </div>
-        <p className="cx-note">Logo real de quem está na Lovers 2026.1; iniciais pra marcas históricas fora da edição atual. Contagens calculadas direto da base histórica (sweetHistoryStats.js).</p>
+        <p className="cx-note">Logo real de quem está na Lovers 2026.1; iniciais pra marcas históricas fora da edição atual. Contagens apuradas direto do acervo do festival.</p>
       </div>
     </section>
   )
