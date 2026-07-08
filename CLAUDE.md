@@ -62,13 +62,16 @@ Não deixar textos, imagens ou componentes colados no menu principal.
 A hero das páginas **não deve ter altura fixa de 1080px**. Usar altura proporcional
 ao conteúdo, com respiro no topo e conteúdo principal ancorado mais para baixo.
 
-**Margem horizontal — REGRA: igual à Home em TODAS as páginas.** O container canônico
-é o `.wrap` da Home (`src/styles.css`): `max-width: var(--maxw)` = **1280px**,
-`padding: 0 var(--pad)` = **clamp(20px, 4vw, 56px)**. Toda página institucional deve
-usar exatamente essa margem — `.wrap` direto, ou, se tiver container próprio, replicar
-1280px / clamp(20px,4vw,56px). Não criar largura/gutter divergentes (ex.: 1180px ou
-clamp ...,64px): quebra o alinhamento vertical entre as páginas. Já alinhados a este
-padrão: Edições (`--page-max`/`--page-gutter`) e Sweet Awards (`.swa-wrap`/`.swa-hero__inner`).
+**Margem horizontal — REGRA: igual ao MENU em TODAS as páginas.** No desktop
+(≥960) o conteúdo segue a mesma margem do header: **full-width** (`max-width: none`)
+com **`padding-inline: var(--hm-gutter)`** (`--hm-gutter: clamp(28px, 11.5vw, 150px)`,
+`:root` em `swc-redesign.css`). É o que a Home faz (`.hm .wrap`, `swc-redesign.css`):
+a logo e o menu encostam no `--hm-gutter`, e títulos/cards/seções alinham à logo.
+O `.wrap` base (`max-width: var(--maxw)` = **1280px** / `padding: 0 var(--pad)` =
+clamp(20px,4vw,56px), `styles.css`) é só o fallback quando não há override `.hm`.
+Toda página institucional deve alinhar ao menu — usar `--hm-gutter` full-width, não
+inventar largura/gutter próprios. Página com container próprio replica `--hm-gutter`.
+Já alinhados: Edições (tokens `--page-*` apontam pra `--hm-gutter`) e Home.
 
 Tokens reais (Home):
 ```css

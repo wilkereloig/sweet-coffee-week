@@ -380,8 +380,10 @@ export function EdicoesPage({ navigate }) {
 
       <style>{`
         .edx-page {
-          --page-max: 1280px;
-          --page-gutter: clamp(20px, 4vw, 56px);
+          /* margem do conteúdo = margem do MENU (--hm-gutter, full-width), igual à
+             Home (.hm .wrap). Alinha título/rail/filmstrip/timeline à logo e ao menu. */
+          --page-max: none;
+          --page-gutter: var(--hm-gutter, clamp(20px, 4vw, 56px));
           --header-safe-offset: clamp(120px, 14vh, 168px);
           --hero-top-clearance: clamp(32px, 4vw, 56px);
           --hero-content-start: calc(var(--header-safe-offset) + var(--hero-top-clearance));
@@ -424,7 +426,7 @@ export function EdicoesPage({ navigate }) {
 
         /* RAIL flutuante (canto direito da grade): pódio + participantes empilhados.
            Ancorado ao topo da zona segura; largura fixa; cada card é translúcido. */
-        .edx-rail { position: absolute; z-index: 3; top: var(--hero-content-start); right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2)); width: clamp(210px, 20vw, 290px); display: flex; flex-direction: column; gap: 12px; }
+        .edx-rail { position: absolute; z-index: 3; top: var(--hero-content-start); right: var(--page-gutter); width: clamp(210px, 20vw, 290px); display: flex; flex-direction: column; gap: 12px; }
 
         /* PÓDIO — card no rail */
         .edx-podio { background: color-mix(in srgb, var(--ink) 76%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; padding: 13px 15px; }
