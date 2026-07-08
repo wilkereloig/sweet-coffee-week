@@ -367,6 +367,7 @@ export function CuriosidadesPage({ navigate }) {
       </section>
 
       <style>{`
+        .cur-page .keep-together { white-space: nowrap; }
         .cur-cta { background: #5e3018; overflow: clip; }
         .cur-cta__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
         .cur-cta h2 { color: var(--cream); font-size: clamp(26px, 3vw, 42px); line-height: 1.04; }
