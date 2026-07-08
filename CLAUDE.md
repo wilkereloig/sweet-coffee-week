@@ -193,6 +193,9 @@ edições, isso não deve ocorrer"). Comparação/ranking só entre **participan
 (premiados, recorrentes), nunca entre edições. Linha do tempo permitida apenas como
 **marcos/primeiras vezes** (criação do Sweet Awards, trilhas de júri, Menção Honrosa
 única, edição comemorativa), sem números de tamanho por edição.
+**Exceção aprovada (jul/2026):** a seção de homenagens da Lovers pode agrupar e contar
+as 21 marcas pela edição que escolheram reviver ("Sweet Trip, 6 marcas") — o dado é a
+escolha das marcas, não o tamanho/desempenho da edição; aprovado nos mocks D e E.
 
 Deve mostrar (com dados reais do acervo): achados do acervo; rankings criativos; marcas
 recorrentes; participantes mais premiados; vencedores por categoria; evolução das
