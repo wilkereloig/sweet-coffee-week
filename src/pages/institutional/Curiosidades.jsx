@@ -38,7 +38,14 @@ const MARCOS = [
   MILE.firstEdition && { code: MILE.firstEdition.code, hl: 'var(--coral-deep)', title: 'A estreia', text: 'Nasce o Sweet & Coffee Week em Natal.' },
   MILE.firstAwards && { code: MILE.firstAwards.code, hl: 'var(--yellow-deep)', title: 'Nasce o Sweet Awards', text: `A edição ${MILE.firstAwards.theme} cria a premiação. Antes, o festival não tinha troféu.` },
   MILE.firstTracks && { code: MILE.firstTracks.code, hl: 'var(--coral-deep)', title: 'Duas trilhas de júri', text: 'Júri Técnico e voto popular Sweet Lovers, formato que vale até hoje.' },
-  MENCAO && { code: MENCAO.code, hl: 'var(--pink-deep)', title: 'A única Menção Honrosa', text: 'Categoria que apareceu uma vez e nunca mais voltou.' },
+  MENCAO && {
+    code: MENCAO.code,
+    hl: 'var(--pink-deep)',
+    title: MENCAO.unique ? 'A única Menção Honrosa' : 'A primeira Menção Honrosa',
+    text: MENCAO.unique
+      ? 'Categoria que apareceu uma vez e nunca mais voltou.'
+      : `Categoria rara: só ${MENCAO.count} edições registraram uma Menção Honrosa.`,
+  },
   MILE.lastEdition && { code: MILE.lastEdition.code, hl: 'var(--cyan-deep)', title: 'Lovers: a década revivida', text: `Edição comemorativa: ${PARTICIPANTS.length} marcas recriam os temas que marcaram o festival.` },
 ].filter(Boolean)
 
@@ -190,6 +197,10 @@ function SecMarcos() {
 function SecHomenagens() {
   const [ref, inView] = useInViewOnce()
   const top = HOMAGE[0]
+  const naoEscolhidas = Math.max(0, MILE.editionsCount - 1 - HOMAGE.length)
+  // Só cita firstAwards como não-escolhida se a base confirmar que ela está de fato fora
+  // das homenagens (senão a afirmação vira falsa quando alguma marca revivê-la).
+  const showFirstAwards = MILE.firstAwards && !MILE.firstAwardsHomaged && naoEscolhidas > 0
   return (
     <section className="cx-sec cx-sec--choco" ref={ref} data-in={inView}>
       <div className="wrap">
@@ -229,8 +240,7 @@ function SecHomenagens() {
         )}
         <p className="cx-note">
           Acima, os combos reais que reviveram a {top ? top.label : ''} na Lovers.
-          {' '}Das {MILE.editionsCount - 1} edições anteriores, {MILE.editionsCount - 1 - HOMAGE.length >= 0 ? MILE.editionsCount - 1 - HOMAGE.length : 0} não foram escolhidas por nenhuma marca,
-          incluindo a {MILE.firstAwards ? MILE.firstAwards.theme : ''} ({MILE.firstAwards ? MILE.firstAwards.code : ''}), que criou o Sweet Awards.
+          {' '}Das {MILE.editionsCount - 1} edições anteriores, {naoEscolhidas} não foram escolhidas por nenhuma marca{showFirstAwards ? `, incluindo a ${MILE.firstAwards.theme} (${MILE.firstAwards.code}), que criou o Sweet Awards` : ''}.
         </p>
       </div>
     </section>
