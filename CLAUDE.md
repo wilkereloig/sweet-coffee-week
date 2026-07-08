@@ -171,14 +171,33 @@ hierarquia, ritmo visual, nível de acabamento e tom institucional-afetivo.
 
 ## 10. Página Edições
 
-Funciona como **apresentação editorial** da história do festival. Direção aprovada:
-- apresentação horizontal interativa no desktop; scroll vertical controla avanço horizontal;
-- sequência direta de 1 a 16 (não dividir por fases);
-- painéis grandes, como slides; barra horizontal de navegação;
-- espaço para logo da edição, foto principal e mini galeria; fallbacks claros quando faltar asset.
+Funciona como **apresentação editorial photo-first** ("Cinema da Década") da história
+do festival. Reconstruída jul/2026 (spec: `docs/superpowers/specs/
+2026-07-07-edicoes-cinema-da-decada-design.md`). Direção aprovada:
+- cada edição é uma **CENA**: foto do acervo em full-bleed + scrim no tom da edição,
+  com camada editorial por cima (numeral gigante = posição na série, tema, lead) e
+  **pódio real da edição** (1º lugares, empates preservados; ponte com o Sweet Awards);
+- apresentação horizontal no desktop; scroll vertical avança o trilho (motor de passos
+  `useSteppedPresentation`); no mobile/reduced-motion vira capítulos verticais (foto 4:5
+  como cabeçalho com título sobreposto, corpo em fundo creme);
+- sequência direta de 1 a 16 (não dividir por fases; a década é carregada por tom +
+  fotografia, sem interstícios de era);
+- **hero-capa**: faixa ciano institucional + filmstrip cronológica clicável (pula direto
+  pra qualquer edição). Sem hint de scroll (a capa já anuncia a apresentação);
+- controles = **timeline de anos** (não chips numerados) + setas + barra de progresso;
+- painel Lovers especial (selo 10 anos, pódio de trilhas Júri/Sweet Lovers, CTA único
+  pro Sweet Awards); **epílogo** curto aponta pra Curiosidades;
+- **filmstrip** por painel: todas as fotos da edição em scroll-snap (clique troca a
+  foto-cena). Fallbacks honestos quando faltar asset (logo/foto pendente).
 
-Não usar stickers. Não usar grid comum de cards. A navegação das edições deve parecer
-**controle de apresentação**, não segunda navbar — e não pode brigar com o menu principal.
+Dados por edição: pódio + curadoria de frames em `src/data/editionHighlights.js`
+(2026.1 vem de `loversAwardsResults.js`). Perf: janela `live/near ±1-2` monta foto e
+filmstrip só perto do foco (16 cenas full-viewport de uma vez congelam o compositor).
+
+Não usar stickers. Não usar grid comum de cards. Não usar `backdrop-filter` sobre o
+trilho animado (blur + readback de GPU a cada frame congela o compositor — usar fundo
+semi-opaco). A navegação das edições deve parecer **controle de apresentação**, não
+segunda navbar — e não pode brigar com o menu principal.
 
 ## 11. Página Curiosidades
 
