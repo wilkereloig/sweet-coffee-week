@@ -217,9 +217,15 @@ export function getMilestoneFacts() {
       catCodes.get(k).codes.push(e.code)
     }
   }
+  // Dedup por edição: categoria dividida em 2 trilhas na MESMA edição não conta como 2.
   const uniqueCategories = [...catCodes.values()]
-    .filter((c) => c.codes.length === 1)
+    .filter((c) => new Set(c.codes).size === 1)
     .map((c) => ({ category: c.category, code: c.codes[0] }))
+  // Menção Honrosa vive num campo próprio (premiacao.mencaoHonrosa), não em colocações,
+  // então é lida do dado bruto. Primeira edição (por ordem) que a registra.
+  const firstMencao = [...edicoes]
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+    .find((ed) => ed.premiacao && ed.premiacao.mencaoHonrosa) || null
   const pick = (e) => (e ? { code: e.code, theme: e.theme } : null)
   return {
     firstEdition: pick(first),
@@ -229,6 +235,7 @@ export function getMilestoneFacts() {
     festivalYears: first && last ? Math.round(parseFloat(last.code) - parseFloat(first.code)) : null,
     firstAwards: pick(firstAwards),
     firstTracks: pick(firstTracks),
+    mencaoHonrosa: firstMencao ? { code: firstMencao.id, theme: firstMencao.tema || firstMencao.nome } : null,
     uniqueCategories,
   }
 }

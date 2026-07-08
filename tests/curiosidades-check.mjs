@@ -12,7 +12,10 @@ import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 
 const PORT = 5181
-const URL = `http://localhost:${PORT}/#/curiosidades`
+// ?preview=1 liga INSTITUTIONAL_PREVIEW (App.jsx): sem isso, o build de produção
+// esconde o institucional atrás da landing "em breve" (COMING_SOON_PUBLICATION).
+// A query vai ANTES do hash — é lida por window.location.search.
+const URL = `http://localhost:${PORT}/?preview=1#/curiosidades`
 
 let failures = 0
 const fail = (msg) => { console.error('  ✗ ' + msg); failures++ }
@@ -48,10 +51,13 @@ try {
   if ((await leadLoc.count()) === 0) {
     fail('card líder do Melhor Combo ausente')
   } else {
+    // Os números fazem count-up ao entrar na tela; rola a seção e espera terminar.
+    await leadLoc.first().scrollIntoViewIfNeeded()
+    await page.waitForTimeout(1600)
     const leadTxt = await leadLoc.first().textContent()
     const otherTxts = await page.locator('.cx-combocard:not(.cx-combocard--lead) .cx-combocard-n').allTextContents()
     const leadN = parseInt(leadTxt, 10)
-    Number.isFinite(leadN) && otherTxts.every((t) => parseInt(t, 10) <= leadN)
+    Number.isFinite(leadN) && leadN > 0 && otherTxts.every((t) => parseInt(t, 10) <= leadN)
       ? ok(`card líder do Melhor Combo com ${leadN} vitórias (maior de todos)`)
       : fail(`card líder do Melhor Combo inconsistente (líder=${leadTxt}, demais=${otherTxts.join(',')})`)
   }

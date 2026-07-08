@@ -33,7 +33,7 @@ const WINS = ALL_WINS.slice(0, winsEnd)
 const MAX_WINS = WINS.length ? WINS[0].total : 1
 
 // Marcos (datas derivadas da base; textos editoriais).
-const MENCAO = MILE.uniqueCategories.find((c) => /menc/i.test(c.category)) || null
+const MENCAO = MILE.mencaoHonrosa
 const MARCOS = [
   MILE.firstEdition && { code: MILE.firstEdition.code, hl: 'var(--coral-deep)', title: 'A estreia', text: 'Nasce o Sweet & Coffee Week em Natal.' },
   MILE.firstAwards && { code: MILE.firstAwards.code, hl: 'var(--yellow-deep)', title: 'Nasce o Sweet Awards', text: `A edição ${MILE.firstAwards.theme} cria a premiação. Antes, o festival não tinha troféu.` },
@@ -299,7 +299,7 @@ function SecCombos() {
             <BrandChip
               key={`${v.code}-${v.track || 'unica'}-${i}`}
               name={w.name}
-              className="cx-unit"
+              className="cx-stamp"
               tip={v.track ? `${v.code} · ${v.track}` : v.code}
             />
           ))}
@@ -368,6 +368,8 @@ export function CuriosidadesPage({ navigate }) {
 
       <style>{`
         .cur-page .keep-together { white-space: nowrap; }
+        .cur-hl { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--coral)); }
+        .cur-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
         .cur-cta { background: #5e3018; overflow: clip; }
         .cur-cta__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
         .cur-cta h2 { color: var(--cream); font-size: clamp(26px, 3vw, 42px); line-height: 1.04; }
