@@ -77,7 +77,7 @@ function pickTop(firsts, max = 3) {
  * Pódio-resumo da edição: até 3 categorias, só 1º lugares (empates = vários
  * nomes). Retorna null quando a edição não teve premiação registrada
  * (2016–2018) — ausência honesta, sem placeholder.
- * @returns {null | { firsts: {categoria, trilha, nomes[]}[], totalCategorias: number, observacao: string|null }}
+ * @returns {null | { firsts: {categoria, trilha, nomes[]}[] }}
  */
 export function getEditionHighlights(code) {
   // Lovers: fonte oficial dedicada (regra CLAUDE.md §12/§16)
@@ -85,12 +85,7 @@ export function getEditionHighlights(code) {
     ? LOVERS_2026_AWARDS_RESULTS.premiacao
     : (histById[code] || {}).premiacao
   if (!premiacao || premiacao.status !== 'completa') return null
-  const categorias = premiacao.categorias || []
-  const firsts = firstsFrom(categorias)
+  const firsts = firstsFrom(premiacao.categorias || [])
   if (!firsts.length) return null
-  return {
-    firsts: pickTop(firsts),
-    totalCategorias: categorias.length,
-    observacao: premiacao.observacao || null,
-  }
+  return { firsts: pickTop(firsts) }
 }

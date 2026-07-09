@@ -137,11 +137,11 @@ Sweet & Coffee Week Lovers 2026.1.
 
 ### 8 — 2020.1 · S&C No Ritmo da Música
 - **Tema:** No Ritmo da Música
-- **Período:** julho de 2020 (encerramento 19–20/jul; início aprox.)
-- **Participantes:** 18
+- **Período:** julho de 2020 (encerramento 19-20/jul confirmado; início exato não encontrado)
+- **Participantes:** 20
 - **Etapa (Edições):** Trilha sonora
 - **Premiação:** completa — votação do público, categoria única (Melhor Combo). (Ver §4.)
-- **Participantes (lista):** Petra Holanda; Café Brigadeiro; Papo de Anjo; Atelier Mine Confeitaria; Bella Pettit; Bocaditos; Cecília Mindêlo; Momento Gourmet; Caroli; Casa Nacre; Casa dos Salgados Gourmet; Cuore di Panna; Das Melo; Kopenhagen; Stephany Santos; Macarons Cookorote; Rafaela Fontes; Very Sugar
+- **Participantes (lista):** Petra Holanda; Café Brigadeiro; Papo de Anjo; Atelier Mine Confeitaria; Bella Petit; Bocaditos; Cecília Mindêlo; Momento Gourmet; Caroli Douces; Casa Nacre; Casa dos Salgados Gourmet; Cuore di Panna; Das Melo; Kopenhagen; Stephany Santos; Cookorote; Rafaela Fontes Chocolateria; Very Sugar; Crooks Cookie Shop; Realize Gourmet
 - **Visual (Edições):** Vinil, microfone, fone, notas musicais, palco e equalizador.
 
 ### 9 — 2020.2 · S&C Heróis & Vilões

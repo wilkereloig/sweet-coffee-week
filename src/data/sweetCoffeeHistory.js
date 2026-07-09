@@ -405,7 +405,7 @@ export const SWEET_COFFEE_HISTORY = {
       "ordem": 8,
       "nome": "S&C No Ritmo da Música",
       "tema": "No Ritmo da Música",
-      "periodo": "julho de 2020 (encerramento 19–20/jul; início aprox.)",
+      "periodo": "julho de 2020", // encerramento 19-20/jul confirmado; início exato não encontrado no acervo (ACERVO.md)
       "participantesCount": 20,
       "participantes": [
         "Petra Holanda",

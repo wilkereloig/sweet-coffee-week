@@ -46,6 +46,7 @@ export function useSteppedPresentation({ enabled, stageRef, total, active, setAc
 
     const onWheel = (e) => {
       if (!engagedRef.current) return
+      if (e.ctrlKey || e.metaKey) return // pinch-to-zoom / Ctrl+scroll: deixa o navegador dar zoom
       const delta = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0
       if (!delta) return
       const atBoundary = (delta > 0 && activeRef.current >= total - 1) ||

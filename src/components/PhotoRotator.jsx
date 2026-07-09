@@ -10,14 +10,22 @@ import React from 'react'
  * - object-fit: cover; imagens empilhadas (position:absolute) → sem layout shift.
  * - eager: prioriza a 1ª imagem (uso no hero). Demais são lazy.
  * - onError: esconde a imagem que falhar (não quebra o layout).
+ * - onActiveChange(src, index): opcional — avisa quem instanciou qual imagem
+ *   está em tela agora (ex.: Edições sincroniza o destaque da filmstrip com o
+ *   crossfade automático em vez de só com a foto escolhida manualmente).
  *
  * Doc: src/design/SITE_DIRECTION.md (§ Fotos & galerias).
  */
 const ALT_FALLBACK = 'Combo participante do Sweet & Coffee Week'
 
-export function PhotoRotator({ images, interval = 5000, className = '', eager = false }) {
+export function PhotoRotator({ images, interval = 5000, className = '', eager = false, onActiveChange }) {
   const list = Array.isArray(images) ? images.filter((im) => im && im.src) : []
   const [idx, setIdx] = React.useState(0)
+
+  const activeSrc = list[idx] && list[idx].src
+  React.useEffect(() => {
+    if (onActiveChange && activeSrc) onActiveChange(activeSrc, idx)
+  }, [activeSrc, idx, onActiveChange])
 
   React.useEffect(() => {
     const reduce =
