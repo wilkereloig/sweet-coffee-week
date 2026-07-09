@@ -5,13 +5,14 @@
  * (Lovers 2026.1) vêm de src/data/loversAwardsResults.js quando a base ainda não
  * os traz estruturados. Nada inventado; empates preservados.
  *
- * Deriva rankings REAIS: presenças recorrentes, vitórias (1º), pódios (1º–3º),
- * líderes por categoria e evolução das categorias. Logos via resolveParticipant
- * (fallback textual). Mantém a mesma API consumida por Curiosidades.jsx.
+ * Deriva dados REAIS consumidos por Curiosidades.jsx: vitórias de 1º lugar,
+ * homenagens da Lovers, vencedores repetidos de uma categoria e marcos/primeiras
+ * vezes. Logos via resolveParticipant (fallback textual).
  */
 import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory'
 import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults'
 import { resolveParticipant } from './participantAssets'
+import { PARTICIPANTS } from './participants'
 
 const { edicoes = [], participantAliases = {}, categoryAliases = {} } = SWEET_COFFEE_HISTORY
 
@@ -74,26 +75,6 @@ const EDITIONS = edicoes.map((ed) => ({
   awards: editionAwards(ed),
 }))
 
-// ---- PRESENÇAS: marca recorrente = aparece em N edições (nome canônico). ----
-export function getParticipantAppearances() {
-  const map = new Map()
-  for (const e of EDITIONS) {
-    const seen = new Set()
-    for (const raw of e.participants) {
-      const name = normalizeParticipantName(raw)
-      const key = norm(name)
-      if (!key || seen.has(key)) continue
-      seen.add(key)
-      if (!map.has(key)) map.set(key, { key, name, count: 0, codes: [], themes: [] })
-      const o = map.get(key)
-      o.count++
-      o.codes.push(e.code)
-      o.themes.push(e.theme)
-    }
-  }
-  return [...map.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-}
-
 function collectAwardEntries() {
   const rows = []
   for (const e of EDITIONS) {
@@ -122,42 +103,80 @@ function aggregate(rows) {
 export function getAwardWins() {
   return aggregate(collectAwardEntries().filter((r) => r.pos === 1))
 }
-export function getAwardPodiums() {
-  return aggregate(collectAwardEntries().filter((r) => r.pos >= 1 && r.pos <= 3))
+
+// ---- HOMENAGENS: marcas da Lovers agrupadas pela edição que escolheram reviver. ----
+// Fonte: PARTICIPANTS[].edition (grafia normalizada; "Contos de Fada" == "Contos de Fadas").
+const HOMAGE_LABELS = {
+  'sweet trip': 'Sweet Trip',
+  'sweet celebration': 'Sweet Celebration',
+  'sweet music': 'Sweet Music',
+  'contos de fadas': 'Contos de Fadas',
+  'sweet series': 'Sweet Series',
+  'filmes': 'Filmes',
+  'terras potiguares': 'Terras Potiguares',
 }
 
-function topWithTies(rows) {
-  const m = new Map()
+export function getHomageGroups() {
+  const map = new Map()
+  for (const p of PARTICIPANTS) {
+    let key = norm(p.edition)
+    if (key === 'contos de fada') key = 'contos de fadas'
+    if (!map.has(key)) map.set(key, { key, brands: [] })
+    map.get(key).brands.push({ name: p.name, slug: p.slug, theme: p.theme })
+  }
+  return [...map.values()]
+    .map((g) => ({ ...g, label: HOMAGE_LABELS[g.key] || g.brands[0].name, count: g.brands.length }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
+// ---- Vencedores repetidos de uma categoria (só 1º lugar; trilhas/empates preservados). ----
+export function getRepeatCategoryWinners(categoryName) {
+  const target = norm(canonCategory(categoryName))
+  const rows = collectAwardEntries().filter((r) => r.pos === 1 && norm(r.category) === target)
+  const map = new Map()
   for (const r of rows) {
-    if (!m.has(r.key)) m.set(r.key, { key: r.key, name: r.name, n: 0 })
-    m.get(r.key).n++
+    if (!map.has(r.key)) map.set(r.key, { key: r.key, name: r.name, wins: [] })
+    map.get(r.key).wins.push({ code: r.code, track: r.track })
   }
-  const arr = [...m.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name))
-  if (!arr.length) return { leaders: [], n: 0 }
-  const top = arr[0].n
-  return { leaders: arr.filter((x) => x.n === top), n: top }
+  return [...map.values()]
+    .filter((w) => w.wins.length > 1)
+    .sort((a, b) => b.wins.length - a.wins.length || a.name.localeCompare(b.name))
 }
 
-export function getCategoryLeaders() {
-  const rows = collectAwardEntries()
-  const byCat = {}
-  for (const r of rows) (byCat[r.category] || (byCat[r.category] = [])).push(r)
-  const out = {}
-  for (const [cat, rs] of Object.entries(byCat)) {
-    out[cat] = {
-      wins: topWithTies(rs.filter((r) => r.pos === 1)),
-      podiums: topWithTies(rs),
-    }
-  }
-  return out
-}
-
-export function getCategoryEvolution() {
-  return EDITIONS
-    .filter((e) => e.awards.length > 0)
-    .map((e) => {
-      const cats = new Set(e.awards.map((a) => a.category))
-      const tracks = new Set(e.awards.map((a) => a.track).filter(Boolean))
-      return { code: e.code, theme: e.theme, categories: cats.size, tracks: [...tracks] }
+// ---- Marcos/primeiras vezes derivados da base (datas NUNCA hardcoded na página). ----
+export function getMilestoneFacts() {
+  const ordered = [...EDITIONS].sort((a, b) => a.ordem - b.ordem)
+  const first = ordered[0] || null
+  const last = ordered[ordered.length - 1] || null
+  const firstAwards = ordered.find((e) => e.awards.length > 0) || null
+  const firstTracks = ordered.find((e) => e.awards.some((a) => a.track)) || null
+  // Menção Honrosa vive num campo próprio (premiacao.mencaoHonrosa), não em colocações,
+  // então é lida do dado bruto. TODAS as edições que a registram (por ordem) — a página
+  // só chama de "única" quando count === 1, senão a copy mentiria se a base ganhar outra.
+  const mencoes = [...edicoes]
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+    .filter((ed) => ed.premiacao && ed.premiacao.mencaoHonrosa)
+  const firstMencao = mencoes[0] || null
+  // Homenagens da Lovers = edições que alguma marca escolheu reviver (PARTICIPANTS[].edition).
+  // Usado pra verificar em runtime se firstAwards está de fato ENTRE as não-escolhidas.
+  const homagedKeys = new Set(
+    PARTICIPANTS.map((p) => {
+      const k = norm(p.edition)
+      return k === 'contos de fada' ? 'contos de fadas' : k
     })
+  )
+  const pick = (e) => (e ? { code: e.code, theme: e.theme } : null)
+  return {
+    firstEdition: pick(first),
+    lastEdition: pick(last),
+    editionsCount: ordered.length,
+    // "2026.1" - "2016" ≈ 10.1 → 10 anos; parseFloat proposital (ids tipo "2020.2").
+    festivalYears: first && last ? Math.round(parseFloat(last.code) - parseFloat(first.code)) : null,
+    firstAwards: pick(firstAwards),
+    firstAwardsHomaged: firstAwards ? homagedKeys.has(norm(firstAwards.theme)) : false,
+    firstTracks: pick(firstTracks),
+    mencaoHonrosa: firstMencao
+      ? { code: firstMencao.id, theme: firstMencao.tema || firstMencao.nome, count: mencoes.length, unique: mencoes.length === 1 }
+      : null,
+  }
 }

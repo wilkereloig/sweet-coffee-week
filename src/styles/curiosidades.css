@@ -1,0 +1,150 @@
+/* ============================================================
+   CURIOSIDADES — redesign "dados que se movem" (Direção E).
+   Tema creme na página inteira; S3 (homenagens) é o ÚNICO bloco
+   chocolate. Sem eyebrows. Animações só transform/opacity, com
+   estado final imediato sob prefers-reduced-motion.
+   Tokens globais: swc-redesign.css. Prefixo local: .cx-
+   ============================================================ */
+
+.cx-sec { padding: clamp(52px, 7vw, 96px) 0; }
+.cx-sec--tint { background: var(--cream-deep); }
+.cx-sec--choco { background: var(--choco-deep); color: var(--cream); }
+.cx-sec h2 {
+  font-family: var(--font-display);
+  font-size: clamp(23px, 3.2vw, 34px);
+  font-weight: 800; letter-spacing: -0.015em; line-height: 1.1;
+  margin: 0 0 8px; max-width: 22ch; text-wrap: balance;
+}
+.cx-sec--choco h2 { color: var(--cream); }
+.cx-lead { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 30px; max-width: 56ch; }
+.cx-sec--choco .cx-lead { color: rgba(255, 241, 230, 0.78); }
+.cx-note { margin: 20px 0 0; font-size: 12px; color: var(--ink-mute); max-width: 66ch; }
+.cx-sec--choco .cx-note { color: rgba(255, 241, 230, 0.6); }
+
+/* ---------- tooltip de cursor ---------- */
+.cx-tip {
+  position: fixed; z-index: 40; pointer-events: none; opacity: 0;
+  transition: opacity 0.12s ease;
+  background: var(--choco-deep); color: var(--cream);
+  font-size: 12px; font-weight: 600; padding: 7px 11px;
+  border-radius: 8px; box-shadow: var(--shadow-md); max-width: 240px;
+}
+.cx-tip.is-on { opacity: 1; }
+
+/* ---------- S1: split assimétrico de stats ---------- */
+.cx-statsplit { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: end; }
+.cx-statsplit-num {
+  font-family: var(--font-display); font-weight: 900;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
+  font-size: clamp(120px, 22vw, 220px); line-height: 0.85; color: var(--yellow-deep);
+}
+.cx-statsplit-cap { font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 10px; display: block; }
+.cx-statsplit-sub { font-size: 13px; color: var(--ink-soft); margin-top: 2px; display: block; }
+.cx-statlist { list-style: none; margin: 0; padding: 0; }
+.cx-statlist li { display: flex; align-items: baseline; gap: 14px; padding: 16px 0; }
+.cx-statlist li + li { border-top: 1px solid var(--paper-line); }
+.cx-statlist-n {
+  font-family: var(--font-display); font-weight: 900; line-height: 1;
+  font-size: clamp(30px, 4vw, 44px); color: var(--ink);
+  font-variant-numeric: tabular-nums; min-width: 2.2ch;
+}
+.cx-statlist-t { font-size: 14px; color: var(--ink-soft); }
+@media (max-width: 720px) { .cx-statsplit { grid-template-columns: 1fr; align-items: start; } }
+
+/* ---------- S2: marcos ---------- */
+.cx-msline { position: relative; }
+.cx-msline-track { position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: var(--paper-line); border-radius: 99px; }
+.cx-msline-fill {
+  height: 100%; width: 100%; border-radius: 99px; background: var(--coral-deep);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 1.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+[data-in='true'] .cx-msline-fill { transform: scaleX(1); }
+.cx-msline-items { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(14px, 2vw, 24px); }
+.cx-ms-item { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.cx-ms-dot { width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto; border: 3px solid var(--cream-deep); box-shadow: 0 0 0 1px var(--paper-line); }
+.cx-ms-year { font-family: var(--font-display); font-weight: 900; font-size: clamp(19px, 2.2vw, 26px); color: var(--ink); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.cx-ms-title { font-size: 13.5px; font-weight: 800; color: var(--ink); line-height: 1.25; }
+.cx-ms-txt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; }
+@media (max-width: 960px) {
+  .cx-msline-track { display: none; }
+  .cx-msline-items { grid-template-columns: 1fr; gap: 18px; }
+  .cx-ms-item { display: grid; grid-template-columns: 16px 1fr; gap: 4px 12px; }
+  .cx-ms-dot { grid-row: 1 / 4; margin-top: 4px; }
+  .cx-ms-year { margin-top: 0; }
+}
+
+/* ---------- chips de marca ---------- */
+.cx-chip {
+  width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--cream-card); border: 1px solid var(--paper-line);
+  display: grid; place-items: center; overflow: hidden;
+}
+.cx-chip img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.cx-chip-fb { font-family: var(--font-display); font-weight: 800; font-size: 11px; color: var(--ink); }
+
+/* ---------- S3: homenagens (bloco chocolate) ---------- */
+.cx-waffle { display: flex; flex-direction: column; gap: 16px; }
+.cx-waffle-row { display: grid; grid-template-columns: 190px 1fr 34px; gap: 14px; align-items: center; }
+.cx-waffle-label { display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 700; color: var(--cream); }
+.cx-waffle-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+.cx-waffle-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.cx-waffle-n { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: var(--cream); text-align: right; font-variant-numeric: tabular-nums; }
+.cx-sec--choco .cx-chip { border-color: rgba(255, 241, 230, 0.25); }
+.cx-unit, .cx-stamp { opacity: 0; transform: scale(0.5); transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.45s ease; cursor: pointer; }
+[data-in='true'] .cx-unit, [data-in='true'] .cx-stamp { opacity: 1; transform: scale(1); }
+@media (max-width: 560px) {
+  .cx-waffle-row { grid-template-columns: 1fr; gap: 8px; }
+  .cx-waffle-n { display: none; }
+}
+
+.cx-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 26px; }
+@media (max-width: 960px) { .cx-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .cx-strip { grid-template-columns: repeat(2, 1fr); } }
+.cx-stripcard { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.cx-photo { aspect-ratio: 4 / 5; border-radius: 12px; overflow: hidden; background: rgba(255, 241, 230, 0.06); border: 1px solid rgba(255, 241, 230, 0.14); }
+.cx-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cx-photo--pending { display: grid; place-items: center; text-align: center; padding: 12px; }
+.cx-photo--pending span { font-size: 11px; font-weight: 700; color: rgba(255, 241, 230, 0.45); max-width: 16ch; line-height: 1.4; }
+.cx-stripcard figcaption { font-size: 11px; font-weight: 700; color: rgba(255, 241, 230, 0.75); line-height: 1.3; }
+.cx-fade { opacity: 0; transform: translateY(14px); transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.6s ease; }
+[data-in='true'] .cx-fade { opacity: 1; transform: translateY(0); }
+
+/* ---------- S4: hall (barras) ---------- */
+.cx-barchart { display: flex; flex-direction: column; gap: 14px; }
+.cx-bar-row { display: grid; grid-template-columns: 34px 150px 1fr 40px; align-items: center; gap: 12px; }
+.cx-bar-name { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cx-bar-track { background: var(--cream-deep); border-radius: 99px; height: 14px; overflow: hidden; }
+.cx-bar-fill { height: 100%; width: 100%; border-radius: 99px; transform: scaleX(0); transform-origin: left; transition: transform 1.1s cubic-bezier(0.22, 0.61, 0.36, 1); }
+[data-in='true'] .cx-bar-fill { transform: scaleX(var(--pct, 1)); }
+.cx-bar-val { font-family: var(--font-display); font-weight: 800; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+@media (max-width: 560px) {
+  .cx-bar-row { grid-template-columns: 34px 1fr 40px; }
+  .cx-bar-name { grid-column: 2 / 4; }
+  .cx-bar-track { grid-column: 2 / 3; grid-row: 2; }
+  .cx-bar-val { grid-row: 2; }
+}
+
+/* ---------- S5: melhor combo (grid hierárquico) ---------- */
+.cx-combos { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: clamp(16px, 2.5vw, 26px); align-items: stretch; }
+@media (max-width: 960px) { .cx-combos { grid-template-columns: 1fr; } }
+.cx-combocard { display: flex; flex-direction: column; gap: 10px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 14px; padding: 18px; }
+.cx-combocard--lead { background: var(--cream-deep); }
+.cx-combocard .cx-photo { aspect-ratio: 16 / 10; border-radius: 10px; border-color: var(--paper-line); background: var(--cream); }
+.cx-combocard .cx-photo--pending span { color: var(--ink-mute); max-width: 22ch; }
+.cx-combocard-head { display: flex; align-items: center; gap: 12px; }
+.cx-combocard-name { font-size: 15px; font-weight: 800; color: var(--ink); flex: 1; }
+.cx-combocard-n { font-family: var(--font-display); font-weight: 900; font-size: 26px; color: var(--yellow-deep); font-variant-numeric: tabular-nums; }
+.cx-stamps { display: flex; gap: 8px; flex-wrap: wrap; }
+.cx-stamps .cx-chip { width: 26px; height: 26px; }
+.cx-stamps .cx-chip-fb { font-size: 9.5px; }
+.cx-combocard-caption { font-size: 10.5px; color: var(--ink-mute); margin: 0; }
+
+/* ---------- reduced motion: estado final imediato ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cx-msline-fill, .cx-unit, .cx-stamp, .cx-fade, .cx-bar-fill { transition: none; }
+  .cx-msline-fill { transform: scaleX(1); }
+  .cx-unit, .cx-stamp { opacity: 1; transform: scale(1); }
+  .cx-fade { opacity: 1; transform: none; }
+  .cx-bar-fill { transform: scaleX(var(--pct, 1)); }
+}
