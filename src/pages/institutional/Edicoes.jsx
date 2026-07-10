@@ -243,7 +243,7 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
           editorial de "cena"). No mobile isActive é sempre true (default do prop),
           então is-in já nasce aplicado — sem observador de scroll ali (§ combinado). */}
       <header className={`edx-scene__head motion-stagger${isActive ? ' is-in' : ''}`}>
-        <span className="edx-scene__code">{e.code}</span>
+        <span className="edx-scene__code">{e.number}ª edição · {e.code}</span>
         <h2 className="edx-scene__title">{e.theme}</h2>
         <p className="edx-scene__meta">
           {e.periodo || null}
@@ -464,7 +464,7 @@ export function EdicoesPage({ navigate }) {
         /* zona de segurança header↔conteúdo (§4.1): o menu global flutua sobre o stage */
         .edx-scene__head { padding-top: calc(var(--header-safe-offset) + 12px); }
         .edx-scene__head, .edx-scene__body { box-sizing: border-box; }
-        .edx-scene__code { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--tone); filter: brightness(1.4); }
+        .edx-scene__code { font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--tone); filter: brightness(1.4); }
         .edx-scene__title { font-family: var(--font-display); font-weight: 900; letter-spacing: -.03em; font-size: clamp(40px, 4.8vw, 78px); line-height: .98; color: var(--cream); margin: 8px 0 0; max-width: 12ch; text-wrap: balance; }
         .edx-scene__meta { margin: 12px 0 0; font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--cream) 85%, transparent); }
         .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
