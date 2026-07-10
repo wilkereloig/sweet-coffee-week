@@ -457,7 +457,7 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__nofoto { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; color: var(--cream); opacity: .75; font-family: var(--font-sans); font-size: 14px; font-weight: 700; background: color-mix(in srgb, var(--tone) 18%, var(--ink)); }
         .edx-scene__scrim { position: absolute; inset: 0; background:
           linear-gradient(180deg, rgba(43,24,16,.5) 0%, rgba(43,24,16,0) 20%),
-          linear-gradient(90deg, color-mix(in srgb, var(--ink) 82%, var(--tone)) 0%, color-mix(in srgb, var(--ink) 62%, transparent) 42%, rgba(43,24,16,.14) 68%, rgba(43,24,16,0) 100%),
+          linear-gradient(90deg, color-mix(in srgb, var(--ink) 82%, var(--tone)) 0%, color-mix(in srgb, var(--ink) 68%, transparent) 48%, rgba(43,24,16,.16) 74%, rgba(43,24,16,0) 100%),
           linear-gradient(0deg, rgba(43,24,16,.74) 0%, rgba(43,24,16,0) 26%); }
         /* conteúdo (desktop): head + body empilham na coluna esquerda */
         .edx-scene__head, .edx-scene__body { position: relative; z-index: 2; max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); width: 100%; }
@@ -470,7 +470,7 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
         .edx-scene__body > * { max-width: min(46%, 560px); }
         .edx-scene__text { margin-top: 12px; display: grid; gap: 8px; }
-        .edx-scene__lead { margin: 0; font-size: clamp(12.5px, .85vw, 14px); line-height: 1.5; color: color-mix(in srgb, var(--cream) 84%, transparent); }
+        .edx-scene__lead { margin: 0; font-size: clamp(13px, .88vw, 14.5px); line-height: 1.5; color: color-mix(in srgb, var(--cream) 93%, transparent); text-shadow: 0 1px 3px rgba(0,0,0,.35); }
 
         /* RAIL flutuante (canto direito da grade): pódio + participantes empilhados.
            Ancorado ao topo da zona segura; largura fixa; cada card é translúcido. */
@@ -587,7 +587,7 @@ export function EdicoesPage({ navigate }) {
         /* corpo volta pro papel creme */
         .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: 8px; }
         .edx-stack .edx-scene__body > * { max-width: none; }
-        .edx-stack .edx-scene__lead { color: var(--ink-soft); }
+        .edx-stack .edx-scene__lead { color: var(--ink-soft); text-shadow: none; }
         .edx-stack .edx-rail { position: static; width: auto; margin: 16px var(--page-gutter) 0; gap: 14px; }
         .edx-stack .edx-podio { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
         .edx-stack .edx-podio__t, .edx-stack .edx-podio__win { color: var(--ink); }
