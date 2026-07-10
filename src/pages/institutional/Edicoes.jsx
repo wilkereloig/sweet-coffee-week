@@ -29,6 +29,7 @@ import { EDITION_GALLERY } from '../../data/editionGallery'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { getEditionHighlights, sceneShotsFor } from '../../data/editionHighlights'
 import { resolveParticipant } from '../../data/participantAssets'
+import { focalPosition } from '../../data/focalPoints'
 import { PhotoRotator } from '../../components/PhotoRotator'
 
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
@@ -174,7 +175,7 @@ function Filmstrip({ e, current, onPick }) {
           aria-label={`Ver foto ${i + 1} de ${e.gallery.length} em destaque`}
           aria-pressed={src === current}
         >
-          <img src={src} alt="" loading="lazy" decoding="async" />
+          <img src={src} alt="" loading="lazy" decoding="async" style={{ objectPosition: focalPosition(src) }} />
         </button>
       ))}
     </div>
@@ -215,7 +216,7 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
   const sceneImgs = e.scene.map((src) => ({ src, alt: `Combo do acervo, edição ${e.theme}` }))
   return (
     <article
-      className={`edx-scene${e.special ? ' edx-scene--special' : ''}`}
+      className={`edx-scene${e.special ? ' edx-scene--special' : ''}${isActive ? ' is-active' : ''}`}
       id={`edx-panel-${e.number - 1}`}
       style={{ '--tone': `var(--${e.tone}, var(--page-accent))`, '--par': `${offset}vw` }}
       aria-roledescription="slide"
@@ -227,8 +228,9 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
       <div className="edx-scene__media">
         {heroShot ? (
           !usingRotator
-            ? <img src={heroShot} alt={`Combo do acervo, edição ${e.theme}`} loading={e.number === 1 ? 'eager' : 'lazy'} decoding="async" />
-            : <PhotoRotator images={sceneImgs} interval={7200} eager={e.number === 1} onActiveChange={setRotatorSrc} />
+            ? <img src={heroShot} alt={`Combo do acervo, edição ${e.theme}`} loading={e.number === 1 ? 'eager' : 'lazy'} decoding="async"
+                style={{ objectPosition: focalPosition(heroShot), transformOrigin: focalPosition(heroShot) }} />
+            : <PhotoRotator images={sceneImgs} interval={7200} eager={e.number === 1} onActiveChange={setRotatorSrc} useFocalPoint />
         ) : (
           <span className="edx-scene__nofoto"><I.cal width={22} height={22} /><span>Acervo desta edição pendente</span></span>
         )}
@@ -237,8 +239,12 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
         <span className="edx-scene__num" aria-hidden="true">{pad2(e.number)}</span>
       </div>
 
-      {/* cabeçalho do capítulo: no desktop entra na coluna; no mobile fica sobre a foto */}
-      <header className="edx-scene__head">
+      {/* cabeçalho do capítulo: no desktop entra na coluna; no mobile fica sobre a foto.
+          motion-stagger/is-in (motion-system.css) — entra em sequência quando a cena
+          fica ativa; some quando o painel deixa de estar em foco (reforça o corte
+          editorial de "cena"). No mobile isActive é sempre true (default do prop),
+          então is-in já nasce aplicado — sem observador de scroll ali (§ combinado). */}
+      <header className={`edx-scene__head motion-stagger${isActive ? ' is-in' : ''}`}>
         <span className="edx-scene__code">{e.code}</span>
         <h2 className="edx-scene__title">{e.theme}</h2>
         <p className="edx-scene__meta">
@@ -250,7 +256,7 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
 
       {/* camada 3 — corpo editorial */}
       <div className="edx-scene__body">
-        <div className="edx-scene__text">
+        <div className={`edx-scene__text motion-stagger${isActive ? ' is-in' : ''}`}>
           {e.paragraphs.map((p, i) => <p key={i} className="edx-scene__lead">{p}</p>)}
         </div>
       </div>
@@ -439,6 +445,17 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__media > img, .edx-scene__media > div { position: absolute; inset: 0; width: 100%; height: 100%; }
         .edx-scene__media img { width: 100%; height: 100%; object-fit: cover; display: block;
           transform: translateX(var(--par, 0)); transition: transform var(--motion-slow) var(--ease-spring-soft); }
+        /* Ken Burns — zoom lento contínuo só na foto da cena EM FOCO (offset/--par
+           é sempre 0 pra ela, então não conflita com o transform de paralaxe das
+           vizinhas). Escopado a .edx-sticky (só a árvore desktop tem essa altura
+           de especificidade — a pilha mobile usa .edx-stack, nunca casa aqui). */
+        @media (prefers-reduced-motion: no-preference) {
+          @keyframes edxKenBurns { from { transform: translateX(var(--par, 0)) scale(1); } to { transform: translateX(var(--par, 0)) scale(1.06); } }
+          .edx-sticky .edx-scene.is-active .edx-scene__media > img,
+          .edx-sticky .edx-scene.is-active .edx-scene__media .photo-rotator__img.is-active {
+            animation: edxKenBurns 16s var(--ease-out-soft) forwards;
+          }
+        }
         .edx-scene__nofoto { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; color: var(--cream); opacity: .75; font-family: var(--font-sans); font-size: 14px; font-weight: 700; background: color-mix(in srgb, var(--tone) 18%, var(--ink)); }
         .edx-scene__scrim { position: absolute; inset: 0; background:
           linear-gradient(180deg, rgba(43,24,16,.5) 0%, rgba(43,24,16,0) 20%),

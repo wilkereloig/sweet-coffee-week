@@ -1,4 +1,5 @@
 import React from 'react'
+import { focalPosition } from '../data/focalPoints'
 
 /*
  * PhotoRotator — galeria rotativa sutil (crossfade) para áreas de foto da Home.
@@ -13,12 +14,18 @@ import React from 'react'
  * - onActiveChange(src, index): opcional — avisa quem instanciou qual imagem
  *   está em tela agora (ex.: Edições sincroniza o destaque da filmstrip com o
  *   crossfade automático em vez de só com a foto escolhida manualmente).
+ * - useFocalPoint: opcional — aplica object-position/transform-origin a partir
+ *   do ponto focal gerado (src/data/focalPoints.js), quando existe pra aquele
+ *   src. Default false: comportamento inalterado (centro), porque a Home reusa
+ *   as MESMAS fotos do acervo (src/data/homeGalleries.js) e não pode ser
+ *   alterada sem solicitação explícita (CLAUDE.md §9) — só quem pedir o ponto
+ *   focal (Edições) liga a prop.
  *
  * Doc: src/design/SITE_DIRECTION.md (§ Fotos & galerias).
  */
 const ALT_FALLBACK = 'Combo participante do Sweet & Coffee Week'
 
-export function PhotoRotator({ images, interval = 5000, className = '', eager = false, onActiveChange }) {
+export function PhotoRotator({ images, interval = 5000, className = '', eager = false, onActiveChange, useFocalPoint = false }) {
   const list = Array.isArray(images) ? images.filter((im) => im && im.src) : []
   const [idx, setIdx] = React.useState(0)
 
@@ -46,19 +53,23 @@ export function PhotoRotator({ images, interval = 5000, className = '', eager = 
 
   return (
     <div className={`photo-rotator ${className}`.trim()}>
-      {list.map((im, i) => (
-        <img
-          key={im.src + i}
-          src={im.src}
-          alt={im.alt || ALT_FALLBACK}
-          className={'photo-rotator__img' + (i === idx ? ' is-active' : '')}
-          loading={eager && i === 0 ? 'eager' : 'lazy'}
-          fetchpriority={eager && i === 0 ? 'high' : undefined}
-          decoding="async"
-          draggable="false"
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
-        />
-      ))}
+      {list.map((im, i) => {
+        const pos = useFocalPoint ? focalPosition(im.src) : null
+        return (
+          <img
+            key={im.src + i}
+            src={im.src}
+            alt={im.alt || ALT_FALLBACK}
+            className={'photo-rotator__img' + (i === idx ? ' is-active' : '')}
+            style={pos ? { objectPosition: pos, transformOrigin: pos } : undefined}
+            loading={eager && i === 0 ? 'eager' : 'lazy'}
+            fetchpriority={eager && i === 0 ? 'high' : undefined}
+            decoding="async"
+            draggable="false"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        )
+      })}
     </div>
   )
 }

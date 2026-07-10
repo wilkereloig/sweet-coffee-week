@@ -10,7 +10,8 @@
     "test:responsive": "node tests/responsive.mjs",
     "test:mobile": "node tests/responsive.mjs --mobile",
     "test:curiosidades": "node tests/curiosidades-check.mjs",
-    "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs"
+    "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs",
+    "focal-points": "node scripts/compute-focal-points.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
