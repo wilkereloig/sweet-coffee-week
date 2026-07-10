@@ -2,6 +2,8 @@ import React from 'react'
 import { useRoute } from './router'
 import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
+import { MobileTabBar } from './components/MobileTabBar'
+import { MobileMenu } from './components/MobileMenu'
 import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
@@ -74,6 +76,7 @@ function isLegacyLoversPath(path) {
 
 export default function App() {
   const [path, navigate] = useRoute()
+  const [menuOpen, setMenuOpen] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
 
@@ -132,10 +135,15 @@ export default function App() {
   // header/menu público (na landing, o menu levaria sempre pra ela mesma).
   const isInternal = route === 'painel' || route === 'painel-admin' || route === 'em-breve'
 
+  // Nav mobile (tab bar + menu full-screen): só nas rotas públicas institucionais
+  // (mesma lista do rodapé). Fecha o menu ao trocar de rota.
+  const showMobileNav = FOOTER_ROUTES.includes(route)
+  React.useEffect(() => { setMenuOpen(false) }, [route])
+
   return (
     <DevViewportSwitcher>
       {!isInternal && <SiteHeader route={route} navigate={navigate} path={path} />}
-      <main key={route} className="page-enter">
+      <main key={route} className={`page-enter${showMobileNav ? ' has-mobile-tabbar' : ''}`}>
         <ErrorBoundary key={route}>
           <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
             {page}
@@ -143,6 +151,12 @@ export default function App() {
         </ErrorBoundary>
       </main>
       {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} />}
+      {showMobileNav && (
+        <>
+          <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
+          <MobileMenu open={menuOpen} route={route} navigate={navigate} onClose={() => setMenuOpen(false)} />
+        </>
+      )}
       <CookieConsent />
     </DevViewportSwitcher>
   )

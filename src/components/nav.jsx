@@ -1,5 +1,6 @@
 import React from 'react'
 import { I } from './icons'
+import { useActiveEditionBrand } from '../state/activeEditionBrand'
 
 function LoginDropdown({ navigate }) {
   const [open, setOpen] = React.useState(false)
@@ -119,6 +120,8 @@ const BRAND_LOGOS = [
 function BrandLogo({ navigate, route }) {
   const isHome = route === 'home'
   const [idx, setIdx] = React.useState(0)
+  const editionBrand = useActiveEditionBrand()
+  const showEditionBrand = route === 'edicoes' && !!editionBrand
 
   React.useEffect(() => {
     if (!isHome) { setIdx(0); return }
@@ -134,24 +137,35 @@ function BrandLogo({ navigate, route }) {
 
   return (
     <a href="#/" className="brand brand-cycle" onClick={(e) => { e.preventDefault(); navigate('/') }}>
-      {BRAND_LOGOS.map((l, i) => (
+      {showEditionBrand ? (
         <img
-          key={l.src}
-          src={l.src}
-          alt={i === idx ? l.alt : ''}
-          aria-hidden={i === idx ? undefined : 'true'}
+          key={editionBrand.logo}
+          src={editionBrand.logo}
+          alt={editionBrand.alt}
           height={72}
-          className={'brand-cycle__img' + (i === idx ? ' is-in' : '')}
+          className="brand-cycle__img brand-cycle__img--edition is-in"
           decoding="async"
           onError={(e) => { e.currentTarget.style.display = 'none' }}
         />
-      ))}
+      ) : (
+        BRAND_LOGOS.map((l, i) => (
+          <img
+            key={l.src}
+            src={l.src}
+            alt={i === idx ? l.alt : ''}
+            aria-hidden={i === idx ? undefined : 'true'}
+            height={72}
+            className={'brand-cycle__img' + (i === idx ? ' is-in' : '')}
+            decoding="async"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        ))
+      )}
     </a>
   )
 }
 
 export function SiteHeader({ route, navigate }) {
-  const [mobileOpen, setMobileOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
 
   React.useEffect(() => {
@@ -161,91 +175,34 @@ export function SiteHeader({ route, navigate }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Menu mobile aberto: fecha com Esc e trava o scroll do fundo.
-  React.useEffect(() => {
-    if (!mobileOpen) return
-    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false) }
-    document.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-    }
-  }, [mobileOpen])
-
   // Fora da Home, logo sempre compacta (estado menor) — sem esperar scroll.
   const isCompact = scrolled || route !== 'home'
   const transparent = route !== 'painel' && !scrolled
 
+  // Menu mobile foi extraído p/ MobileMenu (aberto pela aba "Menu" da
+  // MobileTabBar, montada no App). O hambúrguer sai no mobile — header mobile
+  // = logo + login. Spec: docs/superpowers/specs/2026-07-10-mobile-tabbar-nav-design.md
   return (
-    <React.Fragment>
-      <header className={`site-header${isCompact ? ' scrolled' : ''}`}>
-        <div className="site-header__inner">
-          <BrandLogo navigate={navigate} light={transparent} route={route} />
+    <header className={`site-header${isCompact ? ' scrolled' : ''}`}>
+      <div className="site-header__inner">
+        <BrandLogo navigate={navigate} light={transparent} route={route} />
 
-          <nav className="nav-main">
-            {NAV_LINKS.map((l) => (
-              <a key={l.id}
-                 href={l.href}
-                 className={route === l.id ? 'active' : ''}
-                 aria-current={route === l.id ? 'page' : undefined}
-                 onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-                {l.label}
-              </a>
-            ))}
-          </nav>
+        <nav className="nav-main">
+          {NAV_LINKS.map((l) => (
+            <a key={l.id}
+               href={l.href}
+               className={route === l.id ? 'active' : ''}
+               aria-current={route === l.id ? 'page' : undefined}
+               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
+              {l.label}
+            </a>
+          ))}
+        </nav>
 
-          <div className="nav-cta">
-            <LoginDropdown navigate={navigate} />
-            <button
-              className="menu-toggle"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Abrir menu"
-            >
-              <I.menu />
-            </button>
-          </div>
+        <div className="nav-cta">
+          <LoginDropdown navigate={navigate} />
         </div>
-      </header>
-
-      {mobileOpen && (
-        <div className="mobile-overlay" onClick={() => setMobileOpen(false)}>
-          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
-            <button className="close" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><I.close /></button>
-
-            <div className="mobile-menu__section mobile-menu__section--institutional">
-              <div className="mobile-menu__section-title">Institucional</div>
-              {NAV_LINKS.map((l) => (
-                <a key={l.id}
-                   href={l.href}
-                   className={`mobile-menu__inst-link${route === l.id ? ' active' : ''}`}
-                   aria-current={route === l.id ? 'page' : undefined}
-                   onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')); setMobileOpen(false) }}>
-                  {l.label}
-                </a>
-              ))}
-            </div>
-
-            <div className="mobile-menu__section" style={{ borderTop: '1px solid rgba(242,182,160,.4)', paddingTop: 20, marginTop: 4 }}>
-              <div className="mobile-menu__section-title">Acesso</div>
-              <button
-                disabled
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, color: '#B0907C', cursor: 'not-allowed' }}
-              >
-                <span>Área do Participante</span>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '2px 8px' }}>Em breve</span>
-              </button>
-              <button
-                style={{ display: 'flex', alignItems: 'center', width: '100%', minHeight: 44, padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#2B1810', cursor: 'pointer' }}
-                onClick={() => { navigate('/painel-admin'); setMobileOpen(false) }}
-              >
-                Área Admin →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </React.Fragment>
+      </div>
+    </header>
   )
 }

@@ -131,6 +131,12 @@ export const I = {
       <path d="M3 8.5l3.5 3.5 7-8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  home: (p = {}) => (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+      <path d="M3 8l6-5 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M4.5 7.5V14.5h9V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   lock: (p = {}) => (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" {...p}>
       <rect x="3" y="7" width="10" height="7" rx="1.4" stroke="currentColor" strokeWidth="1.4"/>

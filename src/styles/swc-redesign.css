@@ -244,25 +244,9 @@ html { scroll-behavior: smooth; }
   to   { opacity: 1; transform: none; }
 }
 
-/* ============================================================
-   DRAWER MOBILE institucional — creme + slab lowercase
-   ============================================================ */
-.mobile-menu:not(.mobile-menu--lovers) { background: var(--swc-cream); }
-.mobile-menu:not(.mobile-menu--lovers) .mobile-menu__section-title {
-  font-family: var(--font-mono);
-  color: var(--swc-coffee);
-  opacity: .6;
-}
-.mobile-menu:not(.mobile-menu--lovers) .mobile-menu__inst-link {
-  font-family: var(--font-display);
-  text-transform: lowercase;
-  font-size: clamp(26px, 8vw, 34px);
-  font-weight: 700;
-  letter-spacing: -.01em;
-  color: var(--swc-chocolate);
-  padding: 8px 0;
-}
-.mobile-menu:not(.mobile-menu--lovers) .close { color: var(--swc-chocolate); background: transparent; }
+/* Menu mobile: design vive inteiro em styles.css (tela cheia, numeração,
+   acento por página). Nada a sobrepor aqui — skin antiga (drawer + fonte
+   mono no rótulo, violava §5) removida no redo de jul/2026. */
 
 /* ============================================================
    EDIÇÕES — cards editoriais alternados (creme / creme dourado)
@@ -301,8 +285,7 @@ html { scroll-behavior: smooth; }
 .page-enter a:focus-visible,
 .page-enter button:focus-visible,
 .site-sidebar:not(.lovers) a:focus-visible,
-.site-sidebar:not(.lovers) .sidebar__link:focus-visible,
-.mobile-menu:not(.mobile-menu--lovers) a:focus-visible {
+.site-sidebar:not(.lovers) .sidebar__link:focus-visible {
   outline: 3px solid var(--swc-coral);
   outline-offset: 3px;
   border-radius: 6px;

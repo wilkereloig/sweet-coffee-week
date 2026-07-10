@@ -29,8 +29,10 @@ import { EDITION_GALLERY } from '../../data/editionGallery'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { getEditionHighlights, sceneShotsFor } from '../../data/editionHighlights'
 import { resolveParticipant } from '../../data/participantAssets'
+import { editionMark } from '../../data/editionAssets'
 import { focalPosition } from '../../data/focalPoints'
 import { PhotoRotator } from '../../components/PhotoRotator'
+import { setActiveEditionBrand } from '../../state/activeEditionBrand'
 
 const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
 
@@ -182,6 +184,53 @@ function Filmstrip({ e, current, onPick }) {
   )
 }
 
+// Carrossel de fotos da hero (mobile): as fotos do acervo da edição viram um
+// trilho horizontal com scroll-snap nativo (swipe do sistema, app-like), no
+// lugar da fileira de miniaturas. Bolinhas indicam a posição. Substitui o
+// PhotoRotator automático no mobile — aqui quem avança é o dedo.
+function HeroCarousel({ images, alt, eager = false, autoplay = false }) {
+  const [idx, setIdx] = React.useState(0)
+  const ref = React.useRef(null)
+  const onScroll = () => {
+    const el = ref.current
+    if (!el) return
+    setIdx(Math.round(el.scrollLeft / el.clientWidth))
+  }
+
+  // Transição automática — só na cena ativa (autoplay), avança 1 foto a cada
+  // 5s com scroll suave (loopando). Pausa em aba oculta e respeita reduced-motion.
+  React.useEffect(() => {
+    if (!autoplay || images.length <= 1) return
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const id = setInterval(() => {
+      const el = ref.current
+      if (!el || (typeof document !== 'undefined' && document.hidden)) return
+      const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % images.length
+      el.scrollTo({ left: next * el.clientWidth, behavior: 'smooth' })
+    }, 5000)
+    return () => clearInterval(id)
+  }, [autoplay, images.length])
+  return (
+    <div className="edx-hero-carousel">
+      <div className="edx-hero-carousel__track" ref={ref} onScroll={onScroll}
+           role="group" aria-roledescription="carrossel" aria-label={`Fotos: ${alt}`}>
+        {images.map((src, i) => (
+          <div className={`edx-hero-carousel__slide${i === idx ? ' is-active' : ''}`} key={src}>
+            <img src={src} alt={i === 0 ? alt : ''} aria-hidden={i === 0 ? undefined : 'true'}
+                 loading={eager && i === 0 ? 'eager' : 'lazy'} decoding="async"
+                 style={{ objectPosition: focalPosition(src), transformOrigin: focalPosition(src) }} />
+          </div>
+        ))}
+      </div>
+      {images.length > 1 && (
+        <div className="edx-hero-carousel__dots" aria-hidden="true">
+          {images.map((src, i) => <span key={src} className={i === idx ? 'is-on' : ''} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Cena de uma edição. `live`: crossfade + filmstrip só no slide em foco e
 // vizinhos. `near`: a foto full-bleed só monta perto do foco (16 imagens de
 // viewport inteiro decodificadas de uma vez travam o compositor). `isActive`:
@@ -190,7 +239,7 @@ function Filmstrip({ e, current, onPick }) {
 // `.edx-viewport{overflow:hidden}`, então ficam inert (mobile não usa isso: lá
 // não há clipping, todo painel é navegável no fluxo normal). `offset`:
 // parallax da camada de foto (desktop).
-function EditionScene({ e, live, near = true, isActive = true, offset = 0, go }) {
+function EditionScene({ e, live, near = true, isActive = true, offset = 0, go, stacked = false, autoplay = false }) {
   // Foto escolhida na filmstrip vence o crossfade automático.
   const [picked, setPicked] = React.useState(null)
   // Frame que o PhotoRotator está exibindo agora (crossfade automático) — sem
@@ -214,6 +263,8 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
     )
   }
   const sceneImgs = e.scene.map((src) => ({ src, alt: `Combo do acervo, edição ${e.theme}` }))
+  // Mobile: fotos do acervo (gallery) viram carrossel na própria hero.
+  const heroImages = e.gallery.length ? e.gallery : e.scene
   return (
     <article
       className={`edx-scene${e.special ? ' edx-scene--special' : ''}${isActive ? ' is-active' : ''}`}
@@ -224,9 +275,12 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
       aria-hidden={isActive ? undefined : true}
       inert={isActive ? undefined : ''}
     >
-      {/* camada 1 — foto-cena + scrim */}
+      {/* camada 1 — foto-cena + scrim. Mobile: carrossel de fotos swipeável na
+          própria hero (app-like). Desktop: crossfade automático (PhotoRotator). */}
       <div className="edx-scene__media">
-        {heroShot ? (
+        {stacked && heroImages.length ? (
+          <HeroCarousel images={heroImages} alt={`Acervo da edição ${e.theme}`} eager={e.number === 1} autoplay={autoplay} />
+        ) : heroShot ? (
           !usingRotator
             ? <img src={heroShot} alt={`Combo do acervo, edição ${e.theme}`} loading={e.number === 1 ? 'eager' : 'lazy'} decoding="async"
                 style={{ objectPosition: focalPosition(heroShot), transformOrigin: focalPosition(heroShot) }} />
@@ -266,7 +320,15 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
         <EditionParticipants e={e} />
       </div>
 
-      <Filmstrip e={{ ...e, gallery: live ? e.gallery : [] }} current={current} onPick={setPicked} />
+      {/* Gated por `near` (não `live`): no mobile `near` é sempre true (todas as
+          16 cenas já montam cheias), então o filmstrip nunca monta/desmonta durante
+          o scroll — antes, gated por `live`, o filmstrip aparecia/sumia conforme
+          `active` mudava (IntersectionObserver), empurrando o layout e quebrando o
+          scrollIntoView de saltos longos (sheet/timeline pulando pra edição distante
+          parava no meio do caminho). No desktop `near` já limita a mesma janela de
+          painéis plenamente montados — só amplia de "1 vizinho" pra "2 vizinhos". */}
+      {/* Filmstrip só no desktop: no mobile as fotos vivem no carrossel da hero. */}
+      {!stacked && <Filmstrip e={{ ...e, gallery: near ? e.gallery : [] }} current={current} onPick={setPicked} />}
     </article>
   )
 }
@@ -307,9 +369,11 @@ function YearRail({ active, onPick }) {
 export function EdicoesPage({ navigate }) {
   const pageRef = React.useRef(null)
   const outerRef = React.useRef(null)
+  const stackListRef = React.useRef(null)
   useRevealOnScroll(pageRef)
   const [active, setActive] = React.useState(0)
   const [horizontal, setHorizontal] = React.useState(false)
+  const [sheetOpen, setSheetOpen] = React.useState(false)
 
   // Modo horizontal só no desktop e sem reduced-motion.
   React.useEffect(() => {
@@ -325,16 +389,28 @@ export function EdicoesPage({ navigate }) {
 
   useSteppedPresentation({ enabled: horizontal, stageRef: outerRef, total: TOTAL, active, setActive })
 
-  // Modo vertical: observa qual painel está visível p/ acender a timeline.
+  // Cena em foco publica a logo da edição pro header (troca a marca padrão
+  // enquanto a página estiver aberta); limpa ao trocar de cena/desmontar.
+  React.useEffect(() => {
+    const p = PANELS[active]
+    const mark = p ? editionMark(p.code) : null
+    setActiveEditionBrand(mark && mark.logo ? { logo: mark.logo, alt: `Sweet & Coffee Week — ${mark.title}` } : null)
+    return () => setActiveEditionBrand(null)
+  }, [active])
+
+  // Modo mobile: carrossel horizontal (scroll-snap nativo) — observa qual
+  // painel está em foco dentro do próprio contêiner de scroll (root), não do
+  // viewport vertical, pra acender a taskbar/logo correta.
   React.useEffect(() => {
     if (horizontal || typeof window === 'undefined') return
+    const root = stackListRef.current
     const nodes = PANELS.map((_, i) => document.getElementById(`edx-panel-${i}`)).filter(Boolean)
-    if (!nodes.length) return
+    if (!root || !nodes.length) return
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         if (en.isIntersecting) setActive(Number(en.target.id.replace('edx-panel-', '')))
       })
-    }, { threshold: 0, rootMargin: '-45% 0px -45% 0px' })
+    }, { root, threshold: 0.6 })
     nodes.forEach((n) => io.observe(n))
     return () => io.disconnect()
   }, [horizontal])
@@ -351,13 +427,37 @@ export function EdicoesPage({ navigate }) {
     if (typeof window === 'undefined') return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const el = document.getElementById(`edx-panel-${i}`)
-    if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-  }, [horizontal])
+    if (!el) return
+    // Carrossel horizontal mobile: scrollIntoView com inline resolve o scroll do
+    // próprio contêiner (root do IntersectionObserver acima), sem tocar no scroll
+    // vertical da página. Salto longo (sheet escolhendo edição distante):
+    // instantâneo — smooth por várias telas de distância é interrompível. Passo
+    // curto (seta prev/next): smooth, dá o "vira a página".
+    const far = Math.abs(i - active) > 1
+    el.scrollIntoView({ behavior: (reduce || far) ? 'auto' : 'smooth', inline: 'start', block: 'nearest' })
+  }, [horizontal, active])
 
   const go = (path) => (e) => { e.preventDefault(); navigate(path); if (typeof window !== 'undefined') window.scrollTo(0, 0) }
 
+  // Taskbar mobile (prev/next + quick-jump): fecha o sheet se o modo virar
+  // horizontal no meio do caminho (giro de tela/resize pra desktop).
+  React.useEffect(() => { if (horizontal) setSheetOpen(false) }, [horizontal])
+
+  // Sheet do taskbar: Esc fecha e trava o scroll do fundo (mesmo padrão do menu principal).
+  React.useEffect(() => {
+    if (!sheetOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setSheetOpen(false) }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [sheetOpen])
+
   return (
-    <div className="page-enter edx-page">
+    <div className={`page-enter edx-page${!horizontal ? ' edx-page--tabbar' : ''}`}>
       {horizontal ? (
         /* DESKTOP — apresentação horizontal scroll-driven */
         <section
@@ -400,15 +500,87 @@ export function EdicoesPage({ navigate }) {
           </div>
         </section>
       ) : (
-        /* MOBILE / reduced-motion — capítulos verticais + timeline sticky */
+        /* MOBILE / reduced-motion — carrossel horizontal (scroll-snap nativo);
+           avança com swipe ou pelas setas/sheet da taskbar do rodapé. */
         <section className="edx-stack" aria-label="Edições">
-          <div className="edx-anos-wrap">
-            <YearRail active={active} onPick={pick} />
-          </div>
-          <div className="edx-stack__list">
-            {PANELS.map((e, i) => <EditionScene e={e} key={e.code} live={Math.abs(i - active) <= 1} go={go} />)}
+          <div className="edx-stack__list" ref={stackListRef} role="region" aria-roledescription="carousel" aria-label="Apresentação das edições">
+            {PANELS.map((e, i) => <EditionScene e={e} key={e.code} live={Math.abs(i - active) <= 1} go={go} stacked autoplay={i === active} />)}
           </div>
         </section>
+      )}
+
+      {/* TASKBAR MOBILE — navegação primária no alcance do polegar (rodapé),
+          em vez de só a timeline no topo. Prev/next avança um painel; o botão
+          central abre o sheet de salto direto pra qualquer uma das 16. */}
+      {!horizontal && (
+        <nav className="edx-tabbar" aria-label="Navegação entre edições"
+             style={{ '--tone': `var(--${PANELS[active].tone}, var(--page-accent))` }}>
+          <div className="edx-tabbar__progress" aria-hidden="true">
+            <span style={{ transform: `scaleX(${(active + 1) / TOTAL})` }} />
+          </div>
+          <button
+            type="button"
+            className="edx-tabbar__btn"
+            onClick={() => pick(Math.max(active - 1, 0))}
+            disabled={active === 0}
+            aria-label="Edição anterior"
+          >
+            <I.chevronLeft width={20} height={20} />
+          </button>
+          <button
+            type="button"
+            className="edx-tabbar__current"
+            onClick={() => setSheetOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={sheetOpen}
+          >
+            <span className="edx-tabbar__meta">
+              {PANELS[active].special ? 'Lovers' : PANELS[active].code} · {pad2(active + 1)}/{pad2(TOTAL)}
+            </span>
+            <span className="edx-tabbar__theme">
+              <span className="edx-tabbar__theme-txt">{PANELS[active].theme}</span>
+              <I.chevronRight width={15} height={15} />
+            </span>
+          </button>
+          <button
+            type="button"
+            className="edx-tabbar__btn"
+            onClick={() => pick(Math.min(active + 1, TOTAL - 1))}
+            disabled={active === TOTAL - 1}
+            aria-label="Próxima edição"
+          >
+            <I.chevronRight width={20} height={20} />
+          </button>
+        </nav>
+      )}
+
+      {!horizontal && sheetOpen && (
+        <div className="edx-sheet-overlay" onClick={() => setSheetOpen(false)}>
+          <div className="edx-sheet" role="dialog" aria-modal="true" aria-label="Escolher edição" onClick={(e) => e.stopPropagation()}>
+            <div className="edx-sheet__handle" aria-hidden="true" />
+            <p className="edx-sheet__t">Ir para edição</p>
+            <div className="edx-sheet__grid">
+              {PANELS.map((e, i) => (
+                <button
+                  type="button"
+                  key={e.code}
+                  className={`edx-sheet__item${i === active ? ' is-active' : ''}`}
+                  aria-current={i === active ? 'true' : undefined}
+                  onClick={() => {
+                    // solta o scroll-lock JÁ (síncrono) — a limpeza do efeito só roda
+                    // depois do commit, e o scrollIntoView do pick() ficaria bloqueado
+                    // pelo overflow:hidden ainda ativo no instante deste clique.
+                    document.body.style.overflow = ''
+                    setSheetOpen(false)
+                    pick(i)
+                  }}
+                >
+                  {e.special ? 'Lovers' : e.code}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* EPÍLOGO — um convite, um intent (Curiosidades; o intent Awards vive no painel Lovers) */}
@@ -466,7 +638,7 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__head, .edx-scene__body { box-sizing: border-box; }
         .edx-scene__code { font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--tone); filter: brightness(1.4); }
         .edx-scene__title { font-family: var(--font-display); font-weight: 900; letter-spacing: -.03em; font-size: clamp(40px, 4.8vw, 78px); line-height: .98; color: var(--cream); margin: 8px 0 0; max-width: 12ch; text-wrap: balance; }
-        .edx-scene__meta { margin: 12px 0 0; font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--cream) 85%, transparent); }
+        .edx-scene__meta { margin: 12px 0 0; font-family: var(--font-sans); font-size: 16px; font-weight: 800; letter-spacing: .01em; color: var(--cream); text-shadow: 0 1px 4px rgba(0,0,0,.4); }
         .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
         .edx-scene__body > * { max-width: min(46%, 560px); }
         .edx-scene__text { margin-top: 12px; display: grid; gap: 8px; }
@@ -488,7 +660,7 @@ export function EdicoesPage({ navigate }) {
         .edx-podio__logos { display: flex; gap: 6px; }
         .edx-podio__logo { position: relative; width: 38px; height: 38px; border-radius: 10px; background: var(--choco, #3A2114); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); display: grid; place-items: center; overflow: hidden; }
         .edx-podio__logo--img { background: #fff; }
-        .edx-podio__logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+        .edx-podio__logo img { width: 100%; height: 100%; object-fit: cover; }
         .edx-podio__ini { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: var(--cream); }
         .edx-podio__what { min-width: 0; }
         .edx-podio__cat { display: block; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: color-mix(in srgb, var(--cream) 66%, transparent); }
@@ -568,36 +740,90 @@ export function EdicoesPage({ navigate }) {
         .edx-epilogo .edx-cta { background: var(--yellow); }
         .edx-epilogo .edx-cta:hover { background: var(--yellow-deep); color: var(--ink); }
 
-        /* ===================== MOBILE / reduced-motion (stack) ===================== */
+        /* ===================== MOBILE / reduced-motion (carrossel) ===================== */
         .edx-stack { background: var(--cream); }
-        .edx-anos-wrap { position: sticky; top: 0; z-index: 5; }
-        .edx-anos-wrap .edx-anos { padding-top: var(--hero-content-start); background: color-mix(in srgb, var(--cream) 92%, transparent); border-bottom: 1px solid var(--paper-line); }
-        @media (max-width: 720px) {
-          .edx-anos-wrap .edx-anos__item { padding: 11px 14px; }
+        /* Contêiner do carrossel: uma tela por edição, scroll-snap horizontal
+           nativo (swipe do sistema, sem gesto customizado). Cada cena rola o
+           próprio conteúdo na vertical (overflow-y), independente da posição
+           horizontal — sem isso, o flex row equalizaria a altura de todas as
+           16 cenas pela mais alta. */
+        .edx-stack__list {
+          display: flex; overflow-x: auto; overflow-y: hidden;
+          scroll-snap-type: x mandatory; scrollbar-width: none;
+          /* fica ACIMA da tab bar global (não some sob ela) */
+          height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom, 0px));
         }
-        .edx-anos-wrap .edx-anos__item { color: var(--ink-soft); border-color: var(--paper-line); background: var(--cream-card); }
-        .edx-anos-wrap .edx-anos__item.is-active { background: var(--page-accent, var(--cyan)); border-color: var(--page-accent, var(--cyan)); color: var(--ink); }
-
-        .edx-stack .edx-scene { min-width: 0; height: auto; background: var(--cream); border-bottom: 1px solid var(--paper-line); }
-        .edx-stack .edx-scene__media { position: relative; inset: auto; aspect-ratio: 4 / 5; max-height: 72vh; }
+        .edx-stack__list::-webkit-scrollbar { display: none; }
+        .edx-stack .edx-scene {
+          flex: 0 0 100%; min-width: 100%; width: 100%; height: 100%;
+          overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+          scroll-snap-align: start; scroll-snap-stop: always;
+          background: var(--cream);
+        }
+        .edx-stack .edx-scene__media { position: relative; inset: auto; aspect-ratio: 4 / 5; max-height: 80vh; }
         .edx-stack .edx-scene__media img { transform: none; }
+        /* scrim não intercepta o toque — senão o swipe do carrossel morre nele */
+        .edx-scene__scrim { pointer-events: none; }
+
+        /* CARROSSEL DE FOTOS NA HERO (mobile) — trilho horizontal scroll-snap
+           nativo. overscroll-x contain: o swipe das fotos NÃO vaza pro carrossel
+           de edições (troca de edição fica na taskbar/setas), sem flip acidental
+           no meio da galeria. */
+        .edx-hero-carousel { position: absolute; inset: 0; }
+        .edx-hero-carousel__track {
+          display: flex; width: 100%; height: 100%;
+          overflow-x: auto; overflow-y: hidden;
+          scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+          scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .edx-hero-carousel__track::-webkit-scrollbar { display: none; }
+        .edx-hero-carousel__slide { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; }
+        .edx-hero-carousel__slide img { width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform; }
+        /* Ken Burns na foto ativa — zoom lento contínuo, ancorado no ponto focal.
+           Reinicia a cada swipe (a classe .is-active migra pro novo slide). */
+        @media (prefers-reduced-motion: no-preference) {
+          .edx-hero-carousel__slide.is-active img { animation: edxHeroKb 8s var(--ease-out-soft, ease-out) forwards; }
+          @keyframes edxHeroKb { from { transform: scale(1); } to { transform: scale(1.1); } }
+        }
+        /* bolinhas no rodapé da foto (cabeçalho agora fica ABAIXO da imagem) */
+        .edx-hero-carousel__dots {
+          position: absolute; left: 0; right: 0; bottom: 14px; z-index: 4;
+          display: flex; gap: 6px; justify-content: center; pointer-events: none;
+        }
+        .edx-hero-carousel__dots span {
+          width: 6px; height: 6px; border-radius: 999px;
+          background: color-mix(in srgb, var(--cream) 55%, transparent);
+          box-shadow: 0 1px 3px rgba(0,0,0,.4); transition: width .2s ease, background .2s ease;
+        }
+        .edx-hero-carousel__dots span.is-on { width: 20px; background: var(--cream); }
         .edx-stack .edx-scene__nofoto { color: var(--cream); }
         .edx-stack .edx-scene__scrim { background: linear-gradient(0deg, color-mix(in srgb, var(--ink) 80%, var(--tone)) 0%, rgba(43,24,16,.16) 42%, rgba(43,24,16,0) 64%); }
-        /* cabeçalho puxado por cima da base da foto */
-        .edx-stack .edx-scene__head { margin-top: -118px; padding-top: 0; padding-bottom: 14px; }
-        .edx-stack .edx-scene__title { font-size: clamp(30px, 9vw, 42px); max-width: none; }
-        .edx-stack .edx-scene__meta { color: color-mix(in srgb, var(--cream) 88%, transparent); font-size: 12.5px; margin-top: 6px; }
-        /* corpo volta pro papel creme */
-        .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: 8px; }
+        /* cabeçalho ABAIXO da foto (não mais sobreposto) — banda no acento CHEIO
+           da edição (tom saturado da paleta, §3: heros usam --page-accent cheio
+           com tinta escura), alternando edição a edição. Texto em --ink pra
+           contraste. A taskbar usa o MESMO tom cheio (identidade contínua). */
+        .edx-stack .edx-scene__head {
+          margin-top: 0; padding: 20px var(--page-gutter) 22px;
+          background: var(--tone);
+        }
+        .edx-stack .edx-scene__code { color: var(--ink); filter: none; opacity: .72; }
+        .edx-stack .edx-scene__title { font-size: clamp(30px, 9vw, 42px); max-width: none; color: var(--ink); }
+        .edx-stack .edx-scene__meta { color: var(--ink); font-size: 14px; font-weight: 800; margin-top: 6px; opacity: .82; }
+        /* corpo volta pro papel creme; rodapé reserva a taskbar fixa, já que cada
+           cena agora rola o próprio conteúdo até o fim (carrossel, não mais a
+           página inteira). */
+        /* respiro pra pill de edição (que flutua acima da tab bar global); o
+           list já exclui a altura da tab bar+safe, então não somo env aqui. */
+        .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: calc(28px + 76px); }
         .edx-stack .edx-scene__body > * { max-width: none; }
         .edx-stack .edx-scene__lead { color: var(--ink-soft); text-shadow: none; }
         .edx-stack .edx-rail { position: static; width: auto; margin: 16px var(--page-gutter) 0; gap: 14px; }
-        .edx-stack .edx-podio { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
+        .edx-stack .edx-podio { background: var(--cream-card); border: 1px solid color-mix(in srgb, var(--tone) 40%, var(--paper-line)); box-shadow: 0 6px 20px rgba(43,24,16,.08); }
         .edx-stack .edx-podio__t, .edx-stack .edx-podio__win { color: var(--ink); }
         .edx-stack .edx-podio__cat { color: var(--ink-soft); }
         .edx-stack .edx-podio__logo { border: 1px solid var(--paper-line); }
         .edx-stack .edx-podio__link { color: var(--ink); }
-        .edx-stack .edx-parts { background: color-mix(in srgb, var(--tone) 6%, var(--cream-card)); border-color: var(--paper-line); }
+        .edx-stack .edx-parts { background: var(--cream-card); border: 1px solid color-mix(in srgb, var(--tone) 40%, var(--paper-line)); box-shadow: 0 6px 20px rgba(43,24,16,.08); }
         .edx-stack .edx-parts__t { color: var(--ink-soft); }
         .edx-stack .edx-parts__toggle:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
         .edx-stack .edx-parts__toggle:hover .edx-parts__t { color: var(--ink); }
@@ -605,11 +831,85 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-parts__chev { color: var(--ink-soft); }
         .edx-stack .edx-parts.is-open .edx-parts__list { max-height: 280px; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
         .edx-stack .edx-parts__list li { color: var(--ink); }
-        .edx-stack .edx-strip { position: static; padding-block: 14px 22px; }
-        .edx-stack .edx-strip__th { background: var(--cream-card); }
+        /* Galeria vira carrossel de fotos grandes (não mais fileira de
+           miniaturas): 1 card por vez, snap ao centro, espiada dos vizinhos. */
+        .edx-stack .edx-strip { position: static; padding-block: 14px 22px; gap: 12px; scroll-snap-type: x mandatory; }
+        .edx-stack .edx-strip__th { width: min(76vw, 360px); aspect-ratio: 4 / 3; border-radius: 14px; opacity: 1; border-width: 3px; scroll-snap-align: center; background: var(--cream-card); }
+        .edx-stack .edx-strip__th.is-on { border-color: var(--tone); }
 
-        /* Lovers tem pódio maior (3 linhas): reserva extra pro strip não colidir */
-        .edx-scene--special .edx-scene__body { padding-bottom: 176px; }
+        /* PILL DE EDIÇÃO — flutuante no alcance do polegar, EMPILHADA logo acima
+           da tab bar global do site (nav de edição em cima, nav de site embaixo).
+           Destacada das bordas, cantos redondos, sombra. O epílogo ganha respiro
+           extra (.edx-page--tabbar) pra pill não cobrir o CTA; a tab bar global já
+           é reservada pelo .page-enter.has-mobile-tabbar (main). */
+        .edx-page--tabbar { padding-bottom: 88px; }
+        .edx-tabbar {
+          position: fixed; z-index: 91;
+          left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right));
+          bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 12px);
+          display: grid; grid-template-columns: 52px 1fr 52px; align-items: center; gap: 4px;
+          display: grid; grid-template-columns: 52px 1fr 52px; align-items: center; gap: 4px;
+          padding: 6px; border-radius: 20px; overflow: hidden;
+          /* MESMO tom cheio da banda do cabeçalho — identidade contínua:
+             header e taskbar sempre no mesmo acento, alternando por edição. */
+          background: var(--tone);
+          border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+          box-shadow: 0 10px 34px rgba(43,24,16,.32), 0 2px 8px rgba(43,24,16,.2);
+          transition: background .3s var(--ease-out-soft, ease);
+        }
+        .edx-tabbar__progress { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--ink) 14%, transparent); }
+        .edx-tabbar__progress span { display: block; height: 100%; width: 100%; background: var(--ink); transform-origin: left; transition: transform .3s var(--ease-out-soft, ease); }
+        /* botões prev/next circulares, ESCUROS (espresso) sobre a banda de cor —
+           dark-on-bright, punch e contraste tátil de app. */
+        .edx-tabbar__btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 52px; height: 52px; border-radius: 999px; border: 0; cursor: pointer;
+          background: var(--ink); color: var(--cream);
+          transition: transform .12s var(--ease-out-soft, ease), background .15s ease, opacity .15s ease;
+        }
+        .edx-tabbar__btn:hover { background: color-mix(in srgb, var(--ink) 82%, var(--tone)); }
+        .edx-tabbar__btn:active { transform: scale(.88); }
+        .edx-tabbar__btn:disabled { opacity: .3; cursor: default; }
+        .edx-tabbar__btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+        .edx-tabbar__current {
+          display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+          min-width: 0; min-height: 52px; padding: 4px 8px; border: 0; border-radius: 14px;
+          background: none; cursor: pointer; transition: background .15s ease, transform .12s ease;
+        }
+        .edx-tabbar__current:active { transform: scale(.97); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+        .edx-tabbar__current:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+        .edx-tabbar__meta { font-family: var(--font-sans); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); opacity: .66; }
+        .edx-tabbar__theme { display: flex; align-items: center; gap: 4px; max-width: 100%; color: var(--ink); }
+        .edx-tabbar__theme-txt { font-family: var(--font-heading); font-weight: 800; font-size: 15px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .edx-tabbar__theme svg { flex: 0 0 auto; transform: rotate(90deg); opacity: .55; }
+
+        /* SHEET — salto direto pra qualquer uma das 16 edições */
+        .edx-sheet-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(43,24,16,.45); animation: edxSheetFade .18s ease; }
+        @keyframes edxSheetFade { from { opacity: 0; } }
+        .edx-sheet {
+          position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+          background: var(--cream); border-radius: 20px 20px 0 0;
+          padding: 10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+          max-height: 70vh; overflow-y: auto;
+          box-shadow: 0 -12px 40px rgba(0,0,0,.3);
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .edx-sheet { animation: edxSheetUp .22s var(--ease-out-soft, ease); }
+          @keyframes edxSheetUp { from { transform: translateY(100%); } }
+        }
+        .edx-sheet__handle { width: 36px; height: 4px; border-radius: 999px; background: var(--paper-line); margin: 0 auto 14px; }
+        .edx-sheet__t { margin: 0 0 12px; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute, var(--ink-soft)); }
+        .edx-sheet__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .edx-sheet__item { min-height: 44px; border-radius: 12px; border: 1px solid var(--paper-line); background: var(--cream-card); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 13px; cursor: pointer; transition: transform .1s ease, background .15s ease, color .15s ease, border-color .15s ease; }
+        .edx-sheet__item:active { transform: scale(.94); }
+        .edx-sheet__item.is-active { background: var(--page-accent, var(--cyan)); border-color: var(--page-accent, var(--cyan)); color: var(--ink); }
+        .edx-sheet__item:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+        /* Lovers tem pódio maior (3 linhas): reserva extra pro strip (absoluto,
+           sobreposto à foto) não colidir — só existe no desktop. No mobile o
+           strip é static/in-flow (.edx-stack .edx-strip), então esse respiro
+           extra vira só espaço vazio no fim do painel — escopado a .edx-sticky. */
+        .edx-sticky .edx-scene--special .edx-scene__body { padding-bottom: 176px; }
         .edx-scene--special .edx-podio__list { gap: 6px; }
 
         /* laptops baixos / janelas achatadas: comprime a cena p/ nada colidir */
@@ -625,9 +925,6 @@ export function EdicoesPage({ navigate }) {
           .edx-scene--special .edx-podio__logo, .edx-scene--special .edx-podio__medal { width: 26px; height: 26px; }
           .edx-strip { bottom: 34px; }
           .edx-strip__th { width: 62px; }
-        }
-        @media (max-width: 560px) {
-          .edx-stack .edx-scene__head { margin-top: -104px; }
         }
         @media (max-width: 420px) {
           .edx-stack .edx-parts.is-open .edx-parts__list { grid-template-columns: 1fr; }
