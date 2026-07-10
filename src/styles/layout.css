@@ -57,3 +57,6 @@
   grid-template-columns: repeat(var(--cards-cols, 3), minmax(0, 1fr));
   align-items: stretch;
 }
+@media (max-width: 560px) {
+  .cards-grid { grid-template-columns: 1fr; }
+}

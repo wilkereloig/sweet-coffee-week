@@ -314,7 +314,7 @@ export function EdicoesPage({ navigate }) {
   // Modo horizontal só no desktop e sem reduced-motion.
   React.useEffect(() => {
     if (typeof window === 'undefined') return
-    const mqWide = window.matchMedia('(min-width: 980px)')
+    const mqWide = window.matchMedia('(min-width: 960px)')
     const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     const evaluate = () => setHorizontal(mqWide.matches && !mqMotion.matches)
     evaluate()
@@ -505,7 +505,7 @@ export function EdicoesPage({ navigate }) {
         /* PARTICIPANTES — card clicável (filho do rail). Colapsado só mostra o
            gatilho; abre com reveal (grid-rows 0fr→1fr); a lista rola. */
         .edx-parts { width: 100%; background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
-        .edx-parts__toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 11px 14px; background: none; border: 0; border-radius: 14px; cursor: pointer; text-align: left; transition: background var(--motion-fast) var(--ease-out-soft); }
+        .edx-parts__toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 13px 14px; background: none; border: 0; border-radius: 14px; cursor: pointer; text-align: left; transition: background var(--motion-fast) var(--ease-out-soft); }
         .edx-parts__toggle:hover { background: color-mix(in srgb, var(--cream) 8%, transparent); }
         .edx-parts__toggle:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
         .edx-parts__t { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--cream) 80%, transparent); }
@@ -571,7 +571,10 @@ export function EdicoesPage({ navigate }) {
         /* ===================== MOBILE / reduced-motion (stack) ===================== */
         .edx-stack { background: var(--cream); }
         .edx-anos-wrap { position: sticky; top: 0; z-index: 5; }
-        .edx-anos-wrap .edx-anos { padding-top: clamp(70px, 12vh, 96px); background: color-mix(in srgb, var(--cream) 92%, transparent); border-bottom: 1px solid var(--paper-line); }
+        .edx-anos-wrap .edx-anos { padding-top: var(--hero-content-start); background: color-mix(in srgb, var(--cream) 92%, transparent); border-bottom: 1px solid var(--paper-line); }
+        @media (max-width: 720px) {
+          .edx-anos-wrap .edx-anos__item { padding: 11px 14px; }
+        }
         .edx-anos-wrap .edx-anos__item { color: var(--ink-soft); border-color: var(--paper-line); background: var(--cream-card); }
         .edx-anos-wrap .edx-anos__item.is-active { background: var(--page-accent, var(--cyan)); border-color: var(--page-accent, var(--cyan)); color: var(--ink); }
 
@@ -610,7 +613,7 @@ export function EdicoesPage({ navigate }) {
         .edx-scene--special .edx-podio__list { gap: 6px; }
 
         /* laptops baixos / janelas achatadas: comprime a cena p/ nada colidir */
-        @media (min-width: 980px) and (max-height: 768px) {
+        @media (min-width: 960px) and (max-height: 768px) {
           .edx-scene__head { padding-top: calc(var(--header-safe-offset) - 12px); }
           .edx-scene__title { font-size: clamp(30px, 4.6vh, 44px); }
           .edx-scene__lead { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: 8px; }
@@ -623,8 +626,11 @@ export function EdicoesPage({ navigate }) {
           .edx-strip { bottom: 34px; }
           .edx-strip__th { width: 62px; }
         }
-        @media (max-width: 540px) {
+        @media (max-width: 560px) {
           .edx-stack .edx-scene__head { margin-top: -104px; }
+        }
+        @media (max-width: 420px) {
+          .edx-stack .edx-parts.is-open .edx-parts__list { grid-template-columns: 1fr; }
         }
         @media (prefers-reduced-motion: reduce) {
           .edx-progress span, .edx-anos__item, .edx-scene__media img, .edx-parts__reveal, .edx-parts__chev { transition: none; }

@@ -92,26 +92,41 @@ function CountUp({ to, suffix = '', run }) {
 }
 
 // Tooltip global de cursor: segue [data-tip] sem re-render de React por frame.
+// Em touch (sem hover), mousemove não dispara — o mesmo tooltip aparece no toque
+// (tap no chip revela; tap fora esconde), sem mudar layout/CSS pra telas sem mouse.
 function CursorTip() {
   const ref = React.useRef(null)
   React.useEffect(() => {
     const tip = ref.current
     if (!tip) return undefined
-    const onMove = (e) => {
-      const t = e.target.closest && e.target.closest('[data-tip]')
-      if (!t) { tip.classList.remove('is-on'); return }
-      tip.textContent = t.getAttribute('data-tip')
+    const place = (target, x, y) => {
+      tip.textContent = target.getAttribute('data-tip')
       tip.classList.add('is-on')
       const w = tip.offsetWidth
       const h = tip.offsetHeight
-      const left = Math.min(Math.max(8, e.clientX + 14), window.innerWidth - w - 8)
-      let top = e.clientY - h - 12
-      if (top < 8) top = e.clientY + 18
+      const left = Math.min(Math.max(8, x + 14), window.innerWidth - w - 8)
+      let top = y - h - 12
+      if (top < 8) top = y + 18
       tip.style.left = `${left}px`
       tip.style.top = `${top}px`
     }
+    const onMove = (e) => {
+      const t = e.target.closest && e.target.closest('[data-tip]')
+      if (!t) { tip.classList.remove('is-on'); return }
+      place(t, e.clientX, e.clientY)
+    }
+    const onTouch = (e) => {
+      const t = e.target.closest && e.target.closest('[data-tip]')
+      if (!t) { tip.classList.remove('is-on'); return }
+      const touch = e.touches[0]
+      place(t, touch.clientX, touch.clientY)
+    }
     document.addEventListener('mousemove', onMove)
-    return () => document.removeEventListener('mousemove', onMove)
+    document.addEventListener('touchstart', onTouch, { passive: true })
+    return () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('touchstart', onTouch)
+    }
   }, [])
   return <div ref={ref} className="cx-tip" aria-hidden="true" />
 }

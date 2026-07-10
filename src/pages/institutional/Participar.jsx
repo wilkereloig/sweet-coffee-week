@@ -352,7 +352,7 @@ export function ParticiparPage() {
         .participar-head--onDark p { color: rgba(255,241,230,.82); }
 
         /* ============ 1 — HERO (banda chocolate, igual à Home) ============ */
-        .participar-hero { background: #381610; isolation: isolate; overflow: clip; padding: clamp(122px, 17vw, 178px) 0 clamp(56px, 8vw, 104px); }
+        .participar-hero { background: #381610; isolation: isolate; overflow: clip; padding: max(clamp(122px, 17vw, 178px), var(--hero-content-start)) 0 clamp(56px, 8vw, 104px); }
         /* Desktop: header fixo + logo-selo flutuante exigem folga extra no topo p/
            o H1 (canto sup.-esq.) não colidir com a logo — vira crest acima do título. */
         @media (min-width: 960px) { .participar-hero { padding-top: clamp(196px, 17vw, 244px); } }
@@ -367,7 +367,7 @@ export function ParticiparPage() {
         .participar-lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); }
         .participar-lead--onDark { color: rgba(255,241,230,.9); }
         .participar-lead--onDark.participar-lead--sm { color: rgba(255,241,230,.72); }
-        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--page-accent, var(--yellow)); }
+        .participar-hero__link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-block: 9px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--page-accent, var(--yellow)); }
         .participar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast) var(--ease-out-soft); }
         .participar-hero__link:hover svg { transform: translateX(4px); }
 
@@ -420,7 +420,7 @@ export function ParticiparPage() {
         .participar-elig__ic { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--coral); color: #fff; }
         .participar-elig p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; text-wrap: pretty; }
         .participar-elig strong { color: var(--ink); font-weight: 800; }
-        @media (max-width: 520px) { .participar-elig { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; } }
+        @media (max-width: 560px) { .participar-elig { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; } }
 
         /* ============ 3 — DEPOIMENTOS (destaque Jolie + grid 2 col) ============ */
         .participar-testi { background: var(--cream-deep, var(--bg-soft)); }
@@ -461,7 +461,7 @@ export function ParticiparPage() {
         .participar-quote--lead .participar-av { width: 54px; height: 54px; }
         .participar-quote--lead .participar-av__txt { font-size: 17px; }
         /* tablet/mobile: grade vira 1 coluna (cards nunca finos demais) */
-        @media (max-width: 680px) { .participar-testi__grid { grid-template-columns: 1fr; } }
+        @media (max-width: 720px) { .participar-testi__grid { grid-template-columns: 1fr; } }
 
         /* ============ 4 — PROCESSO (banda chocolate) ============ */
         .participar-process { background: #5e3018; }
@@ -495,7 +495,7 @@ export function ParticiparPage() {
           .participar-cards { grid-template-columns: repeat(2, 1fr); }
           .participar-steps { grid-template-columns: 1fr; }
         }
-        @media (max-width: 640px) {
+        @media (max-width: 560px) {
           .participar-cards, .participar-form__fields { grid-template-columns: 1fr; }
           .participar-shots__item { width: 76px; height: 76px; }
           .participar-close .btn { width: 100%; justify-content: center; }

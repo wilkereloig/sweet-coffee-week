@@ -390,7 +390,7 @@ export function ApoiarPage() {
 
         .apoiar-hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin-top: var(--sp-6); }
         .apoiar-hero__cta .btn { min-height: 52px; }
-        .apoiar-hero__link { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
+        .apoiar-hero__link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-block: 9px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
         .apoiar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .apoiar-hero__link:hover svg { transform: translateY(3px); }
 
@@ -402,7 +402,7 @@ export function ApoiarPage() {
         .apoiar-field { display: flex; flex-direction: column; gap: 7px; }
         .apoiar-field--full { grid-column: 1 / -1; }
         .apoiar-field > span { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
-        .apoiar-field :is(input, select, textarea) { font-family: var(--font-sans); font-size: 15px; padding: 12px 14px; min-height: 46px; border: 1px solid var(--line-strong, var(--paper-line)); border-radius: 12px; background: var(--bg-card); color: var(--ink); width: 100%; transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease), box-shadow var(--motion-fast, .16s) var(--ease-out-soft, ease); }
+        .apoiar-field :is(input, select, textarea) { font-family: var(--font-sans); font-size: 16px; padding: 12px 14px; min-height: 46px; border: 1px solid var(--line-strong, var(--paper-line)); border-radius: 12px; background: var(--bg-card); color: var(--ink); width: 100%; transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease), box-shadow var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .apoiar-field textarea { resize: vertical; min-height: 84px; }
         .apoiar-field :is(input, select, textarea):focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 4px rgba(232,85,58,.16); }
         .apoiar-form__send { width: 100%; justify-content: center; min-height: 50px; margin: var(--sp-5) 0 0; }
@@ -497,7 +497,7 @@ export function ApoiarPage() {
           .apoiar-placar__lead .apoiar-stat + .apoiar-stat { border-top: 1px solid rgba(255,241,230,.16); }
           .apoiar-placar__sub .apoiar-stat:not(:nth-child(2n+1)) { border-left: 1px solid rgba(255,241,230,.16) !important; }
         }
-        @media (max-width: 640px) {
+        @media (max-width: 560px) {
           .apoiar-value, .apoiar-where, .apoiar-form__fields, .apoiar-audience__list { grid-template-columns: 1fr; }
           .apoiar-placar__sub { grid-template-columns: 1fr; }
           .apoiar-placar__sub .apoiar-stat { border-left: none !important; border-top: 1px solid rgba(255,241,230,.16); }

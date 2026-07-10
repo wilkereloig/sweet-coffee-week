@@ -348,7 +348,7 @@ export function HistoricoAwardsPage({ navigate }) {
 
         /* 2 — PREMIAÇÃO DA EDIÇÃO ATUAL (destaque) */
         .swa-current { background: var(--cream); }
-        .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
+        .swa-current__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-4); }
 
         /* card de categoria (edição atual) */
         .swa-cat { --cat: var(--page-accent); display: flex; flex-direction: column; gap: var(--sp-4); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-6); transition: transform var(--dur-base, .26s) var(--ease-out, ease), box-shadow var(--dur-base, .26s) var(--ease-out, ease); }
@@ -413,7 +413,7 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-track__badge svg { color: currentColor; }
 
         /* cards de categoria */
-        .hist-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: var(--sp-4); }
+        .hist-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(248px, 100%), 1fr)); gap: var(--sp-4); }
         .hist-cat { background: var(--cream); border: 1px solid var(--paper-line); border-radius: var(--r-md); padding: var(--sp-5); }
         .hist-cat h4 { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); margin: 0 0 var(--sp-4); }
 
@@ -471,12 +471,12 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-cta__row .btn { min-height: 48px; }
 
         /* RESPONSIVO */
-        @media (max-width: 860px) {
+        @media (max-width: 960px) {
           .hist-evo--strip { grid-template-columns: repeat(2, 1fr); gap: var(--sp-5) var(--sp-6); }
           .hist-evo__step { padding: 0; border-left: 0; }
           .hist-evo__step + .hist-evo__step { border-left: 0; }
         }
-        @media (max-width: 700px) {
+        @media (max-width: 720px) {
           .hist-evo--strip { grid-template-columns: 1fr; gap: 0; }
           .hist-evo__step { padding: var(--sp-5) 0; border-top: 1px solid var(--paper-line); }
           .hist-evo__step:first-child { padding-top: 0; border-top: 0; }

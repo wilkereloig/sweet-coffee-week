@@ -237,7 +237,7 @@ export function SiteHeader({ route, navigate }) {
                 <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '2px 8px' }}>Em breve</span>
               </button>
               <button
-                style={{ display: 'block', width: '100%', padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#2B1810', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', width: '100%', minHeight: 44, padding: '10px 0', border: 0, background: 'transparent', textAlign: 'left', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#2B1810', cursor: 'pointer' }}
                 onClick={() => { navigate('/painel-admin'); setMobileOpen(false) }}
               >
                 Área Admin →

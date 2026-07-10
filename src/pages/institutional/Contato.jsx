@@ -91,7 +91,7 @@ export function ContatoPage({ navigate }) {
         .contato-card__tag { margin-top: var(--sp-4); font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
         .contato-card h2 { font-size: clamp(19px, 1.6vw, 23px); line-height: 1.08; margin: var(--sp-2) 0 0; }
         .contato-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: var(--sp-3) 0 0; text-wrap: pretty; }
-        .contato-card__cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; padding-top: var(--sp-5); font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--coral-deep); }
+        .contato-card__cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; min-height: 44px; margin-top: auto; padding-top: var(--sp-5); font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--coral-deep); }
         .contato-card__cta svg { width: 15px; height: 15px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .contato-card__cta:hover svg { transform: translateX(3px); }
 
@@ -103,7 +103,10 @@ export function ContatoPage({ navigate }) {
         .contato-live .btn { min-height: 50px; margin-top: var(--sp-3); }
 
         /* RESPONSIVO */
-        @media (max-width: 960px) { .contato-cards { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 960px) {
+          .contato-cards { grid-template-columns: repeat(2, 1fr); }
+          .contato-cards > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+        }
         @media (max-width: 560px) {
           .contato-cards { grid-template-columns: 1fr; }
           .contato-live .btn { width: 100%; justify-content: center; }

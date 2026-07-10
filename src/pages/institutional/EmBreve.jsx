@@ -170,7 +170,7 @@ export function EmBrevePage() {
         .eb-head h2 { font-size: clamp(26px, 3.4vw, 44px); line-height: 1; }
         .eb-hl { font-style: italic; color: #C98A0B; }
         .eb-head p { margin: 0; max-width: 58ch; color: var(--ink-soft, #6b5548); font-size: var(--fs-lead, 17px); line-height: 1.45; text-wrap: pretty; }
-        .eb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4, 16px); }
+        .eb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-4, 16px); }
         .eb-cat { display: flex; flex-direction: column; gap: var(--sp-3, 12px); background: var(--cream-card, #FFF8F0); border: 1px solid var(--paper-line, rgba(43,24,16,.12)); border-radius: var(--r-lg, 18px); padding: var(--sp-6, 28px); box-shadow: var(--shadow-md, 0 10px 26px rgba(43,24,16,.08)); }
         .eb-cat h3 { font-size: clamp(17px, 1.5vw, 20px); }
         .eb-cat__desc { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft, #6b5548); }
@@ -182,14 +182,14 @@ export function EmBrevePage() {
         .eb-place--bronze .eb-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
         .eb-place__brands { display: inline-flex; gap: 6px; }
         .eb-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); overflow: hidden; }
-        .eb-brand img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
+        .eb-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
         .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
         .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
         .eb-place--ouro .eb-place__names { font-size: 16px; }
         /* card do post no Instagram (iframe /embed + barra link) */
         .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; }
         .eb-post__frame { width: 100%; height: 540px; border: 0; display: block; background: #fff; }
-        .eb-post__bar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--paper-line, rgba(43,24,16,.12)); font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
+        .eb-post__bar { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 14px; border-top: 1px solid var(--paper-line, rgba(43,24,16,.12)); font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
         .eb-post__bar svg:last-child { margin-left: auto; transition: transform .16s ease; }
         .eb-post__bar:hover svg:last-child { transform: translateX(3px); }
 
@@ -201,6 +201,10 @@ export function EmBrevePage() {
         @media (max-width: 560px) {
           .eb-btn { width: 100%; justify-content: center; }
           .eb-foot__inner { justify-content: center; text-align: center; }
+          .eb-post__frame { height: 380px; }
+        }
+        @media (max-width: 420px) {
+          .eb-nowrap { white-space: normal; }
         }
         @media (prefers-reduced-motion: reduce) {
           .eb-btn, .eb-cat__post svg:last-child { transition: none; }

@@ -306,8 +306,8 @@ button:disabled { cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 999px;
   border: 1.5px solid color-mix(in srgb, var(--lovers-brown) 28%, transparent);
@@ -777,7 +777,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__send:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
 .site-footer__status:empty { display: none; }
 .site-footer__status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--peach); }
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .site-footer__grid { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
   .site-footer__brand, .site-footer__suggest { grid-column: 1 / -1; }
 }

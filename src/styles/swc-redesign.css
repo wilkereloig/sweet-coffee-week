@@ -262,7 +262,7 @@ html { scroll-behavior: smooth; }
   color: var(--swc-chocolate);
   padding: 8px 0;
 }
-.mobile-menu:not(.mobile-menu--lovers) .close { color: var(--swc-chocolate); }
+.mobile-menu:not(.mobile-menu--lovers) .close { color: var(--swc-chocolate); background: transparent; }
 
 /* ============================================================
    EDIÇÕES — cards editoriais alternados (creme / creme dourado)
@@ -351,7 +351,8 @@ body.route-historico-awards .page-enter .wrap,
 body.route-curiosidades  .page-enter .wrap,
 body.route-participar    .page-enter .wrap,
 body.route-apoiar        .page-enter .wrap,
-body.route-contato       .page-enter .wrap {
+body.route-contato       .page-enter .wrap,
+.site-footer .wrap {
   max-width: none;
   margin-inline: 0;
   padding-inline: var(--hm-gutter);
