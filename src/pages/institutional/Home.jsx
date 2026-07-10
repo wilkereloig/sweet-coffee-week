@@ -497,6 +497,61 @@ export function HomePage({ navigate }) {
         .hm .swc-hero__cta,
         .hm .swc-hero__scrollcue { display: none; }
 
+        /* ═══ HERO MOBILE — capa imersiva ancorada (≤600px). Vem depois da 900px-block
+           e da 420px-title-rule pra vencer por ordem de fonte. Desktop intocado. ═══ */
+        @media (max-width: 600px) {
+          /* foto quase cheia; altura estável com barra do navegador */
+          .hm .swc-hero { min-height: 100dvh; }
+          .hm .swc-hero__rotator { opacity: .85; }
+          /* scrim só na base: topo leve (menu legível), base escura ancora o texto */
+          .hm .swc-hero::after {
+            background: linear-gradient(to bottom,
+              rgba(43,24,16,.55) 0%,
+              rgba(43,24,16,.12) 22%,
+              rgba(43,24,16,0) 46%,
+              rgba(43,24,16,.86) 100%);
+          }
+          /* ancoragem embaixo + à esquerda (vence a centralização global da hero) */
+          .hm .swc-hero, .hm .swc-hero * { text-align: left; }
+          .hm .swc-hero__copy {
+            min-height: 100dvh;
+            max-width: none;
+            justify-content: flex-end;
+            align-items: flex-start;
+            padding: var(--hero-content-start) clamp(22px, 7vw, 32px)
+                     calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + clamp(28px, 9vw, 44px));
+          }
+          /* só o 1º parágrafo no mobile */
+          .hm .swc-hero__text { max-width: 34ch; margin: 0; }
+          .hm .swc-hero__text p:nth-child(2) { display: none; }
+          /* título à esquerda, escala que cabe em 360px sem quebra feia */
+          .hm .swc-hero__title { font-size: clamp(38px, 12vw, 68px); }
+          /* CTA ação-mãe entra de cara */
+          .hm .swc-hero__cta {
+            display: inline-flex; align-items: center; gap: 9px;
+            margin-top: clamp(18px, 5vw, 26px);
+            padding: 14px 26px; border-radius: 999px;
+            background: var(--accent); color: #fff;
+            font-family: var(--font-sans); font-weight: 700; font-size: 16px; line-height: 1;
+            box-shadow: 0 12px 30px rgba(0,0,0,.28);
+          }
+          .hm .swc-hero__cta svg { width: 16px; height: 16px; }
+          /* dica de rolar: chevron com bounce vertical, centralizado no rodapé da hero */
+          .hm .swc-hero__scrollcue {
+            display: inline-flex; align-self: center;
+            margin-top: clamp(16px, 5vw, 24px);
+            color: rgba(254,240,221,.8);
+            animation: swcScrollCue 1.6s ease-in-out infinite;
+          }
+          @keyframes swcScrollCue {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+          }
+        }
+        @media (max-width: 600px) and (prefers-reduced-motion: reduce) {
+          .hm .swc-hero__scrollcue { animation: none; }
+        }
+
         .hm .hm-about { background: #381610; }
         .hm-about__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
         .hm-about__head { display: block; max-width: none; margin: 0; text-align: left; }
