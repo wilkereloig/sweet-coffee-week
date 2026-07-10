@@ -54,9 +54,18 @@ Estas vêm do `CLAUDE.md` e têm precedência sobre qualquer conveniência técn
    `vercel --prod`, nunca promover Preview para Production, nunca merge para `master` sem
    autorização. Confirmar branch (`git branch --show-current`) antes de editar; se estiver
    em `master`, **parar e avisar**.
-6. **Não alterar `AWARDS_ONLY_PUBLICATION` nem `INSTITUTIONAL_PREVIEW`** (`App.jsx`) sem
-   pedido explícito. São o gate que impede o institucional em refatoração de vazar no
-   domínio oficial.
+6. **Não alterar as flags de publicação em `App.jsx`** sem pedido explícito. São o gate
+   que impede páginas ainda não liberadas de vazar no domínio oficial. Estado real
+   (jul/2026, conferir sempre no código — ele é a verdade):
+   - `AWARDS_ONLY_PUBLICATION = false` — modo "só Awards" **desligado**.
+   - `COMING_SOON_PUBLICATION = true` — **gate ativo hoje**: domínio oficial renderiza só
+     a landing `EmBreve`. Painéis internos e `/pesquisa` seguem acessíveis.
+   - `INSTITUTIONAL_PREVIEW` — **computed** (não é constante fixa): `true` em DEV e em
+     previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial
+     `sweetcoffeeweek.com.br`. É aditivo — libera revisão sem mexer nas flags acima.
+
+   Não trocar valores dessas flags sem autorização. Ao publicar o institucional completo,
+   a mudança é `COMING_SOON_PUBLICATION = false` — decisão do usuário, não automática.
 
 ---
 
@@ -78,6 +87,15 @@ correção é colapsar em um, não repetir a edição N vezes.
 - Duplicar só se houver justificativa escrita de que abstrair custa mais que a cópia — e
   isso é exceção, não padrão.
 
+**Esta regra não impede melhoria local.** "Já existe componente/padrão" não é motivo
+para não melhorar. Interpretação correta:
+- Se o padrão existente resolve → reutilizar.
+- Se o padrão existente **não** resolve a experiência pedida → criar uma **variação
+  justificada** (não copiar-colar cega). Melhorar é permitido; a proibição é só contra
+  clonar o mesmo bloco sem ganho.
+- Se a mesma melhoria passar a valer em várias páginas → propor consolidar numa fonte
+  única (§2.1). Reutilizar ≠ recusar-se a evoluir o padrão.
+
 ### 2.3 Centralizar padrões em tokens e componentes
 - **Cor, tipografia, espaço, raio, sombra e motion vivem em tokens** — **[ALVO]** um único
   `src/styles/tokens.css` carregado **primeiro** em `main.jsx`. **[ATUAL]** hoje há **dois
@@ -97,6 +115,16 @@ Se o pedido é "mude os heros / a cor / a margem / o motion em todas as páginas
 edite arquivo por arquivo**. Edite a fonte única (token/componente/regra global) e deixe
 propagar. Se não existe fonte única para aquilo, **primeiro crie a fonte única** (conforme
 o plano de refatoração), depois altere.
+
+**Esta regra não deve paralisar.** Distinção prática:
+- **Mudança global** (vale para todas as páginas) → vai na fonte única (token/componente/
+  regra global). Se a fonte única ainda não existe, **criá-la** é o caminho — não travar.
+- **Mudança específica de uma página** (só aquela tela) → pode ser **local**, desde que
+  documentada e sem quebrar o padrão das outras. Um ajuste pontual não exige refatorar o
+  site inteiro antes.
+- Se não dá para criar a fonte única agora (escopo grande), **fazer o ajuste local seguro
+  e registrar** que a consolidação fica pendente — em vez de recusar o pedido. Nunca usar
+  "a fonte única não existe" como motivo para não entregar.
 
 ### 2.5 A armadilha do `!important` global — CUIDADO CRÍTICO
 **[ATUAL]** A regra global `src/styles.css:538-559` controla os heros institucionais
@@ -158,13 +186,31 @@ Consequências que você **precisa** conhecer antes de tocar em qualquer hero:
 
 ## 4. Motion system — respeitar
 
-- **Uma escala de motion**, em `src/styles/motion-system.css`. **[ATUAL]** hoje há 3 escalas
-  concorrentes (`motion-system.css`, `swc-redesign.css`, `lovers-system.css`) e 57+ durações
-  únicas. Ao mexer em transição/animação, **consumir os tokens de motion**, não inventar
-  duração nova.
+**O motion system é a BASE para criar movimento — não um motivo para recusar
+transições.** Pedido de transição/movimento/microinteração/animação = **implementar**,
+usando ou expandindo o sistema. A existência de `motion-system.css` não proíbe animação
+nova; ela dá o ponto de partida.
+
+Como aplicar:
+- **Tokens de motion vivem em `src/styles/layout-tokens.css`** (`--motion-fast/base/slow/
+  reveal`, `--ease-out-soft`, `--ease-spring-soft`, `--motion-rise/blur`) — movidos de
+  `motion-system.css` (que mantém as classes utilitárias e keyframes). Ajuste global de
+  duração/easing/deslocamento = editar `layout-tokens.css`.
+- **Reusar as classes existentes** (`.motion-reveal*`, `.motion-stagger`,
+  `.motion-card-hover`, `.motion-button-hover`, `.motion-press`, `.motion-float-soft`)
+  quando bastarem.
+- **Criar novas classes de movimento** quando a experiência pedir — **sempre consumindo
+  os tokens** de `layout-tokens.css`, sem inventar duração/easing avulso. **[ATUAL]** há
+  3 escalas concorrentes (`motion-system.css`, `swc-redesign.css`, `lovers-system.css`);
+  o alvo é uma só — não somar uma 4ª ao criar movimento novo.
+- **Animar só `transform`, `opacity` e `filter`** (sem layout shift; nunca `width/height/
+  top/left`). Respeitar `prefers-reduced-motion: reduce` (estado estático e legível).
 - `animation-timeline: view()` é Chrome-only — sempre dar **fallback via
   `useRevealOnScroll`** (que já existe) para Firefox/Safari. Não deixar card sem reveal.
 - Não introduzir biblioteca de animação nova sem justificativa (regra `CLAUDE.md`).
+
+A lista "quando NÃO usar" (em `SITE_DIRECTION.md` §10) veta **animação decorativa gratuita
+e layout shift** — não veta transições e microinterações pedidas pelo usuário.
 
 ---
 

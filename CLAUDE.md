@@ -4,6 +4,60 @@
 > respeitam mesmo sistema visual, não repetem decisões rejeitadas. **Atualizar
 > arquivo sempre que usuário rejeitar ou aprovar regra** (ver seção 19).
 
+## 0. Como interpretar regras sem bloquear pedidos do usuário
+
+As regras deste projeto existem para orientar **qualidade, consistência e segurança**.
+Elas **não** são motivo automático para recusar, adiar ou esvaziar uma solicitação
+explícita do usuário. Quando um pedido (melhorar transições, adicionar movimento, criar
+microinterações, redesenhar uma página, ajustar layout) parecer conflitar com uma regra,
+**a regra orienta como fazer — não é permissão para não fazer**.
+
+Ao receber um pedido que toca alguma regra, classifique-a primeiro:
+
+1. **Absoluta de segurança/operação** — respeitar sempre, sem exceção (ver lista abaixo).
+2. **Regra de marca/conteúdo** — nomenclatura, paleta, não inventar dados. Respeitar,
+   adaptando a execução ao pedido.
+3. **Preferência visual** — decisões estéticas já registradas (ex.: sem eyebrow, sem
+   mono em rótulos). Manter coerência; se o usuário pedir direção nova, seguir o pedido
+   e registrar a nova preferência (§19).
+4. **Regra temporária/desatualizada** — se contradiz o código atual, **parar e avisar**
+   (ver ponto final).
+5. **Orientação técnica** — motion system, tokens, componentes. São **base para
+   construir**, não parede.
+
+**Absolutas — nunca enfraquecer, mesmo a pedido (só o usuário executa):**
+não alterar `master`/`main`; trabalhar na branch de dev correta; nenhum deploy de
+produção sem autorização; não mudar URLs públicas de QR Code (`#/lovers/combos/:slug`,
+`#/lovers/awards`); não alterar flags de publicação (`AWARDS_ONLY_PUBLICATION`,
+`COMING_SOON_PUBLICATION`, `INSTITUTIONAL_PREVIEW`) sem pedido explícito; não inventar
+dados históricos/rankings/vencedores; não expor `.env`/secrets/tokens; não mexer na
+Home/O Festival sem solicitação; não misturar identidade institucional × Lovers.
+
+**"Evitar" ≠ "proibir".** Onde uma regra diz *evitar*, o padrão é o julgamento, não o
+veto:
+- Evitar stickers/ornamentos **não proíbe** elemento visual com função (medalha, pódio,
+  selo de vencedor, indicador de dado, feedback de UI). Ver §5.
+- Evitar duplicação **não proíbe** criar variação justificada quando o padrão existente
+  não resolve a experiência pedida. Ver `AI_RULES.md` §2.2.
+- Evitar animação decorativa **não proíbe** transições e microinterações — ver ponto
+  Motion abaixo.
+- Evitar mudança global página-por-página **não proíbe** refatorar a fonte única quando
+  o pedido é global. Ver `AI_RULES.md` §2.4.
+
+**Motion é base, não bloqueio.** Quando o usuário pedir transições, movimento,
+microinterações ou animação, **implementar** usando ou expandindo o motion system: (1)
+reusar as classes existentes quando bastarem; (2) criar novas classes de movimento
+quando a experiência pedir, sempre consumindo os tokens de motion
+(`src/styles/layout-tokens.css`); (3) animar só `transform`, `opacity` e `filter`, sem
+layout shift; (4) respeitar `prefers-reduced-motion`; (5) não instalar biblioteca de
+animação nova sem justificativa. A existência de `motion-system.css` **não** significa
+que novas transições são proibidas — significa que há uma base pronta para partir.
+
+**Se a regra estiver desatualizada ou contradizer o código, parar e avisar** — dizer
+qual regra conflita, qual é o estado real do código, qual atualização será feita e como
+seguir sem quebrar segurança. Depois seguir. **Toda resposta deve levar a uma execução
+ou a um plano objetivo — nunca usar regra como justificativa para não fazer nada.**
+
 ## 1. Objetivo do projeto
 
 Repositório = site institucional Sweet & Coffee Week. Apresenta festival, edições,
@@ -63,7 +117,7 @@ com respiro no topo, conteúdo ancorado mais pra baixo.
 conteúdo segue margem do header — **full-width** (`max-width: none`) com
 **`padding-inline: var(--hm-gutter)`** (`--hm-gutter: clamp(28px, 11.5vw, 150px)`,
 `:root` em `swc-redesign.css`). É o que Home faz (`.hm .wrap`, `swc-redesign.css`):
-logo e menu encostam no `--hm-gutter`, títulos/cards/seções alinham �  logo. O `.wrap`
+logo e menu encostam no `--hm-gutter`, títulos/cards/seções alinham �  logo. O `.wrap`
 base (`max-width: var(--maxw)` = **1280px** / `padding: 0 var(--pad)` =
 clamp(20px,4vw,56px), `styles.css`) só fallback quando não há override `.hm`. Toda
 página institucional alinha ao menu — usar `--hm-gutter` full-width, não inventar
@@ -111,6 +165,13 @@ rabiscos, ícones ou ornamentos só pra "decorar".
 Todo elemento visual precisa função: estruturar layout, indicar hierarquia,
 representar dado, organizar conteúdo, apoiar fotografia, reforçar identidade. Sem
 função clara → remover.
+
+**A regra proíbe decoração gratuita, não elemento visual funcional.** Elemento com
+função narrativa, estrutural, de hierarquia, navegação, feedback ou representação de
+dado é permitido e às vezes necessário. Ex.: no Sweet Awards, medalhas, pódios, selos de
+1º lugar e destaques de categoria **codificam colocação/resultado** — são funcionais,
+não stickers (ver §12). Na dúvida, pergunte "esse elemento carrega informação ou só
+enfeita?": carrega → fica; só enfeita → remove.
 
 **Não usar eyebrow/kicker acima dos títulos** — texto curto caixa-alta antes do H1/H2
 (ex.: "APOIE O FESTIVAL", "O FESTIVAL"), com ou sem dot. Preferência registrada:
@@ -220,9 +281,17 @@ categorias do Sweet Awards; primeiras vezes; momentos marcantes.
 
 ## 12. Página Sweet Awards
 
-**Reconstruída** em `src/pages/institutional/SweetAwards.jsx` (rota `vencedores` /
-`premiacao` em `App.jsx`; antigo `Agradecimento.jsx` removido). Aparência de
-premiação/hall de vencedores — não embeds de Instagram. Identidade **institucional do
+**Reconstruída** em `src/pages/institutional/HistoricoAwards.jsx` (componente
+`HistoricoAwardsPage`, route interna `historico-awards`, paths públicos `/sweet-awards`
+e `/historico-sweet-awards` em `App.jsx`; antigo `Agradecimento.jsx` removido). *(Não
+existe `SweetAwards.jsx` — não criar arquivo novo só para casar com doc antiga.)*
+Aparência de premiação/hall de vencedores — não embeds de Instagram.
+
+**A página pode ser alterada com pedido explícito do usuário** (layout, seções,
+movimento, conteúdo editorial). O que **não** muda sem autorização: flags de publicação,
+rotas congeladas, dados oficiais (cruzados das fontes em §16, nunca inventados) e deploy
+de produção. Não tratar Awards como intocável — a restrição é sobre flags/rotas/dados,
+não sobre a página em si. Identidade **institucional do
 festival** (espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha), NUNCA o KV
 Lovers. Estrutura: hero institucional → o que é → categorias (8 oficiais + históricas
 computadas) → vencedores da edição atual (Lovers 2026.1, em destaque) → histórico por
@@ -300,7 +369,11 @@ massa breakpoints já calibrados: alinhar só outliers do reflow principal.
 ## 18. Validação antes de finalizar
 
 1. Home não alterada sem necessidade.
-2. `AWARDS_ONLY_PUBLICATION` não alterado indevidamente.
+2. Flags de publicação em `App.jsx` não alteradas sem pedido explícito. Estado real
+   (jul/2026): `AWARDS_ONLY_PUBLICATION = false`; `COMING_SOON_PUBLICATION = true` (gate
+   ativo — domínio oficial mostra só a landing EmBreve); `INSTITUTIONAL_PREVIEW` =
+   computed (DEV + previews `*.vercel.app?preview=1`, nunca no domínio oficial). Não
+   trocar valores sem autorização; ver `AI_RULES.md` §1.6.
 3. Nenhuma cor nova.
 4. Nenhum sticker sem solicitação.
 5. Margens seguem a Home.
@@ -341,7 +414,7 @@ PageHero ali).
    (tipos: `fix:` / `feat:` / `style:` / `chore:` / `docs:`).
 4. `git push origin dev/site-completo`.
 5. Reportar: build, hash+mensagem do commit, push, link/preview da Vercel se houver.
-6. � � Repo pode ter WIP local não relacionado — commitar **só** os arquivos da tarefa.
+6. � � Repo pode ter WIP local não relacionado — commitar **só** os arquivos da tarefa.
 
 ## URLs estáveis para QR Codes — REGRA PERMANENTE
 

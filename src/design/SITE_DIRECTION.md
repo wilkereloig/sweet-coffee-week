@@ -126,9 +126,20 @@ Ao criar ou revisar Edições, Curiosidades, Participar, Apoiar, Contato:
 - Não **duplicar textos**.
 - Não usar **"votação"** como termo principal quando o contexto for avaliação
   do público.
-- Não mexer na página **Sweet Awards** publicada nesta etapa.
-- Não desligar **`AWARDS_ONLY_PUBLICATION`** (mantém `true`).
-- Não **liberar outras rotas** ainda.
+- Não criar **decoração gratuita** — elemento visual precisa de função (ver
+  `CLAUDE.md` §5). Elemento funcional (medalha/pódio/selo no Awards, feedback de
+  UI, indicador de dado) é permitido.
+- Não trocar **flags de publicação** em `App.jsx` sem pedido explícito nem
+  inventar dados históricos.
+
+> **Desatualizado (corrigido jul/2026):** este documento dizia "não mexer na
+> Sweet Awards", "manter `AWARDS_ONLY_PUBLICATION = true`" e "não liberar outras
+> rotas". Estado real hoje: `AWARDS_ONLY_PUBLICATION = false`; o gate ativo é
+> `COMING_SOON_PUBLICATION = true` (landing EmBreve no domínio oficial); o
+> institucional completo já está construído e revisável via `INSTITUTIONAL_PREVIEW`
+> (DEV/preview). A página **Sweet Awards** (`HistoricoAwards.jsx`) **pode ser
+> alterada com pedido explícito** — a restrição é sobre flags/rotas congeladas/
+> dados oficiais/deploy, não sobre a página. Ver `CLAUDE.md` §12 e `AI_RULES.md` §1.6.
 
 ---
 
@@ -258,6 +269,12 @@ utilitárias opt-in; começar pela Home e replicar nas próximas páginas.
   count-up de números, reveal orgânico de imagem, float decorativo discreto.
 - **Não usar:** animação só por decoração, efeito genérico sem relação com o
   conteúdo, movimento pesado no load, nada que cause "pulo" de layout.
+
+> Esta lista veta **decoração gratuita e layout shift** — **não** veta transições e
+> microinterações pedidas pelo usuário. Quando o pedido é adicionar/melhorar movimento,
+> o motion system é a **base para implementar** (reusar classes ou criar novas sobre os
+> tokens de `layout-tokens.css`), não motivo para recusar. Ver `CLAUDE.md` §0 e
+> `AI_RULES.md` §4.
 
 ### Tokens
 
@@ -407,11 +424,10 @@ fallback). Desktop 2 colunas, mobile empilha (≤760px).
 ## 13. Rodapé institucional
 
 Componente **global do institucional**: `src/components/SiteFooter.jsx`. Integrado
-no `App.jsx` via `FOOTER_ROUTES` e renderizado após o `<main>`. Aparece em todas as
-páginas institucionais **exceto o painel interno** (`route === 'painel'`).
-`vencedores` fica de fora por ora (Awards publicado ainda não revisado com footer) —
-liberar quando revisado. Lista atual: `home, edicoes, curiosidades, participar,
-apoiar, contato`.
+no `App.jsx` via `FOOTER_ROUTES` e renderizado após o `<main>`. Aparece nas páginas
+institucionais públicas, **exceto** os painéis internos e a landing EmBreve. Lista real
+(`App.jsx`, jul/2026): `home, edicoes, curiosidades, participar, apoiar, contato,
+historico-awards` — o Sweet Awards (`historico-awards`) **já** entrou no footer.
 
 **Régua:** usa `.section` (ritmo vertical) + `.wrap` (largura/gutter do container) —
 mesma da Home, sem direção visual paralela. Banda escura (`--ink`) com texto cream;
