@@ -245,6 +245,14 @@ export function HomePage({ navigate }) {
               combos exclusivos por tempo limitado, inspirados em um tema central.
             </p>
           </div>
+          <a className="swc-hero__cta" href="#/participar" onClick={go('/participar')}>
+            Quero participar <I.arrow />
+          </a>
+          <span className="swc-hero__scrollcue" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
         </div>
       </section>
 
@@ -484,6 +492,10 @@ export function HomePage({ navigate }) {
         @media (max-width: 900px) {
           .hm .swc-hero__copy { max-width: none; padding: clamp(120px,30vw,150px) clamp(22px,7vw,32px) clamp(48px,12vw,72px); }
         }
+
+        /* CTA + dica de rolar da hero: só no mobile (capa imersiva). Desktop não renderiza. */
+        .hm .swc-hero__cta,
+        .hm .swc-hero__scrollcue { display: none; }
 
         .hm .hm-about { background: #381610; }
         .hm-about__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
