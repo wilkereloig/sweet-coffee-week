@@ -92,10 +92,10 @@ function EditionPodium({ e, go }) {
               <span className="edx-podio__medal" aria-hidden="true">1º</span>
               <span className="edx-podio__logos">
                 {winners.map((w) => (
-                  <span className="edx-podio__logo" key={w.name} title={w.name}>
+                  <span className={`edx-podio__logo${w.logo ? ' edx-podio__logo--img' : ''}`} key={w.name} title={w.name}>
                     {w.logo
                       ? <img src={w.logo} alt="" loading="lazy" decoding="async"
-                          onError={(ev) => { ev.currentTarget.style.display = 'none'; ev.currentTarget.nextSibling.style.display = 'grid' }} />
+                          onError={(ev) => { ev.currentTarget.style.display = 'none'; ev.currentTarget.nextSibling.style.display = 'grid'; ev.currentTarget.parentElement.classList.remove('edx-podio__logo--img') }} />
                       : null}
                     <span className="edx-podio__ini" style={w.logo ? { display: 'none' } : undefined}>{w.fallback}</span>
                   </span>
@@ -478,7 +478,8 @@ export function EdicoesPage({ navigate }) {
         .edx-podio__medal { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 999px; background: var(--yellow); color: var(--ink); display: grid; place-items: center; font-family: var(--font-display); font-weight: 900; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
         .edx-podio__logos { display: flex; gap: 6px; }
         .edx-podio__logo { position: relative; width: 38px; height: 38px; border-radius: 10px; background: var(--choco, #3A2114); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); display: grid; place-items: center; overflow: hidden; }
-        .edx-podio__logo img { width: 84%; height: 84%; object-fit: contain; }
+        .edx-podio__logo--img { background: #fff; }
+        .edx-podio__logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
         .edx-podio__ini { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: var(--cream); }
         .edx-podio__what { min-width: 0; }
         .edx-podio__cat { display: block; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: color-mix(in srgb, var(--cream) 66%, transparent); }
