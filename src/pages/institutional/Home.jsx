@@ -547,6 +547,9 @@ export function HomePage({ navigate }) {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(6px); }
           }
+          /* ritmo de capítulo no touch: batida vertical mais curta que o desktop.
+             Override local — NÃO mexe no padding global de .section. */
+          .hm .section { padding-block: clamp(52px, 13vw, 84px); }
         }
         @media (max-width: 600px) and (prefers-reduced-motion: reduce) {
           .hm .swc-hero__scrollcue { animation: none; }
