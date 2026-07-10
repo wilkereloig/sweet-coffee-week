@@ -150,7 +150,7 @@ function EditionParticipants({ e }) {
         aria-hidden={!open}
         inert={open ? undefined : ''}
       >
-        <ul className="edx-parts__list">
+        <ul className={`edx-parts__list motion-stagger${open ? ' is-in' : ''}`}>
           {list.map((n) => <li key={n}>{n}</li>)}
         </ul>
       </div>
@@ -235,8 +235,6 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
           <span className="edx-scene__nofoto"><I.cal width={22} height={22} /><span>Acervo desta edição pendente</span></span>
         )}
         <span className="edx-scene__scrim" aria-hidden="true" />
-        {/* camada 2 — numeral gigante (dado: posição na série) */}
-        <span className="edx-scene__num" aria-hidden="true">{pad2(e.number)}</span>
       </div>
 
       {/* cabeçalho do capítulo: no desktop entra na coluna; no mobile fica sobre a foto.
@@ -254,14 +252,14 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go })
         </p>
       </header>
 
-      {/* camada 3 — corpo editorial */}
+      {/* camada 2 — corpo editorial */}
       <div className="edx-scene__body">
         <div className={`edx-scene__text motion-stagger${isActive ? ' is-in' : ''}`}>
           {e.paragraphs.map((p, i) => <p key={i} className="edx-scene__lead">{p}</p>)}
         </div>
       </div>
 
-      {/* camada 4 — rail flutuante (canto direito no desktop): pódio (ou nota de
+      {/* camada 3 — rail flutuante (canto direito no desktop): pódio (ou nota de
           status) + participantes */}
       <div className="edx-rail">
         <EditionPodium e={e} go={go} />
@@ -461,12 +459,6 @@ export function EdicoesPage({ navigate }) {
           linear-gradient(180deg, rgba(43,24,16,.5) 0%, rgba(43,24,16,0) 20%),
           linear-gradient(90deg, color-mix(in srgb, var(--ink) 82%, var(--tone)) 0%, color-mix(in srgb, var(--ink) 62%, transparent) 42%, rgba(43,24,16,.14) 68%, rgba(43,24,16,0) 100%),
           linear-gradient(0deg, rgba(43,24,16,.74) 0%, rgba(43,24,16,0) 26%); }
-        /* separado do rail por EIXO X (não Y): a altura do rail varia demais
-           (1-3 linhas de pódio + participantes aberto/fechado) pra caber num
-           orçamento vertical fixo. Ancorado à esquerda da coluna do rail —
-           nunca fica atrás dele, não importa a altura. */
-        .edx-scene__num { position: absolute; right: calc(var(--page-gutter) + clamp(210px, 20vw, 290px) + 28px); top: 50%; transform: translateY(-56%); font-family: var(--font-display); font-weight: 900; font-size: clamp(64px, 11vw, 200px); line-height: 1; letter-spacing: -.04em; color: var(--tone); opacity: .32; user-select: none; }
-
         /* conteúdo (desktop): head + body empilham na coluna esquerda */
         .edx-scene__head, .edx-scene__body { position: relative; z-index: 2; max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); width: 100%; }
         /* zona de segurança header↔conteúdo (§4.1): o menu global flutua sobre o stage */
@@ -488,7 +480,7 @@ export function EdicoesPage({ navigate }) {
            scrim horizontal já cai perto de zero na faixa direita onde o rail
            fica (calibrado pro texto editorial à esquerda), então o contraste do
            texto pequeno do card não pode depender do brilho da foto por trás. */
-        .edx-podio { background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; padding: 13px 15px; }
+        .edx-podio { background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; padding: 13px 15px; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
         .edx-podio__t { font-family: var(--font-heading); font-weight: 800; font-size: 13.5px; color: var(--cream); margin: 0 0 10px; }
         .edx-podio__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
         .edx-podio__row { display: flex; align-items: center; gap: 12px; }
@@ -512,7 +504,7 @@ export function EdicoesPage({ navigate }) {
 
         /* PARTICIPANTES — card clicável (filho do rail). Colapsado só mostra o
            gatilho; abre com reveal (grid-rows 0fr→1fr); a lista rola. */
-        .edx-parts { width: 100%; background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; }
+        .edx-parts { width: 100%; background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
         .edx-parts__toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 11px 14px; background: none; border: 0; border-radius: 14px; cursor: pointer; text-align: left; transition: background var(--motion-fast) var(--ease-out-soft); }
         .edx-parts__toggle:hover { background: color-mix(in srgb, var(--cream) 8%, transparent); }
         .edx-parts__toggle:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
@@ -524,8 +516,16 @@ export function EdicoesPage({ navigate }) {
         .edx-parts.is-open .edx-parts__reveal { grid-template-rows: 1fr; }
         .edx-parts__list { min-height: 0; margin: 0; padding: 0 8px 0 14px; list-style: none; overflow: hidden; display: grid; gap: 5px; }
         /* lista curta e rolável: com o pódio acima no rail, a soma tem que ficar
-           acima da filmstrip mesmo na Lovers (pódio de 3 linhas). */
-        .edx-parts.is-open .edx-parts__list { overflow-y: auto; max-height: min(20vh, 176px); padding-bottom: 12px; scrollbar-width: thin; }
+           acima da filmstrip mesmo na Lovers (pódio de 3 linhas). Fade nas bordas
+           avisa que rola; scrollbar fina no tom da paleta em vez do cinza do SO. */
+        .edx-parts.is-open .edx-parts__list {
+          overflow-y: auto; max-height: min(20vh, 176px); padding-bottom: 12px;
+          scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--cream) 45%, transparent) transparent;
+          mask-image: linear-gradient(180deg, transparent, #000 10px, #000 calc(100% - 14px), transparent);
+          -webkit-mask-image: linear-gradient(180deg, transparent, #000 10px, #000 calc(100% - 14px), transparent);
+        }
+        .edx-parts.is-open .edx-parts__list::-webkit-scrollbar { width: 5px; }
+        .edx-parts.is-open .edx-parts__list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--cream) 45%, transparent); border-radius: 999px; }
         .edx-parts__list li { font-family: var(--font-heading); font-weight: 700; font-size: 13.5px; line-height: 1.2; color: var(--cream); }
 
         /* FILMSTRIP */
@@ -580,7 +580,6 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-scene__media img { transform: none; }
         .edx-stack .edx-scene__nofoto { color: var(--cream); }
         .edx-stack .edx-scene__scrim { background: linear-gradient(0deg, color-mix(in srgb, var(--ink) 80%, var(--tone)) 0%, rgba(43,24,16,.16) 42%, rgba(43,24,16,0) 64%); }
-        .edx-stack .edx-scene__num { top: 10px; bottom: auto; right: 12px; font-size: 84px; opacity: .5; }
         /* cabeçalho puxado por cima da base da foto */
         .edx-stack .edx-scene__head { margin-top: -118px; padding-top: 0; padding-bottom: 14px; }
         .edx-stack .edx-scene__title { font-size: clamp(30px, 9vw, 42px); max-width: none; }
@@ -623,7 +622,6 @@ export function EdicoesPage({ navigate }) {
           .edx-scene--special .edx-podio__logo, .edx-scene--special .edx-podio__medal { width: 26px; height: 26px; }
           .edx-strip { bottom: 34px; }
           .edx-strip__th { width: 62px; }
-          .edx-scene__num { font-size: clamp(64px, 9vh, 130px); }
         }
         @media (max-width: 540px) {
           .edx-stack .edx-scene__head { margin-top: -104px; }
