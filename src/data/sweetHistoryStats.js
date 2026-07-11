@@ -9,7 +9,7 @@
  * homenagens da Lovers, vencedores repetidos de uma categoria e marcos/primeiras
  * vezes. Logos via resolveParticipant (fallback textual).
  */
-import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory'
+import { SWEET_COFFEE_HISTORY, AWARD_STATUS } from './sweetCoffeeHistory'
 import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults'
 import { resolveParticipant } from './participantAssets'
 import { PARTICIPANTS } from './participants'
@@ -47,19 +47,37 @@ export function getParticipantAsset(name) {
   return resolveParticipant(name)
 }
 
+// Achata colocacoes:[{pos,nomes:[...]}] → [{place,pos,name}], preservando empates
+// (mais de um nome na mesma posição vira mais de uma linha com o mesmo pos).
+function flattenColocacoes(colocacoes) {
+  return (colocacoes || []).flatMap((p) =>
+    (p.nomes || []).map((n) => ({ place: `${p.pos}º`, pos: p.pos, name: normalizeParticipantName(n) }))
+  )
+}
+
+// 2026.1 (Lovers): a base histórica tem 8 categorias com key/descricao/postResultado
+// mas colocacoes SEMPRE vazias (pódio "pendente_estruturacao" no arquivo-fonte); os
+// pódios reais vivem em loversAwardsResults.js. Cruza por `key` (join estável — ambos
+// os arquivos usam as mesmas 8 keys, Research Finding 2) para juntar metadado da
+// história com colocações reais. Único helper de join — reusado por editionAwards()
+// (aggregates EDITIONS) e getCurrentEditionScenes() (cenas fotográficas).
+function crossedLoversCategories(ed) {
+  const historyCats = (ed.premiacao && ed.premiacao.categorias) || []
+  const resultsByKey = new Map(LOVERS_2026_AWARDS_RESULTS.premiacao.categorias.map((c) => [c.key, c]))
+  return historyCats.map((c) => ({ ...c, colocacoes: resultsByKey.get(c.key)?.colocacoes || [] }))
+}
+
 // Normaliza a premiação de uma edição → [{ category, track, winners:[{place,pos,name}] }].
-// Para 2026.1 (Lovers), usa loversAwardsResults se a base não trouxer pódios.
+// Para 2026.1 (Lovers), cruza sempre por key contra loversAwardsResults.js — o bug
+// antigo só cruzava quando cats.length === 0, mas a base tem 8 categorias com a
+// colocacoes INTERNA vazia, então a condição nunca disparava e 2026.1 ficava fora de
+// todos os agregados (getAwardWins, etc.).
 function editionAwards(ed) {
-  let cats = (ed.premiacao && ed.premiacao.categorias) || []
-  if (ed.id === '2026.1' && cats.length === 0) {
-    cats = LOVERS_2026_AWARDS_RESULTS.premiacao.categorias
-  }
+  const cats = ed.id === '2026.1' ? crossedLoversCategories(ed) : (ed.premiacao && ed.premiacao.categorias) || []
   return cats.map((c) => ({
     category: canonCategory(c.categoria),
     track: c.trilha || null,
-    winners: (c.colocacoes || []).flatMap((p) =>
-      (p.nomes || []).map((n) => ({ place: `${p.pos}º`, pos: p.pos, name: normalizeParticipantName(n) }))
-    ),
+    winners: flattenColocacoes(c.colocacoes),
   }))
 }
 
@@ -178,5 +196,92 @@ export function getMilestoneFacts() {
     mencaoHonrosa: firstMencao
       ? { code: firstMencao.id, theme: firstMencao.tema || firstMencao.nome, count: mencoes.length, unique: mencoes.length === 1 }
       : null,
+  }
+}
+
+// ---- Sweet Awards (redesign): cenas fotográficas da edição atual (2026.1). ----
+// Ordem = ordem das categorias em sweetCoffeeHistory.js (Melhor Combo primeiro).
+export function getCurrentEditionScenes() {
+  const ed2026 = edicoes.find((ed) => ed.id === '2026.1')
+  if (!ed2026) return []
+  return crossedLoversCategories(ed2026).map((c) => ({
+    key: c.key,
+    category: canonCategory(c.categoria),
+    description: c.descricao || '',
+    postResultado: c.postResultado || null,
+    track: c.trilha || null,
+    winners: flattenColocacoes(c.colocacoes),
+  }))
+}
+
+// ---- Totais de pódio (pos 1/2/3) por marca, nas 16 edições (2026.1 já entra certo). ----
+export function getPodiumTotals() {
+  const map = new Map()
+  for (const r of collectAwardEntries()) {
+    if (!map.has(r.key)) map.set(r.key, { key: r.key, name: r.name, totalPodiums: 0, firstPlaces: 0, cats: new Set() })
+    const o = map.get(r.key)
+    o.totalPodiums++
+    if (r.pos === 1) o.firstPlaces++
+    o.cats.add(r.category)
+  }
+  return [...map.values()]
+    .map((o) => ({ ...o, cats: [...o.cats] }))
+    .sort((a, b) => b.totalPodiums - a.totalPodiums || a.name.localeCompare(b.name))
+}
+
+// ---- Categorias distintas já premiadas na história (canonicalizadas). ----
+export function getDistinctCategoryCount() {
+  const categories = [...new Set(collectAwardEntries().map((r) => r.category))].sort((a, b) => a.localeCompare(b))
+  return { total: categories.length, categories }
+}
+
+// ---- Galeria de campeões de Melhor Combo, uma entrada por edição, mais antiga → mais nova. ----
+export function getComboChampionsGallery() {
+  const comboCanon = canonCategory('Melhor Combo')
+  const ordered = [...EDITIONS].sort((a, b) => a.ordem - b.ordem)
+  const out = []
+  for (const e of ordered) {
+    const award = e.awards.find((a) => a.category === comboCanon)
+    const champions = (award ? award.winners : []).filter((w) => w.pos === 1)
+    if (champions.length) out.push({ code: e.code, theme: e.theme, names: champions.map((w) => w.name) })
+  }
+  return out
+}
+
+// ---- Empates: toda colocação (edição+categoria+posição) com mais de um nome. ----
+export function getTieStats() {
+  const ties = []
+  for (const e of EDITIONS) {
+    for (const a of e.awards) {
+      const byPos = new Map()
+      for (const w of a.winners) {
+        if (!byPos.has(w.pos)) byPos.set(w.pos, [])
+        byPos.get(w.pos).push(w.name)
+      }
+      for (const [pos, names] of byPos) {
+        if (names.length > 1) ties.push({ code: e.code, ordem: e.ordem, category: a.category, place: `${pos}º`, names })
+      }
+    }
+  }
+  const examples = [...ties]
+    .sort((a, b) => b.ordem - a.ordem)
+    .slice(0, 6)
+    .map(({ ordem, ...rest }) => rest)
+  return { totalTiedPlacements: ties.length, examples }
+}
+
+// ---- Cobertura de dados: quantas das 16 edições têm pódio registrado. ----
+export function getResultsCoverage() {
+  const ordered = [...EDITIONS].sort((a, b) => a.ordem - b.ordem)
+  const withoutResults = ordered.filter((e) => e.status !== 'completa' && e.status !== 'completa_em_publicacoes_oficiais')
+  return {
+    totalEditions: ordered.length,
+    withResults: ordered.length - withoutResults.length,
+    withoutResults: withoutResults.length,
+    editionsWithoutResults: withoutResults.map((e) => ({
+      code: e.code,
+      theme: e.theme,
+      note: AWARD_STATUS[e.status]?.label || 'Sem premiação registrada',
+    })),
   }
 }

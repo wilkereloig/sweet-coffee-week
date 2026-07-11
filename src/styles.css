@@ -473,7 +473,7 @@ body {
 }
 body.route-edicoes          { --page-accent: #2BC4E8; --page-accent-soft: rgba(43,196,232,.16);  --page-accent-dark: #149FC0; }
 body.route-vencedores,
-body.route-historico-awards { --page-accent: #F2548A; --page-accent-soft: rgba(242,84,138,.16);  --page-accent-dark: #C8275C; }
+body.route-historico-awards { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.16);  --page-accent-dark: #D9960A; }
 body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
 body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
 body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
@@ -502,9 +502,12 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   padding-bottom: clamp(56px, 7vw, 90px) !important;
 }
 .participar-hero > .wrap, .apoiar-hero > .wrap { width: 100%; }
-/* Participar: acento coral claro (#F2693C) → texto escuro passa AA. */
-.participar-hero { background: var(--page-accent) !important; }
-.participar-hero :is(h1, p) { color: var(--ink) !important; }
+/* Participar (redesign jul/2026 — porta de entrada): hero fotográfico no espresso
+   da paleta (foto real de combos + scrim). Copy em creme; o form (card creme)
+   usa texto escuro próprio, por isso a cor clara fica ESCOPADA à coluna de copy,
+   não ao hero inteiro (senão apagaria o texto do formulário). */
+.participar-hero { background: #2B1810 !important; }
+.participar-hero .participar-hero__copy :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
 /* Apoiar: acento azul #1B86C9 reprova AA com texto claro E escuro (branco ~3.97:1).
    Usa a variante ESCURA do mesmo token (--page-accent-dark #0F5C8C, paleta §3) +
    texto claro (decisão C5) → ~7:1. Mantém a direção faixa-acento (azul), só legível.

@@ -100,10 +100,12 @@ identidade. Reutilizar variáveis CSS existentes; não inserir hex aleatórios.
 `body.route-*` (`src/styles.css`); regra global das heros institucionais usa token como
 **fundo cheio** (`background: var(--page-accent) !important`) com texto tinta escura.
 Acento tem que ser **tom claro dentro da paleta** (contraste com `--ink`). Acentos
-atuais: Edições ciano `#2BC4E8` · Awards/Histórico rosa `#F2548A` · Curiosidades amarelo
-`#F8B511` · Participar coral `#F2693C` · Apoiar azul `#1B86C9` · Contato peach `#F2B6A0`.
-(Contato já foi lavanda `#B38CFF` — roxo, fora da paleta; corrigido.) Ao criar/editar
-rota, nunca usar roxo/verde/lavanda como `--page-accent`.
+atuais: Edições ciano `#2BC4E8` · Awards/Histórico dourado `#F8B511` (antes rosa
+`#F2548A`; retonado jul/2026 para não ficar pink-dominante — ouro de medalha, condiz
+com a identidade do Sweet Awards) · Curiosidades amarelo `#F8B511` · Participar coral
+`#F2693C` · Apoiar azul `#1B86C9` · Contato peach `#F2B6A0`. (Contato já foi lavanda
+`#B38CFF` — roxo, fora da paleta; corrigido.) Ao criar/editar rota, nunca usar
+roxo/verde/lavanda como `--page-accent`.
 
 ## 4. Margens, grid e respiro
 
