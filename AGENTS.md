@@ -341,9 +341,21 @@ Sempre que o usuário disser que não gosta de algo ou aprovar uma nova regra de
 **atualizar este arquivo**. Exemplos já registrados: "não gosto de elementos soltos";
 "não quero stickers"; "hero com conteúdo ancorado embaixo"; "formulário em destaque";
 "não usar cores fora da paleta"; "hero não pode ter 1080px fixo"; "zona de segurança
-entre menu e hero" (ver 4.1); "Contato é página simples, SEM hero" (jul/2026 — título
-compacto direto na seção de cards, com padding-top = --hero-content-start; não
-reintroduzir PageHero ali).
+entre menu e hero" (ver 4.1).
+
+**Contato = central de dúvidas e relacionamento, SEM hero (jul/2026).** A página
+deixou de ser só cards de encaminhamento: virou página de serviço editorial —
+abertura compacta → busca + filtros (controle segmentado) → **FAQ filtrável**
+(acordeões, uma resposta aberta por vez) → orientação "Problemas durante uma
+edição" → encaminhamentos (linhas, não cards) para Participar/Apoiar/formulário →
+**formulário funcional** que grava em `contact_requests` (Supabase, RPC
+`submit_contact_request`, RLS sem policy — padrão de `participation_interests`) →
+Instagram discreto. Continua **sem hero**: abre com título compacto após
+`--hero-content-start` (§4.1). Sem stickers, foto de fundo, gradientes decorativos
+ou grid de cards. Conteúdo do FAQ e assuntos em `src/data/contactFaq.js`; lógica
+pura (busca/filtro/validação/envio) em `src/lib/contactRequest.js` (testável:
+`node tests/contact.test.mjs`). Não reintroduzir PageHero nem inventar
+e-mail/telefone/canal externo — só os canais de `src/config/channels.js`.
 
 ---
 
