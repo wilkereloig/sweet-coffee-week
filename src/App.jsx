@@ -11,7 +11,6 @@ import { SiteFooter } from './components/SiteFooter'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
-import { CuriosidadesPage } from './pages/institutional/Curiosidades'
 import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
@@ -26,7 +25,7 @@ const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
-// limpos /mapa, /premiacao, /participantes) são encaminhadas para a home.
+// limpos /mapa, /rota, /participantes) são encaminhadas para a home.
 // EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
 // para consultar e exportar a votação (dados preservados no Supabase).
 // Publicação temporária focada em Awards: enquanto true, todo o site público
@@ -34,7 +33,7 @@ const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({
 // (#/sweet-awards, route 'historico-awards'). O painel interno (/lovers/painel)
 // continua acessível, mas fora de qualquer menu/header.
 // DESLIGADO em jul/2026 (autorização do Wilke): site institucional completo
-// publicado — Home, Edições, Curiosidades, Participar, Apoiar, Contato + Awards.
+// publicado — Home, Edições, Participar, Apoiar, Contato + Awards.
 const AWARDS_ONLY_PUBLICATION = false
 
 // Publicação "EM BREVE" (jul/2026, decisão do Wilke): enquanto true, o domínio
@@ -44,7 +43,7 @@ const AWARDS_ONLY_PUBLICATION = false
 // segue visível em DEV e em previews *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
 const COMING_SOON_PUBLICATION = true
 
-// PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
+// PREVIEW DEV-only do institucional: permite revisar Edições,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
 // de produção acima. Liga apenas em dois casos seguros e NUNCA no domínio oficial:
 //   - servidor de desenvolvimento (import.meta.env.DEV);
@@ -66,9 +65,10 @@ const INSTITUTIONAL_PREVIEW = (() => {
 // Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
 // 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
 // liberar quando o institucional/Awards forem revisados.
-const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar', 'contato', 'historico-awards']
+const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
+const RETIRED_PUBLIC_PATHS = ['/curiosidades']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
@@ -82,6 +82,10 @@ export default function App() {
 
   React.useEffect(() => {
     if (isLegacyLoversPath(path)) navigate('/')
+  }, [path, navigate])
+
+  React.useEffect(() => {
+    if (RETIRED_PUBLIC_PATHS.some((retiredPath) => path.startsWith(retiredPath))) navigate('/edicoes')
   }, [path, navigate])
 
   const route = (() => {
@@ -101,11 +105,11 @@ export default function App() {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
-    if (path.startsWith('/curiosidades')) return 'curiosidades'
+    // Curiosidades foi descontinuada; o endereço antigo continua seguro via Edições.
+    if (path.startsWith('/curiosidades')) return 'edicoes'
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'
     if (path.startsWith('/contato'))      return 'contato'
-    if (path.startsWith('/lovers/painel')) return 'painel'
     return 'home'
   })()
 
@@ -113,7 +117,6 @@ export default function App() {
   switch (route) {
     case 'home':         page = <HomePage navigate={navigate} />; break
     case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
-    case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
@@ -142,7 +145,7 @@ export default function App() {
 
   return (
     <DevViewportSwitcher>
-      {!isInternal && <SiteHeader route={route} navigate={navigate} path={path} />}
+      {!isInternal && <SiteHeader route={route} navigate={navigate} />}
       <main key={route} className={`page-enter${showMobileNav ? ' has-mobile-tabbar' : ''}`}>
         <ErrorBoundary key={route}>
           <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
@@ -150,7 +153,10 @@ export default function App() {
           </React.Suspense>
         </ErrorBoundary>
       </main>
-      {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} />}
+      {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
+          no header/tab bar). FOOTER_ROUTES também controla o mobile nav (linha
+          showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
+      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} />}
       {showMobileNav && (
         <>
           <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />

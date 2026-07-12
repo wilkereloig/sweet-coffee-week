@@ -28,6 +28,8 @@ import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { EDITION_GALLERY } from '../../data/editionGallery'
 import { COMBO_PHOTOS } from '../../data/comboPhotos'
 import { getEditionHighlights, sceneShotsFor } from '../../data/editionHighlights'
+import { getEditionInsights } from '../../data/editionInsights'
+import { getDecadeCredits } from '../../data/decadeCredits'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
 import { focalPosition } from '../../data/focalPoints'
@@ -65,6 +67,9 @@ const PANELS = EDITIONS.map((ed, i) => {
   }
 })
 const TOTAL = PANELS.length
+// Trilho = 16 cenas + 1 estado final (créditos da década). A sequência editorial
+// continua 1→16; os créditos são o fecho da sessão, não uma 17ª edição.
+const TOTAL_STEPS = TOTAL + 1
 const pad2 = (n) => String(n).padStart(2, '0')
 
 // Rótulo curto da trilha — mostrado só quando ambíguo (ver EditionPodium).
@@ -114,7 +119,7 @@ function EditionPodium({ e, go }) {
           )
         })}
       </ul>
-      <a href="/sweet-awards" className="edx-podio__link" onClick={go('/sweet-awards')}>
+      <a href="#/sweet-awards" className="edx-podio__link" onClick={go('/sweet-awards')}>
         {e.special ? 'Ver todos os vencedores' : 'Pódio completo no Sweet Awards'}
       </a>
     </div>
@@ -128,10 +133,45 @@ function EditionPodium({ e, go }) {
 function EditionParticipants({ e }) {
   const list = e.participants
   const [open, setOpen] = React.useState(false)
-  if (!list.length) return null
+  const [q, setQ] = React.useState('')
+  const asideRef = React.useRef(null)
+  // limpa a busca ao fechar (reabre limpa). Hook antes de qualquer return (regras).
+  React.useEffect(() => { if (!open) setQ('') }, [open])
+  // ao abrir, rola o painel pra dentro do rail: como o toggle costuma ficar no
+  // fim da coluna, a lista aberta nasce abaixo do fade/corte. Espera a animação
+  // grid (motion-med) e traz o fim do painel pra vista. `block: 'end'` alinha a
+  // base à base do rail — mostra a lista, não só o cabeçalho.
+  React.useEffect(() => {
+    if (!open) return
+    const t = setTimeout(() => {
+      asideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 260)
+    return () => clearTimeout(t)
+  }, [open])
   const panelId = `edx-parts-${e.code}`
+  const searchId = `edx-parts-q-${e.code}`
+
+  // Sem nomes reais da edição na base: estado honesto, não esconde a ausência.
+  if (!list.length) {
+    return (
+      <aside className="edx-parts edx-parts--empty">
+        <p className="edx-parts__pending">Lista de participantes pendente</p>
+      </aside>
+    )
+  }
+
+  // Busca só quando a lista é grande o suficiente pra justificar (evita input
+  // ocioso em edições curtas). Filtro case-insensitive por nome.
+  const big = list.length >= 10
+  const nq = q.trim().toLowerCase()
+  const filtered = nq ? list.filter((n) => n.toLowerCase().includes(nq)) : list
+
   return (
-    <aside className={`edx-parts${open ? ' is-open' : ''}`}>
+    <aside
+      ref={asideRef}
+      className={`edx-parts${open ? ' is-open' : ''}`}
+      onKeyDown={(ev) => { if (ev.key === 'Escape' && open) { setOpen(false) } }}
+    >
       <button
         type="button"
         className="edx-parts__toggle"
@@ -139,7 +179,7 @@ function EditionParticipants({ e }) {
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="edx-parts__t">Quem participou · {list.length}</span>
+        <span className="edx-parts__t">Ver participantes · {list.length}</span>
         <span className="edx-parts__chev" aria-hidden="true"><I.chevronRight width={16} height={16} /></span>
       </button>
       {/* aria-hidden + inert (não só grid-rows:0fr) pra garantir que a lista
@@ -152,14 +192,68 @@ function EditionParticipants({ e }) {
         aria-hidden={!open}
         inert={open ? undefined : ''}
       >
+        {/* wrapper único: o colapso grid 0fr->1fr só clipa UM filho. Sem ele, em
+            edições grandes (busca + lista = 2 filhos) a lista cai numa linha
+            implícita auto e vaza aberta atrás da foto. */}
+        <div className="edx-parts__inner">
+        {big && (
+          <div className="edx-parts__search">
+            <label htmlFor={searchId} className="edx-sr">Buscar participante</label>
+            <input
+              id={searchId}
+              type="search"
+              className="edx-parts__input"
+              value={q}
+              onChange={(ev) => setQ(ev.target.value)}
+              placeholder="Buscar participante"
+              autoComplete="off"
+            />
+          </div>
+        )}
         <ul className={`edx-parts__list motion-stagger${open ? ' is-in' : ''}`}>
-          {list.map((n) => <li key={n}>{n}</li>)}
+          {filtered.map((n) => {
+            const p = resolveParticipant(n)
+            return (
+              <li key={n}>
+                <span className={`edx-parts__logo${p.logo ? ' edx-parts__logo--img' : ''}`} aria-hidden="true">
+                  {p.logo
+                    ? <img src={p.logo} alt="" loading="lazy" decoding="async"
+                        onError={(ev) => { ev.currentTarget.style.display = 'none'; ev.currentTarget.nextSibling.style.display = 'grid'; ev.currentTarget.parentElement.classList.remove('edx-parts__logo--img') }} />
+                    : null}
+                  <span className="edx-parts__ini" style={p.logo ? { display: 'none' } : undefined}>{p.fallback}</span>
+                </span>
+                <span className="edx-parts__name">{n}</span>
+              </li>
+            )
+          })}
+          {!filtered.length && <li className="edx-parts__none">Nenhum participante encontrado.</li>}
         </ul>
+        </div>
       </div>
     </aside>
   )
 }
 
+
+// Curiosidades verificadas da edição (0–3) como cards editoriais flutuantes:
+// no rail (desktop) ou no fluxo do corpo (mobile). Só monta quando há dado real
+// (getEditionInsights) — nunca inventa, nunca força o mesmo nº de cards por
+// edição. Entra em stagger quando a cena fica ativa.
+function EditionInsights({ e, isActive }) {
+  const items = getEditionInsights(e.code)
+  if (!items.length) return null
+  return (
+    <div className={`edx-insights motion-stagger${isActive ? ' is-in' : ''}`}>
+      {items.map((it) => (
+        <article className="edx-insight" key={it.title}>
+          <p className="edx-insight__t">{it.title}</p>
+          <p className="edx-insight__x">{it.text}</p>
+          {it.value ? <span className="edx-insight__v">{it.value}</span> : null}
+        </article>
+      ))}
+    </div>
+  )
+}
 
 // Filmstrip do acervo da edição — thumbs estáticas com scroll-snap; clique
 // troca a foto-cena. Só monta no slide em foco (e vizinhos): 16 × ~12 imgs de
@@ -226,6 +320,54 @@ function HeroCarousel({ images, alt, eager = false, autoplay = false }) {
         <div className="edx-hero-carousel__dots" aria-hidden="true">
           {images.map((src, i) => <span key={src} className={i === idx ? 'is-on' : ''} />)}
         </div>
+      )}
+    </div>
+  )
+}
+
+// Corpo editorial da cena: lead curto sempre visível; o restante da história
+// entra numa expansão acessível ("Ler a história completa") — evita despejar 4
+// parágrafos longos sobre a foto. Esc fecha; aria-expanded/controls no botão.
+function EditionStory({ e, isActive }) {
+  const [open, setOpen] = React.useState(false)
+  const paras = e.paragraphs
+  if (!paras.length) return null
+  const lead = paras[0]
+  const rest = paras.slice(1)
+  const panelId = `edx-story-${e.code}`
+  return (
+    <div
+      className={`edx-story${open ? ' is-open' : ''}`}
+      onKeyDown={(ev) => { if (ev.key === 'Escape' && open) setOpen(false) }}
+    >
+      <div className={`edx-scene__text motion-stagger${isActive ? ' is-in' : ''}`}>
+        <p className="edx-scene__lead">{lead}</p>
+      </div>
+      {rest.length > 0 && (
+        <>
+          <button
+            type="button"
+            className="edx-story__toggle"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? 'Fechar a história' : 'Ler a história completa'}
+            <I.chevronRight width={15} height={15} aria-hidden="true" />
+          </button>
+          <div
+            className="edx-story__reveal"
+            id={panelId}
+            role="region"
+            aria-label={`História completa da edição ${e.theme}`}
+            aria-hidden={!open}
+            inert={open ? undefined : ''}
+          >
+            <div className="edx-story__full">
+              {rest.map((p, i) => <p key={i}>{p}</p>)}
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
@@ -306,17 +448,18 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go, s
         </p>
       </header>
 
-      {/* camada 2 — corpo editorial */}
+      {/* camada 2 — corpo editorial: lead curto + história completa em expansão.
+          O fecho da apresentação (CTA Sweet Awards) vive nos CRÉDITOS DA DÉCADA,
+          o estado final do trilho — CTA único, sem duplicar na cena Lovers. */}
       <div className="edx-scene__body">
-        <div className={`edx-scene__text motion-stagger${isActive ? ' is-in' : ''}`}>
-          {e.paragraphs.map((p, i) => <p key={i} className="edx-scene__lead">{p}</p>)}
-        </div>
+        <EditionStory e={e} isActive={isActive} />
       </div>
 
       {/* camada 3 — rail flutuante (canto direito no desktop): pódio (ou nota de
-          status) + participantes */}
+          status) + curiosidades verificadas + participantes */}
       <div className="edx-rail">
         <EditionPodium e={e} go={go} />
+        <EditionInsights e={e} isActive={isActive} />
         <EditionParticipants e={e} />
       </div>
 
@@ -329,6 +472,73 @@ function EditionScene({ e, live, near = true, isActive = true, offset = 0, go, s
           painéis plenamente montados — só amplia de "1 vizinho" pra "2 vizinhos". */}
       {/* Filmstrip só no desktop: no mobile as fotos vivem no carrossel da hero. */}
       {!stacked && <Filmstrip e={{ ...e, gallery: near ? e.gallery : [] }} current={current} onPick={setPicked} />}
+    </article>
+  )
+}
+
+// CRÉDITOS DA DÉCADA — estado final do trilho ("A Década em Cartaz", Ato III).
+// Rolagem de créditos de cinema com dados 100% reais (getDecadeCredits):
+// 1º lugares por edição (empates preservados) + elenco Lovers + Realização.
+// Desktop: rolagem automática em loop (2 cópias + translateY -50%, padrão
+// marquee — transform-only), pausa em hover, roda só quando a cena está ativa.
+// Mobile (stacked) / reduced-motion: lista estática, o painel rola no dedo.
+function DecadeCredits({ isActive = false, near = true, go, stacked = false }) {
+  const credits = React.useMemo(() => getDecadeCredits(), [])
+  if (!near) {
+    return <article className="edx-scene edx-credits edx-scene--far" id={`edx-panel-${TOTAL}`} aria-roledescription="slide" aria-label="Créditos da década" />
+  }
+  const blocks = (
+    <>
+      {credits.editions.map((ed) => (
+        <section className="edx-credits__block" key={ed.code}>
+          <h3 className="edx-credits__edition">{ed.tema} · {ed.code}</h3>
+          <ul className="edx-credits__list">
+            {ed.firsts.map((f) => (
+              <li key={`${f.categoria}-${f.trilha || ''}`}>
+                <span className="edx-credits__cat">{f.categoria}{f.trilha && TRILHA_LABEL[f.trilha] ? ` · ${TRILHA_LABEL[f.trilha]}` : ''}</span>
+                <span className="edx-credits__who">{f.nomes.join(' + ')}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      <section className="edx-credits__block">
+        <h3 className="edx-credits__edition">Elenco da Sweet &amp; Coffee Week Lovers</h3>
+        <ul className="edx-credits__list edx-credits__list--cast">
+          {credits.cast.map((n) => <li key={n}><span className="edx-credits__who">{n}</span></li>)}
+        </ul>
+      </section>
+      <section className="edx-credits__block">
+        <h3 className="edx-credits__edition">Realização</h3>
+        <ul className="edx-credits__list">
+          <li><span className="edx-credits__who">F2 Experience</span></li>
+        </ul>
+      </section>
+    </>
+  )
+  return (
+    <article
+      className={`edx-scene edx-credits${isActive ? ' is-active' : ''}`}
+      id={`edx-panel-${TOTAL}`}
+      aria-roledescription="slide"
+      aria-label="Créditos da década"
+      aria-hidden={stacked || isActive ? undefined : true}
+      inert={stacked || isActive ? undefined : ''}
+    >
+      <div className="edx-credits__inner">
+        <header className={`edx-credits__head motion-stagger${isActive ? ' is-in' : ''}`}>
+          <span className="edx-scene__code">Fim da sessão</span>
+          <h2 className="edx-credits__title">Uma década em créditos.</h2>
+          <p className="edx-credits__lead">Cada edição reconheceu marcas reais da cidade. Os primeiros lugares da história, na ordem em que aconteceram.</p>
+        </header>
+        <div className="edx-credits__stage" aria-label="Vencedores da década, por edição">
+          <div className="edx-credits__roll">
+            <div>{blocks}</div>
+            {!stacked && <div aria-hidden="true">{blocks}</div>}
+          </div>
+        </div>
+        <a href="#/sweet-awards" className="edx-credits__cta" onClick={go('/sweet-awards')}>Ver o Sweet Awards</a>
+      </div>
     </article>
   )
 }
@@ -357,7 +567,8 @@ function YearRail({ active, onPick }) {
               aria-label={`Edição ${e.code}: ${e.theme}`}
               onClick={() => onPick(i)}
             >
-              {e.special ? 'Lovers' : e.code}
+              <span className="edx-anos__yr">{e.special ? 'Lovers' : e.code}</span>
+              {i === active && <span className="edx-anos__th" aria-hidden="true">{e.theme}</span>}
             </button>
           </li>
         ))}
@@ -387,7 +598,24 @@ export function EdicoesPage({ navigate }) {
     return () => { mqWide.removeEventListener('change', evaluate); mqMotion.removeEventListener('change', evaluate) }
   }, [])
 
-  useSteppedPresentation({ enabled: horizontal, stageRef: outerRef, total: TOTAL, active, setActive })
+  useSteppedPresentation({ enabled: horizontal, stageRef: outerRef, total: TOTAL_STEPS, active, setActive })
+
+  // Cortina de tom ("A Década em Cartaz"): a cada troca de cena, uma cortina no
+  // tom da cena DESTINO varre a viewport (transform-only, pointer-events none —
+  // nunca bloqueia teclado/gesto). key nova por troca → a animação reinicia; a
+  // varredura anterior é simplesmente substituída (interruptível). Não dispara
+  // no primeiro render nem no modo mobile. Reduced-motion: display none (CSS).
+  const [wipe, setWipe] = React.useState(null)
+  const wipeSeq = React.useRef(0)
+  const wipePrev = React.useRef(active)
+  React.useEffect(() => {
+    if (wipePrev.current === active) return
+    wipePrev.current = active
+    if (!horizontal) return
+    const target = PANELS[active]
+    wipeSeq.current += 1
+    setWipe({ k: wipeSeq.current, tone: target ? target.tone : 'yellow' })
+  }, [active, horizontal])
 
   // Cena em foco publica a logo da edição pro header (troca a marca padrão
   // enquanto a página estiver aberta); limpa ao trocar de cena/desmontar.
@@ -404,7 +632,7 @@ export function EdicoesPage({ navigate }) {
   React.useEffect(() => {
     if (horizontal || typeof window === 'undefined') return
     const root = stackListRef.current
-    const nodes = PANELS.map((_, i) => document.getElementById(`edx-panel-${i}`)).filter(Boolean)
+    const nodes = Array.from({ length: TOTAL_STEPS }, (_, i) => document.getElementById(`edx-panel-${i}`)).filter(Boolean)
     if (!root || !nodes.length) return
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
@@ -470,31 +698,43 @@ export function EdicoesPage({ navigate }) {
         >
           <div className="edx-sticky">
             <div className="edx-viewport">
-              <div className="edx-track" style={{ width: `${TOTAL * 100}vw`, transform: `translateX(${-active * 100}vw)` }}>
+              <div className="edx-track" style={{ width: `${TOTAL_STEPS * 100}vw`, transform: `translateX(${-active * 100}vw)` }}>
                 {PANELS.map((e, i) => (
                   <EditionScene e={e} key={e.code} live={Math.abs(i - active) <= 1} near={Math.abs(i - active) <= 2} isActive={i === active} offset={(i - active) * 12} go={go} />
                 ))}
+                <DecadeCredits isActive={active === TOTAL} near={active >= TOTAL - 1} go={go} />
               </div>
             </div>
+
+            {wipe && <span key={wipe.k} className="edx-wipe" style={{ '--tone': `var(--${wipe.tone}, var(--page-accent))` }} aria-hidden="true" />}
 
             {active > 0 && (
               <button type="button" className="edx-arrow edx-arrow--prev" onClick={() => setActive((a) => Math.max(a - 1, 0))} aria-label="Edição anterior">
                 <I.chevronLeft width={22} height={22} />
               </button>
             )}
-            {active < TOTAL - 1 && (
-              <button type="button" className="edx-arrow edx-arrow--next" onClick={() => setActive((a) => Math.min(a + 1, TOTAL - 1))} aria-label="Próxima edição">
+            {active < TOTAL_STEPS - 1 && (
+              <button type="button" className="edx-arrow edx-arrow--next" onClick={() => setActive((a) => Math.min(a + 1, TOTAL_STEPS - 1))} aria-label={active === TOTAL - 1 ? 'Créditos da década' : 'Próxima edição'}>
                 <I.chevronRight width={22} height={22} />
               </button>
             )}
 
-            {/* leitura de progresso p/ leitores de tela; visualmente o numeral da
-                cena + timeline + barra já contam a posição (sem chip flutuante
+            {/* leitura de progresso p/ leitores de tela; visualmente o título da
+                cena + medidor + timeline já contam a posição (sem chip flutuante
                 brigando com o menu). */}
-            <p className="edx-sr" aria-live="polite">{pad2(active + 1)} de {pad2(TOTAL)}: {PANELS[active].theme}</p>
+            <p className="edx-sr" aria-live="polite">{active < TOTAL ? `${pad2(active + 1)} de ${pad2(TOTAL)}: ${PANELS[active].theme}` : 'Créditos da década'}</p>
 
-            <div className="edx-progress" aria-hidden="true">
-              <span style={{ transform: `scaleX(${(active + 1) / TOTAL})` }} />
+            {/* MEDIDOR DA DÉCADA — 16 segmentos, um por edição, cada um no tom da
+                sua edição; acendem conforme a década avança (posição + espectro
+                da década em um relance). Navegação acessível continua no YearRail. */}
+            <div className="edx-meter" aria-hidden="true">
+              {PANELS.map((p, i) => (
+                <span
+                  key={p.code}
+                  className={`edx-meter__seg${i <= Math.min(active, TOTAL - 1) ? ' is-lit' : ''}`}
+                  style={{ '--tone': `var(--${p.tone}, var(--page-accent))` }}
+                />
+              ))}
             </div>
             <YearRail active={active} onPick={pick} />
           </div>
@@ -505,6 +745,7 @@ export function EdicoesPage({ navigate }) {
         <section className="edx-stack" aria-label="Edições">
           <div className="edx-stack__list" ref={stackListRef} role="region" aria-roledescription="carousel" aria-label="Apresentação das edições">
             {PANELS.map((e, i) => <EditionScene e={e} key={e.code} live={Math.abs(i - active) <= 1} go={go} stacked autoplay={i === active} />)}
+            <DecadeCredits stacked go={go} isActive={active === TOTAL} />
           </div>
         </section>
       )}
@@ -512,11 +753,14 @@ export function EdicoesPage({ navigate }) {
       {/* TASKBAR MOBILE — navegação primária no alcance do polegar (rodapé),
           em vez de só a timeline no topo. Prev/next avança um painel; o botão
           central abre o sheet de salto direto pra qualquer uma das 16. */}
-      {!horizontal && (
+      {!horizontal && (() => {
+        // Créditos (índice TOTAL) não têm painel em PANELS — fallback do rótulo/tom.
+        const cur = PANELS[active] || { tone: 'yellow', code: '10 anos', theme: 'Créditos da década', special: false }
+        return (
         <nav className="edx-tabbar" aria-label="Navegação entre edições"
-             style={{ '--tone': `var(--${PANELS[active].tone}, var(--page-accent))` }}>
+             style={{ '--tone': `var(--${cur.tone}, var(--page-accent))` }}>
           <div className="edx-tabbar__progress" aria-hidden="true">
-            <span style={{ transform: `scaleX(${(active + 1) / TOTAL})` }} />
+            <span style={{ transform: `scaleX(${(active + 1) / TOTAL_STEPS})` }} />
           </div>
           <button
             type="button"
@@ -535,24 +779,25 @@ export function EdicoesPage({ navigate }) {
             aria-expanded={sheetOpen}
           >
             <span className="edx-tabbar__meta">
-              {PANELS[active].special ? 'Lovers' : PANELS[active].code} · {pad2(active + 1)}/{pad2(TOTAL)}
+              {active < TOTAL ? `${cur.special ? 'Lovers' : cur.code} · ${pad2(active + 1)}/${pad2(TOTAL)}` : 'Fim da sessão'}
             </span>
             <span className="edx-tabbar__theme">
-              <span className="edx-tabbar__theme-txt">{PANELS[active].theme}</span>
+              <span className="edx-tabbar__theme-txt">{cur.theme}</span>
               <I.chevronRight width={15} height={15} />
             </span>
           </button>
           <button
             type="button"
             className="edx-tabbar__btn"
-            onClick={() => pick(Math.min(active + 1, TOTAL - 1))}
-            disabled={active === TOTAL - 1}
-            aria-label="Próxima edição"
+            onClick={() => pick(Math.min(active + 1, TOTAL_STEPS - 1))}
+            disabled={active === TOTAL_STEPS - 1}
+            aria-label={active === TOTAL - 1 ? 'Créditos da década' : 'Próxima edição'}
           >
             <I.chevronRight width={20} height={20} />
           </button>
         </nav>
-      )}
+        )
+      })()}
 
       {!horizontal && sheetOpen && (
         <div className="edx-sheet-overlay" onClick={() => setSheetOpen(false)}>
@@ -582,13 +827,6 @@ export function EdicoesPage({ navigate }) {
           </div>
         </div>
       )}
-
-      {/* EPÍLOGO — um convite, um intent (Curiosidades; o intent Awards vive no painel Lovers) */}
-      <section className="edx-epilogo">
-        <h2>O lado curioso desses 10 anos.</h2>
-        <p>Recordes, marcas recorrentes e achados do acervo que não cabem numa linha do tempo.</p>
-        <a href="/curiosidades" className="edx-cta" onClick={go('/curiosidades')}>Explorar as Curiosidades</a>
-      </section>
 
       <style>{`
         .edx-page {
@@ -627,10 +865,12 @@ export function EdicoesPage({ navigate }) {
           }
         }
         .edx-scene__nofoto { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; color: var(--cream); opacity: .75; font-family: var(--font-sans); font-size: 14px; font-weight: 700; background: color-mix(in srgb, var(--tone) 18%, var(--ink)); }
+        /* Scrim mais leve: a FOTO é o destaque — só o necessário pra leitura da
+           coluna à esquerda (texto tem text-shadow) e da base (filmstrip). */
         .edx-scene__scrim { position: absolute; inset: 0; background:
-          linear-gradient(180deg, rgba(43,24,16,.5) 0%, rgba(43,24,16,0) 20%),
-          linear-gradient(90deg, color-mix(in srgb, var(--ink) 82%, var(--tone)) 0%, color-mix(in srgb, var(--ink) 68%, transparent) 48%, rgba(43,24,16,.16) 74%, rgba(43,24,16,0) 100%),
-          linear-gradient(0deg, rgba(43,24,16,.74) 0%, rgba(43,24,16,0) 26%); }
+          linear-gradient(180deg, rgba(43,24,16,.34) 0%, rgba(43,24,16,0) 16%),
+          linear-gradient(90deg, color-mix(in srgb, var(--ink) 62%, var(--tone)) 0%, color-mix(in srgb, var(--ink) 38%, transparent) 40%, rgba(43,24,16,0) 62%),
+          linear-gradient(0deg, rgba(43,24,16,.55) 0%, rgba(43,24,16,0) 20%); }
         /* conteúdo (desktop): head + body empilham na coluna esquerda */
         .edx-scene__head, .edx-scene__body { position: relative; z-index: 2; max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); width: 100%; }
         /* zona de segurança header↔conteúdo (§4.1): o menu global flutua sobre o stage */
@@ -639,14 +879,31 @@ export function EdicoesPage({ navigate }) {
         .edx-scene__code { font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--tone); filter: brightness(1.4); }
         .edx-scene__title { font-family: var(--font-display); font-weight: 900; letter-spacing: -.03em; font-size: clamp(40px, 4.8vw, 78px); line-height: .98; color: var(--cream); margin: 8px 0 0; max-width: 12ch; text-wrap: balance; }
         .edx-scene__meta { margin: 12px 0 0; font-family: var(--font-sans); font-size: 16px; font-weight: 800; letter-spacing: .01em; color: var(--cream); text-shadow: 0 1px 4px rgba(0,0,0,.4); }
-        .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 150px; max-width: none; }
+        .edx-scene__body { padding-top: clamp(14px, 2vh, 24px); padding-bottom: 130px; max-width: none; }
         .edx-scene__body > * { max-width: min(46%, 560px); }
         .edx-scene__text { margin-top: 12px; display: grid; gap: 8px; }
         .edx-scene__lead { margin: 0; font-size: clamp(13px, .88vw, 14.5px); line-height: 1.5; color: color-mix(in srgb, var(--cream) 93%, transparent); text-shadow: 0 1px 3px rgba(0,0,0,.35); }
 
         /* RAIL flutuante (canto direito da grade): pódio + participantes empilhados.
            Ancorado ao topo da zona segura; largura fixa; cada card é translúcido. */
-        .edx-rail { position: absolute; z-index: 3; top: var(--hero-content-start); right: var(--page-gutter); width: clamp(210px, 20vw, 290px); display: flex; flex-direction: column; gap: 12px; }
+        /* FAIXA DOS CARDS FLUTUANTES — coluna reservada à direita: começa na zona
+           segura do header e termina ANTES da filmstrip (bottom fixo). Conteúdo
+           que passar rola dentro da própria faixa (scrollbar oculta + fade na
+           base), sem nunca cobrir foto-legenda, filmstrip ou controles. */
+        .edx-rail {
+          position: absolute; z-index: 3; top: var(--hero-content-start); right: var(--page-gutter);
+          bottom: 132px; width: clamp(220px, 21vw, 300px);
+          display: flex; flex-direction: column; gap: 12px;
+          /* distribui os cards na altura toda do rail: quando cabem, espaço
+             uniforme entre eles (não amontoados no topo com vão embaixo);
+             quando passam, o auto rola normalmente e space-between é ignorado. */
+          justify-content: space-between;
+          overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain;
+          mask-image: linear-gradient(180deg, #000 calc(100% - 20px), transparent);
+          -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 20px), transparent);
+        }
+        .edx-rail::-webkit-scrollbar { display: none; }
+        .edx-rail > * { flex: 0 0 auto; }
 
         /* PÓDIO — card no rail. Tingimento forte (88% ink) e AUTOSSUFICIENTE: o
            scrim horizontal já cai perto de zero na faixa direita onde o rail
@@ -669,11 +926,6 @@ export function EdicoesPage({ navigate }) {
         .edx-podio__link:hover { opacity: 1; }
         .edx-podio__link:focus-visible, .edx-strip__th:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
 
-        /* CTA (Lovers + epílogo) */
-        .edx-cta { display: inline-block; margin-top: 16px; padding: 13px 22px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; transition: transform var(--motion-fast) var(--ease-out-soft), background var(--motion-fast) var(--ease-out-soft); }
-        .edx-cta:hover { transform: translateY(-2px); background: var(--cyan-deep); color: var(--cream); }
-        .edx-cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
-
         /* PARTICIPANTES — card clicável (filho do rail). Colapsado só mostra o
            gatilho; abre com reveal (grid-rows 0fr→1fr); a lista rola. */
         .edx-parts { width: 100%; background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
@@ -686,6 +938,9 @@ export function EdicoesPage({ navigate }) {
         .edx-parts.is-open .edx-parts__chev { transform: rotate(-90deg); }
         .edx-parts__reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-med) cubic-bezier(.16,1,.3,1); }
         .edx-parts.is-open .edx-parts__reveal { grid-template-rows: 1fr; }
+        /* filho único do colapso: clipa busca + lista juntas (2 filhos vazariam
+           numa linha implícita auto quando fechada). */
+        .edx-parts__inner { min-height: 0; overflow: hidden; }
         .edx-parts__list { min-height: 0; margin: 0; padding: 0 8px 0 14px; list-style: none; overflow: hidden; display: grid; gap: 5px; }
         /* lista curta e rolável: com o pódio acima no rail, a soma tem que ficar
            acima da filmstrip mesmo na Lovers (pódio de 3 linhas). Fade nas bordas
@@ -700,12 +955,16 @@ export function EdicoesPage({ navigate }) {
         .edx-parts.is-open .edx-parts__list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--cream) 45%, transparent); border-radius: 999px; }
         .edx-parts__list li { font-family: var(--font-heading); font-weight: 700; font-size: 13.5px; line-height: 1.2; color: var(--cream); }
 
-        /* FILMSTRIP */
-        .edx-strip { position: absolute; left: 0; right: 0; bottom: 56px; z-index: 3; display: flex; gap: 8px; max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        /* FILMSTRIP — folha de contato de cinema: full-bleed (borda a borda),
+           fotos coladas (sem gap/borda/raio), encostada na base da cena — logo
+           acima do medidor da década. Ativa = brilho cheio + filete no tom por
+           box-shadow inset (não muda tamanho; aria-pressed cobre o não-visual). */
+        .edx-strip { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; gap: 0; max-width: none; margin: 0; padding: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
         .edx-strip::-webkit-scrollbar { display: none; }
-        .edx-strip__th { flex: 0 0 auto; width: 88px; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; padding: 0; border: 2px solid transparent; background: var(--ink); cursor: pointer; opacity: .68; scroll-snap-align: start; transition: opacity .18s, border-color .18s; }
-        .edx-strip__th:hover { opacity: .92; }
-        .edx-strip__th.is-on { opacity: 1; border-color: var(--tone); }
+        .edx-strip__th { position: relative; flex: 0 0 auto; width: clamp(88px, 8vw, 132px); aspect-ratio: 4/3; border-radius: 0; overflow: hidden; padding: 0; border: none; background: var(--ink); cursor: pointer; opacity: .5; scroll-snap-align: start; transition: opacity .18s; }
+        .edx-strip__th:hover { opacity: .85; }
+        .edx-strip__th.is-on { opacity: 1; }
+        .edx-strip__th.is-on::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--tone); pointer-events: none; }
         .edx-strip__th img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
         /* CONTROLES */
@@ -719,8 +978,22 @@ export function EdicoesPage({ navigate }) {
 
         .edx-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-        .edx-progress { height: 3px; background: color-mix(in srgb, var(--cream) 20%, transparent); }
-        .edx-progress span { display: block; height: 100%; width: 100%; background: var(--page-accent, var(--cyan)); transform-origin: left; transition: transform .2s ease; }
+        /* CORTINA DE TOM — corte de cena: varre a viewport no tom da cena destino.
+           1 overlay único, transform-only, pointer-events none (nunca bloqueia
+           gesto/teclado); key nova por troca reinicia a animação (interruptível). */
+        .edx-wipe {
+          position: absolute; inset: 0; z-index: 5; pointer-events: none;
+          background: linear-gradient(90deg, transparent 0%, var(--tone) 16%, var(--tone) 84%, transparent 100%);
+          transform: translateX(-101%);
+          animation: edxWipe 520ms cubic-bezier(.7, 0, .2, 1) forwards;
+        }
+        @keyframes edxWipe { to { transform: translateX(101%); } }
+
+        /* MEDIDOR DA DÉCADA — 16 segmentos no tom de cada edição; acendem
+           conforme a apresentação avança (posição + espectro da década). */
+        .edx-meter { display: flex; gap: 3px; height: 4px; padding-inline: var(--page-gutter); background: color-mix(in srgb, var(--ink) 94%, var(--cream)); }
+        .edx-meter__seg { flex: 1; border-radius: 2px; background: color-mix(in srgb, var(--tone) 26%, var(--ink)); transition: background .32s var(--ease-out-soft), opacity .32s var(--ease-out-soft); opacity: .6; }
+        .edx-meter__seg.is-lit { background: var(--tone); opacity: 1; }
 
         /* TIMELINE DE ANOS */
         .edx-anos { padding: var(--sp-2) var(--page-gutter) var(--sp-3); background: color-mix(in srgb, var(--ink) 94%, var(--cream)); }
@@ -733,12 +1006,125 @@ export function EdicoesPage({ navigate }) {
         .edx-anos__item.is-active { background: var(--page-accent, var(--cyan)); border-color: var(--page-accent, var(--cyan)); color: var(--ink); }
         .edx-anos__item:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
 
-        /* EPÍLOGO */
-        .edx-epilogo { background: var(--cream); text-align: left; max-width: var(--page-max); margin: 0 auto; padding: var(--section-y, clamp(72px, 10vw, 140px)) var(--page-gutter); }
-        .edx-epilogo h2 { font-family: var(--font-display); font-weight: 900; letter-spacing: -.03em; font-size: clamp(30px, 3.4vw, 52px); line-height: 1.02; color: var(--ink); margin: 0; max-width: 18ch; text-wrap: balance; }
-        .edx-epilogo p { margin: 14px 0 0; max-width: 52ch; color: var(--ink-soft); font-size: 15.5px; line-height: 1.55; }
-        .edx-epilogo .edx-cta { background: var(--yellow); }
-        .edx-epilogo .edx-cta:hover { background: var(--yellow-deep); color: var(--ink); }
+        /* ============ OVERHAUL VISUAL — o TEMA é o herói da cena ============ */
+        /* O conceito criativo do ano (o tema) é a alma da edição — então ele é o
+           MAIOR elemento tipográfico da cena, não o número. Escala grande e
+           expressiva; leitura reforçada pelo scrim. Desktop only (a pilha mobile
+           usa o cabeçalho 4:5 próprio). */
+        /* COLUNA EDITORIAL COMPACTA — a foto é a protagonista; o texto ocupa uma
+           coluna definida e enxuta à esquerda (≤ ~480px), sem se espalhar. */
+        .edx-sticky .edx-scene__title {
+          position: relative; font-size: min(clamp(38px, 4.4vw, 68px), 9vh); line-height: .92;
+          letter-spacing: -.04em; max-width: 12ch; margin-top: 6px;
+        }
+        .edx-sticky .edx-scene__head > *, .edx-sticky .edx-scene__body > * { max-width: min(38vw, 480px); }
+        .edx-sticky .edx-scene__meta { margin-top: 8px; font-size: 14px; }
+        .edx-sticky .edx-scene__body { padding-top: 8px; }
+        .edx-sticky .edx-scene__text { margin-top: 6px; }
+        /* Sem linhas decorativas no slate (traço do rótulo e sublinhado do título
+           removidos a pedido, jul/2026) — o tom da edição vive no rótulo, no
+           medidor e no filete da filmstrip. */
+
+        /* Timeline vira "scrubber" da apresentação: o item ativo revela o tema da
+           cena (leitura de década, não só régua de anos). */
+        .edx-anos__item { display: inline-flex; align-items: center; gap: 8px; }
+        /* só monta no item ativo (JSX) → a largura cresce por conteúdo, não por
+           animação de layout; a entrada é só opacity (regra: sem animar width). */
+        .edx-anos__th {
+          white-space: nowrap; font-weight: 800; letter-spacing: .01em;
+          opacity: 0; animation: edxThIn var(--motion-base) var(--ease-out-soft) forwards;
+        }
+        @keyframes edxThIn { to { opacity: 1; } }
+        .edx-anos__th::before { content: '·'; margin-right: 8px; opacity: .6; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .edx-anos__th { animation: none; opacity: 1; }
+        }
+
+        /* HISTÓRIA COMPLETA — lead curto na cena + expansão acessível (grid-rows) */
+        .edx-story__toggle { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 8px 0; background: none; border: 0; cursor: pointer; font-family: var(--font-sans); font-weight: 800; font-size: 13px; color: var(--cream); }
+        .edx-story__toggle svg { transition: transform var(--motion-fast) var(--ease-out-soft); }
+        .edx-story.is-open .edx-story__toggle svg { transform: rotate(90deg); }
+        .edx-story__toggle:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; border-radius: 4px; }
+        .edx-story__reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-base) cubic-bezier(.16,1,.3,1); }
+        .edx-story.is-open .edx-story__reveal { grid-template-rows: 1fr; }
+        .edx-story__full { min-height: 0; overflow: hidden; }
+        .edx-story.is-open .edx-story__full { overflow-y: auto; max-height: min(32vh, 280px); padding-right: 8px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--cream) 45%, transparent) transparent; }
+        .edx-story__full p { margin: 0 0 10px; font-size: clamp(13px, .88vw, 14.5px); line-height: 1.5; color: color-mix(in srgb, var(--cream) 92%, transparent); text-shadow: 0 1px 3px rgba(0,0,0,.35); }
+
+        /* CURIOSIDADES — cards editoriais flutuantes no rail (0–3, só dados reais).
+           Sem side-tab colorido (evita "cara de template"): o tipo é codificado
+           pelo título no tom da edição, não por borda lateral. */
+        .edx-insights { display: flex; flex-direction: column; gap: 10px; }
+        .edx-insight { background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); border-radius: 12px; padding: 11px 13px; box-shadow: 0 10px 26px rgba(0,0,0,.24); }
+        .edx-insight__t { margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 13px; letter-spacing: .01em; color: var(--tone); filter: brightness(1.4); }
+        .edx-insight__x { margin: 5px 0 0; font-family: var(--font-sans); font-size: 12.5px; line-height: 1.42; color: color-mix(in srgb, var(--cream) 88%, transparent); }
+        .edx-insight__v { display: inline-block; margin-top: 8px; font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--cream); }
+
+        /* PARTICIPANTES — busca (listas grandes), logo real + iniciais, pendente honesto */
+        .edx-parts__search { padding: 8px 14px 4px; }
+        .edx-parts__input { width: 100%; min-height: 36px; padding: 7px 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--cream) 24%, transparent); background: color-mix(in srgb, var(--ink) 55%, transparent); color: var(--cream); font-family: var(--font-sans); font-size: 13px; box-sizing: border-box; }
+        .edx-parts__input::placeholder { color: color-mix(in srgb, var(--cream) 55%, transparent); }
+        .edx-parts__input:focus-visible { outline: 2px solid var(--cream); outline-offset: 1px; }
+        .edx-parts__list li { display: flex; align-items: center; gap: 9px; }
+        .edx-parts__logo { position: relative; flex: 0 0 auto; width: 26px; height: 26px; border-radius: 7px; overflow: hidden; background: var(--choco, #3A2114); border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent); display: grid; place-items: center; }
+        .edx-parts__logo--img { background: #fff; }
+        .edx-parts__logo img { width: 100%; height: 100%; object-fit: cover; }
+        .edx-parts__ini { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-heading); font-weight: 800; font-size: 10px; color: var(--cream); }
+        .edx-parts__name { min-width: 0; }
+        .edx-parts__none { color: color-mix(in srgb, var(--cream) 70%, transparent); font-style: italic; }
+        .edx-parts--empty { padding: 13px 15px; }
+        .edx-parts__pending { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--cream) 66%, transparent); }
+
+        /* CRÉDITOS DA DÉCADA — estado final do trilho (Ato III). Rolagem de
+           créditos de cinema: 2 cópias + translateY(-50%) em loop (marquee,
+           transform-only), pausa em hover, roda SÓ quando a cena está ativa. */
+        .edx-credits { background: var(--ink); }
+        .edx-credits__inner { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; align-items: flex-start; box-sizing: border-box; padding: calc(var(--header-safe-offset) + 12px) var(--page-gutter) 96px; }
+        .edx-credits__title { margin: 8px 0 0; font-family: var(--font-display); font-weight: 900; letter-spacing: -.045em; font-size: min(clamp(44px, 5.4vw, 92px), 12vh); line-height: .9; color: var(--cream); max-width: 14ch; text-wrap: balance; }
+        .edx-credits__lead { margin: 14px 0 0; max-width: 52ch; font-family: var(--font-sans); font-size: 14.5px; line-height: 1.5; color: color-mix(in srgb, var(--cream) 82%, transparent); }
+        .edx-credits .edx-scene__code { color: var(--yellow); filter: none; }
+        .edx-credits__stage { flex: 1; min-height: 0; width: min(100%, 640px); margin-top: clamp(18px, 3vh, 34px); overflow: hidden;
+          mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent);
+          -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent); }
+        .edx-credits__roll { display: flex; flex-direction: column; }
+        .edx-sticky .edx-credits.is-active .edx-credits__roll { animation: edxRoll 52s linear infinite; }
+        .edx-credits__stage:hover .edx-credits__roll { animation-play-state: paused; }
+        @keyframes edxRoll { to { transform: translateY(-50%); } }
+        .edx-credits__block { margin: 0 0 26px; }
+        .edx-credits__edition { margin: 0 0 10px; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: .02em; color: var(--yellow); }
+        .edx-credits__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+        .edx-credits__list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: baseline; }
+        .edx-credits__cat { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--cream) 62%, transparent); text-align: right; }
+        .edx-credits__who { font-family: var(--font-heading); font-weight: 800; font-size: 15.5px; color: var(--cream); }
+        .edx-credits__list--cast { grid-template-columns: 1fr 1fr; display: grid; }
+        .edx-credits__list--cast li { grid-template-columns: 1fr; }
+        .edx-credits__cta { display: inline-block; margin-top: 18px; padding: 13px 24px; border-radius: 999px; background: var(--page-accent, var(--cyan)); color: var(--ink); font-family: var(--font-sans); font-weight: 800; font-size: 14px; text-decoration: none; transition: transform var(--motion-fast) var(--ease-out-soft), background var(--motion-fast) var(--ease-out-soft); }
+        .edx-credits__cta:hover { transform: translateY(-2px); background: var(--cyan-deep); color: var(--cream); }
+        .edx-credits__cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+
+        /* Mobile (fundo creme): tinta escura no texto de história/curiosidades/final */
+        .edx-stack .edx-story__toggle { color: var(--ink); }
+        .edx-stack .edx-story__full p { color: var(--ink-soft); text-shadow: none; }
+        .edx-stack .edx-insight { background: var(--cream-card); border: 1px solid color-mix(in srgb, var(--tone) 40%, var(--paper-line)); box-shadow: 0 6px 20px rgba(43,24,16,.08); }
+        .edx-stack .edx-insight__t { filter: none; color: color-mix(in srgb, var(--tone) 68%, var(--ink)); }
+        .edx-stack .edx-insight__x { color: var(--ink-soft); }
+        .edx-stack .edx-insight__v { color: var(--ink); }
+        .edx-stack .edx-parts__input { background: #fff; color: var(--ink); border-color: var(--paper-line); }
+        .edx-stack .edx-parts__input::placeholder { color: var(--ink-soft); }
+        .edx-stack .edx-parts__none, .edx-stack .edx-parts__pending { color: var(--ink-soft); }
+        /* Créditos no mobile: painel snap escuro (fecho de cinema), lista estática
+           no fluxo (o painel rola no dedo — sem marquee, sem máscara). */
+        .edx-stack .edx-credits { background: var(--ink); }
+        .edx-stack .edx-credits__inner { height: auto; min-height: 100%; padding: 28px var(--page-gutter) calc(28px + 76px); }
+        .edx-stack .edx-credits__stage { overflow: visible; mask-image: none; -webkit-mask-image: none; width: 100%; flex: none; }
+        .edx-stack .edx-credits__list li { grid-template-columns: 1fr; gap: 2px; }
+        .edx-stack .edx-credits__cat { text-align: left; }
+        .edx-stack .edx-credits__list--cast { grid-template-columns: 1fr; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .edx-story__reveal, .edx-story__toggle svg { transition: none; }
+        }
 
         /* ===================== MOBILE / reduced-motion (carrossel) ===================== */
         .edx-stack { background: var(--cream); }
@@ -817,7 +1203,7 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-scene__body { padding-top: 18px; padding-bottom: calc(28px + 76px); }
         .edx-stack .edx-scene__body > * { max-width: none; }
         .edx-stack .edx-scene__lead { color: var(--ink-soft); text-shadow: none; }
-        .edx-stack .edx-rail { position: static; width: auto; margin: 16px var(--page-gutter) 0; gap: 14px; }
+        .edx-stack .edx-rail { position: static; width: auto; margin: 16px var(--page-gutter) 0; gap: 14px; overflow-y: visible; mask-image: none; -webkit-mask-image: none; }
         .edx-stack .edx-podio { background: var(--cream-card); border: 1px solid color-mix(in srgb, var(--tone) 40%, var(--paper-line)); box-shadow: 0 6px 20px rgba(43,24,16,.08); }
         .edx-stack .edx-podio__t, .edx-stack .edx-podio__win { color: var(--ink); }
         .edx-stack .edx-podio__cat { color: var(--ink-soft); }
@@ -833,9 +1219,10 @@ export function EdicoesPage({ navigate }) {
         .edx-stack .edx-parts__list li { color: var(--ink); }
         /* Galeria vira carrossel de fotos grandes (não mais fileira de
            miniaturas): 1 card por vez, snap ao centro, espiada dos vizinhos. */
-        .edx-stack .edx-strip { position: static; padding-block: 14px 22px; gap: 12px; scroll-snap-type: x mandatory; }
-        .edx-stack .edx-strip__th { width: min(76vw, 360px); aspect-ratio: 4 / 3; border-radius: 14px; opacity: 1; border-width: 3px; scroll-snap-align: center; background: var(--cream-card); }
+        .edx-stack .edx-strip { position: static; padding-block: 14px 22px; padding-inline: var(--page-gutter); gap: 12px; scroll-snap-type: x mandatory; }
+        .edx-stack .edx-strip__th { width: min(76vw, 360px); aspect-ratio: 4 / 3; border-radius: 14px; opacity: 1; border: 3px solid transparent; scroll-snap-align: center; background: var(--cream-card); }
         .edx-stack .edx-strip__th.is-on { border-color: var(--tone); }
+        .edx-stack .edx-strip__th.is-on::after { display: none; }
 
         /* PILL DE EDIÇÃO — flutuante no alcance do polegar, EMPILHADA logo acima
            da tab bar global do site (nav de edição em cima, nav de site embaixo).
@@ -909,7 +1296,7 @@ export function EdicoesPage({ navigate }) {
            sobreposto à foto) não colidir — só existe no desktop. No mobile o
            strip é static/in-flow (.edx-stack .edx-strip), então esse respiro
            extra vira só espaço vazio no fim do painel — escopado a .edx-sticky. */
-        .edx-sticky .edx-scene--special .edx-scene__body { padding-bottom: 176px; }
+        .edx-sticky .edx-scene--special .edx-scene__body { padding-bottom: 150px; }
         .edx-scene--special .edx-podio__list { gap: 6px; }
 
         /* laptops baixos / janelas achatadas: comprime a cena p/ nada colidir */
@@ -923,15 +1310,17 @@ export function EdicoesPage({ navigate }) {
           .edx-scene--special .edx-scene__body { padding-bottom: 118px; }
           .edx-scene--special .edx-podio__list { gap: 3px; }
           .edx-scene--special .edx-podio__logo, .edx-scene--special .edx-podio__medal { width: 26px; height: 26px; }
-          .edx-strip { bottom: 34px; }
-          .edx-strip__th { width: 62px; }
+          .edx-strip { bottom: 0; }
+          .edx-strip__th { width: 74px; }
         }
         @media (max-width: 420px) {
           .edx-stack .edx-parts.is-open .edx-parts__list { grid-template-columns: 1fr; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .edx-progress span, .edx-anos__item, .edx-scene__media img, .edx-parts__reveal, .edx-parts__chev { transition: none; }
+          .edx-meter__seg, .edx-anos__item, .edx-scene__media img, .edx-parts__reveal, .edx-parts__chev { transition: none; }
           .edx-scene__media img { transform: none; }
+          .edx-wipe { display: none; }
+          .edx-credits__roll { animation: none !important; }
         }
       `}</style>
     </div>

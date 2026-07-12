@@ -337,12 +337,14 @@ button:disabled { cursor: not-allowed; }
     padding-right: max(var(--hm-gutter), env(safe-area-inset-right));
   }
   .nav-cta { margin-left: auto; }
-  /* Logo enxuta no mobile — a base (72px) é grande demais p/ a barra */
-  .brand img { height: clamp(40px, 11vw, 52px); width: auto; }
+  /* Logo mobile ampliada em todas as páginas públicas, conforme solicitação. */
+  .brand img { height: clamp(120px, 33vw, 156px); width: auto; }
   /* Logo da edição em foco (Edições): 3× o tamanho padrão do mobile — pede
      destaque pra ser legível (marca fotográfica, não o selo simples). Vaza
      por baixo do header de propósito (position:fixed, sem clip). */
   .brand-cycle__img.brand-cycle__img--edition { height: clamp(120px, 33vw, 156px); }
+  /* O painel tem header próprio; páginas públicas recebem folga proporcional à logo. */
+  body:not(.route-painel) { --header-safe-offset: clamp(156px, 33vw, 190px); }
   .menu-toggle {
     display: inline-flex;
     align-items: center;
@@ -443,9 +445,9 @@ body:not(.route-painel) .site-header .login-toggle:hover {
    aqui p/ o conteúdo não ficar sob a barra fixa nem sob a logo flutuante
    (a logo vira um crest acima do título). Painel e a landing "em breve"
    (sem header público) ficam de fora. */
-body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
+body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
 @media (min-width: 960px) {
-  body:not(.route-home):not(.route-participar):not(.route-curiosidades):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
+  body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
 }
 /* ============================================================
    SISTEMA DE COR POR PÁGINA (institucional).
@@ -474,7 +476,6 @@ body {
 body.route-edicoes          { --page-accent: #2BC4E8; --page-accent-soft: rgba(43,196,232,.16);  --page-accent-dark: #149FC0; }
 body.route-vencedores,
 body.route-historico-awards { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.16);  --page-accent-dark: #D9960A; }
-body.route-curiosidades     { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.18);  --page-accent-dark: #B07D08; }
 body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
 body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
 body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
@@ -484,7 +485,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
    NÃO migradas para o componente <Hero> (src/components/layout/Hero.jsx +
    src/styles/hero.css). Conforme cada página migra, sai desta lista; quando
    todas migrarem, esta regra pode ser removida (ver plano ETAPA 2).
-   Já migrados p/ <Hero>: Contato, Curiosidades, Sweet Awards. Pendente decisão
+   Já migrados p/ <Hero>: Contato, Sweet Awards. Pendente decisão
    de direção (faixa-acento×chocolate): Participar, Apoiar (heros com form).
    Fora por design: Home (.swc-hero, §9), Edições (.edx-hero, apresentação).
    Seletores mortos removidos (.ed-hero / .ed-hl nunca existiram no markup).
@@ -508,12 +509,14 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
    não ao hero inteiro (senão apagaria o texto do formulário). */
 .participar-hero { background: #2B1810 !important; }
 .participar-hero .participar-hero__copy :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
-/* Apoiar: acento azul #1B86C9 reprova AA com texto claro E escuro (branco ~3.97:1).
-   Usa a variante ESCURA do mesmo token (--page-accent-dark #0F5C8C, paleta §3) +
-   texto claro (decisão C5) → ~7:1. Mantém a direção faixa-acento (azul), só legível.
-   O CSS local da Apoiar (Apoiar.jsx) já colore stats/link/form em tom claro. */
-.apoiar-hero { background: var(--page-accent-dark) !important; }
-.apoiar-hero :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
+/* Apoiar (redesign jul/2026 — gêmea da Participar): hero fotográfico no espresso
+   da paleta (foto real + scrim), igual à Participar. Texto creme ESCOPADO à coluna
+   de copy — NÃO ao hero inteiro: o card do formulário vive dentro da .apoiar-hero e
+   tem vários <p> (descrição, hint de contato, status); forçá-los a creme !important
+   os apagava sobre o card creme. Base espresso #2B1810 (não o azul do menu) casa com
+   o scrim e com a gêmea, e é o fallback correto se a foto não carregar. */
+.apoiar-hero { background: #2B1810 !important; }
+.apoiar-hero .apoiar-hero__copy :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
 .cur-hl, .hist-hl { color: var(--ink) !important; }
 .cur-hl::after { background: var(--ink) !important; }
 /* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
@@ -702,6 +705,14 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
 .site-footer__ig:hover { color: #FEF0DD; }
+/* Base: crédito + realização numa linha, separados (evita texto grudado). */
+.site-footer__base {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+  gap: 6px 20px; margin-top: clamp(28px, 4vw, 44px); padding-top: 18px;
+  border-top: 1px solid rgba(255,244,236,.15);
+  font-size: 13px; color: rgba(255,244,236,.6);
+}
+.site-footer__base-realiza strong { color: #FEF0DD; font-weight: 800; }
 .site-footer__realiza { margin: 18px 0 0; font-size: 13px; line-height: 1.4; opacity: .8; }
 .site-footer__realiza strong { color: #FEF0DD; font-weight: 800; }
 /* Listas (navegação + info) */
@@ -750,9 +761,33 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__send:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
 .site-footer__status:empty { display: none; }
 .site-footer__status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--peach); }
+/* Convite (3ª coluna): CTA de participação + canal de ideias. Substituiu a antiga
+   caixa de sugestões; herda o padrão de botão/links do rodapé (accent + cyan). */
+.site-footer__cta { display: grid; align-content: start; gap: 12px; }
+.site-footer__cta-help { margin: 0 0 4px; font-size: 15px; line-height: 1.5; opacity: .9; max-width: 34ch; }
+.site-footer__cta-btn {
+  justify-self: start; display: inline-flex; align-items: center; min-height: 44px;
+  padding: 12px 22px; border-radius: 999px;
+  font-weight: 800; color: var(--ink); background: var(--accent);
+  transition: transform var(--motion-fast, 160ms) var(--ease-out-soft, ease),
+              background var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__cta-btn:hover { transform: translateY(-2px); background: var(--accent-deep, #C13E25); }
+.site-footer__cta-btn:active { transform: translateY(0); }
+.site-footer__cta-btn:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
+.site-footer__cta-ig {
+  font-weight: 800; color: var(--cyan, #4fc3d9);
+  transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
+}
+.site-footer__cta-ig:hover { color: #FEF0DD; }
+.site-footer__cta-ig:focus-visible { outline: 2px solid var(--cyan, #4fc3d9); outline-offset: 3px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__cta-btn { transition: none; }
+  .site-footer__cta-btn:hover { transform: none; }
+}
 @media (max-width: 960px) {
   .site-footer__grid { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
-  .site-footer__brand, .site-footer__suggest { grid-column: 1 / -1; }
+  .site-footer__brand { grid-column: 1 / -1; }
 }
 @media (max-width: 560px) {
   .site-footer__grid { grid-template-columns: 1fr; gap: 32px; }
@@ -1343,7 +1378,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer {
   background: var(--ink);
   color: var(--bg);
-  padding: clamp(56px, 7vw, 96px) 0 32px;
+  padding: clamp(40px, 5vw, 72px) 0 24px;
   margin-top: 0;
 }
 .site-footer .wrap { max-width: var(--maxw); }

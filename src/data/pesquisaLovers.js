@@ -124,7 +124,7 @@ export const PESQUISA_SECOES = [
       },
       {
         id: 'q15', tipo: 'texto', obrigatoria: false,
-        label: 'Deixa um recado pra gente: o que você gostaria de ver no próximo Sweet?',
+        label: 'Deixa um recado pra gente: o que você gostaria de ver na próxima edição?',
       },
     ],
   },
