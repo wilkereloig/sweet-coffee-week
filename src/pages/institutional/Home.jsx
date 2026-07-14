@@ -623,8 +623,13 @@ export function HomePage({ navigate }) {
         /* -- Imprensa: destaque entra por translateX; ano gigante por opacity -- */
         .hmv2-press__feature.motion-reveal-up { transform: translateX(-28px); filter: none; }
         .hmv2-press__feature.motion-reveal-up.is-in { transform: none; }
-        .hmv2-press__feature .hmv2-press__featureYear { opacity: 0; transition: opacity .9s var(--ease-out-soft) .18s; }
+        .hmv2-press__feature .hmv2-press__featureYear { opacity: 0; transition: opacity .9s var(--ease-out-soft) .18s, transform .5s var(--ease-out-soft); }
         .hmv2-press__feature.is-in .hmv2-press__featureYear { opacity: .05; }
+        /* Polimento de hover: setas deslizam (idioma dos text-links) + profundidade no numeral fantasma. */
+        .hmv2-press__row svg, .hmv2-press__featureLink svg { transition: transform .22s var(--ease-spring-soft); }
+        .hmv2-press__row:hover svg,
+        .hmv2-press__feature:hover .hmv2-press__featureLink svg { transform: translateX(4px); }
+        .hmv2-press__feature:hover .hmv2-press__featureYear { opacity: .09; transform: translateY(-50%) scale(1.04); }
 
         /* -- Hero: texto em sequência (meta -> título -> palavra -> lead -> CTA) */
         .hmv2 .hmv2-hero__copy.motion-stagger > * { transform: translateY(20px); filter: none; transition: opacity .7s var(--ease-out-soft), transform .75s var(--ease-spring-soft); }
