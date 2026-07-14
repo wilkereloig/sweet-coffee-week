@@ -174,7 +174,7 @@ button:disabled { cursor: not-allowed; }
 .card {
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   padding: clamp(20px, 2.4vw, 32px);
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
@@ -1486,7 +1486,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   background: var(--bg-card);
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
-  border-radius: 16px;
+  border-radius: var(--card-radius);
   padding: 22px 24px 24px;
   display: flex;
   flex-direction: column;

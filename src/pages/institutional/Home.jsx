@@ -457,7 +457,7 @@ export function HomePage({ navigate }) {
         .hmv2-routes__intro { grid-area: intro; padding-top: 12px; }
         .hmv2-routes__intro p { max-width: 12ch; margin: 0; color: var(--ink); font: 800 clamp(34px, 3.7vw, 58px)/.93 var(--font-display); letter-spacing: -.04em; }
         .hmv2-routes__intro span { display: block; max-width: 23ch; margin-top: 20px; color: var(--ink-soft); font: 500 16px/1.45 var(--font-sans); }
-        .hmv2-route { min-height: 215px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: clamp(26px, 3vw, 42px); border: 1px solid rgba(43,24,16,.15); border-radius: 8px; overflow: hidden; transform: perspective(760px) translateY(var(--lift, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .26s var(--ease-out-soft), box-shadow .26s var(--ease-out-soft), scale .14s var(--ease-out-soft); }
+        .hmv2-route { min-height: 215px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: clamp(26px, 3vw, 42px); border: 1px solid rgba(43,24,16,.15); border-radius: var(--card-radius); overflow: hidden; transform: perspective(760px) translateY(var(--lift, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .26s var(--ease-out-soft), box-shadow .26s var(--ease-out-soft), scale .14s var(--ease-out-soft); }
         .hmv2-route:active { scale: .992; }
         .hmv2-route--marcas { grid-area: marcas; background: var(--coral); color: var(--cream); }
         .hmv2-route--lovers { grid-area: lovers; background: var(--yellow); color: var(--ink); }
