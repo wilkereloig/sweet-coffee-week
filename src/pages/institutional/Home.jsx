@@ -350,7 +350,7 @@ export function HomePage({ navigate }) {
           <div><dt><CountUp run={factsIn} to={festivalFacts.editions.value} /></dt><dd>edições realizadas</dd></div>
           <div><dt><CountUp run={factsIn} to={festivalFacts.brands.value} prefix="+" /></dt><dd>marcas participantes</dd></div>
           <div><dt><CountUp run={factsIn} to={festivalFacts.combosSold.value} prefix="+" suffix=" mil" /></dt><dd>combos vendidos</dd></div>
-          <div className="hmv2-proof__minor"><dt><CountUp run={factsIn} to={festivalFacts.igViews.value} prefix="+" suffix=" mi" /></dt><dd>visualizações no Instagram</dd></div>
+          <div><dt><CountUp run={factsIn} to={festivalFacts.igViews.value} prefix="+" suffix=" mi" /></dt><dd>visualizações no Instagram</dd></div>
         </dl>
       </section>
 
@@ -517,23 +517,18 @@ export function HomePage({ navigate }) {
         .hmv2-proof { display: grid; grid-template-columns: minmax(250px, .8fr) minmax(0, 1.2fr); gap: clamp(40px, 8vw, 132px); padding: clamp(90px, 12vw, 170px) var(--hm-gutter); background: var(--yellow); }
         .hmv2-proof h2 { max-width: 11ch; color: var(--ink); }
         .hmv2-proof__title p { max-width: 31ch; margin: 22px 0 0; color: rgba(43,24,16,.78); font: 500 17px/1.45 var(--font-sans); }
-        .hmv2-proof__facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 clamp(30px, 4vw, 72px); margin: 0; }
-        .hmv2-proof__facts div { position: relative; min-height: 150px; padding: 18px 0 26px; border-top: 1px solid rgba(43,24,16,.32); transition: transform .28s var(--ease-out-soft); }
-        /* Tick de acento por número (cresce no reveal/hover) — quebra a monotonia. */
+        .hmv2-proof__facts { display: flex; flex-direction: column; margin: 0; }
+        .hmv2-proof__facts div { position: relative; padding: clamp(18px, 2.4vw, 32px) 0; border-top: 1px solid rgba(43,24,16,.28); transition: transform .28s var(--ease-out-soft); }
+        .hmv2-proof__facts div:last-child { border-bottom: 1px solid rgba(43,24,16,.28); }
+        /* Tick de acento por linha (cresce no reveal) — único acento coral, ritmo de ledger. */
         .hmv2-proof__facts div::before { content: ''; position: absolute; top: -1px; left: 0; width: clamp(40px, 5vw, 64px); height: 3px; background: var(--coral-deep); transform: scaleX(0); transform-origin: left center; transition: transform .5s var(--ease-out-soft); }
         .hmv2-proof__facts.is-in div::before { transform: scaleX(1); }
         .hmv2-proof__facts.is-in div:nth-child(2)::before { transition-delay: .08s; }
         .hmv2-proof__facts.is-in div:nth-child(3)::before { transition-delay: .16s; }
         .hmv2-proof__facts.is-in div:nth-child(4)::before { transition-delay: .24s; }
-        .hmv2-proof__facts dt { color: var(--ink); font: 800 clamp(42px, 5vw, 78px)/.88 var(--font-display); letter-spacing: -.055em; }
-        /* Hierarquia: edições = número-líder maior; marcas ganham o acento coral. */
-        .hmv2-proof__facts div:first-child dt { font-size: clamp(56px, 6.6vw, 104px); }
-        .hmv2-proof__facts div:nth-child(2) dt { color: var(--coral-deep); }
-        .hmv2-proof__facts dd { margin: 10px 0 0; color: rgba(43,24,16,.78); font: 700 14px/1.25 var(--font-sans); }
-        /* IG = 4º apoio: presente, sem dominar a faixa (número menor + tinta suave). */
-        .hmv2-proof__facts .hmv2-proof__minor { min-height: 120px; }
-        .hmv2-proof__facts .hmv2-proof__minor dt { font-size: clamp(30px, 3.1vw, 46px); color: rgba(43,24,16,.62); }
-        .hmv2-proof__facts .hmv2-proof__minor dd { color: rgba(43,24,16,.6); }
+        /* Ledger: numeral gigante por linha + rótulo abaixo; os 4 com peso igual. */
+        .hmv2-proof__facts dt { color: var(--ink); font: 800 clamp(46px, 5.6vw, 88px)/.85 var(--font-display); letter-spacing: -.055em; }
+        .hmv2-proof__facts dd { margin: 8px 0 0; color: rgba(43,24,16,.8); font: 700 clamp(15px, 1.35vw, 19px)/1.3 var(--font-sans); }
         /* -- Prova humana: faixa editorial cheia (não card dentro de card, §5). ---- */
         .hmv2-voice { padding: clamp(74px, 10vw, 128px) var(--hm-gutter); background: var(--choco-deep); }
         /* 2 colunas: texto à esquerda, grid de combos à direita (preenche o vão). */
