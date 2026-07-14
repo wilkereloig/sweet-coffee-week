@@ -493,7 +493,7 @@ export function HomePage({ navigate }) {
         .hmv2-city__copy strong { color: var(--yellow); }
         .hmv2-text-link { display: inline-flex; align-items: center; gap: 9px; margin-top: 32px; color: var(--pink); font: 800 15px/1.2 var(--font-sans); }
         .hmv2-cycle { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 96px); align-items: center; padding: clamp(88px, 11vw, 156px) var(--hm-gutter); background: var(--cream-deep); }
-        .hmv2-cycle__media { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--cream); box-shadow: inset 0 0 0 1px rgba(43,24,16,.14); }
+        .hmv2-cycle__media { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--card-radius); background: var(--cream); box-shadow: inset 0 0 0 1px rgba(43,24,16,.14); }
         .hmv2-cycle__photo { position: absolute; inset: 0; margin: 0; opacity: 0; transform: scale(1.045); transition: opacity .5s var(--ease-out-soft), transform .8s var(--ease-out-soft); }
         .hmv2-cycle__photo.is-active { opacity: 1; transform: scale(1); }
         .hmv2-cycle__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
