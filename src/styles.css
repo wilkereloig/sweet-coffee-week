@@ -405,6 +405,19 @@ body:not(.route-painel) .site-header .login-toggle:hover {
   border-color: rgba(254, 240, 221, 0.75);
   background: rgba(254, 240, 221, 0.16);
 }
+/* Sweet Awards tem seções CLARAS no meio (cards creme, arquivo, acordeões). O scrim
+   translúcido acima é calibrado p/ a Home (toda escura) e esmaece a 0 → sobre fundo
+   claro o texto creme do menu fica sem lastro e briga com os títulos escuros que
+   passam por baixo. Aqui o header vira barra espresso SÓLIDA (identidade Awards:
+   espresso + creme + ouro) — texto/logo creme seguem legíveis e o conteúdo claro
+   não vaza por trás do menu. Escopo só nesta rota; Home e demais páginas intactas. */
+body.route-historico-awards .site-header::before {
+  height: 100%;
+  background: var(--ink);
+}
+body.route-historico-awards .site-header {
+  border-bottom: 1px solid rgba(255, 241, 230, 0.12);
+}
 
 /* DESKTOP — estrutura ÚNICA do menu em TODAS as páginas (a mesma da Home):
    barra full-width alinhada ao grid do conteúdo (--hm-gutter), logo prominente,
@@ -766,9 +779,9 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__cta { display: grid; align-content: start; gap: 12px; }
 .site-footer__cta-help { margin: 0 0 4px; font-size: 15px; line-height: 1.5; opacity: .9; max-width: 34ch; }
 .site-footer__cta-btn {
-  justify-self: start; display: inline-flex; align-items: center; min-height: 44px;
-  padding: 12px 22px; border-radius: 999px;
-  font-weight: 800; color: var(--ink); background: var(--accent);
+  justify-self: start; display: inline-flex; align-items: center; justify-content: center; min-height: 50px;
+  padding: 14px 20px; border-radius: 4px;
+  font: 800 14px/1 var(--font-sans); color: var(--ink); background: var(--accent);
   transition: transform var(--motion-fast, 160ms) var(--ease-out-soft, ease),
               background var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
