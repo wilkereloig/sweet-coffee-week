@@ -961,7 +961,7 @@ export function EdicoesPage({ navigate }) {
            box-shadow inset (não muda tamanho; aria-pressed cobre o não-visual). */
         .edx-strip { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; gap: 0; max-width: none; margin: 0; padding: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
         .edx-strip::-webkit-scrollbar { display: none; }
-        .edx-strip__th { position: relative; flex: 0 0 auto; width: clamp(88px, 8vw, 132px); aspect-ratio: 4/3; border-radius: 0; overflow: hidden; padding: 0; border: none; background: var(--ink); cursor: pointer; opacity: .5; scroll-snap-align: start; transition: opacity .18s; }
+        .edx-strip__th { position: relative; flex: 0 0 auto; width: clamp(88px, 8vw, 132px); aspect-ratio: 4/3; border-radius: var(--card-radius); overflow: hidden; padding: 0; border: none; background: var(--ink); cursor: pointer; opacity: .5; scroll-snap-align: start; transition: opacity .18s; }
         .edx-strip__th:hover { opacity: .85; }
         .edx-strip__th.is-on { opacity: 1; }
         .edx-strip__th.is-on::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--tone); pointer-events: none; }
@@ -1220,7 +1220,7 @@ export function EdicoesPage({ navigate }) {
         /* Galeria vira carrossel de fotos grandes (não mais fileira de
            miniaturas): 1 card por vez, snap ao centro, espiada dos vizinhos. */
         .edx-stack .edx-strip { position: static; padding-block: 14px 22px; padding-inline: var(--page-gutter); gap: 12px; scroll-snap-type: x mandatory; }
-        .edx-stack .edx-strip__th { width: min(76vw, 360px); aspect-ratio: 4 / 3; border-radius: 14px; opacity: 1; border: 3px solid transparent; scroll-snap-align: center; background: var(--cream-card); }
+        .edx-stack .edx-strip__th { width: min(76vw, 360px); aspect-ratio: 4 / 3; border-radius: var(--card-radius); opacity: 1; border: 3px solid transparent; scroll-snap-align: center; background: var(--cream-card); }
         .edx-stack .edx-strip__th.is-on { border-color: var(--tone); }
         .edx-stack .edx-strip__th.is-on::after { display: none; }
 

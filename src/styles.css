@@ -1517,7 +1517,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 /* ---------- PLACEHOLDER MEDIA ---------- */
 .media-ph {
   position: relative;
-  border-radius: var(--radius);
+  border-radius: var(--card-radius);
   overflow: hidden;
   aspect-ratio: 4/3;
   background:

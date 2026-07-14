@@ -549,7 +549,7 @@ export function HomePage({ navigate }) {
         /* Coxinha (real) + marca da Jolie num bloco REDONDO. Sem retrato autorizado
            no acervo → o círculo usa o logo (contain); com foto, vira retrato (cover). */
         .hmv2-voice__media { position: relative; align-self: center; }
-        .hmv2-voice__combo { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 18px; transition: transform .3s var(--ease-out-soft); }
+        .hmv2-voice__combo { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--card-radius); transition: transform .3s var(--ease-out-soft); }
         .hmv2-voice__portrait { position: absolute; left: clamp(-22px, -2vw, -14px); bottom: clamp(-22px, -2vw, -14px); display: grid; place-items: center; width: clamp(104px, 13vw, 150px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--cream); border: 5px solid var(--choco-deep); box-shadow: 0 10px 26px rgba(0,0,0,.32); }
         .hmv2-voice__portrait img { width: 100%; height: 100%; object-fit: cover; }
         .hmv2-voice__portrait--logo img { object-fit: contain; padding: 18px; }
