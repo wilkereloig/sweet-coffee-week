@@ -38,10 +38,38 @@ const shot = (code, file, theme) => ({
   type: 'combo',
 })
 
-// HERO — frames horizontais das 16 edições, em ordem cronológica (~28 no total).
-export const heroGalleryImages = EDICOES.flatMap((e) =>
+// MOMENTOS — fotos de público/edição (não-combo) do acervo geral, curadoria
+// "edit 01", pra intercalar com os combos na hero e mostrar gente no festival.
+const MOMENTOS_DIR = '/images/momentos'
+const momento = (n) => ({
+  src: `${MOMENTOS_DIR}/${String(n).padStart(2, '0')}.jpg`,
+  alt: 'Momento do público no Sweet & Coffee Week',
+  type: 'momento',
+})
+const heroMomentos = Array.from({ length: 12 }, (_, i) => momento(i + 1))
+
+// Intercala dois arrays distribuindo `extra` ao longo de `base` (sem empilhar
+// tudo no fim quando `extra` é menor que `base`).
+function interleave(base, extra) {
+  const out = []
+  let ei = 0
+  base.forEach((item, i) => {
+    out.push(item)
+    if (ei < extra.length && (i + 1) * extra.length >= (ei + 1) * base.length) {
+      out.push(extra[ei])
+      ei++
+    }
+  })
+  while (ei < extra.length) out.push(extra[ei++])
+  return out
+}
+
+// HERO — frames horizontais das 16 edições (ordem cronológica), intercalados
+// com os momentos de público curados acima (~40 no total).
+const heroComboImages = EDICOES.flatMap((e) =>
   e.hero.map((file) => shot(e.code, file, e.theme))
 )
+export const heroGalleryImages = interleave(heroComboImages, heroMomentos)
 
 // "O QUE É" — outro frame por edição (não repete o do hero), mesma cobertura.
 export const aboutGalleryImages = EDICOES.map((e) => shot(e.code, e.about, e.theme))
