@@ -15,7 +15,7 @@
 
 - É a **página-mãe** do sistema institucional do Sweet & Coffee Week.
 - Não é uma Home isolada: define a **direção visual, editorial e estrutural**
-  que depois orienta Edições, Curiosidades, Participar, Apoiar e Contato.
+  que depois orienta Edições, Participar, Apoiar e Contato.
 - É o **laboratório principal**. Ajustes minuciosos feitos nela viram **regras
   reutilizáveis** para as próximas telas.
 - Ao revisar ou criar qualquer outra página institucional, a referência de
@@ -98,7 +98,7 @@ Padrões que a Home está consolidando (vocabulário de seções reutilizável):
 
 ## 6. Regras para futuras páginas
 
-Ao criar ou revisar Edições, Curiosidades, Participar, Apoiar, Contato:
+Ao criar ou revisar Edições, Participar, Apoiar, Contato:
 
 - **Não copiar literalmente** a Home.
 - Usar a Home como **referência de ritmo, hierarquia e clareza**.
@@ -111,7 +111,6 @@ Ao criar ou revisar Edições, Curiosidades, Participar, Apoiar, Contato:
 | Página | Função |
 |---|---|
 | **Edições** | Memória e linha do tempo. |
-| **Curiosidades** | Acervo, dados e bastidores. |
 | **Participar** | Entrada para marcas participantes. |
 | **Apoiar** | Entrada para patrocinadores e parceiros. |
 | **Contato** | Canais e encaminhamentos. |
@@ -426,7 +425,7 @@ fallback). Desktop 2 colunas, mobile empilha (≤760px).
 Componente **global do institucional**: `src/components/SiteFooter.jsx`. Integrado
 no `App.jsx` via `FOOTER_ROUTES` e renderizado após o `<main>`. Aparece nas páginas
 institucionais públicas, **exceto** os painéis internos e a landing EmBreve. Lista real
-(`App.jsx`, jul/2026): `home, edicoes, curiosidades, participar, apoiar, contato,
+(`App.jsx`, jul/2026): `home, edicoes, participar, apoiar, contato,
 historico-awards` — o Sweet Awards (`historico-awards`) **já** entrou no footer.
 
 **Régua:** usa `.section` (ritmo vertical) + `.wrap` (largura/gutter do container) —
@@ -500,8 +499,9 @@ próximas páginas institucionais.
 - Fecha de **3 formas**: clique fora (overlay), clique em link, e **tecla Esc**
   (handler em `SiteHeader`, que também trava o scroll do fundo com
   `body.overflow:hidden` enquanto aberto).
-- Links do menu (7): O Festival · Edições · Sweet Awards · Curiosidades ·
-  Participar · Apoiar · Contato. **Não** incluir painel interno.
+- Links do menu (6): O Festival · Edições · Sweet Awards · Participar · Apoiar ·
+  Contato. **Não** incluir painel interno. Curiosidades foi descontinuada; acessos
+  legados para `#/curiosidades` são encaminhados para Edições.
 
 ### Checklist obrigatório por página
 

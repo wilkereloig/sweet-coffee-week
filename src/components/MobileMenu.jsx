@@ -9,15 +9,38 @@ import { NAV_LINKS } from './nav'
  * docs/superpowers/specs/2026-07-10-mobile-tabbar-nav-design.md
  */
 export function MobileMenu({ open, route, navigate, onClose }) {
+  const dialogRef = React.useRef(null)
+
   React.useEffect(() => {
     if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    const opener = document.activeElement // gatilho, para devolver o foco ao fechar
+    const dialog = dialogRef.current
+    const focusables = () => (dialog
+      ? dialog.querySelectorAll('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])')
+      : [])
+
+    // Foco inicial dentro do menu (botão fechar).
+    const closeBtn = dialog && dialog.querySelector('.close')
+    if (closeBtn) closeBtn.focus()
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab') return
+      // Trap de foco: Tab não escapa do dialog modal.
+      const items = focusables()
+      if (!items.length) return
+      const firstEl = items[0]
+      const lastEl = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus() }
+      else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus() }
+    }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
+      if (opener && typeof opener.focus === 'function') opener.focus()
     }
   }, [open, onClose])
 
@@ -26,7 +49,7 @@ export function MobileMenu({ open, route, navigate, onClose }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path); onClose() }
 
   return (
-    <div className="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu">
+    <div className="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu" ref={dialogRef}>
       <div className="mobile-menu__top">
         <a href="#/" className="mobile-menu__brand" onClick={go('/')}>
           <img src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" height={40} />

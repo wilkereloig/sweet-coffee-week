@@ -10,19 +10,23 @@
  * segurança do menu via padding-top global em `.apoiar-hero` (CLAUDE.md §4.1).
  *
  * Métricas: src/data/supportMetrics.js (Instagram oficial + histórico comercial).
- * Formulário HONESTO, sem backend: copia os dados e abre o Instagram oficial —
- * não simula envio. TODO(backend): conectar a Formspree/Supabase.
+ * Formulário com PERSISTÊNCIA REAL: grava o interesse via RPC Supabase
+ * `submit_support_interest` (lógica pura em src/lib/supportInterest.js; migration
+ * supabase/migrations/20260711_support_interests.sql). Nunca afirma "enviado" se
+ * a gravação falhar; erros aparecem por campo.
  */
 import React from 'react'
 import { I } from '../../components/icons'
 import { PageShell, PageSection, SectionHeader, CTASection, CardsGrid } from '../../components/layout'
 import { SUPPORT_METRICS_BIG, SUPPORT_METRICS_SUPPORT } from '../../data/supportMetrics'
+import { supabase } from '../../lib/supabase'
+import { EMPTY_SUPPORT, SEGMENTOS, INTERESSES, validateSupport, submitSupport } from '../../lib/supportInterest'
 
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
-
-// Dados rápidos do hero — as 3 métricas de maior prova (visualizações,
-// interações, alcance), na ordem de prioridade do brief.
-const HERO_STATS = SUPPORT_METRICS_BIG
+// Foto de fundo da hero (acervo real). Mesmo padrão da Participar.
+const combo = (slug) => `/images/combos/${slug}/main.jpg`
+// RPC injetado na lógica pura (mantém o módulo testável offline).
+const rpc = (name, payload) => supabase.rpc(name, payload)
 
 // Ícones próprios dos cards "por que apoiar" — desenhados para o contexto de
 // cada argumento (não ícones genéricos reaproveitados). 24×24, traço currentColor.
@@ -107,9 +111,6 @@ const AUDIENCE = [
 // Veículos que já noticiaram o festival — só nomes (sem logo inventada).
 const MEDIA = ['Agora RN', 'NOVO Notícias', 'Diário do RN', '96 FM', '98 FM', 'Tribuna do Norte', 'Agência Sebrae de Notícias', 'UFRN']
 
-const SEGMENTOS = ['Alimentos e bebidas', 'Varejo', 'Serviços', 'Mídia / comunicação', 'Instituição / entidade', 'Indústria', 'Outro']
-const INTERESSES = ['Apoio institucional', 'Patrocínio', 'Ativação de marca', 'Brinde / produto', 'Mídia / parceria', 'Outra possibilidade']
-
 export function ApoiarPage() {
   // Âncora suave (não mexe no hash → não quebra o hash-router).
   const scrollTo = (id) => (e) => {
@@ -118,41 +119,32 @@ export function ApoiarPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // Form honesto, sem backend: compõe texto, copia pro clipboard e abre o IG.
-  const [form, setForm] = React.useState({ nome: '', empresa: '', email: '', whatsapp: '', segmento: '', interesse: '', mensagem: '' })
-  const [status, setStatus] = React.useState(null) // null | 'sent' | 'fallback'
+  // Form com persistência real: grava o interesse via RPC Supabase (lib pura).
+  const [form, setForm] = React.useState(EMPTY_SUPPORT)
+  const [errors, setErrors] = React.useState({})
+  const [sending, setSending] = React.useState(false)
+  const [state, setState] = React.useState('idle') // idle | success | error
   const onChange = (field) => (e) => {
-    setForm((f) => ({ ...f, [field]: e.target.value }))
-    if (status) setStatus(null)
+    const value = e.target.value
+    setForm((f) => ({ ...f, [field]: value }))
+    // limpa o erro do campo (e o de contato, que depende de email+whatsapp)
+    if (errors[field] || errors.contato) {
+      setErrors(({ [field]: _drop, contato: _c, ...rest }) => rest)
+    }
+    if (state === 'error') setState('idle')
   }
-  const canSend = form.nome.trim() && form.empresa.trim() && (form.email.trim() || form.whatsapp.trim())
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    if (!canSend) return
-    const linhas = [
-      'Interesse em apoiar o Sweet & Coffee Week:',
-      '',
-      `Nome: ${form.nome.trim()}`,
-      `Empresa: ${form.empresa.trim()}`,
-    ]
-    if (form.email.trim()) linhas.push(`E-mail: ${form.email.trim()}`)
-    if (form.whatsapp.trim()) linhas.push(`WhatsApp: ${form.whatsapp.trim()}`)
-    if (form.segmento.trim()) linhas.push(`Segmento: ${form.segmento.trim()}`)
-    if (form.interesse.trim()) linhas.push(`Tipo de interesse: ${form.interesse.trim()}`)
-    if (form.mensagem.trim()) linhas.push('', form.mensagem.trim())
-    const texto = linhas.join('\n')
-
-    let copied = false
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(texto)
-        copied = true
-      }
-    } catch { copied = false }
-
-    if (typeof window !== 'undefined') window.open(INSTAGRAM_URL, '_blank', 'noopener,noreferrer')
-    setStatus(copied ? 'sent' : 'fallback')
+    if (sending || state === 'success') return // não reenviar após sucesso (evita interesse duplicado)
+    const check = validateSupport(form)
+    if (!check.ok) { setErrors(check.errors); return }
+    setSending(true)
+    const res = await submitSupport(form, rpc)
+    setSending(false)
+    if (res.status === 'invalid') { setErrors(res.errors); return }
+    if (res.status === 'success') { setErrors({}); setState('success'); return }
+    setState('error')
   }
 
   return (
@@ -161,9 +153,12 @@ export function ApoiarPage() {
            integrado). BESPOKE por design: exceção ao <PageHero> — mesma lógica
            de Home/Edições/Participar (CLAUDE.md §13). Não migrar. */}
       <section className="apoiar-hero">
-        <span className="apoiar-hero__seal" aria-hidden="true"><span className="apoiar-hero__seal__shape" /></span>
+        <div className="apoiar-hero__bg" aria-hidden="true">
+          <img src={combo('jolie-cafe-patisserie')} alt="" loading="eager" decoding="async"
+               onError={(e) => { e.currentTarget.style.display = 'none' }} />
+        </div>
         <div className="wrap apoiar-hero__grid">
-          {/* esquerda: argumento + dados rápidos + CTAs */}
+          {/* esquerda: argumento + chamada para as oportunidades */}
           <div className="apoiar-hero__copy motion-reveal-up">
             <h1>Sua marca dentro da temporada mais <span className="keep-together"><span className="apoiar-hl" style={{ '--hl': 'var(--pink)' }}>doce</span></span> de Natal.</h1>
             <p className="apoiar-hero__lead">
@@ -172,23 +167,12 @@ export function ApoiarPage() {
             <p className="apoiar-hero__lead apoiar-hero__lead--sm">
               Mais que visibilidade: presença em uma experiência real, vivida nas lojas, nas redes, no mapa do festival e na memória dos Sweet Lovers.
             </p>
-
-            <dl className="apoiar-hero__stats">
-              {HERO_STATS.map((s) => (
-                <div className="apoiar-hero__stat" key={s.label}>
-                  <dt>{s.value}</dt>
-                  <dd>{s.label}</dd>
-                </div>
-              ))}
-            </dl>
-
-            <div className="apoiar-hero__cta">
-              <a href="#form-apoiar" className="btn btn-primary btn-lg motion-press" onClick={scrollTo('form-apoiar')}>Quero apoiar o festival <I.arrow /></a>
-              <a href="#onde-aparece" className="apoiar-hero__link motion-press" onClick={scrollTo('onde-aparece')}>Ver oportunidades de marca <I.arrowDown /></a>
-            </div>
+            <a href="#onde-aparece" className="apoiar-hero__cue motion-press" onClick={scrollTo('onde-aparece')}>
+              Ver oportunidades de marca <I.arrow />
+            </a>
           </div>
 
-          {/* direita: formulário em card creme sobre o chocolate */}
+          {/* direita: formulário em card creme sobre a foto */}
           <form id="form-apoiar" className="apoiar-form motion-reveal-up" onSubmit={onSubmit} noValidate aria-label="Formulário de interesse em apoiar">
             <div className="apoiar-form__head">
               <h2>Quero apoiar o Sweet &amp; Coffee Week</h2>
@@ -197,20 +181,27 @@ export function ApoiarPage() {
             <div className="apoiar-form__fields">
               <label className="apoiar-field">
                 <span>Nome *</span>
-                <input type="text" value={form.nome} onChange={onChange('nome')} placeholder="Seu nome" autoComplete="name" required aria-required="true" />
+                <input type="text" value={form.nome} onChange={onChange('nome')} placeholder="Seu nome" autoComplete="name" required aria-required="true" aria-invalid={errors.nome ? 'true' : undefined} aria-describedby={errors.nome ? 'apoiar-err-nome' : undefined} />
+                {errors.nome && <span className="apoiar-field__err" id="apoiar-err-nome" role="alert">{errors.nome}</span>}
               </label>
               <label className="apoiar-field">
                 <span>Empresa *</span>
-                <input type="text" value={form.empresa} onChange={onChange('empresa')} placeholder="Nome da sua marca" autoComplete="organization" required aria-required="true" />
+                <input type="text" value={form.empresa} onChange={onChange('empresa')} placeholder="Nome da sua marca" autoComplete="organization" required aria-required="true" aria-invalid={errors.empresa ? 'true' : undefined} aria-describedby={errors.empresa ? 'apoiar-err-empresa' : undefined} />
+                {errors.empresa && <span className="apoiar-field__err" id="apoiar-err-empresa" role="alert">{errors.empresa}</span>}
               </label>
               <label className="apoiar-field">
                 <span>E-mail</span>
-                <input type="email" value={form.email} onChange={onChange('email')} placeholder="contato@empresa.com" autoComplete="email" />
+                <input type="email" value={form.email} onChange={onChange('email')} placeholder="contato@empresa.com" autoComplete="email" aria-invalid={errors.email ? 'true' : undefined} aria-describedby={errors.email ? 'apoiar-err-email' : undefined} />
+                {errors.email && <span className="apoiar-field__err" id="apoiar-err-email" role="alert">{errors.email}</span>}
               </label>
               <label className="apoiar-field">
                 <span>WhatsApp</span>
-                <input type="tel" value={form.whatsapp} onChange={onChange('whatsapp')} placeholder="(00) 00000-0000" autoComplete="tel" />
+                <input type="tel" value={form.whatsapp} onChange={onChange('whatsapp')} placeholder="(00) 00000-0000" autoComplete="tel" aria-invalid={errors.whatsapp ? 'true' : undefined} aria-describedby={errors.whatsapp ? 'apoiar-err-whatsapp' : undefined} />
+                {errors.whatsapp && <span className="apoiar-field__err" id="apoiar-err-whatsapp" role="alert">{errors.whatsapp}</span>}
               </label>
+              <p className={`apoiar-form__contact-note apoiar-field--full${errors.contato ? ' is-error' : ''}`} id="apoiar-err-contato" role={errors.contato ? 'alert' : undefined}>
+                {errors.contato || 'Informe pelo menos um contato: e-mail ou WhatsApp.'}
+              </p>
               <label className="apoiar-field">
                 <span>Segmento da empresa</span>
                 <select value={form.segmento} onChange={onChange('segmento')}>
@@ -230,17 +221,19 @@ export function ApoiarPage() {
                 <textarea value={form.mensagem} onChange={onChange('mensagem')} rows={3} placeholder="Conte como sua marca quer se conectar ao festival" />
               </label>
             </div>
-            <button type="submit" className="btn btn-primary btn-lg motion-press apoiar-form__send" disabled={!canSend}>
-              Enviar interesse <I.arrow />
+            <button type="submit" className="btn btn-primary btn-lg motion-press apoiar-form__send" disabled={sending || state === 'success'}>
+              {sending ? 'Enviando…' : state === 'success' ? 'Interesse enviado ✓' : <>Enviar interesse <I.arrow /></>}
             </button>
             <p className="apoiar-form__note">
-              O envio não fecha proposta automaticamente. A organização retorna para alinhar formato, contrapartidas e disponibilidade de cada edição.
+              O envio não fecha proposta automaticamente. A organização recebe seu interesse e retorna para alinhar formato, contrapartidas e disponibilidade de cada edição.
             </p>
             <p className="apoiar-form__status" role="status" aria-live="polite">
-              {status === 'sent' &&
-                'Copiamos seus dados e abrimos o Instagram @sweetcoffeeweek — cole na mensagem para falar com a organização. Obrigado pelo interesse em apoiar o Sweet & Coffee Week.'}
-              {status === 'fallback' &&
-                'O formulário ainda será conectado. Por enquanto, fale com a organização pelo Instagram @sweetcoffeeweek.'}
+              {state === 'success' &&
+                'Interesse enviado! A organização do Sweet & Coffee Week vai receber seus dados e retornar pelo contato informado. Obrigado por querer apoiar o festival.'}
+              {state === 'error' && (
+                <>Não conseguimos registrar seu interesse agora. Tente enviar de novo em instantes ou fale com a organização pelo Instagram{' '}
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">@sweetcoffeeweek</a>.</>
+              )}
             </p>
           </form>
         </div>
@@ -369,33 +362,30 @@ export function ApoiarPage() {
         .apoiar-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .apoiar-head p { max-width: 58ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
 
-        /* ============ 1 — HERO (banda chocolate, 2 colunas + form) ============ */
-        /* padding-top do topo: tratado pela regra global da zona de segurança em
-           styles.css (.apoiar-hero → var(--hero-content-start) !important). */
-        .apoiar-hero { background: #381610; isolation: isolate; overflow: clip; padding: 0 0 clamp(56px, 8vw, 100px); }
-        .apoiar-hero__seal { position: absolute; top: clamp(-480px, -42vw, -270px); right: clamp(-450px, -33vw, -210px); width: clamp(960px, 102vw, 1560px); z-index: 0; pointer-events: none; }
-        .apoiar-hero__seal__shape { display: block; width: 100%; aspect-ratio: 1 / 1; background: rgba(248,181,17,.14); -webkit-mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; mask: url(/images/shapes/shape-seal-choco.svg) center / contain no-repeat; transform-origin: 50% 50%; animation: apoiarSeal 140s linear infinite; }
-        @keyframes apoiarSeal { to { transform: rotate(360deg); } }
-        .apoiar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr .98fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
-        .apoiar-hero__copy { padding-top: clamp(0px, 1vw, 12px); }
-        .apoiar-hero h1 { color: var(--cream); font-size: clamp(38px, 5vw, 80px); line-height: .98; letter-spacing: -.03em; max-width: 15ch; }
-        .apoiar-hero__lead { margin: var(--sp-5) 0 0; max-width: 52ch; color: rgba(255,241,230,.88); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
-        .apoiar-hero__lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); color: rgba(255,241,230,.72); }
+        /* ============ 1 — HERO fotográfico (foto + scrim, 2 colunas + form) ====
+           Mesma linguagem da Participar: foto do acervo full-bleed com scrim
+           funcional pro contraste da copy, form integrado à direita.
+           padding-top do topo: regra global da zona de segurança em styles.css
+           (.apoiar-hero → var(--hero-content-start) !important). */
+        .apoiar-hero { isolation: isolate; overflow: clip; padding: 0 0 clamp(56px, 8vw, 100px); }
+        .apoiar-hero__bg { position: absolute; inset: 0; z-index: 0; }
+        .apoiar-hero__bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; }
+        /* scrim FUNCIONAL: garante contraste da copy sobre a foto (não decorativo) */
+        .apoiar-hero__bg::after { content: ''; position: absolute; inset: 0;
+          background:
+            linear-gradient(90deg, rgba(23,10,6,.95) 0%, rgba(23,10,6,.86) 44%, rgba(23,10,6,.5) 100%),
+            linear-gradient(0deg, rgba(23,10,6,.6), rgba(23,10,6,.2)); }
+        .apoiar-hero__grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, .88fr) minmax(360px, 1.12fr); gap: clamp(30px, 5vw, 76px); align-items: center; }
+        .apoiar-hero h1 { color: var(--cream); font-size: clamp(38px, 5.2vw, 82px); line-height: .98; letter-spacing: -.03em; max-width: 15ch; }
+        .apoiar-hero__lead { margin: var(--sp-5) 0 0; max-width: 46ch; color: rgba(255,241,230,.9); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+        .apoiar-hero__lead--sm { font-size: 16px; line-height: 1.55; margin-top: var(--sp-4); color: rgba(255,241,230,.74); }
+        .apoiar-hero__cue { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: var(--sp-5); font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
+        .apoiar-hero__cue svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
+        .apoiar-hero__cue:hover svg { transform: translateX(4px); }
 
-        /* dados rápidos do hero */
-        .apoiar-hero__stats { display: flex; flex-wrap: wrap; gap: clamp(18px, 3vw, 40px); margin: var(--sp-6) 0 0; padding: 0; }
-        .apoiar-hero__stat { display: flex; flex-direction: column; gap: 2px; }
-        .apoiar-hero__stat dt { font-family: var(--font-display, var(--font-heading)); font-weight: 900; font-size: clamp(26px, 3vw, 38px); line-height: 1; letter-spacing: -.03em; color: var(--yellow); }
-        .apoiar-hero__stat dd { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.72); }
-
-        .apoiar-hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin-top: var(--sp-6); }
-        .apoiar-hero__cta .btn { min-height: 52px; }
-        .apoiar-hero__link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-block: 9px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; color: var(--yellow); }
-        .apoiar-hero__link svg { width: 16px; height: 16px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .apoiar-hero__link:hover svg { transform: translateY(3px); }
-
-        /* FORM (card creme sobre o chocolate) */
-        .apoiar-form { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 26px; padding: clamp(22px, 2.6vw, 38px); box-shadow: 0 30px 80px rgba(0,0,0,.34); }
+        /* FORM (card creme sobre a foto) */
+        /* card do form: mesmo raio/sombra da gêmea Participar (.pcp-tool) */
+        .apoiar-form { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: 24px; padding: clamp(22px, 2.6vw, 38px); box-shadow: 0 34px 90px rgba(0,0,0,.4); }
         .apoiar-form__head h2 { font-size: clamp(23px, 2.3vw, 30px); line-height: 1.05; }
         .apoiar-form__head p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; margin: 8px 0 var(--sp-5); }
         .apoiar-form__fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
@@ -404,7 +394,11 @@ export function ApoiarPage() {
         .apoiar-field > span { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
         .apoiar-field :is(input, select, textarea) { font-family: var(--font-sans); font-size: 16px; padding: 12px 14px; min-height: 46px; border: 1px solid var(--line-strong, var(--paper-line)); border-radius: 12px; background: var(--bg-card); color: var(--ink); width: 100%; transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease), box-shadow var(--motion-fast, .16s) var(--ease-out-soft, ease); }
         .apoiar-field textarea { resize: vertical; min-height: 84px; }
-        .apoiar-field :is(input, select, textarea):focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 4px rgba(232,85,58,.16); }
+        .apoiar-field :is(input, select, textarea):focus-visible { outline: none; border-color: var(--coral); box-shadow: 0 0 0 4px rgba(232,85,58,.16); }
+        .apoiar-field :is(input, textarea)[aria-invalid="true"] { border-color: var(--coral-deep); box-shadow: 0 0 0 3px rgba(232,85,58,.14); }
+        .apoiar-field__err { font-family: var(--font-sans); font-size: 12px; line-height: 1.35; color: var(--coral-deep); }
+        .apoiar-form__contact-note { margin: 0; font-family: var(--font-sans); font-size: 12.5px; line-height: 1.4; color: var(--ink-soft); }
+        .apoiar-form__contact-note.is-error { color: var(--coral-deep); font-weight: 600; }
         .apoiar-form__send { width: 100%; justify-content: center; min-height: 50px; margin: var(--sp-5) 0 0; }
         .apoiar-form__send:disabled { opacity: .5; cursor: not-allowed; }
         .apoiar-form__note { margin: var(--sp-4) 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
@@ -414,7 +408,7 @@ export function ApoiarPage() {
         /* ============ 2 — POR QUE APOIAR ============ */
         .apoiar-value-section { background: var(--cream); }
         .apoiar-value { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-        .apoiar-vcard { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
+        .apoiar-vcard { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
         .apoiar-vcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .apoiar-vcard__ic { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; color: #fff; margin-bottom: var(--sp-4); box-shadow: 0 8px 20px rgba(43,24,16,.16); }
         .apoiar-value .apoiar-vcard:nth-child(6n+1) .apoiar-vcard__ic { background: var(--coral); }
@@ -449,7 +443,7 @@ export function ApoiarPage() {
         /* ============ 4 — ONDE APARECER (4 grupos) ============ */
         .apoiar-where-section { background: var(--cream); }
         .apoiar-where { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
-        .apoiar-where__card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+        .apoiar-where__card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); box-shadow: var(--shadow-md); }
         .apoiar-where__card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; z-index: 2; background: var(--hl, var(--coral)); }
         /* slot de foto reservado: moldura editorial; vira <img object-fit:cover> depois */
         .apoiar-where__media { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; background: var(--cream-deep, var(--bg-soft)); border-bottom: 1px solid var(--paper-line); overflow: hidden; }
@@ -468,7 +462,7 @@ export function ApoiarPage() {
         .apoiar-audience__copy h2 { font-size: var(--fs-display-md); line-height: 1; }
         .apoiar-audience__copy p { margin: var(--sp-4) 0 0; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; max-width: 46ch; text-wrap: pretty; }
         .apoiar-audience__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
-        .apoiar-audience__list li { display: flex; align-items: flex-start; gap: 10px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-md, 14px); padding: var(--sp-4); color: var(--ink); font-size: 14px; line-height: 1.4; box-shadow: var(--shadow-sm); }
+        .apoiar-audience__list li { display: flex; align-items: flex-start; gap: 10px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); padding: var(--sp-4); color: var(--ink); font-size: 14px; line-height: 1.4; box-shadow: var(--shadow-sm); }
         .apoiar-audience__list span { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--coral); color: #fff; margin-top: 1px; }
 
         /* ============ 6 — MÍDIA ============ */
@@ -489,6 +483,8 @@ export function ApoiarPage() {
         /* ============ RESPONSIVO ============ */
         @media (max-width: 960px) { /* breakpoint tablet canônico do institucional (§ escala) */
           .apoiar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
+          .apoiar-hero__bg img { object-position: center 30%; }
+          .apoiar-hero__bg::after { background: linear-gradient(0deg, rgba(23,10,6,.94) 32%, rgba(23,10,6,.62) 100%); }
           .apoiar-value, .apoiar-where { grid-template-columns: repeat(2, 1fr); }
           .apoiar-audience { grid-template-columns: 1fr; gap: var(--sp-6); }
           .apoiar-placar__lead { grid-template-columns: 1fr; }
@@ -501,12 +497,10 @@ export function ApoiarPage() {
           .apoiar-value, .apoiar-where, .apoiar-form__fields, .apoiar-audience__list { grid-template-columns: 1fr; }
           .apoiar-placar__sub { grid-template-columns: 1fr; }
           .apoiar-placar__sub .apoiar-stat { border-left: none !important; border-top: 1px solid rgba(255,241,230,.16); }
-          .apoiar-hero__cta .btn { width: 100%; justify-content: center; }
           .apoiar-close .btn { width: 100%; justify-content: center; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .apoiar-vcard, .apoiar-hero__link svg, .apoiar-form__send { transition: none; }
-          .apoiar-hero__seal__shape { animation: none; }
+          .apoiar-vcard, .apoiar-hero__cue svg, .apoiar-form__send { transition: none; }
         }
       `}</style>
     </PageShell>

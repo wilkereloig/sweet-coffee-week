@@ -44,11 +44,13 @@
 .motion-reveal-right { transform: translateX(calc(var(--motion-rise) *  1.4)); }
 .motion-image-reveal { transform: scale(1.08); }
 
+/* estado final: libera o will-change (reveal roda uma vez; manter promovido à
+   camada de composição para sempre é custo de memória à toa) */
 .motion-reveal.is-in,
 .motion-reveal-up.is-in,
 .motion-reveal-left.is-in,
 .motion-reveal-right.is-in,
-.motion-image-reveal.is-in { opacity: 1; transform: none; filter: none; }
+.motion-image-reveal.is-in { opacity: 1; transform: none; filter: none; will-change: auto; }
 
 /* ---- Stagger — filhos diretos entram em sequência (perceptível) ---------- */
 .motion-stagger > * {
@@ -60,7 +62,7 @@
               filter var(--motion-slow) var(--ease-out-soft);
   will-change: opacity, transform, filter;
 }
-.motion-stagger.is-in > * { opacity: 1; transform: none; filter: none; }
+.motion-stagger.is-in > * { opacity: 1; transform: none; filter: none; will-change: auto; }
 .motion-stagger.is-in > *:nth-child(1) { transition-delay: 0ms; }
 .motion-stagger.is-in > *:nth-child(2) { transition-delay: 120ms; }
 .motion-stagger.is-in > *:nth-child(3) { transition-delay: 240ms; }

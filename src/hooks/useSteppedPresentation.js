@@ -44,11 +44,32 @@ export function useSteppedPresentation({ enabled, stageRef, total, active, setAc
   React.useEffect(() => {
     if (!enabled || typeof window === 'undefined') return
 
+    // Deixa o wheel passar quando o ponteiro está sobre um painel rolável interno
+    // (rail de participantes, "história completa", lista) que ainda pode rolar na
+    // direção do gesto — só prende o passo quando esse painel chega na borda.
+    const canScrollWithin = (node, delta) => {
+      const stop = stageRef.current
+      let el = node
+      while (el && el !== stop && el !== document.body) {
+        if (el.scrollHeight > el.clientHeight + 1) {
+          const oy = window.getComputedStyle(el).overflowY
+          if (oy === 'auto' || oy === 'scroll') {
+            const atTop = el.scrollTop <= 0
+            const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+            if ((delta > 0 && !atBottom) || (delta < 0 && !atTop)) return true
+          }
+        }
+        el = el.parentElement
+      }
+      return false
+    }
+
     const onWheel = (e) => {
       if (!engagedRef.current) return
       if (e.ctrlKey || e.metaKey) return // pinch-to-zoom / Ctrl+scroll: deixa o navegador dar zoom
       const delta = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0
       if (!delta) return
+      if (canScrollWithin(e.target, delta)) return // painel interno ainda rola: não prende
       const atBoundary = (delta > 0 && activeRef.current >= total - 1) ||
                           (delta < 0 && activeRef.current <= 0)
       if (atBoundary) return // solta o scroll nativo (hero/rodapé)
@@ -61,6 +82,10 @@ export function useSteppedPresentation({ enabled, stageRef, total, active, setAc
 
     const onKey = (e) => {
       if (!engagedRef.current) return
+      // não sequestrar teclas de navegação quando o foco está num campo editável
+      // (ex.: busca de participantes) — senão a seta move a cena em vez do cursor.
+      const t = e.target
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1) }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1) }
       else if (e.key === 'Home') { e.preventDefault(); setActive(0) }

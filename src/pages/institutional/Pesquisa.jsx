@@ -73,7 +73,8 @@ export function PesquisaPage() {
     return out
   }
 
-  const scrollTopo = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+  const prefersReduced = () => typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const scrollTopo = () => window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' })
 
   const avancar = async () => {
     // intro → primeira seção
@@ -82,7 +83,7 @@ export function PesquisaPage() {
     const secao = PESQUISA_SECOES[step - 1]
     if (!validarSecao(secao)) {
       const first = document.querySelector('.pesquisa__erro')
-      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (first) first.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'center' })
       return
     }
 

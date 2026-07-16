@@ -71,7 +71,6 @@ export const NAV_LINKS = [
   { id: 'home',         label: 'O Festival',   href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
   { id: 'historico-awards', label: 'Sweet Awards', href: '#/sweet-awards' },
-  { id: 'curiosidades', label: 'Curiosidades', href: '#/curiosidades' },
   { id: 'participar',   label: 'Participar',   href: '#/participar' },
   { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
   { id: 'contato',      label: 'Contato',      href: '#/contato' },
@@ -110,11 +109,11 @@ function SiteSidebar({ route, navigate }) {
   )
 }
 
-// Logos do header que se alternam a cada 10s (selo padrão ⇄ selo 10 anos),
-// com crossfade + leve "carimbo". Respeita prefers-reduced-motion (fica no 1º).
+// Logo do header. Antes alternava selo padrão ⇄ selo 10 anos a cada 10s; a
+// segunda logo (10 anos) foi removida a pedido — fica só o selo padrão. O
+// crossfade/cycle abaixo continua inócuo com 1 item (não dispara intervalo).
 const BRAND_LOGOS = [
   { src: '/images/logo-seal-sweet-coffee.svg', alt: 'Sweet & Coffee Week' },
-  { src: '/images/selo-10-anos.svg', alt: 'Sweet & Coffee Week — 10 anos' },
 ]
 
 function BrandLogo({ navigate, route }) {
@@ -177,7 +176,6 @@ export function SiteHeader({ route, navigate }) {
 
   // Fora da Home, logo sempre compacta (estado menor) — sem esperar scroll.
   const isCompact = scrolled || route !== 'home'
-  const transparent = route !== 'painel' && !scrolled
 
   // Menu mobile foi extraído p/ MobileMenu (aberto pela aba "Menu" da
   // MobileTabBar, montada no App). O hambúrguer sai no mobile — header mobile
@@ -185,7 +183,7 @@ export function SiteHeader({ route, navigate }) {
   return (
     <header className={`site-header${isCompact ? ' scrolled' : ''}`}>
       <div className="site-header__inner">
-        <BrandLogo navigate={navigate} light={transparent} route={route} />
+        <BrandLogo navigate={navigate} route={route} />
 
         <nav className="nav-main">
           {NAV_LINKS.map((l) => (

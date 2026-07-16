@@ -518,3 +518,90 @@ begin
 end;
 $$;
 grant execute on function public.get_pesquisa_report(text) to anon, authenticated;
+
+-- =============================================================================
+-- Pré-cadastro de participação — página Participar (porta de entrada de marcas)
+-- Mesmo padrão de segurança: RLS sem policy + RPC security definer para escrita
+-- (anon) + relatório admin com senha. O cliente nunca escreve status/notas/revisão.
+-- Fonte canônica desta seção: supabase/migrations/20260710_participation_interests.sql
+-- (mantida idêntica aqui para que colar este schema completo já crie a tabela).
+-- =============================================================================
+create table if not exists public.participation_interests (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  status text not null default 'novo',
+  marca text not null,
+  tipo text,
+  bairro text,
+  cidade text,
+  responsavel text not null,
+  email text not null,
+  whatsapp text not null,
+  instagram text,
+  apresentacao text,
+  reviewed_at timestamptz,
+  internal_notes text,
+  constraint participation_interests_status_check check (status in (
+    'novo', 'em_analise', 'contatado', 'aprovado', 'nao_selecionado', 'aguardando_cadastro'
+  ))
+);
+alter table public.participation_interests
+  add column if not exists reviewed_at    timestamptz,
+  add column if not exists internal_notes text;
+create index if not exists participation_interests_created_idx
+  on public.participation_interests (created_at desc);
+create index if not exists participation_interests_status_idx
+  on public.participation_interests (status);
+
+alter table public.participation_interests enable row level security;
+-- (sem policies = nenhum acesso anônimo direto; gravação só pela RPC abaixo)
+
+create or replace function public.submit_participation_interest(
+  p_marca text, p_tipo text, p_bairro text, p_cidade text, p_responsavel text,
+  p_email text, p_whatsapp text, p_instagram text default null, p_apresentacao text default null
+)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  v_email text := lower(trim(coalesce(p_email, '')));
+  v_phone text := regexp_replace(coalesce(p_whatsapp, ''), '\D', '', 'g');
+begin
+  if coalesce(trim(p_marca), '')       = '' then raise exception 'marca_obrigatoria'; end if;
+  if coalesce(trim(p_bairro), '')      = '' then raise exception 'bairro_obrigatorio'; end if;
+  if coalesce(trim(p_cidade), '')      = '' then raise exception 'cidade_obrigatoria'; end if;
+  if coalesce(trim(p_responsavel), '') = '' then raise exception 'responsavel_obrigatorio'; end if;
+  if v_email = '' then raise exception 'email_obrigatorio'; end if;
+  if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then raise exception 'email_invalido'; end if;
+  if split_part(v_email, '@', 2) = any (array[
+    'gmail.con','gmail.co','gmial.com','gmai.com','gnail.com','gmail.cm','gmail.comm',
+    'hotmail.con','hotmail.co','hotmial.com','outlook.con','outlook.co',
+    'yahoo.con','yaho.com','yahoo.co','icloud.con',
+    'mailinator.com','tempmail.com','temp-mail.org','10minutemail.com','guerrillamail.com',
+    'yopmail.com','trashmail.com','sharklasers.com','getnada.com','maildrop.cc',
+    'throwawaymail.com','mailnesia.com','dispostable.com','fakeinbox.com']) then
+    raise exception 'email_dominio_invalido';
+  end if;
+  if length(v_phone) < 10 then raise exception 'whatsapp_invalido'; end if;
+
+  insert into public.participation_interests (
+    status, marca, tipo, bairro, cidade, responsavel, email, whatsapp, instagram, apresentacao
+  ) values (
+    'novo', trim(p_marca),
+    nullif(trim(coalesce(p_tipo, '')), ''), nullif(trim(coalesce(p_bairro, '')), ''),
+    nullif(trim(coalesce(p_cidade, '')), ''), trim(p_responsavel), v_email, trim(p_whatsapp),
+    nullif(trim(coalesce(p_instagram, '')), ''), nullif(trim(coalesce(p_apresentacao, '')), '')
+  );
+end;
+$$;
+grant execute on function public.submit_participation_interest(
+  text, text, text, text, text, text, text, text, text
+) to anon, authenticated;
+
+create or replace function public.get_participation_interests(p_secret text)
+returns setof public.participation_interests
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.admin_ok(p_secret) then return; end if;
+  return query select * from public.participation_interests order by created_at desc;
+end;
+$$;
+grant execute on function public.get_participation_interests(text) to anon, authenticated;

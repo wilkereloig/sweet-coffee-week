@@ -15,7 +15,7 @@ export function metaForPath(path) {
   if (p.startsWith('/edicoes'))
     return { title: `Edições | ${BASE}`, description: 'Veja a linha do tempo das edições do Sweet & Coffee Week, com temas, períodos, participantes e memórias do festival desde 2016.' }
   if (p.startsWith('/curiosidades'))
-    return { title: `Curiosidades | Por dentro do ${BASE}`, description: 'Descubra rankings, bastidores, dados curiosos e histórias que ajudam a contar a trajetória do Sweet & Coffee Week em Natal.' }
+    return { title: `Edições | ${BASE}`, description: 'Veja a linha do tempo das edições do Sweet & Coffee Week, com temas, períodos, participantes e memórias do festival desde 2016.' }
   if (p.startsWith('/sweet-awards') || p.startsWith('/historico-sweet-awards'))
     return { title: `Histórico do Sweet Awards | ${BASE}`, description: 'Veja o histórico de vencedores do Sweet Awards por edição, trilha e categoria, com os destaques premiados de cada ano do Sweet & Coffee Week desde as primeiras premiações registradas.' }
   if (p.startsWith('/participar'))

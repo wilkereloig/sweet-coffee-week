@@ -8,7 +8,7 @@
 ## 1. Objetivo do projeto
 
 Este repositório contém o site institucional do Sweet & Coffee Week. O site apresenta
-o festival, suas edições, sua história, suas curiosidades, o Sweet Awards, e páginas
+o festival, suas edições, sua história, o Sweet Awards, e páginas
 de participação, patrocínio/apoio e contato.
 
 A **Home/O Festival é a página-mãe** do sistema visual. As demais páginas devem
@@ -51,7 +51,7 @@ token como **fundo cheio** (`background: var(--page-accent) !important`) com tex
 tinta escura. Logo o acento tem que ser um **tom claro e dentro da paleta** (contraste
 com `--ink`). Acentos atuais: Edições ciano `#2BC4E8` · Awards/Histórico dourado
 `#F8B511` (antes rosa `#F2548A`; retonado jul/2026 para não ficar pink-dominante — ouro
-de medalha, condiz com a identidade do Sweet Awards) · Curiosidades amarelo `#F8B511` ·
+de medalha, condiz com a identidade do Sweet Awards) ·
 Participar coral `#F2693C` · Apoiar azul `#1B86C9` · Contato peach `#F2B6A0`. (Contato já
 foi lavanda `#B38CFF` — roxo, fora da paleta; corrigido.) Ao criar/editar rota, nunca
 usar roxo/verde/lavanda como `--page-accent`.
@@ -137,7 +137,7 @@ desatualizado; vale esta regra.)
 **Não usar stickers por padrão nas páginas institucionais.** Stickers só em materiais
 de campanha ou páginas específicas, quando solicitados explicitamente.
 
-Em Edições, Curiosidades, Participar, Apoiar, Contato e Sweet Awards: não inserir
+Em Edições, Participar, Apoiar, Contato e Sweet Awards: não inserir
 stickers, doodles ou elementos soltos sem aprovação.
 
 A página **Edições** deve ter linguagem editorial, histórica e fotográfica — não
@@ -199,7 +199,7 @@ do festival. Reconstruída jul/2026 (spec: `docs/superpowers/specs/
   reintroduzir hero em Edições sem solicitação;
 - controles = **timeline de anos** (não chips numerados) + setas + barra de progresso;
 - painel Lovers especial (selo 10 anos, pódio de trilhas Júri/Sweet Lovers, CTA único
-  pro Sweet Awards); **epílogo** curto aponta pra Curiosidades;
+pro Sweet Awards); **epílogo** curto aponta pro Sweet Awards;
 - **filmstrip** por painel: todas as fotos da edição em scroll-snap (clique troca a
   foto-cena). Fallbacks honestos quando faltar asset (logo/foto pendente).
 
@@ -212,7 +212,17 @@ trilho animado (blur + readback de GPU a cada frame congela o compositor — usa
 semi-opaco). A navegação das edições deve parecer **controle de apresentação**, não
 segunda navbar — e não pode brigar com o menu principal.
 
-## 11. Página Curiosidades
+## 11. Página Curiosidades (descontinuada)
+
+Curiosidades foi retirada do produto público em julho de 2026. Não criar, reintroduzir
+ou adicionar essa rota ao menu, rodapé ou CTAs institucionais. A URL legada
+`#/curiosidades` redireciona para `#/edicoes`; dados compartilhados que ainda servem
+ao Sweet Awards ou à landing EmBreve permanecem no repositório.
+O CTA legado que ainda pode existir na `Home.jsx` não deve ser editado nesta remoção,
+porque a Home pode estar em trabalho paralelo; o redirecionamento cobre esse acesso.
+
+As regras históricas abaixo ficam arquivadas apenas como referência de conteúdo e não
+representam uma página pública ativa.
 
 Não repetir a página Edições. **Não incluir**: timeline completa das 16 edições; lista
 cronológica de todas as edições; cards de todas as edições; ranking de "maiores
@@ -235,13 +245,30 @@ categorias do Sweet Awards; primeiras vezes; momentos marcantes.
 
 ## 12. Página Sweet Awards
 
-**Reconstruída** em `src/pages/institutional/SweetAwards.jsx` (rota `vencedores` /
-`premiacao` em `App.jsx`; o antigo `Agradecimento.jsx` foi removido). Aparência de premiação/hall de vencedores — não embeds de Instagram. Identidade
-**institucional do festival** (espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha),
-NUNCA o KV Lovers. Estrutura: hero institucional → o que é → categorias (8 oficiais +
-históricas computadas) → vencedores da edição atual (Lovers 2026.1, em destaque) →
-histórico por edição (accordion com trilhas Júri Técnico/Sweet Lovers separadas, empates
-preservados, nota p/ 2016–2018 sem premiação) → CTA final.
+**Reconstruída** em `src/pages/institutional/HistoricoAwards.jsx` (rota
+`#/sweet-awards`, com alias `#/historico-sweet-awards`). Aparência de premiação/hall de
+vencedores — não embeds de Instagram. Identidade **institucional do festival**
+(espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha), NUNCA o KV Lovers.
+
+**A Lovers 2026.1 é a protagonista.** A hero não pode destacar Melhor Combo nem uma
+marca isolada: deve abrir com `Sweet Awards Lovers 2026.1` e carrossel de fotos de
+pessoas, público e participantes. Quando essas fotos ainda não existirem, manter
+molduras editoriais identificadas com o tipo de registro necessário; não substituir
+por fotos de comida.
+
+A premiação atual usa **um carrossel por categoria com todos os colocados**. A navegação
+mantém as 8 categorias, mas só uma categoria aparece por vez; dentro do palco, setas
+percorrem 1º, 2º e 3º lugares, com cada marca empatada em slide próprio e a mesma
+colocação. Todo slide usa foto real do combo da marca. Não criar uma grade adicional de
+cards nem deduplicar marcas entre categorias. O Maestro Café usa fotos diferentes nos
+1º lugares de Melhor Combo, Melhor Salgado e Melhor Criatividade. Fotos de bastidores,
+entrega dos prêmios e celebração entram como memória visual na seção de contexto, não
+no carrossel de combos.
+
+O histórico é arquivo secundário: evolução/recordes compactos → accordions por edição
+com trilhas Júri Técnico/Sweet Lovers separadas, empates preservados e nota para
+2016–2018 sem premiação → CTA final. Não reintroduzir uma segunda galeria de campeões
+de Melhor Combo antes dos accordions.
 
 Regra de dados (cruzar fontes, não inventar): descrições das categorias vêm de
 `sweetCoffeeHistory.js` (edição 2026.1); **pódios da edição atual vêm de
@@ -396,7 +423,7 @@ antes — nunca automático. Lista dos 21 slugs congelados: seção 9 de `CODE_R
 
 ## Duas identidades visuais — nunca misturar
 
-**Institucional** — `src/pages/institutional/` (Home, Curiosidades, Edições, Participar,
+**Institucional** — `src/pages/institutional/` (Home, Edições, Participar,
 Apoiar, Contato). Paleta terracotta (`--bg`, `--ink`, `--accent`, `--peach`). Cor-acento
 por página via `--page-accent` (definido em `body.route-*` em `src/styles.css`).
 

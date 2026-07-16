@@ -42,5 +42,11 @@ export default defineConfig({
     // Honra a porta atribuída pelo harness (autoPort) via env PORT; cai para 5173 local.
     port: Number(process.env.PORT) || 5173,
     strictPort: false,
+    watch: {
+      // dist_check/dist ficam travados pelo Dropbox → watcher do Vite crasha com
+      // EBUSY e derruba o dev server. Nada disso é fonte; ignorar. Idem os
+      // vite.config.js.timestamp-*.mjs que o Vite não consegue limpar (lock Dropbox).
+      ignored: ['**/dist_check/**', '**/dist/**', '**/vite.config.js.timestamp-*'],
+    },
   },
 })

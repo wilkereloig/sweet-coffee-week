@@ -11,7 +11,9 @@
 .pesquisa__wrap {
   max-width: 680px;
   margin: 0 auto;
-  padding: clamp(28px, 6vw, 56px) 20px clamp(64px, 8vw, 96px);
+  /* topo: zona de segurança do header fixo global (mesmo token da Contato),
+     senão o conteúdo do topo fica sob o menu. */
+  padding: var(--hero-content-start, clamp(120px, 14vh, 168px)) 20px clamp(64px, 8vw, 96px);
 }
 
 /* ── tela de intro ── */
@@ -80,7 +82,7 @@
 /* ── card de pergunta ── */
 .pesquisa__q {
   background: var(--bg-card, #fff);
-  border-radius: 16px;
+  border-radius: var(--card-radius);
   padding: 20px 20px 16px;
   margin: 0 0 14px;
   box-shadow:

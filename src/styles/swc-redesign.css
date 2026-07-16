@@ -331,7 +331,6 @@ html { scroll-behavior: smooth; }
 body.route-edicoes       .page-enter .wrap,
 body.route-vencedores    .page-enter .wrap,
 body.route-historico-awards .page-enter .wrap,
-body.route-curiosidades  .page-enter .wrap,
 body.route-participar    .page-enter .wrap,
 body.route-apoiar        .page-enter .wrap,
 body.route-contato       .page-enter .wrap,

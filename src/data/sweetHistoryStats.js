@@ -5,7 +5,8 @@
  * (Lovers 2026.1) vêm de src/data/loversAwardsResults.js quando a base ainda não
  * os traz estruturados. Nada inventado; empates preservados.
  *
- * Deriva dados REAIS consumidos por Curiosidades.jsx: vitórias de 1º lugar,
+ * Deriva dados REAIS compartilhados pelo Sweet Awards e pela landing EmBreve:
+ * vitórias de 1º lugar,
  * homenagens da Lovers, vencedores repetidos de uma categoria e marcos/primeiras
  * vezes. Logos via resolveParticipant (fallback textual).
  */
