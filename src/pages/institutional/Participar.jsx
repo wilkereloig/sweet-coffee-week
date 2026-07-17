@@ -81,12 +81,12 @@ const CAMPAIGN_GALLERY = [
 
 // Galeria do card "Uma nova relação com o público" — fotos reais dos Sweet
 // Lovers (público do festival) vivendo a rota. Fonte: acervo Dropbox
-// "sweet lovers" (14 fotos aprovadas + numeradas).
+// "sweet lovers" (10 fotos de grupo aprovadas — 5 jpg + 5 png).
 const LOVERS_DIR = '/images/lovers-publico'
-const LOVERS_GALLERY = Array.from({ length: 14 }, (_, i) => ({
-  src: `${LOVERS_DIR}/${String(i + 1).padStart(2, '0')}.jpg`,
-  alt: 'Sweet Lovers vivendo o festival',
-}))
+const LOVERS_GALLERY = [
+  '01.jpg', '02.jpg', '03.jpg', '04.jpg', '05.jpg',
+  '06.png', '07.png', '08.png', '09.png', '10.png',
+].map((file) => ({ src: `${LOVERS_DIR}/${file}`, alt: 'Sweet Lovers vivendo o festival' }))
 
 // ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade). ──
 const MOVEMENTS = [
@@ -558,15 +558,15 @@ export function ParticiparPage() {
 
         /* ════════ 6 — DEPOIMENTOS (card retrato: foto + bloco de cor + selo) ════════ */
         .pcp-testi { background: var(--cream-deep, var(--bg-soft)); }
-        .pcp-testi__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-        .pcp-testi__card { display: flex; flex-direction: column; border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow-md); }
+        .pcp-testi__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: var(--sp-4); }
+        .pcp-testi__card { display: grid; grid-template-rows: auto 1fr; height: 100%; border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow-md); }
         .pcp-testi__media { position: relative; aspect-ratio: 3 / 4; background: var(--swc-coffee); }
         .pcp-testi__media img, .pcp-testi__media video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .pcp-testi__media.is-empty { display: grid; place-items: center; }
         .pcp-testi__media.is-empty img { display: none; }
         .pcp-testi__media.is-empty::after { content: 'Foto do combo'; font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.7); }
         .pcp-testi__badge { position: absolute; right: clamp(16px, 2vw, 22px); bottom: clamp(-30px, -3.2vw, -22px); width: clamp(56px, 7vw, 72px); aspect-ratio: 1; border-radius: 999px; overflow: hidden; display: grid; place-items: center; background: #fff; border: 4px solid var(--card-bg); box-shadow: 0 6px 16px rgba(43,24,16,.22); }
-        .pcp-testi__badge img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+        .pcp-testi__badge img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
         .pcp-testi__badgeTxt { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); place-items: center; width: 100%; height: 100%; }
         .pcp-testi__body { padding: clamp(22px, 2.6vw, 30px); display: flex; flex-direction: column; flex: 1; background: var(--card-bg); color: var(--card-fg); }
         .pcp-testi__mark { font-family: var(--font-heading); font-weight: 800; font-size: 48px; line-height: .5; color: var(--card-fg); opacity: .4; }
@@ -605,7 +605,7 @@ export function ParticiparPage() {
           .participar-hero__bg::after { background: linear-gradient(0deg, rgba(23,10,6,.94) 30%, rgba(23,10,6,.62) 100%); }
           .pcp-move__row, .pcp-move__row:nth-child(even) .pcp-move__media { grid-template-columns: 1fr; }
           .pcp-move__row:nth-child(even) .pcp-move__media { order: 0; }
-          .pcp-testi__grid { grid-template-columns: 1fr; }
+          .pcp-testi__grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .pcp-path { grid-template-columns: 1fr; gap: 0; }
           /* mobile: percurso vertical com a linha à esquerda */
           .pcp-path__step { padding: 0 0 clamp(24px,5vw,32px) 62px; }
