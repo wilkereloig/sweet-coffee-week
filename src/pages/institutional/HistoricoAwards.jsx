@@ -73,6 +73,47 @@ function ResultPostLink({ href, category }) {
   )
 }
 
+// Pódio da grade de resultados — mesmo padrão da landing "Em breve": agrupa por
+// colocação (empates viram vários chips de marca na mesma medalha), 1º maior.
+const MEDAL = { 1: 'ouro', 2: 'prata', 3: 'bronze' }
+function groupWinnersByPos(winners) {
+  const map = new Map()
+  for (const w of winners || []) {
+    if (!map.has(w.pos)) map.set(w.pos, { pos: w.pos, names: [] })
+    map.get(w.pos).names.push(w.name)
+  }
+  return [...map.values()].sort((a, b) => a.pos - b.pos)
+}
+function ResultBrand({ name, size = 40 }) {
+  const m = resolveParticipant(name)
+  const [broken, setBroken] = React.useState(false)
+  const show = m.logo && !broken
+  return (
+    <span className="swa-result-brand" style={{ width: size, height: size, ...(m.brandColor ? { '--brand': m.brandColor } : null) }}>
+      {show
+        ? <img src={m.logo} alt={`Logo ${name}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+        : <span className="swa-result-brand__mono" aria-hidden="true">{m.fallback}</span>}
+    </span>
+  )
+}
+function ResultPodium({ winners, leadFirst = false }) {
+  return (
+    <ol className="swa-result-podium">
+      {groupWinnersByPos(winners).map((p) => (
+        <li className={`swa-result-place swa-result-place--${MEDAL[p.pos]}`} key={p.pos}>
+          <span className="swa-result-medal" aria-hidden="true">{p.pos}</span>
+          <span className="swa-result-place__brands">
+            {p.names.map((n) => <ResultBrand name={n} key={n} size={p.pos === 1 ? (leadFirst ? 52 : 44) : 36} />)}
+          </span>
+          <span className="swa-result-place__names">
+            <span className="sr-place">{p.pos}º lugar: </span>{p.names.join(' e ')}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
 // Card do Grande Vencedor (Melhor Combo) — largo, foto + medalha + pódio + link.
 function ComboResultCard({ scene }) {
   return (
@@ -85,14 +126,14 @@ function ComboResultCard({ scene }) {
         <p className="swa-result-combo__tag">Grande vencedor</p>
         <h3>{scene.category}</h3>
         {scene.description && <p className="swa-result__desc">{scene.description}</p>}
-        <Podium winners={scene.winners} />
+        <ResultPodium winners={scene.winners} leadFirst />
         <ResultPostLink href={scene.postResultado} category={scene.category} />
       </div>
     </article>
   )
 }
 
-// Card de categoria — foto + título + descrição + pódio + link. Reusa Podium (empates).
+// Card de categoria — foto + título + descrição + pódio + link (igual à "Em breve").
 function ResultCard({ scene }) {
   return (
     <article className="swa-result-card motion-reveal-up motion-card-hover">
@@ -101,7 +142,7 @@ function ResultCard({ scene }) {
       </div>
       <h3>{scene.category}</h3>
       {scene.description && <p className="swa-result__desc">{scene.description}</p>}
-      <Podium winners={scene.winners} />
+      <ResultPodium winners={scene.winners} />
       <ResultPostLink href={scene.postResultado} category={scene.category} />
     </article>
   )
@@ -407,8 +448,8 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-page section { position: relative; }
         .hist-page .keep-together { white-space: nowrap; }
         .hist-page .sr-place { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-        .hist-hl { position: relative; display: inline-block; font-style: italic; color: var(--page-accent); }
-        .hist-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: currentColor; }
+        /* sublinhado que gruda no texto (não estende além da palavra, inclusive quebrando linha) */
+        .hist-hl { font-style: italic; color: var(--page-accent); text-decoration: underline; text-decoration-thickness: .085em; text-underline-offset: .12em; }
         .hist-hl--coral { color: var(--coral); }
         .hist-page h1, .hist-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
         .hist-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
@@ -461,6 +502,19 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-result__post svg:last-child { margin-left: auto; transition: transform .16s ease; }
         .swa-result__post:hover svg:last-child { transform: translateX(3px); }
         .swa-result__post:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 2px; }
+        /* pódio da grade — agrupado por colocação, chips de marca (padrão "Em breve") */
+        .swa-result-podium { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .swa-result-place { display: grid; grid-template-columns: 26px auto 1fr; align-items: center; column-gap: 10px; }
+        .swa-result-medal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink); box-shadow: inset 0 0 0 2px rgba(0,0,0,.12); }
+        .swa-result-place--ouro .swa-result-medal { background: linear-gradient(160deg, #FFE08A, #E8A20C); }
+        .swa-result-place--prata .swa-result-medal { background: linear-gradient(160deg, #ECECEC, #B9B9B9); }
+        .swa-result-place--bronze .swa-result-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
+        .swa-result-place__brands { display: inline-flex; gap: 6px; }
+        .swa-result-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line); overflow: hidden; }
+        .swa-result-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+        .swa-result-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--brand, var(--ink)); }
+        .swa-result-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; color: var(--ink); }
+        .swa-result-place--ouro .swa-result-place__names { font-size: 16px; }
 
         /* 3 — RECORDES + GALERIA DE CAMPEÕES (participantes, nunca edições — AGENTS.md §11) */
         .swa-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--sp-4); max-width: 1040px; margin: var(--sp-7) auto 0; }
@@ -544,9 +598,9 @@ export function HistoricoAwardsPage({ navigate }) {
         /* 3 — ARQUIVO (espresso): segundo pico escuro; dourado acende */
         .swa-archive-section { background: var(--ink); }
         .swa-archive-section .hist-head h2 { color: var(--cream); }
-        .swa-archive-section .hist-head p { color: rgba(255,241,230,.8); }
+        .swa-archive-section .hist-head p { color: rgba(255,241,230,.92); }
         .swa-archive-section .hist-evo__step h3 { color: var(--cream); }
-        .swa-archive-section .hist-evo__step p { color: rgba(255,241,230,.72); }
+        .swa-archive-section .hist-evo__step p { color: rgba(255,241,230,.85); }
         .swa-archive-section .hist-evo__step + .hist-evo__step { border-left-color: rgba(255,241,230,.16); }
         .swa-archive-section .swa-record { background: rgba(255,241,230,.06); border-color: rgba(255,241,230,.16); }
         .swa-archive-section .swa-record__label { color: rgba(255,241,230,.6); }
