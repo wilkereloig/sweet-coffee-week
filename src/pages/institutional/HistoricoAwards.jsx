@@ -188,9 +188,11 @@ function ReservedMedia({ slot, eager = false }) {
   )
 }
 
-// Hero tipográfica: sem foto-fantasma. O lado direito lista as 8 categorias reais
-// da edição (roster de premiação) — substância que já existe, não moldura vazia.
-function AwardsHero({ onExplore, scenes }) {
+// Hero tipográfica: à esquerda o título/CTA, à direita o teaser do Grande Vencedor
+// (Melhor Combo) — substância real da edição, não roster repetido.
+function AwardsHero({ onExplore, comboScene }) {
+  const firstWinner = comboScene ? comboScene.winners.find((w) => w.pos === 1) : null
+  const lead = comboScene ? firstPlaceNames(comboScene.winners) : ''
   return (
     <section className="swa-hero">
       <div className="wrap swa-hero__inner">
@@ -199,15 +201,20 @@ function AwardsHero({ onExplore, scenes }) {
           <p>Oito categorias e oito conquistas que celebram sabor, atendimento, criatividade e a experiência inteira do festival.</p>
           <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={onExplore}>Conhecer os vencedores <I.arrow /></a>
         </div>
-        {scenes.length > 0 && (
-          <ol className="swa-hero__roster" aria-label="Categorias premiadas na Lovers 2026.1">
-            {scenes.map((scene, index) => (
-              <li key={scene.key}>
-                <span className="swa-hero__roster-num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                {scene.category}
-              </li>
-            ))}
-          </ol>
+        {comboScene && firstWinner && (
+          <aside className="swa-hero__teaser" aria-label={`Grande vencedor: ${comboScene.category}`}>
+            <span className="swa-hero__teaser-tag"><span className="hist-medal hist-medal--gold" aria-hidden="true">1</span> Grande vencedor</span>
+            <p className="swa-hero__teaser-cat">{comboScene.category}</p>
+            <div className="swa-hero__teaser-brand">
+              <WinnerLogo name={firstWinner.name} />
+              <strong>{lead}</strong>
+            </div>
+            {comboScene.postResultado && (
+              <a className="swa-hero__teaser-link" href={comboScene.postResultado} target="_blank" rel="noopener noreferrer">
+                <I.ig width={14} height={14} /> Ver no Instagram <I.arrow />
+              </a>
+            )}
+          </aside>
         )}
       </div>
     </section>
@@ -355,7 +362,7 @@ export function HistoricoAwardsPage({ navigate }) {
 
   return (
     <PageShell name="hist">
-      <AwardsHero onExplore={scrollToCurrent} scenes={scenes} />
+      <AwardsHero onExplore={scrollToCurrent} comboScene={comboScene} />
 
       {/* 2 — RESULTADOS DA EDIÇÃO ATUAL: grade que linka pro Instagram */}
       <section id="premiacao-atual" className="section swa-results-section">
@@ -467,10 +474,18 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-hero h1 { margin: 0; color: var(--cream); font: 900 clamp(48px, 6.2vw, 92px)/.9 var(--font-display); letter-spacing: -.04em; text-wrap: balance; }
         .swa-hero h1 span { color: var(--page-accent); font-style: italic; }
         .swa-hero__copy p { max-width: 46ch; margin: 0; color: rgba(255,241,230,.78); font-size: clamp(17px, 1.6vw, 21px); line-height: 1.45; text-wrap: pretty; }
-        /* roster das 8 categorias (lado direito da hero) — award list em vez de foto */
-        .swa-hero__roster { list-style: none; margin: 0; padding: 0; align-self: center; display: grid; gap: 0; border-top: 1px solid rgba(255,241,230,.14); }
-        .swa-hero__roster li { display: flex; align-items: baseline; gap: 16px; padding: clamp(9px, 1.3vw, 15px) 2px; border-bottom: 1px solid rgba(255,241,230,.14); color: var(--cream); font: 800 clamp(18px, 2.1vw, 27px)/1.05 var(--font-heading); letter-spacing: -.02em; }
-        .swa-hero__roster-num { flex: 0 0 auto; min-width: 2.2ch; color: var(--page-accent); font: 900 14px/1 var(--font-display); }
+        /* teaser do Grande Vencedor (lado direito da hero) — substituiu o roster */
+        .swa-hero__teaser { align-self: center; justify-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); padding: clamp(24px, 3vw, 40px); background: rgba(255,241,230,.06); border: 1px solid rgba(255,241,230,.16); border-radius: var(--r-lg); }
+        .swa-hero__teaser-tag { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--page-accent); }
+        .swa-hero__teaser-cat { margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: clamp(26px, 3vw, 40px); line-height: 1; letter-spacing: -.03em; color: var(--cream); }
+        .swa-hero__teaser-brand { display: flex; align-items: center; gap: var(--sp-3); }
+        .swa-hero__teaser-brand .hist-brand { width: 54px; height: 54px; border-radius: 12px; }
+        .swa-hero__teaser-brand .hist-brand--img { background: #fff; }
+        .swa-hero__teaser-brand strong { font-family: var(--font-heading); font-weight: 800; font-size: clamp(19px, 2vw, 26px); color: var(--cream); letter-spacing: -.02em; overflow-wrap: anywhere; }
+        .swa-hero__teaser-link { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--page-accent); text-decoration: none; }
+        .swa-hero__teaser-link svg:last-child { transition: transform .16s ease; }
+        .swa-hero__teaser-link:hover svg:last-child { transform: translateX(3px); }
+        .swa-hero__teaser-link:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 3px; border-radius: 4px; }
         .swa-media-slot { position: relative; min-width: 0; overflow: hidden; background: #5e3018; }
         .swa-media-slot > img { display: block; width: 100%; height: 100%; object-fit: cover; animation: swaHeroPhotoSettle .22s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)) both; }
         .swa-media-slot__placeholder { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; width: 100%; height: 100%; min-height: inherit; padding: clamp(24px, 4vw, 44px); color: var(--cream); background: linear-gradient(145deg, #6f3a20, #3b2015); border: 1px solid rgba(255,241,230,.18); }
@@ -625,7 +640,7 @@ export function HistoricoAwardsPage({ navigate }) {
         @media (max-width: 960px) {
           .swa-hero__inner { grid-template-columns: 1fr; gap: var(--sp-6); }
           .swa-hero__copy { max-width: 720px; }
-          .swa-hero__roster { max-width: 720px; }
+          .swa-hero__teaser { align-self: stretch; }
           .swa-context-copy { grid-template-columns: 1fr; align-items: start; }
           .swa-memory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .swa-memory-grid .swa-media-slot:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 8; }
@@ -658,7 +673,7 @@ export function HistoricoAwardsPage({ navigate }) {
            desligadas em prefers-reduced-motion pelo bloco global de motion-system.css) */
         @media (prefers-reduced-motion: reduce) {
           .hist-edi__chev svg { transition: none; }
-          .swa-result__post svg:last-child { transition: none; }
+          .swa-result__post svg:last-child, .swa-hero__teaser-link svg:last-child { transition: none; }
           .swa-media-slot > img { animation: none; }
         }
       `}</style>
