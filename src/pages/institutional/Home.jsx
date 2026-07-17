@@ -369,7 +369,7 @@ export function HomePage({ navigate }) {
           <blockquote className="hmv2-voice__quote">{VOICE.quote}</blockquote>
           <figcaption className="hmv2-voice__foot">
             <span className="hmv2-voice__id"><b>{VOICE.person}</b><span>{VOICE.brand}</span></span>
-            <a className="hmv2-text-link hmv2-voice__link" href="#/participar?scrollTo=depoimentos" onClick={go('/participar?scrollTo=depoimentos')}>Levar minha marca <I.arrow /></a>
+            <a className="hmv2-text-link hmv2-voice__link" href="#/participar?scrollTo=depoimentos" onClick={go('/participar?scrollTo=depoimentos')}>Ver mais depoimentos <I.arrow /></a>
           </figcaption>
           </div>
           <div className="hmv2-voice__media">
