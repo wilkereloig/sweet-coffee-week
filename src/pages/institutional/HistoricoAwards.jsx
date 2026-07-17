@@ -5,8 +5,8 @@
  *
  * Hall of fame data-driven (src/data/sweetCoffeeHistory.js via sweetEditionsCompat.js
  * e src/data/sweetHistoryStats.js para a edição atual e os recordes históricos):
- *  - premiação 2026.1 em 8 categorias navegáveis; cada categoria abre um carrossel
- *    com todos os colocados, fotos reais dos combos e empates preservados;
+ *  - premiação 2026.1 (Grande Vencedor + demais categorias) em grade de resultados,
+ *    fotos reais dos combos e link pro post de resultado no Instagram (nunca embed);
  *  - recordes históricos (mais pódios, mais 1º lugares, categorias premiadas,
  *    galeria de campeões de Melhor Combo) comparam PARTICIPANTES, nunca edições
  *    entre si (AGENTS.md §11);
@@ -107,13 +107,6 @@ function ResultCard({ scene }) {
   )
 }
 
-// Uma moldura editorial honesta para a foto de celebração (pendente no acervo).
-// Antes eram 3 slots vazios lado a lado (banda-fantasma); reduzido a 1 — quando a
-// foto chegar, basta preencher `src`, o layout não muda.
-const CEREMONY_PHOTO_SLOTS = [
-  { key: 'celebracao', src: null, label: 'Celebração dos vencedores', guidance: 'Foto espontânea ou coletiva depois da premiação — público, marcas e organização', path: '/images/awards/lovers-2026-1/celebracao-01.jpg' },
-]
-
 function StatusBadge({ status }) {
   const s = AWARD_STATUS[status] || AWARD_STATUS['a-conferir']
   return <span className={`hist-badge hist-badge--${s.tone}`}>{s.label}</span>
@@ -161,30 +154,6 @@ function CategoryCard({ a }) {
       <h3>{a.category}</h3>
       <Podium winners={a.winners} />
     </article>
-  )
-}
-
-function ReservedMedia({ slot, eager = false }) {
-  const [broken, setBroken] = React.useState(false)
-  const showPhoto = slot.src && !broken
-  return (
-    <div className="swa-media-slot" data-asset-path={slot.path}>
-      {showPhoto ? (
-        <img
-          src={slot.src}
-          alt={slot.label}
-          loading={eager ? 'eager' : 'lazy'}
-          decoding="async"
-          onError={() => setBroken(true)}
-        />
-      ) : (
-        <div className="swa-media-slot__placeholder">
-          <span>Espaço reservado</span>
-          <strong>{slot.label}</strong>
-          <p>{slot.guidance}</p>
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -333,10 +302,10 @@ function EditionAccordion({ e, defaultOpen }) {
 }
 
 const EVOLUTION = [
-  { hl: 'var(--coral)', t: 'De Melhor Combo a múltiplas categorias', d: 'O primeiro resultado registrado reconhece o Melhor Combo. Com o tempo, a premiação passa a olhar para cada parte da experiência.' },
-  { hl: 'var(--page-accent)', t: 'A entrada do Júri Técnico', d: 'Além do público, edições passam a registrar avaliações de júri técnico, somando olhares especializados sobre os destaques.' },
-  { hl: 'var(--cyan-deep)', t: 'A força dos Sweet Lovers', d: 'A comunidade que prova, fotografa e compartilha também ajuda a eleger os combos e marcas que mais marcaram cada edição.' },
-  { hl: 'var(--yellow-deep)', t: 'Categorias que valorizam a experiência', d: 'Sabor, atendimento, criatividade, apresentação e encantamento entram na premiação, reconhecendo a loja inteira, não só o combo.' },
+  { hl: '#F2693C', t: 'De Melhor Combo a múltiplas categorias', d: 'O primeiro resultado registrado reconhece o Melhor Combo. Com o tempo, a premiação passa a olhar para cada parte da experiência.' },
+  { hl: '#F8B511', t: 'A entrada do Júri Técnico', d: 'Além do público, edições passam a registrar avaliações de júri técnico, somando olhares especializados sobre os destaques.' },
+  { hl: '#2BC4E8', t: 'A força dos Sweet Lovers', d: 'A comunidade que prova, fotografa e compartilha também ajuda a eleger os combos e marcas que mais marcaram cada edição.' },
+  { hl: '#F2548A', t: 'Categorias que valorizam a experiência', d: 'Sabor, atendimento, criatividade, apresentação e encantamento entram na premiação, reconhecendo a loja inteira, não só o combo.' },
 ]
 
 export function HistoricoAwardsPage({ navigate }) {
@@ -378,25 +347,12 @@ export function HistoricoAwardsPage({ navigate }) {
         </div>
       </section>
 
-      {/* 4 — CONTEXTO CURTO */}
-      <section className="section swa-context-section">
-        <div className="wrap">
-          <div className="swa-context-copy motion-reveal-up">
-            <h2>Uma premiação feita de experiência e encontro.</h2>
-            <p className="swa-context">O Sweet Awards existe para reconhecer o que fica depois da última mordida: o sabor que emocionou, o atendimento que acolheu e a comunidade que provou, fotografou e votou em cada combo da edição.</p>
-          </div>
-          <div className="swa-memory-grid">
-            {CEREMONY_PHOTO_SLOTS.map((slot) => <ReservedMedia slot={slot} key={slot.key} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* 5 — ARQUIVO: evolução, recordes e memória histórica */}
+      {/* 3 — ARQUIVO (espresso): evolução, recordes e memória histórica */}
       <section className="section swa-archive-section">
         <div className="wrap">
           <div className="hist-head motion-reveal-up">
-            <h2>O arquivo do <span className="hist-hl hist-hl--cyan">Sweet Awards</span></h2>
-            <p>A Lovers 2026.1 é o destaque de agora. Aqui ficam os marcos, recordes e resultados que ajudam a contar a história completa da premiação.</p>
+            <h2>O arquivo do <span className="hist-hl">Sweet Awards</span></h2>
+            <p>O Sweet Awards reconhece o que fica depois da última mordida: o sabor que emocionou, o atendimento que acolheu e a comunidade que provou, fotografou e votou. A Lovers 2026.1 é o destaque de agora — aqui ficam os marcos e recordes que contam a história completa da premiação.</p>
           </div>
           <div className="hist-evo hist-evo--strip motion-stagger">
             {EVOLUTION.map((c, i) => (
@@ -428,7 +384,7 @@ export function HistoricoAwardsPage({ navigate }) {
         </div>
       </section>
 
-      {/* 5 — ACORDEÕES POR EDIÇÃO (mais recentes primeiro) */}
+      {/* 4 — ACORDEÕES POR EDIÇÃO (mais recentes primeiro) */}
       <section className="section hist-list-section">
         <div className="wrap">
           <div className="hist-head motion-reveal-up">
@@ -441,7 +397,7 @@ export function HistoricoAwardsPage({ navigate }) {
         </div>
       </section>
 
-      {/* 6 — CTA */}
+      {/* 5 — CTA */}
       <section className="section hist-cta">
         <div className="wrap hist-cta__inner motion-reveal-up">
           <h2>Uma história feita por quem cria e por quem prova.</h2>
@@ -486,14 +442,6 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-hero__teaser-link svg:last-child { transition: transform .16s ease; }
         .swa-hero__teaser-link:hover svg:last-child { transform: translateX(3px); }
         .swa-hero__teaser-link:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 3px; border-radius: 4px; }
-        .swa-media-slot { position: relative; min-width: 0; overflow: hidden; background: #5e3018; }
-        .swa-media-slot > img { display: block; width: 100%; height: 100%; object-fit: cover; animation: swaHeroPhotoSettle .22s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)) both; }
-        .swa-media-slot__placeholder { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; width: 100%; height: 100%; min-height: inherit; padding: clamp(24px, 4vw, 44px); color: var(--cream); background: linear-gradient(145deg, #6f3a20, #3b2015); border: 1px solid rgba(255,241,230,.18); }
-        .swa-media-slot__placeholder > span { color: var(--page-accent); font: 800 11px/1.2 var(--font-sans); letter-spacing: .07em; text-transform: uppercase; }
-        .swa-media-slot__placeholder strong { max-width: 18ch; font: 900 clamp(25px, 3vw, 42px)/1 var(--font-heading); letter-spacing: -.02em; }
-        .swa-media-slot__placeholder p { max-width: 34ch; margin: 0; color: rgba(255,241,230,.7); font-size: 14px; line-height: 1.4; }
-
-        @keyframes swaHeroPhotoSettle { from { transform: scale(1.04); } to { transform: scale(1); } }
 
         /* 2 — RESULTADOS: card do grande vencedor + grade das 7 categorias */
         .swa-results-section { background: var(--cream); }
@@ -521,18 +469,6 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-result__post svg:last-child { margin-left: auto; transition: transform .16s ease; }
         .swa-result__post:hover svg:last-child { transform: translateX(3px); }
         .swa-result__post:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 2px; }
-
-        /* 4 — CONTEXTO + MEMÓRIA DA CERIMÔNIA */
-        .swa-context-section { background: var(--cream); }
-        .swa-context-copy { display: grid; grid-template-columns: minmax(0, .8fr) minmax(320px, .7fr); align-items: end; gap: var(--sp-6); max-width: 1120px; margin: 0 auto var(--sp-7); }
-        .swa-context-copy h2 { max-width: 13ch; font-size: var(--fs-display-sm); line-height: 1; }
-        .swa-context { max-width: 54ch; margin: 0; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.5; text-wrap: pretty; }
-        .swa-memory-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); max-width: 1120px; margin: 0 auto; }
-        .swa-memory-grid .swa-media-slot { aspect-ratio: 16 / 7; background: var(--cream-card); }
-        .swa-memory-grid .swa-media-slot__placeholder { color: var(--ink); background: var(--cream-card); border-color: var(--paper-line); }
-        .swa-memory-grid .swa-media-slot__placeholder > span { color: var(--coral-deep); }
-        .swa-memory-grid .swa-media-slot__placeholder strong { font-size: clamp(20px, 2vw, 30px); }
-        .swa-memory-grid .swa-media-slot__placeholder p { color: var(--ink-soft); font-size: 12.5px; }
 
         /* 6 — RECORDES + GALERIA DE CAMPEÕES (participantes, nunca edições — AGENTS.md §11) */
         .swa-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--sp-4); max-width: 1040px; margin: var(--sp-7) auto 0; }
@@ -615,8 +551,18 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-badge--muted { background: rgba(43,24,16,.08); color: var(--ink-soft); }
         .hist-badge--info { background: var(--page-accent-soft); color: var(--page-accent-dark); }
 
-        /* 4 — ARQUIVO (faixa enxuta: 4 marcos em linha) + RECORDES/GALERIA abaixo */
-        .swa-archive-section { background: var(--cream-deep, var(--bg-soft)); }
+        /* 3 — ARQUIVO (espresso): segundo pico escuro; dourado acende */
+        .swa-archive-section { background: var(--ink); }
+        .swa-archive-section .hist-head h2 { color: var(--cream); }
+        .swa-archive-section .hist-head p { color: rgba(255,241,230,.8); }
+        .swa-archive-section .hist-evo__step h3 { color: var(--cream); }
+        .swa-archive-section .hist-evo__step p { color: rgba(255,241,230,.72); }
+        .swa-archive-section .hist-evo__step + .hist-evo__step { border-left-color: rgba(255,241,230,.16); }
+        .swa-archive-section .swa-record { background: rgba(255,241,230,.06); border-color: rgba(255,241,230,.16); }
+        .swa-archive-section .swa-record__label { color: rgba(255,241,230,.6); }
+        .swa-archive-section .swa-record__name { color: var(--page-accent); }
+        .swa-archive-section .swa-record__value { color: rgba(255,241,230,.8); }
+        .swa-archive-section .swa-coverage { color: rgba(255,241,230,.55); }
         .hist-evo--strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; }
         .hist-evo__step { padding: 0 var(--sp-5); }
         .hist-evo__step:first-child { padding-left: 0; }
@@ -641,9 +587,6 @@ export function HistoricoAwardsPage({ navigate }) {
           .swa-hero__inner { grid-template-columns: 1fr; gap: var(--sp-6); }
           .swa-hero__copy { max-width: 720px; }
           .swa-hero__teaser { align-self: stretch; }
-          .swa-context-copy { grid-template-columns: 1fr; align-items: start; }
-          .swa-memory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-          .swa-memory-grid .swa-media-slot:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 8; }
           .hist-evo--strip { grid-template-columns: repeat(2, 1fr); gap: var(--sp-5) var(--sp-6); }
           .hist-evo__step { padding: 0; border-left: 0; }
           .hist-evo__step + .hist-evo__step { border-left: 0; }
@@ -663,8 +606,6 @@ export function HistoricoAwardsPage({ navigate }) {
           .swa-hero__inner { padding-top: var(--hero-content-start); padding-bottom: 42px; }
           .swa-hero h1 { font-size: clamp(44px, 13vw, 62px); }
           .swa-hero__copy p { font-size: 16px; }
-          .swa-memory-grid { grid-template-columns: 1fr; }
-          .swa-memory-grid .swa-media-slot:first-child { grid-column: auto; aspect-ratio: 4 / 3; }
           .hist-cta__row .btn { width: 100%; justify-content: center; }
         }
 
@@ -674,7 +615,6 @@ export function HistoricoAwardsPage({ navigate }) {
         @media (prefers-reduced-motion: reduce) {
           .hist-edi__chev svg { transition: none; }
           .swa-result__post svg:last-child, .swa-hero__teaser-link svg:last-child { transition: none; }
-          .swa-media-slot > img { animation: none; }
         }
       `}</style>
     </PageShell>
