@@ -62,10 +62,11 @@ function ResultSceneImg({ src, alt }) {
 }
 
 // Barra "Ver no Instagram" — link real pro post de resultado (nunca embed).
-function ResultPostLink({ href }) {
+// aria-label leva a categoria pra distinguir os 9 links repetidos (WCAG 2.4.4).
+function ResultPostLink({ href, category }) {
   if (!href) return null
   return (
-    <a className="swa-result__post" href={href} target="_blank" rel="noopener noreferrer">
+    <a className="swa-result__post" href={href} target="_blank" rel="noopener noreferrer" aria-label={`Ver resultado de ${category} no Instagram`}>
       <I.ig width={15} height={15} />
       <span>Ver no Instagram</span>
       <I.arrow />
@@ -86,7 +87,7 @@ function ComboResultCard({ scene }) {
         <h3>{scene.category}</h3>
         {scene.description && <p className="swa-result__desc">{scene.description}</p>}
         <Podium winners={scene.winners} />
-        <ResultPostLink href={scene.postResultado} />
+        <ResultPostLink href={scene.postResultado} category={scene.category} />
       </div>
     </article>
   )
@@ -102,7 +103,7 @@ function ResultCard({ scene }) {
       <h3>{scene.category}</h3>
       {scene.description && <p className="swa-result__desc">{scene.description}</p>}
       <Podium winners={scene.winners} />
-      <ResultPostLink href={scene.postResultado} />
+      <ResultPostLink href={scene.postResultado} category={scene.category} />
     </article>
   )
 }
@@ -417,13 +418,12 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-hl { position: relative; display: inline-block; font-style: italic; color: var(--page-accent); }
         .hist-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: currentColor; }
         .hist-hl--coral { color: var(--coral); }
-        .hist-hl--cyan { color: var(--cyan-deep); }
         .hist-page h1, .hist-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
         .hist-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
         .hist-head h2 { font-size: var(--fs-display-md); line-height: .98; }
         .hist-head p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
 
-        /* 1 — HERO DA COMUNIDADE: a premiação abre com pessoas, não com um combo isolado. */
+        /* 1 — HERO: título institucional + teaser do Grande Vencedor (Melhor Combo) */
         .swa-hero { overflow: hidden; background: var(--ink); color: var(--cream); }
         .swa-hero__inner { display: grid; grid-template-columns: minmax(0, .88fr) minmax(380px, 1.12fr); gap: clamp(34px, 7vw, 110px); align-items: center; padding-top: var(--hero-content-start); padding-bottom: clamp(56px, 8vw, 110px); }
         .swa-hero__copy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-5); max-width: 650px; }
@@ -470,7 +470,7 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-result__post:hover svg:last-child { transform: translateX(3px); }
         .swa-result__post:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 2px; }
 
-        /* 6 — RECORDES + GALERIA DE CAMPEÕES (participantes, nunca edições — AGENTS.md §11) */
+        /* 3 — RECORDES + GALERIA DE CAMPEÕES (participantes, nunca edições — AGENTS.md §11) */
         .swa-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--sp-4); max-width: 1040px; margin: var(--sp-7) auto 0; }
         .swa-record { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-5); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); text-align: center; }
         .swa-record__label { font-family: var(--font-sans); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); }
@@ -479,7 +479,7 @@ export function HistoricoAwardsPage({ navigate }) {
 
         .swa-coverage { max-width: 640px; margin: var(--sp-6) auto 0; text-align: center; font-size: 12.5px; font-style: italic; color: var(--ink-mute); line-height: 1.5; }
 
-        /* 5 — ACORDEÕES */
+        /* 4 — ACORDEÕES */
         .hist-list-section { background: var(--cream); }
         .hist-list { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 960px; margin: 0 auto; }
         .hist-edi { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; }
@@ -572,7 +572,7 @@ export function HistoricoAwardsPage({ navigate }) {
         .hist-evo__step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(15px, 1.3vw, 17px); line-height: 1.18; margin: 0 0 var(--sp-3); color: var(--ink); text-wrap: balance; }
         .hist-evo__step p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
 
-        /* 7 — CTA */
+        /* 5 — CTA */
         .hist-cta { background: #5e3018; }
         .hist-cta__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 640px; margin: 0 auto; }
         .hist-cta h2 { color: var(--cream); font-size: clamp(26px, 3vw, 42px); line-height: 1.04; }
