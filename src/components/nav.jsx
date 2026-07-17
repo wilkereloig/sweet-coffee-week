@@ -71,6 +71,7 @@ export const NAV_LINKS = [
   { id: 'home',         label: 'O Festival',   href: '#/' },
   { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
   { id: 'historico-awards', label: 'Sweet Awards', href: '#/sweet-awards' },
+  { id: 'guia-sweet-lovers', label: 'Guia Sweet Lovers', href: '#/guia-sweet-lovers' },
   { id: 'participar',   label: 'Participar',   href: '#/participar' },
   { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
   { id: 'contato',      label: 'Contato',      href: '#/contato' },

@@ -24,6 +24,8 @@ export function metaForPath(path) {
     return { title: `Apoiar | Patrocínio e parcerias ${BASE}`, description: 'Conheça oportunidades de apoio, patrocínio e ativação de marca no Sweet & Coffee Week, festival gastronômico que movimenta Natal e conecta marcas aos Sweet Lovers.' }
   if (p.startsWith('/contato'))
     return { title: `Contato | ${BASE}`, description: 'Fale com a organização do Sweet & Coffee Week para dúvidas, imprensa, participação, patrocínio, parcerias e informações gerais.' }
+  if (p.startsWith('/guia-sweet-lovers'))
+    return { title: `Guia para Sweet Lovers | ${BASE}`, description: 'Descubra docerias, cafés, restaurantes e experiências gastronômicas em Natal e região no Guia para Sweet Lovers.' }
 
   return { title: `${BASE} | Festival gastronômico em Natal/RN`, description: 'Conheça o Sweet & Coffee Week, festival gastronômico criado em Natal que reúne marcas locais em uma rota de combos exclusivos, temas criativos e experiências por tempo limitado.' }
 }

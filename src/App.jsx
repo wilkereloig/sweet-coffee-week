@@ -18,6 +18,7 @@ import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { PesquisaPage }     from './pages/institutional/Pesquisa'
 import { PainelAdminPage } from './pages/institutional/PainelAdmin'
 import { EmBrevePage } from './pages/institutional/EmBreve'
+import { GuiaSweetLoversPage } from './pages/institutional/GuiaSweetLovers'
 
 // Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
 // carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
@@ -65,7 +66,7 @@ const INSTITUTIONAL_PREVIEW = (() => {
 // Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
 // 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
 // liberar quando o institucional/Awards forem revisados.
-const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards']
+const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards', 'guia-sweet-lovers']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 const RETIRED_PUBLIC_PATHS = ['/curiosidades']
@@ -110,6 +111,7 @@ export default function App() {
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'
     if (path.startsWith('/contato'))      return 'contato'
+    if (path.startsWith('/guia-sweet-lovers')) return 'guia-sweet-lovers'
     return 'home'
   })()
 
@@ -120,6 +122,7 @@ export default function App() {
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
+    case 'guia-sweet-lovers': page = <GuiaSweetLoversPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
     case 'painel':       page = <PainelPage navigate={navigate} />; break
     case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
