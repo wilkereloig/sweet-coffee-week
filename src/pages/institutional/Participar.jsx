@@ -88,23 +88,28 @@ const LOVERS_GALLERY = [
   '06.png', '07.png', '08.png', '09.png', '10.png',
 ].map((file) => ({ src: `${LOVERS_DIR}/${file}`, alt: 'Sweet Lovers vivendo o festival' }))
 
-// ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade). ──
+// ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade).
+//    Cada card = painel colorido (texto) + moldura de cor com a galeria de fotos,
+//    lados alternados. Tema por card via CSS vars inline (paleta §3). ──
 const MOVEMENTS = [
   {
     gallery: COMBO_GALLERY,
-    t: 'Um combo autoral',
+    title: <>Um combo <span className="pcp-move__hl">autoral</span></>,
     d: 'Sua marca cria um combo exclusivo para a edição — a assinatura que apresenta o que ela faz de melhor a um público em busca de descoberta.',
-    spec: '1 doce + 1 salgado + 1 bebida',
+    spec: 'doce + salgado + bebida',
+    theme: { '--panel': 'var(--swc-coffee)', '--panel-fg': 'var(--cream)', '--frame': 'var(--yellow)', '--hl': 'var(--yellow)', '--spec': 'var(--pink)' },
   },
   {
     gallery: CAMPAIGN_GALLERY,
-    t: 'Uma presença na campanha',
+    title: <>Uma presença na <span className="pcp-move__hl">campanha</span></>,
     d: 'Cada participante entra na comunicação do festival: rota, redes e materiais que levam a marca a milhares de Sweet Lovers pela cidade.',
+    theme: { '--panel': 'var(--pink)', '--panel-fg': 'var(--on-pink)', '--frame': 'var(--yellow)', '--hl': 'var(--cream)' },
   },
   {
     gallery: LOVERS_GALLERY,
-    t: 'Uma nova relação com o público',
+    title: <>Uma nova relação com o <span className="pcp-move__hl">público</span></>,
     d: 'O público experimenta, compartilha, avalia e indica. A participação abre uma relação que costuma continuar depois do festival.',
+    theme: { '--panel': 'var(--coral)', '--panel-fg': 'var(--cream)', '--frame': 'var(--yellow)', '--hl': 'var(--yellow)' },
   },
 ]
 
@@ -375,18 +380,15 @@ export function ParticiparPage() {
           lead="Participar não é só entrar numa lista. É colocar três coisas em movimento ao mesmo tempo."
         />
         <div className="pcp-move__list">
-          {MOVEMENTS.map((m) => (
-            <article className="pcp-move__row motion-reveal-up" key={m.t}>
-              <div className="pcp-move__media">
-                {m.gallery ? (
+          {MOVEMENTS.map((m, i) => (
+            <article className="pcp-move__row motion-reveal-up" key={i} style={m.theme}>
+              <div className="pcp-move__frame">
+                <div className="pcp-move__shot">
                   <PhotoRotator images={m.gallery} interval={4200} />
-                ) : (
-                  <img src={m.img} alt={m.alt} loading="lazy" decoding="async"
-                       onError={(e) => { e.currentTarget.closest('.pcp-move__media').classList.add('is-empty') }} />
-                )}
+                </div>
               </div>
-              <div className="pcp-move__body">
-                <h3>{m.t}</h3>
+              <div className="pcp-move__panel">
+                <h3>{m.title}</h3>
                 <p>{m.d}</p>
                 {m.spec && <span className="pcp-move__spec">{m.spec}</span>}
               </div>
@@ -542,19 +544,23 @@ export function ParticiparPage() {
         .pcp-done h2 { font-size: clamp(24px, 2.4vw, 30px); }
         .pcp-done p { color: var(--ink-soft); font-size: 15px; line-height: 1.55; margin: var(--sp-3) auto var(--sp-5); max-width: 42ch; text-wrap: pretty; }
 
-        /* ════════ 4 — CIRCULAÇÃO (3 movimentos editoriais) ════════ */
+        /* ════════ 4 — CIRCULAÇÃO (cards de cor: painel + moldura de foto) ════════ */
         .pcp-move { background: var(--cream-deep, var(--bg-soft)); }
-        .pcp-move__list { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
-        .pcp-move__row { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(24px, 4vw, 60px); align-items: center; }
-        .pcp-move__row:nth-child(even) .pcp-move__media { order: 2; }
-        .pcp-move__media { aspect-ratio: 1 / 1; border-radius: var(--card-radius); overflow: hidden; background: var(--swc-coffee); box-shadow: var(--shadow-md); }
-        .pcp-move__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .pcp-move__media.is-empty { display: grid; place-items: center; aspect-ratio: 1 / 1; }
-        .pcp-move__media.is-empty img { display: none; }
-        .pcp-move__media.is-empty::after { content: 'Foto do acervo'; font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.7); }
-        .pcp-move__body h3 { font-size: clamp(23px, 2.6vw, 36px); line-height: 1.04; color: var(--ink); }
-        .pcp-move__body p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.5; margin: var(--sp-3) 0 0; max-width: 44ch; text-wrap: pretty; }
-        .pcp-move__spec { display: inline-flex; align-items: center; margin-top: var(--sp-4); padding: 8px 16px; border-radius: 999px; background: var(--cream-card); border: 1px solid var(--paper-line); font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); }
+        .pcp-move__list { display: flex; flex-direction: column; gap: clamp(22px, 3vw, 40px); }
+        .pcp-move__row { display: grid; grid-template-columns: 1fr 1.05fr; align-items: stretch;
+          border-radius: clamp(20px, 2.4vw, 32px); overflow: hidden; box-shadow: var(--shadow-md); }
+        .pcp-move__row:nth-child(even) .pcp-move__frame { order: 2; }
+        /* moldura de cor com a galeria inset */
+        .pcp-move__frame { display: flex; background: var(--frame); padding: clamp(14px, 1.6vw, 22px); min-height: clamp(280px, 30vw, 420px); }
+        .pcp-move__shot { flex: 1; border-radius: clamp(12px, 1.6vw, 20px); overflow: hidden; background: var(--swc-coffee); }
+        /* painel de texto colorido */
+        .pcp-move__panel { background: var(--panel); color: var(--panel-fg); padding: clamp(28px, 3.4vw, 56px);
+          display: flex; flex-direction: column; justify-content: center; gap: var(--sp-3); }
+        .pcp-move__panel h3 { font-size: clamp(26px, 3vw, 44px); line-height: 1.02; color: inherit; }
+        .pcp-move__hl { color: var(--hl, currentColor); box-shadow: inset 0 -.14em 0 var(--hl, currentColor); }
+        .pcp-move__panel p { color: inherit; opacity: .88; font-size: var(--fs-lead); line-height: 1.5; margin: 0; max-width: 46ch; text-wrap: pretty; }
+        .pcp-move__spec { font-family: var(--font-slab, var(--font-heading)); font-weight: 900; font-size: clamp(19px, 2vw, 26px);
+          color: var(--spec, var(--hl, currentColor)); margin-top: var(--sp-2); }
 
         /* ════════ 6 — DEPOIMENTOS (card retrato: foto + bloco de cor + selo) ════════ */
         .pcp-testi { background: var(--cream-deep, var(--bg-soft)); }
@@ -603,8 +609,9 @@ export function ParticiparPage() {
           .participar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
           .participar-hero__bg img { object-position: center 30%; }
           .participar-hero__bg::after { background: linear-gradient(0deg, rgba(23,10,6,.94) 30%, rgba(23,10,6,.62) 100%); }
-          .pcp-move__row, .pcp-move__row:nth-child(even) .pcp-move__media { grid-template-columns: 1fr; }
-          .pcp-move__row:nth-child(even) .pcp-move__media { order: 0; }
+          .pcp-move__row { grid-template-columns: 1fr; }
+          .pcp-move__row:nth-child(even) .pcp-move__frame { order: 0; }
+          .pcp-move__frame { min-height: 0; aspect-ratio: 4 / 3; }
           .pcp-testi__grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .pcp-path { grid-template-columns: 1fr; gap: 0; }
           /* mobile: percurso vertical com a linha à esquerda */
