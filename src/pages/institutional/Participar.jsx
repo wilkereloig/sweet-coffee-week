@@ -16,6 +16,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
+import { PhotoRotator } from '../../components/PhotoRotator'
 import { PageShell, PageSection, SectionHeader, CTASection } from '../../components/layout'
 import { supabase } from '../../lib/supabase'
 import {
@@ -37,10 +38,26 @@ const PROOF = [
   { n: '+34 mil', l: 'combos vendidos', d: 'Consumo gerado nas últimas edições.' },
 ]
 
+// Galeria do card "Um combo autoral" — só fotos de combo (sem gente/decoração),
+// 10 marcas reais espalhadas por 7 edições diferentes do festival (não repete
+// tema/edição sem necessidade). Fonte: public/images/combos/<slug>/main.jpg.
+const MOVEMENT_GALLERY = [
+  { src: combo('mangai'), alt: 'Combo autoral — edição Sweet Music' },
+  { src: combo('jolie-cafe-patisserie'), alt: 'Combo autoral — edição Sweet Celebration' },
+  { src: combo('wow-cookies'), alt: 'Combo autoral — edição Terras Potiguares' },
+  { src: combo('casa-1190'), alt: 'Combo autoral — edição Sweet Series' },
+  { src: combo('delicato-bolos'), alt: 'Combo autoral — edição Sweet Trip' },
+  { src: combo('paneer-patisserie'), alt: 'Combo autoral — edição Contos de Fadas' },
+  { src: combo('mr-cupcake-confeitaria'), alt: 'Combo autoral — edição Filmes' },
+  { src: combo('caffe-basilicos'), alt: 'Combo autoral — edição Sweet Trip' },
+  { src: combo('o-maestro-cafe'), alt: 'Combo autoral — edição Sweet Celebration' },
+  { src: combo('caroli-douces'), alt: 'Combo autoral — edição Sweet Music' },
+]
+
 // ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade). ──
 const MOVEMENTS = [
   {
-    img: combo('caroli-douces'),
+    gallery: MOVEMENT_GALLERY,
     alt: 'Combo autoral de uma edição do Sweet & Coffee Week',
     t: 'Um combo autoral',
     d: 'Sua marca cria um combo exclusivo para a edição — a assinatura que apresenta o que ela faz de melhor a um público em busca de descoberta.',
@@ -355,8 +372,12 @@ export function ParticiparPage() {
           {MOVEMENTS.map((m) => (
             <article className="pcp-move__row motion-reveal-up" key={m.t}>
               <div className="pcp-move__media">
-                <img src={m.img} alt={m.alt} loading="lazy" decoding="async"
-                     onError={(e) => { e.currentTarget.closest('.pcp-move__media').classList.add('is-empty') }} />
+                {m.gallery ? (
+                  <PhotoRotator images={m.gallery} interval={4200} />
+                ) : (
+                  <img src={m.img} alt={m.alt} loading="lazy" decoding="async"
+                       onError={(e) => { e.currentTarget.closest('.pcp-move__media').classList.add('is-empty') }} />
+                )}
               </div>
               <div className="pcp-move__body">
                 <h3>{m.t}</h3>
