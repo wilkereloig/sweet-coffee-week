@@ -33,7 +33,6 @@ import {
   getPodiumTotals,
   getAwardWins,
   getDistinctCategoryCount,
-  getResultsCoverage,
 } from '../../data/sweetHistoryStats'
 
 // Foto real por categoria da Lovers 2026.1 — mesmos frames da landing "Em breve".
@@ -326,7 +325,6 @@ export function HistoricoAwardsPage({ navigate }) {
   const podiumLeader = getPodiumTotals()[0] || null
   const winsLeader = getAwardWins()[0] || null
   const distinctCategories = getDistinctCategoryCount()
-  const coverage = getResultsCoverage()
   // Histórico = demais edições, mais recentes primeiro (a 2026.1 já está no destaque acima).
   const ordered = [...sweetEditions].reverse().filter((e) => e.id !== '2026.1')
 
@@ -375,12 +373,6 @@ export function HistoricoAwardsPage({ navigate }) {
               )}
               <RecordCard label="Categorias já premiadas" value={`${distinctCategories.total} categorias diferentes`} />
             </div>
-          )}
-
-          {coverage && coverage.withoutResults > 0 && (
-            <p className="swa-coverage">
-              {coverage.withResults} das {coverage.totalEditions} edições têm pódio completo registrado; {coverage.withoutResults} ainda sem premiação estruturada ({coverage.editionsWithoutResults[0].code}–{coverage.editionsWithoutResults[coverage.editionsWithoutResults.length - 1].code}).
-            </p>
           )}
         </div>
       </section>
@@ -477,8 +469,6 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-record__name { font-family: var(--font-heading); font-weight: 800; font-size: 18px; color: var(--page-accent-dark); }
         .swa-record__value { font-size: 13.5px; color: var(--ink-soft); }
 
-        .swa-coverage { max-width: 640px; margin: var(--sp-6) auto 0; text-align: center; font-size: 12.5px; font-style: italic; color: var(--ink-mute); line-height: 1.5; }
-
         /* 4 — ACORDEÕES */
         .hist-list-section { background: var(--cream); }
         .hist-list { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 960px; margin: 0 auto; }
@@ -562,7 +552,6 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-archive-section .swa-record__label { color: rgba(255,241,230,.6); }
         .swa-archive-section .swa-record__name { color: var(--page-accent); }
         .swa-archive-section .swa-record__value { color: rgba(255,241,230,.8); }
-        .swa-archive-section .swa-coverage { color: rgba(255,241,230,.55); }
         .hist-evo--strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; }
         .hist-evo__step { padding: 0 var(--sp-5); }
         .hist-evo__step:first-child { padding-left: 0; }
