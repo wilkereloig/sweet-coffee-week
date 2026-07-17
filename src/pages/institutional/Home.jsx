@@ -455,8 +455,6 @@ export function HomePage({ navigate }) {
         .hmv2-hero__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(43,24,16,.95) 0%, rgba(43,24,16,.8) 32%, rgba(43,24,16,.22) 68%, rgba(43,24,16,.32) 100%); }
         .hmv2-hero__wrap { position: relative; z-index: 2; width: 100%; padding: max(calc(var(--hero-content-start) + clamp(28px, 3vw, 46px)), clamp(252px, 18vw, 300px)) var(--hm-gutter) clamp(74px, 8vw, 118px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, .38fr); gap: clamp(36px, 9vw, 150px); align-items: end; }
         .hmv2-hero__copy { max-width: 760px; }
-        .hmv2-hero__meta { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 22px; color: rgba(255,241,230,.78); font: 700 13px/1.2 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; }
-        .hmv2-hero__meta span { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
         .hmv2-hero h1 { max-width: 11ch; margin: 0; color: var(--cream); font: 800 clamp(68px, 7.8vw, 132px)/.86 var(--font-display); letter-spacing: -.045em; text-wrap: balance; }
         .hmv2-hero h1 em { color: var(--pink); font-style: italic; }
         .hmv2-hero__lead { max-width: 42ch; margin: clamp(24px, 3vw, 38px) 0 0; color: rgba(255,241,230,.9); font: 500 clamp(18px, 1.55vw, 24px)/1.42 var(--font-sans); text-wrap: pretty; }
@@ -559,8 +557,6 @@ export function HomePage({ navigate }) {
         .hmv2-voice__quote::before { content: '\\201C'; }
         .hmv2-voice__quote::after { content: '\\201D'; }
         .hmv2-voice__foot { display: flex; align-items: center; gap: 16px; margin-top: clamp(28px, 3.4vw, 40px); flex-wrap: wrap; }
-        .hmv2-voice__logo { display: grid; place-items: center; width: 56px; height: 56px; padding: 8px; border-radius: 10px; background: var(--cream); }
-        .hmv2-voice__logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .hmv2-voice__id { display: flex; flex-direction: column; }
         .hmv2-voice__id b { color: var(--cream); font: 800 15px/1.2 var(--font-sans); }
         .hmv2-voice__id span { color: rgba(255,241,230,.72); font: 500 13px/1.2 var(--font-sans); }
@@ -594,7 +590,7 @@ export function HomePage({ navigate }) {
         .hmv2-press__row { display: grid; grid-template-columns: clamp(110px, 13vw, 160px) minmax(0, 1fr) 52px 16px; gap: 16px; align-items: center; min-height: 58px; border-bottom: 1px solid rgba(43,24,16,.14); color: var(--ink); transition: transform .2s ease, background .2s ease; }
         .hmv2-press__row:hover { transform: translateX(10px); background: var(--cream-deep); }
         .hmv2-press__rowOutlet { overflow: hidden; color: var(--ink-soft); font: 700 11.5px/1.2 var(--font-sans); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis; }
-        .hmv2-press__rowTitle { overflow: hidden; color: var(--ink); font: 700 16px/1.3 var(--font-display); letter-spacing: -.01em; white-space: nowrap; text-overflow: ellipsis; }
+        .hmv2-press__rowTitle { overflow: hidden; color: var(--ink); font: 700 16px/1.3 var(--font-display); letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .hmv2-press__rowYear { color: var(--coral-deep); font: 700 13px/1 var(--font-sans); text-align: right; }
         .hmv2-press__row svg { color: var(--coral-deep); }
         .hmv2-press__toggle { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; padding: 0; border: 0; background: transparent; color: var(--coral-deep); font: 800 14px/1 var(--font-sans); cursor: pointer; }
@@ -702,7 +698,7 @@ export function HomePage({ navigate }) {
         @media (max-width: 960px) { .hmv2-hero__wrap { grid-template-columns: 1fr; } .hmv2-hero__edition { justify-self: start; width: auto; max-width: 360px; } .hmv2-routes, .hmv2-city, .hmv2-proof, .hmv2-press, .hmv2-close { grid-template-columns: 1fr; } .hmv2-routes { grid-template-areas: none; } .hmv2-route--foto { min-height: clamp(300px, 62vw, 460px); } .hmv2-routes__intro p, .hmv2-city__copy h2, .hmv2-proof h2, .hmv2-press h2 { max-width: 15ch; } .hmv2-city__visual { max-width: 720px; width: 100%; } .hmv2-cycle { grid-template-columns: 1fr; gap: clamp(28px, 5vw, 44px); } .hmv2-cycle__media { max-width: 520px; } .hmv2-close__brand { display: flex; align-items: center; gap: 24px; } .hmv2-close__brand span { margin: 0; } }
         @media (max-width: 720px) { .hmv2-hero { min-height: 760px; } .hmv2-hero__shade { background: linear-gradient(90deg, rgba(43,24,16,.94) 0%, rgba(43,24,16,.7) 55%, rgba(43,24,16,.3) 100%); } .hmv2-hero__wrap { padding-inline: clamp(24px, 7vw, 42px); } .hmv2-hero__scroll { right: clamp(24px, 7vw, 42px); } .hmv2-route:not(.hmv2-route--foto) { min-height: 245px; } .hmv2-proof__facts { grid-template-columns: 1fr; } .hmv2-cycle__list { padding-left: 0; } .hmv2-cycle__list::before, .hmv2-cycle__list::after { display: none; } .hmv2-press__row { grid-template-columns: minmax(0, 1fr) 16px; grid-template-areas: 'outlet outlet' 'title arrow'; row-gap: 4px; padding-block: 14px; } .hmv2-press__rowOutlet { grid-area: outlet; } .hmv2-press__rowTitle { grid-area: title; white-space: normal; } .hmv2-press__rowYear { display: none; } .hmv2-press__row svg { grid-area: arrow; } }
         @media (max-width: 560px) { .hmv2-hero { min-height: 690px; } .hmv2-hero__wrap { padding-top: max(var(--hero-content-start), 170px); padding-bottom: 86px; } .hmv2-hero h1 { font-size: clamp(54px, 15vw, 76px); } .hmv2-hero__edition { display: none; } .hmv2-hero__actions { flex-direction: column; align-items: stretch; } .hmv2-btn { width: 100%; } .hmv2-routes, .hmv2-city, .hmv2-cycle, .hmv2-proof, .hmv2-voice, .hmv2-press, .hmv2-close { padding-inline: clamp(24px, 7vw, 40px); } .hmv2-voice__link { margin-left: 0; } .hmv2-city__visual { min-height: 420px; } .hmv2-city__heart { width: 38%; } .hmv2-close__brand { align-items: flex-start; flex-direction: column; gap: 14px; } }
-        @media (max-width: 420px) { .hmv2-hero h1 { font-size: 52px; } .hmv2-hero__meta { font-size: 11px; } .hmv2-routes__intro p { font-size: 37px; } .hmv2-proof__facts dt { font-size: 56px; } }
+        @media (max-width: 420px) { .hmv2-hero h1 { font-size: 52px; } .hmv2-routes__intro p { font-size: 37px; } .hmv2-proof__facts dt { font-size: 56px; } }
         @media (prefers-reduced-motion: reduce) {
           .hmv2 *, .hmv2 *::before, .hmv2 *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
           .hmv2-city__photos { -webkit-clip-path: none !important; clip-path: none !important; }
