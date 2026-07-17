@@ -121,6 +121,17 @@ export function ParticiparPage() {
   const successRef = React.useRef(null)
   const interacted = React.useRef(false)     // evita roubar foco no load inicial
 
+  // Chegando via link "Levar minha marca" (Home) com ?scrollTo=depoimentos —
+  // rola pra seção de depoimentos depois do scroll-to-topo forçado do router.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.location.hash.includes('scrollTo=depoimentos')) return
+    const t = window.setTimeout(() => {
+      document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [])
+
   // Foca o primeiro campo da etapa ao TROCAR de etapa (não no mount).
   React.useEffect(() => {
     if (!interacted.current) return
@@ -390,7 +401,7 @@ export function ParticiparPage() {
       </PageSection>
 
       {/* ══ 6 — MARCAS QUE VIVERAM A EDIÇÃO (1 destaque + sequência) ══ */}
-      <PageSection className="pcp-testi">
+      <PageSection id="depoimentos" className="pcp-testi">
         <SectionHeader
           className="motion-reveal-up"
           align="start"

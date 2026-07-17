@@ -71,13 +71,21 @@ const VOICE = {
   person: 'Carol Barreto',
   brand: 'Jolie',
   logo: '/logos/participants/jolie-cafe-patisserie.png',
-  // Coxinha autoral da Jolie — main.jpg é a coxinha (foto real do acervo).
-  combo: '/images/combos/jolie-cafe-patisserie/main.jpg',
   // Retrato da Carol/Jolie NÃO existe no acervo (sem retrato autorizado — regra do
   // projeto). Enquanto não houver, o bloco redondo usa o logo real como marca.
   // Chegando o retrato: apontar `portrait` pro arquivo → o círculo vira foto.
   portrait: null,
 }
+
+// Fotos da Jolie em várias edições (acervo real, /images/combos/jolie-cafe-patisserie/) —
+// rotaciona no lugar do combo estático da prova social.
+const VOICE_PHOTOS = [
+  { src: '/images/combos/jolie-cafe-patisserie/main.jpg', alt: 'Coxinha autoral da Jolie' },
+  ...Array.from({ length: 11 }, (_, i) => ({
+    src: `/images/combos/jolie-cafe-patisserie/photo-${String(i + 2).padStart(2, '0')}.jpg`,
+    alt: 'Jolie em uma edição do Sweet & Coffee Week',
+  })),
+]
 
 // Card de foto das rotas: só a edição Lovers (2026.1), 11 frames reais.
 const LOVERS_PHOTOS = Array.from({ length: 11 }, (_, i) => ({
@@ -361,11 +369,11 @@ export function HomePage({ navigate }) {
           <blockquote className="hmv2-voice__quote">{VOICE.quote}</blockquote>
           <figcaption className="hmv2-voice__foot">
             <span className="hmv2-voice__id"><b>{VOICE.person}</b><span>{VOICE.brand}</span></span>
-            <a className="hmv2-text-link hmv2-voice__link" href="#/participar" onClick={go('/participar')}>Levar minha marca <I.arrow /></a>
+            <a className="hmv2-text-link hmv2-voice__link" href="#/participar?scrollTo=depoimentos" onClick={go('/participar?scrollTo=depoimentos')}>Levar minha marca <I.arrow /></a>
           </figcaption>
           </div>
           <div className="hmv2-voice__media">
-            <img className="hmv2-voice__combo" src={VOICE.combo} alt="Coxinha autoral da Jolie" loading="lazy" decoding="async" />
+            <PhotoRotator images={VOICE_PHOTOS} interval={5200} className="hmv2-voice__combo" />
             <span className={`hmv2-voice__portrait${VOICE.portrait ? '' : ' hmv2-voice__portrait--logo'}`}>
               <img src={VOICE.portrait || VOICE.logo} alt={VOICE.portrait ? `${VOICE.person}, da ${VOICE.brand}` : VOICE.brand} loading="lazy" decoding="async" />
             </span>
@@ -549,7 +557,7 @@ export function HomePage({ navigate }) {
         /* Coxinha (real) + marca da Jolie num bloco REDONDO. Sem retrato autorizado
            no acervo → o círculo usa o logo (contain); com foto, vira retrato (cover). */
         .hmv2-voice__media { position: relative; align-self: center; }
-        .hmv2-voice__combo { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--card-radius); transition: transform .3s var(--ease-out-soft); }
+        .hmv2-voice__combo { display: block; width: 100%; aspect-ratio: 4 / 5; border-radius: var(--card-radius); transition: transform .3s var(--ease-out-soft); }
         .hmv2-voice__portrait { position: absolute; left: clamp(-22px, -2vw, -14px); bottom: clamp(-22px, -2vw, -14px); display: grid; place-items: center; width: clamp(104px, 13vw, 150px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--cream); border: 5px solid var(--choco-deep); box-shadow: 0 10px 26px rgba(0,0,0,.32); }
         .hmv2-voice__portrait img { width: 100%; height: 100%; object-fit: cover; }
         .hmv2-voice__portrait--logo img { object-fit: contain; padding: 18px; }
