@@ -385,6 +385,18 @@ export function HomePage({ navigate }) {
         <div className="hmv2-press__head motion-reveal-up">
           <h2>Uma história que ganhou as <em className="hmv2-hl">ruas</em> e a imprensa.</h2>
           <a className="hmv2-text-link" href="#/edicoes" onClick={go('/edicoes')}>Ver as edições do festival <I.arrow /></a>
+          <figure className="hmv2-press__shots motion-reveal-up">
+            <span className="hmv2-press__shot hmv2-press__shot--lead">
+              <img src="/images/imprensa/02.jpg" alt="Organização do Sweet & Coffee Week na cobertura de imprensa do festival" loading="lazy" decoding="async" />
+            </span>
+            <span className="hmv2-press__shot">
+              <img src="/images/imprensa/03.jpg" alt="Registro de imprensa do Sweet & Coffee Week" loading="lazy" decoding="async" />
+            </span>
+            <span className="hmv2-press__shot">
+              <img src="/images/imprensa/01.png" alt="Registro de imprensa do Sweet & Coffee Week" loading="lazy" decoding="async" />
+            </span>
+            <figcaption>Bastidores da cobertura de imprensa ao longo das edições.</figcaption>
+          </figure>
         </div>
         <div className="hmv2-press__body">
           <a className="hmv2-press__feature motion-reveal-up" href={PRESS[0].href} target="_blank" rel="noopener noreferrer">
@@ -565,6 +577,11 @@ export function HomePage({ navigate }) {
         .hmv2-press { display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.3fr); gap: clamp(50px, 10vw, 160px); padding: clamp(90px, 12vw, 166px) var(--hm-gutter); background: #FDF8F0; }
         .hmv2-press h2 { max-width: 11ch; color: var(--ink); }
         .hmv2-press__head { display: flex; flex-direction: column; align-items: flex-start; }
+        .hmv2-press__shots { margin: clamp(30px, 4vw, 52px) 0 0; width: 100%; max-width: 520px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .hmv2-press__shot { overflow: hidden; border-radius: 14px; background: var(--swc-coffee); box-shadow: var(--shadow-md); aspect-ratio: 1 / 1; }
+        .hmv2-press__shot--lead { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
+        .hmv2-press__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .hmv2-press__shots figcaption { grid-column: 1 / -1; margin-top: 4px; color: var(--ink-soft); font: 700 12.5px/1.4 var(--font-sans); letter-spacing: .01em; text-wrap: pretty; }
         .hmv2-press__body { display: flex; flex-direction: column; gap: 8px; }
         .hmv2-press__feature { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; padding: clamp(28px, 3.4vw, 46px) 0; border-top: 1px solid rgba(43,24,16,.2); border-bottom: 1px solid rgba(43,24,16,.2); color: var(--ink); transition: transform .22s ease; }
         .hmv2-press__feature:hover { transform: translateX(14px); }
