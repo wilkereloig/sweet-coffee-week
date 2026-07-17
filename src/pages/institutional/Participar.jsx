@@ -562,9 +562,9 @@ export function ParticiparPage() {
         .pcp-move__list { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
         .pcp-move__row { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(24px, 4vw, 60px); align-items: center; }
         .pcp-move__row:nth-child(even) .pcp-move__media { order: 2; }
-        .pcp-move__media { aspect-ratio: 5 / 4; border-radius: var(--card-radius); overflow: hidden; background: var(--swc-coffee); box-shadow: var(--shadow-md); }
+        .pcp-move__media { aspect-ratio: 1 / 1; border-radius: var(--card-radius); overflow: hidden; background: var(--swc-coffee); box-shadow: var(--shadow-md); }
         .pcp-move__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .pcp-move__media.is-empty { display: grid; place-items: center; aspect-ratio: 5 / 3; }
+        .pcp-move__media.is-empty { display: grid; place-items: center; aspect-ratio: 1 / 1; }
         .pcp-move__media.is-empty img { display: none; }
         .pcp-move__media.is-empty::after { content: 'Foto do acervo'; font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.7); }
         .pcp-move__body h3 { font-size: clamp(23px, 2.6vw, 36px); line-height: 1.04; color: var(--ink); }
