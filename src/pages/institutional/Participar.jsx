@@ -78,21 +78,15 @@ const JOURNEY = [
   { t: 'Próximos passos da edição', d: 'Depois de aprovada, a organização encaminha as orientações e o acesso aos materiais necessários para preparar a presença da marca.' },
 ]
 
-// ── Depoimentos REAIS (não inventar / não editar o sentido). Uma história
-//    principal (Jolie, com foto de combo + logo) + demais como sequência. ──
-const LEAD_TESTIMONIAL = {
-  quote: 'Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.',
-  personName: 'Carol Barreto',
-  brandName: 'Jolie',
-  slug: 'jolie-cafe-patisserie',
-  photo: combo('jolie-cafe-patisserie'),
-  logo: brandLogo('jolie-cafe-patisserie'),
-}
+// ── Depoimentos REAIS (não inventar / não editar o sentido). Cada marca com
+//    foto de combo + logo; `video` fica pronto pra receber o vídeo de cada
+//    pessoa (poster = a própria foto até o vídeo chegar).
 const TESTIMONIALS = [
-  { quote: 'É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos e ganhar visibilidade.', personName: 'João Dantas', brandName: 'O Maestro', logo: brandLogo('o-maestro-cafe') },
-  { quote: 'O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.', personName: 'Fernando Gurgel', brandName: 'Paneer', logo: brandLogo('paneer-patisserie') },
-  { quote: 'O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.', personName: 'César e Tiago', brandName: 'Mr. Cupcake', logo: brandLogo('mr-cupcake-confeitaria') },
-  { quote: 'Foi além das expectativas. Foram 11 dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.', personName: 'Edvan Barreto', brandName: 'Casa 1190', logo: brandLogo('casa-1190') },
+  { quote: 'Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.', personName: 'Carol Barreto', brandName: 'Jolie', slug: 'jolie-cafe-patisserie', photo: combo('jolie-cafe-patisserie'), logo: brandLogo('jolie-cafe-patisserie'), video: null },
+  { quote: 'É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos e ganhar visibilidade.', personName: 'João Dantas', brandName: 'O Maestro', slug: 'o-maestro-cafe', photo: combo('o-maestro-cafe'), logo: brandLogo('o-maestro-cafe'), video: null },
+  { quote: 'O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.', personName: 'Fernando Gurgel', brandName: 'Paneer', slug: 'paneer-patisserie', photo: combo('paneer-patisserie'), logo: brandLogo('paneer-patisserie'), video: null },
+  { quote: 'O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.', personName: 'César e Tiago', brandName: 'Mr. Cupcake', slug: 'mr-cupcake-confeitaria', photo: combo('mr-cupcake-confeitaria'), logo: brandLogo('mr-cupcake-confeitaria'), video: null },
+  { quote: 'Foi além das expectativas. Foram 11 dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.', personName: 'Edvan Barreto', brandName: 'Casa 1190', slug: 'casa-1190', photo: combo('casa-1190'), logo: brandLogo('casa-1190'), video: null },
 ]
 
 // Iniciais para o monograma de fallback da marca (ignora "e"/"&"; máx. 2 letras).
@@ -400,7 +394,7 @@ export function ParticiparPage() {
         </p>
       </PageSection>
 
-      {/* ══ 6 — MARCAS QUE VIVERAM A EDIÇÃO (1 destaque + sequência) ══ */}
+      {/* ══ 6 — MARCAS QUE VIVERAM A EDIÇÃO (grade uniforme, 1 vídeo por marca) ══ */}
       <PageSection id="depoimentos" className="pcp-testi">
         <SectionHeader
           className="motion-reveal-up"
@@ -408,38 +402,28 @@ export function ParticiparPage() {
           title={<>Marcas que viveram a <span className="pcp-hl pcp-hl--cyan">edição</span></>}
           lead="Quem participou conta, com as próprias palavras, o que o festival mudou."
         />
-        <figure className="pcp-lead motion-reveal-up">
-          <div className="pcp-lead__media">
-            <img src={LEAD_TESTIMONIAL.photo} alt={`Combo da ${LEAD_TESTIMONIAL.brandName}`} loading="lazy" decoding="async"
-                 onError={(e) => { e.currentTarget.closest('.pcp-lead__media').classList.add('is-empty') }} />
-          </div>
-          <div className="pcp-lead__body">
-            <span className="pcp-lead__mark" aria-hidden="true">&ldquo;</span>
-            <blockquote>{LEAD_TESTIMONIAL.quote}</blockquote>
-            <figcaption className="pcp-lead__foot">
-              <span className="pcp-brandmark" aria-hidden="true">
-                <img src={LEAD_TESTIMONIAL.logo} alt="" loading="lazy" decoding="async"
-                     onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'grid' }} />
-                <span className="pcp-brandmark__txt" style={{ display: 'none' }}>{initialsOf(LEAD_TESTIMONIAL.brandName)}</span>
-              </span>
-              <span className="pcp-lead__who">
-                <b>{LEAD_TESTIMONIAL.personName}</b>
-                <span>{LEAD_TESTIMONIAL.brandName}</span>
-              </span>
-            </figcaption>
-          </div>
-        </figure>
-        <ul className="pcp-quotes motion-stagger">
+        <ul className="pcp-testi__grid motion-stagger">
           {TESTIMONIALS.map((t) => (
-            <li className="pcp-quote" key={t.brandName}>
-              <blockquote>{t.quote}</blockquote>
-              <div className="pcp-quote__foot">
-                <span className="pcp-brandmark pcp-brandmark--sm" aria-hidden="true">
-                  <img src={t.logo} alt="" loading="lazy" decoding="async"
-                       onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'grid' }} />
-                  <span className="pcp-brandmark__txt" style={{ display: 'none' }}>{initialsOf(t.brandName)}</span>
-                </span>
-                <span className="pcp-quote__who"><b>{t.personName}</b><span>{t.brandName}</span></span>
+            <li className="pcp-testi__card" key={t.slug}>
+              <div className="pcp-testi__media">
+                {t.video ? (
+                  <video src={t.video} poster={t.photo} controls playsInline preload="none" />
+                ) : (
+                  <img src={t.photo} alt={`Combo da ${t.brandName}`} loading="lazy" decoding="async"
+                       onError={(e) => { e.currentTarget.closest('.pcp-testi__media').classList.add('is-empty') }} />
+                )}
+              </div>
+              <div className="pcp-testi__body">
+                <span className="pcp-testi__mark" aria-hidden="true">&ldquo;</span>
+                <blockquote>{t.quote}</blockquote>
+                <div className="pcp-testi__foot">
+                  <span className="pcp-brandmark" aria-hidden="true">
+                    <img src={t.logo} alt="" loading="lazy" decoding="async"
+                         onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'grid' }} />
+                    <span className="pcp-brandmark__txt" style={{ display: 'none' }}>{initialsOf(t.brandName)}</span>
+                  </span>
+                  <span className="pcp-testi__who"><b>{t.personName}</b><span>{t.brandName}</span></span>
+                </div>
               </div>
             </li>
           ))}
@@ -591,33 +575,25 @@ export function ParticiparPage() {
         .pcp-cur__note { max-width: 62ch; margin: var(--sp-6) 0 0; padding: clamp(16px, 2vw, 22px) clamp(20px, 2.4vw, 28px); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
         .pcp-cur__note strong { color: var(--ink); }
 
-        /* ════════ 6 — DEPOIMENTOS ════════ */
+        /* ════════ 6 — DEPOIMENTOS (grade uniforme, 1 card por marca) ════════ */
         .pcp-testi { background: var(--cream-deep, var(--bg-soft)); }
-        .pcp-lead { display: grid; grid-template-columns: .82fr 1.18fr; gap: clamp(24px, 3vw, 48px); align-items: stretch; margin: 0 0 var(--sp-5); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow-md); }
-        .pcp-lead__media { background: var(--swc-coffee); min-height: 260px; }
-        .pcp-lead__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .pcp-lead__media.is-empty { display: grid; place-items: center; }
-        .pcp-lead__media.is-empty img { display: none; }
-        .pcp-lead__media.is-empty::after { content: 'Foto do combo'; font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.7); }
-        .pcp-lead__body { padding: clamp(24px, 3vw, 44px); display: flex; flex-direction: column; justify-content: center; }
-        .pcp-lead__mark { font-family: var(--font-heading); font-weight: 800; font-size: 56px; line-height: .5; color: var(--coral); opacity: .4; }
-        .pcp-lead blockquote { margin: var(--sp-4) 0 var(--sp-5); font-family: var(--font-heading); font-weight: 700; font-size: clamp(19px, 2vw, 27px); line-height: 1.34; letter-spacing: -.01em; color: var(--ink); text-wrap: pretty; max-width: 40ch; }
-        .pcp-lead__foot { display: flex; align-items: center; gap: 14px; }
-        .pcp-lead__who { display: flex; flex-direction: column; }
-        .pcp-lead__who b { font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--ink); }
-        .pcp-lead__who span { font-size: 13.5px; color: var(--ink-soft); }
-        .pcp-brandmark { flex: 0 0 auto; width: 60px; height: 60px; border-radius: 15px; overflow: hidden; display: grid; place-items: center; background: #fff; border: 1px solid var(--paper-line); }
+        .pcp-testi__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+        .pcp-testi__card { display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow-md); }
+        .pcp-testi__media { position: relative; aspect-ratio: 4 / 3; background: var(--swc-coffee); }
+        .pcp-testi__media img, .pcp-testi__media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pcp-testi__media.is-empty { display: grid; place-items: center; }
+        .pcp-testi__media.is-empty img { display: none; }
+        .pcp-testi__media.is-empty::after { content: 'Foto do combo'; font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,241,230,.7); }
+        .pcp-testi__body { padding: clamp(20px, 2.2vw, 28px); display: flex; flex-direction: column; flex: 1; }
+        .pcp-testi__mark { font-family: var(--font-heading); font-weight: 800; font-size: 40px; line-height: .5; color: var(--coral); opacity: .4; }
+        .pcp-testi__body blockquote { margin: var(--sp-3) 0 var(--sp-4); color: var(--ink); font-size: clamp(15px, 1.05vw, 16.5px); line-height: 1.55; text-wrap: pretty; }
+        .pcp-testi__foot { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+        .pcp-testi__who { display: flex; flex-direction: column; }
+        .pcp-testi__who b { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; color: var(--ink); }
+        .pcp-testi__who span { font-size: 13px; color: var(--ink-soft); }
+        .pcp-brandmark { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: #fff; border: 1px solid var(--paper-line); }
         .pcp-brandmark img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
         .pcp-brandmark__txt { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); place-items: center; width: 100%; height: 100%; }
-        .pcp-brandmark--sm { width: 46px; height: 46px; border-radius: 12px; }
-        /* sequência de falas (não mural de cards iguais) */
-        .pcp-quotes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); }
-        .pcp-quote { display: flex; flex-direction: column; gap: var(--sp-4); padding: clamp(20px, 2.2vw, 28px); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); }
-        .pcp-quote blockquote { margin: 0; color: var(--ink); font-size: clamp(15px, 1.05vw, 16.5px); line-height: 1.55; text-wrap: pretty; }
-        .pcp-quote__foot { display: flex; align-items: center; gap: 12px; margin-top: auto; }
-        .pcp-quote__who { display: flex; flex-direction: column; }
-        .pcp-quote__who b { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; color: var(--ink); }
-        .pcp-quote__who span { font-size: 13px; color: var(--ink-soft); }
 
         /* ════════ 7 — JORNADA (percurso contínuo) ════════ */
         .pcp-journey { background: var(--cream); }
@@ -651,9 +627,7 @@ export function ParticiparPage() {
           .pcp-move__row, .pcp-move__row:nth-child(even) .pcp-move__media { grid-template-columns: 1fr; }
           .pcp-move__row:nth-child(even) .pcp-move__media { order: 0; }
           .pcp-cur__list { grid-template-columns: 1fr; }
-          .pcp-lead { grid-template-columns: 1fr; }
-          .pcp-lead__media { min-height: clamp(220px, 44vw, 320px); }
-          .pcp-quotes { grid-template-columns: 1fr; }
+          .pcp-testi__grid { grid-template-columns: 1fr; }
           .pcp-path { grid-template-columns: 1fr; gap: 0; }
           /* mobile: percurso vertical com a linha à esquerda */
           .pcp-path__step { padding: 0 0 clamp(24px,5vw,32px) 62px; }
