@@ -579,7 +579,7 @@ export function HomePage({ navigate }) {
         .hmv2-press__head { display: flex; flex-direction: column; align-items: flex-start; }
         .hmv2-press__shots { margin: clamp(30px, 4vw, 52px) 0 0; width: 100%; max-width: 520px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .hmv2-press__shot { overflow: hidden; border-radius: 14px; background: var(--swc-coffee); box-shadow: var(--shadow-md); aspect-ratio: 1 / 1; }
-        .hmv2-press__shot--lead { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
+        .hmv2-press__shot--lead { grid-column: 1 / -1; aspect-ratio: 1 / 1; }
         .hmv2-press__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .hmv2-press__shots figcaption { grid-column: 1 / -1; margin-top: 4px; color: var(--ink-soft); font: 700 12.5px/1.4 var(--font-sans); letter-spacing: .01em; text-wrap: pretty; }
         .hmv2-press__body { display: flex; flex-direction: column; gap: 8px; }
