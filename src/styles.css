@@ -458,9 +458,9 @@ body.route-historico-awards .site-header {
    aqui p/ o conteúdo não ficar sob a barra fixa nem sob a logo flutuante
    (a logo vira um crest acima do título). Painel e a landing "em breve"
    (sem header público) ficam de fora. */
-body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-guia-sweet-lovers):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
+body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(92px, 11vw, 132px); }
 @media (min-width: 960px) {
-  body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-guia-sweet-lovers):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
+  body:not(.route-home):not(.route-participar):not(.route-historico-awards):not(.route-edicoes):not(.route-apoiar):not(.route-contato):not(.route-pesquisa):not(.route-painel):not(.route-em-breve) .page-enter { padding-top: clamp(150px, 13vw, 196px); }
 }
 /* ============================================================
    SISTEMA DE COR POR PÁGINA (institucional).
@@ -492,7 +492,6 @@ body.route-historico-awards { --page-accent: #F8B511; --page-accent-soft: rgba(2
 body.route-participar       { --page-accent: #F2693C; --page-accent-soft: rgba(242,105,60,.16);  --page-accent-dark: #B5401F; }
 body.route-apoiar           { --page-accent: #1B86C9; --page-accent-soft: rgba(27,134,201,.16);  --page-accent-dark: #0F5C8C; }
 body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(242,182,160,.22); --page-accent-dark: #B5401F; } /* peach (paleta §3) — antes lavanda #B38CFF (roxo, fora da paleta); a hero usa --page-accent como fundo */
-body.route-guia-sweet-lovers { --page-accent: #F8B511; --page-accent-soft: rgba(248,181,17,.16); --page-accent-dark: #D9960A; }
 
 /* ============================================================
    HEROS (LEGADO) — regra global que controla os heros das páginas AINDA

@@ -370,6 +370,10 @@ Sempre que o usuário disser que não gosta de algo ou aprovar uma nova regra de
 "não usar cores fora da paleta"; "hero não pode ter 1080px fixo"; "zona de segurança
 entre menu e hero" (ver 4.1).
 
+**Guia para Sweet Lovers removido (jul/2026).** A proposta visual e a página de
+lançamento foram rejeitadas. Não recriar a rota, item de menu, página, dados ou CTAs
+do Guia para Sweet Lovers sem uma nova solicitação e direção visual explícitas.
+
 **Contato = central de dúvidas e relacionamento, SEM hero (jul/2026).** A página
 deixou de ser só cards de encaminhamento: virou página de serviço editorial —
 abertura compacta → busca + filtros (controle segmentado) → **FAQ filtrável**
