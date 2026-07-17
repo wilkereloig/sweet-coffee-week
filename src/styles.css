@@ -780,7 +780,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__cta-help { margin: 0 0 4px; font-size: 15px; line-height: 1.5; opacity: .9; max-width: 34ch; }
 .site-footer__cta-btn {
   justify-self: start; display: inline-flex; align-items: center; justify-content: center; min-height: 50px;
-  padding: 14px 20px; border-radius: 4px;
+  padding: 14px 24px; border-radius: 999px;
   font: 800 14px/1 var(--font-sans); color: var(--ink); background: var(--accent);
   transition: transform var(--motion-fast, 160ms) var(--ease-out-soft, ease),
               background var(--motion-fast, 160ms) var(--ease-out-soft, ease);

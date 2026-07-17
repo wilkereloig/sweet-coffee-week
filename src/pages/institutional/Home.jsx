@@ -449,7 +449,7 @@ export function HomePage({ navigate }) {
         .hmv2-hero h1 em { color: var(--pink); font-style: italic; }
         .hmv2-hero__lead { max-width: 42ch; margin: clamp(24px, 3vw, 38px) 0 0; color: rgba(255,241,230,.9); font: 500 clamp(18px, 1.55vw, 24px)/1.42 var(--font-sans); text-wrap: pretty; }
         .hmv2-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(28px, 4vw, 42px); }
-        .hmv2-btn { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 20px; border-radius: 4px; font: 800 14px/1 var(--font-sans); transform: translate(var(--mx, 0px), calc(var(--my, 0px) + var(--btn-lift, 0px))); transition: transform .18s ease, scale .12s var(--ease-out-soft), background .2s ease, color .2s ease; }
+        .hmv2-btn { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 24px; border-radius: 999px; font: 800 14px/1 var(--font-sans); transform: translate(var(--mx, 0px), calc(var(--my, 0px) + var(--btn-lift, 0px))); transition: transform .18s ease, scale .12s var(--ease-out-soft), background .2s ease, color .2s ease; }
         .hmv2-btn svg, .hmv2-text-link svg, .hmv2-route a svg { width: 17px; height: 17px; transition: transform .22s var(--ease-spring-soft); }
         .hmv2-btn--light { background: var(--yellow); color: var(--ink); }
         .hmv2-btn--light:hover { background: var(--yellow-deep); }
