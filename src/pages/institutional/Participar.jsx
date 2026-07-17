@@ -17,6 +17,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import { PhotoRotator } from '../../components/PhotoRotator'
+import { MetricsSection } from '../../components/MetricsSection'
 import { PageShell, PageSection, SectionHeader, CTASection } from '../../components/layout'
 import { supabase } from '../../lib/supabase'
 import {
@@ -29,61 +30,82 @@ import {
 const combo = (slug) => `/images/combos/${slug}/main.jpg`
 const brandLogo = (slug) => `/logos/participants/${slug}.png`
 
-// ── Prova concreta (dados reais do acervo — supportMetrics.js / ACERVO.md). ──
-// "16 edições" e "+34 mil combos" são verbatim de supportMetrics.js; "+100 marcas"
-// é o piso comercial informado pela organização (16 edições × 20–36 marcas).
-const PROOF = [
-  { n: '16', l: 'edições realizadas', d: 'Uma década de festival, desde 2016.' },
-  { n: '+100', l: 'marcas participantes', d: 'Docerias, cafeterias e confeitarias que já entraram na rota.' },
-  { n: '+34 mil', l: 'combos vendidos', d: 'Consumo gerado nas últimas edições.' },
+// Galeria do card "Um combo autoral" — 1 foto por edição, as 16 edições do
+// festival (2016 → 2026.1). Cada frame foi curado pra mostrar o combo
+// completo (doce + salgado + bebida) na mesma foto, não um item isolado.
+// Fonte: public/images/edicoes/<code>/NN.webp (mesmo acervo da Home/Edições).
+const EDICOES_DIR = '/images/edicoes'
+const COMBO_GALLERY = [
+  { src: `${EDICOES_DIR}/2016/02.webp`, alt: 'Combo completo — edição a primeira edição (2016)' },
+  { src: `${EDICOES_DIR}/2017.1/09.webp`, alt: 'Combo completo — edição Páscoa (2017.1)' },
+  { src: `${EDICOES_DIR}/2017.2/08.webp`, alt: 'Combo completo — edição Doces do Mundo (2017.2)' },
+  { src: `${EDICOES_DIR}/2018.1/01.webp`, alt: 'Combo completo — edição Namorados (2018.1)' },
+  { src: `${EDICOES_DIR}/2018.2/09.webp`, alt: 'Combo completo — edição Sabores da Infância (2018.2)' },
+  { src: `${EDICOES_DIR}/2019.1/09.webp`, alt: 'Combo completo — edição Pâtisserie Francesa (2019.1)' },
+  { src: `${EDICOES_DIR}/2019.2/03.webp`, alt: 'Combo completo — edição Contos de Fadas (2019.2)' },
+  { src: `${EDICOES_DIR}/2020.1/03.webp`, alt: 'Combo completo — edição No Ritmo da Música (2020.1)' },
+  { src: `${EDICOES_DIR}/2020.2/01.webp`, alt: 'Combo completo — edição Heróis e Vilões (2020.2)' },
+  { src: `${EDICOES_DIR}/2021.1/04.webp`, alt: 'Combo completo — edição Séries (2021.1)' },
+  { src: `${EDICOES_DIR}/2021.2/03.webp`, alt: 'Combo completo — edição Terras Potiguares (2021.2)' },
+  { src: `${EDICOES_DIR}/2022/03.webp`, alt: 'Combo completo — edição Movies (2022)' },
+  { src: `${EDICOES_DIR}/2023/02.webp`, alt: 'Combo completo — edição Trip (2023)' },
+  { src: `${EDICOES_DIR}/2024/05.webp`, alt: 'Combo completo — edição Books (2024)' },
+  { src: `${EDICOES_DIR}/2025/01.webp`, alt: 'Combo completo — edição Celebration (2025)' },
+  { src: `${EDICOES_DIR}/2026.1/04.webp`, alt: 'Combo completo — edição Lovers (2026.1)' },
 ]
 
-// Galeria do card "Um combo autoral" — só fotos de combo (sem gente/decoração),
-// 10 marcas reais espalhadas por 7 edições diferentes do festival (não repete
-// tema/edição sem necessidade). Fonte: public/images/combos/<slug>/main.jpg.
-const MOVEMENT_GALLERY = [
-  { src: combo('mangai'), alt: 'Combo autoral — edição Sweet Music' },
-  { src: combo('jolie-cafe-patisserie'), alt: 'Combo autoral — edição Sweet Celebration' },
-  { src: combo('wow-cookies'), alt: 'Combo autoral — edição Terras Potiguares' },
-  { src: combo('casa-1190'), alt: 'Combo autoral — edição Sweet Series' },
-  { src: combo('delicato-bolos'), alt: 'Combo autoral — edição Sweet Trip' },
-  { src: combo('paneer-patisserie'), alt: 'Combo autoral — edição Contos de Fadas' },
-  { src: combo('mr-cupcake-confeitaria'), alt: 'Combo autoral — edição Filmes' },
-  { src: combo('caffe-basilicos'), alt: 'Combo autoral — edição Sweet Trip' },
-  { src: combo('o-maestro-cafe'), alt: 'Combo autoral — edição Sweet Celebration' },
-  { src: combo('caroli-douces'), alt: 'Combo autoral — edição Sweet Music' },
+// Galeria do card "Uma presença na campanha" — sinalização/materiais do
+// festival em ponto de venda + fotos reais de participantes na rota.
+// Fonte: acervo Dropbox "fotos mockups sinalização de lojas".
+const CAMPAIGN_DIR = '/images/campanha'
+const CAMPAIGN_GALLERY = [
+  { src: `${CAMPAIGN_DIR}/01.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/02.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/03.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/04.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/05.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/06.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/07.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/08.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/09.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/10.png`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/11.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/12.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/13.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/14.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/15.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/16.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/17.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
+  { src: `${CAMPAIGN_DIR}/18.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
 ]
+
+// Galeria do card "Uma nova relação com o público" — fotos reais dos Sweet
+// Lovers (público do festival) vivendo a rota. Fonte: acervo Dropbox
+// "sweet lovers" (14 fotos aprovadas + numeradas).
+const LOVERS_DIR = '/images/lovers-publico'
+const LOVERS_GALLERY = Array.from({ length: 14 }, (_, i) => ({
+  src: `${LOVERS_DIR}/${String(i + 1).padStart(2, '0')}.jpg`,
+  alt: 'Sweet Lovers vivendo o festival',
+}))
 
 // ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade). ──
 const MOVEMENTS = [
   {
-    gallery: MOVEMENT_GALLERY,
-    alt: 'Combo autoral de uma edição do Sweet & Coffee Week',
+    gallery: COMBO_GALLERY,
     t: 'Um combo autoral',
     d: 'Sua marca cria um combo exclusivo para a edição — a assinatura que apresenta o que ela faz de melhor a um público em busca de descoberta.',
     spec: '1 doce + 1 salgado + 1 bebida',
   },
   {
-    img: combo('caffe-basilicos'),
-    alt: 'Combo de marca participante durante a campanha do festival',
+    gallery: CAMPAIGN_GALLERY,
     t: 'Uma presença na campanha',
     d: 'Cada participante entra na comunicação do festival: rota, redes e materiais que levam a marca a milhares de Sweet Lovers pela cidade.',
   },
   {
-    img: combo('bolomania'),
-    alt: 'Público experimentando os combos de uma edição',
+    gallery: LOVERS_GALLERY,
     t: 'Uma nova relação com o público',
     d: 'O público experimenta, compartilha, avalia e indica. A participação abre uma relação que costuma continuar depois do festival.',
   },
-]
-
-// ── Como a curadoria funciona — critérios transparentes, sem tom eliminatório. ──
-const CRITERIA = [
-  { t: 'Perfil e categoria', d: 'O tipo de estabelecimento e o que sua marca faz de melhor.', icon: 'plate', tone: 'coral' },
-  { t: 'Atendimento ao público', d: 'Como sua marca recebe e cuida de quem visita.', icon: 'heartLine', tone: 'pink' },
-  { t: 'Estrutura e localização', d: 'Espaço, operação e onde sua marca está na cidade.', icon: 'pin', tone: 'cyan' },
-  { t: 'Alinhamento com a edição', d: 'A conexão da sua marca com o tema e o momento do festival.', icon: 'star', tone: 'yellow' },
-  { t: 'Disponibilidade de vagas', d: 'Cada edição comporta um número de participantes por categoria.', icon: 'cal', tone: 'brown' },
 ]
 
 // ── Jornada após o interesse — percurso contínuo (é uma sequência: numerar faz
@@ -252,9 +274,9 @@ export function ParticiparPage() {
               Crie um combo autoral e participe de uma edição que movimenta marcas,
               público e a cidade inteira.
             </p>
-            <a href="#curadoria" className="participar-hero__cue"
-               onClick={(e) => { e.preventDefault(); document.getElementById('curadoria')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
-              Como a curadoria funciona <I.arrow />
+            <a href="#depoimentos" className="participar-hero__cue"
+               onClick={(e) => { e.preventDefault(); document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
+              Marcas que já participaram <I.arrow />
             </a>
           </div>
 
@@ -341,24 +363,8 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      {/* ══ 3 — PROVA CONCRETA (tipografia grande + divisórias, não cards) ══ */}
-      <PageSection className="pcp-proof">
-        <SectionHeader
-          className="motion-reveal-up"
-          align="start"
-          title={<>Um festival que já <span className="pcp-hl pcp-hl--coral">movimenta marcas e cidade</span>.</>}
-          lead="Uma década conectando marcas gastronômicas locais a um público que sai à procura de descoberta."
-        />
-        <dl className="pcp-proof__row motion-stagger">
-          {PROOF.map((p) => (
-            <div className="pcp-proof__item" key={p.l}>
-              <dt className="pcp-proof__n">{p.n}</dt>
-              <dd className="pcp-proof__l">{p.l}</dd>
-              <dd className="pcp-proof__d">{p.d}</dd>
-            </div>
-          ))}
-        </dl>
-      </PageSection>
+      {/* ══ 3 — NÚMEROS QUE MOSTRAM A FORÇA DO FESTIVAL (placar, mesma seção da Apoiar) ══ */}
+      <MetricsSection />
 
       {/* ══ 4 — O QUE A MARCA COLOCA EM CIRCULAÇÃO (3 movimentos, foto real) ══ */}
       <PageSection className="pcp-move">
@@ -387,36 +393,6 @@ export function ParticiparPage() {
             </article>
           ))}
         </div>
-      </PageSection>
-
-      {/* ══ 5 — COMO A CURADORIA FUNCIONA (critérios transparentes) ══ */}
-      <PageSection id="curadoria" className="pcp-cur">
-        <SectionHeader
-          className="motion-reveal-up"
-          align="start"
-          title="Como a curadoria funciona"
-          lead="A seleção é transparente. A organização olha para alguns pontos ao montar cada edição — não para eliminar, mas para formar um time equilibrado de marcas."
-        />
-        <dl className="pcp-cur__list motion-stagger">
-          {CRITERIA.map((c) => {
-            const Icon = I[c.icon] || I.star
-            return (
-              <div className="pcp-cur__item" key={c.t}>
-                <dt>
-                  <span className={`pcp-cur__icon pcp-cur__icon--${c.tone}`} aria-hidden="true">
-                    <Icon width={21} height={21} />
-                  </span>
-                  <span>{c.t}</span>
-                </dt>
-                <dd>{c.d}</dd>
-              </div>
-            )
-          })}
-        </dl>
-        <p className="pcp-cur__note motion-reveal-up">
-          O pré-cadastro é o primeiro passo e <strong>não garante participação</strong>: a
-          entrada depende da curadoria e da disponibilidade de vagas de cada edição.
-        </p>
       </PageSection>
 
       {/* ══ 6 — MARCAS QUE VIVERAM A EDIÇÃO (grade uniforme, 1 vídeo por marca) ══ */}
@@ -566,18 +542,6 @@ export function ParticiparPage() {
         .pcp-done h2 { font-size: clamp(24px, 2.4vw, 30px); }
         .pcp-done p { color: var(--ink-soft); font-size: 15px; line-height: 1.55; margin: var(--sp-3) auto var(--sp-5); max-width: 42ch; text-wrap: pretty; }
 
-        /* ════════ 3 — PROVA CONCRETA ════════ */
-        .pcp-proof { background: var(--cream); }
-        .pcp-proof__row { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: var(--sp-7); border-top: 1px solid var(--paper-line); }
-        .pcp-proof__item { padding: clamp(24px, 3vw, 40px) clamp(20px, 2.4vw, 34px) 0 0; }
-        .pcp-proof__item + .pcp-proof__item { border-left: 1px solid var(--paper-line); padding-left: clamp(24px, 2.6vw, 40px); }
-        .pcp-proof__n { font-family: var(--font-display, var(--font-heading)); font-weight: 900; font-size: clamp(48px, 7vw, 104px); line-height: .9; letter-spacing: -.04em; color: var(--ink); }
-        .pcp-proof__item:nth-child(1) .pcp-proof__n { color: var(--coral); }
-        .pcp-proof__item:nth-child(2) .pcp-proof__n { color: var(--pink); }
-        .pcp-proof__item:nth-child(3) .pcp-proof__n { color: var(--cyan-deep); }
-        .pcp-proof__l { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink); margin: var(--sp-3) 0 0; }
-        .pcp-proof__d { color: var(--ink-soft); font-size: 14px; line-height: 1.45; margin: 6px 0 0; max-width: 30ch; }
-
         /* ════════ 4 — CIRCULAÇÃO (3 movimentos editoriais) ════════ */
         .pcp-move { background: var(--cream-deep, var(--bg-soft)); }
         .pcp-move__list { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
@@ -591,21 +555,6 @@ export function ParticiparPage() {
         .pcp-move__body h3 { font-size: clamp(23px, 2.6vw, 36px); line-height: 1.04; color: var(--ink); }
         .pcp-move__body p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.5; margin: var(--sp-3) 0 0; max-width: 44ch; text-wrap: pretty; }
         .pcp-move__spec { display: inline-flex; align-items: center; margin-top: var(--sp-4); padding: 8px 16px; border-radius: 999px; background: var(--cream-card); border: 1px solid var(--paper-line); font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); }
-
-        /* ════════ 5 — CURADORIA ════════ */
-        .pcp-cur { background: var(--cream); }
-        .pcp-cur__list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(28px, 4vw, 64px); margin-top: var(--sp-6); border-top: 1px solid var(--paper-line); }
-        .pcp-cur__item { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: baseline; padding: clamp(18px, 2vw, 26px) 0; border-bottom: 1px solid var(--paper-line); }
-        .pcp-cur__item dt { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 21px); color: var(--ink); }
-        .pcp-cur__icon { flex: 0 0 auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; }
-        .pcp-cur__icon--coral { color: var(--coral); background: rgba(242,105,60,.14); }
-        .pcp-cur__icon--pink { color: var(--pink); background: rgba(242,84,138,.14); }
-        .pcp-cur__icon--cyan { color: var(--cyan-deep); background: rgba(43,196,232,.16); }
-        .pcp-cur__icon--yellow { color: var(--yellow-deep, #C88A06); background: rgba(248,181,17,.18); }
-        .pcp-cur__icon--brown { color: var(--swc-coffee, #6B4A3A); background: rgba(107,74,58,.12); }
-        .pcp-cur__item dd { grid-column: 1 / -1; margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.5; max-width: 42ch; text-wrap: pretty; }
-        .pcp-cur__note { max-width: 62ch; margin: var(--sp-6) 0 0; padding: clamp(16px, 2vw, 22px) clamp(20px, 2.4vw, 28px); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
-        .pcp-cur__note strong { color: var(--ink); }
 
         /* ════════ 6 — DEPOIMENTOS (card retrato: foto + bloco de cor + selo) ════════ */
         .pcp-testi { background: var(--cream-deep, var(--bg-soft)); }
@@ -654,12 +603,8 @@ export function ParticiparPage() {
           .participar-hero__grid { grid-template-columns: 1fr; gap: var(--sp-7); align-items: start; }
           .participar-hero__bg img { object-position: center 30%; }
           .participar-hero__bg::after { background: linear-gradient(0deg, rgba(23,10,6,.94) 30%, rgba(23,10,6,.62) 100%); }
-          .pcp-proof__row { grid-template-columns: 1fr; border-top: none; }
-          .pcp-proof__item { padding: clamp(20px,5vw,28px) 0; border-top: 1px solid var(--paper-line); }
-          .pcp-proof__item + .pcp-proof__item { border-left: none; padding-left: 0; }
           .pcp-move__row, .pcp-move__row:nth-child(even) .pcp-move__media { grid-template-columns: 1fr; }
           .pcp-move__row:nth-child(even) .pcp-move__media { order: 0; }
-          .pcp-cur__list { grid-template-columns: 1fr; }
           .pcp-testi__grid { grid-template-columns: 1fr; }
           .pcp-path { grid-template-columns: 1fr; gap: 0; }
           /* mobile: percurso vertical com a linha à esquerda */
