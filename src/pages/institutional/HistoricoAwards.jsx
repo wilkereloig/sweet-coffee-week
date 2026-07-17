@@ -36,19 +36,75 @@ import {
   getResultsCoverage,
 } from '../../data/sweetHistoryStats'
 
-// Cor por categoria (edição atual) — ajuda a distinguir os 8 cards/cenas. Retonado
-// (jul/2026, Task 5): Melhor Combo agora dourado (mesmo tom do --page-accent da
-// página) — sem tom rosa dominante. Só tons da paleta oficial (§3): amarelo/dourado,
-// ciano, coral, rosa, azul, vinho, marrom.
-const CATEGORY_TONE = {
-  'Melhor Combo':        '#F8B511',
-  'Melhor Atendimento':  '#2BC4E8',
-  'Melhor Apresentação': '#F2693C',
-  'Melhor Doce':         '#F2548A',
-  'Melhor Bebida':       '#1B86C9',
-  'Melhor Salgado':      '#C8275C',
-  'Melhor Criatividade': '#8C4A2F',
-  'Encantamento em Loja':'#6B4A3A',
+// Foto real por categoria da Lovers 2026.1 — mesmos frames da landing "Em breve".
+// O Maestro Café vence 3 categorias: usa 3 frames diferentes, nunca repete arquivo.
+const CATEGORY_PHOTO = {
+  melhor_combo: '/images/combos/o-maestro-cafe/main.jpg',
+  atendimento: '/images/combos/rollab-confeitaria/main.jpg',
+  apresentacao: '/images/combos/just-food-coffee/main.jpg',
+  doce: '/images/combos/jolie-cafe-patisserie/main.jpg',
+  bebida: '/images/combos/sweet-duo-confeitaria/main.jpg',
+  salgado: '/images/combos/o-maestro-cafe/photo-02.jpg',
+  criatividade: '/images/combos/o-maestro-cafe/photo-03.jpg',
+  envolvimento: '/images/combos/mr-cupcake-confeitaria/main.jpg',
+}
+
+// Nomes de 1º lugar de uma cena (empates viram "A e B") — pro alt e pro teaser da hero.
+function firstPlaceNames(winners) {
+  return (winners || []).filter((w) => w.pos === 1).map((w) => w.name).join(' e ')
+}
+
+// Foto de categoria com fallback honesto — nunca <img> quebrada nem vazio (§8).
+function ResultSceneImg({ src, alt }) {
+  const [broken, setBroken] = React.useState(false)
+  if (!src || broken) return <div className="swa-result__nophoto">Foto pendente</div>
+  return <img className="motion-image-reveal" src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+}
+
+// Barra "Ver no Instagram" — link real pro post de resultado (nunca embed).
+function ResultPostLink({ href }) {
+  if (!href) return null
+  return (
+    <a className="swa-result__post" href={href} target="_blank" rel="noopener noreferrer">
+      <I.ig width={15} height={15} />
+      <span>Ver no Instagram</span>
+      <I.arrow />
+    </a>
+  )
+}
+
+// Card do Grande Vencedor (Melhor Combo) — largo, foto + medalha + pódio + link.
+function ComboResultCard({ scene }) {
+  return (
+    <article className="swa-result-combo motion-stagger motion-card-hover">
+      <div className="swa-result-combo__media">
+        <ResultSceneImg src={CATEGORY_PHOTO.melhor_combo} alt={`${scene.category} — combo vencedor: ${firstPlaceNames(scene.winners)}`} />
+        <span className="swa-result-combo__medal" aria-hidden="true">1º</span>
+      </div>
+      <div className="swa-result-combo__body">
+        <p className="swa-result-combo__tag">Grande vencedor</p>
+        <h3>{scene.category}</h3>
+        {scene.description && <p className="swa-result__desc">{scene.description}</p>}
+        <Podium winners={scene.winners} />
+        <ResultPostLink href={scene.postResultado} />
+      </div>
+    </article>
+  )
+}
+
+// Card de categoria — foto + título + descrição + pódio + link. Reusa Podium (empates).
+function ResultCard({ scene }) {
+  return (
+    <article className="swa-result-card motion-reveal-up motion-card-hover">
+      <div className="swa-result-card__media">
+        <ResultSceneImg src={CATEGORY_PHOTO[scene.key]} alt={`${scene.category} — vencedor: ${firstPlaceNames(scene.winners)}`} />
+      </div>
+      <h3>{scene.category}</h3>
+      {scene.description && <p className="swa-result__desc">{scene.description}</p>}
+      <Podium winners={scene.winners} />
+      <ResultPostLink href={scene.postResultado} />
+    </article>
+  )
 }
 
 // Uma moldura editorial honesta para a foto de celebração (pendente no acervo).
@@ -108,15 +164,6 @@ function CategoryCard({ a }) {
   )
 }
 
-// Foto real de cada colocado. O slug vem da marca; O Maestro usa frames diferentes
-// nas categorias em que venceu para não repetir a mesma imagem três vezes.
-const SCENE_PHOTO_FILE = { salgado: 'photo-02.jpg', criatividade: 'photo-03.jpg' }
-function winnerPhoto(scene, winner) {
-  const slug = resolveParticipant(winner.name).slug
-  const categoryFile = winner.pos === 1 ? SCENE_PHOTO_FILE[scene.key] : null
-  return slug ? `/images/combos/${slug}/${categoryFile || 'main.jpg'}` : null
-}
-
 function ReservedMedia({ slot, eager = false }) {
   const [broken, setBroken] = React.useState(false)
   const showPhoto = slot.src && !broken
@@ -164,64 +211,6 @@ function AwardsHero({ onExplore, scenes }) {
         )}
       </div>
     </section>
-  )
-}
-
-// Uma categoria por vez; dentro dela, todos os colocados viram slides com foto real.
-function CategoryWinnerCarousel({ scene, index, total }) {
-  const winners = scene.winners
-  const [activeWinnerIndex, setActiveWinnerIndex] = React.useState(0)
-  const [broken, setBroken] = React.useState(false)
-  const winner = winners[activeWinnerIndex]
-  const photo = winner ? winnerPhoto(scene, winner) : null
-  const showPhoto = photo && !broken
-  const tieCount = winner ? winners.filter((item) => item.pos === winner.pos).length : 0
-  const medalTone = winner?.pos === 1 ? 'gold' : winner?.pos === 2 ? 'silver' : 'bronze'
-  const previous = () => {
-    setBroken(false)
-    setActiveWinnerIndex((value) => (value - 1 + winners.length) % winners.length)
-  }
-  const next = () => {
-    setBroken(false)
-    setActiveWinnerIndex((value) => (value + 1) % winners.length)
-  }
-
-  if (!winner) return null
-
-  return (
-    <article className="swa-chapter swa-category-carousel" style={{ '--cat': CATEGORY_TONE[scene.category] || 'var(--page-accent)' }}>
-      <div className="swa-chapter__photo" key={`${scene.key}-${winner.name}`}>
-        {showPhoto
-          ? <img src={photo} alt={`Combo de ${winner.name}, ${winner.pos}º lugar em ${scene.category}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
-          : <div className="swa-chapter__nophoto"><WinnerLogo name={winner.name} /><span>Foto do combo indisponível</span></div>}
-        <span className="swa-chapter__number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-        <span className={`hist-medal hist-medal--${medalTone} swa-chapter__medal`} aria-hidden="true">{winner.pos}</span>
-      </div>
-      <div className="swa-chapter__body" key={`${scene.key}-${winner.name}-copy`} aria-live="polite">
-        <p className="swa-chapter__edition">Lovers 2026.1 · categoria {index + 1} de {total}</p>
-        <h3>{scene.category}</h3>
-        {scene.description && <p className="swa-chapter__description">{scene.description}</p>}
-        <div className="swa-carousel-winner">
-          <WinnerLogo name={winner.name} />
-          <div>
-            <span className="swa-carousel-winner__place">{winner.pos}º lugar{tieCount > 1 ? ' · empate' : ''}</span>
-            <h4>{winner.name}</h4>
-          </div>
-        </div>
-        <div className="swa-chapter__controls" aria-label="Navegação entre vencedores da categoria">
-          <button type="button" className="swa-chapter__arrow" onClick={previous} aria-label="Vencedor anterior" disabled={winners.length <= 1}>
-            <I.chevronLeft aria-hidden="true" />
-          </button>
-          <div className="swa-winner-carousel__status">
-            <span>{String(activeWinnerIndex + 1).padStart(2, '0')} / {String(winners.length).padStart(2, '0')}</span>
-            <span className="swa-chapter__progress" aria-hidden="true"><span style={{ transform: `scaleX(${(activeWinnerIndex + 1) / winners.length})` }} /></span>
-          </div>
-          <button type="button" className="swa-chapter__arrow" onClick={next} aria-label="Próximo vencedor" disabled={winners.length <= 1}>
-            <I.chevronRight aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-    </article>
   )
 }
 
@@ -345,7 +334,6 @@ const EVOLUTION = [
 
 export function HistoricoAwardsPage({ navigate }) {
   const go = (path) => (e) => { e.preventDefault(); navigate(path) }
-  const [activeIndex, setActiveIndex] = React.useState(0)
   // Scroll suave até o destaque da edição atual (âncora criada na seção Premiação 2026.1).
   const scrollToCurrent = (ev) => {
     ev.preventDefault()
@@ -356,7 +344,7 @@ export function HistoricoAwardsPage({ navigate }) {
   // contra loversAwardsResults em sweetHistoryStats.js (getCurrentEditionScenes).
   const scenes = getCurrentEditionScenes()
   const comboScene = scenes.find((s) => s.key === 'melhor_combo') || scenes[0] || null
-  const activeScene = scenes[activeIndex] || comboScene
+  const otherScenes = scenes.filter((s) => s.key !== 'melhor_combo')
   // Recordes históricos: sempre PARTICIPANTES, nunca edições (AGENTS.md §11).
   const podiumLeader = getPodiumTotals()[0] || null
   const winsLeader = getAwardWins()[0] || null
@@ -369,36 +357,17 @@ export function HistoricoAwardsPage({ navigate }) {
     <PageShell name="hist">
       <AwardsHero onExplore={scrollToCurrent} scenes={scenes} />
 
-      {/* 2 — CERIMÔNIA ATUAL: capítulos navegáveis, começando por Melhor Combo */}
-      <section id="premiacao-atual" className="section swa-current-section">
+      {/* 2 — RESULTADOS DA EDIÇÃO ATUAL: grade que linka pro Instagram */}
+      <section id="premiacao-atual" className="section swa-results-section">
         <div className="wrap">
-          <div className="hist-head motion-reveal-up">
+          <div className="swa-results-head motion-reveal-up">
             <h2>Todos os vencedores, <span className="hist-hl">categoria por categoria</span></h2>
-            <p>Escolha uma categoria e percorra todos os colocados. Cada slide apresenta a marca, a colocação e a foto do combo, com os empates preservados.</p>
+            <p>A premiação da 16ª edição na avaliação dos Sweet Lovers. Cada card abre o post do resultado no Instagram, com os empates preservados.</p>
           </div>
-          <nav className="swa-chapter-nav" aria-label="Categorias da premiação Lovers 2026.1">
-            {scenes.map((scene, index) => (
-              <button
-                type="button"
-                key={scene.key}
-                className={`swa-chapter-nav__item${activeIndex === index ? ' is-active' : ''}`}
-                aria-current={activeIndex === index ? 'true' : undefined}
-                aria-label={`Ver categoria ${scene.category}`}
-                onClick={() => setActiveIndex(index)}
-              >
-                <span className="swa-chapter-nav__number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                <span>{scene.category}</span>
-              </button>
-            ))}
-          </nav>
-          {activeScene && (
-            <CategoryWinnerCarousel
-              key={activeScene.key}
-              scene={activeScene}
-              index={activeIndex}
-              total={scenes.length}
-            />
-          )}
+          {comboScene && <ComboResultCard scene={comboScene} />}
+          <div className="swa-results-grid">
+            {otherScenes.map((scene) => <ResultCard scene={scene} key={scene.key} />)}
+          </div>
         </div>
       </section>
 
@@ -509,48 +478,34 @@ export function HistoricoAwardsPage({ navigate }) {
         .swa-media-slot__placeholder strong { max-width: 18ch; font: 900 clamp(25px, 3vw, 42px)/1 var(--font-heading); letter-spacing: -.02em; }
         .swa-media-slot__placeholder p { max-width: 34ch; margin: 0; color: rgba(255,241,230,.7); font-size: 14px; line-height: 1.4; }
 
-        /* 2 — CERIMÔNIA ATUAL: um capítulo ativo por vez */
-        .swa-current-section { background: var(--cream); }
-        .swa-chapter-nav { display: flex; flex-wrap: wrap; gap: 6px 10px; max-width: 1120px; margin: 0 auto var(--sp-6); padding-bottom: 10px; border-bottom: 1px solid var(--paper-line); }
-        .swa-chapter-nav__item { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--ink-soft); cursor: pointer; font: 700 13px/1.2 var(--font-sans); text-align: left; transition: color .2s ease, border-color .2s ease, transform .2s ease; }
-        @media (hover: hover) and (pointer: fine) {
-          .swa-chapter-nav__item:hover { color: var(--ink); transform: translateY(-1px); }
-        }
-        .swa-chapter-nav__item:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 3px; border-radius: 4px; }
-        .swa-chapter-nav__item.is-active { color: var(--page-accent-dark); border-color: var(--page-accent); }
-        .swa-chapter-nav__number { color: var(--page-accent); font-family: var(--font-display); font-size: 12px; }
-        .swa-chapter-nav__item:disabled { cursor: default; }
-        @keyframes swaChapterEnter { from { transform: translateY(10px); } to { transform: translateY(0); } }
-        @keyframes swaWinnerEnter { from { transform: translateY(6px); } to { transform: translateY(0); } }
         @keyframes swaHeroPhotoSettle { from { transform: scale(1.04); } to { transform: scale(1); } }
-        .swa-chapter { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr); max-width: 1120px; margin: 0 auto; overflow: hidden; border-radius: var(--r-lg); background: var(--ink); box-shadow: var(--shadow-lg); animation: swaChapterEnter .22s var(--ease-out-soft, ease) both; }
-        .swa-chapter__photo { position: relative; min-height: clamp(420px, 52vw, 680px); overflow: hidden; background: var(--cream-card); animation: swaWinnerEnter .2s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)) both; }
-        .swa-chapter__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .swa-chapter__nophoto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-3); width: 100%; height: 100%; padding: var(--sp-5); color: var(--ink-soft); background: var(--cream-card); font-size: 13.5px; text-align: center; }
-        .swa-chapter__nophoto .hist-brand { width: 78px; height: 78px; background: #fff; }
-        .swa-chapter__number { position: absolute; top: var(--sp-5); right: var(--sp-5); color: rgba(255,241,230,.92); font: 900 clamp(42px, 7vw, 90px)/.8 var(--font-display); letter-spacing: -.05em; text-shadow: 0 3px 20px rgba(43,24,16,.3); }
-        .swa-chapter__medal { position: absolute; top: var(--sp-5); left: var(--sp-5); width: 46px; height: 46px; font-size: 20px; box-shadow: 0 6px 16px rgba(43,24,16,.28); }
-        .swa-chapter__body { display: flex; flex-direction: column; justify-content: center; gap: var(--sp-5); padding: clamp(28px, 5vw, 68px); color: var(--cream); animation: swaWinnerEnter .2s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)) both; }
-        .swa-chapter__edition { margin: 0; color: var(--page-accent); font: 800 11px/1.2 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; }
-        .swa-chapter__body h3 { margin: 0; color: var(--cream); font: 800 clamp(32px, 4vw, 58px)/.96 var(--font-heading); letter-spacing: -.035em; text-wrap: balance; }
-        .swa-chapter__description { max-width: 42ch; margin: 0; color: rgba(255,241,230,.76); font-size: 15px; line-height: 1.5; text-wrap: pretty; }
-        .swa-chapter .hist-brand { background: rgba(255,241,230,.1); border-color: rgba(255,241,230,.2); }
-        .swa-chapter .hist-brand--img { background: #fff; }
-        .swa-chapter .hist-brand img { object-fit: contain; padding: 4px; }
-        .swa-carousel-winner { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; padding-top: var(--sp-3); border-top: 1px solid rgba(255,241,230,.16); }
-        .swa-carousel-winner .hist-brand { width: 58px; height: 58px; border-radius: 12px; }
-        .swa-carousel-winner__place { display: block; margin-bottom: 5px; color: var(--cat, var(--page-accent)); font: 800 12px/1.2 var(--font-sans); text-transform: uppercase; }
-        .swa-carousel-winner h4 { margin: 0; color: var(--cream); font: 800 clamp(20px, 2.2vw, 30px)/1.08 var(--font-heading); letter-spacing: -.02em; overflow-wrap: anywhere; }
-        .swa-chapter__controls { display: flex; align-items: center; gap: 12px; margin-top: var(--sp-3); }
-        .swa-chapter__arrow { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; padding: 0; border: 1px solid rgba(255,241,230,.3); border-radius: 50%; background: transparent; color: var(--cream); cursor: pointer; transition: background .18s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)), border-color .18s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)), transform .18s var(--ease-out-soft, cubic-bezier(.22,1,.36,1)); }
-        @media (hover: hover) and (pointer: fine) {
-          .swa-chapter__arrow:hover:not(:disabled) { border-color: var(--page-accent); background: rgba(248,181,17,.16); transform: translateY(-1px); }
-        }
-        .swa-chapter__arrow:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 3px; }
-        .swa-chapter__arrow:disabled { cursor: not-allowed; opacity: .35; }
-        .swa-winner-carousel__status { display: flex; flex: 1; flex-direction: column; gap: 8px; min-width: 0; color: rgba(255,241,230,.65); font: 800 11px/1 var(--font-sans); text-align: center; }
-        .swa-chapter__progress { width: 100%; height: 2px; background: rgba(255,241,230,.2); }
-        .swa-chapter__progress span { display: block; width: 100%; height: 100%; background: var(--page-accent); transform: scaleX(1); transform-origin: left center; transition: transform .35s var(--ease-out-soft, ease); }
+
+        /* 2 — RESULTADOS: card do grande vencedor + grade das 7 categorias */
+        .swa-results-section { background: var(--cream); }
+        .swa-results-head { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: var(--sp-4); max-width: 760px; margin: 0 0 var(--sp-7); }
+        .swa-results-head h2 { font-size: var(--fs-display-md); line-height: .98; }
+        .swa-results-head p { max-width: 62ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
+
+        .swa-result-combo { display: grid; grid-template-columns: minmax(220px, 1fr) 1.35fr; gap: clamp(20px, 3vw, 40px); align-items: stretch; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: clamp(20px, 2.6vw, 32px); box-shadow: var(--shadow-md); margin-bottom: clamp(28px, 4vw, 48px); }
+        .swa-result-combo__media { position: relative; min-height: 240px; border-radius: 14px; overflow: hidden; background: var(--cream-card); }
+        .swa-result-combo__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .swa-result-combo__medal { position: absolute; top: 14px; left: 14px; display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: linear-gradient(160deg, #FFE08A, #E8A20C); color: var(--ink); font-family: var(--font-display); font-weight: 900; font-size: 18px; box-shadow: 0 6px 16px rgba(43,24,16,.28), inset 0 0 0 3px rgba(255,255,255,.5); }
+        .swa-result-combo__body { display: flex; flex-direction: column; gap: var(--sp-3); }
+        .swa-result-combo__tag { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent-dark); }
+        .swa-result-combo__body h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.03em; color: var(--ink); margin: 0; }
+
+        .swa-results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--sp-4); }
+        .swa-result-card { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-md); }
+        .swa-result-card__media { border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--cream-card); }
+        .swa-result-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .swa-result-card h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: var(--ink); margin: 0; }
+        .swa-result__desc { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); text-wrap: pretty; }
+        .swa-result__nophoto { width: 100%; height: 100%; display: grid; place-items: center; padding: var(--sp-4); text-align: center; color: var(--ink-soft); font-size: 12.5px; font-style: italic; background: repeating-linear-gradient(135deg, var(--cream-card), var(--cream-card) 10px, var(--paper-line) 10px, var(--paper-line) 11px); }
+        /* barra "Ver no Instagram" — link real pro post, sem embed */
+        .swa-result__post { margin-top: auto; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--paper-line); background: #fff; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: var(--page-accent-dark); text-decoration: none; }
+        .swa-result__post svg:last-child { margin-left: auto; transition: transform .16s ease; }
+        .swa-result__post:hover svg:last-child { transform: translateX(3px); }
+        .swa-result__post:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 2px; }
 
         /* 4 — CONTEXTO + MEMÓRIA DA CERIMÔNIA */
         .swa-context-section { background: var(--cream); }
@@ -671,9 +626,6 @@ export function HistoricoAwardsPage({ navigate }) {
           .swa-hero__inner { grid-template-columns: 1fr; gap: var(--sp-6); }
           .swa-hero__copy { max-width: 720px; }
           .swa-hero__roster { max-width: 720px; }
-          .swa-chapter { grid-template-columns: 1fr; }
-          .swa-chapter__photo { min-height: 0; aspect-ratio: 4 / 3; }
-          .swa-chapter__body { padding: clamp(28px, 7vw, 52px); }
           .swa-context-copy { grid-template-columns: 1fr; align-items: start; }
           .swa-memory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .swa-memory-grid .swa-media-slot:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 8; }
@@ -682,10 +634,8 @@ export function HistoricoAwardsPage({ navigate }) {
           .hist-evo__step + .hist-evo__step { border-left: 0; }
         }
         @media (max-width: 720px) {
-          .swa-chapter-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; }
-          .swa-chapter-nav__item { width: 100%; padding-inline: 6px; font-size: 12px; }
-          .swa-chapter__number { top: var(--sp-4); right: var(--sp-4); font-size: clamp(42px, 16vw, 74px); }
-          .swa-chapter__medal { top: var(--sp-4); left: var(--sp-4); }
+          .swa-result-combo { grid-template-columns: 1fr; }
+          .swa-result-combo__media { min-height: 200px; }
           .hist-evo--strip { grid-template-columns: 1fr; gap: 0; }
           .hist-evo__step { padding: var(--sp-5) 0; border-top: 1px solid var(--paper-line); }
           .hist-evo__step:first-child { padding-top: 0; border-top: 0; }
@@ -700,10 +650,6 @@ export function HistoricoAwardsPage({ navigate }) {
           .swa-hero__copy p { font-size: 16px; }
           .swa-memory-grid { grid-template-columns: 1fr; }
           .swa-memory-grid .swa-media-slot:first-child { grid-column: auto; aspect-ratio: 4 / 3; }
-          .swa-chapter__photo { aspect-ratio: 4 / 3; }
-          .swa-chapter__body { gap: var(--sp-4); padding: 26px 22px 30px; }
-          .swa-chapter__body h3 { font-size: clamp(30px, 10vw, 46px); }
-          .swa-chapter__description { font-size: 14px; }
           .hist-cta__row .btn { width: 100%; justify-content: center; }
         }
 
@@ -712,8 +658,8 @@ export function HistoricoAwardsPage({ navigate }) {
            desligadas em prefers-reduced-motion pelo bloco global de motion-system.css) */
         @media (prefers-reduced-motion: reduce) {
           .hist-edi__chev svg { transition: none; }
-          .swa-chapter-nav__item, .swa-chapter__arrow, .swa-chapter__progress span { transition: none; }
-          .swa-chapter, .swa-chapter__photo, .swa-chapter__body, .swa-media-slot > img { animation: none; }
+          .swa-result__post svg:last-child { transition: none; }
+          .swa-media-slot > img { animation: none; }
         }
       `}</style>
     </PageShell>
