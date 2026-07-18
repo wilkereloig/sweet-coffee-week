@@ -551,16 +551,19 @@ export function ParticiparPage() {
           border-radius: clamp(20px, 2.4vw, 32px); overflow: hidden; box-shadow: var(--shadow-md); }
         .pcp-move__row:nth-child(even) .pcp-move__frame { order: 2; }
         /* moldura de cor com a galeria inset */
-        .pcp-move__frame { display: flex; background: var(--frame); padding: clamp(14px, 1.6vw, 22px); }
-        .pcp-move__shot { flex: 1; aspect-ratio: 1 / 1; border-radius: clamp(12px, 1.6vw, 20px); overflow: hidden; background: var(--swc-coffee); }
+        .pcp-move__frame { display: grid; background: var(--frame); padding: clamp(14px, 1.6vw, 22px); }
+        .pcp-move__shot { width: 100%; aspect-ratio: 1 / 1; align-self: start; border-radius: clamp(12px, 1.6vw, 20px); overflow: hidden; background: var(--swc-coffee); }
+        /* foto respira no hover da linha (desligado em prefers-reduced-motion pelo global) */
+        .pcp-move__shot .photo-rotator__img.is-active { transition: opacity 900ms var(--ease-out-soft), transform 1400ms var(--ease-out-soft); }
+        .pcp-move__row:hover .pcp-move__shot .photo-rotator__img.is-active { transform: scale(1.045); }
         /* painel de texto colorido */
         .pcp-move__panel { background: var(--panel); color: var(--panel-fg); padding: clamp(28px, 3.4vw, 56px);
-          display: flex; flex-direction: column; justify-content: center; gap: var(--sp-3); }
+          display: flex; flex-direction: column; justify-content: flex-start; gap: var(--sp-4); }
         .pcp-move__panel h3 { font-size: clamp(26px, 3vw, 44px); line-height: 1.02; color: inherit; }
         .pcp-move__hl { color: var(--hl, currentColor); box-shadow: inset 0 -.14em 0 var(--hl, currentColor); }
         .pcp-move__panel p { color: inherit; opacity: .88; font-size: var(--fs-lead); line-height: 1.5; margin: 0; max-width: 46ch; text-wrap: pretty; }
         .pcp-move__spec { font-family: var(--font-slab, var(--font-heading)); font-weight: 900; font-size: clamp(19px, 2vw, 26px);
-          color: var(--spec, var(--hl, currentColor)); margin-top: var(--sp-2); }
+          color: var(--spec, var(--hl, currentColor)); margin-top: auto; padding-top: var(--sp-5); }
 
         /* ════════ 6 — DEPOIMENTOS (card retrato: foto + bloco de cor + selo) ════════ */
         .pcp-testi { background: var(--cream-deep, var(--bg-soft)); }
