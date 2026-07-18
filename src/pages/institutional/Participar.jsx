@@ -551,8 +551,8 @@ export function ParticiparPage() {
           border-radius: clamp(20px, 2.4vw, 32px); overflow: hidden; box-shadow: var(--shadow-md); }
         .pcp-move__row:nth-child(even) .pcp-move__frame { order: 2; }
         /* moldura de cor com a galeria inset */
-        .pcp-move__frame { display: flex; background: var(--frame); padding: clamp(14px, 1.6vw, 22px); min-height: clamp(280px, 30vw, 420px); }
-        .pcp-move__shot { flex: 1; border-radius: clamp(12px, 1.6vw, 20px); overflow: hidden; background: var(--swc-coffee); }
+        .pcp-move__frame { display: flex; background: var(--frame); padding: clamp(14px, 1.6vw, 22px); }
+        .pcp-move__shot { flex: 1; aspect-ratio: 1 / 1; border-radius: clamp(12px, 1.6vw, 20px); overflow: hidden; background: var(--swc-coffee); }
         /* painel de texto colorido */
         .pcp-move__panel { background: var(--panel); color: var(--panel-fg); padding: clamp(28px, 3.4vw, 56px);
           display: flex; flex-direction: column; justify-content: center; gap: var(--sp-3); }
@@ -611,7 +611,7 @@ export function ParticiparPage() {
           .participar-hero__bg::after { background: linear-gradient(0deg, rgba(23,10,6,.94) 30%, rgba(23,10,6,.62) 100%); }
           .pcp-move__row { grid-template-columns: 1fr; }
           .pcp-move__row:nth-child(even) .pcp-move__frame { order: 0; }
-          .pcp-move__frame { min-height: 0; aspect-ratio: 4 / 3; }
+          .pcp-move__frame { min-height: 0; }
           .pcp-testi__grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .pcp-path { grid-template-columns: 1fr; gap: 0; }
           /* mobile: percurso vertical com a linha à esquerda */
