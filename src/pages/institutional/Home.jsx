@@ -241,7 +241,7 @@ export function HomePage({ navigate }) {
   }, [])
 
   return (
-    <main ref={rootRef} className="page-enter hmv2">
+    <div ref={rootRef} className="page-enter hmv2">
       <section className="hmv2-hero">
         <PhotoRotator images={heroGalleryImages} interval={6200} eager className="hmv2-hero__photos" />
         <div className="hmv2-hero__shade" aria-hidden="true" />
@@ -332,11 +332,14 @@ export function HomePage({ navigate }) {
               <li key={number} className={i === activeStage ? 'is-active' : ''}>
                 <div
                   className="hmv2-cycle__beat"
+                  role="button"
                   tabIndex={0}
+                  aria-pressed={i === activeStage}
                   aria-current={i === activeStage ? 'true' : undefined}
                   onMouseEnter={() => setActiveStage(i)}
                   onFocus={() => setActiveStage(i)}
                   onClick={() => setActiveStage(i)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveStage(i) } }}
                 >
                   <span className="hmv2-cycle__num">{number}</span>
                   <h3>{title}</h3>
@@ -710,6 +713,6 @@ export function HomePage({ navigate }) {
           .hmv2-press__feature .hmv2-press__featureYear { opacity: .05 !important; }
         }
       `}</style>
-    </main>
+    </div>
   )
 }
