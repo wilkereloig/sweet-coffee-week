@@ -59,16 +59,17 @@ const COMBO_GALLERY = [
 // Fonte: acervo Dropbox "fotos mockups sinalização de lojas".
 const CAMPAIGN_DIR = '/images/campanha'
 const CAMPAIGN_GALLERY = [
-  { src: `${CAMPAIGN_DIR}/01.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/02.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/03.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/04.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/05.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/06.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/07.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/08.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/09.png`, alt: 'Material do festival em ponto de venda' },
-  { src: `${CAMPAIGN_DIR}/10.png`, alt: 'Material do festival em ponto de venda' },
+  // 01–10 convertidos de .png pra .jpg (jul/2026) — fotos em PNG pesavam ~3 MB cada.
+  { src: `${CAMPAIGN_DIR}/01.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/02.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/03.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/04.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/05.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/06.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/07.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/08.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/09.jpg`, alt: 'Material do festival em ponto de venda' },
+  { src: `${CAMPAIGN_DIR}/10.jpg`, alt: 'Material do festival em ponto de venda' },
   { src: `${CAMPAIGN_DIR}/11.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
   { src: `${CAMPAIGN_DIR}/12.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
   { src: `${CAMPAIGN_DIR}/13.jpg`, alt: 'Participantes do Sweet & Coffee Week' },
@@ -84,8 +85,9 @@ const CAMPAIGN_GALLERY = [
 // "sweet lovers" (10 fotos de grupo aprovadas — 5 jpg + 5 png).
 const LOVERS_DIR = '/images/lovers-publico'
 const LOVERS_GALLERY = [
+  // 06–10 convertidos de .png pra .jpg (jul/2026) — mesma otimização da campanha.
   '01.jpg', '02.jpg', '03.jpg', '04.jpg', '05.jpg',
-  '06.png', '07.png', '08.png', '09.png', '10.png',
+  '06.jpg', '07.jpg', '08.jpg', '09.jpg', '10.jpg',
 ].map((file) => ({ src: `${LOVERS_DIR}/${file}`, alt: 'Sweet Lovers vivendo o festival' }))
 
 // ── O que a marca coloca em circulação (3 movimentos, foto real, sem grade).
