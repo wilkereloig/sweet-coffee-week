@@ -91,11 +91,14 @@ const VALUE = [
 ]
 
 // Onde a marca pode aparecer — 4 grupos por ponto de contato (lista enxuta).
+// Fotos = acervo real: combo Lovers (conteúdo digital), display de mesa em loja
+// (campanha Books), Sweet Lovers em ação temática (Heróis e Vilões) e o combo
+// grande vencedor do Sweet Awards Lovers 2026.1 (O Maestro Café).
 const TOUCHPOINTS = [
-  { icon: 'ig', hl: 'var(--coral)', t: 'Digital', items: ['Posts e stories', 'Reels', 'Site oficial', 'Página de participantes', 'Página de promoções'] },
-  { icon: 'pin', hl: 'var(--pink)', t: 'Cidade e ponto de venda', items: ['Display de mesa', 'Adesivo de vitrine', 'Mapa e rota do festival', 'Materiais impressos', 'Ativações nas lojas'] },
-  { icon: 'heart', hl: 'var(--cyan-deep)', t: 'Relacionamento', items: ['Press kit', 'Vouchers e brindes', 'Sorteios', 'Ações com Sweet Lovers', 'Experiências de marca'] },
-  { icon: 'star', hl: 'var(--yellow-deep)', t: 'Premiação', items: ['Sweet Awards', 'Cards de resultado', 'Conteúdos de vencedores', 'Ações de reconhecimento'] },
+  { icon: 'ig', hl: 'var(--coral)', t: 'Digital', photo: '/images/edicoes/2026.1/02.webp', alt: 'Combo da edição Sweet & Coffee Week Lovers — o conteúdo que alimenta posts, reels e site', items: ['Posts e stories', 'Reels', 'Site oficial', 'Página de participantes', 'Página de promoções'] },
+  { icon: 'pin', hl: 'var(--pink)', t: 'Cidade e ponto de venda', photo: '/images/campanha/03.jpg', alt: 'Display de mesa do festival com QR code do combo em uma loja participante', items: ['Display de mesa', 'Adesivo de vitrine', 'Mapa e rota do festival', 'Materiais impressos', 'Ativações nas lojas'] },
+  { icon: 'heart', hl: 'var(--cyan-deep)', t: 'Relacionamento', photo: '/images/momentos/05.jpg', alt: 'Sweet Lovers fantasiados em ação temática de uma edição do festival', items: ['Press kit', 'Vouchers e brindes', 'Sorteios', 'Ações com Sweet Lovers', 'Experiências de marca'] },
+  { icon: 'star', hl: 'var(--yellow-deep)', t: 'Premiação', photo: '/images/combos/o-maestro-cafe/main.jpg', alt: 'Combo do O Maestro Café, grande vencedor do Sweet Awards da edição Lovers 2026.1', items: ['Sweet Awards', 'Cards de resultado', 'Conteúdos de vencedores', 'Ações de reconhecimento'] },
 ]
 
 // Quem vive o festival — perfil qualitativo (sem números inventados de público).
@@ -300,11 +303,18 @@ export function ApoiarPage() {
             const Icon = I[g.icon] || I.star
             return (
               <article className="apoiar-where__card" key={g.t} style={{ '--hl': g.hl }}>
-                {/* Slot de foto reservado — moldura editorial até a foto real chegar.
-                    Quando houver asset: trocar o placeholder por <img src=... alt=... />. */}
-                <div className="apoiar-where__media" role="img" aria-label={`Foto de ${g.t} (pendente)`}>
+                {/* Foto real do acervo; se o asset falhar, o slot volta à moldura
+                    editorial "Foto pendente" (onError esconde só o <img>). */}
+                <div className="apoiar-where__media">
+                  <span className="apoiar-where__ph" aria-hidden="true">Foto pendente</span>
+                  <img
+                    src={g.photo}
+                    alt={g.alt}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
                   <span className="apoiar-where__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
-                  <span className="apoiar-where__ph">Foto pendente</span>
                 </div>
                 <div className="apoiar-where__body">
                   <h3>{g.t}</h3>
@@ -337,9 +347,17 @@ export function ApoiarPage() {
           <h2>Um festival que também vira <span className="apoiar-hl" style={{ '--hl': 'var(--coral)' }}>notícia</span></h2>
           <p>O Sweet &amp; Coffee Week já apareceu em veículos locais, rádios, fontes institucionais e registros acadêmicos, reforçando sua relevância para a gastronomia e a economia criativa de Natal.</p>
         </div>
-        <ul className="apoiar-media__list motion-stagger" aria-label="Veículos que noticiaram o festival">
-          {MEDIA.map((m) => <li key={m}>{m}</li>)}
-        </ul>
+        {/* Faixa em movimento contínuo (ref. editorial): a lista dobrada roda em
+            loop — a 2ª cópia é decorativa (aria-hidden). Pausa no hover/foco;
+            reduced-motion volta ao wrap estático (ver CSS). */}
+        <div className="apoiar-media__marquee" aria-label="Veículos que noticiaram o festival">
+          <ul className="apoiar-media__list">
+            {MEDIA.map((m) => <li key={m}>{m}</li>)}
+          </ul>
+          <ul className="apoiar-media__list" aria-hidden="true">
+            {MEDIA.map((m) => <li key={m}>{m}</li>)}
+          </ul>
+        </div>
       </PageSection>
 
       {/* 7 — CTA FINAL (banda chocolate) → volta ao formulário */}
@@ -470,8 +488,19 @@ export function ApoiarPage() {
         .apoiar-media { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); align-items: center; text-align: center; max-width: 880px; margin-inline: auto; }
         .apoiar-media__copy h2 { font-size: clamp(26px, 3vw, 40px); line-height: 1; }
         .apoiar-media__copy p { margin: var(--sp-4) auto 0; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; max-width: 60ch; text-wrap: pretty; }
-        .apoiar-media__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-3); }
-        .apoiar-media__list li { padding: 9px 18px; border-radius: 999px; background: var(--cream-card); border: 1px solid var(--paper-line); box-shadow: var(--shadow-sm); font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--ink); }
+        /* Faixa contínua de veículos: trilho com a lista dobrada, translateX(-50%)
+           em loop = movimento infinito sem salto. Só transform (sem layout shift);
+           pausa no hover; fade nas bordas via mask. */
+        .apoiar-media__marquee { display: flex; gap: var(--sp-3); overflow: hidden; width: 100%; -webkit-mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+        .apoiar-media__marquee:hover .apoiar-media__list { animation-play-state: paused; }
+        .apoiar-media__list { list-style: none; margin: 0; padding: 0; display: flex; flex: 0 0 auto; gap: var(--sp-3); animation: apoiarMediaScroll 36s linear infinite; }
+        .apoiar-media__list li { white-space: nowrap; padding: 9px 18px; border-radius: 999px; background: var(--cream-card); border: 1px solid var(--paper-line); box-shadow: var(--shadow-sm); font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--ink); }
+        @keyframes apoiarMediaScroll { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--sp-3))); } }
+        @media (prefers-reduced-motion: reduce) {
+          .apoiar-media__marquee { -webkit-mask: none; mask: none; flex-wrap: wrap; justify-content: center; }
+          .apoiar-media__marquee > [aria-hidden="true"] { display: none; }
+          .apoiar-media__list { animation: none; flex-wrap: wrap; justify-content: center; }
+        }
 
         /* ============ 7 — CTA FINAL (banda chocolate) ============ */
         .apoiar-close-section { background: #5e3018; }
