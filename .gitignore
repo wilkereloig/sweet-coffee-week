@@ -20,7 +20,10 @@ por.traineddata
 skills-lock.json
 .agents/
 
-# Acervo bruto (fonte local; usar /images/edicoes normalizado no site)
+# Acervo bruto (fonte local; usar /images/edicoes normalizado no site).
+# Movido pra fora de public/ (jul/2026): dentro de public/ o Vite copiava os
+# ~58 GB pra TODO build — era isso que travava builds na raiz do projeto.
+acervo-bruto/
 public/images/EDIÇÕES DO FESTIVAL/
 
 # Brainstorming visual companion (superpowers skill)

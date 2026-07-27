@@ -461,13 +461,14 @@ public/images/  # logos, combos (/images/combos/<slug>/main.jpg), shapes
 
 - Vite + React (JSX). Hash router customizado. Adobe Fonts/Typekit + Google Fonts.
 - Dev server: `npm run dev`. Build: `npm run build`.
-- **Build de verificação: SEMPRE fora do projeto, uma vez só.** Buildar dentro da raiz
-  (`dist_check`, `dist_v*`) acumula GBs de cópia dos combos e trava por lock de
-  arquivo — não é o Dropbox, é processo segurando os JPGs (inclusive um build anterior
-  ainda rodando). Rodar em pasta temp única do sistema:
+- **Build de verificação: SEMPRE fora do projeto, uma vez só.** Rodar em pasta temp:
   `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"`.
   Nunca disparar 2 builds ao mesmo tempo; esperar o anterior. `dist*/` já está no
   `.gitignore` — não versiona.
+  *(Causa raiz dos builds de GBs resolvida em jul/2026: o acervo bruto de ~58 GB
+  morava em `public/images/EDIÇÕES DO FESTIVAL/` e o Vite copiava tudo por build.
+  Movido para `acervo-bruto/` na raiz — fora de `public/`, fora do git. Build agora
+  ~364 MB / ~5 s. Não devolver o acervo pra dentro de `public/`.)*
 
 ```css
 --accent: #E8553A;  --ink: #2B1810;  --peach: #F7D9B5;
