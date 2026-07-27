@@ -279,10 +279,10 @@ button:disabled { cursor: not-allowed; }
 .nav-main a:hover::after,
 .nav-main a:focus-visible::after,
 .nav-main a.active::after { transform: scaleX(1); }
-.nav-main a.active { color: var(--cyan-deep, #1f7a8c); font-weight: 800; font-style: italic; }
+.nav-main a.active { color: var(--cyan-deep, #149FC0); font-weight: 800; font-style: italic; }
 /* Foco por teclado — destaque claro, não só cor */
 .nav-main a:focus-visible {
-  outline: 2px solid var(--cyan-deep, #1f7a8c);
+  outline: 2px solid var(--cyan-deep, #149FC0);
   outline-offset: 2px;
   border-radius: 5px;
   color: var(--ink);
@@ -393,11 +393,11 @@ body:not(.route-painel) .site-header::before {
 }
 body:not(.route-painel) .site-header .nav-main a { color: rgba(255, 244, 236, 0.92); transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease), opacity var(--motion-base, 260ms) var(--ease-out-soft, ease); }
 body:not(.route-painel) .site-header .nav-main a:hover { color: #fff; }
-body:not(.route-painel) .site-header .nav-main a.active { color: var(--page-accent, var(--cyan, #4fc3d9)); }
-body:not(.route-painel) .site-header .menu-toggle { color: #FEF0DD; opacity: .9; }
+body:not(.route-painel) .site-header .nav-main a.active { color: var(--page-accent, var(--cyan, #2BC4E8)); }
+body:not(.route-painel) .site-header .menu-toggle { color: var(--cream-warm); opacity: .9; }
 /* Botão de acesso sobre o hero escuro: aro e ícone em creme claro */
 body:not(.route-painel) .site-header .login-toggle {
-  color: #FEF0DD;
+  color: var(--cream-warm);
   border-color: rgba(254, 240, 221, 0.45);
   background: rgba(254, 240, 221, 0.08);
 }
@@ -530,8 +530,9 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
    o scrim e com a gêmea, e é o fallback correto se a foto não carregar. */
 .apoiar-hero { background: #2B1810 !important; }
 .apoiar-hero .apoiar-hero__copy :is(h1, p) { color: var(--cream, #FFF1E6) !important; }
-.cur-hl, .hist-hl { color: var(--ink) !important; }
-.cur-hl::after { background: var(--ink) !important; }
+/* (regra .cur-hl/.hist-hl removida jul/2026: Curiosidades saiu do ar e o
+   !important apagava o destaque dourado do Awards sobre a seção escura —
+   cada página estiliza o próprio highlight no <style> local.) */
 /* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
    Altura vem do .swc-hero inline (faixa proporcional, §4) — sem override fixo aqui.
    Foto/overlay/texto claro preservados. */
@@ -621,9 +622,9 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   color: color-mix(in srgb, var(--ink) 38%, transparent);
   min-width: 20px;
 }
-.mobile-menu__inst-link.active { color: var(--page-accent-dark, var(--cyan-deep, #1f7a8c)); font-weight: 800; }
-.mobile-menu__inst-link.active .mobile-menu__inst-n { color: var(--page-accent, var(--cyan, #4fc3d9)); }
-.mobile-menu__inst-link:focus-visible { outline: 2px solid var(--page-accent-dark, var(--cyan-deep, #1f7a8c)); outline-offset: 2px; border-radius: 5px; }
+.mobile-menu__inst-link.active { color: var(--page-accent-dark, var(--cyan-deep, #149FC0)); font-weight: 800; }
+.mobile-menu__inst-link.active .mobile-menu__inst-n { color: var(--page-accent, var(--cyan, #2BC4E8)); }
+.mobile-menu__inst-link:focus-visible { outline: 2px solid var(--page-accent-dark, var(--cyan-deep, #149FC0)); outline-offset: 2px; border-radius: 5px; }
 
 .mobile-menu__section--access { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .mobile-menu__access-btn {
@@ -678,7 +679,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   transition: color .16s var(--ease-out-soft, ease), transform .1s ease;
 }
 .mobile-tabbar__item:active { transform: scale(.9); }
-.mobile-tabbar__item.is-active { color: var(--page-accent, var(--cyan, #4fc3d9)); }
+.mobile-tabbar__item.is-active { color: var(--page-accent, var(--cyan, #2BC4E8)); }
 .mobile-tabbar__item:focus-visible { outline: 2px solid var(--page-accent, var(--cream)); outline-offset: -3px; border-radius: 8px; }
 .mobile-tabbar__icon { display: inline-flex; transition: transform .16s var(--ease-out-soft, ease); }
 .mobile-tabbar__item.is-active .mobile-tabbar__icon { transform: translateY(-1px); }
@@ -709,15 +710,15 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 /* Identidade */
 .site-footer__name {
   display: inline-block; font-family: var(--font-display, var(--font-heading));
-  font-size: clamp(22px, 2.2vw, 28px); font-weight: 800; color: #FEF0DD;
+  font-size: clamp(22px, 2.2vw, 28px); font-weight: 800; color: var(--cream-warm);
   line-height: 1.05; margin-bottom: 12px;
 }
 .site-footer__tagline { margin: 0 0 16px; font-size: 15px; line-height: 1.5; max-width: 34ch; }
 .site-footer__ig {
-  display: inline-block; font-weight: 800; color: var(--cyan, #4fc3d9);
+  display: inline-block; font-weight: 800; color: var(--cyan, #2BC4E8);
   transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
-.site-footer__ig:hover { color: #FEF0DD; }
+.site-footer__ig:hover { color: var(--cream-warm); }
 /* Base: crédito + realização numa linha, separados (evita texto grudado). */
 .site-footer__base {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
@@ -725,19 +726,19 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   border-top: 1px solid rgba(255,244,236,.15);
   font-size: 13px; color: rgba(255,244,236,.6);
 }
-.site-footer__base-realiza strong { color: #FEF0DD; font-weight: 800; }
+.site-footer__base-realiza strong { color: var(--cream-warm); font-weight: 800; }
 .site-footer__realiza { margin: 18px 0 0; font-size: 13px; line-height: 1.4; opacity: .8; }
-.site-footer__realiza strong { color: #FEF0DD; font-weight: 800; }
+.site-footer__realiza strong { color: var(--cream-warm); font-weight: 800; }
 /* Listas (navegação + info) */
 .site-footer__nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .site-footer__nav a {
   color: rgba(255, 244, 236, 0.82); font-weight: 600; text-transform: lowercase;
   transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
-.site-footer__nav a:hover { color: #FEF0DD; }
+.site-footer__nav a:hover { color: var(--cream-warm); }
 .site-footer__nav a:focus-visible,
 .site-footer__ig:focus-visible,
-.site-footer__name:focus-visible { outline: 2px solid var(--cyan, #4fc3d9); outline-offset: 3px; border-radius: 4px; }
+.site-footer__name:focus-visible { outline: 2px solid var(--cyan, #2BC4E8); outline-offset: 3px; border-radius: 4px; }
 /* Caixa de sugestões */
 .site-footer__suggest-help { margin: 0 0 16px; font-size: 14px; line-height: 1.5; opacity: .9; }
 .site-footer__form { display: grid; gap: 12px; }
@@ -747,7 +748,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__field input,
 .site-footer__field textarea {
   width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;
-  padding: 11px 13px; border-radius: 10px; color: #FEF0DD;
+  padding: 11px 13px; border-radius: 10px; color: var(--cream-warm);
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 244, 236, 0.18);
   transition: border-color var(--motion-fast, 160ms) var(--ease-out-soft, ease),
@@ -758,7 +759,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__field textarea::placeholder { color: rgba(255, 244, 236, 0.4); }
 .site-footer__field input:focus,
 .site-footer__field textarea:focus {
-  outline: none; border-color: var(--cyan, #4fc3d9); background: rgba(255, 255, 255, 0.12);
+  outline: none; border-color: var(--cyan, #2BC4E8); background: rgba(255, 255, 255, 0.12);
 }
 .site-footer__send {
   justify-self: start; margin-top: 2px; padding: 12px 22px; border: 0; border-radius: 999px;
@@ -771,7 +772,7 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 .site-footer__send:hover { transform: translateY(-2px); }
 .site-footer__send:active { transform: translateY(0); }
 .site-footer__send:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.site-footer__send:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
+.site-footer__send:focus-visible { outline: 2px solid var(--cream-warm); outline-offset: 3px; }
 .site-footer__status:empty { display: none; }
 .site-footer__status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--peach); }
 /* Convite (3ª coluna): CTA de participação + canal de ideias. Substituiu a antiga
@@ -787,13 +788,13 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 }
 .site-footer__cta-btn:hover { transform: translateY(-2px); background: var(--accent-deep, #C13E25); }
 .site-footer__cta-btn:active { transform: translateY(0); }
-.site-footer__cta-btn:focus-visible { outline: 2px solid #FEF0DD; outline-offset: 3px; }
+.site-footer__cta-btn:focus-visible { outline: 2px solid var(--cream-warm); outline-offset: 3px; }
 .site-footer__cta-ig {
-  font-weight: 800; color: var(--cyan, #4fc3d9);
+  font-weight: 800; color: var(--cyan, #2BC4E8);
   transition: color var(--motion-fast, 160ms) var(--ease-out-soft, ease);
 }
-.site-footer__cta-ig:hover { color: #FEF0DD; }
-.site-footer__cta-ig:focus-visible { outline: 2px solid var(--cyan, #4fc3d9); outline-offset: 3px; border-radius: 4px; }
+.site-footer__cta-ig:hover { color: var(--cream-warm); }
+.site-footer__cta-ig:focus-visible { outline: 2px solid var(--cyan, #2BC4E8); outline-offset: 3px; border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) {
   .site-footer__cta-btn { transition: none; }
   .site-footer__cta-btn:hover { transform: none; }
@@ -909,83 +910,6 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 
 /* sidebar removido — nav agora é a barra de topo em todas as larguras */
 .site-sidebar { display: none; }
-
-/* ---------- COMBO RAIL (lista de participantes) — OCULTADO a pedido ---------- */
-.combo-rail {
-  position: fixed;
-  left: var(--sidebar-w);
-  top: 0; bottom: 0;
-  width: var(--combo-rail-w);
-  z-index: 49;
-  display: none; /* rail de participantes ocultado (antes: flex) */
-  flex-direction: column;
-  background: var(--lovers-cream);
-  border-right: 1px solid rgba(135, 14, 45, 0.18);
-  overflow: hidden;
-}
-.combo-rail__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 20px 18px 14px;
-  border-bottom: 1px solid rgba(135, 14, 45, 0.12);
-}
-.combo-rail__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--lovers-burgundy);
-}
-.combo-rail__count {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--lovers-red);
-  background: rgba(214, 54, 72, 0.1);
-  border-radius: 999px;
-  padding: 2px 9px;
-}
-.combo-rail__list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-}
-.combo-rail__item {
-  display: block;
-  padding: 11px 12px;
-  border-radius: 12px;
-  text-decoration: none;
-  transition: background 0.12s;
-}
-.combo-rail__item:hover { background: rgba(214, 54, 72, 0.08); }
-.combo-rail__item.is-active { background: rgba(135, 14, 45, 0.1); }
-.combo-rail__name {
-  display: block;
-  font-family: var(--font-lovers-body);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--lovers-brown, #3F1A0A);
-}
-.combo-rail__item.is-active .combo-rail__name { color: var(--lovers-burgundy); }
-.combo-rail__theme {
-  display: block;
-  margin-top: 2px;
-  font-size: 11.5px;
-  line-height: 1.3;
-  color: rgba(135, 14, 45, 0.6);
-}
-@media (min-width: 960px) {
-  main.with-combo-rail,
-  .with-combo-rail ~ .site-footer {
-    margin-left: var(--sidebar-w); /* rail ocultado: sem reserva de 264px */
-  }
-}
-@media (max-width: 959px) {
-  .combo-rail { display: none; }
-}
 
 /* =====================================================================
    LOVERS VISUAL SYSTEM — redesign editorial/pop (sticker-colagem)
@@ -1285,10 +1209,6 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
   background: rgba(242,5,103,.12) !important;
   border-left: 3px solid var(--lovers-pink);
   padding-left: 9px;
-}
-.combo-rail__item.is-active {
-  background: rgba(242,5,103,.12) !important;
-  box-shadow: inset 3px 0 0 var(--lovers-pink);
 }
 
 /* ── Sidebar desktop Lovers: links em pílula + uppercase ── */
