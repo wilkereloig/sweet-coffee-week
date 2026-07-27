@@ -464,7 +464,9 @@ export function ApoiarPage() {
         .apoiar-where__card { position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); box-shadow: var(--shadow-md); }
         .apoiar-where__card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; z-index: 2; background: var(--hl, var(--coral)); }
         /* slot de foto reservado: moldura editorial; vira <img object-fit:cover> depois */
-        .apoiar-where__media { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; background: var(--cream-deep, var(--bg-soft)); border-bottom: 1px solid var(--paper-line); overflow: hidden; }
+        /* Foto em ARCO editorial (direção jul/2026): moldura orgânica que tira o
+           card do "grid de retângulos iguais" — recorte com função de identidade. */
+        .apoiar-where__media { position: relative; margin: 14px 14px 0; aspect-ratio: 4 / 3.4; display: grid; place-items: center; background: var(--cream-deep, var(--bg-soft)); border-radius: 999px 999px 16px 16px; overflow: hidden; }
         .apoiar-where__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .apoiar-where__ph { font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); opacity: .55; }
         .apoiar-where__ic { position: absolute; left: 12px; bottom: 12px; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: var(--hl, var(--coral)); box-shadow: 0 8px 20px rgba(43,24,16,.28); }

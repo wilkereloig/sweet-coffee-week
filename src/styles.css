@@ -533,6 +533,48 @@ body.route-contato          { --page-accent: #F2B6A0; --page-accent-soft: rgba(2
 /* (regra .cur-hl/.hist-hl removida jul/2026: Curiosidades saiu do ar e o
    !important apagava o destaque dourado do Awards sobre a seção escura —
    cada página estiliza o próprio highlight no <style> local.) */
+
+/* ============================================================
+   MARQUEE BAND — faixa de palavras em movimento (jul/2026).
+   Assinatura de campanha entre seções (componente MarqueeBand.jsx).
+   Lista triplicada roda -100% em loop; só transform; pausa no hover;
+   reduced-motion = faixa estática centrada (1ª cópia).
+   ============================================================ */
+.swc-marquee {
+  display: flex;
+  overflow: hidden;
+  padding: clamp(12px, 1.4vw, 18px) 0;
+  user-select: none;
+}
+.swc-marquee--coral  { background: var(--coral);      color: var(--on-coral); }
+.swc-marquee--yellow { background: var(--yellow);     color: var(--on-yellow); }
+.swc-marquee--pink   { background: var(--pink);       color: var(--on-pink); }
+.swc-marquee--choco  { background: var(--choco-deep); color: var(--cream); }
+.swc-marquee__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  animation: swcMarquee 30s linear infinite;
+}
+.swc-marquee:hover .swc-marquee__list { animation-play-state: paused; }
+.swc-marquee__list li { display: flex; align-items: center; }
+.swc-marquee__word {
+  font: 800 clamp(16px, 1.7vw, 24px)/1 var(--font-display);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0 clamp(14px, 1.6vw, 24px);
+}
+.swc-marquee__dot { font-size: clamp(10px, 1vw, 13px); opacity: .65; }
+@keyframes swcMarquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .swc-marquee { justify-content: center; }
+  .swc-marquee__list { animation: none; flex-wrap: wrap; justify-content: center; row-gap: 8px; }
+  .swc-marquee__list:nth-child(n+2) { display: none; }
+}
 /* Home / O Festival: hero no marrom mais escuro da paleta (não no acento do menu).
    Altura vem do .swc-hero inline (faixa proporcional, §4) — sem override fixo aqui.
    Foto/overlay/texto claro preservados. */

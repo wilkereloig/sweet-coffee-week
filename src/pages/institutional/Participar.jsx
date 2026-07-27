@@ -19,6 +19,7 @@ import { I } from '../../components/icons'
 import { PhotoRotator } from '../../components/PhotoRotator'
 import { MetricsSection } from '../../components/MetricsSection'
 import { PageShell, PageSection, SectionHeader, CTASection } from '../../components/layout'
+import { MarqueeBand } from '../../components/MarqueeBand'
 import { supabase } from '../../lib/supabase'
 import {
   NEGOCIOS,
@@ -372,6 +373,12 @@ export function ParticiparPage() {
 
       {/* ══ 3 — NÚMEROS QUE MOSTRAM A FORÇA DO FESTIVAL (placar, mesma seção da Apoiar) ══ */}
       <MetricsSection />
+
+      {/* Faixa de campanha (frases que já vivem na página — nada inventado). */}
+      <MarqueeBand
+        tone="yellow"
+        words={['um combo autoral', 'presença na campanha', 'nova relação com o público', 'sua marca na rota', 'Sweet Lovers']}
+      />
 
       {/* ══ 4 — O QUE A MARCA COLOCA EM CIRCULAÇÃO (3 movimentos, foto real) ══ */}
       <PageSection className="pcp-move">

@@ -1,5 +1,6 @@
 import React from 'react'
 import { I } from '../../components/icons'
+import { MarqueeBand } from '../../components/MarqueeBand'
 import { PhotoRotator } from '../../components/PhotoRotator'
 import { heroGalleryImages, aboutGalleryImages } from '../../data/homeGalleries'
 import { festivalFacts } from '../../data/festivalFacts'
@@ -262,6 +263,12 @@ export function HomePage({ navigate }) {
         </div>
         <a className="hmv2-hero__scroll" href="#rotas" onClick={scrollTo('rotas')} aria-label="Ir para os caminhos do festival"><I.arrowDown /></a>
       </section>
+
+      {/* Faixa de campanha (frases que já vivem na página — nada inventado). */}
+      <MarqueeBand
+        tone="coral"
+        words={['sair para provar', 'combos autorais', 'marcas locais', 'uma cidade em movimento', 'memória de cada edição']}
+      />
 
       <section id="rotas" className="hmv2-routes">
         <div className="hmv2-routes__intro motion-reveal-up">
