@@ -100,11 +100,9 @@ test('nenhum componente monta caminho de imagem na mão', () => {
     'src/data/imageLibrary.js',
     'src/data/editionGallery.js',
     'src/data/comboPhotos.js',
-    'src/data/homeGalleries.js',
     'src/data/focalPoints.js',
     'src/data/participants.js',
     'src/data/editionAssets.js',
-    'src/data/editionHighlights.js',
     'src/data/participantAssets.js',
     'src/data/handoff/edicoesData.js',
     'src/data/handoff/awardsData.js',
@@ -115,6 +113,8 @@ test('nenhum componente monta caminho de imagem na mão', () => {
     for (const nome of readdirSync(dir, { withFileTypes: true })) {
       const caminho = join(dir, nome.name)
       const relativo = `${rel}/${nome.name}`
+      // src/data/_arquivo/ guarda dados aposentados (fora do bundle): não é código vivo.
+      if (nome.name === '_arquivo') continue
       if (nome.isDirectory()) { varrer(caminho, relativo); continue }
       if (!/\.(jsx?|css)$/.test(nome.name)) continue
       if (PERMITIDOS.has(relativo)) continue

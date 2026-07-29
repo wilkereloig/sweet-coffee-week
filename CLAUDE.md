@@ -3,6 +3,13 @@
 > Regras permanentes de layout, design, conteúdo, nomenclatura. Futuras páginas
 > respeitam mesmo sistema visual, não repetem decisões rejeitadas. **Atualizar
 > arquivo sempre que usuário rejeitar ou aprovar regra** (ver seção 19).
+>
+> 🎨 **O guia visual completo vive em [`docs/GUIA-VISUAL.md`](docs/GUIA-VISUAL.md)**
+> — fonte única de cores, tipografia, grid, espaçamento, heroes, componentes,
+> imagens, responsividade, mapa das páginas e do que não usar mais. Este CLAUDE.md
+> cuida de **processo e operação**; o guia cuida do **sistema visual**. Se os dois
+> divergirem sobre um valor visual, vale o guia — e se o guia divergir de
+> `src/styles/scw-2026.css`, vale o código.
 
 ## 0. Como interpretar regras sem bloquear pedidos do usuário
 
@@ -357,8 +364,9 @@ Movimento: ken burns `scale(1.06) → scale(1.001)` em 12s; wipe direcional de e
 `#FEF0DD` (o vinho sobre foto dava 2,08:1).
 
 Dados: `src/data/handoff/edicoesData.js` (16 edições — período, participantes,
-premiação, curiosidades, logo e fotos), derivado de `sweetCoffeeHistory.js`. Pódio e
-curadoria de frames seguem em `src/data/editionHighlights.js`. Perf: janela
+premiação, curiosidades, logo e fotos), derivado de `sweetCoffeeHistory.js`.
+*(O antigo `src/data/editionHighlights.js` — pódio e curadoria de frames da
+direção "Cinema da Década" — foi aposentado em `src/data/_arquivo/`.)* Perf: janela
 `live/near ±1-2` monta foto e mosaico só perto do foco (16 cenas full-viewport de uma
 vez congelam o compositor).
 
@@ -442,9 +450,10 @@ Herói com rótulo do público, dois CTAs, 3 indicadores e foto 4:3 com rotaçã
 crossfade. Três faixas alternando lado, imagem e texto com **larguras iguais** (408px
 cada em 1360px).
 
-*(O kit `PageShell`/`PageSection`/`SectionHeader`/`CardsGrid`/`CTASection` e o
-`<PageHero>` de `src/components/layout/` são do sistema anterior. O redesign 2026 usa
-as classes `.scw-*` de `src/styles/scw-2026.css`.)*
+*(O kit `PageShell`/`PageSection`/`SectionHeader`/`CardsGrid`/`CTASection` de
+`src/components/layout/` foi **removido** em jul/2026 — estava morto, nenhuma
+página o importava. O redesign 2026 usa as classes `.scw-*` de
+`src/styles/scw-2026.css`.)*
 
 ## 14. Página Apoiar
 
@@ -495,7 +504,12 @@ Fontes principais (verificar antes de rankings/históricos/cards):
   e atualize o `ACERVO.md`);
 - `src/data/sweetCoffeeHistory.js` — **base oficial, 16 edições (inclui Lovers)**;
 - `src/data/loversAwardsResults.js` — resultados da 16ª edição (Lovers);
-- `src/data/participants.js`, `src/data/sweetAwards.js`, `src/data/editions.js`.
+- `src/data/participants.js`, `src/data/sweetAwards.js`.
+
+Dados aposentados vivem em `src/data/_arquivo/` (fora do bundle, ninguém importa):
+`editions.js`, `editionHighlights.js`, `editionInsights.js`, `decadeCredits.js`,
+`homeGalleries.js`, `supportMetrics.js`. Ver `src/data/_arquivo/LEIA-ME.md`.
+**Não importar de lá em código vivo.**
 
 Dados novos do redesign 2026 (convertidos do handoff de design):
 - `src/data/faqCentral.js` — **conteúdo novo**: 93 perguntas em 10 assuntos da central
