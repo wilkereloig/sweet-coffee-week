@@ -4,6 +4,7 @@ import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
 import { MobileTabBar } from './components/MobileTabBar'
 import { MobileMenu } from './components/MobileMenu'
+import { AccessDialog } from './components/AccessDialog'
 import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
@@ -77,6 +78,7 @@ function isLegacyLoversPath(path) {
 export default function App() {
   const [path, navigate] = useRoute()
   const [menuOpen, setMenuOpen] = React.useState(false)
+  const [accessOpen, setAccessOpen] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
 
@@ -116,7 +118,9 @@ export default function App() {
   let page
   switch (route) {
     case 'home':         page = <HomePage navigate={navigate} />; break
-    case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
+    // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
+    // o botão de acesso precisa do gatilho do diálogo vindo daqui.
+    case 'edicoes':      page = <EdicoesPage navigate={navigate} onOpenAccess={() => setAccessOpen(true)} accessOpen={accessOpen} />; break
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
@@ -143,27 +147,51 @@ export default function App() {
   const showMobileNav = FOOTER_ROUTES.includes(route)
   React.useEffect(() => { setMenuOpen(false) }, [route])
 
+  // Edições substitui a casca do site pelo cabeçalho próprio da página (mesma
+  // geometria) — header, barra de página e rodapé saem; a tab bar continua.
+  const showShell = !isInternal && route !== 'edicoes'
+
   return (
     <DevViewportSwitcher>
-      {!isInternal && <SiteHeader route={route} navigate={navigate} />}
-      <main key={route} className={`page-enter${showMobileNav ? ' has-mobile-tabbar' : ''}`}>
-        <ErrorBoundary key={route}>
-          <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
-            {page}
-          </React.Suspense>
-        </ErrorBoundary>
-      </main>
-      {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
-          no header/tab bar). FOOTER_ROUTES também controla o mobile nav (linha
-          showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
-      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} />}
-      {showMobileNav && (
-        <>
-          <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
-          <MobileMenu open={menuOpen} route={route} navigate={navigate} onClose={() => setMenuOpen(false)} />
-        </>
-      )}
-      <CookieConsent />
+      <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
+        {showShell && (
+          <>
+            <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>
+            <SiteHeader
+              route={route}
+              navigate={navigate}
+              accessOpen={accessOpen}
+              onOpenAccess={() => setAccessOpen(true)}
+            />
+            <div id="barra-pagina" className="scw-barra-pagina" aria-hidden="true" />
+          </>
+        )}
+        <main id="conteudo" key={route} className={`page-enter${showMobileNav ? ' has-mobile-tabbar' : ''}`}>
+          <ErrorBoundary key={route}>
+            <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
+              {page}
+            </React.Suspense>
+          </ErrorBoundary>
+        </main>
+        {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
+            na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
+            showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
+        {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} />}
+        {showMobileNav && (
+          <>
+            <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
+            <MobileMenu
+              open={menuOpen}
+              route={route}
+              navigate={navigate}
+              onClose={() => setMenuOpen(false)}
+              onOpenAccess={() => setAccessOpen(true)}
+            />
+          </>
+        )}
+        {!isInternal && <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />}
+        <CookieConsent />
+      </div>
     </DevViewportSwitcher>
   )
 }

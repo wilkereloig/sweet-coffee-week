@@ -10,10 +10,8 @@
     "test:responsive": "node tests/responsive.mjs",
     "test:mobile": "node tests/responsive.mjs --mobile",
     "test:curiosidades-removal": "node --test tests/curiosidades-removal.test.mjs",
-    "test:participar-form-width": "node --test tests/participar-form-width.test.mjs",
-    "test:participar-curadoria-icons": "node --test tests/participar-curadoria-icons.test.mjs",
     "test:support-interest": "node tests/support-interest.test.mjs",
-    "test:home": "node --test tests/home-v2-check.mjs tests/home-motion.test.mjs",
+    "test:redesign": "node --test tests/redesign-2026.test.mjs tests/faq-central.test.mjs",
     "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs",
     "focal-points": "node scripts/compute-focal-points.mjs"
   },

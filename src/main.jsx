@@ -8,6 +8,7 @@ import './styles/swc-redesign.css'
 import './styles/motion-system.css'
 import './styles/hero.css'
 import './styles/layout.css'
+import './styles/scw-2026.css'
 import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 

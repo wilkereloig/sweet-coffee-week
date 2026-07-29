@@ -1,665 +1,521 @@
 /*
- * PÁGINA INSTITUCIONAL — "Hall dos vencedores do Sweet Awards".
- * Rota: #/sweet-awards (alias antigo #/historico-sweet-awards). NÃO é a página Sweet Awards publicada
- * (SweetAwards/vencedores) — é o acervo histórico das premiações 2016–2026.
+ * PÁGINA INSTITUCIONAL — Sweet Awards (redesign 2026).
+ * Rotas públicas: #/sweet-awards e #/historico-sweet-awards (route 'historico-awards').
  *
- * Hall of fame data-driven (src/data/sweetCoffeeHistory.js via sweetEditionsCompat.js
- * e src/data/sweetHistoryStats.js para a edição atual e os recordes históricos):
- *  - premiação 2026.1 (Grande Vencedor + demais categorias) em grade de resultados,
- *    fotos reais dos combos e link pro post de resultado no Instagram (nunca embed);
- *  - recordes históricos (mais pódios, mais 1º lugares, categorias premiadas,
- *    galeria de campeões de Melhor Combo) comparam PARTICIPANTES, nunca edições
- *    entre si (AGENTS.md §11);
- *  - acordeões por edição (acessíveis, fechados por padrão, mais recentes primeiro):
- *    trilhas (Júri Técnico / Sweet Lovers), pódio de medalhas (ouro/prata/bronze) e
- *    a LOGO REAL da marca vencedora (resolveParticipant) com fallback de monograma
- *    quando não há logo no acervo;
- *  - menção honrosa e patrocínios quando existem;
- *  - estado honesto quando a edição não teve premiação — nada inventado.
+ * Identidade INSTITUCIONAL do festival (chocolate + creme + roxo da página, medalhas
+ * ouro/prata/bronze). Nunca o KV da edição Lovers — nada de --lovers-*, .kv-lovers
+ * nem Sofia Pro. A cor da página vem de body.route-historico-awards (--scw-pagina).
  *
- * Acento da página: dourado #F8B511 (família Awards / medalha de 1º lugar) via
- * var(--page-accent) (setado em body.route-historico-awards). Medalhas em tons
- * metálicos quentes.
+ * Seções (design_handoff_site_institucional/README.md → "Sweet Awards"):
+ *   01 Abertura      — título + 4 números + vitrine dos 4 primeiros lugares + índice
+ *   02 Vencedores    — 8 categorias × 3 colocações da edição Lovers 2026.1
+ *   03 Como é decidido — Júri Técnico (2020.2–2021.2) e Sweet Lovers
+ *   04 Hall          — mais premiados, barra segmentada por colocação
+ *   05 Histórico     — acordeão 2019–2025, pódio completo por categoria e trilha
+ *   06 Antes de 2019 — as cinco primeiras edições não tiveram premiação (dito, não escondido)
+ *
+ * DADOS — nada é inventado. `src/data/handoff/awardsData.js` é o snapshot já cruzado
+ * de `sweetCoffeeHistory.js` (histórico + descrições das categorias) com
+ * `loversAwardsResults.js` (pódios da 2026.1, vazios de propósito na base histórica).
+ * Conferido campo a campo: pódios, trilhas, descrições, períodos e temas batem.
+ * Divergência conhecida: o snapshot traz `logo: /images/editions/<code>.png`, caminho
+ * que não existe no acervo — a marca da edição vem de `editionMark()` (src/data), que
+ * é a fonte de verdade.
  */
 import React from 'react'
-import { I } from '../../components/icons'
-import { PageShell } from '../../components/layout'
-import { sweetEditions } from '../../data/sweetEditionsCompat'
-import { AWARD_STATUS } from '../../data/sweetCoffeeHistory'
+import '../../styles/scw-awards.css'
+import { AWARDS_DADOS } from '../../data/handoff/awardsData'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
-import {
-  getCurrentEditionScenes,
-  getPodiumTotals,
-  getAwardWins,
-  getDistinctCategoryCount,
-} from '../../data/sweetHistoryStats'
+import { COMBO_PHOTOS } from '../../data/comboPhotos'
 
-// Foto real por categoria da Lovers 2026.1 — mesmos frames da landing "Em breve".
-// O Maestro Café vence 3 categorias: usa 3 frames diferentes, nunca repete arquivo.
-const CATEGORY_PHOTO = {
-  melhor_combo: '/images/combos/o-maestro-cafe/main.jpg',
-  atendimento: '/images/combos/rollab-confeitaria/main.jpg',
-  apresentacao: '/images/combos/just-food-coffee/main.jpg',
-  doce: '/images/combos/jolie-cafe-patisserie/main.jpg',
-  bebida: '/images/combos/sweet-duo-confeitaria/main.jpg',
-  salgado: '/images/combos/o-maestro-cafe/photo-02.jpg',
-  criatividade: '/images/combos/o-maestro-cafe/photo-03.jpg',
-  envolvimento: '/images/combos/mr-cupcake-confeitaria/main.jpg',
-}
+/* ---------------------------------------------------------------------------
+   Derivações da base (estáticas: AWARDS_DADOS não muda em runtime)
+   ------------------------------------------------------------------------ */
 
-// Nomes de 1º lugar de uma cena (empates viram "A e B") — pro alt e pro teaser da hero.
-function firstPlaceNames(winners) {
-  return (winners || []).filter((w) => w.pos === 1).map((w) => w.name).join(' e ')
-}
+const EDICOES = AWARDS_DADOS.edicoes
+const LOVERS = EDICOES.find((e) => e.code === '2026.1') || null
+// Histórico = demais edições, da mais recente para a mais antiga.
+const HISTORICO = EDICOES.filter((e) => e.code !== '2026.1').slice().reverse()
 
-// Foto de categoria com fallback honesto — nunca <img> quebrada nem vazio (§8).
-function ResultSceneImg({ src, alt }) {
-  const [broken, setBroken] = React.useState(false)
-  if (!src || broken) return <div className="swa-result__nophoto">Foto pendente</div>
-  return <img className="motion-image-reveal" src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} />
-}
-
-// Barra "Ver no Instagram" — link real pro post de resultado (nunca embed).
-// aria-label leva a categoria pra distinguir os 9 links repetidos (WCAG 2.4.4).
-function ResultPostLink({ href, category }) {
-  if (!href) return null
-  return (
-    <a className="swa-result__post" href={href} target="_blank" rel="noopener noreferrer" aria-label={`Ver resultado de ${category} no Instagram`}>
-      <I.ig width={15} height={15} />
-      <span>Ver no Instagram</span>
-      <I.arrow />
-    </a>
-  )
-}
-
-// Pódio da grade de resultados — mesmo padrão da landing "Em breve": agrupa por
-// colocação (empates viram vários chips de marca na mesma medalha), 1º maior.
-const MEDAL = { 1: 'ouro', 2: 'prata', 3: 'bronze' }
-function groupWinnersByPos(winners) {
-  const map = new Map()
-  for (const w of winners || []) {
-    if (!map.has(w.pos)) map.set(w.pos, { pos: w.pos, names: [] })
-    map.get(w.pos).names.push(w.name)
+// Números do herói, contados da própria base (nunca digitados à mão).
+const ESTATISTICAS = (() => {
+  const marcas = new Set()
+  let categorias = 0
+  let colocacoes = 0
+  for (const e of EDICOES) {
+    categorias += e.cats.length
+    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) { marcas.add(n); colocacoes++ }
   }
-  return [...map.values()].sort((a, b) => a.pos - b.pos)
+  return { edicoes: EDICOES.length, categorias, colocacoes, marcas: marcas.size }
+})()
+
+// Hall: TODAS as colocações (1º, 2º e 3º) somando Júri Técnico e Sweet Lovers.
+const HALL = (() => {
+  const cont = new Map()
+  for (const e of EDICOES) {
+    for (const c of e.cats) {
+      for (const p of c.pod) {
+        for (const n of p.nomes) {
+          const r = cont.get(n) || { nome: n, p1: 0, p2: 0, p3: 0, total: 0 }
+          if (p.pos === 1) r.p1++
+          else if (p.pos === 2) r.p2++
+          else r.p3++
+          r.total++
+          cont.set(n, r)
+        }
+      }
+    }
+  }
+  return [...cont.values()]
+    .sort((a, b) => b.total - a.total || b.p1 - a.p1 || a.nome.localeCompare(b.nome))
+    .slice(0, 10)
+})()
+
+/* ---------------------------------------------------------------------------
+   Fotos reais do acervo (public/images/combos/<slug>/)
+   O acervo NÃO tem foto rotulada por peça (doce/salgado/bebida): cada card mostra
+   uma foto do combo da marca premiada, sem repetir arquivo entre as categorias.
+   ------------------------------------------------------------------------ */
+
+// Marcas com pasta de fotos, derivadas da fonte única COMBO_PHOTOS.
+const PASTAS_COMBO = new Set(COMBO_PHOTOS.map((p) => p.split('/')[3]))
+// Menor acervo por marca: main.jpg + photo-02…photo-08.
+const FOTOS_POR_MARCA = 8
+
+function fotoDoCombo(slug, i) {
+  if (!slug || !PASTAS_COMBO.has(slug)) return null
+  const n = (i % FOTOS_POR_MARCA) + 1
+  return n === 1
+    ? `/images/combos/${slug}/main.jpg`
+    : `/images/combos/${slug}/photo-${String(n).padStart(2, '0')}.jpg`
 }
-function ResultBrand({ name, size = 40 }) {
-  const m = resolveParticipant(name)
-  const [broken, setBroken] = React.useState(false)
-  const show = m.logo && !broken
+
+// Uma foto por card ('<índice da categoria>:<colocação>'), sem repetir arquivo
+// quando a mesma marca vence várias categorias.
+const FOTOS = (() => {
+  const mapa = new Map()
+  const usos = new Map()
+  ;(LOVERS ? LOVERS.cats : []).forEach((c, ci) => {
+    for (const p of c.pod) {
+      const { slug } = resolveParticipant(p.nomes[0])
+      const i = usos.get(slug) || 0
+      usos.set(slug, i + 1)
+      mapa.set(`${ci}:${p.pos}`, fotoDoCombo(slug, i))
+    }
+  })
+  return mapa
+})()
+
+/* ---------------------------------------------------------------------------
+   Peças visuais
+   ------------------------------------------------------------------------ */
+
+// Medalha por colocação — codifica o resultado (não é sticker).
+const MEDALHA = { 1: 'var(--scw-amarelo)', 2: 'var(--scw-prata)', 3: 'var(--scw-bronze)' }
+const medalha = (pos) => MEDALHA[pos] || 'var(--scw-bronze)'
+
+// Cores dos selos de categoria — só paleta oficial.
+const PALETA_SELO = ['var(--scw-vinho)', 'var(--scw-magenta)', 'var(--scw-cyan)', 'var(--scw-amarelo)']
+
+// Ícones de linha por categoria (decorativos, aria-hidden no selo).
+const ICONES = {
+  'Melhor Combo': <><rect x="4" y="13" width="7" height="7" rx="1.6" /><rect x="13" y="9" width="7" height="11" rx="1.6" /><circle cx="8" cy="7" r="3" /></>,
+  'Melhor Doce': <><path d="M6 11h12l-1.6 8.4a1.4 1.4 0 0 1-1.4 1.1H9a1.4 1.4 0 0 1-1.4-1.1L6 11Z" /><path d="M7 11a5 5 0 0 1 10 0" /><path d="M12 4v3" /></>,
+  'Melhor Salgado': <><path d="M3.5 15.5c2-6 6-9 8.5-9s6.5 3 8.5 9" /><path d="M3.5 15.5h17" /><path d="M6 19h12" /></>,
+  'Melhor Bebida': <><path d="M7 8h10l-1.2 11.2a1.5 1.5 0 0 1-1.5 1.3H9.7a1.5 1.5 0 0 1-1.5-1.3L7 8Z" /><path d="M13 8 15 3" /><path d="M8 13h8" /></>,
+  'Melhor Atendimento': <><path d="M5 17h14" /><path d="M6.5 17a5.5 5.5 0 0 1 11 0" /><path d="M12 6v2.5" /><circle cx="12" cy="4.6" r="1.2" /><path d="M9 20h6" /></>,
+  'Melhor Apresentação': <><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M4 15l4.5-4 3.5 3 3-2.5L20 15" /><circle cx="9" cy="9.5" r="1.4" /></>,
+  'Melhor Criatividade': <><path d="M12 3.5a6 6 0 0 0-3.4 10.9V17h6.8v-2.6A6 6 0 0 0 12 3.5Z" /><path d="M9.6 20h4.8" /></>,
+  'Encantamento em Loja': <><path d="M4 9h16v11H4z" /><path d="M4 9l2-4h12l2 4" /><path d="M10 20v-6h4v6" /></>,
+}
+
+function SeloCategoria({ nome, cor }) {
   return (
-    <span className="swa-result-brand" style={{ width: size, height: size, ...(m.brandColor ? { '--brand': m.brandColor } : null) }}>
-      {show
-        ? <img src={m.logo} alt={`Logo ${name}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
-        : <span className="swa-result-brand__mono" aria-hidden="true">{m.fallback}</span>}
+    <span className="swa-selo" style={{ '--swa-selo': cor }} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        {ICONES[nome] || ICONES['Melhor Combo']}
+      </svg>
     </span>
   )
 }
-function ResultPodium({ winners, leadFirst = false }) {
+
+// Foto do acervo com reserva honesta quando o arquivo falta ou falha (§7/§8).
+function FotoAcervo({ src, alt }) {
+  const [quebrada, setQuebrada] = React.useState(false)
+  if (!src || quebrada) return <span className="swa-reserva">Foto pendente no acervo</span>
+  return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setQuebrada(true)} />
+}
+
+// Logo real da marca (resolveParticipant) com fallback em iniciais — nunca inventa.
+// brandColor não é usada: é token da edição Lovers e esta página é institucional.
+function MarcaParticipante({ nome }) {
+  const m = resolveParticipant(nome)
+  const [quebrada, setQuebrada] = React.useState(false)
   return (
-    <ol className="swa-result-podium">
-      {groupWinnersByPos(winners).map((p) => (
-        <li className={`swa-result-place swa-result-place--${MEDAL[p.pos]}`} key={p.pos}>
-          <span className="swa-result-medal" aria-hidden="true">{p.pos}</span>
-          <span className="swa-result-place__brands">
-            {p.names.map((n) => <ResultBrand name={n} key={n} size={p.pos === 1 ? (leadFirst ? 52 : 44) : 36} />)}
-          </span>
-          <span className="swa-result-place__names">
-            <span className="sr-place">{p.pos}º lugar: </span>{p.names.join(' e ')}
-          </span>
-        </li>
-      ))}
-    </ol>
+    <span className="swa-marca" aria-hidden="true">
+      {m.logo && !quebrada
+        ? <img src={m.logo} alt="" loading="lazy" decoding="async" onError={() => setQuebrada(true)} />
+        : <span>{m.fallback}</span>}
+    </span>
   )
 }
 
-// Card do Grande Vencedor (Melhor Combo) — largo, foto + medalha + pódio + link.
-function ComboResultCard({ scene }) {
+// Marca da edição no acordeão: logo real ou o tema como reserva textual.
+function MarcaEdicao({ code, tema }) {
+  const marca = editionMark(code)
+  const [quebrada, setQuebrada] = React.useState(false)
   return (
-    <article className="swa-result-combo motion-stagger motion-card-hover">
-      <div className="swa-result-combo__media">
-        <ResultSceneImg src={CATEGORY_PHOTO.melhor_combo} alt={`${scene.category} — combo vencedor: ${firstPlaceNames(scene.winners)}`} />
-        <span className="swa-result-combo__medal" aria-hidden="true">1º</span>
-      </div>
-      <div className="swa-result-combo__body">
-        <p className="swa-result-combo__tag">Grande vencedor</p>
-        <h3>{scene.category}</h3>
-        {scene.description && <p className="swa-result__desc">{scene.description}</p>}
-        <ResultPodium winners={scene.winners} leadFirst />
-        <ResultPostLink href={scene.postResultado} category={scene.category} />
-      </div>
-    </article>
+    <span className="swa-edicao__marca" aria-hidden="true">
+      {marca.logo && !quebrada
+        ? <img src={marca.logo} alt="" loading="lazy" decoding="async" onError={() => setQuebrada(true)} />
+        : <span>{tema || code}</span>}
+    </span>
   )
 }
 
-// Card de categoria — foto + título + descrição + pódio + link (igual à "Em breve").
-function ResultCard({ scene }) {
-  return (
-    <article className="swa-result-card motion-reveal-up motion-card-hover">
-      <div className="swa-result-card__media">
-        <ResultSceneImg src={CATEGORY_PHOTO[scene.key]} alt={`${scene.category} — vencedor: ${firstPlaceNames(scene.winners)}`} />
-      </div>
-      <h3>{scene.category}</h3>
-      {scene.description && <p className="swa-result__desc">{scene.description}</p>}
-      <ResultPodium winners={scene.winners} />
-      <ResultPostLink href={scene.postResultado} category={scene.category} />
-    </article>
-  )
+const Seta = () => (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M4 6.5l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const ROTULO_TRILHA = { juri_tecnico: 'Júri Técnico', sweet_lovers: 'Sweet Lovers' }
+const COR_TRILHA = { juri_tecnico: 'var(--scw-cyan)', sweet_lovers: 'var(--scw-magenta)' }
+
+// Agrupa as categorias de uma edição por trilha, preservando a ordem dos dados.
+function agruparPorTrilha(cats) {
+  const grupos = []
+  const indice = new Map()
+  for (const c of cats) {
+    const t = c.trilha || ''
+    if (!indice.has(t)) { indice.set(t, { trilha: t, cats: [] }); grupos.push(indice.get(t)) }
+    indice.get(t).cats.push(c)
+  }
+  return grupos
 }
 
-function StatusBadge({ status }) {
-  const s = AWARD_STATUS[status] || AWARD_STATUS['a-conferir']
-  return <span className={`hist-badge hist-badge--${s.tone}`}>{s.label}</span>
-}
+/* ---------------------------------------------------------------------------
+   02 — card de colocação (foto + medalha + marca)
+   ------------------------------------------------------------------------ */
 
-// Logo real da marca (acervo) com fallback de monograma — sem caixa de imagem quebrada.
-function WinnerLogo({ name }) {
-  const m = resolveParticipant(name)
-  const [broken, setBroken] = React.useState(false)
-  const showImg = m.logo && !broken
+function CardColocacao({ categoria, colocacao, foto }) {
+  const primeiro = colocacao.pos === 1
+  const marca = colocacao.nomes.join(' e ') // empates ficam na MESMA colocação
   return (
-    <span
-      className={`hist-brand${showImg ? ' hist-brand--img' : ''}`}
-      style={m.brandColor ? { '--brand': m.brandColor } : undefined}
-      aria-hidden="true"
+    <li
+      className={`swa-card${primeiro ? ' swa-card--primeiro' : ''}`}
+      style={{ '--swa-medalha': medalha(colocacao.pos) }}
     >
-      {showImg
-        ? <img src={m.logo} alt={`Logo ${name}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
-        : <span className="hist-brand__mono">{m.fallback}</span>}
-    </span>
+      <FotoAcervo src={foto} alt={`Combo de ${marca}, ${colocacao.pos}º lugar em ${categoria}`} />
+      <span className="swa-medalha" aria-hidden="true">{colocacao.pos}º</span>
+      <span className="swa-card__legenda">
+        <span className="swa-card__pos">{primeiro ? 'Primeiro lugar' : `${colocacao.pos}º lugar`}</span>
+        <b className="swa-card__marca">{marca}</b>
+      </span>
+    </li>
   )
 }
 
-// Pódio de uma categoria: medalhas + logo/monograma + nome. Empates: a colocação
-// vem repetida nos dados → renderizamos cada nome na MESMA medalha (nunca um "4º").
-function Podium({ winners }) {
-  // medalha por colocação (1º ouro, 2º prata, 3º bronze) — derivada do dígito.
-  const tone = (place) => (place.startsWith('1') ? 'gold' : place.startsWith('2') ? 'silver' : 'bronze')
-  return (
-    <ol className="hist-podium">
-      {winners.map((w, i) => (
-        <li key={`${w.place}-${w.name}-${i}`}>
-          <span className={`hist-medal hist-medal--${tone(w.place)}`} aria-hidden="true">{w.place.replace('º', '')}</span>
-          <WinnerLogo name={w.name} />
-          <span className="hist-name"><span className="sr-place">{w.place} lugar: </span>{w.name}</span>
-        </li>
-      ))}
-    </ol>
-  )
-}
+/* ---------------------------------------------------------------------------
+   05 — acordeão de uma edição
+   ------------------------------------------------------------------------ */
 
-function CategoryCard({ a }) {
+function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
+  const id = `swa-edicao-${edicao.code.replace('.', '-')}`
+  const grupos = agruparPorTrilha(edicao.cats)
+  const varias = grupos.length > 1
   return (
-    <article className="hist-cat">
-      <h3>{a.category}</h3>
-      <Podium winners={a.winners} />
-    </article>
-  )
-}
+    <article className="swa-edicao">
+      <h3 className="swa-edicao__h">
+        <button
+          type="button"
+          className="swa-edicao__botao"
+          aria-expanded={aberto}
+          aria-controls={`${id}-painel`}
+          id={`${id}-botao`}
+          onClick={onAlternar}
+        >
+          <MarcaEdicao code={edicao.code} tema={edicao.tema} />
+          <span className="swa-edicao__id">
+            <span className="swa-edicao__titulo">{edicao.code} · {edicao.tema}</span>
+            <span className="swa-edicao__nota">{edicao.nota}</span>
+          </span>
+          <span className="swa-edicao__cats">
+            <b>{edicao.cats.length}</b>
+            <span>categorias</span>
+          </span>
+          <span className="swa-edicao__seta" aria-hidden="true"><Seta /></span>
+        </button>
+      </h3>
 
-// Hero tipográfica: à esquerda o título/CTA, à direita o teaser do Grande Vencedor
-// (Melhor Combo) — substância real da edição, não roster repetido.
-function AwardsHero({ onExplore, comboScene }) {
-  const firstWinner = comboScene ? comboScene.winners.find((w) => w.pos === 1) : null
-  const lead = comboScene ? firstPlaceNames(comboScene.winners) : ''
-  return (
-    <section className="swa-hero">
-      <div className="wrap swa-hero__inner">
-        <div className="swa-hero__copy">
-          <h1>Sweet Awards <span>Lovers 2026.1</span></h1>
-          <p>Oito categorias e oito conquistas que celebram sabor, atendimento, criatividade e a experiência inteira do festival.</p>
-          <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={onExplore}>Conhecer os vencedores <I.arrow /></a>
-        </div>
-        {comboScene && firstWinner && (
-          <aside className="swa-hero__teaser" aria-label={`Grande vencedor: ${comboScene.category}`}>
-            <span className="swa-hero__teaser-tag"><span className="hist-medal hist-medal--gold" aria-hidden="true">1</span> Grande vencedor</span>
-            <p className="swa-hero__teaser-cat">{comboScene.category}</p>
-            <div className="swa-hero__teaser-brand">
-              <WinnerLogo name={firstWinner.name} />
-              <strong>{lead}</strong>
+      {aberto && (
+        <div className="swa-edicao__painel" id={`${id}-painel`} role="region" aria-labelledby={`${id}-botao`}>
+          <p className="swa-edicao__periodo">{edicao.periodo}</p>
+          {grupos.map((g) => (
+            <div className="swa-grupo" key={g.trilha || 'unica'}>
+              {varias && ROTULO_TRILHA[g.trilha] && (
+                <span className="swa-grupo__rotulo" style={{ '--swa-grupo': COR_TRILHA[g.trilha] }}>
+                  {ROTULO_TRILHA[g.trilha]}
+                </span>
+              )}
+              <ul className="swa-hist-cats">
+                {g.cats.map((c) => (
+                  <li className="swa-hist-cat" key={`${g.trilha}-${c.nome}`}>
+                    <b>{c.nome}</b>
+                    {c.pod.length > 0 ? (
+                      <ol className="swa-hist-podio">
+                        {c.pod.map((p) => (
+                          <li key={p.pos}>
+                            <span className="swa-hist-medalha" style={{ '--swa-medalha': medalha(p.pos) }} aria-hidden="true">{p.pos}</span>
+                            <span className={`swa-hist-nome${p.pos === 1 ? ' swa-hist-nome--primeiro' : ''}`}>
+                              <span className="swa-sr">{p.pos}º lugar: </span>{p.nomes.join(' + ')}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <span className="swa-hist-vazio">Resultado em consolidação no acervo.</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
-            {comboScene.postResultado && (
-              <a className="swa-hero__teaser-link" href={comboScene.postResultado} target="_blank" rel="noopener noreferrer">
-                <I.ig width={14} height={14} /> Ver no Instagram <I.arrow />
-              </a>
-            )}
-          </aside>
-        )}
-      </div>
-    </section>
-  )
-}
-
-// Card curto de recorde histórico — sempre PARTICIPANTES, nunca edições (AGENTS.md §11).
-function RecordCard({ label, name, value }) {
-  return (
-    <article className="swa-record motion-card-hover">
-      <span className="swa-record__label">{label}</span>
-      {name && <strong className="swa-record__name">{name}</strong>}
-      <span className="swa-record__value">{value}</span>
+          ))}
+        </div>
+      )}
     </article>
   )
 }
 
-// Agrupa categorias por trilha preservando a ordem original dos dados.
-function groupByTrack(awards) {
-  const groups = []
-  const index = new Map()
-  for (const a of awards) {
-    const key = a.track || '__none__'
-    if (!index.has(key)) { index.set(key, { track: a.track || null, items: [] }); groups.push(index.get(key)) }
-    index.get(key).items.push(a)
-  }
-  return groups
-}
+/* ---------------------------------------------------------------------------
+   Página
+   ------------------------------------------------------------------------ */
 
-function EditionAccordion({ e, defaultOpen }) {
-  const hasResults = e.awards && e.awards.length > 0
-  const groups = hasResults ? groupByTrack(e.awards) : []
-  const multiTrack = groups.filter((g) => g.track).length > 1
-  // Campeão do Melhor Combo desta edição (1º lugar) para adiantar no resumo, quando houver.
-  const combo1 = ((e.awards || []).find((a) => /melhor combo/i.test(a.category))?.winners || [])
-    .filter((w) => w.place.startsWith('1')).map((w) => w.name)
-  const mark = editionMark(e.id)
+// Vitrine da abertura: primeiros lugares das quatro categorias de produto.
+const CATEGORIAS_VITRINE = ['Melhor Combo', 'Melhor Doce', 'Melhor Salgado', 'Melhor Bebida']
+
+export function HistoricoAwardsPage() {
+  const [aberto, setAberto] = React.useState('2025')
+  const cats = LOVERS ? LOVERS.cats : []
+
+  const vitrine = cats
+    .map((c, ci) => ({ c, ci }))
+    .filter(({ c }) => CATEGORIAS_VITRINE.includes(c.nome))
+    .map(({ c, ci }) => ({
+      categoria: c.nome,
+      marca: c.pod[0] ? c.pod[0].nomes.join(' e ') : '',
+      foto: FOTOS.get(`${ci}:1`),
+    }))
+
+  const maiorHall = HALL[0] ? HALL[0].total : 1
+  const largura = (n) => `${(n / maiorHall) * 100}%`
+
   return (
-    <details className="hist-edi" {...(defaultOpen ? { open: true } : {})}>
-      <summary>
-        {mark.logo && (
-          <span className="hist-edi__logo" aria-hidden="true">
-            <img src={mark.logo} alt="" loading="lazy" decoding="async"
-              onError={(ev) => { const w = ev.currentTarget.closest('.hist-edi__logo'); if (w) w.style.display = 'none' }} />
-          </span>
-        )}
-        <span className="hist-edi__id">
-          <span className="hist-edi__code">{e.code}</span>
-          <span className="hist-edi__theme">{e.theme}</span>
-        </span>
-        {combo1.length > 0 && (
-          <span className="hist-edi__champ">
-            <span className="hist-medal hist-medal--gold hist-edi__champmedal" aria-hidden="true">1</span>
-            <WinnerLogo name={combo1[0]} />
-            <span className="hist-edi__champname"><span className="sr-place">Campeão Melhor Combo: </span>{combo1.join(', ')}</span>
-          </span>
-        )}
-        <span className="hist-edi__meta">
-          <span className="hist-edi__part">{e.participantsCount} participantes</span>
-          <StatusBadge status={e.awardsStatus} />
-          <span className="hist-edi__chev" aria-hidden="true"><I.arrowDown /></span>
-        </span>
-      </summary>
-
-      <div className="hist-edi__body">
-        {hasResults && (
-          <div className="hist-tracks">
-            {groups.map((g, gi) => (
-              <section className="hist-track" key={g.track || `g${gi}`}>
-                {g.track && (
-                  <header className="hist-track__head">
-                    <span className={`hist-track__badge${multiTrack ? '' : ' hist-track__badge--solo'}`}>
-                      {g.track === 'Júri Técnico'
-                        ? <I.star width={14} height={14} aria-hidden="true" />
-                        : <I.heart width={14} height={14} aria-hidden="true" />}
-                      {g.track}
-                    </span>
-                  </header>
-                )}
-                <div className="hist-cats">
-                  {g.items.map((a) => <CategoryCard a={a} key={`${a.category}-${a.track || ''}`} />)}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-
-        {e.honorableMention && (
-          <div className="hist-honor">
-            <span className="hist-honor__tag"><I.starFill width={13} height={13} aria-hidden="true" />Menção honrosa</span>
-            <p>
-              <strong>{e.honorableMention.category}:</strong>{' '}
-              {e.honorableMention.names.join(' · ')}
+    <>
+      {/* 01 — ABERTURA: sem banda de foto; o herói já abre com a vitrine. */}
+      <section className="swa-hero" aria-labelledby="swa-titulo">
+        <div className="swa-hero__grade">
+          <div className="swa-hero__texto">
+            <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
+            <h1 className="scw-h1" id="swa-titulo">O prêmio que o público entrega.</h1>
+            <p className="scw-lead">
+              Quem percorre a rota prova, avalia e elege. De uma categoria única em 2019 a oito pódios
+              na edição dos dez anos, o Sweet Awards virou o encerramento de cada temporada do festival.
             </p>
+            <dl className="swa-numeros">
+              <div>
+                <dt>Edições premiadas</dt>
+                <dd>{ESTATISTICAS.edicoes}</dd>
+              </div>
+              <div>
+                <dt>Categorias julgadas</dt>
+                <dd>{ESTATISTICAS.categorias}</dd>
+              </div>
+              <div>
+                <dt>Colocações no pódio</dt>
+                <dd>{ESTATISTICAS.colocacoes}</dd>
+              </div>
+              <div>
+                <dt>Marcas premiadas</dt>
+                <dd>{ESTATISTICAS.marcas}</dd>
+              </div>
+            </dl>
           </div>
-        )}
 
-        {e.sponsors && e.sponsors.length > 0 && (
-          <p className="hist-sponsors">
-            <span className="hist-sponsors__label">Apoio &amp; parcerias</span>
-            {e.sponsors.map((s, i) => (
-              <span className="hist-sponsors__item" key={`${s.name}-${i}`}>
-                {s.name}{s.type ? <span className="hist-sponsors__type"> · {s.type}</span> : null}
-              </span>
+          <ul className="swa-vitrine">
+            {vitrine.map((v) => (
+              <li key={v.categoria}>
+                <figure style={{ margin: 0 }}>
+                  <FotoAcervo src={v.foto} alt={`Combo de ${v.marca}, primeiro lugar em ${v.categoria}`} />
+                  <figcaption>
+                    <span className="swa-vitrine__cat">{v.categoria}</span>
+                    <b className="swa-vitrine__marca">{v.marca}</b>
+                  </figcaption>
+                </figure>
+              </li>
             ))}
+          </ul>
+        </div>
+
+        <div className="swa-indice">
+          <span className="swa-indice__rotulo">16ª edição · Lovers 2026</span>
+          <ul>
+            {cats.map((c, i) => (
+              <li key={c.nome}>
+                <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{c.nome}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* 02 — VENCEDORES DA EDIÇÃO LOVERS 2026.1 */}
+      <section className="scw-secao scw-secao--creme">
+        <div className="swa-cab">
+          <div>
+            <span className="scw-rotulo">Resultado oficial · 2026.1 Lovers</span>
+            <h2 className="scw-h2">Os vencedores dos dez anos</h2>
+          </div>
+          <p className="swa-apoio">
+            Oito categorias decididas pelos Sweet Lovers entre 4 e 14 de junho de 2026.
+            Empates aparecem na mesma colocação.
           </p>
-        )}
+        </div>
 
-        {!hasResults && (
-          <p className="hist-edi__note">{e.awardsNote || (AWARD_STATUS[e.awardsStatus]?.label || 'A conferir') + '.'}</p>
-        )}
-        {e.awardsNote && hasResults && <p className="hist-edi__note">{e.awardsNote}</p>}
-      </div>
-    </details>
-  )
-}
-
-const EVOLUTION = [
-  { hl: '#F2693C', t: 'De Melhor Combo a múltiplas categorias', d: 'O primeiro resultado registrado reconhece o Melhor Combo. Com o tempo, a premiação passa a olhar para cada parte da experiência.' },
-  { hl: '#F8B511', t: 'A entrada do Júri Técnico', d: 'Além do público, edições passam a registrar avaliações de júri técnico, somando olhares especializados sobre os destaques.' },
-  { hl: '#2BC4E8', t: 'A força dos Sweet Lovers', d: 'A comunidade que prova, fotografa e compartilha também ajuda a eleger os combos e marcas que mais marcaram cada edição.' },
-  { hl: '#F2548A', t: 'Categorias que valorizam a experiência', d: 'Sabor, atendimento, criatividade, apresentação e encantamento entram na premiação, reconhecendo a loja inteira, não só o combo.' },
-]
-
-export function HistoricoAwardsPage({ navigate }) {
-  const go = (path) => (e) => { e.preventDefault(); navigate(path) }
-  // Scroll suave até o destaque da edição atual (âncora criada na seção Premiação 2026.1).
-  const scrollToCurrent = (ev) => {
-    ev.preventDefault()
-    const el = document.getElementById('premiacao-atual')
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-  // Cenas fotográficas da edição atual (Lovers 2026.1) — pódios já cruzados por key
-  // contra loversAwardsResults em sweetHistoryStats.js (getCurrentEditionScenes).
-  const scenes = getCurrentEditionScenes()
-  const comboScene = scenes.find((s) => s.key === 'melhor_combo') || scenes[0] || null
-  const otherScenes = scenes.filter((s) => s.key !== 'melhor_combo')
-  // Recordes históricos: sempre PARTICIPANTES, nunca edições (AGENTS.md §11).
-  const podiumLeader = getPodiumTotals()[0] || null
-  const winsLeader = getAwardWins()[0] || null
-  const distinctCategories = getDistinctCategoryCount()
-  // Histórico = demais edições, mais recentes primeiro (a 2026.1 já está no destaque acima).
-  const ordered = [...sweetEditions].reverse().filter((e) => e.id !== '2026.1')
-
-  return (
-    <PageShell name="hist">
-      <AwardsHero onExplore={scrollToCurrent} comboScene={comboScene} />
-
-      {/* 2 — RESULTADOS DA EDIÇÃO ATUAL: grade que linka pro Instagram */}
-      <section id="premiacao-atual" className="section swa-results-section">
-        <div className="wrap">
-          <div className="swa-results-head motion-reveal-up">
-            <h2>Todos os vencedores, <span className="hist-hl">categoria por categoria</span></h2>
-            <p>A premiação da 16ª edição na avaliação dos Sweet Lovers. Cada card abre o post do resultado no Instagram, com os empates preservados.</p>
-          </div>
-          {comboScene && <ComboResultCard scene={comboScene} />}
-          <div className="swa-results-grid">
-            {otherScenes.map((scene) => <ResultCard scene={scene} key={scene.key} />)}
-          </div>
+        <div className="swa-cats">
+          {cats.map((c, ci) => (
+            <article key={c.nome}>
+              <div className="swa-cat__cab">
+                <SeloCategoria nome={c.nome} cor={PALETA_SELO[ci % PALETA_SELO.length]} />
+                <h3 className="scw-h3 swa-cat__nome">{c.nome}</h3>
+                {c.desc && <p className="swa-cat__desc">{c.desc}</p>}
+              </div>
+              <ol className="swa-podio">
+                {c.pod.map((p) => (
+                  <CardColocacao key={p.pos} categoria={c.nome} colocacao={p} foto={FOTOS.get(`${ci}:${p.pos}`)} />
+                ))}
+              </ol>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* 3 — ARQUIVO (espresso): evolução, recordes e memória histórica */}
-      <section className="section swa-archive-section">
-        <div className="wrap">
-          <div className="hist-head motion-reveal-up">
-            <h2>O arquivo do <span className="hist-hl">Sweet Awards</span></h2>
-            <p>O Sweet Awards reconhece o que fica depois da última mordida: o sabor que emocionou, o atendimento que acolheu e a comunidade que provou, fotografou e votou. A Lovers 2026.1 é o destaque de agora — aqui ficam os marcos e recordes que contam a história completa da premiação.</p>
+      {/* 03 — COMO É DECIDIDO */}
+      <section className="scw-secao scw-secao--bege">
+        <div className="swa-cab">
+          <div>
+            <span className="scw-rotulo">Como é decidido</span>
+            <h2 className="scw-h2">Duas trilhas, um mesmo pódio</h2>
           </div>
-          <div className="hist-evo hist-evo--strip motion-stagger">
-            {EVOLUTION.map((c, i) => (
-              <article className="hist-evo__step" key={c.t} style={{ '--hl': c.hl }}>
-                <span className="hist-evo__num" aria-hidden="true">{i + 1}</span>
-                <h3>{c.t}</h3>
-                <p>{c.d}</p>
-              </article>
-            ))}
-          </div>
+          <p className="swa-apoio">
+            De 2020.2 a 2021.2, cada edição teve duas avaliações paralelas. De 2022 em diante,
+            a decisão é inteiramente do público.
+          </p>
+        </div>
 
-          {(podiumLeader || winsLeader) && (
-            <div className="swa-records motion-stagger">
-              {podiumLeader && (
-                <RecordCard label="Mais pódios da história" name={podiumLeader.name} value={`${podiumLeader.totalPodiums} pódios · ${podiumLeader.firstPlaces} vitórias`} />
-              )}
-              {winsLeader && (
-                <RecordCard label="Mais primeiros lugares" name={winsLeader.name} value={`${winsLeader.total} conquistas de 1º lugar`} />
-              )}
-              <RecordCard label="Categorias já premiadas" value={`${distinctCategories.total} categorias diferentes`} />
-            </div>
-          )}
+        <div className="swa-trilhas">
+          <article className="swa-trilha" style={{ '--swa-trilha': 'var(--scw-cyan)' }}>
+            <h3 className="scw-h3">Júri Técnico</h3>
+            <p>
+              Profissionais convidados avaliam execução, equilíbrio e acabamento das criações.
+              Ativo nas edições de 2020.2 a 2021.2.
+            </p>
+          </article>
+          <article className="swa-trilha" style={{ '--swa-trilha': 'var(--scw-magenta)' }}>
+            <h3 className="scw-h3">Sweet Lovers</h3>
+            <p>
+              Quem percorre o circuito dá nota ao que provou. É a trilha do público — e, desde 2022,
+              a única que define o pódio.
+            </p>
+          </article>
         </div>
       </section>
 
-      {/* 4 — ACORDEÕES POR EDIÇÃO (mais recentes primeiro) */}
-      <section className="section hist-list-section">
-        <div className="wrap">
-          <div className="hist-head motion-reveal-up">
-            <h2>O pódio de cada <span className="hist-hl hist-hl--coral">edição</span></h2>
-            <p>As edições anteriores, de 2016 a 2025. Abra uma edição para ver as categorias, o pódio de vencedores e a trilha de avaliação — Júri Técnico ou Sweet Lovers — quando registrada.</p>
+      {/* 04 — HALL DOS MAIS PREMIADOS (participantes, nunca edições entre si) */}
+      <section className="scw-secao scw-secao--choco swa-escura">
+        <div className="swa-cab">
+          <div>
+            <span className="scw-rotulo">Hall dos mais premiados</span>
+            <h2 className="scw-h2">Quem mais subiu ao pódio</h2>
           </div>
-          <div className="hist-list motion-stagger">
-            {ordered.map((e) => <EditionAccordion e={e} key={e.id} />)}
+          <p className="swa-apoio">
+            Todas as colocações conquistadas — 1º, 2º e 3º lugares — em todas as edições com
+            premiação registrada, somando Júri Técnico e Sweet Lovers.
+          </p>
+        </div>
+
+        <ul className="swa-legenda">
+          {[1, 2, 3].map((pos) => (
+            <li key={pos} style={{ '--swa-medalha': medalha(pos) }}>
+              <i aria-hidden="true" />{pos}º lugar
+            </li>
+          ))}
+        </ul>
+
+        <ol className="swa-hall">
+          {HALL.map((h, i) => (
+            <li key={h.nome}>
+              <span className="swa-hall__rank" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <MarcaParticipante nome={h.nome} />
+              <span className="swa-hall__id">
+                <b className="swa-hall__nome">{h.nome}</b>
+                <span className="swa-barra" aria-hidden="true">
+                  <span style={{ width: largura(h.p1), background: medalha(1) }} />
+                  <span style={{ width: largura(h.p2), background: medalha(2) }} />
+                  <span style={{ width: largura(h.p3), background: medalha(3) }} />
+                </span>
+              </span>
+              <span className="swa-hall__cont">
+                <span style={{ color: medalha(1) }}>{h.p1}×1º</span>
+                <span style={{ color: medalha(2) }}>{h.p2}×2º</span>
+                <span style={{ color: medalha(3) }}>{h.p3}×3º</span>
+                <b className="swa-hall__total">
+                  {h.total}<span className="swa-sr"> colocações no total</span>
+                </b>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* 05 — HISTÓRICO COMPLETO 2019–2025 */}
+      <section className="scw-secao scw-secao--creme">
+        <div className="swa-cab">
+          <div>
+            <span className="scw-rotulo">Histórico completo · 2019 a 2025</span>
+            <h2 className="scw-h2">Todos os pódios, edição por edição</h2>
           </div>
+          <p className="swa-apoio">
+            Da estreia em 2019, com categoria única, às quinze categorias de Terras Potiguares.
+            Abra uma edição para ver os resultados.
+          </p>
+        </div>
+
+        <div className="swa-edicoes">
+          {HISTORICO.map((e) => (
+            <EdicaoAcordeao
+              key={e.code}
+              edicao={e}
+              aberto={aberto === e.code}
+              onAlternar={() => setAberto((atual) => (atual === e.code ? null : e.code))}
+            />
+          ))}
         </div>
       </section>
 
-      {/* 5 — CTA */}
-      <section className="section hist-cta">
-        <div className="wrap hist-cta__inner motion-reveal-up">
-          <h2>Uma história feita por quem cria e por quem prova.</h2>
-          <p>O Sweet Awards guarda a memória das edições e celebra as marcas que ajudaram a transformar cada tema em experiência.</p>
-          <div className="hist-cta__row">
-            <a href="#premiacao-atual" className="btn btn-primary motion-press" onClick={scrollToCurrent}>Rever os vencedores 2026.1 <I.arrow /></a>
-            <a href="#/edicoes" className="btn btn-outline motion-press" onClick={go('/edicoes')}>Ver edições do festival</a>
-          </div>
+      {/* 06 — ANTES DE 2019: ausência dita com todas as letras */}
+      <section className="scw-secao scw-secao--compacta scw-secao--bege">
+        <div className="swa-antes">
+          <span className="scw-rotulo">Antes de 2019</span>
+          <h2 className="scw-h2">As cinco primeiras edições não tiveram premiação</h2>
+          <p className="scw-corpo">
+            De 2016 a 2018.2, o festival era um circuito de descoberta: combo a preço único, sem disputa.
+            O Sweet Awards nasceu na Pâtisserie Francesa, em 2019, quando o público pediu para eleger
+            o melhor combo — e nunca mais saiu do calendário.
+          </p>
         </div>
       </section>
-
-      <style>{`
-        .hist-page { overflow-x: clip; }
-        .hist-page section { position: relative; }
-        .hist-page .keep-together { white-space: nowrap; }
-        .hist-page .sr-place { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-        /* sublinhado que gruda no texto (não estende além da palavra, inclusive quebrando linha) */
-        .hist-hl { font-style: italic; color: var(--page-accent); text-decoration: underline; text-decoration-thickness: .085em; text-underline-offset: .12em; }
-        .hist-hl--coral { color: var(--coral); }
-        .hist-page h1, .hist-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
-        .hist-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 760px; margin: 0 auto var(--sp-7); }
-        .hist-head h2 { font-size: var(--fs-display-md); line-height: .98; }
-        .hist-head p { max-width: 60ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
-
-        /* 1 — HERO: título institucional + teaser do Grande Vencedor (Melhor Combo) */
-        .swa-hero { overflow: hidden; background: var(--ink); color: var(--cream); }
-        .swa-hero__inner { display: grid; grid-template-columns: minmax(0, .88fr) minmax(380px, 1.12fr); gap: clamp(34px, 7vw, 110px); align-items: center; padding-top: var(--hero-content-start); padding-bottom: clamp(56px, 8vw, 110px); }
-        .swa-hero__copy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-5); max-width: 650px; }
-        .swa-hero h1 { margin: 0; color: var(--cream); font: 900 clamp(48px, 6.2vw, 92px)/.9 var(--font-display); letter-spacing: -.04em; text-wrap: balance; }
-        .swa-hero h1 span { color: var(--page-accent); font-style: italic; }
-        .swa-hero__copy p { max-width: 46ch; margin: 0; color: rgba(255,241,230,.78); font-size: clamp(17px, 1.6vw, 21px); line-height: 1.45; text-wrap: pretty; }
-        /* teaser do Grande Vencedor (lado direito da hero) — substituiu o roster */
-        .swa-hero__teaser { align-self: center; justify-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); padding: clamp(24px, 3vw, 40px); background: rgba(255,241,230,.06); border: 1px solid rgba(255,241,230,.16); border-radius: var(--r-lg); }
-        .swa-hero__teaser-tag { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-sans); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--page-accent); }
-        .swa-hero__teaser-cat { margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: clamp(26px, 3vw, 40px); line-height: 1; letter-spacing: -.03em; color: var(--cream); }
-        .swa-hero__teaser-brand { display: flex; align-items: center; gap: var(--sp-3); }
-        .swa-hero__teaser-brand .hist-brand { width: 54px; height: 54px; border-radius: 12px; }
-        .swa-hero__teaser-brand .hist-brand--img { background: #fff; }
-        .swa-hero__teaser-brand strong { font-family: var(--font-heading); font-weight: 800; font-size: clamp(19px, 2vw, 26px); color: var(--cream); letter-spacing: -.02em; overflow-wrap: anywhere; }
-        .swa-hero__teaser-link { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--page-accent); text-decoration: none; }
-        .swa-hero__teaser-link svg:last-child { transition: transform .16s ease; }
-        .swa-hero__teaser-link:hover svg:last-child { transform: translateX(3px); }
-        .swa-hero__teaser-link:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 3px; border-radius: 4px; }
-
-        /* 2 — RESULTADOS: card do grande vencedor + grade das 7 categorias */
-        .swa-results-section { background: var(--cream); }
-        .swa-results-head { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: var(--sp-4); max-width: 760px; margin: 0 0 var(--sp-7); }
-        .swa-results-head h2 { font-size: var(--fs-display-md); line-height: .98; }
-        .swa-results-head p { max-width: 62ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.4; margin: 0; text-wrap: pretty; }
-
-        .swa-result-combo { display: grid; grid-template-columns: minmax(220px, 1fr) 1.35fr; gap: clamp(20px, 3vw, 40px); align-items: stretch; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: clamp(20px, 2.6vw, 32px); box-shadow: var(--shadow-md); margin-bottom: clamp(28px, 4vw, 48px); }
-        .swa-result-combo__media { position: relative; min-height: 240px; border-radius: 14px; overflow: hidden; background: var(--cream-card); }
-        .swa-result-combo__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .swa-result-combo__medal { position: absolute; top: 14px; left: 14px; display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: linear-gradient(160deg, #FFE08A, #E8A20C); color: var(--ink); font-family: var(--font-display); font-weight: 900; font-size: 18px; box-shadow: 0 6px 16px rgba(43,24,16,.28), inset 0 0 0 3px rgba(255,255,255,.5); }
-        .swa-result-combo__body { display: flex; flex-direction: column; gap: var(--sp-3); }
-        .swa-result-combo__tag { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent-dark); }
-        .swa-result-combo__body h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.03em; color: var(--ink); margin: 0; }
-
-        .swa-results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--sp-4); }
-        .swa-result-card { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-md); }
-        .swa-result-card__media { border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--cream-card); }
-        .swa-result-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .swa-result-card h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(17px, 1.5vw, 20px); letter-spacing: -.02em; color: var(--ink); margin: 0; }
-        .swa-result__desc { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); text-wrap: pretty; }
-        .swa-result__nophoto { width: 100%; height: 100%; display: grid; place-items: center; padding: var(--sp-4); text-align: center; color: var(--ink-soft); font-size: 12.5px; font-style: italic; background: repeating-linear-gradient(135deg, var(--cream-card), var(--cream-card) 10px, var(--paper-line) 10px, var(--paper-line) 11px); }
-        /* barra "Ver no Instagram" — link real pro post, sem embed */
-        .swa-result__post { margin-top: auto; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--paper-line); background: #fff; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: var(--page-accent-dark); text-decoration: none; }
-        .swa-result__post svg:last-child { margin-left: auto; transition: transform .16s ease; }
-        .swa-result__post:hover svg:last-child { transform: translateX(3px); }
-        .swa-result__post:focus-visible { outline: 2px solid var(--page-accent); outline-offset: 2px; }
-        /* pódio da grade — agrupado por colocação, chips de marca (padrão "Em breve") */
-        .swa-result-podium { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-        .swa-result-place { display: grid; grid-template-columns: 26px auto 1fr; align-items: center; column-gap: 10px; }
-        .swa-result-medal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink); box-shadow: inset 0 0 0 2px rgba(0,0,0,.12); }
-        .swa-result-place--ouro .swa-result-medal { background: linear-gradient(160deg, #FFE08A, #E8A20C); }
-        .swa-result-place--prata .swa-result-medal { background: linear-gradient(160deg, #ECECEC, #B9B9B9); }
-        .swa-result-place--bronze .swa-result-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
-        .swa-result-place__brands { display: inline-flex; gap: 6px; }
-        .swa-result-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line); overflow: hidden; }
-        .swa-result-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
-        .swa-result-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--brand, var(--ink)); }
-        .swa-result-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; color: var(--ink); }
-        .swa-result-place--ouro .swa-result-place__names { font-size: 16px; }
-
-        /* 3 — RECORDES + GALERIA DE CAMPEÕES (participantes, nunca edições — AGENTS.md §11) */
-        .swa-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--sp-4); max-width: 1040px; margin: var(--sp-7) auto 0; }
-        .swa-record { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-5); background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); text-align: center; }
-        .swa-record__label { font-family: var(--font-sans); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); }
-        .swa-record__name { font-family: var(--font-heading); font-weight: 800; font-size: 18px; color: var(--page-accent-dark); }
-        .swa-record__value { font-size: 13.5px; color: var(--ink-soft); }
-
-        /* 4 — ACORDEÕES */
-        .hist-list-section { background: var(--cream); }
-        .hist-list { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 960px; margin: 0 auto; }
-        .hist-edi { background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; }
-        .hist-edi[open] { box-shadow: var(--shadow-lg); }
-        .hist-edi > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-5) var(--sp-6); min-height: 44px; }
-        .hist-edi > summary::-webkit-details-marker { display: none; }
-        .hist-edi > summary:focus-visible { outline: 2px solid var(--page-accent); outline-offset: -2px; border-radius: var(--r-md); }
-        .hist-edi__id { display: flex; align-items: baseline; gap: 12px; min-width: 0; flex-wrap: wrap; }
-        .hist-edi__code { font-family: var(--font-display); font-weight: 900; font-size: clamp(18px, 1.8vw, 24px); letter-spacing: -.02em; color: var(--page-accent); }
-        .hist-edi__theme { font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.4vw, 19px); color: var(--ink); }
-        .hist-edi__champ { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; margin-right: var(--sp-5); min-width: 0; }
-        .hist-edi__champmedal { width: 20px; height: 20px; font-size: 11px; }
-        .hist-edi__champ .hist-brand { width: 26px; height: 26px; }
-        .hist-edi__champ .hist-brand--img img { object-fit: contain; padding: 3px; }
-        .hist-edi__champname { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22ch; }
-        /* logo real da edição no resumo do acordeão */
-        .hist-edi__logo { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 11px; overflow: hidden; background: #fff; border: 1px solid var(--paper-line); display: grid; place-items: center; }
-        .hist-edi__logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-        .hist-edi__meta { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
-        .hist-edi__part { font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
-        .hist-edi__chev { display: grid; place-items: center; flex: 0 0 auto; }
-        .hist-edi__chev svg { width: 18px; height: 18px; color: var(--ink-soft); transition: transform var(--dur-base, .26s) var(--ease-out, ease); }
-        .hist-edi[open] > summary .hist-edi__chev svg { transform: rotate(180deg); }
-        .hist-edi__body { padding: var(--sp-5) var(--sp-6) var(--sp-6); border-top: 1px solid var(--paper-line); }
-
-        /* trilhas (Júri Técnico / Sweet Lovers) */
-        .hist-tracks { display: flex; flex-direction: column; gap: var(--sp-6); }
-        .hist-track__head { display: flex; align-items: center; gap: 10px; margin-bottom: var(--sp-4); }
-        .hist-track__head::after { content: ''; flex: 1; height: 1px; background: var(--paper-line); }
-        .hist-track__badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 999px; font-family: var(--font-sans); font-size: 12px; font-weight: 800; letter-spacing: .03em; background: var(--page-accent-soft); color: var(--page-accent-dark); }
-        .hist-track__badge svg { color: currentColor; }
-
-        /* cards de categoria */
-        .hist-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(248px, 100%), 1fr)); gap: var(--sp-4); }
-        .hist-cat { background: var(--cream); border: 1px solid var(--paper-line); border-radius: var(--card-radius); padding: var(--sp-5); }
-        .hist-cat h3 { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); margin: 0 0 var(--sp-4); }
-
-        /* pódio + medalhas + logo da marca */
-        .hist-podium { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
-        .hist-podium li { display: flex; align-items: center; gap: 10px; min-width: 0; }
-        .hist-medal { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 900; font-size: 12px; color: #3a2a10; box-shadow: inset 0 -1px 2px rgba(0,0,0,.18), 0 1px 2px rgba(43,24,16,.16); }
-        .hist-medal--gold   { background: linear-gradient(150deg, #FCE08A, #E7B53D); }
-        .hist-medal--silver { background: linear-gradient(150deg, #EEF1F4, #C2C9D2); color: #44464a; }
-        .hist-medal--bronze { background: linear-gradient(150deg, #F0C08A, #C98342); color: #4a2f16; }
-        .hist-brand { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; overflow: hidden; background: var(--cream-card); border: 1px solid var(--paper-line); }
-        .hist-brand--img { background: #fff; }
-        .hist-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
-        .hist-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 11px; letter-spacing: -.02em; color: var(--brand, var(--coral-deep)); line-height: 1; }
-        .hist-name { font-size: 14px; color: var(--ink); line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
-
-        /* menção honrosa */
-        .hist-honor { margin-top: var(--sp-5); padding: var(--sp-4) var(--sp-5); border-radius: var(--r-md); background: var(--page-accent-soft); border: 1px solid color-mix(in srgb, var(--page-accent) 30%, transparent); }
-        .hist-honor__tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--page-accent-dark); margin-bottom: 5px; }
-        .hist-honor p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
-        .hist-honor strong { font-weight: 800; }
-
-        /* patrocínios */
-        .hist-sponsors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: var(--sp-5) 0 0; }
-        .hist-sponsors__label { font-family: var(--font-sans); font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); margin-right: 4px; }
-        .hist-sponsors__item { font-size: 12.5px; color: var(--ink-soft); padding: 4px 10px; border-radius: 999px; background: var(--cream); border: 1px solid var(--paper-line); }
-        .hist-sponsors__type { color: var(--ink-mute); }
-
-        .hist-edi__note { margin: var(--sp-5) 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); font-style: italic; opacity: .92; }
-
-        /* status badges */
-        .hist-badge { padding: 4px 11px; border-radius: 999px; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
-        .hist-badge--ok { background: rgba(20,159,192,.14); color: var(--cyan-deep); }
-        .hist-badge--warn { background: rgba(217,150,10,.16); color: var(--yellow-deep); }
-        .hist-badge--muted { background: rgba(43,24,16,.08); color: var(--ink-soft); }
-        .hist-badge--info { background: var(--page-accent-soft); color: var(--page-accent-dark); }
-
-        /* 3 — ARQUIVO (espresso): segundo pico escuro; dourado acende */
-        .swa-archive-section { background: var(--ink); }
-        .swa-archive-section .hist-head h2 { color: var(--cream); }
-        .swa-archive-section .hist-head p { color: rgba(255,241,230,.92); }
-        .swa-archive-section .hist-evo__step h3 { color: var(--cream); }
-        .swa-archive-section .hist-evo__step p { color: rgba(255,241,230,.85); }
-        .swa-archive-section .hist-evo__step + .hist-evo__step { border-left-color: rgba(255,241,230,.16); }
-        .swa-archive-section .swa-record { background: rgba(255,241,230,.06); border-color: rgba(255,241,230,.16); }
-        .swa-archive-section .swa-record__label { color: rgba(255,241,230,.6); }
-        .swa-archive-section .swa-record__name { color: var(--page-accent); }
-        .swa-archive-section .swa-record__value { color: rgba(255,241,230,.8); }
-        .hist-evo--strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; }
-        .hist-evo__step { padding: 0 var(--sp-5); }
-        .hist-evo__step:first-child { padding-left: 0; }
-        .hist-evo__step:last-child { padding-right: 0; }
-        .hist-evo__step + .hist-evo__step { border-left: 1px solid var(--paper-line); }
-        .hist-evo__num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; font-family: var(--font-display); font-weight: 900; font-size: 14px; color: #fff; background: var(--hl, var(--coral)); margin-bottom: var(--sp-4); }
-        .hist-evo__step h3 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(15px, 1.3vw, 17px); line-height: 1.18; margin: 0 0 var(--sp-3); color: var(--ink); text-wrap: balance; }
-        .hist-evo__step p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.5; margin: 0; text-wrap: pretty; }
-
-        /* 5 — CTA */
-        .hist-cta { background: #5e3018; }
-        .hist-cta__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 640px; margin: 0 auto; }
-        .hist-cta h2 { color: var(--cream); font-size: clamp(26px, 3vw, 42px); line-height: 1.04; }
-        .hist-cta p { color: rgba(255,241,230,.82); font-size: var(--fs-lead); line-height: 1.4; margin: 0; }
-        .hist-cta__row { display: flex; flex-wrap: wrap; gap: var(--sp-3); justify-content: center; margin-top: var(--sp-3); }
-        .hist-cta__row .btn { min-height: 48px; }
-        .hist-cta .btn-outline { color: var(--cream); border-color: rgba(255,241,230,.45); }
-        .hist-cta .btn-outline:hover { background: rgba(255,241,230,.1); border-color: var(--cream); }
-
-        /* RESPONSIVO */
-        @media (max-width: 960px) {
-          .swa-hero__inner { grid-template-columns: 1fr; gap: var(--sp-6); }
-          .swa-hero__copy { max-width: 720px; }
-          .swa-hero__teaser { align-self: stretch; }
-          .hist-evo--strip { grid-template-columns: repeat(2, 1fr); gap: var(--sp-5) var(--sp-6); }
-          .hist-evo__step { padding: 0; border-left: 0; }
-          .hist-evo__step + .hist-evo__step { border-left: 0; }
-        }
-        @media (max-width: 720px) {
-          .swa-result-combo { grid-template-columns: 1fr; }
-          .swa-result-combo__media { min-height: 200px; }
-          .hist-evo--strip { grid-template-columns: 1fr; gap: 0; }
-          .hist-evo__step { padding: var(--sp-5) 0; border-top: 1px solid var(--paper-line); }
-          .hist-evo__step:first-child { padding-top: 0; border-top: 0; }
-          .hist-edi > summary { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
-          .hist-edi__champ { margin: 0; max-width: 100%; }
-          .hist-edi__meta { width: 100%; }
-          .hist-edi__chev { margin-left: auto; }
-        }
-        @media (max-width: 560px) {
-          .swa-hero__inner { padding-top: var(--hero-content-start); padding-bottom: 42px; }
-          .swa-hero h1 { font-size: clamp(44px, 13vw, 62px); }
-          .swa-hero__copy p { font-size: 16px; }
-          .hist-cta__row .btn { width: 100%; justify-content: center; }
-        }
-
-        /* Reduced motion: sem rotação do chevron (reveals novos reusam classes globais
-           motion-reveal-up/motion-stagger/motion-image-reveal/motion-card-hover, já
-           desligadas em prefers-reduced-motion pelo bloco global de motion-system.css) */
-        @media (prefers-reduced-motion: reduce) {
-          .hist-edi__chev svg { transition: none; }
-          .swa-result__post svg:last-child, .swa-hero__teaser-link svg:last-child { transition: none; }
-        }
-      `}</style>
-    </PageShell>
+    </>
   )
 }

@@ -1,205 +1,102 @@
 import React from 'react'
-import { I } from './icons'
-import { useActiveEditionBrand } from '../state/activeEditionBrand'
 
-function LoginDropdown({ navigate }) {
-  const [open, setOpen] = React.useState(false)
-  const ref = React.useRef(null)
+/*
+ * Casca do site institucional — redesign 2026.
+ * Spec: design_handoff_site_institucional/README.md (§ Casca).
+ * Cabeçalho fixo com véu em degradê, logo transbordando metade abaixo da linha,
+ * nav de 6 itens onde o item ativo vira pill sólida na cor da página, e botão
+ * de acesso (ícone de chave) que abre o diálogo da área restrita.
+ */
 
-  React.useEffect(() => {
-    if (!open) return
-    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', close)
-    document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', onKey) }
-  }, [open])
-
-  const go = (path) => { setOpen(false); navigate(path) }
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        className="login-toggle"
-        onClick={() => setOpen(o => !o)}
-        aria-label="Acesso"
-        aria-expanded={open}
-        style={{ opacity: open ? 1 : undefined }}
-      >
-        <I.user />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-          background: '#fff', borderRadius: 14, padding: '6px',
-          boxShadow: '0 8px 32px rgba(43,24,16,.18), 0 0 0 1px rgba(43,24,16,.06)',
-          minWidth: 210, zIndex: 200,
-        }}>
-          <button
-            disabled
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '10px 14px', border: 0, borderRadius: 9,
-              background: 'transparent', textAlign: 'left', cursor: 'not-allowed',
-              fontFamily: 'inherit', fontSize: 14, color: '#B0907C', gap: 10,
-            }}
-          >
-            <span>Área do Participante</span>
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', background: '#F2B6A0', color: '#6B4A3A', borderRadius: 999, padding: '2px 8px' }}>
-              Em breve
-            </span>
-          </button>
-          <button
-            onClick={() => go('/painel-admin')}
-            style={{
-              display: 'block', width: '100%', padding: '10px 14px', border: 0, borderRadius: 9,
-              background: 'transparent', textAlign: 'left', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 14, fontWeight: 700, color: '#2B1810',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#FFF4EC'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            Área Admin →
-          </button>
-        </div>
-      )}
-    </div>
-  )
+/** Cor principal por página: menu ativo, barra de 5px e selo do herói.
+ *  `menu` é a variante usada no selo (Participar escurece p/ contraste). */
+export const PAGE_COLORS = {
+  home:                { cor: '#FDBB1A', tinta: '#3D1308', menu: '#FDBB1A' },
+  edicoes:             { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
+  'historico-awards':  { cor: '#4D257E', tinta: '#FEF0DD', menu: '#4D257E' },
+  participar:          { cor: '#F10767', tinta: '#FEF0DD', menu: '#D0055B' },
+  apoiar:              { cor: '#B3213B', tinta: '#FEF0DD', menu: '#B3213B' },
+  contato:             { cor: '#6A2C15', tinta: '#FEF0DD', menu: '#6A2C15' },
 }
+
+export const pageColor = (route) => PAGE_COLORS[route] || PAGE_COLORS.home
+
+export const LOCKUP_CREME = '/logos/lockup-scw-creme.svg'
 
 export const NAV_LINKS = [
-  { id: 'home',         label: 'O Festival',   href: '#/' },
-  { id: 'edicoes',      label: 'Edições',      href: '#/edicoes' },
-  { id: 'historico-awards', label: 'Sweet Awards', href: '#/sweet-awards' },
-  { id: 'participar',   label: 'Participar',   href: '#/participar' },
-  { id: 'apoiar',       label: 'Apoiar',       href: '#/apoiar' },
-  { id: 'contato',      label: 'Contato',      href: '#/contato' },
+  { id: 'home',              label: 'o festival',   href: '#/' },
+  { id: 'edicoes',           label: 'edições',      href: '#/edicoes' },
+  { id: 'historico-awards',  label: 'sweet awards', href: '#/sweet-awards' },
+  { id: 'participar',        label: 'participar',   href: '#/participar' },
+  { id: 'apoiar',            label: 'apoiar',       href: '#/apoiar' },
+  { id: 'contato',           label: 'contato',      href: '#/contato' },
 ]
 
-function SiteSidebar({ route, navigate }) {
+/** Passar o mouse mostra a cor da página — mas só amarelo e cyan têm contraste
+ *  suficiente sobre o véu escuro; as demais caem no amarelo. */
+function hoverColor(id) {
+  const tom = pageColor(id).menu
+  return tom === '#FDBB1A' || tom === '#01AFCC' ? tom : '#FDBB1A'
+}
+
+export function ChaveIcon(props) {
   return (
-    <aside className="site-sidebar">
-      <a href="#/" className="sidebar__brand" onClick={(e) => { e.preventDefault(); navigate('/') }}
-         style={{ position: 'relative', display: 'block', height: 176 }}>
-        <img
-          src="/images/logo-sweet-coffee-week.svg"
-          alt="Sweet & Coffee Week"
-          height={176}
-          style={{ display: 'block' }}
-        />
-      </a>
-
-      <nav className="sidebar__nav">
-        <div className="sidebar__section-label">Institucional</div>
-        {NAV_LINKS.map((l) => (
-          <a key={l.id}
-             href={l.href}
-             className={`sidebar__link${route === l.id ? ' active' : ''}`}
-             aria-current={route === l.id ? 'page' : undefined}
-             onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-            {l.label}
-          </a>
-        ))}
-      </nav>
-
-      <div style={{ flex: 1 }} />
-
-      <div className="sidebar__credit">Realização<br /><a href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer" aria-label="F2 Experience" style={{ display: 'inline-block', marginTop: 4 }}><img src="/images/logo-f2experience.svg" alt="F2 Experience" style={{ height: 18, width: 'auto', display: 'block' }} /></a></div>
-    </aside>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+         stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="8.5" cy="8.5" r="4.2" />
+      <path d="M11.6 11.6 20 20M17 17l2-2M14.4 14.4l1.6-1.6" />
+    </svg>
   )
 }
 
-// Logo do header. Antes alternava selo padrão ⇄ selo 10 anos a cada 10s; a
-// segunda logo (10 anos) foi removida a pedido — fica só o selo padrão. O
-// crossfade/cycle abaixo continua inócuo com 1 item (não dispara intervalo).
-const BRAND_LOGOS = [
-  { src: '/images/logo-seal-sweet-coffee.svg', alt: 'Sweet & Coffee Week' },
-]
-
-function BrandLogo({ navigate, route }) {
-  const isHome = route === 'home'
-  const [idx, setIdx] = React.useState(0)
-  const editionBrand = useActiveEditionBrand()
-  const showEditionBrand = route === 'edicoes' && !!editionBrand
-
-  React.useEffect(() => {
-    if (!isHome) { setIdx(0); return }
-    const reduce =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce || BRAND_LOGOS.length <= 1) return
-    const id = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return
-      setIdx((i) => (i + 1) % BRAND_LOGOS.length)
-    }, 10000)
-    return () => clearInterval(id)
-  }, [isHome])
+export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
+  const go = (href) => (e) => {
+    e.preventDefault()
+    navigate(href.replace('#', ''))
+    if (typeof window !== 'undefined') window.scrollTo(0, 0)
+  }
 
   return (
-    <a href="#/" className="brand brand-cycle" onClick={(e) => { e.preventDefault(); navigate('/') }}>
-      {showEditionBrand ? (
-        <img
-          key={editionBrand.logo}
-          src={editionBrand.logo}
-          alt={editionBrand.alt}
-          height={72}
-          className="brand-cycle__img brand-cycle__img--edition is-in"
-          decoding="async"
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
-        />
-      ) : (
-        BRAND_LOGOS.map((l, i) => (
-          <img
-            key={l.src}
-            src={l.src}
-            alt={i === idx ? l.alt : ''}
-            aria-hidden={i === idx ? undefined : 'true'}
-            height={72}
-            className={'brand-cycle__img' + (i === idx ? ' is-in' : '')}
-            decoding="async"
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-        ))
-      )}
-    </a>
-  )
-}
+    <header className="scw-header">
+      <div className="scw-header__veu" aria-hidden="true" />
+      <div className="scw-header__linha">
+        <a href="#/" className="scw-marca" onClick={go('#/')}>
+          <img src={LOCKUP_CREME} alt="Sweet & Coffee Week" />
+        </a>
 
-export function SiteHeader({ route, navigate }) {
-  const [scrolled, setScrolled] = React.useState(false)
-
-  React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // Fora da Home, logo sempre compacta (estado menor) — sem esperar scroll.
-  const isCompact = scrolled || route !== 'home'
-
-  // Menu mobile foi extraído p/ MobileMenu (aberto pela aba "Menu" da
-  // MobileTabBar, montada no App). O hambúrguer sai no mobile — header mobile
-  // = logo + login. Spec: docs/superpowers/specs/2026-07-10-mobile-tabbar-nav-design.md
-  return (
-    <header className={`site-header${isCompact ? ' scrolled' : ''}`}>
-      <div className="site-header__inner">
-        <BrandLogo navigate={navigate} route={route} />
-
-        <nav className="nav-main">
-          {NAV_LINKS.map((l) => (
-            <a key={l.id}
-               href={l.href}
-               className={route === l.id ? 'active' : ''}
-               aria-current={route === l.id ? 'page' : undefined}
-               onClick={(e) => { e.preventDefault(); navigate(l.href.replace('#', '')) }}>
-              {l.label}
-            </a>
-          ))}
+        <nav className="scw-nav" aria-label="Navegação principal">
+          {NAV_LINKS.map((l) => {
+            const ativo = route === l.id
+            const c = pageColor(l.id)
+            return (
+              <a
+                key={l.id}
+                href={l.href}
+                className={ativo ? 'is-ativo' : undefined}
+                aria-current={ativo ? 'page' : undefined}
+                onClick={ativo ? (e) => e.preventDefault() : go(l.href)}
+                style={{
+                  '--scw-nav-cor': c.menu,
+                  '--scw-nav-tinta': c.tinta,
+                  '--scw-nav-hover': hoverColor(l.id),
+                }}
+              >
+                {l.label}
+              </a>
+            )
+          })}
         </nav>
 
-        <div className="nav-cta">
-          <LoginDropdown navigate={navigate} />
-        </div>
+        <button
+          type="button"
+          className="scw-acesso-topo"
+          onClick={onOpenAccess}
+          aria-haspopup="dialog"
+          aria-expanded={!!accessOpen}
+          aria-label="Acessar área restrita"
+        >
+          <ChaveIcon />
+        </button>
       </div>
     </header>
   )

@@ -1,433 +1,557 @@
 /*
- * PÁGINA INSTITUCIONAL — "Contato": central de dúvidas e relacionamento do
- * Sweet & Coffee Week. Página de serviço editorial (AGENTS.md §19: SEM hero) —
- * abertura compacta → busca + filtros → FAQ filtrável → orientação de atendimento
- * → encaminhamentos → formulário funcional → Instagram. Fundo creme, paleta
- * institucional, sem stickers/gradientes/grid de cards. Header/menu/rodapé
- * GLOBAIS (App.jsx). Conteúdo do FAQ e lógica em src/data/contactFaq.js e
- * src/lib/contactRequest.js (esta camada só apresenta).
+ * PÁGINA INSTITUCIONAL — "Contato" (redesign 2026).
+ * Quatro seções, na ordem do protótipo `Site Sweet Coffee Week.dc.html`:
+ *   01 Abertura (compacta, banda de foto no mobile) · 02 Dúvidas (central de 93
+ *   perguntas em 10 assuntos) · 03 Caminhos · 04 Mensagem (formulário).
+ *
+ * Central de dúvidas: fonte única `src/data/faqCentral.js` (FAQ_DADOS) — alimenta
+ * o índice, a busca, os accordions E o schema FAQPage. A busca ignora acentos e
+ * caixa, exige TODOS os termos e troca o filtro para "Todas" ao digitar. Links de
+ * resposta só aparecem quando existem em FAQ_DADOS.links (campos `null` = rota que
+ * ainda não existe → nada de link quebrado).
+ *
+ * Formulário: mantém a integração real já existente — validação nativa + RPC
+ * Supabase `submit_contact_request` via `src/lib/contactRequest.js`. Nunca afirma
+ * "enviado" se a gravação falhar.
+ *
+ * Casca (header, rodapé, abas mobile) é global (App.jsx); a cor da página
+ * (marrom #6A2C15) vem de `body.route-contato` → `--scw-pagina`.
  */
 import React from 'react'
-import { I } from '../../components/icons'
-import { PageShell } from '../../components/layout'
+import '../../styles/scw-contato.css'
+import FAQ_DADOS from '../../data/faqCentral'
 import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
-import { FAQ_ITEMS, FAQ_CATEGORIES, CONTACT_SUBJECTS } from '../../data/contactFaq'
-import {
-  EMPTY_CONTACT,
-  queryFaq,
-  toggleAccordion,
-  validateContact,
-  submitContact,
-} from '../../lib/contactRequest'
+import { CONTACT_SUBJECTS } from '../../data/contactFaq'
+import { EMPTY_CONTACT, normalizeText, submitContact } from '../../lib/contactRequest'
+
+// Foto fixa do herói de Contato (acervo real, README do handoff).
+const HERO_FOTO = '/images/campanha/15.jpg'
 
 // RPC injetado na lógica pura (mantém o módulo testável offline).
 const rpc = (name, payload) => supabase.rpc(name, payload)
 
-const prefersReduced = () =>
+// Rotas reais do App.jsx para os `link` das respostas (FAQ_DADOS.links[*].rota).
+const ROTAS = {
+  participar: '/participar',
+  apoiar: '/apoiar',
+  awards: '/sweet-awards',
+  edicoes: '/edicoes',
+}
+
+const { categorias: CATEGORIAS, perguntas: PERGUNTAS, links: LINKS } = FAQ_DADOS
+const TOTAL = PERGUNTAS.length
+const CAT_PADRAO = 'sobre'
+
+const rotuloCat = (id) => (CATEGORIAS.find((c) => c[0] === id) || ['', 'Todas'])[1]
+
+/* Filtro da central: categoria + busca multi-termo (AND) sem acento/caixa,
+   casando pergunta + resposta + palavras-chave + rótulo do assunto + id. */
+function filtrarPerguntas(cat, busca) {
+  const termos = normalizeText(busca).split(/\s+/).filter(Boolean)
+  return PERGUNTAS.filter((q) => {
+    if (cat !== 'todas' && q.cat !== cat) return false
+    if (!termos.length) return true
+    const alvo = normalizeText(
+      [q.p, (q.r || []).join(' '), (q.k || []).join(' '), rotuloCat(q.cat), q.id].join(' '),
+    )
+    return termos.every((t) => alvo.includes(t))
+  })
+}
+
+/* Link da resposta. Só devolve algo quando o alvo existe em FAQ_DADOS.links —
+   os campos `null` (mapa, regulamentos, imprensa, press kit) somem sozinhos.
+   'contato' e 'formulario' apontam para o formulário desta mesma página. */
+function linkDaResposta(q) {
+  const l = q.link ? LINKS[q.link] : null
+  if (!l) return null
+  if (l.url) return { label: l.label, href: l.url, externo: true }
+  if (l.ancora) return { label: l.label, href: l.ancora, ancora: l.ancora.replace('#', '') }
+  if (l.rota === 'contato') return { label: l.label, href: '#mensagem', ancora: 'mensagem' }
+  if (l.rota && ROTAS[l.rota]) return { label: l.label, href: `#${ROTAS[l.rota]}`, rota: ROTAS[l.rota] }
+  return null
+}
+
+const semMovimento = () =>
   typeof window !== 'undefined' &&
   window.matchMedia &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// Ícones do protótipo (traço currentColor, sem dependência nova).
+const SetaDireita = (p) => (
+  <svg width={p.s || 16} height={p.s || 16} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const IconeInstagram = (p) => (
+  <svg width={p.s || 18} height={p.s || 18} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="17" cy="7" r="1.2" fill="currentColor" />
+  </svg>
+)
+
 export function ContatoPage({ navigate }) {
-  // FAQ: filtro + busca + acordeão (uma resposta aberta por vez).
-  const [category, setCategory] = React.useState('todas')
-  const [query, setQuery] = React.useState('')
-  const [openId, setOpenId] = React.useState(null)
-  const results = queryFaq(FAQ_ITEMS, { category, query })
+  // Central de dúvidas: assunto, busca e conjunto de respostas abertas.
+  // `abertos === null` = estado inicial → as duas primeiras da lista abrem.
+  const [cat, setCat] = React.useState(CAT_PADRAO)
+  const [busca, setBusca] = React.useState('')
+  const [abertos, setAbertos] = React.useState(null)
 
-  // Formulário.
+  // Formulário: idle | enviando | ok | invalido | erro.
   const [form, setForm] = React.useState(EMPTY_CONTACT)
-  const [touched, setTouched] = React.useState({})
-  const [submitted, setSubmitted] = React.useState(false)
-  const [status, setStatus] = React.useState('idle') // idle | sending | success | error
-  const { ok: formValid, errors } = validateContact(form)
-  const formRef = React.useRef(null)
+  const [estado, setEstado] = React.useState('idle')
 
-  const setField = (k) => (e) => {
-    setForm((f) => ({ ...f, [k]: e.target.value }))
-    if (status === 'error') setStatus('idle')
+  const buscando = busca.trim() !== ''
+  const lista = filtrarPerguntas(cat, busca)
+  const autoAbertos = lista.slice(0, 2).map((q) => q.id)
+  const idsAbertos = abertos === null ? autoAbertos : abertos
+
+  const alternar = (id) =>
+    setAbertos((atual) => {
+      const base = atual === null ? autoAbertos : atual
+      return base.includes(id) ? base.filter((x) => x !== id) : base.concat([id])
+    })
+
+  // Digitar busca vale mais que o filtro: volta para "Todas" automaticamente.
+  const mudarBusca = (e) => {
+    const valor = e.target.value
+    setBusca(valor)
+    setCat(valor.trim() ? 'todas' : CAT_PADRAO)
+    setAbertos(null)
   }
-  const markTouched = (k) => () => setTouched((t) => ({ ...t, [k]: true }))
-  const showErr = (k) => (submitted || touched[k]) && !!errors[k]
+  const limparBusca = () => { setBusca(''); setCat(CAT_PADRAO); setAbertos(null) }
+  const escolherCat = (id) => { setCat(id); setBusca(''); setAbertos(null) }
 
-  const goRoute = (route) => (e) => {
+  const rolarPara = (id) => (e) => {
+    if (e) e.preventDefault()
+    const el = typeof document !== 'undefined' ? document.getElementById(id) : null
+    if (el) el.scrollIntoView({ behavior: semMovimento() ? 'auto' : 'smooth', block: 'start' })
+  }
+  const irPara = (rota) => (e) => {
+    if (e) e.preventDefault()
+    navigate(rota)
+  }
+
+  // Schema FAQPage — mesma fonte de dados da tela, injetado no <head>.
+  React.useEffect(() => {
+    const anterior = document.getElementById('faq-schema')
+    if (anterior) anterior.remove()
+    const tag = document.createElement('script')
+    tag.type = 'application/ld+json'
+    tag.id = 'faq-schema'
+    tag.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: PERGUNTAS.map((q) => ({
+        '@type': 'Question',
+        name: q.p,
+        acceptedAnswer: { '@type': 'Answer', text: (q.r || []).join(' ') },
+      })),
+    })
+    document.head.appendChild(tag)
+    return () => tag.remove()
+  }, [])
+
+  const mudarCampo = (chave) => (e) => {
+    setForm((f) => ({ ...f, [chave]: e.target.value }))
+    if (estado === 'erro' || estado === 'invalido') setEstado('idle')
+  }
+
+  const enviar = async (e) => {
     e.preventDefault()
-    navigate(route)
-    if (typeof window !== 'undefined') window.scrollTo(0, 0)
-  }
-
-  const scrollToForm = () => {
-    const el = formRef.current
-    if (el) el.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'start' })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitted(true)
-    if (!formValid || status === 'sending') return
-    setStatus('sending')
+    if (estado === 'enviando') return
+    setEstado('enviando')
     const res = await submitContact(form, rpc)
     if (res.ok) {
-      setStatus('success')
+      setEstado('ok')
       setForm(EMPTY_CONTACT)
-      setTouched({})
-      setSubmitted(false)
     } else {
-      setStatus('error')
+      setEstado(res.status === 'invalid' ? 'invalido' : 'erro')
     }
   }
 
   return (
-    <PageShell name="contato">
-      {/* 1 — ABERTURA COMPACTA (sem hero; padding-top respeita a zona de segurança
-           do menu — AGENTS.md §4.1) + 2 — BUSCA E FILTROS + 3 — FAQ */}
-      <section className="contato-open">
-        <div className="contato-wrap">
-          <header className="contato-head motion-reveal-up">
-            <h1>Dúvidas e contato</h1>
-            <p>Encontre respostas sobre o festival ou escolha o melhor caminho para falar com a equipe.</p>
-          </header>
+    <>
+      {/* ---------- 01 ABERTURA (compacta) ---------------------------------- */}
+      <section className="scw-hero-bloco scw-hero-bloco--compacto ctt-abertura" aria-labelledby="ctt-titulo">
+        <div className="scw-hero-banda" aria-hidden="true" style={{ backgroundImage: `url("${HERO_FOTO}")` }} />
+        <div
+          className="scw-grade ctt-abertura__grade"
+          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 48px)' }}
+        >
+          <div>
+            <span className="scw-rotulo ctt-abertura__rotulo">Contato</span>
+            <h1 id="ctt-titulo" className="scw-h1 scw-h1--compacto ctt-abertura__titulo">
+              Sua dúvida, respondida aqui.
+            </h1>
+            <p className="scw-corpo ctt-abertura__lead">
+              Público, marcas, imprensa e parceiros: busque nas perguntas frequentes ou escreva para a
+              organização pelo formulário abaixo.
+            </p>
+          </div>
+          <div className="ctt-abertura__apoio">
+            <p className="ctt-abertura__nota">
+              A central de dúvidas reúne {TOTAL} respostas por assunto. Se a sua não estiver lá, escreva
+              pelo formulário.
+            </p>
+            <div className="ctt-abertura__acoes">
+              <a
+                href="#perguntas"
+                onClick={rolarPara('perguntas')}
+                className="scw-btn scw-btn--solido ctt-btn-mini"
+              >
+                Ver as perguntas
+              </a>
+              <a
+                href="#mensagem"
+                onClick={rolarPara('mensagem')}
+                className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
+              >
+                Ir para o formulário
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <div className="contato-tools">
-            <div className="contato-search">
-              <label className="contato-search__label" htmlFor="faq-q">Buscar uma dúvida</label>
-              <div className="contato-search__field">
-                <I.search width={18} height={18} aria-hidden="true" />
-                <input
-                  id="faq-q"
-                  type="search"
-                  placeholder="Digite uma dúvida"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  autoComplete="off"
-                />
-              </div>
+      {/* ---------- 02 DÚVIDAS (central de 93 perguntas) --------------------- */}
+      <section id="perguntas" className="ctt-sec ctt-sec--creme" aria-labelledby="ctt-duvidas-titulo">
+        <div
+          className="scw-grade ctt-cabeca"
+          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
+        >
+          <div>
+            <span className="scw-rotulo">Central de dúvidas</span>
+            <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
+              O que a gente <em className="ctt-destaque ctt-destaque--vinho">mais responde</em>.
+            </h2>
+          </div>
+          <p className="ctt-cabeca__apoio">
+            {TOTAL} respostas divididas em dez assuntos. Escolha um assunto ao lado ou busque por uma
+            palavra, como glúten, delivery, carimbo ou empate.
+          </p>
+        </div>
+
+        <div className="ctt-colunas">
+          <aside className="ctt-lateral" aria-label="Assuntos das perguntas">
+            <label className="ctt-busca">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
+                <path d="m20 20-3.6-3.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                value={busca}
+                onChange={mudarBusca}
+                placeholder="Buscar por palavra"
+                aria-label="Buscar uma dúvida"
+                autoComplete="off"
+              />
+            </label>
+            <span className="ctt-lateral__rotulo" aria-hidden="true">Assuntos</span>
+            <ul className="ctt-cats">
+              {CATEGORIAS.map(([id, label]) => {
+                const ativo = cat === id
+                const n = id === 'todas' ? TOTAL : PERGUNTAS.filter((q) => q.cat === id).length
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      className={`ctt-cat${ativo ? ' is-ativa' : ''}`}
+                      aria-pressed={ativo}
+                      onClick={() => escolherCat(id)}
+                    >
+                      <span>{label}</span>
+                      <span className="ctt-cat__n">{n}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </aside>
+
+          <div className="ctt-resultados">
+            <div className="ctt-resultados__topo">
+              <h3 className="ctt-resultados__titulo">{rotuloCat(cat)}</h3>
+              <p className="ctt-resultados__contagem" aria-live="polite">
+                {lista.length} {lista.length === 1 ? 'pergunta' : 'perguntas'}
+              </p>
+              {buscando && (
+                <button type="button" className="ctt-limpar" onClick={limparBusca}>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  Limpar busca
+                </button>
+              )}
             </div>
 
-            <fieldset className="contato-seg" role="radiogroup">
-              <legend className="sr-only">Filtrar dúvidas por assunto</legend>
-              {FAQ_CATEGORIES.map((c) => (
-                <label key={c.id} className="contato-seg__opt">
-                  <input
-                    type="radio"
-                    name="faq-cat"
-                    value={c.id}
-                    checked={category === c.id}
-                    onChange={() => setCategory(c.id)}
-                  />
-                  <span>{c.label}</span>
-                </label>
-              ))}
-            </fieldset>
-          </div>
-
-          {results.length > 0 ? (
-            <ul className="contato-faq" role="list">
-              {results.map((item) => {
-                const open = openId === item.id
+            <ul className="ctt-perguntas">
+              {lista.map((q) => {
+                const aberto = idsAbertos.includes(q.id)
+                const link = linkDaResposta(q)
                 return (
-                  <li className="contato-faq__row" key={item.id}>
-                    <h2 className="contato-faq__q">
+                  <li key={q.id} className={`ctt-item${aberto ? ' is-aberta' : ''}`}>
+                    <h3 className="ctt-item__h">
                       <button
                         type="button"
-                        id={`q-${item.id}`}
-                        aria-expanded={open}
-                        aria-controls={`a-${item.id}`}
-                        onClick={() => setOpenId(toggleAccordion(openId, item.id))}
+                        id={`faq-b-${q.id}`}
+                        className="ctt-item__botao"
+                        aria-expanded={aberto}
+                        aria-controls={`faq-p-${q.id}`}
+                        onClick={() => alternar(q.id)}
                       >
-                        <span>{item.question}</span>
-                        <I.chevronRight className="contato-faq__chevron" width={18} height={18} aria-hidden="true" />
+                        <span className="ctt-item__texto">
+                          {buscando && <span className="ctt-item__cat">{rotuloCat(q.cat)}</span>}
+                          <span className="ctt-item__pergunta">{q.p}</span>
+                        </span>
+                        <span className="ctt-item__sinal" aria-hidden="true">
+                          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
                       </button>
-                    </h2>
+                    </h3>
                     <div
-                      id={`a-${item.id}`}
+                      id={`faq-p-${q.id}`}
                       role="region"
-                      aria-labelledby={`q-${item.id}`}
-                      className="contato-faq__a"
-                      hidden={!open}
+                      aria-labelledby={`faq-b-${q.id}`}
+                      className="ctt-item__corpo"
+                      hidden={!aberto}
                     >
-                      <p>{item.answer}</p>
+                      {(q.r || []).map((texto, i) => <p key={i}>{texto}</p>)}
+                      {link && (
+                        <a
+                          className="ctt-item__link"
+                          href={link.href}
+                          onClick={
+                            link.rota ? irPara(link.rota) : link.ancora ? rolarPara(link.ancora) : undefined
+                          }
+                          target={link.externo ? '_blank' : undefined}
+                          rel={link.externo ? 'noopener noreferrer' : undefined}
+                        >
+                          {link.label} <SetaDireita s={13} />
+                        </a>
+                      )}
                     </div>
                   </li>
                 )
               })}
             </ul>
-          ) : (
-            <p className="contato-faq__empty" role="status">
-              Não encontramos uma resposta para essa busca. Tente outra palavra ou envie sua mensagem para a equipe.
-            </p>
-          )}
-        </div>
-      </section>
 
-      {/* 4 — ORIENTAÇÃO DE ATENDIMENTO */}
-      <section className="contato-guide">
-        <div className="contato-wrap">
-          <div className="contato-guide__inner motion-reveal-up">
-            <h2>Problemas durante uma edição</h2>
-            <p>Dúvidas sobre pedido, preparo, cobrança, atendimento, disponibilidade ou funcionamento devem ser tratadas primeiro com o estabelecimento responsável. Para problemas relacionados à organização geral do festival ou informações incorretas no site, envie uma mensagem para a equipe.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5 — ENCAMINHAMENTOS (linhas, não cards) */}
-      <section className="contato-routes-section">
-        <div className="contato-wrap">
-          <ul className="contato-routes" role="list">
-            <li className="contato-route motion-reveal-up">
-              <div className="contato-route__text">
-                <h2>Sua marca quer participar?</h2>
-                <p>Envie o pré-cadastro do seu estabelecimento para análise da organização.</p>
-              </div>
-              <a className="contato-route__cta motion-press" href="#/participar" onClick={goRoute('/participar')}>
-                Quero participar <I.arrow width={15} height={15} aria-hidden="true" />
-              </a>
-            </li>
-            <li className="contato-route motion-reveal-up">
-              <div className="contato-route__text">
-                <h2>Sua marca quer apoiar o festival?</h2>
-                <p>Conheça as possibilidades de parceria, patrocínio e projetos especiais.</p>
-              </div>
-              <a className="contato-route__cta motion-press" href="#/apoiar" onClick={goRoute('/apoiar')}>
-                Quero apoiar <I.arrow width={15} height={15} aria-hidden="true" />
-              </a>
-            </li>
-            <li className="contato-route motion-reveal-up">
-              <div className="contato-route__text">
-                <h2>Ainda precisa falar com a equipe?</h2>
-                <p>Selecione o assunto e envie sua mensagem pelo formulário.</p>
-              </div>
-              <button type="button" className="contato-route__cta motion-press" onClick={scrollToForm}>
-                Enviar mensagem <I.arrow width={15} height={15} aria-hidden="true" />
-              </button>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      {/* 6 — FORMULÁRIO FUNCIONAL */}
-      <section className="contato-form-section" id="contato-form" ref={formRef}>
-        <div className="contato-wrap">
-          <div className="contato-form-col">
-            <header className="contato-form__head motion-reveal-up">
-              <h2>Ainda precisa de ajuda?</h2>
-              <p>Selecione o assunto e conte como a equipe pode ajudar.</p>
-            </header>
-
-            {status === 'success' ? (
-              <div className="contato-ok" role="status">
-                <span className="contato-ok__ic" aria-hidden="true"><I.check width={22} height={22} /></span>
-                <p>Recebemos sua mensagem. A equipe do Sweet &amp; Coffee Week analisará o assunto e retornará pelo contato informado.</p>
-              </div>
-            ) : (
-              <form className="contato-form" onSubmit={handleSubmit} noValidate>
-                <div className="field">
-                  <label htmlFor="c-name">Nome</label>
-                  <input
-                    id="c-name" type="text" value={form.name}
-                    onChange={setField('name')} onBlur={markTouched('name')}
-                    aria-required="true" aria-invalid={showErr('name') || undefined}
-                    aria-describedby={showErr('name') ? 'e-name' : undefined}
-                  />
-                  {showErr('name') && <span className="field__err" id="e-name">{errors.name}</span>}
-                </div>
-
-                <div className="field">
-                  <label htmlFor="c-email">E-mail</label>
-                  <input
-                    id="c-email" type="email" value={form.email}
-                    onChange={setField('email')} onBlur={markTouched('email')}
-                    aria-required="true" aria-invalid={showErr('email') || undefined}
-                    aria-describedby={showErr('email') ? 'e-email' : undefined}
-                  />
-                  {showErr('email') && <span className="field__err" id="e-email">{errors.email}</span>}
-                </div>
-
-                <div className="field">
-                  <label htmlFor="c-whatsapp">WhatsApp <span className="field__opt">(opcional)</span></label>
-                  <input
-                    id="c-whatsapp" type="tel" inputMode="tel" value={form.whatsapp}
-                    onChange={setField('whatsapp')}
-                  />
-                </div>
-
-                <div className="field">
-                  <label htmlFor="c-subject">Assunto</label>
-                  <select
-                    id="c-subject" value={form.subject}
-                    onChange={setField('subject')} onBlur={markTouched('subject')}
-                    aria-required="true" aria-invalid={showErr('subject') || undefined}
-                    aria-describedby={showErr('subject') ? 'e-subject' : undefined}
-                  >
-                    <option value="" disabled>Selecione um assunto</option>
-                    {CONTACT_SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  {showErr('subject') && <span className="field__err" id="e-subject">{errors.subject}</span>}
-                </div>
-
-                <div className="field field--full">
-                  <label htmlFor="c-message">Mensagem</label>
-                  <textarea
-                    id="c-message" rows={5} value={form.message}
-                    onChange={setField('message')} onBlur={markTouched('message')}
-                    aria-required="true" aria-invalid={showErr('message') || undefined}
-                    aria-describedby={showErr('message') ? 'e-message' : undefined}
-                  />
-                  {showErr('message') && <span className="field__err" id="e-message">{errors.message}</span>}
-                </div>
-
-                {status === 'error' && (
-                  <p className="contato-form__banner" role="alert">
-                    Não foi possível enviar sua mensagem agora. Tente novamente em alguns minutos.
-                  </p>
-                )}
-
-                <div className="contato-form__foot field--full">
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-lg motion-press"
-                    disabled={!formValid || status === 'sending'}
-                  >
-                    {status === 'sending' ? 'Enviando…' : 'Enviar mensagem'}
+            {lista.length === 0 && (
+              <div className="ctt-vazio">
+                <b>Nenhuma pergunta encontrada</b>
+                <p>
+                  Tente outra palavra (pagamento, lactose, carimbo, patrocínio) ou volte para os assuntos.
+                  Se a dúvida não estiver aqui, escreva para a organização.
+                </p>
+                <div className="ctt-vazio__acoes">
+                  <button type="button" className="scw-btn ctt-btn-mini ctt-btn-choco" onClick={limparBusca}>
+                    Voltar aos assuntos
                   </button>
-                  <p className="contato-form__note">
-                    Usaremos seus dados apenas para analisar a solicitação e retornar pelo contato informado.
-                  </p>
+                  <a
+                    href="#mensagem"
+                    onClick={rolarPara('mensagem')}
+                    className="scw-btn scw-btn--contorno-escuro ctt-btn-mini"
+                  >
+                    Ir para o formulário
+                  </a>
                 </div>
-              </form>
+              </div>
             )}
-          </div>
-        </div>
-      </section>
 
-      {/* 7 — INSTAGRAM (canal complementar, discreto) */}
-      <section className="contato-ig">
-        <div className="contato-wrap">
-          <div className="contato-ig__inner motion-reveal-up">
-            <div className="contato-ig__text">
-              <h2>Acompanhe os comunicados oficiais</h2>
-              <p>Edições, participantes, novidades e avisos também são divulgados no Instagram oficial do Sweet &amp; Coffee Week.</p>
+            <div className="ctt-chamada">
+              <div>
+                <b>Não encontrou sua dúvida?</b>
+                <p>
+                  Escreva para a organização pelo formulário desta página. Se for sobre pedido, pagamento,
+                  entrega ou produto, fale primeiro com o estabelecimento responsável — a venda é feita por
+                  ele.
+                </p>
+              </div>
+              <div className="ctt-chamada__acoes">
+                <a
+                  href="#mensagem"
+                  onClick={rolarPara('mensagem')}
+                  className="scw-btn scw-btn--solido ctt-btn-mini"
+                >
+                  Falar com a organização
+                </a>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
+                >
+                  Chamar no Instagram
+                </a>
+              </div>
             </div>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="contato-ig__cta motion-press">
-              <I.ig width={16} height={16} aria-hidden="true" /> Seguir {INSTAGRAM_HANDLE}
-            </a>
           </div>
         </div>
       </section>
 
-      <style>{`
-        .contato-page { overflow-x: clip; background: var(--cream); }
-        .contato-page h1, .contato-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; color: var(--ink); text-wrap: balance; margin: 0; }
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+      {/* ---------- 03 CAMINHOS ---------------------------------------------- */}
+      <section className="ctt-sec ctt-sec--bege" aria-labelledby="ctt-caminhos-titulo">
+        <div
+          className="scw-grade ctt-cabeca ctt-cabeca--caminhos"
+          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
+        >
+          <div>
+            <span className="scw-rotulo">Escolha o caminho</span>
+            <h2 id="ctt-caminhos-titulo" className="scw-h2 ctt-cabeca__titulo ctt-cabeca__titulo--vinho">
+              Cada assunto tem <em className="ctt-destaque ctt-destaque--choco">uma porta certa</em>.
+            </h2>
+          </div>
+          <p className="ctt-cabeca__apoio">
+            Isso encurta a resposta: quem chega pelo caminho certo fala direto com quem cuida do assunto.
+          </p>
+        </div>
 
-        /* container = margem do menu (AGENTS.md §4) + coluna de leitura */
-        .contato-wrap { width: 100%; max-width: none; padding-inline: var(--hm-gutter); }
-        .contato-open, .contato-guide, .contato-routes-section, .contato-form-section, .contato-ig { padding-block: clamp(40px, 6vw, 80px); }
-        .contato-open { padding-top: var(--hero-content-start); }
-        .contato-open > .contato-wrap > *, .contato-guide__inner, .contato-form-col, .contato-ig__inner { max-width: 880px; margin-inline: auto; }
+        <ul className="ctt-portas">
+          <li className="ctt-porta">
+            <span className="scw-pill ctt-pill--roxo">Estabelecimentos</span>
+            <strong>Quero levar minha marca para a rota.</strong>
+            <span className="ctt-porta__texto">
+              Doçarias, cafeterias, confeitarias e restaurantes fazem o pré-cadastro na página Participar. A
+              participação passa por curadoria.
+            </span>
+            <a className="ctt-porta__link" href="#/participar" onClick={irPara('/participar')}>
+              Ir para Participar <SetaDireita />
+            </a>
+          </li>
+          <li className="ctt-porta">
+            <span className="scw-pill ctt-pill--vinho">Empresas</span>
+            <strong>Quero apoiar ou patrocinar o festival.</strong>
+            <span className="ctt-porta__texto">
+              Patrocínio, ativação de marca, mídia e brindes: a proposta entra pela página Apoiar e a
+              organização responde com formatos e prazos.
+            </span>
+            <a className="ctt-porta__link" href="#/apoiar" onClick={irPara('/apoiar')}>
+              Ir para Apoiar <SetaDireita />
+            </a>
+          </li>
+          <li className="ctt-porta">
+            <span className="scw-pill ctt-pill--cyan">Imprensa e outros</span>
+            <strong>Sou imprensa ou tenho outro assunto.</strong>
+            <span className="ctt-porta__texto">
+              Entrevistas, correções no site, sugestões e demais temas: use o formulário abaixo escolhendo o
+              assunto correspondente.
+            </span>
+            <a className="ctt-porta__link" href="#mensagem" onClick={rolarPara('mensagem')}>
+              Ir para o formulário <SetaDireita />
+            </a>
+          </li>
+        </ul>
+      </section>
 
-        /* 1 — ABERTURA */
-        .contato-head { text-align: center; margin-bottom: clamp(28px, 4vw, 44px); }
-        .contato-head h1 { font-size: clamp(32px, 4.4vw, 56px); line-height: 1.02; }
-        .contato-head p { max-width: 56ch; margin: var(--sp-4) auto 0; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; text-wrap: pretty; }
+      {/* ---------- 04 MENSAGEM (formulário com envio real) ------------------ */}
+      <section id="mensagem" className="ctt-sec ctt-sec--mensagem" aria-labelledby="ctt-mensagem-titulo">
+        <div className="ctt-mensagem__cabeca">
+          <span className="scw-rotulo">Falar com a equipe</span>
+          <h2 id="ctt-mensagem-titulo" className="scw-h2 ctt-mensagem__titulo">
+            Não achou sua <em className="ctt-destaque ctt-destaque--vinho">resposta</em>? Escreva para a
+            gente.
+          </h2>
+          <p className="ctt-mensagem__lead">
+            A organização responde em dias úteis. Escolha o assunto para a mensagem chegar na pessoa certa.
+          </p>
+        </div>
 
-        /* 2 — BUSCA E FILTROS */
-        .contato-tools { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: clamp(20px, 3vw, 32px); }
-        .contato-search__label { display: block; font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
-        .contato-search__field { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px; background: var(--cream-card); border: 1.5px solid var(--paper-line); border-radius: var(--r-md); color: var(--ink-soft); transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-search__field:focus-within { border-color: var(--page-accent-dark); }
-        .contato-search__field svg { flex: none; color: var(--ink-soft); }
-        .contato-search__field input { flex: 1; min-width: 0; border: 0; background: none; font-family: var(--font-sans); font-size: 16px; color: var(--ink); padding: 12px 0; }
-        .contato-search__field input:focus { outline: none; }
-        .contato-search__field input::placeholder { color: var(--ink-soft); opacity: .7; }
+        {estado === 'ok' ? (
+          <div className="ctt-ok" role="status">
+            <span className="ctt-ok__selo" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <strong>Mensagem enviada.</strong>
+            <p>
+              Recebemos sua mensagem. A organização do Sweet &amp; Coffee Week analisa o assunto e retorna
+              pelo contato informado, em dias úteis.
+            </p>
+            <button type="button" className="scw-btn ctt-ok__acao" onClick={() => setEstado('idle')}>
+              Enviar outra mensagem
+            </button>
+          </div>
+        ) : (
+          <form className="ctt-form" onSubmit={enviar}>
+            <div className="ctt-form__grade">
+              <label className="scw-campo">
+                <span>Seu nome *</span>
+                <input
+                  name="nome"
+                  value={form.name}
+                  onChange={mudarCampo('name')}
+                  placeholder="Como te chamamos"
+                  autoComplete="name"
+                  required
+                />
+              </label>
+              <label className="scw-campo">
+                <span>E-mail *</span>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={mudarCampo('email')}
+                  placeholder="voce@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label className="scw-campo ctt-campo--full">
+                <span>Assunto *</span>
+                <select name="assunto" value={form.subject} onChange={mudarCampo('subject')} required>
+                  <option value="">Selecione</option>
+                  {CONTACT_SUBJECTS.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </label>
+              <label className="scw-campo ctt-campo--full">
+                <span>Mensagem *</span>
+                <textarea
+                  name="mensagem"
+                  rows={4}
+                  value={form.message}
+                  onChange={mudarCampo('message')}
+                  placeholder="Escreva sua dúvida ou mensagem."
+                  required
+                />
+              </label>
+            </div>
 
-        .contato-seg { display: flex; flex-wrap: wrap; gap: 8px; border: 0; margin: 0; padding: 0; min-inline-size: 0; }
-        .contato-seg__opt { display: inline-flex; }
-        .contato-seg__opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-        .contato-seg__opt span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1.5px solid var(--paper-line); border-radius: var(--r-pill); background: var(--cream-card); font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--ink-soft); cursor: pointer; transition: color var(--motion-fast, .16s) var(--ease-out-soft, ease), border-color var(--motion-fast, .16s) var(--ease-out-soft, ease), background var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-seg__opt span:hover { border-color: var(--page-accent-dark); color: var(--ink); }
-        .contato-seg__opt input:checked + span { background: var(--page-accent); border-color: var(--page-accent); color: var(--ink); }
-        .contato-seg__opt input:focus-visible + span { outline: 2px solid var(--page-accent-dark); outline-offset: 2px; }
+            {estado === 'invalido' && (
+              <p className="ctt-form__aviso" role="alert">
+                Confira os campos obrigatórios: nome, e-mail válido, assunto da lista e mensagem.
+              </p>
+            )}
+            {estado === 'erro' && (
+              <p className="ctt-form__aviso" role="alert">
+                Não foi possível enviar sua mensagem agora. Tente novamente em alguns minutos ou fale no{' '}
+                {INSTAGRAM_HANDLE}.
+              </p>
+            )}
 
-        /* 3 — FAQ (linhas editoriais com divisórias) */
-        .contato-faq { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--paper-line); }
-        .contato-faq__row { border-bottom: 1px solid var(--paper-line); }
-        .contato-faq__q { margin: 0; font-size: inherit; }
-        .contato-faq__q button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 56px; padding: 18px 4px; border: 0; background: none; text-align: left; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.25; color: var(--ink); letter-spacing: -.01em; }
-        .contato-faq__q button:focus-visible { outline: 2px solid var(--page-accent-dark); outline-offset: 2px; border-radius: 6px; }
-        .contato-faq__chevron { flex: none; color: var(--page-accent-dark); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease); }
-        .contato-faq__q button[aria-expanded="true"] .contato-faq__chevron { transform: rotate(90deg); }
-        .contato-faq__a { padding: 0 44px 22px 4px; }
-        .contato-faq__a p { margin: 0; color: var(--ink-soft); font-size: 16px; line-height: 1.6; max-width: 68ch; text-wrap: pretty; }
-        .contato-faq__empty { margin: 0; padding: 32px 4px; color: var(--ink-soft); font-size: 16px; line-height: 1.55; border-top: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); text-wrap: pretty; }
+            <div className="ctt-form__pe">
+              <span className="ctt-form__nota">
+                Seus dados são usados apenas para responder esta mensagem.
+              </span>
+              <button type="submit" className="scw-btn ctt-enviar" disabled={estado === 'enviando'}>
+                {estado === 'enviando' ? 'Enviando…' : 'Enviar mensagem'} <SetaDireita s={17} />
+              </button>
+            </div>
+          </form>
+        )}
 
-        /* 4 — ORIENTAÇÃO */
-        .contato-guide { background: var(--page-accent-soft); }
-        .contato-guide__inner h2 { font-size: clamp(21px, 2.2vw, 28px); line-height: 1.1; }
-        .contato-guide__inner p { margin: var(--sp-3) 0 0; color: var(--ink-soft); font-size: 16px; line-height: 1.55; max-width: 70ch; text-wrap: pretty; }
-
-        /* 5 — ENCAMINHAMENTOS (linhas) */
-        .contato-routes-section > .contato-wrap { max-width: 980px; margin-inline: auto; }
-        .contato-routes { list-style: none; margin: 0; padding: 0; }
-        .contato-route { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--paper-line); }
-        .contato-route:first-child { border-top: 1px solid var(--paper-line); }
-        .contato-route__text h2 { font-size: clamp(18px, 1.8vw, 22px); line-height: 1.15; }
-        .contato-route__text p { margin: 6px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.5; max-width: 52ch; text-wrap: pretty; }
-        .contato-route__cta { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; padding: 0 20px; border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: none; font-family: var(--font-sans); font-size: 15px; font-weight: 800; color: var(--ink); cursor: pointer; transition: color var(--motion-fast, .16s) var(--ease-out-soft, ease), background var(--motion-fast, .16s) var(--ease-out-soft, ease), border-color var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-route__cta:hover { background: var(--ink); color: var(--cream); }
-        .contato-route__cta:focus-visible { outline: 2px solid var(--page-accent-dark); outline-offset: 2px; }
-        .contato-route__cta svg { transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-route__cta:hover svg { transform: translateX(3px); }
-
-        /* 6 — FORMULÁRIO */
-        .contato-form-section { background: var(--cream-card); }
-        .contato-form__head { text-align: center; margin-bottom: clamp(24px, 3vw, 36px); }
-        .contato-form__head h2 { font-size: clamp(24px, 2.6vw, 34px); line-height: 1.05; }
-        .contato-form__head p { margin: var(--sp-3) auto 0; max-width: 52ch; color: var(--ink-soft); font-size: 16px; line-height: 1.5; text-wrap: pretty; }
-        .contato-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-        .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-        .field--full { grid-column: 1 / -1; }
-        .field label { font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--ink); }
-        .field__opt { font-weight: 500; color: var(--ink-soft); }
-        .field input, .field select, .field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1.5px solid var(--paper-line); border-radius: var(--r-md); background: var(--cream); font-family: var(--font-sans); font-size: 16px; color: var(--ink); transition: border-color var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .field textarea { min-height: 128px; resize: vertical; line-height: 1.5; }
-        .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: none; border-color: var(--page-accent-dark); box-shadow: 0 0 0 3px var(--page-accent-soft); }
-        .field [aria-invalid="true"] { border-color: var(--coral-deep, #B5401F); }
-        .field__err { font-family: var(--font-sans); font-size: 12.5px; font-weight: 600; color: var(--coral-deep, #B5401F); }
-        .contato-form__banner { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--r-md); background: var(--page-accent-soft); color: var(--coral-deep, #B5401F); font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
-        .contato-form__foot { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 6px; text-align: center; }
-        .contato-form__foot .btn { min-height: 52px; min-width: 220px; }
-        .contato-form__foot .btn:disabled { opacity: .5; cursor: not-allowed; }
-        .contato-form__note { margin: 0; max-width: 48ch; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
-        .contato-ok { display: flex; align-items: flex-start; gap: 16px; max-width: 620px; margin: 0 auto; padding: 24px 26px; background: var(--cream); border: 1.5px solid var(--page-accent); border-radius: var(--r-lg); }
-        .contato-ok__ic { display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--page-accent); color: var(--ink); }
-        .contato-ok p { margin: 0; padding-top: 6px; color: var(--ink); font-size: 16px; line-height: 1.55; text-wrap: pretty; }
-
-        /* 7 — INSTAGRAM (discreto) */
-        .contato-ig__inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 26px; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); }
-        .contato-ig__text h2 { font-size: clamp(18px, 1.8vw, 22px); line-height: 1.15; }
-        .contato-ig__text p { margin: 6px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.5; max-width: 56ch; text-wrap: pretty; }
-        .contato-ig__cta { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; padding: 0 20px; border-radius: var(--r-pill); background: var(--ink); color: var(--cream); font-family: var(--font-sans); font-size: 15px; font-weight: 800; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-ig__cta:hover { transform: translateY(-2px); }
-        .contato-ig__cta:focus-visible { outline: 2px solid var(--page-accent-dark); outline-offset: 2px; }
-
-        /* RESPONSIVO — escala canônica 960/720/560/420 (AGENTS.md §17) */
-        @media (max-width: 720px) {
-          .contato-route { flex-direction: column; align-items: flex-start; gap: 14px; }
-          .contato-route__cta { align-self: stretch; justify-content: center; }
-          .contato-ig__inner { flex-direction: column; align-items: flex-start; }
-          .contato-ig__cta { align-self: stretch; justify-content: center; }
-        }
-        @media (max-width: 560px) {
-          .contato-form { grid-template-columns: 1fr; }
-          .contato-form__foot .btn { width: 100%; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .contato-faq__chevron, .contato-route__cta, .contato-route__cta svg, .contato-ig__cta,
-          .contato-search__field, .contato-seg__opt span, .field input, .field select, .field textarea { transition: none; }
-        }
-      `}</style>
-    </PageShell>
+        <div className="ctt-direto">
+          <span>Prefere mensagem direta?</span>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+            <IconeInstagram /> {INSTAGRAM_HANDLE}
+          </a>
+        </div>
+      </section>
+    </>
   )
 }
