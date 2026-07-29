@@ -404,29 +404,53 @@ gera (funções do `imageLibrary` resolvidas de verdade, não regex).
 
 ### 9.4 Acervo fotográfico não referenciado
 
-33 fotos existem em `public/` sem nenhuma página apontando para elas hoje:
-`campanha/` 14 · `lovers-publico/` 9 · `momentos/` 8 · `imprensa/` 2.
+29 fotos existem em `public/` sem nenhuma página apontando para elas hoje:
+`campanha/` 12 · `lovers-publico/` 7 · `momentos/` 8 · `imprensa/` 2.
 
 **Isso não é lixo — é acervo do festival.** A regra é explícita: não remover
 conteúdo do festival só porque não aparece na Home. Ficam disponíveis para as
 próximas páginas. Ao usar uma, registrar em `imageLibrary.js`.
 
-**Duplicatas byte-idênticas** (a mesma foto em duas pastas) — decisão de curadoria
-pendente, nenhuma quebra o site:
+**Duplicatas resolvidas** (jul/2026). Havia 4 fotos byte-idênticas em duas
+pastas. Regra aplicada: **fica a cópia na pasta institucional permanente**
+(`momentos/`), sai a da pasta de campanha ou de edição — coerente com a
+hierarquia do §2, onde institucional é permanente e campanha é temporário.
 
-| Cópia A | Cópia B |
+| Removida | Preservada |
 | --- | --- |
 | `campanha/17.jpg` | `momentos/03.jpg` |
 | `campanha/18.jpg` | `momentos/08.jpg` |
 | `lovers-publico/01.jpg` | `momentos/09.jpg` |
 | `lovers-publico/02.jpg` | `momentos/10.jpg` |
 
-Arquivos com nome ruim, à espera de decisão: `moldura-lovers (1).png`,
-`moldura-lovers (2).png`, `moldura-namorados 16.png` (parênteses e espaço no
-nome), `favicon-32.png` e `favicon-512.png` (o `index.html` só declara
-48/96/180/192 e o SVG).
+### 9.5 Padrão de nome de arquivo
 
-### 9.5 Ausência de imagem
+Nome de arquivo explica o conteúdo. **Sem** parêntese, espaço, acento, `final`,
+`novo`, `cópia` ou número de versão solto.
+
+| Padrão | Exemplo |
+| --- | --- |
+| Foto de edição | `edicoes/<code>/NN.webp` |
+| Marca de edição | `marcas-edicoes/<code>/logo.png` |
+| Combo de participante | `combos/<slug>/main.jpg` |
+| Logo de participante | `logos/participants/<slug>.png` |
+| Foto de acervo numerada | `<pasta>/NN.jpg` |
+| Peça de campanha | `<assunto>-<variante>.png` |
+
+Renomeados em jul/2026: `moldura-lovers (1).png` → `moldura-lovers-01.png` ·
+`moldura-lovers (2).png` → `moldura-lovers-02.png` ·
+`moldura-namorados 16.png` → `moldura-lovers-namorados.png`.
+
+### 9.6 Favicons
+
+Seis arquivos em disco, **seis declarados** no `index.html` — sem sobra e sem
+falta: `favicon-sweet.svg` (mestre vetorial) + PNG 32, 48, 96, 192 e o
+`apple-touch-icon` de 180.
+
+O `favicon-512.png` foi removido: não havia webmanifest para consumi-lo e
+qualquer tamanho é regenerável a partir do SVG.
+
+### 9.7 Ausência de imagem
 
 Sem foto ou logo: **reserva honesta** (`.scw-reserva`) — moldura editorial, borda
 sutil, fundo da paleta, texto curto ("Foto pendente"), proporção definida. Nunca
