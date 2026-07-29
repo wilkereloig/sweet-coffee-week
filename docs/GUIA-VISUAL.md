@@ -806,6 +806,26 @@ Sincronizar o sistema atual dentro de qualquer um deles misturaria duas
 identidades no mesmo painel — e qualquer conversa futura no Design puxaria
 valores errados sem avisar.
 
+### Páginas espelhadas (`paginas/`)
+
+Além da biblioteca, o projeto tem um **snapshot estático das seis páginas** —
+HTML autocontido, desktop 1440px, CSS embutido, imagens rebaixadas para 1200px.
+É o site como está, congelado para editar.
+
+Regerar quando o site mudar:
+
+```
+npm run build && npm run design:snapshot
+```
+
+Sai em `tests/.snapshot-design/` (ignorado pelo git). Gerador:
+`tests/snapshot-design.mjs`.
+
+O snapshot **não** tem interatividade (sem React: acordeão, busca, filtros e
+formulários ficam no estado inicial), traz Edições em **uma cena só** (a página
+monta só a edição em foco, por desempenho) e congela o movimento no estado
+final — que é justamente como se edita layout sem lutar com animação.
+
 ### Como continuar o trabalho visual lá
 
 1. Abrir o projeto **Redesign 2026** no claude.ai/design. Os cards já mostram o

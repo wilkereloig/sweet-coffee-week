@@ -15,6 +15,7 @@
     "test:redesign": "node --test tests/redesign-2026.test.mjs tests/faq-central.test.mjs",
     "test:casca": "node tests/casca-responsiva.mjs",
     "test:motion": "node tests/motion.mjs",
+    "design:snapshot": "node tests/snapshot-design.mjs",
     "test:imagens-navegador": "node tests/imagens-navegador.mjs",
     "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs",
     "focal-points": "node scripts/compute-focal-points.mjs"
