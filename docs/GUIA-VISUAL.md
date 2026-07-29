@@ -299,7 +299,7 @@ Utilitárias globais em `scw-2026.css`. Peças de página usam prefixo próprio.
 | Raiz | `.scw-raiz` | `scw-2026.css` |
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `components/nav.jsx` |
 | Barra de cor da página | `.scw-barra-pagina` (5px, transição 320ms) | `nav.jsx` |
-| Marca | `.scw-marca` → `public/logos/lockup-scw-creme.svg` | `nav.jsx` |
+| Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo `SiteFooter.jsx`) |
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `components/MobileTabBar.jsx` (5 abas, ≤900px) |
 | Folha "mais" | `.scw-folha*` | `components/MobileMenu.jsx` |
@@ -353,8 +353,8 @@ Acervo em `public/images/`:
 | Pasta | Conteúdo |
 | --- | --- |
 | `combos/<slug>/` | Fotos dos combos por participante (21 marcas) |
-| `edicoes/<code>/` | Acervo normalizado das 16 edições (`NN.webp`) |
-| `editions/<code>/` | Marca/logo de cada edição (1 arquivo) |
+| `edicoes/<code>/` | **Fotos** — acervo normalizado das 16 edições (`NN.webp`) |
+| `marcas-edicoes/<code>/logo.png` | **Marca** de cada edição (16). Renomeado de `editions/` em jul/2026: dois nomes quase idênticos para coisas diferentes era convite a erro |
 | `momentos/` | Fotos institucionais de público e evento |
 | `campanha/` | Peças de campanha |
 | `lovers-publico/` | Público da edição Lovers |
@@ -379,7 +379,54 @@ Acervo em `public/images/`:
 - Proporções em uso: **1:1** (vitrine de vencedores, galerias), **4:5** (card de
   1º lugar no desktop, vira 1:1 até 820px), **4:3** (hero de Participar/Apoiar).
 
-### 9.3 Ausência de imagem
+### 9.3 Inventário de identidade — arquivos de marca
+
+Auditado em 29/07/2026 cruzando o disco com **todos** os caminhos que o código
+gera (funções do `imageLibrary` resolvidas de verdade, não regex).
+
+| Arquivo | Papel | Status |
+| --- | --- | --- |
+| `/images/logo-seal-sweet-coffee.svg` | **Marca oficial do cabeçalho e do rodapé** (`MARCA_SCW` em `nav.jsx`) | ✅ vivo |
+| `/images/logo-sweet-coffee-week.svg` | Wordmark grande — landing EmBreve | ✅ vivo |
+| `/images/logo-f2experience.svg`, `/images/f2-symbol.svg` | Marca da realizadora — seção 07 da Home | ✅ vivo |
+| `/images/logo-sweet-coffee-week-header.svg` | Wordmark alternativo | ⚠️ sem uso — mantido |
+| `/logos/lockup-scw-creme.svg` | Lockup creme | ⚠️ sem uso — mantido. **A CLAUDE.md dizia que era a marca do cabeçalho; não é** |
+| `/images/logo-f2-experience.svg` | Variante da marca F2 (a viva é `logo-f2experience.svg`, sem hífen) | ⚠️ sem uso — mantido |
+| `/images/selo-10-anos.svg` + `.png`, `/videos/video-selo10anos.webm` | Selo comemorativo de 10 anos | ⚠️ sem uso — mantido |
+| `/images/lovers-logo.svg`, `/images/sweet-lovers-logo.svg`, `/images/email-logo-lovers.png` | Marcas da edição Lovers | ⚠️ sem uso — histórico, mantido |
+| `/images/logo.svg` | Byte-idêntico a `logo-sweet-coffee-week.svg` | ❌ **removido** (duplicata) |
+| `/images/sweet-logo.svg` | Byte-idêntico a `logo-sweet-coffee-week-header.svg` | ❌ **removido** (duplicata) |
+| `/fonts/helvetica-ext/*` (4 woff2) | Helvetica Extended | ❌ **removido** — fora da identidade (Nexa Slab é a fonte única), zero referência |
+| `/images/shapes/*` | 8 formas decorativas | ❌ **6 removidas** (decoração sem função, §10.1). Sobram as 2 com função: `shape-heart-yellow.svg` (herói de Participar) e `shape-arrow-yellow.svg` |
+
+**Logos de participante:** `/logos/participants/<slug>.png`, resolvidos por
+`resolveParticipant` com fallback em iniciais. Nunca inventar logo.
+
+### 9.4 Acervo fotográfico não referenciado
+
+33 fotos existem em `public/` sem nenhuma página apontando para elas hoje:
+`campanha/` 14 · `lovers-publico/` 9 · `momentos/` 8 · `imprensa/` 2.
+
+**Isso não é lixo — é acervo do festival.** A regra é explícita: não remover
+conteúdo do festival só porque não aparece na Home. Ficam disponíveis para as
+próximas páginas. Ao usar uma, registrar em `imageLibrary.js`.
+
+**Duplicatas byte-idênticas** (a mesma foto em duas pastas) — decisão de curadoria
+pendente, nenhuma quebra o site:
+
+| Cópia A | Cópia B |
+| --- | --- |
+| `campanha/17.jpg` | `momentos/03.jpg` |
+| `campanha/18.jpg` | `momentos/08.jpg` |
+| `lovers-publico/01.jpg` | `momentos/09.jpg` |
+| `lovers-publico/02.jpg` | `momentos/10.jpg` |
+
+Arquivos com nome ruim, à espera de decisão: `moldura-lovers (1).png`,
+`moldura-lovers (2).png`, `moldura-namorados 16.png` (parênteses e espaço no
+nome), `favicon-32.png` e `favicon-512.png` (o `index.html` só declara
+48/96/180/192 e o SVG).
+
+### 9.5 Ausência de imagem
 
 Sem foto ou logo: **reserva honesta** (`.scw-reserva`) — moldura editorial, borda
 sutil, fundo da paleta, texto curto ("Foto pendente"), proporção definida. Nunca
@@ -600,9 +647,10 @@ src/data/                    ← dados vivos
 src/data/_arquivo/           ← dados aposentados, fora do bundle
 src/hooks/useRevealOnScroll.js
 
-public/logos/                ← lockup institucional
-public/fonts/nexa-slab/      ← woff2
-public/images/               ← acervo (ver §9.1)
+public/logos/participants/   ← logos reais dos participantes
+public/fonts/nexa-slab/      ← woff2 (unica familia do site)
+public/images/               ← acervo (ver §9.1) + marcas (ver §9.3)
+public/images/marcas-edicoes/← marca de cada edicao (era editions/)
 acervo-bruto/                ← acervo bruto, fora do git
 ```
 

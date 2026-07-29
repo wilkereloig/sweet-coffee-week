@@ -12,7 +12,7 @@ código: **`src/data/imageLibrary.js`**.
 | --- | --- | --- | --- |
 | `public/images/edicoes/<code>/NN.webp` | 190 (11–12 por edição, 16 edições) | Registros de cada edição: combos, vitrines, lojas, público | **Edição** — sim. **Participante** — não |
 | `public/images/combos/<slug>/` | 230 em 21 marcas | Combo de cada participante | **Participante + edição Lovers 2026.1** — sim |
-| `public/images/editions/<code>/logo.png` | 16 | Marca de cada edição | sim |
+| `public/images/marcas-edicoes/<code>/logo.png` | 16 | Marca de cada edição | sim |
 | `public/logos/participants/<slug>.png` | 21 | Marca de cada participante da Lovers | sim |
 | `public/images/momentos/` | 12 | Público e bastidores | edição não identificada |
 | `public/images/campanha/` | 18 | Campanha e atendimento | edição não identificada |

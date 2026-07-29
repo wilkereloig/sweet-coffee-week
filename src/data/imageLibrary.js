@@ -13,7 +13,7 @@
    · `/images/combos/<slug>/main.jpg` + `photo-NN.jpg` — fotos POR PARTICIPANTE,
      só da edição Lovers (2026.1), 21 marcas. É o único vínculo
      participante↔combo confirmado no acervo.
-   · `/images/editions/<code>/logo.png` — marca de cada edição.
+   · `/images/marcas-edicoes/<code>/logo.png` — marca de cada edição.
    · `/logos/participants/<slug>.png` — marca de cada participante da Lovers.
    · `/images/momentos/`, `/images/campanha/`, `/images/lovers-publico/` —
      público e bastidores, sem vínculo com marca.

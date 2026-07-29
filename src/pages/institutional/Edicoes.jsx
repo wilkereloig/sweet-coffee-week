@@ -34,10 +34,11 @@
  *
  * Dados (regra: NÃO inventar): src/data/handoff/edicoesData.js (período,
  * participantes, curiosidades, premiação, fotos) e editionMark() para a marca
- * da edição — o resolvedor do repo, porque o campo `logo` do handoff aponta pra
- * /images/editions/<code>.png, que não existe no acervo (os arquivos reais são
- * /images/editions/<code>/logo.png). Onde falta foto ou marca, fica reserva
- * editorial honesta.
+ * da edição — editionMark() é o resolvedor oficial do repo. (O campo `logo` do
+ * handoff apontava pra /images/editions/<code>.png, caminho que nunca existiu;
+ * corrigido em jul/2026 para /images/marcas-edicoes/<code>/logo.png. O campo
+ * segue sem ser lido: quem manda é editionMark().) Onde falta foto ou marca,
+ * fica reserva editorial honesta.
  *
  * TEXTO: o `lead` de cada cena e os três blocos do painel editorial (marco,
  * curiosidade, legado) vêm de src/data/edicoesNarrativa.js — fonte única, não

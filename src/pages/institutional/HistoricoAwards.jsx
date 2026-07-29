@@ -22,9 +22,10 @@
  * na fonte com apóstrofo tipográfico e no snapshot com o reto — por isso as agregações
  * desta página contam marca por IDENTIDADE (slug de `resolveParticipant`), não por
  * string, senão a mesma casa viraria duas no hall e nos números.
- * Divergência conhecida: o snapshot traz `logo: /images/editions/<code>.png`, caminho
- * que não existe no acervo — a marca da edição vem de `editionMark()` (src/data), que
- * é a fonte de verdade.
+ * Marca da edição: vem SEMPRE de `editionMark()` (src/data), a fonte de verdade.
+ * O campo `logo` do snapshot apontava pra `/images/editions/<code>.png`, caminho
+ * que nunca existiu; corrigido em jul/2026 para `/images/marcas-edicoes/<code>/logo.png`
+ * e segue sem ser lido por esta página.
  *
  * FOTOGRAFIA — só pelo sistema central `src/data/imageLibrary.js`. Nenhum caminho é
  * montado aqui. `awardPhoto(nome, edição, variação)` devolve foto apenas quando o

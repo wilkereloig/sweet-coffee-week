@@ -661,9 +661,11 @@ src/
   styles.css    # sistema anterior (route-* / --page-accent) — legado, editar com cuidado
   styles/       # motion-system.css, lovers-system.css, etc.
   App.jsx · router.js · DevTools.jsx (DevViewportSwitcher é DEV-only)
-public/images/  # logos, combos (/images/combos/<slug>/main.jpg), edicoes/, editions/,
+public/images/  # logos, combos (/images/combos/<slug>/main.jpg), edicoes/ (fotos),
+                # marcas-edicoes/ (marca de cada edição),
                 # momentos/, campanha/, shapes
-public/logos/   # lockup-scw-creme.svg (marca do cabeçalho e do rodapé)
+public/logos/   # lockup-scw-creme.svg (SEM USO) + participants/<slug>.png
+                # marca do cabeçalho/rodapé = /images/logo-seal-sweet-coffee.svg
 public/fonts/nexa-slab/  # woff2 (pesos 100–900 + itálicos + alias 'Nexa Slab Black')
 ```
 
