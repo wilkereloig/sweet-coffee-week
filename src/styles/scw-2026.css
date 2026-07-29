@@ -399,18 +399,28 @@ body.route-contato {
   transition: background 320ms cubic-bezier(.2, .7, .2, 1);
 }
 
+/* ≤900px a casca vira aplicativo: sem menu de desktop, sem botão de acesso no
+   topo (a função migra pra folha "mais"), logo sem overhang. */
 @media (max-width: 900px) {
   .scw-marca { top: 50%; transform: translateY(-50%); }
   .scw-marca img { height: 52px; }
+  .scw-nav { display: none; }
   .scw-acesso-topo { display: none; }
   .scw-header__linha { padding: 18px var(--scw-trilho); }
+  /* A liberação de .scw-abas / .scw-folha fica no bloco ≤900px lá embaixo:
+     precisa vir DEPOIS das regras base delas, senão o display:none vence. */
 }
 
 /* ============================================================================
    Casca — menu inferior mobile (estilo aplicativo) + folha "mais"
    ========================================================================= */
 
+/* A casca troca de modo em 900px (§17). No protótipo isso era estado JS
+   (`compacto`, matchMedia ≤900px); aqui os dois modos são montados e o corte é
+   por media query — sem isso a barra de abas aparece no desktop e o menu do
+   desktop aparece no celular. */
 .scw-abas {
+  display: none;
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 70;
@@ -469,6 +479,7 @@ body.route-contato {
 .scw-aba.is-ativa .scw-aba__rotulo { font-weight: 800; color: var(--scw-aba-tom); }
 
 .scw-folha-veu {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 79;
@@ -476,10 +487,10 @@ body.route-contato {
   animation: scwFade 240ms ease both;
 }
 .scw-folha {
+  display: none;
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 80;
-  display: flex;
   flex-direction: column;
   max-height: 88vh;
   padding: 14px clamp(20px, 6vw, 30px) calc(22px + env(safe-area-inset-bottom));
@@ -546,9 +557,17 @@ body.route-contato {
   color: var(--scw-cyan);
 }
 
-/* Conteúdo respira acima da barra de abas. */
+/* ≤900px o modo aplicativo assume: entram a barra de abas e a folha "mais", e o
+   conteúdo respira acima delas. Este bloco vem depois das regras base acima —
+   é o que faz o display vencer o `none` padrão. */
 @media (max-width: 900px) {
+  .scw-abas { display: block; }
+  .scw-folha-veu { display: block; }
+  .scw-folha { display: flex; }
   .scw-raiz.tem-abas { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  /* O aviso de cookies mora em `bottom:16px` e cobria a barra de abas — os
+     cliques nas abas eram interceptados por ele. Sobe acima da barra. */
+  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 
 /* ============================================================================

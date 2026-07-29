@@ -166,7 +166,9 @@ export default function App() {
             <div id="barra-pagina" className="scw-barra-pagina" aria-hidden="true" />
           </>
         )}
-        <main id="conteudo" key={route} className={`page-enter${showMobileNav ? ' has-mobile-tabbar' : ''}`}>
+        {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
+            legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
+        <main id="conteudo" key={route} className="page-enter">
           <ErrorBoundary key={route}>
             <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
               {page}

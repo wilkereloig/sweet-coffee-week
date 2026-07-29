@@ -91,6 +91,40 @@ test('trilho único de 1360px é o da casca e o das seções', () => {
   assert.match(sistema, /\.scw-header__linha\s*\{[^}]*var\(--scw-trilho\)/s)
 })
 
+/*
+ * Regressão relatada: a barra de abas do celular aparecia no desktop e o menu do
+ * desktop aparecia no celular. No protótipo o corte era estado JS (`compacto`);
+ * aqui os dois modos são montados e quem separa é a media query de 900px.
+ * A armadilha: o `display:block` das abas precisa vir DEPOIS da regra base
+ * `display:none` — na primeira tentativa veio antes e o `none` venceu.
+ */
+test('a casca troca de modo em 900px, e na ordem certa', () => {
+  const sistema = ler(SISTEMA)
+
+  const baseAbas = sistema.indexOf('.scw-abas {')
+  const libera = /\.scw-abas \{ display: block; \}/.exec(sistema)
+  assert.ok(baseAbas !== -1, 'regra base de .scw-abas sumiu')
+  assert.ok(libera, '.scw-abas nunca é liberada em ≤900px')
+  assert.ok(libera.index > baseAbas, '.scw-abas é liberada antes da regra base — o display:none vence')
+  // E a liberação tem de estar mesmo dentro de um bloco ≤900px.
+  assert.match(sistema.slice(0, libera.index).split('@media').pop(), /^ \(max-width: 900px\)/)
+
+  // Estado padrão (desktop): modo aplicativo desligado.
+  assert.match(sistema, /\.scw-abas \{\s*display: none/, '.scw-abas precisa nascer oculta')
+  assert.match(sistema, /\.scw-folha \{\s*display: none/, '.scw-folha precisa nascer oculta')
+  // ≤900px: menu e botão de acesso do desktop saem de cena.
+  assert.match(sistema, /@media \(max-width: 900px\)[\s\S]*?\.scw-nav \{ display: none; \}/)
+  assert.match(sistema, /@media \(max-width: 900px\)[\s\S]*?\.scw-acesso-topo \{ display: none; \}/)
+})
+
+test('o aviso de cookies não cobre a barra de abas', () => {
+  assert.match(
+    ler(SISTEMA),
+    /\.scw-raiz\.tem-abas \.cookie-consent \{ bottom: calc\(88px \+ env\(safe-area-inset-bottom\)\); \}/,
+    'sem esse deslocamento o aviso intercepta os cliques das abas',
+  )
+})
+
 test('prefers-reduced-motion zera animação e transição', () => {
   const sistema = ler(SISTEMA)
   assert.match(sistema, /@media \(prefers-reduced-motion: reduce\)/)
