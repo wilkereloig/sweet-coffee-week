@@ -77,7 +77,7 @@ const EDS = [
     lead: 'Filmes, cenas marcantes e tapete vermelho: cada loja criou a sua sessão e o festival virou um cinema espalhado pela cidade.',
     palavras: ['Claquete', 'Ingresso', 'Projetor', 'Rolo de filme'] },
   { code: '2023', tema: 'Trip', etapa: 'Rota pelo mundo',
-    lead: 'Uma volta ao mundo pelo sabor: 32 endereços de Natal e Parnamirim escolheram um destino e o público montou o próprio percurso.',
+    lead: 'Uma volta ao mundo pelo sabor: 33 endereços de Natal e Parnamirim escolheram um destino e o público montou o próprio percurso.',
     palavras: ['Mala', 'Avião', 'Bússola', 'Postal'] },
   { code: '2024', tema: 'Books', etapa: 'Literatura e café',
     lead: 'A Livraria da Doçura: 29 combos em que o nome era o título, os ingredientes o enredo e a apresentação, o cenário.',

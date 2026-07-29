@@ -139,6 +139,69 @@ test('Sweet Awards não vaza o KV da edição Lovers', () => {
   }
 })
 
+/*
+ * O texto editorial (curiosidades, notas, leads) cita quantidades de marcas por
+ * edição. Elas já divergiram da base: a primeira edição aparecia com "cerca de
+ * 11 estabelecimentos" quando o acervo registra 13, e a Trip aparecia com 32
+ * quando são 33. Aqui todo número seguido de um substantivo de contagem é
+ * conferido contra o `n` da edição — preço e data não casam com o padrão.
+ */
+const COISAS = 'estabelecimentos?|endereços?|combos?|marcas?|pontos?|participantes?'
+// "Mais de vinte marcas" é uma afirmação de piso, não de contagem — vale se o
+// número real for maior. Qualquer outra forma tem de bater exato: foi um "cerca
+// de 11" que escondeu o 13 da primeira edição.
+const PISO = /(mais de|acima de)\s*$/i
+const CONTAGEM = new RegExp(`\\b(\\d{1,3})\\s+(?:${COISAS})\\b`, 'gi')
+const POR_EXTENSO = { onze: 11, doze: 12, treze: 13, catorze: 14, quatorze: 14, quinze: 15, vinte: 20, trinta: 30, quarenta: 40 }
+const EXTENSO = new RegExp(`\\b(${Object.keys(POR_EXTENSO).join('|')})\\s+(?:${COISAS})\\b`, 'gi')
+
+test('cada edição declara o número de participantes que realmente tem', async () => {
+  const { EDICOES_DADOS } = await import('../src/data/handoff/edicoesData.js')
+  for (const [code, e] of Object.entries(EDICOES_DADOS)) {
+    assert.equal(e.n, e.participantes.length, `${code}: n=${e.n} mas a lista tem ${e.participantes.length}`)
+  }
+})
+
+test('os números citados no texto editorial batem com a base', async () => {
+  const { EDICOES_DADOS } = await import('../src/data/handoff/edicoesData.js')
+  const { AWARDS_DADOS } = await import('../src/data/handoff/awardsData.js')
+  const leads = ler('src/pages/institutional/Edicoes.jsx')
+
+  /* Um texto pode citar outra edição de propósito — a curiosidade de 2024
+     relembra a primeira, de 2016. Quando aparece um ano no texto, o número é
+     conferido contra as edições daquele ano, não contra a edição corrente. */
+  const alvos = (code, texto) => {
+    const anos = [...texto.matchAll(/\b(20[0-2]\d)\b/g)].map((m) => m[1])
+      .filter((ano) => ano !== code.slice(0, 4))
+    const codes = anos.length
+      ? Object.keys(EDICOES_DADOS).filter((k) => anos.includes(k.slice(0, 4)))
+      : [code]
+    return codes.map((k) => EDICOES_DADOS[k]).filter(Boolean)
+  }
+
+  const conferir = (code, onde, texto) => {
+    if (!EDICOES_DADOS[code]) return
+    const es = alvos(code, texto)
+    if (!es.length) return
+    const esperados = es.map((e) => e.n)
+    const checa = (valor, m) => {
+      const piso = PISO.test(texto.slice(0, m.index))
+      assert.ok(
+        piso ? esperados.some((n) => n > valor) : esperados.includes(valor),
+        `${code} (${onde}): "${m[0]}"${piso ? ' (piso)' : ''} — o acervo registra ${esperados.join(' ou ')}`,
+      )
+    }
+    for (const m of texto.matchAll(CONTAGEM)) checa(+m[1], m)
+    for (const m of texto.matchAll(EXTENSO)) checa(POR_EXTENSO[m[1].toLowerCase()], m)
+  }
+
+  for (const [code, e] of Object.entries(EDICOES_DADOS)) {
+    for (const c of e.curiosidades || []) conferir(code, 'curiosidade', `${c.t} ${c.x}`)
+  }
+  for (const e of AWARDS_DADOS.edicoes || []) conferir(e.code, 'nota do Awards', e.nota || '')
+  for (const m of leads.matchAll(/\{ code: '([^']+)',[\s\S]*?lead: '([^']*)'/g)) conferir(m[1], 'lead da cena', m[2])
+})
+
 test('flags de publicação seguem intactas', () => {
   const app = ler('src/App.jsx')
   assert.match(app, /AWARDS_ONLY_PUBLICATION\s*=\s*false/)
