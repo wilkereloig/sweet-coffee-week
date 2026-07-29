@@ -21,7 +21,10 @@ export const PAGE_COLORS = {
 
 export const pageColor = (route) => PAGE_COLORS[route] || PAGE_COLORS.home
 
-export const LOCKUP_CREME = '/logos/lockup-scw-creme.svg'
+/* Marca do cabeçalho, da folha "mais" e do rodapé. O selo tem disco escuro
+   (#381610) e letras creme — sobre o véu chocolate do header o disco some e
+   ficam as letras; é o comportamento esperado da peça. */
+export const MARCA_SCW = '/images/logo-seal-sweet-coffee.svg'
 
 export const NAV_LINKS = [
   { id: 'home',              label: 'o festival',   href: '#/' },
@@ -61,7 +64,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
       <div className="scw-header__veu" aria-hidden="true" />
       <div className="scw-header__linha">
         <a href="#/" className="scw-marca" onClick={go('#/')}>
-          <img src={LOCKUP_CREME} alt="Sweet & Coffee Week" />
+          <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
         </a>
 
         <nav className="scw-nav" aria-label="Navegação principal">

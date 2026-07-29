@@ -1,5 +1,5 @@
 import React from 'react'
-import { NAV_LINKS, LOCKUP_CREME } from './nav'
+import { NAV_LINKS, MARCA_SCW } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 
 /**
@@ -21,7 +21,7 @@ export function SiteFooter({ navigate, route }) {
     <footer className="scw-footer" role="contentinfo">
       <div className="scw-footer__linha">
         <a href="#/" className="scw-footer__marca" onClick={ir('#/')}>
-          <img src={LOCKUP_CREME} alt="Sweet & Coffee Week" />
+          <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
         </a>
 
         <nav className="scw-footer__nav" aria-label="Navegação do rodapé">

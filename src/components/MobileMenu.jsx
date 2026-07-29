@@ -1,5 +1,5 @@
 import React from 'react'
-import { NAV_LINKS, LOCKUP_CREME, pageColor } from './nav'
+import { NAV_LINKS, MARCA_SCW, pageColor } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 
 /*
@@ -59,7 +59,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
         <span className="scw-folha__puxador" aria-hidden="true" />
 
         <div className="scw-folha__topo">
-          <img src={LOCKUP_CREME} alt="Sweet & Coffee Week" />
+          <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
           <button type="button" className="scw-folha__fechar" onClick={onClose} aria-label="Fechar menu">
             <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
