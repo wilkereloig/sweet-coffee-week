@@ -27,8 +27,40 @@
 .ctt-destaque--choco { color: var(--scw-choco); }
 
 /* --- 01 Abertura (compacta, ~368px) --------------------------------------- */
-.ctt-abertura { position: relative; }
-.ctt-abertura__grade { align-items: end; }
+.ctt-abertura {
+  position: relative;
+  /* Véu na COR DA PÁGINA (--scw-pagina), nunca hex fixo: chocolate puxado para
+     o marrom da rota. A abertura é curta e as duas colunas têm texto, então o
+     véu fica alto (≥86%) — a foto é ambientação e o creme mantém AA. */
+  --veu: color-mix(in srgb, var(--scw-pagina) 18%, var(--scw-choco));
+}
+.ctt-abertura__fundo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ctt-abertura__veu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg,
+    color-mix(in srgb, var(--veu) 96%, transparent) 0%,
+    color-mix(in srgb, var(--veu) 92%, transparent) 52%,
+    color-mix(in srgb, var(--veu) 86%, transparent) 100%);
+}
+.ctt-abertura__grade { position: relative; z-index: 1; align-items: end; }
+
+/* No celular a foto passa a ser a banda sangrando: o fundo de tela cheia sai
+   para não duplicar imagem. A banda leva o mesmo véu no topo. */
+@media (max-width: 1000px) {
+  .ctt-abertura__fundo,
+  .ctt-abertura__veu { display: none; }
+  .ctt-abertura .scw-hero-banda {
+    box-shadow: inset 0 100px 66px -46px color-mix(in srgb, var(--veu) 76%, transparent),
+                inset 0 -78px 50px -34px var(--scw-choco);
+  }
+}
 .ctt-abertura__rotulo { color: var(--scw-amarelo); }
 .ctt-abertura__titulo {
   margin: clamp(12px, 1.4vw, 18px) 0 0;

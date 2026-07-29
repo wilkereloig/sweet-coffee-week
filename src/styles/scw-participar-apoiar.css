@@ -11,7 +11,23 @@
    Herói (abertura das duas páginas) — usa .scw-hero-bloco + .scw-hero-banda
    ========================================================================= */
 
-.pa-hero { position: relative; overflow: hidden; }
+/* Véu da foto do herói na COR DA PÁGINA (--scw-pagina), nunca um hex fixo:
+   chocolate puxado para a cor da rota. O texto do herói fica no bloco chocolate
+   ao lado da foto, então a camada só ambienta a imagem — não cobre leitura. */
+.pa-hero { position: relative; overflow: hidden; --veu: color-mix(in srgb, var(--scw-pagina) 16%, var(--scw-choco)); }
+
+/* Desktop: a foto vive no cartão; o véu desce do transparente para a cor da
+   página, costurando a imagem ao bloco do herói. */
+.pa-hero .scw-hero-cartao::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(168deg,
+    transparent 32%,
+    color-mix(in srgb, var(--veu) 22%, transparent) 70%,
+    color-mix(in srgb, var(--veu) 58%, transparent) 100%);
+}
 
 /* Forma da identidade em marca-d'água: só apoia a leitura do bloco, não compete
    com o texto (opacidade 8%, atrás de tudo, aria-hidden no JSX). */
@@ -94,6 +110,13 @@
 @media (max-width: 1000px) {
   .pa-hero__aside { display: none; }
   .pa-hero__forma { display: none; }
+  /* A banda sangrando recebe o mesmo véu no topo (onde a logo do cabeçalho
+     passa por cima). A base continua fechando no chocolate puro do bloco —
+     é a emenda com a informação logo abaixo, não pode mudar de tom. */
+  .pa-hero .scw-hero-banda {
+    box-shadow: inset 0 100px 66px -46px color-mix(in srgb, var(--veu) 76%, transparent),
+                inset 0 -78px 50px -34px var(--scw-choco);
+  }
 }
 
 /* ============================================================================

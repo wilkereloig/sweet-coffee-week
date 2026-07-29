@@ -85,38 +85,164 @@
   background: rgba(61, 19, 8, .87);
 }
 
-/* --- mosaico de 3 fotos sangrando na metade direita ------------------------ */
-.scw-edx__mosaico {
-  position: absolute;
-  right: 0; top: 0; bottom: 0;
-  z-index: 1;
-  width: clamp(44%, 50vw, 54%);
+/* ============================================================================
+   GALERIA DA EDIÇÃO — carrossel do acervo (11–12 fotos por edição)
+   Duas variantes da MESMA peça: `--mosaico` (metade direita do desktop, 3 fotos
+   por página) e `--par` (mobile, 2 fotos 1:1 por página). O quadro define a
+   proporção, então a troca de foto nunca mexe no layout.
+   ========================================================================= */
+
+.scw-gal { position: relative; touch-action: pan-y; }
+.scw-gal__quadros {
   display: grid;
-  grid-template-rows: 1.42fr 1fr;
-  grid-template-columns: 1fr 1fr;
   gap: 3px;
   background: var(--scw-choco);
 }
-.scw-edx__quadro {
+.scw-gal__quadro {
   position: relative;
   margin: 0;
   overflow: hidden;
   background: var(--scw-marrom);
+  /* wipe direcional de 820ms — dispara na troca de EDIÇÃO (a cena remonta) */
+  animation: scwEdxRevelaDir 820ms var(--scw-ease) both;
 }
-.scw-edx__quadro--largo { grid-column: 1 / -1; }
-.scw-edx__foto {
+.scw-edx.is-tras .scw-gal__quadro { animation-name: scwEdxRevelaEsq; }
+.scw-gal__quadros > *:nth-child(2) { animation-delay: 110ms; }
+.scw-gal__quadros > *:nth-child(3) { animation-delay: 220ms; }
+.scw-gal__quadro--largo { grid-column: 1 / -1; }
+
+.scw-gal__foto {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center 46%;
-  /* wipe direcional de entrada (820ms) + ken burns 1.06 → 1.001 em 12s */
-  animation: scwEdxRevelaDir 820ms var(--scw-ease) both,
-             scwEdxKen 12s cubic-bezier(.16, .72, .2, 1) both;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;  /* reserva: o ponto focal real vem inline, por foto */
 }
-.scw-edx.is-tras .scw-edx__foto { animation-name: scwEdxRevelaEsq, scwEdxKen; }
-/* escalonamento 0 / 110 / 220ms */
-.scw-edx__quadro:nth-of-type(2) .scw-edx__foto { animation-delay: 110ms, 110ms; background-position: center 62%; }
-.scw-edx__quadro:nth-of-type(3) .scw-edx__foto { animation-delay: 220ms, 220ms; background-position: center 62%; }
+/* A que sai fica embaixo, parada, até o fim do crossfade — nunca tela vazia. */
+.scw-gal__foto--sai { z-index: 0; }
+/* A que entra vem por cima. Deslize em `translate` e ken burns em `scale`:
+   propriedades independentes, então uma não anula a outra (como aconteceria
+   se as duas animassem `transform`). */
+.scw-gal__foto--entra {
+  z-index: 1;
+  animation: scwEdxFotoEntra 320ms var(--scw-ease) both,
+             scwEdxKenS 12s cubic-bezier(.16, .72, .2, 1) both;
+}
+.scw-gal.is-voltando .scw-gal__foto--entra { animation-name: scwEdxFotoVolta, scwEdxKenS; }
+.scw-gal__quadros > *:nth-child(2) .scw-gal__foto--entra { animation-delay: 90ms, 90ms; }
+.scw-gal__quadros > *:nth-child(3) .scw-gal__foto--entra { animation-delay: 180ms, 180ms; }
+
+/* --- variante mosaico: metade direita do desktop --------------------------- */
+.scw-gal--mosaico {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  z-index: 1;
+  width: clamp(44%, 50vw, 54%);
+  background: var(--scw-choco);
+}
+.scw-gal--mosaico .scw-gal__quadros {
+  height: 100%;
+  grid-template-rows: 1.42fr 1fr;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* --- variante par: mobile, duas fotos 1:1 --------------------------------- */
+.scw-gal--par .scw-gal__quadros { grid-template-columns: 1fr 1fr; }
+.scw-gal--par .scw-gal__quadro { aspect-ratio: 1; }
+
+/* --- barra de controle (parece controle de apresentação, não navbar) ------- */
+.scw-gal__barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.scw-gal--mosaico .scw-gal__barra {
+  position: absolute;
+  left: 14px; bottom: 14px;
+  z-index: 2;
+  padding: 4px 10px 4px calc(14px + .16em);
+  border-radius: 999px;
+  background: rgba(61, 19, 8, .82);
+  color: rgba(254, 240, 221, .92);
+}
+.scw-gal--par .scw-gal__barra {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "rot rot cont" "ant pontos prox";
+  gap: 8px;
+  padding: 12px 14px 14px;
+  background: var(--scw-bege);
+  color: var(--scw-marrom);
+}
+.scw-gal--par .scw-gal__rot { grid-area: rot; }
+.scw-gal--par .scw-gal__contador { grid-area: cont; justify-self: end; }
+.scw-gal--par .scw-gal__seta--ant { grid-area: ant; }
+.scw-gal--par .scw-gal__pontos { grid-area: pontos; justify-content: center; }
+.scw-gal--par .scw-gal__seta--prox { grid-area: prox; }
+
+.scw-gal__rot {
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.scw-gal__seta {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(254, 240, 221, .34);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+}
+.scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+.scw-gal--par .scw-gal__seta { border-color: var(--scw-filete); background: var(--scw-card); }
+.scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+.scw-gal__pontos {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+.scw-gal__pontos button {
+  display: grid;
+  place-items: center;
+  width: 22px; height: 44px;   /* alvo de toque cheio; o ponto visível é pequeno */
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.scw-gal__pontos span {
+  display: block;
+  width: 7px; height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .4;
+  transition: opacity 260ms var(--scw-ease), transform 260ms var(--scw-ease),
+              background-color 260ms var(--scw-ease);
+}
+.scw-gal__pontos button:hover span { opacity: .75; }
+.scw-gal__pontos button.is-ativo span {
+  opacity: 1;
+  transform: scale(1.4);
+  background: var(--scw-edx-tom);
+}
+.scw-gal__contador {
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .08em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.scw-gal__contador span { opacity: .62; }
 
 /* Sem foto no acervo: reserva editorial honesta, nunca imagem inventada. */
 .scw-edx__reserva {
@@ -142,21 +268,6 @@
   background: linear-gradient(to bottom, rgba(61, 19, 8, .74), rgba(61, 19, 8, 0));
   pointer-events: none;
 }
-.scw-edx__acervo {
-  position: absolute;
-  left: 14px; bottom: 14px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 12px 5px calc(12px + .16em);
-  border-radius: 999px;
-  background: rgba(61, 19, 8, .78);
-  font: 800 10.5px/1.2 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: rgba(254, 240, 221, .92);
-}
-
 /* --- cabeçalho próprio (mesma geometria da casca do site) ------------------ */
 .scw-edx__cab {
   position: absolute;
@@ -602,8 +713,10 @@
 .scw-edx-mob__capa-foto {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center 46%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;  /* reserva: o ponto focal real vem inline */
   animation: scwEdxRevelaDir 820ms var(--scw-ease) both,
              scwEdxKen 12s cubic-bezier(.16, .72, .2, 1) both;
 }
@@ -688,23 +801,6 @@
 }
 .scw-edx.is-tras .scw-edx-mob__rotulo,
 .scw-edx.is-tras .scw-edx-mob__tema { animation-name: scwEdxCenaEsq; }
-
-.scw-edx-mob__par {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  background: var(--scw-choco);
-}
-.scw-edx-mob__par figure {
-  position: relative;
-  margin: 0;
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: var(--scw-marrom);
-}
-/* mesmo escalonamento do desktop: 0 / 110 / 220ms */
-.scw-edx-mob__par figure:nth-of-type(1) .scw-edx-mob__capa-foto { animation-delay: 110ms, 110ms; }
-.scw-edx-mob__par figure:nth-of-type(2) .scw-edx-mob__capa-foto { animation-delay: 220ms, 220ms; }
 
 .scw-edx-mob__corpo { padding: 22px 14px 8px; }
 .scw-edx-mob__lead {
@@ -994,6 +1090,11 @@
 @keyframes scwEdxRevelaDir { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
 @keyframes scwEdxRevelaEsq { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes scwEdxKen { from { transform: scale(1.06); } to { transform: scale(1.001); } }
+/* Ken burns do carrossel em `scale` (não `transform`), pra conviver com o
+   deslize em `translate` no mesmo elemento. */
+@keyframes scwEdxKenS { from { scale: 1.06; } to { scale: 1.001; } }
+@keyframes scwEdxFotoEntra { from { opacity: 0; translate: 22px 0; } to { opacity: 1; translate: none; } }
+@keyframes scwEdxFotoVolta { from { opacity: 0; translate: -22px 0; } to { opacity: 1; translate: none; } }
 @keyframes scwEdxSelo {
   0%   { opacity: 0; transform: rotate(-9deg) scale(.84); }
   60%  { opacity: 1; transform: rotate(2deg) scale(1.03); }
@@ -1019,8 +1120,12 @@
 /* Sem movimento: a apresentação continua inteiramente navegável (a regra
    global de .scw-raiz já zera durações; aqui garantimos estado final visível). */
 @media (prefers-reduced-motion: reduce) {
-  .scw-edx__foto,
   .scw-edx-mob__capa-foto { clip-path: none; transform: none; }
   .scw-edx__fundo-foto { animation: none; }
   .scw-edx__cursor-anel { display: none; }
+  /* Carrossel sem animação: a troca é seca e o giro automático já é desligado
+     no JS — a navegação manual continua inteira. */
+  .scw-gal__quadro,
+  .scw-gal__foto--entra { animation: none; clip-path: none; translate: none; scale: none; }
+  .scw-gal__foto--sai { display: none; }
 }

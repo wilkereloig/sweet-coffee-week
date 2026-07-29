@@ -23,20 +23,14 @@ import {
   validateInterest,
   submitInterest,
 } from '../../lib/participationInterest'
+import { bgStyle, comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { resolveParticipant } from '../../data/participantAssets'
 import '../../styles/scw-participar-apoiar.css'
 
-const combo = (slug) => `/images/combos/${slug}/main.jpg`
-const brandLogo = (slug) => `/logos/participants/${slug}.png`
-
-// Foto fixa da banda de foto no celular (README § Herói no celular).
-const FOTO_BANDA = combo('douce-di-maria')
-
-// Rotação do cartão de foto do herói (desktop) — acervo real.
-const FOTOS_HERO = [
-  { src: combo('douce-di-maria'), alt: 'Combo de participante do Sweet & Coffee Week' },
-  { src: '/images/campanha/15.jpg', alt: 'Participantes do Sweet & Coffee Week' },
-  { src: combo('paneer-patisserie'), alt: 'Combo da Paneer Patisserie' },
-]
+// Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
+// banda sangrando no celular. O véu por cima usa a cor da página.
+const FOTOS_HERO = heroPhotos('participar')
+const FOTO_BANDA = FOTOS_HERO[0]
 
 const INDICADORES = [
   { v: '+34 mil', d: 'combos vendidos nas edições', c: 'var(--scw-amarelo)' },
@@ -66,8 +60,7 @@ const FAIXAS = [
     titulo: 'Um combo autoral com a sua assinatura.',
     texto: 'Sua marca cria a assinatura da edição a partir do tema — e apresenta o que faz de melhor a quem chegou para descobrir.',
     resumo: 'doce + salgado + bebida',
-    foto: '/images/edicoes/2026.1/04.webp',
-    alt: 'Combo completo de uma edição do festival',
+    foto: editionPhotos('2026.1')[3],
     fundo: 'var(--scw-marrom)',
   },
   {
@@ -75,8 +68,9 @@ const FAIXAS = [
     titulo: 'Presença na campanha do festival.',
     texto: 'Cada participante entra na comunicação: rota oficial, redes, imprensa e materiais de vitrine que circulam pela cidade inteira.',
     resumo: 'rota + redes + imprensa',
-    foto: '/images/campanha/01.jpg',
-    alt: 'Material do festival em ponto de venda',
+    // Campanha e público não têm vínculo com edição nem com marca no acervo —
+    // ficam fora do sistema central, com alt e ponto focal declarados aqui.
+    foto: { src: '/images/campanha/01.jpg', alt: 'Material de campanha do Sweet & Coffee Week em um ponto de venda', position: 'center 42%' },
     fundo: 'var(--scw-vinho)',
     inversa: true,
   },
@@ -86,8 +80,7 @@ const FAIXAS = [
     texto: 'Os Sweet Lovers experimentam, compartilham, avaliam e indicam — uma relação que costuma continuar depois da edição.',
     resumo: 'quem prova, volta',
     corResumo: 'var(--scw-amarelo)',
-    foto: '/images/lovers-publico/04.jpg',
-    alt: 'Sweet Lovers vivendo o festival',
+    foto: { src: '/images/lovers-publico/04.jpg', alt: 'Sweet Lovers durante a edição Lovers do Sweet & Coffee Week', position: 'center 38%' },
     fundo: 'var(--scw-choco)',
   },
 ]
@@ -124,7 +117,7 @@ const PUBLICOS = [
 // 05 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
 // O 6º card é reserva editorial honesta: a marca existe, o depoimento ainda não.
 const DEPOIMENTOS = [
-  { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café & Patisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café Pâtisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
   { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro', slug: 'o-maestro-cafe', cor: 'var(--scw-vinho)', tinta: 'var(--scw-creme)' },
   { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Patisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
   { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
@@ -268,7 +261,7 @@ export function ParticiparPage() {
     <>
       {/* ═══ 01 Abertura ═══ */}
       <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
-        <div className="scw-hero-banda" aria-hidden="true" style={{ backgroundImage: `url("${FOTO_BANDA}")` }} />
+        <div className="scw-hero-banda" role="img" aria-label={FOTO_BANDA.alt} style={bgStyle(FOTO_BANDA, { mobile: true })} />
         <img className="pa-hero__forma pa-hero__forma--participar" src="/images/shapes/shape-heart-yellow.svg" alt="" aria-hidden="true" />
 
         <div className="pa-hero__grade">
@@ -301,9 +294,10 @@ export function ParticiparPage() {
                 <span
                   key={f.src}
                   className={`scw-hero-cartao__foto${i === foto ? ' is-ativa' : ''}`}
-                  role="img"
-                  aria-label={f.alt}
-                  style={{ backgroundImage: `url("${f.src}")` }}
+                  role={i === foto ? 'img' : undefined}
+                  aria-label={i === foto ? f.alt : undefined}
+                  aria-hidden={i === foto ? undefined : 'true'}
+                  style={bgStyle(f)}
                 />
               ))}
             </div>
@@ -381,8 +375,9 @@ export function ParticiparPage() {
               style={{ '--fundo': f.fundo, '--resumo': f.corResumo || 'var(--scw-creme)' }}
             >
               <figure>
-                <img src={f.foto} alt={f.alt} loading="lazy" decoding="async"
-                     onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                {f.foto
+                  ? <img src={f.foto.src} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
+                  : <div className="scw-reserva">{RESERVA}</div>}
               </figure>
               <div className="pa-faixa__corpo">
                 <span className="pa-faixa__ordem">{f.ordem}</span>
@@ -438,7 +433,10 @@ export function ParticiparPage() {
           </a>
         </div>
         <ul className="pa-depos">
-          {DEPOIMENTOS.map((d) => (
+          {DEPOIMENTOS.map((d) => {
+            const fotoCombo = comboMain(d.slug)
+            const marca = resolveParticipant(d.slug)
+            return (
             <li
               className="pa-depo"
               key={d.slug}
@@ -450,16 +448,14 @@ export function ParticiparPage() {
             >
               <div className="pa-depo__media">
                 <div className="pa-depo__foto">
-                  <img src={combo(d.slug)} alt={`Combo da ${d.marca}`} loading="lazy" decoding="async"
-                       onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                  {fotoCombo
+                    ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
+                    : <div className="scw-reserva">{RESERVA}</div>}
                 </div>
                 <span className="pa-depo__selo" aria-hidden="true">
-                  <img src={brandLogo(d.slug)} alt="" loading="lazy" decoding="async"
-                       onError={(e) => {
-                         e.currentTarget.style.display = 'none'
-                         e.currentTarget.nextElementSibling.style.display = 'block'
-                       }} />
-                  <span className="pa-depo__iniciais" style={{ display: 'none' }}>{iniciais(d.marca)}</span>
+                  {marca.logo
+                    ? <img src={marca.logo} alt="" loading="lazy" decoding="async" />
+                    : <span className="pa-depo__iniciais">{iniciais(d.marca)}</span>}
                 </span>
               </div>
               <div className="pa-depo__corpo">
@@ -472,7 +468,8 @@ export function ParticiparPage() {
                 </span>
               </div>
             </li>
-          ))}
+            )
+          })}
         </ul>
       </section>
 

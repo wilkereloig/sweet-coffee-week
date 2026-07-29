@@ -4,8 +4,9 @@
    Consome os tokens de src/styles/scw-2026.css (--scw-*). Nenhuma cor fora da
    paleta do README; o vermelho #E52C4B não existe aqui.
 
-   Medalhas seguem os tokens do pódio: 1º --scw-amarelo, 2º --scw-prata,
-   3º --scw-bronze (o protótipo usava #E3707F, fora da paleta).
+   Medalhas seguem os tokens do pódio: 1º --scw-ouro, 2º --scw-prata,
+   3º --scw-bronze (o protótipo usava #E3707F, fora da paleta). O ouro da medalha
+   é --scw-ouro (#D19100), não o amarelo de acento --scw-amarelo (#FDBB1A).
    A cor da página (roxo #4D257E) vem de body.route-historico-awards.
    ========================================================================= */
 
@@ -81,6 +82,8 @@
   background: var(--scw-marrom);
   box-shadow: var(--scw-sombra-foto);
 }
+/* object-position aqui é só a rede de segurança: o ponto focal real de cada foto
+   chega por style inline, vindo de `position` do sistema central de imagens. */
 .swa-vitrine img,
 .swa-vitrine .swa-reserva {
   display: block;
@@ -239,6 +242,7 @@
   border-radius: var(--scw-r-secao);
   box-shadow: 0 18px 40px rgba(61, 19, 8, .22);
 }
+/* Idem: o ponto focal por imagem vem inline; isto é fallback. */
 .swa-card img,
 .swa-card .swa-reserva {
   display: block;
@@ -276,7 +280,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--swa-medalha, var(--scw-amarelo));
+  background: var(--swa-medalha, var(--scw-ouro));
   color: var(--scw-choco);
   font: 900 12px/1 var(--scw-font-black);
 }
@@ -303,7 +307,7 @@
   font: 800 8.5px/1.1 var(--scw-font);
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--swa-medalha, var(--scw-amarelo));
+  color: var(--swa-medalha, var(--scw-ouro));
 }
 .swa-card--primeiro .swa-card__pos { font-size: 9.5px; }
 .swa-card__marca {
@@ -323,11 +327,22 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: clamp(14px, 1.6vw, 22px);
 }
+/* Faixa de 5px identificando a trilha — a mesma linguagem da barra sob o cabeçalho.
+   Como uma barra colada dentro do card recortado, e não como `border-top`: sobre
+   canto arredondado a borda afina até sumir nas pontas. */
 .swa-trilha {
-  padding: clamp(22px, 2.2vw, 30px);
+  position: relative;
+  overflow: hidden;
+  padding: calc(clamp(22px, 2.2vw, 30px) + 5px) clamp(22px, 2.2vw, 30px) clamp(22px, 2.2vw, 30px);
   border-radius: var(--scw-r-secao);
   background: var(--scw-card);
-  border-top: 5px solid var(--swa-trilha, var(--scw-cyan));
+}
+.swa-trilha::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--swa-trilha, var(--scw-cyan));
 }
 .swa-trilha p {
   margin: 12px 0 0;
@@ -360,7 +375,7 @@
   width: 14px;
   height: 5px;
   border-radius: 5px;
-  background: var(--swa-medalha, var(--scw-amarelo));
+  background: var(--swa-medalha, var(--scw-ouro));
 }
 
 .swa-hall { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
@@ -564,7 +579,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--swa-medalha, var(--scw-amarelo));
+  background: var(--swa-medalha, var(--scw-ouro));
   color: var(--scw-choco);
   font: 900 11px/1 var(--scw-font-black);
 }

@@ -11,7 +11,7 @@
  *   const m2 = resolveParticipant('Sonho de Brownie')
  *   // → { name:'Sonho de Brownie', slug:null, logo:null, brandColor:null, fallback:'SB' }
  */
-import { PARTICIPANTS } from './participants'
+import { PARTICIPANTS } from './participants.js'
 
 // Normaliza p/ casar grafias: minúsculas, sem acento, "&"/"e" unificados,
 // pontuação/espacos colapsados.

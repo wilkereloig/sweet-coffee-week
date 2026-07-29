@@ -22,19 +22,15 @@ import {
   validateSupport,
   submitSupport,
 } from '../../lib/supportInterest'
+import { bgStyle, comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
 import '../../styles/scw-participar-apoiar.css'
 
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 
-// Foto fixa da banda de foto no celular (README § Herói no celular).
-const FOTO_BANDA = '/images/momentos/04.jpg'
-
-// Rotação do cartão de foto do herói (desktop) — acervo real.
-const FOTOS_HERO = [
-  { src: '/images/momentos/04.jpg', alt: 'Público em uma ação temática do festival' },
-  { src: '/images/momentos/02.jpg', alt: 'Público no Sweet & Coffee Week' },
-  { src: '/images/edicoes/2025/03.webp', alt: 'Público nas ruas durante uma edição' },
-]
+// Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
+// banda sangrando no celular. O véu por cima usa a cor da página.
+const FOTOS_HERO = heroPhotos('apoiar')
+const FOTO_BANDA = FOTOS_HERO[0]
 
 const INDICADORES = [
   { v: '+200 mil', d: 'pessoas alcançadas', c: 'var(--scw-amarelo)' },
@@ -96,26 +92,24 @@ const MOTIVOS = [
 const ONDE = [
   {
     t: 'Digital', c: 'var(--scw-vinho)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-vinho)',
-    foto: '/images/edicoes/2026.1/02.webp',
-    alt: 'Combo da edição Lovers usado no conteúdo digital do festival',
+    foto: editionPhotos('2026.1')[1],
     itens: ['Posts e stories', 'Reels', 'Site oficial', 'Página de participantes', 'Página de promoções'],
   },
   {
     t: 'Cidade e PDV', c: 'var(--scw-marrom)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-magenta)',
-    foto: '/images/campanha/03.jpg',
-    alt: 'Display de mesa do festival com QR code em uma loja participante',
+    // Campanha e público não têm vínculo com edição nem marca no acervo — ficam
+    // fora do sistema central, com alt e ponto focal declarados aqui.
+    foto: { src: '/images/campanha/03.jpg', alt: 'Display de mesa do Sweet & Coffee Week com QR code em uma loja participante', position: 'center 44%' },
     itens: ['Display de mesa', 'Adesivo de vitrine', 'Mapa e rota do festival', 'Materiais impressos', 'Ativações nas lojas'],
   },
   {
     t: 'Relacionamento', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', ponto: 'var(--scw-cyan)',
-    foto: '/images/momentos/05.jpg',
-    alt: 'Sweet Lovers em ação temática de uma edição',
+    foto: { src: '/images/momentos/05.jpg', alt: 'Sweet Lovers em uma ação de marca do Sweet & Coffee Week', position: 'center 40%' },
     itens: ['Press kit', 'Vouchers e brindes', 'Sorteios', 'Ações com Sweet Lovers', 'Experiências de marca'],
   },
   {
     t: 'Premiação', c: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', ponto: 'var(--scw-amarelo)',
-    foto: '/images/combos/o-maestro-cafe/main.jpg',
-    alt: 'Combo do O Maestro Café, vencedor do Sweet Awards da edição Lovers',
+    foto: comboMain('O Maestro Café'),
     itens: ['Sweet Awards', 'Cards de resultado', 'Conteúdos de vencedores', 'Ações de reconhecimento'],
   },
 ]
@@ -263,7 +257,7 @@ export function ApoiarPage() {
     <>
       {/* ═══ 01 Abertura ═══ */}
       <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
-        <div className="scw-hero-banda" aria-hidden="true" style={{ backgroundImage: `url("${FOTO_BANDA}")` }} />
+        <div className="scw-hero-banda" role="img" aria-label={FOTO_BANDA.alt} style={bgStyle(FOTO_BANDA, { mobile: true })} />
 
         <div className="pa-hero__grade">
           <div>
@@ -295,9 +289,10 @@ export function ApoiarPage() {
                 <span
                   key={f.src}
                   className={`scw-hero-cartao__foto${i === foto ? ' is-ativa' : ''}`}
-                  role="img"
-                  aria-label={f.alt}
-                  style={{ backgroundImage: `url("${f.src}")` }}
+                  role={i === foto ? 'img' : undefined}
+                  aria-label={i === foto ? f.alt : undefined}
+                  aria-hidden={i === foto ? undefined : 'true'}
+                  style={bgStyle(f)}
                 />
               ))}
             </div>
@@ -398,8 +393,9 @@ export function ApoiarPage() {
           {ONDE.map((g) => (
             <li key={g.t} style={{ '--c': g.ponto }}>
               <figure>
-                <img src={g.foto} alt={g.alt} loading="lazy" decoding="async"
-                     onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                {g.foto
+                  ? <img src={g.foto.src} alt={g.foto.alt} style={{ objectPosition: g.foto.position }} loading="lazy" decoding="async" />
+                  : <div className="scw-reserva">{RESERVA}</div>}
                 <span className="pa-onde__tag" style={{ '--c': g.c, '--tinta': g.tinta }}>{g.t}</span>
               </figure>
               <ul>

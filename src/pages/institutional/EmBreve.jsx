@@ -17,6 +17,7 @@ import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { getCurrentEditionScenes } from '../../data/sweetHistoryStats'
 import { resolveParticipant } from '../../data/participantAssets'
+import { awardPhoto, COMBO_EDITION, RESERVA } from '../../data/imageLibrary'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 // Cenas da edição atual (2026.1), na ordem da história (Melhor Combo primeiro).
@@ -24,19 +25,22 @@ const SCENES = getCurrentEditionScenes()
 const COMBO_SCENE = SCENES.find((s) => s.key === 'melhor_combo') || null
 const OTHER_SCENES = SCENES.filter((s) => s.key !== 'melhor_combo')
 
-// Foto real por categoria (Research Finding 5 do plano de redesign). O Maestro
-// Café vence 3 categorias — usa 3 frames diferentes da própria galeria, nunca
-// repete o mesmo arquivo.
-const CATEGORY_PHOTO = {
-  melhor_combo: '/images/combos/o-maestro-cafe/main.jpg',
-  atendimento: '/images/combos/rollab-confeitaria/main.jpg',
-  apresentacao: '/images/combos/just-food-coffee/main.jpg',
-  doce: '/images/combos/jolie-cafe-patisserie/main.jpg',
-  bebida: '/images/combos/sweet-duo-confeitaria/main.jpg',
-  salgado: '/images/combos/o-maestro-cafe/photo-02.jpg',
-  criatividade: '/images/combos/o-maestro-cafe/photo-03.jpg',
-  envolvimento: '/images/combos/mr-cupcake-confeitaria/main.jpg',
-}
+// Foto real por categoria, pelo sistema central de imagens: só existe quando o
+// vínculo marca↔combo está no acervo (awardPhoto devolve `null` fora dele).
+// Quando a mesma marca vence mais de uma categoria — O Maestro Café vence 3 —
+// o contador por marca pede um frame diferente da galeria dela, nunca o mesmo
+// arquivo duas vezes.
+const CATEGORY_PHOTO = (() => {
+  const usos = new Map()
+  const mapa = {}
+  for (const cena of SCENES) {
+    const nome = (cena.winners || []).find((w) => w.pos === 1)?.name
+    const n = usos.get(nome) || 0
+    usos.set(nome, n + 1)
+    mapa[cena.key] = nome ? awardPhoto(nome, COMBO_EDITION, n) : null
+  }
+  return mapa
+})()
 
 const MEDAL = { 1: 'ouro', 2: 'prata', 3: 'bronze' }
 
@@ -50,17 +54,24 @@ function groupWinnersByPos(winners) {
   }
   return [...map.values()].sort((a, b) => a.pos - b.pos)
 }
-function firstPlaceNames(winners) {
-  return (winners || []).filter((w) => w.pos === 1).map((w) => w.name).join(' e ')
-}
-
 // Foto de categoria com fallback elegante (mesmo padrão de BrandChip): esconde o
 // <img> quebrado e mostra "Foto pendente" — nunca ícone de imagem quebrada nem
 // bloco vazio (CLAUDE.md §8).
-function SceneImg({ src, alt, className }) {
+function SceneImg({ foto, className, prioritaria }) {
   const [broken, setBroken] = React.useState(false)
-  if (!src || broken) return <div className="eb-cat__nophoto">Foto pendente</div>
-  return <img className={className} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+  if (!foto || broken) return <div className="eb-cat__nophoto">{RESERVA}</div>
+  return (
+    <img
+      className={className}
+      src={foto.src}
+      alt={foto.alt}
+      style={{ objectPosition: foto.position }}
+      loading={prioritaria ? 'eager' : 'lazy'}
+      fetchpriority={prioritaria ? 'high' : undefined}
+      decoding="async"
+      onError={() => setBroken(true)}
+    />
+  )
 }
 
 function BrandChip({ name, size = 40 }) {
@@ -144,11 +155,7 @@ export function EmBrevePage() {
           {COMBO_SCENE && (
             <article className="eb-combo motion-stagger motion-card-hover">
               <div className="eb-combo__media">
-                <SceneImg
-                  className="motion-image-reveal"
-                  src={CATEGORY_PHOTO.melhor_combo}
-                  alt={`${COMBO_SCENE.category} — combo vencedor: ${firstPlaceNames(COMBO_SCENE.winners)}`}
-                />
+                <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO.melhor_combo} prioritaria />
                 <span className="eb-combo__medal" aria-hidden="true">1º</span>
               </div>
               <div className="eb-combo__body">
@@ -165,11 +172,7 @@ export function EmBrevePage() {
             {OTHER_SCENES.map((scene) => (
               <article className="eb-cat motion-reveal-up motion-card-hover" key={scene.key}>
                 <div className="eb-cat__media">
-                  <SceneImg
-                    className="motion-image-reveal"
-                    src={CATEGORY_PHOTO[scene.key]}
-                    alt={`${scene.category} — vencedor: ${firstPlaceNames(scene.winners)}`}
-                  />
+                  <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO[scene.key]} />
                 </div>
                 <h3>{scene.category}</h3>
                 {scene.description && <p className="eb-cat__desc">{scene.description}</p>}

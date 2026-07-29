@@ -1,6 +1,8 @@
 import React from 'react'
 import '../../styles/scw-home.css'
 import { festivalFacts } from '../../data/festivalFacts'
+import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { resolveParticipant } from '../../data/participantAssets'
 
 /* ============================================================================
    Home / "O festival" — redesign 2026.
@@ -20,13 +22,10 @@ function Seta({ size = 17 }) {
   )
 }
 
-/* --- 01 Abertura: fotos do acervo em crossfade (todas conferidas em public/). */
-const HERO = [
-  { src: '/images/edicoes/2026.1/04.webp', alt: 'Combo da edição Sweet & Coffee Week Lovers' },
-  { src: '/images/edicoes/2025/09.webp', alt: 'Combo da edição Celebration' },
-  { src: '/images/momentos/02.jpg', alt: 'Público no Sweet & Coffee Week' },
-  { src: '/images/edicoes/2023/04.webp', alt: 'Combo da edição Trip' },
-]
+/* --- 01 Abertura: fotos do herói da rota, no sistema central de imagens.
+   Cada foto traz o próprio enquadramento (desktop e celular) e o alt contextual;
+   o véu por cima usa a cor da página (--scw-pagina) — ver scw-home.css. */
+const HERO = heroPhotos('home')
 
 const PALAVRAS = [
   'dez anos de festival',
@@ -78,23 +77,36 @@ const INGREDIENTES = [
   },
 ]
 
+/* Frame curado do acervo de cada edição (o índice é a foto escolhida na
+   galeria daquela edição — src/data/imageLibrary.js resolve caminho, alt e
+   ponto focal). */
+const frame = (code, i) => editionPhotos(code)[i]
+
 const COMBOS = [
-  { src: '/images/edicoes/2026.1/04.webp', alt: 'Combo da edição Lovers', titulo: 'Edição Lovers', ano: '2026' },
-  { src: '/images/edicoes/2025/09.webp', alt: 'Combo da edição Celebration', titulo: 'Edição Celebration', ano: '2025' },
-  { src: '/images/edicoes/2023/04.webp', alt: 'Combo da edição Trip', titulo: 'Edição Trip', ano: '2023' },
-  { src: '/images/edicoes/2016/01.webp', alt: 'Combo da primeira edição', titulo: 'Primeira edição', ano: '2016' },
+  { foto: frame('2026.1', 3), titulo: 'Edição Lovers', ano: '2026' },
+  { foto: frame('2025', 8), titulo: 'Edição Celebration', ano: '2025' },
+  { foto: frame('2023', 3), titulo: 'Edição Trip', ano: '2023' },
+  { foto: frame('2016', 0), titulo: 'Primeira edição', ano: '2016' },
 ]
 
 /* O Sweet Gift não tem foto no acervo — o protótipo usa espaço reservado.
    Aqui viram molduras honestas (.scw-reserva), nunca imagem inventada. */
 const SWEET_GIFT = ['caixa fechada', 'caixa aberta', 'doces da caixa', 'pronta para viagem']
 
-/* --- 04 Ciclo. Fotos conferidas em public/images/. */
+/* --- 03 Rotas. "Marcas" mostra um combo do acervo; "Público" reusa o registro
+   de público que já abre a página (HERO[2]); "Parceiros" fica em reserva porque
+   o acervo não tem foto de ativação de patrocinador. */
+const FOTO_MARCAS = frame('2019.2', 3)
+const FOTO_PUBLICO = HERO[2]
+
+/* --- 04 Ciclo. Fotos do sistema central; a etapa 04 usa um registro de público
+   (pasta `momentos`, sem vínculo com marca ou edição — não é foto de edição
+   nem de combo, por isso não passa pelo sistema central). */
 const ETAPAS = [
-  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.', '/images/edicoes/2016/01.webp', 'Primeira edição do festival', 'var(--scw-vinho)', 'var(--scw-creme)'],
-  ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.', '/images/edicoes/2019.2/04.webp', 'Combo de participante', 'var(--scw-roxo)', 'var(--scw-creme)'],
-  ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.', '/images/edicoes/2025/03.webp', 'Público nas ruas', 'var(--scw-cyan)', 'var(--scw-choco)'],
-  ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.', '/images/momentos/04.jpg', 'Público na edição Lovers', 'var(--scw-amarelo)', 'var(--scw-choco)'],
+  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.', frame('2016', 0), 'var(--scw-vinho)', 'var(--scw-creme)'],
+  ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.', frame('2019.2', 3), 'var(--scw-roxo)', 'var(--scw-creme)'],
+  ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.', frame('2025', 2), 'var(--scw-cyan)', 'var(--scw-choco)'],
+  ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.', { src: '/images/momentos/04.jpg', alt: 'Público em uma edição do Sweet & Coffee Week', position: 'center 40%' }, 'var(--scw-amarelo)', 'var(--scw-choco)'],
 ]
 
 /* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica). */
@@ -109,14 +121,12 @@ const NUMEROS = [
 const VOZ = {
   frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal.”',
   pessoa: 'Carol Barreto',
-  marca: 'Jolie Café & Patisserie',
-  logo: '/logos/participants/jolie-cafe-patisserie.png',
+  marca: 'Jolie Café Pâtisserie',
+  logo: resolveParticipant('Jolie Café Pâtisserie').logo,
   // Retrato autorizado não existe no acervo → círculo fica como reserva honesta.
   retrato: null,
-  fotos: [
-    { src: '/images/combos/jolie-cafe-patisserie/main.jpg', alt: 'Coxinha autoral da Jolie' },
-    { src: '/images/combos/jolie-cafe-patisserie/photo-02.jpg', alt: 'Jolie em uma edição do festival' },
-  ],
+  fotos: comboPhotos('Jolie Café Pâtisserie', { limite: 2 }),
+  iniciais: resolveParticipant('Jolie Café Pâtisserie').fallback,
 }
 
 /* Matérias reais, com link (o protótipo lista sem URL; aqui os endereços são
@@ -235,7 +245,13 @@ export function HomePage({ navigate }) {
             <span
               key={foto.src}
               className={'scw-hero__foto' + (i === heroAtiva ? ' is-ativa' : '')}
-              style={{ backgroundImage: `url("${foto.src}")` }}
+              /* --pos/--pos-mobile: o enquadramento muda entre a faixa larga do
+                 desktop e a foto alta do celular (scw-home.css lê as duas). */
+              style={{
+                backgroundImage: `url("${foto.src}")`,
+                '--pos': foto.position,
+                '--pos-mobile': foto.mobilePosition,
+              }}
               role={i === heroAtiva ? 'img' : undefined}
               aria-label={i === heroAtiva ? foto.alt : undefined}
               aria-hidden={i === heroAtiva ? undefined : 'true'}
@@ -331,15 +347,12 @@ export function HomePage({ navigate }) {
               Cada edição rende uma coleção nova de doce, salgado e bebida — alguns viraram clássicos da casa.
             </p>
             <ul className="hm-galeria__lista">
-              {COMBOS.map((combo) => (
-                <li key={combo.src}>
-                  <figure
-                    className="hm-galeria__foto"
-                    role="img"
-                    aria-label={combo.alt}
-                    style={{ backgroundImage: `url("${combo.src}")` }}
-                  />
-                  <span className="hm-galeria__nome">{combo.titulo}<b>{combo.ano}</b></span>
+              {COMBOS.map(({ foto, titulo, ano }) => (
+                <li key={titulo}>
+                  {foto
+                    ? <figure className="hm-galeria__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
+                    : <div className="scw-reserva hm-galeria__reserva">{RESERVA}</div>}
+                  <span className="hm-galeria__nome">{titulo}<b>{ano}</b></span>
                 </li>
               ))}
             </ul>
@@ -357,7 +370,7 @@ export function HomePage({ navigate }) {
             <ul className="hm-galeria__lista">
               {SWEET_GIFT.map((legenda) => (
                 <li key={legenda}>
-                  <div className="scw-reserva hm-galeria__reserva">Foto pendente</div>
+                  <div className="scw-reserva hm-galeria__reserva">{RESERVA}</div>
                   <span className="hm-galeria__nome">{legenda}</span>
                 </li>
               ))}
@@ -383,7 +396,13 @@ export function HomePage({ navigate }) {
         <div className="hm-rotas">
           <article className="hm-rota hm-rota--marcas">
             <figure className="hm-rota__foto">
-              <img src="/images/edicoes/2019.2/04.webp" alt="Combo autoral de uma marca participante" loading="lazy" decoding="async" />
+              <img
+                src={FOTO_MARCAS.src}
+                alt={FOTO_MARCAS.alt}
+                style={{ objectPosition: FOTO_MARCAS.position }}
+                loading="lazy"
+                decoding="async"
+              />
             </figure>
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo">Marcas</span>
@@ -399,7 +418,13 @@ export function HomePage({ navigate }) {
 
           <article className="hm-rota hm-rota--publico">
             <figure className="hm-rota__foto">
-              <img src="/images/momentos/02.jpg" alt="Público no Sweet &amp; Coffee Week" loading="lazy" decoding="async" />
+              <img
+                src={FOTO_PUBLICO.src}
+                alt={FOTO_PUBLICO.alt}
+                style={{ objectPosition: FOTO_PUBLICO.position }}
+                loading="lazy"
+                decoding="async"
+              />
             </figure>
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo">Público</span>
@@ -416,7 +441,7 @@ export function HomePage({ navigate }) {
           <article className="hm-rota hm-rota--parceiros">
             {/* Foto de patrocinador/ativação não existe no acervo → reserva. */}
             <div className="hm-rota__foto hm-rota__foto--reserva">
-              <div className="scw-reserva">Foto de ativação pendente</div>
+              <div className="scw-reserva">{RESERVA}</div>
             </div>
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo hm-rota__eixo--cyan">Parceiros</span>
@@ -447,15 +472,10 @@ export function HomePage({ navigate }) {
         </div>
 
         <div className="hm-ciclo">
-          {ETAPAS.map(([numero, titulo, texto, foto, alt, cor, tinta]) => (
+          {ETAPAS.map(([numero, titulo, texto, foto, cor, tinta]) => (
             <article className="hm-etapa" key={numero}>
               <div className="hm-etapa__moldura">
-                <span
-                  className="hm-etapa__foto"
-                  role="img"
-                  aria-label={alt}
-                  style={{ backgroundImage: `url("${foto}")` }}
-                />
+                <span className="hm-etapa__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
                 <span className="hm-etapa__num" style={{ background: cor, color: tinta }} aria-hidden="true">{numero}</span>
               </div>
               <h3 className="hm-etapa__titulo">{titulo}</h3>
@@ -502,9 +522,13 @@ export function HomePage({ navigate }) {
               <span className="hm-voz__retrato">
                 {VOZ.retrato
                   ? <img src={VOZ.retrato} alt={`${VOZ.pessoa}, da ${VOZ.marca}`} loading="lazy" decoding="async" />
-                  : <span className="scw-reserva hm-voz__reserva">Retrato pendente</span>}
+                  : <span className="scw-reserva hm-voz__reserva">{RESERVA}</span>}
+                {/* Sem logo no acervo o <img> sairia sem src e quebraria na
+                    tela — nesse caso ficam as iniciais da marca. */}
                 <span className="hm-voz__marca">
-                  <img src={VOZ.logo} alt={VOZ.marca} loading="lazy" decoding="async" />
+                  {VOZ.logo
+                    ? <img src={VOZ.logo} alt={VOZ.marca} loading="lazy" decoding="async" />
+                    : <span aria-hidden="true">{VOZ.iniciais}</span>}
                 </span>
               </span>
               <span className="hm-voz__id">
@@ -514,13 +538,7 @@ export function HomePage({ navigate }) {
             </figcaption>
             <div className="hm-voz__fotos">
               {VOZ.fotos.map((foto) => (
-                <span
-                  key={foto.src}
-                  className="hm-voz__foto"
-                  role="img"
-                  aria-label={foto.alt}
-                  style={{ backgroundImage: `url("${foto.src}")` }}
-                />
+                <span key={foto.src} className="hm-voz__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
               ))}
             </div>
             <a className="hm-voz__link" href="#/participar?scrollTo=depoimentos" onClick={ir('/participar?scrollTo=depoimentos')}>

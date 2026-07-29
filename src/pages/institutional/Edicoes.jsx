@@ -4,17 +4,25 @@
  * tela cheia") + protótipo Edicoes.dc.html. Estilos em src/styles/scw-edicoes.css.
  *
  * Desktop: cena de 100vh. Metade direita = mosaico de 3 fotos sangrando (uma
- * larga em cima, duas embaixo, filete de 3px). Metade esquerda = rótulo, tema,
- * frase, meta (período / marcas / Sweet Awards) e dois botões que abrem painéis
- * flutuantes de participantes e curiosidades. Fundo = foto do combo desfocada
- * (blur 64px) sob véu chocolate a 87%, com deriva lenta de 46s. Rodapé com a
- * trilha das 16 edições (dots + anos), setas e barra de progresso. Navega por
- * setas do teclado, clique na trilha e arraste.
+ * larga em cima, duas embaixo, filete de 3px) que agora é um CARROSSEL do
+ * acervo inteiro da edição — 11 a 12 fotos, em páginas de 3 (ver <Galeria>).
+ * Metade esquerda = rótulo, tema, frase, meta (período / marcas / Sweet Awards)
+ * e dois botões que abrem painéis flutuantes de participantes e curiosidades.
+ * Fundo = foto do acervo desfocada (blur 64px) sob véu chocolate a 87%, com
+ * deriva lenta de 46s. Rodapé com a trilha das 16 edições (dots + anos), setas
+ * e barra de progresso. Navega por setas do teclado, clique na trilha e arraste.
  *
- * Mobile: capítulo vertical (capa 4:5 com tema + mosaico 1:1 + dados +
- * palavras-chave + sanfonas de marcas e curiosidades) e três peças de
- * navegação: régua de anos fixa na base, setas laterais metade fora da tela e
- * `disabled` (não só opacity) na seta sem destino.
+ * Mobile: capítulo vertical (capa 4:5 com tema + carrossel do restante do
+ * acervo em pares 1:1 + dados + palavras-chave + sanfonas de marcas e
+ * curiosidades) e três peças de navegação: régua de anos fixa na base, setas
+ * laterais metade fora da tela e `disabled` (não só opacity) na seta sem
+ * destino.
+ *
+ * Fotografia: TODA foto vem do sistema central `src/data/imageLibrary.js`
+ * (`editionPhotos` / `bgStyle`) — caminho de imagem não se escreve à mão aqui,
+ * e o alt e o ponto focal (`position`) já vêm prontos por foto. O acervo NÃO
+ * identifica qual foto é de qual participante nas edições de 2016 a 2025: a
+ * galeria mostra o registro da edição, e a lista de marcas segue textual.
  *
  * Casca: em Edições o App.jsx NÃO renderiza header, barra de 5px nem rodapé — a
  * página traz cabeçalho próprio com a mesma geometria (mesmo --scw-trilho,
@@ -35,6 +43,7 @@
 import React from 'react'
 import '../../styles/scw-edicoes.css'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
+import { editionPhotos, bgStyle } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
 import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
 
@@ -139,20 +148,257 @@ const Mais = (p) => (
   </svg>
 )
 
-// Fundo só quando o arquivo existe no acervo (nunca url("none")).
-const fundo = (src) => (src ? { backgroundImage: `url("${src}")` } : undefined)
+/* ============================================================================
+   GALERIA DA EDIÇÃO — carrossel do acervo completo
+   ----------------------------------------------------------------------------
+   Cada edição tem 11 ou 12 fotos no acervo; antes a cena mostrava 3. Aqui as
+   fotos entram TODAS, na ordem do acervo, em páginas do tamanho do mosaico
+   (3 no desktop, 2 no par do mobile). Regras:
+
+   - transição curta (320ms) só em opacity + `translate`/`scale` (propriedades
+     independentes, pra o deslize não brigar com o ken burns no `transform`);
+   - a foto seguinte entra POR CIMA e a anterior fica embaixo até o fim do
+     crossfade — nunca cai a tela pro fundo do quadro;
+   - a última página é ancorada no fim (`n - porPagina`), então o mosaico nunca
+     aparece com buraco quando o total não é múltiplo da página;
+   - giro automático de 6s que pausa no hover e no foco e PARA de vez assim que
+     alguém navega na mão (não volta a girar por cima de quem está olhando);
+   - `prefers-reduced-motion`: sem giro e sem animação, navegação intacta.
+   ========================================================================= */
+
+const GIRO = 6000
+
+/** Quebra a lista em páginas do tamanho do mosaico, ancorando a última no fim. */
+function paginasDe(fotos, porPagina) {
+  const n = fotos.length
+  if (!n) return []
+  const passo = Math.max(1, porPagina)
+  const total = Math.ceil(n / passo)
+  return Array.from({ length: total }, (_, k) => {
+    const inicio = Math.max(0, Math.min(k * passo, n - passo))
+    return fotos.slice(inicio, inicio + passo)
+  })
+}
+
+function useSemMovimento() {
+  const [reduz, setReduz] = React.useState(false)
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const avaliar = () => setReduz(mq.matches)
+    avaliar()
+    mq.addEventListener('change', avaliar)
+    return () => mq.removeEventListener('change', avaliar)
+  }, [])
+  return reduz
+}
+
+/* Um quadro do mosaico. Guarda a foto anterior enquanto a nova entra, pra a
+   troca não piscar: a que sai fica embaixo (ref no render + estado com prazo,
+   porque só o ref sumiria no primeiro re-render alheio). */
+function Quadro({ foto, classe = '', eager = false, children = null }) {
+  const anterior = React.useRef(null)
+  const [residual, setResidual] = React.useState(null)
+  const antes = anterior.current
+  const sai = antes && (!foto || antes.src !== foto.src) ? antes : residual
+
+  React.useEffect(() => {
+    const anteriorFoto = anterior.current
+    anterior.current = foto || null
+    if (!anteriorFoto || !foto || anteriorFoto.src === foto.src) return undefined
+    setResidual(anteriorFoto)
+    const t = setTimeout(() => setResidual(null), 420)
+    return () => clearTimeout(t)
+  }, [foto])
+
+  return (
+    <figure className={`scw-gal__quadro${classe ? ` ${classe}` : ''}`}>
+      {sai ? (
+        <img
+          className="scw-gal__foto scw-gal__foto--sai"
+          src={sai.src}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          style={{ objectPosition: sai.position }}
+        />
+      ) : null}
+      {foto ? (
+        <img
+          key={foto.src}
+          className="scw-gal__foto scw-gal__foto--entra"
+          src={foto.src}
+          alt={foto.alt}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          style={{ objectPosition: foto.position }}
+        />
+      ) : (
+        <span className="scw-edx__reserva">Foto pendente no acervo</span>
+      )}
+      {children}
+    </figure>
+  )
+}
+
+function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovimento }) {
+  const paginas = React.useMemo(() => paginasDe(fotos, porPagina), [fotos, porPagina])
+  const n = paginas.length
+  const [k, setK] = React.useState(0)
+  const [auto, setAuto] = React.useState(true)
+  const [parado, setParado] = React.useState(false)
+  const [sentido, setSentido] = React.useState(1)
+  const arraste = React.useRef(null)
+
+  const irPara = React.useCallback((alvo, s) => {
+    if (n < 2) return
+    setAuto(false)                       // na mão manda: o giro não volta sozinho
+    setSentido(s)
+    setK(((alvo % n) + n) % n)
+  }, [n])
+  const andar = React.useCallback((d) => irPara(k + d, d), [irPara, k])
+
+  React.useEffect(() => {
+    if (!auto || parado || semMovimento || n < 2) return undefined
+    const t = setTimeout(() => { setSentido(1); setK((x) => (x + 1) % n) }, GIRO)
+    return () => clearTimeout(t)
+  }, [auto, parado, semMovimento, n, k])
+
+  // aquece a próxima página no cache (sem nó no DOM)
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || n < 2) return
+    ;(paginas[(k + 1) % n] || []).forEach((f) => { const img = new Image(); img.src = f.src })
+  }, [k, n, paginas])
+
+  if (!n) {
+    return (
+      <section className={`scw-gal scw-gal--${variante}`} aria-label={etiqueta}>
+        <div className="scw-gal__quadros">
+          <figure className="scw-gal__quadro">
+            <span className="scw-edx__reserva">Galeria pendente no acervo</span>
+          </figure>
+        </div>
+      </section>
+    )
+  }
+
+  const pagina = paginas[Math.min(k, n - 1)]
+  const de = pagina[0].indice
+  const ate = pagina[pagina.length - 1].indice
+  const quantas = total || fotos.length
+  const anuncio = de === ate ? `Foto ${de} de ${quantas}` : `Fotos ${de} a ${ate} de ${quantas}`
+
+  const aoTeclar = (ev) => {
+    const passoTecla = { ArrowRight: 1, ArrowLeft: -1 }[ev.key]
+    if (passoTecla) { ev.preventDefault(); ev.stopPropagation(); andar(passoTecla); return }
+    if (ev.key === 'Home') { ev.preventDefault(); ev.stopPropagation(); irPara(0, -1) }
+    else if (ev.key === 'End') { ev.preventDefault(); ev.stopPropagation(); irPara(n - 1, 1) }
+  }
+
+  // Arraste próprio: o `stopPropagation` evita que o gesto vire troca de EDIÇÃO
+  // (a cena inteira também escuta arraste horizontal).
+  const gestos = {
+    onPointerDown: (ev) => { arraste.current = { x: ev.clientX, y: ev.clientY }; ev.stopPropagation() },
+    onPointerUp: (ev) => {
+      const a = arraste.current
+      arraste.current = null
+      ev.stopPropagation()
+      if (!a) return
+      const dx = ev.clientX - a.x
+      const dy = ev.clientY - a.y
+      if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) andar(dx < 0 ? 1 : -1)
+    },
+    onPointerCancel: () => { arraste.current = null },
+  }
+
+  const faixa = (p) => (p[0].indice === p[p.length - 1].indice
+    ? `Foto ${p[0].indice}`
+    : `Fotos ${p[0].indice} a ${p[p.length - 1].indice}`)
+
+  return (
+    <section
+      className={`scw-gal scw-gal--${variante}${sentido < 0 ? ' is-voltando' : ''}`}
+      data-galeria=""
+      role="group"
+      aria-roledescription="carrossel"
+      aria-label={etiqueta}
+      onKeyDown={aoTeclar}
+      onMouseEnter={() => setParado(true)}
+      onMouseLeave={() => setParado(false)}
+      onFocus={() => setParado(true)}
+      onBlur={() => setParado(false)}
+      {...gestos}
+    >
+      <div className="scw-gal__quadros">
+        {pagina.map((f, j) => (
+          <Quadro
+            key={j}
+            foto={f}
+            eager={k === 0}
+            classe={j === 0 && variante === 'mosaico' ? 'scw-gal__quadro--largo' : ''}
+          >
+            {j === 0 && variante === 'mosaico' ? <span className="scw-edx__topo-scrim" aria-hidden="true" /> : null}
+          </Quadro>
+        ))}
+      </div>
+
+      <p className="scw-edx__sr" aria-live="polite" aria-atomic="true">{anuncio}</p>
+
+      <div className="scw-gal__barra">
+        <span className="scw-gal__rot">{rotulo}</span>
+        <button
+          type="button"
+          className="scw-gal__seta scw-gal__seta--ant"
+          aria-label="Fotos anteriores desta edição"
+          onClick={() => andar(-1)}
+        >
+          <SetaEsq width={15} height={15} />
+        </button>
+        <ol className="scw-gal__pontos">
+          {paginas.map((p, j) => (
+            <li key={p[0].src}>
+              <button
+                type="button"
+                className={j === k ? 'is-ativo' : undefined}
+                aria-current={j === k ? 'true' : undefined}
+                aria-label={faixa(p)}
+                onClick={() => irPara(j, j > k ? 1 : -1)}
+              >
+                <span aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ol>
+        <span className="scw-gal__contador">
+          {pad2(de)}–{pad2(ate)}<span>/{pad2(quantas)}</span>
+        </span>
+        <button
+          type="button"
+          className="scw-gal__seta scw-gal__seta--prox"
+          aria-label="Próximas fotos desta edição"
+          onClick={() => andar(1)}
+        >
+          <SetaDir width={15} height={15} />
+        </button>
+      </div>
+    </section>
+  )
+}
 
 export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpen }) {
   const [i, setI] = React.useState(0)
   const [dir, setDir] = React.useState(1)
   const [painel, setPainel] = React.useState(null)   // 'participantes' | 'curiosidades' | null
   const [estreito, setEstreito] = React.useState(false)
+  const semMovimento = useSemMovimento()
 
   const e = EDS[i]
   const d = EDICOES_DADOS[e.code] || SEM_DADOS
   const marca = editionMark(e.code)
   const tom = TONS[i % TONS.length]
-  const fotos = d.fotos || []
+  // Acervo inteiro da edição (11–12 fotos), na ordem do acervo e com alt e
+  // ponto focal prontos — fonte única em src/data/imageLibrary.js.
+  const fotos = React.useMemo(() => editionPhotos(e.code), [e.code])
   const curiosidades = d.curiosidades || []
   const participantes = d.participantes || []
   const nParticipantes = d.n != null ? d.n : '—'
@@ -188,6 +434,8 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
     const aoTeclar = (ev) => {
       if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return
       if (ev.key === 'Escape') { setPainel(null); return }
+      // Dentro da galeria as setas e Home/End percorrem FOTOS, não edições.
+      if (ev.target && ev.target.closest && ev.target.closest('[data-galeria]')) return
       if (ev.key === 'ArrowRight' || ev.key === 'PageDown') { ev.preventDefault(); passo(1) }
       else if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { ev.preventDefault(); passo(-1) }
       else if (ev.key === 'Home') { ev.preventDefault(); vaiPara(0) }
@@ -200,16 +448,16 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
   /* ---- performance -------------------------------------------------------
      Só a cena em foco existe no DOM: montar 16 cenas de viewport inteiro de uma
      vez congela o compositor (era o gargalo da versão anterior desta página,
-     resolvido lá com janela live/near). Aqui a janela é de 1 cena; pra a troca
-     não piscar, as fotos das cenas vizinhas são aquecidas no cache — 6 imagens,
-     sem nó no DOM. */
+     resolvido lá com janela live/near). Aqui a janela é de 1 cena, e dentro
+     dela só a página do carrossel em foco. Pra a troca não piscar, as PRIMEIRAS
+     fotos das cenas vizinhas são aquecidas no cache — 6 imagens, sem nó no DOM
+     (as 11–12 de cada edição só carregam quando a edição entra em foco). */
   React.useEffect(() => {
     if (typeof window === 'undefined') return
     ;[i - 1, i + 1].forEach((k) => {
       const viz = EDS[k]
       if (!viz) return
-      const dv = EDICOES_DADOS[viz.code]
-      ;(dv ? dv.fotos || [] : []).slice(0, 3).forEach((src) => { const img = new Image(); img.src = src })
+      editionPhotos(viz.code).slice(0, 3).forEach((f) => { const img = new Image(); img.src = f.src })
     })
   }, [i])
 
@@ -274,9 +522,19 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
     '--scw-edx-prog-n': (i + 0.5) / TOTAL,
   }
 
-  const fotoAlt = `Registro da edição ${e.tema} do Sweet & Coffee Week`
   const marcaAlt = `Marca da edição ${e.tema}`
   const anuncio = `Edição ${pad2(i + 1)} de ${pad2(TOTAL)}: ${e.tema}, ${e.code}`
+
+  const capa = fotos[0] || null
+  // memo: sem isto a lista nasceria nova a cada render e o carrossel do mobile
+  // refaria páginas (e o aquecimento de cache) por render.
+  const fotosDepoisDaCapa = React.useMemo(() => fotos.slice(1), [fotos])
+  /* Ambiente do desktop: a ÚLTIMA foto do acervo, desfocada a 64px sob véu de
+     87% — assim a foto que abre o mosaico não aparece duas vezes na mesma cena
+     (e o fundo fica fixo por edição, sem repintar blur a cada troca de foto). */
+  const fotoFundo = fotos.length ? fotos[fotos.length - 1] : null
+  const etiquetaGaleria = `Galeria do acervo da edição ${e.tema}, ${e.code}`
+  const rotuloGaleria = `Acervo · ${e.code}`
 
   const meta = (
     <>
@@ -301,8 +559,8 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
           <div className="scw-edx-mob__conteudo" {...gestos}>
             {/* capa 4:5 — key por edição reinicia wipe + ken burns */}
             <div className="scw-edx-mob__capa" key={`capa-${e.code}`}>
-              {fotos[0]
-                ? <span className="scw-edx-mob__capa-foto" style={fundo(fotos[0])} role="img" aria-label={fotoAlt} />
+              {capa
+                ? <img className="scw-edx-mob__capa-foto" src={capa.src} alt={capa.alt} decoding="async" style={{ objectPosition: capa.position }} />
                 : <span className="scw-edx__reserva">Foto pendente no acervo</span>}
               <span className="scw-edx-mob__capa-topo" aria-hidden="true" />
               <span className="scw-edx-mob__capa-base" aria-hidden="true" />
@@ -322,19 +580,18 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
               </div>
             </div>
 
-            {/* mosaico de 2 fotos 1:1 */}
-            <div className="scw-edx-mob__par" key={`par-${e.code}`}>
-              <figure>
-                {fotos[1]
-                  ? <span className="scw-edx-mob__capa-foto" style={fundo(fotos[1])} role="img" aria-label={fotoAlt} />
-                  : <span className="scw-edx__reserva">Foto pendente</span>}
-              </figure>
-              <figure>
-                {fotos[2]
-                  ? <span className="scw-edx-mob__capa-foto" style={fundo(fotos[2])} role="img" aria-label={fotoAlt} />
-                  : <span className="scw-edx__reserva">Foto pendente</span>}
-              </figure>
-            </div>
+            {/* carrossel do resto do acervo, em pares 1:1 (a capa acima é a 1ª
+                foto, então aqui entra fotos.slice(1) — nada se repete na cena) */}
+            <Galeria
+              key={`galeria-${e.code}`}
+              fotos={fotosDepoisDaCapa}
+              total={fotos.length}
+              porPagina={2}
+              variante="par"
+              rotulo={rotuloGaleria}
+              etiqueta={etiquetaGaleria}
+              semMovimento={semMovimento}
+            />
 
             <div className="scw-edx-mob__corpo">
               <p className="scw-edx-mob__lead" key={`lead-${e.code}`}>{e.lead}</p>
@@ -450,34 +707,22 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
       >
         {/* key por edição: remonta a cena e reinicia wipe, ken burns e entradas */}
         <div className="scw-edx__cena" key={e.code} {...gestos}>
-          {/* fundo: combo desfocado (blur 64px) sob véu chocolate a 87% */}
+          {/* fundo: foto do acervo desfocada (blur 64px) sob véu chocolate a 87% */}
           <div className="scw-edx__fundo" aria-hidden="true">
-            {(fotos[1] || fotos[0]) && (
-              <span className="scw-edx__fundo-foto" style={fundo(fotos[1] || fotos[0])} />
-            )}
+            {fotoFundo && <span className="scw-edx__fundo-foto" style={bgStyle(fotoFundo)} />}
             <span className="scw-edx__veu" />
           </div>
 
-          {/* mosaico de 3 fotos sangrando na metade direita */}
-          <div className="scw-edx__mosaico">
-            <figure className="scw-edx__quadro scw-edx__quadro--largo">
-              {fotos[0]
-                ? <span className="scw-edx__foto" style={fundo(fotos[0])} role="img" aria-label={fotoAlt} />
-                : <span className="scw-edx__reserva">Foto pendente no acervo</span>}
-              <span className="scw-edx__topo-scrim" aria-hidden="true" />
-            </figure>
-            <figure className="scw-edx__quadro">
-              {fotos[1]
-                ? <span className="scw-edx__foto" style={fundo(fotos[1])} role="img" aria-label={fotoAlt} />
-                : <span className="scw-edx__reserva">Foto pendente</span>}
-            </figure>
-            <figure className="scw-edx__quadro">
-              {fotos[2]
-                ? <span className="scw-edx__foto" style={fundo(fotos[2])} role="img" aria-label={fotoAlt} />
-                : <span className="scw-edx__reserva">Foto pendente</span>}
-            </figure>
-            <span className="scw-edx__acervo">Acervo · {e.code}</span>
-          </div>
+          {/* mosaico de 3 fotos sangrando na metade direita — carrossel do
+              acervo inteiro da edição, em páginas de 3 */}
+          <Galeria
+            fotos={fotos}
+            porPagina={3}
+            variante="mosaico"
+            rotulo={rotuloGaleria}
+            etiqueta={etiquetaGaleria}
+            semMovimento={semMovimento}
+          />
 
           {/* cabeçalho próprio — mesma geometria da casca (trilho + 50px) */}
           <header className="scw-edx__cab">

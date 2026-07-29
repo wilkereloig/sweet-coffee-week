@@ -20,13 +20,16 @@
 import React from 'react'
 import '../../styles/scw-contato.css'
 import FAQ_DADOS from '../../data/faqCentral'
+import { bgStyle, heroPhoto } from '../../data/imageLibrary'
 import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 import { CONTACT_SUBJECTS } from '../../data/contactFaq'
 import { EMPTY_CONTACT, normalizeText, submitContact } from '../../lib/contactRequest'
 
-// Foto fixa do herói de Contato (acervo real, README do handoff).
-const HERO_FOTO = '/images/campanha/15.jpg'
+// Foto do herói desta rota (sistema central de imagens): ambienta a abertura
+// no desktop e vira banda sangrando no celular. O véu por cima usa a cor da
+// página (--scw-pagina) — ver scw-contato.css.
+const HERO_FOTO = heroPhoto('contato')
 
 // RPC injetado na lógica pura (mantém o módulo testável offline).
 const rpc = (name, payload) => supabase.rpc(name, payload)
@@ -175,7 +178,18 @@ export function ContatoPage({ navigate }) {
     <>
       {/* ---------- 01 ABERTURA (compacta) ---------------------------------- */}
       <section className="scw-hero-bloco scw-hero-bloco--compacto ctt-abertura" aria-labelledby="ctt-titulo">
-        <div className="scw-hero-banda" aria-hidden="true" style={{ backgroundImage: `url("${HERO_FOTO}")` }} />
+        {/* Desktop: a foto ambienta a abertura inteira sob o véu da página.
+            Celular: a mesma foto vira banda sangrando (scw-hero-banda). */}
+        <img
+          className="ctt-abertura__fundo"
+          src={HERO_FOTO.src}
+          alt={HERO_FOTO.alt}
+          style={{ objectPosition: HERO_FOTO.position }}
+          fetchpriority="high"
+          decoding="async"
+        />
+        <span className="ctt-abertura__veu" aria-hidden="true" />
+        <div className="scw-hero-banda" role="img" aria-label={HERO_FOTO.alt} style={bgStyle(HERO_FOTO, { mobile: true })} />
         <div
           className="scw-grade ctt-abertura__grade"
           style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 48px)' }}

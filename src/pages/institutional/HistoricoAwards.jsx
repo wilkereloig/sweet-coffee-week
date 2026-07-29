@@ -17,17 +17,28 @@
  * DADOS — nada é inventado. `src/data/handoff/awardsData.js` é o snapshot já cruzado
  * de `sweetCoffeeHistory.js` (histórico + descrições das categorias) com
  * `loversAwardsResults.js` (pódios da 2026.1, vazios de propósito na base histórica).
- * Conferido campo a campo: pódios, trilhas, descrições, períodos e temas batem.
+ * Conferido colocação a colocação contra `loversAwardsResults.js` em jul/2026: os oito
+ * pódios da Lovers batem (inclusive os empates). Única divergência: `Canuto’s` aparece
+ * na fonte com apóstrofo tipográfico e no snapshot com o reto — por isso as agregações
+ * desta página contam marca por IDENTIDADE (slug de `resolveParticipant`), não por
+ * string, senão a mesma casa viraria duas no hall e nos números.
  * Divergência conhecida: o snapshot traz `logo: /images/editions/<code>.png`, caminho
  * que não existe no acervo — a marca da edição vem de `editionMark()` (src/data), que
  * é a fonte de verdade.
+ *
+ * FOTOGRAFIA — só pelo sistema central `src/data/imageLibrary.js`. Nenhum caminho é
+ * montado aqui. `awardPhoto(nome, edição, variação)` devolve foto apenas quando o
+ * vínculo marca↔combo existe no acervo (edição Lovers); para 2019–2025 devolve `null`
+ * de propósito, e o histórico aparece sem fotografia em vez de tomar emprestada a
+ * imagem de outra edição. O acervo NÃO tem foto rotulada por peça (doce, salgado,
+ * bebida): cada card mostra o combo da marca premiada e o alt diz isso.
  */
 import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
-import { COMBO_PHOTOS } from '../../data/comboPhotos'
+import { awardPhoto, RESERVA } from '../../data/imageLibrary'
 
 /* ---------------------------------------------------------------------------
    Derivações da base (estáticas: AWARDS_DADOS não muda em runtime)
@@ -38,6 +49,11 @@ const LOVERS = EDICOES.find((e) => e.code === '2026.1') || null
 // Histórico = demais edições, da mais recente para a mais antiga.
 const HISTORICO = EDICOES.filter((e) => e.code !== '2026.1').slice().reverse()
 
+/* Identidade da marca para AGREGAR (hall e contagem de marcas): o slug do acervo
+   quando a casa é conhecida, senão o próprio nome. Sem isso, uma variação de grafia
+   ("Canuto’s" × "Canuto's") vira duas marcas distintas nos números. */
+const identidade = (nome) => resolveParticipant(nome).slug || nome
+
 // Números do herói, contados da própria base (nunca digitados à mão).
 const ESTATISTICAS = (() => {
   const marcas = new Set()
@@ -45,7 +61,7 @@ const ESTATISTICAS = (() => {
   let colocacoes = 0
   for (const e of EDICOES) {
     categorias += e.cats.length
-    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) { marcas.add(n); colocacoes++ }
+    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) { marcas.add(identidade(n)); colocacoes++ }
   }
   return { edicoes: EDICOES.length, categorias, colocacoes, marcas: marcas.size }
 })()
@@ -57,12 +73,13 @@ const HALL = (() => {
     for (const c of e.cats) {
       for (const p of c.pod) {
         for (const n of p.nomes) {
-          const r = cont.get(n) || { nome: n, p1: 0, p2: 0, p3: 0, total: 0 }
+          const chave = identidade(n)
+          const r = cont.get(chave) || { nome: n, p1: 0, p2: 0, p3: 0, total: 0 }
           if (p.pos === 1) r.p1++
           else if (p.pos === 2) r.p2++
           else r.p3++
           r.total++
-          cont.set(n, r)
+          cont.set(chave, r)
         }
       }
     }
@@ -73,35 +90,27 @@ const HALL = (() => {
 })()
 
 /* ---------------------------------------------------------------------------
-   Fotos reais do acervo (public/images/combos/<slug>/)
-   O acervo NÃO tem foto rotulada por peça (doce/salgado/bebida): cada card mostra
-   uma foto do combo da marca premiada, sem repetir arquivo entre as categorias.
+   Fotos — tudo vem do sistema central (src/data/imageLibrary.js).
+
+   Uma foto por card, na chave '<índice da categoria>:<colocação>'. A `variação`
+   avança por MARCA, então uma casa que vence várias categorias (O Maestro Café
+   vence três) mostra um combo diferente em cada card, em vez da mesma imagem
+   repetida. Em empate a foto é a da primeira marca da colocação — o alt do
+   sistema central nomeia justamente essa casa, e a legenda lista as duas.
    ------------------------------------------------------------------------ */
 
-// Marcas com pasta de fotos, derivadas da fonte única COMBO_PHOTOS.
-const PASTAS_COMBO = new Set(COMBO_PHOTOS.map((p) => p.split('/')[3]))
-// Menor acervo por marca: main.jpg + photo-02…photo-08.
-const FOTOS_POR_MARCA = 8
-
-function fotoDoCombo(slug, i) {
-  if (!slug || !PASTAS_COMBO.has(slug)) return null
-  const n = (i % FOTOS_POR_MARCA) + 1
-  return n === 1
-    ? `/images/combos/${slug}/main.jpg`
-    : `/images/combos/${slug}/photo-${String(n).padStart(2, '0')}.jpg`
-}
-
-// Uma foto por card ('<índice da categoria>:<colocação>'), sem repetir arquivo
-// quando a mesma marca vence várias categorias.
 const FOTOS = (() => {
   const mapa = new Map()
   const usos = new Map()
   ;(LOVERS ? LOVERS.cats : []).forEach((c, ci) => {
     for (const p of c.pod) {
-      const { slug } = resolveParticipant(p.nomes[0])
-      const i = usos.get(slug) || 0
-      usos.set(slug, i + 1)
-      mapa.set(`${ci}:${p.pos}`, fotoDoCombo(slug, i))
+      const nome = p.nomes[0]
+      const chave = identidade(nome)
+      const variacao = usos.get(chave) || 0
+      usos.set(chave, variacao + 1)
+      // Fora da edição Lovers awardPhoto devolve null — o acervo não liga marca
+      // e foto nas edições antigas, e emprestar imagem seria invenção.
+      mapa.set(`${ci}:${p.pos}`, awardPhoto(nome, LOVERS ? LOVERS.code : '', variacao))
     }
   })
   return mapa
@@ -112,7 +121,8 @@ const FOTOS = (() => {
    ------------------------------------------------------------------------ */
 
 // Medalha por colocação — codifica o resultado (não é sticker).
-const MEDALHA = { 1: 'var(--scw-amarelo)', 2: 'var(--scw-prata)', 3: 'var(--scw-bronze)' }
+// Ouro/prata/bronze são os tokens de MEDALHA (§12), não o amarelo de acento.
+const MEDALHA = { 1: 'var(--scw-ouro)', 2: 'var(--scw-prata)', 3: 'var(--scw-bronze)' }
 const medalha = (pos) => MEDALHA[pos] || 'var(--scw-bronze)'
 
 // Cores dos selos de categoria — só paleta oficial.
@@ -140,11 +150,22 @@ function SeloCategoria({ nome, cor }) {
   )
 }
 
-// Foto do acervo com reserva honesta quando o arquivo falta ou falha (§7/§8).
-function FotoAcervo({ src, alt }) {
+// Foto do acervo com reserva honesta quando não há imagem (§7/§8). Recebe o objeto
+// pronto do sistema central: `src`, `alt` contextual e `position` (ponto focal por
+// imagem, para o recorte não cortar o combo).
+function FotoAcervo({ foto }) {
   const [quebrada, setQuebrada] = React.useState(false)
-  if (!src || quebrada) return <span className="swa-reserva">Foto pendente no acervo</span>
-  return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setQuebrada(true)} />
+  if (!foto || quebrada) return <span className="swa-reserva">{RESERVA}</span>
+  return (
+    <img
+      src={foto.src}
+      alt={foto.alt}
+      style={{ objectPosition: foto.position }}
+      loading="lazy"
+      decoding="async"
+      onError={() => setQuebrada(true)}
+    />
+  )
 }
 
 // Logo real da marca (resolveParticipant) com fallback em iniciais — nunca inventa.
@@ -199,7 +220,7 @@ function agruparPorTrilha(cats) {
    02 — card de colocação (foto + medalha + marca)
    ------------------------------------------------------------------------ */
 
-function CardColocacao({ categoria, colocacao, foto }) {
+function CardColocacao({ colocacao, foto }) {
   const primeiro = colocacao.pos === 1
   const marca = colocacao.nomes.join(' e ') // empates ficam na MESMA colocação
   return (
@@ -207,7 +228,7 @@ function CardColocacao({ categoria, colocacao, foto }) {
       className={`swa-card${primeiro ? ' swa-card--primeiro' : ''}`}
       style={{ '--swa-medalha': medalha(colocacao.pos) }}
     >
-      <FotoAcervo src={foto} alt={`Combo de ${marca}, ${colocacao.pos}º lugar em ${categoria}`} />
+      <FotoAcervo foto={foto} />
       <span className="swa-medalha" aria-hidden="true">{colocacao.pos}º</span>
       <span className="swa-card__legenda">
         <span className="swa-card__pos">{primeiro ? 'Primeiro lugar' : `${colocacao.pos}º lugar`}</span>
@@ -347,7 +368,7 @@ export function HistoricoAwardsPage() {
             {vitrine.map((v) => (
               <li key={v.categoria}>
                 <figure style={{ margin: 0 }}>
-                  <FotoAcervo src={v.foto} alt={`Combo de ${v.marca}, primeiro lugar em ${v.categoria}`} />
+                  <FotoAcervo foto={v.foto} />
                   <figcaption>
                     <span className="swa-vitrine__cat">{v.categoria}</span>
                     <b className="swa-vitrine__marca">{v.marca}</b>
@@ -393,7 +414,7 @@ export function HistoricoAwardsPage() {
               </div>
               <ol className="swa-podio">
                 {c.pod.map((p) => (
-                  <CardColocacao key={p.pos} categoria={c.nome} colocacao={p} foto={FOTOS.get(`${ci}:${p.pos}`)} />
+                  <CardColocacao key={p.pos} colocacao={p} foto={FOTOS.get(`${ci}:${p.pos}`)} />
                 ))}
               </ol>
             </article>
@@ -488,7 +509,9 @@ export function HistoricoAwardsPage() {
           </div>
           <p className="swa-apoio">
             Da estreia em 2019, com categoria única, às quinze categorias de Terras Potiguares.
-            Abra uma edição para ver os resultados.
+            Abra uma edição para ver os resultados. O acervo dessas edições não identifica de
+            qual marca é cada foto, então os pódios aparecem sem fotografia — nenhuma imagem
+            é emprestada de outra edição.
           </p>
         </div>
 
