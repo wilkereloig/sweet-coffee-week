@@ -35,6 +35,15 @@ const PALAVRAS = [
   'memória de cada edição',
 ]
 
+/* Números da F2 Experience — fornecidos pelo Wilke no patch da seção 07.
+   Não saem do acervo do festival; só "16 edições" é conferível aqui. */
+const F2_NUMEROS = [
+  ['01', '+1', 'K', 'projetos realizados'],
+  ['02', '+400', 'K', 'pessoas impactadas'],
+  ['03', '16', '', 'edições do festival assinadas'],
+  ['04', 'BR', '', 'atuação nacional'],
+]
+
 /* --- 02 O que é: anatomia do combo. */
 const INGREDIENTES = [
   {
@@ -587,22 +596,55 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* ---------------------------------------------- 07 Realização ------- */}
-      <section className="scw-secao scw-secao--compacta scw-secao--marrom hm-realizacao">
-        <img className="hm-realizacao__kv" src="/images/f2-symbol.svg" alt="" aria-hidden="true" />
-        <div className="hm-realizacao__grade">
-          <div>
-            <span className="scw-rotulo hm-rotulo--claro">Realização</span>
-            <img className="hm-realizacao__logo" src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
+      {/* ---------------------------------------------- 07 Realização -------
+          Quebra de marca proposital: a seção de realização usa o KV da F2
+          Experience (preto #0B0B0C, acento #E50053, tipografia Archivo), não o
+          sistema visual do festival. É a única seção do site fora da paleta e
+          fora da Nexa Slab — decisão do Wilke, registrada no CLAUDE.md. */}
+      <section className="scw-secao scw-secao--compacta f2-realiza">
+        <div className="f2-realiza__kv" aria-hidden="true" />
+
+        <div className="f2-realiza__conteudo">
+          <div className="f2-realiza__topo">
+            <span className="f2-realiza__indice">07 <i /> Realização</span>
+            <img className="f2-realiza__logo" src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
+            <span className="f2-realiza__meta">Live Marketing · desde 2004</span>
           </div>
-          <div>
-            <h2 className="scw-h2 hm-realizacao__h2">Uma ideia criativa pode mudar o caminho de uma cidade.</h2>
-            <p className="hm-realizacao__texto">
-              Há mais de 20 anos, a F2 Experience transforma estratégia em experiências que conectam marcas e pessoas.
-            </p>
-            <a className="scw-btn hm-realizacao__cta" href="#/contato" onClick={ir('/contato')}>
-              Conhecer a F2 Experience <Seta />
-            </a>
+
+          <div className="f2-realiza__grade">
+            <h2 className="f2-realiza__h2">
+              Há mais de 20 anos <em>transformando</em> estratégia em criatividade.
+            </h2>
+            <div>
+              <p className="f2-realiza__texto">
+                A F2 Experience é a agência de live marketing que idealiza e realiza o
+                Sweet &amp; Coffee Week — eventos, ativações e experiências de marca para
+                quem quer conexão e resultado.
+              </p>
+              <a
+                className="f2-realiza__cta"
+                href="https://www.f2experience.com.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Conhecer a F2 Experience <Seta />
+              </a>
+            </div>
+          </div>
+
+          <dl className="f2-realiza__numeros">
+            {F2_NUMEROS.map(([i, num, sufixo, rotulo]) => (
+              <div key={i}>
+                <span className="f2-realiza__ordem">{i}</span>
+                <dt>{num}{sufixo && <em>{sufixo}</em>}</dt>
+                <dd>{rotulo}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="f2-realiza__assinatura">
+            <span>F2 <em>realiza.</em></span>
+            <span className="f2-realiza__meta">contato@fabrica2.com.br · @f2experience</span>
           </div>
         </div>
       </section>

@@ -109,6 +109,17 @@ em `src/styles/scw-2026.css`. Nenhuma cor fora desta lista:
 
 **Removida da paleta: `#E52C4B`** (vermelho-coral) — não usar em nada.
 
+**Exceção declarada — seção 07 da Home (KV da F2 Experience).** A seção de
+realização usa a marca da agência que realiza o festival, não a do festival:
+fundo `#0B0B0C`, acento `#E50053`, tinta `#F5F5F5` e tipografia **Archivo**.
+É a única quebra de paleta e de fonte do site, proposital (decisão do Wilke,
+jul/2026), restrita ao bloco `.f2-realiza*` em `src/styles/scw-home.css`.
+O teste `tests/redesign-2026.test.mjs` reprova essas cores em qualquer outro
+lugar e reprova `Archivo` fora dessa seção.
+Contraste medido: tinta 18,05:1 sobre o preto; o magenta dá 4,18:1, então ele
+fica em **texto grande e elemento gráfico** — rótulos pequenos e CTA usam a
+tinta clara.
+
 **Roxo entrou na paleta** (jul/2026): `#4D257E` é o acento oficial do Sweet Awards.
 A regra antiga "evitar roxo" está superada — ela nasceu de um lavanda `#B38CFF` fora
 da identidade, não deste roxo. Continuam fora: verde, cinzas frios aleatórios, pretos

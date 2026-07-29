@@ -548,49 +548,156 @@
 .hm-imprensa__toggle:hover { color: var(--scw-choco); }
 
 /* ============================================================================
-   07 Realização
+   07 Realização — KV F2 Experience (quebra de marca proposital)
+   ----------------------------------------------------------------------------
+   Única seção do site fora da paleta do festival e fora da Nexa Slab: usa o KV
+   da agência que realiza o Sweet & Coffee Week. Decisão do Wilke (jul/2026),
+   registrada no CLAUDE.md. Nenhuma outra seção carrega Archivo.
+   Contraste medido: #F5F5F5 sobre #0B0B0C = 18,05:1. O magenta da F2 dá 4,18:1
+   — passa em texto grande (AA pede 3:1) e em elemento gráfico, mas NÃO em texto
+   pequeno (pede 4,5:1). Por isso o acento fica nos títulos, nos numerais e nos
+   traços; o rótulo de 11,5px e o CTA de 15px usam a tinta clara.
    ========================================================================= */
-
-.hm-realizacao { position: relative; overflow: hidden; }
-.hm-realizacao__kv {
+.f2-realiza {
+  --f2-tinta: #F5F5F5;
+  --f2-acento: #E50053;
+  position: relative;
+  overflow: hidden;
+  background: #0B0B0C;
+  color: var(--f2-tinta);
+  font-family: 'Archivo', system-ui, sans-serif;
+  padding-top: clamp(56px, 6.4vw, 104px);
+  padding-bottom: clamp(40px, 4vw, 64px);
+}
+.f2-realiza__kv {
   position: absolute;
   top: 50%;
-  right: -4%;
-  width: clamp(300px, 34vw, 520px);
+  right: -6%;
+  width: clamp(320px, 38vw, 620px);
+  aspect-ratio: 412 / 367;
   transform: translateY(-50%);
-  opacity: .1;
+  background: var(--f2-acento);
+  mask: url('/images/f2-symbol.svg') center / contain no-repeat;
+  -webkit-mask: url('/images/f2-symbol.svg') center / contain no-repeat;
+  animation: f2Pulse 9s ease-in-out infinite;
   pointer-events: none;
 }
-.hm-realizacao__grade {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: clamp(28px, 5vw, 80px);
+@keyframes f2Pulse { 0%, 100% { opacity: .055 } 50% { opacity: .1 } }
+
+.f2-realiza__conteudo { position: relative; z-index: 1; }
+
+.f2-realiza__topo {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: clamp(16px, 2.4vw, 32px);
+  padding-bottom: clamp(24px, 2.6vw, 34px);
+  border-bottom: 1px solid rgba(245, 245, 245, .16);
 }
-.hm-realizacao__logo { width: min(260px, 100%); margin-top: 16px; filter: brightness(0) invert(1); }
-.hm-realizacao__h2 {
-  max-width: 20ch;
-  color: var(--scw-creme);
-  font-size: clamp(26px, 2.9vw, 44px);
-  line-height: .98;
+.f2-realiza__indice {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font: 600 11.5px/1 'Archivo', sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  /* 11,5px é texto pequeno: com o magenta daria 4,18:1. O traço ao lado
+     continua no acento — elemento gráfico só precisa de 3:1. */
+  color: var(--f2-tinta);
+}
+.f2-realiza__indice i { display: block; width: 22px; height: 1px; background: var(--f2-acento); }
+.f2-realiza__logo { width: min(224px, 52vw); filter: brightness(0) invert(1); }
+.f2-realiza__meta {
+  margin-left: auto;
+  font: 400 12.5px/1.4 'Archivo', sans-serif;
+  letter-spacing: .06em;
+  color: rgba(245, 245, 245, .5);
+}
+
+.f2-realiza__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(28px, 4.4vw, 72px);
+  align-items: end;
+  padding: clamp(32px, 3.6vw, 56px) 0 clamp(28px, 3vw, 44px);
+}
+.f2-realiza__h2 {
+  margin: 0;
+  max-width: 22ch;
+  color: var(--f2-tinta);
+  font: 600 clamp(30px, 3.6vw, 58px)/1.02 'Archivo', system-ui, sans-serif;
   letter-spacing: -.035em;
+  text-wrap: balance;
 }
-.hm-realizacao__texto {
-  max-width: 52ch;
-  margin: 18px 0 0;
-  color: rgba(254, 240, 221, .76);
-  font: 500 16.5px/1.5 var(--scw-font);
+.f2-realiza__h2 em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__texto {
+  max-width: 46ch;
+  margin: 0;
+  color: rgba(245, 245, 245, .66);
+  font: 400 clamp(15px, 1.2vw, 17.5px)/1.62 'Archivo', sans-serif;
+  text-wrap: pretty;
 }
-.hm-realizacao__cta {
+.f2-realiza__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   min-height: 50px;
-  margin-top: 26px;
-  padding: 14px 24px;
-  background: var(--scw-vinho);
-  color: var(--scw-creme);
+  margin-top: clamp(20px, 2.2vw, 28px);
+  padding: 0 0 8px;
+  border-bottom: 2px solid var(--f2-acento);
+  color: var(--f2-tinta);
+  font: 600 15px/1 'Archivo', sans-serif;
+  text-decoration: none;
+  transition: color .2s ease;
 }
-.hm-realizacao__cta:hover { background: var(--scw-choco); }
+.f2-realiza__cta:hover { border-bottom-width: 4px; }
+
+.f2-realiza__numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: clamp(20px, 2.6vw, 40px);
+  margin: 0;
+  padding-top: clamp(24px, 2.6vw, 36px);
+  border-top: 1px solid rgba(245, 245, 245, .16);
+}
+.f2-realiza__ordem {
+  display: block;
+  margin-bottom: 12px;
+  font: 500 11px/1 'Archivo', sans-serif;
+  letter-spacing: .18em;
+  color: rgba(245, 245, 245, .58);
+}
+.f2-realiza__numeros dt {
+  font: 600 clamp(30px, 3.2vw, 48px)/.94 'Archivo', sans-serif;
+  letter-spacing: -.045em;
+  color: var(--f2-tinta);
+}
+.f2-realiza__numeros dt em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__numeros dd {
+  margin: 9px 0 0;
+  font: 400 13.5px/1.45 'Archivo', sans-serif;
+  color: rgba(245, 245, 245, .56);
+}
+
+.f2-realiza__assinatura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: clamp(32px, 3.4vw, 52px);
+  padding-top: clamp(20px, 2.2vw, 28px);
+  border-top: 1px solid rgba(245, 245, 245, .16);
+}
+.f2-realiza__assinatura > span:first-child {
+  font: 600 clamp(22px, 2.2vw, 32px)/1 'Archivo', sans-serif;
+  letter-spacing: -.03em;
+}
+.f2-realiza__assinatura em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__assinatura .f2-realiza__meta { color: rgba(245, 245, 245, .58); }
+
+@media (prefers-reduced-motion: reduce) {
+  .f2-realiza__kv { animation: none; opacity: .08; }
+}
 
 /* ============================================================================
    Responsivo — escala 1000 · 760 · 560 · 420

@@ -52,11 +52,41 @@ function hexEmCodigo(fonte) {
 
 const ARQUIVOS = [SISTEMA, ...new Set(PAGINAS.flat()), ...CASCA]
 
+/* Exceção única e declarada: a seção 07 da Home usa o KV da F2 Experience, a
+   agência que realiza o festival — preto, magenta e cinza da marca dela, fora
+   da paleta do Sweet & Coffee Week. É quebra proposital (CLAUDE.md §3). Fica
+   restrita ao bloco `.f2-realiza*`: qualquer hex desses fora dali reprova. */
+const F2_MARCA = new Set(['#0B0B0C', '#E50053', '#F5F5F5'])
+
+function trechoF2(fonte) {
+  const ini = fonte.indexOf('.f2-realiza {')
+  if (ini === -1) return ''
+  const fim = fonte.indexOf('/* ====', ini)
+  return fonte.slice(ini, fim === -1 ? fonte.length : fim)
+}
+
 test('nenhuma cor fora da paleta do handoff', () => {
   for (const arquivo of ARQUIVOS) {
-    for (const hex of hexEmCodigo(ler(arquivo))) {
-      assert.ok(PALETA.has(hex), `cor fora da paleta em ${arquivo}: ${hex}`)
+    const fonte = ler(arquivo)
+    const f2 = trechoF2(fonte)
+    for (const hex of hexEmCodigo(fonte)) {
+      if (PALETA.has(hex)) continue
+      const daF2 = F2_MARCA.has(hex) && hexEmCodigo(f2).includes(hex)
+      assert.ok(daF2, `cor fora da paleta em ${arquivo}: ${hex}`)
     }
+  }
+})
+
+test('o KV da F2 não vaza para o resto do site', () => {
+  for (const arquivo of ARQUIVOS) {
+    const fonte = ler(arquivo)
+    const foraDoBloco = fonte.replace(trechoF2(fonte), ' ')
+    for (const hex of F2_MARCA) {
+      assert.ok(!hexEmCodigo(foraDoBloco).includes(hex), `cor da F2 (${hex}) fora da seção 07, em ${arquivo}`)
+    }
+    // Archivo é a fonte da F2; o resto do site é Nexa Slab.
+    const semF2 = foraDoBloco.replace(/\/\*[\s\S]*?\*\//g, ' ')
+    assert.ok(!/Archivo/.test(semF2), `Archivo usada fora da seção 07, em ${arquivo}`)
   }
 })
 
