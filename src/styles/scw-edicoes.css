@@ -425,10 +425,9 @@
   font: 800 13px/1 var(--scw-font);
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
-  box-shadow: var(--scw-sombra-sticker);
   transition: background-color 460ms cubic-bezier(.2, .75, .2, 1), transform 120ms ease;
 }
-.scw-edx__botao:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+.scw-edx__botao:active { transform: translateY(1px); }
 .scw-edx__botao--vazado {
   border: 1px solid rgba(254, 240, 221, .34);
   background: rgba(61, 19, 8, .4);

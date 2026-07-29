@@ -35,7 +35,6 @@
   --scw-r-card:       20px;
   --scw-sombra-card:  0 18px 42px rgba(61, 19, 8, .22);
   --scw-sombra-foto:  0 14px 34px rgba(0, 0, 0, .34);
-  --scw-sombra-sticker: 0 4px 0 rgba(0, 0, 0, .3);
 
   /* --- movimento --------------------------------------------------------- */
   --scw-ease:         cubic-bezier(.22, .9, .24, 1);
@@ -244,30 +243,37 @@ body.route-contato {
   font: 800 15px/1 var(--scw-font);
   cursor: pointer;
   transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease),
-              border-color 240ms var(--scw-ease), transform 120ms var(--scw-ease),
-              box-shadow 120ms var(--scw-ease);
+              border-color 240ms var(--scw-ease), transform 120ms var(--scw-ease);
 }
-.scw-btn--solido {
+/* O prefixo `.scw-raiz` não é enfeite: o reset `.scw-raiz a { color: inherit }`
+   tem especificidade maior que `.scw-btn--*` e fazia o botão de contorno herdar
+   o chocolate do corpo — texto escuro sobre herói escuro. Com o prefixo, a cor
+   do botão volta a mandar.
+   Sem sombra: os botões são chapados (pedido do Wilke, jul/2026). O clique
+   responde com um deslocamento de 1px, sem relevo. */
+.scw-raiz .scw-btn--solido {
   background: var(--scw-amarelo);
   color: var(--scw-choco);
-  box-shadow: 0 6px 0 rgba(61, 19, 8, .28);
 }
-.scw-btn--solido:hover { background: var(--scw-ouro); }
-.scw-btn--solido:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(61, 19, 8, .28); }
-.scw-btn--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); box-shadow: var(--scw-sombra-sticker); }
-.scw-btn--pagina:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
-.scw-btn--contorno-claro {
+.scw-raiz .scw-btn--solido:hover { background: var(--scw-ouro); }
+.scw-raiz .scw-btn--solido:active { transform: translateY(1px); }
+.scw-raiz .scw-btn--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
+.scw-raiz .scw-btn--pagina:active { transform: translateY(1px); }
+.scw-raiz .scw-btn--contorno-claro {
   background: transparent;
-  border: 1px solid rgba(254, 240, 221, .55);
+  /* Borda cheia em creme: a 55% de opacidade o traço sumia sobre a foto. */
+  border: 1.5px solid var(--scw-creme);
   color: var(--scw-creme);
 }
-.scw-btn--contorno-claro:hover { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
-.scw-btn--contorno-escuro {
+.scw-raiz .scw-btn--contorno-claro:hover { background: var(--scw-creme); color: var(--scw-choco); }
+.scw-raiz .scw-btn--contorno-claro:active { transform: translateY(1px); }
+.scw-raiz .scw-btn--contorno-escuro {
   background: transparent;
-  border: 1px solid var(--scw-filete);
+  border: 1.5px solid var(--scw-marrom);
   color: var(--scw-choco);
 }
-.scw-btn--contorno-escuro:hover { background: var(--scw-card); border-color: var(--scw-choco); }
+.scw-raiz .scw-btn--contorno-escuro:hover { background: var(--scw-choco); color: var(--scw-creme); border-color: var(--scw-choco); }
+.scw-raiz .scw-btn--contorno-escuro:active { transform: translateY(1px); }
 
 .scw-card {
   padding: clamp(20px, 2.2vw, 30px);

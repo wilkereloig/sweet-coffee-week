@@ -459,8 +459,8 @@
   color: var(--scw-choco);
   font: 600 14px/1.5 var(--scw-font);
 }
-.ctt-enviar { background: var(--scw-vinho); color: var(--scw-creme); box-shadow: 0 6px 0 rgba(61, 19, 8, .2); }
-.ctt-enviar:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(61, 19, 8, .2); }
+.ctt-enviar { background: var(--scw-vinho); color: var(--scw-creme); }
+.ctt-enviar:active { transform: translateY(1px); }
 .ctt-enviar[disabled] { cursor: progress; opacity: .72; }
 
 .ctt-ok {

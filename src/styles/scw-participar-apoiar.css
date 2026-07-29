@@ -658,9 +658,8 @@
 .pa-form__enviar {
   background: var(--scw-vinho);
   color: var(--scw-creme);
-  box-shadow: 0 6px 0 rgba(61, 19, 8, .2);
 }
-.pa-form__enviar:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(61, 19, 8, .2); }
+.pa-form__enviar:active { transform: translateY(1px); }
 .pa-form__enviar:disabled { opacity: .55; cursor: not-allowed; }
 .pa-form__status {
   grid-column: 1 / -1;
