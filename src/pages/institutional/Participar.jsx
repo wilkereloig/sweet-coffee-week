@@ -43,14 +43,15 @@ const PALAVRAS = [
   'sua marca na rota', 'sweet lovers',
 ]
 
-// 02 Números — histórico do festival (mesmos dados do protótipo).
+// 02 Números — histórico do festival (mesmos dados do protótipo). Cor vive na
+// régua (StatBlock — ver docs/FLUXO-DESIGN-CODIGO.md), ciclo de seis sem repetir.
 const NUMEROS = [
-  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano em média', c: 'var(--scw-vinho)' },
-  { n: '+100', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', c: 'var(--scw-roxo)' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', c: 'var(--scw-marrom)' },
-  { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', c: 'var(--scw-vinho)' },
-  { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', c: 'var(--scw-vinho)' },
-  { n: '17', t: 'matérias na imprensa', d: 'rádio, TV, jornais e portais de Natal e do RN', c: 'var(--scw-roxo)' },
+  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano em média', c: 'var(--scw-marrom)' },
+  { n: '+100', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', c: 'var(--scw-amarelo)' },
+  { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', c: 'var(--scw-cyan)' },
+  { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', c: 'var(--scw-magenta)' },
+  { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', c: 'var(--scw-roxo)' },
+  { n: '17', t: 'matérias na imprensa', d: 'rádio, TV, jornais e portais de Natal e do RN', c: 'var(--scw-laranja)' },
 ]
 
 // 03 Circulação — três faixas alternando o lado da imagem (larguras iguais).
@@ -71,7 +72,7 @@ const FAIXAS = [
     // Campanha e público não têm vínculo com edição nem com marca no acervo —
     // ficam fora do sistema central, com alt e ponto focal declarados aqui.
     foto: { src: '/images/campanha/01.jpg', alt: 'Material de campanha do Sweet & Coffee Week em um ponto de venda', position: 'center 42%' },
-    fundo: 'var(--scw-vinho)',
+    fundo: 'var(--scw-roxo)',
     inversa: true,
   },
   {
@@ -87,29 +88,32 @@ const FAIXAS = [
 
 // 04 Quem pode participar — ícones desenhados para cada tipo de negócio.
 const ICO = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }
+// Ciclo de seis sem repetir (§5): magenta, roxo, amarelo, cyan, bege, laranja.
+// Roxo e laranja eram os dois discos chocolate-sobre-chocolate (ícone
+// invisível) — roxo pede traço creme; laranja fecha AA com o traço padrão.
 const PUBLICOS = [
   {
-    t: 'Doçarias', d: 'doces, tortas e sobremesas', c: 'var(--scw-magenta)',
+    t: 'Doçarias', d: 'doces, tortas e sobremesas', c: 'var(--scw-magenta)', tinta: 'var(--scw-choco)',
     p: <><path d="M6.6 10.5a5.4 5.4 0 0 1 10.8 0" /><path d="M6.4 10.5h11.2l-1.3 8a1.6 1.6 0 0 1-1.6 1.4H9.3a1.6 1.6 0 0 1-1.6-1.4l-1.3-8Z" /><path d="M10.4 13.4l-.5 5M13.6 13.4l.5 5" /><circle cx="12" cy="4.4" r="1.5" /></>,
   },
   {
-    t: 'Confeitarias', d: 'bolos, docinhos e encomendas', c: 'var(--scw-vinho)',
+    t: 'Confeitarias', d: 'bolos, docinhos e encomendas', c: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
     p: <><path d="M4.2 11.4h15.6V18a2 2 0 0 1-2 2H6.2a2 2 0 0 1-2-2v-6.6Z" /><path d="M4.2 15.6h15.6" /><path d="M12 6.6v4.2" /><path d="M12 3.4c1.1 1 1.1 2 0 2.6-1.1-.6-1.1-1.6 0-2.6Z" /></>,
   },
   {
-    t: 'Cafeterias', d: 'café, brunch e padaria', c: 'var(--scw-amarelo)',
+    t: 'Cafeterias', d: 'café, brunch e padaria', c: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)',
     p: <><path d="M4.6 9.4h10.8v4.8a4 4 0 0 1-4 4H8.6a4 4 0 0 1-4-4V9.4Z" /><path d="M15.4 11h2.1a2.4 2.4 0 0 1 0 4.8h-2.1" /><path d="M4 20.6h13" /><path d="M8.4 3.6c.7 1.4-.7 2 0 3.4M11.6 3.6c.7 1.4-.7 2 0 3.4" /></>,
   },
   {
-    t: 'Restaurantes', d: 'cozinha autoral e bistrôs', c: 'var(--scw-cyan)',
+    t: 'Restaurantes', d: 'cozinha autoral e bistrôs', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
     p: <><path d="M8.6 3.2v5.4a2.4 2.4 0 0 1-4.8 0V3.2" /><path d="M6.2 11v9.8" /><path d="M16.4 3.2c2.2 2.8 2.4 6.6 1.1 9.6h-2.4V6.8c0-1.4.5-2.6 1.3-3.6Z" /><path d="M16.3 12.8v8" /></>,
   },
   {
-    t: 'Marcas gastronômicas', d: 'produção autoral, com ou sem loja', c: 'var(--scw-bege)',
+    t: 'Marcas gastronômicas', d: 'produção autoral, com ou sem loja', c: 'var(--scw-bege)', tinta: 'var(--scw-choco)',
     p: <><path d="M7.2 12.4a3.4 3.4 0 1 1 1.2-6.6 3.8 3.8 0 0 1 7.2 0 3.4 3.4 0 1 1 1.2 6.6H7.2Z" /><path d="M7.8 12.4h8.4v5.2a2 2 0 0 1-2 2H9.8a2 2 0 0 1-2-2v-5.2Z" /><path d="M7.8 15.6h8.4" /></>,
   },
   {
-    t: 'Negócios afetivos', d: 'projetos de bairro e de família', c: 'var(--scw-vinho)',
+    t: 'Negócios afetivos', d: 'projetos de bairro e de família', c: 'var(--scw-laranja)', tinta: 'var(--scw-choco)',
     p: <><path d="M3.6 4.6h16.8l1.2 4.4H2.4l1.2-4.4Z" /><path d="M4.6 9v10.8h14.8V9" /><path d="M12 19.8v-6.4c1.9 0 3 1.1 3 2.4 0 1.6-1.6 2.6-3 4Z" /><path d="M12 13.4c-1.9 0-3 1.1-3 2.4 0 1.6 1.6 2.6 3 4" /></>,
   },
 ]
@@ -118,7 +122,7 @@ const PUBLICOS = [
 // O 6º card é reserva editorial honesta: a marca existe, o depoimento ainda não.
 const DEPOIMENTOS = [
   { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café Pâtisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
-  { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro', slug: 'o-maestro-cafe', cor: 'var(--scw-vinho)', tinta: 'var(--scw-creme)' },
+  { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro', slug: 'o-maestro-cafe', cor: 'var(--scw-marrom)', tinta: 'var(--scw-creme)' },
   { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Patisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
   { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
   { frase: '“Foi além das expectativas. Foram onze dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.”', pessoa: 'Edvan Barreto', marca: 'Casa 1190', slug: 'casa-1190', cor: 'var(--scw-choco)', tinta: 'var(--scw-creme)' },
@@ -335,8 +339,8 @@ export function ParticiparPage() {
         <div className="pa-cabeca">
           <div>
             <span className="scw-rotulo">A potência do festival</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-vinho)' }}>
-              O tamanho da <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>vitrine</em> que sua marca ocupa.
+            <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)' }}>
+              O tamanho da <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>vitrine</em> que sua marca ocupa.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -345,7 +349,8 @@ export function ParticiparPage() {
         </div>
         <ul className="pa-numeros">
           {NUMEROS.map((n) => (
-            <li key={n.t} style={{ '--c': n.c }}>
+            <li key={n.t}>
+              <span className="scw-stat__regua" aria-hidden="true" style={{ background: n.c }} />
               <b>{n.n}</b>
               <strong>{n.t}</strong>
               <span>{n.d}</span>
@@ -359,8 +364,8 @@ export function ParticiparPage() {
         <div className="pa-cabeca">
           <div>
             <span className="scw-rotulo">O que a marca leva da edição</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-vinho)', maxWidth: '22ch' }}>
-              Três frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>visibilidade</em>, ao mesmo tempo.
+            <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)', maxWidth: '22ch' }}>
+              Três frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>visibilidade</em>, ao mesmo tempo.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -407,7 +412,7 @@ export function ParticiparPage() {
         <ul className="pa-cards">
           {PUBLICOS.map((p) => (
             <li className="pa-card" key={p.t}>
-              <span className="pa-card__ic" style={{ '--c': p.c }}>
+              <span className="pa-card__ic" style={{ '--c': p.c, '--tinta': p.tinta }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...ICO}>{p.p}</svg>
               </span>
               <span className="pa-card__txt">
@@ -425,7 +430,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo">Marcas que já viveram a edição</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>próprias palavras</em>.
+              Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>próprias palavras</em>.
             </h2>
           </div>
           <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
@@ -528,7 +533,7 @@ export function ParticiparPage() {
         <div className="pa-form__intro">
           <span className="scw-rotulo">Pré-cadastro</span>
           <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
-            Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>jornada da sua marca</em>.
+            Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
           </h2>
           <p>
             Leva dois minutos. A organização analisa o perfil junto aos critérios de curadoria

@@ -43,7 +43,7 @@ const GRADE =
   '.hm-rotas, .hm-ciclo, .hm-galerias, .hm-prova, .hm-ingredientes, ' +
   '.pa-faixas, .pa-cards, .pa-depos, .pa-numeros, .pa-jornada, .pa-onde, ' +
   '.ctt-portas, .ctt-colunas, ' +
-  '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats'
+  '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats, .swa-trilha'
 
 /* Listas longas ou de leitura concentrada: entram como bloco único, sem
    sequência item a item (§20 — a central de dúvidas tem 93 perguntas). */

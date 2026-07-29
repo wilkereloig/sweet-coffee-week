@@ -11,10 +11,14 @@
    Herói (abertura das duas páginas) — usa .scw-hero-bloco + .scw-hero-banda
    ========================================================================= */
 
-/* Véu da foto do herói na COR DA PÁGINA (--scw-pagina), nunca um hex fixo:
-   chocolate puxado para a cor da rota. O texto do herói fica no bloco chocolate
-   ao lado da foto, então a camada só ambienta a imagem — não cobre leitura. */
-.pa-hero { position: relative; overflow: hidden; --veu: color-mix(in srgb, var(--scw-pagina) 16%, var(--scw-choco)); }
+/* Herói na cor da própria página (redesign 29/07/2026) — --scw-heroi/--tinta
+   (scw-2026.css), par dedicado porque --scw-pagina não fecha AA em toda rota
+   (Participar é magenta puro; creme sobre esse rosa dá 3,8:1). */
+.pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
+
+/* Véu da foto do cartão: aprofunda para a cor do herói, nunca um hex fixo —
+   costura a imagem ao bloco ao lado. */
+.pa-hero { --veu: color-mix(in srgb, var(--scw-heroi) 70%, var(--scw-choco)); }
 
 /* Desktop: a foto vive no cartão; o véu desce do transparente para a cor da
    página, costurando a imagem ao bloco do herói. */
@@ -48,8 +52,8 @@
   align-items: center;
 }
 .pa-hero__selo { padding: 11px 18px 9px calc(18px + .16em); font-size: 11.5px; }
-.pa-hero__titulo { margin: clamp(20px, 2.2vw, 28px) 0 0; color: var(--scw-creme); }
-.pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: rgba(254, 240, 221, .88); }
+.pa-hero__titulo { margin: clamp(20px, 2.2vw, 28px) 0 0; color: var(--scw-heroi-tinta); }
+.pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: color-mix(in srgb, var(--scw-heroi-tinta) 88%, transparent); }
 .pa-hero__acoes {
   display: flex;
   flex-wrap: wrap;
@@ -60,9 +64,50 @@
   display: block;
   margin-top: clamp(20px, 2.2vw, 28px);
   padding-top: clamp(16px, 1.8vw, 22px);
-  border-top: 1px solid rgba(254, 240, 221, .18);
+  border-top: 1px solid color-mix(in srgb, var(--scw-heroi-tinta) 26%, transparent);
   font: 700 13.5px/1.45 var(--scw-font);
-  color: rgba(254, 240, 221, .62);
+  color: color-mix(in srgb, var(--scw-heroi-tinta) 84%, transparent);
+}
+
+/* Selo e CTA do herói: Participar (amarelo) e Apoiar (chocolate) divergem —
+   o pill usava a cor da página como fundo, e cor-sobre-cor some em cada uma. */
+body.route-participar .pa-hero__selo { background: var(--scw-amarelo); color: var(--scw-choco); }
+body.route-apoiar .pa-hero__selo { background: var(--scw-choco); color: var(--scw-creme); }
+body.route-apoiar .pa-hero__acoes .scw-btn--solido,
+body.route-apoiar .pa-hero__acoes .scw-btn--pagina {
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+body.route-apoiar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro {
+  border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
+  color: var(--scw-choco);
+}
+body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro:hover {
+  background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
+  border-color: var(--scw-choco);
+}
+
+/* Participar: o herói é magenta puro (#F10767) — nenhuma tinta pequena passa
+   AA nele (§ tabela de contraste). Os elementos pequenos mudam de FORMA, não
+   de cor: o lead cresce para texto grande, o resto ganha fundo chapado. */
+body.route-participar .pa-hero__lead {
+  font-weight: 700;
+  font-size: clamp(19px, 1.4vw, 21px);
+  color: var(--scw-creme);
+}
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
+  background: var(--scw-choco);
+  border-color: var(--scw-choco);
+  color: var(--scw-creme);
+}
+body.route-participar .pa-hero__nota {
+  display: inline-block;
+  padding: 11px 18px 10px;
+  border-top: 0;
+  border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
 }
 
 /* Coluna de apoio do herói: cartão de foto + três indicadores. */
@@ -78,9 +123,9 @@
   font: 800 11px/1.2 var(--scw-font);
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--scw-amarelo);
+  color: var(--scw-heroi-tinta);
 }
-.pa-hero__rotulos span { font: 600 12px/1.2 var(--scw-font); color: rgba(254, 240, 221, .62); }
+.pa-hero__rotulos span { font: 600 12px/1.2 var(--scw-font); color: color-mix(in srgb, var(--scw-heroi-tinta) 72%, transparent); }
 .pa-hero__dados {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, max(90px, calc((100% - 4px) / 3))), 1fr));
@@ -146,8 +191,8 @@
   gap: 9px;
   min-height: 44px;
   padding-bottom: 6px;
-  border-bottom: 2px solid var(--scw-vinho);
-  color: var(--scw-vinho);
+  border-bottom: 2px solid var(--scw-marrom);
+  color: var(--scw-marrom);
   font: 800 15px/1 var(--scw-font);
   transition: color 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
 }
@@ -169,19 +214,20 @@
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc((100% - 2 * clamp(20px, 2.4vw, 40px)) / 3))), 1fr));
-  grid-template-rows: repeat(6, auto);
+  grid-template-rows: repeat(8, auto);
   gap: clamp(26px, 3vw, 44px) clamp(20px, 2.4vw, 40px);
   margin: 0;
   padding: 0;
 }
 .pa-numeros li {
   display: grid;
-  grid-row: span 3;
+  grid-row: span 4;
   grid-template-rows: subgrid;
   gap: 10px;
 }
 .pa-numeros b {
-  color: var(--c, var(--scw-vinho));
+  display: block;
+  color: var(--scw-choco);
   font: 900 clamp(36px, 4.2vw, 74px)/.84 var(--scw-font-black);
   letter-spacing: -.06em;
   white-space: nowrap;
@@ -218,7 +264,7 @@
   margin: 0;
   min-height: clamp(300px, 32vw, 460px);
   overflow: hidden;
-  background: var(--scw-filete);
+  background: rgba(61, 19, 8, .14);
 }
 .pa-faixa--inversa figure { order: 2; }
 .pa-faixa img {
@@ -288,8 +334,8 @@
   gap: 12px;
   padding: clamp(16px, 1.7vw, 22px);
   border-radius: 18px;
-  border: 1px solid var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
 }
 .pa-cards--largos .pa-card { gap: 14px; padding: clamp(20px, 2.2vw, 28px); border-radius: var(--scw-r-card); }
 .pa-card__ic {
@@ -300,7 +346,7 @@
   height: 46px;
   border-radius: 50%;
   background: var(--c, var(--scw-amarelo));
-  color: var(--scw-choco);
+  color: var(--tinta, var(--scw-choco));
 }
 .pa-card__txt { display: flex; flex-direction: column; gap: 5px; }
 .pa-card__txt b { font: 800 15.5px/1.2 var(--scw-font); }
@@ -415,14 +461,14 @@
   gap: 10px;
   padding: 12px 18px;
   border-radius: 999px;
-  background: var(--scw-card);
-  border: 1px solid var(--scw-filete);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
 }
 .pa-imprensa b { font: 800 14.5px/1 var(--scw-font); color: var(--scw-choco); }
 .pa-imprensa span {
   font: 700 11.5px/1 var(--scw-font);
   letter-spacing: .08em;
-  color: var(--scw-vinho);
+  color: var(--scw-marrom);
 }
 .pa-imprensa__nota {
   margin: clamp(18px, 2vw, 24px) 0 0;
@@ -488,15 +534,15 @@
   flex-direction: column;
   border-radius: var(--scw-r-secao);
   overflow: hidden;
-  background: var(--scw-card);
-  border: 1px solid var(--scw-filete);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
 }
 .pa-onde figure {
   position: relative;
   margin: 0;
   aspect-ratio: 1;
   overflow: hidden;
-  background: var(--scw-filete);
+  background: var(--scw-bege);
 }
 .pa-onde figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .pa-onde__tag {
@@ -505,7 +551,7 @@
   top: 14px;
   padding: 8px 14px 6px;
   border-radius: 999px;
-  background: var(--c, var(--scw-vinho));
+  background: var(--c, var(--scw-roxo));
   color: var(--tinta, var(--scw-creme));
   font: 800 11px/1 var(--scw-font);
   letter-spacing: .12em;
@@ -532,7 +578,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--c, var(--scw-vinho));
+  background: var(--c, var(--scw-roxo));
 }
 
 /* ============================================================================
@@ -604,14 +650,14 @@
   margin: clamp(30px, 3.4vw, 48px) auto 0;
   padding: clamp(26px, 3vw, 44px);
   border-radius: var(--scw-r-secao);
-  background: var(--scw-card);
-  border: 1px solid var(--scw-filete);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
 }
 .pa-form fieldset { margin: 0; padding: 0; border: 0; }
 .pa-form fieldset + fieldset {
   margin-top: clamp(24px, 2.6vw, 34px);
   padding-top: clamp(24px, 2.6vw, 34px);
-  border-top: 1px solid var(--scw-filete);
+  border-top: 1px solid rgba(61, 19, 8, .14);
 }
 .pa-form legend {
   padding: 0;
@@ -636,10 +682,10 @@
   letter-spacing: 0;
   opacity: .7;
 }
-.pa-form .scw-campo :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--scw-vinho); }
+.pa-form .scw-campo :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--scw-laranja); }
 .pa-erro {
   font: 600 12.5px/1.35 var(--scw-font);
-  color: var(--scw-vinho);
+  color: var(--scw-marrom);
 }
 .pa-form__pe {
   display: flex;
@@ -656,16 +702,17 @@
   color: var(--scw-marrom);
 }
 .pa-form__enviar {
-  background: var(--scw-vinho);
+  background: var(--scw-choco);
   color: var(--scw-creme);
 }
+.pa-form__enviar:hover { background: var(--scw-marrom); }
 .pa-form__enviar:active { transform: translateY(1px); }
 .pa-form__enviar:disabled { opacity: .55; cursor: not-allowed; }
 .pa-form__status {
   grid-column: 1 / -1;
   margin: clamp(16px, 1.8vw, 22px) 0 0;
   font: 600 14px/1.5 var(--scw-font);
-  color: var(--scw-vinho);
+  color: var(--scw-marrom);
 }
 .pa-form__status:empty { margin: 0; }
 
@@ -675,8 +722,8 @@
   margin: clamp(30px, 3.4vw, 48px) auto 0;
   padding: clamp(30px, 3.4vw, 48px);
   border-radius: var(--scw-r-secao);
-  background: var(--scw-card);
-  border: 1px solid var(--scw-filete);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
   text-align: center;
 }
 .pa-sucesso:focus-visible { outline-offset: 6px; }
@@ -687,7 +734,7 @@
   height: 60px;
   margin-bottom: 18px;
   border-radius: 50%;
-  background: var(--scw-vinho);
+  background: var(--scw-choco);
   color: var(--scw-creme);
 }
 .pa-sucesso strong {
@@ -705,14 +752,14 @@
   min-height: 48px;
   padding: 13px 24px;
   border-radius: 999px;
-  border: 1px solid var(--scw-vinho);
+  border: 1px solid var(--scw-choco);
   background: transparent;
-  color: var(--scw-vinho);
+  color: var(--scw-choco);
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
   transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease);
 }
-.pa-sucesso button:hover { background: var(--scw-vinho); color: var(--scw-creme); }
+.pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
 
 /* ============================================================================
    Barra de ação fixa (aparece depois da primeira dobra)

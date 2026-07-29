@@ -59,12 +59,11 @@ const identidade = (nome) => resolveParticipant(nome).slug || nome
 const ESTATISTICAS = (() => {
   const marcas = new Set()
   let categorias = 0
-  let colocacoes = 0
   for (const e of EDICOES) {
     categorias += e.cats.length
-    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) { marcas.add(identidade(n)); colocacoes++ }
+    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) marcas.add(identidade(n))
   }
-  return { edicoes: EDICOES.length, categorias, colocacoes, marcas: marcas.size }
+  return { edicoes: EDICOES.length, categorias, marcas: marcas.size }
 })()
 
 // Hall: TODAS as colocações (1º, 2º e 3º) somando Júri Técnico e Sweet Lovers.
@@ -121,13 +120,22 @@ const FOTOS = (() => {
    Peças visuais
    ------------------------------------------------------------------------ */
 
-// Medalha por colocação — codifica o resultado (não é sticker).
-// Ouro/prata/bronze são os tokens de MEDALHA (§12), não o amarelo de acento.
-const MEDALHA = { 1: 'var(--scw-ouro)', 2: 'var(--scw-prata)', 3: 'var(--scw-bronze)' }
-const medalha = (pos) => MEDALHA[pos] || 'var(--scw-bronze)'
+// Medalha por colocação — codifica o resultado (não é sticker). Paleta
+// fechada (redesign 29/07/2026): numeral SEMPRE chocolate. 3º é laranja, não
+// marrom — marrom sobre chocolate dá ~1,5:1 (falha como emblema E como texto
+// solto no Hall, que tem fundo chocolate); laranja fecha 4,8:1 nos dois usos
+// e ainda lê melhor como "bronze" que um marrom escuro.
+const MEDALHA = { 1: 'var(--scw-amarelo)', 2: 'var(--scw-bege)', 3: 'var(--scw-laranja)' }
+const medalha = (pos) => MEDALHA[pos] || 'var(--scw-laranja)'
 
-// Cores dos selos de categoria — só paleta oficial.
-const PALETA_SELO = ['var(--scw-vinho)', 'var(--scw-magenta)', 'var(--scw-cyan)', 'var(--scw-amarelo)']
+// Cores dos selos de categoria — só paleta oficial. Tinta do ícone por fundo:
+// roxo/magenta pedem creme (choco sobre eles falha, 1,45:1 e 3,8:1).
+const PALETA_SELO = [
+  { cor: 'var(--scw-roxo)',    tinta: 'var(--scw-creme)' },
+  { cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)' },
+  { cor: 'var(--scw-cyan)',    tinta: 'var(--scw-choco)' },
+  { cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+]
 
 // Ícones de linha por categoria (decorativos, aria-hidden no selo).
 const ICONES = {
@@ -141,9 +149,9 @@ const ICONES = {
   'Encantamento em Loja': <><path d="M4 9h16v11H4z" /><path d="M4 9l2-4h12l2 4" /><path d="M10 20v-6h4v6" /></>,
 }
 
-function SeloCategoria({ nome, cor }) {
+function SeloCategoria({ nome, cor, tinta }) {
   return (
-    <span className="swa-selo" style={{ '--swa-selo': cor }} aria-hidden="true">
+    <span className="swa-selo" style={{ '--swa-selo': cor, '--swa-selo-tinta': tinta }} aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
         {ICONES[nome] || ICONES['Melhor Combo']}
       </svg>
@@ -202,6 +210,19 @@ const Seta = () => (
   </svg>
 )
 
+// 03 — trilha do tempo de "quem dá a nota" (três momentos, cronológico).
+const TRILHA = [
+  { ano: '2019', titulo: 'Nasce com uma categoria', cor: '#FDBB1A', tinta: '#3D1308',
+    traco: <><circle cx="12" cy="9" r="5.4" /><path d="M9.2 13.9 8 21l4-2.1 4 2.1-1.2-7.1" /></>,
+    texto: 'O primeiro pódio premia um combo só. A pergunta era simples: qual foi o melhor da edição?' },
+  { ano: '2020.2 – 2021.2', titulo: 'Júri Técnico entra em cena', cor: '#01AFCC', tinta: '#3D1308',
+    traco: <path d="M4 8h16M12 8v11M8.5 19h7M4 8 1.9 12.2h4.2L4 8M20 8l-2.1 4.2h4.2L20 8" />,
+    texto: 'Por cinco edições, profissionais convidados avaliam execução, equilíbrio e acabamento em paralelo ao público.' },
+  { ano: '2022 em diante', hoje: true, titulo: 'Só Sweet Lovers decide', cor: '#4D257E', tinta: '#FEF0DD',
+    traco: <path d="M12 20.3s-7.3-4.5-7.3-9.6A3.9 3.9 0 0 1 12 8.1a3.9 3.9 0 0 1 7.3 2.6c0 5.1-7.3 9.6-7.3 9.6Z" />,
+    texto: 'Quem prova dá nota ao que comeu. O pódio sai da média dessas notas — e de mais nada.' },
+]
+
 const ROTULO_TRILHA = { juri_tecnico: 'Júri Técnico', sweet_lovers: 'Sweet Lovers' }
 const COR_TRILHA = { juri_tecnico: 'var(--scw-cyan)', sweet_lovers: 'var(--scw-magenta)' }
 
@@ -229,10 +250,12 @@ function CardColocacao({ colocacao, foto }) {
       className={`swa-card${primeiro ? ' swa-card--primeiro' : ''}`}
       style={{ '--swa-medalha': medalha(colocacao.pos) }}
     >
-      <FotoAcervo foto={foto} />
-      <span className="swa-medalha" aria-hidden="true">{colocacao.pos}º</span>
+      <span className="swa-card__foto"><FotoAcervo foto={foto} /></span>
       <span className="swa-card__legenda">
-        <span className="swa-card__pos">{primeiro ? 'Primeiro lugar' : `${colocacao.pos}º lugar`}</span>
+        <span className="swa-card__cabeca">
+          <span className="swa-medalha" aria-hidden="true">{colocacao.pos}º</span>
+          <span className="swa-card__rotulo">{primeiro ? 'Primeiro lugar' : `${colocacao.pos}º lugar`}</span>
+        </span>
         <b className="swa-card__marca">{marca}</b>
       </span>
     </li>
@@ -355,10 +378,6 @@ export function HistoricoAwardsPage() {
                 <dd>{ESTATISTICAS.categorias}</dd>
               </div>
               <div>
-                <dt>Colocações no pódio</dt>
-                <dd>{ESTATISTICAS.colocacoes}</dd>
-              </div>
-              <div>
                 <dt>Marcas premiadas</dt>
                 <dd>{ESTATISTICAS.marcas}</dd>
               </div>
@@ -409,7 +428,7 @@ export function HistoricoAwardsPage() {
           {cats.map((c, ci) => (
             <article key={c.nome}>
               <div className="swa-cat__cab">
-                <SeloCategoria nome={c.nome} cor={PALETA_SELO[ci % PALETA_SELO.length]} />
+                <SeloCategoria nome={c.nome} {...PALETA_SELO[ci % PALETA_SELO.length]} />
                 <h3 className="scw-h3 swa-cat__nome">{c.nome}</h3>
                 {c.desc && <p className="swa-cat__desc">{c.desc}</p>}
               </div>
@@ -423,34 +442,33 @@ export function HistoricoAwardsPage() {
         </div>
       </section>
 
-      {/* 03 — COMO É DECIDIDO */}
+      {/* 03 — QUEM DÁ A NOTA (trilha do tempo: cronológico, não dois cards gêmeos) */}
       <section className="scw-secao scw-secao--bege">
         <div className="swa-cab">
           <div>
             <span className="scw-rotulo">Como é decidido</span>
-            <h2 className="scw-h2">Duas trilhas, um mesmo pódio</h2>
+            <h2 className="scw-h2">Quem dá a nota</h2>
           </div>
           <p className="swa-apoio">
-            De 2020.2 a 2021.2, cada edição teve duas avaliações paralelas. De 2022 em diante,
-            a decisão é inteiramente do público.
+            A régua mudou três vezes desde 2019. Hoje, quem decide é quem percorre a rota.
           </p>
         </div>
 
-        <div className="swa-trilhas">
-          <article className="swa-trilha" style={{ '--swa-trilha': 'var(--scw-cyan)' }}>
-            <h3 className="scw-h3">Júri Técnico</h3>
-            <p>
-              Profissionais convidados avaliam execução, equilíbrio e acabamento das criações.
-              Ativo nas edições de 2020.2 a 2021.2.
-            </p>
-          </article>
-          <article className="swa-trilha" style={{ '--swa-trilha': 'var(--scw-magenta)' }}>
-            <h3 className="scw-h3">Sweet Lovers</h3>
-            <p>
-              Quem percorre o circuito dá nota ao que provou. É a trilha do público — e, desde 2022,
-              a única que define o pódio.
-            </p>
-          </article>
+        <div className="swa-trilha">
+          {TRILHA.map((m) => (
+            <article key={m.ano}>
+              <span className="swa-trilha__selo" aria-hidden="true" style={{ background: m.cor, color: m.tinta }}>
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{m.traco}</svg>
+              </span>
+              <div className="swa-trilha__ano">
+                <span>{m.ano}</span>
+                {m.hoje && <span className="swa-trilha__hoje">hoje</span>}
+              </div>
+              <b className="swa-trilha__titulo">{m.titulo}</b>
+              <p className="swa-trilha__texto">{m.texto}</p>
+            </article>
+          ))}
         </div>
       </section>
 

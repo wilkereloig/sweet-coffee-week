@@ -1,5 +1,5 @@
 import React from 'react'
-import { pageColor } from './nav'
+import { pageColorDark } from './nav'
 
 /*
  * Barra inferior estilo aplicativo (≤900px) — redesign 2026.
@@ -26,7 +26,7 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
     const i = ABAS.findIndex((a) => a.id === route)
     return i < 0 ? 0 : i
   })()
-  const corIndicador = indiceAtivo === 4 ? '#FDBB1A' : pageColor(ABAS[indiceAtivo].id).menu
+  const corIndicador = indiceAtivo === 4 ? '#FDBB1A' : pageColorDark(ABAS[indiceAtivo].id)
 
   return (
     <nav className="scw-abas" aria-label="Navegação rápida">
@@ -39,7 +39,7 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
         {ABAS.map((a, i) => {
           const ehMais = a.action === 'mais'
           const ativo = i === indiceAtivo
-          const tom = ehMais ? '#FDBB1A' : pageColor(a.id).menu
+          const tom = ehMais ? '#FDBB1A' : pageColorDark(a.id)
           const conteudo = (
             <>
               <svg

@@ -336,7 +336,43 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 .scw-folha.is-fechando .scw-folha__nav > a { animation: none; }
 
 /* ============================================================================
-   7. ACESSIBILIDADE (§22)
+   7. TELA DE ACESSO — entra como folha, igual ao menu mobile
+   Reaproveita scwFade/scwFolha (scw-2026.css): o painel é a mesma família de
+   superfície que a folha "mais", só que centrada.
+   ========================================================================= */
+
+.scw-acesso        { animation: scwFade 240ms var(--mo-ease) both; }
+.scw-acesso__caixa { animation: scwFolha 340ms var(--mo-mola) both; }
+
+/* Card de acesso: lift de adesivo — a sombra cresce junto, não só sobe. */
+.scw-acesso__cartao {
+  transition: transform var(--mo-estado) var(--mo-ease),
+              box-shadow var(--mo-estado) var(--mo-ease),
+              border-color var(--mo-estado) var(--mo-ease);
+}
+.scw-acesso__cartao:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 rgba(61, 19, 8, .1);
+  border-color: var(--scw-choco);
+}
+
+/* CTA do rodapé: chapado, igual aos .scw-btn — hover sobe 2px, clique volta. */
+.scw-acesso__cta {
+  transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
+}
+.scw-acesso__cta:hover  { background: #6A2C15; transform: translateY(-2px); }
+.scw-acesso__cta:active { transform: translateY(0) scale(.985); }
+
+/* Botão "Topo": entra como os outros elementos flutuantes, press do .scw-btn. */
+.scw-topo {
+  animation: moSobeCurto var(--mo-entra) var(--mo-mola) both;
+  transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
+}
+.scw-topo:hover  { background: var(--scw-marrom); transform: translateY(-2px); }
+.scw-topo:active { transform: translateY(0) scale(.985); }
+
+/* ============================================================================
+   8. ACESSIBILIDADE (§22)
    O motor nem liga sob prefers-reduced-motion (não adiciona `.scw-mo-on`, então
    nada fica oculto). Este bloco cobre o que é puro CSS: laços, heróis e menu.
    O reset global de duração vive em scw-2026.css (`.scw-raiz *`).
@@ -360,6 +396,9 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   .scw-folha__nav > a,
   .scw-folha.is-fechando,
   .scw-folha-veu.is-fechando,
+  .scw-acesso,
+  .scw-acesso__caixa,
+  .scw-topo,
   .scw-hero__foto.is-ativa,
   .scw-hero-cartao__foto.is-ativa,
   .mo-respira,
@@ -377,7 +416,10 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   .scw-btn:hover,
   .scw-btn:hover svg,
   .hm-rota:hover,
-  .ctt-porta:hover { transform: none; }
+  .ctt-porta:hover,
+  .scw-acesso__cartao:hover,
+  .scw-acesso__cta:hover,
+  .scw-topo:hover { transform: none; }
   .hm-materia:hover .hm-materia__foto img { scale: 1; }
   .hm-rota__foto img { animation: none; scale: 1; }
 }

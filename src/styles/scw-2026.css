@@ -6,22 +6,16 @@
    ========================================================================= */
 
 :root {
-  /* --- paleta ------------------------------------------------------------ */
+  /* --- paleta (fechada em nove cores — patch 29/07/2026) ------------------ */
   --scw-creme:        #FEF0DD;  /* fundo base, texto sobre chocolate */
   --scw-bege:         #F8E4C1;  /* alternância de seção, chips */
-  --scw-card:         #FFF7E9;  /* cards, painéis, campos */
-  --scw-filete:       #EBD6B4;  /* bordas de 1px, divisores */
   --scw-choco:        #3D1308;  /* tinta principal, seções escuras */
   --scw-marrom:       #6A2C15;  /* texto de apoio, rótulos */
   --scw-amarelo:      #FDBB1A;  /* acento — O festival */
-  --scw-cyan:         #01AFCC;  /* acento — Edições; anel de foco */
+  --scw-cyan:         #01AFCC;  /* acento — Edições/Apoiar; anel de foco */
   --scw-roxo:         #4D257E;  /* acento — Sweet Awards */
   --scw-magenta:      #F10767;  /* acento — Participar */
-  --scw-magenta-esc:  #D0055B;  /* só no selo do menu de Participar */
-  --scw-vinho:        #B3213B;  /* acento — Apoiar */
-  --scw-ouro:         #D19100;  /* numerais sobre creme */
-  --scw-prata:        #D9BE95;  /* 2º lugar */
-  --scw-bronze:       #C99A7E;  /* 3º lugar */
+  --scw-laranja:      #FF4810;  /* superfície preenchida, filete sobre fundo escuro */
 
   /* --- trilho e ritmo ---------------------------------------------------- */
   --scw-trilho:       max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
@@ -46,17 +40,39 @@
   /* cor da página corrente — sobrescrita por body.route-* (ver abaixo) */
   --scw-pagina:       var(--scw-amarelo);
   --scw-pagina-tinta: var(--scw-choco);
-  --scw-pagina-menu:  var(--scw-amarelo);
+  /* variante para texto/sublinhado/filete sobre creme ou bege — bege como
+     tinta sobre creme dá 1,1:1, então Contato precisa de um valor à parte */
+  --scw-pagina-sobre-creme: var(--scw-pagina);
+
+  /* Par dedicado ao FUNDO do herói: --scw-pagina não serve direto (em
+     Participar é #F10767 e creme sobre esse rosa dá 3,8:1). Escolhido para
+     passar AA em cada página (contraste medido no patch 29/07/2026). */
+  --scw-heroi:       var(--scw-choco);
+  --scw-heroi-tinta: var(--scw-creme);
 }
 
 /* Cor principal por página: menu ativo, barra de 5px e selo do herói.
-   Mesmos ids de rota do App.jsx. */
-body.route-home            { --scw-pagina: #FDBB1A; --scw-pagina-tinta: #3D1308; --scw-pagina-menu: #FDBB1A; }
-body.route-edicoes         { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; --scw-pagina-menu: #01AFCC; }
-body.route-historico-awards{ --scw-pagina: #4D257E; --scw-pagina-tinta: #FEF0DD; --scw-pagina-menu: #4D257E; }
-body.route-participar      { --scw-pagina: #F10767; --scw-pagina-tinta: #FEF0DD; --scw-pagina-menu: #D0055B; }
-body.route-apoiar          { --scw-pagina: #B3213B; --scw-pagina-tinta: #FEF0DD; --scw-pagina-menu: #B3213B; }
-body.route-contato         { --scw-pagina: #6A2C15; --scw-pagina-tinta: #FEF0DD; --scw-pagina-menu: #6A2C15; }
+   Mesmos ids de rota do App.jsx. Apoiar (cyan) e Contato (bege) — redesign
+   29/07/2026: a paleta ganhou mais ritmo e as duas cores antigas (vinho,
+   marrom) saíram do sistema. */
+body.route-home            { --scw-pagina: #FDBB1A; --scw-pagina-tinta: #3D1308; }
+body.route-edicoes         { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; }
+body.route-historico-awards{ --scw-pagina: #4D257E; --scw-pagina-tinta: #FEF0DD; }
+body.route-participar      { --scw-pagina: #F10767; --scw-pagina-tinta: #FEF0DD; }
+body.route-apoiar          { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; }
+body.route-contato         { --scw-pagina: #F8E4C1; --scw-pagina-tinta: #3D1308; --scw-pagina-sobre-creme: #6A2C15; }
+
+/* Heróis: fundo próprio por página (Home/Edições continuam chocolate — o
+   herói é foto sangrada e a cor da página já aparece no véu e na barra). */
+body.route-home             { --scw-heroi: #3D1308; --scw-heroi-tinta: #FEF0DD; }
+body.route-edicoes          { --scw-heroi: #3D1308; --scw-heroi-tinta: #FEF0DD; }
+body.route-historico-awards { --scw-heroi: #4D257E; --scw-heroi-tinta: #FEF0DD; }
+/* Magenta puro (não o D0055B do selo de menu — banido da paleta em jul/2026):
+   falha em texto pequeno (3,8:1), por isso o §2 do patch de cor dá tratamento
+   próprio ao lead, ao CTA e à nota do herói desta página. */
+body.route-participar       { --scw-heroi: #F10767; --scw-heroi-tinta: #FEF0DD; }
+body.route-apoiar           { --scw-heroi: #01AFCC; --scw-heroi-tinta: #3D1308; }
+body.route-contato          { --scw-heroi: #F8E4C1; --scw-heroi-tinta: #3D1308; }
 
 /* ============================================================================
    Base
@@ -212,7 +228,7 @@ body.route-contato {
 .scw-italico { font-style: italic; }
 
 /* Destaque animado dos títulos (scwDestaque, ver keyframes no fim). */
-.scw-destaque { font-style: normal; color: var(--scw-choco); --base: #3D1308; --dest: #B3213B; }
+.scw-destaque { font-style: normal; color: var(--scw-choco); --base: #3D1308; --dest: #F10767; }
 
 /* ============================================================================
    Peças: pills, botões, cards
@@ -255,7 +271,7 @@ body.route-contato {
   background: var(--scw-amarelo);
   color: var(--scw-choco);
 }
-.scw-raiz .scw-btn--solido:hover { background: var(--scw-ouro); }
+.scw-raiz .scw-btn--solido:hover { background: var(--scw-choco); color: var(--scw-creme); }
 .scw-raiz .scw-btn--solido:active { transform: translateY(1px); }
 .scw-raiz .scw-btn--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
 .scw-raiz .scw-btn--pagina:active { transform: translateY(1px); }
@@ -278,8 +294,8 @@ body.route-contato {
 .scw-card {
   padding: clamp(20px, 2.2vw, 30px);
   border-radius: var(--scw-r-card);
-  border: 1px solid var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
 }
 .scw-card--destaque { border-radius: var(--scw-r-secao); box-shadow: var(--scw-sombra-card); }
 
@@ -289,8 +305,8 @@ body.route-contato {
   place-items: center;
   padding: 18px;
   border-radius: var(--scw-r-card);
-  border: 1px dashed var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px dashed rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
   color: var(--scw-marrom);
   font: 700 12px/1.35 var(--scw-font);
   letter-spacing: .04em;
@@ -303,7 +319,7 @@ body.route-contato {
   aspect-ratio: 1;
   border-radius: var(--scw-r-card);
   overflow: hidden;
-  background-color: var(--scw-filete);
+  background-color: var(--scw-bege);
   background-size: cover;
   background-position: center;
 }
@@ -385,25 +401,27 @@ body.route-contato {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 9px;
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
-  padding: 0;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
   border-radius: 999px;
-  border: 1.5px solid rgba(254, 240, 221, .44);
-  background: rgba(61, 19, 8, .35);
-  color: var(--scw-creme);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+  font: 800 13px/1 var(--scw-font);
+  letter-spacing: .02em;
   cursor: pointer;
-  transition: border-color 240ms var(--scw-ease), background 240ms var(--scw-ease);
+  /* Chapado: os botões do site não têm relevo (decisão de jul/2026). O clique
+     responde com deslocamento, não com sombra. */
+  transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease),
+              transform 120ms var(--scw-ease);
 }
-.scw-acesso-topo:hover { border-color: var(--scw-creme); background: rgba(254, 240, 221, .14); }
-
-/* Barra de 5px sob o cabeçalho, na cor da página. */
-.scw-barra-pagina {
-  height: 5px;
-  background: var(--scw-pagina);
-  transition: background 320ms cubic-bezier(.2, .7, .2, 1);
+.scw-acesso-topo:hover {
+  background: var(--scw-amarelo);
+  transform: translateY(-2px);
 }
+.scw-acesso-topo:active { transform: translateY(0) scale(.985); }
 
 /* ≤900px a casca vira aplicativo: sem menu de desktop, sem botão de acesso no
    topo (a função migra pra folha "mais"), logo sem overhang. */
@@ -589,59 +607,139 @@ body.route-contato {
   justify-content: center;
   padding: clamp(16px, 4vw, 40px);
   background: rgba(61, 19, 8, .82);
+  backdrop-filter: blur(4px);
 }
 .scw-acesso__caixa {
   position: relative;
   width: min(760px, 100%);
   max-height: 100%;
-  overflow-y: auto;
-  padding: clamp(26px, 3.4vw, 48px);
+  overflow: hidden auto;
   border-radius: var(--scw-r-secao);
   background: var(--scw-creme);
   color: var(--scw-choco);
   box-shadow: 0 34px 80px rgba(0, 0, 0, .5);
 }
+
+/* Faixa chocolate — assina o painel com a marca do festival. */
+.scw-acesso__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 2.2vw, 26px) clamp(22px, 3vw, 40px);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.scw-acesso__marca {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 18px);
+}
+.scw-acesso__marca img { height: clamp(38px, 4vw, 48px); width: auto; }
+.scw-acesso__eyebrow {
+  padding-left: clamp(12px, 1.6vw, 18px);
+  border-left: 1px solid rgba(254, 240, 221, .24);
+  font: 800 11.5px/1.3 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-amarelo);
+}
+
+/* Régua de 5px nas cores dos dois acessos (mesma linguagem da barra de página). */
+.scw-acesso__regua {
+  height: 5px;
+  background: linear-gradient(90deg, #4D257E 0 50%, #01AFCC 50%);
+}
+
+/* Fechar sai do canto absoluto e passa a morar na faixa. */
 .scw-acesso__fechar {
-  position: absolute;
-  right: clamp(16px, 2vw, 24px);
-  top: clamp(16px, 2vw, 24px);
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid var(--scw-filete);
-  background: var(--scw-card);
-  color: var(--scw-choco);
+  border: 1.5px solid rgba(254, 240, 221, .42);
+  background: transparent;
+  color: var(--scw-creme);
   cursor: pointer;
-  transition: background 200ms var(--scw-ease), color 200ms var(--scw-ease);
+  transition: background 200ms var(--scw-ease), border-color 200ms var(--scw-ease), color 200ms var(--scw-ease);
 }
-.scw-acesso__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-acesso__fechar:hover {
+  background: var(--scw-creme);
+  border-color: var(--scw-creme);
+  color: var(--scw-choco);
+}
+
+.scw-acesso__corpo {
+  padding: clamp(24px, 3vw, 44px) clamp(22px, 3vw, 40px) clamp(22px, 2.6vw, 36px);
+}
+/* Sem lead: o título é que abre o espaço até os cards. */
 .scw-acesso__titulo {
-  margin: clamp(12px, 1.4vw, 18px) 0 0;
+  margin: 0 0 clamp(24px, 2.8vw, 34px);
   max-width: 22ch;
   font: 900 clamp(26px, 2.8vw, 40px)/1 var(--scw-font-black);
   letter-spacing: -.035em;
   text-wrap: balance;
 }
+
 .scw-acesso__cartao {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: clamp(20px, 2.2vw, 28px);
+  min-height: 100%;
+  padding: clamp(18px, 2vw, 24px);
   border-radius: var(--scw-r-interno);
-  border: 1px dashed var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
   text-align: left;
+  box-shadow: 0 3px 0 rgba(61, 19, 8, .07);
+}
+.scw-acesso__cabeca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .scw-acesso__selo {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  color: var(--scw-choco);
+}
+
+/* Pé: informação à esquerda, saída à direita. */
+.scw-acesso__pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2vw, 24px);
+  margin: clamp(20px, 2.4vw, 28px) 0 0;
+  padding-top: clamp(16px, 1.8vw, 22px);
+  border-top: 1px solid rgba(61, 19, 8, .14);
+}
+.scw-acesso__pe-texto {
+  margin: 0;
+  flex: 1 1 22ch;
+  font: 500 13.5px/1.5 var(--scw-font);
+  color: #6A2C15;
+}
+.scw-acesso__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  font: 800 13px/1 var(--scw-font);
+  letter-spacing: .02em;
+  text-decoration: none;
 }
 
 /* ============================================================================
@@ -867,7 +965,7 @@ body.route-contato {
   padding: clamp(19px, 2vw, 27px) 0 clamp(15px, 1.6vw, 21px);
   user-select: none;
   color: var(--scw-choco);
-  background: linear-gradient(90deg, #B3213B, #F10767, #FDBB1A, #01AFCC, #F10767, #B3213B);
+  background: linear-gradient(90deg, #FDBB1A, #01AFCC, #FF4810, #01AFCC, #FDBB1A);
   background-size: 300% 100%;
   animation: scwGradient 22s linear infinite;
 }
@@ -903,6 +1001,49 @@ body.route-contato {
 }
 
 /* ============================================================================
+   StatBlock — régua pop acima do numeral
+   Quando o fundo não deixa passar as seis cores do ciclo em texto (ex.: bege só
+   sustenta chocolate/marrom/roxo), a cor vai para uma régua de 4px e o numeral
+   fica numa tinta sempre legível. Ver docs/FLUXO-DESIGN-CODIGO.md.
+   ========================================================================= */
+
+.scw-stat__regua {
+  display: block;
+  align-self: start;
+  width: 44px;
+  height: 4px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   Botão "Topo" — flutuante, some acima da barra de abas no modo aplicativo
+   ========================================================================= */
+
+.scw-topo {
+  position: fixed;
+  right: clamp(16px, 2.4vw, 32px);
+  bottom: clamp(18px, 2.4vw, 32px);
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 18px 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  font: 800 12.5px/1 var(--scw-font);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  .scw-topo { bottom: calc(86px + env(safe-area-inset-bottom)); }
+}
+
+/* ============================================================================
    Formulários
    ========================================================================= */
 
@@ -920,8 +1061,8 @@ body.route-contato {
   min-height: 52px;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px solid rgba(61, 19, 8, .22);
+  background: var(--scw-creme);
   color: var(--scw-choco);
   font: 500 15.5px/1.4 var(--scw-font);
 }
@@ -941,7 +1082,7 @@ body.route-contato {
   0%   { color: var(--base, #3D1308); font-style: normal; letter-spacing: -.04em; }
   62%  { font-style: normal; }
   63%  { font-style: italic; }
-  100% { color: var(--dest, #B3213B); font-style: italic; letter-spacing: -.028em; }
+  100% { color: var(--dest, #F10767); font-style: italic; letter-spacing: -.028em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

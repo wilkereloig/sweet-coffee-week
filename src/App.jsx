@@ -9,6 +9,7 @@ import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
+import { BotaoTopo } from './components/BotaoTopo'
 import { useSiteMotion } from './hooks/useSiteMotion'
 
 import { HomePage }         from './pages/institutional/Home'
@@ -171,7 +172,6 @@ export default function App() {
               accessOpen={accessOpen}
               onOpenAccess={() => setAccessOpen(true)}
             />
-            <div id="barra-pagina" className="scw-barra-pagina" aria-hidden="true" />
           </>
         )}
         {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
@@ -200,6 +200,7 @@ export default function App() {
           </>
         )}
         {!isInternal && <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />}
+        {showShell && <BotaoTopo />}
         <CookieConsent />
       </div>
     </DevViewportSwitcher>

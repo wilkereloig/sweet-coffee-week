@@ -34,11 +34,13 @@ const CASCA = [
   'src/components/AccessDialog.jsx',
 ]
 
-/** Paleta fechada do handoff + neutros que o CSS usa em rgba/sombra. */
+/** Paleta fechada em nove cores (fechamento 29/07/2026) + neutros que o CSS
+ *  usa em rgba/sombra. Filete, card, vinho, ouro, prata, bronze e o magenta
+ *  profundo do selo saíram sem substituto de token — ver CLAUDE.md §3 e
+ *  docs/FLUXO-DESIGN-CODIGO.md. */
 const PALETA = new Set([
-  '#FEF0DD', '#F8E4C1', '#FFF7E9', '#EBD6B4', '#3D1308', '#6A2C15',
-  '#FDBB1A', '#01AFCC', '#4D257E', '#F10767', '#D0055B', '#B3213B',
-  '#D19100', '#D9BE95', '#C99A7E',
+  '#FEF0DD', '#F8E4C1', '#3D1308', '#6A2C15',
+  '#FDBB1A', '#01AFCC', '#4D257E', '#F10767', '#FF4810',
   '#FFF', '#FFFFFF', '#000', '#000000',
 ])
 
@@ -108,10 +110,15 @@ test('as 6 rotas definem a cor da página', () => {
   for (const rota of ['home', 'edicoes', 'historico-awards', 'participar', 'apoiar', 'contato']) {
     assert.match(sistema, new RegExp(`body\\.route-${rota}\\b`), `rota sem cor definida: ${rota}`)
   }
-  // Os três pontos onde a cor aparece: pill do menu, barra de 5px e selo do herói.
+  // Os três pontos onde a cor aparece hoje (29/07/2026): pill do menu (JS,
+  // PAGE_COLORS em nav.jsx), selo do herói (--scw-pagina-tinta) e fundo do
+  // próprio herói (--scw-heroi/--scw-heroi-tinta). A barra de 5px
+  // (--scw-pagina-menu) saiu do sistema — o herói já é a cor da página.
   assert.match(sistema, /--scw-pagina:/)
   assert.match(sistema, /--scw-pagina-tinta:/)
-  assert.match(sistema, /--scw-pagina-menu:/)
+  assert.match(sistema, /--scw-heroi:/)
+  assert.match(sistema, /--scw-heroi-tinta:/)
+  assert.ok(!sistema.includes('--scw-pagina-menu'), '--scw-pagina-menu deveria ter saído do sistema (barra de 5px removida)')
 })
 
 test('trilho único de 1360px é o da casca e o das seções', () => {

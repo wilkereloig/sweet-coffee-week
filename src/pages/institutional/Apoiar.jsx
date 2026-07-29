@@ -43,46 +43,49 @@ const PALAVRAS = [
   'economia criativa', 'sweet lovers',
 ]
 
-// 02 Alcance — histórico comercial das edições + Instagram oficial.
+// 02 Alcance — histórico comercial das edições + Instagram oficial. Cor vive
+// na régua (StatBlock), ciclo de seis sem repetir.
 const ALCANCE = [
-  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', c: 'var(--scw-vinho)' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', c: 'var(--scw-roxo)' },
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'valor movimentado nas últimas edições', c: 'var(--scw-marrom)' },
-  { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', c: 'var(--scw-vinho)' },
-  { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', c: 'var(--scw-vinho)' },
-  { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', c: 'var(--scw-roxo)' },
+  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', c: 'var(--scw-marrom)' },
+  { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', c: 'var(--scw-amarelo)' },
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'valor movimentado nas últimas edições', c: 'var(--scw-cyan)' },
+  { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', c: 'var(--scw-magenta)' },
+  { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', c: 'var(--scw-roxo)' },
+  { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', c: 'var(--scw-laranja)' },
 ]
 
 // 03 Por que apoiar — ícones desenhados para cada argumento (24×24, traço).
 const ICO = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
+// Ciclo de seis sem repetir (§5): magenta, roxo, amarelo, cyan, bege, laranja.
+// Roxo pede traço creme (choco sobre roxo é 1,45:1); os demais ficam choco.
 const MOTIVOS = [
   {
-    t: 'Visibilidade qualificada', c: 'var(--scw-magenta)',
+    t: 'Visibilidade qualificada', c: 'var(--scw-magenta)', tinta: 'var(--scw-choco)',
     d: 'Sua marca aparece em uma temporada de público ativo, conteúdo diário e alta circulação digital.',
     p: <><path d="M2.5 12s3.4-6.3 9.5-6.3S21.5 12 21.5 12s-3.4 6.3-9.5 6.3S2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.6" /></>,
   },
   {
-    t: 'Conexão com consumo local', c: 'var(--scw-vinho)',
+    t: 'Conexão com consumo local', c: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
     d: 'O festival leva pessoas para cafeterias, docerias, restaurantes e marcas autorais da cidade.',
     p: <><path d="M4.2 9.5 5.4 5.4h13.2l1.2 4.1" /><path d="M3.8 9.5h16.4c0 1.6-1.2 2.7-2.7 2.7a2.7 2.7 0 0 1-2.5-1.6 2.7 2.7 0 0 1-5 0 2.7 2.7 0 0 1-2.5 1.6c-1.5 0-2.7-1.1-2.7-2.7Z" /><path d="M5.3 12.4V19.5h13.4V12.4" /><path d="M10 19.5V15h4v4.5" /></>,
   },
   {
-    t: 'Presença em experiência real', c: 'var(--scw-amarelo)',
+    t: 'Presença em experiência real', c: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)',
     d: 'A marca participa de algo vivido na loja, no mapa, nas redes e na memória do público.',
     p: <><path d="M12 21s6.4-5.5 6.4-10.4A6.4 6.4 0 0 0 5.6 10.6C5.6 15.5 12 21 12 21Z" /><circle cx="12" cy="10.4" r="2.4" /></>,
   },
   {
-    t: 'Associação à economia criativa', c: 'var(--scw-cyan)',
+    t: 'Associação à economia criativa', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
     d: 'Gastronomia, conteúdo, design, fotografia, atendimento e turismo urbano em movimento.',
     p: <><path d="M11 3.5 12.7 9l5.3 1.7-5.3 1.7L11 17.9l-1.7-5.5L4 10.7 9.3 9 11 3.5Z" /><path d="M18.5 3.5v3.4M16.8 5.2h3.4" /></>,
   },
   {
-    t: 'Comunidade Sweet Lovers', c: 'var(--scw-bege)',
+    t: 'Comunidade Sweet Lovers', c: 'var(--scw-bege)', tinta: 'var(--scw-choco)',
     d: 'O público não só consome: fotografa, avalia, compartilha e acompanha os resultados.',
     p: <><circle cx="9" cy="8.4" r="3" /><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0" /><path d="M16 5.8a3 3 0 0 1 0 5.6" /><path d="M16.6 13.4A5.4 5.4 0 0 1 20.4 19" /></>,
   },
   {
-    t: 'Conteúdo antes, durante e depois', c: 'var(--scw-vinho)',
+    t: 'Conteúdo antes, durante e depois', c: 'var(--scw-laranja)', tinta: 'var(--scw-choco)',
     d: 'O apoio aparece no lançamento, nos posts, no site, no Sweet Awards e nas ações promocionais.',
     p: <><path d="M3.5 8.3h3l1.3-2h6.4l1.3 2h3A1.5 1.5 0 0 1 20 9.8V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 2 18V9.8a1.5 1.5 0 0 1 1.5-1.5Z" /><circle cx="11" cy="13.4" r="3.2" /></>,
   },
@@ -91,7 +94,7 @@ const MOTIVOS = [
 // 04 Onde a marca aparece — 4 pontos de contato, fotos do acervo real.
 const ONDE = [
   {
-    t: 'Digital', c: 'var(--scw-vinho)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-vinho)',
+    t: 'Digital', c: 'var(--scw-roxo)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-roxo)',
     foto: editionPhotos('2026.1')[1],
     itens: ['Posts e stories', 'Reels', 'Site oficial', 'Página de participantes', 'Página de promoções'],
   },
@@ -264,7 +267,8 @@ export function ApoiarPage() {
             <span className="scw-pill scw-pill--pagina pa-hero__selo">Para empresas, marcas e instituições</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca associada à{' '}
-              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#FDBB1A' }}>economia criativa de Natal</em>.
+              {/* Amarelo sobre o herói cyan dá 1,6:1 — roxo fecha 3,9:1 em texto grande. */}
+              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#4D257E' }}>economia criativa de Natal</em>.
             </h1>
             <p className="scw-lead pa-hero__lead">
               Apoiar o Sweet &amp; Coffee Week é associar sua marca a gastronomia, cultura e pequenos
@@ -331,7 +335,7 @@ export function ApoiarPage() {
           <div>
             <span className="scw-rotulo">O que já foi construído</span>
             <h2 className="scw-h2">
-              Dez anos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>audiência e consumo</em> na cidade.
+              Dez anos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>audiência e consumo</em> na cidade.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -341,7 +345,8 @@ export function ApoiarPage() {
         </div>
         <ul className="pa-numeros">
           {ALCANCE.map((n) => (
-            <li key={n.t} style={{ '--c': n.c }}>
+            <li key={n.t}>
+              <span className="scw-stat__regua" aria-hidden="true" style={{ background: n.c }} />
               <b>{n.n}</b>
               <strong>{n.t}</strong>
               <span>{n.d}</span>
@@ -356,7 +361,7 @@ export function ApoiarPage() {
           <div>
             <span className="scw-rotulo">Por que apoiar</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Seis motivos que <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>justificam o investimento</em>.
+              Seis motivos que <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>justificam o investimento</em>.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -366,7 +371,7 @@ export function ApoiarPage() {
         <ul className="pa-cards pa-cards--largos">
           {MOTIVOS.map((m) => (
             <li className="pa-card" key={m.t}>
-              <span className="pa-card__ic" style={{ '--c': m.c }}>
+              <span className="pa-card__ic" style={{ '--c': m.c, '--tinta': m.tinta }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...ICO}>{m.p}</svg>
               </span>
               <h3>{m.t}</h3>
@@ -438,7 +443,7 @@ export function ApoiarPage() {
         <div className="pa-form__intro">
           <span className="scw-rotulo">Conversar com a organização</span>
           <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
-            Conte como sua marca quer <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>entrar na edição</em>.
+            Conte como sua marca quer <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar na edição</em>.
           </h2>
           <p>
             A organização responde com formatos de apoio, contrapartidas e prazos da próxima edição.

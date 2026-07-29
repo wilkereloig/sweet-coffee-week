@@ -9,17 +9,29 @@ import React from 'react'
  */
 
 /** Cor principal por página: menu ativo, barra de 5px e selo do herói.
- *  `menu` é a variante usada no selo (Participar escurece p/ contraste). */
+ *  `menu` é a variante usada no selo (Participar escurece p/ contraste).
+ *  Apoiar (cyan) e Contato (bege) — redesign 29/07/2026. */
 export const PAGE_COLORS = {
   home:                { cor: '#FDBB1A', tinta: '#3D1308', menu: '#FDBB1A' },
   edicoes:             { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
   'historico-awards':  { cor: '#4D257E', tinta: '#FEF0DD', menu: '#4D257E' },
-  participar:          { cor: '#F10767', tinta: '#FEF0DD', menu: '#D0055B' },
-  apoiar:              { cor: '#B3213B', tinta: '#FEF0DD', menu: '#B3213B' },
-  contato:             { cor: '#6A2C15', tinta: '#FEF0DD', menu: '#6A2C15' },
+  // Participar: pill do menu em creme sobre magenta dá 3,77:1 em 14px — vira
+  // chocolate com tinta creme (10:1). A página continua anunciada pelo herói.
+  participar:          { cor: '#F10767', tinta: '#FEF0DD', menu: '#3D1308' },
+  apoiar:              { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
+  contato:             { cor: '#F8E4C1', tinta: '#3D1308', menu: '#F8E4C1' },
 }
 
 export const pageColor = (route) => PAGE_COLORS[route] || PAGE_COLORS.home
+
+/** Variante para superfície ESCURA (rodapé, folha do menu, barra de abas):
+ *  sobre chocolate, roxo dá 1,45:1 e magenta 3,83:1 — ilegível/no limite. Cada
+ *  página recebe a cor que já usa quando o fundo é escuro. */
+const MENU_ESCURO = {
+  home: '#FDBB1A', edicoes: '#01AFCC', 'historico-awards': '#FDBB1A',
+  participar: '#FDBB1A', apoiar: '#01AFCC', contato: '#F8E4C1',
+}
+export const pageColorDark = (id) => MENU_ESCURO[id] || '#FDBB1A'
 
 /* Marca do cabeçalho, da folha "mais" e do rodapé. O selo tem disco escuro
    (#381610) e letras creme — sobre o véu chocolate do header o disco some e
@@ -118,7 +130,8 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
           aria-expanded={!!accessOpen}
           aria-label="Acessar área restrita"
         >
-          <ChaveIcon />
+          <ChaveIcon width="17" height="17" strokeWidth="2" />
+          <span>Acesso</span>
         </button>
       </div>
     </header>

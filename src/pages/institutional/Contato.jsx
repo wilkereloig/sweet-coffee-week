@@ -238,7 +238,7 @@ export function ContatoPage({ navigate }) {
           <div>
             <span className="scw-rotulo">Central de dúvidas</span>
             <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
-              O que a gente <em className="ctt-destaque ctt-destaque--vinho">mais responde</em>.
+              O que a gente <em className="ctt-destaque ctt-destaque--magenta">mais responde</em>.
             </h2>
           </div>
           <p className="ctt-cabeca__apoio">
@@ -415,7 +415,7 @@ export function ContatoPage({ navigate }) {
         >
           <div>
             <span className="scw-rotulo">Escolha o caminho</span>
-            <h2 id="ctt-caminhos-titulo" className="scw-h2 ctt-cabeca__titulo ctt-cabeca__titulo--vinho">
+            <h2 id="ctt-caminhos-titulo" className="scw-h2 ctt-cabeca__titulo ctt-cabeca__titulo--marrom">
               Cada assunto tem <em className="ctt-destaque ctt-destaque--choco">uma porta certa</em>.
             </h2>
           </div>
@@ -437,7 +437,7 @@ export function ContatoPage({ navigate }) {
             </a>
           </li>
           <li className="ctt-porta">
-            <span className="scw-pill ctt-pill--vinho">Empresas</span>
+            <span className="scw-pill ctt-pill--choco">Empresas</span>
             <strong>Quero apoiar ou patrocinar o festival.</strong>
             <span className="ctt-porta__texto">
               Patrocínio, ativação de marca, mídia e brindes: a proposta entra pela página Apoiar e a
@@ -466,7 +466,7 @@ export function ContatoPage({ navigate }) {
         <div className="ctt-mensagem__cabeca">
           <span className="scw-rotulo">Falar com a equipe</span>
           <h2 id="ctt-mensagem-titulo" className="scw-h2 ctt-mensagem__titulo">
-            Não achou sua <em className="ctt-destaque ctt-destaque--vinho">resposta</em>? Escreva para a
+            Não achou sua <em className="ctt-destaque ctt-destaque--magenta">resposta</em>? Escreva para a
             gente.
           </h2>
           <p className="ctt-mensagem__lead">

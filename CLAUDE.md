@@ -97,27 +97,42 @@ Grafias oficiais (evitar erradas: "Sweet Coffee Week", "Sweet Coffee",
 
 ## 3. Paleta de cores
 
-**Paleta oficial (redesign 2026 — aprovada pelo Wilke no handoff de design).** Tokens
+**Paleta fechada em nove cores (redesign 2026, fechamento em 29/07/2026).** Tokens
 em `src/styles/scw-2026.css`. Nenhuma cor fora desta lista:
 
 | Papel | Hex | Uso |
 | --- | --- | --- |
 | Creme (fundo base) | `#FEF0DD` | fundo do site, texto sobre chocolate |
-| Bege de seção | `#F8E4C1` | alternância de seção, chips |
-| Card claro | `#FFF7E9` | cards, painéis, campos |
-| Filete | `#EBD6B4` | bordas de 1px, divisores |
-| Chocolate (tinta) | `#3D1308` | texto principal, seções escuras |
+| Bege de seção | `#F8E4C1` | alternância de seção, chips, cor da página **Contato** |
+| Chocolate (tinta) | `#3D1308` | texto principal, seções escuras, fundo de card com filete |
 | Marrom secundário | `#6A2C15` | texto de apoio, rótulos pequenos |
 | Amarelo | `#FDBB1A` | acento — **O festival** |
-| Cyan | `#01AFCC` | acento — **Edições**; também o anel de foco |
+| Cyan | `#01AFCC` | acento — **Edições** e **Apoiar**; também o anel de foco |
 | Roxo | `#4D257E` | acento — **Sweet Awards** |
 | Magenta | `#F10767` | acento — **Participar** |
-| Magenta profundo | `#D0055B` | só no selo do menu de Participar (contraste) |
-| Vinho | `#B3213B` | acento — **Apoiar** |
-| Ouro escuro | `#D19100` | numerais sobre creme quando o amarelo falharia |
-| Prata / bronze do pódio | `#D9BE95` / `#C99A7E` | 2º e 3º lugares no Sweet Awards |
+| Laranja | `#FF4810` | superfície preenchida (nunca tinta de texto pequeno), filete sobre fundo escuro, medalha de 3º lugar |
 
 **Removida da paleta: `#E52C4B`** (vermelho-coral) — não usar em nada.
+
+**Fechamento de 29/07/2026 — saíram sem substituto de token:** `#B3213B` (vinho, era
+o acento de Apoiar), `#EBD6B4` (filete — vira `rgba(61,19,8,.14)` genérico,
+`rgba(61,19,8,.22)` em borda de campo de formulário, ou `#F8E4C1` em placeholder de
+foto), `#FFF7E9` (card claro — vira `#FEF0DD`, o filete carrega o recorte),
+`#D0055B` (magenta profundo do selo de Participar — o pill virou chocolate com tinta
+creme), `#D19100`/`#D9BE95`/`#C99A7E` (ouro/prata/bronze de medalha — viram
+`#FDBB1A`/`#F8E4C1`/`#FF4810`; **não marrom** — marrom sobre chocolate dá ~1,5:1,
+falha como emblema e como texto solto). Regra permanente de troca por papel (não por
+aparência) em `docs/FLUXO-DESIGN-CODIGO.md`.
+
+**Apoiar mudou de vinho para cyan; Contato mudou de marrom para bege** nesse mesmo
+fechamento — ver tabela de cor por página abaixo.
+
+**Sequência de irmãos nunca repete cor** (cards, passos, métricas, discos de ícone,
+pills, painéis): ciclo `amarelo → cyan → magenta → roxo → laranja → marrom`, filtrado
+pela tabela de contraste do fundo. Quando o fundo não sustenta as seis tintas em texto
+(ex.: bege só aguenta quatro), a cor migra para uma **régua de 4px** acima do numeral
+(classe `.scw-stat__regua`) e o numeral fica sempre em chocolate — padrão StatBlock,
+detalhado em `docs/FLUXO-DESIGN-CODIGO.md`.
 
 **Exceção declarada — seção 07 da Home (KV da F2 Experience).** A seção de
 realização usa a marca da agência que realiza o festival, não a do festival:
@@ -146,12 +161,19 @@ ser tom claro. Definido em `body.route-*` (`src/styles/scw-2026.css`) como
 | `home` | `#FDBB1A` | `#3D1308` (9,5:1) |
 | `edicoes` | `#01AFCC` | `#3D1308` (6,2:1) |
 | `historico-awards` | `#4D257E` | `#FEF0DD` (9,95:1) |
-| `participar` | `#F10767` (selo do menu `#D0055B`) | `#FEF0DD` (4,86:1) |
-| `apoiar` | `#B3213B` | `#FEF0DD` (5,86:1) |
-| `contato` | `#6A2C15` | `#FEF0DD` (9,44:1) |
+| `participar` | `#F10767` (pill do menu vira chocolate `#3D1308`) | `#FEF0DD` (4,86:1) |
+| `apoiar` | `#01AFCC` (era vinho `#B3213B` — fechamento 29/07/2026) | `#3D1308` (6,2:1) |
+| `contato` | `#F8E4C1` (era marrom `#6A2C15`; texto/sublinhado sobre creme usa `--scw-pagina-sobre-creme` = `#6A2C15`, bege não sustenta) | `#3D1308` (13:1) |
 
 Passar o mouse em qualquer item do menu mostra a cor daquela página (amarelo e cyan
-direto; as demais caem no amarelo, por contraste sobre o véu escuro).
+direto; as demais caem no amarelo, por contraste sobre o véu escuro). Sobre superfície
+ESCURA (rodapé, folha do menu, barra de abas) cada página usa `pageColorDark()` em vez
+da cor cheia — roxo e magenta não sustentam texto sobre chocolate.
+
+**Herói com fundo próprio por página** (`--scw-heroi` / `--scw-heroi-tinta`, redesign
+29/07/2026): Home/Edições continuam chocolate (herói de foto sangrada); Sweet Awards
+roxo; Participar magenta puro `#F10767` (textos pequenos do herói viram pílula
+chapada, não tom translúcido); Apoiar cyan; Contato bege. Ver `docs/FLUXO-DESIGN-CODIGO.md`.
 
 *(Superada a paleta anterior — terracotta `#E8553A`, Edições `#2BC4E8`, Awards dourado
 `#F8B511`, Participar `#F2693C`, Apoiar `#1B86C9`, Contato peach `#F2B6A0`. O `--page-accent`
@@ -416,19 +438,28 @@ Cor da página: **roxo `#4D257E`** com texto creme (redesign 2026 — antes ouro
 `#F8B511`); o ouro/prata/bronze seguem como cores de **medalha** no pódio
 (`#D19100` / `#D9BE95` / `#C99A7E`).
 
-Estrutura (redesign 2026):
-- **Herói**: título editorial + 4 números (11 edições · 82 categorias · 262 colocações ·
-  44 marcas) + vitrine com as fotos dos 4 primeiros lugares (todas 1:1) + índice das 8
-  categorias. **Não usa banda de foto** — o herói já abre com a vitrine.
-  **Fundo roxo `#4D257E`** (jul/2026, pedido do Wilke) — é a única hero que não é
-  chocolate; um degradê chocolate a 42% desce 340px do topo para a logo respirar.
-  Como o fundo virou a cor da página, o selo inverte para creme com tinta roxa.
+Estrutura (redesign 2026, ajustada em 29/07/2026):
+- **Herói**: título editorial + 3 números (edições premiadas · categorias julgadas ·
+  marcas premiadas — "colocações no pódio" saiu, era redundante com categorias) +
+  vitrine com as fotos dos 4 primeiros lugares (todas 1:1) + índice das 8 categorias.
+  **Não usa banda de foto** — o herói já abre com a vitrine. **Fundo roxo `#4D257E`**
+  — é a única hero que não é chocolate (fundo próprio via `--scw-heroi`); um degradê
+  chocolate a 42% desce 340px do topo para a logo respirar. Como o fundo virou a cor
+  da página, o selo inverte para creme com tinta roxa.
 - **Vencedores Lovers 2026**: 8 categorias × 3 colocações, cada card com a **foto da
   peça premiada** (Melhor Doce mostra o doce, Melhor Salgado o salgado, Melhor Bebida a
-  bebida, as demais o combo). 1º lugar em card maior (4:5 no desktop, 1:1 até 820px),
-  medalha ouro/prata/bronze. Empates no mesmo card.
-- **Como é decidido**: Júri Técnico (2020.2–2021.2) e Sweet Lovers; critério de cada
-  categoria.
+  bebida, as demais o combo). Medalha dentro da legenda do card (ao lado do rótulo de
+  colocação), não solta no canto da foto. Numeral **sempre chocolate**: 1º amarelo,
+  2º bege, **3º laranja** (marrom foi cogitado e descartado — falha como emblema e
+  como texto solto sobre chocolate, ~1,5:1). 1º lugar em coluna larga (4:5 no desktop,
+  1:1 até 820px), 2º/3º empilhados ao lado dividindo a mesma altura. Empates no mesmo
+  card. **No celular** (≤820px) vira carrossel de arrasto com snap — 24 cards
+  empilhados não cabem.
+- **Quem dá a nota** (era "Como é decidido"): trilha do tempo de três momentos
+  cronológicos — 2019 (categoria única) → 2020.2–2021.2 (Júri Técnico) → 2022 em
+  diante (só Sweet Lovers, com selo "hoje") — não mais dois cards gêmeos lado a lado
+  (isso escondia que a régua mudou ao longo do tempo). Espinha tracejada atrás dos
+  discos; no celular vira vertical com o disco fora do fluxo.
 - **Hall dos mais premiados**: barra segmentada por colocação, contagem `9×1º 13×2º
   6×3º` e total. Líderes: Mr. Cupcake 28, Bocaditos 26, Marlon Vinicius 24.
 - **Histórico 2019–2025**: acordeão com 10 edições, pódio completo por categoria,
@@ -602,6 +633,31 @@ O que **não** mudou e segue absoluto: proteção de branch e deploy, URLs de QR
 flags de publicação, "não inventar dados", separação institucional × Lovers, nomenclatura
 (§2) e a proibição de fonte mono em rótulos.
 
+### Fechamento de paleta e patches de cor (29/07/2026)
+
+Origem: cinco patches (`PATCH-selo-preto.md`, `PATCH-acesso.md`, `PATCH-acesso-v2.md`,
+`PATCH-cores-pagina-e-navegacao.md`, `PATCH-paleta-e-contraste.md`) gerados no Claude
+Design a partir do projeto "Redesign 2026". Fluxo completo em
+`docs/FLUXO-DESIGN-CODIGO.md` (novo). Regras superadas — **não reintroduzir**:
+
+| Regra antiga | Regra atual |
+| --- | --- |
+| Paleta com filete/card/vinho/ouro/prata/bronze como hex próprios | Paleta fechada em 9 cores; filete/card viram `rgba()`/`creme` por papel (§3) |
+| Apoiar vinho `#B3213B` | Apoiar cyan `#01AFCC` |
+| Contato marrom `#6A2C15` | Contato bege `#F8E4C1` (texto/sublinhado sobre creme usa `--scw-pagina-sobre-creme`) |
+| Medalha 3º lugar bronze/marrom | Medalha 3º lugar **laranja** `#FF4810` (marrom falha sobre chocolate) |
+| Selo do menu de Participar `#D0055B` | Pill vira chocolate com tinta creme (10:1) |
+| Botão "Acesso" só ícone; painel uma faixa | Botão com rótulo; painel em duas faixas (topo chocolate + corpo creme), sem marca-d'água, card com selo+título na mesma linha, rodapé com CTA "Falar com a equipe" |
+| Barra de 5px sob o cabeçalho (`#barra-pagina`) | Removida — o herói já é a cor da página |
+| "Como é decidido" com dois cards gêmeos | Trilha do tempo de três momentos cronológicos |
+| Sem botão de voltar ao topo | `BotaoTopo.jsx`, aparece após 1,5 tela de rolagem |
+
+Nota de processo: patches da mesma leva podem se contradizer entre si (um introduziu
+`#D0055B` num token que o patch seguinte, na mesma rodada, bane da paleta) ou assumir
+estado do código diferente do real (ex.: SVG do selo já tinha `<style>`, só com hex
+fora do token). Ver `docs/FLUXO-DESIGN-CODIGO.md` § Armadilhas antes de aplicar a
+próxima leva de patches.
+
 ---
 
 # Regras técnicas e operacionais (preservadas)
@@ -659,8 +715,10 @@ Nunca aplicar estilos Lovers em Institucionais nem vice-versa sem pedido explíc
 
 ```
 src/
-  components/   # nav.jsx (SiteHeader + PAGE_COLORS), SiteFooter.jsx, MobileTabBar.jsx,
-                # MobileMenu.jsx (folha "mais"), AccessDialog.jsx, icons.jsx, ...
+  components/   # nav.jsx (SiteHeader + PAGE_COLORS/pageColorDark), SiteFooter.jsx,
+                # MobileTabBar.jsx, MobileMenu.jsx (folha "mais"), AccessDialog.jsx
+                # (duas faixas: topo chocolate + corpo creme, botão "Acesso" com
+                # rótulo), BotaoTopo.jsx (flutuante, aparece após 1,5 tela), icons.jsx
   pages/institutional/ | lovers/
   data/         # editions.js, sweetCoffeeHistory.js, loversAwardsResults.js,
                 # participants.js, sweetAwards.js, participantAssets.js, editionAssets.js,

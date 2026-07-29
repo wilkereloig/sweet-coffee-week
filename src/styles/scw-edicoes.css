@@ -200,7 +200,7 @@
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
 }
 .scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
-.scw-gal--par .scw-gal__seta { border-color: var(--scw-filete); background: var(--scw-card); }
+.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
 .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
 
 .scw-gal__pontos {
@@ -452,7 +452,7 @@
 }
 .scw-edx__painel--claro {
   width: min(660px, 52vw);
-  background: var(--scw-card);
+  background: var(--scw-creme);
   color: var(--scw-choco);
 }
 /* O painel editorial carrega texto longo (história do festival, marco,
@@ -477,7 +477,7 @@
   font: 800 10.5px/1.2 var(--scw-font);
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--scw-vinho);
+  color: var(--scw-marrom);
 }
 .scw-edx__painel--escuro .scw-edx__painel-rot { color: var(--scw-edx-tom-txt); }
 .scw-edx__painel-t {
@@ -493,7 +493,7 @@
   width: 44px; height: 44px;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid var(--scw-filete);
+  border: 1px solid rgba(61, 19, 8, .14);
   background: var(--scw-creme);
   color: var(--scw-choco);
 }
@@ -869,7 +869,7 @@
   gap: 15px 12px;
   margin: 22px 0 0;
   padding: 18px 0 0;
-  border-top: 1px solid var(--scw-filete);
+  border-top: 1px solid rgba(61, 19, 8, .14);
 }
 .scw-edx-mob__meta > div { display: flex; flex-direction: column; gap: 4px; }
 .scw-edx-mob__meta dt {
@@ -917,8 +917,8 @@
 }
 .scw-edx-mob__sanfona--vazada {
   margin-top: 10px;
-  border: 1px solid var(--scw-filete);
-  background: var(--scw-card);
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
   color: var(--scw-choco);
 }
 .scw-edx-mob__chevron {
@@ -941,8 +941,8 @@
   margin: 10px 0 0;
   padding: 16px 20px;
   border-radius: var(--scw-r-card);
-  background: var(--scw-card);
-  border: 1px solid var(--scw-filete);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
   animation: scwEdxPainel 300ms var(--scw-ease) both;
 }
 .scw-edx-mob__lista li {

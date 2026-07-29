@@ -7,9 +7,11 @@
  *
  * `?preview=1` é necessário porque COMING_SOON_PUBLICATION está ligada — em
  * localhost o gate libera o institucional sem tocar na flag de produção.
- * Confere, em 6 rotas × 3 larguras: modos da casca sem coexistir, header/barra/
+ * Confere, em 6 rotas × 3 larguras: modos da casca sem coexistir, header/
  * rodapé por rota (Edições tem cabeçalho próprio), um h1, zero rolagem
  * horizontal, cor da página aplicada e console limpo.
+ * (A barra de 5px sob o cabeçalho saiu do sistema em 29/07/2026 — o herói já
+ * é a cor da página. Não checar `.scw-barra-pagina` — foi removida.)
  */
 import { chromium } from 'playwright'
 
@@ -56,7 +58,6 @@ for (const [nomeTela, w, h] of TELAS) {
       abas: await page.evaluate(visivel('.scw-abas')),
       acesso: await page.evaluate(visivel('.scw-acesso-topo')),
       header: await page.evaluate(visivel('.scw-header')),
-      barra: await page.evaluate(visivel('.scw-barra-pagina')),
       rodape: await page.evaluate(visivel('.scw-footer')),
       h1: await page.evaluate(`document.querySelectorAll('main h1, .scw-edx h1, .scw-edx-mob h1').length`),
       rolagemH: await page.evaluate(`document.documentElement.scrollWidth - document.documentElement.clientWidth`),
@@ -73,14 +74,12 @@ for (const [nomeTela, w, h] of TELAS) {
     if (desktop && rota !== 'edicoes' && est.navDesktop !== 'visivel') problemas.push(`${linha} menu do desktop ausente (${est.navDesktop})`)
     if (!desktop && est.abas !== 'visivel') problemas.push(`${linha} barra de abas ausente no celular (${est.abas})`)
 
-    // 2. casca por rota: Edições tem cabeçalho próprio, sem header/barra/rodapé do site
+    // 2. casca por rota: Edições tem cabeçalho próprio, sem header/rodapé do site
     if (rota === 'edicoes') {
       if (est.header === 'visivel') problemas.push(`${linha} header do site aparece em Edições`)
-      if (est.barra === 'visivel') problemas.push(`${linha} barra de 5px aparece em Edições`)
       if (est.rodape === 'visivel') problemas.push(`${linha} rodapé aparece em Edições`)
     } else {
       if (est.header !== 'visivel') problemas.push(`${linha} header do site ausente (${est.header})`)
-      if (est.barra !== 'visivel') problemas.push(`${linha} barra de 5px ausente (${est.barra})`)
       if (est.rodape !== 'visivel') problemas.push(`${linha} rodapé ausente (${est.rodape})`)
     }
 
@@ -93,7 +92,7 @@ for (const [nomeTela, w, h] of TELAS) {
     // 5. cor da página aplicada
     if (!est.corPagina) problemas.push(`${linha} --scw-pagina vazia`)
 
-    console.log(`${linha} nav=${est.navDesktop} abas=${est.abas} header=${est.header} barra=${est.barra} rodape=${est.rodape} h1=${est.h1} overflowX=${est.rolagemH} cor=${est.corPagina}`)
+    console.log(`${linha} nav=${est.navDesktop} abas=${est.abas} header=${est.header} rodape=${est.rodape} h1=${est.h1} overflowX=${est.rolagemH} cor=${est.corPagina}`)
   }
   await ctx.close()
 }

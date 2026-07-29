@@ -1,27 +1,33 @@
 import React from 'react'
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
+import { INSTAGRAM_URL } from '../config/channels'
 
 /*
  * Tela de acesso (diálogo modal) — redesign 2026.
- * Dois cartões com borda tracejada e selo "em breve": não são botões, porque os
- * painéis ainda não existem. Foco preso no diálogo, Esc fecha, foco volta ao
- * gatilho. Spec: design_handoff_site_institucional/README.md (§ Tela de acesso).
+ * Duas faixas: cabeçalho chocolate com o lockup do festival, corpo creme com os
+ * dois cartões de acesso. Não são botões, porque os painéis ainda não existem.
+ * Foco preso no diálogo, Esc fecha, foco volta ao gatilho.
+ * Spec: design_handoff_site_institucional/README.md (§ Tela de acesso).
  */
 
 const ACESSOS = [
   {
     titulo: 'Sou participante',
-    texto: 'Marcas inscritas acompanham o combo, os dados da edição e os resultados do Sweet Awards.',
+    texto: 'Combo, dados da edição e resultados do Sweet Awards.',
     rotulo: 'Painel · em breve',
-    traco: 'M7 11h13v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6v-6ZM20 13h3a3 3 0 0 1 0 6h-3M5 27h17',
+    // Toldo de loja: quem entra aqui é o estabelecimento, não o consumidor.
+    // Sem linha de chão — a 21px ela encosta na borda do selo e só suja o ícone.
+    traco: 'M4 12l3-6h18l3 6M6 12v14h20V12M13 26v-7h6v7',
     fundo: '#4D257E',
+    tinta: '#FEF0DD',
   },
   {
     titulo: 'Organização',
-    texto: 'Equipe do festival gerencia participantes, conteúdo das edições e apuração da premiação.',
+    texto: 'Participantes, conteúdo das edições e apuração da premiação.',
     rotulo: 'Admin · em breve',
-    traco: 'M16 5l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2-6.5-3.5-6.5 3.5 1.3-7.2-5.3-5.1 7.3-1L16 5Z',
+    // Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards.
+    traco: 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7',
     fundo: '#01AFCC',
+    tinta: '#3D1308',
   },
 ]
 
@@ -71,53 +77,55 @@ export function AccessDialog({ open, onClose }) {
         ref={caixaRef}
         onKeyDown={prenderTab}
       >
-        <button type="button" className="scw-acesso__fechar" onClick={onClose} aria-label="Fechar">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-          </svg>
-        </button>
-
-        <span className="scw-rotulo">Área de acesso</span>
-        <h2 className="scw-acesso__titulo">
-          Entrar no <em className="scw-italico" style={{ color: '#B3213B' }}>Sweet &amp; Coffee Week</em>.
-        </h2>
-        <p className="scw-corpo" style={{ margin: '14px 0 clamp(22px,2.6vw,32px)', maxWidth: '52ch', color: '#6A2C15' }}>
-          Escolha por onde você entra. Cada acesso leva a um painel diferente — um para as marcas
-          participantes, outro para a organização do festival.
-        </p>
-
-        <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
-          {ACESSOS.map((a) => (
-            <div key={a.titulo} className="scw-acesso__cartao">
-              <span className="scw-acesso__selo" aria-hidden="true" style={{ background: a.fundo }}>
-                <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-                  <path d={a.traco} stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <b className="scw-h3">{a.titulo}</b>
-              <span className="scw-corpo" style={{ fontSize: 14.5, color: '#6A2C15' }}>{a.texto}</span>
-              <span className="scw-pill scw-pill--bege" style={{ marginTop: 6, fontSize: 11, letterSpacing: '.12em' }}>
-                {a.rotulo}
-              </span>
-            </div>
-          ))}
+        <div className="scw-acesso__topo">
+          <div className="scw-acesso__marca">
+            <img src="/logos/lockup-scw-creme.svg" alt="Sweet &amp; Coffee Week" />
+            <span className="scw-acesso__eyebrow">Área<br />de acesso</span>
+          </div>
+          <button type="button" className="scw-acesso__fechar" onClick={onClose} aria-label="Fechar">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
+        <div className="scw-acesso__regua" aria-hidden="true" />
 
-        <p
-          className="scw-corpo"
-          style={{
-            margin: 'clamp(20px,2.4vw,28px) 0 0',
-            paddingTop: 'clamp(16px,1.8vw,22px)',
-            borderTop: '1px solid #EBD6B4',
-            fontSize: 13.5,
-            color: '#6A2C15',
-          }}
-        >
-          Os painéis estão em construção. Enquanto isso, marcas e organização falam com a equipe pelo{' '}
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: '#B3213B' }}>
-            {INSTAGRAM_HANDLE}
-          </a>.
-        </p>
+        <div className="scw-acesso__corpo">
+          <h2 className="scw-acesso__titulo">
+            Entrar no <em className="scw-italico" style={{ color: '#6A2C15' }}>Sweet &amp; Coffee Week</em>.
+          </h2>
+
+          <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
+            {ACESSOS.map((a) => (
+              <div key={a.titulo} className="scw-acesso__cartao">
+                <div className="scw-acesso__cabeca">
+                  <span className="scw-acesso__selo" aria-hidden="true" style={{ background: a.fundo, color: a.tinta }}>
+                    <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+                      <path d={a.traco} stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <b className="scw-h3">{a.titulo}</b>
+                </div>
+                <span className="scw-corpo" style={{ fontSize: 14.5, color: '#6A2C15' }}>{a.texto}</span>
+                <span className="scw-pill scw-pill--bege" style={{ marginTop: 'auto', fontSize: 11, letterSpacing: '.12em' }}>
+                  {a.rotulo}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="scw-acesso__pe">
+            <p className="scw-acesso__pe-texto">
+              Painéis em construção. Até lá, a equipe atende por aqui.
+            </p>
+            <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+              Falar com a equipe
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M4 12L12 4M6 4h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )

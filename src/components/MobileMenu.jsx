@@ -1,5 +1,5 @@
 import React from 'react'
-import { NAV_LINKS, MARCA_SCW, pageColor } from './nav'
+import { NAV_LINKS, MARCA_SCW, pageColorDark } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 
 /*
@@ -109,7 +109,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
                 className={ativo ? 'is-ativo' : undefined}
                 aria-current={ativo ? 'page' : undefined}
                 onClick={ativo ? (e) => { e.preventDefault(); onClose() } : ir(l.href)}
-                style={{ '--scw-folha-cor': pageColor(l.id).menu }}
+                style={{ '--scw-folha-cor': pageColorDark(l.id) }}
               >
                 {l.label}
                 <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">

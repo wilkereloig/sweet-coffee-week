@@ -22,6 +22,7 @@ Site oficial do festival **Sweet & Coffee Week** — Natal/RN.
 > | Regras de processo, nomenclatura e o que não mexer | [`CLAUDE.md`](CLAUDE.md) |
 > | O acervo de dados (16 edições, prêmios, participantes) | [`ACERVO.md`](ACERVO.md) |
 > | As rotas | [`SITEMAP.md`](SITEMAP.md) |
+> | Como aplicar patches vindos do Claude Design | [`docs/FLUXO-DESIGN-CODIGO.md`](docs/FLUXO-DESIGN-CODIGO.md) |
 >
 > Se o guia divergir do código em `src/styles/scw-2026.css`, **vale o código**.
 

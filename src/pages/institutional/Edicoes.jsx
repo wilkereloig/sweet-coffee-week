@@ -93,11 +93,11 @@ const EDS = [
 const TOTAL = EDS.length
 
 /* Acento por edição, rodando pela paleta oficial. Cada tom carrega a tinta que
-   passa AA SOBRE ele (vinho e magenta pedem creme; cyan e amarelo pedem
+   passa AA SOBRE ele (roxo e magenta pedem creme; cyan e amarelo pedem
    chocolate) e a cor que ele pode assumir como TEXTO sobre o chocolate — ali
-   vinho e magenta não chegam a 4,5:1, então caem no creme. */
+   roxo e magenta não chegam a 4,5:1, então caem no creme. */
 const TONS = [
-  { cor: 'var(--scw-vinho)',   tinta: 'var(--scw-creme)', txt: 'var(--scw-creme)' },
+  { cor: 'var(--scw-roxo)',    tinta: 'var(--scw-creme)', txt: 'var(--scw-creme)' },
   { cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', txt: 'var(--scw-creme)' },
   { cor: 'var(--scw-cyan)',    tinta: 'var(--scw-choco)', txt: 'var(--scw-cyan)' },
   { cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', txt: 'var(--scw-amarelo)' },
@@ -829,7 +829,8 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                   aria-expanded={!!accessOpen}
                   aria-label="Acessar área restrita"
                 >
-                  <ChaveIcon />
+                  <ChaveIcon width="17" height="17" strokeWidth="2" />
+                  <span>Acesso</span>
                 </button>
               )}
             </div>

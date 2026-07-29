@@ -112,18 +112,20 @@ const FOTO_PUBLICO = HERO[2]
    (pasta `momentos`, sem vínculo com marca ou edição — não é foto de edição
    nem de combo, por isso não passa pelo sistema central). */
 const ETAPAS = [
-  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.', frame('2016', 0), 'var(--scw-vinho)', 'var(--scw-creme)'],
+  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.', frame('2016', 0), 'var(--scw-laranja)', 'var(--scw-choco)'],
   ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.', frame('2019.2', 3), 'var(--scw-roxo)', 'var(--scw-creme)'],
   ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.', frame('2025', 2), 'var(--scw-cyan)', 'var(--scw-choco)'],
   ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.', { src: '/images/momentos/04.jpg', alt: 'Público em uma edição do Sweet & Coffee Week', position: 'center 40%' }, 'var(--scw-amarelo)', 'var(--scw-choco)'],
 ]
 
-/* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica). */
+/* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica).
+   Cor vive na régua (StatBlock — bege só sustenta 4 tintas de texto; ver
+   docs/FLUXO-DESIGN-CODIGO.md), o numeral fica sempre em chocolate. */
 const NUMEROS = [
-  { alvo: festivalFacts.editions.value, prefixo: '', sufixo: '', rotulo: 'edições realizadas', nota: `de ${festivalFacts.firstYear} até hoje`, cor: 'var(--scw-vinho)' },
-  { alvo: festivalFacts.brands.value, prefixo: '+', sufixo: '', rotulo: 'marcas participantes', nota: 'doçarias, cafeterias e restaurantes', cor: 'var(--scw-roxo)' },
-  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: 'somando todas as edições', cor: 'var(--scw-marrom)' },
-  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'conteúdo do festival e das marcas', cor: 'var(--scw-vinho)' },
+  { alvo: festivalFacts.editions.value, prefixo: '', sufixo: '', rotulo: 'edições realizadas', nota: `de ${festivalFacts.firstYear} até hoje`, cor: 'var(--scw-amarelo)' },
+  { alvo: festivalFacts.brands.value, prefixo: '+', sufixo: '', rotulo: 'marcas participantes', nota: 'doçarias, cafeterias e restaurantes', cor: 'var(--scw-cyan)' },
+  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: 'somando todas as edições', cor: 'var(--scw-magenta)' },
+  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'conteúdo do festival e das marcas', cor: 'var(--scw-roxo)' },
 ]
 
 /* --- 06 Prova: depoimento real da Jolie (mesma fonte já usada em Participar). */
@@ -315,7 +317,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo">O que é</span>
             <h2 className="scw-h2">
-              Um tema, <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>um combo por marca</em>, onze dias.
+              Um tema, <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>um combo por marca</em>, onze dias.
             </h2>
           </div>
           <p className="hm-apoio">
@@ -394,7 +396,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo">Como entrar</span>
             <h2 className="scw-h2">
-              Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>entrar no festival</em>.
+              Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar no festival</em>.
             </h2>
           </div>
           <p className="hm-apoio">
@@ -499,7 +501,7 @@ export function HomePage({ navigate }) {
         <div className="hm-cab">
           <div>
             <span className="scw-rotulo">Dez anos em números</span>
-            <h2 className="scw-h2 hm-h2--vinho">
+            <h2 className="scw-h2 hm-h2--marrom">
               Uma década que <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>continua em circulação</em>.
             </h2>
           </div>
@@ -511,7 +513,8 @@ export function HomePage({ navigate }) {
         <dl className="hm-numeros">
           {NUMEROS.map((numero, i) => (
             <div className="hm-num" key={numero.rotulo}>
-              <dt className="scw-numeral hm-num__valor" style={{ color: numero.cor }}>
+              <span className="scw-stat__regua" aria-hidden="true" style={{ background: numero.cor }} />
+              <dt className="scw-numeral hm-num__valor">
                 {numero.prefixo}{contagens[i]}{numero.sufixo}
               </dt>
               <dd className="hm-num__rotulo">{numero.rotulo}</dd>
@@ -558,7 +561,7 @@ export function HomePage({ navigate }) {
           <div className="hm-imprensa">
             <span className="scw-rotulo">Na imprensa</span>
             <h2 className="scw-h2 hm-imprensa__h2">
-              E quem já <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#B3213B' }}>contou a história</em>.
+              E quem já <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>contou a história</em>.
             </h2>
 
             <a className="hm-materia" href={destaque.href} target="_blank" rel="noopener noreferrer">
