@@ -420,6 +420,9 @@ Estrutura (redesign 2026):
 - **Herói**: título editorial + 4 números (11 edições · 82 categorias · 262 colocações ·
   44 marcas) + vitrine com as fotos dos 4 primeiros lugares (todas 1:1) + índice das 8
   categorias. **Não usa banda de foto** — o herói já abre com a vitrine.
+  **Fundo roxo `#4D257E`** (jul/2026, pedido do Wilke) — é a única hero que não é
+  chocolate; um degradê chocolate a 42% desce 340px do topo para a logo respirar.
+  Como o fundo virou a cor da página, o selo inverte para creme com tinta roxa.
 - **Vencedores Lovers 2026**: 8 categorias × 3 colocações, cada card com a **foto da
   peça premiada** (Melhor Doce mostra o doce, Melhor Salgado o salgado, Melhor Bebida a
   bebida, as demais o combo). 1º lugar em card maior (4:5 no desktop, 1:1 até 820px),

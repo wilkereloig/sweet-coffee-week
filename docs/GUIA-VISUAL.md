@@ -264,6 +264,14 @@ Todas as heroes compartilham estrutura; a cor e a foto mudam.
 | Selo | `.scw-pill--pagina` — usa `--scw-pagina` |
 | Foto | Fundo à direita com véu em degradê a 96° (`.97 → 0` entre 0% e 92%) |
 | Botões | Depois do lead, alinhados à esquerda |
+| Fundo | Chocolate `#3D1308` — **exceto Sweet Awards**, roxo `#4D257E` (ver abaixo) |
+
+**Exceção — Sweet Awards (jul/2026, pedido do Wilke):** o herói é a própria cor
+da página, roxo `#4D257E`, não chocolate. Um degradê chocolate a 42% desce 340px
+do topo para dar profundidade onde passa o cabeçalho fixo e a logo transborda.
+Como o fundo passou a ser a cor da página, **o selo inverte** —
+`.swa-hero .scw-pill--pagina` fica creme com tinta roxa (mesmos 9,95:1) — senão
+ele desapareceria contra o fundo. Título e lead seguem creme.
 
 Toda hero deve: identificar a página, ter boa leitura, usar imagem coerente com o
 assunto, respeitar o KV institucional, adaptar ao mobile, não ocupar espaço

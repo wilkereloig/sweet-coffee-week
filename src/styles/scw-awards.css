@@ -18,19 +18,27 @@
   position: relative;
   overflow: hidden;
   padding: clamp(216px, 19vw, 268px) var(--scw-trilho) 0;
-  background: var(--scw-choco);
+  background: var(--scw-roxo);
   color: var(--scw-creme);
 }
-/* Véu roxo subindo da base — liga o herói à cor da página. */
+/* Antes o herói era chocolate com véu roxo subindo da base. Agora o fundo é a
+   própria cor da página; o degradê inverteu de lado e virou profundidade no
+   TOPO, onde passa o cabeçalho fixo e a logo transborda — sem ele a marca
+   encostaria num roxo chapado. Creme sobre #4D257E dá 9,95:1. */
 .swa-hero::before {
   content: '';
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 46%;
-  background: linear-gradient(to top, rgba(77, 37, 126, .5), rgba(61, 19, 8, 0));
+  left: 0; right: 0; top: 0;
+  height: 340px;
+  background: linear-gradient(to bottom, rgba(61, 19, 8, .42), rgba(61, 19, 8, 0));
   pointer-events: none;
 }
 .swa-hero > * { position: relative; z-index: 1; }
+
+/* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
+   com o herói roxo ele sumiria contra o fundo. Inverte: creme com tinta roxa,
+   mesma cor, mesmo contraste (9,95:1), agora legível. */
+.swa-hero .scw-pill--pagina { background: var(--scw-creme); color: var(--scw-roxo); }
 
 .swa-hero__grade {
   display: grid;
