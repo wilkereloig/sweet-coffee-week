@@ -173,13 +173,29 @@
   color: var(--scw-vinho);
 }
 
+/* As duas galerias são irmãs e precisam começar na mesma linha. Cada coluna
+   empilhava por conta própria: quando o parágrafo de apoio quebrava em número
+   diferente de linhas, a grade de fotos de uma começava acima da outra. Com
+   subgrid as três faixas — rótulo, texto e fotos — passam a ser compartilhadas.
+   O respiro vertical vem das margens dos filhos, por isso `row-gap: 0`. */
 .hm-galerias {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: clamp(28px, 3.4vw, 56px) clamp(24px, 4vw, 72px);
+  grid-template-rows: auto auto auto;
+  column-gap: clamp(24px, 4vw, 72px);
+  row-gap: 0;
   margin-top: clamp(34px, 3.8vw, 56px);
 }
-.hm-galeria { display: flex; flex-direction: column; }
+.hm-galeria {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+}
+/* Navegador sem subgrid volta ao empilhamento simples — desalinha, mas não quebra. */
+@supports not (grid-template-rows: subgrid) {
+  .hm-galerias { row-gap: clamp(28px, 3.4vw, 56px); }
+  .hm-galeria { display: flex; flex-direction: column; }
+}
 .hm-galeria__topo {
   display: flex;
   align-items: baseline;
@@ -599,6 +615,11 @@
   .hm-ing__nota { display: none; }
   .hm-mais { margin-top: 0; margin-left: calc(clamp(72px, 7.6vw, 116px) / 2 - .4em); }
   .hm-voz__assinatura { flex-wrap: wrap; }
+}
+
+@media (max-width: 760px) {
+  /* Em uma coluna só, o row-gap: 0 encostaria uma galeria na outra. */
+  .hm-galeria + .hm-galeria { margin-top: clamp(28px, 3.4vw, 56px); }
 }
 
 @media (max-width: 420px) {
