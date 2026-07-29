@@ -2,6 +2,29 @@
 
 Site oficial do festival **Sweet & Coffee Week** — Natal/RN.
 
+> ## ⚠️ Leia antes de clonar, revisar ou conectar uma ferramenta
+>
+> **O trabalho vivo está em `dev/site-completo`, não em `master`.**
+>
+> A branch padrão deste repositório é `master`, e ela está **muito atrás** do
+> estado real do site: não tem o redesign 2026, nem o sistema de movimento, nem
+> o herói roxo do Sweet Awards. Quem ler a branch padrão vai ver um site que não
+> existe mais.
+>
+> Qualquer coisa que leia este repositório — conector GitHub do Claude Design,
+> agente, revisor automático, IDE — **deve apontar para `dev/site-completo`**.
+> Pull request também vai para `dev/site-completo`; `master` só recebe merge com
+> autorização explícita do Wilke.
+>
+> | Para entender | Leia |
+> | --- | --- |
+> | O sistema visual (cores, tipografia, grid, movimento, componentes) | [`docs/GUIA-VISUAL.md`](docs/GUIA-VISUAL.md) — **fonte única da verdade visual** |
+> | Regras de processo, nomenclatura e o que não mexer | [`CLAUDE.md`](CLAUDE.md) |
+> | O acervo de dados (16 edições, prêmios, participantes) | [`ACERVO.md`](ACERVO.md) |
+> | As rotas | [`SITEMAP.md`](SITEMAP.md) |
+>
+> Se o guia divergir do código em `src/styles/scw-2026.css`, **vale o código**.
+
 ## Stack
 
 - Vite + React (JSX)

@@ -826,6 +826,31 @@ formulários ficam no estado inicial), traz Edições em **uma cena só** (a pá
 monta só a edição em foco, por desempenho) e congela o movimento no estado
 final — que é justamente como se edita layout sem lutar com animação.
 
+### Conector GitHub — o que ele vê e o que ele NÃO vê
+
+O Claude Design lê este repositório pelo conector do GitHub. Duas coisas
+mandam nisso:
+
+1. **Branch.** A padrão é `master` e está muito atrás. Apontar sempre para
+   `dev/site-completo`, senão o Design lê um site que não existe mais. O aviso
+   está no topo do `README.md`, que é a primeira coisa que o conector encontra.
+2. **O conector lê código, não renderiza.** Ele não roda Vite nem React, então
+   vê `Home.jsx` e `scw-2026.css` — não vê a Home. Para o resultado visual é que
+   existe o snapshot em `paginas/` no projeto de design.
+
+Divisão prática:
+
+| Precisa de | Use |
+| --- | --- |
+| Valor exato de token, classe, medida | Conector, direto no `src/styles/` |
+| Regra ("posso usar roxo aqui?") | Conector, em `docs/GUIA-VISUAL.md` e `CLAUDE.md` |
+| Ver a página como ela é | Snapshot `paginas/*.html` no projeto de design |
+| Compor com peça existente | Cards de componente no projeto de design |
+
+**Caminho de volta:** com o conector, o Design pode devolver o resultado como
+diff nos arquivos, em vez de descrição. O PR vai para `dev/site-completo` —
+nunca para `master`.
+
 ### Como continuar o trabalho visual lá
 
 1. Abrir o projeto **Redesign 2026** no claude.ai/design. Os cards já mostram o
