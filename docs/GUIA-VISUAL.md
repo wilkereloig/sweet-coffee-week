@@ -726,6 +726,8 @@ SITEMAP.md                   ← rotas
 src/styles/scw-2026.css      ← SISTEMA VISUAL: tokens, casca, utilitárias
 src/styles/scw-<pagina>.css  ← peças de cada página
 src/styles/scw-motion.css    ← MOVIMENTO (tokens --mo-*, reveal, heróis, hover)
+                               ↑ os dois são espelhados no Claude Design
+                                 (ver "Claude Design" no fim deste arquivo)
 src/hooks/useSiteMotion.js   ← motor de entrada (carimba data-mo + --mo-i)
 src/styles/motion-system.css ← movimento do sistema ANTERIOR (só /em-breve)
 src/styles/layout-tokens.css ← knobs de layout (e de motion do sistema anterior)
@@ -775,3 +777,42 @@ branch de dev; nenhum deploy de produção; não mudar URLs de QR Code
 (`#/lovers/combos/:slug`, `#/lovers/awards`); não alterar flags de publicação; não
 inventar dados; não expor `.env`/secrets; não misturar identidade institucional ×
 Lovers.
+
+---
+
+## 18. Claude Design — onde o sistema vive fora do repositório
+
+**Projeto vivo: "Sweet & Coffee Week — Redesign 2026"**
+`b98b740b-4746-4ad5-8074-2ac47d03b4e6` (claude.ai/design, tipo design system).
+
+Sincronizado a partir do código em 29/07/2026 pela ferramenta `DesignSync`.
+Contém: `styles.css` (cópia integral de `scw-2026.css`), `motion.css` (cópia de
+`scw-motion.css`), as 12 fontes Nexa Slab, quatro cards de fundamento (Cor,
+Tipografia, Grid, Movimento) e sete de componente (Botão, Pill, Card, Reserva,
+Campo, Seção, Herói).
+
+**Os CSS são cópia, não transcrição** — nenhum valor foi redigitado, então o
+Design não pode divergir do site por erro de digitação. Se divergir por
+desatualização, **vale o código**: rode a sincronização de novo.
+
+### ⚠️ Projetos antigos no Claude Design — não usar
+
+| Projeto | O que é |
+| --- | --- |
+| "Sweet & Coffee Week Design System" (26/06/2026) | **Sistema ANTERIOR.** Paleta terracotta (`--coral: #E8553A`), creme `#FFF1E6`, ouro `#F8B511` no Awards, peach no Contato, componentes `Sticker`/`SideNav`. Não tem roxo. Corresponde ao que hoje sobrevive só em `/pesquisa` e nos painéis |
+| "Sweet & Coffee Week Design System" (30/05/2026) | Versão ainda mais antiga do mesmo |
+
+Sincronizar o sistema atual dentro de qualquer um deles misturaria duas
+identidades no mesmo painel — e qualquer conversa futura no Design puxaria
+valores errados sem avisar.
+
+### Como continuar o trabalho visual lá
+
+1. Abrir o projeto **Redesign 2026** no claude.ai/design. Os cards já mostram o
+   estado real do site.
+2. Iterar por cima disso — o Design parte dos tokens e componentes certos.
+3. Trazer de volta para cá **é manual**: `DesignSync` só empurra (código →
+   Design). O caminho de volta é descrever ou colar o resultado, e implementar
+   no repositório com as regras deste guia.
+4. Mexeu no CSS do site? Rode a sincronização de novo para o Design não
+   envelhecer.
