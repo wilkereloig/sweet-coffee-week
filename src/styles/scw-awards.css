@@ -38,8 +38,9 @@
   gap: clamp(28px, 3.6vw, 64px);
   align-items: end;
 }
-.swa-hero__texto { animation: swaSobe 620ms var(--scw-ease) both; }
-.swa-hero__texto .scw-h1 { margin-top: clamp(16px, 1.8vw, 26px); color: var(--scw-creme); }
+/* A entrada do herói (bloco inteiro subindo) foi para src/styles/scw-motion.css,
+   onde vira sequência: selo → título → lead → números → vitrine, card a card. */
+.swa-hero__texto .scw-h1{ margin-top: clamp(16px, 1.8vw, 26px); color: var(--scw-creme); }
 .swa-hero__texto .scw-lead { margin-top: clamp(16px, 1.8vw, 26px); color: rgba(254, 240, 221, .86); }
 
 .swa-numeros {
@@ -73,7 +74,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  animation: swaSobe 760ms var(--scw-ease) 120ms both;
 }
 .swa-vitrine li {
   position: relative;

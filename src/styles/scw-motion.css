@@ -1,0 +1,383 @@
+/* ============================================================================
+   MOTION — Sweet & Coffee Week, redesign 2026.
+   Linguagem de movimento única do site institucional (Home, Edições, Sweet
+   Awards, Participar, Apoiar, Contato). Substitui o motion-system.css, que
+   pertence ao sistema anterior e hoje só serve à landing EmBreve.
+
+   Princípios (CLAUDE.md §0 e §5):
+   - movimento apresenta conteúdo, nunca decora;
+   - só transform / opacity / filter — nenhum shift de layout;
+   - a ordem de entrada segue a ordem de leitura;
+   - prefers-reduced-motion desliga tudo e o conteúdo aparece inteiro.
+
+   COMO FUNCIONA
+   O motor é src/hooks/useSiteMotion.js. Ele carimba `data-mo` (que tipo de
+   entrada) e `--mo-i` (posição na sequência) nos elementos, e adiciona `.is-in`
+   quando cada um entra na tela. O atraso sai do índice — nenhuma duração é
+   escrita à mão nos componentes.
+
+   SALVAGUARDA: o estado OCULTO só existe sob `html.scw-mo-on`, classe que o
+   próprio motor adiciona. Se o script falhar, não carregar ou o usuário pedir
+   menos movimento, nada é escondido (CLAUDE.md §24 — nunca texto invisível).
+   ========================================================================= */
+
+:root {
+  /* ---- Ritmo (§19). Uma escala, quatro degraus ------------------------- */
+  --mo-rapido: 180ms;   /* botão, link, ícone — resposta imediata */
+  --mo-estado: 300ms;   /* mudança de estado, hover de card, acordeão */
+  --mo-entra:  620ms;   /* entrada de texto, bloco e card */
+  --mo-longo:  880ms;   /* herói e imagem grande */
+
+  /* Intervalo entre itens de uma mesma sequência */
+  --mo-passo: 90ms;     /* rótulo → título → texto → foto → grade → ação */
+  --mo-passo-card: 70ms;/* card a card dentro de uma grade */
+
+  /* ---- Curvas ---------------------------------------------------------- */
+  --mo-ease:  cubic-bezier(.22, .9, .24, 1);   /* saída suave (= --scw-ease) */
+  --mo-mola:  cubic-bezier(.16, 1, .3, 1);     /* chegada que "pousa" */
+  --mo-suave: cubic-bezier(.4, 0, .6, 1);      /* laços lentos, ida e volta */
+
+  /* ---- Deslocamento e foco (§3: título mais marcante que parágrafo) ---- */
+  --mo-y:        22px;
+  --mo-y-titulo: 30px;
+  --mo-y-texto:  14px;
+  --mo-x:        26px;
+  --mo-desfoque: 6px;
+  --mo-escala-foto: 1.035;
+
+  /* ---- Laços contínuos (§6: respiração da imagem) ---------------------- */
+  --mo-respiro: 26s;
+}
+
+/* No celular o movimento encolhe: viagem menor, sem desfoque, laço mais lento
+   (§21 — menos elementos animando ao mesmo tempo, rolagem intocada). */
+@media (max-width: 900px) {
+  :root {
+    --mo-y:        14px;
+    --mo-y-titulo: 18px;
+    --mo-y-texto:  10px;
+    --mo-x:        16px;
+    --mo-desfoque: 0px;
+    --mo-passo:      70ms;
+    --mo-passo-card: 55ms;
+    --mo-escala-foto: 1.02;
+    --mo-respiro: 34s;
+  }
+}
+
+/* ============================================================================
+   1. REVEAL — estado oculto → `.is-in` visível
+   O atraso é a posição na sequência; o motor reinicia a contagem a cada rótulo
+   de seção, então cada sub-bloco tem a própria cadência (§2).
+   ========================================================================= */
+
+.scw-mo-on [data-mo] {
+  --mo-atraso: calc(var(--mo-i, 0) * var(--mo-passo));
+  opacity: 0;
+  transition:
+    opacity   var(--mo-entra) var(--mo-ease) var(--mo-atraso),
+    transform var(--mo-entra) var(--mo-mola) var(--mo-atraso),
+    filter    var(--mo-entra) var(--mo-ease) var(--mo-atraso);
+  will-change: opacity, transform;
+}
+
+.scw-mo-on [data-mo='sobe']   { transform: translateY(var(--mo-y));        filter: blur(var(--mo-desfoque)); }
+.scw-mo-on [data-mo='titulo'] { transform: translateY(var(--mo-y-titulo)); filter: blur(var(--mo-desfoque)); }
+.scw-mo-on [data-mo='texto']  { transform: translateY(var(--mo-y-texto)); }
+.scw-mo-on [data-mo='lado']   { transform: translateX(var(--mo-x)); }
+.scw-mo-on [data-mo='foto']   {
+  transform: translateY(var(--mo-y-texto)) scale(var(--mo-escala-foto));
+  filter: blur(calc(var(--mo-desfoque) * .5));
+  transition-duration: var(--mo-longo);
+}
+
+/* Estado final. `will-change: auto` devolve a memória: o reveal roda uma vez. */
+.scw-mo-on [data-mo].is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  will-change: auto;
+}
+
+/* ---- Grade: os filhos entram em sequência, não o bloco inteiro (§5) ----- */
+.scw-mo-on [data-mo-grade] > * {
+  opacity: 0;
+  transform: translateY(var(--mo-y));
+  filter: blur(calc(var(--mo-desfoque) * .75));
+  transition:
+    opacity   var(--mo-entra) var(--mo-ease) calc(var(--mo-j, 0) * var(--mo-passo-card)),
+    transform var(--mo-entra) var(--mo-mola) calc(var(--mo-j, 0) * var(--mo-passo-card)),
+    filter    var(--mo-entra) var(--mo-ease) calc(var(--mo-j, 0) * var(--mo-passo-card));
+  will-change: opacity, transform;
+}
+.scw-mo-on [data-mo-grade].is-in > * {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  will-change: auto;
+}
+
+/* ============================================================================
+   2. HERÓIS (§7) — acima da dobra, então entram por @keyframes: não dependem
+   de observer nem de JS. A ordem é sempre foto → selo → título → apoio → ação.
+   ========================================================================= */
+
+@keyframes moSobe {
+  from { opacity: 0; transform: translateY(var(--mo-y-titulo)); filter: blur(var(--mo-desfoque)); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes moSobeCurto {
+  from { opacity: 0; transform: translateY(var(--mo-y-texto)); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes moSurge { from { opacity: 0; } to { opacity: 1; } }
+@keyframes moLado {
+  from { opacity: 0; transform: translateX(var(--mo-x)); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- Home ---------------------------------------------------------------- */
+.scw-hero .scw-hero__fotos { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
+.scw-hero .scw-hero__veu,
+.scw-hero .scw-hero__topo,
+.scw-hero .scw-hero__base { animation: moSurge var(--mo-longo) var(--mo-ease) 80ms both; }
+.scw-hero .hm-selo          { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
+.scw-hero .scw-hero__titulo { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
+.scw-hero .scw-hero__info   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 460ms both; }
+.scw-hero .hm-acoes         { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 600ms both; }
+
+/* --- Participar e Apoiar ------------------------------------------------- */
+.pa-hero .scw-hero-banda    { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
+.pa-hero .pa-hero__selo     { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
+.pa-hero .pa-hero__titulo   { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
+.pa-hero .pa-hero__lead     { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 420ms both; }
+.pa-hero .pa-hero__acoes    { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 540ms both; }
+.pa-hero .pa-hero__nota     { animation: moSurge var(--mo-entra) var(--mo-ease) 680ms both; }
+.pa-hero .pa-hero__aside    { animation: moLado var(--mo-longo) var(--mo-mola) 360ms both; }
+/* A forma decorativa chega por último e sem peso — é apoio, não informação. */
+.pa-hero .pa-hero__forma    { animation: moSurge var(--mo-longo) var(--mo-ease) 760ms both; }
+
+/* --- Contato (abertura compacta) ----------------------------------------- */
+.ctt-abertura .ctt-abertura__fundo,
+.ctt-abertura .scw-hero-banda      { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
+.ctt-abertura .ctt-abertura__rotulo { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
+.ctt-abertura .ctt-abertura__titulo { animation: moSobe var(--mo-entra) var(--mo-mola) 230ms both; }
+.ctt-abertura .ctt-abertura__lead   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 360ms both; }
+.ctt-abertura .ctt-abertura__apoio  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 470ms both; }
+
+/* --- Sweet Awards --------------------------------------------------------
+   A vitrine dos vencedores é o assunto da página: entra logo depois do título,
+   card a card, como um pódio sendo montado (§18). */
+.swa-hero .swa-hero__texto > .scw-pill { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 120ms both; }
+.swa-hero .swa-hero__texto > .scw-h1   { animation: moSobe var(--mo-longo) var(--mo-mola) 220ms both; }
+.swa-hero .swa-hero__texto > .scw-lead { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 400ms both; }
+.swa-hero .swa-numeros > *             { animation: moSobeCurto var(--mo-entra) var(--mo-mola) both; }
+.swa-hero .swa-numeros > *:nth-child(1) { animation-delay: 520ms; }
+.swa-hero .swa-numeros > *:nth-child(2) { animation-delay: 590ms; }
+.swa-hero .swa-numeros > *:nth-child(3) { animation-delay: 660ms; }
+.swa-hero .swa-numeros > *:nth-child(4) { animation-delay: 730ms; }
+.swa-hero .swa-vitrine > *              { animation: moSobe var(--mo-longo) var(--mo-mola) both; }
+.swa-hero .swa-vitrine > *:nth-child(1) { animation-delay: 340ms; }
+.swa-hero .swa-vitrine > *:nth-child(2) { animation-delay: 430ms; }
+.swa-hero .swa-vitrine > *:nth-child(3) { animation-delay: 520ms; }
+.swa-hero .swa-vitrine > *:nth-child(4) { animation-delay: 610ms; }
+.swa-hero .swa-indice                   { animation: moSurge var(--mo-longo) var(--mo-ease) 820ms both; }
+
+/* ============================================================================
+   3. IMAGEM RESPIRANDO (§6)
+   Expansão e retorno num laço muito lento, em `alternate`: a volta usa o mesmo
+   caminho da ida, então não existe salto de reinício. Escala mínima para não
+   recortar rosto, produto nem borda da fotografia.
+   ========================================================================= */
+
+/* Usam a propriedade `scale`, não `transform`: assim o laço não briga com o
+   reveal nem com o hover, que vivem em `transform`. */
+@keyframes moRespira       { from { scale: 1; }    to { scale: 1.05; } }
+@keyframes moRespiraFundo  { from { scale: 1.03; } to { scale: 1.085; } }
+
+/* Fotos do herói da Home usam a propriedade `scale` (o `transform` está livre
+   para o reveal) e já vivem dentro de .scw-hero__fotos, que corta o excedente. */
+.scw-hero__foto.is-ativa {
+  animation: moRespiraFundo var(--mo-respiro) var(--mo-suave) infinite alternate;
+}
+/* Cartão do herói de Participar/Apoiar: overflow:hidden vem de .scw-hero-cartao. */
+.scw-hero-cartao__foto.is-ativa {
+  animation: moRespira var(--mo-respiro) var(--mo-suave) infinite alternate;
+}
+
+/* Molduras que já cortam o excedente — a foto respira, a caixa fica parada.
+   Poucos pontos por página: laço em toda imagem viraria poluição (§14) e custo
+   de compositor à toa (§23). No celular, nenhum: a rolagem vem primeiro (§21). */
+@media (min-width: 1001px) {
+  .hm-rota__foto img { animation: moRespira var(--mo-respiro) var(--mo-suave) infinite alternate; }
+}
+
+/* ============================================================================
+   4. HOVER, TOQUE E FOCO (§10) — resposta imediata, deslocamento mínimo.
+   Nada aqui move o alvo o bastante para o ponteiro escapar dele.
+   ========================================================================= */
+
+.scw-btn { transition:
+    background   var(--mo-rapido) var(--mo-ease),
+    color        var(--mo-rapido) var(--mo-ease),
+    border-color var(--mo-rapido) var(--mo-ease),
+    transform    var(--mo-rapido) var(--mo-mola),
+    box-shadow   var(--mo-rapido) var(--mo-ease); }
+.scw-btn:hover  { transform: translateY(-2px); }
+.scw-btn:active { transform: translateY(0) scale(.985); }
+.scw-btn svg    { transition: transform var(--mo-estado) var(--mo-mola); }
+.scw-btn:hover svg { transform: translateX(4px); }
+
+/* Links de texto com seta (o vocabulário `__cta` / `__link` se repete no site) */
+.hm-link svg,
+.hm-rota__cta svg,
+.hm-voz__link svg,
+.ctt-porta__link svg,
+.pa-cabeca__link svg { transition: transform var(--mo-estado) var(--mo-mola); }
+.hm-link:hover svg,
+.hm-rota__cta:hover svg,
+.hm-voz__link:hover svg,
+.ctt-porta__link:hover svg,
+.pa-cabeca__link:hover svg { transform: translateX(5px); }
+
+/* Cards que levam a algum lugar — e só esses. Card sem link não recebe hover:
+   elevação sem destino é decoração (§5) e promete uma ação que não existe.
+   `.hm-etapa`, `.pa-card`, `.pa-depo` e as fotos das galerias ficam de fora
+   de propósito. */
+.hm-rota,
+.ctt-porta {
+  transition: transform var(--mo-estado) var(--mo-mola),
+              box-shadow var(--mo-estado) var(--mo-ease);
+}
+.hm-rota:hover,
+.ctt-porta:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(61, 19, 8, .16); }
+
+/* Linhas e botões que abrem conteúdo (matérias, acordeões) */
+.hm-materia,
+.hm-linha,
+.ctt-item__botao,
+.swa-edicao__botao { transition: background var(--mo-estado) var(--mo-ease), color var(--mo-rapido) var(--mo-ease); }
+.hm-materia__foto img { transition: scale var(--mo-longo) var(--mo-ease); }
+.hm-materia:hover .hm-materia__foto img { scale: 1.05; }
+.swa-edicao__seta,
+.ctt-item__sinal { transition: transform var(--mo-estado) var(--mo-mola); }
+
+/* Toque: onde não há ponteiro, o hover vira resposta ao apertar (§5, §21). */
+@media (hover: none) {
+  .hm-rota:hover,
+  .ctt-porta:hover,
+  .scw-btn:hover { transform: none; box-shadow: none; }
+  .scw-btn:hover svg,
+  .hm-link:hover svg,
+  .hm-rota__cta:hover svg,
+  .hm-voz__link:hover svg,
+  .ctt-porta__link:hover svg,
+  .pa-cabeca__link:hover svg { transform: none; }
+  .hm-materia:hover .hm-materia__foto img { scale: 1; }
+
+  .hm-rota:active,
+  .ctt-porta:active,
+  .scw-btn:active { transform: scale(.985); }
+}
+
+/* ============================================================================
+   5. TRANSIÇÃO ENTRE PÁGINAS (§12)
+   `main` remonta a cada rota (key={route} no App), então basta uma animação de
+   entrada. Sem transform: `transform` em <main> criaria bloco de contenção e
+   quebraria os elementos `position: fixed` de dentro das páginas (a régua de
+   anos de Edições, por exemplo). Opacidade só — rápido e sem corte seco.
+   A continuidade de identidade fica por conta da barra de 5px sob o cabeçalho,
+   que troca de cor em 320ms (scw-2026.css) — elemento que já existe.
+   ========================================================================= */
+
+@keyframes moPagina { from { opacity: 0; } to { opacity: 1; } }
+main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
+
+/* ---- Cabeçalho ao rolar (§11) -------------------------------------------
+   Só a densidade do véu muda — nada de encolher altura nem mover a logo, que
+   transborda metade abaixo da linha por regra estrutural (CLAUDE.md §4.1).
+   O véu do topo continua como está; ao rolar entra uma segunda camada chocolate
+   por cima dele (mesma técnica de z-index de .scw-header__veu). */
+.scw-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(61, 19, 8, .38);
+  opacity: 0;
+  transition: opacity var(--mo-estado) var(--mo-ease);
+}
+.scw-header.is-rolado::before { opacity: 1; }
+
+/* ============================================================================
+   6. MENU MOBILE — fechar também é movimento (§11)
+   A folha entra por scwFolha (scw-2026.css). O componente marca `is-fechando`
+   e só desmonta ao fim da animação.
+   ========================================================================= */
+
+@keyframes moFolhaSai { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(100%); } }
+@keyframes moVeuSai   { from { opacity: 1; } to { opacity: 0; } }
+
+/* `pointer-events: none` enquanto sai: a folha ainda está na tela, mas já não
+   é alvo de clique — ninguém acerta um link que está indo embora. */
+.scw-folha.is-fechando     { animation: moFolhaSai 260ms var(--mo-ease) both; pointer-events: none; }
+.scw-folha-veu.is-fechando { animation: moVeuSai 260ms var(--mo-ease) both; pointer-events: none; }
+
+/* Itens do menu entram em sequência curta — convite, não espera. */
+.scw-folha__nav > a { animation: moSobeCurto var(--mo-estado) var(--mo-mola) both; }
+.scw-folha__nav > a:nth-child(1) { animation-delay:  60ms; }
+.scw-folha__nav > a:nth-child(2) { animation-delay: 100ms; }
+.scw-folha__nav > a:nth-child(3) { animation-delay: 140ms; }
+.scw-folha__nav > a:nth-child(4) { animation-delay: 180ms; }
+.scw-folha__nav > a:nth-child(5) { animation-delay: 220ms; }
+.scw-folha__nav > a:nth-child(6) { animation-delay: 260ms; }
+.scw-folha.is-fechando .scw-folha__nav > a { animation: none; }
+
+/* ============================================================================
+   7. ACESSIBILIDADE (§22)
+   O motor nem liga sob prefers-reduced-motion (não adiciona `.scw-mo-on`, então
+   nada fica oculto). Este bloco cobre o que é puro CSS: laços, heróis e menu.
+   O reset global de duração vive em scw-2026.css (`.scw-raiz *`).
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mo],
+  [data-mo-grade] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  /* Heróis, laços de respiração, menu e transição de página: sem movimento,
+     conteúdo já no estado final. */
+  .scw-hero *,
+  .pa-hero *,
+  .ctt-abertura *,
+  .swa-hero *,
+  .scw-folha__nav > a,
+  .scw-folha.is-fechando,
+  .scw-folha-veu.is-fechando,
+  .scw-hero__foto.is-ativa,
+  .scw-hero-cartao__foto.is-ativa,
+  .mo-respira,
+  main.page-enter {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  /* As fotos empilhadas do herói continuam trocando por opacidade — só a ativa
+     é visível, senão as quatro apareceriam sobrepostas. */
+  .scw-hero__foto:not(.is-ativa),
+  .scw-hero-cartao__foto:not(.is-ativa) { opacity: 0; }
+
+  .scw-btn:hover,
+  .scw-btn:hover svg,
+  .hm-rota:hover,
+  .ctt-porta:hover { transform: none; }
+  .hm-materia:hover .hm-materia__foto img { scale: 1; }
+  .hm-rota__foto img { animation: none; scale: 1; }
+}

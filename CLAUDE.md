@@ -52,13 +52,16 @@ veto:
   o pedido é global. Ver `AI_RULES.md` §2.4.
 
 **Motion é base, não bloqueio.** Quando o usuário pedir transições, movimento,
-microinterações ou animação, **implementar** usando ou expandindo o motion system: (1)
-reusar as classes existentes quando bastarem; (2) criar novas classes de movimento
-quando a experiência pedir, sempre consumindo os tokens de motion
-(`src/styles/layout-tokens.css`); (3) animar só `transform`, `opacity` e `filter`, sem
-layout shift; (4) respeitar `prefers-reduced-motion`; (5) não instalar biblioteca de
-animação nova sem justificativa. A existência de `motion-system.css` **não** significa
+microinterações ou animação, **implementar** usando ou expandindo o sistema de
+movimento — `src/styles/scw-motion.css` + `src/hooks/useSiteMotion.js` (jul/2026;
+`motion-system.css` é o sistema anterior e só serve à landing `/em-breve`): (1)
+reusar os atributos/classes existentes quando bastarem; (2) criar peças novas
+sempre consumindo os tokens `--mo-*`; (3) animar só `transform`, `opacity`,
+`filter` e `scale`, sem layout shift; (4) respeitar `prefers-reduced-motion`; (5)
+não instalar biblioteca de animação nova sem justificativa; (6) hover só onde
+existe ação — card sem link não sobe. A existência do sistema **não** significa
 que novas transições são proibidas — significa que há uma base pronta para partir.
+Detalhamento completo (tokens, motor, armadilhas): `docs/GUIA-VISUAL.md` §12.
 
 **Se a regra estiver desatualizada ou contradizer o código, parar e avisar** — dizer
 qual regra conflita, qual é o estado real do código, qual atualização será feita e como
@@ -560,6 +563,9 @@ calibrados. *(A escala anterior — 1080 · 960 · 720 · 560 · 420, com reflow
 8. Desktop e mobile funcionam (breakpoints do §17; sem rolagem horizontal).
 9. Rodar build de verificação **fora do projeto** (ver "Build de verificação" abaixo).
 10. Rodar lint/typecheck se existir.
+11. Mexeu em movimento/animação? `npm run build && npm run test:motion` — reprova
+    herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de
+    console e desrespeito a `prefers-reduced-motion`, nas 6 páginas × 2 telas.
 
 ## 19. Como registrar novas preferências
 
@@ -587,6 +593,7 @@ reintroduzir as antigas**:
 | Trilho `--hm-gutter` full-width | Trilho único de 1360px `--scw-trilho` (§4) |
 | Breakpoints 1080·960·720·560·420 | 1000·900·820·760·420 (§17) |
 | Edições "Cinema da Década" | Edições tela cheia com cena de 100vh (§10) |
+| Movimento em `motion-system.css` | `scw-motion.css` + `useSiteMotion.js`; o antigo só serve `/em-breve` |
 
 O que **não** mudou e segue absoluto: proteção de branch e deploy, URLs de QR Code,
 flags de publicação, "não inventar dados", separação institucional × Lovers, nomenclatura
@@ -655,8 +662,10 @@ src/
   data/         # editions.js, sweetCoffeeHistory.js, loversAwardsResults.js,
                 # participants.js, sweetAwards.js, participantAssets.js, editionAssets.js,
                 # faqCentral.js (93 dúvidas), handoff/{edicoesData,awardsData}.js
-  hooks/        # useRevealOnScroll.js (IntersectionObserver, threshold 0)
+  hooks/        # useSiteMotion.js (motor de movimento do institucional),
+                # useRevealOnScroll.js (sistema anterior, só /em-breve)
   styles/scw-2026.css   # SISTEMA VISUAL ATUAL: tokens --scw-*, casca, utilitárias
+  styles/scw-motion.css # MOVIMENTO: tokens --mo-*, reveal, heróis, hover, páginas
   styles/scw-<pagina>.css  # CSS específico de cada página do redesign
   styles.css    # sistema anterior (route-* / --page-accent) — legado, editar com cuidado
   styles/       # motion-system.css, lovers-system.css, etc.

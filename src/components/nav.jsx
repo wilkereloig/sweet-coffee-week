@@ -53,6 +53,26 @@ export function ChaveIcon(props) {
 }
 
 export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
+  // Rolou → o véu do cabeçalho fecha, para o menu não competir com a foto que
+  // passa por baixo. Só a opacidade do véu muda: a geometria (padding de 50px,
+  // logo transbordando metade abaixo da linha) é regra estrutural do §4.1 e
+  // encolher o cabeçalho tiraria a logo do lugar.
+  const [rolado, setRolado] = React.useState(false)
+  React.useEffect(() => {
+    let pedido = 0
+    const medir = () => {
+      pedido = 0
+      setRolado(window.scrollY > 40)
+    }
+    const aoRolar = () => { if (!pedido) pedido = window.requestAnimationFrame(medir) }
+    medir()
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', aoRolar)
+      if (pedido) window.cancelAnimationFrame(pedido)
+    }
+  }, [])
+
   const go = (href) => (e) => {
     e.preventDefault()
     navigate(href.replace('#', ''))
@@ -60,7 +80,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
   }
 
   return (
-    <header className="scw-header">
+    <header className={'scw-header' + (rolado ? ' is-rolado' : '')}>
       <div className="scw-header__veu" aria-hidden="true" />
       <div className="scw-header__linha">
         <a href="#/" className="scw-marca" onClick={go('#/')}>

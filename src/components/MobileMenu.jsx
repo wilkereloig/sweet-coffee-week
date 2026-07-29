@@ -9,8 +9,29 @@ import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
  * Esc fecha, trava o scroll do fundo e devolve o foco ao gatilho.
  * Spec: design_handoff_site_institucional/README.md (§ Menu mobile).
  */
+/* Duração de saída da folha — espelha .scw-folha.is-fechando em scw-motion.css. */
+const SAIDA = 260
+
 export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
   const folhaRef = React.useRef(null)
+  // A folha entra por animação mas sumia seca ao fechar. Ela sobrevive ao
+  // `open: false` pelo tempo da animação de saída e só então desmonta.
+  const [montada, setMontada] = React.useState(open)
+  const [fechando, setFechando] = React.useState(false)
+
+  React.useEffect(() => {
+    if (open) { setMontada(true); setFechando(false); return }
+    if (!montada) return
+    const semMovimento =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (semMovimento) { setMontada(false); return }
+    setFechando(true)
+    const t = window.setTimeout(() => { setMontada(false); setFechando(false) }, SAIDA)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   React.useEffect(() => {
     if (!open) return
@@ -43,7 +64,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
     }
   }, [open, onClose])
 
-  if (!open) return null
+  if (!montada) return null
 
   const ir = (href) => (e) => {
     e.preventDefault()
@@ -54,8 +75,19 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
 
   return (
     <>
-      <div className="scw-folha-veu" aria-hidden="true" onClick={onClose} />
-      <div className="scw-folha" role="dialog" aria-modal="true" aria-label="Menu de navegação" ref={folhaRef}>
+      <div
+        className={'scw-folha-veu' + (fechando ? ' is-fechando' : '')}
+        aria-hidden="true"
+        onClick={onClose}
+      />
+      <div
+        className={'scw-folha' + (fechando ? ' is-fechando' : '')}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navegação"
+        aria-hidden={fechando ? 'true' : undefined}
+        ref={folhaRef}
+      >
         <span className="scw-folha__puxador" aria-hidden="true" />
 
         <div className="scw-folha__topo">

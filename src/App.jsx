@@ -9,6 +9,7 @@ import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
+import { useSiteMotion } from './hooks/useSiteMotion'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
@@ -151,6 +152,13 @@ export default function App() {
   // geometria) — header, barra de página e rodapé saem; a tab bar continua.
   const showShell = !isInternal && route !== 'edicoes'
 
+  // Motor de movimento (src/hooks/useSiteMotion.js): um único ponto para todas
+  // as institucionais. Fica de fora de Edições, que tem coreografia própria de
+  // apresentação, e dos painéis internos, que são ferramenta de trabalho.
+  const conteudoRef = React.useRef(null)
+  const comMovimento = !isInternal && route !== 'edicoes'
+  useSiteMotion(conteudoRef, [route, comMovimento], comMovimento)
+
   return (
     <DevViewportSwitcher>
       <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
@@ -168,7 +176,7 @@ export default function App() {
         )}
         {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
             legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
-        <main id="conteudo" key={route} className="page-enter">
+        <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
           <ErrorBoundary key={route}>
             <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
               {page}

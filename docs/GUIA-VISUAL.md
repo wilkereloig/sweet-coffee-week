@@ -529,29 +529,88 @@ leitura clara, botões tocáveis, grids em coluna, logos e fotos proporcionais.
 
 ## 12. Movimento
 
-Base em `src/styles/motion-system.css`, com os knobs (duração, easing,
-deslocamento) centralizados em `src/styles/layout-tokens.css`. Easing do sistema
-2026: `--scw-ease: cubic-bezier(.22, .9, .24, 1)`.
+**Fonte única do institucional: `src/styles/scw-motion.css` + o motor
+`src/hooks/useSiteMotion.js`** (jul/2026). `src/styles/motion-system.css` é o
+sistema ANTERIOR e sobrevive só para a landing `/em-breve` — não usar em página
+nova.
 
-Regras para criar movimento novo:
+### Ritmo (uma escala, quatro degraus)
 
-1. reusar as classes existentes quando bastarem;
-2. classes novas sempre consumindo os tokens de motion;
-3. animar **só** `transform`, `opacity` e `filter` — sem layout shift;
+| Token | Valor | Onde |
+| --- | --- | --- |
+| `--mo-rapido` | 180ms | botão, link, ícone |
+| `--mo-estado` | 300ms | hover de card, acordeão, cabeçalho, menu |
+| `--mo-entra` | 620ms | entrada de texto, bloco e card |
+| `--mo-longo` | 880ms | herói e imagem grande |
+| `--mo-passo` | 90ms | intervalo entre itens de uma sequência |
+| `--mo-passo-card` | 70ms | card a card dentro de uma grade |
+| `--mo-respiro` | 26s | laço de respiração da imagem |
+
+Curvas: `--mo-ease` (saída suave, = `--scw-ease`), `--mo-mola` (chegada que
+pousa), `--mo-suave` (laços de ida e volta). Deslocamento: `--mo-y` 22px,
+`--mo-y-titulo` 30px, `--mo-y-texto` 14px, `--mo-x` 26px, `--mo-desfoque` 6px.
+Abaixo de 900px todos encolhem e o desfoque zera.
+
+### Como o motor decide
+
+O JSX **não** carrega classe de animação. `useSiteMotion` varre a página, guarda
+só a ocorrência mais externa de cada ramo (um `<p>` dentro de um card dentro de
+uma grade não é item próprio — a grade é) e carimba:
+
+- `data-mo="sobe|titulo|texto|foto|lado"` — o tipo de entrada;
+- `--mo-i` — posição na sequência. **Reinicia a cada `<section>` e a cada
+  rótulo** (`.scw-rotulo`), que é a "identificação da seção" da ordem de leitura;
+- `data-mo-grade` + `--mo-j` nos filhos — cards entram um a um (teto de 8
+  degraus: lista longa não vira espera).
+
+Fica de fora: heróis (coreografados por `@keyframes`, estão acima da dobra),
+página Edições (apresentação própria), painéis internos, `.ctt-perguntas` e
+formulários (áreas de concentração), e qualquer elemento `position: fixed` ou
+`sticky` — barra presa à base nunca entra na zona de disparo do observer e
+ficaria invisível para sempre.
+
+**Salvaguarda:** o estado oculto só existe sob `html.scw-mo-on`, classe que o
+próprio motor adiciona. Script que não carrega, navegador sem
+`IntersectionObserver` ou `prefers-reduced-motion` ligado → nada é escondido.
+
+### Regras para criar movimento novo
+
+1. reusar as classes/atributos existentes quando bastarem;
+2. classes novas sempre consumindo os tokens `--mo-*`;
+3. animar **só** `transform`, `opacity`, `filter` e `scale` — sem layout shift;
 4. respeitar `prefers-reduced-motion`;
-5. não instalar biblioteca de animação nova sem justificativa.
+5. não instalar biblioteca de animação nova sem justificativa;
+6. hover só onde existe ação. Card sem link não sobe: elevação sem destino é
+   decoração (§5 do CLAUDE.md) e promete algo que não acontece.
 
-A existência do motion system **não** significa que transições novas são
-proibidas — significa que há base pronta para partir.
+### Movimentos em produção
 
-Movimentos em produção hoje (página Edições): ken burns `scale(1.06) →
-scale(1.001)` em 12s; wipe direcional de entrada (`clip-path: inset()`) de 820ms
-escalonado 0/110/220ms; deriva lenta do fundo em 46s.
+- **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140
+  a 760ms. Awards monta a vitrine card a card.
+- **Respiração da imagem** — laço `alternate` na propriedade `scale` (nunca em
+  `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo
+  caminho e não existe salto de reinício. Aplicado nas fotos dos heróis e, só no
+  desktop, nas três fotos de Rotas da Home.
+- **Transição de página** — `main.page-enter` em opacidade, 300ms. **Sem
+  transform de propósito**: `transform` em `<main>` criaria bloco de contenção e
+  quebraria os `position: fixed` de dentro das páginas (a régua de anos de
+  Edições). A continuidade de identidade fica com a barra de 5px sob o
+  cabeçalho, que já troca de cor em 320ms.
+- **Cabeçalho** — `.is-rolado` adensa o véu. Não encolhe altura nem move a logo:
+  a geometria é regra estrutural (§6 deste guia).
+- **Menu mobile** — entra por `scwFolha` com itens escalonados; sai por
+  `.is-fechando` (260ms) e só então desmonta.
+- **Edições** — ken burns `scale(1.06) → scale(1.001)` em 12s; wipe direcional
+  (`clip-path: inset()`) de 820ms escalonado 0/110/220ms; deriva de fundo em 46s.
 
 **Armadilhas conhecidas:** não usar `backdrop-filter` sobre trilho animado (blur
 + readback de GPU a cada frame congela o compositor — usar fundo semi-opaco); não
 colocar `transition` em `width`/`transform` de barra de progresso que precise de
-valor exato.
+valor exato; não pôr `transform` em `<main>` (ver acima).
+
+**Teste:** `npm run build && npm run test:motion` percorre as seis páginas em
+desktop e celular, com e sem `prefers-reduced-motion`, e reprova herói ilegível
+na abertura, reveal preso invisível, rolagem horizontal e erro de console.
 
 ---
 
@@ -636,7 +695,9 @@ Linha do tempo só como marcos/primeiras vezes, sem números de tamanho por edi�
 | Edições "Cinema da Década" | Edições tela cheia, cena de 100vh |
 | `src/styles/hero.css`, `src/styles/layout.css` | **Removidos** — classes `.scw-hero*` em `scw-2026.css` |
 | `components/layout/*` (PageShell, PageSection, SectionHeader, CardsGrid, CTASection, Hero) | **Removidos** — classes `.scw-secao`, `.scw-h2`, `.scw-grade` |
-| `components/motion/index.jsx`, `hooks/useReveal.js` | **Removidos** — `hooks/useRevealOnScroll.js` |
+| `components/motion/index.jsx`, `hooks/useReveal.js` | **Removidos** — `hooks/useRevealOnScroll.js`, hoje só na landing `/em-breve` |
+| `.photo-rotator`, `.brand-cycle`, `.hm-path`, `.hm-about__*`, `.motion-reveal-left/right`, `.motion-button-hover`, `.motion-press`, `.motion-float-soft` | **Removidos** de `motion-system.css` (jul/2026) — órfãos de componentes já apagados |
+| `motion-system.css` no institucional | `src/styles/scw-motion.css` + `src/hooks/useSiteMotion.js` |
 | `data/editions.js`, `editionHighlights.js`, `editionInsights.js`, `decadeCredits.js`, `homeGalleries.js`, `supportMetrics.js` | **Arquivados** em `src/data/_arquivo/` |
 
 `src/styles.css` e `src/styles/swc-redesign.css` são o sistema anterior. Seguem
@@ -656,8 +717,10 @@ SITEMAP.md                   ← rotas
 
 src/styles/scw-2026.css      ← SISTEMA VISUAL: tokens, casca, utilitárias
 src/styles/scw-<pagina>.css  ← peças de cada página
-src/styles/motion-system.css ← movimento
-src/styles/layout-tokens.css ← knobs de motion/layout
+src/styles/scw-motion.css    ← MOVIMENTO (tokens --mo-*, reveal, heróis, hover)
+src/hooks/useSiteMotion.js   ← motor de entrada (carimba data-mo + --mo-i)
+src/styles/motion-system.css ← movimento do sistema ANTERIOR (só /em-breve)
+src/styles/layout-tokens.css ← knobs de layout (e de motion do sistema anterior)
 src/styles/fonts-nexa-slab.css
 src/styles.css               ← sistema anterior (legado: /pesquisa + painéis)
 src/styles/swc-redesign.css  ← sistema anterior
