@@ -29,3 +29,6 @@ public/images/EDIÇÕES DO FESTIVAL/
 # Brainstorming visual companion (superpowers skill)
 .superpowers/
 tests/.snapshot-design/
+
+# Artefatos locais do Codex (prints de diagnostico + config de agente)
+.codex/
