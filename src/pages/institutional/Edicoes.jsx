@@ -13,8 +13,8 @@
  * e barra de progresso. Navega por setas do teclado, clique na trilha e arraste.
  *
  * Mobile: capítulo vertical (capa 4:5 com tema + carrossel do restante do
- * acervo em pares 1:1 + dados + palavras-chave + sanfonas de marcas e
- * curiosidades) e três peças de navegação: régua de anos fixa na base, setas
+ * acervo em pares 1:1 + dados + palavras-chave + sanfonas de marcas e do texto
+ * editorial) e três peças de navegação: régua de anos fixa na base, setas
  * laterais metade fora da tela e `disabled` (não só opacity) na seta sem
  * destino.
  *
@@ -33,69 +33,60 @@
  * aberta sozinha (prop `embutido`) — nunca um literal espalhado.
  *
  * Dados (regra: NÃO inventar): src/data/handoff/edicoesData.js (período,
- * participantes, curiosidades, premiação, preço, fotos) e editionMark() para a
- * marca da edição — o resolvedor do repo, porque o campo `logo` do handoff
- * aponta pra /images/editions/<code>.png, que não existe no acervo (os arquivos
- * reais são /images/editions/<code>/logo.png). Onde falta foto ou marca, fica
- * reserva editorial honesta. Texto editorial das cenas (tema, rótulo, frase,
- * palavras-chave) vem do handoff de design, transcrito abaixo.
+ * participantes, curiosidades, premiação, fotos) e editionMark() para a marca
+ * da edição — o resolvedor do repo, porque o campo `logo` do handoff aponta pra
+ * /images/editions/<code>.png, que não existe no acervo (os arquivos reais são
+ * /images/editions/<code>/logo.png). Onde falta foto ou marca, fica reserva
+ * editorial honesta.
+ *
+ * TEXTO: o `lead` de cada cena e os três blocos do painel editorial (marco,
+ * curiosidade, legado) vêm de src/data/edicoesNarrativa.js — fonte única, não
+ * duplicar aqui. Do handoff de design ficam só tema, etapa e palavras-chave.
+ * PREÇO não aparece na página (decisão do Wilke, jul/2026): nem a linha "Combo"
+ * da ficha, nem as curiosidades que só contam o valor do combo.
  */
 import React from 'react'
 import '../../styles/scw-edicoes.css'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
+import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
 import { editionPhotos, bgStyle } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
 import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
 
-// Texto editorial das 16 cenas (handoff de design — não inventar nem alterar).
+// Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
+// aqui — vem de EDICOES_NARRATIVA[code].lead.
 const EDS = [
   { code: '2016', tema: 'S&C / Início', etapa: 'A estreia',
-    lead: 'Idealizado pela jornalista Eline Eulália: um circuito de marcas locais, combo a preço único e um hábito novo — sair pela cidade para descobrir.',
     palavras: ['Xícara', 'Vitrine', 'Bolo', 'Balcão de cafeteria'] },
   { code: '2017.1', tema: 'Páscoa', etapa: 'Chocolate e presente',
-    lead: 'Chocolate, ovos e os símbolos pascais como ponto de partida — a data ganhou roteiro, descoberta e experimentação.',
     palavras: ['Ovos', 'Coelhos', 'Chocolate derretido', 'Cestas'] },
   { code: '2017.2', tema: 'Doces do Mundo', etapa: 'Viagem gastronômica',
-    lead: 'Países, culturas e sobremesas internacionais como inspiração: cada combo abria a chance de viajar sem sair de Natal.',
     palavras: ['Globo', 'Mala', 'Passaporte', 'Mapas'] },
   { code: '2018.1', tema: 'Namorados', etapa: 'Afeto à mesa',
-    lead: 'Combos pensados para dividir ou presentear, com chocolate, morango e cafés especiais — o festival virou programa a dois.',
     palavras: ['Corações', 'Mesa para dois', 'Envelopes', 'Fitas'] },
   { code: '2018.2', tema: 'Sabores da Infância', etapa: 'Memória afetiva',
-    lead: 'Lanche da escola, bolo de vó, festa infantil: a nostalgia entrou como ingrediente principal de cada criação.',
     palavras: ['Lancheira', 'Pirulito', 'Brinquedos', 'Bolo de vó'] },
   { code: '2019.1', tema: 'Pâtisserie Francesa', etapa: 'Técnica e elegância',
-    lead: 'Massas, cremes, folhados, macarons e éclairs: a tradição francesa elevou o padrão técnico e visual das criações.',
     palavras: ['Croissant', 'Éclair', 'Macaron', 'Vitrine francesa'] },
   { code: '2019.2', tema: 'Contos de Fadas', etapa: 'Imaginação',
-    lead: 'Castelos, poções e histórias clássicas: as lojas viraram cenário e cada combo, capítulo de uma narrativa encantada.',
     palavras: ['Castelos', 'Coroas', 'Livros mágicos', 'Estrelas'] },
   { code: '2020.1', tema: 'No Ritmo da Música', etapa: 'Trilha sonora',
-    lead: 'Gêneros, artistas e canções virando receita. No auge da pandemia, manteve as marcas visíveis e o público ligado ao comércio local.',
     palavras: ['Vinil', 'Microfone', 'Notas musicais', 'Palco'] },
   { code: '2020.2', tema: 'Heróis & Vilões', etapa: 'Cultura pop',
-    lead: 'Cultura pop no centro da mesa: doce e amargo, claro e escuro, nomes impactantes e sabores mais ousados.',
     palavras: ['Máscaras', 'Capas', 'Raios', 'Emblemas'] },
   { code: '2021.1', tema: 'Séries', etapa: 'Maratona de sabores',
-    lead: 'Comfort food, pipoca e café de maratona: o hábito de acompanhar temporadas virou território criativo.',
     palavras: ['Tela', 'Botão play', 'Sofá', 'Pipoca'] },
   { code: '2021.2', tema: 'Terras Potiguares', etapa: 'Identidade local',
-    lead: 'Castanha de caju, mel de Jandaíra e queijos artesanais no centro da criação, em parceria com o Sebrae-RN e produtores potiguares.',
     palavras: ['Caju', 'Castanha', 'Queijo coalho', 'Dunas'] },
   { code: '2022', tema: 'Movies', etapa: 'Cinema',
-    lead: 'Filmes, cenas marcantes e tapete vermelho: cada loja criou a sua sessão e o festival virou um cinema espalhado pela cidade.',
     palavras: ['Claquete', 'Ingresso', 'Projetor', 'Rolo de filme'] },
   { code: '2023', tema: 'Trip', etapa: 'Rota pelo mundo',
-    lead: 'Uma volta ao mundo pelo sabor: 33 endereços de Natal e Parnamirim escolheram um destino e o público montou o próprio percurso.',
     palavras: ['Mala', 'Avião', 'Bússola', 'Postal'] },
   { code: '2024', tema: 'Books', etapa: 'Literatura e café',
-    lead: 'A Livraria da Doçura: 29 combos em que o nome era o título, os ingredientes o enredo e a apresentação, o cenário.',
     palavras: ['Livro aberto', 'Marcador', 'Pena', 'Biblioteca'] },
   { code: '2025', tema: 'Celebration', etapa: 'Festa e rito',
-    lead: 'Carnaval, São João, aniversários e premiações: 26 estabelecimentos transformaram o gesto de celebrar em combo.',
     palavras: ['Confete', 'Balões', 'Convite', 'Bandeirinhas'] },
   { code: '2026.1', tema: 'Lovers', etapa: 'Especial 10 anos',
-    lead: 'Feito de amor, recriando sabores: dez anos com os Sweet Lovers no centro e temas antigos recriados por cada marca.',
     palavras: ['Stickers', 'Mapa', 'Câmera', 'Corações'] },
 ]
 const TOTAL = EDS.length
@@ -119,8 +110,13 @@ const PREMIACAO = {
   parcial: 'Premiação parcial',
 }
 
-const SEM_DADOS = { periodo: '', n: null, participantes: [], curiosidades: [], premiacao: null, fotos: [], preco: '' }
+const SEM_DADOS = { periodo: '', n: null, participantes: [], curiosidades: [], premiacao: null, fotos: [] }
 const pad2 = (n) => String(n).padStart(2, '0')
+
+/* Preço fora da página: as curiosidades que só contam o valor do combo saem da
+   lista (o valor mora no campo `v`, e o `x` dessas repete o mesmo número). Nada
+   é apagado em src/data — só deixa de ser exibido. */
+const semPreco = (c) => !/R\$/.test(`${c.x || ''} ${c.v || ''}`)
 
 const SetaEsq = (p) => (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
@@ -385,10 +381,70 @@ function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovim
   )
 }
 
+/* ============================================================================
+   PAINEL EDITORIAL — a mesma peça no desktop (dentro do painel flutuante) e no
+   celular (dentro da sanfona). Ordem de leitura: história do festival (só na
+   primeira cena), marco, curiosidade, legado e, por fim, os achados curtos do
+   acervo. É bem mais texto que antes, então quem rola é ESTE bloco no desktop
+   (`--painel`, com o topo do painel fixo) — a cena de 100vh não cresce.
+   Hierarquia: o <h1> da página é o tema da edição; aqui os rótulos são <h2>.
+   ========================================================================= */
+function Bloco({ rotulo, children }) {
+  return (
+    <section className="scw-edx__bloco">
+      <h2 className="scw-edx__bloco-rot">{rotulo}</h2>
+      {children}
+    </section>
+  )
+}
+
+function Editorial({ id, classe = '', narrativa, abertura, curiosidades }) {
+  return (
+    <div id={id} className={`scw-edx__editorial${classe ? ` ${classe}` : ''}`}>
+      {abertura && (
+        <Bloco rotulo="A história do festival">
+          <p className="scw-edx__bloco-lede">{abertura.titulo}</p>
+          {abertura.paragrafos.map((p) => (
+            <p key={p.slice(0, 32)} className="scw-edx__bloco-txt">{p}</p>
+          ))}
+        </Bloco>
+      )}
+      {narrativa.marco && (
+        <Bloco rotulo="Por que essa edição marcou a história">
+          <p className="scw-edx__bloco-txt">{narrativa.marco}</p>
+        </Bloco>
+      )}
+      {narrativa.curiosidade && (
+        <Bloco rotulo="Curiosidade">
+          <p className="scw-edx__bloco-txt">{narrativa.curiosidade}</p>
+        </Bloco>
+      )}
+      {narrativa.legado && (
+        <Bloco rotulo="O que ficou">
+          <p className="scw-edx__bloco-txt">{narrativa.legado}</p>
+        </Bloco>
+      )}
+      {curiosidades.length > 0 && (
+        <Bloco rotulo={`Do acervo · ${curiosidades.length}`}>
+          <ul className="scw-edx__curios">
+            {curiosidades.map((c) => (
+              <li key={c.t}>
+                <b>{c.t}</b>
+                <span className="scw-edx__curios-x">{c.x}</span>
+                {c.v ? <span className="scw-edx__curios-v">{c.v}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </Bloco>
+      )}
+    </div>
+  )
+}
+
 export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpen }) {
   const [i, setI] = React.useState(0)
   const [dir, setDir] = React.useState(1)
-  const [painel, setPainel] = React.useState(null)   // 'participantes' | 'curiosidades' | null
+  const [painel, setPainel] = React.useState(null)   // 'participantes' | 'editorial' | null
   const [estreito, setEstreito] = React.useState(false)
   const semMovimento = useSemMovimento()
 
@@ -399,8 +455,16 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
   // Acervo inteiro da edição (11–12 fotos), na ordem do acervo e com alt e
   // ponto focal prontos — fonte única em src/data/imageLibrary.js.
   const fotos = React.useMemo(() => editionPhotos(e.code), [e.code])
-  const curiosidades = d.curiosidades || []
+  const curiosidades = React.useMemo(() => (d.curiosidades || []).filter(semPreco), [d])
   const participantes = d.participantes || []
+  // Texto longo: fonte única em src/data/edicoesNarrativa.js. A abertura (a
+  // história do festival em três parágrafos) entra pela PRIMEIRA cena — a
+  // apresentação é a página, não existe hero separada pra contextualizar.
+  const narrativa = EDICOES_NARRATIVA[e.code] || {}
+  const abertura = i === 0 ? ABERTURA : null
+  const rotuloEditorial = abertura ? 'A história do festival' : 'Marcos, curiosidades e legado'
+  const temEditorial = !!(abertura || narrativa.marco || narrativa.curiosidade
+    || narrativa.legado || curiosidades.length)
   const nParticipantes = d.n != null ? d.n : '—'
   const premiacao = PREMIACAO[d.premiacao] || 'A conferir'
 
@@ -478,12 +542,12 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
   // ---- foco dos painéis (abre no fechar, volta ao gatilho) ----------------
   const btnParticipantes = React.useRef(null)
-  const btnCuriosidades = React.useRef(null)
+  const btnEditorial = React.useRef(null)
   const fecharRef = React.useRef(null)
   const gatilho = React.useRef(null)
   React.useEffect(() => {
     if (painel) {
-      gatilho.current = painel === 'participantes' ? btnParticipantes.current : btnCuriosidades.current
+      gatilho.current = painel === 'participantes' ? btnParticipantes.current : btnEditorial.current
       if (fecharRef.current) fecharRef.current.focus()
     } else if (gatilho.current) {
       gatilho.current.focus()
@@ -541,7 +605,6 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
       <div><dt>Período</dt><dd>{d.periodo || 'período não encontrado'}</dd></div>
       <div><dt>Marcas</dt><dd>{nParticipantes} participantes</dd></div>
       <div><dt>Sweet Awards</dt><dd>{premiacao}</dd></div>
-      {d.preco ? <div><dt>Combo</dt><dd>{d.preco}</dd></div> : null}
     </>
   )
 
@@ -594,7 +657,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
             />
 
             <div className="scw-edx-mob__corpo">
-              <p className="scw-edx-mob__lead" key={`lead-${e.code}`}>{e.lead}</p>
+              <p className="scw-edx-mob__lead" key={`lead-${e.code}`}>{narrativa.lead}</p>
 
               <dl className="scw-edx-mob__meta">{meta}</dl>
 
@@ -616,28 +679,26 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                 <ul className="scw-edx-mob__lista" id="scw-edx-marcas">{listaMarcas}</ul>
               )}
 
-              {curiosidades.length > 0 && (
+              {temEditorial && (
                 <button
                   type="button"
                   className="scw-edx-mob__sanfona scw-edx-mob__sanfona--vazada"
-                  aria-expanded={painel === 'curiosidades'}
-                  aria-controls="scw-edx-curios"
-                  onClick={() => setPainel((p) => (p === 'curiosidades' ? null : 'curiosidades'))}
+                  aria-expanded={painel === 'editorial'}
+                  aria-controls="scw-edx-editorial"
+                  onClick={() => setPainel((p) => (p === 'editorial' ? null : 'editorial'))}
                 >
-                  <span>Curiosidades desta edição · {curiosidades.length}</span>
+                  <span>{rotuloEditorial}</span>
                   <span className="scw-edx-mob__chevron"><Chevron width={15} height={15} /></span>
                 </button>
               )}
-              {painel === 'curiosidades' && (
-                <ul className="scw-edx-mob__curios" id="scw-edx-curios">
-                  {curiosidades.map((c) => (
-                    <li key={c.t}>
-                      <b>{c.t}</b>
-                      <span>{c.x}</span>
-                      {c.v ? <em>{c.v}</em> : null}
-                    </li>
-                  ))}
-                </ul>
+              {painel === 'editorial' && (
+                <Editorial
+                  id="scw-edx-editorial"
+                  classe="scw-edx__editorial--cartao"
+                  narrativa={narrativa}
+                  abertura={abertura}
+                  curiosidades={curiosidades}
+                />
               )}
             </div>
           </div>
@@ -777,7 +838,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
           <div className="scw-edx__coluna">
             <span className="scw-edx__rotulo">{e.etapa}</span>
             <h1 className="scw-edx__tema">{e.tema}</h1>
-            <p className="scw-edx__lead">{e.lead}</p>
+            <p className="scw-edx__lead">{narrativa.lead}</p>
             <dl className="scw-edx__meta">{meta}</dl>
 
             <div className="scw-edx__acoes">
@@ -792,16 +853,16 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                 Ver participantes · {nParticipantes}
                 <SetaDir width={15} height={15} />
               </button>
-              {curiosidades.length > 0 && (
+              {temEditorial && (
                 <button
                   type="button"
-                  ref={btnCuriosidades}
+                  ref={btnEditorial}
                   className="scw-edx__botao scw-edx__botao--vazado"
-                  aria-expanded={painel === 'curiosidades'}
+                  aria-expanded={painel === 'editorial'}
                   aria-controls="scw-edx-painel"
-                  onClick={() => setPainel((p) => (p === 'curiosidades' ? null : 'curiosidades'))}
+                  onClick={() => setPainel((p) => (p === 'editorial' ? null : 'editorial'))}
                 >
-                  Curiosidades · {curiosidades.length}
+                  {rotuloEditorial}
                   <Mais width={15} height={15} />
                 </button>
               )}
@@ -830,29 +891,28 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
             </aside>
           )}
 
-          {painel === 'curiosidades' && (
+          {painel === 'editorial' && (
             <aside
               className="scw-edx__painel scw-edx__painel--escuro"
               id="scw-edx-painel"
               role="region"
-              aria-label={`Curiosidades da edição ${e.tema}`}
+              aria-label={abertura ? 'A história do festival e a edição de 2016' : `Sobre a edição ${e.tema}`}
               onKeyDown={(ev) => { if (ev.key === 'Escape') setPainel(null) }}
             >
               <div className="scw-edx__painel-topo">
-                <span className="scw-edx__painel-rot">Curiosidades desta edição</span>
+                <span className="scw-edx__painel-rot">
+                  {abertura ? 'A história do Sweet & Coffee Week' : `Sobre a edição · ${e.code}`}
+                </span>
                 <button type="button" ref={fecharRef} className="scw-edx__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
                   <XisFechar width={15} height={15} />
                 </button>
               </div>
-              <ul className="scw-edx__curios">
-                {curiosidades.map((c) => (
-                  <li key={c.t}>
-                    <b>{c.t}</b>
-                    <span className="scw-edx__curios-x">{c.x}</span>
-                    {c.v ? <span className="scw-edx__curios-v">{c.v}</span> : null}
-                  </li>
-                ))}
-              </ul>
+              <Editorial
+                classe="scw-edx__editorial--painel"
+                narrativa={narrativa}
+                abertura={abertura}
+                curiosidades={curiosidades}
+              />
             </aside>
           )}
         </div>

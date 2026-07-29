@@ -456,8 +456,12 @@
   background: var(--scw-card);
   color: var(--scw-choco);
 }
+/* O painel editorial carrega texto longo (história do festival, marco,
+   curiosidade, legado e achados do acervo): um pouco mais largo e mais alto que
+   o de participantes, mas ainda dentro da cena — quem rola é o corpo. */
 .scw-edx__painel--escuro {
-  width: min(580px, 48vw);
+  width: min(640px, 50vw);
+  max-height: min(70vh, 640px);
   background: var(--scw-choco);
   color: var(--scw-creme);
   border: 1px solid rgba(254, 240, 221, .24);
@@ -524,24 +528,74 @@
   border-radius: 50%;
   background: var(--scw-edx-tom);
 }
+/* --- corpo editorial (mesma peça no painel do desktop e na sanfona do mobile)
+   Fundo chocolate nos dois contextos, então cor de texto é uma só. O filete da
+   cor da edição à esquerda separa os blocos sem virar caixa dentro de caixa. */
+.scw-edx__editorial {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2vw, 26px);
+}
+/* No painel flutuante ESTE bloco é o que rola — o topo (rótulo + fechar) fica
+   parado e a cena de 100vh não cresce. `min-height:0` porque em coluna flex o
+   padrão `auto` impede o filho de encolher e o scroll nunca aparece. */
+.scw-edx__editorial--painel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 6px clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.scw-edx__editorial--cartao {
+  margin: 10px 0 0;
+  padding: 20px;
+  border-radius: var(--scw-r-card);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  animation: scwEdxPainel 300ms var(--scw-ease) both;
+}
+
+.scw-edx__bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 2px solid var(--scw-edx-tom);
+}
+.scw-edx__bloco-rot {
+  margin: 0;
+  font: 800 11px/1.35 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-edx-tom-txt);
+  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__bloco-lede {
+  margin: 0;
+  font: 900 clamp(18px, 1.5vw, 22px)/1.15 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+  color: var(--scw-creme);
+}
+.scw-edx__bloco-txt {
+  margin: 0;
+  font: 500 15px/1.6 var(--scw-font);
+  color: rgba(254, 240, 221, .86);
+  text-wrap: pretty;
+}
+
 .scw-edx__curios {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   margin: 0;
-  padding: 10px clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px);
-  overflow-y: auto;
+  padding: 0;
 }
-.scw-edx__curios li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-left: 16px;
-  border-left: 2px solid var(--scw-edx-tom);
-}
-.scw-edx__curios b { font: 900 17px/1.15 var(--scw-font-black); letter-spacing: -.02em; }
-.scw-edx__curios-x { font: 500 14.5px/1.5 var(--scw-font); color: rgba(254, 240, 221, .84); text-wrap: pretty; }
+.scw-edx__curios li { display: flex; flex-direction: column; gap: 5px; }
+.scw-edx__curios b { font: 900 15.5px/1.2 var(--scw-font-black); letter-spacing: -.02em; }
+.scw-edx__curios-x { font: 500 14.5px/1.55 var(--scw-font); color: rgba(254, 240, 221, .84); text-wrap: pretty; }
 .scw-edx__curios-v { font: 800 12px/1.2 var(--scw-font); letter-spacing: .06em; color: var(--scw-edx-tom-txt); }
 
 /* --- rodapé: trilha das 16 edições, setas e progresso ---------------------- */
@@ -901,32 +955,8 @@
   border-bottom: 1px solid rgba(61, 19, 8, .07);
 }
 .scw-edx-mob__lista li:last-child { border-bottom: 0; }
-.scw-edx-mob__curios {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 10px 0 0;
-  padding: 20px;
-  border-radius: var(--scw-r-card);
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-  animation: scwEdxPainel 300ms var(--scw-ease) both;
-}
-.scw-edx-mob__curios li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-left: 14px;
-  border-left: 2px solid var(--scw-edx-tom);
-}
-.scw-edx-mob__curios b { font: 900 16px/1.15 var(--scw-font-black); }
-.scw-edx-mob__curios span { font: 500 14.5px/1.5 var(--scw-font); color: rgba(254, 240, 221, .82); }
-.scw-edx-mob__curios em {
-  font: 800 12px/1.2 var(--scw-font);
-  font-style: normal;
-  color: var(--scw-edx-tom-txt);
-}
+/* O texto editorial do celular usa a MESMA peça do desktop
+   (.scw-edx__editorial--cartao) — não há mais lista de curiosidades própria. */
 
 /* --- peça 1: régua de anos fixa na base ----------------------------------- */
 .scw-edx-mob__regua {

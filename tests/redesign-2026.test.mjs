@@ -198,6 +198,15 @@ test('os números citados no texto editorial batem com a base', async () => {
   for (const [code, e] of Object.entries(EDICOES_DADOS)) {
     for (const c of e.curiosidades || []) conferir(code, 'curiosidade', `${c.t} ${c.x}`)
   }
+  // Texto longo da página Edições — a transcrição corrigiu os números que o
+  // texto de origem trazia errados (11 → 13, "mais de trinta" → 30, 32 → 33).
+  const { EDICOES_NARRATIVA, ABERTURA } = await import('../src/data/edicoesNarrativa.js')
+  for (const [code, n] of Object.entries(EDICOES_NARRATIVA)) {
+    for (const campo of ['lead', 'marco', 'curiosidade', 'legado']) {
+      conferir(code, `narrativa/${campo}`, n[campo] || '')
+    }
+  }
+  conferir('2016', 'abertura', ABERTURA.paragrafos.join(' '))
   for (const e of AWARDS_DADOS.edicoes || []) conferir(e.code, 'nota do Awards', e.nota || '')
   for (const m of leads.matchAll(/\{ code: '([^']+)',[\s\S]*?lead: '([^']*)'/g)) conferir(m[1], 'lead da cena', m[2])
 })
