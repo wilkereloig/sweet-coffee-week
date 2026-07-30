@@ -78,6 +78,21 @@ self-hosted, não dá pra empacotar) e fontes do sistema visual anterior/seção
 F2 (`JetBrains Mono`, `Archivo`, `DM Sans`, `Instrument Serif`, `Caveat`) —
 não usadas pelas páginas institucionais atuais, só legado/exceção pontual.
 
+**`"nexa"` minúsculo no `FONT_MISSING` (re-sync de 30/07/2026)** — não é a Nexa
+Slab, que empacota certo (12 `.woff2` + 28 `@font-face` em `fonts/fonts.css`).
+Vem de `src/styles/tokens.css:41`:
+
+```css
+--font-slab: 'Nexa Slab', 'nexa', Georgia, serif;
+```
+
+`'nexa'` é uma família que não existe em lugar nenhum — fallback morto do
+sistema visual ANTERIOR, que continua no bundle porque `main.jsx` importa os
+dois sistemas. Inofensivo (o navegador pula pro Georgia), mas o validador
+sempre vai listar. Some sozinho se o `'nexa'` for removido do token, ou se o
+app parar de importar o sistema antigo. **Não mexido nesta sessão** — CSS
+legado, fora do escopo de um sync.
+
 ## Known render warns
 
 - `ErrorBoundary` → `[RENDER_ERRORS]` no story `TelaDeErro`: **esperado**, é
@@ -95,6 +110,24 @@ não usadas pelas páginas institucionais atuais, só legado/exceção pontual.
   específico (hipótese não confirmada — não investigado a fundo por tempo).
   Ficam no floor card por ora; autoria é o "oferecimento parado" pra um
   re-sync futuro, per o próprio design do shape "package".
+
+## Re-sync de 30/07/2026 (segundo sync)
+
+Rodado com `resync.mjs` e a âncora remota (`DesignSync get_file _ds_sync.json`
+→ arquivo local → `--remote`). Veredito: `ok:true`, `anchor:ok`,
+build/diff/validate verdes, `capture: empty_worklist`.
+
+**Os 10 componentes vieram `unchanged`** — o dia inteiro de trabalho foi em
+`src/styles/` e em páginas (`src/pages/`), que estão fora do escopo do sync;
+nenhuma fonte de componente se moveu. Logo: zero re-avaliação de grade, zero
+adição, zero remoção. Só `styleChanged: true`.
+
+Subiu, então, apenas o compartilhado: `_ds_bundle.js`, `_ds_bundle.css`,
+`styles.css`, `README.md`, `fonts/**`, `_vendor/**`, `guidelines/**`,
+`_ds_sync.json` e o sentinela — 33 arquivos, nenhuma exclusão. Caminho
+atômico (projeto já pinado e não-vazio), sentinela antes e depois.
+
+Tokens subiram de 217 para 221 (os novos `--scw-esfuma*` do corte de foto).
 
 ## Re-sync risks
 
