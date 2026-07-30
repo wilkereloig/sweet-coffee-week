@@ -451,10 +451,13 @@ Estrutura (redesign 2026, ajustada em 29/07/2026):
   bebida, as demais o combo). Medalha dentro da legenda do card (ao lado do rótulo de
   colocação), não solta no canto da foto. Numeral **sempre chocolate**: 1º amarelo,
   2º bege, **3º laranja** (marrom foi cogitado e descartado — falha como emblema e
-  como texto solto sobre chocolate, ~1,5:1). 1º lugar em coluna larga (4:5 no desktop,
-  1:1 até 820px), 2º/3º empilhados ao lado dividindo a mesma altura. Empates no mesmo
-  card. **No celular** (≤820px) vira carrossel de arrasto com snap — 24 cards
-  empilhados não cabem.
+  como texto solto sobre chocolate, ~1,5:1). 1º lugar em coluna larga (span de 2
+  linhas), 2º/3º empilhados ao lado — **as três fotos sempre 1:1** (mesma direção,
+  mesmo recorte; 1º só é maior por ocupar coluna mais larga, não por um aspect-ratio
+  próprio — um 4:5 exclusivo do 1º foi testado e descartado em 30/07/2026: cortava a
+  foto de forma inconsistente com as outras duas e, em fotos sem espaço vertical de
+  sobra, zoom demais). Empates no mesmo card. **No celular** (≤820px) vira carrossel
+  de arrasto com snap — 24 cards empilhados não cabem.
 - **Quem dá a nota** (era "Como é decidido"): trilha do tempo de três momentos
   cronológicos — 2019 (categoria única) → 2020.2–2021.2 (Júri Técnico) → 2022 em
   diante (só Sweet Lovers, com selo "hoje") — não mais dois cards gêmeos lado a lado
