@@ -980,7 +980,11 @@ body.route-contato {
    --scw-heroi: em Contato o herói é bege mas o bloco continua chocolate. */
 .scw-hero-banda::after {
   bottom: 0;
-  height: 62%;
+  /* 62% → 50%: a cauda opaca do corte é o que empurrava a informação pra
+     baixo, não a margem (que é só 26px). A 62% de uma banda de 354px a foto
+     morria 220px antes do fim da caixa. Em 50% a rampa continua longa
+     (~145px, contra os 78px do box-shadow antigo) e o texto sobe. */
+  height: 50%;
   background: var(--scw-banda-base, var(--scw-choco));
   -webkit-mask-image: var(--scw-esfuma);
           mask-image: var(--scw-esfuma);
@@ -1020,9 +1024,12 @@ body.route-contato {
   .scw-hero-banda {
     display: block;
     position: relative;
-    height: 42vh;
-    min-height: 264px;
-    margin: 0 calc(-1 * var(--scw-trilho)) 26px;
+    /* 42vh/264px → 36vh/232px e margem de 26 → 16px (pedido do Wilke,
+       30/07/2026: "pode subir mais as informações"). Somado à cauda menor do
+       corte, o selo do herói sobe ~80px numa tela de 844px. */
+    height: 36vh;
+    min-height: 232px;
+    margin: 0 calc(-1 * var(--scw-trilho)) 16px;
     background-color: var(--scw-marrom);
     background-size: cover;
     background-position: center 34%;
