@@ -37,6 +37,16 @@
 }
 .swa-hero > * { position: relative; z-index: 1; }
 
+/* No celular a reserva de topo (216px) era roxo chapado e a vitrine só
+   aparecia depois da dobra. A banda de foto das outras rotas ocupa essa
+   faixa: some o padding de topo, o degradê do ::before vira redundante (a
+   própria banda escurece onde a logo passa) e o corte fecha no roxo. */
+@media (max-width: 1000px) {
+  .swa-hero { padding-top: 0; }
+  .swa-hero::before { display: none; }
+  .swa-hero .scw-hero-banda { --scw-banda-base: var(--scw-roxo); }
+}
+
 /* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
    com o herói roxo ele sumiria contra o fundo. Inverte: creme com tinta roxa,
    mesma cor, mesmo contraste (9,95:1), agora legível. */

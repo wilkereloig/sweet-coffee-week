@@ -37,6 +37,7 @@
 import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
+import { bgStyle, heroPhoto } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
 import { awardPhoto, RESERVA } from '../../data/imageLibrary'
@@ -54,6 +55,9 @@ const HISTORICO = EDICOES.filter((e) => e.code !== '2026.1').slice().reverse()
    quando a casa é conhecida, senão o próprio nome. Sem isso, uma variação de grafia
    ("Canuto’s" × "Canuto's") vira duas marcas distintas nos números. */
 const identidade = (nome) => resolveParticipant(nome).slug || nome
+
+/* Banda de foto do herói no celular — mesma fonte central das outras rotas. */
+const FOTO_BANDA = heroPhoto('historico-awards')
 
 // Números do herói, contados da própria base (nunca digitados à mão).
 const ESTATISTICAS = (() => {
@@ -358,8 +362,20 @@ export function HistoricoAwardsPage() {
 
   return (
     <>
-      {/* 01 — ABERTURA: sem banda de foto; o herói já abre com a vitrine. */}
+      {/* 01 — ABERTURA. No desktop o herói abre direto na vitrine dos
+          vencedores. No celular a vitrine cai pro fim da dobra e sobrava uma
+          reserva de topo de 216px de roxo chapado — lá entra a banda de foto
+          das outras rotas (pedido do Wilke, 30/07/2026). A foto já estava
+          curada no sistema central, só não era renderizada. */}
       <section className="swa-hero" aria-labelledby="swa-titulo">
+        {FOTO_BANDA && (
+          <div
+            className="scw-hero-banda"
+            role="img"
+            aria-label={FOTO_BANDA.alt}
+            style={bgStyle(FOTO_BANDA, { mobile: true })}
+          />
+        )}
         <div className="swa-hero__grade">
           <div className="swa-hero__texto">
             <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>

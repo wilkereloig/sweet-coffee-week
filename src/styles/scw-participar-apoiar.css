@@ -156,11 +156,12 @@ body.route-participar .pa-hero__nota {
   .pa-hero__aside { display: none; }
   .pa-hero__forma { display: none; }
   /* A banda sangrando recebe o mesmo véu no topo (onde a logo do cabeçalho
-     passa por cima). A base continua fechando no chocolate puro do bloco —
-     é a emenda com a informação logo abaixo, não pode mudar de tom. */
+     passa por cima) e fecha embaixo na cor do bloco — que aqui NÃO é o
+     chocolate padrão de .scw-hero-bloco: .pa-hero repinta em --scw-heroi
+     (magenta em Participar, cyan em Apoiar). */
   .pa-hero .scw-hero-banda {
-    box-shadow: inset 0 100px 66px -46px color-mix(in srgb, var(--veu) 76%, transparent),
-                inset 0 -78px 50px -34px var(--scw-choco);
+    --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
+    --scw-banda-base: var(--scw-heroi);
   }
 }
 

@@ -54,11 +54,20 @@
 /* No celular a foto passa a ser a banda sangrando: o fundo de tela cheia sai
    para não duplicar imagem. A banda leva o mesmo véu no topo. */
 @media (max-width: 1000px) {
-  .ctt-abertura__fundo,
-  .ctt-abertura__veu { display: none; }
+  /* `.ctt-abertura` no seletor não é enfeite: o reset `.scw-raiz img`
+     (scw-2026.css) tem especificidade 0,1,1 e vencia `.ctt-abertura__fundo`
+     0,1,0 — a foto de tela cheia continuava montada atrás do texto no
+     celular, duplicando a banda e derrubando a legibilidade do lead. */
+  .ctt-abertura .ctt-abertura__fundo,
+  .ctt-abertura .ctt-abertura__veu { display: none; }
+  /* Sem a foto de fundo o bloco volta ao chocolate padrão de .scw-hero-bloco
+     — e a tinta desta página é escura (--scw-heroi-tinta = #3D1308), o que
+     dava 1:1. Toda a abertura foi escrita para o bege do herói (inclusive os
+     botões acima), então no celular é o bege que pinta o bloco: 13:1. */
+  .ctt-abertura { background: var(--scw-heroi); }
   .ctt-abertura .scw-hero-banda {
-    box-shadow: inset 0 100px 66px -46px color-mix(in srgb, var(--veu) 76%, transparent),
-                inset 0 -78px 50px -34px var(--scw-choco);
+    --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
+    --scw-banda-base: var(--scw-heroi);
   }
 }
 /* Herói bege (--scw-heroi/--scw-heroi-tinta = choco): tinta escura, não a
