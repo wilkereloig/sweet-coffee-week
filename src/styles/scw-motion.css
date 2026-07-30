@@ -305,7 +305,14 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  background: rgba(61, 19, 8, .38);
+  /* Era rgba(61,19,8,.38) chapado — sem degradê, a borda de baixo virava uma
+     mancha reta sobre o conteúdo rolado (mesmo problema do .scw-header__veu,
+     resolvido em scw-2026.css). Densidade plana só nos primeiros 65% (onde
+     mora logo/menu); os últimos 35% somem antes do fim, sem borda dura. */
+  background: linear-gradient(to bottom,
+    rgba(61, 19, 8, .38) 0%,
+    rgba(61, 19, 8, .38) 65%,
+    rgba(61, 19, 8, 0) 100%);
   opacity: 0;
   transition: opacity var(--mo-estado) var(--mo-ease);
 }
