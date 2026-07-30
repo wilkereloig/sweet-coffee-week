@@ -897,7 +897,13 @@ body.route-contato {
   position: relative;
   z-index: 2;
   max-width: min(60%, 860px);
-  padding: clamp(232px, 22vw, 290px) var(--scw-trilho) clamp(30px, 3.4vw, 48px);
+  /* Só a esquerda usa o trilho da página (alinha com logo/menu). A direita é
+     respiro fixo, não o trilho: acima de ~1504px o trilho cresce sem limite
+     pra centralizar a grade de 1360px na página inteira, mas esta coluna já
+     trava em 860px — usar o trilho nos dois lados comia a própria largura
+     travada e sobrava cada vez menos espaço pro texto conforme a tela alargava
+     (título de 15ch com fonte crescendo por vw não tinha onde quebrar). */
+  padding: clamp(232px, 22vw, 290px) clamp(20px, 2vw, 32px) clamp(30px, 3.4vw, 48px) var(--scw-trilho);
 }
 .scw-hero__titulo {
   margin: 0;
