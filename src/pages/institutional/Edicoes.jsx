@@ -416,7 +416,7 @@ function Editorial({ id, classe = '', narrativa, abertura, curiosidades }) {
         </Bloco>
       )}
       {narrativa.curiosidade && (
-        <Bloco rotulo="Curiosidade">
+        <Bloco rotulo="Um destaque da edição">
           <p className="scw-edx__bloco-txt">{narrativa.curiosidade}</p>
         </Bloco>
       )}
@@ -603,7 +603,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
   const meta = (
     <>
-      <div><dt>Período</dt><dd>{d.periodo || 'período não encontrado'}</dd></div>
+      <div><dt>Período</dt><dd>{d.periodo || 'não encontrado'}</dd></div>
       <div><dt>Marcas</dt><dd>{nParticipantes} participantes</dd></div>
       <div><dt>Sweet Awards</dt><dd>{premiacao}</dd></div>
     </>

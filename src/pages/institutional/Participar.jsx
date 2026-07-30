@@ -536,8 +536,8 @@ export function ParticiparPage() {
             Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
           </h2>
           <p>
-            Leva dois minutos. A organização analisa o perfil junto aos critérios de curadoria
-            e fala com você pelos canais informados.
+            Leva dois minutos. Depois do envio, a equipe avalia o perfil e retorna pelos canais
+            que você informar.
           </p>
         </div>
 

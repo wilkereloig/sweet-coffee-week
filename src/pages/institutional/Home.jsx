@@ -287,7 +287,7 @@ export function HomePage({ navigate }) {
             </div>
             <div className="hm-acoes">
               <a className="scw-btn scw-btn--solido" href="#rotas" onClick={rolarPara('rotas')}>
-                Como funciona <Seta />
+                Como entrar <Seta />
               </a>
               <a className="scw-btn scw-btn--contorno-claro" href="#/participar" onClick={ir('/participar')}>
                 Levar minha marca <Seta />
@@ -458,7 +458,7 @@ export function HomePage({ navigate }) {
               <span className="hm-rota__eixo hm-rota__eixo--cyan">Parceiros</span>
               <div className="hm-rota__texto">
                 <h3 className="hm-rota__titulo">Apoie uma cidade em movimento.</h3>
-                <p>Conecte sua marca a gastronomia, cultura e economia criativa.</p>
+                <p>Ponha sua marca na rota que a cidade já percorre, junto de gastronomia e cultura locais.</p>
                 <a className="hm-rota__cta hm-rota__cta--cyan" href="#/apoiar" onClick={ir('/apoiar')}>
                   Quero apoiar <Seta size={16} />
                 </a>

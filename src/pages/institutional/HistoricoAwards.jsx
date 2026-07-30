@@ -527,10 +527,9 @@ export function HistoricoAwardsPage() {
             <h2 className="scw-h2">Todos os pódios, edição por edição</h2>
           </div>
           <p className="swa-apoio">
-            Da estreia em 2019, com categoria única, às quinze categorias de Terras Potiguares.
-            Abra uma edição para ver os resultados. Nessas edições não é possível saber qual
-            marca aparece em cada foto, então os pódios aparecem sem fotografia — nenhuma
-            imagem é emprestada de outra edição.
+            Da estreia em 2019, com categoria única, às quinze categorias da edição Terras
+            Potiguares. Abra uma edição para ver os resultados. Nessas edições não é possível
+            saber qual marca aparece em cada foto, então os pódios aparecem sem fotografia.
           </p>
         </div>
 

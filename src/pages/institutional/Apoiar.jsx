@@ -48,7 +48,7 @@ const PALAVRAS = [
 const ALCANCE = [
   { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', c: 'var(--scw-marrom)' },
   { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', c: 'var(--scw-amarelo)' },
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'valor movimentado nas últimas edições', c: 'var(--scw-cyan)' },
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'direto no caixa de marcas e lojas parceiras', c: 'var(--scw-cyan)' },
   { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', c: 'var(--scw-magenta)' },
   { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', c: 'var(--scw-roxo)' },
   { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', c: 'var(--scw-laranja)' },
@@ -61,7 +61,7 @@ const ICO = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLine
 const MOTIVOS = [
   {
     t: 'Visibilidade qualificada', c: 'var(--scw-magenta)', tinta: 'var(--scw-choco)',
-    d: 'Sua marca aparece em uma temporada de público ativo, conteúdo diário e alta circulação digital.',
+    d: 'Sua marca aparece na semana do festival, acompanhada de perto pelo público que segue os combos e resultados no Instagram.',
     p: <><path d="M2.5 12s3.4-6.3 9.5-6.3S21.5 12 21.5 12s-3.4 6.3-9.5 6.3S2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.6" /></>,
   },
   {
@@ -76,7 +76,7 @@ const MOTIVOS = [
   },
   {
     t: 'Associação à economia criativa', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
-    d: 'Gastronomia, conteúdo, design, fotografia, atendimento e turismo urbano em movimento.',
+    d: 'A marca entra num circuito de gastronomia, conteúdo, design, fotografia, atendimento e turismo urbano em movimento.',
     p: <><path d="M11 3.5 12.7 9l5.3 1.7-5.3 1.7L11 17.9l-1.7-5.5L4 10.7 9.3 9 11 3.5Z" /><path d="M18.5 3.5v3.4M16.8 5.2h3.4" /></>,
   },
   {
@@ -123,7 +123,7 @@ const PUBLICO = [
   'Consumidores de experiência gastronômica',
   'Comunidade ativa no Instagram do festival',
   'Pessoas que circulam por cafeterias, docerias e restaurantes',
-  'Sweet Lovers que fotografam, avaliam e compartilham',
+  'Gente que monta roteiro e divide combos com os amigos pra provar mais sabores',
   'Quem acompanha combos, participantes e resultados de cada edição',
 ]
 
@@ -391,7 +391,7 @@ export function ApoiarPage() {
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
-            Do digital ao balcão da loja, cada frente pode receber a presença do apoiador.
+            Do digital ao balcão da loja, cada uma pode receber a presença da sua marca.
           </p>
         </div>
         <ul className="pa-onde">
@@ -511,7 +511,7 @@ export function ApoiarPage() {
       </section>
 
       <div className={`pa-barra${barraVisivel ? ' is-visivel' : ''}`}>
-        <span>Apoio institucional e de edições em aberto.</span>
+        <span>Apoio institucional e cotas abertas para a próxima edição.</span>
         <a href="#proposta" className="scw-btn scw-btn--solido" onClick={irPara('proposta')}>
           Falar sobre apoio <I.arrow />
         </a>

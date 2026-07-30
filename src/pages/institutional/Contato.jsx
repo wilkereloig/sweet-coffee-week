@@ -359,7 +359,6 @@ export function ContatoPage({ navigate }) {
                 <b>Nenhuma pergunta encontrada</b>
                 <p>
                   Tente outra palavra (pagamento, lactose, carimbo, patrocínio) ou volte para os assuntos.
-                  Se a dúvida não estiver aqui, escreva para a organização.
                 </p>
                 <div className="ctt-vazio__acoes">
                   <button type="button" className="scw-btn ctt-btn-mini ctt-btn-choco" onClick={limparBusca}>
@@ -483,7 +482,7 @@ export function ContatoPage({ navigate }) {
             </span>
             <strong>Mensagem enviada.</strong>
             <p>
-              Recebemos sua mensagem. A organização do Sweet &amp; Coffee Week analisa o assunto e retorna
+              A organização do Sweet &amp; Coffee Week já recebeu sua mensagem, analisa o assunto e retorna
               pelo contato informado, em dias úteis.
             </p>
             <button type="button" className="scw-btn ctt-ok__acao" onClick={() => setEstado('idle')}>
