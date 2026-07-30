@@ -143,6 +143,18 @@ export const I = {
       <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   ),
+  sound: (p = {}) => (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M2 6.2h2.4L8 3.4v9.2L4.4 9.8H2V6.2Z" fill="currentColor"/>
+      <path d="M10.6 5.6a3.3 3.3 0 0 1 0 4.8M12.6 3.8a6.1 6.1 0 0 1 0 8.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
+  soundOff: (p = {}) => (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M2 6.2h2.4L8 3.4v9.2L4.4 9.8H2V6.2Z" fill="currentColor"/>
+      <path d="M10.8 6.4l3.4 3.4M14.2 6.4l-3.4 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
   user: (p = {}) => (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
       <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>

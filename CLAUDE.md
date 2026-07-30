@@ -484,11 +484,19 @@ Segue lógica visual da Home. Deve ter: proposta clara; imagens/fotos quando dis
 depoimentos; **formulário em destaque**; linguagem voltada a participantes; visual
 editorial e comercial. Não parecer formulário genérico.
 
-Oito seções (redesign 2026): `01 Abertura` · `02 Números` · `03 Circulação` ·
-`04 Quem pode` · `05 Depoimentos` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
+Oito seções: `01 Abertura` · `02 Depoimentos` · `03 Números` · `04 Circulação` ·
+`05 Quem pode` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
 Herói com rótulo do público, dois CTAs, 3 indicadores e foto 4:3 com rotação em
 crossfade. Três faixas alternando lado, imagem e texto com **larguras iguais** (408px
 cada em 1360px).
+
+**Depoimentos vêm logo depois da abertura** (decisão do Wilke, 30/07/2026 — no
+redesign original eram a seção 05, entre "Quem pode" e "Imprensa"). São a prova
+social da página: quem cogita participar quer ouvir quem já participou antes de
+ler número ou processo, e vários depoimentos são em vídeo. Mover a seção exige
+conferir a alternância de fundo das seções vizinhas — creme/bege alternam, e a
+saída dos Depoimentos do meio deixou "Quem pode" e "Imprensa" ambos bege
+(Imprensa virou creme por isso).
 
 *(O kit `PageShell`/`PageSection`/`SectionHeader`/`CardsGrid`/`CTASection` de
 `src/components/layout/` foi **removido** em jul/2026 — estava morto, nenhuma

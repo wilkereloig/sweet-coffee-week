@@ -129,6 +129,18 @@ const DEPOIMENTOS = [
   { frase: null, pessoa: null, marca: 'Caroli Douces', slug: 'caroli-douces', cor: 'var(--scw-bege)', tinta: 'var(--scw-choco)' },
 ]
 
+// Depoimentos em vídeo (mesmo slug do participante). Ausente = mantém foto.
+const DEPO_VIDEO_SLUGS = new Set([
+  'jolie-cafe-patisserie',
+  'mr-cupcake-confeitaria',
+  'o-maestro-cafe',
+  'casa-1190',
+  'paneer-patisserie',
+])
+function depoVideoSrc(slug) {
+  return DEPO_VIDEO_SLUGS.has(slug) ? `/videos/depoimentos/${slug}.mp4` : null
+}
+
 // 06 Imprensa — veículos reais que noticiaram o festival. Os cards ainda NÃO
 // têm URL (pendência do handoff), então não viram link.
 const IMPRENSA = [
@@ -189,9 +201,44 @@ function useBarra() {
   return visivel
 }
 
+// Cartão de depoimento em vídeo: autoplay mudo em loop (movimento tipo Reels);
+// toque ativa o som deste (a trilha some quando ativo === false). O `muted`
+// é sincronizado via ref porque a prop React não reflete de forma confiável
+// a propriedade DOM depois da montagem.
+function DepoVideo({ src, poster, alt, ativo, onToggle }) {
+  const ref = React.useRef(null)
+  const reduzido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+  React.useEffect(() => {
+    if (ref.current) ref.current.muted = !ativo
+  }, [ativo])
+
+  return (
+    <>
+      <video
+        ref={ref}
+        src={src}
+        poster={poster}
+        muted={!ativo}
+        loop
+        playsInline
+        autoPlay={!reduzido}
+        preload="metadata"
+        aria-label={alt}
+        onClick={onToggle}
+      />
+      <button type="button" className="pa-depo__som" onClick={onToggle} aria-pressed={ativo}
+        aria-label={ativo ? 'Silenciar depoimento' : 'Ativar som do depoimento'}>
+        {ativo ? <I.sound width={14} height={14} /> : <I.soundOff width={14} height={14} />}
+      </button>
+    </>
+  )
+}
+
 export function ParticiparPage() {
   const foto = useRotacao(FOTOS_HERO.length)
   const barraVisivel = useBarra()
+  const [audioAtivo, setAudioAtivo] = React.useState(null) // slug do depoimento com som ligado
 
   const [form, setForm] = React.useState(EMPTY_INTEREST)
   const [errors, setErrors] = React.useState({})
@@ -334,7 +381,73 @@ export function ParticiparPage() {
         ))}
       </div>
 
-      {/* ═══ 02 Números ═══ */}
+      {/* ═══ 02 Depoimentos ═══
+          Sobe logo depois da abertura (a pedido do Wilke, 30/07/2026): é a
+          prova social da página — quem decide participar quer ouvir quem já
+          participou antes de ler número ou processo. */}
+      <section id="depoimentos" className="scw-secao scw-secao--creme">
+        <div className="pa-cabeca">
+          <div>
+            <span className="scw-rotulo">Marcas que já viveram a edição</span>
+            <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
+              Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>próprias palavras</em>.
+            </h2>
+          </div>
+          <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
+            Quero estar nessa lista <I.arrow width={17} height={17} />
+          </a>
+        </div>
+        <ul className="pa-depos">
+          {DEPOIMENTOS.map((d) => {
+            const fotoCombo = comboMain(d.slug)
+            const marca = resolveParticipant(d.slug)
+            const videoSrc = depoVideoSrc(d.slug)
+            return (
+            <li
+              className="pa-depo"
+              key={d.slug}
+              style={{
+                '--cor': d.cor,
+                '--tinta': d.tinta,
+                '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)',
+              }}
+            >
+              <div className="pa-depo__media">
+                <div className="pa-depo__foto">
+                  {videoSrc
+                    ? <DepoVideo
+                        src={videoSrc}
+                        poster={fotoCombo?.src}
+                        alt={`${d.pessoa} falando sobre a experiência da ${d.marca} no Sweet & Coffee Week`}
+                        ativo={audioAtivo === d.slug}
+                        onToggle={() => setAudioAtivo((atual) => (atual === d.slug ? null : d.slug))}
+                      />
+                    : fotoCombo
+                      ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
+                      : <div className="scw-reserva">{RESERVA}</div>}
+                </div>
+                <span className="pa-depo__selo" aria-hidden="true">
+                  {marca.logo
+                    ? <img src={marca.logo} alt="" loading="lazy" decoding="async" />
+                    : <span className="pa-depo__iniciais">{iniciais(d.marca)}</span>}
+                </span>
+              </div>
+              <div className="pa-depo__corpo">
+                {d.frase
+                  ? <blockquote>{d.frase}</blockquote>
+                  : <p className="pa-depo__espera">Depoimento desta marca chegando em breve.</p>}
+                <span className="pa-depo__quem">
+                  {d.pessoa && <b>{d.pessoa}</b>}
+                  <span>{d.marca}</span>
+                </span>
+              </div>
+            </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {/* ═══ 03 Números ═══ */}
       <section id="numeros" className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
@@ -359,7 +472,7 @@ export function ParticiparPage() {
         </ul>
       </section>
 
-      {/* ═══ 03 Circulação ═══ */}
+      {/* ═══ 04 Circulação ═══ */}
       <section className="scw-secao scw-secao--creme">
         <div className="pa-cabeca">
           <div>
@@ -395,7 +508,7 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      {/* ═══ 04 Quem pode ═══ */}
+      {/* ═══ 05 Quem pode ═══ */}
       <section className="scw-secao scw-secao--compacta scw-secao--bege">
         <div className="pa-cabeca">
           <div>
@@ -424,62 +537,8 @@ export function ParticiparPage() {
         </ul>
       </section>
 
-      {/* ═══ 05 Depoimentos ═══ */}
-      <section id="depoimentos" className="scw-secao scw-secao--creme">
-        <div className="pa-cabeca">
-          <div>
-            <span className="scw-rotulo">Marcas que já viveram a edição</span>
-            <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>próprias palavras</em>.
-            </h2>
-          </div>
-          <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
-            Quero estar nessa lista <I.arrow width={17} height={17} />
-          </a>
-        </div>
-        <ul className="pa-depos">
-          {DEPOIMENTOS.map((d) => {
-            const fotoCombo = comboMain(d.slug)
-            const marca = resolveParticipant(d.slug)
-            return (
-            <li
-              className="pa-depo"
-              key={d.slug}
-              style={{
-                '--cor': d.cor,
-                '--tinta': d.tinta,
-                '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)',
-              }}
-            >
-              <div className="pa-depo__media">
-                <div className="pa-depo__foto">
-                  {fotoCombo
-                    ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
-                    : <div className="scw-reserva">{RESERVA}</div>}
-                </div>
-                <span className="pa-depo__selo" aria-hidden="true">
-                  {marca.logo
-                    ? <img src={marca.logo} alt="" loading="lazy" decoding="async" />
-                    : <span className="pa-depo__iniciais">{iniciais(d.marca)}</span>}
-                </span>
-              </div>
-              <div className="pa-depo__corpo">
-                {d.frase
-                  ? <blockquote>{d.frase}</blockquote>
-                  : <p className="pa-depo__espera">Depoimento desta marca chegando em breve.</p>}
-                <span className="pa-depo__quem">
-                  {d.pessoa && <b>{d.pessoa}</b>}
-                  <span>{d.marca}</span>
-                </span>
-              </div>
-            </li>
-            )
-          })}
-        </ul>
-      </section>
-
       {/* ═══ 06 Imprensa ═══ */}
-      <section className="scw-secao scw-secao--compacta scw-secao--bege">
+      <section className="scw-secao scw-secao--compacta scw-secao--creme">
         <div className="pa-cabeca">
           <div>
             <span className="scw-rotulo">O festival na imprensa</span>
