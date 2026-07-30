@@ -288,7 +288,7 @@ export function ParticiparPage() {
               </a>
             </div>
             <span className="pa-hero__nota">
-              Participação por curadoria · sem taxa de inscrição · Natal e Parnamirim
+              Participação por curadoria · Natal e Parnamirim
             </span>
           </div>
 
