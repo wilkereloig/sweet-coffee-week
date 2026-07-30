@@ -1,9 +1,11 @@
 # Guia visual — Sweet & Coffee Week
 
 > **Fonte única da verdade visual do site.** Consolidado em 29/07/2026 a partir do
-> código real (não de versões antigas do projeto). Quando este guia divergir de
-> qualquer outro documento, **vale este guia**; quando divergir do código em
-> `src/styles/scw-2026.css`, **vale o código** — e este guia deve ser corrigido.
+> código real, revisado em 30/07/2026 contra o fechamento de paleta e o KV
+> institucional gerado no Claude Design (`KV Institucional.dc.html`). Quando este
+> guia divergir de qualquer outro documento, **vale este guia**; quando divergir
+> do código em `src/styles/scw-2026.css`, **vale o código** — e este guia deve
+> ser corrigido.
 >
 > Implementação: `src/styles/scw-2026.css` (tokens + casca + utilitárias) e
 > `src/styles/scw-<pagina>.css` (peças de cada página).
@@ -61,74 +63,95 @@ outro lugar.
 
 ## 3. Cores
 
-Fonte única: bloco `:root` de `src/styles/scw-2026.css`. **Nenhuma cor fora
-desta tabela.** Não escrever hex solto em componente — usar o token.
+Fonte única: bloco `:root` de `src/styles/scw-2026.css`. **Paleta fechada em
+nove cores** (fechamento 29/07/2026) — nenhuma cor fora desta tabela. Não
+escrever hex solto em componente — usar o token.
 
-### 3.1 Institucionais e de apoio
+### 3.1 As nove cores
 
 | Token | Hex | Papel | Sobre ele usa |
 | --- | --- | --- | --- |
-| `--scw-creme` | `#FEF0DD` | Fundo base do site | `--scw-choco` |
-| `--scw-bege` | `#F8E4C1` | Alternância de seção, chips | `--scw-choco` |
-| `--scw-card` | `#FFF7E9` | Cards, painéis, campos | `--scw-choco` |
-| `--scw-filete` | `#EBD6B4` | Bordas de 1px, divisores | — |
-| `--scw-choco` | `#3D1308` | Tinta principal, seções escuras | `--scw-creme` |
-| `--scw-marrom` | `#6A2C15` | Texto de apoio, rótulos | `--scw-creme` |
-
-### 3.2 Acentos de página
-
-| Token | Hex | Página |
-| --- | --- | --- |
-| `--scw-amarelo` | `#FDBB1A` | O festival (Home) |
-| `--scw-cyan` | `#01AFCC` | Edições — também o anel de foco global |
-| `--scw-roxo` | `#4D257E` | Sweet Awards |
-| `--scw-magenta` | `#F10767` | Participar |
-| `--scw-magenta-esc` | `#D0055B` | **Só** o selo do menu de Participar (contraste) |
-| `--scw-vinho` | `#B3213B` | Apoiar |
-
-### 3.3 Funcionais
-
-| Token | Hex | Uso |
-| --- | --- | --- |
-| `--scw-ouro` | `#D19100` | Numerais sobre creme quando o amarelo falharia; 1º lugar |
-| `--scw-prata` | `#D9BE95` | 2º lugar no pódio |
-| `--scw-bronze` | `#C99A7E` | 3º lugar no pódio |
+| `--scw-creme` | `#FEF0DD` | Fundo base do site, texto sobre chocolate | `--scw-choco` |
+| `--scw-bege` | `#F8E4C1` | Alternância de seção, chips, cor da página Contato | `--scw-choco` |
+| `--scw-choco` | `#3D1308` | Tinta principal, seções escuras, fundo de card com filete | `--scw-creme` |
+| `--scw-marrom` | `#6A2C15` | Texto de apoio, rótulos pequenos | `--scw-creme` |
+| `--scw-amarelo` | `#FDBB1A` | Acento — O festival; medalha de 1º lugar | `--scw-choco` |
+| `--scw-cyan` | `#01AFCC` | Acento — Edições e Apoiar; anel de foco global | `--scw-choco` |
+| `--scw-roxo` | `#4D257E` | Acento — Sweet Awards | `--scw-creme` |
+| `--scw-magenta` | `#F10767` | Acento — Participar | `--scw-creme` |
+| `--scw-laranja` | `#FF4810` | Superfície preenchida (nunca tinta de texto pequeno), filete sobre fundo escuro, medalha de 3º lugar | `--scw-choco` |
 
 **Foco:** anel de foco global = `--scw-cyan`. É a única cor de estado
 padronizada; hover/ativo usam a cor da própria página.
 
-### 3.4 Cor por página — como aplicar
+**Filete e card claro não são tokens de cor** — viram `rgba()`/`--scw-creme` por
+papel: filete geral = `rgba(61,19,8,.14)`, borda de campo de formulário =
+`rgba(61,19,8,.22)`, placeholder de foto = `--scw-bege`; card claro que antes
+era `#FFF7E9` vira `--scw-creme` (o filete carrega o recorte visual).
+
+### 3.2 Cor por página — como aplicar
 
 A cor da página **não é fundo de hero**. Aparece em três pontos, e só:
 
 1. item ativo do menu (pill sólida);
-2. barra de 5px sob o cabeçalho (transição 320ms);
+2. **barra de 5px sob o cabeçalho — REMOVIDA** no fechamento 29/07/2026 (o
+   herói já é a cor da página, a barra virou redundante);
 3. selo do herói.
 
 Por isso o acento não precisa ser tom claro. Definido em `body.route-*`:
 
-| Rota | `--scw-pagina` | `--scw-pagina-tinta` | `--scw-pagina-menu` | Contraste |
-| --- | --- | --- | --- | --- |
-| `home` | `#FDBB1A` | `#3D1308` | `#FDBB1A` | 9,5:1 |
-| `edicoes` | `#01AFCC` | `#3D1308` | `#01AFCC` | 6,2:1 |
-| `historico-awards` | `#4D257E` | `#FEF0DD` | `#4D257E` | 9,95:1 |
-| `participar` | `#F10767` | `#FEF0DD` | `#D0055B` | 4,86:1 |
-| `apoiar` | `#B3213B` | `#FEF0DD` | `#B3213B` | 5,86:1 |
-| `contato` | `#6A2C15` | `#FEF0DD` | `#6A2C15` | 9,44:1 |
+| Rota | `--scw-pagina` | `--scw-pagina-tinta` | Contraste |
+| --- | --- | --- | --- |
+| `home` | `#FDBB1A` | `#3D1308` | 9,5:1 |
+| `edicoes` | `#01AFCC` | `#3D1308` | 6,2:1 |
+| `historico-awards` | `#4D257E` | `#FEF0DD` | 9,95:1 |
+| `participar` | `#F10767` (pill do menu vira chocolate `#3D1308`) | `#FEF0DD` | 4,86:1 |
+| `apoiar` | `#01AFCC` (era vinho `#B3213B`) | `#3D1308` | 6,2:1 |
+| `contato` | `#F8E4C1` (era marrom `#6A2C15`; texto/sublinhado sobre creme usa `--scw-pagina-sobre-creme` = `#6A2C15`) | `#3D1308` | 13:1 |
 
 Hover no menu mostra a cor daquela página (amarelo e cyan direto; as demais caem
-no amarelo, por contraste sobre o véu escuro).
+no amarelo, por contraste sobre o véu escuro). Sobre superfície escura (rodapé,
+folha do menu, barra de abas) cada página usa `pageColorDark()` em vez da cor
+cheia — roxo e magenta não sustentam texto sobre chocolate.
 
-### 3.5 Proibido
+**Herói tem par próprio, distinto de `--scw-pagina`:** `--scw-heroi` /
+`--scw-heroi-tinta` — nem toda cor de página fecha contraste como fundo de
+herói (ex.: Contato é bege na página mas o bloco do herói segue chocolate no
+desktop).
+
+### 3.3 Medalhas do Sweet Awards
+
+Codificam colocação, não decoram (§10.1). Numeral **sempre chocolate**:
+
+| Posição | Token | Hex |
+| --- | --- | --- |
+| 1º | `--scw-amarelo` | `#FDBB1A` |
+| 2º | `--scw-bege` | `#F8E4C1` |
+| 3º | `--scw-laranja` | `#FF4810` |
+
+**3º lugar não é marrom:** marrom sobre chocolate dá ~1,5:1 — falha como
+emblema e como texto solto (testado e descartado no fechamento 29/07/2026).
+
+### 3.4 Proibido
 
 - **`#E52C4B`** (vermelho-coral) — removido da paleta, não usar em nada.
 - Verde, cinzas frios aleatórios, pretos puros.
-- Qualquer hex fora das tabelas acima.
+- Qualquer hex fora da tabela do §3.1.
 - Hex escrito direto em componente quando existe token.
 
-**Superado (não reintroduzir):** paleta terracotta `#E8553A`, Edições `#2BC4E8`,
-Awards dourado `#F8B511`, Participar `#F2693C`, Apoiar `#1B86C9`, Contato peach
-`#F2B6A0`. O sistema `--page-accent` de `src/styles.css` sobrevive **apenas** em
+**Superado (não reintroduzir):**
+
+| Regra antiga | Regra atual |
+| --- | --- |
+| Paleta terracotta `#E8553A`, Edições `#2BC4E8`, Awards dourado `#F8B511`, Participar `#F2693C`, Apoiar `#1B86C9`, Contato peach `#F2B6A0` | Paleta fechada do §3.1 |
+| `--scw-card` `#FFF7E9`, `--scw-filete` `#EBD6B4` | `rgba()`/`--scw-creme` por papel (§3.1) |
+| `--scw-vinho` `#B3213B` (Apoiar) | Apoiar cyan `#01AFCC` |
+| `--scw-magenta-esc` `#D0055B` (selo do menu de Participar) | Pill vira chocolate com tinta creme |
+| `--scw-ouro` `#D19100` / `--scw-prata` `#D9BE95` / `--scw-bronze` `#C99A7E` | Medalhas amarelo/bege/laranja (§3.3) |
+| Contato marrom `#6A2C15` como cor de página | Contato bege `#F8E4C1` |
+| Barra de 5px sob o cabeçalho | Removida — o herói já é a cor da página |
+
+O sistema `--page-accent` de `src/styles.css` sobrevive **apenas** em
 `/pesquisa` e nos painéis internos.
 
 ---
@@ -284,15 +307,34 @@ informação embaixo — nenhum texto sobre imagem.**
 
 - **Home** — foto 46vh, escurecimento mínimo (6% no meio, topo livre para a logo
   respirar, passagem para o chocolate na base); texto em bloco chocolate sólido.
-- **Participar, Apoiar, Contato** — banda de foto sangrando
-  (`.scw-hero-banda`, 42vh / mínimo 264px, `padding-top:0` na seção, margens
-  negativas pelo mesmo trilho), `box-shadow` interno no topo para legibilidade da
-  logo, passagem para o chocolate na base. O cartão de foto do desktop
+- **Participar, Apoiar, Contato e Sweet Awards** — banda de foto sangrando
+  (`.scw-hero-banda`, 36vh / mínimo 232px, margens negativas pelo mesmo trilho),
+  passagem para a cor de fechamento na base. O cartão de foto do desktop
   (`.scw-hero-cartao`) é ocultado para não duplicar imagem.
-- **Sweet Awards não usa banda** — o herói já abre com a vitrine dos vencedores.
+  **Sweet Awards passou a usar banda no mobile** (30/07/2026, pedido do Wilke)
+  — a regra antiga "Awards não usa banda" valia no desktop (o herói já abre com
+  a vitrine), mas no celular a vitrine cai depois da dobra e sobrava uma
+  reserva de topo de 216px de roxo chapado; a banda fecha em roxo
+  (`--scw-banda-base: var(--scw-roxo)`).
 
-Fotos fixas por página: Participar `/images/combos/douce-di-maria/main.jpg` ·
-Apoiar `/images/momentos/04.jpg` · Contato `/images/campanha/15.jpg`.
+**Corte da foto — rampa em S, não `box-shadow`.** `.scw-hero-banda::before`
+(topo) e `::after` (base) são máscaras (`mask-image`/`-webkit-mask-image`)
+usando o token `--scw-esfuma` / `--scw-esfuma-topo`: uma rampa smoothstep
+`t²(3−2t)`, não linear. Motivo: degradê linear em alpha lê como faixa dura — o
+olho enxerga a derivada, não o valor; a curva em S cola em 0 e em 1 nas duas
+pontas. É máscara, não degradê colorido: a mesma rampa serve qualquer cor de
+fechamento. Base = 62% da altura da banda.
+
+**A banda fecha na cor do BLOCO, não do herói.** `--scw-banda-base` tem como
+padrão o chocolate de `.scw-hero-bloco`. Só quem repinta o bloco sobrescreve
+(`.pa-hero` → magenta em Participar, cyan em Apoiar; Contato pinta bege no
+celular; Awards pinta roxo). Errar isso (usar `--scw-heroi` como padrão) deixa
+linha dura na emenda em páginas onde herói e bloco divergem — caso do Contato.
+
+Fotos fixas por página (via `heroPhotos(rota)` em `imageLibrary.js`, nunca
+caminho escrito à mão): Participar `/images/combos/douce-di-maria/main.jpg` ·
+Apoiar `/images/momentos/04.jpg` · Contato `/images/campanha/15.jpg` · Sweet
+Awards `/images/edicoes/2026.1/01.webp`.
 
 ---
 
@@ -306,14 +348,17 @@ Utilitárias globais em `scw-2026.css`. Peças de página usam prefixo próprio.
 | --- | --- | --- |
 | Raiz | `.scw-raiz` | `scw-2026.css` |
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `components/nav.jsx` |
-| Barra de cor da página | `.scw-barra-pagina` (5px, transição 320ms) | `nav.jsx` |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo `SiteFooter.jsx`) |
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `components/MobileTabBar.jsx` (5 abas, ≤900px) |
 | Folha "mais" | `.scw-folha*` | `components/MobileMenu.jsx` |
-| Diálogo de acesso | `.scw-acesso*` | `components/AccessDialog.jsx` |
+| Diálogo de acesso | `.scw-acesso*` | `components/AccessDialog.jsx` (duas faixas — topo chocolate + corpo creme; botão "Acesso" com rótulo, não só ícone; rodapé com CTA "Falar com a equipe") |
+| Botão voltar ao topo | `BotaoTopo.jsx` | Flutuante, aparece após 1,5 tela de rolagem |
 | Rodapé | `.scw-footer*` | `components/SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
+
+**A barra de 5px sob o cabeçalho foi removida** no fechamento 29/07/2026 (§3.2)
+— não recriar.
 
 ### 8.2 Blocos
 
@@ -634,9 +679,9 @@ nunca no domínio oficial).
 | **Home / O festival** | `/` | Amarelo `#FDBB1A` | Foto ao fundo à direita, texto à esquerda `min(60%,860px)` | 7: Abertura · O que é · Rotas · Ciclo · Números · Prova · Realização | Institucional (§07 = KV F2) |
 | **Edições** | `/edicoes` | Cyan `#01AFCC` | Cena de 100vh, sem header do site | 16 cenas (uma por edição) | Institucional + marca histórica por edição |
 | **Sweet Awards** | `/sweet-awards`, `/historico-sweet-awards` | Roxo `#4D257E` | Vitrine dos 4 primeiros lugares (sem banda) | Herói · Vencedores Lovers 2026.1 · Como é decidido · Hall dos mais premiados · Histórico 2019–2025 · Antes de 2019 | Institucional |
-| **Participar** | `/participar` | Magenta `#F10767` (selo `#D0055B`) | Ancorado embaixo, foto 4:3 em crossfade | 8: Abertura · Números · Circulação · Quem pode · Depoimentos · Imprensa · Jornada · Pré-cadastro | Institucional |
-| **Apoiar** | `/apoiar` | Vinho `#B3213B` | Ancorado embaixo, números de mídia | 6: Abertura · Alcance · Por que apoiar · Onde aparece · Quem vive · Proposta | Institucional |
-| **Contato** | `/contato` | Marrom `#6A2C15` | Compacta (~368px) | 4: Abertura · Dúvidas (93 perguntas / 10 assuntos) · Caminhos · Mensagem | Institucional |
+| **Participar** | `/participar` | Magenta `#F10767` (pill do menu vira chocolate) | Ancorado embaixo, foto 4:3 em crossfade | 8: Abertura · Depoimentos · Números · Circulação · Quem pode · Imprensa · Jornada · Pré-cadastro | Institucional |
+| **Apoiar** | `/apoiar` | Cyan `#01AFCC` (era vinho) | Ancorado embaixo, números de mídia | 6: Abertura · Alcance · Por que apoiar · Onde aparece · Quem vive · Proposta | Institucional |
+| **Contato** | `/contato` | Bege `#F8E4C1` (era marrom) | Compacta (~368px) | 4: Abertura · Dúvidas (93 perguntas / 10 assuntos) · Caminhos · Mensagem | Institucional |
 | **Em breve** | `/em-breve` | — | Landing própria | 1 | Institucional (gate de publicação) |
 | **Pesquisa** | `/pesquisa` | `--page-accent` legado | — | — | **Legado** (`styles.css` + `pesquisa.css`) |
 | **Painel admin** | `/painel-admin` | — | — | — | Interno |
@@ -695,8 +740,12 @@ Linha do tempo só como marcos/primeiras vezes, sem números de tamanho por edi�
 | `--hm-gutter`, `.wrap` de 1280px | `--scw-trilho` (1360px) |
 | `--page-accent`, paleta terracotta | `--scw-pagina` + tokens `--scw-*` |
 | `#E52C4B` | Removido, sem substituto |
-| Awards em ouro `#F8B511` | Awards em roxo `#4D257E` (ouro só como medalha) |
-| Contato peach `#F2B6A0` | Contato marrom `#6A2C15` |
+| Awards em ouro `#F8B511` | Awards em roxo `#4D257E` |
+| Contato peach `#F2B6A0`, depois marrom `#6A2C15` | Contato bege `#F8E4C1` |
+| `--scw-card`/`--scw-filete`/`--scw-vinho`/`--scw-magenta-esc`/`--scw-ouro`/`--scw-prata`/`--scw-bronze` | `rgba()` por papel, cyan (Apoiar), pill chocolate (Participar), medalhas amarelo/bege/laranja (§3.3) |
+| Barra de 5px sob o cabeçalho | Removida — herói já é a cor da página |
+| "Como é decidido" com dois cards gêmeos | Trilha do tempo de três momentos cronológicos |
+| Sweet Awards sem banda no mobile | Banda de foto, fecha em roxo (§7) |
 | "Não usar eyebrow" | `.scw-rotulo` abre as seções |
 | "Contato sem hero" | Hero compacta ~368px |
 | Breakpoints 1080·960·720·560·420 | 1000·900·820·760·420 |
@@ -782,18 +831,37 @@ Lovers.
 
 ## 18. Claude Design — onde o sistema vive fora do repositório
 
-**Projeto vivo: "Sweet & Coffee Week — Redesign 2026"**
-`b98b740b-4746-4ad5-8074-2ac47d03b4e6` (claude.ai/design, tipo design system).
+**Três projetos existem lá, e não são intercambiáveis.** Estado apurado em
+30/07/2026:
 
-Sincronizado a partir do código em 29/07/2026 pela ferramenta `DesignSync`.
-Contém: `styles.css` (cópia integral de `scw-2026.css`), `motion.css` (cópia de
-`scw-motion.css`), as 12 fontes Nexa Slab, quatro cards de fundamento (Cor,
-Tipografia, Grid, Movimento) e sete de componente (Botão, Pill, Card, Reserva,
-Campo, Seção, Herói).
+| Projeto | ID | Tipo | O que é |
+| --- | --- | --- | --- |
+| **"Componentes (sync)"** | `9e1564b3-a104-4667-8303-4388d9d91d9e` | Design System | **O alvo atual do `DesignSync`** — gerado do código real (`.design-sync/config.json`). `_ds_bundle.css`/`.js`, tokens, fontes Nexa Slab, guidelines. Ninguém o consome ainda |
+| **"SITE SCW"** | `1bdcc919-8ad5-42d1-b759-cb86fb9da5c0` | Project (imutável) | Onde o Wilke desenha as páginas. Hoje consome o DS errado (linha abaixo) |
+| DS handmade antigo | `3f2c7a10-…` | Design System | Paleta **pré-redesign**: coral `#E8553A`, cyan `#2BC4E8`, amarelo `#F8B511`, peach `#F2B6A0`. É o que o "SITE SCW" consome hoje |
 
-**Os CSS são cópia, não transcrição** — nenhum valor foi redigitado, então o
-Design não pode divergir do site por erro de digitação. Se divergir por
-desatualização, **vale o código**: rode a sincronização de novo.
+**Pendência conhecida, ação do Wilke:** reapontar "SITE SCW" para consumir
+`9e1564b3` em vez de `3f2c7a10`. Isso se faz na interface do claude.ai/design —
+não existe método via ferramenta para religar um projeto a outro design
+system. Enquanto não migrar, qualquer desenho novo no "SITE SCW" nasce na
+paleta errada, não importa a instrução colada junto (ver
+`.design-sync/instrucoes-claude-design.md`).
+
+Um projeto "Sweet & Coffee Week — Redesign 2026" (`b98b740b-…`) foi documentado
+aqui em versão anterior deste guia; não faz parte da topologia confirmada
+nesta revisão — tratar como possivelmente superado até reconfirmar no
+claude.ai/design.
+
+### `ds-base.js` — o loader do template
+
+O template "Site completo" (`templates/site-completo/` dentro do DS
+`9e1564b3`) carrega o CSS e o bundle do design system num script,
+`ds-base.js`. Corrigido em 30/07/2026: a base do caminho até o DS muda
+conforme onde o arquivo vive (dentro do próprio DS = `../..`; num projeto
+consumidor = `_ds/<pasta>`) — o loader agora **descobre** a base por sondagem
+em vez de assumir `../..` fixo, e valida que a resposta é CSS de verdade (host
+com fallback de SPA devolve 200+HTML pra qualquer caminho). Cópia versionada
+em `.design-sync/template-ds-base.js`.
 
 ### ⚠️ Projetos antigos no Claude Design — não usar
 
@@ -801,6 +869,7 @@ desatualização, **vale o código**: rode a sincronização de novo.
 | --- | --- |
 | "Sweet & Coffee Week Design System" (26/06/2026) | **Sistema ANTERIOR.** Paleta terracotta (`--coral: #E8553A`), creme `#FFF1E6`, ouro `#F8B511` no Awards, peach no Contato, componentes `Sticker`/`SideNav`. Não tem roxo. Corresponde ao que hoje sobrevive só em `/pesquisa` e nos painéis |
 | "Sweet & Coffee Week Design System" (30/05/2026) | Versão ainda mais antiga do mesmo |
+| DS handmade `3f2c7a10-…` (ver tabela acima) | Consumido hoje pelo "SITE SCW" — mesma paleta pré-redesign |
 
 Sincronizar o sistema atual dentro de qualquer um deles misturaria duas
 identidades no mesmo painel — e qualquer conversa futura no Design puxaria
