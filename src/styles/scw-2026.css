@@ -437,7 +437,12 @@ body.route-contato {
 /* ≤900px a casca vira aplicativo: sem menu de desktop, sem botão de acesso no
    topo (a função migra pra folha "mais"), logo sem overhang. */
 @media (max-width: 900px) {
-  .scw-marca { top: 50%; transform: translateY(-50%); }
+  /* Logo volta pro fluxo. Com .scw-nav e .scw-acesso-topo em display:none a
+     linha do cabeçalho fica sem conteúdo (só os 18px de padding, 36px de
+     altura); a marca absoluta centrada nela transbordava 8px ACIMA do topo da
+     página e o navegador cortava. No fluxo, a linha cresce pros 52px da
+     imagem e o padding vira respiro de verdade. */
+  .scw-marca { position: static; transform: none; }
   .scw-marca img { height: 52px; }
   .scw-nav { display: none; }
   .scw-acesso-topo { display: none; }
@@ -481,7 +486,12 @@ body.route-contato {
   transform: translateX(calc(var(--scw-aba-i, 0) * 100%));
   transition: transform 360ms cubic-bezier(.22, .92, .24, 1), background-color 300ms linear;
 }
-.scw-aba {
+/* Prefixado com `.scw-abas` de propósito: o reset `.scw-raiz a { color: inherit }`
+   (linha 104) tem especificidade 0,1,1 e vencia `.scw-aba` 0,1,0 — as quatro abas
+   que são <a> herdavam o chocolate do body e sumiam sobre a barra escura. A aba
+   "mais" é <button>, não casava com o seletor, e por isso era a única inativa
+   legível. Não baixar essa especificidade. */
+.scw-abas .scw-aba {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -493,7 +503,9 @@ body.route-contato {
   background: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: rgba(254, 240, 221, .66);
+  /* .9 sobre o chocolate da barra = 12,6:1. A aba ativa continua distinta por
+     cor de página + peso 800 + escala do ícone + indicador de 3px. */
+  color: rgba(254, 240, 221, .9);
 }
 .scw-aba__icone {
   width: 26px;
@@ -501,17 +513,20 @@ body.route-contato {
   /* O protótipo usava um easing com overshoot aqui; trocado pelo easing padrão do
      sistema (README § Movimento) — o ícone ainda cresce, sem o repique. */
   transition: transform 300ms var(--scw-ease);
-  color: rgba(254, 240, 221, .7);
+  color: inherit;
 }
 .scw-aba__rotulo {
-  font: 700 10.5px/1 var(--scw-font);
-  letter-spacing: .04em;
+  /* 10.5px → 11.5px: no menor tamanho a Nexa Slab perde o serifado e o
+     rótulo vira mancha. O tracking cai junto (.04em → .02em) porque letra
+     clara sobre escuro já espalha sozinha. */
+  font: 700 11.5px/1 var(--scw-font);
+  letter-spacing: .02em;
   text-transform: lowercase;
   transition: color 240ms linear;
 }
-.scw-aba.is-ativa { color: var(--scw-aba-tom); }
-.scw-aba.is-ativa .scw-aba__icone { transform: translateY(-2px) scale(1.1); color: var(--scw-aba-tom); }
-.scw-aba.is-ativa .scw-aba__rotulo { font-weight: 800; color: var(--scw-aba-tom); }
+.scw-abas .scw-aba.is-ativa { color: var(--scw-aba-tom); }
+.scw-abas .scw-aba.is-ativa .scw-aba__icone { transform: translateY(-2px) scale(1.1); }
+.scw-abas .scw-aba.is-ativa .scw-aba__rotulo { font-weight: 800; }
 
 .scw-folha-veu {
   display: none;
