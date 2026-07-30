@@ -56,18 +56,27 @@ sobrepõem), só é peso extra no bundle sincronizado.
 atualizar `cfg.cssEntry` com o hash novo (o maior dos dois — o outro,
 `Painel-*.css`, é do chunk lazy do painel admin, não o app principal).
 
-## Fontes Nexa Slab não copiaram (FONT_DANGLING)
+## Fontes Nexa Slab — corrigido (era FONT_DANGLING)
 
-`fonts-nexa-slab.css` usa `url('/fonts/nexa-slab/...')` — caminho
-raiz-absoluto (convenção `public/` do Vite). O Vite não reescreve esses
-caminhos no build (não são import de módulo), então o CSS final ainda tem
-`/fonts/...` literal, e o scraper de fontes do design-sync não resolve
-caminho raiz-absoluto goodrelativo ao arquivo. Resultado: 28 `@font-face`
-capturados mas os arquivos `.woff2` não foram copiados — a DS pane cai pra
-fonte de sistema.
+`src/styles/fonts-nexa-slab.css` usa `url('/fonts/nexa-slab/...')` — caminho
+raiz-absoluto (convenção `public/` do Vite). O scraper de fontes do
+design-sync resolve `url()` relativo ao arquivo CSS, não à raiz do site, então
+um caminho `/fonts/...` virava `<drive>:\fonts\...` e nunca era encontrado.
 
-**Fix pendente pra próxima sessão**: `cfg.extraFonts` apontando direto pros
-arquivos em `public/fonts/nexa-slab/*.woff2` (14 pesos/itálicos).
+**Fix aplicado**: `.design-sync/fonts-nexa-slab.extra.css` — cópia dos mesmos
+14 `@font-face` (12 pesos/itálicos + 2 do alias `Nexa Slab Black`) com `url()`
+relativo (`../public/fonts/nexa-slab/...`), referenciada via
+`cfg.extraFonts: [".design-sync/fonts-nexa-slab.extra.css"]`. Não é importada
+pelo app — só o converter lê. Confirmado no re-sync: 12 `.woff2` copiados pra
+`fonts/`, `_ds_bundle.css` com 14 `url()` reescritos. Se algum dia o
+`fonts-nexa-slab.css` real mudar de peso/arquivo, replicar a mudança aqui
+também (os dois arquivos não têm vínculo automático).
+
+Restam no aviso `FONT_MISSING` (não bloqueante, aceito): fontes do sistema
+Lovers (`sofia-pro-comp`, `Caprasimo` — carregadas via Typekit externo, não
+self-hosted, não dá pra empacotar) e fontes do sistema visual anterior/seção
+F2 (`JetBrains Mono`, `Archivo`, `DM Sans`, `Instrument Serif`, `Caveat`) —
+não usadas pelas páginas institucionais atuais, só legado/exceção pontual.
 
 ## Known render warns
 

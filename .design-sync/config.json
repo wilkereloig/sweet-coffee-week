@@ -6,6 +6,7 @@
   "srcDir": "src/components",
   "cssEntry": "dist/assets/index-BDwswYBm.css",
   "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [".design-sync/fonts-nexa-slab.extra.css"],
   "componentSrcMap": {
     "I": null,
     "LoversSeal": null,
