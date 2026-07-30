@@ -249,9 +249,30 @@ embaixo** — nenhum texto sobre imagem.
   com `box-shadow` interno no topo (legibilidade da logo) e passagem para o chocolate
   na base. O cartão de foto do desktop (`.scw-hero-cartao`) é ocultado para não
   duplicar imagem.
-- Fotos fixas por página: Participar `/images/combos/douce-di-maria/main.jpg` · Apoiar
-  `/images/momentos/04.jpg` · Contato `/images/campanha/15.jpg`.
-- **Sweet Awards não usa banda** — o herói já abre com a vitrine dos vencedores.
+- Fotos fixas por página: vêm de `heroPhotos(rota)` em `src/data/imageLibrary.js`
+  (Participar `/images/combos/douce-di-maria/main.jpg` · Apoiar `/images/momentos/04.jpg`
+  · Contato `/images/campanha/15.jpg` · Sweet Awards `/images/edicoes/2026.1/01.webp`).
+  Caminho de imagem não se escreve à mão na página.
+- **Sweet Awards passou a usar banda** (30/07/2026, a pedido do Wilke). A regra antiga
+  — "não usa banda, o herói já abre com a vitrine" — valia no desktop, mas no celular a
+  vitrine cai pra depois da dobra e sobrava uma reserva de topo de 216px de roxo
+  chapado. A banda fecha no roxo (`--scw-banda-base: var(--scw-roxo)`) e o
+  `.swa-hero::before` some no mobile (a própria banda escurece onde a logo passa).
+
+**Corte da foto — rampa em S, não `box-shadow`.** O corte da banda (topo e base) vem de
+`.scw-hero-banda::before/::after` mascarados pelo token `--scw-esfuma` /
+`--scw-esfuma-topo` (`src/styles/scw-2026.css`): uma rampa smoothstep `t²(3−2t)`. Motivo:
+degradê **linear** em alpha lê como faixa — o olho enxerga a derivada, não o valor, então
+o ponto onde a rampa começa e onde termina viram arestas; a curva em S cola em 0 e em 1
+nas duas pontas. É **máscara** e não degradê colorido de propósito: a mesma rampa serve
+qualquer cor de fechamento. Base = 62% da altura da banda (~164px); o véu do herói da Home
+no celular usa a mesma curva embutida no gradiente, cobrindo 60% da altura.
+
+**A banda fecha na cor do BLOCO, não do herói.** `--scw-banda-base` tem como padrão o
+chocolate de `.scw-hero-bloco`. Só `.pa-hero` repinta o bloco (`--scw-heroi`: magenta em
+Participar, cyan em Apoiar) e por isso sobrescreve; Contato pinta bege no celular e
+sobrescreve também. Errar isso deixa uma linha dura na emenda — o `box-shadow` curto de
+antes escondia, a rampa longa expõe.
 
 ## 5. Elementos soltos
 
@@ -585,6 +606,20 @@ Pontos com significado fixo:
 - **900px** — casca vira aplicativo: logo perde o overhang (52px), botão de acesso do
   topo some, entra a barra inferior de 5 abas;
 - **820px** — card de 1º lugar do Sweet Awards passa de 4:5 para 1:1.
+
+**Especificidade é a armadilha nº 1 do mobile.** Três bugs distintos, mesma causa: um
+reset genérico com seletor de 2 níveis vence a regra específica de 1 nível, e o efeito só
+aparece no celular porque é lá que a regra específica existe. Casos já corrigidos —
+`.scw-raiz a { color: inherit }` (0,1,1) vencia `.scw-aba` (0,1,0), apagando os rótulos da
+barra de abas; `.scw-raiz img { display: block }` (0,1,1) vencia
+`.ctt-abertura__fundo { display: none }` (0,1,0), montando a foto de tela cheia atrás do
+texto do Contato. **Ao esconder ou recolorir um elemento no mobile, conferir se existe
+reset genérico em `.scw-raiz` para aquela tag** — e prefixar o seletor, nunca usar
+`!important`.
+
+**Alvo de toque mínimo 44px no celular.** Vale para o controle real, não para a linha que
+o contém: clicar no padding de um flex não foca o `<input>` filho (foi o caso da busca do
+Contato, campo de 26px dentro de uma linha de 46px). Auditado em 390px nas 6 rotas.
 
 Testado em 320, 360, 375, 388, 390, 430, 768, 1024, 1280, 1440, 1544 e 1920 — sem
 rolagem horizontal e sem texto cortado. Valores fora da escala só quando o conteúdo

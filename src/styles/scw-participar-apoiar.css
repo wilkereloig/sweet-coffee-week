@@ -417,6 +417,10 @@ body.route-participar .pa-hero__nota {
 }
 .pa-depo__som:hover,
 .pa-depo__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
+/* 34px basta para o ponteiro, não para o polegar — no celular vai a 44. */
+@media (max-width: 900px) {
+  .pa-depo__som { width: 44px; height: 44px; }
+}
 .pa-depo__selo {
   position: absolute;
   right: 16px;

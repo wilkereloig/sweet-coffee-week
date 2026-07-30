@@ -6,7 +6,10 @@
    ========================================================================= */
 
 /* --- seções --------------------------------------------------------------- */
-.ctt-sec { padding: clamp(44px, 4.8vw, 76px) var(--scw-trilho); }
+/* Ritmo do sistema (§4), não uma escala própria: Contato vinha com 44/76px
+   contra os 58/100px de todas as outras páginas, e no celular a diferença de
+   14px por emenda lia como seção apertada. */
+.ctt-sec { padding: var(--scw-sec-y) var(--scw-trilho); }
 .ctt-sec--creme { background: var(--scw-creme); }
 .ctt-sec--bege  { background: var(--scw-bege); }
 .ctt-sec--mensagem {
@@ -157,6 +160,12 @@
   font: 600 15px/1.2 var(--scw-font);
 }
 .ctt-busca input::placeholder { color: rgba(106, 44, 21, .6); }
+/* No celular o campo é o alvo de toque, não a linha: clicar no padding do
+   flex não foca o input, então os 46px da linha não valiam — só os 26px do
+   próprio campo. */
+@media (max-width: 900px) {
+  .ctt-busca input { min-height: 44px; }
+}
 
 .ctt-lateral__rotulo {
   display: block;
