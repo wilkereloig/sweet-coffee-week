@@ -32,3 +32,9 @@ tests/.snapshot-design/
 
 # Artefatos locais do Codex (prints de diagnostico + config de agente)
 .codex/
+
+# design-sync (skill) — build/scratch, não commitar
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/node_modules
