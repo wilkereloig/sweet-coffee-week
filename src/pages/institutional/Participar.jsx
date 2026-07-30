@@ -307,7 +307,7 @@ export function ParticiparPage() {
             </div>
             <p className="pa-hero__rotulos">
               <b>O que sua marca encontra</b>
-              <span>acervo de 16 edições</span>
+              <span>histórico de 16 edições</span>
             </p>
             <dl className="pa-hero__dados">
               {INDICADORES.map((m) => (

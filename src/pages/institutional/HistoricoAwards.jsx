@@ -320,7 +320,7 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
                         ))}
                       </ol>
                     ) : (
-                      <span className="swa-hist-vazio">Resultado em consolidação no acervo.</span>
+                      <span className="swa-hist-vazio">Resultado ainda não registrado.</span>
                     )}
                   </li>
                 ))}
@@ -528,9 +528,9 @@ export function HistoricoAwardsPage() {
           </div>
           <p className="swa-apoio">
             Da estreia em 2019, com categoria única, às quinze categorias de Terras Potiguares.
-            Abra uma edição para ver os resultados. O acervo dessas edições não identifica de
-            qual marca é cada foto, então os pódios aparecem sem fotografia — nenhuma imagem
-            é emprestada de outra edição.
+            Abra uma edição para ver os resultados. Nessas edições não é possível saber qual
+            marca aparece em cada foto, então os pódios aparecem sem fotografia — nenhuma
+            imagem é emprestada de outra edição.
           </p>
         </div>
 

@@ -105,7 +105,7 @@ const TONS = [
 
 const PREMIACAO = {
   'nao-teve': 'Sem premiação',
-  'nao-encontrada': 'Não encontrada no acervo',
+  'nao-encontrada': 'Sem registro disponível',
   completa: 'Premiação registrada',
   completa_em_publicacoes_oficiais: 'Premiação registrada',
   parcial: 'Premiação parcial',
@@ -231,7 +231,7 @@ function Quadro({ foto, classe = '', eager = false, children = null }) {
           style={{ objectPosition: foto.position }}
         />
       ) : (
-        <span className="scw-edx__reserva">Foto pendente no acervo</span>
+        <span className="scw-edx__reserva">Foto pendente</span>
       )}
       {children}
     </figure>
@@ -272,7 +272,7 @@ function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovim
       <section className={`scw-gal scw-gal--${variante}`} aria-label={etiqueta}>
         <div className="scw-gal__quadros">
           <figure className="scw-gal__quadro">
-            <span className="scw-edx__reserva">Galeria pendente no acervo</span>
+            <span className="scw-edx__reserva">Galeria pendente</span>
           </figure>
         </div>
       </section>
@@ -426,7 +426,7 @@ function Editorial({ id, classe = '', narrativa, abertura, curiosidades }) {
         </Bloco>
       )}
       {curiosidades.length > 0 && (
-        <Bloco rotulo={`Do acervo · ${curiosidades.length}`}>
+        <Bloco rotulo={`Curiosidades · ${curiosidades.length}`}>
           <ul className="scw-edx__curios">
             {curiosidades.map((c) => (
               <li key={c.t}>
@@ -598,8 +598,8 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
      87% — assim a foto que abre o mosaico não aparece duas vezes na mesma cena
      (e o fundo fica fixo por edição, sem repintar blur a cada troca de foto). */
   const fotoFundo = fotos.length ? fotos[fotos.length - 1] : null
-  const etiquetaGaleria = `Galeria do acervo da edição ${e.tema}, ${e.code}`
-  const rotuloGaleria = `Acervo · ${e.code}`
+  const etiquetaGaleria = `Galeria de fotos da edição ${e.tema}, ${e.code}`
+  const rotuloGaleria = `Fotos · ${e.code}`
 
   const meta = (
     <>
@@ -611,7 +611,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
   const listaMarcas = participantes.length
     ? participantes.map((p) => <li key={p}><span className="scw-edx__ponto" aria-hidden="true" />{p}</li>)
-    : <li>Lista de participantes pendente no acervo.</li>
+    : <li>Lista de participantes pendente.</li>
 
   /* ============================ MOBILE ================================== */
   if (estreito) {
