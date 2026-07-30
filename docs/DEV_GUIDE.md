@@ -93,7 +93,6 @@ site-sweet-coffee-week/
     ├── main.jsx           # ordem de import dos CSS (IMPORTA A ORDEM — ver §6)
     ├── router.js          # hash router customizado
     ├── theme.js
-    ├── DevTools.jsx       # DEV-only (viewport switcher)
     ├── styles.css         # globais institucionais (route-* / --page-accent / heros)
     ├── styles/
     │   ├── swc-redesign.css   # redesign v2 (carrega por último — VENCE hoje)

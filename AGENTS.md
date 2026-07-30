@@ -448,7 +448,7 @@ src/
   hooks/        # useRevealOnScroll.js (IntersectionObserver, threshold 0)
   styles.css    # globais (route-* / --page-accent) — editar com cuidado
   styles/       # motion-system.css, etc.
-  App.jsx · router.js · DevTools.jsx (DevViewportSwitcher é DEV-only)
+  App.jsx · router.js
 public/images/  # logos, combos (/images/combos/<slug>/main.jpg), shapes
 ```
 

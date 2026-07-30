@@ -5,7 +5,6 @@ import { SiteHeader } from './components/nav'
 import { MobileTabBar } from './components/MobileTabBar'
 import { MobileMenu } from './components/MobileMenu'
 import { AccessDialog } from './components/AccessDialog'
-import { DevViewportSwitcher } from './DevTools'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
@@ -161,48 +160,46 @@ export default function App() {
   useSiteMotion(conteudoRef, [route, comMovimento], comMovimento)
 
   return (
-    <DevViewportSwitcher>
-      <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
-        {showShell && (
-          <>
-            <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>
-            <SiteHeader
-              route={route}
-              navigate={navigate}
-              accessOpen={accessOpen}
-              onOpenAccess={() => setAccessOpen(true)}
-            />
-          </>
-        )}
-        {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
-            legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
-        <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
-          <ErrorBoundary key={route}>
-            <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
-              {page}
-            </React.Suspense>
-          </ErrorBoundary>
-        </main>
-        {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
-            na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
-            showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
-        {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} />}
-        {showMobileNav && (
-          <>
-            <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
-            <MobileMenu
-              open={menuOpen}
-              route={route}
-              navigate={navigate}
-              onClose={() => setMenuOpen(false)}
-              onOpenAccess={() => setAccessOpen(true)}
-            />
-          </>
-        )}
-        {!isInternal && <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />}
-        {showShell && <BotaoTopo />}
-        <CookieConsent />
-      </div>
-    </DevViewportSwitcher>
+    <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
+      {showShell && (
+        <>
+          <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>
+          <SiteHeader
+            route={route}
+            navigate={navigate}
+            accessOpen={accessOpen}
+            onOpenAccess={() => setAccessOpen(true)}
+          />
+        </>
+      )}
+      {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
+          legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
+      <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
+        <ErrorBoundary key={route}>
+          <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
+            {page}
+          </React.Suspense>
+        </ErrorBoundary>
+      </main>
+      {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
+          na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
+          showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
+      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} />}
+      {showMobileNav && (
+        <>
+          <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
+          <MobileMenu
+            open={menuOpen}
+            route={route}
+            navigate={navigate}
+            onClose={() => setMenuOpen(false)}
+            onOpenAccess={() => setAccessOpen(true)}
+          />
+        </>
+      )}
+      {!isInternal && <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />}
+      {showShell && <BotaoTopo />}
+      <CookieConsent />
+    </div>
   )
 }

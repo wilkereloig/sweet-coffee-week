@@ -461,8 +461,8 @@ próximas páginas institucionais.
 
 - Script: **`tests/responsive.mjs`** (Playwright, já em devDependencies).
 - Roda contra o **build de produção** via `vite preview` — NÃO contra o dev
-  server. Em DEV o `DevViewportSwitcher` embrulha o app num `<iframe>`, então o
-  header real não fica no documento de topo; só o preview reflete o site real.
+  server: só o build reflete o site real (minificação, ordem final de CSS,
+  assets com hash).
 - Comandos:
   ```
   npm run build              # exigido antes (dist no Dropbox → build separado)

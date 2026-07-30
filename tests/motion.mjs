@@ -10,9 +10,9 @@
  *   4. o motor ligar mesmo com prefers-reduced-motion (ou não ligar sem ela);
  *   5. o console acusar erro.
  *
- * Roda contra o BUILD, via `vite preview` — igual a tests/responsive.mjs. Em DEV
- * o DevViewportSwitcher embrulha o app num <iframe> e nada disso é observável no
- * documento de topo. `?preview=1` destrava o institucional atrás do gate
+ * Roda contra o BUILD, via `vite preview` — igual a tests/responsive.mjs: é o
+ * build que reflete o site publicado (minificação, ordem final de CSS, assets
+ * com hash). `?preview=1` destrava o institucional atrás do gate
  * COMING_SOON_PUBLICATION (permitido fora do domínio oficial — ver App.jsx).
  *
  * Uso:  npm run build && npm run test:motion

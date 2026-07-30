@@ -14,8 +14,8 @@
  * Sai com código 1 se houver overflow horizontal ou falha dura.
  *
  * Roda contra o BUILD de produção via `vite preview` — NÃO contra o dev server.
- * Motivo: em DEV o DevViewportSwitcher embrulha o app num <iframe>, então o
- * header real não fica no documento de topo. O preview reflete o site publicado.
+ * Motivo: só o build reflete o site publicado (minificação, ordem final de CSS,
+ * assets com hash); o dev server serve os módulos soltos.
  *
  * Exige um `dist/` já buildado. Rode `npm run build` antes (a pasta dist fica no
  * Dropbox e o emptyDir do vite trava intermitentemente — por isso o build é uma

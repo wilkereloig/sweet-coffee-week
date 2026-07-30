@@ -776,7 +776,7 @@ src/
   styles/scw-<pagina>.css  # CSS específico de cada página do redesign
   styles.css    # sistema anterior (route-* / --page-accent) — legado, editar com cuidado
   styles/       # motion-system.css, lovers-system.css, etc.
-  App.jsx · router.js · DevTools.jsx (DevViewportSwitcher é DEV-only)
+  App.jsx · router.js
 public/images/  # logos, combos (/images/combos/<slug>/main.jpg), edicoes/ (fotos),
                 # marcas-edicoes/ (marca de cada edição),
                 # momentos/, campanha/, shapes

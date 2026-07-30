@@ -28,7 +28,6 @@ site-sweet-coffee-week/
 │   ├── router.js        # hook useRoute (hash-based)
 │   ├── main.jsx         # mount React; ordem de import dos CSS
 │   ├── theme.js         # applyPalette() no init
-│   ├── DevTools.jsx     # DevViewportSwitcher (preview)
 │   ├── pages/
 │   │   ├── institutional/  Home · Edicoes · Curiosidades · Participar · Apoiar · Contato · SweetAwards · HistoricoAwards
 │   │   └── lovers/         Painel (admin votação)
