@@ -339,8 +339,16 @@ body.route-contato {
 .scw-header__veu {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 240%;
-  background: linear-gradient(to bottom, rgba(61, 19, 8, .62) 0%, rgba(61, 19, 8, .30) 42%, rgba(61, 19, 8, 0) 100%);
+  height: 115%;
+  /* Vários stops pra sumir de verdade antes do fim — só 2 stops (era 240% de
+     altura, .30 ainda no meio) deixava a cauda de alpha baixo visível bem
+     depois do menu, sobre o conteúdo rolado (nunca some 100% pro olho). */
+  background: linear-gradient(to bottom,
+    rgba(61, 19, 8, .62) 0%,
+    rgba(61, 19, 8, .40) 34%,
+    rgba(61, 19, 8, .18) 62%,
+    rgba(61, 19, 8, .06) 84%,
+    rgba(61, 19, 8, 0) 100%);
   pointer-events: none;
   z-index: -1;
 }
