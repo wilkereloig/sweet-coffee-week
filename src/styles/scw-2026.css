@@ -896,13 +896,15 @@ body.route-contato {
 .scw-hero__col {
   position: relative;
   z-index: 2;
-  max-width: min(60%, 860px);
-  /* Só a esquerda usa o trilho da página (alinha com logo/menu). A direita é
-     respiro fixo, não o trilho: acima de ~1504px o trilho cresce sem limite
-     pra centralizar a grade de 1360px na página inteira, mas esta coluna já
-     trava em 860px — usar o trilho nos dois lados comia a própria largura
-     travada e sobrava cada vez menos espaço pro texto conforme a tela alargava
-     (título de 15ch com fonte crescendo por vw não tinha onde quebrar). */
+  /* O teto de 860px é da LARGURA DO CONTEÚDO, não da caixa inteira — por isso
+     soma o trilho de volta aqui. A esquerda usa var(--scw-trilho) (alinha com
+     logo/menu, cresce sem limite acima de ~1504px pra centralizar a grade de
+     1360px). Sem esse "+ trilho" no teto, a caixa (860px) e o padding-esquerda
+     competiam pelo mesmo orçamento: a área de texto encolhia conforme a tela
+     alargava (chegava a sumir de vez em telas ultralargas). Com ele, a largura
+     do conteúdo trava em ~828px (860 − 32 de respiro direito) pra qualquer
+     viewport, exatamente como o resto do site trava a grade em 1360px. */
+  max-width: min(60%, calc(860px + var(--scw-trilho)));
   padding: clamp(232px, 22vw, 290px) clamp(20px, 2vw, 32px) clamp(30px, 3.4vw, 48px) var(--scw-trilho);
 }
 .scw-hero__titulo {
