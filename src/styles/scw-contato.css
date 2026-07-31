@@ -13,7 +13,7 @@
 .ctt-sec--creme { background: var(--scw-creme); }
 .ctt-sec--bege  { background: var(--scw-bege); }
 .ctt-sec--mensagem {
-  padding: clamp(60px, 6.4vw, 104px) var(--scw-trilho);
+  padding: var(--scw-sec-y) var(--scw-trilho);
   background: var(--scw-creme);
 }
 .ctt-sec[id],
@@ -94,7 +94,7 @@
 }
 .ctt-abertura__nota {
   margin: 0;
-  font: 600 14.5px/1.5 var(--scw-font);
+  font: 500 14.5px/1.5 var(--scw-font);
   color: color-mix(in srgb, var(--scw-heroi-tinta) 80%, transparent);
 }
 .ctt-abertura__acoes { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -157,9 +157,9 @@
   border: 0;
   background: transparent;
   color: var(--scw-choco);
-  font: 600 15px/1.2 var(--scw-font);
+  font: 500 15px/1.2 var(--scw-font);
 }
-.ctt-busca input::placeholder { color: rgba(106, 44, 21, .6); }
+.ctt-busca input::placeholder { color: rgba(106, 44, 21, .8); }
 /* No celular o campo é o alvo de toque, não a linha: clicar no padding do
    flex não foca o input, então os 46px da linha não valiam — só os 26px do
    próprio campo. */
@@ -173,7 +173,7 @@
   font: 800 10.5px/1 var(--scw-font);
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: rgba(106, 44, 21, .65);
+  color: rgba(106, 44, 21, .8);
 }
 
 .ctt-cats {
@@ -201,7 +201,7 @@
   border-radius: 0;
   background: transparent;
   color: var(--scw-marrom);
-  font: 600 15px/1.2 var(--scw-font);
+  font: 700 15px/1.2 var(--scw-font);
   text-align: left;
   cursor: pointer;
   transition: color 160ms linear;
@@ -220,10 +220,10 @@
 }
 .ctt-cat__n {
   flex: 0 0 auto;
-  font: 600 12.5px/1 var(--scw-font);
+  font: 700 12.5px/1 var(--scw-font);
   letter-spacing: .04em;
   font-variant-numeric: tabular-nums;
-  color: rgba(106, 44, 21, .6);
+  color: rgba(106, 44, 21, .8);
 }
 .ctt-cat.is-ativa .ctt-cat__n { font-weight: 800; color: var(--scw-pagina-sobre-creme); }
 
@@ -491,7 +491,7 @@
   border-radius: 14px;
   background: var(--scw-bege);
   color: var(--scw-choco);
-  font: 600 14px/1.5 var(--scw-font);
+  font: 700 14px/1.5 var(--scw-font);
 }
 .ctt-enviar { background: var(--scw-choco); color: var(--scw-creme); }
 .ctt-enviar:hover { background: var(--scw-marrom); }

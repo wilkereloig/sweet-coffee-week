@@ -298,7 +298,7 @@
   letter-spacing: -.032em;
   color: currentColor;
 }
-.hm-rota__texto p { margin: 0; max-width: 32ch; font: 500 15px/1.5 var(--scw-font); color: currentColor; }
+.hm-rota__texto p { margin: 0; max-width: 32ch; font: 500 15px/1.5 var(--scw-font); color: currentColor; text-wrap: pretty; }
 .hm-rota--parceiros .hm-rota__texto p { color: rgba(254, 240, 221, .8); }
 .hm-rota__cta {
   display: inline-flex;
@@ -356,7 +356,7 @@
   letter-spacing: -.025em;
   color: var(--scw-creme);
 }
-.hm-etapa__texto { margin: 0; font: 500 14.5px/1.5 var(--scw-font); color: rgba(254, 240, 221, .7); }
+.hm-etapa__texto { margin: 0; font: 500 15px/1.5 var(--scw-font); color: rgba(254, 240, 221, .7); text-wrap: pretty; }
 
 /* ============================================================================
    05 Números — quatro numerais numa linha (fórmula ciente do gap)
@@ -385,7 +385,7 @@
   align-self: start;
   max-width: 22ch;
   font: 500 13.5px/1.4 var(--scw-font);
-  color: rgba(61, 19, 8, .6);
+  color: rgba(61, 19, 8, .72);
 }
 
 /* ============================================================================

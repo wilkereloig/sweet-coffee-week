@@ -169,7 +169,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
-  font: 600 12.5px/1.2 var(--scw-font);
+  font: 700 12.5px/1.2 var(--scw-font);
   color: rgba(254, 240, 221, .82);
 }
 .swa-indice li span {
@@ -317,13 +317,15 @@
   object-position: center 42%;
 }
 
-/* Reserva honesta quando o acervo não tem foto da marca (§8). */
+/* Reserva honesta quando o acervo não tem foto da marca (§8) — mesma moldura
+   editorial do .scw-reserva genérico (scw-2026.css), não um terceiro tratamento. */
 .swa-reserva {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: var(--scw-marrom);
-  color: var(--scw-creme);
+  background: var(--scw-creme);
+  border: 1px dashed rgba(61, 19, 8, .14);
+  color: var(--scw-marrom);
   font: 700 12px/1.35 var(--scw-font);
   letter-spacing: .04em;
   text-align: center;
@@ -555,7 +557,8 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 240ms var(--scw-ease);
+  /* transition vem de scw-motion.css (mesmo seletor) — não redeclarar aqui,
+     senão a regra local vence e derruba a transição de color do token. */
 }
 .swa-edicao__botao:hover { background: rgba(61, 19, 8, .04); }
 .swa-edicao__marca {
@@ -611,7 +614,8 @@
   border-radius: 50%;
   background: rgba(61, 19, 8, .08);
   color: var(--scw-choco);
-  transition: transform 260ms var(--scw-ease), background-color 260ms linear;
+  /* transform vem de scw-motion.css (--mo-mola) — não redeclarar aqui. */
+  transition: background-color 260ms linear;
 }
 .swa-edicao__botao[aria-expanded="true"] .swa-edicao__seta {
   background: var(--scw-amarelo);
@@ -620,7 +624,7 @@
 
 .swa-edicao__painel {
   padding: 0 clamp(16px, 1.8vw, 24px) clamp(20px, 2.2vw, 30px);
-  animation: swaAbre 260ms var(--scw-ease) both;
+  animation: swaAbre var(--mo-estado) var(--scw-ease) both;
 }
 .swa-edicao__periodo {
   margin: 0 0 18px;
@@ -637,7 +641,7 @@
   padding: 7px 13px 5px calc(13px + .14em);
   border-radius: 999px;
   background: var(--swa-grupo, var(--scw-cyan));
-  color: var(--scw-choco);
+  color: var(--swa-grupo-tinta, var(--scw-choco));
   font: 800 10px/1.2 var(--scw-font);
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -681,7 +685,7 @@
   color: var(--scw-choco);
   font: 900 11px/1 var(--scw-font-black);
 }
-.swa-hist-nome { font: 600 14.5px/1.25 var(--scw-font); color: var(--scw-marrom); }
+.swa-hist-nome { font: 700 14.5px/1.25 var(--scw-font); color: var(--scw-marrom); }
 .swa-hist-nome--primeiro {
   font: 900 16px/1.25 var(--scw-font-black);
   letter-spacing: -.02em;

@@ -100,7 +100,7 @@ const ONDE = [
     itens: ['Posts e stories', 'Reels', 'Site oficial', 'Página de participantes', 'Página de promoções'],
   },
   {
-    t: 'Cidade e PDV', c: 'var(--scw-marrom)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-magenta)',
+    t: 'Cidade e PDV', c: 'var(--scw-marrom)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-marrom)',
     // Campanha e público não têm vínculo com edição nem marca no acervo — ficam
     // fora do sistema central, com alt e ponto focal declarados aqui.
     foto: { src: '/images/campanha/03.jpg', alt: 'Display de mesa do Sweet & Coffee Week com QR code em uma loja participante', position: 'center 44%' },
@@ -388,7 +388,7 @@ export function ApoiarPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/onde-aparece" tamanho={16} />Onde a marca aparece</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Quatro pontos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>contato com o público</em>.
+              Quatro pontos de <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>contato com o público</em>.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">

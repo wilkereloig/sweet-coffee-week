@@ -501,6 +501,9 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
       if (ev.key === 'Escape') { setPainel(null); return }
       // Dentro da galeria as setas e Home/End percorrem FOTOS, não edições.
       if (ev.target && ev.target.closest && ev.target.closest('[data-galeria]')) return
+      // Painel editorial/participantes tem texto rolável — as mesmas teclas
+      // aqui rolam o painel, não trocam de edição.
+      if (ev.target && ev.target.closest && ev.target.closest('.scw-edx__painel')) return
       if (ev.key === 'ArrowRight' || ev.key === 'PageDown') { ev.preventDefault(); passo(1) }
       else if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { ev.preventDefault(); passo(-1) }
       else if (ev.key === 'Home') { ev.preventDefault(); vaiPara(0) }
@@ -810,7 +813,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                       className={ativo ? 'is-ativo' : undefined}
                       aria-current={ativo ? 'page' : undefined}
                       onClick={ativo ? (ev) => ev.preventDefault() : ir(l.href)}
-                      style={{ '--scw-nav-cor': c.menu, '--scw-nav-tinta': c.tinta }}
+                      style={{ '--scw-nav-cor': c.menu, '--scw-nav-tinta': c.tinta, '--scw-nav-hover': c.menu }}
                     >
                       {l.label}
                     </a>

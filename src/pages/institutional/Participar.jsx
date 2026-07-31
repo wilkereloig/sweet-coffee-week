@@ -158,8 +158,8 @@ const IMPRENSA = [
 const JORNADA = [
   { n: '01', t: 'Pré-cadastro', d: 'Você conta sobre a marca e registra o interesse — o começo de tudo.', c: 'var(--scw-amarelo)' },
   { n: '02', t: 'Análise', d: 'A organização avalia o perfil junto aos critérios de curadoria da edição.', c: 'var(--scw-cyan)' },
-  { n: '03', t: 'Contato e aprovação', d: 'A equipe fala com você para confirmar os detalhes e a participação.', c: 'var(--scw-cyan)' },
-  { n: '04', t: 'Próximos passos', d: 'Com a marca aprovada, chegam as orientações e os materiais para preparar a presença.', c: 'var(--scw-amarelo)' },
+  { n: '03', t: 'Contato e aprovação', d: 'A equipe fala com você para confirmar os detalhes e a participação.', c: 'var(--scw-magenta)' },
+  { n: '04', t: 'Próximos passos', d: 'Com a marca aprovada, chegam as orientações e os materiais para preparar a presença.', c: 'var(--scw-laranja)' },
 ]
 
 // Iniciais para o monograma de fallback da marca (ignora "e"/"&"; máx. 2 letras).
@@ -206,7 +206,7 @@ function useBarra() {
 // toque ativa o som deste (a trilha some quando ativo === false). O `muted`
 // é sincronizado via ref porque a prop React não reflete de forma confiável
 // a propriedade DOM depois da montagem.
-function DepoVideo({ src, poster, alt, ativo, onToggle }) {
+function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
   const ref = React.useRef(null)
   const reduzido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -226,6 +226,7 @@ function DepoVideo({ src, poster, alt, ativo, onToggle }) {
         autoPlay={!reduzido}
         preload="metadata"
         aria-label={alt}
+        aria-describedby={describedBy}
         onClick={onToggle}
       />
       <button type="button" className="pa-depo__som" onClick={onToggle} aria-pressed={ativo}
@@ -422,6 +423,7 @@ export function ParticiparPage() {
                         alt={`${d.pessoa} falando sobre a experiência da ${d.marca} no Sweet & Coffee Week`}
                         ativo={audioAtivo === d.slug}
                         onToggle={() => setAudioAtivo((atual) => (atual === d.slug ? null : d.slug))}
+                        describedBy={d.frase ? `pa-depo-frase-${d.slug}` : undefined}
                       />
                     : fotoCombo
                       ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
@@ -435,7 +437,7 @@ export function ParticiparPage() {
               </div>
               <div className="pa-depo__corpo">
                 {d.frase
-                  ? <blockquote>{d.frase}</blockquote>
+                  ? <blockquote id={`pa-depo-frase-${d.slug}`}>{d.frase}</blockquote>
                   : <p className="pa-depo__espera">Depoimento desta marca chegando em breve.</p>}
                 <span className="pa-depo__quem">
                   {d.pessoa && <b>{d.pessoa}</b>}
@@ -591,7 +593,7 @@ export function ParticiparPage() {
       {/* ═══ 08 Pré-cadastro (formulário em destaque) ═══ */}
       <section id="pre-cadastro" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
-          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/mensagem" tamanho={16} />Pré-cadastro</span>
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mecanica/inscricao" tamanho={16} />Pré-cadastro</span>
           <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
             Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
           </h2>

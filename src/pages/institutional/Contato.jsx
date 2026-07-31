@@ -15,7 +15,8 @@
  * "enviado" se a gravação falhar.
  *
  * Casca (header, rodapé, abas mobile) é global (App.jsx); a cor da página
- * (marrom #6A2C15) vem de `body.route-contato` → `--scw-pagina`.
+ * (bege #F8E4C1, desde o fechamento de paleta de 29/07) vem de
+ * `body.route-contato` → `--scw-pagina`.
  */
 import React from 'react'
 import '../../styles/scw-contato.css'

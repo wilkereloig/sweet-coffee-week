@@ -140,6 +140,8 @@ const PALETA_SELO = [
   { cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)' },
   { cor: 'var(--scw-cyan)',    tinta: 'var(--scw-choco)' },
   { cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
+  { cor: 'var(--scw-marrom)',  tinta: 'var(--scw-creme)' },
 ]
 
 // Ícones de linha por categoria (decorativos, aria-hidden no selo).
@@ -217,19 +219,22 @@ const Seta = () => (
 
 // 03 — trilha do tempo de "quem dá a nota" (três momentos, cronológico).
 const TRILHA = [
-  { ano: '2019', titulo: 'Nasce com uma categoria', cor: '#FDBB1A', tinta: '#3D1308',
+  { ano: '2019', titulo: 'Nasce com uma categoria', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)',
     traco: <><circle cx="12" cy="9" r="5.4" /><path d="M9.2 13.9 8 21l4-2.1 4 2.1-1.2-7.1" /></>,
     texto: 'O primeiro pódio premia um combo só. A pergunta era simples: qual foi o melhor da edição?' },
-  { ano: '2020.2 – 2021.2', titulo: 'Júri Técnico entra em cena', cor: '#01AFCC', tinta: '#3D1308',
+  { ano: '2020.2 – 2021.2', titulo: 'Júri Técnico entra em cena', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
     traco: <path d="M4 8h16M12 8v11M8.5 19h7M4 8 1.9 12.2h4.2L4 8M20 8l-2.1 4.2h4.2L20 8" />,
     texto: 'Por cinco edições, profissionais convidados avaliam execução, equilíbrio e acabamento em paralelo ao público.' },
-  { ano: '2022 em diante', hoje: true, titulo: 'Só Sweet Lovers decide', cor: '#4D257E', tinta: '#FEF0DD',
+  { ano: '2022 em diante', hoje: true, titulo: 'Só Sweet Lovers decide', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
     traco: <path d="M12 20.3s-7.3-4.5-7.3-9.6A3.9 3.9 0 0 1 12 8.1a3.9 3.9 0 0 1 7.3 2.6c0 5.1-7.3 9.6-7.3 9.6Z" />,
     texto: 'Quem prova dá nota ao que comeu. O pódio sai da média dessas notas — e de mais nada.' },
 ]
 
 const ROTULO_TRILHA = { juri_tecnico: 'Júri Técnico', sweet_lovers: 'Sweet Lovers' }
 const COR_TRILHA = { juri_tecnico: 'var(--scw-cyan)', sweet_lovers: 'var(--scw-magenta)' }
+// Magenta puro só sustenta 3,8:1 com tinta chocolate — insuficiente pra texto
+// pequeno (pílula de 10px). Cyan sustenta choco (6,18:1); magenta pede creme.
+const TINTA_TRILHA = { juri_tecnico: 'var(--scw-choco)', sweet_lovers: 'var(--scw-creme)' }
 
 // Agrupa as categorias de uma edição por trilha, preservando a ordem dos dados.
 function agruparPorTrilha(cats) {
@@ -305,7 +310,7 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
           {grupos.map((g) => (
             <div className="swa-grupo" key={g.trilha || 'unica'}>
               {varias && ROTULO_TRILHA[g.trilha] && (
-                <span className="swa-grupo__rotulo" style={{ '--swa-grupo': COR_TRILHA[g.trilha] }}>
+                <span className="swa-grupo__rotulo" style={{ '--swa-grupo': COR_TRILHA[g.trilha], '--swa-grupo-tinta': TINTA_TRILHA[g.trilha] }}>
                   {ROTULO_TRILHA[g.trilha]}
                 </span>
               )}

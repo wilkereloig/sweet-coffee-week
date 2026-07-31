@@ -206,6 +206,8 @@ export function HomePage({ navigate }) {
     const suave = (t) => 1 - Math.pow(1 - t, 3)
     const passo = (ts) => {
       if (!inicio) inicio = ts
+      // 1400ms deliberado (mais lento que --mo-longo/880ms): contagem precisa
+      // de tempo pra ler os dígitos subindo, não é uma entrada de bloco comum.
       const p = Math.min(1, (ts - inicio) / 1400)
       setContagens(NUMEROS.map((n) => Math.round(suave(p) * n.alvo)))
       if (p < 1) raf = requestAnimationFrame(passo)
@@ -236,7 +238,7 @@ export function HomePage({ navigate }) {
     const io = new IntersectionObserver((entradas) => {
       entradas.forEach((e) => {
         if (!e.isIntersecting) return
-        e.target.style.animation = 'scwDestaque 1150ms cubic-bezier(.33,.02,.2,1) 1100ms both'
+        e.target.style.animation = `scwDestaque var(--mo-longo) var(--mo-mola) 1100ms both`
         io.unobserve(e.target)
       })
     }, { rootMargin: '0px 0px -18% 0px', threshold: 0.6 })
@@ -318,7 +320,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/o-que-e" tamanho={16} />O que é</span>
             <h2 className="scw-h2">
-              Um tema, <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>um combo por marca</em>, onze dias.
+              Um tema, <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>um combo por marca</em>, onze dias.
             </h2>
           </div>
           <p className="hm-apoio">
@@ -397,7 +399,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="marca/rota" tamanho={16} />Como entrar</span>
             <h2 className="scw-h2">
-              Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar no festival</em>.
+              Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>entrar no festival</em>.
             </h2>
           </div>
           <p className="hm-apoio">
@@ -475,7 +477,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--amarelo"><ScwIcon nome="topicos/ciclo" tamanho={16} />Como funciona</span>
             <h2 className="scw-h2 hm-h2--claro">
-              De uma ideia para a <em className="scw-destaque" data-destaque style={{ '--base': '#FEF0DD', '--dest': '#FDBB1A' }}>cidade</em>.
+              De uma ideia para a <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>cidade</em>.
             </h2>
           </div>
           <p className="hm-apoio hm-apoio--clara">
@@ -503,7 +505,7 @@ export function HomePage({ navigate }) {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="interface/numeros" tamanho={16} />Dez anos em números</span>
             <h2 className="scw-h2 hm-h2--marrom">
-              Uma década que <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>continua em circulação</em>.
+              Uma década que <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>continua em circulação</em>.
             </h2>
           </div>
           <a className="hm-link hm-link--sublinhado" href="#/sweet-awards" onClick={ir('/sweet-awards')}>
@@ -562,7 +564,7 @@ export function HomePage({ navigate }) {
           <div className="hm-imprensa">
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={16} />Na imprensa</span>
             <h2 className="scw-h2 hm-imprensa__h2">
-              E quem já <em className="scw-destaque" data-destaque style={{ '--base': '#3D1308', '--dest': '#F10767' }}>contou a história</em>.
+              E quem já <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>contou a história</em>.
             </h2>
 
             <a className="hm-materia" href={destaque.href} target="_blank" rel="noopener noreferrer">

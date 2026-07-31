@@ -87,6 +87,11 @@ body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro:hover {
   background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
   border-color: var(--scw-choco);
 }
+/* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói de Apoiar,
+   então some sobre esse fundo. Só aqui o anel troca para chocolate. */
+body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
+  outline-color: var(--scw-choco);
+}
 
 /* Participar: o herói é magenta puro (#F10767) — nenhuma tinta pequena passa
    AA nele (§ tabela de contraste). Os elementos pequenos mudam de FORMA, não
@@ -125,7 +130,19 @@ body.route-participar .pa-hero__nota {
   text-transform: uppercase;
   color: var(--scw-heroi-tinta);
 }
-.pa-hero__rotulos span { font: 600 12px/1.2 var(--scw-font); color: color-mix(in srgb, var(--scw-heroi-tinta) 72%, transparent); }
+.pa-hero__rotulos span { font: 700 12px/1.2 var(--scw-font); color: color-mix(in srgb, var(--scw-heroi-tinta) 72%, transparent); }
+/* Participar: herói magenta puro não sustenta AA em texto pequeno (§ tabela de
+   contraste) — mesmo tratamento chapado do resto do herói nesta rota (linhas
+   94-111), em vez de tinta direta sobre o magenta. */
+body.route-participar .pa-hero__rotulos {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--scw-choco);
+}
+body.route-participar .pa-hero__rotulos b,
+body.route-participar .pa-hero__rotulos span {
+  color: var(--scw-creme);
+}
 .pa-hero__dados {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, max(90px, calc((100% - 4px) / 3))), 1fr));
@@ -195,7 +212,7 @@ body.route-participar .pa-hero__nota {
   border-bottom: 2px solid var(--scw-marrom);
   color: var(--scw-marrom);
   font: 800 15px/1 var(--scw-font);
-  transition: color 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+  transition: color var(--mo-estado) var(--mo-ease), border-color var(--mo-estado) var(--mo-ease);
 }
 .pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
 
@@ -204,7 +221,9 @@ body.route-participar .pa-hero__nota {
 .pa-destaque {
   font-style: normal;
   color: var(--base, var(--scw-choco));
-  animation: scwDestaque 760ms var(--scw-ease) 240ms both;
+  /* 240ms de atraso não bate com nenhum degrau --mo-passo* — é uma pausa
+     própria antes da troca de cor, não um passo de sequência; mantido literal. */
+  animation: scwDestaque var(--mo-entra) var(--mo-mola) 240ms both;
 }
 
 /* ============================================================================
@@ -592,7 +611,7 @@ body.route-participar .pa-hero__nota {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font: 600 14.5px/1.35 var(--scw-font);
+  font: 500 14.5px/1.35 var(--scw-font);
   color: var(--scw-choco);
 }
 .pa-onde ul li::before {
@@ -620,7 +639,7 @@ body.route-participar .pa-hero__nota {
   gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(254, 240, 221, .16);
-  font: 600 clamp(15px, 1.3vw, 17px)/1.4 var(--scw-font);
+  font: 500 clamp(15px, 1.3vw, 17px)/1.4 var(--scw-font);
   color: var(--scw-creme);
 }
 .pa-quem__lista li::before {
@@ -707,7 +726,7 @@ body.route-participar .pa-hero__nota {
 }
 .pa-form .scw-campo :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--scw-laranja); }
 .pa-erro {
-  font: 600 12.5px/1.35 var(--scw-font);
+  font: 700 12.5px/1.35 var(--scw-font);
   color: var(--scw-marrom);
 }
 .pa-form__pe {
@@ -734,7 +753,7 @@ body.route-participar .pa-hero__nota {
 .pa-form__status {
   grid-column: 1 / -1;
   margin: clamp(16px, 1.8vw, 22px) 0 0;
-  font: 600 14px/1.5 var(--scw-font);
+  font: 700 14px/1.5 var(--scw-font);
   color: var(--scw-marrom);
 }
 .pa-form__status:empty { margin: 0; }
@@ -780,7 +799,7 @@ body.route-participar .pa-hero__nota {
   color: var(--scw-choco);
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
-  transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease);
+  transition: background var(--mo-estado) var(--mo-ease), color var(--mo-estado) var(--mo-ease);
 }
 .pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
 
@@ -796,12 +815,12 @@ body.route-participar .pa-hero__nota {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 10px clamp(24px, 5vw, 72px);
+  padding: 10px var(--scw-trilho);
   background: rgba(61, 19, 8, .96);
   color: var(--scw-creme);
   border-top: 1px solid rgba(254, 240, 221, .16);
   transform: translateY(110%);
-  transition: transform 320ms cubic-bezier(.2, .7, .2, 1);
+  transition: transform var(--mo-estado) var(--mo-mola);
 }
 .pa-barra.is-visivel { transform: none; }
 .pa-barra span {

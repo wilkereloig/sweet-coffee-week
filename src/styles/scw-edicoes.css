@@ -519,7 +519,7 @@
   align-items: baseline;
   gap: 9px;
   padding: 6px 0;
-  font: 600 14px/1.35 var(--scw-font);
+  font: 500 14px/1.35 var(--scw-font);
 }
 .scw-edx__ponto {
   flex: 0 0 auto;
@@ -727,8 +727,8 @@
   transition: color 460ms cubic-bezier(.2, .75, .2, 1);
 }
 .scw-edx__rodape-dica {
-  font: 600 11.5px/1.2 var(--scw-font);
-  color: rgba(254, 240, 221, .52);
+  font: 500 11.5px/1.2 var(--scw-font);
+  color: rgba(254, 240, 221, .6);
 }
 
 /* Telas médias: a trilha de 16 anos aperta — esconde os rótulos, mantém dots. */
@@ -950,7 +950,7 @@
   align-items: baseline;
   gap: 9px;
   padding: 8px 0;
-  font: 600 14.5px/1.35 var(--scw-font);
+  font: 500 14.5px/1.35 var(--scw-font);
   border-bottom: 1px solid rgba(61, 19, 8, .07);
 }
 .scw-edx-mob__lista li:last-child { border-bottom: 0; }
@@ -991,7 +991,7 @@
   white-space: nowrap;
 }
 .scw-edx-mob__regua-code span {
-  font: 600 12px/1 var(--scw-font);
+  font: 700 12px/1 var(--scw-font);
   color: rgba(254, 240, 221, .66);
   white-space: nowrap;
   overflow: hidden;
@@ -1149,7 +1149,7 @@
 /* Sem movimento: a apresentação continua inteiramente navegável (a regra
    global de .scw-raiz já zera durações; aqui garantimos estado final visível). */
 @media (prefers-reduced-motion: reduce) {
-  .scw-edx-mob__capa-foto { clip-path: none; transform: none; }
+  .scw-edx-mob__capa-foto { animation: none; clip-path: none; transform: none; }
   .scw-edx__fundo-foto { animation: none; }
   .scw-edx__cursor-anel { display: none; }
   /* Carrossel sem animação: a troca é seca e o giro automático já é desligado
