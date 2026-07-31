@@ -201,6 +201,13 @@ body.route-participar .pa-hero__rotulos span {
   font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
   text-wrap: pretty;
 }
+/* Lead alinhado à direita e à base (KV § Cabeça de seção): rótulo+H2 à
+   esquerda, apoio ancorado no fim da linha. Só quando a cabeça tem DUAS
+   colunas — numa coluna só (celular) `justify-self:end` jogaria o parágrafo
+   contra a margem direita, longe do título que ele explica. */
+@media (min-width: 760px) {
+  .pa-cabeca__apoio { justify-self: end; }
+}
 .scw-secao--choco .pa-cabeca__apoio { color: rgba(254, 240, 221, .74); }
 .scw-secao--choco .pa-cabeca .scw-rotulo { color: var(--scw-amarelo); }
 .pa-cabeca__link {

@@ -427,7 +427,12 @@ export function ContatoPage({ navigate }) {
 
         <ul className="ctt-portas">
           <li className="ctt-porta">
-            <span className="scw-pill ctt-pill--roxo">Estabelecimentos</span>
+            <span className="ctt-porta__topo">
+              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-roxo)', '--tinta': 'var(--scw-creme)' }}>
+                <ScwIcon nome="mecanica/loja" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--roxo">Estabelecimentos</span>
+            </span>
             <strong>Quero levar minha marca para a rota.</strong>
             <span className="ctt-porta__texto">
               Doçarias, cafeterias, confeitarias e restaurantes fazem o pré-cadastro na página Participar. A
@@ -438,7 +443,12 @@ export function ContatoPage({ navigate }) {
             </a>
           </li>
           <li className="ctt-porta">
-            <span className="scw-pill ctt-pill--choco">Empresas</span>
+            <span className="ctt-porta__topo">
+              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-choco)', '--tinta': 'var(--scw-creme)' }}>
+                <ScwIcon nome="topicos/proposta" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--choco">Empresas</span>
+            </span>
             <strong>Quero apoiar ou patrocinar o festival.</strong>
             <span className="ctt-porta__texto">
               Patrocínio, ativação de marca, mídia e brindes: a proposta entra pela página Apoiar e a
@@ -449,7 +459,12 @@ export function ContatoPage({ navigate }) {
             </a>
           </li>
           <li className="ctt-porta">
-            <span className="scw-pill ctt-pill--cyan">Imprensa e outros</span>
+            <span className="ctt-porta__topo">
+              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-cyan)', '--tinta': 'var(--scw-choco)' }}>
+                <ScwIcon nome="topicos/imprensa" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--cyan">Imprensa e outros</span>
+            </span>
             <strong>Sou imprensa ou tenho outro assunto.</strong>
             <span className="ctt-porta__texto">
               Entrevistas, correções no site, sugestões e demais temas: use o formulário abaixo escolhendo o

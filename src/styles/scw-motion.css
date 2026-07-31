@@ -318,6 +318,21 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 }
 .scw-header.is-rolado::before { opacity: 1; }
 
+/* A logo transborda metade abaixo da linha do cabeçalho (scw-2026.css §Casca).
+   No topo isso é o desenho da marca sobre o herói — mas o header é `fixed` com
+   z-index 60, então TUDO dele fica acima do conteúdo: rolando, a metade que
+   transborda passa a flutuar por cima de cards e títulos da página.
+   Rolando, a logo recolhe para dentro da própria linha do cabeçalho. Só
+   `top` e `scale` — a logo é `position:absolute`, nada no fluxo se move. */
+.scw-marca {
+  transform-origin: left center;
+  transition: top var(--mo-estado) var(--mo-ease), scale var(--mo-estado) var(--mo-ease);
+}
+.scw-header.is-rolado .scw-marca {
+  top: 50%;
+  scale: .58;
+}
+
 /* ============================================================================
    6. MENU MOBILE — fechar também é movimento (§11)
    A folha entra por scwFolha (scw-2026.css). O componente marca `is-fechando`

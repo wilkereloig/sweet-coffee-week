@@ -123,6 +123,11 @@
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
+/* Mesma regra de Participar/Apoiar: apoio à direita e à base só com duas
+   colunas; numa coluna só ele volta a acompanhar o título. */
+@media (min-width: 760px) {
+  .ctt-cabeca__apoio { justify-self: end; }
+}
 
 /* --- 02 Dúvidas: índice editorial + resultados ---------------------------- */
 .ctt-colunas {
@@ -421,7 +426,22 @@
   border-radius: var(--scw-r-interno);
   background: var(--scw-creme);
 }
-.ctt-porta .scw-pill { align-self: flex-start; }
+/* Disco de ícone + pill na mesma linha (mesmo desenho de .pa-card__ic, em
+   36px porque aqui divide a linha com o pill em vez de abrir o card). */
+.ctt-porta__topo { display: flex; align-items: center; gap: 10px; align-self: flex-start; }
+.ctt-porta__ic {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c, var(--scw-roxo));
+  color: var(--tinta, var(--scw-creme));
+}
+/* O pill agora divide a linha com o disco: centrado nela, não no topo (o
+   flex-start de antes valia quando ele era filho direto do card, em coluna). */
+.ctt-porta .scw-pill { align-self: center; }
 .ctt-pill--roxo  { background: var(--scw-roxo);  color: var(--scw-creme); }
 .ctt-pill--choco { background: var(--scw-choco); color: var(--scw-creme); }
 .ctt-pill--cyan  { background: var(--scw-cyan);  color: var(--scw-choco); }
