@@ -14,6 +14,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { supabase } from '../../lib/supabase'
 import {
   EMPTY_SUPPORT,
@@ -333,7 +334,7 @@ export function ApoiarPage() {
       <section id="alcance" className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">O que já foi construído</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={16} />O que já foi construído</span>
             <h2 className="scw-h2">
               Dez anos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>audiência e consumo</em> na cidade.
             </h2>
@@ -385,7 +386,7 @@ export function ApoiarPage() {
       <section className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">Onde a marca aparece</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/onde-aparece" tamanho={16} />Onde a marca aparece</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Quatro pontos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>contato com o público</em>.
             </h2>
@@ -415,7 +416,7 @@ export function ApoiarPage() {
       <section className="scw-secao scw-secao--choco">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">Quem vive o festival</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-vive" tamanho={16} />Quem vive o festival</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '20ch' }}>
               Um público que <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>sai de casa para provar</em>.
             </h2>
@@ -441,7 +442,7 @@ export function ApoiarPage() {
       {/* ═══ 06 Proposta (formulário em destaque) ═══ */}
       <section id="proposta" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
-          <span className="scw-rotulo">Conversar com a organização</span>
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/proposta" tamanho={16} />Conversar com a organização</span>
           <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
             Conte como sua marca quer <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar na edição</em>.
           </h2>

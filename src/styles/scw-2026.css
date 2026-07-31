@@ -243,6 +243,15 @@ body.route-contato {
   font: 800 10px/1.1 var(--scw-font);
   letter-spacing: .16em;
 }
+/* Rótulo com ícone de tópico (Iconografia.dc.html) — cor herdada do .scw-rotulo,
+   currentColor no SVG, então as cores de contexto (seção escura etc.) continuam
+   valendo sem regra extra. */
+.scw-rotulo--com-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.scw-rotulo--com-icone > svg { flex-shrink: 0; }
 .scw-italico { font-style: italic; }
 
 /* Destaque animado dos títulos (scwDestaque, ver keyframes no fim). */

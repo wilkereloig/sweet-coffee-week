@@ -16,6 +16,7 @@
  */
 import React from 'react'
 import { I } from '../../components/icons'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { supabase } from '../../lib/supabase'
 import {
   NEGOCIOS,
@@ -388,7 +389,7 @@ export function ParticiparPage() {
       <section id="depoimentos" className="scw-secao scw-secao--creme">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">Marcas que já viveram a edição</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={16} />Marcas que já viveram a edição</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>próprias palavras</em>.
             </h2>
@@ -451,7 +452,7 @@ export function ParticiparPage() {
       <section id="numeros" className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">A potência do festival</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="interface/numeros" tamanho={16} />A potência do festival</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)' }}>
               O tamanho da <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>vitrine</em> que sua marca ocupa.
             </h2>
@@ -476,7 +477,7 @@ export function ParticiparPage() {
       <section className="scw-secao scw-secao--creme">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">O que a marca leva da edição</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/circulacao" tamanho={16} />O que a marca leva da edição</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)', maxWidth: '22ch' }}>
               Três frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>visibilidade</em>, ao mesmo tempo.
             </h2>
@@ -512,7 +513,7 @@ export function ParticiparPage() {
       <section className="scw-secao scw-secao--compacta scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">Quem pode participar</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-pode" tamanho={16} />Quem pode participar</span>
             <h2 className="scw-h2">
               Marcas que fazem <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>comida afetiva</em> em Natal e região.
             </h2>
@@ -541,7 +542,7 @@ export function ParticiparPage() {
       <section className="scw-secao scw-secao--compacta scw-secao--creme">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">O festival na imprensa</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={16} />O festival na imprensa</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Sua marca aparece onde a cidade <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>já está olhando</em>.
             </h2>
@@ -567,7 +568,7 @@ export function ParticiparPage() {
       <section className="scw-secao scw-secao--choco">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo">Depois do seu interesse</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/jornada" tamanho={16} />Depois do seu interesse</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '22ch' }}>
               Um <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>percurso claro</em>, do pré-cadastro à edição.
             </h2>
@@ -590,7 +591,7 @@ export function ParticiparPage() {
       {/* ═══ 08 Pré-cadastro (formulário em destaque) ═══ */}
       <section id="pre-cadastro" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
-          <span className="scw-rotulo">Pré-cadastro</span>
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/mensagem" tamanho={16} />Pré-cadastro</span>
           <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
             Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
           </h2>

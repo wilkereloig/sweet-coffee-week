@@ -25,6 +25,7 @@ import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 import { CONTACT_SUBJECTS } from '../../data/contactFaq'
 import { EMPTY_CONTACT, normalizeText, submitContact } from '../../lib/contactRequest'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 
 // Foto do herói desta rota (sistema central de imagens): ambienta a abertura
 // no desktop e vira banda sangrando no celular. O véu por cima usa a cor da
@@ -236,7 +237,7 @@ export function ContatoPage({ navigate }) {
           style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
         >
           <div>
-            <span className="scw-rotulo">Central de dúvidas</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/duvidas" tamanho={16} />Central de dúvidas</span>
             <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
               O que a gente <em className="ctt-destaque ctt-destaque--magenta">mais responde</em>.
             </h2>
@@ -413,7 +414,7 @@ export function ContatoPage({ navigate }) {
           style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
         >
           <div>
-            <span className="scw-rotulo">Escolha o caminho</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/caminhos" tamanho={16} />Escolha o caminho</span>
             <h2 id="ctt-caminhos-titulo" className="scw-h2 ctt-cabeca__titulo ctt-cabeca__titulo--marrom">
               Cada assunto tem <em className="ctt-destaque ctt-destaque--choco">uma porta certa</em>.
             </h2>
@@ -463,7 +464,7 @@ export function ContatoPage({ navigate }) {
       {/* ---------- 04 MENSAGEM (formulário com envio real) ------------------ */}
       <section id="mensagem" className="ctt-sec ctt-sec--mensagem" aria-labelledby="ctt-mensagem-titulo">
         <div className="ctt-mensagem__cabeca">
-          <span className="scw-rotulo">Falar com a equipe</span>
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/mensagem" tamanho={16} />Falar com a equipe</span>
           <h2 id="ctt-mensagem-titulo" className="scw-h2 ctt-mensagem__titulo">
             Não achou sua <em className="ctt-destaque ctt-destaque--magenta">resposta</em>? Escreva para a
             gente.
