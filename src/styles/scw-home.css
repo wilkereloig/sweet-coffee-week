@@ -312,8 +312,12 @@
   transition: gap 200ms var(--scw-ease);
 }
 .hm-rota__cta:hover { gap: 14px; }
-.hm-rota__cta--escuro { background: var(--scw-choco); color: var(--scw-creme); }
-.hm-rota__cta--cyan   { background: var(--scw-cyan); color: var(--scw-choco); }
+/* Prefixado com .scw-raiz: o reset .scw-raiz a { color: inherit } (scw-2026.css)
+   tem especificidade 0,1,1 e vencia estes modificadores 0,1,0 — o card
+   "Público" (fundo amarelo, texto base chocolate) herdava chocolate no CTA
+   --escuro, que também tem fundo chocolate: texto sumia sobre o próprio botão. */
+.scw-raiz .hm-rota__cta--escuro { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-raiz .hm-rota__cta--cyan   { background: var(--scw-cyan); color: var(--scw-choco); }
 
 /* ============================================================================
    04 Ciclo — quatro etapas
