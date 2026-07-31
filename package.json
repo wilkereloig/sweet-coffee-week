@@ -13,6 +13,8 @@
     "test:support-interest": "node tests/support-interest.test.mjs",
     "test:imagens": "node --test tests/imagens.test.mjs",
     "test:redesign": "node --test tests/redesign-2026.test.mjs tests/faq-central.test.mjs",
+    "test:regua-visual": "node --test tests/regua-visual.mjs",
+    "test": "node --test tests/regua-visual.mjs",
     "test:casca": "node tests/casca-responsiva.mjs",
     "test:motion": "node tests/motion.mjs",
     "design:snapshot": "node tests/snapshot-design.mjs",
