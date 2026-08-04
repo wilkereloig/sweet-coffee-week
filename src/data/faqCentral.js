@@ -31,7 +31,7 @@ const FAQ_DADOS = (function () {
     regulamentoRota: null,
     regulamentoAwards: null,
     areaAvaliacao: null,
-    imprensa: null,
+    imprensa: { rota: 'contato', label: 'Enviar solicitação de imprensa' },
     pressKit: null,
   };
 
@@ -312,7 +312,7 @@ const FAQ_DADOS = (function () {
       k: ['parceria', 'permuta', 'fornecedor', 'midia'] },
     { id: 'imprensa-solicita-informacoes', cat: 'parcerias', p: 'Como profissionais de imprensa solicitam informações?',
       r: ['Jornalistas e veículos podem usar o canal de imprensa para solicitar releases, dados, imagens, entrevistas, credenciamento e materiais oficiais. Enquanto não houver um endereço próprio, o pedido pode ser enviado pelo formulário de contato, selecionando o assunto de imprensa.'],
-      k: ['imprensa', 'jornalista', 'release', 'credenciamento', 'entrevista'], link: 'contato' },
+      k: ['imprensa', 'jornalista', 'release', 'credenciamento', 'entrevista'], link: 'imprensa' },
     { id: 'o-festival-possui-press-kit', cat: 'parcerias', p: 'O festival possui press kit?',
       r: ['Quando disponível, o press kit reúne apresentação institucional, releases, imagens, logos, informações da edição e contatos para entrevistas.'],
       k: ['press kit', 'imprensa', 'material', 'logo'] },

@@ -541,6 +541,25 @@ export function HistoricoAwardsPage() {
         </ol>
       </section>
 
+      {/* 04.1 — BASTIDORES DA ENTREGA DOS PRÊMIOS (acervo real, sem atribuição de
+          edição/ano — o acervo não registra isso com segurança pra essas fotos). */}
+      <section className="scw-secao scw-secao--bege">
+        <div className="swa-cab">
+          <div>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/trofeu" tamanho={16} />Bastidores</span>
+            <h2 className="scw-h2">O momento de receber o prêmio</h2>
+          </div>
+          <p className="swa-apoio">
+            Registros reais da entrega dos prêmios em edições anteriores do Sweet Awards.
+          </p>
+        </div>
+        <ul className="scw-grade swa-bastidores">
+          <li><img src="/images/awards-bastidores/01.jpg" alt="Equipe comemorando um prêmio do Sweet Awards em edição anterior" loading="lazy" decoding="async" /></li>
+          <li><img src="/images/awards-bastidores/02.jpg" alt="Participantes segurando o certificado de um prêmio do Sweet Awards" loading="lazy" decoding="async" /></li>
+          <li><img src="/images/awards-bastidores/03.jpg" alt="Participantes recebendo o certificado de um prêmio do Sweet Awards" loading="lazy" decoding="async" /></li>
+        </ul>
+      </section>
+
       {/* 05 — HISTÓRICO COMPLETO 2019–2025 */}
       <section className="scw-secao scw-secao--creme">
         <div className="swa-cab">

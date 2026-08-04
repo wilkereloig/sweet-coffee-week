@@ -51,7 +51,11 @@ test('`link` aponta para uma chave existente de `links`', () => {
 })
 
 test('links pendentes seguem null — não viram link quebrado', () => {
-  for (const chave of ['mapa', 'regulamentoRota', 'regulamentoAwards', 'areaAvaliacao', 'imprensa', 'pressKit']) {
+  for (const chave of ['mapa', 'regulamentoRota', 'regulamentoAwards', 'areaAvaliacao', 'pressKit']) {
     assert.equal(links[chave], null, `${chave} deixou de ser null: confira se a rota existe mesmo`)
   }
+})
+
+test('imprensa aponta para uma rota que existe de verdade (contato)', () => {
+  assert.equal(links.imprensa.rota, 'contato')
 })
