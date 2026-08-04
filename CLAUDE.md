@@ -686,6 +686,11 @@ Origem: cinco patches (`PATCH-selo-preto.md`, `PATCH-acesso.md`, `PATCH-acesso-v
 Design a partir do projeto "Redesign 2026". Fluxo completo em
 `docs/FLUXO-DESIGN-CODIGO.md` (novo). Regras superadas — **não reintroduzir**:
 
+> Um sexto patch da mesma origem, **`PATCH-realizacao-f2.md`**, é de outra leva
+> (não é de cor): trocou a seção 07 da Home pelo KV da F2 Experience. **Já
+> aplicado** — vive em `.f2-realiza*` de `src/styles/scw-home.css` e é a exceção
+> de paleta/fonte documentada no §3. Registrado aqui só para fechar o rastreio.
+
 | Regra antiga | Regra atual |
 | --- | --- |
 | Paleta com filete/card/vinho/ouro/prata/bronze como hex próprios | Paleta fechada em 9 cores; filete/card viram `rgba()`/`creme` por papel (§3) |
