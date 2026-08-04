@@ -372,7 +372,7 @@ export function ApoiarPage() {
         <ul className="pa-cards pa-cards--largos">
           {MOTIVOS.map((m) => (
             <li className="pa-card" key={m.t}>
-              <span className="pa-card__ic" style={{ '--c': m.c, '--tinta': m.tinta }}>
+              <span className="scw-disco" style={{ '--c': m.c, '--tinta': m.tinta }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...ICO}>{m.p}</svg>
               </span>
               <h3>{m.t}</h3>

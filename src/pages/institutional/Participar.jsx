@@ -528,7 +528,7 @@ export function ParticiparPage() {
         <ul className="pa-cards">
           {PUBLICOS.map((p) => (
             <li className="pa-card" key={p.t}>
-              <span className="pa-card__ic" style={{ '--c': p.c, '--tinta': p.tinta }}>
+              <span className="scw-disco" style={{ '--c': p.c, '--tinta': p.tinta }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...ICO}>{p.p}</svg>
               </span>
               <span className="pa-card__txt">

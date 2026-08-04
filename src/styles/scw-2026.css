@@ -275,6 +275,20 @@ body.route-contato {
 .scw-pill--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
 .scw-pill--bege   { background: var(--scw-bege); color: var(--scw-marrom); }
 
+/* Disco de ícone: círculo cheio com ScwIcon dentro (cards de Participar/
+   Apoiar, portas do Contato). Cor e tamanho por variável — a página só diz
+   --c/--tinta (inline) e, se precisar, --tam. */
+.scw-disco {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: var(--tam, 46px);
+  height: var(--tam, 46px);
+  border-radius: 50%;
+  background: var(--c, var(--scw-amarelo));
+  color: var(--tinta, var(--scw-choco));
+}
+
 .scw-btn {
   display: inline-flex;
   align-items: center;

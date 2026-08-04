@@ -428,7 +428,7 @@ export function ContatoPage({ navigate }) {
         <ul className="ctt-portas">
           <li className="ctt-porta">
             <span className="ctt-porta__topo">
-              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-roxo)', '--tinta': 'var(--scw-creme)' }}>
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-roxo)', '--tinta': 'var(--scw-creme)' }}>
                 <ScwIcon nome="mecanica/loja" tamanho={20} />
               </span>
               <span className="scw-pill ctt-pill--roxo">Estabelecimentos</span>
@@ -444,7 +444,7 @@ export function ContatoPage({ navigate }) {
           </li>
           <li className="ctt-porta">
             <span className="ctt-porta__topo">
-              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-choco)', '--tinta': 'var(--scw-creme)' }}>
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-choco)', '--tinta': 'var(--scw-creme)' }}>
                 <ScwIcon nome="topicos/proposta" tamanho={20} />
               </span>
               <span className="scw-pill ctt-pill--choco">Empresas</span>
@@ -460,7 +460,7 @@ export function ContatoPage({ navigate }) {
           </li>
           <li className="ctt-porta">
             <span className="ctt-porta__topo">
-              <span className="ctt-porta__ic" style={{ '--c': 'var(--scw-cyan)', '--tinta': 'var(--scw-choco)' }}>
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-cyan)', '--tinta': 'var(--scw-choco)' }}>
                 <ScwIcon nome="topicos/imprensa" tamanho={20} />
               </span>
               <span className="scw-pill ctt-pill--cyan">Imprensa e outros</span>

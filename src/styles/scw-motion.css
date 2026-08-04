@@ -322,15 +322,25 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
    No topo isso é o desenho da marca sobre o herói — mas o header é `fixed` com
    z-index 60, então TUDO dele fica acima do conteúdo: rolando, a metade que
    transborda passa a flutuar por cima de cards e títulos da página.
-   Rolando, a logo recolhe para dentro da própria linha do cabeçalho. Só
-   `top` e `scale` — a logo é `position:absolute`, nada no fluxo se move. */
-.scw-marca {
-  transform-origin: left center;
-  transition: top var(--mo-estado) var(--mo-ease), scale var(--mo-estado) var(--mo-ease);
-}
-.scw-header.is-rolado .scw-marca {
-  top: 50%;
-  scale: .58;
+   Rolando, a logo recolhe para dentro da própria linha do cabeçalho.
+   SÓ NO DESKTOP: ≤900px a logo já vive no fluxo, sem overhang — sem a guarda,
+   `.scw-header.is-rolado .scw-marca` (0,3,0) vencia o reset mobile
+   `.scw-marca { position:static; transform:none }` (0,1,0), que não zera
+   `scale`, e a marca de 52px encolhia pra ~30px ao rolar.
+   Exceção consciente à regra "animar só transform/opacity/filter/scale": o
+   recuo é relativo à LINHA do header (top 100% → 50%) e translateY(%) só
+   enxerga a altura do próprio elemento — `top` é o único jeito exato. É um
+   toggle único de 300ms num elemento absolute: reflow só dele, nada no fluxo
+   se move. */
+@media (min-width: 901px) {
+  .scw-marca {
+    transform-origin: left center;
+    transition: top var(--mo-estado) var(--mo-ease), scale var(--mo-estado) var(--mo-ease);
+  }
+  .scw-header.is-rolado .scw-marca {
+    top: 50%;
+    scale: .58;
+  }
 }
 
 /* ============================================================================

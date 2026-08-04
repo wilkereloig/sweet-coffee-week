@@ -208,6 +208,13 @@ body.route-participar .pa-hero__rotulos span {
 @media (min-width: 760px) {
   .pa-cabeca__apoio { justify-self: end; }
 }
+/* O par da guarda acima: abaixo de 760 a cabeça é UMA coluna por decreto.
+   O auto-fit sozinho ainda abria duas colunas por volta de ~700px de viewport
+   (a conta é do CONTAINER, não da tela) — e aí o apoio ficava em duas colunas
+   SEM o alinhamento, exatamente o defeito que a regra acima corrige. */
+@media (max-width: 759px) {
+  .pa-cabeca { grid-template-columns: 1fr; }
+}
 .scw-secao--choco .pa-cabeca__apoio { color: rgba(254, 240, 221, .74); }
 .scw-secao--choco .pa-cabeca .scw-rotulo { color: var(--scw-amarelo); }
 .pa-cabeca__link {
@@ -365,16 +372,7 @@ body.route-participar .pa-hero__rotulos span {
   background: var(--scw-creme);
 }
 .pa-cards--largos .pa-card { gap: 14px; padding: clamp(20px, 2.2vw, 28px); border-radius: var(--scw-r-card); }
-.pa-card__ic {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--c, var(--scw-amarelo));
-  color: var(--tinta, var(--scw-choco));
-}
+/* O disco de ícone dos cards é o .scw-disco de scw-2026.css (46px padrão). */
 .pa-card__txt { display: flex; flex-direction: column; gap: 5px; }
 .pa-card__txt b { font: 800 15.5px/1.2 var(--scw-font); }
 .pa-card__txt span { font: 500 13px/1.35 var(--scw-font); color: var(--scw-marrom); }
