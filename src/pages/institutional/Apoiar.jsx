@@ -102,8 +102,13 @@ const ONDE = [
   {
     t: 'Cidade e PDV', c: 'var(--scw-marrom)', tinta: 'var(--scw-creme)', ponto: 'var(--scw-marrom)',
     // Campanha e público não têm vínculo com edição nem marca no acervo — ficam
-    // fora do sistema central, com alt e ponto focal declarados aqui.
-    foto: { src: '/images/campanha/03.jpg', alt: 'Display de mesa do Sweet & Coffee Week com QR code em uma loja participante', position: 'center 44%' },
+    // fora do sistema central, com alt e ponto focal declarados aqui. Dois
+    // registros reais do acervo (não um só): mesa e vitrine são os dois
+    // primeiros itens da lista ao lado, cada um com a própria foto.
+    fotos: [
+      { src: '/images/campanha/03.jpg', alt: 'Display de mesa do Sweet & Coffee Week com QR code em uma loja participante', position: 'center 44%' },
+      { src: '/images/campanha/17.jpg', alt: 'Adesivo de vitrine do Sweet & Coffee Week Lovers em uma loja participante', position: 'center' },
+    ],
     itens: ['Display de mesa', 'Adesivo de vitrine', 'Mapa e rota do festival', 'Materiais impressos', 'Ativações nas lojas'],
   },
   {
@@ -398,8 +403,12 @@ export function ApoiarPage() {
         <ul className="pa-onde">
           {ONDE.map((g) => (
             <li key={g.t} style={{ '--c': g.ponto }}>
-              <figure>
-                {g.foto
+              <figure className={g.fotos ? 'pa-onde__figura--dupla' : undefined}>
+                {g.fotos
+                  ? g.fotos.map((f) => (
+                      <img key={f.src} src={f.src} alt={f.alt} style={{ objectPosition: f.position }} loading="lazy" decoding="async" />
+                    ))
+                  : g.foto
                   ? <img src={g.foto.src} alt={g.foto.alt} style={{ objectPosition: g.foto.position }} loading="lazy" decoding="async" />
                   : <div className="scw-reserva">{RESERVA}</div>}
                 <span className="pa-onde__tag" style={{ '--c': g.c, '--tinta': g.tinta }}>{g.t}</span>

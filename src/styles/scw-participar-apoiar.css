@@ -592,6 +592,17 @@ body.route-participar .pa-hero__rotulos span {
   background: var(--scw-bege);
 }
 .pa-onde figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Cidade e PDV tem duas fotos reais (mesa + vitrine) em vez de uma — filete de
+   2px no meio, cada metade com a própria imagem. object-fit:cover mais o
+   position de cada foto já resolve, sem precisar de metade-figure própria. */
+.pa-onde__figura--dupla { display: flex; }
+.pa-onde__figura--dupla img {
+  position: static;
+  flex: 1 1 50%;
+  width: 50%;
+  height: 100%;
+}
+.pa-onde__figura--dupla img:first-child { border-right: 2px solid var(--scw-creme); }
 .pa-onde__tag {
   position: absolute;
   left: 14px;
