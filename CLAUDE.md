@@ -748,6 +748,42 @@ estado do código diferente do real (ex.: SVG do selo já tinha `<style>`, só c
 fora do token). Ver `docs/FLUXO-DESIGN-CODIGO.md` § Armadilhas antes de aplicar a
 próxima leva de patches.
 
+### Alinhamento, medida e ritmo interno (05/08/2026)
+
+Origem: zip `SWEET & COFFEE WEEK.zip` (export completo do projeto Claude Design),
+patch `PATCH-layout-e-responsivo.md`. **Aplicado.** O que entrou:
+
+| Regra | Onde |
+| --- | --- |
+| Três tokens de respiro **interno** de seção | `--scw-gap-cabeca` (26–40px) · `--scw-gap-bloco` (20–32px) · `--scw-gap-grade` (16–28px), em `scw-2026.css`. O ritmo ENTRE seções continua `--scw-sec-y` |
+| Medida de linha por papel | `.scw-h2` 20ch → **22ch** · `.scw-h3` **28ch** (não tinha) · `.scw-corpo` **62ch** (não tinha; limite absoluto 68) · `.scw-rotulo--com-icone` **32ch, uma linha** |
+| Ícone do rótulo de seção | `tamanho={16}` → **20** nas 26 chamadas de `.scw-rotulo--com-icone`. 16 fica só em chip e legenda |
+| Gap do rótulo | 8px → **10px** |
+| Filete é do link, não da coluna | `.pa-cabeca__link` ganhou `width: fit-content` |
+
+**Item do patch que já estava feito:** `align-items:end` + margem na cabeça de seção —
+`.hm-cab`, `.pa-cabeca` e `.ctt-cabeca` já tinham. O patch foi escrito contra um
+estado anterior do código; conferir antes de "corrigir" o que não está quebrado.
+
+**Não aplicado, e por quê:**
+- **`PATCH-icones-animados.md`** — o próprio patch (§6) diz "nesta rodada o Design
+  entrega só a prancha, a aplicação no site é decisão separada". Além disso depende
+  de `scw-icons-v2.js`, que o repo não tem (está em `scw-icons.js`, v1). Entra quando
+  houver decisão de migrar o conjunto de ícones.
+- **Varredura px cravado → token de gap** nos CSS de página. Os tokens existem, mas
+  trocar cada `margin`/`gap` fixo é refatoração ampla com risco visual — vale fazer
+  por página, conferindo, não em massa.
+- **Overrides de `max-width:24ch`** em `.hm-h2--marrom` e `.pa-cabeca h2`. O patch pede
+  medida "na classe do papel, não por página"; 24ch está dentro da faixa 20–24 do §5,
+  então não conflita — mas remover é decisão de design, não limpeza.
+
+⚠️ **`tests/responsive.mjs` reprova 4/6 viewports com "menu-toggle invisível no
+mobile" — falha PRÉ-EXISTENTE, não regressão.** `.menu-toggle` é do sistema legado
+(`styles.css`) e tem **zero** referência em JSX: não renderiza, logo não pode estar
+visível. O redesign 2026 trocou o hambúrguer pela `MobileTabBar`. O que o teste mede
+de útil (`overflow=0px`) passa nos 6. Não "consertar" o menu-toggle — o teste é que
+está desatualizado.
+
 ---
 
 # Regras técnicas e operacionais (preservadas)

@@ -21,6 +21,13 @@
   --scw-trilho:       max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
   --scw-sec-y:        clamp(58px, 6vw, 100px);
   --scw-sec-y-compacta: clamp(48px, 5vw, 80px);
+  /* Vocabulário de respiro INTERNO da seção (PATCH-layout-e-responsivo, ago/2026).
+     O ritmo entre seções continua sendo --scw-sec-y; estes três são o de dentro.
+     Gap novo entre blocos usa um destes — px cravado é o que faz Home, Edições e
+     Awards não casarem. */
+  --scw-gap-cabeca:   clamp(26px, 3vw, 40px);   /* cabeça de seção → primeiro bloco */
+  --scw-gap-bloco:    clamp(20px, 2.4vw, 32px); /* bloco → bloco dentro da seção */
+  --scw-gap-grade:    clamp(16px, 2vw, 28px);   /* entre cards da mesma grade */
   --scw-hero-topo:    clamp(216px, 19vw, 252px);
 
   /* --- raios e sombras --------------------------------------------------- */
@@ -204,13 +211,14 @@ body.route-contato {
 }
 .scw-h2 {
   margin: 0;
-  max-width: 20ch;
+  max-width: 22ch;
   font: 900 clamp(32px, 3.8vw, 58px)/.94 var(--scw-font-black);
   letter-spacing: -.04em;
   text-wrap: balance;
 }
 .scw-h3 {
   margin: 0;
+  max-width: 28ch;
   font: 900 clamp(18px, 1.7vw, 24px)/1.1 var(--scw-font-black);
   letter-spacing: -.03em;
 }
@@ -223,6 +231,7 @@ body.route-contato {
 }
 .scw-corpo {
   margin: 0;
+  max-width: 62ch;   /* medida de leitura; limite absoluto 68ch */
   font: 500 clamp(15px, 1.2vw, 17px)/1.55 var(--scw-font);
   text-wrap: pretty;
 }
@@ -249,7 +258,8 @@ body.route-contato {
 .scw-rotulo--com-icone {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  max-width: 32ch;   /* rótulo cabe em UMA linha; estourou, encurtar o texto */
 }
 .scw-rotulo--com-icone > svg { flex-shrink: 0; }
 .scw-italico { font-style: italic; }

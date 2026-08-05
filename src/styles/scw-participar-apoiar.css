@@ -217,8 +217,13 @@ body.route-participar .pa-hero__rotulos span {
 }
 .scw-secao--choco .pa-cabeca__apoio { color: rgba(254, 240, 221, .74); }
 .scw-secao--choco .pa-cabeca .scw-rotulo { color: var(--scw-amarelo); }
+/* `width: fit-content` porque o filete é do LINK, não da coluna: item de grade
+   é blocificado (o `inline-flex` vira `flex`) e estica na célula inteira, então
+   o sublinhado atravessava a coluna. O irmão `.hm-link--sublinhado` já estava
+   protegido por `justify-self:start`. */
 .pa-cabeca__link {
   display: inline-flex;
+  width: fit-content;
   align-items: center;
   gap: 9px;
   min-height: 44px;

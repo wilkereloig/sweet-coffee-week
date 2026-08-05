@@ -318,7 +318,7 @@ export function HomePage({ navigate }) {
       <section className="scw-secao scw-secao--creme">
         <div className="hm-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/o-que-e" tamanho={16} />O que é</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/o-que-e" tamanho={20} />O que é</span>
             <h2 className="scw-h2">
               Um tema, <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>um combo por marca</em>, onze dias.
             </h2>
@@ -397,7 +397,7 @@ export function HomePage({ navigate }) {
       <section id="rotas" className="scw-secao scw-secao--bege">
         <div className="hm-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="marca/rota" tamanho={16} />Como entrar</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="marca/rota" tamanho={20} />Como entrar</span>
             <h2 className="scw-h2">
               Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>entrar no festival</em>.
             </h2>
@@ -475,7 +475,7 @@ export function HomePage({ navigate }) {
       <section className="scw-secao scw-secao--choco">
         <div className="hm-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--amarelo"><ScwIcon nome="topicos/ciclo" tamanho={16} />Como funciona</span>
+            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--amarelo"><ScwIcon nome="topicos/ciclo" tamanho={20} />Como funciona</span>
             <h2 className="scw-h2 hm-h2--claro">
               De uma ideia para a <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>cidade</em>.
             </h2>
@@ -503,7 +503,7 @@ export function HomePage({ navigate }) {
       <section className="scw-secao scw-secao--bege">
         <div className="hm-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="interface/numeros" tamanho={16} />Dez anos em números</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="interface/numeros" tamanho={20} />Dez anos em números</span>
             <h2 className="scw-h2 hm-h2--marrom">
               Uma década que <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>continua em circulação</em>.
             </h2>
@@ -531,7 +531,7 @@ export function HomePage({ navigate }) {
       <section className="scw-secao scw-secao--creme">
         <div className="hm-prova">
           <figure className="hm-voz">
-            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--claro"><ScwIcon nome="topicos/depoimento" tamanho={16} />Quem já entrou na rota</span>
+            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--claro"><ScwIcon nome="topicos/depoimento" tamanho={20} />Quem já entrou na rota</span>
             <blockquote className="hm-voz__frase">{VOZ.frase}</blockquote>
             <figcaption className="hm-voz__assinatura">
               <span className="hm-voz__retrato">
@@ -562,7 +562,7 @@ export function HomePage({ navigate }) {
           </figure>
 
           <div className="hm-imprensa">
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={16} />Na imprensa</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={20} />Na imprensa</span>
             <h2 className="scw-h2 hm-imprensa__h2">
               E quem já <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>contou a história</em>.
             </h2>

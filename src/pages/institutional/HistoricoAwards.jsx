@@ -437,7 +437,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--creme">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/trofeu" tamanho={16} />Resultado oficial · 2026.1 Lovers</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/trofeu" tamanho={20} />Resultado oficial · 2026.1 Lovers</span>
             <h2 className="scw-h2">Os vencedores dos dez anos</h2>
           </div>
           <p className="swa-apoio">
@@ -468,7 +468,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--bege">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/linha-do-tempo" tamanho={16} />Como é decidido</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/linha-do-tempo" tamanho={20} />Como é decidido</span>
             <h2 className="scw-h2">Quem dá a nota</h2>
           </div>
           <p className="swa-apoio">
@@ -498,7 +498,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--choco swa-escura">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/medalha" tamanho={16} />Hall dos mais premiados</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/medalha" tamanho={20} />Hall dos mais premiados</span>
             <h2 className="scw-h2">Quem mais subiu ao pódio</h2>
           </div>
           <p className="swa-apoio">
@@ -546,7 +546,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--bege">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/trofeu" tamanho={16} />Bastidores</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/trofeu" tamanho={20} />Bastidores</span>
             <h2 className="scw-h2">O momento de receber o prêmio</h2>
           </div>
           <p className="swa-apoio">
@@ -564,7 +564,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--creme">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/historia" tamanho={16} />Histórico completo · 2019 a 2025</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/historia" tamanho={20} />Histórico completo · 2019 a 2025</span>
             <h2 className="scw-h2">Todos os pódios, edição por edição</h2>
           </div>
           <p className="swa-apoio">
@@ -589,7 +589,7 @@ export function HistoricoAwardsPage() {
       {/* 06 — ANTES DE 2019: ausência dita com todas as letras */}
       <section className="scw-secao scw-secao--compacta scw-secao--bege">
         <div className="swa-antes">
-          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/legado" tamanho={16} />Antes de 2019</span>
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/legado" tamanho={20} />Antes de 2019</span>
           <h2 className="scw-h2">As cinco primeiras edições não tiveram premiação</h2>
           <p className="scw-corpo">
             De 2016 a 2018.2, o festival era um circuito de descoberta: combo a preço único, sem disputa.
