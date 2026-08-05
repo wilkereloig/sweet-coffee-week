@@ -435,6 +435,19 @@ trilho animado (blur + readback de GPU a cada frame congela o compositor — usa
 semi-opaco). Navegação das edições parece **controle de apresentação**, não segunda
 navbar — não pode brigar com o menu.
 
+**A barra da galeria de fotos (`.scw-gal__barra`) é `seta · contador · seta` — três
+peças, nada mais** (rejeição do Wilke, 05/08/2026: "não gosto dessa barra,
+reconstrua e simplifique"). Antes tinha cinco: rótulo `Fotos · <ano>`, seta, quatro
+pontos, contador e seta — **três indicadores do mesmo estado ao mesmo tempo**. O ano
+já está no cabeçalho da cena e na trilha do rodapé; pontos e contador diziam a mesma
+posição em duas linguagens. Com 4 páginas por edição o acesso aleatório dos pontos
+não pagava a largura que custava. Não reintroduzir pontos, rótulo nem "N de N" por
+extenso. As duas variantes (`--mosaico` no desktop, `--par` no celular) usam o
+**mesmo** flex: a `par` só troca cor e abre com `space-between`. Se voltar a
+precisar de layouts diferentes, é sinal de que peça a mais entrou. O que **não** se
+mexe ao simplificar: as setas de 44px (piso de toque, §17) e o teclado
+←/→/Home/End.
+
 ## 11. Página Curiosidades
 
 Não repetir Edições. **Não incluir**: timeline completa das 16 edições; lista

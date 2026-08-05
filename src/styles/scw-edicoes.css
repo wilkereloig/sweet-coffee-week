@@ -151,7 +151,10 @@
 .scw-gal--par .scw-gal__quadros { grid-template-columns: 1fr 1fr; }
 .scw-gal--par .scw-gal__quadro { aspect-ratio: 1; }
 
-/* --- barra de controle (parece controle de apresentação, não navbar) ------- */
+/* --- barra de controle (parece controle de apresentação, não navbar) -------
+   Três peças em linha: seta · contador · seta. As duas variantes usam o MESMO
+   layout — a `par` só troca as cores e ocupa a largura toda. O grid de áreas
+   que existia aqui só servia pra reposicionar rótulo e pontos, que saíram. */
 .scw-gal__barra {
   display: flex;
   align-items: center;
@@ -161,31 +164,16 @@
   position: absolute;
   left: 14px; bottom: 14px;
   z-index: 2;
-  padding: 4px 10px 4px calc(14px + .16em);
+  padding: 4px 8px;
   border-radius: 999px;
   background: rgba(61, 19, 8, .82);
   color: rgba(254, 240, 221, .92);
 }
 .scw-gal--par .scw-gal__barra {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas: "rot rot cont" "ant pontos prox";
-  gap: 8px;
-  padding: 12px 14px 14px;
+  justify-content: space-between;
+  padding: 10px 14px 12px;
   background: var(--scw-bege);
   color: var(--scw-marrom);
-}
-.scw-gal--par .scw-gal__rot { grid-area: rot; }
-.scw-gal--par .scw-gal__contador { grid-area: cont; justify-self: end; }
-.scw-gal--par .scw-gal__seta--ant { grid-area: ant; }
-.scw-gal--par .scw-gal__pontos { grid-area: pontos; justify-content: center; }
-.scw-gal--par .scw-gal__seta--prox { grid-area: prox; }
-
-.scw-gal__rot {
-  font: 800 10.5px/1.2 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 .scw-gal__seta {
   display: grid;
@@ -203,40 +191,8 @@
 .scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
 .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
 
-.scw-gal__pontos {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-}
-.scw-gal__pontos button {
-  display: grid;
-  place-items: center;
-  width: 22px; height: 44px;   /* alvo de toque cheio; o ponto visível é pequeno */
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-.scw-gal__pontos span {
-  display: block;
-  width: 7px; height: 7px;
-  border-radius: 999px;
-  background: currentColor;
-  opacity: .4;
-  transition: opacity 260ms var(--scw-ease), transform 260ms var(--scw-ease),
-              background-color 260ms var(--scw-ease);
-}
-.scw-gal__pontos button:hover span { opacity: .75; }
-.scw-gal__pontos button.is-ativo span {
-  opacity: 1;
-  transform: scale(1.4);
-  background: var(--scw-edx-tom);
-}
 .scw-gal__contador {
+  padding-inline: 2px;
   font: 800 10.5px/1.2 var(--scw-font);
   letter-spacing: .08em;
   font-variant-numeric: tabular-nums;

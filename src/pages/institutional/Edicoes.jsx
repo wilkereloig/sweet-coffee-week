@@ -238,7 +238,7 @@ function Quadro({ foto, classe = '', eager = false, children = null }) {
   )
 }
 
-function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovimento }) {
+function Galeria({ fotos, total, porPagina, variante, etiqueta, semMovimento }) {
   const paginas = React.useMemo(() => paginasDe(fotos, porPagina), [fotos, porPagina])
   const n = paginas.length
   const [k, setK] = React.useState(0)
@@ -308,10 +308,6 @@ function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovim
     onPointerCancel: () => { arraste.current = null },
   }
 
-  const faixa = (p) => (p[0].indice === p[p.length - 1].indice
-    ? `Foto ${p[0].indice}`
-    : `Fotos ${p[0].indice} a ${p[p.length - 1].indice}`)
-
   return (
     <section
       className={`scw-gal scw-gal--${variante}${sentido < 0 ? ' is-voltando' : ''}`}
@@ -341,8 +337,11 @@ function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovim
 
       <p className="scw-edx__sr" aria-live="polite" aria-atomic="true">{anuncio}</p>
 
+      {/* Duas ações e UM indicador. O rótulo "Fotos · <ano>" e os pontos saíram
+          (ago/2026): o ano já está no cabeçalho da cena e na trilha, e pontos +
+          contador diziam a mesma posição duas vezes. Com 4 páginas o acesso
+          aleatório dos pontos não pagava a largura que custavam. */}
       <div className="scw-gal__barra">
-        <span className="scw-gal__rot">{rotulo}</span>
         <button
           type="button"
           className="scw-gal__seta scw-gal__seta--ant"
@@ -351,21 +350,6 @@ function Galeria({ fotos, total, porPagina, variante, rotulo, etiqueta, semMovim
         >
           <SetaEsq width={15} height={15} />
         </button>
-        <ol className="scw-gal__pontos">
-          {paginas.map((p, j) => (
-            <li key={p[0].src}>
-              <button
-                type="button"
-                className={j === k ? 'is-ativo' : undefined}
-                aria-current={j === k ? 'true' : undefined}
-                aria-label={faixa(p)}
-                onClick={() => irPara(j, j > k ? 1 : -1)}
-              >
-                <span aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ol>
         <span className="scw-gal__contador">
           {pad2(de)}–{pad2(ate)}<span>/{pad2(quantas)}</span>
         </span>
@@ -602,7 +586,6 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
      (e o fundo fica fixo por edição, sem repintar blur a cada troca de foto). */
   const fotoFundo = fotos.length ? fotos[fotos.length - 1] : null
   const etiquetaGaleria = `Galeria de fotos da edição ${e.tema}, ${e.code}`
-  const rotuloGaleria = `Fotos · ${e.code}`
 
   const meta = (
     <>
@@ -655,7 +638,6 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
               total={fotos.length}
               porPagina={2}
               variante="par"
-              rotulo={rotuloGaleria}
               etiqueta={etiquetaGaleria}
               semMovimento={semMovimento}
             />
@@ -784,7 +766,6 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
             fotos={fotos}
             porPagina={3}
             variante="mosaico"
-            rotulo={rotuloGaleria}
             etiqueta={etiquetaGaleria}
             semMovimento={semMovimento}
           />
