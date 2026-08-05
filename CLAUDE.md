@@ -348,6 +348,20 @@ Sem foto: fallback em moldura editorial; texto claro ("Foto pendente"/"Galeria
 pendente"); não deixar área vazia sem explicação; nunca imagem aleatória externa nem
 hotlink.
 
+**Nada gerado por IA entra como registro do festival** (auditoria de 05/08/2026). O
+acervo externo tem pelo menos uma peça assim — `materiais impressos para lojas e
+brindes colecionaveis/Imagem 1 gerada (8).png` — que imita o mapa da Rota da Doçura
+Lovers com a lista de participantes em texto deformado. Uma peça gerada que finge
+ser material real é dado inventado por outro meio (§16). Sinais de alerta ao varrer
+acervo: nome de arquivo tipo "Imagem N gerada", texto ilegível/derretido em
+rótulos, logo com forma inconsistente. **Na dúvida, ampliar e ler o texto da peça
+antes de usar.**
+
+**Nome de pasta do acervo não é descrição de conteúdo** — já falhou duas vezes
+("encantamento em loja" e "patrocínios e apoios" eram fotos de festa a fantasia).
+Inspecionar visualmente antes de confiar. Contraexemplo útil: a pasta `sinalização/`
+tem 9 arquivos chamados `nao usar essas (N).jpg` — aí o nome **é** a instrução.
+
 ## 8. Placeholders e fallbacks
 
 Placeholders parecem parte do sistema visual, não erro técnico.
@@ -508,8 +522,20 @@ editorial e comercial. Não parecer formulário genérico.
 Oito seções: `01 Abertura` · `02 Depoimentos` · `03 Números` · `04 Circulação` ·
 `05 Quem pode` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
 Herói com rótulo do público, dois CTAs, 3 indicadores e foto 4:3 com rotação em
-crossfade. Três faixas alternando lado, imagem e texto com **larguras iguais** (408px
+crossfade. **Quatro** faixas alternando lado, imagem e texto com **larguras iguais** (408px
 cada em 1360px).
+
+A 4ª faixa (`04 · Materiais`, ago/2026) fecha a Circulação com o material que chega
+na loja — display, adesivo, mapa e brinde temático. O `--fundo` da faixa pinta o
+**painel inteiro** e todo o texto dela é creme: cyan e amarelo reprovam como fundo
+de texto normal, então o ciclo de irmãos (§5) fecha em **magenta** (4,86:1). Não
+trocar por tom claro "porque o ciclo pede".
+
+A seção **06 Imprensa** abre com galeria de 3 registros reais em TV
+(`.pa-imprensa__fotos`, `public/images/imprensa/01–03`) antes dos chips de veículo.
+Alt genérico de propósito: o acervo não traz crédito confiável de veículo, data nem
+pessoa — nomear alguém ali seria dado inventado (§16). A grade usa
+`auto-fit / minmax(min(100%,220px),1fr)` e empilha sozinha, sem media query.
 
 **Depoimentos vêm logo depois da abertura** (decisão do Wilke, 30/07/2026 — no
 redesign original eram a seção 05, entre "Quem pode" e "Imprensa"). São a prova

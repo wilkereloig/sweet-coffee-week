@@ -113,7 +113,13 @@ const ONDE = [
   },
   {
     t: 'Relacionamento', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', ponto: 'var(--scw-cyan)',
-    foto: { src: '/images/momentos/05.jpg', alt: 'Sweet Lovers em uma ação de marca do Sweet & Coffee Week', position: 'center 40%' },
+    // Mesmo caso de "Cidade e PDV": dois registros reais, não um só. O primeiro
+    // é o press kit impresso (mapa, passaporte e tag da edição Trip), o segundo
+    // é a ação com Sweet Lovers — os dois primeiros itens da lista ao lado.
+    fotos: [
+      { src: '/images/campanha/18.jpg', alt: 'Press kit impresso do Sweet & Coffee Week: mapa da rota, passaporte da doçura e tag de mala', position: 'center' },
+      { src: '/images/momentos/05.jpg', alt: 'Sweet Lovers em uma ação de marca do Sweet & Coffee Week', position: 'center 40%' },
+    ],
     itens: ['Press kit', 'Vouchers e brindes', 'Sorteios', 'Ações com Sweet Lovers', 'Experiências de marca'],
   },
   {
