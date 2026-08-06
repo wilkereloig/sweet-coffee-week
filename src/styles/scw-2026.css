@@ -76,27 +76,36 @@
     rgba(0,0,0,.972) 90%, rgba(0,0,0,1)   100%);
 }
 
-/* Cor principal por página: menu ativo, barra de 5px e selo do herói.
-   Mesmos ids de rota do App.jsx. Apoiar (cyan) e Contato (bege) — redesign
-   29/07/2026: a paleta ganhou mais ritmo e as duas cores antigas (vinho,
-   marrom) saíram do sistema. */
+/* Cor principal por página: menu ativo e selo do herói. Mesmos ids de rota do
+   App.jsx. Cor identifica DESTINO (handoff ago/2026, PATCH 01): nenhuma página
+   repete a cor da vizinha — cyan cobria Edições e Apoiar ao mesmo tempo, o que
+   derrotava o propósito da regra. Edições virou laranja, Participar herdou o
+   cyan e Apoiar o marrom. Espelho em JS: PAGE_COLORS, src/components/nav.jsx. */
 body.route-home            { --scw-pagina: #FDBB1A; --scw-pagina-tinta: #3D1308; }
-body.route-edicoes         { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; }
+body.route-edicoes         { --scw-pagina: #FF4810; --scw-pagina-tinta: #3D1308; }
 body.route-historico-awards{ --scw-pagina: #4D257E; --scw-pagina-tinta: #FEF0DD; }
-body.route-participar      { --scw-pagina: #F10767; --scw-pagina-tinta: #FEF0DD; }
-body.route-apoiar          { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; }
+body.route-participar      { --scw-pagina: #01AFCC; --scw-pagina-tinta: #3D1308; }
+body.route-apoiar          { --scw-pagina: #6A2C15; --scw-pagina-tinta: #FEF0DD; }
 body.route-contato         { --scw-pagina: #F8E4C1; --scw-pagina-tinta: #3D1308; --scw-pagina-sobre-creme: #6A2C15; }
 
-/* Heróis: fundo próprio por página (Home/Edições continuam chocolate — o
-   herói é foto sangrada e a cor da página já aparece no véu e na barra). */
+/* Roxo (1,45:1) e marrom (1,53:1) não existem como TINTA sobre chocolate.
+   Quando a cor dessas duas páginas aparece dentro de seção chocolate, ela entra
+   como chapa com anel de creme — nunca como cor de texto (PATCH 01 §1.1).
+   Para ESCREVER sobre chocolate essas páginas usam --scw-amarelo (9,5:1); é o
+   que pageColorDark() já devolve em nav.jsx. */
+body.route-historico-awards .scw-secao--choco .scw-pill--pagina,
+body.route-apoiar .scw-secao--choco .scw-pill--pagina {
+  color: var(--scw-creme);
+  box-shadow: 0 0 0 2px var(--scw-creme);
+}
+
+/* Heróis: fundo próprio por página. A Home é a única exceção — mantém o
+   chocolate porque a foto sangra e a cor já aparece no véu e na barra. */
 body.route-home             { --scw-heroi: #3D1308; --scw-heroi-tinta: #FEF0DD; }
-body.route-edicoes          { --scw-heroi: #3D1308; --scw-heroi-tinta: #FEF0DD; }
+body.route-edicoes          { --scw-heroi: #FF4810; --scw-heroi-tinta: #3D1308; }
 body.route-historico-awards { --scw-heroi: #4D257E; --scw-heroi-tinta: #FEF0DD; }
-/* Magenta puro (não o D0055B do selo de menu — banido da paleta em jul/2026):
-   falha em texto pequeno (3,8:1), por isso o §2 do patch de cor dá tratamento
-   próprio ao lead, ao CTA e à nota do herói desta página. */
-body.route-participar       { --scw-heroi: #F10767; --scw-heroi-tinta: #FEF0DD; }
-body.route-apoiar           { --scw-heroi: #01AFCC; --scw-heroi-tinta: #3D1308; }
+body.route-participar       { --scw-heroi: #01AFCC; --scw-heroi-tinta: #3D1308; }
+body.route-apoiar           { --scw-heroi: #6A2C15; --scw-heroi-tinta: #FEF0DD; }
 body.route-contato          { --scw-heroi: #F8E4C1; --scw-heroi-tinta: #3D1308; }
 
 /* ============================================================================
@@ -966,7 +975,9 @@ body.route-contato {
   text-wrap: pretty;
 }
 
-/* Herói simples (Participar, Apoiar, Contato): bloco chocolate com foto em card. */
+/* Herói simples (Participar, Apoiar, Contato): bloco na cor da página. O cartão
+   de foto saiu em ago/2026 (PATCH 01 §6) — a abertura é rótulo + H1 + lead +
+   ações; no celular a foto continua, sangrando em .scw-hero-banda. */
 .scw-hero-bloco {
   position: relative;
   overflow: hidden;
@@ -977,23 +988,6 @@ body.route-contato {
 .scw-hero-bloco--compacto {
   padding: var(--scw-hero-topo) var(--scw-trilho) clamp(34px, 3.6vw, 52px);
 }
-.scw-hero-cartao {
-  position: relative;
-  border-radius: var(--scw-r-secao);
-  overflow: hidden;
-  box-shadow: var(--scw-sombra-foto);
-  aspect-ratio: 4 / 3;
-}
-.scw-hero-cartao__foto {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  transition: opacity 900ms cubic-bezier(.2, .7, .2, 1);
-}
-.scw-hero-cartao__foto.is-ativa { opacity: 1; }
-
 /* Banda de foto sangrando — só no mobile (ver bloco ≤1000px).
    O corte vem de dois pseudos mascarados pela rampa em S, não mais de
    box-shadow inset: o shadow fechava em ~78px e com ombro duro, então a
@@ -1061,7 +1055,6 @@ body.route-contato {
   .scw-hero__lead { font-size: 16px; line-height: 1.5; }
 
   .scw-hero-bloco { padding-top: 0; }
-  .scw-hero-cartao { display: none; }
   .scw-hero-banda {
     display: block;
     position: relative;

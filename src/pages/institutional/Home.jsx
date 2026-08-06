@@ -423,7 +423,7 @@ export function HomePage({ navigate }) {
               <div className="hm-rota__texto">
                 <h3 className="hm-rota__titulo">Leve sua marca para o festival.</h3>
                 <p>Crie um combo autoral, encontre novos públicos e entre na próxima edição.</p>
-                <a className="hm-rota__cta hm-rota__cta--escuro" href="#/participar" onClick={ir('/participar')}>
+                <a className="hm-rota__cta" href="#/participar" onClick={ir('/participar')}>
                   Quero participar <Seta size={16} />
                 </a>
               </div>
@@ -445,7 +445,7 @@ export function HomePage({ navigate }) {
               <div className="hm-rota__texto">
                 <h3 className="hm-rota__titulo">Descubra a cidade a cada edição.</h3>
                 <p>Quando uma edição abre, o público visita, experimenta e volta.</p>
-                <a className="hm-rota__cta hm-rota__cta--escuro" href="#/edicoes" onClick={ir('/edicoes')}>
+                <a className="hm-rota__cta" href="#/edicoes" onClick={ir('/edicoes')}>
                   Conhecer as edições <Seta size={16} />
                 </a>
               </div>
@@ -462,7 +462,7 @@ export function HomePage({ navigate }) {
               <div className="hm-rota__texto">
                 <h3 className="hm-rota__titulo">Apoie uma cidade em movimento.</h3>
                 <p>Ponha sua marca na rota que a cidade já percorre, junto de gastronomia e cultura locais.</p>
-                <a className="hm-rota__cta hm-rota__cta--cyan" href="#/apoiar" onClick={ir('/apoiar')}>
+                <a className="hm-rota__cta" href="#/apoiar" onClick={ir('/apoiar')}>
                   Quero apoiar <Seta size={16} />
                 </a>
               </div>
@@ -508,7 +508,12 @@ export function HomePage({ navigate }) {
               Uma década que <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>continua em circulação</em>.
             </h2>
           </div>
-          <a className="hm-link hm-link--sublinhado" href="#/sweet-awards" onClick={ir('/sweet-awards')}>
+          <a
+            className="hm-link hm-link--sublinhado"
+            style={{ '--destino': 'var(--scw-roxo)' }}
+            href="#/sweet-awards"
+            onClick={ir('/sweet-awards')}
+          >
             Conhecer o Sweet Awards <Seta />
           </a>
         </div>

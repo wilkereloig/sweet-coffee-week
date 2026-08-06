@@ -33,11 +33,10 @@ import '../../styles/scw-participar-apoiar.css'
 const FOTOS_HERO = heroPhotos('participar')
 const FOTO_BANDA = FOTOS_HERO[0]
 
-const INDICADORES = [
-  { v: '+34 mil', d: 'combos vendidos nas edições', c: 'var(--scw-amarelo)' },
-  { v: '+100', d: 'marcas participantes', c: 'var(--scw-cyan)' },
-  { v: '11 dias', d: 'de vitrine por edição', c: 'var(--scw-magenta)' },
-]
+/* Os três indicadores do herói saíram com o cartão (PATCH 01 §6). Nada de dado
+   se perdeu: os três já existiam, com os mesmos números, em NUMEROS abaixo
+   (+34 mil combos, +100 marcas, 11 dias por edição) — repetir os mesmos valores
+   em seções vizinhas era a duplicação que a seção 03 já resolvia. */
 
 const PALAVRAS = [
   'um combo autoral', 'presença na campanha', 'nova relação com o público',
@@ -199,19 +198,6 @@ function iniciais(nome) {
 // RPC injetado na lógica pura (mantém o módulo testável offline).
 const rpc = (name, payload) => supabase.rpc(name, payload)
 
-// Crossfade do cartão de foto do herói. Para quando o sistema pede menos
-// movimento e quando a página não está visível.
-function useRotacao(total, intervalo = 6200) {
-  const [i, setI] = React.useState(0)
-  React.useEffect(() => {
-    if (typeof window === 'undefined' || total < 2) return undefined
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
-    const id = window.setInterval(() => setI((v) => (v + 1) % total), intervalo)
-    return () => window.clearInterval(id)
-  }, [total, intervalo])
-  return i
-}
-
 // Barra de ação fixa: só depois de o herói sair da tela.
 function useBarra() {
   const [visivel, setVisivel] = React.useState(false)
@@ -261,7 +247,6 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
 }
 
 export function ParticiparPage() {
-  const foto = useRotacao(FOTOS_HERO.length)
   const barraVisivel = useBarra()
   const [audioAtivo, setAudioAtivo] = React.useState(null) // slug do depoimento com som ligado
 
@@ -345,7 +330,8 @@ export function ParticiparPage() {
             <span className="scw-pill scw-pill--pagina pa-hero__selo">Para doçarias, cafeterias e restaurantes</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca pode ser a próxima{' '}
-              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#FDBB1A' }}>descoberta de Natal.</em>
+              {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
+              <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#4D257E' }}>descoberta de Natal.</em>
             </h1>
             <p className="scw-lead pa-hero__lead">
               Participar é criar um combo autoral para o tema da edição e entrar na rota oficial
@@ -362,33 +348,6 @@ export function ParticiparPage() {
             <span className="pa-hero__nota">
               Participação por curadoria · Natal e Parnamirim
             </span>
-          </div>
-
-          <div className="pa-hero__aside">
-            <div className="scw-hero-cartao">
-              {FOTOS_HERO.map((f, i) => (
-                <span
-                  key={f.src}
-                  className={`scw-hero-cartao__foto${i === foto ? ' is-ativa' : ''}`}
-                  role={i === foto ? 'img' : undefined}
-                  aria-label={i === foto ? f.alt : undefined}
-                  aria-hidden={i === foto ? undefined : 'true'}
-                  style={bgStyle(f)}
-                />
-              ))}
-            </div>
-            <p className="pa-hero__rotulos">
-              <b>O que sua marca encontra</b>
-              <span>histórico de 16 edições</span>
-            </p>
-            <dl className="pa-hero__dados">
-              {INDICADORES.map((m) => (
-                <div className="pa-hero__dado" key={m.d} style={{ '--c': m.c }}>
-                  <dt>{m.v}</dt>
-                  <dd>{m.d}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </div>
       </section>

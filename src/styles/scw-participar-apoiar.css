@@ -16,22 +16,9 @@
    (Participar é magenta puro; creme sobre esse rosa dá 3,8:1). */
 .pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
 
-/* Véu da foto do cartão: aprofunda para a cor do herói, nunca um hex fixo —
-   costura a imagem ao bloco ao lado. */
+/* Véu: aprofunda para a cor do herói, nunca um hex fixo. Sem o cartão de foto
+   (PATCH 01 §6) ele serve só à banda do celular, que o lê em --scw-banda-veu. */
 .pa-hero { --veu: color-mix(in srgb, var(--scw-heroi) 70%, var(--scw-choco)); }
-
-/* Desktop: a foto vive no cartão; o véu desce do transparente para a cor da
-   página, costurando a imagem ao bloco do herói. */
-.pa-hero .scw-hero-cartao::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(168deg,
-    transparent 32%,
-    color-mix(in srgb, var(--veu) 22%, transparent) 70%,
-    color-mix(in srgb, var(--veu) 58%, transparent) 100%);
-}
 
 /* Forma da identidade em marca-d'água: só apoia a leitura do bloco, não compete
    com o texto (opacidade 8%, atrás de tudo, aria-hidden no JSX). */
@@ -43,14 +30,10 @@
 }
 .pa-hero__forma--participar { left: -4%; bottom: -14%; }
 
-.pa-hero__grade {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: clamp(32px, 4.6vw, 72px);
-  align-items: center;
-}
+/* PATCH 01 §6: a abertura é rótulo + H1 + lead + ações, nada mais. Sem a coluna
+   de apoio o grid perdeu a função — quem limita a medida é o próprio papel
+   (.scw-h1 17ch, .scw-lead 46ch), não uma largura de coluna inventada aqui. */
+.pa-hero__grade { position: relative; z-index: 1; }
 .pa-hero__selo { padding: 11px 18px 9px calc(18px + .16em); font-size: 11.5px; }
 .pa-hero__titulo { margin: clamp(20px, 2.2vw, 28px) 0 0; color: var(--scw-heroi-tinta); }
 .pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: color-mix(in srgb, var(--scw-heroi-tinta) 88%, transparent); }
@@ -69,113 +52,51 @@
   color: color-mix(in srgb, var(--scw-heroi-tinta) 84%, transparent);
 }
 
-/* Selo e CTA do herói: Participar (amarelo) e Apoiar (chocolate) divergem —
-   o pill usava a cor da página como fundo, e cor-sobre-cor some em cada uma. */
-body.route-participar .pa-hero__selo { background: var(--scw-amarelo); color: var(--scw-choco); }
-body.route-apoiar .pa-hero__selo { background: var(--scw-choco); color: var(--scw-creme); }
-body.route-apoiar .pa-hero__acoes .scw-btn--solido,
-body.route-apoiar .pa-hero__acoes .scw-btn--pagina {
+/* Selo do herói: o pill usa --scw-pagina como fundo, e nas duas páginas a cor
+   da página é AGORA a cor da própria chapa do herói (cyan em Participar,
+   marrom em Apoiar) — cor sobre cor some. Cada uma inverte do jeito que o
+   fundo pede, e o padrão da casa para isso já existe em .swa-hero (Awards):
+   chapa clara, tinta na cor da página. */
+body.route-participar .pa-hero__selo { background: var(--scw-choco); color: var(--scw-creme); }
+body.route-apoiar .pa-hero__selo { background: var(--scw-creme); color: var(--scw-marrom); }
+
+/* Participar herdou o herói CYAN, que é chapa CLARA de tinta chocolate: as
+   compensações abaixo são as que Apoiar usava enquanto era cyan — elas seguem a
+   cor, não a página. O tratamento especial do magenta (lead em texto grande,
+   nota em pílula chapada) morreu junto com o herói magenta: cyan × chocolate dá
+   6,2:1 e passa AA em texto pequeno. */
+body.route-participar .pa-hero__acoes .scw-btn--solido,
+body.route-participar .pa-hero__acoes .scw-btn--pagina {
   background: var(--scw-choco);
   color: var(--scw-creme);
 }
-body.route-apoiar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
-body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro {
+body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
   color: var(--scw-choco);
 }
-body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro:hover {
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
   background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
   border-color: var(--scw-choco);
 }
-/* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói de Apoiar,
-   então some sobre esse fundo. Só aqui o anel troca para chocolate. */
-body.route-apoiar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
+/* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói desta
+   página, então some sobre esse fundo. Só aqui o anel troca para chocolate. */
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   outline-color: var(--scw-choco);
 }
 
-/* Participar: o herói é magenta puro (#F10767) — nenhuma tinta pequena passa
-   AA nele (§ tabela de contraste). Os elementos pequenos mudam de FORMA, não
-   de cor: o lead cresce para texto grande, o resto ganha fundo chapado. */
-body.route-participar .pa-hero__lead {
-  font-weight: 700;
-  font-size: clamp(19px, 1.4vw, 21px);
-  color: var(--scw-creme);
-}
-body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
-  background: var(--scw-choco);
-  border-color: var(--scw-choco);
-  color: var(--scw-creme);
-}
-body.route-participar .pa-hero__nota {
-  display: inline-block;
-  padding: 11px 18px 10px;
-  border-top: 0;
-  border-radius: 999px;
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-}
-
-/* Coluna de apoio do herói: cartão de foto + três indicadores. */
-.pa-hero__aside { display: flex; flex-direction: column; gap: 14px; }
-.pa-hero__rotulos {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 4px;
-}
-.pa-hero__rotulos b {
-  font: 800 11px/1.2 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--scw-heroi-tinta);
-}
-.pa-hero__rotulos span { font: 700 12px/1.2 var(--scw-font); color: color-mix(in srgb, var(--scw-heroi-tinta) 72%, transparent); }
-/* Participar: herói magenta puro não sustenta AA em texto pequeno (§ tabela de
-   contraste) — mesmo tratamento chapado do resto do herói nesta rota (linhas
-   94-111), em vez de tinta direta sobre o magenta. */
-body.route-participar .pa-hero__rotulos {
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: var(--scw-choco);
-}
-body.route-participar .pa-hero__rotulos b,
-body.route-participar .pa-hero__rotulos span {
-  color: var(--scw-creme);
-}
-.pa-hero__dados {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(90px, calc((100% - 4px) / 3))), 1fr));
-  gap: 2px;
-  margin: 0;
-  border-radius: var(--scw-r-secao);
-  overflow: hidden;
-  background: rgba(254, 240, 221, .16);
-}
-.pa-hero__dado { padding: clamp(16px, 1.8vw, 22px); background: var(--scw-choco); }
-.pa-hero__dado dt {
-  color: var(--c, var(--scw-amarelo));
-  font: 900 clamp(24px, 2.5vw, 36px)/.9 var(--scw-font-black);
-  letter-spacing: -.05em;
-}
-.pa-hero__dado dd {
-  margin: 7px 0 0;
-  font: 700 12.5px/1.35 var(--scw-font);
-  color: rgba(254, 240, 221, .74);
-  overflow-wrap: anywhere;
-  hyphens: auto;
-}
+/* Apoiar ficou com o marrom: chapa ESCURA de tinta creme (9,4:1). As regras
+   base já servem — botão sólido amarelo, contorno creme, anel cyan — então a
+   página não sobrescreve nada além do selo acima. */
 
 /* No celular o herói vira banda de foto + informação (README § Herói no
-   celular): a coluna de apoio sai para não duplicar imagem nem empurrar o
-   conteúdo pra baixo da dobra. */
+   celular). */
 @media (max-width: 1000px) {
-  .pa-hero__aside { display: none; }
   .pa-hero__forma { display: none; }
   /* A banda sangrando recebe o mesmo véu no topo (onde a logo do cabeçalho
      passa por cima) e fecha embaixo na cor do bloco — que aqui NÃO é o
      chocolate padrão de .scw-hero-bloco: .pa-hero repinta em --scw-heroi
-     (magenta em Participar, cyan em Apoiar). */
+     (cyan em Participar, marrom em Apoiar). */
   .pa-hero .scw-hero-banda {
     --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
     --scw-banda-base: var(--scw-heroi);
@@ -248,6 +169,26 @@ body.route-participar .pa-hero__rotulos span {
 /* ============================================================================
    Faixa de números (Participar 02 · Apoiar 02)
    ========================================================================= */
+
+/* Apoiar 02 — indicadores de audiência que vieram do herói (PATCH 01 §6),
+   no padrão disco + ícone + numeral + rótulo do PATCH 02 §5. Abrem a seção; os
+   seis números do histórico (.pa-numeros) vêm logo abaixo. */
+.pa-alcance-topo {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(24px, 2.8vw, 44px);
+  margin: 0 0 clamp(40px, 4.4vw, 68px);
+  padding: 0 0 clamp(34px, 3.6vw, 52px);
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-alcance-topo li { display: grid; gap: 12px; justify-items: start; }
+.pa-alcance-topo .scw-numeral { color: var(--scw-choco); }
+.pa-alcance-topo li > span:last-child {
+  max-width: 22ch;
+  font: 800 15.5px/1.2 var(--scw-font);
+  color: var(--scw-marrom);
+}
 
 .pa-numeros {
   list-style: none;

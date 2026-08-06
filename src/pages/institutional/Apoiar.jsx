@@ -33,10 +33,14 @@ const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 const FOTOS_HERO = heroPhotos('apoiar')
 const FOTO_BANDA = FOTOS_HERO[0]
 
+/* Saíram do herói com o cartão (PATCH 01 §6) e abrem a seção 02 Alcance, que é
+   sobre exatamente isto. Diferente de Participar, estes três números NÃO se
+   repetem em ALCANCE — são dados próprios de audiência, então mudam de lugar em
+   vez de sumir. Disco + ícone é o padrão de indicador do PATCH 02 §5. */
 const INDICADORES = [
-  { v: '+200 mil', d: 'pessoas alcançadas', c: 'var(--scw-amarelo)' },
-  { v: '+18 mi', d: 'visualizações no Instagram', c: 'var(--scw-cyan)' },
-  { v: '+290 mil', d: 'interações do público', c: 'var(--scw-magenta)' },
+  { v: '+200 mil', d: 'pessoas alcançadas', icone: 'mecanica/publico' },
+  { v: '+18 mi', d: 'visualizações no Instagram', icone: 'redes/instagram' },
+  { v: '+290 mil', d: 'interações do público', icone: 'marca/coracao' },
 ]
 
 const PALAVRAS = [
@@ -150,17 +154,6 @@ const rpc = (name, payload) => supabase.rpc(name, payload)
 
 // Crossfade do cartão de foto do herói. Para quando o sistema pede menos
 // movimento. (Gêmeo do hook da Participar — 6 linhas, não vale um módulo.)
-function useRotacao(total, intervalo = 6200) {
-  const [i, setI] = React.useState(0)
-  React.useEffect(() => {
-    if (typeof window === 'undefined' || total < 2) return undefined
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
-    const id = window.setInterval(() => setI((v) => (v + 1) % total), intervalo)
-    return () => window.clearInterval(id)
-  }, [total, intervalo])
-  return i
-}
-
 function useBarra() {
   const [visivel, setVisivel] = React.useState(false)
   React.useEffect(() => {
@@ -174,7 +167,6 @@ function useBarra() {
 }
 
 export function ApoiarPage() {
-  const foto = useRotacao(FOTOS_HERO.length)
   const barraVisivel = useBarra()
 
   const [form, setForm] = React.useState(EMPTY_SUPPORT)
@@ -279,8 +271,8 @@ export function ApoiarPage() {
             <span className="scw-pill scw-pill--pagina pa-hero__selo">Para empresas, marcas e instituições</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca associada à{' '}
-              {/* Amarelo sobre o herói cyan dá 1,6:1 — roxo fecha 3,9:1 em texto grande. */}
-              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#4D257E' }}>economia criativa de Natal</em>.
+              {/* Chapa marrom, tinta creme: o acento é amarelo (6,2:1 sobre o marrom). */}
+              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#FDBB1A' }}>economia criativa de Natal</em>.
             </h1>
             <p className="scw-lead pa-hero__lead">
               Apoiar o Sweet &amp; Coffee Week é associar sua marca a gastronomia, cultura e pequenos
@@ -297,33 +289,6 @@ export function ApoiarPage() {
             <span className="pa-hero__nota">
               Patrocínio, ativação e conteúdo · cotas por edição · Natal e Parnamirim
             </span>
-          </div>
-
-          <div className="pa-hero__aside">
-            <div className="scw-hero-cartao">
-              {FOTOS_HERO.map((f, i) => (
-                <span
-                  key={f.src}
-                  className={`scw-hero-cartao__foto${i === foto ? ' is-ativa' : ''}`}
-                  role={i === foto ? 'img' : undefined}
-                  aria-label={i === foto ? f.alt : undefined}
-                  aria-hidden={i === foto ? undefined : 'true'}
-                  style={bgStyle(f)}
-                />
-              ))}
-            </div>
-            <p className="pa-hero__rotulos">
-              <b>Onde sua marca aparece</b>
-              <span>@sweetcoffeeweek</span>
-            </p>
-            <dl className="pa-hero__dados">
-              {INDICADORES.map((m) => (
-                <div className="pa-hero__dado" key={m.d} style={{ '--c': m.c }}>
-                  <dt>{m.v}</dt>
-                  <dd>{m.d}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </div>
       </section>
@@ -355,6 +320,21 @@ export function ApoiarPage() {
             arredondados para baixo.
           </p>
         </div>
+        <ul className="pa-alcance-topo">
+          {INDICADORES.map((m) => (
+            <li key={m.d}>
+              <span
+                className="scw-disco"
+                aria-hidden="true"
+                style={{ '--tam': '54px', '--c': 'var(--scw-pagina)', '--tinta': 'var(--scw-creme)' }}
+              >
+                <ScwIcon nome={m.icone} tamanho={24} />
+              </span>
+              <b className="scw-numeral">{m.v}</b>
+              <span>{m.d}</span>
+            </li>
+          ))}
+        </ul>
         <ul className="pa-numeros">
           {ALCANCE.map((n) => (
             <li key={n.t}>

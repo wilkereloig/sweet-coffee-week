@@ -200,11 +200,6 @@
 .scw-hero__foto.is-ativa {
   animation: moRespiraFundo var(--mo-respiro) var(--mo-suave) infinite alternate;
 }
-/* Cartão do herói de Participar/Apoiar: overflow:hidden vem de .scw-hero-cartao. */
-.scw-hero-cartao__foto.is-ativa {
-  animation: moRespira var(--mo-respiro) var(--mo-suave) infinite alternate;
-}
-
 /* Molduras que já cortam o excedente — a foto respira, a caixa fica parada.
    Poucos pontos por página: laço em toda imagem viraria poluição (§14) e custo
    de compositor à toa (§23). No celular, nenhum: a rolagem vem primeiro (§21). */
@@ -432,7 +427,6 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   .scw-acesso__caixa,
   .scw-topo,
   .scw-hero__foto.is-ativa,
-  .scw-hero-cartao__foto.is-ativa,
   .mo-respira,
   main.page-enter {
     animation: none !important;
@@ -442,8 +436,7 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   }
   /* As fotos empilhadas do herói continuam trocando por opacidade — só a ativa
      é visível, senão as quatro apareceriam sobrepostas. */
-  .scw-hero__foto:not(.is-ativa),
-  .scw-hero-cartao__foto:not(.is-ativa) { opacity: 0; }
+  .scw-hero__foto:not(.is-ativa) { opacity: 0; }
 
   .scw-btn:hover,
   .scw-btn:hover svg,

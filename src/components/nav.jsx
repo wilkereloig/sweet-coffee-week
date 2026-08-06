@@ -13,23 +13,25 @@ import React from 'react'
  *  Apoiar (cyan) e Contato (bege) — redesign 29/07/2026. */
 export const PAGE_COLORS = {
   home:                { cor: '#FDBB1A', tinta: '#3D1308', menu: '#FDBB1A' },
-  edicoes:             { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
+  edicoes:             { cor: '#FF4810', tinta: '#3D1308', menu: '#FF4810' },
   'historico-awards':  { cor: '#4D257E', tinta: '#FEF0DD', menu: '#4D257E' },
-  // Participar: pill do menu em creme sobre magenta dá 3,77:1 em 14px — vira
-  // chocolate com tinta creme (10:1). A página continua anunciada pelo herói.
-  participar:          { cor: '#F10767', tinta: '#FEF0DD', menu: '#3D1308' },
-  apoiar:              { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
+  // Participar herdou o cyan de Apoiar e Apoiar ficou com o marrom (PATCH 01,
+  // ago/2026): as duas fecham AA na pill do menu com a própria cor, então o
+  // desvio para chocolate que o magenta exigia deixou de existir.
+  participar:          { cor: '#01AFCC', tinta: '#3D1308', menu: '#01AFCC' },
+  apoiar:              { cor: '#6A2C15', tinta: '#FEF0DD', menu: '#6A2C15' },
   contato:             { cor: '#F8E4C1', tinta: '#3D1308', menu: '#F8E4C1' },
 }
 
 export const pageColor = (route) => PAGE_COLORS[route] || PAGE_COLORS.home
 
 /** Variante para superfície ESCURA (rodapé, folha do menu, barra de abas):
- *  sobre chocolate, roxo dá 1,45:1 e magenta 3,83:1 — ilegível/no limite. Cada
- *  página recebe a cor que já usa quando o fundo é escuro. */
+ *  sobre chocolate, roxo dá 1,45:1 e marrom 1,53:1 — ilegível. Essas duas caem
+ *  no amarelo (9,5:1), que é o que o PATCH 01 §1.1 manda usar para ESCREVER
+ *  sobre chocolate. Laranja (4,78:1) e cyan (6,23:1) passam e ficam. */
 const MENU_ESCURO = {
-  home: '#FDBB1A', edicoes: '#01AFCC', 'historico-awards': '#FDBB1A',
-  participar: '#FDBB1A', apoiar: '#01AFCC', contato: '#F8E4C1',
+  home: '#FDBB1A', edicoes: '#FF4810', 'historico-awards': '#FDBB1A',
+  participar: '#01AFCC', apoiar: '#FDBB1A', contato: '#F8E4C1',
 }
 export const pageColorDark = (id) => MENU_ESCURO[id] || '#FDBB1A'
 

@@ -114,11 +114,16 @@
   transition: color 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
 }
 .hm-link:hover { color: var(--scw-choco); }
+/* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
+   tinta — a tinta de um link de 15px sobre creme precisa de 4,5:1 e só roxo e
+   marrom fecham isso; o filete é objeto gráfico e se resolve em 3:1.
+   Único uso hoje é o link para o Sweet Awards (roxo, 9,95:1 sobre creme); o
+   --destino existe para o próximo. */
 .hm-link--sublinhado {
   align-self: end;
   justify-self: start;
   padding-bottom: 6px;
-  border-bottom: 2px solid var(--scw-marrom);
+  border-bottom: 2px solid var(--destino, var(--scw-marrom));
   font-size: 15px;
 }
 .hm-link--sublinhado:hover { border-color: var(--scw-choco); }
@@ -316,8 +321,26 @@
    tem especificidade 0,1,1 e vencia estes modificadores 0,1,0 — o card
    "Público" (fundo amarelo, texto base chocolate) herdava chocolate no CTA
    --escuro, que também tem fundo chocolate: texto sumia sobre o próprio botão. */
-.scw-raiz .hm-rota__cta--escuro { background: var(--scw-choco); color: var(--scw-creme); }
-.scw-raiz .hm-rota__cta--cyan   { background: var(--scw-cyan); color: var(--scw-choco); }
+/* PATCH 01 §4 — o CTA que navega pinta-se com a cor da PÁGINA DE DESTINO, não
+   da página onde está. Cada card das rotas leva a um destino só, então a regra
+   mora no modificador do card.
+   Onde a chapa do destino não separa do card (<3:1 de forma), entra o anel de
+   2px do §1.1, na tinta do próprio card: laranja sobre amarelo dá 1,99:1 e
+   marrom sobre chocolate 1,53:1 — sem anel os dois viram um buraco no card. */
+.scw-raiz .hm-rota--marcas .hm-rota__cta {     /* → Participar */
+  background: var(--scw-cyan);
+  color: var(--scw-choco);
+}
+.scw-raiz .hm-rota--publico .hm-rota__cta {    /* → Edições */
+  background: var(--scw-laranja);
+  color: var(--scw-choco);
+  box-shadow: 0 0 0 2px var(--scw-choco);
+}
+.scw-raiz .hm-rota--parceiros .hm-rota__cta {  /* → Apoiar */
+  background: var(--scw-marrom);
+  color: var(--scw-creme);
+  box-shadow: 0 0 0 2px var(--scw-creme);
+}
 
 /* ============================================================================
    04 Ciclo — quatro etapas
