@@ -115,8 +115,9 @@
 .ctt-cabeca { align-items: end; margin: 0 0 clamp(24px, 2.8vw, 38px); }
 .ctt-cabeca--caminhos { margin-bottom: clamp(34px, 3.8vw, 56px); }
 /* Cabeça sem lead (PATCH 03 §1): sem .scw-grade junto, então bloco único — a
-   coluna vazia à direita não vira espaço reservado. A margem já vem da base. */
-.ctt-cabeca--simples { display: block; }
+   coluna vazia à direita não vira espaço reservado. A margem repete a da base
+   de propósito: o modificador tem que ficar de pé sozinho. */
+.ctt-cabeca--simples { display: block; margin-bottom: clamp(24px, 2.8vw, 38px); }
 .ctt-cabeca__titulo { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 22ch; }
 .ctt-cabeca__titulo--marrom { color: var(--scw-marrom); max-width: 20ch; }
 .ctt-cabeca__apoio {
@@ -176,12 +177,6 @@
   font: 500 15px/1.2 var(--scw-font);
 }
 .ctt-busca input::placeholder { color: rgba(106, 44, 21, .8); }
-/* No celular o campo é o alvo de toque, não a linha: clicar no padding do
-   flex não foca o input, então os 46px da linha não valiam — só os 26px do
-   próprio campo. */
-@media (max-width: 900px) {
-  .ctt-busca input { min-height: 44px; }
-}
 
 .ctt-lateral__rotulo {
   display: block;
@@ -441,7 +436,7 @@
    scw-2026.css, em 36px porque aqui divide a linha com o pill em vez de
    abrir o card. */
 .ctt-porta__topo { display: flex; align-items: center; gap: 10px; align-self: flex-start; }
-.ctt-porta__ic { --tam: 36px; }
+.ctt-porta__ic { --tam: 46px; }  /* ícone de card = 46px (PATCH 02 §5) */
 .ctt-pill--roxo  { background: var(--scw-roxo);  color: var(--scw-creme); }
 .ctt-pill--choco { background: var(--scw-choco); color: var(--scw-creme); }
 .ctt-pill--cyan  { background: var(--scw-cyan);  color: var(--scw-choco); }

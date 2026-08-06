@@ -398,11 +398,13 @@
   background: repeating-linear-gradient(90deg, rgba(61, 19, 8, .2) 0 9px, transparent 9px 18px);
 }
 .swa-trilha > * { position: relative; }
+/* Indicador de etapa: 54px (PATCH 02 §5). O anel de 6px continua sendo o que
+   abre o buraco por onde a espinha tracejada passa. */
 .swa-trilha__selo {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   box-shadow: 0 0 0 6px var(--scw-bege);
 }
@@ -445,7 +447,7 @@
     left: 20px; right: auto; top: 22px; bottom: 26px; width: 3px; height: auto;
     background: repeating-linear-gradient(180deg, rgba(61, 19, 8, .2) 0 9px, transparent 9px 18px);
   }
-  .swa-trilha > * { padding-left: 62px; min-height: 44px; }
+  .swa-trilha > * { padding-left: 72px; min-height: 44px; }
   .swa-trilha > * > .swa-trilha__selo { position: absolute; left: 0; top: 0; }
   .swa-trilha > * > :nth-child(2) { margin-top: 0; }
 }

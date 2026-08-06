@@ -365,14 +365,16 @@
   background-size: cover;
   background-position: center;
 }
+/* Indicador de etapa: 54px (PATCH 02 §5). Disco de indicador 54, disco de
+   ícone dentro de card 46 — dois tamanhos, dois papéis, nada entre eles. */
 .hm-etapa__num {
   position: absolute;
   left: 16px;
   top: 16px;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   font: 900 16px/1 var(--scw-font-black);
   letter-spacing: -.02em;
