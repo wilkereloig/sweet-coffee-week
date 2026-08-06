@@ -114,6 +114,9 @@
 /* --- cabeçalho de seção --------------------------------------------------- */
 .ctt-cabeca { align-items: end; margin: 0 0 clamp(24px, 2.8vw, 38px); }
 .ctt-cabeca--caminhos { margin-bottom: clamp(34px, 3.8vw, 56px); }
+/* Cabeça sem lead (PATCH 03 §1): sem .scw-grade junto, então bloco único — a
+   coluna vazia à direita não vira espaço reservado. A margem já vem da base. */
+.ctt-cabeca--simples { display: block; }
 .ctt-cabeca__titulo { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 22ch; }
 .ctt-cabeca__titulo--marrom { color: var(--scw-marrom); max-width: 20ch; }
 .ctt-cabeca__apoio {

@@ -233,20 +233,14 @@ export function ContatoPage({ navigate }) {
 
       {/* ---------- 02 DÚVIDAS (central de 93 perguntas) --------------------- */}
       <section id="perguntas" className="ctt-sec ctt-sec--creme" aria-labelledby="ctt-duvidas-titulo">
-        <div
-          className="scw-grade ctt-cabeca"
-          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
-        >
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/duvidas" tamanho={20} />Central de dúvidas</span>
-            <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
-              O que a gente <em className="ctt-destaque ctt-destaque--magenta">mais responde</em>.
-            </h2>
-          </div>
-          <p className="ctt-cabeca__apoio">
-            {TOTAL} respostas divididas em dez assuntos. Escolha um assunto ao lado ou busque por uma
-            palavra, como glúten, delivery, carimbo ou empate.
-          </p>
+        {/* Sem lead (PATCH 03 §1): ele explicava um controle que está na tela
+            ("escolha um assunto ao lado", "busque por uma palavra"). A contagem
+            não se perde — abre a página, e cada chip de assunto traz a sua. */}
+        <div className="ctt-cabeca ctt-cabeca--simples">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/duvidas" tamanho={20} />Central de dúvidas</span>
+          <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
+            O que a gente <em className="ctt-destaque ctt-destaque--magenta">mais responde</em>.
+          </h2>
         </div>
 
         <div className="ctt-colunas">
