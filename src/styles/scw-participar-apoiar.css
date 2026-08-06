@@ -152,7 +152,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   border-bottom: 2px solid var(--scw-marrom);
   color: var(--scw-marrom);
   font: 800 15px/1 var(--scw-font);
-  transition: color var(--mo-estado) var(--mo-ease), border-color var(--mo-estado) var(--mo-ease);
+  transition: var(--scw-transicao);
 }
 .pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
 
@@ -313,7 +313,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   flex-direction: column;
   gap: 12px;
   padding: clamp(16px, 1.7vw, 22px);
-  border-radius: 18px;
+  border-radius: var(--scw-r-card);
   border: 1px solid rgba(61, 19, 8, .14);
   background: var(--scw-creme);
 }
@@ -376,14 +376,15 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   bottom: 14px;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  /* 34 → 44px: piso de toque do PATCH 02 §2, medido no controle real. */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: rgba(61, 19, 8, .55);
   color: var(--scw-creme);
   cursor: pointer;
-  transition: background var(--mo-estado) var(--mo-ease);
+  transition: var(--scw-transicao);
 }
 .pa-depo__som:hover,
 .pa-depo__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
@@ -735,7 +736,6 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-form__enviar:hover { background: var(--scw-marrom); }
 .pa-form__enviar:active { transform: translateY(1px); }
-.pa-form__enviar:disabled { opacity: .55; cursor: not-allowed; }
 .pa-form__status {
   grid-column: 1 / -1;
   margin: clamp(16px, 1.8vw, 22px) 0 0;
@@ -785,7 +785,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   color: var(--scw-choco);
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
-  transition: background var(--mo-estado) var(--mo-ease), color var(--mo-estado) var(--mo-ease);
+  transition: var(--scw-transicao);
 }
 .pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
 
@@ -806,7 +806,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   color: var(--scw-creme);
   border-top: 1px solid rgba(254, 240, 221, .16);
   transform: translateY(110%);
-  transition: transform var(--mo-estado) var(--mo-mola);
+  transition: var(--scw-transicao);
 }
 .pa-barra.is-visivel { transform: none; }
 .pa-barra span {

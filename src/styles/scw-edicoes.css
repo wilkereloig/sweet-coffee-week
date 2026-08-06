@@ -579,7 +579,7 @@
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
 }
 .scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
-.scw-edx__seta:disabled { opacity: .35; cursor: default; }
+.scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
 .scw-edx__seta--proxima {
   border: 0;
   background: var(--scw-edx-tom);

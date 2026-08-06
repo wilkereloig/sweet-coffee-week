@@ -111,7 +111,7 @@
   min-height: 44px;
   color: var(--scw-marrom);
   font: 800 13px/1 var(--scw-font);
-  transition: color 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .hm-link:hover { color: var(--scw-choco); }
 /* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
@@ -226,13 +226,13 @@
 .hm-galeria__foto {
   margin: 0;
   aspect-ratio: 1;
-  border-radius: 18px;
+  border-radius: var(--scw-r-card);
   overflow: hidden;
   background-color: var(--scw-bege);
   background-size: cover;
   background-position: center;
 }
-.hm-galeria__reserva { aspect-ratio: 1; border-radius: 18px; }
+.hm-galeria__reserva { aspect-ratio: 1; border-radius: var(--scw-r-card); }
 .hm-galeria__nome {
   display: flex;
   align-items: baseline;
@@ -314,7 +314,7 @@
   padding: 12px 22px;
   border-radius: 999px;
   font: 800 14px/1 var(--scw-font);
-  transition: gap 200ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .hm-rota__cta:hover { gap: 14px; }
 /* Prefixado com .scw-raiz: o reset .scw-raiz a { color: inherit } (scw-2026.css)
@@ -354,7 +354,7 @@
 .hm-etapa__moldura {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 18px;
+  border-radius: var(--scw-r-card);
   overflow: hidden;
   background: var(--scw-marrom);
 }
@@ -500,7 +500,7 @@
   min-height: 44px;
   font: 800 14.5px/1 var(--scw-font);
   color: var(--scw-choco);
-  transition: gap 200ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .hm-voz__link:hover { gap: 14px; }
 
@@ -533,7 +533,7 @@
 .hm-materia__foto {
   display: block;
   aspect-ratio: 1;
-  border-radius: 18px;
+  border-radius: var(--scw-r-card);
   overflow: hidden;
   background: var(--scw-bege);
 }
@@ -548,7 +548,7 @@
   padding: 8px 0;
   border-bottom: 1px solid rgba(61, 19, 8, .14);
   color: var(--scw-choco);
-  transition: background 200ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .hm-linha:hover { background: var(--scw-creme); }
 .hm-linha__veiculo {
@@ -572,7 +572,7 @@
   color: var(--scw-marrom);
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
-  transition: color 200ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .hm-imprensa__toggle:hover { color: var(--scw-choco); }
 
@@ -678,7 +678,7 @@
   color: var(--f2-tinta);
   font: 600 15px/1 'Archivo', sans-serif;
   text-decoration: none;
-  transition: color .2s ease;
+  transition: var(--scw-transicao);
 }
 .f2-realiza__cta:hover { border-bottom-width: 4px; }
 

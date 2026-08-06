@@ -12,10 +12,10 @@
   --scw-choco:        #3D1308;  /* tinta principal, seções escuras */
   --scw-marrom:       #6A2C15;  /* texto de apoio, rótulos */
   --scw-amarelo:      #FDBB1A;  /* acento — O festival */
-  --scw-cyan:         #01AFCC;  /* acento — Edições/Apoiar; anel de foco */
+  --scw-cyan:         #01AFCC;  /* acento — Participar; anel de foco */
   --scw-roxo:         #4D257E;  /* acento — Sweet Awards */
-  --scw-magenta:      #F10767;  /* acento — Participar */
-  --scw-laranja:      #FF4810;  /* superfície preenchida, filete sobre fundo escuro */
+  --scw-magenta:      #F10767;  /* destaque de título; só texto grande */
+  --scw-laranja:      #FF4810;  /* acento — Edições; superfície preenchida */
 
   /* --- trilho e ritmo ---------------------------------------------------- */
   --scw-trilho:       max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
@@ -39,6 +39,17 @@
 
   /* --- movimento --------------------------------------------------------- */
   --scw-ease:         cubic-bezier(.22, .9, .24, 1);
+  /* Uma curva, dois tempos (PATCH 02 §1): 200ms para cor, borda, sombra e gap;
+     180ms para transform. Toda transição de botão, link, chip e card sai daqui
+     — nada de `transition: all` e nada de duração nova. Se uma peça pedir tempo
+     fora disto, perguntar antes de inventar. */
+  --scw-transicao:
+    background-color 200ms var(--scw-ease),
+    color            200ms var(--scw-ease),
+    border-color     200ms var(--scw-ease),
+    box-shadow       200ms var(--scw-ease),
+    gap              200ms var(--scw-ease),
+    transform        180ms var(--scw-ease);
 
   /* --- tipografia -------------------------------------------------------- */
   --scw-font:         'Nexa Slab', system-ui, sans-serif;
@@ -51,9 +62,10 @@
      tinta sobre creme dá 1,1:1, então Contato precisa de um valor à parte */
   --scw-pagina-sobre-creme: var(--scw-pagina);
 
-  /* Par dedicado ao FUNDO do herói: --scw-pagina não serve direto (em
-     Participar é #F10767 e creme sobre esse rosa dá 3,8:1). Escolhido para
-     passar AA em cada página (contraste medido no patch 29/07/2026). */
+  /* Par dedicado ao FUNDO do herói. Hoje ele coincide com --scw-pagina em
+     todas as rotas menos a Home (que segue chocolate, §2 do PATCH 01), mas
+     continua separado: é o fundo que precisa de tinta própria, e a Home prova
+     que os dois papéis divergem. */
   --scw-heroi:       var(--scw-choco);
   --scw-heroi-tinta: var(--scw-creme);
 
@@ -318,8 +330,7 @@ body.route-contato {
   border-radius: 999px;
   font: 800 15px/1 var(--scw-font);
   cursor: pointer;
-  transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease),
-              border-color 240ms var(--scw-ease), transform 120ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 /* O prefixo `.scw-raiz` não é enfeite: o reset `.scw-raiz a { color: inherit }`
    tem especificidade maior que `.scw-btn--*` e fazia o botão de contorno herdar
@@ -350,6 +361,17 @@ body.route-contato {
 }
 .scw-raiz .scw-btn--contorno-escuro:hover { background: var(--scw-choco); color: var(--scw-creme); border-color: var(--scw-choco); }
 .scw-raiz .scw-btn--contorno-escuro:active { transform: translateY(1px); }
+
+/* Desabilitado é UM estado só, igual em link e em botão (PATCH 02 §3). Nunca um
+   cinza novo, nunca filter: grayscale. Vale também para o botão de envio em
+   voo — as páginas tinham .55/not-allowed e .72/progress, cada uma a sua. */
+.scw-btn:disabled,
+.scw-btn[aria-disabled='true'],
+.scw-raiz a[aria-disabled='true'] {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
 
 .scw-card {
   padding: clamp(20px, 2.2vw, 30px);
@@ -455,7 +477,7 @@ body.route-contato {
   text-transform: lowercase;
   color: rgba(255, 244, 236, .92);
   cursor: pointer;
-  transition: color 240ms var(--scw-ease), background 320ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .scw-nav a:hover { color: var(--scw-nav-hover, var(--scw-amarelo)); }
 .scw-nav a.is-ativo {
@@ -485,8 +507,7 @@ body.route-contato {
   cursor: pointer;
   /* Chapado: os botões do site não têm relevo (decisão de jul/2026). O clique
      responde com deslocamento, não com sombra. */
-  transition: background 240ms var(--scw-ease), color 240ms var(--scw-ease),
-              transform 120ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .scw-acesso-topo:hover {
   background: var(--scw-amarelo);
@@ -749,7 +770,7 @@ body.route-contato {
   background: transparent;
   color: var(--scw-creme);
   cursor: pointer;
-  transition: background 200ms var(--scw-ease), border-color 200ms var(--scw-ease), color 200ms var(--scw-ease);
+  transition: var(--scw-transicao);
 }
 .scw-acesso__fechar:hover {
   background: var(--scw-creme);
