@@ -271,11 +271,19 @@ embaixo** — nenhum texto sobre imagem.
   (Participar `/images/combos/douce-di-maria/main.jpg` · Apoiar `/images/momentos/04.jpg`
   · Contato `/images/campanha/15.jpg` · Sweet Awards `/images/edicoes/2026.1/01.webp`).
   Caminho de imagem não se escreve à mão na página.
-- **Sweet Awards passou a usar banda** (30/07/2026, a pedido do Wilke). A regra antiga
-  — "não usa banda, o herói já abre com a vitrine" — valia no desktop, mas no celular a
-  vitrine cai pra depois da dobra e sobrava uma reserva de topo de 216px de roxo
-  chapado. A banda fecha no roxo (`--scw-banda-base: var(--scw-roxo)`) e o
-  `.swa-hero::before` some no mobile (a própria banda escurece onde a logo passa).
+- **Sweet Awards é a única página com banda no DESKTOP também** (06/08/2026, a pedido
+  do Wilke: "a mesma foto nas duas versões"). Chegou mobile-only em 30/07 — lá a
+  reserva de topo de 216px era roxo chapado — e virou as duas telas quando a vitrine
+  dos 4 primeiros lugares saiu do herói e sobrou roxo chapado na tela grande também.
+  Nas outras rotas a banda segue mobile-only: no desktop elas têm cartão ou foto
+  sangrando. Geometria do desktop (44vh / mínimo 340px) fica em `scw-awards.css`; a do
+  celular (36vh / 232px) segue vindo de `scw-2026.css`. A banda fecha no roxo
+  (`--scw-banda-base: var(--scw-roxo)`) e o `.swa-hero::before` **deixou de existir** —
+  a própria banda escurece onde a logo passa, era o mesmo trabalho feito duas vezes.
+- **Ponto focal por breakpoint**: `bgStyle()` resolve **um** valor, e style inline vence
+  media query. Elemento único que aparece nas duas telas com enquadramento diferente
+  manda os dois como custom property (`--foco` / `--foco-mobile`) e deixa o CSS
+  escolher. Hoje só `.swa-hero .scw-hero-banda` faz isso.
 
 **Corte da foto — rampa em S, não `box-shadow`.** O corte da banda (topo e base) vem de
 `.scw-hero-banda::before/::after` mascarados pelo token `--scw-esfuma` /
@@ -504,14 +512,20 @@ Cor da página: **roxo `#4D257E`** com texto creme (redesign 2026 — antes ouro
 `#F8B511`); o ouro/prata/bronze seguem como cores de **medalha** no pódio
 (`#D19100` / `#D9BE95` / `#C99A7E`).
 
-Estrutura (redesign 2026, ajustada em 29/07/2026):
-- **Herói**: título editorial + 3 números (edições premiadas · categorias julgadas ·
-  marcas premiadas — "colocações no pódio" saiu, era redundante com categorias) +
-  vitrine com as fotos dos 4 primeiros lugares (todas 1:1) + índice das 8 categorias.
-  **Não usa banda de foto** — o herói já abre com a vitrine. **Fundo roxo `#4D257E`**
-  — é a única hero que não é chocolate (fundo próprio via `--scw-heroi`); um degradê
-  chocolate a 42% desce 340px do topo para a logo respirar. Como o fundo virou a cor
-  da página, o selo inverte para creme com tinta roxa.
+Estrutura (redesign 2026, ajustada em 29/07/2026 e 06/08/2026):
+- **Herói**: banda de foto + título editorial + 3 números (edições premiadas ·
+  categorias julgadas · marcas premiadas — "colocações no pódio" saiu, era redundante
+  com categorias) + índice das 8 categorias. **Fundo roxo `#4D257E`** — é a única hero
+  que não é chocolate (fundo próprio via `--scw-heroi`); como o fundo virou a cor da
+  página, o selo inverte para creme com tinta roxa.
+  **A vitrine com as fotos dos 4 primeiros lugares saiu em 06/08/2026** (rejeição do
+  Wilke: "retire"). Ela mostrava Melhor Combo · Doce · Salgado · Bebida em cards 1:1 —
+  as **mesmas quatro fotos** que abrem a seção 02 logo abaixo, onde vêm com pódio
+  completo, medalha e 2º/3º lugar. Era o assunto da página contado duas vezes, a
+  primeira pior. Não reintroduzir. Sem ela o desktop ficava com 216–268px de roxo
+  chapado no topo: **por isso a banda de foto passou a valer também no desktop** (§4.2).
+  O degradê `.swa-hero::before` que descia 340px do topo saiu junto — a banda já
+  escurece onde a logo transborda.
 - **Vencedores Lovers 2026**: 8 categorias × 3 colocações, cada card com a **foto da
   peça premiada** (Melhor Doce mostra o doce, Melhor Salgado o salgado, Melhor Bebida a
   bebida, as demais o combo). Medalha dentro da legenda do card (ao lado do rótulo de

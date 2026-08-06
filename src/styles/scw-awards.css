@@ -13,38 +13,47 @@
    ========================================================================= */
 
 /* ----------------------------------------------------------------------------
-   01 Abertura (herói) — sem banda de foto: abre com a vitrine dos vencedores.
+   01 Abertura (herói) — banda de foto no topo, título, lead e três números.
    -------------------------------------------------------------------------- */
 
 .swa-hero {
   position: relative;
   overflow: hidden;
-  padding: clamp(216px, 19vw, 268px) var(--scw-trilho) 0;
+  /* Sem reserva de topo: quem ocupa a faixa por onde passa o cabeçalho fixo é
+     a própria banda de foto, nas duas telas. */
+  padding: 0 var(--scw-trilho);
   background: var(--scw-roxo);
   color: var(--scw-creme);
 }
-/* Antes o herói era chocolate com véu roxo subindo da base. Agora o fundo é a
-   própria cor da página; o degradê inverteu de lado e virou profundidade no
-   TOPO, onde passa o cabeçalho fixo e a logo transborda — sem ele a marca
-   encostaria num roxo chapado. Creme sobre #4D257E dá 9,95:1. */
-.swa-hero::before {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: 340px;
-  background: linear-gradient(to bottom, rgba(61, 19, 8, .42), rgba(61, 19, 8, 0));
-  pointer-events: none;
-}
 .swa-hero > * { position: relative; z-index: 1; }
 
-/* No celular a reserva de topo (216px) era roxo chapado e a vitrine só
-   aparecia depois da dobra. A banda de foto das outras rotas ocupa essa
-   faixa: some o padding de topo, o degradê do ::before vira redundante (a
-   própria banda escurece onde a logo passa) e o corte fecha no roxo. */
-@media (max-width: 1000px) {
-  .swa-hero { padding-top: 0; }
-  .swa-hero::before { display: none; }
-  .swa-hero .scw-hero-banda { --scw-banda-base: var(--scw-roxo); }
+/* A banda começou mobile-only (30/07/2026): lá a reserva de 216px era roxo
+   chapado. Em 06/08/2026 o Wilke pediu a MESMA foto no desktop — o herói
+   perdeu a vitrine dos quatro primeiros lugares e sem imagem sobrava roxo
+   chapado também na tela grande. O corte fecha no roxo nas duas.
+   O degradê de topo que existia aqui (.swa-hero::before) saiu junto: a
+   própria banda escurece onde a logo transborda, era o mesmo trabalho feito
+   duas vezes. */
+.swa-hero .scw-hero-banda {
+  --scw-banda-base: var(--scw-roxo);
+  background-position: var(--foco-mobile, center 34%);
+}
+
+/* ≤1000px a geometria vem de .scw-hero-banda em scw-2026.css (36vh/232px,
+   calibrada a pedido do Wilke). Acima disso, altura própria: a banda substitui
+   uma reserva que já valia 216–268px, então precisa de mais foto que isso. */
+@media (min-width: 1001px) {
+  .swa-hero .scw-hero-banda {
+    display: block;
+    position: relative;
+    height: 44vh;
+    min-height: 340px;
+    margin: 0 calc(-1 * var(--scw-trilho)) clamp(24px, 2.6vw, 40px);
+    background-color: var(--scw-marrom);
+    background-size: cover;
+    background-position: var(--foco, center 44%);
+    background-repeat: no-repeat;
+  }
 }
 
 /* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
@@ -52,14 +61,8 @@
    mesma cor, mesmo contraste (9,95:1), agora legível. */
 .swa-hero .scw-pill--pagina { background: var(--scw-creme); color: var(--scw-roxo); }
 
-.swa-hero__grade {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: clamp(28px, 3.6vw, 64px);
-  align-items: end;
-}
 /* A entrada do herói (bloco inteiro subindo) foi para src/styles/scw-motion.css,
-   onde vira sequência: selo → título → lead → números → vitrine, card a card. */
+   onde vira sequência: banda → selo → título → lead → números. */
 .swa-hero__texto .scw-h1{ margin-top: clamp(16px, 1.8vw, 26px); color: var(--scw-creme); }
 .swa-hero__texto .scw-lead { margin-top: clamp(16px, 1.8vw, 26px); color: rgba(254, 240, 221, .86); }
 
@@ -91,54 +94,6 @@
   font: 900 clamp(26px, 2.4vw, 38px)/1 var(--scw-font-black);
   letter-spacing: -.04em;
   font-variant-numeric: tabular-nums;
-}
-
-/* Vitrine: fotos 1:1 dos quatro primeiros lugares. */
-.swa-vitrine {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(10px, 1.2vw, 16px);
-  align-items: stretch;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.swa-vitrine li {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--scw-r-card);
-  background: var(--scw-marrom);
-  box-shadow: var(--scw-sombra-foto);
-}
-/* object-position aqui é só a rede de segurança: o ponto focal real de cada foto
-   chega por style inline, vindo de `position` do sistema central de imagens. */
-.swa-vitrine img,
-.swa-vitrine .swa-reserva {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  object-position: center 42%;
-}
-.swa-vitrine figcaption {
-  position: absolute;
-  inset: auto 0 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 34px 12px 12px;
-  background: linear-gradient(to top, rgba(61, 19, 8, .92), rgba(61, 19, 8, 0));
-}
-.swa-vitrine__cat {
-  font: 800 8.5px/1.1 var(--scw-font);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--scw-amarelo);
-}
-.swa-vitrine__marca {
-  font: 900 12.5px/1.1 var(--scw-font-black);
-  letter-spacing: -.02em;
-  color: var(--scw-creme);
 }
 
 /* Índice das oito categorias. */

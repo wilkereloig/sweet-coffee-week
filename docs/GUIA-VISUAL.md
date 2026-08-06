@@ -311,11 +311,16 @@ informação embaixo — nenhum texto sobre imagem.**
   (`.scw-hero-banda`, 36vh / mínimo 232px, margens negativas pelo mesmo trilho),
   passagem para a cor de fechamento na base. O cartão de foto do desktop
   (`.scw-hero-cartao`) é ocultado para não duplicar imagem.
-  **Sweet Awards passou a usar banda no mobile** (30/07/2026, pedido do Wilke)
-  — a regra antiga "Awards não usa banda" valia no desktop (o herói já abre com
-  a vitrine), mas no celular a vitrine cai depois da dobra e sobrava uma
-  reserva de topo de 216px de roxo chapado; a banda fecha em roxo
+  **Sweet Awards usa banda nas DUAS telas** — é a única. Chegou mobile-only em
+  30/07/2026 (a reserva de topo de 216px era roxo chapado) e virou desktop
+  também em 06/08/2026, quando a vitrine dos 4 primeiros lugares saiu do herói
+  e o mesmo roxo chapado apareceu na tela grande. Pedido do Wilke: "a mesma
+  foto nas duas versões". Desktop 44vh / mínimo 340px (`scw-awards.css`),
+  celular 36vh / 232px (`scw-2026.css`); fecha em roxo nas duas
   (`--scw-banda-base: var(--scw-roxo)`).
+  **Ponto focal por breakpoint:** `bgStyle()` resolve um valor só e style
+  inline vence media query — quem aparece nas duas telas com enquadramento
+  diferente manda `--foco` e `--foco-mobile` e deixa o CSS escolher.
 
 **Corte da foto — rampa em S, não `box-shadow`.** `.scw-hero-banda::before`
 (topo) e `::after` (base) são máscaras (`mask-image`/`-webkit-mask-image`)
@@ -429,7 +434,7 @@ Acervo em `public/images/`:
   a peça premiada (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor
   Bebida → a bebida, demais → o combo); página histórica não usa só imagem da
   edição atual; hero usa imagem do assunto da página.
-- Proporções em uso: **1:1** (vitrine de vencedores, galerias), **4:5** (card de
+- Proporções em uso: **1:1** (pódio de vencedores, galerias), **4:5** (card de
   1º lugar no desktop, vira 1:1 até 820px), **4:3** (hero de Participar/Apoiar).
 
 ### 9.3 Inventário de identidade — arquivos de marca
@@ -674,7 +679,7 @@ próprio motor adiciona. Script que não carrega, navegador sem
 ### Movimentos em produção
 
 - **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140
-  a 760ms. Awards monta a vitrine card a card.
+  a 760ms. Em Awards a banda surge e o texto sobe atrás dela.
 - **Respiração da imagem** — laço `alternate` na propriedade `scale` (nunca em
   `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo
   caminho e não existe salto de reinício. Aplicado nas fotos dos heróis e, só no
@@ -713,7 +718,7 @@ nunca no domínio oficial).
 | --- | --- | --- | --- | --- | --- |
 | **Home / O festival** | `/` | Amarelo `#FDBB1A` | Foto ao fundo à direita, texto à esquerda `min(60%,860px)` | 7: Abertura · O que é · Rotas · Ciclo · Números · Prova · Realização | Institucional (§07 = KV F2) |
 | **Edições** | `/edicoes` | Laranja `#FF4810` | Cena de 100vh, sem header do site | 16 cenas (uma por edição) | Institucional + marca histórica por edição |
-| **Sweet Awards** | `/sweet-awards`, `/historico-sweet-awards` | Roxo `#4D257E` | Vitrine dos 4 primeiros lugares (sem banda) | Herói · Vencedores Lovers 2026.1 · Como é decidido · Hall dos mais premiados · Histórico 2019–2025 · Antes de 2019 | Institucional |
+| **Sweet Awards** | `/sweet-awards`, `/historico-sweet-awards` | Roxo `#4D257E` | Banda de foto (única em desktop **e** celular) | Herói · Vencedores Lovers 2026.1 · Como é decidido · Hall dos mais premiados · Histórico 2019–2025 · Antes de 2019 | Institucional |
 | **Participar** | `/participar` | Cyan `#01AFCC` | Ancorado embaixo, sem cartão (rótulo + H1 + lead + ações) | 8: Abertura · Depoimentos · Números · Circulação · Quem pode · Imprensa · Jornada · Pré-cadastro | Institucional |
 | **Apoiar** | `/apoiar` | Marrom `#6A2C15` (era cyan) | Ancorado embaixo, sem cartão; os números de mídia abrem a seção 02 | 6: Abertura · Alcance · Por que apoiar · Onde aparece · Quem vive · Proposta | Institucional |
 | **Contato** | `/contato` | Bege `#F8E4C1` (era marrom) | Compacta (~368px) | 4: Abertura · Dúvidas (93 perguntas / 10 assuntos) · Caminhos · Mensagem | Institucional |

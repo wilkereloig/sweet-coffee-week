@@ -166,8 +166,9 @@
 .ctt-abertura .ctt-abertura__apoio  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 470ms both; }
 
 /* --- Sweet Awards --------------------------------------------------------
-   A vitrine dos vencedores é o assunto da página: entra logo depois do título,
-   card a card, como um pódio sendo montado (§18). */
+   A banda de foto surge, o texto sobe atrás. A escada da vitrine dos
+   vencedores saiu com ela em 06/08/2026 — o pódio agora se monta na seção 02. */
+.swa-hero .scw-hero-banda              { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
 .swa-hero .swa-hero__texto > .scw-pill { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 120ms both; }
 .swa-hero .swa-hero__texto > .scw-h1   { animation: moSobe var(--mo-longo) var(--mo-mola) 220ms both; }
 .swa-hero .swa-hero__texto > .scw-lead { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 400ms both; }
@@ -176,11 +177,6 @@
 .swa-hero .swa-numeros > *:nth-child(2) { animation-delay: 590ms; }
 .swa-hero .swa-numeros > *:nth-child(3) { animation-delay: 660ms; }
 .swa-hero .swa-numeros > *:nth-child(4) { animation-delay: 730ms; }
-.swa-hero .swa-vitrine > *              { animation: moSobe var(--mo-longo) var(--mo-mola) both; }
-.swa-hero .swa-vitrine > *:nth-child(1) { animation-delay: 340ms; }
-.swa-hero .swa-vitrine > *:nth-child(2) { animation-delay: 430ms; }
-.swa-hero .swa-vitrine > *:nth-child(3) { animation-delay: 520ms; }
-.swa-hero .swa-vitrine > *:nth-child(4) { animation-delay: 610ms; }
 .swa-hero .swa-indice                   { animation: moSurge var(--mo-longo) var(--mo-ease) 820ms both; }
 
 /* ============================================================================

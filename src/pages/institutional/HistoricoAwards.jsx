@@ -37,7 +37,7 @@
 import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
-import { bgStyle, heroPhoto } from '../../data/imageLibrary'
+import { heroPhoto } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
 import { awardPhoto, RESERVA } from '../../data/imageLibrary'
@@ -347,78 +347,57 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
    Página
    ------------------------------------------------------------------------ */
 
-// Vitrine da abertura: primeiros lugares das quatro categorias de produto.
-const CATEGORIAS_VITRINE = ['Melhor Combo', 'Melhor Doce', 'Melhor Salgado', 'Melhor Bebida']
-
 export function HistoricoAwardsPage() {
   const [aberto, setAberto] = React.useState('2025')
   const cats = LOVERS ? LOVERS.cats : []
-
-  const vitrine = cats
-    .map((c, ci) => ({ c, ci }))
-    .filter(({ c }) => CATEGORIAS_VITRINE.includes(c.nome))
-    .map(({ c, ci }) => ({
-      categoria: c.nome,
-      marca: c.pod[0] ? c.pod[0].nomes.join(' e ') : '',
-      foto: FOTOS.get(`${ci}:1`),
-    }))
 
   const maiorHall = HALL[0] ? HALL[0].total : 1
   const largura = (n) => `${(n / maiorHall) * 100}%`
 
   return (
     <>
-      {/* 01 — ABERTURA. No desktop o herói abre direto na vitrine dos
-          vencedores. No celular a vitrine cai pro fim da dobra e sobrava uma
-          reserva de topo de 216px de roxo chapado — lá entra a banda de foto
-          das outras rotas (pedido do Wilke, 30/07/2026). A foto já estava
-          curada no sistema central, só não era renderizada. */}
+      {/* 01 — ABERTURA. Título, lead e três números, e nada mais: a vitrine dos
+          quatro primeiros lugares saiu em 06/08/2026 (pedido do Wilke) — as
+          mesmas fotos abrem a seção 02, logo abaixo. A banda de foto é a
+          imagem do herói no celular, onde a reserva de topo de 216px era roxo
+          chapado (pedido do Wilke, 30/07/2026). */}
       <section className="swa-hero" aria-labelledby="swa-titulo">
         {FOTO_BANDA && (
           <div
             className="scw-hero-banda"
             role="img"
             aria-label={FOTO_BANDA.alt}
-            style={bgStyle(FOTO_BANDA, { mobile: true })}
+            /* A banda existe nas duas telas, e cada uma tem seu ponto focal.
+               `bgStyle` resolve um só, e style inline vence media query — daí
+               os dois virem como custom property e o CSS escolher. */
+            style={{
+              backgroundImage: `url("${FOTO_BANDA.src}")`,
+              '--foco': FOTO_BANDA.position || 'center',
+              '--foco-mobile': FOTO_BANDA.mobilePosition || FOTO_BANDA.position || 'center',
+            }}
           />
         )}
-        <div className="swa-hero__grade">
-          <div className="swa-hero__texto">
-            <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
-            <h1 className="scw-h1" id="swa-titulo">O prêmio que o público entrega.</h1>
-            <p className="scw-lead">
-              Quem percorre a rota prova, avalia e elege. De uma categoria única em 2019 a oito pódios
-              na edição dos dez anos, o Sweet Awards virou o encerramento de cada temporada do festival.
-            </p>
-            <dl className="swa-numeros">
-              <div>
-                <dt>Edições premiadas</dt>
-                <dd>{ESTATISTICAS.edicoes}</dd>
-              </div>
-              <div>
-                <dt>Categorias julgadas</dt>
-                <dd>{ESTATISTICAS.categorias}</dd>
-              </div>
-              <div>
-                <dt>Marcas premiadas</dt>
-                <dd>{ESTATISTICAS.marcas}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <ul className="swa-vitrine">
-            {vitrine.map((v) => (
-              <li key={v.categoria}>
-                <figure style={{ margin: 0 }}>
-                  <FotoAcervo foto={v.foto} />
-                  <figcaption>
-                    <span className="swa-vitrine__cat">{v.categoria}</span>
-                    <b className="swa-vitrine__marca">{v.marca}</b>
-                  </figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
+        <div className="swa-hero__texto">
+          <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
+          <h1 className="scw-h1" id="swa-titulo">O prêmio que o público entrega.</h1>
+          <p className="scw-lead">
+            Quem percorre a rota prova, avalia e elege. De uma categoria única em 2019 a oito pódios
+            na edição dos dez anos, o Sweet Awards virou o encerramento de cada temporada do festival.
+          </p>
+          <dl className="swa-numeros">
+            <div>
+              <dt>Edições premiadas</dt>
+              <dd>{ESTATISTICAS.edicoes}</dd>
+            </div>
+            <div>
+              <dt>Categorias julgadas</dt>
+              <dd>{ESTATISTICAS.categorias}</dd>
+            </div>
+            <div>
+              <dt>Marcas premiadas</dt>
+              <dd>{ESTATISTICAS.marcas}</dd>
+            </div>
+          </dl>
         </div>
 
         <div className="swa-indice">
