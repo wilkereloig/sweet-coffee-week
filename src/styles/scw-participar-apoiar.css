@@ -114,6 +114,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   align-items: end;
   margin: 0 0 clamp(34px, 3.8vw, 56px);
 }
+/* Cabeça sem lead (PATCH 03 §1): bloco único, sem a grade de duas colunas — a
+   coluna vazia à direita não vira espaço reservado. Par do .ctt-cabeca--simples
+   do Contato; a margem continua vindo da base. */
+.pa-cabeca--simples { display: block; }
 .pa-cabeca h2 { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 24ch; }
 .pa-cabeca__apoio {
   margin: 0;
@@ -614,33 +618,53 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    Apoiar 05 — quem vive o festival
    ========================================================================= */
 
+/* Grade editorial: filete horizontal separando os traços, sem bullet — bolinha
+   de 7px é indicador de item de lista, não de dado. O filete de topo fecha a
+   primeira fileira; cada item fecha a sua na base. */
 .pa-quem {
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: clamp(28px, 4vw, 64px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 0;
+  margin: 0 0 clamp(44px, 4.6vw, 72px);
+  padding: 0;
+  border-top: 1px solid rgba(254, 240, 221, .2);
 }
-.pa-quem__lista { list-style: none; display: grid; gap: 12px; margin: 0; padding: 0; }
-.pa-quem__lista li {
+.pa-quem__item {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(254, 240, 221, .16);
-  font: 500 clamp(15px, 1.3vw, 17px)/1.4 var(--scw-font);
+  flex-direction: column;
+  gap: clamp(14px, 1.4vw, 20px);
+  /* padding-right no ITEM, não gap na grade: com gap a coluna da direita
+     ganharia respiro que a esquerda não tem. */
+  padding: clamp(22px, 2.4vw, 32px) clamp(20px, 2vw, 30px) clamp(26px, 2.8vw, 38px) 0;
+  border-bottom: 1px solid rgba(254, 240, 221, .2);
+}
+.pa-quem__indice {
+  font: 900 clamp(13px, 1.1vw, 14px)/1 var(--scw-font);
+  letter-spacing: .1em;
+  color: var(--scw-amarelo);
+}
+/* 500 15px → 700 17-21px: o traço é o argumento da seção; ler como item de
+   lista era o defeito. */
+.pa-quem__texto {
+  max-width: 24ch;
+  font: 700 clamp(17px, 1.6vw, 21px)/1.32 var(--scw-font);
   color: var(--scw-creme);
+  text-wrap: pretty;
 }
-.pa-quem__lista li::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--scw-amarelo);
+
+/* Imprensa: rótulo à esquerda, chips ocupando o resto da linha. Quem espaça o
+   rótulo agora é o gap do bloco, por isso ele perdeu o margin-bottom. */
+.pa-veiculos__bloco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(18px, 2.4vw, 44px);
+  align-items: start;
 }
+.pa-veiculos__bloco .pa-veiculos { grid-column: span 2; }
 .pa-veiculos__rotulo {
   display: block;
-  margin-bottom: 16px;
-  font: 800 11.5px/1 var(--scw-font);
+  font: 800 11.5px/1.4 var(--scw-font);
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--scw-bege);

@@ -409,28 +409,31 @@ export function ApoiarPage() {
 
       {/* ═══ 05 Quem vive o festival ═══ */}
       <section className="scw-secao scw-secao--choco">
-        <div className="pa-cabeca">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-vive" tamanho={20} />Quem vive o festival</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '20ch' }}>
-              Um público que <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>sai de casa para provar</em>.
-            </h2>
-          </div>
-          <p className="pa-cabeca__apoio">
-            Perfil qualitativo da comunidade que acompanha cada edição — e da imprensa que cobre
-            o festival.
-          </p>
+        {/* Cabeça sem lead (PATCH 03 §1): "perfil qualitativo da comunidade"
+            descrevia a natureza do conteúdo, não o conteúdo. */}
+        <div className="pa-cabeca pa-cabeca--simples">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-vive" tamanho={20} />Quem vive o festival</span>
+          <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '20ch' }}>
+            Um público que <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>sai de casa para provar</em>.
+          </h2>
         </div>
-        <div className="pa-quem">
-          <ul className="pa-quem__lista">
-            {PUBLICO.map((p) => <li key={p}>{p}</li>)}
+
+        {/* O índice vem do próprio array: escrito à mão sai de sincronia na
+            primeira vez que PUBLICO mudar. */}
+        <ul className="pa-quem">
+          {PUBLICO.map((p, i) => (
+            <li key={p} className="pa-quem__item">
+              <span className="pa-quem__indice">{String(i + 1).padStart(2, '0')}</span>
+              <span className="pa-quem__texto">{p}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="pa-veiculos__bloco">
+          <span className="pa-veiculos__rotulo">Já noticiaram o festival</span>
+          <ul className="pa-veiculos">
+            {VEICULOS.map((v) => <li key={v}>{v}</li>)}
           </ul>
-          <div>
-            <span className="pa-veiculos__rotulo">Já noticiaram o festival</span>
-            <ul className="pa-veiculos">
-              {VEICULOS.map((v) => <li key={v}>{v}</li>)}
-            </ul>
-          </div>
         </div>
       </section>
 
