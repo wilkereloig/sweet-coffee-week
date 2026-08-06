@@ -377,7 +377,7 @@ export function ApoiarPage() {
       <section className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/onde-aparece" tamanho={20} />Onde a marca aparece</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="simbolos/descobrir" tamanho={20} />Onde a marca aparece</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Quatro pontos de <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>contato com o público</em>.
             </h2>

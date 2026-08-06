@@ -1,4 +1,4 @@
-import { SCW_ICONS, SCW_ICON_SPEC } from './scw-icons'
+import { SCW_ICONS, SCW_ICON_SPEC } from './scw-icons-v2'
 
 /**
  * Ícone do festival. Cinco tamanhos e nada entre eles:

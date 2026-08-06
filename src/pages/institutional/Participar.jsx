@@ -436,7 +436,7 @@ export function ParticiparPage() {
       <section id="numeros" className="scw-secao scw-secao--bege">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="interface/numeros" tamanho={20} />A potência do festival</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />A potência do festival</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)' }}>
               O tamanho da <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>vitrine</em> que sua marca ocupa.
             </h2>
@@ -559,7 +559,7 @@ export function ParticiparPage() {
       <section className="scw-secao scw-secao--choco">
         <div className="pa-cabeca">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/jornada" tamanho={20} />Depois do seu interesse</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Depois do seu interesse</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '22ch' }}>
               Um <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>percurso claro</em>, do pré-cadastro à edição.
             </h2>

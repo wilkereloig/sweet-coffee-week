@@ -552,6 +552,41 @@ amigos, famílias, pessoas sozinhas, grupos, gente fotografando combo, seguindo
 rota, avaliando, usando mapa/sticker/botton. Elementos regionais entram como
 sticker, selo, padrão, símbolo pequeno ou detalhe de cenário.
 
+### 10.4 Iconografia (sistema v2, ago/2026)
+
+`<ScwIcon nome="familia/nome" tamanho={20} />` — fonte única em
+`src/components/scw-icons/scw-icons-v2.js`, **136 ícones em 16 famílias**.
+Gerado no Claude Design: **não editar à mão**, alterar lá e reexportar.
+
+| Regra | Valor |
+| --- | --- |
+| Grade / área viva | 32 · ink só entre 3 e 29 |
+| Traço | **3.2** (detalhe interno 2.4 · trilha pontilhada 4.0) |
+| Cor | `currentColor` sempre — nunca `fill`/`stroke` fixo, nunca passar cor por prop |
+| Tamanhos | 16 · 20 · 24 · 32 · 48, e nada entre eles |
+| Objetos por ícone | 1 |
+| Vão interno livre | **≥ 2× o traço** (6,4). Não cabe? a forma vira preenchida ou sai |
+| Separação entre formas | ≥ traço + 1,5 (4,7) |
+
+Dois níveis, com piso de tamanho diferente:
+- **funcional** (`ui`, `aviso`, `acesso`) — 16 a 24px, dentro de botão, campo, aba,
+  menu e feedback. No máximo 3 elementos: legibilidade acima de personalidade.
+- **expressivo** (as outras 13 famílias) — **piso de 24px**. Abaixo disso o desenho
+  perde o que o torna autoral.
+
+Onde o ícone entra hoje: rótulo de seção (`.scw-rotulo--com-icone`, `tamanho={20}`),
+chip e legenda (16), disco de dado/etapa. Ícone **acompanha** rótulo, nunca o
+substitui.
+
+Movimento: 7 gestos prontos em `SCW_ICON_MOTION`, cada um com gatilho — avanço
+(hover), toque (active), varredura (foco de campo), vapor (laço, só ≥32px), carimbo
+(ação concluída), rota (`stroke-dashoffset`, exceção declarada do sistema) e pulso.
+Nenhum roda em laço solto. **Ainda não aplicados no site** — a prancha existe, a
+decisão de animar é separada.
+
+Chave inexistente não quebra a página: `ScwIcon` devolve `null` e avisa no console
+em DEV. Migração v1 → v2 e as 7 trocas de chave: `CLAUDE.md` § "Iconografia v2".
+
 ---
 
 ## 11. Responsividade
@@ -756,6 +791,7 @@ Linha do tempo só como marcos/primeiras vezes, sem números de tamanho por edi�
 | `.photo-rotator`, `.brand-cycle`, `.hm-path`, `.hm-about__*`, `.motion-reveal-left/right`, `.motion-button-hover`, `.motion-press`, `.motion-float-soft` | **Removidos** de `motion-system.css` (jul/2026) — órfãos de componentes já apagados |
 | `motion-system.css` no institucional | `src/styles/scw-motion.css` + `src/hooks/useSiteMotion.js` |
 | `data/editions.js`, `editionHighlights.js`, `editionInsights.js`, `decadeCredits.js`, `homeGalleries.js`, `supportMetrics.js` | **Arquivados** em `src/data/_arquivo/` |
+| `components/scw-icons/scw-icons.js` — ícones v1, traço 2.1, família `interface/` | **Removido** — `scw-icons-v2.js`, traço 3.2, família `ui/` (§10.4) |
 
 `src/styles.css` e `src/styles/swc-redesign.css` são o sistema anterior. Seguem
 carregados porque `/pesquisa` e os painéis dependem deles. **Não construir página
@@ -787,6 +823,8 @@ src/styles/lovers-system.css ← KV Lovers (só painel, lazy)
 src/styles/pesquisa.css      ← legado
 
 src/components/              ← casca (nav, footer, tab bar, folha, diálogo)
+src/components/scw-icons/    ← ScwIcon.jsx + scw-icons-v2.js (§10.4)
+                               ↑ gerado no Claude Design, não editar à mão
 src/pages/institutional/     ← páginas do site
 src/pages/lovers/            ← painel interno
 src/data/                    ← dados vivos

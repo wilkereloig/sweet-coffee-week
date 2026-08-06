@@ -802,9 +802,10 @@ estado anterior do código; conferir antes de "corrigir" o que não está quebra
 
 **Não aplicado, e por quê:**
 - **`PATCH-icones-animados.md`** — o próprio patch (§6) diz "nesta rodada o Design
-  entrega só a prancha, a aplicação no site é decisão separada". Além disso depende
-  de `scw-icons-v2.js`, que o repo não tem (está em `scw-icons.js`, v1). Entra quando
-  houver decisão de migrar o conjunto de ícones.
+  entrega só a prancha, a aplicação no site é decisão separada". A dependência que
+  faltava (`scw-icons-v2.js`) **chegou em 06/08/2026** e já está no repo (ver seção
+  abaixo), então hoje só falta a decisão de animar. Os gestos vêm prontos em
+  `SCW_ICON_MOTION` — nenhum deles roda em laço solto.
 - **Varredura px cravado → token de gap** nos CSS de página. Os tokens existem, mas
   trocar cada `margin`/`gap` fixo é refatoração ampla com risco visual — vale fazer
   por página, conferindo, não em massa.
@@ -855,6 +856,44 @@ não foca o `<input>` filho.
   cabeças; 3 candidatas aguardam decisão.
 
 ⚠️ `tests/icones.mjs`, que o README do handoff manda rodar, **não existe** no repo.
+
+### Iconografia v2 — contorno gordo (06/08/2026)
+
+Origem: zip `Iconografia.zip` (export do Claude Design). O conjunto v1 —
+`src/components/scw-icons/scw-icons.js`, 116 ícones em 11 famílias, traço 2.1 — **foi
+substituído** por `scw-icons-v2.js`: **136 ícones em 16 famílias, traço 3.2**
+("Direção 1a: contorno gordo puro", aprovada em 04/08/2026). Único importador é
+`ScwIcon.jsx`; nenhum CSS crava `stroke-width` de ícone institucional.
+
+O arquivo **não se edita à mão** — muda no Design e reexporta. Ele traz a própria
+documentação, e é onde consultar antes de inventar regra de ícone:
+`SCW_ICON_RULES` (grade 32, área viva 3–29, **vão interno livre ≥ 2× o traço**),
+`SCW_ICON_TIERS` (funcional `ui`/`aviso`/`acesso` a partir de 16px · expressivo com
+piso de 24px), `SCW_ICON_MOTION` (7 gestos, cada um com gatilho — nenhum em laço
+solto) e `SCW_ICON_AUDIT` (o que foi removido/fundido do v1, com motivo).
+
+Famílias novas: `ui` (era `interface`), `aviso`, `acesso`, `simbolos`, `mapa`,
+`comercial`. **Sete chaves usadas no site sumiram** e viraram estas — as três
+primeiras seguem o `SCW_ICON_AUDIT` do próprio export, as outras quatro são escolha
+de conteúdo minha e podem ser trocadas:
+
+| Antigo | Novo | Onde | Por quê |
+| --- | --- | --- | --- |
+| `topicos/onde-aparece` | `simbolos/descobrir` | Apoiar 04 | `fundidos` — "o olho virou o símbolo de descoberta" |
+| `marca/rota` | `mapa/trajeto` | Home 03 | `fundidos` — três variações do mesmo pontilhado |
+| `topicos/jornada` | `mapa/trajeto` | Participar 07 | idem |
+| `topicos/o-que-e` | `combos/doce-cafe` | Home 02 | `removidos` sem substituto ("três círculos genéricos"); a seção mostra a anatomia do combo |
+| `interface/numeros` | `topicos/alcance` | Home 05 · Participar 03 | era literalmente um gráfico de barras — o mesmo desenho que derrubou `marca/cidade`. O v2 não tem ícone de número, e os dois blocos falam de alcance |
+| `topicos/linha-do-tempo` | `premios/voto` | Sweet Awards | o `AUDIT` mandava `mapa/trajeto`, mas a seção é *quem dá a nota*, não um percurso |
+| `topicos/historia` | `simbolos/memoria` | Sweet Awards | rótulo do próprio v2 é "memória" |
+
+Um ícone que não existe **não quebra a página**: `ScwIcon` devolve `null` e avisa no
+console em DEV. Por isso a checagem é manual — ao mexer em ícone, rodar a varredura
+de chaves de `nome=` contra `SCW_ICONS` antes de commitar.
+
+O export também traz `svg/` (57 arquivos soltos) e `scw-icons-v2-sprite.svg`. **Não
+entraram no repo**: o módulo JS é a fonte única do site; os soltos servem a material
+impresso, e duplicá-los cria duas verdades na primeira reexportação.
 
 ---
 
@@ -917,6 +956,8 @@ src/
                 # MobileTabBar.jsx, MobileMenu.jsx (folha "mais"), AccessDialog.jsx
                 # (duas faixas: topo chocolate + corpo creme, botão "Acesso" com
                 # rótulo), BotaoTopo.jsx (flutuante, aparece após 1,5 tela), icons.jsx
+  components/scw-icons/  # ScwIcon.jsx + scw-icons-v2.js (136 ícones, 16 famílias,
+                # traço 3.2 — gerado no Design, NÃO editar à mão)
   pages/institutional/ | lovers/
   data/         # editions.js, sweetCoffeeHistory.js, loversAwardsResults.js,
                 # participants.js, sweetAwards.js, participantAssets.js, editionAssets.js,

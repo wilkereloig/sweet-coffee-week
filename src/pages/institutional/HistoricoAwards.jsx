@@ -468,7 +468,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--bege">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/linha-do-tempo" tamanho={20} />Como é decidido</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="premios/voto" tamanho={20} />Como é decidido</span>
             <h2 className="scw-h2">Quem dá a nota</h2>
           </div>
           <p className="swa-apoio">
@@ -564,7 +564,7 @@ export function HistoricoAwardsPage() {
       <section className="scw-secao scw-secao--creme">
         <div className="swa-cab">
           <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/historia" tamanho={20} />Histórico completo · 2019 a 2025</span>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="simbolos/memoria" tamanho={20} />Histórico completo · 2019 a 2025</span>
             <h2 className="scw-h2">Todos os pódios, edição por edição</h2>
           </div>
           <p className="swa-apoio">
