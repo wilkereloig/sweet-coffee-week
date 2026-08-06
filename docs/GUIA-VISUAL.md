@@ -212,17 +212,28 @@ permitidos.
 **Uma só regra de margem horizontal, para header, seções, rodapé e Edições:**
 
 ```css
---scw-trilho: max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
+--scw-trilho: max(clamp(24px, 5vw, 96px), calc((100% - 2200px) / 2));
 ```
 
-Conteúdo com **largura máxima de 1360px, centralizado**, gutter mínimo de
-24–72px. Aplicar como `padding-inline: var(--scw-trilho)` — a classe `.scw-secao`
-já faz. Como o header usa o mesmo trilho, logo, menu, títulos, cards e rodapé
-alinham na mesma coluna.
+Conteúdo com **largura máxima de 2200px, centralizado**, gutter de 24–96px.
+Aplicar como `padding-inline: var(--scw-trilho)` — a classe `.scw-secao` já faz.
+Como o header usa o mesmo trilho, logo, menu, títulos, cards e rodapé alinham na
+mesma coluna.
 
 **Não** inventar largura ou gutter próprios. **Não** usar `max-width` em
 container além disso. Seção que sangra até a borda (banda de foto) usa margem
 negativa **do mesmo trilho** — nunca um valor solto.
+
+**Era 1360 / gutter até 72 até 06/08/2026.** Em tela larga sobrava faixa vazia
+dos dois lados; o Wilke pediu que o site acompanhasse a tela e o valor novo veio
+do "Caderno Institucional". O gutter cresce até 2392px de viewport — só acima
+disso a grade centraliza.
+
+⚠️ **O trilho não é mais o que segura a leitura.** Quem segura é a medida de
+linha por papel (§4.3: `.scw-corpo` 62ch, `.scw-h1` 17ch, `.scw-h2` 22ch,
+`.scw-lead` 46ch). Com 2200 de trilho e sem esses tetos, um parágrafo daria ~200
+caracteres por linha. Alargar o trilho tornou os tetos **obrigatórios**, não
+dispensáveis — `tests/redesign-2026.test.mjs` reprova se saírem.
 
 *(Superados: `--hm-gutter` e o `.wrap` de 1280px — válidos só em `/pesquisa` e
 painéis internos.)*
@@ -777,7 +788,7 @@ Linha do tempo só como marcos/primeiras vezes, sem números de tamanho por edi�
 
 | Aposentado | Substituto |
 | --- | --- |
-| `--hm-gutter`, `.wrap` de 1280px | `--scw-trilho` (1360px) |
+| `--hm-gutter`, `.wrap` de 1280px | `--scw-trilho` (2200px desde 06/08/2026; era 1360) |
 | `--page-accent`, paleta terracotta | `--scw-pagina` + tokens `--scw-*` |
 | `#E52C4B` | Removido, sem substituto |
 | Awards em ouro `#F8B511` | Awards em roxo `#4D257E` |

@@ -121,11 +121,21 @@ test('as 6 rotas definem a cor da página', () => {
   assert.ok(!sistema.includes('--scw-pagina-menu'), '--scw-pagina-menu deveria ter saído do sistema (barra de 5px removida)')
 })
 
-test('trilho único de 1360px é o da casca e o das seções', () => {
+test('trilho único de 2200px é o da casca e o das seções', () => {
   const sistema = ler(SISTEMA)
-  assert.match(sistema, /--scw-trilho:\s*max\(clamp\(24px,\s*5vw,\s*72px\),\s*calc\(\(100% - 1360px\) \/ 2\)\)/)
+  assert.match(sistema, /--scw-trilho:\s*max\(clamp\(24px,\s*5vw,\s*96px\),\s*calc\(\(100% - 2200px\) \/ 2\)\)/)
   assert.match(sistema, /\.scw-secao\s*\{[^}]*padding:[^}]*var\(--scw-trilho\)/s)
   assert.match(sistema, /\.scw-header__linha\s*\{[^}]*var\(--scw-trilho\)/s)
+})
+
+// O trilho de 2200 só é seguro porque a leitura para na medida de linha, não na
+// margem. Se estes tetos saírem, linha de ~200 caracteres em tela larga.
+test('medida de linha segura o texto que o trilho não segura mais', () => {
+  const sistema = ler(SISTEMA)
+  assert.match(sistema, /\.scw-corpo\s*\{[^}]*max-width:\s*62ch/s)
+  assert.match(sistema, /\.scw-h1\s*\{[^}]*max-width:\s*17ch/s)
+  assert.match(sistema, /\.scw-h2\s*\{[^}]*max-width:\s*22ch/s)
+  assert.match(sistema, /\.scw-lead\s*\{[^}]*max-width:\s*46ch/s)
 })
 
 /*

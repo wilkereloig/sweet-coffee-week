@@ -18,7 +18,13 @@
   --scw-laranja:      #FF4810;  /* acento — Edições; superfície preenchida */
 
   /* --- trilho e ritmo ---------------------------------------------------- */
-  --scw-trilho:       max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
+  /* Largura útil 2200, gutter de 24 a 96 ("Caderno Institucional", 06/08/2026).
+     Era 1360 / gutter até 72, e em tela larga sobrava faixa vazia dos dois lados
+     (rejeição do Wilke: "não quero esse espaço vazio nas esquerda e direita").
+     O que segura a leitura NÃO é mais o trilho — é a medida de linha por papel
+     (.scw-corpo 62ch, .scw-h2 22ch, .scw-h1 17ch). Alargar o trilho sem esses
+     tetos daria linha de 200 caracteres. */
+  --scw-trilho:       max(clamp(24px, 5vw, 96px), calc((100% - 2200px) / 2));
   --scw-sec-y:        clamp(58px, 6vw, 100px);
   --scw-sec-y-compacta: clamp(48px, 5vw, 80px);
   /* Vocabulário de respiro INTERNO da seção (PATCH-layout-e-responsivo, ago/2026).
@@ -961,12 +967,12 @@ body.route-contato {
   z-index: 2;
   /* O teto de 860px é da LARGURA DO CONTEÚDO, não da caixa inteira — por isso
      soma o trilho de volta aqui. A esquerda usa var(--scw-trilho) (alinha com
-     logo/menu, cresce sem limite acima de ~1504px pra centralizar a grade de
-     1360px). Sem esse "+ trilho" no teto, a caixa (860px) e o padding-esquerda
-     competiam pelo mesmo orçamento: a área de texto encolhia conforme a tela
-     alargava (chegava a sumir de vez em telas ultralargas). Com ele, a largura
-     do conteúdo trava em ~828px (860 − 32 de respiro direito) pra qualquer
-     viewport, exatamente como o resto do site trava a grade em 1360px. */
+     logo/menu e cresce pra centralizar a grade quando a tela passa de 2392px).
+     Sem esse "+ trilho" no teto, a caixa (860px) e o padding-esquerda competiam
+     pelo mesmo orçamento: a área de texto encolhia conforme a tela alargava
+     (chegava a sumir de vez em telas ultralargas). Com ele, a largura do
+     conteúdo trava em ~828px (860 − 32 de respiro direito) pra qualquer
+     viewport, exatamente como o resto do site trava a grade no trilho. */
   max-width: min(60%, calc(860px + var(--scw-trilho)));
   padding: clamp(232px, 22vw, 290px) clamp(20px, 2vw, 32px) clamp(30px, 3.4vw, 48px) var(--scw-trilho);
 }

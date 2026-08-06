@@ -209,14 +209,25 @@ com respiro no topo, conteúdo ancorado mais pra baixo.
 (redesign 2026). Um só valor, usado por header, seções, rodapé e Edições:
 
 ```css
---scw-trilho: max(clamp(24px, 5vw, 72px), calc((100% - 1360px) / 2));
+--scw-trilho: max(clamp(24px, 5vw, 96px), calc((100% - 2200px) / 2));
 ```
 
-Ou seja: **largura máxima de conteúdo 1360px, centralizada**, com gutter mínimo de
-24–72px. Aplicar como `padding-inline: var(--scw-trilho)` (a classe `.scw-secao` já
-faz). O header usa o mesmo trilho, então logo, menu, títulos, cards e rodapé alinham
-na mesma coluna. Não inventar largura nem gutter próprios; não usar `max-width` em
-container além disso.
+Ou seja: **largura máxima de conteúdo 2200px, centralizada**, com gutter de 24–96px.
+Aplicar como `padding-inline: var(--scw-trilho)` (a classe `.scw-secao` já faz). O
+header usa o mesmo trilho, então logo, menu, títulos, cards e rodapé alinham na mesma
+coluna. Não inventar largura nem gutter próprios; não usar `max-width` em container
+além disso.
+
+**Era 1360px / gutter até 72px até 06/08/2026** — rejeição do Wilke: em tela larga
+sobrava faixa vazia dos dois lados, "o site tem que acompanhar as dimensões da tela".
+Valor novo vem do "Caderno Institucional" (Claude Design). O gutter passa a valer até
+2392px de viewport; acima disso a grade centraliza.
+
+⚠️ **O que segura a leitura não é mais o trilho — é a medida de linha por papel**
+(`.scw-corpo` 62ch, `.scw-h1` 17ch, `.scw-h2` 22ch, `.scw-lead` 46ch, §5). Com trilho
+de 2200 e sem esses tetos, um parágrafo daria ~200 caracteres por linha. Não remover
+teto de medida "porque agora tem espaço" — é o inverso: agora eles são obrigatórios.
+`tests/redesign-2026.test.mjs` reprova se saírem.
 
 Ritmo vertical de seção: `--scw-sec-y: clamp(58px, 6vw, 100px)` (padrão) e
 `--scw-sec-y-compacta: clamp(48px, 5vw, 80px)`.
@@ -571,8 +582,8 @@ ago/2026: a abertura é rótulo + H1 + lead + ações; vitrine, cartão de foto 
 número entram nas seções seguintes). O cartão 4:3 em crossfade e os 3 indicadores
 saíram; os três números já existiam, idênticos, na seção `03 Números`, então nada de
 dado se perdeu. No celular a foto continua, sangrando na `.scw-hero-banda`.
-**Quatro** faixas alternando lado, imagem e texto com **larguras iguais** (408px
-cada em 1360px).
+**Quatro** faixas alternando lado, imagem e texto com **larguras iguais** — a coluna
+acompanha o trilho, o texto para na medida de linha.
 
 A 4ª faixa (`04 · Materiais`, ago/2026) fecha a Circulação com o material que chega
 na loja — display, adesivo, mapa e brinde temático. O `--fundo` da faixa pinta o
@@ -758,7 +769,7 @@ reintroduzir as antigas**:
 | Contato peach `#F2B6A0` | Contato marrom `#6A2C15` (§3) |
 | "Não usar eyebrow/kicker" | Rótulo `.scw-rotulo` abre as seções (§5) |
 | "Contato é página simples, SEM hero" | Contato abre com hero compacta ~368px (§14.1) |
-| Trilho `--hm-gutter` full-width | Trilho único de 1360px `--scw-trilho` (§4) |
+| Trilho `--hm-gutter` full-width | Trilho único `--scw-trilho` — 1360px, depois 2200px em 06/08/2026 (§4) |
 | Breakpoints 1080·960·720·560·420 | 1000·900·820·760·420 (§17) |
 | Edições "Cinema da Década" | Edições tela cheia com cena de 100vh (§10) |
 | Movimento em `motion-system.css` | `scw-motion.css` + `useSiteMotion.js`; o antigo só serve `/em-breve` |
