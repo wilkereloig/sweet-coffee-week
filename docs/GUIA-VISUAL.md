@@ -76,10 +76,10 @@ escrever hex solto em componente — usar o token.
 | `--scw-choco` | `#3D1308` | Tinta principal, seções escuras, fundo de card com filete | `--scw-creme` |
 | `--scw-marrom` | `#6A2C15` | Texto de apoio, rótulos pequenos | `--scw-creme` |
 | `--scw-amarelo` | `#FDBB1A` | Acento — O festival; medalha de 1º lugar | `--scw-choco` |
-| `--scw-cyan` | `#01AFCC` | Acento — Edições e Apoiar; anel de foco global | `--scw-choco` |
+| `--scw-cyan` | `#01AFCC` | Acento — Participar; anel de foco global | `--scw-choco` |
 | `--scw-roxo` | `#4D257E` | Acento — Sweet Awards | `--scw-creme` |
-| `--scw-magenta` | `#F10767` | Acento — Participar | `--scw-creme` |
-| `--scw-laranja` | `#FF4810` | Superfície preenchida (nunca tinta de texto pequeno), filete sobre fundo escuro, medalha de 3º lugar | `--scw-choco` |
+| `--scw-magenta` | `#F10767` | Destaque de título; só texto grande (3,8:1 sobre creme) | `--scw-creme` |
+| `--scw-laranja` | `#FF4810` | Acento — Edições; superfície preenchida (nunca tinta pequena sobre creme, 3,0:1), medalha de 3º lugar | `--scw-choco` |
 
 **Foco:** anel de foco global = `--scw-cyan`. É a única cor de estado
 padronizada; hover/ativo usam a cor da própria página.
@@ -103,10 +103,10 @@ Por isso o acento não precisa ser tom claro. Definido em `body.route-*`:
 | Rota | `--scw-pagina` | `--scw-pagina-tinta` | Contraste |
 | --- | --- | --- | --- |
 | `home` | `#FDBB1A` | `#3D1308` | 9,5:1 |
-| `edicoes` | `#01AFCC` | `#3D1308` | 6,2:1 |
+| `edicoes` | `#FF4810` (era cyan — PATCH 01, ago/2026) | `#3D1308` | 4,78:1 |
 | `historico-awards` | `#4D257E` | `#FEF0DD` | 9,95:1 |
-| `participar` | `#F10767` (pill do menu vira chocolate `#3D1308`) | `#FEF0DD` | 4,86:1 |
-| `apoiar` | `#01AFCC` (era vinho `#B3213B`) | `#3D1308` | 6,2:1 |
+| `participar` | `#01AFCC` (era magenta; a pill do menu volta a ser a cor da página) | `#3D1308` | 6,2:1 |
+| `apoiar` | `#6A2C15` (era cyan, antes vinho `#B3213B`) | `#FEF0DD` | 9,44:1 |
 | `contato` | `#F8E4C1` (era marrom `#6A2C15`; texto/sublinhado sobre creme usa `--scw-pagina-sobre-creme` = `#6A2C15`) | `#3D1308` | 13:1 |
 
 Hover no menu mostra a cor daquela página (amarelo e cyan direto; as demais caem
@@ -145,7 +145,7 @@ emblema e como texto solto (testado e descartado no fechamento 29/07/2026).
 | --- | --- |
 | Paleta terracotta `#E8553A`, Edições `#2BC4E8`, Awards dourado `#F8B511`, Participar `#F2693C`, Apoiar `#1B86C9`, Contato peach `#F2B6A0` | Paleta fechada do §3.1 |
 | `--scw-card` `#FFF7E9`, `--scw-filete` `#EBD6B4` | `rgba()`/`--scw-creme` por papel (§3.1) |
-| `--scw-vinho` `#B3213B` (Apoiar) | Apoiar cyan `#01AFCC` |
+| `--scw-vinho` `#B3213B` (Apoiar) | Apoiar marrom `#6A2C15` (passou por cyan) |
 | `--scw-magenta-esc` `#D0055B` (selo do menu de Participar) | Pill vira chocolate com tinta creme |
 | `--scw-ouro` `#D19100` / `--scw-prata` `#D9BE95` / `--scw-bronze` `#C99A7E` | Medalhas amarelo/bege/laranja (§3.3) |
 | Contato marrom `#6A2C15` como cor de página | Contato bege `#F8E4C1` |
@@ -677,10 +677,10 @@ nunca no domínio oficial).
 | Página | Rota | Cor | Hero | Seções | Identidade |
 | --- | --- | --- | --- | --- | --- |
 | **Home / O festival** | `/` | Amarelo `#FDBB1A` | Foto ao fundo à direita, texto à esquerda `min(60%,860px)` | 7: Abertura · O que é · Rotas · Ciclo · Números · Prova · Realização | Institucional (§07 = KV F2) |
-| **Edições** | `/edicoes` | Cyan `#01AFCC` | Cena de 100vh, sem header do site | 16 cenas (uma por edição) | Institucional + marca histórica por edição |
+| **Edições** | `/edicoes` | Laranja `#FF4810` | Cena de 100vh, sem header do site | 16 cenas (uma por edição) | Institucional + marca histórica por edição |
 | **Sweet Awards** | `/sweet-awards`, `/historico-sweet-awards` | Roxo `#4D257E` | Vitrine dos 4 primeiros lugares (sem banda) | Herói · Vencedores Lovers 2026.1 · Como é decidido · Hall dos mais premiados · Histórico 2019–2025 · Antes de 2019 | Institucional |
-| **Participar** | `/participar` | Magenta `#F10767` (pill do menu vira chocolate) | Ancorado embaixo, foto 4:3 em crossfade | 8: Abertura · Depoimentos · Números · Circulação · Quem pode · Imprensa · Jornada · Pré-cadastro | Institucional |
-| **Apoiar** | `/apoiar` | Cyan `#01AFCC` (era vinho) | Ancorado embaixo, números de mídia | 6: Abertura · Alcance · Por que apoiar · Onde aparece · Quem vive · Proposta | Institucional |
+| **Participar** | `/participar` | Cyan `#01AFCC` | Ancorado embaixo, sem cartão (rótulo + H1 + lead + ações) | 8: Abertura · Depoimentos · Números · Circulação · Quem pode · Imprensa · Jornada · Pré-cadastro | Institucional |
+| **Apoiar** | `/apoiar` | Marrom `#6A2C15` (era cyan) | Ancorado embaixo, sem cartão; os números de mídia abrem a seção 02 | 6: Abertura · Alcance · Por que apoiar · Onde aparece · Quem vive · Proposta | Institucional |
 | **Contato** | `/contato` | Bege `#F8E4C1` (era marrom) | Compacta (~368px) | 4: Abertura · Dúvidas (93 perguntas / 10 assuntos) · Caminhos · Mensagem | Institucional |
 | **Em breve** | `/em-breve` | — | Landing própria | 1 | Institucional (gate de publicação) |
 | **Pesquisa** | `/pesquisa` | `--page-accent` legado | — | — | **Legado** (`styles.css` + `pesquisa.css`) |

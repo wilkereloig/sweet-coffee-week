@@ -107,10 +107,10 @@ em `src/styles/scw-2026.css`. Nenhuma cor fora desta lista:
 | Chocolate (tinta) | `#3D1308` | texto principal, seções escuras, fundo de card com filete |
 | Marrom secundário | `#6A2C15` | texto de apoio, rótulos pequenos |
 | Amarelo | `#FDBB1A` | acento — **O festival** |
-| Cyan | `#01AFCC` | acento — **Edições** e **Apoiar**; também o anel de foco |
+| Cyan | `#01AFCC` | acento — **Participar**; também o anel de foco |
 | Roxo | `#4D257E` | acento — **Sweet Awards** |
-| Magenta | `#F10767` | acento — **Participar** |
-| Laranja | `#FF4810` | superfície preenchida (nunca tinta de texto pequeno), filete sobre fundo escuro, medalha de 3º lugar |
+| Magenta | `#F10767` | destaque de título; só texto grande (3,8:1 sobre creme) |
+| Laranja | `#FF4810` | acento — **Edições**; superfície preenchida (nunca tinta pequena sobre creme, 3,0:1), medalha de 3º lugar |
 
 **Removida da paleta: `#E52C4B`** (vermelho-coral) — não usar em nada.
 
@@ -159,21 +159,39 @@ ser tom claro. Definido em `body.route-*` (`src/styles/scw-2026.css`) como
 | Rota | Cor | Texto sobre a cor |
 | --- | --- | --- |
 | `home` | `#FDBB1A` | `#3D1308` (9,5:1) |
-| `edicoes` | `#01AFCC` | `#3D1308` (6,2:1) |
+| `edicoes` | `#FF4810` (era cyan — PATCH 01, ago/2026) | `#3D1308` (4,78:1) |
 | `historico-awards` | `#4D257E` | `#FEF0DD` (9,95:1) |
-| `participar` | `#F10767` (pill do menu vira chocolate `#3D1308`) | `#FEF0DD` (4,86:1) |
-| `apoiar` | `#01AFCC` (era vinho `#B3213B` — fechamento 29/07/2026) | `#3D1308` (6,2:1) |
+| `participar` | `#01AFCC` (era magenta; a pill do menu volta a ser a cor da página) | `#3D1308` (6,2:1) |
+| `apoiar` | `#6A2C15` (era cyan, antes vinho `#B3213B`) | `#FEF0DD` (9,44:1) |
 | `contato` | `#F8E4C1` (era marrom `#6A2C15`; texto/sublinhado sobre creme usa `--scw-pagina-sobre-creme` = `#6A2C15`, bege não sustenta) | `#3D1308` (13:1) |
 
-Passar o mouse em qualquer item do menu mostra a cor daquela página (amarelo e cyan
-direto; as demais caem no amarelo, por contraste sobre o véu escuro). Sobre superfície
-ESCURA (rodapé, folha do menu, barra de abas) cada página usa `pageColorDark()` em vez
-da cor cheia — roxo e magenta não sustentam texto sobre chocolate.
+**Nenhuma página repete a cor da vizinha** — é o propósito da regra, e o cyan cobrindo
+Edições *e* Apoiar era o que a derrotava. Sobre superfície ESCURA (rodapé, folha do
+menu, barra de abas) cada página usa `pageColorDark()` em vez da cor cheia: roxo
+(1,45:1) e marrom (1,53:1) não sustentam texto sobre chocolate e caem no amarelo;
+laranja (4,78:1) e cyan (6,23:1) passam e ficam. Espelho em JS: `PAGE_COLORS` /
+`MENU_ESCURO` em `src/components/nav.jsx` — mudou o CSS, muda o JS no mesmo commit.
 
-**Herói com fundo próprio por página** (`--scw-heroi` / `--scw-heroi-tinta`, redesign
-29/07/2026): Home/Edições continuam chocolate (herói de foto sangrada); Sweet Awards
-roxo; Participar magenta puro `#F10767` (textos pequenos do herói viram pílula
-chapada, não tom translúcido); Apoiar cyan; Contato bege. Ver `docs/FLUXO-DESIGN-CODIGO.md`.
+**Herói com fundo próprio por página** (`--scw-heroi` / `--scw-heroi-tinta`; PATCH 01
+§2, ago/2026): a chapa do herói é a cor da página, e **a Home é a única exceção** —
+segue chocolate porque a foto sangra e a cor já aparece no véu e na barra. Edições
+laranja; Sweet Awards roxo; Participar cyan; Apoiar marrom; Contato bege.
+
+As compensações de contraste do herói seguem a **cor, não a página**: chapa CLARA
+(hoje só o cyan de Participar) precisa de selo/CTA/anel de foco em chocolate — o anel
+global é cyan e sumiria; chapa ESCURA (marrom, roxo) usa as regras base em creme. O
+tratamento especial que o magenta exigia (lead em texto grande, nota em pílula
+chapada) morreu com o herói magenta. Ver `docs/FLUXO-DESIGN-CODIGO.md`.
+
+**Destaque do H1 — um acento por chapa**, sempre da paleta e sempre diferente da tinta
+do título: Home magenta · Edições amarelo · Awards amarelo · Participar roxo (4,25:1,
+texto grande) · Apoiar amarelo · Contato marrom. `--base` é a tinta **real** daquele
+título, senão `scwDestaque` começa invisível sobre o próprio fundo.
+
+**Card/CTA que navega usa a cor do DESTINO**, não a da página onde está (PATCH 01 §4).
+Onde a chapa do destino não separa do card (<3:1 de forma) entra o anel de 2px do
+§1.1 na tinta do card. Em link com filete quem recebe a cor é **o filete**, não a
+tinta — cyan e laranja não fecham 4,5:1 como texto sobre creme.
 
 *(Superada a paleta anterior — terracotta `#E8553A`, Edições `#2BC4E8`, Awards dourado
 `#F8B511`, Participar `#F2693C`, Apoiar `#1B86C9`, Contato peach `#F2B6A0`. O `--page-accent`
@@ -269,8 +287,8 @@ qualquer cor de fechamento. Base = 62% da altura da banda (~164px); o véu do he
 no celular usa a mesma curva embutida no gradiente, cobrindo 60% da altura.
 
 **A banda fecha na cor do BLOCO, não do herói.** `--scw-banda-base` tem como padrão o
-chocolate de `.scw-hero-bloco`. Só `.pa-hero` repinta o bloco (`--scw-heroi`: magenta em
-Participar, cyan em Apoiar) e por isso sobrescreve; Contato pinta bege no celular e
+chocolate de `.scw-hero-bloco`. Só `.pa-hero` repinta o bloco (`--scw-heroi`: cyan em
+Participar, marrom em Apoiar) e por isso sobrescreve; Contato pinta bege no celular e
 sobrescreve também. Errar isso deixa uma linha dura na emenda — o `box-shadow` curto de
 antes escondia, a rampa longa expõe.
 
@@ -534,8 +552,12 @@ editorial e comercial. Não parecer formulário genérico.
 
 Oito seções: `01 Abertura` · `02 Depoimentos` · `03 Números` · `04 Circulação` ·
 `05 Quem pode` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
-Herói com rótulo do público, dois CTAs, 3 indicadores e foto 4:3 com rotação em
-crossfade. **Quatro** faixas alternando lado, imagem e texto com **larguras iguais** (408px
+Herói com rótulo do público, título, lead e dois CTAs — **nada mais** (PATCH 01 §6,
+ago/2026: a abertura é rótulo + H1 + lead + ações; vitrine, cartão de foto e bloco de
+número entram nas seções seguintes). O cartão 4:3 em crossfade e os 3 indicadores
+saíram; os três números já existiam, idênticos, na seção `03 Números`, então nada de
+dado se perdeu. No celular a foto continua, sangrando na `.scw-hero-banda`.
+**Quatro** faixas alternando lado, imagem e texto com **larguras iguais** (408px
 cada em 1360px).
 
 A 4ª faixa (`04 · Materiais`, ago/2026) fecha a Circulação com o material que chega
@@ -571,7 +593,20 @@ festival; linguagem comercial alinhada ao tom. Não parecer página instituciona
 
 Seis seções (redesign 2026): `01 Abertura` · `02 Alcance` · `03 Por que apoiar` ·
 `04 Onde aparece` · `05 Quem vive` · `06 Proposta`. Mesma estrutura de herói da
-Participar, com números de mídia.
+Participar — sem cartão e sem indicadores desde ago/2026 (§13).
+
+Os três indicadores de audiência que viviam no herói (`+200 mil` alcançadas, `+18 mi`
+visualizações, `+290 mil` interações) **mudaram de lugar, não sumiram**: abrem a seção
+`02 Alcance`, que é sobre exatamente isso. Diferente de Participar, eles não se repetem
+em `ALCANCE` — são dado próprio. Vão no padrão disco + ícone + numeral + rótulo
+(`.pa-alcance-topo`), com o disco de 54px na cor da página.
+
+**`05 Quem vive`** é grade editorial, não duas listas de bullets lado a lado (PATCH 04,
+ago/2026): os seis traços do público viram itens com índice `01`–`06` gerado do array
+`PUBLICO` e filete horizontal entre eles — bolinha de 7px é indicador de item de lista,
+não de dado. O texto do traço é `700 17–21px`: ele é o argumento da seção. A imprensa
+sai de dentro da grade e vira bloco irmão embaixo, separado por 44–72px — a distância
+entre argumento e prova é maior de propósito, não use `--scw-gap-bloco` ali.
 
 ## 14.1 Página Contato
 
@@ -783,6 +818,43 @@ mobile" — falha PRÉ-EXISTENTE, não regressão.** `.menu-toggle` é do sistem
 visível. O redesign 2026 trocou o hambúrguer pela `MobileTabBar`. O que o teste mede
 de útil (`overflow=0px`) passa nos 6. Não "consertar" o menu-toggle — o teste é que
 está desatualizado.
+
+### Cor por destino, interação e composição (06/08/2026)
+
+Origem: zip `SWEET & COFFEE WEEK.zip` → `design_handoff_ago-2026/`, quatro patches
+aplicados na ordem 01 → 02 → 03 → 04, um commit cada. Regras superadas — **não
+reintroduzir as antigas**:
+
+| Regra antiga | Regra atual |
+| --- | --- |
+| Edições cyan · Participar magenta · Apoiar cyan | Edições **laranja** · Participar **cyan** · Apoiar **marrom** (§3) |
+| Cyan como acento de duas páginas | Nenhuma página repete a cor da vizinha — é o propósito da regra |
+| Herói de Edições chocolate | Herói na cor da página; **só a Home** segue chocolate (§3) |
+| Compensação de contraste por PÁGINA | Compensação segue a **COR**: chapa clara pede selo/CTA/anel chocolate; chapa escura usa a base |
+| CTA pintado com a cor da página onde está | CTA que navega usa a cor do **destino**; link com filete colore **o filete**, não a tinta (§3) |
+| Herói de Participar/Apoiar com cartão 4:3 + 3 indicadores | Herói = rótulo + H1 + lead + ações (§13, §14) |
+| Durações de transição livres (120–300ms) | `--scw-transicao`: 200ms cor/borda/sombra/gap, 180ms transform |
+| Desabilitado com aparência por página (.35/.55/.72) | Um estado só: `.45` / `default` / `pointer-events:none` |
+| Raio de card 18/24px por página | `var(--scw-r-card)` (20px) em todo card institucional |
+| Lead em toda cabeça de seção | Lead **só quando informa** o que o H2 não dá; senão rótulo + H2 em bloco único |
+| Apoiar 05 em duas listas de bullets | Grade editorial com índice `01`–`06` e filete (§14) |
+
+**Pisos de toque (PATCH 02 §2):** 44px para qualquer controle — inclusive link de texto
+e item de acordeão — 46px para pílula de ação dentro de card, 54px no herói. O piso vale
+para o **controle real**, não para a linha que o contém: clicar no padding de um flex
+não foca o `<input>` filho.
+
+**Duas coisas que o handoff pediu e NÃO entraram, e por quê:**
+- **PATCH 02 §5** (disco 54px + ícone em toda seção de dado/etapa) — as premissas não
+  batem com o repo: não existem discos de 44/48/60px para unificar, e o §5 substituiria
+  o padrão **StatBlock** (régua de 4px + numeral chocolate) que o §3 documenta como
+  decisão deliberada. O PATCH 04 também contradiz o §5, mantendo `.pa-quem` sem disco.
+  Só o bloco novo de Apoiar 02 nasceu no padrão. Decidir antes de aplicar em lote.
+- **PATCH 03 §4** (varredura das outras cabeças) — o próprio patch manda trazer a lista
+  antes de remover, "cada uma é uma decisão de conteúdo". Feita a varredura das 14
+  cabeças; 3 candidatas aguardam decisão.
+
+⚠️ `tests/icones.mjs`, que o README do handoff manda rodar, **não existe** no repo.
 
 ---
 
