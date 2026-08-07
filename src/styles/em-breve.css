@@ -28,10 +28,6 @@
   --font-body:    'Nexa Slab', system-ui, sans-serif;
   --font-sans:    var(--font-body);
 
-  --fs-display-md: clamp(38px, 5.5vw, 72px);
-  --fs-h1:         clamp(34px, 4vw, 56px);
-  --fs-h2:         clamp(28px, 3vw, 42px);
-  --fs-h3:         clamp(22px, 2vw, 28px);
   --fs-lead:       clamp(19px, 1.6vw, 26px);
 
   /* espaço e forma */
@@ -42,9 +38,9 @@
   --r-lg: 22px;
   --shadow-md: 0 14px 36px rgba(43, 24, 16, .14);
 
-  /* KV da edição Lovers — só o que os dados dos 21 participantes ainda leem.
-     O sistema visual Lovers foi apagado; estes seis valores sobrevivem como
-     cor de marca dentro do acervo, não como identidade de página. */
+  /* KV da edição Lovers — só o que `participants.js` e `participantAssets.js`
+     ainda leem como cor de marca de cada uma das 21 casas. O sistema visual
+     Lovers foi apagado; isto aqui é dado de acervo, não identidade de página. */
   --lovers-brown:    #3F1A0A;
   --lovers-burgundy: #870E2D;
   --lovers-red:      var(--lovers-burgundy);

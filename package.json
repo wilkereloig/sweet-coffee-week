@@ -19,19 +19,16 @@
     "test:motion": "node tests/motion.mjs",
     "design:snapshot": "node tests/snapshot-design.mjs",
     "test:imagens-navegador": "node tests/imagens-navegador.mjs",
-    "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs",
     "focal-points": "node scripts/compute-focal-points.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
-    "exceljs": "^4.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "playwright": "^1.60.0",
-    "qrcode": "^1.5.4",
     "vite": "^5.4.2"
   }
 }

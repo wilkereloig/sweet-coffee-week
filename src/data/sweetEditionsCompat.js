@@ -9,8 +9,8 @@
  *
  * Mapa de campos (oficial → legado): ver plano / CLAUDE.md §16.
  */
-import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory'
-import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults'
+import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory.js'
+import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults.js'
 
 // trilha oficial → rótulo de trilha usado no render (StatusBadge/groupByTrack).
 const TRACK_LABEL = {

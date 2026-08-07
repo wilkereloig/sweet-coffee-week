@@ -10,10 +10,10 @@
  * homenagens da Lovers, vencedores repetidos de uma categoria e marcos/primeiras
  * vezes. Logos via resolveParticipant (fallback textual).
  */
-import { SWEET_COFFEE_HISTORY, AWARD_STATUS } from './sweetCoffeeHistory'
-import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults'
-import { resolveParticipant } from './participantAssets'
-import { PARTICIPANTS } from './participants'
+import { SWEET_COFFEE_HISTORY, AWARD_STATUS } from './sweetCoffeeHistory.js'
+import { LOVERS_2026_AWARDS_RESULTS } from './loversAwardsResults.js'
+import { resolveParticipant } from './participantAssets.js'
+import { PARTICIPANTS } from './participants.js'
 
 const { edicoes = [], participantAliases = {}, categoryAliases = {} } = SWEET_COFFEE_HISTORY
 
@@ -125,26 +125,20 @@ export function getAwardWins() {
 
 // ---- HOMENAGENS: marcas da Lovers agrupadas pela edição que escolheram reviver. ----
 // Fonte: PARTICIPANTS[].edition (grafia normalizada; "Contos de Fada" == "Contos de Fadas").
-const HOMAGE_LABELS = {
-  'sweet trip': 'Sweet Trip',
-  'sweet celebration': 'Sweet Celebration',
-  'sweet music': 'Sweet Music',
-  'contos de fadas': 'Contos de Fadas',
-  'sweet series': 'Sweet Series',
-  'filmes': 'Filmes',
-  'terras potiguares': 'Terras Potiguares',
-}
-
 export function getHomageGroups() {
+  /* Agrupa as 21 marcas da Lovers pela edição que cada uma escolheu reviver.
+     A chave é `editionCode` (2023, 2019.1, …), não o rótulo de campanha: até
+     07/08/2026 isso era feito por string — e "Sweet Trip", "Filmes" e "Contos de
+     Fada" são nomes de campanha, não os nomes reais das edições (§8.2). O rótulo
+     exibido sai de `edition`, já corrigido na fonte. */
   const map = new Map()
   for (const p of PARTICIPANTS) {
-    let key = norm(p.edition)
-    if (key === 'contos de fada') key = 'contos de fadas'
-    if (!map.has(key)) map.set(key, { key, brands: [] })
+    const key = p.editionCode || norm(p.edition)
+    if (!map.has(key)) map.set(key, { key, code: p.editionCode || null, label: p.edition, brands: [] })
     map.get(key).brands.push({ name: p.name, slug: p.slug, theme: p.theme })
   }
   return [...map.values()]
-    .map((g) => ({ ...g, label: HOMAGE_LABELS[g.key] || g.brands[0].name, count: g.brands.length }))
+    .map((g) => ({ ...g, count: g.brands.length }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
 }
 

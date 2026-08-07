@@ -2,7 +2,7 @@
 // Textos, categorias, perguntas e janela de votação. Os participantes vêm de
 // participants.js (slug + nome) para manter a lista sempre sincronizada.
 
-import { PARTICIPANTS } from './participants'
+import { PARTICIPANTS } from '../participants.js'
 
 // Janela oficial da votação (fuso de Natal/RN). Inclusivo: abre 04/06, fecha fim do dia 16/06.
 export const AWARDS_VOTING = {

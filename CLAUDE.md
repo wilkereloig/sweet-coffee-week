@@ -338,6 +338,13 @@ fontes de verdade para o mesmo conceito.**
 
 ### 5.2 Uma fonte de verdade por conceito
 
+⚠️ **A armadilha desta família é o "snapshot derivado".** `handoff/awardsData.js` e
+`handoff/edicoesData.js` nasceram como cópias congeladas da fonte, mantidas à mão — e
+foram elas que mantiveram o Hall com número errado e o campo `preco` vivo, meses depois
+de a fonte estar certa. **Em 07/08/2026 os dois viraram derivação de verdade**, que roda
+a cada import. **Não recongelar.** Se um dado precisa aparecer em duas telas, ele deriva
+duas vezes da mesma fonte — não vira dois arquivos.
+
 | Conceito | Fonte |
 |---|---|
 | Cor, tipografia, espaçamento | tokens em `src/styles/scw-2026.css` |
@@ -1127,8 +1134,8 @@ derivado em `src/data/handoff/awardsData.js` — **se divergir do código em `sr
 vale o código.** Logos reais via `resolveParticipant`, com fallback em iniciais. **2º e 3º
 lugares que o acervo não registra: ausência honesta, nunca preenchida.**
 
-⚠️ **Os números do Hall no código estão desatualizados.** Os valores corretos, após as
-correções do acervo, estão em §9.4. Aplicar junto com as demais correções de dado.
+✅ **Os números do Hall batem com o acervo desde 07/08/2026** e não são mais digitados:
+saem da fonte a cada import (§9.4).
 
 ### 7.4 Participar — `/participar`, cyan `#01AFCC`
 
@@ -1382,9 +1389,13 @@ conta uma vez em 2022. **Nenhuma edição perdeu ou ganhou participante real.**
 | 9 | Jolie Café Pâtisserie | 3 | 2 | 4 | **9** |
 | 10 | Bolomania | 2 | 4 | 3 | **9** |
 
-⚠️ **O código ainda traz Mr. Cupcake 28, Bocaditos 26 e Marlon Vinicius 24.** Corrigir.
+✅ **Aplicado no código em 07/08/2026.** O Hall deixou de ser digitado: `HistoricoAwards`
+o calcula de `handoff/awardsData.js`, que por sua vez deriva de `sweetCoffeeHistory.js` a
+cada import. **Nenhum número desta tabela existe escrito em lugar nenhum** — todos saem
+da contagem. Antes das correções o código dava Mr. Cupcake 28, Bocaditos 13 primeiros
+lugares e Marlon Vinicius 24.
 
-**Correções de pódio a aplicar** (conferidas card a card contra os cards oficiais):
+**Correções de pódio aplicadas** (conferidas card a card contra os cards oficiais):
 
 - **2024 · Melhor Salgado** — 1º **Bolomania** · 2º **Bocaditos** · 3º **Delicato e Just
   Food&Coffee**.
@@ -1396,24 +1407,37 @@ conta uma vez em 2022. **Nenhuma edição perdeu ou ganhou participante real.**
   três posições: 1º **Just Food&Coffee e O Maestro Café** · 2º **Mr. Cupcake e Adocee** ·
   3º **Marlon Vinicius e Bolomania**.
 
-**Outras correções de dado a aplicar:**
+**Outras correções — estado:**
 
-- **Unificar os nomes das categorias.** As 6 variações de encantamento viram
-  **"Encantamento em Loja"**; as 4 de entrega viram **"Delivery/Takeaway"**. O nome
-  histórico fica no acervo.
-- **Apagar o campo `pontos`.** Era detalhe de organização interna, nunca foi exibido, e
-  carregava uma anomalia (o 3º lugar de Melhor Apresentação valia 2 em vez de 1).
-- **Preencher as trilhas.** Os campos `null` deixam de existir: 2019.1 não nomeia júri ·
-  2019.2 e 2020.1 Júri dos Sweet Lovers · 2020.2, 2021.1 e 2021.2 Sweet Lovers + Júri
-  Técnico, categoria a categoria · 2022 em diante só Votação Sweet Lovers.
-- **Somar a Menção Honrosa de 2021.1** — "Envolvimento e Encantamento em Loja", sem ordem
-  de colocação: Mr. Cupcake, Rafaela Fontes, Chocolatudos por Laís e Atelier Mine. É a
-  primeira aparição do encantamento em loja na história do prêmio. ⚠️ **Não conta no
-  Hall** — é menção, não colocação.
-- **Edição homenageada na Lovers aponta para o nome real da edição**, virando link:
-  "Sweet Music" → No Ritmo da Música · "Filmes" → Movies · "Sweet Series" → Séries ·
-  "Sweet Trip" → Trip · "Sweet Celebration" → Celebration · "Contos de Fada" → Contos de
-  Fadas. A **Delicato Bolos homenageou Pâtisserie Francesa (2019.1)**, não Trip.
+- ✅ **Nomes de categoria unificados.** **18 grafias na base viram 10 categorias
+  canônicas** pelo `categoryAliases`: as 6 variações de encantamento são
+  **"Encantamento em Loja"**, as 5 de entrega são **"Delivery/Takeaway"**. O nome
+  histórico fica na base; a unificação acontece na leitura.
+- ✅ **Campo `pontos`** — já não existia no código.
+- ✅ **Trilhas preenchidas.** Restou **um** `null`, e é correto: **2019.1 não nomeia
+  júri** no card oficial. 2019.2 e 2020.1 são Sweet Lovers; as 5 categorias sem trilha de
+  2020.2 viraram Sweet Lovers, ao lado do Júri Técnico do Melhor Combo.
+- ✅ **Contagens.** 2021.2 passou a 29 e 2022 a 34. A lista `participantes` **preserva o
+  registro histórico** — as três unidades da Fran's continuam lá —, mas `n` conta
+  **marcas**, aplicando os aliases. Somadas dão **410**, com **123 marcas distintas**.
+- ✅ **Nomes na forma longa** (§9.3) viraram os canônicos: Mr. Cupcake Confeitaria,
+  Duart's Confeitaria, Atelier Mine Confeitaria, Jolie Café Pâtisserie, Paneer
+  Pâtisserie, Rollab Confeitaria, Delicato Bolos, Crooks Cookie Shop, Fran's Café,
+  Jana's Cakes. `KNVE Casa Café` e `Café Casa Verde by Caramel` viraram alias de Caramel
+  Healthy Food; `Supernordestão` virou Supermercado Nordestão.
+- ✅ **Menção Honrosa de 2021.1** — já vivia na base como `premiacao.mencaoHonrosa`,
+  **fora de `categorias`**, e é por isso que nunca contaminou o Hall. O que faltava era
+  aparecer: agora `awardsData` a carrega no campo `mencao` e o acordeão da edição a
+  mostra em bloco próprio (`.swa-mencao`), sem medalha e sem numeral.
+  ⚠️ **Regra permanente: menção não é colocação.** Se algum dia ela entrar em
+  `categorias`, vira sete colocações fantasma e o Hall mente.
+- ✅ **Edição homenageada na Lovers.** `participants.js` ganhou **`editionCode`**, e
+  `edition` passou a trazer o nome real em vez do rótulo de campanha: "Sweet Music" →
+  No Ritmo da Música (2020.1) · "Filmes" → Movies (2022) · "Sweet Series" → Séries
+  (2021.1) · "Sweet Trip" → Trip (2023) · "Sweet Celebration" → Celebration (2025) ·
+  "Contos de Fada" → Contos de Fadas (2019.2). A **Delicato Bolos passou para Pâtisserie
+  Francesa (2019.1)** — o `theme` dela, "Confeitaria Francesa", confirmava o acervo.
+  `getHomageGroups()` agrupa por **código**, não por string: **8 edições revividas**.
 
 ### 9.5 Números comerciais
 

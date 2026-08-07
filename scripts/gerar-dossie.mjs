@@ -13,12 +13,12 @@ import { fileURLToPath } from 'node:url'
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const D = new URL('../src/data/', import.meta.url).href
 
+const AW = await import(D + '_arquivo/sweetAwards.js')
 const { SWEET_COFFEE_HISTORY: H, AWARD_STATUS } = await import(D + 'sweetCoffeeHistory.js')
 const { LOVERS_2026_AWARDS_RESULTS: L } = await import(D + 'loversAwardsResults.js')
 const { PARTICIPANTS } = await import(D + 'participants.js')
 const { EDICOES_NARRATIVA: NARR } = await import(D + 'edicoesNarrativa.js')
 const { festivalFacts: FACTS } = await import(D + 'festivalFacts.js')
-const AW = await import(D + 'sweetAwards.js')
 const FAQ = (await import(D + 'faqCentral.js')).default
 const CFAQ = await import(D + 'contactFaq.js')
 

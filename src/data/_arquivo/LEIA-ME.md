@@ -21,3 +21,4 @@ mova o arquivo de volta para `src/data/` e registre no guia visual
 
 Todos os dados aqui eram **derivados** das fontes oficiais, que seguem vivas:
 `sweetCoffeeHistory.js`, `loversAwardsResults.js`, `participants.js`.
+| `sweetAwards.js` | Categorias, escala de notas, demografia e participantes do **formulário de votação** | A votação pertence à camada de edição, não ao institucional. O painel foi removido na demolição de 07/08/2026; o dado fica como registro e ainda alimenta `scripts/gerar-dossie.mjs` |

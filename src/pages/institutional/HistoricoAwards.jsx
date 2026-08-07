@@ -14,14 +14,13 @@
  *   05 Histórico     — acordeão 2019–2025, pódio completo por categoria e trilha
  *   06 Antes de 2019 — as cinco primeiras edições não tiveram premiação (dito, não escondido)
  *
- * DADOS — nada é inventado. `src/data/handoff/awardsData.js` é o snapshot já cruzado
- * de `sweetCoffeeHistory.js` (histórico + descrições das categorias) com
+ * DADOS — nada é inventado. `src/data/handoff/awardsData.js` DERIVA da fonte a cada
+ * import: cruza `sweetCoffeeHistory.js` (histórico, pódios, trilhas e aliases) com
  * `loversAwardsResults.js` (pódios da 2026.1, vazios de propósito na base histórica).
- * Conferido colocação a colocação contra `loversAwardsResults.js` em jul/2026: os oito
- * pódios da Lovers batem (inclusive os empates). Única divergência: `Canuto’s` aparece
- * na fonte com apóstrofo tipográfico e no snapshot com o reto — por isso as agregações
- * desta página contam marca por IDENTIDADE (slug de `resolveParticipant`), não por
- * string, senão a mesma casa viraria duas no hall e nos números.
+ * Deixou de ser snapshot congelado em 07/08/2026 — era ele que mantinha o Hall com
+ * número errado. Corrigir pódio ou alias agora é mexer só na fonte.
+ * As agregações desta página contam marca por IDENTIDADE (slug de `resolveParticipant`),
+ * não por string, senão `Canuto's` e `Canuto’s` virariam duas casas no hall.
  * Marca da edição: vem SEMPRE de `editionMark()` (src/data), a fonte de verdade.
  * O campo `logo` do snapshot apontava pra `/images/editions/<code>.png`, caminho
  * que nunca existiu; corrigido em jul/2026 para `/images/marcas-edicoes/<code>/logo.png`
@@ -337,6 +336,18 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
               </ul>
             </div>
           ))}
+
+          {/* Menção Honrosa: reconhecimento SEM ordem de colocação — por isso
+              não é pódio, não tem medalha e não entra no Hall. Só a 2021.1 tem,
+              e é a primeira aparição do encantamento em loja na história do
+              prêmio, dois anos antes de virar categoria. */}
+          {edicao.mencao && (
+            <div className="swa-mencao">
+              <span className="swa-mencao__rotulo">Menção Honrosa · {edicao.mencao.categoria}</span>
+              <p className="swa-mencao__nomes">{edicao.mencao.nomes.join(' · ')}</p>
+              <p className="swa-mencao__nota">Reconhecimento sem ordem de colocação — não conta como pódio.</p>
+            </div>
+          )}
         </div>
       )}
     </article>

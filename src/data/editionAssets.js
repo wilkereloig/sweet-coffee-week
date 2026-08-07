@@ -8,7 +8,7 @@
  *   - NUNCA inventa logo nem usa imagem aleatória.
  * Quando os arquivos chegarem, basta preencher EXISTING_MARKS[code] = caminho.
  */
-import { sweetEditions } from './sweetEditionsCompat'
+import { sweetEditions } from './sweetEditionsCompat.js'
 
 // Selo dos 10 anos — único asset de "marca de edição" que existe hoje (Lovers).
 export const TEN_YEARS_SEAL = '/images/selo-10anos.svg'
