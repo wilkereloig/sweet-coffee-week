@@ -208,12 +208,23 @@ preview.**
   itálicos + alias `'Nexa Slab Black'`), declarada em `src/styles/fonts-nexa-slab.css`.
   **Nenhum serviço externo de fonte** — o Adobe Fonts/Typekit servia só a Sofia Pro Comp
   do KV Lovers, que morreu.
-- **Backend:** Supabase (`src/lib/supabase.js`), escopo reduzido depois da remoção dos
-  painéis internos.
-  ⚠️ **A ser conferido no código:** os formulários de Participar/Apoiar/Contato hoje
-  **não têm backend** — copiam texto para a área de transferência e abrem o Instagram.
-  A documentação antiga trazia três versões incompatíveis disso. **Conferir
-  `src/lib/` antes de mexer em formulário.**
+- **Backend:** Supabase (`src/lib/supabase.js`). ⚠️ **Os três formulários TÊM backend** —
+  conferido no código em 07/08/2026, contra três versões incompatíveis na documentação
+  antiga. Cada um grava por RPC do Supabase, com a **lógica pura isolada numa lib sem
+  import de supabase** (a função `rpc` é injetada, o que torna a lib testável):
+
+  | Formulário | Lib | RPC |
+  |---|---|---|
+  | Contato | `src/lib/contactRequest.js` | `submit_contact_request` |
+  | Participar | `src/lib/participationInterest.js` | `submit_participation_interest` |
+  | Apoiar | `src/lib/supportInterest.js` | `submit_support_interest` |
+
+  Migration em `supabase/migrations/`. **Nenhum deles afirma "enviado" se a gravação
+  falhar** — é regra escrita no cabeçalho dos três arquivos. ⛔ **Não trocar por
+  "copia para a área de transferência e abre o Instagram"**: essa era a descrição do
+  `DEV_GUIDE.md`, e estava errada.
+- **`src/config/channels.js` existe** e é a fonte de `INSTAGRAM_HANDLE` / `INSTAGRAM_URL`.
+  A documentação antiga o marcava como "alvo a criar" — não é.
 - `src/lib/pageMeta.js` atualiza `<title>` e description por rota em runtime.
   `src/lib/analytics.js` é GA4 com consentimento.
 
@@ -251,30 +262,67 @@ acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ⚠️ **Não devolver o acervo bruto para dentro de `public/`.** Ele morava lá e o Vite
 copiava 58 GB a cada build. Movido para a raiz, o build caiu para ~364 MB / ~5 s.
 
-### 4.3 Pendências estruturais conhecidas
+### 4.3 A demolição — feita em 07/08/2026
 
-Estes arquivos ainda existem no disco e pertencem a sistemas mortos. **Removê-los é a
-primeira etapa do plano de demolição** (`acervo/plano-demolicao.md`):
+**Um sistema visual só.** Saíram 379 KB de código morto:
 
-| Arquivo | Tamanho | Por quê |
+| Arquivo removido | Tamanho | O que era |
 |---|---|---|
-| `src/styles/lovers-system.css` | 138 KB | KV Lovers, apagado |
-| `src/pages/lovers/Painel.jsx` | 67 KB | painel de votação, pertence à camada de edição |
-| `src/styles.css` | 113 KB | sistema legado |
-| `src/pages/institutional/Pesquisa.jsx` | 9 KB | tela interna |
+| `src/styles/lovers-system.css` | 138 KB | KV Lovers |
+| `src/styles.css` | 113 KB | sistema legado v1 |
+| `src/pages/lovers/Painel.jsx` | 67 KB | painel de votação — pertence à camada de edição |
 | `src/pages/institutional/PainelAdmin.jsx` | 20 KB | tela interna |
+| `src/styles/swc-redesign.css` | 17 KB | redesign anterior (v2) |
+| `src/pages/institutional/Pesquisa.jsx` | 9 KB | tela interna |
 | `src/styles/pesquisa.css` | 6 KB | idem |
 | `src/data/pesquisaLovers.js` | 4 KB | idem |
-| `src/styles/swc-redesign.css` | 17 KB | redesign anterior |
-| `src/styles/tokens.css` · `layout-tokens.css` | 6 KB | tokens órfãos |
+| `src/styles/tokens.css` | 3 KB | `:root` do sistema anterior |
 
-⛔ **NÃO remover:** `src/pages/institutional/EmBreve.jsx`,
-`src/styles/motion-system.css`, `src/hooks/useRevealOnScroll.js` — é o que está no ar.
+Junto saíram as rotas `painel`, `pesquisa` e `painel-admin` do `App.jsx` e três imports
+do `main.jsx`. **Resultado medido no build:**
 
-**Antes de apagar qualquer um deles:** `grep -r` pelo nome do arquivo em `src/`. Só
-apagar o que não tiver nenhum importador. Conferir em especial se `EmBreve.jsx` importa
-algo de `styles.css`; se importar, extrair o necessário para um arquivo próprio da
-landing.
+| | Antes | Depois |
+|---|---|---|
+| CSS entregue | 325 KB (219 + 106 de chunk) | **122 KB** |
+| JS entregue | 1.726 KB | **715 KB** |
+| Módulos transformados | 142 | 129 |
+| Tempo de build | 9,0 s | **2,5 s** |
+
+O `exceljs` (939 KB, exportação de planilha do painel admin) saiu do bundle inteiro.
+⚠️ **`exceljs` e `qrcode` continuam no `package.json` sem nenhum importador em `src/`** —
+podem sair numa limpeza de dependências.
+
+#### O arquivo novo: `src/styles/em-breve.css`
+
+A landing traz o próprio CSS num `<style>` inline, mas **consumia 26 tokens** definidos
+só nos arquivos mortos — cor, as três famílias de fonte, escala tipográfica, espaço,
+raio, sombra e as seis cores de marca da Lovers que `participants.js` ainda lê. Apagar
+sem extrair teria quebrado a única página no ar.
+
+`em-breve.css` preserva esses tokens **já resolvidos**, sem `var()` encadeado. ⛔ **Não
+usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`. Este arquivo morre
+junto com a landing, quando o institucional for publicado.
+
+#### ⛔ O que continua intocável
+
+| Arquivo | Por quê |
+|---|---|
+| `src/pages/institutional/EmBreve.jsx` | é a página pública ativa |
+| `src/styles/motion-system.css` | define as `.motion-*` que a EmBreve usa |
+| `src/hooks/useRevealOnScroll.js` | a EmBreve o chama direto |
+| `src/styles/layout-tokens.css` | ⚠️ **não é órfão:** guarda os `--motion-*` e `--ease-*-soft` que o `motion-system.css` consome |
+| `src/styles/em-breve.css` | os tokens extraídos acima |
+| `src/config/channels.js` | a EmBreve importa `INSTAGRAM_HANDLE`/`INSTAGRAM_URL` dele |
+| `src/data/contactFaq.js` | exporta `CONTACT_SUBJECTS`, usado pelo formulário do Contato |
+
+#### A lição, que vale para a próxima remoção
+
+**Procurar pelo nome do arquivo não basta.** Três itens entraram na lista de mortos sem
+estarem mortos — `layout-tokens.css`, `contactFaq.js` e os tokens da landing — porque
+ninguém os importava *pelo nome*: eram consumidos por `var()` e por named export.
+
+**Antes de apagar qualquer arquivo:** varrer os **nomes que ele exporta** e os
+**custom properties que ele define**, não só o caminho dele.
 
 ---
 
@@ -1141,9 +1189,17 @@ com herói compacto e banda de foto no mobile.
 
 **Central de dúvidas: 93 perguntas em 10 assuntos** — Sobre o festival 9 · Edição atual 7
 · Combos 10 · Atendimento 10 · Ingredientes e acessibilidade 7 · Rota da Doçura 9 · Sweet
-Awards 13 · Participação 13 · Parcerias 8 · Suporte 7. **Fonte única:
-`src/data/faqCentral.js`.** ⛔ `src/data/contactFaq.js` está morto — não usar, remover na
-demolição.
+Awards 13 · Participação 13 · Parcerias 8 · Suporte 7. **Fonte única das perguntas:
+`src/data/faqCentral.js`** (import default em `Contato.jsx`).
+
+⚠️ **`src/data/contactFaq.js` NÃO está morto** — conferido no código em 07/08/2026. Ele
+exporta `FAQ_CATEGORIES`, `FAQ_ITEMS` e **`CONTACT_SUBJECTS`**, e é o `CONTACT_SUBJECTS`
+que alimenta a triagem do formulário, importado por `Contato.jsx` e por
+`src/lib/contactRequest.js`. **São duas coisas diferentes que a documentação antiga
+confundia:** `faqCentral.js` são as 93 perguntas; `contactFaq.js` são os assuntos do
+formulário. **Não remover.** O que sobra dele — `FAQ_CATEGORIES` e `FAQ_ITEMS`, a lista
+de perguntas antiga — é que está morto, e some quando alguém confirmar que ninguém
+importa esses dois nomes.
 
 - Índice editorial à esquerda (linhas com filete, contagem à direita, ativo por peso +
   sublinhado de 2px na cor da página) e busca como linha com traço inferior.

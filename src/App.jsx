@@ -17,23 +17,14 @@ import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
-import { PesquisaPage }     from './pages/institutional/Pesquisa'
-import { PainelAdminPage } from './pages/institutional/PainelAdmin'
 import { EmBrevePage } from './pages/institutional/EmBreve'
-
-// Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
-// carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
-const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({ default: m.PainelPage })))
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
 // limpos /mapa, /rota, /participantes) são encaminhadas para a home.
-// EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
-// para consultar e exportar a votação (dados preservados no Supabase).
 // Publicação temporária focada em Awards: enquanto true, todo o site público
 // renderiza só a página oficial do Sweet Awards — o Hall dos vencedores
-// (#/sweet-awards, route 'historico-awards'). O painel interno (/lovers/painel)
-// continua acessível, mas fora de qualquer menu/header.
+// (#/sweet-awards, route 'historico-awards').
 // DESLIGADO em jul/2026 (autorização do Wilke): site institucional completo
 // publicado — Home, Edições, Participar, Apoiar, Contato + Awards.
 const AWARDS_ONLY_PUBLICATION = false
@@ -41,8 +32,8 @@ const AWARDS_ONLY_PUBLICATION = false
 // Publicação "EM BREVE" (jul/2026, decisão do Wilke): enquanto true, o domínio
 // oficial mostra só a landing EmBreve — aviso do novo site + Sweet Awards da
 // edição Lovers 2026.1 com links pros posts de resultado no Instagram.
-// Painéis internos e /pesquisa continuam acessíveis; o institucional completo
-// segue visível em DEV e em previews *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
+// O institucional completo segue visível em DEV e em previews
+// *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
 const COMING_SOON_PUBLICATION = true
 
 // PREVIEW DEV-only do institucional: permite revisar Edições,
@@ -92,11 +83,6 @@ export default function App() {
   }, [path, navigate])
 
   const route = (() => {
-    // Rotas internas: acessíveis mesmo em modo Awards-only (não aparecem em menu).
-    if (path.startsWith('/painel-admin')) return 'painel-admin'
-    if (path.startsWith('/lovers/painel')) return 'painel'
-    // Pesquisa: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
-    if (path.startsWith('/pesquisa')) return 'pesquisa'
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
@@ -126,9 +112,6 @@ export default function App() {
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
-    case 'painel':       page = <PainelPage navigate={navigate} />; break
-    case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
-    case 'painel-admin': page = <PainelAdminPage navigate={navigate} />; break
     case 'em-breve':     page = <EmBrevePage />; break
     default:             page = <HomePage navigate={navigate} />
   }
@@ -141,7 +124,7 @@ export default function App() {
 
   // Áreas internas (painéis) e a landing "em breve" são tela cheia: sem
   // header/menu público (na landing, o menu levaria sempre pra ela mesma).
-  const isInternal = route === 'painel' || route === 'painel-admin' || route === 'em-breve'
+  const isInternal = route === 'em-breve'
 
   // Nav mobile (tab bar + menu full-screen): só nas rotas públicas institucionais
   // (mesma lista do rodapé). Fecha o menu ao trocar de rota.

@@ -38,3 +38,6 @@ tests/.snapshot-design/
 ds-bundle/
 .design-sync/.cache/
 .design-sync/node_modules
+
+# pasta de descarte da demolicao (apagar a mao)
+_demolicao/
