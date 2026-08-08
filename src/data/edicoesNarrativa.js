@@ -31,7 +31,7 @@ export const EDICOES_NARRATIVA = {
   '2017.1': {
     lead: 'A Páscoa estreou os temas: chocolate, símbolos da data e a ideia de presente inspiraram as criações de cada casa.',
     marco: 'Foi a primeira vez que o festival trabalhou com um tema central — e ficou claro que o tema podia ir muito além da decoração: inspirava ingrediente, apresentação, nome do produto, embalagem e comunicação.',
-    curiosidade: 'O público deixou de encontrar apenas combos promocionais e passou a encontrar várias interpretações de uma mesma celebração.',
+    curiosidade: 'O público deixou de encontrar apenas combos promocionais e passou a encontrar várias interpretações de uma mesma celebração. Foi também aqui que nasceu o Sweet Gift, com o Bolo da Vovó — o combo em versão presente ou viagem que o festival mantém até hoje.',
     legado: 'O Sweet & Coffee Week deixou de ser um circuito de produtos e virou um festival de experiências temáticas.',
   },
   '2017.2': {
@@ -61,7 +61,7 @@ export const EDICOES_NARRATIVA = {
   '2019.2': {
     lead: 'Cafeterias, docerias e confeitarias viraram cenário encantado — histórias clássicas inspiraram nome, cor, formato, ingrediente e embalagem.',
     marco: 'Foi uma das edições que mais exploraram o lado visual do festival: decoração temática, cenário, figurino, embalagem e apresentação pensada para fotografia. A experiência começava antes de provar o combo.',
-    curiosidade: 'Entre as criações divulgadas estavam o “Chá de Desaniversário”, inspirado em Alice no País das Maravilhas, e cestas ligadas à história de Chapeuzinho Vermelho. Foi também a edição que estreou o Sweet Gift, o formato para viagem ou presente.',
+    curiosidade: 'Entre as criações divulgadas estavam o “Chá de Desaniversário”, inspirado em Alice no País das Maravilhas, e cestas ligadas à história de Chapeuzinho Vermelho.',
     legado: 'A força das redes sociais ficou evidente: o público não só consumia, fotografava, gravava e compartilhava.',
   },
   '2020.1': {

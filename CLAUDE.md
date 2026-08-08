@@ -1480,8 +1480,11 @@ Os nomes documentados ficam no acervo, não no site.
 para saborear em casa, no escritório ou com amigos, embalado para presentear. Em geral
 sem bebida.
 
-**Estreou em Doces do Mundo (2017.2)**, com Rafaela Fontes e Bolo da Vovó — não em
-2019.2, como registros anteriores diziam. Confirmado pelos cards oficiais.
+**Estreou na Páscoa (2017.1)**, com o Bolo da Vovó e o "Petit Bolo da Vovó" — não em
+2017.2 nem em 2019.2, como versões anteriores diziam. Confirmado pelo Instagram oficial
+do festival: post de 03/04/2017 já anuncia o Sweet Gift do Bolo da Vovó na edição de
+Páscoa. A Rafaela Fontes Chocolateria entrou na modalidade depois, em Doces do Mundo
+(2017.2).
 
 ⚠️ **Não há foto de Sweet Gift no acervo.** O Eloi vai selecionar. Até lá, `.scw-reserva`.
 

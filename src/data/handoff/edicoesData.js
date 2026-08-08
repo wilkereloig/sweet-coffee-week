@@ -31,12 +31,12 @@ const CURIOSIDADES = {
   '2017.1': [
     { t: 'A primeira edição temática', x: 'A Páscoa estreou os temas: foi a primeira vez que as criações se organizaram em torno de um universo próprio.' },
     { t: 'O tema virou método', x: 'A organização percebeu que a narrativa aumentava o envolvimento — o tema passou a orientar receita, nome, apresentação e embalagem.' },
+    { t: 'Estreia do Sweet Gift', x: 'Nasceu aqui o combo em versão presente ou viagem: o Bolo da Vovó lançou o "Petit Bolo da Vovó" já nesta edição de Páscoa.' },
   ],
   '2017.2': [
     { t: 'Viagem sem sair de Natal', x: 'Cada marca escolheu um país ou cultura e traduziu essas referências em doce, salgado e bebida.' },
     { t: 'A semente do Trip', x: 'O conceito de viagem gastronômica voltaria, ampliado, na edição Trip de 2023.' },
     { t: 'Combo a preço único', x: 'Mais de vinte marcas participaram, com combo a preço único.' },
-    { t: 'Estreia do Sweet Gift', x: 'Nasceu aqui o combo em versão presente ou viagem, com Rafaela Fontes e Bolo da Vovó.' },
   ],
   '2018.1': [
     { t: 'Programa a dois', x: 'A edição ampliou o lado social do festival: virou programa para casais, amigos e grupos, não apenas degustação.' },
