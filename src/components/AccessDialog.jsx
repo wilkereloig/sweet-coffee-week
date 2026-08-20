@@ -35,7 +35,9 @@ const ACESSOS = [
     titulo: 'Organização',
     texto: 'Respostas dos formulários do site: contato, participação e apoio.',
     rotulo: 'Admin · entrar',
-    href: '/organizacao',
+    // A barra final não é enfeite: sem ela o servidor não resolve o índice do
+    // diretório e a rota cai no fallback do SPA — ou seja, volta para a home.
+    href: '/organizacao/',
     // Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards.
     traco: 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7',
     fundo: '#01AFCC',

@@ -77,7 +77,24 @@ test('o site tem porta de entrada para o painel', () => {
   // página existe mas ninguém acha: não há menu nem rodapé apontando para ela,
   // de propósito.
   const dialogo = readFileSync(new URL('../src/components/AccessDialog.jsx', import.meta.url), 'utf8')
-  assert.match(dialogo, /href:\s*'\/organizacao'/, 'o cartão Organização perdeu o link para o painel')
+  // A barra final é o detalhe que decide: sem ela o servidor não resolve o
+  // índice do diretório e o clique volta para a home. Medido em vite preview,
+  // que é o build de produção: /organizacao → index.html do SPA;
+  // /organizacao/ → o painel.
+  assert.match(dialogo, /href:\s*'\/organizacao\/'/,
+    'o link do painel precisa terminar em barra, senão cai no fallback do SPA')
+})
+
+test('as páginas estáticas têm rewrite próprio no vercel.json', () => {
+  // Rede de segurança para a forma sem barra em produção: a Vercel checa o
+  // sistema de arquivos antes dos rewrites, então /organizacao (que não é
+  // arquivo) cai aqui em vez de virar SPA.
+  const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
+  for (const rota of ['/organizacao', '/quero-participar']) {
+    const r = vercel.rewrites.find((x) => x.source === rota)
+    assert.ok(r, 'sem rewrite para ' + rota)
+    assert.equal(r.destination, rota + '/index.html')
+  }
 })
 
 test('todo asset absoluto existe em public/', () => {

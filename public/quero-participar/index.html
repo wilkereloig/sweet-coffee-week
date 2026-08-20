@@ -555,7 +555,10 @@ body{
    ───────────────────────────────────────────────────────────── */
 const CONFIG = {
   emailDestino: 'contato@fabrica2.com.br',
-  urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar',
+  // A barra final e obrigatoria: sem ela o servidor nao resolve o indice do
+  // diretorio e o link cai no fallback do SPA — a pessoa que recebe o convite
+  // aterrissa na home, nao no formulario.
+  urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar/',
   convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal — dá para se inscrever por aqui:',
   // Para onde as respostas vao.
   //
