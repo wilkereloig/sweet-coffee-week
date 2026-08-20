@@ -25,13 +25,13 @@
      (.scw-corpo 62ch, .scw-h2 22ch, .scw-h1 17ch). Alargar o trilho sem esses
      tetos daria linha de 200 caracteres. */
   --scw-trilho:       max(clamp(24px, 5vw, 96px), calc((100% - 2200px) / 2));
-  --scw-sec-y:        clamp(58px, 6vw, 100px);
-  --scw-sec-y-compacta: clamp(48px, 5vw, 80px);
+  --scw-sec-y:        clamp(60px, 6.4vw, 104px);
+  --scw-sec-y-compacta: clamp(44px, 4.8vw, 76px);
   /* Vocabulário de respiro INTERNO da seção (PATCH-layout-e-responsivo, ago/2026).
      O ritmo entre seções continua sendo --scw-sec-y; estes três são o de dentro.
      Gap novo entre blocos usa um destes — px cravado é o que faz Home, Edições e
      Awards não casarem. */
-  --scw-gap-cabeca:   clamp(26px, 3vw, 40px);   /* cabeça de seção → primeiro bloco */
+  --scw-gap-cabeca:   clamp(34px, 3.8vw, 56px);   /* cabeça de seção → primeiro bloco */
   --scw-gap-bloco:    clamp(20px, 2.4vw, 32px); /* bloco → bloco dentro da seção */
   --scw-gap-grade:    clamp(16px, 2vw, 28px);   /* entre cards da mesma grade */
   --scw-hero-topo:    clamp(216px, 19vw, 252px);
@@ -246,12 +246,12 @@ body.route-contato {
 .scw-h3 {
   margin: 0;
   max-width: 28ch;
-  font: 900 clamp(18px, 1.7vw, 24px)/1.1 var(--scw-font-black);
-  letter-spacing: -.03em;
+  font: 900 clamp(18px, 1.7vw, 22px)/1.06 var(--scw-font-black);
+  letter-spacing: -.026em;
 }
 .scw-numeral {
   display: block;
-  font: 900 clamp(38px, 4.4vw, 84px)/.82 var(--scw-font-black);
+  font: 900 clamp(38px, 4.4vw, 74px)/.84 var(--scw-font-black);
   letter-spacing: -.06em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -259,13 +259,13 @@ body.route-contato {
 .scw-corpo {
   margin: 0;
   max-width: 62ch;   /* medida de leitura; limite absoluto 68ch */
-  font: 500 clamp(15px, 1.2vw, 17px)/1.55 var(--scw-font);
+  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
   text-wrap: pretty;
 }
 .scw-lead {
   margin: 0;
   max-width: 46ch;
-  font: 500 clamp(16px, 1.3vw, 19px)/1.55 var(--scw-font);
+  font: 500 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font);
   text-wrap: pretty;
 }
 .scw-rotulo {
@@ -303,10 +303,10 @@ body.route-contato {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 15px 6px calc(15px + .16em);
+  padding: 8px 15px 6px calc(15px + .14em);
   border-radius: 999px;
   font: 800 11px/1.2 var(--scw-font);
-  letter-spacing: .16em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 .scw-pill--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
@@ -736,7 +736,7 @@ body.route-contato {
   align-items: center;
   justify-content: center;
   padding: clamp(16px, 4vw, 40px);
-  background: rgba(61, 19, 8, .82);
+  background: rgba(28, 10, 4, .72);
   backdrop-filter: blur(4px);
   animation: scwFade var(--mo-estado, 300ms) ease both;
 }
@@ -745,10 +745,10 @@ body.route-contato {
   width: min(760px, 100%);
   max-height: 100%;
   overflow: hidden auto;
-  border-radius: var(--scw-r-secao);
+  border-radius: 30px;
   background: var(--scw-creme);
   color: var(--scw-choco);
-  box-shadow: 0 34px 80px rgba(0, 0, 0, .5);
+  box-shadow: 0 34px 80px rgba(28, 10, 4, .5);
   animation: scwFolha 340ms cubic-bezier(.22, .92, .24, 1) both;
 }
 /* A caixa sobe pela mesma curva da folha do menu; com movimento reduzido ela

@@ -565,10 +565,10 @@ Codificam colocação, não decoram.
 | Posição | Token | Hex |
 |---|---|---|
 | 1º | `--scw-amarelo` | `#FDBB1A` |
-| 2º | `--scw-bege` | `#F8E4C1` |
+| 2º | `--scw-cyan` | `#01AFCC` |
 | 3º | `--scw-laranja` | `#FF4810` |
 
-**Numeral sempre chocolate.** ⚠️ **O 3º lugar não é marrom:** marrom sobre chocolate dá
+**Numeral sempre chocolate.** O 2º passou a **cyan** em 20/08/2026 (handoff `06-SWEET-AWARDS.md`) — 4,9:1 sobre chocolate, e separa melhor do amarelo do 1º que o bege separava. ⚠️ **O 3º lugar não é marrom:** marrom sobre chocolate dá
 ~1,5:1 e falha tanto como emblema quanto como texto solto — testado e descartado.
 
 ### 6.5 Tipografia — Nexa Slab, fonte única
@@ -586,10 +586,10 @@ servido como família separada `'Nexa Slab Black'`.
 | H1 de herói | `.scw-h1` | `900 clamp(38px,4.8vw,84px)/.9`, `-.045em`, `max-width:17ch` |
 | H1 compacto (Contato) | `.scw-h1--compacto` | `900 clamp(28px,3vw,44px)/1`, `-.035em` |
 | H2 de seção | `.scw-h2` | `900 clamp(32px,3.8vw,58px)/.94`, `-.04em`, **22ch** |
-| H3 de card | `.scw-h3` | `900 clamp(18px,1.7vw,24px)/1.1`, `-.03em`, **28ch** |
-| Numeral grande | `.scw-numeral` | `900 clamp(38px,4.4vw,84px)/.82`, `-.06em`, `tabular-nums` |
-| Corpo | `.scw-corpo` | `500 clamp(15px,1.2vw,17px)/1.55`, `text-wrap:pretty`, **62ch** (limite absoluto 68) |
-| Lead de herói | `.scw-lead` | `500 clamp(16px,1.3vw,19px)/1.55`, **46ch** |
+| H3 de card | `.scw-h3` | `900 clamp(18px,1.7vw,22px)/1.06`, `-.026em`, **28ch** |
+| Numeral grande | `.scw-numeral` | `900 clamp(38px,4.4vw,74px)/.84`, `-.06em`, `tabular-nums` |
+| Corpo | `.scw-corpo` | `500 clamp(15.5px,1.35vw,18px)/1.55`, `text-wrap:pretty`, **62ch** (limite absoluto 68) |
+| Lead de herói | `.scw-lead` | `500 clamp(17px,1.4vw,21px)/1.5`, **46ch** |
 | Rótulo | `.scw-rotulo` | `800 12px/1`, `.16em`, uppercase, `#6A2C15` |
 | Rótulo com ícone | `.scw-rotulo--com-icone` | **32ch, uma linha** |
 | Botão | `.scw-btn` | `800 15px/1` |
@@ -633,12 +633,12 @@ Edições:**
 **Ritmo vertical:**
 
 ```css
---scw-sec-y:          clamp(58px, 6vw, 100px);   /* entre seções */
---scw-sec-y-compacta: clamp(48px, 5vw, 80px);
+--scw-sec-y:          clamp(60px, 6.4vw, 104px); /* entre seções */
+--scw-sec-y-compacta: clamp(44px, 4.8vw, 76px);
 --scw-hero-topo:      clamp(216px, 19vw, 252px); /* reserva de topo das heros */
 ```
 
-**Respiro interno de seção:** `--scw-gap-cabeca` (26–40px) · `--scw-gap-bloco` (20–32px)
+**Respiro interno de seção:** `--scw-gap-cabeca` (34–56px) · `--scw-gap-bloco` (20–32px)
 · `--scw-gap-grade` (16–28px). **O ritmo ENTRE seções continua `--scw-sec-y`.**
 
 **Raios, sombras, easing:**

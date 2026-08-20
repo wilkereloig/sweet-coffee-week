@@ -129,7 +129,7 @@ const FOTOS = (() => {
 // marrom — marrom sobre chocolate dá ~1,5:1 (falha como emblema E como texto
 // solto no Hall, que tem fundo chocolate); laranja fecha 4,8:1 nos dois usos
 // e ainda lê melhor como "bronze" que um marrom escuro.
-const MEDALHA = { 1: 'var(--scw-amarelo)', 2: 'var(--scw-bege)', 3: 'var(--scw-laranja)' }
+const MEDALHA = { 1: 'var(--scw-amarelo)', 2: 'var(--scw-cyan)', 3: 'var(--scw-laranja)' }
 const medalha = (pos) => MEDALHA[pos] || 'var(--scw-laranja)'
 
 // Cores dos selos de categoria — só paleta oficial. Tinta do ícone por fundo:

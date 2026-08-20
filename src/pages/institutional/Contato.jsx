@@ -405,8 +405,7 @@ export function ContatoPage({ navigate }) {
       {/* ---------- 03 CAMINHOS ---------------------------------------------- */}
       <section className="ctt-sec ctt-sec--bege" aria-labelledby="ctt-caminhos-titulo">
         <div
-          className="scw-grade ctt-cabeca ctt-cabeca--caminhos"
-          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
+          className="ctt-cabeca ctt-cabeca--caminhos ctt-cabeca--simples"
         >
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/caminhos" tamanho={20} />Escolha o caminho</span>
@@ -414,9 +413,6 @@ export function ContatoPage({ navigate }) {
               Cada assunto tem <em className="ctt-destaque ctt-destaque--choco">uma porta certa</em>.
             </h2>
           </div>
-          <p className="ctt-cabeca__apoio">
-            Isso encurta a resposta: quem chega pelo caminho certo fala direto com quem cuida do assunto.
-          </p>
         </div>
 
         <ul className="ctt-portas">

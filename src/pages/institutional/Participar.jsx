@@ -557,16 +557,13 @@ export function ParticiparPage() {
 
       {/* ═══ 07 Jornada ═══ */}
       <section className="scw-secao scw-secao--choco">
-        <div className="pa-cabeca">
+        <div className="pa-cabeca pa-cabeca--simples">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Depois do seu interesse</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '22ch' }}>
               Um <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>percurso claro</em>, do pré-cadastro à edição.
             </h2>
           </div>
-          <p className="pa-cabeca__apoio">
-            Sem caixa-preta: você acompanha em que etapa a marca está, do interesse à edição.
-          </p>
         </div>
         <ol className="pa-jornada">
           {JORNADA.map((j) => (
