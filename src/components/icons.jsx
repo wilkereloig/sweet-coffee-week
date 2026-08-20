@@ -13,6 +13,16 @@ export const I = {
       <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  chevronLeft: (p = {}) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  chevronRight: (p = {}) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   cup: (p = {}) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...p}>
       <path d="M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9Z" stroke="currentColor" strokeWidth="1.4"/>
@@ -121,10 +131,28 @@ export const I = {
       <path d="M3 8.5l3.5 3.5 7-8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  home: (p = {}) => (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+      <path d="M3 8l6-5 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M4.5 7.5V14.5h9V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   lock: (p = {}) => (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" {...p}>
       <rect x="3" y="7" width="10" height="7" rx="1.4" stroke="currentColor" strokeWidth="1.4"/>
       <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
+  sound: (p = {}) => (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M2 6.2h2.4L8 3.4v9.2L4.4 9.8H2V6.2Z" fill="currentColor"/>
+      <path d="M10.6 5.6a3.3 3.3 0 0 1 0 4.8M12.6 3.8a6.1 6.1 0 0 1 0 8.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
+  soundOff: (p = {}) => (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" {...p}>
+      <path d="M2 6.2h2.4L8 3.4v9.2L4.4 9.8H2V6.2Z" fill="currentColor"/>
+      <path d="M10.8 6.4l3.4 3.4M14.2 6.4l-3.4 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   ),
   user: (p = {}) => (
@@ -133,75 +161,4 @@ export const I = {
       <path d="M2.5 15.5c0-3.038 2.91-5.5 6.5-5.5s6.5 2.462 6.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   ),
-}
-
-export function LogoMark({ size = 32, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="14.5" stroke={color} strokeWidth="1.2"/>
-      <path d="M9 13h11v4a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5v-4Z" fill={color}/>
-      <path d="M20 14.5h1.5a2 2 0 0 1 0 4H20" stroke={color} strokeWidth="1.2"/>
-      <circle cx="14" cy="9" r="1" fill={color}/>
-    </svg>
-  )
-}
-
-export function LoversSeal({ size = 56 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      <path d="M28 2 C 30 6, 36 4, 38 8 C 42 8, 46 12, 46 16 C 50 18, 52 22, 50 26 C 54 28, 54 34, 50 36 C 52 40, 48 44, 44 44 C 44 48, 40 52, 36 50 C 34 54, 28 54, 26 50 C 22 52, 18 50, 18 46 C 14 46, 10 42, 12 38 C 8 36, 6 30, 10 28 C 6 24, 8 18, 12 18 C 12 14, 16 10, 20 12 C 22 8, 26 6, 28 2Z"
-            fill="var(--lovers-burgundy)"/>
-      <path d="M28 38 C 18 32, 14 26, 18 22 a 4 4 0 0 1 10 0 a 4 4 0 0 1 10 0 C 42 26, 38 32, 28 38 Z" fill="var(--lovers-yellow)"/>
-    </svg>
-  )
-}
-
-export function LoversLogo({ size = 200, variant = 'default', className = '' }) {
-  const variantClass = variant === 'pink' ? 'lovers-logo--pink'
-                     : variant === 'dark' ? 'lovers-logo--dark'
-                     : ''
-  const svgHtml = loversLogoRaw.replace(/<svg /, '<svg style="width:100%;height:100%;display:block" ')
-  return (
-    <div
-      className={`lovers-logo ${variantClass} ${className}`}
-      style={{ width: size, height: size, display: 'inline-block' }}
-      dangerouslySetInnerHTML={{ __html: svgHtml }}
-    />
-  )
-}
-
-export function LoversWordmark({ width = 120, className = '' }) {
-  const svgHtml = loversWordmarkRaw.replace(/<svg /, '<svg style="width:100%;height:auto;display:block" ')
-  return (
-    <div
-      className={`lovers-wordmark ${className}`}
-      style={{ width, display: 'inline-block' }}
-      dangerouslySetInnerHTML={{ __html: svgHtml }}
-    />
-  )
-}
-
-export function Squiggle({ width = 80, color = 'var(--lovers-burgundy)', className = '' }) {
-  return (
-    <svg width={width} height="14" viewBox="0 0 80 14" fill="none" className={className}>
-      <path d="M1 7 C 8 1, 16 13, 24 7 S 40 1, 48 7 S 64 13, 72 7 S 80 1, 79 7"
-            stroke={color} strokeWidth="2" strokeLinecap="round" fill="none"/>
-    </svg>
-  )
-}
-
-export function HeartTiny({ size = 12, color = 'var(--lovers-burgundy)' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-      <path d="M12 20s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11Z"/>
-    </svg>
-  )
-}
-
-export function TapeStrip({ children, rotate = -2, color = 'var(--lovers-yellow)' }) {
-  return (
-    <span className="sticker-tape" style={{ transform: `rotate(${rotate}deg)`, background: color }}>
-      {children}
-    </span>
-  )
 }

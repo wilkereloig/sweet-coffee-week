@@ -1,0 +1,846 @@
+/* ============================================================================
+   Participar + Apoiar — páginas irmãs do redesign 2026.
+   Só o que NÃO existe em scw-2026.css. Tokens, trilho, tipografia, pills,
+   botões, cards, campos, marquee e herói-bloco vêm de lá; aqui ficam apenas as
+   peças próprias destas duas páginas (prefixo .pa-).
+   Fonte: design_handoff_site_institucional (README + protótipo .dc.html).
+   Nenhuma cor fora da paleta. Nunca #E52C4B.
+   ========================================================================= */
+
+/* ============================================================================
+   Herói (abertura das duas páginas) — usa .scw-hero-bloco + .scw-hero-banda
+   ========================================================================= */
+
+/* Herói na cor da própria página (redesign 29/07/2026) — --scw-heroi/--tinta
+   (scw-2026.css), par dedicado porque --scw-pagina não fecha AA em toda rota
+   (Participar é magenta puro; creme sobre esse rosa dá 3,8:1). */
+.pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
+
+/* Véu: aprofunda para a cor do herói, nunca um hex fixo. Sem o cartão de foto
+   (PATCH 01 §6) ele serve só à banda do celular, que o lê em --scw-banda-veu. */
+.pa-hero { --veu: color-mix(in srgb, var(--scw-heroi) 70%, var(--scw-choco)); }
+
+/* Forma da identidade em marca-d'água: só apoia a leitura do bloco, não compete
+   com o texto (opacidade 8%, atrás de tudo, aria-hidden no JSX). */
+.pa-hero__forma {
+  position: absolute;
+  width: clamp(220px, 26vw, 420px);
+  opacity: .08;
+  pointer-events: none;
+}
+.pa-hero__forma--participar { left: -4%; bottom: -14%; }
+
+/* PATCH 01 §6: a abertura é rótulo + H1 + lead + ações, nada mais. Sem a coluna
+   de apoio o grid perdeu a função — quem limita a medida é o próprio papel
+   (.scw-h1 17ch, .scw-lead 46ch), não uma largura de coluna inventada aqui. */
+.pa-hero__grade { position: relative; z-index: 1; }
+.pa-hero__selo { padding: 11px 18px 9px calc(18px + .16em); font-size: 11.5px; }
+.pa-hero__titulo { margin: clamp(20px, 2.2vw, 28px) 0 0; color: var(--scw-heroi-tinta); }
+.pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: color-mix(in srgb, var(--scw-heroi-tinta) 88%, transparent); }
+.pa-hero__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(20px, 2.4vw, 30px);
+}
+.pa-hero__nota {
+  display: block;
+  margin-top: clamp(20px, 2.2vw, 28px);
+  padding-top: clamp(16px, 1.8vw, 22px);
+  border-top: 1px solid color-mix(in srgb, var(--scw-heroi-tinta) 26%, transparent);
+  font: 700 13.5px/1.45 var(--scw-font);
+  color: color-mix(in srgb, var(--scw-heroi-tinta) 84%, transparent);
+}
+
+/* Selo do herói: o pill usa --scw-pagina como fundo, e nas duas páginas a cor
+   da página é AGORA a cor da própria chapa do herói (cyan em Participar,
+   marrom em Apoiar) — cor sobre cor some. Cada uma inverte do jeito que o
+   fundo pede, e o padrão da casa para isso já existe em .swa-hero (Awards):
+   chapa clara, tinta na cor da página. */
+body.route-participar .pa-hero__selo { background: var(--scw-choco); color: var(--scw-creme); }
+body.route-apoiar .pa-hero__selo { background: var(--scw-creme); color: var(--scw-marrom); }
+
+/* Participar herdou o herói CYAN, que é chapa CLARA de tinta chocolate: as
+   compensações abaixo são as que Apoiar usava enquanto era cyan — elas seguem a
+   cor, não a página. O tratamento especial do magenta (lead em texto grande,
+   nota em pílula chapada) morreu junto com o herói magenta: cyan × chocolate dá
+   6,2:1 e passa AA em texto pequeno. */
+body.route-participar .pa-hero__acoes .scw-btn--solido,
+body.route-participar .pa-hero__acoes .scw-btn--pagina {
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
+  border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
+  color: var(--scw-choco);
+}
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
+  background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
+  border-color: var(--scw-choco);
+}
+/* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói desta
+   página, então some sobre esse fundo. Só aqui o anel troca para chocolate. */
+body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
+  outline-color: var(--scw-choco);
+}
+
+/* Apoiar ficou com o marrom: chapa ESCURA de tinta creme (9,4:1). As regras
+   base já servem — botão sólido amarelo, contorno creme, anel cyan — então a
+   página não sobrescreve nada além do selo acima. */
+
+/* No celular o herói vira banda de foto + informação (README § Herói no
+   celular). */
+@media (max-width: 1000px) {
+  .pa-hero__forma { display: none; }
+  /* A banda sangrando recebe o mesmo véu no topo (onde a logo do cabeçalho
+     passa por cima) e fecha embaixo na cor do bloco — que aqui NÃO é o
+     chocolate padrão de .scw-hero-bloco: .pa-hero repinta em --scw-heroi
+     (cyan em Participar, marrom em Apoiar). */
+  .pa-hero .scw-hero-banda {
+    --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
+    --scw-banda-base: var(--scw-heroi);
+  }
+}
+
+/* ============================================================================
+   Cabeçalho de seção (rótulo + título + apoio) — repetido nas duas páginas
+   ========================================================================= */
+
+.pa-cabeca {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(20px, 3vw, 56px);
+  align-items: end;
+  margin: 0 0 clamp(34px, 3.8vw, 56px);
+}
+/* Cabeça sem lead (PATCH 03 §1): bloco único, sem a grade de duas colunas — a
+   coluna vazia à direita não vira espaço reservado. Par do .ctt-cabeca--simples
+   do Contato; a margem continua vindo da base. */
+.pa-cabeca--simples { display: block; }
+.pa-cabeca h2 { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 24ch; }
+.pa-cabeca__apoio {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--scw-marrom);
+  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
+  text-wrap: pretty;
+}
+/* Lead alinhado à direita e à base (KV § Cabeça de seção): rótulo+H2 à
+   esquerda, apoio ancorado no fim da linha. Só quando a cabeça tem DUAS
+   colunas — numa coluna só (celular) `justify-self:end` jogaria o parágrafo
+   contra a margem direita, longe do título que ele explica. */
+@media (min-width: 760px) {
+  .pa-cabeca__apoio { justify-self: end; }
+}
+/* O par da guarda acima: abaixo de 760 a cabeça é UMA coluna por decreto.
+   O auto-fit sozinho ainda abria duas colunas por volta de ~700px de viewport
+   (a conta é do CONTAINER, não da tela) — e aí o apoio ficava em duas colunas
+   SEM o alinhamento, exatamente o defeito que a regra acima corrige. */
+@media (max-width: 759px) {
+  .pa-cabeca { grid-template-columns: 1fr; }
+}
+.scw-secao--choco .pa-cabeca__apoio { color: rgba(254, 240, 221, .74); }
+.scw-secao--choco .pa-cabeca .scw-rotulo { color: var(--scw-amarelo); }
+/* `width: fit-content` porque o filete é do LINK, não da coluna: item de grade
+   é blocificado (o `inline-flex` vira `flex`) e estica na célula inteira, então
+   o sublinhado atravessava a coluna. O irmão `.hm-link--sublinhado` já estava
+   protegido por `justify-self:start`. */
+.pa-cabeca__link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--scw-marrom);
+  color: var(--scw-marrom);
+  font: 800 15px/1 var(--scw-font);
+  transition: var(--scw-transicao);
+}
+.pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
+
+/* Destaque editorial no título: mesmo keyframe do sistema (scwDestaque).
+   Cor de base e cor final vêm inline (--base / --dest). */
+.pa-destaque {
+  font-style: normal;
+  color: var(--base, var(--scw-choco));
+  /* 240ms de atraso não bate com nenhum degrau --mo-passo* — é uma pausa
+     própria antes da troca de cor, não um passo de sequência; mantido literal. */
+  animation: scwDestaque var(--mo-entra) var(--mo-mola) 240ms both;
+}
+
+/* ============================================================================
+   Faixa de números (Participar 02 · Apoiar 02)
+   ========================================================================= */
+
+/* Apoiar 02 — indicadores de audiência que vieram do herói (PATCH 01 §6),
+   no padrão disco + ícone + numeral + rótulo do PATCH 02 §5. Abrem a seção; os
+   seis números do histórico (.pa-numeros) vêm logo abaixo. */
+.pa-alcance-topo {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(24px, 2.8vw, 44px);
+  margin: 0 0 clamp(40px, 4.4vw, 68px);
+  padding: 0 0 clamp(34px, 3.6vw, 52px);
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-alcance-topo li { display: grid; gap: 12px; justify-items: start; }
+.pa-alcance-topo .scw-numeral { color: var(--scw-choco); }
+.pa-alcance-topo li > span:last-child {
+  max-width: 22ch;
+  font: 800 15.5px/1.2 var(--scw-font);
+  color: var(--scw-marrom);
+}
+
+.pa-numeros {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc((100% - 2 * clamp(20px, 2.4vw, 40px)) / 3))), 1fr));
+  grid-template-rows: repeat(8, auto);
+  gap: clamp(26px, 3vw, 44px) clamp(20px, 2.4vw, 40px);
+  margin: 0;
+  padding: 0;
+}
+.pa-numeros li {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  gap: 10px;
+}
+.pa-numeros b {
+  display: block;
+  color: var(--scw-choco);
+  font: 900 clamp(36px, 4.2vw, 74px)/.84 var(--scw-font-black);
+  letter-spacing: -.06em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pa-numeros strong {
+  align-self: start;
+  color: var(--scw-choco);
+  font: 800 15.5px/1.25 var(--scw-font);
+}
+.pa-numeros span {
+  align-self: start;
+  max-width: 24ch;
+  font: 500 13.5px/1.4 var(--scw-font);
+  color: var(--scw-marrom);
+}
+
+/* ============================================================================
+   Participar 03 — três faixas de circulação (imagem e texto de larguras iguais)
+   ========================================================================= */
+
+.pa-faixas { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 28px); }
+.pa-faixa {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: stretch;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+  background: var(--fundo, var(--scw-marrom));
+  color: var(--scw-creme);
+}
+.pa-faixa figure {
+  position: relative;
+  margin: 0;
+  min-height: clamp(300px, 32vw, 460px);
+  overflow: hidden;
+  background: rgba(61, 19, 8, .14);
+}
+.pa-faixa--inversa figure { order: 2; }
+.pa-faixa img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pa-faixa__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(26px, 3.2vw, 52px);
+}
+.pa-faixa__ordem {
+  font: 800 11.5px/1 var(--scw-font);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--scw-creme);
+}
+.pa-faixa__corpo h3 {
+  margin: 0;
+  max-width: 18ch;
+  color: var(--scw-creme);
+  font: 900 clamp(26px, 3vw, 44px)/.96 var(--scw-font-black);
+  letter-spacing: -.036em;
+  text-wrap: balance;
+}
+.pa-faixa__corpo p {
+  margin: 0;
+  max-width: 40ch;
+  color: var(--scw-creme);
+  font: 500 clamp(15px, 1.25vw, 17px)/1.55 var(--scw-font);
+  text-wrap: pretty;
+}
+.pa-faixa__resumo {
+  margin-top: auto;
+  padding-top: clamp(18px, 2vw, 26px);
+  color: var(--resumo, var(--scw-creme));
+  font: 900 clamp(19px, 1.9vw, 26px)/1 var(--scw-font-black);
+  letter-spacing: -.025em;
+}
+@media (max-width: 1000px) {
+  .pa-faixa--inversa figure { order: 0; }
+}
+
+/* ============================================================================
+   Cards com ícone (Participar 04 "quem pode" · Apoiar 03 "por que apoiar")
+   ========================================================================= */
+
+.pa-cards {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin: 0;
+  padding: 0;
+}
+.pa-cards--largos {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(240px, calc((100% - 2 * clamp(12px, 1.6vw, 20px)) / 3))), 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.pa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(16px, 1.7vw, 22px);
+  border-radius: var(--scw-r-card);
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
+}
+.pa-cards--largos .pa-card { gap: 14px; padding: clamp(20px, 2.2vw, 28px); border-radius: var(--scw-r-card); }
+/* O disco de ícone dos cards é o .scw-disco de scw-2026.css (46px padrão). */
+.pa-card__txt { display: flex; flex-direction: column; gap: 5px; }
+.pa-card__txt b { font: 800 15.5px/1.2 var(--scw-font); }
+.pa-card__txt span { font: 500 13px/1.35 var(--scw-font); color: var(--scw-marrom); }
+.pa-card h3 {
+  margin: 0;
+  font: 900 clamp(18px, 1.7vw, 22px)/1.06 var(--scw-font-black);
+  letter-spacing: -.026em;
+}
+.pa-card p {
+  margin: 0;
+  font: 500 14.5px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+
+/* ============================================================================
+   Participar 05 — depoimentos
+   ========================================================================= */
+
+.pa-depos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(240px, calc((100% - 2 * clamp(14px, 1.8vw, 24px)) / 3))), 1fr));
+  gap: clamp(14px, 1.8vw, 24px);
+  margin: 0;
+  padding: 0;
+}
+.pa-depo {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+  background: var(--cor, var(--scw-amarelo));
+  color: var(--tinta, var(--scw-choco));
+}
+.pa-depo__media { position: relative; }
+.pa-depo__foto {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--scw-choco);
+}
+.pa-depo__foto img,
+.pa-depo__foto video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pa-depo__som {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  bottom: 14px;
+  display: grid;
+  place-items: center;
+  /* 34 → 44px: piso de toque do PATCH 02 §2, medido no controle real. */
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(61, 19, 8, .55);
+  color: var(--scw-creme);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.pa-depo__som:hover,
+.pa-depo__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
+/* 34px basta para o ponteiro, não para o polegar — no celular vai a 44. */
+@media (max-width: 900px) {
+  .pa-depo__som { width: 44px; height: 44px; }
+}
+.pa-depo__selo {
+  position: absolute;
+  right: 16px;
+  bottom: -24px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--scw-creme);
+  border: 3px solid var(--cor, var(--scw-amarelo));
+}
+.pa-depo__selo img { width: 100%; height: 100%; object-fit: cover; }
+.pa-depo__iniciais {
+  font: 900 17px/1 var(--scw-font-black);
+  color: var(--scw-choco);
+}
+.pa-depo__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  padding: clamp(30px, 3vw, 38px) clamp(22px, 2.4vw, 30px) clamp(22px, 2.4vw, 30px);
+}
+.pa-depo blockquote,
+.pa-depo__espera {
+  margin: 0;
+  font: 900 clamp(17px, 1.6vw, 21px)/1.22 var(--scw-font-black);
+  letter-spacing: -.022em;
+  text-wrap: pretty;
+}
+.pa-depo__espera { opacity: .78; font-style: italic; }
+.pa-depo__quem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--filete, rgba(61, 19, 8, .22));
+}
+.pa-depo__quem b { font: 800 15.5px/1.2 var(--scw-font); }
+.pa-depo__quem span { font: 500 14px/1.3 var(--scw-font); opacity: .75; }
+
+/* ============================================================================
+   Participar 06 — imprensa (chips sem link: as URLs ainda não existem)
+   ========================================================================= */
+
+/* Galeria de registros em TV. auto-fit resolve o empilhamento sozinho: abaixo
+   de ~760px as três não cabem em 220px cada e a grade quebra em coluna, sem
+   media query própria. */
+.pa-imprensa__fotos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin: 0 0 clamp(22px, 2.4vw, 32px);
+  padding: 0;
+}
+.pa-imprensa__fotos li {
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--scw-r-card);
+  background: rgba(61, 19, 8, .14);
+}
+.pa-imprensa__fotos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.pa-imprensa {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+.pa-imprensa li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-imprensa b { font: 800 14.5px/1 var(--scw-font); color: var(--scw-choco); }
+.pa-imprensa span {
+  font: 700 11.5px/1 var(--scw-font);
+  letter-spacing: .08em;
+  color: var(--scw-marrom);
+}
+.pa-imprensa__nota {
+  margin: clamp(18px, 2vw, 24px) 0 0;
+  color: var(--scw-marrom);
+  font: 500 13.5px/1.5 var(--scw-font);
+}
+
+/* ============================================================================
+   Participar 07 — jornada depois do interesse
+   ========================================================================= */
+
+.pa-jornada {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(200px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr));
+  grid-template-rows: auto auto auto;
+  gap: clamp(18px, 2.2vw, 32px) clamp(16px, 2vw, 28px);
+  margin: clamp(34px, 3.8vw, 56px) 0 0;
+  padding: 0;
+}
+.pa-jornada li {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 3px solid var(--c, var(--scw-amarelo));
+}
+.pa-jornada b {
+  font: 900 clamp(30px, 3.2vw, 50px)/.9 var(--scw-font-black);
+  letter-spacing: -.05em;
+  color: var(--c, var(--scw-amarelo));
+}
+.pa-jornada h3 {
+  align-self: start;
+  margin: 0;
+  font: 900 clamp(18px, 1.8vw, 24px)/1.04 var(--scw-font-black);
+  letter-spacing: -.028em;
+  color: var(--scw-creme);
+}
+.pa-jornada p {
+  align-self: start;
+  margin: 0;
+  max-width: 30ch;
+  font: 500 14.5px/1.5 var(--scw-font);
+  color: rgba(254, 240, 221, .76);
+}
+
+/* ============================================================================
+   Apoiar 04 — onde a marca aparece
+   ========================================================================= */
+
+.pa-onde {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+  margin: 0;
+  padding: 0;
+}
+.pa-onde > li {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-onde figure {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--scw-bege);
+}
+.pa-onde figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Cidade e PDV tem duas fotos reais (mesa + vitrine) em vez de uma — filete de
+   2px no meio, cada metade com a própria imagem. object-fit:cover mais o
+   position de cada foto já resolve, sem precisar de metade-figure própria. */
+.pa-onde__figura--dupla { display: flex; }
+.pa-onde__figura--dupla img {
+  position: static;
+  flex: 1 1 50%;
+  width: 50%;
+  height: 100%;
+}
+.pa-onde__figura--dupla img:first-child { border-right: 2px solid var(--scw-creme); }
+.pa-onde__tag {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 8px 14px 6px;
+  border-radius: 999px;
+  background: var(--c, var(--scw-roxo));
+  color: var(--tinta, var(--scw-creme));
+  font: 800 11px/1 var(--scw-font);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pa-onde ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: clamp(18px, 2vw, 24px);
+}
+.pa-onde ul li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font: 500 14.5px/1.35 var(--scw-font);
+  color: var(--scw-choco);
+}
+.pa-onde ul li::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c, var(--scw-roxo));
+}
+
+/* ============================================================================
+   Apoiar 05 — quem vive o festival
+   ========================================================================= */
+
+/* Grade editorial: filete horizontal separando os traços, sem bullet — bolinha
+   de 7px é indicador de item de lista, não de dado. O filete de topo fecha a
+   primeira fileira; cada item fecha a sua na base. */
+.pa-quem {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 0;
+  margin: 0 0 clamp(44px, 4.6vw, 72px);
+  padding: 0;
+  border-top: 1px solid rgba(254, 240, 221, .2);
+}
+.pa-quem__item {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.4vw, 20px);
+  /* padding-right no ITEM, não gap na grade: com gap a coluna da direita
+     ganharia respiro que a esquerda não tem. */
+  padding: clamp(22px, 2.4vw, 32px) clamp(20px, 2vw, 30px) clamp(26px, 2.8vw, 38px) 0;
+  border-bottom: 1px solid rgba(254, 240, 221, .2);
+}
+.pa-quem__indice {
+  font: 900 clamp(13px, 1.1vw, 14px)/1 var(--scw-font);
+  letter-spacing: .1em;
+  color: var(--scw-amarelo);
+}
+/* 500 15px → 700 17-21px: o traço é o argumento da seção; ler como item de
+   lista era o defeito. */
+.pa-quem__texto {
+  max-width: 24ch;
+  font: 700 clamp(17px, 1.6vw, 21px)/1.32 var(--scw-font);
+  color: var(--scw-creme);
+  text-wrap: pretty;
+}
+
+/* Imprensa: rótulo à esquerda, chips ocupando o resto da linha. Quem espaça o
+   rótulo agora é o gap do bloco, por isso ele perdeu o margin-bottom. */
+.pa-veiculos__bloco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(18px, 2.4vw, 44px);
+  align-items: start;
+}
+.pa-veiculos__bloco .pa-veiculos { grid-column: span 2; }
+.pa-veiculos__rotulo {
+  display: block;
+  font: 800 11.5px/1.4 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-bege);
+}
+.pa-veiculos {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+}
+.pa-veiculos li {
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(254, 240, 221, .28);
+  font: 800 13.5px/1 var(--scw-font);
+  color: var(--scw-creme);
+}
+
+/* ============================================================================
+   Formulários em destaque (pré-cadastro · proposta de apoio)
+   ========================================================================= */
+
+.pa-form__intro { max-width: 980px; margin: 0 auto; text-align: center; }
+.pa-form__intro h2 { margin: clamp(14px, 1.6vw, 20px) auto 0; max-width: 24ch; }
+.pa-form__intro p {
+  margin: 16px auto 0;
+  max-width: 52ch;
+  color: var(--scw-marrom);
+  font: 500 16.5px/1.55 var(--scw-font);
+  text-wrap: pretty;
+}
+.pa-form {
+  max-width: 980px;
+  margin: clamp(30px, 3.4vw, 48px) auto 0;
+  padding: clamp(26px, 3vw, 44px);
+  border-radius: var(--scw-r-secao);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-form fieldset { margin: 0; padding: 0; border: 0; }
+.pa-form fieldset + fieldset {
+  margin-top: clamp(24px, 2.6vw, 34px);
+  padding-top: clamp(24px, 2.6vw, 34px);
+  border-top: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-form legend {
+  padding: 0;
+  font: 800 11.5px/1 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.pa-form__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: clamp(14px, 1.6vw, 20px);
+  margin-top: 18px;
+}
+.pa-form__grade .scw-campo--full { grid-column: 1 / -1; }
+/* Campo dentro do cartão creme-claro: o fundo do input desce um tom pra separar
+   do papel do formulário (o padrão .scw-campo é pensado sobre creme). */
+.pa-form .scw-campo :is(input, select, textarea) { background: var(--scw-creme); }
+.pa-form .scw-campo > span em {
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: .7;
+}
+.pa-form .scw-campo :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--scw-laranja); }
+.pa-erro {
+  font: 700 12.5px/1.35 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.pa-form__pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: clamp(22px, 2.4vw, 30px);
+}
+.pa-form__consent {
+  max-width: 44ch;
+  margin: 0;
+  font: 500 13px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.pa-form__enviar {
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.pa-form__enviar:hover { background: var(--scw-marrom); }
+.pa-form__enviar:active { transform: translateY(1px); }
+.pa-form__status {
+  grid-column: 1 / -1;
+  margin: clamp(16px, 1.8vw, 22px) 0 0;
+  font: 700 14px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.pa-form__status:empty { margin: 0; }
+
+/* Confirmação de envio (substitui o formulário). */
+.pa-sucesso {
+  max-width: 620px;
+  margin: clamp(30px, 3.4vw, 48px) auto 0;
+  padding: clamp(30px, 3.4vw, 48px);
+  border-radius: var(--scw-r-secao);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
+  text-align: center;
+}
+.pa-sucesso:focus-visible { outline-offset: 6px; }
+.pa-sucesso__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.pa-sucesso strong {
+  display: block;
+  font: 900 clamp(24px, 2.4vw, 32px)/1 var(--scw-font-black);
+  letter-spacing: -.03em;
+}
+.pa-sucesso p {
+  margin: 14px auto 24px;
+  max-width: 44ch;
+  font: 500 15.5px/1.55 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.pa-sucesso button {
+  min-height: 48px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--scw-choco);
+  background: transparent;
+  color: var(--scw-choco);
+  font: 800 14px/1 var(--scw-font);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+/* ============================================================================
+   Barra de ação fixa (aparece depois da primeira dobra)
+   ========================================================================= */
+
+.pa-barra {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px var(--scw-trilho);
+  background: rgba(61, 19, 8, .96);
+  color: var(--scw-creme);
+  border-top: 1px solid rgba(254, 240, 221, .16);
+  transform: translateY(110%);
+  transition: var(--scw-transicao);
+}
+.pa-barra.is-visivel { transform: none; }
+.pa-barra span {
+  font: 700 14px/1 var(--scw-font);
+  color: rgba(254, 240, 221, .86);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pa-barra a { min-height: 46px; padding: 12px 22px; font-size: 14px; }
+/* Até 900px quem ocupa a base é a barra de abas do aplicativo — duas barras
+   fixas empilhadas roubariam a tela. */
+@media (max-width: 900px) { .pa-barra { display: none; } }

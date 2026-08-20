@@ -1,0 +1,25 @@
+{
+  "projectId": "9e1564b3-a104-4667-8303-4388d9d91d9e",
+  "shape": "package",
+  "pkg": "site-sweet-coffee-week",
+  "globalName": "SweetCoffeeWeekDS",
+  "srcDir": "src/components",
+  "cssEntry": "dist/assets/index-BqBz6bSd.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [".design-sync/fonts-nexa-slab.extra.css"],
+  "componentSrcMap": {
+    "I": null,
+    "LoversSeal": null,
+    "LoversLogo": null,
+    "LoversWordmark": null,
+    "Squiggle": null,
+    "HeartTiny": null,
+    "TapeStrip": null
+  },
+  "overrides": {
+    "CookieConsent": { "cardMode": "single", "primaryStory": "PrimeiraVisita" },
+    "MobileTabBar": { "cardMode": "column", "viewport": "420x300" },
+    "BotaoTopo": { "cardMode": "single", "primaryStory": "AposRolar", "viewport": "420x500" },
+    "SiteHeader": { "cardMode": "single", "primaryStory": "OFestival", "viewport": "900x300" }
+  }
+}

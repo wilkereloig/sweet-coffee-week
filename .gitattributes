@@ -1,0 +1,24 @@
+# Normalização de quebra de linha — evita o diff fantasma de CRLF↔LF.
+# Sem isto, editar no Windows marca 100+ arquivos como modificados sem
+# nenhuma mudança de conteúdo. Ver: git diff -w volta vazio.
+* text=auto eol=lf
+
+# Binários — nunca normalizar
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.gif    binary
+*.ico    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.mp4    binary
+*.webm   binary
+*.mp3    binary
+*.pdf    binary
+*.traineddata binary
+
+# SVG é texto
+*.svg    text eol=lf

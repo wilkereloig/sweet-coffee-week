@@ -1,0 +1,1116 @@
+/* ============================================================================
+   Sweet & Coffee Week — página EDIÇÕES (experiência de tela cheia, redesign 2026)
+   Fonte: design_handoff_site_institucional/README.md (§ "Edições — experiência
+   de tela cheia") + protótipo Edicoes.dc.html. Valores hifi (finais).
+
+   Regras seguidas aqui:
+   - nenhuma cor fora da paleta de scw-2026.css (nunca #E52C4B);
+   - NADA de backdrop-filter sobre o trilho/cena animada — fundo semi-opaco
+     (blur + readback de GPU a cada frame congela o compositor);
+   - o deslocamento da tab bar mobile é UMA variável (--scw-edx-abas), nunca
+     literal espalhado: a página pode ser embutida no site (tab bar montada por
+     fora) ou aberta sozinha (modificador --solta);
+   - só transform/opacity/filter animam; a barra de progresso da régua mobile
+     não tem transition em width/transform (travava o valor no meio do caminho).
+   ========================================================================= */
+
+.scw-edx {
+  /* Tab bar do site (76px + safe-area) montada POR FORA da página. */
+  --scw-edx-abas: calc(76px + env(safe-area-inset-bottom, 0px));
+  /* Acento da edição em foco — trocado inline por cena (ver Edicoes.jsx). */
+  --scw-edx-tom: var(--scw-cyan);
+  --scw-edx-tinta: var(--scw-choco);   /* texto SOBRE o acento (AA) */
+  --scw-edx-tom-txt: var(--scw-cyan);  /* acento usado como TEXTO no escuro */
+
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  font-family: var(--scw-font);
+}
+/* Página aberta sozinha (sem a casca do site): régua encosta na base. */
+.scw-edx--solta { --scw-edx-abas: 0px; }
+
+.scw-edx__sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================================
+   DESKTOP — cena de 100vh
+   Grade de 2 linhas: cena (1fr) + rodapé de navegação (auto). Sem medir altura
+   de rodapé em JS: a própria grade reserva o espaço do trilho das 16 edições.
+   ========================================================================= */
+
+.scw-edx__palco {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.scw-edx__cena {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+/* --- fundo: foto do combo desfocada sob véu chocolate a 87% ---------------- */
+.scw-edx__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.scw-edx__fundo-foto {
+  position: absolute;
+  inset: -8%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(64px) saturate(1.25);
+  will-change: transform;
+  animation: scwEdxFundoEntra 1200ms ease both,
+             scwEdxDeriva 46s ease-in-out infinite;
+}
+.scw-edx__veu {
+  position: absolute;
+  inset: 0;
+  background: rgba(61, 19, 8, .87);
+}
+
+/* ============================================================================
+   GALERIA DA EDIÇÃO — carrossel do acervo (11–12 fotos por edição)
+   Duas variantes da MESMA peça: `--mosaico` (metade direita do desktop, 3 fotos
+   por página) e `--par` (mobile, 2 fotos 1:1 por página). O quadro define a
+   proporção, então a troca de foto nunca mexe no layout.
+   ========================================================================= */
+
+.scw-gal { position: relative; touch-action: pan-y; }
+.scw-gal__quadros {
+  display: grid;
+  gap: 3px;
+  background: var(--scw-choco);
+}
+.scw-gal__quadro {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: var(--scw-marrom);
+  /* wipe direcional de 820ms — dispara na troca de EDIÇÃO (a cena remonta) */
+  animation: scwEdxRevelaDir 820ms var(--scw-ease) both;
+}
+.scw-edx.is-tras .scw-gal__quadro { animation-name: scwEdxRevelaEsq; }
+.scw-gal__quadros > *:nth-child(2) { animation-delay: 110ms; }
+.scw-gal__quadros > *:nth-child(3) { animation-delay: 220ms; }
+.scw-gal__quadro--largo { grid-column: 1 / -1; }
+
+.scw-gal__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;  /* reserva: o ponto focal real vem inline, por foto */
+}
+/* A que sai fica embaixo, parada, até o fim do crossfade — nunca tela vazia. */
+.scw-gal__foto--sai { z-index: 0; }
+/* A que entra vem por cima. Deslize em `translate` e ken burns em `scale`:
+   propriedades independentes, então uma não anula a outra (como aconteceria
+   se as duas animassem `transform`). */
+.scw-gal__foto--entra {
+  z-index: 1;
+  animation: scwEdxFotoEntra 320ms var(--scw-ease) both,
+             scwEdxKenS 12s cubic-bezier(.16, .72, .2, 1) both;
+}
+.scw-gal.is-voltando .scw-gal__foto--entra { animation-name: scwEdxFotoVolta, scwEdxKenS; }
+.scw-gal__quadros > *:nth-child(2) .scw-gal__foto--entra { animation-delay: 90ms, 90ms; }
+.scw-gal__quadros > *:nth-child(3) .scw-gal__foto--entra { animation-delay: 180ms, 180ms; }
+
+/* --- variante mosaico: metade direita do desktop --------------------------- */
+.scw-gal--mosaico {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  z-index: 1;
+  width: clamp(44%, 50vw, 54%);
+  background: var(--scw-choco);
+}
+.scw-gal--mosaico .scw-gal__quadros {
+  height: 100%;
+  grid-template-rows: 1.42fr 1fr;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* --- variante par: mobile, duas fotos 1:1 --------------------------------- */
+.scw-gal--par .scw-gal__quadros { grid-template-columns: 1fr 1fr; }
+.scw-gal--par .scw-gal__quadro { aspect-ratio: 1; }
+
+/* --- barra de controle (parece controle de apresentação, não navbar) -------
+   Três peças em linha: seta · contador · seta. As duas variantes usam o MESMO
+   layout — a `par` só troca as cores e ocupa a largura toda. O grid de áreas
+   que existia aqui só servia pra reposicionar rótulo e pontos, que saíram. */
+.scw-gal__barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.scw-gal--mosaico .scw-gal__barra {
+  position: absolute;
+  left: 14px; bottom: 14px;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(61, 19, 8, .82);
+  color: rgba(254, 240, 221, .92);
+}
+.scw-gal--par .scw-gal__barra {
+  justify-content: space-between;
+  padding: 10px 14px 12px;
+  background: var(--scw-bege);
+  color: var(--scw-marrom);
+}
+.scw-gal__seta {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(254, 240, 221, .34);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+}
+.scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
+.scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+.scw-gal__contador {
+  padding-inline: 2px;
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .08em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.scw-gal__contador span { opacity: .62; }
+
+/* Sem foto no acervo: reserva editorial honesta, nunca imagem inventada. */
+.scw-edx__reserva {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  padding: 16px;
+  background: repeating-linear-gradient(
+    135deg, rgba(254, 240, 221, .05) 0 12px, rgba(254, 240, 221, .09) 12px 24px);
+  color: rgba(254, 240, 221, .74);
+  font: 800 10.5px/1.3 var(--scw-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.scw-edx__topo-scrim {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 190px;
+  background: linear-gradient(to bottom, rgba(61, 19, 8, .74), rgba(61, 19, 8, 0));
+  pointer-events: none;
+}
+/* --- cabeçalho próprio (mesma geometria da casca do site) ------------------ */
+.scw-edx__cab {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  z-index: 20;
+}
+.scw-edx__cab-linha {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 50px var(--scw-trilho);
+}
+.scw-edx__marca {
+  position: absolute;
+  left: var(--scw-trilho);
+  top: 100%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.scw-edx__marca-img {
+  flex: 0 0 auto;
+  height: clamp(84px, 8vw, 116px);
+  width: clamp(96px, 9vw, 132px);
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 4px 10px rgba(61, 19, 8, .42));
+  animation: scwEdxSelo 560ms var(--scw-ease) both;
+}
+/* Marca da edição ausente: espaço reservado, sem esconder a falta. */
+.scw-edx__marca-reserva {
+  flex: 0 0 auto;
+  display: grid;
+  place-content: center;
+  height: clamp(84px, 8vw, 116px);
+  width: clamp(96px, 9vw, 132px);
+  border: 1px dashed rgba(254, 240, 221, .34);
+  border-radius: var(--scw-r-card);
+  font: 800 9.5px/1.3 var(--scw-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(254, 240, 221, .7);
+}
+.scw-edx__marca-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.scw-edx__marca-tema {
+  font: 900 13px/1.1 var(--scw-font-black);
+  white-space: nowrap;
+  color: var(--scw-creme);
+}
+.scw-edx__marca-code {
+  font: 800 10px/1.1 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--scw-edx-tom-txt);
+  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+
+/* --- coluna editorial (metade esquerda) ----------------------------------- */
+.scw-edx__coluna {
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  height: 100%;
+  width: min(52vw, 860px);
+  display: grid;
+  align-content: safe center;
+  gap: clamp(6px, 1.1vw, 26px);
+  padding: clamp(112px, 13vw, 250px) clamp(28px, 3vw, 52px) clamp(24px, 3vw, 44px) var(--scw-trilho);
+}
+.scw-edx__rotulo {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 15px 6px calc(15px + .14em);
+  border-radius: 999px;
+  background: var(--scw-edx-tom);
+  color: var(--scw-edx-tinta);
+  font: 800 11px/1.2 var(--scw-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1);
+  animation: scwEdxCenaDir 520ms var(--scw-ease) both;
+}
+.scw-edx__tema {
+  margin: 0;
+  max-width: 14ch;
+  font: 900 clamp(30px, 4.4vw, 104px)/.84 var(--scw-font-black);
+  letter-spacing: -.05em;
+  text-wrap: balance;
+  color: var(--scw-creme);
+  animation: scwEdxCenaDir 560ms var(--scw-ease) 60ms both;
+}
+.scw-edx__lead {
+  margin: 0;
+  max-width: 44ch;
+  font: 500 clamp(14px, 1.15vw, 20px)/1.45 var(--scw-font);
+  color: rgba(254, 240, 221, .86);
+  text-wrap: pretty;
+  animation: scwEdxCenaDir 560ms var(--scw-ease) 120ms both;
+}
+.scw-edx__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(9px, 1.2vw, 34px);
+  margin: 0;
+  padding-top: clamp(9px, 1.2vw, 20px);
+  border-top: 1px solid rgba(254, 240, 221, .2);
+  animation: scwEdxCenaDir 560ms var(--scw-ease) 180ms both;
+}
+.scw-edx__meta > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.scw-edx__meta dt {
+  font: 800 10.5px/1.1 var(--scw-font);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .5);
+}
+.scw-edx__meta dd {
+  margin: 0;
+  font: 900 clamp(12.5px, 1.05vw, 16px)/1.2 var(--scw-font-black);
+  letter-spacing: -.02em;
+}
+.scw-edx__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  animation: scwEdxCenaDir 560ms var(--scw-ease) 240ms both;
+}
+/* Direção "voltando": as camadas entram pela esquerda. */
+.scw-edx.is-tras .scw-edx__rotulo,
+.scw-edx.is-tras .scw-edx__tema,
+.scw-edx.is-tras .scw-edx__lead,
+.scw-edx.is-tras .scw-edx__meta,
+.scw-edx.is-tras .scw-edx__acoes { animation-name: scwEdxCenaEsq; }
+
+.scw-edx__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  font: 800 13px/1 var(--scw-font);
+  background: var(--scw-edx-tom);
+  color: var(--scw-edx-tinta);
+  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1), transform 120ms ease;
+}
+.scw-edx__botao:active { transform: translateY(1px); }
+.scw-edx__botao--vazado {
+  border: 1px solid rgba(254, 240, 221, .34);
+  background: rgba(61, 19, 8, .4);
+  color: var(--scw-creme);
+  box-shadow: none;
+}
+.scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+.scw-edx__botao--vazado:active { transform: none; box-shadow: none; }
+
+/* --- painéis flutuantes (participantes / curiosidades) -------------------- */
+.scw-edx__painel {
+  position: absolute;
+  left: var(--scw-trilho);
+  bottom: clamp(18px, 3vh, 44px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  max-height: min(64vh, 560px);
+  border-radius: 28px;
+  box-shadow: 0 34px 80px rgba(0, 0, 0, .5);
+  animation: scwEdxPainel 320ms cubic-bezier(.2, .75, .2, 1) both;
+}
+.scw-edx__painel--claro {
+  width: min(660px, 52vw);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+/* O painel editorial carrega texto longo (história do festival, marco,
+   curiosidade, legado e achados do acervo): um pouco mais largo e mais alto que
+   o de participantes, mas ainda dentro da cena — quem rola é o corpo. */
+.scw-edx__painel--escuro {
+  width: min(640px, 50vw);
+  max-height: min(70vh, 640px);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  border: 1px solid rgba(254, 240, 221, .24);
+}
+.scw-edx__painel-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px) 14px;
+}
+.scw-edx__painel-rot {
+  display: block;
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.scw-edx__painel--escuro .scw-edx__painel-rot { color: var(--scw-edx-tom-txt); }
+.scw-edx__painel-t {
+  display: block;
+  margin-top: 8px;
+  font: 900 clamp(20px, 1.9vw, 27px)/1.05 var(--scw-font-black);
+  letter-spacing: -.03em;
+}
+.scw-edx__fechar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+.scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-edx__painel--escuro .scw-edx__fechar {
+  border-color: rgba(254, 240, 221, .3);
+  background: transparent;
+  color: var(--scw-creme);
+}
+.scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
+
+.scw-edx__marcas {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 2px 20px;
+  margin: 0;
+  padding: 0 clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px);
+  overflow-y: auto;
+}
+.scw-edx__marcas li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 6px 0;
+  font: 500 14px/1.35 var(--scw-font);
+}
+.scw-edx__ponto {
+  flex: 0 0 auto;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--scw-edx-tom);
+}
+/* --- corpo editorial (mesma peça no painel do desktop e na sanfona do mobile)
+   Fundo chocolate nos dois contextos, então cor de texto é uma só. O filete da
+   cor da edição à esquerda separa os blocos sem virar caixa dentro de caixa. */
+.scw-edx__editorial {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2vw, 26px);
+}
+/* No painel flutuante ESTE bloco é o que rola — o topo (rótulo + fechar) fica
+   parado e a cena de 100vh não cresce. `min-height:0` porque em coluna flex o
+   padrão `auto` impede o filho de encolher e o scroll nunca aparece. */
+.scw-edx__editorial--painel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 6px clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.scw-edx__editorial--cartao {
+  margin: 10px 0 0;
+  padding: 20px;
+  border-radius: var(--scw-r-card);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  animation: scwEdxPainel 300ms var(--scw-ease) both;
+}
+
+.scw-edx__bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 2px solid var(--scw-edx-tom);
+}
+.scw-edx__bloco-rot {
+  margin: 0;
+  font: 800 11px/1.35 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-edx-tom-txt);
+  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__bloco-lede {
+  margin: 0;
+  font: 900 clamp(18px, 1.5vw, 22px)/1.15 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+  color: var(--scw-creme);
+}
+.scw-edx__bloco-txt {
+  margin: 0;
+  font: 500 15px/1.6 var(--scw-font);
+  color: rgba(254, 240, 221, .86);
+  text-wrap: pretty;
+}
+
+.scw-edx__curios {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.scw-edx__curios li { display: flex; flex-direction: column; gap: 5px; }
+.scw-edx__curios b { font: 900 15.5px/1.2 var(--scw-font-black); letter-spacing: -.02em; }
+.scw-edx__curios-x { font: 500 14.5px/1.55 var(--scw-font); color: rgba(254, 240, 221, .84); text-wrap: pretty; }
+.scw-edx__curios-v { font: 800 12px/1.2 var(--scw-font); letter-spacing: .06em; color: var(--scw-edx-tom-txt); }
+
+/* --- rodapé: trilha das 16 edições, setas e progresso ---------------------- */
+.scw-edx__rodape {
+  position: relative;
+  z-index: 24;
+  padding: clamp(10px, 1.2vw, 16px) var(--scw-trilho) clamp(16px, 1.8vw, 24px);
+  background: var(--scw-choco);
+  border-top: 1px solid rgba(254, 240, 221, .16);
+}
+.scw-edx__rodape-linha {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(12px, 1.6vw, 22px);
+}
+.scw-edx__seta {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(254, 240, 221, .32);
+  background: transparent;
+  color: var(--scw-creme);
+  cursor: pointer;
+  transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
+}
+.scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
+.scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
+.scw-edx__seta--proxima {
+  border: 0;
+  background: var(--scw-edx-tom);
+  color: var(--scw-edx-tinta);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, .3);
+  animation: scwEdxEmpurra 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
+  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1), opacity 260ms linear;
+}
+.scw-edx__seta--proxima:disabled { animation: none; }
+
+.scw-edx__trilha {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+}
+.scw-edx__trilho,
+.scw-edx__brilho,
+.scw-edx__progresso {
+  position: absolute;
+  left: 0;
+  bottom: 26px;
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.scw-edx__trilho { right: 0; background: rgba(254, 240, 221, .14); }
+.scw-edx__brilho {
+  right: 0;
+  background-image: linear-gradient(90deg, rgba(254, 240, 221, 0) 0%, rgba(254, 240, 221, .55) 50%, rgba(254, 240, 221, 0) 100%);
+  background-size: 150px 100%;
+  background-repeat: no-repeat;
+  animation: scwEdxVarrer 3.4s linear infinite;
+}
+/* Progresso por scaleX (não width): animar largura força layout a cada frame. */
+.scw-edx__progresso {
+  right: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--scw-edx-tom);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--scw-edx-tom) 40%, transparent);
+  transform: scaleX(var(--scw-edx-prog-n, 0));
+  transform-origin: left center;
+  transition: transform 560ms var(--scw-ease), background-color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__cursor,
+.scw-edx__cursor-anel {
+  position: absolute;
+  left: var(--scw-edx-prog, 0%);
+  bottom: 27.5px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: left 560ms var(--scw-ease), background-color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__cursor { transform: translate(-50%, 50%); background: var(--scw-edx-tom); }
+.scw-edx__cursor-anel { border: 2px solid var(--scw-edx-tom); animation: scwEdxPulso 2.2s cubic-bezier(.2, .6, .2, 1) infinite; }
+
+.scw-edx__ano {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.scw-edx__ano-tick {
+  display: block;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(254, 240, 221, .34);
+  transition: background-color 300ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__ano.is-ativo .scw-edx__ano-tick { background: transparent; }
+.scw-edx__ano-rot {
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .06em;
+  white-space: nowrap;
+  color: rgba(254, 240, 221, .64);
+}
+.scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
+.scw-edx__ano.is-ativo .scw-edx__ano-rot { color: var(--scw-creme); }
+
+.scw-edx__rodape-legenda {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 8px;
+}
+.scw-edx__rodape-atual {
+  font: 800 11px/1.2 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-edx-tom-txt);
+  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+.scw-edx__rodape-dica {
+  font: 500 11.5px/1.2 var(--scw-font);
+  color: rgba(254, 240, 221, .6);
+}
+
+/* Telas médias: a trilha de 16 anos aperta — esconde os rótulos, mantém dots. */
+@media (max-width: 1080px) {
+  .scw-edx__ano-rot { font-size: 9.5px; letter-spacing: 0; }
+  .scw-edx__rodape-dica { display: none; }
+}
+
+/* ============================================================================
+   MOBILE — capítulo vertical + três peças de navegação
+   ========================================================================= */
+
+.scw-edx-mob {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+.scw-edx-mob__conteudo {
+  flex: 1;
+  /* reserva só a régua de anos: a tab bar do site já empurra .scw-raiz */
+  padding-bottom: 104px;
+  touch-action: pan-y;
+}
+
+.scw-edx-mob__capa {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--scw-marrom);
+}
+.scw-edx-mob__capa-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;  /* reserva: o ponto focal real vem inline */
+  animation: scwEdxRevelaDir 820ms var(--scw-ease) both,
+             scwEdxKen 12s cubic-bezier(.16, .72, .2, 1) both;
+}
+.scw-edx.is-tras .scw-edx-mob__capa-foto { animation-name: scwEdxRevelaEsq, scwEdxKen; }
+.scw-edx-mob__capa-topo {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 172px;
+  background: linear-gradient(to bottom, rgba(43, 14, 6, .88) 0%, rgba(43, 14, 6, .52) 46%, rgba(43, 14, 6, 0) 100%);
+}
+.scw-edx-mob__capa-base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(61, 19, 8, .95) 0%, rgba(61, 19, 8, .34) 54%, rgba(61, 19, 8, 0) 100%);
+}
+.scw-edx-mob__cab {
+  position: absolute;
+  left: 14px; right: 14px; top: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  color: var(--scw-creme);
+}
+.scw-edx-mob__marca {
+  flex: 0 0 auto;
+  height: 84px;
+  width: 104px;
+  object-fit: contain;
+  object-position: left top;
+  filter: drop-shadow(0 4px 12px rgba(43, 14, 6, .55));
+  animation: scwEdxSelo 520ms var(--scw-ease) both;
+}
+.scw-edx-mob__marca-reserva {
+  flex: 0 0 auto;
+  display: grid;
+  place-content: center;
+  height: 84px; width: 104px;
+  border: 1px dashed rgba(254, 240, 221, .4);
+  border-radius: var(--scw-r-card);
+  font: 800 9.5px/1.3 var(--scw-font);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(254, 240, 221, .78);
+}
+.scw-edx-mob__contagem {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 10px rgba(43, 14, 6, .6);
+}
+.scw-edx-mob__contagem b { font: 900 24px/1 var(--scw-font-black); color: var(--scw-creme); }
+.scw-edx-mob__contagem span { font: 800 11px/1 var(--scw-font); letter-spacing: .1em; color: rgba(254, 240, 221, .62); }
+
+.scw-edx-mob__titulo {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 20px;
+  color: var(--scw-creme);
+}
+.scw-edx-mob__rotulo {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 13px 6px calc(13px + .14em);
+  border-radius: 999px;
+  background: var(--scw-edx-tom);
+  color: var(--scw-edx-tinta);
+  font: 800 10.5px/1.2 var(--scw-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  animation: scwEdxCenaDir 560ms var(--scw-ease) both;
+}
+.scw-edx-mob__tema {
+  margin: 11px 0 0;
+  max-width: 14ch;
+  font: 900 clamp(34px, 10.5vw, 50px)/.9 var(--scw-font-black);
+  letter-spacing: -.045em;
+  text-wrap: balance;
+  color: var(--scw-creme);
+  animation: scwEdxCenaDir 620ms var(--scw-ease) 70ms both;
+}
+.scw-edx.is-tras .scw-edx-mob__rotulo,
+.scw-edx.is-tras .scw-edx-mob__tema { animation-name: scwEdxCenaEsq; }
+
+.scw-edx-mob__corpo { padding: 22px 14px 8px; }
+.scw-edx-mob__lead {
+  margin: 0;
+  font: 500 16.5px/1.6 var(--scw-font);
+  text-wrap: pretty;
+  animation: scwEdxCenaDir 560ms var(--scw-ease) 120ms both;
+}
+.scw-edx.is-tras .scw-edx-mob__lead { animation-name: scwEdxCenaEsq; }
+.scw-edx-mob__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 12px;
+  margin: 22px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(61, 19, 8, .14);
+}
+.scw-edx-mob__meta > div { display: flex; flex-direction: column; gap: 4px; }
+.scw-edx-mob__meta dt {
+  font: 800 10px/1.1 var(--scw-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.scw-edx-mob__meta dd { margin: 0; font: 900 14.5px/1.15 var(--scw-font-black); }
+
+.scw-edx-mob__palavras {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 20px 0 0;
+  padding: 0;
+}
+.scw-edx-mob__palavras li {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: var(--scw-bege);
+  font: 700 12.5px/1.2 var(--scw-font);
+  color: var(--scw-marrom);
+}
+
+.scw-edx-mob__sanfona {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  margin-top: 22px;
+  padding: 17px 20px;
+  border-radius: var(--scw-r-card);
+  border: 0;
+  background: var(--scw-edx-tom);
+  color: var(--scw-edx-tinta);
+  cursor: pointer;
+  font: 800 15px/1.2 var(--scw-font);
+  text-align: left;
+}
+.scw-edx-mob__sanfona--vazada {
+  margin-top: 10px;
+  border: 1px solid rgba(61, 19, 8, .14);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+.scw-edx-mob__chevron {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(61, 19, 8, .16);
+  transition: transform 280ms cubic-bezier(.22, .92, .24, 1);
+}
+.scw-edx-mob__sanfona--vazada .scw-edx-mob__chevron { background: rgba(61, 19, 8, .08); }
+.scw-edx-mob__sanfona[aria-expanded="true"] .scw-edx-mob__chevron { transform: rotate(180deg); }
+
+.scw-edx-mob__lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding: 16px 20px;
+  border-radius: var(--scw-r-card);
+  background: var(--scw-creme);
+  border: 1px solid rgba(61, 19, 8, .14);
+  animation: scwEdxPainel 300ms var(--scw-ease) both;
+}
+.scw-edx-mob__lista li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 8px 0;
+  font: 500 14.5px/1.35 var(--scw-font);
+  border-bottom: 1px solid rgba(61, 19, 8, .07);
+}
+.scw-edx-mob__lista li:last-child { border-bottom: 0; }
+/* O texto editorial do celular usa a MESMA peça do desktop
+   (.scw-edx__editorial--cartao) — não há mais lista de curiosidades própria. */
+
+/* --- peça 1: régua de anos fixa na base ----------------------------------- */
+.scw-edx-mob__regua {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: var(--scw-edx-abas);
+  z-index: 8;
+  padding: 13px 0 14px;
+  /* fundo semi-opaco de propósito: backdrop-filter sobre cena animada trava
+     o compositor (blur + readback de GPU a cada frame). */
+  background: rgba(43, 14, 6, .96);
+  border-top: 1px solid rgba(254, 240, 221, .14);
+  box-shadow: 0 -12px 28px rgba(43, 14, 6, .34);
+  color: var(--scw-creme);
+}
+.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.scw-edx-mob__regua-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px 9px;
+}
+.scw-edx-mob__regua-code {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.scw-edx-mob__regua-code b {
+  font: 900 14px/1 var(--scw-font-black);
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+.scw-edx-mob__regua-code span {
+  font: 700 12px/1 var(--scw-font);
+  color: rgba(254, 240, 221, .66);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scw-edx-mob__regua-rot {
+  font: 800 9px/1 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .62);
+  white-space: nowrap;
+}
+.scw-edx-mob__regua-barra {
+  position: relative;
+  height: 2px;
+  margin: 0 18px 6px;
+  border-radius: 2px;
+  background: rgba(254, 240, 221, .18);
+}
+.scw-edx-mob__regua-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--scw-edx-tom);
+  transform-origin: left center;
+  /* SEM transition em width/transform: travava o valor no meio do caminho. */
+  transition: background-color 420ms linear;
+}
+.scw-edx-mob__regua-anos {
+  display: flex;
+  gap: 4px;
+  padding: 0 18px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scw-edx-mob__regua-anos::-webkit-scrollbar { display: none; }
+.scw-edx-mob__ano {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 46px;
+  min-height: 44px;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  scroll-snap-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Caixa fixa de 14px; o ponto cresce por scale (animar width/height reflui a
+   régua inteira a cada troca de edição). */
+.scw-edx-mob__ano-tick {
+  display: block;
+  width: 14px; height: 14px;
+  border-radius: 999px;
+  background: rgba(254, 240, 221, .32);
+  transform: scale(.43);
+  transition: transform 320ms cubic-bezier(.22, .92, .24, 1), background-color 320ms linear;
+}
+.scw-edx-mob__ano.is-visto .scw-edx-mob__ano-tick { background: color-mix(in srgb, var(--scw-edx-tom) 80%, transparent); }
+.scw-edx-mob__ano.is-ativo .scw-edx-mob__ano-tick {
+  transform: scale(1);
+  background: var(--scw-edx-tom);
+  box-shadow: 0 0 0 4px rgba(43, 14, 6, .94), 0 0 0 6px color-mix(in srgb, var(--scw-edx-tom) 30%, transparent);
+}
+.scw-edx-mob__ano-rot {
+  font: 800 11px/1 var(--scw-font);
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: rgba(254, 240, 221, .56);
+}
+.scw-edx-mob__ano.is-ativo .scw-edx-mob__ano-rot {
+  font: 900 13px/1 var(--scw-font-black);
+  letter-spacing: -.02em;
+  color: var(--scw-creme);
+}
+
+/* --- peça 2/3: setas laterais, metade fora da tela ------------------------- */
+.scw-edx-mob__seta {
+  position: fixed;
+  top: 31%;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  width: 62px; height: 52px;
+  border: 1px solid rgba(254, 240, 221, .26);
+  background: rgba(43, 14, 6, .78);
+  color: var(--scw-creme);
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(43, 14, 6, .4);
+}
+.scw-edx-mob__seta--ant {
+  left: -19px;
+  padding: 0 16px 0 0;
+  border-radius: 0 999px 999px 0;
+  border-left: 0;
+  animation: scwEdxPulsoEsq 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
+}
+.scw-edx-mob__seta--prox {
+  right: -19px;
+  padding: 0 0 0 16px;
+  border-radius: 999px 0 0 999px;
+  border-right: 0;
+  animation: scwEdxPulsoDir 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
+}
+/* Nos extremos a seta sem destino sai da tabulação (disabled), não só some. */
+.scw-edx-mob__seta:disabled {
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+  cursor: default;
+}
+
+/* ============================================================================
+   Animações — só transform / opacity / filter / clip-path
+   ========================================================================= */
+
+@keyframes scwEdxCenaDir { from { opacity: 0; transform: translate3d(30px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes scwEdxCenaEsq { from { opacity: 0; transform: translate3d(-30px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes scwEdxRevelaDir { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes scwEdxRevelaEsq { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes scwEdxKen { from { transform: scale(1.06); } to { transform: scale(1.001); } }
+/* Ken burns do carrossel em `scale` (não `transform`), pra conviver com o
+   deslize em `translate` no mesmo elemento. */
+@keyframes scwEdxKenS { from { scale: 1.06; } to { scale: 1.001; } }
+@keyframes scwEdxFotoEntra { from { opacity: 0; translate: 22px 0; } to { opacity: 1; translate: none; } }
+@keyframes scwEdxFotoVolta { from { opacity: 0; translate: -22px 0; } to { opacity: 1; translate: none; } }
+@keyframes scwEdxSelo {
+  0%   { opacity: 0; transform: rotate(-9deg) scale(.84); }
+  60%  { opacity: 1; transform: rotate(2deg) scale(1.03); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes scwEdxFundoEntra { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scwEdxDeriva {
+  0%   { transform: scale(1.26) translate3d(-1.6%, -1.2%, 0); }
+  50%  { transform: scale(1.38) translate3d(1.8%, 1.4%, 0); }
+  100% { transform: scale(1.26) translate3d(-1.6%, -1.2%, 0); }
+}
+@keyframes scwEdxPulso {
+  0%   { transform: translate(-50%, 50%) scale(1); opacity: .5; }
+  70%  { transform: translate(-50%, 50%) scale(2.8); opacity: 0; }
+  100% { transform: translate(-50%, 50%) scale(2.8); opacity: 0; }
+}
+@keyframes scwEdxVarrer { from { background-position: -150px center; } to { background-position: calc(100% + 150px) center; } }
+@keyframes scwEdxEmpurra { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes scwEdxPainel { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes scwEdxPulsoEsq { 0%, 58%, 100% { transform: translateX(0); } 70% { transform: translateX(7px); } 82% { transform: translateX(2px); } }
+@keyframes scwEdxPulsoDir { 0%, 58%, 100% { transform: translateX(0); } 70% { transform: translateX(-7px); } 82% { transform: translateX(-2px); } }
+
+/* Sem movimento: a apresentação continua inteiramente navegável (a regra
+   global de .scw-raiz já zera durações; aqui garantimos estado final visível). */
+@media (prefers-reduced-motion: reduce) {
+  .scw-edx-mob__capa-foto { animation: none; clip-path: none; transform: none; }
+  .scw-edx__fundo-foto { animation: none; }
+  .scw-edx__cursor-anel { display: none; }
+  /* Carrossel sem animação: a troca é seca e o giro automático já é desligado
+     no JS — a navegação manual continua inteira. */
+  .scw-gal__quadro,
+  .scw-gal__foto--entra { animation: none; clip-path: none; translate: none; scale: none; }
+  .scw-gal__foto--sai { display: none; }
+}

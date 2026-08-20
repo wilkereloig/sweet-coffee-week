@@ -3,37 +3,76 @@
  * Enquanto o site institucional completo é finalizado, o domínio oficial mostra:
  *   1) aviso "novo site em breve" (identidade institucional do Sweet Awards:
  *      espresso #2B1810 + creme + ouro #F8B511 — CLAUDE.md §12);
- *   2) o Sweet Awards da última edição (Lovers 2026.1): 8 categorias com pódio
- *      completo (dados oficiais de loversAwardsResults.js — §12/§16) e card
- *      linkando o POST DE RESULTADO no Instagram (postResultado em
- *      sweetCoffeeHistory.js; link, não embed — §12 proíbe embeds).
+ *   2) o Sweet Awards da última edição (Lovers 2026.1): Melhor Combo em
+ *      destaque + as demais 7 categorias, pódio completo. Dados vêm de
+ *      getCurrentEditionScenes() (src/data/sweetHistoryStats.js) — fonte única
+ *      compartilhada com a página institucional Sweet Awards, já cruzando
+ *      sweetCoffeeHistory.js (descrição/post) com loversAwardsResults.js
+ *      (pódio) por `key`. Link pro POST DE RESULTADO no Instagram — nunca embed.
  * Sem header/footer globais: landing autocontida (logo própria no topo).
  * Logos reais via resolveParticipant, fallback monograma — nunca inventa.
  */
 import React from 'react'
 import { I } from '../../components/icons'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { LOVERS_2026_AWARDS_RESULTS } from '../../data/loversAwardsResults'
-import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
+import { getCurrentEditionScenes } from '../../data/sweetHistoryStats'
 import { resolveParticipant } from '../../data/participantAssets'
+import { awardPhoto, COMBO_EDITION, RESERVA } from '../../data/imageLibrary'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
-// Base da edição Lovers na história (descrições + posts de resultado por key).
-const LOVERS_META = (() => {
-  const ed = (SWEET_COFFEE_HISTORY.edicoes || []).find((e) => e.id === '2026.1')
-  const map = {}
-  for (const c of ed?.premiacao?.categorias || []) map[c.key] = c
-  return map
+// Cenas da edição atual (2026.1), na ordem da história (Melhor Combo primeiro).
+const SCENES = getCurrentEditionScenes()
+const COMBO_SCENE = SCENES.find((s) => s.key === 'melhor_combo') || null
+const OTHER_SCENES = SCENES.filter((s) => s.key !== 'melhor_combo')
+
+// Foto real por categoria, pelo sistema central de imagens: só existe quando o
+// vínculo marca↔combo está no acervo (awardPhoto devolve `null` fora dele).
+// Quando a mesma marca vence mais de uma categoria — O Maestro Café vence 3 —
+// o contador por marca pede um frame diferente da galeria dela, nunca o mesmo
+// arquivo duas vezes.
+const CATEGORY_PHOTO = (() => {
+  const usos = new Map()
+  const mapa = {}
+  for (const cena of SCENES) {
+    const nome = (cena.winners || []).find((w) => w.pos === 1)?.name
+    const n = usos.get(nome) || 0
+    usos.set(nome, n + 1)
+    mapa[cena.key] = nome ? awardPhoto(nome, COMBO_EDITION, n) : null
+  }
+  return mapa
 })()
 
-// Pódios oficiais (fonte: loversAwardsResults — §12) + meta (descrição/post).
-const CATEGORIES = LOVERS_2026_AWARDS_RESULTS.premiacao.categorias.map((c) => ({
-  ...c,
-  descricao: LOVERS_META[c.key]?.descricao || '',
-  post: LOVERS_META[c.key]?.postResultado || null,
-}))
-
 const MEDAL = { 1: 'ouro', 2: 'prata', 3: 'bronze' }
+
+// getCurrentEditionScenes() devolve winners já achatados ([{place,pos,name}]);
+// reagrupa por posição pra preservar empates (mais de um nome na mesma vaga).
+function groupWinnersByPos(winners) {
+  const map = new Map()
+  for (const w of winners || []) {
+    if (!map.has(w.pos)) map.set(w.pos, { pos: w.pos, names: [] })
+    map.get(w.pos).names.push(w.name)
+  }
+  return [...map.values()].sort((a, b) => a.pos - b.pos)
+}
+// Foto de categoria com fallback elegante (mesmo padrão de BrandChip): esconde o
+// <img> quebrado e mostra "Foto pendente" — nunca ícone de imagem quebrada nem
+// bloco vazio (CLAUDE.md §8).
+function SceneImg({ foto, className, prioritaria }) {
+  const [broken, setBroken] = React.useState(false)
+  if (!foto || broken) return <div className="eb-cat__nophoto">{RESERVA}</div>
+  return (
+    <img
+      className={className}
+      src={foto.src}
+      alt={foto.alt}
+      style={{ objectPosition: foto.position }}
+      loading={prioritaria ? 'eager' : 'lazy'}
+      fetchpriority={prioritaria ? 'high' : undefined}
+      decoding="async"
+      onError={() => setBroken(true)}
+    />
+  )
+}
 
 function BrandChip({ name, size = 40 }) {
   const m = resolveParticipant(name)
@@ -48,36 +87,37 @@ function BrandChip({ name, size = 40 }) {
   )
 }
 
-// URL de post/reel do Instagram -> versão "/embed" (iframe server-rendered do IG,
-// que carrega o card do post mesmo com o visitante deslogado — ao contrário do
-// widget blockquote+embed.js, que colapsa). Mesmo método do site anterior.
-function toEmbedUrl(url) {
-  try {
-    const m = new URL(url.trim()).pathname.match(/\/(p|reel|tv)\/([^/]+)/)
-    return m ? `https://www.instagram.com/${m[1]}/${m[2]}/embed` : ''
-  } catch { return '' }
-}
-
-// Card do post real: iframe do /embed + barra "Ver no Instagram" (fallback sempre
-// clicável se o iframe não carregar por rede/bloqueio).
-function PostCard({ post, categoria }) {
-  const embed = toEmbedUrl(post)
+// Barra "Ver no Instagram" — link real pro post de resultado (nunca embed/iframe).
+function PostLink({ href }) {
+  if (!href) return null
   return (
     <div className="eb-post">
-      {embed && (
-        <iframe
-          className="eb-post__frame"
-          src={embed}
-          title={`Sweet Awards — ${categoria} no Instagram`}
-          loading="lazy"
-        />
-      )}
-      <a className="eb-post__bar" href={post} target="_blank" rel="noopener noreferrer">
+      <a className="eb-post__bar" href={href} target="_blank" rel="noopener noreferrer">
         <I.ig width={15} height={15} />
         <span>Ver no Instagram</span>
         <I.arrow />
       </a>
     </div>
+  )
+}
+
+// Pódio (1º/2º/3º) de uma cena — empates viram múltiplos nomes na mesma medalha.
+function Podium({ winners, leadFirst = false }) {
+  return (
+    <ol className="eb-podium">
+      {groupWinnersByPos(winners).map((p) => (
+        <li className={`eb-place eb-place--${MEDAL[p.pos]}`} key={p.pos}>
+          <span className="eb-medal" aria-hidden="true">{p.pos}</span>
+          <span className="eb-place__brands">
+            {p.names.map((n) => <BrandChip name={n} key={n} size={p.pos === 1 ? (leadFirst ? 52 : 44) : 36} />)}
+          </span>
+          <span className="eb-place__names">
+            <span className="sr-only">{p.pos}º lugar: </span>
+            {p.names.join(' e ')}
+          </span>
+        </li>
+      ))}
+    </ol>
   )
 }
 
@@ -112,26 +152,32 @@ export function EmBrevePage() {
               Cada card leva ao post do resultado no Instagram.
             </p>
           </div>
-          <div className="eb-grid">
-            {CATEGORIES.map((c) => (
-              <article className="eb-cat motion-reveal-up" key={c.key}>
-                <h3>{c.categoria}</h3>
-                {c.descricao && <p className="eb-cat__desc">{c.descricao}</p>}
-                <ol className="eb-podium">
-                  {c.colocacoes.map((col) => (
-                    <li className={`eb-place eb-place--${MEDAL[col.pos]}`} key={col.pos}>
-                      <span className="eb-medal" aria-hidden="true">{col.pos}</span>
-                      <span className="eb-place__brands">
-                        {col.nomes.map((n) => <BrandChip name={n} key={n} size={col.pos === 1 ? 44 : 36} />)}
-                      </span>
-                      <span className="eb-place__names">
-                        <span className="sr-only">{col.pos}º lugar: </span>
-                        {col.nomes.join(' e ')}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-                {c.post && <PostCard post={c.post} categoria={c.categoria} />}
+          {COMBO_SCENE && (
+            <article className="eb-combo motion-stagger motion-card-hover">
+              <div className="eb-combo__media">
+                <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO.melhor_combo} prioritaria />
+                <span className="eb-combo__medal" aria-hidden="true">1º</span>
+              </div>
+              <div className="eb-combo__body">
+                <p className="eb-combo__tag">Grande vencedor</p>
+                <h3>{COMBO_SCENE.category}</h3>
+                {COMBO_SCENE.description && <p className="eb-cat__desc">{COMBO_SCENE.description}</p>}
+                <Podium winners={COMBO_SCENE.winners} leadFirst />
+                <PostLink href={COMBO_SCENE.postResultado} />
+              </div>
+            </article>
+          )}
+
+          <div className="eb-grid eb-grid--compact">
+            {OTHER_SCENES.map((scene) => (
+              <article className="eb-cat motion-reveal-up motion-card-hover" key={scene.key}>
+                <div className="eb-cat__media">
+                  <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO[scene.key]} />
+                </div>
+                <h3>{scene.category}</h3>
+                {scene.description && <p className="eb-cat__desc">{scene.description}</p>}
+                <Podium winners={scene.winners} />
+                <PostLink href={scene.postResultado} />
               </article>
             ))}
           </div>
@@ -170,8 +216,23 @@ export function EmBrevePage() {
         .eb-head h2 { font-size: clamp(26px, 3.4vw, 44px); line-height: 1; }
         .eb-hl { font-style: italic; color: #C98A0B; }
         .eb-head p { margin: 0; max-width: 58ch; color: var(--ink-soft, #6b5548); font-size: var(--fs-lead, 17px); line-height: 1.45; text-wrap: pretty; }
-        .eb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4, 16px); }
+
+        /* Card de destaque — Melhor Combo (grande vencedor), antes da grade */
+        .eb-combo { display: grid; grid-template-columns: minmax(220px, 1fr) 1.35fr; gap: clamp(20px, 3vw, 40px); align-items: stretch; background: var(--cream-card, #FFF8F0); border: 1px solid var(--paper-line, rgba(43,24,16,.12)); border-radius: var(--r-lg, 18px); padding: clamp(20px, 2.6vw, 32px); box-shadow: var(--shadow-md, 0 10px 26px rgba(43,24,16,.08)); margin-bottom: clamp(28px, 4vw, 48px); }
+        .eb-combo__media { position: relative; min-height: 240px; border-radius: 14px; overflow: hidden; }
+        .eb-combo__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .eb-combo__medal { position: absolute; top: 14px; left: 14px; display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: linear-gradient(160deg, #FFE08A, #E8A20C); color: #2B1810; font-family: var(--font-display); font-weight: 900; font-size: 18px; box-shadow: 0 6px 16px rgba(43,24,16,.28), inset 0 0 0 3px rgba(255,255,255,.5); }
+        .eb-combo__body { display: flex; flex-direction: column; gap: var(--sp-3, 12px); }
+        .eb-combo__tag { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #C98A0B; }
+        .eb-combo__body h3 { font-size: clamp(22px, 2.6vw, 30px); }
+
+        .eb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-4, 16px); }
+        .eb-grid--compact { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--sp-3, 12px); }
         .eb-cat { display: flex; flex-direction: column; gap: var(--sp-3, 12px); background: var(--cream-card, #FFF8F0); border: 1px solid var(--paper-line, rgba(43,24,16,.12)); border-radius: var(--r-lg, 18px); padding: var(--sp-6, 28px); box-shadow: var(--shadow-md, 0 10px 26px rgba(43,24,16,.08)); }
+        .eb-grid--compact .eb-cat { padding: var(--sp-4, 16px); }
+        .eb-cat__media { border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
+        .eb-cat__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .eb-cat__nophoto { width: 100%; height: 100%; display: grid; place-items: center; padding: var(--sp-4, 16px); text-align: center; color: var(--ink-soft, #6b5548); font-size: 12.5px; font-style: italic; background: repeating-linear-gradient(135deg, var(--cream-card, #FFF8F0), var(--cream-card, #FFF8F0) 10px, var(--paper-line, rgba(43,24,16,.12)) 10px, var(--paper-line, rgba(43,24,16,.12)) 11px); }
         .eb-cat h3 { font-size: clamp(17px, 1.5vw, 20px); }
         .eb-cat__desc { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft, #6b5548); }
         .eb-podium { list-style: none; margin: var(--sp-2, 8px) 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -182,14 +243,13 @@ export function EmBrevePage() {
         .eb-place--bronze .eb-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
         .eb-place__brands { display: inline-flex; gap: 6px; }
         .eb-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); overflow: hidden; }
-        .eb-brand img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
+        .eb-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
         .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
         .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
         .eb-place--ouro .eb-place__names { font-size: 16px; }
-        /* card do post no Instagram (iframe /embed + barra link) */
+        /* barra "Ver no Instagram" — link real pro post de resultado, sem embed */
         .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; }
-        .eb-post__frame { width: 100%; height: 540px; border: 0; display: block; background: #fff; }
-        .eb-post__bar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--paper-line, rgba(43,24,16,.12)); font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
+        .eb-post__bar { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 14px; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
         .eb-post__bar svg:last-child { margin-left: auto; transition: transform .16s ease; }
         .eb-post__bar:hover svg:last-child { transform: translateX(3px); }
 
@@ -198,12 +258,19 @@ export function EmBrevePage() {
         .eb-foot__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 26px; padding-bottom: 26px; font-size: 13.5px; }
         .eb-foot a { color: #F8B511; font-weight: 700; text-decoration: none; }
 
+        @media (max-width: 720px) {
+          .eb-combo { grid-template-columns: 1fr; }
+          .eb-combo__media { min-height: 200px; }
+        }
         @media (max-width: 560px) {
           .eb-btn { width: 100%; justify-content: center; }
           .eb-foot__inner { justify-content: center; text-align: center; }
         }
+        @media (max-width: 420px) {
+          .eb-nowrap { white-space: normal; }
+        }
         @media (prefers-reduced-motion: reduce) {
-          .eb-btn, .eb-cat__post svg:last-child { transition: none; }
+          .eb-btn, .eb-post__bar svg:last-child { transition: none; }
         }
       `}</style>
     </div>

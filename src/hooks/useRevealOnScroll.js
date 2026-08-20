@@ -9,10 +9,11 @@ import { useEffect } from 'react'
  * - Respeita prefers-reduced-motion: revela tudo de imediato, sem observar.
  * - Sem dependências; leve; desconecta no unmount.
  *
- * Doc: src/design/SITE_DIRECTION.md (§ Motion System).
+ * ⚠️ Sistema ANTERIOR ao redesign 2026: só a landing /em-breve ainda usa.
+ * Páginas institucionais usam src/hooks/useSiteMotion.js.
  */
 const REVEAL_SELECTOR =
-  '.motion-reveal, .motion-reveal-up, .motion-reveal-left, .motion-reveal-right, .motion-stagger, .motion-image-reveal'
+  '.motion-reveal, .motion-reveal-up, .motion-stagger, .motion-image-reveal'
 
 export function useRevealOnScroll(rootRef, deps = []) {
   useEffect(() => {

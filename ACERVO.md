@@ -137,11 +137,11 @@ Sweet & Coffee Week Lovers 2026.1.
 
 ### 8 — 2020.1 · S&C No Ritmo da Música
 - **Tema:** No Ritmo da Música
-- **Período:** julho de 2020 (encerramento 19–20/jul; início aprox.)
-- **Participantes:** 18
+- **Período:** julho de 2020 (encerramento 19-20/jul confirmado; início exato não encontrado)
+- **Participantes:** 20
 - **Etapa (Edições):** Trilha sonora
 - **Premiação:** completa — votação do público, categoria única (Melhor Combo). (Ver §4.)
-- **Participantes (lista):** Petra Holanda; Café Brigadeiro; Papo de Anjo; Atelier Mine Confeitaria; Bella Pettit; Bocaditos; Cecília Mindêlo; Momento Gourmet; Caroli; Casa Nacre; Casa dos Salgados Gourmet; Cuore di Panna; Das Melo; Kopenhagen; Stephany Santos; Macarons Cookorote; Rafaela Fontes; Very Sugar
+- **Participantes (lista):** Petra Holanda; Café Brigadeiro; Papo de Anjo; Atelier Mine Confeitaria; Bella Petit; Bocaditos; Cecília Mindêlo; Momento Gourmet; Caroli Douces; Casa Nacre; Casa dos Salgados Gourmet; Cuore di Panna; Das Melo; Kopenhagen; Stephany Santos; Cookorote; Rafaela Fontes Chocolateria; Very Sugar; Crooks Cookie Shop; Realize Gourmet
 - **Visual (Edições):** Vinil, microfone, fone, notas musicais, palco e equalizador.
 
 ### 9 — 2020.2 · S&C Heróis & Vilões
@@ -478,7 +478,7 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 - **Logos de participantes:** todos os 21 da edição Lovers têm logo em `/logos/participants/<slug>.png` (fonte: `participants.js`). O resolvedor `participantAssets.js` (`resolveParticipant`) conecta grafias históricas à logo real; quando não há logo, devolve **fallback textual de iniciais** — nunca inventa logo.
 - **Fotos de combo:** existem em `/images/combos/<slug>/main.jpg`. `comboPhotos.js` lista 19 fotos (faltam, nessa lista específica, `oli-gastro` e `casa-de-taipa-tapiocaria`); `homeGalleries.js` deriva 1 foto por participante de `PARTICIPANTS` (21).
 - **Logos de edição (marca por edição):** **não existem no acervo** (`editionAssets.js`: `EXISTING_MARKS` vazio). O resolvedor reserva o espaço e devolve fallback editorial (tema/label); caminho esperado: `/images/editions/<code>/logo.png`. Único asset de marca de edição existente hoje: **selo dos 10 anos** (`/images/selo-10anos.svg`), usado pela edição Lovers.
-- **Outros:** `hero-festival.jpg` (foto-assinatura da Home).
+- **Outros:** a Home e o hero de Participar abrem por combos reais (`main.jpg`); não há mais foto-assinatura avulsa (`hero-festival.jpg` foi removido).
 
 ### 6.3 Marcas recorrentes ao longo da história (derivado dos dados)
 

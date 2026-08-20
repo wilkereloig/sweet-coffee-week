@@ -1,436 +1,961 @@
 /*
- * PÁGINA INSTITUCIONAL — "Edições" (apresentação horizontal — Etapa 1).
- * A página deixa de ser grid/lista e vira uma APRESENTAÇÃO: o scroll vertical, com
- * a seção em sticky, avança um trilho horizontal de 16 painéis (1ª → 16ª edição).
- * No mobile / reduced-motion, os painéis empilham na vertical com navegação por chips.
+ * PÁGINA INSTITUCIONAL — "Edições" (experiência de tela cheia, redesign 2026).
+ * Spec: design_handoff_site_institucional/README.md (§ "Edições — experiência de
+ * tela cheia") + protótipo Edicoes.dc.html. Estilos em src/styles/scw-edicoes.css.
  *
- * Etapa 1 = estrutura, navegação e ESPAÇOS de conteúdo (slots de logo/foto com
- * fallback honesto). Sem refino visual final.
+ * Desktop: cena de 100vh. Metade direita = mosaico de 3 fotos sangrando (uma
+ * larga em cima, duas embaixo, filete de 3px) que agora é um CARROSSEL do
+ * acervo inteiro da edição — 11 a 12 fotos, em páginas de 3 (ver <Galeria>).
+ * Metade esquerda = rótulo, tema, frase, meta (período / marcas / Sweet Awards)
+ * e dois botões que abrem painéis flutuantes de participantes e curiosidades.
+ * Fundo = foto do acervo desfocada (blur 64px) sob véu chocolate a 87%, com
+ * deriva lenta de 46s. Rodapé com a trilha das 16 edições (dots + anos), setas
+ * e barra de progresso. Navega por setas do teclado, clique na trilha e arraste.
  *
- * Dados (regra: NÃO inventar):
- * - Texto editorial por edição: src/data/editions.js (desc/etapa/visual).
- * - Metadados oficiais (tema, período, nº participantes, status do Sweet Awards) e
- *   as 16 edições (inclui Lovers 2026.1): src/data/sweetCoffeeHistory.js.
- * - Marca da edição: editionAssets (selo dos 10 anos p/ Lovers; senão fallback).
- * - Fotos: só combos REAIS do acervo recente (2024/2025/Lovers); demais usam slot
- *   de fallback "pendente". Nada de foto-ano inventada nem hotlink externo.
+ * Mobile: capítulo vertical (capa 4:5 com tema + carrossel do restante do
+ * acervo em pares 1:1 + dados + palavras-chave + sanfonas de marcas e do texto
+ * editorial) e três peças de navegação: régua de anos fixa na base, setas
+ * laterais metade fora da tela e `disabled` (não só opacity) na seta sem
+ * destino.
  *
- * Classe-prefixo `edx-` (não `ed-`) de propósito: escapa da regra global de hero
- * 1080px em styles.css — aqui a hero usa altura proporcional (clamp), como pede o brief.
+ * Fotografia: TODA foto vem do sistema central `src/data/imageLibrary.js`
+ * (`editionPhotos` / `bgStyle`) — caminho de imagem não se escreve à mão aqui,
+ * e o alt e o ponto focal (`position`) já vêm prontos por foto. O acervo NÃO
+ * identifica qual foto é de qual participante nas edições de 2016 a 2025: a
+ * galeria mostra o registro da edição, e a lista de marcas segue textual.
+ *
+ * Casca: em Edições o App.jsx NÃO renderiza header, barra de 5px nem rodapé — a
+ * página traz cabeçalho próprio com a mesma geometria (mesmo --scw-trilho,
+ * mesmo padding:50px vertical, marca da edição no slot da logo), pra o menu não
+ * mudar de lugar entre páginas. A tab bar mobile continua montada por fora: o
+ * deslocamento da régua e do conteúdo vive em UMA variável CSS
+ * (--scw-edx-abas), zerada pelo modificador `.scw-edx--solta` quando a página é
+ * aberta sozinha (prop `embutido`) — nunca um literal espalhado.
+ *
+ * Dados (regra: NÃO inventar): src/data/handoff/edicoesData.js (período,
+ * participantes, curiosidades, premiação, fotos) e editionMark() para a marca
+ * da edição — editionMark() é o resolvedor oficial do repo. (O campo `logo` do
+ * handoff apontava pra /images/editions/<code>.png, caminho que nunca existiu;
+ * corrigido em jul/2026 para /images/marcas-edicoes/<code>/logo.png. O campo
+ * segue sem ser lido: quem manda é editionMark().) Onde falta foto ou marca,
+ * fica reserva editorial honesta.
+ *
+ * TEXTO: o `lead` de cada cena e os três blocos do painel editorial (marco,
+ * curiosidade, legado) vêm de src/data/edicoesNarrativa.js — fonte única, não
+ * duplicar aqui. Do handoff de design ficam só tema, etapa e palavras-chave.
+ * PREÇO não aparece na página (decisão do Wilke, jul/2026): nem a linha "Combo"
+ * da ficha, nem as curiosidades que só contam o valor do combo.
  */
 import React from 'react'
-import { I } from '../../components/icons'
-import { PageHero, HeroHL } from '../../components/layout'
-import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { EDITIONS } from '../../data/editions'
-import { AWARD_STATUS, SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
-import { editionMark, TEN_YEARS_SEAL } from '../../data/editionAssets'
-import { EDITION_GALLERY } from '../../data/editionGallery'
-import { PhotoRotator } from '../../components/PhotoRotator'
+import '../../styles/scw-edicoes.css'
+import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
+import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
+import { editionPhotos, bgStyle } from '../../data/imageLibrary'
+import { editionMark } from '../../data/editionAssets'
+import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
 
-// Galeria rotativa por edição — acervo normalizado (/images/edicoes/<code>/NN.webp,
-// varios participantes). Manifesto: src/data/editionGallery.js.
+// Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
+// aqui — vem de EDICOES_NARRATIVA[code].lead.
+const EDS = [
+  { code: '2016', tema: 'S&C / Início', etapa: 'A estreia',
+    palavras: ['Xícara', 'Vitrine', 'Bolo', 'Balcão de cafeteria'] },
+  { code: '2017.1', tema: 'Páscoa', etapa: 'Chocolate e presente',
+    palavras: ['Ovos', 'Coelhos', 'Chocolate derretido', 'Cestas'] },
+  { code: '2017.2', tema: 'Doces do Mundo', etapa: 'Viagem gastronômica',
+    palavras: ['Globo', 'Mala', 'Passaporte', 'Mapas'] },
+  { code: '2018.1', tema: 'Namorados', etapa: 'Afeto à mesa',
+    palavras: ['Corações', 'Mesa para dois', 'Envelopes', 'Fitas'] },
+  { code: '2018.2', tema: 'Sabores da Infância', etapa: 'Memória afetiva',
+    palavras: ['Lancheira', 'Pirulito', 'Brinquedos', 'Bolo de vó'] },
+  { code: '2019.1', tema: 'Pâtisserie Francesa', etapa: 'Técnica e elegância',
+    palavras: ['Croissant', 'Éclair', 'Macaron', 'Vitrine francesa'] },
+  { code: '2019.2', tema: 'Contos de Fadas', etapa: 'Imaginação',
+    palavras: ['Castelos', 'Coroas', 'Livros mágicos', 'Estrelas'] },
+  { code: '2020.1', tema: 'No Ritmo da Música', etapa: 'Trilha sonora',
+    palavras: ['Vinil', 'Microfone', 'Notas musicais', 'Palco'] },
+  { code: '2020.2', tema: 'Heróis & Vilões', etapa: 'Cultura pop',
+    palavras: ['Máscaras', 'Capas', 'Raios', 'Emblemas'] },
+  { code: '2021.1', tema: 'Séries', etapa: 'Maratona de sabores',
+    palavras: ['Tela', 'Botão play', 'Sofá', 'Pipoca'] },
+  { code: '2021.2', tema: 'Terras Potiguares', etapa: 'Identidade local',
+    palavras: ['Caju', 'Castanha', 'Queijo coalho', 'Dunas'] },
+  { code: '2022', tema: 'Movies', etapa: 'Cinema',
+    palavras: ['Claquete', 'Ingresso', 'Projetor', 'Rolo de filme'] },
+  { code: '2023', tema: 'Trip', etapa: 'Rota pelo mundo',
+    palavras: ['Mala', 'Avião', 'Bússola', 'Postal'] },
+  { code: '2024', tema: 'Books', etapa: 'Literatura e café',
+    palavras: ['Livro aberto', 'Marcador', 'Pena', 'Biblioteca'] },
+  { code: '2025', tema: 'Celebration', etapa: 'Festa e rito',
+    palavras: ['Confete', 'Balões', 'Convite', 'Bandeirinhas'] },
+  { code: '2026.1', tema: 'Lovers', etapa: 'Especial 10 anos',
+    palavras: ['Stickers', 'Mapa', 'Câmera', 'Corações'] },
+]
+const TOTAL = EDS.length
 
-// Base oficial (16 edições, inclui Lovers) indexada por id/código.
-const histById = Object.fromEntries(SWEET_COFFEE_HISTORY.edicoes.map((e) => [e.id, e]))
+/* Acento por edição, rodando pela paleta oficial. Cada tom carrega a tinta que
+   passa AA SOBRE ele (roxo e magenta pedem creme; cyan e amarelo pedem
+   chocolate) e a cor que ele pode assumir como TEXTO sobre o chocolate — ali
+   roxo e magenta não chegam a 4,5:1, então caem no creme. */
+const TONS = [
+  { cor: 'var(--scw-roxo)',    tinta: 'var(--scw-creme)', txt: 'var(--scw-creme)' },
+  { cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', txt: 'var(--scw-creme)' },
+  { cor: 'var(--scw-cyan)',    tinta: 'var(--scw-choco)', txt: 'var(--scw-cyan)' },
+  { cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', txt: 'var(--scw-amarelo)' },
+]
 
-// Acento por edição — só cores da paleta oficial.
-const TONES = ['coral', 'pink', 'cyan', 'yellow']
-
-// {src, alt}[] p/ o PhotoRotator; vazio => slot cai no fallback "pendente".
-function editionGalleryFor(code, theme) {
-  return (EDITION_GALLERY[code] || []).map((src) => ({ src, alt: `Combo do acervo — edição ${theme}` }))
+const PREMIACAO = {
+  'nao-teve': 'Sem premiação',
+  'nao-encontrada': 'Sem registro disponível',
+  completa: 'Premiação registrada',
+  completa_em_publicacoes_oficiais: 'Premiação registrada',
+  parcial: 'Premiação parcial',
 }
 
-// 16 painéis: editorial (editions.js) + oficial (sweetCoffeeHistory).
-const PANELS = EDITIONS.map((ed, i) => {
-  const h = histById[ed.ano] || {}
-  const special = ed.ano === '2026.1'
-  return {
-    code: ed.ano,
-    slug: ed.slug,
-    number: i + 1,
-    theme: h.tema || ed.nome,
-    etapa: ed.etapa,
-    periodo: h.periodo || ed.periodo,
-    participantsCount: h.participantesCount != null ? h.participantesCount : ed.participantes,
-    status: (h.premiacao && h.premiacao.status) || null,
-    special,
-    mark: editionMark(ed.ano),
-    lead: (ed.desc || '').split('\n\n')[0] || '',
-    gallery: editionGalleryFor(ed.ano, h.tema || ed.nome),
-    tone: TONES[i % TONES.length],
-  }
-})
-const TOTAL = PANELS.length
+const SEM_DADOS = { periodo: '', n: null, participantes: [], curiosidades: [], premiacao: null, fotos: [] }
 const pad2 = (n) => String(n).padStart(2, '0')
 
-function StatusBadge({ status, special }) {
-  if (special && !status) return <span className="edx-badge edx-badge--special">Especial · 10 anos</span>
-  if (!status) return null
-  const s = AWARD_STATUS[status] || AWARD_STATUS['a-conferir']
-  return <span className={`edx-badge edx-badge--${s.tone}`}>{s.label}</span>
+/* Preço fora da página: as curiosidades que só contam o valor do combo saem da
+   lista (o valor mora no campo `v`, e o `x` dessas repete o mesmo número). Nada
+   é apagado em src/data — só deixa de ser exibido. */
+const semPreco = (c) => !/R\$/.test(`${c.x || ''} ${c.v || ''}`)
+
+const SetaEsq = (p) => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
+    <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const SetaDir = (p) => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
+    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const Chevron = (p) => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
+    <path d="M4 6.5l4 4 4-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const XisFechar = (p) => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
+    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+)
+const Mais = (p) => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...p}>
+    <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+  </svg>
+)
+
+/* ============================================================================
+   GALERIA DA EDIÇÃO — carrossel do acervo completo
+   ----------------------------------------------------------------------------
+   Cada edição tem 11 ou 12 fotos no acervo; antes a cena mostrava 3. Aqui as
+   fotos entram TODAS, na ordem do acervo, em páginas do tamanho do mosaico
+   (3 no desktop, 2 no par do mobile). Regras:
+
+   - transição curta (320ms) só em opacity + `translate`/`scale` (propriedades
+     independentes, pra o deslize não brigar com o ken burns no `transform`);
+   - a foto seguinte entra POR CIMA e a anterior fica embaixo até o fim do
+     crossfade — nunca cai a tela pro fundo do quadro;
+   - a última página é ancorada no fim (`n - porPagina`), então o mosaico nunca
+     aparece com buraco quando o total não é múltiplo da página;
+   - giro automático de 6s que pausa no hover e no foco e PARA de vez assim que
+     alguém navega na mão (não volta a girar por cima de quem está olhando);
+   - `prefers-reduced-motion`: sem giro e sem animação, navegação intacta.
+   ========================================================================= */
+
+const GIRO = 6000
+
+/** Quebra a lista em páginas do tamanho do mosaico, ancorando a última no fim. */
+function paginasDe(fotos, porPagina) {
+  const n = fotos.length
+  if (!n) return []
+  const passo = Math.max(1, porPagina)
+  const total = Math.ceil(n / passo)
+  return Array.from({ length: total }, (_, k) => {
+    const inicio = Math.max(0, Math.min(k * passo, n - passo))
+    return fotos.slice(inicio, inicio + passo)
+  })
 }
 
-// Slot da marca da edição — espaço SEMPRE reservado. Logo REAL do acervo (uma por
-// edição); se o arquivo faltar/quebrar, cai no fallback editorial claro (nunca finge).
-function EditionLogoSlot({ e }) {
-  const logo = e.mark && e.mark.logo
-  if (logo) {
+function useSemMovimento() {
+  const [reduz, setReduz] = React.useState(false)
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const avaliar = () => setReduz(mq.matches)
+    avaliar()
+    mq.addEventListener('change', avaliar)
+    return () => mq.removeEventListener('change', avaliar)
+  }, [])
+  return reduz
+}
+
+/* Um quadro do mosaico. Guarda a foto anterior enquanto a nova entra, pra a
+   troca não piscar: a que sai fica embaixo (ref no render + estado com prazo,
+   porque só o ref sumiria no primeiro re-render alheio). */
+function Quadro({ foto, classe = '', eager = false, children = null }) {
+  const anterior = React.useRef(null)
+  const [residual, setResidual] = React.useState(null)
+  const antes = anterior.current
+  const sai = antes && (!foto || antes.src !== foto.src) ? antes : residual
+
+  React.useEffect(() => {
+    const anteriorFoto = anterior.current
+    anterior.current = foto || null
+    if (!anteriorFoto || !foto || anteriorFoto.src === foto.src) return undefined
+    setResidual(anteriorFoto)
+    const t = setTimeout(() => setResidual(null), 420)
+    return () => clearTimeout(t)
+  }, [foto])
+
+  return (
+    <figure className={`scw-gal__quadro${classe ? ` ${classe}` : ''}`}>
+      {sai ? (
+        <img
+          className="scw-gal__foto scw-gal__foto--sai"
+          src={sai.src}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          style={{ objectPosition: sai.position }}
+        />
+      ) : null}
+      {foto ? (
+        <img
+          key={foto.src}
+          className="scw-gal__foto scw-gal__foto--entra"
+          src={foto.src}
+          alt={foto.alt}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          style={{ objectPosition: foto.position }}
+        />
+      ) : (
+        <span className="scw-edx__reserva">Foto pendente</span>
+      )}
+      {children}
+    </figure>
+  )
+}
+
+function Galeria({ fotos, total, porPagina, variante, etiqueta, semMovimento }) {
+  const paginas = React.useMemo(() => paginasDe(fotos, porPagina), [fotos, porPagina])
+  const n = paginas.length
+  const [k, setK] = React.useState(0)
+  const [auto, setAuto] = React.useState(true)
+  const [parado, setParado] = React.useState(false)
+  const [sentido, setSentido] = React.useState(1)
+  const arraste = React.useRef(null)
+
+  const irPara = React.useCallback((alvo, s) => {
+    if (n < 2) return
+    setAuto(false)                       // na mão manda: o giro não volta sozinho
+    setSentido(s)
+    setK(((alvo % n) + n) % n)
+  }, [n])
+  const andar = React.useCallback((d) => irPara(k + d, d), [irPara, k])
+
+  React.useEffect(() => {
+    if (!auto || parado || semMovimento || n < 2) return undefined
+    const t = setTimeout(() => { setSentido(1); setK((x) => (x + 1) % n) }, GIRO)
+    return () => clearTimeout(t)
+  }, [auto, parado, semMovimento, n, k])
+
+  // aquece a próxima página no cache (sem nó no DOM)
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || n < 2) return
+    ;(paginas[(k + 1) % n] || []).forEach((f) => { const img = new Image(); img.src = f.src })
+  }, [k, n, paginas])
+
+  if (!n) {
     return (
-      <div className="edx-logo edx-logo--real">
-        <img src={logo} alt={`Logo da edição ${e.theme}`} loading="lazy" decoding="async"
-          onError={(ev) => { const w = ev.currentTarget.closest('.edx-logo'); if (w) w.classList.add('is-fallback') }} />
-        <span className="edx-logo__fb"><span className="edx-logo__fb-tag">Logo pendente</span><span className="edx-logo__fb-name">{e.theme}</span></span>
+      <section className={`scw-gal scw-gal--${variante}`} aria-label={etiqueta}>
+        <div className="scw-gal__quadros">
+          <figure className="scw-gal__quadro">
+            <span className="scw-edx__reserva">Galeria pendente</span>
+          </figure>
+        </div>
+      </section>
+    )
+  }
+
+  const pagina = paginas[Math.min(k, n - 1)]
+  const de = pagina[0].indice
+  const ate = pagina[pagina.length - 1].indice
+  const quantas = total || fotos.length
+  const anuncio = de === ate ? `Foto ${de} de ${quantas}` : `Fotos ${de} a ${ate} de ${quantas}`
+
+  const aoTeclar = (ev) => {
+    const passoTecla = { ArrowRight: 1, ArrowLeft: -1 }[ev.key]
+    if (passoTecla) { ev.preventDefault(); ev.stopPropagation(); andar(passoTecla); return }
+    if (ev.key === 'Home') { ev.preventDefault(); ev.stopPropagation(); irPara(0, -1) }
+    else if (ev.key === 'End') { ev.preventDefault(); ev.stopPropagation(); irPara(n - 1, 1) }
+  }
+
+  // Arraste próprio: o `stopPropagation` evita que o gesto vire troca de EDIÇÃO
+  // (a cena inteira também escuta arraste horizontal).
+  const gestos = {
+    onPointerDown: (ev) => { arraste.current = { x: ev.clientX, y: ev.clientY }; ev.stopPropagation() },
+    onPointerUp: (ev) => {
+      const a = arraste.current
+      arraste.current = null
+      ev.stopPropagation()
+      if (!a) return
+      const dx = ev.clientX - a.x
+      const dy = ev.clientY - a.y
+      if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) andar(dx < 0 ? 1 : -1)
+    },
+    onPointerCancel: () => { arraste.current = null },
+  }
+
+  return (
+    <section
+      className={`scw-gal scw-gal--${variante}${sentido < 0 ? ' is-voltando' : ''}`}
+      data-galeria=""
+      role="group"
+      aria-roledescription="carrossel"
+      aria-label={etiqueta}
+      onKeyDown={aoTeclar}
+      onMouseEnter={() => setParado(true)}
+      onMouseLeave={() => setParado(false)}
+      onFocus={() => setParado(true)}
+      onBlur={() => setParado(false)}
+      {...gestos}
+    >
+      <div className="scw-gal__quadros">
+        {pagina.map((f, j) => (
+          <Quadro
+            key={j}
+            foto={f}
+            eager={k === 0}
+            classe={j === 0 && variante === 'mosaico' ? 'scw-gal__quadro--largo' : ''}
+          >
+            {j === 0 && variante === 'mosaico' ? <span className="scw-edx__topo-scrim" aria-hidden="true" /> : null}
+          </Quadro>
+        ))}
+      </div>
+
+      <p className="scw-edx__sr" aria-live="polite" aria-atomic="true">{anuncio}</p>
+
+      {/* Duas ações e UM indicador. O rótulo "Fotos · <ano>" e os pontos saíram
+          (ago/2026): o ano já está no cabeçalho da cena e na trilha, e pontos +
+          contador diziam a mesma posição duas vezes. Com 4 páginas o acesso
+          aleatório dos pontos não pagava a largura que custavam. */}
+      <div className="scw-gal__barra">
+        <button
+          type="button"
+          className="scw-gal__seta scw-gal__seta--ant"
+          aria-label="Fotos anteriores desta edição"
+          onClick={() => andar(-1)}
+        >
+          <SetaEsq width={15} height={15} />
+        </button>
+        <span className="scw-gal__contador">
+          {pad2(de)}–{pad2(ate)}<span>/{pad2(quantas)}</span>
+        </span>
+        <button
+          type="button"
+          className="scw-gal__seta scw-gal__seta--prox"
+          aria-label="Próximas fotos desta edição"
+          onClick={() => andar(1)}
+        >
+          <SetaDir width={15} height={15} />
+        </button>
+      </div>
+    </section>
+  )
+}
+
+/* ============================================================================
+   PAINEL EDITORIAL — a mesma peça no desktop (dentro do painel flutuante) e no
+   celular (dentro da sanfona). Ordem de leitura: história do festival (só na
+   primeira cena), marco, curiosidade, legado e, por fim, os achados curtos do
+   acervo. É bem mais texto que antes, então quem rola é ESTE bloco no desktop
+   (`--painel`, com o topo do painel fixo) — a cena de 100vh não cresce.
+   Hierarquia: o <h1> da página é o tema da edição; aqui os rótulos são <h2>.
+   ========================================================================= */
+function Bloco({ rotulo, children }) {
+  return (
+    <section className="scw-edx__bloco">
+      <h2 className="scw-edx__bloco-rot">{rotulo}</h2>
+      {children}
+    </section>
+  )
+}
+
+function Editorial({ id, classe = '', narrativa, abertura, curiosidades }) {
+  return (
+    <div id={id} className={`scw-edx__editorial${classe ? ` ${classe}` : ''}`}>
+      {abertura && (
+        <Bloco rotulo="A história do festival">
+          <p className="scw-edx__bloco-lede">{abertura.titulo}</p>
+          {abertura.paragrafos.map((p) => (
+            <p key={p.slice(0, 32)} className="scw-edx__bloco-txt">{p}</p>
+          ))}
+        </Bloco>
+      )}
+      {narrativa.marco && (
+        <Bloco rotulo="Por que essa edição marcou a história">
+          <p className="scw-edx__bloco-txt">{narrativa.marco}</p>
+        </Bloco>
+      )}
+      {narrativa.curiosidade && (
+        <Bloco rotulo="Um destaque da edição">
+          <p className="scw-edx__bloco-txt">{narrativa.curiosidade}</p>
+        </Bloco>
+      )}
+      {narrativa.legado && (
+        <Bloco rotulo="O que ficou">
+          <p className="scw-edx__bloco-txt">{narrativa.legado}</p>
+        </Bloco>
+      )}
+      {curiosidades.length > 0 && (
+        <Bloco rotulo={`Curiosidades · ${curiosidades.length}`}>
+          <ul className="scw-edx__curios">
+            {curiosidades.map((c) => (
+              <li key={c.t}>
+                <b>{c.t}</b>
+                <span className="scw-edx__curios-x">{c.x}</span>
+                {c.v ? <span className="scw-edx__curios-v">{c.v}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </Bloco>
+      )}
+    </div>
+  )
+}
+
+export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpen }) {
+  const [i, setI] = React.useState(0)
+  const [dir, setDir] = React.useState(1)
+  const [painel, setPainel] = React.useState(null)   // 'participantes' | 'editorial' | null
+  const [estreito, setEstreito] = React.useState(false)
+  const semMovimento = useSemMovimento()
+
+  const e = EDS[i]
+  const d = EDICOES_DADOS[e.code] || SEM_DADOS
+  const marca = editionMark(e.code)
+  const tom = TONS[i % TONS.length]
+  // Acervo inteiro da edição (11–12 fotos), na ordem do acervo e com alt e
+  // ponto focal prontos — fonte única em src/data/imageLibrary.js.
+  const fotos = React.useMemo(() => editionPhotos(e.code), [e.code])
+  const curiosidades = React.useMemo(() => (d.curiosidades || []).filter(semPreco), [d])
+  const participantes = d.participantes || []
+  // Texto longo: fonte única em src/data/edicoesNarrativa.js. A abertura (a
+  // história do festival em três parágrafos) entra pela PRIMEIRA cena — a
+  // apresentação é a página, não existe hero separada pra contextualizar.
+  const narrativa = EDICOES_NARRATIVA[e.code] || {}
+  const abertura = i === 0 ? ABERTURA : null
+  const rotuloEditorial = abertura ? 'A história do festival' : 'Marcos, curiosidades e legado'
+  const temEditorial = !!(abertura || narrativa.marco || narrativa.curiosidade
+    || narrativa.legado || curiosidades.length)
+  const nParticipantes = d.n != null ? d.n : '—'
+  const premiacao = PREMIACAO[d.premiacao] || 'A conferir'
+
+  const vaiPara = React.useCallback((k) => {
+    setI((atual) => {
+      const alvo = Math.min(TOTAL - 1, Math.max(0, k))
+      if (alvo !== atual) setDir(alvo < atual ? -1 : 1)
+      return alvo
+    })
+    setPainel(null)
+  }, [])
+
+  const passo = React.useCallback((delta) => {
+    setI((atual) => Math.min(TOTAL - 1, Math.max(0, atual + delta)))
+    setDir(delta < 0 ? -1 : 1)
+    setPainel(null)
+  }, [])
+
+  // ---- modo estreito: mesma quebra da casca do site (900px) ---------------
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 900px)')
+    const avaliar = () => setEstreito(mq.matches)
+    avaliar()
+    mq.addEventListener('change', avaliar)
+    return () => mq.removeEventListener('change', avaliar)
+  }, [])
+
+  // ---- teclado: setas, PageUp/Down, Home/End; Esc fecha o painel -----------
+  React.useEffect(() => {
+    const aoTeclar = (ev) => {
+      if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return
+      if (ev.key === 'Escape') { setPainel(null); return }
+      // Dentro da galeria as setas e Home/End percorrem FOTOS, não edições.
+      if (ev.target && ev.target.closest && ev.target.closest('[data-galeria]')) return
+      // Painel editorial/participantes tem texto rolável — as mesmas teclas
+      // aqui rolam o painel, não trocam de edição.
+      if (ev.target && ev.target.closest && ev.target.closest('.scw-edx__painel')) return
+      if (ev.key === 'ArrowRight' || ev.key === 'PageDown') { ev.preventDefault(); passo(1) }
+      else if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { ev.preventDefault(); passo(-1) }
+      else if (ev.key === 'Home') { ev.preventDefault(); vaiPara(0) }
+      else if (ev.key === 'End') { ev.preventDefault(); vaiPara(TOTAL - 1) }
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [passo, vaiPara])
+
+  /* ---- performance -------------------------------------------------------
+     Só a cena em foco existe no DOM: montar 16 cenas de viewport inteiro de uma
+     vez congela o compositor (era o gargalo da versão anterior desta página,
+     resolvido lá com janela live/near). Aqui a janela é de 1 cena, e dentro
+     dela só a página do carrossel em foco. Pra a troca não piscar, as PRIMEIRAS
+     fotos das cenas vizinhas são aquecidas no cache — 6 imagens, sem nó no DOM
+     (as 11–12 de cada edição só carregam quando a edição entra em foco). */
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    ;[i - 1, i + 1].forEach((k) => {
+      const viz = EDS[k]
+      if (!viz) return
+      editionPhotos(viz.code).slice(0, 3).forEach((f) => { const img = new Image(); img.src = f.src })
+    })
+  }, [i])
+
+  // ---- arraste (mouse e toque, via pointer events) ------------------------
+  const arraste = React.useRef(null)
+  const gestos = {
+    onPointerDown: (ev) => { arraste.current = { x: ev.clientX, y: ev.clientY } },
+    onPointerUp: (ev) => {
+      const a = arraste.current
+      arraste.current = null
+      if (!a) return
+      const dx = ev.clientX - a.x
+      const dy = ev.clientY - a.y
+      if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy)) passo(dx < 0 ? 1 : -1)
+    },
+    onPointerCancel: () => { arraste.current = null },
+  }
+
+  // ---- foco dos painéis (abre no fechar, volta ao gatilho) ----------------
+  const btnParticipantes = React.useRef(null)
+  const btnEditorial = React.useRef(null)
+  const fecharRef = React.useRef(null)
+  const gatilho = React.useRef(null)
+  React.useEffect(() => {
+    if (painel) {
+      gatilho.current = painel === 'participantes' ? btnParticipantes.current : btnEditorial.current
+      if (fecharRef.current) fecharRef.current.focus()
+    } else if (gatilho.current) {
+      gatilho.current.focus()
+      gatilho.current = null
+    }
+  }, [painel])
+
+  // ---- régua mobile: rola e centraliza no ano ativo -----------------------
+  const reguaRef = React.useRef(null)
+  React.useEffect(() => {
+    const trilho = reguaRef.current
+    if (!trilho) return
+    const alvo = trilho.children[i]
+    if (!alvo) return
+    const suave = typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    trilho.scrollTo({
+      left: Math.max(0, alvo.offsetLeft - (trilho.clientWidth - alvo.offsetWidth) / 2),
+      behavior: suave ? 'smooth' : 'auto',
+    })
+  }, [i, estreito])
+
+  const ir = (href) => (ev) => {
+    ev.preventDefault()
+    navigate(href.replace('#', ''))
+    if (typeof window !== 'undefined') window.scrollTo(0, 0)
+  }
+
+  const raiz = ['scw-edx', dir < 0 ? 'is-tras' : '', embutido ? '' : 'scw-edx--solta']
+    .filter(Boolean).join(' ')
+
+  const tokens = {
+    '--scw-edx-tom': tom.cor,
+    '--scw-edx-tinta': tom.tinta,
+    '--scw-edx-tom-txt': tom.txt,
+    '--scw-edx-prog': `${((i + 0.5) / TOTAL) * 100}%`,
+    '--scw-edx-prog-n': (i + 0.5) / TOTAL,
+  }
+
+  const marcaAlt = `Marca da edição ${e.tema}`
+  const anuncio = `Edição ${pad2(i + 1)} de ${pad2(TOTAL)}: ${e.tema}, ${e.code}`
+
+  const capa = fotos[0] || null
+  // memo: sem isto a lista nasceria nova a cada render e o carrossel do mobile
+  // refaria páginas (e o aquecimento de cache) por render.
+  const fotosDepoisDaCapa = React.useMemo(() => fotos.slice(1), [fotos])
+  /* Ambiente do desktop: a ÚLTIMA foto do acervo, desfocada a 64px sob véu de
+     87% — assim a foto que abre o mosaico não aparece duas vezes na mesma cena
+     (e o fundo fica fixo por edição, sem repintar blur a cada troca de foto). */
+  const fotoFundo = fotos.length ? fotos[fotos.length - 1] : null
+  const etiquetaGaleria = `Galeria de fotos da edição ${e.tema}, ${e.code}`
+
+  const meta = (
+    <>
+      <div><dt>Período</dt><dd>{d.periodo || 'não encontrado'}</dd></div>
+      <div><dt>Marcas</dt><dd>{nParticipantes} participantes</dd></div>
+      <div><dt>Sweet Awards</dt><dd>{premiacao}</dd></div>
+    </>
+  )
+
+  const listaMarcas = participantes.length
+    ? participantes.map((p) => <li key={p}><span className="scw-edx__ponto" aria-hidden="true" />{p}</li>)
+    : <li>Lista de participantes pendente.</li>
+
+  /* ============================ MOBILE ================================== */
+  if (estreito) {
+    return (
+      <div className={raiz} style={tokens}>
+        <p className="scw-edx__sr" aria-live="polite">{anuncio}</p>
+
+        <section className="scw-edx-mob" aria-label="Edições do Sweet &amp; Coffee Week">
+          <div className="scw-edx-mob__conteudo" {...gestos}>
+            {/* capa 4:5 — key por edição reinicia wipe + ken burns */}
+            <div className="scw-edx-mob__capa" key={`capa-${e.code}`}>
+              {capa
+                ? <img className="scw-edx-mob__capa-foto" src={capa.src} alt={capa.alt} decoding="async" style={{ objectPosition: capa.position }} />
+                : <span className="scw-edx__reserva">Foto pendente no acervo</span>}
+              <span className="scw-edx-mob__capa-topo" aria-hidden="true" />
+              <span className="scw-edx-mob__capa-base" aria-hidden="true" />
+
+              <div className="scw-edx-mob__cab">
+                {marca.logo
+                  ? <img className="scw-edx-mob__marca" src={marca.logo} alt={marcaAlt} decoding="async" />
+                  : <span className="scw-edx-mob__marca-reserva">Marca pendente</span>}
+                <span className="scw-edx-mob__contagem" aria-hidden="true">
+                  <b>{pad2(i + 1)}</b><span>/{pad2(TOTAL)}</span>
+                </span>
+              </div>
+
+              <div className="scw-edx-mob__titulo">
+                <span className="scw-edx-mob__rotulo">{e.etapa}</span>
+                <h1 className="scw-edx-mob__tema">{e.tema}</h1>
+              </div>
+            </div>
+
+            {/* carrossel do resto do acervo, em pares 1:1 (a capa acima é a 1ª
+                foto, então aqui entra fotos.slice(1) — nada se repete na cena) */}
+            <Galeria
+              key={`galeria-${e.code}`}
+              fotos={fotosDepoisDaCapa}
+              total={fotos.length}
+              porPagina={2}
+              variante="par"
+              etiqueta={etiquetaGaleria}
+              semMovimento={semMovimento}
+            />
+
+            <div className="scw-edx-mob__corpo">
+              <p className="scw-edx-mob__lead" key={`lead-${e.code}`}>{narrativa.lead}</p>
+
+              <dl className="scw-edx-mob__meta">{meta}</dl>
+
+              <ul className="scw-edx-mob__palavras">
+                {e.palavras.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+
+              <button
+                type="button"
+                className="scw-edx-mob__sanfona"
+                aria-expanded={painel === 'participantes'}
+                aria-controls="scw-edx-marcas"
+                onClick={() => setPainel((p) => (p === 'participantes' ? null : 'participantes'))}
+              >
+                <span>Ver as {nParticipantes} marcas</span>
+                <span className="scw-edx-mob__chevron"><Chevron width={15} height={15} /></span>
+              </button>
+              {painel === 'participantes' && (
+                <ul className="scw-edx-mob__lista" id="scw-edx-marcas">{listaMarcas}</ul>
+              )}
+
+              {temEditorial && (
+                <button
+                  type="button"
+                  className="scw-edx-mob__sanfona scw-edx-mob__sanfona--vazada"
+                  aria-expanded={painel === 'editorial'}
+                  aria-controls="scw-edx-editorial"
+                  onClick={() => setPainel((p) => (p === 'editorial' ? null : 'editorial'))}
+                >
+                  <span>{rotuloEditorial}</span>
+                  <span className="scw-edx-mob__chevron"><Chevron width={15} height={15} /></span>
+                </button>
+              )}
+              {painel === 'editorial' && (
+                <Editorial
+                  id="scw-edx-editorial"
+                  classe="scw-edx__editorial--cartao"
+                  narrativa={narrativa}
+                  abertura={abertura}
+                  curiosidades={curiosidades}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* peça 1 — régua de anos fixa na base, acima da tab bar do site */}
+          <nav className="scw-edx-mob__regua" aria-label="Linha do tempo das edições">
+            <div className="scw-edx-mob__regua-topo">
+              <span className="scw-edx-mob__regua-code"><b>{e.code}</b><span>{e.tema}</span></span>
+              <span className="scw-edx-mob__regua-rot">linha do tempo</span>
+            </div>
+            {/* progresso por scaleX com origem à esquerda e SEM transition em
+                width/transform (travava o valor no meio do caminho) */}
+            <div className="scw-edx-mob__regua-barra" aria-hidden="true">
+              <span style={{ transform: `scaleX(${TOTAL > 1 ? i / (TOTAL - 1) : 0})` }} />
+            </div>
+            <div className="scw-edx-mob__regua-anos" ref={reguaRef}>
+              {EDS.map((ed, k) => (
+                <button
+                  type="button"
+                  key={ed.code}
+                  className={`scw-edx-mob__ano${k === i ? ' is-ativo' : ''}${k < i ? ' is-visto' : ''}`}
+                  aria-label={`${ed.code} — ${ed.tema}`}
+                  aria-current={k === i ? 'true' : undefined}
+                  onClick={() => vaiPara(k)}
+                >
+                  <span className="scw-edx-mob__ano-tick" aria-hidden="true" />
+                  <span className="scw-edx-mob__ano-rot">{ed.code}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* peças 2 e 3 — setas laterais metade fora da tela; nos extremos a
+              seta sem destino recebe `disabled` e sai da tabulação */}
+          <button
+            type="button"
+            className="scw-edx-mob__seta scw-edx-mob__seta--ant"
+            disabled={i === 0}
+            aria-label={i > 0 ? `Edição anterior: ${EDS[i - 1].tema}` : 'Esta é a primeira edição'}
+            onClick={() => passo(-1)}
+          >
+            <SetaEsq width={20} height={20} />
+          </button>
+          <button
+            type="button"
+            className="scw-edx-mob__seta scw-edx-mob__seta--prox"
+            disabled={i === TOTAL - 1}
+            aria-label={i < TOTAL - 1 ? `Próxima edição: ${EDS[i + 1].tema}` : 'Esta é a última edição'}
+            onClick={() => passo(1)}
+          >
+            <SetaDir width={20} height={20} />
+          </button>
+        </section>
       </div>
     )
   }
-  return (
-    <div className="edx-logo is-fallback" role="img" aria-label={`Logo da edição ${e.theme} pendente`}>
-      <span className="edx-logo__fb">
-        <span className="edx-logo__fb-tag">Logo pendente</span>
-        <span className="edx-logo__fb-name">{e.theme}</span>
-      </span>
-    </div>
-  )
-}
 
-// Slot de fotos — foto principal + mini galeria. Fotos reais (combos do acervo
-// recente) quando existem; senão fallback "pendente". Nunca inventa imagem.
-// Foto principal + 3 mini, TODAS rotativas (crossfade via PhotoRotator) por
-// subconjuntos da galeria da edição — mostra vários participantes trocando, não
-// fotos fixas. Fallback "pendente" quando a edição não tem fotos no acervo.
-// `live`: só o slide ativo (e vizinhos) monta a galeria rotativa completa. Slides
-// distantes mostram 1 foto estática por figura — evita ~380 <img> + dezenas de
-// setInterval montados de uma vez (freeze no 1º carregamento). Visual idêntico no
-// slide em foco; ao chegar, o rotator já está ativo.
-function EditionPhotoSlot({ e, live }) {
-  const g = e.gallery
-  const has = g.length > 0
-  const sub = (k) => g.filter((_, i) => i % 3 === k)   // 3 trilhas intercaladas
-  const track = (imgs) => (live ? imgs : imgs.slice(0, 1))  // fora de foco: 1 img, sem timer
+  /* ============================ DESKTOP ================================= */
   return (
-    <div className="edx-photo">
-      <figure className={`edx-photo__main${has ? '' : ' is-fallback'}`}>
-        {has
-          ? <PhotoRotator images={track(g)} interval={4200} />
-          : <span className="edx-slot-fb"><span className="edx-slot-fb__tag">Acervo</span><I.cal width={20} height={20} /><span className="edx-slot-fb__t">Foto principal pendente</span><span className="edx-slot-fb__s">Adicionar imagem da edição</span></span>}
-      </figure>
-      <div className="edx-photo__mini">
-        {[0, 1, 2].map((k) => {
-          const s = has ? sub(k) : []
-          return (
-            <figure className={`edx-photo__thumb${s.length ? '' : ' is-fallback'}`} key={k}>
-              {s.length
-                ? <PhotoRotator images={track(s)} interval={5200 + k * 700} />
-                : <span className="edx-slot-fb edx-slot-fb--sm"><span>Galeria pendente</span></span>}
-            </figure>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+    <div className={raiz} style={tokens}>
+      <p className="scw-edx__sr" aria-live="polite">{anuncio}</p>
 
-function EditionSlide({ e, live = true }) {
-  return (
-    <article className="edx-slide" id={`edx-panel-${e.number - 1}`} style={{ '--tone': `var(--${e.tone}, var(--page-accent))` }} aria-roledescription="slide" aria-label={`Edição ${e.number} de ${TOTAL} — ${e.theme} (${e.code})`}>
-      <div className="edx-slide__inner">
-        <div className="edx-slide__left">
-          <div className="edx-slide__index">
-            <span className="edx-slide__num">{pad2(e.number)} <span>/ {pad2(TOTAL)}</span></span>
-            <span className="edx-slide__code">{e.code}</span>
+      <section
+        className="scw-edx__palco"
+        aria-roledescription="apresentação"
+        aria-label="Edições do Sweet &amp; Coffee Week"
+      >
+        {/* key por edição: remonta a cena e reinicia wipe, ken burns e entradas */}
+        <div className="scw-edx__cena" key={e.code} {...gestos}>
+          {/* fundo: foto do acervo desfocada (blur 64px) sob véu chocolate a 87% */}
+          <div className="scw-edx__fundo" aria-hidden="true">
+            {fotoFundo && <span className="scw-edx__fundo-foto" style={bgStyle(fotoFundo)} />}
+            <span className="scw-edx__veu" />
           </div>
-          <EditionLogoSlot e={e} />
-          <h2 className="edx-slide__title">{e.theme}</h2>
-          {e.etapa && <span className="edx-slide__etapa">{e.etapa}</span>}
-          <p className="edx-slide__lead">{e.lead}</p>
-          <ul className="edx-slide__meta">
-            {e.periodo && <li><I.cal width={14} height={14} /> {e.periodo}</li>}
-            {e.participantsCount != null && <li className="edx-meta--dot">{e.participantsCount} participantes</li>}
-          </ul>
-          <div className="edx-slide__status"><StatusBadge status={e.status} special={e.special} /></div>
-        </div>
-        <div className="edx-slide__right">
-          <EditionPhotoSlot e={e} live={live} />
-        </div>
-      </div>
-    </article>
-  )
-}
 
-// Barra de navegação das edições (compartilhada por desktop horizontal e mobile).
-function EditionNav({ active, onPick }) {
-  return (
-    <nav className="edx-nav" aria-label="Navegar pelas edições">
-      <p className="edx-nav__now" aria-live="polite">{pad2(active + 1)} de {pad2(TOTAL)} — {PANELS[active].theme}</p>
-      <ul className="edx-nav__list">
-        {PANELS.map((e, i) => (
-          <li key={e.code}>
+          {/* mosaico de 3 fotos sangrando na metade direita — carrossel do
+              acervo inteiro da edição, em páginas de 3 */}
+          <Galeria
+            fotos={fotos}
+            porPagina={3}
+            variante="mosaico"
+            etiqueta={etiquetaGaleria}
+            semMovimento={semMovimento}
+          />
+
+          {/* cabeçalho próprio — mesma geometria da casca (trilho + 50px) */}
+          <header className="scw-edx__cab">
+            <div className="scw-edx__cab-linha">
+              <span className="scw-edx__marca">
+                {marca.logo
+                  ? <img className="scw-edx__marca-img" src={marca.logo} alt={marcaAlt} decoding="async" />
+                  : <span className="scw-edx__marca-reserva">Marca pendente</span>}
+                <span className="scw-edx__marca-txt">
+                  <b className="scw-edx__marca-tema">{e.tema}</b>
+                  <span className="scw-edx__marca-code">{e.code} · edição {pad2(i + 1)}</span>
+                </span>
+              </span>
+
+              <nav className="scw-nav" aria-label="Navegação principal">
+                {NAV_LINKS.map((l) => {
+                  const ativo = l.id === 'edicoes'
+                  const c = pageColor(l.id)
+                  return (
+                    <a
+                      key={l.id}
+                      href={l.href}
+                      className={ativo ? 'is-ativo' : undefined}
+                      aria-current={ativo ? 'page' : undefined}
+                      onClick={ativo ? (ev) => ev.preventDefault() : ir(l.href)}
+                      style={{ '--scw-nav-cor': c.menu, '--scw-nav-tinta': c.tinta, '--scw-nav-hover': c.menu }}
+                    >
+                      {l.label}
+                    </a>
+                  )
+                })}
+              </nav>
+
+              {/* O cabeçalho do site não é renderizado nesta rota, então o botão de
+                  acesso vive aqui — o gatilho do diálogo vem do App por prop. */}
+              {onOpenAccess && (
+                <button
+                  type="button"
+                  className="scw-acesso-topo"
+                  onClick={onOpenAccess}
+                  aria-haspopup="dialog"
+                  aria-expanded={!!accessOpen}
+                  aria-label="Acessar área restrita"
+                >
+                  <ChaveIcon width="17" height="17" strokeWidth="2" />
+                  <span>Acesso</span>
+                </button>
+              )}
+            </div>
+          </header>
+
+          {/* coluna editorial (metade esquerda) */}
+          <div className="scw-edx__coluna">
+            <span className="scw-edx__rotulo">{e.etapa}</span>
+            <h1 className="scw-edx__tema">{e.tema}</h1>
+            <p className="scw-edx__lead">{narrativa.lead}</p>
+            <dl className="scw-edx__meta">{meta}</dl>
+
+            <div className="scw-edx__acoes">
+              <button
+                type="button"
+                ref={btnParticipantes}
+                className="scw-edx__botao"
+                aria-expanded={painel === 'participantes'}
+                aria-controls="scw-edx-painel"
+                onClick={() => setPainel((p) => (p === 'participantes' ? null : 'participantes'))}
+              >
+                Ver participantes · {nParticipantes}
+                <SetaDir width={15} height={15} />
+              </button>
+              {temEditorial && (
+                <button
+                  type="button"
+                  ref={btnEditorial}
+                  className="scw-edx__botao scw-edx__botao--vazado"
+                  aria-expanded={painel === 'editorial'}
+                  aria-controls="scw-edx-painel"
+                  onClick={() => setPainel((p) => (p === 'editorial' ? null : 'editorial'))}
+                >
+                  {rotuloEditorial}
+                  <Mais width={15} height={15} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* painéis flutuantes */}
+          {painel === 'participantes' && (
+            <aside
+              className="scw-edx__painel scw-edx__painel--claro"
+              id="scw-edx-painel"
+              role="region"
+              aria-label={`Participantes da edição ${e.tema}`}
+              onKeyDown={(ev) => { if (ev.key === 'Escape') setPainel(null) }}
+            >
+              <div className="scw-edx__painel-topo">
+                <div>
+                  <span className="scw-edx__painel-rot">Participantes · {e.code}</span>
+                  <b className="scw-edx__painel-t">{nParticipantes} marcas na rota de {e.tema}</b>
+                </div>
+                <button type="button" ref={fecharRef} className="scw-edx__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
+                  <XisFechar width={15} height={15} />
+                </button>
+              </div>
+              <ul className="scw-edx__marcas">{listaMarcas}</ul>
+            </aside>
+          )}
+
+          {painel === 'editorial' && (
+            <aside
+              className="scw-edx__painel scw-edx__painel--escuro"
+              id="scw-edx-painel"
+              role="region"
+              aria-label={abertura ? 'A história do festival e a edição de 2016' : `Sobre a edição ${e.tema}`}
+              onKeyDown={(ev) => { if (ev.key === 'Escape') setPainel(null) }}
+            >
+              <div className="scw-edx__painel-topo">
+                <span className="scw-edx__painel-rot">
+                  {abertura ? 'A história do Sweet & Coffee Week' : `Sobre a edição · ${e.code}`}
+                </span>
+                <button type="button" ref={fecharRef} className="scw-edx__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
+                  <XisFechar width={15} height={15} />
+                </button>
+              </div>
+              <Editorial
+                classe="scw-edx__editorial--painel"
+                narrativa={narrativa}
+                abertura={abertura}
+                curiosidades={curiosidades}
+              />
+            </aside>
+          )}
+        </div>
+
+        {/* rodapé: trilha das 16 edições (dots + anos), setas e progresso */}
+        <footer className="scw-edx__rodape">
+          <div className="scw-edx__rodape-linha">
             <button
               type="button"
-              className={`edx-nav__item${i === active ? ' is-active' : ''}`}
-              aria-current={i === active ? 'true' : undefined}
-              onClick={() => onPick(i)}
+              className="scw-edx__seta"
+              disabled={i === 0}
+              aria-label={i > 0 ? `Edição anterior: ${EDS[i - 1].tema}` : 'Esta é a primeira edição'}
+              onClick={() => passo(-1)}
             >
-              <span className="edx-nav__n">{pad2(i + 1)}</span>
-              <span className="edx-nav__y">{e.code}</span>
+              <SetaEsq width={17} height={17} />
             </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  )
-}
 
-export function EdicoesPage() {
-  const pageRef = React.useRef(null)
-  const outerRef = React.useRef(null)
-  const trackRef = React.useRef(null)
-  // Observer de reveal p/ o <PageHero> (usa .motion-reveal-up; aqui não há
-  // PageShell, então a página provê o observer — igual às demais institucionais).
-  useRevealOnScroll(pageRef)
-  const [active, setActive] = React.useState(0)
-  const [horizontal, setHorizontal] = React.useState(false)
-
-  // Modo horizontal só no desktop e sem reduced-motion.
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mqWide = window.matchMedia('(min-width: 980px)')
-    const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const evaluate = () => setHorizontal(mqWide.matches && !mqMotion.matches)
-    evaluate()
-    mqWide.addEventListener('change', evaluate)
-    mqMotion.addEventListener('change', evaluate)
-    return () => { mqWide.removeEventListener('change', evaluate); mqMotion.removeEventListener('change', evaluate) }
-  }, [])
-
-  // Scroll-driven: vertical → translateX do trilho. rAF, sem listener pesado.
-  React.useEffect(() => {
-    if (!horizontal) return
-    const outer = outerRef.current
-    const track = trackRef.current
-    if (!outer || !track) return
-    let raf = 0
-    const update = () => {
-      raf = 0
-      const vh = window.innerHeight
-      const vw = window.innerWidth
-      const dist = outer.offsetHeight - vh // distância de scroll vertical útil
-      const passed = Math.min(Math.max(-outer.getBoundingClientRect().top, 0), dist)
-      const progress = dist > 0 ? passed / dist : 0
-      const maxX = (TOTAL - 1) * vw
-      track.style.transform = `translate3d(${-progress * maxX}px,0,0)`
-      const idx = Math.round(progress * (TOTAL - 1))
-      setActive((prev) => (prev === idx ? prev : idx))
-    }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf) }
-  }, [horizontal])
-
-  // Modo vertical: observa qual painel está visível p/ acender o chip ativo.
-  React.useEffect(() => {
-    if (horizontal || typeof window === 'undefined') return
-    const nodes = PANELS.map((_, i) => document.getElementById(`edx-panel-${i}`)).filter(Boolean)
-    if (!nodes.length) return
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((en) => {
-        if (en.isIntersecting) {
-          const i = Number(en.target.id.replace('edx-panel-', ''))
-          setActive(i)
-        }
-      })
-    }, { threshold: 0, rootMargin: '-45% 0px -45% 0px' })
-    nodes.forEach((n) => io.observe(n))
-    return () => io.disconnect()
-  }, [horizontal])
-
-  // Clique na navegação → rola até a edição (horizontal: posição de scroll; vertical: o painel).
-  const pick = React.useCallback((i) => {
-    if (typeof window === 'undefined') return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (horizontal && outerRef.current) {
-      const outer = outerRef.current
-      const dist = outer.offsetHeight - window.innerHeight
-      const top = outer.offsetTop + (i / (TOTAL - 1)) * dist
-      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
-    } else {
-      const el = document.getElementById(`edx-panel-${i}`)
-      if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-    }
-  }, [horizontal])
-
-  return (
-    <div className="page-enter edx-page">
-      {/* HERO institucional — mesma peça das demais páginas (<PageHero>): fundo no
-          acento da rota (ciano) + tinta escura, altura proporcional e .wrap canônico.
-          O hint de scroll fica como conteúdo extra (função: avisa da apresentação). */}
-      <PageHero
-        title={<>A história do <HeroHL color="var(--coral)">Sweet &amp; Coffee Week</HeroHL>, edição por edição.</>}
-        subtitle="De 2016 à edição Lovers, cada temporada trouxe um novo tema, novos combos e novas memórias para Natal."
-      >
-        <div className="edx-hero-hint" aria-hidden="true">
-          <span>Role para percorrer as 16 edições</span>
-          <I.arrow />
-        </div>
-      </PageHero>
-
-      {horizontal ? (
-        /* DESKTOP — apresentação horizontal scroll-driven */
-        <section
-          ref={outerRef}
-          className="edx-stage"
-          style={{ height: `${TOTAL * 135}vh` }}
-          aria-label="Apresentação das edições"
-        >
-          <div className="edx-sticky">
-            <div className="edx-viewport">
-              <div ref={trackRef} className="edx-track" style={{ width: `${TOTAL * 100}vw` }}>
-                {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
-              </div>
+            <div className="scw-edx__trilha">
+              <span className="scw-edx__trilho" aria-hidden="true" />
+              <span className="scw-edx__brilho" aria-hidden="true" />
+              <span className="scw-edx__progresso" aria-hidden="true" />
+              <span className="scw-edx__cursor" aria-hidden="true" />
+              <span className="scw-edx__cursor-anel" aria-hidden="true" />
+              {EDS.map((ed, k) => (
+                <button
+                  type="button"
+                  key={ed.code}
+                  className={`scw-edx__ano${k === i ? ' is-ativo' : ''}`}
+                  aria-label={`${ed.code} — ${ed.tema}`}
+                  aria-current={k === i ? 'true' : undefined}
+                  onClick={() => vaiPara(k)}
+                >
+                  <span className="scw-edx__ano-tick" aria-hidden="true" />
+                  <span className="scw-edx__ano-rot">{ed.code}</span>
+                </button>
+              ))}
             </div>
-            <div className="edx-progress" aria-hidden="true">
-              <span style={{ width: `${((active + 1) / TOTAL) * 100}%` }} />
-            </div>
-            <EditionNav active={active} onPick={pick} />
+
+            <button
+              type="button"
+              className="scw-edx__seta scw-edx__seta--proxima"
+              disabled={i === TOTAL - 1}
+              aria-label={i < TOTAL - 1 ? `Próxima edição: ${EDS[i + 1].tema}` : 'Esta é a última edição'}
+              onClick={() => passo(1)}
+            >
+              <SetaDir width={17} height={17} />
+            </button>
           </div>
-        </section>
-      ) : (
-        /* MOBILE / reduced-motion — painéis verticais + chips */
-        <section className="edx-stack" aria-label="Edições">
-          <div className="edx-chips-wrap">
-            <EditionNav active={active} onPick={pick} />
+
+          <div className="scw-edx__rodape-legenda">
+            <span className="scw-edx__rodape-atual">{pad2(i + 1)} · {e.tema}</span>
+            <span className="scw-edx__rodape-dica">setas do teclado, clique na trilha ou arraste para navegar</span>
           </div>
-          <div className="edx-stack__list">
-            {PANELS.map((e, i) => <EditionSlide e={e} key={e.code} live={Math.abs(i - active) <= 1} />)}
-          </div>
-        </section>
-      )}
-
-      <style>{`
-        .edx-page {
-          /* container alinhado à Home (.wrap → --maxw 1280 / --pad clamp(20,4vw,56)) */
-          --page-max: 1280px;
-          --page-gutter: clamp(20px, 4vw, 56px);
-          /* zona de segurança header↔hero — mesmos tokens globais (styles.css :body),
-             redefinidos aqui pois .edx-page é auto-contida (escapa da regra global de hero). */
-          --header-safe-offset: clamp(120px, 14vh, 168px);
-          --hero-top-clearance: clamp(32px, 4vw, 56px);
-          --hero-content-start: calc(var(--header-safe-offset) + var(--hero-top-clearance));
-          overflow-x: clip;
-        }
-        .edx-wrap { max-width: var(--page-max); margin: 0 auto; padding-inline: var(--page-gutter); }
-        .edx-hl { color: var(--page-accent, var(--cyan)); font-style: italic; }
-
-        /* HERO — agora o componente <PageHero> + src/styles/hero.css (fonte única):
-           fundo no acento da rota (ciano) + tinta escura, como as demais páginas.
-           Só o hint de scroll é específico desta apresentação (função, não enfeite). */
-        .edx-hero-hint { display: inline-flex; align-items: center; gap: 10px; margin-top: var(--sp-6); font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); opacity: .72; }
-        .edx-hero-hint svg { width: 16px; height: 16px; transform: rotate(90deg); }
-
-        /* STAGE — desktop sticky horizontal */
-        .edx-stage { position: relative; background: var(--cream); }
-        .edx-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        .edx-viewport { flex: 1; overflow: hidden; padding-top: clamp(80px, 11vh, 130px); }
-        .edx-track { display: flex; height: 100%; will-change: transform; }
-
-        /* NAV — régua de apresentação na BASE da seção sticky (livre do menu) */
-        .edx-nav { padding: var(--sp-3) var(--page-gutter); background: color-mix(in srgb, var(--cream) 88%, transparent); border-top: 1px solid var(--paper-line); }
-        .edx-nav__now { max-width: var(--page-max); margin: 0 auto var(--sp-2); font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft); }
-        .edx-nav__list { list-style: none; margin: 0 auto; padding: 0; max-width: var(--page-max); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
-        .edx-nav__item { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 48px; padding: 7px 9px; border: 1px solid var(--paper-line); border-radius: 10px; background: var(--cream-card); color: var(--ink-soft); cursor: pointer; transition: border-color .16s, color .16s, background .16s; }
-        .edx-nav__item:hover { color: var(--ink); border-color: var(--page-accent, var(--cyan)); }
-        .edx-nav__item.is-active { background: var(--page-accent, var(--cyan)); border-color: var(--page-accent, var(--cyan)); color: var(--ink); }
-        .edx-nav__n { font-family: var(--font-display); font-weight: 900; font-size: 13px; line-height: 1; }
-        .edx-nav__y { font-size: 10px; font-weight: 700; opacity: .8; white-space: nowrap; }
-        .edx-nav__item:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 2px; }
-
-        /* PROGRESS */
-        .edx-progress { height: 3px; background: var(--paper-line); }
-        .edx-progress span { display: block; height: 100%; background: var(--page-accent, var(--cyan)); transition: width .2s ease; }
-
-        /* SLIDE */
-        .edx-slide { min-width: 100vw; height: 100%; display: flex; align-items: center; background: color-mix(in srgb, var(--tone) 5%, var(--cream)); }
-        .edx-slide__inner { max-width: var(--page-max); margin: 0 auto; padding: clamp(28px,4vh,56px) var(--page-gutter); width: 100%; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(500px, 1.08fr); gap: clamp(48px, 6vw, 96px); align-items: center; }
-        .edx-slide__left { min-width: 0; }
-        .edx-slide__index { display: flex; align-items: baseline; gap: 14px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--paper-line); margin-bottom: var(--sp-4); }
-        .edx-slide__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 4vw, 60px); letter-spacing: -.03em; color: var(--tone); line-height: 1; }
-        .edx-slide__num span { font-size: .5em; color: var(--ink-soft); }
-        .edx-slide__code { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 11px; }
-        .edx-slide__title { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.03em; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; color: var(--ink); margin: var(--sp-4) 0 0; text-wrap: balance; }
-        .edx-slide__etapa { display: inline-block; margin-top: 8px; font-family: var(--font-sans); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--tone); }
-        .edx-slide__lead { margin: var(--sp-4) 0 0; max-width: 48ch; color: var(--ink-soft); font-size: clamp(14.5px, 1vw, 16px); line-height: 1.5; text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .edx-slide__meta { list-style: none; margin: var(--sp-5) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
-        .edx-slide__meta li { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink); }
-        .edx-slide__meta svg { color: var(--tone); }
-        .edx-meta--dot::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: var(--tone); margin-right: 8px; vertical-align: middle; }
-        .edx-slide__status { margin-top: var(--sp-4); }
-
-        /* LOGO SLOT */
-        .edx-logo { position: relative; width: clamp(88px, 8vw, 120px); aspect-ratio: 1; margin-top: var(--sp-5); border-radius: 16px; display: grid; place-items: center; overflow: hidden; }
-        /* img absoluta: a row auto do grid cresce pro tamanho intrínseco da imagem e o overflow:hidden cortava a logo */
-        .edx-logo--seal img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,.25)); }
-        .edx-logo--seal .edx-logo__fb { display: none; }
-        .edx-logo--seal.is-fallback img { display: none; }
-        .edx-logo--seal.is-fallback .edx-logo__fb { display: flex; }
-        /* logo real da edição (acervo) — mesma lógica do selo: contain + fallback no erro */
-        .edx-logo--real { width: clamp(96px, 9vw, 128px); }
-        .edx-logo--real img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(43,24,16,.2)); }
-        .edx-logo--real .edx-logo__fb { display: none; }
-        .edx-logo--real.is-fallback { width: min(300px, 100%); aspect-ratio: auto; min-height: 96px; max-height: 132px; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); padding: 14px 16px; place-items: center start; }
-        .edx-logo--real.is-fallback img { display: none; }
-        .edx-logo--real.is-fallback .edx-logo__fb { display: flex; }
-        .edx-logo.is-fallback { width: min(300px, 100%); min-height: 96px; max-height: 132px; aspect-ratio: auto; border: 1px solid color-mix(in srgb, var(--tone) 38%, var(--paper-line)); background: color-mix(in srgb, var(--tone) 7%, var(--cream-card)); border-radius: 14px; padding: 14px 16px; place-items: center start; }
-        .edx-logo__fb { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
-        .edx-logo__fb-tag { font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
-        .edx-logo__fb-name { font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--ink); line-height: 1.15; }
-
-        /* PHOTO SLOT */
-        .edx-photo { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .edx-photo__main { position: relative; margin: 0; width: 100%; aspect-ratio: 4 / 3; min-height: clamp(340px, 46vh, 500px); border-radius: 18px; overflow: hidden; background: var(--swc-coffee, #6A2C15); box-shadow: var(--shadow-lg); }
-        .edx-slot-fb__tag { position: absolute; top: 12px; left: 12px; font-family: var(--font-sans); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); background: rgba(43,24,16,.06); border-radius: 999px; padding: 4px 10px; }
-        .edx-photo__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .edx-photo__mini { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .edx-photo__thumb { margin: 0; }
-        .edx-photo__thumb { position: relative; margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--swc-coffee, #6A2C15); }
-        .edx-photo__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .edx-photo__cap { font-size: 12px; color: var(--ink-soft); }
-        /* fallback de slots de foto */
-        .edx-photo__main.is-fallback, .edx-photo__thumb.is-fallback { background: color-mix(in srgb, var(--tone) 8%, var(--cream-card)); border: 1.5px dashed color-mix(in srgb, var(--tone) 50%, var(--paper-line)); box-shadow: none; }
-        .edx-photo__main.is-fallback img, .edx-photo__thumb.is-fallback img { display: none; }
-        .edx-slot-fb { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--ink-soft); font-family: var(--font-sans); font-size: 13px; font-weight: 700; text-align: center; padding: 12px; }
-        .edx-slot-fb svg { color: var(--tone); }
-        .edx-slot-fb__t { font-size: 13px; }
-        .edx-slot-fb__s { font-size: 11px; font-weight: 600; color: var(--ink-soft); opacity: .82; }
-        .edx-slot-fb--sm { font-size: 10.5px; gap: 0; }
-
-        /* BADGE */
-        .edx-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .02em; padding: 6px 13px; border-radius: 999px; }
-        .edx-badge--ok { background: rgba(127,194,74,.16); color: #3c6a1f; }
-        .edx-badge--muted { background: rgba(43,24,16,.07); color: var(--ink-soft); }
-        .edx-badge--warn { background: rgba(232,85,58,.14); color: var(--coral-deep); }
-        .edx-badge--info { background: rgba(43,196,232,.16); color: var(--cyan-deep); }
-        .edx-badge--special { background: var(--page-accent, var(--cyan)); color: var(--ink); }
-
-        /* MOBILE / reduced-motion — vertical + chips sticky */
-        .edx-stack { background: var(--cream); }
-        .edx-chips-wrap { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--cream) 90%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--paper-line); }
-        .edx-stack .edx-nav { padding: clamp(70px, 12vh, 96px) var(--page-gutter) var(--sp-3); }
-        .edx-stack .edx-slide { min-width: 0; height: auto; border-bottom: 1px solid var(--paper-line); }
-        .edx-stack .edx-slide__inner { grid-template-columns: 1fr; gap: var(--sp-6); padding-block: var(--section-y, clamp(56px, 12vw, 96px)); }
-        .edx-stack .edx-slide__lead { -webkit-line-clamp: 6; }
-
-        @media (max-width: 540px) {
-          .edx-photo__mini { grid-template-columns: repeat(3, 1fr); }
-          .edx-slide__title { font-size: clamp(26px, 8vw, 38px); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .edx-progress span, .edx-nav__item { transition: none; }
-        }
-      `}</style>
+        </footer>
+      </section>
     </div>
   )
 }
+
+export default EdicoesPage

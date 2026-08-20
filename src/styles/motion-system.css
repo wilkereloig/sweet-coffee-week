@@ -1,35 +1,28 @@
 /* ============================================================================
-   MOTION SYSTEM — Sweet & Coffee Week (institucional)
-   Referência de animação do site. Doc: src/design/SITE_DIRECTION.md (§ Motion System).
+   MOTION SYSTEM — sistema ANTERIOR ao redesign 2026.
+   Sobrevive só para a landing `/em-breve` (src/pages/institutional/EmBreve.jsx),
+   única tela que ainda usa as classes .motion-* e o hook useRevealOnScroll.
 
-   Princípios: movimento editorial, leve e intencional. Reforça leitura e
-   hierarquia — nunca decoração pura. Só anima transform/opacity/filter (sem
-   layout shift). Tudo desligado em prefers-reduced-motion: reduce.
+   ⚠️ Não usar em página nova. O movimento do site institucional vive em
+   src/styles/scw-motion.css + src/hooks/useSiteMotion.js.
 
-   Reveals são observer-driven: a classe define o estado OCULTO; o hook
-   useRevealOnScroll (IntersectionObserver) adiciona `.is-in` quando o elemento
-   entra na viewport e a transição leva ao estado visível. Confiável em todo
-   navegador (não depende de animation-timeline). Anima uma vez.
+   Removido em jul/2026 (código órfão, componentes já apagados): `.photo-rotator`
+   (PhotoRotator.jsx), `.brand-cycle` (ciclo de logos do header antigo),
+   `.hm-path` / `.hm-about__*` (Home anterior ao redesign) e as classes
+   .motion-reveal-left/right, .motion-button-hover, .motion-press e
+   .motion-float-soft, que nenhuma tela chegou a usar.
 
-   Presença: viagem maior + easing de mola (chegada que "pousa") + blur-in
-   (foco entrando). Perceptível, mas sem escala exagerada nem cara de template.
+   Reveals são observer-driven: a classe define o estado OCULTO; useRevealOnScroll
+   adiciona `.is-in` quando o elemento entra na viewport. Anima uma vez.
+   Só transform/opacity/filter — sem layout shift.
+   Tokens (--motion-*, --ease-*-soft) vivem em src/styles/layout-tokens.css.
    ============================================================================ */
-
-/* Tokens de motion (--motion-*, --ease-*-soft, --motion-rise/blur) foram
-   CENTRALIZADOS em src/styles/layout-tokens.css (fonte única dos knobs globais).
-   Custom props resolvem no uso, então as regras abaixo continuam válidas.
-   Ajustar duração/easing/deslocamento = editar layout-tokens.css. */
-
-/* ---- Float orgânico (decorativo, muito sutil) ---------------------------- */
-@keyframes msFloatSoft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
 /* ============================================================================
    REVEAL — estado oculto → .is-in visível (toggle pelo IntersectionObserver)
    ============================================================================ */
 .motion-reveal,
 .motion-reveal-up,
-.motion-reveal-left,
-.motion-reveal-right,
 .motion-image-reveal {
   opacity: 0;
   filter: blur(var(--motion-blur));
@@ -40,17 +33,15 @@
 }
 .motion-reveal,
 .motion-reveal-up    { transform: translateY(var(--motion-rise)); }
-.motion-reveal-left  { transform: translateX(calc(var(--motion-rise) * -1.4)); }
-.motion-reveal-right { transform: translateX(calc(var(--motion-rise) *  1.4)); }
 .motion-image-reveal { transform: scale(1.08); }
 
+/* estado final: libera o will-change (reveal roda uma vez; manter promovido à
+   camada de composição para sempre é custo de memória à toa) */
 .motion-reveal.is-in,
 .motion-reveal-up.is-in,
-.motion-reveal-left.is-in,
-.motion-reveal-right.is-in,
-.motion-image-reveal.is-in { opacity: 1; transform: none; filter: none; }
+.motion-image-reveal.is-in { opacity: 1; transform: none; filter: none; will-change: auto; }
 
-/* ---- Stagger — filhos diretos entram em sequência (perceptível) ---------- */
+/* ---- Stagger — filhos diretos entram em sequência ------------------------ */
 .motion-stagger > * {
   opacity: 0;
   transform: translateY(var(--motion-rise));
@@ -60,7 +51,7 @@
               filter var(--motion-slow) var(--ease-out-soft);
   will-change: opacity, transform, filter;
 }
-.motion-stagger.is-in > * { opacity: 1; transform: none; filter: none; }
+.motion-stagger.is-in > * { opacity: 1; transform: none; filter: none; will-change: auto; }
 .motion-stagger.is-in > *:nth-child(1) { transition-delay: 0ms; }
 .motion-stagger.is-in > *:nth-child(2) { transition-delay: 120ms; }
 .motion-stagger.is-in > *:nth-child(3) { transition-delay: 240ms; }
@@ -69,7 +60,7 @@
 .motion-stagger.is-in > *:nth-child(6) { transition-delay: 600ms; }
 
 /* ============================================================================
-   HOVER / PRESS — feedback (transform/opacity/box-shadow), discreto mas vivo
+   HOVER — feedback discreto em card
    ============================================================================ */
 .motion-card-hover {
   transition: transform var(--motion-base) var(--ease-spring-soft),
@@ -77,49 +68,12 @@
 }
 .motion-card-hover:hover { transform: translateY(-6px) scale(1.012); }
 
-.motion-button-hover {
-  transition: transform var(--motion-fast) var(--ease-spring-soft),
-              box-shadow var(--motion-fast) var(--ease-out-soft),
-              background var(--motion-fast) var(--ease-out-soft),
-              color var(--motion-fast) var(--ease-out-soft);
-}
-.motion-button-hover:hover { transform: translateY(-3px); }
-.motion-button-hover:active { transform: translateY(0); }
-
-/* Press tátil — leve recuo ao clicar (botões/links acionáveis) */
-.motion-press { transition: transform var(--motion-fast) var(--ease-out-soft); }
-.motion-press:active { transform: scale(.96); }
-
-/* Float decorativo */
-@media (prefers-reduced-motion: no-preference) {
-  .motion-float-soft { animation: msFloatSoft 6s ease-in-out infinite; }
-}
-
-/* ============================================================================
-   HOVER DE SEÇÃO — Home institucional (mira classes existentes; só transform/
-   opacity/filter, sem layout shift). Reforça o que já vive na página.
-   ============================================================================ */
-/* Caminhos Participar/Apoiar — card sobe + seta desliza ------------------- */
-.hm-path { transition: transform var(--motion-base) var(--ease-spring-soft),
-                       box-shadow var(--motion-base) var(--ease-out-soft); }
-.hm-path:hover { transform: translateY(-5px); box-shadow: 0 22px 44px rgba(43,24,16,.16); }
-.hm-path__cta svg { transition: transform var(--motion-base) var(--ease-spring-soft); }
-.hm-path__cta:hover svg { transform: translateX(5px); }
-
-/* Foto "O que é" — zoom suave ao passar o mouse -------------------------- */
-.hm-about__media:hover .photo-rotator__img.is-active { transform: scale(1.04); }
-
-/* Coração — batida acelera no hover (pulso base em Home.jsx) -------------- */
-.hm-about__heart:hover { animation-duration: .7s; }
-
 /* ============================================================================
    ACESSIBILIDADE — sem movimento → conteúdo estático e visível
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
   .motion-reveal,
   .motion-reveal-up,
-  .motion-reveal-left,
-  .motion-reveal-right,
   .motion-image-reveal,
   .motion-stagger > * {
     opacity: 1 !important;
@@ -127,57 +81,6 @@
     filter: none !important;
     transition: none !important;
   }
-  .motion-card-hover,
-  .motion-button-hover,
-  .motion-press { transition: none; }
-  .motion-card-hover:hover,
-  .motion-button-hover:hover,
-  .motion-press:active { transform: none; }
-  .motion-float-soft { animation: none; }
-  /* hover de seção (Home) — estático */
-  .hm-path:hover,
-  .hm-path__cta:hover svg,
-  .hm-about__media:hover .photo-rotator__img.is-active { transform: none; }
-  .hm-path:hover { box-shadow: none; }
-}
-
-/* ============================================================================
-   PHOTO ROTATOR — galeria crossfade (componente src/components/PhotoRotator.jsx)
-   Imagens empilhadas; só a ativa visível. Sem layout shift. Herda o tamanho/
-   máscara do pai (hero/about). Sem setas — integra ao layout.
-   ============================================================================ */
-.photo-rotator { position: relative; width: 100%; height: 100%; overflow: hidden; }
-.photo-rotator__img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; opacity: 0; transform: scale(1.015);
-  transition: opacity 900ms var(--ease-out-soft), transform 1400ms var(--ease-out-soft);
-  will-change: opacity;
-}
-.photo-rotator__img.is-active { opacity: 1; transform: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .photo-rotator__img { transition: none; transform: none; }
-}
-
-/* ============================================================================
-   BRAND CYCLE — logos do header alternando (selo ⇄ 10 anos), crossfade + carimbo
-   Grid empilhado: ambos no mesmo célula → container do tamanho do maior, sem
-   layout shift. Ancorado à esquerda (justify-items:start).
-   ============================================================================ */
-.brand-cycle { display: inline-grid; justify-items: start; align-items: center; line-height: 0; transform-origin: left center; transition: transform 380ms var(--ease-out-soft); }
-/* Ao rolar a página, as logos encolhem e permanecem numa escala menor */
-.site-header.scrolled .brand-cycle { transform: scale(.62); }
-@media (prefers-reduced-motion: reduce) { .brand-cycle { transition: none; } }
-.brand-cycle__img {
-  grid-area: 1 / 1; height: 72px; width: auto; display: block;
-  opacity: 0; transform: scale(.9) rotate(-4deg); transform-origin: left center;
-  transition: opacity 600ms var(--ease-out-soft), transform 600ms var(--ease-spring-soft);
-  will-change: opacity, transform;
-  filter: drop-shadow(0 4px 10px rgba(43, 24, 16, .28));
-}
-.brand-cycle__img.is-in { opacity: 1; transform: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .brand-cycle__img { transition: none; }
-  .brand-cycle__img:not(.is-in) { display: none; }
+  .motion-card-hover { transition: none; }
+  .motion-card-hover:hover { transform: none; }
 }

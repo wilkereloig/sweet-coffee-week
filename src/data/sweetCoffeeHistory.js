@@ -351,7 +351,7 @@ export const SWEET_COFFEE_HISTORY = {
         "categorias": [
           {
             "categoria": "Melhor Combo",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -405,7 +405,7 @@ export const SWEET_COFFEE_HISTORY = {
       "ordem": 8,
       "nome": "S&C No Ritmo da Música",
       "tema": "No Ritmo da Música",
-      "periodo": "julho de 2020 (encerramento 19–20/jul; início aprox.)",
+      "periodo": "julho de 2020", // encerramento 19-20/jul confirmado; início exato não encontrado no acervo (ACERVO.md)
       "participantesCount": 20,
       "participantes": [
         "Petra Holanda",
@@ -435,7 +435,7 @@ export const SWEET_COFFEE_HISTORY = {
         "categorias": [
           {
             "categoria": "Melhor Combo",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Bocaditos"] },
               { "pos": 2, "nomes": ["Rafaela Fontes Chocolateria"] },
@@ -444,7 +444,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Atendimento",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Casa dos Salgados Gourmet"] },
               { "pos": 2, "nomes": ["Momento Gourmet"] },
@@ -453,7 +453,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Criatividade",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Cookorote"] },
               { "pos": 2, "nomes": ["Bocaditos"] },
@@ -462,7 +462,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Sabor",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Bocaditos"] },
               { "pos": 2, "nomes": ["Atelier Mine Confeitaria", "Rafaela Fontes Chocolateria"] },
@@ -471,7 +471,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Apresentação",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Rafaela Fontes Chocolateria"] },
               { "pos": 2, "nomes": ["Bocaditos"] },
@@ -480,7 +480,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Take Away",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Cuore di Panna"] },
               { "pos": 2, "nomes": ["Rafaela Fontes Chocolateria"] },
@@ -489,7 +489,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Delivery",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               { "pos": 1, "nomes": ["Café Brigadeiro"] },
               { "pos": 2, "nomes": ["Casa dos Salgados Gourmet"] },
@@ -593,7 +593,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Takeaway/Delivery",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -617,7 +617,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Atendimento",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -641,7 +641,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Sabor",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -665,7 +665,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Criatividade",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -689,7 +689,7 @@ export const SWEET_COFFEE_HISTORY = {
           },
           {
             "categoria": "Melhor Apresentação",
-            "trilha": null,
+            "trilha": "sweet_lovers",
             "colocacoes": [
               {
                 "pos": 1,
@@ -1070,7 +1070,7 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Terras Potiguares",
       "tema": "Terras Potiguares",
       "periodo": "18 a 28 de novembro de 2021",
-      "participantesCount": 30,
+      "participantesCount": 29,
       "participantes": [
         "Atelier Mine Confeitaria",
         "Aumer Restaurante",
@@ -1470,7 +1470,7 @@ export const SWEET_COFFEE_HISTORY = {
       "nome": "S&C Movies",
       "tema": "Movies",
       "periodo": "06 a 16 de outubro de 2022",
-      "participantesCount": 35,
+      "participantesCount": 34,
       "participantes": [
         "Adocee Doceria",
         "Aroma Café",
@@ -1710,7 +1710,7 @@ export const SWEET_COFFEE_HISTORY = {
       "patrocinadores": {
         "parceiros": [
           {
-            "nome": "Supernordestão",
+            "nome": "Supermercado Nordestão",
             "tipo": "patrocínio/parceria"
           },
           {
@@ -2048,7 +2048,8 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bocaditos"
+                  "Bocaditos",
+                  "Delicato"
                 ]
               },
               {
@@ -2096,18 +2097,19 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bocaditos"
+                  "Bolomania"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "Delicato"
+                  "Bocaditos"
                 ]
               },
               {
                 "pos": 3,
                 "nomes": [
+                  "Delicato",
                   "Just Food&Coffee"
                 ]
               }
@@ -2253,13 +2255,14 @@ export const SWEET_COFFEE_HISTORY = {
               {
                 "pos": 1,
                 "nomes": [
-                  "Bolomania"
+                  "Marlon Vinicius"
                 ]
               },
               {
                 "pos": 2,
                 "nomes": [
-                  "O Maestro Café"
+                  "O Maestro Café",
+                  "Bolomania"
                 ]
               },
               {
@@ -2413,6 +2416,33 @@ export const SWEET_COFFEE_HISTORY = {
                 ]
               }
             ]
+          },
+          {
+            "categoria": "Encantamento em Loja",
+            "trilha": "sweet_lovers",
+            "colocacoes": [
+              {
+                "pos": 1,
+                "nomes": [
+                  "Just Food&Coffee",
+                  "O Maestro Café"
+                ]
+              },
+              {
+                "pos": 2,
+                "nomes": [
+                  "Mr. Cupcake Confeitaria",
+                  "Adocee"
+                ]
+              },
+              {
+                "pos": 3,
+                "nomes": [
+                  "Marlon Vinicius",
+                  "Bolomania"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -2546,7 +2576,7 @@ export const SWEET_COFFEE_HISTORY = {
     "observacaoNomenclatura": "Quando se referir ao festival, usar Sweet & Coffee Week, SCW, o festival ou a edição. Não usar Sweet sozinho como apelido do festival."
   },
   "participantAliases": {
-    "Mr. Cupcake": [
+    "Mr. Cupcake Confeitaria": [
       "Mr Cupcake",
       "Mr. Cupcake",
       "Mr. Cupcake Confeitaria"
@@ -2556,7 +2586,7 @@ export const SWEET_COFFEE_HISTORY = {
       "Canuto's",
       "Canuto’s"
     ],
-    "Duart's": [
+    "Duart's Confeitaria": [
       "Duarts",
       "Duart's",
       "Duart’s",
@@ -2600,7 +2630,7 @@ export const SWEET_COFFEE_HISTORY = {
       "Bella Pettit",
       "Bella Douces"
     ],
-    "Atelier Mine": [
+    "Atelier Mine Confeitaria": [
       "Atelier Mine",
       "Atelier Mine Confeitaria",
       "Mine",
@@ -2620,7 +2650,7 @@ export const SWEET_COFFEE_HISTORY = {
       "Very Sugar",
       "Verysugar"
     ],
-    "Chocolatudos": [
+    "Chocolatudos por Laís": [
       "Chocolatudos",
       "Chocolatudo",
       "Chocolatudos por Laís"
@@ -2629,7 +2659,7 @@ export const SWEET_COFFEE_HISTORY = {
       "Casa dos Salgados",
       "Casa dos Salgados Gourmet"
     ],
-    "Jolie": [
+    "Jolie Café Pâtisserie": [
       "Jolie",
       "Jolie Pâtisserie",
       "Jolie Café Pâtisserie",
@@ -2639,15 +2669,15 @@ export const SWEET_COFFEE_HISTORY = {
       "Parma",
       "Parma Doces"
     ],
-    "Delicato": [
+    "Delicato Bolos": [
       "Delicato",
       "Delicato Bolos"
     ],
-    "Rollab": [
+    "Rollab Confeitaria": [
       "Rollab",
       "Rollab Confeitaria"
     ],
-    "Paneer": [
+    "Paneer Pâtisserie": [
       "Paneer",
       "Paneer Pâtisserie",
       "Paneer Patisserie"
@@ -2662,7 +2692,7 @@ export const SWEET_COFFEE_HISTORY = {
       "LaSweets",
       "LaSweets por Larissa Pio"
     ],
-    "Jona's Cakes": [
+    "Jana's Cakes": [
       "Jana's Cakes",
       "Jana's Cake",
       "Jona's Cakes"
@@ -2697,11 +2727,11 @@ export const SWEET_COFFEE_HISTORY = {
       "Daguia",
       "Daguia Tortas Finas"
     ],
-    "Crooks Cookies": [
+    "Crooks Cookie Shop": [
       "Crooks",
       "Crooks Cookies"
     ],
-    "Frans Café": [
+    "Fran's Café": [
       "Frans Café",
       "Franz Café",
       "Frans Cidade Jardim",
@@ -2726,7 +2756,9 @@ export const SWEET_COFFEE_HISTORY = {
     ],
     "Caramel Healthy Food": [
       "Caramel",
-      "Caramel Healthy Food"
+      "Caramel Healthy Food",
+      "Café Casa Verde by Caramel",
+      "KNVE Casa Café"
     ],
     "Casa Bauducco": [
       "Casa Bauduco",
@@ -2795,15 +2827,20 @@ export const SWEET_COFFEE_HISTORY = {
       "Encantamento em Loja",
       "Encantamento de Loja",
       "Melhor Encantamento",
+      "Melhor Encantamento em Loja",
       "Melhor Envolvimento",
+      "Melhor Envolvimento/Encantamento em Loja",
       "Envolvimento e Encantamento em Loja"
     ],
     "Melhor Sabor": [
       "Melhor Sabor"
     ],
-    "Delivery": [
+    "Delivery/Takeaway": [
+      "Delivery/Takeaway",
       "Melhor Delivery",
-      "Melhor Takeaway/Delivery"
+      "Melhor Delivery/Takeaway",
+      "Melhor Takeaway/Delivery",
+      "Melhor Take Away"
     ]
   }
 }

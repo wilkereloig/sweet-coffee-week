@@ -9,21 +9,28 @@
     "preview": "vite preview",
     "test:responsive": "node tests/responsive.mjs",
     "test:mobile": "node tests/responsive.mjs --mobile",
-    "qr:lovers": "node scripts/generate-lovers-qrcodes.mjs"
+    "test:curiosidades-removal": "node --test tests/curiosidades-removal.test.mjs",
+    "test:support-interest": "node tests/support-interest.test.mjs",
+    "test:imagens": "node --test tests/imagens.test.mjs",
+    "test:redesign": "node --test tests/redesign-2026.test.mjs tests/faq-central.test.mjs",
+    "test:regua-visual": "node --test tests/regua-visual.mjs",
+    "test": "node --test tests/regua-visual.mjs",
+    "test:casca": "node tests/casca-responsiva.mjs",
+    "test:motion": "node tests/motion.mjs",
+    "design:snapshot": "node tests/snapshot-design.mjs",
+    "test:imagens-navegador": "node tests/imagens-navegador.mjs",
+    "focal-points": "node scripts/compute-focal-points.mjs",
+    "test:quero-participar": "node --test tests/quero-participar.test.mjs",
+    "test:organizacao": "node --test tests/organizacao.test.mjs"
   },
   "dependencies": {
-    "@googlemaps/js-api-loader": "^2.0.2",
-    "@googlemaps/markerclusterer": "^2.6.2",
     "@supabase/supabase-js": "^2.106.2",
-    "exceljs": "^4.4.0",
-    "html-to-image": "^1.11.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "playwright": "^1.60.0",
-    "qrcode": "^1.5.4",
     "vite": "^5.4.2"
   }
 }

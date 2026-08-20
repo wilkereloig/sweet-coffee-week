@@ -39,7 +39,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=10659498387037037785",
     openingHours: "Segunda: 15h às 22h\nTerça: 15h às 22h\nQuarta: 15h às 22h\nQuinta: 14h30 às 23h\nSexta: 14h30 às 23h\nSábado: 14h30 às 23h\nDomingo: 12h às 22h",
     theme: "Brasil na Copa do Mundo",
-    edition: "Sweet Celebration",
+    edition: "Celebration",
+    editionCode: "2025",
     locations: [
       {
         id: "adocee-doceria-ponta-negra",
@@ -71,7 +72,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/ej5ZmdbaToMgkBUx8",
     openingHours: "Horário de funcionamento para o Sweet & Coffee Week: 12h às 20h",
     theme: "Japão",
-    edition: "Sweet Trip",
+    edition: "Trip",
+    editionCode: "2023",
     locations: [
       {
         id: "bolomania-ponta-negra",
@@ -103,7 +105,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=9124941309187684674",
     openingHours: "11h às 19h",
     theme: "Viagem pela Itália",
-    edition: "Sweet Trip",
+    edition: "Trip",
+    editionCode: "2023",
     locations: [
       {
         id: "caffe-basilicos-petropolis",
@@ -135,7 +138,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/Yq14NKKeBwzwjKst9",
     openingHours: "Segunda a sexta: 13h às 21h\nSábado e domingo: 13h às 20h",
     theme: "Disney",
-    edition: "Sweet Trip",
+    edition: "Trip",
+    editionCode: "2023",
     locations: [
       {
         id: "canutos-nova-parnamirim",
@@ -167,7 +171,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/5YfTbqxQ39yH4PAU6",
     openingHours: "Segunda a sexta: 12h às 21h\nSábado e domingo: 12h às 21h30",
     theme: "Caroli in Love: \"É o amor\"",
-    edition: "Sweet Music",
+    edition: "No Ritmo da Música",
+    editionCode: "2020.1",
     locations: [
       {
         id: "caroli-douces-ponta-negra",
@@ -247,7 +252,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=12991928301385588552",
     openingHours: "Terça a domingo: 15h30 às 18h",
     theme: "The Vampire Diaries",
-    edition: "Sweet Series",
+    edition: "Séries",
+    editionCode: "2021.1",
     locations: [
       {
         id: "casa-1190-lagoa-nova",
@@ -279,7 +285,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=7706377528852827574",
     openingHours: "Segunda a sábado: 18h às 23h",
     theme: "Aniversário de 25 anos",
-    edition: "Sweet Celebration",
+    edition: "Celebration",
+    editionCode: "2025",
     locations: [
       {
         id: "casa-de-taipa-tapiocaria-ponta-negra",
@@ -311,7 +318,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=7441970895626009538",
     openingHours: "Terça a sábado: 12h às 20h",
     theme: "Confeitaria Francesa",
-    edition: "Sweet Trip",
+    edition: "Pâtisserie Francesa",
+    editionCode: "2019.1",
     locations: [
       {
         id: "delicato-bolos-potengi",
@@ -344,7 +352,8 @@ export const PARTICIPANTS = [
     openingHours: "Segunda a sábado: 9h às 17h",
     takeAwayOnly: true,
     theme: "Uma Volta ao Mundo da Doçura",
-    edition: "Sweet Trip",
+    edition: "Trip",
+    editionCode: "2023",
     locations: [
       {
         id: "douce-di-maria-candelaria",
@@ -376,7 +385,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=6155464360832551674",
     openingHours: "Todos os dias: 12h às 20h",
     theme: "São João",
-    edition: "Sweet Celebration",
+    edition: "Celebration",
+    editionCode: "2025",
     locations: [
       {
         id: "jolie-cafe-cidade-verde",
@@ -444,7 +454,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/LAmKyybkSgtYqP4h8",
     openingHours: "15h às 21h",
     theme: "A Just Encantada",
-    edition: "Contos de Fada",
+    edition: "Contos de Fadas",
+    editionCode: "2019.2",
     locations: [
       {
         id: "just-food-coffee-capim-macio",
@@ -478,7 +489,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/GhyRCoy98VVLMJtf7",
     openingHours: "18h às 22h",
     theme: "\"Isso aqui tá bom demais\"",
-    edition: "Sweet Music",
+    edition: "No Ritmo da Música",
+    editionCode: "2020.1",
     locations: [
       {
         id: "mangai-ponta-negra",
@@ -534,7 +546,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.app.goo.gl/WPf474uvEpgpnXFx6",
     openingHours: "12h às 19h",
     theme: "Harry Potter",
-    edition: "Filmes",
+    edition: "Movies",
+    editionCode: "2022",
     locations: [
       {
         id: "mr-cupcake-candelaria",
@@ -578,7 +591,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=9380843386229300776",
     openingHours: "12h às 19h30",
     theme: "Sweet Lover Day",
-    edition: "Sweet Celebration",
+    edition: "Celebration",
+    editionCode: "2025",
     locations: [
       {
         id: "o-maestro-cafe-barro-vermelho",
@@ -610,7 +624,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=11078498997587378404",
     openingHours: "Segunda a sábado: 15h às 18h",
     theme: "Conexão Natal/Lisboa",
-    edition: "Sweet Trip",
+    edition: "Trip",
+    editionCode: "2023",
     locations: [
       {
         id: "oli-gastro-tirol",
@@ -643,6 +658,7 @@ export const PARTICIPANTS = [
     openingHours: "Segunda a sábado: 6h às 20h30\nDomingo: 6h às 19h30",
     theme: "Vamos Passear no Bosque",
     edition: "Contos de Fadas",
+    editionCode: "2019.2",
     locations: [
       {
         id: "padoca-do-bosque-tirol",
@@ -675,6 +691,7 @@ export const PARTICIPANTS = [
     openingHours: "Segunda a sexta: 8h às 19h\nSábado e domingo: 7h às 18h",
     theme: "Chapeuzinho Vermelho",
     edition: "Contos de Fadas",
+    editionCode: "2019.2",
     locations: [
       {
         id: "paneer-patisserie-tirol",
@@ -707,7 +724,8 @@ export const PARTICIPANTS = [
     openingHours: "Terça a Sábado: 12h às 19h\nDomingo e feriado: 12h às 18h",
     hours: { 0: [["12:00","18:00"]], 2: [["12:00","19:00"]], 3: [["12:00","19:00"]], 4: [["12:00","19:00"]], 5: [["12:00","19:00"]], 6: [["12:00","19:00"]] },
     theme: "Festival da Primavera",
-    edition: "Sweet Celebration",
+    edition: "Celebration",
+    editionCode: "2025",
     locations: [
       {
         id: "parma-doces-capim-macio",
@@ -739,7 +757,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=17531256088081568032",
     openingHours: "Segunda a sexta: 11h às 20h\nSábado e domingo: 13h às 19h",
     theme: "\"Asa Branca\", de Luiz Gonzaga",
-    edition: "Sweet Music",
+    edition: "No Ritmo da Música",
+    editionCode: "2020.1",
     locations: [
       {
         id: "rollab-confeitaria-lagoa-nova",
@@ -784,7 +803,8 @@ export const PARTICIPANTS = [
     mapsUrl: "https://maps.google.com/?cid=17845245524481505898",
     openingHours: "14h às 20h",
     theme: "\"Magic Shop\", do BTS",
-    edition: "Sweet Music",
+    edition: "No Ritmo da Música",
+    editionCode: "2020.1",
     locations: [
       {
         id: "sweet-duo-confeitaria-lagoa-seca",
@@ -817,6 +837,7 @@ export const PARTICIPANTS = [
     openingHours: "Terça a domingo: 11h às 19h",
     theme: "Caicó",
     edition: "Terras Potiguares",
+    editionCode: "2021.2",
     locations: [
       {
         id: "wow-cookies-capim-macio",

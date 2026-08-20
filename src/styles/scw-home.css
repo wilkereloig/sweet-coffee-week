@@ -1,0 +1,768 @@
+/* ============================================================================
+   Home / "O festival" — ajustes próprios da página (redesign 2026).
+   Só o que NÃO existe em scw-2026.css. Tokens, tipografia, botões, pills,
+   cards, reserva, hero e marquee vêm de lá — aqui nada é redefinido.
+   Nenhuma cor fora da paleta do handoff (#E52C4B não existe).
+   ========================================================================= */
+
+.hm { background: var(--scw-creme); color: var(--scw-choco); }
+.hm ul { list-style: none; margin: 0; padding: 0; }
+
+/* Palavra destacada dos títulos: a cor final vem de --dest via scwDestaque,
+   a inicial de --base (definidas inline por título). */
+.hm .scw-destaque { color: var(--base, var(--scw-choco)); }
+
+/* ============================================================================
+   01 Abertura
+   ========================================================================= */
+
+/* Selo do herói: um respiro a mais que a pill padrão (compensação óptica
+   do caixa-alta da Nexa Slab já vem de .scw-pill). */
+.hm-selo {
+  margin-bottom: clamp(20px, 2.2vw, 30px);
+  padding: 11px 18px 9px calc(18px + .16em);
+  font-size: 11.5px;
+}
+/* Enquadramento por foto: cada imagem do herói traz o próprio ponto focal
+   (--pos no desktop, --pos-mobile no celular), definido inline pelo sistema
+   central de imagens. Os padrões repetem os de scw-2026.css. */
+.hm .scw-hero__foto { background-position: var(--pos, 68% center); }
+
+/* Véu do herói na COR DA PÁGINA: chocolate puxado para --scw-pagina, nunca um
+   hex fixo. A foto é ambientação — nos 46% da esquerda, onde ficam título,
+   lead e botões, o véu passa de 84% de opacidade, mantendo o creme em AA. */
+.hm .scw-hero__veu,
+.hm .scw-hero__topo,
+.hm .scw-hero__base { --veu: color-mix(in srgb, var(--scw-pagina) 14%, var(--scw-choco)); }
+.hm .scw-hero__veu {
+  background: linear-gradient(96deg,
+    color-mix(in srgb, var(--veu) 97%, transparent) 0%,
+    color-mix(in srgb, var(--veu) 95%, transparent) 26%,
+    color-mix(in srgb, var(--veu) 84%, transparent) 46%,
+    color-mix(in srgb, var(--veu) 58%, transparent) 62%,
+    color-mix(in srgb, var(--veu) 18%, transparent) 78%,
+    transparent 92%);
+}
+.hm .scw-hero__topo {
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--veu) 72%, transparent), transparent);
+}
+.hm .scw-hero__base {
+  background: linear-gradient(to top, color-mix(in srgb, var(--veu) 78%, transparent), transparent);
+}
+
+@media (max-width: 1000px) {
+  .hm .scw-hero__foto { background-position: var(--pos-mobile, center 32%); }
+  /* No celular a foto fica quase limpa: o texto desce para o bloco chocolate. */
+  .hm .scw-hero__veu {
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--veu) 44%, transparent) 0%,
+      color-mix(in srgb, var(--veu) 6%, transparent) 24%,
+      color-mix(in srgb, var(--veu) 6%, transparent) 60%,
+      color-mix(in srgb, var(--veu) 52%, transparent) 86%,
+      var(--scw-choco) 100%);
+  }
+  .hm .scw-hero__topo {
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--veu) 66%, transparent), transparent);
+  }
+}
+
+.hm-hero__enfase { color: var(--scw-magenta); font-style: italic; }
+.hm-hero__texto { flex: 1 1 300px; }
+.hm-hero__meta {
+  display: block;
+  margin-top: 14px;
+  font: 700 13.5px/1.4 var(--scw-font);
+  color: rgba(254, 240, 221, .58);
+}
+.hm-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ============================================================================
+   Cabeçalho de seção (rótulo + título à esquerda, apoio à direita)
+   ========================================================================= */
+
+.hm-cab {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(20px, 3vw, 56px);
+  align-items: end;
+  margin-bottom: clamp(34px, 3.8vw, 56px);
+}
+.hm-cab .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
+.hm-h2--claro { color: var(--scw-creme); }
+.hm-h2--marrom { color: var(--scw-marrom); max-width: 24ch; }
+.hm-rotulo--amarelo { color: var(--scw-amarelo); }
+.hm-rotulo--claro { color: rgba(254, 240, 221, .68); }
+
+.hm-apoio {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--scw-marrom);
+  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
+  text-wrap: pretty;
+}
+.hm-apoio--clara { color: rgba(254, 240, 221, .74); }
+.hm-apoio--estreita { max-width: 36ch; font-size: clamp(15px, 1.2vw, 17px); line-height: 1.6; }
+.hm-apoio strong { color: var(--scw-choco); font-weight: 800; }
+
+.hm-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  color: var(--scw-marrom);
+  font: 800 13px/1 var(--scw-font);
+  transition: var(--scw-transicao);
+}
+.hm-link:hover { color: var(--scw-choco); }
+/* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
+   tinta — a tinta de um link de 15px sobre creme precisa de 4,5:1 e só roxo e
+   marrom fecham isso; o filete é objeto gráfico e se resolve em 3:1.
+   Único uso hoje é o link para o Sweet Awards (roxo, 9,95:1 sobre creme); o
+   --destino existe para o próximo. */
+.hm-link--sublinhado {
+  align-self: end;
+  justify-self: start;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--destino, var(--scw-marrom));
+  font-size: 15px;
+}
+.hm-link--sublinhado:hover { border-color: var(--scw-choco); }
+
+/* ============================================================================
+   02 O que é — anatomia do combo + duas galerias irmãs
+   ========================================================================= */
+
+.hm-anatomia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: clamp(24px, 3vw, 48px) clamp(24px, 4vw, 72px);
+  align-items: start;
+  padding-bottom: clamp(34px, 3.8vw, 56px);
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+.hm-anatomia__rotulo { margin-bottom: clamp(18px, 2vw, 26px); }
+.hm-ingredientes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  justify-items: center;
+  gap: clamp(6px, 1vw, 18px);
+}
+.hm-ing { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+.hm-ing__disco {
+  display: grid;
+  place-items: center;
+  width: clamp(72px, 7.6vw, 116px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--scw-choco);
+}
+.hm-ing__nome {
+  display: block;
+  margin-top: clamp(12px, 1.4vw, 18px);
+  font: 900 clamp(19px, 2vw, 28px)/1 var(--scw-font-black);
+  letter-spacing: -.025em;
+  color: var(--scw-choco);
+}
+.hm-ing__nota {
+  display: block;
+  margin-top: 7px;
+  max-width: 20ch;
+  font: 500 clamp(13.5px, 1.05vw, 15px)/1.4 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.hm-mais {
+  align-self: start;
+  margin-top: clamp(24px, 2.8vw, 44px);
+  font: 900 clamp(18px, 1.8vw, 28px)/1 var(--scw-font-black);
+  color: var(--scw-marrom);
+}
+
+/* As duas galerias são irmãs e precisam começar na mesma linha. Cada coluna
+   empilhava por conta própria: quando o parágrafo de apoio quebrava em número
+   diferente de linhas, a grade de fotos de uma começava acima da outra. Com
+   subgrid as três faixas — rótulo, texto e fotos — passam a ser compartilhadas.
+   O respiro vertical vem das margens dos filhos, por isso `row-gap: 0`. */
+.hm-galerias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  grid-template-rows: auto auto auto;
+  column-gap: clamp(24px, 4vw, 72px);
+  row-gap: 0;
+  margin-top: clamp(34px, 3.8vw, 56px);
+}
+.hm-galeria {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+}
+/* Navegador sem subgrid volta ao empilhamento simples — desalinha, mas não quebra. */
+@supports not (grid-template-rows: subgrid) {
+  .hm-galerias { row-gap: clamp(28px, 3.4vw, 56px); }
+  .hm-galeria { display: flex; flex-direction: column; }
+}
+.hm-galeria__topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: clamp(14px, 1.6vw, 20px);
+}
+.hm-galeria__texto {
+  margin: 0 0 clamp(16px, 1.8vw, 22px);
+  max-width: 42ch;
+  font: 500 15px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+.hm-galeria__lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
+  margin-top: auto;
+}
+.hm-galeria__lista > li { display: flex; flex-direction: column; gap: 10px; }
+.hm-galeria__foto {
+  margin: 0;
+  aspect-ratio: 1;
+  border-radius: var(--scw-r-card);
+  overflow: hidden;
+  background-color: var(--scw-bege);
+  background-size: cover;
+  background-position: center;
+}
+.hm-galeria__reserva { aspect-ratio: 1; border-radius: var(--scw-r-card); }
+.hm-galeria__nome {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font: 900 13.5px/1.15 var(--scw-font-black);
+  letter-spacing: -.02em;
+  color: var(--scw-choco);
+}
+.hm-galeria__nome b {
+  font: 700 11px/1 var(--scw-font);
+  letter-spacing: .1em;
+  color: var(--scw-marrom);
+}
+
+/* ============================================================================
+   03 Rotas — três portas de entrada
+   ========================================================================= */
+
+.hm-rotas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: clamp(14px, 1.8vw, 24px);
+}
+.hm-rota {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+}
+.hm-rota--marcas    { background: var(--scw-marrom); color: var(--scw-creme); }
+.hm-rota--publico   { background: var(--scw-amarelo); color: var(--scw-choco); }
+.hm-rota--parceiros { background: var(--scw-choco); color: var(--scw-creme); }
+
+.hm-rota__foto {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--scw-bege);
+}
+.hm-rota__foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hm-rota__foto--reserva { display: grid; padding: 16px; background: rgba(254, 240, 221, .06); }
+.hm-rota__foto--reserva .scw-reserva { width: 100%; height: 100%; background: transparent; }
+
+.hm-rota__corpo {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  padding: clamp(22px, 2.4vw, 32px);
+}
+.hm-rota__eixo {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: start;
+  font: 800 11.5px/1 var(--scw-font);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: currentColor;
+}
+.hm-rota__eixo--cyan { color: var(--scw-cyan); }
+.hm-rota__texto { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; height: 100%; }
+.hm-rota__titulo {
+  margin: 0;
+  max-width: 15ch;
+  font: 900 clamp(24px, 2.4vw, 34px)/.96 var(--scw-font-black);
+  letter-spacing: -.032em;
+  color: currentColor;
+}
+.hm-rota__texto p { margin: 0; max-width: 32ch; font: 500 15px/1.5 var(--scw-font); color: currentColor; text-wrap: pretty; }
+.hm-rota--parceiros .hm-rota__texto p { color: rgba(254, 240, 221, .8); }
+.hm-rota__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  margin-top: auto;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font: 800 14px/1 var(--scw-font);
+  transition: var(--scw-transicao);
+}
+.hm-rota__cta:hover { gap: 14px; }
+/* Prefixado com .scw-raiz: o reset .scw-raiz a { color: inherit } (scw-2026.css)
+   tem especificidade 0,1,1 e vencia estes modificadores 0,1,0 — o card
+   "Público" (fundo amarelo, texto base chocolate) herdava chocolate no CTA
+   --escuro, que também tem fundo chocolate: texto sumia sobre o próprio botão. */
+/* PATCH 01 §4 — o CTA que navega pinta-se com a cor da PÁGINA DE DESTINO, não
+   da página onde está. Cada card das rotas leva a um destino só, então a regra
+   mora no modificador do card.
+   Onde a chapa do destino não separa do card (<3:1 de forma), entra o anel de
+   2px do §1.1, na tinta do próprio card: laranja sobre amarelo dá 1,99:1 e
+   marrom sobre chocolate 1,53:1 — sem anel os dois viram um buraco no card. */
+.scw-raiz .hm-rota--marcas .hm-rota__cta {     /* → Participar */
+  background: var(--scw-cyan);
+  color: var(--scw-choco);
+}
+.scw-raiz .hm-rota--publico .hm-rota__cta {    /* → Edições */
+  background: var(--scw-laranja);
+  color: var(--scw-choco);
+  box-shadow: 0 0 0 2px var(--scw-choco);
+}
+.scw-raiz .hm-rota--parceiros .hm-rota__cta {  /* → Apoiar */
+  background: var(--scw-marrom);
+  color: var(--scw-creme);
+  box-shadow: 0 0 0 2px var(--scw-creme);
+}
+
+/* ============================================================================
+   04 Ciclo — quatro etapas
+   ========================================================================= */
+
+.hm-ciclo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
+  gap: 12px;
+}
+.hm-etapa__moldura {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--scw-r-card);
+  overflow: hidden;
+  background: var(--scw-marrom);
+}
+.hm-etapa__foto {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-size: cover;
+  background-position: center;
+}
+/* Indicador de etapa: 54px (PATCH 02 §5). Disco de indicador 54, disco de
+   ícone dentro de card 46 — dois tamanhos, dois papéis, nada entre eles. */
+.hm-etapa__num {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  font: 900 16px/1 var(--scw-font-black);
+  letter-spacing: -.02em;
+}
+.hm-etapa__titulo {
+  margin: 20px 0 8px;
+  font: 900 clamp(18px, 1.7vw, 23px)/1.08 var(--scw-font-black);
+  letter-spacing: -.025em;
+  color: var(--scw-creme);
+}
+.hm-etapa__texto { margin: 0; font: 500 15px/1.5 var(--scw-font); color: rgba(254, 240, 221, .7); text-wrap: pretty; }
+
+/* ============================================================================
+   05 Números — quatro numerais numa linha (fórmula ciente do gap)
+   ========================================================================= */
+
+.hm-numeros {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(200px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr)
+  );
+  grid-template-rows: auto auto auto auto;
+  gap: clamp(24px, 3vw, 44px) clamp(20px, 2.4vw, 40px);
+  margin: 0;
+}
+.hm-num { display: grid; grid-row: span 4; grid-template-rows: subgrid; gap: 10px; }
+.hm-num__valor { color: var(--scw-choco); font-size: clamp(40px, 4.8vw, 84px); }
+.hm-num__rotulo {
+  margin: 0;
+  align-self: start;
+  color: var(--scw-choco);
+  font: 800 15.5px/1.25 var(--scw-font);
+}
+.hm-num__nota {
+  margin: 0;
+  align-self: start;
+  max-width: 22ch;
+  font: 500 13.5px/1.4 var(--scw-font);
+  color: rgba(61, 19, 8, .72);
+}
+
+/* ============================================================================
+   06 Prova — depoimento + imprensa
+   ========================================================================= */
+
+.hm-prova {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
+}
+
+.hm-voz {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(22px, 2.4vw, 30px);
+  margin: 0;
+  padding: clamp(26px, 2.8vw, 40px);
+  border-radius: var(--scw-r-secao);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.hm-voz .scw-rotulo { color: rgba(254, 240, 221, .82); }
+.hm-voz__frase {
+  margin: 0;
+  font: 900 clamp(21px, 2.2vw, 32px)/1.16 var(--scw-font-black);
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+.hm-voz__assinatura {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: clamp(18px, 2vw, 24px);
+  /* Divisor claro: o card agora é chocolate (era vinho), e um traço escuro
+     sobre chocolate não aparece. */
+  border-top: 1px solid rgba(254, 240, 221, .22);
+}
+.hm-voz__retrato {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(112px, 12vw, 152px);
+  height: clamp(112px, 12vw, 152px);
+}
+.hm-voz__retrato > img,
+.hm-voz__reserva {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.hm-voz__reserva { padding: 12px; font-size: 11px; }
+.hm-voz__marca {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--scw-creme);
+  border: 3px solid var(--scw-magenta);
+  pointer-events: none;
+}
+.hm-voz__marca img { width: 100%; height: 100%; object-fit: cover; }
+.hm-voz__id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hm-voz__id b { font: 800 16.5px/1.2 var(--scw-font); }
+.hm-voz__id > span { font: 500 14px/1.3 var(--scw-font); color: rgba(254, 240, 221, .84); }
+.hm-voz__fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hm-voz__foto {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+.hm-voz__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  font: 800 14.5px/1 var(--scw-font);
+  color: var(--scw-choco);
+  transition: var(--scw-transicao);
+}
+.hm-voz__link:hover { gap: 14px; }
+
+.hm-imprensa__h2 { margin: 14px 0 clamp(20px, 2vw, 28px); max-width: 18ch; }
+.hm-materia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(20px, 2.4vw, 32px);
+  align-items: center;
+  padding: 24px 0;
+  border-top: 1px solid rgba(61, 19, 8, .2);
+  border-bottom: 1px solid rgba(61, 19, 8, .2);
+  color: var(--scw-choco);
+}
+.hm-materia__veiculo {
+  display: block;
+  color: var(--scw-marrom);
+  font: 800 12px/1 var(--scw-font);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.hm-materia__titulo {
+  display: block;
+  margin-top: 12px;
+  max-width: 20ch;
+  font: 900 clamp(21px, 2.1vw, 30px)/1.06 var(--scw-font-black);
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+.hm-materia__foto {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: var(--scw-r-card);
+  overflow: hidden;
+  background: var(--scw-bege);
+}
+.hm-materia__foto img { width: 100%; height: 100%; object-fit: cover; }
+
+.hm-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  gap: 18px;
+  align-items: center;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+  color: var(--scw-choco);
+  transition: var(--scw-transicao);
+}
+.hm-linha:hover { background: var(--scw-creme); }
+.hm-linha__veiculo {
+  display: block;
+  font: 700 11px/1.2 var(--scw-font);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.hm-linha__titulo { display: block; margin-top: 3px; font: 700 15.5px/1.3 var(--scw-font); }
+.hm-linha__ano { font: 700 13px/1 var(--scw-font); color: var(--scw-marrom); text-align: right; }
+.hm-imprensa__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  margin-top: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--scw-marrom);
+  font: 800 14px/1 var(--scw-font);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.hm-imprensa__toggle:hover { color: var(--scw-choco); }
+
+/* ============================================================================
+   07 Realização — KV F2 Experience (quebra de marca proposital)
+   ----------------------------------------------------------------------------
+   Única seção do site fora da paleta do festival e fora da Nexa Slab: usa o KV
+   da agência que realiza o Sweet & Coffee Week. Decisão do Wilke (jul/2026),
+   registrada no CLAUDE.md. Nenhuma outra seção carrega Archivo.
+   Contraste medido: #F5F5F5 sobre #0B0B0C = 18,05:1. O magenta da F2 dá 4,18:1
+   — passa em texto grande (AA pede 3:1) e em elemento gráfico, mas NÃO em texto
+   pequeno (pede 4,5:1). Por isso o acento fica nos títulos, nos numerais e nos
+   traços; o rótulo de 11,5px e o CTA de 15px usam a tinta clara.
+   ========================================================================= */
+.f2-realiza {
+  --f2-tinta: #F5F5F5;
+  --f2-acento: #E50053;
+  position: relative;
+  overflow: hidden;
+  background: #0B0B0C;
+  color: var(--f2-tinta);
+  font-family: 'Archivo', system-ui, sans-serif;
+  padding-top: clamp(56px, 6.4vw, 104px);
+  padding-bottom: clamp(40px, 4vw, 64px);
+}
+.f2-realiza__kv {
+  position: absolute;
+  top: 50%;
+  right: -6%;
+  width: clamp(320px, 38vw, 620px);
+  aspect-ratio: 412 / 367;
+  transform: translateY(-50%);
+  background: var(--f2-acento);
+  mask: url('/images/f2-symbol.svg') center / contain no-repeat;
+  -webkit-mask: url('/images/f2-symbol.svg') center / contain no-repeat;
+  animation: f2Pulse 9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes f2Pulse { 0%, 100% { opacity: .055 } 50% { opacity: .1 } }
+
+.f2-realiza__conteudo { position: relative; z-index: 1; }
+
+.f2-realiza__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 32px);
+  padding-bottom: clamp(24px, 2.6vw, 34px);
+  border-bottom: 1px solid rgba(245, 245, 245, .16);
+}
+.f2-realiza__indice {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font: 600 11.5px/1 'Archivo', sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  /* 11,5px é texto pequeno: com o magenta daria 4,18:1. O traço ao lado
+     continua no acento — elemento gráfico só precisa de 3:1. */
+  color: var(--f2-tinta);
+}
+.f2-realiza__indice i { display: block; width: 22px; height: 1px; background: var(--f2-acento); }
+.f2-realiza__logo { width: min(224px, 52vw); filter: brightness(0) invert(1); }
+.f2-realiza__meta {
+  margin-left: auto;
+  font: 400 12.5px/1.4 'Archivo', sans-serif;
+  letter-spacing: .06em;
+  /* piso de opacidade pra texto sobre o preto da F2 (.62 ~ 4,5:1) */
+  color: rgba(245, 245, 245, .62);
+}
+
+.f2-realiza__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(28px, 4.4vw, 72px);
+  align-items: end;
+  padding: clamp(32px, 3.6vw, 56px) 0 clamp(28px, 3vw, 44px);
+}
+.f2-realiza__h2 {
+  margin: 0;
+  max-width: 22ch;
+  color: var(--f2-tinta);
+  font: 600 clamp(30px, 3.6vw, 58px)/1.02 'Archivo', system-ui, sans-serif;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.f2-realiza__h2 em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__texto {
+  max-width: 46ch;
+  margin: 0;
+  color: rgba(245, 245, 245, .66);
+  font: 400 clamp(15px, 1.2vw, 17.5px)/1.62 'Archivo', sans-serif;
+  text-wrap: pretty;
+}
+.f2-realiza__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  margin-top: clamp(20px, 2.2vw, 28px);
+  padding: 0 0 8px;
+  border-bottom: 2px solid var(--f2-acento);
+  color: var(--f2-tinta);
+  font: 600 15px/1 'Archivo', sans-serif;
+  text-decoration: none;
+  transition: var(--scw-transicao);
+}
+.f2-realiza__cta:hover { border-bottom-width: 4px; }
+
+.f2-realiza__numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: clamp(20px, 2.6vw, 40px);
+  margin: 0;
+  padding-top: clamp(24px, 2.6vw, 36px);
+  border-top: 1px solid rgba(245, 245, 245, .16);
+}
+.f2-realiza__ordem {
+  display: block;
+  margin-bottom: 12px;
+  font: 500 11px/1 'Archivo', sans-serif;
+  letter-spacing: .18em;
+  color: rgba(245, 245, 245, .62);
+}
+.f2-realiza__numeros dt {
+  font: 600 clamp(30px, 3.2vw, 48px)/.94 'Archivo', sans-serif;
+  letter-spacing: -.045em;
+  color: var(--f2-tinta);
+}
+.f2-realiza__numeros dt em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__numeros dd {
+  margin: 9px 0 0;
+  font: 400 13.5px/1.45 'Archivo', sans-serif;
+  color: rgba(245, 245, 245, .62);
+}
+
+.f2-realiza__assinatura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: clamp(32px, 3.4vw, 52px);
+  padding-top: clamp(20px, 2.2vw, 28px);
+  border-top: 1px solid rgba(245, 245, 245, .16);
+}
+.f2-realiza__assinatura > span:first-child {
+  font: 600 clamp(22px, 2.2vw, 32px)/1 'Archivo', sans-serif;
+  letter-spacing: -.03em;
+}
+.f2-realiza__assinatura em { font-style: italic; font-weight: 700; color: var(--f2-acento); }
+.f2-realiza__assinatura .f2-realiza__meta { color: rgba(245, 245, 245, .62); }
+
+@media (prefers-reduced-motion: reduce) {
+  .f2-realiza__kv { animation: none; opacity: .08; }
+}
+
+/* ============================================================================
+   Responsivo — escala 1000 · 760 · 560 · 420
+   ========================================================================= */
+
+@media (max-width: 1000px) {
+  .hm-selo { margin-bottom: 18px; }
+  .hm-link--sublinhado { justify-self: start; }
+}
+
+@media (max-width: 760px) {
+  .hm-rota__corpo { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .hm-rota__eixo { writing-mode: horizontal-tb; transform: none; }
+  .hm-materia { grid-template-columns: minmax(0, 1fr); }
+  .hm-materia__foto { max-width: 320px; }
+}
+
+@media (max-width: 560px) {
+  .hm-ingredientes { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 18px; }
+  .hm-ing { flex-direction: row; align-items: center; gap: 16px; text-align: left; }
+  .hm-ing__nome { margin-top: 0; }
+  .hm-ing__nota { display: none; }
+  .hm-mais { margin-top: 0; margin-left: calc(clamp(72px, 7.6vw, 116px) / 2 - .4em); }
+  .hm-voz__assinatura { flex-wrap: wrap; }
+}
+
+@media (max-width: 760px) {
+  /* Em uma coluna só, o row-gap: 0 encostaria uma galeria na outra. */
+  .hm-galeria + .hm-galeria { margin-top: clamp(28px, 3.4vw, 56px); }
+}
+
+@media (max-width: 420px) {
+  .hm-galeria__lista { grid-template-columns: minmax(0, 1fr); }
+  .hm-linha { grid-template-columns: minmax(0, 1fr); }
+  .hm-linha__ano { text-align: left; }
+}

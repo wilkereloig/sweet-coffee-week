@@ -2,47 +2,41 @@ import React from 'react'
 import { useRoute } from './router'
 import { applyPalette } from './theme'
 import { SiteHeader } from './components/nav'
-import { DevViewportSwitcher } from './DevTools'
+import { MobileTabBar } from './components/MobileTabBar'
+import { MobileMenu } from './components/MobileMenu'
+import { AccessDialog } from './components/AccessDialog'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
+import { BotaoTopo } from './components/BotaoTopo'
+import { useSiteMotion } from './hooks/useSiteMotion'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
-import { CuriosidadesPage } from './pages/institutional/Curiosidades'
 import { ParticiparPage }   from './pages/institutional/Participar'
 import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
-import { PesquisaPage }     from './pages/institutional/Pesquisa'
-import { PainelAdminPage } from './pages/institutional/PainelAdmin'
 import { EmBrevePage } from './pages/institutional/EmBreve'
-
-// Painel admin é lazy: o lovers-system.css (~135 KB) vira chunk próprio,
-// carregado só ao abrir /lovers/painel — fora do bundle institucional/awards.
-const PainelPage = React.lazy(() => import('./pages/lovers/Painel').then(m => ({ default: m.PainelPage })))
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
-// limpos /mapa, /premiacao, /participantes) são encaminhadas para a home.
-// EXCEÇÃO: o painel admin do Sweet Awards segue acessível em #/lovers/painel
-// para consultar e exportar a votação (dados preservados no Supabase).
+// limpos /mapa, /rota, /participantes) são encaminhadas para a home.
 // Publicação temporária focada em Awards: enquanto true, todo o site público
 // renderiza só a página oficial do Sweet Awards — o Hall dos vencedores
-// (#/sweet-awards, route 'historico-awards'). O painel interno (/lovers/painel)
-// continua acessível, mas fora de qualquer menu/header.
+// (#/sweet-awards, route 'historico-awards').
 // DESLIGADO em jul/2026 (autorização do Wilke): site institucional completo
-// publicado — Home, Edições, Curiosidades, Participar, Apoiar, Contato + Awards.
+// publicado — Home, Edições, Participar, Apoiar, Contato + Awards.
 const AWARDS_ONLY_PUBLICATION = false
 
 // Publicação "EM BREVE" (jul/2026, decisão do Wilke): enquanto true, o domínio
 // oficial mostra só a landing EmBreve — aviso do novo site + Sweet Awards da
 // edição Lovers 2026.1 com links pros posts de resultado no Instagram.
-// Painéis internos e /pesquisa continuam acessíveis; o institucional completo
-// segue visível em DEV e em previews *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
+// O institucional completo segue visível em DEV e em previews
+// *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
 const COMING_SOON_PUBLICATION = true
 
-// PREVIEW DEV-only do institucional: permite revisar Edições, Curiosidades,
+// PREVIEW DEV-only do institucional: permite revisar Edições,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
 // de produção acima. Liga apenas em dois casos seguros e NUNCA no domínio oficial:
 //   - servidor de desenvolvimento (import.meta.env.DEV);
@@ -64,9 +58,10 @@ const INSTITUTIONAL_PREVIEW = (() => {
 // Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
 // 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
 // liberar quando o institucional/Awards forem revisados.
-const FOOTER_ROUTES = ['home', 'edicoes', 'curiosidades', 'participar', 'apoiar', 'contato', 'historico-awards']
+const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
+const RETIRED_PUBLIC_PATHS = ['/curiosidades']
 function isLegacyLoversPath(path) {
   if (path.startsWith('/lovers/painel')) return false
   return /^\/lovers(\/|$)/.test(path) || LEGACY_LOVERS_PATHS.includes(path)
@@ -74,6 +69,8 @@ function isLegacyLoversPath(path) {
 
 export default function App() {
   const [path, navigate] = useRoute()
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const [accessOpen, setAccessOpen] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
 
@@ -81,12 +78,11 @@ export default function App() {
     if (isLegacyLoversPath(path)) navigate('/')
   }, [path, navigate])
 
+  React.useEffect(() => {
+    if (RETIRED_PUBLIC_PATHS.some((retiredPath) => path.startsWith(retiredPath))) navigate('/edicoes')
+  }, [path, navigate])
+
   const route = (() => {
-    // Rotas internas: acessíveis mesmo em modo Awards-only (não aparecem em menu).
-    if (path.startsWith('/painel-admin')) return 'painel-admin'
-    if (path.startsWith('/lovers/painel')) return 'painel'
-    // Pesquisa: pública, isenta do modo Awards-only (link vai por e-mail/Brevo).
-    if (path.startsWith('/pesquisa')) return 'pesquisa'
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
     // de rotas normal assume — sem alterar a flag de produção.
@@ -98,26 +94,24 @@ export default function App() {
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
-    if (path.startsWith('/curiosidades')) return 'curiosidades'
+    // Curiosidades foi descontinuada; o endereço antigo continua seguro via Edições.
+    if (path.startsWith('/curiosidades')) return 'edicoes'
     if (path.startsWith('/participar'))   return 'participar'
     if (path.startsWith('/apoiar'))       return 'apoiar'
     if (path.startsWith('/contato'))      return 'contato'
-    if (path.startsWith('/lovers/painel')) return 'painel'
     return 'home'
   })()
 
   let page
   switch (route) {
     case 'home':         page = <HomePage navigate={navigate} />; break
-    case 'edicoes':      page = <EdicoesPage navigate={navigate} />; break
-    case 'curiosidades': page = <CuriosidadesPage navigate={navigate} />; break
+    // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
+    // o botão de acesso precisa do gatilho do diálogo vindo daqui.
+    case 'edicoes':      page = <EdicoesPage navigate={navigate} onOpenAccess={() => setAccessOpen(true)} accessOpen={accessOpen} />; break
     case 'participar':   page = <ParticiparPage navigate={navigate} />; break
     case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
-    case 'painel':       page = <PainelPage navigate={navigate} />; break
-    case 'pesquisa':     page = <PesquisaPage navigate={navigate} />; break
-    case 'painel-admin': page = <PainelAdminPage navigate={navigate} />; break
     case 'em-breve':     page = <EmBrevePage />; break
     default:             page = <HomePage navigate={navigate} />
   }
@@ -130,20 +124,80 @@ export default function App() {
 
   // Áreas internas (painéis) e a landing "em breve" são tela cheia: sem
   // header/menu público (na landing, o menu levaria sempre pra ela mesma).
-  const isInternal = route === 'painel' || route === 'painel-admin' || route === 'em-breve'
+  const isInternal = route === 'em-breve'
+
+  // Nav mobile (tab bar + menu full-screen): só nas rotas públicas institucionais
+  // (mesma lista do rodapé). Fecha o menu ao trocar de rota.
+  const showMobileNav = FOOTER_ROUTES.includes(route)
+  React.useEffect(() => { setMenuOpen(false) }, [route])
+
+  // Edições substitui a casca do site pelo cabeçalho próprio da página (mesma
+  // geometria) — header, barra de página e rodapé saem; a tab bar continua.
+  const showShell = !isInternal && route !== 'edicoes'
+
+  // Motor de movimento (src/hooks/useSiteMotion.js): um único ponto para todas
+  // as institucionais. Fica de fora de Edições, que tem coreografia própria de
+  // apresentação, e dos painéis internos, que são ferramenta de trabalho.
+  const conteudoRef = React.useRef(null)
+  const comMovimento = !isInternal && route !== 'edicoes'
+  useSiteMotion(conteudoRef, [route, comMovimento], comMovimento)
 
   return (
-    <DevViewportSwitcher>
-      {!isInternal && <SiteHeader route={route} navigate={navigate} path={path} />}
-      <main key={route} className="page-enter">
+    <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
+      {showShell && (
+        <>
+          <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>
+          <SiteHeader
+            route={route}
+            navigate={navigate}
+            accessOpen={accessOpen}
+            onOpenAccess={() => setAccessOpen(true)}
+          />
+        </>
+      )}
+      {/* A landing não tem menu — mas precisa da porta de acesso, senão o painel
+          da organização fica inalcançável enquanto o gate estiver ligado: ele é
+          página estática e não aparece em rota nenhuma do React. Cabeçalho
+          reduzido ao botão, sem marca e sem navegação (§7.7). */}
+      {route === 'em-breve' && (
+        <SiteHeader
+          apenasAcesso
+          route={route}
+          navigate={navigate}
+          accessOpen={accessOpen}
+          onOpenAccess={() => setAccessOpen(true)}
+        />
+      )}
+      {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
+          legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
+      <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
         <ErrorBoundary key={route}>
           <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
             {page}
           </React.Suspense>
         </ErrorBoundary>
       </main>
-      {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} />}
+      {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
+          na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
+          showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
+      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} />}
+      {showMobileNav && (
+        <>
+          <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
+          <MobileMenu
+            open={menuOpen}
+            route={route}
+            navigate={navigate}
+            onClose={() => setMenuOpen(false)}
+            onOpenAccess={() => setAccessOpen(true)}
+          />
+        </>
+      )}
+      {/* A landing agora tem botão de acesso, então precisa do diálogo junto —
+          sem isso o clique não abriria nada. */}
+      <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />
+      {showShell && <BotaoTopo />}
       <CookieConsent />
-    </DevViewportSwitcher>
+    </div>
   )
 }

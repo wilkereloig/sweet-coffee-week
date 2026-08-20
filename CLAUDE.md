@@ -1,388 +1,2028 @@
-# CLAUDE.md — Regras do Projeto Sweet & Coffee Week
-
-> Regras permanentes de layout, design, conteúdo e nomenclatura. Servem para que
-> futuras páginas e ajustes respeitem o mesmo sistema visual e não repitam decisões
-> já rejeitadas. **Atualizar este arquivo sempre que o usuário rejeitar algo ou
-> aprovar uma nova regra** (ver seção 19).
-
-## 1. Objetivo do projeto
-
-Este repositório contém o site institucional do Sweet & Coffee Week. O site apresenta
-o festival, suas edições, sua história, suas curiosidades, o Sweet Awards, e páginas
-de participação, patrocínio/apoio e contato.
-
-A **Home/O Festival é a página-mãe** do sistema visual. As demais páginas devem
-respeitar sua lógica de margens, respiro, hierarquia, grid, linguagem e ritmo visual.
-
-## 2. Nomenclatura obrigatória
-
-Não usar "Sweet" sozinho para se referir ao festival.
-
-Usar: **Sweet & Coffee Week**; **SCW** (só depois do nome completo já ter aparecido);
-**o festival**; **o evento**; **a edição**.
-
-Não usar: "o Sweet", "do Sweet", "no Sweet", "sobre o Sweet", "história do Sweet",
-"participar do Sweet".
-
-Exceções permitidas: **Sweet Awards**, **Sweet Lovers**, **Sweet & Coffee Week Lovers**,
-nomes oficiais, hashtags, arrobas e nomes de arquivos quando necessário.
-
-Grafias oficiais da marca (evitar variações erradas como "Sweet Coffee Week",
-"Sweet Coffee", "Sweet Coffee Awards", "Sweet & Coffee Lovers"):
-- Festival: **Sweet & Coffee Week**
-- Edição Lovers: **Sweet & Coffee Week Lovers**
-- Premiação: **Sweet Awards** / **Sweet & Coffee Week Awards**
-
-## 3. Paleta de cores
-
-Usar apenas a paleta oficial: **creme, bege, rosa, amarelo, azul/ciano,
-coral/vermelho, marrom, vinho**.
-
-Não criar cores novas para diferenciar páginas. As páginas podem ter acentos
-diferentes, mas sempre dentro da paleta oficial.
-
-Evitar: roxo, verde, cinzas frios aleatórios, pretos puros, cores externas que não
-pertençam à identidade. Reutilizar variáveis CSS existentes; não inserir hex
-aleatórios fora da paleta.
-
-**Acento por página = fundo da hero.** Cada rota define `--page-accent` em
-`body.route-*` (`src/styles.css`) e a regra global das heros institucionais usa esse
-token como **fundo cheio** (`background: var(--page-accent) !important`) com texto em
-tinta escura. Logo o acento tem que ser um **tom claro e dentro da paleta** (contraste
-com `--ink`). Acentos atuais: Edições ciano `#2BC4E8` · Awards/Histórico rosa `#F2548A`
-· Curiosidades amarelo `#F8B511` · Participar coral `#F2693C` · Apoiar azul `#1B86C9` ·
-Contato peach `#F2B6A0`. (Contato já foi lavanda `#B38CFF` — roxo, fora da paleta;
-corrigido.) Ao criar/editar rota, nunca usar roxo/verde/lavanda como `--page-accent`.
-
-## 4. Margens, grid e respiro
-
-Todas as páginas internas devem respeitar o sistema de margens da Home/O Festival.
-Não deixar textos, imagens ou componentes colados no menu principal.
-
-A hero das páginas **não deve ter altura fixa de 1080px**. Usar altura proporcional
-ao conteúdo, com respiro no topo e conteúdo principal ancorado mais para baixo.
-
-**Margem horizontal — REGRA: igual à Home em TODAS as páginas.** O container canônico
-é o `.wrap` da Home (`src/styles.css`): `max-width: var(--maxw)` = **1280px**,
-`padding: 0 var(--pad)` = **clamp(20px, 4vw, 56px)**. Toda página institucional deve
-usar exatamente essa margem — `.wrap` direto, ou, se tiver container próprio, replicar
-1280px / clamp(20px,4vw,56px). Não criar largura/gutter divergentes (ex.: 1180px ou
-clamp ...,64px): quebra o alinhamento vertical entre as páginas. Já alinhados a este
-padrão: Edições (`--page-max`/`--page-gutter`) e Sweet Awards (`.swa-wrap`/`.swa-hero__inner`).
-
-Tokens reais (Home):
-```css
---maxw:      1280px;                    /* largura máx. do conteúdo (.wrap) */
---pad:       clamp(20px, 4vw, 56px);    /* gutter lateral (.wrap) */
---section-y: clamp(72px, 10vw, 140px);  /* ritmo vertical de seção */
-```
-
-Regras: topo da hero deve respirar; conteúdo não pode brigar com o menu; alinhamentos
-consistentes; elementos seguem grid; nada solto por acaso; evitar blocos grandes
-vazios sem função.
-
-### 4.1 Zona de segurança entre menu e hero (REGRA ESTRUTURAL)
-
-Todas as páginas internas devem respeitar uma **zona de segurança** entre o
-header/menu e o conteúdo da hero. O **fundo** da hero pode subir até o topo da
-página, mas o **conteúdo** da hero (títulos, textos, imagens, cards, etc.) só pode
-começar **depois** do offset de segurança do header. Nenhum elemento da hero deve
-sobrepor, competir ou encostar visualmente no menu principal.
-
-Implementação reutilizável — tokens globais em `src/styles.css` (bloco `body`):
-```css
---header-safe-offset:  clamp(120px, 14vh, 168px);  /* header útil + logo que vaza */
---hero-top-clearance:  clamp(32px, 4vw, 56px);     /* folga visual extra */
---hero-content-start:  calc(var(--header-safe-offset) + var(--hero-top-clearance));
-```
-
-Como aplicar (estrutura wrapper/inner, **não** gambiarra em elemento isolado):
-- **wrapper da hero** (`.X-hero`): fundo full-bleed, pode ir até o topo;
-- **inner da hero** (`.X-hero__inner` / `.wrap`): `padding-top: var(--hero-content-start)`.
-
-Consumido por: regra global `.cur-hero/.participar-hero/.apoiar-hero/.contato-hero/
-.hist-hero` (styles.css) e pela hero auto-contida da Edições (`.edx-hero__inner`).
-Vale também em tablet/mobile (os tokens já fazem clamp). Proibido: `margin-top`
-solto, empurrão manual no título, `position: absolute` improvisado, ajuste que só
-funcione numa tela.
-
-## 5. Elementos soltos
-
-Evitar elementos gráficos soltos sem função clara. Não adicionar formas, stickers,
-blobs, rabiscos, ícones ou ornamentos só para "decorar".
-
-Todo elemento visual precisa ter função: estruturar layout, indicar hierarquia,
-representar dado, organizar conteúdo, apoiar fotografia ou reforçar identidade da
-página. Se não tiver função clara, remover.
-
-**Não usar eyebrow/kicker acima dos títulos** — texto curto em caixa-alta antes do
-H1/H2 (ex.: "APOIE O FESTIVAL", "O FESTIVAL"), com ou sem bolinha/dot. Preferência
-já registrada do usuário: o título abre a seção direto, sem rótulo por cima. Vale
-para todas as páginas institucionais (exceto a Home, que não se mexe — §9).
-
-**Não usar a fonte mono (`var(--font-mono)`, JetBrains Mono) em rótulos/labels/
-eyebrows/metadados institucionais.** Preferência registrada (rejeitada 2x: chip do
-Sweet Awards e rótulos da seção Números). Para rótulos institucionais usar **Nexa**:
-`var(--font-sans)` ou `var(--font-slab)`. Caixa-alta + letter-spacing podem ficar — o
-que incomoda é a face mono, não o caixa-alta. (DESIGN.md §2 "mono só p/ eyebrow" está
-desatualizado; vale esta regra.)
-
-## 6. Stickers e ilustrações
-
-**Não usar stickers por padrão nas páginas institucionais.** Stickers só em materiais
-de campanha ou páginas específicas, quando solicitados explicitamente.
-
-Em Edições, Curiosidades, Participar, Apoiar, Contato e Sweet Awards: não inserir
-stickers, doodles ou elementos soltos sem aprovação.
-
-A página **Edições** deve ter linguagem editorial, histórica e fotográfica — não
-estética de sticker/colagem.
-
-## 7. Logos e fotos
-
-Quando uma página falar de edição ou participante, reservar espaço visual para logo
-e/ou foto sempre que fizer sentido.
-
-Logo real: usar a logo real; manter proporção; não distorcer; `object-fit: contain`;
-limite de altura; alt text adequado.
-Sem logo: manter espaço reservado; fallback claro e elegante; não inventar logo; não
-esconder a ausência.
-
-Foto real: usar a foto real; preservar proporção; `object-fit: cover` quando
-apropriado; alt text adequado.
-Sem foto: fallback em moldura editorial; texto claro ("Foto pendente"/"Galeria
-pendente"); não deixar área vazia sem explicação; nunca usar imagem aleatória externa
-nem hotlink.
-
-## 8. Placeholders e fallbacks
-
-Placeholders devem parecer parte do sistema visual, não erro técnico.
-
-Evitar: blocos vazios; áreas gigantes sem conteúdo; texto perdido no meio; aparência
-de protótipo.
-Preferir: moldura editorial; borda sutil; fundo da paleta; texto curto; proporção bem
-definida.
-
-## 9. Home/O Festival
-
-A Home/O Festival é a página-mãe. **Não alterar a Home sem solicitação explícita.**
-As demais páginas usam a Home como referência de margens, largura máxima, respiro,
-hierarquia, ritmo visual, nível de acabamento e tom institucional-afetivo.
-
-## 10. Página Edições
-
-Funciona como **apresentação editorial** da história do festival. Direção aprovada:
-- apresentação horizontal interativa no desktop; scroll vertical controla avanço horizontal;
-- sequência direta de 1 a 16 (não dividir por fases);
-- painéis grandes, como slides; barra horizontal de navegação;
-- espaço para logo da edição, foto principal e mini galeria; fallbacks claros quando faltar asset.
-
-Não usar stickers. Não usar grid comum de cards. A navegação das edições deve parecer
-**controle de apresentação**, não segunda navbar — e não pode brigar com o menu principal.
-
-## 11. Página Curiosidades
-
-Não repetir a página Edições. **Não incluir**: timeline completa das 16 edições; lista
-cronológica de todas as edições; cards de todas as edições; ranking de "maiores
-edições"; "edições com mais participantes" como destaque.
-
-Deve mostrar (com dados reais do acervo): achados do acervo; rankings criativos; marcas
-recorrentes; participantes mais premiados; vencedores por categoria; evolução das
-categorias do Sweet Awards; primeiras vezes; momentos marcantes.
-
-## 12. Página Sweet Awards
-
-**Reconstruída** em `src/pages/institutional/SweetAwards.jsx` (rota `vencedores` /
-`premiacao` em `App.jsx`; o antigo `Agradecimento.jsx` foi removido). Aparência de premiação/hall de vencedores — não embeds de Instagram. Identidade
-**institucional do festival** (espresso `#2B1810` + creme + **ouro `#F8B511`** de medalha),
-NUNCA o KV Lovers. Estrutura: hero institucional → o que é → categorias (8 oficiais +
-históricas computadas) → vencedores da edição atual (Lovers 2026.1, em destaque) →
-histórico por edição (accordion com trilhas Júri Técnico/Sweet Lovers separadas, empates
-preservados, nota p/ 2016–2018 sem premiação) → CTA final.
-
-Regra de dados (cruzar fontes, não inventar): descrições das categorias vêm de
-`sweetCoffeeHistory.js` (edição 2026.1); **pódios da edição atual vêm de
-`loversAwardsResults.js`** (na base histórica os pódios de 2026.1 estão vazios de
-propósito); histórico das demais edições vem de `sweetCoffeeHistory.js`. Selo dourado de
-1º lugar é a única peça celebrativa (codifica a colocação — não é sticker). Logos reais
-via `resolveParticipant` (fallback em iniciais).
-
-## 13. Página Participar
-
-Segue a lógica visual da Home. Deve ter: proposta clara; imagens/fotos quando
-disponíveis; depoimentos; **formulário em destaque**; linguagem voltada a participantes;
-visual editorial e comercial. Não deve parecer formulário genérico.
-
-**Hero bespoke (exceção ao `<PageHero>`).** A hero de Participar (e a de Apoiar, §14)
-tem o **formulário integrado** + banda chocolate própria + selo girando + shots —
-estrutura de landing de conversão, distinta da hero institucional simples. Fica
-**fora** do componente `PageHero`, como Home (§9) e Edições (§10) já são. As demais
-seções dessas páginas usam o kit de layout (`PageShell`/`PageSection`/`SectionHeader`/
-`CardsGrid`/`CTASection`, `src/components/layout/`). Não migrar essas heros p/ PageHero
-sem pedido explícito.
-
-## 14. Página Apoiar
-
-Lógica parecida com Participar. Precisa de: **formulário em destaque**; explicação
-visual de oportunidades de apoio; benefícios para marcas; exemplos de presença da marca
-no festival; linguagem comercial alinhada ao tom do festival. Não deve parecer página
-institucional fria.
-
-## 15. Textos e tom de voz
-
-Claro, afetivo e institucional na medida certa. Evitar: texto técnico/longo demais;
-repetição de dados; tom burocrático; excesso de adjetivos genéricos. Preferir: frases
-objetivas; linguagem calorosa; ritmo de leitura; conexão com Natal, gastronomia, marcas
-locais e Sweet Lovers.
-
-Posts/comunicações ao público: linguagem mais leve. Páginas institucionais: equilibrar
-afeto e credibilidade.
-
-## 16. Dados históricos
-
-Fontes principais (verificar antes de criar rankings/históricos/cards):
-- `ACERVO.md` (raiz) — **resumo legível por IA** de TODO o acervo (16 edições,
-  Sweet Awards + vencedores com empates, Lovers 2026.1, 21 participantes, métricas,
-  curiosidades). Transcrição fiel das fontes abaixo; para gerar texto/responder usar
-  o `ACERVO.md`, mas o **código em `src/data/` é a verdade** (se divergir, vale o
-  código — e atualize o `ACERVO.md`);
-- `src/data/sweetCoffeeHistory.js` — **base oficial, 16 edições (inclui Lovers)**;
-- `src/data/loversAwardsResults.js` — resultados da 16ª edição (Lovers);
-- `src/data/participants.js`, `src/data/sweetAwards.js`, `src/data/editions.js`.
-
-Não inventar dados. Não criar ranking fake. Não esconder ausência de dado importante.
-(Migração da base antiga `sweetHistory.js` concluída: nenhuma página a importa mais; as
-páginas consomem `sweetCoffeeHistory.js` direto ou via `sweetEditionsCompat.js`.)
-
-## 17. Responsividade
-
-Validar em desktop, tablet e mobile. No mobile: evitar sticky horizontal complexo;
-evitar overflow lateral; manter leitura clara; botões tocáveis; reorganizar grids em
-coluna; manter logos/fotos proporcionais.
-
-**Escala de breakpoints canônica (institucional).** Não existe token de breakpoint
-(CSS não aceita `var()` em `@media`), então a consistência é por convenção. Ao criar
-ou ajustar `@media (max-width: …)`, preferir a escala: **1080 · 960 · 720 · 560 ·
-420**. O reflow principal desktop→tablet (grid de 2 colunas → 1) é **960px** em todo
-o institucional (Participar/Apoiar já alinhados; antes divergiam em 980). Os `959px`
-(styles.css) são propositais (pareados com `min-width: 960`, "abaixo de 960"). Valores
-fora da escala só quando o conteúdo daquele bloco exigir ponto próprio — nunca por
-inércia/cópia. Não renumerar em massa breakpoints já calibrados: alinhar só os
-outliers do reflow principal.
-
-## 18. Validação antes de finalizar
-
-1. Home não foi alterada sem necessidade.
-2. `AWARDS_ONLY_PUBLICATION` não foi alterado indevidamente.
-3. Não foram criadas cores novas.
-4. Não foram usados stickers sem solicitação.
-5. Margens seguem a Home.
-6. Não há elementos soltos sem função.
-7. Placeholders claros e elegantes.
-8. Desktop e mobile funcionam.
-9. Rodar build (`npm run build`).
-10. Rodar lint/typecheck se existir.
-
-## 19. Como registrar novas preferências
-
-Sempre que o usuário disser que não gosta de algo ou aprovar uma nova regra de layout,
-**atualizar este arquivo**. Exemplos já registrados: "não gosto de elementos soltos";
-"não quero stickers"; "hero com conteúdo ancorado embaixo"; "formulário em destaque";
-"não usar cores fora da paleta"; "hero não pode ter 1080px fixo"; "zona de segurança
-entre menu e hero" (ver 4.1); "Contato é página simples, SEM hero" (jul/2026 — título
-compacto direto na seção de cards, com padding-top = --hero-content-start; não
-reintroduzir PageHero ali).
+# Sweet & Coffee Week — Regras do projeto
+
+**Documento único.** Versão 1.0 — 07/08/2026.
+Substitui e aposenta `AGENTS.md`, `AI_RULES.md`, `DESIGN.md`, `docs/GUIA-VISUAL.md`,
+`docs/DEV_GUIDE.md`, `docs/SITEMAP.md`, `docs/SITE_DIRECTION.md` e a versão anterior
+deste arquivo. O que sobreviveu deles está aqui; o que não está aqui foi descartado de
+propósito — o Anexo A diz o quê e por quê.
+
+**Fontes deste documento:** `acervo/ACERVO-OFICIAL.md` (o dado do festival),
+`acervo/decisoes-acervo-2026-08.md` (as decisões), `acervo/plano-site-institucional.md`
+(o alvo) e a leitura integral dos 8 documentos de regra anteriores (4.082 linhas /
+229 KB), filtrada contra o código real.
 
 ---
 
-# Regras técnicas e operacionais (preservadas)
+## 0 · Como usar este documento
 
-## Proteção de branch e deploy — ABSOLUTO
+### 0.1 Hierarquia de autoridade — só existem três degraus
 
-- Confirmar branch antes de alterar: `git branch --show-current`. Trabalhar na **branch
-  de desenvolvimento ativa** (atualmente **`dev/site-completo`**). Se estiver em
-  `master`/`main`: **parar e avisar; não continuar.**
-- Nunca alterar `master`/`main`. Nunca publicar produção. Nunca usar `vercel --prod`.
-  Nunca promover Preview para Production. Nunca fazer merge para `master`/`main` sem
-  autorização explícita.
-- O site oficial em `sweetcoffeeweek.com.br` não deve ser afetado por essas operações.
+| Degrau | Fonte | Vale para |
+|---|---|---|
+| 1 | **O código** em `src/` | Valor visual, dado, comportamento. Se este documento divergir do código, **vale o código** — e o documento é corrigido no mesmo commit |
+| 2 | **Este documento** | Processo, arquitetura, direção visual, tom, o que é proibido |
+| 3 | **O acervo** (`acervo/*.md` no projeto) | Dado histórico do festival: edições, marcas, pódios, números |
 
-### Fluxo ao finalizar
-1. **Build local:** `npm run build`. Falhou → parar, mostrar erro, não commitar/push.
-2. `git status` → conferir alterações.
-3. Commit pequeno e claro: `git add <arquivos da tarefa>` + `git commit -m "tipo: descrição"`
-   (tipos: `fix:` / `feat:` / `style:` / `chore:` / `docs:`).
+Não há quarto degrau. Nenhum outro `.md` do repositório carrega regra ativa.
+
+### 0.2 Como classificar uma regra antes de responder
+
+1. **Absoluta de segurança/operação** (§1) — respeitar sempre, sem exceção.
+2. **Regra de marca/conteúdo** (§8) — respeitar, adaptando a execução.
+3. **Preferência visual** (§6) — manter coerência; se o usuário pedir direção nova, seguir e registrar aqui.
+4. **Orientação técnica** (§5, §10) — base para construir, **não parede**.
+
+**"Evitar" ≠ "proibir".** Evitar decoração não proíbe elemento visual com função. Evitar
+duplicação não proíbe variação justificada. Evitar animação decorativa não proíbe
+transição e microinteração. Evitar mudança global página-a-página não proíbe refatorar a
+fonte única.
+
+**Toda resposta leva a uma execução ou a um plano objetivo.** Nunca usar regra como
+justificativa para não fazer nada.
+
+**Se este documento contradisser o código, parar e avisar:** dizer qual regra conflita,
+qual é o estado real, qual atualização será feita — e então seguir.
+
+---
+
+## 1 · Absolutas
+
+Estas não se negociam, não se contornam e não dependem de contexto.
+
+| # | Regra |
+|---|---|
+| A1 | **Nunca alterar `master`/`main`.** Trabalhar sempre na branch de desenvolvimento ativa: **`dev/site-completo`**. Conferir com `git branch --show-current` antes de tocar em qualquer coisa. Se estiver em `master`/`main`: **parar e avisar** |
+| A2 | **Nenhum deploy de produção.** Nunca `vercel --prod`. Nunca promover Preview para Production. Nunca fazer merge para `master`/`main` sem autorização explícita por escrito |
+| A3 | **Não alterar as flags de publicação** em `src/App.jsx` sem pedido explícito (§3.4) |
+| A4 | **Não inventar dado.** Nem histórico, nem ranking, nem vencedor, nem logo, nem nome de pessoa, nem veículo, nem e-mail, nem telefone, nem canal externo (§8.5) |
+| A5 | **Não ler, exibir ou versionar** `.env`, secrets, tokens, chaves ou credenciais |
+| A6 | **Não alterar a Home** (`/`, "O Festival") sem solicitação explícita. É a página-mãe (§7.1) |
+| A7 | **Pedir confirmação antes de ação destrutiva:** apagar arquivo, `reset`, `force-push`, remover dependência principal, mexer em configuração de produção |
+| A8 | **Nunca fingir ter usado uma ferramenta** |
+
+---
+
+## 2 · O que o site é hoje
+
+### 2.1 As duas camadas
+
+O ecossistema tem duas camadas, e confundi-las é a origem de metade dos erros antigos.
+
+| | **Institucional** — permanente | **Edição** — temporária |
+|---|---|---|
+| Duração | o ano inteiro | enquanto a edição acontece |
+| Identidade | única, fixa | KV próprio: tema, tipografia e paleta dedicados |
+| Combos | histórico, como acervo | ao vivo, com preço e endereço |
+| Mapa e rota | não tem | interativo, com "minha rota" |
+| Avaliação | resultados históricos | avaliação aberta |
+| Ações especiais | não tem | Rota da Doçura, adesivos, brindes |
+
+**É a camada institucional que este repositório constrói.** A camada de edição não
+existe hoje e não se antecipa: quando a 17ª edição for anunciada, ela nasce com KV
+próprio e páginas próprias.
+
+**O que migra da edição para o institucional quando ela termina:** (1) combos e fotos
+dos participantes, que viram a galeria daquela edição no histórico; (2) resultados do
+Sweet Awards, que entram no histórico da premiação e no Hall. **O resto — KV, adesivos,
+ações especiais, mapa — fica como registro da edição, não vira seção do site.**
+
+### 2.2 O princípio: o acervo é o produto
+
+Não é um site institucional com algumas fotos. São 4.891 fotos de combo, 16 marcas de
+edição, 5 depoimentos em vídeo e dez anos de história. Isso inverte a lógica: **a foto é
+o conteúdo, o texto é o apoio.**
+
+Três regras que atravessam tudo:
+
+1. **Nada de edição ativa.** O site fala no passado e no futuro, nunca no presente.
+2. **Nenhum dado volátil.** Sem preço, sem endereço, sem horário, sem patrocinador
+   exibido. São os dados que envelhecem — sem eles o site fica um ano no ar sem mentir
+   uma linha.
+3. **Duas conversões o ano inteiro.** Marca que quer participar, empresa que quer apoiar.
+
+### 2.3 Estado de publicação
+
+O que está no ar em `sweetcoffeeweek.com.br` hoje é **só a landing `/em-breve`**, por
+causa da flag `COMING_SOON_PUBLICATION = true`. Apagar essa página ou essa flag tira o
+site do ar. Ver §3.4.
+
+### 2.4 Mapa de páginas — alvo institucional
+
+| Página | Papel | Estado |
+|---|---|---|
+| **Home** (`/`) | Explicar e seduzir | existe, 7 seções (§7.1) |
+| **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
+| **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
+| **Marcas** | Diretório das 123 casas | **não existe — a construir** |
+| **Participar** (`/participar`) | Converter marcas | existe, 8 seções (§7.4) |
+| **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 6 seções (§7.5) |
+| **Contato** (`/contato`) | Triar e responder | existe, 4 seções (§7.6) |
+
+O plano completo de conteúdo por página está em `acervo/plano-site-institucional.md`.
+Este documento cobre **como construir**; o plano cobre **o que dizer**.
+
+---
+
+## 3 · Operação
+
+### 3.1 Branch
+
+Trabalhar em **`dev/site-completo`**. Confirmar antes de editar. O conector do GitHub no
+Claude Design aponta por padrão para `master`, que está muito atrás — **reapontar sempre
+para `dev/site-completo`**. PR de volta vai para `dev/site-completo`, nunca para
+`master`.
+
+### 3.2 Comandos
+
+| Comando | Papel |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento (porta = `PORT` ou 5173) |
+| `npm run build` | build |
+| `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
+| `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
+| `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
+| `npm run test:imagens` | reprova componente que monta caminho de imagem na mão |
+| `node tests/responsive.mjs` | Playwright contra o **build de produção** via `vite preview`; sai com código 1 em overflow horizontal |
+| `npm run build && npm run design:snapshot` | snapshot estático das 6 páginas para o Claude Design |
+
+**Nunca disparar dois builds ao mesmo tempo.** Esperar o anterior terminar.
+
+### 3.3 Fluxo ao finalizar uma tarefa
+
+1. **Build local** (`npm run build`). Falhou → parar, mostrar o erro, **não** commitar.
+2. `git status` — conferir o que mudou.
+3. Commit pequeno e claro: `git add <arquivos da tarefa>` + `git commit -m "tipo: descrição"`.
+   Tipos: `fix:` · `feat:` · `style:` · `chore:` · `docs:`.
 4. `git push origin dev/site-completo`.
-5. Reportar: build, hash+mensagem do commit, push, e link/preview da Vercel se houver.
-6. ⚠️ O repo pode ter WIP local não relacionado — commitar **só** os arquivos da tarefa.
+5. Reportar: build, hash e mensagem do commit, push, link de preview se houver.
 
-## URLs estáveis para QR Codes — REGRA PERMANENTE
+⚠️ **O repositório pode ter trabalho em andamento não relacionado.** Commitar **só** os
+arquivos da tarefa em questão.
 
-URLs públicas dos QR Codes da edição Sweet & Coffee Week Lovers **NÃO podem mudar**
-depois de definidas.
+### 3.4 Flags de publicação — `src/App.jsx`
 
-Padrões fixos:
-- Combo: `https://www.sweetcoffeeweek.com.br/#/lovers/combos/{slug-do-participante}`
-- Premiação: `https://www.sweetcoffeeweek.com.br/#/lovers/awards`
+| Flag | Valor atual | O que faz |
+|---|---|---|
+| `AWARDS_ONLY_PUBLICATION` | `false` | modo "só Awards", desligado |
+| `COMING_SOON_PUBLICATION` | **`true`** | **gate ativo** — o domínio oficial renderiza só a landing `EmBreve` |
+| `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras duas |
 
-Regras: nunca alterar rota `#/lovers/combos/:slug` nem `#/lovers/awards`; slug do combo
-= slug do participante; não renomear slugs já definidos em `src/data/participants.js`;
-não trocar hash routing por path routing; mudança em URL/rota/slug exige parar e avisar
-antes — nunca automático. Lista dos 21 slugs congelados: seção 9 de `CODE_REVIEW_GRAPH.md`.
+Publicar o institucional completo é `COMING_SOON_PUBLICATION = false` — **decisão do
+Eloi, nunca automática**. **Não alterar flag para "ver a página em produção": use o
+preview.**
 
-## Duas identidades visuais — nunca misturar
+### 3.5 Escopo, qualidade e segurança
 
-**Institucional** — `src/pages/institutional/` (Home, Curiosidades, Edições, Participar,
-Apoiar, Contato). Paleta terracotta (`--bg`, `--ink`, `--accent`, `--peach`). Cor-acento
-por página via `--page-accent` (definido em `body.route-*` em `src/styles.css`).
+- Listar os arquivos a modificar **antes** de editar.
+- Alterar só o que se relaciona ao pedido.
+- Usar `Edit` (não `Write`) em arquivo existente, salvo reconstrução pedida.
+- Não reescrever arquivo inteiro se um ajuste local resolve.
+- Preservar padrão do projeto, acessibilidade e responsividade.
+- Evitar dependência nova sem justificativa.
+- Resumo curto após cada conjunto de edições: **arquivos alterados + o que mudou em
+  cada um + efeitos de propagação + resultado do build e dos testes**.
+- **O repositório é a fonte da verdade.** Buscar contexto em arquivos, docs, commits e
+  configs antes de perguntar ao usuário.
 
-**Edição Lovers** — `src/pages/lovers/` (Hub, Combos, Mapa, Awards). Paleta cream,
-`--lovers-red`, burgundy, pink, yellow. Tipografia Sofia Pro Comp via Typekit. Wrapper
-obrigatório `.kv-lovers`. Fontes via `--font-lovers-display` / `--font-lovers-body`.
+### 3.6 Higiene de repositório
 
-Nunca aplicar estilos Lovers em páginas Institucionais nem vice-versa sem pedido explícito.
+- `dist*`, `vite.config.js.timestamp-*` e `**/.impeccable/` já estão no `.gitignore` —
+  são clutter de disco do Dropbox, **não** desversionar com `git rm`.
+- Gaps do `.gitignore` a fechar: `.devserver.log`, `por.traineddata`, `skills-lock.json`.
+- A pasta `public/logos/logo edições/` deve ser renomeada para `logo-editions/` — espaço
+  e acento em caminho de asset é armadilha.
+- `.gitattributes` normaliza as pontas de linha para LF (texto) e marca binários. Sem
+  ele, 105 arquivos aparecem como modificados sem nenhuma mudança real de conteúdo.
 
-## Estrutura, stack e variáveis
+---
+
+## 4 · Stack e estrutura
+
+### 4.1 Stack
+
+- **Vite + React 18 (JSX). Sem TypeScript.**
+- **Roteamento:** router customizado em `src/router.js` (`useRoute`). **Não** usar React
+  Router. O hash routing **deixou de ser obrigatório** — os QR Codes que o exigiam foram
+  aposentados junto com a edição Lovers (§Anexo A-C).
+- **Fontes:** Nexa Slab self-hosted em `public/fonts/nexa-slab/` (woff2, pesos 100–900 +
+  itálicos + alias `'Nexa Slab Black'`), declarada em `src/styles/fonts-nexa-slab.css`.
+  **Nenhum serviço externo de fonte** — o Adobe Fonts/Typekit servia só a Sofia Pro Comp
+  do KV Lovers, que morreu.
+- **Backend:** Supabase (`src/lib/supabase.js`). ⚠️ **Os três formulários TÊM backend** —
+  conferido no código em 07/08/2026, contra três versões incompatíveis na documentação
+  antiga. Cada um grava por RPC do Supabase, com a **lógica pura isolada numa lib sem
+  import de supabase** (a função `rpc` é injetada, o que torna a lib testável):
+
+  | Formulário | Lib | RPC |
+  |---|---|---|
+  | Contato | `src/lib/contactRequest.js` | `submit_contact_request` |
+  | Participar | `src/lib/participationInterest.js` | `submit_participation_interest` |
+  | Apoiar | `src/lib/supportInterest.js` | `submit_support_interest` |
+
+  Migration em `supabase/migrations/`. **Nenhum deles afirma "enviado" se a gravação
+  falhar** — é regra escrita no cabeçalho dos três arquivos. ⛔ **Não trocar por
+  "copia para a área de transferência e abre o Instagram"**: essa era a descrição do
+  `DEV_GUIDE.md`, e estava errada.
+- **`src/config/channels.js` existe** e é a fonte de `INSTAGRAM_HANDLE` / `INSTAGRAM_URL`.
+  A documentação antiga o marcava como "alvo a criar" — não é.
+- `src/lib/pageMeta.js` atualiza `<title>` e description por rota em runtime.
+  `src/lib/analytics.js` é GA4 com consentimento.
+
+### 4.2 Estrutura de pastas
 
 ```
 src/
-  components/   # nav.jsx, footer/SiteFooter.jsx, icons.jsx, ...
-  pages/institutional/ | lovers/
-  data/         # editions.js, sweetCoffeeHistory.js, loversAwardsResults.js,
-                # participants.js, sweetAwards.js, participantAssets.js, editionAssets.js
-  hooks/        # useRevealOnScroll.js (IntersectionObserver, threshold 0)
-  styles.css    # globais (route-* / --page-accent) — editar com cuidado
-  styles/       # motion-system.css, etc.
-  App.jsx · router.js · DevTools.jsx (DevViewportSwitcher é DEV-only)
-public/images/  # logos, combos (/images/combos/<slug>/main.jpg), shapes
+  components/   nav.jsx (SiteHeader + PAGE_COLORS/pageColorDark), SiteFooter.jsx,
+                MobileTabBar.jsx, MobileMenu.jsx, AccessDialog.jsx,
+                BotaoTopo.jsx, icons.jsx
+  components/scw-icons/  ScwIcon.jsx + scw-icons-v2.js (136 ícones, 16 famílias,
+                traço 3.2 — gerado no Design, NÃO editar à mão)
+  pages/institutional/   Home · Edicoes · HistoricoAwards · Participar · Apoiar ·
+                Contato · EmBreve
+  data/         sweetCoffeeHistory.js, loversAwardsResults.js, participants.js,
+                sweetAwards.js, participantAssets.js, editionAssets.js,
+                faqCentral.js (93 dúvidas), imageLibrary.js,
+                handoff/{edicoesData,awardsData}.js
+  data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
+  hooks/        useSiteMotion.js (motor de movimento do institucional)
+                useRevealOnScroll.js (sistema anterior, só /em-breve)
+  styles/scw-2026.css      SISTEMA VISUAL ATUAL: tokens --scw-*, casca, utilitárias
+  styles/scw-motion.css    MOVIMENTO: tokens --mo-*, reveal, heróis, hover
+  styles/scw-<pagina>.css  scw-home, scw-edicoes, scw-awards, scw-contato,
+                           scw-participar-apoiar
+  styles/motion-system.css movimento do sistema ANTERIOR — só serve /em-breve
+  styles/fonts-nexa-slab.css
+  App.jsx · router.js
+public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
+                momentos/, campanha/, imprensa/, shapes/
+public/fonts/nexa-slab/
+acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
-- Vite + React (JSX). Hash router customizado. Adobe Fonts/Typekit + Google Fonts.
-- Dev server: `npm run dev`. Build: `npm run build`.
-- `dist/` costuma ficar travado pelo Dropbox → buildar em `dist_check --emptyOutDir` e
-  depois `rm -rf dist_check`.
+⚠️ **Não devolver o acervo bruto para dentro de `public/`.** Ele morava lá e o Vite
+copiava 58 GB a cada build. Movido para a raiz, o build caiu para ~364 MB / ~5 s.
+
+### 4.3 A demolição — feita em 07/08/2026
+
+**Um sistema visual só.** Saíram 379 KB de código morto:
+
+| Arquivo removido | Tamanho | O que era |
+|---|---|---|
+| `src/styles/lovers-system.css` | 138 KB | KV Lovers |
+| `src/styles.css` | 113 KB | sistema legado v1 |
+| `src/pages/lovers/Painel.jsx` | 67 KB | painel de votação — pertence à camada de edição |
+| `src/pages/institutional/PainelAdmin.jsx` | 20 KB | tela interna |
+| `src/styles/swc-redesign.css` | 17 KB | redesign anterior (v2) |
+| `src/pages/institutional/Pesquisa.jsx` | 9 KB | tela interna |
+| `src/styles/pesquisa.css` | 6 KB | idem |
+| `src/data/pesquisaLovers.js` | 4 KB | idem |
+| `src/styles/tokens.css` | 3 KB | `:root` do sistema anterior |
+
+Junto saíram as rotas `painel`, `pesquisa` e `painel-admin` do `App.jsx` e três imports
+do `main.jsx`. **Resultado medido no build:**
+
+| | Antes | Depois |
+|---|---|---|
+| CSS entregue | 325 KB (219 + 106 de chunk) | **122 KB** |
+| JS entregue | 1.726 KB | **715 KB** |
+| Módulos transformados | 142 | 129 |
+| Tempo de build | 9,0 s | **2,5 s** |
+
+O `exceljs` (939 KB, exportação de planilha do painel admin) saiu do bundle inteiro.
+⚠️ **`exceljs` e `qrcode` continuam no `package.json` sem nenhum importador em `src/`** —
+podem sair numa limpeza de dependências.
+
+#### O arquivo novo: `src/styles/em-breve.css`
+
+A landing traz o próprio CSS num `<style>` inline, mas **consumia 26 tokens** definidos
+só nos arquivos mortos — cor, as três famílias de fonte, escala tipográfica, espaço,
+raio, sombra e as seis cores de marca da Lovers que `participants.js` ainda lê. Apagar
+sem extrair teria quebrado a única página no ar.
+
+`em-breve.css` preserva esses tokens **já resolvidos**, sem `var()` encadeado. ⛔ **Não
+usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`. Este arquivo morre
+junto com a landing, quando o institucional for publicado.
+
+#### ⛔ O que continua intocável
+
+| Arquivo | Por quê |
+|---|---|
+| `src/pages/institutional/EmBreve.jsx` | é a página pública ativa |
+| `src/styles/motion-system.css` | define as `.motion-*` que a EmBreve usa |
+| `src/hooks/useRevealOnScroll.js` | a EmBreve o chama direto |
+| `src/styles/layout-tokens.css` | ⚠️ **não é órfão:** guarda os `--motion-*` e `--ease-*-soft` que o `motion-system.css` consome |
+| `src/styles/em-breve.css` | os tokens extraídos acima |
+| `src/config/channels.js` | a EmBreve importa `INSTAGRAM_HANDLE`/`INSTAGRAM_URL` dele |
+| `src/data/contactFaq.js` | exporta `CONTACT_SUBJECTS`, usado pelo formulário do Contato |
+
+#### A lição, que vale para a próxima remoção
+
+**Procurar pelo nome do arquivo não basta.** Três itens entraram na lista de mortos sem
+estarem mortos — `layout-tokens.css`, `contactFaq.js` e os tokens da landing — porque
+ninguém os importava *pelo nome*: eram consumidos por `var()` e por named export.
+
+**Antes de apagar qualquer arquivo:** varrer os **nomes que ele exporta** e os
+**custom properties que ele define**, não só o caminho dele.
+
+---
+
+## 5 · Arquitetura
+
+### 5.1 A causa-raiz da dor do projeto
+
+*"Mudo algo global — heróis, cor — e não propaga."* **A causa não é bug: é múltiplas
+fontes de verdade para o mesmo conceito.**
+
+> Se você precisa editar "todos os X" e isso obriga a tocar N arquivos, **pare**. É sinal
+> de fonte duplicada. A correção é colapsar em uma, não repetir a edição N vezes.
+
+### 5.2 Uma fonte de verdade por conceito
+
+⚠️ **A armadilha desta família é o "snapshot derivado".** `handoff/awardsData.js` e
+`handoff/edicoesData.js` nasceram como cópias congeladas da fonte, mantidas à mão — e
+foram elas que mantiveram o Hall com número errado e o campo `preco` vivo, meses depois
+de a fonte estar certa. **Em 07/08/2026 os dois viraram derivação de verdade**, que roda
+a cada import. **Não recongelar.** Se um dado precisa aparecer em duas telas, ele deriva
+duas vezes da mesma fonte — não vira dois arquivos.
+
+| Conceito | Fonte |
+|---|---|
+| Cor, tipografia, espaçamento | tokens em `src/styles/scw-2026.css` |
+| Movimento | tokens `--mo-*` em `src/styles/scw-motion.css` + `useSiteMotion.js` |
+| Estrutura de herói / seção | um componente, não uma cópia por página |
+| Caminho de imagem | `src/data/imageLibrary.js` |
+| Dado histórico | `src/data/sweetCoffeeHistory.js` |
+| Pódios da edição 2026.1 | `src/data/loversAwardsResults.js` |
+| Perguntas frequentes | `src/data/faqCentral.js` |
+| Ícones | `src/components/scw-icons/scw-icons-v2.js` |
+| Cor por página em JS | `PAGE_COLORS` / `MENU_ESCURO` em `src/components/nav.jsx` |
+
+### 5.3 Duplicação
+
+- **`grep` no `src/` antes de criar** qualquer componente ou constante.
+- **Proibido copiar-colar** bloco de JSX, `<style>` inline ou lógica entre páginas.
+- **Ao ver a 2ª cópia de qualquer coisa, extraia.** Nunca a 3ª.
+- **Mas:** se o padrão existente não resolve a experiência pedida, **criar variação
+  justificada é o certo**. Reutilizar ≠ recusar-se a evoluir o padrão.
+
+### 5.4 Mudança global
+
+**Nunca aplicar ajuste global página-a-página.** Mudança global vai na fonte única; se
+ela não existe, **criá-la é o caminho — não travar**. Mudança específica de uma página
+pode ser local, documentada.
+
+> Nunca usar "a fonte única não existe" como motivo para não entregar.
+
+**Explicitar sempre o alcance da propagação:** *"isto altera todos os heróis
+institucionais"*, *"isto muda a cor base do site inteiro"*. Nunca deixar efeito global
+implícito.
+
+### 5.5 Antes de uma mudança grande
+
+Mudança que toca fonte única, múltiplas páginas ou uma decisão de design em aberto:
+listar os arquivos, apresentar o plano, obter a decisão do usuário por escrito, executar
+em etapas pequenas, isoladas e reversíveis — **um subcommit por item lógico**.
+
+### 5.6 Conteúdo separado da camada visual
+
+Dados e textos moram em `src/data/`. JSX é composição e layout, **não depósito de
+conteúdo**.
+
+### 5.7 CSS
+
+**Não introduzir regras que se sobrescrevem** via especificidade ou `!important` para a
+mesma propriedade. Estilo estrutural pertence ao componente + tokens. **Não "esconder via
+CSS"** — remover markup e estilo.
+
+### 5.8 As seis páginas são grandes demais
+
+`Edicoes.jsx` 43 KB · `Home.jsx` 34 KB · `Participar.jsx` 33 KB · `HistoricoAwards.jsx`
+27 KB · `Contato.jsx` 25 KB · `Apoiar.jsx` 25 KB. **Alvo: uma pasta por página, um
+arquivo por seção.** A Home vira oito arquivos de seção mais um que os monta — assim
+"mexe na seção 03" vira abrir um arquivo de 3 KB. Começar pela Home, que é a que mais
+recebe pedido de alteração.
+
+---
+
+## 6 · Sistema visual
+
+Fonte única: `src/styles/scw-2026.css`. **Se este capítulo divergir do arquivo, vale o
+arquivo.**
+
+### 6.1 Paleta — 9 cores fechadas
+
+**Nenhuma cor fora desta tabela. Não escrever hex solto em componente — usar o token.**
+
+| Token | Hex | Papel | Sobre ele usa |
+|---|---|---|---|
+| `--scw-creme` | `#FEF0DD` | fundo base do site; texto sobre chocolate | `--scw-choco` |
+| `--scw-bege` | `#F8E4C1` | alternância de seção, chips; cor da página Contato | `--scw-choco` |
+| `--scw-choco` | `#3D1308` | tinta principal, seções escuras, fundo de card com filete | `--scw-creme` |
+| `--scw-marrom` | `#6A2C15` | texto de apoio, rótulos pequenos; cor da página Apoiar | `--scw-creme` |
+| `--scw-amarelo` | `#FDBB1A` | acento da Home; medalha de 1º lugar | `--scw-choco` |
+| `--scw-cyan` | `#01AFCC` | acento de Participar; **anel de foco global** | `--scw-choco` |
+| `--scw-roxo` | `#4D257E` | acento do Sweet Awards | `--scw-creme` |
+| `--scw-magenta` | `#F10767` | destaque de título; **só texto grande** (3,8:1 sobre creme) | `--scw-creme` |
+| `--scw-laranja` | `#FF4810` | acento de Edições; **superfície preenchida**; medalha de 3º lugar | `--scw-choco` |
+
+**Foco:** o anel de foco global é `--scw-cyan`. É a **única cor de estado padronizada**;
+hover e ativo usam a cor da própria página.
+
+**Filete e card claro não são tokens de cor** — viram `rgba()` ou creme por papel:
+
+- filete geral = `rgba(61,19,8,.14)`
+- borda de campo de formulário = `rgba(61,19,8,.22)`
+- placeholder de foto = `--scw-bege`
+- card claro = `--scw-creme` (o filete é que carrega o recorte visual)
+
+**Proibido:** `#E52C4B` (vermelho-coral, removido da paleta — não usar em nada); verde;
+cinza frio aleatório; preto puro; **qualquer hex fora da tabela**; hex escrito direto em
+componente quando existe token.
+
+**Regra permanente de substituição: troca-se cor por PAPEL, não por aparência.** Foi
+assim que saíram, sem substituto direto, `#B3213B` (vinho), `#EBD6B4` (filete),
+`#FFF7E9` (card claro), `#D0055B` (magenta profundo) e `#D19100`/`#D9BE95`/`#C99A7E`
+(ouro/prata/bronze de medalha).
+
+**O roxo entrou na paleta em julho de 2026** e é o acento oficial do Sweet Awards. A
+regra antiga "evitar roxo" está **superada** — ela nasceu de um lavanda `#B38CFF` fora da
+identidade, não deste roxo.
+
+#### Exceção declarada única — seção 07 da Home
+
+A seção de realização usa a marca da **F2 Experience**, a agência que realiza o festival,
+não a marca do festival: fundo `#0B0B0C`, acento `#E50053`, tinta `#F5F5F5`, tipografia
+**Archivo**. É a única quebra de paleta e de fonte do site, proposital, restrita ao bloco
+`.f2-realiza*` em `src/styles/scw-home.css`. O teste `tests/redesign-2026.test.mjs`
+reprova essas cores em qualquer outro lugar e reprova `Archivo` fora dessa seção.
+
+Contraste medido: tinta **18,05:1** sobre o preto; o magenta dá **4,18:1**, então ele
+fica em **texto grande e elemento gráfico** — rótulo pequeno e CTA usam a tinta clara.
+
+### 6.2 Cor por página
+
+Tokens em `body.route-*`: `--scw-pagina` · `--scw-pagina-tinta` · `--scw-pagina-menu` ·
+`--scw-pagina-sobre-creme`.
+
+| Rota | `--scw-pagina` | tinta | contraste |
+|---|---|---|---|
+| `home` | `#FDBB1A` amarelo | `#3D1308` | 9,5:1 |
+| `edicoes` | `#FF4810` laranja | `#3D1308` | 4,78:1 |
+| `historico-awards` | `#4D257E` roxo | `#FEF0DD` | 9,95:1 |
+| `participar` | `#01AFCC` cyan | `#3D1308` | 6,2:1 |
+| `apoiar` | `#6A2C15` marrom | `#FEF0DD` | 9,44:1 |
+| `contato` | `#F8E4C1` bege | `#3D1308` | 13:1 |
+
+- **A cor da página não é fundo de herói.** Ela aparece em **dois** pontos exatos: o item
+  ativo do menu (pill sólida) e o selo do herói.
+  ⛔ **A barra de 5px sob o cabeçalho foi REMOVIDA** no fechamento de 29/07/2026 — o
+  herói já é a cor da página. **Não recriar.** Onde a documentação antiga falava dela,
+  leia "dois pontos", não três.
+- **Por isso o acento não precisa ser tom claro.** A regra antiga que exigia tom claro
+  vinha de quando a cor pintava a hero inteira.
+- **Nenhuma página repete a cor da vizinha.** É o propósito da regra.
+- **Sobre superfície escura** (rodapé, folha do menu, barra de abas) cada página usa
+  `pageColorDark()` em vez da cor cheia: **roxo (1,45:1) e marrom (1,53:1) não sustentam
+  texto sobre chocolate e caem no amarelo; laranja (4,78:1) e cyan (6,23:1) passam e
+  ficam.**
+- **Espelho em JS:** `PAGE_COLORS` / `MENU_ESCURO` em `src/components/nav.jsx`.
+  ⚠️ **Mudou o CSS, muda o JS no mesmo commit.**
+- **Hover no menu** mostra a cor daquela página — amarelo e cyan direto; as demais caem
+  no amarelo, por contraste sobre o véu escuro.
+- **O herói tem par próprio, distinto de `--scw-pagina`:** `--scw-heroi` /
+  `--scw-heroi-tinta`. A chapa do herói é a cor da página, e **a Home é a única exceção**
+  — segue chocolate, porque a foto sangra e a cor já aparece no véu.
+  Edições laranja · Awards roxo · Participar cyan · Apoiar marrom · Contato bege.
+- **As compensações de contraste do herói seguem a COR, não a página.** Chapa **clara**
+  (hoje só o cyan de Participar) precisa de selo, CTA e **anel de foco em chocolate** —
+  o anel global é cyan e sumiria. Chapa **escura** (marrom, roxo) usa as regras base em
+  creme.
+- **Destaque do H1 — um acento por chapa**, sempre da paleta e sempre diferente da tinta
+  do título: Home **magenta** · Edições **amarelo** · Awards **amarelo** · Participar
+  **roxo** (4,25:1, texto grande) · Apoiar **amarelo** · Contato **marrom**.
+  ⚠️ `--base` do `scwDestaque` tem que ser a **tinta real daquele título** — senão o
+  destaque começa invisível sobre o próprio fundo.
+- **Card ou CTA que navega usa a cor do DESTINO**, não a da página onde está. Onde a
+  chapa do destino não separa do card (<3:1 de forma) entra um **anel de 2px** na tinta
+  do card. Em **link com filete quem recebe a cor é o filete, não a tinta** — cyan e
+  laranja não fecham 4,5:1 como texto sobre creme.
+
+### 6.3 Sequência de irmãos nunca repete cor
+
+Regra permanente, vale para toda fileira, grade ou lista de irmãos: cards, passos,
+métricas, discos de ícone, pills, painéis. **Cada item recebe uma cor diferente da
+paleta, na ordem**, e a sequência só volta ao começo depois de esgotar as cores
+disponíveis para aquele fundo. **Dois irmãos com a mesma cor é defeito, não economia.**
+
+Ciclo canônico: `amarelo → cyan → magenta → roxo → laranja → marrom`.
+
+**Mas nem toda cor serve de tinta em todo fundo.** Filtrar pelo fundo antes de aplicar o
+ciclo (texto grande = 3:1, texto pequeno = 4,5:1):
+
+| Fundo | Tintas que passam | Reprovam |
+|---|---|---|
+| creme `#FEF0DD` | chocolate 12:1 · marrom 6,9:1 · roxo 6,7:1 · magenta 3,8:1¹ · laranja 3,0:1¹ | cyan 2,2 · amarelo 1,4 |
+| bege `#F8E4C1` | chocolate 13:1 · marrom 6,3:1 · roxo 6,0:1 · magenta 3,4:1¹ | laranja 2,7 · cyan 2,1 · amarelo 1,4 |
+| chocolate `#3D1308` | creme 12:1 · bege 13:1 · amarelo 9,5:1 · cyan 4,9:1 · laranja 4,8:1 | magenta 3,8¹ · roxo 1,45 · **marrom não sustenta** (~1,5:1) |
+| roxo `#4D257E` | creme 10:1 · bege 8,9:1 · amarelo 6,5:1 · cyan 4,3:1¹ | magenta · laranja · chocolate |
+| cyan `#01AFCC` | chocolate 5,6:1 | creme 2,3 · amarelo 1,6 |
+| magenta `#F10767` | nenhuma tinta passa em texto pequeno | creme 3,8¹ · chocolate 3,8¹ |
+
+¹ só a partir de 18,66px em peso 700+ (ou 24px normal), onde o mínimo cai para 3:1.
+
+**Quando o fundo não oferece cores suficientes, não force a tinta: mova a cor para o
+grafismo.** É o padrão **StatBlock** — régua pop de 4px acima do número. O numeral fica
+numa tinta legível (chocolate) e a régua carrega a cor própria do card:
+
+```html
+<span aria-hidden="true" class="scw-stat__regua" style="background:#FDBB1A"></span>
+```
+
+Assim uma faixa de seis métricas sobre bege — onde só quatro tintas passam — tem seis
+cores distintas sem nenhuma falha de contraste. Vale o mesmo raciocínio para disco de
+ícone (a cor vai no disco, o traço fica chocolate ou creme conforme o fundo do disco),
+pill, selo de canto e filete.
+
+### 6.4 Medalhas do Sweet Awards
+
+Codificam colocação, não decoram.
+
+| Posição | Token | Hex |
+|---|---|---|
+| 1º | `--scw-amarelo` | `#FDBB1A` |
+| 2º | `--scw-bege` | `#F8E4C1` |
+| 3º | `--scw-laranja` | `#FF4810` |
+
+**Numeral sempre chocolate.** ⚠️ **O 3º lugar não é marrom:** marrom sobre chocolate dá
+~1,5:1 e falha tanto como emblema quanto como texto solto — testado e descartado.
+
+### 6.5 Tipografia — Nexa Slab, fonte única
+
+Pesos **500** (Regular), **700** (Bold), **800** (xBold), **900** (Black). O 900 também é
+servido como família separada `'Nexa Slab Black'`.
 
 ```css
---accent: #E8553A;  --ink: #2B1810;  --peach: #F7D9B5;
---lovers-red: #D63648;  --lovers-cream: #FFF1E6;
---font-lovers-display: 'sofia-pro-comp', 'Caprasimo', serif;
---font-lovers-body:    'sofia-pro-comp', 'DM Sans', sans-serif;
+--scw-font:       'Nexa Slab', system-ui, sans-serif;
+--scw-font-black: 'Nexa Slab Black', 'Nexa Slab', Georgia, serif;
 ```
 
-## Escopo, qualidade e segurança
+| Papel | Classe | Valor |
+|---|---|---|
+| H1 de herói | `.scw-h1` | `900 clamp(38px,4.8vw,84px)/.9`, `-.045em`, `max-width:17ch` |
+| H1 compacto (Contato) | `.scw-h1--compacto` | `900 clamp(28px,3vw,44px)/1`, `-.035em` |
+| H2 de seção | `.scw-h2` | `900 clamp(32px,3.8vw,58px)/.94`, `-.04em`, **22ch** |
+| H3 de card | `.scw-h3` | `900 clamp(18px,1.7vw,24px)/1.1`, `-.03em`, **28ch** |
+| Numeral grande | `.scw-numeral` | `900 clamp(38px,4.4vw,84px)/.82`, `-.06em`, `tabular-nums` |
+| Corpo | `.scw-corpo` | `500 clamp(15px,1.2vw,17px)/1.55`, `text-wrap:pretty`, **62ch** (limite absoluto 68) |
+| Lead de herói | `.scw-lead` | `500 clamp(16px,1.3vw,19px)/1.55`, **46ch** |
+| Rótulo | `.scw-rotulo` | `800 12px/1`, `.16em`, uppercase, `#6A2C15` |
+| Rótulo com ícone | `.scw-rotulo--com-icone` | **32ch, uma linha** |
+| Botão | `.scw-btn` | `800 15px/1` |
+| Item de menu | — | `700 14px/1.4` (ativo `800 italic`), lowercase |
 
-- Listar os arquivos a modificar **antes** de editar. Alterar só o que se relaciona ao
-  pedido. Usar `Edit` (não `Write`) em arquivos existentes, salvo reconstrução pedida.
-  Resumo curto após cada conjunto de edições.
-- Preservar padrão do projeto, tipagem, acessibilidade e responsividade. Evitar
-  dependências novas sem justificativa. Não reescrever arquivo inteiro se um ajuste local
-  resolve.
-- Não ler/exibir/versionar `.env`, secrets, tokens, chaves ou credenciais.
-- Pedir confirmação antes de ações destrutivas (apagar, reset, force-push, deploy de
-  produção, remover dependência principal, mexer em config de produção).
+⚠️ **O que segura a leitura não é mais o trilho — é a medida de linha.** Com trilho de
+2200px e sem esses tetos, um parágrafo daria ~200 caracteres por linha. **Não remover
+teto de medida "porque agora tem espaço": é o inverso — agora eles são obrigatórios.**
+`tests/redesign-2026.test.mjs` reprova se saírem.
 
-## Princípio principal
+**Rótulo / eyebrow voltou e é o padrão.** A regra antiga "não usar eyebrow acima dos
+títulos" está **superada**. Forma canônica `.scw-rotulo`. **Continua proibido rótulo sem
+função:** repetir o título, anunciar o óbvio, enfeitar.
 
-O repositório é a fonte da verdade. Buscar contexto nos arquivos, docs, commits e
-configs antes de pedir contexto ao usuário; não pedir o que pode ser inferido com
-segurança do repositório. Nunca fingir ter usado uma ferramenta.
+**Compensação óptica:** caixa-alta dentro de pill leva **1px a mais de padding no topo e
+1px a menos na base** — o caixa-alta da Nexa Slab renderiza ~2px acima do centro.
+
+⛔ **Proibida a fonte mono** (JetBrains Mono e afins) em rótulos, labels, eyebrows e
+metadados — rejeitada duas vezes pelo Eloi. **Incomoda a face mono, não o caixa-alta:**
+caixa-alta com letter-spacing seguem permitidos.
+
+Tudo em `clamp()`. **Não inventar tamanho novo: usar a classe.**
+
+### 6.6 Trilho, grade e espaçamento
+
+**Trilho único — uma só regra de margem horizontal para cabeçalho, seções, rodapé e
+Edições:**
+
+```css
+--scw-trilho: max(clamp(24px, 5vw, 96px), calc((100% - 2200px) / 2));
+```
+
+- Largura máxima de conteúdo **2200px, centralizada**, gutter de **24–96px**. Aplicar
+  como `padding-inline: var(--scw-trilho)` — a classe `.scw-secao` já faz.
+- **Não inventar largura nem gutter próprios. Não usar `max-width` em container além
+  disso.**
+- Seção que **sangra até a borda** (banda de foto) usa **margem negativa do mesmo
+  trilho**, nunca um valor solto.
+- O gutter vale até **2392px** de viewport; acima disso a grade centraliza.
+
+**Ritmo vertical:**
+
+```css
+--scw-sec-y:          clamp(58px, 6vw, 100px);   /* entre seções */
+--scw-sec-y-compacta: clamp(48px, 5vw, 80px);
+--scw-hero-topo:      clamp(216px, 19vw, 252px); /* reserva de topo das heros */
+```
+
+**Respiro interno de seção:** `--scw-gap-cabeca` (26–40px) · `--scw-gap-bloco` (20–32px)
+· `--scw-gap-grade` (16–28px). **O ritmo ENTRE seções continua `--scw-sec-y`.**
+
+**Raios, sombras, easing:**
+
+```css
+--scw-r-secao:     26px;   --scw-r-interno: 22px;   --scw-r-card: 20px;
+--scw-sombra-card: 0 18px 42px rgba(61, 19, 8, .22);
+--scw-sombra-foto: 0 14px 34px rgba(0, 0, 0, .34);
+--scw-ease:        cubic-bezier(.22, .9, .24, 1);
+```
+
+- `var(--scw-r-card)` = **20px** em **todo** card institucional.
+- `--scw-transicao`: **200ms** para cor/borda/sombra/gap, **180ms** para transform.
+- **Desabilitado tem um estado só:** `.45` / `cursor: default` / `pointer-events: none`.
+- **Botões são chapados:** sem `box-shadow`. O clique responde com deslocamento — hover
+  sobe 2px, active volta. **Handoff que trouxer sombra em botão está desatualizado.**
+
+**Grades:**
+
+- `.scw-grade` — grade responsiva padrão.
+- `.scw-grade-fixa` — **desconta o gap na fórmula de largura. Obrigatória em faixas de 4
+  numerais:** sem ela a linha quebra a 3+1.
+
+**Cabeça de seção:**
+
+- Ícone do rótulo de seção: `tamanho={20}`. **16 fica só em chip e legenda.**
+- Gap do rótulo: **10px**.
+- **O filete é do link, não da coluna** — `.pa-cabeca__link` tem `width: fit-content`.
+- **Lead só quando informa** o que o H2 não dá; senão rótulo + H2 em bloco único.
+
+### 6.7 Zona de segurança entre menu e herói — regra estrutural
+
+- O **fundo** do herói pode subir até o topo. O **conteúdo** — títulos, textos, imagens,
+  cards — só começa **depois** do offset de segurança do cabeçalho. **Nenhum elemento do
+  herói sobrepõe, compete ou encosta no menu.**
+- A logo do cabeçalho **transborda metade abaixo** da linha do header
+  (`top:100%; transform:translateY(-50%)`), então a reserva de topo é maior que a
+  intuitiva — daí `--scw-hero-topo: clamp(216px, 19vw, 252px)`.
+- Heróis com conteúdo **ancorado embaixo** (Home, Participar, Apoiar):
+  `padding-top: clamp(232px, 22vw, 290px)`. Herói **compacto** (Contato):
+  `var(--scw-hero-topo)`.
+- **Aplicar sempre no `padding` do próprio herói.** Nunca com `margin-top` solto,
+  empurrão manual no título, `position:absolute` improvisado ou ajuste que só funcione
+  numa tela.
+- **No mobile (≤900px) a logo perde o overhang** — `top:50%`, altura **52px**.
+
+### 6.8 Heróis
+
+| Regra | Valor |
+|---|---|
+| Altura | **proporcional ao conteúdo** — nunca 1080px fixo, nunca `height` rígida |
+| Reserva de topo | `--scw-hero-topo` ou o valor ancorado |
+| Título | `.scw-h1`, à esquerda, `max-width:17ch` |
+| Lead | `.scw-lead`, `max-width:46ch` |
+| Selo | `.scw-pill--pagina`, usa `--scw-pagina` |
+| Foto | fundo à direita com **véu em degradê a 96°** (`.97 → 0` entre 0% e 92%) |
+| Botões | depois do lead, alinhados à esquerda |
+| Fundo | cor da página via `--scw-heroi`; **só a Home segue chocolate** |
+
+- **Sweet Awards:** como o fundo é roxo, **o selo inverte** — creme com tinta roxa
+  (mesmos 9,95:1); senão desapareceria. Título e lead seguem creme.
+  ⛔ **`.swa-hero::before` não existe mais** — o degradê chocolate que descia 340px do
+  topo saiu; a própria banda de foto escurece onde a logo passa. Era o mesmo trabalho
+  feito duas vezes. **Não recriar.**
+- **Home:** texto à esquerda limitado a `min(60%, 860px)`, foto ocupando o fundo à
+  direita. Abaixo de 1000px o véu passa a vertical e o texto ocupa 100%.
+- **Participar e Apoiar:** herói = **rótulo + H1 + lead + duas ações. Nada mais.**
+  ⛔ O cartão 4:3 em crossfade e os 3 indicadores **saíram** — os três números já
+  existiam idênticos na seção `03 Números`. **Não reintroduzir.**
+- Todo herói deve: identificar a página, ter boa leitura, usar imagem coerente com o
+  assunto, respeitar o KV institucional, adaptar ao mobile, não ocupar espaço excessivo e
+  não esconder informação.
+
+### 6.9 Herói no celular (<1000px) — regra estrutural
+
+**O herói vira dois blocos empilhados: foto em cima, informação embaixo. Nenhum texto
+sobre imagem.**
+
+- **Home:** foto ocupa **46vh** com escurecimento mínimo (6% no meio, topo livre para a
+  logo respirar, passagem para o chocolate na base); texto em bloco chocolate sólido. O
+  véu usa a mesma curva smoothstep embutida no gradiente, cobrindo 60% da altura.
+- **Participar, Apoiar, Contato e Sweet Awards:** **banda de foto sangrando**
+  (`.scw-hero-banda`) — `padding-top: 0` na seção, margens negativas pelo mesmo trilho,
+  passagem para a cor de fechamento na base. O cartão de foto do desktop
+  (`.scw-hero-cartao`) é **ocultado** para não duplicar imagem.
+  **Geometria: 36vh / mínimo 232px** (`scw-2026.css`).
+- **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
+  06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
+  (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo
+  (`--scw-banda-base: var(--scw-roxo)`).
+
+**Corte da foto — rampa em S, não `box-shadow`.** `.scw-hero-banda::before` (topo) e
+`::after` (base) são **máscaras** (`mask-image`) usando os tokens `--scw-esfuma` /
+`--scw-esfuma-topo`: uma rampa **smoothstep `t²(3−2t)`**, não linear.
+
+> Motivo: degradê **linear** em alpha lê como faixa dura — **o olho enxerga a derivada,
+> não o valor**, então o ponto onde a rampa começa e onde termina viram arestas. A curva
+> em S cola em 0 e em 1 nas duas pontas. É **máscara** e não degradê colorido de
+> propósito: a mesma rampa serve qualquer cor de fechamento.
+> **Base = 62% da altura da banda (~164px).**
+
+⚠️ **A banda fecha na cor do BLOCO, não do herói.** `--scw-banda-base` tem como padrão o
+chocolate de `.scw-hero-bloco`. Só quem repinta o bloco sobrescreve (`.pa-hero` →
+`--scw-heroi`: cyan em Participar, marrom em Apoiar; Contato pinta bege no celular;
+Awards pinta roxo). **Errar isso deixa uma linha dura na emenda** — o `box-shadow` curto
+de antes escondia, a rampa longa expõe.
+
+⚠️ **Ponto focal por breakpoint:** `bgStyle()` resolve **um** valor, e style inline
+**vence media query**. Elemento único que aparece nas duas telas com enquadramento
+diferente manda os dois como custom property (`--foco` / `--foco-mobile`) e deixa o CSS
+escolher.
+
+**Fotos fixas por página** vêm de `heroPhotos(rota)` em `src/data/imageLibrary.js` —
+**caminho de imagem não se escreve à mão na página**:
+Participar → `/images/combos/douce-di-maria/main.jpg` · Apoiar → `/images/momentos/04.jpg`
+· Contato → `/images/campanha/15.jpg` · Sweet Awards → `/images/edicoes/2026.1/01.webp`
+
+### 6.10 Componentes
+
+**Casca (global):**
+
+| Componente | Classe | Arquivo |
+|---|---|---|
+| Raiz | `.scw-raiz` | `scw-2026.css` |
+| Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
+| Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
+| Navegação | `.scw-nav` | `nav.jsx` |
+| Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
+| Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água |
+| Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
+| Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
+| Pular para conteúdo | `.scw-skip` | `nav.jsx` |
+
+**Blocos:**
+
+| Peça | Classe | Variações |
+|---|---|---|
+| Seção | `.scw-secao` | `--creme` `--bege` `--choco` `--marrom` `--compacta` |
+| Card | `.scw-card` | `--destaque` |
+| Botão | `.scw-btn` | — |
+| Pill / selo | `.scw-pill` | `--bege` `--pagina` |
+| Rótulo | `.scw-rotulo` | `--micro` `--com-icone` |
+| Foto | `.scw-foto` | `--banner` `--retrato` |
+| Abas | `.scw-abas`, `.scw-aba` | `__icone` `__rotulo` `__indicador` |
+| Campo | `.scw-campo` | — |
+| Marquee | `.scw-marquee` | `__palavra` `__ponto` |
+| Reserva | `.scw-reserva` | — |
+| Destaque | `.scw-destaque` | — |
+| Régua de dado | `.scw-stat__regua` | 4px, padrão StatBlock |
+
+**Prefixos por página:** Home `.hm-` · Edições `.scw-` (cena própria) · Sweet Awards
+`.swa-` · Contato `.ctt-` · Participar e Apoiar `.pa-`.
+
+**Regra:** peça usada por **2+ páginas** vira utilitária `.scw-*` em `scw-2026.css`. Peça
+de **uma página só** fica no CSS da página, com o prefixo dela. **Não criar um terceiro
+lugar.**
+
+**Pisos de toque:** **44px** para qualquer controle — inclusive link de texto e item de
+acordeão — **46px** para pílula de ação dentro de card, **54px** no herói. ⚠️ **O piso
+vale para o controle real, não para a linha que o contém.**
+
+### 6.11 Iconografia v2
+
+`<ScwIcon nome="familia/nome" tamanho={20} />` — fonte única em
+`src/components/scw-icons/scw-icons-v2.js`: **136 ícones em 16 famílias, traço 3.2**.
+Único importador é `ScwIcon.jsx`; **nenhum CSS crava `stroke-width` de ícone
+institucional**. ⛔ **O arquivo não se edita à mão** — muda no Design e reexporta.
+
+| Regra | Valor |
+|---|---|
+| Grade / área viva | **32** · ink só entre **3 e 29** |
+| Traço | **3.2** (detalhe interno 2.4 · trilha pontilhada 4.0) |
+| Cor | `currentColor` **sempre** — nunca `fill`/`stroke` fixo, nunca cor por prop |
+| Tamanhos | **16 · 20 · 24 · 32 · 48**, e nada entre eles |
+| Objetos por ícone | **1** |
+| Vão interno livre | ≥ 2× o traço (6,4). Não cabe? a forma vira preenchida ou sai |
+| Separação entre formas | ≥ traço + 1,5 (4,7) |
+
+**Dois níveis, com piso de tamanho diferente:**
+
+- **funcional** (`ui`, `aviso`, `acesso`) — **16 a 24px**, dentro de botão, campo, aba,
+  menu e feedback. **No máximo 3 elementos**: legibilidade acima de personalidade.
+- **expressivo** (as outras 13 famílias) — **piso de 24px**. Abaixo disso o desenho perde
+  o que o torna autoral.
+
+**Onde entra hoje:** rótulo de seção (`tamanho={20}`), chip e legenda (16), disco de dado
+ou etapa. **Ícone acompanha rótulo, nunca o substitui.**
+
+**Documentação embutida no próprio arquivo** — consultar antes de inventar regra de
+ícone: `SCW_ICON_RULES`, `SCW_ICON_TIERS`, `SCW_ICON_MOTION`, `SCW_ICON_AUDIT`.
+
+**Movimento:** 7 gestos prontos em `SCW_ICON_MOTION`, cada um com gatilho — avanço
+(hover), toque (active), varredura (foco de campo), vapor (laço, só ≥32px), carimbo (ação
+concluída), rota (`stroke-dashoffset`, exceção declarada) e pulso. **Nenhum roda em laço
+solto. Ainda não aplicados no site** — a prancha existe, a decisão de animar é separada.
+
+⚠️ **Ícone que não existe não quebra a página:** `ScwIcon` devolve `null` e avisa no
+console só em DEV. Por isso a checagem é **manual** — ao mexer em ícone, **varrer as
+chaves de `nome=` contra `SCW_ICONS` antes de commitar.**
+
+### 6.12 Imagens
+
+**Fonte única:** todo caminho de imagem sai de `src/data/imageLibrary.js`. **Nenhum
+componente monta caminho na mão** — `tests/imagens.test.mjs` reprova; exceções
+conscientes ficam na allowlist do próprio teste.
+
+| Pasta (`public/images/`) | Conteúdo |
+|---|---|
+| `combos/<slug>/` | fotos dos combos por participante |
+| `edicoes/<code>/` | **fotos** — acervo normalizado das 16 edições (`NN.webp`) |
+| `marcas-edicoes/<code>/logo.png` | **marca** de cada edição (16) |
+| `momentos/` | fotos institucionais de público e evento |
+| `campanha/` | peças de campanha |
+| `imprensa/` | material de imprensa |
+| `shapes/` | formas de apoio (restam 2 com função) |
+| `logos/participants/` | logos reais dos participantes |
+
+**Regras de uso:**
+
+- Foto real sempre que existir; `object-fit: cover`; proporção preservada; alt adequado.
+- Logo real: `object-fit: contain`, nunca distorcer, limite de altura. **Nunca inventar
+  logo** — `resolveParticipant` com fallback em iniciais.
+- **Coerência de conteúdo é obrigatória:** página de edição mostra fotos daquela edição;
+  página de participante mostra o participante certo; **Sweet Awards mostra a peça
+  premiada** (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor Bebida → a bebida,
+  demais → o combo); página histórica não usa só imagem da edição atual; herói usa imagem
+  do assunto da página.
+- Proporções em uso: **1:1** (pódio, galerias) e **4:5** (card de 1º lugar no desktop,
+  vira 1:1 até 820px).
+
+⛔ **Nada gerado por IA entra como registro do festival.** O acervo externo tem pelo menos
+uma peça assim, que imita um mapa com lista de participantes em texto deformado. **Uma
+peça gerada que finge ser material real é dado inventado por outro meio.** Sinais de
+alerta ao varrer acervo: nome de arquivo tipo "Imagem N gerada", texto ilegível ou
+derretido em rótulos, logo com forma inconsistente. **Na dúvida, ampliar e ler o texto da
+peça antes de usar.**
+
+**Padrão de nome de arquivo** — o nome explica o conteúdo, **sem** parêntese, espaço,
+acento, `final`, `novo`, `cópia` ou número de versão solto:
+
+| Padrão | Exemplo |
+|---|---|
+| Foto de edição | `edicoes/<code>/NN.webp` |
+| Marca de edição | `marcas-edicoes/<code>/logo.png` |
+| Combo de participante | `combos/<slug>/main.jpg` |
+| Logo de participante | `logos/participants/<slug>.png` |
+| Foto de acervo numerada | `<pasta>/NN.jpg` |
+| Peça de campanha | `<assunto>-<variante>.png` |
+
+**Identidade em disco:**
+
+| Arquivo | Status |
+|---|---|
+| `/images/logo-seal-sweet-coffee.svg` | ✅ **marca oficial do cabeçalho e do rodapé** |
+| `/images/logo-sweet-coffee-week.svg` | ✅ wordmark grande — landing `/em-breve` |
+| `/images/logo-f2experience.svg`, `/images/f2-symbol.svg` | ✅ marca da realizadora — seção 07 da Home |
+| `/images/logo-sweet-coffee-week-header.svg` | ⚠️ sem uso — mantido |
+| `/logos/lockup-scw-creme.svg` | ⚠️ sem uso — **não é a marca do cabeçalho** |
+| `/images/logo-f2-experience.svg` (com hífen) | ⚠️ sem uso — a viva é sem hífen |
+| `/images/selo-10-anos.svg` + `.png`, `/videos/video-selo10anos.webm` | ⚠️ sem uso — mantido |
+
+**Favicons:** `favicon-sweet.svg` (mestre vetorial) + PNG 32, 48, 96, 192 e
+`apple-touch-icon` de 180. Seis em disco, seis declarados no `index.html`.
+
+⚠️ **Acervo não referenciado não é lixo.** As fotos sem página apontando para elas são
+acervo do festival. **Não remover conteúdo do festival só porque não aparece na Home.**
+Ao usar uma, registrar em `imageLibrary.js`.
+
+**Ausência de imagem:** **reserva honesta** (`.scw-reserva`) — moldura editorial, borda
+sutil, fundo da paleta, texto curto ("Foto pendente" / "Galeria pendente"), proporção
+definida. **Nunca área vazia sem explicação, nunca imagem aleatória externa, nunca
+hotlink, nunca esconder a ausência.**
+
+### 6.13 Elementos gráficos e ilustração
+
+- Todo elemento visual precisa de **função**: estruturar layout, indicar hierarquia,
+  representar dado, organizar conteúdo, apoiar fotografia, reforçar identidade. Sem
+  função clara → remover.
+- **Teste:** *"esse elemento carrega informação ou só enfeita?"* Carrega → fica. Enfeita
+  → sai.
+- **A regra proíbe decoração gratuita, não elemento visual funcional.** Medalhas,
+  pódios, selos de 1º lugar e destaques de categoria **codificam colocação e resultado**
+  — são funcionais. Indicador de dado e feedback de UI também.
+- ⛔ **Não usar stickers por padrão nas institucionais.** Só em material de campanha ou
+  página específica, quando solicitado explicitamente.
+- **Página Edições:** linguagem editorial, histórica, fotográfica — **não** estética de
+  sticker ou colagem.
+- **Ilustração:** hoje o site é **photo-first** e não há ilustração autoral em produção.
+  Se entrar: flat artesanal, textura de pincel, formas simples, cores chapadas da paleta,
+  aparência autoral, composição editorial, leitura rápida. **Evitar:** 3D, sombra
+  realista, acabamento excessivamente digital, cartoon infantil, elemento genérico de
+  banco, excesso de detalhe, estética sem relação com Natal ou com o festival.
+- **Sweet Lovers = comunidade de fãs, nunca casais românticos.** Podem aparecer amigos,
+  famílias, pessoas sozinhas, grupos, gente fotografando combo, seguindo rota, avaliando.
+
+### 6.14 Responsividade
+
+**Escala canônica: 1000 · 900 · 820 · 760 · 420.** Não existe token de breakpoint (CSS
+não aceita `var()` em `@media`) — **a consistência é por convenção.**
+
+| Ponto | Significado fixo |
+|---|---|
+| **1000px** | herói vira dois blocos empilhados — foto em cima, texto embaixo |
+| **900px** | a casca vira aplicativo: logo perde o overhang (52px), botão de acesso do topo some, entra a **barra inferior de 5 abas** |
+| **820px** | card de 1º lugar do Awards passa de 4:5 para 1:1; a grade de vencedores vira **carrossel de arrasto com snap** |
+
+- Testado em 320, 360, 375, 388, 390, 430, 768, 1024, 1280, 1440, 1544 e 1920 — sem
+  rolagem horizontal e sem texto cortado.
+- Viewports do script Playwright: 390×844 · 414×896 · 430×932 · 768×1024 · 1024×768 ·
+  1366×768.
+- **Valor fora da escala só quando o conteúdo exigir ponto próprio — nunca por inércia ou
+  cópia. Não renumerar em massa breakpoints já calibrados.**
+- **Alvo de toque mínimo 44px no celular**, auditado em 390px nas 6 rotas.
+- Mobile: evitar sticky horizontal complexo; evitar overflow lateral; manter leitura
+  clara; botões tocáveis; reorganizar grades em coluna; manter logos e fotos
+  proporcionais.
+
+### 6.15 Movimento
+
+**Fonte única do institucional:** `src/styles/scw-motion.css` + o motor
+`src/hooks/useSiteMotion.js`. ⛔ `src/styles/motion-system.css` é o sistema **anterior** e
+sobrevive **só** para a landing `/em-breve` — **não usar em página nova.** O mesmo vale
+para `useRevealOnScroll.js` e para as classes `.motion-reveal-left/right`,
+`.motion-button-hover`, `.motion-press`, `.motion-float-soft`, todas **removidas** do
+institucional.
+
+**Ritmo — uma escala, quatro degraus:**
+
+| Token | Valor | Onde |
+|---|---|---|
+| `--mo-rapido` | **180ms** | botão, link, ícone |
+| `--mo-estado` | **300ms** | hover de card, acordeão, cabeçalho, menu |
+| `--mo-entra` | **620ms** | entrada de texto, bloco e card |
+| `--mo-longo` | **880ms** | herói e imagem grande |
+| `--mo-passo` | **90ms** | intervalo entre itens de uma sequência |
+| `--mo-passo-card` | **70ms** | card a card dentro de uma grade |
+| `--mo-respiro` | **26s** | laço de respiração da imagem |
+
+**Curvas:** `--mo-ease` (saída suave, **igual a `--scw-ease`**) · `--mo-mola` (chegada que
+pousa) · `--mo-suave` (laços de ida e volta).
+
+**Deslocamento:** `--mo-y` 22px · `--mo-y-titulo` 30px · `--mo-y-texto` 14px · `--mo-x`
+26px · `--mo-desfoque` 6px. **Abaixo de 900px todos encolhem e o desfoque zera.**
+
+**Como o motor decide.** O JSX **não** carrega classe de animação. `useSiteMotion` varre a
+página, guarda **só a ocorrência mais externa de cada ramo** (um `<p>` dentro de um card
+dentro de uma grade não é item próprio — a grade é) e carimba:
+
+- `data-mo="sobe|titulo|texto|foto|lado"` — o tipo de entrada;
+- `--mo-i` — posição na sequência; **reinicia a cada `<section>` e a cada `.scw-rotulo`**;
+- `data-mo-grade` + `--mo-j` nos filhos — cards entram um a um, **teto de 8 degraus**.
+
+**Fica de fora:** heróis (coreografados por `@keyframes`), página Edições (apresentação
+própria), `.ctt-perguntas` e formulários (áreas de concentração), e **qualquer elemento
+`position: fixed` ou `sticky`** — barra presa à base nunca entra na zona de disparo do
+observer e ficaria invisível para sempre.
+
+**Salvaguarda:** o estado oculto **só existe sob `html.scw-mo-on`**, classe que o próprio
+motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
+`prefers-reduced-motion` ligado → **nada é escondido**.
+
+**Regras para criar movimento novo:**
+
+1. reusar as classes e atributos existentes quando bastarem;
+2. classe nova **sempre consumindo os tokens `--mo-*`**;
+3. animar **só** `transform`, `opacity`, `filter` e `scale` — **sem layout shift**;
+4. respeitar `prefers-reduced-motion`, **sempre**, escrito junto;
+5. não instalar biblioteca de animação nova sem justificativa;
+6. **hover só onde existe ação. Card sem link não sobe** — elevação sem destino é
+   decoração e promete algo que não acontece.
+7. **Nada de curva ou duração nova.** Se um handoff pedir um tempo que não está no
+   sistema, o certo é perguntar, não inventar.
+
+**Movimentos em produção:**
+
+- **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140 a 760ms.
+  Em Awards a banda surge e o texto sobe atrás dela.
+- **Respiração da imagem** — laço `alternate` na propriedade **`scale`** (nunca em
+  `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo caminho e
+  **não existe salto de reinício**. Nas fotos dos heróis e, só no desktop, nas três fotos
+  de Rotas da Home.
+- **Transição de página** — `main.page-enter` em **opacidade, 300ms. Sem transform, de
+  propósito** (ver §10.3).
+- **Cabeçalho** — `.is-rolado` adensa o véu. **Não encolhe altura nem move a logo** — a
+  geometria é regra estrutural.
+- **Menu mobile** — entra por `scwFolha` com itens escalonados; sai por `.is-fechando`
+  (260ms) e só então desmonta.
+- **Edições** — ken burns `scale(1.06) → scale(1.001)` em 12s; wipe direcional
+  (`clip-path: inset()`) de 820ms escalonado 0/110/220ms; deriva de fundo em 46s.
+
+**Seção ou página nova herda o movimento do sistema** — revelação no scroll, cascata dos
+filhos, press dos botões, `is-rolado` no cabeçalho, zoom lento nas fotos. **Componente
+novo sem movimento é componente incompleto.** E **um patch de layout não toca animação
+existente** a menos que diga explicitamente que toca.
+
+---
+
+## 7 · As páginas
+
+### 7.1 Home / O Festival — `/`, amarelo `#FDBB1A`
+
+⛔ **Não alterar sem solicitação explícita.** É a página-mãe: as demais usam a Home como
+referência de margem, largura máxima, respiro, hierarquia, ritmo, nível de acabamento e
+tom institucional-afetivo. Extrair componente ou constante é permitido **desde que não
+mude o comportamento visual** — validar idêntico.
+
+**Sete seções:** `01 Abertura` · `02 O que é` · `03 Rotas` · `04 Ciclo` · `05 Números` ·
+`06 Prova` · `07 Realização`.
+
+- **Herói:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o fundo à
+  direita, véu em degradê a 96°. Abaixo de 1000px o véu passa a vertical e o texto ocupa
+  100%.
+- **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
+  com filete separando. Duas galerias irmãs de mesmo peso: combos de edições anteriores e
+  **Sweet Gift** (2×2, fotos 1:1).
+- **05 Números:** 4 numerais grandes em uma linha, com `.scw-grade-fixa` — sem ela a
+  faixa quebra a 3+1.
+- **07 Realização:** KV da F2 Experience — a exceção declarada de paleta e fonte (§6.1).
+
+> **Alvo do plano institucional:** a Home passa a ter oito seções, com "O festival
+> transforma Natal" e "Os temas de todas as edições" ganhando bloco próprio. Ver
+> `acervo/plano-site-institucional.md`. **Isso é plano, não estado — e depende de pedido
+> explícito para ser executado (A6).**
+
+### 7.2 Edições — `/edicoes`, laranja `#FF4810`
+
+Experiência de tela cheia: apresentação editorial photo-first da história do festival.
+**16 cenas, uma por edição.**
+
+Em Edições o `App.jsx` **não renderiza** o cabeçalho do site nem o rodapé: a página tem
+**cabeçalho próprio com a mesma geometria** — mesmo `--scw-trilho`, mesmo padding vertical
+de 50px, marca da edição no slot da logo. **O menu não muda de lugar entre páginas.** A
+barra de abas mobile continua montada por fora.
+
+**Desktop:** cena de 100vh. Metade direita com **mosaico de 3 fotos** sangrando (uma larga
+em cima, duas embaixo, filete de 3px). Metade esquerda com rótulo, tema, frase, meta
+(período / marcas / Sweet Awards) e dois botões que abrem painéis flutuantes de
+participantes e curiosidades. Fundo: foto do combo com `blur(64px)` sob véu chocolate a
+87%, com deriva lenta de 46s. Rodapé com trilha das 16 edições (dots + anos), setas e
+barra de progresso. Navegação por setas do teclado, clique na trilha e arraste.
+
+**Mobile:** cabeçalho compacto com a marca da edição e progresso `01/16`; foto 4:5 com
+tema; mosaico de 2 fotos 1:1; dados; palavras-chave; sanfonas de marcas e curiosidades.
+Navegação em três peças:
+
+1. **Régua de anos fixa na base** — trilha horizontal com os 16 anos + barra de progresso
+   (`transform: scaleX` com origem à esquerda, **sem transição**). Rola e centraliza no
+   ano ativo. O deslocamento acima da barra de abas é **condicional, nunca literal**.
+2. **Setas laterais** a 31% da altura, metade fora da tela (`left:-19px` / `right:-19px`,
+   62×52px, canto arredondado só no lado interno). Pulso em laço de 2,8s como convite.
+3. Nos extremos a seta sem destino recebe **`disabled`** de verdade — não só
+   `opacity:0` —, para sair da tabulação.
+
+**Dados:** `src/data/handoff/edicoesData.js`, derivado de `sweetCoffeeHistory.js`.
+**Performance:** janela `live/near ±1-2` monta foto e mosaico só perto do foco.
+
+**Barra da galeria de fotos** (`.scw-gal__barra`) é **`seta · contador · seta` — três
+peças, nada mais.** ⛔ **Não reintroduzir** pontos, rótulo `Fotos · <ano>` nem "N de N"
+por extenso. As duas variantes (`--mosaico` no desktop, `--par` no celular) usam o
+**mesmo** flex. Se voltar a precisar de layouts diferentes, é sinal de que peça a mais
+entrou. O que **não** se mexe ao simplificar: as setas de 44px e o teclado ←/→/Home/End.
+
+O numeral da edição é sempre `#FEF0DD` — o vinho sobre foto dava 2,08:1.
+
+**Não usar:** stickers; grade comum de cards; `backdrop-filter` sobre o trilho animado. A
+navegação das edições parece **controle de apresentação**, não segunda navbar — não pode
+brigar com o menu.
+
+### 7.3 Sweet Awards — `/sweet-awards` e `/historico-sweet-awards`, roxo `#4D257E`
+
+Arquivo: `src/pages/institutional/HistoricoAwards.jsx`, componente
+`HistoricoAwardsPage`, rota interna `historico-awards`. ⛔ **Não existe
+`SweetAwards.jsx` — não criar arquivo novo só para casar com documentação antiga.**
+
+Aparência de premiação e hall de vencedores — **não embeds de Instagram**. **A página
+pode ser alterada com pedido explícito** (layout, seções, movimento, conteúdo editorial).
+O que não muda sem autorização: flags de publicação, dados oficiais e deploy.
+
+- **Herói:** banda de foto (desktop **e** celular) + título editorial + **3 números**
+  (edições premiadas · categorias julgadas · marcas premiadas) + índice das 8 categorias.
+  Fundo roxo; o selo inverte para creme com tinta roxa.
+  ⛔ **A vitrine com as fotos dos 4 primeiros lugares saiu em 06/08/2026. Não
+  reintroduzir** — eram as mesmas quatro fotos que abrem a seção 02 logo abaixo, lá com
+  pódio completo e medalha. Sem ela o desktop ficava com 216–268px de roxo chapado no
+  topo; por isso a banda de foto passou a valer também no desktop.
+- **Vencedores da última edição:** 8 categorias × 3 colocações, cada card com a **foto da
+  peça premiada**. **Medalha dentro da legenda do card**, ao lado do rótulo de colocação,
+  **não solta no canto da foto**. Numeral sempre chocolate. 1º lugar em coluna larga
+  (span de 2 linhas), 2º e 3º empilhados ao lado — **as três fotos sempre 1:1**; o 1º só é
+  maior por ocupar coluna mais larga, não por aspect-ratio próprio. Empates no mesmo
+  card. No celular (≤820px) vira carrossel de arrasto com snap.
+- **Quem dá a nota:** **trilha do tempo de três momentos cronológicos** — 2019 (categoria
+  única) → 2020.2–2021.2 (Júri Técnico) → 2022 em diante (só Sweet Lovers, com selo
+  "hoje"). ⛔ **Não** dois cards gêmeos lado a lado: isso escondia que a régua mudou ao
+  longo do tempo. Espinha tracejada atrás dos discos; no celular vira vertical com o
+  disco fora do fluxo.
+- **Hall dos mais premiados:** barra segmentada por colocação, contagem por posição e
+  total.
+- **Histórico:** acordeão por edição, pódio completo por categoria, separado por trilha
+  quando houve júri e público.
+- **Antes de 2019:** as cinco primeiras edições não tiveram premiação — **dizer isso**.
+
+**Regra de dados:** descrições das categorias vêm de `sweetCoffeeHistory.js`; **os pódios
+da edição 2026.1 vêm de `loversAwardsResults.js`** (na base histórica eles estão vazios
+de propósito); o histórico das demais vem de `sweetCoffeeHistory.js`; o agregado é
+derivado em `src/data/handoff/awardsData.js` — **se divergir do código em `src/data/`,
+vale o código.** Logos reais via `resolveParticipant`, com fallback em iniciais. **2º e 3º
+lugares que o acervo não registra: ausência honesta, nunca preenchida.**
+
+✅ **Os números do Hall batem com o acervo desde 07/08/2026** e não são mais digitados:
+saem da fonte a cada import (§9.4).
+
+### 7.4 Participar — `/participar`, cyan `#01AFCC`
+
+Segue a lógica visual da Home. Precisa de: proposta clara; fotos quando disponíveis;
+**depoimentos**; **formulário em destaque**; linguagem voltada a participantes; visual
+editorial e comercial. **Não parecer formulário genérico.**
+
+**Oito seções:** `01 Abertura` · `02 Depoimentos` · `03 Números` · `04 Circulação` ·
+`05 Quem pode` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
+
+- Herói = rótulo do público + H1 + lead + **duas ações, nada mais**. No celular a foto
+  continua, sangrando na `.scw-hero-banda`.
+- **Circulação: quatro faixas** alternando lado, imagem e texto com **larguras iguais** —
+  a coluna acompanha o trilho, o texto para na medida de linha.
+- **4ª faixa (`04 · Materiais`):** fecha a Circulação com o material que chega na loja —
+  display, adesivo, mapa e brinde temático. O `--fundo` da faixa pinta o **painel
+  inteiro** e **todo o texto dela é creme**; cyan e amarelo reprovam como fundo de texto
+  normal, então o ciclo de irmãos fecha em **magenta (4,86:1)**. ⛔ **Não trocar por tom
+  claro "porque o ciclo pede".**
+- **06 Imprensa** abre com galeria de 3 registros reais em TV antes dos chips de veículo.
+  **Alt genérico de propósito** — o acervo não traz crédito confiável de veículo, data
+  nem pessoa; nomear alguém ali seria dado inventado. A grade usa
+  `auto-fit / minmax(min(100%,220px),1fr)` e **empilha sozinha, sem media query**.
+- **Depoimentos vêm logo depois da abertura** (decisão do Eloi, 30/07/2026): são a prova
+  social; quem cogita participar quer ouvir quem já participou antes de ler número ou
+  processo, e vários depoimentos são em vídeo.
+
+### 7.5 Apoiar — `/apoiar`, marrom `#6A2C15`
+
+Precisa de: **formulário em destaque**; explicação visual das oportunidades de apoio;
+benefícios para marcas; exemplos de presença da marca no festival; linguagem comercial
+alinhada ao tom. **Não parecer página institucional fria.**
+
+**Seis seções:** `01 Abertura` · `02 Alcance` · `03 Por que apoiar` · `04 Onde aparece` ·
+`05 Quem vive` · `06 Proposta`. Mesma estrutura de herói de Participar — sem cartão e sem
+indicadores.
+
+- Os três indicadores de audiência **mudaram de lugar, não sumiram**: abrem a seção
+  `02 Alcance`. Diferente de Participar, **não se repetem** — são dado próprio. Padrão
+  disco + ícone + numeral + rótulo, com o disco de 54px na cor da página.
+- **`05 Quem vive` é grade editorial**, não duas listas de bullets lado a lado: os seis
+  traços do público viram itens com índice `01`–`06` e **filete horizontal** entre eles —
+  bolinha de 7px é indicador de item de lista, **não de dado**. O texto do traço é
+  `700 17–21px`: **ele é o argumento da seção**. A imprensa sai de dentro da grade e vira
+  **bloco irmão embaixo, separado por 44–72px** — a distância entre argumento e prova é
+  maior **de propósito**. ⛔ Não usar `--scw-gap-bloco` aí.
+- **A página não exibe patrocinadores.** Em vez de vitrine de logos, mostra **formatos de
+  ativação** — o que já foi feito, sem nomear a marca (§9.6).
+- Os números vêm da fonte canônica, cada um com o que mede e quando foi apurado (§9.5).
+
+### 7.6 Contato — `/contato`, bege `#F8E4C1`
+
+**Quatro seções:** `01 Abertura` (compacta, ~368px) · `02 Dúvidas` · `03 Caminhos` ·
+`04 Mensagem`.
+
+⛔ **A regra antiga "Contato é página simples, SEM hero" está superada** — a página abre
+com herói compacto e banda de foto no mobile.
+
+**Central de dúvidas: 93 perguntas em 10 assuntos** — Sobre o festival 9 · Edição atual 7
+· Combos 10 · Atendimento 10 · Ingredientes e acessibilidade 7 · Rota da Doçura 9 · Sweet
+Awards 13 · Participação 13 · Parcerias 8 · Suporte 7. **Fonte única das perguntas:
+`src/data/faqCentral.js`** (import default em `Contato.jsx`).
+
+⚠️ **`src/data/contactFaq.js` NÃO está morto** — conferido no código em 07/08/2026. Ele
+exporta `FAQ_CATEGORIES`, `FAQ_ITEMS` e **`CONTACT_SUBJECTS`**, e é o `CONTACT_SUBJECTS`
+que alimenta a triagem do formulário, importado por `Contato.jsx` e por
+`src/lib/contactRequest.js`. **São duas coisas diferentes que a documentação antiga
+confundia:** `faqCentral.js` são as 93 perguntas; `contactFaq.js` são os assuntos do
+formulário. **Não remover.** O que sobra dele — `FAQ_CATEGORIES` e `FAQ_ITEMS`, a lista
+de perguntas antiga — é que está morto, e some quando alguém confirmar que ninguém
+importa esses dois nomes.
+
+- Índice editorial à esquerda (linhas com filete, contagem à direita, ativo por peso +
+  sublinhado de 2px na cor da página) e busca como linha com traço inferior.
+- **No mobile o índice vira chips roláveis** — `flex: 0 0 auto` **obrigatório** no `<li>`,
+  senão os chips colapsam.
+- A busca **ignora acentos e maiúsculas, casa múltiplos termos e muda o filtro para
+  "Todas" automaticamente**.
+- Cada pergunta é `h3 > button` com `aria-expanded`/`aria-controls`, painel
+  `role="region"`. Schema `FAQPage` gerado da mesma fonte de dados.
+- Os campos `mapa`, `regulamentoRota`, `regulamentoAwards`, `areaAvaliacao`, `imprensa` e
+  `pressKit` estão `null`. **Isso não é bug:** quando `null`, o link não aparece;
+  preencher faz o link surgir sozinho. **Mapa, rota e avaliação pertencem à camada de
+  edição e ficam `null` até a próxima edição existir.**
+
+**O bloco "Edição atual" é reescrito para o estado entre-edições.** As perguntas que
+apontavam para mapa, regulamento e área de avaliação passam a **explicar como funciona**,
+sem prometer link que não existe.
+
+### 7.7 Em breve — `/em-breve`
+
+Landing própria, uma seção. É o gate de publicação (`COMING_SOON_PUBLICATION`). **É a
+única página servida por `motion-system.css` + `useRevealOnScroll.js`.** ⛔ Não tocar sem
+pedido explícito — é o que está no ar.
+
+---
+
+## 8 · Conteúdo e tom
+
+### 8.1 Nomenclatura obrigatória
+
+⛔ **Não usar "Sweet" sozinho para o festival.**
+
+- **Usar:** **Sweet & Coffee Week** · **SCW** (só depois de o nome completo já ter
+  aparecido) · "o festival" · "o evento" · "a edição".
+- **Não usar:** "o Sweet", "do Sweet", "no Sweet", "sobre o Sweet", "história do Sweet",
+  "participar do Sweet".
+- **Exceções permitidas:** **Sweet Awards**, **Sweet Lovers**, **Sweet & Coffee Week
+  Lovers**, **Sweet Gift**, nomes oficiais, hashtags, arrobas.
+
+### 8.2 Grafias oficiais
+
+| Coisa | Grafia |
+|---|---|
+| Festival | **Sweet & Coffee Week** |
+| Sigla | **SCW** (nunca "SWC") |
+| Premiação | **Sweet Awards** / **Sweet & Coffee Week Awards** |
+| Categoria do Awards | **"Encantamento em Loja"** — nunca "Envolvimento" |
+| Realizadora | **F2 Experience** — nunca "Experience" nem "Fábrica 2" |
+| Nome de edição | **só o tema**: Início, Páscoa, Doces do Mundo, Namorados, Sabores da Infância, Pâtisserie Francesa, Contos de Fadas, No Ritmo da Música, Heróis & Vilões, Séries, Terras Potiguares, Movies, Trip, Books, Celebration, Lovers |
+
+**Variações erradas a evitar:** "Sweet Coffee Week", "Sweet Coffee", "Sweet Coffee
+Awards", "Sweet & Coffee Lovers", "Sweet Coffee Lovers".
+
+⛔ **O prefixo "S&C" sai do site.** Fica registrado no acervo como grafia histórica.
+⛔ **"Movies" e "Books"**, não "Movies / Cinema" nem "Books / Livraria da Doçura" — os
+conceitos longos ficam no acervo como subtítulo de campanha.
+
+### 8.3 Tom de voz
+
+- **Claro, afetivo, institucional na medida.**
+- **Evitar:** texto técnico ou longo demais; repetição de dados; tom burocrático; excesso
+  de adjetivo genérico; excesso de explicação.
+- **Preferir:** frases objetivas e diretas, com ritmo; linguagem calorosa; conexão com
+  **Natal, gastronomia, marcas locais, Sweet Lovers**.
+- Comunicar o festival como **experiência de cidade**, não apenas promoção de combos.
+
+### 8.4 Palavras
+
+- Preferir **"avaliam"** em vez de "votam". **Não usar "votação" como termo principal**
+  quando o contexto for avaliação do público.
+- **"Sweet Lovers"** é a comunidade e o público do festival.
+- **Evitar repetir em sequência as mesmas palavras**, especialmente: *experiência,
+  cidade, rota, memória, marcas*.
+- Falar em **"interesse"** e **"próximas edições"** — **nunca prometer participação ou
+  patrocínio automático**.
+- **Não prometer função ainda indisponível ao público.**
+- **"+120 marcas"**, não "+100". **"desde 2016"**, não "10 anos" — o décimo aniversário só
+  se completa em setembro de 2026.
+
+### 8.5 O que nunca escrever
+
+- **Não inventar dado.** Não criar ranking fake. Não esconder ausência de dado
+  importante. **2º e 3º lugares que o acervo não registra: ausência honesta, nunca
+  preenchida.**
+- ⛔ **Edições não competem entre si.** Nenhum gráfico ou dado comparando edições — o
+  gráfico de "participantes por edição" com pico e recorde foi rejeitado: *"parece
+  competição entre edições, isso não deve ocorrer"*. **Comparação e ranking só entre
+  participantes** (premiados, recorrentes), nunca entre edições. Linha do tempo permitida
+  **só como marcos e primeiras vezes**, sem números de tamanho por edição.
+  - *Exceção aprovada:* agrupar e contar marcas pela edição que escolheram reviver — o
+    dado é a **escolha das marcas**, não o tamanho da edição.
+- **Nunca nomear pessoa, veículo ou data que o acervo não confirma.**
+- **Nunca inventar logo.**
+- **Nunca inventar e-mail, telefone ou canal externo.**
+- Placeholder honesto: "Foto pendente" / "Galeria pendente" — nunca área vazia sem
+  explicação.
+
+### 8.6 Narrativa institucional — ordem canônica
+
+1. O Sweet & Coffee Week nasce de um **tema**.
+2. O tema **inspira os participantes**.
+3. Os participantes criam **combos e experiências**.
+4. O público **circula pela cidade**.
+5. A edição gera **conteúdo, descoberta e memória**.
+6. O **Sweet Awards** reconhece os destaques a partir da **avaliação do público**.
+7. A **F2 Experience** realiza e organiza essa plataforma.
+
+---
+
+## 9 · O dado do festival
+
+O acervo completo e verificado está em **`acervo/ACERVO-OFICIAL.md`**, e as decisões que o
+produziram em **`acervo/decisoes-acervo-2026-08.md`**. Este capítulo traz só o que o
+código precisa saber.
+
+### 9.1 Números canônicos
+
+| Dado | Valor |
+|---|---|
+| Primeira edição | setembro de **2016** |
+| Edições realizadas | **16** |
+| Participações somadas | **410** |
+| Marcas distintas | **123** |
+| Marcas que já subiram ao pódio | **44** |
+| Colocações no total | **271** |
+| Edições premiadas | **11** (as 5 primeiras não tiveram premiação) |
+
+### 9.2 Participantes por edição
+
+| Edição | Tema | Marcas |
+|---|---|---|
+| 2016 | Início | 13 |
+| 2017.1 | Páscoa | 17 |
+| 2017.2 | Doces do Mundo | 22 |
+| 2018.1 | Namorados | 19 |
+| 2018.2 | Sabores da Infância | 25 |
+| 2019.1 | Pâtisserie Francesa | 28 |
+| 2019.2 | Contos de Fadas | 37 |
+| 2020.1 | No Ritmo da Música | 20 |
+| 2020.2 | Heróis & Vilões | 27 |
+| 2021.1 | Séries | 30 |
+| 2021.2 | Terras Potiguares | **29** |
+| 2022 | Movies | **34** |
+| 2023 | Trip | 33 |
+| 2024 | Books | 29 |
+| 2025 | Celebration | 26 |
+| 2026.1 | Lovers | 21 |
+
+⚠️ **As duas mudanças em relação ao código (2021.2 e 2022) vêm de duplicação de marca,
+não de participante a mais ou a menos.** A Fran's conta uma vez em 2021.2; a Caramel
+conta uma vez em 2022. **Nenhuma edição perdeu ou ganhou participante real.**
+
+### 9.3 Marcas — regras de exibição
+
+- **Aplicar todos os aliases.** Uma marca = uma entrada no histórico e no Hall.
+- **Exibir sempre o nome atual**, inclusive nas edições antigas.
+- **Exibir a forma longa do nome:** *Mr. Cupcake Confeitaria*, *Jolie Café Pâtisserie*,
+  *Paneer Pâtisserie*, *Rollab Confeitaria*, *Duart's Confeitaria*, *Atelier Mine
+  Confeitaria*, *Delicato Bolos*, *Crooks Cookie Shop*.
+- **Rede com várias unidades conta como 1 marca por edição.**
+- O nome correto é **Jana's Cakes** (não "Jona's Cakes") e **Supermercado Nordestão**
+  (não "Supernordestão").
+- **`KNVE Casa Café` não é marca** — é transcrição truncada de "Café Casa Verde by
+  Caramel", ou seja, a própria **Caramel Healthy Food**. Vira alias.
+- **Cuidado com o apóstrofo:** `'` reto e `'` curvo partiram Canuto's e Caffè Basilico's
+  em duas marcas cada. Normalizar.
+
+### 9.4 Hall dos mais premiados — valores corretos
+
+| # | Marca | 1º | 2º | 3º | Total |
+|---|---|---|---|---|---|
+| 1 | Mr. Cupcake Confeitaria | 9 | 14 | 6 | **29** |
+| 2 | Bocaditos | 12 | 7 | 7 | **26** |
+| 3 | Marlon Vinicius | 9 | 5 | 12 | **26** |
+| 4 | O Maestro Café | 9 | 9 | 4 | **22** |
+| 5 | Atelier Mine Confeitaria | 0 | 9 | 5 | **14** |
+| 6 | Canuto's | 4 | 5 | 3 | **12** |
+| 7 | Duart's Confeitaria | 3 | 2 | 7 | **12** |
+| 8 | Delicato Bolos | 5 | 4 | 2 | **11** |
+| 9 | Jolie Café Pâtisserie | 3 | 2 | 4 | **9** |
+| 10 | Bolomania | 2 | 4 | 3 | **9** |
+
+✅ **Aplicado no código em 07/08/2026.** O Hall deixou de ser digitado: `HistoricoAwards`
+o calcula de `handoff/awardsData.js`, que por sua vez deriva de `sweetCoffeeHistory.js` a
+cada import. **Nenhum número desta tabela existe escrito em lugar nenhum** — todos saem
+da contagem. Antes das correções o código dava Mr. Cupcake 28, Bocaditos 13 primeiros
+lugares e Marlon Vinicius 24.
+
+**Correções de pódio aplicadas** (conferidas card a card contra os cards oficiais):
+
+- **2024 · Melhor Salgado** — 1º **Bolomania** · 2º **Bocaditos** · 3º **Delicato e Just
+  Food&Coffee**.
+- **2024 · Melhor Doce** — 1º **Bocaditos e Delicato** (empate) · 2º O Maestro Café · 3º
+  Sweet Duo.
+- **2025 · Melhor Combo** — 1º **Marlon Vinicius** · 2º **O Maestro Café e Bolomania** ·
+  3º Delicato.
+- **2025 · Encantamento em Loja** — categoria inteira ausente do código, com empate nas
+  três posições: 1º **Just Food&Coffee e O Maestro Café** · 2º **Mr. Cupcake e Adocee** ·
+  3º **Marlon Vinicius e Bolomania**.
+
+**Outras correções — estado:**
+
+- ✅ **Nomes de categoria unificados.** **18 grafias na base viram 10 categorias
+  canônicas** pelo `categoryAliases`: as 6 variações de encantamento são
+  **"Encantamento em Loja"**, as 5 de entrega são **"Delivery/Takeaway"**. O nome
+  histórico fica na base; a unificação acontece na leitura.
+- ✅ **Campo `pontos`** — já não existia no código.
+- ✅ **Trilhas preenchidas.** Restou **um** `null`, e é correto: **2019.1 não nomeia
+  júri** no card oficial. 2019.2 e 2020.1 são Sweet Lovers; as 5 categorias sem trilha de
+  2020.2 viraram Sweet Lovers, ao lado do Júri Técnico do Melhor Combo.
+- ✅ **Contagens.** 2021.2 passou a 29 e 2022 a 34. A lista `participantes` **preserva o
+  registro histórico** — as três unidades da Fran's continuam lá —, mas `n` conta
+  **marcas**, aplicando os aliases. Somadas dão **410**, com **123 marcas distintas**.
+- ✅ **Nomes na forma longa** (§9.3) viraram os canônicos: Mr. Cupcake Confeitaria,
+  Duart's Confeitaria, Atelier Mine Confeitaria, Jolie Café Pâtisserie, Paneer
+  Pâtisserie, Rollab Confeitaria, Delicato Bolos, Crooks Cookie Shop, Fran's Café,
+  Jana's Cakes. `KNVE Casa Café` e `Café Casa Verde by Caramel` viraram alias de Caramel
+  Healthy Food; `Supernordestão` virou Supermercado Nordestão.
+- ✅ **Menção Honrosa de 2021.1** — já vivia na base como `premiacao.mencaoHonrosa`,
+  **fora de `categorias`**, e é por isso que nunca contaminou o Hall. O que faltava era
+  aparecer: agora `awardsData` a carrega no campo `mencao` e o acordeão da edição a
+  mostra em bloco próprio (`.swa-mencao`), sem medalha e sem numeral.
+  ⚠️ **Regra permanente: menção não é colocação.** Se algum dia ela entrar em
+  `categorias`, vira sete colocações fantasma e o Hall mente.
+- ✅ **Edição homenageada na Lovers.** `participants.js` ganhou **`editionCode`**, e
+  `edition` passou a trazer o nome real em vez do rótulo de campanha: "Sweet Music" →
+  No Ritmo da Música (2020.1) · "Filmes" → Movies (2022) · "Sweet Series" → Séries
+  (2021.1) · "Sweet Trip" → Trip (2023) · "Sweet Celebration" → Celebration (2025) ·
+  "Contos de Fada" → Contos de Fadas (2019.2). A **Delicato Bolos passou para Pâtisserie
+  Francesa (2019.1)** — o `theme` dela, "Confeitaria Francesa", confirmava o acervo.
+  `getHomageGroups()` agrupa por **código**, não por string: **8 edições revividas**.
+
+### 9.5 Números comerciais
+
+Cinco números, com data de apuração e definição do que medem. A página Apoiar **lê da
+fonte canônica**, não de valores cravados no JSX.
+
+| Número | O que mede |
+|---|---|
+| **+R$ 712 mil** | movimentação direta |
+| **+200 mil** | alcance |
+| **+290 mil** | interações |
+| **+18 milhões** | visualizações |
+| **+65 mil** | seguidores |
+| **+1.600** | posts |
+
+⚠️ **Alcance, interações e visualizações são métricas distintas — nunca somar.**
+
+⛔ **A série histórica de preços (11 edições, R$ 16,90 → R$ 38,90) fica no acervo marcada
+como NÃO PUBLICAR.**
+
+### 9.6 Patrocinadores e parceiros
+
+⛔ **Patrocinadores e parceiros não são exibidos por enquanto.** A página Apoiar mostra
+**formatos de ativação** — o que já foi feito, sem nomear a marca:
+
+| Formato | Exemplo real (não nomeado no site) |
+|---|---|
+| Benefício cruzado em parceiro | cupom fiscal do combo dava 50% off no cinema |
+| Sorteio para o público | like no participante concorria a uma máquina de café |
+| Prêmio de avaliação | quem avaliava concorria a uma mesa de jantar |
+| Ativação temática | distribuidora de ingredientes assinando "os ingredientes mais mágicos" |
+| Título oficial da edição | "Cinema Oficial" |
+| Parceria de origem | Sebrae e fornecedores locais em Terras Potiguares |
+
+Os nomes documentados ficam no acervo, não no site.
+
+### 9.7 Sweet Gift
+
+**O Sweet Gift é o combo em versão presente ou viagem** — o doce especial para levar,
+para saborear em casa, no escritório ou com amigos, embalado para presentear. Em geral
+sem bebida.
+
+**Estreou na Páscoa (2017.1)**, com o Bolo da Vovó e o "Petit Bolo da Vovó" — não em
+2017.2 nem em 2019.2, como versões anteriores diziam. Confirmado pelo Instagram oficial
+do festival: post de 03/04/2017 já anuncia o Sweet Gift do Bolo da Vovó na edição de
+Páscoa. A Rafaela Fontes Chocolateria entrou na modalidade depois, em Doces do Mundo
+(2017.2).
+
+⚠️ **Não há foto de Sweet Gift no acervo.** O Eloi vai selecionar. Até lá, `.scw-reserva`.
+
+### 9.8 Fotos de combo
+
+- **Galeria de 3 a 5 fotos por marca por edição** — cerca de 1.500 selecionadas das 4.891
+  do acervo bruto.
+- As **13 edições com pastas por marca** (2017.2 → 2026.1) ganham vínculo **foto ↔ marca ↔
+  edição**.
+- **2016, 2017.1 e 2018.2** têm foto de combo mas sem identificação de marca. Entram como
+  **"combos da edição"**, sem atribuir a ninguém.
+- ⚠️ **Hoje existem só 21 logos de marca no acervo** (os da Lovers). Os outros 102 saem
+  dos **cards "Confirmado"** de cada edição, que trazem o logo em alta.
+
+### 9.9 Modelo de dados alvo
+
+| Entidade | Chave | Liga com |
+|---|---|---|
+| **Edição** | código (`2023`) | participantes, prêmios, fotos |
+| **Marca** | slug estável | participações, pódios, fotos, logo |
+| **Participação** | marca + edição | combo, fotos, tema escolhido |
+| **Prêmio** | edição + categoria + colocação | marcas, empates |
+| **Foto** | caminho | edição, marca, crédito, alt |
+| **Depoimento** | pessoa + marca | vídeo, edição, autorização |
+| **Pergunta** | id | assunto, validade |
+
+**Todo dado volátil carrega três campos:** de onde veio · quando foi verificado · se pode
+publicar. É o que impede preço, endereço e horário de voltarem ao ar por descuido.
+
+⚠️ **Os slugs deixaram de ser congelados** — os QR Codes impressos que os travavam
+pertenciam à edição Lovers e foram aposentados. **A convenção de nome de arquivo
+(`combos/<slug>/main.jpg`, `logos/participants/<slug>.png`) continua valendo**; o que
+morreu foi o congelamento, não a convenção.
+
+---
+
+## 10 · Armadilhas conhecidas
+
+Cada uma destas custou tempo pelo menos uma vez. Ler antes de mexer na área
+correspondente.
+
+### 10.1 Especificidade — a armadilha nº 1 do mobile
+
+⚠️ **Um reset genérico com seletor de dois níveis vence a regra específica de um nível**,
+e o efeito **só aparece no celular**, porque é lá que a regra específica existe. Dois
+casos já corrigidos:
+
+- `.scw-raiz a { color: inherit }` (0,1,1) vencia `.scw-aba` (0,1,0) → **apagava os
+  rótulos da barra de abas**;
+- `.scw-raiz img { display: block }` (0,1,1) vencia `.ctt-abertura__fundo { display:
+  none }` (0,1,0) → **montava a foto de tela cheia atrás do texto do Contato**.
+
+**Regra:** ao esconder ou recolorir um elemento no mobile, **conferir se existe reset
+genérico em `.scw-raiz` para aquela tag** — e **prefixar o seletor, nunca usar
+`!important`**.
+
+### 10.2 Toque e acessibilidade
+
+⚠️ **O piso de 44px vale para o CONTROLE real, não para a linha que o contém.** Clicar no
+padding de um flex **não foca o `<input>` filho** — foi o caso da busca do Contato: campo
+de 26px dentro de uma linha de 46px.
+
+⚠️ **`disabled` de verdade, não `opacity:0`.** Só transparência mantém o elemento na
+tabulação.
+
+### 10.3 Compositor, GPU e performance
+
+⚠️ **Não usar `backdrop-filter` sobre trilho animado.** Blur + readback de GPU a cada
+frame congela o compositor — usar fundo semi-opaco.
+
+⚠️ **16 cenas full-viewport de uma vez congelam o compositor.** Por isso a janela
+`live/near ±1-2` em Edições.
+
+⚠️ **Não colocar `transition` em `width`/`transform` de barra de progresso que precise de
+valor exato** — travava o valor. A régua de anos usa `transform: scaleX` com origem à
+esquerda, sem transição.
+
+⚠️ **Não pôr `transform` em `<main>`.** Criaria bloco de contenção e **quebraria os
+`position: fixed` de dentro das páginas** (a régua de anos de Edições). Por isso a
+transição de página é só opacidade.
+
+⚠️ **Elemento `position: fixed`/`sticky` nunca entra na zona de disparo do observer** —
+ficaria invisível para sempre. Por isso fica fora do motor de movimento.
+
+⚠️ **A respiração da imagem usa a propriedade `scale`, nunca `transform`** — senão haveria
+salto de reinício.
+
+### 10.4 Degradês, máscaras e emendas
+
+⚠️ **Degradê linear em alpha lê como faixa dura.** *"O olho enxerga a derivada, não o
+valor."* Usar rampa **smoothstep `t²(3−2t)`** como **máscara**, não degradê colorido.
+
+⚠️ **A banda fecha na cor do BLOCO, não do herói.** Errar isso deixa uma linha dura na
+emenda — o `box-shadow` curto de antes escondia, a rampa longa expõe.
+
+⚠️ **`bgStyle()` resolve UM valor e style inline vence media query.** Elemento que aparece
+nas duas telas com enquadramento diferente **tem** que mandar `--foco` e `--foco-mobile`.
+
+### 10.5 Grade e layout
+
+⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
+numerais quebram a 3+1.
+
+⚠️ **`flex: 0 0 auto` é obrigatório no `<li>` de chips roláveis no mobile** — senão os
+chips colapsam.
+
+⚠️ **Alargar o trilho tornou os tetos de medida de linha OBRIGATÓRIOS, não dispensáveis.**
+Não remover teto "porque agora tem espaço" — é o inverso.
+
+⚠️ **Mover uma seção exige conferir a alternância de fundo das vizinhas.** Creme e bege
+alternam; a saída dos Depoimentos do meio de Participar deixou duas seções seguidas em
+bege.
+
+⚠️ **Pontuação órfã em títulos grandes: nenhuma linha pode conter só pontuação** (`:`,
+`,`, `.`). **Causa raiz:** um destaque com `display: inline-block` vira **token atômico**,
+e a pontuação seguinte ganha oportunidade de quebra própria. **Solução:** agrupar
+palavra-destaque **+ sua pontuação** num wrapper com `white-space: nowrap`; **o espaço
+fica FORA do wrapper**, para preservar a quebra natural entre grupos. **`nowrap` só em
+grupos curtos — nunca em frase inteira, causa overflow horizontal.** `text-wrap: balance`
+(títulos) e `pretty` (parágrafos) convivem com os grupos. **Revisar títulos grandes em
+mobile, tablet e desktop antes de aprovar qualquer página.**
+
+⚠️ **Container queries `cqi` escalam pela largura do card, não pelo comprimento do
+texto** — limitar o teto do `clamp` quando o conteúdo for longo (ex.: `+R$ 712 mil`),
+**sem aumentar só um card**.
+
+### 10.6 Cor e contraste — números que já derrubaram decisões
+
+| Combinação | Contraste | Consequência |
+|---|---|---|
+| Marrom `#6A2C15` sobre chocolate | **~1,5:1** | falha como emblema **e** como texto → 3º lugar não é marrom |
+| Roxo `#4D257E` sobre chocolate | 1,45:1 | cai no amarelo em `pageColorDark()` |
+| Marrom sobre chocolate (menu escuro) | 1,53:1 | cai no amarelo |
+| Laranja `#FF4810` sobre chocolate | 4,78:1 | passa, fica |
+| Cyan `#01AFCC` sobre chocolate | 6,23:1 | passa, fica |
+| Laranja como tinta pequena sobre creme | 3,0:1 | **só superfície preenchida** |
+| Magenta `#F10767` sobre creme | 3,8:1 | **só texto grande** |
+| Roxo como destaque de H1 em Participar | 4,25:1 | só texto grande |
+| Magenta `#E50053` sobre `#0B0B0C` (F2) | 4,18:1 | só texto grande e elemento gráfico |
+| Tinta `#F5F5F5` sobre `#0B0B0C` (F2) | 18,05:1 | rótulos pequenos e CTA usam esta |
+| Magenta como fundo de texto creme (Participar 04) | 4,86:1 | passa — por isso o ciclo fecha em magenta ali |
+| Vinho sobre foto (numeral de Edições) | 2,08:1 | por isso o numeral é `#FEF0DD` |
+| Pill chocolate com tinta creme (menu Participar) | 10:1 | substituiu `#D0055B` |
+
+⚠️ **Cyan e laranja não fecham 4,5:1 como texto sobre creme** → em link com filete, quem
+recebe a cor é **o filete**, não a tinta.
+
+⚠️ **O anel de foco global é cyan** → em chapa clara cyan (Participar) ele sumiria; usar
+chocolate no selo, no CTA e no anel.
+
+⚠️ **`--base` do `scwDestaque` tem que ser a tinta REAL daquele título** — senão o destaque
+começa invisível sobre o próprio fundo.
+
+### 10.7 Sincronia CSS ↔ JS
+
+⚠️ **`PAGE_COLORS` / `MENU_ESCURO` em `src/components/nav.jsx` são espelho JS do CSS.
+Mudou o CSS, muda o JS no mesmo commit.**
+
+⚠️ **Ícone que não existe não quebra a página** — a checagem é manual, ver §6.11.
+
+### 10.8 Testes e ferramentas
+
+⚠️ **`tests/responsive.mjs` reprova em 4 de 6 viewports com "menu-toggle invisível no
+mobile" — falha PRÉ-EXISTENTE, não regressão.** `.menu-toggle` é do sistema legado
+(`styles.css`) e tem zero referência em JSX: não renderiza, logo não pode estar visível. O
+redesign 2026 trocou o hambúrguer pela `MobileTabBar`. ⛔ **Não "consertar" o menu-toggle
+— o teste é que está desatualizado.** O que ele mede de útil (`overflow = 0px`) passa nos
+seis. **A falha some quando `styles.css` for removido; atualizar o teste na mesma etapa.**
+
+⚠️ **`tests/icones.mjs` não existe no repositório**, apesar de a documentação antiga mandar
+rodá-lo.
+
+⚠️ **`tests/responsive.mjs` roda contra o BUILD de produção via `vite preview`, não contra
+o dev server** — só o build reflete o site real: minificação, ordem final de CSS, assets
+com hash.
+
+### 10.9 Acervo e dados
+
+⚠️ **Nome de pasta do acervo não é descrição de conteúdo — já falhou duas vezes.**
+"encantamento em loja" e "patrocínios e apoios" **eram fotos de festa a fantasia.**
+**Inspecionar visualmente antes de confiar.** Contraexemplo útil: a pasta `sinalização/`
+tem 9 arquivos chamados `nao usar essas (N).jpg` — aí o nome **é** a instrução.
+
+⚠️ **A Base de Conhecimento não vale como fonte-mestra de contagem.** Ela errou quatro
+vezes (2018.1, 2019.2, 2020.1, 2023), tratando pastas mal nomeadas do acervo bruto como se
+fossem marcas participantes. **A fonte mais confiável são os cards "Confirmado" oficiais**,
+em `acervo-bruto/EDIÇÕES DO FESTIVAL/<edição>/participantes/`, acima do código e muito
+acima da Base.
+
+⚠️ **Se `ACERVO.md` ou `src/data/handoff/*` divergirem do código em `src/data/`, vale o
+CÓDIGO** — e o resumo é corrigido, não o contrário.
+
+⚠️ **`src/data/_arquivo/` está fora do bundle de propósito. Não importar de lá em código
+vivo.**
+
+⚠️ **Campos `null` em `faqCentral.js` não são bug** — ver §7.6.
+
+---
+
+## 11 · Decisões já testadas e reprovadas
+
+**Não repetir o teste.** Cada linha custou uma rodada.
+
+| Tentativa | Por que caiu |
+|---|---|
+| Card de 1º lugar do Awards em **4:5 exclusivo** | cortava a foto de forma inconsistente com as outras duas e, em fotos sem espaço vertical de sobra, dava zoom demais. As três fotos sempre 1:1 |
+| **Vitrine dos 4 primeiros lugares** no herói do Awards | eram as mesmas quatro fotos que abrem a seção 02 logo abaixo, lá com pódio completo e medalha. O assunto da página contado duas vezes, a primeira pior |
+| Barra da galeria de Edições com **5 peças** | três indicadores do mesmo estado ao mesmo tempo. Com 4 páginas por edição, o acesso aleatório dos pontos não pagava a largura |
+| **"Como é decidido" com dois cards gêmeos** | escondia que a régua mudou ao longo do tempo |
+| Gráfico de "participantes por edição" com pico e recorde | *"parece competição entre edições, isso não deve ocorrer"* |
+| Fonte **mono** em rótulos institucionais (rejeitada 2×) | incomoda a face mono, não o caixa-alta |
+| **Medalha de 3º em marrom** | ~1,5:1 sobre chocolate |
+| Trilho de **1360px** | em tela larga sobrava faixa vazia dos dois lados — *"o site tem que acompanhar as dimensões da tela"* |
+| `--sp-section clamp(56px, 11.5vw, 220px)` | inflava ≈440px entre seções em telas largas |
+| Duas listas de bullets lado a lado em Apoiar 05 | bolinha de 7px é indicador de item de lista, não de dado |
+| `.swa-hero::before`, degradê de 340px do topo | era o mesmo trabalho feito duas vezes — a banda já escurece onde a logo passa |
+| Barra de 5px sob o cabeçalho | o herói já é a cor da página |
+| Cartão 4:3 + 3 indicadores no herói de Participar/Apoiar | os três números já existiam idênticos na seção `03 Números` |
+| Contato sem herói | a página abre com herói compacto desde o redesign 2026 |
+| Herói de Participar com formulário integrado e selo girando | herói é rótulo + H1 + lead + duas ações |
+
+---
+
+## 12 · Fluxo Claude Design ⇄ Código
+
+### 12.1 Regra de ouro
+
+**O código é a fonte de verdade.** O Claude Design é onde a mudança é *desenhada*, nunca
+onde ela passa a existir. **Nenhum valor visual nasce no Design e fica só lá.**
+
+A sincronização é de mão única: `DesignSync` empurra código → Design. O caminho de volta é
+manual, e é sempre um **patch por seletor**.
+
+### 12.2 Divisão de trabalho
+
+| Tipo de mudança | Onde fazer | Por quê |
+|---|---|---|
+| Layout, grade, hierarquia | **Design** | vê-se na hora, no site real congelado |
+| Cor, tipografia, espaçamento | **Design** | os tokens no snapshot são os do site |
+| Copy, títulos, textos editoriais | **Design** | edição direta no texto renderizado |
+| Novas seções e blocos | **Design** | compor antes de implementar |
+| **Movimento, timing, easing** | **Código** | o snapshot congela animação no estado final |
+| Comportamento (acordeão, busca, filtro, formulário) | **Código** | snapshot é HTML sem React |
+| Dados, contagens, acervo | **Código** | vêm de `src/data/*` |
+| Acessibilidade, foco, teclado | **Código** | precisa do DOM real e de teste |
+
+Se a mudança precisar de **layout + movimento** junto: desenhe o estado final no Design,
+implemente o layout no código, e só então ajuste o movimento no código.
+
+### 12.3 O ciclo
+
+1. **Sincronize antes de começar.** Mexeu no CSS do site desde o último sync? Rode o
+   `DesignSync` — desenhar por cima de snapshot velho gera patch que não aplica.
+2. **Trabalhe em `paginas/*.html`.** O CSS embutido é cópia integral de `scw-2026.css` +
+   `scw-motion.css`, então os seletores que você mexe são os reais.
+3. **Feche o escopo por página.** Um patch por página, não um patch por sessão.
+4. **Gere o patch** — seletor, valor antes, valor depois, arquivo destino.
+5. **Aplique no código** e rode os testes que o patch listar.
+6. **Rode o `DesignSync` de novo.** Fecha o ciclo.
+
+### 12.4 Um arquivo só: o site inteiro
+
+Nada de tela isolada, página de teste ou variação em arquivo próprio. Toda mudança
+acontece dentro do **site único**, na seção ou no componente real — inclusive diálogos e
+estados. **Duas cópias da mesma tela divergem na primeira rodada seguinte**, e aí o patch
+passa a descrever algo que o site não tem.
+
+### 12.5 Template de patch
+
+```md
+# PATCH — <página> / <o que mudou>
+
+Origem: `paginas/<pagina>.html`
+Destino: `src/styles/scw-2026.css` (+ `src/pages/institutional/<Pagina>.jsx` se houver markup novo)
+Branch: `dev/site-completo`
+
+## Alterações de CSS
+
+| Seletor | Propriedade | Antes | Depois |
+| --- | --- | --- | --- |
+
+## Markup novo (se houver)
+   trecho colável, com as classes já existentes do sistema
+
+## Movimento
+Nada aqui — ou: "este bloco precisa entrar com `.scw-reveal`".
+
+Sempre válido: preservar as animações existentes e aplicar o movimento do
+sistema às seções novas. Botões chapados, sem sombra.
+
+## Checagens
+- [ ] `npm run build`
+- [ ] `node tests/redesign-2026.test.mjs`
+- [ ] `node tests/responsive.mjs`
+- [ ] Contraste AA nos textos tocados
+- [ ] `DesignSync` rodado depois de aplicar
+```
+
+**O escopo do que vem do Design é visual:** layout, cor, tipografia, espaçamento,
+hierarquia, copy, ícones, novas seções. **Não vem lógica, rota, dado nem estado.**
+
+### 12.6 Armadilhas do fluxo
+
+⚠️ **Patches podem ter premissas desatualizadas.** O Design trabalha sobre um snapshot
+congelado; o código pode ter mudado desde o último `DesignSync`. **Sempre conferir contra
+o estado real do arquivo antes de aplicar — se o patch e o código divergirem, o código
+manda, e o patch é ajustado (nunca o contrário).**
+
+⚠️ **Um patch pode contradizer outro da mesma leva.** Já aconteceu: um patch usou
+`#D0055B` num token que o patch seguinte, na mesma rodada, removia da paleta. **Antes de
+aplicar em sequência, confira se um patch posterior não bane uma cor ou token que um
+anterior acabou de introduzir.** Vale ler o patch inteiro — se ele mesmo dá o motivo da
+mudança, a lógica interna geralmente aponta qual dos dois valores é o correto.
+
+⚠️ **Não aceitar handoff em prosa ou print.** Sem seletor, a mudança é reinterpretada — e
+reinterpretação é como valor redigitado entra no sistema.
+
+⚠️ **Um patch não reescreve arquivo.** Se está grande demais para caber em tabela, o
+escopo estava errado: quebre por seção.
+
+⚠️ **O conector do GitHub lê código, não renderiza.** Ele vê `Home.jsx` e `scw-2026.css`,
+**não vê a Home**. Para o resultado visual existe o snapshot em `paginas/`.
+
+⚠️ **O snapshot não tem interatividade** (sem React: acordeão, busca, filtros e
+formulários ficam no estado inicial), traz **Edições em uma cena só** e **congela o
+movimento no estado final** — que é justamente como se edita layout sem lutar com
+animação.
+
+### 12.7 Onde buscar cada coisa
+
+| Precisa de | Use |
+|---|---|
+| Valor exato de token, classe ou medida | conector, direto no `src/styles/` |
+| Regra ("posso usar roxo aqui?") | este documento |
+| Ver a página como ela é | snapshot `paginas/*.html` |
+| Compor com peça existente | cards de componente no projeto de design |
+
+### 12.8 Projetos no Claude Design
+
+| Projeto | ID | O que é |
+|---|---|---|
+| **Componentes (sync)** | `9e1564b3-a104-4667-8303-4388d9d91d9e` | Design System — **alvo atual do `DesignSync`**, gerado do código real |
+| **Redesign 2026** | `b98b740b-4746-4ad5-8074-2ac47d03b4e6` | onde ficam os snapshots `paginas/*.html` e onde as páginas são desenhadas |
+| **SITE SCW** | `1bdcc919-8ad5-42d1-b759-cb86fb9da5c0` | project imutável — **hoje consome o DS errado** |
+
+⚠️ **Pendência do Eloi:** reapontar "SITE SCW" para `9e1564b3`. Só dá para fazer na
+interface do claude.ai/design. **Enquanto não migrar, qualquer desenho novo nasce na
+paleta errada, não importa a instrução colada junto.**
+
+⛔ **Projetos antigos — não usar:** "Sweet & Coffee Week Design System" (paleta terracotta,
+`--coral: #E8553A`, componentes `Sticker`/`SideNav`, sem roxo) e o DS handmade
+`3f2c7a10-…`. **Sincronizar o sistema atual dentro de qualquer um deles misturaria duas
+identidades no mesmo painel** e contaminaria qualquer conversa futura.
+
+---
+
+## 13 · Checklist antes de finalizar
+
+1. Home não alterada sem necessidade.
+2. Flags de publicação em `App.jsx` não alteradas sem pedido explícito.
+3. Nenhuma cor fora da tabela do §6.1. Nunca `#E52C4B`.
+4. Nenhum elemento decorativo sem função (elemento funcional é permitido).
+5. Margens no trilho único `--scw-trilho`.
+6. Tetos de medida de linha respeitados.
+7. Placeholders honestos — reserva editorial, nunca área vazia.
+8. Desktop e mobile funcionam (1000 · 900 · 820 · 760 · 420; sem rolagem horizontal).
+9. Build de verificação **fora do projeto**, uma vez só.
+10. Mexeu em movimento? `npm run build && npm run test:motion`.
+11. Mexeu em ícone? Varredura de chaves `nome=` contra `SCW_ICONS`.
+12. Mexeu em cor de página? `PAGE_COLORS`/`MENU_ESCURO` no mesmo commit.
+13. **Acessibilidade:** um `<h1>` por página e hierarquia coerente; contraste ≥ 4,5:1;
+    label real (`<span>`) + placeholder, nunca placeholder-como-label; ação de navegação é
+    `<button>`/`<a>`, nunca `onClick` em elemento morto; alvo de toque ≥ 44px.
+14. **Não regressão visual:** em mudança de token ou global, varrer todas as rotas
+    comparando antes e depois. **Refatoração ≠ redesign.**
+15. Commit só com os arquivos da tarefa.
+
+---
+
+## Anexo A · O que foi descartado, e por quê
+
+Este anexo existe para que ninguém reintroduza uma regra morta achando que ela foi
+esquecida. **Nada aqui é regra ativa.**
+
+### A.1 O KV e o sistema visual "Lovers"
+
+**Decisão do Eloi, 06/08/2026: o KV da Lovers é apagado.** Morreram junto:
+
+- todo o bloco de identidade Lovers: paleta cream, `--lovers-red: #D63648`, burgundy,
+  pink, yellow; tipografia Sofia Pro Comp via Typekit; wrapper obrigatório `.kv-lovers`;
+- `src/styles/lovers-system.css` (138 KB) e o carregamento lazy dele;
+- a proibição "nunca aplicar estilos Lovers em institucionais e vice-versa" — perdeu o
+  objeto;
+- o nível "Edição vigente" da hierarquia de identidade de três níveis, que vira **duas**:
+  institucional + histórico;
+- **Adobe Fonts / Typekit** na stack — servia só à Sofia Pro Comp;
+- `/images/lovers-logo.svg`, `/images/sweet-lovers-logo.svg`,
+  `/images/email-logo-lovers.png`, as três molduras `moldura-lovers-*.png`.
+
+**Não morreu junto:** "Sweet Lovers" como nomenclatura permitida e como nome da
+comunidade; a direção "Sweet Lovers = comunidade de fãs, nunca casais românticos";
+`loversAwardsResults.js` como fonte dos pódios de 2026.1; a pasta
+`public/images/lovers-publico/` como acervo fotográfico.
+
+### A.2 As rotas `/lovers/*` e o painel de votação
+
+Todas as rotas `/lovers/*` já redirecionavam para a home no código. Morrem formalmente:
+`/lovers/painel`, `src/pages/lovers/`, a exceção "o painel admin do Sweet Awards segue
+acessível", `LEGACY_LOVERS_PATHS`, e **todas as ressalvas "vale só nas telas legadas
+`/pesquisa` e painéis internos"** — que apareciam em 15 lugares diferentes.
+
+O painel de votação pertence à **camada de edição** e nasce de novo, com KV próprio,
+quando a 17ª edição acontecer.
+
+### A.3 Hash routing obrigatório e QR Codes
+
+A seção "URLs estáveis para QR Codes — REGRA PERMANENTE" morre inteira, com os padrões
+`#/lovers/combos/{slug}` e `#/lovers/awards`, a proibição de trocar hash por path routing,
+e o script `qr:lovers`.
+
+> **O código já desmentia essa regra há meses:** `App.jsx` redirecionava exatamente essas
+> rotas para a home. Era a contradição mais antiga do repositório — uma regra marcada como
+> "permanente e absoluta" em sete arquivos, quebrada no código.
+
+### A.4 Os 21 slugs congelados
+
+Morre o **congelamento**. **A convenção de nome de arquivo continua viva** (§9.9).
+
+### A.5 A página `/curiosidades`
+
+Descontinuada, redireciona para `/edicoes`. Morrem o capítulo inteiro que a documentava,
+`Curiosidades.jsx`, `curioContent.js` e a rota.
+
+**Não morre junto:** "Edições não competem entre si" — nasceu no contexto de Curiosidades
+mas é **regra geral de conteúdo** (§8.5).
+
+### A.6 `/pesquisa`, `PainelAdmin` e o `styles.css` legado
+
+Morre tudo que descrevia o sistema anterior: `--page-accent` como fundo cheio da hero
+(`background: var(--page-accent) !important`), a regra "o acento tem que ser tom claro",
+os tokens `--header-safe-offset` / `--hero-top-clearance` / `--hero-content-start`, a
+"armadilha do `!important` global" em `styles.css`, os "dois `:root` concorrentes", o
+código morto `.site-sidebar` / `.combo-rail` / `.ed-hero`, o rodapé `.site-footer*`, e os
+capítulos "Como alterar uma hero GLOBALMENTE" e "Como alterar cores/fontes/espaçamentos".
+
+### A.7 `swc-redesign.css` e o design system v2
+
+**O arquivo `DESIGN.md` morre inteiro.** Era a especificação do design system anterior:
+
+- **Cor:** `--cream #FFF1E6` · `--choco #3A2114` · `--ink #2B1810` · `--coral #E8553A` ·
+  `--pink #F2548A` · `--cyan #2BC4E8` · `--yellow #F8B511` · `--peach #F2B6A0`.
+- **Tipografia:** `--font-display` / `--font-heading` / `--font-body` / **`--font-mono`
+  JetBrains Mono para eyebrows**.
+- **Forma:** raios `--r-sm/md/lg/xl/pill`, sombras `--shadow-sm/md/lg/pop` (drop chunky de
+  sticker), `--ease-pop` bouncy, durações 140/240/420ms, `.wrap` 1280px.
+- **Componentes:** Button (pill sticker), **Sticker**, Card, FeatureTag, **SideNav**
+  (sidebar fixa de 280px), SectionHeader, StepCard, StatBlock, PhotoBadge.
+- **Estética "sticker-forward"** — recortes orgânicos, selo, sombra de sticker, quatro
+  acentos pop.
+
+> **A única coisa que sobreviveu:** o **padrão StatBlock**, reinterpretado — régua de 4px
+> + numeral chocolate (§6.3). É decisão deliberada e ativa.
+
+### A.8 Preço, endereço, horário e patrocinadores
+
+**Não vão ao ar** (§2.2). ⚠️ **A auditar:** a central de dúvidas (`faqCentral.js`) é o
+lugar mais provável onde preço, endereço ou horário apareçam como conteúdo de texto.
+**Varrer o arquivo diretamente antes de publicar.**
+
+### A.9 Mapa, rota interativa e avaliação ao vivo
+
+Pertencem à camada de edição, que não existe hoje. Morrem as rotas `/mapa`, `/rota`,
+`/participantes`, o serviço Google Maps, e o CTA institucional que apontava para
+`go('/rota')` — **uma rota morta**.
+
+**Não morre junto:** a **anatomia do combo** na Home e as galerias de combos de edições
+anteriores e de Sweet Gift (são histórico institucional, não combo ao vivo); o **mapa como
+peça impressa** citado em `04 · Materiais` de Participar (é material físico, não
+funcionalidade); a regra de linguagem "avaliam, não votam"; e "não prometer função ainda
+indisponível ao público", que fica ainda mais relevante.
+
+### A.10 Documentos aposentados
+
+| Arquivo | Destino |
+|---|---|
+| `CLAUDE.md` (versão anterior, 66 KB) | **substituído por este** |
+| `docs/GUIA-VISUAL.md` (51 KB) | **substituído** — era o núcleo do §6 |
+| `docs/DEV_GUIDE.md` (29 KB) | **substituído** — sobrevivem partes nos §3 e §5 |
+| `AGENTS.md` (26 KB) | **descartado** — era uma cópia anterior do `CLAUDE.md`, uma geração atrás em quase tudo |
+| `AI_RULES.md` (18 KB) | **descartado** — sobrevive na arquitetura do §5 |
+| `DESIGN.md` (9 KB) | **descartado inteiro** — ver A.7 |
+| `docs/SITEMAP.md` | **descartado** — a tabela de rotas estava errada em 7 de 9 linhas e a branch estava errada |
+| `docs/SITE_DIRECTION.md` | **descartado** — descrevia a Home do sistema anterior |
+| `docs/FLUXO-DESIGN-CODIGO.md` | **absorvido pelo §12** |
+
+**Podem ser apagados do repositório.** O histórico do git guarda tudo.
+
+### A.11 As 53 contradições que motivaram esta reescrita
+
+A leitura integral dos 8 documentos anteriores encontrou **53 contradições documentadas**:
+24 entre arquivos, 17 dentro do mesmo arquivo e 12 em que o código desmentia a
+documentação. Entre elas:
+
+- **quatro** valores diferentes de margem horizontal, cada um declarado como "a regra";
+- **quatro** escalas de ritmo vertical;
+- **quatro** escalas de movimento;
+- **quatro** vocabulários de componente;
+- **três** Homes diferentes descritas;
+- **duas** paletas oficiais, uma delas proibindo o roxo que é a cor de uma página viva;
+- **dois** rodapés documentados;
+- **duas** fontes de dados para o FAQ do Contato;
+- uma regra "permanente e absoluta" sobre QR Codes que o código já quebrava;
+- e **onze** trechos em que um documento declara por escrito que está desatualizado.
+
+**Era o terreno que travava, não o modelo.** Toda alteração visual exigia responder antes
+*qual dos três CSS manda aqui?* e *isso é permitido por qual dos seis documentos?* —
+sendo que os documentos erravam.
+
+Este documento existe para que essa pergunta tenha **uma** resposta.
+
+---
+
+## Anexo B · Ordem de execução do plano
+
+Da `acervo/plano-demolicao.md`, para contexto:
+
+1. **Demolição** — remover os arquivos do §4.3, um commit por sub-etapa, build entre cada
+   uma. *(Bloqueada: exige rodar na máquina do Eloi.)*
+2. **Regras** — este documento. ✅
+3. **Quebra das páginas** em componentes, começando pela Home (§5.8).
+4. **Modelo de dados e acervo** — processar as ~1.500 fotos de combo, extrair os 102 logos
+   que faltam, aplicar as correções do §9.4.
+
+Depois disso, as páginas na ordem do plano institucional: Edições, Sweet Awards e Marcas
+primeiro (as três que o acervo sustenta sozinho), depois a Home, depois Participar,
+Apoiar e Contato.
+
+---
+
+*Documento único do projeto Sweet & Coffee Week. Se algo aqui divergir do código, vale o
+código — e este arquivo é corrigido no mesmo commit.*

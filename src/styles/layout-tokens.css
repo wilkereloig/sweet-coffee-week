@@ -33,17 +33,9 @@
   /* delay entre filhos do .motion-stagger — hoje espelhado nos nth-child do CSS;
      centralizado aqui p/ o próximo passo (referência da escala de delay). */
   --motion-stagger-step: 120ms;
-
-  /* ---- HIERARQUIA DE TÍTULOS — aliases semânticos sobre a escala v2 (--fs-*).
-     Um lugar p/ mapear "papel do título" → tamanho. Não redefine a escala. ---- */
-  --title-hero: var(--fs-display-md);  /* H1 de hero institucional */
-  --title-1:    var(--fs-h1);          /* título de página / seção grande */
-  --title-2:    var(--fs-h2);          /* título de seção */
-  --title-3:    var(--fs-h3);          /* subtítulo / card */
-  --title-lead: var(--fs-lead);        /* linha de apoio (lead) */
 }
 
 /* ---- BREAKPOINTS — CSS não aceita var() em @media; escala por CONVENÇÃO
-   (CLAUDE.md §17). Ao criar/ajustar @media, usar esta régua:
-       1080 · 960 · 720 · 560 · 420
-   Reflow principal desktop → tablet (2 col → 1) = 960px em todo o institucional. */
+   (CLAUDE.md §6.14). A régua viva do institucional é:
+       1000 · 900 · 820 · 760 · 420
+   1000 = herói vira dois blocos · 900 = casca vira aplicativo (barra de abas). */

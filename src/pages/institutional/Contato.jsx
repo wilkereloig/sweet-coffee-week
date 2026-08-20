@@ -1,117 +1,581 @@
 /*
- * PÁGINA INSTITUCIONAL — "Contato".
- * Central simples de encaminhamento por intenção, no sistema da Home/O Festival
- * (tokens, containers, cards, Motion System, banda chocolate × creme). Curta e
- * direta: cada caminho leva ao canal certo. Não repete o texto institucional da
- * Home nem a seção de realização (F2). Header/menu/rodapé GLOBAIS (App.jsx).
+ * PÁGINA INSTITUCIONAL — "Contato" (redesign 2026).
+ * Quatro seções, na ordem do protótipo `Site Sweet Coffee Week.dc.html`:
+ *   01 Abertura (compacta, banda de foto no mobile) · 02 Dúvidas (central de 93
+ *   perguntas em 10 assuntos) · 03 Caminhos · 04 Mensagem (formulário).
+ *
+ * Central de dúvidas: fonte única `src/data/faqCentral.js` (FAQ_DADOS) — alimenta
+ * o índice, a busca, os accordions E o schema FAQPage. A busca ignora acentos e
+ * caixa, exige TODOS os termos e troca o filtro para "Todas" ao digitar. Links de
+ * resposta só aparecem quando existem em FAQ_DADOS.links (campos `null` = rota que
+ * ainda não existe → nada de link quebrado).
+ *
+ * Formulário: mantém a integração real já existente — validação nativa + RPC
+ * Supabase `submit_contact_request` via `src/lib/contactRequest.js`. Nunca afirma
+ * "enviado" se a gravação falhar.
+ *
+ * Casca (header, rodapé, abas mobile) é global (App.jsx); a cor da página
+ * (bege #F8E4C1, desde o fechamento de paleta de 29/07) vem de
+ * `body.route-contato` → `--scw-pagina`.
  */
 import React from 'react'
-import { I } from '../../components/icons'
-import { PageShell, PageSection, CTASection, CardsGrid } from '../../components/layout'
+import '../../styles/scw-contato.css'
+import FAQ_DADOS from '../../data/faqCentral'
+import { bgStyle, heroPhoto } from '../../data/imageLibrary'
+import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
+import { CONTACT_SUBJECTS } from '../../data/contactFaq'
+import { EMPTY_CONTACT, normalizeText, submitContact } from '../../lib/contactRequest'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 
-// Cards por intenção — cada um aponta para um caminho real (rota interna ou o
-// canal oficial). Acento do selo por card (coral/cyan/yellow/coffee/pink).
-const PATHS = [
-  { tag: 'Público & Sweet Lovers', icon: 'cup', t: 'Dúvidas sobre o festival', d: 'Edição atual, participantes, combos, datas, votação e experiência do público.', btn: 'Abrir Instagram', href: INSTAGRAM_URL },
-  { tag: 'Marcas participantes', icon: 'plate', t: 'Sua marca quer entrar na rota?', d: 'Pré-cadastro para docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas.', btn: 'Quero participar', route: '/participar' },
-  { tag: 'Patrocínio & parcerias', icon: 'star', t: 'Apoiar o festival', d: 'Cotas, ativações, mídia, produto e apoio institucional para marcas parceiras.', btn: 'Quero apoiar', route: '/apoiar' },
-  { tag: 'Imprensa & conteúdo', icon: 'search', t: 'Pautas, entrevistas e materiais', d: 'Canal para veículos, jornalistas e creators que querem falar sobre o Sweet & Coffee Week.', btn: 'Falar com a organização', href: INSTAGRAM_URL },
-  { tag: 'Sugestões', icon: 'heart', t: 'Ideias para o festival', d: 'Sugira um tema, indique um participante ou conte o que quer ver nas próximas edições.', btn: 'Enviar sugestão', href: INSTAGRAM_URL },
-]
+// Foto do herói desta rota (sistema central de imagens): ambienta a abertura
+// no desktop e vira banda sangrando no celular. O véu por cima usa a cor da
+// página (--scw-pagina) — ver scw-contato.css.
+const HERO_FOTO = heroPhoto('contato')
 
-function ContactCard({ p, navigate }) {
-  const Icon = I[p.icon] || I.cup
-  const external = !!p.href
-  return (
-    <article className="contato-card">
-      <span className="contato-card__ic" aria-hidden="true"><Icon width={20} height={20} /></span>
-      <span className="contato-card__tag">{p.tag}</span>
-      <h2>{p.t}</h2>
-      <p>{p.d}</p>
-      <a
-        className="contato-card__cta motion-press"
-        href={external ? p.href : `#${p.route}`}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
-        onClick={external ? undefined : (e) => { e.preventDefault(); navigate(p.route); if (typeof window !== 'undefined') window.scrollTo(0, 0) }}
-      >
-        {p.btn} <I.arrow />
-      </a>
-    </article>
-  )
+// RPC injetado na lógica pura (mantém o módulo testável offline).
+const rpc = (name, payload) => supabase.rpc(name, payload)
+
+// Rotas reais do App.jsx para os `link` das respostas (FAQ_DADOS.links[*].rota).
+const ROTAS = {
+  participar: '/participar',
+  apoiar: '/apoiar',
+  awards: '/sweet-awards',
+  edicoes: '/edicoes',
 }
 
+const { categorias: CATEGORIAS, perguntas: PERGUNTAS, links: LINKS } = FAQ_DADOS
+const TOTAL = PERGUNTAS.length
+const CAT_PADRAO = 'sobre'
+
+const rotuloCat = (id) => (CATEGORIAS.find((c) => c[0] === id) || ['', 'Todas'])[1]
+
+/* Filtro da central: categoria + busca multi-termo (AND) sem acento/caixa,
+   casando pergunta + resposta + palavras-chave + rótulo do assunto + id. */
+function filtrarPerguntas(cat, busca) {
+  const termos = normalizeText(busca).split(/\s+/).filter(Boolean)
+  return PERGUNTAS.filter((q) => {
+    if (cat !== 'todas' && q.cat !== cat) return false
+    if (!termos.length) return true
+    const alvo = normalizeText(
+      [q.p, (q.r || []).join(' '), (q.k || []).join(' '), rotuloCat(q.cat), q.id].join(' '),
+    )
+    return termos.every((t) => alvo.includes(t))
+  })
+}
+
+/* Link da resposta. Só devolve algo quando o alvo existe em FAQ_DADOS.links —
+   os campos `null` (mapa, regulamentos, imprensa, press kit) somem sozinhos.
+   'contato' e 'formulario' apontam para o formulário desta mesma página. */
+function linkDaResposta(q) {
+  const l = q.link ? LINKS[q.link] : null
+  if (!l) return null
+  if (l.url) return { label: l.label, href: l.url, externo: true }
+  if (l.ancora) return { label: l.label, href: l.ancora, ancora: l.ancora.replace('#', '') }
+  if (l.rota === 'contato') return { label: l.label, href: '#mensagem', ancora: 'mensagem' }
+  if (l.rota && ROTAS[l.rota]) return { label: l.label, href: `#${ROTAS[l.rota]}`, rota: ROTAS[l.rota] }
+  return null
+}
+
+const semMovimento = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// Ícones do protótipo (traço currentColor, sem dependência nova).
+const SetaDireita = (p) => (
+  <svg width={p.s || 16} height={p.s || 16} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const IconeInstagram = (p) => (
+  <svg width={p.s || 18} height={p.s || 18} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="17" cy="7" r="1.2" fill="currentColor" />
+  </svg>
+)
+
 export function ContatoPage({ navigate }) {
+  // Central de dúvidas: assunto, busca e conjunto de respostas abertas.
+  // `abertos === null` = estado inicial → as duas primeiras da lista abrem.
+  const [cat, setCat] = React.useState(CAT_PADRAO)
+  const [busca, setBusca] = React.useState('')
+  const [abertos, setAbertos] = React.useState(null)
+
+  // Formulário: idle | enviando | ok | invalido | erro.
+  const [form, setForm] = React.useState(EMPTY_CONTACT)
+  const [estado, setEstado] = React.useState('idle')
+
+  const buscando = busca.trim() !== ''
+  const lista = filtrarPerguntas(cat, busca)
+  const autoAbertos = lista.slice(0, 2).map((q) => q.id)
+  const idsAbertos = abertos === null ? autoAbertos : abertos
+
+  const alternar = (id) =>
+    setAbertos((atual) => {
+      const base = atual === null ? autoAbertos : atual
+      return base.includes(id) ? base.filter((x) => x !== id) : base.concat([id])
+    })
+
+  // Digitar busca vale mais que o filtro: volta para "Todas" automaticamente.
+  const mudarBusca = (e) => {
+    const valor = e.target.value
+    setBusca(valor)
+    setCat(valor.trim() ? 'todas' : CAT_PADRAO)
+    setAbertos(null)
+  }
+  const limparBusca = () => { setBusca(''); setCat(CAT_PADRAO); setAbertos(null) }
+  const escolherCat = (id) => { setCat(id); setBusca(''); setAbertos(null) }
+
+  const rolarPara = (id) => (e) => {
+    if (e) e.preventDefault()
+    const el = typeof document !== 'undefined' ? document.getElementById(id) : null
+    if (el) el.scrollIntoView({ behavior: semMovimento() ? 'auto' : 'smooth', block: 'start' })
+  }
+  const irPara = (rota) => (e) => {
+    if (e) e.preventDefault()
+    navigate(rota)
+  }
+
+  // Schema FAQPage — mesma fonte de dados da tela, injetado no <head>.
+  React.useEffect(() => {
+    const anterior = document.getElementById('faq-schema')
+    if (anterior) anterior.remove()
+    const tag = document.createElement('script')
+    tag.type = 'application/ld+json'
+    tag.id = 'faq-schema'
+    tag.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: PERGUNTAS.map((q) => ({
+        '@type': 'Question',
+        name: q.p,
+        acceptedAnswer: { '@type': 'Answer', text: (q.r || []).join(' ') },
+      })),
+    })
+    document.head.appendChild(tag)
+    return () => tag.remove()
+  }, [])
+
+  const mudarCampo = (chave) => (e) => {
+    setForm((f) => ({ ...f, [chave]: e.target.value }))
+    if (estado === 'erro' || estado === 'invalido') setEstado('idle')
+  }
+
+  const enviar = async (e) => {
+    e.preventDefault()
+    if (estado === 'enviando') return
+    setEstado('enviando')
+    const res = await submitContact(form, rpc)
+    if (res.ok) {
+      setEstado('ok')
+      setForm(EMPTY_CONTACT)
+    } else {
+      setEstado(res.status === 'invalid' ? 'invalido' : 'erro')
+    }
+  }
+
   return (
-    <PageShell name="contato">
-      {/* 1 — CABEÇALHO COMPACTO + CARDS POR INTENÇÃO (página simples, sem hero;
-           o padding-top respeita a zona de segurança do menu — CLAUDE.md §4.1) */}
-      <PageSection className="contato-cards-section">
-        <header className="contato-head motion-reveal-up">
-          <h1>Fale com o <span className="contato-hl" style={{ '--hl': 'var(--page-accent, var(--pink))' }}>festival</span></h1>
-          <p>Escolha o caminho mais próximo do que você precisa e fale com a organização do Sweet &amp; Coffee Week.</p>
-        </header>
-        <CardsGrid className="contato-cards">
-          {PATHS.map((p) => <ContactCard key={p.tag} p={p} navigate={navigate} />)}
-        </CardsGrid>
-      </PageSection>
+    <>
+      {/* ---------- 01 ABERTURA (compacta) ---------------------------------- */}
+      <section className="scw-hero-bloco scw-hero-bloco--compacto ctt-abertura" aria-labelledby="ctt-titulo">
+        {/* Desktop: a foto ambienta a abertura inteira sob o véu da página.
+            Celular: a mesma foto vira banda sangrando (scw-hero-banda). */}
+        <img
+          className="ctt-abertura__fundo"
+          src={HERO_FOTO.src}
+          alt={HERO_FOTO.alt}
+          style={{ objectPosition: HERO_FOTO.position }}
+          fetchpriority="high"
+          decoding="async"
+        />
+        <span className="ctt-abertura__veu" aria-hidden="true" />
+        <div className="scw-hero-banda" role="img" aria-label={HERO_FOTO.alt} style={bgStyle(HERO_FOTO, { mobile: true })} />
+        <div
+          className="scw-grade ctt-abertura__grade"
+          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 48px)' }}
+        >
+          <div>
+            <span className="scw-rotulo ctt-abertura__rotulo">Contato</span>
+            <h1 id="ctt-titulo" className="scw-h1 scw-h1--compacto ctt-abertura__titulo">
+              Sua dúvida, respondida aqui.
+            </h1>
+            <p className="scw-corpo ctt-abertura__lead">
+              Público, marcas, imprensa e parceiros: busque nas perguntas frequentes ou escreva para a
+              organização pelo formulário abaixo.
+            </p>
+          </div>
+          <div className="ctt-abertura__apoio">
+            <p className="ctt-abertura__nota">
+              A central de dúvidas reúne {TOTAL} respostas por assunto. Se a sua não estiver lá, escreva
+              pelo formulário.
+            </p>
+            <div className="ctt-abertura__acoes">
+              <a
+                href="#perguntas"
+                onClick={rolarPara('perguntas')}
+                className="scw-btn scw-btn--solido ctt-btn-mini"
+              >
+                Ver as perguntas
+              </a>
+              <a
+                href="#mensagem"
+                onClick={rolarPara('mensagem')}
+                className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
+              >
+                Ir para o formulário
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* 2 — CANAL VIVO (Instagram) */}
-      <CTASection className="contato-live" innerClassName="contato-live__inner">
-        <h2>O Instagram é o canal mais <span className="contato-hl" style={{ '--hl': 'var(--coral)' }}>vivo</span> do festival.</h2>
-        <p>É por lá que o Sweet &amp; Coffee Week anuncia edições, participantes, bastidores, chamadas de votação, premiações, avisos e conteúdos enviados pelos Sweet Lovers.</p>
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg motion-press">
-          <I.ig width={16} height={16} /> Seguir {INSTAGRAM_HANDLE}
-        </a>
-      </CTASection>
+      {/* ---------- 02 DÚVIDAS (central de 93 perguntas) --------------------- */}
+      <section id="perguntas" className="ctt-sec ctt-sec--creme" aria-labelledby="ctt-duvidas-titulo">
+        {/* Sem lead (PATCH 03 §1): ele explicava um controle que está na tela
+            ("escolha um assunto ao lado", "busque por uma palavra"). A contagem
+            não se perde — abre a página, e cada chip de assunto traz a sua. */}
+        <div className="ctt-cabeca ctt-cabeca--simples">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/duvidas" tamanho={20} />Central de dúvidas</span>
+          <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
+            O que a gente <em className="ctt-destaque ctt-destaque--magenta">mais responde</em>.
+          </h2>
+        </div>
 
-      <style>{`
-        .contato-page { overflow-x: clip; }
-        .contato-page section { position: relative; }
-        .contato-page .keep-together { white-space: nowrap; }
-        .contato-hl { position: relative; display: inline-block; font-style: italic; color: var(--hl, var(--coral)); }
-        .contato-hl::after { content: ''; position: absolute; left: 0; right: 0; bottom: .04em; height: .1em; border-radius: 4px; background: var(--hl, var(--coral)); }
-        .contato-page h1, .contato-page h2 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; margin: 0; }
+        <div className="ctt-colunas">
+          <aside className="ctt-lateral" aria-label="Assuntos das perguntas">
+            <label className="ctt-busca">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
+                <path d="m20 20-3.6-3.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                value={busca}
+                onChange={mudarBusca}
+                placeholder="Buscar por palavra"
+                aria-label="Buscar uma dúvida"
+                autoComplete="off"
+              />
+            </label>
+            <span className="ctt-lateral__rotulo" aria-hidden="true">Assuntos</span>
+            <ul className="ctt-cats">
+              {CATEGORIAS.map(([id, label]) => {
+                const ativo = cat === id
+                const n = id === 'todas' ? TOTAL : PERGUNTAS.filter((q) => q.cat === id).length
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      className={`ctt-cat${ativo ? ' is-ativa' : ''}`}
+                      aria-pressed={ativo}
+                      onClick={() => escolherCat(id)}
+                    >
+                      <span>{label}</span>
+                      <span className="ctt-cat__n">{n}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </aside>
 
-        /* 1 — CABEÇALHO COMPACTO + CARDS POR INTENÇÃO */
-        .contato-cards-section { background: var(--cream); padding-top: var(--hero-content-start); }
-        .contato-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 720px; margin: 0 auto var(--sp-7); }
-        .contato-head h1 { font-size: clamp(34px, 4.6vw, 60px); line-height: 1; }
-        .contato-head p { max-width: 54ch; color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; margin: 0; text-wrap: pretty; }
-        .contato-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
-        .contato-card { display: flex; flex-direction: column; background: var(--cream-card); border: 1px solid var(--paper-line); border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--shadow-md); transition: transform var(--motion-base, .26s) var(--ease-out-soft, ease), box-shadow var(--motion-base, .26s) var(--ease-out-soft, ease); }
-        .contato-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .contato-card__ic { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; color: #fff; box-shadow: 0 8px 20px rgba(43,24,16,.16); }
-        .contato-cards .contato-card:nth-child(5n+1) .contato-card__ic { background: var(--coral); }
-        .contato-cards .contato-card:nth-child(5n+2) .contato-card__ic { background: var(--cyan-deep); }
-        .contato-cards .contato-card:nth-child(5n+3) .contato-card__ic { background: var(--yellow-deep); }
-        .contato-cards .contato-card:nth-child(5n+4) .contato-card__ic { background: var(--swc-coffee, #6A2C15); }
-        .contato-cards .contato-card:nth-child(5n+5) .contato-card__ic { background: var(--pink); }
-        .contato-card__tag { margin-top: var(--sp-4); font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-        .contato-card h2 { font-size: clamp(19px, 1.6vw, 23px); line-height: 1.08; margin: var(--sp-2) 0 0; }
-        .contato-card p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: var(--sp-3) 0 0; text-wrap: pretty; }
-        .contato-card__cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; padding-top: var(--sp-5); font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--coral-deep); }
-        .contato-card__cta svg { width: 15px; height: 15px; transition: transform var(--motion-fast, .16s) var(--ease-out-soft, ease); }
-        .contato-card__cta:hover svg { transform: translateX(3px); }
+          <div className="ctt-resultados">
+            <div className="ctt-resultados__topo">
+              <h3 className="ctt-resultados__titulo">{rotuloCat(cat)}</h3>
+              <p className="ctt-resultados__contagem" aria-live="polite">
+                {lista.length} {lista.length === 1 ? 'pergunta' : 'perguntas'}
+              </p>
+              {buscando && (
+                <button type="button" className="ctt-limpar" onClick={limparBusca}>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  Limpar busca
+                </button>
+              )}
+            </div>
 
-        /* 2 — CANAL VIVO */
-        .contato-live { background: var(--cream-deep, var(--bg-soft)); }
-        .contato-live__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4); max-width: 680px; margin: 0 auto; }
-        .contato-live h2 { font-size: clamp(26px, 3vw, 44px); line-height: 1.02; }
-        .contato-live p { color: var(--ink-soft); font-size: var(--fs-lead); line-height: 1.45; margin: 0; text-wrap: pretty; }
-        .contato-live .btn { min-height: 50px; margin-top: var(--sp-3); }
+            <ul className="ctt-perguntas">
+              {lista.map((q) => {
+                const aberto = idsAbertos.includes(q.id)
+                const link = linkDaResposta(q)
+                return (
+                  <li key={q.id} className={`ctt-item${aberto ? ' is-aberta' : ''}`}>
+                    <h3 className="ctt-item__h">
+                      <button
+                        type="button"
+                        id={`faq-b-${q.id}`}
+                        className="ctt-item__botao"
+                        aria-expanded={aberto}
+                        aria-controls={`faq-p-${q.id}`}
+                        onClick={() => alternar(q.id)}
+                      >
+                        <span className="ctt-item__texto">
+                          {buscando && <span className="ctt-item__cat">{rotuloCat(q.cat)}</span>}
+                          <span className="ctt-item__pergunta">{q.p}</span>
+                        </span>
+                        <span className="ctt-item__sinal" aria-hidden="true">
+                          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                      </button>
+                    </h3>
+                    <div
+                      id={`faq-p-${q.id}`}
+                      role="region"
+                      aria-labelledby={`faq-b-${q.id}`}
+                      className="ctt-item__corpo"
+                      hidden={!aberto}
+                    >
+                      {(q.r || []).map((texto, i) => <p key={i}>{texto}</p>)}
+                      {link && (
+                        <a
+                          className="ctt-item__link"
+                          href={link.href}
+                          onClick={
+                            link.rota ? irPara(link.rota) : link.ancora ? rolarPara(link.ancora) : undefined
+                          }
+                          target={link.externo ? '_blank' : undefined}
+                          rel={link.externo ? 'noopener noreferrer' : undefined}
+                        >
+                          {link.label} <SetaDireita s={13} />
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
 
-        /* RESPONSIVO */
-        @media (max-width: 960px) { .contato-cards { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 560px) {
-          .contato-cards { grid-template-columns: 1fr; }
-          .contato-live .btn { width: 100%; justify-content: center; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .contato-card, .contato-card__cta svg { transition: none; }
-        }
-      `}</style>
-    </PageShell>
+            {lista.length === 0 && (
+              <div className="ctt-vazio">
+                <b>Nenhuma pergunta encontrada</b>
+                <p>
+                  Tente outra palavra (pagamento, lactose, carimbo, patrocínio) ou volte para os assuntos.
+                </p>
+                <div className="ctt-vazio__acoes">
+                  <button type="button" className="scw-btn ctt-btn-mini ctt-btn-choco" onClick={limparBusca}>
+                    Voltar aos assuntos
+                  </button>
+                  <a
+                    href="#mensagem"
+                    onClick={rolarPara('mensagem')}
+                    className="scw-btn scw-btn--contorno-escuro ctt-btn-mini"
+                  >
+                    Ir para o formulário
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div className="ctt-chamada">
+              <div>
+                <b>Não encontrou sua dúvida?</b>
+                <p>
+                  Escreva para a organização pelo formulário desta página. Se for sobre pedido, pagamento,
+                  entrega ou produto, fale primeiro com o estabelecimento responsável — a venda é feita por
+                  ele.
+                </p>
+              </div>
+              <div className="ctt-chamada__acoes">
+                <a
+                  href="#mensagem"
+                  onClick={rolarPara('mensagem')}
+                  className="scw-btn scw-btn--solido ctt-btn-mini"
+                >
+                  Falar com a organização
+                </a>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
+                >
+                  Chamar no Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 03 CAMINHOS ---------------------------------------------- */}
+      <section className="ctt-sec ctt-sec--bege" aria-labelledby="ctt-caminhos-titulo">
+        <div
+          className="scw-grade ctt-cabeca ctt-cabeca--caminhos"
+          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 56px)' }}
+        >
+          <div>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/caminhos" tamanho={20} />Escolha o caminho</span>
+            <h2 id="ctt-caminhos-titulo" className="scw-h2 ctt-cabeca__titulo ctt-cabeca__titulo--marrom">
+              Cada assunto tem <em className="ctt-destaque ctt-destaque--choco">uma porta certa</em>.
+            </h2>
+          </div>
+          <p className="ctt-cabeca__apoio">
+            Isso encurta a resposta: quem chega pelo caminho certo fala direto com quem cuida do assunto.
+          </p>
+        </div>
+
+        <ul className="ctt-portas">
+          <li className="ctt-porta">
+            <span className="ctt-porta__topo">
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-roxo)', '--tinta': 'var(--scw-creme)' }}>
+                <ScwIcon nome="mecanica/loja" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--roxo">Estabelecimentos</span>
+            </span>
+            <strong>Quero levar minha marca para a rota.</strong>
+            <span className="ctt-porta__texto">
+              Doçarias, cafeterias, confeitarias e restaurantes fazem o pré-cadastro na página Participar. A
+              participação passa por curadoria.
+            </span>
+            <a className="ctt-porta__link" href="#/participar" onClick={irPara('/participar')}>
+              Ir para Participar <SetaDireita />
+            </a>
+          </li>
+          <li className="ctt-porta">
+            <span className="ctt-porta__topo">
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-choco)', '--tinta': 'var(--scw-creme)' }}>
+                <ScwIcon nome="topicos/proposta" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--choco">Empresas</span>
+            </span>
+            <strong>Quero apoiar ou patrocinar o festival.</strong>
+            <span className="ctt-porta__texto">
+              Patrocínio, ativação de marca, mídia e brindes: a proposta entra pela página Apoiar e a
+              organização responde com formatos e prazos.
+            </span>
+            <a className="ctt-porta__link" href="#/apoiar" onClick={irPara('/apoiar')}>
+              Ir para Apoiar <SetaDireita />
+            </a>
+          </li>
+          <li className="ctt-porta">
+            <span className="ctt-porta__topo">
+              <span className="scw-disco ctt-porta__ic" style={{ '--c': 'var(--scw-cyan)', '--tinta': 'var(--scw-choco)' }}>
+                <ScwIcon nome="topicos/imprensa" tamanho={20} />
+              </span>
+              <span className="scw-pill ctt-pill--cyan">Imprensa e outros</span>
+            </span>
+            <strong>Sou imprensa ou tenho outro assunto.</strong>
+            <span className="ctt-porta__texto">
+              Entrevistas, correções no site, sugestões e demais temas: use o formulário abaixo escolhendo o
+              assunto correspondente.
+            </span>
+            <a className="ctt-porta__link" href="#mensagem" onClick={rolarPara('mensagem')}>
+              Ir para o formulário <SetaDireita />
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      {/* ---------- 04 MENSAGEM (formulário com envio real) ------------------ */}
+      <section id="mensagem" className="ctt-sec ctt-sec--mensagem" aria-labelledby="ctt-mensagem-titulo">
+        <div className="ctt-mensagem__cabeca">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/mensagem" tamanho={20} />Falar com a equipe</span>
+          <h2 id="ctt-mensagem-titulo" className="scw-h2 ctt-mensagem__titulo">
+            Não achou sua <em className="ctt-destaque ctt-destaque--magenta">resposta</em>? Escreva para a
+            gente.
+          </h2>
+          <p className="ctt-mensagem__lead">
+            A organização responde em dias úteis. Escolha o assunto para a mensagem chegar na pessoa certa.
+          </p>
+        </div>
+
+        {estado === 'ok' ? (
+          <div className="ctt-ok" role="status">
+            <span className="ctt-ok__selo" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <strong>Mensagem enviada.</strong>
+            <p>
+              A organização do Sweet &amp; Coffee Week já recebeu sua mensagem, analisa o assunto e retorna
+              pelo contato informado, em dias úteis.
+            </p>
+            <button type="button" className="scw-btn ctt-ok__acao" onClick={() => setEstado('idle')}>
+              Enviar outra mensagem
+            </button>
+          </div>
+        ) : (
+          <form className="ctt-form" onSubmit={enviar}>
+            <div className="ctt-form__grade">
+              <label className="scw-campo">
+                <span>Seu nome *</span>
+                <input
+                  name="nome"
+                  value={form.name}
+                  onChange={mudarCampo('name')}
+                  placeholder="Como te chamamos"
+                  autoComplete="name"
+                  required
+                />
+              </label>
+              <label className="scw-campo">
+                <span>E-mail *</span>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={mudarCampo('email')}
+                  placeholder="voce@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label className="scw-campo ctt-campo--full">
+                <span>Assunto *</span>
+                <select name="assunto" value={form.subject} onChange={mudarCampo('subject')} required>
+                  <option value="">Selecione</option>
+                  {CONTACT_SUBJECTS.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </label>
+              <label className="scw-campo ctt-campo--full">
+                <span>Mensagem *</span>
+                <textarea
+                  name="mensagem"
+                  rows={4}
+                  value={form.message}
+                  onChange={mudarCampo('message')}
+                  placeholder="Escreva sua dúvida ou mensagem."
+                  required
+                />
+              </label>
+            </div>
+
+            {estado === 'invalido' && (
+              <p className="ctt-form__aviso" role="alert">
+                Confira os campos obrigatórios: nome, e-mail válido, assunto da lista e mensagem.
+              </p>
+            )}
+            {estado === 'erro' && (
+              <p className="ctt-form__aviso" role="alert">
+                Não foi possível enviar sua mensagem agora. Tente novamente em alguns minutos ou fale no{' '}
+                {INSTAGRAM_HANDLE}.
+              </p>
+            )}
+
+            <div className="ctt-form__pe">
+              <span className="ctt-form__nota">
+                Seus dados são usados apenas para responder esta mensagem.
+              </span>
+              <button type="submit" className="scw-btn ctt-enviar" disabled={estado === 'enviando'}>
+                {estado === 'enviando' ? 'Enviando…' : 'Enviar mensagem'} <SetaDireita s={17} />
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="ctt-direto">
+          <span>Prefere mensagem direta?</span>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+            <IconeInstagram /> {INSTAGRAM_HANDLE}
+          </a>
+        </div>
+      </section>
+    </>
   )
 }

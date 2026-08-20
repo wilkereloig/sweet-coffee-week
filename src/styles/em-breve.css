@@ -1,0 +1,51 @@
+/* src/styles/em-breve.css — tokens da landing /em-breve
+   ---------------------------------------------------------------------------
+   A landing (`src/pages/institutional/EmBreve.jsx`) traz o próprio CSS num
+   <style> inline, mas CONSOME tokens que viviam no sistema anterior
+   (styles.css, swc-redesign.css, tokens.css). Este arquivo os preserva já
+   RESOLVIDOS — sem `var()` encadeado — para que aqueles três possam sair.
+
+   ⛔ Não usar nenhum destes tokens em página nova. O sistema vivo é
+   `scw-2026.css` (tokens --scw-*). Este arquivo existe só para manter no ar o
+   que já está no ar, e morre junto com a landing quando o institucional
+   for publicado.
+
+   Também servem a três peças que ainda leem nomes antigos:
+   `components/CookieConsent.jsx` (--font-sans), `components/icons.jsx` e
+   `data/participants.js` / `data/participantAssets.js` (--lovers-*).
+   ------------------------------------------------------------------------- */
+:root {
+  /* superfície e tinta — antes em swc-redesign.css */
+  --cream:       #FFF1E6;
+  --cream-card:  #FFF8F0;
+  --paper-line:  #EAD7C4;
+  --ink:         #2B1810;
+  --ink-soft:    #6B4A38;
+
+  /* tipografia */
+  --font-display: 'Nexa Slab Black', 'Nexa Slab', Georgia, serif;
+  --font-heading: 'Nexa Slab', Georgia, serif;
+  --font-body:    'Nexa Slab', system-ui, sans-serif;
+  --font-sans:    var(--font-body);
+
+  --fs-lead:       clamp(19px, 1.6vw, 26px);
+
+  /* espaço e forma */
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: clamp(24px, 3vw, 32px);
+  --r-lg: 22px;
+  --shadow-md: 0 14px 36px rgba(43, 24, 16, .14);
+
+  /* KV da edição Lovers — só o que `participants.js` e `participantAssets.js`
+     ainda leem como cor de marca de cada uma das 21 casas. O sistema visual
+     Lovers foi apagado; isto aqui é dado de acervo, não identidade de página. */
+  --lovers-brown:    #3F1A0A;
+  --lovers-burgundy: #870E2D;
+  --lovers-red:      var(--lovers-burgundy);
+  --lovers-cyan:     #00B8CC;
+  --lovers-pink:     #F20567;
+  --lovers-purple:   #4F2092;
+  --lovers-yellow:   #F5B800;
+}
