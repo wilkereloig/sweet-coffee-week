@@ -122,11 +122,14 @@ const ETAPAS = [
 /* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica).
    Cor vive na régua (StatBlock — bege só sustenta 4 tintas de texto; ver
    docs/FLUXO-DESIGN-CODIGO.md), o numeral fica sempre em chocolate. */
+/* O dado entra por disco de ícone, não mais pela régua de 4px (desenho de
+   20/08/2026). A tinta segue o fundo do disco: chocolate sobre amarelo e cyan,
+   creme sobre magenta e roxo — magenta e roxo não sustentam tinta escura. */
 const NUMEROS = [
-  { alvo: festivalFacts.editions.value, prefixo: '', sufixo: '', rotulo: 'edições realizadas', nota: `de ${festivalFacts.firstYear} até hoje`, cor: 'var(--scw-amarelo)' },
-  { alvo: festivalFacts.brands.value, prefixo: '+', sufixo: '', rotulo: 'marcas participantes', nota: 'doçarias, cafeterias e restaurantes', cor: 'var(--scw-cyan)' },
-  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: 'somando todas as edições', cor: 'var(--scw-magenta)' },
-  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'conteúdo do festival e das marcas', cor: 'var(--scw-roxo)' },
+  { alvo: festivalFacts.editions.value, prefixo: '', sufixo: '', rotulo: 'edições realizadas', nota: `de ${festivalFacts.firstYear} até hoje`, cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', icone: 'simbolos/edicao' },
+  { alvo: festivalFacts.brands.value, prefixo: '+', sufixo: '', rotulo: 'marcas participantes', nota: 'doçarias, cafeterias e restaurantes', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', icone: 'simbolos/estabelecimento' },
+  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: 'somando todas as edições', cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', icone: 'simbolos/combo-oficial' },
+  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'conteúdo do festival e das marcas', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)', icone: 'redes/instagram' },
 ]
 
 /* --- 06 Prova: depoimento real da Jolie (mesma fonte já usada em Participar). */
@@ -521,7 +524,9 @@ export function HomePage({ navigate }) {
         <dl className="hm-numeros">
           {NUMEROS.map((numero, i) => (
             <div className="hm-num" key={numero.rotulo}>
-              <span className="scw-stat__regua" aria-hidden="true" style={{ background: numero.cor }} />
+              <span className="scw-disco hm-num__disco" aria-hidden="true" style={{ '--c': numero.cor, '--tinta': numero.tinta }}>
+                <ScwIcon nome={numero.icone} tamanho={48} />
+              </span>
               <dt className="scw-numeral hm-num__valor">
                 {numero.prefixo}{contagens[i]}{numero.sufixo}
               </dt>

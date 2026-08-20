@@ -174,45 +174,35 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    Faixa de números (Participar 02 · Apoiar 02)
    ========================================================================= */
 
-/* Apoiar 02 — indicadores de audiência que vieram do herói (PATCH 01 §6),
-   no padrão disco + ícone + numeral + rótulo do PATCH 02 §5. Abrem a seção; os
-   seis números do histórico (.pa-numeros) vêm logo abaixo. */
-.pa-alcance-topo {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: clamp(24px, 2.8vw, 44px);
-  margin: 0 0 clamp(40px, 4.4vw, 68px);
-  padding: 0 0 clamp(34px, 3.6vw, 52px);
-  border-bottom: 1px solid rgba(61, 19, 8, .14);
-}
-.pa-alcance-topo li { display: grid; gap: 12px; justify-items: start; }
-.pa-alcance-topo .scw-numeral { color: var(--scw-choco); }
-.pa-alcance-topo li > span:last-child {
-  max-width: 22ch;
-  font: 800 15.5px/1.2 var(--scw-font);
-  color: var(--scw-marrom);
-}
-
 .pa-numeros {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc((100% - 2 * clamp(20px, 2.4vw, 40px)) / 3))), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc((100% - 2 * clamp(14px, 1.6vw, 20px)) / 3))), 1fr));
   grid-template-rows: repeat(8, auto);
-  gap: clamp(26px, 3vw, 44px) clamp(20px, 2.4vw, 40px);
+  gap: clamp(14px, 1.6vw, 20px);
   margin: 0;
   padding: 0;
 }
+/* Cada dado é um card creme sobre a chapa bege — o filete some, quem recorta é
+   o próprio fundo. Disco cyan uniforme: a cor aqui é a da página, não a do item. */
 .pa-numeros li {
   display: grid;
   grid-row: span 4;
   grid-template-rows: subgrid;
   gap: 10px;
+  padding: clamp(20px, 2.2vw, 28px);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-creme);
 }
+/* A cor do disco é a DA PÁGINA, não um literal: cyan em Participar, marrom em
+   Apoiar — e a tinta acompanha sozinha (chocolate sobre cyan, creme sobre
+   marrom), que é exatamente o par que `body.route-*` já define. */
+.pa-num__disco { --tam: 54px; --c: var(--scw-pagina); --tinta: var(--scw-pagina-tinta); align-self: start; }
+.pa-num__disco svg { width: 58%; height: 58%; }
 .pa-numeros b {
   display: block;
   color: var(--scw-choco);
-  font: 900 clamp(36px, 4.2vw, 74px)/.84 var(--scw-font-black);
+  font: 900 clamp(38px, 4.4vw, 74px)/.84 var(--scw-font-black);
   letter-spacing: -.06em;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -222,7 +212,11 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   color: var(--scw-choco);
   font: 800 15.5px/1.25 var(--scw-font);
 }
-.pa-numeros span {
+/* A nota do dado. ⚠️ O seletor é `li > span:last-child`, não `span`: o disco de
+   ícone também é um <span> aqui, e `.pa-numeros span` (0,1,1) venceria
+   `.pa-num__disco` (0,1,0) — a tinta do ícone virava marrom sobre marrom em
+   Apoiar, invisível. É a armadilha do §10.1, de novo. */
+.pa-numeros li > span:last-child {
   align-self: start;
   max-width: 24ch;
   font: 500 13.5px/1.4 var(--scw-font);

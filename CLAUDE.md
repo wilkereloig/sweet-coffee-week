@@ -546,17 +546,28 @@ ciclo (texto grande = 3:1, texto pequeno = 4,5:1):
 ¹ só a partir de 18,66px em peso 700+ (ou 24px normal), onde o mínimo cai para 3:1.
 
 **Quando o fundo não oferece cores suficientes, não force a tinta: mova a cor para o
-grafismo.** É o padrão **StatBlock** — régua pop de 4px acima do número. O numeral fica
-numa tinta legível (chocolate) e a régua carrega a cor própria do card:
+grafismo.** O numeral fica numa tinta sempre legível (chocolate) e quem carrega a cor é
+**o disco de ícone** acima dele — a tinta do traço vira chocolate ou creme conforme o
+fundo do disco:
 
 ```html
-<span aria-hidden="true" class="scw-stat__regua" style="background:#FDBB1A"></span>
+<span class="scw-disco" style="--c:var(--scw-magenta);--tinta:var(--scw-creme)">
 ```
 
-Assim uma faixa de seis métricas sobre bege — onde só quatro tintas passam — tem seis
-cores distintas sem nenhuma falha de contraste. Vale o mesmo raciocínio para disco de
-ícone (a cor vai no disco, o traço fica chocolate ou creme conforme o fundo do disco),
-pill, selo de canto e filete.
+Assim uma faixa de métricas sobre bege — onde só quatro tintas passam — tem uma cor por
+dado sem nenhuma falha de contraste. Vale o mesmo raciocínio para pill, selo de canto e
+filete.
+
+⛔ **A régua pop de 4px (`.scw-stat__regua`, padrão StatBlock) saiu em 20/08/2026** — o
+desenho passou a abrir cada dado com disco de ícone, que diz o que o número mede em vez
+de só colorir. **Não recriar.**
+
+**Duas leituras diferentes do mesmo padrão, e a diferença é proposital:**
+
+| Onde | Disco | Cor |
+|---|---|---|
+| Home `05 Números` | `clamp(64px, 6vw, 80px)`, ícone a 60% | **uma cor por dado** — a faixa é o resumo do festival, cada número é um assunto |
+| Participar `03` e Apoiar `02` | `54px`, ícone a 58%, dentro de card creme | **cor da página em todos** (`--scw-pagina` / `--scw-pagina-tinta`) — ali a cor diz "isto é Participar"; quem distingue o dado é o ícone |
 
 ### 6.4 Medalhas do Sweet Awards
 

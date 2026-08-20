@@ -1256,21 +1256,6 @@ body.route-contato {
   background: var(--scw-creme);
 }
 
-/* ============================================================================
-   StatBlock — régua pop acima do numeral
-   Quando o fundo não deixa passar as seis cores do ciclo em texto (ex.: bege só
-   sustenta chocolate/marrom/roxo), a cor vai para uma régua de 4px e o numeral
-   fica numa tinta sempre legível. Ver docs/FLUXO-DESIGN-CODIGO.md.
-   ========================================================================= */
-
-.scw-stat__regua {
-  display: block;
-  align-self: start;
-  width: 44px;
-  height: 4px;
-  margin-bottom: 2px;
-  border-radius: 4px;
-}
 
 /* ============================================================================
    Botão "Topo" — flutuante, some acima da barra de abas no modo aplicativo

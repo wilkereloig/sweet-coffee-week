@@ -395,26 +395,35 @@
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
-    minmax(min(100%, max(200px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr)
+    minmax(min(100%, max(164px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr)
   );
   grid-template-rows: auto auto auto auto;
-  gap: clamp(24px, 3vw, 44px) clamp(20px, 2.4vw, 40px);
+  gap: clamp(28px, 3.2vw, 48px) clamp(20px, 2.4vw, 40px);
   margin: 0;
+  /* O filete separa a cabeça da faixa de dados — a faixa é leitura própria,
+     não continuação do texto acima. */
+  padding-top: clamp(30px, 3.2vw, 48px);
+  border-top: 1px solid rgba(61, 19, 8, .2);
 }
-.hm-num { display: grid; grid-row: span 4; grid-template-rows: subgrid; gap: 10px; }
-.hm-num__valor { color: var(--scw-choco); font-size: clamp(40px, 4.8vw, 84px); }
+.hm-num { display: grid; grid-row: span 4; grid-template-rows: subgrid; gap: clamp(12px, 1.4vw, 18px); }
+/* Disco maior que o padrão de card (46px): aqui ele abre a coluna do dado, não
+   acompanha um título. O ícone fica a 60% do disco, então acompanha o clamp em
+   vez de travar num degrau da escala. */
+.hm-num__disco { --tam: clamp(64px, 6vw, 80px); align-self: start; }
+.hm-num__disco svg { width: 60%; height: 60%; }
+.hm-num__valor { color: var(--scw-choco); font-size: clamp(44px, 5.2vw, 92px); line-height: .82; }
 .hm-num__rotulo {
   margin: 0;
   align-self: start;
   color: var(--scw-choco);
-  font: 800 15.5px/1.25 var(--scw-font);
+  font: 800 16px/1.25 var(--scw-font);
 }
 .hm-num__nota {
   margin: 0;
   align-self: start;
   max-width: 22ch;
   font: 500 13.5px/1.4 var(--scw-font);
-  color: rgba(61, 19, 8, .72);
+  color: rgba(61, 19, 8, .74);
 }
 
 /* ============================================================================

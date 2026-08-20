@@ -37,12 +37,6 @@ const FOTO_BANDA = FOTOS_HERO[0]
    sobre exatamente isto. Diferente de Participar, estes três números NÃO se
    repetem em ALCANCE — são dados próprios de audiência, então mudam de lugar em
    vez de sumir. Disco + ícone é o padrão de indicador do PATCH 02 §5. */
-const INDICADORES = [
-  { v: '+200 mil', d: 'pessoas alcançadas', icone: 'mecanica/publico' },
-  { v: '+18 mi', d: 'visualizações no Instagram', icone: 'redes/instagram' },
-  { v: '+290 mil', d: 'interações do público', icone: 'marca/coracao' },
-]
-
 const PALAVRAS = [
   'patrocínio', 'ativação de marca', 'mídia e conteúdo',
   'economia criativa', 'sweet lovers',
@@ -51,12 +45,12 @@ const PALAVRAS = [
 // 02 Alcance — histórico comercial das edições + Instagram oficial. Cor vive
 // na régua (StatBlock), ciclo de seis sem repetir.
 const ALCANCE = [
-  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', c: 'var(--scw-marrom)' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', c: 'var(--scw-amarelo)' },
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'direto no caixa de marcas e lojas parceiras', c: 'var(--scw-cyan)' },
-  { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', c: 'var(--scw-magenta)' },
-  { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', c: 'var(--scw-roxo)' },
-  { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', c: 'var(--scw-laranja)' },
+  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', i: 'redes/instagram' },
+  { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', i: 'combos/doce-cafe' },
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'direto no caixa de marcas e lojas parceiras', i: 'mecanica/promocao' },
+  { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', i: 'simbolos/edicao' },
+  { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', i: 'simbolos/memoria' },
+  { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', i: 'topicos/circulacao' },
 ]
 
 // 03 Por que apoiar — ícones desenhados para cada argumento (24×24, traço).
@@ -320,25 +314,12 @@ export function ApoiarPage() {
             arredondados para baixo.
           </p>
         </div>
-        <ul className="pa-alcance-topo">
-          {INDICADORES.map((m) => (
-            <li key={m.d}>
-              <span
-                className="scw-disco"
-                aria-hidden="true"
-                style={{ '--tam': '54px', '--c': 'var(--scw-pagina)', '--tinta': 'var(--scw-creme)' }}
-              >
-                <ScwIcon nome={m.icone} tamanho={24} />
-              </span>
-              <b className="scw-numeral">{m.v}</b>
-              <span>{m.d}</span>
-            </li>
-          ))}
-        </ul>
-        <ul className="pa-numeros">
+                <ul className="pa-numeros">
           {ALCANCE.map((n) => (
             <li key={n.t}>
-              <span className="scw-stat__regua" aria-hidden="true" style={{ background: n.c }} />
+              <span className="scw-disco pa-num__disco" aria-hidden="true">
+                <ScwIcon nome={n.i} tamanho={32} />
+              </span>
               <b>{n.n}</b>
               <strong>{n.t}</strong>
               <span>{n.d}</span>

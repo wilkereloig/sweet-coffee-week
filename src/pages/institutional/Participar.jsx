@@ -43,15 +43,17 @@ const PALAVRAS = [
   'sua marca na rota', 'sweet lovers',
 ]
 
-// 02 Números — histórico do festival (mesmos dados do protótipo). Cor vive na
-// régua (StatBlock — ver docs/FLUXO-DESIGN-CODIGO.md), ciclo de seis sem repetir.
+/* 03 Números — histórico do festival. Cada dado virou CARD com disco de ícone
+   (desenho de 20/08/2026): o disco é cyan em todos, porque aqui a cor não
+   distingue item nenhum — ela diz "isto é Participar". Quem distingue é o
+   ícone. É o oposto da faixa da Home, onde cada dado tem cor própria. */
 const NUMEROS = [
-  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano em média', c: 'var(--scw-marrom)' },
-  { n: '+100', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', c: 'var(--scw-amarelo)' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', c: 'var(--scw-cyan)' },
-  { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', c: 'var(--scw-magenta)' },
-  { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', c: 'var(--scw-roxo)' },
-  { n: '17', t: 'matérias na imprensa', d: 'rádio, TV, jornais e portais de Natal e do RN', c: 'var(--scw-laranja)' },
+  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano em média', i: 'simbolos/edicao' },
+  { n: '+100', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', i: 'simbolos/estabelecimento' },
+  { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', i: 'combos/doce-cafe' },
+  { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', i: 'redes/instagram' },
+  { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', i: 'ui/calendario' },
+  { n: '17', t: 'matérias na imprensa', d: 'rádio, TV, jornais e portais de Natal e do RN', i: 'topicos/imprensa' },
 ]
 
 // 03 Circulação — quatro faixas alternando o lado da imagem (larguras iguais).
@@ -448,7 +450,9 @@ export function ParticiparPage() {
         <ul className="pa-numeros">
           {NUMEROS.map((n) => (
             <li key={n.t}>
-              <span className="scw-stat__regua" aria-hidden="true" style={{ background: n.c }} />
+              <span className="scw-disco pa-num__disco" aria-hidden="true">
+                <ScwIcon nome={n.i} tamanho={32} />
+              </span>
               <b>{n.n}</b>
               <strong>{n.t}</strong>
               <span>{n.d}</span>
