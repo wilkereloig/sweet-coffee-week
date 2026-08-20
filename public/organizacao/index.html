@@ -120,6 +120,33 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-resumo span:not(.og-regua){font:800 11px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
 .og-resumo em{font-style:normal;font-size:13px;color:var(--scw-marrom);margin-top:6px}
 
+/* ── Os formulários ────────────────────────────────────────────────────── */
+.og-forms{
+  background:var(--scw-bege);border-radius:var(--scw-r-card);
+  padding:clamp(20px,2.6vw,28px);margin:0 0 clamp(24px,3vw,34px);
+}
+.og-forms__cabeca h2{font:900 18px/1.1 var(--scw-font);letter-spacing:-.03em;margin:0}
+.og-forms__cabeca p{margin:6px 0 0;font-size:13.5px;color:var(--scw-marrom)}
+.og-forms__lista{
+  display:grid;gap:12px;margin:18px 0 0;padding:0;list-style:none;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));
+}
+.og-forms__item{
+  background:#fff;border:1px solid var(--scw-filete);border-radius:14px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:8px;
+}
+.og-forms__topo{display:flex;align-items:center;gap:9px}
+.og-forms__ponto{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.og-forms__nome{font:800 15px/1.2 var(--scw-font);margin:0}
+.og-forms__acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+/* Ausência honesta: o formulário existe, mas não está público. Nada de link
+   morto nem de botão desabilitado sem explicação. */
+.og-forms__nota{margin:0;font-size:13px;color:var(--scw-marrom)}
+.og-forms__url{
+  font-size:12px;color:var(--scw-marrom);margin:0;
+  overflow-wrap:anywhere;
+}
+
 /* ── Abas ──────────────────────────────────────────────────────────────── */
 .og-abas{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin:0 0 18px;list-style:none;padding-inline-start:0}
 .og-abas::-webkit-scrollbar{display:none}
@@ -253,6 +280,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 
     <ul class="og-resumo" id="resumo"></ul>
 
+    <section class="og-forms">
+      <div class="og-forms__cabeca">
+        <h2>Os formulários</h2>
+        <p>Onde cada resposta desta tela nasce.</p>
+      </div>
+      <ul class="og-forms__lista" id="forms"></ul>
+    </section>
+
     <ul class="og-abas" id="abas" role="tablist"></ul>
 
     <div class="og-filtros">
@@ -307,6 +342,10 @@ const ORIGENS = {
   quero_participar: {
     rotulo: 'Quero participar', cor: '#01AFCC',
     rpc: 'get_quero_participar',
+    // Único formulário público hoje: é página estática, servida pelo sistema de
+    // arquivos antes do rewrite do SPA. A barra final é obrigatória — sem ela a
+    // rota cai no fallback do SPA e abre a landing.
+    form: '/quero-participar/',
     status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
     titulo: r => r.empresa || r.nome,
     meta: r => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
@@ -319,6 +358,9 @@ const ORIGENS = {
   participar: {
     rotulo: 'Participar', cor: '#FDBB1A',
     rpc: 'get_participation_interests',
+    // Rota React: enquanto COMING_SOON_PUBLICATION estiver ligado, o domínio
+    // renderiza a landing em qualquer rota. Link daqui levaria para "Em breve".
+    form: null, formNota: 'seção 08 da página Participar',
     status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
     titulo: r => r.marca,
     meta: r => [r.responsavel, r.bairro, r.cidade].filter(Boolean).join(' · '),
@@ -331,6 +373,7 @@ const ORIGENS = {
   apoiar: {
     rotulo: 'Apoiar', cor: '#FF4810',
     rpc: 'get_support_interests',
+    form: null, formNota: 'seção 06 da página Apoiar',
     status: ['novo','em_analise','contatado','em_negociacao','fechado','arquivado'],
     titulo: r => r.empresa,
     meta: r => [r.nome, r.segmento, r.interesse].filter(Boolean).join(' · '),
@@ -342,6 +385,7 @@ const ORIGENS = {
   contato: {
     rotulo: 'Contato', cor: '#4D257E',
     rpc: 'get_contact_requests',
+    form: null, formNota: 'seção 04 da página Contato',
     status: ['novo','em_analise','respondido','encerrado'],
     titulo: r => r.name,
     meta: r => [r.subject].filter(Boolean).join(' · '),
@@ -435,6 +479,7 @@ $('btn-atualizar').addEventListener('click', () => carregar());
 function abrirPainel() {
   entrada.style.display = 'none';
   painel.hidden = false;
+  montarForms();
   montarAbas();
   montarFiltroStatus();
   carregar();
@@ -488,6 +533,46 @@ function filtrados() {
       if (!alvo.includes(termo)) return false;
     }
     return true;
+  });
+}
+
+/* ── Os formulários ────────────────────────────────────────────────────── */
+/* Montado uma vez, no login: não depende dos dados, só das origens. */
+function montarForms() {
+  $('forms').innerHTML = Object.entries(ORIGENS).map(([chave, o]) => {
+    const publico = !!o.form;
+    const url = publico ? location.origin + o.form : '';
+    return '<li class="og-forms__item">' +
+      '<div class="og-forms__topo">' +
+        '<span class="og-forms__ponto" style="background:' + o.cor + '" aria-hidden="true"></span>' +
+        '<p class="og-forms__nome">' + escapar(o.rotulo) + '</p>' +
+      '</div>' +
+      (publico
+        ? '<p class="og-forms__url">' + escapar(url) + '</p>' +
+          '<div class="og-forms__acoes">' +
+            '<a class="og-btn og-btn--mini" href="' + o.form + '" target="_blank" rel="noopener">Abrir</a>' +
+            '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-copiar="' + escapar(url) + '">Copiar link</button>' +
+          '</div>'
+        // Enquanto o gate estiver ligado, qualquer rota do React abre a landing.
+        // Dizer isso é melhor que um link que decepciona.
+        : '<p class="og-forms__nota">Ainda não está público. Vive na ' +
+          escapar(o.formNota) + ' e vai ao ar junto com o site institucional.</p>') +
+    '</li>';
+  }).join('');
+
+  $('forms').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-copiar]');
+    if (!b) return;
+    const rotulo = b.textContent;
+    try {
+      await navigator.clipboard.writeText(b.dataset.copiar);
+      b.textContent = 'Link copiado';
+    } catch (e) {
+      // Sem clipboard (contexto inseguro, permissão negada): a URL está na tela
+      // logo acima, então dá para copiar à mão. Não fingir que copiou.
+      b.textContent = 'Copie da linha acima';
+    }
+    setTimeout(() => { b.textContent = rotulo; }, 2400);
   });
 }
 
