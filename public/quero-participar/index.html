@@ -141,6 +141,11 @@ body{
 /* ── Passo ──────────────────────────────────────────────────── */
 .pa-passo[hidden]{display:none}
 .pa-passo{animation:paEntra var(--mo-entra) var(--scw-ease) both}
+.pa-passo + .pa-passo{
+  margin-top:clamp(38px,4.4vw,60px);
+  padding-top:clamp(30px,3.4vw,44px);
+  border-top:1px solid var(--scw-filete);
+}
 @keyframes paEntra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 .pa-passo__cabeca{display:flex;gap:14px;align-items:flex-start;margin-bottom:var(--scw-gap-cabeca)}
@@ -151,7 +156,6 @@ body{
 .pa-passo--2 .pa-disco{background:var(--scw-cyan)}
 .pa-passo--3 .pa-disco{background:var(--scw-magenta);color:var(--scw-creme)}
 .pa-passo--4 .pa-disco{background:var(--scw-roxo);color:var(--scw-creme)}
-.pa-passo--5 .pa-disco{background:var(--scw-laranja)}
 .pa-passo__texto{padding-top:2px}
 .pa-passo__texto .scw-corpo{margin-top:8px;color:var(--scw-marrom)}
 
@@ -211,7 +215,7 @@ body{
 .pa-exemplo{margin:0;padding:12px 16px;background:var(--scw-bege);border-radius:14px;font-size:13.5px;line-height:1.55;max-width:62ch}
 .pa-exemplo b{font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:var(--scw-marrom);display:block;margin-bottom:4px}
 
-.pa-nota{margin:0;font-size:13px;line-height:1.5;color:var(--scw-marrom);max-width:62ch}
+.pa-nota{margin:clamp(26px,3vw,36px) 0 0;font-size:13px;line-height:1.5;color:var(--scw-marrom);max-width:62ch}
 
 /* ── Revisão ────────────────────────────────────────────────── */
 .pa-acoes{
