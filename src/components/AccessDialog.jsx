@@ -2,46 +2,57 @@ import React from 'react'
 import { INSTAGRAM_URL } from '../config/channels'
 
 /*
- * Tela de acesso (diálogo modal) — redesign 2026.
- * Duas faixas: cabeçalho chocolate com o lockup do festival, corpo creme com os
- * dois cartões de acesso.
+ * Tela de acesso (diálogo modal) — redesign 2026, refeito em 20/08/2026 pelo
+ * handoff `design_handoff_completo_2026-08/01-CASCA-E-ACESSO.md` §4.
  *
- * Cartão com `href` vira link de verdade; sem `href` fica inerte, porque o
- * painel ainda não existe. É a regra do movimento (§6.15.6): card sem destino
- * não sobe no hover — elevação sem link promete algo que não acontece.
+ * A mudança: os dois caminhos deixam de ter o mesmo peso, porque só um deles
+ * leva a algum lugar hoje.
+ *
+ *   Organização    chapa chocolate + botão de ação amarelo → /organizacao/
+ *   Participante   chapa bege com moldura TRACEJADA — é a mesma reserva honesta
+ *                  das fotos que faltam (§6.12). Selo "em breve", sem hover,
+ *                  sem botão morto: card sem destino não sobe (§6.15.6).
+ *
+ * A ordem inverteu de propósito — quem entra hoje vem primeiro — e a régua de
+ * 5px acompanha: cyan (organização) à esquerda, roxo (participante) à direita.
+ *
+ * O link agora é o BOTÃO, não o card inteiro: com uma ação declarada dentro,
+ * um <a> por fora aninharia interativo em interativo.
  *
  * O painel da organização é PÁGINA ESTÁTICA em public/organizacao/, fora do
- * bundle. Por isso o link é um <a> comum e não `navigate()`: o router só ouve
+ * bundle. Por isso é um <a> comum e não `navigate()`: o router só ouve
  * hashchange/popstate, então a navegação normal do navegador é o que entrega o
  * arquivo — e é justamente o que mantém o painel acessível com
  * COMING_SOON_PUBLICATION = true.
  *
  * Foco preso no diálogo, Esc fecha, foco volta ao gatilho.
- * Spec: design_handoff_site_institucional/README.md (§ Tela de acesso).
  */
 
 const ACESSOS = [
   {
+    titulo: 'Organização',
+    texto: 'Respostas dos formulários do site: contato, participação e apoio.',
+    // A barra final não é enfeite: sem ela o servidor não resolve o índice do
+    // diretório e a rota cai no fallback do SPA — ou seja, volta para a home.
+    acao: { texto: 'Entrar no admin', href: '/organizacao/' },
+    variante: 'destaque',
+    // Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards.
+    traco: 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7',
+    // Cyan sobre chocolate fecha 4,9:1. Roxo aqui daria 1,45:1 — por isso ele
+    // só aparece no card claro (§6.1).
+    fundo: 'var(--scw-cyan)',
+    tinta: 'var(--scw-choco)',
+  },
+  {
     titulo: 'Sou participante',
     texto: 'Combo, dados da edição e resultados do Sweet Awards.',
     rotulo: 'Painel · em breve',
+    variante: 'reserva',
     // Toldo de loja: quem entra aqui é o estabelecimento, não o consumidor.
     // Sem linha de chão — a 21px ela encosta na borda do selo e só suja o ícone.
     traco: 'M4 12l3-6h18l3 6M6 12v14h20V12M13 26v-7h6v7',
-    fundo: '#4D257E',
-    tinta: '#FEF0DD',
-  },
-  {
-    titulo: 'Organização',
-    texto: 'Respostas dos formulários do site: contato, participação e apoio.',
-    rotulo: 'Admin · entrar',
-    // A barra final não é enfeite: sem ela o servidor não resolve o índice do
-    // diretório e a rota cai no fallback do SPA — ou seja, volta para a home.
-    href: '/organizacao/',
-    // Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards.
-    traco: 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7',
-    fundo: '#01AFCC',
-    tinta: '#3D1308',
+    fundo: 'rgba(77, 37, 126, .14)',
+    tinta: 'var(--scw-roxo)',
   },
 ]
 
@@ -86,7 +97,7 @@ export function AccessDialog({ open, onClose }) {
         className="scw-acesso__caixa"
         role="dialog"
         aria-modal="true"
-        aria-label="Área de acesso"
+        aria-labelledby="scw-acesso-titulo"
         tabIndex={-1}
         ref={caixaRef}
         onKeyDown={prenderTab}
@@ -105,34 +116,36 @@ export function AccessDialog({ open, onClose }) {
         <div className="scw-acesso__regua" aria-hidden="true" />
 
         <div className="scw-acesso__corpo">
-          <h2 className="scw-acesso__titulo">
-            Entrar no <em className="scw-italico" style={{ color: '#6A2C15' }}>Sweet &amp; Coffee Week</em>.
+          <h2 className="scw-acesso__titulo" id="scw-acesso-titulo">
+            Entrar no <em className="scw-italico" style={{ color: 'var(--scw-marrom)' }}>Sweet &amp; Coffee Week</em>.
           </h2>
+          <p className="scw-acesso__lead">Escolha por onde você entra.</p>
 
           <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
-            {ACESSOS.map((a) => {
-              const Marca = a.href ? 'a' : 'div'
-              return (
-              <Marca
-                key={a.titulo}
-                className={'scw-acesso__cartao' + (a.href ? ' scw-acesso__cartao--link' : '')}
-                {...(a.href ? { href: a.href } : {})}
-              >
+            {ACESSOS.map((a) => (
+              <div key={a.titulo} className={`scw-acesso__cartao scw-acesso__cartao--${a.variante}`}>
                 <div className="scw-acesso__cabeca">
                   <span className="scw-acesso__selo" aria-hidden="true" style={{ background: a.fundo, color: a.tinta }}>
-                    <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-                      <path d={a.traco} stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+                      <path d={a.traco} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </span>
                   <b className="scw-h3">{a.titulo}</b>
                 </div>
-                <span className="scw-corpo" style={{ fontSize: 14.5, color: '#6A2C15' }}>{a.texto}</span>
-                <span className="scw-pill scw-pill--bege" style={{ marginTop: 'auto', fontSize: 11, letterSpacing: '.12em' }}>
-                  {a.rotulo}
-                </span>
-              </Marca>
-              )
-            })}
+                <span className="scw-acesso__cartao-txt">{a.texto}</span>
+
+                {a.acao ? (
+                  <a className="scw-acesso__acao" href={a.acao.href}>
+                    {a.acao.texto}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                ) : (
+                  <span className="scw-acesso__espera">{a.rotulo}</span>
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="scw-acesso__pe">

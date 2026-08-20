@@ -768,7 +768,7 @@ Participar → `/images/combos/douce-di-maria/main.jpg` · Apoiar → `/images/m
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo para `/organizacao/`; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |

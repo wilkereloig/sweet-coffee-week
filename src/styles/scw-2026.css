@@ -738,6 +738,7 @@ body.route-contato {
   padding: clamp(16px, 4vw, 40px);
   background: rgba(61, 19, 8, .82);
   backdrop-filter: blur(4px);
+  animation: scwFade var(--mo-estado, 300ms) ease both;
 }
 .scw-acesso__caixa {
   position: relative;
@@ -748,6 +749,13 @@ body.route-contato {
   background: var(--scw-creme);
   color: var(--scw-choco);
   box-shadow: 0 34px 80px rgba(0, 0, 0, .5);
+  animation: scwFolha 340ms cubic-bezier(.22, .92, .24, 1) both;
+}
+/* A caixa sobe pela mesma curva da folha do menu; com movimento reduzido ela
+   simplesmente já está no lugar. */
+@media (prefers-reduced-motion: reduce) {
+  .scw-acesso,
+  .scw-acesso__caixa { animation: none; }
 }
 
 /* Faixa chocolate — assina o painel com a marca do festival. */
@@ -775,10 +783,12 @@ body.route-contato {
   color: var(--scw-amarelo);
 }
 
-/* Régua de 5px nas cores dos dois acessos (mesma linguagem da barra de página). */
+/* Régua de 5px nas cores dos dois acessos, na MESMA ordem dos cards: cyan é a
+   organização (entra hoje), roxo é o participante (em breve). Trocar a ordem de
+   um sem trocar a do outro desfaz a leitura. */
 .scw-acesso__regua {
   height: 5px;
-  background: linear-gradient(90deg, #4D257E 0 50%, #01AFCC 50%);
+  background: linear-gradient(90deg, var(--scw-cyan) 0 50%, var(--scw-roxo) 50%);
 }
 
 /* Fechar sai do canto absoluto e passa a morar na faixa. */
@@ -804,54 +814,44 @@ body.route-contato {
 .scw-acesso__corpo {
   padding: clamp(24px, 3vw, 44px) clamp(22px, 3vw, 40px) clamp(22px, 2.6vw, 36px);
 }
-/* Sem lead: o título é que abre o espaço até os cards. */
 .scw-acesso__titulo {
-  margin: 0 0 clamp(24px, 2.8vw, 34px);
+  margin: 0 0 6px;
   max-width: 22ch;
   font: 900 clamp(26px, 2.8vw, 40px)/1 var(--scw-font-black);
   letter-spacing: -.035em;
   text-wrap: balance;
 }
+.scw-acesso__lead {
+  margin: 0 0 clamp(20px, 2.4vw, 28px);
+  max-width: 46ch;
+  font: 500 15px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
 
+/* Os dois cards têm peso diferente de propósito: só um leva a algum lugar hoje. */
 .scw-acesso__cartao {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 100%;
+  gap: 12px;
   padding: clamp(18px, 2vw, 24px);
   border-radius: var(--scw-r-interno);
-  border: 1px solid rgba(61, 19, 8, .14);
-  background: var(--scw-creme);
   text-align: left;
-  box-shadow: 0 3px 0 rgba(61, 19, 8, .07);
 }
-
-/* Cartão que leva a algum lugar. O cartão inerte não recebe nada disto:
-   elevação sem destino promete uma ação que não existe (§6.15.6).
-   `color: inherit` é explícito de propósito — sem ele o <a> herdaria o azul do
-   navegador, e o reset genérico de `.scw-raiz a` não alcança o diálogo. */
-a.scw-acesso__cartao--link {
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 180ms var(--scw-ease),
-              box-shadow var(--scw-transicao),
-              border-color var(--scw-transicao);
+/* Organização — chapa cheia. A sombra é filete sólido, não difusa: o card é
+   superfície, não elemento flutuante. */
+.scw-acesso__cartao--destaque {
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  box-shadow: 0 4px 0 rgba(61, 19, 8, .18);
 }
-a.scw-acesso__cartao--link:hover {
-  transform: translateY(-2px);
-  border-color: rgba(61, 19, 8, .28);
-  box-shadow: 0 5px 0 rgba(61, 19, 8, .1);
-}
-a.scw-acesso__cartao--link:active { transform: translateY(0) }
-a.scw-acesso__cartao--link:focus-visible {
-  outline: 3px solid var(--scw-cyan);
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  a.scw-acesso__cartao--link,
-  a.scw-acesso__cartao--link:hover { transform: none; transition: none }
+/* Participante — a MESMA moldura tracejada da reserva honesta (§6.12): tracejado
+   quer dizer "existe, ainda não chegou". Sem hover, sem sombra, sem cursor:
+   elevação sem destino promete uma ação que não acontece (§6.15.6). */
+.scw-acesso__cartao--reserva {
+  background: var(--scw-bege);
+  border: 1px dashed rgba(61, 19, 8, .28);
+  color: var(--scw-choco);
 }
 .scw-acesso__cabeca {
   display: flex;
@@ -866,8 +866,65 @@ a.scw-acesso__cartao--link:focus-visible {
   height: 40px;
   border-radius: 999px;
 }
+.scw-acesso__cartao-txt {
+  font: 500 14.5px/1.5 var(--scw-font);
+  text-wrap: pretty;
+}
+.scw-acesso__cartao--destaque .scw-acesso__cartao-txt { color: rgba(254, 240, 221, .82); }
+.scw-acesso__cartao--reserva  .scw-acesso__cartao-txt { color: var(--scw-marrom); }
 
-/* Pé: informação à esquerda, saída à direita. */
+/* Ação do card: o link é ELE, não o card inteiro — com um botão declarado
+   dentro, um <a> por fora aninharia interativo em interativo. 48px de altura
+   passa o piso de toque com folga. */
+.scw-acesso__acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: var(--scw-amarelo);
+  color: var(--scw-choco);
+  font: 800 13.5px/1 var(--scw-font);
+  letter-spacing: .02em;
+  text-decoration: none;
+  transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
+}
+.scw-acesso__acao:hover {
+  background: var(--scw-creme);
+  transform: translateY(-2px);
+}
+.scw-acesso__acao:active { transform: scale(.98); }
+.scw-acesso__acao:focus-visible {
+  outline: 3px solid var(--scw-cyan);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scw-acesso__acao,
+  .scw-acesso__acao:hover { transform: none; transition: none; }
+}
+
+/* Selo de espera: `align-self` para o selo ter a largura do TEXTO, nunca a da
+   coluna — senão vira barra e parece controle. */
+.scw-acesso__espera {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  margin-top: auto;
+  padding: 9px 14px 8px;
+  border-radius: 999px;
+  background: rgba(61, 19, 8, .08);
+  font: 800 11px/1 var(--scw-font);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+
+/* Pé: informação à esquerda, saída à direita — na MESMA linha flex. O bug
+   antigo era o pé em fluxo por cima da grade. */
 .scw-acesso__pe {
   display: flex;
   align-items: center;
@@ -880,9 +937,11 @@ a.scw-acesso__cartao--link:focus-visible {
 }
 .scw-acesso__pe-texto {
   margin: 0;
-  flex: 1 1 22ch;
+  flex: 1 1 26ch;
+  max-width: 44ch;
   font: 500 13.5px/1.5 var(--scw-font);
-  color: #6A2C15;
+  color: var(--scw-marrom);
+  text-wrap: pretty;
 }
 .scw-acesso__cta {
   display: inline-flex;
@@ -897,6 +956,13 @@ a.scw-acesso__cartao--link:focus-visible {
   font: 800 13px/1 var(--scw-font);
   letter-spacing: .02em;
   text-decoration: none;
+  transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
+}
+.scw-acesso__cta:hover { background: var(--scw-marrom); transform: translateY(-2px); }
+.scw-acesso__cta:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) {
+  .scw-acesso__cta,
+  .scw-acesso__cta:hover { transform: none; transition: none; }
 }
 
 /* ============================================================================
