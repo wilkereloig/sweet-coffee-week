@@ -521,6 +521,19 @@ body.route-contato {
 }
 .scw-acesso-topo:active { transform: translateY(0) scale(.985); }
 
+/* ── Cabeçalho reduzido: só o botão de acesso ────────────────────────────────
+   Usado pela landing /em-breve, que é a única página pública enquanto o gate
+   está ligado. Sem marca (a landing já traz o wordmark grande no herói) e sem
+   navegação (as rotas do menu voltariam para a própria landing).
+   O véu sai junto: ele existe para separar o menu da foto que passa por baixo,
+   e aqui não há menu para separar — sobraria como faixa escura sem função. */
+.scw-header--so-acesso .scw-header__veu { display: none; }
+.scw-header--so-acesso .scw-header__linha {
+  justify-content: flex-end;
+  padding-top: clamp(18px, 2.4vw, 28px);
+  padding-bottom: 0;
+}
+
 /* ≤900px a casca vira aplicativo: sem menu de desktop, sem botão de acesso no
    topo (a função migra pra folha "mais"), logo sem overhang. */
 @media (max-width: 900px) {
@@ -532,7 +545,11 @@ body.route-contato {
   .scw-marca { position: static; transform: none; }
   .scw-marca img { height: 52px; }
   .scw-nav { display: none; }
-  .scw-acesso-topo { display: none; }
+  /* O botão some porque a função migra pra folha "mais" da barra de abas.
+     A landing /em-breve não tem barra de abas — ali o cabeçalho reduzido é a
+     única porta de acesso e o botão precisa continuar visível. Escrito como
+     exceção no próprio seletor, não como regra concorrente depois (§5.7). */
+  .scw-header:not(.scw-header--so-acesso) .scw-acesso-topo { display: none; }
   .scw-header__linha { padding: 18px var(--scw-trilho); }
   /* A liberação de .scw-abas / .scw-folha fica no bloco ≤900px lá embaixo:
      precisa vir DEPOIS das regras base delas, senão o display:none vence. */

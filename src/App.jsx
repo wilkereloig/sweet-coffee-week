@@ -155,6 +155,19 @@ export default function App() {
           />
         </>
       )}
+      {/* A landing não tem menu — mas precisa da porta de acesso, senão o painel
+          da organização fica inalcançável enquanto o gate estiver ligado: ele é
+          página estática e não aparece em rota nenhuma do React. Cabeçalho
+          reduzido ao botão, sem marca e sem navegação (§7.7). */}
+      {route === 'em-breve' && (
+        <SiteHeader
+          apenasAcesso
+          route={route}
+          navigate={navigate}
+          accessOpen={accessOpen}
+          onOpenAccess={() => setAccessOpen(true)}
+        />
+      )}
       {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
           legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
       <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
@@ -180,7 +193,9 @@ export default function App() {
           />
         </>
       )}
-      {!isInternal && <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />}
+      {/* A landing agora tem botão de acesso, então precisa do diálogo junto —
+          sem isso o clique não abriria nada. */}
+      <AccessDialog open={accessOpen} onClose={() => setAccessOpen(false)} />
       {showShell && <BotaoTopo />}
       <CookieConsent />
     </div>

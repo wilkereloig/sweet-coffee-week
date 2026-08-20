@@ -66,7 +66,17 @@ export function ChaveIcon(props) {
   )
 }
 
-export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
+/*
+ * `apenasAcesso` — cabeçalho reduzido ao botão de acesso, para a landing
+ * /em-breve. Ela é a única página pública enquanto o gate está ligado, e as
+ * rotas do menu não existem para o visitante: um link para /participar levaria
+ * de volta à própria landing. Então some a navegação e some a marca, que a
+ * landing já traz em tamanho grande no herói.
+ *
+ * É variante, não cópia: o botão, o aria e a geometria continuam sendo os
+ * mesmos deste componente (§5.3).
+ */
+export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAcesso = false }) {
   // Rolou → o véu do cabeçalho fecha, para o menu não competir com a foto que
   // passa por baixo. Só a opacidade do véu muda: a geometria (padding de 50px,
   // logo transbordando metade abaixo da linha) é regra estrutural do §4.1 e
@@ -94,13 +104,16 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
   }
 
   return (
-    <header className={'scw-header' + (rolado ? ' is-rolado' : '')}>
+    <header className={'scw-header' + (rolado ? ' is-rolado' : '') + (apenasAcesso ? ' scw-header--so-acesso' : '')}>
       <div className="scw-header__veu" aria-hidden="true" />
       <div className="scw-header__linha">
+        {!apenasAcesso && (
         <a href="#/" className="scw-marca" onClick={go('#/')}>
           <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
         </a>
+        )}
 
+        {!apenasAcesso && (
         <nav className="scw-nav" aria-label="Navegação principal">
           {NAV_LINKS.map((l) => {
             const ativo = route === l.id
@@ -123,6 +136,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen }) {
             )
           })}
         </nav>
+        )}
 
         <button
           type="button"
