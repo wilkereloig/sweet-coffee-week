@@ -26,7 +26,7 @@ test('toda função crítica está declarada, não só chamada', () => {
   const declaradas = new Set(
     [...JS.matchAll(/(?:function\s+|const\s+|let\s+)([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))
   const criticas = ['rpc', 'carregar', 'render', 'filtrados', 'todos', 'campo', 'escapar',
-                    'abrirDetalhe', 'fecharDetalhe', 'salvar', 'montarAbas', 'montarFiltroStatus',
+                    'abrirDetalhe', 'fecharDetalhe', 'salvar', 'montarAbas', 'montarForms', 'montarFiltroStatus',
                     'mostrarEstado', 'abrirPainel', 'dataCurta', 'soDigitos']
   const faltando = criticas.filter((f) => !declaradas.has(f))
   assert.deepEqual(faltando, [], 'função chamada mas nunca declarada: ' + faltando.join(', '))

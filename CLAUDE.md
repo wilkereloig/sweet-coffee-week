@@ -218,6 +218,21 @@ preview.**
   | Contato | `src/lib/contactRequest.js` | `submit_contact_request` |
   | Participar | `src/lib/participationInterest.js` | `submit_participation_interest` |
   | Apoiar | `src/lib/supportInterest.js` | `submit_support_interest` |
+  | **Quero participar** (estática) | — o próprio HTML | `submit_quero_participar` |
+
+  ⚠️ **Ter código de backend não é ter backend.** Em 20/08/2026 descobriu-se que
+  **as três migrations de formulário nunca tinham sido aplicadas**: as tabelas
+  `contact_requests`, `participation_interests` e `support_interests` não
+  existiam no Postgres. Os três formulários falhavam em **todo** envio desde que
+  foram ao ar — honestamente, porque a lib nunca afirma "enviado" sem gravar, e
+  por isso ninguém percebeu. Não há `supabase/config.toml` nem CLI: **migration
+  em arquivo só vira migration aplicada por ação manual.** As quatro estão
+  aplicadas desde 20/08/2026.
+
+  ⚠️ **Projeto Supabase pausado perde o DNS** e devolve NXDOMAIN, o que parece
+  projeto deletado. O plano free da org permite **2 projetos ativos**; o
+  `ascendium-ecommerce` foi pausado em 20/08/2026 para o SCW voltar. Antes de
+  concluir que um projeto sumiu, checar o status — `INACTIVE` é pausa.
 
   Migration em `supabase/migrations/`. **Nenhum deles afirma "enviado" se a gravação
   falhar** — é regra escrita no cabeçalho dos três arquivos. ⛔ **Não trocar por
@@ -1582,6 +1597,35 @@ emenda — o `box-shadow` curto de antes escondia, a rampa longa expõe.
 
 ⚠️ **`bgStyle()` resolve UM valor e style inline vence media query.** Elemento que aparece
 nas duas telas com enquadramento diferente **tem** que mandar `--foco` e `--foco-mobile`.
+
+### 10.4-b Páginas estáticas fora do bundle
+
+Existem duas: **`/quero-participar/`** (formulário de pré-cadastro) e
+**`/organizacao/`** (painel interno da organização). Ficam em `public/`, fora do
+React, e é isso que as mantém acessíveis com `COMING_SOON_PUBLICATION = true`
+**sem tocar em flag nenhuma** (A3).
+
+⚠️ **A barra final não é opcional.** Sem ela o servidor não resolve o índice do
+diretório e a rota cai no fallback do SPA — ou seja, abre a landing. Medido no
+build via `vite preview`: `/organizacao` → index.html do SPA · `/organizacao/` →
+o painel. O `vercel.json` ganhou rewrite explícito para as duas rotas como rede
+de segurança em produção (a Vercel checa o sistema de arquivos antes dos
+rewrites), mas **todo link interno escreve a barra**.
+
+⚠️ **O dev server nunca serve essas páginas.** O Vite não faz resolução de
+índice de diretório para `public/`, com barra ou sem. Conferir página estática
+é contra o **build**, como já vale para `tests/responsive.mjs` (§10.8).
+
+⚠️ **O JS delas mora inline e não passa pelo Vite**, então `npm run build` fica
+verde com o script quebrado. `tests/quero-participar.test.mjs` e
+`tests/organizacao.test.mjs` cobrem esse vão: parse, funções **declaradas** (não
+só citadas), escape de tudo que vem do banco e ausência de chave secreta.
+
+**Acesso ao painel:** pelo cartão "Organização" do diálogo de acesso — inclusive
+na `/em-breve`, que ganhou um cabeçalho reduzido só com o botão. Não há link em
+menu nem rodapé, de propósito. A senha é a mesma de `admin_config` e só se
+redefine por SQL (`select public.set_admin_secret($$…$$)`); o banco guarda só o
+hash, então **ela não é recuperável**.
 
 ### 10.5 Grade e layout
 
