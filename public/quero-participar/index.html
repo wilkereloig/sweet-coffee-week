@@ -158,54 +158,33 @@ body{
 .pa-guia__item h3{font:900 17px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
 .pa-guia__item p{margin:0;font-size:14.5px;line-height:1.5;color:var(--scw-marrom)}
 
-/* ── Trilha de passos ───────────────────────────────────────── */
 .pa-corpo{padding-top:clamp(40px,4.6vw,64px);padding-bottom:clamp(40px,4.6vw,64px)}
 .pa-form{max-width:880px}
 
-.pa-trilha{margin-bottom:clamp(28px,3.2vw,42px)}
-.pa-trilha__topo{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:12px}
-.pa-trilha__conta{font:800 12px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;color:var(--scw-marrom)}
-.pa-trilha__barra{height:6px;border-radius:3px;background:rgba(61,19,8,.12);overflow:hidden}
-.pa-trilha__preenche{
-  display:block;height:100%;border-radius:3px;background:var(--scw-cyan);
-  transform-origin:left center;transform:scaleX(var(--progresso,.2));
-  transition:transform 420ms var(--scw-ease);
-}
-.pa-trilha__lista{
-  display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none;
-}
-.pa-trilha__item{margin:0}
-.pa-trilha__btn{
-  display:flex;align-items:center;gap:8px;min-height:44px;
-  padding:8px 14px;border-radius:999px;border:1px solid var(--scw-borda-campo);
-  background:transparent;color:var(--scw-marrom);
-  font:700 13px/1.2 var(--scw-font);cursor:pointer;
-  transition:background var(--scw-transicao),color var(--scw-transicao),border-color var(--scw-transicao);
-}
-.pa-trilha__btn[disabled]{opacity:.45;cursor:default}
-.pa-trilha__num{
-  width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
-  font:800 11px/1 var(--scw-font);background:rgba(61,19,8,.12);color:var(--scw-choco);
-}
-.pa-trilha__item[data-estado="feito"] .pa-trilha__btn{color:var(--scw-choco);border-color:var(--scw-choco)}
-.pa-trilha__item[data-estado="feito"] .pa-trilha__num{background:var(--scw-amarelo)}
-.pa-trilha__item[data-estado="atual"] .pa-trilha__btn{background:var(--scw-choco);color:var(--scw-creme);border-color:var(--scw-choco)}
-.pa-trilha__item[data-estado="atual"] .pa-trilha__num{background:var(--scw-cyan);color:var(--scw-choco)}
 
 /* ── Passo ──────────────────────────────────────────────────── */
 .pa-passo[hidden]{display:none}
 .pa-passo{animation:paEntra var(--mo-entra) var(--scw-ease) both}
+/* Empilhadas numa pagina so, as secoes pedem o ritmo vertical do sistema
+   e entram em cascata, uma atras da outra, em vez de todas de uma vez. */
+.pa-passo + .pa-passo{margin-top:var(--scw-sec-y)}
+.pa-passo--2{animation-delay:var(--mo-passo)}
+.pa-passo--3{animation-delay:calc(var(--mo-passo) * 2)}
+.pa-passo--4{animation-delay:calc(var(--mo-passo) * 3)}
 @keyframes paEntra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 .pa-passo__cabeca{display:flex;gap:14px;align-items:flex-start;margin-bottom:var(--scw-gap-cabeca)}
 .pa-disco{
-  flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-  font:800 18px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
+  flex:0 0 auto;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;
+  background:var(--scw-amarelo);color:var(--scw-choco);
 }
+/* Irmaos nunca repetem cor (CLAUDE.md 6.3): amarelo, cyan, magenta, roxo.
+   A tinta acompanha o fundo — creme onde chocolate nao fecha contraste. */
 .pa-passo--2 .pa-disco{background:var(--scw-cyan)}
 .pa-passo--3 .pa-disco{background:var(--scw-magenta);color:var(--scw-creme)}
 .pa-passo--4 .pa-disco{background:var(--scw-roxo);color:var(--scw-creme)}
-.pa-passo--5 .pa-disco{background:var(--scw-laranja)}
+.pa-ico{display:block}
+.scw-rotulo--com-icone{display:inline-flex;align-items:center;gap:10px;max-width:32ch}
 .pa-passo__texto{padding-top:2px}
 .pa-passo__texto .scw-corpo{margin-top:8px;color:var(--scw-marrom)}
 
@@ -268,20 +247,6 @@ body{
 .pa-nota{margin:0;font-size:13px;line-height:1.5;color:var(--scw-marrom);max-width:62ch}
 
 /* ── Revisão ────────────────────────────────────────────────── */
-.pa-revisao{display:flex;flex-direction:column;gap:var(--scw-gap-grade)}
-.pa-revisao__grupo{border:1px solid var(--scw-filete);border-radius:var(--scw-r-card);padding:20px 22px}
-.pa-revisao__cabeca{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
-.pa-revisao__cabeca h3{font:900 17px/1.1 var(--scw-font);letter-spacing:-.02em;margin:0}
-.pa-revisao__editar{
-  background:transparent;border:0;padding:12px 4px;min-height:44px;
-  font:800 13px/1 var(--scw-font);color:var(--scw-marrom);cursor:pointer;
-  border-bottom:2px solid var(--scw-cyan);border-radius:0;
-}
-.pa-revisao__editar:hover{color:var(--scw-choco)}
-.pa-revisao dl{margin:0;display:grid;gap:10px}
-.pa-revisao dt{font:800 11px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
-.pa-revisao dd{margin:2px 0 0;font-size:15px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
-.pa-revisao dd:empty::before{content:"não respondido";color:var(--scw-marrom);font-style:italic}
 
 /* ── Ações ──────────────────────────────────────────────────── */
 .pa-acoes{
@@ -337,10 +302,6 @@ body{
 @media (max-width:760px){
   .pa-grade{grid-template-columns:1fr}
   .pa-hero__acoes .scw-btn{width:100%}
-  #trilha-nome{display:none}
-  .pa-trilha__lista{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
-  .pa-trilha__lista::-webkit-scrollbar{display:none}
-  .pa-trilha__item{flex:0 0 auto}
   .pa-acoes{
     position:sticky;bottom:0;z-index:5;
     background:var(--scw-creme);
@@ -390,17 +351,17 @@ body{
   </ul>
 
   <div class="pa-guia">
-    <p class="scw-rotulo">Como funciona</p>
+    <p class="scw-rotulo scw-rotulo--com-icone"><svg class="pa-ico" viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7.4 4.6h17.2a2 2 0 0 1 2 2v18.8a2 2 0 0 1-2 2H7.4a2 2 0 0 1-2-2V6.6a2 2 0 0 1 2-2Z"></path><path d="M10.6 11.4h10.8M10.6 16h10.8M10.6 20.6h5.4" stroke-width="2.4"></path></svg>Como funciona</p>
     <ul class="pa-guia__grade">
       <li class="pa-guia__item">
         <span class="pa-guia__disco" aria-hidden="true">1</span>
-        <h3>Quatro passos curtos</h3>
+        <h3>Uma página só</h3>
         <p>Você, o negócio, o que você serve e a sua história. A maioria das respostas é só tocar numa opção.</p>
       </li>
       <li class="pa-guia__item">
         <span class="pa-guia__disco" aria-hidden="true">2</span>
-        <h3>Confere antes de enviar</h3>
-        <p>No fim aparece tudo o que você escreveu, e dá para voltar e corrigir qualquer parte.</p>
+        <h3>Nada se perde de vista</h3>
+        <p>Tudo o que você escreveu fica visível na tela — dá para reler e corrigir qualquer parte antes de enviar.</p>
       </li>
       <li class="pa-guia__item">
         <span class="pa-guia__disco" aria-hidden="true">3</span>
@@ -419,29 +380,12 @@ body{
       <input type="text" id="site-web" name="site-web" tabindex="-1" autocomplete="off">
     </div>
 
-    <!-- Trilha ─────────────────────────────── -->
-    <div class="pa-trilha">
-      <div class="pa-trilha__topo">
-        <p class="pa-trilha__conta" id="trilha-conta">Passo 1 de 5</p>
-        <p class="pa-trilha__conta" id="trilha-nome">Sobre você</p>
-      </div>
-      <div class="pa-trilha__barra">
-        <span class="pa-trilha__preenche" id="trilha-preenche" style="--progresso:.2"></span>
-      </div>
-      <ul class="pa-trilha__lista" id="trilha-lista">
-        <li class="pa-trilha__item" data-estado="atual"><button type="button" class="pa-trilha__btn" data-ir="1"><span class="pa-trilha__num">1</span>Você</button></li>
-        <li class="pa-trilha__item"><button type="button" class="pa-trilha__btn" data-ir="2" disabled><span class="pa-trilha__num">2</span>O negócio</button></li>
-        <li class="pa-trilha__item"><button type="button" class="pa-trilha__btn" data-ir="3" disabled><span class="pa-trilha__num">3</span>O que serve</button></li>
-        <li class="pa-trilha__item"><button type="button" class="pa-trilha__btn" data-ir="4" disabled><span class="pa-trilha__num">4</span>Sua história</button></li>
-        <li class="pa-trilha__item"><button type="button" class="pa-trilha__btn" data-ir="5" disabled><span class="pa-trilha__num">5</span>Revisar</button></li>
-      </ul>
-      <p class="pa-oculto" role="status" aria-live="polite" id="anuncio"></p>
-    </div>
+    <p class="pa-oculto" role="status" aria-live="polite" id="anuncio"></p>
 
     <!-- 01 ─────────────────────────────────── -->
     <section class="pa-passo pa-passo--1" data-passo="1" aria-labelledby="titulo-1">
       <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">01</span>
+        <span class="pa-disco" aria-hidden="true"><svg class="pa-ico" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="16" cy="11" r="5.4" fill="currentColor" stroke="none"></circle><path d="M6.4 27c0-5.3 4.3-9.6 9.6-9.6s9.6 4.3 9.6 9.6"></path></svg></span>
         <div class="pa-passo__texto">
           <h2 class="scw-h2" id="titulo-1" tabindex="-1">Sobre você</h2>
           <p class="scw-corpo">Com quem a nossa equipe vai falar.</p>
@@ -469,9 +413,9 @@ body{
     </section>
 
     <!-- 02 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--2" data-passo="2" aria-labelledby="titulo-2" hidden>
+    <section class="pa-passo pa-passo--2" data-passo="2" aria-labelledby="titulo-2">
       <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">02</span>
+        <span class="pa-disco" aria-hidden="true"><svg class="pa-ico" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"></path><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"></path></svg></span>
         <div class="pa-passo__texto">
           <h2 class="scw-h2" id="titulo-2" tabindex="-1">Sobre o negócio</h2>
           <p class="scw-corpo">O básico para a gente encontrar e reconhecer a sua marca.</p>
@@ -523,9 +467,9 @@ body{
     </section>
 
     <!-- 03 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--3" data-passo="3" aria-labelledby="titulo-3" hidden>
+    <section class="pa-passo pa-passo--3" data-passo="3" aria-labelledby="titulo-3">
       <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">03</span>
+        <span class="pa-disco" aria-hidden="true"><svg class="pa-ico" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M3.1 17.6h9l-1.1 6.4a1.5 1.5 0 0 1-1.5 1.2H5.7a1.5 1.5 0 0 1-1.5-1.2Z"></path><path fill="currentColor" stroke="none" d="M2.2 17.6a5.4 5.4 0 0 1 10.8 0Z"></path><path stroke-width="1.6" d="M6.2 20l-.35 3.2M9 20l.35 3.2"></path><path fill="currentColor" stroke="none" d="M18.2 13.4h9.6l-1.3 9.8a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8Z"></path><path stroke-width="2.6" d="M28.2 16.2h.6a2.2 2.2 0 0 1 0 4.4h-1"></path><path d="M1.8 27.4h28.4"></path></svg></span>
         <div class="pa-passo__texto">
           <h2 class="scw-h2" id="titulo-3" tabindex="-1">O que você serve</h2>
           <p class="scw-corpo">Marque tudo que faz parte da casa. Não precisa ser o cardápio inteiro.</p>
@@ -572,9 +516,9 @@ body{
     </section>
 
     <!-- 04 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--4" data-passo="4" aria-labelledby="titulo-4" hidden>
+    <section class="pa-passo pa-passo--4" data-passo="4" aria-labelledby="titulo-4">
       <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">04</span>
+        <span class="pa-disco" aria-hidden="true"><svg class="pa-ico" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M27.4 14.6c0 5.6-5.1 10.2-11.4 10.2-1.4 0-2.7-.2-3.9-.6L5.6 27.4l2-5A9.8 9.8 0 0 1 4.6 14.6C4.6 9 9.7 4.4 16 4.4s11.4 4.6 11.4 10.2Z"></path><rect x="10.8" y="11.4" width="3.6" height="3.6" rx="1" fill="currentColor" stroke="none"></rect><rect x="17.6" y="11.4" width="3.6" height="3.6" rx="1" fill="currentColor" stroke="none"></rect></svg></span>
         <div class="pa-passo__texto">
           <h2 class="scw-h2" id="titulo-4" tabindex="-1">A sua história</h2>
           <p class="scw-corpo">Duas perguntas curtas. Escreva como você contaria para um cliente novo — sem formalidade.</p>
@@ -624,25 +568,12 @@ body{
       </div>
     </section>
 
-    <!-- 05 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--5" data-passo="5" aria-labelledby="titulo-5" hidden>
-      <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">05</span>
-        <div class="pa-passo__texto">
-          <h2 class="scw-h2" id="titulo-5" tabindex="-1">Confira antes de enviar</h2>
-          <p class="scw-corpo">É isto que vai chegar até a nossa equipe. Qualquer parte pode ser corrigida.</p>
-        </div>
-      </div>
-      <div class="pa-revisao" id="revisao"></div>
-      <p class="pa-nota" style="margin-top:20px">Suas respostas vão só para a equipe do Sweet &amp; Coffee Week e servem para entrar em contato com você sobre a participação.</p>
-    </section>
-
     <!-- Ações ──────────────────────────────── -->
+    <p class="pa-nota">Suas respostas vão só para a equipe do Sweet &amp; Coffee Week e servem para entrar em contato com você sobre a participação.</p>
+
     <div class="pa-acoes">
-      <button type="button" class="scw-btn scw-btn--vazado" id="btn-voltar" hidden>Voltar</button>
-      <button type="button" class="scw-btn" id="btn-avancar">Continuar</button>
-      <button type="submit" class="scw-btn" id="btn-enviar" hidden>Enviar</button>
-      <button type="button" class="scw-btn scw-btn--vazado" id="btn-copiar" hidden>Copiar respostas</button>
+      <button type="submit" class="scw-btn" id="btn-enviar">Enviar</button>
+      <button type="button" class="scw-btn scw-btn--vazado" id="btn-copiar">Copiar respostas</button>
     </div>
 
     <div class="pa-retorno" id="retorno" role="status" aria-live="polite"></div>
@@ -697,20 +628,9 @@ const form = document.getElementById('form-participar');
 const retorno = document.getElementById('retorno');
 const resumoBox = document.getElementById('resumo');
 const anuncio = document.getElementById('anuncio');
-const btnVoltar = document.getElementById('btn-voltar');
-const btnAvancar = document.getElementById('btn-avancar');
 const btnEnviar = document.getElementById('btn-enviar');
 const btnCopiar = document.getElementById('btn-copiar');
-const trilhaConta = document.getElementById('trilha-conta');
-const trilhaNome = document.getElementById('trilha-nome');
-const trilhaPreenche = document.getElementById('trilha-preenche');
-const itensTrilha = [...document.querySelectorAll('.pa-trilha__item')];
-const passos = [...document.querySelectorAll('.pa-passo')];
-
-const NOMES = ['Sobre você', 'Sobre o negócio', 'O que você serve', 'A sua história', 'Confira antes de enviar'];
-const TOTAL = passos.length;
-let passoAtual = 1;
-let maiorVisitado = 1;
+const secoes = [...document.querySelectorAll('.pa-passo')];
 
 /* ── Dados ──────────────────────────────────────────────────── */
 const ROTULOS = {
@@ -724,19 +644,8 @@ const ROTULOS = {
 const ORDEM = ['nome','telefone','email','empresa','tipo','cidade','instagram','site',
                'serve','carroChefe','historia','especial','experiencia','extra'];
 const LONGOS = ['historia','especial','extra'];
-const POR_PASSO = {
-  1: ['nome','telefone','email'],
-  2: ['empresa','tipo','cidade','instagram','site'],
-  3: ['serve','carroChefe'],
-  4: ['historia','especial','experiencia','extra']
-};
-const OBRIGATORIOS = {
-  1: ['nome','telefone','email'],
-  2: ['empresa','tipo','cidade','instagram'],
-  3: ['serve','carroChefe'],
-  4: ['historia','especial'],
-  5: []
-};
+const OBRIGATORIOS = ['nome','telefone','email','empresa','tipo','cidade','instagram',
+                      'serve','carroChefe','historia','especial'];
 
 // Grupo de escolha → campo que nasce quando a pessoa marca "Outro".
 const OUTROS = { tipo: 'tipoOutro', serve: 'serveOutro', experiencia: 'experienciaOutro' };
@@ -787,12 +696,14 @@ function limparErro(alvo) {
   }
 }
 
-/* Enter avança em vez de enviar */
+/* Enter leva ao próximo campo em vez de enviar sem querer */
 form.addEventListener('keydown', (ev) => {
-  if (ev.key === 'Enter' && ev.target.tagName === 'INPUT') {
-    ev.preventDefault();
-    if (passoAtual < TOTAL) avancar();
-  }
+  if (ev.key !== 'Enter' || ev.target.tagName !== 'INPUT') return;
+  ev.preventDefault();
+  const focaveis = [...form.querySelectorAll('input:not([type=hidden]), textarea, select')]
+    .filter(c => c.offsetParent !== null);
+  const i = focaveis.indexOf(ev.target);
+  if (i > -1 && i < focaveis.length - 1) focaveis[i + 1].focus();
 });
 
 /* ── Validação ──────────────────────────────────────────────── */
@@ -815,19 +726,18 @@ function marcar(nome, tem) {
   primeiro.setAttribute('aria-invalid', tem ? 'true' : 'false');
 }
 
-function validarPasso(n) {
-  if (DEMO) return [];   // demonstração: navega livre, sem cobrar campo
+function validarTudo() {
+  if (DEMO) return [];   // demonstração: não cobra campo
   const faltando = [];
-  (OBRIGATORIOS[n] || []).forEach(nome => {
+  OBRIGATORIOS.forEach(nome => {
     const ok = preenchido(nome);
     marcar(nome, !ok);
     if (!ok) faltando.push(nome);
   });
 
   // Marcou "Outro"? Então o campo que abriu vira obrigatório.
-  (POR_PASSO[n] || []).forEach(grupo => {
-    const campo = OUTROS[grupo];
-    if (!campo || !marcouOutro(grupo)) return;
+  Object.entries(OUTROS).forEach(([grupo, campo]) => {
+    if (!marcouOutro(grupo)) return;
     const ok = document.getElementById(campo).value.trim() !== '';
     marcar(campo, !ok);
     if (!ok) faltando.push(campo);
@@ -836,69 +746,15 @@ function validarPasso(n) {
   return faltando;
 }
 
-/* ── Navegação ──────────────────────────────────────────────── */
-function irPara(n, { focar = true } = {}) {
-  passoAtual = n;
-  maiorVisitado = Math.max(maiorVisitado, n);
-
-  passos.forEach(p => { p.hidden = Number(p.dataset.passo) !== n; });
-
-  trilhaConta.textContent = 'Passo ' + n + ' de ' + TOTAL;
-  trilhaNome.textContent = NOMES[n - 1];
-  trilhaPreenche.style.setProperty('--progresso', (n / TOTAL).toFixed(3));
-  anuncio.textContent = 'Passo ' + n + ' de ' + TOTAL + ': ' + NOMES[n - 1];
-
-  itensTrilha.forEach((item, i) => {
-    const num = i + 1;
-    item.removeAttribute('data-estado');
-    if (num === n) item.setAttribute('data-estado', 'atual');
-    else if (num < maiorVisitado || num < n) item.setAttribute('data-estado', 'feito');
-    const btn = item.querySelector('button');
-    btn.disabled = DEMO ? false : num > maiorVisitado;
-    btn.setAttribute('aria-current', num === n ? 'step' : 'false');
-    // No celular a trilha rola: mantém o passo atual à vista, sem mexer na página.
-    if (num === n) item.scrollIntoView({ block: 'nearest', inline: 'center' });
-  });
-
-  btnVoltar.hidden = n === 1;
-  btnAvancar.hidden = n === TOTAL;
-  btnEnviar.hidden = n !== TOTAL;
-  btnCopiar.hidden = n !== TOTAL;
-  btnAvancar.textContent = n === TOTAL - 1 ? 'Revisar' : 'Continuar';
-
-  if (n === TOTAL) montarRevisao();
-  retorno.removeAttribute('data-estado');
-
-  if (focar) {
-    const titulo = document.getElementById('titulo-' + n);
-    titulo.focus({ preventScroll: true });
-    document.getElementById('formulario').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+/* Leva a pessoa até o primeiro campo pendente, sem tirá-la da página. */
+function irAoPendente(nome) {
+  const alvo = campos(nome)[0];
+  if (!alvo) return;
+  (alvo.closest('.scw-campo') || alvo).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  alvo.focus({ preventScroll: true });
 }
 
-function avancar() {
-  const faltando = validarPasso(passoAtual);
-  if (faltando.length) {
-    mostrar('erro', faltando.length > 1 ? 'Faltam ' + faltando.length + ' respostas neste passo' : 'Falta uma resposta neste passo',
-      '<p>O que ficou pendente está marcado em rosa logo acima.</p>');
-    campos(faltando[0])[0].focus();
-    return;
-  }
-  if (passoAtual < TOTAL) irPara(passoAtual + 1);
-}
-
-btnAvancar.addEventListener('click', avancar);
-btnVoltar.addEventListener('click', () => { if (passoAtual > 1) irPara(passoAtual - 1); });
-itensTrilha.forEach(item => {
-  item.querySelector('button').addEventListener('click', (ev) => {
-    const destino = Number(ev.currentTarget.dataset.ir);
-    if (destino <= passoAtual) irPara(destino);
-    else if (!validarPasso(passoAtual).length) irPara(destino);
-    else avancar();
-  });
-});
-
-/* ── Coleta e revisão ───────────────────────────────────────── */
+/* ── Coleta ─────────────────────────────────────────────────── */
 function coletar() {
   const dados = {};
   ORDEM.forEach(nome => {
@@ -924,42 +780,6 @@ function coletar() {
   });
 
   return dados;
-}
-
-function montarRevisao() {
-  const dados = coletar();
-  const alvo = document.getElementById('revisao');
-  alvo.innerHTML = '';
-
-  [1, 2, 3, 4].forEach(n => {
-    const grupo = document.createElement('section');
-    grupo.className = 'pa-revisao__grupo';
-
-    const cabeca = document.createElement('div');
-    cabeca.className = 'pa-revisao__cabeca';
-    const h3 = document.createElement('h3');
-    h3.textContent = NOMES[n - 1];
-    const editar = document.createElement('button');
-    editar.type = 'button';
-    editar.className = 'pa-revisao__editar';
-    editar.textContent = 'Editar';
-    editar.setAttribute('aria-label', 'Editar ' + NOMES[n - 1]);
-    editar.addEventListener('click', () => irPara(n));
-    cabeca.append(h3, editar);
-
-    const dl = document.createElement('dl');
-    POR_PASSO[n].forEach(nome => {
-      if (!dados[nome]) return;
-      const dt = document.createElement('dt');
-      dt.textContent = ROTULOS[nome];
-      const dd = document.createElement('dd');
-      dd.textContent = dados[nome];
-      dl.append(dt, dd);
-    });
-
-    grupo.append(cabeca, dl);
-    alvo.append(grupo);
-  });
 }
 
 function montarResumo(dados) {
@@ -1006,16 +826,13 @@ form.addEventListener('submit', async (ev) => {
     return;
   }
 
-  // Rede de segurança: revalida todos os passos antes de enviar.
-  for (const n of [1, 2, 3, 4]) {
-    const faltando = validarPasso(n);
-    if (faltando.length) {
-      irPara(n);
-      mostrar('erro', 'Faltou uma resposta no passo ' + n,
-        '<p>Voltei para o passo que está incompleto. O campo pendente está marcado em rosa.</p>');
-      campos(faltando[0])[0].focus();
-      return;
-    }
+  const faltando = validarTudo();
+  if (faltando.length) {
+    mostrar('erro',
+      faltando.length > 1 ? 'Faltam ' + faltando.length + ' respostas' : 'Falta uma resposta',
+      '<p>O que ficou pendente está marcado em rosa. Levei você até o primeiro.</p>');
+    irAoPendente(faltando[0]);
+    return;
   }
 
   const dados = coletar();
@@ -1039,9 +856,9 @@ form.addEventListener('submit', async (ev) => {
       form.reset();
       document.querySelectorAll('[data-contador]').forEach(a => a.textContent = '0');
       atualizarContaChips();
-      passos.forEach(p => { p.hidden = true; });
-      document.querySelector('.pa-trilha').hidden = true;
+      secoes.forEach(p => { p.hidden = true; });
       document.querySelector('.pa-acoes').hidden = true;
+      document.querySelector('.pa-nota').hidden = true;
     } catch (e) {
       resumoBox.value = texto;
       resumoBox.setAttribute('data-visivel', '1');
@@ -1121,7 +938,7 @@ if (DEMO) {
   const barra = document.createElement('div');
   barra.className = 'pa-demo scw-secao';
   barra.innerHTML =
-    '<p><b>Modo demonstração</b>Passeie pelos cinco passos sem preencher nada — a cobrança de campo está desligada e o envio não dispara.</p>' +
+    '<p><b>Modo demonstração</b>A cobrança de campo está desligada e o envio não dispara — dá para mostrar a página inteira sem preencher nada.</p>' +
     '<div class="pa-demo__acoes">' +
       '<button type="button" class="pa-demo__btn" id="demo-preencher">Preencher com exemplo</button>' +
       '<a class="pa-demo__btn" href="?">Ver como a marca vê</a>' +
@@ -1141,11 +958,10 @@ if (DEMO) {
     });
     atualizarContaChips();
     atualizarOutros();
-    irPara(TOTAL);
+    document.getElementById('formulario').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
 
-irPara(1, { focar: false });
 </script>
 </body>
 </html>
