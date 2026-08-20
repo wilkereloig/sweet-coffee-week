@@ -557,8 +557,26 @@ const CONFIG = {
   emailDestino: 'contato@fabrica2.com.br',
   urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar',
   convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal — dá para se inscrever por aqui:',
-  // Opcional. Ex.: 'https://formsubmit.co/ajax/contato@fabrica2.com.br'
-  endpoint: ''
+  // Para onde as respostas vao. Endpoint HTTP que aceita POST de JSON e
+  // responde 2xx no sucesso — o codigo so diz 'recebemos' se r.ok for true.
+  //
+  // Hoje: Formspree. Escolhido por ser o unico caminho que funciona sem
+  // depender de infraestrutura nova. O projeto Supabase do site
+  // (dgfmoibynftadsyjcclg) nao existe mais — DNS inexistente, conferido em
+  // 20/08/2026 —, entao src/lib/participationInterest.js e a RPC
+  // submit_participation_interest estao sem banco atras.
+  //
+  // Para migrar de volta para o Supabase: criar o projeto, aplicar uma
+  // migration que aceite os 14 campos deste formulario (a RPC antiga so tem
+  // 9, faltam site/serve/carroChefe/historia/especial/experiencia/extra) e
+  // trocar a URL abaixo por
+  // https://<projeto>.supabase.co/rest/v1/rpc/submit_participation_interest,
+  // acrescentando o header apikey no fetch. Nada mais neste arquivo muda.
+  //
+  // ⚠️ Este form do Formspree e o mesmo que recebe os briefings do ELOI
+  // Studio. Vale criar um proprio para o festival, para as duas coisas nao
+  // caírem na mesma caixa.
+  endpoint: 'https://formspree.io/f/xpqeraow'
 };
 /* ───────────────────────────────────────────────────────────── */
 
@@ -727,6 +745,16 @@ function coletar() {
   });
 
   return dados;
+}
+
+function montarResumo(dados) {
+  const linhas = ['QUERO PARTICIPAR — SWEET & COFFEE WEEK', ''];
+  ORDEM.forEach(nome => {
+    if (!dados[nome]) return;
+    if (LONGOS.includes(nome)) linhas.push('', ROTULOS[nome] + ':', dados[nome]);
+    else linhas.push(ROTULOS[nome] + ': ' + dados[nome]);
+  });
+  return linhas.join('\n');
 }
 
 function mostrar(estado, titulo, html) {
