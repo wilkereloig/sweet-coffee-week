@@ -4,7 +4,18 @@ import { INSTAGRAM_URL } from '../config/channels'
 /*
  * Tela de acesso (diálogo modal) — redesign 2026.
  * Duas faixas: cabeçalho chocolate com o lockup do festival, corpo creme com os
- * dois cartões de acesso. Não são botões, porque os painéis ainda não existem.
+ * dois cartões de acesso.
+ *
+ * Cartão com `href` vira link de verdade; sem `href` fica inerte, porque o
+ * painel ainda não existe. É a regra do movimento (§6.15.6): card sem destino
+ * não sobe no hover — elevação sem link promete algo que não acontece.
+ *
+ * O painel da organização é PÁGINA ESTÁTICA em public/organizacao/, fora do
+ * bundle. Por isso o link é um <a> comum e não `navigate()`: o router só ouve
+ * hashchange/popstate, então a navegação normal do navegador é o que entrega o
+ * arquivo — e é justamente o que mantém o painel acessível com
+ * COMING_SOON_PUBLICATION = true.
+ *
  * Foco preso no diálogo, Esc fecha, foco volta ao gatilho.
  * Spec: design_handoff_site_institucional/README.md (§ Tela de acesso).
  */
@@ -22,8 +33,9 @@ const ACESSOS = [
   },
   {
     titulo: 'Organização',
-    texto: 'Participantes, conteúdo das edições e apuração da premiação.',
-    rotulo: 'Admin · em breve',
+    texto: 'Respostas dos formulários do site: contato, participação e apoio.',
+    rotulo: 'Admin · entrar',
+    href: '/organizacao',
     // Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards.
     traco: 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7',
     fundo: '#01AFCC',
@@ -96,8 +108,14 @@ export function AccessDialog({ open, onClose }) {
           </h2>
 
           <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
-            {ACESSOS.map((a) => (
-              <div key={a.titulo} className="scw-acesso__cartao">
+            {ACESSOS.map((a) => {
+              const Marca = a.href ? 'a' : 'div'
+              return (
+              <Marca
+                key={a.titulo}
+                className={'scw-acesso__cartao' + (a.href ? ' scw-acesso__cartao--link' : '')}
+                {...(a.href ? { href: a.href } : {})}
+              >
                 <div className="scw-acesso__cabeca">
                   <span className="scw-acesso__selo" aria-hidden="true" style={{ background: a.fundo, color: a.tinta }}>
                     <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
@@ -110,13 +128,14 @@ export function AccessDialog({ open, onClose }) {
                 <span className="scw-pill scw-pill--bege" style={{ marginTop: 'auto', fontSize: 11, letterSpacing: '.12em' }}>
                   {a.rotulo}
                 </span>
-              </div>
-            ))}
+              </Marca>
+              )
+            })}
           </div>
 
           <div className="scw-acesso__pe">
             <p className="scw-acesso__pe-texto">
-              Painéis em construção. Até lá, a equipe atende por aqui.
+              O painel do participante ainda está em construção. Até lá, a equipe atende por aqui.
             </p>
             <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
               Falar com a equipe

@@ -72,6 +72,14 @@ test('não afirma gravação sem o servidor confirmar', () => {
   assert.ok(sucesso > guarda, '"Salvo." aparece antes de confirmar a gravação')
 })
 
+test('o site tem porta de entrada para o painel', () => {
+  // O acesso é pelo cartão "Organização" do diálogo de acesso. Sem esse link a
+  // página existe mas ninguém acha: não há menu nem rodapé apontando para ela,
+  // de propósito.
+  const dialogo = readFileSync(new URL('../src/components/AccessDialog.jsx', import.meta.url), 'utf8')
+  assert.match(dialogo, /href:\s*'\/organizacao'/, 'o cartão Organização perdeu o link para o painel')
+})
+
 test('todo asset absoluto existe em public/', () => {
   const pedidos = [...HTML.matchAll(/(?:url\('|src="|href=")(\/[^"')]+)/g)].map((m) => m[1])
   for (const p of new Set(pedidos)) {
