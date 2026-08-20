@@ -557,26 +557,24 @@ const CONFIG = {
   emailDestino: 'contato@fabrica2.com.br',
   urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar',
   convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal — dá para se inscrever por aqui:',
-  // Para onde as respostas vao. Endpoint HTTP que aceita POST de JSON e
-  // responde 2xx no sucesso — o codigo so diz 'recebemos' se r.ok for true.
+  // Para onde as respostas vao.
   //
-  // Hoje: Formspree. Escolhido por ser o unico caminho que funciona sem
-  // depender de infraestrutura nova. O projeto Supabase do site
-  // (dgfmoibynftadsyjcclg) nao existe mais — DNS inexistente, conferido em
-  // 20/08/2026 —, entao src/lib/participationInterest.js e a RPC
-  // submit_participation_interest estao sem banco atras.
+  // Hoje: Supabase, RPC submit_quero_participar. Grava na tabela
+  // quero_participar, que o painel em /organizacao le. A chave e a publicavel
+  // (anon), publica por design: RLS ligado sem policy, entao ela so consegue
+  // executar as RPCs que receberam grant — e nenhuma delas le nada sem a senha
+  // da organizacao.
   //
-  // Para migrar de volta para o Supabase: criar o projeto, aplicar uma
-  // migration que aceite os 14 campos deste formulario (a RPC antiga so tem
-  // 9, faltam site/serve/carroChefe/historia/especial/experiencia/extra) e
-  // trocar a URL abaixo por
-  // https://<projeto>.supabase.co/rest/v1/rpc/submit_participation_interest,
-  // acrescentando o header apikey no fetch. Nada mais neste arquivo muda.
+  // A RPC recebe o formulario inteiro num jsonb (p_payload) e promove a coluna
+  // o que e consultavel. Pergunta nova no formulario nao pede migration nova.
   //
-  // ⚠️ Este form do Formspree e o mesmo que recebe os briefings do ELOI
-  // Studio. Vale criar um proprio para o festival, para as duas coisas nao
-  // caírem na mesma caixa.
-  endpoint: 'https://formspree.io/f/xpqeraow'
+  // Historico: ate 20/08/2026 isso apontava para o Formspree, porque o projeto
+  // do Supabase estava PAUSADO (o DNS some quando pausa, o que parecia projeto
+  // deletado). Restaurado no mesmo dia. Para voltar ao envio por e-mail, basta
+  // limpar supabaseUrl e preencher endpoint — o resto do codigo nao muda.
+  supabaseUrl: 'https://dgfmoibynftadsyjcclg.supabase.co',
+  supabaseKey: 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R',
+  endpoint: ''
 };
 /* ───────────────────────────────────────────────────────────── */
 
@@ -810,14 +808,32 @@ form.addEventListener('submit', async (ev) => {
   btnEnviar.disabled = true;
   btnEnviar.textContent = 'Enviando…';
 
-  if (CONFIG.endpoint) {
+  // Supabase quando configurado; senão um endpoint HTTP genérico (Formspree);
+  // senão o mailto lá embaixo. Um lugar só decide, os três caminhos compartilham
+  // o mesmo tratamento de sucesso e de falha.
+  const destino = CONFIG.supabaseUrl ? {
+    url: CONFIG.supabaseUrl + '/rest/v1/rpc/submit_quero_participar',
+    headers: {
+      'Accept': 'application/json', 'Content-Type': 'application/json',
+      'apikey': CONFIG.supabaseKey, 'Authorization': 'Bearer ' + CONFIG.supabaseKey
+    },
+    body: JSON.stringify({ p_payload: dados })
+  } : CONFIG.endpoint ? {
+    url: CONFIG.endpoint,
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ _subject: assunto, ...dados, resumo: texto })
+  } : null;
+
+  if (destino) {
     try {
-      const r = await fetch(CONFIG.endpoint, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _subject: assunto, ...dados, resumo: texto })
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const r = await fetch(destino.url, { method: 'POST', headers: destino.headers, body: destino.body });
+      if (!r.ok) {
+        // A RPC devolve o motivo em `message` (email_invalido, etc.). Guardar o
+        // texto ajuda quem for ler o console; a pessoa vê a mensagem honesta.
+        let motivo = 'HTTP ' + r.status;
+        try { motivo = (await r.json()).message || motivo; } catch (e) {}
+        throw new Error(motivo);
+      }
       mostrar('ok', 'Recebemos as suas respostas',
         '<p>Chegou aqui, ' + primeiroNome + '. Vamos analisar as informações e entrar em contato para apresentar os próximos passos.</p>');
       form.reset();

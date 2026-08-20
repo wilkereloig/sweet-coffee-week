@@ -42,16 +42,39 @@ test('não sobrou referência ao wizard de passos', () => {
 })
 
 test('o envio tem destino configurado', () => {
-  const m = HTML.match(/endpoint:\s*'([^']*)'/)
-  assert.ok(m, 'CONFIG.endpoint não encontrado')
-  assert.ok(m[1].startsWith('https://'), 'endpoint vazio ou não-HTTPS: o envio cairia no mailto')
+  // Supabase OU endpoint genérico. Sem nenhum dos dois o envio cai no mailto,
+  // que não grava nada e não chega ao painel da organização.
+  const sb = HTML.match(/supabaseUrl:\s*'([^']*)'/)
+  const ep = HTML.match(/endpoint:\s*'([^']*)'/)
+  const alvo = (sb && sb[1]) || (ep && ep[1]) || ''
+  assert.ok(alvo.startsWith('https://'), 'nenhum destino HTTPS configurado: o envio cairia no mailto')
+})
+
+test('a chave do Supabase é a publicável, nunca a service_role', () => {
+  assert.ok(!/service_role|\bsb_secret_/.test(HTML), 'chave secreta em arquivo de public/')
+  const m = HTML.match(/supabaseKey:\s*'([^']*)'/)
+  if (m && m[1]) assert.ok(m[1].startsWith('sb_publishable_'), 'chave não é publicável: ' + m[1].slice(0, 16))
+})
+
+test('os campos que a RPC exige saem da coleta', () => {
+  // submit_quero_participar levanta exceção sem nome, empresa e email, e lê
+  // carroChefe para a coluna consultável. Se o formulário renomear um desses,
+  // o envio passa a falhar só em produção — este teste falha antes.
+  const ordem = HTML.match(/const ORDEM = \[([\s\S]*?)\]/)
+  assert.ok(ordem, 'ORDEM não encontrada')
+  for (const campo of ['nome', 'empresa', 'email', 'carroChefe']) {
+    assert.ok(ordem[1].includes("'" + campo + "'"), 'campo exigido pela RPC não está em ORDEM: ' + campo)
+  }
 })
 
 test('só afirma envio depois de confirmar a gravação', () => {
   const js = SCRIPTS[0]
   const ok = js.indexOf("mostrar('ok'")
-  const guarda = js.indexOf('if (!r.ok) throw')
-  assert.ok(guarda > -1 && ok > guarda, 'a mensagem de sucesso tem que vir DEPOIS da checagem de r.ok')
+  const guarda = js.indexOf('if (!r.ok)')
+  assert.ok(guarda > -1, 'sumiu a checagem de r.ok')
+  assert.ok(ok > guarda, 'a mensagem de sucesso tem que vir DEPOIS da checagem de r.ok')
+  // O guard tem que interromper de verdade: sem throw ele vira comentário caro.
+  assert.match(js.slice(guarda, ok), /throw\s+new\s+Error/, 'o if (!r.ok) não interrompe o fluxo')
 })
 
 test('todo asset absoluto existe em public/', () => {

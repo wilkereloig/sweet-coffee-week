@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Organização — Sweet &amp; Coffee Week</title>
+<link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Painel da organização — Sweet & Coffee Week
+
+   Página ESTÁTICA, servida pelo sistema de arquivos da Vercel antes do rewrite
+   do SPA. É o que a mantém acessível com COMING_SOON_PUBLICATION = true, sem
+   tocar em nenhuma flag do App.jsx.
+
+   Não passa pelo Vite, então não há import.meta.env: a URL e a chave publicável
+   ficam escritas aqui embaixo, visíveis no código-fonte. Isso é esperado — a
+   chave anon é pública por design. A segurança vem do RLS (habilitado sem
+   policy em todas as tabelas) e da senha que protege cada RPC de leitura.
+   ⛔ A chave SECRETA do projeto (a de serviço, do painel do Supabase) nunca
+   entra aqui — ela ignora o RLS e leria a base inteira. tests/organizacao.test.mjs
+   reprova o arquivo se ela aparecer, inclusive dentro de comentário.
+
+   Tokens copiados resolvidos de src/styles/scw-2026.css. Painel interno não
+   precisa de festa visual: legibilidade, densidade e alvo de toque grande.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-xBold.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlabBlack.woff2') format('woff2');font-weight:900;font-display:swap}
+
+:root{
+  --scw-creme:#FEF0DD; --scw-bege:#F8E4C1; --scw-choco:#3D1308; --scw-marrom:#6A2C15;
+  --scw-amarelo:#FDBB1A; --scw-cyan:#01AFCC; --scw-roxo:#4D257E; --scw-magenta:#F10767;
+  --scw-laranja:#FF4810;
+  --scw-filete:rgba(61,19,8,.14); --scw-borda-campo:rgba(61,19,8,.22);
+  --scw-font:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --scw-r-card:20px;
+  --scw-ease:cubic-bezier(.22,.9,.24,1);
+  --scw-transicao:200ms var(--scw-ease);
+  --trilho:clamp(16px,3vw,40px);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--scw-creme);color:var(--scw-choco);
+  font:500 15px/1.5 var(--scw-font);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+:focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:4px}
+button,input,select,textarea{font:inherit;color:inherit}
+
+/* ── Casca ─────────────────────────────────────────────────────────────── */
+.og-topo{
+  background:var(--scw-choco);color:var(--scw-creme);
+  padding:14px var(--trilho);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:20;
+}
+.og-topo__marca{height:38px;width:auto;display:block}
+.og-topo__titulo{font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0}
+.og-topo__sub{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin:6px 0 0}
+.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.og-corpo{padding:clamp(20px,3vw,34px) var(--trilho) 80px;max-width:1600px;margin:0 auto}
+
+/* ── Botões ────────────────────────────────────────────────────────────── */
+.og-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:0 18px;border:0;border-radius:999px;
+  background:var(--scw-choco);color:var(--scw-creme);
+  font:800 14px/1 var(--scw-font);cursor:pointer;
+  transition:transform 180ms var(--scw-ease),background var(--scw-transicao);
+}
+.og-btn:hover{transform:translateY(-2px)}
+.og-btn:active{transform:translateY(0)}
+.og-btn[disabled]{opacity:.45;cursor:default;pointer-events:none}
+.og-btn--claro{background:var(--scw-creme);color:var(--scw-choco)}
+.og-btn--vazado{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 2px var(--scw-borda-campo)}
+.og-topo .og-btn--vazado{color:var(--scw-creme);box-shadow:inset 0 0 0 2px rgba(254,240,221,.34)}
+.og-btn--mini{min-height:38px;padding:0 14px;font-size:13px}
+
+/* ── Campos ────────────────────────────────────────────────────────────── */
+.og-campo{display:flex;flex-direction:column;gap:6px}
+.og-campo > span{font:800 11px/1 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.og-campo input,.og-campo select,.og-campo textarea{
+  min-height:44px;padding:10px 14px;border-radius:12px;
+  border:1px solid var(--scw-borda-campo);background:#fff;
+  font:500 15px/1.4 var(--scw-font);width:100%;
+}
+.og-campo textarea{min-height:110px;resize:vertical}
+
+/* ── Entrada ───────────────────────────────────────────────────────────── */
+.og-entrada{min-height:100dvh;display:grid;place-items:center;padding:24px}
+.og-entrada__cartao{
+  width:min(420px,100%);background:#fff;border-radius:var(--scw-r-card);
+  border:1px solid var(--scw-filete);padding:clamp(26px,4vw,38px);
+}
+.og-entrada__marca{height:64px;width:auto;display:block;margin-bottom:22px}
+.og-entrada h1{font:900 clamp(24px,3vw,30px)/1.05 var(--scw-font);letter-spacing:-.035em;margin:0 0 8px}
+.og-entrada p{margin:0 0 22px;color:var(--scw-marrom);font-size:14px}
+.og-entrada form{display:flex;flex-direction:column;gap:16px}
+
+/* ── Visão geral ───────────────────────────────────────────────────────── */
+.og-resumo{
+  display:grid;gap:14px;margin:0 0 clamp(24px,3vw,34px);padding:0;list-style:none;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));
+}
+.og-resumo li{
+  background:#fff;border:1px solid var(--scw-filete);border-radius:var(--scw-r-card);
+  padding:18px 20px 20px;display:flex;flex-direction:column;gap:4px;
+}
+.og-regua{display:block;width:44px;height:4px;border-radius:2px;margin-bottom:12px}
+.og-resumo b{font:900 clamp(28px,3vw,38px)/1 var(--scw-font);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.og-resumo span:not(.og-regua){font:800 11px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.og-resumo em{font-style:normal;font-size:13px;color:var(--scw-marrom);margin-top:6px}
+
+/* ── Abas ──────────────────────────────────────────────────────────────── */
+.og-abas{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin:0 0 18px;list-style:none;padding-inline-start:0}
+.og-abas::-webkit-scrollbar{display:none}
+.og-abas li{flex:0 0 auto}
+.og-aba{
+  min-height:44px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;
+  background:transparent;box-shadow:inset 0 0 0 1px var(--scw-borda-campo);
+  font:700 14px/1 var(--scw-font);display:inline-flex;align-items:center;gap:8px;
+  transition:background var(--scw-transicao),box-shadow var(--scw-transicao);
+}
+.og-aba[aria-selected="true"]{background:var(--scw-choco);color:var(--scw-creme);box-shadow:none;font-weight:800}
+.og-aba__ponto{width:9px;height:9px;border-radius:50%;display:block}
+.og-aba__n{font-variant-numeric:tabular-nums;opacity:.72}
+
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+.og-filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:0 0 20px}
+.og-filtros .og-campo{min-width:190px;flex:1 1 190px}
+.og-filtros .og-campo--busca{flex:2 1 280px}
+
+/* ── Lista ─────────────────────────────────────────────────────────────── */
+.og-lista{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.og-item{
+  width:100%;text-align:left;background:#fff;cursor:pointer;
+  border:1px solid var(--scw-filete);border-radius:14px;
+  padding:14px 16px;display:grid;gap:4px 16px;align-items:center;
+  grid-template-columns:10px 1fr auto;
+  transition:border-color var(--scw-transicao),transform 180ms var(--scw-ease);
+}
+.og-item:hover{transform:translateY(-2px);border-color:var(--scw-borda-campo)}
+.og-item[aria-current="true"]{border-color:var(--scw-choco);box-shadow:inset 0 0 0 1px var(--scw-choco)}
+.og-item__cor{width:10px;height:38px;border-radius:5px;grid-row:span 2}
+.og-item__nome{font:800 15px/1.25 var(--scw-font);margin:0}
+.og-item__meta{font-size:13px;color:var(--scw-marrom);margin:0;grid-column:2}
+.og-item__dir{grid-row:span 2;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.og-item__data{font-size:12px;color:var(--scw-marrom);font-variant-numeric:tabular-nums}
+
+.og-selo{
+  display:inline-block;padding:4px 10px;border-radius:999px;
+  font:800 10px/1.4 var(--scw-font);letter-spacing:.1em;text-transform:uppercase;
+  background:var(--scw-bege);color:var(--scw-choco);white-space:nowrap;
+}
+.og-selo[data-novo="1"]{background:var(--scw-amarelo)}
+
+/* ── Estados ───────────────────────────────────────────────────────────── */
+.og-estado{
+  border:1px dashed var(--scw-borda-campo);border-radius:var(--scw-r-card);
+  padding:clamp(28px,5vw,52px);text-align:center;color:var(--scw-marrom);
+}
+.og-estado h2{font:900 20px/1.15 var(--scw-font);letter-spacing:-.03em;margin:0 0 8px;color:var(--scw-choco)}
+.og-estado p{margin:0 auto;max-width:52ch;font-size:14px}
+.og-estado[data-tom="erro"]{border-style:solid;border-color:var(--scw-magenta);background:rgba(241,7,103,.06)}
+
+.og-aviso{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:14px;background:var(--scw-bege)}
+.og-aviso[data-tom="erro"]{background:rgba(241,7,103,.1);box-shadow:inset 0 0 0 1px var(--scw-magenta)}
+.og-aviso[data-tom="ok"]{background:rgba(1,175,204,.12);box-shadow:inset 0 0 0 1px var(--scw-cyan)}
+.og-aviso[hidden]{display:none}
+
+/* ── Detalhe ───────────────────────────────────────────────────────────── */
+.og-fundo{position:fixed;inset:0;background:rgba(61,19,8,.5);z-index:30;border:0;padding:0;cursor:pointer}
+.og-fundo[hidden],.og-detalhe[hidden]{display:none}
+.og-detalhe{
+  position:fixed;z-index:31;top:0;right:0;bottom:0;width:min(560px,100%);
+  background:var(--scw-creme);border-left:1px solid var(--scw-filete);
+  display:flex;flex-direction:column;
+}
+.og-detalhe__topo{
+  padding:18px var(--trilho);border-bottom:1px solid var(--scw-filete);
+  display:flex;align-items:flex-start;gap:14px;background:var(--scw-bege);
+}
+.og-detalhe__topo h2{font:900 19px/1.15 var(--scw-font);letter-spacing:-.03em;margin:0}
+.og-detalhe__topo p{margin:6px 0 0;font-size:13px;color:var(--scw-marrom)}
+.og-detalhe__fechar{margin-left:auto;flex:0 0 auto}
+.og-detalhe__rolo{overflow-y:auto;padding:22px var(--trilho) 40px;flex:1}
+
+.og-campos{margin:0 0 26px;display:flex;flex-direction:column;gap:14px}
+.og-campos div{display:flex;flex-direction:column;gap:3px}
+.og-campos dt{font:800 10px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.og-campos dd{margin:0;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.og-acoes-rapidas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.og-bloco{border-top:1px solid var(--scw-filete);padding-top:22px;display:flex;flex-direction:column;gap:14px}
+.og-bloco h3{font:900 15px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
+
+@media (max-width:900px){
+  .og-detalhe{width:100%;border-left:0}
+  .og-topo__dir{width:100%;margin-left:0}
+  .og-item{grid-template-columns:10px 1fr}
+  .og-item__dir{grid-row:auto;grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-top:4px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .og-btn:hover,.og-item:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Entrada ─────────────────────────────────────────────────────────── -->
+<div class="og-entrada" id="entrada">
+  <div class="og-entrada__cartao">
+    <img class="og-entrada__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <h1>Painel da organização</h1>
+    <p>Respostas dos formulários do site. Acesso restrito à equipe.</p>
+    <form id="form-entrada">
+      <label class="og-campo">
+        <span>Senha</span>
+        <input type="password" id="senha" autocomplete="current-password" required>
+      </label>
+      <div class="og-aviso" data-tom="erro" id="entrada-erro" hidden></div>
+      <button class="og-btn" type="submit" id="btn-entrar">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Painel ──────────────────────────────────────────────────────────── -->
+<div id="painel" hidden>
+  <header class="og-topo">
+    <img class="og-topo__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
+    <div>
+      <p class="og-topo__titulo">Painel da organização</p>
+      <p class="og-topo__sub">Sweet &amp; Coffee Week</p>
+    </div>
+    <div class="og-topo__dir">
+      <button class="og-btn og-btn--vazado og-btn--mini" type="button" id="btn-atualizar">Atualizar</button>
+      <button class="og-btn og-btn--claro og-btn--mini" type="button" id="btn-sair">Sair</button>
+    </div>
+  </header>
+
+  <main class="og-corpo">
+    <div class="og-aviso" id="aviso" hidden></div>
+
+    <ul class="og-resumo" id="resumo"></ul>
+
+    <ul class="og-abas" id="abas" role="tablist"></ul>
+
+    <div class="og-filtros">
+      <label class="og-campo og-campo--busca">
+        <span>Buscar</span>
+        <input type="search" id="busca" placeholder="nome, empresa ou e-mail">
+      </label>
+      <label class="og-campo">
+        <span>Status</span>
+        <select id="filtro-status"><option value="">Todos</option></select>
+      </label>
+      <label class="og-campo">
+        <span>Período</span>
+        <select id="filtro-periodo">
+          <option value="">Sempre</option>
+          <option value="7">Últimos 7 dias</option>
+          <option value="30">Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="area-lista"></div>
+  </main>
+</div>
+
+<button class="og-fundo" id="fundo" hidden aria-label="Fechar detalhe"></button>
+<aside class="og-detalhe" id="detalhe" hidden role="dialog" aria-modal="true" aria-labelledby="detalhe-titulo">
+  <div class="og-detalhe__topo">
+    <div>
+      <h2 id="detalhe-titulo"></h2>
+      <p id="detalhe-sub"></p>
+    </div>
+    <button class="og-btn og-btn--vazado og-btn--mini og-detalhe__fechar" type="button" id="btn-fechar">Fechar</button>
+  </div>
+  <div class="og-detalhe__rolo" id="detalhe-corpo"></div>
+</aside>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Configuração
+   A chave é a publicável (anon), pública por design. RLS ligado sem policy em
+   todas as tabelas: sem a senha, nenhuma RPC devolve linha.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://dgfmoibynftadsyjcclg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R';
+
+/* As quatro origens. `cor` sai da paleta e nenhuma repete a da vizinha (§6.3);
+   como o texto fica sempre em chocolate, a cor mora no grafismo — régua, ponto
+   e filete do item —, o padrão StatBlock. */
+const ORIGENS = {
+  quero_participar: {
+    rotulo: 'Quero participar', cor: '#01AFCC',
+    rpc: 'get_quero_participar',
+    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
+    titulo: r => r.empresa || r.nome,
+    meta: r => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
+    campos: {
+      nome:'Responsável', telefone:'Telefone', email:'E-mail', empresa:'Negócio',
+      tipo:'Tipo', cidade:'Cidade', instagram:'Instagram', site:'Site',
+      carro_chefe:'Carro-chefe'
+    }
+  },
+  participar: {
+    rotulo: 'Participar', cor: '#FDBB1A',
+    rpc: 'get_participation_interests',
+    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
+    titulo: r => r.marca,
+    meta: r => [r.responsavel, r.bairro, r.cidade].filter(Boolean).join(' · '),
+    campos: {
+      marca:'Marca', tipo:'Tipo', bairro:'Bairro', cidade:'Cidade',
+      responsavel:'Responsável', email:'E-mail', whatsapp:'WhatsApp',
+      instagram:'Instagram', apresentacao:'Apresentação'
+    }
+  },
+  apoiar: {
+    rotulo: 'Apoiar', cor: '#FF4810',
+    rpc: 'get_support_interests',
+    status: ['novo','em_analise','contatado','em_negociacao','fechado','arquivado'],
+    titulo: r => r.empresa,
+    meta: r => [r.nome, r.segmento, r.interesse].filter(Boolean).join(' · '),
+    campos: {
+      nome:'Contato', empresa:'Empresa', email:'E-mail', whatsapp:'WhatsApp',
+      segmento:'Segmento', interesse:'Interesse', mensagem:'Mensagem'
+    }
+  },
+  contato: {
+    rotulo: 'Contato', cor: '#4D257E',
+    rpc: 'get_contact_requests',
+    status: ['novo','em_analise','respondido','encerrado'],
+    titulo: r => r.name,
+    meta: r => [r.subject].filter(Boolean).join(' · '),
+    campos: {
+      name:'Nome', email:'E-mail', whatsapp:'WhatsApp',
+      subject:'Assunto', message:'Mensagem', source:'Origem'
+    }
+  }
+};
+
+const ROTULO_STATUS = {
+  novo:'Novo', em_analise:'Em análise', contatado:'Contatado', respondido:'Respondido',
+  aprovado:'Aprovado', nao_selecionado:'Não selecionado', aguardando_cadastro:'Aguardando cadastro',
+  em_negociacao:'Em negociação', fechado:'Fechado', arquivado:'Arquivado', encerrado:'Encerrado'
+};
+
+/* Onde procurar nome, empresa, e-mail e telefone em cada origem — a busca e a
+   lista falam uma língua só, mesmo com quatro esquemas diferentes. */
+const CHAVES = {
+  nome:     ['nome','name','responsavel','marca'],
+  empresa:  ['empresa','marca'],
+  email:    ['email'],
+  telefone: ['telefone','whatsapp']
+};
+
+/* ── Estado ────────────────────────────────────────────────────────────── */
+let senha = sessionStorage.getItem('scw_org') || '';
+let dados = {};            // origem → array de registros
+let aba = 'tudo';
+let selecionado = null;    // { origem, id }
+
+const $ = id => document.getElementById(id);
+const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
+
+/* ── Acesso ao banco ───────────────────────────────────────────────────── */
+/* PostgREST direto por fetch. Sem supabase-js: seriam ~100 KB de CDN para
+   fazer quatro POSTs. */
+async function rpc(nome, corpo) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + nome, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(corpo)
+  });
+  if (!r.ok) {
+    let detalhe = '';
+    try { detalhe = (await r.json()).message || ''; } catch (e) {}
+    throw new Error(detalhe || ('HTTP ' + r.status));
+  }
+  return r.json();
+}
+
+/* ── Entrada ───────────────────────────────────────────────────────────── */
+$('form-entrada').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const btn = $('btn-entrar'), erro = $('entrada-erro');
+  const tentativa = $('senha').value;
+  if (!tentativa) return;
+
+  btn.disabled = true; btn.textContent = 'Conferindo…';
+  erro.hidden = true;
+  try {
+    const ok = await rpc('admin_ping', { p_secret: tentativa });
+    if (ok !== true) throw new Error('senha');
+    senha = tentativa;
+    sessionStorage.setItem('scw_org', senha);   // morre com a aba, não com o disco
+    abrirPainel();
+  } catch (e) {
+    erro.textContent = e.message === 'senha'
+      ? 'Senha incorreta.'
+      : 'Não consegui falar com o servidor: ' + e.message;
+    erro.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+$('btn-sair').addEventListener('click', () => {
+  sessionStorage.removeItem('scw_org');
+  senha = ''; dados = {};
+  painel.hidden = true; entrada.style.display = '';
+  $('senha').value = '';
+  fecharDetalhe();
+});
+
+$('btn-atualizar').addEventListener('click', () => carregar());
+
+function abrirPainel() {
+  entrada.style.display = 'none';
+  painel.hidden = false;
+  montarAbas();
+  montarFiltroStatus();
+  carregar();
+}
+
+/* ── Carga ─────────────────────────────────────────────────────────────── */
+async function carregar() {
+  mostrarEstado('carregando');
+  const btn = $('btn-atualizar');
+  btn.disabled = true;
+  try {
+    const chaves = Object.keys(ORIGENS);
+    const listas = await Promise.all(chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })));
+    chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
+    aviso.hidden = true;
+    render();
+  } catch (e) {
+    // Erro de rede não pode virar tela branca nem "nenhum registro": as duas
+    // mentiriam sobre o estado real.
+    mostrarEstado('erro', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ── Render ────────────────────────────────────────────────────────────── */
+function campo(reg, quais) {
+  for (const k of quais) if (reg[k]) return String(reg[k]);
+  return '';
+}
+
+function todos() {
+  return Object.keys(ORIGENS)
+    .flatMap(o => (dados[o] || []).map(r => ({ origem: o, reg: r })))
+    .sort((a, b) => new Date(b.reg.created_at) - new Date(a.reg.created_at));
+}
+
+function filtrados() {
+  const termo = $('busca').value.trim().toLowerCase();
+  const status = $('filtro-status').value;
+  const dias = $('filtro-periodo').value;
+  const corte = dias ? Date.now() - Number(dias) * 864e5 : null;
+
+  return todos().filter(({ origem, reg }) => {
+    if (aba !== 'tudo' && origem !== aba) return false;
+    if (status && reg.status !== status) return false;
+    if (corte && new Date(reg.created_at).getTime() < corte) return false;
+    if (termo) {
+      const alvo = [campo(reg, CHAVES.nome), campo(reg, CHAVES.empresa), campo(reg, CHAVES.email)]
+        .join(' ').toLowerCase();
+      if (!alvo.includes(termo)) return false;
+    }
+    return true;
+  });
+}
+
+function montarAbas() {
+  const lista = $('abas');
+  lista.innerHTML = '';
+  const itens = [['tudo', 'Tudo', null], ...Object.entries(ORIGENS).map(([k, o]) => [k, o.rotulo, o.cor])];
+  itens.forEach(([chave, rotulo, cor]) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'og-aba'; b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', String(chave === aba));
+    b.dataset.aba = chave;
+    b.innerHTML = (cor ? '<span class="og-aba__ponto" style="background:' + cor + '"></span>' : '') +
+                  rotulo + ' <span class="og-aba__n" data-conta="' + chave + '"></span>';
+    b.addEventListener('click', () => {
+      aba = chave;
+      [...lista.querySelectorAll('.og-aba')].forEach(x => x.setAttribute('aria-selected', String(x.dataset.aba === chave)));
+      montarFiltroStatus();
+      render();
+    });
+    li.appendChild(b); lista.appendChild(li);
+  });
+}
+
+/* O select de status mostra só o vocabulário da origem escolhida: cada tabela
+   tem o seu CHECK, e oferecer 'fechado' numa mensagem de contato seria um erro
+   que só o banco pegaria. */
+function montarFiltroStatus() {
+  const sel = $('filtro-status');
+  const antes = sel.value;
+  const vocab = aba === 'tudo'
+    ? [...new Set(Object.values(ORIGENS).flatMap(o => o.status))]
+    : ORIGENS[aba].status;
+  sel.innerHTML = '<option value="">Todos</option>' +
+    vocab.map(s => '<option value="' + s + '">' + (ROTULO_STATUS[s] || s) + '</option>').join('');
+  if (vocab.includes(antes)) sel.value = antes;
+}
+
+function dataCurta(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+}
+
+function mostrarEstado(tipo, extra) {
+  const area = $('area-lista');
+  if (tipo === 'carregando') {
+    area.innerHTML = '<div class="og-estado"><h2>Carregando…</h2><p>Buscando as respostas dos quatro formulários.</p></div>';
+  } else if (tipo === 'erro') {
+    area.innerHTML = '<div class="og-estado" data-tom="erro"><h2>Não consegui carregar</h2>' +
+      '<p>' + escapar(extra || '') + '</p><p>Se o projeto do banco estiver pausado, ele volta pelo painel do Supabase.</p></div>';
+  } else if (tipo === 'vazio') {
+    area.innerHTML = '<div class="og-estado"><h2>Nenhuma resposta aqui</h2>' +
+      '<p>' + escapar(extra || 'Nada com esses filtros. Tente limpar a busca ou trocar o período.') + '</p></div>';
+  }
+}
+
+function escapar(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+function render() {
+  // Contadores das abas e da visão geral
+  const conta = { tudo: 0 };
+  Object.keys(ORIGENS).forEach(o => { conta[o] = (dados[o] || []).length; conta.tudo += conta[o]; });
+  document.querySelectorAll('[data-conta]').forEach(el => {
+    el.textContent = conta[el.dataset.conta] ?? 0;
+  });
+
+  const corte7 = Date.now() - 7 * 864e5;
+  $('resumo').innerHTML = Object.entries(ORIGENS).map(([k, o]) => {
+    const lista = dados[k] || [];
+    const novos = lista.filter(r => r.status === 'novo').length;
+    const recentes = lista.filter(r => new Date(r.created_at).getTime() >= corte7).length;
+    return '<li><span class="og-regua" style="background:' + o.cor + '" aria-hidden="true"></span>' +
+      '<b>' + lista.length + '</b><span>' + escapar(o.rotulo) + '</span>' +
+      '<em>' + novos + ' sem triagem · ' + recentes + ' em 7 dias</em></li>';
+  }).join('');
+
+  // Lista
+  const itens = filtrados();
+  if (!itens.length) {
+    mostrarEstado('vazio', conta.tudo === 0
+      ? 'Ainda não chegou nenhuma resposta. Quando alguém enviar um formulário do site, aparece aqui.'
+      : undefined);
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.className = 'og-lista';
+  itens.forEach(({ origem, reg }) => {
+    const o = ORIGENS[origem];
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'og-item';
+    if (selecionado && selecionado.origem === origem && selecionado.id === reg.id) {
+      b.setAttribute('aria-current', 'true');
+    }
+    b.innerHTML =
+      '<span class="og-item__cor" style="background:' + o.cor + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + escapar(o.titulo(reg) || '(sem nome)') + '</p>' +
+      '<p class="og-item__meta">' + escapar(o.rotulo + (o.meta(reg) ? ' · ' + o.meta(reg) : '')) + '</p>' +
+      '<span class="og-item__dir">' +
+        '<span class="og-selo" data-novo="' + (reg.status === 'novo' ? '1' : '0') + '">' +
+          escapar(ROTULO_STATUS[reg.status] || reg.status) + '</span>' +
+        '<span class="og-item__data">' + dataCurta(reg.created_at) + '</span>' +
+      '</span>';
+    b.addEventListener('click', () => abrirDetalhe(origem, reg.id));
+    li.appendChild(b); ul.appendChild(li);
+  });
+  $('area-lista').innerHTML = '';
+  $('area-lista').appendChild(ul);
+}
+
+['busca', 'filtro-status', 'filtro-periodo'].forEach(id => {
+  $(id).addEventListener('input', () => { if (Object.keys(dados).length) render(); });
+});
+
+/* ── Detalhe ───────────────────────────────────────────────────────────── */
+function soDigitos(s) { return String(s || '').replace(/\D/g, ''); }
+
+function abrirDetalhe(origem, id) {
+  const o = ORIGENS[origem];
+  const reg = (dados[origem] || []).find(r => r.id === id);
+  if (!reg) return;
+  selecionado = { origem, id };
+
+  $('detalhe-titulo').textContent = o.titulo(reg) || '(sem nome)';
+  $('detalhe-sub').textContent = o.rotulo + ' · recebido em ' +
+    new Date(reg.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+  const email = campo(reg, CHAVES.email);
+  const fone = soDigitos(campo(reg, CHAVES.telefone));
+  const insta = String(reg.instagram || '').replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '');
+
+  const acoes = [];
+  if (email) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" href="mailto:' + escapar(email) +
+    '?subject=' + encodeURIComponent('Sweet & Coffee Week — ' + o.rotulo) + '">Responder por e-mail</a>');
+  if (fone) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" href="https://wa.me/' +
+    (fone.length <= 11 ? '55' + fone : fone) + '">WhatsApp</a>');
+  if (insta) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" href="https://instagram.com/' +
+    escapar(insta) + '">Instagram</a>');
+
+  // Campos conhecidos, com rótulo legível — nunca JSON cru.
+  let campos = Object.entries(o.campos)
+    .filter(([k]) => reg[k])
+    .map(([k, rot]) => '<div><dt>' + escapar(rot) + '</dt><dd>' + escapar(reg[k]) + '</dd></div>')
+    .join('');
+
+  // O /quero-participar guarda as respostas longas no payload; os rótulos
+  // vieram do próprio formulário.
+  if (reg.payload && typeof reg.payload === 'object') {
+    const ROT_PAYLOAD = {
+      serve:'O que serve', carroChefe:'Carro-chefe', historia:'A história',
+      especial:'O que tem de especial', experiencia:'Experiência com o festival', extra:'Mais alguma coisa'
+    };
+    campos += Object.entries(ROT_PAYLOAD)
+      .filter(([k]) => reg.payload[k] && !o.campos[k])
+      .map(([k, rot]) => '<div><dt>' + escapar(rot) + '</dt><dd>' + escapar(reg.payload[k]) + '</dd></div>')
+      .join('');
+  }
+
+  const vocab = o.status.map(s =>
+    '<option value="' + s + '"' + (s === reg.status ? ' selected' : '') + '>' +
+    (ROTULO_STATUS[s] || s) + '</option>').join('');
+
+  $('detalhe-corpo').innerHTML =
+    (acoes.length ? '<div class="og-acoes-rapidas">' + acoes.join('') + '</div>' : '') +
+    '<dl class="og-campos">' + campos + '</dl>' +
+    '<div class="og-bloco">' +
+      '<h3>Triagem</h3>' +
+      '<label class="og-campo"><span>Status</span><select id="det-status">' + vocab + '</select></label>' +
+      '<label class="og-campo"><span>Nota interna</span>' +
+        '<textarea id="det-nota" placeholder="Só a equipe vê.">' + escapar(reg.internal_notes || '') + '</textarea></label>' +
+      '<div class="og-aviso" id="det-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="det-salvar">Salvar</button>' +
+    '</div>';
+
+  $('det-salvar').addEventListener('click', () => salvar(origem, reg));
+
+  $('fundo').hidden = false;
+  $('detalhe').hidden = false;
+  $('btn-fechar').focus();
+  render();
+}
+
+async function salvar(origem, reg) {
+  const btn = $('det-salvar'), av = $('det-aviso');
+  const status = $('det-status').value;
+  const nota = $('det-nota').value;
+
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  av.hidden = true;
+  try {
+    const ok = await rpc('organizacao_atualizar_registro', {
+      p_secret: senha, p_origem: origem, p_id: reg.id, p_status: status, p_nota: nota
+    });
+    if (ok !== true) throw new Error('O servidor não confirmou a gravação.');
+    // Só atualiza a cópia local DEPOIS de o servidor confirmar: a tela nunca
+    // mostra um estado que o banco não tem.
+    reg.status = status;
+    reg.internal_notes = nota;
+    av.textContent = 'Salvo.'; av.dataset.tom = 'ok'; av.hidden = false;
+    render();
+  } catch (e) {
+    // O que a pessoa escreveu continua na tela — erro de rede não apaga texto.
+    av.textContent = 'Não salvou: ' + e.message + ' O texto continua aqui, tente de novo.';
+    av.dataset.tom = 'erro'; av.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salvar';
+  }
+}
+
+function fecharDetalhe() {
+  $('fundo').hidden = true;
+  $('detalhe').hidden = true;
+  selecionado = null;
+  if (!painel.hidden && Object.keys(dados).length) render();
+}
+$('btn-fechar').addEventListener('click', fecharDetalhe);
+$('fundo').addEventListener('click', fecharDetalhe);
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && !$('detalhe').hidden) fecharDetalhe();
+});
+
+/* ── Boot ──────────────────────────────────────────────────────────────── */
+if (senha) abrirPainel();
+</script>
+</body>
+</html>

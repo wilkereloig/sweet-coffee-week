@@ -20,7 +20,8 @@
     "design:snapshot": "node tests/snapshot-design.mjs",
     "test:imagens-navegador": "node tests/imagens-navegador.mjs",
     "focal-points": "node scripts/compute-focal-points.mjs",
-    "test:quero-participar": "node --test tests/quero-participar.test.mjs"
+    "test:quero-participar": "node --test tests/quero-participar.test.mjs",
+    "test:organizacao": "node --test tests/organizacao.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
