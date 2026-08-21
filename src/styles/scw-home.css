@@ -102,6 +102,20 @@
   text-wrap: pretty;
 }
 .hm-apoio--clara { color: rgba(254, 240, 221, .74); }
+/* Lead ancorado no fim da linha, como em Participar/Apoiar e no Sweet Awards:
+   rótulo+H2 à esquerda, apoio encostado na borda direita do trilho. Só quando
+   a cabeça tem DUAS colunas — numa coluna só (celular) `justify-self:end`
+   jogaria o parágrafo contra a margem direita, longe do título que ele explica. */
+@media (min-width: 760px) {
+  .hm-apoio { justify-self: end; }
+}
+/* O par da guarda acima: abaixo de 760 a cabeça é UMA coluna por decreto. O
+   auto-fit sozinho ainda abria duas por volta de ~700px de viewport (a conta é
+   do CONTAINER, não da tela), e aí o apoio ficava em duas colunas SEM o
+   alinhamento — exatamente o defeito que a regra acima corrige. */
+@media (max-width: 759px) {
+  .hm-cab { grid-template-columns: 1fr; }
+}
 .hm-apoio strong { color: var(--scw-choco); font-weight: 800; }
 
 .hm-link {
