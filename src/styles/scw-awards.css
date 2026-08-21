@@ -40,19 +40,60 @@
 }
 
 /* ≤1000px a geometria vem de .scw-hero-banda em scw-2026.css (36vh/232px,
-   calibrada a pedido do Wilke). Acima disso, altura própria: a banda substitui
-   uma reserva que já valia 216–268px, então precisa de mais foto que isso. */
+   calibrada a pedido do Wilke): foto em cima, texto embaixo, NENHUM texto
+   sobre imagem (§6.9). No celular continua sendo assim.
+
+   No desktop (≥1001px) a foto deixou de ser uma faixa no topo e passou a
+   ocupar o herói inteiro, com o texto por cima — pedido do Wilke, 21/08/2026.
+   A banda vira camada de fundo absoluta; a leitura fica por conta do véu do
+   ::after logo abaixo. */
 @media (min-width: 1001px) {
+  .swa-hero {
+    /* Herói com conteúdo ancorado embaixo, como Home/Participar/Apoiar (§6.7):
+       a logo do cabeçalho transborda metade abaixo da linha do header, então a
+       reserva é maior que a intuitiva. */
+    padding-top: clamp(232px, 22vw, 290px);
+    padding-bottom: clamp(26px, 2.8vw, 44px);
+  }
   .swa-hero .scw-hero-banda {
     display: block;
-    position: relative;
-    height: 44vh;
-    min-height: 340px;
-    margin: 0 calc(-1 * var(--scw-trilho)) clamp(24px, 2.6vw, 40px);
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    height: auto;
+    min-height: 0;
+    margin: 0;
     background-color: var(--scw-marrom);
     background-size: cover;
     background-position: var(--foco, center 44%);
     background-repeat: no-repeat;
+  }
+  /* O VÉU. Dois degradês no mesmo roxo da página, multiplicados: o vertical
+     adensa em direção à base (onde ficam números e índice, que atravessam a
+     largura toda), o horizontal adensa à esquerda (onde ficam selo, título e
+     lead). O canto superior direito é o único ponto que fica abaixo de 70% de
+     véu — é onde a foto aparece, e não há texto ali.
+     Alpha resultante nos pontos com texto: ~.95 sob o título, ~.93 na base,
+     contra os .60 do canto aberto. Creme sobre roxo é 9,95:1 e o que a foto
+     acrescenta por baixo desses .93+ não derruba isso.
+     ⛔ Não é o `.swa-hero::before` que saiu em 06/08 (degradê de 340px
+     repetindo o escurecimento que a própria banda já fazia). Este cobre o
+     herói inteiro e existe porque agora há texto sobre foto. */
+  .swa-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg,
+        rgba(77, 37, 126, .52) 0%,
+        rgba(77, 37, 126, .82) 58%,
+        rgba(77, 37, 126, .92) 100%),
+      linear-gradient(96deg,
+        rgba(77, 37, 126, .90) 0%,
+        rgba(77, 37, 126, .60) 52%,
+        rgba(77, 37, 126, .18) 100%);
   }
 }
 
