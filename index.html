@@ -51,12 +51,29 @@
 }
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Caveat:wght@500;600;700&family=Caprasimo&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<!-- Aqui moravam três folhas de estilo externas que bloqueavam a primeira
+     pintura de TODA página e não vestiam nada (removidas em ago/2026):
+     · Google Fonts com Instrument Serif, DM Sans, Caveat, Caprasimo e
+       JetBrains Mono — conferidas uma a uma, zero consumidores em src/ e em
+       public/. A JetBrains Mono ainda era a face que o §6.5 proíbe;
+     · dois Typekit (kgh7res, ngx4uek), que serviam só a Sofia Pro Comp do KV
+       Lovers e morreram com ele (§4.1 e Anexo A.1). A única menção a "Sofia
+       Pro" que restou no código é um comentário mandando NÃO usar.
+     A tipografia viva é a Nexa Slab, self-hosted em public/fonts/nexa-slab/ —
+     inclusive na /em-breve, cujo `--font-sans` resolve para ela.
+     A folha do Archivo continua mais abaixo: essa tem consumidor real, a seção
+     07 da Home (a exceção declarada do §6.1).
 
-<link rel="stylesheet" href="https://use.typekit.net/kgh7res.css" />
-<link rel="stylesheet" href="https://use.typekit.net/ngx4uek.css" />
+     As duas faces que abrem toda página vão em `preload`. Elas são
+     `font-display: swap`, então sem isso o texto pintava na fonte do sistema e
+     re-fluía ao trocar — medido 0,0736 de CLS na Home, quase todo daí. -->
+     São as duas do §6.5 que aparecem acima da dobra em todas as rotas: o 500
+     (Regular), que é o corpo e o lead, e o 900 (Black), que é todo H1, H2 e
+     numeral. As outras dez faces seguem sob demanda. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/nexa-slab/NexaSlab-Regular.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/nexa-slab/NexaSlabBlack.woff2" />
 
 <!-- Google Analytics 4 + Consent Mode (LGPD) — coleta só após aceite no banner -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-FM5ZJXL3MV"></script>
