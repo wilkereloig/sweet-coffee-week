@@ -244,7 +244,7 @@ const TRILHA = [
     texto: 'O primeiro pódio premia um combo só. A pergunta era simples: qual foi o melhor da edição?' },
   { ano: '2020.2 – 2021.2', titulo: 'Júri Técnico entra em cena', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
     traco: <path d="M4 8h16M12 8v11M8.5 19h7M4 8 1.9 12.2h4.2L4 8M20 8l-2.1 4.2h4.2L20 8" />,
-    texto: 'Por cinco edições, profissionais convidados avaliam execução, equilíbrio e acabamento em paralelo ao público.' },
+    texto: 'Por três edições, profissionais convidados avaliam execução, equilíbrio e acabamento em paralelo ao público.' },
   { ano: '2022 em diante', hoje: true, titulo: 'Só Sweet Lovers decide', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
     traco: <path d="M12 20.3s-7.3-4.5-7.3-9.6A3.9 3.9 0 0 1 12 8.1a3.9 3.9 0 0 1 7.3 2.6c0 5.1-7.3 9.6-7.3 9.6Z" />,
     texto: 'Quem prova dá nota ao que comeu. O pódio sai da média dessas notas — e de mais nada.' },

@@ -58,7 +58,7 @@ import ScwIcon from '../../components/scw-icons/ScwIcon'
 // Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
 // aqui — vem de EDICOES_NARRATIVA[code].lead.
 const EDS = [
-  { code: '2016', tema: 'S&C / Início', etapa: 'A estreia',
+  { code: '2016', tema: 'Início', etapa: 'A estreia',
     palavras: ['Xícara', 'Vitrine', 'Bolo', 'Balcão de cafeteria'] },
   { code: '2017.1', tema: 'Páscoa', etapa: 'Chocolate e presente',
     palavras: ['Ovos', 'Coelhos', 'Chocolate derretido', 'Cestas'] },

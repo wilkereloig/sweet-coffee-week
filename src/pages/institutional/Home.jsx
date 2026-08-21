@@ -335,7 +335,7 @@ export function HomePage({ navigate }) {
             </h2>
           </div>
           <p className="hm-apoio">
-            Doçarias, cafeterias e restaurantes de Natal criam uma composição exclusiva a partir do tema da edição — e muitos combos ganham lugar fixo no menu depois.
+            Doçarias, cafeterias e restaurantes de Natal e região criam uma composição exclusiva a partir do tema da edição — e muitos combos ganham lugar fixo no menu depois.
           </p>
         </div>
 

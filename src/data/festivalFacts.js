@@ -13,7 +13,7 @@ export const festivalFacts = {
   editions:   { value: 16,  label: '16 edições' },
   years:      { value: 10,  label: '10 anos' },
   firstYear:  2016,
-  brands:     { value: 100, label: '+100 marcas' },
+  brands:     { value: 120, label: '+120 marcas' },
   combosSold: { value: 34,  unit: 'mil',     label: '+34 mil combos' },
   igViews:    { value: 18,  unit: 'milhões', label: '+18 milhões de visualizações' },
 }
