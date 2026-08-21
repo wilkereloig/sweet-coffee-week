@@ -53,6 +53,7 @@ import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
 import { editionPhotos, bgStyle } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
 import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 
 // Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
 // aqui — vem de EDICOES_NARRATIVA[code].lead.
@@ -102,6 +103,29 @@ const TONS = [
   { cor: 'var(--scw-cyan)',    tinta: 'var(--scw-choco)', txt: 'var(--scw-cyan)' },
   { cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', txt: 'var(--scw-amarelo)' },
 ]
+
+/* Um ícone por edição, ao lado do rótulo da cena (desenho de 20/08/2026). Não
+   é enfeite: é o assunto da edição em um símbolo, no tom da própria cena — o
+   mesmo papel que a marca da edição cumpre no cabeçalho, em outra escala.
+   Extraídos um a um do desenho e conferidos contra as chaves de SCW_ICONS. */
+const ICONE_EDICAO = {
+  '2016':   'bebidas/espresso',       // Início
+  '2017.1': 'doces/chocolate',        // Páscoa
+  '2017.2': 'mapa/mapa',              // Doces do Mundo
+  '2018.1': 'marca/coracao',          // Namorados
+  '2018.2': 'doces/paleta',           // Sabores da Infância
+  '2019.1': 'doces/croissant',        // Pâtisserie Francesa
+  '2019.2': 'marca/estrela',          // Contos de Fadas
+  '2020.1': 'topicos/alcance',        // No Ritmo da Música
+  '2020.2': 'simbolos/destaque',      // Heróis & Vilões
+  '2021.1': 'topicos/video',          // Séries
+  '2021.2': 'mapa/ponto',             // Terras Potiguares
+  '2022':   'mecanica/voucher',       // Movies
+  '2023':   'mapa/trajeto',           // Trip
+  '2024':   'mecanica/guia',          // Books
+  '2025':   'doces/bolo',             // Celebration
+  '2026.1': 'simbolos/sweet-lovers',  // Lovers
+}
 
 const PREMIACAO = {
   'nao-teve': 'Sem premiação',
@@ -822,7 +846,14 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
           {/* coluna editorial (metade esquerda) */}
           <div className="scw-edx__coluna">
-            <span className="scw-edx__rotulo">{e.etapa}</span>
+            <div className="scw-edx__cena-selo">
+              {ICONE_EDICAO[e.code] && (
+                <span className="scw-edx__cena-disco" aria-hidden="true">
+                  <ScwIcon nome={ICONE_EDICAO[e.code]} tamanho={24} />
+                </span>
+              )}
+              <span className="scw-edx__rotulo">{e.etapa}</span>
+            </div>
             <h1 className="scw-edx__tema">{e.tema}</h1>
             <p className="scw-edx__lead">{narrativa.lead}</p>
             <dl className="scw-edx__meta">{meta}</dl>

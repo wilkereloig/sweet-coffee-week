@@ -1104,6 +1104,11 @@ Navegação em três peças:
 3. Nos extremos a seta sem destino recebe **`disabled`** de verdade — não só
    `opacity:0` —, para sair da tabulação.
 
+**Selo da cena:** disco vazado de 54px (44px em ≤900px) com **um ícone por edição**,
+no tom da cena, ao lado da pill do rótulo — `ICONE_EDICAO` em `Edicoes.jsx`, mapeado
+um a um do desenho. ⚠️ A classe é `.scw-edx__cena-selo`, **não** `.scw-edx__marca`:
+essa última já é a marca da edição no cabeçalho, e o nome colide.
+
 **Dados:** `src/data/handoff/edicoesData.js`, derivado de `sweetCoffeeHistory.js`.
 **Performance:** janela `live/near ±1-2` monta foto e mosaico só perto do foco.
 

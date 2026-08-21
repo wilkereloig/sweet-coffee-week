@@ -303,8 +303,35 @@
   gap: clamp(6px, 1.1vw, 26px);
   padding: clamp(112px, 13vw, 250px) clamp(28px, 3vw, 52px) clamp(24px, 3vw, 44px) var(--scw-trilho);
 }
-.scw-edx__rotulo {
+/* Selo da CENA (não confundir com .scw-edx__marca, que é a marca da edição no
+   cabeçalho): disco no tom da edição + rótulo. O disco é vazado — contorno no
+   tom, fundo quase transparente — para não competir com a pill sólida ao lado.
+   As duas peças dizem a mesma coisa em pesos diferentes. */
+.scw-edx__cena-selo {
   justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  animation: scwEdxCenaDir 520ms var(--scw-ease) both;
+}
+.scw-edx__cena-disco {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid var(--scw-edx-tom);
+  background: rgba(254, 240, 221, .05);
+  color: var(--scw-edx-tom);
+  transition: border-color 460ms cubic-bezier(.2, .75, .2, 1),
+              color 460ms cubic-bezier(.2, .75, .2, 1);
+}
+@media (max-width: 900px) {
+  .scw-edx__cena-disco { width: 44px; height: 44px; }
+}
+
+.scw-edx__rotulo {
   display: inline-flex;
   align-items: center;
   padding: 8px 15px 6px calc(15px + .14em);
