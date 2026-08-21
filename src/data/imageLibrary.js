@@ -27,6 +27,7 @@ import { EDITION_GALLERY } from './editionGallery.js'
 import { focalPosition } from './focalPoints.js'
 import { resolveParticipant } from './participantAssets.js'
 import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory.js'
+import { VARIANTES } from './imageVariants.js'
 
 /** Texto exibido quando o acervo não tem a foto. Discreto e honesto. */
 export const RESERVA = 'Fotografia ainda não disponível.'
@@ -285,6 +286,74 @@ export function bgStyle(foto, { mobile = false } = {}) {
     backgroundPosition: (mobile && foto.mobilePosition) || foto.position || 'center',
     backgroundRepeat: 'no-repeat',
   }
+}
+
+/* ----------------------------------------------------------------------------
+   Variantes estreitas (ago/2026)
+
+   O acervo é de desktop: 1000 a 2000px de largura. Servido a um cartão de 340
+   CSS px num celular, é peso puro — medido, a Home baixava 8,8 MB antes de
+   qualquer rolagem. `scripts/gerar-variantes.mjs` escreve `-480.webp` e
+   `-960.webp` ao lado de cada original acima dos pisos, e declara o resultado
+   em `imageVariants.js`.
+
+   Por que o manifesto e não uma convenção de nome: `srcset` não perdoa
+   candidato inexistente. O navegador escolhe pela largura DECLARADA e só
+   descobre o 404 depois de escolher — o quadro fica vazio. Então só entra no
+   `srcset` o caminho que o manifesto confirma ter variante em disco; o resto
+   sai como sempre saiu, com o original sozinho.
+   -------------------------------------------------------------------------- */
+
+/**
+ * `srcset` de uma foto, ou `undefined` se ela não tiver variante em disco.
+ * O original entra como último candidato, então o desktop continua recebendo
+ * exatamente o arquivo de antes.
+ */
+export function srcSet(src) {
+  if (!src) return undefined
+  const info = VARIANTES.get(src)
+  if (!info || !info.larguras || !info.larguras.length) return undefined
+  const base = src.slice(0, src.lastIndexOf('.'))
+  const partes = info.larguras.map((w) => `${base}-${w}.webp ${w}w`)
+  /* O original é o último candidato, com a largura real dele: é assim que o
+     desktop continua recebendo exatamente o arquivo de antes. Sem essa entrada
+     a tela grande cairia na variante de 960px. */
+  if (info.original) partes.push(`${src} ${info.original}w`)
+  return partes.join(', ')
+}
+
+/**
+ * A variante mais próxima de uma largura alvo, ou o próprio original se a foto
+ * não tiver variante. Serve o que `srcset` não alcança: fundo em CSS.
+ *
+ * Fundo não escolhe por largura — `image-set()` só entende resolução — então
+ * quem escolhe é o CSS, por media query, e o componente manda as DUAS urls como
+ * propriedade custom. É o mesmo arranjo que `--foco`/`--foco-mobile` já usa
+ * (§10.4): estilo inline vence media query, então mandar um valor resolvido
+ * cravaria o mesmo arquivo nas duas telas.
+ */
+export function fotoAte(src, largura) {
+  const info = VARIANTES.get(src)
+  if (!info || !info.larguras) return src
+  const escolhida = info.larguras.find((w) => w >= largura)
+  return escolhida ? `${src.slice(0, src.lastIndexOf('.'))}-${escolhida}.webp` : src
+}
+
+/** Largura que uma banda de herói ocupa no celular: a tela inteira, a 2x. */
+export const LARGURA_HEROI_MOBILE = 960
+
+/**
+ * `sizes` — quanto a foto vai ocupar, para o navegador escolher o candidato
+ * certo ANTES do layout existir. Errar aqui para mais anula o ganho: sem
+ * `sizes`, o padrão é `100vw` e o celular pede sempre o maior arquivo.
+ */
+export const SIZES = {
+  /** Miniatura de fita/galeria: ~1/2 tela no celular, ~1/5 no desktop. */
+  miniatura: '(max-width: 900px) 46vw, 20vw',
+  /** Cartão de pódio e de grade: quase a tela toda no celular. */
+  cartao: '(max-width: 820px) 86vw, 32vw',
+  /** Foto que sangra de ponta a ponta. */
+  cheia: '100vw',
 }
 
 export { focalPosition }

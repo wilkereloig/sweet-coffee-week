@@ -1264,6 +1264,9 @@ body:not(.route-em-breve) { margin: 0; }
   width: 100%;
   height: 100%;
   display: block;
+  /* Mesmo arranjo da banda: a url vem em propriedade custom para o CSS poder
+     escolher a largura por media query (§10.4). */
+  background-image: var(--foto);
   background-size: cover;
   background-position: 68% center;
   scale: 1.03;
@@ -1422,6 +1425,10 @@ body:not(.route-em-breve) { margin: 0; }
   position: absolute;
   inset: 0;
   display: block;
+  /* A url vem em propriedade custom e quem escolhe a largura é o CSS: o celular
+     usa a variante de 960px e o desktop o original. Inline não dá — estilo
+     inline vence media query (§10.4). */
+  background-image: var(--foto-mobile, var(--foto));
   background-size: cover;
   background-repeat: no-repeat;
   background-position: var(--foco-mobile, center);
@@ -1435,7 +1442,10 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-hero-banda::before,
 .scw-hero-banda::after { z-index: 1; }
 @media (min-width: 1001px) {
-  .scw-hero-banda__foto { background-position: var(--foco, center); }
+  .scw-hero-banda__foto {
+    background-image: var(--foto);
+    background-position: var(--foco, center);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .scw-hero-banda__foto { transition: none; }

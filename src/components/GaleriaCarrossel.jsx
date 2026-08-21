@@ -25,6 +25,7 @@
  */
 
 import React from 'react'
+import { SIZES, srcSet } from '../data/imageLibrary'
 
 /* A fita só pede as fotos quando o leitor se aproxima dela.
  *
@@ -80,7 +81,13 @@ export function GaleriaCarrossel({ itens, duracao = 46 }) {
                   da moldura enquanto isso. A segunda cópia existe só para o
                   laço não ter emenda, então vai sempre com `alt=""`. */}
               {emVista
-                ? <img src={item.src} alt={copia === 0 ? item.alt : ''} decoding="async" />
+                ? <img
+                    src={item.src}
+                    srcSet={srcSet(item.src)}
+                    sizes={SIZES.miniatura}
+                    alt={copia === 0 ? item.alt : ''}
+                    decoding="async"
+                  />
                 : null}
             </figure>
           : <div className="scw-reserva hm-galeria__reserva">{item.reserva}</div>}

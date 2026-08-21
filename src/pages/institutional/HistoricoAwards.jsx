@@ -36,7 +36,7 @@
 import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
-import { heroPhotos } from '../../data/imageLibrary'
+import { heroPhotos, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -195,6 +195,8 @@ function FotoAcervo({ foto }) {
   return (
     <img
       src={foto.src}
+      srcSet={srcSet(foto.src)}
+      sizes={SIZES.cartao}
       alt={foto.alt}
       style={{ objectPosition: foto.position }}
       loading="lazy"

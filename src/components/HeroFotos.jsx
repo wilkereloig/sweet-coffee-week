@@ -20,6 +20,7 @@
  */
 
 import React from 'react'
+import { fotoAte, LARGURA_HEROI_MOBILE } from '../data/imageLibrary'
 
 /* Mesmo intervalo do herói da Home. Duração que já existe no sistema, não um
    tempo novo (§6.15 — "nada de curva ou duração nova"). */
@@ -81,7 +82,15 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
           key={foto.src}
           className={'scw-hero-banda__foto' + (i === ativa ? ' is-ativa' : '')}
           style={{
-            backgroundImage: pedidas[i] ? `url("${foto.src}")` : undefined,
+            /* As duas urls como propriedade custom, e o CSS escolhe por media
+               query — mesmo arranjo de `--foco`/`--foco-mobile` (§10.4). Um
+               `backgroundImage` resolvido aqui venceria a media query e cravaria
+               o arquivo de desktop também no celular, que é o defeito que estas
+               variantes existem para corrigir. */
+            '--foto': pedidas[i] ? `url("${foto.src}")` : undefined,
+            '--foto-mobile': pedidas[i]
+              ? `url("${fotoAte(foto.src, LARGURA_HEROI_MOBILE)}")`
+              : undefined,
             '--foco': foto.position || 'center',
             '--foco-mobile': foto.mobilePosition || foto.position || 'center',
           }}

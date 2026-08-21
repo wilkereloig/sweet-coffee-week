@@ -50,7 +50,7 @@ import React from 'react'
 import '../../styles/scw-edicoes.css'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
 import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
-import { editionPhotos, bgStyle } from '../../data/imageLibrary'
+import { editionPhotos, bgStyle, SIZES, srcSet } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
 import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
@@ -238,6 +238,8 @@ function Quadro({ foto, classe = '', eager = false, children = null }) {
         <img
           className="scw-gal__foto scw-gal__foto--sai"
           src={sai.src}
+          srcSet={srcSet(sai.src)}
+          sizes={SIZES.cartao}
           alt=""
           aria-hidden="true"
           decoding="async"
@@ -249,6 +251,8 @@ function Quadro({ foto, classe = '', eager = false, children = null }) {
           key={foto.src}
           className="scw-gal__foto scw-gal__foto--entra"
           src={foto.src}
+          srcSet={srcSet(foto.src)}
+          sizes={SIZES.cartao}
           alt={foto.alt}
           loading={eager ? 'eager' : 'lazy'}
           decoding="async"

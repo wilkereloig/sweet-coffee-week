@@ -58,7 +58,11 @@
 }
 
 @media (max-width: 1000px) {
-  .hm .scw-hero__foto { background-position: var(--pos-mobile, center 32%); }
+  .hm .scw-hero__foto {
+    /* No celular entra a variante de 960px — a mesma foto, no tamanho da tela. */
+    background-image: var(--foto-mobile, var(--foto));
+    background-position: var(--pos-mobile, center 32%);
+  }
   /* No celular a foto fica quase limpa: o texto desce para o bloco chocolate. */
   .hm .scw-hero__veu {
     background: linear-gradient(180deg,

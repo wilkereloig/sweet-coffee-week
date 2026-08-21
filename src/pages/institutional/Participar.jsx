@@ -24,7 +24,7 @@ import {
   validateInterest,
   submitInterest,
 } from '../../lib/participationInterest'
-import { comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -380,7 +380,7 @@ export function ParticiparPage() {
                         describedBy={d.frase ? `pa-depo-frase-${d.slug}` : undefined}
                       />
                     : fotoCombo
-                      ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
+                      ? <img src={fotoCombo.src} srcSet={srcSet(fotoCombo.src)} sizes={SIZES.cartao} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
                       : <div className="scw-reserva">{RESERVA}</div>}
                 </div>
                 <span className="pa-depo__selo" aria-hidden="true">
@@ -453,7 +453,7 @@ export function ParticiparPage() {
             >
               <figure>
                 {f.foto
-                  ? <img src={f.foto.src} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
+                  ? <img src={f.foto.src} srcSet={srcSet(f.foto.src)} sizes={SIZES.cartao} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
                   : <div className="scw-reserva">{RESERVA}</div>}
               </figure>
               <div className="pa-faixa__corpo">
