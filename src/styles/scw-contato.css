@@ -117,21 +117,9 @@
 .ctt-cabeca--simples { display: block; margin-bottom: clamp(24px, 2.8vw, 38px); }
 .ctt-cabeca__titulo { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 22ch; }
 .ctt-cabeca__titulo--marrom { color: var(--scw-marrom); max-width: 20ch; }
-.ctt-cabeca__apoio {
-  margin: 0;
-  max-width: 36ch;
-  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
-  color: var(--scw-marrom);
-  text-wrap: pretty;
-}
-/* Mesma regra de Participar/Apoiar: apoio à direita e à base só com duas
-   colunas; numa coluna só ele volta a acompanhar o título. */
-@media (min-width: 760px) {
-  .ctt-cabeca__apoio { justify-self: end; }
-}
-/* O par da guarda: abaixo de 760 a cabeça é UMA coluna por decreto — o
-   auto-fit do .scw-grade ainda abria duas por volta de ~700px (conta do
-   container), deixando o apoio em duas colunas sem o alinhamento acima. */
+/* A guarda de uma coluna abaixo de 760 continua: o auto-fit do .scw-grade
+   abria duas por volta de ~700px (conta do container). Com as duas cabeças
+   desta página já em bloco único, ela só cobre quem voltar a usar a grade. */
 @media (max-width: 759px) {
   .scw-grade.ctt-cabeca { grid-template-columns: 1fr; }
 }

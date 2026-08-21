@@ -795,8 +795,13 @@
   .hm-ingredientes { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 18px; }
   .hm-ing { flex-direction: row; align-items: center; gap: 16px; text-align: left; }
   .hm-ing__nome { margin-top: 0; }
-  .hm-ing__nota { display: none; }
-  .hm-mais { margin-top: 0; margin-left: calc(clamp(72px, 7.6vw, 116px) / 2 - .4em); }
+  /* Empilhado, o "+" desce para a coluna do disco: metade do disco do
+     ingrediente menos metade dele mesmo. Os dois clamps são os mesmos de
+     .hm-ing__disco e .hm-mais — mexeu num, mexe aqui. */
+  .hm-mais {
+    margin-top: 0;
+    margin-left: calc(clamp(84px, 8vw, 124px) / 2 - clamp(30px, 2.8vw, 40px) / 2);
+  }
   .hm-voz__assinatura { flex-wrap: wrap; }
 }
 

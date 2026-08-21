@@ -163,7 +163,9 @@
 .ctt-abertura .ctt-abertura__rotulo { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
 .ctt-abertura .ctt-abertura__titulo { animation: moSobe var(--mo-entra) var(--mo-mola) 230ms both; }
 .ctt-abertura .ctt-abertura__lead   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 360ms both; }
-.ctt-abertura .ctt-abertura__apoio  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 470ms both; }
+/* As ações fecham a sequência, como nos outros heróis. O atraso de 470ms era
+   do bloco de apoio à direita, que saiu quando a abertura virou coluna única. */
+.ctt-abertura .ctt-abertura__acoes  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 470ms both; }
 
 /* --- Sweet Awards --------------------------------------------------------
    A banda de foto surge, o texto sobe atrás. A escada da vitrine dos
