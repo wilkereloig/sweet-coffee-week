@@ -35,6 +35,18 @@
   --scw-gap-bloco:    clamp(20px, 2.4vw, 32px); /* bloco → bloco dentro da seção */
   --scw-gap-grade:    clamp(16px, 2vw, 28px);   /* entre cards da mesma grade */
   --scw-hero-topo:    clamp(216px, 19vw, 252px);
+  /* Altura de herói — uma só para as seis páginas (pedido do Wilke,
+     21/08/2026). Antes cada uma media o que o conteúdo pedia e elas variavam
+     de 643px (Contato) a 895px (Home) no desktop, o que se nota ao navegar
+     entre as páginas: a dobra pula de lugar.
+     É `min-height`, não `height`: o herói continua podendo crescer se o texto
+     precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum. */
+  --scw-hero-altura:        clamp(760px, 100vh, 960px);
+  --scw-hero-altura-mobile: clamp(700px, 100vh, 940px);
+  /* As reservas também são comuns, senão a altura mínima não iguala nada: cada
+     herói ultrapassaria o piso pelo próprio padding. */
+  --scw-hero-reserva:  clamp(232px, 22vw, 290px);
+  --scw-hero-fecho:    clamp(34px, 3.6vw, 52px);
 
   /* --- raios e sombras --------------------------------------------------- */
   --scw-r-secao:      26px;
@@ -315,7 +327,14 @@ body:not(.route-em-breve) { margin: 0; }
   align-items: center;
   gap: 10px;
   width: fit-content;
-  max-width: 32ch;   /* rótulo cabe em UMA linha; estourou, encurtar o texto */
+  /* 32ch → 42ch: o teto antigo não contava o que o próprio rótulo acrescenta.
+     `ch` mede o "0" da fonte SEM letter-spacing, e aqui há .16em por caractere
+     (~16% a mais) somados ao ícone de 20px e ao gap de 10px. "Conversar com a
+     organização" tem 27 caracteres e mesmo assim estourava, quebrando em duas
+     linhas com o ícone órfão. O maior rótulo do site — "Festival gastronômico
+     · Natal e região", 41 caracteres — cabe em 42ch. Continua sendo UMA linha
+     (§6.5): o que mudou é a conta, não a regra. */
+  max-width: 42ch;
 }
 .scw-rotulo--com-icone > svg { flex-shrink: 0; }
 .scw-italico { font-style: italic; }
@@ -1064,7 +1083,7 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-hero {
   position: relative;
   overflow: hidden;
-  min-height: clamp(720px, 94vh, 1000px);
+  min-height: var(--scw-hero-altura);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1094,9 +1113,9 @@ body:not(.route-em-breve) { margin: 0; }
   position: absolute;
   inset: 0;
   --hv-cor: var(--scw-choco);
-  --hv-esq: 94%;
-  --hv-centro: 62%;
-  --hv-fim: 78%;
+  --hv-esq: 88%;
+  --hv-centro: 52%;
+  --hv-fim: 72%;
   background:
     linear-gradient(180deg,
       color-mix(in srgb, var(--hv-cor) var(--hv-topo, 38%), transparent) 0%,
@@ -1132,7 +1151,7 @@ body:not(.route-em-breve) { margin: 0; }
      mora dentro dela. Com 60% e um trilho só, o H1 perdia ~90px de largura e
      quebrava numa linha a mais — o herói inteiro crescia 126px. */
   max-width: min(100%, calc(860px + 2 * var(--scw-trilho)));
-  padding: clamp(232px, 22vw, 290px) var(--scw-trilho) clamp(30px, 3.4vw, 48px);
+  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
 }
 .scw-hero__titulo {
   margin: 0;
@@ -1166,12 +1185,18 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-hero-bloco {
   position: relative;
   overflow: hidden;
+  min-height: var(--scw-hero-altura);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   background: var(--scw-choco);
   color: var(--scw-creme);
-  padding: clamp(232px, 22vw, 290px) var(--scw-trilho) clamp(56px, 5.6vw, 88px);
+  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
 }
 .scw-hero-bloco--compacto {
-  padding: var(--scw-hero-topo) var(--scw-trilho) clamp(34px, 3.6vw, 52px);
+  /* O "compacto" continua valendo para a TIPOGRAFIA (.scw-h1--compacto), não
+     para a caixa: a altura do herói é a mesma nas seis páginas. */
+  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
 }
 /* Banda de foto — a camada de fundo do herói, nas DUAS telas desde a
    padronização de 21/08/2026. Antes ela existia só no celular, como faixa
@@ -1211,12 +1236,12 @@ body:not(.route-em-breve) { margin: 0; }
   pointer-events: none;
   background:
     linear-gradient(180deg,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-topo, 38%), transparent) 0%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-meio, 78%), transparent) 58%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-base, 92%), transparent) 100%),
+      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-topo, 22%), transparent) 0%,
+      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-meio, 64%), transparent) 58%,
+      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-base, 84%), transparent) 100%),
     linear-gradient(96deg,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-esq, 88%), transparent) 0%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-centro, 55%), transparent) 38%,
+      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-esq, 74%), transparent) 0%,
+      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-centro, 42%), transparent) 38%,
       transparent var(--hv-fim, 66%));
 }
 
@@ -1259,9 +1284,9 @@ body:not(.route-em-breve) { margin: 0; }
      direito para abrir. */
   .scw-hero__fotos { position: absolute; inset: 0; height: auto; min-height: 0; }
   .scw-hero__veu {
-    --hv-topo: 30%;
-    --hv-meio: 84%;
-    --hv-base: 97%;
+    --hv-topo: 22%;
+    --hv-meio: 78%;
+    --hv-base: 94%;
     --hv-esq: 0%;
     --hv-centro: 0%;
     --hv-fim: 0%;
@@ -1286,14 +1311,18 @@ body:not(.route-em-breve) { margin: 0; }
      leitura; o que resolve isso agora é o véu, que no celular fecha muito
      mais (ver `.scw-hero-veu` abaixo).
      A reserva de topo é o que deixa a foto respirar antes do texto começar. */
-  .scw-hero-bloco { padding-top: clamp(300px, 44vh, 420px); }
+  .scw-hero { min-height: var(--scw-hero-altura-mobile); }
+  .scw-hero-bloco {
+    min-height: var(--scw-hero-altura-mobile);
+    padding-top: clamp(300px, 44vh, 420px);
+  }
   /* Tela estreita: o texto ocupa a largura toda, então o degradê horizontal
      não tem para onde abrir — desliga, e quem carrega a leitura é o vertical,
      bem mais fechado que no desktop. */
   .scw-hero-veu {
-    --hv-topo: 30%;
-    --hv-meio: 84%;
-    --hv-base: 97%;
+    --hv-topo: 22%;
+    --hv-meio: 78%;
+    --hv-base: 94%;
     --hv-esq: 0%;
     --hv-centro: 0%;
     --hv-fim: 0%;

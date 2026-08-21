@@ -37,11 +37,11 @@
    --scw-heroi (bege nesta página); hex fixo nunca. */
 .ctt-abertura {
   position: relative;
-  --hv-topo: 60%;
-  --hv-meio: 92%;
-  --hv-base: 97%;
-  --hv-esq: 96%;
-  --hv-centro: 78%;
+  --hv-topo: 46%;
+  --hv-meio: 86%;
+  --hv-base: 94%;
+  --hv-esq: 90%;
+  --hv-centro: 64%;
 }
 .ctt-abertura__grade { position: relative; z-index: 1; }
 
@@ -421,10 +421,11 @@
 .ctt-porta__link:hover { color: var(--scw-choco); }
 
 /* --- 04 Mensagem ---------------------------------------------------------- */
-.ctt-mensagem__cabeca { max-width: 980px; margin: 0 auto; text-align: center; }
-.ctt-mensagem__titulo { margin: clamp(14px, 1.6vw, 20px) auto 0; max-width: 24ch; }
+/* À esquerda, como as outras cabeças (ver .pa-form__intro). */
+.ctt-mensagem__cabeca { max-width: 980px; }
+.ctt-mensagem__titulo { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 24ch; }
 .ctt-mensagem__lead {
-  margin: 16px auto 0;
+  margin: 16px 0 0;
   max-width: 52ch;
   font: 500 16.5px/1.55 var(--scw-font);
   color: var(--scw-marrom);

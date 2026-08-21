@@ -152,7 +152,6 @@
 .pa-hero .pa-hero__titulo   { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
 .pa-hero .pa-hero__lead     { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 420ms both; }
 .pa-hero .pa-hero__acoes    { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 540ms both; }
-.pa-hero .pa-hero__nota     { animation: moSurge var(--mo-entra) var(--mo-ease) 680ms both; }
 .pa-hero .pa-hero__aside    { animation: moLado var(--mo-longo) var(--mo-mola) 360ms both; }
 
 /* --- Contato (abertura compacta) ----------------------------------------- */

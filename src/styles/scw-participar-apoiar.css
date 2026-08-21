@@ -33,14 +33,6 @@
   gap: 10px;
   margin-top: clamp(20px, 2.4vw, 30px);
 }
-.pa-hero__nota {
-  display: block;
-  margin-top: clamp(20px, 2.2vw, 28px);
-  padding-top: clamp(16px, 1.8vw, 22px);
-  border-top: 1px solid color-mix(in srgb, var(--scw-heroi-tinta) 26%, transparent);
-  font: 700 13.5px/1.45 var(--scw-font);
-  color: color-mix(in srgb, var(--scw-heroi-tinta) 84%, transparent);
-}
 
 /* Selo do herói: o pill usa --scw-pagina como fundo, e nas duas páginas a cor
    da página é AGORA a cor da própria chapa do herói (cyan em Participar,
@@ -94,13 +86,27 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    íntegro é o FUNDO, não a tinta, então os alfas são maiores que os de Apoiar,
    que é chapa escura de tinta creme — o caso do Sweet Awards, que usa os
    valores padrão. */
-@media (min-width: 1001px) {
+/* No CELULAR o texto ocupa a largura toda, então o véu horizontal está
+   desligado e quem carrega a leitura é só o vertical. Em Participar isso não
+   bastava: medido no build, o lead dava 4,33:1 sobre a foto — abaixo dos 4,5
+   exigidos. Os alfas sobem só aqui, só nesta página, porque é a única chapa
+   clara de tinta escura entre os heróis com texto sobre foto.
+   (Apoiar, marrom de tinta creme, mediu 7,75:1 nas mesmas condições.) */
+@media (max-width: 1000px) {
   body.route-participar .pa-hero {
-    --hv-topo: 52%;
+    --hv-topo: 40%;
     --hv-meio: 88%;
     --hv-base: 96%;
-    --hv-esq: 94%;
-    --hv-centro: 68%;
+  }
+}
+
+@media (min-width: 1001px) {
+  body.route-participar .pa-hero {
+    --hv-topo: 44%;
+    --hv-meio: 84%;
+    --hv-base: 94%;
+    --hv-esq: 90%;
+    --hv-centro: 58%;
   }
 }
 
@@ -660,10 +666,13 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    Formulários em destaque (pré-cadastro · proposta de apoio)
    ========================================================================= */
 
-.pa-form__intro { max-width: 980px; margin: 0 auto; text-align: center; }
-.pa-form__intro h2 { margin: clamp(14px, 1.6vw, 20px) auto 0; max-width: 24ch; }
+/* ⚠️ À ESQUERDA, como todas as outras cabeças do site. Esta era centralizada
+   e destoava: o rótulo com ícone quebrava em duas linhas com o ícone órfão
+   acima, e o olho perdia a coluna que todo o resto da página segue. */
+.pa-form__intro { max-width: 980px; }
+.pa-form__intro h2 { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 24ch; }
 .pa-form__intro p {
-  margin: 16px auto 0;
+  margin: 16px 0 0;
   max-width: 52ch;
   color: var(--scw-marrom);
   font: 500 16.5px/1.55 var(--scw-font);

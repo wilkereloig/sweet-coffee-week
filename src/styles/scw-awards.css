@@ -19,13 +19,22 @@
 .swa-hero {
   position: relative;
   overflow: hidden;
+  /* A mesma altura das outras cinco (§6.8, token do sistema). */
+  min-height: var(--scw-hero-altura);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   /* Sem reserva de topo: quem ocupa a faixa por onde passa o cabeçalho fixo é
      a própria banda de foto, nas duas telas. */
   padding: 0 var(--scw-trilho);
   background: var(--scw-roxo);
   color: var(--scw-creme);
 }
-.swa-hero > * { position: relative; z-index: 1; }
+/* ⚠️ Só o TEXTO sobe. Este seletor já foi `.swa-hero > *`, e nessa forma ele
+   alcançava também a banda de foto: ela virava `position: relative`, perdia o
+   `inset: 0`, colapsava a zero (os filhos são absolutos) e o herói ficava roxo
+   chapado — a galeria inteira sumia da tela sem sumir do DOM. */
+.swa-hero__texto { position: relative; z-index: 1; }
 
 /* A foto do herói: as seis imagens da entrega dos prêmios se revezam aqui.
    Camadas e crossfade são do sistema (.scw-hero-banda__foto, montadas pelo
@@ -37,8 +46,8 @@
    Home/Participar/Apoiar (§6.7). A logo do cabeçalho transborda metade abaixo
    da linha do header, então a reserva é maior que a intuitiva. */
 .swa-hero {
-  padding-top: clamp(232px, 22vw, 290px);
-  padding-bottom: clamp(26px, 2.8vw, 44px);
+  padding-top: var(--scw-hero-reserva);
+  padding-bottom: var(--scw-hero-fecho);
 }
 
 /* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
@@ -604,7 +613,8 @@
    06 Antes de 2019
    -------------------------------------------------------------------------- */
 
-.swa-antes { max-width: 900px; margin: 0 auto; text-align: center; }
+/* À esquerda, como as outras cabeças (ver .pa-form__intro). */
+.swa-antes { max-width: 900px; }
 .swa-antes .scw-h2 {
   max-width: none;
   margin-top: 14px;
