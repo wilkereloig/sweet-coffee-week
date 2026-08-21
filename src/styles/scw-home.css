@@ -151,13 +151,21 @@
    02 O que é — anatomia do combo + duas galerias irmãs
    ========================================================================= */
 
+/* As duas metades não têm o mesmo peso: a anatomia são três discos grandes com
+   nome embaixo e precisa de largura para respirar, enquanto o card de preço é
+   um parágrafo curto. Em colunas iguais os discos ficavam espremidos à
+   esquerda e sobrava ar entre eles e o card — daí a proporção 1,18 / 0,82.
+   O `auto-fit` continua valendo abaixo de 900px, onde vira coluna única. */
 .hm-anatomia {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: clamp(24px, 3vw, 48px) clamp(24px, 4vw, 72px);
-  align-items: start;
+  grid-template-columns: minmax(0, 1.18fr) minmax(300px, .82fr);
+  gap: clamp(24px, 3vw, 48px) clamp(32px, 5vw, 88px);
+  align-items: center;
   padding-bottom: clamp(34px, 3.8vw, 56px);
   border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+@media (max-width: 900px) {
+  .hm-anatomia { grid-template-columns: minmax(0, 1fr); align-items: start; }
 }
 .hm-anatomia__rotulo { margin-bottom: clamp(18px, 2vw, 26px); }
 
@@ -195,12 +203,16 @@
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
+/* Os três ingredientes ocupam a largura da coluna, com o "+" respirando entre
+   eles: o gap saiu de 6–18px para 14–34px quando a coluna alargou. Sem isso o
+   sinal encostava nos discos e a leitura "doce + salgado + bebida" virava um
+   bloco só. */
 .hm-ingredientes {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
   justify-items: center;
-  gap: clamp(6px, 1vw, 18px);
+  gap: clamp(14px, 2.2vw, 34px);
 }
 .hm-ing { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
 .hm-ing__disco {
