@@ -52,7 +52,7 @@
     color-mix(in srgb, var(--veu) 92%, transparent) 52%,
     color-mix(in srgb, var(--veu) 86%, transparent) 100%);
 }
-.ctt-abertura__grade { position: relative; z-index: 1; align-items: end; }
+.ctt-abertura__grade { position: relative; z-index: 1; }
 
 /* No celular a foto passa a ser a banda sangrando: o fundo de tela cheia sai
    para não duplicar imagem. A banda leva o mesmo véu no topo. */
@@ -76,28 +76,25 @@
 /* Herói bege (--scw-heroi/--scw-heroi-tinta = choco): tinta escura, não a
    dupla clara/amarelo do sistema anterior de véu-sobre-foto-escura. */
 .ctt-abertura__rotulo { color: var(--scw-heroi-tinta); }
+/* Sem max-width próprio: vale o 17ch de .scw-h1, que é o que faz o título
+   quebrar em duas linhas como nas outras aberturas. Com 24ch ele cabia numa
+   linha só e o herói perdia 64px de altura. */
 .ctt-abertura__titulo {
   margin: clamp(12px, 1.4vw, 18px) 0 0;
-  max-width: 24ch;
   color: var(--scw-heroi-tinta);
 }
+/* O lead do herói é o mesmo das outras cinco aberturas — o que muda é só a
+   tinta, porque aqui a chapa é clara. */
 .ctt-abertura__lead {
   margin: clamp(12px, 1.4vw, 18px) 0 0;
-  max-width: 56ch;
-  color: color-mix(in srgb, var(--scw-heroi-tinta) 84%, transparent);
+  color: var(--scw-marrom);
 }
-.ctt-abertura__apoio {
+.ctt-abertura__acoes {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
-  width: min(100%, 420px);
+  margin-top: clamp(22px, 2.4vw, 30px);
 }
-.ctt-abertura__nota {
-  margin: 0;
-  font: 500 14.5px/1.5 var(--scw-font);
-  color: color-mix(in srgb, var(--scw-heroi-tinta) 80%, transparent);
-}
-.ctt-abertura__acoes { display: flex; flex-wrap: wrap; gap: 10px; }
 /* Herói bege: o par âmbar/contorno-claro do sistema (pensado pra foto escura)
    não fecha AA aqui — os dois botões viram chocolate. */
 .ctt-abertura__acoes .scw-btn--solido { background: var(--scw-choco); color: var(--scw-creme); }

@@ -192,41 +192,33 @@ export function ContatoPage({ navigate }) {
         />
         <span className="ctt-abertura__veu" aria-hidden="true" />
         <div className="scw-hero-banda" role="img" aria-label={HERO_FOTO.alt} style={bgStyle(HERO_FOTO, { mobile: true })} />
-        <div
-          className="scw-grade ctt-abertura__grade"
-          style={{ '--scw-min': '300px', '--scw-gap': 'clamp(20px, 3vw, 48px)' }}
-        >
-          <div>
-            <span className="scw-rotulo ctt-abertura__rotulo">Contato</span>
-            <h1 id="ctt-titulo" className="scw-h1 scw-h1--compacto ctt-abertura__titulo">
-              Sua dúvida, respondida aqui.
-            </h1>
-            <p className="scw-corpo ctt-abertura__lead">
-              Público, marcas, imprensa e parceiros: busque nas perguntas frequentes ou escreva para a
-              organização pelo formulário abaixo.
-            </p>
-          </div>
-          <div className="ctt-abertura__apoio">
-            <p className="ctt-abertura__nota">
-              A central de dúvidas reúne {TOTAL} respostas por assunto. Se a sua não estiver lá, escreva
-              pelo formulário.
-            </p>
-            <div className="ctt-abertura__acoes">
-              <a
-                href="#perguntas"
-                onClick={rolarPara('perguntas')}
-                className="scw-btn scw-btn--solido ctt-btn-mini"
-              >
-                Ver as perguntas
-              </a>
-              <a
-                href="#mensagem"
-                onClick={rolarPara('mensagem')}
-                className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
-              >
-                Ir para o formulário
-              </a>
-            </div>
+        {/* Coluna única, como nas outras cinco aberturas: rótulo, H1, lead e as
+            duas ações. A coluna de apoio à direita saiu no desenho de 20/08 —
+            ela repetia, em nota, o que a própria seção 02 logo abaixo mostra. */}
+        <div className="ctt-abertura__grade">
+          <span className="scw-rotulo ctt-abertura__rotulo">Contato</span>
+          <h1 id="ctt-titulo" className="scw-h1 ctt-abertura__titulo">
+            Sua dúvida, respondida aqui.
+          </h1>
+          <p className="scw-hero__lead ctt-abertura__lead">
+            Público, marcas, imprensa e parceiros: busque nas perguntas frequentes ou escreva para a
+            organização pelo formulário abaixo.
+          </p>
+          <div className="ctt-abertura__acoes">
+            <a
+              href="#perguntas"
+              onClick={rolarPara('perguntas')}
+              className="scw-btn scw-btn--solido ctt-btn-mini"
+            >
+              Ver as perguntas
+            </a>
+            <a
+              href="#mensagem"
+              onClick={rolarPara('mensagem')}
+              className="scw-btn scw-btn--contorno-claro ctt-btn-mini"
+            >
+              Ir para o formulário
+            </a>
           </div>
         </div>
       </section>

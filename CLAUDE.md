@@ -1217,8 +1217,12 @@ indicadores.
 
 ### 7.6 Contato — `/contato`, bege `#F8E4C1`
 
-**Quatro seções:** `01 Abertura` (compacta, ~368px) · `02 Dúvidas` · `03 Caminhos` ·
-`04 Mensagem`.
+**Quatro seções:** `01 Abertura` · `02 Dúvidas` · `03 Caminhos` · `04 Mensagem`.
+
+A abertura é **coluna única**, como as outras cinco: rótulo, H1 (`.scw-h1` cheio, sem
+teto próprio de medida — é o 17ch que faz o título quebrar em duas linhas), lead e as
+duas ações. ⛔ A coluna de apoio à direita, com a nota "a central reúne N respostas",
+**saiu em 20/08/2026**: dizia em nota o que a seção 02 logo abaixo mostra inteiro.
 
 ⛔ **A regra antiga "Contato é página simples, SEM hero" está superada** — a página abre
 com herói compacto e banda de foto no mobile.
