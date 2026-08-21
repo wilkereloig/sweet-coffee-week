@@ -72,13 +72,16 @@
      adensa em direção à base (onde ficam números e índice, que atravessam a
      largura toda), o horizontal adensa à esquerda (onde ficam selo, título e
      lead).
-     O horizontal ZERA em 62% da largura (pedido do Wilke, 21/08/2026: a foto
+     O horizontal ZERA em 66% da largura (pedido do Wilke, 21/08/2026: a foto
      tem de aparecer). Dali para a direita sobra só o vertical, que no topo
-     vale .38 — o terço direito da imagem passa quase limpo, e é justamente
+     vale .28 — o terço direito da imagem passa quase limpo, e é justamente
      onde está o assunto da foto e onde não há texto nenhum.
-     Alpha resultante nos pontos com texto: ~.95 sob o título, ~.88 no lead e
-     ~.92 na base, contra os .38 do canto aberto. Creme sobre roxo é 9,95:1 e
-     o que a foto acrescenta por baixo desses .88+ não derruba isso.
+     Alpha resultante nos pontos com texto: ~.89 sob o título e no lead, ~.88
+     na base, contra os .28 do canto aberto.
+     ⚠️ Afrouxado duas vezes a pedido, e ~.88 sob título e lead é o PISO:
+     abaixo disso o creme deixa de ter 4,5:1 garantidos, porque o brilho da
+     foto que sobra por baixo varia ao longo da imagem — a leitura passaria a
+     depender de QUAL foto está no herói.
      ⛔ Não é o `.swa-hero::before` que saiu em 06/08 (degradê de 340px
      repetindo o escurecimento que a própria banda já fazia). Este cobre o
      herói inteiro e existe porque agora há texto sobre foto. */
@@ -90,13 +93,13 @@
     pointer-events: none;
     background:
       linear-gradient(180deg,
-        rgba(77, 37, 126, .38) 0%,
-        rgba(77, 37, 126, .78) 58%,
-        rgba(77, 37, 126, .92) 100%),
+        rgba(77, 37, 126, .28) 0%,
+        rgba(77, 37, 126, .70) 58%,
+        rgba(77, 37, 126, .88) 100%),
       linear-gradient(96deg,
-        rgba(77, 37, 126, .88) 0%,
-        rgba(77, 37, 126, .55) 38%,
-        rgba(77, 37, 126, 0) 62%);
+        rgba(77, 37, 126, .80) 0%,
+        rgba(77, 37, 126, .50) 38%,
+        rgba(77, 37, 126, 0) 66%);
   }
 }
 
