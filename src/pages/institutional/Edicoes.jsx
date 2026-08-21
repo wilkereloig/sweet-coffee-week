@@ -837,7 +837,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                   aria-expanded={!!accessOpen}
                   aria-label="Acessar área restrita"
                 >
-                  <ChaveIcon width="17" height="17" strokeWidth="2" />
+                  <ChaveIcon width="20" height="20" strokeWidth="2.4" />
                   <span>Acesso</span>
                 </button>
               )}

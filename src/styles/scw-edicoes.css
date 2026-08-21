@@ -321,9 +321,14 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  border: 2px solid var(--scw-edx-tom);
+  /* Traço e ícone vêm de `--scw-edx-tom-txt`, não do tom cru: sobre a cena
+     escura o roxo dá 1,45:1 e o magenta 3,8:1 (§10.6) — o disco sumia. É o
+     mesmo par que o resto da página já usa como TEXTO no escuro, onde roxo e
+     magenta caem no creme e cyan/amarelo ficam. A pill ao lado segue no tom
+     cru porque lá ele é SUPERFÍCIE, não tinta. */
+  border: 2px solid var(--scw-edx-tom-txt);
   background: rgba(254, 240, 221, .05);
-  color: var(--scw-edx-tom);
+  color: var(--scw-edx-tom-txt);
   transition: border-color 460ms cubic-bezier(.2, .75, .2, 1),
               color 460ms cubic-bezier(.2, .75, .2, 1);
 }
