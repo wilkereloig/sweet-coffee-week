@@ -430,9 +430,10 @@
   overflow: hidden;
   background: var(--scw-bege);
 }
-.hm-rota__foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.hm-rota__foto--reserva { display: grid; padding: 16px; background: rgba(254, 240, 221, .06); }
-.hm-rota__foto--reserva .scw-reserva { width: 100%; height: 100%; background: transparent; }
+/* Três fotos em transição por card desde 21/08/2026 (componente HeroFotos):
+   as camadas são as do sistema, `.scw-hero-banda__foto`, que já são absolutas
+   e cobrem a caixa. O `<img>` de foto única saiu, e com ele a variante
+   `--reserva` do card de Parceiros, que não tem mais o que reservar. */
 
 .hm-rota__corpo {
   display: grid;
@@ -507,13 +508,9 @@
   overflow: hidden;
   background: var(--scw-marrom);
 }
-.hm-etapa__foto {
-  position: absolute;
-  inset: 0;
-  display: block;
-  background-size: cover;
-  background-position: center;
-}
+/* Três fotos em transição por etapa desde 21/08/2026 (componente HeroFotos):
+   a caixa é esta, as camadas são as do sistema (.scw-hero-banda__foto). */
+.hm-etapa__fotos { position: absolute; inset: 0; }
 /* Indicador de etapa: 54px (PATCH 02 §5). Disco de indicador 54, disco de
    ícone dentro de card 46 — dois tamanhos, dois papéis, nada entre eles. */
 .hm-etapa__num {

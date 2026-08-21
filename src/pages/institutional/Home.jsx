@@ -4,6 +4,7 @@ import { festivalFacts } from '../../data/festivalFacts'
 import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA, sweetGiftPhotos } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import { GaleriaCarrossel } from '../../components/GaleriaCarrossel'
+import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { ANATOMIA_COMBO } from '../../components/scw-icons/anatomia-combo'
@@ -89,20 +90,53 @@ const COMBOS = [
   { foto: frame('2016', 0), titulo: 'Primeira edição', ano: '2016' },
 ]
 
-/* --- 03 Rotas. "Marcas" mostra um combo do acervo; "Público" reusa o registro
-   de público que já abre a página (HERO[2]); "Parceiros" fica em reserva porque
-   o acervo não tem foto de ativação de patrocinador. */
-const FOTO_MARCAS = frame('2019.2', 3)
-const FOTO_PUBLICO = HERO[2]
+/* --- 03 Rotas. Cada card mostra TRÊS fotos em transição (pedido do Wilke,
+   21/08/2026), pelo mesmo mecanismo dos heróis — o componente HeroFotos com a
+   classe do card. Cada eixo puxa do acervo que lhe diz respeito:
+   · Marcas   → as visitas às lojas participantes;
+   · Público  → os Sweet Lovers e um registro de rua;
+   · Parceiros→ a entrega dos prêmios e o público reunido. Este card vivia em
+     RESERVA porque não há foto de ativação de patrocinador no acervo, e §9.6
+     proíbe exibir patrocinador de qualquer modo. A saída não é mostrar marca
+     nenhuma: é mostrar o que o apoio SUSTENTA — festival cheio, gente
+     recebendo prêmio. */
+const loja = (n, alt) => ({ src: `/images/participantes-lojas/${n}.jpg`, alt, position: 'center 40%' })
+const lover = (n, alt) => ({ src: `/images/sweet-lovers/0${n}.jpg`, alt, position: 'center 38%' })
+const premio = (n, alt) => ({ src: `/images/awards-entrega/0${n}.jpg`, alt, position: 'center 38%' })
 
-/* --- 04 Ciclo. Fotos do sistema central; a etapa 04 usa um registro de público
-   (pasta `momentos`, sem vínculo com marca ou edição — não é foto de edição
-   nem de combo, por isso não passa pelo sistema central). */
+const FOTOS_MARCAS = [
+  frame('2019.2', 3),
+  loja('03', 'Equipe de uma marca participante do Sweet & Coffee Week'),
+  loja('09', 'Vitrine de uma loja participante do Sweet & Coffee Week'),
+]
+const FOTOS_PUBLICO = [
+  HERO[2],
+  lover(1, 'Sweet Lovers durante uma edição do Sweet & Coffee Week'),
+  lover(4, 'Público reunido em uma edição do Sweet & Coffee Week'),
+]
+const FOTOS_PARCEIROS = [
+  lover(2, 'Público de uma edição do Sweet & Coffee Week'),
+  premio(4, 'Entrega de prêmio do Sweet Awards a uma marca participante'),
+  loja('01', 'Marcas participantes reunidas em uma edição do Sweet & Coffee Week'),
+]
+
+/* --- 04 Ciclo. Cada etapa mostra TRÊS fotos em transição (pedido do Wilke,
+   21/08/2026), e cada trio ilustra o que aquele passo é de fato — antes eram
+   quatro fotos avulsas, e a etapa 04 ("a memória continua") abria com um
+   registro de festa que não dizia nada sobre memória. Agora:
+   01 tema      → combos de edições diferentes, que é onde o tema vira sabor;
+   02 marcas    → as equipes nas próprias lojas;
+   03 cidade    → o público na rua e nas visitas;
+   04 memória   → a entrega dos prêmios, que é o que fica depois. */
 const ETAPAS = [
-  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.', frame('2016', 0), 'var(--scw-laranja)', 'var(--scw-choco)'],
-  ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.', frame('2019.2', 3), 'var(--scw-roxo)', 'var(--scw-creme)'],
-  ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.', frame('2025', 2), 'var(--scw-cyan)', 'var(--scw-choco)'],
-  ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.', { src: '/images/momentos/04.jpg', alt: 'Público em uma edição do Sweet & Coffee Week', position: 'center 40%' }, 'var(--scw-amarelo)', 'var(--scw-choco)'],
+  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.',
+    [frame('2016', 0), frame('2022', 2), frame('2021.1', 1)], 'var(--scw-laranja)', 'var(--scw-choco)'],
+  ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.',
+    [frame('2019.2', 3), loja('06', 'Equipe de uma loja participante do Sweet & Coffee Week'), loja('12', 'Marca participante do Sweet & Coffee Week em sua loja')], 'var(--scw-roxo)', 'var(--scw-creme)'],
+  ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.',
+    [frame('2025', 2), lover(3, 'Sweet Lovers percorrendo a rota do Sweet & Coffee Week'), loja('17', 'Público em uma loja participante do Sweet & Coffee Week')], 'var(--scw-cyan)', 'var(--scw-choco)'],
+  ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.',
+    [premio(1, 'Equipe premiada no Sweet Awards do Sweet & Coffee Week'), premio(3, 'Marca recebendo o prêmio do Sweet Awards'), lover(5, 'Sweet Lovers em uma edição do Sweet & Coffee Week')], 'var(--scw-amarelo)', 'var(--scw-choco)'],
 ]
 
 /* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica).
@@ -406,15 +440,7 @@ export function HomePage({ navigate }) {
 
         <div className="hm-rotas">
           <article className="hm-rota hm-rota--marcas">
-            <figure className="hm-rota__foto">
-              <img
-                src={FOTO_MARCAS.src}
-                alt={FOTO_MARCAS.alt}
-                style={{ objectPosition: FOTO_MARCAS.position }}
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
+            <HeroFotos fotos={FOTOS_MARCAS} classe="hm-rota__foto" />
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo">Marcas</span>
               <div className="hm-rota__texto">
@@ -428,15 +454,7 @@ export function HomePage({ navigate }) {
           </article>
 
           <article className="hm-rota hm-rota--publico">
-            <figure className="hm-rota__foto">
-              <img
-                src={FOTO_PUBLICO.src}
-                alt={FOTO_PUBLICO.alt}
-                style={{ objectPosition: FOTO_PUBLICO.position }}
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
+            <HeroFotos fotos={FOTOS_PUBLICO} classe="hm-rota__foto" />
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo">Público</span>
               <div className="hm-rota__texto">
@@ -450,10 +468,7 @@ export function HomePage({ navigate }) {
           </article>
 
           <article className="hm-rota hm-rota--parceiros">
-            {/* Foto de patrocinador/ativação não existe no acervo → reserva. */}
-            <div className="hm-rota__foto hm-rota__foto--reserva">
-              <div className="scw-reserva">{RESERVA}</div>
-            </div>
+            <HeroFotos fotos={FOTOS_PARCEIROS} classe="hm-rota__foto" />
             <div className="hm-rota__corpo">
               <span className="hm-rota__eixo hm-rota__eixo--bege">Parceiros</span>
               <div className="hm-rota__texto">
@@ -483,10 +498,10 @@ export function HomePage({ navigate }) {
         </div>
 
         <div className="hm-ciclo">
-          {ETAPAS.map(([numero, titulo, texto, foto, cor, tinta]) => (
+          {ETAPAS.map(([numero, titulo, texto, fotos, cor, tinta]) => (
             <article className="hm-etapa" key={numero}>
               <div className="hm-etapa__moldura">
-                <span className="hm-etapa__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
+                <HeroFotos fotos={fotos} classe="hm-etapa__fotos" />
                 <span className="hm-etapa__num" style={{ background: cor, color: tinta }} aria-hidden="true">{numero}</span>
               </div>
               <h3 className="hm-etapa__titulo">{titulo}</h3>

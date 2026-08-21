@@ -194,12 +194,11 @@
 .scw-hero__foto.is-ativa {
   animation: moRespiraFundo var(--mo-respiro) var(--mo-suave) infinite alternate;
 }
-/* Molduras que já cortam o excedente — a foto respira, a caixa fica parada.
-   Poucos pontos por página: laço em toda imagem viraria poluição (§14) e custo
-   de compositor à toa (§23). No celular, nenhum: a rolagem vem primeiro (§21). */
-@media (min-width: 1001px) {
-  .hm-rota__foto img { animation: moRespira var(--mo-respiro) var(--mo-suave) infinite alternate; }
-}
+/* ⛔ A RESPIRAÇÃO DAS TRÊS FOTOS DE ROTAS SAIU em 21/08/2026. Os cards
+   passaram a trocar de foto em crossfade, e um card que ao mesmo tempo troca
+   de imagem e pulsa é movimento demais no mesmo objeto. Era também a pendência
+   registrada na sessão anterior: a régua do Design pede no máximo dois laços
+   contínuos na Home, e este era o mais barato de dispensar. Não recriar. */
 
 /* ============================================================================
    4. HOVER, TOQUE E FOCO (§10) — resposta imediata, deslocamento mínimo.
@@ -440,5 +439,4 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   .scw-acesso__cta:hover,
   .scw-topo:hover { transform: none; }
   .hm-materia:hover .hm-materia__foto img { scale: 1; }
-  .hm-rota__foto img { animation: none; scale: 1; }
 }
