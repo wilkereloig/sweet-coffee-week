@@ -16,7 +16,7 @@
 
 .scw-edx {
   /* Tab bar do site (76px + safe-area) montada POR FORA da página. */
-  --scw-edx-abas: calc(76px + env(safe-area-inset-bottom, 0px));
+  --scw-edx-abas: calc(76px + var(--scw-safe-b));
   /* Acento da edição em foco — trocado inline por cena (ver Edicoes.jsx). */
   --scw-edx-tom: var(--scw-cyan);
   --scw-edx-tinta: var(--scw-choco);   /* texto SOBRE o acento (AA) */
@@ -731,7 +731,10 @@
 
 .scw-edx-mob {
   position: relative;
-  min-height: 100vh;
+  /* `svh` pelo mesmo motivo dos heróis (scw-2026.css §Base): `vh` no iOS é o
+     viewport com a barra recolhida, e a cena da edição nascia mais alta que a
+     área visível. */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   overflow-x: clip;
@@ -959,7 +962,7 @@
   box-shadow: 0 -12px 28px rgba(43, 14, 6, .34);
   color: var(--scw-creme);
 }
-.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + var(--scw-safe-b)); }
 .scw-edx-mob__regua-topo {
   display: flex;
   align-items: baseline;

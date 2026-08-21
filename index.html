@@ -2,7 +2,10 @@
 <html lang="pt-br">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- `viewport-fit=cover` é o que dá valor às sete declarações `env(safe-area-inset-*)`
+     do CSS. Sem ele o iOS resolve todas em 0 e a barra de abas fica com 8px de
+     respiro na base em vez de 8+34px, encostada no indicador de home. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Sweet & Coffee Week | Festival de doces e cafés em Natal</title>
 <meta name="description" content="O festival que transforma Natal em uma rota de sabores: conheça as 16 edições, o Sweet Awards, os participantes e como fazer parte do Sweet & Coffee Week." />
 <link rel="icon" type="image/svg+xml" href="/favicon-sweet.svg" />

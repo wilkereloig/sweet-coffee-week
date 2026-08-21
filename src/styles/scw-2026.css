@@ -41,12 +41,24 @@
      entre as páginas: a dobra pula de lugar.
      É `min-height`, não `height`: o herói continua podendo crescer se o texto
      precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum. */
-  --scw-hero-altura:        clamp(760px, 100vh, 960px);
-  --scw-hero-altura-mobile: clamp(700px, 100vh, 940px);
+     A unidade é `svh`, não `vh` nem `dvh`. `vh` no iOS é o viewport GRANDE (barra
+     recolhida): com a barra à mostra o herói nasce mais alto que a área visível e
+     a dobra pula quando a barra some. `dvh` é pior aqui — muda durante a rolagem,
+     então a dobra se move o tempo todo. `svh` é o viewport pequeno e constante: o
+     herói cabe com a barra aberta e não se mexe quando ela recolhe.
+     No desktop as três unidades valem o mesmo — não há barra dinâmica. */
+  --scw-hero-altura:        clamp(760px, 100svh, 960px);
+  --scw-hero-altura-mobile: clamp(700px, 100svh, 940px);
   /* As reservas também são comuns, senão a altura mínima não iguala nada: cada
      herói ultrapassaria o piso pelo próprio padding. */
   --scw-hero-reserva:  clamp(232px, 22vw, 290px);
   --scw-hero-fecho:    clamp(34px, 3.6vw, 52px);
+
+  /* Recorte seguro da base (indicador de home do iPhone). Aparecia cru em sete
+     lugares, metade com fallback e metade sem — virou token para não divergir de
+     novo. O `0px` importa: sem ele, um navegador sem `env()` invalida o `calc()`
+     inteiro e a peça perde o respiro que ela tinha. */
+  --scw-safe-b: env(safe-area-inset-bottom, 0px);
 
   /* --- raios e sombras --------------------------------------------------- */
   --scw-r-secao:      26px;
@@ -146,6 +158,24 @@ body.route-contato {
   font-family: var(--scw-font);
 }
 
+/* Fundação de aplicativo no celular (ago/2026). Quatro comportamentos que o
+   navegador dá de graça e que denunciam "site" em vez de "app":
+   1. `overscroll-behavior-y: none` mata o pull-to-refresh acidental — o gesto de
+      rolar para cima no topo de uma página recarregava tudo;
+   2. `text-size-adjust` impede o iOS de inflar corpo de texto sozinho ao girar a
+      tela, o que quebrava as medidas de linha do §6.5;
+   3. o realce cinza do toque sai — quem dá o retorno é o `:active` de cada peça
+      (ver bloco "Toque" adiante), não um retângulo do sistema;
+   4. `touch-action: manipulation` remove o atraso de 300ms do duplo-toque.
+   Fica em `html, body` e não em `.scw-raiz` porque o pull-to-refresh é do
+   documento: numa `div` a regra não tem efeito. */
+html,
+body {
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 .scw-raiz {
   overflow-x: clip;
   background: var(--scw-creme);
@@ -153,6 +183,21 @@ body.route-contato {
   font-family: var(--scw-font);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Controle é peça de interface, não texto: segurar o dedo numa aba, num numeral
+   ou num botão selecionava a palavra e abria a lupa do iOS. O texto de leitura
+   (corpo, títulos, listas) continua selecionável — a regra é só nos controles. */
+.scw-raiz button,
+.scw-raiz [role='button'],
+.scw-raiz .scw-btn,
+.scw-raiz .scw-aba,
+.scw-raiz .scw-pill,
+.scw-raiz .scw-numeral {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 .scw-raiz img { max-width: 100%; display: block; }
 .scw-raiz a { color: inherit; text-decoration: none; }
@@ -616,7 +661,7 @@ body:not(.route-em-breve) { margin: 0; }
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 70;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  padding: 8px 10px calc(8px + var(--scw-safe-b));
   background: rgba(43, 14, 6, .96);
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(254, 240, 221, .14);
@@ -695,7 +740,7 @@ body:not(.route-em-breve) { margin: 0; }
   z-index: 80;
   flex-direction: column;
   max-height: 88vh;
-  padding: 14px clamp(20px, 6vw, 30px) calc(22px + env(safe-area-inset-bottom));
+  padding: 14px clamp(20px, 6vw, 30px) calc(22px + var(--scw-safe-b));
   border-radius: 30px 30px 0 0;
   background: var(--scw-choco);
   color: var(--scw-creme);
@@ -766,10 +811,10 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }
-  .scw-raiz.tem-abas { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .scw-raiz.tem-abas { padding-bottom: calc(76px + var(--scw-safe-b)); }
   /* O aviso de cookies mora em `bottom:16px` e cobria a barra de abas — os
      cliques nas abas eram interceptados por ele. Sobe acima da barra. */
-  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + var(--scw-safe-b)); }
 }
 
 /* ============================================================================
@@ -1402,7 +1447,7 @@ body:not(.route-em-breve) { margin: 0; }
   cursor: pointer;
 }
 @media (max-width: 900px) {
-  .scw-topo { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .scw-topo { bottom: calc(86px + var(--scw-safe-b)); }
 }
 
 /* ============================================================================
