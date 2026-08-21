@@ -315,13 +315,6 @@
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
-.hm-galeria__lista {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(12px, 1.4vw, 18px);
-  margin-top: auto;
-}
-.hm-galeria__lista > li { display: flex; flex-direction: column; gap: 10px; }
 .hm-galeria__foto {
   margin: 0;
   aspect-ratio: 1;
@@ -922,7 +915,6 @@
 }
 
 @media (max-width: 420px) {
-  .hm-galeria__lista { grid-template-columns: minmax(0, 1fr); }
   .hm-linha { grid-template-columns: minmax(0, 1fr); }
   .hm-linha__ano { text-align: left; }
 }
