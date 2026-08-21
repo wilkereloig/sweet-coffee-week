@@ -165,10 +165,25 @@ test('a casca troca de modo em 900px, e na ordem certa', () => {
 })
 
 test('o aviso de cookies não cobre a barra de abas', () => {
+  const sistema = ler(SISTEMA)
+  // O deslocamento continua sendo 88px + o recorte seguro da base; o que mudou
+  // em ago/2026 é que o recorte virou o token --scw-safe-b, porque aparecia cru
+  // em sete lugares e metade deles sem o fallback `0px`.
   assert.match(
-    ler(SISTEMA),
-    /\.scw-raiz\.tem-abas \.cookie-consent \{ bottom: calc\(88px \+ env\(safe-area-inset-bottom\)\); \}/,
+    sistema,
+    /\.scw-raiz\.tem-abas \.cookie-consent \{ bottom: calc\(88px \+ var\(--scw-safe-b\)\); \}/,
     'sem esse deslocamento o aviso intercepta os cliques das abas',
+  )
+  assert.match(
+    sistema,
+    /--scw-safe-b:\s*env\(safe-area-inset-bottom,\s*0px\)/,
+    'o token precisa do fallback 0px: sem ele um navegador sem env() invalida o calc inteiro',
+  )
+  // E nenhum env() cru pode voltar a aparecer: é como as duas metades divergiram.
+  assert.doesNotMatch(
+    sistema,
+    /calc\([^)]*env\(safe-area-inset/,
+    'usar var(--scw-safe-b), não env() direto',
   )
 })
 

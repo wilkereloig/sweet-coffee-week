@@ -26,21 +26,62 @@
 
 import React from 'react'
 
+/* A fita só pede as fotos quando o leitor se aproxima dela.
+ *
+ * `loading="lazy"` NÃO serve aqui, e o motivo é sutil: o navegador decide pela
+ * posição de LAYOUT, e a fita anda por `transform`. Os quadros que entram em
+ * cena deslizando continuam, para o navegador, na mesma posição de sempre —
+ * fora da tela. Medido: 34 das 40 molduras nunca completavam o download, e a
+ * fita rodava com o bege da reserva no lugar da foto.
+ *
+ * Então o gatilho é a fita inteira, com o mesmo IntersectionObserver que o
+ * resto do site usa (§6.15). Antes de entrar em cena, nenhuma foto é pedida;
+ * depois, todas. `rootMargin` de 300px pede um pouco antes de aparecer, para a
+ * primeira volta já começar com imagem.
+ */
+function useEmVista(ref) {
+  const [emVista, setEmVista] = React.useState(false)
+
+  React.useEffect(() => {
+    const el = ref.current
+    /* Sem observer (navegador antigo, teste sem DOM), mostra tudo: a regra do
+       §6.15 vale aqui também — quando o mecanismo falha, nada fica escondido. */
+    if (!el || typeof IntersectionObserver === 'undefined') { setEmVista(true); return }
+    const obs = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      setEmVista(true)
+      obs.disconnect()          // uma vez pedida, a foto fica: não faz sentido observar de novo
+    }, { rootMargin: '300px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [ref])
+
+  return emVista
+}
+
 export function GaleriaCarrossel({ itens, duracao = 46 }) {
+  const ref = React.useRef(null)
+  const emVista = useEmVista(ref)
+
   if (!itens || !itens.length) return null
 
   const fita = (copia) =>
     itens.map((item, i) => (
       <li key={`${copia}-${item.src || i}`}>
         {item.src
-          ? <figure className="hm-galeria__foto" aria-hidden={copia === 0 ? undefined : 'true'}>
-              {/* `<img loading="lazy">` e não `background-image`: a fita fica a
-                  quase três telas da dobra, e fundo em CSS não tem carga
-                  preguiçosa — as vinte fotos entravam antes de qualquer
-                  rolagem, o que sozinho respondia pela maior parte dos 8,8 MB
-                  que a Home baixava a 390px. A segunda cópia da fita é
-                  decorativa, então vai com `alt=""`. */}
-              <img src={item.src} alt={copia === 0 ? item.alt : ''} loading="lazy" decoding="async" />
+          ? <figure
+              className="hm-galeria__foto"
+              role={copia === 0 && !emVista ? 'img' : undefined}
+              aria-label={copia === 0 && !emVista ? item.alt : undefined}
+              aria-hidden={copia === 0 ? undefined : 'true'}
+            >
+              {/* Antes de a fita entrar em cena fica só o bege da moldura — a
+                  mesma reserva honesta do §6.12, e o alt vive no `role="img"`
+                  da moldura enquanto isso. A segunda cópia existe só para o
+                  laço não ter emenda, então vai sempre com `alt=""`. */}
+              {emVista
+                ? <img src={item.src} alt={copia === 0 ? item.alt : ''} decoding="async" />
+                : null}
             </figure>
           : <div className="scw-reserva hm-galeria__reserva">{item.reserva}</div>}
         <span className="hm-galeria__nome">
@@ -51,7 +92,7 @@ export function GaleriaCarrossel({ itens, duracao = 46 }) {
     ))
 
   return (
-    <div className="hm-fita">
+    <div className="hm-fita" ref={ref}>
       {/* A duração cresce com o número de itens para que a VELOCIDADE seja a
           mesma nas duas galerias — uma fita de dez fotos no mesmo tempo de uma
           de quatro correria duas vezes e meia mais rápido. */}

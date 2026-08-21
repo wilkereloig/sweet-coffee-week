@@ -37,6 +37,9 @@ const semMovimento = () =>
  */
 export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
   const [ativa, setAtiva] = React.useState(0)
+  const [reduzido, setReduzido] = React.useState(false)
+
+  React.useEffect(() => { setReduzido(semMovimento()) }, [])
 
   React.useEffect(() => {
     /* Uma foto só não é crossfade: não vale acordar um timer para nada. */
@@ -45,7 +48,17 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
     return () => clearInterval(t)
   }, [fotos.length])
 
-  const pedidas = usePedidas(fotos.length, ativa)
+  /* Sem movimento, sem crossfade: uma camada só.
+     A salvaguarda do §6.15 — "prefers-reduced-motion ligado, nada é escondido" —
+     devolve `opacity: 1` a TODAS as camadas. Como são absolutas e de z-index
+     automático, quem aparecia era a última do DOM, não a ativa: em Apoiar o
+     herói mostrava a foto 22 enquanto o `is-ativa` estava na 12. O defeito é
+     anterior a esta mudança e passava despercebido porque as duas eram fotos
+     plausíveis do mesmo acervo. Renderizar só a camada visível corrige o que
+     aparece e, de quebra, deixa a página de movimento reduzido baixar UMA foto. */
+  const camadas = reduzido ? fotos.slice(0, 1) : fotos
+
+  const pedidas = usePedidas(camadas.length, ativa)
 
   if (!fotos.length) return null
 
@@ -63,7 +76,7 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
      não o elemento, então nada de salto de layout. */
   return (
     <div className={classe}>
-      {fotos.map((foto, i) => (
+      {camadas.map((foto, i) => (
         <span
           key={foto.src}
           className={'scw-hero-banda__foto' + (i === ativa ? ' is-ativa' : '')}

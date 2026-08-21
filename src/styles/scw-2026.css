@@ -40,7 +40,8 @@
      de 643px (Contato) a 895px (Home) no desktop, o que se nota ao navegar
      entre as páginas: a dobra pula de lugar.
      É `min-height`, não `height`: o herói continua podendo crescer se o texto
-     precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum. */
+     precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum.
+
      A unidade é `svh`, não `vh` nem `dvh`. `vh` no iOS é o viewport GRANDE (barra
      recolhida): com a barra à mostra o herói nasce mais alto que a área visível e
      a dobra pula quando a barra some. `dvh` é pior aqui — muda durante a rolagem,
