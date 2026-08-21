@@ -51,13 +51,17 @@ body.route-participar .pa-hero__acoes .scw-btn--solido,
 body.route-participar .pa-hero__acoes .scw-btn--pagina {
   background: var(--scw-choco);
   color: var(--scw-creme);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
 }
 body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
   color: var(--scw-choco);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
     background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
     border-color: var(--scw-choco);
@@ -166,7 +170,9 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   color: var(--scw-marrom);
   font: 800 15px/1 var(--scw-font);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
 }
 
@@ -745,7 +751,9 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-form__enviar {
   background: var(--scw-choco);
   color: var(--scw-creme);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .pa-form__enviar:hover { background: var(--scw-marrom); }
 }
 .pa-form__enviar:active { transform: translateY(1px); }
@@ -799,7 +807,9 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 

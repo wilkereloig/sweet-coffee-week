@@ -21,7 +21,9 @@
 
 /* Botão do sistema em tamanho “linha” (46px), como no protótipo. */
 .ctt-btn-mini { min-height: 46px; padding: 13px 20px; font-size: 13.5px; }
-.ctt-btn-choco { background: var(--scw-choco); color: var(--scw-creme); }@media (hover: hover) {
+.ctt-btn-choco { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
   .ctt-btn-choco:hover { background: var(--scw-marrom); }
 }
 
@@ -70,13 +72,17 @@
 }
 /* Herói bege: o par âmbar/contorno-claro do sistema (pensado pra foto escura)
    não fecha AA aqui — os dois botões viram chocolate. */
-.ctt-abertura__acoes .scw-btn--solido { background: var(--scw-choco); color: var(--scw-creme); }@media (hover: hover) {
+.ctt-abertura__acoes .scw-btn--solido { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
   .ctt-abertura__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
 }
 .ctt-abertura__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 40%, transparent);
   color: var(--scw-choco);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-abertura__acoes .scw-btn--contorno-claro:hover {
     background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
     border-color: var(--scw-choco);
@@ -176,7 +182,9 @@
   text-align: left;
   cursor: pointer;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-cat:hover { color: var(--scw-choco); }
 }
 .ctt-cat.is-ativa {
@@ -236,7 +244,9 @@
   font: 800 12px/1 var(--scw-font);
   cursor: pointer;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-limpar:hover { border-color: var(--scw-choco); color: var(--scw-choco); }
 }
 
@@ -273,7 +283,9 @@
   text-align: left;
   cursor: pointer;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-item__botao:hover { background: rgba(61, 19, 8, .035); }
 }
 .ctt-item__texto { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
@@ -328,7 +340,9 @@
   font: 800 13px/1 var(--scw-font);
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-item__link:hover { color: var(--scw-choco); }
 }
 
@@ -424,7 +438,9 @@
   font: 800 14px/1 var(--scw-font);
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-porta__link:hover { color: var(--scw-choco); }
 }
 
@@ -474,7 +490,9 @@
   color: var(--scw-choco);
   font: 700 14px/1.5 var(--scw-font);
 }
-.ctt-enviar { background: var(--scw-choco); color: var(--scw-creme); }@media (hover: hover) {
+.ctt-enviar { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
   .ctt-enviar:hover { background: var(--scw-marrom); }
 }
 .ctt-enviar:active { transform: translateY(1px); }
@@ -518,7 +536,9 @@
   background: transparent;
   color: var(--scw-choco);
   font-size: 14px;
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-ok__acao:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 
@@ -542,7 +562,9 @@
   font: 800 15px/1 var(--scw-font);
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .ctt-direto a:hover { color: var(--scw-choco); }
 }
 
@@ -550,13 +572,25 @@
 @media (max-width: 900px) {
   .ctt-colunas { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .ctt-lateral { position: static; }
+  /* Fita de assuntos: 2.061px de conteúdo num trilho de 358px. Era o único
+     carrossel do site sem contenção — o arrasto encadeava no documento e virava
+     o gesto de voltar página do iOS. O padrão certo já existia em `.swa-podio`
+     (scw-awards.css); aqui ele só não tinha sido aplicado.
+     A barra de rolagem some porque a régua de chips já mostra que há mais
+     conteúdo: o chip seguinte fica pela metade na borda, que é a afordância
+     que o resto do site usa. */
   .ctt-cats {
     flex-direction: row;
     gap: 8px;
     overflow-x: auto;
     padding-bottom: 4px;
     scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 4px;
+    scrollbar-width: none;
   }
+  .ctt-cats::-webkit-scrollbar { display: none; }
   .ctt-cat {
     width: auto;
     align-items: center;

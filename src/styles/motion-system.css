@@ -65,7 +65,9 @@
 .motion-card-hover {
   transition: transform var(--motion-base) var(--ease-spring-soft),
               box-shadow var(--motion-base) var(--ease-out-soft);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .motion-card-hover:hover { transform: translateY(-6px) scale(1.012); }
 }
 

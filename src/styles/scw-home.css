@@ -129,7 +129,9 @@
   color: var(--scw-marrom);
   font: 800 13px/1 var(--scw-font);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-link:hover { color: var(--scw-choco); }
 }
 /* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
@@ -145,7 +147,9 @@
   padding-bottom: 6px;
   border-bottom: 2px solid var(--destino, var(--scw-marrom));
   font-size: 15px;
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-link--sublinhado:hover { border-color: var(--scw-choco); }
 }
 
@@ -488,7 +492,9 @@
   border-radius: 999px;
   font: 800 14px/1 var(--scw-font);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-rota__cta:hover { gap: 14px; }
 }
 /* Com o destino já no card, o CTA vira contraste puro: chapa escura sobre card
@@ -672,7 +678,9 @@
   font: 800 14.5px/1 var(--scw-font);
   color: var(--scw-choco);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-voz__link:hover { gap: 14px; }
 }
 
@@ -721,7 +729,9 @@
   border-bottom: 1px solid rgba(61, 19, 8, .14);
   color: var(--scw-choco);
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-linha:hover { background: var(--scw-creme); }
 }
 .hm-linha__veiculo {
@@ -746,7 +756,9 @@
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-imprensa__toggle:hover { color: var(--scw-choco); }
 }
 
@@ -853,7 +865,9 @@
   font: 600 15px/1 'Archivo', sans-serif;
   text-decoration: none;
   transition: var(--scw-transicao);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .f2-realiza__cta:hover { border-bottom-width: 4px; }
 }
 

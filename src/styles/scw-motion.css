@@ -209,11 +209,15 @@
     color        var(--mo-rapido) var(--mo-ease),
     border-color var(--mo-rapido) var(--mo-ease),
     transform    var(--mo-rapido) var(--mo-mola),
-    box-shadow   var(--mo-rapido) var(--mo-ease); }@media (hover: hover) {
+    box-shadow   var(--mo-rapido) var(--mo-ease); }
+
+@media (hover: hover) {
   .scw-btn:hover  { transform: translateY(-2px); }
 }
 .scw-btn:active { transform: translateY(0) scale(.985); }
-.scw-btn svg    { transition: transform var(--mo-estado) var(--mo-mola); }@media (hover: hover) {
+.scw-btn svg    { transition: transform var(--mo-estado) var(--mo-mola); }
+
+@media (hover: hover) {
   .scw-btn:hover svg { transform: translateX(4px); }
 }
 
@@ -222,7 +226,9 @@
 .hm-rota__cta svg,
 .hm-voz__link svg,
 .ctt-porta__link svg,
-.pa-cabeca__link svg { transition: transform var(--mo-estado) var(--mo-mola); }@media (hover: hover) {
+.pa-cabeca__link svg { transition: transform var(--mo-estado) var(--mo-mola); }
+
+@media (hover: hover) {
   .hm-link:hover svg,
   .hm-rota__cta:hover svg,
   .hm-voz__link:hover svg,
@@ -238,7 +244,9 @@
 .ctt-porta {
   transition: transform var(--mo-estado) var(--mo-mola),
               box-shadow var(--mo-estado) var(--mo-ease);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .hm-rota:hover,
   .ctt-porta:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(61, 19, 8, .16); }
 }
@@ -248,7 +256,9 @@
 .hm-linha,
 .ctt-item__botao,
 .swa-edicao__botao { transition: background var(--mo-estado) var(--mo-ease), color var(--mo-rapido) var(--mo-ease); }
-.hm-materia__foto img { transition: scale var(--mo-longo) var(--mo-ease); }@media (hover: hover) {
+.hm-materia__foto img { transition: scale var(--mo-longo) var(--mo-ease); }
+
+@media (hover: hover) {
   .hm-materia:hover .hm-materia__foto img { scale: 1.05; }
 }
 .swa-edicao__seta,
@@ -410,7 +420,9 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   transition: transform var(--mo-estado) var(--mo-ease),
               box-shadow var(--mo-estado) var(--mo-ease),
               border-color var(--mo-estado) var(--mo-ease);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-acesso__cartao:hover {
     transform: translateY(-3px);
     box-shadow: 0 9px 0 rgba(61, 19, 8, .1);
@@ -421,7 +433,9 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 /* CTA do rodapé: chapado, igual aos .scw-btn — hover sobe 2px, clique volta. */
 .scw-acesso__cta {
   transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-acesso__cta:hover  { background: #6A2C15; transform: translateY(-2px); }
 }
 .scw-acesso__cta:active { transform: translateY(0) scale(.985); }
@@ -430,7 +444,9 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 .scw-topo {
   animation: moSobeCurto var(--mo-entra) var(--mo-mola) both;
   transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-topo:hover  { background: var(--scw-marrom); transform: translateY(-2px); }
 }
 .scw-topo:active { transform: translateY(0) scale(.985); }

@@ -186,10 +186,14 @@
   color: inherit;
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 }
-.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }@media (hover: hover) {
+.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
+
+@media (hover: hover) {
   .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 
@@ -423,7 +427,9 @@
   background: rgba(61, 19, 8, .4);
   color: var(--scw-creme);
   box-shadow: none;
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 }
 .scw-edx__botao--vazado:active { transform: none; box-shadow: none; }
@@ -487,14 +493,18 @@
   border: 1px solid rgba(61, 19, 8, .14);
   background: var(--scw-creme);
   color: var(--scw-choco);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 .scw-edx__painel--escuro .scw-edx__fechar {
   border-color: rgba(254, 240, 221, .3);
   background: transparent;
   color: var(--scw-creme);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
 }
 
@@ -614,7 +624,9 @@
   color: var(--scw-creme);
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
 }
 .scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
@@ -702,7 +714,9 @@
   letter-spacing: .06em;
   white-space: nowrap;
   color: rgba(254, 240, 221, .64);
-}@media (hover: hover) {
+}
+
+@media (hover: hover) {
   .scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
 }
 .scw-edx__ano.is-ativo .scw-edx__ano-rot { color: var(--scw-creme); }
@@ -1026,6 +1040,12 @@
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  /* Sem `contain` o arrasto da régua encadeava no documento assim que chegava
+     ao 2016 ou ao 2026.1 — no iOS isso vira o gesto de voltar página, e você
+     saía de Edições tentando escolher um ano. */
+  overscroll-behavior-x: contain;
+  /* O ano encostava na borda do trilho ao ser centralizado pelo JS. */
+  scroll-padding-inline: 18px;
 }
 .scw-edx-mob__regua-anos::-webkit-scrollbar { display: none; }
 .scw-edx-mob__ano {
