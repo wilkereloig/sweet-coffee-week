@@ -171,18 +171,43 @@ const HEROES = {
     { src: '/images/momentos/02.jpg', alt: 'Público percorrendo a rota do Sweet & Coffee Week', position: '62% center', mobilePosition: 'center 38%' },
     { src: '/images/edicoes/2023/04.webp', alt: 'Combo da edição Trip do Sweet & Coffee Week', position: '68% center', mobilePosition: 'center 32%' },
   ],
+  /* As 22 fotos das visitas às lojas participantes (acervo, agosto/2026)
+     dividem-se entre as duas páginas: nenhuma imagem se repete de um herói
+     para o outro. Participar fica com a primeira metade, Apoiar com a
+     segunda. */
   participar: [
-    { src: '/images/combos/douce-di-maria/main.jpg', alt: 'Combo da Douce di Maria na edição Lovers do Sweet & Coffee Week', position: 'center 42%', mobilePosition: 'center 34%' },
-    { src: '/images/campanha/11.jpg', alt: 'Equipe de uma marca participante durante uma edição do Sweet & Coffee Week', position: 'center 38%', mobilePosition: 'center 30%' },
-    { src: '/images/combos/paneer-patisserie/main.jpg', alt: 'Combo da Paneer Pâtisserie na edição Lovers do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 36%' },
+    { src: '/images/participantes-lojas/01.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/02.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/03.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/04.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/05.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/06.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/07.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/08.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/09.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/10.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/11.jpg', alt: 'Visita a uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
   ],
   apoiar: [
-    { src: '/images/momentos/04.jpg', alt: 'Público em uma ação de marca durante o Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
-    { src: '/images/momentos/07.jpg', alt: 'Movimento de público em uma edição do Sweet & Coffee Week', position: 'center 42%', mobilePosition: 'center 36%' },
-    { src: '/images/edicoes/2025/03.webp', alt: 'Rua e vitrines durante uma edição do Sweet & Coffee Week', position: 'center 46%', mobilePosition: 'center 40%' },
+    { src: '/images/participantes-lojas/12.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/13.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/14.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/15.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/16.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/17.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/18.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/19.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/20.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/21.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/participantes-lojas/22.jpg', alt: 'Marca participante durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
   ],
+  /* Sweet Lovers: o público que percorre a rota. */
   contato: [
-    { src: '/images/campanha/15.jpg', alt: 'Atendimento em uma loja participante do Sweet & Coffee Week', position: 'center 36%', mobilePosition: 'center 30%' },
+    { src: '/images/sweet-lovers/01.jpg', alt: 'Sweet Lovers durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/sweet-lovers/02.jpg', alt: 'Sweet Lovers durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/sweet-lovers/03.jpg', alt: 'Sweet Lovers durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/sweet-lovers/04.jpg', alt: 'Sweet Lovers durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
+    { src: '/images/sweet-lovers/05.jpg', alt: 'Sweet Lovers durante uma edição do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 34%' },
   ],
   /* Entrega dos prêmios, o assunto literal da página (pedido do Wilke,
      21/08/2026). Cinco das seis são retrato de 960px: no herói largo elas
