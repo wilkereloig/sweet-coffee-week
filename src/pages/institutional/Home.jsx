@@ -49,7 +49,7 @@ const F2_NUMEROS = [
 const INGREDIENTES = [
   {
     nome: 'doce',
-    nota: 'a assinatura da casa',
+    tinta: 'var(--scw-creme)',
     cor: 'var(--scw-magenta)',
     caminho: (
       <>
@@ -62,7 +62,7 @@ const INGREDIENTES = [
   },
   {
     nome: 'salgado',
-    nota: 'criado para o tema',
+    tinta: 'var(--scw-choco)',
     cor: 'var(--scw-amarelo)',
     caminho: (
       <>
@@ -74,7 +74,7 @@ const INGREDIENTES = [
   },
   {
     nome: 'bebida',
-    nota: 'café, quase sempre',
+    tinta: 'var(--scw-choco)',
     cor: 'var(--scw-cyan)',
     caminho: (
       <>
@@ -280,7 +280,7 @@ export function HomePage({ navigate }) {
         <div className="scw-hero__topo" aria-hidden="true" />
 
         <div className="scw-hero__col">
-          <span className="scw-pill scw-pill--pagina hm-selo">Festival gastronômico · Natal e região</span>
+          <span className="hm-selo"><ScwIcon nome="marca/selo" tamanho={20} />Festival gastronômico · Natal e região</span>
           <h1 className="scw-hero__titulo">
             Há dez anos, fazendo de Natal a cidade <em className="hm-hero__enfase">mais doce do Brasil.</em>
           </h1>
@@ -289,7 +289,6 @@ export function HomePage({ navigate }) {
               <p className="scw-hero__lead">
                 A cada edição, marcas da cidade inteira criam combos a partir de um tema — e a cidade vira roteiro por onze dias.
               </p>
-              <span className="hm-hero__meta">16 edições desde 2016 · mais de cem marcas participantes</span>
             </div>
             <div className="hm-acoes">
               <a className="scw-btn scw-btn--solido" href="#rotas" onClick={rolarPara('rotas')}>
@@ -337,21 +336,35 @@ export function HomePage({ navigate }) {
             <div className="hm-ingredientes">
               {INGREDIENTES.map((item, i) => (
                 <React.Fragment key={item.nome}>
-                  {i > 0 && <span className="hm-mais" aria-hidden="true">+</span>}
+                  {i > 0 && (
+                    <span className="hm-mais" aria-hidden="true">
+                      <svg width="52%" height="52%" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round">
+                        <path d="M16 5.8v20.4M5.8 16h20.4" />
+                      </svg>
+                    </span>
+                  )}
                   <div className="hm-ing">
-                    <span className="hm-ing__disco" style={{ background: item.cor }} aria-hidden="true">
-                      <svg width="52%" height="52%" viewBox="0 0 32 32" fill="none">{item.caminho}</svg>
+                    <span className="hm-ing__disco" style={{ background: item.cor, color: item.tinta }} aria-hidden="true">
+                      <svg width="58%" height="58%" viewBox="0 0 32 32" fill="none">{item.caminho}</svg>
                     </span>
                     <strong className="hm-ing__nome">{item.nome}</strong>
-                    <span className="hm-ing__nota">{item.nota}</span>
                   </div>
                 </React.Fragment>
               ))}
             </div>
           </div>
-          <p className="hm-apoio hm-apoio--estreita">
-            <strong>Preço único em toda a rota.</strong> Em cada edição, o público escolhe por onde começar, compara combos e monta o próprio percurso pela cidade.
-          </p>
+          <div className="hm-preco">
+            <span className="hm-preco__topo">
+              <span className="scw-disco hm-preco__disco" aria-hidden="true">
+                <ScwIcon nome="sweet-gift/etiqueta" tamanho={24} />
+              </span>
+              <b className="hm-preco__rotulo">Preço único</b>
+            </span>
+            <strong className="hm-preco__titulo">O mesmo valor em toda a rota.</strong>
+            <p className="hm-preco__texto">
+              Em cada edição, o público escolhe por onde começar, compara combos e monta o próprio percurso pela cidade.
+            </p>
+          </div>
         </div>
 
         <div className="hm-galerias">
@@ -461,10 +474,10 @@ export function HomePage({ navigate }) {
               <div className="scw-reserva">{RESERVA}</div>
             </div>
             <div className="hm-rota__corpo">
-              <span className="hm-rota__eixo hm-rota__eixo--cyan">Parceiros</span>
+              <span className="hm-rota__eixo hm-rota__eixo--bege">Parceiros</span>
               <div className="hm-rota__texto">
                 <h3 className="hm-rota__titulo">Apoie uma cidade em movimento.</h3>
-                <p>Ponha sua marca na rota que a cidade já percorre, junto de gastronomia e cultura locais.</p>
+                <p>Conecte sua marca a gastronomia, cultura e economia criativa.</p>
                 <a className="hm-rota__cta" href="#/apoiar" onClick={ir('/apoiar')}>
                   Quero apoiar <Seta size={16} />
                 </a>

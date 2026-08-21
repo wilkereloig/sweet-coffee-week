@@ -187,6 +187,40 @@ body.route-contato {
    ========================================================================= */
 
 /* Seção padrão: trilho horizontal + ritmo vertical. */
+/* ============================================================================
+   Modelo de caixa — border-box no institucional
+   ----------------------------------------------------------------------------
+   O desenho inteiro é autorado em border-box; o institucional rodava em
+   content-box, o padrão do navegador. Onde `padding` e `min-height`/`width`
+   convivem, o resultado era a SOMA dos dois:
+
+     .scw-btn        min-height 54 + padding 15/15  ->  86px  (desenho: 54)
+     .hm-rota__cta   min-height 46 + padding 12/12  ->  70px  (desenho: 46)
+
+   Ou seja: todo botão do site vinha 32px mais alto que o desenhado, nas seis
+   páginas. É a causa-raiz das seções saírem consistentemente mais altas que a
+   referência — não era acúmulo de ajuste local nenhum.
+
+   ⚠️ A landing /em-breve fica FORA: ela tem CSS próprio, é a página que está no
+   ar e foi calibrada em content-box. Reescrevê-la não é escopo daqui (§7.7).
+
+   `:where()` mantém a especificidade do universal em zero, então qualquer regra
+   de componente continua vencendo sem precisar de prefixo.
+   ========================================================================= */
+
+body:not(.route-em-breve) .scw-raiz,
+body:not(.route-em-breve) .scw-raiz :where(*, *::before, *::after) {
+  box-sizing: border-box;
+}
+
+/* A margem de 8px que o navegador põe no <body> nunca foi zerada: o site
+   inteiro vinha 16px mais estreito que a viewport, e o trilho calculava em
+   cima disso. Nas rotas era só desalinhamento; numa faixa que sangra até a
+   borda, era uma moldura visível da cor do body.
+   ⚠️ A landing fica de fora pelo mesmo motivo do reset acima: está no ar e não
+   é escopo desta rodada. */
+body:not(.route-em-breve) { margin: 0; }
+
 .scw-secao {
   padding: var(--scw-sec-y) var(--scw-trilho);
 }
@@ -282,10 +316,15 @@ body.route-contato {
 /* Rótulo com ícone de tópico (Iconografia.dc.html) — cor herdada do .scw-rotulo,
    currentColor no SVG, então as cores de contexto (seção escura etc.) continuam
    valendo sem regra extra. */
+/* `flex`, não `inline-flex`: como caixa inline o rótulo pousava numa linha de
+   texto e o espaço do descendente somava ~10px abaixo dele — em TODA cabeça de
+   seção das seis páginas. Sendo bloco, o que separa rótulo e H2 é só a margem
+   do título. */
 .scw-rotulo--com-icone {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 10px;
+  width: fit-content;
   max-width: 32ch;   /* rótulo cabe em UMA linha; estourou, encurtar o texto */
 }
 .scw-rotulo--com-icone > svg { flex-shrink: 0; }
@@ -1083,8 +1122,11 @@ body.route-contato {
      (chegava a sumir de vez em telas ultralargas). Com ele, a largura do
      conteúdo trava em ~828px (860 − 32 de respiro direito) pra qualquer
      viewport, exatamente como o resto do site trava a grade no trilho. */
-  max-width: min(60%, calc(860px + var(--scw-trilho)));
-  padding: clamp(232px, 22vw, 290px) clamp(20px, 2vw, 32px) clamp(30px, 3.4vw, 48px) var(--scw-trilho);
+  /* O teto conta os DOIS trilhos porque agora a caixa é border-box: o padding
+     mora dentro dela. Com 60% e um trilho só, o H1 perdia ~90px de largura e
+     quebrava numa linha a mais — o herói inteiro crescia 126px. */
+  max-width: min(100%, calc(860px + 2 * var(--scw-trilho)));
+  padding: clamp(232px, 22vw, 290px) var(--scw-trilho) clamp(30px, 3.4vw, 48px);
 }
 .scw-hero__titulo {
   margin: 0;
@@ -1105,7 +1147,7 @@ body.route-contato {
   border-top: 1px solid rgba(254, 240, 221, .22);
 }
 .scw-hero__lead {
-  max-width: 44ch;
+  max-width: 46ch;
   margin: 0;
   color: rgba(254, 240, 221, .9);
   font: 500 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font);
