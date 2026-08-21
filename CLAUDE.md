@@ -1028,6 +1028,8 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
 
 - **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140 a 760ms.
   Em Awards a banda surge e o texto sobe atrás dela.
+- **Ciclo da anatomia** (Home 02) — quatro desenhos por ingrediente em 8,8s. É o terceiro
+  laço contínuo da Home, ao lado da respiração das fotos e do marquee.
 - **Respiração da imagem** — laço `alternate` na propriedade **`scale`** (nunca em
   `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo caminho e
   **não existe salto de reinício**. Nas fotos dos heróis e, só no desktop, nas três fotos
@@ -1064,7 +1066,12 @@ mude o comportamento visual** — validar idêntico.
   direita, véu em degradê a 96°. Abaixo de 1000px o véu passa a vertical e o texto ocupa
   100%.
 - **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
-  com filete separando. Duas galerias irmãs de mesmo peso: combos de edições anteriores e
+  com filete separando. Cada ingrediente **percorre quatro desenhos da própria família**,
+  um por quarto de um ciclo de 8,8s (`scwIcnCiclo`, atraso de 2200ms por peça). Os quatro
+  ficam empilhados e só a opacidade muda — nada entra ou sai do fluxo. A arte vive em
+  `src/components/scw-icons/anatomia-combo.js`, **fora** de `scw-icons-v2.js`: é desenho
+  próprio desta seção, com traço 2,6, e a biblioteca não se edita à mão (§6.11).
+  Com `prefers-reduced-motion` fica só o primeiro desenho, parado. Duas galerias irmãs de mesmo peso: combos de edições anteriores e
   **Sweet Gift** (2×2, fotos 1:1).
 - **05 Números:** 4 numerais grandes em uma linha, com `.scw-grade-fixa` — sem ela a
   faixa quebra a 3+1.

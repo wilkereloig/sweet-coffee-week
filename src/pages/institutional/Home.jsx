@@ -4,6 +4,7 @@ import { festivalFacts } from '../../data/festivalFacts'
 import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
+import { ANATOMIA_COMBO } from '../../components/scw-icons/anatomia-combo'
 
 /* ============================================================================
    Home / "O festival" — redesign 2026.
@@ -51,39 +52,16 @@ const INGREDIENTES = [
     nome: 'doce',
     tinta: 'var(--scw-creme)',
     cor: 'var(--scw-magenta)',
-    caminho: (
-      <>
-        <path d="M7.6 13.5a8.4 8.4 0 0 1 16.8 0Z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round" />
-        <circle cx="16" cy="3.6" r="1.7" stroke="currentColor" strokeWidth="2" />
-        <path d="M8 13.5h16l-1.9 11.5a2 2 0 0 1-2 1.7h-8.2a2 2 0 0 1-2-1.7L8 13.5Z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round" />
-        <path d="M13.5 17.2l-.6 7.4M18.5 17.2l.6 7.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      </>
-    ),
   },
   {
     nome: 'salgado',
     tinta: 'var(--scw-choco)',
     cor: 'var(--scw-amarelo)',
-    caminho: (
-      <>
-        <path d="M4.5 15.4c0-4.4 5.1-7.4 11.5-7.4s11.5 3 11.5 7.4H4.5Z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round" />
-        <path d="M5.6 19.4c1.9 0 2.6-1.4 4.2-1.4s2.2 1.4 4.1 1.4 2.6-1.4 4.2-1.4 2.2 1.4 4 1.4 1.9-1.4 3.4-1.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M5.8 22.6h20.4a2.4 2.4 0 0 1 0 4.8H5.8a2.4 2.4 0 0 1 0-4.8Z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round" />
-      </>
-    ),
   },
   {
     nome: 'bebida',
     tinta: 'var(--scw-choco)',
     cor: 'var(--scw-cyan)',
-    caminho: (
-      <>
-        <path d="M6.5 10.5h14v5.6a7 7 0 0 1-7 7 7 7 0 0 1-7-7v-5.6Z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round" />
-        <path d="M20.5 12.7h2.8a3.2 3.2 0 0 1 0 6.4h-2.8" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4.5 26.6h18.6" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
-        <path d="M12 7.6c-1.2-1.2 0-2.4 0-3.6M17 7.6c-1.2-1.2 0-2.4 0-3.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      </>
-    ),
   },
 ]
 
@@ -345,7 +323,20 @@ export function HomePage({ navigate }) {
                   )}
                   <div className="hm-ing">
                     <span className="hm-ing__disco" style={{ background: item.cor, color: item.tinta }} aria-hidden="true">
-                      <svg width="58%" height="58%" viewBox="0 0 32 32" fill="none">{item.caminho}</svg>
+                      {ANATOMIA_COMBO[item.nome].map((desenho, k) => (
+                        <svg
+                          key={k}
+                          className="hm-ing__icone"
+                          viewBox="0 0 32 32"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ animationDelay: `${k * 2200}ms` }}
+                          dangerouslySetInnerHTML={{ __html: desenho }}
+                        />
+                      ))}
                     </span>
                     <strong className="hm-ing__nome">{item.nome}</strong>
                   </div>
