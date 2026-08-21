@@ -30,49 +30,21 @@
 .ctt-destaque--choco { color: var(--scw-choco); }
 
 /* --- 01 Abertura (compacta, ~368px) --------------------------------------- */
+/* Chapa CLARA (bege) de tinta chocolate, o mesmo caso de Participar: quem
+   precisa se manter íntegro é o FUNDO, não a tinta, então os alfas do véu
+   fecham mais que os do Awards. A abertura é curta e as duas colunas têm
+   texto — aqui a foto é ambientação, não protagonista. A cor sai de
+   --scw-heroi (bege nesta página); hex fixo nunca. */
 .ctt-abertura {
   position: relative;
-  /* Véu na cor do próprio herói (--scw-heroi = bege nesta página): a abertura
-     é curta e as duas colunas têm texto, então o véu fica alto (≥86%) — a
-     foto é ambientação e a tinta escura mantém AA. */
-  --veu: color-mix(in srgb, var(--scw-heroi) 92%, var(--scw-choco));
-}
-.ctt-abertura__fundo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ctt-abertura__veu {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg,
-    color-mix(in srgb, var(--veu) 96%, transparent) 0%,
-    color-mix(in srgb, var(--veu) 92%, transparent) 52%,
-    color-mix(in srgb, var(--veu) 86%, transparent) 100%);
+  --hv-topo: 60%;
+  --hv-meio: 92%;
+  --hv-base: 97%;
+  --hv-esq: 96%;
+  --hv-centro: 78%;
 }
 .ctt-abertura__grade { position: relative; z-index: 1; }
 
-/* No celular a foto passa a ser a banda sangrando: o fundo de tela cheia sai
-   para não duplicar imagem. A banda leva o mesmo véu no topo. */
-@media (max-width: 1000px) {
-  /* `.ctt-abertura` no seletor não é enfeite: o reset `.scw-raiz img`
-     (scw-2026.css) tem especificidade 0,1,1 e vencia `.ctt-abertura__fundo`
-     0,1,0 — a foto de tela cheia continuava montada atrás do texto no
-     celular, duplicando a banda e derrubando a legibilidade do lead. */
-  .ctt-abertura .ctt-abertura__fundo,
-  .ctt-abertura .ctt-abertura__veu { display: none; }
-  /* Sem a foto de fundo o bloco volta ao chocolate padrão de .scw-hero-bloco
-     — e a tinta desta página é escura (--scw-heroi-tinta = #3D1308), o que
-     dava 1:1. Toda a abertura foi escrita para o bege do herói (inclusive os
-     botões acima), então no celular é o bege que pinta o bloco: 13:1. */
-  .ctt-abertura { background: var(--scw-heroi); }
-  .ctt-abertura .scw-hero-banda {
-    --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
-    --scw-banda-base: var(--scw-heroi);
-  }
-}
 /* Herói bege (--scw-heroi/--scw-heroi-tinta = choco): tinta escura, não a
    dupla clara/amarelo do sistema anterior de véu-sobre-foto-escura. */
 .ctt-abertura__rotulo { color: var(--scw-heroi-tinta); }

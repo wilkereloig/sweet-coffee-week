@@ -154,11 +154,8 @@
 .pa-hero .pa-hero__acoes    { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 540ms both; }
 .pa-hero .pa-hero__nota     { animation: moSurge var(--mo-entra) var(--mo-ease) 680ms both; }
 .pa-hero .pa-hero__aside    { animation: moLado var(--mo-longo) var(--mo-mola) 360ms both; }
-/* A forma decorativa chega por último e sem peso — é apoio, não informação. */
-.pa-hero .pa-hero__forma    { animation: moSurge var(--mo-longo) var(--mo-ease) 760ms both; }
 
 /* --- Contato (abertura compacta) ----------------------------------------- */
-.ctt-abertura .ctt-abertura__fundo,
 .ctt-abertura .scw-hero-banda      { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
 .ctt-abertura .ctt-abertura__rotulo { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
 .ctt-abertura .ctt-abertura__titulo { animation: moSobe var(--mo-entra) var(--mo-mola) 230ms both; }

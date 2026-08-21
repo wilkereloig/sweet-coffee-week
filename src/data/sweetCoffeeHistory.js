@@ -2462,7 +2462,7 @@ export const SWEET_COFFEE_HISTORY = {
       "participantes": [
         "Adocee Doceria",
         "Bolomania",
-        "Caffè Basilico’s",
+        "Caffè Basilico's",
         "Canuto’s",
         "Caroli Douces",
         "Casa 1190 - Restaurant e Coffee",

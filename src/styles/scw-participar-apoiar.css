@@ -16,19 +16,9 @@
    (Participar é magenta puro; creme sobre esse rosa dá 3,8:1). */
 .pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
 
-/* Véu: aprofunda para a cor do herói, nunca um hex fixo. Sem o cartão de foto
-   (PATCH 01 §6) ele serve só à banda do celular, que o lê em --scw-banda-veu. */
-.pa-hero { --veu: color-mix(in srgb, var(--scw-heroi) 70%, var(--scw-choco)); }
-
-/* Forma da identidade em marca-d'água: só apoia a leitura do bloco, não compete
-   com o texto (opacidade 8%, atrás de tudo, aria-hidden no JSX). */
-.pa-hero__forma {
-  position: absolute;
-  width: clamp(220px, 26vw, 420px);
-  opacity: .08;
-  pointer-events: none;
-}
-.pa-hero__forma--participar { left: -4%; bottom: -14%; }
+/* A cor do véu é a do próprio herói (cyan em Participar, marrom em Apoiar):
+   `.scw-hero-veu` lê --scw-heroi por padrão, então não há nada a declarar
+   aqui. Um hex fixo nunca — a cor vem da página. */
 
 /* PATCH 01 §6: a abertura é rótulo + H1 + lead + ações, nada mais. Sem a coluna
    de apoio o grid perdeu a função — quem limita a medida é o próprio papel
@@ -91,77 +81,26 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 
 /* No celular o herói vira banda de foto + informação (README § Herói no
    celular). */
-/* No DESKTOP a foto passou a ocupar o herói inteiro, com o texto por cima
-   (pedido do Wilke, 21/08/2026 — a mesma lógica do Sweet Awards). As três
-   fotos de cada página se revezam em crossfade; as camadas são do sistema
-   (.scw-hero-banda__foto), montadas pelo componente HeroFotos.
-   ≤1000px nada muda: banda em cima, texto embaixo, nenhum texto sobre
-   imagem (§6.9). */
+/* A foto ocupa o herói inteiro nas duas telas, com o texto por cima; as três
+   imagens de cada página se revezam em crossfade (HeroFotos + as camadas do
+   sistema). A leitura é do véu (.scw-hero-veu).
+
+   A marca-d'água da identidade (.pa-hero__forma, um coração a 8%) saiu junto:
+   ela apoiava a leitura de uma chapa lisa e, com fotografia atrás, virava
+   ruído — elemento sem função sai (§6.13). */
+.pa-hero__grade { z-index: 1; }
+
+/* ⚠️ Participar é chapa CLARA de tinta chocolate: quem precisa se manter
+   íntegro é o FUNDO, não a tinta, então os alfas são maiores que os de Apoiar,
+   que é chapa escura de tinta creme — o caso do Sweet Awards, que usa os
+   valores padrão. */
 @media (min-width: 1001px) {
-  .pa-hero .scw-hero-banda {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    background-color: var(--scw-marrom);
-  }
-  /* As rampas em S existem para emendar a banda do celular com o bloco de
-     texto. Com a foto cobrindo o herói inteiro não há emenda nenhuma, e o
-     ::after pintaria uma faixa da cor do herói no meio da imagem. */
-  .pa-hero .scw-hero-banda::before,
-  .pa-hero .scw-hero-banda::after { display: none; }
-  /* A marca-d'água da identidade apoiava a leitura de uma chapa lisa. Com
-     fotografia atrás ela vira ruído a 8% — e elemento sem função sai (§6.13). */
-  .pa-hero__forma { display: none; }
-
-  /* O VÉU, na cor do próprio herói: cyan em Participar, marrom em Apoiar.
-     Vertical adensando para a base (onde ficam ações e nota) e horizontal
-     adensando à esquerda (selo, H1, lead), zerando em 66% da largura para a
-     foto aparecer no terço direito — a mesma construção do Awards.
-     ⚠️ Os alfas de Participar são MAIORES: lá a chapa é clara e a tinta é
-     chocolate, então quem precisa se manter íntegro é o fundo claro. Em
-     Apoiar (marrom, tinta creme) o caso é o do Awards e os valores são os
-     de lá. */
-  .pa-hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(180deg,
-        color-mix(in srgb, var(--scw-heroi) var(--pa-veu-topo, 38%), transparent) 0%,
-        color-mix(in srgb, var(--scw-heroi) var(--pa-veu-meio, 78%), transparent) 58%,
-        color-mix(in srgb, var(--scw-heroi) var(--pa-veu-base, 92%), transparent) 100%),
-      linear-gradient(96deg,
-        color-mix(in srgb, var(--scw-heroi) var(--pa-veu-esq, 88%), transparent) 0%,
-        color-mix(in srgb, var(--scw-heroi) var(--pa-veu-centro, 55%), transparent) 38%,
-        transparent 66%);
-  }
-  /* Chapa CLARA: o chocolate do texto precisa do cyan quase cheio por baixo,
-     senão a foto vaza no contraste. */
   body.route-participar .pa-hero {
-    --pa-veu-topo: 52%;
-    --pa-veu-meio: 88%;
-    --pa-veu-base: 96%;
-    --pa-veu-esq: 94%;
-    --pa-veu-centro: 68%;
-  }
-  .pa-hero__grade { z-index: 1; }
-}
-
-@media (max-width: 1000px) {
-  .pa-hero__forma { display: none; }
-  /* A banda sangrando recebe o mesmo véu no topo (onde a logo do cabeçalho
-     passa por cima) e fecha embaixo na cor do bloco — que aqui NÃO é o
-     chocolate padrão de .scw-hero-bloco: .pa-hero repinta em --scw-heroi
-     (cyan em Participar, marrom em Apoiar). */
-  .pa-hero .scw-hero-banda {
-    --scw-banda-veu: color-mix(in srgb, var(--veu) 76%, transparent);
-    --scw-banda-base: var(--scw-heroi);
+    --hv-topo: 52%;
+    --hv-meio: 88%;
+    --hv-base: 96%;
+    --hv-esq: 94%;
+    --hv-centro: 68%;
   }
 }
 

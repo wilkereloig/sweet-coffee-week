@@ -305,9 +305,8 @@ export function ParticiparPage() {
   return (
     <>
       {/* ═══ 01 Abertura ═══ */}
-      <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
+      <section className="scw-hero-bloco scw-hero-veu pa-hero" aria-labelledby="pa-titulo">
         <HeroFotos fotos={FOTOS_HERO} />
-        <img className="pa-hero__forma pa-hero__forma--participar" src="/images/shapes/shape-heart-yellow.svg" alt="" aria-hidden="true" />
 
         <div className="pa-hero__grade">
           <div>

@@ -27,80 +27,18 @@
 }
 .swa-hero > * { position: relative; z-index: 1; }
 
-/* A banda começou mobile-only (30/07/2026): lá a reserva de 216px era roxo
-   chapado. Em 06/08/2026 o Wilke pediu a MESMA foto no desktop — o herói
-   perdeu a vitrine dos quatro primeiros lugares e sem imagem sobrava roxo
-   chapado também na tela grande. O corte fecha no roxo nas duas.
-   O degradê de topo que existia aqui (.swa-hero::before) saiu junto: a
-   própria banda escurece onde a logo transborda, era o mesmo trabalho feito
-   duas vezes. */
-.swa-hero .scw-hero-banda {
-  --scw-banda-base: var(--scw-roxo);
-}
+/* A foto do herói: as seis imagens da entrega dos prêmios se revezam aqui.
+   Camadas e crossfade são do sistema (.scw-hero-banda__foto, montadas pelo
+   componente HeroFotos); a leitura é do véu (.scw-hero-veu), com os alfas
+   padrão dele — chapa escura, tinta creme, foto aparecendo no terço direito.
+   Foi deste herói que a construção saiu, em 21/08/2026.
 
-/* As seis fotos da entrega dos prêmios se revezam aqui — as camadas e o
-   crossfade são do sistema (.scw-hero-banda__foto em scw-2026.css, montadas
-   pelo componente HeroFotos). */
-
-/* ≤1000px a geometria vem de .scw-hero-banda em scw-2026.css (36vh/232px,
-   calibrada a pedido do Wilke): foto em cima, texto embaixo, NENHUM texto
-   sobre imagem (§6.9). No celular continua sendo assim.
-
-   No desktop (≥1001px) a foto deixou de ser uma faixa no topo e passou a
-   ocupar o herói inteiro, com o texto por cima — pedido do Wilke, 21/08/2026.
-   A banda vira camada de fundo absoluta; a leitura fica por conta do véu do
-   ::after logo abaixo. */
-@media (min-width: 1001px) {
-  .swa-hero {
-    /* Herói com conteúdo ancorado embaixo, como Home/Participar/Apoiar (§6.7):
-       a logo do cabeçalho transborda metade abaixo da linha do header, então a
-       reserva é maior que a intuitiva. */
-    padding-top: clamp(232px, 22vw, 290px);
-    padding-bottom: clamp(26px, 2.8vw, 44px);
-  }
-  .swa-hero .scw-hero-banda {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    background-color: var(--scw-marrom);
-  }
-  /* O VÉU. Dois degradês no mesmo roxo da página, multiplicados: o vertical
-     adensa em direção à base (onde ficam números e índice, que atravessam a
-     largura toda), o horizontal adensa à esquerda (onde ficam selo, título e
-     lead).
-     O horizontal ZERA em 66% da largura (pedido do Wilke, 21/08/2026: a foto
-     tem de aparecer). Dali para a direita sobra só o vertical, que no topo
-     vale .28 — o terço direito da imagem passa quase limpo, e é justamente
-     onde está o assunto da foto e onde não há texto nenhum.
-     Alpha resultante nos pontos com texto: ~.89 sob o título e no lead, ~.88
-     na base, contra os .28 do canto aberto.
-     ⚠️ Afrouxado duas vezes a pedido, e ~.88 sob título e lead é o PISO:
-     abaixo disso o creme deixa de ter 4,5:1 garantidos, porque o brilho da
-     foto que sobra por baixo varia ao longo da imagem — a leitura passaria a
-     depender de QUAL foto está no herói.
-     ⛔ Não é o `.swa-hero::before` que saiu em 06/08 (degradê de 340px
-     repetindo o escurecimento que a própria banda já fazia). Este cobre o
-     herói inteiro e existe porque agora há texto sobre foto. */
-  .swa-hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(180deg,
-        rgba(77, 37, 126, .28) 0%,
-        rgba(77, 37, 126, .70) 58%,
-        rgba(77, 37, 126, .88) 100%),
-      linear-gradient(96deg,
-        rgba(77, 37, 126, .80) 0%,
-        rgba(77, 37, 126, .50) 38%,
-        rgba(77, 37, 126, 0) 66%);
-  }
+   Sem reserva de topo herdada: o conteúdo é ancorado embaixo, como em
+   Home/Participar/Apoiar (§6.7). A logo do cabeçalho transborda metade abaixo
+   da linha do header, então a reserva é maior que a intuitiva. */
+.swa-hero {
+  padding-top: clamp(232px, 22vw, 290px);
+  padding-bottom: clamp(26px, 2.8vw, 44px);
 }
 
 /* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas

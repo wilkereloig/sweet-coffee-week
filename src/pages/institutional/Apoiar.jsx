@@ -258,7 +258,7 @@ export function ApoiarPage() {
   return (
     <>
       {/* ═══ 01 Abertura ═══ */}
-      <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
+      <section className="scw-hero-bloco scw-hero-veu pa-hero" aria-labelledby="pa-titulo">
         <HeroFotos fotos={FOTOS_HERO} />
 
         <div className="pa-hero__grade">

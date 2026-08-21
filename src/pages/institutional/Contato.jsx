@@ -21,7 +21,8 @@
 import React from 'react'
 import '../../styles/scw-contato.css'
 import FAQ_DADOS from '../../data/faqCentral'
-import { bgStyle, heroPhoto } from '../../data/imageLibrary'
+import { heroPhotos } from '../../data/imageLibrary'
+import { HeroFotos } from '../../components/HeroFotos'
 import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 import { CONTACT_SUBJECTS } from '../../data/contactFaq'
@@ -31,7 +32,7 @@ import ScwIcon from '../../components/scw-icons/ScwIcon'
 // Foto do herói desta rota (sistema central de imagens): ambienta a abertura
 // no desktop e vira banda sangrando no celular. O véu por cima usa a cor da
 // página (--scw-pagina) — ver scw-contato.css.
-const HERO_FOTO = heroPhoto('contato')
+const HERO_FOTOS = heroPhotos('contato')
 
 // RPC injetado na lógica pura (mantém o módulo testável offline).
 const rpc = (name, payload) => supabase.rpc(name, payload)
@@ -179,19 +180,12 @@ export function ContatoPage({ navigate }) {
   return (
     <>
       {/* ---------- 01 ABERTURA (compacta) ---------------------------------- */}
-      <section className="scw-hero-bloco scw-hero-bloco--compacto ctt-abertura" aria-labelledby="ctt-titulo">
-        {/* Desktop: a foto ambienta a abertura inteira sob o véu da página.
-            Celular: a mesma foto vira banda sangrando (scw-hero-banda). */}
-        <img
-          className="ctt-abertura__fundo"
-          src={HERO_FOTO.src}
-          alt={HERO_FOTO.alt}
-          style={{ objectPosition: HERO_FOTO.position }}
-          fetchpriority="high"
-          decoding="async"
-        />
-        <span className="ctt-abertura__veu" aria-hidden="true" />
-        <div className="scw-hero-banda" role="img" aria-label={HERO_FOTO.alt} style={bgStyle(HERO_FOTO, { mobile: true })} />
+      <section className="scw-hero-bloco scw-hero-bloco--compacto scw-hero-veu ctt-abertura" aria-labelledby="ctt-titulo">
+        {/* A foto ambienta a abertura nas duas telas, sob o véu do sistema —
+            uma construção só, desde a padronização de 21/08/2026. Antes eram
+            três peças diferentes aqui: um <img> de fundo no desktop, um véu
+            próprio e a banda sangrando no celular. */}
+        <HeroFotos fotos={HERO_FOTOS} />
         {/* Coluna única, como nas outras cinco aberturas: rótulo, H1, lead e as
             duas ações. A coluna de apoio à direita saiu no desenho de 20/08 —
             ela repetia, em nota, o que a própria seção 02 logo abaixo mostra. */}

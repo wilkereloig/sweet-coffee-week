@@ -382,7 +382,7 @@ export function HistoricoAwardsPage() {
           mesmas fotos abrem a seção 02, logo abaixo. A banda de foto é a
           imagem do herói no celular, onde a reserva de topo de 216px era roxo
           chapado (pedido do Wilke, 30/07/2026). */}
-      <section className="swa-hero" aria-labelledby="swa-titulo">
+      <section className="swa-hero scw-hero-veu" aria-labelledby="swa-titulo">
         <HeroFotos fotos={FOTOS_HERO} />
         <div className="swa-hero__texto">
           <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
