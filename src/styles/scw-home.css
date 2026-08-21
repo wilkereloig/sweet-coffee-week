@@ -129,8 +129,9 @@
   color: var(--scw-marrom);
   font: 800 13px/1 var(--scw-font);
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .hm-link:hover { color: var(--scw-choco); }
 }
-.hm-link:hover { color: var(--scw-choco); }
 /* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
    tinta — a tinta de um link de 15px sobre creme precisa de 4,5:1 e só roxo e
    marrom fecham isso; o filete é objeto gráfico e se resolve em 3:1.
@@ -144,8 +145,9 @@
   padding-bottom: 6px;
   border-bottom: 2px solid var(--destino, var(--scw-marrom));
   font-size: 15px;
+}@media (hover: hover) {
+  .hm-link--sublinhado:hover { border-color: var(--scw-choco); }
 }
-.hm-link--sublinhado:hover { border-color: var(--scw-choco); }
 
 /* ============================================================================
    02 O que é — anatomia do combo + duas galerias irmãs
@@ -368,8 +370,14 @@
 }
 /* Parar é obrigatório, não cortesia: ler a legenda de um item em movimento é
    impossível, e o item é a informação. */
-.hm-fita:hover .hm-fita__trilha,
 .hm-fita:focus-within .hm-fita__trilha { animation-play-state: paused; }
+/* A metade de hover fica no ponteiro. No toque o iOS emula `:hover` e o estado
+   gruda: um encostar de dedo parava a fita e ela só voltava quando você tocava
+   em outro lugar — parecia travada. Quem lê no celular tem o `:focus-within`,
+   que continua valendo nas duas telas. */
+@media (hover: hover) {
+  .hm-fita:hover .hm-fita__trilha { animation-play-state: paused; }
+}
 
 .hm-fita__trilha > li {
   display: flex;
@@ -480,8 +488,9 @@
   border-radius: 999px;
   font: 800 14px/1 var(--scw-font);
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .hm-rota__cta:hover { gap: 14px; }
 }
-.hm-rota__cta:hover { gap: 14px; }
 /* Com o destino já no card, o CTA vira contraste puro: chapa escura sobre card
    claro, chapa clara sobre card escuro. Sem anel — o anel de 2px existia porque
    o botão colorido não separava do card colorido; agora separa sozinho.
@@ -663,8 +672,9 @@
   font: 800 14.5px/1 var(--scw-font);
   color: var(--scw-choco);
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .hm-voz__link:hover { gap: 14px; }
 }
-.hm-voz__link:hover { gap: 14px; }
 
 .hm-imprensa__h2 { margin: 14px 0 clamp(20px, 2vw, 28px); max-width: 18ch; }
 .hm-materia {
@@ -711,8 +721,9 @@
   border-bottom: 1px solid rgba(61, 19, 8, .14);
   color: var(--scw-choco);
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .hm-linha:hover { background: var(--scw-creme); }
 }
-.hm-linha:hover { background: var(--scw-creme); }
 .hm-linha__veiculo {
   display: block;
   font: 700 11px/1.2 var(--scw-font);
@@ -735,8 +746,9 @@
   font: 800 14px/1 var(--scw-font);
   cursor: pointer;
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .hm-imprensa__toggle:hover { color: var(--scw-choco); }
 }
-.hm-imprensa__toggle:hover { color: var(--scw-choco); }
 
 /* ============================================================================
    07 Realização — KV F2 Experience (quebra de marca proposital)
@@ -841,8 +853,9 @@
   font: 600 15px/1 'Archivo', sans-serif;
   text-decoration: none;
   transition: var(--scw-transicao);
+}@media (hover: hover) {
+  .f2-realiza__cta:hover { border-bottom-width: 4px; }
 }
-.f2-realiza__cta:hover { border-bottom-width: 4px; }
 
 .f2-realiza__numeros {
   display: grid;

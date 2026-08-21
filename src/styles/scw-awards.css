@@ -474,8 +474,9 @@
   cursor: pointer;
   /* transition vem de scw-motion.css (mesmo seletor) — não redeclarar aqui,
      senão a regra local vence e derruba a transição de color do token. */
+}@media (hover: hover) {
+  .swa-edicao__botao:hover { background: rgba(61, 19, 8, .04); }
 }
-.swa-edicao__botao:hover { background: rgba(61, 19, 8, .04); }
 .swa-edicao__marca {
   flex: 0 0 auto;
   display: grid;

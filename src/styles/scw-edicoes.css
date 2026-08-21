@@ -186,10 +186,12 @@
   color: inherit;
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+}@media (hover: hover) {
+  .scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 }
-.scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
-.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
-.scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }@media (hover: hover) {
+  .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 
 .scw-gal__contador {
   padding-inline: 2px;
@@ -421,8 +423,9 @@
   background: rgba(61, 19, 8, .4);
   color: var(--scw-creme);
   box-shadow: none;
+}@media (hover: hover) {
+  .scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 }
-.scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 .scw-edx__botao--vazado:active { transform: none; box-shadow: none; }
 
 /* --- painéis flutuantes (participantes / curiosidades) -------------------- */
@@ -484,14 +487,16 @@
   border: 1px solid rgba(61, 19, 8, .14);
   background: var(--scw-creme);
   color: var(--scw-choco);
+}@media (hover: hover) {
+  .scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
-.scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
 .scw-edx__painel--escuro .scw-edx__fechar {
   border-color: rgba(254, 240, 221, .3);
   background: transparent;
   color: var(--scw-creme);
+}@media (hover: hover) {
+  .scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
 }
-.scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
 
 .scw-edx__marcas {
   list-style: none;
@@ -609,8 +614,9 @@
   color: var(--scw-creme);
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
+}@media (hover: hover) {
+  .scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
 }
-.scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
 .scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
 .scw-edx__seta--proxima {
   border: 0;
@@ -696,8 +702,9 @@
   letter-spacing: .06em;
   white-space: nowrap;
   color: rgba(254, 240, 221, .64);
+}@media (hover: hover) {
+  .scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
 }
-.scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
 .scw-edx__ano.is-ativo .scw-edx__ano-rot { color: var(--scw-creme); }
 
 .scw-edx__rodape-legenda {
