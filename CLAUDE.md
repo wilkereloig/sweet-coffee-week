@@ -1328,8 +1328,10 @@ conceitos longos ficam no acervo como subtítulo de campanha.
 - Falar em **"interesse"** e **"próximas edições"** — **nunca prometer participação ou
   patrocínio automático**.
 - **Não prometer função ainda indisponível ao público.**
-- **"+120 marcas"**, não "+100". **"desde 2016"**, não "10 anos" — o décimo aniversário só
-  se completa em setembro de 2026.
+- **"+120 marcas"**, não "+100".
+- **"10 anos" / "dez anos" liberado** — decisão do Eloi, 21/08/2026. A regra anterior pedia
+  "desde 2016" porque o décimo aniversário só se completa em setembro de 2026; a partir desta
+  data o termo pode ser usado na prosa institucional. `festivalFacts.years` segue em 10.
 
 ### 8.5 O que nunca escrever
 
