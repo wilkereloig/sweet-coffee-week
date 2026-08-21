@@ -45,8 +45,22 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
     return () => clearInterval(t)
   }, [fotos.length])
 
+  const pedidas = usePedidas(fotos.length, ativa)
+
   if (!fotos.length) return null
 
+  /* Fundo em CSS não tem carga preguiçosa, e `loading="lazy"` também não
+     resolveria: as camadas ficam DENTRO da tela, empilhadas, e o navegador
+     baixa tudo que está no viewport. O resultado era um herói de seis fotos
+     pedindo as seis de uma vez para mostrar uma — em Participar isso eram
+     5,3 MB antes de qualquer rolagem, a 390px de largura.
+
+     Quem decide é o componente: só recebem `background-image` a camada visível,
+     as que já foram vistas (voltar atrás não pode piscar) e a PRÓXIMA, que é
+     pedida um intervalo inteiro antes de aparecer — 6,2s de folga, muito mais
+     do que a rede precisa. Visualmente idêntico; o que muda é a ordem em que a
+     rede é usada. As camadas seguem montadas: quem sai do fluxo é o download,
+     não o elemento, então nada de salto de layout. */
   return (
     <div className={classe}>
       {fotos.map((foto, i) => (
@@ -54,7 +68,7 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
           key={foto.src}
           className={'scw-hero-banda__foto' + (i === ativa ? ' is-ativa' : '')}
           style={{
-            backgroundImage: `url("${foto.src}")`,
+            backgroundImage: pedidas[i] ? `url("${foto.src}")` : undefined,
             '--foco': foto.position || 'center',
             '--foco-mobile': foto.mobilePosition || foto.position || 'center',
           }}
@@ -65,6 +79,28 @@ export function HeroFotos({ fotos, classe = 'scw-hero-banda' }) {
       ))}
     </div>
   )
+}
+
+/* Quais camadas já podem pedir a foto: a visível, a próxima e todas as que já
+   passaram. A memória importa porque voltar para uma foto já vista não pode
+   piscar — uma vez baixada ela está em cache e reaparece instantânea. */
+function usePedidas(total, ativa) {
+  const [pedidas, setPedidas] = React.useState(() =>
+    Array.from({ length: total }, (_, i) => i === 0))
+
+  React.useEffect(() => {
+    if (!total) return
+    setPedidas((antes) => {
+      const proxima = (ativa + 1) % total
+      if (antes[ativa] && antes[proxima]) return antes   // nada novo: não re-renderiza
+      const agora = antes.slice()
+      agora[ativa] = true
+      agora[proxima] = true
+      return agora
+    })
+  }, [ativa, total])
+
+  return pedidas
 }
 
 export default HeroFotos

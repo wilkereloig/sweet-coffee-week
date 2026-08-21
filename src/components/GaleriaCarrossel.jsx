@@ -33,13 +33,15 @@ export function GaleriaCarrossel({ itens, duracao = 46 }) {
     itens.map((item, i) => (
       <li key={`${copia}-${item.src || i}`}>
         {item.src
-          ? <figure
-              className="hm-galeria__foto"
-              role={copia === 0 ? 'img' : undefined}
-              aria-label={copia === 0 ? item.alt : undefined}
-              aria-hidden={copia === 0 ? undefined : 'true'}
-              style={{ backgroundImage: `url("${item.src}")` }}
-            />
+          ? <figure className="hm-galeria__foto" aria-hidden={copia === 0 ? undefined : 'true'}>
+              {/* `<img loading="lazy">` e não `background-image`: a fita fica a
+                  quase três telas da dobra, e fundo em CSS não tem carga
+                  preguiçosa — as vinte fotos entravam antes de qualquer
+                  rolagem, o que sozinho respondia pela maior parte dos 8,8 MB
+                  que a Home baixava a 390px. A segunda cópia da fita é
+                  decorativa, então vai com `alt=""`. */}
+              <img src={item.src} alt={copia === 0 ? item.alt : ''} loading="lazy" decoding="async" />
+            </figure>
           : <div className="scw-reserva hm-galeria__reserva">{item.reserva}</div>}
         <span className="hm-galeria__nome">
           {item.titulo}

@@ -331,9 +331,19 @@
   aspect-ratio: 1;
   border-radius: var(--scw-r-card);
   overflow: hidden;
+  /* O bege continua sendo o que se vê enquanto a foto não chegou — é a mesma
+     reserva honesta do §6.12, agora com função dupla: com `loading="lazy"` a
+     foto entra depois, e sem uma cor por baixo o quadro piscaria branco. */
   background-color: var(--scw-bege);
-  background-size: cover;
-  background-position: center;
+}
+/* A foto virou `<img>` para poder ser preguiçosa (ver GaleriaCarrossel.jsx).
+   O enquadramento que era `background-position: center` vira `object-position`;
+   o recorte, `object-fit`. Mesmo resultado, com carga sob demanda. */
+.hm-galeria__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 .hm-galeria__reserva { aspect-ratio: 1; border-radius: var(--scw-r-card); }
 
