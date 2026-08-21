@@ -408,27 +408,6 @@
 }
 
 /* ----------------------------------------------------------------------------
-   04.1 Bastidores — três fotos reais, sem legenda por foto (o acervo não
-   registra edição/ano com segurança pra elas).
-   -------------------------------------------------------------------------- */
-
-.swa-bastidores {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: clamp(12px, 1.6vw, 20px);
-  margin: 0;
-  padding: 0;
-}
-.swa-bastidores li {
-  margin: 0;
-  aspect-ratio: 4 / 3;
-  border-radius: var(--scw-r-card);
-  overflow: hidden;
-}
-.swa-bastidores img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-/* ----------------------------------------------------------------------------
    04 Hall dos mais premiados — barra segmentada por colocação
    -------------------------------------------------------------------------- */
 

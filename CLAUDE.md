@@ -1152,6 +1152,13 @@ O que não muda sem autorização: flags de publicação, dados oficiais e deplo
 - **Histórico:** acordeão por edição, pódio completo por categoria, separado por trilha
   quando houve júri e público.
 - **Antes de 2019:** as cinco primeiras edições não tiveram premiação — **dizer isso**.
+- ⛔ A seção **"O momento de receber o prêmio"** (bastidores, 3 fotos) **saiu em
+  20/08/2026**: não estava no desenho nem nesta lista de seções. As fotos seguem em
+  `public/images/awards-bastidores/`.
+- ⚠️ O desenho de 20/08 traz o pódio em **três colunas** com o 1º em **4:5**. Isso é
+  exatamente o que o §11 registra como testado e reprovado, e o mesmo arquivo ainda
+  desenha a medalha de 2º em `#EBD6B4`, cor que saiu da paleta. **O código fica como
+  está** — 1º em coluna larga, as três fotos 1:1.
 
 **Regra de dados:** descrições das categorias vêm de `sweetCoffeeHistory.js`; **os pódios
 da edição 2026.1 vêm de `loversAwardsResults.js`** (na base histórica eles estão vazios
