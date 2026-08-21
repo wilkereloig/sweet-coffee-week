@@ -1174,17 +1174,13 @@ editorial e comercial. **Não parecer formulário genérico.**
 
 - Herói = rótulo do público + H1 + lead + **duas ações, nada mais**. No celular a foto
   continua, sangrando na `.scw-hero-banda`.
-- **Circulação: quatro faixas** alternando lado, imagem e texto com **larguras iguais** —
+- **Circulação: três faixas** alternando lado, imagem e texto com **larguras iguais** —
   a coluna acompanha o trilho, o texto para na medida de linha.
-- **4ª faixa (`04 · Materiais`):** fecha a Circulação com o material que chega na loja —
-  display, adesivo, mapa e brinde temático. O `--fundo` da faixa pinta o **painel
-  inteiro** e **todo o texto dela é creme**; cyan e amarelo reprovam como fundo de texto
-  normal, então o ciclo de irmãos fecha em **magenta (4,86:1)**. ⛔ **Não trocar por tom
-  claro "porque o ciclo pede".**
-- **06 Imprensa** abre com galeria de 3 registros reais em TV antes dos chips de veículo.
-  **Alt genérico de propósito** — o acervo não traz crédito confiável de veículo, data
-  nem pessoa; nomear alguém ali seria dado inventado. A grade usa
-  `auto-fit / minmax(min(100%,220px),1fr)` e **empilha sozinha, sem media query**.
+  ⛔ A 4ª faixa (`04 · Materiais`) **saiu em 20/08/2026**, junto com o H2 que dizia
+  "Quatro frentes": o desenho fechou a seção em três. Se voltar, o H2 volta junto.
+- **06 Imprensa** é cabeça + chips de veículo + a nota das 17 matérias.
+  ⛔ A galeria de 3 registros em TV que abria a seção **saiu em 20/08/2026** — o desenho
+  deixou a seção só com os chips. As fotos seguem em `public/images/imprensa/`.
 - **Depoimentos vêm logo depois da abertura** (decisão do Eloi, 30/07/2026): são a prova
   social; quem cogita participar quer ouvir quem já participou antes de ler número ou
   processo, e vários depoimentos são em vídeo.

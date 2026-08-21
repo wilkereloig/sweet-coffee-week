@@ -86,19 +86,6 @@ const FAIXAS = [
     foto: { src: '/images/lovers-publico/04.jpg', alt: 'Sweet Lovers durante a edição Lovers do Sweet & Coffee Week', position: 'center 38%' },
     fundo: 'var(--scw-choco)',
   },
-  {
-    ordem: '04 · Materiais',
-    titulo: 'O material da edição chega pronto pra loja.',
-    texto: 'Display de mesa, adesivo de vitrine, mapa da rota e brindes temáticos: a identidade da edição chega montada para a sua loja receber o público.',
-    resumo: 'display + rota + brindes',
-    // Peça real do acervo, sem vínculo de marca: o balde temático da edição
-    // Séries — a palavra "Séries" está impressa na peça, não é inferência.
-    foto: { src: '/images/campanha/19.jpg', alt: 'Balde temático e combo da edição Séries do Sweet & Coffee Week', position: 'center' },
-    // Magenta é a única cor restante do ciclo (§5) que sustenta a tinta creme
-    // deste painel — cyan e amarelo falham como fundo de texto normal.
-    fundo: 'var(--scw-magenta)',
-    inversa: true,
-  },
 ]
 
 // 04 Quem pode participar — ícones desenhados para cada tipo de negócio.
@@ -162,12 +149,6 @@ function depoVideoSrc(slug) {
 // nomeiam ninguém: o acervo não traz crédito confiável de veículo, data nem
 // pessoa, e §16 proíbe preencher isso por dedução. O ponto focal de cada uma
 // mira o grupo, que fica acima do centro nas três.
-const IMPRENSA_FOTOS = [
-  { src: '/images/imprensa/01.jpg', alt: 'Participante do Sweet & Coffee Week apresentando cookies em um programa de TV', position: 'center 30%' },
-  { src: '/images/imprensa/02.jpg', alt: 'Cobertura de imprensa do Sweet & Coffee Week em estúdio de TV', position: 'center' },
-  { src: '/images/imprensa/03.jpg', alt: 'Confeiteira participante do Sweet & Coffee Week apresentando um doce natalino em um programa de TV', position: 'center 26%' },
-]
-
 const IMPRENSA = [
   { veiculo: '96 FM', ano: '2026' },
   { veiculo: 'Tribuna do Norte', ano: '2026' },
@@ -467,7 +448,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/circulacao" tamanho={20} />O que a marca leva da edição</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)', maxWidth: '22ch' }}>
-              Quatro frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>visibilidade</em>, ao mesmo tempo.
+              Três frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>visibilidade</em>, ao mesmo tempo.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -539,13 +520,6 @@ export function ParticiparPage() {
             Rádio, TV, jornais e portais de Natal e do RN acompanham cada edição desde 2016.
           </p>
         </div>
-        <ul className="pa-imprensa__fotos">
-          {IMPRENSA_FOTOS.map((f) => (
-            <li key={f.src}>
-              <img src={f.src} alt={f.alt} style={{ objectPosition: f.position }} loading="lazy" decoding="async" />
-            </li>
-          ))}
-        </ul>
         <ul className="pa-imprensa">
           {IMPRENSA.map((v) => (
             <li key={`${v.veiculo}-${v.ano}`}>

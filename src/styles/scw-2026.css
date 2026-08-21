@@ -1341,13 +1341,15 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-campo select,
 .scw-campo textarea {
   width: 100%;
-  min-height: 52px;
-  padding: 14px 16px;
-  border-radius: 14px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 12px;
   border: 1px solid rgba(61, 19, 8, .22);
   background: var(--scw-creme);
   color: var(--scw-choco);
-  font: 500 15.5px/1.4 var(--scw-font);
+  /* 16px não é escolha de escala: abaixo disso o Safari do iPhone dá zoom na
+     página ao focar o campo. O desenho já traz esse valor. */
+  font: 500 16px/1.4 var(--scw-font);
 }
 .scw-campo textarea { min-height: 132px; resize: vertical; }
 .scw-campo input::placeholder,
