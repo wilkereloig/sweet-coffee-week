@@ -3,6 +3,7 @@ import '../../styles/scw-home.css'
 import { festivalFacts } from '../../data/festivalFacts'
 import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
+import { Marquee } from '../../components/Marquee'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { ANATOMIA_COMBO } from '../../components/scw-icons/anatomia-combo'
 
@@ -281,18 +282,7 @@ export function HomePage({ navigate }) {
       </section>
 
       {/* Faixa de palavras em movimento (3 trilhas iguais = laço contínuo). */}
-      <div className="scw-marquee" aria-hidden="true">
-        {[0, 1, 2].map((trilha) => (
-          <ul key={trilha}>
-            {PALAVRAS.map((palavra) => (
-              <li key={palavra}>
-                <span className="scw-marquee__palavra">{palavra}</span>
-                <span className="scw-marquee__ponto" />
-              </li>
-            ))}
-          </ul>
-        ))}
-      </div>
+      <Marquee palavras={PALAVRAS} />
 
       {/* ---------------------------------------------- 02 O que é ---------- */}
       <section className="scw-secao scw-secao--creme">

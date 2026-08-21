@@ -1204,6 +1204,34 @@ body:not(.route-em-breve) { margin: 0; }
           mask-image: var(--scw-esfuma);
 }
 
+/* Camadas de crossfade DENTRO da banda (componente HeroFotos): quando o herói
+   tem mais de uma foto, a banda deixa de carregar a imagem e vira só a caixa.
+   Uma camada `.is-ativa` por vez, opacidade em transição. O enquadramento vem
+   por custom property porque muda entre a faixa larga e a banda alta, e style
+   inline venceria a media query (§10.4). */
+.scw-hero-banda__foto {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: var(--foco-mobile, center);
+  opacity: 0;
+  transition: opacity 900ms cubic-bezier(.2, .7, .2, 1);
+}
+.scw-hero-banda__foto.is-ativa { opacity: 1; }
+/* As duas rampas em S acima são pseudos de z-index auto: com as fotos agora
+   filhos REAIS, a ordem do DOM as deixaria atrás delas e o escurecimento do
+   topo — o que deixa a logo do cabeçalho passar por cima — sumiria. */
+.scw-hero-banda::before,
+.scw-hero-banda::after { z-index: 1; }
+@media (min-width: 1001px) {
+  .scw-hero-banda__foto { background-position: var(--foco, center); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scw-hero-banda__foto { transition: none; }
+}
+
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */
 @media (max-width: 1000px) {
   .scw-hero { min-height: 0; display: block; }

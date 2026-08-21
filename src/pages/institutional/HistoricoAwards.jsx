@@ -37,6 +37,8 @@ import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
 import { heroPhotos } from '../../data/imageLibrary'
+import { HeroFotos } from '../../components/HeroFotos'
+import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
 import { awardPhoto, RESERVA } from '../../data/imageLibrary'
@@ -59,12 +61,13 @@ const identidade = (nome) => resolveParticipant(nome).slug || nome
 /* Banda de foto do herói no celular — mesma fonte central das outras rotas. */
 const FOTOS_HERO = heroPhotos('historico-awards')
 
-/* Mesma leitura que a Home usa para o crossfade dela: com movimento reduzido
-   o herói fica na primeira foto, parado. */
-const semMovimento = () =>
-  typeof window !== 'undefined' &&
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/* Faixa de palavras abaixo do herói, como em Home, Participar e Apoiar. Aqui
+   ela carrega as CATEGORIAS da última edição: elas viviam num índice dentro do
+   próprio herói e vieram para cá (pedido do Wilke, 21/08/2026).
+   Derivadas de `LOVERS.cats`, nunca digitadas — se a próxima edição mudar de
+   categorias, a faixa muda junto. O marquee compõe em caixa-alta, então o nome
+   entra como está na fonte. */
+const PALAVRAS = LOVERS ? LOVERS.cats.map((c) => c.nome) : []
 
 // Números do herói, contados da própria base (nunca digitados à mão).
 const ESTATISTICAS = (() => {
@@ -367,16 +370,6 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
 
 export function HistoricoAwardsPage() {
   const [aberto, setAberto] = React.useState('2025')
-  const [fotoAtiva, setFotoAtiva] = React.useState(0)
-
-  /* Crossfade do herói: troca a foto a cada 6,2s, o mesmo intervalo da Home —
-     duração existente do sistema, não um tempo novo (§6.15). Sem movimento →
-     foto fixa. */
-  React.useEffect(() => {
-    if (semMovimento() || FOTOS_HERO.length < 2) return
-    const t = setInterval(() => setFotoAtiva((i) => (i + 1) % FOTOS_HERO.length), 6200)
-    return () => clearInterval(t)
-  }, [])
   const cats = LOVERS ? LOVERS.cats : []
 
   const maiorHall = HALL[0] ? HALL[0].total : 1
@@ -390,28 +383,7 @@ export function HistoricoAwardsPage() {
           imagem do herói no celular, onde a reserva de topo de 216px era roxo
           chapado (pedido do Wilke, 30/07/2026). */}
       <section className="swa-hero" aria-labelledby="swa-titulo">
-        {FOTOS_HERO.length > 0 && (
-          <div className="scw-hero-banda">
-            {FOTOS_HERO.map((foto, i) => (
-              <span
-                key={foto.src}
-                className={'swa-hero__foto' + (i === fotoAtiva ? ' is-ativa' : '')}
-                /* Cada foto tem seu ponto focal, e o enquadramento muda entre a
-                   faixa larga do desktop e a banda alta do celular. `bgStyle`
-                   resolve um só valor e style inline vence media query — daí os
-                   dois virem como custom property e o CSS escolher. */
-                style={{
-                  backgroundImage: `url("${foto.src}")`,
-                  '--foco': foto.position || 'center',
-                  '--foco-mobile': foto.mobilePosition || foto.position || 'center',
-                }}
-                role={i === fotoAtiva ? 'img' : undefined}
-                aria-label={i === fotoAtiva ? foto.alt : undefined}
-                aria-hidden={i === fotoAtiva ? undefined : 'true'}
-              />
-            ))}
-          </div>
-        )}
+        <HeroFotos fotos={FOTOS_HERO} />
         <div className="swa-hero__texto">
           <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
           <h1 className="scw-h1" id="swa-titulo">O prêmio que o público entrega.</h1>
@@ -434,18 +406,9 @@ export function HistoricoAwardsPage() {
             </div>
           </dl>
         </div>
-
-        <div className="swa-indice">
-          <span className="swa-indice__rotulo">16ª edição · Lovers 2026</span>
-          <ul>
-            {cats.map((c, i) => (
-              <li key={c.nome}>
-                <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{c.nome}
-              </li>
-            ))}
-          </ul>
-        </div>
       </section>
+
+      <Marquee palavras={PALAVRAS} />
 
       {/* 02 — VENCEDORES DA EDIÇÃO LOVERS 2026.1 */}
       <section className="scw-secao scw-secao--creme">

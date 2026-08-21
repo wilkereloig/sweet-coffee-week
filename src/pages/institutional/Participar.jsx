@@ -24,14 +24,15 @@ import {
   validateInterest,
   submitInterest,
 } from '../../lib/participationInterest'
-import { bgStyle, comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { HeroFotos } from '../../components/HeroFotos'
+import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
 import '../../styles/scw-participar-apoiar.css'
 
 // Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
 // banda sangrando no celular. O véu por cima usa a cor da página.
 const FOTOS_HERO = heroPhotos('participar')
-const FOTO_BANDA = FOTOS_HERO[0]
 
 /* Os três indicadores do herói saíram com o cartão (PATCH 01 §6). Nada de dado
    se perdeu: os três já existiam, com os mesmos números, em NUMEROS abaixo
@@ -305,7 +306,7 @@ export function ParticiparPage() {
     <>
       {/* ═══ 01 Abertura ═══ */}
       <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
-        <div className="scw-hero-banda" role="img" aria-label={FOTO_BANDA.alt} style={bgStyle(FOTO_BANDA, { mobile: true })} />
+        <HeroFotos fotos={FOTOS_HERO} />
         <img className="pa-hero__forma pa-hero__forma--participar" src="/images/shapes/shape-heart-yellow.svg" alt="" aria-hidden="true" />
 
         <div className="pa-hero__grade">
@@ -335,18 +336,7 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      <div className="scw-marquee" aria-hidden="true">
-        {[0, 1, 2].map((linha) => (
-          <ul key={linha}>
-            {PALAVRAS.map((p) => (
-              <li key={p}>
-                <span className="scw-marquee__palavra">{p}</span>
-                <span className="scw-marquee__ponto" />
-              </li>
-            ))}
-          </ul>
-        ))}
-      </div>
+      <Marquee palavras={PALAVRAS} />
 
       {/* ═══ 02 Depoimentos ═══
           Sobe logo depois da abertura (a pedido do Wilke, 30/07/2026): é a

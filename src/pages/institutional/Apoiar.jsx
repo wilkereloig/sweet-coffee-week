@@ -23,7 +23,9 @@ import {
   validateSupport,
   submitSupport,
 } from '../../lib/supportInterest'
-import { bgStyle, comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { HeroFotos } from '../../components/HeroFotos'
+import { Marquee } from '../../components/Marquee'
 import '../../styles/scw-participar-apoiar.css'
 
 const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
@@ -31,7 +33,6 @@ const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
 // Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
 // banda sangrando no celular. O véu por cima usa a cor da página.
 const FOTOS_HERO = heroPhotos('apoiar')
-const FOTO_BANDA = FOTOS_HERO[0]
 
 /* Saíram do herói com o cartão (PATCH 01 §6) e abrem a seção 02 Alcance, que é
    sobre exatamente isto. Diferente de Participar, estes três números NÃO se
@@ -258,7 +259,7 @@ export function ApoiarPage() {
     <>
       {/* ═══ 01 Abertura ═══ */}
       <section className="scw-hero-bloco pa-hero" aria-labelledby="pa-titulo">
-        <div className="scw-hero-banda" role="img" aria-label={FOTO_BANDA.alt} style={bgStyle(FOTO_BANDA, { mobile: true })} />
+        <HeroFotos fotos={FOTOS_HERO} />
 
         <div className="pa-hero__grade">
           <div>
@@ -287,18 +288,7 @@ export function ApoiarPage() {
         </div>
       </section>
 
-      <div className="scw-marquee" aria-hidden="true">
-        {[0, 1, 2].map((linha) => (
-          <ul key={linha}>
-            {PALAVRAS.map((p) => (
-              <li key={p}>
-                <span className="scw-marquee__palavra">{p}</span>
-                <span className="scw-marquee__ponto" />
-              </li>
-            ))}
-          </ul>
-        ))}
-      </div>
+      <Marquee palavras={PALAVRAS} />
 
       {/* ═══ 02 Alcance ═══ */}
       <section id="alcance" className="scw-secao scw-secao--bege">

@@ -38,31 +38,9 @@
   --scw-banda-base: var(--scw-roxo);
 }
 
-/* CROSSFADE — as seis fotos da entrega dos prêmios se revezam no herói
-   (pedido do Wilke, 21/08/2026). A banda deixou de carregar a imagem e virou
-   só a caixa; quem pinta são estas camadas empilhadas dentro dela.
-   É o mesmo mecanismo do herói da Home (.scw-hero__foto): opacidade em
-   transição, uma `.is-ativa` por vez, trocada por setInterval no JSX. */
-.swa-hero__foto {
-  position: absolute;
-  inset: 0;
-  display: block;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: var(--foco-mobile, center 34%);
-  opacity: 0;
-  transition: opacity 900ms cubic-bezier(.2, .7, .2, 1);
-}
-.swa-hero__foto.is-ativa { opacity: 1; }
-/* As rampas em S da banda (::before escurece o topo por onde passa a logo,
-   ::after emenda a base no roxo) são pseudos com z-index auto, então a ordem
-   do DOM as deixaria ATRÁS das fotos — que agora são filhos reais. Só aqui,
-   sem tocar as bandas das outras páginas. */
-.swa-hero .scw-hero-banda::before,
-.swa-hero .scw-hero-banda::after { z-index: 1; }
-@media (prefers-reduced-motion: reduce) {
-  .swa-hero__foto { transition: none; }
-}
+/* As seis fotos da entrega dos prêmios se revezam aqui — as camadas e o
+   crossfade são do sistema (.scw-hero-banda__foto em scw-2026.css, montadas
+   pelo componente HeroFotos). */
 
 /* ≤1000px a geometria vem de .scw-hero-banda em scw-2026.css (36vh/232px,
    calibrada a pedido do Wilke): foto em cima, texto embaixo, NENHUM texto
@@ -90,8 +68,6 @@
     margin: 0;
     background-color: var(--scw-marrom);
   }
-  /* No desktop cada foto usa o enquadramento da faixa larga. */
-  .swa-hero__foto { background-position: var(--foco, center 44%); }
   /* O VÉU. Dois degradês no mesmo roxo da página, multiplicados: o vertical
      adensa em direção à base (onde ficam números e índice, que atravessam a
      largura toda), o horizontal adensa à esquerda (onde ficam selo, título e
@@ -165,42 +141,6 @@
   font: 900 clamp(26px, 2.4vw, 38px)/1 var(--scw-font-black);
   letter-spacing: -.04em;
   font-variant-numeric: tabular-nums;
-}
-
-/* Índice das oito categorias. */
-.swa-indice {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: clamp(10px, 1.4vw, 20px);
-  margin-top: clamp(30px, 3.4vw, 52px);
-  padding: clamp(16px, 1.8vw, 22px) 0;
-  border-top: 1px solid rgba(254, 240, 221, .28);
-}
-.swa-indice__rotulo {
-  font: 800 10px/1.2 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--scw-amarelo);
-}
-.swa-indice ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(10px, 1.4vw, 20px);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.swa-indice li {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  font: 700 12.5px/1.2 var(--scw-font);
-  color: rgba(254, 240, 221, .82);
-}
-.swa-indice li span {
-  font: 800 9px/1.2 var(--scw-font);
-  color: rgba(254, 240, 221, .74);
 }
 
 /* ----------------------------------------------------------------------------
