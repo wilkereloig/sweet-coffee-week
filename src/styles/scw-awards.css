@@ -680,3 +680,16 @@
   font: 500 13px/1.45 var(--scw-font);
   color: var(--scw-marrom);
 }
+
+/* ============================================================================
+   Pisos de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   Medido a 390px: a descrição da categoria vinha a 13,5px com 46 caracteres por
+   linha, e três rótulos ficavam em 9,5px. Nada disso muda no desktop.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .swa-cat__desc        { font-size: var(--scw-piso-corpo-mob); }
+  .swa-numeros dt       { font-size: var(--scw-piso-rotulo-mob); }
+  .swa-trilha__hoje     { font-size: var(--scw-piso-rotulo-mob); }
+  .swa-edicao__marca span { font-size: var(--scw-piso-rotulo-mob); }
+  .swa-edicao__periodo  { font-size: var(--scw-piso-rotulo-mob); }
+}

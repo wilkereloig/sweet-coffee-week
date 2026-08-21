@@ -1176,3 +1176,13 @@
   .scw-gal__foto--entra { animation: none; clip-path: none; translate: none; scale: none; }
   .scw-gal__foto--sai { display: none; }
 }
+
+/* ============================================================================
+   Pisos de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   O rótulo da régua vinha a 9px e o "Período" da ficha a 10px. O bloco desktop
+   (.scw-edx__meta) fica intocado: lá a distância de leitura é outra.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .scw-edx-mob__regua-rot { font-size: var(--scw-piso-rotulo-mob); }
+  .scw-edx-mob__meta dt   { font-size: var(--scw-piso-rotulo-mob); }
+}

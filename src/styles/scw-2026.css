@@ -60,6 +60,15 @@
      inteiro e a peça perde o respiro que ela tinha. */
   --scw-safe-b: env(safe-area-inset-bottom, 0px);
 
+  /* Pisos de leitura no CELULAR. No desktop cada peça mantém o tamanho que foi
+     desenhado — a tela está a 60cm dos olhos e o rótulo de 9,5px cumpre o papel.
+     No celular, a 30cm e em movimento, ele deixa de ser lido. Só sobem as peças
+     que se LEEM (corpo de apoio e rótulo que carrega informação); numeral de
+     medalha, ordinal e tag de chip são alvos de relance e ficam como estão.
+     Quem consome estes dois tokens está sempre dentro de um bloco ≤900px. */
+  --scw-piso-corpo-mob:  15px;   /* §6.5: corpo nunca abaixo disso */
+  --scw-piso-rotulo-mob: 11.5px;
+
   /* --- raios e sombras --------------------------------------------------- */
   --scw-r-secao:      26px;
   --scw-r-interno:    22px;

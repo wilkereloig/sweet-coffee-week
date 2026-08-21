@@ -623,3 +623,12 @@
   .ctt-form__pe .scw-btn { width: 100%; justify-content: center; }
   .ctt-abertura__acoes .scw-btn { flex: 1 1 auto; justify-content: center; }
 }
+
+/* ============================================================================
+   Piso de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   O assunto de cada pergunta vinha a 9,5px, e é ele que diz de que categoria a
+   dúvida é quando a busca mistura as dez.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .ctt-item__cat { font-size: var(--scw-piso-rotulo-mob); }
+}

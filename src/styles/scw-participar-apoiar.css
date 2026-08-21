@@ -844,3 +844,11 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 /* Até 900px quem ocupa a base é a barra de abas do aplicativo — duas barras
    fixas empilhadas roubariam a tela. */
 @media (max-width: 900px) { .pa-barra { display: none; } }
+
+/* ============================================================================
+   Piso de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   A nota da galeria de imprensa vinha a 13,5px com 44 caracteres por linha.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .pa-imprensa__nota { font-size: var(--scw-piso-corpo-mob); }
+}
