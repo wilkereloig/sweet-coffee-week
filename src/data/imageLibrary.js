@@ -184,8 +184,17 @@ const HEROES = {
   contato: [
     { src: '/images/campanha/15.jpg', alt: 'Atendimento em uma loja participante do Sweet & Coffee Week', position: 'center 36%', mobilePosition: 'center 30%' },
   ],
+  /* Entrega dos prêmios, o assunto literal da página (pedido do Wilke,
+     21/08/2026). Cinco das seis são retrato de 960px: no herói largo elas
+     sobem de escala e mostram só a faixa central, por isso cada `position`
+     mira a altura onde estão os rostos e as placas. */
   'historico-awards': [
-    { src: '/images/edicoes/2026.1/01.webp', alt: 'Combos premiados na edição Lovers do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 38%' },
+    { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 36%' },
+    { src: '/images/awards-entrega/02.jpg', alt: 'Equipe d’O Maestro Café reunida com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 42%', mobilePosition: 'center 38%' },
+    { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 40%' },
+    { src: '/images/awards-entrega/04.jpg', alt: 'Entrega do prêmio de 1º lugar do Sweet Awards do Sweet & Coffee Week à Bocaditos', position: 'center 38%', mobilePosition: 'center 34%' },
+    { src: '/images/awards-entrega/05.jpg', alt: 'Entrega de prêmios do Sweet Awards em uma loja participante do Sweet & Coffee Week', position: 'center 30%', mobilePosition: 'center 26%' },
+    { src: '/images/awards-entrega/06.jpg', alt: 'Equipe da Jolie Café Pâtisserie recebendo os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 40%' },
   ],
   edicoes: [
     { src: '/images/edicoes/2016/01.webp', alt: 'Registro da primeira edição do Sweet & Coffee Week', position: 'center', mobilePosition: 'center' },

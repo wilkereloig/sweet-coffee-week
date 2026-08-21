@@ -36,7 +36,7 @@
 import React from 'react'
 import '../../styles/scw-awards.css'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
-import { heroPhoto } from '../../data/imageLibrary'
+import { heroPhotos } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import { editionMark } from '../../data/editionAssets'
 import { awardPhoto, RESERVA } from '../../data/imageLibrary'
@@ -57,7 +57,14 @@ const HISTORICO = EDICOES.filter((e) => e.code !== '2026.1').slice().reverse()
 const identidade = (nome) => resolveParticipant(nome).slug || nome
 
 /* Banda de foto do herói no celular — mesma fonte central das outras rotas. */
-const FOTO_BANDA = heroPhoto('historico-awards')
+const FOTOS_HERO = heroPhotos('historico-awards')
+
+/* Mesma leitura que a Home usa para o crossfade dela: com movimento reduzido
+   o herói fica na primeira foto, parado. */
+const semMovimento = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Números do herói, contados da própria base (nunca digitados à mão).
 const ESTATISTICAS = (() => {
@@ -360,6 +367,16 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
 
 export function HistoricoAwardsPage() {
   const [aberto, setAberto] = React.useState('2025')
+  const [fotoAtiva, setFotoAtiva] = React.useState(0)
+
+  /* Crossfade do herói: troca a foto a cada 6,2s, o mesmo intervalo da Home —
+     duração existente do sistema, não um tempo novo (§6.15). Sem movimento →
+     foto fixa. */
+  React.useEffect(() => {
+    if (semMovimento() || FOTOS_HERO.length < 2) return
+    const t = setInterval(() => setFotoAtiva((i) => (i + 1) % FOTOS_HERO.length), 6200)
+    return () => clearInterval(t)
+  }, [])
   const cats = LOVERS ? LOVERS.cats : []
 
   const maiorHall = HALL[0] ? HALL[0].total : 1
@@ -373,20 +390,27 @@ export function HistoricoAwardsPage() {
           imagem do herói no celular, onde a reserva de topo de 216px era roxo
           chapado (pedido do Wilke, 30/07/2026). */}
       <section className="swa-hero" aria-labelledby="swa-titulo">
-        {FOTO_BANDA && (
-          <div
-            className="scw-hero-banda"
-            role="img"
-            aria-label={FOTO_BANDA.alt}
-            /* A banda existe nas duas telas, e cada uma tem seu ponto focal.
-               `bgStyle` resolve um só, e style inline vence media query — daí
-               os dois virem como custom property e o CSS escolher. */
-            style={{
-              backgroundImage: `url("${FOTO_BANDA.src}")`,
-              '--foco': FOTO_BANDA.position || 'center',
-              '--foco-mobile': FOTO_BANDA.mobilePosition || FOTO_BANDA.position || 'center',
-            }}
-          />
+        {FOTOS_HERO.length > 0 && (
+          <div className="scw-hero-banda">
+            {FOTOS_HERO.map((foto, i) => (
+              <span
+                key={foto.src}
+                className={'swa-hero__foto' + (i === fotoAtiva ? ' is-ativa' : '')}
+                /* Cada foto tem seu ponto focal, e o enquadramento muda entre a
+                   faixa larga do desktop e a banda alta do celular. `bgStyle`
+                   resolve um só valor e style inline vence media query — daí os
+                   dois virem como custom property e o CSS escolher. */
+                style={{
+                  backgroundImage: `url("${foto.src}")`,
+                  '--foco': foto.position || 'center',
+                  '--foco-mobile': foto.mobilePosition || foto.position || 'center',
+                }}
+                role={i === fotoAtiva ? 'img' : undefined}
+                aria-label={i === fotoAtiva ? foto.alt : undefined}
+                aria-hidden={i === fotoAtiva ? undefined : 'true'}
+              />
+            ))}
+          </div>
         )}
         <div className="swa-hero__texto">
           <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
