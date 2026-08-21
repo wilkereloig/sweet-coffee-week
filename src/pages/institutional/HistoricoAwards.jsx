@@ -69,15 +69,26 @@ const FOTOS_HERO = heroPhotos('historico-awards')
    entra como está na fonte. */
 const PALAVRAS = LOVERS ? LOVERS.cats.map((c) => c.nome) : []
 
-// Números do herói, contados da própria base (nunca digitados à mão).
+/* Números do herói, contados da própria base (nunca digitados à mão).
+   ⚠️ `premios` conta PRÊMIOS ENTREGUES: um por marca em cada colocação, e num
+   empate cada marca leva o seu. Não confundir com três outras contagens que a
+   mesma base produz e que já enganaram aqui:
+   · 249 posições de pódio (as linhas 1º/2º/3º, empate contando uma vez);
+   · 83 pares categoria×edição — era ESTE que aparecia como "categorias
+     julgadas", e ele conta a mesma categoria duas vezes quando ela teve Júri
+     Técnico e Sweet Lovers na mesma edição;
+   · 10 categorias distintas em dez anos.
+   Os 271 batem com o acervo oficial (§9.1). */
 const ESTATISTICAS = (() => {
   const marcas = new Set()
-  let categorias = 0
+  let premios = 0
   for (const e of EDICOES) {
-    categorias += e.cats.length
-    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) marcas.add(identidade(n))
+    for (const c of e.cats) for (const p of c.pod) for (const n of p.nomes) {
+      premios++
+      marcas.add(identidade(n))
+    }
   }
-  return { edicoes: EDICOES.length, categorias, marcas: marcas.size }
+  return { edicoes: EDICOES.length, premios, marcas: marcas.size }
 })()
 
 // Hall: TODAS as colocações (1º, 2º e 3º) somando Júri Técnico e Sweet Lovers.
@@ -397,8 +408,8 @@ export function HistoricoAwardsPage() {
               <dd>{ESTATISTICAS.edicoes}</dd>
             </div>
             <div>
-              <dt>Categorias julgadas</dt>
-              <dd>{ESTATISTICAS.categorias}</dd>
+              <dt>Prêmios entregues</dt>
+              <dd>{ESTATISTICAS.premios}</dd>
             </div>
             <div>
               <dt>Marcas premiadas</dt>
