@@ -115,6 +115,9 @@
    alinhamento — exatamente o defeito que a regra acima corrige. */
 @media (max-width: 759px) {
   .hm-cab { grid-template-columns: 1fr; }
+  /* Em coluna única o link volta para a esquerda: encostado na margem direita
+     ele ficaria longe do título que ele continua. Mesma lógica do apoio. */
+  .hm-link--sublinhado { justify-self: start; }
 }
 .hm-apoio strong { color: var(--scw-choco); font-weight: 800; }
 
@@ -135,7 +138,9 @@
    --destino existe para o próximo. */
 .hm-link--sublinhado {
   align-self: end;
-  justify-self: start;
+  /* Ancorado no fim da linha, como o apoio: é o mesmo papel de coluna direita
+     da cabeça de seção. Volta para `start` em coluna única (guarda acima). */
+  justify-self: end;
   padding-bottom: 6px;
   border-bottom: 2px solid var(--destino, var(--scw-marrom));
   font-size: 15px;
