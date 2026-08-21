@@ -294,6 +294,11 @@
   display: grid;
   grid-row: span 3;
   grid-template-rows: subgrid;
+  /* ⚠️ `min-width: 0` é o que segura a fita dentro da coluna. Item de grade
+     tem `min-width: auto`, e a trilha da fita é `width: max-content` — sem
+     isto a coluna cresce até caber a fita inteira e invade a galeria vizinha,
+     com os cards de uma passando por cima dos da outra. */
+  min-width: 0;
 }
 /* Navegador sem subgrid volta ao empilhamento simples — desalinha, mas não quebra. */
 @supports not (grid-template-rows: subgrid) {
@@ -339,11 +344,13 @@
    -------------------------------------------------------------------------- */
 
 .hm-fita {
-  /* Sangra até a borda pelo mesmo trilho — a fita é um fluxo, e um fluxo que
-     começa e termina dentro da coluna parece uma lista que não coube. */
-  margin-inline: calc(-1 * var(--scw-trilho));
+  min-width: 0;
+  /* ⚠️ NÃO sangrar pelo trilho aqui. As duas galerias são COLUNAS de uma grade
+     lado a lado: margem negativa faz cada fita invadir a vizinha, e os cards
+     de uma se sobrepõem aos da outra. (Testado e reprovado em 21/08/2026.)
+     A fita vive dentro da própria coluna; quem sugere continuidade é a máscara
+     das pontas. */
   margin-top: auto;
-  padding-inline: var(--scw-trilho);
   overflow: hidden;
   /* Esfuma as duas pontas: sem isso os cards são cortados em aresta dura e a
      fita lê como conteúdo faltando, não como movimento. */
@@ -369,8 +376,13 @@
   flex-direction: column;
   gap: 10px;
   flex: 0 0 auto;
-  width: clamp(190px, 17vw, 260px);
+  width: clamp(170px, 14vw, 220px);
 }
+/* A legenda empilha nome e edição em vez de correr na mesma linha: com uma
+   linha aqui e duas ali, as bases dos cards ficavam em alturas diferentes e a
+   fita parecia desalinhada. */
+.hm-fita .hm-galeria__nome { display: block; }
+.hm-fita .hm-galeria__nome b { display: block; margin-top: 3px; }
 @keyframes hmFita { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
