@@ -226,6 +226,42 @@ const HEROES = {
   ],
 }
 
+/* ----------------------------------------------------------------------------
+   Sweet Gift — a versão do combo para presentear ou levar (§9.7)
+   Até 21/08/2026 esta galeria era feita de reservas honestas, porque o acervo
+   não tinha nenhuma foto catalogada da modalidade. Estas quatro vieram da
+   edição 2020.1 (No Ritmo da Música), escolhidas pelo Wilke: duas da Rafaela
+   Fontes Chocolateria — que entrou na modalidade em 2017.2 — e duas da
+   Stephany Santos, estas com o fone de ouvido que era o tema da edição.
+   Depois vieram seis do Bolo da Vovó — a casa que ESTREOU a modalidade, na
+   Páscoa de 2017 (§9.7) — das edições Doces do Mundo, Namorados, Pâtisserie
+   Francesa e Contos de Fadas.
+   ⚠️ A legenda é MARCA · EDIÇÃO, não uma descrição da embalagem. As antigas
+   ("caixa fechada", "caixa aberta", "doces da caixa", "pronta para viagem")
+   descreviam uma sequência que só uma destas fotos tem: as outras mostram o
+   doce servido, no prato ou na bandeja. Marca e edição vêm da estrutura do
+   acervo por participante, que é dado verificável.
+   -------------------------------------------------------------------------- */
+
+const SWEET_GIFT = [
+  { src: '/images/sweet-gift/04.jpg',  marca: 'Stephany Santos',            edicao: 'No Ritmo da Música · 2020.1',  alt: 'Caixa de doces com laço, pronta para presentear, na edição No Ritmo da Música do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/05.webp', marca: 'Bolo da Vovó',               edicao: 'Doces do Mundo · 2017.2',      alt: 'Bolo da Vovó ao lado de uma caixinha de docinhos embalada com laço, no Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/03.jpg',  marca: 'Stephany Santos',            edicao: 'No Ritmo da Música · 2020.1',  alt: 'Tábua com creme de chocolate, morangos e uvas na edição No Ritmo da Música do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/01.jpg',  marca: 'Rafaela Fontes Chocolateria', edicao: 'No Ritmo da Música · 2020.1', alt: 'Bandeja com creme de chocolate, frutas, brownies e waffles no Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/06.webp', marca: 'Bolo da Vovó',               edicao: 'Namorados · 2018.1',           alt: 'Doce do Bolo da Vovó na edição Namorados do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/02.jpg',  marca: 'Rafaela Fontes Chocolateria', edicao: 'No Ritmo da Música · 2020.1', alt: 'Morango sendo mergulhado no creme de chocolate em um combo do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/07.webp', marca: 'Bolo da Vovó',               edicao: 'Pâtisserie Francesa · 2019.1', alt: 'Doce do Bolo da Vovó na edição Pâtisserie Francesa do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/09.webp', marca: 'Bolo da Vovó',               edicao: 'Contos de Fadas · 2019.2',     alt: 'Fatia de bolo com cobertura e doce de leite do Bolo da Vovó, no Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/08.webp', marca: 'Bolo da Vovó',               edicao: 'Pâtisserie Francesa · 2019.1', alt: 'Doce do Bolo da Vovó na edição Pâtisserie Francesa do Sweet & Coffee Week' },
+  { src: '/images/sweet-gift/10.webp', marca: 'Bolo da Vovó',               edicao: 'Contos de Fadas · 2019.2',     alt: 'Doce do Bolo da Vovó na edição Contos de Fadas do Sweet & Coffee Week' },
+]
+
+
+/** As quatro fotos do Sweet Gift, na ordem em que a galeria da Home as mostra. */
+export function sweetGiftPhotos() {
+  return SWEET_GIFT
+}
+
 /** Fotos do herói de uma rota (podem entrar em crossfade). Vazio = sem foto. */
 export function heroPhotos(rota) {
   return HEROES[rota] || []

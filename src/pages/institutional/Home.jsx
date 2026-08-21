@@ -1,8 +1,9 @@
 import React from 'react'
 import '../../styles/scw-home.css'
 import { festivalFacts } from '../../data/festivalFacts'
-import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA, sweetGiftPhotos } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
+import { GaleriaCarrossel } from '../../components/GaleriaCarrossel'
 import { Marquee } from '../../components/Marquee'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { ANATOMIA_COMBO } from '../../components/scw-icons/anatomia-combo'
@@ -71,16 +72,22 @@ const INGREDIENTES = [
    ponto focal). */
 const frame = (code, i) => editionPhotos(code)[i]
 
+/* Dez edições em vez das quatro que a grade 2×2 comportava (21/08/2026): a
+   galeria virou fita e o limite deixou de ser o espaço na tela. A ordem é
+   cronológica invertida, da mais recente à primeira — a fita corre para a
+   esquerda, então é assim que a leitura acompanha o tempo. */
 const COMBOS = [
-  { foto: frame('2026.1', 3), titulo: 'Edição Lovers', ano: '2026' },
-  { foto: frame('2025', 8), titulo: 'Edição Celebration', ano: '2025' },
-  { foto: frame('2023', 3), titulo: 'Edição Trip', ano: '2023' },
+  { foto: frame('2026.1', 3), titulo: 'Lovers', ano: '2026' },
+  { foto: frame('2025', 8), titulo: 'Celebration', ano: '2025' },
+  { foto: frame('2024', 2), titulo: 'Books', ano: '2024' },
+  { foto: frame('2023', 3), titulo: 'Trip', ano: '2023' },
+  { foto: frame('2022', 2), titulo: 'Movies', ano: '2022' },
+  { foto: frame('2021.2', 1), titulo: 'Terras Potiguares', ano: '2021' },
+  { foto: frame('2021.1', 1), titulo: 'Séries', ano: '2021' },
+  { foto: frame('2020.2', 1), titulo: 'Heróis & Vilões', ano: '2020' },
+  { foto: frame('2019.2', 3), titulo: 'Contos de Fadas', ano: '2019' },
   { foto: frame('2016', 0), titulo: 'Primeira edição', ano: '2016' },
 ]
-
-/* O Sweet Gift não tem foto no acervo — o protótipo usa espaço reservado.
-   Aqui viram molduras honestas (.scw-reserva), nunca imagem inventada. */
-const SWEET_GIFT = ['caixa fechada', 'caixa aberta', 'doces da caixa', 'pronta para viagem']
 
 /* --- 03 Rotas. "Marcas" mostra um combo do acervo; "Público" reusa o registro
    de público que já abre a página (HERO[2]); "Parceiros" fica em reserva porque
@@ -357,16 +364,11 @@ export function HomePage({ navigate }) {
             <p className="hm-galeria__texto">
               Cada edição rende uma coleção nova de doce, salgado e bebida — alguns viraram clássicos da casa.
             </p>
-            <ul className="hm-galeria__lista">
-              {COMBOS.map(({ foto, titulo, ano }) => (
-                <li key={titulo}>
-                  {foto
-                    ? <figure className="hm-galeria__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
-                    : <div className="scw-reserva hm-galeria__reserva">{RESERVA}</div>}
-                  <span className="hm-galeria__nome">{titulo}<b>{ano}</b></span>
-                </li>
-              ))}
-            </ul>
+            <GaleriaCarrossel
+              itens={COMBOS.map(({ foto, titulo, ano }) => ({
+                src: foto && foto.src, alt: foto && foto.alt, titulo, legenda: ano, reserva: RESERVA,
+              }))}
+            />
           </div>
 
           <div className="hm-galeria">
@@ -377,15 +379,13 @@ export function HomePage({ navigate }) {
             <p className="hm-galeria__texto">
               A versão para levar: sem bebida, uma caixa com vários doces para presentear ou seguir viagem.
             </p>
-            {/* Sem foto no acervo — reserva editorial, nunca imagem inventada. */}
-            <ul className="hm-galeria__lista">
-              {SWEET_GIFT.map((legenda) => (
-                <li key={legenda}>
-                  <div className="scw-reserva hm-galeria__reserva">{RESERVA}</div>
-                  <span className="hm-galeria__nome">{legenda}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Dez fotos desde 21/08/2026 — até então a modalidade não tinha
+                nenhuma no acervo e a galeria era feita de reservas honestas. */}
+            <GaleriaCarrossel
+              itens={sweetGiftPhotos().map((f) => ({
+                src: f.src, alt: f.alt, titulo: f.marca, legenda: f.edicao,
+              }))}
+            />
           </div>
         </div>
       </section>
