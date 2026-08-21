@@ -1351,7 +1351,10 @@ body:not(.route-em-breve) { margin: 0; }
      página ao focar o campo. O desenho já traz esse valor. */
   font: 500 16px/1.4 var(--scw-font);
 }
-.scw-campo textarea { min-height: 132px; resize: vertical; }
+/* Sem min-height: quem governa a altura é o `rows` do próprio campo, como no
+   desenho (rows=3 -> ~83px). O 132px fixo deixava o formulário 49px mais alto
+   que o desenhado nos três formulários do site. */
+.scw-campo textarea { resize: vertical; }
 .scw-campo input::placeholder,
 .scw-campo textarea::placeholder { color: rgba(106, 44, 21, .55); }
 
