@@ -837,10 +837,84 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-cyan);
 }
 
+/* ============================================================================
+   Casca — aviso de cookies (LGPD)
+   Aparece nas SETE rotas, /em-breve inclusive, então é peça de casca e mora
+   aqui, não num `<style>` dentro do componente (§6.10).
+   Até ago/2026 ele trazia o próprio CSS inline, com quatro hex fora da paleta
+   (#2B1810, #F8B511, #FFF1E6, #ffc633 — todos do design system v2 aposentado,
+   Anexo A.7), `var(--font-sans)` (token morto: renderizava em system-ui, não em
+   Nexa Slab), botões de 31px de altura e uma curva/duração próprias. O
+   comentário dizia que o CSS canônico vivia em `lovers-system.css`, apagado na
+   demolição do §4.3.
+   ========================================================================= */
+
+.cookie-consent {
+  position: fixed;
+  left: clamp(12px, 2vw, 24px);
+  bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b));
+  z-index: 1000;
+  width: min(340px, calc(100vw - 24px));
+  border: 1px solid rgba(254, 240, 221, .28);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  box-shadow: var(--scw-sombra-card);
+  animation: cookieSobe var(--mo-entra) var(--mo-mola) both;
+}
+@keyframes cookieSobe {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.cookie-consent__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+}
+.cookie-consent__text {
+  margin: 0;
+  font: 500 14px/1.45 var(--scw-font);
+  color: rgba(254, 240, 221, .84);   /* .84 sobre chocolate = 9,2:1 */
+}
+.cookie-consent__actions { display: flex; gap: 8px; }
+/* 46px é o piso do §6.10 para pílula de ação dentro de card — o botão media 31. */
+.cookie-consent__btn {
+  appearance: none;
+  min-height: 46px;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 999px;
+  font: 800 14px/1 var(--scw-font);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.cookie-consent__btn--primary { background: var(--scw-amarelo); color: var(--scw-choco); }
+.cookie-consent__btn--ghost {
+  border: 1px solid rgba(254, 240, 221, .28);
+  background: transparent;
+  color: var(--scw-creme);
+}
+@media (hover: hover) {
+  .cookie-consent__btn:hover { transform: translateY(-1px); }
+  .cookie-consent__btn--primary:hover { background: var(--scw-bege); }
+  .cookie-consent__btn--ghost:hover {
+    border-color: rgba(254, 240, 221, .6);
+    background: rgba(254, 240, 221, .06);
+  }
+}
+.cookie-consent__btn:active { transform: translateY(0) scale(.985); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-consent { animation: none; }
+  .cookie-consent__btn { transition: none; }
+}
+
 /* ≤900px o modo aplicativo assume: entram a barra de abas e a folha "mais", e o
    conteúdo respira acima delas. Este bloco vem depois das regras base acima —
    é o que faz o display vencer o `none` padrão. */
 @media (max-width: 900px) {
+  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }
