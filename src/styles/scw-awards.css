@@ -71,11 +71,14 @@
   /* O VÉU. Dois degradês no mesmo roxo da página, multiplicados: o vertical
      adensa em direção à base (onde ficam números e índice, que atravessam a
      largura toda), o horizontal adensa à esquerda (onde ficam selo, título e
-     lead). O canto superior direito é o único ponto que fica abaixo de 70% de
-     véu — é onde a foto aparece, e não há texto ali.
-     Alpha resultante nos pontos com texto: ~.95 sob o título, ~.93 na base,
-     contra os .60 do canto aberto. Creme sobre roxo é 9,95:1 e o que a foto
-     acrescenta por baixo desses .93+ não derruba isso.
+     lead).
+     O horizontal ZERA em 62% da largura (pedido do Wilke, 21/08/2026: a foto
+     tem de aparecer). Dali para a direita sobra só o vertical, que no topo
+     vale .38 — o terço direito da imagem passa quase limpo, e é justamente
+     onde está o assunto da foto e onde não há texto nenhum.
+     Alpha resultante nos pontos com texto: ~.95 sob o título, ~.88 no lead e
+     ~.92 na base, contra os .38 do canto aberto. Creme sobre roxo é 9,95:1 e
+     o que a foto acrescenta por baixo desses .88+ não derruba isso.
      ⛔ Não é o `.swa-hero::before` que saiu em 06/08 (degradê de 340px
      repetindo o escurecimento que a própria banda já fazia). Este cobre o
      herói inteiro e existe porque agora há texto sobre foto. */
@@ -87,13 +90,13 @@
     pointer-events: none;
     background:
       linear-gradient(180deg,
-        rgba(77, 37, 126, .52) 0%,
-        rgba(77, 37, 126, .82) 58%,
+        rgba(77, 37, 126, .38) 0%,
+        rgba(77, 37, 126, .78) 58%,
         rgba(77, 37, 126, .92) 100%),
       linear-gradient(96deg,
-        rgba(77, 37, 126, .90) 0%,
-        rgba(77, 37, 126, .60) 52%,
-        rgba(77, 37, 126, .18) 100%);
+        rgba(77, 37, 126, .88) 0%,
+        rgba(77, 37, 126, .55) 38%,
+        rgba(77, 37, 126, 0) 62%);
   }
 }
 
