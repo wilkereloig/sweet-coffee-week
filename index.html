@@ -15,6 +15,24 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
 
+<!-- Camada de aplicativo (ago/2026). Os ícones já existiam em disco; faltava a
+     declaração. Com isto, "adicionar à tela de início" passa a abrir sem a
+     barra do navegador, com ícone e nome próprios.
+     `theme-color` é o chocolate da tinta principal (§6.1), que é a cor do véu do
+     cabeçalho — a barra de status encosta nele sem emenda de cor.
+     A barra de status fica `default` de propósito, e NÃO `black-translucent`:
+     esta última joga o conteúdo por baixo dela, e a zona de segurança do §6.7
+     (a logo que transborda metade abaixo da linha do header) é calculada sem
+     recorte de topo. Trocar isso exige refazer `--scw-hero-topo` primeiro. -->
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#3D1308" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Sweet & Coffee" />
+<!-- O iOS transforma número de telefone em link sozinho e desalinha o rodapé. -->
+<meta name="format-detection" content="telephone=no" />
+
 <!-- Open Graph / Twitter — preview ao compartilhar (WhatsApp/Instagram/Facebook).
      Estático: crawlers sociais não executam JS. Capa 1200x630 = /public/og-cover.jpg
      (foto real: combo do O Maestro Café, grande vencedor do Sweet Awards Lovers 2026.1). -->
