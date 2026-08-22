@@ -1782,9 +1782,24 @@ o painel. O `vercel.json` ganhou rewrite explícito para as duas rotas como rede
 de segurança em produção (a Vercel checa o sistema de arquivos antes dos
 rewrites), mas **todo link interno escreve a barra**.
 
-⚠️ **O dev server nunca serve essas páginas.** O Vite não faz resolução de
-índice de diretório para `public/`, com barra ou sem. Conferir página estática
-é contra o **build**, como já vale para `tests/responsive.mjs` (§10.8).
+✅ **O dev server passou a servir essas páginas em 22/08/2026.** O Vite não faz
+resolução de índice de diretório para `public/`, e por isso `/organizacao/`
+caía no fallback do SPA e abria a landing — sintoma que **mentia**, porque uma
+página abria, só que a errada. Estava escrito aqui e mesmo assim derrubou duas
+pessoas no mesmo dia; virou código. O plugin `paginasEstaticasDev` em
+`vite.config.js` é dev-only (`apply: 'serve'`), reescreve `/<nome>/` para
+`/<nome>/index.html` quando o arquivo existe, e **redireciona 301 a forma sem
+barra** — assim o DEV fica honesto com a produção e um link sem barra falha
+onde custa barato. Rota do SPA sem pasta correspondente (`/participar`) segue
+para o fallback normalmente.
+
+⚠️ **`sessionStorage` é POR ORIGEM — foi o que quebrou o acesso ao painel.**
+O diálogo grava `scw_org` e navega para `/organizacao/`, que lê a mesma chave
+e abre direto (`if (senha) abrirPainel()`). Servir o painel de **outra porta**
+para contornar o parágrafo acima não resolvia nada: a senha ficava na origem
+do site e o painel lia o armazenamento dele, vazio. **O fluxo de acesso só
+fecha quando uma única origem serve o SPA e `public/`** — hoje o `npm run dev`,
+o `vite preview` e a produção. ⛔ Não testar esse fluxo com dois servidores.
 
 ⚠️ **O JS delas mora inline e não passa pelo Vite**, então `npm run build` fica
 verde com o script quebrado. `tests/quero-participar.test.mjs` e

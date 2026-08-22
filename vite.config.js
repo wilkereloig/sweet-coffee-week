@@ -36,8 +36,54 @@ function visualOverridesDevApi() {
   }
 }
 
+// Plugin DEV-only: faz o dev server resolver o índice das páginas estáticas de
+// `public/`, como qualquer servidor comum faz e como a produção faz.
+//
+// POR QUE EXISTE. O Vite não resolve índice de diretório em `public/`: um GET
+// em `/organizacao/` não acha arquivo, cai no fallback do SPA e devolve a
+// landing. O painel e o formulário de pré-cadastro ficavam inalcançáveis em
+// `npm run dev` — e o sintoma mentia, porque a página ABRIA (só que era outra).
+// Estava documentado no §10.4-b e mesmo assim derrubou duas pessoas no mesmo
+// dia, o que é o sinal de que a regra precisava virar código.
+//
+// Consequência prática: o fluxo do diálogo de acesso passa a funcionar em DEV.
+// Ele grava a sessão em `sessionStorage` e navega para `/organizacao/`; como
+// `sessionStorage` é POR ORIGEM, servir o painel de outra porta nunca ia
+// funcionar — a senha ficava na origem do site e o painel lia a dele, vazia.
+function paginasEstaticasDev() {
+  const publicDir = path.resolve(__dirname, 'public')
+  return {
+    name: 'paginas-estaticas-dev',
+    apply: 'serve',
+    configureServer(server) {
+      /* Adicionado aqui (e não no retorno de configureServer) de propósito:
+         precisa rodar ANTES do fallback do SPA. Só reescrevemos a URL — quem
+         entrega o arquivo continua sendo o middleware de `public/` do Vite. */
+      server.middlewares.use((req, res, next) => {
+        const caminho = (req.url || '').split('?')[0]
+        if (!/^\/[a-z0-9-]+\/?$/i.test(caminho)) return next()
+
+        const nome = caminho.replace(/^\/|\/$/g, '')
+        if (!fs.existsSync(path.join(publicDir, nome, 'index.html'))) return next()
+
+        /* Sem a barra final, redireciona em vez de servir: é o que um servidor
+           comum faz, e mantém DEV honesto com produção — assim um link interno
+           escrito sem barra falha aqui, onde custa barato, e não só no ar. */
+        if (!caminho.endsWith('/')) {
+          res.statusCode = 301
+          res.setHeader('location', caminho + '/')
+          return res.end()
+        }
+
+        req.url = `/${nome}/index.html`
+        next()
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), visualOverridesDevApi()],
+  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev()],
   server: {
     // Honra a porta atribuída pelo harness (autoPort) via env PORT; cai para 5173 local.
     port: Number(process.env.PORT) || 5173,
