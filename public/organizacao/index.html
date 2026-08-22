@@ -236,6 +236,9 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--scw-bege);border-radius:var(--scw-r-card);
   padding:clamp(20px,2.6vw,28px);margin:0 0 clamp(24px,3vw,34px);
 }
+.og-forms__cabeca--com-acao{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.og-forms__cabeca--com-acao > div{flex:1 1 220px;min-width:0}
+.og-forms__cabeca--com-acao .og-btn{flex:0 0 auto}
 .og-forms__cabeca h2{font:900 18px/1.1 var(--scw-font);letter-spacing:-.03em;margin:0}
 .og-forms__cabeca p{margin:6px 0 0;font-size:13.5px;color:var(--scw-marrom)}
 .og-forms__lista{
@@ -388,6 +391,45 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 }
 @keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes ogFolhaSai{to{transform:translateY(100%)}}
+/* ── Credenciais recém-criadas ─────────────────────────────────────────── */
+/* Chapa amarela: é a única coisa da ficha que a pessoa PRECISA agir agora, e
+   some para sempre se ela fechar sem copiar. Amarelo sobre chocolate dá 9,5:1. */
+.og-cred{
+  background:var(--scw-amarelo);border-radius:14px;
+  padding:16px 18px;margin:0 0 14px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.og-cred__aviso{margin:0;font:800 13px/1.4 var(--scw-font);color:var(--scw-choco)}
+.og-cred__par{margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.og-cred__par dt{
+  font:800 10px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--scw-marrom);flex:0 0 52px;
+}
+/* `user-select:all` para o toque longo do celular pegar o valor inteiro de uma
+   vez: senha selecionada pela metade é o erro que ninguém percebe na hora. */
+.og-cred__par dd{
+  margin:0;font:900 17px/1.2 var(--scw-font);letter-spacing:-.01em;
+  color:var(--scw-choco);overflow-wrap:anywhere;user-select:all;
+}
+.og-cred__acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.og-cred .og-btn{background:var(--scw-choco);color:var(--scw-creme)}
+.og-cred .og-btn--vazado{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 2px rgba(61,19,8,.4)}
+.og-cred .og-forms__nota{color:var(--scw-marrom)}
+
+/* ── Zona de risco da ficha ────────────────────────────────────────────── */
+/* Sem vermelho: a paleta não tem (§6.1). Quem carrega o alarme é o filete
+   laranja, o mesmo recurso de `.og-aviso[data-tom="erro"]` — laranja sobre
+   creme fecha 3:1 como superfície preenchida, e a tinta segue chocolate. */
+.og-risco{border-top-color:var(--scw-laranja)}
+.og-risco h3{color:var(--scw-marrom)}
+.og-risco__acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+/* O botão só fica chapado DEPOIS de armado: enquanto é o primeiro toque ele é
+   discreto, para não competir com Salvar, que é a ação do dia a dia. */
+#det-apagar.is-armado{
+  background:var(--scw-laranja);color:var(--scw-choco);
+  box-shadow:none;font-weight:800;
+}
+
 /* ── Movimento ─────────────────────────────────────────────────────────── */
 /* Só `opacity` e `transform`: nada que cause layout (§6.15, regra 3). */
 .og-vista{animation:ogEntra 220ms var(--scw-ease)}
@@ -504,9 +546,12 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 
     <section class="og-vista" id="vista-participantes" hidden>
       <section class="og-forms">
-        <div class="og-forms__cabeca">
-          <h2>Marcas com acesso</h2>
-          <p>Quem já tem conta para preencher o próprio cadastro.</p>
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Marcas com acesso</h2>
+            <p>Quem já tem conta para preencher o próprio cadastro.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-nova-marca">Cadastrar marca</button>
         </div>
         <div id="area-participantes"></div>
       </section>
@@ -677,6 +722,7 @@ let rolagemVista = {};       // destino → scrollTop, para voltar onde parou
 let saidaDetalhe = null;     // timer da animação de fechamento
 let abasAppLigadas = false;  // listeners da casca já ligados (ver montarAbasApp)
 let ultimaCarga = 0;         // quando os dados chegaram, para a recarga ao voltar
+let temporizadorApagar = null; // desarme automatico do botao de apagar
 
 const $ = id => document.getElementById(id);
 const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
@@ -719,7 +765,15 @@ async function chamarFuncao(nome, corpo) {
   });
   let dados = null;
   try { dados = await r.json(); } catch (e) {}
-  if (!r.ok) throw new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+  if (!r.ok) {
+    const err = new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+    /* ⚠️ O CORPO VIAJA JUNTO COM O ERRO. As recusas de colisão devolvem dados
+       que a tela precisa — `candidatura_id`, por exemplo, para mandar usar o
+       "Criar acesso" da ficha certa. Perder isso no `throw` transformaria uma
+       recusa acionável numa queixa sem saída. */
+    err.dados = dados;
+    throw err;
+  }
   return dados || {};
 }
 
@@ -757,6 +811,7 @@ $('btn-sair').addEventListener('click', () => {
 });
 
 $('btn-atualizar').addEventListener('click', () => carregar());
+$('btn-nova-marca').addEventListener('click', abrirCadastroManual);
 
 function abrirPainel() {
   entrada.style.display = 'none';
@@ -860,7 +915,21 @@ async function carregar() {
   btn.disabled = true;
   try {
     const chaves = Object.keys(ORIGENS);
-    const listas = await Promise.all(chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })));
+    /* ⚠️ O `admin_ping` vai JUNTO, e não é redundante com a tela de entrada.
+       As RPCs de leitura não dão erro com senha inválida: devolvem lista vazia.
+       Sem esta conferência, sessão velha (senha trocada, hash redefinido) abre
+       um painel zerado e a pessoa conclui que OS DADOS SUMIRAM, em vez de que
+       ela não está mais autorizada. Vai no mesmo Promise.all, então não custa
+       ida de rede extra. */
+    const [valida, ...listas] = await Promise.all([
+      rpc('admin_ping', { p_secret: senha }),
+      ...chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })),
+    ]);
+    if (valida !== true) {
+      mostrarEstado('erro', 'A senha desta sessão não vale mais — ela pode ter sido trocada. ' +
+        'Saia e entre de novo. Os dados continuam no banco.');
+      return;
+    }
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
     ultimaCarga = Date.now();
     aviso.hidden = true;
@@ -1117,9 +1186,16 @@ function renderParticipantes() {
   }
 
   if (!participantes.length) {
+    /* Texto corrigido em 22/08/2026: ele ainda dizia "recebe um convite por
+       e-mail e define a própria senha", que era o modelo anterior. Estado vazio
+       que descreve um fluxo removido ensina o caminho errado justo para quem
+       está chegando na tela pela primeira vez. */
     area.innerHTML = '<div class="og-estado"><h2>Nenhuma marca com acesso</h2>' +
-      '<p>O acesso nasce na ficha de uma candidatura aprovada do "Quero participar", ' +
-      'no botão <b>Criar acesso</b>. A marca recebe um convite por e-mail e define a própria senha.</p></div>';
+      '<p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar o botão ' +
+      '<b>Criar acesso</b> na ficha dela, ou cadastrar a marca direto aqui, no botão ' +
+      '<b>Cadastrar marca</b> acima — para quem você convidou sem passar pelo formulário.</p>' +
+      '<p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, ' +
+      'para você entregar.</p></div>';
     return;
   }
 
@@ -1226,16 +1302,207 @@ function abrirDetalhe(origem, id) {
       '<div class="og-aviso" id="det-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="det-salvar">Salvar</button>' +
     '</div>' +
-    blocoAcesso(origem, reg);
+    blocoAcesso(origem, reg) +
+    blocoRisco(origem, reg);
 
   $('det-salvar').addEventListener('click', () => salvar(origem, reg));
   const btnAcesso = $('det-criar-acesso');
   if (btnAcesso) btnAcesso.addEventListener('click', () => criarAcesso(origem, reg));
+  $('det-apagar').addEventListener('click', () => apagarRegistro(origem, reg));
 
   $('fundo').hidden = false;
   $('detalhe').hidden = false;
   $('btn-fechar').focus();
   render();
+}
+
+/* ── Cadastro manual de marca ──────────────────────────────────────────── */
+/* Para a marca que a organização convida direto e que nunca preencheu o
+   formulário público. Abre na MESMA folha do detalhe — nenhuma superfície nova
+   para manter em dia. Ver a spec em
+   docs/superpowers/specs/2026-08-22-cadastro-manual-participante-design.md */
+
+/* Cópia da slugificação da Edge Function, e a terceira do projeto (função,
+   /marca/ e aqui). ⚠️ As três TÊM que casar: aqui ela só PREVÊ o login, mas um
+   preview que mente é pior que preview nenhum — a pessoa confere, aprova, e
+   recebe outro login. */
+function slugPrevisto(nome) {
+  return String(nome || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' e ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+}
+
+const RECADO_MANUAL = {
+  entrada_ambigua:     'Defeito do painel: mandou candidatura e cadastro manual juntos.',
+  sem_nome_de_marca:   'O nome do estabelecimento é obrigatório — é ele que vira o login.',
+  marca_ja_tem_acesso: 'Já existe uma marca com acesso usando esse nome.',
+  existe_candidatura:  'Essa marca já se inscreveu pelo "Quero participar".',
+  nao_autorizado:      'A sessão não vale mais. Saia e entre de novo.',
+};
+
+function abrirCadastroManual() {
+  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
+  $('detalhe').classList.remove('is-fechando');
+  selecionado = null;
+
+  $('detalhe-titulo').textContent = 'Cadastrar marca';
+  $('detalhe-sub').textContent = 'Para quem você convidou sem passar pelo formulário';
+
+  $('detalhe-corpo').innerHTML =
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<p class="og-forms__nota">A conta nasce agora, com login e senha. Nome e telefone ' +
+        'são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>' +
+      '<label class="og-campo"><span>Nome do estabelecimento</span>' +
+        '<input type="text" id="man-nome" autocomplete="off" placeholder="ELOI Doces"></label>' +
+      /* O login previsto fica à vista ANTES de criar: ele não se troca depois,
+         e nome digitado errado vira login errado para sempre. */
+      '<p class="og-forms__nota" id="man-login">O login vai ser: <b>—</b></p>' +
+      '<label class="og-campo"><span>Telefone (WhatsApp)</span>' +
+        '<input type="tel" id="man-telefone" inputmode="tel" placeholder="(84) 90000-0000"></label>' +
+      '<label class="og-campo"><span>Responsável <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="text" id="man-responsavel" autocomplete="off"></label>' +
+      '<label class="og-campo"><span>E-mail <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="email" id="man-email" autocomplete="off" placeholder="contato@marca.com.br"></label>' +
+      '<div class="og-aviso" id="man-aviso" hidden></div>' +
+      '<div id="man-credenciais"></div>' +
+      '<button class="og-btn" type="button" id="man-criar">Criar marca e acesso</button>' +
+    '</div>';
+
+  const campo = $('man-nome');
+  campo.addEventListener('input', function () {
+    const s = slugPrevisto(campo.value);
+    $('man-login').innerHTML = 'O login vai ser: <b>' + escapar(s || '—') + '</b>';
+  });
+  $('man-criar').addEventListener('click', criarMarcaManual);
+
+  $('fundo').hidden = false;
+  $('detalhe').hidden = false;
+  campo.focus();
+}
+
+async function criarMarcaManual() {
+  const btn = $('man-criar'), av = $('man-aviso');
+  const nome = $('man-nome').value.trim();
+  const telefone = $('man-telefone').value.trim();
+
+  if (!nome) { av.textContent = 'Escreva o nome do estabelecimento.'; av.dataset.tom = 'erro'; av.hidden = false; $('man-nome').focus(); return; }
+  if (!telefone) { av.textContent = 'O telefone é como você entrega o acesso.'; av.dataset.tom = 'erro'; av.hidden = false; $('man-telefone').focus(); return; }
+
+  btn.disabled = true; btn.textContent = 'Criando…';
+  av.hidden = true;
+  try {
+    const r = await chamarFuncao('criar-acesso-marca', {
+      secret: senha,
+      marca: {
+        nome: nome,
+        telefone: telefone,
+        responsavel: $('man-responsavel').value.trim(),
+        email: $('man-email').value.trim(),
+      },
+    });
+    if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.');
+
+    await carregar();
+    av.textContent = 'Marca criada. Copie ou envie agora.';
+    av.dataset.tom = 'ok'; av.hidden = false;
+    btn.disabled = true; btn.textContent = 'Criada';
+    /* Mesma peça da candidatura aprovada. O segundo argumento imita o registro
+       para o WhatsApp saber o telefone: aqui não há candidatura de onde tirar. */
+    mostrarCredenciais({ empresa: nome, telefone: telefone }, r, 'man-credenciais');
+  } catch (e) {
+    const codigo = e.dados && e.dados.erro;
+    let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + e.message);
+    /* Recusa acionável: a candidatura existe, então o caminho certo é o botão
+       da ficha dela — e é isso que a mensagem diz, em vez de só reclamar. */
+    if (codigo === 'existe_candidatura') {
+      recado += ' Abra a ficha dela em "Respostas" e use o botão Criar acesso — ' +
+        'assim a candidatura fica vinculada à conta em vez de ficar órfã.';
+    }
+    av.textContent = recado; av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false; btn.textContent = 'Criar marca e acesso';
+  }
+}
+
+/* ── Apagar ────────────────────────────────────────────────────────────── */
+/* Motivo por erro. Fica junto da função, como o RECADO do adminAccess: mensagem
+   longe do caso que a produziu envelhece sozinha. */
+const RECADO_APAGAR = {
+  nao_autorizado:  'A sessão não vale mais. Saia e entre de novo.',
+  origem_invalida: 'Origem desconhecida — isso é defeito do painel, não seu.',
+  nao_encontrado:  'Esse registro já não existe. Alguém pode ter apagado antes.',
+  tem_conta:       'Esta candidatura já virou conta de participante. Apagar aqui deixaria a ' +
+                   'conta órfã, apontando para nada. Remova a conta primeiro.',
+};
+
+function blocoRisco(origem, reg) {
+  return '<div class="og-bloco og-risco">' +
+    '<h3>Apagar</h3>' +
+    '<p class="og-forms__nota">Tira a resposta do banco de vez. <b>Não tem desfazer</b> — o ' +
+      'histórico guarda que houve exclusão, não o que foi apagado. É assim de propósito: ' +
+      'auditoria que copia o dado devolve pela porta dos fundos o que a exclusão tirou.</p>' +
+    '<div class="og-aviso" id="det-risco-aviso" hidden></div>' +
+    '<div class="og-risco__acoes">' +
+      '<button class="og-btn og-btn--vazado" type="button" id="det-apagar">Apagar este registro</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* Volta o botão ao estado calmo. Chamado pelo timer, pelo cancelamento e ao
+   fechar a ficha — senão a ficha seguinte abriria com o botão já armado. */
+function desarmarApagar() {
+  if (temporizadorApagar) { clearTimeout(temporizadorApagar); temporizadorApagar = null; }
+  const btn = $('det-apagar');
+  if (!btn) return;
+  btn.dataset.armado = '';
+  btn.classList.remove('is-armado');
+  btn.textContent = 'Apagar este registro';
+  const av = $('det-risco-aviso');
+  if (av) av.hidden = true;
+}
+
+/* Dois toques, não `confirm()`: o diálogo nativo do navegador quebra a casca de
+   app e some por bloqueio de pop-up em alguns contextos. O botão desarma
+   sozinho em 6s — deixar arma engatilhada esperando é como o toque errado vira
+   exclusão. */
+async function apagarRegistro(origem, reg) {
+  const btn = $('det-apagar'), av = $('det-risco-aviso');
+
+  if (btn.dataset.armado !== '1') {
+    btn.dataset.armado = '1';
+    btn.classList.add('is-armado');
+    btn.textContent = 'Confirmar exclusão';
+    av.textContent = 'Toque de novo para apagar de vez. Some sozinho em 6 segundos.';
+    av.dataset.tom = 'erro'; av.hidden = false;
+    temporizadorApagar = setTimeout(desarmarApagar, 6000);
+    return;
+  }
+
+  if (temporizadorApagar) { clearTimeout(temporizadorApagar); temporizadorApagar = null; }
+  btn.disabled = true; btn.textContent = 'Apagando…';
+  try {
+    const r = await rpc('organizacao_apagar_registro', {
+      p_secret: senha, p_origem: origem, p_id: reg.id
+    });
+    /* Mesma regra da gravação (§4.1): nada é afirmado antes do servidor
+       confirmar, e a cópia local só muda depois do `ok: true`. */
+    if (!r || r.ok !== true) throw new Error(RECADO_APAGAR[r && r.erro] || 'O servidor não confirmou a exclusão.');
+
+    dados[origem] = (dados[origem] || []).filter((x) => x.id !== reg.id);
+    av.textContent = 'Apagado.'; av.dataset.tom = 'ok'; av.hidden = false;
+    btn.textContent = 'Apagado';
+    /* A ficha fecha depois da mensagem aparecer: sumir na hora deixa a dúvida
+       de se apagou mesmo ou se a tela só fechou. */
+    setTimeout(function () { fecharDetalhe(); }, 700);
+  } catch (e) {
+    av.textContent = e.message; av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false;
+    desarmarApagar();
+    av.hidden = false;                   // desarmar esconde o aviso; o erro fica
+  }
 }
 
 /* ── O bloco "Acesso da marca" na ficha ────────────────────────────────── */
@@ -1251,73 +1518,131 @@ function blocoAcesso(origem, reg) {
       '<h3>Acesso da marca</h3>' +
       '<p class="og-forms__nota">Conta criada em ' + dataCurta(p.created_at) + '. ' +
         'Estado do cadastro: <b>' + escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</b>. ' +
-        'A marca entra em <b>/marca/</b> com o e-mail ' + escapar(p.email || reg.email || '—') + '.</p>' +
-      // Honestidade: reenviar convite ainda não existe. Dizer o caminho que
-      // existe é melhor que um botão que devolveria 409.
-      '<p class="og-forms__nota">Se o convite não chegou, a marca pede um novo pela ' +
-        'própria tela de entrada, em "Esqueci a senha".</p>' +
+        'Ela entra em <b>/marca/</b> com o login <b>' + escapar(p.slug || '—') + '</b>.</p>' +
+      // Honestidade: a senha não é recuperável daqui. Ela existiu uma vez, na
+      // tela, e não ficou guardada em lugar nenhum — dizer isso é melhor que um
+      // botão "reenviar" que não teria o que reenviar.
+      '<p class="og-forms__nota">A senha apareceu uma vez só, quando o acesso foi criado, e ' +
+        'não fica guardada. Se a marca perdeu, a organização gera um acesso novo.</p>' +
       // O aviso existe nas DUAS versões do bloco: `criarAcesso` remonta a ficha
       // ao terminar, e é nesta versão que a mensagem de resultado vai parar.
       '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
     '</div>';
   }
 
-  /* Duas travas antes de deixar criar. A segunda não é burocracia: apertar o
-     botão dispara um e-mail para uma pessoa real, e e-mail enviado não volta.
-     Criar acesso para quem ainda não foi aprovado é o erro caro aqui. */
-  const semEmail = !reg.email;
+  /* Uma trava só, agora: sem e-mail o acesso continua possível, porque o login
+     é o nome da marca e a entrega é por WhatsApp. O que trava é status — criar
+     acesso para quem não foi aprovado é o erro caro aqui. */
   const naoAprovado = reg.status !== 'aprovado' && reg.status !== 'aguardando_cadastro';
-  const trava = semEmail
-    ? 'Esta candidatura não tem e-mail. Sem endereço não há convite para enviar.'
-    : (naoAprovado
-      ? 'Marque o status como <b>Aprovado</b> antes de criar o acesso — o botão dispara um e-mail para a marca.'
-      : '');
+  const trava = naoAprovado
+    ? 'Marque o status como <b>Aprovado</b> antes de criar o acesso.'
+    : '';
 
   return '<div class="og-bloco">' +
     '<h3>Acesso da marca</h3>' +
     '<p class="og-forms__nota">Cria a conta de <b>' + escapar(reg.empresa || reg.nome || 'esta marca') +
-      '</b> e envia um convite para ' + escapar(reg.email || '—') +
-      ' definir a própria senha. A senha nunca passa por aqui.</p>' +
+      '</b>. O <b>login é o nome do estabelecimento</b> e a senha é gerada forte, ' +
+      'na hora. Ela aparece <b>uma vez só</b> nesta tela — depois não há como ver de novo.</p>' +
     (trava ? '<p class="og-forms__nota">' + trava + '</p>' : '') +
     '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
+    '<div id="det-credenciais"></div>' +
     '<button class="og-btn" type="button" id="det-criar-acesso"' +
       (trava ? ' disabled' : '') + '>Criar acesso</button>' +
   '</div>';
+}
+
+/* ── As credenciais, uma vez só ─────────────────────────────────────────── */
+/* Pintadas direto no DOM e NÃO remontadas: `abrirDetalhe` reescreve o corpo da
+   ficha, e chamá-lo aqui apagaria a senha que a organização ainda não copiou.
+   Por isso `criarAcesso` recarrega a lista mas não remonta a ficha. */
+function mostrarCredenciais(reg, r, alvo) {
+  /* `alvo` existe porque a peca serve as DUAS entradas: a ficha da
+     candidatura (det-credenciais) e a folha do cadastro manual
+     (man-credenciais). Duas copias divergiriam na primeira correcao. */
+  const caixa = $(alvo || 'det-credenciais');
+  if (!caixa) return;
+  const fone = soDigitos(campo(reg, CHAVES.telefone));
+  const texto = montarRecado(reg, r);
+
+  caixa.innerHTML =
+    '<div class="og-cred">' +
+      '<p class="og-cred__aviso">Anote ou envie agora. <b>Esta senha não aparece de novo.</b></p>' +
+      '<dl class="og-cred__par"><dt>Login</dt><dd>' + escapar(r.login) + '</dd></dl>' +
+      '<dl class="og-cred__par"><dt>Senha</dt><dd>' + escapar(r.senha) + '</dd></dl>' +
+      '<div class="og-cred__acoes">' +
+        '<button class="og-btn og-btn--mini" type="button" id="' + (alvo || 'det') + '-copiar">Copiar dados</button>' +
+        (fone
+          ? '<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" ' +
+            'href="https://wa.me/' + (fone.length <= 11 ? '55' + fone : fone) +
+            '?text=' + encodeURIComponent(texto) + '">Enviar no WhatsApp</a>'
+          : '<span class="og-forms__nota">Sem telefone na candidatura — dá para copiar e colar.</span>') +
+      '</div>' +
+      '<p class="og-forms__nota">No primeiro acesso a marca é obrigada a trocar a senha. ' +
+        'É isso que faz a mensagem do WhatsApp parar de valer depois de usada.</p>' +
+    '</div>';
+
+  const idCopiar = (alvo || 'det') + '-copiar';
+  $(idCopiar).addEventListener('click', async function () {
+    const b = $(idCopiar);
+    try {
+      await navigator.clipboard.writeText(texto);
+      b.textContent = 'Copiado';
+    } catch (e) {
+      // Sem clipboard (contexto inseguro, permissão negada): os dados estão na
+      // tela logo acima. Não fingir que copiou.
+      b.textContent = 'Selecione acima';
+    }
+    setTimeout(function () { b.textContent = 'Copiar dados'; }, 2400);
+  });
+}
+
+/* O recado é UM só para os dois botões: copiar e WhatsApp mandam exatamente o
+   mesmo texto. Duas versões divergiriam na primeira correção. */
+function montarRecado(reg, r) {
+  const marca = reg.empresa || reg.nome || 'sua marca';
+  /* Uma linha por dado: o WhatsApp quebra parágrafo longo em bloco único e o
+     login gruda na senha. Quem vai copiar isso está no celular, com pressa. */
+  return [
+    'Oi, ' + marca + '! Seu acesso ao Sweet & Coffee Week está pronto.',
+    '',
+    'Endereço: ' + location.origin + '/marca/',
+    'Login: ' + r.login,
+    'Senha: ' + r.senha,
+    '',
+    'No primeiro acesso você vai trocar essa senha por uma sua. ' +
+    'Depois disso, esta aqui deixa de valer.',
+  ].join('\n');
 }
 
 async function criarAcesso(origem, reg) {
   const btn = $('det-criar-acesso'), av = $('det-acesso-aviso');
   const alvo = reg.empresa || reg.nome || 'esta marca';
 
-  // Confirmação porque a ação sai do sistema: o e-mail vai embora agora.
-  if (!window.confirm('Criar a conta de ' + alvo + ' e enviar o convite para ' +
-      reg.email + '?\n\nO e-mail sai agora e não tem como cancelar.')) return;
+  /* Confirmação porque a conta nasce agora e o login fica preso ao nome do
+     estabelecimento: trocar depois é apagar e refazer. Não há e-mail saindo —
+     a entrega é sua, por WhatsApp ou copiando da tela. */
+  if (!window.confirm('Criar a conta de ' + alvo + '?\n\n' +
+      'A senha aparece UMA VEZ SÓ, aqui na tela. Tenha o WhatsApp à mão.')) return;
 
   btn.disabled = true; btn.textContent = 'Criando…';
   av.hidden = true;
   try {
     const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id });
 
-    /* A função devolve 207 quando a conta nasceu mas o convite falhou. Tratar
-       isso como sucesso limpo esconderia uma marca que nunca vai receber o
-       link — e como a conta já existe, um segundo clique só daria 409. */
-    const enviou = r.convite === 'enviado';
-    const recado = enviou
-      ? 'Acesso criado e convite enviado para ' + reg.email + '.'
-      : 'A conta foi criada, mas o convite NÃO saiu (' + (r.convite || 'motivo não informado') +
-        '). Não adianta clicar de novo: avise a marca por outro canal e peça que ' +
-        'use "Esqueci a senha" em /marca/.';
+    if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.');
 
-    // Recarregar e remontar ANTES de escrever o recado: `abrirDetalhe` reescreve
-    // o corpo inteiro da ficha, e uma mensagem posta antes dele piscaria e sumiria.
+    /* ⚠️ A ORDEM AQUI É A PARTE DELICADA, e o motivo é a senha.
+       `carregar()` atualiza a LISTA — pode rodar à vontade. `abrirDetalhe()`
+       reescreveria a FICHA inteira, e levaria junto a senha que a organização
+       ainda não copiou. Era o que a versão anterior fazia, e fazia certo:
+       naquele modelo não havia nada na tela para preservar. Agora há, e é
+       irrecuperável. Por isso a ficha NÃO é remontada: as credenciais são
+       pintadas por cima e só somem quando ela fechar. */
     await carregar();
-    abrirDetalhe(origem, reg.id);   // remonta a ficha já com o bloco de conta criada
-    const depois = $('det-acesso-aviso');
-    if (depois) {
-      depois.textContent = recado;
-      depois.dataset.tom = enviou ? 'ok' : 'erro';
-      depois.hidden = false;
-    }
+    av.textContent = 'Acesso criado. Copie ou envie agora.';
+    av.dataset.tom = 'ok'; av.hidden = false;
+    btn.disabled = true; btn.textContent = 'Acesso criado';
+    mostrarCredenciais(reg, r);
   } catch (e) {
     av.textContent = 'Não criou: ' + e.message;
     av.dataset.tom = 'erro'; av.hidden = false;
@@ -1358,6 +1683,7 @@ async function salvar(origem, reg) {
    ⚠️ A guarda do `hidden` importa: `btn-sair` chama esta função com o detalhe
    já fechado, e sem ela a animação rodaria no vazio a cada logout. */
 function fecharDetalhe() {
+  desarmarApagar();          // a proxima ficha nao pode abrir engatilhada
   const el = $('detalhe');
   if (el.hidden) { selecionado = null; return; }
 

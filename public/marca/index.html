@@ -178,17 +178,18 @@ button.link{
   <section id="vLogin" hidden>
     <p class="rotulo">Área da marca</p>
     <h1>Entrar</h1>
-    <p class="lead">Use o e-mail que você cadastrou na inscrição.</p>
+    <p class="lead">Use o nome do seu estabelecimento e a senha que a organização enviou.</p>
     <form class="card" id="fLogin" style="margin-top:22px">
-      <label><span>E-mail</span>
-        <input type="email" id="loginEmail" autocomplete="username" required placeholder="voce@suamarca.com.br">
+      <label><span>Nome do estabelecimento</span>
+        <input type="text" id="loginEmail" autocomplete="username" required
+               autocapitalize="none" spellcheck="false" placeholder="ELOI Doces">
       </label>
       <label><span>Senha</span>
         <input type="password" id="loginSenha" autocomplete="current-password" required placeholder="sua senha">
       </label>
       <button class="acao larga" id="btEntrar" type="submit">Entrar</button>
       <div style="text-align:center;margin-top:6px">
-        <button class="link" type="button" id="btEsqueci">Esqueci minha senha</button>
+        <button class="link" type="button" id="btEsqueci">Perdi meu acesso</button>
       </div>
     </form>
     <p class="rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
@@ -412,9 +413,34 @@ button.link{
   }
 
   // ── Entrar ────────────────────────────────────────────────────────────────
+  /* O login é o NOME DO ESTABELECIMENTO, não um e-mail (decisão do Eloi,
+     22/08/2026). O Supabase Auth identifica por e-mail, então o nome vira o
+     mesmo endereço interno que a Edge Function `criar-acesso-marca` gerou ao
+     criar a conta.
+     ⚠️ AS DUAS SLUGIFICAÇÕES TÊM QUE CASAR. Se esta divergir da de lá, a marca
+     digita o nome certo e não entra — e o erro é genérico de propósito, então
+     ninguém descobre o motivo. Mudou uma, muda a outra. */
+  var DOMINIO_LOGIN = 'marcas.sweetcoffeeweek.com.br'
+  function slugificar (nome) {
+    return (nome || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/&/g, ' e ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48)
+  }
+  function enderecoDeLogin (digitado) {
+    var t = (digitado || '').trim()
+    /* Quem já sabe o login exato pode digitar ele direto; quem digita o nome
+       por extenso chega no mesmo lugar. */
+    if (t.indexOf('@') > -1) return t.toLowerCase()
+    return slugificar(t) + '@' + DOMINIO_LOGIN
+  }
+
   function entrar (ev) {
     ev.preventDefault()
-    var email = el('loginEmail').value.trim().toLowerCase()
+    var email = enderecoDeLogin(el('loginEmail').value)
     var senha = el('loginSenha').value
     if (!email || !senha) return
     el('btEntrar').disabled = true
@@ -430,7 +456,14 @@ button.link{
         }
         el('loginSenha').value = ''
         sessaoSalvar(r.dados)
-        carregar()
+        /* A senha que a marca acabou de usar veio da organizacao, por WhatsApp.
+           Se `deve_trocar_senha` estiver ligada, ela troca AGORA -- e so depois
+           chega no cadastro. E isso que faz a mensagem do WhatsApp deixar de
+           valer: sem esta checagem a flag seria uma coluna que ninguem le. */
+        precisaTrocarSenha().then(function (precisa) {
+          if (precisa) { ver('senha'); return }
+          carregar()
+        })
       })
       .catch(function () {
         el('btEntrar').disabled = false
@@ -438,18 +471,13 @@ button.link{
       })
   }
 
+  /* ⛔ RECUPERAÇÃO POR E-MAIL NÃO EXISTE MAIS, e não é esquecimento: o endereço
+     de login é sintético (nome@marcas.…) e não tem caixa de entrada. Mandar um
+     link para lá seria um botão que nunca entrega nada — pior que não ter.
+     Quem redefine é a organização, gerando um acesso novo pelo painel. */
   function recuperar () {
-    var email = el('loginEmail').value.trim().toLowerCase()
-    if (!email) { el('loginEmail').focus(); aviso('Escreva seu e-mail acima primeiro.', 'erro'); return }
-    // Resposta idêntica com e-mail existente ou não — mesma razão do erro genérico.
-    // ⚠️ Este caminho usa o SMTP embutido do Supabase, limitado a 2 e-mails por
-    // hora no projeto inteiro. Serve para o caso isolado; convite em lote é a
-    // Edge Function criar-acesso-marca, que passa pelo Resend.
-    auth('recover?redirect_to=' + encodeURIComponent(location.origin + '/marca/'), { email: email })
-      .then(function () {
-        aviso('Se este e-mail tiver acesso, o link chega em alguns minutos. Não chegou? Fale com a organização.', 'ok')
-      })
-      .catch(function () { aviso('Não deu para enviar agora. Fale com a organização.', 'erro') })
+    aviso('A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.', 'ok')
+    return
   }
 
   function sair () {
@@ -463,6 +491,34 @@ button.link{
   }
 
   // ── Definir senha ─────────────────────────────────────────────────────────
+  /* ── A trava de primeiro uso ──────────────────────────────────────────── */
+  /* A conta nasce com `deve_trocar_senha` ligada (Edge Function
+     criar-acesso-marca). Enquanto ela estiver ligada, a senha em circulacao e a
+     que a organizacao mandou por WhatsApp -- e ela precisa morrer no 1o uso.
+     ⚠️ Erro de rede aqui devolve `false`: melhor deixar entrar do que trancar
+     alguem fora por causa de uma consulta que falhou. A senha compartilhada
+     sobrevive mais um login; a marca nao fica sem acesso na vespera. */
+  function precisaTrocarSenha () {
+    return api('perfis?select=deve_trocar_senha&limit=1', {})
+      .then(function (r) {
+        return !!(r && r.ok && r.dados && r.dados[0] && r.dados[0].deve_trocar_senha)
+      })
+      .catch(function () { return false })
+  }
+
+  function marcarSenhaTrocada () {
+    var s = sessaoLer()
+    return fetch(CFG.url + '/rest/v1/rpc/marcar_senha_trocada', {
+      method: 'POST',
+      headers: {
+        apikey: CFG.chave,
+        Authorization: 'Bearer ' + ((s && s.access_token) || CFG.chave),
+        'Content-Type': 'application/json'
+      },
+      body: '{}'
+    }).catch(function () { /* ver o comentario acima */ })
+  }
+
   function definirSenha (ev) {
     ev.preventDefault()
     var a = el('senha1').value
@@ -481,7 +537,10 @@ button.link{
         el('senha1').value = ''
         el('senha2').value = ''
         aviso('Senha definida.', 'ok')
-        carregar()
+        /* Baixa a flag ANTES de seguir, senao o proximo login manda de volta
+           para esta tela. Se falhar, o pior caso e pedir a troca de novo --
+           chato, nunca inseguro. Por isso o erro nao trava o fluxo. */
+        marcarSenhaTrocada().then(function () { carregar() })
       })
       .catch(function () {
         el('btSenha').disabled = false
