@@ -140,15 +140,17 @@ test('o herói mostra exatamente cinco números', () => {
   assert.equal(NUMEROS.length, 5, 'o painel .pa-numeros deixou de ter cinco itens')
 })
 
-test('"68% das marcas voltaram" confere com a base', () => {
-  const distintas = APARICOES.size
-  const voltaram = [...APARICOES.values()].filter((eds) => eds.length > 1).length
-  const esperado = Math.round((voltaram / distintas) * 100) + '%'
+test('"123 marcas distintas" confere com a base', () => {
+  // Distintas, não participações: os aliases já foram aplicados em POR_EDICAO,
+  // então uma rede com três unidades conta uma vez, e a marca que voltou em
+  // sete edições continua sendo uma marca.
+  const esperado = String(APARICOES.size)
 
-  const item = NUMEROS.find((n) => /voltaram/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de marcas que voltaram')
-  assert.equal(item.valor, esperado,
-    `HTML diz ${item.valor}, a base diz ${esperado} (${voltaram} de ${distintas} marcas distintas)`)
+  const item = NUMEROS.find((n) => /distintas/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de marcas distintas')
+  assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
+  // §9.1: o acervo fecha em 123. Divergir aqui é sinal de alias perdido.
+  assert.equal(APARICOES.size, 123, 'a contagem de marcas distintas divergiu do acervo §9.1')
 })
 
 test('"+7 estreias por edição" confere com a base', () => {
@@ -186,13 +188,14 @@ test('"410 combos autorais" confere com a base', () => {
   assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
 })
 
-test('"40% já subiram ao pódio" confere com a base', () => {
-  // Elegível = participou de edição que teve premiação. As 5 primeiras não
-  // tiveram, então incluí-las inflaria o denominador e afundaria a proporção.
-  // Os pódios de 2026.1 moram em loversAwardsResults.js, NÃO na base histórica
-  // (§7.3) — ignorá-los dá 42 premiadas em vez de 44.
+test('"271 colocações distribuídas" confere com a base', () => {
+  // Uma colocação por nome: empate em 1º com duas marcas são duas colocações,
+  // porque duas marcas subiram. Os pódios de 2026.1 moram em
+  // loversAwardsResults.js, NÃO na base histórica (§7.3) — ignorá-los tira 44
+  // colocações da conta e derruba 44 premiadas para 42.
   const premiadas = new Set()
   const elegiveis = new Set()
+  let colocacoes = 0
 
   for (const ed of SWEET_COFFEE_HISTORY.edicoes ?? []) {
     const categorias = ed.id === '2026.1'
@@ -202,15 +205,18 @@ test('"40% já subiram ao pódio" confere com a base', () => {
 
     for (const nome of ed.participantes ?? []) elegiveis.add(CANON[normalizar(nome)] ?? nome)
     for (const cat of categorias)
-      for (const col of cat.colocacoes ?? [])
+      for (const col of cat.colocacoes ?? []) {
+        colocacoes += (col.nomes ?? []).length
         for (const nome of col.nomes ?? []) premiadas.add(CANON[normalizar(nome)] ?? nome)
+      }
   }
 
-  const esperado = Math.round((premiadas.size / elegiveis.size) * 100) + '%'
-  const item = NUMEROS.find((n) => /pódio/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de marcas que subiram ao pódio')
-  assert.equal(item.valor, esperado,
-    `HTML diz ${item.valor}, a base diz ${esperado} (${premiadas.size} de ${elegiveis.size} elegíveis)`)
+  const item = NUMEROS.find((n) => /coloca/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de colocações')
+  assert.equal(item.valor, String(colocacoes),
+    `HTML diz ${item.valor}, a base diz ${colocacoes}`)
+  // §9.1: o acervo fecha em 271 colocações.
+  assert.equal(colocacoes, 271, 'a contagem de colocações divergiu do acervo §9.1')
 
   // Trava a armadilha do §7.3: sem os pódios da Lovers isto cai para 42.
   assert.equal(premiadas.size, 44, 'a contagem de premiadas divergiu do acervo §9.1')
@@ -249,10 +255,10 @@ test('os ícones do painel batem com scw-icons-v2.js', async () => {
 
   const ESPERADO = {
     visualiza: 'redes/instagram',
-    voltaram: 'topicos/ciclo',
+    distintas: 'simbolos/estabelecimento',
     estreias: 'marca/estrela',
     combos: 'combos/doce-cafe',
-    'pódio': 'premios/medalha',
+    'coloca': 'premios/medalha',
   }
 
   assert.equal(NUMEROS.length, Object.keys(ESPERADO).length,
