@@ -414,7 +414,7 @@ export function ApoiarPage() {
       <section id="proposta" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/proposta" tamanho={20} />Conversar com a organização</span>
-          <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
+          <h2 className="scw-h2">
             Conte como sua marca quer <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar na edição</em>.
           </h2>
           <p>

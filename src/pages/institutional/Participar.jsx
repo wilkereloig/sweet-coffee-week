@@ -545,7 +545,7 @@ export function ParticiparPage() {
       <section id="pre-cadastro" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mecanica/inscricao" tamanho={20} />Pré-cadastro</span>
-          <h2 className="scw-h2" style={{ margin: 'clamp(14px,1.6vw,20px) auto 0' }}>
+          <h2 className="scw-h2">
             Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
           </h2>
           <p>
