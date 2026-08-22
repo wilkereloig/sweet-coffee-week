@@ -90,14 +90,28 @@ button,input,select,textarea{font:inherit;color:inherit}
                                          do Safari e as abas somem atrás dela */
   display:grid;
   grid-template-rows:auto 1fr auto;
+  /* ⚠️ A COLUNA PRECISA SER DECLARADA. Declarar só `grid-template-rows` deixa a
+     coluna implícita em `auto`, e coluna `auto` dimensiona por MAX-CONTENT: o
+     grid inteiro cresce até a largura que o item mais largo gostaria de ter. O
+     cabeçalho é um flex sem quebra e pedia 671px, então a casca ficava com
+     671px em QUALQUER viewport menor — estourava de 430 a 671 e passava
+     despercebido nos extremos. `minmax(0,1fr)` prende a coluna à largura real. */
+  grid-template-columns:minmax(0, 1fr);
 }
 .og-topo{
   background:var(--scw-choco);color:var(--scw-creme);
   padding:14px var(--trilho);
   display:flex;align-items:center;gap:14px;
+  min-width:0;                        /* item de grid encolhe (§10.5) */
 }
+/* O bloco do título é o único que pode ceder: marca e botões têm tamanho
+   próprio. Sem `min-width:0` ele se recusa a encolher e devolve o estouro. */
+.og-topo__texto{min-width:0;overflow:hidden}
 .og-topo__marca{height:38px;width:auto;display:block;flex:0 0 auto}
-.og-topo__titulo{font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0}
+.og-topo__titulo{
+  font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .og-topo__sub{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin:6px 0 0}
 .og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
 
@@ -110,7 +124,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-topo__destinos .og-aba.is-ativa{background:var(--scw-amarelo);color:var(--scw-choco);box-shadow:none;font-weight:800}
 @media (max-width:900px){ .og-topo__destinos{display:none} }
 
-.og-corpo{min-height:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
+.og-corpo{min-height:0;min-width:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
 
 /* Quem rola é a vista ativa. */
 .og-vista{
@@ -419,7 +433,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 <div id="painel" hidden>
   <header class="og-topo">
     <img class="og-topo__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
-    <div>
+    <div class="og-topo__texto">
       <p class="og-topo__titulo">Painel da organização</p>
       <p class="og-topo__sub">Sweet &amp; Coffee Week</p>
     </div>

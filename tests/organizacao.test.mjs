@@ -196,3 +196,27 @@ test('o bloco de prefers-reduced-motion é o último do CSS', () => {
   const depois = style.slice(i).replace(/@media[^{]*\{[\s\S]*?\n\}/, '').trim()
   assert.equal(depois, '', 'há CSS depois do bloco de reduced-motion: ' + depois.slice(0, 80))
 })
+
+test('a casca prende a coluna do grid, senão estoura na horizontal', () => {
+  // ⚠️ Bug real, achado pelo Eloi em 22/08/2026. `#painel` declarava só
+  // `grid-template-rows`; a coluna ficava implícita em `auto`, e coluna `auto`
+  // dimensiona por MAX-CONTENT — o grid crescia até a largura que o item mais
+  // largo gostaria de ter. O cabeçalho é um flex sem quebra e pedia 671px, então
+  // a casca ficava com 671px em qualquer viewport menor.
+  //
+  // O que torna isso traiçoeiro: só aparece na FAIXA entre a largura mínima do
+  // conteúdo e os 671px. Abaixo de ~400px o conteúdo já é estreito e cabe;
+  // acima de 700px a janela comporta os 671. Testar 390 e 1440 passa nos dois e
+  // não vê nada — foi exatamente o que aconteceu.
+  const painel = HTML.match(/#painel\{[^}]*\}/)
+  assert.ok(painel, 'sumiu a regra de #painel')
+  assert.match(painel[0], /grid-template-columns\s*:\s*minmax\(\s*0/,
+    '#painel sem grid-template-columns com minmax(0,…): a coluna volta a crescer por max-content')
+  // O cabeçalho e o corpo são itens do grid: sem min-width:0 eles se recusam a
+  // encolher e devolvem o estouro por outro caminho (§10.5).
+  for (const sel of ['.og-topo', '.og-corpo']) {
+    const regra = HTML.match(new RegExp(sel.replace('.', '\.') + '\{[^}]*\}'))
+    assert.ok(regra, 'sumiu a regra de ' + sel)
+    assert.match(regra[0], /min-width\s*:\s*0/, sel + ' sem min-width:0 — item de grid não encolhe')
+  }
+})
