@@ -641,7 +641,9 @@
 }
 .swa-antes .scw-corpo {
   max-width: 60ch;
-  margin: 16px auto 0;
+  /* ⚠️ `auto` centrava este parágrafo dentro do bloco de 900px enquanto o
+     rótulo e o H2 ficavam à esquerda — 101px fora de esquadro. */
+  margin: 16px 0 0;
   font-size: clamp(15px, 1.2vw, 18px);
   line-height: 1.6;
   color: var(--scw-marrom);

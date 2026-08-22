@@ -446,7 +446,11 @@
 
 /* --- 04 Mensagem ---------------------------------------------------------- */
 /* À esquerda, como as outras cabeças (ver .pa-form__intro). */
-.ctt-mensagem__cabeca { max-width: 980px; }
+/* Mesma largura do .ctt-form logo abaixo (820px) e mesma posição — o mesmo
+   ajuste que .pa-form__intro recebeu. Sem isto a cabeça ficava presa à
+   esquerda do trilho enquanto o formulário se centralizava, e os dois
+   nasciam 217px fora de esquadro. O texto segue à esquerda dentro do bloco. */
+.ctt-mensagem__cabeca { max-width: 820px; margin-inline: auto; }
 .ctt-mensagem__titulo { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 24ch; }
 .ctt-mensagem__lead {
   margin: 16px 0 0;

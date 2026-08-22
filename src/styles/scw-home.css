@@ -187,7 +187,11 @@
   display: flex;
   flex-direction: column;
   gap: clamp(14px, 1.6vw, 18px);
-  max-width: 38ch;
+  /* ⚠️ Sem teto de medida NA CAIXA. `max-width:38ch` aqui fazia o card parar
+     73px antes do trilho, enquanto o lead logo acima encosta nele por
+     `justify-self:end` — dois blocos ancorados à direita terminando em x
+     diferente. Teto de linha é do TEXTO (§6.5), e ele está em
+     .hm-preco__texto; a caixa preenche a coluna da grade. */
   padding: clamp(20px, 2.2vw, 28px);
   border-radius: var(--scw-r-card);
   border: 1px solid rgba(61, 19, 8, .14);
@@ -208,6 +212,7 @@
   text-wrap: balance;
 }
 .hm-preco__texto {
+  max-width: 42ch;
   margin: 0;
   font: 500 clamp(15px, 1.2vw, 17px)/1.6 var(--scw-font);
   color: var(--scw-marrom);
