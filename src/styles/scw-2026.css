@@ -1621,29 +1621,73 @@ body:not(.route-em-breve) { margin: 0; }
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */
 @media (max-width: 1000px) {
   .scw-hero { min-height: 0; display: block; }
-  /* PADRONIZAÇÃO 21/08/2026: a foto cobre o herói e o texto vem por cima,
-     como nas outras cinco. Antes eram dois blocos — foto de 46vh em cima,
-     bloco chocolate sólido embaixo — e o véu era uma rampa em S de treze
-     paradas. Agora é o mesmo par de degradês do desktop, só com o horizontal
-     desligado: em tela estreita o texto ocupa a largura toda e não há terço
-     direito para abrir. */
-  .scw-hero__fotos { position: absolute; inset: 0; height: auto; min-height: 0; }
-  .scw-hero__veu {
-    --hv-topo: 22%;
-    --hv-meio: 78%;
-    --hv-base: 94%;
-    --hv-esq: 0%;
-    --hv-centro: 0%;
-    --hv-fim: 0%;
+  /* FOTO QUADRADA EM CIMA, TEXTO EMBAIXO — 22/08/2026, pedido do Eloi.
+     Reverte a padronização de 21/08 SÓ na Home e SÓ no celular: lá a foto
+     cobria o herói inteiro e o texto vinha por cima, e o que ele viu na tela
+     foi título creme sobre rostos e áreas claras, sem leitura garantida, com a
+     foto em zoom de recorte.
+
+     Três coisas mudam, e cada uma resolve uma queixa:
+
+     1. A foto sai do `inset: 0` e entra NO FLUXO como quadrado de largura
+        cheia. Deixa de ser do tamanho da tela — em 390px são 390px de altura,
+        ~46% de um viewport de 844, que é a "metade da tela" pedida.
+     2. O zoom cai junto, e é consequência da geometria, não de ajuste de
+        enquadramento: `cover` numa caixa 1:1 corta ~33% da largura de uma foto
+        3:2, contra ~70% na caixa alta de antes. A foto aparece muito mais.
+     3. O texto passa a viver ABAIXO da foto, sobre a chapa chocolate sólida do
+        próprio herói: creme sobre chocolate são 12:1, sem depender de véu.
+
+     O recorte da base da foto é disfarçado por um esfumado que vai até o
+     limite dela (`.scw-hero__fotos::after`) — a foto não termina numa aresta,
+     dissolve no chocolate do bloco de texto. */
+  .scw-hero { min-height: 0; justify-content: flex-start; }
+  .scw-hero__fotos {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    min-height: 0;
   }
-  .scw-hero__foto { background-position: center 32%; }
-  .scw-hero__base { display: none; }
-  .scw-hero__topo { height: 132px; background: linear-gradient(to bottom, rgba(61, 19, 8, .66), rgba(61, 19, 8, 0)); }
+  /* O esfumado da emenda. Dois degradês numa camada só: o de baixo dissolve a
+     foto no chocolate (é ele que disfarça o recorte) e o de cima é o respiro
+     para a marca do cabeçalho, que pousa sobre a foto no topo da página.
+     ⚠️ Rampa em três paradas, não duas: degradê linear em alpha lê como faixa
+     dura, e o olho enxerga a derivada, não o valor (§10.4). */
+  .scw-hero__fotos::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(to top,
+        var(--scw-choco) 0%,
+        color-mix(in srgb, var(--scw-choco) 72%, transparent) 9%,
+        color-mix(in srgb, var(--scw-choco) 22%, transparent) 22%,
+        transparent 38%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--scw-choco) 62%, transparent) 0%,
+        color-mix(in srgb, var(--scw-choco) 18%, transparent) 12%,
+        transparent 26%);
+  }
+  /* O véu inteiro sai: ele existia para segurar a leitura do texto SOBRE a
+     foto, e não há mais texto sobre a foto. Mantê-lo só escureceria a imagem
+     que o pedido é justamente mostrar melhor. O mesmo vale para as duas
+     camadas nomeadas, cuja função foi absorvida pelo esfumado acima. */
+  .scw-hero__veu,
+  .scw-hero__base,
+  .scw-hero__topo { display: none; }
+  /* Enquadramento um pouco acima do centro: numa caixa 1:1 as pessoas ficam no
+     terço superior da foto, e `center` cortava cabeças. */
+  .scw-hero__foto { background-position: center 42%; }
   .scw-hero__col {
     max-width: 100%;
-    /* A reserva é o que deixa a foto respirar antes de o texto começar. */
-    padding-top: clamp(300px, 44vh, 420px);
-    padding-bottom: 32px;
+    /* Sem reserva de foto: ela não passa mais por baixo do texto. O respiro é
+       o de uma seção normal. */
+    padding-top: clamp(26px, 6vw, 40px);
+    padding-bottom: clamp(30px, 7vw, 44px);
   }
   .scw-hero__titulo { font-size: 40px; line-height: .9; }
   .scw-hero__info { margin-top: 18px; padding-top: 18px; gap: 16px; }
@@ -1651,12 +1695,12 @@ body:not(.route-em-breve) { margin: 0; }
 
   /* PADRONIZAÇÃO 21/08/2026 (pedido do Wilke): o celular passa a ter a MESMA
      construção do desktop — a foto cobre o herói inteiro e o texto vem por
-     cima. Revoga a regra dos dois blocos empilhados, que valia desde
-     30/07/2026 e existia porque texto sobre foto em tela pequena perdia
-     leitura; o que resolve isso agora é o véu, que no celular fecha muito
-     mais (ver `.scw-hero-veu` abaixo).
-     A reserva de topo é o que deixa a foto respirar antes do texto começar. */
-  .scw-hero { min-height: var(--scw-hero-altura-mobile); }
+     cima. Vale para Participar, Apoiar, Contato e Sweet Awards.
+     ⚠️ A HOME saiu dessa padronização em 22/08/2026, a pedido do Eloi: lá a
+     foto voltou a ser bloco próprio, quadrado, com o texto embaixo (ver o
+     bloco `.scw-hero__fotos` no topo desta media query). O piso de altura dela
+     saiu junto — o herói da Home passou a ser foto + texto, medido pelo
+     conteúdo, como os outros desde o ajuste de altura deste mesmo dia. */
   /* AJUSTE 22/08/2026 (pedido do Eloi: "a altura da hero está enorme").
      Duas forças somavam e o herói passava da tela: uma reserva de 44vh (371px
      num 844) MAIS um piso de 100svh. Em Participar o resultado media 943px num

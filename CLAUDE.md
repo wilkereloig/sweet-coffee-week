@@ -740,9 +740,23 @@ para abrir). **Não recriar os dois blocos.**
   `min-height: 100svh`) punha o herói de Participar em **943px num viewport de 844**: a
   lead cortava e as duas ações ficavam abaixo da dobra. Com o ajuste de 22/08/2026,
   Participar e Apoiar medem **858px** e Contato **645px**. **Não devolver o piso.**
-- **Home** (`.scw-hero__col`) e **Sweet Awards** (`.swa-hero`) têm construção própria e
-  **mantêm** o piso de `100svh` — os dois cabem na tela sem cortar. A Home só se mexe
-  com pedido explícito (A6).
+- ⛔ **A HOME saiu desta construção em 22/08/2026** (pedido do Eloi). No celular ela
+  voltou a ser **dois blocos**, e desta vez com geometria fechada: a foto é um
+  **quadrado de largura cheia** (`.scw-hero__fotos` em `aspect-ratio: 1`, no fluxo) e o
+  texto vem **embaixo, sobre a chapa chocolate sólida** do próprio herói — creme sobre
+  chocolate, 12:1, sem depender de véu. O piso de altura dela saiu junto: mede foto +
+  texto. **Não devolver a foto para `inset: 0` na Home.**
+  - O que motivou: título creme sobre rostos e áreas claras da foto, sem leitura
+    garantida, e a foto em zoom de recorte.
+  - **O zoom é consequência da caixa, não de enquadramento:** `cover` num quadrado corta
+    ~33% da largura de uma foto 3:2, contra ~70% na caixa alta que a foto tinha antes.
+  - **A emenda é esfumada até o limite da foto** (`.scw-hero__fotos::after`, rampa de
+    três paradas): a foto dissolve no chocolate em vez de terminar numa aresta. Sem
+    isso o recorte aparece.
+  - Véu, `__topo` e `__base` ficam em `display: none` no celular — a função dos três foi
+    absorvida pelo esfumado, e mantê-los só escureceria a imagem que o pedido quer
+    mostrar melhor.
+- **Sweet Awards** (`.swa-hero`) tem construção própria e **mantém** o piso de `100svh`.
 - **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
   06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
   (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo
@@ -1119,9 +1133,11 @@ mude o comportamento visual** — validar idêntico.
 **Sete seções:** `01 Abertura` · `02 O que é` · `03 Rotas` · `04 Ciclo` · `05 Números` ·
 `06 Prova` · `07 Realização`.
 
-- **Herói:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o fundo à
-  direita, véu em degradê a 96°. Abaixo de 1000px o véu passa a vertical e o texto ocupa
-  100%.
+- **Herói, desktop:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o
+  fundo à direita, véu em degradê a 96°.
+- **Herói, celular (<1000px): dois blocos** — foto quadrada de largura cheia em cima,
+  esfumada na base, e o texto embaixo em chapa chocolate sólida. Ver §6.9, que traz a
+  geometria e o motivo. ⛔ Não unificar com o desktop de novo.
 - **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
   com filete separando. ⛔ **Sempre em UMA LINHA, inclusive no celular** (pedido do Eloi,
   22/08/2026): `disco + disco + disco`, com o nome embaixo de cada um. O empilhamento
