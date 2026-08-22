@@ -823,14 +823,20 @@ vale para o controle real, não para a linha que o contém.**
 
 Pedido do Eloi, três frentes.
 
-**1 · Abre como o menu.** No celular (≤900px) a tela de acesso deixou de ser diálogo
-centrado e virou a **mesma folha da aba "mais"**: colada na base, largura cheia, canto
-arredondado só em cima, puxador dentro da faixa chocolate, `max-height: 88svh` com
-rolagem interna. A curva de entrada **já era a mesma** (`scwFolha`) — faltava o lugar.
-Fechar também virou movimento: `.is-fechando` por 260ms antes de desmontar, como o
-`MobileMenu`. **No desktop a caixa segue centrada** — folha subindo da base numa tela de
-1440px é gesto de celular no lugar errado; o que vale nas duas telas é o passo de senha
-e o desenho.
+**1 · Entra pela borda, e cada tela tem a sua.** A caixa centrada acabou nas duas.
+
+| Tela | Peça | Geometria | Entrada / saída |
+|---|---|---|---|
+| ≤900px | **folha**, a mesma da aba "mais" | colada na base, largura cheia, raio `30px 30px 0 0`, puxador dentro da faixa chocolate, `max-height: 88svh` | `scwFolha` 340ms · `moFolhaSai` 260ms |
+| >900px | **gaveta** | colada à direita, do alto ao pé, **520px**, raio `30px 0 0 30px`, sombra para a esquerda | `moGavetaEntra` 340ms · `moGavetaSai` 260ms |
+
+Mesmas durações e curvas da folha nas duas — **só a direção muda** (§6.15.7). A gaveta
+tem 520px e não os 760px da caixa antiga: nessa largura os dois cartões empilham, que é
+a leitura certa numa peça alta. Fechar é movimento nas duas: `.is-fechando` por 260ms
+antes de desmontar, como o `MobileMenu`.
+⚠️ A faixa chocolate + a régua ficam num invólucro `.scw-acesso__cabecalho` com
+`position: sticky` — quem rola é a caixa, e sem isso o **X sai de cena** junto com o
+conteúdo. Na gaveta alta, isso é perder a saída do painel.
 
 **2 · "Entrar" não sai do diálogo.** O botão era um `<a>` para `/organizacao/` e a senha
 era pedida lá. Agora o corpo do próprio diálogo **vira o campo de senha**.
@@ -849,6 +855,10 @@ diferentes (`vazio`, `senha`, `rede`, `sessao`).
 **prefixo de seletor**, nunca `!important`. O "Entrar" saiu de `<a>` para `<button>` e,
 de quebra, saiu do alcance do mesmo reset: antes ele herdava creme e ficava creme sobre
 amarelo (~1,4:1); agora é chocolate sobre amarelo, 9,5:1.
+⚠️ **Peça que troca de `<a>` para `<button>` precisa de `border: 0` explícito** — senão
+herda a borda `2px outset` padrão do navegador. E o hover de `.scw-acesso__acao` inverte
+para creme, leitura que só funciona sobre a chapa chocolate do cartão: no passo da senha,
+que mora no corpo creme, o botão inverte para **chocolate** (12:1), senão sumiria.
 
 ### 6.11 Iconografia v2
 

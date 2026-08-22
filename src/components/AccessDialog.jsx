@@ -168,6 +168,11 @@ export function AccessDialog({ open, onClose }) {
         ref={caixaRef}
         onKeyDown={prenderTab}
       >
+        {/* Faixa + régua num invólucro só para poderem grudar JUNTAS no topo
+            (`position: sticky`). Como a rolagem é da própria caixa, sem isto o
+            X saía de cena assim que o conteúdo rolava — na gaveta do desktop,
+            que é alta, isso é perder a saída. */}
+        <div className="scw-acesso__cabecalho">
         <div className="scw-acesso__topo">
           {/* O puxador mora DENTRO da faixa chocolate, não acima dela: como
               irmão anterior ele caía numa tira creme de 15px que sobrava sobre
@@ -184,6 +189,7 @@ export function AccessDialog({ open, onClose }) {
           </button>
         </div>
         <div className="scw-acesso__regua" aria-hidden="true" />
+        </div>
 
         {passo === 'escolha' ? (
           <div className="scw-acesso__corpo">

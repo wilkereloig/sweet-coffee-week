@@ -453,11 +453,26 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
    A saída é diferente por tela porque a ENTRADA também é: no celular a folha
    desce por onde subiu; no desktop a caixa é centrada e descer 100% seria
    atravessar a tela inteira — ali ela só se apaga encolhendo de leve. */
-@keyframes moAcessoSai { from { opacity: 1; scale: 1; } to { opacity: 0; scale: .97; } }
 .scw-acesso.is-fechando        { animation: moVeuSai 260ms var(--mo-ease) both; pointer-events: none; }
-.scw-acesso__caixa.is-fechando { animation: moAcessoSai 260ms var(--mo-ease) both; }
 @media (max-width: 900px) {
   .scw-acesso__caixa.is-fechando { animation: moFolhaSai 260ms var(--mo-ease) both; }
+}
+
+/* >900px a peça é gaveta: entra e sai pela DIREITA, não pela base. Mesma
+   duração e mesmas curvas da folha — 340ms/`--mo-mola` na entrada, 260ms
+   /`--mo-ease` na saída (§6.15.7: nada de tempo novo, só a direção muda). */
+@keyframes moGavetaEntra { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: none; } }
+@keyframes moGavetaSai   { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(100%); } }
+@media (min-width: 901px) {
+  .scw-acesso__caixa             { animation: moGavetaEntra 340ms var(--mo-mola) both; }
+  .scw-acesso__caixa.is-fechando { animation: moGavetaSai 260ms var(--mo-ease) both; }
+  /* O reset de movimento reduzido vive em scw-2026.css e vem ANTES deste
+     arquivo na ordem de import: sem repetir a guarda aqui, a gaveta voltaria a
+     deslizar para quem pediu menos movimento. */
+  @media (prefers-reduced-motion: reduce) {
+    .scw-acesso__caixa,
+    .scw-acesso__caixa.is-fechando { animation: none; }
+  }
 }
 
 /* Card de acesso: lift de adesivo — a sombra cresce junto, não só sobe. */

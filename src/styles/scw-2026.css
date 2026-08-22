@@ -998,6 +998,39 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__corpo { padding-bottom: calc(clamp(22px, 2.6vw, 36px) + var(--scw-safe-b)); }
 }
 
+/* >900px a tela de acesso é GAVETA e entra pela direita (pedido do Eloi,
+   22/08/2026), no lugar da caixa centrada. É a mesma peça das duas telas, só
+   que cada uma entra pela borda que lhe cabe: no celular sobe da base, como a
+   folha do menu; no desktop desliza da direita, colada na borda e do alto ao
+   pé da tela.
+   Largura de 520px, não os 760px da caixa antiga: numa coluna dessa largura os
+   dois cartões empilham (a grade tem `--scw-min: 260px` e sobram ~440px de
+   conteúdo), que é a leitura certa numa peça alta. O raio fica só do lado de
+   dentro e a sombra vira para a esquerda — quem está colado na borda direita
+   não projeta sombra para fora da tela. */
+@media (min-width: 901px) {
+  .scw-acesso {
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+  }
+  .scw-acesso__caixa {
+    width: min(520px, 100%);
+    max-height: none;
+    border-radius: 30px 0 0 30px;
+    box-shadow: -34px 0 80px rgba(28, 10, 4, .5);
+  }
+}
+
+/* Faixa + régua grudam no topo da caixa, que é quem rola: sem isto o botão de
+   fechar sai de cena com o conteúdo, e na gaveta alta do desktop isso é perder
+   a saída do painel. */
+.scw-acesso__cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 /* Faixa chocolate — assina o painel com a marca do festival.
    `relative` porque o puxador da folha (celular) se posiciona por cima dela. */
 .scw-acesso__topo {
@@ -1129,6 +1162,10 @@ body:not(.route-em-breve) { margin: 0; }
   margin-top: auto;
   min-height: 48px;
   padding: 0 18px;
+  /* ⚠️ `border: 0` explícito: esta peça nasceu como <a> e virou <button> em
+     22/08/2026. Sem zerar, o botão herda a borda `2px outset` padrão do
+     navegador — o filete escuro que apareceu em volta do amarelo. */
+  border: 0;
   border-radius: 14px;
   background: var(--scw-amarelo);
   color: var(--scw-choco);
@@ -1268,6 +1305,16 @@ body:not(.route-em-breve) { margin: 0; }
 }
 /* Botão do formulário ocupa a linha: é a única ação do passo. */
 .scw-acesso__acao--largo { justify-content: center; min-height: 52px; }
+/* ⚠️ O hover base do botão vira CREME — leitura de "inverte para claro" que só
+   funciona sobre a chapa chocolate do cartão. Aqui ele mora no corpo creme, e
+   creme sobre creme faz o botão sumir no hover. Inverte para chocolate, que é
+   o mesmo par já usado na seta da galeria em superfície clara (12:1). */
+@media (hover: hover) {
+  .scw-acesso__acao--largo:hover {
+    background: var(--scw-choco);
+    color: var(--scw-creme);
+  }
+}
 /* Estado desabilitado único do sistema (§6.10). */
 .scw-acesso__acao:disabled {
   opacity: .45;
