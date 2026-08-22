@@ -329,3 +329,93 @@ test('trocar o rótulo do copiar não apaga o ícone', () => {
   assert.ok(bloco.includes("querySelector('span')"),
     'o handler precisa mirar o <span> do rótulo, não o botão inteiro')
 })
+
+/* ── Índice dos passos ───────────────────────────────────────────────────────
+ *
+ * O índice repete, no topo, os nomes que os <h2> dos passos já dizem. É uma
+ * segunda fonte para o mesmo conceito — o padrão que o §5.2 manda evitar —, e
+ * aqui não dá para colapsar: a página é estática e não tem de onde derivar.
+ * Então a costura é o teste: renomear um passo e esquecer o índice reprova.
+ */
+
+const ITENS_INDICE = [...HTML.matchAll(new RegExp(
+  '<a href="(#titulo-\\d)"[^>]*>.*?<span class="pa-indice__nome">([^<]+)</span>', 'g',
+))].map(([, href, nome]) => ({ href, nome }))
+
+const TITULOS = Object.fromEntries([...HTML.matchAll(new RegExp(
+  '<h2 class="scw-h2" id="(titulo-\\d)" tabindex="-1">([^<]+)</h2>', 'g',
+))].map(([, id, texto]) => [id, texto]))
+
+test('o índice cobre os quatro passos, com o nome que o passo usa', () => {
+  assert.equal(ITENS_INDICE.length, 4, 'o índice deixou de ter quatro itens')
+  assert.equal(Object.keys(TITULOS).length, 4, 'o formulário deixou de ter quatro passos')
+  for (const { href, nome } of ITENS_INDICE) {
+    const id = href.slice(1)
+    assert.ok(TITULOS[id], 'o índice aponta para um alvo que não existe: ' + href)
+    assert.equal(nome, TITULOS[id],
+      `o índice diz "${nome}" e o passo diz "${TITULOS[id]}" — renomeou um e esqueceu o outro`)
+  }
+})
+
+test('o passo pendente é contado numa fonte só', () => {
+  const js = SCRIPTS[0]
+  assert.match(js, /function pendencias\(/,
+    'sumiu pendencias(): validação e índice voltariam a ter cada um a sua regra')
+  const corpo = js.slice(js.indexOf('function validarPasso('), js.indexOf('function validarTudo('))
+  assert.ok(corpo.includes('pendencias(n)'),
+    'validarPasso deixou de derivar de pendencias() — duas fontes para o que é obrigatório')
+  assert.ok(!corpo.includes('preenchido('),
+    'validarPasso voltou a decidir sozinho o que falta; quem decide é pendencias()')
+})
+
+test('o erro do envio não dispara dois scrollIntoView no mesmo tique', () => {
+  const js = SCRIPTS[0]
+  const bloco = js.slice(js.indexOf('const faltando = validarTudo()'), js.indexOf('const dados = coletar()'))
+  assert.ok(/mostrar\([\s\S]*?false\)/.test(bloco),
+    'mostrar() voltou a rolar sozinho na falha de validação — o scroll até o campo cancela o dela')
+  assert.ok(bloco.includes('recalcularIndice()'),
+    'a falha de validação precisa acender a contagem do índice')
+})
+
+/* ── Contraste do que mudou de cor ───────────────────────────────────────────
+ *
+ * Os dois valores abaixo já estiveram errados: a mensagem de erro em magenta
+ * (3,77:1 em 15 lugares) e o numeral do disco a 18px, 0,66px abaixo do piso em
+ * que o mínimo cai de 4,5 para 3. Nenhum dos dois denuncia a si mesmo na tela.
+ */
+
+const TOKEN = Object.fromEntries([...HTML.matchAll(/--(scw-[a-z]+):(#[0-9A-Fa-f]{6})/g)]
+  .map(([, nome, hex]) => [nome, hex]))
+
+const regra = (seletor) => {
+  const i = HTML.indexOf(seletor + '{')
+  assert.ok(i > -1, 'sumiu a regra ' + seletor)
+  return HTML.slice(i + seletor.length + 1, HTML.indexOf('}', i))
+}
+
+test('a mensagem de erro passa AA como texto pequeno', () => {
+  const corpo = regra('.scw-campo__erro')
+  const tinta = TOKEN[corpo.match(/color:var\(--(scw-[a-z]+)\)/)[1]]
+  const razao = contraste(tinta, TOKEN['scw-creme'])
+  assert.ok(razao >= 4.5,
+    `tinta do erro dá ${razao.toFixed(2)}:1 sobre creme, o piso de texto pequeno é 4,5`)
+  assert.ok(corpo.includes('var(--scw-magenta)'),
+    'o magenta sumiu do erro — a cor tem que ficar no filete, senão o erro perde o sinal')
+})
+
+test('o numeral do disco sustenta o magenta do passo 03', () => {
+  const [, peso, tamanho] = regra('.pa-disco').match(/font:(\d{3}) (\d+)px/)
+  const razao = contraste(TOKEN['scw-creme'], TOKEN['scw-magenta'])
+  // Sobre magenta nenhuma tinta fecha 4,5:1 (§6.3). O numeral só passa como
+  // texto grande — e isso é tamanho >= 18,66px em peso >= 700.
+  assert.ok(Number(tamanho) >= 18.66 && Number(peso) >= 700,
+    `disco a ${tamanho}px/${peso}: abaixo do piso de texto grande, então o mínimo volta a 4,5 e ${razao.toFixed(2)}:1 reprova`)
+  assert.ok(razao >= 3, `creme sobre magenta dá ${razao.toFixed(2)}:1, abaixo do piso 3`)
+})
+
+test('marcar um chip não reembaralha a grade', () => {
+  assert.ok(HTML.includes('.pa-escolha span::before{content:"✓"'),
+    'o ✓ voltou a nascer no :checked — marcar um chip alarga a pílula e move as opções seguintes')
+  assert.ok(HTML.includes('.pa-escolha input:checked + span::before{visibility:visible}'),
+    'o ✓ marcado precisa aparecer por visibility, que preserva a caixa')
+})
