@@ -64,7 +64,6 @@ body{
 .scw-skip:focus{left:0}
 
 .scw-secao{padding-inline:var(--scw-trilho)}
-.nq{white-space:nowrap}
 .pa-oculto{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 /* ── Tipografia ─────────────────────────────────────────────── */
@@ -151,6 +150,44 @@ body{
 .pa-numeros__grade>ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.4vw,30px)}
 
 /* ── Formulário ─────────────────────────────────────────────── */
+/* ── Índice dos passos ──────────────────────────────────────── */
+/* Uma peça para duas perguntas: "onde estou" e, depois de uma tentativa de
+   envio, "o que falta onde". Sublinhado na cor do passo em vez de chapa —
+   magenta não sustenta tinta em texto pequeno (§6.3), então a cor vai para o
+   grafismo, igual ao índice do Contato (§7.6). */
+.pa-indice{
+  position:sticky;top:0;z-index:6;background:var(--scw-creme);
+  margin-inline:calc(var(--scw-trilho) * -1);padding-inline:var(--scw-trilho);
+  border-bottom:1px solid var(--scw-filete);
+}
+.pa-indice ol{margin:0;padding:0;list-style:none;display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none}
+.pa-indice ol::-webkit-scrollbar{display:none}
+/* §7.6: sem flex:0 0 auto os chips colapsam quando a trilha rola. */
+.pa-indice li{flex:0 0 auto}
+.pa-indice a{
+  display:flex;align-items:center;gap:9px;min-height:54px;padding:0 4px;
+  font:700 14px/1.2 var(--scw-font);color:var(--scw-choco);text-decoration:none;
+  border-bottom:3px solid transparent;
+  transition:border-color var(--scw-transicao),color var(--scw-transicao);
+}
+.pa-indice__num{font:800 12px/1 var(--scw-font);letter-spacing:.1em;color:var(--scw-marrom)}
+.pa-indice a:hover{border-bottom-color:var(--scw-filete)}
+.pa-indice a[aria-current="step"]{font-weight:900}
+.pa-indice a[aria-current="step"] .pa-indice__num{color:var(--scw-choco)}
+.pa-indice li:nth-child(1) a[aria-current="step"]{border-bottom-color:var(--scw-amarelo)}
+.pa-indice li:nth-child(2) a[aria-current="step"]{border-bottom-color:var(--scw-cyan)}
+.pa-indice li:nth-child(3) a[aria-current="step"]{border-bottom-color:var(--scw-magenta)}
+.pa-indice li:nth-child(4) a[aria-current="step"]{border-bottom-color:var(--scw-roxo)}
+/* Pendência: anel magenta com o numeral em chocolate sobre creme. O anel é
+   gráfico (3,77:1, piso 3) e o numeral é texto (12:1). Chapa magenta com
+   número dentro reprovaria nos dois papéis. */
+.pa-indice__falta{
+  display:none;min-width:22px;height:22px;padding:0 5px;border-radius:999px;
+  border:2px solid var(--scw-magenta);background:var(--scw-creme);color:var(--scw-choco);
+  font:800 12px/1 var(--scw-font);align-items:center;justify-content:center;
+}
+.pa-indice a[data-pendente] .pa-indice__falta{display:inline-flex}
+
 .pa-corpo{padding-top:clamp(40px,4.6vw,64px);padding-bottom:clamp(40px,4.6vw,64px)}
 .pa-form{max-width:880px}
 
@@ -167,11 +204,16 @@ body{
 .pa-passo__cabeca{display:flex;gap:14px;align-items:flex-start;margin-bottom:var(--scw-gap-cabeca)}
 .pa-disco{
   flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-  font:800 18px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
+  /* 20px/900 passa o piso de texto grande (18,66px em 700+), onde o mínimo
+     cai para 3:1 — e é o único jeito de o disco 03 (creme sobre magenta,
+     3,77:1) fechar AA sem sair do ciclo de irmãos do §6.3. */
+  font:900 20px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
 }
 .pa-passo--2 .pa-disco{background:var(--scw-cyan)}
 .pa-passo--3 .pa-disco{background:var(--scw-magenta);color:var(--scw-creme)}
 .pa-passo--4 .pa-disco{background:var(--scw-roxo);color:var(--scw-creme)}
+/* O salto do índice tem que parar abaixo da própria barra presa. */
+.pa-passo .scw-h2{scroll-margin-top:clamp(88px,10vw,120px)}
 .pa-passo__texto{padding-top:2px}
 .pa-passo__texto .scw-corpo{margin-top:8px;color:var(--scw-marrom)}
 
@@ -195,28 +237,28 @@ body{
 .scw-campo input:hover,.scw-campo textarea:hover{border-color:rgba(61,19,8,.4)}
 .scw-campo[data-erro="1"] input,.scw-campo[data-erro="1"] textarea{border-color:var(--scw-magenta);border-width:2px}
 .scw-campo[data-erro="1"] .pa-escolha span{border-color:var(--scw-magenta)}
-.scw-campo__erro{font:800 13px/1.35 var(--scw-font);color:var(--scw-magenta);margin:0;display:none}
+/* A tinta é chocolate (12:1): magenta a 13px dá 3,77:1 e reprova AA. A cor do
+   erro vai para o filete, que é componente gráfico e passa folgado no piso 3. */
+.scw-campo__erro{font:800 13px/1.35 var(--scw-font);color:var(--scw-choco);margin:0;display:none;border-left:3px solid var(--scw-magenta);padding-left:10px}
 .scw-campo[data-erro="1"] .scw-campo__erro{display:block}
-.scw-campo__ok{
-  font:800 12px/1 var(--scw-font);color:var(--scw-marrom);
-  display:none;align-items:center;gap:6px;
-}
-.scw-campo[data-ok="1"] .scw-campo__ok{display:flex}
-.scw-campo[data-ok="1"] input,.scw-campo[data-ok="1"] textarea{border-color:rgba(61,19,8,.4)}
 
 /* Chips */
 .pa-escolhas{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;border:0}
 .pa-escolha{position:relative;display:block}
 .pa-escolha input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .pa-escolha span{
-  display:flex;align-items:center;gap:8px;min-height:46px;padding:11px 18px;
+  display:flex;align-items:center;gap:8px;min-height:46px;padding:11px 18px 11px 13px;
   border-radius:999px;border:1px solid var(--scw-borda-campo);background:var(--scw-creme);
   font:700 14px/1.2 var(--scw-font);cursor:pointer;
   transition:background var(--scw-transicao),border-color var(--scw-transicao),color var(--scw-transicao);
 }
 .pa-escolha input:hover + span{border-color:var(--scw-choco)}
 .pa-escolha input:checked + span{background:var(--scw-choco);color:var(--scw-creme);border-color:var(--scw-choco)}
-.pa-escolha input:checked + span::before{content:"✓";font-weight:800}
+/* O ✓ existe sempre e só troca de visibilidade: com content nascendo no clique,
+   marcar um chip alargava a pílula e reembaralhava as linhas da grade — a opção
+   que a pessoa ia clicar em seguida saía do lugar. visibility preserva a caixa. */
+.pa-escolha span::before{content:"✓";font-weight:800;visibility:hidden}
+.pa-escolha input:checked + span::before{visibility:visible}
 .pa-escolha input:focus-visible + span{outline:3px solid var(--scw-cyan);outline-offset:2px;box-shadow:0 0 0 5px rgba(61,19,8,.35)}
 .pa-conta-chips{font:800 12px/1 var(--scw-font);color:var(--scw-marrom);letter-spacing:.06em;text-transform:uppercase}
 
@@ -355,6 +397,19 @@ body{
 </header>
 
 <main id="formulario" class="pa-corpo scw-secao">
+
+  <!-- O formulário é uma página só, mas tem quatro assuntos. Os links são
+       âncoras nativas para os <h2 tabindex="-1">: a navegação e o foco de
+       teclado funcionam com o script fora do ar. O script só acrescenta o
+       passo em foco e a contagem de pendências. -->
+  <nav class="pa-indice" id="indice" aria-label="Etapas do formulário">
+    <ol>
+      <li><a href="#titulo-1"><span class="pa-indice__num">01</span><span class="pa-indice__nome">Sobre você</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-2"><span class="pa-indice__num">02</span><span class="pa-indice__nome">Sobre o negócio</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-3"><span class="pa-indice__num">03</span><span class="pa-indice__nome">O que você serve</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-4"><span class="pa-indice__num">04</span><span class="pa-indice__nome">A sua história</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+    </ol>
+  </nav>
   <form class="pa-form" id="form-participar" novalidate>
 
     <div class="pa-oculto" aria-hidden="true">
@@ -377,7 +432,6 @@ body{
         <div class="scw-campo pa-campo--largo">
           <label class="scw-campo__label" for="nome">Nome completo</label>
           <input type="text" id="nome" name="nome" autocomplete="name">
-          <p class="scw-campo__ok">✓ anotado</p>
           <p class="scw-campo__erro">Precisamos do seu nome completo.</p>
         </div>
         <div class="scw-campo">
@@ -633,6 +687,10 @@ const anuncio = document.getElementById('anuncio');
 const btnEnviar = document.getElementById('btn-enviar');
 const btnCopiar = document.getElementById('btn-copiar');
 const passos = [...document.querySelectorAll('.pa-passo')];
+const indice = document.getElementById('indice');
+/* O índice só passa a cobrar depois da primeira tentativa de envio: contar
+   campo vazio que a pessoa ainda nem alcançou é ruído, não ajuda. */
+let jaTentou = false;
 
 /* ── Dados ──────────────────────────────────────────────────── */
 const ROTULOS = {
@@ -656,8 +714,7 @@ const OBRIGATORIOS = {
   1: ['nome','telefone','email'],
   2: ['empresa','tipo','cidade','instagram'],
   3: ['serve','carroChefe'],
-  4: ['historia','especial'],
-  5: []
+  4: ['historia','especial']
 };
 
 // Grupo de escolha → campo que nasce quando a pessoa marca "Outro".
@@ -697,8 +754,8 @@ function atualizarContaChips() {
 atualizarContaChips();
 
 /* ── Erro some quando a pessoa corrige ──────────────────────── */
-form.addEventListener('input', (ev) => limparErro(ev.target));
-form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarContaChips(); atualizarOutros(); });
+form.addEventListener('input', (ev) => { limparErro(ev.target); if (jaTentou) recalcularIndice(); });
+form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarContaChips(); atualizarOutros(); if (jaTentou) recalcularIndice(); });
 function limparErro(alvo) {
   const bloco = alvo.closest('.scw-campo');
   if (!bloco || bloco.dataset.erro !== '1') return;
@@ -734,24 +791,27 @@ function marcar(nome, tem) {
   primeiro.setAttribute('aria-invalid', tem ? 'true' : 'false');
 }
 
-function validarPasso(n) {
-  if (DEMO) return [];   // demonstração: navega livre, sem cobrar campo
-  const faltando = [];
-  (OBRIGATORIOS[n] || []).forEach(nome => {
-    const ok = preenchido(nome);
-    marcar(nome, !ok);
-    if (!ok) faltando.push(nome);
-  });
-
+/* O que falta num passo, sem tocar na tela. Dois consumidores leem daqui — a
+   validação do envio e o contador do índice —, então a regra do que é
+   obrigatório mora num lugar só. */
+function pendencias(n) {
+  const faltando = (OBRIGATORIOS[n] || []).filter(nome => !preenchido(nome));
   // Marcou "Outro"? Então o campo que abriu vira obrigatório.
   (POR_PASSO[n] || []).forEach(grupo => {
     const campo = OUTROS[grupo];
-    if (!campo || !marcouOutro(grupo)) return;
-    const ok = document.getElementById(campo).value.trim() !== '';
-    marcar(campo, !ok);
-    if (!ok) faltando.push(campo);
+    if (campo && marcouOutro(grupo) && document.getElementById(campo).value.trim() === '') faltando.push(campo);
   });
+  return faltando;
+}
 
+function validarPasso(n) {
+  if (DEMO) return [];   // demonstração: navega livre, sem cobrar campo
+  const faltando = pendencias(n);
+  (OBRIGATORIOS[n] || []).forEach(nome => marcar(nome, faltando.includes(nome)));
+  (POR_PASSO[n] || []).forEach(grupo => {
+    const campo = OUTROS[grupo];
+    if (campo) marcar(campo, faltando.includes(campo));
+  });
   return faltando;
 }
 
@@ -761,6 +821,43 @@ function validarTudo() {
 }
 
 /* ── Coleta ─────────────────────────────────────────────────── */
+/* ── Índice dos passos ──────────────────────────────────────── */
+const itensIndice = [...indice.querySelectorAll('a')];
+
+function recalcularIndice() {
+  itensIndice.forEach((a, i) => {
+    const n = DEMO ? 0 : pendencias(i + 1).length;
+    a.toggleAttribute('data-pendente', n > 0);
+    a.querySelector('.pa-indice__falta').textContent = n || '';
+    // O anel é aria-hidden: quem ouve precisa da contagem por extenso.
+    if (n) a.setAttribute('aria-label', a.querySelector('.pa-indice__nome').textContent +
+      ' — ' + n + (n > 1 ? ' respostas pendentes' : ' resposta pendente'));
+    else a.removeAttribute('aria-label');
+  });
+}
+
+/* Passo em foco = o último cujo topo já passou da linha do índice. Rolagem com
+   rAF em vez de IntersectionObserver: com quatro seções de alturas muito
+   diferentes, a faixa de disparo do observer fica vazia em parte do percurso e
+   o índice apagaria sozinho no meio da rolagem. */
+let agendado = false;
+function marcarPassoAtual() {
+  agendado = false;
+  if (indice.hidden) return;
+  let atual = passos[0];
+  passos.forEach(p => { if (p.getBoundingClientRect().top <= 140) atual = p; });
+  itensIndice.forEach(a => {
+    if (a.getAttribute('href') === '#titulo-' + atual.dataset.passo) a.setAttribute('aria-current', 'step');
+    else a.removeAttribute('aria-current');
+  });
+}
+window.addEventListener('scroll', () => {
+  if (agendado) return;
+  agendado = true;
+  requestAnimationFrame(marcarPassoAtual);
+}, { passive: true });
+marcarPassoAtual();
+
 function coletar() {
   const dados = {};
   ORDEM.forEach(nome => {
@@ -798,10 +895,12 @@ function montarResumo(dados) {
   return linhas.join('\n');
 }
 
-function mostrar(estado, titulo, html) {
+/* rolar=false quando quem chama vai rolar para outro lugar: dois
+   scrollIntoView suaves no mesmo tique brigam e o segundo cancela o primeiro. */
+function mostrar(estado, titulo, html, rolar = true) {
   retorno.setAttribute('data-estado', estado);
   retorno.innerHTML = '<h2>' + titulo + '</h2>' + html;
-  retorno.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (rolar) retorno.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function copiar(texto) {
@@ -834,9 +933,12 @@ form.addEventListener('submit', async (ev) => {
 
   const faltando = validarTudo();
   if (faltando.length) {
+    jaTentou = true;
+    recalcularIndice();
     mostrar('erro',
       faltando.length > 1 ? 'Faltam ' + faltando.length + ' respostas' : 'Falta uma resposta',
-      '<p>O que ficou pendente está marcado em rosa. Levei você até o primeiro.</p>');
+      '<p>O que ficou pendente está marcado em rosa, e o índice do topo mostra quantas faltam em cada passo. Levei você até a primeira.</p>',
+      false);
     const alvo = campos(faltando[0])[0];
     alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
     alvo.focus({ preventScroll: true });
@@ -884,6 +986,7 @@ form.addEventListener('submit', async (ev) => {
       atualizarContaChips();
       passos.forEach(p => { p.hidden = true; });
       document.querySelector('.pa-acoes').hidden = true;
+      indice.hidden = true;   // sem passos na tela, o índice apontaria para nada
     } catch (e) {
       resumoBox.value = texto;
       resumoBox.setAttribute('data-visivel', '1');
