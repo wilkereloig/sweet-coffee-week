@@ -236,6 +236,9 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--scw-bege);border-radius:var(--scw-r-card);
   padding:clamp(20px,2.6vw,28px);margin:0 0 clamp(24px,3vw,34px);
 }
+.og-forms__cabeca--com-acao{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.og-forms__cabeca--com-acao > div{flex:1 1 220px;min-width:0}
+.og-forms__cabeca--com-acao .og-btn{flex:0 0 auto}
 .og-forms__cabeca h2{font:900 18px/1.1 var(--scw-font);letter-spacing:-.03em;margin:0}
 .og-forms__cabeca p{margin:6px 0 0;font-size:13.5px;color:var(--scw-marrom)}
 .og-forms__lista{
@@ -543,9 +546,12 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 
     <section class="og-vista" id="vista-participantes" hidden>
       <section class="og-forms">
-        <div class="og-forms__cabeca">
-          <h2>Marcas com acesso</h2>
-          <p>Quem já tem conta para preencher o próprio cadastro.</p>
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Marcas com acesso</h2>
+            <p>Quem já tem conta para preencher o próprio cadastro.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-nova-marca">Cadastrar marca</button>
         </div>
         <div id="area-participantes"></div>
       </section>
@@ -759,7 +765,15 @@ async function chamarFuncao(nome, corpo) {
   });
   let dados = null;
   try { dados = await r.json(); } catch (e) {}
-  if (!r.ok) throw new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+  if (!r.ok) {
+    const err = new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+    /* ⚠️ O CORPO VIAJA JUNTO COM O ERRO. As recusas de colisão devolvem dados
+       que a tela precisa — `candidatura_id`, por exemplo, para mandar usar o
+       "Criar acesso" da ficha certa. Perder isso no `throw` transformaria uma
+       recusa acionável numa queixa sem saída. */
+    err.dados = dados;
+    throw err;
+  }
   return dados || {};
 }
 
@@ -797,6 +811,7 @@ $('btn-sair').addEventListener('click', () => {
 });
 
 $('btn-atualizar').addEventListener('click', () => carregar());
+$('btn-nova-marca').addEventListener('click', abrirCadastroManual);
 
 function abrirPainel() {
   entrada.style.display = 'none';
@@ -1171,9 +1186,16 @@ function renderParticipantes() {
   }
 
   if (!participantes.length) {
+    /* Texto corrigido em 22/08/2026: ele ainda dizia "recebe um convite por
+       e-mail e define a própria senha", que era o modelo anterior. Estado vazio
+       que descreve um fluxo removido ensina o caminho errado justo para quem
+       está chegando na tela pela primeira vez. */
     area.innerHTML = '<div class="og-estado"><h2>Nenhuma marca com acesso</h2>' +
-      '<p>O acesso nasce na ficha de uma candidatura aprovada do "Quero participar", ' +
-      'no botão <b>Criar acesso</b>. A marca recebe um convite por e-mail e define a própria senha.</p></div>';
+      '<p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar o botão ' +
+      '<b>Criar acesso</b> na ficha dela, ou cadastrar a marca direto aqui, no botão ' +
+      '<b>Cadastrar marca</b> acima — para quem você convidou sem passar pelo formulário.</p>' +
+      '<p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, ' +
+      'para você entregar.</p></div>';
     return;
   }
 
@@ -1292,6 +1314,117 @@ function abrirDetalhe(origem, id) {
   $('detalhe').hidden = false;
   $('btn-fechar').focus();
   render();
+}
+
+/* ── Cadastro manual de marca ──────────────────────────────────────────── */
+/* Para a marca que a organização convida direto e que nunca preencheu o
+   formulário público. Abre na MESMA folha do detalhe — nenhuma superfície nova
+   para manter em dia. Ver a spec em
+   docs/superpowers/specs/2026-08-22-cadastro-manual-participante-design.md */
+
+/* Cópia da slugificação da Edge Function, e a terceira do projeto (função,
+   /marca/ e aqui). ⚠️ As três TÊM que casar: aqui ela só PREVÊ o login, mas um
+   preview que mente é pior que preview nenhum — a pessoa confere, aprova, e
+   recebe outro login. */
+function slugPrevisto(nome) {
+  return String(nome || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' e ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+}
+
+const RECADO_MANUAL = {
+  entrada_ambigua:     'Defeito do painel: mandou candidatura e cadastro manual juntos.',
+  sem_nome_de_marca:   'O nome do estabelecimento é obrigatório — é ele que vira o login.',
+  marca_ja_tem_acesso: 'Já existe uma marca com acesso usando esse nome.',
+  existe_candidatura:  'Essa marca já se inscreveu pelo "Quero participar".',
+  nao_autorizado:      'A sessão não vale mais. Saia e entre de novo.',
+};
+
+function abrirCadastroManual() {
+  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
+  $('detalhe').classList.remove('is-fechando');
+  selecionado = null;
+
+  $('detalhe-titulo').textContent = 'Cadastrar marca';
+  $('detalhe-sub').textContent = 'Para quem você convidou sem passar pelo formulário';
+
+  $('detalhe-corpo').innerHTML =
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<p class="og-forms__nota">A conta nasce agora, com login e senha. Nome e telefone ' +
+        'são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>' +
+      '<label class="og-campo"><span>Nome do estabelecimento</span>' +
+        '<input type="text" id="man-nome" autocomplete="off" placeholder="ELOI Doces"></label>' +
+      /* O login previsto fica à vista ANTES de criar: ele não se troca depois,
+         e nome digitado errado vira login errado para sempre. */
+      '<p class="og-forms__nota" id="man-login">O login vai ser: <b>—</b></p>' +
+      '<label class="og-campo"><span>Telefone (WhatsApp)</span>' +
+        '<input type="tel" id="man-telefone" inputmode="tel" placeholder="(84) 90000-0000"></label>' +
+      '<label class="og-campo"><span>Responsável <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="text" id="man-responsavel" autocomplete="off"></label>' +
+      '<label class="og-campo"><span>E-mail <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="email" id="man-email" autocomplete="off" placeholder="contato@marca.com.br"></label>' +
+      '<div class="og-aviso" id="man-aviso" hidden></div>' +
+      '<div id="man-credenciais"></div>' +
+      '<button class="og-btn" type="button" id="man-criar">Criar marca e acesso</button>' +
+    '</div>';
+
+  const campo = $('man-nome');
+  campo.addEventListener('input', function () {
+    const s = slugPrevisto(campo.value);
+    $('man-login').innerHTML = 'O login vai ser: <b>' + escapar(s || '—') + '</b>';
+  });
+  $('man-criar').addEventListener('click', criarMarcaManual);
+
+  $('fundo').hidden = false;
+  $('detalhe').hidden = false;
+  campo.focus();
+}
+
+async function criarMarcaManual() {
+  const btn = $('man-criar'), av = $('man-aviso');
+  const nome = $('man-nome').value.trim();
+  const telefone = $('man-telefone').value.trim();
+
+  if (!nome) { av.textContent = 'Escreva o nome do estabelecimento.'; av.dataset.tom = 'erro'; av.hidden = false; $('man-nome').focus(); return; }
+  if (!telefone) { av.textContent = 'O telefone é como você entrega o acesso.'; av.dataset.tom = 'erro'; av.hidden = false; $('man-telefone').focus(); return; }
+
+  btn.disabled = true; btn.textContent = 'Criando…';
+  av.hidden = true;
+  try {
+    const r = await chamarFuncao('criar-acesso-marca', {
+      secret: senha,
+      marca: {
+        nome: nome,
+        telefone: telefone,
+        responsavel: $('man-responsavel').value.trim(),
+        email: $('man-email').value.trim(),
+      },
+    });
+    if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.');
+
+    await carregar();
+    av.textContent = 'Marca criada. Copie ou envie agora.';
+    av.dataset.tom = 'ok'; av.hidden = false;
+    btn.disabled = true; btn.textContent = 'Criada';
+    /* Mesma peça da candidatura aprovada. O segundo argumento imita o registro
+       para o WhatsApp saber o telefone: aqui não há candidatura de onde tirar. */
+    mostrarCredenciais({ empresa: nome, telefone: telefone }, r, 'man-credenciais');
+  } catch (e) {
+    const codigo = e.dados && e.dados.erro;
+    let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + e.message);
+    /* Recusa acionável: a candidatura existe, então o caminho certo é o botão
+       da ficha dela — e é isso que a mensagem diz, em vez de só reclamar. */
+    if (codigo === 'existe_candidatura') {
+      recado += ' Abra a ficha dela em "Respostas" e use o botão Criar acesso — ' +
+        'assim a candidatura fica vinculada à conta em vez de ficar órfã.';
+    }
+    av.textContent = recado; av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false; btn.textContent = 'Criar marca e acesso';
+  }
 }
 
 /* ── Apagar ────────────────────────────────────────────────────────────── */
@@ -1422,8 +1555,11 @@ function blocoAcesso(origem, reg) {
 /* Pintadas direto no DOM e NÃO remontadas: `abrirDetalhe` reescreve o corpo da
    ficha, e chamá-lo aqui apagaria a senha que a organização ainda não copiou.
    Por isso `criarAcesso` recarrega a lista mas não remonta a ficha. */
-function mostrarCredenciais(reg, r) {
-  const caixa = $('det-credenciais');
+function mostrarCredenciais(reg, r, alvo) {
+  /* `alvo` existe porque a peca serve as DUAS entradas: a ficha da
+     candidatura (det-credenciais) e a folha do cadastro manual
+     (man-credenciais). Duas copias divergiriam na primeira correcao. */
+  const caixa = $(alvo || 'det-credenciais');
   if (!caixa) return;
   const fone = soDigitos(campo(reg, CHAVES.telefone));
   const texto = montarRecado(reg, r);
@@ -1434,7 +1570,7 @@ function mostrarCredenciais(reg, r) {
       '<dl class="og-cred__par"><dt>Login</dt><dd>' + escapar(r.login) + '</dd></dl>' +
       '<dl class="og-cred__par"><dt>Senha</dt><dd>' + escapar(r.senha) + '</dd></dl>' +
       '<div class="og-cred__acoes">' +
-        '<button class="og-btn og-btn--mini" type="button" id="det-copiar-cred">Copiar dados</button>' +
+        '<button class="og-btn og-btn--mini" type="button" id="' + (alvo || 'det') + '-copiar">Copiar dados</button>' +
         (fone
           ? '<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" ' +
             'href="https://wa.me/' + (fone.length <= 11 ? '55' + fone : fone) +
@@ -1445,8 +1581,9 @@ function mostrarCredenciais(reg, r) {
         'É isso que faz a mensagem do WhatsApp parar de valer depois de usada.</p>' +
     '</div>';
 
-  $('det-copiar-cred').addEventListener('click', async function () {
-    const b = $('det-copiar-cred');
+  const idCopiar = (alvo || 'det') + '-copiar';
+  $(idCopiar).addEventListener('click', async function () {
+    const b = $(idCopiar);
     try {
       await navigator.clipboard.writeText(texto);
       b.textContent = 'Copiado';

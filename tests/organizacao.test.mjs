@@ -347,3 +347,79 @@ test('a carga confere a sessão em vez de mostrar lista vazia', () => {
   assert.match(carga, /rpc\(\s*['"]admin_ping['"]/, 'carregar() não chama admin_ping para conferir a sessão')
   assert.match(carga, /valida\s*!==\s*true/, 'o resultado do admin_ping não é usado')
 })
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Cadastro manual de marca — 22/08/2026.
+   Desenho: docs/superpowers/specs/2026-08-22-cadastro-manual-participante-design.md
+   ───────────────────────────────────────────────────────────────────────── */
+
+const EDGE_ACESSO = readFileSync(
+  new URL('../supabase/functions/criar-acesso-marca/index.ts', import.meta.url), 'utf8')
+const MIG_MANUAL = readFileSync(
+  new URL('../supabase/migrations/20260822_vincular_marca_manual.sql', import.meta.url), 'utf8')
+
+test('as funções do cadastro manual estão declaradas', () => {
+  for (const f of ['abrirCadastroManual', 'criarMarcaManual', 'slugPrevisto']) {
+    assert.match(JS, new RegExp(String.raw`function\s+${f}\s*\(`), 'função não declarada: ' + f)
+  }
+})
+
+test('o cadastro manual passa pela MESMA função de acesso', () => {
+  // ⚠️ O ponto central do desenho. Uma segunda Edge Function daria à trava de
+  // primeiro uso a mesma exposição que a slugificação já tem — e ali o modo de
+  // falha é pior: marca cadastrada à mão sem `deve_trocar_senha`, com senha
+  // permanente no WhatsApp, sem ninguém notar.
+  const corpo = JS.slice(JS.indexOf('async function criarMarcaManual'))
+  assert.match(corpo.slice(0, 1200), /chamarFuncao\(\s*['"]criar-acesso-marca['"]/,
+    'o cadastro manual não usa a função de acesso — há um segundo caminho')
+  assert.match(EDGE_ACESSO, /vincular_marca_manual/,
+    'a Edge Function não conhece o vínculo manual')
+})
+
+test('a função de acesso recusa entrada ambígua e entrada vazia', () => {
+  assert.match(EDGE_ACESSO, /origemId\s*&&\s*manual[\s\S]{0,80}entrada_ambigua/,
+    'aceitar candidatura e cadastro manual juntos cria conta com o nome errado')
+  assert.match(EDGE_ACESSO, /!origemId\s*&&\s*!manual[\s\S]{0,80}origem_obrigatoria/)
+})
+
+test('a colisão é checada ANTES de criar o usuário', () => {
+  // Ordem importa: criar o usuário e só então descobrir a colisão deixaria uma
+  // conta órfã no Auth, sem linha em participantes.
+  const colisao = EDGE_ACESSO.indexOf('marca_ja_tem_acesso')
+  const criacao = EDGE_ACESSO.indexOf('auth.admin.createUser')
+  assert.ok(colisao > -1, 'sumiu a recusa por nome já com acesso')
+  assert.ok(criacao > colisao, 'o usuário é criado antes da checagem de colisão')
+})
+
+test('a recusa por candidatura existente devolve o id dela', () => {
+  // Sem o id a mensagem seria queixa sem saída, e a organização criaria a conta
+  // à mão mesmo assim — deixando a candidatura para sempre sem vínculo.
+  assert.match(EDGE_ACESSO, /existe_candidatura[\s\S]{0,120}candidatura_id/)
+  assert.match(JS, /existe_candidatura/, 'a tela não trata a recusa por candidatura existente')
+})
+
+test('o erro da função carrega o corpo da resposta', () => {
+  // As recusas de colisão devolvem dados que a tela precisa. Perdê-los no
+  // `throw` transformaria recusa acionável em queixa sem saída.
+  const f = JS.slice(JS.indexOf('async function chamarFuncao'), JS.indexOf('function abrirPainel'))
+  assert.match(f, /err\.dados\s*=\s*dados/, 'chamarFuncao descarta o corpo do erro')
+})
+
+test('a RPC do vínculo manual não é chamável pelo navegador', () => {
+  assert.match(MIG_MANUAL, /create or replace function public\.vincular_marca_manual/)
+  assert.match(MIG_MANUAL, /revoke all on function public\.vincular_marca_manual[\s\S]{0,120}anon/,
+    'criar conta não é operação que possa sair de um bundle público')
+  assert.match(MIG_MANUAL, /papel\s*\)\s*\n?\s*values\s*\(\s*p_user,\s*'marca'/,
+    'o papel precisa ser fixo em marca — argumento livre aqui promove qualquer um a organização')
+})
+
+test('o estado vazio das marcas não descreve o fluxo removido', () => {
+  // Ele dizia "recebe um convite por e-mail e define a própria senha", que era
+  // o modelo anterior. Estado vazio que ensina caminho inexistente é pior que
+  // estado vazio mudo — ele é lido justamente por quem chega pela primeira vez.
+  const vazio = JS.slice(JS.indexOf('Nenhuma marca com acesso'))
+  assert.ok(!/convite por e-mail/.test(vazio.slice(0, 700)),
+    'o estado vazio ainda promete convite por e-mail')
+  assert.match(vazio.slice(0, 700), /Cadastrar marca/,
+    'o estado vazio não menciona o caminho do cadastro manual')
+})
