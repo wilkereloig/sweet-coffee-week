@@ -71,3 +71,19 @@ tests/
 `COMING_SOON_PUBLICATION` está **ligada** hoje, então o público vê só a landing
 `/em-breve`. **Não alterar sem pedido explícito**: ver `CLAUDE.md` §3.4, que explica
 as três flags e por que a alteração é decisão do Wilke, nunca automática.
+
+## Onde o site está no ar
+
+| Link | O que é |
+| --- | --- |
+| <https://sweetcoffeeweek.com.br> | **produção.** O domínio oficial, o link do cliente |
+| <https://site-sweet-coffee-week.vercel.app> | mesmo deploy de produção, pelo domínio da Vercel |
+| <https://site-sweet-coffee-week-git-master-eloidesignstudio.vercel.app> | alias fixo da branch `master` |
+
+O projeto na Vercel é **`site-sweet-coffee-week`** (org `eloidesignstudio`), e faz
+deploy de produção a cada push em `master`. Push em `dev/site-completo` gera Preview,
+com URL nova a cada commit — pegar a do último deploy no painel da Vercel.
+
+⚠️ **`sweet-coffee-preview.vercel.app` é um projeto ANTIGO e parado**, de outra conta
+de deploy. Ele responde 200 e serve uma versão obsoleta do site — por isso é pior que
+um link quebrado: parece atual. Não passar esse link para ninguém.
