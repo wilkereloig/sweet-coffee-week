@@ -463,16 +463,35 @@ assim que saíram, sem substituto direto, `#B3213B` (vinho), `#EBD6B4` (filete),
 regra antiga "evitar roxo" está **superada** — ela nasceu de um lavanda `#B38CFF` fora da
 identidade, não deste roxo.
 
-#### Exceção declarada única — seção 07 da Home
+#### Exceções declaradas — marca de terceiro dentro de bloco isolado
 
 A seção de realização usa a marca da **F2 Experience**, a agência que realiza o festival,
 não a marca do festival: fundo `#0B0B0C`, acento `#E50053`, tinta `#F5F5F5`, tipografia
-**Archivo**. É a única quebra de paleta e de fonte do site, proposital, restrita ao bloco
+**Archivo**. É a única quebra de **fonte** do site, proposital, restrita ao bloco
 `.f2-realiza*` em `src/styles/scw-home.css`. O teste `tests/redesign-2026.test.mjs`
 reprova essas cores em qualquer outro lugar e reprova `Archivo` fora dessa seção.
 
 Contraste medido: tinta **18,05:1** sobre o preto; o magenta dá **4,18:1**, então ele
 fica em **texto grande e elemento gráfico** — rótulo pequeno e CTA usam a tinta clara.
+
+**A segunda exceção é o verde do WhatsApp** (2026-08-22, a pedido do Eloi): o botão
+"Enviar no WhatsApp" da página estática `/quero-participar/` usa `#25D366`, a cor de
+marca do WhatsApp. Restrito ao seletor `.pa-whats`; `tests/quero-participar.test.mjs`
+reprova o hex em qualquer outro ponto do arquivo.
+
+⚠️ **A tinta é chocolate, não o branco que o WhatsApp usa:** branco sobre `#25D366` dá
+**1,98:1** e reprovaria. Chocolate dá **8,18:1**.
+
+**O princípio que as duas compartilham, e que vale para a próxima:** cor de marca de
+terceiro não entra na paleta — entra **escopada num seletor, com teste que reprova o
+vazamento**. A regra "nenhuma cor fora da tabela" continua valendo para o festival; ela
+nunca teve como objeto a marca de outra empresa.
+
+⚠️ **Ícone de marca de terceiro é outra história.** Não existe `redes/whatsapp` em
+`scw-icons-v2.js`, e §6.11 proíbe editar esse arquivo à mão. Desenhar a marca de memória
+seria **inventar logo (A4)**. O botão usa `redes/conversa` do próprio sistema; o glifo
+oficial só entra se alguém trouxer o SVG da brand page do WhatsApp, e aí entra como
+**asset**, igual à logo da F2 — nunca como ícone SCW.
 
 ### 6.2 Cor por página
 
