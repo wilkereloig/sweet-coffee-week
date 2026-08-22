@@ -27,7 +27,9 @@ test('toda função crítica está declarada, não só chamada', () => {
     [...JS.matchAll(/(?:function\s+|const\s+|let\s+)([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))
   const criticas = ['rpc', 'carregar', 'render', 'filtrados', 'todos', 'campo', 'escapar',
                     'abrirDetalhe', 'fecharDetalhe', 'salvar', 'montarAbas', 'montarForms', 'montarFiltroStatus',
-                    'mostrarEstado', 'abrirPainel', 'dataCurta', 'soDigitos']
+                    'mostrarEstado', 'abrirPainel', 'dataCurta', 'soDigitos',
+                    // casca de aplicativo (22/08/2026)
+                    'irPara', 'montarAbasApp', 'ligarTecladoAbas', 'montarEsqueleto']
   const faltando = criticas.filter((f) => !declaradas.has(f))
   assert.deepEqual(faltando, [], 'função chamada mas nunca declarada: ' + faltando.join(', '))
 })
@@ -111,4 +113,86 @@ test('todo asset absoluto existe em public/', () => {
   for (const p of new Set(pedidos)) {
     assert.ok(readFileSync(new URL('../public' + p, import.meta.url)), 'asset ausente: ' + p)
   }
+})
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Casca de aplicativo — acrescentado em 22/08/2026.
+
+   O que estas checagens protegem não é layout (isso o navegador mostra), e sim
+   as três coisas que quebram CALADAS: o escopo do service worker, o cache do
+   HTML e o cache de dado pessoal.
+   ───────────────────────────────────────────────────────────────────────── */
+
+const SW = readFileSync(new URL('../public/organizacao/sw.js', import.meta.url), 'utf8')
+const APP_MANIFEST = JSON.parse(
+  readFileSync(new URL('../public/organizacao/app.webmanifest', import.meta.url), 'utf8'))
+
+test('as funções da casca de app estão declaradas', () => {
+  // Redundante com a checagem de funções críticas acima, e de propósito: esta
+  // nomeia o motivo, então quem apagar uma delas lê "casca de app" no erro.
+  for (const f of ['irPara', 'montarAbasApp', 'montarEsqueleto']) {
+    assert.match(JS, new RegExp(String.raw`function\s+${f}\s*\(`), 'função não declarada: ' + f)
+  }
+})
+
+test('o service worker tem escopo próprio e não é da raiz', () => {
+  // 🔴 Um SW registrado da raiz passa a interceptar o site inteiro, inclusive a
+  // landing que está no ar. Desfazer isso não é deploy: é desregistro no
+  // navegador de cada visitante.
+  assert.match(JS, /register\(\s*['"]\/organizacao\/sw\.js['"]/, 'SW fora de /organizacao/')
+  assert.match(JS, /scope:\s*['"]\/organizacao\/['"]/, 'registro sem scope explícito')
+})
+
+test('o manifest do painel tem escopo próprio, com barra final', () => {
+  // Sem a barra o escopo vira a raiz e instalar o painel instalaria o site.
+  assert.equal(APP_MANIFEST.scope, '/organizacao/')
+  assert.equal(APP_MANIFEST.start_url, '/organizacao/')
+})
+
+test('os dois manifests não se sobrepõem', () => {
+  // São dois apps distintos: /manifest.webmanifest instala o site.
+  const site = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'))
+  assert.equal(site.scope, '/', 'o manifest do site mudou de escopo')
+  assert.notEqual(site.scope, APP_MANIFEST.scope)
+})
+
+test('o service worker não cacheia dado do banco', () => {
+  // O nome do serviço não pode aparecer nem em comentário: sem o host escrito,
+  // não há o que copiar e colar quando alguém for "fazer o offline funcionar".
+  assert.ok(!/supabase/i.test(SW), 'o SW menciona o serviço de banco — PII não pode encostar em caches')
+  assert.match(SW, /origin\s*!==\s*self\.location\.origin/, 'falta o corte de origem externa')
+})
+
+test('o HTML do painel é sempre da rede, nunca do cache', () => {
+  // O JS do painel é inline no documento: HTML cacheado congela o painel
+  // inteiro numa versão antiga, e a correção só chega quando a pessoa limpa o
+  // navegador. O cache ali é socorro de rede caída, não estratégia.
+  const navegacao = SW.match(/mode\s*===\s*'navigate'[\s\S]*?\n\s*return;/)
+  assert.ok(navegacao, 'o SW não trata navegação explicitamente')
+  assert.match(navegacao[0], /respondWith\(\s*\n?\s*fetch\(/, 'navegação não busca a rede primeiro')
+})
+
+test('o SW não é cacheado pelo CDN', () => {
+  const v = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
+  const h = v.headers.find((x) => x.source === '/organizacao/sw.js')
+  assert.ok(h, 'sem header de no-store para o service worker')
+  assert.match(h.headers[0].value, /no-store/)
+})
+
+test('o painel abre num destino e a barra tem os três', () => {
+  // Se um destino sumir do HTML, irPara() cai no fallback e a aba fica órfã.
+  for (const v of ['resumo', 'respostas', 'formularios']) {
+    assert.match(HTML, new RegExp('id="vista-' + v + '"'), 'falta a seção do destino ' + v)
+    assert.match(HTML, new RegExp('data-vista="' + v + '"'), 'falta o botão do destino ' + v)
+  }
+})
+
+test('o bloco de prefers-reduced-motion é o último do CSS', () => {
+  // Ele zera animação e transição de tudo que veio antes. Regra acrescentada
+  // depois dele escaparia do reduced-motion sem ninguém notar.
+  const style = HTML.slice(HTML.indexOf('<style>'), HTML.indexOf('</style>'))
+  const i = style.lastIndexOf('@media (prefers-reduced-motion')
+  assert.ok(i > 0, 'o painel não respeita prefers-reduced-motion')
+  const depois = style.slice(i).replace(/@media[^{]*\{[\s\S]*?\n\}/, '').trim()
+  assert.equal(depois, '', 'há CSS depois do bloco de reduced-motion: ' + depois.slice(0, 80))
 })
