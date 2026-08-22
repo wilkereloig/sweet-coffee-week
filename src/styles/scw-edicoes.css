@@ -16,7 +16,7 @@
 
 .scw-edx {
   /* Tab bar do site (76px + safe-area) montada POR FORA da página. */
-  --scw-edx-abas: calc(76px + env(safe-area-inset-bottom, 0px));
+  --scw-edx-abas: calc(76px + var(--scw-safe-b));
   /* Acento da edição em foco — trocado inline por cena (ver Edicoes.jsx). */
   --scw-edx-tom: var(--scw-cyan);
   --scw-edx-tinta: var(--scw-choco);   /* texto SOBRE o acento (AA) */
@@ -187,9 +187,15 @@
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
 }
-.scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+}
 .scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
-.scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 
 .scw-gal__contador {
   padding-inline: 2px;
@@ -422,7 +428,10 @@
   color: var(--scw-creme);
   box-shadow: none;
 }
-.scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+}
 .scw-edx__botao--vazado:active { transform: none; box-shadow: none; }
 
 /* --- painéis flutuantes (participantes / curiosidades) -------------------- */
@@ -485,13 +494,19 @@
   background: var(--scw-creme);
   color: var(--scw-choco);
 }
-.scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 .scw-edx__painel--escuro .scw-edx__fechar {
   border-color: rgba(254, 240, 221, .3);
   background: transparent;
   color: var(--scw-creme);
 }
-.scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
+}
 
 .scw-edx__marcas {
   list-style: none;
@@ -610,7 +625,10 @@
   cursor: pointer;
   transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
 }
-.scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
+}
 .scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
 .scw-edx__seta--proxima {
   border: 0;
@@ -697,7 +715,10 @@
   white-space: nowrap;
   color: rgba(254, 240, 221, .64);
 }
-.scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
+}
 .scw-edx__ano.is-ativo .scw-edx__ano-rot { color: var(--scw-creme); }
 
 .scw-edx__rodape-legenda {
@@ -731,7 +752,10 @@
 
 .scw-edx-mob {
   position: relative;
-  min-height: 100vh;
+  /* `svh` pelo mesmo motivo dos heróis (scw-2026.css §Base): `vh` no iOS é o
+     viewport com a barra recolhida, e a cena da edição nascia mais alta que a
+     área visível. */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   overflow-x: clip;
@@ -952,14 +976,18 @@
   bottom: var(--scw-edx-abas);
   z-index: 8;
   padding: 13px 0 14px;
-  /* fundo semi-opaco de propósito: backdrop-filter sobre cena animada trava
-     o compositor (blur + readback de GPU a cada frame). */
-  background: rgba(43, 14, 6, .96);
+  /* Sem backdrop-filter de propósito: blur sobre cena animada trava o
+     compositor (blur + readback de GPU a cada frame, §10.3). O que era
+     `rgba(43,14,6,.96)` virou CHAPADO em 22/08/2026 — aqueles 4% deixavam a
+     barra da galeria passar por baixo da régua, e o contador "02–03 / 12"
+     aparecia como texto fantasma atrás dos anos. Sem blur, 96% não lê como
+     vidro: lê como sujeira. A cor é a mesma, só a transparência saiu. */
+  background: rgb(43, 14, 6);
   border-top: 1px solid rgba(254, 240, 221, .14);
   box-shadow: 0 -12px 28px rgba(43, 14, 6, .34);
   color: var(--scw-creme);
 }
-.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + var(--scw-safe-b)); }
 .scw-edx-mob__regua-topo {
   display: flex;
   align-items: baseline;
@@ -1008,14 +1036,33 @@
   /* SEM transition em width/transform: travava o valor no meio do caminho. */
   transition: background-color 420ms linear;
 }
+/* `seta · anos · seta`, o mesmo arranjo do rodapé do desktop
+   (.scw-edx__rodape-linha). Os anos são a única peça elástica: as setas ficam
+   em `flex: 0 0 auto` pela própria .scw-edx__seta. */
+.scw-edx-mob__regua-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+}
 .scw-edx-mob__regua-anos {
   display: flex;
+  flex: 1 1 auto;
+  /* Item de flex tem `min-width: auto`: sem isto a faixa dos 16 anos cresce
+     até caber inteira e empurra a seta da direita para fora da tela. */
+  min-width: 0;
   gap: 4px;
-  padding: 0 18px;
+  padding: 0 4px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  /* Sem `contain` o arrasto da régua encadeava no documento assim que chegava
+     ao 2016 ou ao 2026.1 — no iOS isso vira o gesto de voltar página, e você
+     saía de Edições tentando escolher um ano. */
+  overscroll-behavior-x: contain;
+  /* O ano encostava na borda do trilho ao ser centralizado pelo JS. */
+  scroll-padding-inline: 6px;
 }
 .scw-edx-mob__regua-anos::-webkit-scrollbar { display: none; }
 .scw-edx-mob__ano {
@@ -1062,41 +1109,13 @@
   color: var(--scw-creme);
 }
 
-/* --- peça 2/3: setas laterais, metade fora da tela ------------------------- */
-.scw-edx-mob__seta {
-  position: fixed;
-  top: 31%;
-  z-index: 7;
-  display: grid;
-  place-items: center;
-  width: 62px; height: 52px;
-  border: 1px solid rgba(254, 240, 221, .26);
-  background: rgba(43, 14, 6, .78);
-  color: var(--scw-creme);
-  cursor: pointer;
-  box-shadow: 0 10px 26px rgba(43, 14, 6, .4);
-}
-.scw-edx-mob__seta--ant {
-  left: -19px;
-  padding: 0 16px 0 0;
-  border-radius: 0 999px 999px 0;
-  border-left: 0;
-  animation: scwEdxPulsoEsq 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
-}
-.scw-edx-mob__seta--prox {
-  right: -19px;
-  padding: 0 0 0 16px;
-  border-radius: 999px 0 0 999px;
-  border-right: 0;
-  animation: scwEdxPulsoDir 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
-}
-/* Nos extremos a seta sem destino sai da tabulação (disabled), não só some. */
-.scw-edx-mob__seta:disabled {
-  opacity: 0;
-  pointer-events: none;
-  animation: none;
-  cursor: default;
-}
+/* ⛔ As setas laterais fixas (62×52 a 31% da altura, metade fora do quadro,
+   com laço de pulso de 2,8s cada) SAÍRAM em 22/08/2026, a pedido do Eloi: as
+   setas de passar passaram a viver dentro da régua, flanqueando os anos.
+   Não recriar — o controle é um só, e é a peça do rodapé do desktop.
+   Nos extremos a seta sem destino continua com `disabled` de verdade, agora no
+   estado padrão do sistema (.45), não em `opacity: 0`: dentro da régua, sumir
+   deixaria um buraco na linha. */
 
 /* ============================================================================
    Animações — só transform / opacity / filter / clip-path
@@ -1131,8 +1150,6 @@
 @keyframes scwEdxVarrer { from { background-position: -150px center; } to { background-position: calc(100% + 150px) center; } }
 @keyframes scwEdxEmpurra { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
 @keyframes scwEdxPainel { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
-@keyframes scwEdxPulsoEsq { 0%, 58%, 100% { transform: translateX(0); } 70% { transform: translateX(7px); } 82% { transform: translateX(2px); } }
-@keyframes scwEdxPulsoDir { 0%, 58%, 100% { transform: translateX(0); } 70% { transform: translateX(-7px); } 82% { transform: translateX(-2px); } }
 
 /* Sem movimento: a apresentação continua inteiramente navegável (a regra
    global de .scw-raiz já zera durações; aqui garantimos estado final visível). */
@@ -1145,4 +1162,14 @@
   .scw-gal__quadro,
   .scw-gal__foto--entra { animation: none; clip-path: none; translate: none; scale: none; }
   .scw-gal__foto--sai { display: none; }
+}
+
+/* ============================================================================
+   Pisos de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   O rótulo da régua vinha a 9px e o "Período" da ficha a 10px. O bloco desktop
+   (.scw-edx__meta) fica intocado: lá a distância de leitura é outra.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .scw-edx-mob__regua-rot { font-size: var(--scw-piso-rotulo-mob); }
+  .scw-edx-mob__meta dt   { font-size: var(--scw-piso-rotulo-mob); }
 }

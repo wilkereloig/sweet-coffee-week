@@ -10,9 +10,13 @@
    que já está no ar, e morre junto com a landing quando o institucional
    for publicado.
 
-   Também servem a três peças que ainda leem nomes antigos:
-   `components/CookieConsent.jsx` (--font-sans), `components/icons.jsx` e
-   `data/participants.js` / `data/participantAssets.js` (--lovers-*).
+   Também servem a duas peças que ainda leem nomes antigos: `components/icons.jsx`
+   e `data/participants.js` / `data/participantAssets.js` (--lovers-*).
+   O `CookieConsent.jsx` saiu desta lista em ago/2026: o banner era a única peça
+   de casca lendo --font-sans (e mais três hex do DS v2), o que o fazia renderizar
+   em system-ui nas seis institucionais. Agora ele vive em scw-2026.css, com os
+   tokens do sistema vivo. O --font-sans continua aqui porque a própria landing
+   o usa.
    ------------------------------------------------------------------------- */
 :root {
   /* superfície e tinta — antes em swc-redesign.css */

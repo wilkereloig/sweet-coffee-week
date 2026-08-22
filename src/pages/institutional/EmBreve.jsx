@@ -256,7 +256,11 @@ export function EmBrevePage() {
         /* 3 — FECHO */
         .eb-foot { background: #2B1810; color: rgba(255,241,230,.8); }
         .eb-foot__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 26px; padding-bottom: 26px; font-size: 13.5px; }
-        .eb-foot a { color: #F8B511; font-weight: 700; text-decoration: none; }
+        /* 44px de alvo: o link media 141x21 e era o menor toque da landing —
+           a única página no ar hoje. O padding negativo na lateral mantém o
+           alinhamento óptico do rodapé, que é centrado no celular. */
+        .eb-foot a { color: #F8B511; font-weight: 700; text-decoration: none;
+          display: inline-flex; align-items: center; min-height: 44px; padding-inline: 4px; }
 
         @media (max-width: 720px) {
           .eb-combo { grid-template-columns: 1fr; }

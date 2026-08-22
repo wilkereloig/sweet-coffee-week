@@ -58,7 +58,11 @@
 }
 
 @media (max-width: 1000px) {
-  .hm .scw-hero__foto { background-position: var(--pos-mobile, center 32%); }
+  .hm .scw-hero__foto {
+    /* No celular entra a variante de 960px — a mesma foto, no tamanho da tela. */
+    background-image: var(--foto-mobile, var(--foto));
+    background-position: var(--pos-mobile, center 32%);
+  }
   /* No celular a foto fica quase limpa: o texto desce para o bloco chocolate. */
   .hm .scw-hero__veu {
     background: linear-gradient(180deg,
@@ -130,7 +134,10 @@
   font: 800 13px/1 var(--scw-font);
   transition: var(--scw-transicao);
 }
-.hm-link:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .hm-link:hover { color: var(--scw-choco); }
+}
 /* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
    tinta — a tinta de um link de 15px sobre creme precisa de 4,5:1 e só roxo e
    marrom fecham isso; o filete é objeto gráfico e se resolve em 3:1.
@@ -145,7 +152,10 @@
   border-bottom: 2px solid var(--destino, var(--scw-marrom));
   font-size: 15px;
 }
-.hm-link--sublinhado:hover { border-color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .hm-link--sublinhado:hover { border-color: var(--scw-choco); }
+}
 
 /* ============================================================================
    02 O que é — anatomia do combo + duas galerias irmãs
@@ -208,6 +218,13 @@
    sinal encostava nos discos e a leitura "doce + salgado + bebida" virava um
    bloco só. */
 .hm-ingredientes {
+  /* As duas medidas da composição vivem AQUI, e só aqui: o disco do ingrediente
+     e o disco do "+". O alinhamento do "+" é derivado das duas por cálculo, e a
+     escala de celular troca os dois valores num lugar só (§5.2). Antes os dois
+     `clamp()` estavam escritos três vezes — no disco, no "+" e de novo no bloco
+     do celular —, com um comentário avisando "mexeu num, mexe aqui". */
+  --ing-disco: clamp(84px, 8vw, 124px);
+  --ing-mais: clamp(30px, 2.8vw, 40px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
@@ -218,7 +235,7 @@
 .hm-ing__disco {
   display: grid;
   place-items: center;
-  width: clamp(84px, 8vw, 124px);
+  width: var(--ing-disco);
   aspect-ratio: 1;
   border-radius: 50%;
   /* A tinta vem do item: creme sobre magenta, chocolate sobre amarelo e cyan. */
@@ -230,7 +247,8 @@
    de ciclo (desenho de 20/08/2026). Os quatro ficam empilhados no mesmo lugar e
    o que muda é a opacidade — nada entra e sai do fluxo, então não há salto de
    layout. O atraso de 2200ms por peça é 8800/4: quando um sai, o próximo entra.
-   `inset: 21%` deixa o desenho em 58% do disco, como o resto do sistema. */
+   O desenho fica em 58% do disco, como o resto do sistema (ver a medida
+   explícita logo abaixo). */
 @keyframes scwIcnCiclo {
     0% { opacity: 0; transform: scale(.9); }
     3% { opacity: 1; transform: scale(1); }
@@ -238,11 +256,22 @@
    29% { opacity: 0; transform: scale(1.06); }
   100% { opacity: 0; transform: scale(1.06); }
 }
+/* ⚠️ Medida EXPLÍCITA, nunca `inset` + `width: auto` (22/08/2026).
+   O `<svg>` desta seção não traz atributo `width`/`height` — só `viewBox` —,
+   então ele é elemento substituído sem dimensão intrínseca, e `width: auto`
+   fica a cargo do motor: o Chromium estica a caixa até os `inset`, o Safari
+   resolve em 100% do bloco que o contém. No iPhone o desenho saía do tamanho
+   do DISCO INTEIRO, ancorado em 21%/21%, transbordando embaixo e à direita —
+   era o "ícone desalinhado" que aparecia na tela e não na medição headless.
+   Com `top`/`left` e `width`/`height` escritos, não sobra nada para o motor
+   decidir: a caixa é 58% do disco (100 − 2 × 21), centrada, em todo navegador.
+   ⛔ Não voltar para `inset` com medida automática. */
 .hm-ing__icone {
   position: absolute;
-  inset: 21%;
-  width: auto;
-  height: auto;
+  top: 21%;
+  left: 21%;
+  width: 58%;
+  height: 58%;
   transform-origin: center;
   opacity: 0;
   animation: scwIcnCiclo 8800ms cubic-bezier(.22, .7, .24, 1) infinite;
@@ -267,9 +296,9 @@
   display: grid;
   place-items: center;
   align-self: start;
-  width: clamp(30px, 2.8vw, 40px);
+  width: var(--ing-mais);
   aspect-ratio: 1;
-  margin-top: calc(.5 * (clamp(84px, 8vw, 124px) - clamp(30px, 2.8vw, 40px)));
+  margin-top: calc(.5 * (var(--ing-disco) - var(--ing-mais)));
   border-radius: 50%;
   background: var(--scw-bege);
   color: var(--scw-marrom);
@@ -321,13 +350,30 @@
   text-wrap: pretty;
 }
 .hm-galeria__foto {
+  position: relative;   /* âncora da foto absoluta abaixo */
   margin: 0;
   aspect-ratio: 1;
   border-radius: var(--scw-r-card);
   overflow: hidden;
+  /* O bege continua sendo o que se vê enquanto a foto não chegou — é a mesma
+     reserva honesta do §6.12, agora com função dupla: com `loading="lazy"` a
+     foto entra depois, e sem uma cor por baixo o quadro piscaria branco. */
   background-color: var(--scw-bege);
-  background-size: cover;
-  background-position: center;
+}
+/* A foto virou `<img>` para poder ser preguiçosa (ver GaleriaCarrossel.jsx).
+   O enquadramento que era `background-position: center` vira `object-position`;
+   o recorte, `object-fit`. Mesmo resultado, com carga sob demanda. */
+/* Absoluta, e não `height: 100%`: a moldura tem altura por `aspect-ratio`, sem
+   altura explícita, então a percentagem do filho não resolve e o `<img>` volta
+   ao tamanho intrínseco — o que crescia a página em 11px. Fora do fluxo, a
+   moldura manda sozinha. */
+.hm-galeria__foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 .hm-galeria__reserva { aspect-ratio: 1; border-radius: var(--scw-r-card); }
 
@@ -368,8 +414,14 @@
 }
 /* Parar é obrigatório, não cortesia: ler a legenda de um item em movimento é
    impossível, e o item é a informação. */
-.hm-fita:hover .hm-fita__trilha,
 .hm-fita:focus-within .hm-fita__trilha { animation-play-state: paused; }
+/* A metade de hover fica no ponteiro. No toque o iOS emula `:hover` e o estado
+   gruda: um encostar de dedo parava a fita e ela só voltava quando você tocava
+   em outro lugar — parecia travada. Quem lê no celular tem o `:focus-within`,
+   que continua valendo nas duas telas. */
+@media (hover: hover) {
+  .hm-fita:hover .hm-fita__trilha { animation-play-state: paused; }
+}
 
 .hm-fita__trilha > li {
   display: flex;
@@ -481,7 +533,10 @@
   font: 800 14px/1 var(--scw-font);
   transition: var(--scw-transicao);
 }
-.hm-rota__cta:hover { gap: 14px; }
+
+@media (hover: hover) {
+  .hm-rota__cta:hover { gap: 14px; }
+}
 /* Com o destino já no card, o CTA vira contraste puro: chapa escura sobre card
    claro, chapa clara sobre card escuro. Sem anel — o anel de 2px existia porque
    o botão colorido não separava do card colorido; agora separa sozinho.
@@ -664,7 +719,10 @@
   color: var(--scw-choco);
   transition: var(--scw-transicao);
 }
-.hm-voz__link:hover { gap: 14px; }
+
+@media (hover: hover) {
+  .hm-voz__link:hover { gap: 14px; }
+}
 
 .hm-imprensa__h2 { margin: 14px 0 clamp(20px, 2vw, 28px); max-width: 18ch; }
 .hm-materia {
@@ -712,7 +770,10 @@
   color: var(--scw-choco);
   transition: var(--scw-transicao);
 }
-.hm-linha:hover { background: var(--scw-creme); }
+
+@media (hover: hover) {
+  .hm-linha:hover { background: var(--scw-creme); }
+}
 .hm-linha__veiculo {
   display: block;
   font: 700 11px/1.2 var(--scw-font);
@@ -736,7 +797,10 @@
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.hm-imprensa__toggle:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .hm-imprensa__toggle:hover { color: var(--scw-choco); }
+}
 
 /* ============================================================================
    07 Realização — KV F2 Experience (quebra de marca proposital)
@@ -842,7 +906,10 @@
   text-decoration: none;
   transition: var(--scw-transicao);
 }
-.f2-realiza__cta:hover { border-bottom-width: 4px; }
+
+@media (hover: hover) {
+  .f2-realiza__cta:hover { border-bottom-width: 4px; }
+}
 
 .f2-realiza__numeros {
   display: grid;
@@ -908,16 +975,22 @@
 }
 
 @media (max-width: 560px) {
-  .hm-ingredientes { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 18px; }
-  .hm-ing { flex-direction: row; align-items: center; gap: 16px; text-align: left; }
-  .hm-ing__nome { margin-top: 0; }
-  /* Empilhado, o "+" desce para a coluna do disco: metade do disco do
-     ingrediente menos metade dele mesmo. Os dois clamps são os mesmos de
-     .hm-ing__disco e .hm-mais — mexeu num, mexe aqui. */
-  .hm-mais {
-    margin-top: 0;
-    margin-left: calc(clamp(84px, 8vw, 124px) / 2 - clamp(30px, 2.8vw, 40px) / 2);
+  /* ⛔ O empilhamento vertical SAIU em 22/08/2026 (pedido do Eloi: "coloque o
+     combo em uma única linha"). Um ingrediente por linha custava três telas de
+     rolagem para dizer "doce + salgado + bebida", e o "+" entre duas linhas
+     lia como marcador de lista, não como soma. **Não empilhar de novo.**
+     A linha do desktop continua valendo aqui; o que muda é a escala, e ela
+     muda nas duas medidas de uma vez porque as duas são token da composição.
+     Conta em 390px: 3 discos de 66px + 2 sinais de 23px + 4 vãos de 8px = 276
+     numa faixa de 342 — sobra folga. Em 320px dá 232 numa faixa de 272. */
+  .hm-ingredientes {
+    --ing-disco: clamp(58px, 17vw, 84px);
+    --ing-mais: clamp(22px, 6vw, 30px);
+    gap: 8px;
   }
+  /* O nome desce junto: a 19px "salgado" não cabia na coluna de 88px e
+     quebrava em duas linhas, desalinhando os três. */
+  .hm-ing__nome { font-size: clamp(14px, 4vw, 19px); margin-top: 10px; }
   .hm-voz__assinatura { flex-wrap: wrap; }
 }
 

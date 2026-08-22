@@ -62,7 +62,7 @@ Fonte única: `src/data/festivalFacts.js`. É daqui que a Home lê os contadores
 | Edições realizadas | 16 | 16 edições |
 | Anos de festival | 10 | 10 anos |
 | Primeiro ano | 2016 | — |
-| Marcas participantes (acumulado) | 100 | +100 marcas |
+| Marcas participantes (acumulado) | 120 | +120 marcas |
 | Combos vendidos | 34 mil | +34 mil combos |
 | Visualizações no Instagram | 18 milhões | +18 milhões de visualizações |
 

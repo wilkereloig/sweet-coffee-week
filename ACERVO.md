@@ -151,7 +151,7 @@ Sweet & Coffee Week Lovers 2026.1.
 - **Etapa (Edições):** Cultura pop
 - **Observação de participantes:** o acervo também traz uma logo "Kyara" (possível 28º participante / substituição) — a conferir.
 - **Premiação:** completa — Sweet Awards. Melhor Combo teve Júri Técnico e Sweet Lovers; demais categorias sem distinção de trilha nas peças. (Ver §4.)
-- **Participantes (lista):** Bella Petit; Bell's; Bocaditos; Café Brigadeiro; Café com Bike; Caroli; Casa de Taipa; Casa dos Salgados Gourmet; Casa Nacre; Cecilia Mindelo; Chocolatudos; Cookorote; Das Melo; Delizeu; Dolce Gelato; Edileuza Doces Finos; Frans Café; Jolie; Mangai; Mine Confeitaria; Momento Gourmet; Mr Cupcake; Paneer; Rafaela Fontes; Realize Gourmet; Suisse Brownie; Very Sugar
+- **Participantes (lista):** Bella Petit; Bell's; Bocaditos; Café Brigadeiro; Café com Bike; Caroli; Casa de Taipa; Casa dos Salgados Gourmet; Casa Nacre; Cecilia Mindelo; Chocolatudos por Laís; Cookorote; Das Melo; Delizeu; Dolce Gelato; Edileuza Doces Finos; Frans Café; Jolie; Mangai; Mine Confeitaria; Momento Gourmet; Mr Cupcake; Paneer; Rafaela Fontes; Realize Gourmet; Suisse Brownie; Very Sugar
 - **Visual (Edições):** Máscaras, capas, raios, escudos, explosões de HQ e emblemas.
 
 ### 10 — 2021.1 · S&C Séries
@@ -160,7 +160,7 @@ Sweet & Coffee Week Lovers 2026.1.
 - **Participantes:** 30
 - **Etapa (Edições):** Maratona de sabores
 - **Premiação:** completa — Sweet Awards com Júri Técnico e Sweet Lovers + Menção Honrosa. Vencedores lidos nos cards do acervo (não foram postados no feed). (Ver §4.)
-- **Participantes (lista):** Lulu Café; Bem Eu Confeitaria; Aumer; Bell's; Café Leviz; Casa dos Salgados; Bendita Confeitaria; Chocolatudo; Cacau Show; Marlon Gastronomia; Bella Peti; Cássia Ribeiro; Paneer; Casa Nacre; Royal Trudel; Franz Café; Very Sugar; Cecília Mindêlo; Bocaditos; Rafaela Fontes; Caroli Douces; Mine; Das Melo; Mangai; Suisse; Mr Cupcake; Momento Gourmet; Radio Café; Carol Dantas; Café Brigadeiro
+- **Participantes (lista):** Lulu Café; Bem Eu Confeitaria; Aumer; Bell's; Café Leviz; Casa dos Salgados; Bendita Confeitaria; Chocolatudos por Laís; Cacau Show; Marlon Gastronomia; Bella Peti; Cássia Ribeiro; Paneer; Casa Nacre; Royal Trudel; Franz Café; Very Sugar; Cecília Mindêlo; Bocaditos; Rafaela Fontes; Caroli Douces; Mine; Das Melo; Mangai; Suisse; Mr Cupcake; Momento Gourmet; Radio Café; Carol Dantas; Café Brigadeiro
 - **Visual (Edições):** Tela, controle remoto, sofá, botão play, legenda, pipoca e frames.
 
 ### 11 — 2021.2 · S&C Terras Potiguares
@@ -170,7 +170,7 @@ Sweet & Coffee Week Lovers 2026.1.
 - **Etapa (Edições):** Identidade local
 - **Premiação:** completa — Sweet Awards com Júri Técnico e Sweet Lovers. (Ver §4.)
 - **Patrocinadores/parceiros:** Sebrae/RN (parceria); Cecafés RN (fornecedor); Primar Orgânica (fornecedor); Ybiira (fornecedor); Fazenda Caju (fornecedor)
-- **Participantes (lista):** Atelier Mine; Aumer Restaurante; Bell's Café; Bem Eu; Bendita; Bocaditos; Café Brigadeiro; Carol Dantas; Caroli; Cássia Ribeiro; Cecília Mindelo; Chefit; Chocolatudos; Da Terra; Delizeu; Doce Lelê; Douce Bien; Duart's; Frans Cidade Jardim; Frans Cidade Verde; Le Paradis; Lulu Cake; Marlon Doceria; Mr Cupcake; Paneer; Parma Doces; Recanto da Prosa; Sandra Maia Chocolateria; Suisse Brownie; Very Sugar
+- **Participantes (lista):** Atelier Mine; Aumer Restaurante; Bell's Café; Bem Eu; Bendita; Bocaditos; Café Brigadeiro; Carol Dantas; Caroli; Cássia Ribeiro; Cecília Mindelo; Chefit; Chocolatudos por Laís; Da Terra; Delizeu; Doce Lelê; Douce Bien; Duart's; Frans Cidade Jardim; Frans Cidade Verde; Le Paradis; Lulu Cake; Marlon Doceria; Mr Cupcake; Paneer; Parma Doces; Recanto da Prosa; Sandra Maia Chocolateria; Suisse Brownie; Very Sugar
 - **Visual (Edições):** Caju, castanha, coco, queijo coalho, nata, sol, dunas, mar e símbolos de Natal.
 
 ### 12 — 2022 · S&C Movies
@@ -335,7 +335,7 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 **Júri Técnico:**
 - Melhor Combo: 1º Bocaditos · 2º Mr Cupcake · 3º Caroli
 - Melhor Doce: 1º Caroli · 2º Mr Cupcake · 3º Bocaditos
-- Melhor Salgado: 1º Bocaditos · 2º Sandra Maia · 3º Chocolatudos
+- Melhor Salgado: 1º Bocaditos · 2º Sandra Maia · 3º Chocolatudos por Laís
 - Melhor Bebida: 1º Very Sugar · 2º Cássia Ribeiro · 3º Recanto da Prosa
 - Melhor Apresentação: 1º Bocaditos · 2º Marlon · 3º Mine
 - Melhor Criatividade: 1º Bocaditos · 2º Marlon · 3º Mine
@@ -343,8 +343,8 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 
 **Sweet Lovers:**
 - Melhor Combo: 1º Marlon · 2º Mr Cupcake · 3º Delizeu
-- Melhor Sabor: 1º Marlon · 2º Chocolatudos · 3º Delizeu
-- Melhor Apresentação: 1º Marlon · 2º Mr Cupcake · 3º Chocolatudos
+- Melhor Sabor: 1º Marlon · 2º Chocolatudos por Laís · 3º Delizeu
+- Melhor Apresentação: 1º Marlon · 2º Mr Cupcake · 3º Chocolatudos por Laís
 - Melhor Criatividade: 1º Marlon · 2º Mr Cupcake · 3º Delizeu
 - Melhor Atendimento: 1º Marlon · 2º Mr Cupcake · 3º Recanto da Prosa
 - Melhor Envolvimento: 1º Mr Cupcake · 2º Mine · 3º Delizeu
@@ -486,6 +486,9 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 > grafias por `participantAliases`. Os números abaixo são **derivados dos dados** das
 > listas de participantes/vencedores — não há um campo fixo "ranking" na fonte. Ver §8.
 
+> **Chocolatudos por Laís** é a forma de exibição correta — decisão do Eloi, 21/08/2026.
+> "Chocolatudos" e "Chocolatudo" seguem como alias e nenhuma contagem muda.
+
 **Aliases canônicos de participantes (participantAliases — fonte sweetCoffeeHistory.js):**
 - **Mr. Cupcake** ← Mr Cupcake, Mr. Cupcake, Mr. Cupcake Confeitaria
 - **Canuto's** ← Canutos, Canuto's, Canuto's *(com aspa curva)*
@@ -501,7 +504,7 @@ aliases canônicos da fonte indica que se referem aos mesmos prêmios):
 - **Marlon Vinicius** ← Marlon, Marlon Vinicius, Marlon Gastronomia, Marlon Doceria
 - **Bolomania** ← Bolo Mania, Bolomania
 - **Very Sugar** ← Very Sugar, Verysugar
-- **Chocolatudos** ← Chocolatudos, Chocolatudo, Chocolatudos por Laís
+- **Chocolatudos por Laís** ← Chocolatudos, Chocolatudo, Chocolatudos por Laís
 - **Casa dos Salgados Gourmet** ← Casa dos Salgados, Casa dos Salgados Gourmet
 - **Jolie** ← Jolie, Jolie Pâtisserie, Jolie Café Pâtisserie, Jolie Parissiere
 - **Parma Doces** ← Parma, Parma Doces
@@ -636,7 +639,7 @@ Identidade da página: institucional do festival (espresso `#2B1810` + creme + o
 - **Nº de edições:** `sweetCoffeeHistory.js` = **16** (oficial, inclui Lovers); `sweetHistory.js` = **15** (antiga, sem Lovers). Sempre preferir a base oficial.
 - **Temas "S&C ..." vs grafia pública:** os nomes das edições na base usam o prefixo "S&C" — expandir para "Sweet & Coffee Week" ao escrever para o público.
 - **2016 sem tema:** o campo `tema` da 1ª edição é `null` (nome "Início"). Sem dado de tema no acervo.
-- **2020.1 período aproximado:** "julho de 2020 (encerramento 19–20/jul; início aprox.)".
+- ~~**2020.1 período aproximado**~~ — resolvido em 21/08/2026: o acervo oficial (§4, 8ª edição) traz "09 a 19 de julho de 2020", já aplicado em `sweetCoffeeHistory.js`.
 - **2020.2 — possível 28º participante:** logo "Kyara" no acervo (a conferir).
 - **Pódios da edição Lovers na base histórica:** vazios de propósito em `sweetCoffeeHistory.js`; o resultado real está em `loversAwardsResults.js` (§5).
 - **Pontos da categoria Melhor Combo (Lovers 2026.1):** `pontos: null` na fonte — sem dado no acervo (as demais categorias têm pontos 5/3/2/1).

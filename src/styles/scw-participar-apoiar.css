@@ -52,14 +52,20 @@ body.route-participar .pa-hero__acoes .scw-btn--pagina {
   background: var(--scw-choco);
   color: var(--scw-creme);
 }
-body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+
+@media (hover: hover) {
+  body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+}
 body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
   color: var(--scw-choco);
 }
-body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
-  background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
-  border-color: var(--scw-choco);
+
+@media (hover: hover) {
+  body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
+    background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
+    border-color: var(--scw-choco);
+  }
 }
 /* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói desta
    página, então some sobre esse fundo. Só aqui o anel troca para chocolate. */
@@ -98,6 +104,22 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
     --hv-meio: 88%;
     --hv-base: 96%;
   }
+
+  /* FOTO EM 4:3 SÓ AQUI — 22/08/2026, pedido do Eloi ("encurtar o herói de
+     Participar e Apoiar"). Estas duas são as mais altas das cinco: 983px num
+     viewport de 844, contra 770 do Contato e 826 do Awards. Levam 89px de
+     conteúdo que as outras não têm — o selo quebra em duas linhas (48px) e há
+     a nota de curadoria embaixo das ações (41px).
+     ⚠️ A outra alavanca que existia NÃO serve, e está medido: as duas ações
+     dão 241px + 287px numa linha de 342px, então lado a lado quebrariam o
+     rótulo dentro do botão e devolveriam a altura que economizassem.
+     Sobrou a proporção da foto. 4:3 tira 98px (390 → 292 num viewport de
+     390px) e leva as duas para 885px, à distância do Home (905).
+     Isto abre uma exceção à uniformidade pedida uma hora antes ("pra ficarem
+     com tamanho igual"): as outras três seguem em 1:1. Se um dia a
+     uniformidade voltar a pesar mais que a altura, o certo é levar as cinco
+     para a mesma proporção, não devolver estas duas para o quadrado. */
+  .pa-hero .scw-hero-banda { aspect-ratio: 4 / 3; }
 }
 
 @media (min-width: 1001px) {
@@ -165,7 +187,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   font: 800 15px/1 var(--scw-font);
   transition: var(--scw-transicao);
 }
-.pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
+}
 
 /* Destaque editorial no título: mesmo keyframe do sistema (scwDestaque).
    Cor de base e cor final vêm inline (--base / --dest). */
@@ -391,8 +416,13 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.pa-depo__som:hover,
+/* `[aria-pressed]` é estado real do botão e vale nas duas telas; o hover fica
+   no ponteiro, senão o toque para ativar o som deixava o botão aceso como se
+   ainda estivesse ligado depois de desligar. */
 .pa-depo__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
+@media (hover: hover) {
+  .pa-depo__som:hover { background: rgba(61, 19, 8, .82); }
+}
 /* 34px basta para o ponteiro, não para o polegar — no celular vai a 44. */
 @media (max-width: 900px) {
   .pa-depo__som { width: 44px; height: 44px; }
@@ -738,7 +768,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   background: var(--scw-choco);
   color: var(--scw-creme);
 }
-.pa-form__enviar:hover { background: var(--scw-marrom); }
+
+@media (hover: hover) {
+  .pa-form__enviar:hover { background: var(--scw-marrom); }
+}
 .pa-form__enviar:active { transform: translateY(1px); }
 .pa-form__status {
   grid-column: 1 / -1;
@@ -791,7 +824,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 
 /* ============================================================================
    Barra de ação fixa (aparece depois da primeira dobra)
@@ -824,3 +860,11 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 /* Até 900px quem ocupa a base é a barra de abas do aplicativo — duas barras
    fixas empilhadas roubariam a tela. */
 @media (max-width: 900px) { .pa-barra { display: none; } }
+
+/* ============================================================================
+   Piso de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   A nota da galeria de imprensa vinha a 13,5px com 44 caracteres por linha.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .pa-imprensa__nota { font-size: var(--scw-piso-corpo-mob); }
+}

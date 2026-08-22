@@ -40,13 +40,35 @@
      de 643px (Contato) a 895px (Home) no desktop, o que se nota ao navegar
      entre as páginas: a dobra pula de lugar.
      É `min-height`, não `height`: o herói continua podendo crescer se o texto
-     precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum. */
-  --scw-hero-altura:        clamp(760px, 100vh, 960px);
-  --scw-hero-altura-mobile: clamp(700px, 100vh, 940px);
+     precisar — o §6.8 proíbe altura RÍGIDA, não altura mínima comum.
+
+     A unidade é `svh`, não `vh` nem `dvh`. `vh` no iOS é o viewport GRANDE (barra
+     recolhida): com a barra à mostra o herói nasce mais alto que a área visível e
+     a dobra pula quando a barra some. `dvh` é pior aqui — muda durante a rolagem,
+     então a dobra se move o tempo todo. `svh` é o viewport pequeno e constante: o
+     herói cabe com a barra aberta e não se mexe quando ela recolhe.
+     No desktop as três unidades valem o mesmo — não há barra dinâmica. */
+  --scw-hero-altura:        clamp(760px, 100svh, 960px);
+  --scw-hero-altura-mobile: clamp(700px, 100svh, 940px);
   /* As reservas também são comuns, senão a altura mínima não iguala nada: cada
      herói ultrapassaria o piso pelo próprio padding. */
   --scw-hero-reserva:  clamp(232px, 22vw, 290px);
   --scw-hero-fecho:    clamp(34px, 3.6vw, 52px);
+
+  /* Recorte seguro da base (indicador de home do iPhone). Aparecia cru em sete
+     lugares, metade com fallback e metade sem — virou token para não divergir de
+     novo. O `0px` importa: sem ele, um navegador sem `env()` invalida o `calc()`
+     inteiro e a peça perde o respiro que ela tinha. */
+  --scw-safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* Pisos de leitura no CELULAR. No desktop cada peça mantém o tamanho que foi
+     desenhado — a tela está a 60cm dos olhos e o rótulo de 9,5px cumpre o papel.
+     No celular, a 30cm e em movimento, ele deixa de ser lido. Só sobem as peças
+     que se LEEM (corpo de apoio e rótulo que carrega informação); numeral de
+     medalha, ordinal e tag de chip são alvos de relance e ficam como estão.
+     Quem consome estes dois tokens está sempre dentro de um bloco ≤900px. */
+  --scw-piso-corpo-mob:  15px;   /* §6.5: corpo nunca abaixo disso */
+  --scw-piso-rotulo-mob: 11.5px;
 
   /* --- raios e sombras --------------------------------------------------- */
   --scw-r-secao:      26px;
@@ -146,6 +168,24 @@ body.route-contato {
   font-family: var(--scw-font);
 }
 
+/* Fundação de aplicativo no celular (ago/2026). Quatro comportamentos que o
+   navegador dá de graça e que denunciam "site" em vez de "app":
+   1. `overscroll-behavior-y: none` mata o pull-to-refresh acidental — o gesto de
+      rolar para cima no topo de uma página recarregava tudo;
+   2. `text-size-adjust` impede o iOS de inflar corpo de texto sozinho ao girar a
+      tela, o que quebrava as medidas de linha do §6.5;
+   3. o realce cinza do toque sai — quem dá o retorno é o `:active` de cada peça
+      (ver bloco "Toque" adiante), não um retângulo do sistema;
+   4. `touch-action: manipulation` remove o atraso de 300ms do duplo-toque.
+   Fica em `html, body` e não em `.scw-raiz` porque o pull-to-refresh é do
+   documento: numa `div` a regra não tem efeito. */
+html,
+body {
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 .scw-raiz {
   overflow-x: clip;
   background: var(--scw-creme);
@@ -153,6 +193,21 @@ body.route-contato {
   font-family: var(--scw-font);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Controle é peça de interface, não texto: segurar o dedo numa aba, num numeral
+   ou num botão selecionava a palavra e abria a lupa do iOS. O texto de leitura
+   (corpo, títulos, listas) continua selecionável — a regra é só nos controles. */
+.scw-raiz button,
+.scw-raiz [role='button'],
+.scw-raiz .scw-btn,
+.scw-raiz .scw-aba,
+.scw-raiz .scw-pill,
+.scw-raiz .scw-numeral {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 .scw-raiz img { max-width: 100%; display: block; }
 .scw-raiz a { color: inherit; text-decoration: none; }
@@ -176,6 +231,12 @@ body.route-contato {
   left: -9999px;
   top: 0;
   z-index: 100;
+  /* 44px de altura fechados: 14+14 de padding sobre 14px de linha davam 42 —
+     dois abaixo do piso do §6.10, que vale para todo controle, inclusive o que
+     só aparece no foco. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 14px 20px;
   border-radius: 0 0 14px 0;
   background: var(--scw-choco);
@@ -396,7 +457,10 @@ body:not(.route-em-breve) { margin: 0; }
   background: var(--scw-amarelo);
   color: var(--scw-choco);
 }
-.scw-raiz .scw-btn--solido:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-raiz .scw-btn--solido:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 .scw-raiz .scw-btn--solido:active { transform: translateY(1px); }
 .scw-raiz .scw-btn--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
 .scw-raiz .scw-btn--pagina:active { transform: translateY(1px); }
@@ -406,14 +470,20 @@ body:not(.route-em-breve) { margin: 0; }
   border: 1.5px solid var(--scw-creme);
   color: var(--scw-creme);
 }
-.scw-raiz .scw-btn--contorno-claro:hover { background: var(--scw-creme); color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .scw-raiz .scw-btn--contorno-claro:hover { background: var(--scw-creme); color: var(--scw-choco); }
+}
 .scw-raiz .scw-btn--contorno-claro:active { transform: translateY(1px); }
 .scw-raiz .scw-btn--contorno-escuro {
   background: transparent;
   border: 1.5px solid var(--scw-marrom);
   color: var(--scw-choco);
 }
-.scw-raiz .scw-btn--contorno-escuro:hover { background: var(--scw-choco); color: var(--scw-creme); border-color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .scw-raiz .scw-btn--contorno-escuro:hover { background: var(--scw-choco); color: var(--scw-creme); border-color: var(--scw-choco); }
+}
 .scw-raiz .scw-btn--contorno-escuro:active { transform: translateY(1px); }
 
 /* Desabilitado é UM estado só, igual em link e em botão (PATCH 02 §3). Nunca um
@@ -533,7 +603,10 @@ body:not(.route-em-breve) { margin: 0; }
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.scw-nav a:hover { color: var(--scw-nav-hover, var(--scw-amarelo)); }
+
+@media (hover: hover) {
+  .scw-nav a:hover { color: var(--scw-nav-hover, var(--scw-amarelo)); }
+}
 .scw-nav a.is-ativo {
   padding: 8px 14px;
   border-radius: 999px;
@@ -542,7 +615,10 @@ body:not(.route-em-breve) { margin: 0; }
   font-weight: 800;
   font-style: italic;
 }
-.scw-nav a.is-ativo:hover { color: var(--scw-nav-tinta); }
+
+@media (hover: hover) {
+  .scw-nav a.is-ativo:hover { color: var(--scw-nav-tinta); }
+}
 
 .scw-acesso-topo {
   display: inline-flex;
@@ -563,9 +639,12 @@ body:not(.route-em-breve) { margin: 0; }
      responde com deslocamento, não com sombra. */
   transition: var(--scw-transicao);
 }
-.scw-acesso-topo:hover {
-  background: var(--scw-amarelo);
-  transform: translateY(-2px);
+
+@media (hover: hover) {
+  .scw-acesso-topo:hover {
+    background: var(--scw-amarelo);
+    transform: translateY(-2px);
+  }
 }
 .scw-acesso-topo:active { transform: translateY(0) scale(.985); }
 
@@ -616,7 +695,7 @@ body:not(.route-em-breve) { margin: 0; }
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 70;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  padding: 8px 10px calc(8px + var(--scw-safe-b));
   background: rgba(43, 14, 6, .96);
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(254, 240, 221, .14);
@@ -695,7 +774,7 @@ body:not(.route-em-breve) { margin: 0; }
   z-index: 80;
   flex-direction: column;
   max-height: 88vh;
-  padding: 14px clamp(20px, 6vw, 30px) calc(22px + env(safe-area-inset-bottom));
+  padding: 14px clamp(20px, 6vw, 30px) calc(22px + var(--scw-safe-b));
   border-radius: 30px 30px 0 0;
   background: var(--scw-choco);
   color: var(--scw-creme);
@@ -759,17 +838,91 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-cyan);
 }
 
+/* ============================================================================
+   Casca — aviso de cookies (LGPD)
+   Aparece nas SETE rotas, /em-breve inclusive, então é peça de casca e mora
+   aqui, não num `<style>` dentro do componente (§6.10).
+   Até ago/2026 ele trazia o próprio CSS inline, com quatro hex fora da paleta
+   (#2B1810, #F8B511, #FFF1E6, #ffc633 — todos do design system v2 aposentado,
+   Anexo A.7), `var(--font-sans)` (token morto: renderizava em system-ui, não em
+   Nexa Slab), botões de 31px de altura e uma curva/duração próprias. O
+   comentário dizia que o CSS canônico vivia em `lovers-system.css`, apagado na
+   demolição do §4.3.
+   ========================================================================= */
+
+.cookie-consent {
+  position: fixed;
+  left: clamp(12px, 2vw, 24px);
+  bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b));
+  z-index: 1000;
+  width: min(340px, calc(100vw - 24px));
+  border: 1px solid rgba(254, 240, 221, .28);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  box-shadow: var(--scw-sombra-card);
+  animation: cookieSobe var(--mo-entra) var(--mo-mola) both;
+}
+@keyframes cookieSobe {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.cookie-consent__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+}
+.cookie-consent__text {
+  margin: 0;
+  font: 500 14px/1.45 var(--scw-font);
+  color: rgba(254, 240, 221, .84);   /* .84 sobre chocolate = 9,2:1 */
+}
+.cookie-consent__actions { display: flex; gap: 8px; }
+/* 46px é o piso do §6.10 para pílula de ação dentro de card — o botão media 31. */
+.cookie-consent__btn {
+  appearance: none;
+  min-height: 46px;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 999px;
+  font: 800 14px/1 var(--scw-font);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.cookie-consent__btn--primary { background: var(--scw-amarelo); color: var(--scw-choco); }
+.cookie-consent__btn--ghost {
+  border: 1px solid rgba(254, 240, 221, .28);
+  background: transparent;
+  color: var(--scw-creme);
+}
+@media (hover: hover) {
+  .cookie-consent__btn:hover { transform: translateY(-1px); }
+  .cookie-consent__btn--primary:hover { background: var(--scw-bege); }
+  .cookie-consent__btn--ghost:hover {
+    border-color: rgba(254, 240, 221, .6);
+    background: rgba(254, 240, 221, .06);
+  }
+}
+.cookie-consent__btn:active { transform: translateY(0) scale(.985); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-consent { animation: none; }
+  .cookie-consent__btn { transition: none; }
+}
+
 /* ≤900px o modo aplicativo assume: entram a barra de abas e a folha "mais", e o
    conteúdo respira acima delas. Este bloco vem depois das regras base acima —
    é o que faz o display vencer o `none` padrão. */
 @media (max-width: 900px) {
+  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }
-  .scw-raiz.tem-abas { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .scw-raiz.tem-abas { padding-bottom: calc(76px + var(--scw-safe-b)); }
   /* O aviso de cookies mora em `bottom:16px` e cobria a barra de abas — os
      cliques nas abas eram interceptados por ele. Sobe acima da barra. */
-  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + var(--scw-safe-b)); }
 }
 
 /* ============================================================================
@@ -806,8 +959,82 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__caixa { animation: none; }
 }
 
-/* Faixa chocolate — assina o painel com a marca do festival. */
+/* O puxador é peça de folha, e folha só existe no celular: no desktop a caixa
+   é centrada e não há gesto de arrastar para insinuar. */
+.scw-acesso__puxador { display: none; }
+
+/* ≤900px a tela de acesso ABRE COMO O MENU (pedido do Eloi, 22/08/2026): a
+   mesma folha da aba "mais" — colada na base, largura cheia, canto arredondado
+   só em cima, puxador. A curva de entrada já era a mesma (`scwFolha`); o que
+   faltava era o lugar, e a caixa centrada com respiro dos quatro lados lia como
+   diálogo de desktop espremido num celular.
+   `88svh` com rolagem interna resolve o outro defeito da mesma tela: o pé com
+   "Falar com a equipe" ficava fora do viewport e não havia como chegar nele. */
+@media (max-width: 900px) {
+  .scw-acesso {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .scw-acesso__caixa {
+    width: 100%;
+    max-height: 88svh;
+    border-radius: 30px 30px 0 0;
+  }
+  .scw-acesso__topo { padding-top: 26px; }
+  .scw-acesso__puxador {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 46px;
+    height: 5px;
+    border-radius: 5px;
+    /* Dentro da faixa chocolate, então o mesmo creme a 32% do menu. */
+    background: rgba(254, 240, 221, .32);
+  }
+  /* O respiro da barra de gestos entra no fim do corpo, não na caixa: com
+     `overflow` na caixa, um padding embaixo dela ficaria fora da área rolável. */
+  .scw-acesso__corpo { padding-bottom: calc(clamp(22px, 2.6vw, 36px) + var(--scw-safe-b)); }
+}
+
+/* >900px a tela de acesso é GAVETA e entra pela direita (pedido do Eloi,
+   22/08/2026), no lugar da caixa centrada. É a mesma peça das duas telas, só
+   que cada uma entra pela borda que lhe cabe: no celular sobe da base, como a
+   folha do menu; no desktop desliza da direita, colada na borda e do alto ao
+   pé da tela.
+   Largura de 520px, não os 760px da caixa antiga: numa coluna dessa largura os
+   dois cartões empilham (a grade tem `--scw-min: 260px` e sobram ~440px de
+   conteúdo), que é a leitura certa numa peça alta. O raio fica só do lado de
+   dentro e a sombra vira para a esquerda — quem está colado na borda direita
+   não projeta sombra para fora da tela. */
+@media (min-width: 901px) {
+  .scw-acesso {
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+  }
+  .scw-acesso__caixa {
+    width: min(520px, 100%);
+    max-height: none;
+    border-radius: 30px 0 0 30px;
+    box-shadow: -34px 0 80px rgba(28, 10, 4, .5);
+  }
+}
+
+/* Faixa + régua grudam no topo da caixa, que é quem rola: sem isto o botão de
+   fechar sai de cena com o conteúdo, e na gaveta alta do desktop isso é perder
+   a saída do painel. */
+.scw-acesso__cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Faixa chocolate — assina o painel com a marca do festival.
+   `relative` porque o puxador da folha (celular) se posiciona por cima dela. */
 .scw-acesso__topo {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -853,10 +1080,13 @@ body:not(.route-em-breve) { margin: 0; }
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.scw-acesso__fechar:hover {
-  background: var(--scw-creme);
-  border-color: var(--scw-creme);
-  color: var(--scw-choco);
+
+@media (hover: hover) {
+  .scw-acesso__fechar:hover {
+    background: var(--scw-creme);
+    border-color: var(--scw-creme);
+    color: var(--scw-choco);
+  }
 }
 
 .scw-acesso__corpo {
@@ -932,6 +1162,10 @@ body:not(.route-em-breve) { margin: 0; }
   margin-top: auto;
   min-height: 48px;
   padding: 0 18px;
+  /* ⚠️ `border: 0` explícito: esta peça nasceu como <a> e virou <button> em
+     22/08/2026. Sem zerar, o botão herda a borda `2px outset` padrão do
+     navegador — o filete escuro que apareceu em volta do amarelo. */
+  border: 0;
   border-radius: 14px;
   background: var(--scw-amarelo);
   color: var(--scw-choco);
@@ -940,9 +1174,12 @@ body:not(.route-em-breve) { margin: 0; }
   text-decoration: none;
   transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
 }
-.scw-acesso__acao:hover {
-  background: var(--scw-creme);
-  transform: translateY(-2px);
+
+@media (hover: hover) {
+  .scw-acesso__acao:hover {
+    background: var(--scw-creme);
+    transform: translateY(-2px);
+  }
 }
 .scw-acesso__acao:active { transform: scale(.98); }
 .scw-acesso__acao:focus-visible {
@@ -991,7 +1228,12 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
-.scw-acesso__cta {
+/* ⚠️ Seletor PREFIXADO, e é a armadilha nº 1 do §10.1 outra vez: `.scw-raiz a`
+   (0,1,1) traz `color: inherit` e vencia `.scw-acesso__cta` (0,1,0). A tinta
+   herdada do corpo é chocolate — a mesma do fundo do botão. O rótulo "Falar com
+   a equipe" estava CHOCOLATE SOBRE CHOCOLATE, 1:1, invisível, desde que o pé
+   foi desenhado. Prefixar resolve; `!important` está proibido pela mesma regra. */
+.scw-acesso .scw-acesso__cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1006,11 +1248,98 @@ body:not(.route-em-breve) { margin: 0; }
   text-decoration: none;
   transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
 }
-.scw-acesso__cta:hover { background: var(--scw-marrom); transform: translateY(-2px); }
+
+@media (hover: hover) {
+  .scw-acesso__cta:hover { background: var(--scw-marrom); transform: translateY(-2px); }
+}
 .scw-acesso__cta:active { transform: scale(.98); }
 @media (prefers-reduced-motion: reduce) {
   .scw-acesso__cta,
   .scw-acesso__cta:hover { transform: none; transition: none; }
+}
+
+/* ── Passo da senha ──────────────────────────────────────────────────────────
+   O "Entrar" não sai mais do diálogo: o corpo troca de conteúdo e o mesmo
+   painel vira o campo de senha. Uma coisa por tela — voltar, o que é isto, o
+   campo, o botão. Nada mais. */
+.scw-acesso__corpo--senha {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* No passo da senha o título divide a linha com o selo, então não pode ter o
+   corpo do título de abertura. */
+.scw-acesso__corpo--senha .scw-acesso__titulo {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+}
+.scw-acesso__corpo--senha .scw-acesso__lead { margin: 0; }
+
+/* Voltar é link de texto, não botão de ação: ele desfaz, não avança. O piso de
+   44px vale para o CONTROLE (§10.2), por isso a altura mínima está NELE. */
+.scw-acesso__voltar {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--scw-marrom);
+  font: 800 13px/1 var(--scw-font);
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: color var(--scw-transicao);
+}
+
+@media (hover: hover) {
+  .scw-acesso__voltar:hover { color: var(--scw-choco); }
+}
+
+.scw-acesso__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+/* Botão do formulário ocupa a linha: é a única ação do passo. */
+.scw-acesso__acao--largo { justify-content: center; min-height: 52px; }
+/* ⚠️ O hover base do botão vira CREME — leitura de "inverte para claro" que só
+   funciona sobre a chapa chocolate do cartão. Aqui ele mora no corpo creme, e
+   creme sobre creme faz o botão sumir no hover. Inverte para chocolate, que é
+   o mesmo par já usado na seta da galeria em superfície clara (12:1). */
+@media (hover: hover) {
+  .scw-acesso__acao--largo:hover {
+    background: var(--scw-choco);
+    color: var(--scw-creme);
+  }
+}
+/* Estado desabilitado único do sistema (§6.10). */
+.scw-acesso__acao:disabled {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Erro em marrom, não em vermelho: não existe vermelho na paleta (§6.1), e o
+   marrom sobre creme fecha 6,9:1. Quem carrega o alarme é o filete à esquerda,
+   no laranja de superfície preenchida. */
+.scw-acesso__erro {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--scw-laranja);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255, 72, 16, .08);
+  font: 700 13.5px/1.45 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.scw-acesso__nota {
+  margin: 0;
+  max-width: 52ch;
+  font: 500 12.5px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
 }
 
 /* ============================================================================
@@ -1046,7 +1375,10 @@ body:not(.route-em-breve) { margin: 0; }
   color: rgba(254, 240, 221, .84);
   transition: color 200ms var(--scw-ease);
 }
-.scw-footer__nav a:hover { color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-footer__nav a:hover { color: var(--scw-creme); }
+}
 .scw-footer__nav a.is-ativo { font-weight: 800; font-style: italic; color: var(--scw-creme); }
 .scw-footer__extras {
   display: flex;
@@ -1064,7 +1396,10 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-cyan);
   transition: color 200ms var(--scw-ease);
 }
-.scw-footer__insta:hover { color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .scw-footer__insta:hover { color: var(--scw-creme); }
+}
 .scw-footer__base {
   display: flex;
   flex-wrap: wrap;
@@ -1096,6 +1431,9 @@ body:not(.route-em-breve) { margin: 0; }
   width: 100%;
   height: 100%;
   display: block;
+  /* Mesmo arranjo da banda: a url vem em propriedade custom para o CSS poder
+     escolher a largura por media query (§10.4). */
+  background-image: var(--foto);
   background-size: cover;
   background-position: 68% center;
   scale: 1.03;
@@ -1254,6 +1592,10 @@ body:not(.route-em-breve) { margin: 0; }
   position: absolute;
   inset: 0;
   display: block;
+  /* A url vem em propriedade custom e quem escolhe a largura é o CSS: o celular
+     usa a variante de 960px e o desktop o original. Inline não dá — estilo
+     inline vence media query (§10.4). */
+  background-image: var(--foto-mobile, var(--foto));
   background-size: cover;
   background-repeat: no-repeat;
   background-position: var(--foco-mobile, center);
@@ -1267,7 +1609,10 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-hero-banda::before,
 .scw-hero-banda::after { z-index: 1; }
 @media (min-width: 1001px) {
-  .scw-hero-banda__foto { background-position: var(--foco, center); }
+  .scw-hero-banda__foto {
+    background-image: var(--foto);
+    background-position: var(--foco, center);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .scw-hero-banda__foto { transition: none; }
@@ -1276,29 +1621,73 @@ body:not(.route-em-breve) { margin: 0; }
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */
 @media (max-width: 1000px) {
   .scw-hero { min-height: 0; display: block; }
-  /* PADRONIZAÇÃO 21/08/2026: a foto cobre o herói e o texto vem por cima,
-     como nas outras cinco. Antes eram dois blocos — foto de 46vh em cima,
-     bloco chocolate sólido embaixo — e o véu era uma rampa em S de treze
-     paradas. Agora é o mesmo par de degradês do desktop, só com o horizontal
-     desligado: em tela estreita o texto ocupa a largura toda e não há terço
-     direito para abrir. */
-  .scw-hero__fotos { position: absolute; inset: 0; height: auto; min-height: 0; }
-  .scw-hero__veu {
-    --hv-topo: 22%;
-    --hv-meio: 78%;
-    --hv-base: 94%;
-    --hv-esq: 0%;
-    --hv-centro: 0%;
-    --hv-fim: 0%;
+  /* FOTO QUADRADA EM CIMA, TEXTO EMBAIXO — 22/08/2026, pedido do Eloi.
+     Reverte a padronização de 21/08 SÓ na Home e SÓ no celular: lá a foto
+     cobria o herói inteiro e o texto vinha por cima, e o que ele viu na tela
+     foi título creme sobre rostos e áreas claras, sem leitura garantida, com a
+     foto em zoom de recorte.
+
+     Três coisas mudam, e cada uma resolve uma queixa:
+
+     1. A foto sai do `inset: 0` e entra NO FLUXO como quadrado de largura
+        cheia. Deixa de ser do tamanho da tela — em 390px são 390px de altura,
+        ~46% de um viewport de 844, que é a "metade da tela" pedida.
+     2. O zoom cai junto, e é consequência da geometria, não de ajuste de
+        enquadramento: `cover` numa caixa 1:1 corta ~33% da largura de uma foto
+        3:2, contra ~70% na caixa alta de antes. A foto aparece muito mais.
+     3. O texto passa a viver ABAIXO da foto, sobre a chapa chocolate sólida do
+        próprio herói: creme sobre chocolate são 12:1, sem depender de véu.
+
+     O recorte da base da foto é disfarçado por um esfumado que vai até o
+     limite dela (`.scw-hero__fotos::after`) — a foto não termina numa aresta,
+     dissolve no chocolate do bloco de texto. */
+  .scw-hero { min-height: 0; justify-content: flex-start; }
+  .scw-hero__fotos {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    min-height: 0;
   }
-  .scw-hero__foto { background-position: center 32%; }
-  .scw-hero__base { display: none; }
-  .scw-hero__topo { height: 132px; background: linear-gradient(to bottom, rgba(61, 19, 8, .66), rgba(61, 19, 8, 0)); }
+  /* O esfumado da emenda. Dois degradês numa camada só: o de baixo dissolve a
+     foto no chocolate (é ele que disfarça o recorte) e o de cima é o respiro
+     para a marca do cabeçalho, que pousa sobre a foto no topo da página.
+     ⚠️ Rampa em três paradas, não duas: degradê linear em alpha lê como faixa
+     dura, e o olho enxerga a derivada, não o valor (§10.4). */
+  .scw-hero__fotos::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(to top,
+        var(--scw-choco) 0%,
+        color-mix(in srgb, var(--scw-choco) 72%, transparent) 9%,
+        color-mix(in srgb, var(--scw-choco) 22%, transparent) 22%,
+        transparent 38%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--scw-choco) 62%, transparent) 0%,
+        color-mix(in srgb, var(--scw-choco) 18%, transparent) 12%,
+        transparent 26%);
+  }
+  /* O véu inteiro sai: ele existia para segurar a leitura do texto SOBRE a
+     foto, e não há mais texto sobre a foto. Mantê-lo só escureceria a imagem
+     que o pedido é justamente mostrar melhor. O mesmo vale para as duas
+     camadas nomeadas, cuja função foi absorvida pelo esfumado acima. */
+  .scw-hero__veu,
+  .scw-hero__base,
+  .scw-hero__topo { display: none; }
+  /* Enquadramento um pouco acima do centro: numa caixa 1:1 as pessoas ficam no
+     terço superior da foto, e `center` cortava cabeças. */
+  .scw-hero__foto { background-position: center 42%; }
   .scw-hero__col {
     max-width: 100%;
-    /* A reserva é o que deixa a foto respirar antes de o texto começar. */
-    padding-top: clamp(300px, 44vh, 420px);
-    padding-bottom: 32px;
+    /* Sem reserva de foto: ela não passa mais por baixo do texto. O respiro é
+       o de uma seção normal. */
+    padding-top: clamp(26px, 6vw, 40px);
+    padding-bottom: clamp(30px, 7vw, 44px);
   }
   .scw-hero__titulo { font-size: 40px; line-height: .9; }
   .scw-hero__info { margin-top: 18px; padding-top: 18px; gap: 16px; }
@@ -1306,15 +1695,79 @@ body:not(.route-em-breve) { margin: 0; }
 
   /* PADRONIZAÇÃO 21/08/2026 (pedido do Wilke): o celular passa a ter a MESMA
      construção do desktop — a foto cobre o herói inteiro e o texto vem por
-     cima. Revoga a regra dos dois blocos empilhados, que valia desde
-     30/07/2026 e existia porque texto sobre foto em tela pequena perdia
-     leitura; o que resolve isso agora é o véu, que no celular fecha muito
-     mais (ver `.scw-hero-veu` abaixo).
-     A reserva de topo é o que deixa a foto respirar antes do texto começar. */
-  .scw-hero { min-height: var(--scw-hero-altura-mobile); }
-  .scw-hero-bloco {
-    min-height: var(--scw-hero-altura-mobile);
-    padding-top: clamp(300px, 44vh, 420px);
+     cima. Vale para Participar, Apoiar, Contato e Sweet Awards.
+     ⚠️ A HOME saiu dessa padronização em 22/08/2026, a pedido do Eloi: lá a
+     foto voltou a ser bloco próprio, quadrado, com o texto embaixo (ver o
+     bloco `.scw-hero__fotos` no topo desta media query). O piso de altura dela
+     saiu junto — o herói da Home passou a ser foto + texto, medido pelo
+     conteúdo, como os outros desde o ajuste de altura deste mesmo dia. */
+  /* UMA CONSTRUÇÃO SÓ PARA AS CINCO — 22/08/2026, pedido do Eloi: "aplica a
+     mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada
+     uma mantém a sua cor". É o desenho estreado na Home no mesmo dia, agora
+     como peça do sistema: foto quadrada de largura cheia em cima, esfumada na
+     base, texto embaixo sobre a chapa sólida DA PÁGINA.
+     A geometria é idêntica nas cinco; o que muda é `--scw-heroi`, que já é a
+     cor de cada rota (§6.2) — cyan em Participar, marrom em Apoiar, bege em
+     Contato, roxo no Awards, chocolate na Home.
+
+     Substitui a reserva de topo (232px/34svh) do ajuste de altura de horas
+     antes: com a foto no fluxo não existe mais o que reservar — ela ocupa o
+     topo de verdade, em vez de passar por baixo do texto. */
+  .scw-hero-bloco,
+  .scw-hero-bloco--compacto {
+    min-height: 0;
+    justify-content: flex-start;
+    /* A foto sangra até as bordas; o trilho volta no bloco de texto. */
+    padding: 0 0 clamp(30px, 7vw, 44px);
+    /* ⚠️ OBRIGATÓRIO, e é o que mais custaria caro esquecer: sem véu, quem
+       carrega a cor do herói é a CHAPA. Antes o véu é que pintava — daí o
+       bloco poder ficar no chocolate padrão. Em Contato a tinta do herói é
+       chocolate; sem esta linha o título sairia chocolate sobre chocolate. */
+    background: var(--scw-heroi);
+    color: var(--scw-heroi-tinta);
+  }
+  /* A foto deixa de cobrir o herói e vira bloco próprio, quadrado. O zoom cai
+     junto por geometria: `cover` num 1:1 corta ~33% da largura de uma foto 3:2,
+     contra ~70% na caixa alta de antes. */
+  .scw-hero-banda {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+  }
+  /* O esfumado da emenda, na cor do bloco: a foto dissolve na chapa em vez de
+     terminar numa aresta. Em cima, um respiro escuro para a marca do cabeçalho,
+     que pousa sobre a foto — esse fica no chocolate em todas, porque o que ele
+     precisa sustentar é o selo, não a cor da página.
+     ⚠️ Rampa de três paradas, não duas: degradê linear em alpha lê como faixa
+     dura, e o olho enxerga a derivada, não o valor (§10.4). */
+  .scw-hero-banda::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(to top,
+        var(--scw-heroi) 0%,
+        color-mix(in srgb, var(--scw-heroi) 72%, transparent) 9%,
+        color-mix(in srgb, var(--scw-heroi) 22%, transparent) 22%,
+        transparent 38%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--scw-choco) 62%, transparent) 0%,
+        color-mix(in srgb, var(--scw-choco) 18%, transparent) 12%,
+        transparent 26%);
+  }
+  /* Véu desligado nas cinco: ele existia para segurar a leitura de texto SOBRE
+     a foto, e não há mais texto sobre a foto. Mantê-lo só escureceria a imagem
+     que o pedido quer mostrar melhor. */
+  .scw-hero-veu::after { display: none; }
+  /* O texto recupera o trilho e o respiro de abertura. */
+  .pa-hero__grade,
+  .ctt-abertura__grade,
+  .swa-hero__texto {
+    padding: clamp(26px, 6vw, 40px) var(--scw-trilho) 0;
   }
   /* Tela estreita: o texto ocupa a largura toda, então o degradê horizontal
      não tem para onde abrir — desliga, e quem carrega a leitura é o vertical,
@@ -1402,7 +1855,7 @@ body:not(.route-em-breve) { margin: 0; }
   cursor: pointer;
 }
 @media (max-width: 900px) {
-  .scw-topo { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .scw-topo { bottom: calc(86px + var(--scw-safe-b)); }
 }
 
 /* ============================================================================

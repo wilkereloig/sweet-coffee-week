@@ -24,7 +24,7 @@ import {
   validateInterest,
   submitInterest,
 } from '../../lib/participationInterest'
-import { comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -36,7 +36,7 @@ const FOTOS_HERO = heroPhotos('participar')
 
 /* Os três indicadores do herói saíram com o cartão (PATCH 01 §6). Nada de dado
    se perdeu: os três já existiam, com os mesmos números, em NUMEROS abaixo
-   (+34 mil combos, +100 marcas, 11 dias por edição) — repetir os mesmos valores
+   (+34 mil combos, +120 marcas, 11 dias por edição) — repetir os mesmos valores
    em seções vizinhas era a duplicação que a seção 03 já resolvia. */
 
 const PALAVRAS = [
@@ -49,8 +49,8 @@ const PALAVRAS = [
    distingue item nenhum — ela diz "isto é Participar". Quem distingue é o
    ícone. É o oposto da faixa da Home, onde cada dado tem cor própria. */
 const NUMEROS = [
-  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano em média', i: 'simbolos/edicao' },
-  { n: '+100', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', i: 'simbolos/estabelecimento' },
+  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano até 2021 e uma por ano desde 2022', i: 'simbolos/edicao' },
+  { n: '+120', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', i: 'simbolos/estabelecimento' },
   { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', i: 'combos/doce-cafe' },
   { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', i: 'redes/instagram' },
   { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', i: 'ui/calendario' },
@@ -125,10 +125,10 @@ const PUBLICOS = [
 // O 6º card é reserva editorial honesta: a marca existe, o depoimento ainda não.
 const DEPOIMENTOS = [
   { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café Pâtisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
-  { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro', slug: 'o-maestro-cafe', cor: 'var(--scw-marrom)', tinta: 'var(--scw-creme)' },
-  { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Patisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
-  { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
-  { frase: '“Foi além das expectativas. Foram onze dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.”', pessoa: 'Edvan Barreto', marca: 'Casa 1190', slug: 'casa-1190', cor: 'var(--scw-choco)', tinta: 'var(--scw-creme)' },
+  { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro Café', slug: 'o-maestro-cafe', cor: 'var(--scw-marrom)', tinta: 'var(--scw-creme)' },
+  { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Pâtisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+  { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake Confeitaria', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
+  { frase: '“Foi além das expectativas. Foram onze dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.”', pessoa: 'Edvan Barreto', marca: 'Casa 1190 - Restaurant e Coffee', slug: 'casa-1190', cor: 'var(--scw-choco)', tinta: 'var(--scw-creme)' },
   { frase: null, pessoa: null, marca: 'Caroli Douces', slug: 'caroli-douces', cor: 'var(--scw-bege)', tinta: 'var(--scw-choco)' },
 ]
 
@@ -377,7 +377,7 @@ export function ParticiparPage() {
                         describedBy={d.frase ? `pa-depo-frase-${d.slug}` : undefined}
                       />
                     : fotoCombo
-                      ? <img src={fotoCombo.src} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
+                      ? <img src={fotoCombo.src} srcSet={srcSet(fotoCombo.src)} sizes={SIZES.cartao} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
                       : <div className="scw-reserva">{RESERVA}</div>}
                 </div>
                 <span className="pa-depo__selo" aria-hidden="true">
@@ -450,7 +450,7 @@ export function ParticiparPage() {
             >
               <figure>
                 {f.foto
-                  ? <img src={f.foto.src} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
+                  ? <img src={f.foto.src} srcSet={srcSet(f.foto.src)} sizes={SIZES.cartao} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
                   : <div className="scw-reserva">{RESERVA}</div>}
               </figure>
               <div className="pa-faixa__corpo">

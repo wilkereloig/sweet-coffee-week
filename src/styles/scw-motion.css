@@ -210,10 +210,16 @@
     border-color var(--mo-rapido) var(--mo-ease),
     transform    var(--mo-rapido) var(--mo-mola),
     box-shadow   var(--mo-rapido) var(--mo-ease); }
-.scw-btn:hover  { transform: translateY(-2px); }
+
+@media (hover: hover) {
+  .scw-btn:hover  { transform: translateY(-2px); }
+}
 .scw-btn:active { transform: translateY(0) scale(.985); }
 .scw-btn svg    { transition: transform var(--mo-estado) var(--mo-mola); }
-.scw-btn:hover svg { transform: translateX(4px); }
+
+@media (hover: hover) {
+  .scw-btn:hover svg { transform: translateX(4px); }
+}
 
 /* Links de texto com seta (o vocabulário `__cta` / `__link` se repete no site) */
 .hm-link svg,
@@ -221,11 +227,14 @@
 .hm-voz__link svg,
 .ctt-porta__link svg,
 .pa-cabeca__link svg { transition: transform var(--mo-estado) var(--mo-mola); }
-.hm-link:hover svg,
-.hm-rota__cta:hover svg,
-.hm-voz__link:hover svg,
-.ctt-porta__link:hover svg,
-.pa-cabeca__link:hover svg { transform: translateX(5px); }
+
+@media (hover: hover) {
+  .hm-link:hover svg,
+  .hm-rota__cta:hover svg,
+  .hm-voz__link:hover svg,
+  .ctt-porta__link:hover svg,
+  .pa-cabeca__link:hover svg { transform: translateX(5px); }
+}
 
 /* Cards que levam a algum lugar — e só esses. Card sem link não recebe hover:
    elevação sem destino é decoração (§5) e promete uma ação que não existe.
@@ -236,8 +245,11 @@
   transition: transform var(--mo-estado) var(--mo-mola),
               box-shadow var(--mo-estado) var(--mo-ease);
 }
-.hm-rota:hover,
-.ctt-porta:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(61, 19, 8, .16); }
+
+@media (hover: hover) {
+  .hm-rota:hover,
+  .ctt-porta:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(61, 19, 8, .16); }
+}
 
 /* Linhas e botões que abrem conteúdo (matérias, acordeões) */
 .hm-materia,
@@ -245,26 +257,65 @@
 .ctt-item__botao,
 .swa-edicao__botao { transition: background var(--mo-estado) var(--mo-ease), color var(--mo-rapido) var(--mo-ease); }
 .hm-materia__foto img { transition: scale var(--mo-longo) var(--mo-ease); }
-.hm-materia:hover .hm-materia__foto img { scale: 1.05; }
+
+@media (hover: hover) {
+  .hm-materia:hover .hm-materia__foto img { scale: 1.05; }
+}
 .swa-edicao__seta,
 .ctt-item__sinal { transition: transform var(--mo-estado) var(--mo-mola); }
 
-/* Toque: onde não há ponteiro, o hover vira resposta ao apertar (§5, §21). */
-@media (hover: none) {
-  .hm-rota:hover,
-  .ctt-porta:hover,
-  .scw-btn:hover { transform: none; box-shadow: none; }
-  .scw-btn:hover svg,
-  .hm-link:hover svg,
-  .hm-rota__cta:hover svg,
-  .hm-voz__link:hover svg,
-  .ctt-porta__link:hover svg,
-  .pa-cabeca__link:hover svg { transform: none; }
-  .hm-materia:hover .hm-materia__foto img { scale: 1; }
+/* Toque: onde não há ponteiro, o hover vira resposta ao apertar (§5, §21).
+   Este bloco não precisa mais desfazer hover um a um — desde ago/2026 TODA
+   regra `:hover` do sistema mora dentro de `@media (hover: hover)`, então no
+   celular ela simplesmente não existe. Antes o hover valia no toque e ficava
+   preso: o iOS mantém o estado até você tocar em outro lugar, e o card
+   continuava levantado. Aqui fica só o que o toque ganha em troca.
 
+   Vocabulário único, o mesmo que os botões já usavam: `scale(.985)` para peça
+   que se aperta inteira, `translateY(1px)` para botão sólido. Nada de duração
+   nova — quem anima é a `transition` que cada peça já declara (§6.15, regra 7). */
+@media (hover: none) {
+  /* peças que se apertam inteiras — cards com destino, linhas, acordeões */
   .hm-rota:active,
   .ctt-porta:active,
-  .scw-btn:active { transform: scale(.985); }
+  .scw-btn:active,
+  .hm-materia:active,
+  .hm-linha:active,
+  .ctt-item__botao:active,
+  .swa-edicao__botao:active,
+  .scw-edx-mob__sanfona:active,
+  .scw-acesso__cartao:active { transform: scale(.985); }
+
+  /* controles redondos e pequenos: setas, fechar, som. O alvo é menor, então o
+     recuo é maior para o dedo perceber sem olhar. */
+  .scw-gal__seta:active,
+  .scw-edx__seta:active,
+  .scw-edx__fechar:active,
+  .scw-acesso__fechar:active,
+  .pa-depo__som:active,
+  .scw-topo:active { transform: scale(.94); }
+
+  /* pílulas e anos: só o suficiente para acusar o toque sem parecer que caiu */
+  .ctt-cat:active,
+  .ctt-limpar:active,
+  .scw-edx__ano:active,
+  .scw-edx-mob__ano:active,
+  .scw-aba:active { transform: scale(.96); }
+
+  /* links de texto com filete ou seta: não escalam (o texto borra), escurecem */
+  .hm-link:active,
+  .hm-link--sublinhado:active,
+  .hm-rota__cta:active,
+  .hm-voz__link:active,
+  .hm-imprensa__toggle:active,
+  .ctt-porta__link:active,
+  .ctt-item__link:active,
+  .ctt-ok__acao:active,
+  .ctt-direto a:active,
+  .pa-cabeca__link:active,
+  .f2-realiza__cta:active,
+  .scw-footer__nav a:active,
+  .scw-footer__insta:active { opacity: .62; }
 }
 
 /* ============================================================================
@@ -330,6 +381,38 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   }
 }
 
+/* ≤900px o problema é o MESMO — cabeçalho `fixed` por cima do conteúdo que
+   rola — mas a saída do desktop não serve: aqui a marca já vive no fluxo, não
+   há overhang para recolher, e recolher os 52px restantes não tira nada do
+   caminho. O resultado era a marca passando por cima do texto ("A anatomia do
+   combo" virava "TOMIA DO COMBO") sob um véu que, longe do herói, lê como
+   mancha marrom sobre a seção creme.
+   A diferença que resolve: no celular este cabeçalho não é barra de aplicativo.
+   `.scw-nav` e `.scw-acesso-topo` estão em `display: none` — sobra só a marca,
+   e a navegação inteira mora na barra de abas de baixo. Barra fixa com conteúdo
+   decorativo custa 88px de tela e uma colisão permanente.
+   Então, rolando, o topo sai de cena. Abaixo de 40px de rolagem nada muda: o
+   herói continua exatamente como desenhado, com a marca sobre a foto. Dali em
+   diante a tela é do conteúdo — e a marca não perde função, porque "festival"
+   na barra de abas leva à Home.
+   Nada de encolher altura nem mover a logo (regra estrutural do §6.7): o que
+   muda é opacidade, e a geometria fica onde está. */
+@media (max-width: 900px) {
+  .scw-header { transition: opacity var(--mo-estado) var(--mo-ease); }
+  .scw-header:not(.scw-header--so-acesso).is-rolado {
+    opacity: 0;
+    /* Sem isto o cabeçalho invisível continuaria interceptando o toque nos
+       88px do topo — o pior dos dois mundos. */
+    pointer-events: none;
+  }
+  /* O "pular para o conteúdo" mora aqui dentro. Com foco em algo do cabeçalho
+     ele volta, senão o teclado perderia a única saída rápida da página. */
+  .scw-header:not(.scw-header--so-acesso).is-rolado:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 /* ============================================================================
    6. MENU MOBILE — fechar também é movimento (§11)
    A folha entra por scwFolha (scw-2026.css). O componente marca `is-fechando`
@@ -363,23 +446,58 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 .scw-acesso        { animation: scwFade 240ms var(--mo-ease) both; }
 .scw-acesso__caixa { animation: scwFolha 340ms var(--mo-mola) both; }
 
+/* Fechar também é movimento (22/08/2026). Antes a tela de acesso sumia seca
+   enquanto o menu saía animado — mesma família de superfície, saídas
+   diferentes. Agora o componente marca `is-fechando` e só desmonta ao fim,
+   como o MobileMenu.
+   A saída é diferente por tela porque a ENTRADA também é: no celular a folha
+   desce por onde subiu; no desktop a caixa é centrada e descer 100% seria
+   atravessar a tela inteira — ali ela só se apaga encolhendo de leve. */
+.scw-acesso.is-fechando        { animation: moVeuSai 260ms var(--mo-ease) both; pointer-events: none; }
+@media (max-width: 900px) {
+  .scw-acesso__caixa.is-fechando { animation: moFolhaSai 260ms var(--mo-ease) both; }
+}
+
+/* >900px a peça é gaveta: entra e sai pela DIREITA, não pela base. Mesma
+   duração e mesmas curvas da folha — 340ms/`--mo-mola` na entrada, 260ms
+   /`--mo-ease` na saída (§6.15.7: nada de tempo novo, só a direção muda). */
+@keyframes moGavetaEntra { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: none; } }
+@keyframes moGavetaSai   { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(100%); } }
+@media (min-width: 901px) {
+  .scw-acesso__caixa             { animation: moGavetaEntra 340ms var(--mo-mola) both; }
+  .scw-acesso__caixa.is-fechando { animation: moGavetaSai 260ms var(--mo-ease) both; }
+  /* O reset de movimento reduzido vive em scw-2026.css e vem ANTES deste
+     arquivo na ordem de import: sem repetir a guarda aqui, a gaveta voltaria a
+     deslizar para quem pediu menos movimento. */
+  @media (prefers-reduced-motion: reduce) {
+    .scw-acesso__caixa,
+    .scw-acesso__caixa.is-fechando { animation: none; }
+  }
+}
+
 /* Card de acesso: lift de adesivo — a sombra cresce junto, não só sobe. */
 .scw-acesso__cartao {
   transition: transform var(--mo-estado) var(--mo-ease),
               box-shadow var(--mo-estado) var(--mo-ease),
               border-color var(--mo-estado) var(--mo-ease);
 }
-.scw-acesso__cartao:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 9px 0 rgba(61, 19, 8, .1);
-  border-color: var(--scw-choco);
+
+@media (hover: hover) {
+  .scw-acesso__cartao:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 0 rgba(61, 19, 8, .1);
+    border-color: var(--scw-choco);
+  }
 }
 
 /* CTA do rodapé: chapado, igual aos .scw-btn — hover sobe 2px, clique volta. */
 .scw-acesso__cta {
   transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
 }
-.scw-acesso__cta:hover  { background: #6A2C15; transform: translateY(-2px); }
+
+@media (hover: hover) {
+  .scw-acesso__cta:hover  { background: #6A2C15; transform: translateY(-2px); }
+}
 .scw-acesso__cta:active { transform: translateY(0) scale(.985); }
 
 /* Botão "Topo": entra como os outros elementos flutuantes, press do .scw-btn. */
@@ -387,7 +505,10 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   animation: moSobeCurto var(--mo-entra) var(--mo-mola) both;
   transition: background var(--mo-estado) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
 }
-.scw-topo:hover  { background: var(--scw-marrom); transform: translateY(-2px); }
+
+@media (hover: hover) {
+  .scw-topo:hover  { background: var(--scw-marrom); transform: translateY(-2px); }
+}
 .scw-topo:active { transform: translateY(0) scale(.985); }
 
 /* ============================================================================

@@ -1,7 +1,7 @@
 import React from 'react'
 import '../../styles/scw-home.css'
 import { festivalFacts } from '../../data/festivalFacts'
-import { bgStyle, comboPhotos, editionPhotos, heroPhotos, RESERVA, sweetGiftPhotos } from '../../data/imageLibrary'
+import { bgStyle, comboPhotos, editionPhotos, fotoAte, heroPhotos, LARGURA_HEROI_MOBILE, RESERVA, sweetGiftPhotos } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
 import { GaleriaCarrossel } from '../../components/GaleriaCarrossel'
 import { HeroFotos } from '../../components/HeroFotos'
@@ -194,6 +194,18 @@ const semMovimento = () =>
 export function HomePage({ navigate }) {
   const raizRef = React.useRef(null)
   const [heroAtiva, setHeroAtiva] = React.useState(0)
+  /* Quais camadas do herói já podem pedir a foto (ver o `style` da camada). */
+  const [heroPedidas, setHeroPedidas] = React.useState(() => HERO.map((_, i) => i === 0))
+  React.useEffect(() => {
+    setHeroPedidas((antes) => {
+      const proxima = (heroAtiva + 1) % HERO.length
+      if (antes[heroAtiva] && antes[proxima]) return antes
+      const agora = antes.slice()
+      agora[heroAtiva] = true
+      agora[proxima] = true
+      return agora
+    })
+  }, [heroAtiva])
   const [contagens, setContagens] = React.useState(() =>
     semMovimento() ? NUMEROS.map((n) => n.alvo) : NUMEROS.map(() => 0),
   )
@@ -285,7 +297,15 @@ export function HomePage({ navigate }) {
               /* --pos/--pos-mobile: o enquadramento muda entre a faixa larga do
                  desktop e a foto alta do celular (scw-home.css lê as duas). */
               style={{
-                backgroundImage: `url("${foto.src}")`,
+                /* Só a camada visível e a próxima pedem a foto — as quatro juntas
+                   eram ~2 MB para mostrar uma. A próxima é pedida um intervalo
+                   inteiro (6,2s) antes de entrar, folga de sobra para a rede, e
+                   quem já passou fica (voltar não pode piscar). Mesma técnica de
+                   `HeroFotos`, que faz isto para as outras cinco páginas. */
+                '--foto': heroPedidas[i] ? `url("${foto.src}")` : undefined,
+                '--foto-mobile': heroPedidas[i]
+                  ? `url("${fotoAte(foto.src, LARGURA_HEROI_MOBILE)}")`
+                  : undefined,
                 '--pos': foto.position,
                 '--pos-mobile': foto.mobilePosition,
               }}
@@ -335,7 +355,7 @@ export function HomePage({ navigate }) {
             </h2>
           </div>
           <p className="hm-apoio">
-            Doçarias, cafeterias e restaurantes de Natal criam uma composição exclusiva a partir do tema da edição — e muitos combos ganham lugar fixo no menu depois.
+            Doçarias, cafeterias e restaurantes de Natal e região criam uma composição exclusiva a partir do tema da edição — e muitos combos ganham lugar fixo no menu depois.
           </p>
         </div>
 

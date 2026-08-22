@@ -725,17 +725,51 @@ Edições:**
 
 ### 6.9 Herói no celular (<1000px) — regra estrutural
 
-**O herói vira dois blocos empilhados: foto em cima, informação embaixo. Nenhum texto
-sobre imagem.**
+**DOIS BLOCOS, NAS CINCO PÁGINAS — construção fechada em 22/08/2026** (pedido do Eloi:
+*"aplica a mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada uma
+mantém a sua cor"*). Foto quadrada de largura cheia em cima, esfumada na base, texto
+embaixo sobre a chapa sólida da página.
 
-- **Home:** foto ocupa **46vh** com escurecimento mínimo (6% no meio, topo livre para a
-  logo respirar, passagem para o chocolate na base); texto em bloco chocolate sólido. O
-  véu usa a mesma curva smoothstep embutida no gradiente, cobrindo 60% da altura.
-- **Participar, Apoiar, Contato e Sweet Awards:** **banda de foto sangrando**
-  (`.scw-hero-banda`) — `padding-top: 0` na seção, margens negativas pelo mesmo trilho,
-  passagem para a cor de fechamento na base. O cartão de foto do desktop
-  (`.scw-hero-cartao`) é **ocultado** para não duplicar imagem.
-  **Geometria: 36vh / mínimo 232px** (`scw-2026.css`).
+| Peça | Regra |
+|---|---|
+| Foto | `.scw-hero-banda` (`.scw-hero__fotos` na Home) **no fluxo**, `aspect-ratio: 1`, largura cheia. Em 390px são 390px — ~46% de um viewport de 844 |
+| Emenda | `::after` na própria foto, rampa de **três** paradas, na cor do bloco. A foto dissolve na chapa em vez de terminar numa aresta |
+| Chapa | `background: var(--scw-heroi)` + `color: var(--scw-heroi-tinta)` — chocolate na Home, cyan em Participar, marrom em Apoiar, bege em Contato, roxo no Awards |
+| Véu | `display: none`. Existia para segurar texto SOBRE foto, e não há mais texto sobre foto |
+| Altura | `min-height: 0` — foto + texto, sem piso (§6.8) |
+
+⚠️ **A chapa é obrigatória, e é o erro que custaria caro.** Antes quem pintava a cor do
+herói era o VÉU, por cima da foto; o bloco podia ficar no chocolate padrão. Sem véu e sem
+esta linha, o título de **Contato sairia chocolate sobre chocolate** — a tinta do herói
+dele é escura.
+
+**Contrastes medidos, todos acima de 4,5:1:** creme sobre chocolate 12:1 · chocolate
+sobre cyan 5,6:1 · creme sobre marrom 9,44:1 · chocolate sobre bege 13:1 · creme sobre
+roxo 9,95:1.
+
+**O zoom é consequência da caixa, não de enquadramento:** `cover` num quadrado corta ~33%
+da largura de uma foto 3:2, contra ~70% na caixa alta de antes. Foi o que motivou a
+mudança, junto com o título caindo sobre rostos e áreas claras.
+
+⛔ **Não devolver a foto para `inset: 0`, não recriar o véu no celular, não devolver piso
+de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
+a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
+
+**Alturas medidas em 390×844:** Home 905px · **Participar e Apoiar 886px** · Contato
+770px · Awards 826px.
+
+⚠️ **Participar e Apoiar são a exceção da proporção: a foto delas é 4:3, não 1:1**
+(`.pa-hero .scw-hero-banda`, pedido do Eloi em 22/08/2026 — "encurtar o herói"). Eram as
+duas mais altas das cinco, com 983px, porque levam 89px de conteúdo que as outras não
+têm: o selo quebra em duas linhas (48px) e há a nota de curadoria embaixo das ações
+(41px). O 4:3 tirou 98px e trouxe a última ação para dentro do viewport.
+
+⛔ **A alavanca das "ações lado a lado" não existe, e está medido:** os dois botões dão
+**241px + 287px numa linha de 342px**. Lado a lado quebrariam o rótulo dentro do botão e
+devolveriam a altura economizada. Não testar de novo.
+
+Se um dia a uniformidade voltar a pesar mais que a altura, o certo é **levar as cinco
+para a mesma proporção**, não devolver estas duas para o quadrado.
 - **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
   06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
   (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo
@@ -779,7 +813,7 @@ Participar → `/images/combos/douce-di-maria/main.jpg` · Apoiar → `/images/m
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo para `/organizacao/`; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo. **Reformulado em 22/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
@@ -811,6 +845,47 @@ lugar.**
 **Pisos de toque:** **44px** para qualquer controle — inclusive link de texto e item de
 acordeão — **46px** para pílula de ação dentro de card, **54px** no herói. ⚠️ **O piso
 vale para o controle real, não para a linha que o contém.**
+
+#### 6.10-b Tela de acesso — reformulada em 22/08/2026
+
+Pedido do Eloi, três frentes.
+
+**1 · Entra pela borda, e cada tela tem a sua.** A caixa centrada acabou nas duas.
+
+| Tela | Peça | Geometria | Entrada / saída |
+|---|---|---|---|
+| ≤900px | **folha**, a mesma da aba "mais" | colada na base, largura cheia, raio `30px 30px 0 0`, puxador dentro da faixa chocolate, `max-height: 88svh` | `scwFolha` 340ms · `moFolhaSai` 260ms |
+| >900px | **gaveta** | colada à direita, do alto ao pé, **520px**, raio `30px 0 0 30px`, sombra para a esquerda | `moGavetaEntra` 340ms · `moGavetaSai` 260ms |
+
+Mesmas durações e curvas da folha nas duas — **só a direção muda** (§6.15.7). A gaveta
+tem 520px e não os 760px da caixa antiga: nessa largura os dois cartões empilham, que é
+a leitura certa numa peça alta. Fechar é movimento nas duas: `.is-fechando` por 260ms
+antes de desmontar, como o `MobileMenu`.
+⚠️ A faixa chocolate + a régua ficam num invólucro `.scw-acesso__cabecalho` com
+`position: sticky` — quem rola é a caixa, e sem isso o **X sai de cena** junto com o
+conteúdo. Na gaveta alta, isso é perder a saída do painel.
+
+**2 · "Entrar" não sai do diálogo.** O botão era um `<a>` para `/organizacao/` e a senha
+era pedida lá. Agora o corpo do próprio diálogo **vira o campo de senha**.
+⚠️ **Não há autenticação nova aqui — é a mesma, um passo antes.** A lógica vive em
+`src/lib/adminAccess.js`, no padrão dos formulários (§4.1): a lib não importa supabase,
+a `rpc` é injetada. Ela chama `admin_ping` e, **só com `=== true`**, grava a senha em
+`sessionStorage.scw_org` — a chave que `public/organizacao/` **já lê na abertura** para
+montar o painel direto. Mesma origem, mesma aba, mesma chave: nada novo é exposto, e a
+senha continua morrendo com a aba.
+**Nada afirma que entrou sem o banco confirmar**, e os quatro motivos têm recados
+diferentes (`vazio`, `senha`, `rede`, `sessao`).
+
+**3 · Contraste.** ⚠️ O rótulo "Falar com a equipe" estava **chocolate sobre chocolate,
+1:1, invisível** desde que o pé foi desenhado — a armadilha nº 1 do §10.1 de novo:
+`.scw-raiz a { color: inherit }` (0,1,1) vencia `.scw-acesso__cta` (0,1,0). Corrigido por
+**prefixo de seletor**, nunca `!important`. O "Entrar" saiu de `<a>` para `<button>` e,
+de quebra, saiu do alcance do mesmo reset: antes ele herdava creme e ficava creme sobre
+amarelo (~1,4:1); agora é chocolate sobre amarelo, 9,5:1.
+⚠️ **Peça que troca de `<a>` para `<button>` precisa de `border: 0` explícito** — senão
+herda a borda `2px outset` padrão do navegador. E o hover de `.scw-acesso__acao` inverte
+para creme, leitura que só funciona sobre a chapa chocolate do cartão: no passo da senha,
+que mora no corpo creme, o botão inverte para **chocolate** (12:1), senão sumiria.
 
 ### 6.11 Iconografia v2
 
@@ -1036,8 +1111,17 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
   de Rotas da Home.
 - **Transição de página** — `main.page-enter` em **opacidade, 300ms. Sem transform, de
   propósito** (ver §10.3).
-- **Cabeçalho** — `.is-rolado` adensa o véu. **Não encolhe altura nem move a logo** — a
-  geometria é regra estrutural.
+- **Cabeçalho** — `.is-rolado` adensa o véu no desktop e recolhe o overhang da logo.
+  **Não encolhe altura nem move a logo** — a geometria é regra estrutural.
+  ⚠️ **No celular (≤900px) `.is-rolado` faz o cabeçalho SAIR de cena** (opacidade 0 +
+  `pointer-events: none`, volta em `:focus-within` por causa do "pular para o
+  conteúdo"). Motivo: abaixo de 900px `.scw-nav` e `.scw-acesso-topo` estão em
+  `display: none` — sobra só a marca, e a navegação inteira mora na barra de abas.
+  Uma barra fixa com conteúdo decorativo passava por cima do texto rolado (o rótulo
+  "A anatomia do combo" virava "TOMIA DO COMBO") e o véu, longe do herói, lia como
+  mancha marrom sobre a seção creme. Abaixo de 40px de rolagem nada muda: o herói
+  continua como desenhado. **A landing `/em-breve` fica de fora** (`--so-acesso`) —
+  ali o cabeçalho reduzido é a única porta de acesso (§10.4-b).
 - **Menu mobile** — entra por `scwFolha` com itens escalonados; sai por `.is-fechando`
   (260ms) e só então desmonta.
 - **Edições** — ken burns `scale(1.06) → scale(1.001)` em 12s; wipe direcional
@@ -1062,11 +1146,19 @@ mude o comportamento visual** — validar idêntico.
 **Sete seções:** `01 Abertura` · `02 O que é` · `03 Rotas` · `04 Ciclo` · `05 Números` ·
 `06 Prova` · `07 Realização`.
 
-- **Herói:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o fundo à
-  direita, véu em degradê a 96°. Abaixo de 1000px o véu passa a vertical e o texto ocupa
-  100%.
+- **Herói, desktop:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o
+  fundo à direita, véu em degradê a 96°.
+- **Herói, celular (<1000px): dois blocos** — foto quadrada de largura cheia em cima,
+  esfumada na base, e o texto embaixo em chapa chocolate sólida. Ver §6.9, que traz a
+  geometria e o motivo. ⛔ Não unificar com o desktop de novo.
 - **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
-  com filete separando. Cada ingrediente **percorre quatro desenhos da própria família**,
+  com filete separando. ⛔ **Sempre em UMA LINHA, inclusive no celular** (pedido do Eloi,
+  22/08/2026): `disco + disco + disco`, com o nome embaixo de cada um. O empilhamento
+  vertical que valia abaixo de 560px saiu — custava três telas de rolagem para dizer
+  "doce + salgado + bebida", e o "+" entre duas linhas lia como marcador de lista, não
+  como soma. O que muda no celular é só a escala, e ela vem de **dois tokens na própria
+  grade** (`--ing-disco` / `--ing-mais`), de onde o alinhamento do "+" é derivado por
+  cálculo. **Não empilhar de novo, e não reescrever os dois `clamp()` em outro lugar.** Cada ingrediente **percorre quatro desenhos da própria família**,
   um por quarto de um ciclo de 8,8s (`scwIcnCiclo`, atraso de 2200ms por peça). Os quatro
   ficam empilhados e só a opacidade muda — nada entra ou sai do fluxo. A arte vive em
   `src/components/scw-icons/anatomia-combo.js`, **fora** de `scw-icons-v2.js`: é desenho
@@ -1101,15 +1193,24 @@ barra de progresso. Navegação por setas do teclado, clique na trilha e arraste
 
 **Mobile:** cabeçalho compacto com a marca da edição e progresso `01/16`; foto 4:5 com
 tema; mosaico de 2 fotos 1:1; dados; palavras-chave; sanfonas de marcas e curiosidades.
-Navegação em três peças:
+Navegação em **uma peça só**: a régua de anos fixa na base, com as setas dentro.
 
 1. **Régua de anos fixa na base** — trilha horizontal com os 16 anos + barra de progresso
    (`transform: scaleX` com origem à esquerda, **sem transição**). Rola e centraliza no
    ano ativo. O deslocamento acima da barra de abas é **condicional, nunca literal**.
-2. **Setas laterais** a 31% da altura, metade fora da tela (`left:-19px` / `right:-19px`,
-   62×52px, canto arredondado só no lado interno). Pulso em laço de 2,8s como convite.
+   Fundo **chapado** (`rgb(43,14,6)`) e **sem `backdrop-filter`** — blur sobre cena
+   animada trava o compositor (§10.3), e os 4% de transparência que havia antes
+   deixavam o contador da galeria aparecer como texto fantasma atrás dos anos.
+2. **As setas de passar vivem NA régua**, flanqueando os anos: `seta · anos · seta`, o
+   **mesmo arranjo e a mesma peça** do rodapé do desktop (`.scw-edx__seta` e
+   `--proxima`). Os anos são a única parte elástica (`flex: 1` + `min-width: 0`).
 3. Nos extremos a seta sem destino recebe **`disabled`** de verdade — não só
-   `opacity:0` —, para sair da tabulação.
+   `opacity:0` —, para sair da tabulação. Dentro da régua ela fica no estado padrão
+   do sistema (`.45`): sumir deixaria um buraco na linha.
+
+⛔ **As setas laterais saíram em 22/08/2026** (pedido do Eloi) — 62×52px a 31% da altura,
+metade fora da tela, com laço de pulso de 2,8s cada. Flutuavam sobre a cena, longe da
+régua que comandam, e precisavam do pulso para se anunciar. **Não recriar.**
 
 **Selo da cena:** disco vazado de 54px (44px em ≤900px) com **um ícone por edição**,
 no tom da cena, ao lado da pill do rótulo — `ICONE_EDICAO` em `Edicoes.jsx`, mapeado
@@ -1328,8 +1429,10 @@ conceitos longos ficam no acervo como subtítulo de campanha.
 - Falar em **"interesse"** e **"próximas edições"** — **nunca prometer participação ou
   patrocínio automático**.
 - **Não prometer função ainda indisponível ao público.**
-- **"+120 marcas"**, não "+100". **"desde 2016"**, não "10 anos" — o décimo aniversário só
-  se completa em setembro de 2026.
+- **"+120 marcas"**, não "+100".
+- **"10 anos" / "dez anos" liberado** — decisão do Eloi, 21/08/2026. A regra anterior pedia
+  "desde 2016" porque o décimo aniversário só se completa em setembro de 2026; a partir desta
+  data o termo pode ser usado na prosa institucional. `festivalFacts.years` segue em 10.
 
 ### 8.5 O que nunca escrever
 

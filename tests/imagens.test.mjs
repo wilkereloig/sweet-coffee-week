@@ -44,7 +44,10 @@ test('toda foto de combo existe no disco', () => {
 
 test('a contagem de fotos por marca bate com a pasta', () => {
   for (const slug of COMBO_SLUGS) {
-    const naPasta = readdirSync(join(PUB, 'images/combos', slug)).filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f)).length
+    // `-480.webp` / `-960.webp` são derivadas de `scripts/gerar-variantes.mjs`,
+    // não fotos do acervo: contá-las faria a tabela "divergir" de si mesma.
+    const naPasta = readdirSync(join(PUB, 'images/combos', slug))
+      .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !/-\d+\.webp$/.test(f)).length
     assert.equal(comboPhotos(slug).length, naPasta, `${slug}: o sistema central diz ${comboPhotos(slug).length}, a pasta tem ${naPasta}`)
   }
 })
@@ -101,6 +104,9 @@ test('nenhum componente monta caminho de imagem na mão', () => {
     'src/data/editionGallery.js',
     'src/data/comboPhotos.js',
     'src/data/focalPoints.js',
+    // Gerado por scripts/gerar-variantes.mjs, como focalPoints.js: é tabela de
+    // dados do próprio sistema de imagens, não componente montando caminho.
+    'src/data/imageVariants.js',
     'src/data/participants.js',
     'src/data/editionAssets.js',
     'src/data/participantAssets.js',

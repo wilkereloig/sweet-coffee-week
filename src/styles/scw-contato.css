@@ -22,7 +22,10 @@
 /* Botão do sistema em tamanho “linha” (46px), como no protótipo. */
 .ctt-btn-mini { min-height: 46px; padding: 13px 20px; font-size: 13.5px; }
 .ctt-btn-choco { background: var(--scw-choco); color: var(--scw-creme); }
-.ctt-btn-choco:hover { background: var(--scw-marrom); }
+
+@media (hover: hover) {
+  .ctt-btn-choco:hover { background: var(--scw-marrom); }
+}
 
 /* Ênfase editorial dos títulos (itálico + segundo tom da paleta). */
 .ctt-destaque { font-style: italic; }
@@ -70,14 +73,20 @@
 /* Herói bege: o par âmbar/contorno-claro do sistema (pensado pra foto escura)
    não fecha AA aqui — os dois botões viram chocolate. */
 .ctt-abertura__acoes .scw-btn--solido { background: var(--scw-choco); color: var(--scw-creme); }
-.ctt-abertura__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+
+@media (hover: hover) {
+  .ctt-abertura__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
+}
 .ctt-abertura__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 40%, transparent);
   color: var(--scw-choco);
 }
-.ctt-abertura__acoes .scw-btn--contorno-claro:hover {
-  background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
-  border-color: var(--scw-choco);
+
+@media (hover: hover) {
+  .ctt-abertura__acoes .scw-btn--contorno-claro:hover {
+    background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
+    border-color: var(--scw-choco);
+  }
 }
 
 /* --- cabeçalho de seção --------------------------------------------------- */
@@ -174,7 +183,10 @@
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.ctt-cat:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .ctt-cat:hover { color: var(--scw-choco); }
+}
 .ctt-cat.is-ativa {
   color: var(--scw-choco);
   font: 900 17px/1.2 var(--scw-font);
@@ -233,7 +245,10 @@
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.ctt-limpar:hover { border-color: var(--scw-choco); color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .ctt-limpar:hover { border-color: var(--scw-choco); color: var(--scw-choco); }
+}
 
 /* Perguntas: 2 colunas no desktop (gap-aware), 1 no mobile. */
 .ctt-perguntas {
@@ -269,7 +284,10 @@
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.ctt-item__botao:hover { background: rgba(61, 19, 8, .035); }
+
+@media (hover: hover) {
+  .ctt-item__botao:hover { background: rgba(61, 19, 8, .035); }
+}
 .ctt-item__texto { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .ctt-item__cat {
   font: 800 9.5px/1 var(--scw-font);
@@ -323,7 +341,10 @@
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
 }
-.ctt-item__link:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .ctt-item__link:hover { color: var(--scw-choco); }
+}
 
 /* Estado vazio — moldura editorial, nunca área em branco. */
 .ctt-vazio {
@@ -418,7 +439,10 @@
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
 }
-.ctt-porta__link:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .ctt-porta__link:hover { color: var(--scw-choco); }
+}
 
 /* --- 04 Mensagem ---------------------------------------------------------- */
 /* À esquerda, como as outras cabeças (ver .pa-form__intro). */
@@ -467,7 +491,10 @@
   font: 700 14px/1.5 var(--scw-font);
 }
 .ctt-enviar { background: var(--scw-choco); color: var(--scw-creme); }
-.ctt-enviar:hover { background: var(--scw-marrom); }
+
+@media (hover: hover) {
+  .ctt-enviar:hover { background: var(--scw-marrom); }
+}
 .ctt-enviar:active { transform: translateY(1px); }
 
 .ctt-ok {
@@ -510,7 +537,10 @@
   color: var(--scw-choco);
   font-size: 14px;
 }
-.ctt-ok__acao:hover { background: var(--scw-choco); color: var(--scw-creme); }
+
+@media (hover: hover) {
+  .ctt-ok__acao:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 
 .ctt-direto {
   display: flex;
@@ -533,19 +563,34 @@
   color: var(--scw-marrom);
   transition: var(--scw-transicao);
 }
-.ctt-direto a:hover { color: var(--scw-choco); }
+
+@media (hover: hover) {
+  .ctt-direto a:hover { color: var(--scw-choco); }
+}
 
 /* --- responsivo (mesmo ponto do `compacto` do protótipo: 900px) ----------- */
 @media (max-width: 900px) {
   .ctt-colunas { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .ctt-lateral { position: static; }
+  /* Fita de assuntos: 2.061px de conteúdo num trilho de 358px. Era o único
+     carrossel do site sem contenção — o arrasto encadeava no documento e virava
+     o gesto de voltar página do iOS. O padrão certo já existia em `.swa-podio`
+     (scw-awards.css); aqui ele só não tinha sido aplicado.
+     A barra de rolagem some porque a régua de chips já mostra que há mais
+     conteúdo: o chip seguinte fica pela metade na borda, que é a afordância
+     que o resto do site usa. */
   .ctt-cats {
     flex-direction: row;
     gap: 8px;
     overflow-x: auto;
     padding-bottom: 4px;
     scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 4px;
+    scrollbar-width: none;
   }
+  .ctt-cats::-webkit-scrollbar { display: none; }
   .ctt-cat {
     width: auto;
     align-items: center;
@@ -577,4 +622,13 @@
   .ctt-form__grade { grid-template-columns: 1fr; }
   .ctt-form__pe .scw-btn { width: 100%; justify-content: center; }
   .ctt-abertura__acoes .scw-btn { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ============================================================================
+   Piso de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
+   O assunto de cada pergunta vinha a 9,5px, e é ele que diz de que categoria a
+   dúvida é quando a busca mistura as dez.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .ctt-item__cat { font-size: var(--scw-piso-rotulo-mob); }
 }

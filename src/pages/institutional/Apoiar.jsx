@@ -23,7 +23,7 @@ import {
   validateSupport,
   submitSupport,
 } from '../../lib/supportInterest'
-import { comboMain, editionPhotos, heroPhotos, RESERVA } from '../../data/imageLibrary'
+import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import '../../styles/scw-participar-apoiar.css'
@@ -360,10 +360,10 @@ export function ApoiarPage() {
               <figure className={g.fotos ? 'pa-onde__figura--dupla' : undefined}>
                 {g.fotos
                   ? g.fotos.map((f) => (
-                      <img key={f.src} src={f.src} alt={f.alt} style={{ objectPosition: f.position }} loading="lazy" decoding="async" />
+                      <img key={f.src} src={f.src} srcSet={srcSet(f.src)} sizes={SIZES.cartao} alt={f.alt} style={{ objectPosition: f.position }} loading="lazy" decoding="async" />
                     ))
                   : g.foto
-                  ? <img src={g.foto.src} alt={g.foto.alt} style={{ objectPosition: g.foto.position }} loading="lazy" decoding="async" />
+                  ? <img src={g.foto.src} srcSet={srcSet(g.foto.src)} sizes={SIZES.cartao} alt={g.foto.alt} style={{ objectPosition: g.foto.position }} loading="lazy" decoding="async" />
                   : <div className="scw-reserva">{RESERVA}</div>}
                 <span className="pa-onde__tag" style={{ '--c': g.c, '--tinta': g.tinta }}>{g.t}</span>
               </figure>
