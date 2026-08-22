@@ -315,7 +315,7 @@ export function ParticiparPage() {
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca pode ser a próxima{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
-              <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#4D257E' }}>descoberta de Natal.</em>
+              <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>descoberta de Natal.</em>
             </h1>
             <p className="scw-lead pa-hero__lead">
               Participar é criar um combo autoral para o tema da edição e entrar na rota oficial
@@ -344,7 +344,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Quem participou conta com as <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>próprias palavras</em>.
+              Quem participou conta com as <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>próprias palavras</em>.
             </h2>
           </div>
           <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
@@ -408,7 +408,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />A potência do festival</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)' }}>
-              O tamanho da <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>vitrine</em> que sua marca ocupa.
+              O tamanho da <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>vitrine</em> que sua marca ocupa.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -435,7 +435,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/circulacao" tamanho={20} />O que a marca leva da edição</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)', maxWidth: '22ch' }}>
-              Três frentes de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>visibilidade</em>, ao mesmo tempo.
+              Três frentes de <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>visibilidade</em>, ao mesmo tempo.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -471,7 +471,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-pode" tamanho={20} />Quem pode participar</span>
             <h2 className="scw-h2">
-              Marcas que fazem <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>comida afetiva</em> em Natal e região.
+              Marcas que fazem <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>comida afetiva</em> em Natal e região.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -500,7 +500,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={20} />O festival na imprensa</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Sua marca aparece onde a cidade <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#01AFCC' }}>já está olhando</em>.
+              Sua marca aparece onde a cidade <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>já está olhando</em>.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -526,7 +526,7 @@ export function ParticiparPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Depois do seu interesse</span>
             <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '22ch' }}>
-              Um <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>percurso claro</em>, do pré-cadastro à edição.
+              Um <em className="pa-destaque" style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-cyan)' }}>percurso claro</em>, do pré-cadastro à edição.
             </h2>
           </div>
         </div>
@@ -546,7 +546,7 @@ export function ParticiparPage() {
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mecanica/inscricao" tamanho={20} />Pré-cadastro</span>
           <h2 className="scw-h2">
-            Comece a <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>jornada da sua marca</em>.
+            Comece a <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>jornada da sua marca</em>.
           </h2>
           <p>
             Leva dois minutos. Depois do envio, a equipe avalia o perfil e retorna pelos canais

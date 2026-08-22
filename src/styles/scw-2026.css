@@ -393,7 +393,7 @@ body:not(.route-em-breve) { margin: 0; }
 .scw-italico { font-style: italic; }
 
 /* Destaque animado dos títulos (scwDestaque, ver keyframes no fim). */
-.scw-destaque { font-style: normal; color: var(--scw-choco); --base: #3D1308; --dest: #F10767; }
+.scw-destaque { font-style: normal; color: var(--scw-choco); --base: var(--scw-choco); --dest: var(--scw-magenta); }
 
 /* ============================================================================
    Peças: pills, botões, cards
@@ -1787,7 +1787,7 @@ body:not(.route-em-breve) { margin: 0; }
   padding: clamp(19px, 2vw, 27px) 0 clamp(15px, 1.6vw, 21px);
   user-select: none;
   color: var(--scw-choco);
-  background: linear-gradient(90deg, #FDBB1A, #01AFCC, #FF4810, #01AFCC, #FDBB1A);
+  background: linear-gradient(90deg, var(--scw-amarelo), var(--scw-cyan), var(--scw-laranja), var(--scw-cyan), var(--scw-amarelo));
   background-size: 300% 100%;
   animation: scwGradient 22s linear infinite;
 }
@@ -1891,10 +1891,10 @@ body:not(.route-em-breve) { margin: 0; }
 @keyframes scwFolha { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: none; } }
 @keyframes scwGradient { from { background-position: 0% 50%; } to { background-position: -300% 50%; } }
 @keyframes scwDestaque {
-  0%   { color: var(--base, #3D1308); font-style: normal; letter-spacing: -.04em; }
+  0%   { color: var(--base, var(--scw-choco)); font-style: normal; letter-spacing: -.04em; }
   62%  { font-style: normal; }
   63%  { font-style: italic; }
-  100% { color: var(--dest, #F10767); font-style: italic; letter-spacing: -.028em; }
+  100% { color: var(--dest, var(--scw-magenta)); font-style: italic; letter-spacing: -.028em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

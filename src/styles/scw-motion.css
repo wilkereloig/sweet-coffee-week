@@ -496,7 +496,7 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 }
 
 @media (hover: hover) {
-  .scw-acesso__cta:hover  { background: #6A2C15; transform: translateY(-2px); }
+  .scw-acesso__cta:hover  { background: var(--scw-marrom); transform: translateY(-2px); }
 }
 .scw-acesso__cta:active { transform: translateY(0) scale(.985); }
 

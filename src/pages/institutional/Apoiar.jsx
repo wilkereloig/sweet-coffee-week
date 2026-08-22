@@ -271,7 +271,7 @@ export function ApoiarPage() {
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca associada à{' '}
               {/* Chapa marrom, tinta creme: o acento é amarelo (6,2:1 sobre o marrom). */}
-              <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#FDBB1A' }}>economia criativa de Natal</em>.
+              <em className="pa-destaque" style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>economia criativa de Natal</em>.
             </h1>
             <p className="scw-lead pa-hero__lead">
               Apoiar o Sweet &amp; Coffee Week é associar sua marca a gastronomia, cultura e pequenos
@@ -297,7 +297,7 @@ export function ApoiarPage() {
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />O que já foi construído</span>
             <h2 className="scw-h2">
-              Dez anos de <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>audiência e consumo</em> na cidade.
+              Dez anos de <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>audiência e consumo</em> na cidade.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -326,7 +326,7 @@ export function ApoiarPage() {
           <div>
             <span className="scw-rotulo">Por que apoiar</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Seis motivos que <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>justificam o investimento</em>.
+              Seis motivos que <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>justificam o investimento</em>.
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
@@ -387,7 +387,7 @@ export function ApoiarPage() {
         <div className="pa-cabeca pa-cabeca--simples">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-vive" tamanho={20} />Quem vive o festival</span>
           <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '20ch' }}>
-            Um público que <em className="pa-destaque" style={{ '--base': '#FEF0DD', '--dest': '#01AFCC' }}>sai de casa para provar</em>.
+            Um público que <em className="pa-destaque" style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-cyan)' }}>sai de casa para provar</em>.
           </h2>
         </div>
 
@@ -415,7 +415,7 @@ export function ApoiarPage() {
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/proposta" tamanho={20} />Conversar com a organização</span>
           <h2 className="scw-h2">
-            Conte como sua marca quer <em className="pa-destaque" style={{ '--base': '#3D1308', '--dest': '#F10767' }}>entrar na edição</em>.
+            Conte como sua marca quer <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>entrar na edição</em>.
           </h2>
           <p>
             A organização responde com formatos de apoio, contrapartidas e prazos da próxima edição.
