@@ -11,20 +11,28 @@ sem TypeScript. Publicado na Vercel.
 > Este README não repete nada do que está lá — um fato em dois arquivos vira dois
 > fatos diferentes na primeira mudança.
 
-## ⚠️ Duas branches, e nenhuma delas é "a certa" sozinha
+## As duas branches, e o que cada uma é
 
 | Branch | O que é |
 | --- | --- |
-| `master` | **o que está publicado.** A Vercel faz deploy a cada push aqui |
-| `dev/site-completo` | **onde o trabalho acontece.** Tem commits que `master` ainda não recebeu |
+| `dev/site-completo` | **o site em desenvolvimento — a versão de verdade.** Site institucional completo: Home, Edições, Sweet Awards, Participar, Apoiar, Contato |
+| `master` | **só o que está publicado hoje:** a landing `/em-breve` e as páginas estáticas. A Vercel faz deploy a cada push aqui |
 
-As duas divergiram. Ler só uma dá uma imagem incompleta do projeto: `master` mostra o
-site que está no ar, `dev/site-completo` mostra para onde ele está indo.
+**`dev/site-completo` é superconjunto de `master`** — tudo que está no ar também está
+aqui. Ler `dev/site-completo` dá a imagem inteira do projeto; ler `master` dá só a
+fatia publicada.
+
+**É essa versão que vai substituir a `/em-breve`.** Publicar é virar
+`COMING_SOON_PUBLICATION` para `false` em `src/App.jsx` e mesclar em `master` — as
+duas coisas são decisão do Wilke, nunca automáticas (`CLAUDE.md` §3.4, A2, A3).
+
+⚠️ **Commit que entra por `master` tem que voltar para `dev/site-completo`.** Foi a
+divergência entre os dois troncos que produziu duas implementações da área da marca e
+o conflito `add/add` da unificação de 22/08/2026. Tronco que só recebe e nunca devolve
+vira o segundo tronco de novo na leva seguinte.
 
 Ferramenta que lê este repositório — conector do Claude Design, agente, revisor, IDE —
-deve apontar para **`dev/site-completo`**. `master` só recebe merge com autorização
-explícita do Wilke, porque push nele é deploy de produção.
-
+aponta para **`dev/site-completo`**.
 ## Setup
 
 ```bash

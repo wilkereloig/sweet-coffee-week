@@ -106,6 +106,10 @@ O que está no ar em `sweetcoffeeweek.com.br` hoje é **só a landing `/em-breve
 causa da flag `COMING_SOON_PUBLICATION = true`. Apagar essa página ou essa flag tira o
 site do ar. Ver §3.4.
 
+**A versão que vai substituir a landing é a de `dev/site-completo`** — o institucional
+de sete páginas descrito no §2.4, não uma reescrita futura. Publicar é `false` na flag
+(§3.4) mais o merge em `master` (A2): duas decisões do Eloi, nenhuma automática.
+
 ### 2.4 Mapa de páginas — alvo institucional
 
 | Página | Papel | Estado |
@@ -131,6 +135,22 @@ Trabalhar em **`dev/site-completo`**. Confirmar antes de editar. O conector do G
 Claude Design aponta por padrão para `master`, que está muito atrás — **reapontar sempre
 para `dev/site-completo`**. PR de volta vai para `dev/site-completo`, nunca para
 `master`.
+
+✅ **Desde 22/08/2026 `dev/site-completo` é superconjunto de `master`** — o merge de
+volta foi feito, e tudo que está no ar também está aqui. A branch deixou de ser "o
+tronco que está à frente" e passou a ser **a versão do site**, ponto.
+
+| Branch | O que carrega |
+|---|---|
+| `dev/site-completo` | o site institucional inteiro — **é o que vai substituir a `/em-breve`** |
+| `master` | só o publicado: a landing `/em-breve` e as três páginas estáticas |
+
+⚠️ **Commit que entrar por `master` tem que voltar para `dev/site-completo` na mesma
+leva.** Foi a divergência dos dois troncos que gerou duas implementações da área da
+marca e o conflito `add/add` da unificação. **Tronco que só recebe e nunca devolve vira
+o segundo tronco de novo** — e aí a pergunta "qual é o site?" volta a ter duas
+respostas, que é o defeito que o §5.1 descreve, subido um nível: de fonte de verdade
+duplicada dentro do código para fonte de verdade duplicada entre branches.
 
 ### 3.2 Comandos
 
