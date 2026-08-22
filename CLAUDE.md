@@ -142,7 +142,7 @@ para `dev/site-completo`**. PR de volta vai para `dev/site-completo`, nunca para
 | `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
 | `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
 | `npm run test:imagens` | reprova componente que monta caminho de imagem na mão |
-| `node tests/responsive.mjs` | Playwright contra o **build de produção** via `vite preview`; sai com código 1 em overflow horizontal |
+| `node tests/responsive.mjs` | Playwright contra o **build de produção** via `vite preview`, em 6 viewports; reprova overflow horizontal, marca fora do trilho, barra de abas ausente no celular ou visível acima de 900px, aba abaixo de 44px e folha "mais" que não abre ou não fecha por Esc/véu/link |
 | `npm run build && npm run design:snapshot` | snapshot estático das 6 páginas para o Claude Design |
 
 **Nunca disparar dois builds ao mesmo tempo.** Esperar o anterior terminar.
@@ -1824,19 +1824,40 @@ Mudou o CSS, muda o JS no mesmo commit.**
 
 ### 10.8 Testes e ferramentas
 
-⚠️ **`tests/responsive.mjs` reprova em 4 de 6 viewports com "menu-toggle invisível no
-mobile" — falha PRÉ-EXISTENTE, não regressão.** `.menu-toggle` é do sistema legado
-(`styles.css`) e tem zero referência em JSX: não renderiza, logo não pode estar visível. O
-redesign 2026 trocou o hambúrguer pela `MobileTabBar`. ⛔ **Não "consertar" o menu-toggle
-— o teste é que está desatualizado.** O que ele mede de útil (`overflow = 0px`) passa nos
-seis. **A falha some quando `styles.css` for removido; atualizar o teste na mesma etapa.**
+✅ **`tests/responsive.mjs` passa em 6 de 6 desde 22/08/2026.** A reprova crônica de
+"menu-toggle invisível no mobile" acabou — e o diagnóstico antigo desta seção estava
+**errado**, o que vale mais que a correção.
+
+A doc dizia: *"`.menu-toggle` é do sistema legado, o teste está desatualizado, a falha
+some quando `styles.css` for removido"*. Meia verdade. `styles.css` já tinha sido
+demolido e a falha continuava, porque a causa era outra e mais funda: **o teste nunca
+carregou o site.** Ele abria `${BASE}/`, e o `vite preview` serve o build de PRODUÇÃO,
+onde `import.meta.env.DEV` é `false` — então `COMING_SOON_PUBLICATION` derrubava as seis
+viewports na landing `/em-breve` (§3.4). Faltava `?preview=1`, que o `tests/motion.mjs`
+sempre teve.
+
+⚠️ **A pista estava no próprio relatório e passou meses sem ser lida:** o teste *achava*
+`.brand` e *não achava* `.menu-toggle`. Um seletor do sistema antigo presente e outro
+ausente, no mesmo DOM, não é envelhecimento — é **página errada**. (`.brand` é da
+`EmBreve.jsx`; a landing nunca teve menu.) **Seletor achado e seletor ausente do mesmo
+"sistema morto" é assinatura de rota errada, não de código morto.**
+
+O arquivo foi reescrito na mesma etapa. Saíram quatro premissas do sistema anterior:
+`.site-header`/`.brand`/`.menu-toggle`/`.mobile-menu`/`.mobile-overlay` → casca 2026;
+breakpoint 960 → **900**; gutter `clamp(28px,11.5vw,150px)` → `--scw-trilho` **lido do CSS
+computado**, não redigitado (§5.2 — teste que recopia a fórmula passa a medir a cópia);
+rota `/#/` → `/`, o hash routing morreu no Anexo A.3. O piso de toque subiu de 40 para os
+**44px** do §6.10, e o fluxo do menu virou o da folha "mais" — que fecha por `.is-fechando`
+e só então desmonta, então "fechada" se mede por `state: 'detached'`, não por
+invisibilidade.
 
 ⚠️ **`tests/icones.mjs` não existe no repositório**, apesar de a documentação antiga mandar
 rodá-lo.
 
-⚠️ **`tests/responsive.mjs` roda contra o BUILD de produção via `vite preview`, não contra
-o dev server** — só o build reflete o site real: minificação, ordem final de CSS, assets
-com hash.
+⚠️ **`tests/responsive.mjs` e `tests/motion.mjs` rodam contra o BUILD de produção via
+`vite preview`, não contra o dev server** — só o build reflete o site real: minificação,
+ordem final de CSS, assets com hash. **Por rodarem no build, os dois precisam de
+`?preview=1` na URL**, senão medem a landing (acima).
 
 ### 10.9 Acervo e dados
 

@@ -81,8 +81,17 @@ test('o site tem porta de entrada para o painel', () => {
   // índice do diretório e o clique volta para a home. Medido em vite preview,
   // que é o build de produção: /organizacao → index.html do SPA;
   // /organizacao/ → o painel.
-  assert.match(dialogo, /href:\s*'\/organizacao\/'/,
-    'o link do painel precisa terminar em barra, senão cai no fallback do SPA')
+  //
+  // ⚠️ Aferir a REGRA, não a sintaxe. Este teste já reprovou uma vez sem haver
+  // defeito: procurava `href: '/organizacao/'` porque a entrada era um <a>, e
+  // em 22/08/2026 ela virou `window.location.href = '/organizacao/'` depois do
+  // admin_ping. O destino continuava certo; só a forma tinha mudado. Agora as
+  // duas pontas são medidas — existe a forma com barra, e não existe nenhuma
+  // sem —, então qualquer sintaxe futura passa e só a barra ausente reprova.
+  assert.match(dialogo, /['"]\/organizacao\/['"]/,
+    'o caminho do painel precisa terminar em barra, senão cai no fallback do SPA')
+  assert.doesNotMatch(dialogo, /['"]\/organizacao['"]/,
+    'há um /organizacao sem barra final — essa forma abre a landing, não o painel')
 })
 
 test('as páginas estáticas têm rewrite próprio no vercel.json', () => {

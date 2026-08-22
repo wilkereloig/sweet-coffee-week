@@ -1,14 +1,28 @@
 /**
  * Validação responsiva — Sweet & Coffee Week
  * -------------------------------------------------------------
- * Sobe o dev server do Vite, abre a Home/O Festival em uma lista de
- * viewports oficiais e checa, em cada uma:
+ * Sobe o preview do build, abre a Home/O Festival em uma lista de viewports
+ * oficiais e checa, em cada uma:
  *   - overflow horizontal (scrollWidth vs innerWidth)
  *   - header em uma única linha (não quebra)
- *   - logo alinhada à esquerda
- *   - botão de menu alinhado à direita, com área de toque confortável
- *   - elementos não colados nas bordas (respeitam o gutter)
- *   - menu mobile: abre, fecha por clique fora, por link e por Esc
+ *   - marca alinhada ao trilho único
+ *   - barra de abas presente no celular, com as 5 abas e piso de toque
+ *   - folha "mais": abre, fecha por clique no véu, por link e por Esc
+ *
+ * ⚠️ REESCRITO EM 22/08/2026, e a história importa porque o arquivo passou meses
+ * reprovando sem haver defeito. Ele media a casca ANTERIOR — `.site-header`,
+ * `.brand`, `.menu-toggle`, `.mobile-menu`, `.mobile-overlay` —, e a demolição
+ * do §4.3 levou `styles.css` junto com todos esses seletores. `querySelector`
+ * devolvia `null`, o teste anunciava "menu-toggle invisível no mobile" em 4 dos
+ * 6 viewports, e a resposta certa era atualizar o teste, não o site (§10.8).
+ *
+ * Quatro premissas velhas saíram no mesmo passo, todas do sistema anterior:
+ *   1. os cinco seletores mortos acima → casca 2026 (`.scw-header`, `.scw-marca`,
+ *      `.scw-abas`, `.scw-folha`);
+ *   2. breakpoint 960 → **900**, que é onde a casca vira aplicativo (§6.14);
+ *   3. gutter `clamp(28px, 11.5vw, 150px)` → `--scw-trilho`, e medido do CSS
+ *      computado do próprio header, não redigitado aqui (ver `readLayout`);
+ *   4. rota `/#/` → `/`, porque o hash routing foi aposentado (§4.1 / Anexo A.3).
  *
  * Gera screenshots em tests/screenshots/ para revisão visual.
  * Sai com código 1 se houver overflow horizontal ou falha dura.
@@ -25,7 +39,7 @@
  *   npm run build && npm run test:responsive   # todos os viewports
  *   npm run build && npm run test:mobile       # só telefones
  *
- * Doc da régua: src/design/SITE_DIRECTION.md (§ Validação mobile).
+ * Doc da régua: CLAUDE.md §6.14 (responsividade) e §6.10 (pisos de toque).
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -40,7 +54,16 @@ const SHOTS = join(__dirname, 'screenshots')
 const PORT = 5179
 const BASE = `http://localhost:${PORT}`
 
-// Viewports oficiais (ver SITE_DIRECTION.md). phone => isMobile + toque.
+/* ⚠️ `?preview=1` NÃO é enfeite: sem ele este teste mede a página errada.
+   O `vite preview` serve o build de PRODUÇÃO, onde `import.meta.env.DEV` é
+   false — então `COMING_SOON_PUBLICATION` derruba toda rota na landing
+   /em-breve e a casca institucional simplesmente não existe no DOM (§3.4).
+   Foi essa a causa real das reprovas antigas de `.menu-toggle`: o teste
+   achava `.brand` (a landing tem) e não achava o menu (a landing não tem).
+   `tests/motion.mjs` já fazia certo desde sempre. */
+const HOME = `${BASE}/?preview=1`
+
+// Viewports oficiais (CLAUDE.md §6.14). phone => isMobile + toque.
 const VIEWPORTS = [
   { w: 390,  h: 844,  label: 'iphone-12-390',  phone: true },
   { w: 414,  h: 896,  label: 'iphone-11-414',  phone: true },
@@ -50,10 +73,13 @@ const VIEWPORTS = [
   { w: 1366, h: 768,  label: 'laptop-1366',    phone: false },
 ]
 
-// Abaixo deste breakpoint o header colapsa no menu hambúrguer (CSS: max-width:959px).
-const MOBILE_NAV_BREAKPOINT = 960
+// Em ≤900px a casca vira aplicativo: a logo perde o overhang, o botão de acesso
+// do topo some e entra a barra inferior de 5 abas (§6.14). É o ponto que decide
+// quais checagens valem — não 960, que era do sistema anterior.
+const MOBILE_NAV_BREAKPOINT = 901
 const OVERFLOW_TOLERANCE = 1 // px — sub-pixel rounding
-const MIN_TOUCH = 40         // px — área de toque mínima do botão de menu
+const MIN_TOUCH = 44         // px — piso de toque do §6.10, para qualquer controle
+const ABAS_ESPERADAS = 5     // festival · edições · awards · participar · mais
 
 const onlyMobile = process.argv.includes('--mobile')
 const targets = onlyMobile ? VIEWPORTS.filter((v) => v.phone) : VIEWPORTS
@@ -97,24 +123,48 @@ async function waitForServer(url, timeoutMs = 30000) {
   throw new Error(`Dev server não respondeu em ${timeoutMs}ms (${url})`)
 }
 
-/** Lê métricas de layout do header e do documento. */
+/** Lê métricas de layout da casca e do documento. */
 function readLayout() {
   const de = document.documentElement
   const vw = window.innerWidth
-  const rect = (el) => (el ? el.getBoundingClientRect() : null)
-  const header = document.querySelector('.site-header')
-  const brand = document.querySelector('.brand') || document.querySelector('.site-header .brand')
-  const toggle = document.querySelector('.menu-toggle')
-  const hb = rect(header)
-  const bb = rect(brand)
-  const tb = rect(toggle)
-  const toggleVisible = toggle ? getComputedStyle(toggle).display !== 'none' : false
+  const visivel = (el) => !!el && getComputedStyle(el).display !== 'none'
+  const caixa = (el) => {
+    if (!el) return null
+    const b = el.getBoundingClientRect()
+    return {
+      left: Math.round(b.left), right: Math.round(b.right),
+      top: Math.round(b.top), bottom: Math.round(b.bottom),
+      width: Math.round(b.width), height: Math.round(b.height),
+      visible: visivel(el),
+    }
+  }
+
+  const header = document.querySelector('.scw-header')
+  const linha = document.querySelector('.scw-header__linha') || header
+  const marca = document.querySelector('.scw-marca')
+  const abas = document.querySelector('.scw-abas')
+
+  /* O trilho NÃO é redigitado aqui. `--scw-trilho` é uma fórmula com `max()` e
+     `clamp()` que já mudou de valor mais de uma vez; recopiá-la para o teste
+     criaria a segunda fonte de verdade que o §5.2 proíbe — e o teste passaria a
+     medir a cópia, não a regra. Lemos o padding real do elemento que o aplica,
+     então a checagem continua válida quando a fórmula mudar. */
+  const trilho = linha ? Math.round(parseFloat(getComputedStyle(linha).paddingInlineStart)) : null
+
+  /* Piso de toque medido no CONTROLE, não na linha que o contém (§10.2). */
+  const controlesAba = [...document.querySelectorAll('.scw-aba')].map((el) => {
+    const b = el.getBoundingClientRect()
+    return { w: Math.round(b.width), h: Math.round(b.height) }
+  })
+
   return {
     vw,
     overflowX: de.scrollWidth - vw,
-    headerHeight: hb ? Math.round(hb.height) : null,
-    brand: bb ? { left: Math.round(bb.left), right: Math.round(bb.right), height: Math.round(bb.height) } : null,
-    toggle: tb ? { left: Math.round(tb.left), right: Math.round(tb.right), width: Math.round(tb.width), height: Math.round(tb.height), visible: toggleVisible } : null,
+    headerHeight: header ? Math.round(header.getBoundingClientRect().height) : null,
+    trilho,
+    marca: caixa(marca),
+    abas: caixa(abas),
+    controlesAba,
   }
 }
 
@@ -150,7 +200,7 @@ async function run() {
       page.setDefaultTimeout(4000)
       const issues = []
 
-      await page.goto(`${BASE}/#/`, { waitUntil: 'load', timeout: 15000 })
+      await page.goto(HOME, { waitUntil: 'load', timeout: 15000 })
       await page.waitForTimeout(600) // assenta fontes/animações de entrada
 
       const L = await page.evaluate(readLayout)
@@ -158,99 +208,108 @@ async function run() {
       // 1. overflow horizontal
       if (L.overflowX > OVERFLOW_TOLERANCE) issues.push(`overflow-x: +${L.overflowX}px`)
 
-      // 2. header não quebra (uma linha — altura sã)
+      // 2. a casca existe (se o seletor morrer de novo, o teste diz isso em vez
+      //    de inventar um defeito de layout a partir de um null)
+      if (L.headerHeight === null) issues.push('.scw-header não encontrado — casca mudou?')
+      if (!L.marca) issues.push('.scw-marca não encontrada — casca mudou?')
+
+      // 3. header não quebra (uma linha — altura sã)
       if (L.headerHeight && L.headerHeight > vp.h * 0.45) issues.push(`header alto demais: ${L.headerHeight}px`)
 
-      // 3. logo à esquerda, alinhada ao gutter da Home: --hm-gutter =
-      //    clamp(28px, 11.5vw, 150px). A borda esquerda da .brand deve bater nele.
-      const expectedGutter = Math.min(Math.max(28, 0.115 * vp.w), 150)
-      if (L.brand && Math.abs(L.brand.left - expectedGutter) > 12) {
-        issues.push(`logo fora do gutter (left=${L.brand.left}, esperado≈${Math.round(expectedGutter)})`)
+      // 4. marca alinhada ao trilho único, lido do CSS computado (§6.6)
+      if (L.marca && L.trilho !== null && Math.abs(L.marca.left - L.trilho) > 12) {
+        issues.push(`marca fora do trilho (left=${L.marca.left}, trilho=${L.trilho})`)
       }
 
-      // 4. logo não estoura a borda
-      if (L.brand && L.brand.right > vp.w) issues.push(`logo estoura à direita (right=${L.brand.right})`)
+      // 5. marca não estoura a borda
+      if (L.marca && L.marca.right > vp.w) issues.push(`marca estoura à direita (right=${L.marca.right})`)
 
-      // 5. botão de menu (só quando o nav mobile está ativo)
+      // 6. barra de abas — só abaixo de 900px (§6.14)
       if (isMobileNav) {
-        if (!L.toggle || !L.toggle.visible) {
-          issues.push('menu-toggle invisível no mobile')
+        if (!L.abas || !L.abas.visible) {
+          issues.push('barra de abas ausente no celular')
         } else {
-          if (L.toggle.right < vp.w * 0.6) issues.push(`menu-toggle não está à direita (right=${L.toggle.right})`)
-          if (L.toggle.right > vp.w + OVERFLOW_TOLERANCE) issues.push(`menu-toggle estoura à direita (right=${L.toggle.right})`)
-          if (L.toggle.width < MIN_TOUCH || L.toggle.height < MIN_TOUCH) {
-            issues.push(`área de toque pequena: ${L.toggle.width}x${L.toggle.height}`)
+          if (L.abas.bottom > vp.h + OVERFLOW_TOLERANCE) issues.push(`barra de abas abaixo da tela (bottom=${L.abas.bottom})`)
+          if (L.controlesAba.length !== ABAS_ESPERADAS) {
+            issues.push(`abas: ${L.controlesAba.length} (esperado ${ABAS_ESPERADAS})`)
+          }
+          const curtas = L.controlesAba.filter((c) => c.w < MIN_TOUCH || c.h < MIN_TOUCH)
+          if (curtas.length) {
+            issues.push(`aba abaixo do piso de ${MIN_TOUCH}px: ${curtas.map((c) => `${c.w}x${c.h}`).join(', ')}`)
           }
         }
+      } else if (L.abas && L.abas.visible) {
+        issues.push('barra de abas visível acima de 900px')
       }
 
       // screenshot da página
       await page.screenshot({ path: join(SHOTS, `${vp.label}.png`), fullPage: true })
 
-      // 6. fluxo do menu mobile — cada passo é tolerante a falha (registra
-      //    o problema e se recupera, fechando à força antes de reabrir).
-      if (isMobileNav && L.toggle && L.toggle.visible) {
-        const menu = page.locator('.mobile-menu')
-        const overlay = page.locator('.mobile-overlay')
+      // 7. fluxo da folha "mais" — cada passo é tolerante a falha (registra o
+      //    problema e se recupera, fechando à força antes de reabrir).
+      //    A folha sai por `.is-fechando` e só então desmonta (§6.15), por isso
+      //    "fechada" é medido por `state: 'detached'`, não por invisibilidade.
+      if (isMobileNav && L.abas && L.abas.visible) {
+        const folha = page.locator('.scw-folha')
+        const veu = page.locator('.scw-folha-veu')
+        const botaoMais = page.locator('.scw-aba').last()
 
-        const isOpen = () => menu.isVisible().catch(() => false)
-        const open = async () => {
-          await page.locator('.menu-toggle').click({ force: true }).catch(() => {})
-          await menu.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {})
-          await page.waitForTimeout(340) // deixa o slideInRight terminar (painel entra pela direita)
+        const aberta = () => folha.isVisible().catch(() => false)
+        const abrir = async () => {
+          await botaoMais.click({ force: true }).catch(() => {})
+          await folha.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {})
+          await page.waitForTimeout(360) // deixa `scwFolha` terminar de subir
         }
-        // fecha à força via botão .close (sempre funciona) p/ recuperar entre passos
-        const forceClose = async () => {
-          if (await isOpen()) {
-            await page.locator('.mobile-menu .close').click({ force: true }).catch(() => {})
-            await menu.waitFor({ state: 'hidden', timeout: 1500 }).catch(() => {})
+        const fecharForcado = async () => {
+          if (await aberta()) {
+            await page.locator('.scw-folha__fechar').click({ force: true }).catch(() => {})
+            await folha.waitFor({ state: 'detached', timeout: 1500 }).catch(() => {})
           }
         }
-        const closedWithin = (ms = 1500) =>
-          menu.waitFor({ state: 'hidden', timeout: ms }).then(() => true).catch(() => false)
+        const fechouEm = (ms = 1500) =>
+          folha.waitFor({ state: 'detached', timeout: ms }).then(() => true).catch(() => false)
 
         try {
-          // abre
-          await open()
-          if (!(await isOpen())) issues.push('menu não abriu')
+          await abrir()
+          if (!(await aberta())) issues.push('folha "mais" não abriu')
           await page.waitForTimeout(250)
-          await page.screenshot({ path: join(SHOTS, `${vp.label}--menu.png`) })
+          await page.screenshot({ path: join(SHOTS, `${vp.label}--folha.png`) })
 
-          // overflow com menu aberto
-          const menuOverflow = await page.evaluate(
+          // overflow com a folha aberta
+          const folhaOverflow = await page.evaluate(
             () => document.documentElement.scrollWidth - window.innerWidth,
           )
-          if (menuOverflow > OVERFLOW_TOLERANCE) issues.push(`menu aberto gera overflow: +${menuOverflow}px`)
+          if (folhaOverflow > OVERFLOW_TOLERANCE) issues.push(`folha aberta gera overflow: +${folhaOverflow}px`)
 
-          // links presentes (7 institucionais)
-          const linkCount = await page.locator('.mobile-menu a').count()
-          if (linkCount < 7) issues.push(`menu com poucos links: ${linkCount} (esperado ≥7)`)
+          // a folha carrega a navegação completa — NAV_LINKS, as 6 rotas
+          const linkCount = await page.locator('.scw-folha__nav a').count()
+          if (linkCount < 6) issues.push(`folha com poucos links: ${linkCount} (esperado ≥6)`)
 
           // fecha com Esc
           await page.keyboard.press('Escape')
-          if (!(await closedWithin())) issues.push('menu não fechou com Esc')
-          await forceClose()
+          if (!(await fechouEm())) issues.push('folha não fechou com Esc')
+          await fecharForcado()
 
-          // fecha por clique fora (canto do overlay, longe do painel)
-          await open()
-          await overlay.click({ position: { x: 6, y: 6 }, force: true }).catch(() => {})
-          if (!(await closedWithin())) issues.push('menu não fechou ao clicar fora')
-          await forceClose()
+          // fecha por clique no véu (canto, longe do painel)
+          await abrir()
+          await veu.click({ position: { x: 6, y: 6 }, force: true }).catch(() => {})
+          if (!(await fechouEm())) issues.push('folha não fechou ao clicar no véu')
+          await fecharForcado()
 
-          // fecha ao clicar em um link (clique real — valida que o link é tocável)
-          await open()
-          const link = page.locator('.mobile-menu a').nth(1)
+          // fecha ao clicar num link (clique real — valida que o link é tocável)
+          await abrir()
+          const link = page.locator('.scw-folha__nav a').nth(1)
           await link.scrollIntoViewIfNeeded().catch(() => {})
           await link.click().catch((e) => issues.push(`clique no link falhou: ${e.message?.split('\n')[0]}`))
-          if (!(await closedWithin())) issues.push('menu não fechou ao clicar em link')
-          await forceClose()
+          if (!(await fechouEm())) issues.push('folha não fechou ao clicar em link')
+          await fecharForcado()
         } catch (e) {
-          issues.push(`erro no fluxo do menu: ${e.message?.split('\n')[0]}`)
-          await forceClose()
+          issues.push(`erro no fluxo da folha: ${e.message?.split('\n')[0]}`)
+          await fecharForcado()
         }
 
         // volta pra Home p/ a próxima iteração começar limpa
-        await page.goto(`${BASE}/#/`, { waitUntil: 'domcontentloaded' }).catch(() => {})
+        await page.goto(HOME, { waitUntil: 'domcontentloaded' }).catch(() => {})
       }
 
       results.push({ vp, L, issues })
