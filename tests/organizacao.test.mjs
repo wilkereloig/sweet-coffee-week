@@ -13,6 +13,14 @@ import { readFileSync } from 'node:fs'
 const HTML = readFileSync(new URL('../public/organizacao/index.html', import.meta.url), 'utf8')
 const SCRIPTS = [...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
 const JS = SCRIPTS[0] || ''
+const MIGRATION = readFileSync(
+  new URL('../supabase/migrations/20260822_contas_marcas.sql', import.meta.url), 'utf8')
+const EDGE = readFileSync(
+  new URL('../supabase/functions/criar-acesso-marca/index.ts', import.meta.url), 'utf8')
+
+// A lista real de destinos, lida do script — nada de repetir à mão aqui.
+const DESTINOS = JSON.parse(
+  (JS.match(/const DESTINOS = (\[[^\]]+\])/) || [, '[]'])[1].replace(/'/g, '"'))
 
 test('o HTML traz exatamente um bloco de script inline', () => {
   assert.equal(SCRIPTS.length, 1)
@@ -179,12 +187,27 @@ test('o SW não é cacheado pelo CDN', () => {
   assert.match(h.headers[0].value, /no-store/)
 })
 
-test('o painel abre num destino e a barra tem os três', () => {
-  // Se um destino sumir do HTML, irPara() cai no fallback e a aba fica órfã.
-  for (const v of ['resumo', 'respostas', 'formularios']) {
+test('todo destino de DESTINOS tem seção e botão', () => {
+  // Derivado do próprio script, não de uma lista escrita à mão aqui: destino
+  // novo entra no teste sozinho. Se ele sumir do HTML, irPara() cai no
+  // fallback e a aba fica órfã.
+  assert.ok(DESTINOS.length >= 3, 'não consegui ler DESTINOS do script')
+  for (const v of DESTINOS) {
     assert.match(HTML, new RegExp('id="vista-' + v + '"'), 'falta a seção do destino ' + v)
     assert.match(HTML, new RegExp('data-vista="' + v + '"'), 'falta o botão do destino ' + v)
   }
+})
+
+test('a barra de abas tem tantas colunas quanto destinos', () => {
+  // ⚠️ Duplicação inevitável: CSS não lê JS, e `repeat()` não recebe valor
+  // vindo do script. Acrescentar um destino sem mexer nestas duas linhas deixa
+  // a última aba fora da grade e o indicador deslizante na medida errada — e
+  // isso não levanta erro nenhum no console.
+  const n = DESTINOS.length
+  assert.ok(HTML.includes('grid-template-columns:repeat(' + n + ',1fr)'),
+    'a grade da barra de abas não tem ' + n + ' colunas')
+  assert.ok(HTML.includes('width:calc(100% / ' + n + ')'),
+    'o indicador da barra não mede 1/' + n)
 })
 
 test('o bloco de prefers-reduced-motion é o último do CSS', () => {
@@ -219,4 +242,75 @@ test('a casca prende a coluna do grid, senão estoura na horizontal', () => {
     assert.ok(regra, 'sumiu a regra de ' + sel)
     assert.match(regra[0], /min-width\s*:\s*0/, sel + ' sem min-width:0 — item de grid não encolhe')
   }
+})
+
+/* ── Contas das marcas (Fase 1) ──────────────────────────────────────────── */
+
+test('as funções do acesso da marca estão declaradas', () => {
+  for (const f of ['chamarFuncao', 'carregarParticipantes', 'renderParticipantes',
+                   'acessoDe', 'seloAcesso', 'blocoAcesso', 'criarAcesso']) {
+    assert.match(JS, new RegExp(String.raw`function\s+${f}\s*\(`), 'função não declarada: ' + f)
+  }
+})
+
+test('listar as marcas não pode derrubar as quatro origens', () => {
+  // 🔴 A razão é concreta: `get_participantes` só existe depois de a migration
+  // das contas ser aplicada no banco. Dentro do Promise.all das origens, um 404
+  // dela levaria o painel INTEIRO para a tela de erro — inclusive as respostas
+  // que já funcionam hoje. A carga tem que ser apartada e ter catch próprio.
+  const i = JS.indexOf('async function carregarParticipantes')
+  assert.ok(i > 0, 'sumiu a carga apartada das marcas')
+  const bloco = JS.slice(i, i + 700)
+  assert.match(bloco, /catch/, 'a carga das marcas não tem catch próprio')
+  assert.match(bloco, /participantesErro\s*=/, 'o motivo da falha não é guardado para a tela')
+
+  const promiseAll = JS.match(/Promise\.all\([\s\S]{0,240}?\)\)/)
+  assert.ok(promiseAll, 'sumiu a carga em paralelo das origens')
+  assert.ok(!promiseAll[0].includes('get_participantes'),
+    'get_participantes entrou no Promise.all: migration não aplicada derrubaria o painel todo')
+})
+
+test('a página conhece todo status que o banco aceita', () => {
+  // O CHECK de `quero_participar` ganhou 'cadastro_completo' na migration das
+  // contas. Status sem rótulo aqui vira string crua na tela e some do filtro —
+  // o painel passa a mentir por omissão.
+  const check = MIGRATION.match(/add constraint quero_participar_status_check check \(status in \(([\s\S]*?)\)\)/)
+  assert.ok(check, 'sumiu o CHECK de status de quero_participar')
+  const doBanco = [...check[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1])
+  assert.ok(doBanco.length >= 6, 'li o CHECK errado: ' + doBanco.join(', '))
+
+  const iRot = JS.indexOf('const ROTULO_STATUS')
+  const rotulos = JS.slice(iRot, JS.indexOf('};', iRot))
+  const vocab = JS.match(/rpc: 'get_quero_participar'[\s\S]*?status: \[([^\]]+)\]/)
+  assert.ok(vocab, 'não achei o vocabulário de status do quero_participar')
+
+  for (const s of doBanco) {
+    assert.ok(rotulos.includes(s + ':'), 'status sem rótulo legível: ' + s)
+    assert.ok(vocab[1].includes("'" + s + "'"), 'status fora do filtro do painel: ' + s)
+  }
+})
+
+test('o painel fala com a Edge Function no contrato dela', () => {
+  // Caminho e nomes dos campos. Um typo aqui devolve 400 e morre numa mensagem
+  // genérica; o teste falha antes de chegar lá.
+  assert.match(JS, /\/functions\/v1\//, 'a chamada não vai para o caminho de Edge Function')
+  assert.match(JS, /chamarFuncao\('criar-acesso-marca',\s*\{\s*secret:[^}]*origem_id:/,
+    'o corpo enviado não bate com { secret, origem_id }')
+  assert.match(EDGE, /payload\.secret/, 'a função não lê mais `secret`')
+  assert.match(EDGE, /payload\.origem_id/, 'a função não lê mais `origem_id`')
+})
+
+test('criar acesso pede confirmação — o e-mail não volta', () => {
+  const i = JS.indexOf('async function criarAcesso')
+  assert.ok(i > 0, 'sumiu criarAcesso')
+  assert.match(JS.slice(i, i + 900), /confirm\(/,
+    'o botão dispara e-mail para uma pessoa real sem confirmar nada')
+})
+
+test('a RPC de listar marcas existe e passa pela senha', () => {
+  assert.match(MIGRATION, /create or replace function public\.get_participantes/)
+  const i = MIGRATION.indexOf('function public.get_participantes')
+  assert.match(MIGRATION.slice(i, i + 1400),
+    /if not public\.admin_ok\(p_secret\) then return; end if;/,
+    'a listagem das marcas não confere a senha')
 })

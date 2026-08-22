@@ -601,7 +601,32 @@ parado há mais de X dias.
    - `participantes.user_id` **perdeu** o `unique` — participação é marca + edição, então
      a marca recorrente é o mesmo usuário em duas linhas. Com `unique`, o caminho feliz
      do `email_exists` quebrava no INSERT seguinte.
-7. `/organizacao/`: botão "Criar acesso", coluna "Acesso", aba Participantes, ficha.
+7. ~~`/organizacao/`: botão "Criar acesso", coluna "Acesso", aba Participantes, ficha.~~
+   ✅ **feito em 22/08/2026** — quarto destino "marcas" na casca (`vista-participantes`),
+   selo de estado do cadastro ao lado do selo de status em cada candidatura, e o bloco
+   "Acesso da marca" na ficha do `/quero-participar`. Sete checagens novas em
+   `tests/organizacao.test.mjs`. Quatro decisões que valem registro:
+   - **"marcas", não "participantes", no rótulo.** A tabela do banco é `participantes`,
+     mas o vocabulário da organização é marca (CLAUDE.md §9.3) — e é o único rótulo que
+     cabe numa barra de 4 colunas a 320px sem quebrar linha. Uma palavra nas duas telas.
+   - **A carga das marcas é apartada e tem `catch` próprio.** Dentro do `Promise.all`
+     das quatro origens, um 404 de `get_participantes` — que é o estado de HOJE, com a
+     migration não aplicada — levaria o painel inteiro para a tela de erro, inclusive as
+     respostas que já funcionam. A falha fica contida na vista das marcas, que a explica.
+   - **Duas travas antes de deixar criar**, mais um `confirm()`: sem e-mail não há
+     convite, e status diferente de "Aprovado" bloqueia o botão. Apertá-lo dispara um
+     e-mail para uma pessoa real, e e-mail enviado não volta.
+   - **Reenviar convite não existe** e a ficha diz isso: a Edge Function é idempotente e
+     devolveria 409. O caminho que existe é a marca pedir novo link em "Esqueci a senha".
+
+   Faltava uma RPC que o §4 não previa: **`get_participantes`**, a leitura da organização
+   — o único ponto do sistema que cruza `participantes_operacao`, porque é exatamente
+   quem precisa conferir se a marca preencheu preço e unidades.
+
+   ⚠️ **Um vão fechado junto:** a migration acrescenta `cadastro_completo` ao CHECK de
+   `quero_participar`, e o painel não conhecia esse status — apareceria como string crua
+   na tela e sumiria do filtro. Agora um teste deriva o vocabulário do próprio CHECK, e
+   status novo no banco sem rótulo no painel reprova.
 8. ~~`/marca/`: login, definir senha, cadastro, status.~~ ✅ **escrita em 22/08/2026** —
    `public/marca/index.html`, 17 checagens em `tests/marca.test.mjs`. Duas trocas em
    relação a este plano, ambas deliberadas:

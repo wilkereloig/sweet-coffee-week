@@ -1824,6 +1824,26 @@ menu nem rodapé, de propósito. A senha é a mesma de `admin_config` e só se
 redefine por SQL (`select public.set_admin_secret($$…$$)`); o banco guarda só o
 hash, então **ela não é recuperável**.
 
+**Como a marca ganha conta:** na ficha de uma candidatura **aprovada** do
+`/quero-participar`, o bloco "Acesso da marca" chama a Edge Function
+`criar-acesso-marca`. Ela cria o usuário no Auth **sem senha** e manda um convite
+para a marca definir a dela — a senha nunca passa pela tela de quem aprova. O
+quarto destino do painel, **"marcas"**, lista quem já tem conta e em que ponto do
+cadastro está. O passo a passo e as decisões estão em
+`docs/PLANO-painel-contas-participantes.md`.
+
+⚠️ **A leitura das marcas (`get_participantes`) carrega FORA do `Promise.all` das
+quatro origens, com `catch` próprio.** A RPC só existe depois de a migration das
+contas ser aplicada; junto das outras, um 404 dela derrubaria o painel inteiro —
+inclusive as respostas que já funcionam. **Toda leitura nova que dependa de
+migration não aplicada segue a mesma regra.** `tests/organizacao.test.mjs`
+reprova quem a colocar de volta no `Promise.all`.
+
+⚠️ **Status novo no banco tem que ganhar rótulo no painel no mesmo commit.** O
+CHECK de `quero_participar` ganhou `cadastro_completo`, e sem entrada em
+`ROTULO_STATUS` ele apareceria como string crua e sumiria do filtro. O teste
+deriva o vocabulário do próprio CHECK da migration.
+
 #### O painel é um app instalável — armadilhas do 22/08/2026
 
 🔴 **Service worker tem escopo de PASTA, não de configuração.** O do painel vive

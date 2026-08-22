@@ -147,13 +147,15 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding-bottom:var(--scw-safe-b);
   border-top:1px solid rgba(254,240,221,.14);
 }
+/* O 4 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
+   aqui — o indicador deslizante mede a coluna, não o botão. */
 .og-abasapp__grade{
   position:relative;
-  display:grid;grid-template-columns:repeat(3,1fr);
+  display:grid;grid-template-columns:repeat(4,1fr);
   height:var(--og-abas-h);
 }
 .og-abasapp__indicador{
-  position:absolute;top:0;left:0;height:3px;width:calc(100% / 3);
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / 4);
   background:var(--scw-amarelo);border-radius:0 0 3px 3px;
   transform:translateX(calc(var(--og-i,0) * 100%));
   transition:transform 300ms var(--scw-ease);
@@ -298,6 +300,18 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--scw-bege);color:var(--scw-choco);white-space:nowrap;
 }
 .og-selo[data-novo="1"]{background:var(--scw-amarelo)}
+/* Selo de acesso: anda LADO A LADO com o selo de status, então não pode repetir
+   a cor dele (§6.3). O amarelo é do "novo"; sobram laranja (4,78:1 sobre
+   chocolate), cyan (5,6:1) e o chocolate cheio com tinta creme (12:1). */
+.og-selo[data-acesso="aguardando_cadastro"]{background:var(--scw-laranja)}
+.og-selo[data-acesso="em_preenchimento"]{background:var(--scw-cyan)}
+.og-selo[data-acesso="cadastro_completo"]{background:var(--scw-choco);color:var(--scw-creme)}
+
+/* Marca sem folha de detalhe própria: reusa a linha da lista, mas sem cursor de
+   clique e sem a elevação do hover. Card que sobe sem ter para onde levar
+   promete uma tela que não existe (§6.15, regra 6). */
+div.og-item{cursor:default}
+div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 
 /* ── Estados ───────────────────────────────────────────────────────────── */
 .og-estado{
@@ -440,6 +454,11 @@ button,input,select,textarea{font:inherit;color:inherit}
     <nav class="og-topo__destinos" aria-label="Seções do painel">
       <button class="og-aba is-ativa" type="button" data-vista="resumo">resumo</button>
       <button class="og-aba" type="button" data-vista="respostas">respostas</button>
+      <!-- "marcas" e não "participantes": a tabela do banco se chama
+           `participantes`, mas o vocabulário da organização é marca (§9.3), e o
+           rótulo curto é o único que cabe numa barra de 4 colunas a 320px sem
+           quebrar a linha. Uma palavra só nas duas telas. -->
+      <button class="og-aba" type="button" data-vista="participantes">marcas</button>
       <button class="og-aba" type="button" data-vista="formularios">formulários</button>
     </nav>
     <div class="og-topo__dir">
@@ -483,6 +502,16 @@ button,input,select,textarea{font:inherit;color:inherit}
       <div id="area-lista"></div>
     </section>
 
+    <section class="og-vista" id="vista-participantes" hidden>
+      <section class="og-forms">
+        <div class="og-forms__cabeca">
+          <h2>Marcas com acesso</h2>
+          <p>Quem já tem conta para preencher o próprio cadastro.</p>
+        </div>
+        <div id="area-participantes"></div>
+      </section>
+    </section>
+
     <section class="og-vista" id="vista-formularios" hidden>
       <section class="og-forms">
         <div class="og-forms__cabeca">
@@ -508,6 +537,13 @@ button,input,select,textarea{font:inherit;color:inherit}
           <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/>
         </svg>
         <span class="og-abaapp__rotulo">respostas</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="participantes">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20"/>
+          <circle cx="10" cy="7.5" r="3.5"/><path d="M17.5 13.5h4"/><path d="M19.5 11.5v4"/>
+        </svg>
+        <span class="og-abaapp__rotulo">marcas</span>
       </button>
       <button class="og-abaapp" type="button" data-vista="formularios">
         <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -552,7 +588,11 @@ const ORIGENS = {
     // arquivos antes do rewrite do SPA. A barra final é obrigatória — sem ela a
     // rota cai no fallback do SPA e abre a landing.
     form: '/quero-participar/',
-    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
+    // 'cadastro_completo' entra com a migration das contas: quando a marca
+    // termina o cadastro, `marca_concluir_cadastro` fecha a candidatura nesse
+    // status. Sem ele aqui, o painel mostraria a string crua e o filtro não
+    // ofereceria a opção.
+    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro','cadastro_completo'],
     titulo: r => r.empresa || r.nome,
     meta: r => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
     campos: {
@@ -605,6 +645,7 @@ const ORIGENS = {
 const ROTULO_STATUS = {
   novo:'Novo', em_analise:'Em análise', contatado:'Contatado', respondido:'Respondido',
   aprovado:'Aprovado', nao_selecionado:'Não selecionado', aguardando_cadastro:'Aguardando cadastro',
+  cadastro_completo:'Cadastro completo', em_preenchimento:'Preenchendo',
   em_negociacao:'Em negociação', fechado:'Fechado', arquivado:'Arquivado', encerrado:'Encerrado'
 };
 
@@ -619,11 +660,16 @@ const CHAVES = {
 
 /* Os três destinos da casca. Não confundir com as quatro ORIGENS: origem é de
    qual formulário a resposta veio; destino é onde a pessoa está no app. */
-const DESTINOS = ['resumo', 'respostas', 'formularios'];
+const DESTINOS = ['resumo', 'respostas', 'participantes', 'formularios'];
 
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
 let dados = {};            // origem → array de registros
+/* As marcas com conta. Fica FORA de `dados` de propósito: `dados` é indexado
+   pelas quatro ORIGENS e `todos()` varre esse objeto inteiro — uma quinta chave
+   ali entraria na lista de respostas como se fosse um formulário. */
+let participantes = [];
+let participantesErro = '';  // por que a lista não veio; '' quando veio
 let aba = 'tudo';
 let selecionado = null;    // { origem, id }
 let vistaAtual = '';         // destino visível
@@ -654,6 +700,27 @@ async function rpc(nome, corpo) {
     throw new Error(detalhe || ('HTTP ' + r.status));
   }
   return r.json();
+}
+
+/* Edge Function. Não é PostgREST: criar usuário no Auth exige a chave de
+   serviço, que não pode existir dentro de public/. A porta é a mesma senha do
+   painel, conferida por `admin_ok` do lado de lá.
+   O corpo do erro é lido antes do `ok` porque a função devolve motivo legível
+   em 401/409/422 — engolir isso deixaria "não deu" sem dizer o que houve. */
+async function chamarFuncao(nome, corpo) {
+  const r = await fetch(SUPABASE_URL + '/functions/v1/' + nome, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(corpo)
+  });
+  let dados = null;
+  try { dados = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+  return dados || {};
 }
 
 /* ── Entrada ───────────────────────────────────────────────────────────── */
@@ -797,6 +864,7 @@ async function carregar() {
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
     ultimaCarga = Date.now();
     aviso.hidden = true;
+    await carregarParticipantes();
     render();
   } catch (e) {
     // Erro de rede não pode virar tela branca nem "nenhum registro": as duas
@@ -804,6 +872,22 @@ async function carregar() {
     mostrarEstado('erro', e.message);
   } finally {
     btn.disabled = false;
+  }
+}
+
+/* Carga apartada, e que NÃO derruba as quatro origens.
+   ⚠️ A razão é concreta: `get_participantes` só existe depois de a migration
+   das contas ser aplicada. Dentro do `Promise.all` acima, um 404 dela levaria
+   o painel inteiro para a tela de erro — inclusive as respostas que já
+   funcionam hoje. Aqui a falha fica contida na vista das marcas, que a
+   explica em vez de fingir lista vazia. */
+async function carregarParticipantes() {
+  try {
+    participantes = (await rpc('get_participantes', { p_secret: senha })) || [];
+    participantesErro = '';
+  } catch (e) {
+    participantes = [];
+    participantesErro = e.message;
   }
 }
 
@@ -937,6 +1021,22 @@ function escapar(s) {
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
+/* ── Acesso ────────────────────────────────────────────────────────────── */
+/* A ponte entre candidatura e conta é `participantes.origem_id`. Só o
+   /quero-participar tem essa ponte hoje: os outros três formulários não geram
+   conta, e um selo neles prometeria um botão que não existe. */
+function acessoDe(origem, reg) {
+  if (origem !== 'quero_participar') return null;
+  return participantes.find(p => p.origem_id === reg.id) || null;
+}
+
+function seloAcesso(origem, reg) {
+  const p = acessoDe(origem, reg);
+  if (!p) return '';
+  return '<span class="og-selo" data-acesso="' + escapar(p.status_cadastro) + '">' +
+    escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</span>';
+}
+
 function render() {
   // Contadores das abas e da visão geral
   const conta = { tudo: 0 };
@@ -944,6 +1044,11 @@ function render() {
   document.querySelectorAll('[data-conta]').forEach(el => {
     el.textContent = conta[el.dataset.conta] ?? 0;
   });
+
+  /* Antes do `return` do "nenhuma resposta" lá embaixo: as duas listas são
+     independentes, e uma tela de respostas vazia não pode deixar a vista das
+     marcas com o esqueleto da carga anterior na tela. */
+  renderParticipantes();
 
   const corte7 = Date.now() - 7 * 864e5;
   $('resumo').innerHTML = Object.entries(ORIGENS).map(([k, o]) => {
@@ -981,6 +1086,7 @@ function render() {
       '<span class="og-item__dir">' +
         '<span class="og-selo" data-novo="' + (reg.status === 'novo' ? '1' : '0') + '">' +
           escapar(ROTULO_STATUS[reg.status] || reg.status) + '</span>' +
+        seloAcesso(origem, reg) +
         '<span class="og-item__data">' + dataCurta(reg.created_at) + '</span>' +
       '</span>';
     b.addEventListener('click', () => abrirDetalhe(origem, reg.id));
@@ -988,6 +1094,69 @@ function render() {
   });
   $('area-lista').innerHTML = '';
   $('area-lista').appendChild(ul);
+}
+
+/* Cor da linha por estado do cadastro — mesma leitura do selo, para o olho
+   achar a marca atrasada sem ler rótulo nenhum. */
+const COR_CADASTRO = {
+  aguardando_cadastro: '#FF4810', em_preenchimento: '#01AFCC',
+  cadastro_completo: '#3D1308', encerrado: '#6A2C15'
+};
+
+function renderParticipantes() {
+  const area = $('area-participantes');
+
+  if (participantesErro) {
+    // Distinguir "ainda não existe" de "deu erro" poupa meia hora de susto: a
+    // migration das contas pode simplesmente não ter sido aplicada.
+    area.innerHTML = '<div class="og-estado" data-tom="erro"><h2>Não consegui listar as marcas</h2>' +
+      '<p>' + escapar(participantesErro) + '</p>' +
+      '<p>Se a mensagem fala em função inexistente, a migration das contas ainda não foi aplicada no banco. ' +
+      'O resto do painel não depende dela e segue funcionando.</p></div>';
+    return;
+  }
+
+  if (!participantes.length) {
+    area.innerHTML = '<div class="og-estado"><h2>Nenhuma marca com acesso</h2>' +
+      '<p>O acesso nasce na ficha de uma candidatura aprovada do "Quero participar", ' +
+      'no botão <b>Criar acesso</b>. A marca recebe um convite por e-mail e define a própria senha.</p></div>';
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.className = 'og-lista';
+  participantes.forEach(p => {
+    const li = document.createElement('li');
+    const item = document.createElement('div');
+    item.className = 'og-item';
+
+    const unidades = Array.isArray(p.unidades) ? p.unidades.length : 0;
+    // O que a marca já preencheu. Sem inventar: campo vazio simplesmente não
+    // entra na linha, e uma marca que não preencheu nada mostra o vão.
+    const feito = [
+      p.combo_nome || '',
+      unidades ? unidades + (unidades === 1 ? ' unidade' : ' unidades') : '',
+      p.combo_preco != null ? 'R$ ' + Number(p.combo_preco).toFixed(2).replace('.', ',') : ''
+    ].filter(Boolean).join(' · ');
+
+    item.innerHTML =
+      '<span class="og-item__cor" style="background:' +
+        (COR_CADASTRO[p.status_cadastro] || '#6A2C15') + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + escapar(p.nome_marca || '(sem nome)') + '</p>' +
+      '<p class="og-item__meta">' +
+        escapar([p.responsavel, p.email].filter(Boolean).join(' · ') || 'sem contato registrado') +
+        (feito ? ' — ' + escapar(feito) : ' — nada preenchido ainda') +
+      '</p>' +
+      '<span class="og-item__dir">' +
+        '<span class="og-selo" data-acesso="' + escapar(p.status_cadastro) + '">' +
+          escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</span>' +
+        '<span class="og-item__data">' + dataCurta(p.created_at) + '</span>' +
+      '</span>';
+
+    li.appendChild(item); ul.appendChild(li);
+  });
+  area.innerHTML = '';
+  area.appendChild(ul);
 }
 
 ['busca', 'filtro-status', 'filtro-periodo'].forEach(id => {
@@ -1056,14 +1225,104 @@ function abrirDetalhe(origem, id) {
         '<textarea id="det-nota" placeholder="Só a equipe vê.">' + escapar(reg.internal_notes || '') + '</textarea></label>' +
       '<div class="og-aviso" id="det-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="det-salvar">Salvar</button>' +
-    '</div>';
+    '</div>' +
+    blocoAcesso(origem, reg);
 
   $('det-salvar').addEventListener('click', () => salvar(origem, reg));
+  const btnAcesso = $('det-criar-acesso');
+  if (btnAcesso) btnAcesso.addEventListener('click', () => criarAcesso(origem, reg));
 
   $('fundo').hidden = false;
   $('detalhe').hidden = false;
   $('btn-fechar').focus();
   render();
+}
+
+/* ── O bloco "Acesso da marca" na ficha ────────────────────────────────── */
+/* Só existe no /quero-participar: é a única origem com ponte para
+   `participantes`. Nas outras três o bloco simplesmente não aparece — melhor
+   que um botão desabilitado que ninguém entende. */
+function blocoAcesso(origem, reg) {
+  if (origem !== 'quero_participar') return '';
+
+  const p = acessoDe(origem, reg);
+  if (p) {
+    return '<div class="og-bloco">' +
+      '<h3>Acesso da marca</h3>' +
+      '<p class="og-forms__nota">Conta criada em ' + dataCurta(p.created_at) + '. ' +
+        'Estado do cadastro: <b>' + escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</b>. ' +
+        'A marca entra em <b>/marca/</b> com o e-mail ' + escapar(p.email || reg.email || '—') + '.</p>' +
+      // Honestidade: reenviar convite ainda não existe. Dizer o caminho que
+      // existe é melhor que um botão que devolveria 409.
+      '<p class="og-forms__nota">Se o convite não chegou, a marca pede um novo pela ' +
+        'própria tela de entrada, em "Esqueci a senha".</p>' +
+      // O aviso existe nas DUAS versões do bloco: `criarAcesso` remonta a ficha
+      // ao terminar, e é nesta versão que a mensagem de resultado vai parar.
+      '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
+    '</div>';
+  }
+
+  /* Duas travas antes de deixar criar. A segunda não é burocracia: apertar o
+     botão dispara um e-mail para uma pessoa real, e e-mail enviado não volta.
+     Criar acesso para quem ainda não foi aprovado é o erro caro aqui. */
+  const semEmail = !reg.email;
+  const naoAprovado = reg.status !== 'aprovado' && reg.status !== 'aguardando_cadastro';
+  const trava = semEmail
+    ? 'Esta candidatura não tem e-mail. Sem endereço não há convite para enviar.'
+    : (naoAprovado
+      ? 'Marque o status como <b>Aprovado</b> antes de criar o acesso — o botão dispara um e-mail para a marca.'
+      : '');
+
+  return '<div class="og-bloco">' +
+    '<h3>Acesso da marca</h3>' +
+    '<p class="og-forms__nota">Cria a conta de <b>' + escapar(reg.empresa || reg.nome || 'esta marca') +
+      '</b> e envia um convite para ' + escapar(reg.email || '—') +
+      ' definir a própria senha. A senha nunca passa por aqui.</p>' +
+    (trava ? '<p class="og-forms__nota">' + trava + '</p>' : '') +
+    '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
+    '<button class="og-btn" type="button" id="det-criar-acesso"' +
+      (trava ? ' disabled' : '') + '>Criar acesso</button>' +
+  '</div>';
+}
+
+async function criarAcesso(origem, reg) {
+  const btn = $('det-criar-acesso'), av = $('det-acesso-aviso');
+  const alvo = reg.empresa || reg.nome || 'esta marca';
+
+  // Confirmação porque a ação sai do sistema: o e-mail vai embora agora.
+  if (!window.confirm('Criar a conta de ' + alvo + ' e enviar o convite para ' +
+      reg.email + '?\n\nO e-mail sai agora e não tem como cancelar.')) return;
+
+  btn.disabled = true; btn.textContent = 'Criando…';
+  av.hidden = true;
+  try {
+    const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id });
+
+    /* A função devolve 207 quando a conta nasceu mas o convite falhou. Tratar
+       isso como sucesso limpo esconderia uma marca que nunca vai receber o
+       link — e como a conta já existe, um segundo clique só daria 409. */
+    const enviou = r.convite === 'enviado';
+    const recado = enviou
+      ? 'Acesso criado e convite enviado para ' + reg.email + '.'
+      : 'A conta foi criada, mas o convite NÃO saiu (' + (r.convite || 'motivo não informado') +
+        '). Não adianta clicar de novo: avise a marca por outro canal e peça que ' +
+        'use "Esqueci a senha" em /marca/.';
+
+    // Recarregar e remontar ANTES de escrever o recado: `abrirDetalhe` reescreve
+    // o corpo inteiro da ficha, e uma mensagem posta antes dele piscaria e sumiria.
+    await carregar();
+    abrirDetalhe(origem, reg.id);   // remonta a ficha já com o bloco de conta criada
+    const depois = $('det-acesso-aviso');
+    if (depois) {
+      depois.textContent = recado;
+      depois.dataset.tom = enviou ? 'ok' : 'erro';
+      depois.hidden = false;
+    }
+  } catch (e) {
+    av.textContent = 'Não criou: ' + e.message;
+    av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false; btn.textContent = 'Criar acesso';
+  }
 }
 
 async function salvar(origem, reg) {

@@ -423,3 +423,45 @@ $fn$;
 
 revoke all on function public.marca_concluir_cadastro(uuid) from public, anon;
 grant execute on function public.marca_concluir_cadastro(uuid) to authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- RPC: get_participantes — a lista da organização
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Mesmo padrão das quatro RPCs de leitura do painel (20260820): a porta é a
+-- senha, via `admin_ok`, e sem ela a função devolve zero linha em vez de erro.
+--
+-- ⚠️ ESTA é a única leitura que cruza `participantes_operacao`. A REGRA DE
+-- VAZAMENTO do cabeçalho proíbe preço, endereço e horário no que é PÚBLICO —
+-- o painel interno é exatamente quem precisa vê-los, e é onde a organização
+-- confere se a marca preencheu a parte operacional. Nenhuma outra leitura
+-- deste arquivo faz este join.
+--
+-- `left join`: a linha de operação nasce junto com a de participante
+-- (`vincular_conta_marca` insere as duas), mas um `inner join` faria a marca
+-- SUMIR da tela se a segunda inserção falhasse — esconder o defeito é pior
+-- que mostrá-lo com os campos vazios.
+create or replace function public.get_participantes(p_secret text)
+returns table (
+  id uuid, created_at timestamptz, updated_at timestamptz,
+  origem_id uuid, user_id uuid, slug text,
+  nome_marca text, edicao_codigo text, responsavel text, telefone text,
+  email text, instagram text, site text,
+  combo_nome text, combo_descricao text, status_cadastro text,
+  combo_preco numeric, unidades jsonb
+)
+language plpgsql security definer set search_path = public as $fn$
+begin
+  if not public.admin_ok(p_secret) then return; end if;
+  return query
+    select p.id, p.created_at, p.updated_at,
+           p.origem_id, p.user_id, p.slug,
+           p.nome_marca, p.edicao_codigo, p.responsavel, p.telefone,
+           p.email, p.instagram, p.site,
+           p.combo_nome, p.combo_descricao, p.status_cadastro,
+           o.combo_preco, o.unidades
+      from public.participantes p
+      left join public.participantes_operacao o on o.participante_id = p.id
+     order by p.created_at desc;
+end;
+$fn$;
+grant execute on function public.get_participantes(text) to anon, authenticated;
