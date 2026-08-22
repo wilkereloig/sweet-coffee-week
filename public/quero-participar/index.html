@@ -136,9 +136,10 @@ body{
 /* ── Números do herói ───────────────────────────────────────── */
 /* Painel chocolate: o cyan do herói não sustenta cinco numerais grandes sem
    virar ruído. Sobre chocolate o creme dá 12:1 e os discos ficam legíveis.
-   Um destaque no topo + grade 2×2 embaixo: o alcance abre porque é o número
-   que se lê de longe; o argumento da marca sustenta logo abaixo. */
-.pa-numeros{margin:0;padding:clamp(24px,2.6vw,36px);list-style:none;display:flex;flex-direction:column;gap:clamp(20px,2.2vw,28px);background:var(--scw-choco);color:var(--scw-creme);border-radius:var(--scw-r-secao)}
+   Grade 2×2, quatro itens de mesmo peso. Cinco numerais com um deles em
+   destaque virava um bloco alto em cima e uma grade curta embaixo -- com
+   quatro, a hierarquia so desequilibrava a chapa. */
+.pa-numeros{margin:0;padding:clamp(24px,2.6vw,36px);list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.4vw,30px);background:var(--scw-choco);color:var(--scw-creme);border-radius:var(--scw-r-secao)}
 .pa-numeros li{display:flex;flex-direction:column;gap:12px}
 /* O disco carrega a cor e o traço fica chocolate: ícone é componente gráfico,
    piso 3:1, e as cinco cores passam nesse papel — como texto não passariam. */
@@ -149,15 +150,14 @@ body{
    rotulo curto -- em tres linhas ela vira a parte menos legivel do painel, e
    ainda ocupa mais largura que caixa baixa. Por isso aqui e caixa baixa. */
 .pa-numeros span:last-child{font:700 12.5px/1.45 var(--scw-font);color:var(--scw-creme);max-width:24ch}
-/* Destaque: disco e numeral na mesma linha, rótulo quebrando embaixo. */
-.pa-numeros__destaque{flex-direction:row;flex-wrap:wrap;align-items:center;gap:16px}
-.pa-numeros__destaque b{font-size:clamp(44px,4.8vw,68px)}
-.pa-numeros__destaque span:last-child{flex:1 0 100%}
-.pa-numeros__grade{border-top:1px solid rgba(254,240,221,.18);padding-top:clamp(20px,2.2vw,28px)}
-.pa-numeros__grade>ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.4vw,30px)}
-/* Item ímpar sozinho na última linha ocupa a linha inteira: com número par a
-   regra não faz nada; com ímpar evita a célula vazia ao lado. */
-.pa-numeros__grade>ul>li:last-child:nth-child(odd){grid-column:1/-1}
+/* Quatro numeros, dois em cima e dois embaixo (pedido do Eloi, 22/08/2026).
+   Antes havia hierarquia: o +18 mi era destaque de largura cheia e os outros
+   vinham numa grade abaixo, separados por filete. Com quatro itens a
+   hierarquia so desequilibrava a chapa -- um bloco alto em cima e uma grade
+   curta embaixo. Os quatro passam a ter o mesmo peso.
+   A regra de impar sobrevive para o dia em que sobrarem tres: com numero par
+   ela nao faz nada; com impar evita a celula vazia ao lado do ultimo. */
+.pa-numeros>li:last-child:nth-child(odd){grid-column:1/-1}
 
 /* ── Formulário ─────────────────────────────────────────────── */
 /* ── Índice dos passos ──────────────────────────────────────── */
@@ -398,14 +398,10 @@ body{
          cyan 4,9:1 · magenta 3,8:1 · laranja 4,8:1 · bege 13:1. Roxo (1,45:1) e
          marrom (1,5:1) ficam de fora: sobre chocolate não aparecem. -->
     <ul class="pa-numeros">
-      <li class="pa-numeros__destaque"><span class="pa-numeros__disco" style="background:#FDBB1A" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.6 4.6h10.8a6 6 0 0 1 6 6v10.8a6 6 0 0 1-6 6H10.6a6 6 0 0 1-6-6V10.6a6 6 0 0 1 6-6Z"></path><circle cx="16" cy="16" r="5.9"></circle><circle cx="23.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"></circle></svg></span><b>+18 mi</b><span>visualizações no Instagram</span></li>
-      <li class="pa-numeros__grade">
-        <ul>
+      <li><span class="pa-numeros__disco" style="background:#FDBB1A" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.6 4.6h10.8a6 6 0 0 1 6 6v10.8a6 6 0 0 1-6 6H10.6a6 6 0 0 1-6-6V10.6a6 6 0 0 1 6-6Z"></path><circle cx="16" cy="16" r="5.9"></circle><circle cx="23.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"></circle></svg></span><b>+18 mi</b><span>visualizações no Instagram</span></li>
       <li><span class="pa-numeros__disco" style="background:#F10767" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 3.4C18.6 10.6 21.4 13.4 28.6 16 21.4 18.6 18.6 21.4 16 28.6 13.4 21.4 10.6 18.6 3.4 16 10.6 13.4 13.4 10.6 16 3.4Z"></path></svg></span><b>+7</b><span>marcas novas a cada edição</span></li>
       <li><span class="pa-numeros__disco" style="background:#FF4810" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M3.1 17.6h9l-1.1 6.4a1.5 1.5 0 0 1-1.5 1.2H5.7a1.5 1.5 0 0 1-1.5-1.2Z"></path><path fill="currentColor" stroke="none" d="M2.2 17.6a5.4 5.4 0 0 1 10.8 0Z"></path><path stroke-width="1.6" d="M6.2 20l-.35 3.2M9 20l.35 3.2"></path><path fill="currentColor" stroke="none" d="M18.2 13.4h9.6l-1.3 9.8a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8Z"></path><path stroke-width="2.6" d="M28.2 16.2h.6a2.2 2.2 0 0 1 0 4.4h-1"></path><path d="M1.8 27.4h28.4"></path></svg></span><b>410</b><span>combos criados desde 2016</span></li>
       <li><span class="pa-numeros__disco" style="background:#F8E4C1" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M10.4 3.8h11.2l-2.6 10.4h-6Z"></path><circle cx="16" cy="19.8" r="7.6"></circle><path fill="currentColor" stroke="none" d="M16 16.4l1.05 2.15 2.35.35-1.7 1.65.4 2.35-2.1-1.1-2.1 1.1.4-2.35-1.7-1.65 2.35-.35Z"></path></svg></span><b>271</b><span>lugares no pódio desde 2019</span></li>
-        </ul>
-      </li>
     </ul>
   </div>
 </header>
