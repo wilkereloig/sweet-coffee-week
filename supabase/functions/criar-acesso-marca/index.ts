@@ -111,11 +111,16 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return json({ erro: 'method_not_allowed' }, 405)
 
-  let payload: { secret?: string; origem_id?: string }
+  let payload: {
+    secret?: string
+    origem_id?: string
+    marca?: { nome?: string; responsavel?: string; telefone?: string; email?: string }
+  }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
   const origemId = (payload.origem_id || '').trim()
+  const manual = payload.marca || null
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -131,34 +136,77 @@ Deno.serve(async (req) => {
   if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
-  if (!origemId) return json({ erro: 'origem_obrigatoria' }, 400)
+  /* ── 2. QUAL DOS DOIS PONTOS DE ENTRADA ────────────────────────────────────
+     Candidatura aprovada (`origem_id`) OU cadastro manual (`marca`), nunca os
+     dois. Aceitar os dois exigiria decidir qual vence — e "decidir qual vence"
+     entre dois nomes de marca diferentes é exatamente como se cria conta com o
+     nome errado, que é o erro que não tem conserto (o login não se troca).
+     Recusar é a resposta honesta. */
+  if (origemId && manual) return json({ erro: 'entrada_ambigua' }, 400)
+  if (!origemId && !manual) return json({ erro: 'origem_obrigatoria' }, 400)
 
-  // ── 2. A CANDIDATURA ───────────────────────────────────────────────────────
-  const { data: candidatura, error: candErr } = await admin
-    .from('quero_participar')
-    .select('id, status, email, empresa')
-    .eq('id', origemId)
-    .maybeSingle()
-  if (candErr) return json({ erro: 'db_error', detalhe: candErr.message }, 500)
-  if (!candidatura) return json({ erro: 'candidatura_nao_encontrada' }, 404)
+  let email = ''
+  let nomeMarca = ''
+  let responsavel = ''
+  let telefone = ''
 
-  // `email` é o CONTATO real da marca — para onde a organização escreve e para
-  // onde o WhatsApp/e-mail de entrega vai. Não é o login.
-  const email = (candidatura.email || '').trim().toLowerCase()
-  const nomeMarca = (candidatura.empresa || '').trim()
+  if (origemId) {
+    const { data: candidatura, error: candErr } = await admin
+      .from('quero_participar')
+      .select('id, status, email, empresa, nome, telefone')
+      .eq('id', origemId)
+      .maybeSingle()
+    if (candErr) return json({ erro: 'db_error', detalhe: candErr.message }, 500)
+    if (!candidatura) return json({ erro: 'candidatura_nao_encontrada' }, 404)
+
+    // Na `quero_participar`, `empresa` é a marca e `nome` é a pessoa.
+    email = (candidatura.email || '').trim().toLowerCase()
+    nomeMarca = (candidatura.empresa || '').trim()
+    responsavel = (candidatura.nome || '').trim()
+    telefone = (candidatura.telefone || '').trim()
+
+    /* IDEMPOTÊNCIA. Quem garante é o `unique` de participantes.origem_id; este
+       select só produz mensagem melhor que uma violação de constraint. */
+    const { data: jaTem } = await admin
+      .from('participantes').select('id').eq('origem_id', origemId).maybeSingle()
+    if (jaTem) return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
+  } else {
+    nomeMarca = (manual!.nome || '').trim()
+    responsavel = (manual!.responsavel || '').trim()
+    telefone = (manual!.telefone || '').trim()
+    email = (manual!.email || '').trim().toLowerCase()
+  }
+
   if (!nomeMarca) return json({ erro: 'sem_nome_de_marca' }, 422)
 
-  // ── 3. IDEMPOTÊNCIA ────────────────────────────────────────────────────────
-  // Quem garante é o `unique` de participantes.origem_id — este select só
-  // produz mensagem melhor que uma violação de constraint. Duas requisições
-  // simultâneas passam as duas por aqui; só uma sobrevive ao INSERT.
-  const { data: jaTem } = await admin
-    .from('participantes')
-    .select('id')
-    .eq('origem_id', origemId)
-    .maybeSingle()
-  if (jaTem) {
-    return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
+  /* ── 3. COLISÃO, ANTES DE TOCAR NO AUTH ────────────────────────────────────
+     Só no caminho manual: pelo `origem_id` a idempotência acima já resolveu.
+     As duas recusas existem para não produzir estado torto — conta duplicada
+     para a mesma casa, ou candidatura órfã sem vínculo com a conta. */
+  if (manual) {
+    const slugPretendido = slugificar(nomeMarca)
+
+    const { data: mesmoNome } = await admin
+      .from('participantes').select('id, nome_marca').eq('slug', slugPretendido).maybeSingle()
+    if (mesmoNome) {
+      return json({ erro: 'marca_ja_tem_acesso', participante_id: mesmoNome.id,
+                    nome: mesmoNome.nome_marca }, 409)
+    }
+
+    /* Candidatura com o mesmo nome: devolve o ID DELA para a tela poder mandar
+       usar o "Criar acesso" da ficha. Sem esse id a mensagem seria uma queixa
+       sem saída, e a organização criaria a conta à mão mesmo assim — deixando
+       a candidatura para sempre sem vínculo com a conta que a representa.
+       Compara por SLUG, não por texto: "Café Central" e "cafe central" são a
+       mesma casa, e é o slug que vira o login de qualquer forma. */
+    const { data: candidatas } = await admin
+      .from('quero_participar').select('id, empresa').limit(500)
+    const conflito = (candidatas || []).find((c: { id: string; empresa: string | null }) =>
+      slugificar(c.empresa || '') === slugPretendido)
+    if (conflito) {
+      return json({ erro: 'existe_candidatura', candidatura_id: conflito.id,
+                    nome: conflito.empresa }, 409)
+    }
   }
 
   // ── 4. USUÁRIO — LOGIN PELO NOME, SENHA GERADA ─────────────────────────────
@@ -196,12 +244,22 @@ Deno.serve(async (req) => {
 
   if (!userId) return json({ erro: 'usuario_nao_criado' }, 500)
 
-  // ── 5. PERFIL + PARTICIPANTE + OPERAÇÃO + STATUS + AUDITORIA ───────────────
-  // Numa RPC só. Se o convite falhar depois, o pior cenário é "conta existe,
-  // e-mail não chegou" — resolve reenviando. Meio-registro não se resolve.
-  const { data: participanteId, error: vincErr } = await admin
-    .rpc('vincular_conta_marca', { p_user: userId, p_origem: origemId })
-  if (vincErr) return json({ erro: 'vinculo_falhou', detalhe: vincErr.message }, 500)
+  /* ── 5. PERFIL + PARTICIPANTE + OPERAÇÃO + AUDITORIA ───────────────────────
+     Numa RPC só, para não sobrar meio-registro. Duas irmãs, uma por entrada: a
+     da candidatura lê os dados de lá; a manual recebe por argumento e deixa
+     `origem_id` nulo. Daqui para baixo o caminho volta a ser um só — e é isso
+     que impede o cadastro manual de escapar da trava de primeiro uso. */
+  const vinculo = origemId
+    ? await admin.rpc('vincular_conta_marca', { p_user: userId, p_origem: origemId })
+    : await admin.rpc('vincular_marca_manual', {
+        p_user: userId,
+        p_nome: nomeMarca,
+        p_responsavel: responsavel || null,
+        p_telefone: telefone || null,
+        p_email: email || null,
+      })
+  if (vinculo.error) return json({ erro: 'vinculo_falhou', detalhe: vinculo.error.message }, 500)
+  const participanteId = vinculo.data
 
   // ── 6. TRAVA DE PRIMEIRO USO ───────────────────────────────────────────────
   // ⚠️ ESTA FLAG É O QUE TORNA ACEITÁVEL MANDAR SENHA POR WHATSAPP.
@@ -235,5 +293,6 @@ Deno.serve(async (req) => {
     senha: senhaInicial,
     email_contato: email,
     troca_obrigatoria: true,
+    origem: origemId ? 'candidatura' : 'manual',
   })
 })
