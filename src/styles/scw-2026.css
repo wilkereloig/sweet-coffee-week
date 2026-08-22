@@ -1490,9 +1490,19 @@ body:not(.route-em-breve) { margin: 0; }
      mais (ver `.scw-hero-veu` abaixo).
      A reserva de topo é o que deixa a foto respirar antes do texto começar. */
   .scw-hero { min-height: var(--scw-hero-altura-mobile); }
+  /* AJUSTE 22/08/2026 (pedido do Eloi: "a altura da hero está enorme").
+     Duas forças somavam e o herói passava da tela: uma reserva de 44vh (371px
+     num 844) MAIS um piso de 100svh. Em Participar o resultado media 943px num
+     viewport de 844 — a lead cortava e as duas ações ficavam abaixo da dobra.
+     O piso sai: altura de herói é proporcional ao conteúdo, nunca rígida
+     (§6.8). E a reserva volta aos 232px/34svh da geometria documentada no
+     §6.9, em `svh` para não pular quando a barra do Safari recolhe.
+     ⚠️ Isto vale para Participar, Apoiar e Contato — as três que usam
+     `.scw-hero-bloco`. A Home tem construção própria (`.scw-hero__col`) e não
+     se mexe sem pedido (A6). */
   .scw-hero-bloco {
-    min-height: var(--scw-hero-altura-mobile);
-    padding-top: clamp(300px, 44vh, 420px);
+    min-height: 0;
+    padding-top: clamp(232px, 34svh, 320px);
   }
   /* Tela estreita: o texto ocupa a largura toda, então o degradê horizontal
      não tem para onde abrir — desliga, e quem carrega a leitura é o vertical,

@@ -725,17 +725,24 @@ Edições:**
 
 ### 6.9 Herói no celular (<1000px) — regra estrutural
 
-**O herói vira dois blocos empilhados: foto em cima, informação embaixo. Nenhum texto
-sobre imagem.**
+⚠️ **A regra dos "dois blocos empilhados" foi REVOGADA em 21/08/2026** (pedido do Wilke):
+o celular passou a ter a **mesma construção do desktop** — a foto (`.scw-hero-banda`,
+`inset: 0`) cobre o herói inteiro e o texto vem por cima. O que sustenta a leitura é o
+véu (`.scw-hero-veu`), que no celular fecha muito mais que no desktop e desliga o
+degradê horizontal (em tela estreita o texto ocupa a largura toda e não há terço direito
+para abrir). **Não recriar os dois blocos.**
 
-- **Home:** foto ocupa **46vh** com escurecimento mínimo (6% no meio, topo livre para a
-  logo respirar, passagem para o chocolate na base); texto em bloco chocolate sólido. O
-  véu usa a mesma curva smoothstep embutida no gradiente, cobrindo 60% da altura.
-- **Participar, Apoiar, Contato e Sweet Awards:** **banda de foto sangrando**
-  (`.scw-hero-banda`) — `padding-top: 0` na seção, margens negativas pelo mesmo trilho,
-  passagem para a cor de fechamento na base. O cartão de foto do desktop
-  (`.scw-hero-cartao`) é **ocultado** para não duplicar imagem.
-  **Geometria: 36vh / mínimo 232px** (`scw-2026.css`).
+- **Reserva de topo** — é o que deixa a foto respirar antes de o texto começar:
+  `clamp(232px, 34svh, 320px)` em `.scw-hero-bloco` (Participar, Apoiar, Contato).
+  Em `svh`, não `vh`: com `vh` a reserva pulava quando a barra do Safari recolhia.
+- ⛔ **Herói de celular não tem piso de altura.** `min-height: 0` — a altura é
+  proporcional ao conteúdo (§6.8). A combinação anterior (reserva de 44vh **mais**
+  `min-height: 100svh`) punha o herói de Participar em **943px num viewport de 844**: a
+  lead cortava e as duas ações ficavam abaixo da dobra. Com o ajuste de 22/08/2026,
+  Participar e Apoiar medem **858px** e Contato **645px**. **Não devolver o piso.**
+- **Home** (`.scw-hero__col`) e **Sweet Awards** (`.swa-hero`) têm construção própria e
+  **mantêm** o piso de `100svh` — os dois cabem na tela sem cortar. A Home só se mexe
+  com pedido explícito (A6).
 - **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
   06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
   (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo
