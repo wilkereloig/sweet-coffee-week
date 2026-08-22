@@ -328,9 +328,6 @@ export function ParticiparPage() {
                 Ver o que o festival entrega
               </a>
             </div>
-            <span className="pa-hero__nota">
-              Participação por curadoria · Natal e Parnamirim
-            </span>
           </div>
         </div>
       </section>

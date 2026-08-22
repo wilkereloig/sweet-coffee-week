@@ -281,9 +281,6 @@ export function ApoiarPage() {
                 Ver o alcance do festival
               </a>
             </div>
-            <span className="pa-hero__nota">
-              Patrocínio, ativação e conteúdo · cotas por edição · Natal e Parnamirim
-            </span>
           </div>
         </div>
       </section>
