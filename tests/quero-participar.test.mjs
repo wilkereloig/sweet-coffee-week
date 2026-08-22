@@ -104,6 +104,16 @@ const NUMEROS = [...HTML.matchAll(new RegExp(
 ))].map(([, disco, icone, valor, rotulo]) => ({ disco, icone, valor, rotulo }))
 
 // Marca canônica: aplica os aliases, para uma rede não contar como várias casas.
+const canal = (v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+const luminancia = (hex) =>
+  0.2126 * canal(parseInt(hex.slice(1, 3), 16)) +
+  0.7152 * canal(parseInt(hex.slice(3, 5), 16)) +
+  0.0722 * canal(parseInt(hex.slice(5, 7), 16))
+const contraste = (a, b) => {
+  const [claro, escuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x)
+  return (claro + 0.05) / (escuro + 0.05)
+}
+
 const normalizar = (s) => String(s)
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .replace(/['\u2019`]/g, "'")
@@ -220,16 +230,6 @@ test('todo disco aparece sobre o fundo do painel', () => {
   // §6.3: a cor entra no ciclo só se o fundo a sustenta. Sobre chocolate, roxo
   // (1,45:1) e marrom (1,5:1) somem — e some em silêncio, porque CSS não avisa.
   // 3:1 é o piso de componente gráfico da WCAG.
-  const canal = (v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-  const luminancia = (hex) =>
-    0.2126 * canal(parseInt(hex.slice(1, 3), 16)) +
-    0.7152 * canal(parseInt(hex.slice(3, 5), 16)) +
-    0.0722 * canal(parseInt(hex.slice(5, 7), 16))
-  const contraste = (a, b) => {
-    const [claro, escuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x)
-    return (claro + 0.05) / (escuro + 0.05)
-  }
-
   const bloco = HTML.slice(HTML.indexOf('.pa-numeros{'))
   const fundoChoco = bloco.slice(0, bloco.indexOf('}')).includes('background:var(--scw-choco)')
   assert.ok(fundoChoco, 'o painel deixou de ser chocolate — recalcular os discos')
@@ -274,4 +274,58 @@ test('os ícones do painel batem com scw-icons-v2.js', async () => {
 test('a régua saiu inteira, markup e estilo', () => {
   assert.ok(!HTML.includes('scw-stat__regua'),
     'a régua virou disco mas ainda é citada — remover, não esconder (§5.7)')
+})
+
+// Exceção de paleta declarada (§6.1), no mesmo molde da F2 na seção 07 da
+// Home: verde é marca do WhatsApp, não do festival. Vale enquanto estiver
+// preso a um seletor — solto, vira cor nova no sistema.
+test('o verde do WhatsApp não escapa de .pa-whats', () => {
+  const VERDE = /#25D366/gi
+  const ocorrencias = [...HTML.matchAll(VERDE)]
+  assert.ok(ocorrencias.length > 0, 'o verde sumiu — se foi de propósito, apagar este teste')
+
+  for (const m of ocorrencias) {
+    const antes = HTML.slice(Math.max(0, m.index - 400), m.index)
+    const emComentario = antes.lastIndexOf('/*') > antes.lastIndexOf('*/')
+    assert.ok(emComentario || antes.includes('.pa-whats{'),
+      'verde #25D366 fora de .pa-whats — a exceção só vale escopada (§6.1)')
+  }
+
+  const regra = HTML.slice(HTML.indexOf('.pa-whats{'))
+  const corpo = regra.slice(0, regra.indexOf('}'))
+  assert.ok(corpo.includes('color:var(--scw-choco)'),
+    'a tinta do botão saiu do chocolate — branco sobre #25D366 dá 1,98:1 e reprova')
+
+  const razao = contraste('#25D366', '#3D1308')
+  assert.ok(razao >= 4.5,
+    `chocolate sobre o verde dá ${razao.toFixed(2)}:1 — mínimo 4,5:1 para texto de botão`)
+})
+
+test('os ícones dos botões de indicação batem com a fonte', async () => {
+  const { SCW_ICONS } = await import('../src/components/scw-icons/scw-icons-v2.js')
+
+  const ESPERADO = {
+    'share-whatsapp': 'redes/conversa',
+    'share-copiar': 'ui/link-externo',
+    'share-email': 'redes/e-mail',
+    'share-nativo': 'ui/compartilhar',
+  }
+
+  for (const [id, nome] of Object.entries(ESPERADO)) {
+    const i = HTML.indexOf(`id="${id}"`)
+    assert.ok(i > 0, `botão ${id} sumiu`)
+    const bloco = HTML.slice(i, HTML.indexOf('</', HTML.indexOf('</svg>', i)))
+    assert.ok(SCW_ICONS[nome], `ícone inexistente na fonte: ${nome}`)
+    assert.ok(bloco.includes(SCW_ICONS[nome]),
+      `o ícone de ${id} divergiu de ${nome} em scw-icons-v2.js — regerar o inline`)
+  }
+})
+
+test('trocar o rótulo do copiar não apaga o ícone', () => {
+  const i = HTML.indexOf("getElementById('share-copiar')")
+  const bloco = HTML.slice(i, i + 500)
+  assert.ok(!bloco.includes('btn.textContent ='),
+    'o handler escreve em btn.textContent e apagaria o SVG no primeiro clique — escrever no <span>')
+  assert.ok(bloco.includes("querySelector('span')"),
+    'o handler precisa mirar o <span> do rótulo, não o botão inteiro')
 })
