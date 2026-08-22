@@ -136,20 +136,24 @@ POR_EDICAO.forEach((marcas, i) => {
   }
 })
 
-test('o herói mostra exatamente cinco números', () => {
-  assert.equal(NUMEROS.length, 5, 'o painel .pa-numeros deixou de ter cinco itens')
+test('o herói mostra exatamente quatro números', () => {
+  assert.equal(NUMEROS.length, 4, 'o painel .pa-numeros deixou de ter quatro itens')
 })
 
-test('"123 marcas já participaram" confere com a base', () => {
-  // Distintas, não participações: os aliases já foram aplicados em POR_EDICAO,
-  // então uma rede com três unidades conta uma vez, e a marca que voltou em
-  // sete edições continua sendo uma marca.
-  const esperado = String(APARICOES.size)
-
+test('o painel NÃO mostra o total de marcas distintas', () => {
+  // ⛔ Retirado a pedido do Eloi em 22/08/2026 — "por enquanto". O número não
+  // estava errado: a base continua fechando em 123, e a asserção abaixo segue
+  // guardando isso. O que saiu foi a EXIBIÇÃO.
+  //
+  // Este teste existe para que voltar seja um ato consciente: sem ele, alguém
+  // reintroduz o item e nada avisa que havia uma decisão. Ao devolver, apagar
+  // este teste, voltar a contagem para cinco e restaurar a verificação de que o
+  // valor no HTML bate com APARICOES.size.
   const item = NUMEROS.find((n) => /participaram/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de marcas distintas')
-  assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
-  // §9.1: o acervo fecha em 123. Divergir aqui é sinal de alias perdido.
+  assert.equal(item, undefined,
+    'o total de marcas voltou ao painel — se foi de propósito, atualizar este teste')
+
+  // A base segue sendo a fonte, mesmo com o número fora da tela (§9.1).
   assert.equal(APARICOES.size, 123, 'a contagem de marcas distintas divergiu do acervo §9.1')
 })
 
@@ -255,7 +259,6 @@ test('os ícones do painel batem com scw-icons-v2.js', async () => {
 
   const ESPERADO = {
     visualiza: 'redes/instagram',
-    participaram: 'simbolos/estabelecimento',
     novas: 'marca/estrela',
     combos: 'combos/doce-cafe',
     'pódio': 'premios/medalha',
