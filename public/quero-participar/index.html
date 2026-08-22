@@ -162,8 +162,13 @@ body{
   position:sticky;top:0;z-index:6;background:var(--scw-creme);
   margin-inline:calc(var(--scw-trilho) * -1);padding-inline:var(--scw-trilho);
   border-bottom:1px solid var(--scw-filete);
+  /* Respiro abaixo da barra: o padding-top do .pa-corpo fica ACIMA dela, entao
+     sem isto o filete encosta no disco do passo 01. */
+  margin-bottom:clamp(32px,3.6vw,52px);
 }
-.pa-indice ol{margin:0;padding:0;list-style:none;display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none}
+/* O padding-bottom separa o sublinhado do item ativo do filete da propria
+   barra: rentes, os dois viram um traço duplo em vez de indicador. */
+.pa-indice ol{margin:0;padding:0 0 7px;list-style:none;display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none}
 .pa-indice ol::-webkit-scrollbar{display:none}
 /* §7.6: sem flex:0 0 auto os chips colapsam quando a trilha rola. */
 .pa-indice li{flex:0 0 auto}
