@@ -11,6 +11,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import SWEET_COFFEE_HISTORY from '../src/data/sweetCoffeeHistory.js'
 import { festivalFacts } from '../src/data/festivalFacts.js'
+import LOVERS_AWARDS from '../src/data/loversAwardsResults.js'
 
 const HTML = readFileSync(new URL('../public/quero-participar/index.html', import.meta.url), 'utf8')
 const SCRIPTS = [...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
@@ -125,8 +126,8 @@ POR_EDICAO.forEach((marcas, i) => {
   }
 })
 
-test('o herói mostra exatamente três números', () => {
-  assert.equal(NUMEROS.length, 3, 'o bloco .pa-numeros deixou de ter três itens')
+test('o herói mostra exatamente cinco números', () => {
+  assert.equal(NUMEROS.length, 5, 'o painel .pa-numeros deixou de ter cinco itens')
 })
 
 test('"68% das marcas voltaram" confere com a base', () => {
@@ -164,6 +165,47 @@ test('"+18 mi visualizações" confere com festivalFacts', () => {
     `HTML diz ${noHtml}, festivalFacts.igViews diz ${festivalFacts.igViews.value}`)
 })
 
+test('"410 combos autorais" confere com a base', () => {
+  // Cada marca cria um combo próprio por edição (§8.6), então a soma das listas
+  // de participantes é a contagem de criações. Aliases aplicados: uma rede com
+  // três unidades conta uma vez por edição, não três.
+  const esperado = String(POR_EDICAO.reduce((soma, marcas) => soma + marcas.length, 0))
+
+  const item = NUMEROS.find((n) => /combos/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de combos autorais')
+  assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
+})
+
+test('"40% já subiram ao pódio" confere com a base', () => {
+  // Elegível = participou de edição que teve premiação. As 5 primeiras não
+  // tiveram, então incluí-las inflaria o denominador e afundaria a proporção.
+  // Os pódios de 2026.1 moram em loversAwardsResults.js, NÃO na base histórica
+  // (§7.3) — ignorá-los dá 42 premiadas em vez de 44.
+  const premiadas = new Set()
+  const elegiveis = new Set()
+
+  for (const ed of SWEET_COFFEE_HISTORY.edicoes ?? []) {
+    const categorias = ed.id === '2026.1'
+      ? (LOVERS_AWARDS.premiacao?.categorias ?? [])
+      : (ed.premiacao?.categorias ?? [])
+    if (ed.premiacao?.status !== 'completa' && categorias.length === 0) continue
+
+    for (const nome of ed.participantes ?? []) elegiveis.add(CANON[normalizar(nome)] ?? nome)
+    for (const cat of categorias)
+      for (const col of cat.colocacoes ?? [])
+        for (const nome of col.nomes ?? []) premiadas.add(CANON[normalizar(nome)] ?? nome)
+  }
+
+  const esperado = Math.round((premiadas.size / elegiveis.size) * 100) + '%'
+  const item = NUMEROS.find((n) => /pódio/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de marcas que subiram ao pódio')
+  assert.equal(item.valor, esperado,
+    `HTML diz ${item.valor}, a base diz ${esperado} (${premiadas.size} de ${elegiveis.size} elegíveis)`)
+
+  // Trava a armadilha do §7.3: sem os pódios da Lovers isto cai para 42.
+  assert.equal(premiadas.size, 44, 'a contagem de premiadas divergiu do acervo §9.1')
+})
+
 test('irmãos não repetem cor de régua', () => {
   // §6.3: dois irmãos com a mesma cor é defeito, não economia.
   const cores = NUMEROS.map((n) => n.regua.toUpperCase())
@@ -172,4 +214,29 @@ test('irmãos não repetem cor de régua', () => {
   // E cada uma tem de ser token da paleta (§6.1) — hex solto fora da tabela não entra.
   const PALETA = ['#FEF0DD', '#F8E4C1', '#3D1308', '#6A2C15', '#FDBB1A', '#01AFCC', '#4D257E', '#F10767', '#FF4810']
   for (const cor of cores) assert.ok(PALETA.includes(cor), 'cor fora da paleta do §6.1: ' + cor)
+})
+
+test('toda régua aparece sobre o fundo do painel', () => {
+  // §6.3: a cor entra no ciclo só se o fundo a sustenta. Sobre chocolate, roxo
+  // (1,45:1) e marrom (1,5:1) somem — e some em silêncio, porque CSS não avisa.
+  // 3:1 é o piso de componente gráfico da WCAG.
+  const canal = (v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+  const luminancia = (hex) =>
+    0.2126 * canal(parseInt(hex.slice(1, 3), 16)) +
+    0.7152 * canal(parseInt(hex.slice(3, 5), 16)) +
+    0.0722 * canal(parseInt(hex.slice(5, 7), 16))
+  const contraste = (a, b) => {
+    const [claro, escuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x)
+    return (claro + 0.05) / (escuro + 0.05)
+  }
+
+  const bloco = HTML.slice(HTML.indexOf('.pa-numeros{'))
+  const fundoChoco = bloco.slice(0, bloco.indexOf('}')).includes('background:var(--scw-choco)')
+  assert.ok(fundoChoco, 'o painel deixou de ser chocolate — recalcular as réguas')
+
+  for (const { regua, valor } of NUMEROS) {
+    const razao = contraste(regua, '#3D1308')
+    assert.ok(razao >= 3,
+      `régua de "${valor}" dá ${razao.toFixed(2)}:1 sobre chocolate — some (mínimo 3:1)`)
+  }
 })
