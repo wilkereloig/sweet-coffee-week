@@ -7,6 +7,22 @@
 <title>Organização — Sweet &amp; Coffee Week</title>
 <link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
 
+<!-- Instalável na tela inicial, em escopo próprio.
+     ⚠️ Manifest PRÓPRIO, não o /manifest.webmanifest da raiz: aquele tem
+     start_url e scope em "/" e instalaria o SITE. São dois apps distintos, com
+     escopos que não se sobrepõem porque /organizacao/ é mais específico. -->
+<link rel="manifest" href="/organizacao/app.webmanifest">
+<meta name="theme-color" content="#3D1308">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!-- `default`, não `black-translucent`: o segundo joga o conteúdo por baixo da
+     status bar do iOS e exige compensar com env(safe-area-inset-top). Fica
+     melhor, mas eu não tenho como conferir num iPhone real — e header por baixo
+     do relógio é defeito que só aparece no aparelho. Trocar é uma linha. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SCW Painel">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nexa-slab/NexaSlab-Bold.woff2">
+
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    Painel da organização — Sweet & Coffee Week
@@ -1045,6 +1061,20 @@ $('fundo').addEventListener('click', fecharDetalhe);
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && !$('detalhe').hidden) fecharDetalhe();
 });
+
+/* ── Service worker ────────────────────────────────────────────────────── */
+/* 🔴 `scope` explícito em /organizacao/. Registrado da raiz, o SW passaria a
+   interceptar o site inteiro, inclusive a landing que está no ar — e desfazer
+   isso não é deploy, é desregistro no navegador de cada visitante.
+   O registro é MELHORIA, não requisito: navegador sem suporte, janela anônima
+   ou política corporativa devolvem erro, e o painel tem que seguir igual. Por
+   isso o catch é silencioso e não há nada dependendo do sucesso. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/organizacao/sw.js', { scope: '/organizacao/' })
+      .catch(function () { /* silêncio proposital */ });
+  });
+}
 
 /* ── Boot ──────────────────────────────────────────────────────────────── */
 if (senha) abrirPainel();
