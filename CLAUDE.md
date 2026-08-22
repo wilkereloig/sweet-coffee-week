@@ -1123,7 +1123,13 @@ mude o comportamento visual** — validar idêntico.
   direita, véu em degradê a 96°. Abaixo de 1000px o véu passa a vertical e o texto ocupa
   100%.
 - **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
-  com filete separando. Cada ingrediente **percorre quatro desenhos da própria família**,
+  com filete separando. ⛔ **Sempre em UMA LINHA, inclusive no celular** (pedido do Eloi,
+  22/08/2026): `disco + disco + disco`, com o nome embaixo de cada um. O empilhamento
+  vertical que valia abaixo de 560px saiu — custava três telas de rolagem para dizer
+  "doce + salgado + bebida", e o "+" entre duas linhas lia como marcador de lista, não
+  como soma. O que muda no celular é só a escala, e ela vem de **dois tokens na própria
+  grade** (`--ing-disco` / `--ing-mais`), de onde o alinhamento do "+" é derivado por
+  cálculo. **Não empilhar de novo, e não reescrever os dois `clamp()` em outro lugar.** Cada ingrediente **percorre quatro desenhos da própria família**,
   um por quarto de um ciclo de 8,8s (`scwIcnCiclo`, atraso de 2200ms por peça). Os quatro
   ficam empilhados e só a opacidade muda — nada entra ou sai do fluxo. A arte vive em
   `src/components/scw-icons/anatomia-combo.js`, **fora** de `scw-icons-v2.js`: é desenho

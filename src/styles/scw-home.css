@@ -218,6 +218,13 @@
    sinal encostava nos discos e a leitura "doce + salgado + bebida" virava um
    bloco só. */
 .hm-ingredientes {
+  /* As duas medidas da composição vivem AQUI, e só aqui: o disco do ingrediente
+     e o disco do "+". O alinhamento do "+" é derivado das duas por cálculo, e a
+     escala de celular troca os dois valores num lugar só (§5.2). Antes os dois
+     `clamp()` estavam escritos três vezes — no disco, no "+" e de novo no bloco
+     do celular —, com um comentário avisando "mexeu num, mexe aqui". */
+  --ing-disco: clamp(84px, 8vw, 124px);
+  --ing-mais: clamp(30px, 2.8vw, 40px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
@@ -228,7 +235,7 @@
 .hm-ing__disco {
   display: grid;
   place-items: center;
-  width: clamp(84px, 8vw, 124px);
+  width: var(--ing-disco);
   aspect-ratio: 1;
   border-radius: 50%;
   /* A tinta vem do item: creme sobre magenta, chocolate sobre amarelo e cyan. */
@@ -277,9 +284,9 @@
   display: grid;
   place-items: center;
   align-self: start;
-  width: clamp(30px, 2.8vw, 40px);
+  width: var(--ing-mais);
   aspect-ratio: 1;
-  margin-top: calc(.5 * (clamp(84px, 8vw, 124px) - clamp(30px, 2.8vw, 40px)));
+  margin-top: calc(.5 * (var(--ing-disco) - var(--ing-mais)));
   border-radius: 50%;
   background: var(--scw-bege);
   color: var(--scw-marrom);
@@ -956,16 +963,22 @@
 }
 
 @media (max-width: 560px) {
-  .hm-ingredientes { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 18px; }
-  .hm-ing { flex-direction: row; align-items: center; gap: 16px; text-align: left; }
-  .hm-ing__nome { margin-top: 0; }
-  /* Empilhado, o "+" desce para a coluna do disco: metade do disco do
-     ingrediente menos metade dele mesmo. Os dois clamps são os mesmos de
-     .hm-ing__disco e .hm-mais — mexeu num, mexe aqui. */
-  .hm-mais {
-    margin-top: 0;
-    margin-left: calc(clamp(84px, 8vw, 124px) / 2 - clamp(30px, 2.8vw, 40px) / 2);
+  /* ⛔ O empilhamento vertical SAIU em 22/08/2026 (pedido do Eloi: "coloque o
+     combo em uma única linha"). Um ingrediente por linha custava três telas de
+     rolagem para dizer "doce + salgado + bebida", e o "+" entre duas linhas
+     lia como marcador de lista, não como soma. **Não empilhar de novo.**
+     A linha do desktop continua valendo aqui; o que muda é a escala, e ela
+     muda nas duas medidas de uma vez porque as duas são token da composição.
+     Conta em 390px: 3 discos de 66px + 2 sinais de 23px + 4 vãos de 8px = 276
+     numa faixa de 342 — sobra folga. Em 320px dá 232 numa faixa de 272. */
+  .hm-ingredientes {
+    --ing-disco: clamp(58px, 17vw, 84px);
+    --ing-mais: clamp(22px, 6vw, 30px);
+    gap: 8px;
   }
+  /* O nome desce junto: a 19px "salgado" não cabia na coluna de 88px e
+     quebrava em duas linhas, desalinhando os três. */
+  .hm-ing__nome { font-size: clamp(14px, 4vw, 19px); margin-top: 10px; }
   .hm-voz__assinatura { flex-wrap: wrap; }
 }
 
