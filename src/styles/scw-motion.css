@@ -446,6 +446,20 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
 .scw-acesso        { animation: scwFade 240ms var(--mo-ease) both; }
 .scw-acesso__caixa { animation: scwFolha 340ms var(--mo-mola) both; }
 
+/* Fechar também é movimento (22/08/2026). Antes a tela de acesso sumia seca
+   enquanto o menu saía animado — mesma família de superfície, saídas
+   diferentes. Agora o componente marca `is-fechando` e só desmonta ao fim,
+   como o MobileMenu.
+   A saída é diferente por tela porque a ENTRADA também é: no celular a folha
+   desce por onde subiu; no desktop a caixa é centrada e descer 100% seria
+   atravessar a tela inteira — ali ela só se apaga encolhendo de leve. */
+@keyframes moAcessoSai { from { opacity: 1; scale: 1; } to { opacity: 0; scale: .97; } }
+.scw-acesso.is-fechando        { animation: moVeuSai 260ms var(--mo-ease) both; pointer-events: none; }
+.scw-acesso__caixa.is-fechando { animation: moAcessoSai 260ms var(--mo-ease) both; }
+@media (max-width: 900px) {
+  .scw-acesso__caixa.is-fechando { animation: moFolhaSai 260ms var(--mo-ease) both; }
+}
+
 /* Card de acesso: lift de adesivo — a sombra cresce junto, não só sobe. */
 .scw-acesso__cartao {
   transition: transform var(--mo-estado) var(--mo-ease),

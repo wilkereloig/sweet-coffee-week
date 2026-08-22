@@ -786,7 +786,7 @@ Participar → `/images/combos/douce-di-maria/main.jpg` · Apoiar → `/images/m
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo para `/organizacao/`; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo. **Reformulado em 22/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
@@ -818,6 +818,37 @@ lugar.**
 **Pisos de toque:** **44px** para qualquer controle — inclusive link de texto e item de
 acordeão — **46px** para pílula de ação dentro de card, **54px** no herói. ⚠️ **O piso
 vale para o controle real, não para a linha que o contém.**
+
+#### 6.10-b Tela de acesso — reformulada em 22/08/2026
+
+Pedido do Eloi, três frentes.
+
+**1 · Abre como o menu.** No celular (≤900px) a tela de acesso deixou de ser diálogo
+centrado e virou a **mesma folha da aba "mais"**: colada na base, largura cheia, canto
+arredondado só em cima, puxador dentro da faixa chocolate, `max-height: 88svh` com
+rolagem interna. A curva de entrada **já era a mesma** (`scwFolha`) — faltava o lugar.
+Fechar também virou movimento: `.is-fechando` por 260ms antes de desmontar, como o
+`MobileMenu`. **No desktop a caixa segue centrada** — folha subindo da base numa tela de
+1440px é gesto de celular no lugar errado; o que vale nas duas telas é o passo de senha
+e o desenho.
+
+**2 · "Entrar" não sai do diálogo.** O botão era um `<a>` para `/organizacao/` e a senha
+era pedida lá. Agora o corpo do próprio diálogo **vira o campo de senha**.
+⚠️ **Não há autenticação nova aqui — é a mesma, um passo antes.** A lógica vive em
+`src/lib/adminAccess.js`, no padrão dos formulários (§4.1): a lib não importa supabase,
+a `rpc` é injetada. Ela chama `admin_ping` e, **só com `=== true`**, grava a senha em
+`sessionStorage.scw_org` — a chave que `public/organizacao/` **já lê na abertura** para
+montar o painel direto. Mesma origem, mesma aba, mesma chave: nada novo é exposto, e a
+senha continua morrendo com a aba.
+**Nada afirma que entrou sem o banco confirmar**, e os quatro motivos têm recados
+diferentes (`vazio`, `senha`, `rede`, `sessao`).
+
+**3 · Contraste.** ⚠️ O rótulo "Falar com a equipe" estava **chocolate sobre chocolate,
+1:1, invisível** desde que o pé foi desenhado — a armadilha nº 1 do §10.1 de novo:
+`.scw-raiz a { color: inherit }` (0,1,1) vencia `.scw-acesso__cta` (0,1,0). Corrigido por
+**prefixo de seletor**, nunca `!important`. O "Entrar" saiu de `<a>` para `<button>` e,
+de quebra, saiu do alcance do mesmo reset: antes ele herdava creme e ficava creme sobre
+amarelo (~1,4:1); agora é chocolate sobre amarelo, 9,5:1.
 
 ### 6.11 Iconografia v2
 

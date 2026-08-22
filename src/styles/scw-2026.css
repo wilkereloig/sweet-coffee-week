@@ -959,8 +959,49 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__caixa { animation: none; }
 }
 
-/* Faixa chocolate — assina o painel com a marca do festival. */
+/* O puxador é peça de folha, e folha só existe no celular: no desktop a caixa
+   é centrada e não há gesto de arrastar para insinuar. */
+.scw-acesso__puxador { display: none; }
+
+/* ≤900px a tela de acesso ABRE COMO O MENU (pedido do Eloi, 22/08/2026): a
+   mesma folha da aba "mais" — colada na base, largura cheia, canto arredondado
+   só em cima, puxador. A curva de entrada já era a mesma (`scwFolha`); o que
+   faltava era o lugar, e a caixa centrada com respiro dos quatro lados lia como
+   diálogo de desktop espremido num celular.
+   `88svh` com rolagem interna resolve o outro defeito da mesma tela: o pé com
+   "Falar com a equipe" ficava fora do viewport e não havia como chegar nele. */
+@media (max-width: 900px) {
+  .scw-acesso {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .scw-acesso__caixa {
+    width: 100%;
+    max-height: 88svh;
+    border-radius: 30px 30px 0 0;
+  }
+  .scw-acesso__topo { padding-top: 26px; }
+  .scw-acesso__puxador {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 46px;
+    height: 5px;
+    border-radius: 5px;
+    /* Dentro da faixa chocolate, então o mesmo creme a 32% do menu. */
+    background: rgba(254, 240, 221, .32);
+  }
+  /* O respiro da barra de gestos entra no fim do corpo, não na caixa: com
+     `overflow` na caixa, um padding embaixo dela ficaria fora da área rolável. */
+  .scw-acesso__corpo { padding-bottom: calc(clamp(22px, 2.6vw, 36px) + var(--scw-safe-b)); }
+}
+
+/* Faixa chocolate — assina o painel com a marca do festival.
+   `relative` porque o puxador da folha (celular) se posiciona por cima dela. */
 .scw-acesso__topo {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1150,7 +1191,12 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
-.scw-acesso__cta {
+/* ⚠️ Seletor PREFIXADO, e é a armadilha nº 1 do §10.1 outra vez: `.scw-raiz a`
+   (0,1,1) traz `color: inherit` e vencia `.scw-acesso__cta` (0,1,0). A tinta
+   herdada do corpo é chocolate — a mesma do fundo do botão. O rótulo "Falar com
+   a equipe" estava CHOCOLATE SOBRE CHOCOLATE, 1:1, invisível, desde que o pé
+   foi desenhado. Prefixar resolve; `!important` está proibido pela mesma regra. */
+.scw-acesso .scw-acesso__cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1173,6 +1219,80 @@ body:not(.route-em-breve) { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .scw-acesso__cta,
   .scw-acesso__cta:hover { transform: none; transition: none; }
+}
+
+/* ── Passo da senha ──────────────────────────────────────────────────────────
+   O "Entrar" não sai mais do diálogo: o corpo troca de conteúdo e o mesmo
+   painel vira o campo de senha. Uma coisa por tela — voltar, o que é isto, o
+   campo, o botão. Nada mais. */
+.scw-acesso__corpo--senha {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* No passo da senha o título divide a linha com o selo, então não pode ter o
+   corpo do título de abertura. */
+.scw-acesso__corpo--senha .scw-acesso__titulo {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+}
+.scw-acesso__corpo--senha .scw-acesso__lead { margin: 0; }
+
+/* Voltar é link de texto, não botão de ação: ele desfaz, não avança. O piso de
+   44px vale para o CONTROLE (§10.2), por isso a altura mínima está NELE. */
+.scw-acesso__voltar {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--scw-marrom);
+  font: 800 13px/1 var(--scw-font);
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: color var(--scw-transicao);
+}
+
+@media (hover: hover) {
+  .scw-acesso__voltar:hover { color: var(--scw-choco); }
+}
+
+.scw-acesso__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+/* Botão do formulário ocupa a linha: é a única ação do passo. */
+.scw-acesso__acao--largo { justify-content: center; min-height: 52px; }
+/* Estado desabilitado único do sistema (§6.10). */
+.scw-acesso__acao:disabled {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Erro em marrom, não em vermelho: não existe vermelho na paleta (§6.1), e o
+   marrom sobre creme fecha 6,9:1. Quem carrega o alarme é o filete à esquerda,
+   no laranja de superfície preenchida. */
+.scw-acesso__erro {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--scw-laranja);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255, 72, 16, .08);
+  font: 700 13.5px/1.45 var(--scw-font);
+  color: var(--scw-marrom);
+}
+.scw-acesso__nota {
+  margin: 0;
+  max-width: 52ch;
+  font: 500 12.5px/1.5 var(--scw-font);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
 }
 
 /* ============================================================================
