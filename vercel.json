@@ -20,6 +20,7 @@
   ],
   "rewrites": [
     { "source": "/organizacao", "destination": "/organizacao/index.html" },
+    { "source": "/marca", "destination": "/marca/index.html" },
     { "source": "/quero-participar", "destination": "/quero-participar/index.html" },
     { "source": "/mapa", "destination": "/" },
     { "source": "/rota", "destination": "/" },

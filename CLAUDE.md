@@ -277,7 +277,8 @@ public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
                 + variantes `NN-480.webp` / `NN-960.webp` ao lado do original
 public/fonts/nexa-slab/
 public/manifest.webmanifest   camada de aplicativo (theme-color, ícones, iOS)
-public/quero-participar/ · public/organizacao/   estáticas, fora do bundle (§10.4-b)
+public/marca/ · public/quero-participar/ · public/organizacao/
+                estáticas, fora do bundle (§10.4-b)
 acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
@@ -1771,7 +1772,9 @@ nas duas telas com enquadramento diferente **tem** que mandar `--foco` e `--foco
 
 ### 10.4-b Páginas estáticas fora do bundle
 
-Existem duas: **`/quero-participar/`** (formulário de pré-cadastro) e
+Existem **três**: **`/marca/`** (área da marca participante — login, definir senha,
+cadastro da edição e status, tudo numa página que troca de view conforme o estado),
+**`/quero-participar/`** (formulário de pré-cadastro) e
 **`/organizacao/`** (painel interno da organização). Ficam em `public/`, fora do
 React, e é isso que as mantém acessíveis com `COMING_SOON_PUBLICATION = true`
 **sem tocar em flag nenhuma** (A3).
@@ -1779,9 +1782,17 @@ React, e é isso que as mantém acessíveis com `COMING_SOON_PUBLICATION = true`
 ⚠️ **A barra final não é opcional.** Sem ela o servidor não resolve o índice do
 diretório e a rota cai no fallback do SPA — ou seja, abre a landing. Medido no
 build via `vite preview`: `/organizacao` → index.html do SPA · `/organizacao/` →
-o painel. O `vercel.json` ganhou rewrite explícito para as duas rotas como rede
+o painel. O `vercel.json` ganhou rewrite explícito para as três rotas como rede
 de segurança em produção (a Vercel checa o sistema de arquivos antes dos
 rewrites), mas **todo link interno escreve a barra**.
+
+⚠️ **Em `/marca/` a barra final não é só higiene: ela é o `redirectTo` do
+convite.** A Edge Function `criar-acesso-marca` manda a marca para
+`https://www.sweetcoffeeweek.com.br/marca/`, e o Supabase devolve os tokens no
+`#hash` desse endereço. Sem a barra, o convite abre a landing com o token de
+acesso pendurado na URL — e a marca não entra. `tests/marca.test.mjs` cobre a
+constante. A URL também precisa estar na **allowlist** do projeto
+(Authentication → URL Configuration), senão o link cai calado na Site URL.
 
 ✅ **O dev server passou a servir essas páginas em 22/08/2026.** O Vite não faz
 resolução de índice de diretório para `public/`, e por isso `/organizacao/`

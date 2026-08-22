@@ -53,7 +53,12 @@ const json = (body: unknown, status = 200) =>
 
 const emailOk = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
 
-const DESTINO_CONVITE = 'https://www.sweetcoffeeweek.com.br/marca/definir-senha/'
+// `/marca/` e não `/marca/definir-senha/`, como o plano previa: a área da marca
+// é UMA página que troca de view conforme o estado. O link de recuperação chega
+// com os tokens no #hash, e a página reconhece `type=recovery` e abre direto em
+// "definir senha". Duas páginas exigiriam duplicar o cliente de autenticação
+// inteiro — e a segunda cópia é onde as duas começam a divergir.
+const DESTINO_CONVITE = 'https://www.sweetcoffeeweek.com.br/marca/'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })

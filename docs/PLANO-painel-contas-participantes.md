@@ -602,7 +602,25 @@ parado há mais de X dias.
      a marca recorrente é o mesmo usuário em duas linhas. Com `unique`, o caminho feliz
      do `email_exists` quebrava no INSERT seguinte.
 7. `/organizacao/`: botão "Criar acesso", coluna "Acesso", aba Participantes, ficha.
-8. `/marca/`: login, definir senha, cadastro, status.
+8. ~~`/marca/`: login, definir senha, cadastro, status.~~ ✅ **escrita em 22/08/2026** —
+   `public/marca/index.html`, 17 checagens em `tests/marca.test.mjs`. Duas trocas em
+   relação a este plano, ambas deliberadas:
+   - **Uma página, não quatro rotas.** As quatro views precisam do mesmo cliente de
+     autenticação, e a segunda cópia dele é onde as duas divergem. A view sai do
+     estado, não da URL. O `redirectTo` do convite virou `/marca/`.
+   - **Sem `supabase-js`.** O §6.2 pedia a biblioteca por causa da sessão; são ~100 KB
+     de CDN de terceiro **na tela de login** — esm.sh fora do ar e ninguém entra. Os
+     quatro endpoints usados (senha, refresh, update, recover) são POSTs comuns, e
+     `/organizacao/` já firmou o precedente do fetch direto.
+
+   Mais duas peças de banco que faltavam: o trigger `participantes_progresso` (move
+   `aguardando_cadastro` → `em_preenchimento` no primeiro salvamento da marca, sem
+   conceder a coluna) e a RPC `marca_concluir_cadastro`, que valida no **servidor** e
+   devolve a lista do que falta em vez de erro genérico.
+
+   ⛔ **Foto do combo ficou de fora**: exige bucket de Storage com policy própria, que
+   não existe. O campo `combo_foto_path` está na tabela e não na tela — melhor ausente
+   que presente e quebrado.
 9. Testes: RLS por tabela, declaração de função nos scripts inline, ciclo ponta a ponta
    com uma marca de teste.
 

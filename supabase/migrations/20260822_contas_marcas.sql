@@ -332,3 +332,94 @@ $fn$;
 
 revoke all on function public.user_id_por_email(text)
   from public, anon, authenticated;
+
+-- ── Progresso do cadastro, sem conceder a coluna ─────────────────────────────
+-- `status_cadastro` está FORA do grant de UPDATE da marca, de propósito: se ela
+-- pudesse escrever, poderia se declarar 'cadastro_completo' sem preencher nada.
+-- Mas alguém precisa mover o estado quando ela começa a preencher, senão o
+-- painel não distingue "nem abriu" de "está no meio".
+--
+-- O trigger resolve os dois: o primeiro salvamento DELA move
+-- 'aguardando_cadastro' → 'em_preenchimento'. A condição `auth.uid() = user_id`
+-- é o que impede a escrita do servidor (vincular_conta_marca, ON CONFLICT) de
+-- disparar o mesmo salto — ali não há usuário autenticado.
+create or replace function public.participantes_progresso()
+returns trigger language plpgsql set search_path = public as $fn$
+begin
+  new.updated_at := now();
+  if old.status_cadastro = 'aguardando_cadastro'
+     and new.status_cadastro = old.status_cadastro
+     and auth.uid() is not null
+     and auth.uid() = new.user_id then
+    new.status_cadastro := 'em_preenchimento';
+  end if;
+  return new;
+end;
+$fn$;
+
+drop trigger if exists participantes_tocar on public.participantes;
+create trigger participantes_tocar before update on public.participantes
+  for each row execute function public.participantes_progresso();
+
+-- ── RPC: marca_concluir_cadastro ─────────────────────────────────────────────
+-- O botão "concluir" da área da marca. Quem decide se está completo é o
+-- SERVIDOR: validação só no navegador é sugestão, não regra — some com um
+-- devtools aberto. Aqui ela é a única que conta.
+--
+-- Devolve a lista do que falta em vez de erro genérico: "cadastro incompleto"
+-- obriga a marca a caçar o campo, e cada caçada dessas vira uma ligação para a
+-- organização.
+create or replace function public.marca_concluir_cadastro(p_participante uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare
+  v          public.participantes%rowtype;
+  v_op       public.participantes_operacao%rowtype;
+  v_faltando text[] := '{}';
+begin
+  -- Autorização pela PRÓPRIA linha. `security definer` ignora RLS, então a
+  -- checagem tem que estar escrita aqui — não herdada.
+  select * into v from public.participantes
+   where id = p_participante and user_id = auth.uid();
+  if not found then
+    raise exception 'nao_autorizado';
+  end if;
+
+  select * into v_op from public.participantes_operacao
+   where participante_id = p_participante;
+
+  if coalesce(trim(v.nome_marca), '')       = '' then v_faltando := v_faltando || 'nome_marca'; end if;
+  if coalesce(trim(v.responsavel), '')      = '' then v_faltando := v_faltando || 'responsavel'; end if;
+  if coalesce(trim(v.telefone), '')         = '' then v_faltando := v_faltando || 'telefone'; end if;
+  if coalesce(trim(v.combo_nome), '')       = '' then v_faltando := v_faltando || 'combo_nome'; end if;
+  if coalesce(trim(v.combo_descricao), '')  = '' then v_faltando := v_faltando || 'combo_descricao'; end if;
+  if v_op.combo_preco is null or v_op.combo_preco <= 0 then v_faltando := v_faltando || 'combo_preco'; end if;
+  if v_op.unidades is null or jsonb_array_length(v_op.unidades) = 0 then v_faltando := v_faltando || 'unidades'; end if;
+
+  if array_length(v_faltando, 1) is not null then
+    return jsonb_build_object('ok', false, 'faltando', to_jsonb(v_faltando));
+  end if;
+
+  update public.participantes
+     set status_cadastro = 'cadastro_completo'
+   where id = p_participante;
+
+  -- A candidatura fecha o ciclo que começou em /quero-participar.
+  update public.quero_participar
+     set status = 'cadastro_completo'
+   where id = v.origem_id;
+
+  -- Aqui a auditoria SABE quem foi: é uma conta nominal, não a senha
+  -- compartilhada. É a diferença que a Fase 2 leva para o lado da organização.
+  insert into public.auditoria (ator_user_id, ator_rotulo, acao, alvo_tabela, alvo_id)
+       values (auth.uid(), 'marca', 'concluir_cadastro', 'participantes', p_participante::text);
+
+  return jsonb_build_object('ok', true);
+end;
+$fn$;
+
+revoke all on function public.marca_concluir_cadastro(uuid) from public, anon;
+grant execute on function public.marca_concluir_cadastro(uuid) to authenticated;
