@@ -42,32 +42,108 @@
   --scw-ease:cubic-bezier(.22,.9,.24,1);
   --scw-transicao:200ms var(--scw-ease);
   --trilho:clamp(16px,3vw,40px);
+  /* O painel não importa scw-2026.css, então --scw-safe-b é declarado aqui.
+     É o vão do notch na base do iPhone: sem ele a barra de abas fica por baixo
+     do indicador de home e a última aba deixa de ser tocável. */
+  --scw-safe-b:env(safe-area-inset-bottom, 0px);
+  --og-abas-h:68px;
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{
   background:var(--scw-creme);color:var(--scw-choco);
   font:500 15px/1.5 var(--scw-font);
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  /* A CASCA NÃO ROLA — quem rola é a vista ativa, por dentro. É o que separa
+     "página web" de "app": aqui a barra de abas e o cabeçalho ficam parados por
+     construção, não por `sticky`. `overscroll-behavior:none` mata o
+     pull-to-refresh, que num painel interno só serve para perder o filtro. */
+  overflow:hidden;
+  overscroll-behavior:none;
 }
 :focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:4px}
 button,input,select,textarea{font:inherit;color:inherit}
 
 /* ── Casca ─────────────────────────────────────────────────────────────── */
+/* Três faixas: topo · conteúdo · abas. O topo NÃO é mais `sticky` — numa casca
+   em grid ele é a primeira linha e já fica parado por construção, então
+   `position` e `z-index` viraram peso morto. */
+#painel{
+  height:100dvh;                      /* dvh, não vh: no iOS o vh conta a barra
+                                         do Safari e as abas somem atrás dela */
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+}
 .og-topo{
   background:var(--scw-choco);color:var(--scw-creme);
   padding:14px var(--trilho);
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:14px;
 }
-.og-topo__marca{height:38px;width:auto;display:block}
+.og-topo__marca{height:38px;width:auto;display:block;flex:0 0 auto}
 .og-topo__titulo{font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0}
 .og-topo__sub{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin:6px 0 0}
-.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px}
+.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
 
-.og-corpo{padding:clamp(20px,3vw,34px) var(--trilho) 80px;max-width:1600px;margin:0 auto}
+/* Segmented control do desktop: os MESMOS três destinos da barra de abas.
+   Reusa `.og-aba`, que já é o vocabulário de pill do arquivo — criar um
+   terceiro seria inventar linguagem dentro do mesmo produto. Só a chapa muda,
+   porque aqui o fundo é chocolate. */
+.og-topo__destinos{display:flex;gap:8px;margin-left:18px}
+.og-topo__destinos .og-aba{box-shadow:inset 0 0 0 1px rgba(254,240,221,.28);color:var(--scw-creme)}
+.og-topo__destinos .og-aba.is-ativa{background:var(--scw-amarelo);color:var(--scw-choco);box-shadow:none;font-weight:800}
+@media (max-width:900px){ .og-topo__destinos{display:none} }
+
+.og-corpo{min-height:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
+
+/* Quem rola é a vista ativa. */
+.og-vista{
+  height:100%;
+  overflow-y:auto;
+  overscroll-behavior:contain;        /* sem isto, rolar até o fim da lista
+                                         arrasta a casca inteira no iOS e a
+                                         ilusão de app morre na 1ª interação */
+  -webkit-overflow-scrolling:touch;
+  padding:clamp(20px,3vw,34px) var(--trilho) calc(24px + var(--scw-safe-b));
+  max-width:1600px;margin:0 auto;width:100%;
+}
+.og-vista[hidden]{display:none}
+
+/* ── Barra de abas (≤900px) ────────────────────────────────────────────── */
+/* Espelha a `.scw-abas` do site (MobileTabBar.jsx): mesma geometria, mesmo
+   indicador deslizante. Não é uma segunda linguagem de navegação. */
+.og-abasapp{
+  background:var(--scw-choco);
+  padding-bottom:var(--scw-safe-b);
+  border-top:1px solid rgba(254,240,221,.14);
+}
+.og-abasapp__grade{
+  position:relative;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  height:var(--og-abas-h);
+}
+.og-abasapp__indicador{
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / 3);
+  background:var(--scw-amarelo);border-radius:0 0 3px 3px;
+  transform:translateX(calc(var(--og-i,0) * 100%));
+  transition:transform 300ms var(--scw-ease);
+}
+.og-abaapp{
+  min-height:44px;                    /* piso de toque no CONTROLE (§6.10/§10.2) */
+  background:transparent;border:0;cursor:pointer;color:var(--scw-creme);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  opacity:.62;transition:opacity var(--scw-transicao);
+}
+.og-abaapp.is-ativa{opacity:1;color:var(--scw-amarelo)}
+.og-abaapp__icone{width:22px;height:22px;transition:transform 180ms var(--scw-ease)}
+.og-abaapp.is-ativa .og-abaapp__icone{transform:scale(1.12)}
+.og-abaapp__rotulo{font:700 11px/1 var(--scw-font);text-transform:lowercase}
+
+/* Acima de 900px a barra sai e os destinos vivem no cabeçalho (§6.14). */
+@media (min-width:901px){
+  .og-abasapp{display:none}
+  #painel{grid-template-rows:auto 1fr}
+}
 
 /* ── Botões ────────────────────────────────────────────────────────────── */
 .og-btn{
@@ -96,7 +172,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-campo textarea{min-height:110px;resize:vertical}
 
 /* ── Entrada ───────────────────────────────────────────────────────────── */
-.og-entrada{min-height:100dvh;display:grid;place-items:center;padding:24px}
+/* `height` + `overflow-y:auto`, não `min-height`: agora que o body é
+   `overflow:hidden`, um cartão mais alto que a tela ficaria cortado sem saída
+   — o teclado do celular aberto produz exatamente esse caso. */
+.og-entrada{height:100dvh;overflow-y:auto;display:grid;place-items:center;padding:24px}
 .og-entrada__cartao{
   width:min(420px,100%);background:#fff;border-radius:var(--scw-r-card);
   border:1px solid var(--scw-filete);padding:clamp(26px,4vw,38px);
@@ -230,12 +309,41 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-bloco{border-top:1px solid var(--scw-filete);padding-top:22px;display:flex;flex-direction:column;gap:14px}
 .og-bloco h3{font:900 15px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
 
+/* Saída com movimento nas duas telas: gaveta sai pela direita, folha desce.
+   Sem isso o detalhe some com um corte, e corte denuncia que não é app. */
+.og-detalhe.is-fechando{animation:ogGavetaSai 260ms var(--scw-ease) forwards}
+@keyframes ogGavetaSai{to{transform:translateX(100%)}}
+
 @media (max-width:900px){
-  .og-detalhe{width:100%;border-left:0}
-  .og-topo__dir{width:100%;margin-left:0}
+  /* No celular o padrão é folha subindo da base — a mesma peça do site
+     (`.scw-folha`, do MobileMenu), não uma gaveta lateral encolhida. */
+  .og-detalhe{
+    top:auto;right:0;left:0;bottom:0;width:100%;
+    max-height:88svh;                 /* svh, não vh: teclado aberto não empurra */
+    border-radius:30px 30px 0 0;border-left:0;
+    animation:ogFolha 340ms var(--scw-ease);
+  }
+  .og-detalhe.is-fechando{animation:ogFolhaSai 260ms var(--scw-ease) forwards}
+  /* ⚠️ O topo precisa ser sticky: numa folha alta, sem isto o botão Fechar sai
+     de cena junto com a rolagem e a pessoa perde a saída do painel. */
+  .og-detalhe__topo{border-radius:30px 30px 0 0;position:sticky;top:0;z-index:1}
+  /* O cabeçalho virou linha única sem `flex-wrap` — em 390px precisa caber.
+     O subtítulo sai (a marca ao lado já diz de quem é o painel) e o título
+     encolhe; os dois botões mantêm o piso de toque. */
+  .og-topo{padding:10px var(--trilho);gap:10px}
+  .og-topo__marca{height:30px}
+  .og-topo__titulo{font-size:14px}
+  .og-topo__sub{display:none}
+  .og-topo__dir{gap:8px}
+  /* ⚠️ `--mini` nasceu com 38px, que serve de sobra no desktop e reprova no
+     celular: o piso do §6.10 é 44px no CONTROLE. Vale para Fechar, Atualizar e
+     Sair — os três só existem como `--mini`. A largura encolhe para compensar. */
+  .og-btn--mini{min-height:44px;padding:0 12px}
   .og-item{grid-template-columns:10px 1fr}
   .og-item__dir{grid-row:auto;grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-top:4px}
 }
+@keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes ogFolhaSai{to{transform:translateY(100%)}}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
   .og-btn:hover,.og-item:hover{transform:none}
@@ -269,6 +377,11 @@ button,input,select,textarea{font:inherit;color:inherit}
       <p class="og-topo__titulo">Painel da organização</p>
       <p class="og-topo__sub">Sweet &amp; Coffee Week</p>
     </div>
+    <nav class="og-topo__destinos" aria-label="Seções do painel">
+      <button class="og-aba is-ativa" type="button" data-vista="resumo">resumo</button>
+      <button class="og-aba" type="button" data-vista="respostas">respostas</button>
+      <button class="og-aba" type="button" data-vista="formularios">formulários</button>
+    </nav>
     <div class="og-topo__dir">
       <button class="og-btn og-btn--vazado og-btn--mini" type="button" id="btn-atualizar">Atualizar</button>
       <button class="og-btn og-btn--claro og-btn--mini" type="button" id="btn-sair">Sair</button>
@@ -276,42 +389,75 @@ button,input,select,textarea{font:inherit;color:inherit}
   </header>
 
   <main class="og-corpo">
-    <div class="og-aviso" id="aviso" hidden></div>
-
-    <ul class="og-resumo" id="resumo"></ul>
-
-    <section class="og-forms">
-      <div class="og-forms__cabeca">
-        <h2>Os formulários</h2>
-        <p>Onde cada resposta desta tela nasce.</p>
-      </div>
-      <ul class="og-forms__lista" id="forms"></ul>
+    <!-- Três destinos. O conteúdo de cada um é o que já existia: os blocos
+         foram movidos inteiros, com os mesmos IDs, para que montarForms(),
+         montarAbas(), montarFiltroStatus() e render() continuem funcionando. -->
+    <section class="og-vista" id="vista-resumo" hidden>
+      <div class="og-aviso" id="aviso" hidden></div>
+      <ul class="og-resumo" id="resumo"></ul>
     </section>
 
-    <ul class="og-abas" id="abas" role="tablist"></ul>
+    <section class="og-vista" id="vista-respostas" hidden>
+      <ul class="og-abas" id="abas" role="tablist"></ul>
 
-    <div class="og-filtros">
-      <label class="og-campo og-campo--busca">
-        <span>Buscar</span>
-        <input type="search" id="busca" placeholder="nome, empresa ou e-mail">
-      </label>
-      <label class="og-campo">
-        <span>Status</span>
-        <select id="filtro-status"><option value="">Todos</option></select>
-      </label>
-      <label class="og-campo">
-        <span>Período</span>
-        <select id="filtro-periodo">
-          <option value="">Sempre</option>
-          <option value="7">Últimos 7 dias</option>
-          <option value="30">Últimos 30 dias</option>
-          <option value="90">Últimos 90 dias</option>
-        </select>
-      </label>
-    </div>
+      <div class="og-filtros">
+        <label class="og-campo og-campo--busca">
+          <span>Buscar</span>
+          <input type="search" id="busca" placeholder="nome, empresa ou e-mail">
+        </label>
+        <label class="og-campo">
+          <span>Status</span>
+          <select id="filtro-status"><option value="">Todos</option></select>
+        </label>
+        <label class="og-campo">
+          <span>Período</span>
+          <select id="filtro-periodo">
+            <option value="">Sempre</option>
+            <option value="7">Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+        </label>
+      </div>
 
-    <div id="area-lista"></div>
+      <div id="area-lista"></div>
+    </section>
+
+    <section class="og-vista" id="vista-formularios" hidden>
+      <section class="og-forms">
+        <div class="og-forms__cabeca">
+          <h2>Os formulários</h2>
+          <p>Onde cada resposta desta tela nasce.</p>
+        </div>
+        <ul class="og-forms__lista" id="forms"></ul>
+      </section>
+    </section>
   </main>
+
+  <nav class="og-abasapp" aria-label="Seções do painel">
+    <div class="og-abasapp__grade">
+      <span class="og-abasapp__indicador" aria-hidden="true"></span>
+      <button class="og-abaapp is-ativa" type="button" data-vista="resumo" aria-current="page">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/><path d="M3.5 20h17"/>
+        </svg>
+        <span class="og-abaapp__rotulo">resumo</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="respostas">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/>
+        </svg>
+        <span class="og-abaapp__rotulo">respostas</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="formularios">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/>
+          <rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="M8.5 11h7"/><path d="M8.5 15h4.5"/>
+        </svg>
+        <span class="og-abaapp__rotulo">formulários</span>
+      </button>
+    </div>
+  </nav>
 </div>
 
 <button class="og-fundo" id="fundo" hidden aria-label="Fechar detalhe"></button>
@@ -411,11 +557,19 @@ const CHAVES = {
   telefone: ['telefone','whatsapp']
 };
 
+/* Os três destinos da casca. Não confundir com as quatro ORIGENS: origem é de
+   qual formulário a resposta veio; destino é onde a pessoa está no app. */
+const DESTINOS = ['resumo', 'respostas', 'formularios'];
+
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
 let dados = {};            // origem → array de registros
 let aba = 'tudo';
 let selecionado = null;    // { origem, id }
+let vistaAtual = '';         // destino visível
+let rolagemVista = {};       // destino → scrollTop, para voltar onde parou
+let saidaDetalhe = null;     // timer da animação de fechamento
+let abasAppLigadas = false;  // listeners da casca já ligados (ver montarAbasApp)
 
 const $ = id => document.getElementById(id);
 const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
@@ -481,8 +635,81 @@ function abrirPainel() {
   painel.hidden = false;
   montarForms();
   montarAbas();
+  montarAbasApp();
   montarFiltroStatus();
   carregar();
+}
+
+/* ── Navegação da casca ────────────────────────────────────────────────── */
+/* Sem hash. A rota é estática e o hash é território do router do SPA; mexer
+   nele aqui só criaria confusão. sessionStorage basta e morre com a aba. */
+function irPara(vista) {
+  if (DESTINOS.indexOf(vista) < 0) vista = 'resumo';
+  const anterior = vistaAtual ? $('vista-' + vistaAtual) : null;
+
+  /* Segundo toque na aba já ativa rola ao topo. É comportamento de app que
+     ninguém pede e todo mundo usa. */
+  if (vista === vistaAtual) {
+    if (anterior) anterior.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  /* Guardar a rolagem antes de esconder: voltar para "Respostas" e cair no topo
+     da lista é a falha que mais entrega "isto é uma página web". */
+  if (anterior) { rolagemVista[vistaAtual] = anterior.scrollTop; anterior.hidden = true; }
+
+  vistaAtual = vista;
+  const alvo = $('vista-' + vista);
+  alvo.hidden = false;
+  void alvo.offsetHeight;            // força layout antes de restaurar a rolagem
+  alvo.scrollTop = rolagemVista[vista] || 0;
+
+  document.querySelectorAll('[data-vista]').forEach(function (b) {
+    const meu = b.dataset.vista === vista;
+    b.classList.toggle('is-ativa', meu);
+    if (meu) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+
+  const grade = document.querySelector('.og-abasapp__grade');
+  if (grade) grade.style.setProperty('--og-i', String(DESTINOS.indexOf(vista)));
+
+  try { sessionStorage.setItem('scw_org_vista', vista); } catch (e) { /* anônima */ }
+}
+
+function montarAbasApp() {
+  /* ⚠️ `abrirPainel()` roda a cada login, e sair + entrar de novo na mesma aba
+     ligaria um segundo listener em cada botão. Os elementos são estáticos, então
+     a ligação acontece uma vez só; o que se repete é apenas a escolha da vista
+     inicial, logo abaixo. */
+  if (!abasAppLigadas) {
+    abasAppLigadas = true;
+    document.querySelectorAll('[data-vista]').forEach(function (b) {
+      b.addEventListener('click', function () { irPara(b.dataset.vista); });
+    });
+    ligarTecladoAbas();
+  }
+
+  let inicial = 'resumo';
+  try { inicial = sessionStorage.getItem('scw_org_vista') || 'resumo'; } catch (e) {}
+  irPara(inicial);
+}
+
+/* ←/→ circulam entre as abas quando o foco está na barra. */
+function ligarTecladoAbas() {
+  const grade = document.querySelector('.og-abasapp__grade');
+  if (grade) {
+    grade.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+      const abas = [].slice.call(grade.querySelectorAll('.og-abaapp'));
+      const i = abas.indexOf(document.activeElement);
+      if (i < 0) return;
+      ev.preventDefault();
+      const proxima = abas[(i + (ev.key === 'ArrowRight' ? 1 : -1) + abas.length) % abas.length];
+      proxima.focus();
+      irPara(proxima.dataset.vista);
+    });
+  }
 }
 
 /* ── Carga ─────────────────────────────────────────────────────────────── */
@@ -699,6 +926,10 @@ function abrirDetalhe(origem, id) {
   const o = ORIGENS[origem];
   const reg = (dados[origem] || []).find(r => r.id === id);
   if (!reg) return;
+  /* Reabrir antes de a saída terminar: cancela o timer e limpa a classe, senão
+     a folha nasceria já com a animação de saída aplicada. */
+  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
+  $('detalhe').classList.remove('is-fechando');
   selecionado = { origem, id };
 
   $('detalhe-titulo').textContent = o.titulo(reg) || '(sem nome)';
@@ -787,11 +1018,27 @@ async function salvar(origem, reg) {
   }
 }
 
+/* Fechar é movimento: a folha desce, a gaveta sai pela direita, e só então o
+   elemento é escondido — como o MobileMenu do site. Sem isso o painel some com
+   um corte, que é a coisa que mais denuncia "não é app".
+   ⚠️ A guarda do `hidden` importa: `btn-sair` chama esta função com o detalhe
+   já fechado, e sem ela a animação rodaria no vazio a cada logout. */
 function fecharDetalhe() {
+  const el = $('detalhe');
+  if (el.hidden) { selecionado = null; return; }
+
+  const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.classList.add('is-fechando');
   $('fundo').hidden = true;
-  $('detalhe').hidden = true;
-  selecionado = null;
-  if (!painel.hidden && Object.keys(dados).length) render();
+
+  if (saidaDetalhe) clearTimeout(saidaDetalhe);
+  saidaDetalhe = setTimeout(function () {
+    saidaDetalhe = null;
+    el.classList.remove('is-fechando');
+    el.hidden = true;
+    selecionado = null;
+    if (!painel.hidden && Object.keys(dados).length) render();
+  }, semMovimento ? 0 : 260);
 }
 $('btn-fechar').addEventListener('click', fecharDetalhe);
 $('fundo').addEventListener('click', fecharDetalhe);
