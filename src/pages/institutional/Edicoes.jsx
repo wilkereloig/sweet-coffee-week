@@ -14,9 +14,10 @@
  *
  * Mobile: capítulo vertical (capa 4:5 com tema + carrossel do restante do
  * acervo em pares 1:1 + dados + palavras-chave + sanfonas de marcas e do texto
- * editorial) e três peças de navegação: régua de anos fixa na base, setas
- * laterais metade fora da tela e `disabled` (não só opacity) na seta sem
- * destino.
+ * editorial) e uma peça de navegação só: a régua de anos fixa na base, com as
+ * setas de passar dentro dela, flanqueando os anos — mesmo arranjo
+ * `seta · trilha · seta` do rodapé do desktop, e a mesma peça (`.scw-edx__seta`).
+ * `disabled` de verdade (não só opacity) na seta sem destino.
  *
  * Fotografia: TODA foto vem do sistema central `src/data/imageLibrary.js`
  * (`editionPhotos` / `bgStyle`) — caminho de imagem não se escreve à mão aqui,
@@ -728,43 +729,49 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
             <div className="scw-edx-mob__regua-barra" aria-hidden="true">
               <span style={{ transform: `scaleX(${TOTAL > 1 ? i / (TOTAL - 1) : 0})` }} />
             </div>
-            <div className="scw-edx-mob__regua-anos" ref={reguaRef}>
-              {EDS.map((ed, k) => (
-                <button
-                  type="button"
-                  key={ed.code}
-                  className={`scw-edx-mob__ano${k === i ? ' is-ativo' : ''}${k < i ? ' is-visto' : ''}`}
-                  aria-label={`${ed.code} — ${ed.tema}`}
-                  aria-current={k === i ? 'true' : undefined}
-                  onClick={() => vaiPara(k)}
-                >
-                  <span className="scw-edx-mob__ano-tick" aria-hidden="true" />
-                  <span className="scw-edx-mob__ano-rot">{ed.code}</span>
-                </button>
-              ))}
+            {/* peça 2 — as setas de passar vivem NA régua, flanqueando os anos
+                (pedido do Eloi, 22/08/2026). São a MESMA peça do rodapé do
+                desktop — `.scw-edx__seta` e `--proxima` —, no mesmo arranjo
+                `seta · trilha · seta`: é o mesmo controle, muda só a tela.
+                Saíram as setas fixas de 62×52 a 31% da altura, metade fora do
+                quadro: flutuavam sobre a cena, longe da régua que comandam, e
+                precisavam de dois laços de pulso para se anunciar. */}
+            <div className="scw-edx-mob__regua-linha">
+              <button
+                type="button"
+                className="scw-edx__seta"
+                disabled={i === 0}
+                aria-label={i > 0 ? `Edição anterior: ${EDS[i - 1].tema}` : 'Esta é a primeira edição'}
+                onClick={() => passo(-1)}
+              >
+                <SetaEsq width={17} height={17} />
+              </button>
+              <div className="scw-edx-mob__regua-anos" ref={reguaRef}>
+                {EDS.map((ed, k) => (
+                  <button
+                    type="button"
+                    key={ed.code}
+                    className={`scw-edx-mob__ano${k === i ? ' is-ativo' : ''}${k < i ? ' is-visto' : ''}`}
+                    aria-label={`${ed.code} — ${ed.tema}`}
+                    aria-current={k === i ? 'true' : undefined}
+                    onClick={() => vaiPara(k)}
+                  >
+                    <span className="scw-edx-mob__ano-tick" aria-hidden="true" />
+                    <span className="scw-edx-mob__ano-rot">{ed.code}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="scw-edx__seta scw-edx__seta--proxima"
+                disabled={i === TOTAL - 1}
+                aria-label={i < TOTAL - 1 ? `Próxima edição: ${EDS[i + 1].tema}` : 'Esta é a última edição'}
+                onClick={() => passo(1)}
+              >
+                <SetaDir width={17} height={17} />
+              </button>
             </div>
           </nav>
-
-          {/* peças 2 e 3 — setas laterais metade fora da tela; nos extremos a
-              seta sem destino recebe `disabled` e sai da tabulação */}
-          <button
-            type="button"
-            className="scw-edx-mob__seta scw-edx-mob__seta--ant"
-            disabled={i === 0}
-            aria-label={i > 0 ? `Edição anterior: ${EDS[i - 1].tema}` : 'Esta é a primeira edição'}
-            onClick={() => passo(-1)}
-          >
-            <SetaEsq width={20} height={20} />
-          </button>
-          <button
-            type="button"
-            className="scw-edx-mob__seta scw-edx-mob__seta--prox"
-            disabled={i === TOTAL - 1}
-            aria-label={i < TOTAL - 1 ? `Próxima edição: ${EDS[i + 1].tema}` : 'Esta é a última edição'}
-            onClick={() => passo(1)}
-          >
-            <SetaDir width={20} height={20} />
-          </button>
         </section>
       </div>
     )

@@ -1110,15 +1110,24 @@ barra de progresso. Navegação por setas do teclado, clique na trilha e arraste
 
 **Mobile:** cabeçalho compacto com a marca da edição e progresso `01/16`; foto 4:5 com
 tema; mosaico de 2 fotos 1:1; dados; palavras-chave; sanfonas de marcas e curiosidades.
-Navegação em três peças:
+Navegação em **uma peça só**: a régua de anos fixa na base, com as setas dentro.
 
 1. **Régua de anos fixa na base** — trilha horizontal com os 16 anos + barra de progresso
    (`transform: scaleX` com origem à esquerda, **sem transição**). Rola e centraliza no
    ano ativo. O deslocamento acima da barra de abas é **condicional, nunca literal**.
-2. **Setas laterais** a 31% da altura, metade fora da tela (`left:-19px` / `right:-19px`,
-   62×52px, canto arredondado só no lado interno). Pulso em laço de 2,8s como convite.
+   Fundo **chapado** (`rgb(43,14,6)`) e **sem `backdrop-filter`** — blur sobre cena
+   animada trava o compositor (§10.3), e os 4% de transparência que havia antes
+   deixavam o contador da galeria aparecer como texto fantasma atrás dos anos.
+2. **As setas de passar vivem NA régua**, flanqueando os anos: `seta · anos · seta`, o
+   **mesmo arranjo e a mesma peça** do rodapé do desktop (`.scw-edx__seta` e
+   `--proxima`). Os anos são a única parte elástica (`flex: 1` + `min-width: 0`).
 3. Nos extremos a seta sem destino recebe **`disabled`** de verdade — não só
-   `opacity:0` —, para sair da tabulação.
+   `opacity:0` —, para sair da tabulação. Dentro da régua ela fica no estado padrão
+   do sistema (`.45`): sumir deixaria um buraco na linha.
+
+⛔ **As setas laterais saíram em 22/08/2026** (pedido do Eloi) — 62×52px a 31% da altura,
+metade fora da tela, com laço de pulso de 2,8s cada. Flutuavam sobre a cena, longe da
+régua que comandam, e precisavam do pulso para se anunciar. **Não recriar.**
 
 **Selo da cena:** disco vazado de 54px (44px em ≤900px) com **um ícone por edição**,
 no tom da cena, ao lado da pill do rótulo — `ICONE_EDICAO` em `Edicoes.jsx`, mapeado
