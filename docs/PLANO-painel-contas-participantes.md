@@ -589,7 +589,18 @@ parado há mais de X dias.
 ### Fase 1 — Contas das marcas *(o grosso do trabalho)*
 5. Migration: `perfis`, `participantes`, `auditoria`, coluna e `CHECK` novos em
    `quero_participar`, políticas RLS e grants de coluna.
-6. Edge Function `criar-acesso-marca` + RPC `vincular_conta_marca`.
+6. ~~Edge Function `criar-acesso-marca` + RPC `vincular_conta_marca`.~~ ✅ **escritas em
+   22/08/2026** — `supabase/functions/criar-acesso-marca/index.ts` (`deno check` limpo) e
+   as RPCs no fim da migration da Fase 1. ⚠️ **Nenhuma das duas está no ar**: a função não
+   foi deployada e a migration não foi aplicada. Faltou também uma terceira peça que o
+   esqueleto do §4 não previa — `user_id_por_email`, porque `createUser` devolve 422
+   `email_exists` sem dizer *qual* usuário é, e `listUsers` é paginado.
+   Duas correções no modelo da Fase 1, achadas ao escrever a RPC:
+   - `participantes.origem_id` ganhou **`unique`** — sem ele a idempotência prometida no
+     §4 não existia, e dois cliques em "Criar acesso" criariam duas contas.
+   - `participantes.user_id` **perdeu** o `unique` — participação é marca + edição, então
+     a marca recorrente é o mesmo usuário em duas linhas. Com `unique`, o caminho feliz
+     do `email_exists` quebrava no INSERT seguinte.
 7. `/organizacao/`: botão "Criar acesso", coluna "Acesso", aba Participantes, ficha.
 8. `/marca/`: login, definir senha, cadastro, status.
 9. Testes: RLS por tabela, declaração de função nos scripts inline, ciclo ponta a ponta

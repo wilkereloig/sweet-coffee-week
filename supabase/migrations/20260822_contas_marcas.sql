@@ -75,10 +75,19 @@ create table if not exists public.participantes (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  -- de qual candidatura veio; null se a organização cadastrou à mão
-  origem_id uuid references public.quero_participar (id) on delete set null,
-  -- dono da conta; null enquanto o acesso não foi criado
-  user_id uuid unique references auth.users (id) on delete set null,
+  -- De qual candidatura veio; null se a organização cadastrou à mão.
+  -- `unique` é o que torna "Criar acesso" idempotente: dois cliques, duas
+  -- requisições simultâneas ou um retry de rede colidem AQUI, no banco. Um `if`
+  -- na Edge Function não segura corrida — só produz mensagem melhor.
+  -- Vários NULL convivem (Postgres não considera NULL igual a NULL), então
+  -- cadastro manual não esbarra na restrição.
+  origem_id uuid unique references public.quero_participar (id) on delete set null,
+  -- Dono da conta; null enquanto o acesso não foi criado.
+  -- ⚠️ SEM `unique`: participação é marca + EDIÇÃO (§9.9). A marca que veio em
+  -- 2025 e volta em 2026 é o mesmo usuário do Auth em duas linhas — é por isso
+  -- que `email_exists` no Auth é caminho feliz, não erro. Um `unique` aqui
+  -- transformaria "marca recorrente" em falha de cadastro.
+  user_id uuid references auth.users (id) on delete set null,
   -- Convenção de nome de arquivo do acervo: combos/<slug>/main.jpg e
   -- logos/participants/<slug>.png. O slug deixou de ser congelado (os QR Codes
   -- da Lovers morreram), mas a convenção continua valendo.
@@ -100,6 +109,9 @@ create table if not exists public.participantes (
   ))
 );
 
+-- A RLS da marca filtra por `user_id` em toda leitura e toda escrita. Sem
+-- índice, cada acesso vira varredura da tabela inteira.
+create index if not exists participantes_user_idx on public.participantes (user_id);
 create index if not exists participantes_status_idx on public.participantes (status_cadastro);
 create index if not exists participantes_edicao_idx on public.participantes (edicao_codigo);
 
@@ -211,3 +223,112 @@ create trigger participantes_tocar before update on public.participantes
 drop trigger if exists operacao_tocar on public.participantes_operacao;
 create trigger operacao_tocar before update on public.participantes_operacao
   for each row execute function public.tocar_updated_at();
+
+-- ── RPC: vincular_conta_marca ────────────────────────────────────────────────
+-- O passo 4 da Edge Function `criar-acesso-marca` (plano §4): perfil +
+-- participante + operação + status + auditoria, NUMA TRANSAÇÃO SÓ.
+--
+-- POR QUE uma função e não cinco chamadas do lado do Deno:
+--   Se o convite falhar depois, o pior cenário é "conta existe, e-mail não
+--   chegou" — resolve reenviando. O inaceitável é "usuário criado no Auth,
+--   perfil não" ou "participante sem linha de operação": meio-registro que
+--   nenhuma tela sabe mostrar e ninguém sabe consertar. Cinco chamadas HTTP não
+--   têm como voltar atrás; um bloco plpgsql tem.
+--
+-- Idempotente de propósito: chamar de novo com o mesmo `p_origem` devolve o
+-- mesmo participante em vez de estourar. É o que torna retry seguro.
+create or replace function public.vincular_conta_marca(p_user uuid, p_origem uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare
+  v_id uuid;
+  v_q  public.quero_participar%rowtype;
+begin
+  if p_user is null or p_origem is null then
+    raise exception 'argumentos_obrigatorios';
+  end if;
+
+  select * into v_q from public.quero_participar where id = p_origem;
+  if not found then
+    raise exception 'candidatura_nao_encontrada';
+  end if;
+
+  -- 1. Perfil. `papel` fixo em 'marca' — esta função NUNCA cria organização.
+  --    Conta de organização nasce na Fase 2, por outro caminho, para que
+  --    nenhum erro de argumento aqui possa promover alguém.
+  insert into public.perfis (user_id, papel)
+       values (p_user, 'marca')
+  on conflict (user_id) do update set ativo = true;
+
+  -- 2. Participante. Os dados saem da candidatura, não de argumento: o que a
+  --    marca escreveu no formulário é a fonte, e redigitar é como divergência
+  --    entra no sistema. Na `quero_participar`, `empresa` é a marca e `nome` é
+  --    a pessoa.
+  insert into public.participantes
+         (origem_id, user_id, nome_marca, responsavel, telefone, email,
+          instagram, site, status_cadastro)
+       values
+         (p_origem, p_user, v_q.empresa, v_q.nome, v_q.telefone, v_q.email,
+          v_q.instagram, v_q.site, 'aguardando_cadastro')
+  on conflict (origem_id) do update
+          -- Não rouba conta já vinculada: se a linha existe com dono, ele fica.
+          set user_id = coalesce(participantes.user_id, excluded.user_id)
+    returning id into v_id;
+
+  -- 3. Linha de operação vazia. A policy de UPDATE exige linha existente — sem
+  --    ela a marca abriria o formulário e não teria onde gravar preço e
+  --    unidades. Criar aqui evita conceder INSERT ao cliente.
+  insert into public.participantes_operacao (participante_id)
+       values (v_id)
+  on conflict (participante_id) do nothing;
+
+  -- 4. A candidatura muda de estado — é o gancho que o painel lê. Nunca puxa
+  --    de volta quem já terminou o cadastro.
+  update public.quero_participar
+     set status = 'aguardando_cadastro'
+   where id = p_origem
+     and status <> 'cadastro_completo';
+
+  -- 5. Auditoria. `ator_rotulo` fica no padrão 'senha-compartilhada': hoje o
+  --    banco não tem como saber QUEM da organização clicou. Registrar a
+  --    cegueira é melhor que gravar um nome inventado — e ela some na Fase 2.
+  insert into public.auditoria (acao, alvo_tabela, alvo_id, detalhe)
+       values ('criar_acesso_marca', 'participantes', v_id::text,
+               jsonb_build_object('origem_id', p_origem, 'user_id', p_user));
+
+  return v_id;
+end;
+$fn$;
+
+-- Só a chave de serviço (Edge Function) chama. Nunca o navegador: criar conta
+-- não é operação que possa sair de um bundle público.
+revoke all on function public.vincular_conta_marca(uuid, uuid)
+  from public, anon, authenticated;
+
+-- ── RPC: user_id_por_email ───────────────────────────────────────────────────
+-- Resolve o `user_id` de um e-mail que JÁ existe no Auth. Necessária porque
+-- `createUser` devolve 422 `email_exists` sem dizer qual é o usuário, e esse é
+-- o caminho feliz da marca recorrente (participou em 2025, volta em 2026).
+--
+-- A alternativa da API seria `listUsers` paginado — varrer a base inteira para
+-- achar um e-mail, a cada aprovação.
+--
+-- `security definer` porque o schema `auth` não é acessível de fora. Devolve
+-- SÓ o uuid: nada de hash de senha, metadata ou data de último login.
+create or replace function public.user_id_por_email(p_email text)
+returns uuid
+language sql
+security definer
+set search_path = auth, public
+stable
+as $fn$
+  select id from auth.users
+   where lower(email) = lower(trim(p_email))
+   limit 1;
+$fn$;
+
+revoke all on function public.user_id_por_email(text)
+  from public, anon, authenticated;
