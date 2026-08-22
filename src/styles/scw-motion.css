@@ -382,6 +382,38 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   }
 }
 
+/* ≤900px o problema é o MESMO — cabeçalho `fixed` por cima do conteúdo que
+   rola — mas a saída do desktop não serve: aqui a marca já vive no fluxo, não
+   há overhang para recolher, e recolher os 52px restantes não tira nada do
+   caminho. O resultado era a marca passando por cima do texto ("A anatomia do
+   combo" virava "TOMIA DO COMBO") sob um véu que, longe do herói, lê como
+   mancha marrom sobre a seção creme.
+   A diferença que resolve: no celular este cabeçalho não é barra de aplicativo.
+   `.scw-nav` e `.scw-acesso-topo` estão em `display: none` — sobra só a marca,
+   e a navegação inteira mora na barra de abas de baixo. Barra fixa com conteúdo
+   decorativo custa 88px de tela e uma colisão permanente.
+   Então, rolando, o topo sai de cena. Abaixo de 40px de rolagem nada muda: o
+   herói continua exatamente como desenhado, com a marca sobre a foto. Dali em
+   diante a tela é do conteúdo — e a marca não perde função, porque "festival"
+   na barra de abas leva à Home.
+   Nada de encolher altura nem mover a logo (regra estrutural do §6.7): o que
+   muda é opacidade, e a geometria fica onde está. */
+@media (max-width: 900px) {
+  .scw-header { transition: opacity var(--mo-estado) var(--mo-ease); }
+  .scw-header:not(.scw-header--so-acesso).is-rolado {
+    opacity: 0;
+    /* Sem isto o cabeçalho invisível continuaria interceptando o toque nos
+       88px do topo — o pior dos dois mundos. */
+    pointer-events: none;
+  }
+  /* O "pular para o conteúdo" mora aqui dentro. Com foco em algo do cabeçalho
+     ele volta, senão o teclado perderia a única saída rápida da página. */
+  .scw-header:not(.scw-header--so-acesso).is-rolado:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 /* ============================================================================
    6. MENU MOBILE — fechar também é movimento (§11)
    A folha entra por scwFolha (scw-2026.css). O componente marca `is-fechando`

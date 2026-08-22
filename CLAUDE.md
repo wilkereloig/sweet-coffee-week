@@ -1036,8 +1036,17 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
   de Rotas da Home.
 - **Transição de página** — `main.page-enter` em **opacidade, 300ms. Sem transform, de
   propósito** (ver §10.3).
-- **Cabeçalho** — `.is-rolado` adensa o véu. **Não encolhe altura nem move a logo** — a
-  geometria é regra estrutural.
+- **Cabeçalho** — `.is-rolado` adensa o véu no desktop e recolhe o overhang da logo.
+  **Não encolhe altura nem move a logo** — a geometria é regra estrutural.
+  ⚠️ **No celular (≤900px) `.is-rolado` faz o cabeçalho SAIR de cena** (opacidade 0 +
+  `pointer-events: none`, volta em `:focus-within` por causa do "pular para o
+  conteúdo"). Motivo: abaixo de 900px `.scw-nav` e `.scw-acesso-topo` estão em
+  `display: none` — sobra só a marca, e a navegação inteira mora na barra de abas.
+  Uma barra fixa com conteúdo decorativo passava por cima do texto rolado (o rótulo
+  "A anatomia do combo" virava "TOMIA DO COMBO") e o véu, longe do herói, lia como
+  mancha marrom sobre a seção creme. Abaixo de 40px de rolagem nada muda: o herói
+  continua como desenhado. **A landing `/em-breve` fica de fora** (`--so-acesso`) —
+  ali o cabeçalho reduzido é a única porta de acesso (§10.4-b).
 - **Menu mobile** — entra por `scwFolha` com itens escalonados; sai por `.is-fechando`
   (260ms) e só então desmonta.
 - **Edições** — ken burns `scale(1.06) → scale(1.001)` em 12s; wipe direcional
