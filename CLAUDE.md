@@ -755,10 +755,21 @@ mudança, junto com o título caindo sobre rostos e áreas claras.
 de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
 a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
 
-**Alturas medidas em 390×844 depois da mudança:** Home 905px · Participar e Apoiar 983px
-· Contato 770px · Awards 826px. As duas maiores levam as ações para logo abaixo da dobra;
-os dois jeitos de encurtar, se algum dia for pedido, são pôr as duas ações lado a lado ou
-tirar a foto do 1:1 — **nenhum dos dois foi feito, porque o quadrado é o pedido.**
+**Alturas medidas em 390×844:** Home 905px · **Participar e Apoiar 886px** · Contato
+770px · Awards 826px.
+
+⚠️ **Participar e Apoiar são a exceção da proporção: a foto delas é 4:3, não 1:1**
+(`.pa-hero .scw-hero-banda`, pedido do Eloi em 22/08/2026 — "encurtar o herói"). Eram as
+duas mais altas das cinco, com 983px, porque levam 89px de conteúdo que as outras não
+têm: o selo quebra em duas linhas (48px) e há a nota de curadoria embaixo das ações
+(41px). O 4:3 tirou 98px e trouxe a última ação para dentro do viewport.
+
+⛔ **A alavanca das "ações lado a lado" não existe, e está medido:** os dois botões dão
+**241px + 287px numa linha de 342px**. Lado a lado quebrariam o rótulo dentro do botão e
+devolveriam a altura economizada. Não testar de novo.
+
+Se um dia a uniformidade voltar a pesar mais que a altura, o certo é **levar as cinco
+para a mesma proporção**, não devolver estas duas para o quadrado.
 - **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
   06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
   (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo

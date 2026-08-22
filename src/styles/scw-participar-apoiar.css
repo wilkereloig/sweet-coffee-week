@@ -104,6 +104,22 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
     --hv-meio: 88%;
     --hv-base: 96%;
   }
+
+  /* FOTO EM 4:3 SÓ AQUI — 22/08/2026, pedido do Eloi ("encurtar o herói de
+     Participar e Apoiar"). Estas duas são as mais altas das cinco: 983px num
+     viewport de 844, contra 770 do Contato e 826 do Awards. Levam 89px de
+     conteúdo que as outras não têm — o selo quebra em duas linhas (48px) e há
+     a nota de curadoria embaixo das ações (41px).
+     ⚠️ A outra alavanca que existia NÃO serve, e está medido: as duas ações
+     dão 241px + 287px numa linha de 342px, então lado a lado quebrariam o
+     rótulo dentro do botão e devolveriam a altura que economizassem.
+     Sobrou a proporção da foto. 4:3 tira 98px (390 → 292 num viewport de
+     390px) e leva as duas para 885px, à distância do Home (905).
+     Isto abre uma exceção à uniformidade pedida uma hora antes ("pra ficarem
+     com tamanho igual"): as outras três seguem em 1:1. Se um dia a
+     uniformidade voltar a pesar mais que a altura, o certo é levar as cinco
+     para a mesma proporção, não devolver estas duas para o quadrado. */
+  .pa-hero .scw-hero-banda { aspect-ratio: 4 / 3; }
 }
 
 @media (min-width: 1001px) {
