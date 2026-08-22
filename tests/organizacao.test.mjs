@@ -314,3 +314,36 @@ test('a RPC de listar marcas existe e passa pela senha', () => {
     /if not public\.admin_ok\(p_secret\) then return; end if;/,
     'a listagem das marcas não confere a senha')
 })
+
+test('apagar exige dois toques e só mexe na lista depois do servidor confirmar', () => {
+  // Exclusão é irreversível e o dado é de terceiro. Três garantias:
+  assert.match(JS, /function\s+apagarRegistro\s*\(/, 'sumiu apagarRegistro')
+  assert.match(JS, /function\s+desarmarApagar\s*\(/, 'sumiu o desarme do botão')
+
+  // 1. dois toques: o primeiro arma, o segundo executa.
+  assert.match(JS, /dataset\.armado\s*!==\s*'1'/, 'o botão de apagar não tem confirmação em dois passos')
+
+  // 2. a cópia local só encolhe DEPOIS do `ok !== true` ter tido chance de
+  //    lançar — mesma regra da gravação, e aqui vale mais, porque some da tela.
+  const corpo = JS.slice(JS.indexOf('async function apagarRegistro'))
+  const guarda = corpo.indexOf('r.ok !== true')
+  const mexe = corpo.indexOf('dados[origem] =')
+  assert.ok(guarda > -1, 'sumiu a checagem do retorno da RPC de exclusão')
+  assert.ok(mexe > guarda, 'a lista local é alterada antes de o servidor confirmar a exclusão')
+
+  // 3. o desarme roda ao fechar a ficha, senão a próxima abre engatilhada.
+  const fechar = JS.slice(JS.indexOf('function fecharDetalhe'))
+  assert.match(fechar.slice(0, 220), /desarmarApagar\(\)/, 'fecharDetalhe não desarma o botão de apagar')
+})
+
+test('a carga confere a sessão em vez de mostrar lista vazia', () => {
+  // ⚠️ As RPCs de leitura NÃO dão erro com senha inválida: devolvem lista
+  // vazia. Sem o admin_ping junto, sessão velha abre um painel zerado e a
+  // pessoa conclui que os dados sumiram, não que perdeu o acesso.
+  const carga = JS.slice(JS.indexOf('async function carregar'), JS.indexOf('function campo'))
+  // ⚠️ Casar a CHAMADA, não a palavra. A primeira versão deste assert procurava
+  // `admin_ping` em qualquer lugar do trecho e passava com a função removida:
+  // o comentário logo acima já contém o nome. Pego por mutação.
+  assert.match(carga, /rpc\(\s*['"]admin_ping['"]/, 'carregar() não chama admin_ping para conferir a sessão')
+  assert.match(carga, /valida\s*!==\s*true/, 'o resultado do admin_ping não é usado')
+})

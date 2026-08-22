@@ -388,6 +388,20 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 }
 @keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes ogFolhaSai{to{transform:translateY(100%)}}
+/* ── Zona de risco da ficha ────────────────────────────────────────────── */
+/* Sem vermelho: a paleta não tem (§6.1). Quem carrega o alarme é o filete
+   laranja, o mesmo recurso de `.og-aviso[data-tom="erro"]` — laranja sobre
+   creme fecha 3:1 como superfície preenchida, e a tinta segue chocolate. */
+.og-risco{border-top-color:var(--scw-laranja)}
+.og-risco h3{color:var(--scw-marrom)}
+.og-risco__acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+/* O botão só fica chapado DEPOIS de armado: enquanto é o primeiro toque ele é
+   discreto, para não competir com Salvar, que é a ação do dia a dia. */
+#det-apagar.is-armado{
+  background:var(--scw-laranja);color:var(--scw-choco);
+  box-shadow:none;font-weight:800;
+}
+
 /* ── Movimento ─────────────────────────────────────────────────────────── */
 /* Só `opacity` e `transform`: nada que cause layout (§6.15, regra 3). */
 .og-vista{animation:ogEntra 220ms var(--scw-ease)}
@@ -677,6 +691,7 @@ let rolagemVista = {};       // destino → scrollTop, para voltar onde parou
 let saidaDetalhe = null;     // timer da animação de fechamento
 let abasAppLigadas = false;  // listeners da casca já ligados (ver montarAbasApp)
 let ultimaCarga = 0;         // quando os dados chegaram, para a recarga ao voltar
+let temporizadorApagar = null; // desarme automatico do botao de apagar
 
 const $ = id => document.getElementById(id);
 const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
@@ -860,7 +875,21 @@ async function carregar() {
   btn.disabled = true;
   try {
     const chaves = Object.keys(ORIGENS);
-    const listas = await Promise.all(chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })));
+    /* ⚠️ O `admin_ping` vai JUNTO, e não é redundante com a tela de entrada.
+       As RPCs de leitura não dão erro com senha inválida: devolvem lista vazia.
+       Sem esta conferência, sessão velha (senha trocada, hash redefinido) abre
+       um painel zerado e a pessoa conclui que OS DADOS SUMIRAM, em vez de que
+       ela não está mais autorizada. Vai no mesmo Promise.all, então não custa
+       ida de rede extra. */
+    const [valida, ...listas] = await Promise.all([
+      rpc('admin_ping', { p_secret: senha }),
+      ...chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })),
+    ]);
+    if (valida !== true) {
+      mostrarEstado('erro', 'A senha desta sessão não vale mais — ela pode ter sido trocada. ' +
+        'Saia e entre de novo. Os dados continuam no banco.');
+      return;
+    }
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
     ultimaCarga = Date.now();
     aviso.hidden = true;
@@ -1226,16 +1255,96 @@ function abrirDetalhe(origem, id) {
       '<div class="og-aviso" id="det-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="det-salvar">Salvar</button>' +
     '</div>' +
-    blocoAcesso(origem, reg);
+    blocoAcesso(origem, reg) +
+    blocoRisco(origem, reg);
 
   $('det-salvar').addEventListener('click', () => salvar(origem, reg));
   const btnAcesso = $('det-criar-acesso');
   if (btnAcesso) btnAcesso.addEventListener('click', () => criarAcesso(origem, reg));
+  $('det-apagar').addEventListener('click', () => apagarRegistro(origem, reg));
 
   $('fundo').hidden = false;
   $('detalhe').hidden = false;
   $('btn-fechar').focus();
   render();
+}
+
+/* ── Apagar ────────────────────────────────────────────────────────────── */
+/* Motivo por erro. Fica junto da função, como o RECADO do adminAccess: mensagem
+   longe do caso que a produziu envelhece sozinha. */
+const RECADO_APAGAR = {
+  nao_autorizado:  'A sessão não vale mais. Saia e entre de novo.',
+  origem_invalida: 'Origem desconhecida — isso é defeito do painel, não seu.',
+  nao_encontrado:  'Esse registro já não existe. Alguém pode ter apagado antes.',
+  tem_conta:       'Esta candidatura já virou conta de participante. Apagar aqui deixaria a ' +
+                   'conta órfã, apontando para nada. Remova a conta primeiro.',
+};
+
+function blocoRisco(origem, reg) {
+  return '<div class="og-bloco og-risco">' +
+    '<h3>Apagar</h3>' +
+    '<p class="og-forms__nota">Tira a resposta do banco de vez. <b>Não tem desfazer</b> — o ' +
+      'histórico guarda que houve exclusão, não o que foi apagado. É assim de propósito: ' +
+      'auditoria que copia o dado devolve pela porta dos fundos o que a exclusão tirou.</p>' +
+    '<div class="og-aviso" id="det-risco-aviso" hidden></div>' +
+    '<div class="og-risco__acoes">' +
+      '<button class="og-btn og-btn--vazado" type="button" id="det-apagar">Apagar este registro</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* Volta o botão ao estado calmo. Chamado pelo timer, pelo cancelamento e ao
+   fechar a ficha — senão a ficha seguinte abriria com o botão já armado. */
+function desarmarApagar() {
+  if (temporizadorApagar) { clearTimeout(temporizadorApagar); temporizadorApagar = null; }
+  const btn = $('det-apagar');
+  if (!btn) return;
+  btn.dataset.armado = '';
+  btn.classList.remove('is-armado');
+  btn.textContent = 'Apagar este registro';
+  const av = $('det-risco-aviso');
+  if (av) av.hidden = true;
+}
+
+/* Dois toques, não `confirm()`: o diálogo nativo do navegador quebra a casca de
+   app e some por bloqueio de pop-up em alguns contextos. O botão desarma
+   sozinho em 6s — deixar arma engatilhada esperando é como o toque errado vira
+   exclusão. */
+async function apagarRegistro(origem, reg) {
+  const btn = $('det-apagar'), av = $('det-risco-aviso');
+
+  if (btn.dataset.armado !== '1') {
+    btn.dataset.armado = '1';
+    btn.classList.add('is-armado');
+    btn.textContent = 'Confirmar exclusão';
+    av.textContent = 'Toque de novo para apagar de vez. Some sozinho em 6 segundos.';
+    av.dataset.tom = 'erro'; av.hidden = false;
+    temporizadorApagar = setTimeout(desarmarApagar, 6000);
+    return;
+  }
+
+  if (temporizadorApagar) { clearTimeout(temporizadorApagar); temporizadorApagar = null; }
+  btn.disabled = true; btn.textContent = 'Apagando…';
+  try {
+    const r = await rpc('organizacao_apagar_registro', {
+      p_secret: senha, p_origem: origem, p_id: reg.id
+    });
+    /* Mesma regra da gravação (§4.1): nada é afirmado antes do servidor
+       confirmar, e a cópia local só muda depois do `ok: true`. */
+    if (!r || r.ok !== true) throw new Error(RECADO_APAGAR[r && r.erro] || 'O servidor não confirmou a exclusão.');
+
+    dados[origem] = (dados[origem] || []).filter((x) => x.id !== reg.id);
+    av.textContent = 'Apagado.'; av.dataset.tom = 'ok'; av.hidden = false;
+    btn.textContent = 'Apagado';
+    /* A ficha fecha depois da mensagem aparecer: sumir na hora deixa a dúvida
+       de se apagou mesmo ou se a tela só fechou. */
+    setTimeout(function () { fecharDetalhe(); }, 700);
+  } catch (e) {
+    av.textContent = e.message; av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false;
+    desarmarApagar();
+    av.hidden = false;                   // desarmar esconde o aviso; o erro fica
+  }
 }
 
 /* ── O bloco "Acesso da marca" na ficha ────────────────────────────────── */
@@ -1358,6 +1467,7 @@ async function salvar(origem, reg) {
    ⚠️ A guarda do `hidden` importa: `btn-sair` chama esta função com o detalhe
    já fechado, e sem ela a animação rodaria no vazio a cada logout. */
 function fecharDetalhe() {
+  desarmarApagar();          // a proxima ficha nao pode abrir engatilhada
   const el = $('detalhe');
   if (el.hidden) { selecionado = null; return; }
 
