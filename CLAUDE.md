@@ -1846,13 +1846,12 @@ o painel. O `vercel.json` ganhou rewrite explícito para as três rotas como red
 de segurança em produção (a Vercel checa o sistema de arquivos antes dos
 rewrites), mas **todo link interno escreve a barra**.
 
-⚠️ **Em `/marca/` a barra final não é só higiene: ela é o `redirectTo` do
-convite.** A Edge Function `criar-acesso-marca` manda a marca para
-`https://www.sweetcoffeeweek.com.br/marca/`, e o Supabase devolve os tokens no
-`#hash` desse endereço. Sem a barra, o convite abre a landing com o token de
-acesso pendurado na URL — e a marca não entra. `tests/marca.test.mjs` cobre a
-constante. A URL também precisa estar na **allowlist** do projeto
-(Authentication → URL Configuration), senão o link cai calado na Site URL.
+⛔ **O `redirectTo` do convite NÃO existe mais** — e com ele morreu a
+dependência da allowlist de URL do projeto (Authentication → URL Configuration).
+A entrega de acesso deixou de passar por link em 22/08/2026: ver "Como a marca
+ganha conta", abaixo. **A barra final em `/marca/` continua obrigatória**, pelo
+motivo do parágrafo anterior — resolução de índice de diretório —, não mais por
+causa de token no `#hash`.
 
 ✅ **O dev server passou a servir essas páginas em 22/08/2026.** O Vite não faz
 resolução de índice de diretório para `public/`, e por isso `/organizacao/`
@@ -1884,12 +1883,39 @@ menu nem rodapé, de propósito. A senha é a mesma de `admin_config` e só se
 redefine por SQL (`select public.set_admin_secret($$…$$)`); o banco guarda só o
 hash, então **ela não é recuperável**.
 
-**Como a marca ganha conta:** na ficha de uma candidatura **aprovada** do
-`/quero-participar`, o bloco "Acesso da marca" chama a Edge Function
-`criar-acesso-marca`. Ela cria o usuário no Auth **sem senha** e manda um convite
-para a marca definir a dela — a senha nunca passa pela tela de quem aprova. O
-quarto destino do painel, **"marcas"**, lista quem já tem conta e em que ponto do
-cadastro está. O passo a passo e as decisões estão em
+**Como a marca ganha conta (modelo de 22/08/2026, no ar desde então):** pela
+ficha de uma candidatura **aprovada** do `/quero-participar` **ou** pelo cadastro
+manual, no painel, de uma marca que nunca preencheu formulário. Os dois pontos de
+entrada chamam a mesma Edge Function `criar-acesso-marca`, e **do slug para baixo
+o caminho é idêntico** — é isso que impede o cadastro manual de escapar da trava
+de primeiro uso.
+
+⛔ **Não há mais convite por e-mail.** A função cria o usuário **com senha
+gerada** (12 caracteres, `crypto.getRandomValues`, alfabeto sem I/O/0/1 porque a
+senha vai ser lida em voz alta) e devolve as credenciais **uma única vez**, na
+resposta. Quem entrega é a organização, por WhatsApp ou copiando da tela.
+
+⚠️ **O login é o NOME DO ESTABELECIMENTO, não um e-mail.** O Auth identifica por
+e-mail, então o nome vira um endereço interno determinístico
+(`<slug>@marcas.sweetcoffeeweek.com.br`) que **não recebe mensagem** — o e-mail
+real da marca continua em `participantes.email`. Consequências que não se
+negociam:
+
+- **as duas slugificações têm que casar** — a de `public/marca/index.html` e a da
+  Edge Function. Divergiram, a marca digita o nome certo e não entra, e o erro é
+  genérico de propósito, então ninguém descobre o motivo. `tests/marca.test.mjs`
+  compara as duas;
+- **"esqueci minha senha" por e-mail foi REMOVIDO, e não é esquecimento:**
+  mandar link para um endereço sem caixa de entrada é botão que nunca entrega
+  nada. Quem redefine é a organização, gerando acesso novo pelo painel;
+- **`deve_trocar_senha` é o que torna aceitável mandar senha por WhatsApp.** A
+  senha viaja em texto e fica no histórico da conversa; com a trava, o que ficou
+  lá é bilhete de uso único. ⛔ **Não desligar essa flag.** Se o `update` dela
+  falhar, a função **apaga o usuário recém-criado** — conta sem trava é pior que
+  conta nenhuma.
+
+O quarto destino do painel, **"marcas"**, lista quem já tem conta e em que ponto
+do cadastro está. O passo a passo e as decisões estão em
 `docs/PLANO-painel-contas-participantes.md`.
 
 ⚠️ **A leitura das marcas (`get_participantes`) carrega FORA do `Promise.all` das
