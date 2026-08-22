@@ -647,7 +647,17 @@ parado há mais de X dias.
    não existe. O campo `combo_foto_path` está na tabela e não na tela — melhor ausente
    que presente e quebrado.
 9. Testes: RLS por tabela, declaração de função nos scripts inline, ciclo ponta a ponta
-   com uma marca de teste.
+   com uma marca de teste. — **metade feita, metade bloqueada.**
+   - ✅ **Declaração de função nos scripts inline**: `tests/marca.test.mjs` (17) e
+     `tests/organizacao.test.mjs` (28). Cobrem o vão que o `npm run build` não vê, porque
+     o JS das páginas estáticas não passa pelo Vite. Além da declaração, travam o
+     contrato com o banco (o que a página escreve × o `grant update` da migration) e com
+     a Edge Function (caminho e nome dos campos).
+   - ⛔ **RLS por tabela e ciclo ponta a ponta** dependem de um banco com a migration
+     aplicada — não existe hoje, e não há CLI do Supabase, `psql` nem Docker na máquina.
+     Enquanto isso, o SQL está verificado só quanto ao balanço dos delimitadores `$fn$`.
+     ⚠️ **Aplicar dentro de `begin; … rollback;` na primeira vez:** erro de sintaxe
+     aparece sem nada persistir.
 
 ### Fase 2 — Unificação da autenticação *(depois, sem pressa)*
 10. `pode_organizacao()` substituindo `admin_ok` nas RPCs existentes.
