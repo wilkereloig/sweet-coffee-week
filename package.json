@@ -22,7 +22,9 @@
     "focal-points": "node scripts/compute-focal-points.mjs",
     "variantes": "node scripts/gerar-variantes.mjs",
     "test:quero-participar": "node --test tests/quero-participar.test.mjs",
-    "test:organizacao": "node --test tests/organizacao.test.mjs"
+    "test:organizacao": "node --test tests/organizacao.test.mjs",
+    "test:rls": "node --test tests/rls-marcas.test.mjs",
+    "backup": "node scripts/backup-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
