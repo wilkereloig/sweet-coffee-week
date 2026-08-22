@@ -360,6 +360,36 @@ button,input,select,textarea{font:inherit;color:inherit}
 }
 @keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes ogFolhaSai{to{transform:translateY(100%)}}
+/* ── Movimento ─────────────────────────────────────────────────────────── */
+/* Só `opacity` e `transform`: nada que cause layout (§6.15, regra 3). */
+.og-vista{animation:ogEntra 220ms var(--scw-ease)}
+@keyframes ogEntra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Esqueleto: enquanto os dados vêm, a lista mostra a FORMA do conteúdo, não uma
+   frase.
+   ⚠️ A ALTURA É MEDIDA, NÃO CALCULADA. Um `.og-item` real dá **102px até 900px**
+   e **99px acima** — abaixo de 900px o `.og-item__dir` ganha linha própria e o
+   card cresce. A conta "padding + conteúdo" dava 74px e esquecia o selo e a
+   data: a lista pularia 28px por item quando os dados chegassem, que é pior que
+   a tela em branco. Mexeu no `.og-item`? Remeça isto. */
+/* O esqueleto é `aria-hidden` — forma não é conteúdo. Quem usa leitor de tela
+   recebe o aviso por texto, nesta classe, que some da tela mas não da árvore. */
+.og-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.og-esqueleto{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.og-esqueleto li{
+  height:102px;border-radius:14px;
+  background:linear-gradient(90deg,
+    rgba(61,19,8,.05) 25%, rgba(61,19,8,.09) 37%, rgba(61,19,8,.05) 63%);
+  background-size:400% 100%;
+  animation:ogBrilho 1400ms ease-in-out infinite;
+}
+@keyframes ogBrilho{from{background-position:100% 0}to{background-position:0 0}}
+/* Acima de 900px o item encolhe 3px: o `__dir` volta para a mesma linha. */
+@media (min-width:901px){ .og-esqueleto li{height:99px} }
+
+/* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
+   que veio acima; regra nova acrescentada depois dele escaparia do
+   `prefers-reduced-motion` sem ninguém notar. */
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
   .og-btn:hover,.og-item:hover{transform:none}
@@ -586,6 +616,7 @@ let vistaAtual = '';         // destino visível
 let rolagemVista = {};       // destino → scrollTop, para voltar onde parou
 let saidaDetalhe = null;     // timer da animação de fechamento
 let abasAppLigadas = false;  // listeners da casca já ligados (ver montarAbasApp)
+let ultimaCarga = 0;         // quando os dados chegaram, para a recarga ao voltar
 
 const $ = id => document.getElementById(id);
 const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
@@ -729,14 +760,28 @@ function ligarTecladoAbas() {
 }
 
 /* ── Carga ─────────────────────────────────────────────────────────────── */
+/* Esqueleto no lugar de "Carregando…". A primeira carga vem de quatro RPCs em
+   paralelo; mostrar a forma da lista faz a espera parecer progresso, e é a
+   única das três frentes de "app-like" que não custa risco nenhum. */
+function montarEsqueleto(quantos) {
+  const n = Math.max(1, quantos || 6);
+  let linhas = '';
+  for (let i = 0; i < n; i++) linhas += '<li></li>';
+  $('area-lista').innerHTML = '<ul class="og-esqueleto" aria-hidden="true">' + linhas + '</ul>' +
+    '<p class="og-oculto" role="status">Carregando as respostas.</p>';
+}
+
 async function carregar() {
-  mostrarEstado('carregando');
+  /* Recarga sabe quantos itens havia; a primeira carga chuta 6, que é o que
+     cabe numa tela de celular sem inventar altura. */
+  montarEsqueleto(Object.keys(dados).length ? filtrados().length : 6);
   const btn = $('btn-atualizar');
   btn.disabled = true;
   try {
     const chaves = Object.keys(ORIGENS);
     const listas = await Promise.all(chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })));
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
+    ultimaCarga = Date.now();
     aviso.hidden = true;
     render();
   } catch (e) {
@@ -860,11 +905,11 @@ function dataCurta(iso) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
+/* O estado 'carregando' saiu daqui em 22/08/2026: quem cobre a espera agora é
+   `montarEsqueleto()`. Sobraram os dois estados que são MENSAGEM, não espera. */
 function mostrarEstado(tipo, extra) {
   const area = $('area-lista');
-  if (tipo === 'carregando') {
-    area.innerHTML = '<div class="og-estado"><h2>Carregando…</h2><p>Buscando as respostas dos quatro formulários.</p></div>';
-  } else if (tipo === 'erro') {
+  if (tipo === 'erro') {
     area.innerHTML = '<div class="og-estado" data-tom="erro"><h2>Não consegui carregar</h2>' +
       '<p>' + escapar(extra || '') + '</p><p>Se o projeto do banco estiver pausado, ele volta pelo painel do Supabase.</p></div>';
   } else if (tipo === 'vazio') {
@@ -1060,6 +1105,18 @@ $('btn-fechar').addEventListener('click', fecharDetalhe);
 $('fundo').addEventListener('click', fecharDetalhe);
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && !$('detalhe').hidden) fecharDetalhe();
+});
+
+/* ── Voltar para o app traz dado fresco ────────────────────────────────── */
+/* Comportamento de app: você volta e os dados estão atuais. A folga de 60s
+   existe para não disparar quatro RPCs a cada troca de aba do navegador —
+   alt-tab não é "voltar ao app". `#btn-atualizar` continua existindo: recarga
+   explícita não sai por causa da automática. */
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible') return;
+  if (painel.hidden || !senha) return;
+  if (Date.now() - ultimaCarga < 60000) return;
+  carregar();
 });
 
 /* ── Service worker ────────────────────────────────────────────────────── */
