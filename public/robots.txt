@@ -1,8 +1,10 @@
 # Sweet & Coffee Week
-# Tudo liberado, menos a área interna da organização.
+# Tudo liberado, menos as duas áreas internas: a da organização e a das marcas.
 # Isto é higiene, não segurança: quem protege /organizacao é o RLS do banco e a
-# senha das RPCs. robots.txt só evita que a página apareça em busca.
+# senha das RPCs, e quem protege /marca é o RLS por auth.uid(). robots.txt só
+# evita que as páginas apareçam em busca.
 
 User-agent: *
 Disallow: /organizacao
+Disallow: /marca
 Allow: /
