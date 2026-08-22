@@ -24,6 +24,7 @@ import {
   submitSupport,
 } from '../../lib/supportInterest'
 import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
+import { festivalFacts as F } from '../../data/festivalFacts'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import '../../styles/scw-participar-apoiar.css'
@@ -43,15 +44,18 @@ const PALAVRAS = [
   'economia criativa', 'sweet lovers',
 ]
 
-// 02 Alcance — histórico comercial das edições + Instagram oficial. Cor vive
-// na régua (StatBlock), ciclo de seis sem repetir.
+// 02 Alcance — histórico comercial das edições + Instagram oficial, lidos da fonte
+// canônica (src/data/festivalFacts.js), cada um com o que mede e a data de apuração.
+// ⚠️ Alcance, interações e visualizações são métricas DISTINTAS — nunca somar.
+// A referência à população de Natal usa a estimativa do IBGE 2025: 784.249 habitantes.
+// Cor vive na régua (StatBlock), ciclo de seis sem repetir.
 const ALCANCE = [
-  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade que acompanha combos e resultados', i: 'redes/instagram' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'consumo gerado nas últimas edições', i: 'combos/doce-cafe' },
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: 'direto no caixa de marcas e lojas parceiras', i: 'mecanica/promocao' },
-  { n: '16', t: 'edições realizadas', d: 'histórico consolidado desde 2016', i: 'simbolos/edicao' },
-  { n: '10', t: 'anos de história', d: 'uma década de público, marcas e cidade', i: 'simbolos/memoria' },
-  { n: '+1.600', t: 'posts publicados', d: 'participantes, combos, bastidores e Sweet Awards', i: 'topicos/circulacao' },
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
+  { n: '+18 mi', t: 'visualizações no Instagram', d: 'cerca de 23 vezes a população de Natal', i: 'redes/instagram' },
+  { n: '+200 mil', t: 'de alcance', d: 'contas alcançadas — 1 em cada 4 moradores de Natal', i: 'mecanica/publico' },
+  { n: '+290 mil', t: 'interações', d: 'curtidas, comentários, salvamentos e compartilhamentos', i: 'mecanica/avaliar' },
+  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade Sweet Lovers que acompanha combos e resultados', i: 'simbolos/sweet-lovers' },
+  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
 ]
 
 // 03 Por que apoiar — ícones desenhados para cada argumento (24×24, traço).
@@ -297,8 +301,9 @@ export function ApoiarPage() {
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
-            Números do histórico comercial das edições e do Instagram oficial do festival —
-            arredondados para baixo.
+            Números do histórico comercial das 16 edições e do Instagram oficial do festival,
+            arredondados para baixo e apurados em {F.igViews.apurado}. Alcance, interações e
+            visualizações medem coisas diferentes e não se somam.
           </p>
         </div>
                 <ul className="pa-numeros">

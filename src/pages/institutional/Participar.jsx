@@ -28,6 +28,7 @@ import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '..
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
+import { festivalFacts as F } from '../../data/festivalFacts'
 import '../../styles/scw-participar-apoiar.css'
 
 // Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
@@ -36,7 +37,7 @@ const FOTOS_HERO = heroPhotos('participar')
 
 /* Os três indicadores do herói saíram com o cartão (PATCH 01 §6). Nada de dado
    se perdeu: os três já existiam, com os mesmos números, em NUMEROS abaixo
-   (+34 mil combos, +120 marcas, 11 dias por edição) — repetir os mesmos valores
+   (combos, marcas e dias por edição) — repetir os mesmos valores
    em seções vizinhas era a duplicação que a seção 03 já resolvia. */
 
 const PALAVRAS = [
@@ -49,12 +50,12 @@ const PALAVRAS = [
    distingue item nenhum — ela diz "isto é Participar". Quem distingue é o
    ícone. É o oposto da faixa da Home, onde cada dado tem cor própria. */
 const NUMEROS = [
-  { n: '16', t: 'edições realizadas', d: 'de 2016 até hoje, duas por ano até 2021 e uma por ano desde 2022', i: 'simbolos/edicao' },
-  { n: '+120', t: 'marcas participantes', d: 'doçarias, cafeterias, confeitarias e restaurantes', i: 'simbolos/estabelecimento' },
-  { n: '+34 mil', t: 'combos vendidos', d: 'somando todas as edições do festival', i: 'combos/doce-cafe' },
+  { n: `${F.returnRate.value}%`, t: 'das marcas voltaram', d: F.returnRate.mede, i: 'simbolos/memoria' },
+  { n: String(F.participations.value), t: 'combos autorais criados', d: `uma criação inédita por marca em cada edição — ${F.brands.value} casas distintas de Natal e região desde 2016`, i: 'simbolos/combo-oficial' },
   { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', i: 'redes/instagram' },
-  { n: '11', t: 'dias por edição', d: 'tempo em que o combo fica em cartaz na rota', i: 'ui/calendario' },
-  { n: '17', t: 'matérias na imprensa', d: 'rádio, TV, jornais e portais de Natal e do RN', i: 'topicos/imprensa' },
+  { n: `${F.daysPerEdition.value} dias`, t: 'em cartaz por edição', d: F.daysPerEdition.mede, i: 'ui/calendario' },
+  { n: String(F.storesLastEdition.value), t: 'lojas na última edição', d: F.storesLastEdition.mede, i: 'mecanica/loja' },
+  { n: String(F.newPerEdition.value), t: 'marcas novas por edição', d: F.newPerEdition.mede, i: 'topicos/circulacao' },
 ]
 
 // 03 Circulação — quatro faixas alternando o lado da imagem (larguras iguais).
@@ -515,7 +516,7 @@ export function ParticiparPage() {
           ))}
         </ul>
         <p className="pa-imprensa__nota">
-          São 17 matérias no total. Os links das publicações entram aqui assim que forem reunidos.
+          Os links das publicações entram aqui assim que forem reunidos.
         </p>
       </section>
 

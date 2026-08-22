@@ -146,10 +146,10 @@ const ETAPAS = [
    20/08/2026). A tinta segue o fundo do disco: chocolate sobre amarelo e cyan,
    creme sobre magenta e roxo — magenta e roxo não sustentam tinta escura. */
 const NUMEROS = [
-  { alvo: festivalFacts.editions.value, prefixo: '', sufixo: '', rotulo: 'edições realizadas', nota: `de ${festivalFacts.firstYear} até hoje`, cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', icone: 'simbolos/edicao' },
-  { alvo: festivalFacts.brands.value, prefixo: '+', sufixo: '', rotulo: 'marcas participantes', nota: 'doçarias, cafeterias e restaurantes', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', icone: 'simbolos/estabelecimento' },
-  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: 'somando todas as edições', cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', icone: 'simbolos/combo-oficial' },
-  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'conteúdo do festival e das marcas', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)', icone: 'redes/instagram' },
+  { alvo: festivalFacts.brands.value, prefixo: '', sufixo: '', rotulo: 'marcas participantes', nota: 'casas de Natal e região: doçarias, cafeterias, confeitarias e restaurantes', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', icone: 'simbolos/estabelecimento' },
+  { alvo: festivalFacts.participations.value, prefixo: '', sufixo: '', rotulo: 'combos autorais criados', nota: 'uma criação por marca em cada edição', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', icone: 'simbolos/combo-oficial' },
+  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: `somando as ${festivalFacts.editions.value} edições`, cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', icone: 'combos/doce-cafe' },
+  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'cerca de 23 vezes a população de Natal', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)', icone: 'redes/instagram' },
 ]
 
 /* --- 06 Prova: depoimento real da Jolie (mesma fonte já usada em Participar). */
