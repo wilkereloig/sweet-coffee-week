@@ -85,7 +85,7 @@ O painel da organização fica exatamente como está. As marcas ganham `/marca/`
 Auth e RLS por `auth.uid()`.
 
 - **A favor:** zero risco de quebrar o que está no ar. Nenhum teste existente muda. Entrega mais rápida.
-- **Contra:** dois mecanismos de autenticação no mesmo banco, cada RPC precisando saber qual dos dois vale. A trilha de auditoria da organização continua dizendo "alguém com a senha", nunca "a Fulana". E a senha do painel **está no histórico de um chat anterior** (item aberto no seu `contexto-compactado`, §7) — ou seja, hoje ela não é mais secreta.
+- **Contra:** dois mecanismos de autenticação no mesmo banco, cada RPC precisando saber qual dos dois vale. A trilha de auditoria da organização continua dizendo "alguém com a senha", nunca "a Fulana". E continua havendo **um segredo só, compartilhado**: quem sai da organização leva o acesso, e revogar significa trocar a senha de todo mundo.
 
 ### Opção B — Unificação: tudo em Supabase Auth, `admin_ok` é aposentado
 
@@ -125,9 +125,10 @@ Aí cada RPC troca uma linha (`admin_ok(p_secret)` → `pode_organizacao(p_secre
 formas de entrar convivem sem `if` espalhado. No dia em que a última pessoa migrar, apaga-se
 o segundo `or` e a função `admin_ok` junto.
 
-> **Faça hoje, independente do resto:** trocar a senha atual do painel.
-> `select public.set_admin_secret($$nova-senha$$);` — uma linha, SQL Editor. A antiga está
-> em histórico de chat.
+> **Status em 22/08/2026:** a senha do painel **já foi trocada** pelo Eloi, e não está em
+> histórico de chat. A troca se faz com uma linha no SQL Editor —
+> `select public.set_admin_secret($$nova-senha$$);` — e continua sendo o remédio sempre que
+> alguém sair da organização, porque o segredo é um só para todo mundo.
 
 ---
 
@@ -517,11 +518,16 @@ um teste de restauração antes do festival, porque backup não testado é esper
 → Atenção ao limite de **2 projetos ativos** na org ELOI STUDIO DESIGN. Restaurar um exige
 pausar outro. O `ascendium-ecommerce` já foi pausado por isso uma vez.
 
-**2. A senha do painel está em histórico de chat.** *(alta × alta)*
-Item aberto no seu próprio `contexto-compactado`, §7. Hoje ela dá acesso a todos os dados
-pessoais de todos os formulários. Amanhã ela dá acesso ao botão que cria contas.
-→ Trocar hoje: `select public.set_admin_secret($$nova$$);`. E é o argumento mais forte
-para a Fase 2 (contas nominais).
+**2. Um segredo só, num endpoint público, sem limite de tentativa.** *(média × alta)*
+A senha foi trocada em 22/08/2026 e não está em histórico de chat — este risco não é mais
+sobre vazamento. É estrutural: o advisor do Supabase confirma que `admin_ping(p_secret)` e
+as outras 19 RPCs são chamáveis por `anon` da internet aberta, e a única barreira é uma
+comparação bcrypt contra uma string compartilhada. Não há contador de tentativa, bloqueio
+nem CAPTCHA. O bcrypt é lento, o que ajuda muito — mas hoje ela dá acesso a todos os dados
+pessoais de todos os formulários, e amanhã dá acesso ao botão que cria contas.
+→ CAPTCHA (Turnstile) no login do painel entra na Fase 0, não como melhoria.
+→ E é o argumento mais forte para a Fase 2: com contas nominais, revogar o acesso de uma
+pessoa deixa de significar trocar a senha de todas.
 
 **3. `service_role` vazando para o bundle.** *(média × crítica)*
 O repositório já se protege com um teste que reprova qualquer arquivo em `public/` contendo
@@ -567,12 +573,18 @@ parado há mais de X dias.
 ## 8. Plano de execução
 
 ### Fase 0 — Antes de escrever qualquer código *(1 dia)*
-1. Trocar a senha do painel.
-2. Subir o projeto Supabase para o plano Pro.
-3. Fazer um `db dump` e guardar fora do Supabase.
-4. Confirmar quais migrations o banco realmente aplicou — o `contexto-compactado` registra
-   que `participation_interests` está definida em dois lugares, e que arquivo de migration
-   não é migration aplicada.
+1. ~~Trocar a senha do painel.~~ ✅ **feito em 22/08/2026.**
+2. ~~Subir o projeto Supabase para o plano Pro.~~ ❌ **decidido: seguir no free**
+   (22/08/2026). Consequências assumidas: sem proteção contra senha vazada
+   (HaveIBeenPwned) e sem backup automático — o `db dump` do item 3 passa a ser manual e
+   obrigatório antes de cada migration, e o projeto precisa de uso regular para não pausar.
+3. Fazer um `db dump` e guardar fora do Supabase. **Pendente — e agora é bloqueante**,
+   porque é a única rede de segurança que sobrou.
+4. ~~Confirmar quais migrations o banco realmente aplicou.~~ ✅ **conferido em 22/08/2026**:
+   as 13 migrations registradas incluem as quatro de formulário (`contact_requests`,
+   `participation_interests`, `support_interests`, `painel_organizacao`), todas aplicadas em
+   20/08. Não há divergência entre o repositório e o banco.
+5. **Novo:** ligar CAPTCHA (Turnstile) no login do painel — ver risco 2 do §7.
 
 ### Fase 1 — Contas das marcas *(o grosso do trabalho)*
 5. Migration: `perfis`, `participantes`, `auditoria`, coluna e `CHECK` novos em

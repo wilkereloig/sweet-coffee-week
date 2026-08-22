@@ -145,8 +145,9 @@ quero_participar         igual a participation_interests
 
 ## 7. Próximos Passos
 
-- [ ] **Trocar a senha do painel** se ficou a que apareceu em print durante a sessão (está no
-      histórico do chat, logo não é mais secreta). Uma linha de SQL, ver §5.
+- [x] **Trocar a senha do painel** — ✅ feito em 22/08/2026. A senha atual não passou por
+      chat nem por print. Trocar segue sendo uma linha de SQL (ver §5), e continua sendo o
+      procedimento sempre que alguém deixar a organização: o segredo é um só, compartilhado.
 - [ ] **Aviso de resposta nova** — hoje ninguém é notificado; a organização precisa abrir o
       painel. Recomendado: resumo diário. Não iniciado.
 - [ ] **Aplicar `PATCH-participar-08-quero-participar.md`** — transforma a seção `08 Pré-cadastro`
