@@ -1,129 +1,73 @@
 # Sweet & Coffee Week
 
-Site oficial do festival **Sweet & Coffee Week** — Natal/RN.
+Site oficial do festival **Sweet & Coffee Week** — Natal/RN. Vite + React 18 (JSX),
+sem TypeScript. Publicado na Vercel.
 
-> ## ⚠️ Leia antes de clonar, revisar ou conectar uma ferramenta
+> ## 👉 As regras do projeto estão em [`CLAUDE.md`](CLAUDE.md)
 >
-> **O trabalho vivo está em `dev/site-completo`, não em `master`.**
+> Documento único: arquitetura, sistema visual, tom, dados do festival, armadilhas
+> conhecidas e o que não mexer. **Se ele divergir do código, vale o código.**
 >
-> A branch padrão deste repositório é `master`, e ela está **muito atrás** do
-> estado real do site: não tem o redesign 2026, nem o sistema de movimento, nem
-> o herói roxo do Sweet Awards. Quem ler a branch padrão vai ver um site que não
-> existe mais.
->
-> Qualquer coisa que leia este repositório — conector GitHub do Claude Design,
-> agente, revisor automático, IDE — **deve apontar para `dev/site-completo`**.
-> Pull request também vai para `dev/site-completo`; `master` só recebe merge com
-> autorização explícita do Wilke.
->
-> | Para entender | Leia |
-> | --- | --- |
-> | O sistema visual (cores, tipografia, grid, movimento, componentes) | [`docs/GUIA-VISUAL.md`](docs/GUIA-VISUAL.md) — **fonte única da verdade visual** |
-> | Regras de processo, nomenclatura e o que não mexer | [`CLAUDE.md`](CLAUDE.md) |
-> | O acervo de dados (16 edições, prêmios, participantes) | [`ACERVO.md`](ACERVO.md) |
-> | As rotas | [`SITEMAP.md`](SITEMAP.md) |
-> | Como aplicar patches vindos do Claude Design | [`docs/FLUXO-DESIGN-CODIGO.md`](docs/FLUXO-DESIGN-CODIGO.md) |
->
-> Se o guia divergir do código em `src/styles/scw-2026.css`, **vale o código**.
+> Este README não repete nada do que está lá — um fato em dois arquivos vira dois
+> fatos diferentes na primeira mudança.
 
-## Stack
+## ⚠️ Duas branches, e nenhuma delas é "a certa" sozinha
 
-- Vite + React (JSX)
-- Hash router customizado (`src/router.js`)
-- Google Maps (`@googlemaps/js-api-loader` v2)
-- Adobe Fonts / Typekit + Google Fonts
-- Deploy: Vercel
+| Branch | O que é |
+| --- | --- |
+| `master` | **o que está publicado.** A Vercel faz deploy a cada push aqui |
+| `dev/site-completo` | **onde o trabalho acontece.** Tem commits que `master` ainda não recebeu |
+
+As duas divergiram. Ler só uma dá uma imagem incompleta do projeto: `master` mostra o
+site que está no ar, `dev/site-completo` mostra para onde ele está indo.
+
+Ferramenta que lê este repositório — conector do Claude Design, agente, revisor, IDE —
+deve apontar para **`dev/site-completo`**. `master` só recebe merge com autorização
+explícita do Wilke, porque push nele é deploy de produção.
 
 ## Setup
 
 ```bash
 npm install
-npm run dev      # localhost:5173
+npm run dev      # servidor de desenvolvimento
 npm run build    # gera dist/
-npm run preview  # preview do build
 ```
+
+⚠️ As páginas estáticas de `public/` (`/quero-participar/`, `/organizacao/`, `/marca/`)
+**não são servidas pelo dev server** — o Vite não resolve índice de diretório para
+`public/`. Conferir essas contra o build. Ver `CLAUDE.md` §10.4-b.
+
+## Testes
+
+```bash
+npm run test:redesign         # paleta, tipografia e medida de linha
+npm run test:motion           # movimento, 6 páginas × 2 telas
+npm run test:imagens          # caminho de imagem montado à mão
+npm run test:quero-participar # a página estática de pré-cadastro
+npm run test:organizacao      # o painel interno
+node tests/responsive.mjs     # overflow horizontal, contra o build
+```
+
+`package.json` tem a lista completa.
 
 ## Estrutura
 
 ```
 src/
-  components/     # Nav, Footer, Icons
-  pages/
-    institutional/  # Home, Curiosidades, Edições, Participar, Apoiar, Contato
-    lovers/         # Hub, Combos, Mapa, Awards
-  data/           # participants.js, combos.js, editions.js
-  styles.css
-  App.jsx
-  router.js
-public/
-  images/
+  components/   casca do site, ícones
+  pages/institutional/   Home · Edicoes · HistoricoAwards · Participar ·
+                         Apoiar · Contato · EmBreve
+  data/         dados do festival — fonte única de cada número
+  hooks/        useSiteMotion.js (motor de movimento)
+  styles/       scw-2026.css (sistema visual) · scw-motion.css · scw-<pagina>.css
+  App.jsx · router.js
+public/         imagens, fontes e as páginas estáticas
+tests/
 ```
 
-## Identidades visuais
+## Publicação
 
-Duas identidades isoladas — **nunca misturar**:
-
-| | Institucional | Lovers |
-|---|---|---|
-| Páginas | `pages/institutional/` | `pages/lovers/` |
-| Paleta | terracotta / peach | cream / vermelho / burgundy |
-| Tipografia | Instrument Serif + DM Sans | Sofia Pro Comp (Typekit) |
-| Wrapper | — | `.kv-lovers` obrigatório |
-
-## Desenvolvimento local — páginas internas Lovers
-
-Para abrir as páginas internas em desenvolvimento (sem depender do deploy):
-
-```bash
-git checkout dev/lovers-internal-pages
-npm install
-npm run dev
-```
-
-Abrir no navegador:
-
-```
-http://localhost:5173/#/lovers
-http://localhost:5173/#/lovers/combos
-http://localhost:5173/#/lovers/combos/canutos
-http://localhost:5173/#/lovers/mapa
-http://localhost:5173/#/lovers/awards
-```
-
-Variável necessária para o mapa (copiar `.env.example` → `.env.local`):
-
-```
-VITE_GOOGLE_MAPS_KEY=sua-chave-aqui
-```
-
-> Nessa branch as rotas internas abrem diretamente. Em `master`, combos e mapa estão bloqueados (deploy de produção).
-
-## Coming Soon
-
-`src/App.jsx` tem flag `SITE_COMING_SOON`. Com `true`, o domínio público exibe página de espera. Acesso ao site completo via botão admin (canto inferior direito).
-
-## Deploy
-
-- **Produção:** `sweetcoffeeweek.com.br` (Vercel)
-- **Preview:** `sweet-coffee-preview.vercel.app`
-- Auto-deploy via push para `master`
-
-## Ambientes
-
-### Produção
-- Branch: `master`
-- URL: domínio oficial do Sweet & Coffee Week
-- Uso: site público — não alterar sem aprovação.
-
-### Teste online / Preview
-- Branch: `dev/lovers-internal-pages`
-- Uso: desenvolvimento das páginas internas Lovers, mapa e Minha Rota da Doçura.
-- A Vercel gera Preview Deployments automaticamente a cada push nessa branch.
-- **Não promover para produção** enquanto o conteúdo não estiver aprovado.
-
-### Google Maps no Preview
-Para o mapa funcionar no preview da Vercel:
-1. `VITE_GOOGLE_MAPS_KEY` precisa existir no ambiente **Preview** do projeto Vercel (Settings → Environment Variables → marcar Preview).
-2. A chave precisa permitir o domínio de preview no Google Cloud Console — adicionar `https://*.vercel.app/*` às restrições de HTTP referrer.
-
-> Restrição recomendada: `http://localhost:5173/*`, `https://sweetcoffeeweek.com.br/*`, `https://*.vercel.app/*`.
+`src/App.jsx` carrega as flags que decidem o que o domínio oficial mostra —
+`COMING_SOON_PUBLICATION` está **ligada** hoje, então o público vê só a landing
+`/em-breve`. **Não alterar sem pedido explícito**: ver `CLAUDE.md` §3.4, que explica
+as três flags e por que a alteração é decisão do Wilke, nunca automática.
