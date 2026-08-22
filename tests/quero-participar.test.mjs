@@ -9,6 +9,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import SWEET_COFFEE_HISTORY from '../src/data/sweetCoffeeHistory.js'
+import { festivalFacts } from '../src/data/festivalFacts.js'
 
 const HTML = readFileSync(new URL('../public/quero-participar/index.html', import.meta.url), 'utf8')
 const SCRIPTS = [...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
@@ -84,4 +86,90 @@ test('todo asset absoluto existe em public/', () => {
     // Caixa exata importa: a Vercel roda Linux, o Windows não denuncia.
     assert.ok(readFileSync(alvo), 'asset ausente: ' + p)
   }
+})
+
+/* ── Números do herói ────────────────────────────────────────────────────────
+ *
+ * A página é estática e mora em public/: não importa festivalFacts.js nem
+ * sweetCoffeeHistory.js, então os três números do herói estão escritos à mão no
+ * HTML. Foi assim que "+120 marcas" ficou meses no ar enquanto a base dizia 123.
+ *
+ * Estes testes são a costura que falta: recalculam da base a cada rodada e
+ * reprovam se o HTML divergir. Nenhum valor esperado é digitado aqui.
+ */
+
+const NUMEROS = [...HTML.matchAll(
+  /<li><span class="scw-stat__regua" style="background:(#[0-9A-Fa-f]{6})"[^>]*><\/span><b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g,
+)].map(([, regua, valor, rotulo]) => ({ regua, valor, rotulo }))
+
+// Marca canônica: aplica os aliases, para uma rede não contar como várias casas.
+const normalizar = (s) => String(s)
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/['\u2019`]/g, "'")
+  .toLowerCase().replace(/\s+/g, ' ').trim()
+
+const CANON = {}
+for (const [canon, aliases] of Object.entries(SWEET_COFFEE_HISTORY.participantAliases ?? {})) {
+  for (const alias of [].concat(aliases)) CANON[normalizar(alias)] = canon
+}
+
+const POR_EDICAO = (SWEET_COFFEE_HISTORY.edicoes ?? [])
+  .map((ed) => [...new Set((ed.participantes ?? []).map((n) => CANON[normalizar(n)] ?? n))])
+
+// Para cada marca, os índices das edições em que ela apareceu.
+const APARICOES = new Map()
+POR_EDICAO.forEach((marcas, i) => {
+  for (const marca of marcas) {
+    if (!APARICOES.has(marca)) APARICOES.set(marca, [])
+    APARICOES.get(marca).push(i)
+  }
+})
+
+test('o herói mostra exatamente três números', () => {
+  assert.equal(NUMEROS.length, 3, 'o bloco .pa-numeros deixou de ter três itens')
+})
+
+test('"68% das marcas voltaram" confere com a base', () => {
+  const distintas = APARICOES.size
+  const voltaram = [...APARICOES.values()].filter((eds) => eds.length > 1).length
+  const esperado = Math.round((voltaram / distintas) * 100) + '%'
+
+  const item = NUMEROS.find((n) => /voltaram/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de marcas que voltaram')
+  assert.equal(item.valor, esperado,
+    `HTML diz ${item.valor}, a base diz ${esperado} (${voltaram} de ${distintas} marcas distintas)`)
+})
+
+test('"+7 estreias por edição" confere com a base', () => {
+  // Estreia = a primeira edição de cada marca. A 1ª edição não conta: lá todas
+  // estreavam, e incluí-la inflaria a média.
+  const estreiasDepoisDaPrimeira = [...APARICOES.values()].filter((eds) => eds[0] > 0).length
+  const edicoesSeguintes = POR_EDICAO.length - 1
+  const esperado = '+' + Math.floor(estreiasDepoisDaPrimeira / edicoesSeguintes)
+
+  const item = NUMEROS.find((n) => /estreias/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de estreias por edição')
+  assert.equal(item.valor, esperado,
+    `HTML diz ${item.valor}, a base diz ${esperado} ` +
+    `(${estreiasDepoisDaPrimeira} estreias em ${edicoesSeguintes} edições)`)
+})
+
+test('"+18 mi visualizações" confere com festivalFacts', () => {
+  // Este não sai da base histórica: é número comercial do acervo §9.5. A fonte
+  // canônica no código é festivalFacts.igViews — é dela que o HTML tem de copiar.
+  const item = NUMEROS.find((n) => /visualiza/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de visualizações')
+  const noHtml = Number(item.valor.replace(/[^\d]/g, ''))
+  assert.equal(noHtml, festivalFacts.igViews.value,
+    `HTML diz ${noHtml}, festivalFacts.igViews diz ${festivalFacts.igViews.value}`)
+})
+
+test('irmãos não repetem cor de régua', () => {
+  // §6.3: dois irmãos com a mesma cor é defeito, não economia.
+  const cores = NUMEROS.map((n) => n.regua.toUpperCase())
+  assert.equal(new Set(cores).size, cores.length, 'duas réguas com a mesma cor: ' + cores.join(' '))
+
+  // E cada uma tem de ser token da paleta (§6.1) — hex solto fora da tabela não entra.
+  const PALETA = ['#FEF0DD', '#F8E4C1', '#3D1308', '#6A2C15', '#FDBB1A', '#01AFCC', '#4D257E', '#F10767', '#FF4810']
+  for (const cor of cores) assert.ok(PALETA.includes(cor), 'cor fora da paleta do §6.1: ' + cor)
 })
