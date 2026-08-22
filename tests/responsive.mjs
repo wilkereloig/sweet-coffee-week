@@ -84,6 +84,32 @@ const ABAS_ESPERADAS = 5     // festival · edições · awards · participar ·
 const onlyMobile = process.argv.includes('--mobile')
 const targets = onlyMobile ? VIEWPORTS.filter((v) => v.phone) : VIEWPORTS
 
+/* ⚠️ A PORTA TEM QUE ESTAR LIVRE ANTES DE SUBIR O PREVIEW.
+   Com `--strictPort` o vite MORRE se a porta estiver ocupada — ele não pula
+   para a próxima. E o `waitForServer` abaixo pergunta "alguém responde?",
+   não "o MEU servidor responde?": junto, os dois faziam o teste medir o
+   servidor de outro processo e reportar as diferenças como defeito do site.
+   Aconteceu em 22/08/2026 com duas sessões abertas no mesmo repositório, e as
+   reprovas ("motor não ligou", "título de herói não encontrado") não tinham
+   nada a ver com o código. É a mesma armadilha do §10.8, com outra roupa:
+   teste que mede a coisa errada e culpa o site. */
+async function exigirPortaLivre(porta) {
+  try {
+    await fetch(`http://localhost:${porta}/`, { signal: AbortSignal.timeout(2000) })
+  } catch {
+    return                       // ninguém respondeu: livre, é o que queremos
+  }
+  console.error([
+    '',
+    `✗ A porta ${porta} ja esta ocupada por outro processo.`,
+    '  Este teste sobe o proprio preview com --strictPort e mediria o servidor',
+    '  alheio, reportando as diferencas como defeito do site.',
+    '  Feche o outro preview (ou a outra sessao) e rode de novo.',
+    '',
+  ].join('\n'))
+  process.exit(1)
+}
+
 function startPreviewServer() {
   const proc = spawn(
     'npm',
@@ -178,6 +204,7 @@ async function run() {
   await rm(SHOTS, { recursive: true, force: true }).catch(() => {})
   await mkdir(SHOTS, { recursive: true }).catch(() => {})
 
+  await exigirPortaLivre(PORT)
   console.log('▶ subindo preview server (build de produção)…')
   const server = startPreviewServer()
   let browser
