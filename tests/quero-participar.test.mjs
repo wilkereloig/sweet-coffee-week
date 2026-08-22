@@ -140,27 +140,27 @@ test('o herói mostra exatamente cinco números', () => {
   assert.equal(NUMEROS.length, 5, 'o painel .pa-numeros deixou de ter cinco itens')
 })
 
-test('"123 marcas distintas" confere com a base', () => {
+test('"123 marcas já participaram" confere com a base', () => {
   // Distintas, não participações: os aliases já foram aplicados em POR_EDICAO,
   // então uma rede com três unidades conta uma vez, e a marca que voltou em
   // sete edições continua sendo uma marca.
   const esperado = String(APARICOES.size)
 
-  const item = NUMEROS.find((n) => /distintas/.test(n.rotulo))
+  const item = NUMEROS.find((n) => /participaram/.test(n.rotulo))
   assert.ok(item, 'sumiu o número de marcas distintas')
   assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
   // §9.1: o acervo fecha em 123. Divergir aqui é sinal de alias perdido.
   assert.equal(APARICOES.size, 123, 'a contagem de marcas distintas divergiu do acervo §9.1')
 })
 
-test('"+7 estreias por edição" confere com a base', () => {
+test('"+7 marcas novas a cada edição" confere com a base', () => {
   // Estreia = a primeira edição de cada marca. A 1ª edição não conta: lá todas
   // estreavam, e incluí-la inflaria a média.
   const estreiasDepoisDaPrimeira = [...APARICOES.values()].filter((eds) => eds[0] > 0).length
   const edicoesSeguintes = POR_EDICAO.length - 1
   const esperado = '+' + Math.floor(estreiasDepoisDaPrimeira / edicoesSeguintes)
 
-  const item = NUMEROS.find((n) => /estreias/.test(n.rotulo))
+  const item = NUMEROS.find((n) => /novas/.test(n.rotulo))
   assert.ok(item, 'sumiu o número de estreias por edição')
   assert.equal(item.valor, esperado,
     `HTML diz ${item.valor}, a base diz ${esperado} ` +
@@ -177,7 +177,7 @@ test('"+18 mi visualizações" confere com festivalFacts', () => {
     `HTML diz ${noHtml}, festivalFacts.igViews diz ${festivalFacts.igViews.value}`)
 })
 
-test('"410 combos autorais" confere com a base', () => {
+test('"410 combos criados desde 2016" confere com a base', () => {
   // Cada marca cria um combo próprio por edição (§8.6), então a soma das listas
   // de participantes é a contagem de criações. Aliases aplicados: uma rede com
   // três unidades conta uma vez por edição, não três.
@@ -188,7 +188,7 @@ test('"410 combos autorais" confere com a base', () => {
   assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
 })
 
-test('"271 colocações distribuídas" confere com a base', () => {
+test('"271 lugares no pódio desde 2019" confere com a base', () => {
   // Uma colocação por nome: empate em 1º com duas marcas são duas colocações,
   // porque duas marcas subiram. Os pódios de 2026.1 moram em
   // loversAwardsResults.js, NÃO na base histórica (§7.3) — ignorá-los tira 44
@@ -211,7 +211,7 @@ test('"271 colocações distribuídas" confere com a base', () => {
       }
   }
 
-  const item = NUMEROS.find((n) => /coloca/.test(n.rotulo))
+  const item = NUMEROS.find((n) => /pódio/.test(n.rotulo))
   assert.ok(item, 'sumiu o número de colocações')
   assert.equal(item.valor, String(colocacoes),
     `HTML diz ${item.valor}, a base diz ${colocacoes}`)
@@ -255,10 +255,10 @@ test('os ícones do painel batem com scw-icons-v2.js', async () => {
 
   const ESPERADO = {
     visualiza: 'redes/instagram',
-    distintas: 'simbolos/estabelecimento',
-    estreias: 'marca/estrela',
+    participaram: 'simbolos/estabelecimento',
+    novas: 'marca/estrela',
     combos: 'combos/doce-cafe',
-    'coloca': 'premios/medalha',
+    'pódio': 'premios/medalha',
   }
 
   assert.equal(NUMEROS.length, Object.keys(ESPERADO).length,
