@@ -387,10 +387,14 @@ test('o erro do envio não dispara dois scrollIntoView no mesmo tique', () => {
 const TOKEN = Object.fromEntries([...HTML.matchAll(/--(scw-[a-z]+):(#[0-9A-Fa-f]{6})/g)]
   .map(([, nome, hex]) => [nome, hex]))
 
+// Ancora em inicio de linha: '.pa-escolha span{' tambem aparece DENTRO de
+// '.scw-campo[data-erro="1"] .pa-escolha span{', e um indexOf solto devolvia o
+// corpo da regra errada — um seletor com uma propriedade so, que passa em
+// qualquer asserçao sobre o que ele nao tem.
 const regra = (seletor) => {
-  const i = HTML.indexOf(seletor + '{')
+  const i = HTML.indexOf('\n' + seletor + '{')
   assert.ok(i > -1, 'sumiu a regra ' + seletor)
-  return HTML.slice(i + seletor.length + 1, HTML.indexOf('}', i))
+  return HTML.slice(i + seletor.length + 2, HTML.indexOf('}', i))
 }
 
 test('a mensagem de erro passa AA como texto pequeno', () => {
@@ -418,4 +422,15 @@ test('marcar um chip não reembaralha a grade', () => {
     'o ✓ voltou a nascer no :checked — marcar um chip alarga a pílula e move as opções seguintes')
   assert.ok(HTML.includes('.pa-escolha input:checked + span::before{visibility:visible}'),
     'o ✓ marcado precisa aparecer por visibility, que preserva a caixa')
+})
+
+test('todo controle crava o piso de toque, sem depender de padding', () => {
+  // O skip link ja nasceu a 43px: 15px de texto mais 28px de padding. Piso que
+  // sai de soma de padding quebra sozinho quando alguem mexe na tipografia —
+  // por isso a exigencia aqui e min-height declarado, nao altura resultante.
+  for (const sel of ['.scw-skip', '.scw-btn', '.pa-escolha span', '.pa-indice a', '.pa-demo__btn']) {
+    const m = regra(sel).match(/min-height:(\d+)px/)
+    assert.ok(m, sel + ' nao crava min-height: o piso de toque volta a depender de aritmetica de padding')
+    assert.ok(Number(m[1]) >= 44, sel + ' a ' + m[1] + 'px, abaixo do piso de 44')
+  }
 })

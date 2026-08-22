@@ -59,7 +59,10 @@ body{
 .scw-skip{
   position:absolute;left:-9999px;top:0;z-index:99;
   background:var(--scw-choco);color:var(--scw-creme);
-  padding:14px 20px;font:800 15px/1 var(--scw-font);border-radius:0 0 12px 0;
+  /* 15px de texto + 28px de padding davam 43px: 1px abaixo do piso de toque.
+     min-height crava o piso sem depender de aritmetica de padding. */
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:0 20px;font:800 15px/1 var(--scw-font);border-radius:0 0 12px 0;
 }
 .scw-skip:focus{left:0}
 
