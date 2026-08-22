@@ -36,7 +36,7 @@
   --scw-sec-y:clamp(58px,6vw,100px);
   --scw-gap-cabeca:clamp(26px,3vw,40px);
   --scw-gap-grade:clamp(16px,2vw,28px);
-  --scw-r-card:20px;
+  --scw-r-card:20px;--scw-r-secao:26px;
   --scw-ease:cubic-bezier(.22,.9,.24,1);
   --scw-transicao:200ms var(--scw-ease);
   --mo-entra:620ms;
@@ -59,12 +59,14 @@ body{
 .scw-skip{
   position:absolute;left:-9999px;top:0;z-index:99;
   background:var(--scw-choco);color:var(--scw-creme);
-  padding:14px 20px;font:800 15px/1 var(--scw-font);border-radius:0 0 12px 0;
+  /* 15px de texto + 28px de padding davam 43px: 1px abaixo do piso de toque.
+     min-height crava o piso sem depender de aritmetica de padding. */
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:0 20px;font:800 15px/1 var(--scw-font);border-radius:0 0 12px 0;
 }
 .scw-skip:focus{left:0}
 
 .scw-secao{padding-inline:var(--scw-trilho)}
-.nq{white-space:nowrap}
 .pa-oculto{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 /* ── Tipografia ─────────────────────────────────────────────── */
@@ -126,15 +128,78 @@ body{
 /* Corpo sobre cyan fica em chocolate: 6,18:1 medido. Creme daria 2,3:1. */
 .pa-hero__lead{margin:22px 0 0;font:500 clamp(16px,1.3vw,18px)/1.55 var(--scw-font);color:var(--scw-choco);max-width:52ch;text-wrap:pretty}
 .pa-hero__acoes{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(28px,3vw,38px)}
+/* Texto à esquerda, painel de números à direita. Abaixo de 1000px empilha —
+   mesmo ponto em que os heróis institucionais viram dois blocos (§6.14). */
+.pa-hero__grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,clamp(320px,36%,500px));gap:clamp(30px,4vw,72px);align-items:start;margin-top:clamp(26px,3vw,38px)}
+@media (max-width:1000px){.pa-hero__grade{grid-template-columns:minmax(0,1fr);gap:clamp(30px,5vw,44px)}}
 
 /* ── Números do herói ───────────────────────────────────────── */
-.pa-numeros{display:flex;flex-wrap:wrap;gap:clamp(20px,3vw,44px);margin:clamp(34px,3.8vw,48px) 0 0;padding:0;list-style:none}
-.pa-numeros li{display:flex;flex-direction:column;gap:8px;min-width:112px}
-.scw-stat__regua{display:block;width:38px;height:4px;border-radius:2px}
-.pa-numeros b{font:900 clamp(24px,2.6vw,34px)/.9 var(--scw-font);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.pa-numeros span:last-child{font:800 11px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-choco)}
+/* Painel chocolate: o cyan do herói não sustenta cinco numerais grandes sem
+   virar ruído. Sobre chocolate o creme dá 12:1 e os discos ficam legíveis.
+   Um destaque no topo + grade 2×2 embaixo: o alcance abre porque é o número
+   que se lê de longe; o argumento da marca sustenta logo abaixo. */
+.pa-numeros{margin:0;padding:clamp(24px,2.6vw,36px);list-style:none;display:flex;flex-direction:column;gap:clamp(20px,2.2vw,28px);background:var(--scw-choco);color:var(--scw-creme);border-radius:var(--scw-r-secao)}
+.pa-numeros li{display:flex;flex-direction:column;gap:12px}
+/* O disco carrega a cor e o traço fica chocolate: ícone é componente gráfico,
+   piso 3:1, e as cinco cores passam nesse papel — como texto não passariam. */
+.pa-numeros__disco{display:grid;place-items:center;width:44px;height:44px;border-radius:999px;color:var(--scw-choco);flex:0 0 auto}
+.pa-numeros b{font:900 clamp(30px,3vw,42px)/.86 var(--scw-font);letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:var(--scw-creme)}
+/* A legenda deixou de ser rotulo e virou frase: "123 marcas ja participaram"
+   fecha sentido com o proprio numeral. Caixa-alta com letter-spacing serve
+   rotulo curto -- em tres linhas ela vira a parte menos legivel do painel, e
+   ainda ocupa mais largura que caixa baixa. Por isso aqui e caixa baixa. */
+.pa-numeros span:last-child{font:700 12.5px/1.45 var(--scw-font);color:var(--scw-creme);max-width:24ch}
+/* Destaque: disco e numeral na mesma linha, rótulo quebrando embaixo. */
+.pa-numeros__destaque{flex-direction:row;flex-wrap:wrap;align-items:center;gap:16px}
+.pa-numeros__destaque b{font-size:clamp(44px,4.8vw,68px)}
+.pa-numeros__destaque span:last-child{flex:1 0 100%}
+.pa-numeros__grade{border-top:1px solid rgba(254,240,221,.18);padding-top:clamp(20px,2.2vw,28px)}
+.pa-numeros__grade>ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.4vw,30px)}
 
 /* ── Formulário ─────────────────────────────────────────────── */
+/* ── Índice dos passos ──────────────────────────────────────── */
+/* Uma peça para duas perguntas: "onde estou" e, depois de uma tentativa de
+   envio, "o que falta onde". Sublinhado na cor do passo em vez de chapa —
+   magenta não sustenta tinta em texto pequeno (§6.3), então a cor vai para o
+   grafismo, igual ao índice do Contato (§7.6). */
+.pa-indice{
+  position:sticky;top:0;z-index:6;background:var(--scw-creme);
+  margin-inline:calc(var(--scw-trilho) * -1);padding-inline:var(--scw-trilho);
+  border-bottom:1px solid var(--scw-filete);
+  /* Respiro abaixo da barra: o padding-top do .pa-corpo fica ACIMA dela, entao
+     sem isto o filete encosta no disco do passo 01. */
+  margin-bottom:clamp(32px,3.6vw,52px);
+}
+/* O padding-bottom separa o sublinhado do item ativo do filete da propria
+   barra: rentes, os dois viram um traço duplo em vez de indicador. */
+.pa-indice ol{margin:0;padding:0 0 7px;list-style:none;display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none}
+.pa-indice ol::-webkit-scrollbar{display:none}
+/* §7.6: sem flex:0 0 auto os chips colapsam quando a trilha rola. */
+.pa-indice li{flex:0 0 auto}
+.pa-indice a{
+  display:flex;align-items:center;gap:9px;min-height:54px;padding:0 4px;
+  font:700 14px/1.2 var(--scw-font);color:var(--scw-choco);text-decoration:none;
+  border-bottom:3px solid transparent;
+  transition:border-color var(--scw-transicao),color var(--scw-transicao);
+}
+.pa-indice__num{font:800 12px/1 var(--scw-font);letter-spacing:.1em;color:var(--scw-marrom)}
+.pa-indice a:hover{border-bottom-color:var(--scw-filete)}
+.pa-indice a[aria-current="step"]{font-weight:900}
+.pa-indice a[aria-current="step"] .pa-indice__num{color:var(--scw-choco)}
+.pa-indice li:nth-child(1) a[aria-current="step"]{border-bottom-color:var(--scw-amarelo)}
+.pa-indice li:nth-child(2) a[aria-current="step"]{border-bottom-color:var(--scw-cyan)}
+.pa-indice li:nth-child(3) a[aria-current="step"]{border-bottom-color:var(--scw-magenta)}
+.pa-indice li:nth-child(4) a[aria-current="step"]{border-bottom-color:var(--scw-roxo)}
+/* Pendência: anel magenta com o numeral em chocolate sobre creme. O anel é
+   gráfico (3,77:1, piso 3) e o numeral é texto (12:1). Chapa magenta com
+   número dentro reprovaria nos dois papéis. */
+.pa-indice__falta{
+  display:none;min-width:22px;height:22px;padding:0 5px;border-radius:999px;
+  border:2px solid var(--scw-magenta);background:var(--scw-creme);color:var(--scw-choco);
+  font:800 12px/1 var(--scw-font);align-items:center;justify-content:center;
+}
+.pa-indice a[data-pendente] .pa-indice__falta{display:inline-flex}
+
 .pa-corpo{padding-top:clamp(40px,4.6vw,64px);padding-bottom:clamp(40px,4.6vw,64px)}
 .pa-form{max-width:880px}
 
@@ -151,11 +216,16 @@ body{
 .pa-passo__cabeca{display:flex;gap:14px;align-items:flex-start;margin-bottom:var(--scw-gap-cabeca)}
 .pa-disco{
   flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-  font:800 18px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
+  /* 20px/900 passa o piso de texto grande (18,66px em 700+), onde o mínimo
+     cai para 3:1 — e é o único jeito de o disco 03 (creme sobre magenta,
+     3,77:1) fechar AA sem sair do ciclo de irmãos do §6.3. */
+  font:900 20px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
 }
 .pa-passo--2 .pa-disco{background:var(--scw-cyan)}
 .pa-passo--3 .pa-disco{background:var(--scw-magenta);color:var(--scw-creme)}
 .pa-passo--4 .pa-disco{background:var(--scw-roxo);color:var(--scw-creme)}
+/* O salto do índice tem que parar abaixo da própria barra presa. */
+.pa-passo .scw-h2{scroll-margin-top:clamp(88px,10vw,120px)}
 .pa-passo__texto{padding-top:2px}
 .pa-passo__texto .scw-corpo{margin-top:8px;color:var(--scw-marrom)}
 
@@ -179,28 +249,28 @@ body{
 .scw-campo input:hover,.scw-campo textarea:hover{border-color:rgba(61,19,8,.4)}
 .scw-campo[data-erro="1"] input,.scw-campo[data-erro="1"] textarea{border-color:var(--scw-magenta);border-width:2px}
 .scw-campo[data-erro="1"] .pa-escolha span{border-color:var(--scw-magenta)}
-.scw-campo__erro{font:800 13px/1.35 var(--scw-font);color:var(--scw-magenta);margin:0;display:none}
+/* A tinta é chocolate (12:1): magenta a 13px dá 3,77:1 e reprova AA. A cor do
+   erro vai para o filete, que é componente gráfico e passa folgado no piso 3. */
+.scw-campo__erro{font:800 13px/1.35 var(--scw-font);color:var(--scw-choco);margin:0;display:none;border-left:3px solid var(--scw-magenta);padding-left:10px}
 .scw-campo[data-erro="1"] .scw-campo__erro{display:block}
-.scw-campo__ok{
-  font:800 12px/1 var(--scw-font);color:var(--scw-marrom);
-  display:none;align-items:center;gap:6px;
-}
-.scw-campo[data-ok="1"] .scw-campo__ok{display:flex}
-.scw-campo[data-ok="1"] input,.scw-campo[data-ok="1"] textarea{border-color:rgba(61,19,8,.4)}
 
 /* Chips */
 .pa-escolhas{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;border:0}
 .pa-escolha{position:relative;display:block}
 .pa-escolha input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .pa-escolha span{
-  display:flex;align-items:center;gap:8px;min-height:46px;padding:11px 18px;
+  display:flex;align-items:center;gap:8px;min-height:46px;padding:11px 18px 11px 13px;
   border-radius:999px;border:1px solid var(--scw-borda-campo);background:var(--scw-creme);
   font:700 14px/1.2 var(--scw-font);cursor:pointer;
   transition:background var(--scw-transicao),border-color var(--scw-transicao),color var(--scw-transicao);
 }
 .pa-escolha input:hover + span{border-color:var(--scw-choco)}
 .pa-escolha input:checked + span{background:var(--scw-choco);color:var(--scw-creme);border-color:var(--scw-choco)}
-.pa-escolha input:checked + span::before{content:"✓";font-weight:800}
+/* O ✓ existe sempre e só troca de visibilidade: com content nascendo no clique,
+   marcar um chip alargava a pílula e reembaralhava as linhas da grade — a opção
+   que a pessoa ia clicar em seguida saía do lugar. visibility preserva a caixa. */
+.pa-escolha span::before{content:"✓";font-weight:800;visibility:hidden}
+.pa-escolha input:checked + span::before{visibility:visible}
 .pa-escolha input:focus-visible + span{outline:3px solid var(--scw-cyan);outline-offset:2px;box-shadow:0 0 0 5px rgba(61,19,8,.35)}
 .pa-conta-chips{font:800 12px/1 var(--scw-font);color:var(--scw-marrom);letter-spacing:.06em;text-transform:uppercase}
 
@@ -235,6 +305,9 @@ body{
 .scw-btn--vazado{background:transparent;color:var(--scw-choco);border-color:var(--scw-borda-campo)}
 .scw-btn--vazado:hover{border-color:var(--scw-choco)}
 .scw-btn--creme{background:var(--scw-creme);color:var(--scw-choco)}
+/* ⚠️ Única cor fora da paleta do §6.1 nesta página. Verde de marca do
+   WhatsApp (#25D366), restrito a .pa-whats — o teste reprova se escapar. */
+.pa-whats{background:#25D366;color:var(--scw-choco)}
 .scw-btn[disabled]{opacity:.45;cursor:default;pointer-events:none;transform:none}
 /* [hidden] tem que vencer o display do botão — atributo e classe empatam
    em especificidade, então o seletor combinado resolve sem !important. */
@@ -296,25 +369,59 @@ body{
   <img class="pa-hero__marca" id="marca-scw" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
   <p class="pa-hero__marca-texto">Sweet &amp; Coffee Week</p>
 
-  <p class="pa-hero__pill">Participar</p>
-  <h1 class="scw-h1">Quer participar do próximo <span class="pa-hero__destaque">Sweet&nbsp;&amp; Coffee&nbsp;Week?</span></h1>
+  <div class="pa-hero__grade">
+    <div class="pa-hero__texto">
+      <p class="pa-hero__pill">Participar</p>
+      <h1 class="scw-h1">Quer participar do próximo <span class="pa-hero__destaque">Sweet&nbsp;&amp; Coffee&nbsp;Week?</span></h1>
 
-  <p class="pa-hero__chamada">Tem uma cafeteria, doceria, confeitaria ou sorveteria — e vontade de fazer parte do festival?</p>
+      <p class="pa-hero__chamada">Tem uma cafeteria, doceria, confeitaria ou sorveteria — e vontade de fazer parte do festival?</p>
 
-  <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar.</p>
+      <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar.</p>
 
-  <div class="pa-hero__acoes">
-    <a class="scw-btn scw-btn--creme" href="#formulario">Começar</a>
+      <div class="pa-hero__acoes">
+        <a class="scw-btn scw-btn--creme" href="#formulario">Começar</a>
+      </div>
+    </div>
+
+    <!-- Cinco números derivados de src/data/. A página é estática e não importa
+         festivalFacts.js nem sweetCoffeeHistory.js, então os valores estão escritos
+         à mão — tests/quero-participar.test.mjs recalcula os cinco da fonte e reprova
+         se divergirem. Não editar à mão sem rodar o teste.
+
+         Ordem = arco de decisão da marca: quanto o festival aparece → em que
+         companhia você entra → cabe você → o que você cria → o que dá pra ganhar.
+
+         Réguas: ciclo do §6.3 filtrado pelo fundo chocolate — amarelo 9,5:1 ·
+         cyan 4,9:1 · magenta 3,8:1 · laranja 4,8:1 · bege 13:1. Roxo (1,45:1) e
+         marrom (1,5:1) ficam de fora: sobre chocolate não aparecem. -->
+    <ul class="pa-numeros">
+      <li class="pa-numeros__destaque"><span class="pa-numeros__disco" style="background:#FDBB1A" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.6 4.6h10.8a6 6 0 0 1 6 6v10.8a6 6 0 0 1-6 6H10.6a6 6 0 0 1-6-6V10.6a6 6 0 0 1 6-6Z"></path><circle cx="16" cy="16" r="5.9"></circle><circle cx="23.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"></circle></svg></span><b>+18 mi</b><span>visualizações no Instagram</span></li>
+      <li class="pa-numeros__grade">
+        <ul>
+      <li><span class="pa-numeros__disco" style="background:#01AFCC" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 13.6h22v12.6a1.6 1.6 0 0 1-1.6 1.6H6.6A1.6 1.6 0 0 1 5 26.2Z"></path><path d="M3.4 13.6 6.4 5.6h19.2l3 8"></path><path d="M13.2 27.8v-6.6h5.6v6.6Z" fill="currentColor" stroke="none"></path></svg></span><b>123</b><span>marcas já participaram</span></li>
+      <li><span class="pa-numeros__disco" style="background:#F10767" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 3.4C18.6 10.6 21.4 13.4 28.6 16 21.4 18.6 18.6 21.4 16 28.6 13.4 21.4 10.6 18.6 3.4 16 10.6 13.4 13.4 10.6 16 3.4Z"></path></svg></span><b>+7</b><span>marcas novas a cada edição</span></li>
+      <li><span class="pa-numeros__disco" style="background:#FF4810" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M3.1 17.6h9l-1.1 6.4a1.5 1.5 0 0 1-1.5 1.2H5.7a1.5 1.5 0 0 1-1.5-1.2Z"></path><path fill="currentColor" stroke="none" d="M2.2 17.6a5.4 5.4 0 0 1 10.8 0Z"></path><path stroke-width="1.6" d="M6.2 20l-.35 3.2M9 20l.35 3.2"></path><path fill="currentColor" stroke="none" d="M18.2 13.4h9.6l-1.3 9.8a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8Z"></path><path stroke-width="2.6" d="M28.2 16.2h.6a2.2 2.2 0 0 1 0 4.4h-1"></path><path d="M1.8 27.4h28.4"></path></svg></span><b>410</b><span>combos criados desde 2016</span></li>
+      <li><span class="pa-numeros__disco" style="background:#F8E4C1" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M10.4 3.8h11.2l-2.6 10.4h-6Z"></path><circle cx="16" cy="19.8" r="7.6"></circle><path fill="currentColor" stroke="none" d="M16 16.4l1.05 2.15 2.35.35-1.7 1.65.4 2.35-2.1-1.1-2.1 1.1.4-2.35-1.7-1.65 2.35-.35Z"></path></svg></span><b>271</b><span>lugares no pódio desde 2019</span></li>
+        </ul>
+      </li>
+    </ul>
   </div>
-
-  <ul class="pa-numeros">
-    <li><span class="scw-stat__regua" style="background:#3D1308" aria-hidden="true"></span><b>16</b><span>edições</span></li>
-    <li><span class="scw-stat__regua" style="background:#4D257E" aria-hidden="true"></span><b>+120</b><span>marcas</span></li>
-    <li><span class="scw-stat__regua" style="background:#FEF0DD" aria-hidden="true"></span><b>2016</b><span>desde</span></li>
-  </ul>
 </header>
 
 <main id="formulario" class="pa-corpo scw-secao">
+
+  <!-- O formulário é uma página só, mas tem quatro assuntos. Os links são
+       âncoras nativas para os <h2 tabindex="-1">: a navegação e o foco de
+       teclado funcionam com o script fora do ar. O script só acrescenta o
+       passo em foco e a contagem de pendências. -->
+  <nav class="pa-indice" id="indice" aria-label="Etapas do formulário">
+    <ol>
+      <li><a href="#titulo-1"><span class="pa-indice__num">01</span><span class="pa-indice__nome">Sobre você</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-2"><span class="pa-indice__num">02</span><span class="pa-indice__nome">Sobre o negócio</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-3"><span class="pa-indice__num">03</span><span class="pa-indice__nome">O que você serve</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+      <li><a href="#titulo-4"><span class="pa-indice__num">04</span><span class="pa-indice__nome">A sua história</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
+    </ol>
+  </nav>
   <form class="pa-form" id="form-participar" novalidate>
 
     <div class="pa-oculto" aria-hidden="true">
@@ -337,7 +444,6 @@ body{
         <div class="scw-campo pa-campo--largo">
           <label class="scw-campo__label" for="nome">Nome completo</label>
           <input type="text" id="nome" name="nome" autocomplete="name">
-          <p class="scw-campo__ok">✓ anotado</p>
           <p class="scw-campo__erro">Precisamos do seu nome completo.</p>
         </div>
         <div class="scw-campo">
@@ -529,10 +635,10 @@ body{
   <h2 class="scw-h2">Conhece um negócio que combina com o festival?</h2>
   <p class="scw-corpo">Envie este link para quem você gostaria de ver na próxima edição.</p>
   <div class="pa-indica__acoes">
-    <a class="scw-btn" id="share-whatsapp" href="#" target="_blank" rel="noopener">Enviar no WhatsApp</a>
-    <button type="button" class="scw-btn scw-btn--vazado" id="share-copiar">Copiar link</button>
-    <a class="scw-btn scw-btn--vazado" id="share-email" href="#">Enviar por e-mail</a>
-    <button type="button" class="scw-btn scw-btn--vazado" id="share-nativo" hidden>Compartilhar</button>
+    <a class="scw-btn pa-whats" id="share-whatsapp" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M27 15.6c0 5.9-4.9 10.6-11 10.6a12 12 0 0 1-3.6-.5L6 27.5l1.8-5A10.2 10.2 0 0 1 5 15.6C5 9.8 9.9 5 16 5s11 4.8 11 10.6Z"></path><circle cx="11.6" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="16" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="20.4" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle></svg><span>Enviar no WhatsApp</span></a>
+    <button type="button" class="scw-btn scw-btn--vazado" id="share-copiar"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18.6 4.8h8.6v8.6"></path><path d="M27.2 4.8 16 16"></path><path d="M22.6 18.4V25a2.6 2.6 0 0 1-2.6 2.6H7A2.6 2.6 0 0 1 4.4 25V12a2.6 2.6 0 0 1 2.6-2.6h6.6"></path></svg><span>Copiar link</span></button>
+    <a class="scw-btn scw-btn--vazado" id="share-email" href="#"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.4 7.4h19.2a2.2 2.2 0 0 1 2.2 2.2v12.8a2.2 2.2 0 0 1-2.2 2.2H6.4a2.2 2.2 0 0 1-2.2-2.2V9.6a2.2 2.2 0 0 1 2.2-2.2Z"></path><path d="M4.6 9.8 16 18.6 27.4 9.8" stroke-width="2.4"></path></svg><span>Enviar por e-mail</span></a>
+    <button type="button" class="scw-btn scw-btn--vazado" id="share-nativo" hidden><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7.6" cy="16" r="3.4" fill="currentColor" stroke="none"></circle><circle cx="23.6" cy="8.2" r="3.4" fill="currentColor" stroke="none"></circle><circle cx="23.6" cy="23.8" r="3.4" fill="currentColor" stroke="none"></circle><path d="M11 14.4l9.2-4.4M11 17.6l9.2 4.4"></path></svg><span>Compartilhar</span></button>
   </div>
   <p class="pa-indica__link" id="share-url"></p>
 </section>
@@ -593,6 +699,10 @@ const anuncio = document.getElementById('anuncio');
 const btnEnviar = document.getElementById('btn-enviar');
 const btnCopiar = document.getElementById('btn-copiar');
 const passos = [...document.querySelectorAll('.pa-passo')];
+const indice = document.getElementById('indice');
+/* O índice só passa a cobrar depois da primeira tentativa de envio: contar
+   campo vazio que a pessoa ainda nem alcançou é ruído, não ajuda. */
+let jaTentou = false;
 
 /* ── Dados ──────────────────────────────────────────────────── */
 const ROTULOS = {
@@ -616,8 +726,7 @@ const OBRIGATORIOS = {
   1: ['nome','telefone','email'],
   2: ['empresa','tipo','cidade','instagram'],
   3: ['serve','carroChefe'],
-  4: ['historia','especial'],
-  5: []
+  4: ['historia','especial']
 };
 
 // Grupo de escolha → campo que nasce quando a pessoa marca "Outro".
@@ -657,8 +766,8 @@ function atualizarContaChips() {
 atualizarContaChips();
 
 /* ── Erro some quando a pessoa corrige ──────────────────────── */
-form.addEventListener('input', (ev) => limparErro(ev.target));
-form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarContaChips(); atualizarOutros(); });
+form.addEventListener('input', (ev) => { limparErro(ev.target); if (jaTentou) recalcularIndice(); });
+form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarContaChips(); atualizarOutros(); if (jaTentou) recalcularIndice(); });
 function limparErro(alvo) {
   const bloco = alvo.closest('.scw-campo');
   if (!bloco || bloco.dataset.erro !== '1') return;
@@ -694,24 +803,27 @@ function marcar(nome, tem) {
   primeiro.setAttribute('aria-invalid', tem ? 'true' : 'false');
 }
 
-function validarPasso(n) {
-  if (DEMO) return [];   // demonstração: navega livre, sem cobrar campo
-  const faltando = [];
-  (OBRIGATORIOS[n] || []).forEach(nome => {
-    const ok = preenchido(nome);
-    marcar(nome, !ok);
-    if (!ok) faltando.push(nome);
-  });
-
+/* O que falta num passo, sem tocar na tela. Dois consumidores leem daqui — a
+   validação do envio e o contador do índice —, então a regra do que é
+   obrigatório mora num lugar só. */
+function pendencias(n) {
+  const faltando = (OBRIGATORIOS[n] || []).filter(nome => !preenchido(nome));
   // Marcou "Outro"? Então o campo que abriu vira obrigatório.
   (POR_PASSO[n] || []).forEach(grupo => {
     const campo = OUTROS[grupo];
-    if (!campo || !marcouOutro(grupo)) return;
-    const ok = document.getElementById(campo).value.trim() !== '';
-    marcar(campo, !ok);
-    if (!ok) faltando.push(campo);
+    if (campo && marcouOutro(grupo) && document.getElementById(campo).value.trim() === '') faltando.push(campo);
   });
+  return faltando;
+}
 
+function validarPasso(n) {
+  if (DEMO) return [];   // demonstração: navega livre, sem cobrar campo
+  const faltando = pendencias(n);
+  (OBRIGATORIOS[n] || []).forEach(nome => marcar(nome, faltando.includes(nome)));
+  (POR_PASSO[n] || []).forEach(grupo => {
+    const campo = OUTROS[grupo];
+    if (campo) marcar(campo, faltando.includes(campo));
+  });
   return faltando;
 }
 
@@ -721,6 +833,43 @@ function validarTudo() {
 }
 
 /* ── Coleta ─────────────────────────────────────────────────── */
+/* ── Índice dos passos ──────────────────────────────────────── */
+const itensIndice = [...indice.querySelectorAll('a')];
+
+function recalcularIndice() {
+  itensIndice.forEach((a, i) => {
+    const n = DEMO ? 0 : pendencias(i + 1).length;
+    a.toggleAttribute('data-pendente', n > 0);
+    a.querySelector('.pa-indice__falta').textContent = n || '';
+    // O anel é aria-hidden: quem ouve precisa da contagem por extenso.
+    if (n) a.setAttribute('aria-label', a.querySelector('.pa-indice__nome').textContent +
+      ' — ' + n + (n > 1 ? ' respostas pendentes' : ' resposta pendente'));
+    else a.removeAttribute('aria-label');
+  });
+}
+
+/* Passo em foco = o último cujo topo já passou da linha do índice. Rolagem com
+   rAF em vez de IntersectionObserver: com quatro seções de alturas muito
+   diferentes, a faixa de disparo do observer fica vazia em parte do percurso e
+   o índice apagaria sozinho no meio da rolagem. */
+let agendado = false;
+function marcarPassoAtual() {
+  agendado = false;
+  if (indice.hidden) return;
+  let atual = passos[0];
+  passos.forEach(p => { if (p.getBoundingClientRect().top <= 140) atual = p; });
+  itensIndice.forEach(a => {
+    if (a.getAttribute('href') === '#titulo-' + atual.dataset.passo) a.setAttribute('aria-current', 'step');
+    else a.removeAttribute('aria-current');
+  });
+}
+window.addEventListener('scroll', () => {
+  if (agendado) return;
+  agendado = true;
+  requestAnimationFrame(marcarPassoAtual);
+}, { passive: true });
+marcarPassoAtual();
+
 function coletar() {
   const dados = {};
   ORDEM.forEach(nome => {
@@ -758,10 +907,12 @@ function montarResumo(dados) {
   return linhas.join('\n');
 }
 
-function mostrar(estado, titulo, html) {
+/* rolar=false quando quem chama vai rolar para outro lugar: dois
+   scrollIntoView suaves no mesmo tique brigam e o segundo cancela o primeiro. */
+function mostrar(estado, titulo, html, rolar = true) {
   retorno.setAttribute('data-estado', estado);
   retorno.innerHTML = '<h2>' + titulo + '</h2>' + html;
-  retorno.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (rolar) retorno.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function copiar(texto) {
@@ -794,9 +945,12 @@ form.addEventListener('submit', async (ev) => {
 
   const faltando = validarTudo();
   if (faltando.length) {
+    jaTentou = true;
+    recalcularIndice();
     mostrar('erro',
       faltando.length > 1 ? 'Faltam ' + faltando.length + ' respostas' : 'Falta uma resposta',
-      '<p>O que ficou pendente está marcado em rosa. Levei você até o primeiro.</p>');
+      '<p>O que ficou pendente está marcado em rosa, e o índice do topo mostra quantas faltam em cada passo. Levei você até a primeira.</p>',
+      false);
     const alvo = campos(faltando[0])[0];
     alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
     alvo.focus({ preventScroll: true });
@@ -844,6 +998,7 @@ form.addEventListener('submit', async (ev) => {
       atualizarContaChips();
       passos.forEach(p => { p.hidden = true; });
       document.querySelector('.pa-acoes').hidden = true;
+      indice.hidden = true;   // sem passos na tela, o índice apontaria para nada
     } catch (e) {
       resumoBox.value = texto;
       resumoBox.setAttribute('data-visivel', '1');
@@ -883,9 +1038,10 @@ document.getElementById('share-email').href = 'mailto:?subject=' +
 
 document.getElementById('share-copiar').addEventListener('click', async (ev) => {
   const btn = ev.currentTarget;
-  const rotulo = btn.textContent;
-  btn.textContent = (await copiar(url)) ? 'Link copiado' : 'Copie da linha abaixo';
-  setTimeout(() => { btn.textContent = rotulo; }, 2600);
+  const alvo = btn.querySelector('span') || btn;
+  const rotulo = alvo.textContent;
+  alvo.textContent = (await copiar(url)) ? 'Link copiado' : 'Copie da linha abaixo';
+  setTimeout(() => { alvo.textContent = rotulo; }, 2600);
 });
 
 if (navigator.share) {
