@@ -236,9 +236,16 @@ preview.**
   | Formulário | Lib | RPC |
   |---|---|---|
   | Contato | `src/lib/contactRequest.js` | `submit_contact_request` |
-  | Participar | `src/lib/participationInterest.js` | `submit_participation_interest` |
+  | ~~Participar~~ | `src/lib/participationInterest.js` | `submit_participation_interest` |
   | Apoiar | `src/lib/supportInterest.js` | `submit_support_interest` |
   | **Quero participar** (estática) | — o próprio HTML | `submit_quero_participar` |
+
+  ⚠️ **`Participar` está riscado desde 22/08/2026: a página deixou de ter formulário**
+  (§7.4). A lib e a RPC continuam em pé e testadas, mas **sem nenhum importador** — o
+  pré-cadastro virou a chamada para `/quero-participar/`. Deixar ou remover
+  `participationInterest.js` é decisão em aberto: a tabela `participation_interests`
+  guarda os envios antigos, e apagar código que ainda tem dado do outro lado é o tipo
+  de limpeza que o §4.3 manda fazer devagar.
 
   ⚠️ **Ter código de backend não é ter backend.** Em 20/08/2026 descobriu-se que
   **as três migrations de formulário nunca tinham sido aplicadas**: as tabelas
@@ -1374,6 +1381,20 @@ editorial e comercial. **Não parecer formulário genérico.**
 - **Depoimentos vêm logo depois da abertura** (decisão do Eloi, 30/07/2026): são a prova
   social; quem cogita participar quer ouvir quem já participou antes de ler número ou
   processo, e vários depoimentos são em vídeo.
+
+- **08 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
+  chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o
+  pré-cadastro vive: quatro passos, índice pegajoso com contagem de pendências,
+  validação por passo e gravação em `quero_participar`.
+  ⚠️ **A razão não é estética, é o banco.** O formulário que morava na página gravava
+  em `participation_interests`, tabela que **nenhuma tela abre** — nem o painel da
+  organização. O de `/quero-participar/` grava na tabela que o painel lê e triaria.
+  Formulário que escreve onde ninguém lê é envio que se perde em silêncio, e some
+  parecendo que funcionou.
+  Por isso a regra "**formulário em destaque**" do parágrafo acima se cumpre pela
+  chamada, não por um `<form>` na página. ⛔ Não devolver o formulário para cá: duas
+  telas pedindo os mesmos dados são duas fontes de verdade do mesmo cadastro (§5.2), e
+  era a daqui que ficava para trás a cada melhoria feita lá.
 
 ### 7.5 Apoiar — `/apoiar`, marrom `#6A2C15`
 

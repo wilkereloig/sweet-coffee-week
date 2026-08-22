@@ -8,22 +8,17 @@
  * Seções: 01 Abertura · 02 Números · 03 Circulação · 04 Quem pode ·
  * 05 Depoimentos · 06 Imprensa · 07 Jornada · 08 Pré-cadastro.
  *
- * O pré-cadastro mantém a PERSISTÊNCIA REAL que já existia: grava o interesse
- * via RPC Supabase `submit_participation_interest` (lógica pura e testada em
- * src/lib/participationInterest.js). Nunca afirma "enviado" se a gravação
- * falhar. Nada de dado inventado: depoimentos, números e veículos de imprensa
+ * ⚠️ A seção 08 NÃO tem mais formulário. Desde 22/08/2026 ela é uma chamada
+ * para a página estática `/quero-participar/`, que é onde o pré-cadastro vive
+ * de verdade — quatro passos, índice pegajoso, validação por passo e gravação
+ * na tabela `quero_participar`, a que o painel da organização lê. O formulário
+ * que morava aqui gravava em `participation_interests`, tabela que nenhuma tela
+ * abre. Nada de dado inventado: depoimentos, números e veículos de imprensa
  * vêm do acervo/protótipo.
  */
 import React from 'react'
 import { I } from '../../components/icons'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
-import { supabase } from '../../lib/supabase'
-import {
-  NEGOCIOS,
-  EMPTY_INTEREST,
-  validateInterest,
-  submitInterest,
-} from '../../lib/participationInterest'
 import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
@@ -180,9 +175,6 @@ function iniciais(nome) {
     .toUpperCase()
 }
 
-// RPC injetado na lógica pura (mantém o módulo testável offline).
-const rpc = (name, payload) => supabase.rpc(name, payload)
-
 // Barra de ação fixa: só depois de o herói sair da tela.
 function useBarra() {
   const [visivel, setVisivel] = React.useState(false)
@@ -235,72 +227,10 @@ export function ParticiparPage() {
   const barraVisivel = useBarra()
   const [audioAtivo, setAudioAtivo] = React.useState(null) // slug do depoimento com som ligado
 
-  const [form, setForm] = React.useState(EMPTY_INTEREST)
-  const [errors, setErrors] = React.useState({})
-  const [sending, setSending] = React.useState(false)
-  const [state, setState] = React.useState('idle') // idle | success | error
-  const sucessoRef = React.useRef(null)
-  const primeiroRef = React.useRef(null)
-
-  React.useEffect(() => {
-    if (state === 'success' && sucessoRef.current) sucessoRef.current.focus()
-  }, [state])
-
-  const onChange = (campo) => (e) => {
-    const value = e.target.value
-    setForm((f) => ({ ...f, [campo]: value }))
-    if (errors[campo]) setErrors(({ [campo]: _drop, ...resto }) => resto)
-    if (state === 'error') setState('idle')
-  }
-
   const irPara = (id) => (e) => {
     if (e) e.preventDefault()
     if (typeof document === 'undefined') return
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const recomecar = () => {
-    setForm(EMPTY_INTEREST)
-    setErrors({})
-    setState('idle')
-  }
-
-  const onSubmit = async (e) => {
-    e.preventDefault()
-    if (sending) return
-    const check = validateInterest(form)
-    if (!check.ok) { setErrors(check.errors); return }
-    setSending(true)
-    const res = await submitInterest(form, rpc)
-    setSending(false)
-    if (res.status === 'invalid') { setErrors(res.errors); return }
-    if (res.status === 'success') { setErrors({}); setState('success'); return }
-    setState('error')
-  }
-
-  // Campo de texto (label + input + erro). Chamado como FUNÇÃO — nunca como
-  // <Campo/> — para o React não remontar o input a cada tecla (perderia o foco).
-  const campo = ({ name, label, type = 'text', placeholder, opcional, autoComplete, inputRef, full }) => {
-    const err = errors[name]
-    const eid = `pa-part-${name}-err`
-    return (
-      <label className={`scw-campo${full ? ' scw-campo--full' : ''}`}>
-        <span>{label}{opcional ? <em> (opcional)</em> : ' *'}</span>
-        <input
-          ref={inputRef}
-          type={type}
-          value={form[name]}
-          onChange={onChange(name)}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          required={!opcional}
-          aria-required={opcional ? undefined : 'true'}
-          aria-invalid={err ? 'true' : undefined}
-          aria-describedby={err ? eid : undefined}
-        />
-        {err && <span className="pa-erro" id={eid} role="alert">{err}</span>}
-      </label>
-    )
   }
 
   return (
@@ -542,6 +472,21 @@ export function ParticiparPage() {
       </section>
 
       {/* ═══ 08 Pré-cadastro (formulário em destaque) ═══ */}
+      {/* ═══ 08 Pré-cadastro ═══
+          ⚠️ O FORMULÁRIO NÃO MORA MAIS AQUI (22/08/2026, pedido do Wilke). O
+          pré-cadastro é a página estática /quero-participar/, que tem os quatro
+          passos, o índice pegajoso com contagem de pendências, a validação por
+          passo e o envio pela RPC `submit_quero_participar`.
+
+          Duas telas pedindo os mesmos dados são duas fontes de verdade do mesmo
+          cadastro (§5.2) — e era a daqui que ficava para trás a cada melhoria
+          feita lá. A trava real, porém, é o BANCO: esta gravava em
+          `participation_interests` e a de lá grava em `quero_participar`, que é
+          a tabela que o painel da organização lê e triaria. Formulário que
+          escreve numa tabela que ninguém abre é envio que se perde em silêncio.
+
+          ⛔ A barra final de /quero-participar/ não é opcional (§10.4-b): sem
+          ela o servidor cai no fallback do SPA e a pessoa vê a landing. */}
       <section id="pre-cadastro" className="scw-secao scw-secao--bege">
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mecanica/inscricao" tamanho={20} />Pré-cadastro</span>
@@ -554,78 +499,16 @@ export function ParticiparPage() {
           </p>
         </div>
 
-        {state === 'success' ? (
-          <div className="pa-sucesso" ref={sucessoRef} tabIndex={-1} role="status">
-            <span className="pa-sucesso__mark" aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <strong>Interesse registrado.</strong>
-            <p>
-              Recebemos os dados da sua marca. A organização vai analisar o perfil e entrar em
-              contato pelos canais que você informou.
-            </p>
-            <button type="button" onClick={recomecar}>Preencher outro pré-cadastro</button>
-          </div>
-        ) : (
-          <form className="pa-form" onSubmit={onSubmit} noValidate aria-label="Pré-cadastro de participação">
-            <fieldset>
-              <legend>01 · Sua marca</legend>
-              <div className="pa-form__grade">
-                {campo({ name: 'marca', label: 'Nome da marca', placeholder: 'Como sua marca se chama', inputRef: primeiroRef, full: true })}
-                <label className="scw-campo">
-                  <span>Tipo de negócio *</span>
-                  <select
-                    value={form.tipo}
-                    onChange={onChange('tipo')}
-                    required
-                    aria-required="true"
-                    aria-invalid={errors.tipo ? 'true' : undefined}
-                    aria-describedby={errors.tipo ? 'pa-part-tipo-err' : undefined}
-                  >
-                    <option value="">Selecione</option>
-                    {NEGOCIOS.map((o) => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                  {errors.tipo && <span className="pa-erro" id="pa-part-tipo-err" role="alert">{errors.tipo}</span>}
-                </label>
-                {campo({ name: 'bairro', label: 'Bairro', placeholder: 'Bairro da marca' })}
-                {campo({ name: 'cidade', label: 'Cidade', placeholder: 'Cidade / UF' })}
-              </div>
-            </fieldset>
-
-            <fieldset>
-              <legend>02 · Seu contato</legend>
-              <div className="pa-form__grade">
-                {campo({ name: 'responsavel', label: 'Nome do responsável', placeholder: 'Seu nome', autoComplete: 'name', full: true })}
-                {campo({ name: 'email', label: 'E-mail', type: 'email', placeholder: 'voce@suamarca.com', autoComplete: 'email' })}
-                {campo({ name: 'whatsapp', label: 'WhatsApp', type: 'tel', placeholder: '(84) 90000-0000', autoComplete: 'tel' })}
-                {campo({ name: 'instagram', label: 'Instagram', placeholder: '@suamarca', opcional: true })}
-                <label className="scw-campo scw-campo--full">
-                  <span>Apresentação da marca <em>(opcional)</em></span>
-                  <textarea
-                    value={form.apresentacao}
-                    onChange={onChange('apresentacao')}
-                    rows={3}
-                    placeholder="Conte, em poucas linhas, o que sua marca faz."
-                  />
-                </label>
-              </div>
-            </fieldset>
-
-            <div className="pa-form__pe">
-              <p className="pa-form__consent">
-                Seus dados são usados pela organização apenas para contato e análise do interesse.
-              </p>
-              <button type="submit" className="scw-btn pa-form__enviar" disabled={sending}>
-                {sending ? 'Enviando…' : <>Enviar pré-cadastro <I.arrow width={17} height={17} /></>}
-              </button>
-            </div>
-            <p className="pa-form__status" role="status" aria-live="polite">
-              {state === 'error' && 'Não conseguimos registrar agora. Confira a conexão e tente de novo.'}
-            </p>
-          </form>
-        )}
+        <div className="pa-cta">
+          <ul className="pa-cta__lista">
+            <li><ScwIcon nome="ui/horario" tamanho={20} />Quatro passos, cerca de dois minutos</li>
+            <li><ScwIcon nome="mecanica/loja" tamanho={20} />Dados da marca, do combo e do contato</li>
+            <li><ScwIcon nome="mecanica/regulamento" tamanho={20} />Usados só pela organização, para contato e curadoria</li>
+          </ul>
+          <a className="scw-btn scw-btn--solido pa-cta__botao" href="/quero-participar/">
+            Abrir o pré-cadastro <I.arrow width={17} height={17} />
+          </a>
+        </div>
       </section>
 
       <div className={`pa-barra${barraVisivel ? ' is-visivel' : ''}`}>

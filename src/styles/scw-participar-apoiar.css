@@ -713,6 +713,56 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   font: 500 16.5px/1.55 var(--scw-font);
   text-wrap: pretty;
 }
+/* ─── Chamada do pré-cadastro (substituiu o formulário embutido, 22/08/2026) ───
+   Mesma largura e mesma posição do .pa-form__intro logo acima (980px,
+   margin-inline:auto): a peça nasce em esquadro com a cabeça, que é o defeito
+   que a rodada de alinhamento deste dia foi corrigir em três lugares.
+   Card creme com filete, como todo card institucional (§6.1: card claro é creme
+   e quem carrega o recorte é o filete). */
+.pa-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(20px, 2.4vw, 34px);
+  max-width: 980px;
+  margin: clamp(30px, 3.4vw, 48px) auto 0;
+  padding: clamp(26px, 3vw, 40px);
+  border: 1px solid rgba(61, 19, 8, .14);
+  border-radius: var(--scw-r-secao);
+  background: var(--scw-creme);
+}
+.pa-cta__lista {
+  flex: 1 1 340px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.pa-cta__lista li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 24px;
+  font: 500 clamp(15px, 1.25vw, 17px)/1.45 var(--scw-font);
+  color: var(--scw-choco);
+}
+/* O ícone não encolhe quando o texto quebra em duas linhas. */
+.pa-cta__lista svg { flex: 0 0 auto; color: var(--scw-marrom); }
+/* Piso de toque de 54px: é a ação principal da página (§6.10). */
+.pa-cta__botao { flex: 0 0 auto; min-height: 54px; }
+@media (max-width: 620px) {
+  .pa-cta { flex-direction: column; align-items: stretch; }
+  /* ⚠️ `flex-basis` mede o EIXO PRINCIPAL. Em linha, os 340px lá em cima são
+     largura; virando a coluna aqui eles viravam ALTURA — a lista esticava para
+     340px e as três linhas do grid, que dividem esse espaço, ficavam com 105px
+     cada em vez de 24. Ao trocar a direção de um flex, todo `flex` de filho
+     muda de sentido junto. */
+  .pa-cta__lista { flex: 0 0 auto; }
+  .pa-cta__botao { justify-content: center; }
+}
+
 .pa-form {
   max-width: 980px;
   margin: clamp(30px, 3.4vw, 48px) auto 0;
