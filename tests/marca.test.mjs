@@ -24,6 +24,20 @@ const MIGRATION = readFileSync(
 const EDGE = readFileSync(
   new URL('../supabase/functions/criar-acesso-marca/index.ts', import.meta.url), 'utf8')
 
+/* ⚠️ Asserção de AUSÊNCIA tem que ler código SEM COMENTÁRIO, e isso já custou
+   três reprovas falsas em 22/08/2026: `admin_ping`, `supabase` no service
+   worker e `Math.random` aqui. O padrão é sempre o mesmo — alguém escreve um
+   comentário explicando por que NÃO usa X, e o teste que procura X acha a
+   explicação. Quanto melhor o comentário, mais provável a cegueira ao contrário.
+   Serve também para comparar duas implementações: comentário diferente não é
+   código diferente. */
+const semComentarios = (fonte) => fonte
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
+
+const EDGE_CODIGO = semComentarios(EDGE)
+const JS_CODIGO = semComentarios(JS)
+
 test('o HTML traz exatamente um bloco de script inline', () => {
   assert.equal(SCRIPTS.length, 1)
 })
@@ -148,16 +162,57 @@ test('preço, endereço e horário ficam na tabela apartada', () => {
 
 /* ── Ponta a ponta com a Edge Function ───────────────────────────────────── */
 
-test('o convite aponta para a rota que existe, com barra final', () => {
-  const destino = EDGE.match(/DESTINO_CONVITE\s*=\s*'([^']+)'/)
-  assert.ok(destino, 'sumiu a constante do destino do convite')
-  assert.ok(destino[1].endsWith('/marca/'),
-    'sem a barra final a rota cai no fallback do SPA e abre a landing')
+/* ⛔ Dois testes saíram daqui em 22/08/2026, junto com o modelo que guardavam:
+   "o convite aponta para a rota que existe" e "a página reconhece o tipo de
+   link que a Edge Function gera". Ambos aferiam o convite por e-mail —
+   DESTINO_CONVITE e o `type: 'recovery'` do generateLink. O acesso passou a ser
+   login pelo nome + senha gerada, entregue por WhatsApp: não há link, não há
+   e-mail, e o endereço de login é sintético. Manter os dois seria exigir do
+   código uma coisa que o produto deixou de fazer.
+   O que substituiu está abaixo. */
+
+test('as duas slugificações casam entre a página e a Edge Function', () => {
+  // ⚠️ A ARMADILHA CENTRAL DESTE MODELO. O login é o nome do estabelecimento
+  // slugificado, e a slugificação acontece em DOIS lugares: na Edge Function,
+  // ao criar a conta, e aqui, ao entrar. Se divergirem, a marca digita o nome
+  // certo e não entra — e como o erro de login é genérico de propósito,
+  // ninguém descobre o motivo.
+  // CÓDIGO, não fonte: as duas funções têm comentários diferentes, e comentário
+  // diferente não é comportamento diferente.
+  const daPagina = JS_CODIGO.match(/function slugificar[\s\S]*?\n  \}/)
+  const daFuncao = EDGE_CODIGO.match(/function slugificar[\s\S]*?\n\}/)
+  assert.ok(daPagina, 'sumiu slugificar() da página')
+  assert.ok(daFuncao, 'sumiu slugificar() da Edge Function')
+
+  // Ignora espaço, palavra de declaração e ANOTAÇÃO DE TIPO: a Edge Function é
+  // TypeScript e a página é JS, então `(nome: string): string` e `(nome)` são a
+  // mesma função. Tipo não é comportamento; comparar o texto cru acusaria uma
+  // divergência que não existe — e um teste que reprova o correto é abandonado.
+  const normal = (t) => t
+    .replace(/:\s*string/g, '')
+    .replace(/\s+/g, '')
+    .replace(/var|const|let/g, '')
+  assert.equal(normal(daPagina[0]), normal(daFuncao[0]),
+    'as duas slugificações divergiram — o login gerado não vai abrir a página')
+
+  const dom = (t) => (t.match(/DOMINIO_LOGIN\s*=\s*'([^']+)'/) || [])[1]
+  assert.ok(dom(JS_CODIGO), 'sumiu DOMINIO_LOGIN da página')
+  assert.equal(dom(JS_CODIGO), dom(EDGE_CODIGO), 'o domínio de login difere entre página e função')
 })
 
-test('a página reconhece o tipo de link que a Edge Function gera', () => {
-  const tipo = EDGE.match(/type:\s*'(\w+)'/)
-  assert.ok(tipo, 'sumiu o tipo do generateLink')
-  assert.ok(JS.includes("'" + tipo[1] + "'"),
-    'a Edge Function gera link de tipo "' + tipo[1] + '" e a página não trata esse tipo')
+test('a senha entregue morre no primeiro uso', () => {
+  // Esta é a trava que torna aceitável mandar senha por WhatsApp: o que ficou
+  // na conversa vale para UM login. Sem ela, é segredo permanente vazado.
+  assert.match(EDGE, /deve_trocar_senha:\s*true/,
+    'a Edge Function não liga a troca obrigatória — a senha do WhatsApp viraria permanente')
+  assert.match(JS, /function precisaTrocarSenha\s*\(/,
+    'a página não confere deve_trocar_senha: a flag seria coluna que ninguém lê')
+  assert.match(JS, /marcar_senha_trocada/,
+    'a página não baixa a flag depois da troca — o login seguinte voltaria a exigir')
+})
+
+test('a senha é gerada com aleatoriedade de verdade', () => {
+  assert.match(EDGE, /crypto\.getRandomValues/,
+    'senha gerada com Math.random não é senha, é número de série')
+  assert.ok(!/Math\.random/.test(EDGE_CODIGO), 'há Math.random na geração de credenciais')
 })

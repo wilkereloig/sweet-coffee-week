@@ -1,8 +1,8 @@
 // =============================================================================
 // Edge Function: criar-acesso-marca
 // O passo seguinte a "aprovado" no painel da organização: cria a conta da marca
-// no Supabase Auth, vincula à candidatura e manda o convite para ela definir a
-// própria senha. Fase 1 de docs/PLANO-painel-contas-participantes.md.
+// no Supabase Auth, vincula à candidatura e devolve as credenciais UMA VEZ para
+// a organização entregar. Fase 1 de docs/PLANO-painel-contas-participantes.md.
 //
 // POR QUE Edge Function e não o painel:
 //   Criar usuário exige a chave de serviço. O repositório tem regra dura e
@@ -10,34 +10,32 @@
 //   estático roda no navegador de quem abrir a página. A chave vive AQUI, em
 //   variável de ambiente, como nas outras quatro funções do projeto.
 //
-// POR QUE a senha nunca passa pelo admin (plano §5):
-//   Se o admin digitasse a senha, ela existiria em texto na tela dele, no
-//   WhatsApp do grupo e no print. E ele passaria a saber a senha da marca.
-//   Aqui o usuário nasce SEM senha e a marca define a dela pelo link. O
-//   caminho de resgate — senha provisória com troca obrigatória — é outro
-//   botão, para quando o convite não chega.
+// O MODELO DE ACESSO MUDOU EM 22/08/2026 (decisão do Eloi):
+//   login = nome do estabelecimento · senha = gerada aqui, forte, entregue pela
+//   organização por WhatsApp ou copiada da tela. O plano §5 recomendava o
+//   contrário — convite por e-mail, marca define a própria senha — porque senha
+//   que passa pelo admin fica no WhatsApp e no print. A objeção continua VÁLIDA
+//   e o que a responde é `deve_trocar_senha`: a senha entregue vale para UM
+//   login. Depois disso, o que ficou na conversa não abre mais nada.
+//   ⛔ Desligar essa flag reabre exatamente o risco que o plano descrevia.
 //
 // Deploy:
 //   supabase functions deploy criar-acesso-marca --no-verify-jwt
 //   (--no-verify-jwt porque a porta desta função é a senha do painel, via
 //    admin_ok, não um JWT — enquanto durar a Fase 1. Ver AUTORIZAÇÃO abaixo.)
 //
-// Secrets (Dashboard → Edge Functions → criar-acesso-marca → Secrets):
-//   RESEND_API_KEY   -> chave da API Resend
-//   EMAIL_FROM       -> remetente verificado, ex: "Sweet & Coffee Week <ola@sweetcoffeeweek.com.br>"
+// Secrets: nenhum próprio. Esta função não envia e-mail — o endereço de login
+// é sintético e não recebe nada; quem entrega o acesso é a organização.
 // Injetadas pelo Supabase:
 //   SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY
 //
-// ⚠️ Authentication → URL Configuration: a URL de redirect precisa estar na
-//    allowlist, senão o link do convite cai silenciosamente na Site URL e
-//    ninguém entende o que houve. E a BARRA FINAL não é opcional: /marca cai no
-//    fallback do SPA, /marca/ abre a página (CLAUDE.md §10.4-b).
 //
-// Depende de: public.admin_ok, public.vincular_conta_marca,
-//             public.user_id_por_email, tabela public.participantes.
+// Depende de: public.admin_ok, public.vincular_conta_marca, tabelas
+//             public.participantes e public.perfis.
 //
 // Entrada (POST JSON): { secret, origem_id }
-// Saída: { ok, participante_id, usuario: "novo"|"existente", convite: "enviado"|... }
+// Saída: { ok, participante_id, login, senha, email_contato, troca_obrigatoria }
+//        A senha aparece SÓ nesta resposta. Não fica gravada em lugar nenhum.
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -48,17 +46,66 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+// ── Login pelo nome do estabelecimento ───────────────────────────────────────
+// Decisão do Eloi, 22/08/2026: a marca entra com o NOME dela, não com e-mail. É
+// o que ela sabe de cor, e a organização entrega o acesso por WhatsApp, não por
+// caixa de entrada.
+//
+// O Supabase Auth identifica por e-mail, então o nome vira um endereço interno
+// determinístico: "ELOI Doces" → eloi-doces@DOMINIO_LOGIN. Esse endereço NÃO
+// recebe mensagem e não é o e-mail da marca — o de verdade continua guardado em
+// `participantes.email`, que é para onde a organização escreve.
+const DOMINIO_LOGIN = 'marcas.sweetcoffeeweek.com.br'
+
+function slugificar(nome: string): string {
+  return (nome || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // tira acento
+    .toLowerCase()
+    .replace(/&/g, ' e ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48)
+}
+
+// Alfabeto sem I, O, 0 e 1: a senha vai ser LIDA em voz alta e digitada à mão
+// no celular. Confundir zero com O é o jeito mais rápido de gerar um chamado de
+// suporte que parece "não funciona".
+const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+// 12 caracteres de um alfabeto de 32 = 60 bits de entropia, em três blocos de
+// quatro para caber num WhatsApp sem virar borrão. `crypto.getRandomValues`, não
+// `Math.random`: gerador previsível não é senha, é número de série.
+function gerarSenha(): string {
+  const bytes = new Uint32Array(12)
+  crypto.getRandomValues(bytes)
+  const chars = Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length])
+  return 'SCW-' + chars.slice(0, 4).join('') + '-' +
+                  chars.slice(4, 8).join('') + '-' +
+                  chars.slice(8, 12).join('')
+}
+
+// O slug é o login, e `participantes.slug` é `unique`. Duas marcas com nomes que
+// colapsam no mesmo slug ("Café Central" e "Cafe Central") ganhariam o mesmo
+// endereço de login — e a segunda seria tratada como "marca que já participou",
+// entrando na conta da primeira. Por isso o sufixo numérico.
+/* Recebe uma PERGUNTA, não o cliente do banco: "esse slug está ocupado?".
+   Anotar o cliente aqui reprovava no `deno check` — os genéricos do supabase-js
+   resolvem diferente na criação e no uso, e o `PostgrestBuilder` é thenable sem
+   ser Promise. Passar a consulta como função resolve o tipo e, de quebra, deixa
+   a regra de colisão testável sem banco. */
+async function slugLivre(base: string, ocupado: (s: string) => Promise<boolean>): Promise<string> {
+  const raiz = base || 'marca'
+  for (let i = 0; i < 50; i++) {
+    const tentativa = i === 0 ? raiz : `${raiz}-${i + 1}`
+    if (!(await ocupado(tentativa))) return tentativa
+  }
+  /* 50 marcas com o mesmo nome é cenário que não existe; se existir, o carimbo
+     de tempo garante que ninguém entra na conta de outro. */
+  return `${raiz}-${Date.now()}`
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
-
-const emailOk = (e: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || '').trim())
-
-// `/marca/` e não `/marca/definir-senha/`, como o plano previa: a área da marca
-// é UMA página que troca de view conforme o estado. O link de recuperação chega
-// com os tokens no #hash, e a página reconhece `type=recovery` e abre direto em
-// "definir senha". Duas páginas exigiriam duplicar o cliente de autenticação
-// inteiro — e a segunda cópia é onde as duas começam a divergir.
-const DESTINO_CONVITE = 'https://www.sweetcoffeeweek.com.br/marca/'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -95,9 +142,11 @@ Deno.serve(async (req) => {
   if (candErr) return json({ erro: 'db_error', detalhe: candErr.message }, 500)
   if (!candidatura) return json({ erro: 'candidatura_nao_encontrada' }, 404)
 
+  // `email` é o CONTATO real da marca — para onde a organização escreve e para
+  // onde o WhatsApp/e-mail de entrega vai. Não é o login.
   const email = (candidatura.email || '').trim().toLowerCase()
   const nomeMarca = (candidatura.empresa || '').trim()
-  if (!emailOk(email)) return json({ erro: 'email_invalido', email }, 422)
+  if (!nomeMarca) return json({ erro: 'sem_nome_de_marca' }, 422)
 
   // ── 3. IDEMPOTÊNCIA ────────────────────────────────────────────────────────
   // Quem garante é o `unique` de participantes.origem_id — este select só
@@ -112,33 +161,37 @@ Deno.serve(async (req) => {
     return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
   }
 
-  // ── 4. USUÁRIO — SEM SENHA ─────────────────────────────────────────────────
-  // `email_confirm: true` porque quem confirma o endereço é a organização, ao
-  // aprovar: a marca não se cadastrou sozinha, foi convidada.
+  // ── 4. USUÁRIO — LOGIN PELO NOME, SENHA GERADA ─────────────────────────────
+  // A senha nasce AQUI, no servidor, e é devolvida UMA VEZ para a tela. Ela não
+  // fica guardada em lugar nenhum: o banco só tem o hash do Auth, e nem a
+  // auditoria nem `participantes` a registram. Reabrir a ficha depois não a
+  // mostra de novo — se sumiu, gera-se outra.
+  const login = await slugLivre(slugificar(nomeMarca), async (s) => {
+    const { data } = await admin.from('participantes').select('id').eq('slug', s).maybeSingle()
+    return !!data
+  })
+  const emailLogin = `${login}@${DOMINIO_LOGIN}`
+  const senhaInicial = gerarSenha()
+
   let userId: string | null = null
-  let origemUsuario: 'novo' | 'existente' = 'novo'
 
   const { data: criado, error: criarErr } = await admin.auth.admin.createUser({
-    email,
+    email: emailLogin,
+    password: senhaInicial,
+    // `email_confirm: true` porque este endereço não existe para receber nada —
+    // quem confirma que a marca é a marca é a organização, ao aprovar.
     email_confirm: true,
-    user_metadata: { nome_marca: nomeMarca },
+    user_metadata: { nome_marca: nomeMarca, login, email_contato: email },
   })
 
   if (criado?.user) {
     userId = criado.user.id
   } else if (criarErr) {
-    // 422 email_exists NÃO é erro: é a marca que já participou de outra edição.
-    // Participação é marca + edição, então ela ganha uma linha nova em
-    // `participantes` reusando a mesma conta.
-    const jaExiste = (criarErr as { code?: string; status?: number }).code === 'email_exists'
-      || (criarErr as { status?: number }).status === 422
-    if (!jaExiste) return json({ erro: 'auth_error', detalhe: criarErr.message }, 500)
-
-    const { data: achado, error: acharErr } = await admin.rpc('user_id_por_email', { p_email: email })
-    if (acharErr) return json({ erro: 'db_error', detalhe: acharErr.message }, 500)
-    if (!achado) return json({ erro: 'usuario_existe_mas_nao_resolvido', email }, 500)
-    userId = achado as string
-    origemUsuario = 'existente'
+    // Com login derivado do nome e sufixo de colisão, `email_exists` deixou de
+    // ser o caso benigno de antes ("marca de outra edição"): aqui significa que
+    // o endereço sintético já existe sem uma linha em `participantes` — estado
+    // inconsistente, que é melhor reportar do que reaproveitar às cegas.
+    return json({ erro: 'login_ja_existe', login, detalhe: criarErr.message }, 409)
   }
 
   if (!userId) return json({ erro: 'usuario_nao_criado' }, 500)
@@ -150,124 +203,37 @@ Deno.serve(async (req) => {
     .rpc('vincular_conta_marca', { p_user: userId, p_origem: origemId })
   if (vincErr) return json({ erro: 'vinculo_falhou', detalhe: vincErr.message }, 500)
 
-  // ── 6. CONVITE ─────────────────────────────────────────────────────────────
-  // `generateLink` devolve a URL SEM enviar nada. O SMTP embutido do Supabase
-  // entrega 2 e-mails por hora no projeto inteiro — inviável para aprovar 30
-  // marcas numa tarde. A entrega vai pelo Resend, que o projeto já usa e que
-  // tem log de entrega de verdade.
-  const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
-    type: 'recovery',
-    email,
-    options: { redirectTo: DESTINO_CONVITE },
-  })
-  if (linkErr || !link?.properties?.action_link) {
-    // A conta existe e está vinculada — só o convite falhou. Reportar como
-    // parcial, não como erro: repetir a chamada devolveria 409 e a organização
-    // acharia que nada funcionou. O botão certo daqui é "reenviar convite".
-    return json({
-      ok: true,
-      participante_id: participanteId,
-      usuario: origemUsuario,
-      convite: 'falhou',
-      detalhe: linkErr?.message ?? 'sem_action_link',
-    }, 207)
+  // ── 6. TRAVA DE PRIMEIRO USO ───────────────────────────────────────────────
+  // ⚠️ ESTA FLAG É O QUE TORNA ACEITÁVEL MANDAR SENHA POR WHATSAPP.
+  // A senha vai viajar em texto e vai FICAR no histórico da conversa — no
+  // aparelho da marca, no da organização e nos backups dos dois. Não há como
+  // retirá-la depois. Com `deve_trocar_senha`, o que ficou lá é um bilhete de
+  // entrada de uso único: no primeiro login a marca troca, e a senha do
+  // WhatsApp deixa de abrir qualquer coisa.
+  // ⛔ Desligar isto transforma a mensagem num segredo permanente vazado.
+  const { error: flagErr } = await admin
+    .from('perfis')
+    .update({ deve_trocar_senha: true })
+    .eq('user_id', userId)
+  if (flagErr) {
+    // Conta criada sem a trava seria pior que conta nenhuma: a senha
+    // compartilhada viraria permanente sem ninguém saber. Desfaz e reporta.
+    await admin.auth.admin.deleteUser(userId)
+    return json({ erro: 'trava_falhou', detalhe: flagErr.message }, 500)
   }
 
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-  const EMAIL_FROM = Deno.env.get('EMAIL_FROM')
-  if (!RESEND_API_KEY || !EMAIL_FROM) {
-    return json({
-      ok: true,
-      participante_id: participanteId,
-      usuario: origemUsuario,
-      convite: 'provedor_nao_configurado',
-    }, 207)
-  }
+  // O login também é o slug do participante, e é por ele que a marca entra.
+  await admin.from('participantes').update({ slug: login }).eq('id', participanteId)
 
-  const envio = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [email],
-      subject: 'Seu acesso ao Sweet & Coffee Week',
-      html: renderConvite(nomeMarca, link.properties.action_link),
-    }),
-  })
-
-  if (!envio.ok) {
-    return json({
-      ok: true,
-      participante_id: participanteId,
-      usuario: origemUsuario,
-      convite: 'falhou',
-      detalhe: await envio.text(),
-    }, 207)
-  }
-
+  // ── 7. AS CREDENCIAIS, UMA VEZ SÓ ──────────────────────────────────────────
+  // Não há e-mail de convite: o endereço de login é sintético e não recebe
+  // nada. Quem entrega é a organização, por WhatsApp ou copiando da tela.
   return json({
     ok: true,
     participante_id: participanteId,
-    usuario: origemUsuario,
-    convite: 'enviado',
+    login,
+    senha: senhaInicial,
+    email_contato: email,
+    troca_obrigatoria: true,
   })
 })
-
-// ── Template do convite ──────────────────────────────────────────────────────
-// Paleta institucional (CLAUDE.md §6.1), sem KV de edição e sem fonte externa:
-// @import de fonte é ignorado pela maioria dos clientes de e-mail, e a face
-// mono está proibida no projeto. Cyan #01AFCC sobre chocolate #3D1308 dá 4,9:1;
-// chocolate sobre cyan, 5,6:1 — o botão passa nos dois sentidos.
-function renderConvite(nomeMarca: string, linkAcesso: string): string {
-  const saudacao = nomeMarca ? `Oi, ${escapeHtml(nomeMarca)}!` : 'Oi!'
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#FEF0DD;font-family:Georgia,'Times New Roman',serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FEF0DD;">
-    <tr><td align="center" style="padding:32px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FEF0DD;border-radius:20px;overflow:hidden;border:2px solid #3D1308;">
-
-        <tr><td style="background:#3D1308;padding:32px 30px;">
-          <div style="font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#01AFCC;">Sweet &amp; Coffee Week</div>
-          <h1 style="margin:12px 0 0;font-size:32px;line-height:1.05;color:#FEF0DD;">Sua marca foi aprovada</h1>
-        </td></tr>
-
-        <tr><td style="padding:30px 32px 8px;color:#3D1308;font-size:16px;line-height:1.6;">
-          <p style="margin:0 0 14px;font-weight:bold;font-size:19px;color:#6A2C15;">${saudacao}</p>
-          <p style="margin:0 0 14px;">Sua inscrição foi aprovada e o acesso da sua marca já está criado.</p>
-          <p style="margin:0 0 14px;">O próximo passo é <strong>definir sua senha</strong> e completar o cadastro da edição — combo, fotos e informações de atendimento.</p>
-          <p style="margin:0 0 14px;">O link abaixo é pessoal e tem prazo. Se expirar, é só pedir um novo para a organização.</p>
-        </td></tr>
-
-        <tr><td style="padding:14px 32px 8px;text-align:center;">
-          <a href="${escapeHtml(linkAcesso)}" style="display:inline-block;background:#01AFCC;color:#3D1308;text-decoration:none;font-weight:bold;font-size:16px;padding:16px 34px;border-radius:999px;">Definir minha senha →</a>
-        </td></tr>
-
-        <tr><td style="padding:18px 32px 28px;color:#6A2C15;font-size:13px;line-height:1.5;">
-          <p style="margin:0;">Se o botão não abrir, copie este endereço no navegador:</p>
-          <p style="margin:6px 0 0;word-break:break-all;color:#3D1308;">${escapeHtml(linkAcesso)}</p>
-        </td></tr>
-
-        <tr><td style="background:#3D1308;padding:18px 28px;text-align:center;">
-          <div style="font-size:13px;font-weight:bold;letter-spacing:1px;color:#FEF0DD;">sweetcoffeeweek.com.br</div>
-        </td></tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
-}
-
-// O nome da marca vem do formulário público. Escapar não é zelo: é o mesmo
-// motivo pelo qual tests/organizacao.test.mjs exige escape de tudo que sai do
-// banco — só que aqui o destino é a caixa de e-mail de outra pessoa.
-function escapeHtml(s: string): string {
-  return (s || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
