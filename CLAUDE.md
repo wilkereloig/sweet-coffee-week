@@ -842,6 +842,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
+| Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
 | Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo. **Reformulado em 22/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
@@ -1811,6 +1812,50 @@ na `/em-breve`, que ganhou um cabeçalho reduzido só com o botão. Não há lin
 menu nem rodapé, de propósito. A senha é a mesma de `admin_config` e só se
 redefine por SQL (`select public.set_admin_secret($$…$$)`); o banco guarda só o
 hash, então **ela não é recuperável**.
+
+#### O painel é um app instalável — armadilhas do 22/08/2026
+
+🔴 **Service worker tem escopo de PASTA, não de configuração.** O do painel vive
+em `public/organizacao/sw.js` e é registrado com `scope: '/organizacao/'`.
+Servido da raiz, ele assumiria escopo `/` e passaria a interceptar **a landing
+que está no ar** — e desfazer isso não é deploy: é desregistro no navegador de
+cada visitante. `tests/organizacao.test.mjs` guarda as duas pontas.
+
+⚠️ **O HTML do painel é sempre `network-first`.** Como o JS é inline no
+documento, cachear o HTML congela o painel inteiro na versão antiga, e a
+correção só chega quando a pessoa limpa o navegador. Cache ali é socorro de rede
+caída, não estratégia.
+
+⚠️ **O SW nunca vê requisição ao banco** — corte por origem no primeiro `if` do
+handler de `fetch`. E **o nome do serviço não aparece no `sw.js` nem em
+comentário**: sem o host escrito, não há o que copiar e colar quando alguém for
+"fazer o offline funcionar". Offline está fora de escopo de propósito.
+
+⚠️ **Dois manifests, escopos disjuntos.** `/manifest.webmanifest` instala o
+**site**; `/organizacao/app.webmanifest` instala o **painel**. Barra final nos
+dois campos de escopo dos dois arquivos — sem ela o escopo vira a raiz e
+instalar o painel instalaria o site.
+
+⚠️ **Ícone maskable: a caixa é 326px em 512, não 410.** A máscara do Android
+recorta um círculo inscrito. Medido em pixel: com 410px sobravam **2191 pontos
+de tinta fora** do círculo; com 326px sobram 9px de folga e zero pixels fora.
+`public/favicon-512-maskable.png` foi gerado assim. **Regenerou a marca? remeça
+a caixa** — não herde o número.
+
+⚠️ **Altura de esqueleto se mede, não se calcula.** Um `.og-item` real dá
+**102px até 900px** e **99px acima** (abaixo de 900px o `.og-item__dir` ganha
+linha própria). A conta "padding + conteúdo" dava 74px e esquecia selo e data —
+com ela a lista pularia 28px por item na chegada dos dados, que é o defeito que
+o esqueleto existe para evitar.
+
+⚠️ **O bloco `prefers-reduced-motion` fica por último no `<style>`, sempre.** Ele
+zera animação e transição de tudo que veio antes; regra acrescentada depois dele
+escapa sem ninguém notar. Há teste.
+
+⛔ **Atualização otimista de status não entrou, e é decisão.** `salvar()` só diz
+"Salvo." depois de o servidor confirmar (§4.1, com teste). Antecipar a
+*aparência* é permitido; antecipar a *afirmação* não. Num painel que decide
+aprovação de marca, otimismo mal feito é pior que lentidão.
 
 ### 10.5 Grade e layout
 
