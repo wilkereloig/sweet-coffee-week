@@ -257,8 +257,11 @@ src/
   data/         sweetCoffeeHistory.js, loversAwardsResults.js, participants.js,
                 sweetAwards.js, participantAssets.js, editionAssets.js,
                 faqCentral.js (93 dúvidas), imageLibrary.js,
+                imageVariants.js (GERADO — não editar à mão),
                 handoff/{edicoesData,awardsData}.js
   data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
+  lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js,
+                contactRequest.js, participationInterest.js, supportInterest.js
   hooks/        useSiteMotion.js (motor de movimento do institucional)
                 useRevealOnScroll.js (sistema anterior, só /em-breve)
   styles/scw-2026.css      SISTEMA VISUAL ATUAL: tokens --scw-*, casca, utilitárias
@@ -268,14 +271,36 @@ src/
   styles/motion-system.css movimento do sistema ANTERIOR — só serve /em-breve
   styles/fonts-nexa-slab.css
   App.jsx · router.js
+scripts/        gerar-variantes.mjs (produz as variantes e o imageVariants.js)
 public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
                 momentos/, campanha/, imprensa/, shapes/
+                + variantes `NN-480.webp` / `NN-960.webp` ao lado do original
 public/fonts/nexa-slab/
+public/manifest.webmanifest   camada de aplicativo (theme-color, ícones, iOS)
+public/quero-participar/ · public/organizacao/   estáticas, fora do bundle (§10.4-b)
 acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
 ⚠️ **Não devolver o acervo bruto para dentro de `public/`.** Ele morava lá e o Vite
 copiava 58 GB a cada build. Movido para a raiz, o build caiu para ~364 MB / ~5 s.
+
+#### Variantes responsivas de imagem — como funciona, e o que não fazer
+
+Cada foto do acervo ganha versões estreitas em disco (`480`, `960`), e o componente pede
+a certa por `srcSet(src)` + `sizes={SIZES.*}` de `imageLibrary.js`. O celular passou a
+baixar de **72% a 92% menos** por página.
+
+- **`imageVariants.js` é GERADO.** Sai de `node scripts/gerar-variantes.mjs`. ⛔ **Não
+  editar à mão** — vale a mesma regra de `scw-icons-v2.js` (§6.11). Acrescentou foto ao
+  acervo? Rodar o script.
+- **A tabela é permissiva de propósito.** Caminho que não está nela sai **sem** `srcset` e
+  o navegador usa o original — o comportamento de antes. Então uma foto nova nunca
+  quebra; ela só deixa de economizar até o script rodar.
+- **O original é o último candidato do `srcset`, com a largura real dele.** Sem essa
+  entrada a tela grande cairia na variante de 960px e a foto ficaria mole no desktop.
+- **Três `sizes` fechados**, e não um valor por chamada: `miniatura` (fita e galeria),
+  `cartao` (pódio e grade), `cheia` (foto que sangra). Valor solto em componente é a
+  segunda fonte de verdade que o §5.2 proíbe.
 
 ### 4.3 A demolição — feita em 07/08/2026
 
@@ -366,6 +391,8 @@ duas vezes da mesma fonte — não vira dois arquivos.
 | Movimento | tokens `--mo-*` em `src/styles/scw-motion.css` + `useSiteMotion.js` |
 | Estrutura de herói / seção | um componente, não uma cópia por página |
 | Caminho de imagem | `src/data/imageLibrary.js` |
+| Variante responsiva de foto | `src/data/imageVariants.js` — **gerado**, ver §4.2 |
+| Largura pedida ao navegador | `SIZES` em `src/data/imageLibrary.js` (3 papéis, fechados) |
 | Dado histórico | `src/data/sweetCoffeeHistory.js` |
 | Pódios da edição 2026.1 | `src/data/loversAwardsResults.js` |
 | Perguntas frequentes | `src/data/faqCentral.js` |
@@ -770,36 +797,38 @@ devolveriam a altura economizada. Não testar de novo.
 
 Se um dia a uniformidade voltar a pesar mais que a altura, o certo é **levar as cinco
 para a mesma proporção**, não devolver estas duas para o quadrado.
-- **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
-  06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
-  (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo
-  (`--scw-banda-base: var(--scw-roxo)`).
+⛔ **A rampa em S por máscara MORREU junto com o véu.** Até 22/08/2026 a banda era
+recortada por `mask-image` em smoothstep `t²(3−2t)`, com os tokens `--scw-esfuma` /
+`--scw-esfuma-topo` e `--scw-banda-base`. **Os três tokens não existem mais no CSS**, e a
+geometria de `44vh / 340px` da banda de desktop do Awards saiu junto: as cinco páginas
+usam a mesma foto quadrada no fluxo. A emenda hoje é a linha da tabela acima — `::after`
+na própria foto, rampa de três paradas, na cor do bloco.
 
-**Corte da foto — rampa em S, não `box-shadow`.** `.scw-hero-banda::before` (topo) e
-`::after` (base) são **máscaras** (`mask-image`) usando os tokens `--scw-esfuma` /
-`--scw-esfuma-topo`: uma rampa **smoothstep `t²(3−2t)`**, não linear.
-
-> Motivo: degradê **linear** em alpha lê como faixa dura — **o olho enxerga a derivada,
-> não o valor**, então o ponto onde a rampa começa e onde termina viram arestas. A curva
-> em S cola em 0 e em 1 nas duas pontas. É **máscara** e não degradê colorido de
-> propósito: a mesma rampa serve qualquer cor de fechamento.
-> **Base = 62% da altura da banda (~164px).**
-
-⚠️ **A banda fecha na cor do BLOCO, não do herói.** `--scw-banda-base` tem como padrão o
-chocolate de `.scw-hero-bloco`. Só quem repinta o bloco sobrescreve (`.pa-hero` →
-`--scw-heroi`: cyan em Participar, marrom em Apoiar; Contato pinta bege no celular;
-Awards pinta roxo). **Errar isso deixa uma linha dura na emenda** — o `box-shadow` curto
-de antes escondia, a rampa longa expõe.
+> **O que continua valendo dessa história, e por que:** degradê **linear** em alpha lê
+> como faixa dura — *o olho enxerga a derivada, não o valor* —, então a rampa de três
+> paradas existe pelo mesmo motivo que a smoothstep existia. Mudou o mecanismo (cor sobre
+> a foto, não máscara), não a razão. Rampa de duas paradas volta a marcar aresta.
 
 ⚠️ **Ponto focal por breakpoint:** `bgStyle()` resolve **um** valor, e style inline
 **vence media query**. Elemento único que aparece nas duas telas com enquadramento
 diferente manda os dois como custom property (`--foco` / `--foco-mobile`) e deixa o CSS
-escolher.
+escolher. É o arranjo que `HeroFotos.jsx` usa.
 
-**Fotos fixas por página** vêm de `heroPhotos(rota)` em `src/data/imageLibrary.js` —
-**caminho de imagem não se escreve à mão na página**:
-Participar → `/images/combos/douce-di-maria/main.jpg` · Apoiar → `/images/momentos/04.jpg`
-· Contato → `/images/campanha/15.jpg` · Sweet Awards → `/images/edicoes/2026.1/01.webp`
+**As fotos vêm de `heroPhotos(rota)`** em `src/data/imageLibrary.js` — **caminho de
+imagem não se escreve à mão na página** (§6.12). ⚠️ **Deixaram de ser foto única e viraram
+séries em crossfade**, montadas por `HeroFotos.jsx` a cada 6,2s:
+
+| Rota | Série | Nº |
+|---|---|---|
+| Home | combos e momentos de várias edições | 4 |
+| Participar | `participantes-lojas/01–11` | 11 |
+| Apoiar | `participantes-lojas/12–22` | 11 |
+| Contato | `sweet-lovers/01–05` | 5 |
+| Sweet Awards | `awards-entrega/01–06` | 6 |
+
+⚠️ **As 22 fotos de loja são divididas, não compartilhadas:** Participar leva a primeira
+metade, Apoiar a segunda, e **nenhuma imagem se repete entre os dois heróis**. Ao
+acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar nada visível.
 
 ### 6.10 Componentes
 
@@ -1723,10 +1752,18 @@ salto de reinício.
 ### 10.4 Degradês, máscaras e emendas
 
 ⚠️ **Degradê linear em alpha lê como faixa dura.** *"O olho enxerga a derivada, não o
-valor."* Usar rampa **smoothstep `t²(3−2t)`** como **máscara**, não degradê colorido.
+valor."* Uma rampa de **duas** paradas marca aresta nos dois pontos onde começa e termina;
+é preciso ao menos **três**, com a do meio quebrando a reta.
 
-⚠️ **A banda fecha na cor do BLOCO, não do herói.** Errar isso deixa uma linha dura na
-emenda — o `box-shadow` curto de antes escondia, a rampa longa expõe.
+⚠️ **O mecanismo mudou em 22/08/2026, o princípio não.** A rampa era uma **máscara** em
+smoothstep `t²(3−2t)` (`--scw-esfuma`); hoje é **cor sobre a foto**, em três paradas, no
+`::after` da própria imagem (§6.9). ⛔ **`--scw-esfuma`, `--scw-esfuma-topo` e
+`--scw-banda-base` não existem mais — não reintroduzir.**
+
+⚠️ **A emenda fecha na cor do BLOCO, não do herói.** Errar isso deixa uma linha dura —
+o `box-shadow` curto de antes escondia, a rampa longa expõe. **É por isso que a chapa do
+bloco é obrigatória no celular** (§6.9): sem ela o Contato sairia chocolate sobre
+chocolate.
 
 ⚠️ **`bgStyle()` resolve UM valor e style inline vence media query.** Elemento que aparece
 nas duas telas com enquadramento diferente **tem** que mandar `--foco` e `--foco-mobile`.

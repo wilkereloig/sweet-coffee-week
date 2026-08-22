@@ -108,14 +108,6 @@
      que os dois papéis divergem. */
   --scw-heroi:       var(--scw-choco);
   --scw-heroi-tinta: var(--scw-creme);
-
-  /* --- corte esfumado de foto --------------------------------------------
-     Rampa em S (smoothstep t²(3−2t)) usada como MÁSCARA no corte das fotos.
-     Uma rampa linear em alpha lê como faixa: o olho enxerga a derivada, não
-     o valor, então o ponto onde ela começa e onde termina viram arestas. A
-     curva em S cola em 0 e em 1 nas duas pontas — o corte some em vez de
-     terminar. É máscara e não degradê colorido de propósito: a mesma rampa
-     serve qualquer cor de fechamento (cada página fecha na sua). */
 }
 
 /* Cor principal por página: menu ativo e selo do herói. Mesmos ids de rota do
