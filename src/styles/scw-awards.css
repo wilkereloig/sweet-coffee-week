@@ -50,6 +50,20 @@
   padding-bottom: var(--scw-hero-fecho);
 }
 
+/* No celular o Awards entra na MESMA construção das outras quatro (22/08/2026,
+   pedido do Eloi): foto quadrada em cima, esfumada na base, texto embaixo na
+   chapa roxa. A geometria da banda e o esfumado são do sistema
+   (`.scw-hero-banda` em scw-2026.css); aqui fica só o que é desta seção — o
+   piso de altura e o padding, que moram neste arquivo e venceriam a regra
+   compartilhada por ordem de import. */
+@media (max-width: 1000px) {
+  .swa-hero {
+    min-height: 0;
+    justify-content: flex-start;
+    padding: 0 0 clamp(30px, 7vw, 44px);
+  }
+}
+
 /* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
    com o herói roxo ele sumiria contra o fundo. Inverte: creme com tinta roxa,
    mesma cor, mesmo contraste (9,95:1), agora legível. */

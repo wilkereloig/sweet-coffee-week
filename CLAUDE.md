@@ -725,38 +725,40 @@ Edições:**
 
 ### 6.9 Herói no celular (<1000px) — regra estrutural
 
-⚠️ **A regra dos "dois blocos empilhados" foi REVOGADA em 21/08/2026** (pedido do Wilke):
-o celular passou a ter a **mesma construção do desktop** — a foto (`.scw-hero-banda`,
-`inset: 0`) cobre o herói inteiro e o texto vem por cima. O que sustenta a leitura é o
-véu (`.scw-hero-veu`), que no celular fecha muito mais que no desktop e desliga o
-degradê horizontal (em tela estreita o texto ocupa a largura toda e não há terço direito
-para abrir). **Não recriar os dois blocos.**
+**DOIS BLOCOS, NAS CINCO PÁGINAS — construção fechada em 22/08/2026** (pedido do Eloi:
+*"aplica a mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada uma
+mantém a sua cor"*). Foto quadrada de largura cheia em cima, esfumada na base, texto
+embaixo sobre a chapa sólida da página.
 
-- **Reserva de topo** — é o que deixa a foto respirar antes de o texto começar:
-  `clamp(232px, 34svh, 320px)` em `.scw-hero-bloco` (Participar, Apoiar, Contato).
-  Em `svh`, não `vh`: com `vh` a reserva pulava quando a barra do Safari recolhia.
-- ⛔ **Herói de celular não tem piso de altura.** `min-height: 0` — a altura é
-  proporcional ao conteúdo (§6.8). A combinação anterior (reserva de 44vh **mais**
-  `min-height: 100svh`) punha o herói de Participar em **943px num viewport de 844**: a
-  lead cortava e as duas ações ficavam abaixo da dobra. Com o ajuste de 22/08/2026,
-  Participar e Apoiar medem **858px** e Contato **645px**. **Não devolver o piso.**
-- ⛔ **A HOME saiu desta construção em 22/08/2026** (pedido do Eloi). No celular ela
-  voltou a ser **dois blocos**, e desta vez com geometria fechada: a foto é um
-  **quadrado de largura cheia** (`.scw-hero__fotos` em `aspect-ratio: 1`, no fluxo) e o
-  texto vem **embaixo, sobre a chapa chocolate sólida** do próprio herói — creme sobre
-  chocolate, 12:1, sem depender de véu. O piso de altura dela saiu junto: mede foto +
-  texto. **Não devolver a foto para `inset: 0` na Home.**
-  - O que motivou: título creme sobre rostos e áreas claras da foto, sem leitura
-    garantida, e a foto em zoom de recorte.
-  - **O zoom é consequência da caixa, não de enquadramento:** `cover` num quadrado corta
-    ~33% da largura de uma foto 3:2, contra ~70% na caixa alta que a foto tinha antes.
-  - **A emenda é esfumada até o limite da foto** (`.scw-hero__fotos::after`, rampa de
-    três paradas): a foto dissolve no chocolate em vez de terminar numa aresta. Sem
-    isso o recorte aparece.
-  - Véu, `__topo` e `__base` ficam em `display: none` no celular — a função dos três foi
-    absorvida pelo esfumado, e mantê-los só escureceria a imagem que o pedido quer
-    mostrar melhor.
-- **Sweet Awards** (`.swa-hero`) tem construção própria e **mantém** o piso de `100svh`.
+| Peça | Regra |
+|---|---|
+| Foto | `.scw-hero-banda` (`.scw-hero__fotos` na Home) **no fluxo**, `aspect-ratio: 1`, largura cheia. Em 390px são 390px — ~46% de um viewport de 844 |
+| Emenda | `::after` na própria foto, rampa de **três** paradas, na cor do bloco. A foto dissolve na chapa em vez de terminar numa aresta |
+| Chapa | `background: var(--scw-heroi)` + `color: var(--scw-heroi-tinta)` — chocolate na Home, cyan em Participar, marrom em Apoiar, bege em Contato, roxo no Awards |
+| Véu | `display: none`. Existia para segurar texto SOBRE foto, e não há mais texto sobre foto |
+| Altura | `min-height: 0` — foto + texto, sem piso (§6.8) |
+
+⚠️ **A chapa é obrigatória, e é o erro que custaria caro.** Antes quem pintava a cor do
+herói era o VÉU, por cima da foto; o bloco podia ficar no chocolate padrão. Sem véu e sem
+esta linha, o título de **Contato sairia chocolate sobre chocolate** — a tinta do herói
+dele é escura.
+
+**Contrastes medidos, todos acima de 4,5:1:** creme sobre chocolate 12:1 · chocolate
+sobre cyan 5,6:1 · creme sobre marrom 9,44:1 · chocolate sobre bege 13:1 · creme sobre
+roxo 9,95:1.
+
+**O zoom é consequência da caixa, não de enquadramento:** `cover` num quadrado corta ~33%
+da largura de uma foto 3:2, contra ~70% na caixa alta de antes. Foi o que motivou a
+mudança, junto com o título caindo sobre rostos e áreas claras.
+
+⛔ **Não devolver a foto para `inset: 0`, não recriar o véu no celular, não devolver piso
+de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
+a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
+
+**Alturas medidas em 390×844 depois da mudança:** Home 905px · Participar e Apoiar 983px
+· Contato 770px · Awards 826px. As duas maiores levam as ações para logo abaixo da dobra;
+os dois jeitos de encurtar, se algum dia for pedido, são pôr as duas ações lado a lado ou
+tirar a foto do 1:1 — **nenhum dos dois foi feito, porque o quadrado é o pedido.**
 - **Sweet Awards é a única página com banda no DESKTOP também** — pedido do Eloi,
   06/08/2026: *"a mesma foto nas duas versões"*. Desktop **44vh / mínimo 340px**
   (`scw-awards.css`), celular **36vh / 232px**. Fecha em roxo

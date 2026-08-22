@@ -1701,19 +1701,73 @@ body:not(.route-em-breve) { margin: 0; }
      bloco `.scw-hero__fotos` no topo desta media query). O piso de altura dela
      saiu junto — o herói da Home passou a ser foto + texto, medido pelo
      conteúdo, como os outros desde o ajuste de altura deste mesmo dia. */
-  /* AJUSTE 22/08/2026 (pedido do Eloi: "a altura da hero está enorme").
-     Duas forças somavam e o herói passava da tela: uma reserva de 44vh (371px
-     num 844) MAIS um piso de 100svh. Em Participar o resultado media 943px num
-     viewport de 844 — a lead cortava e as duas ações ficavam abaixo da dobra.
-     O piso sai: altura de herói é proporcional ao conteúdo, nunca rígida
-     (§6.8). E a reserva volta aos 232px/34svh da geometria documentada no
-     §6.9, em `svh` para não pular quando a barra do Safari recolhe.
-     ⚠️ Isto vale para Participar, Apoiar e Contato — as três que usam
-     `.scw-hero-bloco`. A Home tem construção própria (`.scw-hero__col`) e não
-     se mexe sem pedido (A6). */
-  .scw-hero-bloco {
+  /* UMA CONSTRUÇÃO SÓ PARA AS CINCO — 22/08/2026, pedido do Eloi: "aplica a
+     mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada
+     uma mantém a sua cor". É o desenho estreado na Home no mesmo dia, agora
+     como peça do sistema: foto quadrada de largura cheia em cima, esfumada na
+     base, texto embaixo sobre a chapa sólida DA PÁGINA.
+     A geometria é idêntica nas cinco; o que muda é `--scw-heroi`, que já é a
+     cor de cada rota (§6.2) — cyan em Participar, marrom em Apoiar, bege em
+     Contato, roxo no Awards, chocolate na Home.
+
+     Substitui a reserva de topo (232px/34svh) do ajuste de altura de horas
+     antes: com a foto no fluxo não existe mais o que reservar — ela ocupa o
+     topo de verdade, em vez de passar por baixo do texto. */
+  .scw-hero-bloco,
+  .scw-hero-bloco--compacto {
     min-height: 0;
-    padding-top: clamp(232px, 34svh, 320px);
+    justify-content: flex-start;
+    /* A foto sangra até as bordas; o trilho volta no bloco de texto. */
+    padding: 0 0 clamp(30px, 7vw, 44px);
+    /* ⚠️ OBRIGATÓRIO, e é o que mais custaria caro esquecer: sem véu, quem
+       carrega a cor do herói é a CHAPA. Antes o véu é que pintava — daí o
+       bloco poder ficar no chocolate padrão. Em Contato a tinta do herói é
+       chocolate; sem esta linha o título sairia chocolate sobre chocolate. */
+    background: var(--scw-heroi);
+    color: var(--scw-heroi-tinta);
+  }
+  /* A foto deixa de cobrir o herói e vira bloco próprio, quadrado. O zoom cai
+     junto por geometria: `cover` num 1:1 corta ~33% da largura de uma foto 3:2,
+     contra ~70% na caixa alta de antes. */
+  .scw-hero-banda {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+  }
+  /* O esfumado da emenda, na cor do bloco: a foto dissolve na chapa em vez de
+     terminar numa aresta. Em cima, um respiro escuro para a marca do cabeçalho,
+     que pousa sobre a foto — esse fica no chocolate em todas, porque o que ele
+     precisa sustentar é o selo, não a cor da página.
+     ⚠️ Rampa de três paradas, não duas: degradê linear em alpha lê como faixa
+     dura, e o olho enxerga a derivada, não o valor (§10.4). */
+  .scw-hero-banda::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(to top,
+        var(--scw-heroi) 0%,
+        color-mix(in srgb, var(--scw-heroi) 72%, transparent) 9%,
+        color-mix(in srgb, var(--scw-heroi) 22%, transparent) 22%,
+        transparent 38%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--scw-choco) 62%, transparent) 0%,
+        color-mix(in srgb, var(--scw-choco) 18%, transparent) 12%,
+        transparent 26%);
+  }
+  /* Véu desligado nas cinco: ele existia para segurar a leitura de texto SOBRE
+     a foto, e não há mais texto sobre a foto. Mantê-lo só escureceria a imagem
+     que o pedido quer mostrar melhor. */
+  .scw-hero-veu::after { display: none; }
+  /* O texto recupera o trilho e o respiro de abertura. */
+  .pa-hero__grade,
+  .ctt-abertura__grade,
+  .swa-hero__texto {
+    padding: clamp(26px, 6vw, 40px) var(--scw-trilho) 0;
   }
   /* Tela estreita: o texto ocupa a largura toda, então o degradê horizontal
      não tem para onde abrir — desliga, e quem carrega a leitura é o vertical,
