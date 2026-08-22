@@ -7,6 +7,22 @@
 <title>Organização — Sweet &amp; Coffee Week</title>
 <link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
 
+<!-- Instalável na tela inicial, em escopo próprio.
+     ⚠️ Manifest PRÓPRIO, não o /manifest.webmanifest da raiz: aquele tem
+     start_url e scope em "/" e instalaria o SITE. São dois apps distintos, com
+     escopos que não se sobrepõem porque /organizacao/ é mais específico. -->
+<link rel="manifest" href="/organizacao/app.webmanifest">
+<meta name="theme-color" content="#3D1308">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!-- `default`, não `black-translucent`: o segundo joga o conteúdo por baixo da
+     status bar do iOS e exige compensar com env(safe-area-inset-top). Fica
+     melhor, mas eu não tenho como conferir num iPhone real — e header por baixo
+     do relógio é defeito que só aparece no aparelho. Trocar é uma linha. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SCW Painel">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nexa-slab/NexaSlab-Bold.woff2">
+
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    Painel da organização — Sweet & Coffee Week
@@ -42,32 +58,124 @@
   --scw-ease:cubic-bezier(.22,.9,.24,1);
   --scw-transicao:200ms var(--scw-ease);
   --trilho:clamp(16px,3vw,40px);
+  /* O painel não importa scw-2026.css, então --scw-safe-b é declarado aqui.
+     É o vão do notch na base do iPhone: sem ele a barra de abas fica por baixo
+     do indicador de home e a última aba deixa de ser tocável. */
+  --scw-safe-b:env(safe-area-inset-bottom, 0px);
+  --og-abas-h:68px;
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{
   background:var(--scw-creme);color:var(--scw-choco);
   font:500 15px/1.5 var(--scw-font);
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  /* A CASCA NÃO ROLA — quem rola é a vista ativa, por dentro. É o que separa
+     "página web" de "app": aqui a barra de abas e o cabeçalho ficam parados por
+     construção, não por `sticky`. `overscroll-behavior:none` mata o
+     pull-to-refresh, que num painel interno só serve para perder o filtro. */
+  overflow:hidden;
+  overscroll-behavior:none;
 }
 :focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:4px}
 button,input,select,textarea{font:inherit;color:inherit}
 
 /* ── Casca ─────────────────────────────────────────────────────────────── */
+/* Três faixas: topo · conteúdo · abas. O topo NÃO é mais `sticky` — numa casca
+   em grid ele é a primeira linha e já fica parado por construção, então
+   `position` e `z-index` viraram peso morto. */
+#painel{
+  height:100dvh;                      /* dvh, não vh: no iOS o vh conta a barra
+                                         do Safari e as abas somem atrás dela */
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  /* ⚠️ A COLUNA PRECISA SER DECLARADA. Declarar só `grid-template-rows` deixa a
+     coluna implícita em `auto`, e coluna `auto` dimensiona por MAX-CONTENT: o
+     grid inteiro cresce até a largura que o item mais largo gostaria de ter. O
+     cabeçalho é um flex sem quebra e pedia 671px, então a casca ficava com
+     671px em QUALQUER viewport menor — estourava de 430 a 671 e passava
+     despercebido nos extremos. `minmax(0,1fr)` prende a coluna à largura real. */
+  grid-template-columns:minmax(0, 1fr);
+}
 .og-topo{
   background:var(--scw-choco);color:var(--scw-creme);
   padding:14px var(--trilho);
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:14px;
+  min-width:0;                        /* item de grid encolhe (§10.5) */
 }
-.og-topo__marca{height:38px;width:auto;display:block}
-.og-topo__titulo{font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0}
+/* O bloco do título é o único que pode ceder: marca e botões têm tamanho
+   próprio. Sem `min-width:0` ele se recusa a encolher e devolve o estouro. */
+.og-topo__texto{min-width:0;overflow:hidden}
+.og-topo__marca{height:38px;width:auto;display:block;flex:0 0 auto}
+.og-topo__titulo{
+  font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .og-topo__sub{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin:6px 0 0}
-.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px}
+.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
 
-.og-corpo{padding:clamp(20px,3vw,34px) var(--trilho) 80px;max-width:1600px;margin:0 auto}
+/* Segmented control do desktop: os MESMOS três destinos da barra de abas.
+   Reusa `.og-aba`, que já é o vocabulário de pill do arquivo — criar um
+   terceiro seria inventar linguagem dentro do mesmo produto. Só a chapa muda,
+   porque aqui o fundo é chocolate. */
+.og-topo__destinos{display:flex;gap:8px;margin-left:18px}
+.og-topo__destinos .og-aba{box-shadow:inset 0 0 0 1px rgba(254,240,221,.28);color:var(--scw-creme)}
+.og-topo__destinos .og-aba.is-ativa{background:var(--scw-amarelo);color:var(--scw-choco);box-shadow:none;font-weight:800}
+@media (max-width:900px){ .og-topo__destinos{display:none} }
+
+.og-corpo{min-height:0;min-width:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
+
+/* Quem rola é a vista ativa. */
+.og-vista{
+  height:100%;
+  overflow-y:auto;
+  overscroll-behavior:contain;        /* sem isto, rolar até o fim da lista
+                                         arrasta a casca inteira no iOS e a
+                                         ilusão de app morre na 1ª interação */
+  -webkit-overflow-scrolling:touch;
+  padding:clamp(20px,3vw,34px) var(--trilho) calc(24px + var(--scw-safe-b));
+  max-width:1600px;margin:0 auto;width:100%;
+}
+.og-vista[hidden]{display:none}
+
+/* ── Barra de abas (≤900px) ────────────────────────────────────────────── */
+/* Espelha a `.scw-abas` do site (MobileTabBar.jsx): mesma geometria, mesmo
+   indicador deslizante. Não é uma segunda linguagem de navegação. */
+.og-abasapp{
+  background:var(--scw-choco);
+  padding-bottom:var(--scw-safe-b);
+  border-top:1px solid rgba(254,240,221,.14);
+}
+/* O 4 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
+   aqui — o indicador deslizante mede a coluna, não o botão. */
+.og-abasapp__grade{
+  position:relative;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  height:var(--og-abas-h);
+}
+.og-abasapp__indicador{
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / 4);
+  background:var(--scw-amarelo);border-radius:0 0 3px 3px;
+  transform:translateX(calc(var(--og-i,0) * 100%));
+  transition:transform 300ms var(--scw-ease);
+}
+.og-abaapp{
+  min-height:44px;                    /* piso de toque no CONTROLE (§6.10/§10.2) */
+  background:transparent;border:0;cursor:pointer;color:var(--scw-creme);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  opacity:.62;transition:opacity var(--scw-transicao);
+}
+.og-abaapp.is-ativa{opacity:1;color:var(--scw-amarelo)}
+.og-abaapp__icone{width:22px;height:22px;transition:transform 180ms var(--scw-ease)}
+.og-abaapp.is-ativa .og-abaapp__icone{transform:scale(1.12)}
+.og-abaapp__rotulo{font:700 11px/1 var(--scw-font);text-transform:lowercase}
+
+/* Acima de 900px a barra sai e os destinos vivem no cabeçalho (§6.14). */
+@media (min-width:901px){
+  .og-abasapp{display:none}
+  #painel{grid-template-rows:auto 1fr}
+}
 
 /* ── Botões ────────────────────────────────────────────────────────────── */
 .og-btn{
@@ -96,7 +204,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-campo textarea{min-height:110px;resize:vertical}
 
 /* ── Entrada ───────────────────────────────────────────────────────────── */
-.og-entrada{min-height:100dvh;display:grid;place-items:center;padding:24px}
+/* `height` + `overflow-y:auto`, não `min-height`: agora que o body é
+   `overflow:hidden`, um cartão mais alto que a tela ficaria cortado sem saída
+   — o teclado do celular aberto produz exatamente esse caso. */
+.og-entrada{height:100dvh;overflow-y:auto;display:grid;place-items:center;padding:24px}
 .og-entrada__cartao{
   width:min(420px,100%);background:#fff;border-radius:var(--scw-r-card);
   border:1px solid var(--scw-filete);padding:clamp(26px,4vw,38px);
@@ -189,6 +300,18 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--scw-bege);color:var(--scw-choco);white-space:nowrap;
 }
 .og-selo[data-novo="1"]{background:var(--scw-amarelo)}
+/* Selo de acesso: anda LADO A LADO com o selo de status, então não pode repetir
+   a cor dele (§6.3). O amarelo é do "novo"; sobram laranja (4,78:1 sobre
+   chocolate), cyan (5,6:1) e o chocolate cheio com tinta creme (12:1). */
+.og-selo[data-acesso="aguardando_cadastro"]{background:var(--scw-laranja)}
+.og-selo[data-acesso="em_preenchimento"]{background:var(--scw-cyan)}
+.og-selo[data-acesso="cadastro_completo"]{background:var(--scw-choco);color:var(--scw-creme)}
+
+/* Marca sem folha de detalhe própria: reusa a linha da lista, mas sem cursor de
+   clique e sem a elevação do hover. Card que sobe sem ter para onde levar
+   promete uma tela que não existe (§6.15, regra 6). */
+div.og-item{cursor:default}
+div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 
 /* ── Estados ───────────────────────────────────────────────────────────── */
 .og-estado{
@@ -230,12 +353,71 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-bloco{border-top:1px solid var(--scw-filete);padding-top:22px;display:flex;flex-direction:column;gap:14px}
 .og-bloco h3{font:900 15px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
 
+/* Saída com movimento nas duas telas: gaveta sai pela direita, folha desce.
+   Sem isso o detalhe some com um corte, e corte denuncia que não é app. */
+.og-detalhe.is-fechando{animation:ogGavetaSai 260ms var(--scw-ease) forwards}
+@keyframes ogGavetaSai{to{transform:translateX(100%)}}
+
 @media (max-width:900px){
-  .og-detalhe{width:100%;border-left:0}
-  .og-topo__dir{width:100%;margin-left:0}
+  /* No celular o padrão é folha subindo da base — a mesma peça do site
+     (`.scw-folha`, do MobileMenu), não uma gaveta lateral encolhida. */
+  .og-detalhe{
+    top:auto;right:0;left:0;bottom:0;width:100%;
+    max-height:88svh;                 /* svh, não vh: teclado aberto não empurra */
+    border-radius:30px 30px 0 0;border-left:0;
+    animation:ogFolha 340ms var(--scw-ease);
+  }
+  .og-detalhe.is-fechando{animation:ogFolhaSai 260ms var(--scw-ease) forwards}
+  /* ⚠️ O topo precisa ser sticky: numa folha alta, sem isto o botão Fechar sai
+     de cena junto com a rolagem e a pessoa perde a saída do painel. */
+  .og-detalhe__topo{border-radius:30px 30px 0 0;position:sticky;top:0;z-index:1}
+  /* O cabeçalho virou linha única sem `flex-wrap` — em 390px precisa caber.
+     O subtítulo sai (a marca ao lado já diz de quem é o painel) e o título
+     encolhe; os dois botões mantêm o piso de toque. */
+  .og-topo{padding:10px var(--trilho);gap:10px}
+  .og-topo__marca{height:30px}
+  .og-topo__titulo{font-size:14px}
+  .og-topo__sub{display:none}
+  .og-topo__dir{gap:8px}
+  /* ⚠️ `--mini` nasceu com 38px, que serve de sobra no desktop e reprova no
+     celular: o piso do §6.10 é 44px no CONTROLE. Vale para Fechar, Atualizar e
+     Sair — os três só existem como `--mini`. A largura encolhe para compensar. */
+  .og-btn--mini{min-height:44px;padding:0 12px}
   .og-item{grid-template-columns:10px 1fr}
   .og-item__dir{grid-row:auto;grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-top:4px}
 }
+@keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes ogFolhaSai{to{transform:translateY(100%)}}
+/* ── Movimento ─────────────────────────────────────────────────────────── */
+/* Só `opacity` e `transform`: nada que cause layout (§6.15, regra 3). */
+.og-vista{animation:ogEntra 220ms var(--scw-ease)}
+@keyframes ogEntra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Esqueleto: enquanto os dados vêm, a lista mostra a FORMA do conteúdo, não uma
+   frase.
+   ⚠️ A ALTURA É MEDIDA, NÃO CALCULADA. Um `.og-item` real dá **102px até 900px**
+   e **99px acima** — abaixo de 900px o `.og-item__dir` ganha linha própria e o
+   card cresce. A conta "padding + conteúdo" dava 74px e esquecia o selo e a
+   data: a lista pularia 28px por item quando os dados chegassem, que é pior que
+   a tela em branco. Mexeu no `.og-item`? Remeça isto. */
+/* O esqueleto é `aria-hidden` — forma não é conteúdo. Quem usa leitor de tela
+   recebe o aviso por texto, nesta classe, que some da tela mas não da árvore. */
+.og-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.og-esqueleto{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.og-esqueleto li{
+  height:102px;border-radius:14px;
+  background:linear-gradient(90deg,
+    rgba(61,19,8,.05) 25%, rgba(61,19,8,.09) 37%, rgba(61,19,8,.05) 63%);
+  background-size:400% 100%;
+  animation:ogBrilho 1400ms ease-in-out infinite;
+}
+@keyframes ogBrilho{from{background-position:100% 0}to{background-position:0 0}}
+/* Acima de 900px o item encolhe 3px: o `__dir` volta para a mesma linha. */
+@media (min-width:901px){ .og-esqueleto li{height:99px} }
+
+/* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
+   que veio acima; regra nova acrescentada depois dele escaparia do
+   `prefers-reduced-motion` sem ninguém notar. */
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
   .og-btn:hover,.og-item:hover{transform:none}
@@ -265,10 +447,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 <div id="painel" hidden>
   <header class="og-topo">
     <img class="og-topo__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
-    <div>
+    <div class="og-topo__texto">
       <p class="og-topo__titulo">Painel da organização</p>
       <p class="og-topo__sub">Sweet &amp; Coffee Week</p>
     </div>
+    <nav class="og-topo__destinos" aria-label="Seções do painel">
+      <button class="og-aba is-ativa" type="button" data-vista="resumo">resumo</button>
+      <button class="og-aba" type="button" data-vista="respostas">respostas</button>
+      <!-- "marcas" e não "participantes": a tabela do banco se chama
+           `participantes`, mas o vocabulário da organização é marca (§9.3), e o
+           rótulo curto é o único que cabe numa barra de 4 colunas a 320px sem
+           quebrar a linha. Uma palavra só nas duas telas. -->
+      <button class="og-aba" type="button" data-vista="participantes">marcas</button>
+      <button class="og-aba" type="button" data-vista="formularios">formulários</button>
+    </nav>
     <div class="og-topo__dir">
       <button class="og-btn og-btn--vazado og-btn--mini" type="button" id="btn-atualizar">Atualizar</button>
       <button class="og-btn og-btn--claro og-btn--mini" type="button" id="btn-sair">Sair</button>
@@ -276,42 +468,92 @@ button,input,select,textarea{font:inherit;color:inherit}
   </header>
 
   <main class="og-corpo">
-    <div class="og-aviso" id="aviso" hidden></div>
-
-    <ul class="og-resumo" id="resumo"></ul>
-
-    <section class="og-forms">
-      <div class="og-forms__cabeca">
-        <h2>Os formulários</h2>
-        <p>Onde cada resposta desta tela nasce.</p>
-      </div>
-      <ul class="og-forms__lista" id="forms"></ul>
+    <!-- Três destinos. O conteúdo de cada um é o que já existia: os blocos
+         foram movidos inteiros, com os mesmos IDs, para que montarForms(),
+         montarAbas(), montarFiltroStatus() e render() continuem funcionando. -->
+    <section class="og-vista" id="vista-resumo" hidden>
+      <div class="og-aviso" id="aviso" hidden></div>
+      <ul class="og-resumo" id="resumo"></ul>
     </section>
 
-    <ul class="og-abas" id="abas" role="tablist"></ul>
+    <section class="og-vista" id="vista-respostas" hidden>
+      <ul class="og-abas" id="abas" role="tablist"></ul>
 
-    <div class="og-filtros">
-      <label class="og-campo og-campo--busca">
-        <span>Buscar</span>
-        <input type="search" id="busca" placeholder="nome, empresa ou e-mail">
-      </label>
-      <label class="og-campo">
-        <span>Status</span>
-        <select id="filtro-status"><option value="">Todos</option></select>
-      </label>
-      <label class="og-campo">
-        <span>Período</span>
-        <select id="filtro-periodo">
-          <option value="">Sempre</option>
-          <option value="7">Últimos 7 dias</option>
-          <option value="30">Últimos 30 dias</option>
-          <option value="90">Últimos 90 dias</option>
-        </select>
-      </label>
-    </div>
+      <div class="og-filtros">
+        <label class="og-campo og-campo--busca">
+          <span>Buscar</span>
+          <input type="search" id="busca" placeholder="nome, empresa ou e-mail">
+        </label>
+        <label class="og-campo">
+          <span>Status</span>
+          <select id="filtro-status"><option value="">Todos</option></select>
+        </label>
+        <label class="og-campo">
+          <span>Período</span>
+          <select id="filtro-periodo">
+            <option value="">Sempre</option>
+            <option value="7">Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+        </label>
+      </div>
 
-    <div id="area-lista"></div>
+      <div id="area-lista"></div>
+    </section>
+
+    <section class="og-vista" id="vista-participantes" hidden>
+      <section class="og-forms">
+        <div class="og-forms__cabeca">
+          <h2>Marcas com acesso</h2>
+          <p>Quem já tem conta para preencher o próprio cadastro.</p>
+        </div>
+        <div id="area-participantes"></div>
+      </section>
+    </section>
+
+    <section class="og-vista" id="vista-formularios" hidden>
+      <section class="og-forms">
+        <div class="og-forms__cabeca">
+          <h2>Os formulários</h2>
+          <p>Onde cada resposta desta tela nasce.</p>
+        </div>
+        <ul class="og-forms__lista" id="forms"></ul>
+      </section>
+    </section>
   </main>
+
+  <nav class="og-abasapp" aria-label="Seções do painel">
+    <div class="og-abasapp__grade">
+      <span class="og-abasapp__indicador" aria-hidden="true"></span>
+      <button class="og-abaapp is-ativa" type="button" data-vista="resumo" aria-current="page">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/><path d="M3.5 20h17"/>
+        </svg>
+        <span class="og-abaapp__rotulo">resumo</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="respostas">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/>
+        </svg>
+        <span class="og-abaapp__rotulo">respostas</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="participantes">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20"/>
+          <circle cx="10" cy="7.5" r="3.5"/><path d="M17.5 13.5h4"/><path d="M19.5 11.5v4"/>
+        </svg>
+        <span class="og-abaapp__rotulo">marcas</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="formularios">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/>
+          <rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="M8.5 11h7"/><path d="M8.5 15h4.5"/>
+        </svg>
+        <span class="og-abaapp__rotulo">formulários</span>
+      </button>
+    </div>
+  </nav>
 </div>
 
 <button class="og-fundo" id="fundo" hidden aria-label="Fechar detalhe"></button>
@@ -346,7 +588,11 @@ const ORIGENS = {
     // arquivos antes do rewrite do SPA. A barra final é obrigatória — sem ela a
     // rota cai no fallback do SPA e abre a landing.
     form: '/quero-participar/',
-    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro'],
+    // 'cadastro_completo' entra com a migration das contas: quando a marca
+    // termina o cadastro, `marca_concluir_cadastro` fecha a candidatura nesse
+    // status. Sem ele aqui, o painel mostraria a string crua e o filtro não
+    // ofereceria a opção.
+    status: ['novo','em_analise','contatado','aprovado','nao_selecionado','aguardando_cadastro','cadastro_completo'],
     titulo: r => r.empresa || r.nome,
     meta: r => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
     campos: {
@@ -399,6 +645,7 @@ const ORIGENS = {
 const ROTULO_STATUS = {
   novo:'Novo', em_analise:'Em análise', contatado:'Contatado', respondido:'Respondido',
   aprovado:'Aprovado', nao_selecionado:'Não selecionado', aguardando_cadastro:'Aguardando cadastro',
+  cadastro_completo:'Cadastro completo', em_preenchimento:'Preenchendo',
   em_negociacao:'Em negociação', fechado:'Fechado', arquivado:'Arquivado', encerrado:'Encerrado'
 };
 
@@ -411,11 +658,25 @@ const CHAVES = {
   telefone: ['telefone','whatsapp']
 };
 
+/* Os três destinos da casca. Não confundir com as quatro ORIGENS: origem é de
+   qual formulário a resposta veio; destino é onde a pessoa está no app. */
+const DESTINOS = ['resumo', 'respostas', 'participantes', 'formularios'];
+
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
 let dados = {};            // origem → array de registros
+/* As marcas com conta. Fica FORA de `dados` de propósito: `dados` é indexado
+   pelas quatro ORIGENS e `todos()` varre esse objeto inteiro — uma quinta chave
+   ali entraria na lista de respostas como se fosse um formulário. */
+let participantes = [];
+let participantesErro = '';  // por que a lista não veio; '' quando veio
 let aba = 'tudo';
 let selecionado = null;    // { origem, id }
+let vistaAtual = '';         // destino visível
+let rolagemVista = {};       // destino → scrollTop, para voltar onde parou
+let saidaDetalhe = null;     // timer da animação de fechamento
+let abasAppLigadas = false;  // listeners da casca já ligados (ver montarAbasApp)
+let ultimaCarga = 0;         // quando os dados chegaram, para a recarga ao voltar
 
 const $ = id => document.getElementById(id);
 const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
@@ -439,6 +700,27 @@ async function rpc(nome, corpo) {
     throw new Error(detalhe || ('HTTP ' + r.status));
   }
   return r.json();
+}
+
+/* Edge Function. Não é PostgREST: criar usuário no Auth exige a chave de
+   serviço, que não pode existir dentro de public/. A porta é a mesma senha do
+   painel, conferida por `admin_ok` do lado de lá.
+   O corpo do erro é lido antes do `ok` porque a função devolve motivo legível
+   em 401/409/422 — engolir isso deixaria "não deu" sem dizer o que houve. */
+async function chamarFuncao(nome, corpo) {
+  const r = await fetch(SUPABASE_URL + '/functions/v1/' + nome, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(corpo)
+  });
+  let dados = null;
+  try { dados = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status));
+  return dados || {};
 }
 
 /* ── Entrada ───────────────────────────────────────────────────────────── */
@@ -481,20 +763,108 @@ function abrirPainel() {
   painel.hidden = false;
   montarForms();
   montarAbas();
+  montarAbasApp();
   montarFiltroStatus();
   carregar();
 }
 
+/* ── Navegação da casca ────────────────────────────────────────────────── */
+/* Sem hash. A rota é estática e o hash é território do router do SPA; mexer
+   nele aqui só criaria confusão. sessionStorage basta e morre com a aba. */
+function irPara(vista) {
+  if (DESTINOS.indexOf(vista) < 0) vista = 'resumo';
+  const anterior = vistaAtual ? $('vista-' + vistaAtual) : null;
+
+  /* Segundo toque na aba já ativa rola ao topo. É comportamento de app que
+     ninguém pede e todo mundo usa. */
+  if (vista === vistaAtual) {
+    if (anterior) anterior.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  /* Guardar a rolagem antes de esconder: voltar para "Respostas" e cair no topo
+     da lista é a falha que mais entrega "isto é uma página web". */
+  if (anterior) { rolagemVista[vistaAtual] = anterior.scrollTop; anterior.hidden = true; }
+
+  vistaAtual = vista;
+  const alvo = $('vista-' + vista);
+  alvo.hidden = false;
+  void alvo.offsetHeight;            // força layout antes de restaurar a rolagem
+  alvo.scrollTop = rolagemVista[vista] || 0;
+
+  document.querySelectorAll('[data-vista]').forEach(function (b) {
+    const meu = b.dataset.vista === vista;
+    b.classList.toggle('is-ativa', meu);
+    if (meu) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+
+  const grade = document.querySelector('.og-abasapp__grade');
+  if (grade) grade.style.setProperty('--og-i', String(DESTINOS.indexOf(vista)));
+
+  try { sessionStorage.setItem('scw_org_vista', vista); } catch (e) { /* anônima */ }
+}
+
+function montarAbasApp() {
+  /* ⚠️ `abrirPainel()` roda a cada login, e sair + entrar de novo na mesma aba
+     ligaria um segundo listener em cada botão. Os elementos são estáticos, então
+     a ligação acontece uma vez só; o que se repete é apenas a escolha da vista
+     inicial, logo abaixo. */
+  if (!abasAppLigadas) {
+    abasAppLigadas = true;
+    document.querySelectorAll('[data-vista]').forEach(function (b) {
+      b.addEventListener('click', function () { irPara(b.dataset.vista); });
+    });
+    ligarTecladoAbas();
+  }
+
+  let inicial = 'resumo';
+  try { inicial = sessionStorage.getItem('scw_org_vista') || 'resumo'; } catch (e) {}
+  irPara(inicial);
+}
+
+/* ←/→ circulam entre as abas quando o foco está na barra. */
+function ligarTecladoAbas() {
+  const grade = document.querySelector('.og-abasapp__grade');
+  if (grade) {
+    grade.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+      const abas = [].slice.call(grade.querySelectorAll('.og-abaapp'));
+      const i = abas.indexOf(document.activeElement);
+      if (i < 0) return;
+      ev.preventDefault();
+      const proxima = abas[(i + (ev.key === 'ArrowRight' ? 1 : -1) + abas.length) % abas.length];
+      proxima.focus();
+      irPara(proxima.dataset.vista);
+    });
+  }
+}
+
 /* ── Carga ─────────────────────────────────────────────────────────────── */
+/* Esqueleto no lugar de "Carregando…". A primeira carga vem de quatro RPCs em
+   paralelo; mostrar a forma da lista faz a espera parecer progresso, e é a
+   única das três frentes de "app-like" que não custa risco nenhum. */
+function montarEsqueleto(quantos) {
+  const n = Math.max(1, quantos || 6);
+  let linhas = '';
+  for (let i = 0; i < n; i++) linhas += '<li></li>';
+  $('area-lista').innerHTML = '<ul class="og-esqueleto" aria-hidden="true">' + linhas + '</ul>' +
+    '<p class="og-oculto" role="status">Carregando as respostas.</p>';
+}
+
 async function carregar() {
-  mostrarEstado('carregando');
+  /* Recarga sabe quantos itens havia; a primeira carga chuta 6, que é o que
+     cabe numa tela de celular sem inventar altura. */
+  montarEsqueleto(Object.keys(dados).length ? filtrados().length : 6);
   const btn = $('btn-atualizar');
   btn.disabled = true;
   try {
     const chaves = Object.keys(ORIGENS);
     const listas = await Promise.all(chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })));
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
+    ultimaCarga = Date.now();
     aviso.hidden = true;
+    await carregarParticipantes();
     render();
   } catch (e) {
     // Erro de rede não pode virar tela branca nem "nenhum registro": as duas
@@ -502,6 +872,22 @@ async function carregar() {
     mostrarEstado('erro', e.message);
   } finally {
     btn.disabled = false;
+  }
+}
+
+/* Carga apartada, e que NÃO derruba as quatro origens.
+   ⚠️ A razão é concreta: `get_participantes` só existe depois de a migration
+   das contas ser aplicada. Dentro do `Promise.all` acima, um 404 dela levaria
+   o painel inteiro para a tela de erro — inclusive as respostas que já
+   funcionam hoje. Aqui a falha fica contida na vista das marcas, que a
+   explica em vez de fingir lista vazia. */
+async function carregarParticipantes() {
+  try {
+    participantes = (await rpc('get_participantes', { p_secret: senha })) || [];
+    participantesErro = '';
+  } catch (e) {
+    participantes = [];
+    participantesErro = e.message;
   }
 }
 
@@ -617,11 +1003,11 @@ function dataCurta(iso) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
+/* O estado 'carregando' saiu daqui em 22/08/2026: quem cobre a espera agora é
+   `montarEsqueleto()`. Sobraram os dois estados que são MENSAGEM, não espera. */
 function mostrarEstado(tipo, extra) {
   const area = $('area-lista');
-  if (tipo === 'carregando') {
-    area.innerHTML = '<div class="og-estado"><h2>Carregando…</h2><p>Buscando as respostas dos quatro formulários.</p></div>';
-  } else if (tipo === 'erro') {
+  if (tipo === 'erro') {
     area.innerHTML = '<div class="og-estado" data-tom="erro"><h2>Não consegui carregar</h2>' +
       '<p>' + escapar(extra || '') + '</p><p>Se o projeto do banco estiver pausado, ele volta pelo painel do Supabase.</p></div>';
   } else if (tipo === 'vazio') {
@@ -635,6 +1021,22 @@ function escapar(s) {
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
+/* ── Acesso ────────────────────────────────────────────────────────────── */
+/* A ponte entre candidatura e conta é `participantes.origem_id`. Só o
+   /quero-participar tem essa ponte hoje: os outros três formulários não geram
+   conta, e um selo neles prometeria um botão que não existe. */
+function acessoDe(origem, reg) {
+  if (origem !== 'quero_participar') return null;
+  return participantes.find(p => p.origem_id === reg.id) || null;
+}
+
+function seloAcesso(origem, reg) {
+  const p = acessoDe(origem, reg);
+  if (!p) return '';
+  return '<span class="og-selo" data-acesso="' + escapar(p.status_cadastro) + '">' +
+    escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</span>';
+}
+
 function render() {
   // Contadores das abas e da visão geral
   const conta = { tudo: 0 };
@@ -642,6 +1044,11 @@ function render() {
   document.querySelectorAll('[data-conta]').forEach(el => {
     el.textContent = conta[el.dataset.conta] ?? 0;
   });
+
+  /* Antes do `return` do "nenhuma resposta" lá embaixo: as duas listas são
+     independentes, e uma tela de respostas vazia não pode deixar a vista das
+     marcas com o esqueleto da carga anterior na tela. */
+  renderParticipantes();
 
   const corte7 = Date.now() - 7 * 864e5;
   $('resumo').innerHTML = Object.entries(ORIGENS).map(([k, o]) => {
@@ -679,6 +1086,7 @@ function render() {
       '<span class="og-item__dir">' +
         '<span class="og-selo" data-novo="' + (reg.status === 'novo' ? '1' : '0') + '">' +
           escapar(ROTULO_STATUS[reg.status] || reg.status) + '</span>' +
+        seloAcesso(origem, reg) +
         '<span class="og-item__data">' + dataCurta(reg.created_at) + '</span>' +
       '</span>';
     b.addEventListener('click', () => abrirDetalhe(origem, reg.id));
@@ -686,6 +1094,69 @@ function render() {
   });
   $('area-lista').innerHTML = '';
   $('area-lista').appendChild(ul);
+}
+
+/* Cor da linha por estado do cadastro — mesma leitura do selo, para o olho
+   achar a marca atrasada sem ler rótulo nenhum. */
+const COR_CADASTRO = {
+  aguardando_cadastro: '#FF4810', em_preenchimento: '#01AFCC',
+  cadastro_completo: '#3D1308', encerrado: '#6A2C15'
+};
+
+function renderParticipantes() {
+  const area = $('area-participantes');
+
+  if (participantesErro) {
+    // Distinguir "ainda não existe" de "deu erro" poupa meia hora de susto: a
+    // migration das contas pode simplesmente não ter sido aplicada.
+    area.innerHTML = '<div class="og-estado" data-tom="erro"><h2>Não consegui listar as marcas</h2>' +
+      '<p>' + escapar(participantesErro) + '</p>' +
+      '<p>Se a mensagem fala em função inexistente, a migration das contas ainda não foi aplicada no banco. ' +
+      'O resto do painel não depende dela e segue funcionando.</p></div>';
+    return;
+  }
+
+  if (!participantes.length) {
+    area.innerHTML = '<div class="og-estado"><h2>Nenhuma marca com acesso</h2>' +
+      '<p>O acesso nasce na ficha de uma candidatura aprovada do "Quero participar", ' +
+      'no botão <b>Criar acesso</b>. A marca recebe um convite por e-mail e define a própria senha.</p></div>';
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.className = 'og-lista';
+  participantes.forEach(p => {
+    const li = document.createElement('li');
+    const item = document.createElement('div');
+    item.className = 'og-item';
+
+    const unidades = Array.isArray(p.unidades) ? p.unidades.length : 0;
+    // O que a marca já preencheu. Sem inventar: campo vazio simplesmente não
+    // entra na linha, e uma marca que não preencheu nada mostra o vão.
+    const feito = [
+      p.combo_nome || '',
+      unidades ? unidades + (unidades === 1 ? ' unidade' : ' unidades') : '',
+      p.combo_preco != null ? 'R$ ' + Number(p.combo_preco).toFixed(2).replace('.', ',') : ''
+    ].filter(Boolean).join(' · ');
+
+    item.innerHTML =
+      '<span class="og-item__cor" style="background:' +
+        (COR_CADASTRO[p.status_cadastro] || '#6A2C15') + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + escapar(p.nome_marca || '(sem nome)') + '</p>' +
+      '<p class="og-item__meta">' +
+        escapar([p.responsavel, p.email].filter(Boolean).join(' · ') || 'sem contato registrado') +
+        (feito ? ' — ' + escapar(feito) : ' — nada preenchido ainda') +
+      '</p>' +
+      '<span class="og-item__dir">' +
+        '<span class="og-selo" data-acesso="' + escapar(p.status_cadastro) + '">' +
+          escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</span>' +
+        '<span class="og-item__data">' + dataCurta(p.created_at) + '</span>' +
+      '</span>';
+
+    li.appendChild(item); ul.appendChild(li);
+  });
+  area.innerHTML = '';
+  area.appendChild(ul);
 }
 
 ['busca', 'filtro-status', 'filtro-periodo'].forEach(id => {
@@ -699,6 +1170,10 @@ function abrirDetalhe(origem, id) {
   const o = ORIGENS[origem];
   const reg = (dados[origem] || []).find(r => r.id === id);
   if (!reg) return;
+  /* Reabrir antes de a saída terminar: cancela o timer e limpa a classe, senão
+     a folha nasceria já com a animação de saída aplicada. */
+  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
+  $('detalhe').classList.remove('is-fechando');
   selecionado = { origem, id };
 
   $('detalhe-titulo').textContent = o.titulo(reg) || '(sem nome)';
@@ -750,14 +1225,104 @@ function abrirDetalhe(origem, id) {
         '<textarea id="det-nota" placeholder="Só a equipe vê.">' + escapar(reg.internal_notes || '') + '</textarea></label>' +
       '<div class="og-aviso" id="det-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="det-salvar">Salvar</button>' +
-    '</div>';
+    '</div>' +
+    blocoAcesso(origem, reg);
 
   $('det-salvar').addEventListener('click', () => salvar(origem, reg));
+  const btnAcesso = $('det-criar-acesso');
+  if (btnAcesso) btnAcesso.addEventListener('click', () => criarAcesso(origem, reg));
 
   $('fundo').hidden = false;
   $('detalhe').hidden = false;
   $('btn-fechar').focus();
   render();
+}
+
+/* ── O bloco "Acesso da marca" na ficha ────────────────────────────────── */
+/* Só existe no /quero-participar: é a única origem com ponte para
+   `participantes`. Nas outras três o bloco simplesmente não aparece — melhor
+   que um botão desabilitado que ninguém entende. */
+function blocoAcesso(origem, reg) {
+  if (origem !== 'quero_participar') return '';
+
+  const p = acessoDe(origem, reg);
+  if (p) {
+    return '<div class="og-bloco">' +
+      '<h3>Acesso da marca</h3>' +
+      '<p class="og-forms__nota">Conta criada em ' + dataCurta(p.created_at) + '. ' +
+        'Estado do cadastro: <b>' + escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</b>. ' +
+        'A marca entra em <b>/marca/</b> com o e-mail ' + escapar(p.email || reg.email || '—') + '.</p>' +
+      // Honestidade: reenviar convite ainda não existe. Dizer o caminho que
+      // existe é melhor que um botão que devolveria 409.
+      '<p class="og-forms__nota">Se o convite não chegou, a marca pede um novo pela ' +
+        'própria tela de entrada, em "Esqueci a senha".</p>' +
+      // O aviso existe nas DUAS versões do bloco: `criarAcesso` remonta a ficha
+      // ao terminar, e é nesta versão que a mensagem de resultado vai parar.
+      '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
+    '</div>';
+  }
+
+  /* Duas travas antes de deixar criar. A segunda não é burocracia: apertar o
+     botão dispara um e-mail para uma pessoa real, e e-mail enviado não volta.
+     Criar acesso para quem ainda não foi aprovado é o erro caro aqui. */
+  const semEmail = !reg.email;
+  const naoAprovado = reg.status !== 'aprovado' && reg.status !== 'aguardando_cadastro';
+  const trava = semEmail
+    ? 'Esta candidatura não tem e-mail. Sem endereço não há convite para enviar.'
+    : (naoAprovado
+      ? 'Marque o status como <b>Aprovado</b> antes de criar o acesso — o botão dispara um e-mail para a marca.'
+      : '');
+
+  return '<div class="og-bloco">' +
+    '<h3>Acesso da marca</h3>' +
+    '<p class="og-forms__nota">Cria a conta de <b>' + escapar(reg.empresa || reg.nome || 'esta marca') +
+      '</b> e envia um convite para ' + escapar(reg.email || '—') +
+      ' definir a própria senha. A senha nunca passa por aqui.</p>' +
+    (trava ? '<p class="og-forms__nota">' + trava + '</p>' : '') +
+    '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
+    '<button class="og-btn" type="button" id="det-criar-acesso"' +
+      (trava ? ' disabled' : '') + '>Criar acesso</button>' +
+  '</div>';
+}
+
+async function criarAcesso(origem, reg) {
+  const btn = $('det-criar-acesso'), av = $('det-acesso-aviso');
+  const alvo = reg.empresa || reg.nome || 'esta marca';
+
+  // Confirmação porque a ação sai do sistema: o e-mail vai embora agora.
+  if (!window.confirm('Criar a conta de ' + alvo + ' e enviar o convite para ' +
+      reg.email + '?\n\nO e-mail sai agora e não tem como cancelar.')) return;
+
+  btn.disabled = true; btn.textContent = 'Criando…';
+  av.hidden = true;
+  try {
+    const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id });
+
+    /* A função devolve 207 quando a conta nasceu mas o convite falhou. Tratar
+       isso como sucesso limpo esconderia uma marca que nunca vai receber o
+       link — e como a conta já existe, um segundo clique só daria 409. */
+    const enviou = r.convite === 'enviado';
+    const recado = enviou
+      ? 'Acesso criado e convite enviado para ' + reg.email + '.'
+      : 'A conta foi criada, mas o convite NÃO saiu (' + (r.convite || 'motivo não informado') +
+        '). Não adianta clicar de novo: avise a marca por outro canal e peça que ' +
+        'use "Esqueci a senha" em /marca/.';
+
+    // Recarregar e remontar ANTES de escrever o recado: `abrirDetalhe` reescreve
+    // o corpo inteiro da ficha, e uma mensagem posta antes dele piscaria e sumiria.
+    await carregar();
+    abrirDetalhe(origem, reg.id);   // remonta a ficha já com o bloco de conta criada
+    const depois = $('det-acesso-aviso');
+    if (depois) {
+      depois.textContent = recado;
+      depois.dataset.tom = enviou ? 'ok' : 'erro';
+      depois.hidden = false;
+    }
+  } catch (e) {
+    av.textContent = 'Não criou: ' + e.message;
+    av.dataset.tom = 'erro'; av.hidden = false;
+    btn.disabled = false; btn.textContent = 'Criar acesso';
+  }
 }
 
 async function salvar(origem, reg) {
@@ -787,17 +1352,59 @@ async function salvar(origem, reg) {
   }
 }
 
+/* Fechar é movimento: a folha desce, a gaveta sai pela direita, e só então o
+   elemento é escondido — como o MobileMenu do site. Sem isso o painel some com
+   um corte, que é a coisa que mais denuncia "não é app".
+   ⚠️ A guarda do `hidden` importa: `btn-sair` chama esta função com o detalhe
+   já fechado, e sem ela a animação rodaria no vazio a cada logout. */
 function fecharDetalhe() {
+  const el = $('detalhe');
+  if (el.hidden) { selecionado = null; return; }
+
+  const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.classList.add('is-fechando');
   $('fundo').hidden = true;
-  $('detalhe').hidden = true;
-  selecionado = null;
-  if (!painel.hidden && Object.keys(dados).length) render();
+
+  if (saidaDetalhe) clearTimeout(saidaDetalhe);
+  saidaDetalhe = setTimeout(function () {
+    saidaDetalhe = null;
+    el.classList.remove('is-fechando');
+    el.hidden = true;
+    selecionado = null;
+    if (!painel.hidden && Object.keys(dados).length) render();
+  }, semMovimento ? 0 : 260);
 }
 $('btn-fechar').addEventListener('click', fecharDetalhe);
 $('fundo').addEventListener('click', fecharDetalhe);
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && !$('detalhe').hidden) fecharDetalhe();
 });
+
+/* ── Voltar para o app traz dado fresco ────────────────────────────────── */
+/* Comportamento de app: você volta e os dados estão atuais. A folga de 60s
+   existe para não disparar quatro RPCs a cada troca de aba do navegador —
+   alt-tab não é "voltar ao app". `#btn-atualizar` continua existindo: recarga
+   explícita não sai por causa da automática. */
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible') return;
+  if (painel.hidden || !senha) return;
+  if (Date.now() - ultimaCarga < 60000) return;
+  carregar();
+});
+
+/* ── Service worker ────────────────────────────────────────────────────── */
+/* 🔴 `scope` explícito em /organizacao/. Registrado da raiz, o SW passaria a
+   interceptar o site inteiro, inclusive a landing que está no ar — e desfazer
+   isso não é deploy, é desregistro no navegador de cada visitante.
+   O registro é MELHORIA, não requisito: navegador sem suporte, janela anônima
+   ou política corporativa devolvem erro, e o painel tem que seguir igual. Por
+   isso o catch é silencioso e não há nada dependendo do sucesso. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/organizacao/sw.js', { scope: '/organizacao/' })
+      .catch(function () { /* silêncio proposital */ });
+  });
+}
 
 /* ── Boot ──────────────────────────────────────────────────────────────── */
 if (senha) abrirPainel();

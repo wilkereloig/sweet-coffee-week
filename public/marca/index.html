@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Área da marca — Sweet &amp; Coffee Week</title>
+<link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
+<meta name="theme-color" content="#3D1308">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nexa-slab/NexaSlab-Bold.woff2">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Área da marca — Sweet & Coffee Week
+
+   Página ESTÁTICA, como /organizacao/ e pelo mesmo motivo: a Vercel serve o
+   sistema de arquivos antes do rewrite do SPA, então ela funciona com
+   COMING_SOON_PUBLICATION = true sem tocar em nenhuma flag do App.jsx (A3).
+
+   UMA página, quatro views. O plano previa quatro rotas; virou uma porque as
+   quatro precisam do mesmo cliente de autenticação, e a segunda cópia dele é
+   onde as duas começariam a divergir. A view sai do ESTADO, não da URL:
+     sem sessão ................. login
+     #type=recovery no hash ..... definir senha
+     cadastro em aberto ......... formulário
+     cadastro concluído ......... status
+
+   ⛔ Sem supabase-js. O plano pedia a biblioteca por causa da sessão, mas ela
+   custa ~100 KB de CDN de terceiro NA TELA DE LOGIN — se o esm.sh estiver fora
+   do ar, ninguém entra. Os quatro endpoints usados (senha, refresh, update,
+   recover) são POSTs comuns, e o /organizacao/ já estabeleceu o precedente de
+   falar com o Supabase por fetch direto.
+
+   A chave publicável fica visível no código-fonte, como nas outras estáticas.
+   É pública por design: quem protege é o RLS. Aqui, diferente das tabelas de
+   formulário, EXISTEM policies — e todas filtram por auth.uid(). Sem token, a
+   chave sozinha não lê uma linha.
+   ⛔ A chave de serviço nunca entra aqui. tests/marca.test.mjs reprova.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-xBold.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlabBlack.woff2') format('woff2');font-weight:900;font-display:swap}
+
+:root{
+  --creme:#FEF0DD; --bege:#F8E4C1; --choco:#3D1308; --marrom:#6A2C15;
+  --amarelo:#FDBB1A; --cyan:#01AFCC; --roxo:#4D257E; --magenta:#F10767; --laranja:#FF4810;
+  --filete:rgba(61,19,8,.14); --borda:rgba(61,19,8,.22);
+  --font:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:20px; --ease:cubic-bezier(.22,.9,.24,1); --t:200ms var(--ease);
+  --trilho:clamp(16px,4vw,40px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--creme); color:var(--choco); font-family:var(--font); font-weight:500;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+  min-height:100dvh; display:flex; flex-direction:column;
+}
+h1,h2,h3{margin:0; font-weight:900; letter-spacing:-.03em; line-height:1.05}
+p{margin:0 0 12px; text-wrap:pretty; max-width:62ch}
+a{color:var(--marrom)}
+:focus-visible{outline:3px solid var(--cyan); outline-offset:2px; border-radius:6px}
+
+/* Cabeçalho — a marca do festival à esquerda, nunca centralizada. */
+header{
+  background:var(--choco); color:var(--creme);
+  padding:16px var(--trilho); display:flex; align-items:center; gap:12px;
+}
+header img{height:38px; width:auto; display:block}
+header .quem{margin-left:auto; font-size:13px; color:var(--bege); text-align:right; min-width:0}
+header .quem b{display:block; font-weight:800; color:var(--creme); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+header button{
+  background:none; border:2px solid rgba(254,240,221,.45); color:var(--creme);
+  font:800 13px/1 var(--font); padding:11px 14px; border-radius:999px; cursor:pointer;
+  min-height:44px; transition:border-color var(--t),background var(--t);
+}
+header button:hover{border-color:var(--creme); background:rgba(254,240,221,.1)}
+
+main{flex:1; width:100%; max-width:720px; margin:0 auto; padding:clamp(24px,5vw,44px) var(--trilho) 64px}
+
+.rotulo{font-weight:800; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--marrom); margin:0 0 10px}
+.lead{max-width:46ch; color:var(--marrom)}
+
+.card{
+  background:var(--creme); border:1.5px solid var(--filete); border-radius:var(--r);
+  padding:clamp(18px,3.5vw,26px); margin:0 0 18px;
+}
+.card > h2{font-size:clamp(19px,2.4vw,24px); margin:0 0 4px}
+.card > .rotulo{margin-bottom:6px}
+
+/* Campos. O <span> é o label de verdade — placeholder-como-label some quando a
+   pessoa digita, e some justo para quem mais precisa dele. */
+label{display:block; margin:0 0 16px}
+label > span{display:block; font-weight:800; font-size:13px; margin:0 0 6px}
+label > span em{font-style:normal; font-weight:500; color:var(--marrom)}
+input,textarea,select{
+  width:100%; font:500 16px/1.4 var(--font); color:var(--choco);
+  background:#fff; border:1.5px solid var(--borda); border-radius:12px;
+  padding:13px 14px; min-height:48px; transition:border-color var(--t);
+}
+textarea{min-height:110px; resize:vertical}
+input:hover,textarea:hover{border-color:var(--marrom)}
+.dupla{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
+@media (max-width:560px){ .dupla{grid-template-columns:1fr} }
+
+button.acao{
+  font:800 15px/1 var(--font); border:none; border-radius:999px; cursor:pointer;
+  padding:17px 26px; min-height:52px; background:var(--choco); color:var(--creme);
+  transition:transform 180ms var(--ease),background var(--t);
+}
+button.acao:hover{transform:translateY(-2px)}
+button.acao:active{transform:translateY(0)}
+button.acao[disabled]{opacity:.45; cursor:default; pointer-events:none; transform:none}
+button.acao.larga{width:100%}
+button.secundaria{background:none; color:var(--marrom); border:2px solid var(--borda)}
+button.link{
+  background:none; border:none; color:var(--marrom); font:700 14px/1.4 var(--font);
+  text-decoration:underline; cursor:pointer; padding:12px 2px; min-height:44px;
+}
+
+/* Aviso. Mesma forma do .og-aviso do painel: fundo bege, sem filete lateral.
+   A cor é reforço, nunca o recado — o texto já diz o que houve, que é o que
+   sobra para quem não distingue as duas cores. */
+.aviso{
+  border-radius:12px; padding:12px 16px; margin:0 0 16px; font-size:14.5px;
+  background:var(--bege); border:1.5px solid transparent;
+}
+.aviso.erro{border-color:var(--magenta)}
+.aviso.ok{border-color:var(--cyan)}
+.aviso:empty{display:none}
+
+/* Progresso — texto primeiro, barra depois. A barra sozinha não diz quanto falta. */
+.progresso{margin:0 0 22px}
+.progresso b{font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--marrom)}
+.trilha{height:6px; border-radius:999px; background:var(--filete); overflow:hidden; margin-top:8px}
+/* `scaleX` com origem à esquerda, não `width`: é a mesma decisão já tomada na
+   régua de anos da página Edições (CLAUDE.md §10.3). Animar `width` joga
+   trabalho de layout no compositor a cada frame; `transform` roda na GPU. */
+.trilha i{
+  display:block; height:100%; background:var(--cyan); border-radius:999px;
+  transform-origin:left center; transform:scaleX(0);
+  transition:transform 300ms var(--ease);
+}
+
+/* Unidades. Rede tem várias — e é a contagem delas que vira "33 lojas". */
+.unidade{border:1.5px solid var(--filete); border-radius:16px; padding:16px; margin:0 0 12px; background:var(--bege)}
+.unidade .topo{display:flex; align-items:center; gap:10px; margin:0 0 12px}
+.unidade .topo b{font-weight:800; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--marrom)}
+.unidade .topo button{margin-left:auto}
+.unidade input{background:#fff}
+
+.salvo{font-size:13px; color:var(--marrom); min-height:20px; margin:0 0 8px}
+
+/* Selo de estado do cadastro. Cor codifica etapa, o texto carrega o sentido. */
+.selo{display:inline-block; font:800 12px/1 var(--font); letter-spacing:.1em; text-transform:uppercase;
+      padding:9px 13px; border-radius:999px; background:var(--bege); color:var(--choco)}
+.selo.andamento{background:var(--amarelo)}
+.selo.completo{background:var(--cyan)}
+
+.rodape{margin-top:28px; padding-top:18px; border-top:1.5px solid var(--filete); font-size:13.5px; color:var(--marrom)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+  <div class="quem" id="quem" hidden><b id="quemNome"></b><span id="quemEmail"></span></div>
+  <button type="button" id="btSair" hidden>Sair</button>
+</header>
+
+<main>
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <!-- ── LOGIN ────────────────────────────────────────────────────────────── -->
+  <section id="vLogin" hidden>
+    <p class="rotulo">Área da marca</p>
+    <h1>Entrar</h1>
+    <p class="lead">Use o e-mail que você cadastrou na inscrição.</p>
+    <form class="card" id="fLogin" style="margin-top:22px">
+      <label><span>E-mail</span>
+        <input type="email" id="loginEmail" autocomplete="username" required placeholder="voce@suamarca.com.br">
+      </label>
+      <label><span>Senha</span>
+        <input type="password" id="loginSenha" autocomplete="current-password" required placeholder="sua senha">
+      </label>
+      <button class="acao larga" id="btEntrar" type="submit">Entrar</button>
+      <div style="text-align:center;margin-top:6px">
+        <button class="link" type="button" id="btEsqueci">Esqueci minha senha</button>
+      </div>
+    </form>
+    <p class="rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
+      inscrição é aprovada. O convite chega no e-mail da inscrição.</p>
+  </section>
+
+  <!-- ── DEFINIR SENHA ────────────────────────────────────────────────────── -->
+  <section id="vSenha" hidden>
+    <p class="rotulo">Primeiro acesso</p>
+    <h1>Defina sua senha</h1>
+    <p class="lead">Ela é sua. A organização não vê e não tem como recuperar. Se você perder,
+      ela gera um novo convite.</p>
+    <form class="card" id="fSenha" style="margin-top:22px">
+      <label><span>Nova senha <em>(mínimo 10 caracteres)</em></span>
+        <input type="password" id="senha1" autocomplete="new-password" minlength="10" required>
+      </label>
+      <label><span>Repita a senha</span>
+        <input type="password" id="senha2" autocomplete="new-password" minlength="10" required>
+      </label>
+      <button class="acao larga" id="btSenha" type="submit">Salvar e continuar</button>
+    </form>
+  </section>
+
+  <!-- ── CADASTRO ─────────────────────────────────────────────────────────── -->
+  <section id="vCadastro" hidden>
+    <p class="rotulo">Cadastro da edição</p>
+    <h1 id="cadTitulo">Sua participação</h1>
+    <p class="lead">O que você preencher aqui é o que vai ao ar. Salva sozinho a
+      cada alteração, então você pode fechar e voltar depois.</p>
+
+    <div class="progresso" style="margin-top:22px">
+      <b id="progTexto">0 de 4 seções</b>
+      <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
+    </div>
+
+    <div class="salvo" id="salvo"></div>
+
+    <form id="fCadastro">
+      <div class="card">
+        <p class="rotulo">01 · A marca</p>
+        <h2>Quem participa</h2>
+        <p style="color:var(--marrom);font-size:14.5px">Veio da sua inscrição. Corrija o que mudou.</p>
+        <label><span>Nome da marca</span><input id="cNome" data-campo="nome_marca" required></label>
+        <div class="dupla">
+          <label><span>Responsável</span><input id="cResp" data-campo="responsavel" required></label>
+          <label><span>Telefone</span><input id="cTel" data-campo="telefone" inputmode="tel" required></label>
+        </div>
+        <div class="dupla">
+          <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" data-campo="instagram" placeholder="@suamarca"></label>
+          <label><span>Site <em>(opcional)</em></span><input id="cSite" data-campo="site" placeholder="https://"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="rotulo">02 · O combo</p>
+        <h2>O que você criou</h2>
+        <label><span>Nome do combo</span><input id="cComboNome" data-campo="combo_nome" required></label>
+        <label><span>Descrição <em>(o que vem no combo)</em></span>
+          <textarea id="cComboDesc" data-campo="combo_descricao" required></textarea>
+        </label>
+      </div>
+
+      <div class="card">
+        <p class="rotulo">03 · Preço</p>
+        <h2>Quanto custa</h2>
+        <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
+          <input id="cPreco" data-op="combo_preco" inputmode="decimal" placeholder="0,00" required>
+        </label>
+      </div>
+
+      <div class="card">
+        <p class="rotulo">04 · Onde encontrar</p>
+        <h2>Suas unidades</h2>
+        <p style="color:var(--marrom);font-size:14.5px">Uma por endereço. Rede com várias
+          lojas cadastra cada uma.</p>
+        <div id="unidades"></div>
+        <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
+      </div>
+
+      <button class="acao larga" type="submit" id="btConcluir">Concluir cadastro</button>
+    </form>
+  </section>
+
+  <!-- ── STATUS ───────────────────────────────────────────────────────────── -->
+  <section id="vStatus" hidden>
+    <p class="rotulo">Cadastro da edição</p>
+    <h1>Tudo certo</h1>
+    <div class="card" style="margin-top:22px">
+      <span class="selo completo">Cadastro completo</span>
+      <p style="margin-top:16px">Recebemos o cadastro da <b id="stMarca"></b>. A organização
+        revisa e entra em contato pelo canal de sempre se precisar de algo.</p>
+      <p>Precisa mudar alguma coisa? Reabra o cadastro — ele volta para revisão.</p>
+      <button class="acao secundaria" type="button" id="btReabrir">Reabrir cadastro</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Um bloco de script, sem dependência externa. As funções são DECLARADAS —
+   tests/marca.test.mjs reprova função chamada e nunca declarada, porque este
+   arquivo não passa pelo Vite: `npm run build` fica verde com o script quebrado.
+   Foi assim que um ReferenceError chegou ao commit uma vez (CLAUDE.md §10.4-b).
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict'
+
+  var CFG = {
+    url: 'https://dgfmoibynftadsyjcclg.supabase.co',
+    key: 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
+  }
+  var CHAVE_SESSAO = 'scw_marca'
+  var SECOES = 4
+
+  var sessao = null
+  var participante = null
+  var operacao = null
+  var salvando = null
+
+  var el = function (id) { return document.getElementById(id) }
+
+  // ── Sessão ────────────────────────────────────────────────────────────────
+  // sessionStorage, não localStorage: o token morre ao fechar a aba. O rascunho
+  // do formulário não depende disso — ele vive no banco, não aqui.
+  function sessaoSalvar (dados) {
+    sessao = {
+      access_token: dados.access_token,
+      refresh_token: dados.refresh_token,
+      // O servidor manda expires_in (segundos). Guardar o INSTANTE evita
+      // recalcular a partir de um relógio que pode ter andado.
+      expira_em: Date.now() + (dados.expires_in || 3600) * 1000,
+      email: (dados.user && dados.user.email) || (sessao && sessao.email) || ''
+    }
+    try { sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao)) } catch (e) { /* modo privado */ }
+  }
+
+  function sessaoLer () {
+    if (sessao) return sessao
+    try {
+      var cru = sessionStorage.getItem(CHAVE_SESSAO)
+      sessao = cru ? JSON.parse(cru) : null
+    } catch (e) { sessao = null }
+    return sessao
+  }
+
+  function sessaoLimpar () {
+    sessao = null
+    try { sessionStorage.removeItem(CHAVE_SESSAO) } catch (e) { /* ignora */ }
+  }
+
+  // ── Camada de rede ────────────────────────────────────────────────────────
+  function auth (caminho, corpo, metodo, token) {
+    var cab = { apikey: CFG.key, 'Content-Type': 'application/json' }
+    if (token) cab.Authorization = 'Bearer ' + token
+    return fetch(CFG.url + '/auth/v1/' + caminho, {
+      method: metodo || 'POST', headers: cab, body: corpo ? JSON.stringify(corpo) : undefined
+    }).then(function (r) {
+      return r.json().catch(function () { return {} }).then(function (j) {
+        return { ok: r.ok, status: r.status, dados: j }
+      })
+    })
+  }
+
+  // Renova ANTES de expirar, não depois de falhar: um 401 no meio do autosave
+  // custaria o texto que a pessoa acabou de digitar.
+  function renovar () {
+    var s = sessaoLer()
+    if (!s) return Promise.resolve(false)
+    if (Date.now() < s.expira_em - 60000) return Promise.resolve(true)
+    return auth('token?grant_type=refresh_token', { refresh_token: s.refresh_token })
+      .then(function (r) {
+        if (!r.ok || !r.dados.access_token) { sessaoLimpar(); return false }
+        sessaoSalvar(r.dados)
+        return true
+      })
+  }
+
+  function api (caminho, opcoes) {
+    return renovar().then(function (viva) {
+      if (!viva) { ver('login'); return Promise.reject(new Error('sessao_expirada')) }
+      var o = opcoes || {}
+      var cab = {
+        apikey: CFG.key,
+        Authorization: 'Bearer ' + sessaoLer().access_token,
+        'Content-Type': 'application/json'
+      }
+      if (o.prefer) cab.Prefer = o.prefer
+      return fetch(CFG.url + '/rest/v1/' + caminho, {
+        method: o.metodo || 'GET', headers: cab,
+        body: o.corpo ? JSON.stringify(o.corpo) : undefined
+      }).then(function (r) {
+        return r.json().catch(function () { return null }).then(function (j) {
+          if (!r.ok) throw new Error((j && j.message) || ('http_' + r.status))
+          return j
+        })
+      })
+    })
+  }
+
+  // ── Views e avisos ────────────────────────────────────────────────────────
+  function ver (qual) {
+    ;['vLogin', 'vSenha', 'vCadastro', 'vStatus'].forEach(function (id) { el(id).hidden = true })
+    var alvo = { login: 'vLogin', senha: 'vSenha', cadastro: 'vCadastro', status: 'vStatus' }[qual]
+    if (alvo) el(alvo).hidden = false
+    var logado = qual !== 'login'
+    el('btSair').hidden = !logado
+    el('quem').hidden = !logado
+    window.scrollTo(0, 0)
+  }
+
+  function aviso (texto, tipo) {
+    var a = el('aviso')
+    a.className = 'aviso' + (tipo ? ' ' + tipo : '')
+    a.textContent = texto || ''
+  }
+
+  function escapar (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  }
+
+  // ── Entrar ────────────────────────────────────────────────────────────────
+  function entrar (ev) {
+    ev.preventDefault()
+    var email = el('loginEmail').value.trim().toLowerCase()
+    var senha = el('loginSenha').value
+    if (!email || !senha) return
+    el('btEntrar').disabled = true
+    aviso('')
+    auth('token?grant_type=password', { email: email, password: senha })
+      .then(function (r) {
+        el('btEntrar').disabled = false
+        // Erro SEMPRE genérico: "e-mail não encontrado" confirma quais endereços
+        // existem na base para quem estiver testando de fora.
+        if (!r.ok || !r.dados.access_token) {
+          aviso('E-mail ou senha não conferem.', 'erro')
+          return
+        }
+        el('loginSenha').value = ''
+        sessaoSalvar(r.dados)
+        carregar()
+      })
+      .catch(function () {
+        el('btEntrar').disabled = false
+        aviso('Não deu para conectar. Tente de novo em instantes.', 'erro')
+      })
+  }
+
+  function recuperar () {
+    var email = el('loginEmail').value.trim().toLowerCase()
+    if (!email) { el('loginEmail').focus(); aviso('Escreva seu e-mail acima primeiro.', 'erro'); return }
+    // Resposta idêntica com e-mail existente ou não — mesma razão do erro genérico.
+    // ⚠️ Este caminho usa o SMTP embutido do Supabase, limitado a 2 e-mails por
+    // hora no projeto inteiro. Serve para o caso isolado; convite em lote é a
+    // Edge Function criar-acesso-marca, que passa pelo Resend.
+    auth('recover?redirect_to=' + encodeURIComponent(location.origin + '/marca/'), { email: email })
+      .then(function () {
+        aviso('Se este e-mail tiver acesso, o link chega em alguns minutos. Não chegou? Fale com a organização.', 'ok')
+      })
+      .catch(function () { aviso('Não deu para enviar agora. Fale com a organização.', 'erro') })
+  }
+
+  function sair () {
+    var s = sessaoLer()
+    if (s) auth('logout', null, 'POST', s.access_token).catch(function () { /* segue */ })
+    sessaoLimpar()
+    participante = null
+    operacao = null
+    aviso('')
+    ver('login')
+  }
+
+  // ── Definir senha ─────────────────────────────────────────────────────────
+  function definirSenha (ev) {
+    ev.preventDefault()
+    var a = el('senha1').value
+    var b = el('senha2').value
+    if (a.length < 10) { aviso('A senha precisa de pelo menos 10 caracteres.', 'erro'); return }
+    if (a !== b) { aviso('As duas senhas não são iguais.', 'erro'); return }
+    el('btSenha').disabled = true
+    var s = sessaoLer()
+    auth('user', { password: a }, 'PUT', s && s.access_token)
+      .then(function (r) {
+        el('btSenha').disabled = false
+        if (!r.ok) {
+          aviso((r.dados && r.dados.msg) || 'Não deu para salvar a senha. O link pode ter expirado. Peça um novo à organização.', 'erro')
+          return
+        }
+        el('senha1').value = ''
+        el('senha2').value = ''
+        aviso('Senha definida.', 'ok')
+        carregar()
+      })
+      .catch(function () {
+        el('btSenha').disabled = false
+        aviso('Não deu para salvar a senha agora.', 'erro')
+      })
+  }
+
+  // ── Carregar o participante ───────────────────────────────────────────────
+  function carregar () {
+    if (!sessaoLer()) { ver('login'); return }
+    // A RLS já filtra por auth.uid(); o `select` não precisa de where de dono.
+    // Ordem decrescente e a primeira linha: marca recorrente tem uma linha por
+    // edição, e a interface de várias edições está fora do escopo desta fase.
+    api('participantes?select=*&order=created_at.desc')
+      .then(function (linhas) {
+        if (!linhas || !linhas.length) {
+          aviso('Sua conta existe, mas ainda não há cadastro vinculado a ela. Fale com a organização.', 'erro')
+          ver('login')
+          return
+        }
+        participante = linhas[0]
+        el('quemNome').textContent = participante.nome_marca || 'Sua marca'
+        el('quemEmail').textContent = sessaoLer().email || ''
+        if (linhas.length > 1) {
+          aviso('Você tem ' + linhas.length + ' participações. Esta é a mais recente.', 'ok')
+        }
+        return api('participantes_operacao?select=*&participante_id=eq.' + participante.id)
+      })
+      .then(function (ops) {
+        if (!participante) return
+        operacao = (ops && ops[0]) || { combo_preco: null, unidades: [] }
+        preencher()
+        ver(participante.status_cadastro === 'cadastro_completo' ? 'status' : 'cadastro')
+        if (participante.status_cadastro === 'cadastro_completo') {
+          el('stMarca').textContent = participante.nome_marca || 'sua marca'
+        }
+      })
+      .catch(function (e) {
+        if (e && e.message === 'sessao_expirada') return
+        aviso('Não deu para carregar seu cadastro. Tente recarregar a página.', 'erro')
+      })
+  }
+
+  function preencher () {
+    el('cNome').value = participante.nome_marca || ''
+    el('cResp').value = participante.responsavel || ''
+    el('cTel').value = participante.telefone || ''
+    el('cInsta').value = participante.instagram || ''
+    el('cSite').value = participante.site || ''
+    el('cComboNome').value = participante.combo_nome || ''
+    el('cComboDesc').value = participante.combo_descricao || ''
+    el('cPreco').value = operacao.combo_preco == null ? '' : String(operacao.combo_preco).replace('.', ',')
+    desenharUnidades(Array.isArray(operacao.unidades) ? operacao.unidades : [])
+    progresso()
+  }
+
+  // ── Unidades ──────────────────────────────────────────────────────────────
+  function desenharUnidades (lista) {
+    var alvo = el('unidades')
+    alvo.innerHTML = ''
+    if (!lista.length) lista = [{ endereco: '', bairro: '', horarios: '' }]
+    lista.forEach(function (u, i) { alvo.appendChild(montarUnidade(u, i)) })
+  }
+
+  function montarUnidade (u, i) {
+    var div = document.createElement('div')
+    div.className = 'unidade'
+    // Os valores vêm do banco. innerHTML com dado cru é como XSS entra — o
+    // mesmo motivo pelo qual o painel da organização escapa tudo.
+    div.innerHTML =
+      '<div class="topo"><b>Unidade ' + (i + 1) + '</b>' +
+      '<button class="link" type="button" data-remove="' + i + '">remover</button></div>' +
+      '<label><span>Endereço</span><input data-u="endereco" value="' + escapar(u.endereco) + '"></label>' +
+      '<div class="dupla">' +
+      '<label><span>Bairro</span><input data-u="bairro" value="' + escapar(u.bairro) + '"></label>' +
+      '<label><span>Horários</span><input data-u="horarios" placeholder="seg a sex, 9h às 18h" value="' + escapar(u.horarios) + '"></label>' +
+      '</div>'
+    return div
+  }
+
+  function unidadesLer () {
+    return Array.prototype.map.call(el('unidades').children, function (div) {
+      var pega = function (nome) {
+        var campo = div.querySelector('[data-u="' + nome + '"]')
+        return campo ? campo.value.trim() : ''
+      }
+      return { endereco: pega('endereco'), bairro: pega('bairro'), horarios: pega('horarios') }
+    }).filter(function (u) { return u.endereco !== '' })
+  }
+
+  function unidadeAdicionar () {
+    el('unidades').appendChild(montarUnidade({ endereco: '', bairro: '', horarios: '' }, el('unidades').children.length))
+    progresso()
+  }
+
+  function unidadeRemover (indice) {
+    var atual = unidadesLer()
+    atual.splice(indice, 1)
+    desenharUnidades(atual)
+    agendarSalvar()
+  }
+
+  // ── Progresso ─────────────────────────────────────────────────────────────
+  // Conta seção COMPLETA, não campo preenchido: "3 de 4 seções" diz onde a
+  // pessoa está; "11 de 14 campos" só diz que ainda falta alguma coisa.
+  function progresso () {
+    var feitas = 0
+    if (el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim()) feitas++
+    if (el('cComboNome').value.trim() && el('cComboDesc').value.trim()) feitas++
+    if (precoNumero() > 0) feitas++
+    if (unidadesLer().length > 0) feitas++
+    el('progTexto').textContent = feitas + ' de ' + SECOES + ' seções'
+    el('progBarra').style.transform = 'scaleX(' + (feitas / SECOES) + ')'
+    return feitas
+  }
+
+  function precoNumero () {
+    var cru = el('cPreco').value.trim().replace(/\./g, '').replace(',', '.')
+    var n = parseFloat(cru)
+    return isNaN(n) ? 0 : n
+  }
+
+  // ── Autosave ──────────────────────────────────────────────────────────────
+  // Debounce de 900ms: salvar a cada tecla enche o banco de escrita inútil e
+  // ainda pisa numa resposta com a seguinte.
+  function agendarSalvar () {
+    progresso()
+    el('salvo').textContent = ''
+    if (salvando) clearTimeout(salvando)
+    salvando = setTimeout(salvar, 900)
+  }
+
+  function salvar () {
+    if (!participante) return Promise.resolve()
+    var campos = {
+      nome_marca: el('cNome').value.trim(),
+      responsavel: el('cResp').value.trim(),
+      telefone: el('cTel').value.trim(),
+      instagram: el('cInsta').value.trim(),
+      site: el('cSite').value.trim(),
+      combo_nome: el('cComboNome').value.trim(),
+      combo_descricao: el('cComboDesc').value.trim()
+    }
+    var op = { combo_preco: precoNumero() || null, unidades: unidadesLer() }
+    // Duas tabelas porque preço, endereço e horário são dado VOLÁTIL e moram
+    // apartados de propósito — nada público faz join com participantes_operacao.
+    return Promise.all([
+      api('participantes?id=eq.' + participante.id, { metodo: 'PATCH', corpo: campos, prefer: 'return=representation' }),
+      api('participantes_operacao?participante_id=eq.' + participante.id, { metodo: 'PATCH', corpo: op, prefer: 'return=representation' })
+    ]).then(function (r) {
+      // Nunca afirma "salvo" sem o servidor confirmar — regra dos formulários
+      // do site, e o motivo pelo qual ninguém percebeu que as três migrations
+      // não estavam aplicadas por meses.
+      if (!r[0] || !r[0].length) throw new Error('sem_confirmacao')
+      participante = r[0][0]
+      if (r[1] && r[1].length) operacao = r[1][0]
+      el('salvo').textContent = 'Salvo automaticamente.'
+      el('quemNome').textContent = participante.nome_marca || 'Sua marca'
+    }).catch(function (e) {
+      if (e && e.message === 'sessao_expirada') return
+      el('salvo').textContent = ''
+      aviso('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.', 'erro')
+    })
+  }
+
+  // ── Concluir ──────────────────────────────────────────────────────────────
+  var NOMES = {
+    nome_marca: 'nome da marca', responsavel: 'responsável', telefone: 'telefone',
+    combo_nome: 'nome do combo', combo_descricao: 'descrição do combo',
+    combo_preco: 'preço', unidades: 'ao menos uma unidade'
+  }
+
+  function concluir (ev) {
+    ev.preventDefault()
+    el('btConcluir').disabled = true
+    aviso('')
+    // Salva antes de concluir: quem valida é o servidor, e ele valida o que
+    // está GRAVADO. Concluir com o autosave pendente reprovaria campo cheio.
+    salvar()
+      .then(function () {
+        return api('rpc/marca_concluir_cadastro', {
+          metodo: 'POST', corpo: { p_participante: participante.id }
+        })
+      })
+      .then(function (r) {
+        el('btConcluir').disabled = false
+        if (!r || r.ok !== true) {
+          var faltando = (r && r.faltando) || []
+          var legivel = faltando.map(function (f) { return NOMES[f] || f }).join(', ')
+          aviso('Falta preencher: ' + legivel + '.', 'erro')
+          return
+        }
+        participante.status_cadastro = 'cadastro_completo'
+        el('stMarca').textContent = participante.nome_marca || 'sua marca'
+        aviso('')
+        ver('status')
+      })
+      .catch(function (e) {
+        el('btConcluir').disabled = false
+        if (e && e.message === 'sessao_expirada') return
+        aviso('Não deu para concluir agora. Tente de novo em instantes.', 'erro')
+      })
+  }
+
+  // Reabrir é só voltar para a view. O status no banco continua
+  // 'cadastro_completo' até ela concluir de novo — e é isso que a organização
+  // precisa ver: alguém reabriu não é o mesmo que alguém desfez.
+  function reabrir () {
+    aviso('Alterou algo? Conclua de novo no fim da página.', 'ok')
+    ver('cadastro')
+  }
+
+  // ── Início ────────────────────────────────────────────────────────────────
+  function hashSessao () {
+    if (!location.hash || location.hash.length < 2) return null
+    var p = new URLSearchParams(location.hash.slice(1))
+    if (!p.get('access_token')) return null
+    return {
+      access_token: p.get('access_token'),
+      refresh_token: p.get('refresh_token'),
+      expires_in: parseInt(p.get('expires_in'), 10) || 3600,
+      tipo: p.get('type')
+    }
+  }
+
+  function iniciar () {
+    el('fLogin').addEventListener('submit', entrar)
+    el('fSenha').addEventListener('submit', definirSenha)
+    el('fCadastro').addEventListener('submit', concluir)
+    el('btEsqueci').addEventListener('click', recuperar)
+    el('btSair').addEventListener('click', sair)
+    el('btReabrir').addEventListener('click', reabrir)
+    el('btAddUnidade').addEventListener('click', unidadeAdicionar)
+    el('fCadastro').addEventListener('input', agendarSalvar)
+    el('unidades').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-remove]')
+      if (alvo) unidadeRemover(parseInt(alvo.getAttribute('data-remove'), 10))
+    })
+
+    var doHash = hashSessao()
+    if (doHash) {
+      sessaoSalvar(doHash)
+      // Apaga o token da barra de endereço: ele vai parar em histórico,
+      // captura de tela e no Referer de qualquer link que a página abrir.
+      history.replaceState(null, '', location.pathname)
+      if (doHash.tipo === 'recovery' || doHash.tipo === 'invite') { ver('senha'); return }
+    }
+    if (sessaoLer()) { carregar(); return }
+    ver('login')
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar)
+  } else {
+    iniciar()
+  }
+})()
+</script>
+</body>
+</html>
