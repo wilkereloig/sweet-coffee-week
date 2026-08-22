@@ -247,7 +247,8 @@
    de ciclo (desenho de 20/08/2026). Os quatro ficam empilhados no mesmo lugar e
    o que muda é a opacidade — nada entra e sai do fluxo, então não há salto de
    layout. O atraso de 2200ms por peça é 8800/4: quando um sai, o próximo entra.
-   `inset: 21%` deixa o desenho em 58% do disco, como o resto do sistema. */
+   O desenho fica em 58% do disco, como o resto do sistema (ver a medida
+   explícita logo abaixo). */
 @keyframes scwIcnCiclo {
     0% { opacity: 0; transform: scale(.9); }
     3% { opacity: 1; transform: scale(1); }
@@ -255,11 +256,22 @@
    29% { opacity: 0; transform: scale(1.06); }
   100% { opacity: 0; transform: scale(1.06); }
 }
+/* ⚠️ Medida EXPLÍCITA, nunca `inset` + `width: auto` (22/08/2026).
+   O `<svg>` desta seção não traz atributo `width`/`height` — só `viewBox` —,
+   então ele é elemento substituído sem dimensão intrínseca, e `width: auto`
+   fica a cargo do motor: o Chromium estica a caixa até os `inset`, o Safari
+   resolve em 100% do bloco que o contém. No iPhone o desenho saía do tamanho
+   do DISCO INTEIRO, ancorado em 21%/21%, transbordando embaixo e à direita —
+   era o "ícone desalinhado" que aparecia na tela e não na medição headless.
+   Com `top`/`left` e `width`/`height` escritos, não sobra nada para o motor
+   decidir: a caixa é 58% do disco (100 − 2 × 21), centrada, em todo navegador.
+   ⛔ Não voltar para `inset` com medida automática. */
 .hm-ing__icone {
   position: absolute;
-  inset: 21%;
-  width: auto;
-  height: auto;
+  top: 21%;
+  left: 21%;
+  width: 58%;
+  height: 58%;
   transform-origin: center;
   opacity: 0;
   animation: scwIcnCiclo 8800ms cubic-bezier(.22, .7, .24, 1) infinite;
