@@ -99,9 +99,9 @@ test('todo asset absoluto existe em public/', () => {
  * reprovam se o HTML divergir. Nenhum valor esperado é digitado aqui.
  */
 
-const NUMEROS = [...HTML.matchAll(
-  /<li><span class="scw-stat__regua" style="background:(#[0-9A-Fa-f]{6})"[^>]*><\/span><b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g,
-)].map(([, regua, valor, rotulo]) => ({ regua, valor, rotulo }))
+const NUMEROS = [...HTML.matchAll(new RegExp(
+  '<li[^>]*><span class="pa-numeros__disco" style="background:(#[0-9A-Fa-f]{6})"[^>]*>(.*?)</span><b>([^<]+)</b><span>([^<]+)</span></li>', 'g',
+))].map(([, disco, icone, valor, rotulo]) => ({ disco, icone, valor, rotulo }))
 
 // Marca canônica: aplica os aliases, para uma rede não contar como várias casas.
 const normalizar = (s) => String(s)
@@ -206,9 +206,9 @@ test('"40% já subiram ao pódio" confere com a base', () => {
   assert.equal(premiadas.size, 44, 'a contagem de premiadas divergiu do acervo §9.1')
 })
 
-test('irmãos não repetem cor de régua', () => {
+test('irmãos não repetem cor de disco', () => {
   // §6.3: dois irmãos com a mesma cor é defeito, não economia.
-  const cores = NUMEROS.map((n) => n.regua.toUpperCase())
+  const cores = NUMEROS.map((n) => n.disco.toUpperCase())
   assert.equal(new Set(cores).size, cores.length, 'duas réguas com a mesma cor: ' + cores.join(' '))
 
   // E cada uma tem de ser token da paleta (§6.1) — hex solto fora da tabela não entra.
@@ -216,7 +216,7 @@ test('irmãos não repetem cor de régua', () => {
   for (const cor of cores) assert.ok(PALETA.includes(cor), 'cor fora da paleta do §6.1: ' + cor)
 })
 
-test('toda régua aparece sobre o fundo do painel', () => {
+test('todo disco aparece sobre o fundo do painel', () => {
   // §6.3: a cor entra no ciclo só se o fundo a sustenta. Sobre chocolate, roxo
   // (1,45:1) e marrom (1,5:1) somem — e some em silêncio, porque CSS não avisa.
   // 3:1 é o piso de componente gráfico da WCAG.
@@ -232,11 +232,46 @@ test('toda régua aparece sobre o fundo do painel', () => {
 
   const bloco = HTML.slice(HTML.indexOf('.pa-numeros{'))
   const fundoChoco = bloco.slice(0, bloco.indexOf('}')).includes('background:var(--scw-choco)')
-  assert.ok(fundoChoco, 'o painel deixou de ser chocolate — recalcular as réguas')
+  assert.ok(fundoChoco, 'o painel deixou de ser chocolate — recalcular os discos')
 
-  for (const { regua, valor } of NUMEROS) {
-    const razao = contraste(regua, '#3D1308')
+  for (const { disco, valor } of NUMEROS) {
+    const razao = contraste(disco, '#3D1308')
     assert.ok(razao >= 3,
-      `régua de "${valor}" dá ${razao.toFixed(2)}:1 sobre chocolate — some (mínimo 3:1)`)
+      `disco de "${valor}" dá ${razao.toFixed(2)}:1 sobre chocolate — some (mínimo 3:1)`)
   }
+})
+
+// Fonte única dos ícones (§5.2 · §6.11). A página é estática e não importa
+// ScwIcon, então o desenho está inline. Este teste é o que impede o inline de
+// virar uma segunda fonte: mexeu no Design e reexportou, aqui reprova.
+test('os ícones do painel batem com scw-icons-v2.js', async () => {
+  const { SCW_ICONS, SCW_ICON_SPEC } = await import('../src/components/scw-icons/scw-icons-v2.js')
+
+  const ESPERADO = {
+    visualiza: 'redes/instagram',
+    voltaram: 'topicos/ciclo',
+    estreias: 'marca/estrela',
+    combos: 'combos/doce-cafe',
+    'pódio': 'premios/medalha',
+  }
+
+  assert.equal(NUMEROS.length, Object.keys(ESPERADO).length,
+    'mudou a contagem de números — atualizar o mapa de ícones deste teste')
+
+  for (const { rotulo, icone, valor } of NUMEROS) {
+    const chave = Object.entries(ESPERADO).find(([frag]) => rotulo.includes(frag))?.[1]
+    assert.ok(chave, `"${rotulo}" não tem ícone previsto`)
+    assert.ok(SCW_ICONS[chave], `ícone inexistente na fonte: ${chave}`)
+    assert.ok(icone.includes(SCW_ICONS[chave]),
+      `o desenho de "${valor}" divergiu de ${chave} em scw-icons-v2.js — regerar o inline`)
+    assert.ok(icone.includes(`stroke-width="${SCW_ICON_SPEC.strokeWidth}"`),
+      `traço de "${valor}" fora do spec (${SCW_ICON_SPEC.strokeWidth})`)
+    assert.ok(icone.includes(`viewBox="${SCW_ICON_SPEC.viewBox}"`),
+      `viewBox de "${valor}" fora do spec`)
+  }
+})
+
+test('a régua saiu inteira, markup e estilo', () => {
+  assert.ok(!HTML.includes('scw-stat__regua'),
+    'a régua virou disco mas ainda é citada — remover, não esconder (§5.7)')
 })
