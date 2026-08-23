@@ -29,7 +29,14 @@ $$;
 -- Ninguém chama isto de fora: as 14 RPCs abaixo são SECURITY DEFINER e a
 -- executam como dona. Exposta a `anon`, ela viraria mais um oráculo de senha
 -- ao lado de `admin_ping` — sem ganho nenhum.
+--
+-- ⚠️ As DUAS linhas são necessárias, e a primeira sozinha não resolve: o
+-- Supabase concede EXECUTE explicitamente a `anon` e `authenticated`, e não
+-- via PUBLIC. Aplicado só o `from public`, o Security Advisor acusou a função
+-- como chamável por anônimo em /rest/v1/rpc/ — foi assim que o defeito
+-- apareceu, em 23/08/2026, e é assim que se confere que ele não voltou.
 revoke execute on function public.pode_organizacao(text) from public;
+revoke execute on function public.pode_organizacao(text) from anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- 2. Trocar o guard nas 14 RPCs da organização

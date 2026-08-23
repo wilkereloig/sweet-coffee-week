@@ -578,12 +578,29 @@ parado há mais de X dias.
    (22/08/2026). Consequências assumidas: sem proteção contra senha vazada
    (HaveIBeenPwned) e sem backup automático — o `db dump` do item 3 passa a ser manual e
    obrigatório antes de cada migration, e o projeto precisa de uso regular para não pausar.
-3. Fazer um `db dump` e guardar fora do Supabase. **Pendente — e agora é bloqueante**,
-   porque é a única rede de segurança que sobrou.
-4. ~~Confirmar quais migrations o banco realmente aplicou.~~ ✅ **conferido em 22/08/2026**:
-   as 13 migrations registradas incluem as quatro de formulário (`contact_requests`,
-   `participation_interests`, `support_interests`, `painel_organizacao`), todas aplicadas em
-   20/08. Não há divergência entre o repositório e o banco.
+3. Fazer um `db dump` e guardar fora do Supabase. ⚠️ **Parcial em 23/08/2026.**
+   `../backups-supabase/scw-2026-08-22-parcial/` tem as quatro tabelas da Fase 1,
+   `quero_participar`, as configurações e as contas do Auth — tudo que a Fase 1 criou.
+   **Continuam sem cópia:** `votos` (2.702) e `feedback_geral` (1.582), 2,2 MB que só
+   saem com a `service_role`, e o esquema (ver item 4). Fecha com
+   `npm run backup` (script novo, chave só por variável de ambiente).
+4. ~~Confirmar quais migrations o banco realmente aplicou.~~ ⚠️ **A conferência de
+   22/08/2026 estava errada, e o erro importa.** Ela dizia "13 migrations, sem divergência
+   entre o repositório e o banco". Em 23/08 a contagem direta deu **17 no banco e 8 no
+   repositório**: as **9 de junho** — as que criam `votos`, `feedback_geral`, `admin_ok`,
+   `submit_vote` e `get_rankings` — nunca existiram fora do Supabase.
+   Num projeto sem backup automático, isso é esquema sem cópia em lugar nenhum: um dump
+   dos 2.702 votos não tem onde ser recolocado. Recuperar é rodar a consulta abaixo no SQL
+   Editor, baixar o CSV e passar em `node scripts/recuperar-migrations.mjs <csv>`:
+
+   ```sql
+   select version, name, array_to_string(statements, E';
+') as sql
+   from supabase_migrations.schema_migrations order by version;
+   ```
+
+   **A lição:** conferir migration por *contagem* não basta — o repositório tinha arquivo
+   com nome parecido e número diferente, e isso passou por "sem divergência".
 5. **Novo:** ligar CAPTCHA (Turnstile) no login do painel — ver risco 2 do §7.
 
 ### Fase 1 — Contas das marcas *(o grosso do trabalho)*
@@ -591,8 +608,10 @@ parado há mais de X dias.
    `quero_participar`, políticas RLS e grants de coluna.
 6. ~~Edge Function `criar-acesso-marca` + RPC `vincular_conta_marca`.~~ ✅ **escritas em
    22/08/2026** — `supabase/functions/criar-acesso-marca/index.ts` (`deno check` limpo) e
-   as RPCs no fim da migration da Fase 1. ⚠️ **Nenhuma das duas está no ar**: a função não
-   foi deployada e a migration não foi aplicada. Faltou também uma terceira peça que o
+   as RPCs no fim da migration da Fase 1. ✅ **As duas estão no ar desde 22/08/2026** —
+   migration `contas_marcas_fase1` aplicada e Edge Function ativa na v3. (Este parágrafo
+   dizia o contrário até 23/08: foi escrito antes de alguém aplicar, e ninguém voltou
+   para corrigir.) Faltou também uma terceira peça que o
    esqueleto do §4 não previa — `user_id_por_email`, porque `createUser` devolve 422
    `email_exists` sem dizer *qual* usuário é, e `listUsers` é paginado.
    Duas correções no modelo da Fase 1, achadas ao escrever a RPC:
@@ -659,9 +678,22 @@ parado há mais de X dias.
      ⚠️ **Aplicar dentro de `begin; … rollback;` na primeira vez:** erro de sintaxe
      aparece sem nada persistir.
 
-### Fase 2 — Unificação da autenticação *(depois, sem pressa)*
-10. `pode_organizacao()` substituindo `admin_ok` nas RPCs existentes.
-11. Contas nominais para a organização; `admin_ok` mantido em paralelo.
+### Fase 2 — Unificação da autenticação
+10. ~~`pode_organizacao()` substituindo `admin_ok` nas RPCs existentes.~~ ✅ **aplicado em
+    23/08/2026** (migrations `pode_organizacao_fase2` e `pode_organizacao_revoke_anon`).
+    As 14 RPCs da organização passaram a checar `pode_organizacao(p_secret)`; `admin_ping`
+    e `get_rankings` ficaram de fora, de propósito. A senha única continua valendo — a
+    ponte devolve `true` pelos dois caminhos.
+    ⚠️ **A troca é por reescrita da definição real, não por cópia dos 14 corpos** para
+    dentro do arquivo de migration: copiar criaria a segunda fonte de verdade do §5.2 do
+    `CLAUDE.md`. O bloco aborta se alguma função não tiver exatamente uma ocorrência do
+    guard antigo.
+    ⚠️ **`revoke ... from public` não basta** — o Supabase concede EXECUTE explicitamente
+    a `anon` e `authenticated`. Sem a segunda linha de `revoke`, `pode_organizacao` fica
+    exposta em `/rest/v1/rpc/` e vira um segundo oráculo de senha ao lado do `admin_ping`.
+    Foi o Security Advisor que pegou, depois de aplicada.
+11. **Pendente:** contas nominais para a organização; `admin_ok` mantido em paralelo.
+    A porta nova está aberta e vazia — ninguém tem `perfis.papel = 'organizacao'` ainda.
 12. Remoção do segundo `or` e de `admin_ok` quando a última pessoa migrar.
 
 ### Fase 3 — Operação
@@ -671,16 +703,30 @@ parado há mais de X dias.
 
 ---
 
-## 9. O que eu preciso decidir com você
+## 9. O que precisava ser decidido — tudo respondido
 
-1. **Fase 2 entra ou fica para depois?** Ela resolve a senha vazada de forma definitiva,
-   mas mexe no que está em produção e verificado.
-2. **O que exatamente a marca preenche?** Listei o provável (produto, foto, preço,
-   endereço, horários). O conteúdo real depende do que vai ao site — e isso define metade
-   das telas.
-3. **O plano Pro está de pé?** Se a resposta for não, o plano muda: dá para fazer, mas com
-   rotina de backup manual e um monitor batendo no projeto para não pausar. Prefiro dizer
-   isso agora do que depois.
-4. **`/marca/` estática ou esperar o gate cair?** Recomendo estática pelo mesmo motivo que
-   valeu para `/organizacao/`, mas se o institucional for ao ar antes do festival, vale
-   discutir se ela nasce como rota React desde já.
+As quatro perguntas foram fechadas em 22–23/08/2026. Ficam registradas com a resposta:
+pergunta sem resposta ao lado vira pergunta feita de novo daqui a um mês.
+
+1. ~~**Fase 2 entra ou fica para depois?**~~ **Entrou** (22/08). Aplicada em 23/08 — §8,
+   item 10.
+2. ~~**O que exatamente a marca preenche?**~~ **Fechado** (22/08): quem participa, o que
+   criou, quanto custa, unidades. Sem foto do produto, até existir bucket de Storage com
+   política própria.
+3. ~~**O plano Pro está de pé?**~~ **Não** (22/08): fica no Free. Consequências no §8,
+   Fase 0, item 2.
+4. ~~**`/marca/` estática ou rota React?**~~ **Estática** — já construída, mesmo motivo
+   que valeu para `/organizacao/`.
+
+### O que sobrou em aberto, e não é decisão de arquitetura
+
+- **Três ações da ficha não existem**: gerar acesso temporário, aprovar cadastro e
+  suspender. A lista de marcas em `/organizacao/` é leitura pura — os itens são montados
+  sem nenhum handler de clique. "Reenviar convite" continua ausente de propósito (§6.1).
+- **`organizacao_apagar_registro` não aceita a origem `participantes`**: apagar uma marca
+  só por SQL. Foi assim que a `TESTE 01` saiu, em 23/08.
+- **`perfis.deve_trocar_senha` tem default `false`** — e é a Edge Function que liga a
+  trava, num `update` posterior. Quem chamar `vincular_conta_marca` ou
+  `vincular_marca_manual` direto no banco cria conta **sem** a trava. Como é ela que
+  torna aceitável mandar senha por WhatsApp (`CLAUDE.md` §10.4-b), o default devia ser
+  `true`: assim esquecer o passo seguinte falha fechado, não aberto.

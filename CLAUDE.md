@@ -261,6 +261,40 @@ preview.**
   `ascendium-ecommerce` foi pausado em 20/08/2026 para o SCW voltar. Antes de
   concluir que um projeto sumiu, checar o status — `INACTIVE` é pausa.
 
+  🔴 **`supabase/migrations/` não é o esquema inteiro, e por isso não é a fonte
+  de verdade dele.** Em 23/08/2026 o banco tinha **17 migrations** e a pasta,
+  **8**: as 9 de junho — as que criam `votos`, `feedback_geral`, `admin_ok`,
+  `submit_vote` e `get_rankings` — só existem dentro do Supabase. Num projeto
+  no plano free, sem backup automático, isso é esquema sem cópia: um dump dos
+  2.702 votos não teria onde ser recolocado. Recuperar é rodar no SQL Editor
+  `select version, name, array_to_string(statements, E';
+') as sql from
+  supabase_migrations.schema_migrations order by version;`, baixar o CSV e
+  passar em `node scripts/recuperar-migrations.mjs <csv>`.
+  ⚠️ **Não transcrever migration à mão.** Arquivo que sai diferente do banco é
+  pior que arquivo ausente: parece autoridade e mente. Por isso o caminho é o
+  CSV, e não a digitação.
+  ⚠️ **Conferir migration por contagem não pega a divergência** — foi o que
+  falhou em 22/08, quando a checagem deu "13, sem divergência". Os nomes de
+  arquivo do repositório usam data sem hora (`20260710_contact_requests.sql`) e
+  os do banco usam o carimbo cheio (`20260820212953`): parecidos o bastante
+  para enganar quem confere de olho.
+
+  ✅ **Fase 2 da autenticação aplicada em 23/08/2026** (migrations
+  `pode_organizacao_fase2` + `pode_organizacao_revoke_anon`). As **14 RPCs da
+  organização** deixaram de chamar `admin_ok(p_secret)` e passaram a chamar
+  **`pode_organizacao(p_secret)`**, que devolve `true` para quem tem
+  `perfis.papel = 'organizacao'` **ou** para a senha única. Fora, de propósito:
+  `admin_ping` (é o próprio teste da senha) e `get_rankings` (pública).
+  **Nada foi removido:** `admin_ok` e a tela de senha única seguem funcionando,
+  e `/organizacao/` não exige login nominal. A porta nova está aberta e vazia —
+  ninguém tem `papel = 'organizacao'` ainda.
+  ⚠️ **`revoke execute ... from public` NÃO tira a permissão de `anon`.** O
+  Supabase concede EXECUTE explicitamente a `anon` e `authenticated`; sem
+  `revoke ... from anon, authenticated` a função fica exposta em
+  `/rest/v1/rpc/`. Quem pegou foi o Security Advisor, **depois** de aplicada:
+  toda função nova de guard passa por ele antes de fechar a tarefa.
+
   Migration em `supabase/migrations/`. **Nenhum deles afirma "enviado" se a gravação
   falhar** — é regra escrita no cabeçalho dos três arquivos. ⛔ **Não trocar por
   "copia para a área de transferência e abre o Instagram"**: essa era a descrição do
