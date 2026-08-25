@@ -249,6 +249,55 @@ linhas e `votos`/`feedback_geral` não são tocados.
 
 ---
 
+## Fase 4 · Modelo de dados — ✅ PRONTA NO BANCO
+
+**Correção de vocabulário que o Eloi fez, e que simplificou tudo:**
+`participantes` **é** a marca — mesma entidade, dois nomes. Não existe tabela
+`marcas`. O que faltava era o vínculo com a **edição**.
+
+Isso permitiu fazer a fase inteira de forma **aditiva**: `participantes` não
+perdeu uma coluna, as colunas de combo que já existiam lá seguem servindo
+`/marca/` como está hoje, e **nada quebrou**. Era exatamente o que tinha me
+feito parar antes.
+
+| Tabela nova | Papel |
+|---|---|
+| `participacoes` | a marca **naquela edição**: tema, justificativa, preço, status |
+| `participacao_unidades` | loja: endereço, bairro, **horário do festival**, delivery e canais |
+| `solicitacoes` | aviso geral **e** solicitação direcionada, com prazo e bloco alvo |
+| `solicitacao_estado` | uma linha por participação: quem respondeu, quem não |
+| `arquivos` + `arquivo_leitura` | geral e por marca, com versão e confirmação de leitura |
+| `push_subscriptions` | inscrições de notificação |
+
+Mais: `abrir_participacao()` (idempotente, copia as unidades da edição
+anterior), `cnpj`/`razao_social` opcionais, e o bucket privado `arquivos`.
+
+**`avisos` sumiu** e virou caso particular de solicitação — escopo `geral`,
+bloco `livre`. Manter as duas seria duas telas, dois gatilhos de push e duas
+respostas para "o que me pediram". Tinha zero linhas.
+
+**Delivery ficou por unidade, não por marca:** loja de shopping e loja de rua
+costumam ter páginas de aplicativo diferentes, e uma pode entregar e a outra
+não. Não é detalhe operacional — Delivery/Takeaway é categoria premiada.
+
+### Provado em transação revertida — 12 de 12
+
+| Prova | Resultado |
+|---|---|
+| abrir participação | ✅ |
+| segundo clique não abre duas | ✅ idempotente |
+| trigger cria os 3 itens por participação | ✅ `doce, salgado, bebida` |
+| mesma marca em duas edições | ✅ sem colidir, 6 itens |
+| rascunho **não** alcança ninguém | ✅ 0 estados |
+| publicar abre o leque só na edição certa | ✅ **2**, não 3 |
+| republicar não duplica | ✅ 0 |
+| cobrança: pendentes / respondidas | ✅ 2/0 → **1/1** ao marcar uma |
+
+Estado depois: senha real restaurada, **zero resíduo**, 26 tabelas e **todas com
+RLS**, nenhum guard aberto a `anon`.
+
+---
+
 ## Revisão final (§7 do comando) — o que foi conferido
 
 | Item | Resultado |
@@ -277,28 +326,27 @@ linhas e `votos`/`feedback_geral` não são tocados.
 
 ## Onde parei, exatamente
 
-**Fases 1, 2 e 3 fechadas.** Fases 4 a 9 não começaram.
-
-A fase 4 (modelo de dados) é a próxima, e ela **não podia ser começada e
-deixada pela metade**: reestruturar `participantes` em marca × participação
-quebra, na mesma leva, a Edge Function `criar-acesso-marca`, quatro RPCs,
-`public/marca/index.html` e a ficha do painel. Começar sem terminar deixaria
-uma tela quebrada — o que o item 5 do comando proíbe explicitamente.
+**Fases 1 a 4 fechadas — o banco inteiro do sistema está de pé e provado.**
+Fases 5 a 9 não começaram: são **tela**, não dado.
 
 **Ordem de retomada:**
 
-1. Fase 4 · modelo de dados — `participacoes`, `participacao_unidades` (com
-   delivery), repontar `participantes_itens` e `sessoes_fotos`, `solicitacoes` +
-   `solicitacao_estado`, `arquivos` + confirmação de leitura, CNPJ/razão social
-   opcionais, `push_subscriptions`.
-2. Fase 5 e 6 · as duas telas.
-3. Fase 7 · instalável em `/marca/` + push.
-4. Fase 8 · testes.
+1. **Fase 5 · painel da marca** — migrar `/marca/` de `participantes` para
+   `participacoes`: tema + justificativa, os três itens com restrição por item,
+   unidades com horário e delivery, lista de solicitações com prazo, downloads,
+   sessão de fotos.
+2. **Fase 6 · painel da organização** — gestão de contas (as RPCs já existem),
+   solicitações com acompanhamento de quem respondeu, arquivos, agendamento e
+   envio de fotos, ficha completa.
+3. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
+   dois painéis, Edge Function `enviar-push`, banner de instalação para iPhone.
+4. **Fase 8 · testes** — estender `tests/marca.test.mjs` e
+   `tests/organizacao.test.mjs`, mais o teste que impede reintroduzir upload de
+   foto pela marca.
 
-⚠️ **A migration `cadastro_completo_marca` (24/08) precisa ser refeita na fase
-4**, porque `participantes_itens` e `sessoes_fotos` apontam para
-`participante_id` — que sob o modelo decidido vira *participação*, não *marca*.
-Com zero linhas, é barato. Com a 17ª edição dentro, não seria.
+⚠️ **Nada em `/marca/` ou `/organizacao/` foi alterado nesta fase.** As duas
+telas continuam funcionando exatamente como antes, lendo as colunas antigas de
+`participantes`. A migração delas é a fase 5.
 
 ---
 
