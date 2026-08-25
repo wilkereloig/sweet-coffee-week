@@ -682,15 +682,25 @@ body:not(.route-em-breve) { margin: 0; }
    (`compacto`, matchMedia ≤900px); aqui os dois modos são montados e o corte é
    por media query — sem isso a barra de abas aparece no desktop e o menu do
    desktop aparece no celular. */
-.scw-abas {
-  display: none;
+/* A CHAPA DAS BARRAS PRESAS NA BASE. Extraída quando apareceu a segunda cópia
+   (§5.3): a barra de abas do site e a barra da ação da landing são a mesma
+   casca de aplicativo, e o dia em que a cor ou o desfoque mudarem tem de mudar
+   nas duas. Quem continua sendo só da barra de abas fica em `.scw-abas`: a
+   grade de cinco, o indicador que desliza entre abas e o corte em 900px.
+   ⚠️ O chocolate aqui é rgba(43,14,6,.96), mais fundo que `--scw-choco`, e é
+   proposital: sob desfoque a chapa clareia com o que passa atrás dela. */
+.scw-casca-base {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 70;
-  padding: 8px 10px calc(8px + var(--scw-safe-b));
   background: rgba(43, 14, 6, .96);
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(254, 240, 221, .14);
+}
+
+.scw-abas {
+  display: none;
+  padding: 8px 10px calc(8px + var(--scw-safe-b));
 }
 .scw-abas__grade {
   position: relative;

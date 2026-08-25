@@ -327,6 +327,7 @@ function GaleriaEdicoes() {
 function BarraAcao() {
   const ref = React.useRef(null)
   const [batendo, setBatendo] = React.useState(false)
+  const [lido, setLido] = React.useState(0)
 
   /* ⚠️ ALTURA DE BARRA FIXA SE MEDE, NÃO SE CALCULA (§10.4-b). O primeiro
      palpite foi 70px — "padding + botão", na conta — e o botão real dá 84px:
@@ -353,6 +354,32 @@ function BarraAcao() {
     return () => clearTimeout(t)
   }, [])
 
+  /* O INDICADOR. É a peça de 3px da barra de abas, trazida com o mesmo desenho
+     e o mesmo mecanismo — transform, origem à esquerda, sem transição (§10.3) —,
+     mas com sentido próprio: na barra de abas ele diz ONDE você está entre cinco
+     destinos; aqui, QUANTO da página você já leu. Sem sentido nenhum ele seria
+     grafismo puro, e o §6.13 manda tirar.
+     ⚠️ Sem transição de propósito: ele acompanha um valor exato quadro a quadro,
+     e transição em barra de progresso trava o valor — a régua de anos de Edições
+     custou essa lição. */
+  React.useEffect(() => {
+    let quadro = 0
+    const medir = () => {
+      quadro = 0
+      const alcance = document.documentElement.scrollHeight - window.innerHeight
+      setLido(alcance > 0 ? Math.min(1, Math.max(0, window.scrollY / alcance)) : 1)
+    }
+    const aoRolar = () => { if (!quadro) quadro = requestAnimationFrame(medir) }
+    medir()
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    window.addEventListener('resize', aoRolar)
+    return () => {
+      window.removeEventListener('scroll', aoRolar)
+      window.removeEventListener('resize', aoRolar)
+      if (quadro) cancelAnimationFrame(quadro)
+    }
+  }, [])
+
   /* 2º convite: quem chegou ao fecho já leu a página inteira e está decidindo.
      Uma vez só — `disconnect` no primeiro cruzamento. Insistir depois disso
      deixa de ser convite e vira cutucão. */
@@ -370,7 +397,8 @@ function BarraAcao() {
   }, [])
 
   return (
-    <div className="eb-barra" ref={ref}>
+    <div className="eb-barra scw-casca-base" ref={ref} style={{ '--eb-lido': lido }}>
+      <span className="eb-barra__indicador" aria-hidden="true" />
       <span className="eb-barra__nota">Leva quatro passos e uma revisão antes de enviar.</span>
       <a
         className={`scw-btn scw-btn--solido eb-barra__btn${batendo ? ' is-convite' : ''}`}
@@ -849,17 +877,16 @@ export function EmBrevePage() {
         /* 9 — A BARRA DA AÇÃO -------------------------------------------- */
         /* Era só do celular até 26/08/2026. Agora vale em toda largura, porque
            virou a única chamada da página. */
+        /* A chapa, o desfoque, o filete e o \`position: fixed\` vêm de
+           \`.scw-casca-base\` — a mesma casca da barra de abas do site. Aqui fica
+           só o que é desta barra: o arranjo interno e o ritmo vertical de 8px,
+           que é o da barra de abas. */
         .eb-barra {
-          position: fixed;
-          left: 0; right: 0; bottom: 0;
-          z-index: 70;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: clamp(12px, 2vw, 28px);
-          padding: 12px var(--scw-trilho) calc(12px + var(--scw-safe-b));
-          background: var(--scw-choco);
-          border-top: 1px solid rgba(254, 240, 221, .16);
+          padding: 8px var(--scw-trilho) calc(8px + var(--scw-safe-b));
           /* A chegada: a barra sobe até o leitor. Mesma duração e mesma curva
              do aviso de cookies, que faz este exato gesto — nada de tempo novo
              (§6.15, regra 7). */
@@ -877,11 +904,36 @@ export function EmBrevePage() {
            de creme para a nota, o botão sai creme sobre amarelo — 1,4:1,
            invisível. É a armadilha nº 1 do §10.1, e ela já custou duas vezes
            neste projeto. */
+        /* O indicador de leitura, no lugar exato em que a barra de abas põe o
+           dela: colado no topo da chapa. */
+        .eb-barra__indicador {
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 3px;
+          border-radius: 3px;
+          background: var(--scw-amarelo);
+          transform: scaleX(var(--eb-lido, 0));
+          transform-origin: left center;
+        }
+
+        /* ⚠️ A landing está FORA do reset de \`border-box\` do sistema — a
+           exclusão é explícita em \`scw-2026.css\` e existia para não remexer numa
+           página calibrada em content-box e no ar. O efeito colateral aparece em
+           toda peça que some medida fixa com padding ou borda: o \`.scw-btn\`, que
+           o sistema define com \`min-height: 54px\` e \`padding: 15px 28px\`,
+           renderizava com 84px — os 30px de padding entravam POR CIMA da altura
+           mínima, e o botão virava um bolo amarelo. O mesmo valia para os
+           controles da galeria: 48px de caixa + 1,5px de borda dos dois lados =
+           51px. Enquanto a exclusão inteira não cair, as peças de sistema que
+           esta página usa entram no reset uma a uma. */
+        .eb-barra__btn,
+        .eb-gal__btn { box-sizing: border-box; }
+
         .eb-page .eb-barra__btn { color: var(--scw-choco); }
+        /* O mesmo tom do rótulo das abas: .9 de creme sobre a chapa = 12,6:1. */
         .eb-barra__nota {
           font: 500 13.5px/1.4 var(--scw-font);
-          color: var(--scw-creme);
-          opacity: .82;
+          color: rgba(254, 240, 221, .9);
         }
 
         /* O CONVITE. Gesto finito, disparado por evento — ver o cabeçalho de
@@ -913,9 +965,16 @@ export function EmBrevePage() {
              mais é viewport a menos, e o que precisa estar ali é a ação. A
              informação dos quatro passos reaparece dentro do próprio
              /quero-participar/, que os numera na tela. */
-          .eb-barra { padding-inline: clamp(16px, 4vw, 24px); }
+          /* 10px é o gutter da barra de abas — a mesma folga, para as duas
+             lerem como a mesma peça de casca. */
+          .eb-barra { padding-inline: 10px; justify-content: center; }
           .eb-barra__nota { display: none; }
-          .eb-barra__btn { width: 100%; justify-content: center; }
+          /* ⛔ O botão NÃO estica. Esticado, ele virava uma lâmina amarela de
+             ponta a ponta e a barra deixava de parecer casca de aplicativo — a
+             barra de abas do site é escura com acentos contidos, e é com ela
+             que esta peça tem de conversar. Na largura do conteúdo o alvo ainda
+             passa de 200px, muito acima dos 44px do §6.10. */
+          .eb-barra__btn { justify-content: center; }
           .eb-rodape { justify-content: flex-start; }
         }
       `}</style>

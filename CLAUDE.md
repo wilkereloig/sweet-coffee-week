@@ -947,7 +947,8 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
 | Navegação | `.scw-nav` | `nav.jsx` |
-| Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
+| Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
+| Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) — compõe `.scw-casca-base` |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
 | Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
 | Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ A ação nova é `<a>`, e por isso o seletor dela é **prefixado** — sem prefixo ela nasce chocolate sobre chocolate, 1:1 (§10.1). **Reformulado em 22/08/2026** (§6.10-b) |
@@ -1539,11 +1540,32 @@ para dentro das seções**: a página tem uma conversão só, e espalhá-la de n
 troca que já foi desfeita — o leitor reencontrar a ação três vezes em vez de ela nunca
 sair da tela.
 
+**A barra é a mesma casca da barra de abas do site** (`.scw-casca-base`, §6.10) — chapa
+translúcida com desfoque, filete de creme e o mesmo ritmo vertical de 8px. Foi pedido do
+Eloi: *"faz tipo como é o menu mobile, integrado, animado"*.
+
 | Peça da barra | Regra |
 |---|---|
+| Chapa | `.scw-casca-base` — **não** redeclarar cor, desfoque nem `position` aqui |
+| Indicador de 3px | é a peça da barra de abas, com **sentido próprio**: lá diz *onde* você está entre cinco destinos, aqui *quanto* da página já leu. `scaleX`, origem à esquerda, **sem transição** (§10.3) |
 | Nota "Leva quatro passos…" | acompanha o botão acima de 760px; **sai** abaixo, onde cada linha a mais é viewport a menos. A informação reaparece dentro do próprio `/quero-participar/`, que numera os passos na tela |
 | Botão | `.eb-barra__btn`, tinta **prefixada** em chocolate (§10.1) |
 | Altura | `--eb-barra-h`, escrito **no `body`** por `ResizeObserver` |
+
+⛔ **O botão NÃO estica no celular.** Esticado ele vira uma lâmina amarela de ponta a
+ponta, e a barra deixa de ler como casca de aplicativo — a barra de abas é **escura com
+acentos contidos**, e é com ela que esta peça conversa. Na largura do conteúdo o alvo
+ainda passa de 200px, muito acima dos 44px do §6.10.
+
+🐛 **A landing está FORA do reset de `border-box`**, e a exclusão é explícita em
+`scw-2026.css` (`body:not(.route-em-breve)`). Escrita quando a página era a de antes,
+"calibrada em content-box e no ar", ela agora custa em toda peça que some medida fixa com
+padding ou borda: o `.scw-btn`, que o sistema define com `min-height: 54px` e
+`padding: 15px 28px`, renderizava com **84px** — os 30px entravam POR CIMA da altura
+mínima, e o botão virava um bolo amarelo. Os controles da galeria davam 51px em vez de 48.
+Enquanto a exclusão inteira não cair, **as peças de sistema que esta página usa entram no
+reset uma a uma** (`.eb-barra__btn`, `.eb-gal__btn`). ⚠️ Derrubar a exclusão é mudança
+global numa página no ar (§5.4) — decisão do Eloi, com varredura de regressão visual.
 
 ⚠️ **O convite é FINITO, e isso é regra, não economia.** A página já tem dois laços
 contínuos — o marquee e o gradiente dele —, que é o teto do §6.15. Um pulso permanente na
