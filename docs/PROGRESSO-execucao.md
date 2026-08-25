@@ -606,6 +606,17 @@ primeira conta criada.
    Vale o primeiro, `0x4AAAAAAEbvMJDS1YJpLY3b`, e os três domínios têm que estar
    **dentro dele** — a página tem uma site key só. Os outros dois ficam sem uso.
 
+   🔴 **Rotação de chave com janela de graça: o teste passa mesmo se você errou.**
+   A Cloudflare mantém a chave secreta antiga válida por **duas horas** depois de
+   girar. Nessa janela, um valor errado colado no Supabase produz exatamente o
+   mesmo resultado que o certo — tudo funciona. Quando a janela fecha, o
+   formulário passa a descartar em silêncio, **sem deploy, sem mudança de código,
+   sem nada a que ligar a causa**. Rotacionou? o teste que vale é o de DEPOIS da
+   janela, e vale marcar a hora.
+   O mesmo raciocínio serve para qualquer credencial com período de sobreposição:
+   token de API, certificado, chave de assinatura. A graça que evita a queda
+   também esconde o erro.
+
    ⚠️ **Depois de ligar, mande um pré-cadastro de verdade.** Chave errada por um
    caractere não quebra nada visível: o widget não renderiza, o token sai vazio e
    o servidor descarta. Desde 25/08 a página **barra esse caso na cara da pessoa**
