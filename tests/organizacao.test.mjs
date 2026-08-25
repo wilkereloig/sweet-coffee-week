@@ -521,3 +521,122 @@ test('a edição aberta tem tela, e é ela que dá formulário à conta nova', (
   assert.match(MIG_FASE5, /perform public\.abrir_participacao_interna\(v_id, v_ed\)/,
     'a conta nova precisa nascer com a participação da edição corrente')
 })
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Fase 7 — aplicativo instalável e notificações
+   ═══════════════════════════════════════════════════════════════════════════ */
+const SW_ORG = readFileSync(new URL('../public/organizacao/sw.js', import.meta.url), 'utf8')
+const SW_MARCA = readFileSync(new URL('../public/marca/sw.js', import.meta.url), 'utf8')
+const PUSH = readFileSync(
+  new URL('../supabase/functions/enviar-push/index.ts', import.meta.url), 'utf8')
+const MANIFESTO_ORG = JSON.parse(
+  readFileSync(new URL('../public/organizacao/app.webmanifest', import.meta.url), 'utf8'))
+const MANIFESTO_MARCA = JSON.parse(
+  readFileSync(new URL('../public/marca/app.webmanifest', import.meta.url), 'utf8'))
+
+test('os dois service workers têm escopo de pasta, nunca da raiz', () => {
+  // 🔴 SW servido da raiz assume escopo '/' e passa a interceptar a landing que
+  // está no ar. Desfazer isso não é deploy: é desregistro no navegador de cada
+  // visitante.
+  assert.match(JS, /register\('\/organizacao\/sw\.js',\s*\{\s*scope:\s*'\/organizacao\/'/)
+  const MARCA_HTML = readFileSync(new URL('../public/marca/index.html', import.meta.url), 'utf8')
+  assert.match(MARCA_HTML, /register\('\/marca\/sw\.js',\s*\{\s*scope:\s*'\/marca\/'/)
+})
+
+test('escopo e start_url dos dois manifests terminam em barra', () => {
+  // Sem a barra o escopo vira a raiz, e instalar o painel instalaria o site.
+  for (const [nome, m] of [['organizacao', MANIFESTO_ORG], ['marca', MANIFESTO_MARCA]]) {
+    assert.ok(m.scope.endsWith('/'), nome + ': scope sem barra final')
+    assert.ok(m.start_url.endsWith('/'), nome + ': start_url sem barra final')
+    assert.equal(m.scope, '/' + nome + '/')
+  }
+})
+
+test('os escopos dos dois aplicativos não se sobrepõem', () => {
+  assert.notEqual(MANIFESTO_ORG.scope, MANIFESTO_MARCA.scope)
+  assert.ok(!MANIFESTO_ORG.scope.startsWith(MANIFESTO_MARCA.scope))
+  assert.ok(!MANIFESTO_MARCA.scope.startsWith(MANIFESTO_ORG.scope))
+})
+
+test('os dois SW recebem push e tratam o clique', () => {
+  for (const [nome, sw] of [['org', SW_ORG], ['marca', SW_MARCA]]) {
+    assert.match(sw, /addEventListener\('push'/, nome + ': sem handler de push')
+    assert.match(sw, /addEventListener\('notificationclick'/, nome + ': sem handler de clique')
+    assert.match(sw, /showNotification/, nome + ': push que não mostra nada')
+  }
+})
+
+test('notificação só abre caminho interno', () => {
+  // Notificação que abre outro site é phishing com a marca do festival, e quem
+  // clica não vê a URL antes.
+  for (const [nome, sw] of [['org', SW_ORG], ['marca', SW_MARCA]]) {
+    assert.match(sw, /charAt\(0\) === '\/'/, nome + ': destino não é conferido')
+  }
+  assert.ok(PUSH.includes('url_invalida'),
+    'a função precisa recusar URL absoluta na entrada')
+})
+
+test('nenhum SW cacheia dado do banco', () => {
+  for (const [nome, sw] of [['org', SW_ORG], ['marca', SW_MARCA]]) {
+    assert.match(sw, /url\.origin !== self\.location\.origin/, nome + ': sem corte de origem')
+    assert.ok(!/supabase|dgfmoibynftadsyjcclg/i.test(sw),
+      nome + ': o host do banco não pode aparecer nem em comentário')
+    // HTML sempre da rede: o JS é inline, então cachear o documento congela o
+    // painel inteiro numa versão antiga.
+    assert.match(sw, /mode === 'navigate'[\s\S]{0,200}fetch\(e\.request\)/,
+      nome + ': o HTML precisa ser network-first')
+  }
+})
+
+test('a chave VAPID pública é a mesma nos dois painéis, e a privada não está em public/', () => {
+  const MARCA_HTML = readFileSync(new URL('../public/marca/index.html', import.meta.url), 'utf8')
+  const daOrg = (JS.match(/VAPID_PUBLICA = '([A-Za-z0-9_-]+)'/) || [])[1]
+  const daMarca = (MARCA_HTML.match(/VAPID_PUBLICA = '([A-Za-z0-9_-]+)'/) || [])[1]
+  assert.ok(daOrg, 'o painel da organização não declara a chave')
+  assert.equal(daOrg, daMarca, 'chaves diferentes: a assinatura de um painel não aceita o envio')
+  // A pública é um ponto P-256 não comprimido: 65 bytes → 87 caracteres base64url.
+  assert.equal(daOrg.length, 87)
+  assert.ok(daOrg.startsWith('B'), 'ponto não comprimido começa com 0x04, que vira "B" em base64url')
+  // ⛔ A privada é o `d` do JWK: 32 bytes → 43 caracteres. Nenhum literal desse
+  // formato pode existir num arquivo que roda no navegador de quem abrir.
+  for (const [nome, arq] of [['organizacao', JS], ['marca', MARCA_HTML]]) {
+    assert.ok(!/VAPID_PRIVAD|VAPID_PRIVATE|privateKey\s*[:=]\s*'[A-Za-z0-9_-]{40,}'/.test(arq),
+      nome + ': parece haver chave privada no arquivo estático')
+  }
+})
+
+test('a função de envio é guardada, e a chave de serviço vem do ambiente', () => {
+  assert.match(PUSH, /p_acao:\s*'producao\.gerir'/, 'quem manda aviso precisa de producao.gerir')
+  assert.match(PUSH, /autorizado !== true[\s\S]{0,80}401/, 'sem autorização tem que ser 401')
+  assert.match(PUSH, /Deno\.env\.get\('SUPABASE_SERVICE_ROLE_KEY'\)/)
+  assert.match(PUSH, /Deno\.env\.get\('VAPID_PRIVATE_KEY'\)/, 'a privada só pode vir do ambiente')
+  assert.ok(!/\bsb_secret_|\beyJ[\w-]+\.[\w-]+\.[\w-]+/.test(PUSH), 'chave literal no arquivo')
+})
+
+test('sem as três variáveis VAPID a função recusa em vez de fingir que mandou', () => {
+  // "Falhou em silêncio" num canal de aviso é o pior defeito possível.
+  assert.match(PUSH, /vapid_ausente[\s\S]{0,120}503|503[\s\S]{0,120}vapid_ausente/)
+})
+
+test('o separador da cifra é um byte, não uma sequência de escape', () => {
+  // 🐛 RFC 8291: os rótulos de derivação terminam em 0x00. Escrito como escape
+  // dentro do literal de texto, esse byte já se perdeu duas vezes — no heredoc
+  // do shell e no JSON do deploy — e das duas o sintoma seria o mesmo: chave
+  // diferente, e o navegador DESCARTANDO a mensagem sem dizer por quê.
+  assert.match(PUSH, /const NUL = new Uint8Array\(\[0\]\)/,
+    'o separador precisa ser um byte, fora da string')
+  for (const rotulo of ['WebPush: info', 'Content-Encoding: aes128gcm', 'Content-Encoding: nonce']) {
+    assert.ok(PUSH.includes("texto.encode('" + rotulo + "'), NUL"),
+      'o rótulo "' + rotulo + '" precisa ser seguido do byte NUL')
+  }
+  // Nem o byte cru, nem a sequência de escape: as duas formas já falharam.
+  assert.ok(!PUSH.includes(String.fromCharCode(0)), 'há byte NUL cru no arquivo')
+  assert.ok(!PUSH.includes('\\' + 'u0000'), 'voltou a sequência de escape')
+})
+
+test('assinatura que morreu é desativada, não apagada, e o endpoint nunca volta na resposta', () => {
+  assert.match(PUSH, /404 \|\| r\.status === 410/, 'assinatura revogada precisa sair do laço')
+  assert.match(PUSH, /update\(\{ ativo: false \}\)/, 'desativar, não apagar')
+  assert.ok(!/enviados[\s\S]{0,200}endpoint/.test(PUSH.slice(PUSH.indexOf('return json({ ok: true, enviados'))),
+    'endpoint é credencial: não pode voltar na resposta')
+})

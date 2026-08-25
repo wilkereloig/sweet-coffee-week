@@ -490,6 +490,90 @@ Suíte **132/132** (8 testes novos em `organizacao`), build verde.
 
 ---
 
+## Fase 7 · Aplicativo instalável e notificações — ✅ CONSTRUÍDA E PROVADA
+
+**Commit:** ver `git log` · **Migration:** nenhuma (a tabela `push_subscriptions`
+e as duas RPCs já existiam da Fase 4) · **Edge Function nova:** `enviar-push` (v2)
+
+### O que passou a existir
+
+| Peça | Onde |
+|---|---|
+| Aplicativo instalável da marca | `public/marca/app.webmanifest` + `public/marca/sw.js`, escopo `/marca/` |
+| Recebimento da notificação | handler `push` + `notificationclick` nos **dois** service workers |
+| Ligar/desligar na organização | **equipe → Avisos neste aparelho**, com botão de teste |
+| Ligar/desligar na marca | cartão **Avisos**, fora do formulário |
+| Envio | Edge Function `enviar-push`, guardada por `producao.gerir` |
+| Chaves VAPID | geradas; a **privada** fora do repositório (ver abaixo) |
+
+### As decisões
+
+**Dois service workers, um por painel.** Um SW só na raiz cobriria os dois com
+metade do código — e cobriria junto o site público, que não pede nada disso.
+Escopo de SW é a **pasta em que ele é servido**: na raiz, ele passaria a
+interceptar a landing que está no ar, e desfazer isso não é deploy, é
+desregistro no navegador de cada visitante.
+
+**A criptografia está escrita na função, não numa biblioteca.** Web Push não é
+"POST no endpoint": o corpo vai cifrado com chave derivada da chave pública do
+navegador de quem assinou (RFC 8291) e o pedido vai assinado com VAPID
+(RFC 8292). As bibliotecas de Node dependem de `node:crypto` e de Buffer; ali
+roda Deno, e o que existe é Web Crypto. São ~80 linhas de crypto padrão contra
+uma dependência que pode não resolver no isolate — e dependência que não
+resolve derruba a função inteira, não só o push.
+
+**A marca grava a assinatura pelo PostgREST, não por RPC.** A policy de insert
+já existia. Como `update` está revogado de `authenticated`, upsert não funciona:
+o caminho é apagar a linha do mesmo endpoint (a RLS limita ao dono) e inserir.
+
+**Assinatura morta é desativada, não apagada.** 404/410 do serviço de push
+significa navegador desinstalado ou permissão revogada. Apagar dado é decisão de
+quem toca o festival, não de um laço de envio.
+
+### Os defeitos que apareceram no caminho
+
+🐛 **O separador do RFC 8291 se perdeu duas vezes.** É o byte `0x00` no fim dos
+rótulos de derivação. Escrito como sequência de escape dentro do literal de
+texto, ele virou espaço no heredoc do shell e byte cru no JSON do deploy. Das
+duas o sintoma seria idêntico: chave derivada diferente e o navegador
+**descartando a mensagem sem dizer por quê**. Virou `const NUL = new
+Uint8Array([0])`, fora da string, com teste que reprova as duas formas antigas.
+
+🐛 **A conferência do ambiente vinha antes de autorizar.** Qualquer um que
+chamasse a função descobria se as chaves VAPID estavam postas. Corrigido na v2 e
+conferido no ar: senha errada agora dá 401, não 503.
+
+⚠️ **Duas consultas foram parar no projeto errado.** As primeiras leituras de
+`pg_proc` foram feitas contra `eloi-financeiro`, e voltaram vazias — o que
+parecia "as RPCs de push não existem". Eram só SELECTs, nada foi escrito. O
+projeto do festival é **`dgfmoibynftadsyjcclg`**; `nlamznxoocmygfvnqcns` é o
+ELOI Studio. **Conferir o `project_id` antes de concluir que algo sumiu.**
+
+### As provas
+
+| O quê | Resultado |
+|---|---|
+| Suíte inteira | ✅ **149/149** (eram 132; +17 nesta fase) |
+| Build | ✅ verde, 2,07 s |
+| **Round-trip da cifra** | ✅ o corpo cifrado pelo **arquivo real** (transpilado pelo esbuild, sem reimplementar) volta ao texto original quando decifrado do jeito que o navegador decifra |
+| Enquadramento do corpo | ✅ registro 4096 · chave efêmera 65 bytes · delimitador `0x02` |
+| **Cabeçalho VAPID** | ✅ JWT ES256 que **verifica** contra a chave pública dos painéis; `aud` = origem do endpoint; validade 12 h (limite do RFC: 24) |
+| `k=` do cabeçalho | ✅ é exatamente a chave que está nos dois painéis |
+| Função no ar, senha errada | ✅ **401** `nao_autorizado` |
+| Função no ar, senha vazia | ✅ **401** |
+| Alvo inválido · título de 81 caracteres · URL absoluta | ✅ **400** · **422** · **422** `url_invalida` |
+| Assets servidos no dev | ✅ `/marca/`, `/marca/sw.js`, `/marca/app.webmanifest`, e os dois da organização |
+
+### O que NÃO foi visto funcionando
+
+**Nenhuma notificação chegou a um aparelho.** Isso exige uma assinatura de
+navegador real, e depende de três coisas que não são minhas: as variáveis VAPID
+ligadas, a senha do painel, e alguém abrindo no celular. O que está provado é a
+matemática (a cifra volta, o JWT verifica) e o contorno (autorização, validação,
+rotas). **A entrega de ponta a ponta continua sem prova.**
+
+---
+
 ## Revisão final (§7 do comando) — o que foi conferido
 
 | Item | Resultado |
@@ -518,17 +602,20 @@ Suíte **132/132** (8 testes novos em `organizacao`), build verde.
 
 ## Onde parei, exatamente
 
-**Fases 1 a 6 fechadas.** As duas telas do sistema — marca e organização —
-falam o modelo novo, e o banco inteiro está de pé.
+**Fases 1 a 7 fechadas.** As duas telas falam o modelo novo, as duas instalam
+como aplicativo, e o canal de notificação está de pé, faltando ligar.
 
 **Ordem de retomada:**
 
-1. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
-   dois painéis, Edge Function `enviar-push`, VAPID, banner de instalação para
-   iPhone. `/organizacao/` já é instalável; `/marca/` não.
-2. **Fase 8 · testes** — o que faltar depois da 7. `marca` e `organizacao` já
-   foram estendidos nas fases 5 e 6.
-3. **Fase 9 · revisão final** — o §7 do comando, item por item.
+1. **Fase 8 · testes** — a suíte cresceu de 122 para **149** ao longo das fases
+   5, 6 e 7, sempre junto do código que cobre. O que resta é o que a Fase 9
+   apontar, mais o que só dá para cobrir com aparelho na mão.
+2. **Fase 9 · revisão final** — o §7 do comando, item por item.
+
+⚠️ **A Fase 7 está construída, não ligada.** Sem as três variáveis VAPID no
+ambiente da Edge Function, o botão "Ligar avisos" grava a assinatura e o envio
+devolve `vapid_ausente` (503): honesto, mas nada chega. O passo a passo está em
+`ELOI SITES/scw-segredos/vapid.txt`, fora do repositório.
 
 ⚠️ **`edicao_atual` está NULA em produção**, e é decisão: a 17ª edição não foi
 anunciada e inventar um código seria inventar dado (A4). Enquanto estiver nula,

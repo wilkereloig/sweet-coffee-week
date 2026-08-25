@@ -2123,6 +2123,57 @@ escapa sem ninguém notar. Há teste.
 *aparência* é permitido; antecipar a *afirmação* não. Num painel que decide
 aprovação de marca, otimismo mal feito é pior que lentidão.
 
+#### Notificações — os dois painéis, 25/08/2026 (Fase 7)
+
+`/marca/` virou aplicativo instalável, como `/organizacao/` já era: **manifest e
+service worker próprios, escopo `/marca/`**. São **dois** SW, um por painel, e é
+de propósito — um SW só na raiz cobriria os dois com metade do código e cobriria
+junto o site público, que não pede nada disso.
+
+⛔ **A chave privada VAPID não está no repositório.** Ela mora em
+`ELOI SITES/scw-segredos/vapid.txt`, fora do git, e só vale ligada como
+**variável de ambiente da Edge Function**. A **pública** está no código dos dois
+painéis de propósito: o navegador precisa dela para assinar, e ela é pública.
+
+⚠️ **As duas metades andam juntas.** Assinatura criada com uma chave não aceita
+envio assinado por outra, e o sintoma é o pior possível: **some sem erro**,
+porque o serviço de push devolve 403 para a função, não para a pessoa. Trocar o
+par é trocar `VAPID_PUBLICA` nos dois painéis **e** as três variáveis, na mesma
+leva — e toda assinatura existente vira lixo.
+
+🐛 **O separador do RFC 8291 é o BYTE `0x00`, e ele fica FORA do literal de
+texto** (`const NUL = new Uint8Array([0])`). Escrito como sequência de escape
+dentro da string, esse byte se perdeu **duas vezes** numa sessão só: no heredoc
+do shell e no JSON do deploy. Das duas o sintoma seria idêntico — chave
+derivada diferente e o navegador **descartando a mensagem sem dizer por quê**.
+Há teste que reprova tanto o byte cru quanto o escape.
+
+⚠️ **`enviar-push` autoriza ANTES de conferir o ambiente.** Na primeira versão a
+ordem era inversa, e qualquer um que chamasse a função descobria se as chaves
+estavam postas. É pouca coisa, e é exatamente o tipo de pouca coisa que descreve
+o servidor para quem não devia estar perguntando.
+
+⚠️ **Endpoint de push é credencial.** Quem tem o endpoint de alguém manda
+notificação para o aparelho dessa pessoa. Por isso `push_subscriptions` **não
+tem policy de SELECT para ninguém** — quem lê é a Edge Function, com
+`service_role` — e a resposta do envio nunca devolve endpoint.
+
+⚠️ **A marca grava a própria assinatura pelo PostgREST, não por RPC** (a policy
+de insert já existia). Como `update` está revogado de `authenticated`, **upsert
+não funciona**: o caminho é apagar a linha do mesmo endpoint — que a RLS limita
+ao dono — e só então inserir. O endpoint é `unique`.
+
+⚠️ **No iPhone o push só existe com o painel INSTALADO na tela inicial.** Antes
+disso o Safari não expõe `PushManager`. Não é defeito, é como o iOS funciona, e
+as duas telas **dizem isso** em vez de mostrarem um botão que não faz nada.
+
+⚠️ **Aviso é por APARELHO, não por conta.** Quem entra da mesma conta no celular
+e no computador liga nos dois, separadamente.
+
+⚠️ **`/marca/sw.js` entrou no `no-store` do `vercel.json`**, ao lado do da
+organização. SW cacheado prende a correção no navegador de quem já abriu, e
+nenhum deploy a alcança.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4

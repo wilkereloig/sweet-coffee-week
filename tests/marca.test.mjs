@@ -290,3 +290,52 @@ test('a senha é gerada com aleatoriedade de verdade', () => {
     'senha gerada com Math.random não é senha, é número de série')
   assert.ok(!/Math\.random/.test(EDGE_CODIGO), 'há Math.random na geração de credenciais')
 })
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Fase 7 — avisos na área da marca
+   ═══════════════════════════════════════════════════════════════════════════ */
+test('a marca grava a assinatura no banco antes de dizer que ligou', () => {
+  // Assinatura que existe no navegador e não existe no banco é aparelho que
+  // nunca vai receber nada, e que jura que está ligado.
+  const gravou = JS.indexOf("api('push_subscriptions'")
+  const afirmou = JS.indexOf('Avisos ligados neste aparelho')
+  assert.ok(gravou > -1, 'a área não grava a assinatura em lugar nenhum')
+  assert.ok(afirmou > gravou, 'afirma que ligou antes de gravar')
+})
+
+test('a assinatura da marca nasce com papel e dono', () => {
+  assert.match(JS, /papel: 'marca'/, 'sem papel, o envio não sabe a quem serve')
+  assert.match(JS, /participante_id: participante\.id/, 'assinatura precisa de dono')
+})
+
+test('não tenta upsert em push_subscriptions', () => {
+  // `update` está revogado de authenticated de propósito: upsert falharia, e o
+  // caminho certo é apagar a linha do mesmo endpoint (que a RLS limita ao dono)
+  // antes de inserir.
+  assert.ok(!/merge-duplicates/.test(JS), 'upsert não funciona: update está revogado')
+  assert.match(JS, /push_subscriptions\?endpoint=eq\./, 'falta apagar o endpoint antigo')
+  assert.match(MIGRATIONS, /revoke update on public\.push_subscriptions from anon, authenticated/)
+})
+
+test('a área da marca é instalável em escopo próprio', () => {
+  assert.match(HTML, /<link rel="manifest" href="\/marca\/app\.webmanifest">/)
+  assert.match(HTML, /apple-mobile-web-app-capable/,
+    'sem isso o iPhone abre no Safari, e no Safari não há push')
+})
+
+test('o iPhone recebe instrução, em vez de um botão que não faz nada', () => {
+  // No iOS o push só existe depois de a área ser instalada na tela inicial.
+  // Não é defeito; é como o sistema funciona, e dizer isso evita a hora perdida
+  // procurando o que não quebrou.
+  assert.match(JS, /Adicionar à Tela de Início/)
+  assert.match(JS, /avisoSuportado/, 'a tela precisa distinguir suporte de permissão')
+})
+
+test('o service worker da marca nunca é servido de cache', () => {
+  // SW cacheado é a armadilha clássica: a correção fica presa no navegador de
+  // quem já abriu, e nenhum deploy a alcança.
+  const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
+  const h = vercel.headers.find((x) => x.source === '/marca/sw.js')
+  assert.ok(h, 'falta o header de no-store para /marca/sw.js')
+  assert.match(h.headers[0].value, /no-store/)
+})

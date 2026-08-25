@@ -6,7 +6,19 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Área da marca — Sweet &amp; Coffee Week</title>
 <link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
+
+<!-- Instalável na tela inicial, em escopo próprio.
+     ⚠️ Manifest PRÓPRIO, não o /manifest.webmanifest da raiz: aquele tem
+     start_url e scope em "/" e instalaria o SITE. São três apps distintos, com
+     escopos que não se sobrepõem porque /marca/ e /organizacao/ são mais
+     específicos que a raiz. A barra final nos dois campos de escopo não é
+     enfeite: sem ela o escopo vira "/" e a marca instalaria o site público. -->
+<link rel="manifest" href="/marca/app.webmanifest">
 <meta name="theme-color" content="#3D1308">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SCW Marca">
+<link rel="apple-touch-icon" href="/favicon-180.png">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nexa-slab/NexaSlab-Bold.woff2">
 
 <style>
@@ -345,6 +357,19 @@ button.link{
         <div id="arquivos"></div>
       </div>
     </div>
+
+    <!-- FORA de `pnConteudo` de propósito: a organização pode pedir algo antes
+         de a edição abrir, e o aviso é justamente como esse pedido chega. Um
+         canal que só existe depois do formulário chegaria tarde. -->
+    <div class="card" id="cardAvisos" style="margin-top:22px">
+      <p class="rotulo">Neste aparelho</p>
+      <h2>Avisos</h2>
+      <p class="nota">Ligue para saber na hora quando a organização pedir algo ou
+        publicar um arquivo, mesmo com esta página fechada.</p>
+      <div id="avisoEstado" style="margin-top:14px"></div>
+      <p class="nota" id="avisoRecado" hidden></p>
+      <button class="btn" type="button" id="btAvisos" hidden>Ligar avisos</button>
+    </div>
   </section>
 </main>
 
@@ -465,6 +490,151 @@ button.link{
           return j
         })
       })
+    })
+  }
+
+  // ── Avisos neste aparelho ─────────────────────────────────────────────────
+  // ⚠️ A CHAVE ABAIXO É PÚBLICA DE PROPÓSITO. É a metade pública do par VAPID:
+  // o navegador precisa dela para criar a assinatura, e ela não serve para
+  // mandar nada. Quem assina o envio é a metade PRIVADA, que vive só como
+  // variável de ambiente da Edge Function. ⛔ Se um dia alguém colar a privada
+  // aqui, este arquivo estático vira um remetente aberto para qualquer
+  // aparelho assinado — e ele roda no navegador de quem abrir a página.
+  //
+  // ⚠️ É a MESMA chave do painel da organização, e tem que continuar sendo:
+  // assinatura criada com uma chave não aceita envio assinado por outra, e o
+  // sintoma é o pior possível — some sem erro, porque o serviço de push
+  // devolve 403 para a função, não para a pessoa.
+  var VAPID_PUBLICA = 'BCY2ca0nu6BRWc0IeF28O6GiqYwZatuS4hGg86SuD4d02huuvBGyF63MjwBK_wBHkELl5OsLg6UOTgRZ9EIURAg'
+  var avisoLigado = false
+
+  function bytesDaChave (b64) {
+    var base = (b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/')
+    var bin = atob(base)
+    var saida = new Uint8Array(bin.length)
+    for (var i = 0; i < bin.length; i++) saida[i] = bin.charCodeAt(i)
+    return saida
+  }
+
+  // Três coisas separadas, e confundi-las é o que gera "liguei e não chega":
+  // suporte do navegador, permissão da pessoa, e assinatura gravada no banco.
+  function avisoSuportado () {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+  }
+
+  function assinaturaDoAparelho () {
+    if (!avisoSuportado()) return Promise.resolve(null)
+    return navigator.serviceWorker.ready
+      .then(function (reg) { return reg.pushManager.getSubscription() })
+      .catch(function () { return null })
+  }
+
+  function avisoRecado (texto, tom) {
+    var p = el('avisoRecado')
+    p.hidden = !texto
+    p.textContent = texto || ''
+    p.style.color = tom === 'erro' ? '#FF4810' : ''
+  }
+
+  function renderAvisos () {
+    var estado = el('avisoEstado')
+    var bt = el('btAvisos')
+
+    if (!avisoSuportado()) {
+      // iPhone: só funciona com a área INSTALADA na tela inicial. Antes disso o
+      // Safari não expõe PushManager. Não é defeito, é como o iOS funciona, e
+      // dizer isso evita a hora perdida procurando o que não quebrou.
+      estado.innerHTML = '<b>Este navegador não recebe avisos.</b>'
+      avisoRecado('No iPhone, instale esta área primeiro: botão de compartilhar do ' +
+        'Safari, depois "Adicionar à Tela de Início". Abra pelo ícone e volte aqui.', '')
+      bt.hidden = true
+      return
+    }
+
+    return assinaturaDoAparelho().then(function (assinatura) {
+      avisoLigado = !!assinatura
+      var negado = Notification.permission === 'denied'
+
+      estado.innerHTML = '<b>' + (assinatura ? 'Ligados neste aparelho'
+        : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')) + '</b>'
+
+      if (negado && !assinatura) {
+        avisoRecado('A permissão foi negada. Reabrir depende das configurações do ' +
+          'navegador para este site: esta página não consegue pedir de novo.', '')
+        bt.hidden = true
+        return
+      }
+      avisoRecado('', '')
+      bt.hidden = false
+      bt.textContent = assinatura ? 'Desligar avisos' : 'Ligar avisos'
+    })
+  }
+
+  function ligarAvisos () {
+    if (!participante) { avisoRecado('Entre primeiro.', 'erro'); return }
+    avisoRecado('Pedindo permissão…', '')
+
+    Notification.requestPermission().then(function (permissao) {
+      if (permissao !== 'granted') throw new Error('sem permissão')
+      return navigator.serviceWorker.ready
+    }).then(function (reg) {
+      // `userVisibleOnly: true` é obrigatório nos navegadores que importam: não
+      // existe push silencioso na web, e é bom que não exista.
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: bytesDaChave(VAPID_PUBLICA)
+      })
+    }).then(function (assinatura) {
+      var bruto = assinatura.toJSON()
+      // O endpoint é UNIQUE. Apaga a linha antiga deste mesmo endpoint antes de
+      // gravar: a RLS só deixa apagar o que é desta marca, então isto não
+      // alcança aparelho de ninguém. `update` está revogado de propósito, e por
+      // isso não dá para resolver com upsert.
+      return api('push_subscriptions?endpoint=eq.' + encodeURIComponent(bruto.endpoint),
+        { metodo: 'DELETE' })
+        .catch(function () { return null })
+        .then(function () {
+          return api('push_subscriptions', {
+            metodo: 'POST',
+            prefer: 'return=minimal',
+            corpo: {
+              papel: 'marca',
+              participante_id: participante.id,
+              endpoint: bruto.endpoint,
+              p256dh: bruto.keys.p256dh,
+              auth_chave: bruto.keys.auth,
+              user_agent: navigator.userAgent.slice(0, 300)
+            }
+          })
+        })
+    }).then(function () {
+      // ⚠️ Só afirma "ligado" depois que o banco confirmar. Assinatura que
+      // existe no navegador e não existe no banco é aparelho que nunca vai
+      // receber nada, e que jura que está ligado.
+      return renderAvisos()
+    }).then(function () {
+      avisoRecado('Avisos ligados neste aparelho.', '')
+    }).catch(function (e) {
+      avisoRecado('Não consegui ligar: ' + e.message, 'erro')
+    })
+  }
+
+  function desligarAvisos () {
+    avisoRecado('Desligando…', '')
+    assinaturaDoAparelho().then(function (assinatura) {
+      if (!assinatura) return null
+      // Banco primeiro. Se `unsubscribe` viesse antes e a rede caísse, o
+      // endpoint ficaria vivo no banco apontando para uma assinatura morta, e
+      // todo envio futuro carregaria esse peso.
+      return api('push_subscriptions?endpoint=eq.' + encodeURIComponent(assinatura.endpoint),
+        { metodo: 'DELETE' })
+        .then(function () { return assinatura.unsubscribe() })
+    }).then(function () {
+      return renderAvisos()
+    }).then(function () {
+      avisoRecado('Avisos desligados neste aparelho.', '')
+    }).catch(function (e) {
+      avisoRecado('Não consegui desligar: ' + e.message, 'erro')
     })
   }
 
@@ -1226,6 +1396,22 @@ button.link{
       var alvo = ev.target.closest('[data-baixar]')
       if (alvo) baixar(alvo.getAttribute('data-baixar'))
     })
+    el('btAvisos').addEventListener('click', function () {
+      if (avisoLigado) desligarAvisos(); else ligarAvisos()
+    })
+
+    // 🔴 `scope` explícito em /marca/. Registrado da raiz, o SW passaria a
+    // interceptar o site inteiro, inclusive a landing que está no ar — e
+    // desfazer isso não é deploy, é desregistro no navegador de cada visitante.
+    // O registro é MELHORIA, não requisito: navegador sem suporte, janela
+    // anônima ou política corporativa devolvem erro, e o painel segue igual.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/marca/sw.js', { scope: '/marca/' })
+        .then(function () { renderAvisos() })
+        .catch(function () { renderAvisos() })
+    } else {
+      renderAvisos()
+    }
 
     var doHash = hashSessao()
     if (doHash) {

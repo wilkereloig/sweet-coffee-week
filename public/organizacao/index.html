@@ -640,6 +640,19 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
         </div>
         <div id="area-contas"></div>
       </section>
+
+      <!-- ⚠️ Aviso é POR APARELHO, não por conta: a assinatura pertence a este
+           navegador, neste aparelho. Quem entrar da mesma conta no celular e no
+           computador liga nos dois, separadamente — e é por isso que este bloco
+           mora aqui, ao lado de acesso, e não numa preferência de perfil. -->
+      <section class="og-forms" style="margin-top:22px">
+        <div class="og-forms__cabeca">
+          <h2>Avisos neste aparelho</h2>
+          <p>Chega notificação quando uma marca responde ou envia cadastro,
+             mesmo com o painel fechado.</p>
+        </div>
+        <div id="area-avisos"></div>
+      </section>
     </section>
   </main>
 
@@ -1505,6 +1518,11 @@ function dataHoraCurta(iso) {
 
 /* ── Equipe ────────────────────────────────────────────────────────────── */
 function renderEquipe() {
+  /* Antes do `return` de erro de propósito: os avisos deste aparelho não
+     dependem de o banco ter respondido, e sumir junto com a configuração
+     esconderia o botão exatamente quando a rede está ruim. */
+  renderAvisos();
+
   if (equipeErro) {
     $('area-edicao').innerHTML = estadoSimples('Não consegui ler a configuração', equipeErro, 'erro');
     $('area-contas').innerHTML = '';
@@ -2617,6 +2635,12 @@ function ligarAcoes() {
     if (alvo) abrirMudarSessao(alvo.dataset.sessao);
   });
 
+  $('area-avisos').addEventListener('click', function (ev) {
+    if (ev.target.closest('#av-ligar')) { ligarAvisos(); return; }
+    if (ev.target.closest('#av-desligar')) { desligarAvisos(); return; }
+    if (ev.target.closest('#av-testar')) testarAviso();
+  });
+
   $('area-edicao').addEventListener('click', function (ev) {
     if (ev.target.closest('#eq-salvar')) { salvarEdicao($('eq-edicao').value.trim()); return; }
     if (ev.target.closest('#eq-fechar')) salvarEdicao('');
@@ -2658,6 +2682,153 @@ document.addEventListener('visibilitychange', function () {
   if (Date.now() - ultimaCarga < 60000) return;
   carregar();
 });
+
+/* ── Avisos neste aparelho ─────────────────────────────────────────────────
+ * ⚠️ A CHAVE ABAIXO É PÚBLICA DE PROPÓSITO. É a metade pública do par VAPID: o
+ * navegador precisa dela para criar a assinatura, e ela não serve para mandar
+ * nada — quem assina o envio é a metade PRIVADA, que vive só como variável de
+ * ambiente da Edge Function. ⛔ Se um dia alguém colar a privada aqui, o painel
+ * inteiro vira um remetente aberto para qualquer aparelho assinado.
+ *
+ * ⚠️ Mudou o par? esta linha muda junto. Assinatura criada com uma chave não
+ * aceita envio assinado por outra — e o sintoma é o pior possível: some sem
+ * erro, porque o serviço de push devolve 403 para a função, não para a pessoa.
+ */
+const VAPID_PUBLICA = 'BCY2ca0nu6BRWc0IeF28O6GiqYwZatuS4hGg86SuD4d02huuvBGyF63MjwBK_wBHkELl5OsLg6UOTgRZ9EIURAg';
+
+/* A chave vai para o `subscribe` como bytes, nunca como texto. */
+function bytesDaChave(b64) {
+  const base = (b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(base);
+  const saida = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) saida[i] = bin.charCodeAt(i);
+  return saida;
+}
+
+/* Três coisas separadas, e confundi-las é o que gera "liguei e não chega":
+   suporte do navegador, permissão da pessoa, e assinatura registrada no banco. */
+function avisoSuportado() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+async function assinaturaDoAparelho() {
+  if (!avisoSuportado()) return null;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    return await reg.pushManager.getSubscription();
+  } catch (e) { return null; }
+}
+
+async function renderAvisos() {
+  const area = $('area-avisos');
+  if (!area) return;
+
+  if (!avisoSuportado()) {
+    /* iPhone: só funciona com o painel INSTALADO na tela inicial. Antes disso
+       o Safari não expõe PushManager — não é defeito, é como o iOS funciona, e
+       dizer isso evita a hora perdida procurando o que não quebrou. */
+    area.innerHTML = estadoSimples(
+      'Este navegador não recebe avisos',
+      'No iPhone, instale o painel primeiro: botão de compartilhar do Safari → ' +
+      '"Adicionar à Tela de Início". Depois abra pelo ícone e volte aqui.', 'aviso');
+    return;
+  }
+
+  const assinatura = await assinaturaDoAparelho();
+  const negado = Notification.permission === 'denied';
+
+  area.innerHTML =
+    '<div class="og-item" style="cursor:default">' +
+      '<span class="og-item__cor" style="background:' +
+        (assinatura ? '#01AFCC' : (negado ? '#FF4810' : '#6A2C15')) + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + (assinatura ? 'Ligados neste aparelho'
+        : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')) + '</p>' +
+      '<p class="og-item__meta">' + (assinatura
+        ? 'Este aparelho recebe aviso mesmo com o painel fechado.'
+        : (negado
+          ? 'A permissão foi negada. Reabrir depende das configurações do navegador para este site — o painel não consegue pedir de novo.'
+          : 'Nada chega até você ligar aqui.')) + '</p>' +
+    '</div>' +
+    '<div class="og-aviso" id="av-aviso" hidden></div>' +
+    (assinatura
+      ? '<button class="og-btn og-btn--vazado" type="button" id="av-desligar">Desligar</button>' +
+        ' <button class="og-btn og-btn--vazado" type="button" id="av-testar">Enviar um teste</button>'
+      : (negado ? '' : '<button class="og-btn" type="button" id="av-ligar">Ligar avisos</button>'));
+}
+
+async function ligarAvisos() {
+  avisoEm('av-aviso', 'Pedindo permissão…', '');
+  try {
+    const permissao = await Notification.requestPermission();
+    if (permissao !== 'granted') {
+      avisoEm('av-aviso', 'Sem permissão, nada pode ser enviado.', 'erro');
+      await renderAvisos();
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    /* `userVisibleOnly: true` é obrigatório nos navegadores que importam: não
+       existe push silencioso na web, e é bom que não exista. */
+    const assinatura = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: bytesDaChave(VAPID_PUBLICA),
+    });
+
+    const bruto = assinatura.toJSON();
+    /* ⚠️ Só afirma "ligado" depois que o banco confirmar. Assinatura que existe
+       no navegador e não existe no banco é aparelho que nunca vai receber nada
+       — e que jura que está ligado. */
+    await rpc('registrar_push_organizacao', {
+      p_secret: senha,
+      p_endpoint: bruto.endpoint,
+      p_p256dh: bruto.keys.p256dh,
+      p_auth: bruto.keys.auth,
+      p_user_agent: navigator.userAgent.slice(0, 300),
+    });
+
+    await renderAvisos();
+    avisoEm('av-aviso', 'Avisos ligados neste aparelho.', 'ok');
+  } catch (e) {
+    avisoEm('av-aviso', 'Não consegui ligar: ' + e.message, 'erro');
+  }
+}
+
+async function desligarAvisos() {
+  avisoEm('av-aviso', 'Desligando…', '');
+  try {
+    const assinatura = await assinaturaDoAparelho();
+    if (assinatura) {
+      /* Banco primeiro. Se `unsubscribe` viesse antes e a rede caísse, o
+         endpoint ficaria vivo no banco apontando para uma assinatura morta —
+         e todo envio futuro carregaria esse peso. */
+      await rpc('remover_push_organizacao', { p_secret: senha, p_endpoint: assinatura.endpoint });
+      await assinatura.unsubscribe();
+    }
+    await renderAvisos();
+    avisoEm('av-aviso', 'Avisos desligados neste aparelho.', 'ok');
+  } catch (e) {
+    avisoEm('av-aviso', 'Não consegui desligar: ' + e.message, 'erro');
+  }
+}
+
+async function testarAviso() {
+  avisoEm('av-aviso', 'Enviando…', '');
+  try {
+    const r = await chamarFuncao('enviar-push', {
+      secret: senha, alvo: 'organizacao',
+      titulo: 'Teste do painel',
+      corpo: 'Se esta notificação apareceu, o canal está de pé.',
+      url: '/organizacao/',
+    });
+    /* Distingue "mandei" de "chegou a alguém": zero enviados com sucesso de
+       HTTP é exatamente o caso que parece funcionar e não funciona. */
+    avisoEm('av-aviso', r.enviados
+      ? 'Enviado para ' + r.enviados + (Number(r.enviados) === 1 ? ' aparelho.' : ' aparelhos.')
+      : 'A função respondeu, mas nenhum aparelho recebeu.', r.enviados ? 'ok' : 'erro');
+  } catch (e) {
+    avisoEm('av-aviso', 'Falhou: ' + e.message, 'erro');
+  }
+}
 
 /* ── Service worker ────────────────────────────────────────────────────── */
 /* 🔴 `scope` explícito em /organizacao/. Registrado da raiz, o SW passaria a
