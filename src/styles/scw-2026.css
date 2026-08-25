@@ -256,15 +256,19 @@ body {
    páginas. É a causa-raiz das seções saírem consistentemente mais altas que a
    referência — não era acúmulo de ajuste local nenhum.
 
-   ⚠️ A landing /em-breve fica FORA: ela tem CSS próprio, é a página que está no
-   ar e foi calibrada em content-box. Reescrevê-la não é escopo daqui (§7.7).
+   ✅ A landing /em-breve ENTROU em 26/08/2026. A exclusão foi escrita quando ela
+   era a página de antes — "calibrada em content-box e no ar" —, e a reescrita de
+   25/08 a levou para as utilitárias do sistema. A partir daí a exclusão deixou
+   de proteger e passou a custar: o `.scw-btn` dela renderizava com 84px em vez
+   de 54, e os controles da galeria com 51px em vez de 48. Não existe mais rota
+   fora do reset.
 
    `:where()` mantém a especificidade do universal em zero, então qualquer regra
    de componente continua vencendo sem precisar de prefixo.
    ========================================================================= */
 
-body:not(.route-em-breve) .scw-raiz,
-body:not(.route-em-breve) .scw-raiz :where(*, *::before, *::after) {
+.scw-raiz,
+.scw-raiz :where(*, *::before, *::after) {
   box-sizing: border-box;
 }
 
@@ -272,9 +276,12 @@ body:not(.route-em-breve) .scw-raiz :where(*, *::before, *::after) {
    inteiro vinha 16px mais estreito que a viewport, e o trilho calculava em
    cima disso. Nas rotas era só desalinhamento; numa faixa que sangra até a
    borda, era uma moldura visível da cor do body.
-   ⚠️ A landing fica de fora pelo mesmo motivo do reset acima: está no ar e não
-   é escopo desta rodada. */
-body:not(.route-em-breve) { margin: 0; }
+   ✅ A landing entrou junto, em 26/08/2026. Medido antes: a página dela ficava
+   em `x = 8` e 16px mais estreita que a viewport (374 de 390; 1424 de 1440),
+   com uma tira do fundo do <body> descendo pelos dois lados de toda faixa que
+   sangra — e a barra fixa da ação, que se posiciona contra a viewport e não
+   contra o body, saía 16px mais larga que a página a que pertence. */
+body { margin: 0; }
 
 .scw-secao {
   padding: var(--scw-sec-y) var(--scw-trilho);

@@ -546,13 +546,16 @@ export function EmBrevePage() {
           <span className="scw-rotulo scw-rotulo--micro">Realização</span>
           <img src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
         </a>
-        {/* ⚠️ O separador vive DENTRO do link e a primeira metade é `nowrap`.
-            O link é `inline-flex` com 44px de alvo (§10.2), e isso fazia a
-            quebra cair depois do "·" — a primeira linha terminava num separador
-            solto, pendurado. */}
+        {/* ⚠️ O separador entre as duas metades é um VÃO DE FLEX, não um "·".
+            O caractere órfa nas duas pontas e não há posição que resolva: preso
+            ao texto, a primeira linha terminava nele; movido para dentro do
+            link, a segunda linha passava a começar com ele. O link é
+            `inline-flex` com 44px de alvo (§10.2), então ele quebra cedo e a
+            quebra sempre cai no separador. O "·" que importa continua onde ele
+            é conteúdo: dentro de "Week · Natal/RN". */}
         <p className="eb-rodape__linha">
           <span className="eb-rodape__cidade">Sweet &amp; Coffee Week · Natal/RN</span>{' '}
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">· {INSTAGRAM_HANDLE}</a>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>
         </p>
       </footer>
 
@@ -867,7 +870,16 @@ export function EmBrevePage() {
         .eb-rodape__f2 { display: inline-flex; flex-direction: column; gap: 8px; min-height: 44px; justify-content: center; }
         .eb-rodape__f2 img { height: 24px; width: auto; }
         .eb-rodape__cidade { white-space: nowrap; }
-        .eb-rodape__linha { margin: 0; font: 500 13.5px/1.5 var(--scw-font); color: var(--scw-marrom); }
+        /* Vão no lugar do separador. O "·" solto órfa nas duas pontas: preso ao
+           texto, a primeira linha terminava nele; movido para dentro do link,
+           a segunda linha passava a COMEÇAR com ele. Um gap não órfã em largura
+           nenhuma, e o "·" que importa continua dentro de "Week · Natal/RN". */
+        .eb-rodape__linha {
+          margin: 0;
+          display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px;
+          font: 500 13.5px/1.5 var(--scw-font);
+          color: var(--scw-marrom);
+        }
         .eb-page .eb-rodape__linha a {
           color: var(--scw-choco);
           font-weight: 800;
@@ -916,18 +928,12 @@ export function EmBrevePage() {
           transform-origin: left center;
         }
 
-        /* ⚠️ A landing está FORA do reset de \`border-box\` do sistema — a
-           exclusão é explícita em \`scw-2026.css\` e existia para não remexer numa
-           página calibrada em content-box e no ar. O efeito colateral aparece em
-           toda peça que some medida fixa com padding ou borda: o \`.scw-btn\`, que
-           o sistema define com \`min-height: 54px\` e \`padding: 15px 28px\`,
-           renderizava com 84px — os 30px de padding entravam POR CIMA da altura
-           mínima, e o botão virava um bolo amarelo. O mesmo valia para os
-           controles da galeria: 48px de caixa + 1,5px de borda dos dois lados =
-           51px. Enquanto a exclusão inteira não cair, as peças de sistema que
-           esta página usa entram no reset uma a uma. */
-        .eb-barra__btn,
-        .eb-gal__btn { box-sizing: border-box; }
+        /* ⛔ Não redeclarar box-sizing aqui. Entre 25 e 26/08/2026 esta página
+           esteve FORA do reset do sistema, e as peças entravam no border-box uma
+           a uma para não sair deformadas: o .scw-btn rendia 84px em vez de 54 e
+           os controles da galeria, 51px em vez de 48. A exclusão caiu em 26/08 e
+           o reset vale nas sete rotas — declaração local aqui volta a ser a
+           segunda fonte de verdade que o §5.2 proíbe. */
 
         .eb-page .eb-barra__btn { color: var(--scw-choco); }
         /* O mesmo tom do rótulo das abas: .9 de creme sobre a chapa = 12,6:1. */

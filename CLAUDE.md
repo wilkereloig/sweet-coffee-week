@@ -1557,15 +1557,34 @@ ponta, e a barra deixa de ler como casca de aplicativo — a barra de abas é **
 acentos contidos**, e é com ela que esta peça conversa. Na largura do conteúdo o alvo
 ainda passa de 200px, muito acima dos 44px do §6.10.
 
-🐛 **A landing está FORA do reset de `border-box`**, e a exclusão é explícita em
-`scw-2026.css` (`body:not(.route-em-breve)`). Escrita quando a página era a de antes,
-"calibrada em content-box e no ar", ela agora custa em toda peça que some medida fixa com
-padding ou borda: o `.scw-btn`, que o sistema define com `min-height: 54px` e
-`padding: 15px 28px`, renderizava com **84px** — os 30px entravam POR CIMA da altura
-mínima, e o botão virava um bolo amarelo. Os controles da galeria davam 51px em vez de 48.
-Enquanto a exclusão inteira não cair, **as peças de sistema que esta página usa entram no
-reset uma a uma** (`.eb-barra__btn`, `.eb-gal__btn`). ⚠️ Derrubar a exclusão é mudança
-global numa página no ar (§5.4) — decisão do Eloi, com varredura de regressão visual.
+✅ **A landing entrou no reset do sistema em 26/08/2026, e as duas exclusões caíram.**
+Até então `scw-2026.css` a mantinha fora do `box-sizing: border-box` **e** do
+`body { margin: 0 }`, por `body:not(.route-em-breve)`. A ressalva foi escrita quando a
+página era a de antes — "calibrada em content-box e no ar" —, e a reescrita de 25/08 a
+levou para as utilitárias do sistema: a partir dali a exclusão deixou de proteger e passou
+a custar. **Não existe mais rota fora do reset**, e ⛔ não se redeclara `box-sizing` dentro
+da landing: seria a segunda fonte de verdade do §5.2.
+
+O que a exclusão custava, medido antes e depois nas três larguras:
+
+| Sintoma | Antes | Depois |
+|---|---|---|
+| `.scw-btn` da barra | **84px** (54 de `min-height` + 30 de padding por cima) | **54px** |
+| Controles da galeria | 51px (48 de caixa + 1,5 de borda dos dois lados) | 48px |
+| Posição da página | `x = 8`, **16px mais estreita que a viewport** (374 de 390; 1424 de 1440) | `x = 0`, largura cheia |
+| Faixas que sangram | uma tira do fundo do `<body>` descendo pelos dois lados | sem tira |
+| Barra fixa da ação | 16px **mais larga** que a página (ela se posiciona contra a viewport, não contra o body) | do mesmo tamanho |
+
+⚠️ **A faixa do topo encolheu junto, e isso é a zona de segurança do §6.7** — com
+`border-box`, o `min-height` dela passa a **conter** o padding: 132 → 104px no desktop,
+104 → 86px no celular. A folga entre o botão "Acesso" e o selo do herói caiu de 78 para
+**52px** e continua sobrando. Ao mexer em `.eb-topo`, medir de novo.
+
+⚠️ **O separador do rodapé é um VÃO DE FLEX, não um "·".** O caractere órfa nas duas
+pontas e não existe posição que resolva: preso ao texto, a primeira linha terminava nele;
+movido para dentro do link, a segunda linha passava a **começar** com ele. O link é
+`inline-flex` com 44px de alvo (§10.2), então quebra cedo e a quebra sempre cai ali. O
+"·" que é conteúdo continua dentro de "Week · Natal/RN".
 
 ⚠️ **O convite é FINITO, e isso é regra, não economia.** A página já tem dois laços
 contínuos — o marquee e o gradiente dele —, que é o teto do §6.15. Um pulso permanente na
