@@ -2,8 +2,12 @@
  * PÁGINA "EM BREVE" — a landing pública do domínio (COMING_SOON_PUBLICATION).
  *
  * Reescrita em 25/08/2026: deixou de ser "aviso de novo site + Sweet Awards da
- * Lovers" e passou a ser a CHAMADA DO PRÉ-CADASTRO. Uma ação só, repetida três
- * vezes, sempre com o mesmo rótulo e o mesmo destino: `/quero-participar/`.
+ * Lovers" e passou a ser a CHAMADA DO PRÉ-CADASTRO, com destino único
+ * `/quero-participar/`.
+ *
+ * Em 26/08/2026 a ação saiu de três lugares e foi para UM: os botões do herói,
+ * do fim dos passos e do fecho sumiram, e sobrou a barra presa na base, agora
+ * em toda largura (era só do celular). Ver `BarraAcao`.
  *
  * ⚠️ A barra final do destino não é enfeite (§10.4-b): `/quero-participar/` é
  * página estática fora do bundle, e sem a barra o servidor não resolve o índice
@@ -301,8 +305,82 @@ function GaleriaEdicoes() {
   )
 }
 
-function Acao({ classe = 'scw-btn scw-btn--solido', children = 'Quero participar' }) {
-  return <a className={classe} href={PRE_CADASTRO}>{children}{SETA}</a>
+/*
+ * A BARRA DA AÇÃO — a única chamada da página desde 26/08/2026.
+ *
+ * Os três botões "Quero participar" que moravam no herói, no fim dos passos e
+ * no fecho saíram (pedido do Eloi). A ação deixou de ser algo que o leitor
+ * reencontra três vezes e passou a ser algo que nunca sai da tela.
+ *
+ * ⚠️ O CONVITE É FINITO, NUNCA UM LAÇO — e isso não é economia, é regra. A
+ * página já tem dois laços contínuos, o marquee e o gradiente dele, que é o
+ * teto do sistema (§6.15). Um pulso permanente na barra seria o terceiro, e
+ * ainda por cima um que ninguém pode pausar: diferente da galeria, não há como
+ * parar um botão que pisca. Então o gesto dispara em dois momentos e para —
+ * quando a barra chega, e quando o leitor alcança o fecho, que é onde ele
+ * decide. Entre um e outro a barra fica completamente parada.
+ *
+ * ⚠️ Sem classe de reveal, nunca: elemento `position: fixed` não entra na zona
+ * de disparo do observer e ficaria invisível para sempre (§10.3). A entrada
+ * dela é `@keyframes` na montagem, que não depende de observer nenhum.
+ */
+function BarraAcao() {
+  const ref = React.useRef(null)
+  const [batendo, setBatendo] = React.useState(false)
+
+  /* ⚠️ ALTURA DE BARRA FIXA SE MEDE, NÃO SE CALCULA (§10.4-b). O primeiro
+     palpite foi 70px — "padding + botão", na conta — e o botão real dá 84px:
+     a barra cobria 31px do rodapé e se sobrepunha ao aviso de cookies nas três
+     larguras. Quem escreve o token agora é o próprio elemento, e reescreve
+     quando a fonte termina de carregar, quando a tela gira ou quando a nota
+     entra e sai no ponto de 760px. */
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    const escrever = () =>
+      document.body.style.setProperty('--eb-barra-h', `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    escrever()
+    if (typeof ResizeObserver === 'undefined') return () => document.body.style.removeProperty('--eb-barra-h')
+    const ro = new ResizeObserver(escrever)
+    ro.observe(el)
+    return () => { ro.disconnect(); document.body.style.removeProperty('--eb-barra-h') }
+  }, [])
+
+  /* 1º convite: logo depois de a barra terminar de subir. */
+  React.useEffect(() => {
+    if (!podeAnimar()) return undefined
+    const t = setTimeout(() => setBatendo(true), 1000)
+    return () => clearTimeout(t)
+  }, [])
+
+  /* 2º convite: quem chegou ao fecho já leu a página inteira e está decidindo.
+     Uma vez só — `disconnect` no primeiro cruzamento. Insistir depois disso
+     deixa de ser convite e vira cutucão. */
+  React.useEffect(() => {
+    if (!podeAnimar()) return undefined
+    const alvo = document.querySelector('.eb-fecho')
+    if (!alvo) return undefined
+    const io = new IntersectionObserver((entradas) => {
+      if (!entradas.some((e) => e.isIntersecting)) return
+      io.disconnect()
+      setBatendo(true)
+    }, { threshold: 0.35 })
+    io.observe(alvo)
+    return () => io.disconnect()
+  }, [])
+
+  return (
+    <div className="eb-barra" ref={ref}>
+      <span className="eb-barra__nota">Leva quatro passos e uma revisão antes de enviar.</span>
+      <a
+        className={`scw-btn scw-btn--solido eb-barra__btn${batendo ? ' is-convite' : ''}`}
+        href={PRE_CADASTRO}
+        onAnimationEnd={() => setBatendo(false)}
+      >
+        Quero participar{SETA}
+      </a>
+    </div>
+  )
 }
 
 export function EmBrevePage() {
@@ -328,10 +406,6 @@ export function EmBrevePage() {
             São 16 edições transformando Natal numa rota de doce, salgado e café. A próxima
             está sendo preparada — e o pré-cadastro para os estabelecimentos já está aberto.
           </p>
-          <div className="eb-acao">
-            <Acao />
-            <span className="eb-acao__nota">Leva quatro passos e uma revisão antes de enviar.</span>
-          </div>
         </div>
           <GaleriaEdicoes />
         </div>
@@ -417,7 +491,6 @@ export function EmBrevePage() {
             </li>
           ))}
         </ol>
-        <div className="eb-passos__acao motion-reveal-up"><Acao /></div>
       </section>
 
       {/* 7 — FECHO */}
@@ -428,7 +501,6 @@ export function EmBrevePage() {
             A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo —
             e não compromete nada.
           </p>
-          <Acao />
           <span className="eb-fecho__selo"><ScwIcon nome="simbolos/sweet-lovers" tamanho={32} /></span>
           <p className="scw-corpo eb-fecho__lover">
             É Sweet Lover? A data, o tema e as marcas confirmadas saem primeiro no{' '}
@@ -456,21 +528,37 @@ export function EmBrevePage() {
         </p>
       </footer>
 
-      {/* 9 — A AÇÃO PRESA NA BASE, só no celular.
-             ⚠️ Sem classe de reveal, nunca: elemento `position: fixed` não entra
-             na zona de disparo do observer e ficaria invisível para sempre
-             (§10.3). O respiro da base é `--scw-safe-b`, o token que a barra de
-             abas do site já usa — não um `env()` reescrito aqui. */}
-      <div className="eb-barra">
-        <Acao classe="scw-btn scw-btn--solido eb-barra__btn" />
-      </div>
+      {/* 9 — A AÇÃO PRESA NA BASE, em toda largura. Ver o cabeçalho de BarraAcao. */}
+      <BarraAcao />
 
       <style>{`
+        /* A altura da barra fixa mora no BODY, e não em .eb-page, porque quem
+           também precisa dela é o aviso de cookies — que é peça de casca, irmã
+           desta página e não filha dela (§6.10). Um valor só, dois leitores. */
+        /* 108px é o valor MEDIDO (12 + botão de 84 + 12), não estimado, e serve
+           de padrão enquanto o JS não escreve o token. A medida já inclui o
+           respiro de \`--scw-safe-b\` que a própria barra aplica no padding —
+           por isso quem consome soma só uma folga, nunca o safe-b de novo. */
+        body.route-em-breve { --eb-barra-h: 108px; }
+
         .eb-page {
           min-height: 100vh;
           background: var(--scw-creme);
           color: var(--scw-choco);
           overflow-x: clip;
+          /* A barra é fixa e vale em TODA largura desde 26/08/2026: sem este
+             respiro ela cobriria o fim do rodapé em qualquer tela. */
+          padding-bottom: calc(var(--eb-barra-h) + 12px);
+        }
+
+        /* O aviso de cookies nasce colado na base, no mesmo lugar da barra. Um
+           banner de consentimento por cima da única conversão da página é as
+           duas coisas piores ao mesmo tempo: esconde a ação e faz o aviso legal
+           parecer estorvo. Ele sobe a altura da barra e os dois convivem.
+           ⚠️ Escopado na rota, nunca solto: o mesmo banner serve as sete rotas,
+           e só esta tem barra fixa em toda largura. */
+        body.route-em-breve .cookie-consent {
+          bottom: calc(clamp(12px, 2vw, 24px) + var(--eb-barra-h));
         }
         /* Prefixado, nunca !important: o reset .scw-raiz a { color: inherit }
            tem especificidade 0,1,1 e venceria uma classe sozinha (§10.1). */
@@ -528,8 +616,6 @@ export function EmBrevePage() {
            em texto grande, que é exatamente o que o .scw-h1 é. */
         .eb-h1__dest { color: var(--scw-magenta); }
         .eb-lead { color: var(--scw-creme); }
-        .eb-acao { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-        .eb-acao__nota { font: 500 13.5px/1.4 var(--scw-font); opacity: .82; }
 
         /* --- GALERIA DAS 16 EDIÇÕES ------------------------------------- */
         /* A respiração de 26s da foto saiu junto com o herói de fundo: a galeria
@@ -724,7 +810,6 @@ export function EmBrevePage() {
           color: var(--scw-marrom);
         }
         .eb-passo__txt { max-width: 34ch; }
-        .eb-passos__acao { margin-top: var(--scw-gap-cabeca); }
 
         /* 7 — FECHO ------------------------------------------------------ */
         .eb-fecho__inner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--scw-gap-bloco); }
@@ -761,28 +846,76 @@ export function EmBrevePage() {
           display: inline-flex; align-items: center; min-height: 44px;
         }
 
-        /* 9 — BARRA FIXA (celular) --------------------------------------- */
-        .eb-barra { display: none; }
+        /* 9 — A BARRA DA AÇÃO -------------------------------------------- */
+        /* Era só do celular até 26/08/2026. Agora vale em toda largura, porque
+           virou a única chamada da página. */
+        .eb-barra {
+          position: fixed;
+          left: 0; right: 0; bottom: 0;
+          z-index: 70;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: clamp(12px, 2vw, 28px);
+          padding: 12px var(--scw-trilho) calc(12px + var(--scw-safe-b));
+          background: var(--scw-choco);
+          border-top: 1px solid rgba(254, 240, 221, .16);
+          /* A chegada: a barra sobe até o leitor. Mesma duração e mesma curva
+             do aviso de cookies, que faz este exato gesto — nada de tempo novo
+             (§6.15, regra 7). */
+          animation: ebBarraSobe var(--mo-entra) var(--mo-mola) both;
+        }
+        @keyframes ebBarraSobe {
+          from { opacity: 0; transform: translateY(100%); }
+          to   { opacity: 1; transform: none; }
+        }
 
-        @media (max-width: 900px) {
-          .eb-barra {
-            display: block;
-            position: fixed;
-            left: 0; right: 0; bottom: 0;
-            z-index: 70;
-            padding: 10px clamp(16px, 4vw, 24px) calc(10px + var(--scw-safe-b));
-            background: var(--scw-choco);
-          }
-          .eb-barra__btn { width: 100%; justify-content: center; }
-          /* A barra é fixa: sem este respiro ela cobriria o rodapé. */
-          .eb-rodape { padding-bottom: calc(clamp(28px, 3vw, 40px) + 74px + var(--scw-safe-b)); }
+        /* ⚠️ A tinta do botão é PREFIXADA, e não é preciosismo: o reset
+           .eb-page a { color: inherit } tem especificidade 0,1,1 e venceria
+           .scw-btn--solido sozinha (0,1,0). Hoje ele sobrevive por acidente,
+           herdando o chocolate de .eb-page; no dia em que alguém pintar a barra
+           de creme para a nota, o botão sai creme sobre amarelo — 1,4:1,
+           invisível. É a armadilha nº 1 do §10.1, e ela já custou duas vezes
+           neste projeto. */
+        .eb-page .eb-barra__btn { color: var(--scw-choco); }
+        .eb-barra__nota {
+          font: 500 13.5px/1.4 var(--scw-font);
+          color: var(--scw-creme);
+          opacity: .82;
+        }
+
+        /* O CONVITE. Gesto finito, disparado por evento — ver o cabeçalho de
+           BarraAcao para o motivo de não ser um laço. Só transform: nada de
+           layout shift (§6.15, regra 3). */
+        @keyframes ebConvite {
+          0%, 100% { transform: none; }
+          35%      { transform: translateY(-5px); }
+          70%      { transform: translateY(0); }
+        }
+        @keyframes ebConviteSeta {
+          0%, 100% { transform: none; }
+          40%      { transform: translateX(5px); }
+        }
+        .eb-barra__btn.is-convite      { animation: ebConvite var(--mo-entra) var(--mo-mola) 2; }
+        .eb-barra__btn.is-convite svg  { animation: ebConviteSeta var(--mo-entra) var(--mo-mola) 2; }
+
+        /* Escrito junto, sempre (§6.15, regra 4). O gate de JS em podeAnimar
+           já impede o convite de disparar; esta é a segunda tranca, para a
+           entrada da barra, que é CSS puro e não passa por JS nenhum. */
+        @media (prefers-reduced-motion: reduce) {
+          .eb-barra,
+          .eb-barra__btn.is-convite,
+          .eb-barra__btn.is-convite svg { animation: none; }
         }
 
         @media (max-width: 760px) {
-          .eb-acao { align-self: stretch; }
-          .eb-acao .scw-btn { width: 100%; justify-content: center; }
-          .eb-passos__acao .scw-btn,
-          .eb-fecho .scw-btn { width: 100%; justify-content: center; }
+          /* A nota sai e o botão toma a largura: numa barra fixa, cada linha a
+             mais é viewport a menos, e o que precisa estar ali é a ação. A
+             informação dos quatro passos reaparece dentro do próprio
+             /quero-participar/, que os numera na tela. */
+          .eb-barra { padding-inline: clamp(16px, 4vw, 24px); }
+          .eb-barra__nota { display: none; }
+          .eb-barra__btn { width: 100%; justify-content: center; }
           .eb-rodape { justify-content: flex-start; }
         }
       `}</style>

@@ -1530,9 +1530,39 @@ explícito — é o que está no ar.
 
 **Desde 25/08/2026 ela é a chamada do pré-cadastro**, e não mais "aviso de novo site + o
 Sweet Awards da Lovers". Oito blocos, rolagem curta, **uma ação só — `Quero participar`
-→ `/quero-participar/` —, repetida três vezes**, sempre com o mesmo rótulo e o mesmo
-destino: herói, fim dos passos, fecho. No celular entra uma quarta ocorrência, a barra
-presa na base.
+→ `/quero-participar/`**.
+
+⛔ **Desde 26/08/2026 essa ação existe em UM lugar só: a barra presa na base** (pedido do
+Eloi). Os três botões que moravam no herói, no fim dos passos e no fecho **saíram**, e a
+barra deixou de ser peça de celular para valer em **toda largura**. **Não devolver botão
+para dentro das seções**: a página tem uma conversão só, e espalhá-la de novo é a mesma
+troca que já foi desfeita — o leitor reencontrar a ação três vezes em vez de ela nunca
+sair da tela.
+
+| Peça da barra | Regra |
+|---|---|
+| Nota "Leva quatro passos…" | acompanha o botão acima de 760px; **sai** abaixo, onde cada linha a mais é viewport a menos. A informação reaparece dentro do próprio `/quero-participar/`, que numera os passos na tela |
+| Botão | `.eb-barra__btn`, tinta **prefixada** em chocolate (§10.1) |
+| Altura | `--eb-barra-h`, escrito **no `body`** por `ResizeObserver` |
+
+⚠️ **O convite é FINITO, e isso é regra, não economia.** A página já tem dois laços
+contínuos — o marquee e o gradiente dele —, que é o teto do §6.15. Um pulso permanente na
+barra seria o terceiro, e ainda por cima **um que ninguém pode pausar**: diferente da
+galeria, não há como parar um botão que pisca. O gesto dispara em **dois momentos e
+para** — quando a barra chega, e quando o leitor alcança o fecho, que é onde ele decide.
+Voltar ao fecho **não** redispara: insistir deixa de ser convite e vira cutucão.
+
+⚠️ **A altura da barra se MEDE, não se calcula** — é o §10.4-b outra vez. O palpite
+"padding + botão" deu 70px; o botão real tem **84px**, e a barra cobria 31px do rodapé e
+se sobrepunha ao aviso de cookies **nas três larguras**. Quem escreve `--eb-barra-h` é o
+próprio elemento, por `ResizeObserver`, e reescreve quando a fonte carrega, quando a tela
+gira e quando a nota entra ou sai no ponto de 760px.
+
+⚠️ **O token mora no `body`, não em `.eb-page`** — quem também precisa dele é o aviso de
+cookies, que é peça de casca (§6.10), **irmã** desta página e não filha dela. Ele sobe a
+altura da barra: banner de consentimento por cima da única conversão é as duas coisas
+piores ao mesmo tempo — esconde a ação e faz o aviso legal parecer estorvo. A regra é
+**escopada na rota**, porque o mesmo banner serve as sete e só esta tem barra fixa.
 
 | Bloco | O que é |
 |---|---|
