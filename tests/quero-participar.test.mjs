@@ -77,7 +77,11 @@ test('toda função chamada está declarada', () => {
 test('não sobrou referência ao wizard de passos', () => {
   // O formulário virou página única em 20/08/2026. Estes nomes morreram junto;
   // se voltarem, é sinal de que um patch antigo foi reaplicado por cima.
-  for (const morto of ['irPara', 'btnAvancar', 'btnVoltar', 'pa-trilha', 'montarRevisao']) {
+  // O índice pegajoso e os chips saíram em 25/08/2026, quando o formulário
+  // encolheu para sete campos em dois blocos: índice de duas entradas é peça
+  // que anuncia o que já cabe na tela.
+  for (const morto of ['irPara', 'btnAvancar', 'btnVoltar', 'pa-trilha', 'montarRevisao',
+                       'pa-indice', 'pa-escolha', 'recalcularIndice', 'atualizarContaChips']) {
     assert.ok(!HTML.includes(morto), 'referência morta ao wizard: ' + morto)
   }
 })
@@ -98,12 +102,17 @@ test('a chave do Supabase é a publicável, nunca a service_role', () => {
 })
 
 test('os campos que a RPC exige saem da coleta', () => {
-  // submit_quero_participar levanta exceção sem nome, empresa e email, e lê
-  // carroChefe para a coluna consultável. Se o formulário renomear um desses,
-  // o envio passa a falhar só em produção — este teste falha antes.
+  // submit_quero_participar levanta exceção sem nome, empresa e email. Se o
+  // formulário renomear um desses, o envio passa a falhar só em produção —
+  // este teste falha antes.
+  //
+  // ⚠️ `carroChefe` saiu desta lista em 25/08/2026 junto com o campo. A RPC
+  // continua promovendo a coluna `carro_chefe` quando o payload traz a chave;
+  // sem a chave ela grava null, que é o comportamento certo. O que NÃO pode
+  // sumir são os três abaixo: sem eles a RPC levanta exceção.
   const ordem = HTML.match(/const ORDEM = \[([\s\S]*?)\]/)
   assert.ok(ordem, 'ORDEM não encontrada')
-  for (const campo of ['nome', 'empresa', 'email', 'carroChefe']) {
+  for (const campo of ['nome', 'empresa', 'email']) {
     assert.ok(ordem[1].includes("'" + campo + "'"), 'campo exigido pela RPC não está em ORDEM: ' + campo)
   }
 })
@@ -377,31 +386,39 @@ test('trocar o rótulo do copiar não apaga o ícone', () => {
     'o handler precisa mirar o <span> do rótulo, não o botão inteiro')
 })
 
-/* ── Índice dos passos ───────────────────────────────────────────────────────
+/* ── Blocos do formulário ────────────────────────────────────────────────────
  *
- * O índice repete, no topo, os nomes que os <h2> dos passos já dizem. É uma
- * segunda fonte para o mesmo conceito — o padrão que o §5.2 manda evitar —, e
- * aqui não dá para colapsar: a página é estática e não tem de onde derivar.
- * Então a costura é o teste: renomear um passo e esquecer o índice reprova.
+ * O índice pegajoso que repetia os nomes dos passos no topo saiu em 25/08/2026,
+ * junto com o encolhimento para sete campos: índice de duas entradas anuncia o
+ * que já cabe na tela. Sobrou a costura que importa — markup e script têm que
+ * concordar sobre quantos blocos existem e o que cada um cobra.
  */
-
-const ITENS_INDICE = [...HTML.matchAll(new RegExp(
-  '<a href="(#titulo-\\d)"[^>]*>.*?<span class="pa-indice__nome">([^<]+)</span>', 'g',
-))].map(([, href, nome]) => ({ href, nome }))
 
 const TITULOS = Object.fromEntries([...HTML.matchAll(new RegExp(
   '<h2 class="scw-h2" id="(titulo-\\d)" tabindex="-1">([^<]+)</h2>', 'g',
 ))].map(([, id, texto]) => [id, texto]))
 
-test('o índice cobre os quatro passos, com o nome que o passo usa', () => {
-  assert.equal(ITENS_INDICE.length, 4, 'o índice deixou de ter quatro itens')
-  assert.equal(Object.keys(TITULOS).length, 4, 'o formulário deixou de ter quatro passos')
-  for (const { href, nome } of ITENS_INDICE) {
-    const id = href.slice(1)
-    assert.ok(TITULOS[id], 'o índice aponta para um alvo que não existe: ' + href)
-    assert.equal(nome, TITULOS[id],
-      `o índice diz "${nome}" e o passo diz "${TITULOS[id]}" — renomeou um e esqueceu o outro`)
-  }
+test('o formulário tem dois blocos, e cada um cobra o que promete', () => {
+  // O índice pegajoso saiu com o encolhimento de 25/08/2026. O que sobrou para
+  // guardar é a coerência entre os blocos do markup e os mapas do script: um
+  // bloco a mais no HTML sem entrada em OBRIGATORIOS é campo que ninguém cobra
+  // — e a pessoa envia sem preencher, sem nenhum aviso.
+  assert.equal(Object.keys(TITULOS).length, 2,
+    'o formulário deixou de ter dois blocos: ' + Object.keys(TITULOS).join(', '))
+
+  const secoes = [...HTML.matchAll(/data-passo="(\d)"/g)].map((m) => m[1])
+  assert.deepEqual(secoes, ['1', '2'], 'as seções do markup saíram de 1 e 2: ' + secoes.join(', '))
+
+  const obrig = SCRIPTS[0].match(/const OBRIGATORIOS = \{([\s\S]*?)\n\}/)
+  assert.ok(obrig, 'OBRIGATORIOS sumiu do script')
+  const chaves = [...obrig[1].matchAll(/^\s*(\d):/gm)].map((m) => m[1])
+  assert.deepEqual(chaves, secoes,
+    'seção do markup sem entrada em OBRIGATORIOS: o campo entra na tela e ninguém o cobra')
+
+  const tudo = SCRIPTS[0].match(/return \[([^\]]*)\]\.flatMap\(n => validarPasso\(n\)\)/)
+  assert.ok(tudo, 'validarTudo deixou de percorrer os blocos')
+  assert.deepEqual(tudo[1].split(',').map((n) => n.trim()), secoes,
+    'validarTudo não valida os mesmos blocos que existem no markup')
 })
 
 test('o passo pendente é contado numa fonte só', () => {
@@ -420,8 +437,8 @@ test('o erro do envio não dispara dois scrollIntoView no mesmo tique', () => {
   const bloco = js.slice(js.indexOf('const faltando = validarTudo()'), js.indexOf('const dados = coletar()'))
   assert.ok(/mostrar\([\s\S]*?false\)/.test(bloco),
     'mostrar() voltou a rolar sozinho na falha de validação — o scroll até o campo cancela o dela')
-  assert.ok(bloco.includes('recalcularIndice()'),
-    'a falha de validação precisa acender a contagem do índice')
+  assert.ok(bloco.includes('faltando.length'),
+    'a falha de validação precisa dizer QUANTAS respostas faltam, não só que falta algo')
 })
 
 /* ── Contraste do que mudou de cor ───────────────────────────────────────────
@@ -454,28 +471,63 @@ test('a mensagem de erro passa AA como texto pequeno', () => {
     'o magenta sumiu do erro — a cor tem que ficar no filete, senão o erro perde o sinal')
 })
 
-test('o numeral do disco sustenta o magenta do passo 03', () => {
+test('o numeral de cada disco passa AA sobre a própria chapa', () => {
+  // Dois blocos, duas cores do ciclo de irmãos (§6.3): 01 amarelo, 02 cyan.
+  // Os dois levam numeral chocolate, e os dois fecham 4,5:1 — diferente do
+  // magenta do antigo passo 03, que só passava como texto grande.
   const [, peso, tamanho] = regra('.pa-disco').match(/font:(\d{3}) (\d+)px/)
-  const razao = contraste(TOKEN['scw-creme'], TOKEN['scw-magenta'])
-  // Sobre magenta nenhuma tinta fecha 4,5:1 (§6.3). O numeral só passa como
-  // texto grande — e isso é tamanho >= 18,66px em peso >= 700.
   assert.ok(Number(tamanho) >= 18.66 && Number(peso) >= 700,
-    `disco a ${tamanho}px/${peso}: abaixo do piso de texto grande, então o mínimo volta a 4,5 e ${razao.toFixed(2)}:1 reprova`)
-  assert.ok(razao >= 3, `creme sobre magenta dá ${razao.toFixed(2)}:1, abaixo do piso 3`)
+    `disco a ${tamanho}px/${peso}: abaixo do piso de texto grande`)
+
+  const chapas = ['scw-amarelo', 'scw-cyan']
+  const usadas = [...HTML.matchAll(/\.pa-passo--\d \.pa-disco\{background:var\(--(scw-[a-z]+)\)/g)].map((m) => m[1])
+  const cores = [regra('.pa-disco').match(/background:var\(--(scw-[a-z]+)\)/)[1], ...usadas]
+
+  assert.deepEqual(cores, chapas,
+    'os discos saíram do ciclo de irmãos, ou um terceiro bloco entrou sem cor própria: ' + cores.join(' '))
+  assert.equal(new Set(cores).size, cores.length, 'dois discos irmãos com a mesma cor (§6.3)')
+
+  for (const cor of cores) {
+    const razao = contraste(TOKEN['scw-choco'], TOKEN[cor])
+    assert.ok(razao >= 4.5,
+      `numeral chocolate sobre ${cor} dá ${razao.toFixed(2)}:1, abaixo do piso de texto pequeno`)
+  }
 })
 
-test('marcar um chip não reembaralha a grade', () => {
-  assert.ok(HTML.includes('.pa-escolha span::before{content:"✓"'),
-    'o ✓ voltou a nascer no :checked — marcar um chip alarga a pílula e move as opções seguintes')
-  assert.ok(HTML.includes('.pa-escolha input:checked + span::before{visibility:visible}'),
-    'o ✓ marcado precisa aparecer por visibility, que preserva a caixa')
+test('a caixa de seleção não nasce com uma resposta escolhida', () => {
+  // <select> sem opção vazia devolve a PRIMEIRA opção como se fosse escolha —
+  // e "Cafeteria" chegaria no painel para toda marca que não mexeu no campo.
+  // A opção vazia é `disabled` para não voltar a ser escolhível depois.
+  const sel = HTML.match(/<select id="tipo"[\s\S]*?<\/select>/)
+  assert.ok(sel, 'a caixa de seleção do tipo sumiu')
+  assert.match(sel[0], /<option value="" disabled selected>/,
+    'sem a opção vazia selecionada o campo devolve a primeira opção sem ninguém ter escolhido')
+
+  // A seta é desenhada porque `appearance:none` tira a nativa: sem ela o campo
+  // vira uma caixa de texto que não se digita, e ninguém descobre que abre.
+  const css = regra('.scw-campo select')
+  assert.match(css, /appearance:none/, 'o select perdeu o appearance:none')
+  assert.match(css, /background-image:url\("data:image\/svg\+xml/,
+    'appearance:none sem seta desenhada: o campo deixa de parecer uma caixa de seleção')
+})
+
+test('o "Outro" da caixa de seleção continua abrindo campo', () => {
+  // "Outro" sozinho não é dado (§ formulário). O `data-abre` mora na <option>,
+  // e marcouOutro lê o selectedOptions — se um dos dois lados sair, o campo
+  // nunca abre e a resposta chega como a palavra "Outro".
+  assert.match(HTML, /<option data-abre="tipoOutro">Outro<\/option>/,
+    'a opção "Outro" perdeu o data-abre')
+  assert.match(SCRIPTS[0], /selectedOptions\[0\]/,
+    'marcouOutro deixou de ler a opção escolhida do select')
+  assert.match(SCRIPTS[0], /const OUTROS = \{ tipo: 'tipoOutro' \}/,
+    'o mapa OUTROS não aponta mais o campo que "Outro" abre')
 })
 
 test('todo controle crava o piso de toque, sem depender de padding', () => {
   // O skip link ja nasceu a 43px: 15px de texto mais 28px de padding. Piso que
   // sai de soma de padding quebra sozinho quando alguem mexe na tipografia —
   // por isso a exigencia aqui e min-height declarado, nao altura resultante.
-  for (const sel of ['.scw-skip', '.scw-btn', '.pa-escolha span', '.pa-indice a', '.pa-demo__btn']) {
+  for (const sel of ['.scw-skip', '.scw-btn', '.scw-campo select', '.pa-demo__btn']) {
     const m = regra(sel).match(/min-height:(\d+)px/)
     assert.ok(m, sel + ' nao crava min-height: o piso de toque volta a depender de aritmetica de padding')
     assert.ok(Number(m[1]) >= 44, sel + ' a ' + m[1] + 'px, abaixo do piso de 44')
