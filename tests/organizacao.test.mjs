@@ -659,3 +659,20 @@ test('pedir permissão não é beco sem saída em nenhum dos dois painéis', () 
       nome + ': precisa checar a negativa antes de pedir')
   }
 })
+
+test('rpc() aguenta resposta sem corpo — sete RPCs do painel são `returns void`', () => {
+  // 🐛 PostgREST devolve 204 SEM CORPO para função `returns void`, e `r.json()`
+  // em cima do vazio estoura com "Unexpected end of JSON input" — erro que
+  // parece de rede e é de leitura. Derrubou "Ligar avisos" no primeiro teste
+  // real, e junto com ele cinco botões da Fase 6: marcar pedido respondido,
+  // registrar foto, remarcar sessão, mudar função de conta e suspender conta.
+  //
+  // ⚠️ A prova anterior não pegou porque chamou as RPCs por curl, lendo o corpo
+  // fora do painel. Chamada por HTTP não é chamada PELO CAMINHO DO CÓDIGO.
+  const corpo = JS.slice(JS.indexOf('async function rpc('), JS.indexOf('async function chamarFuncao('))
+  assert.match(corpo, /await r\.text\(\)/, 'rpc() precisa ler como texto antes de converter')
+  assert.match(corpo, /bruto \? JSON\.parse\(bruto\) : null/,
+    'corpo vazio tem que virar null, e corpo inválido tem que continuar estourando')
+  assert.ok(!/^\s*return r\.json\(\);?\s*$/m.test(corpo),
+    'r.json() direto volta a quebrar em toda RPC que não devolve nada')
+})

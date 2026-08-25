@@ -866,7 +866,14 @@ async function rpc(nome, corpo) {
     try { detalhe = (await r.json()).message || ''; } catch (e) {}
     throw new Error(detalhe || ('HTTP ' + r.status));
   }
-  return r.json();
+  /* ⚠️ RPC `returns void` responde 204 SEM CORPO, e `r.json()` em cima do vazio
+     estoura com "Unexpected end of JSON input" — erro que parece de rede e é de
+     leitura. Foi o que derrubou o "Ligar avisos" no primeiro teste real:
+     `registrar_push_organizacao` grava e não devolve nada.
+     Ler como texto e só então converter cobre os dois casos sem esconder falha:
+     corpo vazio vira `null`, corpo inválido continua estourando. */
+  const bruto = await r.text();
+  return bruto ? JSON.parse(bruto) : null;
 }
 
 /* Edge Function. Não é PostgREST: criar usuário no Auth exige a chave de
