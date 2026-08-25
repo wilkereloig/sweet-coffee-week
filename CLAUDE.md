@@ -423,8 +423,13 @@ raio, sombra e as seis cores de marca da Lovers que `participants.js` ainda lê.
 sem extrair teria quebrado a única página no ar.
 
 `em-breve.css` preserva esses tokens **já resolvidos**, sem `var()` encadeado. ⛔ **Não
-usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`. Este arquivo morre
-junto com a landing, quando o institucional for publicado.
+usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`.
+
+⚠️ **Em 25/08/2026 a landing parou de consumi-los** (§7.7): a reescrita a levou para a
+paleta viva. O arquivo **continua obrigatório** mesmo assim — `components/icons.jsx` e
+`data/participants.js` / `participantAssets.js` leem tokens dele. É a lição do §4.3 outra
+vez: **quem apaga por caminho não vê quem consome por `var()`.** Ele morre quando o
+último consumidor sair, não quando a landing sair.
 
 #### ⛔ O que continua intocável
 
@@ -945,7 +950,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
 | Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo. **Reformulado em 22/08/2026** (§6.10-b) |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ A ação nova é `<a>`, e por isso o seletor dela é **prefixado** — sem prefixo ela nasce chocolate sobre chocolate, 1:1 (§10.1). **Reformulado em 22/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
@@ -1519,9 +1524,44 @@ sem prometer link que não existe.
 
 ### 7.7 Em breve — `/em-breve`
 
-Landing própria, uma seção. É o gate de publicação (`COMING_SOON_PUBLICATION`). **É a
-única página servida por `motion-system.css` + `useRevealOnScroll.js`.** ⛔ Não tocar sem
-pedido explícito — é o que está no ar.
+Landing própria. É o gate de publicação (`COMING_SOON_PUBLICATION`) e **é a única página
+servida por `motion-system.css` + `useRevealOnScroll.js`.** ⛔ Não tocar sem pedido
+explícito — é o que está no ar.
+
+**Desde 25/08/2026 ela é a chamada do pré-cadastro**, e não mais "aviso de novo site + o
+Sweet Awards da Lovers". Oito blocos, rolagem curta, **uma ação só — `Quero participar`
+→ `/quero-participar/` —, repetida três vezes**, sempre com o mesmo rótulo e o mesmo
+destino: herói, fim dos passos, fecho. No celular entra uma quarta ocorrência, a barra
+presa na base.
+
+| Bloco | O que é |
+|---|---|
+| Topo | faixa chocolate com `MARCA_SCW`. O botão "Acesso" **não mora aqui** — vem do `<SiteHeader apenasAcesso>` do `App.jsx` |
+| Herói | rótulo + H1 + lead + ação, sobre `heroPhotos('home')` em crossfade |
+| Prova | 16 edições · +120 marcas · +34 mil combos · desde 2016 |
+| Marquee | os 16 temas, em `.scw-marquee` |
+| Para quem é | os dez tipos de casa, na mesma redação do formulário |
+| Como funciona | três passos + a ação |
+| Fecho | chapa chocolate, a ação e a linha do Instagram |
+| Rodapé | **creme**, com a marca da F2 |
+
+⚠️ **A barra final de `/quero-participar/` não é enfeite** (§10.4-b), e é `<a href>` de
+navegador — nunca `navigate()`, nunca `#/`.
+
+⚠️ **O rodapé é creme, e é decisão de contraste, não de gosto:** a logo da F2 é asset de
+cor fixa (`#de1a59`) e sobre chocolate não fecha os 3:1 de elemento gráfico. Sobre creme
+fecha. ⛔ Não devolver o rodapé para chocolate sem trocar o asset.
+
+⚠️ **A página saiu da terceira paleta do projeto.** Ela consumia os tokens de
+`em-breve.css` — espresso `#2B1810` + ouro `#F8B511`, a identidade do Sweet Awards de
+antes do redesign — e agora consome a **paleta viva** (`--scw-*`) e as utilitárias do
+sistema. ⛔ `em-breve.css` **continua no ar**: `icons.jsx` e `participants.js` ainda leem
+tokens dele (§4.3).
+
+⛔ **O bloco do Sweet Awards saiu, e é remoção de EXIBIÇÃO, não de dado.**
+`sweetHistoryStats.js`, `loversAwardsResults.js` e as fotos seguem intactos — só
+deixaram de ser importados ali. **Consequência a não esquecer: o resultado oficial da
+Lovers deixou de ter endereço público** até o institucional ir ao ar.
 
 ---
 
