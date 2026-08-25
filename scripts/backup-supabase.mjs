@@ -3,9 +3,10 @@
 // O projeto está no plano Free: não há backup automático (docs/INSTRUCAO-painel-fase2.md §2).
 //
 // Uso (PowerShell):
-//   $env:SUPABASE_URL="https://dgfmoibynftadsyjcclg.supabase.co"
 //   $env:SUPABASE_SERVICE_ROLE_KEY="<a service_role key do dashboard>"
-//   node scripts/backup-supabase.mjs
+//   npm run backup
+//
+// SUPABASE_URL tem padrão embutido; só se sobrescreve para apontar outro projeto.
 //
 // A chave NUNCA entra em arquivo do repositório: só variável de ambiente.
 // Saída padrão: ../backups-supabase/scw-<AAAA-MM-DD-HHMM>/ — fora do repositório.
@@ -13,10 +14,12 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-const URL_BASE = process.env.SUPABASE_URL
+// A URL é pública por design — é a mesma que vai no bundle do front
+// (src/lib/supabase.js). Só a chave precisa vir do ambiente.
+const URL_BASE = process.env.SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
 const CHAVE = process.env.SUPABASE_SERVICE_ROLE_KEY
-if (!URL_BASE || !CHAVE) {
-  console.error('Faltam SUPABASE_URL e/ou SUPABASE_SERVICE_ROLE_KEY no ambiente.')
+if (!CHAVE) {
+  console.error('Falta SUPABASE_SERVICE_ROLE_KEY no ambiente (Project Settings > API > service_role).')
   process.exit(1)
 }
 
@@ -42,12 +45,40 @@ async function tabelas () {
     .sort()
 }
 
+// A coluna de ordenacao sai da PRIMEIRA LINHA da propria tabela.
+//
+// Isto conserta o bug que impedia o script de rodar: ele paginava com
+// `order=1`, esperando "ordene pela primeira coluna". O PostgREST NAO aceita
+// posicao ordinal — le o `1` como NOME de coluna e devolve 42703, "column
+// <tabela>.1 does not exist". Toda tabela falhava; admin_config so era a
+// primeira da fila alfabetica.
+//
+// Por que da linha e nao do `definitions` do spec: o spec do PostgREST muda
+// conforme o papel que pergunta, entao nao da para conferir o formato dele sem
+// a chave de servico em maos — e correcao apoiada em suposicao nao conferida e
+// como o proprio `order=1` nasceu. A linha real nao deixa duvida.
+//
+// Tabela vazia devolve null, e nao faz falta: sem linha nao ha o que paginar.
+async function colunaDeOrdem (nome) {
+  const [linha] = await pegar(`/rest/v1/${nome}?select=*&limit=1`)
+  return linha ? Object.keys(linha)[0] ?? null : null
+}
+
 async function dumpTabela (nome) {
   const linhas = []
+  const chave = await colunaDeOrdem(nome)
+  const ordem = chave ? `&order=${encodeURIComponent(chave)}` : ''
   for (let de = 0; ; de += PAGINA) {
-    const lote = await pegar(`/rest/v1/${nome}?select=*&order=1&limit=${PAGINA}&offset=${de}`)
+    const lote = await pegar(`/rest/v1/${nome}?select=*${ordem}&limit=${PAGINA}&offset=${de}`)
     linhas.push(...lote)
     if (lote.length < PAGINA) break
+
+    // Sem coluna para ordenar, `limit`+`offset` NAO paginam de forma estavel:
+    // o Postgres pode devolver a mesma linha em duas paginas e nunca devolver
+    // outra. Enquanto tudo cabe numa pagina isso e inofensivo — o laco para
+    // antes de pedir a segunda. Passou disso, para com erro: backup faltando
+    // linha em silencio e pior que backup que falhou.
+    if (!chave) throw new Error(`${nome} passa de ${PAGINA} linhas e nao tem coluna para ordenar`)
   }
   await writeFile(`${destino}/${nome}.json`, JSON.stringify(linhas, null, 1))
   return linhas.length
