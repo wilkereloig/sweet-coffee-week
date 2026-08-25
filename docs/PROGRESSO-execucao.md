@@ -126,13 +126,75 @@ Build verde (2,15 s). **85/85 testes** em `quero-participar`, `marca` e
 
 ---
 
-## Fases 3 a 9 — ⛔ NÃO INICIADAS
+## Fase 3 · Autenticação da organização — ✅ PRONTA NO BANCO
 
-Todas dependem de migration, e migration depende do backup (item 1).
+Permissão virou **dado**, não código (item 3.1 do comando): duas tabelas,
+`funcoes` e `permissoes`, semeadas com as quatro funções e seis ações.
+
+| Função | Ações |
+|---|---|
+| `administrador` | as 6 |
+| `curadoria` | `dado.ler` · `triagem.editar` · `marca.liberar` |
+| `producao` | `dado.ler` · `triagem.editar` · `producao.gerir` |
+| `consulta` | `dado.ler` |
+
+**O guard saiu de booleano para pergunta de duas dimensões:**
+`pode(p_secret, p_acao)` — quem é você, e esta ação está na sua função?
+`pode_organizacao` virou uma linha em cima dele, e **as 22 RPCs que a chamam
+não foram tocadas**. Foi para isso que a ponte da Fase 2 existiu.
+
+Também entrou: tranca global de tentativa na senha compartilhada
+(`tentativas_acesso` + `acesso_travado()`, 20 falhas em 15 min), o interruptor
+`senha_unica_ativa` para a senha compartilhada ter data de morte,
+`deve_trocar_senha` com default `true`, e três RPCs de gestão de conta com
+trava de último administrador.
+
+**Provado em transação revertida, com senha temporária — a real nunca foi
+lida, e foi confirmado depois que ela voltou ao lugar:**
+
+| Prova | Resultado |
+|---|---|
+| senha compartilhada abre as 6 ações | ✅ |
+| ponte da Fase 2 + `admin_ping` + RPC real | ✅ |
+| senha errada / nula / vazia | ✅ nega as três |
+| conta `consulta` vê candidaturas | ✅ 1 |
+| conta `consulta` lista contas | ✅ **0** — negado, como deve |
+| conta `administrador` lista contas | ✅ 2 |
+| guard de apagar / atualizar trocado | ✅ `registro.apagar` / `triagem.editar` |
+| Security Advisor | **zero ERROR** |
+| painel abre depois do revoke | ✅ |
+
+### 🐛 A armadilha do `revoke` — a regra do projeto estava pela metade
+
+O `CLAUDE.md` §4.1 dizia que `revoke ... from public` não basta, porque o
+Supabase concede EXECUTE a `anon` e `authenticated`. Verdade — e incompleta:
+**`revoke ... from anon, authenticated` também não basta**, porque o Postgres
+concede EXECUTE a **`PUBLIC`** por padrão em toda função nova, e `anon` herda.
+
+São os três alvos na mesma linha. `pode` e `acesso_travado` ficaram expostas em
+`/rest/v1/rpc/` por quatro tentativas seguidas, todas retornando sucesso —
+`revoke` de permissão que o papel não tem diretamente não dá erro, só não faz
+nada. Fechou quando `public` entrou na lista. Regra corrigida no `CLAUDE.md`.
+
+⚠️ **Conferir por `has_function_privilege`, nunca por ter escrito a linha.**
+
+---
+
+## Fases 4 a 9 — ⛔ NÃO INICIADAS
+
+✅ **O backup foi feito em 25/08** — 18 tabelas, 4.289 linhas, todos os JSON
+válidos, contagens do disco batendo com o manifesto. A trava do item 1 caiu, e
+por isso a Fase 3 pôde ser aplicada.
+
+⚠️ **Falta a metade do esquema.** O comando pedia `supabase db dump`, que é
+linhas **e** esquema; o que existe é só linhas. Nove das migrations existem
+apenas dentro do Supabase, então os 2.702 votos não teriam tabela onde ser
+recolocados. Caminho: CSV do SQL Editor + `scripts/recuperar-migrations.mjs`.
+Decisão tomada: seguir sem ela, porque tudo que está sendo mexido tem zero
+linhas e `votos`/`feedback_geral` não são tocados.
 
 | Fase | O que falta |
 |---|---|
-| 3 · Autenticação da organização | contas por função, admin que cria contas, limite de tentativa na senha compartilhada |
 | 4 · Modelo de dados | refazer sob marca × participação; solicitações, arquivos, delivery, push |
 | 5 · Painel da marca | depende de 4 |
 | 6 · Painel da organização | depende de 4 |

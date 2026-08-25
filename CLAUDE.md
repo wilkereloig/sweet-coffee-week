@@ -289,11 +289,32 @@ preview.**
   **Nada foi removido:** `admin_ok` e a tela de senha única seguem funcionando,
   e `/organizacao/` não exige login nominal. A porta nova está aberta e vazia —
   ninguém tem `papel = 'organizacao'` ainda.
-  ⚠️ **`revoke execute ... from public` NÃO tira a permissão de `anon`.** O
-  Supabase concede EXECUTE explicitamente a `anon` e `authenticated`; sem
-  `revoke ... from anon, authenticated` a função fica exposta em
-  `/rest/v1/rpc/`. Quem pegou foi o Security Advisor, **depois** de aplicada:
-  toda função nova de guard passa por ele antes de fechar a tarefa.
+  ⚠️ **Fechar uma função de guard exige `revoke ... from public, anon,
+  authenticated` — os três na mesma linha.** A regra registrada aqui em 23/08
+  dizia só metade, e a outra metade custou quatro tentativas em 25/08:
+
+  - `revoke ... from public` sozinho não basta: o Supabase concede EXECUTE
+    **explicitamente** a `anon` e `authenticated`;
+  - `revoke ... from anon, authenticated` sozinho **também** não basta: o
+    Postgres concede EXECUTE a **`PUBLIC`** por padrão em toda função nova, e
+    `anon` herda de `PUBLIC`.
+
+  `admin_ok` e `pode_organizacao` estavam fechadas porque a Fase 2 fez os dois
+  sem saber que precisava dos dois. `pode` e `acesso_travado` nasceram abertas
+  e só fecharam quando os três alvos entraram juntos.
+
+  ⚠️ **A conferência é por `has_function_privilege`, nunca por ter escrito a
+  linha do `revoke`.** As três primeiras tentativas de 25/08 retornaram sucesso
+  e não mudaram nada — `revoke` de permissão que o papel não tem diretamente
+  não dá erro, só não faz nada:
+
+  ```sql
+  select has_function_privilege('anon', 'public.minha_funcao(text)', 'execute');
+  ```
+
+  `create or replace` **preserva a ACL** da função existente — por isso uma
+  função já fechada continua fechada ao ser reescrita, e só as **novas** exigem
+  o revoke. O Security Advisor pega o que escapar, mas só depois de aplicada.
 
   Migration em `supabase/migrations/`. **Nenhum deles afirma "enviado" se a gravação
   falhar** — é regra escrita no cabeçalho dos três arquivos. ⛔ **Não trocar por
