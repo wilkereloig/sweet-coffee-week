@@ -707,7 +707,7 @@ const CONFIG = {
   // Edge Function). Vazia = widget nao aparece e a funcao deixa passar, porque
   // sem a chave privada do outro lado nao ha o que conferir. Preencher as duas
   // liga a barreira; preencher so uma nao faz nada.
-  turnstileSiteKey: '0x4AAAAAAEbvMJDS1YJpLY3b'
+  turnstileSiteKey: '0x4AAAAAAEbvMJDSlYJpLY3b'
 };
 
 // Carimbo de quando a pagina abriu. O servidor recusa envio em menos de 3s:
@@ -977,6 +977,11 @@ function montarTurnstile () {
      o nome do formulario, o mesmo que vai no corpo do envio. */
   alvo.setAttribute('data-action', 'quero_participar');
   alvo.setAttribute('data-language', 'pt-br');
+  /* Sem isto o erro da Cloudflare so aparece como um link "Troubleshoot" ao
+     lado do botao, e o codigo — que diz exatamente o que esta errado — fica
+     escondido. Custou uma manha em 25/08/2026: 400020 e "invalid sitekey",
+     nao-retryable, e a mensagem de erro do envio mandava tentar de novo. */
+  alvo.setAttribute('data-error-callback', 'scwTurnstileErro');
   const s = document.createElement('script');
   s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
   s.async = true;
@@ -987,6 +992,19 @@ function montarTurnstile () {
 /* O widget escreve o token num input escondido que ele mesmo cria. Sem widget,
    devolve string vazia — e a funcao trata isso como "nao avaliado", nao como
    "reprovado". */
+/* Guardado para a mensagem do envio. Global de proposito: a renderizacao
+   implicita do Turnstile so aceita callback por NOME. */
+var TURNSTILE_ERRO = '';
+function scwTurnstileErro (codigo) {
+  /* Saneado na ORIGEM: o codigo da Cloudflare e alfanumerico, e esta string
+     vai para innerHTML na mensagem de erro. Limpar aqui vale mais que
+     lembrar de escapar la — e `escapar()` nao existe nesta pagina, que e
+     estatica e nao compartilha helper com os paineis. */
+  TURNSTILE_ERRO = String(codigo || '').replace(/[^0-9A-Za-z._-]/g, '').slice(0, 40);
+  console.error('[Turnstile] erro ' + TURNSTILE_ERRO);
+  /* Nao devolve true: deixa a Cloudflare mostrar o proprio estado de erro. */
+}
+
 function tokenTurnstile () {
   const campo = document.querySelector('[name="cf-turnstile-response"]');
   return campo ? campo.value : '';
@@ -1032,7 +1050,8 @@ form.addEventListener('submit', async (ev) => {
      O descarte silencioso existe para robo; para gente ele e bug. */
   if (CONFIG.turnstileSiteKey && !tokenTurnstile()) {
     mostrar('erro', 'A verificação de segurança não concluiu',
-      '<p>Espere alguns segundos e envie de novo. Se continuar assim, sua rede pode estar bloqueando o serviço de verificação — nesse caso use <strong>Copiar respostas</strong> e mande para a equipe por WhatsApp.</p>',
+      '<p>Espere alguns segundos e envie de novo. Se continuar assim, seu navegador ou sua rede pode estar bloqueando o serviço de verificação — nesse caso use <strong>Copiar respostas</strong> e mande para a equipe por WhatsApp.</p>'
+      + (TURNSTILE_ERRO ? '<p class="pa-nota">Código do erro: ' + TURNSTILE_ERRO + '</p>' : ''),
       false);
     return;
   }

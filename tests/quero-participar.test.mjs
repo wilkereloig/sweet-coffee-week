@@ -27,13 +27,51 @@ test('o script inline compila', () => {
 })
 
 test('toda função chamada está declarada', () => {
-  const js = SCRIPTS[0]
-  const declaradas = new Set([...js.matchAll(/(?:function\s+|const\s+|let\s+)([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))
-  // Só as do próprio arquivo: as globais do browser ficam de fora da lista.
-  const criticas = ['montarResumo', 'coletar', 'validarPasso', 'validarTudo', 'mostrar',
-                    'atualizarOutros', 'atualizarContaChips', 'preenchido', 'marcar', 'campos', 'copiar']
-  const faltando = criticas.filter((f) => !declaradas.has(f))
-  assert.deepEqual(faltando, [], 'função chamada mas nunca declarada: ' + faltando.join(', '))
+  // ⚠️ Este teste já foi uma LISTA FIXA de 11 nomes, e por isso deixou passar
+  // uma chamada a `escapar()` — helper que existe nos painéis e NÃO nesta
+  // página — direto na mensagem de erro do Turnstile, em 25/08/2026. Lista
+  // escrita à mão só cobre o que alguém lembrou de escrever nela; o que quebra
+  // é sempre a chamada que ninguém previu. Agora varre os pontos de chamada.
+  const bruto = SCRIPTS[0]
+
+  // Declarações saem do fonte COM comentários: um `function x` citado em
+  // comentário é ruído inofensivo aqui (no máximo deixa passar), enquanto
+  // perder uma declaração real geraria falso positivo.
+  const declaradas = new Set(
+    [...bruto.matchAll(/(?:function\s+|const\s+|let\s+|var\s+)([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))
+
+  // Já as CHAMADAS têm que sair só do código. Prosa em comentário — "(jsonb)",
+  // "(Turnstile)" — casa com `nome(` e viraria falso positivo.
+  // Ordem: bloco → linha → literais. O `//` de `https://` fica protegido por
+  // exigir que ele não venha depois de `:`.
+  const js = bruto
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1')
+    .replace(/'(?:[^'\\\n]|\\.)*'/g, "''")
+    .replace(/"(?:[^"\\\n]|\\.)*"/g, '""')
+    .replace(/`(?:[^`\\]|\\.)*`/g, '``')
+
+  // Palavras que casam com `nome(` sem serem chamada de função.
+  const SINTAXE = new Set(['if', 'for', 'while', 'switch', 'catch', 'return', 'function',
+    'typeof', 'new', 'await', 'async', 'else', 'do', 'of', 'in', 'instanceof', 'delete',
+    'void', 'throw', 'case', 'yield', 'super'])
+
+  // Globais do navegador que a página usa de propósito.
+  const GLOBAIS = new Set(['alert', 'confirm', 'fetch', 'setTimeout', 'setInterval',
+    'clearTimeout', 'clearInterval', 'parseInt', 'parseFloat', 'isNaN', 'String',
+    'Number', 'Boolean', 'Array', 'Object', 'Date', 'Math', 'JSON', 'Promise',
+    'RegExp', 'Error', 'Set', 'Map', 'URLSearchParams', 'FormData', 'Blob',
+    'encodeURIComponent', 'decodeURIComponent', 'requestAnimationFrame',
+    'getComputedStyle', 'structuredClone', 'queueMicrotask', 'btoa', 'atob'])
+
+  const chamadas = new Set(
+    [...js.matchAll(/(?<![.\w$])([a-zA-Z_$][\w$]*)\s*\(/g)].map((m) => m[1]))
+
+  const faltando = [...chamadas].filter((n) =>
+    !SINTAXE.has(n) && !GLOBAIS.has(n) && !declaradas.has(n))
+
+  assert.deepEqual(faltando, [],
+    'função chamada mas nunca declarada nesta página: ' + faltando.join(', '))
 })
 
 test('não sobrou referência ao wizard de passos', () => {
