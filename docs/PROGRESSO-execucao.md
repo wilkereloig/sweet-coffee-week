@@ -249,6 +249,59 @@ linhas e `votos`/`feedback_geral` não são tocados.
 
 ---
 
+## Revisão final (§7 do comando) — o que foi conferido
+
+| Item | Resultado |
+|---|---|
+| Suíte de testes inteira | ✅ **122/122** |
+| Build | ✅ verde, 2,2 s |
+| Security Advisors | ✅ **zero ERROR** (76 WARN, todos do padrão já existente) |
+| Chave de serviço em `src/` ou `public/` | ✅ **nenhuma ocorrência** |
+| Um `<script>` por página estática | ✅ 1 em cada uma das três |
+| Toda tabela com RLS | ✅ **20 de 20** |
+| Marca não lê dado de outra marca | ✅ provado autenticando como duas contas |
+| Marca não escreve no campo de foto | ✅ provado por API — **42501** |
+| Captcha rejeita envio sem token | ⚠️ Turnstile **desligado** (sem chaves). As outras 3 barreiras foram provadas chamando o endpoint direto |
+| Instalar nos dois painéis em Android e iPhone | ❌ **não fiz** — exige aparelho |
+
+### O que NÃO foi testado, e não deve ser dito como pronto
+
+- Nenhuma tela nova foi construída, então nenhuma foi vista funcionando.
+- O ciclo pelo navegador (entrar no painel com a senha real) segue sem prova de
+  ponta a ponta — só o Eloi pode fazer.
+- A Edge Function `enviar-formulario` foi provada por chamada direta, **não**
+  pela tela: `/quero-participar/` aponta para ela no código, e isso não foi
+  exercido num navegador.
+
+---
+
+## Onde parei, exatamente
+
+**Fases 1, 2 e 3 fechadas.** Fases 4 a 9 não começaram.
+
+A fase 4 (modelo de dados) é a próxima, e ela **não podia ser começada e
+deixada pela metade**: reestruturar `participantes` em marca × participação
+quebra, na mesma leva, a Edge Function `criar-acesso-marca`, quatro RPCs,
+`public/marca/index.html` e a ficha do painel. Começar sem terminar deixaria
+uma tela quebrada — o que o item 5 do comando proíbe explicitamente.
+
+**Ordem de retomada:**
+
+1. Fase 4 · modelo de dados — `participacoes`, `participacao_unidades` (com
+   delivery), repontar `participantes_itens` e `sessoes_fotos`, `solicitacoes` +
+   `solicitacao_estado`, `arquivos` + confirmação de leitura, CNPJ/razão social
+   opcionais, `push_subscriptions`.
+2. Fase 5 e 6 · as duas telas.
+3. Fase 7 · instalável em `/marca/` + push.
+4. Fase 8 · testes.
+
+⚠️ **A migration `cadastro_completo_marca` (24/08) precisa ser refeita na fase
+4**, porque `participantes_itens` e `sessoes_fotos` apontam para
+`participante_id` — que sob o modelo decidido vira *participação*, não *marca*.
+Com zero linhas, é barato. Com a 17ª edição dentro, não seria.
+
+---
+
 ## O que depende de você
 
 1. 🔴 **Rodar o backup.** Destrava tudo.
