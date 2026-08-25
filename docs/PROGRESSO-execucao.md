@@ -93,7 +93,7 @@ dela criaria a segunda fonte de verdade que o `CLAUDE.md` §5.2 proíbe.
 |---|---|
 | 1 · campo-armadilha | ✅ ativa, conferida no servidor |
 | 2 · tempo mínimo (3s) e teto de sanidade (24h) | ✅ ativa |
-| 3 · Turnstile | ✅ código pronto · chave **pública** posta em 25/08 · **desligado** até o deploy da função + a chave privada (ver "O que falta") |
+| 3 · Turnstile | ✅ código pronto · **v6 no ar** e chave **pública** posta em 25/08 · **desligado** até `TURNSTILE_SECRET_KEY` + `TURNSTILE_HOSTNAMES` existirem |
 | 4 · limite por origem | ❌ **não implementada** — exige tabela para contar; ver abaixo |
 | 5 · descarte silencioso | ✅ ativo |
 
@@ -578,7 +578,7 @@ primeira conta criada.
 
    ⛔ **Falta, e é ação sua, nesta ordem:**
 
-   1. **Publicar a Edge Function `enviar-formulario`.** A versão no ar é a **v5**,
+   1. ~~**Publicar a Edge Function `enviar-formulario`.**~~ ✅ **v6 no ar em 25/08/2026.** A versão no ar é a **v5**,
       e ela confere só `success` — **e chama o Turnstile para os quatro
       formulários**. A versão do repositório confere `success` + `action` +
       `hostname` e só exige token de quem desenha o widget (`EXIGE_TURNSTILE`).
@@ -586,7 +586,7 @@ primeira conta criada.
       npx supabase login
       npx supabase functions deploy enviar-formulario --project-ref dgfmoibynftadsyjcclg --no-verify-jwt
       ```
-   2. **Só então** as duas variáveis de ambiente da Function:
+   2. **É aqui que estamos.** As duas variáveis de ambiente da Function:
       `TURNSTILE_SECRET_KEY` (a privada, **nunca no repositório**) e
       `TURNSTILE_HOSTNAMES`.
 
