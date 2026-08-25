@@ -93,7 +93,7 @@ dela criaria a segunda fonte de verdade que o `CLAUDE.md` §5.2 proíbe.
 |---|---|
 | 1 · campo-armadilha | ✅ ativa, conferida no servidor |
 | 2 · tempo mínimo (3s) e teto de sanidade (24h) | ✅ ativa |
-| 3 · Turnstile | ✅ código pronto, **desligado por bandeira** — falta o par de chaves |
+| 3 · Turnstile | ✅ código pronto · chave **pública** posta em 25/08 · **desligado** até o deploy da função + a chave privada (ver "O que falta") |
 | 4 · limite por origem | ❌ **não implementada** — exige tabela para contar; ver abaixo |
 | 5 · descarte silencioso | ✅ ativo |
 
@@ -571,11 +571,47 @@ primeira conta criada.
    npm run backup
    ```
    Confirme que o destino ficou **fora** do repositório.
-2. **Chaves do Turnstile** (gratuitas, em dash.cloudflare.com → Turnstile):
-   - a **pública** vai em `CONFIG.turnstileSiteKey`, em `public/quero-participar/index.html`;
-   - a **privada** vai como variável de ambiente `TURNSTILE_SECRET_KEY` da Edge
-     Function, **nunca no repositório**.
-   Preencher só uma das duas não liga barreira nenhuma — é preciso o par.
+2. **Turnstile — a ordem importa, e inverter dói.**
+
+   ✅ **Feito em 25/08/2026:** o widget existe na Cloudflare e a chave **pública**
+   está em `CONFIG.turnstileSiteKey` (`public/quero-participar/index.html`).
+
+   ⛔ **Falta, e é ação sua, nesta ordem:**
+
+   1. **Publicar a Edge Function `enviar-formulario`.** A versão no ar é a **v5**,
+      e ela confere só `success` — **e chama o Turnstile para os quatro
+      formulários**. A versão do repositório confere `success` + `action` +
+      `hostname` e só exige token de quem desenha o widget (`EXIGE_TURNSTILE`).
+      ```bash
+      npx supabase login
+      npx supabase functions deploy enviar-formulario --project-ref dgfmoibynftadsyjcclg --no-verify-jwt
+      ```
+   2. **Só então** as duas variáveis de ambiente da Function:
+      `TURNSTILE_SECRET_KEY` (a privada, **nunca no repositório**) e
+      `TURNSTILE_HOSTNAMES`.
+
+   🔴 **Configurar a chave antes do deploy desliga Contato e Apoiar em silêncio.**
+   Os dois mandam `token: ''` porque nenhum renderiza widget; na v5 isso vira
+   `success: false`, e reprovado sai pela **mesma resposta do sucesso**. Os dois
+   formulários passariam a engolir todo envio mostrando a tela de "enviado".
+
+   ⚠️ **`TURNSTILE_HOSTNAMES` de produção NÃO inclui `localhost` nem `127.0.0.1`.**
+   O widget cobre os dois automaticamente para o desenvolvimento funcionar — por
+   isso quem separa produção de máquina de qualquer um é o servidor:
+   ```
+   sweetcoffeeweek.com.br,www.sweetcoffeeweek.com.br,site-sweet-coffee-week-git-dev-site-completo-eloidesignstudio.vercel.app
+   ```
+
+   ⚠️ **A Cloudflare criou TRÊS widgets** (o assistente Spin faz um por domínio).
+   Vale o primeiro, `0x4AAAAAAEbvMJDS1YJpLY3b`, e os três domínios têm que estar
+   **dentro dele** — a página tem uma site key só. Os outros dois ficam sem uso.
+
+   ⚠️ **Depois de ligar, mande um pré-cadastro de verdade.** Chave errada por um
+   caractere não quebra nada visível: o widget não renderiza, o token sai vazio e
+   o servidor descarta. Desde 25/08 a página **barra esse caso na cara da pessoa**
+   em vez de deixar seguir, mas quem prova que gravou é a linha em
+   `quero_participar`, nunca a tela.
+
 3. **Decisões que não são minhas** (item 4 do comando): prazo de descarte de
    candidatura não aproveitada, e onde o backup fica guardado.
 
