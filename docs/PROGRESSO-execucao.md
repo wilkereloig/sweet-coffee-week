@@ -298,6 +298,102 @@ RLS**, nenhum guard aberto a `anon`.
 
 ---
 
+## Fase 5 · Painel da marca — ✅ CONSTRUÍDO E PROVADO NO BANCO
+
+`public/marca/index.html` deixou de ler `participantes` + `participantes_operacao`
+e passou a ler a **participação**. A migration que faltava está em
+`supabase/migrations/20260825_fase5_painel_da_marca.sql`, aplicada.
+
+### A tela, bloco a bloco
+
+| Bloco | O que grava | Onde |
+|---|---|---|
+| 01 · A marca | nome, responsável, telefone, e-mail, Instagram, site, **CNPJ, razão social** | `participantes` |
+| 02 · O tema | tema escolhido e justificativa | `participacoes` |
+| 03 · Os três itens | doce, salgado e bebida: nome, descrição, ingredientes, **vegano / sem glúten / sem lactose por item** | `participantes_itens` |
+| 04 · Preço | valor do combo | `participacoes` |
+| 05 · Unidades | endereço, bairro, **horário DURANTE o festival**, delivery e o link de cada canal | `participacao_unidades` |
+
+Mais, fora do formulário: **pedidos e prazos** (com "faltam N dias" / "venceu em"),
+**downloads** por URL assinada de vida curta, e a **sessão de fotos** em leitura.
+
+**Autosave de 900 ms** nas quatro tabelas ao mesmo tempo. Unidade é a única peça
+com ciclo de vida: sem `id` vira POST e **recebe o id de volta na hora** — sem
+isso, cada tecla numa unidade nova criaria outra linha.
+
+### Decisões que valem o cliente saber
+
+- ⛔ **Não há mais botão "reabrir cadastro".** O formulário nunca sai da tela
+  depois de concluído, então não há o que reabrir. O estado no banco segue
+  `cadastro_completo` até ela concluir de novo: alguém mexeu ≠ alguém desfez.
+- **Delivery ficou por unidade, com três canais fixos** — aplicativo, WhatsApp,
+  site próprio, cada um com link. Link preenchido = canal ativo. Um construtor de
+  lista custaria "adicionar/remover" inteiro para produzir as mesmas três linhas.
+- **O painel incentiva as restrições, não só pergunta** (briefing §3.2): a frase
+  diz que marcar vegano/sem glúten/sem lactose amplia o público que chega.
+- **Nome e descrição do combo saíram da tela.** O briefing §3.2 lista tema,
+  justificativa, preço e os três itens; as colunas seguem no banco, sem uso.
+
+### 🐛 Três defeitos que estavam de pé e caíram aqui
+
+1. **A trava de primeiro acesso nunca funcionou.** `precisaTrocarSenha()` lia
+   `r.ok && r.dados[0]` num **array** — `api()` devolve o corpo, não
+   `{ ok, dados }`. Achava `undefined` nos dois e devolvia `false` sempre. A
+   Edge Function ligava `deve_trocar_senha`, e ninguém lia. A senha do WhatsApp
+   era permanente.
+2. **`marcarSenhaTrocada()` mandava `apikey: CFG.chave`** — a chave se chama
+   `CFG.key`. A requisição saía sem chave e o `.catch` engolia.
+3. **`marca_concluir_cadastro` lançava exceção em vez de dizer o que falta.**
+   `text[] || 'literal'` é `malformed array literal` no Postgres; faltava
+   `::text`. Só disparava quando havia campo em falta — o caminho que a função
+   existe para servir.
+
+### Provado em transação revertida — 19 + 14 + 2
+
+| Prova | Resultado |
+|---|---|
+| edição nula não abre participação nenhuma | ✅ 0 |
+| abrir participação, e o segundo clique não abrir duas | ✅ idempotente |
+| gatilho cria os 3 itens | ✅ 3 |
+| concluir vazio devolve a lista do que falta | ✅ 7 itens, sem exceção |
+| item sem ingredientes barra a conclusão | ✅ nomeia qual item |
+| concluir completo | ✅ `cadastro_completo` |
+| outra marca conclui a minha | ✅ `nao_autorizado` |
+| `abrir_participacao` com senha errada | ✅ `nao_autorizado` |
+| helper interno executável por `anon`/`authenticated` | ✅ **false** nos dois |
+| grant de coluna: `combo_foto_path` / `status_cadastro` / `foto_path` | ✅ **false** nos três |
+| grant de coluna: `cnpj` / `tema_combo` | ✅ true |
+
+**E o isolamento entre marcas, com RLS ligada e dois usuários de verdade**
+(`set local role authenticated` + claims — a mesma porta da tela):
+
+| A marca A enxerga | Resultado |
+|---|---|
+| participantes · participações · itens | 1 · 1 · 3 — nada da B |
+| solicitações | **1**: a geral publicada. Fora o rascunho e a da B |
+| arquivos | **1**: o geral publicado. Fora o não publicado e o da B |
+| sessões de fotos | **0** — a única era da B |
+| escrever o tema da B | **0 linhas atingidas**, e o tema da B intacto depois |
+| declarar-se completa / escrever foto do item | negado pelo grant de coluna |
+| criar unidade na participação da B | negado pela RLS |
+| criar a própria unidade / registrar a própria leitura | ✅ funciona |
+
+Suíte **124/124** (2 testes novos), build verde em 2,06 s, **zero ERROR** nos
+Security Advisors.
+
+### O que NÃO foi visto funcionando
+
+- **Nenhum navegador tocou nesta tela.** Não há como criar um usuário de teste
+  sem a chave de serviço, e o único caminho de login é a senha real de uma conta
+  que ainda não existe (`participantes` tem zero linhas). O que está provado é a
+  camada de dados, pela mesma porta que a tela usa — não a tela.
+- **Download de arquivo** depende de um objeto no bucket `arquivos`, que está
+  vazio. A chamada de assinatura está escrita; não foi exercida.
+- `edicao_atual` está **nula** em produção, de propósito. Enquanto estiver, toda
+  conta nova cai em "ainda não há edição aberta para você".
+
+---
+
 ## Revisão final (§7 do comando) — o que foi conferido
 
 | Item | Resultado |
@@ -326,27 +422,29 @@ RLS**, nenhum guard aberto a `anon`.
 
 ## Onde parei, exatamente
 
-**Fases 1 a 4 fechadas — o banco inteiro do sistema está de pé e provado.**
-Fases 5 a 9 não começaram: são **tela**, não dado.
+**Fases 1 a 5 fechadas.** O banco inteiro está de pé, e o painel da marca é a
+primeira tela do sistema novo.
 
 **Ordem de retomada:**
 
-1. **Fase 5 · painel da marca** — migrar `/marca/` de `participantes` para
-   `participacoes`: tema + justificativa, os três itens com restrição por item,
-   unidades com horário e delivery, lista de solicitações com prazo, downloads,
-   sessão de fotos.
-2. **Fase 6 · painel da organização** — gestão de contas (as RPCs já existem),
+1. **Fase 6 · painel da organização** — gestão de contas (as RPCs já existem),
    solicitações com acompanhamento de quem respondeu, arquivos, agendamento e
    envio de fotos, ficha completa.
-3. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
+2. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
    dois painéis, Edge Function `enviar-push`, banner de instalação para iPhone.
-4. **Fase 8 · testes** — estender `tests/marca.test.mjs` e
-   `tests/organizacao.test.mjs`, mais o teste que impede reintroduzir upload de
-   foto pela marca.
+3. **Fase 8 · testes** — estender `tests/organizacao.test.mjs` como
+   `tests/marca.test.mjs` já foi.
 
-⚠️ **Nada em `/marca/` ou `/organizacao/` foi alterado nesta fase.** As duas
-telas continuam funcionando exatamente como antes, lendo as colunas antigas de
-`participantes`. A migração delas é a fase 5.
+⚠️ **`/organizacao/` ainda não foi tocado, e agora ele está atrás.** O painel lê
+`get_participantes`, que devolve `combo_nome`, `combo_descricao`, `combo_preco` e
+`unidades` do modelo antigo — colunas que a marca **deixou de preencher** na
+Fase 5. Ele não quebra: as colunas existem e vêm vazias. Mas a ficha da marca vai
+parecer em branco até a Fase 6 ler a participação. É o primeiro item dela.
+
+⚠️ **A organização ainda não tem tela para definir `edicao_atual`.** A RPC
+`definir_edicao_atual` existe e está guardada; o botão é da Fase 6. Até lá, quem
+quiser abrir a edição roda no SQL Editor
+`select public.definir_edicao_atual($$<senha>$$, '2027');`.
 
 ---
 

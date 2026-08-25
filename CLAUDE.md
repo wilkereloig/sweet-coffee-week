@@ -1973,6 +1973,47 @@ O quarto destino do painel, **"marcas"**, lista quem já tem conta e em que pont
 do cadastro está. O passo a passo e as decisões estão em
 `docs/PLANO-painel-contas-participantes.md`.
 
+#### `/marca/` mudou de dono no banco — 25/08/2026 (Fase 5)
+
+✅ **`participantes` é a MARCA; `participacoes` é a marca NAQUELA EDIÇÃO.** Combo,
+tema, preço, itens, unidades, horário e fotos são fato de uma edição, não da
+marca — é como o acervo sempre contou a história (410 participações, 123 marcas).
+O painel passou a ler e escrever a participação; `participantes` guarda o que
+atravessa as edições: nome, responsável, contato, Instagram, site, CNPJ.
+
+| Peça | Onde vive hoje |
+|---|---|
+| tema, justificativa, preço, `status_cadastro` do cadastro | `participacoes` |
+| doce, salgado, bebida (nome, descrição, ingredientes, restrições) | `participantes_itens.participacao_id` |
+| endereço, bairro, horário do festival, delivery e canais | `participacao_unidades` |
+| nome da marca, responsável, telefone, e-mail, Instagram, site, CNPJ | `participantes` |
+
+⚠️ **`admin_config.edicao_atual` é o que faz a conta nova nascer útil.** As duas
+`vincular_*` chamam `abrir_participacao_interna` com esse código; **nula, nenhuma
+participação é aberta e a tela diz isso com todas as letras** — a 17ª edição não
+foi anunciada e inventar um código seria inventar dado (A4). Quem define é
+`definir_edicao_atual(p_secret, p_codigo)`, guardada por `producao.gerir`.
+
+⚠️ **`marca_concluir_cadastro` trocou de argumento: `p_participacao`, não
+`p_participante`.** `create or replace` não renomeia argumento, então a antiga foi
+derrubada. Chamada com o nome velho, o PostgREST devolve 404 e o botão "concluir"
+nunca conclui — sem erro no console.
+
+⚠️ **`participantes_operacao` ficou para trás e não é lida por tela nenhuma.**
+Continua no banco com os dados de quem cadastrou pelo modelo antigo (hoje: zero
+linhas). Não gravar nela.
+
+🐛 **`text[] || 'literal'` explode com `malformed array literal`.** O Postgres
+resolve `anyarray || unknown` como array‖array e tenta ler `'tema_combo'` como
+literal de array. É preciso `|| 'tema_combo'::text`. O bug morava na
+`marca_concluir_cadastro` original desde 22/08 e **só disparava quando faltava
+campo** — ou seja, exatamente no caminho que a função existe para servir. A
+conclusão devolvia exceção em vez da lista do que falta.
+
+⚠️ **A marca não escreve caminho de foto em lugar nenhum.** `combo_foto_path` saiu
+do grant de `participantes` (briefing §3.5); `participantes_itens.foto_path` já
+estava fora. RLS decide LINHA, `grant` decide COLUNA — é preciso os dois.
+
 ⚠️ **A leitura das marcas (`get_participantes`) carrega FORA do `Promise.all` das
 quatro origens, com `catch` próprio.** A RPC só existe depois de a migration das
 contas ser aplicada; junto das outras, um 404 dela derrubaria o painel inteiro —

@@ -10,7 +10,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 
 const HTML = readFileSync(new URL('../public/marca/index.html', import.meta.url), 'utf8')
 const SCRIPTS = [...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
@@ -21,6 +21,38 @@ const JS = SCRIPTS[0] || ''
 const TEXTOS = [...JS.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map((m) => m[1]).join(' | ')
 const MIGRATION = readFileSync(
   new URL('../supabase/migrations/20260822_contas_marcas.sql', import.meta.url), 'utf8')
+
+/* ⚠️ UMA migration não é o esquema. Até a Fase 5 este arquivo lia só
+   `20260822_contas_marcas.sql` para saber o que a marca pode escrever — e a
+   Fase 5 revogou aquele grant e concedeu outro. Um teste que lê UM arquivo
+   afere o que era verdade no dia em que ele foi escrito.
+   Aqui as migrations são lidas em ordem de nome e aplicadas em sequência, como
+   o Postgres faz: o último `grant`/`revoke` de cada tabela é o que vale. */
+const MIGDIR = new URL('../supabase/migrations/', import.meta.url)
+const MIGRATIONS = readdirSync(MIGDIR)
+  .filter((f) => f.endsWith('.sql')).sort()
+  .map((f) => readFileSync(new URL(f, MIGDIR), 'utf8')).join('\n')
+
+const colunasConcedidas = (tabela) => {
+  const passo = new RegExp(
+    'grant\\s+update\\s*\\(([^)]+)\\)\\s*(?:\\n\\s*)?on\\s+public\\.' + tabela + '\\b' +
+    '|revoke\\s+(?:all|update)[^;]*?\\son\\s+public\\.' + tabela + '\\b[^;]*?;', 'g')
+  let atual = new Set()
+  for (const m of MIGRATIONS.matchAll(passo)) {
+    if (m[1]) m[1].split(',').forEach((c) => atual.add(c.trim()))
+    else atual = new Set()
+  }
+  return atual
+}
+
+// Objeto literal do script, pelo nome da variável. Os campos são as chaves do
+// primeiro nível — é o que vira corpo de PATCH.
+const camposDe = (nome) => {
+  const bloco = JS.match(new RegExp('var ' + nome + ' = \\{([\\s\\S]*?)\\n\\s*\\}'))
+  assert.ok(bloco, 'não achei o objeto ' + nome + ' no script')
+  return [...bloco[1].matchAll(/^\s*([a-z_]+):/gm)].map((m) => m[1])
+}
+
 const EDGE = readFileSync(
   new URL('../supabase/functions/criar-acesso-marca/index.ts', import.meta.url), 'utf8')
 
@@ -52,9 +84,15 @@ test('toda função crítica está declarada, não só chamada', () => {
   const criticas = [
     'sessaoSalvar', 'sessaoLer', 'sessaoLimpar', 'renovar', 'auth', 'api',
     'ver', 'aviso', 'escapar', 'entrar', 'recuperar', 'sair', 'definirSenha',
-    'carregar', 'preencher', 'desenharUnidades', 'montarUnidade', 'unidadesLer',
-    'unidadeAdicionar', 'unidadeRemover', 'progresso', 'precoNumero',
-    'agendarSalvar', 'salvar', 'concluir', 'reabrir', 'hashSessao', 'iniciar',
+    'precisaTrocarSenha', 'marcarSenhaTrocada',
+    'carregar', 'carregarParticipacao', 'selo', 'preencherMarca', 'preencher',
+    'itemDe', 'desenharItens', 'montarItem', 'itensLer', 'itemCompleto',
+    'desenharUnidades', 'montarUnidade', 'unidadesLer',
+    'unidadeAdicionar', 'unidadeRemover',
+    'desenharSolicitacoes', 'desenharArquivos', 'baixar', 'desenharSessoes',
+    'dataCurta', 'dataHora', 'diasAte', 'prazoTexto',
+    'progresso', 'precoNumero', 'agendarSalvar', 'salvar', 'salvarItens',
+    'salvarUnidades', 'concluir', 'hashSessao', 'iniciar',
   ]
   const faltando = criticas.filter((n) => !declaradas.has(n))
   assert.deepEqual(faltando, [], 'função chamada mas nunca declarada: ' + faltando.join(', '))
@@ -126,38 +164,74 @@ test('não afirma gravação sem o servidor confirmar', () => {
 test('quem decide se o cadastro está completo é o servidor', () => {
   assert.match(JS, /rpc\/marca_concluir_cadastro/,
     'a conclusão precisa passar pela RPC — validação só no navegador some com o devtools aberto')
-  assert.match(MIGRATION, /create or replace function public\.marca_concluir_cadastro/)
+  assert.match(MIGRATIONS, /create or replace function public\.marca_concluir_cadastro/)
+  // Fase 5: a RPC valida a PARTICIPAÇÃO, não a marca. Chamar com o argumento
+  // antigo devolveria 404 do PostgREST, e o botão "concluir" nunca concluiria.
+  assert.match(JS, /p_participacao:/,
+    'a página chama a conclusão com o argumento do modelo antigo')
+  assert.match(MIGRATIONS, /marca_concluir_cadastro\(p_participacao uuid\)/)
 })
 
 /* ── Contrato com o banco ────────────────────────────────────────────────── */
 
 test('a página só escreve colunas que o grant de UPDATE concede', () => {
-  const grant = MIGRATION.match(/grant update \(([^)]+)\)\s*\n?\s*on public\.participantes /)
-  assert.ok(grant, 'sumiu o grant de coluna de participantes')
-  const concedidas = new Set(grant[1].split(',').map((c) => c.trim()))
-  const escritas = [...JS.matchAll(/^\s{6}([a-z_]+):\s*el\(/gm)].map((m) => m[1])
-  assert.ok(escritas.length > 0, 'não achei o objeto de campos do salvar()')
-  const proibidas = escritas.filter((c) => !concedidas.has(c))
-  assert.deepEqual(proibidas, [],
-    'a página tenta escrever coluna fora do grant: ' + proibidas.join(', '))
-})
-
-test('status_cadastro fica fora do alcance da marca', () => {
-  const grant = MIGRATION.match(/grant update \(([^)]+)\)\s*\n?\s*on public\.participantes /)
-  assert.ok(!/status_cadastro/.test(grant[1]),
-    'com status_cadastro no grant, a marca se declara completa sem preencher nada')
-})
-
-test('preço, endereço e horário ficam na tabela apartada', () => {
-  // Regra de vazamento: são os três dados que o site institucional não publica.
-  ;['combo_preco', 'unidades'].forEach((campo) => {
-    assert.ok(new RegExp('grant update \\([^)]*' + campo).test(MIGRATION)
-      || new RegExp(campo + '[^)]*\\)\\s*on public\\.participantes_operacao').test(MIGRATION),
-    campo + ' precisa estar em participantes_operacao, não em participantes')
+  // RLS decide LINHA, `grant` decide COLUNA. Sem os dois, a policy de update
+  // deixaria a marca reescrever qualquer campo da própria linha junto com o
+  // nome do doce — inclusive o que declara o cadastro completo.
+  const alvos = [
+    ['participantes', camposDe('camposMarca')],
+    ['participacoes', camposDe('camposParticipacao')],
+    ['participantes_itens', camposDe('camposItem')]
+  ]
+  alvos.forEach(([tabela, escritas]) => {
+    const concedidas = colunasConcedidas(tabela)
+    assert.ok(concedidas.size > 0, 'sumiu o grant de coluna de ' + tabela)
+    assert.ok(escritas.length > 0, 'não achei os campos escritos em ' + tabela)
+    const proibidas = escritas.filter((c) => !concedidas.has(c))
+    assert.deepEqual(proibidas, [],
+      'a página escreve em ' + tabela + ' fora do grant: ' + proibidas.join(', '))
   })
-  const grantPart = MIGRATION.match(/grant update \(([^)]+)\)\s*\n?\s*on public\.participantes /)
-  assert.ok(!/preco|endereco|horario/.test(grantPart[1]),
+})
+
+test('status_cadastro fica fora do alcance da marca, nas duas tabelas', () => {
+  // É a coluna que separa "preenchi" de "está completo". Com ela no grant, a
+  // marca se declara pronta sem preencher nada e a RPC de conclusão vira
+  // enfeite.
+  ;['participantes', 'participacoes'].forEach((tabela) => {
+    assert.ok(!colunasConcedidas(tabela).has('status_cadastro'),
+      'status_cadastro está no grant de ' + tabela)
+  })
+})
+
+test('a marca não escreve o caminho de foto nenhuma', () => {
+  // Briefing §3.5: a marca não envia foto do combo. Escrever o caminho não sobe
+  // arquivo (o bucket é service_role), mas apontar para o arquivo de outra
+  // participação basta para trocar a foto na tela.
+  assert.ok(!colunasConcedidas('participantes').has('combo_foto_path'),
+    'combo_foto_path voltou ao grant de participantes')
+  assert.ok(!colunasConcedidas('participantes_itens').has('foto_path'),
+    'foto_path voltou ao grant dos itens')
+})
+
+test('preço, endereço e horário são da PARTICIPAÇÃO, não da marca', () => {
+  // Regra de vazamento: são os dados que o site institucional não publica, e
+  // que mudam a cada edição. Ficar em `participantes` os tornaria permanentes.
+  assert.ok(colunasConcedidas('participacoes').has('combo_preco'),
+    'combo_preco precisa ser escrevível na participação')
+  const daMarca = [...colunasConcedidas('participantes')].join(' ')
+  assert.ok(!/preco|endereco|horario/.test(daMarca),
     'dado volátil vazou para a tabela publicável')
+  assert.match(JS, /participacao_unidades/,
+    'endereço e horário precisam vir de participacao_unidades')
+})
+
+test('o painel lê a participação, não as colunas antigas do participante', () => {
+  // O que sobrou de `participantes` é o que atravessa as edições. Combo, tema,
+  // preço e unidades mudam de edição para edição — e a mesma marca tem uma
+  // linha por edição.
+  assert.match(JS, /participacoes\?select=/, 'a página não carrega a participação')
+  assert.ok(!/participantes_operacao/.test(JS_CODIGO),
+    'a página ainda escreve na tabela de operação do modelo antigo')
 })
 
 /* ── Ponta a ponta com a Edge Function ───────────────────────────────────── */

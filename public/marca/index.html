@@ -17,24 +17,25 @@
    sistema de arquivos antes do rewrite do SPA, então ela funciona com
    COMING_SOON_PUBLICATION = true sem tocar em nenhuma flag do App.jsx (A3).
 
-   UMA página, quatro views. O plano previa quatro rotas; virou uma porque as
-   quatro precisam do mesmo cliente de autenticação, e a segunda cópia dele é
-   onde as duas começariam a divergir. A view sai do ESTADO, não da URL:
+   UMA página, três views. A view sai do ESTADO, não da URL:
      sem sessão ................. login
-     #type=recovery no hash ..... definir senha
-     cadastro em aberto ......... formulário
-     cadastro concluído ......... status
+     deve_trocar_senha ligada ... definir senha
+     com sessão ................. o painel
 
-   ⛔ Sem supabase-js. O plano pedia a biblioteca por causa da sessão, mas ela
-   custa ~100 KB de CDN de terceiro NA TELA DE LOGIN — se o esm.sh estiver fora
-   do ar, ninguém entra. Os quatro endpoints usados (senha, refresh, update,
-   recover) são POSTs comuns, e o /organizacao/ já estabeleceu o precedente de
-   falar com o Supabase por fetch direto.
+   ⚠️ FASE 5 · 25/08/2026 — O PAINEL MUDOU DE DONO NO BANCO.
+   Até aqui a tela lia `participantes` (a marca) e `participantes_operacao`.
+   Passou a ler a PARTICIPAÇÃO: combo, tema, preço, itens, unidades, horário e
+   fotos são de UMA edição, não da marca. `participantes` continua existindo e
+   guarda o que atravessa as edições — nome, responsável, contato, CNPJ.
+   Quem manda nessa divisão é `supabase/migrations/20260825_fase4_*.sql`.
+
+   ⛔ Sem supabase-js. A biblioteca custa ~100 KB de CDN de terceiro NA TELA DE
+   LOGIN — se o esm.sh cair, ninguém entra. Os endpoints usados são POSTs
+   comuns, e /organizacao/ já estabeleceu o precedente do fetch direto.
 
    A chave publicável fica visível no código-fonte, como nas outras estáticas.
-   É pública por design: quem protege é o RLS. Aqui, diferente das tabelas de
-   formulário, EXISTEM policies — e todas filtram por auth.uid(). Sem token, a
-   chave sozinha não lê uma linha.
+   É pública por design: quem protege é o RLS, e todas as policies daqui
+   filtram por auth.uid(). Sem token, a chave sozinha não lê uma linha.
    ⛔ A chave de serviço nunca entra aqui. tests/marca.test.mjs reprova.
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -82,6 +83,7 @@ main{flex:1; width:100%; max-width:720px; margin:0 auto; padding:clamp(24px,5vw,
 
 .rotulo{font-weight:800; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--marrom); margin:0 0 10px}
 .lead{max-width:46ch; color:var(--marrom)}
+.nota{color:var(--marrom); font-size:14.5px}
 
 .card{
   background:var(--creme); border:1.5px solid var(--filete); border-radius:var(--r);
@@ -105,6 +107,13 @@ input:hover,textarea:hover{border-color:var(--marrom)}
 .dupla{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
 @media (max-width:560px){ .dupla{grid-template-columns:1fr} }
 
+/* Caixa de marcar. O alvo é a LINHA inteira, não o quadradinho de 16px: o piso
+   de 44px vale para o controle real, e um <input type=checkbox> nunca chega lá
+   sozinho (CLAUDE.md §10.2). */
+.marcar{display:flex; align-items:center; gap:10px; min-height:44px; margin:0 0 4px; cursor:pointer}
+.marcar input{width:22px; height:22px; min-height:22px; margin:0; flex:0 0 auto; accent-color:var(--cyan)}
+.marcar span{font-weight:700; font-size:14.5px; display:block; margin:0}
+
 button.acao{
   font:800 15px/1 var(--font); border:none; border-radius:999px; cursor:pointer;
   padding:17px 26px; min-height:52px; background:var(--choco); color:var(--creme);
@@ -120,9 +129,8 @@ button.link{
   text-decoration:underline; cursor:pointer; padding:12px 2px; min-height:44px;
 }
 
-/* Aviso. Mesma forma do .og-aviso do painel: fundo bege, sem filete lateral.
-   A cor é reforço, nunca o recado — o texto já diz o que houve, que é o que
-   sobra para quem não distingue as duas cores. */
+/* Aviso. Fundo bege, sem filete lateral. A cor é reforço, nunca o recado — o
+   texto já diz o que houve, que é o que sobra para quem não distingue as cores. */
 .aviso{
   border-radius:12px; padding:12px 16px; margin:0 0 16px; font-size:14.5px;
   background:var(--bege); border:1.5px solid transparent;
@@ -135,9 +143,9 @@ button.link{
 .progresso{margin:0 0 22px}
 .progresso b{font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--marrom)}
 .trilha{height:6px; border-radius:999px; background:var(--filete); overflow:hidden; margin-top:8px}
-/* `scaleX` com origem à esquerda, não `width`: é a mesma decisão já tomada na
-   régua de anos da página Edições (CLAUDE.md §10.3). Animar `width` joga
-   trabalho de layout no compositor a cada frame; `transform` roda na GPU. */
+/* `scaleX` com origem à esquerda, não `width`: a mesma decisão da régua de anos
+   da página Edições (CLAUDE.md §10.3). Animar `width` joga trabalho de layout
+   no compositor a cada frame; `transform` roda na GPU. */
 .trilha i{
   display:block; height:100%; background:var(--cyan); border-radius:999px;
   transform-origin:left center; transform:scaleX(0);
@@ -145,19 +153,33 @@ button.link{
 }
 
 /* Unidades. Rede tem várias — e é a contagem delas que vira "33 lojas". */
-.unidade{border:1.5px solid var(--filete); border-radius:16px; padding:16px; margin:0 0 12px; background:var(--bege)}
-.unidade .topo{display:flex; align-items:center; gap:10px; margin:0 0 12px}
-.unidade .topo b{font-weight:800; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--marrom)}
+.unidade,.item{border:1.5px solid var(--filete); border-radius:16px; padding:16px; margin:0 0 12px; background:var(--bege)}
+.unidade .topo,.item .topo{display:flex; align-items:center; gap:10px; margin:0 0 12px}
+.unidade .topo b,.item .topo b{font-weight:800; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--marrom)}
 .unidade .topo button{margin-left:auto}
-.unidade input{background:#fff}
+.unidade input,.item input,.item textarea{background:#fff}
+.canais{margin-top:4px}
+.canais > b{display:block; font-weight:800; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--marrom); margin:0 0 8px}
 
 .salvo{font-size:13px; color:var(--marrom); min-height:20px; margin:0 0 8px}
 
-/* Selo de estado do cadastro. Cor codifica etapa, o texto carrega o sentido. */
+/* Selo de estado. Cor codifica etapa, o texto carrega o sentido. */
 .selo{display:inline-block; font:800 12px/1 var(--font); letter-spacing:.1em; text-transform:uppercase;
       padding:9px 13px; border-radius:999px; background:var(--bege); color:var(--choco)}
 .selo.andamento{background:var(--amarelo)}
 .selo.completo{background:var(--cyan)}
+.selo.vencido{background:var(--laranja)}
+
+/* Linha de solicitação, de arquivo e de sessão. Mesma forma para as três: são
+   três listas de "a organização mandou isto", e desenhar cada uma do seu jeito
+   só faria a pessoa reaprender três vezes. */
+.linha{border-top:1.5px solid var(--filete); padding:14px 0; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap}
+.linha:first-of-type{border-top:none}
+.linha .corpo{flex:1 1 260px; min-width:0}
+.linha .corpo b{display:block; font-weight:800; font-size:16px}
+.linha .corpo span{display:block; color:var(--marrom); font-size:14.5px}
+.linha .lado{flex:0 0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.linha button.link{padding:12px 8px}
 
 .rodape{margin-top:28px; padding-top:18px; border-top:1.5px solid var(--filete); font-size:13.5px; color:var(--marrom)}
 [hidden]{display:none !important}
@@ -193,7 +215,7 @@ button.link{
       </div>
     </form>
     <p class="rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
-      inscrição é aprovada. O convite chega no e-mail da inscrição.</p>
+      inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</p>
   </section>
 
   <!-- ── DEFINIR SENHA ────────────────────────────────────────────────────── -->
@@ -201,7 +223,7 @@ button.link{
     <p class="rotulo">Primeiro acesso</p>
     <h1>Defina sua senha</h1>
     <p class="lead">Ela é sua. A organização não vê e não tem como recuperar. Se você perder,
-      ela gera um novo convite.</p>
+      ela gera um acesso novo.</p>
     <form class="card" id="fSenha" style="margin-top:22px">
       <label><span>Nova senha <em>(mínimo 10 caracteres)</em></span>
         <input type="password" id="senha1" autocomplete="new-password" minlength="10" required>
@@ -213,76 +235,115 @@ button.link{
     </form>
   </section>
 
-  <!-- ── CADASTRO ─────────────────────────────────────────────────────────── -->
-  <section id="vCadastro" hidden>
-    <p class="rotulo">Cadastro da edição</p>
-    <h1 id="cadTitulo">Sua participação</h1>
-    <p class="lead">O que você preencher aqui é o que vai ao ar. Salva sozinho a
-      cada alteração, então você pode fechar e voltar depois.</p>
+  <!-- ── PAINEL ───────────────────────────────────────────────────────────── -->
+  <section id="vPainel" hidden>
+    <p class="rotulo" id="pnRotulo">Sua participação</p>
+    <h1 id="pnTitulo">Sua participação</h1>
+    <p style="margin-top:14px"><span class="selo" id="pnSelo">—</span></p>
 
-    <div class="progresso" style="margin-top:22px">
-      <b id="progTexto">0 de 4 seções</b>
-      <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
+    <!-- Sem participação aberta. Ausência honesta: a tela diz o que houve em vez
+         de mostrar um formulário que não tem onde gravar. -->
+    <div class="card" id="pnSemParticipacao" hidden>
+      <h2>Ainda não há edição aberta para você</h2>
+      <p class="nota">Sua conta está ativa, mas a organização ainda não abriu a sua
+        participação na próxima edição. Assim que abrir, o formulário aparece aqui —
+        você não precisa fazer nada agora.</p>
     </div>
 
-    <div class="salvo" id="salvo"></div>
+    <div id="pnConteudo" hidden>
+      <div class="progresso" style="margin-top:22px">
+        <b id="progTexto">0 de 5 blocos</b>
+        <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
+      </div>
 
-    <form id="fCadastro">
-      <div class="card">
-        <p class="rotulo">01 · A marca</p>
-        <h2>Quem participa</h2>
-        <p style="color:var(--marrom);font-size:14.5px">Veio da sua inscrição. Corrija o que mudou.</p>
-        <label><span>Nome da marca</span><input id="cNome" data-campo="nome_marca" required></label>
-        <div class="dupla">
-          <label><span>Responsável</span><input id="cResp" data-campo="responsavel" required></label>
-          <label><span>Telefone</span><input id="cTel" data-campo="telefone" inputmode="tel" required></label>
+      <!-- O que a organização pediu, com prazo. Vem antes do formulário porque é
+           a resposta para "o que falta de mim?", que é a pergunta com que a
+           marca abre o painel. -->
+      <div class="card" id="cardSolic" hidden>
+        <p class="rotulo">O que a organização pediu</p>
+        <h2>Pedidos e prazos</h2>
+        <div id="solicitacoes"></div>
+      </div>
+
+      <div class="salvo" id="salvo"></div>
+
+      <form id="fCadastro">
+        <div class="card">
+          <p class="rotulo">01 · A marca</p>
+          <h2>Quem participa</h2>
+          <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
+          <label><span>Nome da marca</span><input id="cNome" required></label>
+          <div class="dupla">
+            <label><span>Responsável pelo festival</span><input id="cResp" required></label>
+            <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
+          </div>
+          <div class="dupla">
+            <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
+            <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
+          </div>
+          <div class="dupla">
+            <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
+            <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
+          </div>
+          <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
         </div>
-        <div class="dupla">
-          <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" data-campo="instagram" placeholder="@suamarca"></label>
-          <label><span>Site <em>(opcional)</em></span><input id="cSite" data-campo="site" placeholder="https://"></label>
+
+        <div class="card">
+          <p class="rotulo">02 · O tema</p>
+          <h2>Sua leitura do tema da edição</h2>
+          <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
+            jeito. Conte qual foi a sua leitura.</p>
+          <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
+          <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
+            <textarea id="cTemaJust" required></textarea>
+          </label>
         </div>
+
+        <div class="card">
+          <p class="rotulo">03 · Os três itens</p>
+          <h2>Doce, salgado e bebida</h2>
+          <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
+            Melhor Combo. Descreva como cada um conversa com o tema.</p>
+          <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
+            que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
+            As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+          <div id="itens"></div>
+        </div>
+
+        <div class="card">
+          <p class="rotulo">04 · Preço</p>
+          <h2>Quanto custa o combo</h2>
+          <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
+            <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
+          </label>
+        </div>
+
+        <div class="card">
+          <p class="rotulo">05 · Onde encontrar</p>
+          <h2>Suas unidades</h2>
+          <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
+            continua contando como uma marca só. O horário aqui é o <b>dos dias do
+            festival</b>, que pode ser diferente do horário normal da loja.</p>
+          <div id="unidades"></div>
+          <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
+        </div>
+
+        <button class="acao larga" type="submit" id="btConcluir">Concluir cadastro</button>
+      </form>
+
+      <div class="card" id="cardFotos" hidden style="margin-top:18px">
+        <p class="rotulo">Fotos do combo</p>
+        <h2>Sua sessão</h2>
+        <p class="nota">Quem fotografa é a organização. A data e o local são definidos
+          por ela; qualquer mudança é combinada pelo canal de sempre.</p>
+        <div id="sessoes"></div>
       </div>
 
-      <div class="card">
-        <p class="rotulo">02 · O combo</p>
-        <h2>O que você criou</h2>
-        <label><span>Nome do combo</span><input id="cComboNome" data-campo="combo_nome" required></label>
-        <label><span>Descrição <em>(o que vem no combo)</em></span>
-          <textarea id="cComboDesc" data-campo="combo_descricao" required></textarea>
-        </label>
+      <div class="card" id="cardArquivos" hidden>
+        <p class="rotulo">Downloads</p>
+        <h2>Arquivos da organização</h2>
+        <div id="arquivos"></div>
       </div>
-
-      <div class="card">
-        <p class="rotulo">03 · Preço</p>
-        <h2>Quanto custa</h2>
-        <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
-          <input id="cPreco" data-op="combo_preco" inputmode="decimal" placeholder="0,00" required>
-        </label>
-      </div>
-
-      <div class="card">
-        <p class="rotulo">04 · Onde encontrar</p>
-        <h2>Suas unidades</h2>
-        <p style="color:var(--marrom);font-size:14.5px">Uma por endereço. Rede com várias
-          lojas cadastra cada uma.</p>
-        <div id="unidades"></div>
-        <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
-      </div>
-
-      <button class="acao larga" type="submit" id="btConcluir">Concluir cadastro</button>
-    </form>
-  </section>
-
-  <!-- ── STATUS ───────────────────────────────────────────────────────────── -->
-  <section id="vStatus" hidden>
-    <p class="rotulo">Cadastro da edição</p>
-    <h1>Tudo certo</h1>
-    <div class="card" style="margin-top:22px">
-      <span class="selo completo">Cadastro completo</span>
-      <p style="margin-top:16px">Recebemos o cadastro da <b id="stMarca"></b>. A organização
-        revisa e entra em contato pelo canal de sempre se precisar de algo.</p>
-      <p>Precisa mudar alguma coisa? Reabra o cadastro — ele volta para revisão.</p>
-      <button class="acao secundaria" type="button" id="btReabrir">Reabrir cadastro</button>
     </div>
   </section>
 </main>
@@ -302,11 +363,23 @@ button.link{
     key: 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
   }
   var CHAVE_SESSAO = 'scw_marca'
-  var SECOES = 4
+  var BLOCOS = 5
+  var TIPOS = ['doce', 'salgado', 'bebida']
+  var ROTULO_TIPO = { doce: 'O doce', salgado: 'O salgado', bebida: 'A bebida' }
+  /* Três canais fixos, e não uma lista que a marca monta. O briefing nomeia
+     exatamente estes — aplicativo, WhatsApp, site próprio — e um construtor de
+     lista custaria um "adicionar/remover" inteiro para produzir as mesmas três
+     linhas na esmagadora maioria dos casos. Link preenchido = canal ativo. */
+  var CANAIS = [
+    { tipo: 'aplicativo', rotulo: 'Aplicativo de entrega', dica: 'https://ifood.com.br/…' },
+    { tipo: 'whatsapp', rotulo: 'WhatsApp', dica: 'https://wa.me/55…' },
+    { tipo: 'site', rotulo: 'Site próprio', dica: 'https://…' }
+  ]
 
   var sessao = null
   var participante = null
-  var operacao = null
+  var participacao = null
+  var itens = []
   var salvando = null
 
   var el = function (id) { return document.getElementById(id) }
@@ -367,6 +440,12 @@ button.link{
       })
   }
 
+  /* `api` devolve o CORPO já lido — a lista, o objeto, o que o PostgREST mandar
+     — e lança em erro. Não devolve `{ ok, dados }`.
+     ⚠️ Confundir os dois formatos custou a trava de primeiro acesso: até 25/08
+     `precisaTrocarSenha` lia `r.ok && r.dados[0]` num ARRAY, achava `undefined`
+     nos dois, e devolvia `false` sempre. A flag `deve_trocar_senha` existia, a
+     Edge Function a ligava, e ninguém a lia. */
   function api (caminho, opcoes) {
     return renovar().then(function (viva) {
       if (!viva) { ver('login'); return Promise.reject(new Error('sessao_expirada')) }
@@ -391,8 +470,8 @@ button.link{
 
   // ── Views e avisos ────────────────────────────────────────────────────────
   function ver (qual) {
-    ;['vLogin', 'vSenha', 'vCadastro', 'vStatus'].forEach(function (id) { el(id).hidden = true })
-    var alvo = { login: 'vLogin', senha: 'vSenha', cadastro: 'vCadastro', status: 'vStatus' }[qual]
+    ;['vLogin', 'vSenha', 'vPainel'].forEach(function (id) { el(id).hidden = true })
+    var alvo = { login: 'vLogin', senha: 'vSenha', painel: 'vPainel' }[qual]
     if (alvo) el(alvo).hidden = false
     var logado = qual !== 'login'
     el('btSair').hidden = !logado
@@ -410,6 +489,44 @@ button.link{
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  }
+
+  // ── Datas ─────────────────────────────────────────────────────────────────
+  function dataCurta (iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  function dataHora (iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  }
+
+  /* Quanto falta, em dias inteiros. Diferença em MILISSEGUNDOS dividida por um
+     dia, e não subtração de datas locais: o horário de verão faz um dos dias do
+     ano ter 23 horas, e "faltam 0 dias" na véspera é o tipo de erro que só
+     aparece uma vez por ano e nunca é reproduzido. */
+  function diasAte (iso) {
+    if (!iso) return null
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return null
+    return Math.ceil((d.getTime() - Date.now()) / 86400000)
+  }
+
+  function prazoTexto (iso) {
+    var n = diasAte(iso)
+    if (n === null) return { texto: '', classe: '' }
+    if (n < 0) return { texto: 'venceu em ' + dataCurta(iso), classe: 'vencido' }
+    if (n === 0) return { texto: 'vence hoje', classe: 'vencido' }
+    if (n === 1) return { texto: 'falta 1 dia', classe: 'andamento' }
+    if (n <= 7) return { texto: 'faltam ' + n + ' dias', classe: 'andamento' }
+    return { texto: 'até ' + dataCurta(iso), classe: '' }
   }
 
   // ── Entrar ────────────────────────────────────────────────────────────────
@@ -456,10 +573,10 @@ button.link{
         }
         el('loginSenha').value = ''
         sessaoSalvar(r.dados)
-        /* A senha que a marca acabou de usar veio da organizacao, por WhatsApp.
-           Se `deve_trocar_senha` estiver ligada, ela troca AGORA -- e so depois
-           chega no cadastro. E isso que faz a mensagem do WhatsApp deixar de
-           valer: sem esta checagem a flag seria uma coluna que ninguem le. */
+        /* A senha que a marca acabou de usar veio da organização, por WhatsApp.
+           Se `deve_trocar_senha` estiver ligada, ela troca AGORA — e só depois
+           chega no painel. É isso que faz a mensagem do WhatsApp deixar de
+           valer: sem esta checagem a flag seria uma coluna que ninguém lê. */
         precisaTrocarSenha().then(function (precisa) {
           if (precisa) { ver('senha'); return }
           carregar()
@@ -477,7 +594,6 @@ button.link{
      Quem redefine é a organização, gerando um acesso novo pelo painel. */
   function recuperar () {
     aviso('A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.', 'ok')
-    return
   }
 
   function sair () {
@@ -485,38 +601,30 @@ button.link{
     if (s) auth('logout', null, 'POST', s.access_token).catch(function () { /* segue */ })
     sessaoLimpar()
     participante = null
-    operacao = null
+    participacao = null
+    itens = []
     aviso('')
     ver('login')
   }
 
-  // ── Definir senha ─────────────────────────────────────────────────────────
-  /* ── A trava de primeiro uso ──────────────────────────────────────────── */
+  // ── A trava de primeiro uso ───────────────────────────────────────────────
   /* A conta nasce com `deve_trocar_senha` ligada (Edge Function
-     criar-acesso-marca). Enquanto ela estiver ligada, a senha em circulacao e a
-     que a organizacao mandou por WhatsApp -- e ela precisa morrer no 1o uso.
+     criar-acesso-marca). Enquanto ela estiver ligada, a senha em circulação é a
+     que a organização mandou por WhatsApp — e ela precisa morrer no 1º uso.
      ⚠️ Erro de rede aqui devolve `false`: melhor deixar entrar do que trancar
-     alguem fora por causa de uma consulta que falhou. A senha compartilhada
-     sobrevive mais um login; a marca nao fica sem acesso na vespera. */
+     alguém fora por causa de uma consulta que falhou. A senha compartilhada
+     sobrevive mais um login; a marca não fica sem acesso na véspera. */
   function precisaTrocarSenha () {
-    return api('perfis?select=deve_trocar_senha&limit=1', {})
-      .then(function (r) {
-        return !!(r && r.ok && r.dados && r.dados[0] && r.dados[0].deve_trocar_senha)
+    return api('perfis?select=deve_trocar_senha&limit=1')
+      .then(function (linhas) {
+        return !!(linhas && linhas[0] && linhas[0].deve_trocar_senha)
       })
       .catch(function () { return false })
   }
 
   function marcarSenhaTrocada () {
-    var s = sessaoLer()
-    return fetch(CFG.url + '/rest/v1/rpc/marcar_senha_trocada', {
-      method: 'POST',
-      headers: {
-        apikey: CFG.chave,
-        Authorization: 'Bearer ' + ((s && s.access_token) || CFG.chave),
-        'Content-Type': 'application/json'
-      },
-      body: '{}'
-    }).catch(function () { /* ver o comentario acima */ })
+    return api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} })
+      .catch(function () { /* ver o comentário acima */ })
   }
 
   function definirSenha (ev) {
@@ -531,15 +639,15 @@ button.link{
       .then(function (r) {
         el('btSenha').disabled = false
         if (!r.ok) {
-          aviso((r.dados && r.dados.msg) || 'Não deu para salvar a senha. O link pode ter expirado. Peça um novo à organização.', 'erro')
+          aviso((r.dados && r.dados.msg) || 'Não deu para salvar a senha agora. Tente de novo.', 'erro')
           return
         }
         el('senha1').value = ''
         el('senha2').value = ''
         aviso('Senha definida.', 'ok')
-        /* Baixa a flag ANTES de seguir, senao o proximo login manda de volta
-           para esta tela. Se falhar, o pior caso e pedir a troca de novo --
-           chato, nunca inseguro. Por isso o erro nao trava o fluxo. */
+        /* Baixa a flag ANTES de seguir, senão o próximo login manda de volta
+           para esta tela. Se falhar, o pior caso é pedir a troca de novo —
+           chato, nunca inseguro. Por isso o erro não trava o fluxo. */
         marcarSenhaTrocada().then(function () { carregar() })
       })
       .catch(function () {
@@ -548,35 +656,41 @@ button.link{
       })
   }
 
-  // ── Carregar o participante ───────────────────────────────────────────────
+  // ── Carregar ──────────────────────────────────────────────────────────────
+  /* A RLS já filtra tudo por auth.uid(); nenhuma consulta daqui precisa de um
+     `where` de dono. Escrever um seria fingir que a segurança está aqui. */
   function carregar () {
     if (!sessaoLer()) { ver('login'); return }
-    // A RLS já filtra por auth.uid(); o `select` não precisa de where de dono.
-    // Ordem decrescente e a primeira linha: marca recorrente tem uma linha por
-    // edição, e a interface de várias edições está fora do escopo desta fase.
     api('participantes?select=*&order=created_at.desc')
       .then(function (linhas) {
         if (!linhas || !linhas.length) {
-          aviso('Sua conta existe, mas ainda não há cadastro vinculado a ela. Fale com a organização.', 'erro')
+          aviso('Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.', 'erro')
           ver('login')
-          return
+          return null
         }
         participante = linhas[0]
         el('quemNome').textContent = participante.nome_marca || 'Sua marca'
         el('quemEmail').textContent = sessaoLer().email || ''
-        if (linhas.length > 1) {
-          aviso('Você tem ' + linhas.length + ' participações. Esta é a mais recente.', 'ok')
-        }
-        return api('participantes_operacao?select=*&participante_id=eq.' + participante.id)
+        el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
+        return api('participacoes?select=*&order=created_at.desc&limit=1')
       })
-      .then(function (ops) {
-        if (!participante) return
-        operacao = (ops && ops[0]) || { combo_preco: null, unidades: [] }
-        preencher()
-        ver(participante.status_cadastro === 'cadastro_completo' ? 'status' : 'cadastro')
-        if (participante.status_cadastro === 'cadastro_completo') {
-          el('stMarca').textContent = participante.nome_marca || 'sua marca'
+      .then(function (pas) {
+        if (!participante) return null
+        participacao = (pas && pas[0]) || null
+        ver('painel')
+        if (!participacao) {
+          el('pnRotulo').textContent = 'Área da marca'
+          el('pnSelo').className = 'selo'
+          el('pnSelo').textContent = 'Sem edição aberta'
+          el('pnSemParticipacao').hidden = false
+          el('pnConteudo').hidden = true
+          preencherMarca()
+          return null
         }
+        el('pnRotulo').textContent = 'Edição ' + (participacao.edicao_codigo || '')
+        el('pnSemParticipacao').hidden = true
+        el('pnConteudo').hidden = false
+        return carregarParticipacao()
       })
       .catch(function (e) {
         if (e && e.message === 'sessao_expirada') return
@@ -584,77 +698,327 @@ button.link{
       })
   }
 
-  function preencher () {
+  /* Uma leva só. As seis consultas são independentes entre si e a página não
+     desenha nada até ter todas — servir metade do painel enquanto o resto
+     chega faz o conteúdo pular debaixo do dedo de quem já começou a rolar. */
+  function carregarParticipacao () {
+    var pa = participacao.id
+    return Promise.all([
+      api('participantes_itens?select=*&participacao_id=eq.' + pa),
+      api('participacao_unidades?select=*&participacao_id=eq.' + pa + '&order=ordem'),
+      api('solicitacoes?select=*&order=prazo_em.asc.nullslast'),
+      api('solicitacao_estado?select=*&participacao_id=eq.' + pa),
+      api('arquivos?select=*&order=created_at.desc'),
+      api('sessoes_fotos?select=*&order=data_hora.desc')
+    ]).then(function (r) {
+      itens = r[0] || []
+      preencherMarca()
+      preencher()
+      desenharItens()
+      desenharUnidades(r[1] || [])
+      desenharSolicitacoes(r[2] || [], r[3] || [])
+      desenharArquivos(r[4] || [])
+      desenharSessoes(r[5] || [])
+      selo()
+      progresso()
+    })
+  }
+
+  function selo () {
+    var s = el('pnSelo')
+    var estado = participacao ? participacao.status_cadastro : ''
+    if (estado === 'cadastro_completo') {
+      s.className = 'selo completo'
+      s.textContent = 'Cadastro completo'
+    } else if (estado === 'em_preenchimento') {
+      s.className = 'selo andamento'
+      s.textContent = 'Em preenchimento'
+    } else if (estado === 'encerrado') {
+      s.className = 'selo'
+      s.textContent = 'Edição encerrada'
+    } else {
+      s.className = 'selo'
+      s.textContent = 'Aguardando cadastro'
+    }
+  }
+
+  function preencherMarca () {
     el('cNome').value = participante.nome_marca || ''
     el('cResp').value = participante.responsavel || ''
     el('cTel').value = participante.telefone || ''
+    el('cEmail').value = participante.email || ''
     el('cInsta').value = participante.instagram || ''
     el('cSite').value = participante.site || ''
-    el('cComboNome').value = participante.combo_nome || ''
-    el('cComboDesc').value = participante.combo_descricao || ''
-    el('cPreco').value = operacao.combo_preco == null ? '' : String(operacao.combo_preco).replace('.', ',')
-    desenharUnidades(Array.isArray(operacao.unidades) ? operacao.unidades : [])
-    progresso()
+    el('cCnpj').value = participante.cnpj || ''
+    el('cRazao').value = participante.razao_social || ''
+  }
+
+  function preencher () {
+    el('cTema').value = participacao.tema_combo || ''
+    el('cTemaJust').value = participacao.tema_justificativa || ''
+    el('cPreco').value = participacao.combo_preco == null
+      ? '' : String(participacao.combo_preco).replace('.', ',')
+  }
+
+  // ── Os três itens ─────────────────────────────────────────────────────────
+  /* As três linhas nascem de um gatilho no banco, então existem sempre. A tela
+     desenha na ordem doce → salgado → bebida mesmo que o PostgREST devolva
+     outra: é a ordem em que o combo é servido e a que o Sweet Awards usa. */
+  function itemDe (tipo) {
+    for (var i = 0; i < itens.length; i++) if (itens[i].tipo === tipo) return itens[i]
+    return null
+  }
+
+  function desenharItens () {
+    var alvo = el('itens')
+    alvo.innerHTML = ''
+    TIPOS.forEach(function (tipo) {
+      var it = itemDe(tipo)
+      if (it) alvo.appendChild(montarItem(it))
+    })
+  }
+
+  function montarItem (it) {
+    var div = document.createElement('div')
+    div.className = 'item'
+    div.setAttribute('data-item', it.id)
+    // Os valores vêm do banco. innerHTML com dado cru é como XSS entra — o
+    // mesmo motivo pelo qual o painel da organização escapa tudo.
+    div.innerHTML =
+      '<div class="topo"><b>' + escapar(ROTULO_TIPO[it.tipo] || it.tipo) + '</b></div>' +
+      '<label><span>Nome</span><input data-i="nome" value="' + escapar(it.nome) + '"></label>' +
+      '<label><span>Descrição <em>(como conversa com o tema)</em></span>' +
+      '<textarea data-i="descricao">' + escapar(it.descricao) + '</textarea></label>' +
+      '<label><span>Ingredientes</span><input data-i="ingredientes" value="' + escapar(it.ingredientes) + '"></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="vegano"' + (it.vegano ? ' checked' : '') + '><span>Vegano</span></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="sem_gluten"' + (it.sem_gluten ? ' checked' : '') + '><span>Sem glúten</span></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="sem_lactose"' + (it.sem_lactose ? ' checked' : '') + '><span>Sem lactose</span></label>'
+    return div
+  }
+
+  function itensLer () {
+    return Array.prototype.map.call(el('itens').children, function (div) {
+      var campo = function (nome) { return div.querySelector('[data-i="' + nome + '"]') }
+      var texto = function (nome) { var c = campo(nome); return c ? c.value.trim() : '' }
+      var marca = function (nome) { var c = campo(nome); return !!(c && c.checked) }
+      return {
+        id: div.getAttribute('data-item'),
+        nome: texto('nome'),
+        descricao: texto('descricao'),
+        ingredientes: texto('ingredientes'),
+        vegano: marca('vegano'),
+        sem_gluten: marca('sem_gluten'),
+        sem_lactose: marca('sem_lactose')
+      }
+    })
+  }
+
+  function itemCompleto (i) {
+    return i.nome !== '' && i.descricao !== '' && i.ingredientes !== ''
   }
 
   // ── Unidades ──────────────────────────────────────────────────────────────
   function desenharUnidades (lista) {
     var alvo = el('unidades')
     alvo.innerHTML = ''
-    if (!lista.length) lista = [{ endereco: '', bairro: '', horarios: '' }]
+    if (!lista.length) lista = [{}]
     lista.forEach(function (u, i) { alvo.appendChild(montarUnidade(u, i)) })
   }
 
   function montarUnidade (u, i) {
     var div = document.createElement('div')
     div.className = 'unidade'
-    // Os valores vêm do banco. innerHTML com dado cru é como XSS entra — o
-    // mesmo motivo pelo qual o painel da organização escapa tudo.
+    if (u && u.id) div.setAttribute('data-id', u.id)
+    var canais = (u && Array.isArray(u.canais_delivery)) ? u.canais_delivery : []
+    var linkDe = function (tipo) {
+      for (var k = 0; k < canais.length; k++) if (canais[k] && canais[k].tipo === tipo) return canais[k].link || ''
+      return ''
+    }
+    var entrega = !!(u && u.faz_delivery)
     div.innerHTML =
       '<div class="topo"><b>Unidade ' + (i + 1) + '</b>' +
       '<button class="link" type="button" data-remove="' + i + '">remover</button></div>' +
-      '<label><span>Endereço</span><input data-u="endereco" value="' + escapar(u.endereco) + '"></label>' +
+      '<label><span>Endereço</span><input data-u="endereco" value="' + escapar(u && u.endereco) + '"></label>' +
       '<div class="dupla">' +
-      '<label><span>Bairro</span><input data-u="bairro" value="' + escapar(u.bairro) + '"></label>' +
-      '<label><span>Horários</span><input data-u="horarios" placeholder="seg a sex, 9h às 18h" value="' + escapar(u.horarios) + '"></label>' +
+      '<label><span>Bairro</span><input data-u="bairro" value="' + escapar(u && u.bairro) + '"></label>' +
+      '<label><span>Horário durante o festival</span><input data-u="horarios" placeholder="seg a sáb, 10h às 22h" value="' + escapar(u && u.horarios) + '"></label>' +
+      '</div>' +
+      '<label class="marcar"><input type="checkbox" data-u="faz_delivery"' + (entrega ? ' checked' : '') + '><span>Esta unidade faz delivery</span></label>' +
+      '<div class="canais" data-canais' + (entrega ? '' : ' hidden') + '><b>Link de cada canal</b>' +
+      CANAIS.map(function (c) {
+        return '<label><span>' + escapar(c.rotulo) + ' <em>(deixe em branco se não usa)</em></span>' +
+          '<input data-c="' + escapar(c.tipo) + '" placeholder="' + escapar(c.dica) + '" value="' + escapar(linkDe(c.tipo)) + '"></label>'
+      }).join('') +
       '</div>'
     return div
   }
 
   function unidadesLer () {
-    return Array.prototype.map.call(el('unidades').children, function (div) {
+    return Array.prototype.map.call(el('unidades').children, function (div, i) {
       var pega = function (nome) {
         var campo = div.querySelector('[data-u="' + nome + '"]')
         return campo ? campo.value.trim() : ''
       }
-      return { endereco: pega('endereco'), bairro: pega('bairro'), horarios: pega('horarios') }
-    }).filter(function (u) { return u.endereco !== '' })
+      var entrega = div.querySelector('[data-u="faz_delivery"]')
+      var canais = []
+      CANAIS.forEach(function (c) {
+        var campo = div.querySelector('[data-c="' + c.tipo + '"]')
+        var link = campo ? campo.value.trim() : ''
+        if (link) canais.push({ tipo: c.tipo, link: link })
+      })
+      return {
+        id: div.getAttribute('data-id') || null,
+        ordem: i,
+        endereco: pega('endereco'),
+        bairro: pega('bairro'),
+        horarios: pega('horarios'),
+        faz_delivery: !!(entrega && entrega.checked),
+        canais_delivery: canais
+      }
+    })
   }
 
   function unidadeAdicionar () {
-    el('unidades').appendChild(montarUnidade({ endereco: '', bairro: '', horarios: '' }, el('unidades').children.length))
+    el('unidades').appendChild(montarUnidade({}, el('unidades').children.length))
     progresso()
   }
 
   function unidadeRemover (indice) {
-    var atual = unidadesLer()
-    atual.splice(indice, 1)
-    desenharUnidades(atual)
+    var divs = Array.prototype.slice.call(el('unidades').children)
+    var alvo = divs[indice]
+    if (!alvo) return
+    var id = alvo.getAttribute('data-id')
+    alvo.parentNode.removeChild(alvo)
+    // Renumera os títulos e o índice de remoção — sem isso, remover a unidade 1
+    // deixaria a antiga unidade 3 respondendo pelo índice 2 que não existe mais.
+    desenharUnidades(unidadesLer())
+    if (id) {
+      api('participacao_unidades?id=eq.' + id, { metodo: 'DELETE' })
+        .catch(function (e) {
+          if (e && e.message === 'sessao_expirada') return
+          aviso('Não deu para remover a unidade agora. Recarregue a página.', 'erro')
+        })
+    }
     agendarSalvar()
   }
 
+  // ── Solicitações ──────────────────────────────────────────────────────────
+  /* Quem marca como respondida é a organização, não a marca: um pedido pode ser
+     resolvido por telefone, e a linha do tempo tem que dizer o que a produção
+     considerou entregue — não o que a marca declarou. O que a tela faz é o que
+     o briefing §3.3 pede: mostrar o que falta, até quando, e o que venceu. */
+  function desenharSolicitacoes (lista, estados) {
+    var alvo = el('solicitacoes')
+    alvo.innerHTML = ''
+    var respondida = {}
+    estados.forEach(function (e) {
+      if (e.estado === 'respondido') respondida[e.solicitacao_id] = true
+    })
+    var minhas = lista.filter(function (s) {
+      // Aviso geral de OUTRA edição não é meu. `edicao_codigo` nulo é aviso que
+      // vale para sempre — regulamento, canal de contato, esse tipo de coisa.
+      if (s.escopo === 'geral' && s.edicao_codigo && s.edicao_codigo !== participacao.edicao_codigo) return false
+      return true
+    })
+    el('cardSolic').hidden = minhas.length === 0
+    minhas.forEach(function (s) {
+      var p = prazoTexto(s.prazo_em)
+      var feita = !!respondida[s.id]
+      var div = document.createElement('div')
+      div.className = 'linha'
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(s.titulo) + '</b>' +
+        '<span>' + escapar(s.texto) + '</span></div>' +
+        '<div class="lado">' +
+        (feita
+          ? '<span class="selo completo">Respondido</span>'
+          : (p.texto ? '<span class="selo ' + p.classe + '">' + escapar(p.texto) + '</span>' : '')) +
+        '</div>'
+      alvo.appendChild(div)
+    })
+  }
+
+  // ── Arquivos ──────────────────────────────────────────────────────────────
+  function desenharArquivos (lista) {
+    var alvo = el('arquivos')
+    alvo.innerHTML = ''
+    el('cardArquivos').hidden = lista.length === 0
+    lista.forEach(function (a) {
+      var div = document.createElement('div')
+      div.className = 'linha'
+      var detalhe = [a.versao ? 'versão ' + a.versao : '', a.descricao || ''].filter(Boolean).join(' · ')
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(a.nome) + '</b>' +
+        (detalhe ? '<span>' + escapar(detalhe) + '</span>' : '') + '</div>' +
+        '<div class="lado">' +
+        '<button class="link" type="button" data-baixar="' + escapar(a.path) + '">baixar</button>' +
+        '</div>'
+      alvo.appendChild(div)
+    })
+  }
+
+  /* O bucket é privado. A URL assinada é gerada com o TOKEN DA PRÓPRIA MARCA,
+     então quem decide se ela pode baixar é a policy de storage — não uma chave
+     de serviço escondida na página, que é como esse problema costuma ser
+     "resolvido". Link de vida curta: ele vai para o histórico do navegador. */
+  function baixar (caminho) {
+    return renovar().then(function (viva) {
+      if (!viva) { ver('login'); return }
+      return fetch(CFG.url + '/storage/v1/object/sign/arquivos/' + caminho, {
+        method: 'POST',
+        headers: {
+          apikey: CFG.key,
+          Authorization: 'Bearer ' + sessaoLer().access_token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ expiresIn: 300 })
+      }).then(function (r) {
+        return r.json().catch(function () { return null }).then(function (j) {
+          if (!r.ok || !j || !j.signedURL) throw new Error('sem_link')
+          window.open(CFG.url + '/storage/v1' + j.signedURL, '_blank', 'noopener')
+        })
+      })
+    }).catch(function () {
+      aviso('Não deu para abrir o arquivo agora. Tente de novo em instantes.', 'erro')
+    })
+  }
+
+  // ── Sessão de fotos ───────────────────────────────────────────────────────
+  var ROTULO_SESSAO = {
+    agendada: 'Agendada', realizada: 'Realizada',
+    cancelada: 'Cancelada', remarcada: 'Remarcada'
+  }
+
+  function desenharSessoes (lista) {
+    var alvo = el('sessoes')
+    alvo.innerHTML = ''
+    el('cardFotos').hidden = lista.length === 0
+    lista.forEach(function (s) {
+      var div = document.createElement('div')
+      div.className = 'linha'
+      var onde = [dataHora(s.data_hora), s.local || ''].filter(Boolean).join(' · ')
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(onde) + '</b>' +
+        (s.observacoes ? '<span>' + escapar(s.observacoes) + '</span>' : '') + '</div>' +
+        '<div class="lado"><span class="selo' + (s.status === 'realizada' ? ' completo' : '') + '">' +
+        escapar(ROTULO_SESSAO[s.status] || s.status) + '</span></div>'
+      alvo.appendChild(div)
+    })
+  }
+
   // ── Progresso ─────────────────────────────────────────────────────────────
-  // Conta seção COMPLETA, não campo preenchido: "3 de 4 seções" diz onde a
-  // pessoa está; "11 de 14 campos" só diz que ainda falta alguma coisa.
+  // Conta BLOCO completo, não campo preenchido: "3 de 5 blocos" diz onde a
+  // pessoa está; "11 de 24 campos" só diz que ainda falta alguma coisa.
   function progresso () {
-    var feitas = 0
-    if (el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim()) feitas++
-    if (el('cComboNome').value.trim() && el('cComboDesc').value.trim()) feitas++
-    if (precoNumero() > 0) feitas++
-    if (unidadesLer().length > 0) feitas++
-    el('progTexto').textContent = feitas + ' de ' + SECOES + ' seções'
-    el('progBarra').style.transform = 'scaleX(' + (feitas / SECOES) + ')'
-    return feitas
+    var feitos = 0
+    if (el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim()) feitos++
+    if (el('cTema').value.trim() && el('cTemaJust').value.trim()) feitos++
+    if (itensLer().every(itemCompleto) && itens.length === TIPOS.length) feitos++
+    if (precoNumero() > 0) feitos++
+    if (unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0) feitos++
+    el('progTexto').textContent = feitos + ' de ' + BLOCOS + ' blocos'
+    el('progBarra').style.transform = 'scaleX(' + (feitos / BLOCOS) + ')'
+    return feitos
   }
 
   function precoNumero () {
@@ -674,31 +1038,45 @@ button.link{
   }
 
   function salvar () {
-    if (!participante) return Promise.resolve()
-    var campos = {
+    if (!participante || !participacao) return Promise.resolve()
+    /* ⚠️ Estes dois objetos só podem citar coluna que o `grant update (...)` da
+       migration concede. RLS decide LINHA, grant decide COLUNA, e é o grant que
+       impede a marca de se declarar completa escrevendo `status_cadastro`.
+       tests/marca.test.mjs compara os dois lados. */
+    var camposMarca = {
       nome_marca: el('cNome').value.trim(),
       responsavel: el('cResp').value.trim(),
       telefone: el('cTel').value.trim(),
+      email: el('cEmail').value.trim(),
       instagram: el('cInsta').value.trim(),
       site: el('cSite').value.trim(),
-      combo_nome: el('cComboNome').value.trim(),
-      combo_descricao: el('cComboDesc').value.trim()
+      cnpj: el('cCnpj').value.trim(),
+      razao_social: el('cRazao').value.trim()
     }
-    var op = { combo_preco: precoNumero() || null, unidades: unidadesLer() }
-    // Duas tabelas porque preço, endereço e horário são dado VOLÁTIL e moram
-    // apartados de propósito — nada público faz join com participantes_operacao.
+    var camposParticipacao = {
+      tema_combo: el('cTema').value.trim(),
+      tema_justificativa: el('cTemaJust').value.trim(),
+      combo_preco: precoNumero() || null
+    }
     return Promise.all([
-      api('participantes?id=eq.' + participante.id, { metodo: 'PATCH', corpo: campos, prefer: 'return=representation' }),
-      api('participantes_operacao?participante_id=eq.' + participante.id, { metodo: 'PATCH', corpo: op, prefer: 'return=representation' })
+      api('participantes?id=eq.' + participante.id,
+        { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }),
+      api('participacoes?id=eq.' + participacao.id,
+        { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }),
+      salvarItens(),
+      salvarUnidades()
     ]).then(function (r) {
       // Nunca afirma "salvo" sem o servidor confirmar — regra dos formulários
-      // do site, e o motivo pelo qual ninguém percebeu que as três migrations
-      // não estavam aplicadas por meses.
+      // do site, e o motivo pelo qual ninguém percebeu que três migrations não
+      // estavam aplicadas por meses.
       if (!r[0] || !r[0].length) throw new Error('sem_confirmacao')
+      if (!r[1] || !r[1].length) throw new Error('sem_confirmacao')
       participante = r[0][0]
-      if (r[1] && r[1].length) operacao = r[1][0]
+      participacao = r[1][0]
       el('salvo').textContent = 'Salvo automaticamente.'
       el('quemNome').textContent = participante.nome_marca || 'Sua marca'
+      el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
+      selo()
     }).catch(function (e) {
       if (e && e.message === 'sessao_expirada') return
       el('salvo').textContent = ''
@@ -706,11 +1084,66 @@ button.link{
     })
   }
 
+  function salvarItens () {
+    var lidos = itensLer()
+    return Promise.all(lidos.map(function (i) {
+      var camposItem = {
+        nome: i.nome,
+        descricao: i.descricao,
+        ingredientes: i.ingredientes,
+        vegano: i.vegano,
+        sem_gluten: i.sem_gluten,
+        sem_lactose: i.sem_lactose
+      }
+      return api('participantes_itens?id=eq.' + i.id,
+        { metodo: 'PATCH', corpo: camposItem, prefer: 'return=representation' })
+    })).then(function (r) {
+      // Guarda o retorno: é o que mantém `itens` (usado pelo progresso) em dia
+      // com o banco sem uma segunda leitura.
+      var novos = []
+      r.forEach(function (linhas) { if (linhas && linhas[0]) novos.push(linhas[0]) })
+      if (novos.length === lidos.length) itens = novos
+      return r
+    })
+  }
+
+  /* Unidade é a única peça do painel com ciclo de vida próprio: nasce, muda e
+     morre. Linha com `id` vira PATCH; linha sem `id` vira POST e RECEBE o id de
+     volta na hora — sem isso, cada tecla digitada numa unidade nova criaria
+     outra linha no banco. A remoção acontece em `unidadeRemover`, na hora do
+     clique, porque uma linha que sumiu da tela não volta no `unidadesLer()`. */
+  function salvarUnidades () {
+    var lista = unidadesLer()
+    var divs = Array.prototype.slice.call(el('unidades').children)
+    return Promise.all(lista.map(function (u, i) {
+      var corpo = {
+        ordem: u.ordem, endereco: u.endereco, bairro: u.bairro, horarios: u.horarios,
+        faz_delivery: u.faz_delivery, canais_delivery: u.canais_delivery
+      }
+      if (u.id) {
+        return api('participacao_unidades?id=eq.' + u.id,
+          { metodo: 'PATCH', corpo: corpo, prefer: 'return=representation' })
+      }
+      // Unidade vazia não vira linha: a tela sempre mostra uma unidade em
+      // branco, e gravá-la encheria o banco de endereços que ninguém digitou.
+      if (!u.endereco) return Promise.resolve([])
+      corpo.participacao_id = participacao.id
+      return api('participacao_unidades',
+        { metodo: 'POST', corpo: corpo, prefer: 'return=representation' })
+        .then(function (linhas) {
+          if (linhas && linhas[0] && divs[i]) divs[i].setAttribute('data-id', linhas[0].id)
+          return linhas
+        })
+    }))
+  }
+
   // ── Concluir ──────────────────────────────────────────────────────────────
   var NOMES = {
     nome_marca: 'nome da marca', responsavel: 'responsável', telefone: 'telefone',
-    combo_nome: 'nome do combo', combo_descricao: 'descrição do combo',
-    combo_preco: 'preço', unidades: 'ao menos uma unidade'
+    tema_combo: 'tema escolhido', tema_justificativa: 'justificativa do tema',
+    combo_preco: 'preço do combo', unidades: 'ao menos uma unidade com endereço',
+    item_doce: 'os dados do doce', item_salgado: 'os dados do salgado',
+    item_bebida: 'os dados da bebida'
   }
 
   function concluir (ev) {
@@ -719,10 +1152,11 @@ button.link{
     aviso('')
     // Salva antes de concluir: quem valida é o servidor, e ele valida o que
     // está GRAVADO. Concluir com o autosave pendente reprovaria campo cheio.
+    if (salvando) clearTimeout(salvando)
     salvar()
       .then(function () {
         return api('rpc/marca_concluir_cadastro', {
-          metodo: 'POST', corpo: { p_participante: participante.id }
+          metodo: 'POST', corpo: { p_participacao: participacao.id }
         })
       })
       .then(function (r) {
@@ -733,10 +1167,11 @@ button.link{
           aviso('Falta preencher: ' + legivel + '.', 'erro')
           return
         }
-        participante.status_cadastro = 'cadastro_completo'
-        el('stMarca').textContent = participante.nome_marca || 'sua marca'
-        aviso('')
-        ver('status')
+        participacao.status_cadastro = 'cadastro_completo'
+        selo()
+        aviso('Cadastro concluído. A organização revisa e fala com você se precisar de algo. ' +
+              'Mudou alguma coisa? É só editar aqui e concluir de novo.', 'ok')
+        window.scrollTo(0, 0)
       })
       .catch(function (e) {
         el('btConcluir').disabled = false
@@ -745,13 +1180,11 @@ button.link{
       })
   }
 
-  // Reabrir é só voltar para a view. O status no banco continua
-  // 'cadastro_completo' até ela concluir de novo — e é isso que a organização
-  // precisa ver: alguém reabriu não é o mesmo que alguém desfez.
-  function reabrir () {
-    aviso('Alterou algo? Conclua de novo no fim da página.', 'ok')
-    ver('cadastro')
-  }
+  /* ⛔ Não existe mais botão "reabrir cadastro", e a ausência é a decisão: o
+     formulário nunca sai da tela depois de concluído, então não há o que
+     reabrir. Quem concluiu continua podendo corrigir, e o estado no banco segue
+     `cadastro_completo` até ela concluir de novo — é isso que a organização
+     precisa ver, porque alguém mexeu não é o mesmo que alguém desfez. */
 
   // ── Início ────────────────────────────────────────────────────────────────
   function hashSessao () {
@@ -772,12 +1205,26 @@ button.link{
     el('fCadastro').addEventListener('submit', concluir)
     el('btEsqueci').addEventListener('click', recuperar)
     el('btSair').addEventListener('click', sair)
-    el('btReabrir').addEventListener('click', reabrir)
     el('btAddUnidade').addEventListener('click', unidadeAdicionar)
     el('fCadastro').addEventListener('input', agendarSalvar)
+    // `change` além de `input`: caixa de marcar em navegador antigo não dispara
+    // `input`, e a restrição do item é justamente o que não pode deixar de ser
+    // gravado por causa de um detalhe de evento.
+    el('fCadastro').addEventListener('change', function (ev) {
+      var alvo = ev.target.closest('[data-u="faz_delivery"]')
+      if (alvo) {
+        var caixa = alvo.closest('.unidade').querySelector('[data-canais]')
+        if (caixa) caixa.hidden = !alvo.checked
+      }
+      agendarSalvar()
+    })
     el('unidades').addEventListener('click', function (ev) {
       var alvo = ev.target.closest('[data-remove]')
       if (alvo) unidadeRemover(parseInt(alvo.getAttribute('data-remove'), 10))
+    })
+    el('arquivos').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-baixar]')
+      if (alvo) baixar(alvo.getAttribute('data-baixar'))
     })
 
     var doHash = hashSessao()
