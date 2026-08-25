@@ -1927,6 +1927,14 @@ do site e o painel lia o armazenamento dele, vazio. **O fluxo de acesso só
 fecha quando uma única origem serve o SPA e `public/`** — hoje o `npm run dev`,
 o `vite preview` e a produção. ⛔ Não testar esse fluxo com dois servidores.
 
+🐛 **RPC `returns void` responde 204 SEM CORPO, e `r.json()` estoura em cima do
+vazio** com "Unexpected end of JSON input" — erro que parece de rede e é de
+leitura. Atingia **7 RPCs** e deixou cinco botões do painel mortos. O `rpc()`
+dos painéis lê `r.text()` e só converte se vier conteúdo; há teste que executa
+a função real.
+⚠️ **A prova por `curl` não pega isso**: ela lê o corpo fora do caminho do
+código. **Chamada por HTTP não é chamada pelo caminho do código.**
+
 🐛 **`id` de elemento vira propriedade global, e isso matou o Turnstile.**
 Um `<div id="turnstile">` define `window.turnstile`; o `api.js` da Cloudflare
 abre com `if (window.turnstile) return`, guarda contra importar duas vezes.

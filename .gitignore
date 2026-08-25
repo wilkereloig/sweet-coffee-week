@@ -52,3 +52,7 @@ backups-supabase/
 *.sql.gz
 db-dump*.sql
 dump-*.json
+
+# Sujeira de ferramenta, nao de projeto
+.playwright-mcp/
+supabase/.temp/
