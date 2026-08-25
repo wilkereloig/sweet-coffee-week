@@ -5,7 +5,7 @@
  * Lovers" e passou a ser a CHAMADA DO PRÉ-CADASTRO, com destino único
  * `/quero-participar/`.
  *
- * Em 26/08/2026 a ação saiu de três lugares e foi para UM: os botões do herói,
+ * Em 25/08/2026 a ação saiu de três lugares e foi para UM: os botões do herói,
  * do fim dos passos e do fecho sumiram, e sobrou a barra presa na base, agora
  * em toda largura (era só do celular). Ver `BarraAcao`.
  *
@@ -306,7 +306,7 @@ function GaleriaEdicoes() {
 }
 
 /*
- * A BARRA DA AÇÃO — a única chamada da página desde 26/08/2026.
+ * A BARRA DA AÇÃO — a única chamada da página desde 25/08/2026.
  *
  * Os três botões "Quero participar" que moravam no herói, no fim dos passos e
  * no fecho saíram (pedido do Eloi). A ação deixou de ser algo que o leitor
@@ -577,7 +577,7 @@ export function EmBrevePage() {
           background: var(--scw-creme);
           color: var(--scw-choco);
           overflow-x: clip;
-          /* A barra é fixa e vale em TODA largura desde 26/08/2026: sem este
+          /* A barra é fixa e vale em TODA largura desde 25/08/2026: sem este
              respiro ela cobriria o fim do rodapé em qualquer tela. */
           padding-bottom: calc(var(--eb-barra-h) + 12px);
         }
@@ -887,7 +887,7 @@ export function EmBrevePage() {
         }
 
         /* 9 — A BARRA DA AÇÃO -------------------------------------------- */
-        /* Era só do celular até 26/08/2026. Agora vale em toda largura, porque
+        /* Era só do celular até 25/08/2026. Agora vale em toda largura, porque
            virou a única chamada da página. */
         /* A chapa, o desfoque, o filete e o \`position: fixed\` vêm de
            \`.scw-casca-base\` — a mesma casca da barra de abas do site. Aqui fica
@@ -928,10 +928,10 @@ export function EmBrevePage() {
           transform-origin: left center;
         }
 
-        /* ⛔ Não redeclarar box-sizing aqui. Entre 25 e 26/08/2026 esta página
+        /* ⛔ Não redeclarar box-sizing aqui. Em 25/08/2026 esta página
            esteve FORA do reset do sistema, e as peças entravam no border-box uma
            a uma para não sair deformadas: o .scw-btn rendia 84px em vez de 54 e
-           os controles da galeria, 51px em vez de 48. A exclusão caiu em 26/08 e
+           os controles da galeria, 51px em vez de 48. A exclusão caiu no mesmo dia e
            o reset vale nas sete rotas — declaração local aqui volta a ser a
            segunda fonte de verdade que o §5.2 proíbe. */
 

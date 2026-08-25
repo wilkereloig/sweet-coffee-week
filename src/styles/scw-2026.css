@@ -256,7 +256,7 @@ body {
    páginas. É a causa-raiz das seções saírem consistentemente mais altas que a
    referência — não era acúmulo de ajuste local nenhum.
 
-   ✅ A landing /em-breve ENTROU em 26/08/2026. A exclusão foi escrita quando ela
+   ✅ A landing /em-breve ENTROU em 25/08/2026. A exclusão foi escrita quando ela
    era a página de antes — "calibrada em content-box e no ar" —, e a reescrita de
    25/08 a levou para as utilitárias do sistema. A partir daí a exclusão deixou
    de proteger e passou a custar: o `.scw-btn` dela renderizava com 84px em vez
@@ -276,7 +276,7 @@ body {
    inteiro vinha 16px mais estreito que a viewport, e o trilho calculava em
    cima disso. Nas rotas era só desalinhamento; numa faixa que sangra até a
    borda, era uma moldura visível da cor do body.
-   ✅ A landing entrou junto, em 26/08/2026. Medido antes: a página dela ficava
+   ✅ A landing entrou junto, em 25/08/2026. Medido antes: a página dela ficava
    em `x = 8` e 16px mais estreita que a viewport (374 de 390; 1424 de 1440),
    com uma tira do fundo do <body> descendo pelos dois lados de toda faixa que
    sangra — e a barra fixa da ação, que se posiciona contra a viewport e não

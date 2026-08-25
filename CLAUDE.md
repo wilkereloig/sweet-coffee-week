@@ -1533,7 +1533,7 @@ explícito — é o que está no ar.
 Sweet Awards da Lovers". Oito blocos, rolagem curta, **uma ação só — `Quero participar`
 → `/quero-participar/`**.
 
-⛔ **Desde 26/08/2026 essa ação existe em UM lugar só: a barra presa na base** (pedido do
+⛔ **Desde 25/08/2026 essa ação existe em UM lugar só: a barra presa na base** (pedido do
 Eloi). Os três botões que moravam no herói, no fim dos passos e no fecho **saíram**, e a
 barra deixou de ser peça de celular para valer em **toda largura**. **Não devolver botão
 para dentro das seções**: a página tem uma conversão só, e espalhá-la de novo é a mesma
@@ -1557,7 +1557,7 @@ ponta, e a barra deixa de ler como casca de aplicativo — a barra de abas é **
 acentos contidos**, e é com ela que esta peça conversa. Na largura do conteúdo o alvo
 ainda passa de 200px, muito acima dos 44px do §6.10.
 
-✅ **A landing entrou no reset do sistema em 26/08/2026, e as duas exclusões caíram.**
+✅ **A landing entrou no reset do sistema em 25/08/2026, e as duas exclusões caíram.**
 Até então `scw-2026.css` a mantinha fora do `box-sizing: border-box` **e** do
 `body { margin: 0 }`, por `body:not(.route-em-breve)`. A ressalva foi escrita quando a
 página era a de antes — "calibrada em content-box e no ar" —, e a reescrita de 25/08 a
