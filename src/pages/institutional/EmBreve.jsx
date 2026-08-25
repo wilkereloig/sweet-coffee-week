@@ -1,280 +1,482 @@
 /*
- * PÁGINA "EM BREVE" — landing pública temporária (COMING_SOON_PUBLICATION).
- * Enquanto o site institucional completo é finalizado, o domínio oficial mostra:
- *   1) aviso "novo site em breve" (identidade institucional do Sweet Awards:
- *      espresso #2B1810 + creme + ouro #F8B511 — CLAUDE.md §12);
- *   2) o Sweet Awards da última edição (Lovers 2026.1): Melhor Combo em
- *      destaque + as demais 7 categorias, pódio completo. Dados vêm de
- *      getCurrentEditionScenes() (src/data/sweetHistoryStats.js) — fonte única
- *      compartilhada com a página institucional Sweet Awards, já cruzando
- *      sweetCoffeeHistory.js (descrição/post) com loversAwardsResults.js
- *      (pódio) por `key`. Link pro POST DE RESULTADO no Instagram — nunca embed.
- * Sem header/footer globais: landing autocontida (logo própria no topo).
- * Logos reais via resolveParticipant, fallback monograma — nunca inventa.
+ * PÁGINA "EM BREVE" — a landing pública do domínio (COMING_SOON_PUBLICATION).
+ *
+ * Reescrita em 25/08/2026: deixou de ser "aviso de novo site + Sweet Awards da
+ * Lovers" e passou a ser a CHAMADA DO PRÉ-CADASTRO. Uma ação só, repetida três
+ * vezes, sempre com o mesmo rótulo e o mesmo destino: `/quero-participar/`.
+ *
+ * ⚠️ A barra final do destino não é enfeite (§10.4-b): `/quero-participar/` é
+ * página estática fora do bundle, e sem a barra o servidor não resolve o índice
+ * do diretório — a rota cai no fallback do SPA e abre esta mesma landing. Por
+ * isso é `<a href>` de navegador, nunca `navigate()` nem `#/`.
+ *
+ * O bloco do Sweet Awards SAIU (decisão do Eloi, 25/08). É remoção de EXIBIÇÃO,
+ * não de dado: `sweetHistoryStats.js`, `loversAwardsResults.js` e o acervo de
+ * fotos seguem intactos — só deixaram de ser importados aqui. O resultado da
+ * Lovers volta a ter endereço público quando o institucional for publicado.
+ *
+ * IDENTIDADE: a página nasceu numa terceira paleta (espresso #2B1810 + ouro
+ * #F8B511, tokens de `em-breve.css`) que era do Sweet Awards de antes do
+ * redesign. Agora consome a PALETA VIVA (`--scw-*`) e as utilitárias do sistema
+ * — `.scw-h1`, `.scw-btn`, `.scw-secao`, `.scw-marquee`, `.scw-hero-veu`. Some
+ * a terceira identidade do projeto e o Design passa a desenhar no sistema real.
+ * ⛔ `em-breve.css` continua no ar: `components/icons.jsx` e `data/participants.js`
+ * ainda leem tokens dele. Sair do consumo é uma coisa; apagar o arquivo é outra.
+ *
+ * MOVIMENTO: esta é a única tela servida por `motion-system.css` +
+ * `useRevealOnScroll` (§6.15). Os `@keyframes` próprios daqui consomem os
+ * tokens `--motion-*` de `layout-tokens.css` — nada de duração ou curva nova.
+ * `prefers-reduced-motion` é desligado pelo bloco global de `.scw-raiz`, que
+ * zera animação e transição de tudo que está dentro dela; o contador respeita
+ * a preferência em JS, mostrando o valor final de saída.
+ *
+ * O cabeçalho com o botão "Acesso" NÃO mora aqui: é o `<SiteHeader apenasAcesso>`
+ * que o `App.jsx` renderiza só nesta rota. ⛔ Não desenhar um segundo — duas
+ * portas para o mesmo painel é fonte de verdade duplicada em forma de interface.
  */
 import React from 'react'
-import { I } from '../../components/icons'
+import { HeroFotos } from '../../components/HeroFotos'
+import { MARCA_SCW } from '../../components/nav'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { getCurrentEditionScenes } from '../../data/sweetHistoryStats'
-import { resolveParticipant } from '../../data/participantAssets'
-import { awardPhoto, COMBO_EDITION, RESERVA } from '../../data/imageLibrary'
+import { heroPhotos } from '../../data/imageLibrary'
+import { festivalFacts } from '../../data/festivalFacts'
+import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
-// Cenas da edição atual (2026.1), na ordem da história (Melhor Combo primeiro).
-const SCENES = getCurrentEditionScenes()
-const COMBO_SCENE = SCENES.find((s) => s.key === 'melhor_combo') || null
-const OTHER_SCENES = SCENES.filter((s) => s.key !== 'melhor_combo')
+/* Barra final obrigatória — ver o cabeçalho do arquivo e o §10.4-b. */
+const PRE_CADASTRO = '/quero-participar/'
 
-// Foto real por categoria, pelo sistema central de imagens: só existe quando o
-// vínculo marca↔combo está no acervo (awardPhoto devolve `null` fora dele).
-// Quando a mesma marca vence mais de uma categoria — O Maestro Café vence 3 —
-// o contador por marca pede um frame diferente da galeria dela, nunca o mesmo
-// arquivo duas vezes.
-const CATEGORY_PHOTO = (() => {
-  const usos = new Map()
-  const mapa = {}
-  for (const cena of SCENES) {
-    const nome = (cena.winners || []).find((w) => w.pos === 1)?.name
-    const n = usos.get(nome) || 0
-    usos.set(nome, n + 1)
-    mapa[cena.key] = nome ? awardPhoto(nome, COMBO_EDITION, n) : null
-  }
-  return mapa
-})()
+/* As fotos do herói da Home. Não é empréstimo: enquanto o gate está ligado,
+   esta landing É a porta de entrada do domínio, o mesmo papel da Home. Assim o
+   caminho continua saindo do sistema central (§6.12) e os alt já são os do
+   acervo, conferidos — inventar descrição de foto que ninguém viu seria dado
+   inventado por outro meio (A4). */
+const FOTOS_HERO = heroPhotos('home')
 
-const MEDAL = { 1: 'ouro', 2: 'prata', 3: 'bronze' }
+/* Os 16 temas, derivados da fonte histórica. 2016 não tem `tema` na base — o
+   nome dela guarda a grafia antiga ("S&C / Início"), e o prefixo "S&C" está
+   proibido no site (§8.2). Tirar o prefixo é transformação de leitura, não uma
+   segunda tabela de temas para alguém manter à mão (§5.2). */
+const TEMAS = (SWEET_COFFEE_HISTORY.edicoes || [])
+  .map((e) => e.tema || (e.nome || '').replace(/^S&C\s*\/?\s*/, ''))
+  .filter(Boolean)
 
-// getCurrentEditionScenes() devolve winners já achatados ([{place,pos,name}]);
-// reagrupa por posição pra preservar empates (mais de um nome na mesma vaga).
-function groupWinnersByPos(winners) {
-  const map = new Map()
-  for (const w of winners || []) {
-    if (!map.has(w.pos)) map.set(w.pos, { pos: w.pos, names: [] })
-    map.get(w.pos).names.push(w.name)
-  }
-  return [...map.values()].sort((a, b) => a.pos - b.pos)
-}
-// Foto de categoria com fallback elegante (mesmo padrão de BrandChip): esconde o
-// <img> quebrado e mostra "Foto pendente" — nunca ícone de imagem quebrada nem
-// bloco vazio (CLAUDE.md §8).
-function SceneImg({ foto, className, prioritaria }) {
-  const [broken, setBroken] = React.useState(false)
-  if (!foto || broken) return <div className="eb-cat__nophoto">{RESERVA}</div>
+/* Cada número numa cor diferente, na ordem do ciclo canônico (§6.3), filtrada
+   pelo que sustenta leitura sobre creme em texto GRANDE (3:1): chocolate 12:1,
+   roxo 6,7:1, marrom 6,9:1, magenta 3,8:1. Cyan (2,2) e amarelo (1,4) ficam de
+   fora — sobre creme eles são superfície, nunca tinta.
+   ⚠️ "+120 marcas" é a grafia obrigatória do §8.4 e o acervo tem 123: a dezena
+   sai de uma conta sobre a fonte, não de um número digitado que envelhece
+   sozinho no dia em que a 17ª edição entrar na base. */
+const F = festivalFacts
+const NUMEROS = [
+  { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)' },
+  { alvo: Math.floor(F.brands.value / 10) * 10, prefixo: '+', rotulo: 'marcas participantes', cor: 'var(--scw-roxo)' },
+  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)' },
+]
+
+const PASSOS = [
+  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)' },
+  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)' },
+  { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)' },
+]
+
+const SETA = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const podeAnimar = () =>
+  typeof window !== 'undefined' &&
+  typeof IntersectionObserver !== 'undefined' &&
+  !(typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+
+/*
+ * Contador — 0 → valor ao entrar na viewport, uma vez só.
+ *
+ * ⚠️ Duas armadilhas, e as duas custam layout shift, que a regra 3 do §6.15
+ * proíbe:
+ *  1. o número muda de largura enquanto sobe (1 → 16 → 34). Por isso o valor
+ *     final fica renderizado como MOLDE invisível e o vivo é absoluto por cima:
+ *     a caixa já nasce com a largura que vai ter no fim, medida, não estimada;
+ *  2. `tabular-nums` para os dígitos não dançarem entre si — vem do
+ *     `.scw-numeral`, que já traz a propriedade.
+ *
+ * Sem movimento (ou sem observer) o estado inicial já é o valor final: quem
+ * desliga animação nunca vê zero.
+ */
+function Contador({ alvo, prefixo = '', sufixo = '' }) {
+  const ref = React.useRef(null)
+  const [valor, setValor] = React.useState(() => (podeAnimar() ? 0 : alvo))
+
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el || !podeAnimar()) return
+    let quadro = 0
+    const io = new IntersectionObserver((entradas) => {
+      if (!entradas.some((e) => e.isIntersecting)) return
+      io.disconnect()
+      const inicio = performance.now()
+      const passo = (agora) => {
+        const t = Math.min(1, (agora - inicio) / 1200)
+        // Desaceleração cúbica: o número chega e para, sem pique no fim.
+        setValor(Math.round(alvo * (1 - Math.pow(1 - t, 3))))
+        if (t < 1) quadro = requestAnimationFrame(passo)
+      }
+      quadro = requestAnimationFrame(passo)
+    }, { threshold: 0.4 })
+    io.observe(el)
+    return () => { io.disconnect(); if (quadro) cancelAnimationFrame(quadro) }
+  }, [alvo])
+
   return (
-    <img
-      className={className}
-      src={foto.src}
-      alt={foto.alt}
-      style={{ objectPosition: foto.position }}
-      loading={prioritaria ? 'eager' : 'lazy'}
-      fetchpriority={prioritaria ? 'high' : undefined}
-      decoding="async"
-      onError={() => setBroken(true)}
-    />
-  )
-}
-
-function BrandChip({ name, size = 40 }) {
-  const m = resolveParticipant(name)
-  const [broken, setBroken] = React.useState(false)
-  const show = m.logo && !broken
-  return (
-    <span className="eb-brand" style={{ width: size, height: size, ...(m.brandColor ? { '--brand': m.brandColor } : null) }}>
-      {show
-        ? <img src={m.logo} alt={`Logo ${name}`} loading="lazy" decoding="async" onError={() => setBroken(true)} />
-        : <span className="eb-brand__mono" aria-hidden="true">{m.fallback}</span>}
+    <span className="scw-numeral eb-num__caixa" ref={ref}>
+      <span className="eb-num__molde">{prefixo}{alvo}{sufixo}</span>
+      <span className="eb-num__vivo">{prefixo}{valor}{sufixo}</span>
     </span>
   )
 }
 
-// Barra "Ver no Instagram" — link real pro post de resultado (nunca embed/iframe).
-function PostLink({ href }) {
-  if (!href) return null
-  return (
-    <div className="eb-post">
-      <a className="eb-post__bar" href={href} target="_blank" rel="noopener noreferrer">
-        <I.ig width={15} height={15} />
-        <span>Ver no Instagram</span>
-        <I.arrow />
-      </a>
-    </div>
-  )
-}
-
-// Pódio (1º/2º/3º) de uma cena — empates viram múltiplos nomes na mesma medalha.
-function Podium({ winners, leadFirst = false }) {
-  return (
-    <ol className="eb-podium">
-      {groupWinnersByPos(winners).map((p) => (
-        <li className={`eb-place eb-place--${MEDAL[p.pos]}`} key={p.pos}>
-          <span className="eb-medal" aria-hidden="true">{p.pos}</span>
-          <span className="eb-place__brands">
-            {p.names.map((n) => <BrandChip name={n} key={n} size={p.pos === 1 ? (leadFirst ? 52 : 44) : 36} />)}
-          </span>
-          <span className="eb-place__names">
-            <span className="sr-only">{p.pos}º lugar: </span>
-            {p.names.join(' e ')}
-          </span>
-        </li>
-      ))}
-    </ol>
-  )
+function Acao({ classe = 'scw-btn scw-btn--solido', children = 'Quero participar' }) {
+  return <a className={classe} href={PRE_CADASTRO}>{children}{SETA}</a>
 }
 
 export function EmBrevePage() {
   const rootRef = React.useRef(null)
   useRevealOnScroll(rootRef, [])
+
   return (
     <div className="eb-page" ref={rootRef}>
-      {/* 1 — AVISO "EM BREVE" */}
-      <header className="eb-hero">
-        <div className="eb-wrap eb-hero__inner motion-stagger">
-          <img className="eb-hero__logo" src="/images/logo-sweet-coffee-week.svg" alt="Sweet & Coffee Week" />
-          <p className="eb-hero__soon">Em breve</p>
-          <h1>O novo site do <span className="eb-nowrap">Sweet &amp; Coffee Week</span> está chegando.</h1>
-          <p className="eb-hero__sub">
-            Estamos preparando a casa das 16 edições, das marcas e das memórias do festival.
-            Enquanto isso, reveja quem brilhou no Sweet Awards da edição Sweet &amp; Coffee Week Lovers.
+      {/* 1 — TOPO: a marca. O botão "Acesso" vem do cabeçalho fixo do App. */}
+      <div className="eb-topo">
+        <img className="eb-topo__marca" src={MARCA_SCW} alt="Sweet &amp; Coffee Week" />
+      </div>
+
+      {/* 2 — HERÓI: a notícia e a ação */}
+      <header className="eb-hero scw-hero-veu">
+        <HeroFotos fotos={FOTOS_HERO} classe="eb-hero__fotos" />
+        <div className="eb-hero__conteudo motion-stagger">
+          <span className="scw-pill eb-pill">Pré-cadastro aberto</span>
+          <h1 className="scw-h1 eb-h1">
+            Uma <em className="scw-italico eb-h1__dest">nova edição</em> do Sweet &amp; Coffee Week vem aí.
+          </h1>
+          <p className="scw-lead eb-lead">
+            São 16 edições transformando Natal numa rota de doce, salgado e café. A próxima
+            está sendo preparada — e o pré-cadastro para os estabelecimentos já está aberto.
           </p>
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="eb-btn eb-btn--gold">
-            <I.ig width={16} height={16} /> Acompanhar no {INSTAGRAM_HANDLE}
-          </a>
+          <div className="eb-acao">
+            <Acao />
+            <span className="eb-acao__nota">Leva quatro passos e uma revisão antes de enviar.</span>
+          </div>
         </div>
       </header>
 
-      {/* 2 — SWEET AWARDS DA ÚLTIMA EDIÇÃO */}
-      <section className="eb-awards">
-        <div className="eb-wrap">
-          <div className="eb-head motion-reveal-up">
-            <h2>Sweet Awards — <span className="eb-hl">Lovers 2026.1</span></h2>
-            <p>
-              O resultado oficial da premiação da 16ª edição, na avaliação dos Sweet Lovers.
-              Cada card leva ao post do resultado no Instagram.
-            </p>
-          </div>
-          {COMBO_SCENE && (
-            <article className="eb-combo motion-stagger motion-card-hover">
-              <div className="eb-combo__media">
-                <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO.melhor_combo} prioritaria />
-                <span className="eb-combo__medal" aria-hidden="true">1º</span>
-              </div>
-              <div className="eb-combo__body">
-                <p className="eb-combo__tag">Grande vencedor</p>
-                <h3>{COMBO_SCENE.category}</h3>
-                {COMBO_SCENE.description && <p className="eb-cat__desc">{COMBO_SCENE.description}</p>}
-                <Podium winners={COMBO_SCENE.winners} leadFirst />
-                <PostLink href={COMBO_SCENE.postResultado} />
-              </div>
-            </article>
-          )}
+      {/* 3 — PROVA: os números do acervo */}
+      <section className="scw-secao scw-secao--creme eb-prova">
+        <ul className="scw-grade-fixa eb-prova__grade motion-stagger" style={{ '--scw-cols': 4, '--scw-gap': 'clamp(16px,2.4vw,32px)' }}>
+          {NUMEROS.map((n) => (
+            <li className="eb-num" key={n.rotulo} style={{ color: n.cor }}>
+              <span aria-hidden="true">
+                <Contador alvo={n.alvo} prefixo={n.prefixo} sufixo={n.sufixo} />
+                <span className="eb-num__rotulo">{n.rotulo}</span>
+              </span>
+              <span className="eb-sr">{n.prefixo || ''}{n.alvo}{n.sufixo || ''} {n.rotulo}</span>
+            </li>
+          ))}
+          <li className="eb-num" style={{ color: 'var(--scw-magenta)' }}>
+            <span className="scw-numeral">desde {F.firstYear}</span>
+            <span className="eb-num__rotulo">a primeira edição</span>
+          </li>
+        </ul>
+      </section>
 
-          <div className="eb-grid eb-grid--compact">
-            {OTHER_SCENES.map((scene) => (
-              <article className="eb-cat motion-reveal-up motion-card-hover" key={scene.key}>
-                <div className="eb-cat__media">
-                  <SceneImg className="motion-image-reveal" foto={CATEGORY_PHOTO[scene.key]} />
-                </div>
-                <h3>{scene.category}</h3>
-                {scene.description && <p className="eb-cat__desc">{scene.description}</p>}
-                <Podium winners={scene.winners} />
-                <PostLink href={scene.postResultado} />
-              </article>
+      {/* 4 — OS 16 TEMAS, em movimento. Duas listas idênticas: o laço do sistema
+             desloca cada `ul` em -100% da própria largura, então a segunda entra
+             exatamente quando a primeira sai. A cópia é `aria-hidden` — quem usa
+             leitor de tela ouve os temas uma vez, não duas. */}
+      <div className="scw-marquee eb-marquee">
+        {[0, 1].map((copia) => (
+          <ul key={copia} aria-hidden={copia === 1 ? 'true' : undefined}>
+            {TEMAS.map((t) => (
+              <li key={t}>
+                <span className="scw-marquee__palavra">{t}</span>
+                <span className="scw-marquee__ponto" />
+              </li>
             ))}
-          </div>
+          </ul>
+        ))}
+      </div>
+
+      {/* 5 — PARA QUEM É */}
+      <section className="scw-secao scw-secao--bege eb-quem">
+        <div className="eb-cabeca motion-reveal-up">
+          <span className="scw-rotulo">Para quem é</span>
+          <h2 className="scw-h2">Casas que fazem doce, salgado e café em Natal.</h2>
+          <p className="scw-corpo">
+            Cafeterias, confeitarias, docerias, casas de bolo, padarias, chocolaterias,
+            sorveterias, bistrôs, restaurantes e cozinhas sem loja física — em Natal e região.
+          </p>
         </div>
       </section>
 
-      {/* 3 — FECHO */}
-      <footer className="eb-foot">
-        <div className="eb-wrap eb-foot__inner">
-          <p>Sweet &amp; Coffee Week — o festival que transforma Natal em uma rota de sabores.</p>
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>
+      {/* 6 — COMO FUNCIONA */}
+      <section className="scw-secao scw-secao--creme eb-passos">
+        <div className="eb-cabeca motion-reveal-up">
+          <span className="scw-rotulo">Como funciona</span>
+          <h2 className="scw-h2">Três passos até a próxima edição.</h2>
         </div>
+        <ol className="scw-grade eb-passos__grade motion-stagger" style={{ '--scw-min': '260px' }}>
+          {PASSOS.map((p) => (
+            <li className="eb-passo" key={p.n}>
+              <span className="eb-passo__n" style={{ background: p.cor }}>{p.n}</span>
+              <h3 className="scw-h3">{p.t}</h3>
+              <p className="scw-corpo eb-passo__txt">{p.d}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="eb-passos__acao motion-reveal-up"><Acao /></div>
+      </section>
+
+      {/* 7 — FECHO */}
+      <section className="scw-secao scw-secao--choco eb-fecho">
+        <div className="eb-fecho__inner motion-stagger">
+          <h2 className="scw-h2 eb-fecho__h2">O pré-cadastro é o primeiro passo.</h2>
+          <p className="scw-corpo eb-fecho__txt">
+            A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo —
+            e não compromete nada.
+          </p>
+          <Acao />
+          <p className="scw-corpo eb-fecho__lover">
+            É Sweet Lover? A data, o tema e as marcas confirmadas saem primeiro no{' '}
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>.
+          </p>
+        </div>
+      </section>
+
+      {/* 8 — RODAPÉ. Fundo creme, e não chocolate: a logo da F2 é um asset de cor
+             fixa (#de1a59) e sobre chocolate ela não fecha os 3:1 de elemento
+             gráfico. Sobre creme fecha. A cor da realizadora entra como ASSET,
+             igual à da Home — não como token, não como exceção de paleta nova. */}
+      <footer className="eb-rodape">
+        <a className="eb-rodape__f2" href="https://f2experience.com.br" target="_blank" rel="noopener noreferrer">
+          <span className="scw-rotulo scw-rotulo--micro">Realização</span>
+          <img src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
+        </a>
+        <p className="eb-rodape__linha">
+          Sweet &amp; Coffee Week · Natal/RN ·{' '}
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>
+        </p>
       </footer>
 
+      {/* 9 — A AÇÃO PRESA NA BASE, só no celular.
+             ⚠️ Sem classe de reveal, nunca: elemento `position: fixed` não entra
+             na zona de disparo do observer e ficaria invisível para sempre
+             (§10.3). O respiro da base é `--scw-safe-b`, o token que a barra de
+             abas do site já usa — não um `env()` reescrito aqui. */}
+      <div className="eb-barra">
+        <Acao classe="scw-btn scw-btn--solido eb-barra__btn" />
+      </div>
+
       <style>{`
-        .eb-page { min-height: 100vh; background: var(--cream, #FFF1E6); color: var(--ink, #2B1810); overflow-x: clip; }
-        .eb-page h1, .eb-page h2, .eb-page h3 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -.04em; margin: 0; text-wrap: balance; }
-        .eb-wrap { max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 56px); }
-        .eb-page .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-
-        /* 1 — HERO em breve (espresso + creme + ouro) */
-        .eb-hero { background: #2B1810; color: var(--cream, #FFF1E6); }
-        .eb-hero__inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4, 16px); padding-top: clamp(56px, 9vh, 110px); padding-bottom: clamp(56px, 9vh, 110px); }
-        .eb-hero__logo { width: clamp(150px, 18vw, 220px); height: auto; }
-        .eb-hero__soon { font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #F8B511; margin: var(--sp-4, 16px) 0 0; }
-        .eb-hero h1 { font-size: clamp(30px, 4.4vw, 56px); line-height: 1.02; max-width: 18ch; color: var(--cream, #FFF1E6); }
-        .eb-nowrap { white-space: nowrap; }
-        .eb-hero__sub { max-width: 58ch; margin: 0; font-size: var(--fs-lead, 17px); line-height: 1.5; color: rgba(255,241,230,.85); text-wrap: pretty; }
-        .eb-btn { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; padding: 12px 26px; border-radius: 999px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; text-decoration: none; margin-top: var(--sp-3, 12px); transition: transform .18s ease; }
-        .eb-btn:hover { transform: translateY(-2px); }
-        .eb-btn--gold { background: #F8B511; color: #2B1810; }
-
-        /* 2 — AWARDS */
-        .eb-awards { padding: clamp(56px, 8vw, 110px) 0; }
-        .eb-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-4, 16px); max-width: 760px; margin: 0 auto clamp(32px, 4.5vw, 56px); }
-        .eb-head h2 { font-size: clamp(26px, 3.4vw, 44px); line-height: 1; }
-        .eb-hl { font-style: italic; color: #C98A0B; }
-        .eb-head p { margin: 0; max-width: 58ch; color: var(--ink-soft, #6b5548); font-size: var(--fs-lead, 17px); line-height: 1.45; text-wrap: pretty; }
-
-        /* Card de destaque — Melhor Combo (grande vencedor), antes da grade */
-        .eb-combo { display: grid; grid-template-columns: minmax(220px, 1fr) 1.35fr; gap: clamp(20px, 3vw, 40px); align-items: stretch; background: var(--cream-card, #FFF8F0); border: 1px solid var(--paper-line, rgba(43,24,16,.12)); border-radius: var(--r-lg, 18px); padding: clamp(20px, 2.6vw, 32px); box-shadow: var(--shadow-md, 0 10px 26px rgba(43,24,16,.08)); margin-bottom: clamp(28px, 4vw, 48px); }
-        .eb-combo__media { position: relative; min-height: 240px; border-radius: 14px; overflow: hidden; }
-        .eb-combo__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .eb-combo__medal { position: absolute; top: 14px; left: 14px; display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: linear-gradient(160deg, #FFE08A, #E8A20C); color: #2B1810; font-family: var(--font-display); font-weight: 900; font-size: 18px; box-shadow: 0 6px 16px rgba(43,24,16,.28), inset 0 0 0 3px rgba(255,255,255,.5); }
-        .eb-combo__body { display: flex; flex-direction: column; gap: var(--sp-3, 12px); }
-        .eb-combo__tag { margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #C98A0B; }
-        .eb-combo__body h3 { font-size: clamp(22px, 2.6vw, 30px); }
-
-        .eb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-4, 16px); }
-        .eb-grid--compact { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--sp-3, 12px); }
-        .eb-cat { display: flex; flex-direction: column; gap: var(--sp-3, 12px); background: var(--cream-card, #FFF8F0); border: 1px solid var(--paper-line, rgba(43,24,16,.12)); border-radius: var(--r-lg, 18px); padding: var(--sp-6, 28px); box-shadow: var(--shadow-md, 0 10px 26px rgba(43,24,16,.08)); }
-        .eb-grid--compact .eb-cat { padding: var(--sp-4, 16px); }
-        .eb-cat__media { border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
-        .eb-cat__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .eb-cat__nophoto { width: 100%; height: 100%; display: grid; place-items: center; padding: var(--sp-4, 16px); text-align: center; color: var(--ink-soft, #6b5548); font-size: 12.5px; font-style: italic; background: repeating-linear-gradient(135deg, var(--cream-card, #FFF8F0), var(--cream-card, #FFF8F0) 10px, var(--paper-line, rgba(43,24,16,.12)) 10px, var(--paper-line, rgba(43,24,16,.12)) 11px); }
-        .eb-cat h3 { font-size: clamp(17px, 1.5vw, 20px); }
-        .eb-cat__desc { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft, #6b5548); }
-        .eb-podium { list-style: none; margin: var(--sp-2, 8px) 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-        .eb-place { display: grid; grid-template-columns: 26px auto 1fr; align-items: center; column-gap: 10px; }
-        .eb-medal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; font-family: var(--font-display); font-weight: 900; font-size: 13px; color: #2B1810; box-shadow: inset 0 0 0 2px rgba(0,0,0,.12); }
-        .eb-place--ouro .eb-medal { background: linear-gradient(160deg, #FFE08A, #E8A20C); }
-        .eb-place--prata .eb-medal { background: linear-gradient(160deg, #ECECEC, #B9B9B9); }
-        .eb-place--bronze .eb-medal { background: linear-gradient(160deg, #E8B084, #B06A38); }
-        .eb-place__brands { display: inline-flex; gap: 6px; }
-        .eb-brand { display: inline-grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); overflow: hidden; }
-        .eb-brand img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
-        .eb-brand__mono { font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--ink, #2B1810); }
-        .eb-place__names { font-family: var(--font-heading); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
-        .eb-place--ouro .eb-place__names { font-size: 16px; }
-        /* barra "Ver no Instagram" — link real pro post de resultado, sem embed */
-        .eb-post { margin-top: auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--paper-line, rgba(43,24,16,.12)); background: #fff; }
-        .eb-post__bar { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 12px 14px; font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; color: #C98A0B; text-decoration: none; }
-        .eb-post__bar svg:last-child { margin-left: auto; transition: transform .16s ease; }
-        .eb-post__bar:hover svg:last-child { transform: translateX(3px); }
-
-        /* 3 — FECHO */
-        .eb-foot { background: #2B1810; color: rgba(255,241,230,.8); }
-        .eb-foot__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 26px; padding-bottom: 26px; font-size: 13.5px; }
-        /* 44px de alvo: o link media 141x21 e era o menor toque da landing —
-           a única página no ar hoje. O padding negativo na lateral mantém o
-           alinhamento óptico do rodapé, que é centrado no celular. */
-        .eb-foot a { color: #F8B511; font-weight: 700; text-decoration: none;
-          display: inline-flex; align-items: center; min-height: 44px; padding-inline: 4px; }
-
-        @media (max-width: 720px) {
-          .eb-combo { grid-template-columns: 1fr; }
-          .eb-combo__media { min-height: 200px; }
+        .eb-page {
+          min-height: 100vh;
+          background: var(--scw-creme);
+          color: var(--scw-choco);
+          overflow-x: clip;
         }
-        @media (max-width: 560px) {
-          .eb-btn { width: 100%; justify-content: center; }
-          .eb-foot__inner { justify-content: center; text-align: center; }
+        /* Prefixado, nunca !important: o reset .scw-raiz a { color: inherit }
+           tem especificidade 0,1,1 e venceria uma classe sozinha (§10.1). */
+        .eb-page a { color: inherit; text-decoration: none; }
+        .eb-page .eb-sr {
+          position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+          overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
         }
-        @media (max-width: 420px) {
-          .eb-nowrap { white-space: normal; }
+
+        /* 1 — TOPO ------------------------------------------------------- */
+        .eb-topo {
+          display: flex;
+          align-items: center;
+          /* Altura mínima = a do cabeçalho fixo (padding + botão de 46px), para
+             o "Acesso" pousar DENTRO da faixa e não sobre o herói. */
+          min-height: clamp(86px, 9vw, 104px);
+          padding: clamp(18px, 2.4vw, 28px) var(--scw-trilho) 0;
+          background: var(--scw-choco);
         }
-        @media (prefers-reduced-motion: reduce) {
-          .eb-btn, .eb-post__bar svg:last-child { transition: none; }
+        .eb-topo__marca { height: clamp(46px, 5vw, 62px); width: auto; }
+
+        /* 2 — HERÓI ------------------------------------------------------ */
+        .eb-hero {
+          position: relative;
+          isolation: isolate;
+          background: var(--scw-choco);
+          color: var(--scw-creme);
+          /* Sem altura rígida: o herói é proporcional ao conteúdo (§6.8). */
+          padding: clamp(56px, 7vw, 96px) var(--scw-trilho) clamp(64px, 7vw, 104px);
+          --hv-cor: var(--scw-choco);
+          --hv-esq: 88%;
+          --hv-centro: 56%;
+          --hv-fim: 74%;
+        }
+        .eb-hero__fotos { position: absolute; inset: 0; z-index: 0; }
+        .eb-hero__conteudo {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: clamp(16px, 1.8vw, 22px);
+          max-width: min(62%, 860px);
+        }
+        .eb-pill { background: var(--scw-amarelo); color: var(--scw-choco); }
+        .eb-h1 { color: var(--scw-creme); }
+        /* Um acento por chapa (§6.2). Magenta sobre chocolate dá 3,8:1 — passa
+           em texto grande, que é exatamente o que o .scw-h1 é. */
+        .eb-h1__dest { color: var(--scw-magenta); }
+        .eb-lead { color: var(--scw-creme); }
+        .eb-acao { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+        .eb-acao__nota { font: 500 13.5px/1.4 var(--scw-font); opacity: .82; }
+
+        /* Respiração da foto: laço na propriedade \`scale\`, NUNCA em transform —
+           transform fica livre para o crossfade e não há salto de reinício
+           (§6.15). 26s é o respiro do sistema, não uma duração nova. */
+        .eb-hero__fotos .scw-hero-banda__foto {
+          animation: ebRespira 26s var(--ease-out-soft) infinite alternate;
+        }
+        @keyframes ebRespira { from { scale: 1; } to { scale: 1.06; } }
+
+        /* 3 — PROVA ------------------------------------------------------ */
+        .eb-prova__grade { list-style: none; margin: 0; padding: 0; }
+        .eb-num { display: flex; flex-direction: column; gap: 8px; }
+        /* O molde reserva a largura do valor FINAL e o vivo corre por cima:
+           a caixa nunca muda de tamanho enquanto o número sobe. */
+        .eb-num__caixa { position: relative; display: inline-block; }
+        .eb-num__molde { visibility: hidden; }
+        .eb-num__vivo { position: absolute; inset: 0; }
+        .eb-num__rotulo {
+          display: block;
+          margin-top: 6px;
+          font: 800 12px/1.3 var(--scw-font);
+          letter-spacing: .14em;
+          text-transform: uppercase;
+          color: var(--scw-marrom);
+        }
+
+        /* 4 — MARQUEE ---------------------------------------------------- */
+        .eb-marquee { color: var(--scw-choco); }
+
+        /* 5 e 6 — CABEÇAS E PASSOS -------------------------------------- */
+        .eb-cabeca { display: flex; flex-direction: column; gap: var(--scw-gap-bloco); }
+        .eb-passos__grade {
+          list-style: none;
+          margin: var(--scw-gap-cabeca) 0 0;
+          padding: 0;
+        }
+        .eb-passo { display: flex; flex-direction: column; gap: 12px; }
+        /* A cor vive no grafismo, não na tinta: sobre creme, amarelo e cyan não
+           sustentam texto — como CHAPA, com numeral chocolate, sustentam com
+           folga (9,5:1 · 5,6:1 · 4,8:1). É a saída do §6.3. */
+        .eb-passo__n {
+          display: inline-grid;
+          place-items: center;
+          width: 54px; height: 54px;
+          border-radius: 50%;
+          color: var(--scw-choco);
+          font: 900 18px/1 var(--scw-font-black);
+          letter-spacing: -.02em;
+        }
+        .eb-passo__txt { max-width: 34ch; }
+        .eb-passos__acao { margin-top: var(--scw-gap-cabeca); }
+
+        /* 7 — FECHO ------------------------------------------------------ */
+        .eb-fecho__inner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--scw-gap-bloco); }
+        .eb-fecho__h2 { color: var(--scw-creme); }
+        .eb-fecho__txt { color: var(--scw-creme); opacity: .9; }
+        .eb-fecho__lover { color: var(--scw-creme); opacity: .82; font-size: 14.5px; }
+        .eb-page .eb-fecho__lover a {
+          color: var(--scw-amarelo);
+          font-weight: 800;
+          /* Alvo de 44px sem quebrar a linha do parágrafo: o padding vertical
+             cresce e o inline-flex dá altura ao link (§10.2). */
+          display: inline-flex; align-items: center; min-height: 44px;
+        }
+
+        /* 8 — RODAPÉ ----------------------------------------------------- */
+        .eb-rodape {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 18px;
+          padding: clamp(28px, 3vw, 40px) var(--scw-trilho);
+          background: var(--scw-creme);
+          border-top: 1px solid rgba(61, 19, 8, .14);
+        }
+        .eb-rodape__f2 { display: inline-flex; flex-direction: column; gap: 8px; min-height: 44px; justify-content: center; }
+        .eb-rodape__f2 img { height: 20px; width: auto; }
+        .eb-rodape__linha { margin: 0; font: 500 13.5px/1.5 var(--scw-font); color: var(--scw-marrom); }
+        .eb-page .eb-rodape__linha a {
+          color: var(--scw-choco);
+          font-weight: 800;
+          display: inline-flex; align-items: center; min-height: 44px;
+        }
+
+        /* 9 — BARRA FIXA (celular) --------------------------------------- */
+        .eb-barra { display: none; }
+
+        /* --- herói no celular: foto quadrada em cima, texto embaixo (§6.9) - */
+        @media (max-width: 1000px) {
+          .eb-hero { display: block; padding-top: clamp(28px, 5vw, 40px); }
+          /* Sai do absoluto e volta ao fluxo: a foto passa a ocupar a largura
+             cheia num quadrado, e o texto vem embaixo sobre a chapa sólida. */
+          .eb-hero__fotos {
+            position: relative;
+            inset: auto;
+            aspect-ratio: 1;
+            margin: calc(clamp(28px, 5vw, 40px) * -1) calc(var(--scw-trilho) * -1) 0;
+          }
+          /* O véu existia para segurar texto SOBRE foto, e não há mais texto
+             sobre foto. No lugar dele, a emenda: rampa de TRÊS paradas na cor
+             do bloco, no ::after da própria imagem. Duas paradas voltariam a
+             marcar aresta — o olho enxerga a derivada, não o valor (§10.4). */
+          .eb-hero.scw-hero-veu::after { display: none; }
+          .eb-hero__fotos::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 46%;
+            pointer-events: none;
+            background: linear-gradient(180deg,
+              rgba(61, 19, 8, 0) 0%,
+              rgba(61, 19, 8, .58) 62%,
+              var(--scw-choco) 100%);
+          }
+          .eb-hero__conteudo {
+            max-width: none;
+            padding-top: clamp(20px, 4vw, 30px);
+          }
+        }
+
+        @media (max-width: 900px) {
+          .eb-barra {
+            display: block;
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 70;
+            padding: 10px clamp(16px, 4vw, 24px) calc(10px + var(--scw-safe-b));
+            background: var(--scw-choco);
+          }
+          .eb-barra__btn { width: 100%; justify-content: center; }
+          /* A barra é fixa: sem este respiro ela cobriria o rodapé. */
+          .eb-rodape { padding-bottom: calc(clamp(28px, 3vw, 40px) + 74px + var(--scw-safe-b)); }
+        }
+
+        @media (max-width: 760px) {
+          .eb-acao { align-self: stretch; }
+          .eb-acao .scw-btn { width: 100%; justify-content: center; }
+          .eb-passos__acao .scw-btn,
+          .eb-fecho .scw-btn { width: 100%; justify-content: center; }
+          .eb-rodape { justify-content: flex-start; }
         }
       `}</style>
     </div>
