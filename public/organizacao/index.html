@@ -147,15 +147,15 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding-bottom:var(--scw-safe-b);
   border-top:1px solid rgba(254,240,221,.14);
 }
-/* O 4 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
+/* O 5 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
    aqui — o indicador deslizante mede a coluna, não o botão. */
 .og-abasapp__grade{
   position:relative;
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:repeat(5,1fr);
   height:var(--og-abas-h);
 }
 .og-abasapp__indicador{
-  position:absolute;top:0;left:0;height:3px;width:calc(100% / 4);
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / 5);
   background:var(--scw-amarelo);border-radius:0 0 3px 3px;
   transform:translateX(calc(var(--og-i,0) * 100%));
   transition:transform 300ms var(--scw-ease);
@@ -355,6 +355,17 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 .og-acoes-rapidas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
 .og-bloco{border-top:1px solid var(--scw-filete);padding-top:22px;display:flex;flex-direction:column;gap:14px}
 .og-bloco h3{font:900 15px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
+/* Linha de ficha: rótulo em peso, valor em seguida. O `<b>` carrega a
+   hierarquia; a linha inteira fica no mesmo tamanho de corpo, porque uma ficha
+   é para LER de cima a baixo, não para varrer. */
+.og-par{margin:0;font-size:14.5px;line-height:1.5}
+.og-par b{font-weight:800}
+/* Caixa de marcar: o alvo é a LINHA, não o quadradinho de 16px. O piso de 44px
+   vale para o controle real, e um <input type=checkbox> nunca chega lá sozinho
+   (CLAUDE.md §10.2). */
+.og-campo--linha{flex-direction:row;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.og-campo--linha input{width:22px;height:22px;min-height:22px;flex:0 0 auto;accent-color:var(--scw-cyan)}
+.og-campo--linha span{margin:0;font-weight:700}
 
 /* Saída com movimento nas duas telas: gaveta sai pela direita, folha desce.
    Sem isso o detalhe some com um corte, e corte denuncia que não é app. */
@@ -501,7 +512,8 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
            rótulo curto é o único que cabe numa barra de 4 colunas a 320px sem
            quebrar a linha. Uma palavra só nas duas telas. -->
       <button class="og-aba" type="button" data-vista="participantes">marcas</button>
-      <button class="og-aba" type="button" data-vista="formularios">formulários</button>
+      <button class="og-aba" type="button" data-vista="producao">produção</button>
+      <button class="og-aba" type="button" data-vista="equipe">equipe</button>
     </nav>
     <div class="og-topo__dir">
       <button class="og-btn og-btn--vazado og-btn--mini" type="button" id="btn-atualizar">Atualizar</button>
@@ -516,6 +528,18 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     <section class="og-vista" id="vista-resumo" hidden>
       <div class="og-aviso" id="aviso" hidden></div>
       <ul class="og-resumo" id="resumo"></ul>
+
+      <!-- "Os formulários" desceu para cá em 25/08/2026, quando a barra ganhou
+           produção e equipe. Ele é lista de referência, não destino: ninguém
+           abre o painel para consultá-lo, e ocupar uma das cinco colunas da
+           barra de abas com uma tela que se lê uma vez custa caro no celular. -->
+      <section class="og-forms" style="margin-top:22px">
+        <div class="og-forms__cabeca">
+          <h2>Os formulários</h2>
+          <p>Onde cada resposta desta tela nasce.</p>
+        </div>
+        <ul class="og-forms__lista" id="forms"></ul>
+      </section>
     </section>
 
     <section class="og-vista" id="vista-respostas" hidden>
@@ -557,13 +581,64 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
       </section>
     </section>
 
-    <section class="og-vista" id="vista-formularios" hidden>
+    <!-- Produção: as três coisas que a organização MANDA para a marca. Ficam
+         juntas porque são o mesmo gesto em três formatos — pedir, entregar
+         documento, marcar a foto. Separá-las em três destinos faria a barra
+         crescer para sete colunas para dizer a mesma coisa. -->
+    <section class="og-vista" id="vista-producao" hidden>
+      <section class="og-forms">
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Pedidos e prazos</h2>
+            <p>O que a organização pediu, para quem, até quando — e quem já respondeu.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-nova-solic">Novo pedido</button>
+        </div>
+        <div id="area-solicitacoes"></div>
+      </section>
+
+      <section class="og-forms" style="margin-top:22px">
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Arquivos</h2>
+            <p>Documentos para download. Gerais, ou de uma marca só.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-novo-arquivo">Publicar arquivo</button>
+        </div>
+        <div id="area-arquivos"></div>
+      </section>
+
+      <section class="og-forms" style="margin-top:22px">
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Sessões de fotos</h2>
+            <p>Quem fotografa é a organização. A marca só vê a data.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-nova-sessao">Agendar sessão</button>
+        </div>
+        <div id="area-sessoes"></div>
+      </section>
+    </section>
+
+    <section class="og-vista" id="vista-equipe" hidden>
       <section class="og-forms">
         <div class="og-forms__cabeca">
-          <h2>Os formulários</h2>
-          <p>Onde cada resposta desta tela nasce.</p>
+          <h2>A edição aberta</h2>
+          <p>É ela que decide qual formulário a marca vê ao entrar. Sem edição
+             aberta, conta nova entra e não tem o que preencher.</p>
         </div>
-        <ul class="og-forms__lista" id="forms"></ul>
+        <div id="area-edicao"></div>
+      </section>
+
+      <section class="og-forms" style="margin-top:22px">
+        <div class="og-forms__cabeca og-forms__cabeca--com-acao">
+          <div>
+            <h2>Contas da organização</h2>
+            <p>Quem entra por conta nominal, e o que cada função pode fazer.</p>
+          </div>
+          <button class="og-btn og-btn--mini" type="button" id="btn-nova-conta">Criar conta</button>
+        </div>
+        <div id="area-contas"></div>
       </section>
     </section>
   </main>
@@ -590,12 +665,20 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
         </svg>
         <span class="og-abaapp__rotulo">marcas</span>
       </button>
-      <button class="og-abaapp" type="button" data-vista="formularios">
+      <button class="og-abaapp" type="button" data-vista="producao">
         <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/>
-          <rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="M8.5 11h7"/><path d="M8.5 15h4.5"/>
+          <rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="m8.5 12 2 2 3.5-3.5"/><path d="M8.5 17h5"/>
         </svg>
-        <span class="og-abaapp__rotulo">formulários</span>
+        <span class="og-abaapp__rotulo">produção</span>
+      </button>
+      <button class="og-abaapp" type="button" data-vista="equipe">
+        <svg class="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2"/>
+          <circle cx="16.5" cy="15.5" r="2.5"/><path d="M16.5 11.5v1.2"/><path d="M16.5 18.3v1.2"/>
+          <path d="m13.6 13.2.9.6"/><path d="m18.5 16.7.9.6"/>
+        </svg>
+        <span class="og-abaapp__rotulo">equipe</span>
       </button>
     </div>
   </nav>
@@ -691,7 +774,26 @@ const ROTULO_STATUS = {
   novo:'Novo', em_analise:'Em análise', contatado:'Contatado', respondido:'Respondido',
   aprovado:'Aprovado', nao_selecionado:'Não selecionado', aguardando_cadastro:'Aguardando cadastro',
   cadastro_completo:'Cadastro completo', em_preenchimento:'Preenchendo',
-  em_negociacao:'Em negociação', fechado:'Fechado', arquivado:'Arquivado', encerrado:'Encerrado'
+  em_negociacao:'Em negociação', fechado:'Fechado', arquivado:'Arquivado', encerrado:'Encerrado',
+  /* ⚠️ Status novo no banco tem que ganhar rótulo aqui NO MESMO COMMIT, senão
+     aparece como string crua e some do filtro. `sem_participacao` não vem de
+     CHECK nenhum: é o que `get_participantes` devolve quando a marca tem conta
+     e nenhuma edição aberta — estado real, que a tela nomeia em vez de deixar
+     em branco. */
+  sem_participacao:'Sem edição aberta'
+};
+
+/* Os blocos do formulário da marca, na ordem em que ela os vê. É o que liga um
+   pedido a uma parte da tela: "falta o salgado" abre onde se preenche o
+   salgado, em vez de mandar procurar. Espelha o CHECK de `solicitacoes.bloco`. */
+const BLOCOS = {
+  livre:'Recado geral', estabelecimento:'Dados do estabelecimento', combo:'O combo',
+  item_doce:'O doce', item_salgado:'O salgado', item_bebida:'A bebida',
+  arquivo:'Um arquivo', fotos:'As fotos'
+};
+
+const ROTULO_SESSAO = {
+  agendada:'Agendada', realizada:'Realizada', cancelada:'Cancelada', remarcada:'Remarcada'
 };
 
 /* Onde procurar nome, empresa, e-mail e telefone em cada origem — a busca e a
@@ -705,7 +807,7 @@ const CHAVES = {
 
 /* Os três destinos da casca. Não confundir com as quatro ORIGENS: origem é de
    qual formulário a resposta veio; destino é onde a pessoa está no app. */
-const DESTINOS = ['resumo', 'respostas', 'participantes', 'formularios'];
+const DESTINOS = ['resumo', 'respostas', 'participantes', 'producao', 'equipe'];
 
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
@@ -715,6 +817,12 @@ let dados = {};            // origem → array de registros
    ali entraria na lista de respostas como se fosse um formulário. */
 let participantes = [];
 let participantesErro = '';  // por que a lista não veio; '' quando veio
+/* Produção e equipe. Cada um com o próprio motivo de falha ao lado, pelo mesmo
+   princípio de `participantesErro`: lista vazia e leitura que falhou parecem
+   iguais na tela, e são coisas opostas. Uma diz "não há pedido"; a outra diz
+   "não consegui saber". */
+let solicitacoes = [], arquivos = [], sessoes = [], contas = [], config = null;
+let producaoErro = '', equipeErro = '';
 let aba = 'tudo';
 let selecionado = null;    // { origem, id }
 let vistaAtual = '';         // destino visível
@@ -933,7 +1041,7 @@ async function carregar() {
     chaves.forEach((k, i) => { dados[k] = listas[i] || []; });
     ultimaCarga = Date.now();
     aviso.hidden = true;
-    await carregarParticipantes();
+    await Promise.all([carregarParticipantes(), carregarProducao(), carregarEquipe()]);
     render();
   } catch (e) {
     // Erro de rede não pode virar tela branca nem "nenhum registro": as duas
@@ -957,6 +1065,40 @@ async function carregarParticipantes() {
   } catch (e) {
     participantes = [];
     participantesErro = e.message;
+  }
+}
+
+/* Mesma regra das marcas, pelo mesmo motivo: cada frente cai sozinha.
+   ⚠️ E há uma segunda razão aqui — FUNÇÃO. A conta de `consulta` lê tudo;
+   `producao.gerir` e `acesso.gerir` são de quem pode escrever. Uma leitura
+   negada por função não é erro do painel, e não pode derrubar o que a pessoa
+   tem direito de ver. */
+async function carregarProducao() {
+  try {
+    const [s, a, f] = await Promise.all([
+      rpc('get_solicitacoes_admin', { p_secret: senha }),
+      rpc('get_arquivos_admin', { p_secret: senha }),
+      rpc('get_sessoes_fotos', { p_secret: senha }),
+    ]);
+    solicitacoes = s || []; arquivos = a || []; sessoes = f || [];
+    producaoErro = '';
+  } catch (e) {
+    solicitacoes = []; arquivos = []; sessoes = [];
+    producaoErro = e.message;
+  }
+}
+
+async function carregarEquipe() {
+  try {
+    const [c, k] = await Promise.all([
+      rpc('get_config_admin', { p_secret: senha }),
+      rpc('get_contas_organizacao', { p_secret: senha }),
+    ]);
+    config = c || null; contas = k || [];
+    equipeErro = '';
+  } catch (e) {
+    config = null; contas = [];
+    equipeErro = e.message;
   }
 }
 
@@ -1118,6 +1260,8 @@ function render() {
      independentes, e uma tela de respostas vazia não pode deixar a vista das
      marcas com o esqueleto da carga anterior na tela. */
   renderParticipantes();
+  renderProducao();
+  renderEquipe();
 
   const corte7 = Date.now() - 7 * 864e5;
   $('resumo').innerHTML = Object.entries(ORIGENS).map(([k, o]) => {
@@ -1169,8 +1313,28 @@ function render() {
    achar a marca atrasada sem ler rótulo nenhum. */
 const COR_CADASTRO = {
   aguardando_cadastro: '#FF4810', em_preenchimento: '#01AFCC',
-  cadastro_completo: '#3D1308', encerrado: '#6A2C15'
+  cadastro_completo: '#3D1308', encerrado: '#6A2C15',
+  sem_participacao: '#6A2C15'
 };
+
+function preco(v) {
+  return v == null ? '' : 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+}
+
+/* Quanto falta para um prazo, em dias inteiros. Diferença em MILISSEGUNDOS
+   dividida por um dia, e não subtração de datas locais: o horário de verão faz
+   um dos dias do ano ter 23 horas, e "vence hoje" na véspera é o erro que
+   aparece uma vez por ano e nunca é reproduzido. */
+function prazoSelo(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const n = Math.ceil((d.getTime() - Date.now()) / 864e5);
+  if (n < 0) return '<span class="og-selo" data-acesso="aguardando_cadastro">venceu ' + dataCurta(iso) + '</span>';
+  if (n === 0) return '<span class="og-selo" data-acesso="aguardando_cadastro">vence hoje</span>';
+  if (n <= 7) return '<span class="og-selo" data-acesso="em_preenchimento">faltam ' + n + ' dias</span>';
+  return '<span class="og-selo">até ' + dataCurta(iso) + '</span>';
+}
 
 function renderParticipantes() {
   const area = $('area-participantes');
@@ -1203,25 +1367,43 @@ function renderParticipantes() {
   ul.className = 'og-lista';
   participantes.forEach(p => {
     const li = document.createElement('li');
-    const item = document.createElement('div');
+    /* `<button>` e não `<div>`: a linha ABRE a ficha, e ação de navegação em
+       elemento morto não recebe foco nem tecla (CLAUDE.md §13). A marca sem
+       participação não abre nada, e aí volta a ser div — botão que não faz
+       nada é pior que texto. */
+    const clicavel = !!p.participacao_id;
+    const item = document.createElement(clicavel ? 'button' : 'div');
     item.className = 'og-item';
+    if (clicavel) {
+      item.type = 'button';
+      item.dataset.ficha = p.participacao_id;
+    }
 
-    const unidades = Array.isArray(p.unidades) ? p.unidades.length : 0;
-    // O que a marca já preencheu. Sem inventar: campo vazio simplesmente não
-    // entra na linha, e uma marca que não preencheu nada mostra o vão.
+    /* O que a marca já preencheu, contado pelo BANCO e não aqui: `unidades` e
+       `itens_prontos` chegam prontos de `get_participantes`. Contar na tela
+       exigiria trazer as linhas todas para contá-las. */
+    /* Number(), e não o valor cru: toda contagem que vem do banco é bigint, e o
+       driver pode entregá-la como STRING. "2" + "1" daria "21", e
+       "1" === 1 é falso — a unidade única sairia no plural. */
+    const nUnidades = Number(p.unidades || 0);
+    const nItens = Number(p.itens_prontos || 0);
+    const nEdicoes = Number(p.edicoes || 0);
     const feito = [
-      p.combo_nome || '',
-      unidades ? unidades + (unidades === 1 ? ' unidade' : ' unidades') : '',
-      p.combo_preco != null ? 'R$ ' + Number(p.combo_preco).toFixed(2).replace('.', ',') : ''
+      p.tema_combo || '',
+      nItens ? nItens + ' de 3 itens' : '',
+      nUnidades ? nUnidades + (nUnidades === 1 ? ' unidade' : ' unidades') : '',
+      preco(p.combo_preco)
     ].filter(Boolean).join(' · ');
+
+    const edicao = p.edicao_codigo ? 'edição ' + escapar(p.edicao_codigo) : 'sem edição aberta';
+    const historico = nEdicoes > 1 ? ' · ' + nEdicoes + ' edições' : '';
 
     item.innerHTML =
       '<span class="og-item__cor" style="background:' +
         (COR_CADASTRO[p.status_cadastro] || '#6A2C15') + '" aria-hidden="true"></span>' +
       '<p class="og-item__nome">' + escapar(p.nome_marca || '(sem nome)') + '</p>' +
-      '<p class="og-item__meta">' +
-        escapar([p.responsavel, p.email].filter(Boolean).join(' · ') || 'sem contato registrado') +
-        (feito ? ' — ' + escapar(feito) : ' — nada preenchido ainda') +
+      '<p class="og-item__meta">' + edicao + historico + ' — ' +
+        (feito ? escapar(feito) : 'nada preenchido ainda') +
       '</p>' +
       '<span class="og-item__dir">' +
         '<span class="og-selo" data-acesso="' + escapar(p.status_cadastro) + '">' +
@@ -1233,6 +1415,144 @@ function renderParticipantes() {
   });
   area.innerHTML = '';
   area.appendChild(ul);
+}
+
+/* ── Produção ──────────────────────────────────────────────────────────── */
+function estadoSimples(titulo, texto, tom) {
+  return '<div class="og-estado"' + (tom ? ' data-tom="' + tom + '"' : '') + '>' +
+    '<h2>' + escapar(titulo) + '</h2><p>' + escapar(texto) + '</p></div>';
+}
+
+function renderProducao() {
+  if (producaoErro) {
+    const erro = estadoSimples('Não consegui ler a produção', producaoErro, 'erro');
+    $('area-solicitacoes').innerHTML = erro;
+    $('area-arquivos').innerHTML = '';
+    $('area-sessoes').innerHTML = '';
+    return;
+  }
+
+  /* Pedido: o número que interessa é quantas marcas ainda não responderam. Ele
+     vem do banco (`pendentes`/`respondidas` em `get_solicitacoes_admin`), que
+     conta a tabela de estado — a mesma que a marca lê. Contar de novo aqui
+     seria a segunda fonte de verdade do §5.2. */
+  $('area-solicitacoes').innerHTML = !solicitacoes.length
+    ? estadoSimples('Nenhum pedido ainda',
+        'Um pedido é o que aparece no painel da marca com prazo. Aviso para todas ou cobrança de uma só.')
+    : '<ul class="og-lista">' + solicitacoes.map(s => {
+        const rascunho = !s.publicada_em;
+        const alvo = s.escopo === 'geral' ? 'todas as marcas' : (s.marca || 'uma marca');
+        const feitas = Number(s.respondidas || 0), faltam = Number(s.pendentes || 0);
+        const conta = rascunho ? 'ainda não foi publicado'
+          : (feitas + ' de ' + (feitas + faltam) + ' responderam');
+        return '<li><div class="og-item">' +
+          '<span class="og-item__cor" style="background:' +
+            (rascunho ? '#6A2C15' : (faltam ? '#FF4810' : '#01AFCC')) + '" aria-hidden="true"></span>' +
+          '<p class="og-item__nome">' + escapar(s.titulo) + '</p>' +
+          '<p class="og-item__meta">' + escapar(alvo) + ' · ' +
+            escapar(BLOCOS[s.bloco] || s.bloco) + ' — ' + escapar(conta) + '</p>' +
+          '<span class="og-item__dir">' + prazoSelo(s.prazo_em) +
+            (rascunho
+              ? '<button class="og-btn og-btn--mini" type="button" data-publicar="' + escapar(s.id) + '">Publicar</button>'
+              : '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-quem="' + escapar(s.id) + '">Quem falta</button>') +
+          '</span></div></li>';
+      }).join('') + '</ul>';
+
+  $('area-arquivos').innerHTML = !arquivos.length
+    ? estadoSimples('Nenhum arquivo publicado',
+        'O que você publicar aqui aparece para download no painel da marca.')
+    : '<ul class="og-lista">' + arquivos.map(a => {
+        const detalhe = [a.escopo === 'geral' ? 'para todas' : (a.marca || 'uma marca'),
+          a.versao ? 'versão ' + a.versao : '',
+          a.exige_leitura ? Number(a.leituras || 0) + ' confirmaram leitura' : ''].filter(Boolean).join(' · ');
+        return '<li><div class="og-item">' +
+          '<span class="og-item__cor" style="background:#4D257E" aria-hidden="true"></span>' +
+          '<p class="og-item__nome">' + escapar(a.nome) + '</p>' +
+          '<p class="og-item__meta">' + escapar(detalhe) + '</p>' +
+          '<span class="og-item__dir">' +
+            '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-baixar="' +
+              escapar(a.path) + '">Baixar</button>' +
+            '<span class="og-item__data">' + dataCurta(a.publicado_em) + '</span>' +
+          '</span></div></li>';
+      }).join('') + '</ul>';
+
+  $('area-sessoes').innerHTML = !sessoes.length
+    ? estadoSimples('Nenhuma sessão agendada',
+        'A marca vê a data assim que você agenda. Ela não escolhe horário nem remarca por lá.')
+    : '<ul class="og-lista">' + sessoes.map(f => {
+        return '<li><div class="og-item">' +
+          '<span class="og-item__cor" style="background:#FDBB1A" aria-hidden="true"></span>' +
+          '<p class="og-item__nome">' + escapar(f.nome_marca || '(marca)') + '</p>' +
+          '<p class="og-item__meta">' + escapar(dataHoraCurta(f.data_hora)) +
+            (f.local ? ' · ' + escapar(f.local) : '') +
+            (f.edicao_codigo ? ' · edição ' + escapar(f.edicao_codigo) : '') + '</p>' +
+          '<span class="og-item__dir">' +
+            '<span class="og-selo">' + escapar(ROTULO_SESSAO[f.status] || f.status) + '</span>' +
+            '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-sessao="' +
+              escapar(f.id) + '">Mudar</button>' +
+          '</span></div></li>';
+      }).join('') + '</ul>';
+}
+
+function dataHoraCurta(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+/* ── Equipe ────────────────────────────────────────────────────────────── */
+function renderEquipe() {
+  if (equipeErro) {
+    $('area-edicao').innerHTML = estadoSimples('Não consegui ler a configuração', equipeErro, 'erro');
+    $('area-contas').innerHTML = '';
+    return;
+  }
+
+  const atual = config && config.edicao_atual;
+  $('area-edicao').innerHTML =
+    '<div class="og-item" style="cursor:default">' +
+      '<span class="og-item__cor" style="background:' + (atual ? '#01AFCC' : '#FF4810') + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + (atual ? escapar(atual) : 'Nenhuma edição aberta') + '</p>' +
+      '<p class="og-item__meta">' + (atual
+        ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
+        : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.') + '</p>' +
+    '</div>' +
+    '<label class="og-campo" style="margin-top:12px"><span>Código da edição</span>' +
+      '<input type="text" id="eq-edicao" placeholder="2027" value="' + escapar(atual || '') + '"></label>' +
+    '<div class="og-aviso" id="eq-aviso" hidden></div>' +
+    '<button class="og-btn" type="button" id="eq-salvar">Salvar edição</button>' +
+    /* Só aparece com edição aberta: fechar sem ter aberto não é um gesto que
+       exista, e um botão que não faz nada ensina que o painel é decorativo. */
+    (atual ? ' <button class="og-btn og-btn--vazado" type="button" id="eq-fechar">Fechar a edição</button>' : '');
+
+  if (!contas.length) {
+    /* Zero contas com `dado.ler` funcionando significa que ninguém tem conta
+       nominal — todo mundo entra pela senha compartilhada. Zero contas porque a
+       função não é administrador é outra coisa, e o texto não pode dizer as
+       duas. Por isso a frase fala do que É verificável daqui. */
+    $('area-contas').innerHTML = estadoSimples('Nenhuma conta nominal',
+      'Ou ninguém tem conta própria ainda, ou a sua função não gerencia contas. ' +
+      'Criar conta é coisa de administrador.');
+    return;
+  }
+
+  $('area-contas').innerHTML = '<ul class="og-lista">' + contas.map(c => {
+    const pendencias = [c.ativo ? '' : 'suspensa', c.deve_trocar_senha ? 'ainda não trocou a senha' : '']
+      .filter(Boolean).join(' · ');
+    return '<li><div class="og-item">' +
+      '<span class="og-item__cor" style="background:' + (c.ativo ? '#3D1308' : '#FF4810') + '" aria-hidden="true"></span>' +
+      '<p class="og-item__nome">' + escapar(c.email || '(sem e-mail)') + '</p>' +
+      '<p class="og-item__meta">' + escapar(c.rotulo || c.funcao || 'sem função') +
+        (pendencias ? ' — ' + escapar(pendencias) : '') + '</p>' +
+      '<span class="og-item__dir">' +
+        '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-conta="' +
+          escapar(c.user_id) + '">Mudar</button>' +
+        '<span class="og-item__data">' + dataCurta(c.criado_em) + '</span>' +
+      '</span></div></li>';
+  }).join('') + '</ul>';
 }
 
 ['busca', 'filtro-status', 'filtro-periodo'].forEach(id => {
@@ -1345,14 +1665,9 @@ const RECADO_MANUAL = {
 };
 
 function abrirCadastroManual() {
-  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
-  $('detalhe').classList.remove('is-fechando');
-  selecionado = null;
-
-  $('detalhe-titulo').textContent = 'Cadastrar marca';
-  $('detalhe-sub').textContent = 'Para quem você convidou sem passar pelo formulário';
-
-  $('detalhe-corpo').innerHTML =
+  // `abrirFolha` é a mesma abertura das outras oito folhas — cancela o timer de
+  // saída, tira a classe, preenche e mostra. Ver a definição dela mais abaixo.
+  abrirFolha('Cadastrar marca', 'Para quem você convidou sem passar pelo formulário',
     '<div class="og-bloco" style="border-top:0;padding-top:0">' +
       '<p class="og-forms__nota">A conta nasce agora, com login e senha. Nome e telefone ' +
         'são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>' +
@@ -1370,7 +1685,7 @@ function abrirCadastroManual() {
       '<div class="og-aviso" id="man-aviso" hidden></div>' +
       '<div id="man-credenciais"></div>' +
       '<button class="og-btn" type="button" id="man-criar">Criar marca e acesso</button>' +
-    '</div>';
+    '</div>');
 
   const campo = $('man-nome');
   campo.addEventListener('input', function () {
@@ -1378,9 +1693,6 @@ function abrirCadastroManual() {
     $('man-login').innerHTML = 'O login vai ser: <b>' + escapar(s || '—') + '</b>';
   });
   $('man-criar').addEventListener('click', criarMarcaManual);
-
-  $('fundo').hidden = false;
-  $('detalhe').hidden = false;
   campo.focus();
 }
 
@@ -1700,6 +2012,635 @@ function fecharDetalhe() {
     if (!painel.hidden && Object.keys(dados).length) render();
   }, semMovimento ? 0 : 260);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   Fase 6 · A ficha da marca, produção e equipe
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Abrir a folha é o mesmo gesto em nove lugares agora. Uma função, e não nove
+   cópias de "cancela o timer, tira a classe de saída, preenche, mostra": a
+   segunda cópia é onde as duas começam a divergir (CLAUDE.md §5.3). */
+function abrirFolha(titulo, sub, corpo) {
+  if (saidaDetalhe) { clearTimeout(saidaDetalhe); saidaDetalhe = null; }
+  $('detalhe').classList.remove('is-fechando');
+  selecionado = null;
+  $('detalhe-titulo').textContent = titulo;
+  $('detalhe-sub').textContent = sub || '';
+  $('detalhe-corpo').innerHTML = corpo;
+  $('fundo').hidden = false;
+  $('detalhe').hidden = false;
+}
+
+function avisoEm(id, texto, tom) {
+  const el = $(id);
+  if (!el) return;
+  el.hidden = !texto;
+  el.textContent = texto || '';
+  if (tom) el.dataset.tom = tom; else delete el.dataset.tom;
+}
+
+/* Campo de data e hora local → ISO. `datetime-local` devolve "2027-03-04T14:30"
+   SEM fuso, e `new Date()` sobre essa string a lê como hora LOCAL, que é o que
+   a pessoa digitou. Concatenar 'Z' aqui seria adiantar a sessão em três horas. */
+function isoDoCampo(valor) {
+  if (!valor) return null;
+  const d = new Date(valor);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function opcoesMarcas(selecionada) {
+  return participantes.filter(p => p.participacao_id).map(p =>
+    '<option value="' + escapar(p.participacao_id) + '"' +
+    (p.participacao_id === selecionada ? ' selected' : '') + '>' +
+    escapar(p.nome_marca) + (p.edicao_codigo ? ' — ' + escapar(p.edicao_codigo) : '') +
+    '</option>').join('');
+}
+
+/* ── A ficha completa da marca ─────────────────────────────────────────── */
+/* Uma chamada só (`get_ficha_participacao`). Seis idas ao servidor desenhariam
+   a ficha em seis pedaços que pulam sob o dedo de quem já começou a rolar. */
+async function abrirFicha(participacaoId) {
+  abrirFolha('Carregando…', '', '<div class="og-bloco"><p>Buscando a ficha.</p></div>');
+  let f;
+  try {
+    f = await rpc('get_ficha_participacao', { p_secret: senha, p_participacao: participacaoId });
+  } catch (e) {
+    $('detalhe-corpo').innerHTML = '<div class="og-bloco"><p>' + escapar(e.message) + '</p></div>';
+    return;
+  }
+  if (!f) {
+    $('detalhe-corpo').innerHTML = '<div class="og-bloco"><p>Ficha não encontrada.</p></div>';
+    return;
+  }
+
+  const m = f.marca || {}, pa = f.participacao || {};
+  const itens = f.itens || [], unidades = f.unidades || [];
+  const solics = f.solicitacoes || [], arqs = f.arquivos || [];
+  const sess = f.sessoes || [], edicoes = f.edicoes || [];
+
+  const linha = (rotulo, valor) => valor
+    ? '<p class="og-par"><b>' + escapar(rotulo) + '</b> ' + escapar(valor) + '</p>' : '';
+
+  const restricoes = (i) => [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '',
+    i.sem_lactose ? 'sem lactose' : ''].filter(Boolean).join(' · ');
+
+  $('detalhe-titulo').textContent = m.nome_marca || '(sem nome)';
+  $('detalhe-sub').textContent = 'Edição ' + (pa.edicao_codigo || '—') + ' · ' +
+    (ROTULO_STATUS[pa.status_cadastro] || pa.status_cadastro || '');
+
+  $('detalhe-corpo').innerHTML =
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<h3>Contato</h3>' +
+      linha('Responsável:', m.responsavel) + linha('Telefone:', m.telefone) +
+      linha('E-mail:', m.email) + linha('Instagram:', m.instagram) + linha('Site:', m.site) +
+      linha('CNPJ:', m.cnpj) + linha('Razão social:', m.razao_social) +
+    '</div>' +
+
+    '<div class="og-bloco"><h3>O combo</h3>' +
+      linha('Tema:', pa.tema_combo) + linha('Justificativa:', pa.tema_justificativa) +
+      linha('Preço:', preco(pa.combo_preco)) +
+      (itens.length ? itens.map(i =>
+        '<div class="og-par" style="margin-top:10px">' +
+          '<b>' + escapar((i.tipo || '').toUpperCase()) + '</b> ' +
+          escapar(i.nome || '(sem nome)') +
+          (i.descricao ? '<br>' + escapar(i.descricao) : '') +
+          (i.ingredientes ? '<br><i>' + escapar(i.ingredientes) + '</i>' : '') +
+          (restricoes(i) ? '<br>' + escapar(restricoes(i)) : '') +
+          (i.foto_path
+            ? '<br><button class="og-btn og-btn--vazado og-btn--mini" type="button" ' +
+              'data-baixar-combo="' + escapar(i.foto_path) + '">Ver a foto</button>'
+            : '<br><button class="og-btn og-btn--vazado og-btn--mini" type="button" ' +
+              'data-foto-item="' + escapar(i.id) + '" data-part="' + escapar(participacaoId) +
+              '" data-tipo="' + escapar(i.tipo) + '">Enviar a foto</button>') +
+        '</div>').join('')
+        : '<p>Os três itens ainda não foram criados.</p>') +
+    '</div>' +
+
+    '<div class="og-bloco"><h3>Unidades</h3>' +
+      (unidades.length ? unidades.map(u =>
+        '<p class="og-par"><b>' + escapar(u.endereco || '(sem endereço)') + '</b>' +
+        (u.bairro ? ' · ' + escapar(u.bairro) : '') +
+        (u.horarios ? '<br>' + escapar(u.horarios) : '') +
+        (u.faz_delivery
+          ? '<br>delivery: ' + escapar((u.canais_delivery || []).map(c => c.tipo).join(', ') || 'sem canal informado')
+          : '<br>sem delivery') +
+        '</p>').join('')
+        : '<p>Nenhuma unidade cadastrada.</p>') +
+    '</div>' +
+
+    '<div class="og-bloco"><h3>Pedidos</h3>' +
+      (solics.length ? solics.map(s =>
+        '<p class="og-par"><b>' + escapar(s.titulo) + '</b> — ' +
+        (s.estado === 'respondido' ? 'respondido' : 'pendente') +
+        (s.prazo_em ? ' · ' + prazoSelo(s.prazo_em).replace(/<[^>]+>/g, '') : '') +
+        (s.estado === 'respondido' ? ''
+          : ' <button class="og-btn og-btn--vazado og-btn--mini" type="button" data-marcar="' +
+            escapar(s.id) + '" data-part="' + escapar(participacaoId) + '">Dar por respondido</button>') +
+        '</p>').join('')
+        : '<p>Nenhum pedido publicado para esta marca.</p>') +
+    '</div>' +
+
+    '<div class="og-bloco"><h3>Arquivos e fotos</h3>' +
+      (arqs.length ? arqs.map(a =>
+        '<p class="og-par"><b>' + escapar(a.nome) + '</b>' +
+        (a.exige_leitura ? (a.lido_em ? ' — leu em ' + dataCurta(a.lido_em) : ' — ainda não leu') : '') +
+        '</p>').join('')
+        : '<p>Nenhum arquivo para esta marca.</p>') +
+      (sess.length ? sess.map(x =>
+        '<p class="og-par"><b>Sessão</b> ' + escapar(dataHoraCurta(x.data_hora)) +
+        ' · ' + escapar(ROTULO_SESSAO[x.status] || x.status) + '</p>').join('')
+        : '<p>Nenhuma sessão de fotos agendada.</p>') +
+    '</div>' +
+
+    '<div class="og-bloco"><h3>Histórico</h3>' +
+      /* O que separa "casa nova" de "casa que está aqui desde 2019" na hora de
+         decidir qualquer coisa sobre ela. */
+      edicoes.map(e => '<p class="og-par"><b>' + escapar(e.edicao_codigo) + '</b> · ' +
+        escapar(ROTULO_STATUS[e.status_cadastro] || e.status_cadastro) +
+        (e.tema_combo ? ' — ' + escapar(e.tema_combo) : '') + '</p>').join('') +
+    '</div>' +
+    '<div class="og-aviso" id="ficha-aviso" hidden></div>';
+}
+
+/* ── Pedidos ───────────────────────────────────────────────────────────── */
+function abrirNovoPedido() {
+  const blocos = Object.entries(BLOCOS)
+    .map(([k, v]) => '<option value="' + k + '">' + escapar(v) + '</option>').join('');
+  abrirFolha('Novo pedido', 'Aparece no painel da marca, com prazo',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<p class="og-forms__nota">Ele nasce como rascunho. Só ao publicar é que a marca ' +
+        'passa a ver — e é aí que o prazo começa a valer para ela.</p>' +
+      '<label class="og-campo"><span>Título</span><input type="text" id="sol-titulo"></label>' +
+      '<label class="og-campo"><span>Texto</span><textarea id="sol-texto"></textarea></label>' +
+      '<label class="og-campo"><span>Para quem</span><select id="sol-escopo">' +
+        '<option value="geral">Todas as marcas</option>' +
+        '<option value="marca">Uma marca só</option></select></label>' +
+      '<label class="og-campo" id="sol-marca-campo" hidden><span>Qual marca</span>' +
+        '<select id="sol-marca">' + opcoesMarcas() + '</select></label>' +
+      '<label class="og-campo"><span>Bloco do formulário</span>' +
+        '<select id="sol-bloco">' + blocos + '</select></label>' +
+      '<label class="og-campo"><span>Prazo <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="date" id="sol-prazo"></label>' +
+      '<div class="og-aviso" id="sol-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="sol-criar">Criar rascunho</button>' +
+    '</div>');
+  $('sol-escopo').addEventListener('change', function () {
+    $('sol-marca-campo').hidden = this.value !== 'marca';
+  });
+  $('sol-criar').addEventListener('click', criarPedido);
+  $('sol-titulo').focus();
+}
+
+async function criarPedido() {
+  const b = $('sol-criar');
+  const titulo = $('sol-titulo').value.trim();
+  const texto = $('sol-texto').value.trim();
+  const escopo = $('sol-escopo').value;
+  if (!titulo || !texto) { avisoEm('sol-aviso', 'Título e texto são obrigatórios.', 'erro'); return; }
+  b.disabled = true;
+  try {
+    await rpc('criar_solicitacao', {
+      p_secret: senha, p_titulo: titulo, p_texto: texto, p_escopo: escopo,
+      p_participacao: escopo === 'marca' ? $('sol-marca').value : null,
+      p_edicao: (config && config.edicao_atual) || null,
+      p_bloco: $('sol-bloco').value,
+      p_prazo: isoDoCampo($('sol-prazo').value),
+    });
+    // Nunca afirma antes do servidor confirmar: a linha acima ou gravou ou
+    // lançou. Só depois dela a tela diz que existe.
+    avisoEm('sol-aviso', 'Rascunho criado. Publique na lista para a marca ver.', 'ok');
+    await carregarProducao();
+    renderProducao();
+  } catch (e) {
+    avisoEm('sol-aviso', e.message, 'erro');
+  } finally {
+    b.disabled = false;
+  }
+}
+
+async function publicarPedido(id) {
+  try {
+    const n = await rpc('publicar_solicitacao', { p_secret: senha, p_id: id });
+    await carregarProducao();
+    renderProducao();
+    aviso.hidden = false;
+    aviso.textContent = 'Publicado para ' + n + (n === 1 ? ' marca.' : ' marcas.');
+  } catch (e) {
+    aviso.hidden = false;
+    aviso.textContent = 'Não deu para publicar: ' + e.message;
+  }
+}
+
+async function abrirQuemFalta(id) {
+  const s = solicitacoes.find(x => x.id === id);
+  abrirFolha(s ? s.titulo : 'Pedido', 'Quem já respondeu, e quem não',
+    '<div class="og-bloco" style="border-top:0;padding-top:0"><p>Carregando.</p></div>');
+  try {
+    const linhas = await rpc('get_pendentes_solicitacao', { p_secret: senha, p_id: id });
+    const lista = linhas || [];
+    $('detalhe-corpo').innerHTML =
+      '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      (lista.length ? lista.map(l =>
+        '<p class="og-par"><b>' + escapar(l.marca || '(marca)') + '</b> — ' +
+        (l.estado === 'respondido' ? 'respondido' : 'pendente') +
+        (l.estado === 'respondido' ? '' :
+          ' <button class="og-btn og-btn--vazado og-btn--mini" type="button" data-marcar="' +
+          escapar(id) + '" data-part="' + escapar(l.participacao_id) + '">Dar por respondido</button>') +
+        '</p>').join('')
+        : '<p>Este pedido ainda não alcançou nenhuma marca.</p>') +
+      '<div class="og-aviso" id="ficha-aviso" hidden></div></div>';
+  } catch (e) {
+    $('detalhe-corpo').innerHTML = '<div class="og-bloco"><p>' + escapar(e.message) + '</p></div>';
+  }
+}
+
+/* Quem dá por respondido é a organização, e de propósito: um pedido pode ser
+   resolvido por telefone. O estado é o que a PRODUÇÃO considera entregue, não
+   o que a marca declarou. */
+async function marcarRespondido(solicitacaoId, participacaoId, botao) {
+  if (botao) botao.disabled = true;
+  try {
+    await rpc('marcar_solicitacao', {
+      p_secret: senha, p_solicitacao: solicitacaoId,
+      p_participacao: participacaoId, p_respondido: true,
+    });
+    if (botao) botao.replaceWith(document.createTextNode('respondido'));
+    await carregarProducao();
+    renderProducao();
+  } catch (e) {
+    avisoEm('ficha-aviso', e.message, 'erro');
+    if (botao) botao.disabled = false;
+  }
+}
+
+/* ── Arquivos ──────────────────────────────────────────────────────────── */
+/* O nome em disco é normalizado aqui e conferido DE NOVO na Edge Function. Duas
+   validações não é desperdício: esta existe para a pessoa não ver um erro
+   depois de escolher o arquivo; a de lá existe porque o navegador não é uma
+   fonte de verdade sobre o que vai ser gravado. */
+function nomeSeguro(nome) {
+  return String(nome || 'arquivo')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/^[.-]+/, '')
+    .slice(0, 100) || 'arquivo';
+}
+
+function abrirNovoArquivo() {
+  abrirFolha('Publicar arquivo', 'Aparece para download no painel da marca',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<label class="og-campo"><span>Arquivo</span><input type="file" id="arq-file"></label>' +
+      '<label class="og-campo"><span>Nome que a marca vê</span><input type="text" id="arq-nome"></label>' +
+      '<label class="og-campo"><span>Para quem</span><select id="arq-escopo">' +
+        '<option value="geral">Todas as marcas</option>' +
+        '<option value="marca">Uma marca só</option></select></label>' +
+      '<label class="og-campo" id="arq-marca-campo" hidden><span>Qual marca</span>' +
+        '<select id="arq-marca">' + opcoesMarcas() + '</select></label>' +
+      '<label class="og-campo"><span>Versão <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="text" id="arq-versao" placeholder="2"></label>' +
+      '<label class="og-campo"><span>Descrição <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="text" id="arq-descricao"></label>' +
+      /* A capacidade existe e o padrão vem DESLIGADO (item 3.3 do comando).
+         Ligar para contrato e regulamento é configuração, não código novo. */
+      '<label class="og-campo og-campo--linha"><input type="checkbox" id="arq-leitura">' +
+        '<span>Pedir confirmação de leitura</span></label>' +
+      '<div class="og-aviso" id="arq-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="arq-enviar">Publicar</button>' +
+    '</div>');
+  $('arq-escopo').addEventListener('change', function () {
+    $('arq-marca-campo').hidden = this.value !== 'marca';
+  });
+  $('arq-file').addEventListener('change', function () {
+    const f = this.files && this.files[0];
+    if (f && !$('arq-nome').value.trim()) $('arq-nome').value = f.name;
+  });
+  $('arq-enviar').addEventListener('click', publicarArquivoNovo);
+}
+
+async function publicarArquivoNovo() {
+  const b = $('arq-enviar');
+  const f = $('arq-file').files && $('arq-file').files[0];
+  const escopo = $('arq-escopo').value;
+  const participacao = escopo === 'marca' ? $('arq-marca').value : null;
+  if (!f) { avisoEm('arq-aviso', 'Escolha um arquivo.', 'erro'); return; }
+  if (escopo === 'marca' && !participacao) {
+    avisoEm('arq-aviso', 'Escolha a marca.', 'erro'); return;
+  }
+  const pasta = escopo === 'geral' ? 'geral' : participacao;
+  const path = pasta + '/' + nomeSeguro(f.name);
+
+  b.disabled = true;
+  avisoEm('arq-aviso', 'Enviando…');
+  try {
+    /* Os bytes NÃO passam pela Edge Function: ela assina, o navegador sobe
+       direto para o Storage. Um PDF de 20 MB atravessando o isolate esbarraria
+       em limite de corpo, de memória e de tempo. */
+    const assinatura = await chamarFuncao('arquivo-url', {
+      secret: senha, acao: 'subir', bucket: 'arquivos', path: path,
+    });
+    const envio = await fetch(assinatura.url, { method: 'PUT', body: f });
+    if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')');
+
+    // Só DEPOIS do arquivo estar lá é que a linha nasce. Ao contrário, a marca
+    // veria um download que dá 404.
+    await rpc('publicar_arquivo', {
+      p_secret: senha,
+      p_nome: $('arq-nome').value.trim() || f.name,
+      p_path: path,
+      p_escopo: escopo,
+      p_participacao: participacao,
+      p_descricao: $('arq-descricao').value.trim() || null,
+      p_versao: $('arq-versao').value.trim() || null,
+      p_mime: f.type || null,
+      p_tamanho: f.size,
+      p_exige_leitura: $('arq-leitura').checked,
+    });
+    avisoEm('arq-aviso', 'Publicado.', 'ok');
+    await carregarProducao();
+    renderProducao();
+  } catch (e) {
+    avisoEm('arq-aviso', e.message, 'erro');
+  } finally {
+    b.disabled = false;
+  }
+}
+
+async function baixarArquivo(path, bucket) {
+  try {
+    const r = await chamarFuncao('arquivo-url', {
+      secret: senha, acao: 'baixar', bucket: bucket || 'arquivos', path: path,
+    });
+    window.open(r.url, '_blank', 'noopener');
+  } catch (e) {
+    aviso.hidden = false;
+    aviso.textContent = 'Não deu para abrir o arquivo: ' + e.message;
+  }
+}
+
+/* ── A foto do item ────────────────────────────────────────────────────── */
+/* Caminho fixo `{participacao}/{tipo}.<ext>`: a foto do doce é UMA. Deixar o
+   nome livre encheria o bucket de `doce-final-2.jpg` e a tela teria que
+   adivinhar qual é a boa. */
+function abrirEnvioFoto(itemId, participacaoId, tipo) {
+  abrirFolha('Foto do ' + tipo, 'Quem fotografa é a organização',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<label class="og-campo"><span>Imagem</span>' +
+        '<input type="file" id="fot-file" accept="image/*"></label>' +
+      '<div class="og-aviso" id="fot-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="fot-enviar">Enviar</button>' +
+    '</div>');
+  $('fot-enviar').addEventListener('click', () => enviarFotoItem(itemId, participacaoId, tipo));
+}
+
+async function enviarFotoItem(itemId, participacaoId, tipo) {
+  const b = $('fot-enviar');
+  const f = $('fot-file').files && $('fot-file').files[0];
+  if (!f) { avisoEm('fot-aviso', 'Escolha uma imagem.', 'erro'); return; }
+  const ext = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const path = participacaoId + '/' + tipo + '.' + ext;
+  b.disabled = true;
+  avisoEm('fot-aviso', 'Enviando…');
+  try {
+    const assinatura = await chamarFuncao('arquivo-url', {
+      secret: senha, acao: 'subir', bucket: 'combos', path: path,
+    });
+    const envio = await fetch(assinatura.url, { method: 'PUT', body: f });
+    if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')');
+    await rpc('registrar_foto_item', { p_secret: senha, p_item_id: itemId, p_foto_path: path });
+    avisoEm('fot-aviso', 'Foto registrada.', 'ok');
+  } catch (e) {
+    avisoEm('fot-aviso', e.message, 'erro');
+  } finally {
+    b.disabled = false;
+  }
+}
+
+/* ── Sessões de fotos ──────────────────────────────────────────────────── */
+function abrirNovaSessao() {
+  abrirFolha('Agendar sessão', 'A marca vê a data; ela não escolhe nem remarca por lá',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<label class="og-campo"><span>Marca</span><select id="ses-marca">' +
+        opcoesMarcas() + '</select></label>' +
+      '<label class="og-campo"><span>Data e hora</span>' +
+        '<input type="datetime-local" id="ses-quando"></label>' +
+      '<label class="og-campo"><span>Local <span class="og-forms__nota">— opcional</span></span>' +
+        '<input type="text" id="ses-local"></label>' +
+      '<label class="og-campo"><span>Observações <span class="og-forms__nota">— opcional</span></span>' +
+        '<textarea id="ses-obs"></textarea></label>' +
+      '<div class="og-aviso" id="ses-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="ses-criar">Agendar</button>' +
+    '</div>');
+  $('ses-criar').addEventListener('click', criarSessao);
+}
+
+async function criarSessao() {
+  const b = $('ses-criar');
+  const quando = isoDoCampo($('ses-quando').value);
+  const marca = $('ses-marca').value;
+  if (!marca) { avisoEm('ses-aviso', 'Escolha a marca. Só marca com edição aberta pode ser fotografada.', 'erro'); return; }
+  if (!quando) { avisoEm('ses-aviso', 'Informe data e hora.', 'erro'); return; }
+  b.disabled = true;
+  try {
+    await rpc('agendar_sessao_fotos', {
+      p_secret: senha, p_participacao: marca, p_data_hora: quando,
+      p_local: $('ses-local').value.trim() || null,
+      p_observacoes: $('ses-obs').value.trim() || null,
+    });
+    avisoEm('ses-aviso', 'Agendada.', 'ok');
+    await carregarProducao();
+    renderProducao();
+  } catch (e) {
+    avisoEm('ses-aviso', e.message, 'erro');
+  } finally {
+    b.disabled = false;
+  }
+}
+
+function abrirMudarSessao(id) {
+  const s = sessoes.find(x => x.id === id);
+  if (!s) return;
+  const opcoes = Object.entries(ROTULO_SESSAO).map(([k, v]) =>
+    '<option value="' + k + '"' + (k === s.status ? ' selected' : '') + '>' + escapar(v) + '</option>').join('');
+  abrirFolha(s.nome_marca || 'Sessão', dataHoraCurta(s.data_hora),
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<label class="og-campo"><span>Situação</span><select id="ses-status">' + opcoes + '</select></label>' +
+      '<label class="og-campo"><span>Nova data e hora <span class="og-forms__nota">— deixe em branco para manter</span></span>' +
+        '<input type="datetime-local" id="ses-nova"></label>' +
+      '<label class="og-campo"><span>Local</span>' +
+        '<input type="text" id="ses-local2" value="' + escapar(s.local || '') + '"></label>' +
+      '<div class="og-aviso" id="ses-aviso2" hidden></div>' +
+      '<button class="og-btn" type="button" id="ses-salvar">Salvar</button>' +
+    '</div>');
+  $('ses-salvar').addEventListener('click', () => salvarSessao(id));
+}
+
+async function salvarSessao(id) {
+  const b = $('ses-salvar');
+  b.disabled = true;
+  try {
+    await rpc('atualizar_sessao_fotos', {
+      p_secret: senha, p_sessao_id: id,
+      p_status: $('ses-status').value,
+      p_data_hora: isoDoCampo($('ses-nova').value),
+      p_local: $('ses-local2').value.trim() || null,
+      p_observacoes: null,
+    });
+    avisoEm('ses-aviso2', 'Salvo.', 'ok');
+    await carregarProducao();
+    renderProducao();
+  } catch (e) {
+    avisoEm('ses-aviso2', e.message, 'erro');
+  } finally {
+    b.disabled = false;
+  }
+}
+
+/* ── Equipe ────────────────────────────────────────────────────────────── */
+async function salvarEdicao(codigo) {
+  const b = $('eq-salvar');
+  if (b) b.disabled = true;
+  try {
+    await rpc('definir_edicao_atual', { p_secret: senha, p_codigo: codigo });
+    await carregarEquipe();
+    renderEquipe();
+  } catch (e) {
+    avisoEm('eq-aviso', e.message, 'erro');
+    if (b) b.disabled = false;
+  }
+}
+
+function abrirNovaConta() {
+  const fns = ((config && config.funcoes) || []).map(f =>
+    '<option value="' + escapar(f.codigo) + '">' + escapar(f.rotulo) + '</option>').join('');
+  abrirFolha('Criar conta', 'Uma pessoa da equipe, com função',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<p class="og-forms__nota">Aqui o e-mail é o de verdade — diferente da marca, que entra ' +
+        'pelo nome do estabelecimento. A senha aparece uma vez, para você entregar, e vale ' +
+        'para um login só.</p>' +
+      '<label class="og-campo"><span>E-mail</span>' +
+        '<input type="email" id="ct-email" autocomplete="off"></label>' +
+      '<label class="og-campo"><span>Função</span><select id="ct-funcao">' + fns + '</select></label>' +
+      '<div class="og-aviso" id="ct-aviso" hidden></div>' +
+      '<div id="ct-credenciais"></div>' +
+      '<button class="og-btn" type="button" id="ct-criar">Criar conta</button>' +
+    '</div>');
+  $('ct-criar').addEventListener('click', criarConta);
+  $('ct-email').focus();
+}
+
+async function criarConta() {
+  const b = $('ct-criar');
+  const email = $('ct-email').value.trim();
+  if (!email) { avisoEm('ct-aviso', 'Informe o e-mail.', 'erro'); return; }
+  b.disabled = true;
+  try {
+    const r = await chamarFuncao('criar-conta-organizacao', {
+      secret: senha, email: email, funcao: $('ct-funcao').value,
+    });
+    avisoEm('ct-aviso', 'Conta criada.', 'ok');
+    /* A senha aparece UMA vez. Não fica gravada em lugar nenhum — o banco só
+       tem o hash. Fechar esta folha sem copiar significa gerar outra. */
+    $('ct-credenciais').innerHTML =
+      '<div class="og-bloco"><h3>Entregue estes dados</h3>' +
+      '<p class="og-par"><b>Login:</b> ' + escapar(r.login) + '</p>' +
+      '<p class="og-par"><b>Senha:</b> ' + escapar(r.senha) + '</p>' +
+      '<p class="og-forms__nota">Ela vale para um login: no primeiro acesso a pessoa troca.</p></div>';
+    b.disabled = true;
+    await carregarEquipe();
+    renderEquipe();
+  } catch (e) {
+    avisoEm('ct-aviso', e.message, 'erro');
+    b.disabled = false;
+  }
+}
+
+function abrirMudarConta(userId) {
+  const c = contas.find(x => x.user_id === userId);
+  if (!c) return;
+  const fns = ((config && config.funcoes) || []).map(f =>
+    '<option value="' + escapar(f.codigo) + '"' + (f.codigo === c.funcao ? ' selected' : '') + '>' +
+    escapar(f.rotulo) + '</option>').join('');
+  abrirFolha(c.email || 'Conta', ROTULO_STATUS[c.funcao] || c.rotulo || '',
+    '<div class="og-bloco" style="border-top:0;padding-top:0">' +
+      '<label class="og-campo"><span>Função</span><select id="cc-funcao">' + fns + '</select></label>' +
+      '<div class="og-aviso" id="cc-aviso" hidden></div>' +
+      '<button class="og-btn" type="button" id="cc-salvar">Salvar função</button> ' +
+      '<button class="og-btn og-btn--vazado" type="button" id="cc-suspender">' +
+        (c.ativo ? 'Suspender' : 'Reativar') + '</button>' +
+      '<p class="og-forms__nota">O banco recusa tirar o último administrador — é a trava que ' +
+        'impede o painel de ficar sem ninguém que possa criar conta.</p>' +
+    '</div>');
+  $('cc-salvar').addEventListener('click', async () => {
+    try {
+      await rpc('definir_funcao_conta', { p_secret: senha, p_user: userId, p_funcao: $('cc-funcao').value });
+      avisoEm('cc-aviso', 'Função salva.', 'ok');
+      await carregarEquipe(); renderEquipe();
+    } catch (e) { avisoEm('cc-aviso', e.message, 'erro'); }
+  });
+  $('cc-suspender').addEventListener('click', async () => {
+    try {
+      await rpc('suspender_conta', { p_secret: senha, p_user: userId, p_ativo: !c.ativo });
+      avisoEm('cc-aviso', c.ativo ? 'Conta suspensa.' : 'Conta reativada.', 'ok');
+      await carregarEquipe(); renderEquipe();
+    } catch (e) { avisoEm('cc-aviso', e.message, 'erro'); }
+  });
+}
+
+/* ── Ligação dos cliques ───────────────────────────────────────────────── */
+/* Delegação, e não um listener por linha: as listas são redesenhadas a cada
+   carga, e listener preso ao elemento morre junto com ele — ou pior, sobrevive
+   num nó órfão. */
+function ligarAcoes() {
+  $('btn-nova-solic').addEventListener('click', abrirNovoPedido);
+  $('btn-novo-arquivo').addEventListener('click', abrirNovoArquivo);
+  $('btn-nova-sessao').addEventListener('click', abrirNovaSessao);
+  $('btn-nova-conta').addEventListener('click', abrirNovaConta);
+
+  $('area-participantes').addEventListener('click', function (ev) {
+    const alvo = ev.target.closest('[data-ficha]');
+    if (alvo) abrirFicha(alvo.dataset.ficha);
+  });
+
+  $('area-solicitacoes').addEventListener('click', function (ev) {
+    const pub = ev.target.closest('[data-publicar]');
+    if (pub) { publicarPedido(pub.dataset.publicar); return; }
+    const quem = ev.target.closest('[data-quem]');
+    if (quem) abrirQuemFalta(quem.dataset.quem);
+  });
+
+  $('area-arquivos').addEventListener('click', function (ev) {
+    const alvo = ev.target.closest('[data-baixar]');
+    if (alvo) baixarArquivo(alvo.dataset.baixar, 'arquivos');
+  });
+
+  $('area-sessoes').addEventListener('click', function (ev) {
+    const alvo = ev.target.closest('[data-sessao]');
+    if (alvo) abrirMudarSessao(alvo.dataset.sessao);
+  });
+
+  $('area-edicao').addEventListener('click', function (ev) {
+    if (ev.target.closest('#eq-salvar')) { salvarEdicao($('eq-edicao').value.trim()); return; }
+    if (ev.target.closest('#eq-fechar')) salvarEdicao('');
+  });
+
+  $('area-contas').addEventListener('click', function (ev) {
+    const alvo = ev.target.closest('[data-conta]');
+    if (alvo) abrirMudarConta(alvo.dataset.conta);
+  });
+
+  // A folha é redesenhada inteira a cada abertura; a delegação vive no
+  // contêiner, que não sai do DOM.
+  $('detalhe-corpo').addEventListener('click', function (ev) {
+    const marcar = ev.target.closest('[data-marcar]');
+    if (marcar) { marcarRespondido(marcar.dataset.marcar, marcar.dataset.part, marcar); return; }
+    const foto = ev.target.closest('[data-foto-item]');
+    if (foto) { abrirEnvioFoto(foto.dataset.fotoItem, foto.dataset.part, foto.dataset.tipo); return; }
+    const combo = ev.target.closest('[data-baixar-combo]');
+    if (combo) baixarArquivo(combo.dataset.baixarCombo, 'combos');
+  });
+}
+
+ligarAcoes();
+
 $('btn-fechar').addEventListener('click', fecharDetalhe);
 $('fundo').addEventListener('click', fecharDetalhe);
 document.addEventListener('keydown', ev => {

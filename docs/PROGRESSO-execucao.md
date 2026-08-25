@@ -394,6 +394,102 @@ Security Advisors.
 
 ---
 
+## Fase 6 · Painel da organização — ✅ CONSTRUÍDO E PROVADO NO BANCO
+
+O painel lia `get_participantes` do modelo antigo — `combo_nome`,
+`combo_descricao`, `combo_preco`, `unidades` — colunas que a marca **deixou de
+preencher na Fase 5**. Não quebrava: vinham vazias. Painel que mostra campo
+vazio onde há dado é pior que painel que dá erro.
+
+### A barra passou de 4 para 5 destinos
+
+`resumo · respostas · marcas · produção · equipe`. "Os formulários" desceu para
+dentro do resumo: é lista de referência, não destino — ninguém abre o painel
+para consultá-la, e ela ocupava uma das colunas da barra no celular.
+
+| Destino | O que ganhou |
+|---|---|
+| **marcas** | a linha virou botão: abre a **ficha completa** — contato, tema, os três itens com restrição e foto, unidades com horário e delivery, pedidos com estado, arquivos com quem leu, sessões, e o **histórico de edições** da marca |
+| **produção** | pedidos (criar, publicar, prazo, **quem falta responder**), arquivos (subir, publicar, baixar) e sessões de fotos (agendar, remarcar, mudar situação) |
+| **equipe** | a **edição aberta** e as contas nominais por função (criar, trocar função, suspender) |
+
+### O que foi ao banco
+
+`supabase/migrations/20260825_fase6_leitura_da_organizacao.sql`:
+
+- **`get_participantes`** passa a trazer a participação corrente por marca, com
+  `unidades` e `itens_prontos` **contados pelo banco**. `left join lateral`, e
+  não join comum: join devolveria a marca repetida por edição, e a lista de
+  marcas passaria a contar participações.
+- **`get_ficha_participacao`** — a ficha inteira numa chamada. Seis leituras
+  desenhariam a tela em seis pedaços que pulam sob o dedo de quem já rolou.
+- **`get_config_admin`** — edição aberta, senha única e as funções.
+- `registrar_foto_item`, `agendar_sessao_fotos` e `atualizar_sessao_fotos`
+  trocaram `pode_organizacao` por **`producao.gerir`**: quem entra como
+  `consulta` lê tudo e não escreve foto nem remarca sessão.
+- `agendar_sessao_fotos` passou a receber a **participação**: a marca é
+  fotografada de novo a cada combo novo.
+- `get_itens_participante` saiu sem substituto — a ficha já traz os itens, e uma
+  segunda leitura dos mesmos três registros é a fonte duplicada do §5.2.
+
+### Duas Edge Functions novas
+
+| Função | Papel |
+|---|---|
+| `criar-conta-organizacao` | a conta nominal da equipe, guardada por **`acesso.gerir`** (só administrador). Aqui o e-mail é **real** — diferente da marca, que entra pelo nome do estabelecimento num endereço sintético |
+| `arquivo-url` | assina upload e download nos dois buckets privados |
+
+⚠️ **Os bytes não atravessam a Edge Function.** Ela assina; o navegador faz
+`PUT` direto no Storage. Um PDF de 20 MB dentro do isolate esbarraria em limite
+de corpo, de memória e de tempo. O que passa pela função é a **autorização** — e
+o **caminho**, que é a única coisa que separa "subir arquivo da marca X" de
+"escrever por cima do arquivo da marca Y".
+
+### Provado
+
+**Banco, em transação revertida** (senha temporária, a real nunca lida):
+
+| Prova | Resultado |
+|---|---|
+| uma linha por marca, não por participação | ✅ |
+| com edição corrente, aponta para ela; sem, cai na edição mais alta | ✅ |
+| marca sem participação nenhuma | ✅ `sem_participacao`, sem id, 0 edições |
+| itens prontos / unidades contados pelo banco | ✅ `2 / 1` |
+| ficha: marca, 3 itens, 1 unidade, 1 pedido, 1 arquivo, 2 edições | ✅ |
+| sessão agendada traz a edição | ✅ `2027 / agendada` |
+| senha errada em lista, ficha e config | ✅ `0`, `null`, `null` |
+| agendar com senha errada | ✅ `nao_autorizado` |
+
+🐛 **Um defeito que o teste pegou:** o desempate da participação era por
+`created_at`. Duas participações abertas na mesma transação têm `created_at`
+**idêntico** — `now()` é o carimbo da transação, não do comando — e a escolha
+virava sorteio. Passou a desempatar pelo **código da edição**, que ordena
+sozinho e é o que a pergunta realmente quer dizer.
+
+**Contra a produção, sem passar pela tela:**
+
+- **17 RPCs chamadas por HTTP com os nomes de argumento exatos que o painel
+  manda** — nenhuma devolveu `PGRST202`. Com senha errada, as 8 leituras dão
+  lista vazia ou `null`; as 9 escritas dão `nao_autorizado`.
+- `criar-conta-organizacao` com senha errada e com senha vazia: **401** nas duas.
+- `arquivo-url`: `nao_autorizado` com senha errada; e o validador de caminho
+  recusou `geral/sub/x.pdf`, `outrapasta/x.pdf`, `geral/.oculto` e nome com
+  espaço — só o caminho válido chegou até a checagem de senha.
+
+Suíte **132/132** (8 testes novos em `organizacao`), build verde.
+
+### O que NÃO foi visto funcionando
+
+- **Nenhum navegador abriu este painel.** A senha real não é lida por mim
+  (`CLAUDE.md` A5), então o ciclo pela tela — entrar, abrir a ficha, publicar um
+  pedido, subir um arquivo — segue sem prova de ponta a ponta. O que está
+  provado é a camada de dados e as duas Edge Functions, pela mesma porta que a
+  tela usa.
+- **Upload de verdade não foi exercido.** A assinatura foi provada; o `PUT` no
+  Storage e o download que vem depois, não — os dois buckets estão vazios.
+
+---
+
 ## Revisão final (§7 do comando) — o que foi conferido
 
 | Item | Resultado |
@@ -422,29 +518,28 @@ Security Advisors.
 
 ## Onde parei, exatamente
 
-**Fases 1 a 5 fechadas.** O banco inteiro está de pé, e o painel da marca é a
-primeira tela do sistema novo.
+**Fases 1 a 6 fechadas.** As duas telas do sistema — marca e organização —
+falam o modelo novo, e o banco inteiro está de pé.
 
 **Ordem de retomada:**
 
-1. **Fase 6 · painel da organização** — gestão de contas (as RPCs já existem),
-   solicitações com acompanhamento de quem respondeu, arquivos, agendamento e
-   envio de fotos, ficha completa.
-2. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
-   dois painéis, Edge Function `enviar-push`, banner de instalação para iPhone.
-3. **Fase 8 · testes** — estender `tests/organizacao.test.mjs` como
-   `tests/marca.test.mjs` já foi.
+1. **Fase 7 · instalável em `/marca/` + push** — manifest, `sw.js`, handler nos
+   dois painéis, Edge Function `enviar-push`, VAPID, banner de instalação para
+   iPhone. `/organizacao/` já é instalável; `/marca/` não.
+2. **Fase 8 · testes** — o que faltar depois da 7. `marca` e `organizacao` já
+   foram estendidos nas fases 5 e 6.
+3. **Fase 9 · revisão final** — o §7 do comando, item por item.
 
-⚠️ **`/organizacao/` ainda não foi tocado, e agora ele está atrás.** O painel lê
-`get_participantes`, que devolve `combo_nome`, `combo_descricao`, `combo_preco` e
-`unidades` do modelo antigo — colunas que a marca **deixou de preencher** na
-Fase 5. Ele não quebra: as colunas existem e vêm vazias. Mas a ficha da marca vai
-parecer em branco até a Fase 6 ler a participação. É o primeiro item dela.
+⚠️ **`edicao_atual` está NULA em produção**, e é decisão: a 17ª edição não foi
+anunciada e inventar um código seria inventar dado (A4). Enquanto estiver nula,
+conta nova de marca entra e vê "ainda não há edição aberta para você". Abrir
+agora é um campo em **equipe → a edição aberta**.
 
-⚠️ **A organização ainda não tem tela para definir `edicao_atual`.** A RPC
-`definir_edicao_atual` existe e está guardada; o botão é da Fase 6. Até lá, quem
-quiser abrir a edição roda no SQL Editor
-`select public.definir_edicao_atual($$<senha>$$, '2027');`.
+⚠️ **Ninguém tem `perfis.papel = 'organizacao'` ainda.** A porta das contas
+nominais está aberta e vazia desde a Fase 3; a tela de criar conta é da Fase 6.
+Enquanto todo mundo entrar pela senha compartilhada, `pode()` devolve `true`
+para as seis ações — ou seja, **as funções ainda não separam nada na prática**.
+Elas passam a valer quando existir a primeira conta nominal.
 
 ---
 

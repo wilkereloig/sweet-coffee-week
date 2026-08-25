@@ -37,7 +37,17 @@ test('toda função crítica está declarada, não só chamada', () => {
                     'abrirDetalhe', 'fecharDetalhe', 'salvar', 'montarAbas', 'montarForms', 'montarFiltroStatus',
                     'mostrarEstado', 'abrirPainel', 'dataCurta', 'soDigitos',
                     // casca de aplicativo (22/08/2026)
-                    'irPara', 'montarAbasApp', 'ligarTecladoAbas', 'montarEsqueleto']
+                    'irPara', 'montarAbasApp', 'ligarTecladoAbas', 'montarEsqueleto',
+                    // fase 6 (25/08/2026): ficha da marca, producao e equipe
+                    'abrirFolha', 'avisoEm', 'isoDoCampo', 'opcoesMarcas', 'preco',
+                    'prazoSelo', 'dataHoraCurta', 'estadoSimples', 'nomeSeguro',
+                    'carregarProducao', 'carregarEquipe', 'renderProducao', 'renderEquipe',
+                    'abrirFicha', 'abrirNovoPedido', 'criarPedido', 'publicarPedido',
+                    'abrirQuemFalta', 'marcarRespondido', 'abrirNovoArquivo',
+                    'publicarArquivoNovo', 'baixarArquivo', 'abrirEnvioFoto',
+                    'enviarFotoItem', 'abrirNovaSessao', 'criarSessao', 'abrirMudarSessao',
+                    'salvarSessao', 'salvarEdicao', 'abrirNovaConta', 'criarConta',
+                    'abrirMudarConta', 'ligarAcoes']
   const faltando = criticas.filter((f) => !declaradas.has(f))
   assert.deepEqual(faltando, [], 'função chamada mas nunca declarada: ' + faltando.join(', '))
 })
@@ -422,4 +432,92 @@ test('o estado vazio das marcas não descreve o fluxo removido', () => {
     'o estado vazio ainda promete convite por e-mail')
   assert.match(vazio.slice(0, 700), /Cadastrar marca/,
     'o estado vazio não menciona o caminho do cadastro manual')
+})
+
+/* ══ Fase 6 · 25/08/2026 ═══════════════════════════════════════════════════
+   O painel passou a ler a PARTICIPAÇÃO. Estas checagens guardam as três coisas
+   que, se voltarem atrás, quebram sem dar erro: o vocabulário do modelo antigo,
+   os bytes atravessando a Edge Function, e a foto do combo mudando de dono. */
+
+const MIG_FASE5 = readFileSync(
+  new URL('../supabase/migrations/20260825_fase5_painel_da_marca.sql', import.meta.url), 'utf8')
+const MIG_FASE6 = readFileSync(
+  new URL('../supabase/migrations/20260825_fase6_leitura_da_organizacao.sql', import.meta.url), 'utf8')
+const EDGE_CONTA = readFileSync(
+  new URL('../supabase/functions/criar-conta-organizacao/index.ts', import.meta.url), 'utf8')
+const EDGE_ARQ = readFileSync(
+  new URL('../supabase/functions/arquivo-url/index.ts', import.meta.url), 'utf8')
+
+const semComent = (f) => f
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
+const JS_LIMPO = semComent(JS)
+
+test('a ficha da marca vem da participação, numa chamada só', () => {
+  assert.match(JS, /get_ficha_participacao/,
+    'a ficha precisa da RPC — seis leituras separadas desenham a tela em seis pedaços')
+  assert.match(MIG_FASE6, /create or replace function public\.get_ficha_participacao/)
+})
+
+test('a lista de marcas deixou de falar o modelo antigo', () => {
+  // `combo_nome` e `participantes_operacao` são as colunas que a marca parou de
+  // preencher na Fase 5. Lê-las não dá erro: devolve vazio, que é pior.
+  assert.ok(!/combo_nome/.test(JS_LIMPO), 'o painel ainda lê combo_nome')
+  assert.ok(!/participantes_operacao/.test(JS_LIMPO), 'o painel ainda lê a tabela de operação')
+  assert.match(JS, /p\.participacao_id/, 'a lista precisa apontar para a participação')
+  assert.match(JS, /itens_prontos/, 'quem conta os itens prontos é o banco, não a tela')
+})
+
+test('o upload não faz os bytes atravessarem a Edge Function', () => {
+  // A função ASSINA; o navegador faz PUT direto no Storage. Um PDF de 20 MB
+  // dentro do isolate esbarra em limite de corpo, de memória e de tempo.
+  assert.match(JS, /acao:\s*'subir'/, 'sumiu o pedido de assinatura de upload')
+  assert.match(JS, /method:\s*'PUT',\s*body:\s*f\b/,
+    'o arquivo precisa ir direto para a URL assinada')
+  assert.match(EDGE_ARQ, /createSignedUploadUrl/)
+  assert.ok(!/await req\.(formData|arrayBuffer|blob)\(\)/.test(EDGE_ARQ),
+    'a função está lendo o corpo do arquivo — ela deveria só assinar')
+})
+
+test('a Edge Function decide o caminho, e o navegador não manda pasta livre', () => {
+  assert.match(EDGE_ARQ, /function caminhoValido/,
+    'sem validação de caminho, uma marca sobrescreve o arquivo de outra')
+  assert.match(EDGE_ARQ, /UUID\.test\(pasta\)/,
+    'a pasta precisa ser `geral` ou um id de participação')
+})
+
+test('criar conta da organização é coisa de administrador', () => {
+  assert.match(EDGE_CONTA, /p_acao:\s*'acesso\.gerir'/,
+    'a função precisa exigir acesso.gerir — curadoria e produção não criam conta')
+  assert.match(EDGE_CONTA, /deve_trocar_senha:\s*true/,
+    'sem a trava, a senha entregue por mensagem vira segredo permanente')
+  assert.match(EDGE_CONTA, /deleteUser/,
+    'perfil que falha tem que desfazer o usuário: conta que autentica e não pode nada é pior')
+  assert.ok(!/from\('funcoes'\)[\s\S]{0,80}\|\|/.test(EDGE_CONTA))
+  assert.match(EDGE_CONTA, /from\('funcoes'\)/,
+    'a lista de funções vem da tabela, não de um array escrito no código')
+})
+
+test('nenhuma chave de serviço nas duas funções novas', () => {
+  ;[EDGE_CONTA, EDGE_ARQ].forEach((f) => {
+    assert.match(f, /Deno\.env\.get\('SUPABASE_SERVICE_ROLE_KEY'\)/,
+      'a chave tem que vir do ambiente')
+    assert.ok(!/\bsb_secret_|\beyJ[\w-]+\.[\w-]+\.[\w-]+/.test(f),
+      'parece haver chave literal no arquivo')
+  })
+})
+
+test('a foto do combo é da participação, e a marca não a escreve', () => {
+  assert.match(MIG_FASE5, /combos_marca_le[\s\S]{0,400}participacoes pa/,
+    'a policy do bucket precisa casar pela participação')
+  assert.ok(!/grant\s+update\s*\([^)]*foto_path/.test(MIG_FASE5 + MIG_FASE6),
+    'foto_path não pode entrar em grant de coluna da marca')
+  assert.match(MIG_FASE6, /registrar_foto_item[\s\S]{0,300}producao\.gerir/,
+    'quem registra foto precisa de producao.gerir — consulta não escreve')
+})
+
+test('a edição aberta tem tela, e é ela que dá formulário à conta nova', () => {
+  assert.match(JS, /definir_edicao_atual/, 'sem esta tela, abrir edição é rodar SQL à mão')
+  assert.match(MIG_FASE5, /perform public\.abrir_participacao_interna\(v_id, v_ed\)/,
+    'a conta nova precisa nascer com a participação da edição corrente')
 })

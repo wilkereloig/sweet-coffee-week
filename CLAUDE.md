@@ -2014,6 +2014,59 @@ conclusão devolvia exceção em vez da lista do que falta.
 do grant de `participantes` (briefing §3.5); `participantes_itens.foto_path` já
 estava fora. RLS decide LINHA, `grant` decide COLUNA — é preciso os dois.
 
+#### `/organizacao/` alcançou o modelo novo — 25/08/2026 (Fase 6)
+
+A barra passou de **4 para 5 destinos**: `resumo · respostas · marcas · produção
+· equipe`. "Os formulários" desceu para dentro do resumo — é lista de
+referência, não destino. ⚠️ **`DESTINOS.length` no script e o `repeat(N,1fr)` do
+CSS são o mesmo número em dois lugares**; há teste que reprova a divergência.
+
+- **marcas** — a linha virou `<button>` e abre a **ficha completa** da
+  participação, numa chamada só (`get_ficha_participacao`).
+- **produção** — pedidos com prazo e quem falta responder, arquivos, sessões.
+- **equipe** — a edição aberta e as contas nominais por função.
+
+⚠️ **`get_participantes` mudou de forma.** Devolve a participação corrente por
+marca, com `unidades` e `itens_prontos` **contados pelo banco**. Quem lê tem que
+usar `participacao_id`/`edicao_codigo`/`tema_combo` — `combo_nome`,
+`combo_descricao` e `participantes_operacao` são o modelo antigo e vêm vazios.
+
+⚠️ **`left join lateral`, nunca join comum.** Join devolveria a marca repetida
+por edição, e a lista de marcas passaria a contar participações.
+
+🐛 **`created_at` não desempata dentro de uma transação.** `now()` é o carimbo da
+TRANSAÇÃO, não do comando: duas participações abertas juntas têm a mesma data, e
+a escolha vira sorteio. O desempate é pelo **código da edição**, que ordena
+sozinho.
+
+🐛 **Coluna de saída chamada `id` sequestra `where id`.** Numa função
+`returns table (id uuid, …)`, o plpgsql resolve `id` como VARIÁVEL antes de
+resolver como coluna — `select … from admin_config where id` dá
+`column reference "id" is ambiguous`, e só na hora da chamada. Apelidar a tabela
+resolve.
+
+⚠️ **Contagem que vem do banco é `bigint` e pode chegar como STRING.** `"2" + "1"`
+é `"21"`, e `"1" === 1` é falso. Toda contagem passa por `Number()` antes de
+virar conta ou plural.
+
+**Duas Edge Functions novas:** `criar-conta-organizacao` (guardada por
+`acesso.gerir`, só administrador; aqui o e-mail é **real**, diferente da marca)
+e `arquivo-url` (assina upload e download dos buckets privados).
+
+⚠️ **Os bytes não atravessam a Edge Function.** Ela assina; o navegador faz `PUT`
+direto no Storage. Um PDF de 20 MB dentro do isolate esbarra em limite de corpo,
+de memória e de tempo. O que passa pela função é a **autorização** e o
+**caminho** — e o caminho é a única coisa que separa "subir arquivo da marca X"
+de "escrever por cima do arquivo da marca Y". Validado nos dois lados, e o do
+servidor é o que conta.
+
+⚠️ **`producao.gerir` substituiu `pode_organizacao`** em `registrar_foto_item`,
+`agendar_sessao_fotos` e `atualizar_sessao_fotos`. Quem entra como `consulta` lê
+tudo e não escreve foto nem remarca sessão — que é o ponto inteiro de ter
+funções. ⚠️ **Mas elas só separam algo quando existir conta nominal:** enquanto
+todo mundo entrar pela senha compartilhada, `pode()` devolve `true` para as seis
+ações.
+
 ⚠️ **A leitura das marcas (`get_participantes`) carrega FORA do `Promise.all` das
 quatro origens, com `catch` próprio.** A RPC só existe depois de a migration das
 contas ser aplicada; junto das outras, um 404 dela derrubaria o painel inteiro —
