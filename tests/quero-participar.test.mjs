@@ -443,3 +443,27 @@ test('todo controle crava o piso de toque, sem depender de padding', () => {
     assert.ok(Number(m[1]) >= 44, sel + ' a ' + m[1] + 'px, abaixo do piso de 44')
   }
 })
+
+test('a chave publica do Turnstile tem forma de chave, ou esta vazia', () => {
+  // Chave malformada nao quebra a pagina: o widget simplesmente nao renderiza,
+  // o token sai vazio e o SERVIDOR descarta em silencio. A pagina fica no ar,
+  // bonita, engolindo cadastro. Por isso a forma e conferida aqui.
+  const m = SCRIPTS[0].match(/turnstileSiteKey:\s*'([^']*)'/)
+  assert.ok(m, 'turnstileSiteKey sumiu do CONFIG')
+  if (m[1] === '') return // desligado por bandeira, e legitimo
+  assert.match(m[1], /^0x4[A-Za-z0-9_-]{18,44}$/,
+    'sitekey fora do formato da Cloudflare: ' + m[1])
+})
+
+test('token vazio com chave configurada NAO vira envio', () => {
+  // O par que cria a armadilha: `EXIGE_TURNSTILE` na Edge Function trata token
+  // vazio como reprovado, e reprovado sai pela MESMA resposta do sucesso. Sem
+  // esta guarda, widget que nao carregou = tela de sucesso e cadastro perdido.
+  const js = SCRIPTS[0]
+  assert.match(js, /if \(CONFIG\.turnstileSiteKey && !tokenTurnstile\(\)\)/,
+    'a guarda de token vazio sumiu do submit')
+  const guarda = js.indexOf('CONFIG.turnstileSiteKey && !tokenTurnstile()')
+  const envio = js.indexOf('const dados = coletar();')
+  assert.ok(guarda > 0 && guarda < envio,
+    'a guarda tem que vir ANTES de coletar/enviar, senao nao guarda nada')
+})

@@ -700,7 +700,7 @@ const CONFIG = {
   // Edge Function). Vazia = widget nao aparece e a funcao deixa passar, porque
   // sem a chave privada do outro lado nao ha o que conferir. Preencher as duas
   // liga a barreira; preencher so uma nao faz nada.
-  turnstileSiteKey: ''
+  turnstileSiteKey: '0x4AAAAAAEbvMJDS1YJpLY3b'
 };
 
 // Carimbo de quando a pagina abriu. O servidor recusa envio em menos de 3s:
@@ -1015,6 +1015,18 @@ form.addEventListener('submit', async (ev) => {
     const alvo = campos(faltando[0])[0];
     alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
     alvo.focus({ preventScroll: true });
+    return;
+  }
+
+  /* Chave configurada e token vazio = o widget NAO carregou: chave errada,
+     dominio fora da lista do widget, ou a rede da pessoa bloqueando a
+     Cloudflare. Sem esta guarda o envio segue e o SERVIDOR descarta em
+     silencio — a pessoa ve a tela de sucesso e o cadastro nunca chega.
+     O descarte silencioso existe para robo; para gente ele e bug. */
+  if (CONFIG.turnstileSiteKey && !tokenTurnstile()) {
+    mostrar('erro', 'A verificação de segurança não concluiu',
+      '<p>Espere alguns segundos e envie de novo. Se continuar assim, sua rede pode estar bloqueando o serviço de verificação — nesse caso use <strong>Copiar respostas</strong> e mande para a equipe por WhatsApp.</p>',
+      false);
     return;
   }
 
