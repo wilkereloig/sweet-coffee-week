@@ -29,11 +29,14 @@ import { entrarNaOrganizacao, RECADO } from '../lib/adminAccess'
  * 3. O DESENHO. A folha ganhou teto de altura com rolagem interna — antes, no
  *    celular, o pé com "Falar com a equipe" ficava fora da tela.
  *
- * O que NÃO mudou, de propósito: os dois cards continuam com pesos diferentes
- * (§6.10) — Organização em chapa chocolate com ação amarela, Participante em
- * bege com moldura tracejada, a mesma reserva honesta das fotos que faltam
- * (§6.12), sem hover e sem botão morto. A régua de 5px segue a ordem dos cards:
- * cyan à esquerda, roxo à direita.
+ * Os dois cards continuam com pesos diferentes (§6.10) — Organização em chapa
+ * chocolate com ação amarela, Participante em card bege com ação chocolate —,
+ * mas em 25/08/2026 o motivo do peso MUDOU: ele diz público, não
+ * disponibilidade. Até então o cartão do participante era reserva honesta
+ * (§6.12), com moldura tracejada e o selo "Painel · em breve"; `/marca/` entrou
+ * no ar e essa frase virou mentira — a única porta pública do domínio negando a
+ * área que ela deveria abrir. Tracejado e selo saíram; a porta abre.
+ * A régua de 5px segue a ordem dos cards: cyan à esquerda, roxo à direita.
  *
  * Foco preso no diálogo, Esc fecha, foco volta ao gatilho.
  */
@@ -225,7 +228,7 @@ export function AccessDialog({ open, onClose }) {
                 </button>
               </div>
 
-              <div className="scw-acesso__cartao scw-acesso__cartao--reserva">
+              <div className="scw-acesso__cartao scw-acesso__cartao--marca">
                 <div className="scw-acesso__cabeca">
                   <span
                     className="scw-acesso__selo"
@@ -241,13 +244,25 @@ export function AccessDialog({ open, onClose }) {
                 <span className="scw-acesso__cartao-txt">
                   Combo, dados da edição e resultados do Sweet Awards.
                 </span>
-                <span className="scw-acesso__espera">Painel · em breve</span>
+                {/* Navegação de navegador, não `navigate()`: /marca/ é página
+                    estática fora do bundle, e a barra final é o que faz o
+                    servidor resolver o índice do diretório em vez de cair no
+                    fallback do SPA (§10.4-b). `nofollow` acompanha o
+                    `Disallow: /marca` do robots.txt — são as duas metades de
+                    manter a área fora de busca, e uma sozinha não fecha. */}
+                <a className="scw-acesso__acao scw-acesso__acao--marca" href="/marca/" rel="nofollow">
+                  Entrar com o nome da marca
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
               </div>
             </div>
 
             <div className="scw-acesso__pe">
               <p className="scw-acesso__pe-texto">
-                O painel do participante ainda está em construção. Até lá, a equipe atende por aqui.
+                O acesso da marca é criado pela organização — login e senha chegam por ela.
+                Ainda não tem o seu? A equipe atende por aqui.
               </p>
               <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
                 Falar com a equipe

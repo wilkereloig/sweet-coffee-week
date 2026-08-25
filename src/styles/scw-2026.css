@@ -1099,7 +1099,12 @@ body:not(.route-em-breve) { margin: 0; }
   text-wrap: pretty;
 }
 
-/* Os dois cards têm peso diferente de propósito: só um leva a algum lugar hoje. */
+/* Os dois cards levam a algum lugar desde 25/08/2026, quando `/marca/` entrou
+   no ar. O peso diferente continua — chapa cheia contra card claro —, mas agora
+   ele diz PÚBLICO, não disponibilidade: antes a diferença existia porque um dos
+   painéis não existia, e o tracejado da reserva honesta dizia "existe, ainda não
+   chegou". Dizer isso hoje seria a única porta pública do domínio negando a área
+   que ela deveria abrir. */
 .scw-acesso__cartao {
   display: flex;
   flex-direction: column;
@@ -1115,12 +1120,12 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-creme);
   box-shadow: 0 4px 0 rgba(61, 19, 8, .18);
 }
-/* Participante — a MESMA moldura tracejada da reserva honesta (§6.12): tracejado
-   quer dizer "existe, ainda não chegou". Sem hover, sem sombra, sem cursor:
-   elevação sem destino promete uma ação que não acontece (§6.15.6). */
-.scw-acesso__cartao--reserva {
+/* Participante — card claro com filete sólido. O tracejado saiu junto com o selo
+   "em breve": ele é a moldura da reserva honesta (§6.12) e só cabe onde a coisa
+   ainda não existe. */
+.scw-acesso__cartao--marca {
   background: var(--scw-bege);
-  border: 1px dashed rgba(61, 19, 8, .28);
+  border: 1px solid rgba(61, 19, 8, .22);
   color: var(--scw-choco);
 }
 .scw-acesso__cabeca {
@@ -1141,7 +1146,7 @@ body:not(.route-em-breve) { margin: 0; }
   text-wrap: pretty;
 }
 .scw-acesso__cartao--destaque .scw-acesso__cartao-txt { color: rgba(254, 240, 221, .82); }
-.scw-acesso__cartao--reserva  .scw-acesso__cartao-txt { color: var(--scw-marrom); }
+.scw-acesso__cartao--marca    .scw-acesso__cartao-txt { color: var(--scw-marrom); }
 
 /* Ação do card: o link é ELE, não o card inteiro — com um botão declarado
    dentro, um <a> por fora aninharia interativo em interativo. 48px de altura
@@ -1183,21 +1188,29 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__acao:hover { transform: none; transition: none; }
 }
 
-/* Selo de espera: `align-self` para o selo ter a largura do TEXTO, nunca a da
-   coluna — senão vira barra e parece controle. */
-.scw-acesso__espera {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 8px;
-  margin-top: auto;
-  padding: 9px 14px 8px;
-  border-radius: 999px;
-  background: rgba(61, 19, 8, .08);
-  font: 800 11px/1 var(--scw-font);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--scw-marrom);
+/* Ação do card claro: a mesma peça, invertida. Chocolate com tinta creme dá
+   12:1 sobre o bege; o amarelo do outro card não serve aqui — sobre bege ele é
+   superfície, não separa de card claro (1,4:1 como tinta, §6.1).
+   ⚠️ O hover herdado leva a creme, e creme sobre bege quase não se move. Aqui
+   ele vai para o marrom (9,44:1 com a tinta creme): mesma gramática de inversão,
+   contraste que existe.
+   ⛔ O `.scw-acesso__espera` que morava aqui — o selo "Painel · em breve" — saiu
+   em 25/08/2026, quando /marca/ entrou no ar. Não recriar: selo de espera sobre
+   painel que existe é a interface mentindo sobre o produto.
+   ⚠️ Seletor PREFIXADO — a armadilha nº 1 do §10.1 pela terceira vez no mesmo
+   diálogo. Esta peça é um `<a>`, e `.scw-raiz a { color: inherit }` (0,1,1)
+   vence `.scw-acesso__acao--marca` (0,1,0). O que o card claro passa por
+   herança é CHOCOLATE — a mesma cor do fundo deste botão. Sem o prefixo o
+   rótulo nasce chocolate sobre chocolate, 1:1, invisível, que é exatamente o
+   defeito que o `.scw-acesso__cta` do pé carregou por semanas. Medido no
+   navegador antes de commitar; `!important` continua proibido. */
+.scw-acesso .scw-acesso__acao--marca {
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+
+@media (hover: hover) {
+  .scw-acesso .scw-acesso__acao--marca:hover { background: var(--scw-marrom); color: var(--scw-creme); }
 }
 
 /* Pé: informação à esquerda, saída à direita — na MESMA linha flex. O bug
