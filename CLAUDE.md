@@ -1537,16 +1537,72 @@ presa na base.
 | Bloco | O que é |
 |---|---|
 | Topo | faixa chocolate com `MARCA_SCW`. O botão "Acesso" **não mora aqui** — vem do `<SiteHeader apenasAcesso>` do `App.jsx` |
-| Herói | rótulo + H1 + lead + ação, sobre `heroPhotos('home')` em crossfade |
-| Prova | 16 edições · +120 marcas · +34 mil combos · desde 2016 |
+| Herói | **grade de duas colunas**: rótulo + H1 + lead + ação à esquerda, a **galeria das 16 edições** à direita |
+| Prova | 16 edições · +120 marcas · +34 mil combos · desde 2016 — cada um com ícone |
 | Marquee | os 16 temas, em `.scw-marquee` |
-| Para quem é | os dez tipos de casa, na mesma redação do formulário |
+| Para quem é | os dez tipos de casa + os três chips do combo (doce · salgado · café) |
 | Como funciona | três passos + a ação |
 | Fecho | chapa chocolate, a ação e a linha do Instagram |
 | Rodapé | **creme**, com a marca da F2 |
 
+#### A galeria das 16 edições — herói reescrito em 25/08/2026
+
+O herói **deixou de ter foto de fundo com texto por cima**. A grade
+`repeat(auto-fit, minmax(min(100%,400px), 1fr))` colapsa sozinha, **sem media
+query**, e por isso saíram junto: o véu diagonal, os tokens `--hv-*`, a emenda
+de três paradas do celular, o `@media (max-width:1000px)` inteiro do herói e a
+respiração de 26s (`ebRespira`) — a galeria tem movimento próprio e as duas
+competiriam. ⛔ Não recriar nenhum deles: não há mais texto sobre foto, então
+não há o que velar.
+
+Quadro 1:1, 16 slides em `flex`, deslocados por **um custom property só**
+(`--eb-i`) em vez de dezesseis regras. Cada slide traz foto, véu de **cinco
+paradas**, marca da edição, pílula do rótulo e legenda com o vencedor do Melhor
+Combo.
+
+⚠️ **A pausa não é conforto, é requisito.** WCAG 2.2.2: movimento automático
+acima de 5s que carrega informação tem de ser pausável. Ela para por mouse, por
+foco e pelo botão, e **nunca liga** com `prefers-reduced-motion`. É também o que
+impede a galeria de ser o **terceiro laço contínuo** da página, acima do teto de
+dois (o marquee e o gradiente dele).
+
+⚠️ **O ouvinte de mouse e foco fica no INVÓLUCRO, não no quadro.** O quadro não
+tem nada focável dentro — os três botões moram nos controles, abaixo dele —,
+então `onFocus` no quadro nunca dispararia e a pausa por teclado seria letra
+morta.
+
+⚠️ **A região viva anuncia só a troca MANUAL.** Um `aria-live` disparando a cada
+5,2s, para sempre, interromperia a leitura de quem usa leitor de tela a cada
+cinco segundos. Os 15 slides fora de vista são `aria-hidden`.
+
+⛔ **Contorno claro no `drop-shadow` da marca, NUNCA chapa atrás dela** — a chapa
+foi desenhada, mostrada e recusada. São 16 marcas de cores arbitrárias sobre
+fotografia arbitrária, e o caso que quebra é escuro-sobre-escuro (a marca vinho
+de Séries sobre uma cortina vinho). ⛔ **Escurecer o véu piora esse caso.**
+
+⚠️ **A prova usa `repeat(4,1fr)` + `repeat(2,1fr)` abaixo de 900px, não
+auto-fit.** Qualquer auto-fit desce de 4 para **3** antes de chegar a 2, e o
+quarto item fica órfão com dois vãos ao lado — inclusive com o piso de 140px que
+o handoff propunha. E **"desde 2016" é palavra, não numeral**: tem escala própria
+(`clamp(30px,3.2vw,54px)`) e pode quebrar em duas linhas; na escala dos outros
+três ela estoura a coluna e some no `overflow-x: clip`, sem barra que denuncie.
+
 ⚠️ **A barra final de `/quero-participar/` não é enfeite** (§10.4-b), e é `<a href>` de
 navegador — nunca `navigate()`, nunca `#/`.
+
+🐛 **`editionPhotos()` devolve OBJETO — `{src, alt, position, indice}` —, não
+caminho.** Tratá-lo como string produz `url([object Object])`, e o **fallback do
+SPA responde 200 com o index.html**: nenhum 404, nenhum erro de console, e a foto
+simplesmente não aparece. Custou uma rodada inteira de teste verde com a galeria
+em branco. **Status 200 não prova que o asset existe** — a checagem que vale é o
+`content-type` da resposta e o `naturalWidth` depois do `onload`. O `alt` e o
+ponto focal saem do mesmo objeto: escrever descrição de foto que ninguém viu
+seria dado inventado por outro meio (A4).
+
+⚠️ **Não usar backtick dentro do `<style>{\`…\`}`** da página. O CSS mora num
+template literal; um backtick num comentário fecha a string e o build morre em
+"Expected } but found …", com a linha apontando para o comentário, não para a
+causa.
 
 ⚠️ **O rodapé é creme, e é decisão de contraste, não de gosto:** a logo da F2 é asset de
 cor fixa (`#de1a59`) e sobre chocolate não fecha os 3:1 de elemento gráfico. Sobre creme
@@ -1557,6 +1613,26 @@ fecha. ⛔ Não devolver o rodapé para chocolate sem trocar o asset.
 antes do redesign — e agora consome a **paleta viva** (`--scw-*`) e as utilitárias do
 sistema. ⛔ `em-breve.css` **continua no ar**: `icons.jsx` e `participants.js` ainda leem
 tokens dele (§4.3).
+
+⚠️ **A iconografia v2 entrou, mas ESTÁTICA — e é decisão, não esquecimento.** O
+handoff de agosto/2026 pedia ícones que se montam peça por peça, com as props
+`movimento`/`aoVivo`/`receita` do `ScwIcon`, as classes `.scw-icone-host--*` e os
+tokens `--icon-mo-hover`/`--icon-ease-soft`. **Nada disso existe no repositório:**
+o `PATCH-icones-animados.md` que os cria nunca foi aplicado, e a receita "recortar
+o `d` em três `path`" exigiria editar `scw-icons-v2.js` à mão, que o §6.11 proíbe.
+Os ícones entram pelo `ScwIcon` como está; o movimento fica com o sistema que a
+página já tem (`motion-stagger` / `motion-reveal-up`).
+
+⚠️ **Os tamanhos do handoff (18 · 28 · 30 · 34 · 44) NÃO estão na escala** do
+§6.11, e `tests/regua-visual.mjs` reprova. Foram encaixados nos degraus reais:
+seta de botão e controles **20**, chip **24**, prova e fecho **32**, disco de
+passo **48** (os 60% de um disco de 80px, a proporção do §6.3).
+
+⚠️ **A logo da F2 do rodapé NÃO foi trocada, e o handoff estava errado ali.** Ele
+afirma que `logo-f2experience.svg` é um lockup claro `#F5F5F5` a 1,06:1; os dois
+arquivos em `public/images/` são `#de1a59` na regra `.cls-1`. Só a altura mudou,
+de 20px para 24px. É o §12.6 na prática: premissa de patch se confere contra o
+código antes de aplicar.
 
 ⛔ **O bloco do Sweet Awards saiu, e é remoção de EXIBIÇÃO, não de dado.**
 `sweetHistoryStats.js`, `loversAwardsResults.js` e as fotos seguem intactos — só

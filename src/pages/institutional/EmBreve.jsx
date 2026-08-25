@@ -35,31 +35,65 @@
  * portas para o mesmo painel é fonte de verdade duplicada em forma de interface.
  */
 import React from 'react'
-import { HeroFotos } from '../../components/HeroFotos'
 import { MARCA_SCW } from '../../components/nav'
+import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { heroPhotos } from '../../data/imageLibrary'
 import { festivalFacts } from '../../data/festivalFacts'
 import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
+import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
+import { AWARDS_DADOS } from '../../data/handoff/awardsData'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 
 /* Barra final obrigatória — ver o cabeçalho do arquivo e o §10.4-b. */
 const PRE_CADASTRO = '/quero-participar/'
 
-/* As fotos do herói da Home. Não é empréstimo: enquanto o gate está ligado,
-   esta landing É a porta de entrada do domínio, o mesmo papel da Home. Assim o
-   caminho continua saindo do sistema central (§6.12) e os alt já são os do
-   acervo, conferidos — inventar descrição de foto que ninguém viu seria dado
-   inventado por outro meio (A4). */
-const FOTOS_HERO = heroPhotos('home')
+/*
+ * AS 16 EDIÇÕES — a fonte única desta página, e o que a galeria do herói mostra.
+ *
+ * ⛔ Nada aqui é digitado. Tema, período, foto e marca saem de
+ * `sweetCoffeeHistory` (via `edicoesData`); o vencedor do Melhor Combo sai de
+ * `awardsData`. O handoff de design trazia uma tabela `TEMAS_PRE_AWARDS` com os
+ * cinco primeiros temas escritos à mão — NÃO entrou: seria a segunda fonte de
+ * verdade que o §5.2 proíbe, dentro do arquivo que a base já responde.
+ *
+ * 2016 não tem `tema` na base — o nome dela guarda a grafia antiga
+ * ("S&C / Início"), e o prefixo "S&C" está proibido no site (§8.2). Tirar o
+ * prefixo é transformação de leitura, não uma segunda tabela.
+ *
+ * ⚠️ As cinco primeiras edições (2016 a 2018.2) NÃO têm vencedor, e isso é
+ * fato, não furo: o Sweet Awards estreou em 2019.1. O slide delas mostra o tema
+ * e diz "antes do Sweet Awards" — ausência honesta, nunca preenchida (§8.5).
+ */
+const EDICOES = (SWEET_COFFEE_HISTORY.edicoes || [])
+  .map((e) => {
+    const dados = EDICOES_DADOS[e.id] || {}
+    const premio = AWARDS_DADOS.edicoes.find((a) => a.code === e.id)
+    const cat = premio && (premio.cats.find((c) => /melhor combo/i.test(c.nome)) || premio.cats[0])
+    const primeiro = cat && cat.pod.find((p) => p.pos === 1)
+    /* ⚠️ `editionPhotos` devolve OBJETO — {src, alt, position, indice} —, não
+       caminho. Tratá-lo como string produz `url([object Object])`, que o
+       navegador pede ao servidor e o fallback do SPA responde com 200 e o
+       index.html (§10.4-b): nenhum 404, nenhum erro de console, e a foto
+       simplesmente não aparece. O `alt` e o ponto focal vêm de lá também —
+       escrever descrição de foto que ninguém viu seria dado inventado (A4). */
+    const foto = (dados.fotos || [])[0] || null
+    return {
+      code: e.id,
+      tema: e.tema || (e.nome || '').replace(/^S&C\s*\/?\s*/, ''),
+      periodo: dados.periodo || '',
+      foto: foto ? foto.src : null,
+      fotoAlt: foto ? foto.alt : '',
+      fotoFoco: foto ? foto.position : 'center',
+      logo: dados.logo || null,
+      vencedor: primeiro ? primeiro.nomes.join(' + ') : null,
+    }
+  })
+  /* Edição sem foto ou sem marca não vira slide vazio: sai da galeria. Hoje as
+     16 têm as duas coisas — o filtro existe para o dia em que uma edição nova
+     entrar na base antes de o acervo dela ser normalizado. */
+  .filter((e) => e.foto && e.logo)
 
-/* Os 16 temas, derivados da fonte histórica. 2016 não tem `tema` na base — o
-   nome dela guarda a grafia antiga ("S&C / Início"), e o prefixo "S&C" está
-   proibido no site (§8.2). Tirar o prefixo é transformação de leitura, não uma
-   segunda tabela de temas para alguém manter à mão (§5.2). */
-const TEMAS = (SWEET_COFFEE_HISTORY.edicoes || [])
-  .map((e) => e.tema || (e.nome || '').replace(/^S&C\s*\/?\s*/, ''))
-  .filter(Boolean)
+const TEMAS = EDICOES.map((e) => e.tema).filter(Boolean)
 
 /* Cada número numa cor diferente, na ordem do ciclo canônico (§6.3), filtrada
    pelo que sustenta leitura sobre creme em texto GRANDE (3:1): chocolate 12:1,
@@ -70,22 +104,28 @@ const TEMAS = (SWEET_COFFEE_HISTORY.edicoes || [])
    sozinho no dia em que a 17ª edição entrar na base. */
 const F = festivalFacts
 const NUMEROS = [
-  { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)' },
-  { alvo: Math.floor(F.brands.value / 10) * 10, prefixo: '+', rotulo: 'marcas participantes', cor: 'var(--scw-roxo)' },
-  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)' },
+  { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)', icone: 'simbolos/edicao' },
+  { alvo: Math.floor(F.brands.value / 10) * 10, prefixo: '+', rotulo: 'marcas participantes', cor: 'var(--scw-roxo)', icone: 'simbolos/estabelecimento' },
+  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'simbolos/combo-oficial' },
+]
+
+/* Os três nomeiam o que o combo É — conteúdo, não enfeite (§6.13). */
+const CATEGORIAS = [
+  { icone: 'doces/cupcake', rotulo: 'doce' },
+  { icone: 'salgados/pao-de-queijo', rotulo: 'salgado' },
+  { icone: 'bebidas/cappuccino', rotulo: 'café' },
 ]
 
 const PASSOS = [
-  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)' },
-  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)' },
-  { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)' },
+  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)', icone: 'mecanica/inscricao' },
+  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)', icone: 'topicos/depoimento' },
+  { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)', icone: 'combos/trio' },
 ]
 
-const SETA = (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
+/* A seta do sistema, não um SVG solto: ela lê o traço 3,2 do `SCW_ICON_SPEC` e
+   acompanha qualquer mudança futura no desenho (§6.11). 20px é o degrau de
+   botão da escala — o handoff pedia 18, que não existe na régua. */
+const SETA = <ScwIcon nome="ui/seta-direita" tamanho={20} />
 
 const podeAnimar = () =>
   typeof window !== 'undefined' &&
@@ -142,6 +182,125 @@ function Contador({ alvo, prefixo = '', sufixo = '' }) {
   )
 }
 
+/*
+ * GALERIA DAS 16 EDIÇÕES — o herói do handoff de agosto/2026.
+ *
+ * O herói deixou de ter foto de FUNDO com texto por cima e passou a ter foto AO
+ * LADO, em grade de duas colunas que colapsa sozinha. Como não há mais texto
+ * sobre foto, o véu diagonal e a emenda de três paradas do celular saíram junto:
+ * não há o que velar. Some com eles a `@keyframes ebRespira` — a galeria já tem
+ * movimento próprio, e os dois competiriam.
+ *
+ * ⚠️ A PAUSA NÃO É CONFORTO, É REQUISITO. WCAG 2.2.2: movimento automático acima
+ * de cinco segundos que carrega informação tem de ser pausável. Ela para em três
+ * situações — mouse sobre a peça, foco dentro dela, botão de pausa — e nunca
+ * chega a ligar com `prefers-reduced-motion`. É também o que impede a galeria de
+ * ser o terceiro laço contínuo da página, acima do teto de dois (marquee e o
+ * gradiente dele).
+ *
+ * ⚠️ O ouvinte de mouse e foco fica no INVÓLUCRO, não no quadro. O quadro não
+ * tem nada focável dentro — os três botões moram nos controles, abaixo dele —,
+ * então `onFocus` no quadro nunca dispararia e a pausa por teclado seria letra
+ * morta. No invólucro, tabular até a seta pausa o giro, que é o comportamento
+ * que a regra pede.
+ *
+ * ⚠️ A região viva anuncia só a troca MANUAL. Um `aria-live` disparando a cada
+ * 5,2 segundos, para sempre, interromperia a leitura de quem usa leitor de tela
+ * a cada cinco segundos. Os 15 slides fora de vista são `aria-hidden`: o leitor
+ * percorre UMA edição, não dezesseis.
+ */
+function GaleriaEdicoes() {
+  const total = EDICOES.length
+  const [i, setI] = React.useState(total - 1)   // abre na edição mais recente
+  const [pausado, setPausado] = React.useState(false)
+  const [sobre, setSobre] = React.useState(false)
+  const [anuncio, setAnuncio] = React.useState('')
+  /* Uma leitura só, na montagem: `podeAnimar` consulta `matchMedia`, e chamá-la
+     a cada render faria o efeito reavaliar sem necessidade. */
+  const [gira] = React.useState(podeAnimar)
+
+  const parado = pausado || sobre || !gira
+
+  React.useEffect(() => {
+    if (parado) return undefined
+    const relogio = setInterval(() => setI((v) => (v + 1) % total), 5200)
+    return () => clearInterval(relogio)
+  }, [parado, i, total])
+
+  const andar = (passo) => {
+    const proximo = (i + passo + total) % total
+    setI(proximo)
+    const ed = EDICOES[proximo]
+    setAnuncio(`Edição ${ed.code} — ${ed.tema}, ${proximo + 1} de ${total}`)
+  }
+
+  return (
+    <div
+      className="eb-gal"
+      style={{ '--eb-i': i, '--eb-n': total }}
+      onMouseEnter={() => setSobre(true)}
+      onMouseLeave={() => setSobre(false)}
+      onFocus={() => setSobre(true)}
+      onBlur={() => setSobre(false)}
+    >
+      <div className="eb-gal__quadro">
+        <ul className="eb-gal__trilha">
+          {EDICOES.map((ed, k) => (
+            <li className="eb-gal__slide" key={ed.code} aria-hidden={k !== i ? 'true' : undefined}>
+              <span
+                className="eb-gal__foto"
+                role="img"
+                aria-label={ed.fotoAlt}
+                style={{ backgroundImage: `url("${ed.foto}")`, backgroundPosition: ed.fotoFoco }}
+              />
+              <span className="eb-gal__veu" aria-hidden="true" />
+              {/* ⚠️ CONTORNO CLARO, NUNCA CHAPA ATRÁS DA LOGO — a chapa foi
+                  desenhada, mostrada e recusada. São 16 marcas de cores
+                  arbitrárias sobre fotografia arbitrária, e o caso que quebra é
+                  escuro-sobre-escuro (a marca vinho de Séries sobre uma cortina
+                  vinho). Escurecer o véu PIORA esse caso; o halo creme no
+                  próprio filtro resolve nos dois extremos. */}
+              <img className="eb-gal__logo" src={ed.logo} alt={`Marca da edição ${ed.code}`} loading="lazy" />
+              <span className="eb-gal__rotulo">
+                {ed.vencedor ? `Melhor combo · ${ed.code}` : `Edição ${ed.code}`}
+              </span>
+              <span className="eb-gal__legenda">
+                <strong className="eb-gal__nome">{ed.vencedor || ed.tema}</strong>
+                <span className="eb-gal__meta">
+                  {ed.vencedor ? `${ed.tema} · ${ed.periodo}` : `${ed.periodo} · antes do Sweet Awards`}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="eb-gal__controles">
+        <button type="button" className="eb-gal__btn" aria-label="Edição anterior" onClick={() => andar(-1)}>
+          <ScwIcon nome="ui/seta-esquerda" tamanho={20} />
+        </button>
+        <button type="button" className="eb-gal__btn" aria-label="Próxima edição" onClick={() => andar(1)}>
+          <ScwIcon nome="ui/seta-direita" tamanho={20} />
+        </button>
+        <button
+          type="button"
+          className="eb-gal__btn"
+          aria-label={pausado ? 'Retomar a galeria das edições' : 'Pausar a galeria das edições'}
+          onClick={() => setPausado((v) => !v)}
+        >
+          <ScwIcon nome={pausado ? 'ui/play' : 'ui/pausa'} tamanho={20} />
+        </button>
+        <span className="eb-gal__barra" aria-hidden="true"><span /></span>
+        <span className="eb-gal__contador">
+          {String(i + 1).padStart(2, '0')} / {total}
+        </span>
+      </div>
+
+      <p aria-live="polite" className="eb-sr">{anuncio}</p>
+    </div>
+  )
+}
+
 function Acao({ classe = 'scw-btn scw-btn--solido', children = 'Quero participar' }) {
   return <a className={classe} href={PRE_CADASTRO}>{children}{SETA}</a>
 }
@@ -158,8 +317,8 @@ export function EmBrevePage() {
       </div>
 
       {/* 2 — HERÓI: a notícia e a ação */}
-      <header className="eb-hero scw-hero-veu">
-        <HeroFotos fotos={FOTOS_HERO} classe="eb-hero__fotos" />
+      <header className="eb-hero">
+        <div className="eb-hero__grade">
         <div className="eb-hero__conteudo motion-stagger">
           <span className="scw-pill eb-pill">Pré-cadastro aberto</span>
           <h1 className="scw-h1 eb-h1">
@@ -174,21 +333,29 @@ export function EmBrevePage() {
             <span className="eb-acao__nota">Leva quatro passos e uma revisão antes de enviar.</span>
           </div>
         </div>
+          <GaleriaEdicoes />
+        </div>
       </header>
 
       {/* 3 — PROVA: os números do acervo */}
       <section className="scw-secao scw-secao--creme eb-prova">
-        <ul className="scw-grade-fixa eb-prova__grade motion-stagger" style={{ '--scw-cols': 4, '--scw-gap': 'clamp(16px,2.4vw,32px)' }}>
+        <ul className="eb-prova__grade motion-stagger">
           {NUMEROS.map((n) => (
             <li className="eb-num" key={n.rotulo} style={{ color: n.cor }}>
               <span aria-hidden="true">
+                <span className="eb-num__icone"><ScwIcon nome={n.icone} tamanho={32} /></span>
                 <Contador alvo={n.alvo} prefixo={n.prefixo} sufixo={n.sufixo} />
                 <span className="eb-num__rotulo">{n.rotulo}</span>
               </span>
               <span className="eb-sr">{n.prefixo || ''}{n.alvo}{n.sufixo || ''} {n.rotulo}</span>
             </li>
           ))}
-          <li className="eb-num" style={{ color: 'var(--scw-magenta)' }}>
+          {/* ⚠️ "desde 2016" é PALAVRA, não numeral: na escala dos outros três
+              ela estoura a coluna e some no `overflow-x: clip` da página, sem
+              barra que denuncie. Escala própria resolve na origem — alargar a
+              coluna traria de volta o órfão de 3+1. */}
+          <li className="eb-num eb-num--palavra" style={{ color: 'var(--scw-magenta)' }}>
+            <span className="eb-num__icone"><ScwIcon nome="simbolos/memoria" tamanho={32} /></span>
             <span className="scw-numeral">desde {F.firstYear}</span>
             <span className="eb-num__rotulo">a primeira edição</span>
           </li>
@@ -221,6 +388,14 @@ export function EmBrevePage() {
             Cafeterias, confeitarias, docerias, casas de bolo, padarias, chocolaterias,
             sorveterias, bistrôs, restaurantes e cozinhas sem loja física — em Natal e região.
           </p>
+          <ul className="eb-cats">
+            {CATEGORIAS.map((c) => (
+              <li className="eb-cat" key={c.rotulo}>
+                <ScwIcon nome={c.icone} tamanho={24} />
+                <span>{c.rotulo}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -233,7 +408,10 @@ export function EmBrevePage() {
         <ol className="scw-grade eb-passos__grade motion-stagger" style={{ '--scw-min': '260px' }}>
           {PASSOS.map((p) => (
             <li className="eb-passo" key={p.n}>
-              <span className="eb-passo__n" style={{ background: p.cor }}>{p.n}</span>
+              <span className="eb-passo__n" style={{ background: p.cor }}>
+                <ScwIcon nome={p.icone} tamanho={48} />
+              </span>
+              <span className="eb-passo__ordem">Passo {p.n}</span>
               <h3 className="scw-h3">{p.t}</h3>
               <p className="scw-corpo eb-passo__txt">{p.d}</p>
             </li>
@@ -251,6 +429,7 @@ export function EmBrevePage() {
             e não compromete nada.
           </p>
           <Acao />
+          <span className="eb-fecho__selo"><ScwIcon nome="simbolos/sweet-lovers" tamanho={32} /></span>
           <p className="scw-corpo eb-fecho__lover">
             É Sweet Lover? A data, o tema e as marcas confirmadas saem primeiro no{' '}
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>.
@@ -267,9 +446,13 @@ export function EmBrevePage() {
           <span className="scw-rotulo scw-rotulo--micro">Realização</span>
           <img src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
         </a>
+        {/* ⚠️ O separador vive DENTRO do link e a primeira metade é `nowrap`.
+            O link é `inline-flex` com 44px de alvo (§10.2), e isso fazia a
+            quebra cair depois do "·" — a primeira linha terminava num separador
+            solto, pendurado. */}
         <p className="eb-rodape__linha">
-          Sweet &amp; Coffee Week · Natal/RN ·{' '}
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>
+          <span className="eb-rodape__cidade">Sweet &amp; Coffee Week · Natal/RN</span>{' '}
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">· {INSTAGRAM_HANDLE}</a>
         </p>
       </footer>
 
@@ -316,13 +499,21 @@ export function EmBrevePage() {
           background: var(--scw-choco);
           color: var(--scw-creme);
           /* Sem altura rígida: o herói é proporcional ao conteúdo (§6.8). */
-          padding: clamp(56px, 7vw, 96px) var(--scw-trilho) clamp(64px, 7vw, 104px);
-          --hv-cor: var(--scw-choco);
-          --hv-esq: 88%;
-          --hv-centro: 56%;
-          --hv-fim: 74%;
+          padding: clamp(30px, 4.4vw, 72px) var(--scw-trilho) clamp(48px, 6vw, 96px);
         }
-        .eb-hero__fotos { position: absolute; inset: 0; z-index: 0; }
+        /* Duas colunas que colapsam SOZINHAS, sem media query: abaixo de ~880px
+           não cabem duas faixas de 400px e a grade empilha texto e galeria. Foi
+           isso que aposentou o bloco @media do herói — e, junto com ele, o véu
+           diagonal e a emenda de três paradas, que existiam só para segurar
+           texto SOBRE foto. Não há mais texto sobre foto. */
+        .eb-hero__grade {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+          gap: clamp(30px, 4vw, 72px);
+          align-items: center;
+          max-width: 1600px;
+          margin-inline: auto;
+        }
         .eb-hero__conteudo {
           position: relative;
           z-index: 2;
@@ -330,7 +521,6 @@ export function EmBrevePage() {
           flex-direction: column;
           align-items: flex-start;
           gap: clamp(16px, 1.8vw, 22px);
-          max-width: min(62%, 860px);
         }
         .eb-pill { background: var(--scw-amarelo); color: var(--scw-choco); }
         .eb-h1 { color: var(--scw-creme); }
@@ -341,17 +531,140 @@ export function EmBrevePage() {
         .eb-acao { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
         .eb-acao__nota { font: 500 13.5px/1.4 var(--scw-font); opacity: .82; }
 
-        /* Respiração da foto: laço na propriedade \`scale\`, NUNCA em transform —
-           transform fica livre para o crossfade e não há salto de reinício
-           (§6.15). 26s é o respiro do sistema, não uma duração nova. */
-        .eb-hero__fotos .scw-hero-banda__foto {
-          animation: ebRespira 26s var(--ease-out-soft) infinite alternate;
+        /* --- GALERIA DAS 16 EDIÇÕES ------------------------------------- */
+        /* A respiração de 26s da foto saiu junto com o herói de fundo: a galeria
+           tem movimento próprio e as duas competiriam. */
+        .eb-gal { display: flex; flex-direction: column; gap: 14px; }
+        .eb-gal__quadro {
+          position: relative;
+          aspect-ratio: 1;              /* 1:1 — a proporção de galeria do §6.12 */
+          border-radius: 26px;
+          overflow: hidden;
+          background: var(--scw-marrom);
+          box-shadow: 0 22px 60px rgba(0, 0, 0, .36);
         }
-        @keyframes ebRespira { from { scale: 1; } to { scale: 1.06; } }
+        /* Um custom property só (--eb-i), em vez de dezesseis regras. */
+        .eb-gal__trilha {
+          display: flex;
+          width: 100%; height: 100%;
+          margin: 0; padding: 0; list-style: none;
+          transform: translate3d(calc(var(--eb-i, 0) * -100%), 0, 0);
+          transition: transform 620ms var(--scw-ease);
+        }
+        .eb-gal__slide { position: relative; flex: 0 0 100%; height: 100%; }
+        .eb-gal__foto {
+          position: absolute; inset: 0; display: block;
+          background-size: cover; background-position: center;
+        }
+        /* CINCO paradas, não duas: o olho enxerga a derivada, não o valor, e uma
+           rampa de duas paradas marca aresta nos dois pontos onde começa e onde
+           termina (§10.4). A do topo segura o rótulo; a da base, a legenda. */
+        .eb-gal__veu {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(180deg,
+            rgba(61, 19, 8, .5) 0%,
+            rgba(61, 19, 8, .16) 20%,
+            rgba(61, 19, 8, .06) 34%,
+            rgba(61, 19, 8, .14) 48%,
+            rgba(61, 19, 8, .84) 100%);
+        }
+        /* Contorno CLARO no próprio filtro, nunca chapa atrás da marca — o
+           porquê está no comentário do JSX. */
+        .eb-gal__logo {
+          position: absolute;
+          top: clamp(16px, 2vw, 26px); left: clamp(16px, 2vw, 26px);
+          height: clamp(62px, 7vw, 96px); width: auto; display: block;
+          filter: drop-shadow(0 0 2px rgba(254, 240, 221, .92))
+                  drop-shadow(0 0 6px rgba(254, 240, 221, .55))
+                  drop-shadow(0 3px 12px rgba(61, 19, 8, .45));
+        }
+        .eb-gal__rotulo {
+          position: absolute;
+          top: clamp(16px, 2vw, 26px); right: clamp(16px, 2vw, 26px);
+          display: inline-flex; align-items: center;
+          padding: 7px 13px 5px;
+          border-radius: 999px;
+          background: rgba(61, 19, 8, .72);
+          color: var(--scw-creme);
+          font: 800 10px/1.2 var(--scw-font);
+          letter-spacing: .14em; text-transform: uppercase;
+        }
+        .eb-gal__legenda {
+          position: absolute; inset: auto 0 0 0;
+          display: flex; flex-direction: column; gap: 7px;
+          padding: clamp(18px, 2.2vw, 30px);
+        }
+        .eb-gal__nome {
+          font: 900 clamp(21px, 2.1vw, 30px)/1.05 var(--scw-font-black);
+          letter-spacing: -.03em; color: var(--scw-creme); text-wrap: balance;
+        }
+        .eb-gal__meta { font: 500 13px/1.45 var(--scw-font); color: rgba(254, 240, 221, .82); }
+        .eb-gal__controles { display: flex; align-items: center; gap: 12px; }
+        .eb-gal__btn {
+          display: inline-grid; place-items: center;
+          width: 48px; height: 48px; flex: 0 0 auto;
+          border: 1.5px solid rgba(254, 240, 221, .42);
+          border-radius: 50%;
+          background: transparent; color: var(--scw-creme);
+          cursor: pointer;
+          transition: background .2s var(--scw-ease), color .2s var(--scw-ease);
+        }
+        @media (hover: hover) {
+          .eb-gal__btn:hover { background: var(--scw-creme); color: var(--scw-choco); }
+        }
+        .eb-gal__barra {
+          position: relative; flex: 1 1 auto; height: 3px;
+          border-radius: 3px; background: rgba(254, 240, 221, .22); overflow: hidden;
+        }
+        /* scaleX com origem à esquerda, não width: é o padrão que a régua de anos
+           de Edições já usa, e não pede layout a cada quadro (§10.3). */
+        .eb-gal__barra > span {
+          position: absolute; inset: 0;
+          border-radius: 3px; background: var(--scw-amarelo);
+          transform-origin: left center;
+          transform: scaleX(calc((var(--eb-i, 0) + 1) / var(--eb-n, 16)));
+          transition: transform 620ms var(--scw-ease);
+        }
+        .eb-gal__contador {
+          flex: 0 0 auto;
+          font: 800 12px/1 var(--scw-font);
+          letter-spacing: .14em; color: rgba(254, 240, 221, .82);
+          font-variant-numeric: tabular-nums;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .eb-gal__trilha, .eb-gal__barra > span { transition: none; }
+        }
 
         /* 3 — PROVA ------------------------------------------------------ */
-        .eb-prova__grade { list-style: none; margin: 0; padding: 0; }
+        /* ⚠️ Quatro colunas fixas, e 2×2 abaixo de 900px — NÃO um auto-fit.
+           Qualquer auto-fit desce de 4 para 3 antes de chegar a 2, e o quarto
+           item fica órfão com dois vãos ao lado; o handoff propunha piso de
+           140px para evitar isso, mas o auto-fit sempre passa pelo 3. Com
+           repeat() explícito a fileira vai de 4 direto para 2×2, sem largura
+           mágica. 900px é o degrau canônico do §6.14. */
+        .eb-prova__grade {
+          list-style: none; margin: 0; padding: 0;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: clamp(16px, 2.4vw, 32px);
+        }
+        @media (max-width: 900px) {
+          .eb-prova__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
         .eb-num { display: flex; flex-direction: column; gap: 8px; }
+        /* Caixa de BLOCO, não inline: o ícone dos três primeiros mora dentro do
+           invólucro inline que o aria-hidden cria, e como inline ele pousava AO
+           LADO do numeral em vez de acima. Caixa de bloco resolve, e os quatro
+           itens voltam a alinhar pelo topo. */
+        .eb-num__icone { display: flex; margin-bottom: 8px; }
+        /* "desde 2016" é palavra: escala própria, e livre para quebrar em duas
+           linhas em vez de estourar a coluna. */
+        .eb-num--palavra .scw-numeral {
+          font-size: clamp(30px, 3.2vw, 54px);
+          letter-spacing: -.05em;
+          white-space: normal;
+          text-wrap: balance;
+        }
         /* O molde reserva a largura do valor FINAL e o vivo corre por cima:
            a caixa nunca muda de tamanho enquanto o número sobe. */
         .eb-num__caixa { position: relative; display: inline-block; }
@@ -364,6 +677,21 @@ export function EmBrevePage() {
           letter-spacing: .14em;
           text-transform: uppercase;
           color: var(--scw-marrom);
+        }
+
+        /* Os três nomeiam o que o combo é. Chapa creme sobre o bege da seção:
+           13:1 de tinta chocolate, e o filete fica por conta do contraste das
+           duas superfícies (§6.1). */
+        .eb-cats {
+          display: flex; flex-wrap: wrap; gap: 10px;
+          list-style: none; margin: clamp(6px, 1vw, 12px) 0 0; padding: 0;
+        }
+        .eb-cat {
+          display: inline-flex; align-items: center; gap: 11px;
+          min-height: 52px; padding: 0 20px 0 16px;
+          border-radius: 999px;
+          background: var(--scw-creme); color: var(--scw-choco);
+          font: 800 14px/1 var(--scw-font);
         }
 
         /* 4 — MARQUEE ---------------------------------------------------- */
@@ -380,20 +708,27 @@ export function EmBrevePage() {
         /* A cor vive no grafismo, não na tinta: sobre creme, amarelo e cyan não
            sustentam texto — como CHAPA, com numeral chocolate, sustentam com
            folga (9,5:1 · 5,6:1 · 4,8:1). É a saída do §6.3. */
+        /* 80px de disco com ícone de 48px = os 60% do §6.3. O numeral saiu de
+           dentro e virou o rótulo abaixo: quem diz o que a etapa É agora é o
+           desenho, e a ordem vira metadado. */
         .eb-passo__n {
           display: inline-grid;
           place-items: center;
-          width: 54px; height: 54px;
+          width: 80px; height: 80px;
           border-radius: 50%;
           color: var(--scw-choco);
-          font: 900 18px/1 var(--scw-font-black);
-          letter-spacing: -.02em;
+        }
+        .eb-passo__ordem {
+          font: 800 11px/1 var(--scw-font);
+          letter-spacing: .16em; text-transform: uppercase;
+          color: var(--scw-marrom);
         }
         .eb-passo__txt { max-width: 34ch; }
         .eb-passos__acao { margin-top: var(--scw-gap-cabeca); }
 
         /* 7 — FECHO ------------------------------------------------------ */
         .eb-fecho__inner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--scw-gap-bloco); }
+        .eb-fecho__selo { display: inline-flex; color: var(--scw-amarelo); }
         .eb-fecho__h2 { color: var(--scw-creme); }
         .eb-fecho__txt { color: var(--scw-creme); opacity: .9; }
         .eb-fecho__lover { color: var(--scw-creme); opacity: .82; font-size: 14.5px; }
@@ -417,7 +752,8 @@ export function EmBrevePage() {
           border-top: 1px solid rgba(61, 19, 8, .14);
         }
         .eb-rodape__f2 { display: inline-flex; flex-direction: column; gap: 8px; min-height: 44px; justify-content: center; }
-        .eb-rodape__f2 img { height: 20px; width: auto; }
+        .eb-rodape__f2 img { height: 24px; width: auto; }
+        .eb-rodape__cidade { white-space: nowrap; }
         .eb-rodape__linha { margin: 0; font: 500 13.5px/1.5 var(--scw-font); color: var(--scw-marrom); }
         .eb-page .eb-rodape__linha a {
           color: var(--scw-choco);
@@ -427,39 +763,6 @@ export function EmBrevePage() {
 
         /* 9 — BARRA FIXA (celular) --------------------------------------- */
         .eb-barra { display: none; }
-
-        /* --- herói no celular: foto quadrada em cima, texto embaixo (§6.9) - */
-        @media (max-width: 1000px) {
-          .eb-hero { display: block; padding-top: clamp(28px, 5vw, 40px); }
-          /* Sai do absoluto e volta ao fluxo: a foto passa a ocupar a largura
-             cheia num quadrado, e o texto vem embaixo sobre a chapa sólida. */
-          .eb-hero__fotos {
-            position: relative;
-            inset: auto;
-            aspect-ratio: 1;
-            margin: calc(clamp(28px, 5vw, 40px) * -1) calc(var(--scw-trilho) * -1) 0;
-          }
-          /* O véu existia para segurar texto SOBRE foto, e não há mais texto
-             sobre foto. No lugar dele, a emenda: rampa de TRÊS paradas na cor
-             do bloco, no ::after da própria imagem. Duas paradas voltariam a
-             marcar aresta — o olho enxerga a derivada, não o valor (§10.4). */
-          .eb-hero.scw-hero-veu::after { display: none; }
-          .eb-hero__fotos::after {
-            content: '';
-            position: absolute;
-            inset: auto 0 0 0;
-            height: 46%;
-            pointer-events: none;
-            background: linear-gradient(180deg,
-              rgba(61, 19, 8, 0) 0%,
-              rgba(61, 19, 8, .58) 62%,
-              var(--scw-choco) 100%);
-          }
-          .eb-hero__conteudo {
-            max-width: none;
-            padding-top: clamp(20px, 4vw, 30px);
-          }
-        }
 
         @media (max-width: 900px) {
           .eb-barra {
