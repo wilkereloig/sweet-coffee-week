@@ -381,196 +381,52 @@ isso, cada tecla numa unidade nova criaria outra linha.
 Suíte **124/124** (2 testes novos), build verde em 2,06 s, **zero ERROR** nos
 Security Advisors.
 
-### O que NÃO foi visto funcionando
+### O primeiro teste real, e os dois defeitos que só ele encontrou
 
-- **Nenhum navegador tocou nesta tela.** Não há como criar um usuário de teste
-  sem a chave de serviço, e o único caminho de login é a senha real de uma conta
-  que ainda não existe (`participantes` tem zero linhas). O que está provado é a
-  camada de dados, pela mesma porta que a tela usa — não a tela.
-- **Download de arquivo** depende de um objeto no bucket `arquivos`, que está
-  vazio. A chamada de assinatura está escrita; não foi exercida.
-- `edicao_atual` está **nula** em produção, de propósito. Enquanto estiver, toda
-  conta nova cai em "ainda não há edição aberta para você".
+A tela foi aberta em 25/08/2026 e **travou duas vezes** antes de funcionar.
+Nenhum dos dois defeitos aparecia em teste automatizado, e o segundo era mais
+antigo e maior que a própria Fase 7.
 
----
+🐛 **`Notification.requestPermission()` nunca rejeita e pode não resolver.** O
+navegador costuma recolher o pedido num ícone da barra de endereço em vez de
+abrir a caixa; enquanto ninguém responde, a promessa fica pendente para
+sempre. As duas telas travavam em "Pedindo permissão…" sem dizer o que houve.
+Corrigido em `a79b1a8`: recado que ensina onde o pedido se escondeu, prazo de
+8 s que troca a mensagem sem afirmar que falhou, escuta de
+`permissions.change` para não perder resposta tardia, e checagem da negativa
+antes de pedir.
 
-## Fase 6 · Painel da organização — ✅ CONSTRUÍDO E PROVADO NO BANCO
+🔴 **`rpc()` quebrava em TODA função `returns void`.** O PostgREST responde
+204 sem corpo e o painel chamava `r.json()` em cima do vazio — "Unexpected end
+of JSON input", erro que parece de rede e é de leitura. São **sete** RPCs
+`void` que o painel chama: além do "Ligar avisos", **cinco botões da Fase 6**
+falhavam idêntico e nunca tinham sido apertados — `marcar_solicitacao`,
+`registrar_foto_item`, `atualizar_sessao_fotos`, `definir_funcao_conta` e
+`suspender_conta`. Corrigido em `7e3ffa4`.
 
-O painel lia `get_participantes` do modelo antigo — `combo_nome`,
-`combo_descricao`, `combo_preco`, `unidades` — colunas que a marca **deixou de
-preencher na Fase 5**. Não quebrava: vinham vazias. Painel que mostra campo
-vazio onde há dado é pior que painel que dá erro.
+⚠️ **A lição, e ela vale para as próximas provas:** a Fase 6 reportou "17 RPCs
+chamadas por HTTP, zero `PGRST202`" — e passou. A chamada foi por `curl`, com
+o corpo lido fora do painel; o `rpc()` nunca entrou na prova, e era ele que
+estava quebrado. **Chamada por HTTP não é chamada pelo caminho do código.**
 
-### A barra passou de 4 para 5 destinos
+### O que ficou provado de ponta a ponta
 
-`resumo · respostas · marcas · produção · equipe`. "Os formulários" desceu para
-dentro do resumo: é lista de referência, não destino — ninguém abre o painel
-para consultá-la, e ela ocupava uma das colunas da barra no celular.
-
-| Destino | O que ganhou |
+| O quê | Como |
 |---|---|
-| **marcas** | a linha virou botão: abre a **ficha completa** — contato, tema, os três itens com restrição e foto, unidades com horário e delivery, pedidos com estado, arquivos com quem leu, sessões, e o **histórico de edições** da marca |
-| **produção** | pedidos (criar, publicar, prazo, **quem falta responder**), arquivos (subir, publicar, baixar) e sessões de fotos (agendar, remarcar, mudar situação) |
-| **equipe** | a **edição aberta** e as contas nominais por função (criar, trocar função, suspender) |
+| Assinatura gravada | ✅ 1 linha ativa em `push_subscriptions`, papel `organizacao` |
+| Serviço de push | ✅ **WNS da Microsoft** (`notify.windows.com`) — o navegador foi o Edge, não o Chrome, então a função vale nos dois |
+| Assinatura VAPID aceita | ✅ a linha segue `ativo = true`: o envio não levou 404/410 |
+| Notificação exibida | ✅ vista na tela pelo Eloi |
 
-### O que foi ao banco
+⚠️ **Falta o celular.** A assinatura é presa à origem: a de `localhost:3000`
+não vale no Preview da Vercel nem em produção, e cada endereço pede "Ligar
+avisos" de novo. O iPhone continua sem prova — lá o push só existe com o
+painel instalado na tela inicial.
 
-`supabase/migrations/20260825_fase6_leitura_da_organizacao.sql`:
-
-- **`get_participantes`** passa a trazer a participação corrente por marca, com
-  `unidades` e `itens_prontos` **contados pelo banco**. `left join lateral`, e
-  não join comum: join devolveria a marca repetida por edição, e a lista de
-  marcas passaria a contar participações.
-- **`get_ficha_participacao`** — a ficha inteira numa chamada. Seis leituras
-  desenhariam a tela em seis pedaços que pulam sob o dedo de quem já rolou.
-- **`get_config_admin`** — edição aberta, senha única e as funções.
-- `registrar_foto_item`, `agendar_sessao_fotos` e `atualizar_sessao_fotos`
-  trocaram `pode_organizacao` por **`producao.gerir`**: quem entra como
-  `consulta` lê tudo e não escreve foto nem remarca sessão.
-- `agendar_sessao_fotos` passou a receber a **participação**: a marca é
-  fotografada de novo a cada combo novo.
-- `get_itens_participante` saiu sem substituto — a ficha já traz os itens, e uma
-  segunda leitura dos mesmos três registros é a fonte duplicada do §5.2.
-
-### Duas Edge Functions novas
-
-| Função | Papel |
-|---|---|
-| `criar-conta-organizacao` | a conta nominal da equipe, guardada por **`acesso.gerir`** (só administrador). Aqui o e-mail é **real** — diferente da marca, que entra pelo nome do estabelecimento num endereço sintético |
-| `arquivo-url` | assina upload e download nos dois buckets privados |
-
-⚠️ **Os bytes não atravessam a Edge Function.** Ela assina; o navegador faz
-`PUT` direto no Storage. Um PDF de 20 MB dentro do isolate esbarraria em limite
-de corpo, de memória e de tempo. O que passa pela função é a **autorização** — e
-o **caminho**, que é a única coisa que separa "subir arquivo da marca X" de
-"escrever por cima do arquivo da marca Y".
-
-### Provado
-
-**Banco, em transação revertida** (senha temporária, a real nunca lida):
-
-| Prova | Resultado |
-|---|---|
-| uma linha por marca, não por participação | ✅ |
-| com edição corrente, aponta para ela; sem, cai na edição mais alta | ✅ |
-| marca sem participação nenhuma | ✅ `sem_participacao`, sem id, 0 edições |
-| itens prontos / unidades contados pelo banco | ✅ `2 / 1` |
-| ficha: marca, 3 itens, 1 unidade, 1 pedido, 1 arquivo, 2 edições | ✅ |
-| sessão agendada traz a edição | ✅ `2027 / agendada` |
-| senha errada em lista, ficha e config | ✅ `0`, `null`, `null` |
-| agendar com senha errada | ✅ `nao_autorizado` |
-
-🐛 **Um defeito que o teste pegou:** o desempate da participação era por
-`created_at`. Duas participações abertas na mesma transação têm `created_at`
-**idêntico** — `now()` é o carimbo da transação, não do comando — e a escolha
-virava sorteio. Passou a desempatar pelo **código da edição**, que ordena
-sozinho e é o que a pergunta realmente quer dizer.
-
-**Contra a produção, sem passar pela tela:**
-
-- **17 RPCs chamadas por HTTP com os nomes de argumento exatos que o painel
-  manda** — nenhuma devolveu `PGRST202`. Com senha errada, as 8 leituras dão
-  lista vazia ou `null`; as 9 escritas dão `nao_autorizado`.
-- `criar-conta-organizacao` com senha errada e com senha vazia: **401** nas duas.
-- `arquivo-url`: `nao_autorizado` com senha errada; e o validador de caminho
-  recusou `geral/sub/x.pdf`, `outrapasta/x.pdf`, `geral/.oculto` e nome com
-  espaço — só o caminho válido chegou até a checagem de senha.
-
-Suíte **132/132** (8 testes novos em `organizacao`), build verde.
-
-### O que NÃO foi visto funcionando
-
-- **Nenhum navegador abriu este painel.** A senha real não é lida por mim
-  (`CLAUDE.md` A5), então o ciclo pela tela — entrar, abrir a ficha, publicar um
-  pedido, subir um arquivo — segue sem prova de ponta a ponta. O que está
-  provado é a camada de dados e as duas Edge Functions, pela mesma porta que a
-  tela usa.
-- **Upload de verdade não foi exercido.** A assinatura foi provada; o `PUT` no
-  Storage e o download que vem depois, não — os dois buckets estão vazios.
-
----
-
-## Fase 7 · Aplicativo instalável e notificações — ✅ CONSTRUÍDA E PROVADA
-
-**Commit:** ver `git log` · **Migration:** nenhuma (a tabela `push_subscriptions`
-e as duas RPCs já existiam da Fase 4) · **Edge Function nova:** `enviar-push` (v2)
-
-### O que passou a existir
-
-| Peça | Onde |
-|---|---|
-| Aplicativo instalável da marca | `public/marca/app.webmanifest` + `public/marca/sw.js`, escopo `/marca/` |
-| Recebimento da notificação | handler `push` + `notificationclick` nos **dois** service workers |
-| Ligar/desligar na organização | **equipe → Avisos neste aparelho**, com botão de teste |
-| Ligar/desligar na marca | cartão **Avisos**, fora do formulário |
-| Envio | Edge Function `enviar-push`, guardada por `producao.gerir` |
-| Chaves VAPID | geradas; a **privada** fora do repositório (ver abaixo) |
-
-### As decisões
-
-**Dois service workers, um por painel.** Um SW só na raiz cobriria os dois com
-metade do código — e cobriria junto o site público, que não pede nada disso.
-Escopo de SW é a **pasta em que ele é servido**: na raiz, ele passaria a
-interceptar a landing que está no ar, e desfazer isso não é deploy, é
-desregistro no navegador de cada visitante.
-
-**A criptografia está escrita na função, não numa biblioteca.** Web Push não é
-"POST no endpoint": o corpo vai cifrado com chave derivada da chave pública do
-navegador de quem assinou (RFC 8291) e o pedido vai assinado com VAPID
-(RFC 8292). As bibliotecas de Node dependem de `node:crypto` e de Buffer; ali
-roda Deno, e o que existe é Web Crypto. São ~80 linhas de crypto padrão contra
-uma dependência que pode não resolver no isolate — e dependência que não
-resolve derruba a função inteira, não só o push.
-
-**A marca grava a assinatura pelo PostgREST, não por RPC.** A policy de insert
-já existia. Como `update` está revogado de `authenticated`, upsert não funciona:
-o caminho é apagar a linha do mesmo endpoint (a RLS limita ao dono) e inserir.
-
-**Assinatura morta é desativada, não apagada.** 404/410 do serviço de push
-significa navegador desinstalado ou permissão revogada. Apagar dado é decisão de
-quem toca o festival, não de um laço de envio.
-
-### Os defeitos que apareceram no caminho
-
-🐛 **O separador do RFC 8291 se perdeu duas vezes.** É o byte `0x00` no fim dos
-rótulos de derivação. Escrito como sequência de escape dentro do literal de
-texto, ele virou espaço no heredoc do shell e byte cru no JSON do deploy. Das
-duas o sintoma seria idêntico: chave derivada diferente e o navegador
-**descartando a mensagem sem dizer por quê**. Virou `const NUL = new
-Uint8Array([0])`, fora da string, com teste que reprova as duas formas antigas.
-
-🐛 **A conferência do ambiente vinha antes de autorizar.** Qualquer um que
-chamasse a função descobria se as chaves VAPID estavam postas. Corrigido na v2 e
-conferido no ar: senha errada agora dá 401, não 503.
-
-⚠️ **Duas consultas foram parar no projeto errado.** As primeiras leituras de
-`pg_proc` foram feitas contra `eloi-financeiro`, e voltaram vazias — o que
-parecia "as RPCs de push não existem". Eram só SELECTs, nada foi escrito. O
-projeto do festival é **`dgfmoibynftadsyjcclg`**; `nlamznxoocmygfvnqcns` é o
-ELOI Studio. **Conferir o `project_id` antes de concluir que algo sumiu.**
-
-### As provas
-
-| O quê | Resultado |
-|---|---|
-| Suíte inteira | ✅ **149/149** (eram 132; +17 nesta fase) |
-| Build | ✅ verde, 2,07 s |
-| **Round-trip da cifra** | ✅ o corpo cifrado pelo **arquivo real** (transpilado pelo esbuild, sem reimplementar) volta ao texto original quando decifrado do jeito que o navegador decifra |
-| Enquadramento do corpo | ✅ registro 4096 · chave efêmera 65 bytes · delimitador `0x02` |
-| **Cabeçalho VAPID** | ✅ JWT ES256 que **verifica** contra a chave pública dos painéis; `aud` = origem do endpoint; validade 12 h (limite do RFC: 24) |
-| `k=` do cabeçalho | ✅ é exatamente a chave que está nos dois painéis |
-| Função no ar, senha errada | ✅ **401** `nao_autorizado` |
-| Função no ar, senha vazia | ✅ **401** |
-| Alvo inválido · título de 81 caracteres · URL absoluta | ✅ **400** · **422** · **422** `url_invalida` |
-| Assets servidos no dev | ✅ `/marca/`, `/marca/sw.js`, `/marca/app.webmanifest`, e os dois da organização |
-
-### O que NÃO foi visto funcionando
-
-**Nenhuma notificação chegou a um aparelho.** Isso exige uma assinatura de
-navegador real, e depende de três coisas que não são minhas: as variáveis VAPID
-ligadas, a senha do painel, e alguém abrindo no celular. O que está provado é a
-matemática (a cifra volta, o JWT verifica) e o contorno (autorização, validação,
-rotas). **A entrega de ponta a ponta continua sem prova.**
+⚠️ **A versão em produção dos dois painéis é a do `master`, anterior às fases
+5, 6 e 7** — 2.251 linhas atrás. As páginas estáticas estão no ar desde sempre
+(a flag `COMING_SOON_PUBLICATION` não as alcança), mas o que está lá não tem
+avisos, nem ficha, nem produção, nem equipe.
 
 ---
 
@@ -602,8 +458,8 @@ rotas). **A entrega de ponta a ponta continua sem prova.**
 
 ## Onde parei, exatamente
 
-**Fases 1 a 7 fechadas.** As duas telas falam o modelo novo, as duas instalam
-como aplicativo, e o canal de notificação está de pé, faltando ligar.
+**Fases 1 a 7 fechadas, e a 7 foi vista funcionando.** As duas telas falam o
+modelo novo, as duas instalam como aplicativo, e a notificação chega.
 
 **Ordem de retomada:**
 
@@ -612,10 +468,9 @@ como aplicativo, e o canal de notificação está de pé, faltando ligar.
    apontar, mais o que só dá para cobrir com aparelho na mão.
 2. **Fase 9 · revisão final** — o §7 do comando, item por item.
 
-⚠️ **A Fase 7 está construída, não ligada.** Sem as três variáveis VAPID no
-ambiente da Edge Function, o botão "Ligar avisos" grava a assinatura e o envio
-devolve `vapid_ausente` (503): honesto, mas nada chega. O passo a passo está em
-`ELOI SITES/scw-segredos/vapid.txt`, fora do repositório.
+⚠️ **Falta o celular, e falta produção.** A assinatura é presa à origem, então
+a de `localhost` não vale em outro endereço; e o que está no ar nos dois painéis
+ainda é a versão do `master`, anterior às fases 5, 6 e 7.
 
 ⚠️ **`edicao_atual` está NULA em produção**, e é decisão: a 17ª edição não foi
 anunciada e inventar um código seria inventar dado (A4). Enquanto estiver nula,
