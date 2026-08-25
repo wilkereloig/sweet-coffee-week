@@ -640,3 +640,22 @@ test('assinatura que morreu é desativada, não apagada, e o endpoint nunca volt
   assert.ok(!/enviados[\s\S]{0,200}endpoint/.test(PUSH.slice(PUSH.indexOf('return json({ ok: true, enviados'))),
     'endpoint é credencial: não pode voltar na resposta')
 })
+
+test('pedir permissão não é beco sem saída em nenhum dos dois painéis', () => {
+  // 🐛 `Notification.requestPermission()` nunca rejeita e PODE NÃO RESOLVER: o
+  // Chrome costuma recolher o pedido num ícone da barra de endereço, e enquanto
+  // ninguém responde a promessa fica pendente para sempre. A primeira versão
+  // travava em "Pedindo permissão…" sem dizer o que houve.
+  const MARCA_HTML = readFileSync(new URL('../public/marca/index.html', import.meta.url), 'utf8')
+  for (const [nome, arq] of [['organizacao', JS], ['marca', MARCA_HTML]]) {
+    assert.match(arq, /ONDE_ESTA_O_AVISO/, nome + ': não ensina onde o pedido se escondeu')
+    assert.match(arq, /Ainda esperando sua resposta/, nome + ': falta o prazo que troca o recado')
+    assert.match(arq, /clearTimeout\(lembrete\)/, nome + ': o lembrete precisa ser cancelado')
+    // Resposta tardia não pode se perder quando a promessa ficou para trás.
+    assert.match(arq, /permissions\.query\(\{ name: 'notifications' \}\)/,
+      nome + ': sem ouvir a mudança de permissão, resposta tardia não redesenha a tela')
+    // Já negada: pedir de novo não abre caixa nenhuma, então nem tente.
+    assert.match(arq, /Notification\.permission === 'denied'/,
+      nome + ': precisa checar a negativa antes de pedir')
+  }
+})

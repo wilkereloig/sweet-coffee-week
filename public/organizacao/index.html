@@ -2756,12 +2756,44 @@ async function renderAvisos() {
       : (negado ? '' : '<button class="og-btn" type="button" id="av-ligar">Ligar avisos</button>'));
 }
 
+/* ⚠️ `Notification.requestPermission()` NUNCA REJEITA E PODE NÃO RESOLVER.
+   O Chrome costuma recolher o pedido num ícone de sino na barra de endereço em
+   vez de abrir a caixa; enquanto ninguém responde, a promessa fica pendente
+   para sempre. Uma tela que só sabe esperar trava em "pedindo permissão" e não
+   diz o que houve — foi exatamente o que aconteceu no primeiro teste real.
+   Por isso: recado que ensina ONDE olhar, e um prazo que troca o recado sem
+   afirmar que falhou (porque não falhou — está esperando). */
+const ONDE_ESTA_O_AVISO =
+  'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
+  'de sino ou de cadeado na barra de endereço e responda por lá.';
+
 async function ligarAvisos() {
-  avisoEm('av-aviso', 'Pedindo permissão…', '');
+  if (Notification.permission === 'denied') {
+    avisoEm('av-aviso', 'A permissão já está negada para este site. Reabrir depende ' +
+      'das configurações do navegador — o painel não consegue pedir de novo.', 'erro');
+    return;
+  }
+
+  avisoEm('av-aviso', 'Pedindo permissão… ' + ONDE_ESTA_O_AVISO, '');
+  const lembrete = setTimeout(function () {
+    avisoEm('av-aviso', 'Ainda esperando sua resposta. ' + ONDE_ESTA_O_AVISO, '');
+  }, 8000);
+
+  /* Resposta tardia não se perde: quando a permissão muda, a tela se redesenha
+     sozinha, mesmo que a promessa acima tenha ficado para trás. */
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'notifications' })
+      .then(function (p) { p.onchange = function () { renderAvisos(); }; })
+      .catch(function () { /* navegador sem a API: o caminho normal segue */ });
+  }
+
   try {
     const permissao = await Notification.requestPermission();
+    clearTimeout(lembrete);
     if (permissao !== 'granted') {
-      avisoEm('av-aviso', 'Sem permissão, nada pode ser enviado.', 'erro');
+      avisoEm('av-aviso', permissao === 'denied'
+        ? 'Permissão negada. Nada pode ser enviado para este aparelho.'
+        : 'Você fechou o aviso sem responder. Clique em "Ligar avisos" de novo.', 'erro');
       await renderAvisos();
       return;
     }
@@ -2789,6 +2821,9 @@ async function ligarAvisos() {
     await renderAvisos();
     avisoEm('av-aviso', 'Avisos ligados neste aparelho.', 'ok');
   } catch (e) {
+    /* Sem isto, um erro depois do lembrete agendado deixaria "ainda esperando
+       sua resposta" sobrescrevendo a mensagem de erro oito segundos depois. */
+    clearTimeout(lembrete);
     avisoEm('av-aviso', 'Não consegui ligar: ' + e.message, 'erro');
   }
 }

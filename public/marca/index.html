@@ -570,12 +570,42 @@ button.link{
     })
   }
 
+  // ⚠️ `Notification.requestPermission()` NUNCA REJEITA E PODE NÃO RESOLVER. O
+  // Chrome costuma recolher o pedido num ícone de sino na barra de endereço em
+  // vez de abrir a caixa; enquanto ninguém responde, a promessa fica pendente
+  // para sempre. Uma tela que só sabe esperar trava em "pedindo permissão" e
+  // não diz o que houve — foi o que aconteceu no primeiro teste real.
+  var ONDE_ESTA_O_AVISO =
+    'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
+    'de sino ou de cadeado na barra de endereço e responda por lá.'
+
   function ligarAvisos () {
     if (!participante) { avisoRecado('Entre primeiro.', 'erro'); return }
-    avisoRecado('Pedindo permissão…', '')
+    if (Notification.permission === 'denied') {
+      avisoRecado('A permissão já está negada para este site. Reabrir depende das ' +
+        'configurações do navegador: esta página não consegue pedir de novo.', 'erro')
+      return
+    }
+
+    avisoRecado('Pedindo permissão… ' + ONDE_ESTA_O_AVISO, '')
+    // Prazo que troca o recado sem afirmar que falhou, porque não falhou:
+    // está esperando.
+    var lembrete = setTimeout(function () {
+      avisoRecado('Ainda esperando sua resposta. ' + ONDE_ESTA_O_AVISO, '')
+    }, 8000)
+
+    // Resposta tardia não se perde: quando a permissão muda, a tela se
+    // redesenha sozinha, mesmo que a promessa abaixo tenha ficado para trás.
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'notifications' })
+        .then(function (p) { p.onchange = function () { renderAvisos() } })
+        .catch(function () { /* navegador sem a API: o caminho normal segue */ })
+    }
 
     Notification.requestPermission().then(function (permissao) {
-      if (permissao !== 'granted') throw new Error('sem permissão')
+      clearTimeout(lembrete)
+      if (permissao === 'denied') throw new Error('permissão negada para este site')
+      if (permissao !== 'granted') throw new Error('você fechou o aviso sem responder')
       return navigator.serviceWorker.ready
     }).then(function (reg) {
       // `userVisibleOnly: true` é obrigatório nos navegadores que importam: não
@@ -615,6 +645,9 @@ button.link{
     }).then(function () {
       avisoRecado('Avisos ligados neste aparelho.', '')
     }).catch(function (e) {
+      // Sem isto, um erro depois do lembrete agendado deixaria 'ainda esperando'
+      // sobrescrevendo a mensagem de erro oito segundos depois.
+      clearTimeout(lembrete)
       avisoRecado('Não consegui ligar: ' + e.message, 'erro')
     })
   }
