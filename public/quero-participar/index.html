@@ -621,8 +621,15 @@ body{
     <div class="pa-acoes">
       <!-- Turnstile. Fica oculto e vazio ate CONFIG.turnstileSiteKey existir;
            quem o monta e montarTurnstile(). Sem chave, nada e carregado da
-           Cloudflare — a pagina nao fala com terceiro a toa. -->
-      <div id="turnstile" hidden></div>
+           Cloudflare — a pagina nao fala com terceiro a toa.
+           ⛔ O id NAO pode ser "turnstile". Elemento com id vira propriedade
+           global, entao <div id="turnstile"> define window.turnstile — e o
+           api.js da Cloudflare comeca com uma guarda `if (window.turnstile)
+           return` para nao carregar duas vezes. Ele veria a div, concluiria
+           que ja foi importado e sairia sem renderizar nada, avisando
+           "Turnstile already has been loaded" no console. Custou uma manha
+           em 25/08/2026. -->
+      <div id="pa-turnstile" hidden></div>
       <button type="submit" class="scw-btn" id="btn-enviar">Enviar</button>
       <button type="button" class="scw-btn scw-btn--vazado" id="btn-copiar">Copiar respostas</button>
     </div>
@@ -960,7 +967,7 @@ btnCopiar.addEventListener('click', async () => {
    nao liga barreira nenhuma; e preciso o par. */
 function montarTurnstile () {
   if (!CONFIG.turnstileSiteKey) return;
-  const alvo = document.getElementById('turnstile');
+  const alvo = document.getElementById('pa-turnstile');
   if (!alvo) return;
   alvo.hidden = false;
   alvo.className = 'cf-turnstile';

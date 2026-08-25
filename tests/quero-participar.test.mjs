@@ -467,3 +467,32 @@ test('token vazio com chave configurada NAO vira envio', () => {
   assert.ok(guarda > 0 && guarda < envio,
     'a guarda tem que vir ANTES de coletar/enviar, senao nao guarda nada')
 })
+
+test('nenhum elemento se chama "turnstile" — o id vira global e mata o widget', () => {
+  // 🐛 25/08/2026, custou uma manhã. Elemento com `id` vira propriedade do
+  // window, então `<div id=turnstile>` define `window.turnstile`. O api.js da
+  // Cloudflare abre com `if (window.turnstile) return`, guarda contra importar
+  // duas vezes: ele vê a div, conclui que já carregou e SAI SEM RENDERIZAR,
+  // deixando só um aviso no console. O script carrega, roda e não faz nada —
+  // o modo de falha mais difícil de ler que existe.
+  //
+  // Comentários fora: o comentário do markup CITA o id proibido para explicar
+  // por que ele é proibido, e teste que lê prosa reprova a própria doc.
+  const markup = HTML.replace(/<!--[\s\S]*?-->/g, '')
+
+  for (const reservado of ['turnstile', 'onloadTurnstileCallback']) {
+    const colide = new RegExp('id=["\']' + reservado + '["\']').test(markup)
+    assert.ok(!colide,
+      'id="' + reservado + '" sequestra window.' + reservado + ': o api.js da Cloudflare vê o elemento, conclui que já carregou e sai sem renderizar')
+  }
+})
+
+test('o id do alvo no markup e o do script são o mesmo', () => {
+  // Renomear um e esquecer o outro devolve `alvo === null`, montarTurnstile sai
+  // calada, e a página fica sem widget com a chave configurada — ou seja, todo
+  // envio barrado pela guarda. Falha silenciosa de novo, por outro caminho.
+  const noScript = SCRIPTS[0].match(/getElementById\('([^']+)'\)[\s\S]{0,80}?cf-turnstile/)
+  assert.ok(noScript, 'montarTurnstile não busca mais o alvo por getElementById')
+  assert.ok(HTML.includes('id="' + noScript[1] + '"'),
+    'o script procura #' + noScript[1] + ', que não existe no markup')
+})

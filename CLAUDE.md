@@ -1927,6 +1927,24 @@ do site e o painel lia o armazenamento dele, vazio. **O fluxo de acesso só
 fecha quando uma única origem serve o SPA e `public/`** — hoje o `npm run dev`,
 o `vite preview` e a produção. ⛔ Não testar esse fluxo com dois servidores.
 
+🐛 **`id` de elemento vira propriedade global, e isso matou o Turnstile.**
+Um `<div id="turnstile">` define `window.turnstile`; o `api.js` da Cloudflare
+abre com `if (window.turnstile) return`, guarda contra importar duas vezes.
+Ele via a div, concluía que já tinha carregado e **saía sem renderizar** —
+script buscado, executado, e nenhum widget na tela, só um aviso no console
+dizendo "Turnstile already has been loaded". O alvo passou a ser
+`#pa-turnstile` em 25/08/2026, e `tests/quero-participar.test.mjs` reprova o
+nome de volta. **A regra é maior que o Turnstile:** `id` curto de elemento
+colide com qualquer global que uma biblioteca de terceiro consulte antes de
+se instalar.
+
+⚠️ **O aviso do console foi descartado duas vezes como "ruído de recarga"** —
+primeiro no navegador embutido, que nem chega a pedir domínio de terceiro, e
+por isso produziu um diagnóstico convincente e falso. Só o Playwright contra
+`localhost` (que está na lista de hostnames do widget) desmentiu. **Navegador
+que não busca a rede não testemunha sobre a rede** — é a mesma lição do
+§10.8, subida um nível.
+
 ⚠️ **O JS delas mora inline e não passa pelo Vite**, então `npm run build` fica
 verde com o script quebrado. `tests/quero-participar.test.mjs` e
 `tests/organizacao.test.mjs` cobrem esse vão: parse, funções **declaradas** (não
