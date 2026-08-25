@@ -2102,11 +2102,19 @@ async function abrirFicha(participacaoId) {
   const solics = f.solicitacoes || [], arqs = f.arquivos || [];
   const sess = f.sessoes || [], edicoes = f.edicoes || [];
 
-  const linha = (rotulo, valor) => valor
-    ? '<p class="og-par"><b>' + escapar(rotulo) + '</b> ' + escapar(valor) + '</p>' : '';
+  /* `function`, não arrow, mesmo sendo auxiliar local: a regra do projeto vale
+     para o arquivo inteiro. O motivo é hoisting — arrow em `const` referenciada
+     acima da própria linha estoura em ReferenceError, e como este script nunca
+     passa pelo Vite, isso só apareceria com a ficha aberta na frente de alguém. */
+  function linha(rotulo, valor) {
+    return valor
+      ? '<p class="og-par"><b>' + escapar(rotulo) + '</b> ' + escapar(valor) + '</p>' : '';
+  }
 
-  const restricoes = (i) => [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '',
-    i.sem_lactose ? 'sem lactose' : ''].filter(Boolean).join(' · ');
+  function restricoes(i) {
+    return [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '',
+      i.sem_lactose ? 'sem lactose' : ''].filter(Boolean).join(' · ');
+  }
 
   $('detalhe-titulo').textContent = m.nome_marca || '(sem nome)';
   $('detalhe-sub').textContent = 'Edição ' + (pa.edicao_codigo || '—') + ' · ' +

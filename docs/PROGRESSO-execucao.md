@@ -430,7 +430,90 @@ avisos, nem ficha, nem produção, nem equipe.
 
 ---
 
-## Revisão final (§7 do comando) — o que foi conferido
+## Fase 8 · Testes — ✅ FEITA
+
+**Arquivo novo:** `tests/comportamento.test.mjs` · **Suíte: 122 → 166**
+
+### A mudança de método, e o motivo dela
+
+Os testes das fases anteriores medem a **fonte** por expressão regular. É útil
+— pegam chave secreta, arrow function, dado indo cru para `innerHTML` —, mas
+não pegam comportamento. Em 25/08 o `rpc()` do painel quebrava em **toda**
+função `returns void`, cinco botões da Fase 6 estavam mortos, e a suíte inteira
+passava.
+
+O arquivo novo **executa o código real**: as funções são recortadas do arquivo
+de produção (as de Deno passam pelo esbuild só para tirar as anotações de tipo)
+e rodadas com as dependências injetadas. **Nada é reimplementado** —
+reimplementar provaria a reimplementação, que é o defeito clássico deste tipo
+de teste.
+
+| O que passou a ser executado | Casos |
+|---|---|
+| `rpc()` do painel | 204 sem corpo → `null`; corpo válido → convertido; `true`/`false`/`null`; corpo inválido **continua** estourando; motivo do servidor propagado; erro sem corpo legível |
+| `caminhoValido` de `arquivo-url` | 3 caminhos legítimos, **11 recusas** — travessia, profundidade, pasta estranha, arquivo oculto, espaço, ponto e vírgula, UUID malformado, nome de 121 caracteres |
+| Cifra do Web Push | round-trip completo; enquadramento (registro 4096, chave 65 bytes, delimitador `0x02`); par efêmero e salt diferentes a cada envio |
+| Cabeçalho VAPID | JWT ES256 que **verifica**; `k=` é a chave que assinou; `aud` acompanha o serviço (FCM, **WNS**, Mozilla); validade dentro das 24 h do RFC |
+| Regra de declaração | nenhuma arrow e exatamente um `<script>` nas três páginas estáticas |
+
+### A prova de que os testes valem
+
+**Teste de mutação:** o defeito do `rpc()` foi reintroduzido de propósito. A
+suíte reprovou **exatamente um** teste — o que devia reprovar — e voltou a
+166/166 com a correção restaurada. Teste que nunca falhou não prova nada.
+
+---
+
+## Fase 9 · Revisão final (§7 do comando) — ✅ FEITA
+
+| Item do §7 | Resultado |
+|---|---|
+| Suíte inteira | ✅ **166/166** |
+| Build | ✅ verde |
+| Security Advisors | ✅ **zero ERROR** (92 WARN e 14 INFO, todos do padrão declarado) |
+| Um `<script>` por página estática | ✅ 1, 1 e 1 |
+| Nenhuma função em arrow | ⚠️ **duas encontradas** em `abrirFicha`, corrigidas — e agora há teste |
+| Dado do banco para `innerHTML` sem `escapar()` | ✅ nenhum |
+| Chave secreta fora de variável de ambiente | ✅ **nenhuma literal** em `public/`, `src/`, `supabase/` ou `scripts/` |
+| Tabela sem RLS | ✅ **26 de 26** com RLS |
+| Guards fechados | ✅ `pode`, `pode_organizacao`, `admin_ok`, `acesso_travado` e `abrir_participacao_interna` negam `anon` **e** `authenticated`, conferido por `has_function_privilege` |
+| Marca não lê dado de outra marca | ✅ provado na Fase 5, com duas contas reais autenticadas |
+| Marca não escreve `foto_path` | ✅ provado na Fase 5 (42501) |
+| Barreiras anti-robô pelo endpoint direto | ✅ ver abaixo |
+| Instalar nos dois celulares | ⛔ **não feito** — depende de aparelho |
+
+### As barreiras anti-robô, medidas pelo banco
+
+⚠️ Bloqueio e sucesso devolvem `{"ok":true}` **byte a byte idêntico**, de
+propósito. A resposta não prova nada; quem prova é a linha que apareceu ou não.
+
+**Sete requisições diretas ao endpoint, uma linha gravada:**
+
+| Tentativa | Resposta | Gravou? |
+|---|---|---|
+| campo-armadilha preenchido | `200 {"ok":true}` | **não** |
+| rápido demais (< 3 s) | `200 {"ok":true}` | **não** |
+| antigo demais (> 24 h) | `200 {"ok":true}` | **não** |
+| formulário desconhecido | `400 formulario_desconhecido` | não |
+| RPC arbitrária (`submit_vote`) | `400 formulario_desconhecido` | não |
+| corpo ausente | `400 corpo_invalido` | não |
+| **legítimo, aberto há 30 s** | `200 {"ok":true}` | **sim** |
+
+A lista de RPCs permitidas segura o caso que mais importa: **não dá para usar a
+função como proxy para qualquer RPC do banco.**
+
+⚠️ **A barreira 3 (Turnstile) não pôde ser testada** — ela está desligada por
+falta do par de chaves, e sem segredo configurado devolve "não avaliado" e
+deixa passar, por decisão declarada na Fase 2. As outras três seguram sozinhas
+até as chaves existirem.
+
+⚠️ **Ficou uma linha de teste em `contact_requests`** — "TESTE Fase 9",
+`teste-fase9@exemplo.invalido`. É a prova do caminho legítimo e a única linha da
+tabela. Apagar é decisão do Eloi (item 4 do comando); basta pedir.
+
+---
+
+## Revisão final da Fase 3 (§7) — registro histórico
 
 | Item | Resultado |
 |---|---|
@@ -458,30 +541,25 @@ avisos, nem ficha, nem produção, nem equipe.
 
 ## Onde parei, exatamente
 
-**Fases 1 a 7 fechadas, e a 7 foi vista funcionando.** As duas telas falam o
-modelo novo, as duas instalam como aplicativo, e a notificação chega.
+**As nove fases estão fechadas.** O que resta não é código: é decisão sua e
+aparelho na mão.
 
-**Ordem de retomada:**
+⚠️ **Falta o celular.** A assinatura de push é presa à origem, então a de
+`localhost` não vale no Preview nem em produção. O iPhone continua sem prova:
+lá o push só existe com o painel instalado na tela inicial.
 
-1. **Fase 8 · testes** — a suíte cresceu de 122 para **149** ao longo das fases
-   5, 6 e 7, sempre junto do código que cobre. O que resta é o que a Fase 9
-   apontar, mais o que só dá para cobrir com aparelho na mão.
-2. **Fase 9 · revisão final** — o §7 do comando, item por item.
+⚠️ **A versão em produção dos dois painéis é a do `master`**, anterior às fases
+5, 6 e 7 — 2.251 linhas atrás. As páginas estáticas estão no ar desde sempre (a
+flag `COMING_SOON_PUBLICATION` não as alcança), mas o que está lá não tem
+avisos, nem ficha, nem produção, nem equipe. **No dia em que a primeira marca
+receber login, é essa versão que ela abre.**
 
-⚠️ **Falta o celular, e falta produção.** A assinatura é presa à origem, então
-a de `localhost` não vale em outro endereço; e o que está no ar nos dois painéis
-ainda é a versão do `master`, anterior às fases 5, 6 e 7.
+⚠️ **`edicao_atual` está NULA**, e é decisão: a 17ª edição não foi anunciada e
+inventar um código seria inventar dado (A4). Abrir é um campo em **equipe**.
 
-⚠️ **`edicao_atual` está NULA em produção**, e é decisão: a 17ª edição não foi
-anunciada e inventar um código seria inventar dado (A4). Enquanto estiver nula,
-conta nova de marca entra e vê "ainda não há edição aberta para você". Abrir
-agora é um campo em **equipe → a edição aberta**.
-
-⚠️ **Ninguém tem `perfis.papel = 'organizacao'` ainda.** A porta das contas
-nominais está aberta e vazia desde a Fase 3; a tela de criar conta é da Fase 6.
-Enquanto todo mundo entrar pela senha compartilhada, `pode()` devolve `true`
-para as seis ações — ou seja, **as funções ainda não separam nada na prática**.
-Elas passam a valer quando existir a primeira conta nominal.
+⚠️ **Ninguém tem conta nominal ainda**, então `pode()` devolve `true` para as
+seis ações e as funções não separam nada na prática. Elas passam a valer na
+primeira conta criada.
 
 ---
 
