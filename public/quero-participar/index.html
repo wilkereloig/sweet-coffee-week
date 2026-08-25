@@ -160,53 +160,10 @@ body{
 .pa-numeros>li:last-child:nth-child(odd){grid-column:1/-1}
 
 /* ── Formulário ─────────────────────────────────────────────── */
-/* ── Índice dos passos ──────────────────────────────────────── */
-/* Uma peça para duas perguntas: "onde estou" e, depois de uma tentativa de
-   envio, "o que falta onde". Sublinhado na cor do passo em vez de chapa —
-   magenta não sustenta tinta em texto pequeno (§6.3), então a cor vai para o
-   grafismo, igual ao índice do Contato (§7.6). */
-.pa-indice{
-  position:sticky;top:0;z-index:6;background:var(--scw-creme);
-  margin-inline:calc(var(--scw-trilho) * -1);padding-inline:var(--scw-trilho);
-  border-bottom:1px solid var(--scw-filete);
-  /* Respiro abaixo da barra: o padding-top do .pa-corpo fica ACIMA dela, entao
-     sem isto o filete encosta no disco do passo 01. */
-  margin-bottom:clamp(32px,3.6vw,52px);
-}
-/* O padding-bottom separa o sublinhado do item ativo do filete da propria
-   barra: rentes, os dois viram um traço duplo em vez de indicador. */
-.pa-indice ol{margin:0;padding:0 0 7px;list-style:none;display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none}
-.pa-indice ol::-webkit-scrollbar{display:none}
-/* §7.6: sem flex:0 0 auto os chips colapsam quando a trilha rola. */
-.pa-indice li{flex:0 0 auto}
-.pa-indice a{
-  display:flex;align-items:center;gap:9px;min-height:54px;padding:0 4px;
-  font:700 14px/1.2 var(--scw-font);color:var(--scw-choco);text-decoration:none;
-  border-bottom:3px solid transparent;
-  transition:border-color var(--scw-transicao),color var(--scw-transicao);
-}
-.pa-indice__num{font:800 12px/1 var(--scw-font);letter-spacing:.1em;color:var(--scw-marrom)}
-.pa-indice a:hover{border-bottom-color:var(--scw-filete)}
-.pa-indice a[aria-current="step"]{font-weight:900}
-.pa-indice a[aria-current="step"] .pa-indice__num{color:var(--scw-choco)}
-.pa-indice li:nth-child(1) a[aria-current="step"]{border-bottom-color:var(--scw-amarelo)}
-.pa-indice li:nth-child(2) a[aria-current="step"]{border-bottom-color:var(--scw-cyan)}
-.pa-indice li:nth-child(3) a[aria-current="step"]{border-bottom-color:var(--scw-magenta)}
-.pa-indice li:nth-child(4) a[aria-current="step"]{border-bottom-color:var(--scw-roxo)}
-/* Pendência: anel magenta com o numeral em chocolate sobre creme. O anel é
-   gráfico (3,77:1, piso 3) e o numeral é texto (12:1). Chapa magenta com
-   número dentro reprovaria nos dois papéis. */
-.pa-indice__falta{
-  display:none;min-width:22px;height:22px;padding:0 5px;border-radius:999px;
-  border:2px solid var(--scw-magenta);background:var(--scw-creme);color:var(--scw-choco);
-  font:800 12px/1 var(--scw-font);align-items:center;justify-content:center;
-}
-.pa-indice a[data-pendente] .pa-indice__falta{display:inline-flex}
-
 .pa-corpo{padding-top:clamp(40px,4.6vw,64px);padding-bottom:clamp(40px,4.6vw,64px)}
 .pa-form{max-width:880px}
 
-/* ── Passo ──────────────────────────────────────────────────── */
+/* ── Blocos do formulário ───────────────────────────────────── */
 .pa-passo[hidden]{display:none}
 .pa-passo{animation:paEntra var(--mo-entra) var(--scw-ease) both}
 .pa-passo + .pa-passo{
@@ -225,8 +182,6 @@ body{
   font:900 20px/1 var(--scw-font);letter-spacing:-.02em;background:var(--scw-amarelo);color:var(--scw-choco);
 }
 .pa-passo--2 .pa-disco{background:var(--scw-cyan)}
-.pa-passo--3 .pa-disco{background:var(--scw-magenta);color:var(--scw-creme)}
-.pa-passo--4 .pa-disco{background:var(--scw-roxo);color:var(--scw-creme)}
 /* O salto do índice tem que parar abaixo da própria barra presa. */
 .pa-passo .scw-h2{scroll-margin-top:clamp(88px,10vw,120px)}
 .pa-passo__texto{padding-top:2px}
@@ -240,42 +195,38 @@ body{
 .scw-campo__label{font:800 13px/1.35 var(--scw-font);letter-spacing:.02em;padding:0;max-width:52ch}
 .scw-campo__opcional{font-weight:500;color:var(--scw-marrom);letter-spacing:0}
 .scw-campo__dica{font-size:13px;line-height:1.45;color:var(--scw-marrom);margin:0;max-width:62ch}
-.scw-campo input[type=text],.scw-campo input[type=email],.scw-campo input[type=tel],
-.scw-campo input[type=url],.scw-campo textarea{
+.scw-campo input[type=text],.scw-campo input[type=email],.scw-campo input[type=tel]{
   font:500 16px/1.4 var(--scw-font);color:var(--scw-choco);background:var(--scw-creme);
   border:1px solid var(--scw-borda-campo);border-radius:14px;
   padding:14px 16px;min-height:52px;width:100%;
   transition:border-color var(--scw-transicao);
 }
-.scw-campo textarea{min-height:132px;resize:vertical;line-height:1.55}
-.scw-campo input::placeholder,.scw-campo textarea::placeholder{color:rgba(61,19,8,.45)}
-.scw-campo input:hover,.scw-campo textarea:hover{border-color:rgba(61,19,8,.4)}
-.scw-campo[data-erro="1"] input,.scw-campo[data-erro="1"] textarea{border-color:var(--scw-magenta);border-width:2px}
-.scw-campo[data-erro="1"] .pa-escolha span{border-color:var(--scw-magenta)}
+.scw-campo input::placeholder{color:rgba(61,19,8,.45)}
+.scw-campo input:hover{border-color:rgba(61,19,8,.4)}
+.scw-campo[data-erro="1"] input{border-color:var(--scw-magenta);border-width:2px}
 /* A tinta é chocolate (12:1): magenta a 13px dá 3,77:1 e reprova AA. A cor do
    erro vai para o filete, que é componente gráfico e passa folgado no piso 3. */
 .scw-campo__erro{font:800 13px/1.35 var(--scw-font);color:var(--scw-choco);margin:0;display:none;border-left:3px solid var(--scw-magenta);padding-left:10px}
 .scw-campo[data-erro="1"] .scw-campo__erro{display:block}
 
-/* Chips */
-.pa-escolhas{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;border:0}
-.pa-escolha{position:relative;display:block}
-.pa-escolha input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.pa-escolha span{
-  display:flex;align-items:center;gap:8px;min-height:46px;padding:11px 18px 11px 13px;
-  border-radius:999px;border:1px solid var(--scw-borda-campo);background:var(--scw-creme);
-  font:700 14px/1.2 var(--scw-font);cursor:pointer;
-  transition:background var(--scw-transicao),border-color var(--scw-transicao),color var(--scw-transicao);
+/* Caixa de seleção */
+/* Mesma caixa dos inputs de texto: borda, raio e piso de 52px iguais, para a
+   linha do formulário não quebrar o ritmo. A seta é desenhada no background
+   porque `appearance:none` tira a nativa — sem ela o campo vira uma caixa de
+   texto que não se pode digitar, e ninguém descobre que abre. */
+.scw-campo select{
+  font:500 16px/1.4 var(--scw-font);color:var(--scw-choco);background:var(--scw-creme);
+  border:1px solid var(--scw-borda-campo);border-radius:14px;
+  padding:14px 44px 14px 16px;min-height:52px;width:100%;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%233D1308' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 12l9 9 9-9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center;background-size:18px 18px;
+  transition:border-color var(--scw-transicao);
 }
-.pa-escolha input:hover + span{border-color:var(--scw-choco)}
-.pa-escolha input:checked + span{background:var(--scw-choco);color:var(--scw-creme);border-color:var(--scw-choco)}
-/* O ✓ existe sempre e só troca de visibilidade: com content nascendo no clique,
-   marcar um chip alargava a pílula e reembaralhava as linhas da grade — a opção
-   que a pessoa ia clicar em seguida saía do lugar. visibility preserva a caixa. */
-.pa-escolha span::before{content:"✓";font-weight:800;visibility:hidden}
-.pa-escolha input:checked + span::before{visibility:visible}
-.pa-escolha input:focus-visible + span{outline:3px solid var(--scw-cyan);outline-offset:2px;box-shadow:0 0 0 5px rgba(61,19,8,.35)}
-.pa-conta-chips{font:800 12px/1 var(--scw-font);color:var(--scw-marrom);letter-spacing:.06em;text-transform:uppercase}
+.scw-campo select:hover{border-color:rgba(61,19,8,.4)}
+.scw-campo[data-erro="1"] select{border-color:var(--scw-magenta);border-width:2px}
+/* Enquanto nada foi escolhido a cor acompanha o placeholder dos inputs. */
+.scw-campo select:invalid,.scw-campo select[data-vazio="1"]{color:rgba(61,19,8,.45)}
 
 /* Campo que nasce do "Outro" */
 .pa-outro{
@@ -284,13 +235,9 @@ body{
   animation:paEntra 320ms var(--scw-ease) both;
 }
 
-/* Exemplo */
-.pa-exemplo{margin:0;padding:12px 16px;background:var(--scw-bege);border-radius:14px;font-size:13.5px;line-height:1.55;max-width:62ch}
-.pa-exemplo b{font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:var(--scw-marrom);display:block;margin-bottom:4px}
-
 .pa-nota{margin:clamp(26px,3vw,36px) 0 0;font-size:13px;line-height:1.5;color:var(--scw-marrom);max-width:62ch}
 
-/* ── Revisão ────────────────────────────────────────────────── */
+/* ── Ações ──────────────────────────────────────────────────── */
 .pa-acoes{
   display:flex;flex-wrap:wrap;gap:14px;align-items:center;
   margin-top:clamp(30px,3.4vw,44px);padding-top:clamp(24px,2.8vw,34px);
@@ -379,10 +326,10 @@ body{
 
       <p class="pa-hero__chamada">Tem uma cafeteria, doceria, confeitaria ou sorveteria — e vontade de fazer parte do festival?</p>
 
-      <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar.</p>
+      <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar. Deixe seus dados — são sete campos, menos de um minuto — que a equipe entra em contato.</p>
 
       <div class="pa-hero__acoes">
-        <a class="scw-btn scw-btn--creme" href="#formulario">Começar</a>
+        <a class="scw-btn scw-btn--creme" href="#formulario">Quero participar</a>
       </div>
     </div>
 
@@ -408,18 +355,6 @@ body{
 
 <main id="formulario" class="pa-corpo scw-secao">
 
-  <!-- O formulário é uma página só, mas tem quatro assuntos. Os links são
-       âncoras nativas para os <h2 tabindex="-1">: a navegação e o foco de
-       teclado funcionam com o script fora do ar. O script só acrescenta o
-       passo em foco e a contagem de pendências. -->
-  <nav class="pa-indice" id="indice" aria-label="Etapas do formulário">
-    <ol>
-      <li><a href="#titulo-1"><span class="pa-indice__num">01</span><span class="pa-indice__nome">Sobre você</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
-      <li><a href="#titulo-2"><span class="pa-indice__num">02</span><span class="pa-indice__nome">Sobre o negócio</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
-      <li><a href="#titulo-3"><span class="pa-indice__num">03</span><span class="pa-indice__nome">O que você serve</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
-      <li><a href="#titulo-4"><span class="pa-indice__num">04</span><span class="pa-indice__nome">A sua história</span><span class="pa-indice__falta" aria-hidden="true"></span></a></li>
-    </ol>
-  </nav>
   <form class="pa-form" id="form-participar" novalidate>
 
     <div class="pa-oculto" aria-hidden="true">
@@ -434,21 +369,21 @@ body{
       <div class="pa-passo__cabeca">
         <span class="pa-disco" aria-hidden="true">01</span>
         <div class="pa-passo__texto">
-          <h2 class="scw-h2" id="titulo-1" tabindex="-1">Sobre você</h2>
+          <h2 class="scw-h2" id="titulo-1" tabindex="-1">Você</h2>
           <p class="scw-corpo">Com quem a nossa equipe vai falar.</p>
         </div>
       </div>
       <div class="pa-grade">
         <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="nome">Nome completo</label>
+          <label class="scw-campo__label" for="nome">Seu nome</label>
           <input type="text" id="nome" name="nome" autocomplete="name">
-          <p class="scw-campo__erro">Precisamos do seu nome completo.</p>
+          <p class="scw-campo__erro">Precisamos do seu nome.</p>
         </div>
         <div class="scw-campo">
-          <label class="scw-campo__label" for="telefone">Telefone de contato</label>
+          <label class="scw-campo__label" for="telefone">WhatsApp</label>
           <input type="tel" id="telefone" name="telefone" autocomplete="tel" inputmode="tel" placeholder="(84) 90000-0000">
-          <p class="scw-campo__dica">É o número do WhatsApp? Melhor ainda.</p>
-          <p class="scw-campo__erro">Informe um telefone com DDD.</p>
+          <p class="scw-campo__dica">É por aqui que a equipe vai falar com você.</p>
+          <p class="scw-campo__erro">Informe um número com DDD.</p>
         </div>
         <div class="scw-campo">
           <label class="scw-campo__label" for="email">E-mail</label>
@@ -463,159 +398,66 @@ body{
       <div class="pa-passo__cabeca">
         <span class="pa-disco" aria-hidden="true">02</span>
         <div class="pa-passo__texto">
-          <h2 class="scw-h2" id="titulo-2" tabindex="-1">Sobre o negócio</h2>
+          <h2 class="scw-h2" id="titulo-2" tabindex="-1">O estabelecimento</h2>
           <p class="scw-corpo">O básico para a gente encontrar e reconhecer a sua marca.</p>
         </div>
       </div>
       <div class="pa-grade">
         <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="empresa">Nome da empresa</label>
+          <label class="scw-campo__label" for="empresa">Nome do estabelecimento</label>
           <input type="text" id="empresa" name="empresa" autocomplete="organization" placeholder="Como aparece na fachada e nas redes">
-          <p class="scw-campo__erro">Precisamos do nome da empresa.</p>
+          <p class="scw-campo__erro">Precisamos do nome do estabelecimento.</p>
         </div>
-        <fieldset class="scw-campo pa-campo--largo">
-          <legend class="scw-campo__label">O que é o seu negócio?</legend>
-          <div class="pa-escolhas">
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Cafeteria"><span>Cafeteria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Confeitaria"><span>Confeitaria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Doceria"><span>Doceria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Casa de bolos"><span>Casa de bolos</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Padaria"><span>Padaria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Chocolateria"><span>Chocolateria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Sorveteria ou gelateria"><span>Sorveteria ou gelateria</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Bistrô ou restaurante"><span>Bistrô ou restaurante</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Cozinha sem loja física"><span>Cozinha sem loja física</span></label>
-            <label class="pa-escolha"><input type="radio" name="tipo" value="Outro" data-abre="tipoOutro"><span>Outro</span></label>
-          </div>
+        <div class="scw-campo pa-campo--largo">
+          <label class="scw-campo__label" for="tipo">Tipo de estabelecimento</label>
+          <!-- Caixa de seleção, não chips: a lista é longa e a escolha é única.
+               A opção vazia nasce selecionada e é `disabled`, então o campo
+               abre sem resposta escolhida por acaso — select que já vem com a
+               primeira opção marcada devolve um dado que ninguém decidiu. -->
+          <select id="tipo" name="tipo" data-vazio="1">
+            <option value="" disabled selected>Escolha uma opção</option>
+            <option>Cafeteria</option>
+            <option>Confeitaria</option>
+            <option>Doceria</option>
+            <option>Casa de bolos</option>
+            <option>Padaria</option>
+            <option>Chocolateria</option>
+            <option>Sorveteria ou gelateria</option>
+            <option>Casa de chá</option>
+            <option>Creperia ou waffleria</option>
+            <option>Açaiteria</option>
+            <option>Bistrô ou restaurante</option>
+            <option>Bar ou pub</option>
+            <option>Hotel, pousada ou café de hotel</option>
+            <option>Empório ou mercearia</option>
+            <option>Food truck ou food bike</option>
+            <option>Cozinha sem loja física</option>
+            <option>Loja de presentes ou cesta gourmet</option>
+            <option>Escola ou ateliê de confeitaria</option>
+            <option data-abre="tipoOutro">Outro</option>
+          </select>
           <p class="scw-campo__erro">Escolha uma opção — a que estiver mais perto já serve.</p>
           <div class="scw-campo pa-outro" id="wrap-tipoOutro" hidden>
             <label class="scw-campo__label" for="tipoOutro">Então me conta: o que é o seu negócio?</label>
-            <input type="text" id="tipoOutro" name="tipoOutro" maxlength="80" placeholder="Casa de chá, empório, food truck…">
+            <input type="text" id="tipoOutro" name="tipoOutro" maxlength="80" placeholder="Em poucas palavras">
             <p class="scw-campo__erro">Escreva em poucas palavras o que é a sua casa.</p>
           </div>
-        </fieldset>
-        <div class="scw-campo">
-          <label class="scw-campo__label" for="cidade">Cidade e bairro</label>
-          <input type="text" id="cidade" name="cidade" placeholder="Natal — Tirol">
-          <p class="scw-campo__dica">Mais de uma unidade? Separe por vírgula.</p>
-          <p class="scw-campo__erro">Informe pelo menos a cidade.</p>
         </div>
         <div class="scw-campo">
-          <label class="scw-campo__label" for="instagram">Instagram</label>
+          <label class="scw-campo__label" for="instagram">Instagram do estabelecimento</label>
           <input type="text" id="instagram" name="instagram" placeholder="@suaempresa">
-          <p class="scw-campo__erro">Informe o @ da empresa.</p>
+          <p class="scw-campo__erro">Informe o @ do estabelecimento.</p>
         </div>
-        <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="site">Site <span class="scw-campo__opcional">— opcional</span></label>
-          <input type="url" id="site" name="site" placeholder="https://">
-        </div>
-      </div>
-    </section>
-
-    <!-- 03 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--3" data-passo="3" aria-labelledby="titulo-3">
-      <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">03</span>
-        <div class="pa-passo__texto">
-          <h2 class="scw-h2" id="titulo-3" tabindex="-1">O que você serve</h2>
-          <p class="scw-corpo">Marque tudo que faz parte da casa. Não precisa ser o cardápio inteiro.</p>
-        </div>
-      </div>
-      <div class="pa-grade">
-        <fieldset class="scw-campo pa-campo--largo">
-          <legend class="scw-campo__label">Tem na sua casa <span class="pa-conta-chips" data-conta="serve"></span></legend>
-          <div class="pa-escolhas">
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Cafés especiais"><span>Cafés especiais</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Bebidas de café"><span>Bebidas de café</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Bebidas geladas"><span>Bebidas geladas</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Bolos inteiros"><span>Bolos inteiros</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Fatias e bolos de pote"><span>Fatias e bolos de pote</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Tortas"><span>Tortas</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Doces individuais"><span>Doces individuais</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Brigadeiros e docinhos"><span>Brigadeiros e docinhos</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Cookies e brownies"><span>Cookies e brownies</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Sobremesas de colher"><span>Sobremesas de colher</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Chocolates e bombons"><span>Chocolates e bombons</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Sorvetes e gelatos"><span>Sorvetes e gelatos</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Pães e viennoiserie"><span>Pães e viennoiserie</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Salgados"><span>Salgados</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Brunch e café da manhã"><span>Brunch e café da manhã</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Almoço ou jantar"><span>Almoço ou jantar</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Opções veganas"><span>Opções veganas</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Sem glúten ou sem lactose"><span>Sem glúten ou sem lactose</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="serve" value="Outro" data-abre="serveOutro"><span>Outro</span></label>
-          </div>
-          <p class="scw-campo__erro">Marque pelo menos uma opção.</p>
-          <div class="scw-campo pa-outro" id="wrap-serveOutro" hidden>
-            <label class="scw-campo__label" for="serveOutro">O que mais tem na sua casa?</label>
-            <input type="text" id="serveOutro" name="serveOutro" maxlength="120" placeholder="Aquilo que não coube em nenhuma opção acima">
-            <p class="scw-campo__erro">Conte o que é, para a gente não deixar de fora.</p>
-          </div>
-        </fieldset>
-        <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="carroChefe">Qual é o carro-chefe da casa?</label>
-          <input type="text" id="carroChefe" name="carroChefe" maxlength="140" placeholder="Aquilo que o cliente volta para comer">
-          <p class="pa-exemplo"><b>Exemplo</b>O brownie recheado de doce de leite — sai antes das quatro da tarde todo dia.</p>
-          <p class="scw-campo__erro">Conte qual é o campeão de vendas.</p>
+        <div class="scw-campo">
+          <label class="scw-campo__label" for="cidade">Cidade</label>
+          <input type="text" id="cidade" name="cidade" placeholder="Natal">
+          <p class="scw-campo__dica">Mais de uma unidade? Separe por vírgula.</p>
+          <p class="scw-campo__erro">Informe a cidade.</p>
         </div>
       </div>
     </section>
 
-    <!-- 04 ─────────────────────────────────── -->
-    <section class="pa-passo pa-passo--4" data-passo="4" aria-labelledby="titulo-4">
-      <div class="pa-passo__cabeca">
-        <span class="pa-disco" aria-hidden="true">04</span>
-        <div class="pa-passo__texto">
-          <h2 class="scw-h2" id="titulo-4" tabindex="-1">A sua história</h2>
-          <p class="scw-corpo">Duas perguntas curtas. Escreva como você contaria para um cliente novo — sem formalidade.</p>
-        </div>
-      </div>
-      <div class="pa-grade">
-        <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="historia">Como o negócio surgiu?</label>
-          <textarea id="historia" name="historia" maxlength="600" placeholder="Quando começou, de onde veio a ideia, quem está por trás."></textarea>
-          <p class="pa-exemplo"><b>Exemplo</b>Comecei em 2019 fazendo bolo de pote na cozinha de casa para vender no trabalho. Em 2022 abrimos a primeira loja, no Alecrim, eu e minha irmã.</p>
-          <p class="scw-campo__dica"><span data-contador="historia">0</span>/600 caracteres.</p>
-          <p class="scw-campo__erro">Conte um pouco de como tudo começou.</p>
-        </div>
-        <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="especial">O que torna a sua marca especial?</label>
-          <textarea id="especial" name="especial" maxlength="600" placeholder="O que só existe aí: uma receita, um jeito de atender, um ingrediente, um ambiente."></textarea>
-          <p class="pa-exemplo"><b>Exemplo</b>Todo doce leva fruta da estação comprada na feira do bairro. E a gente entrega na mesa com o nome do cliente escrito na embalagem.</p>
-          <p class="scw-campo__dica"><span data-contador="especial">0</span>/600 caracteres.</p>
-          <p class="scw-campo__erro">Conte o que diferencia a sua casa.</p>
-        </div>
-        <fieldset class="scw-campo pa-campo--largo">
-          <legend class="scw-campo__label">Que experiência o cliente encontra aí? <span class="scw-campo__opcional">— opcional</span> <span class="pa-conta-chips" data-conta="experiencia"></span></legend>
-          <div class="pa-escolhas">
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Ambiente para ficar"><span>Ambiente para ficar</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Atendimento próximo"><span>Atendimento próximo</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Receita de família"><span>Receita de família</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Produto autoral"><span>Produto autoral</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Ingredientes locais"><span>Ingredientes locais</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Embalagem caprichada"><span>Embalagem caprichada</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Bom para presentear"><span>Bom para presentear</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Espaço para eventos"><span>Espaço para eventos</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Pet friendly"><span>Pet friendly</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Delivery e retirada"><span>Delivery e retirada</span></label>
-            <label class="pa-escolha"><input type="checkbox" name="experiencia" value="Outro" data-abre="experienciaOutro"><span>Outro</span></label>
-          </div>
-          <div class="scw-campo pa-outro" id="wrap-experienciaOutro" hidden>
-            <label class="scw-campo__label" for="experienciaOutro">Qual é essa experiência?</label>
-            <input type="text" id="experienciaOutro" name="experienciaOutro" maxlength="120" placeholder="O que o cliente encontra aí e não encontra em outro lugar">
-            <p class="scw-campo__erro">Conte qual é — foi você que marcou "Outro".</p>
-          </div>
-        </fieldset>
-        <div class="scw-campo pa-campo--largo">
-          <label class="scw-campo__label" for="extra">Quer contar mais alguma coisa? <span class="scw-campo__opcional">— opcional</span></label>
-          <textarea id="extra" name="extra" maxlength="600" placeholder="Uma ideia que você já teve para o festival, uma dúvida, um recado."></textarea>
-          <p class="scw-campo__dica"><span data-contador="extra">0</span>/600 caracteres.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 05 ─────────────────────────────────── -->
-    <!-- Ações ──────────────────────────────── -->
+      <!-- Ações ──────────────────────────────── -->
     <p class="pa-nota">Suas respostas vão só para a equipe do Sweet &amp; Coffee Week e servem para entrar em contato com você sobre a participação.</p>
 
     <div class="pa-acoes">
@@ -711,7 +553,7 @@ const CONFIG = {
 };
 
 // Carimbo de quando a pagina abriu. O servidor recusa envio em menos de 3s:
-// ninguem preenche um formulario de quatro passos nesse tempo.
+// ninguem preenche sete campos nesse tempo.
 const ABERTO_EM = Date.now();
 /* ───────────────────────────────────────────────────────────── */
 
@@ -727,44 +569,50 @@ const anuncio = document.getElementById('anuncio');
 const btnEnviar = document.getElementById('btn-enviar');
 const btnCopiar = document.getElementById('btn-copiar');
 const passos = [...document.querySelectorAll('.pa-passo')];
-const indice = document.getElementById('indice');
-/* O índice só passa a cobrar depois da primeira tentativa de envio: contar
-   campo vazio que a pessoa ainda nem alcançou é ruído, não ajuda. */
-let jaTentou = false;
 
 /* ── Dados ──────────────────────────────────────────────────── */
+/* Sete campos, dois blocos. O formulario encolheu em 25/08/2026 (pedido do
+   Eloi): saiu tudo que era cardapio, historia e carro-chefe. O pre-cadastro
+   passa a levantar so quem e a pessoa e o que e a casa — o resto a equipe
+   pergunta no contato, e a marca preenche de verdade no /marca/ depois de
+   aprovada. ⛔ Nao devolver campo para ca sem checar o §7.4 das regras: duas
+   telas pedindo o mesmo dado sao duas fontes de verdade do mesmo cadastro. */
 const ROTULOS = {
-  nome:'Nome completo', telefone:'Telefone', email:'E-mail',
-  empresa:'Empresa', tipo:'Tipo de negócio', cidade:'Cidade e bairro',
-  instagram:'Instagram', site:'Site',
-  serve:'O que serve', carroChefe:'Carro-chefe',
-  historia:'Como surgiu', especial:'O que torna especial',
-  experiencia:'Experiência', extra:'Mais alguma coisa'
+  nome:'Nome', telefone:'WhatsApp', email:'E-mail',
+  empresa:'Estabelecimento', tipo:'Tipo de estabelecimento',
+  instagram:'Instagram', cidade:'Cidade'
 };
-const ORDEM = ['nome','telefone','email','empresa','tipo','cidade','instagram','site',
-               'serve','carroChefe','historia','especial','experiencia','extra'];
-const LONGOS = ['historia','especial','extra'];
+/* ⚠️ nome, empresa e email sao exigidos pela RPC submit_quero_participar —
+   renomear qualquer um deles quebra o envio so em producao.
+   tests/quero-participar.test.mjs guarda os tres. */
+const ORDEM = ['nome','telefone','email','empresa','tipo','instagram','cidade'];
 const POR_PASSO = {
   1: ['nome','telefone','email'],
-  2: ['empresa','tipo','cidade','instagram','site'],
-  3: ['serve','carroChefe'],
-  4: ['historia','especial','experiencia','extra']
+  2: ['empresa','tipo','instagram','cidade']
 };
 const OBRIGATORIOS = {
   1: ['nome','telefone','email'],
-  2: ['empresa','tipo','cidade','instagram'],
-  3: ['serve','carroChefe'],
-  4: ['historia','especial']
+  2: ['empresa','tipo','instagram','cidade']
 };
 
 // Grupo de escolha → campo que nasce quando a pessoa marca "Outro".
-const OUTROS = { tipo: 'tipoOutro', serve: 'serveOutro', experiencia: 'experienciaOutro' };
+const OUTROS = { tipo: 'tipoOutro' };
 
 function campos(nome) { return form.querySelectorAll('[name="' + nome + '"]'); }
 
 /* ── "Outro" abre um campo ──────────────────────────────────── */
+/* Serve caixa de selecao e grupo de chips: o `data-abre` mora na <option> ou
+   no <input>, e quem decide e o elemento, nao o nome do grupo. Se um dia um
+   chip voltar, esta funcao ja o atende. */
 function marcouOutro(grupo) {
-  return [...campos(grupo)].some(c => c.checked && c.dataset.abre);
+  const lista = campos(grupo);
+  if (!lista.length) return false;
+  const primeiro = lista[0];
+  if (primeiro.tagName === 'SELECT') {
+    const op = primeiro.selectedOptions[0];
+    return !!(op && op.dataset.abre);
+  }
+  return [...lista].some(c => c.checked && c.dataset.abre);
 }
 
 function atualizarOutros() {
@@ -779,27 +627,20 @@ function atualizarOutros() {
   });
 }
 
-/* ── Contadores e chips ─────────────────────────────────────── */
-document.querySelectorAll('[data-contador]').forEach(alvo => {
-  const campo = document.getElementById(alvo.dataset.contador);
-  campo.addEventListener('input', () => { alvo.textContent = campo.value.length; });
+/* ── A caixa de seleção perde o tom de placeholder ao escolher ── */
+const selTipo = document.getElementById('tipo');
+selTipo.addEventListener('change', () => {
+  if (selTipo.value) selTipo.removeAttribute('data-vazio');
+  else selTipo.setAttribute('data-vazio', '1');
 });
 
-function atualizarContaChips() {
-  document.querySelectorAll('[data-conta]').forEach(alvo => {
-    const n = [...campos(alvo.dataset.conta)].filter(c => c.checked).length;
-    alvo.textContent = n ? '· ' + n + (n > 1 ? ' marcados' : ' marcado') : '';
-  });
-}
-atualizarContaChips();
-
 /* ── Erro some quando a pessoa corrige ──────────────────────── */
-form.addEventListener('input', (ev) => { limparErro(ev.target); if (jaTentou) recalcularIndice(); });
-form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarContaChips(); atualizarOutros(); if (jaTentou) recalcularIndice(); });
+form.addEventListener('input', (ev) => { limparErro(ev.target); });
+form.addEventListener('change', (ev) => { limparErro(ev.target); atualizarOutros(); });
 function limparErro(alvo) {
   const bloco = alvo.closest('.scw-campo');
   if (!bloco || bloco.dataset.erro !== '1') return;
-  const preenchido = (alvo.type === 'radio' || alvo.type === 'checkbox') ? true : alvo.value.trim() !== '';
+  const preenchido = (alvo.type === 'radio' || alvo.type === 'checkbox') ? true : String(alvo.value).trim() !== '';
   if (preenchido) {
     bloco.setAttribute('data-erro', '0');
     alvo.setAttribute('aria-invalid', 'false');
@@ -831,9 +672,8 @@ function marcar(nome, tem) {
   primeiro.setAttribute('aria-invalid', tem ? 'true' : 'false');
 }
 
-/* O que falta num passo, sem tocar na tela. Dois consumidores leem daqui — a
-   validação do envio e o contador do índice —, então a regra do que é
-   obrigatório mora num lugar só. */
+/* O que falta num bloco, sem tocar na tela. A regra do que é obrigatório mora
+   num lugar só — quem valida o envio lê daqui, e quem vier depois também. */
 function pendencias(n) {
   const faltando = (OBRIGATORIOS[n] || []).filter(nome => !preenchido(nome));
   // Marcou "Outro"? Então o campo que abriu vira obrigatório.
@@ -857,47 +697,10 @@ function validarPasso(n) {
 
 /* ── Validação do formulário inteiro ────────────────────────── */
 function validarTudo() {
-  return [1, 2, 3, 4].flatMap(n => validarPasso(n));
+  return [1, 2].flatMap(n => validarPasso(n));
 }
 
 /* ── Coleta ─────────────────────────────────────────────────── */
-/* ── Índice dos passos ──────────────────────────────────────── */
-const itensIndice = [...indice.querySelectorAll('a')];
-
-function recalcularIndice() {
-  itensIndice.forEach((a, i) => {
-    const n = DEMO ? 0 : pendencias(i + 1).length;
-    a.toggleAttribute('data-pendente', n > 0);
-    a.querySelector('.pa-indice__falta').textContent = n || '';
-    // O anel é aria-hidden: quem ouve precisa da contagem por extenso.
-    if (n) a.setAttribute('aria-label', a.querySelector('.pa-indice__nome').textContent +
-      ' — ' + n + (n > 1 ? ' respostas pendentes' : ' resposta pendente'));
-    else a.removeAttribute('aria-label');
-  });
-}
-
-/* Passo em foco = o último cujo topo já passou da linha do índice. Rolagem com
-   rAF em vez de IntersectionObserver: com quatro seções de alturas muito
-   diferentes, a faixa de disparo do observer fica vazia em parte do percurso e
-   o índice apagaria sozinho no meio da rolagem. */
-let agendado = false;
-function marcarPassoAtual() {
-  agendado = false;
-  if (indice.hidden) return;
-  let atual = passos[0];
-  passos.forEach(p => { if (p.getBoundingClientRect().top <= 140) atual = p; });
-  itensIndice.forEach(a => {
-    if (a.getAttribute('href') === '#titulo-' + atual.dataset.passo) a.setAttribute('aria-current', 'step');
-    else a.removeAttribute('aria-current');
-  });
-}
-window.addEventListener('scroll', () => {
-  if (agendado) return;
-  agendado = true;
-  requestAnimationFrame(marcarPassoAtual);
-}, { passive: true });
-marcarPassoAtual();
-
 function coletar() {
   const dados = {};
   ORDEM.forEach(nome => {
@@ -928,9 +731,7 @@ function coletar() {
 function montarResumo(dados) {
   const linhas = ['QUERO PARTICIPAR — SWEET & COFFEE WEEK', ''];
   ORDEM.forEach(nome => {
-    if (!dados[nome]) return;
-    if (LONGOS.includes(nome)) linhas.push('', ROTULOS[nome] + ':', dados[nome]);
-    else linhas.push(ROTULOS[nome] + ': ' + dados[nome]);
+    if (dados[nome]) linhas.push(ROTULOS[nome] + ': ' + dados[nome]);
   });
   return linhas.join('\n');
 }
@@ -1031,11 +832,9 @@ form.addEventListener('submit', async (ev) => {
 
   const faltando = validarTudo();
   if (faltando.length) {
-    jaTentou = true;
-    recalcularIndice();
     mostrar('erro',
       faltando.length > 1 ? 'Faltam ' + faltando.length + ' respostas' : 'Falta uma resposta',
-      '<p>O que ficou pendente está marcado em rosa, e o índice do topo mostra quantas faltam em cada passo. Levei você até a primeira.</p>',
+      '<p>O que ficou pendente está marcado em rosa. Levei você até o primeiro.</p>',
       false);
     const alvo = campos(faltando[0])[0];
     alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1109,11 +908,10 @@ form.addEventListener('submit', async (ev) => {
       mostrar('ok', 'Recebemos as suas respostas',
         '<p>Chegou aqui, ' + primeiroNome + '. Vamos analisar as informações e entrar em contato para apresentar os próximos passos.</p>');
       form.reset();
-      document.querySelectorAll('[data-contador]').forEach(a => a.textContent = '0');
-      atualizarContaChips();
+      selTipo.setAttribute('data-vazio', '1');
+      atualizarOutros();
       passos.forEach(p => { p.hidden = true; });
       document.querySelector('.pa-acoes').hidden = true;
-      indice.hidden = true;   // sem passos na tela, o índice apontaria para nada
     } catch (e) {
       resumoBox.value = texto;
       resumoBox.setAttribute('data-visivel', '1');
@@ -1178,23 +976,14 @@ if (navigator.share) {
 if (DEMO) {
   const EXEMPLO = {
     nome: 'Ana Souza', telefone: '(84) 99999-8888', email: 'ana@doceriadaana.com.br',
-    empresa: 'Doceria da Ana', cidade: 'Natal — Tirol', instagram: '@doceriadaana',
-    site: 'https://doceriadaana.com.br',
-    carroChefe: 'Bolo de rolo com goiabada cascão',
-    historia: 'Comecei em 2019 fazendo bolo de pote na cozinha de casa para vender no trabalho. Em 2022 abrimos a primeira loja, no Tirol, eu e minha irmã.',
-    especial: 'Todo doce leva fruta da estação comprada na feira do bairro. E a gente entrega na mesa com o nome do cliente escrito na embalagem.',
-    extra: 'Temos um salão nos fundos que já recebeu aula de confeitaria — daria uma ativação bonita durante o festival.'
-  };
-  const MARCAR = {
-    tipo: ['Confeitaria'],
-    serve: ['Cafés especiais', 'Bolos inteiros', 'Fatias e bolos de pote', 'Doces individuais'],
-    experiencia: ['Ambiente para ficar', 'Receita de família', 'Ingredientes locais']
+    empresa: 'Doceria da Ana', instagram: '@doceriadaana', cidade: 'Natal',
+    tipo: 'Confeitaria'
   };
 
   const barra = document.createElement('div');
   barra.className = 'pa-demo scw-secao';
   barra.innerHTML =
-    '<p><b>Modo demonstração</b>Passeie pelos cinco passos sem preencher nada — a cobrança de campo está desligada e o envio não dispara.</p>' +
+    '<p><b>Modo demonstração</b>Passeie pela página sem preencher nada — a cobrança de campo está desligada e o envio não dispara.</p>' +
     '<div class="pa-demo__acoes">' +
       '<button type="button" class="pa-demo__btn" id="demo-preencher">Preencher com exemplo</button>' +
       '<a class="pa-demo__btn" href="?">Ver como a marca vê</a>' +
@@ -1206,13 +995,7 @@ if (DEMO) {
       const alvo = document.getElementById(campo);
       if (alvo) alvo.value = valor;
     });
-    Object.entries(MARCAR).forEach(([grupo, valores]) => {
-      campos(grupo).forEach(c => { c.checked = valores.includes(c.value); });
-    });
-    document.querySelectorAll('[data-contador]').forEach(a => {
-      a.textContent = document.getElementById(a.dataset.contador).value.length;
-    });
-    atualizarContaChips();
+    selTipo.removeAttribute('data-vazio');
     atualizarOutros();
     document.querySelector('.pa-acoes').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
