@@ -965,6 +965,10 @@ function montarTurnstile () {
   alvo.hidden = false;
   alvo.className = 'cf-turnstile';
   alvo.setAttribute('data-sitekey', CONFIG.turnstileSiteKey);
+  /* A acao viaja DENTRO do token e o servidor confere se bate. Sem ela, um
+     token tirado de outro formulario do mesmo widget serviria aqui. O valor e
+     o nome do formulario, o mesmo que vai no corpo do envio. */
+  alvo.setAttribute('data-action', 'quero_participar');
   alvo.setAttribute('data-language', 'pt-br');
   const s = document.createElement('script');
   s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';

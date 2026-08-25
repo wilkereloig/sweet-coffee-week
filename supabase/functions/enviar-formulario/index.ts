@@ -35,6 +35,16 @@ const RPC_PERMITIDA: Record<string, string> = {
   pesquisa: 'submit_pesquisa',
 }
 
+// ⚠️ SÓ os formulários que REALMENTE desenham o widget entram aqui, e essa é a
+// diferença entre ligar o captcha e desligar dois formulários sem perceber:
+// Contato e Apoiar ainda mandam `token: ''`, porque nenhum deles renderiza o
+// Turnstile. No dia em que o segredo for configurado, exigir token deles faria
+// os dois passarem a descartar TODO envio — em silêncio, que é como este
+// descarte funciona de propósito.
+// Ganhou widget? entra na lista no MESMO commit. `tests/turnstile.test.mjs`
+// reprova quem entrar aqui sem a página correspondente desenhar o widget.
+const EXIGE_TURNSTILE = new Set(['quero_participar'])
+
 // Pessoa nenhuma preenche um formulário de vários passos em menos que isto.
 const TEMPO_MINIMO_MS = 3000
 
@@ -82,23 +92,66 @@ function erro(mensagem: string, status: number): Response {
  * Sem `TURNSTILE_SECRET_KEY` configurada, devolve `null` = "não avaliado", e a
  * função deixa passar. É o modo desligado por bandeira que o comando pede
  * (item 3.5): o código fica pronto e inerte até a chave existir.
+ *
+ * ⚠️ TRÊS CAMPOS, NÃO UM. `success` sozinho não basta:
+ *
+ *   `action`   amarra o token ao formulário que o gerou. Sem ele, um token
+ *              tirado do Contato serve para mandar pré-cadastro.
+ *   `hostname` é o que dói mais. O widget cobre `localhost` e `127.0.0.1` para
+ *              o desenvolvimento funcionar; sem conferir o hostname, um token
+ *              gerado na máquina de qualquer pessoa passa em produção.
+ *
+ * ⛔ Por isso `TURNSTILE_HOSTNAMES` do ambiente de PRODUÇÃO nunca inclui
+ * `localhost` nem `127.0.0.1`. O widget aceita os três; o servidor, não.
  */
-async function conferirTurnstile(token: string, ip: string): Promise<boolean | null> {
+async function conferirTurnstile(
+  token: string, ip: string, acaoEsperada: string,
+): Promise<boolean | null> {
   const segredo = Deno.env.get('TURNSTILE_SECRET_KEY')
   if (!segredo) return null
 
+  const permitidos = (Deno.env.get('TURNSTILE_HOSTNAMES') ?? '')
+    .split(',').map((h) => h.trim()).filter(Boolean)
+
+  // ⚠️ Segredo posto e hostnames esquecidos: NÃO bloqueia tudo em silêncio.
+  // Recusar aqui derrubaria todo envio do festival por causa de uma variável
+  // faltando — e sem ninguém perceber, que é o defeito que este projeto passou
+  // meses caçando. Fica "não avaliado", grita no log, e as outras três
+  // barreiras seguem de pé.
+  if (permitidos.length === 0) {
+    console.error('turnstile_sem_hostnames')
+    return null
+  }
+
+  // Token ausente ou absurdo nem chega a virar requisição.
+  if (!token || token.length > 2048) return false
+
   const corpo = new FormData()
   corpo.append('secret', segredo)
-  corpo.append('response', token ?? '')
+  corpo.append('response', token)
   if (ip) corpo.append('remoteip', ip)
 
   try {
     const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
       body: corpo,
+      // Sem isto, a Cloudflare lenta segura o envio da pessoa até o limite do
+      // isolate — e ela desiste antes.
+      signal: AbortSignal.timeout(10_000),
     })
+    if (!r.ok) throw new Error('siteverify ' + r.status)
     const j = await r.json()
-    return j?.success === true
+
+    if (j?.success !== true) return false
+    if (j.action !== acaoEsperada) {
+      console.log(JSON.stringify({ bloqueio: 'turnstile_acao', esperada: acaoEsperada, veio: j.action }))
+      return false
+    }
+    if (!permitidos.includes(String(j.hostname ?? ''))) {
+      console.log(JSON.stringify({ bloqueio: 'turnstile_hostname', veio: j.hostname }))
+      return false
+    }
+    return true
   } catch (_e) {
     // Cloudflare fora do ar não pode derrubar o formulário do festival. Deixa
     // passar e registra — as outras barreiras continuam de pé.
@@ -145,10 +198,14 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Barreira 3 · Turnstile, conferido no servidor ───────────────────────
-  const humano = await conferirTurnstile(String(entrada.token ?? ''), ip)
-  if (humano === false) {
-    console.log(JSON.stringify({ bloqueio: 'turnstile', formulario, ip }))
-    return sucesso()
+  // A `action` é o nome do formulário, e o widget da página manda o mesmo
+  // valor em `data-action`. Fonte única: a chave da allowlist acima.
+  if (EXIGE_TURNSTILE.has(formulario)) {
+    const humano = await conferirTurnstile(String(entrada.token ?? ''), ip, formulario)
+    if (humano === false) {
+      console.log(JSON.stringify({ bloqueio: 'turnstile', formulario, ip }))
+      return sucesso()
+    }
   }
 
   // ── Barreira 4 · limite por origem ──────────────────────────────────────
