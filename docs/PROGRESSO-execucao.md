@@ -4,9 +4,22 @@ Início: 25/08/2026. Atualizado a cada fase concluída.
 
 ---
 
-## Fase 1 · Backup — 🔴 BLOQUEADA, e ela trava as fases 3 a 7
+## Fase 1 · Backup — ✅ FEITO em 25/08 (depois de duas falhas)
 
-**Não foi possível gerar o backup daqui.** Não é escolha nem atalho:
+✅ **Backup íntegro em `../backups-supabase/scw-2026-08-25-0323/`** — 18 tabelas,
+4.289 linhas, todos os JSON válidos, contagens do disco batendo com o manifesto.
+`votos` 2.702 e `feedback_geral` 1.582, que faltavam no parcial de 22/08.
+
+⚠️ **Falta o esquema.** O comando pedia `supabase db dump`, que é linhas **e**
+esquema; existe só linhas. Nove migrations vivem apenas dentro do Supabase, então
+esses 2.702 votos não teriam tabela onde ser recolocados. Caminho: CSV do SQL
+Editor + `scripts/recuperar-migrations.mjs`. **Decisão tomada:** seguir sem ela —
+tudo que está sendo mexido tem zero linhas, e `votos`/`feedback_geral` não são
+tocados.
+
+### Por que demorou, e o que quebrou no caminho
+
+**Eu não posso gerar o backup.** Não é escolha nem atalho:
 
 | Ferramenta | Estado |
 |---|---|
@@ -20,7 +33,18 @@ A chave de serviço não pode ser lida por mim (`CLAUDE.md` A5) nem recebida por
 chat — chave colada em transcrição é chave vazada, e o remédio passa a ser
 rotacioná-la. **Só o Eloi roda o backup.**
 
-Como manda o item 1 do comando, **nenhuma migration foi aplicada depois disso.**
+**E o script estava quebrado.** Na primeira execução real, `npm run backup`
+morreu em `admin_config` com `42703: column admin_config.1 does not exist`: ele
+paginava com `order=1`, esperando "ordene pela primeira coluna", e o PostgREST
+não aceita posição ordinal — lê o `1` como *nome* de coluna. **Toda** tabela
+falharia. O bug estava escondido atrás da trava da chave: script que ninguém
+consegue rodar é script que ninguém descobre que está quebrado.
+
+Corrigido em `a2c508d`: a coluna passa a sair da primeira linha da própria
+tabela. Não de `spec.definitions`, porque o spec do PostgREST muda conforme o
+papel que pergunta (com a chave publicável ele devolve **zero** tabelas) — e
+correção apoiada em suposição não conferida é exatamente como o `order=1`
+nasceu.
 
 ### O que foi feito nesta fase, mesmo bloqueada
 
@@ -50,7 +74,7 @@ ser *participação*, não *marca*. Com zero linhas, refazer é barato.
 
 ---
 
-## Fase 2 · Blindagem dos formulários públicos — 🟡 PARCIAL
+## Fase 2 · Blindagem dos formulários públicos — ✅ CLIENTE PRONTO, trava aguarda deploy
 
 ### ✅ Pronto e testado de verdade
 
@@ -70,7 +94,7 @@ dela criaria a segunda fonte de verdade que o `CLAUDE.md` §5.2 proíbe.
 | 1 · campo-armadilha | ✅ ativa, conferida no servidor |
 | 2 · tempo mínimo (3s) e teto de sanidade (24h) | ✅ ativa |
 | 3 · Turnstile | ✅ código pronto, **desligado por bandeira** — falta o par de chaves |
-| 4 · limite por origem | ❌ **não implementada** — exige tabela, e tabela é migration (fase 1) |
+| 4 · limite por origem | ❌ **não implementada** — exige tabela para contar; ver abaixo |
 | 5 · descarte silencioso | ✅ ativo |
 
 **Testes feitos chamando o endpoint direto, sem passar pela tela**, como o §7 do
@@ -109,14 +133,35 @@ Build verde (2,15 s). **85/85 testes** em `quero-participar`, `marca` e
 
 ### ❌ Não feito nesta fase
 
-- **Contato, Apoiar e Pesquisa continuam sem barreira.** Escopo deliberado: são
-  os três que estão **atrás de `COMING_SOON_PUBLICATION = true`** e não têm URL
-  pública hoje. `/quero-participar/` é o único formulário alcançável, e foi o
-  priorizado. As três libs (`contactRequest.js`, `supportInterest.js`) já têm a
-  `rpc` injetada, então ligá-las à função é mudança contida.
-- **`revoke execute on function public.submit_* from anon`.** Sem isso a Edge
-  Function é um caminho alternativo, **não uma trava**: o robô ainda pode chamar
-  a RPC direto e pular as quatro barreiras. É migration → fase 1.
+✅ **Contato e Apoiar também passaram a entrar pela porta.** Módulo novo
+`src/lib/enviarFormulario.js`, com a **mesma assinatura do supabase-js**
+(`(nome, payload)` → `{ error }`) — que é o contrato que `contactRequest.js` e
+`supportInterest.js` já esperavam. As libs não foram tocadas e seguem testáveis
+offline. Mudou **uma linha em cada página**, e o import órfão de `supabase` saiu.
+
+### 🔴 CORREÇÃO DE DECISÃO: o `revoke` NÃO estava travado pelo backup
+
+Eu havia registrado que `revoke execute on function public.submit_* from anon`
+dependia da fase 1. **Está errado, e o motivo é pior:** ele depende do
+**deploy**. A produção de hoje (`master`) serve a versão antiga de
+`/quero-participar/`, que chama a RPC direto. Revogar agora **derruba o
+formulário que está publicado** — o único que o público alcança.
+
+A ordem correta é: publicar a versão nova → confirmar que o envio funciona pela
+Edge Function → só então revogar. Publicar é item 4.4 do comando, decisão do
+Eloi.
+
+**Até lá, a Edge Function é caminho alternativo, não trava:** o robô ainda pode
+chamar `/rest/v1/rpc/submit_*` direto e pular as quatro barreiras.
+
+⚠️ A **barreira 4 (limite por origem)** também continua fora: contar envios exige
+uma tabela, e uma contagem em memória do isolate não serve — cada requisição pode
+cair num isolate diferente, então o teto seria contornado sem ninguém tentar.
+Agora que o backup existe, ela deixou de estar bloqueada e vira trabalho normal.
+
+- **Campo-armadilha nas telas React:** `/quero-participar/` tem; Contato e Apoiar
+  não têm o input. O módulo já aceita o valor (`opcoes.armadilha`), então falta só
+  o campo em cada formulário.
 - **Correção do §7.2 do briefing:** ele afirma que não existe campo-armadilha em
   lugar nenhum. **Existe, em `/quero-participar/`** desde antes desta sessão
   (campo `site-web`, oculto, `tabindex="-1"`, com descarte silencioso). Era 1 de

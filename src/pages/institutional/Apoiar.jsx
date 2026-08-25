@@ -15,7 +15,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
-import { supabase } from '../../lib/supabase'
+import { criarEnvioProtegido } from '../../lib/enviarFormulario'
 import {
   EMPTY_SUPPORT,
   SEGMENTOS,
@@ -149,7 +149,9 @@ const VEICULOS = [
 ]
 
 // RPC injetado na lógica pura (mantém o módulo testável offline).
-const rpc = (name, payload) => supabase.rpc(name, payload)
+// Passa pela porta anti-robo em vez de falar com o PostgREST direto.
+// Mesma assinatura que as libs esperam ({ error }), entao elas nao mudam.
+const rpc = criarEnvioProtegido()
 
 // Crossfade do cartão de foto do herói. Para quando o sistema pede menos
 // movimento. (Gêmeo do hook da Participar — 6 linhas, não vale um módulo.)

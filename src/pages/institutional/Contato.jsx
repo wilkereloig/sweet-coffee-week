@@ -23,10 +23,10 @@ import '../../styles/scw-contato.css'
 import FAQ_DADOS from '../../data/faqCentral'
 import { heroPhotos } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
-import { supabase } from '../../lib/supabase'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../../config/channels'
 import { CONTACT_SUBJECTS } from '../../data/contactFaq'
 import { EMPTY_CONTACT, normalizeText, submitContact } from '../../lib/contactRequest'
+import { criarEnvioProtegido } from '../../lib/enviarFormulario'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 
 // Foto do herói desta rota (sistema central de imagens): ambienta a abertura
@@ -35,7 +35,9 @@ import ScwIcon from '../../components/scw-icons/ScwIcon'
 const HERO_FOTOS = heroPhotos('contato')
 
 // RPC injetado na lógica pura (mantém o módulo testável offline).
-const rpc = (name, payload) => supabase.rpc(name, payload)
+// Passa pela porta anti-robo em vez de falar com o PostgREST direto.
+// Mesma assinatura que as libs esperam ({ error }), entao elas nao mudam.
+const rpc = criarEnvioProtegido()
 
 // Rotas reais do App.jsx para os `link` das respostas (FAQ_DADOS.links[*].rota).
 const ROTAS = {
