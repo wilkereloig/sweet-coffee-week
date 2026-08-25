@@ -132,7 +132,11 @@ function Contador({ alvo, prefixo = '', sufixo = '' }) {
 
   return (
     <span className="scw-numeral eb-num__caixa" ref={ref}>
-      <span className="eb-num__molde">{prefixo}{alvo}{sufixo}</span>
+      {/* `data-conta-molde`: o snapshot do Claude Design arranca os <script> e
+          congela a página. Sem isso o contador ficaria parado no valor em que a
+          captura o pegou — e o Design desenharia em cima de um "0". O script lê
+          este atributo e copia o texto do molde para o vivo. */}
+      <span className="eb-num__molde" data-conta-molde>{prefixo}{alvo}{sufixo}</span>
       <span className="eb-num__vivo">{prefixo}{valor}{sufixo}</span>
     </span>
   )

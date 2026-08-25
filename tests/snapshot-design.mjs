@@ -13,6 +13,12 @@ const SAIDA = process.argv[2] || join(process.cwd(), 'tests', '.snapshot-design'
 const PORT = 5215
 const BASE = `http://localhost:${PORT}`
 const ROTAS = [
+  /* A landing entra pelo MESMO `?preview=1` das outras: com o preview ligado o
+     gate para de sequestrar toda rota (App.jsx §3.4) e o teste de caminho volta
+     a valer, então `#/em-breve` devolve a landing de verdade. Sem o preview,
+     TODAS as seis linhas abaixo devolveriam esta mesma página — é o defeito que
+     custou meses no tests/responsive.mjs (§10.8). */
+  ['/em-breve', 'em-breve', 'Em breve (pré-cadastro)'],
   ['/', 'home', 'O festival (Home)'],
   ['/edicoes', 'edicoes', 'Edições'],
   ['/sweet-awards', 'sweet-awards', 'Sweet Awards'],
@@ -30,10 +36,21 @@ mkdirSync(join(SAIDA, 'paginas'), { recursive: true })
 mkdirSync(join(SAIDA, 'assets', 'img'), { recursive: true })
 
 const navegador = await chromium.launch()
-const page = await navegador.newPage({ viewport: { width: 1440, height: 900 } })
 const imagens = new Set()
 
 for (const [rota, arquivo, titulo] of ROTAS) {
+  /* 🐛 `goto` para uma URL que só muda o #hash NÃO recarrega o documento — o
+     navegador dispara `hashchange` e pronto. Como cada captura MUTILA o DOM
+     (embute o CSS, reescreve caminho de imagem, remove <script>), a rota
+     seguinte renderizava por cima de nós que o React não reconhecia mais e
+     morria em "Failed to execute 'insertBefore' on 'Node'". O resultado passava
+     despercebido porque o arquivo era GRAVADO do mesmo jeito: a primeira página
+     saía inteira e as outras saíam com a tela do ErrorBoundary dentro, com peso
+     plausível — o CSS embutido sozinho já dá ~134 KB.
+     A página nova por rota é o que garante documento limpo. Um `reload()` só
+     depois do goto também resolveria, mas deixaria a ordem das rotas mandando
+     no resultado, que é exatamente o que quebrou aqui. */
+  const page = await navegador.newPage({ viewport: { width: 1440, height: 900 } })
   await page.goto(`${BASE}/?preview=1#${rota}`, { waitUntil: 'load' })
 
   // percorre a página inteira para tudo montar e revelar
@@ -53,6 +70,13 @@ for (const [rota, arquivo, titulo] of ROTAS) {
       el.style.removeProperty('--mo-i')
     })
     document.querySelectorAll('[style*="--mo-j"]').forEach((el) => el.style.removeProperty('--mo-j'))
+    /* Contador congela no valor FINAL. O snapshot arranca os <script>, então o
+       que estiver escrito no momento da captura é o que o Design vê para sempre
+       — e uma faixa de números zerados é pior que nenhuma, porque parece dado.
+       O molde já carrega o valor final (é ele que reserva a largura). */
+    document.querySelectorAll('[data-conta-molde]').forEach((molde) => {
+      if (molde.nextElementSibling) molde.nextElementSibling.textContent = molde.textContent
+    })
     document.querySelector('.cookie-consent, [class*="cookie"]')?.remove()
   })
 
@@ -96,6 +120,7 @@ for (const [rota, arquivo, titulo] of ROTAS) {
   const card = `<!-- @dsCard group="Páginas" viewport="1440x1100" name="${titulo}" subtitle="Snapshot estático do site publicado — desktop 1440px" -->\n`
   writeFileSync(join(SAIDA, 'paginas', `${arquivo}.html`), card + '<!DOCTYPE html>\n' + html, 'utf8')
   console.log('página', arquivo.padEnd(14), (html.length / 1024).toFixed(0) + ' KB')
+  await page.close()
 }
 
 await navegador.close()
