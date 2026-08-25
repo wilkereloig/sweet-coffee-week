@@ -41,3 +41,14 @@ ds-bundle/
 
 # pasta de descarte da demolicao (apagar a mao)
 _demolicao/
+
+# Dump e backup do banco — contêm nome, e-mail e telefone de pessoas reais.
+# `npm run backup` grava fora do repositório por padrão (../backups-supabase/),
+# mas ele aceita um caminho como argumento, e um caminho passado à mão cai aqui
+# dentro. Estas regras são a rede para esse dia.
+# ⚠️ Nunca generalizar para `*.sql`: isso apagaria supabase/migrations/ do git.
+backups-supabase/
+*.dump
+*.sql.gz
+db-dump*.sql
+dump-*.json

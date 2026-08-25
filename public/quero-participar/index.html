@@ -619,6 +619,10 @@ body{
     <p class="pa-nota">Suas respostas vão só para a equipe do Sweet &amp; Coffee Week e servem para entrar em contato com você sobre a participação.</p>
 
     <div class="pa-acoes">
+      <!-- Turnstile. Fica oculto e vazio ate CONFIG.turnstileSiteKey existir;
+           quem o monta e montarTurnstile(). Sem chave, nada e carregado da
+           Cloudflare — a pagina nao fala com terceiro a toa. -->
+      <div id="turnstile" hidden></div>
       <button type="submit" class="scw-btn" id="btn-enviar">Enviar</button>
       <button type="button" class="scw-btn scw-btn--vazado" id="btn-copiar">Copiar respostas</button>
     </div>
@@ -681,8 +685,27 @@ const CONFIG = {
   // limpar supabaseUrl e preencher endpoint — o resto do codigo nao muda.
   supabaseUrl: 'https://dgfmoibynftadsyjcclg.supabase.co',
   supabaseKey: 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R',
-  endpoint: ''
+  endpoint: '',
+
+  // A porta anti-robo. O envio passa por esta Edge Function, que confere
+  // armadilha, tempo minimo e Turnstile NO SERVIDOR antes de chamar a mesma RPC
+  // de sempre. Captcha conferido so no navegador nao vale nada: o robo nao roda
+  // o JavaScript, ele chama /rest/v1/rpc/ direto.
+  //
+  // Vazio = volta ao caminho antigo (RPC direta). E a saida de emergencia: se a
+  // funcao cair, uma linha aqui devolve o formulario ao ar.
+  funcaoEnvio: 'https://dgfmoibynftadsyjcclg.supabase.co/functions/v1/enviar-formulario',
+
+  // Chave PUBLICA do Turnstile (a privada vive so como variavel de ambiente da
+  // Edge Function). Vazia = widget nao aparece e a funcao deixa passar, porque
+  // sem a chave privada do outro lado nao ha o que conferir. Preencher as duas
+  // liga a barreira; preencher so uma nao faz nada.
+  turnstileSiteKey: ''
 };
+
+// Carimbo de quando a pagina abriu. O servidor recusa envio em menos de 3s:
+// ninguem preenche um formulario de quatro passos nesse tempo.
+const ABERTO_EM = Date.now();
 /* ───────────────────────────────────────────────────────────── */
 
 /* Modo demonstração: só existe com ?demo=1 na URL. Serve para mostrar a
@@ -930,10 +953,46 @@ btnCopiar.addEventListener('click', async () => {
   }
 });
 
+/* ── Turnstile ──────────────────────────────────────────────── */
+/* Desligado por bandeira: sem CONFIG.turnstileSiteKey nada e carregado, o
+   widget nao aparece, e a Edge Function deixa passar — porque sem a chave
+   PRIVADA do outro lado nao existe o que conferir. Preencher so uma das duas
+   nao liga barreira nenhuma; e preciso o par. */
+function montarTurnstile () {
+  if (!CONFIG.turnstileSiteKey) return;
+  const alvo = document.getElementById('turnstile');
+  if (!alvo) return;
+  alvo.hidden = false;
+  alvo.className = 'cf-turnstile';
+  alvo.setAttribute('data-sitekey', CONFIG.turnstileSiteKey);
+  alvo.setAttribute('data-language', 'pt-br');
+  const s = document.createElement('script');
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+  s.async = true;
+  s.defer = true;
+  document.head.appendChild(s);
+}
+
+/* O widget escreve o token num input escondido que ele mesmo cria. Sem widget,
+   devolve string vazia — e a funcao trata isso como "nao avaliado", nao como
+   "reprovado". */
+function tokenTurnstile () {
+  const campo = document.querySelector('[name="cf-turnstile-response"]');
+  return campo ? campo.value : '';
+}
+
+montarTurnstile();
+
 /* ── Envio ──────────────────────────────────────────────────── */
 form.addEventListener('submit', async (ev) => {
   ev.preventDefault();
-  if (form['site-web'].value !== '') return;
+
+  // A armadilha NAO barra mais aqui. Ela viaja para o servidor e e la que
+  // decide, por dois motivos: (1) quem confere no navegador confere no lugar
+  // que o atacante controla; (2) barrando aqui, o robo que roda JavaScript ve
+  // o botao nao fazer nada e sabe que foi pego. Indo ao servidor, ele recebe a
+  // MESMA tela de sucesso de quem enviou de verdade e vai embora satisfeito.
+  const armadilha = form['site-web'].value;
 
   if (DEMO) {
     mostrar('aviso', 'Envio desligado na demonstração',
@@ -966,7 +1025,23 @@ form.addEventListener('submit', async (ev) => {
   // Supabase quando configurado; senão um endpoint HTTP genérico (Formspree);
   // senão o mailto lá embaixo. Um lugar só decide, os três caminhos compartilham
   // o mesmo tratamento de sucesso e de falha.
-  const destino = CONFIG.supabaseUrl ? {
+  const destino = CONFIG.funcaoEnvio ? {
+    // Porta anti-robo. O corpo vai no formato que a RPC espera, e a funcao
+    // repassa verbatim — ela nao conhece a assinatura de nenhuma RPC, para nao
+    // virar a segunda fonte de verdade do contrato do formulario.
+    url: CONFIG.funcaoEnvio,
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      formulario: 'quero_participar',
+      corpo: { p_payload: dados },
+      armadilha: armadilha,
+      aberto_em: ABERTO_EM,
+      token: tokenTurnstile()
+    })
+  } : CONFIG.supabaseUrl ? {
+    // Caminho antigo, direto na RPC. Fica como saida de emergencia: sem
+    // `funcaoEnvio` configurada, o formulario volta a funcionar exatamente como
+    // antes — sem barreira, mas no ar.
     url: CONFIG.supabaseUrl + '/rest/v1/rpc/submit_quero_participar',
     headers: {
       'Accept': 'application/json', 'Content-Type': 'application/json',
