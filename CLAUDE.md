@@ -359,8 +359,10 @@ public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
                 + variantes `NN-480.webp` / `NN-960.webp` ao lado do original
 public/fonts/nexa-slab/
 public/manifest.webmanifest   camada de aplicativo (theme-color, ícones, iOS)
-public/marca/ · public/quero-participar/ · public/organizacao/
-                estáticas, fora do bundle (§10.4-b)
+public/marca/ · public/quero-participar/ · public/organizacao/ · public/painel/
+                estáticas, fora do bundle (§10.4-b). painel/ é o painel unificado
+                (organização + marca); os outros dois viraram porta de entrada
+                que redireciona para lá depois do login real
 acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
@@ -2500,6 +2502,76 @@ como `CONFERENCIA-MARCA.md`, entregue junto do handoff (fora do repositório).
 - **Formulários da organização (patch §9)** já existiam quase por inteiro
   antes desta rodada (`abrirNovoPedido`/`abrirNovoArquivo`/`abrirNovaSessao`/
   `abrirNovaConta`, todos via `abrirFolha`) — não foram tocados.
+
+#### Painel unificado — `/painel/`, 26/08/2026 (Fase 9)
+
+Handoff "Painel SCW app" (`handoff/APLICAR.md` + `handoff/INSTRUCAO-painel-completo.md`,
+arquivados em `docs/_arquivo-instrucoes-antigas/`). `/organizacao/` e `/marca/` viviam
+cada um na própria página estática, com a mesma "casca de app" desenhada duas vezes
+(§5.2). Viraram **um painel só**, com login de dois cartões — organização (senha
+única) e participante (Supabase Auth) — e nove vistas atrás dele.
+
+⚠️ **Não foi reescrita: foi PORTADA.** `public/painel/index.html` carrega o código real
+de `public/organizacao/index.html` e `public/marca/index.html`, cada um na própria IIFE
+(`PainelOrg`, `PainelMarca`) dentro do MESMO bloco `<script>` — o teste conta blocos
+(`SCRIPTS.length === 1`), então não dá pra ter um por papel. Zero função reescrita à
+mão: RPCs, `escapar()`, notificações derivadas, agenda de dois modos, acordeão do
+cadastro — tudo o mesmo comportamento já testado nos dois arquivos de origem.
+
+⚠️ **`window.PainelOrg`/`window.PainelMarca` existem só para o boot decidir qual
+casca mostrar** — `PainelOrg.temSessao()` roda primeiro (o script da organização vem
+primeiro no arquivo); se `false`, `PainelMarca.iniciar()` decide entre login e o
+próprio painel. Sem essa ordem, uma sessão de organização restaurada seria coberta de
+novo pela tela de login que `iniciar()` da marca mostra por padrão.
+
+⚠️ **A colisão que quase aconteceu: as duas páginas tinham `id="aviso"`.** Um era o
+`<div class="og-aviso">` de dentro da vista `mesa` da organização, o outro o banner
+global da marca. Viraram `aviso-org` e `aviso-marca` — `document.getElementById`
+sempre pega o primeiro do documento, então a outra metade escreveria na caixa errada
+(ou numa caixa escondida) sem erro nenhum no console.
+
+🔴 **Três classes `.pn-*` parecem compartilhadas e NÃO SÃO — são exclusivas da
+marca.** `.pn-casca` (o grid do `#vPainel`), `.pn-vista`/`.pn-vista__trilho` (a área de
+rolagem) e `.pn-abas`/`.pn-aba` (a barra de abas da marca) não têm equivalente em
+`/organizacao/`, que faz o mesmo papel por outro caminho: `#painel` por ID em vez de
+`.pn-casca`, `.og-vista` em vez de `.pn-vista`, `.og-abasapp`/`.og-abaapp` em vez de
+`.pn-abas`/`.pn-aba`. Uma primeira tentativa de "deduplicar" o CSS achou que essas
+três eram cópia do que a organização já define e cortou — resultado: `#vPainel` caía
+no `display:block` padrão de uma `<div>`, sem grid, sem colunas, sem nada. Achado só
+ao renderizar de verdade e medir `getComputedStyle`; a leitura do CSS sozinha não
+denunciava. **A lição:** nome de classe `pn-` igual não significa a mesma regra existe
+nos dois lados — cada arquivo original tinha a duplicação aceita do §5.2, e um corte
+"inteligente" tem que confirmar por classe, não por prefixo.
+
+⚠️ **O bloco de `prefers-reduced-motion` tem que ficar depois de TUDO** — inclusive do
+CSS da marca, que entra depois do da organização na concatenação. Ele morava no fim do
+CSS da organização; ficou no meio do arquivo combinado até ser movido pro fim de
+verdade. Há teste (`tests/painel.test.mjs`) que reprova isso especificamente.
+
+⚠️ **`/organizacao/` e `/marca/` não morreram — viraram só a PORTA.** `abrirPainel()`
+(organização) e `ver('painel')` (marca) continuam fazendo tudo que faziam antes e, no
+fim, chamam `location.replace('/painel/#painel=org/' + vista)` ou
+`.../marca/' + vista`. O redirecionamento é depois do login real confirmado — senha
+errada continua mostrando o erro na tela de sempre, nunca redireciona primeiro.
+`sw.js`/`app.webmanifest` das duas páginas antigas **não foram apagados** — quem já
+instalou o ícone antigo continua com um app que funciona (mostra o painel por um
+instante e sai), só precisa reinstalar a partir de `/painel/` pra ganhar o ícone novo.
+Ninguém decidiu se isso vira aviso pra equipe; ficou registrado aqui.
+
+⚠️ **`/painel/app.webmanifest` e `/painel/sw.js` são nova infra, mesma receita de
+`/organizacao/`** — escopo `/painel/` nos dois campos, `sw.js` com `no-store` no
+`vercel.json`, rewrite `/painel` → `/painel/index.html`. Os dois registros de service
+worker que já existiam dentro do código portado (`register('/organizacao/sw.js', …)` e
+`register('/marca/sw.js', …)`) foram trocados para `/painel/sw.js` — registrar o SW de
+uma pasta que a página atual não serve não dá erro, só não ajuda em nada.
+
+⚠️ **O modelo de 6 estágios da mesa (kanban) já estava resolvido, não foi decisão
+nova.** O handoff pedia parada pra decidir como os 4 status reais de
+`participacoes.status_cadastro` viram 6 colunas — mas a Fase 8 já tinha resolvido isso
+em `renderMesa()`: as 4 primeiras colunas vêm do status do formulário
+(`quero_participar.status`), e a marca com conta cai em `acesso` ou `completas`
+conforme `status_cadastro`. Conferir o código antes de tratar um "não decide sozinho"
+do handoff como pergunta em aberto — pode já estar respondido.
 
 ### 10.5 Grade e layout
 

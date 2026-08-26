@@ -1001,6 +1001,17 @@ button.link{
         try { inicial = sessionStorage.getItem('scw_marca_vista') || 'hoje' } catch (e) {}
       }
       irParaMarca(inicial)
+      /* O painel de verdade agora mora em /painel/ (handoff "Painel SCW
+         app", 26/08/2026) — esta página vira só a PORTA de entrada. O
+         redirecionamento é depois do login real (aqui, sessão Supabase já
+         válida), nunca antes: senha errada continua mostrando o erro nesta
+         mesma tela, e quem precisa trocar a senha do primeiro acesso passa
+         por vSenha antes de chegar aqui. `inicial` já veio certo (hash ou
+         sessionStorage), então o link continua funcionando depois do salto.
+         Quem instalou /marca/ como app precisa reinstalar a partir de
+         /painel/ — o SW e o manifest antigos continuam de pé, sem tocar. */
+      location.replace('/painel/#painel=marca/' + inicial)
+      return
     }
     window.scrollTo(0, 0)
   }
