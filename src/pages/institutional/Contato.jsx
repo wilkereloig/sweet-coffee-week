@@ -364,7 +364,7 @@ export function ContatoPage({ navigate }) {
                 <b>Não encontrou sua dúvida?</b>
                 <p>
                   Escreva para a organização pelo formulário desta página. Se for sobre pedido, pagamento,
-                  entrega ou produto, fale primeiro com o estabelecimento responsável — a venda é feita por
+                  entrega ou produto, fale primeiro com o estabelecimento responsável: a venda é feita por
                   ele.
                 </p>
               </div>

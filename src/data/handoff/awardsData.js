@@ -28,7 +28,7 @@ const NOTAS = {
   '2019.2': 'Segunda edição da premiação, ainda concentrada no Melhor Combo.',
   '2020.1': 'A premiação saltou de uma para sete categorias.',
   '2020.2': 'Primeira edição a separar Júri Técnico e Sweet Lovers.',
-  '2021.1': 'Doze categorias — a maior expansão de critérios até então, com a única Menção Honrosa registrada.',
+  '2021.1': 'Doze categorias, a maior expansão de critérios até então, com a única Menção Honrosa registrada.',
   '2021.2': 'Quinze categorias: o auge da premiação, com júri técnico e público lado a lado.',
   '2022':   'A partir daqui, a premiação passou a ser inteiramente decidida pelos Sweet Lovers.',
   '2023':   'Oito categorias na edição que reuniu 33 endereços de Natal e Parnamirim.',

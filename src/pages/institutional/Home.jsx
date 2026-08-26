@@ -327,7 +327,7 @@ export function HomePage({ navigate }) {
           <div className="scw-hero__info">
             <div className="hm-hero__texto">
               <p className="scw-hero__lead">
-                A cada edição, marcas da cidade inteira criam combos a partir de um tema — e a cidade vira roteiro por onze dias.
+                A cada edição, marcas da cidade inteira criam combos a partir de um tema, e a cidade vira roteiro por onze dias.
               </p>
             </div>
             <div className="hm-acoes">
@@ -355,7 +355,7 @@ export function HomePage({ navigate }) {
             </h2>
           </div>
           <p className="hm-apoio">
-            Doçarias, cafeterias e restaurantes de Natal e região criam uma composição exclusiva a partir do tema da edição — e muitos combos ganham lugar fixo no menu depois.
+            Doçarias, cafeterias e restaurantes de Natal e região criam uma composição exclusiva a partir do tema da edição, e muitos combos ganham lugar fixo no menu depois.
           </p>
         </div>
 
@@ -416,7 +416,7 @@ export function HomePage({ navigate }) {
               <a className="hm-link" href="#/edicoes" onClick={ir('/edicoes')}>ver todas →</a>
             </div>
             <p className="hm-galeria__texto">
-              Cada edição rende uma coleção nova de doce, salgado e bebida — alguns viraram clássicos da casa.
+              Cada edição rende uma coleção nova de doce, salgado e bebida. Alguns viraram clássicos da casa.
             </p>
             <GaleriaCarrossel
               itens={COMBOS.map(({ foto, titulo, ano }) => ({
@@ -454,7 +454,7 @@ export function HomePage({ navigate }) {
             </h2>
           </div>
           <p className="hm-apoio">
-            Escolha de onde você chega — cada porta leva a uma parte diferente da rota.
+            Escolha de onde você chega: cada porta leva a uma parte diferente da rota.
           </p>
         </div>
 
@@ -663,7 +663,7 @@ export function HomePage({ navigate }) {
             <div>
               <p className="f2-realiza__texto">
                 A F2 Experience é a agência de live marketing que idealiza e realiza o
-                Sweet &amp; Coffee Week — eventos, ativações e experiências de marca para
+                Sweet &amp; Coffee Week: eventos, ativações e experiências de marca para
                 quem quer conexão e resultado.
               </p>
               <a

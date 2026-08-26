@@ -479,7 +479,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
   const rotuloEditorial = abertura ? 'A história do festival' : 'Marcos, curiosidades e legado'
   const temEditorial = !!(abertura || narrativa.marco || narrativa.curiosidade
     || narrativa.legado || curiosidades.length)
-  const nParticipantes = d.n != null ? d.n : '—'
+  const nParticipantes = d.n != null ? d.n : 'N/D'
   const premiacao = PREMIACAO[d.premiacao] || 'A conferir'
 
   const vaiPara = React.useCallback((k) => {
@@ -752,7 +752,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                     type="button"
                     key={ed.code}
                     className={`scw-edx-mob__ano${k === i ? ' is-ativo' : ''}${k < i ? ' is-visto' : ''}`}
-                    aria-label={`${ed.code} — ${ed.tema}`}
+                    aria-label={`${ed.code}, ${ed.tema}`}
                     aria-current={k === i ? 'true' : undefined}
                     onClick={() => vaiPara(k)}
                   >
@@ -969,7 +969,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                   type="button"
                   key={ed.code}
                   className={`scw-edx__ano${k === i ? ' is-ativo' : ''}`}
-                  aria-label={`${ed.code} — ${ed.tema}`}
+                  aria-label={`${ed.code}, ${ed.tema}`}
                   aria-current={k === i ? 'true' : undefined}
                   onClick={() => vaiPara(k)}
                 >

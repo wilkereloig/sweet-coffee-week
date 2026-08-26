@@ -249,7 +249,7 @@ const TRILHA = [
     texto: 'Por três edições, profissionais convidados avaliam execução, equilíbrio e acabamento em paralelo ao público.' },
   { ano: '2022 em diante', hoje: true, titulo: 'Só Sweet Lovers decide', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
     traco: <path d="M12 20.3s-7.3-4.5-7.3-9.6A3.9 3.9 0 0 1 12 8.1a3.9 3.9 0 0 1 7.3 2.6c0 5.1-7.3 9.6-7.3 9.6Z" />,
-    texto: 'Quem prova dá nota ao que comeu. O pódio sai da média dessas notas — e de mais nada.' },
+    texto: 'Quem prova dá nota ao que comeu. O pódio sai da média dessas notas, e de mais nada.' },
 ]
 
 const ROTULO_TRILHA = { juri_tecnico: 'Júri Técnico', sweet_lovers: 'Sweet Lovers' }
@@ -368,7 +368,7 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
             <div className="swa-mencao">
               <span className="swa-mencao__rotulo">Menção Honrosa · {edicao.mencao.categoria}</span>
               <p className="swa-mencao__nomes">{edicao.mencao.nomes.join(' · ')}</p>
-              <p className="swa-mencao__nota">Reconhecimento sem ordem de colocação — não conta como pódio.</p>
+              <p className="swa-mencao__nota">Reconhecimento sem ordem de colocação. Não conta como pódio.</p>
             </div>
           )}
         </div>
@@ -492,7 +492,7 @@ export function HistoricoAwardsPage() {
             <h2 className="scw-h2">Quem mais subiu ao pódio</h2>
           </div>
           <p className="swa-apoio">
-            Todas as colocações conquistadas — 1º, 2º e 3º lugares — em todas as edições com
+            Todas as colocações conquistadas (1º, 2º e 3º lugares) em todas as edições com
             premiação registrada, somando Júri Técnico e Sweet Lovers.
           </p>
         </div>
@@ -565,7 +565,7 @@ export function HistoricoAwardsPage() {
           <p className="scw-corpo">
             De 2016 a 2018.2, o festival era um circuito de descoberta: combo a preço único, sem disputa.
             O Sweet Awards nasceu na Pâtisserie Francesa, em 2019, quando o público pediu para eleger
-            o melhor combo — e nunca mais saiu do calendário.
+            o melhor combo, e nunca mais saiu do calendário.
           </p>
         </div>
       </section>

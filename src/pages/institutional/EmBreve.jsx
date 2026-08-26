@@ -237,7 +237,7 @@ function GaleriaEdicoes() {
     const proximo = (i + passo + total) % total
     setI(proximo)
     const ed = EDICOES[proximo]
-    setAnuncio(`Edição ${ed.code} — ${ed.tema}, ${proximo + 1} de ${total}`)
+    setAnuncio(`Edição ${ed.code}, ${ed.tema}, ${proximo + 1} de ${total}`)
   }
 
   return (
@@ -401,7 +401,7 @@ function BarraAcao() {
   return (
     <div className="eb-barra scw-casca-base" ref={ref} style={{ '--eb-lido': lido }}>
       <span className="eb-barra__indicador" aria-hidden="true" />
-      <span className="eb-barra__nota">Quatro passos rápidos — e não compromete nada.</span>
+      <span className="eb-barra__nota">Quatro passos rápidos. Não compromete nada.</span>
       <a
         className={`scw-btn scw-btn--solido eb-barra__btn${batendo ? ' is-convite' : ''}`}
         href={PRE_CADASTRO}
@@ -434,7 +434,7 @@ export function EmBrevePage() {
           </h1>
           <p className="scw-lead eb-lead">
             São 16 edições transformando Natal numa rota de doce, salgado e café. A próxima
-            está sendo preparada — e o pré-cadastro para os estabelecimentos já está aberto.
+            está sendo preparada, e o pré-cadastro para os estabelecimentos já está aberto.
           </p>
         </div>
           <GaleriaEdicoes />
@@ -490,7 +490,7 @@ export function EmBrevePage() {
           <h2 className="scw-h2">Casas que fazem doce, salgado e café em Natal.</h2>
           <p className="scw-corpo">
             Cafeterias, confeitarias, docerias, casas de bolo, padarias, chocolaterias,
-            sorveterias, bistrôs, restaurantes e cozinhas sem loja física — em Natal e região.
+            sorveterias, bistrôs, restaurantes e cozinhas sem loja física, em Natal e região.
           </p>
           <ul className="eb-cats">
             {CATEGORIAS.map((c) => (
@@ -528,8 +528,8 @@ export function EmBrevePage() {
         <div className="eb-fecho__inner motion-stagger">
           <h2 className="scw-h2 eb-fecho__h2">O pré-cadastro é o primeiro passo.</h2>
           <p className="scw-corpo eb-fecho__txt">
-            A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo —
-            e não compromete nada.
+            A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo.
+            Não compromete nada.
           </p>
           <span className="eb-fecho__selo"><ScwIcon nome="simbolos/sweet-lovers" tamanho={32} /></span>
           <p className="scw-corpo eb-fecho__lover">

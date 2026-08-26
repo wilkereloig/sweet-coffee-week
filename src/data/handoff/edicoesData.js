@@ -25,12 +25,12 @@ import { editionPhotos } from '../imageLibrary.js'
 const CURIOSIDADES = {
   '2016': [
     { t: 'Onde tudo começou', x: 'Idealizado pela jornalista e diretora criativa Eline Eulália, o festival nasceu para aproximar o público das novas docerias, confeitarias e cafeterias autorais de Natal.' },
-    { t: 'Ainda sem tema', x: 'Era um circuito de preço único, sem universo temático — os temas só chegariam em 2017.' },
+    { t: 'Ainda sem tema', x: 'Era um circuito de preço único, sem universo temático. Os temas só chegariam em 2017.' },
     { t: 'Treze endereços no começo', x: 'A primeira edição reuniu 13 estabelecimentos, em setembro de 2016.' },
   ],
   '2017.1': [
     { t: 'A primeira edição temática', x: 'A Páscoa estreou os temas: foi a primeira vez que as criações se organizaram em torno de um universo próprio.' },
-    { t: 'O tema virou método', x: 'A organização percebeu que a narrativa aumentava o envolvimento — o tema passou a orientar receita, nome, apresentação e embalagem.' },
+    { t: 'O tema virou método', x: 'A organização percebeu que a narrativa aumentava o envolvimento: o tema passou a orientar receita, nome, apresentação e embalagem.' },
     { t: 'Estreia do Sweet Gift', x: 'Nasceu aqui o combo em versão presente ou viagem: o Bolo da Vovó lançou o "Petit Bolo da Vovó" já nesta edição de Páscoa.' },
   ],
   '2017.2': [
@@ -93,7 +93,7 @@ const CURIOSIDADES = {
   ],
   '2025': [
     { t: 'Festa como tema', x: 'Carnaval, São João, aniversários e premiações viraram ponto de partida dos combos, de 6 a 16 de novembro.' },
-    { t: '15ª edição, não 15 anos', x: 'A contagem é de edições realizadas — nos primeiros ciclos havia duas por ano.' },
+    { t: '15ª edição, não 15 anos', x: 'A contagem é de edições realizadas: nos primeiros ciclos havia duas por ano.' },
   ],
   '2026.1': [
     { t: 'Especial de 10 anos', x: 'Em vez de um tema novo, cada marca revisitou um tema antigo do festival e produziu uma nova leitura.' },

@@ -2494,7 +2494,7 @@ export const SWEET_COFFEE_HISTORY = {
             "key": "melhor_combo",
             "trilha": "sweet_lovers",
             "postResultado": "https://www.instagram.com/sweetcoffeeweek/p/DZ3chEuFJxX/",
-            "descricao": "Reconhece o melhor combo da edição — média das notas de Doce, Salgado e Bebida.",
+            "descricao": "Reconhece o melhor combo da edição: média das notas de Doce, Salgado e Bebida.",
             "colocacoes": []
           },
           {

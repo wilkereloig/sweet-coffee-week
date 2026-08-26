@@ -52,7 +52,7 @@ const PALAVRAS = [
 const ALCANCE = [
   { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
   { n: '+18 mi', t: 'visualizações no Instagram', d: 'cerca de 23 vezes a população de Natal', i: 'redes/instagram' },
-  { n: '+200 mil', t: 'de alcance', d: 'contas alcançadas — 1 em cada 4 moradores de Natal', i: 'mecanica/publico' },
+  { n: '+200 mil', t: 'de alcance', d: 'contas alcançadas, 1 em cada 4 moradores de Natal', i: 'mecanica/publico' },
   { n: '+290 mil', t: 'interações', d: 'curtidas, comentários, salvamentos e compartilhamentos', i: 'mecanica/avaliar' },
   { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade Sweet Lovers que acompanha combos e resultados', i: 'simbolos/sweet-lovers' },
   { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
@@ -277,7 +277,7 @@ export function ApoiarPage() {
             </h1>
             <p className="scw-lead pa-hero__lead">
               Apoiar o Sweet &amp; Coffee Week é associar sua marca a gastronomia, cultura e pequenos
-              negócios — com presença na campanha, nos conteúdos e nas ações de cada edição.
+              negócios, com presença na campanha, nos conteúdos e nas ações de cada edição.
             </p>
             <div className="pa-hero__acoes">
               <a href="#proposta" className="scw-btn scw-btn--solido" onClick={irPara('proposta')}>
