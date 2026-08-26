@@ -306,6 +306,28 @@ button.link{
 .mc-venda__dia b{font:800 15px/1 var(--font); font-variant-numeric:tabular-nums}
 .mc-venda__dia span{font-size:10.5px; opacity:.8}
 .mc-venda__espera{display:flex; align-items:center; gap:10px; color:rgba(254,240,221,.85)}
+
+/* ── Acordeão do cadastro (patch §8.3) ────────────────────────────────────
+   Os 5 blocos são os REAIS (A marca/O tema/Os três itens/Preço/Onde
+   encontrar) — o handoff assumia "A casa/doce/salgado/bebida/fotos", que não
+   existe no arquivo (ver CONFERENCIA-MARCA.md). Sem prazo por bloco: não há
+   coluna de prazo individual no banco, e inventar um seria dado fabricado
+   (CLAUDE.md A4) — o selo mostra só pronto/pendente. */
+.mc-bloco{background:var(--creme); border-radius:var(--r); box-shadow:inset 0 0 0 1.5px var(--filete); overflow:hidden; margin:0 0 10px}
+.mc-bloco.is-aberto{box-shadow:inset 0 0 0 1.5px var(--choco)}
+.mc-bloco__cabeca{
+  width:100%; text-align:left; cursor:pointer; border:0; background:transparent;
+  padding:14px 16px; display:flex; align-items:center; gap:13px; min-height:64px;
+}
+.mc-bloco__disco{flex:0 0 auto; display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--bege); color:var(--choco); transition:background 220ms var(--ease),color 220ms var(--ease)}
+.mc-bloco__disco svg{width:21px; height:21px}
+.mc-bloco.is-pronto .mc-bloco__disco{background:var(--choco); color:var(--creme)}
+.mc-bloco__texto{flex:1 1 auto; min-width:0}
+.mc-bloco__texto b{display:block; font:900 16px/1.15 var(--font); letter-spacing:-.02em}
+.mc-bloco__texto span{display:block; margin-top:3px; font:500 12.5px/1.3 var(--font); color:var(--marrom)}
+.mc-bloco__chevron{flex:0 0 auto; width:15px; height:15px; transition:transform 200ms var(--ease)}
+.mc-bloco.is-aberto .mc-bloco__chevron{transform:rotate(180deg)}
+.mc-bloco__corpo{padding:2px 16px 20px}
 </style>
 </head>
 <body>
@@ -440,7 +462,7 @@ button.link{
               <label style="margin:0"><span style="color:rgba(254,240,221,.7)" id="mcVendaRotuloData">Hoje</span>
                 <input class="mc-venda__campo" id="mcVendaQtd" type="number" inputmode="numeric" min="0" placeholder="0"></label>
               <button class="acao" type="button" id="mcVendaSalvar" style="background:var(--amarelo);color:var(--choco)">Salvar</button>
-              <span class="mc-venda__total"><span id="mcVendaTotal">0</span><span>acumulado na edição</span></span>
+              <span class="mc-venda__total"><span id="mcVendaTotal">0</span><span>no total da edição</span></span>
             </div>
             <div class="mc-venda__dias" id="mcVendaDias"></div>
           </div>
@@ -479,67 +501,97 @@ button.link{
           <div class="salvo" id="salvo"></div>
 
           <form id="fCadastro">
-            <div class="card">
-              <p class="rotulo">01 · A marca</p>
-              <h2>Quem participa</h2>
-              <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-              <label><span>Nome da marca</span><input id="cNome" required></label>
-              <div class="dupla">
-                <label><span>Responsável pelo festival</span><input id="cResp" required></label>
-                <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
+            <div class="mc-bloco is-aberto" data-bloco="0">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="0" aria-expanded="true">
+                <span class="mc-bloco__disco" data-disco="0" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>01 · A marca</b><span>Quem participa</span></span>
+                <span class="selo" data-selo="0">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="0">
+                <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
+                <label><span>Nome da marca</span><input id="cNome" required></label>
+                <div class="dupla">
+                  <label><span>Responsável pelo festival</span><input id="cResp" required></label>
+                  <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
+                </div>
+                <div class="dupla">
+                  <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
+                  <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
+                </div>
+                <div class="dupla">
+                  <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
+                  <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
+                </div>
+                <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
               </div>
-              <div class="dupla">
-                <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
-                <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
+            </div>
+
+            <div class="mc-bloco" data-bloco="1">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="1" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="1" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.4a8.4 8.4 0 0 1 4.9 15.2v2.6h-9.8v-2.6A8.4 8.4 0 0 1 16 4.4Z"/><path d="M12.2 24.4h7.6M13.4 27.6h5.2" stroke-width="2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>02 · O tema</b><span>Sua leitura do tema da edição</span></span>
+                <span class="selo" data-selo="1">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="1" hidden>
+                <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
+                  jeito. Conte qual foi a sua leitura.</p>
+                <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
+                <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
+                  <textarea id="cTemaJust" required></textarea>
+                </label>
               </div>
-              <div class="dupla">
-                <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
-                <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
+            </div>
+
+            <div class="mc-bloco" data-bloco="2">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="2" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="2" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" d="M2.6 17h7.4l-.8 4.6a1.3 1.3 0 0 1-1.3 1.1H4.7a1.3 1.3 0 0 1-1.3-1.1Z"/><circle cx="6.3" cy="14" r="3.4" fill="currentColor" stroke="none"/><path fill="currentColor" stroke="none" d="M12 22.6 16.2 10.2l4.2 12.4Z"/><path fill="currentColor" stroke="none" d="M22.6 14.6h7.6l-1 6.8a1.4 1.4 0 0 1-1.4 1.2h-2.8a1.4 1.4 0 0 1-1.4-1.2Z"/><path d="M1.6 25.8h28.8"/></svg></span>
+                <span class="mc-bloco__texto"><b>03 · Os três itens</b><span>Doce, salgado e bebida</span></span>
+                <span class="selo" data-selo="2">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="2" hidden>
+                <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
+                  Melhor Combo. Descreva como cada um conversa com o tema.</p>
+                <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
+                  que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
+                  As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+                <div id="itens"></div>
               </div>
-              <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
             </div>
 
-            <div class="card">
-              <p class="rotulo">02 · O tema</p>
-              <h2>Sua leitura do tema da edição</h2>
-              <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
-                jeito. Conte qual foi a sua leitura.</p>
-              <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
-              <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
-                <textarea id="cTemaJust" required></textarea>
-              </label>
+            <div class="mc-bloco" data-bloco="3">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="3" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="3" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M27.4 15.6 16.4 26.6a2.2 2.2 0 0 1-3.1 0L5.4 18.7a2.2 2.2 0 0 1 0-3.1L16.4 4.6h9.9a1.1 1.1 0 0 1 1.1 1.1Z"/><circle cx="21.8" cy="10.2" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>04 · Preço</b><span>Quanto custa o combo</span></span>
+                <span class="selo" data-selo="3">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="3" hidden>
+                <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
+                  <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
+                </label>
+              </div>
             </div>
 
-            <div class="card">
-              <p class="rotulo">03 · Os três itens</p>
-              <h2>Doce, salgado e bebida</h2>
-              <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
-                Melhor Combo. Descreva como cada um conversa com o tema.</p>
-              <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
-                que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
-                As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
-              <div id="itens"></div>
+            <div class="mc-bloco" data-bloco="4">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="4" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="4" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 28.4s8.6-9.6 8.6-15.6a8.6 8.6 0 1 0-17.2 0c0 6 8.6 15.6 8.6 15.6Z"/><rect x="12.4" y="9.2" width="7.2" height="7.2" rx="2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>05 · Onde encontrar</b><span>Suas unidades</span></span>
+                <span class="selo" data-selo="4">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="4" hidden>
+                <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
+                  continua contando como uma marca só. O horário aqui é o <b>dos dias do
+                  festival</b>, que pode ser diferente do horário normal da loja.</p>
+                <div id="unidades"></div>
+                <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
+              </div>
             </div>
 
-            <div class="card">
-              <p class="rotulo">04 · Preço</p>
-              <h2>Quanto custa o combo</h2>
-              <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
-                <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
-              </label>
-            </div>
-
-            <div class="card">
-              <p class="rotulo">05 · Onde encontrar</p>
-              <h2>Suas unidades</h2>
-              <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
-                continua contando como uma marca só. O horário aqui é o <b>dos dias do
-                festival</b>, que pode ser diferente do horário normal da loja.</p>
-              <div id="unidades"></div>
-              <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
-            </div>
-
-            <button class="acao larga" type="submit" id="btConcluir">Concluir cadastro</button>
+            <button class="acao larga" type="submit" id="btConcluir" style="margin-top:18px">Concluir cadastro</button>
           </form>
 
           <div class="card" id="cardFotos" hidden style="margin-top:18px">
@@ -1216,6 +1268,7 @@ button.link{
       renderVenda()
       selo()
       progresso()
+      abrirPrimeiroPendente()
       atualizarBadgeMarca()
     })
   }
@@ -1678,6 +1731,7 @@ button.link{
     if (unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0) feitos++
     el('progTexto').textContent = feitos + ' de ' + BLOCOS + ' blocos'
     el('progBarra').style.transform = 'scaleX(' + (feitos / BLOCOS) + ')'
+    atualizarSelosBlocos()
     renderFalta()
     atualizarBadgeMarca()
     return feitos
@@ -1687,6 +1741,68 @@ button.link{
     var cru = el('cPreco').value.trim().replace(/\./g, '').replace(',', '.')
     var n = parseFloat(cru)
     return isNaN(n) ? 0 : n
+  }
+
+  // ── Acordeão do cadastro ───────────────────────────────────────────────
+  // Um por vez, como o resto da casca (§8.3). Puramente de apresentação: o
+  // autosave já grava o formulário inteiro a cada tecla, então abrir/fechar
+  // um bloco nunca muda o que é lido ou salvo.
+  var blocoAberto = 0
+
+  function blocoCompleto (n) {
+    if (n === 0) return !!(el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim())
+    if (n === 1) return !!(el('cTema').value.trim() && el('cTemaJust').value.trim())
+    if (n === 2) return itensLer().every(itemCompleto) && itens.length === TIPOS.length
+    if (n === 3) return precoNumero() > 0
+    if (n === 4) return unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0
+    return false
+  }
+
+  // Fecha o que estiver aberto e abre `n` (null fecha tudo). Separado do
+  // clique: o clique ALTERNA (abrir de novo o já aberto fecha); carregar a
+  // página não alterna, FORÇA o primeiro pendente a abrir, sem depender do
+  // estado anterior.
+  function abrirBloco (n) {
+    if (blocoAberto !== null && blocoAberto !== n) {
+      var anterior = document.querySelector('[data-bloco="' + blocoAberto + '"]')
+      if (anterior) {
+        anterior.classList.remove('is-aberto')
+        anterior.querySelector('[data-corpo]').hidden = true
+        anterior.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'false')
+      }
+    }
+    blocoAberto = n
+    if (n !== null) {
+      var atual = document.querySelector('[data-bloco="' + n + '"]')
+      atual.classList.add('is-aberto')
+      atual.querySelector('[data-corpo]').hidden = false
+      atual.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'true')
+    }
+  }
+
+  function alternarBloco (n) {
+    abrirBloco(blocoAberto === n ? null : n)
+  }
+
+  function atualizarSelosBlocos () {
+    for (var n = 0; n < 5; n++) {
+      var bloco = document.querySelector('[data-bloco="' + n + '"]')
+      if (!bloco) continue
+      var pronto = blocoCompleto(n)
+      bloco.classList.toggle('is-pronto', pronto)
+      var selo = bloco.querySelector('[data-selo]')
+      selo.className = 'selo' + (pronto ? ' completo' : '')
+      selo.textContent = pronto ? 'Pronto' : 'Pendente'
+    }
+  }
+
+  // Ao carregar, abre o primeiro bloco AINDA pendente — quem já preencheu
+  // tudo vê o primeiro fechado, sem forçar rolagem nenhuma.
+  function abrirPrimeiroPendente () {
+    for (var n = 0; n < 5; n++) {
+      if (!blocoCompleto(n)) { abrirBloco(n); return }
+    }
+    abrirBloco(null)
   }
 
   // ── Autosave ──────────────────────────────────────────────────────────────
@@ -1865,6 +1981,10 @@ button.link{
     el('fLogin').addEventListener('submit', entrar)
     el('fSenha').addEventListener('submit', definirSenha)
     el('fCadastro').addEventListener('submit', concluir)
+    el('fCadastro').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-alternar]')
+      if (alvo) alternarBloco(parseInt(alvo.getAttribute('data-alternar'), 10))
+    })
     el('btEsqueci').addEventListener('click', recuperar)
     // Dois botões de sair (rail no desktop, cabeçalho no celular — só um dos
     // dois é visível de cada vez, resolvido por CSS), mesma função.
