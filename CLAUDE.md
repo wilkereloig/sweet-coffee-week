@@ -2573,6 +2573,51 @@ em `renderMesa()`: as 4 primeiras colunas vêm do status do formulário
 conforme `status_cadastro`. Conferir o código antes de tratar um "não decide sozinho"
 do handoff como pergunta em aberto — pode já estar respondido.
 
+#### Login de verdade + cor por vista, 26/08/2026 (Fase 10)
+
+A primeira versão do painel unificado reaproveitou o cartão branco de sempre
+(`.og-entrada`) pro login — visualmente pobre perto do documento que o Eloi
+mandou (o protótipo `.pn-porta`: fundo chocolate cheio, dois cartões escuros
+com disco colorido). Portado de verdade agora: `.pn-porta`/`.pn-setor*`/
+`.pn-campo__escuro` do protótipo, tokens trocados pro prefixo `--scw-`.
+
+**Cor por vista, nova.** Cada uma das 5 vistas da organização e das 4 da
+marca ganhou uma cor de acento — dentro dos 9 tokens fechados (§6.1),
+cíclica e nunca repetida no mesmo painel (§6.3): organização
+mesa=amarelo·respostas=cyan·marcas=roxo·produção=laranja·equipe=marrom;
+marca hoje=amarelo·cadastro=cyan·pedidos=laranja·arquivos=roxo. Três
+variáveis CSS, escritas por `irPara()`/`irParaMarca()` no `<body>`:
+
+| Variável | Serve pra | Regra |
+|---|---|---|
+| `--pn-acento` | tira sob o cabeçalho (fundo creme/bege), disco do ícone da vista | a cor crua |
+| `--pn-acento-tinta` | texto/ícone SOBRE o próprio acento (chapa preenchida) | roxo/marrom → creme; resto → chocolate |
+| `--pn-acento-escuro` | texto/ícone da vista ativa SOBRE CHOCOLATE (aba do celular, indicador) | roxo/marrom não sustentam leitura sobre chocolate (1,45:1/1,53:1, §6.2) e caem no amarelo — o mesmo `pageColorDark()` do site institucional |
+
+⚠️ **Testar com `getComputedStyle(el, '::after')` não prova nada.** A
+verificação inicial usava isso pra conferir a tira sob o cabeçalho e sempre
+devolvia amarelo, mesmo com a variável certa no elemento — armadilha da
+ferramenta de automação, não do CSS: o mesmo valor lido num elemento REAL
+(o botão ativo da rail) vinha certo. Ler a cor num elemento normal, não
+num pseudo-elemento, é o jeito confiável de conferir isso.
+
+🔴 **Bug de verdade, achado por essa mesma verificação:** restaurar o CSS
+"casca comum" inteiro da marca (Fase 9) trouxe de volta uma cópia SEM
+`@media` de `.pn-cabeca`/`.pn-cabeca__marca`/`__titulo`/`__sub` — a
+organização tem a versão de verdade, com `@media (max-width:900px)` real,
+em `org_css.css`; a cópia da marca dependia de uma classe `.is-estreito`
+que `marca_script.js` nunca aplica (`matchMedia` não existe nesse arquivo —
+vestígio de uma versão anterior do próprio `/marca/` original). Cascata sem
+condição sempre vence a com `@media`, então a cabeça do celular ficava
+creme (devia ser chocolate), o logo da marca não aparecia, o título não
+encolhia e o subtítulo saía marrom sobre chocolate — ~1,5:1, ilegível.
+Removida a cópia morta; sobrou só o que a marca tem de exclusivo ali
+(`.pn-cabeca button.notif`, que a organização não usa — ela usa
+`.pn-cabeca__btn`). **A lição do Fase 9 se repete, mais estreita:** um
+`.pn-*` "restaurado inteiro pra não quebrar" pode reintroduzir exatamente o
+bug que a fusão pretendia evitar. Rodar o teste ao vivo depois de qualquer
+restauração de bloco de CSS, não só depois de removê-lo.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4

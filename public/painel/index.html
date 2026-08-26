@@ -603,22 +603,60 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 /* Acima de 900px o item encolhe 3px: o `__dir` volta para a mesma linha. */
 @media (min-width:901px){ .og-esqueleto li{height:99px} }
 
-/* ── Login compartilhado (handoff "Painel SCW app", 26/08/2026) ───────────
-   Dois cartões lado a lado dentro do mesmo `.og-entrada` que a organização já
-   usava sozinha — a moldura (tela cheia, cartão centralizado, scroll próprio)
-   é a de sempre; só o conteúdo interno ganhou uma segunda coluna. */
-.og-entrada__caixa{width:min(880px,100%)}
-.og-entrada__grade{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
-@media (max-width:720px){ .og-entrada__grade{grid-template-columns:1fr} }
-.og-entrada__selo-papel{
-  display:inline-block;padding:4px 10px;border-radius:999px;
-  font:800 10px/1.4 var(--scw-font);letter-spacing:.1em;text-transform:uppercase;
-  margin:0 0 10px;
+/* ── Login — porta do painel (handoff "Painel SCW app", 26/08/2026) ───────
+   Fundo chocolate cheio, dois cartões escuros com o acento de cada papel no
+   disco do ícone — é a tela do documento, não a reaproveitada do painel
+   antigo. Vocabulário `.pn-porta*`/`.pn-setor*`, igual ao protótipo, com os
+   tokens já no prefixo `--scw-` do arquivo combinado. */
+.pn-porta{
+  height:100dvh;overflow-y:auto;display:grid;place-items:center;
+  padding:clamp(20px,4vw,40px);background:var(--scw-choco);color:var(--scw-creme);
 }
-.og-entrada__selo-papel--org{background:var(--scw-amarelo);color:var(--scw-choco)}
-.og-entrada__selo-papel--marca{background:var(--scw-cyan);color:var(--scw-choco)}
+.pn-porta__caixa{width:min(760px,100%)}
+.pn-porta__selo{height:52px;width:auto;display:block;margin-bottom:22px}
+.pn-porta__titulo{margin:0 0 8px;font:900 clamp(26px,3.6vw,36px)/1.02 var(--scw-font);letter-spacing:-.04em}
+.pn-porta__lead{margin:0 0 26px;max-width:46ch;font-size:14.5px;color:rgba(254,240,221,.72);text-wrap:pretty}
+.pn-porta__grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}
+.pn-porta__pe{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:22px 0 0}
+.pn-porta__nota{font-size:13px;color:rgba(254,240,221,.6)}
+
+.pn-setor{
+  display:flex;flex-direction:column;gap:13px;
+  padding:clamp(18px,2.4vw,24px);border-radius:20px;
+  background:rgba(254,240,221,.06);box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.18);
+}
+.pn-setor__disco{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--scw-choco);flex:0 0 auto}
+.pn-setor__disco svg{display:block;width:24px;height:24px}
+.pn-setor--org .pn-setor__disco{background:var(--scw-amarelo)}
+.pn-setor--marca .pn-setor__disco{background:var(--scw-cyan)}
+.pn-setor__nome{display:block;font:900 19px/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-setor__nota{display:block;margin-top:5px;font-size:13.5px;color:rgba(254,240,221,.7)}
+
+.pn-campo--porta{display:flex;flex-direction:column;gap:6px}
+.pn-campo__rotulo{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;color:rgba(254,240,221,.6)}
+.pn-campo__escuro{
+  min-height:48px;padding:10px 15px;border-radius:13px;border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.28);
+  background:rgba(254,240,221,.06);color:var(--scw-creme);
+  font:500 16px/1.4 var(--scw-font);width:100%;
+}
+.pn-campo__escuro::placeholder{color:rgba(254,240,221,.42)}
+.pn-erro{
+  display:flex;align-items:center;gap:11px;margin:0 0 4px;padding:13px 15px;
+  border-radius:15px;background:var(--scw-laranja);color:var(--scw-choco);
+  font:800 13.5px/1.35 var(--scw-font);
+}
+.pn-erro[hidden]{display:none}
+.pn-link--porta{
+  border:0;background:transparent;padding:0;min-height:44px;
+  display:inline-flex;align-items:center;color:var(--scw-amarelo);
+  font:800 13px/1 var(--scw-font);cursor:pointer;text-decoration:underline;
+}
+
+/* Cada setor precisa do próprio botão-cor, e as duas cores já existem: só
+   falta a variante escura do botão (o padrão .og-btn é claro/creme). */
 .og-btn--amarelo{background:var(--scw-amarelo);color:var(--scw-choco)}
-.og-entrada__rodape{margin:18px 0 0;text-align:center;font-size:13px;color:var(--scw-marrom)}
+.og-btn--cyan-escuro{background:var(--scw-cyan);color:var(--scw-choco)}
 
 /* .pn-casca — a casca do painel da MARCA (`#vPainel`). É a única classe da
    "casca de app" que não tem par em /organizacao/: lá o mesmo papel é feito
@@ -629,6 +667,25 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
   grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
 }
 .pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+
+/* ── Cor por seção — dentro dos 9 tokens fechados (CLAUDE.md §6.1), nunca
+   fora. Cada vista ganha um acento (disco do cabeçalho da vista + rótulo),
+   nunca o fundo inteiro — a régua do §6.3 (nunca repetir a cor do vizinho). */
+.pn-acento-disco{
+  width:38px;height:38px;border-radius:13px;flex:0 0 auto;
+  display:grid;place-items:center;
+}
+.pn-acento-disco svg{width:20px;height:20px}
+[data-acento="amarelo"] .pn-acento-disco{background:var(--scw-amarelo);color:var(--scw-choco)}
+[data-acento="cyan"] .pn-acento-disco{background:var(--scw-cyan);color:var(--scw-choco)}
+[data-acento="magenta"] .pn-acento-disco{background:var(--scw-magenta);color:var(--scw-creme)}
+[data-acento="roxo"] .pn-acento-disco{background:var(--scw-roxo);color:var(--scw-creme)}
+[data-acento="laranja"] .pn-acento-disco{background:var(--scw-laranja);color:var(--scw-choco)}
+[data-acento="marrom"] .pn-acento-disco{background:var(--scw-marrom);color:var(--scw-creme)}
+.pn-vista-cabeca{display:flex;align-items:center;gap:13px;margin:0 0 clamp(18px,2.4vw,26px)}
+.pn-vista-cabeca__texto{min-width:0}
+.pn-vista-cabeca__titulo{display:block;font:900 clamp(19px,2.2vw,24px)/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-vista-cabeca__nota{display:block;margin-top:2px;font:500 13px/1.3 var(--scw-font);color:var(--scw-marrom)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
@@ -794,23 +851,24 @@ button.link{
   border:0; border-radius:13px; background:transparent; color:rgba(254,240,221,.62); cursor:pointer;
 }
 .pn-rail__sair svg{width:19px; height:19px}
-.pn-cabeca{
-  display:flex; align-items:center; gap:12px; min-height:64px;
-  padding:0 var(--trilho); background:var(--scw-creme); color:var(--scw-choco);
-  border-bottom:1px solid var(--scw-filete); min-width:0;
-}
-.is-estreito .pn-cabeca{min-height:58px; background:var(--scw-choco); color:var(--scw-creme); border-bottom:0; padding:0 16px}
-.pn-cabeca__marca{height:24px; width:auto; display:none; flex:0 0 auto}
-.is-estreito .pn-cabeca__marca{display:block}
-.pn-cabeca__texto{min-width:0; flex:1 1 auto}
-.pn-cabeca__titulo{font:900 20px/1.05 var(--scw-font); letter-spacing:-.035em; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.is-estreito .pn-cabeca__titulo{font-size:16px}
-.pn-cabeca__sub{margin:3px 0 0; font:500 11.5px/1 var(--scw-font); color:var(--scw-marrom)}
-.is-estreito .pn-cabeca__sub{color:rgba(254,240,221,.7)}
-.pn-cabeca__dir{display:flex; align-items:center; gap:8px; flex:0 0 auto}
+/* ⚠️ A regra base de `.pn-cabeca` (fundo, padding, min-height) NÃO mora
+   aqui — mora em org_css.css, com o `@media (max-width:900px)` real que
+   troca pra chocolate no celular. Aqui era uma cópia que dependia de uma
+   classe `.is-estreito` que este arquivo NUNCA aplica (marca_script.js não
+   tem `matchMedia` nem `is-estreito` — vestígio de uma versão anterior).
+   Sem fundo de media query, a cópia sem condição SEMPRE vencia a de
+   org_css.css por vir depois no arquivo combinado, e a cabeça da marca
+   ficava creme no celular em vez de chocolate. Mantido aqui: só o que É
+   exclusivo da marca (os botões `button.notif`, que a organização não usa —
+   ela usa `.pn-cabeca__btn`). */
+/* .pn-cabeca__marca/__texto/__titulo/__sub/__dir NÃO se repetem aqui — as
+   versões de org_css.css (com o @media real) já cobrem os dois markups,
+   que usam os mesmos nomes de sub-classe. Só o que seria duplicata morta ou
+   duplicata CONFLITANTE (mesma especificidade, vindo depois no arquivo
+   combinado, vencendo o @media por ordem de cascata) saiu daqui. */
 .pn-cabeca button.notif{position:relative; background:none; border:0; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:inherit; cursor:pointer}
 @media (hover:hover){ .pn-cabeca button.notif:hover{background:rgba(61,19,8,.06)} }
-.is-estreito .pn-cabeca button.notif:hover{background:rgba(254,240,221,.1)}
+@media (max-width:900px){ .pn-cabeca button.notif:hover{background:rgba(254,240,221,.1)} }
 .pn-vista{min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
 .pn-vista__trilho{max-width:720px; margin:0 auto; padding:clamp(20px,3vw,34px) var(--trilho) 48px}
 .pn-abas{background:var(--scw-choco); padding:7px 6px calc(7px + env(safe-area-inset-bottom)); border-top:1px solid rgba(254,240,221,.12)}
@@ -909,6 +967,32 @@ button.link{
 .mc-bloco.is-aberto .mc-bloco__chevron{transform:rotate(180deg)}
 .mc-bloco__corpo{padding:2px 16px 20px}
 
+/* ── Acento por vista ──────────────────────────────────────────────────────
+   `--pn-acento` é escrito no <body> por irPara()/irParaMarca() a cada troca de
+   vista (uma cor da paleta fechada por vista, nunca repetida dentro do mesmo
+   painel — CLAUDE.md §6.3). Sobrescreve por ORDEM DE CASCATA as regras que já
+   pintavam a aba ativa de amarelo fixo — por isso este bloco vem depois de
+   org_css.css e marca_css_shell.css, não antes. Sem `--pn-acento` definido
+   (JS não rodou ainda), cada regra cai no amarelo de sempre. */
+.pn-rail__btn[aria-current="page"]{
+  background:var(--pn-acento,var(--scw-amarelo));
+  color:var(--pn-acento-tinta,var(--scw-choco));
+}
+/* Texto/ícone sobre chocolate (rail já resolvido acima, com fundo próprio) —
+   usa --pn-acento-escuro, não --pn-acento cru: roxo e marrom não sustentam
+   leitura sobre chocolate (1,45:1 e 1,53:1, CLAUDE.md §6.2) e caem no
+   amarelo, igual ao pageColorDark() do site institucional. */
+.og-abaapp.is-ativa{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.og-abasapp__indicador{background:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-aba[aria-current="page"]{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-cabeca{position:relative}
+.pn-cabeca::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:var(--pn-acento,var(--scw-amarelo));transition:background 200ms var(--scw-ease);
+}
+/* ≤900px a cabeça vira chocolate (regra estrutural, §6.2/§6.7) — a tira
+   segue a mesma régua do texto sobre chocolate acima: --pn-acento-escuro. */
+.is-estreito .pn-cabeca::after{background:var(--pn-acento-escuro,var(--scw-amarelo))}
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima (das duas cascas, org e marca); regra nova acrescentada
    depois dele escaparia do `prefers-reduced-motion` sem ninguém notar. */
@@ -924,50 +1008,48 @@ button.link{
 <div class="aviso" id="aviso-marca" role="status" aria-live="polite"></div>
 
 <!-- ── Login compartilhado ───────────────────────────────────────────────
-     Um cartão só na origem (id="entrada"), dois setores aqui dentro — cada um
-     é a autenticação REAL do painel correspondente (admin_ping da organização,
-     Supabase Auth da marca), não uma simulação. handoff "Painel SCW app" §1. -->
-<div class="og-entrada" id="login">
-  <div class="og-entrada__cartao og-entrada__caixa">
-    <img class="og-entrada__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
-    <h1>Painel do Sweet &amp; Coffee Week</h1>
-    <p>Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
+     Fundo chocolate cheio, dois cartões — cada um é a autenticação REAL do
+     painel correspondente (admin_ping da organização, Supabase Auth da
+     marca), não uma simulação. handoff "Painel SCW app" §1. -->
+<div class="pn-porta" id="login">
+  <div class="pn-porta__caixa">
+    <img class="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <h1 class="pn-porta__titulo">Área de acesso</h1>
+    <p class="pn-porta__lead">Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
 
-    <div class="og-entrada__grade">
-      <section>
-        <span class="og-entrada__selo-papel og-entrada__selo-papel--org">Organização</span>
-        <p class="nota" style="margin:0 0 14px">Equipe do festival. Vê todas as marcas e move o caminho.</p>
-        <form id="form-entrada">
-          <label class="og-campo">
-            <span>Senha da equipe</span>
-            <input type="password" id="senha" autocomplete="current-password" required>
-          </label>
-          <div class="og-aviso" data-tom="erro" id="entrada-erro" hidden></div>
-          <button class="og-btn og-btn--amarelo" type="submit" id="btn-entrar">Entrar no painel</button>
-        </form>
-      </section>
+    <div class="pn-porta__grade">
+      <form class="pn-setor pn-setor--org" id="form-entrada">
+        <span class="pn-setor__disco" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none"/><path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8"/><circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none"/><path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4"/></svg>
+        </span>
+        <span><span class="pn-setor__nome">Organização</span><span class="pn-setor__nota">Equipe do festival. Vê todas as marcas e move o caminho.</span></span>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Senha da equipe</span>
+          <input class="pn-campo__escuro" type="password" id="senha" autocomplete="current-password" required>
+        </label>
+        <div class="pn-erro" role="alert" id="entrada-erro" hidden></div>
+        <button class="og-btn og-btn--amarelo" type="submit" id="btn-entrar">Entrar no painel</button>
+      </form>
 
-      <section>
-        <span class="og-entrada__selo-papel og-entrada__selo-papel--marca">Participante</span>
-        <p class="nota" style="margin:0 0 14px">Sua casa. Cadastro do combo, pedidos e a venda de cada dia.</p>
-        <form id="fLogin">
-          <label><span>Nome do estabelecimento</span>
-            <input type="text" id="loginEmail" autocomplete="username" required
-                   autocapitalize="none" spellcheck="false" placeholder="ELOI Doces">
-          </label>
-          <label><span>Senha</span>
-            <input type="password" id="loginSenha" autocomplete="current-password" required placeholder="sua senha">
-          </label>
-          <button class="acao larga" id="btEntrar" type="submit">Entrar no painel</button>
-          <div style="text-align:center;margin-top:6px">
-            <button class="link" type="button" id="btEsqueci">Perdi meu acesso</button>
-          </div>
-        </form>
-      </section>
+      <form class="pn-setor pn-setor--marca" id="fLogin">
+        <span class="pn-setor__disco" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg>
+        </span>
+        <span><span class="pn-setor__nome">Participante</span><span class="pn-setor__nota">Sua casa. Cadastro do combo, pedidos e a venda de cada dia.</span></span>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Nome do estabelecimento</span>
+          <input class="pn-campo__escuro" type="text" id="loginEmail" autocomplete="username" required
+                 autocapitalize="none" spellcheck="false" placeholder="ELOI Doces">
+        </label>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Senha</span>
+          <input class="pn-campo__escuro" type="password" id="loginSenha" autocomplete="current-password" required placeholder="sua senha">
+        </label>
+        <button class="og-btn og-btn--cyan-escuro" type="submit" id="btEntrar">Entrar no painel</button>
+        <button class="pn-link--porta" type="button" id="btEsqueci">Perdi meu acesso</button>
+      </form>
     </div>
 
-    <p class="og-entrada__rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
-      inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</p>
+    <div class="pn-porta__pe">
+      <span class="pn-porta__nota">Ainda não tem acesso? Ele é criado pela organização depois que a inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</span>
+    </div>
   </div>
 </div>
   <section id="vSenha" hidden>
@@ -1066,6 +1148,13 @@ button.link{
          foram movidos inteiros, com os mesmos IDs, para que montarForms(),
          montarAbas(), montarFiltroStatus() e render() continuem funcionando. -->
     <section class="og-vista" id="vista-mesa" hidden>
+      <div class="pn-vista-cabeca" data-acento="amarelo">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/><path d="M3.5 20h17"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">A mesa</span>
+          <span class="pn-vista-cabeca__nota">Onde cada marca está, do site até o combo fechado</span>
+        </span>
+      </div>
       <div class="og-aviso" id="aviso-org" hidden></div>
       <div class="og-mesa" id="mesa"></div>
 
@@ -1083,6 +1172,13 @@ button.link{
     </section>
 
     <section class="og-vista" id="vista-respostas" hidden>
+      <div class="pn-vista-cabeca" data-acento="cyan">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Respostas</span>
+          <span class="pn-vista-cabeca__nota">Os quatro formulários do site, num lugar só</span>
+        </span>
+      </div>
       <ul class="og-abas" id="abas" role="tablist"></ul>
 
       <div class="og-filtros">
@@ -1109,6 +1205,13 @@ button.link{
     </section>
 
     <section class="og-vista" id="vista-participantes" hidden>
+      <div class="pn-vista-cabeca" data-acento="roxo">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20"/><circle cx="10" cy="7.5" r="3.5"/><path d="M17.5 13.5h4"/><path d="M19.5 11.5v4"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Marcas</span>
+          <span class="pn-vista-cabeca__nota">Quem já tem conta e preenche o próprio cadastro</span>
+        </span>
+      </div>
       <section class="og-forms">
         <div class="og-forms__cabeca og-forms__cabeca--com-acao">
           <div>
@@ -1126,6 +1229,13 @@ button.link{
          documento, marcar a foto. Separá-las em três destinos faria a barra
          crescer para sete colunas para dizer a mesma coisa. -->
     <section class="og-vista" id="vista-producao" hidden>
+      <div class="pn-vista-cabeca" data-acento="laranja">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/><rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="m8.5 12 2 2 3.5-3.5"/><path d="M8.5 17h5"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Produção</span>
+          <span class="pn-vista-cabeca__nota">O que a organização manda pra marca — agenda, pedidos e arquivos</span>
+        </span>
+      </div>
       <!-- Agenda de fotos: vive no TOPO de produção (patch §7). Dois modos —
            "abrir vagas" usa a grade abaixo (RPCs abrir_vaga_fotos/
            fechar_vaga_fotos, novas); "marcar eu mesma" é o que
@@ -1186,6 +1296,13 @@ button.link{
     </section>
 
     <section class="og-vista" id="vista-equipe" hidden>
+      <div class="pn-vista-cabeca" data-acento="marrom">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="M16.5 11.5v1.2"/><path d="M16.5 18.3v1.2"/><path d="m13.6 13.2.9.6"/><path d="m18.5 16.7.9.6"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Equipe</span>
+          <span class="pn-vista-cabeca__nota">A edição aberta e as contas de quem trabalha aqui</span>
+        </span>
+      </div>
       <section class="og-forms">
         <div class="og-forms__cabeca">
           <h2>A edição aberta</h2>
@@ -1314,16 +1431,23 @@ button.link{
 
       <!-- ══ HOJE ══════════════════════════════════════════════════════ -->
       <section id="mvHoje" hidden>
+        <div class="pn-vista-cabeca" data-acento="amarelo">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Hoje</span>
+            <span class="pn-vista-cabeca__nota">A venda do dia e o que falta no seu cadastro</span>
+          </span>
+        </div>
         <div class="mc-venda" id="mcVendaBloco">
           <p class="rotulo">Combos vendidos</p>
-          <h2 style="color:var(--creme)" id="mcVendaTitulo">Lance o número de hoje</h2>
+          <h2 style="color:var(--scw-creme)" id="mcVendaTitulo">Lance o número de hoje</h2>
           <p class="nota" style="color:rgba(254,240,221,.8)" id="mcVendaTexto">Lance o número no fim do
             expediente. A organização soma tudo para o balanço da edição.</p>
           <div id="mcVendaAtiva">
             <div class="mc-venda__linha">
               <label style="margin:0"><span style="color:rgba(254,240,221,.7)" id="mcVendaRotuloData">Hoje</span>
                 <input class="mc-venda__campo" id="mcVendaQtd" type="number" inputmode="numeric" min="0" placeholder="0"></label>
-              <button class="acao" type="button" id="mcVendaSalvar" style="background:var(--amarelo);color:var(--choco)">Salvar</button>
+              <button class="acao" type="button" id="mcVendaSalvar" style="background:var(--scw-amarelo);color:var(--scw-choco)">Salvar</button>
               <span class="mc-venda__total"><span id="mcVendaTotal">0</span><span>no total da edição</span></span>
             </div>
             <div class="mc-venda__dias" id="mcVendaDias"></div>
@@ -1469,6 +1593,13 @@ button.link{
 
       <!-- ══ PEDIDOS ═══════════════════════════════════════════════════ -->
       <section id="mvPedidos" hidden>
+        <div class="pn-vista-cabeca" data-acento="laranja">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Pedidos</span>
+            <span class="pn-vista-cabeca__nota">O que a organização pediu, e até quando</span>
+          </span>
+        </div>
         <div class="card" id="cardSolic">
           <p class="rotulo">O que a organização pediu</p>
           <h2>Pedidos e prazos</h2>
@@ -1478,6 +1609,13 @@ button.link{
 
       <!-- ══ ARQUIVOS ══════════════════════════════════════════════════ -->
       <section id="mvArquivos" hidden>
+        <div class="pn-vista-cabeca" data-acento="roxo">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Arquivos</span>
+            <span class="pn-vista-cabeca__nota">Downloads e avisos deste aparelho</span>
+          </span>
+        </div>
         <div class="card" id="cardArquivos">
           <p class="rotulo">Downloads</p>
           <h2>Arquivos da organização</h2>
@@ -1660,6 +1798,14 @@ const TITULOS = {
   equipe:        ['Equipe', 'edição e contas'],
 };
 
+/* Uma cor da paleta fechada por vista, nunca repetida dentro do painel da
+   organização (CLAUDE.md §6.3). Lida por irPara() pra escrever --pn-acento
+   no <body> — quem pinta a tira do cabeçalho, a aba ativa e a rail. */
+const ACENTO_VISTA = {
+  mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo',
+  producao: 'laranja', equipe: 'marrom',
+};
+
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
 let dados = {};            // origem → array de registros
@@ -1830,6 +1976,24 @@ function irPara(vista) {
   const titulo = TITULOS[vista] || TITULOS.mesa;
   $('cabeca-titulo').textContent = titulo[0];
   $('cabeca-sub').textContent = titulo[1];
+
+  /* Cor por vista (§6.3 — nunca repete a do vizinho, dentro dos 9 tokens
+     fechados de CLAUDE.md §6.1). Escrita no <body> porque a tira do
+     cabeçalho, a aba ativa e o indicador deslizante são três peças
+     diferentes que precisam ler o mesmo valor.
+     ⚠️ --pn-acento-tinta anda junto: roxo e marrom são chapa ESCURA (texto
+     creme), amarelo/cyan/laranja são chapa CLARA (texto chocolate) — a
+     mesma régua de §6.2. Sem isto, o ícone da aba ativa em roxo ficaria
+     chocolate sobre roxo, quase invisível. */
+  const cor = ACENTO_VISTA[vista] || 'amarelo';
+  const escura = cor === 'roxo' || cor === 'marrom';
+  document.body.style.setProperty('--pn-acento', 'var(--scw-' + cor + ')');
+  document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')');
+  /* Sobre chocolate (rail, tab bar) roxo e marrom não sustentam leitura —
+     1,45:1 e 1,53:1 — e caem no amarelo, a mesma régua de pageColorDark()
+     do site institucional (CLAUDE.md §6.2). Laranja e cyan passam (4,78:1 e
+     6,23:1) e continuam com a própria cor. */
+  document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')');
 
   try { sessionStorage.setItem('scw_org_vista', vista); } catch (e) { /* anônima */ }
 
@@ -4380,6 +4544,9 @@ if (senha) abrirPainel();
   var DESTINOS_MARCA = ['hoje', 'cadastro', 'pedidos', 'arquivos']
   var TITULOS_MARCA = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', arquivos: 'Arquivos' }
   var MV_ID = { hoje: 'mvHoje', cadastro: 'mvCadastro', pedidos: 'mvPedidos', arquivos: 'mvArquivos' }
+  // Uma cor da paleta fechada por vista, nunca repetida dentro do painel da
+  // marca (CLAUDE.md §6.3) — a mesma mecânica de --pn-acento da organização.
+  var ACENTO_VISTA_MARCA = { hoje: 'amarelo', cadastro: 'cyan', pedidos: 'laranja', arquivos: 'roxo' }
   var vistaAtualMarca = ''
 
   function irParaMarca (vista) {
@@ -4388,6 +4555,15 @@ if (senha) abrirPainel();
     vistaAtualMarca = vista
     el(MV_ID[vista]).hidden = false
     el('mcTitulo').textContent = TITULOS_MARCA[vista]
+    // roxo é chapa ESCURA (texto creme); amarelo/cyan/laranja são chapa CLARA
+    // (texto chocolate) — mesma régua de CLAUDE.md §6.2, ver org_script.js.
+    var corVista = ACENTO_VISTA_MARCA[vista] || 'amarelo'
+    var escuraVista = corVista === 'roxo'
+    document.body.style.setProperty('--pn-acento', 'var(--scw-' + corVista + ')')
+    document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escuraVista ? 'creme' : 'choco') + ')')
+    // Sobre chocolate (rail, tab bar) roxo não sustenta leitura — mesma régua
+    // de pageColorDark() do site institucional (CLAUDE.md §6.2): cai no amarelo.
+    document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escuraVista ? 'amarelo' : corVista) + ')')
     Array.prototype.forEach.call(document.querySelectorAll('[data-mvista]'), function (b) {
       if (b.dataset.mvista === vista) b.setAttribute('aria-current', 'page')
       else b.removeAttribute('aria-current')
