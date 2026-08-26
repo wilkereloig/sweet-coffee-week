@@ -913,6 +913,10 @@ button.link{
 @media (max-width:900px){
   .pn-rail{display:none} .pn-casca{grid-template-columns:minmax(0,1fr)}
   #btSairCabeca{display:grid}
+  /* Título + nota repetem o que .pn-cabeca (fixo, sempre visível) já diz —
+     no mobile isso é espaço puro sem informação nova. A cor por vista
+     continua na tira sob o cabeçalho, então nada de wayfinding se perde. */
+  .pn-vista-cabeca{display:none}
 }
 @media (min-width:901px){ .pn-abas{display:none} }
 /* ── Vagas de agenda (dentro do card de fotos) ────────────────────────────
