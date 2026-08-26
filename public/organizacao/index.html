@@ -98,30 +98,48 @@ button,input,select,textarea{font:inherit;color:inherit}
      despercebido nos extremos. `minmax(0,1fr)` prende a coluna à largura real. */
   grid-template-columns:minmax(0, 1fr);
 }
-.og-topo{
-  background:var(--scw-choco);color:var(--scw-creme);
-  padding:14px var(--trilho);
-  display:flex;align-items:center;gap:14px;
-  min-width:0;                        /* item de grid encolhe (§10.5) */
+/* Cabeçalho — substitui a antiga `.og-topo` (marca fixa "Painel SCW") em
+   25/08/2026: o handoff "Painel SCW app" pede o TÍTULO DA VISTA ativa aqui,
+   não a marca do app — quem já mostra a marca é a rail (>900px) ou a chapa
+   escura do cabeçalho (≤900px, `is-estreito` em `public/marca/index.html`;
+   aqui a mesma leitura vem de puro CSS, sem estado JS). Mesmos valores de
+   `public/marca/index.html`, que já espelhava esta peça do handoff. */
+.pn-cabeca{
+  display:flex;align-items:center;gap:12px;min-height:64px;
+  padding:0 var(--trilho);background:var(--scw-creme);color:var(--scw-choco);
+  border-bottom:1px solid var(--scw-filete);min-width:0;   /* item de grid encolhe (§10.5) */
 }
-/* O bloco do título é o único que pode ceder: marca e botões têm tamanho
-   próprio. Sem `min-width:0` ele se recusa a encolher e devolve o estouro. */
-.og-topo__texto{min-width:0;overflow:hidden}
-.og-topo__marca{height:38px;width:auto;display:block;flex:0 0 auto}
-.og-topo__titulo{
-  font:900 17px/1 var(--scw-font);letter-spacing:-.02em;margin:0;
+.pn-cabeca__marca{height:24px;width:auto;display:none;flex:0 0 auto}
+.pn-cabeca__texto{min-width:0;flex:1 1 auto}
+.pn-cabeca__titulo{
+  font:900 20px/1.05 var(--scw-font);letter-spacing:-.035em;margin:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.og-topo__sub{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin:6px 0 0}
-.og-topo__dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.pn-cabeca__sub{margin:3px 0 0;font:500 11.5px/1 var(--scw-font);color:var(--scw-marrom)}
+.pn-cabeca__dir{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+/* Sair só existe aqui ≤900px — no desktop a rail já tem o próprio, e um
+   controle repetido nos dois lugares só confunde qual é "o" botão de sair. */
+@media (min-width:901px){ #btn-sair{display:none} }
+.pn-cabeca__btn{
+  position:relative;flex:0 0 auto;width:40px;height:40px;
+  display:grid;place-items:center;border:0;border-radius:14px;
+  background:transparent;color:inherit;cursor:pointer;
+  transition:background var(--scw-transicao);
+}
+@media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(61,19,8,.08)} }
 
-/* ⛔ O segmented control do cabeçalho SAIU em 25/08/2026 — a rail (abaixo)
-   assumiu a navegação de desktop. Não recriar `.og-topo__destinos`: ela e a
-   rail diriam a mesma coisa duas vezes (§5.2). */
+@media (max-width:900px){
+  .pn-cabeca{min-height:58px;background:var(--scw-choco);color:var(--scw-creme);border-bottom:0;padding:0 16px}
+  .pn-cabeca__marca{display:block}
+  .pn-cabeca__titulo{font-size:16px}
+  .pn-cabeca__sub{color:rgba(254,240,221,.7)}
+  .pn-cabeca__btn{width:44px;height:44px;background:rgba(254,240,221,.1)}
+  @media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(254,240,221,.2)} }
+}
 
-/* Sino de notificações — mesma peça nos dois painéis. Abre a gaveta única
-   (abrirFolha) no conteúdo 'notif', nunca uma segunda gaveta (§5.2, patch §3). */
-.og-topo__notif{position:relative}
+/* ⛔ O segmented control do cabeçalho SAIU em 25/08/2026 — a rail assumiu a
+   navegação de desktop. Não recriar `.og-topo__destinos`: ela e a rail
+   diriam a mesma coisa duas vezes (§5.2). */
 
 .og-corpo{min-height:0;min-width:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
 
@@ -211,6 +229,24 @@ button,input,select,textarea{font:inherit;color:inherit}
 @keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
 .pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
 
+/* Linha de notificação — mesma peça do handoff (`.pn-notif`, ver
+   public/marca/index.html): disco com o ícone do tipo, texto, ponto de "não
+   lida". Substitui `.og-item` na gaveta 'notif', que não distinguia lida de
+   não lida a não ser pelo peso da fonte. */
+.pn-notif{
+  width:100%;text-align:left;cursor:pointer;border:0;border-radius:14px;padding:12px 13px;
+  background:transparent;box-shadow:inset 0 0 0 1px var(--scw-filete);
+  display:flex;align-items:flex-start;gap:11px;
+  transition:background var(--scw-transicao);
+}
+@media (hover:hover){ .pn-notif:hover{background:var(--scw-bege)} }
+.pn-notif.is-naolida{background:#fff;box-shadow:inset 0 0 0 1px var(--scw-borda-campo)}
+.pn-notif__disco{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:11px}
+.pn-notif__disco svg{width:17px;height:17px}
+.pn-notif__texto{display:block;font:500 14px/1.25 var(--scw-font);text-wrap:pretty}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
+.pn-notif__ponto{flex:0 0 auto;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--scw-magenta)}
+
 /* Acima de 900px a barra de abas sai, a rail entra, e os destinos deixam de
    caber no cabeçalho (§6.14). */
 @media (min-width:901px){
@@ -232,7 +268,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .og-btn[disabled]{opacity:.45;cursor:default;pointer-events:none}
 .og-btn--claro{background:var(--scw-creme);color:var(--scw-choco)}
 .og-btn--vazado{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 2px var(--scw-borda-campo)}
-.og-topo .og-btn--vazado{color:var(--scw-creme);box-shadow:inset 0 0 0 2px rgba(254,240,221,.34)}
 .og-btn--mini{min-height:38px;padding:0 14px;font-size:13px}
 
 /* ── Campos ────────────────────────────────────────────────────────────── */
@@ -475,17 +510,9 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
   /* ⚠️ O topo precisa ser sticky: numa folha alta, sem isto o botão Fechar sai
      de cena junto com a rolagem e a pessoa perde a saída do painel. */
   .og-detalhe__topo{border-radius:30px 30px 0 0;position:sticky;top:0;z-index:1}
-  /* O cabeçalho virou linha única sem `flex-wrap` — em 390px precisa caber.
-     O subtítulo sai (a marca ao lado já diz de quem é o painel) e o título
-     encolhe; os dois botões mantêm o piso de toque. */
-  .og-topo{padding:10px var(--trilho);gap:10px}
-  .og-topo__marca{height:30px}
-  .og-topo__titulo{font-size:14px}
-  .og-topo__sub{display:none}
-  .og-topo__dir{gap:8px}
   /* ⚠️ `--mini` nasceu com 38px, que serve de sobra no desktop e reprova no
-     celular: o piso do §6.10 é 44px no CONTROLE. Vale para Fechar, Atualizar e
-     Sair — os três só existem como `--mini`. A largura encolhe para compensar. */
+     celular: o piso do §6.10 é 44px no CONTROLE. Vale para Fechar e Sair —
+     os dois só existem como `--mini`. A largura encolhe para compensar. */
   .og-btn--mini{min-height:44px;padding:0 12px}
   .og-item{grid-template-columns:10px 1fr}
   .og-item__dir{grid-row:auto;grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-top:4px}
@@ -630,21 +657,35 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     </button>
   </nav>
 
-  <header class="og-topo">
-    <img class="og-topo__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
-    <div class="og-topo__texto">
-      <p class="og-topo__titulo">Painel SCW</p>
-      <p class="og-topo__sub">Sweet &amp; Coffee Week</p>
+  <!-- Substitui a antiga `.og-topo` (marca fixa) — o cabeçalho agora mostra o
+       título da VISTA ativa (`atualizarCabeca()`, chamado por `irPara()`),
+       igual ao handoff "Painel SCW app". A marca só reaparece aqui ≤900px,
+       onde a rail (que já a carrega) fica escondida. -->
+  <header class="pn-cabeca">
+    <img class="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <div class="pn-cabeca__texto">
+      <p class="pn-cabeca__titulo" id="cabeca-titulo">A mesa</p>
+      <p class="pn-cabeca__sub" id="cabeca-sub">onde cada marca está</p>
     </div>
-    <div class="og-topo__dir">
-      <button class="og-btn og-btn--vazado og-btn--mini og-topo__notif" type="button" id="btn-notif" aria-label="Notificações">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <div class="pn-cabeca__dir">
+      <button class="pn-cabeca__btn" type="button" id="btn-atualizar" aria-label="Atualizar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4.6 12a7.4 7.4 0 0 1 12.6-5.2l1.8 1.7"/><path d="M19 4.6v4.4h-4.4"/>
+          <path d="M19.4 12a7.4 7.4 0 0 1-12.6 5.2l-1.8-1.7"/><path d="M5 19.4V15h4.4"/>
+        </svg>
+      </button>
+      <button class="pn-cabeca__btn" type="button" id="btn-notif" aria-label="Notificações">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 4.4c-3 0-5.4 2.4-5.4 5.6v3.3L5 16.6h14l-1.6-3.3v-3.3c0-3.2-2.4-5.6-5.4-5.6Z"/><path d="M10 19.2a2 2 0 0 0 4 0"/>
         </svg>
         <span class="pn-badge is-novo" id="notif-badge" hidden></span>
       </button>
-      <button class="og-btn og-btn--vazado og-btn--mini" type="button" id="btn-atualizar">Atualizar</button>
-      <button class="og-btn og-btn--claro og-btn--mini" type="button" id="btn-sair">Sair</button>
+      <!-- Sair só aparece aqui ≤900px (CSS) — no desktop a rail já tem o dela. -->
+      <button class="pn-cabeca__btn" type="button" id="btn-sair" aria-label="Sair">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8.6 17.6 15 11l-6.4-6.6"/><path d="M15 11H3.4"/><path d="M18.6 4.4v13.2"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -973,9 +1014,20 @@ const CHAVES = {
   telefone: ['telefone','whatsapp']
 };
 
-/* Os três destinos da casca. Não confundir com as quatro ORIGENS: origem é de
+/* Os cinco destinos da casca. Não confundir com as quatro ORIGENS: origem é de
    qual formulário a resposta veio; destino é onde a pessoa está no app. */
 const DESTINOS = ['mesa', 'respostas', 'participantes', 'producao', 'equipe'];
+
+/* Título + subtítulo do cabeçalho por vista (handoff "Painel SCW app") — é
+   isto que `atualizarCabeca()` escreve a cada `irPara()`. Substitui a marca
+   fixa "Painel SCW" que morava em `.og-topo` antes de 26/08/2026. */
+const TITULOS = {
+  mesa:          ['A mesa', 'onde cada marca está'],
+  respostas:     ['Respostas', 'dos formulários do site'],
+  participantes: ['Marcas', 'com acesso ao cadastro'],
+  producao:      ['Produção', 'pedidos, arquivos e fotos'],
+  equipe:        ['Equipe', 'edição e contas'],
+};
 
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
@@ -1143,6 +1195,10 @@ function irPara(vista) {
 
   const grade = document.querySelector('.og-abasapp__grade');
   if (grade) grade.style.setProperty('--og-i', String(DESTINOS.indexOf(vista)));
+
+  const titulo = TITULOS[vista] || TITULOS.mesa;
+  $('cabeca-titulo').textContent = titulo[0];
+  $('cabeca-sub').textContent = titulo[1];
 
   try { sessionStorage.setItem('scw_org_vista', vista); } catch (e) { /* anônima */ }
 
@@ -1964,17 +2020,33 @@ function atualizarBadgeNotif() {
   b.textContent = n;
 }
 
+/* Disco (fundo, tinta, glifo) por tipo — mesmo par de cores da referência
+   (aviso/alerta·aviso/sucesso·aviso/informacao·ui/calendario), redesenhados na
+   grade 24/1.8 já usada pelo resto do arquivo (§6.11: nada de misturar duas
+   escalas de ícone no mesmo painel). */
+const NOTIF_ICONE = {
+  alerta: ['#FF4810', '#3D1308', '<path d="M12 4.2 21 20H3Z"/><path d="M12 10.2v4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>'],
+  ok:     ['#3D1308', '#FEF0DD', '<circle cx="12" cy="12" r="8.8"/><path d="M7.8 12.3l3 3 5.4-6.4"/>'],
+  info:   ['#01AFCC', '#3D1308', '<circle cx="12" cy="12" r="8.8"/><path d="M12 11.1V16.6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>'],
+  agenda: ['#FDBB1A', '#3D1308', '<path d="M4.2 7h15.6A1.8 1.8 0 0 1 21.6 8.8v10.4a1.8 1.8 0 0 1-1.8 1.8H4.2a1.8 1.8 0 0 1-1.8-1.8V8.8A1.8 1.8 0 0 1 4.2 7Z"/><path d="M2.4 11.4h19.2"/><path d="M7.6 3.8v4.6M16.4 3.8v4.6"/>'],
+};
+
 function abrirNotificacoes() {
   const fila = notificacoesOrg();
   const naoLidas = fila.filter(x => !notifLidas[x.texto]).length;
-  const CORES = { alerta: '#FF4810', ok: '#3D1308', info: '#01AFCC', agenda: '#FDBB1A' };
 
   const corpo = fila.length
-    ? '<ul class="og-lista">' + fila.map((n, i) =>
-        '<li><button type="button" class="og-item" data-notif="' + i + '">' +
-          '<span class="og-item__cor" style="background:' + CORES[n.tipo] + '" aria-hidden="true"></span>' +
-          '<p class="og-item__nome" style="font-weight:' + (notifLidas[n.texto] ? '500' : '800') + '">' + escapar(n.texto) + '</p>' +
-        '</button></li>').join('') + '</ul>'
+    ? '<ul class="pn-lista" style="display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none">' + fila.map((n, i) => {
+        const [bg, tinta, path] = NOTIF_ICONE[n.tipo] || NOTIF_ICONE.info;
+        const lida = !!notifLidas[n.texto];
+        return '<li><button type="button" class="pn-notif' + (lida ? '' : ' is-naolida') + '" data-notif="' + i + '">' +
+          '<span class="pn-notif__disco" style="background:' + bg + ';color:' + tinta + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>' +
+          '</span>' +
+          '<span style="flex:1 1 auto;min-width:0"><span class="pn-notif__texto">' + escapar(n.texto) + '</span></span>' +
+          (lida ? '' : '<span class="pn-notif__ponto" aria-label="Não lida"></span>') +
+        '</button></li>';
+      }).join('') + '</ul>'
     : '<p class="og-forms__nota">Nada por aqui agora.</p>';
 
   abrirFolha('Notificações', naoLidas ? (naoLidas + (naoLidas === 1 ? ' não lida' : ' não lidas')) : 'Tudo lido',

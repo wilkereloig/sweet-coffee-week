@@ -264,6 +264,23 @@ button.link{
   display:grid; place-items:center; border-radius:999px; background:var(--magenta); color:var(--creme);
   font:800 10px/1 var(--font); font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--creme);
 }
+
+/* Linha de notificação — mesma peça do painel da organização (§ "Painel SCW
+   app"). O painel da marca não abre gaveta cheia (decisão de escopo já
+   registrada), mas a LINHA de dentro é a mesma peça visual. */
+.pn-notif{
+  width:100%; text-align:left; cursor:pointer; border:0; border-radius:13px; padding:11px 12px;
+  background:transparent; box-shadow:inset 0 0 0 1px var(--filete);
+  display:flex; align-items:flex-start; gap:10px; margin:0 0 6px;
+  transition:background 160ms var(--ease);
+}
+.pn-notif:last-child{margin-bottom:0}
+@media (hover:hover){ .pn-notif:hover{background:var(--bege)} }
+.pn-notif.is-naolida{background:#fff; box-shadow:inset 0 0 0 1px var(--borda)}
+.pn-notif__disco{flex:0 0 auto; display:grid; place-items:center; width:28px; height:28px; border-radius:10px}
+.pn-notif__disco svg{width:15px; height:15px}
+.pn-notif__texto{display:block; font:500 13.5px/1.3 var(--font)}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
 .is-estreito .pn-cabeca button.notif .pn-badge{box-shadow:0 0 0 2px var(--choco)}
 @keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
 .pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
@@ -346,19 +363,22 @@ button.link{
   <!-- ── BOAS-VINDAS + DOIS SETORES (patch "Painel SCW app" §2) ────────────
        Tela inicial de quem abre o app instalado (ou a página sem sessão).
        Login da marca continua sendo Supabase Auth de verdade — este bloco só
-       antecede o formulário de sempre, ele não troca de mecanismo. Vale a
-       mesma cor/ícone já testados no AccessDialog do site (roxo = marca), não
-       os do patch (que reabririam uma cor já rejeitada por contraste). -->
+       antecede o formulário de sempre, ele não troca de mecanismo.
+       ⚠️ Cor trocada de roxo para cyan em 26/08/2026: o AccessDialog do site
+       passou a usar cyan para "Participante" (era roxo) no redesenho da tela
+       de login (§6.10-b item 5) — cor por PAPEL, não por aparência (§6.1), e o
+       papel "Participante" é o mesmo nos dois lugares. Chapa cyan é CLARA
+       (§6.2): tinta em chocolate, não em creme, ou o texto some. -->
   <section id="vBoasVindas" hidden>
     <p class="rotulo">Sweet &amp; Coffee Week</p>
     <h1>Bem-vinda ao painel do festival.</h1>
     <p class="lead">Escolha por onde você entra.</p>
-    <div class="card" style="margin-top:22px;background:var(--roxo);color:var(--creme);border-color:transparent">
-      <p class="rotulo" style="color:rgba(254,240,221,.75)">Participante</p>
-      <h2 style="color:var(--creme)">Área da marca</h2>
-      <p class="nota" style="color:rgba(254,240,221,.85);margin:8px 0 16px">Combo, dados da edição e
+    <div class="card" style="margin-top:22px;background:var(--cyan);color:var(--choco);border-color:transparent">
+      <p class="rotulo" style="color:rgba(61,19,8,.65)">Participante</p>
+      <h2 style="color:var(--choco)">Área da marca</h2>
+      <p class="nota" style="color:var(--marrom);margin:8px 0 16px">Combo, dados da edição e
         resultados do Sweet Awards.</p>
-      <button class="acao larga" type="button" id="btIrLogin" style="background:var(--amarelo);color:var(--choco)">Entrar como marca</button>
+      <button class="acao larga" type="button" id="btIrLogin" style="background:var(--choco);color:var(--creme)">Entrar como marca</button>
     </div>
     <p class="rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
       inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</p>
@@ -1673,15 +1693,15 @@ button.link{
     var fila = []
     var faltam = participacao ? blocosPendentes() : []
     if (faltam.length) fila.push({
+      tipo: 'alerta', vista: 'cadastro',
       texto: faltam.length === 1 ? 'Falta um bloco do cadastro: ' + faltam[0].toLowerCase() + '.'
-        : 'Faltam ' + faltam.length + ' blocos do cadastro.',
-      vista: 'cadastro'
+        : 'Faltam ' + faltam.length + ' blocos do cadastro.'
     })
     var pendente = solicitacoesCache.filter(function (s) {
       var feita = estadosCache.some(function (e) { return e.solicitacao_id === s.id && e.estado === 'respondido' })
       return !feita
     })[0]
-    if (pendente) fila.push({ texto: 'A organização pediu: ' + pendente.titulo.toLowerCase() + '.', vista: 'pedidos' })
+    if (pendente) fila.push({ tipo: 'info', vista: 'pedidos', texto: 'A organização pediu: ' + pendente.titulo.toLowerCase() + '.' })
     return fila
   }
 
@@ -1697,6 +1717,13 @@ button.link{
   // não tinha nenhum mecanismo de painel flutuante antes desta rodada, e
   // construir um do zero, com toda a coreografia de folha/gaveta, era escopo
   // maior do que esta peça pedia). Fecha ao clicar fora ou navegar.
+  // Disco (fundo, tinta, glifo) por tipo — mesmos dois usados aqui (alerta e
+  // info); grade 24/1.8, igual ao resto do arquivo (§6.11).
+  var NOTIF_ICONE = {
+    alerta: ['#FF4810', '#3D1308', '<path d="M12 4.2 21 20H3Z"/><path d="M12 10.2v4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>'],
+    info: ['#01AFCC', '#3D1308', '<circle cx="12" cy="12" r="8.8"/><path d="M12 11.1V16.6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>']
+  }
+
   function abrirNotificacoesMarca () {
     var fila = notificacoesMarca()
     var painel = document.getElementById('mcNotifPainel')
@@ -1704,10 +1731,16 @@ button.link{
     painel = document.createElement('div')
     painel.id = 'mcNotifPainel'
     painel.className = 'card'
-    painel.style.cssText = 'position:fixed;right:16px;top:70px;width:min(320px,90vw);z-index:90;box-shadow:0 18px 40px rgba(61,19,8,.28)'
+    painel.style.cssText = 'position:fixed;right:16px;top:70px;width:min(340px,90vw);z-index:90;box-shadow:0 18px 40px rgba(61,19,8,.28)'
     painel.innerHTML = fila.length
       ? fila.map(function (n, i) {
-          return '<p class="nota" data-ir="' + i + '" style="cursor:pointer;margin:0 0 10px">' + escapar(n.texto) + '</p>'
+          var cor = NOTIF_ICONE[n.tipo] || NOTIF_ICONE.info
+          return '<button type="button" class="pn-notif is-naolida" data-ir="' + i + '">' +
+            '<span class="pn-notif__disco" style="background:' + cor[0] + ';color:' + cor[1] + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + cor[2] + '</svg>' +
+            '</span>' +
+            '<span class="pn-notif__texto">' + escapar(n.texto) + '</span>' +
+          '</button>'
         }).join('')
       : '<p class="nota" style="margin:0">Nada por aqui agora.</p>'
     document.body.appendChild(painel)
