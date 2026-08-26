@@ -10,6 +10,7 @@ import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
 import { BotaoTopo } from './components/BotaoTopo'
 import { useSiteMotion } from './hooks/useSiteMotion'
+import { applyPageMeta } from './lib/pageMeta'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
@@ -18,6 +19,7 @@ import { ApoiarPage }       from './pages/institutional/Apoiar'
 import { ContatoPage }      from './pages/institutional/Contato'
 import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
 import { EmBrevePage } from './pages/institutional/EmBreve'
+import { AguardePage } from './pages/institutional/Aguarde'
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
@@ -34,7 +36,27 @@ const AWARDS_ONLY_PUBLICATION = false
 // edição Lovers 2026.1 com links pros posts de resultado no Instagram.
 // O institucional completo segue visível em DEV e em previews
 // *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
-const COMING_SOON_PUBLICATION = true
+// DESLIGADO em 26/08/2026 (decisão do Eloi): entra o lançamento parcial abaixo.
+const COMING_SOON_PUBLICATION = false
+
+// Lançamento parcial "SÓ PARTICIPANTES" (26/08/2026, decisão do Eloi): o
+// domínio oficial mostra só Contato como página institucional real — o
+// resto (inclusive a home, '/') cai na página de espera 'aguarde'
+// (src/pages/institutional/Aguarde.jsx). Participar segue no ar de verdade
+// (rota /participar funciona pra quem tem o link direto), só não é mais a
+// porta de entrada: a partir de 26/08/2026 quem digita o domínio cai na
+// espera, não em Participar. Toda rota que não for Contato (nem Awards-only/
+// em-breve, tratados antes) força 'aguarde', mesmo padrão de
+// AWARDS_ONLY_PUBLICATION acima. O clique no menu para Home/Edições/Awards/
+// Apoiar troca o hash mas a página renderizada não muda — do ponto de vista
+// de quem navega, "não acontece nada" (pedido do Eloi). As três páginas
+// estáticas fora do bundle (/quero-participar/, /marca/, /organizacao/ —
+// §10.4-b) não passam por aqui e continuam no ar normalmente, inclusive o
+// botão "Acesso" do cabeçalho. Preview institucional completo
+// (INSTITUTIONAL_PREVIEW) segue liberado em DEV e em *.vercel.app?preview=1,
+// para revisar as páginas trancadas (Participar incluída) antes de
+// destrancar de verdade.
+const AGUARDE_ONLY_PUBLICATION = true
 
 // PREVIEW DEV-only do institucional: permite revisar Edições,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
@@ -91,6 +113,9 @@ export default function App() {
     if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
     // Rota direta p/ revisar a landing em DEV/preview.
     if (path.startsWith('/em-breve')) return 'em-breve'
+    // Lançamento parcial: Contato sai livre; qualquer outra rota pública vira
+    // a espera (inclusive a home). Ver AGUARDE_ONLY_PUBLICATION acima.
+    if (AGUARDE_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW && !path.startsWith('/contato')) return 'aguarde'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
@@ -113,6 +138,7 @@ export default function App() {
     case 'contato':      page = <ContatoPage navigate={navigate} />; break
     case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
     case 'em-breve':     page = <EmBrevePage />; break
+    case 'aguarde':      page = <AguardePage />; break
     default:             page = <HomePage navigate={navigate} />
   }
 
@@ -122,9 +148,26 @@ export default function App() {
     return () => document.body.classList.remove(cls)
   }, [route])
 
-  // Áreas internas (painéis) e a landing "em breve" são tela cheia: sem
-  // header/menu público (na landing, o menu levaria sempre pra ela mesma).
-  const isInternal = route === 'em-breve'
+  // router.js já chama applyPageMeta(path) no path CRU (hash/pathname). Isso
+  // basta na publicação normal, mas com AGUARDE_ONLY_PUBLICATION (ou
+  // AWARDS_ONLY_PUBLICATION/COMING_SOON_PUBLICATION) a ROTA renderizada diverge
+  // do path digitado -- sem isto, /edicoes mostraria o conteúdo de Participar
+  // com a aba do navegador e a meta description ainda dizendo "Edições".
+  // Roda por cima, na rota já resolvida, então corrige os três modos restritos
+  // de uma vez sem duplicar a lógica de cada flag aqui.
+  React.useEffect(() => {
+    const pathPorRota = {
+      home: '/', edicoes: '/edicoes', 'historico-awards': '/sweet-awards',
+      participar: '/participar', apoiar: '/apoiar', contato: '/contato',
+      'em-breve': '/', aguarde: '/',
+    }
+    applyPageMeta(pathPorRota[route] || '/')
+  }, [route])
+
+  // Áreas internas (painéis) e as duas landings de espera ("em breve" e
+  // "aguarde") são tela cheia: sem header/menu público (o menu levaria
+  // sempre pra elas mesmas, já que são o destino de toda rota trancada).
+  const isInternal = route === 'em-breve' || route === 'aguarde'
 
   // Nav mobile (tab bar + menu full-screen): só nas rotas públicas institucionais
   // (mesma lista do rodapé). Fecha o menu ao trocar de rota.
@@ -158,8 +201,9 @@ export default function App() {
       {/* A landing não tem menu — mas precisa da porta de acesso, senão o painel
           da organização fica inalcançável enquanto o gate estiver ligado: ele é
           página estática e não aparece em rota nenhuma do React. Cabeçalho
-          reduzido ao botão, sem marca e sem navegação (§7.7). */}
-      {route === 'em-breve' && (
+          reduzido ao botão, sem marca e sem navegação (§7.7). Vale pras duas
+          landings de espera — "aguarde" é a atual porta de entrada. */}
+      {(route === 'em-breve' || route === 'aguarde') && (
         <SiteHeader
           apenasAcesso
           route={route}

@@ -276,7 +276,10 @@ test('os números citados no texto editorial batem com a base', async () => {
 test('flags de publicação seguem intactas', () => {
   const app = ler('src/App.jsx')
   assert.match(app, /AWARDS_ONLY_PUBLICATION\s*=\s*false/)
-  assert.match(app, /COMING_SOON_PUBLICATION\s*=\s*true/)
+  // Publicação parcial desde 26/08/2026 (decisão do Eloi): EmBreve saiu,
+  // só Participar e Contato ficam abertos ao público.
+  assert.match(app, /COMING_SOON_PUBLICATION\s*=\s*false/)
+  assert.match(app, /AGUARDE_ONLY_PUBLICATION\s*=\s*true/)
 })
 
 test('rotas dos QR Codes da Lovers continuam congeladas', () => {

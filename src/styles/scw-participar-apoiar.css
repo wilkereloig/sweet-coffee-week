@@ -256,74 +256,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 03 — três faixas de circulação (imagem e texto de larguras iguais)
-   ========================================================================= */
-
-.pa-faixas { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 28px); }
-.pa-faixa {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  align-items: stretch;
-  border-radius: var(--scw-r-secao);
-  overflow: hidden;
-  background: var(--fundo, var(--scw-marrom));
-  color: var(--scw-creme);
-}
-.pa-faixa figure {
-  position: relative;
-  margin: 0;
-  min-height: clamp(300px, 32vw, 460px);
-  overflow: hidden;
-  background: rgba(61, 19, 8, .14);
-}
-.pa-faixa--inversa figure { order: 2; }
-.pa-faixa img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.pa-faixa__corpo {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: clamp(26px, 3.2vw, 52px);
-}
-.pa-faixa__ordem {
-  font: 800 11.5px/1 var(--scw-font);
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--scw-creme);
-}
-.pa-faixa__corpo h3 {
-  margin: 0;
-  max-width: 18ch;
-  color: var(--scw-creme);
-  font: 900 clamp(26px, 3vw, 44px)/.96 var(--scw-font-black);
-  letter-spacing: -.036em;
-  text-wrap: balance;
-}
-.pa-faixa__corpo p {
-  margin: 0;
-  max-width: 40ch;
-  color: var(--scw-creme);
-  font: 500 clamp(15px, 1.25vw, 17px)/1.55 var(--scw-font);
-  text-wrap: pretty;
-}
-.pa-faixa__resumo {
-  margin-top: auto;
-  padding-top: clamp(18px, 2vw, 26px);
-  color: var(--resumo, var(--scw-creme));
-  font: 900 clamp(19px, 1.9vw, 26px)/1 var(--scw-font-black);
-  letter-spacing: -.025em;
-}
-@media (max-width: 1000px) {
-  .pa-faixa--inversa figure { order: 0; }
-}
-
-/* ============================================================================
-   Cards com ícone (Participar 04 "quem pode" · Apoiar 03 "por que apoiar")
+   Cards com ícone (Apoiar 03 "por que apoiar" — Participar removeu "quem
+   pode" em 26/08/2026, mas a base .pa-cards/.pa-card segue viva pra Apoiar)
    ========================================================================= */
 
 .pa-cards {
@@ -471,80 +405,6 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-depo__quem b { font: 800 15.5px/1.2 var(--scw-font); }
 .pa-depo__quem span { font: 500 14px/1.3 var(--scw-font); opacity: .75; }
-
-/* ============================================================================
-   Participar 06 — imprensa (chips sem link: as URLs ainda não existem)
-   ========================================================================= */
-
-.pa-imprensa {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-}
-.pa-imprensa li {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: var(--scw-creme);
-  border: 1px solid rgba(61, 19, 8, .14);
-}
-.pa-imprensa b { font: 800 14.5px/1 var(--scw-font); color: var(--scw-choco); }
-.pa-imprensa span {
-  font: 700 11.5px/1 var(--scw-font);
-  letter-spacing: .08em;
-  color: var(--scw-marrom);
-}
-.pa-imprensa__nota {
-  margin: clamp(18px, 2vw, 24px) 0 0;
-  color: var(--scw-marrom);
-  font: 500 13.5px/1.5 var(--scw-font);
-}
-
-/* ============================================================================
-   Participar 07 — jornada depois do interesse
-   ========================================================================= */
-
-.pa-jornada {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(200px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr));
-  grid-template-rows: auto auto auto;
-  gap: clamp(18px, 2.2vw, 32px) clamp(16px, 2vw, 28px);
-  margin: clamp(34px, 3.8vw, 56px) 0 0;
-  padding: 0;
-}
-.pa-jornada li {
-  display: grid;
-  grid-row: span 3;
-  grid-template-rows: subgrid;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 3px solid var(--c, var(--scw-amarelo));
-}
-.pa-jornada b {
-  font: 900 clamp(30px, 3.2vw, 50px)/.9 var(--scw-font-black);
-  letter-spacing: -.05em;
-  color: var(--c, var(--scw-amarelo));
-}
-.pa-jornada h3 {
-  align-self: start;
-  margin: 0;
-  font: 900 clamp(18px, 1.8vw, 24px)/1.04 var(--scw-font-black);
-  letter-spacing: -.028em;
-  color: var(--scw-creme);
-}
-.pa-jornada p {
-  align-self: start;
-  margin: 0;
-  max-width: 30ch;
-  font: 500 14.5px/1.5 var(--scw-font);
-  color: rgba(254, 240, 221, .76);
-}
 
 /* ============================================================================
    Apoiar 04 — onde a marca aparece
@@ -915,11 +775,3 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 /* Até 900px quem ocupa a base é a barra de abas do aplicativo — duas barras
    fixas empilhadas roubariam a tela. */
 @media (max-width: 900px) { .pa-barra { display: none; } }
-
-/* ============================================================================
-   Piso de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
-   A nota da galeria de imprensa vinha a 13,5px com 44 caracteres por linha.
-   ========================================================================= */
-@media (max-width: 900px) {
-  .pa-imprensa__nota { font-size: var(--scw-piso-corpo-mob); }
-}
