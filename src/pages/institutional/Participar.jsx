@@ -1,25 +1,25 @@
 /*
  * PÁGINA INSTITUCIONAL — "Participar" (redesign 2026).
- * Recriada a partir de design_handoff_site_institucional (README + protótipo
- * .dc.html, seções 01 a 08). O protótipo é referência de design em HTML com
- * estilo inline; aqui o layout vira JSX + classes (scw-2026.css para o sistema
- * visual e scw-participar-apoiar.css para as peças próprias das duas páginas).
  *
- * Seções: 01 Abertura · 02 Números · 03 Circulação · 04 Quem pode ·
- * 05 Depoimentos · 06 Imprensa · 07 Jornada · 08 Pré-cadastro.
+ * Seções: 01 Abertura · 02 Depoimentos · 03 Números · 08 Pré-cadastro.
  *
  * ⚠️ A seção 08 NÃO tem mais formulário. Desde 22/08/2026 ela é uma chamada
  * para a página estática `/quero-participar/`, que é onde o pré-cadastro vive
  * de verdade — quatro passos, índice pegajoso, validação por passo e gravação
- * na tabela `quero_participar`, a que o painel da organização lê. O formulário
- * que morava aqui gravava em `participation_interests`, tabela que nenhuma tela
- * abre. Nada de dado inventado: depoimentos, números e veículos de imprensa
- * vêm do acervo/protótipo.
+ * na tabela `quero_participar`, a que o painel da organização lê.
+ *
+ * ⚠️ Em 26/08/2026 as seções 04 Circulação, 05 Quem pode, 06 Imprensa e
+ * 07 Jornada saíram (pedido do Eloi): a página existia pra converter visita
+ * fria; agora ela anuncia a próxima edição chegando e empurra pro
+ * pré-cadastro, que já está aberto. Depoimentos e Números ficaram por serem
+ * prova social direta. Nada de dado inventado: depoimentos e números vêm do
+ * acervo/festivalFacts.js — nenhuma data ou tema da próxima edição é citado,
+ * porque não foram anunciados (A4).
  */
 import React from 'react'
 import { I } from '../../components/icons'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
-import { comboMain, editionPhotos, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
+import { comboMain, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -30,91 +30,25 @@ import '../../styles/scw-participar-apoiar.css'
 // banda sangrando no celular. O véu por cima usa a cor da página.
 const FOTOS_HERO = heroPhotos('participar')
 
-/* Os três indicadores do herói saíram com o cartão (PATCH 01 §6). Nada de dado
-   se perdeu: os três já existiam, com os mesmos números, em NUMEROS abaixo
-   (combos, marcas e dias por edição) — repetir os mesmos valores
-   em seções vizinhas era a duplicação que a seção 03 já resolvia. */
+/* Os três indicadores do herói saíram com o cartão (PATCH 01 §6): a seção 03
+   Números abaixo já cobre a prova de escala, e repetir os mesmos valores em
+   seções vizinhas era a duplicação que ela resolvia. */
 
 const PALAVRAS = [
   'um combo autoral', 'presença na campanha', 'nova relação com o público',
   'sua marca na rota', 'sweet lovers',
 ]
 
-/* 03 Números — histórico do festival. Cada dado virou CARD com disco de ícone
-   (desenho de 20/08/2026): o disco é cyan em todos, porque aqui a cor não
-   distingue item nenhum — ela diz "isto é Participar". Quem distingue é o
-   ícone. É o oposto da faixa da Home, onde cada dado tem cor própria. */
+/* 03 Números — reformulada em 26/08/2026 (pedido do Eloi): fora os números de
+   QUANTIDADE de participante (lojas/marcas por edição) — são pequenos e
+   geram dúvida. Ficam só os expressivos: venda, combos, tempo de festival.
+   Mesma dupla (movimentação + combos) que Apoiar usa em 02 Alcance — dado
+   compartilhado, mesma fonte (festivalFacts.js), mesma leitura (§5.2). */
 const NUMEROS = [
-  { n: `${F.returnRate.value}%`, t: 'das marcas voltaram', d: F.returnRate.mede, i: 'simbolos/memoria' },
-  { n: String(F.participations.value), t: 'combos autorais criados', d: `uma criação inédita por marca em cada edição — ${F.brands.value} casas distintas de Natal e região desde 2016`, i: 'simbolos/combo-oficial' },
-  { n: '+18 mi', t: 'visualizações no Instagram', d: 'conteúdo do festival e das marcas participantes', i: 'redes/instagram' },
-  { n: `${F.daysPerEdition.value} dias`, t: 'em cartaz por edição', d: F.daysPerEdition.mede, i: 'ui/calendario' },
-  { n: String(F.storesLastEdition.value), t: 'lojas na última edição', d: F.storesLastEdition.mede, i: 'mecanica/loja' },
-  { n: String(F.newPerEdition.value), t: 'marcas novas por edição', d: F.newPerEdition.mede, i: 'topicos/circulacao' },
-]
-
-// 03 Circulação — quatro faixas alternando o lado da imagem (larguras iguais).
-const FAIXAS = [
-  {
-    ordem: '01 · Produto',
-    titulo: 'Um combo autoral com a sua assinatura.',
-    texto: 'Sua marca cria a assinatura da edição a partir do tema — e apresenta o que faz de melhor a quem chegou para descobrir.',
-    resumo: 'doce + salgado + bebida',
-    foto: editionPhotos('2026.1')[3],
-    fundo: 'var(--scw-marrom)',
-  },
-  {
-    ordem: '02 · Campanha',
-    titulo: 'Presença na campanha do festival.',
-    texto: 'Cada participante entra na comunicação: rota oficial, redes, imprensa e materiais de vitrine que circulam pela cidade inteira.',
-    resumo: 'rota + redes + imprensa',
-    // Campanha e público não têm vínculo com edição nem com marca no acervo —
-    // ficam fora do sistema central, com alt e ponto focal declarados aqui.
-    foto: { src: '/images/campanha/01.jpg', alt: 'Material de campanha do Sweet & Coffee Week em um ponto de venda', position: 'center 42%' },
-    fundo: 'var(--scw-roxo)',
-    inversa: true,
-  },
-  {
-    ordem: '03 · Público',
-    titulo: 'Uma relação nova com o público.',
-    texto: 'Os Sweet Lovers experimentam, compartilham, avaliam e indicam — uma relação que costuma continuar depois da edição.',
-    resumo: 'quem prova, volta',
-    corResumo: 'var(--scw-amarelo)',
-    foto: { src: '/images/lovers-publico/04.jpg', alt: 'Sweet Lovers durante a edição Lovers do Sweet & Coffee Week', position: 'center 38%' },
-    fundo: 'var(--scw-choco)',
-  },
-]
-
-// 04 Quem pode participar — ícones desenhados para cada tipo de negócio.
-const ICO = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }
-// Ciclo de seis sem repetir (§5): magenta, roxo, amarelo, cyan, bege, laranja.
-// Roxo e laranja eram os dois discos chocolate-sobre-chocolate (ícone
-// invisível) — roxo pede traço creme; laranja fecha AA com o traço padrão.
-const PUBLICOS = [
-  {
-    t: 'Doçarias', d: 'doces, tortas e sobremesas', c: 'var(--scw-magenta)', tinta: 'var(--scw-choco)',
-    p: <><path d="M6.6 10.5a5.4 5.4 0 0 1 10.8 0" /><path d="M6.4 10.5h11.2l-1.3 8a1.6 1.6 0 0 1-1.6 1.4H9.3a1.6 1.6 0 0 1-1.6-1.4l-1.3-8Z" /><path d="M10.4 13.4l-.5 5M13.6 13.4l.5 5" /><circle cx="12" cy="4.4" r="1.5" /></>,
-  },
-  {
-    t: 'Confeitarias', d: 'bolos, docinhos e encomendas', c: 'var(--scw-roxo)', tinta: 'var(--scw-creme)',
-    p: <><path d="M4.2 11.4h15.6V18a2 2 0 0 1-2 2H6.2a2 2 0 0 1-2-2v-6.6Z" /><path d="M4.2 15.6h15.6" /><path d="M12 6.6v4.2" /><path d="M12 3.4c1.1 1 1.1 2 0 2.6-1.1-.6-1.1-1.6 0-2.6Z" /></>,
-  },
-  {
-    t: 'Cafeterias', d: 'café, brunch e padaria', c: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)',
-    p: <><path d="M4.6 9.4h10.8v4.8a4 4 0 0 1-4 4H8.6a4 4 0 0 1-4-4V9.4Z" /><path d="M15.4 11h2.1a2.4 2.4 0 0 1 0 4.8h-2.1" /><path d="M4 20.6h13" /><path d="M8.4 3.6c.7 1.4-.7 2 0 3.4M11.6 3.6c.7 1.4-.7 2 0 3.4" /></>,
-  },
-  {
-    t: 'Restaurantes', d: 'cozinha autoral e bistrôs', c: 'var(--scw-cyan)', tinta: 'var(--scw-choco)',
-    p: <><path d="M8.6 3.2v5.4a2.4 2.4 0 0 1-4.8 0V3.2" /><path d="M6.2 11v9.8" /><path d="M16.4 3.2c2.2 2.8 2.4 6.6 1.1 9.6h-2.4V6.8c0-1.4.5-2.6 1.3-3.6Z" /><path d="M16.3 12.8v8" /></>,
-  },
-  {
-    t: 'Marcas gastronômicas', d: 'produção autoral, com ou sem loja', c: 'var(--scw-bege)', tinta: 'var(--scw-choco)',
-    p: <><path d="M7.2 12.4a3.4 3.4 0 1 1 1.2-6.6 3.8 3.8 0 0 1 7.2 0 3.4 3.4 0 1 1 1.2 6.6H7.2Z" /><path d="M7.8 12.4h8.4v5.2a2 2 0 0 1-2 2H9.8a2 2 0 0 1-2-2v-5.2Z" /><path d="M7.8 15.6h8.4" /></>,
-  },
-  {
-    t: 'Negócios afetivos', d: 'projetos de bairro e de família', c: 'var(--scw-laranja)', tinta: 'var(--scw-choco)',
-    p: <><path d="M3.6 4.6h16.8l1.2 4.4H2.4l1.2-4.4Z" /><path d="M4.6 9v10.8h14.8V9" /><path d="M12 19.8v-6.4c1.9 0 3 1.1 3 2.4 0 1.6-1.6 2.6-3 4Z" /><path d="M12 13.4c-1.9 0-3 1.1-3 2.4 0 1.6 1.6 2.6 3 4" /></>,
-  },
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
+  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
+  { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'ui/calendario' },
+  { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao' },
 ]
 
 // 05 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
@@ -139,30 +73,6 @@ const DEPO_VIDEO_SLUGS = new Set([
 function depoVideoSrc(slug) {
   return DEPO_VIDEO_SLUGS.has(slug) ? `/videos/depoimentos/${slug}.mp4` : null
 }
-
-// 06 Imprensa — veículos reais que noticiaram o festival. Os cards ainda NÃO
-// têm URL (pendência do handoff), então não viram link.
-// Registros reais de participantes do festival em programas de TV locais. Não
-// nomeiam ninguém: o acervo não traz crédito confiável de veículo, data nem
-// pessoa, e §16 proíbe preencher isso por dedução. O ponto focal de cada uma
-// mira o grupo, que fica acima do centro nas três.
-const IMPRENSA = [
-  { veiculo: '96 FM', ano: '2026' },
-  { veiculo: 'Tribuna do Norte', ano: '2026' },
-  { veiculo: 'Blog do BG', ano: '2025' },
-  { veiculo: 'TV Ponta Negra', ano: '2025' },
-  { veiculo: 'Conversa Gastronômica', ano: '2024' },
-  { veiculo: 'Agência Sebrae', ano: '2021' },
-  { veiculo: 'UFRN', ano: '2022' },
-]
-
-// 07 Jornada depois do interesse.
-const JORNADA = [
-  { n: '01', t: 'Pré-cadastro', d: 'Você conta sobre a marca e registra o interesse — o começo de tudo.', c: 'var(--scw-amarelo)' },
-  { n: '02', t: 'Análise', d: 'A organização avalia o perfil junto aos critérios de curadoria da edição.', c: 'var(--scw-cyan)' },
-  { n: '03', t: 'Contato e aprovação', d: 'A equipe fala com você para confirmar os detalhes e a participação.', c: 'var(--scw-magenta)' },
-  { n: '04', t: 'Próximos passos', d: 'Com a marca aprovada, chegam as orientações e os materiais para preparar a presença.', c: 'var(--scw-laranja)' },
-]
 
 // Iniciais para o monograma de fallback da marca (ignora "e"/"&"; máx. 2 letras).
 function iniciais(nome) {
@@ -243,13 +153,13 @@ export function ParticiparPage() {
           <div>
             <span className="scw-pill scw-pill--pagina pa-hero__selo">Para doçarias, cafeterias e restaurantes</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
-              Sua marca pode ser a próxima{' '}
+              A próxima edição está a caminho{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
-              <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>descoberta de Natal.</em>
+              <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>e o pré-cadastro já abriu.</em>
             </h1>
             <p className="scw-lead pa-hero__lead">
-              Participar é criar um combo autoral para o tema da edição e entrar na rota oficial
-              do festival — com sua marca na comunicação, no site e no Sweet Awards.
+              Faça o pré-cadastro da sua marca agora e entre na fila de curadoria da
+              organização para a próxima edição do Sweet & Coffee Week.
             </p>
             <div className="pa-hero__acoes">
               <a href="#pre-cadastro" className="scw-btn scw-btn--solido" onClick={irPara('pre-cadastro')}>
@@ -342,7 +252,7 @@ export function ParticiparPage() {
             </h2>
           </div>
           <p className="pa-cabeca__apoio">
-            Dez anos de rota, imprensa e público que se organiza para provar cada edição.
+            Dez anos de rota e público que se organiza para provar cada edição.
           </p>
         </div>
         <ul className="pa-numeros">
@@ -359,119 +269,6 @@ export function ParticiparPage() {
         </ul>
       </section>
 
-      {/* ═══ 04 Circulação ═══ */}
-      <section className="scw-secao scw-secao--creme">
-        <div className="pa-cabeca">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/circulacao" tamanho={20} />O que a marca leva da edição</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)', maxWidth: '22ch' }}>
-              Três frentes de <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>visibilidade</em>, ao mesmo tempo.
-            </h2>
-          </div>
-          <p className="pa-cabeca__apoio">
-            Participar não é entrar numa lista: é criar, aparecer e conversar com um público novo.
-          </p>
-        </div>
-        <div className="pa-faixas">
-          {FAIXAS.map((f) => (
-            <article
-              className={`pa-faixa${f.inversa ? ' pa-faixa--inversa' : ''}`}
-              key={f.ordem}
-              style={{ '--fundo': f.fundo, '--resumo': f.corResumo || 'var(--scw-creme)' }}
-            >
-              <figure>
-                {f.foto
-                  ? <img src={f.foto.src} srcSet={srcSet(f.foto.src)} sizes={SIZES.cartao} alt={f.foto.alt} style={{ objectPosition: f.foto.position }} loading="lazy" decoding="async" />
-                  : <div className="scw-reserva">{RESERVA}</div>}
-              </figure>
-              <div className="pa-faixa__corpo">
-                <span className="pa-faixa__ordem">{f.ordem}</span>
-                <h3>{f.titulo}</h3>
-                <p>{f.texto}</p>
-                <span className="pa-faixa__resumo">{f.resumo}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ 05 Quem pode ═══ */}
-      <section className="scw-secao scw-secao--compacta scw-secao--bege">
-        <div className="pa-cabeca">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/quem-pode" tamanho={20} />Quem pode participar</span>
-            <h2 className="scw-h2">
-              Marcas que fazem <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>comida afetiva</em> em Natal e região.
-            </h2>
-          </div>
-          <p className="pa-cabeca__apoio">
-            Não é preciso ser grande: é preciso ter uma criação sua para colocar na rota.
-            A participação passa por curadoria da organização.
-          </p>
-        </div>
-        <ul className="pa-cards">
-          {PUBLICOS.map((p) => (
-            <li className="pa-card" key={p.t}>
-              <span className="scw-disco" style={{ '--c': p.c, '--tinta': p.tinta }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" {...ICO}>{p.p}</svg>
-              </span>
-              <span className="pa-card__txt">
-                <b>{p.t}</b>
-                <span>{p.d}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ═══ 06 Imprensa ═══ */}
-      <section className="scw-secao scw-secao--compacta scw-secao--creme">
-        <div className="pa-cabeca">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={20} />O festival na imprensa</span>
-            <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Sua marca aparece onde a cidade <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>já está olhando</em>.
-            </h2>
-          </div>
-          <p className="pa-cabeca__apoio">
-            Rádio, TV, jornais e portais de Natal e do RN acompanham cada edição desde 2016.
-          </p>
-        </div>
-        <ul className="pa-imprensa">
-          {IMPRENSA.map((v) => (
-            <li key={`${v.veiculo}-${v.ano}`}>
-              <b>{v.veiculo}</b>
-              <span>{v.ano}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="pa-imprensa__nota">
-          Os links das publicações entram aqui assim que forem reunidos.
-        </p>
-      </section>
-
-      {/* ═══ 07 Jornada ═══ */}
-      <section className="scw-secao scw-secao--choco">
-        <div className="pa-cabeca pa-cabeca--simples">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Depois do seu interesse</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-creme)', maxWidth: '22ch' }}>
-              Um <em className="pa-destaque" style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-cyan)' }}>percurso claro</em>, do pré-cadastro à edição.
-            </h2>
-          </div>
-        </div>
-        <ol className="pa-jornada">
-          {JORNADA.map((j) => (
-            <li key={j.n} style={{ '--c': j.c }}>
-              <b>{j.n}</b>
-              <h3>{j.t}</h3>
-              <p>{j.d}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ═══ 08 Pré-cadastro (formulário em destaque) ═══ */}
       {/* ═══ 08 Pré-cadastro ═══
           ⚠️ O FORMULÁRIO NÃO MORA MAIS AQUI (22/08/2026, pedido do Wilke). O
           pré-cadastro é a página estática /quero-participar/, que tem os quatro
