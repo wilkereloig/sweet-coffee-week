@@ -31,13 +31,13 @@ import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
  *    celular, o pé com "Falar com a equipe" ficava fora da tela.
  *
  * Os dois cards continuam com pesos diferentes (§6.10) — Organização em chapa
- * chocolate com ação amarela, Participante em card bege com ação chocolate —,
- * mas em 25/08/2026 o motivo do peso MUDOU: ele diz público, não
- * disponibilidade. Até então o cartão do participante era reserva honesta
- * (§6.12), com moldura tracejada e o selo "Painel · em breve"; `/marca/` entrou
- * no ar e essa frase virou mentira — a única porta pública do domínio negando a
- * área que ela deveria abrir. Tracejado e selo saíram; a porta abre.
- * A régua de 5px segue a ordem dos cards: cyan à esquerda, roxo à direita.
+ * chocolate, Participante em card bege —, mas em 25/08/2026 o motivo do peso
+ * MUDOU: ele diz público, não disponibilidade. Até então o cartão do
+ * participante era reserva honesta (§6.12), com moldura tracejada e o selo
+ * "Painel · em breve"; `/marca/` entrou no ar e essa frase virou mentira — a
+ * única porta pública do domínio negando a área que ela deveria abrir.
+ * Tracejado e selo saíram; a porta abre. A régua de 5px segue a ordem dos
+ * cards — ver item 5 abaixo para a cor de cada um.
  *
  * 4. "ENTRAR COM O NOME DA MARCA" NÃO SAI DAQUI TAMBÉM — pedido do Eloi,
  *    25/08/2026: a área da marca deve abrir igual à da organização, acoplada
@@ -57,6 +57,30 @@ import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
  *    `deve_trocar_senha` também ao achar sessão PRONTA no boot, não só dentro
  *    do próprio formulário — sem esse ajuste, uma marca de primeiro acesso
  *    entrando por aqui pularia a troca de senha obrigatória (§10.4-b).
+ *
+ * 5. OS DOIS FORMULÁRIOS NA MESMA TELA — redesenho de 25/08/2026, a partir do
+ *    handoff "Painel SCW app" (a mesma referência que já deu forma ao painel
+ *    da organização e da marca). Os três passos (escolha → senha → marca)
+ *    viraram UM: os dois cards da escolha já carregam o campo e o botão de
+ *    entrar — não existe mais "clicar para revelar o formulário". Cada card
+ *    é o próprio `<form>`, com estado de erro e de envio independentes
+ *    (`erroOrg`/`erroMarca`, `enviandoOrg`/`enviandoMarca`) porque os dois
+ *    ficam visíveis ao mesmo tempo e podem ser enviados em qualquer ordem.
+ *    ⚠️ A cor dos selos TROCOU: Organização passa a amarelo (era cyan),
+ *    Participante passa a cyan (era roxo/transparente) — é o par que o
+ *    handoff desenha, e a régua de 5px abaixo do cabeçalho segue a mesma
+ *    troca (amarelo|cyan, era cyan|roxo). Roxo continua sendo a cor do Sweet
+ *    Awards em outro lugar do site; aqui ele só deixou de identificar a marca
+ *    neste diálogo.
+ *    O campo de identidade da marca virou dois: nome do estabelecimento **e**
+ *    senha — o handoff mostra só um campo ("Login da marca"), mas entrar de
+ *    verdade exige senha (Supabase Auth), então um campo a mais aqui é a
+ *    leitura compatível, não um desvio do desenho.
+ *    "Primeiro acesso da marca" é um link que revela uma nota, não uma tela
+ *    nova: o primeiro acesso já usa os MESMOS dois campos (nome + a senha que
+ *    a organização mandou) — quem troca de senha é `/marca/`, depois do
+ *    login, via `deve_trocar_senha` (item 4 acima). Duplicar aqui a tela de
+ *    escolha de senha nova seria um segundo caminho para o mesmo passo (§5.2).
  *
  * Foco preso no diálogo, Esc fecha, foco volta ao gatilho.
  */
@@ -86,16 +110,18 @@ const rpc = async (nome, corpo) => {
 
 export function AccessDialog({ open, onClose }) {
   const caixaRef = React.useRef(null)
-  const campoRef = React.useRef(null)
-  const nomeRef = React.useRef(null)
+  const campoOrgRef = React.useRef(null)
 
   const [montada, setMontada] = React.useState(open)
   const [fechando, setFechando] = React.useState(false)
-  const [passo, setPasso] = React.useState('escolha')
+  const [senhaOrg, setSenhaOrg] = React.useState('')
   const [nomeMarca, setNomeMarca] = React.useState('')
-  const [senha, setSenha] = React.useState('')
-  const [erro, setErro] = React.useState(null)
-  const [verificando, setVerificando] = React.useState(false)
+  const [senhaMarca, setSenhaMarca] = React.useState('')
+  const [erroOrg, setErroOrg] = React.useState(null)
+  const [erroMarca, setErroMarca] = React.useState(null)
+  const [enviandoOrg, setEnviandoOrg] = React.useState(false)
+  const [enviandoMarca, setEnviandoMarca] = React.useState(false)
+  const [mostrarPrimeiro, setMostrarPrimeiro] = React.useState(false)
 
   /* Saída animada: a folha continua montada pelos 260ms de `.is-fechando`.
      Sem movimento, desmonta na hora. Mesma mecânica do MobileMenu. */
@@ -109,15 +135,18 @@ export function AccessDialog({ open, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  /* Reabrir sempre começa na escolha, e a senha digitada não sobrevive ao
-     fechamento — ela não fica pendurada em memória à espera da próxima vez. */
+  /* Fechar não deixa nada pendurado em memória à espera da próxima vez: nem
+     senha digitada, nem erro, nem a nota do primeiro acesso aberta. */
   React.useEffect(() => {
     if (open) return
-    setPasso('escolha')
+    setSenhaOrg('')
     setNomeMarca('')
-    setSenha('')
-    setErro(null)
-    setVerificando(false)
+    setSenhaMarca('')
+    setErroOrg(null)
+    setErroMarca(null)
+    setEnviandoOrg(false)
+    setEnviandoMarca(false)
+    setMostrarPrimeiro(false)
   }, [open])
 
   React.useEffect(() => {
@@ -136,13 +165,6 @@ export function AccessDialog({ open, onClose }) {
     }
   }, [open, onClose])
 
-  /* Ao entrar no passo da senha o cursor já vai para o campo: é a única coisa
-     a fazer naquela tela. */
-  React.useEffect(() => {
-    if (passo === 'senha' && campoRef.current) campoRef.current.focus()
-    if (passo === 'marca' && nomeRef.current) nomeRef.current.focus()
-  }, [passo])
-
   if (!montada) return null
 
   const prenderTab = (ev) => {
@@ -157,20 +179,20 @@ export function AccessDialog({ open, onClose }) {
     else if (!ev.shiftKey && document.activeElement === ultimo) { ev.preventDefault(); primeiro.focus() }
   }
 
-  const enviar = async (ev) => {
+  const enviarOrg = async (ev) => {
     ev.preventDefault()
-    if (verificando) return
-    setErro(null)
-    setVerificando(true)
+    if (enviandoOrg) return
+    setErroOrg(null)
+    setEnviandoOrg(true)
     const r = await entrarNaOrganizacao({
-      senha,
+      senha: senhaOrg,
       rpc,
       guardar: (chave, valor) => window.sessionStorage.setItem(chave, valor),
     })
     if (!r.ok) {
-      setVerificando(false)
-      setErro(r.erro)
-      if (campoRef.current) campoRef.current.focus()
+      setEnviandoOrg(false)
+      setErroOrg(r.erro)
+      if (campoOrgRef.current) campoOrgRef.current.focus()
       return
     }
     /* Navegação normal do navegador, não `navigate()`: /organizacao/ é página
@@ -181,19 +203,18 @@ export function AccessDialog({ open, onClose }) {
 
   const enviarMarca = async (ev) => {
     ev.preventDefault()
-    if (verificando) return
-    setErro(null)
-    setVerificando(true)
+    if (enviandoMarca) return
+    setErroMarca(null)
+    setEnviandoMarca(true)
     const r = await entrarComoMarca({
       nome: nomeMarca,
-      senha,
+      senha: senhaMarca,
       signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
       guardar: (chave, valor) => window.sessionStorage.setItem(chave, valor),
     })
     if (!r.ok) {
-      setVerificando(false)
-      setErro(r.erro)
-      if (campoRef.current) campoRef.current.focus()
+      setEnviandoMarca(false)
+      setErroMarca(r.erro)
       return
     }
     /* Mesma navegação de navegador que a organização usa, e pelo mesmo motivo:
@@ -242,142 +263,56 @@ export function AccessDialog({ open, onClose }) {
         <div className="scw-acesso__regua" aria-hidden="true" />
         </div>
 
-        {passo === 'escolha' ? (
-          <div className="scw-acesso__corpo">
-            <h2 className="scw-acesso__titulo" id="scw-acesso-titulo">
-              Entrar no <em className="scw-italico" style={{ color: 'var(--scw-marrom)' }}>Sweet &amp; Coffee Week</em>.
-            </h2>
-            <p className="scw-acesso__lead">Escolha por onde você entra.</p>
+        <div className="scw-acesso__corpo">
+          <h2 className="scw-acesso__titulo" id="scw-acesso-titulo">Área de acesso</h2>
+          <p className="scw-acesso__lead">
+            Entre com o login que você recebeu. Cada acesso abre um painel diferente.
+          </p>
 
-            <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
-              <div className="scw-acesso__cartao scw-acesso__cartao--destaque">
-                <div className="scw-acesso__cabeca">
-                  <span
-                    className="scw-acesso__selo"
-                    aria-hidden="true"
-                    /* Cyan sobre chocolate fecha 4,9:1. Roxo aqui daria 1,45:1 — por
-                       isso ele só aparece no card claro (§6.1). */
-                    style={{ background: 'var(--scw-cyan)', color: 'var(--scw-choco)' }}
-                  >
-                    <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                      <path d={TRACO_ORG} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                  <b className="scw-h3">Organização</b>
-                </div>
-                <span className="scw-acesso__cartao-txt">
-                  Respostas dos formulários do site: contato, participação e apoio.
-                </span>
-                <button type="button" className="scw-acesso__acao" onClick={() => setPasso('senha')}>
-                  Entrar com a senha
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <div className="scw-grade" style={{ '--scw-min': '260px', '--scw-gap': 'clamp(12px,1.6vw,18px)' }}>
+            <form className="scw-acesso__cartao scw-acesso__cartao--destaque" onSubmit={enviarOrg} noValidate>
+              <div className="scw-acesso__cabeca">
+                <span
+                  className="scw-acesso__selo"
+                  aria-hidden="true"
+                  /* Amarelo sobre chocolate fecha 9,5:1 (§6.1). */
+                  style={{ background: 'var(--scw-amarelo)', color: 'var(--scw-choco)' }}
+                >
+                  <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+                    <path d={TRACO_ORG} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </button>
-              </div>
-
-              <div className="scw-acesso__cartao scw-acesso__cartao--marca">
-                <div className="scw-acesso__cabeca">
-                  <span
-                    className="scw-acesso__selo"
-                    aria-hidden="true"
-                    style={{ background: 'rgba(77, 37, 126, .14)', color: 'var(--scw-roxo)' }}
-                  >
-                    <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                      <path d={TRACO_PART} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                  <b className="scw-h3">Sou participante</b>
-                </div>
-                <span className="scw-acesso__cartao-txt">
-                  Combo, dados da edição e resultados do Sweet Awards.
                 </span>
-                {/* Abre o mesmo diálogo no passo 'marca' — igual à Organização
-                    acima, e pelo mesmo motivo: provar quem é ANTES de trocar de
-                    página, não depois. A navegação real para /marca/ (página
-                    estática fora do bundle, §10.4-b) só acontece em
-                    enviarMarca, já autenticada. Sem <a href> aqui, a área
-                    também deixou de existir como link no DOM para qualquer
-                    rastreador — reforça o mesmo objetivo que o `nofollow`
-                    antigo tinha, e o `Disallow: /marca` do robots.txt segue
-                    valendo por conta própria. */}
-                <button type="button" className="scw-acesso__acao scw-acesso__acao--marca" onClick={() => setPasso('marca')}>
-                  Entrar com o nome da marca
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
+                <b className="scw-h3">Organização</b>
               </div>
-            </div>
-
-            <div className="scw-acesso__pe">
-              <p className="scw-acesso__pe-texto">
-                O acesso da marca é criado pela organização — login e senha chegam por ela.
-                Ainda não tem o seu? A equipe atende por aqui.
-              </p>
-              <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-                Falar com a equipe
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M4 12L12 4M6 4h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        ) : passo === 'senha' ? (
-          <div className="scw-acesso__corpo scw-acesso__corpo--senha">
-            <button
-              type="button"
-              className="scw-acesso__voltar"
-              onClick={() => { setPasso('escolha'); setErro(null); setSenha('') }}
-            >
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Voltar
-            </button>
-
-            <div className="scw-acesso__cabeca">
-              <span
-                className="scw-acesso__selo"
-                aria-hidden="true"
-                style={{ background: 'var(--scw-cyan)', color: 'var(--scw-choco)' }}
-              >
-                <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                  <path d={TRACO_ORG} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <span className="scw-acesso__cartao-txt">
+                Equipe do Sweet &amp; Coffee Week. Vê todas as marcas e move o caminho.
               </span>
-              <h2 className="scw-acesso__titulo" id="scw-acesso-titulo">Painel da organização</h2>
-            </div>
-            <p className="scw-acesso__lead">
-              Respostas dos formulários do site. A senha é a mesma do painel — só a organização tem.
-            </p>
 
-            <form className="scw-acesso__form" onSubmit={enviar} noValidate>
               <label className="scw-campo">
-                <span>Senha</span>
+                <span>Senha da equipe</span>
                 <input
-                  ref={campoRef}
+                  ref={campoOrgRef}
                   type="password"
                   name="senha"
                   autoComplete="current-password"
-                  value={senha}
-                  onChange={(e) => { setSenha(e.target.value); if (erro) setErro(null) }}
-                  aria-invalid={erro ? 'true' : undefined}
-                  aria-describedby={erro ? 'scw-acesso-erro' : undefined}
+                  value={senhaOrg}
+                  onChange={(e) => { setSenhaOrg(e.target.value); if (erroOrg) setErroOrg(null) }}
+                  aria-invalid={erroOrg ? 'true' : undefined}
+                  aria-describedby={erroOrg ? 'scw-acesso-erro-org' : undefined}
                 />
               </label>
 
               {/* `role="alert"` para o leitor de tela anunciar sem que o foco saia
                   do campo — quem errou a senha continua onde precisa digitar. */}
-              {erro && (
-                <p className="scw-acesso__erro" id="scw-acesso-erro" role="alert">
-                  {RECADO[erro]}
+              {erroOrg && (
+                <p className="scw-acesso__erro" id="scw-acesso-erro-org" role="alert">
+                  {RECADO[erroOrg]}
                 </p>
               )}
 
-              <button type="submit" className="scw-acesso__acao scw-acesso__acao--largo" disabled={verificando}>
-                {verificando ? 'Conferindo…' : 'Entrar no painel'}
-                {!verificando && (
+              <button type="submit" className="scw-acesso__acao" disabled={enviandoOrg}>
+                {enviandoOrg ? 'Conferindo…' : 'Entrar no painel'}
+                {!enviandoOrg && (
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -385,47 +320,27 @@ export function AccessDialog({ open, onClose }) {
               </button>
             </form>
 
-            <p className="scw-acesso__nota">
-              Esqueceu a senha? Ela não é recuperável — o banco guarda só o resumo dela.
-              Quem administra o projeto redefine.
-            </p>
-          </div>
-        ) : (
-          <div className="scw-acesso__corpo scw-acesso__corpo--senha">
-            <button
-              type="button"
-              className="scw-acesso__voltar"
-              onClick={() => { setPasso('escolha'); setErro(null); setSenha(''); setNomeMarca('') }}
-            >
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Voltar
-            </button>
-
-            <div className="scw-acesso__cabeca">
-              <span
-                className="scw-acesso__selo"
-                aria-hidden="true"
-                /* Mesmo roxo do card "Sou participante" na escolha — a cor
-                   segue o PAPEL (marca), não o passo. */
-                style={{ background: 'rgba(77, 37, 126, .14)', color: 'var(--scw-roxo)' }}
-              >
-                <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                  <path d={TRACO_PART} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            <form className="scw-acesso__cartao scw-acesso__cartao--marca" onSubmit={enviarMarca} noValidate>
+              <div className="scw-acesso__cabeca">
+                <span
+                  className="scw-acesso__selo"
+                  aria-hidden="true"
+                  /* Chocolate sobre cyan fecha 6,2:1 (§6.1). */
+                  style={{ background: 'var(--scw-cyan)', color: 'var(--scw-choco)' }}
+                >
+                  <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+                    <path d={TRACO_PART} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <b className="scw-h3">Participante</b>
+              </div>
+              <span className="scw-acesso__cartao-txt">
+                Sua casa. Cadastro do combo, pedidos e a venda de cada dia.
               </span>
-              <h2 className="scw-acesso__titulo" id="scw-acesso-titulo">Área da marca</h2>
-            </div>
-            <p className="scw-acesso__lead">
-              Use o nome do seu estabelecimento e a senha que a organização enviou.
-            </p>
 
-            <form className="scw-acesso__form" onSubmit={enviarMarca} noValidate>
               <label className="scw-campo">
-                <span>Nome do estabelecimento</span>
+                <span>Login da marca</span>
                 <input
-                  ref={nomeRef}
                   type="text"
                   name="nome"
                   autoComplete="username"
@@ -433,48 +348,73 @@ export function AccessDialog({ open, onClose }) {
                   spellCheck={false}
                   placeholder="ELOI Doces"
                   value={nomeMarca}
-                  onChange={(e) => { setNomeMarca(e.target.value); if (erro) setErro(null) }}
-                  aria-invalid={erro ? 'true' : undefined}
-                  aria-describedby={erro ? 'scw-acesso-erro' : undefined}
+                  onChange={(e) => { setNomeMarca(e.target.value); if (erroMarca) setErroMarca(null) }}
+                  aria-invalid={erroMarca ? 'true' : undefined}
+                  aria-describedby={erroMarca ? 'scw-acesso-erro-marca' : undefined}
                 />
               </label>
 
               <label className="scw-campo">
                 <span>Senha</span>
                 <input
-                  ref={campoRef}
                   type="password"
                   name="senha"
                   autoComplete="current-password"
                   placeholder="sua senha"
-                  value={senha}
-                  onChange={(e) => { setSenha(e.target.value); if (erro) setErro(null) }}
+                  value={senhaMarca}
+                  onChange={(e) => { setSenhaMarca(e.target.value); if (erroMarca) setErroMarca(null) }}
                 />
               </label>
 
               {/* `role="alert"` para o leitor de tela anunciar sem tirar o foco
-                  do campo — mesmo padrão do passo da organização. */}
-              {erro && (
-                <p className="scw-acesso__erro" id="scw-acesso-erro" role="alert">
-                  {RECADO_MARCA[erro]}
+                  do campo — mesmo padrão do formulário da organização. */}
+              {erroMarca && (
+                <p className="scw-acesso__erro" id="scw-acesso-erro-marca" role="alert">
+                  {RECADO_MARCA[erroMarca]}
                 </p>
               )}
 
-              <button type="submit" className="scw-acesso__acao scw-acesso__acao--largo" disabled={verificando}>
-                {verificando ? 'Conferindo…' : 'Entrar'}
-                {!verificando && (
+              {/* ⚠️ Sem <a href> aqui: a área não existe como link no DOM para
+                  nenhum rastreador — reforça o `Disallow: /marca` do
+                  robots.txt. A navegação real para /marca/ (página estática
+                  fora do bundle, §10.4-b) só acontece em enviarMarca, já
+                  autenticada. */}
+              <button type="submit" className="scw-acesso__acao scw-acesso__acao--marca" disabled={enviandoMarca}>
+                {enviandoMarca ? 'Conferindo…' : 'Entrar no painel'}
+                {!enviandoMarca && (
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </button>
             </form>
-
-            <p className="scw-acesso__nota">
-              A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.
-            </p>
           </div>
-        )}
+
+          <div className="scw-acesso__pe">
+            <div className="scw-acesso__pe-coluna">
+              <button
+                type="button"
+                className="scw-acesso__link-secundario"
+                onClick={() => setMostrarPrimeiro((v) => !v)}
+                aria-expanded={mostrarPrimeiro}
+              >
+                Primeiro acesso da marca
+              </button>
+              {mostrarPrimeiro && (
+                <p className="scw-acesso__pe-texto">
+                  Seu primeiro acesso usa os mesmos dois campos, com a senha que a
+                  organização mandou. Depois de entrar, você escolhe uma sua.
+                </p>
+              )}
+            </div>
+            <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+              Falar com a equipe
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M4 12L12 4M6 4h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1051,6 +1051,22 @@ esse atalho puparia a troca de senha obrigatória do primeiro acesso — a marca
 painel ainda com a senha que veio por WhatsApp (§10.4-b). Corrigido: o boot agora chama
 `precisaTrocarSenha()` sempre que acha sessão pronta, **não importa de onde ela veio**.
 
+**5 · Os dois formulários na mesma tela — 25/08/2026.** A partir do handoff
+"Painel SCW app" (`painel-scw.html`), os três passos do diálogo (escolha →
+senha → marca) viraram **um**: os dois cards já carregam o campo e o botão de
+entrar, sem clique intermediário para revelar o formulário. Cada card é o
+próprio `<form>`, com erro e envio independentes — os dois ficam visíveis ao
+mesmo tempo. ⚠️ **A cor dos selos trocou**: Organização passa a **amarelo**
+(era cyan), Participante passa a **cyan** (era roxo/transparente) — a régua de
+5px abaixo do cabeçalho segue a mesma troca. O campo de identidade da marca
+virou dois (nome **e** senha): o handoff mostra só um campo ("Login da
+marca"), mas entrar de verdade exige senha (Supabase Auth) — um campo a mais
+aqui é a leitura compatível, não um desvio do desenho. "Primeiro acesso da
+marca" é um link que revela uma nota, não uma tela nova: o primeiro acesso já
+usa os MESMOS dois campos, e quem troca a senha é `/marca/`, depois do login
+(item 4 acima) — duplicar aqui a tela de senha nova seria um segundo caminho
+para o mesmo passo (§5.2).
+
 ### 6.11 Iconografia v2
 
 `<ScwIcon nome="familia/nome" tamanho={20} />` — fonte única em
