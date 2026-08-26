@@ -2413,6 +2413,78 @@ e no computador liga nos dois, separadamente.
 organização. SW cacheado prende a correção no navegador de quem já abriu, e
 nenhum deploy a alcança.
 
+#### Casca comum, mesa, vendas diárias e agenda de vagas — 25/08/2026 (Fase 8)
+
+Handoff de design "Painel SCW app" aplicado nos dois painéis (`organizacao/`,
+`marca/`), a partir de uma investigação prévia que achou o pacote com metade
+sem lastro — o README do próprio handoff avisava: a seção do participante foi
+desenhada sem ler `public/marca/index.html`. A conferência ficou registrada
+como `CONFERENCIA-MARCA.md`, entregue junto do handoff (fora do repositório).
+
+**O que mudou de verdade:**
+
+- **Rail (desktop, 72px) nos dois painéis.** Reusa os MESMOS ícones e o mesmo
+  `data-vista`/`irPara()` que a barra de abas do celular já usava em
+  `organizacao/` — entrou sem JS novo de navegação. Em `marca/`, que não tinha
+  navegação alguma (uma coluna só, rolagem contínua), a rail e as abas são
+  novas, com 4 destinos reais: **hoje · cadastro · pedidos · arquivos**. Os
+  5 blocos do formulário (A marca/O tema/Os três itens/Preço/Onde encontrar)
+  só mudaram de casa — nomes e campos são os que já existiam, conferidos
+  contra o arquivo real.
+- **"Resumo" (dashboard por origem) virou "mesa"** (kanban de 6 etapas) na
+  organização. Mudança de EIXO: mede por etapa da candidatura, não por
+  formulário de origem. `nao_selecionado` fica de fora das 6 colunas de
+  propósito — seria uma esteira que nunca esvazia; continua visível em
+  Respostas, com o filtro que já existia.
+- **Tela de boas-vindas + dois setores** (`vBoasVindas` em `marca/`) —
+  pedido do Eloi: é a tela de quem abre o app instalado no celular. Repete o
+  papel do cartão "Sou participante" do `AccessDialog.jsx` do site, mas
+  **local** ao painel estático (não duplica autenticação — só antecede o
+  mesmo formulário de sempre). Cor roxa e ícones já testados no site, **não**
+  os do PATCH original (amarelo/cyan), que reabririam uma combinação já
+  rejeitada por contraste (§6.1/§6.10).
+- **Notificações derivadas** (nunca escritas à mão) nos dois painéis. Em
+  `organizacao/` abrem na MESMA gaveta que já existia (`abrirFolha` —
+  patch §3 já estava resolvido sob outro nome). Em `marca/`, que não tinha
+  gaveta nenhuma, é um painel leve (`abrirNotificacoesMarca`), não uma folha
+  completa — construir a coreografia de folha/gaveta do zero era escopo maior
+  do que a peça pedia.
+- **Agenda de fotos, segundo modo.** `sessoes_fotos` ganhou o status
+  `'aberto'` (vaga sem dona) em vez de tabela paralela — mesmo conceito, um
+  valor a mais (migration `20260825_fase7_vendas_diarias_e_vagas_fotos.sql`).
+  A organização abre/fecha vaga (`abrir_vaga_fotos`/`fechar_vaga_fotos`); a
+  marca reserva com um `PATCH .../sessoes_fotos?id=eq.X&status=eq.aberto` —
+  atômico por construção, sem RPC nova: duas marcas clicando a mesma vaga só
+  uma tem linha afetada. "Marcar eu mesma" reaproveita
+  `agendar_sessao_fotos`, que já fazia exatamente isso.
+- **Lançamento diário de combos vendidos** (view "hoje" da marca) — tabela
+  nova `vendas_diarias`, upsert direto por PostgREST sob RLS (sem RPC).
+  ⚠️ **Simplificação assumida:** o "momento" antes-de-abrir/em-curso do
+  handoff não é distinguido — a página não busca (e não tinha de onde
+  buscar) a data de início da edição. O campo de lançamento fica sempre
+  visível, em vez de arriscar bloquear um lançamento válido com um sinal que
+  não existe.
+
+**O que ficou de fora, e por quê:**
+
+- **DesignSync não foi rodado.** Rodar exige revisar o plano de arquivos
+  antes de escrever — não coube no tempo desta rodada.
+- **O protótipo (`Painel SCW app.dc.html`) não foi aberto no navegador** para
+  conferência visual ponto a ponto — a implementação seguiu README/PATCH em
+  texto. Onde os dois divergiam da estrutura real, o código manda (§0.1),
+  registrado em `CONFERENCIA-MARCA.md`.
+- **`tests/responsive.mjs` não cobre estas duas páginas** — ele testa as 6
+  rotas do SPA institucional (`.scw-*`), não `public/organizacao/` nem
+  `public/marca/`. Não existe hoje um teste responsivo automatizado para os
+  dois painéis; é lacuna a fechar, não algo que esta rodada tenha verificado.
+- **Conteúdo autenticado não foi conferido ao vivo.** Sem a senha real de
+  nenhum dos dois painéis (que não devo ter nem simular), a verificação foi
+  por estrutura e teste (`tests/organizacao.test.mjs` 59/59,
+  `tests/marca.test.mjs` 26/26), não por navegação visual logada.
+- **Formulários da organização (patch §9)** já existiam quase por inteiro
+  antes desta rodada (`abrirNovoPedido`/`abrirNovoArquivo`/`abrirNovaSessao`/
+  `abrirNovaConta`, todos via `abrirFolha`) — não foram tocados.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
