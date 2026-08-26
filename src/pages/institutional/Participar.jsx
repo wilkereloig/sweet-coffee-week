@@ -151,7 +151,7 @@ export function ParticiparPage() {
 
         <div className="pa-hero__grade">
           <div>
-            <span className="scw-pill scw-pill--pagina pa-hero__selo">Para doçarias, cafeterias e restaurantes</span>
+            <span className="scw-pill scw-pill--pagina pa-hero__selo">Doces, cafés e restaurantes</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               A próxima edição está a caminho{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}

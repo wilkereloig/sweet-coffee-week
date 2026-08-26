@@ -10,6 +10,7 @@ import { CookieConsent } from './components/CookieConsent'
 import { SiteFooter } from './components/SiteFooter'
 import { BotaoTopo } from './components/BotaoTopo'
 import { useSiteMotion } from './hooks/useSiteMotion'
+import { applyPageMeta } from './lib/pageMeta'
 
 import { HomePage }         from './pages/institutional/Home'
 import { EdicoesPage }      from './pages/institutional/Edicoes'
@@ -34,7 +35,23 @@ const AWARDS_ONLY_PUBLICATION = false
 // edição Lovers 2026.1 com links pros posts de resultado no Instagram.
 // O institucional completo segue visível em DEV e em previews
 // *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
-const COMING_SOON_PUBLICATION = true
+// DESLIGADO em 26/08/2026 (decisão do Eloi): entra o lançamento parcial abaixo.
+const COMING_SOON_PUBLICATION = false
+
+// Lançamento parcial "SÓ PARTICIPANTES" (26/08/2026, decisão do Eloi): o
+// domínio oficial mostra só Participar (inclusive na home, '/') e Contato —
+// as demais páginas institucionais ainda não estão prontas para visita real.
+// Toda rota que não for Contato (nem Awards-only/em-breve, tratados antes)
+// força 'participar', mesmo padrão de AWARDS_ONLY_PUBLICATION acima. O clique
+// no menu para Home/Edições/Awards/Apoiar troca o hash mas a página
+// renderizada não muda — do ponto de vista de quem navega, "não acontece
+// nada" (pedido do Eloi). As três páginas estáticas fora do bundle
+// (/quero-participar/, /marca/, /organizacao/ — §10.4-b) não passam por
+// aqui e continuam no ar normalmente, inclusive o botão "Acesso" do
+// cabeçalho. Preview institucional completo (INSTITUTIONAL_PREVIEW) segue
+// liberado em DEV e em *.vercel.app?preview=1, para revisar as páginas
+// trancadas antes de destrancar de verdade.
+const PARTICIPANTES_ONLY_PUBLICATION = true
 
 // PREVIEW DEV-only do institucional: permite revisar Edições,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
@@ -91,6 +108,9 @@ export default function App() {
     if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
     // Rota direta p/ revisar a landing em DEV/preview.
     if (path.startsWith('/em-breve')) return 'em-breve'
+    // Lançamento parcial: Contato sai livre; qualquer outra rota pública vira
+    // Participar (inclusive a home). Ver PARTICIPANTES_ONLY_PUBLICATION acima.
+    if (PARTICIPANTES_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW && !path.startsWith('/contato')) return 'participar'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
@@ -120,6 +140,21 @@ export default function App() {
     const cls = `route-${route}`
     document.body.classList.add(cls)
     return () => document.body.classList.remove(cls)
+  }, [route])
+
+  // router.js já chama applyPageMeta(path) no path CRU (hash/pathname). Isso
+  // basta na publicação normal, mas com PARTICIPANTES_ONLY_PUBLICATION (ou
+  // AWARDS_ONLY_PUBLICATION/COMING_SOON_PUBLICATION) a ROTA renderizada diverge
+  // do path digitado -- sem isto, /edicoes mostraria o conteúdo de Participar
+  // com a aba do navegador e a meta description ainda dizendo "Edições".
+  // Roda por cima, na rota já resolvida, então corrige os três modos restritos
+  // de uma vez sem duplicar a lógica de cada flag aqui.
+  React.useEffect(() => {
+    const pathPorRota = {
+      home: '/', edicoes: '/edicoes', 'historico-awards': '/sweet-awards',
+      participar: '/participar', apoiar: '/apoiar', contato: '/contato', 'em-breve': '/',
+    }
+    applyPageMeta(pathPorRota[route] || '/')
   }, [route])
 
   // Áreas internas (painéis) e a landing "em breve" são tela cheia: sem
