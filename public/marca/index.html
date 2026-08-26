@@ -1454,7 +1454,20 @@ button.link{
       history.replaceState(null, '', location.pathname)
       if (doHash.tipo === 'recovery' || doHash.tipo === 'invite') { ver('senha'); return }
     }
-    if (sessaoLer()) { carregar(); return }
+    /* ⚠️ Não basta achar sessão pronta e ir direto pro painel. Até 25/08/2026
+       isso era seguro porque só existia UM jeito de a sessão nascer — o form
+       aqui embaixo, que sempre passa por precisaTrocarSenha() antes de chamar
+       carregar(). Desde que o diálogo de acesso do site (AccessDialog.jsx)
+       passou a autenticar e já entregar a sessão pronta em
+       sessionStorage.scw_marca, esse atalho viraria uma segunda porta que
+       pula a troca de senha obrigatória do primeiro acesso (§10.4-b) — a
+       marca cairia direto no painel ainda com a senha que veio por WhatsApp.
+       A checagem tem que valer para QUALQUER origem da sessão, não só para a
+       que nasce aqui dentro. */
+    if (sessaoLer()) {
+      precisaTrocarSenha().then(function (precisa) { if (precisa) { ver('senha') } else { carregar() } })
+      return
+    }
     ver('login')
   }
 

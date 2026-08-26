@@ -342,7 +342,7 @@ src/
                 imageVariants.js (GERADO — não editar à mão),
                 handoff/{edicoesData,awardsData}.js
   data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
-  lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js,
+  lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js, marcaAccess.js,
                 contactRequest.js, participationInterest.js, supportInterest.js
   hooks/        useSiteMotion.js (motor de movimento do institucional)
                 useRevealOnScroll.js (sistema anterior, só /em-breve)
@@ -951,7 +951,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) — compõe `.scw-casca-base` |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
 | Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ A ação nova é `<a>`, e por isso o seletor dela é **prefixado** — sem prefixo ela nasce chocolate sobre chocolate, 1:1 (§10.1). **Reformulado em 22/08/2026** (§6.10-b) |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ **Desde 25/08/2026 a ação do cartão também não é mais `<a>`:** igual à Organização, ela abre um passo de login dentro do MESMO diálogo (nome do estabelecimento + senha), com Supabase Auth de verdade — ver §6.10-b, ponto 4. **Reformulado em 22/08/2026 e 25/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
@@ -984,7 +984,7 @@ lugar.**
 acordeão — **46px** para pílula de ação dentro de card, **54px** no herói. ⚠️ **O piso
 vale para o controle real, não para a linha que o contém.**
 
-#### 6.10-b Tela de acesso — reformulada em 22/08/2026
+#### 6.10-b Tela de acesso — reformulada em 22/08/2026 e 25/08/2026
 
 Pedido do Eloi, três frentes.
 
@@ -1024,6 +1024,32 @@ amarelo (~1,4:1); agora é chocolate sobre amarelo, 9,5:1.
 herda a borda `2px outset` padrão do navegador. E o hover de `.scw-acesso__acao` inverte
 para creme, leitura que só funciona sobre a chapa chocolate do cartão: no passo da senha,
 que mora no corpo creme, o botão inverte para **chocolate** (12:1), senão sumiria.
+
+**4 · A marca entra pelo mesmo caminho — 25/08/2026.** Pedido do Eloi: *"a área da marca
+deve funcionar igual a área de login da organização"*. Até então "Sou participante" era
+um `<a href="/marca/">` puro — a pessoa saía do diálogo direto para o formulário estático,
+sem nenhuma casca da folha/gaveta. Agora ele abre o passo `'marca'` no MESMO diálogo,
+desenho idêntico ao passo da organização, só o selo trocando para roxo (a cor do próprio
+cartão na escolha).
+⚠️ **A autenticação NÃO é a senha compartilhada da organização.** `/marca/` já usava
+Supabase Auth de verdade (e-mail sintético `<slug>@marcas.…` + senha, §10.4-b) — o diálogo
+só antecipa esse MESMO passo, em `src/lib/marcaAccess.js` (mesmo padrão de
+`adminAccess.js`: lib pura, `signIn` injetado, sem import de supabase). A sessão gravada
+em `sessionStorage.scw_marca` é o formato exato que `sessaoSalvar()` de
+`public/marca/index.html` já produz (`access_token`, `refresh_token`, `expira_em`
+calculado, `email`) — é por isso que `window.location.href = '/marca/'`, já autenticado,
+abre direto no painel em vez de pedir login de novo.
+⚠️ **`slugificar`/`enderecoDeLogin` viraram TRÊS cópias**, não duas: a página estática, a
+Edge Function `criar-acesso-marca` e agora `marcaAccess.js`. `tests/marca.test.mjs`
+("as três slugificações casam") compara as três — divergir uma faz a marca digitar o nome
+certo e não entrar, com erro genérico de propósito.
+🔴 **A brecha que isso quase abriu:** `public/marca/index.html` decidia, no boot, "achei
+sessão em sessionStorage → `carregar()` direto", sem checar `deve_trocar_senha`. Era
+seguro só porque a ÚNICA forma de a sessão nascer era o próprio formulário, que sempre
+passava por essa checagem antes. Com o diálogo plantando sessão por um segundo caminho,
+esse atalho puparia a troca de senha obrigatória do primeiro acesso — a marca cairia no
+painel ainda com a senha que veio por WhatsApp (§10.4-b). Corrigido: o boot agora chama
+`precisaTrocarSenha()` sempre que acha sessão pronta, **não importa de onde ela veio**.
 
 ### 6.11 Iconografia v2
 
