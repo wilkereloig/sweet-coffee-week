@@ -236,16 +236,16 @@ preview.**
   | Formulário | Lib | RPC |
   |---|---|---|
   | Contato | `src/lib/contactRequest.js` | `submit_contact_request` |
-  | ~~Participar~~ | `src/lib/participationInterest.js` | `submit_participation_interest` |
   | Apoiar | `src/lib/supportInterest.js` | `submit_support_interest` |
   | **Quero participar** (estática) | — o próprio HTML | `submit_quero_participar` |
 
-  ⚠️ **`Participar` está riscado desde 22/08/2026: a página deixou de ter formulário**
-  (§7.4). A lib e a RPC continuam em pé e testadas, mas **sem nenhum importador** — o
-  pré-cadastro virou a chamada para `/quero-participar/`. Deixar ou remover
-  `participationInterest.js` é decisão em aberto: a tabela `participation_interests`
-  guarda os envios antigos, e apagar código que ainda tem dado do outro lado é o tipo
-  de limpeza que o §4.3 manda fazer devagar.
+  ⚠️ **`participationInterest.js` foi removido em 26/08/2026** (junto com
+  `tests/participation-interest.test.mjs`). A página `Participar` (§7.4) não tem
+  formulário desde 22/08/2026 — o pré-cadastro virou a chamada para
+  `/quero-participar/`, e a lib ficou sem nenhum importador. **A RPC
+  `submit_participation_interest` e a tabela `participation_interests` continuam no
+  Supabase, intocadas:** guardam os envios antigos, e apagar schema com dado do
+  outro lado não é limpeza de frontend (§4.3).
 
   ⚠️ **Ter código de backend não é ter backend.** Em 20/08/2026 descobriu-se que
   **as três migrations de formulário nunca tinham sido aplicadas**: as tabelas
@@ -343,7 +343,7 @@ src/
                 handoff/{edicoesData,awardsData}.js
   data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
   lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js, marcaAccess.js,
-                contactRequest.js, participationInterest.js, supportInterest.js
+                contactRequest.js, supportInterest.js
   hooks/        useSiteMotion.js (motor de movimento do institucional)
                 useRevealOnScroll.js (sistema anterior, só /em-breve)
   styles/scw-2026.css      SISTEMA VISUAL ATUAL: tokens --scw-*, casca, utilitárias
