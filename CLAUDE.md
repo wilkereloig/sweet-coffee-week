@@ -342,7 +342,7 @@ src/
                 imageVariants.js (GERADO — não editar à mão),
                 handoff/{edicoesData,awardsData}.js
   data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
-  lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js,
+  lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js, marcaAccess.js,
                 contactRequest.js, participationInterest.js, supportInterest.js
   hooks/        useSiteMotion.js (motor de movimento do institucional)
                 useRevealOnScroll.js (sistema anterior, só /em-breve)
@@ -359,8 +359,10 @@ public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
                 + variantes `NN-480.webp` / `NN-960.webp` ao lado do original
 public/fonts/nexa-slab/
 public/manifest.webmanifest   camada de aplicativo (theme-color, ícones, iOS)
-public/marca/ · public/quero-participar/ · public/organizacao/
-                estáticas, fora do bundle (§10.4-b)
+public/marca/ · public/quero-participar/ · public/organizacao/ · public/painel/
+                estáticas, fora do bundle (§10.4-b). painel/ é o painel unificado
+                (organização + marca); os outros dois viraram porta de entrada
+                que redireciona para lá depois do login real
 acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
@@ -423,8 +425,13 @@ raio, sombra e as seis cores de marca da Lovers que `participants.js` ainda lê.
 sem extrair teria quebrado a única página no ar.
 
 `em-breve.css` preserva esses tokens **já resolvidos**, sem `var()` encadeado. ⛔ **Não
-usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`. Este arquivo morre
-junto com a landing, quando o institucional for publicado.
+usar nenhum deles em página nova** — o sistema vivo é `scw-2026.css`.
+
+⚠️ **Em 25/08/2026 a landing parou de consumi-los** (§7.7): a reescrita a levou para a
+paleta viva. O arquivo **continua obrigatório** mesmo assim — `components/icons.jsx` e
+`data/participants.js` / `participantAssets.js` leem tokens dele. É a lição do §4.3 outra
+vez: **quem apaga por caminho não vê quem consome por `var()`.** Ele morre quando o
+último consumidor sair, não quando a landing sair.
 
 #### ⛔ O que continua intocável
 
@@ -942,10 +949,11 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
 | Navegação | `.scw-nav` | `nav.jsx` |
-| Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) |
+| Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
+| Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) — compõe `.scw-casca-base` |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
 | Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
-| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito** (20/08/2026): Organização vem primeiro, em chapa chocolate, com botão de ação amarelo; Participante vem depois, em bege com **moldura tracejada** — a mesma da reserva honesta (§6.12) — e selo "em breve", sem hover e sem botão morto. A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois de novo. **Reformulado em 22/08/2026** (§6.10-b) |
+| Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ **Desde 25/08/2026 a ação do cartão também não é mais `<a>`:** igual à Organização, ela abre um passo de login dentro do MESMO diálogo (nome do estabelecimento + senha), com Supabase Auth de verdade — ver §6.10-b, ponto 4. **Reformulado em 22/08/2026 e 25/08/2026** (§6.10-b) |
 | Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
@@ -978,7 +986,7 @@ lugar.**
 acordeão — **46px** para pílula de ação dentro de card, **54px** no herói. ⚠️ **O piso
 vale para o controle real, não para a linha que o contém.**
 
-#### 6.10-b Tela de acesso — reformulada em 22/08/2026
+#### 6.10-b Tela de acesso — reformulada em 22/08/2026 e 25/08/2026
 
 Pedido do Eloi, três frentes.
 
@@ -1018,6 +1026,48 @@ amarelo (~1,4:1); agora é chocolate sobre amarelo, 9,5:1.
 herda a borda `2px outset` padrão do navegador. E o hover de `.scw-acesso__acao` inverte
 para creme, leitura que só funciona sobre a chapa chocolate do cartão: no passo da senha,
 que mora no corpo creme, o botão inverte para **chocolate** (12:1), senão sumiria.
+
+**4 · A marca entra pelo mesmo caminho — 25/08/2026.** Pedido do Eloi: *"a área da marca
+deve funcionar igual a área de login da organização"*. Até então "Sou participante" era
+um `<a href="/marca/">` puro — a pessoa saía do diálogo direto para o formulário estático,
+sem nenhuma casca da folha/gaveta. Agora ele abre o passo `'marca'` no MESMO diálogo,
+desenho idêntico ao passo da organização, só o selo trocando para roxo (a cor do próprio
+cartão na escolha).
+⚠️ **A autenticação NÃO é a senha compartilhada da organização.** `/marca/` já usava
+Supabase Auth de verdade (e-mail sintético `<slug>@marcas.…` + senha, §10.4-b) — o diálogo
+só antecipa esse MESMO passo, em `src/lib/marcaAccess.js` (mesmo padrão de
+`adminAccess.js`: lib pura, `signIn` injetado, sem import de supabase). A sessão gravada
+em `sessionStorage.scw_marca` é o formato exato que `sessaoSalvar()` de
+`public/marca/index.html` já produz (`access_token`, `refresh_token`, `expira_em`
+calculado, `email`) — é por isso que `window.location.href = '/marca/'`, já autenticado,
+abre direto no painel em vez de pedir login de novo.
+⚠️ **`slugificar`/`enderecoDeLogin` viraram TRÊS cópias**, não duas: a página estática, a
+Edge Function `criar-acesso-marca` e agora `marcaAccess.js`. `tests/marca.test.mjs`
+("as três slugificações casam") compara as três — divergir uma faz a marca digitar o nome
+certo e não entrar, com erro genérico de propósito.
+🔴 **A brecha que isso quase abriu:** `public/marca/index.html` decidia, no boot, "achei
+sessão em sessionStorage → `carregar()` direto", sem checar `deve_trocar_senha`. Era
+seguro só porque a ÚNICA forma de a sessão nascer era o próprio formulário, que sempre
+passava por essa checagem antes. Com o diálogo plantando sessão por um segundo caminho,
+esse atalho puparia a troca de senha obrigatória do primeiro acesso — a marca cairia no
+painel ainda com a senha que veio por WhatsApp (§10.4-b). Corrigido: o boot agora chama
+`precisaTrocarSenha()` sempre que acha sessão pronta, **não importa de onde ela veio**.
+
+**5 · Os dois formulários na mesma tela — 25/08/2026.** A partir do handoff
+"Painel SCW app" (`painel-scw.html`), os três passos do diálogo (escolha →
+senha → marca) viraram **um**: os dois cards já carregam o campo e o botão de
+entrar, sem clique intermediário para revelar o formulário. Cada card é o
+próprio `<form>`, com erro e envio independentes — os dois ficam visíveis ao
+mesmo tempo. ⚠️ **A cor dos selos trocou**: Organização passa a **amarelo**
+(era cyan), Participante passa a **cyan** (era roxo/transparente) — a régua de
+5px abaixo do cabeçalho segue a mesma troca. O campo de identidade da marca
+virou dois (nome **e** senha): o handoff mostra só um campo ("Login da
+marca"), mas entrar de verdade exige senha (Supabase Auth) — um campo a mais
+aqui é a leitura compatível, não um desvio do desenho. "Primeiro acesso da
+marca" é um link que revela uma nota, não uma tela nova: o primeiro acesso já
+usa os MESMOS dois campos, e quem troca a senha é `/marca/`, depois do login
+(item 4 acima) — duplicar aqui a tela de senha nova seria um segundo caminho
+para o mesmo passo (§5.2).
 
 ### 6.11 Iconografia v2
 
@@ -1519,9 +1569,190 @@ sem prometer link que não existe.
 
 ### 7.7 Em breve — `/em-breve`
 
-Landing própria, uma seção. É o gate de publicação (`COMING_SOON_PUBLICATION`). **É a
-única página servida por `motion-system.css` + `useRevealOnScroll.js`.** ⛔ Não tocar sem
-pedido explícito — é o que está no ar.
+Landing própria. É o gate de publicação (`COMING_SOON_PUBLICATION`) e **é a única página
+servida por `motion-system.css` + `useRevealOnScroll.js`.** ⛔ Não tocar sem pedido
+explícito — é o que está no ar.
+
+**Desde 25/08/2026 ela é a chamada do pré-cadastro**, e não mais "aviso de novo site + o
+Sweet Awards da Lovers". Oito blocos, rolagem curta, **uma ação só — `Quero participar`
+→ `/quero-participar/`**.
+
+⛔ **Desde 25/08/2026 essa ação existe em UM lugar só: a barra presa na base** (pedido do
+Eloi). Os três botões que moravam no herói, no fim dos passos e no fecho **saíram**, e a
+barra deixou de ser peça de celular para valer em **toda largura**. **Não devolver botão
+para dentro das seções**: a página tem uma conversão só, e espalhá-la de novo é a mesma
+troca que já foi desfeita — o leitor reencontrar a ação três vezes em vez de ela nunca
+sair da tela.
+
+**A barra é a mesma casca da barra de abas do site** (`.scw-casca-base`, §6.10) — chapa
+translúcida com desfoque, filete de creme e o mesmo ritmo vertical de 8px. Foi pedido do
+Eloi: *"faz tipo como é o menu mobile, integrado, animado"*.
+
+| Peça da barra | Regra |
+|---|---|
+| Chapa | `.scw-casca-base` — **não** redeclarar cor, desfoque nem `position` aqui |
+| Indicador de 3px | é a peça da barra de abas, com **sentido próprio**: lá diz *onde* você está entre cinco destinos, aqui *quanto* da página já leu. `scaleX`, origem à esquerda, **sem transição** (§10.3) |
+| Nota "Leva quatro passos…" | acompanha o botão acima de 760px; **sai** abaixo, onde cada linha a mais é viewport a menos. A informação reaparece dentro do próprio `/quero-participar/`, que numera os passos na tela |
+| Botão | `.eb-barra__btn`, tinta **prefixada** em chocolate (§10.1) |
+| Altura | `--eb-barra-h`, escrito **no `body`** por `ResizeObserver` |
+
+⛔ **O botão NÃO estica no celular.** Esticado ele vira uma lâmina amarela de ponta a
+ponta, e a barra deixa de ler como casca de aplicativo — a barra de abas é **escura com
+acentos contidos**, e é com ela que esta peça conversa. Na largura do conteúdo o alvo
+ainda passa de 200px, muito acima dos 44px do §6.10.
+
+✅ **A landing entrou no reset do sistema em 25/08/2026, e as duas exclusões caíram.**
+Até então `scw-2026.css` a mantinha fora do `box-sizing: border-box` **e** do
+`body { margin: 0 }`, por `body:not(.route-em-breve)`. A ressalva foi escrita quando a
+página era a de antes — "calibrada em content-box e no ar" —, e a reescrita de 25/08 a
+levou para as utilitárias do sistema: a partir dali a exclusão deixou de proteger e passou
+a custar. **Não existe mais rota fora do reset**, e ⛔ não se redeclara `box-sizing` dentro
+da landing: seria a segunda fonte de verdade do §5.2.
+
+O que a exclusão custava, medido antes e depois nas três larguras:
+
+| Sintoma | Antes | Depois |
+|---|---|---|
+| `.scw-btn` da barra | **84px** (54 de `min-height` + 30 de padding por cima) | **54px** |
+| Controles da galeria | 51px (48 de caixa + 1,5 de borda dos dois lados) | 48px |
+| Posição da página | `x = 8`, **16px mais estreita que a viewport** (374 de 390; 1424 de 1440) | `x = 0`, largura cheia |
+| Faixas que sangram | uma tira do fundo do `<body>` descendo pelos dois lados | sem tira |
+| Barra fixa da ação | 16px **mais larga** que a página (ela se posiciona contra a viewport, não contra o body) | do mesmo tamanho |
+
+⚠️ **A faixa do topo encolheu junto, e isso é a zona de segurança do §6.7** — com
+`border-box`, o `min-height` dela passa a **conter** o padding: 132 → 104px no desktop,
+104 → 86px no celular. A folga entre o botão "Acesso" e o selo do herói caiu de 78 para
+**52px** e continua sobrando. Ao mexer em `.eb-topo`, medir de novo.
+
+⚠️ **O separador do rodapé é um VÃO DE FLEX, não um "·".** O caractere órfa nas duas
+pontas e não existe posição que resolva: preso ao texto, a primeira linha terminava nele;
+movido para dentro do link, a segunda linha passava a **começar** com ele. O link é
+`inline-flex` com 44px de alvo (§10.2), então quebra cedo e a quebra sempre cai ali. O
+"·" que é conteúdo continua dentro de "Week · Natal/RN".
+
+⚠️ **O convite é FINITO, e isso é regra, não economia.** A página já tem dois laços
+contínuos — o marquee e o gradiente dele —, que é o teto do §6.15. Um pulso permanente na
+barra seria o terceiro, e ainda por cima **um que ninguém pode pausar**: diferente da
+galeria, não há como parar um botão que pisca. O gesto dispara em **dois momentos e
+para** — quando a barra chega, e quando o leitor alcança o fecho, que é onde ele decide.
+Voltar ao fecho **não** redispara: insistir deixa de ser convite e vira cutucão.
+
+⚠️ **A altura da barra se MEDE, não se calcula** — é o §10.4-b outra vez. O palpite
+"padding + botão" deu 70px; o botão real tem **84px**, e a barra cobria 31px do rodapé e
+se sobrepunha ao aviso de cookies **nas três larguras**. Quem escreve `--eb-barra-h` é o
+próprio elemento, por `ResizeObserver`, e reescreve quando a fonte carrega, quando a tela
+gira e quando a nota entra ou sai no ponto de 760px.
+
+⚠️ **O token mora no `body`, não em `.eb-page`** — quem também precisa dele é o aviso de
+cookies, que é peça de casca (§6.10), **irmã** desta página e não filha dela. Ele sobe a
+altura da barra: banner de consentimento por cima da única conversão é as duas coisas
+piores ao mesmo tempo — esconde a ação e faz o aviso legal parecer estorvo. A regra é
+**escopada na rota**, porque o mesmo banner serve as sete e só esta tem barra fixa.
+
+| Bloco | O que é |
+|---|---|
+| Topo | faixa chocolate com `MARCA_SCW`. O botão "Acesso" **não mora aqui** — vem do `<SiteHeader apenasAcesso>` do `App.jsx` |
+| Herói | **grade de duas colunas**: rótulo + H1 + lead + ação à esquerda, a **galeria das 16 edições** à direita |
+| Prova | 16 edições · +120 marcas · +34 mil combos · desde 2016 — cada um com ícone |
+| Marquee | os 16 temas, em `.scw-marquee` |
+| Para quem é | os dez tipos de casa + os três chips do combo (doce · salgado · café) |
+| Como funciona | três passos + a ação |
+| Fecho | chapa chocolate, a ação e a linha do Instagram |
+| Rodapé | **creme**, com a marca da F2 |
+
+#### A galeria das 16 edições — herói reescrito em 25/08/2026
+
+O herói **deixou de ter foto de fundo com texto por cima**. A grade
+`repeat(auto-fit, minmax(min(100%,400px), 1fr))` colapsa sozinha, **sem media
+query**, e por isso saíram junto: o véu diagonal, os tokens `--hv-*`, a emenda
+de três paradas do celular, o `@media (max-width:1000px)` inteiro do herói e a
+respiração de 26s (`ebRespira`) — a galeria tem movimento próprio e as duas
+competiriam. ⛔ Não recriar nenhum deles: não há mais texto sobre foto, então
+não há o que velar.
+
+Quadro 1:1, 16 slides em `flex`, deslocados por **um custom property só**
+(`--eb-i`) em vez de dezesseis regras. Cada slide traz foto, véu de **cinco
+paradas**, marca da edição, pílula do rótulo e legenda com o vencedor do Melhor
+Combo.
+
+⚠️ **A pausa não é conforto, é requisito.** WCAG 2.2.2: movimento automático
+acima de 5s que carrega informação tem de ser pausável. Ela para por mouse, por
+foco e pelo botão, e **nunca liga** com `prefers-reduced-motion`. É também o que
+impede a galeria de ser o **terceiro laço contínuo** da página, acima do teto de
+dois (o marquee e o gradiente dele).
+
+⚠️ **O ouvinte de mouse e foco fica no INVÓLUCRO, não no quadro.** O quadro não
+tem nada focável dentro — os três botões moram nos controles, abaixo dele —,
+então `onFocus` no quadro nunca dispararia e a pausa por teclado seria letra
+morta.
+
+⚠️ **A região viva anuncia só a troca MANUAL.** Um `aria-live` disparando a cada
+5,2s, para sempre, interromperia a leitura de quem usa leitor de tela a cada
+cinco segundos. Os 15 slides fora de vista são `aria-hidden`.
+
+⛔ **Contorno claro no `drop-shadow` da marca, NUNCA chapa atrás dela** — a chapa
+foi desenhada, mostrada e recusada. São 16 marcas de cores arbitrárias sobre
+fotografia arbitrária, e o caso que quebra é escuro-sobre-escuro (a marca vinho
+de Séries sobre uma cortina vinho). ⛔ **Escurecer o véu piora esse caso.**
+
+⚠️ **A prova usa `repeat(4,1fr)` + `repeat(2,1fr)` abaixo de 900px, não
+auto-fit.** Qualquer auto-fit desce de 4 para **3** antes de chegar a 2, e o
+quarto item fica órfão com dois vãos ao lado — inclusive com o piso de 140px que
+o handoff propunha. E **"desde 2016" é palavra, não numeral**: tem escala própria
+(`clamp(30px,3.2vw,54px)`) e pode quebrar em duas linhas; na escala dos outros
+três ela estoura a coluna e some no `overflow-x: clip`, sem barra que denuncie.
+
+⚠️ **A barra final de `/quero-participar/` não é enfeite** (§10.4-b), e é `<a href>` de
+navegador — nunca `navigate()`, nunca `#/`.
+
+🐛 **`editionPhotos()` devolve OBJETO — `{src, alt, position, indice}` —, não
+caminho.** Tratá-lo como string produz `url([object Object])`, e o **fallback do
+SPA responde 200 com o index.html**: nenhum 404, nenhum erro de console, e a foto
+simplesmente não aparece. Custou uma rodada inteira de teste verde com a galeria
+em branco. **Status 200 não prova que o asset existe** — a checagem que vale é o
+`content-type` da resposta e o `naturalWidth` depois do `onload`. O `alt` e o
+ponto focal saem do mesmo objeto: escrever descrição de foto que ninguém viu
+seria dado inventado por outro meio (A4).
+
+⚠️ **Não usar backtick dentro do `<style>{\`…\`}`** da página. O CSS mora num
+template literal; um backtick num comentário fecha a string e o build morre em
+"Expected } but found …", com a linha apontando para o comentário, não para a
+causa.
+
+⚠️ **O rodapé é creme, e é decisão de contraste, não de gosto:** a logo da F2 é asset de
+cor fixa (`#de1a59`) e sobre chocolate não fecha os 3:1 de elemento gráfico. Sobre creme
+fecha. ⛔ Não devolver o rodapé para chocolate sem trocar o asset.
+
+⚠️ **A página saiu da terceira paleta do projeto.** Ela consumia os tokens de
+`em-breve.css` — espresso `#2B1810` + ouro `#F8B511`, a identidade do Sweet Awards de
+antes do redesign — e agora consome a **paleta viva** (`--scw-*`) e as utilitárias do
+sistema. ⛔ `em-breve.css` **continua no ar**: `icons.jsx` e `participants.js` ainda leem
+tokens dele (§4.3).
+
+⚠️ **A iconografia v2 entrou, mas ESTÁTICA — e é decisão, não esquecimento.** O
+handoff de agosto/2026 pedia ícones que se montam peça por peça, com as props
+`movimento`/`aoVivo`/`receita` do `ScwIcon`, as classes `.scw-icone-host--*` e os
+tokens `--icon-mo-hover`/`--icon-ease-soft`. **Nada disso existe no repositório:**
+o `PATCH-icones-animados.md` que os cria nunca foi aplicado, e a receita "recortar
+o `d` em três `path`" exigiria editar `scw-icons-v2.js` à mão, que o §6.11 proíbe.
+Os ícones entram pelo `ScwIcon` como está; o movimento fica com o sistema que a
+página já tem (`motion-stagger` / `motion-reveal-up`).
+
+⚠️ **Os tamanhos do handoff (18 · 28 · 30 · 34 · 44) NÃO estão na escala** do
+§6.11, e `tests/regua-visual.mjs` reprova. Foram encaixados nos degraus reais:
+seta de botão e controles **20**, chip **24**, prova e fecho **32**, disco de
+passo **48** (os 60% de um disco de 80px, a proporção do §6.3).
+
+⚠️ **A logo da F2 do rodapé NÃO foi trocada, e o handoff estava errado ali.** Ele
+afirma que `logo-f2experience.svg` é um lockup claro `#F5F5F5` a 1,06:1; os dois
+arquivos em `public/images/` são `#de1a59` na regra `.cls-1`. Só a altura mudou,
+de 20px para 24px. É o §12.6 na prática: premissa de patch se confere contra o
+código antes de aplicar.
+
+⛔ **O bloco do Sweet Awards saiu, e é remoção de EXIBIÇÃO, não de dado.**
+`sweetHistoryStats.js`, `loversAwardsResults.js` e as fotos seguem intactos — só
+deixaram de ser importados ali. **Consequência a não esquecer: o resultado oficial da
+Lovers deixou de ter endereço público** até o institucional ir ao ar.
 
 ---
 
@@ -2199,6 +2430,193 @@ e no computador liga nos dois, separadamente.
 ⚠️ **`/marca/sw.js` entrou no `no-store` do `vercel.json`**, ao lado do da
 organização. SW cacheado prende a correção no navegador de quem já abriu, e
 nenhum deploy a alcança.
+
+#### Casca comum, mesa, vendas diárias e agenda de vagas — 25/08/2026 (Fase 8)
+
+Handoff de design "Painel SCW app" aplicado nos dois painéis (`organizacao/`,
+`marca/`), a partir de uma investigação prévia que achou o pacote com metade
+sem lastro — o README do próprio handoff avisava: a seção do participante foi
+desenhada sem ler `public/marca/index.html`. A conferência ficou registrada
+como `CONFERENCIA-MARCA.md`, entregue junto do handoff (fora do repositório).
+
+**O que mudou de verdade:**
+
+- **Rail (desktop, 72px) nos dois painéis.** Reusa os MESMOS ícones e o mesmo
+  `data-vista`/`irPara()` que a barra de abas do celular já usava em
+  `organizacao/` — entrou sem JS novo de navegação. Em `marca/`, que não tinha
+  navegação alguma (uma coluna só, rolagem contínua), a rail e as abas são
+  novas, com 4 destinos reais: **hoje · cadastro · pedidos · arquivos**. Os
+  5 blocos do formulário (A marca/O tema/Os três itens/Preço/Onde encontrar)
+  só mudaram de casa — nomes e campos são os que já existiam, conferidos
+  contra o arquivo real.
+- **"Resumo" (dashboard por origem) virou "mesa"** (kanban de 6 etapas) na
+  organização. Mudança de EIXO: mede por etapa da candidatura, não por
+  formulário de origem. `nao_selecionado` fica de fora das 6 colunas de
+  propósito — seria uma esteira que nunca esvazia; continua visível em
+  Respostas, com o filtro que já existia.
+- **Tela de boas-vindas + dois setores** (`vBoasVindas` em `marca/`) —
+  pedido do Eloi: é a tela de quem abre o app instalado no celular. Repete o
+  papel do cartão "Sou participante" do `AccessDialog.jsx` do site, mas
+  **local** ao painel estático (não duplica autenticação — só antecede o
+  mesmo formulário de sempre). Cor roxa e ícones já testados no site, **não**
+  os do PATCH original (amarelo/cyan), que reabririam uma combinação já
+  rejeitada por contraste (§6.1/§6.10).
+- **Notificações derivadas** (nunca escritas à mão) nos dois painéis. Em
+  `organizacao/` abrem na MESMA gaveta que já existia (`abrirFolha` —
+  patch §3 já estava resolvido sob outro nome). Em `marca/`, que não tinha
+  gaveta nenhuma, é um painel leve (`abrirNotificacoesMarca`), não uma folha
+  completa — construir a coreografia de folha/gaveta do zero era escopo maior
+  do que a peça pedia.
+- **Agenda de fotos, segundo modo.** `sessoes_fotos` ganhou o status
+  `'aberto'` (vaga sem dona) em vez de tabela paralela — mesmo conceito, um
+  valor a mais (migration `20260825_fase7_vendas_diarias_e_vagas_fotos.sql`).
+  A organização abre/fecha vaga (`abrir_vaga_fotos`/`fechar_vaga_fotos`); a
+  marca reserva com um `PATCH .../sessoes_fotos?id=eq.X&status=eq.aberto` —
+  atômico por construção, sem RPC nova: duas marcas clicando a mesma vaga só
+  uma tem linha afetada. "Marcar eu mesma" reaproveita
+  `agendar_sessao_fotos`, que já fazia exatamente isso.
+- **Lançamento diário de combos vendidos** (view "hoje" da marca) — tabela
+  nova `vendas_diarias`, upsert direto por PostgREST sob RLS (sem RPC).
+  ⚠️ **Simplificação assumida:** o "momento" antes-de-abrir/em-curso do
+  handoff não é distinguido — a página não busca (e não tinha de onde
+  buscar) a data de início da edição. O campo de lançamento fica sempre
+  visível, em vez de arriscar bloquear um lançamento válido com um sinal que
+  não existe.
+
+**O que ficou de fora, e por quê:**
+
+- **DesignSync não foi rodado.** Rodar exige revisar o plano de arquivos
+  antes de escrever — não coube no tempo desta rodada.
+- **O protótipo (`Painel SCW app.dc.html`) não foi aberto no navegador** para
+  conferência visual ponto a ponto — a implementação seguiu README/PATCH em
+  texto. Onde os dois divergiam da estrutura real, o código manda (§0.1),
+  registrado em `CONFERENCIA-MARCA.md`.
+- **`tests/responsive.mjs` não cobre estas duas páginas** — ele testa as 6
+  rotas do SPA institucional (`.scw-*`), não `public/organizacao/` nem
+  `public/marca/`. Não existe hoje um teste responsivo automatizado para os
+  dois painéis; é lacuna a fechar, não algo que esta rodada tenha verificado.
+- **Conteúdo autenticado não foi conferido ao vivo.** Sem a senha real de
+  nenhum dos dois painéis (que não devo ter nem simular), a verificação foi
+  por estrutura e teste (`tests/organizacao.test.mjs` 59/59,
+  `tests/marca.test.mjs` 26/26), não por navegação visual logada.
+- **Formulários da organização (patch §9)** já existiam quase por inteiro
+  antes desta rodada (`abrirNovoPedido`/`abrirNovoArquivo`/`abrirNovaSessao`/
+  `abrirNovaConta`, todos via `abrirFolha`) — não foram tocados.
+
+#### Painel unificado — `/painel/`, 26/08/2026 (Fase 9)
+
+Handoff "Painel SCW app" (`handoff/APLICAR.md` + `handoff/INSTRUCAO-painel-completo.md`,
+arquivados em `docs/_arquivo-instrucoes-antigas/`). `/organizacao/` e `/marca/` viviam
+cada um na própria página estática, com a mesma "casca de app" desenhada duas vezes
+(§5.2). Viraram **um painel só**, com login de dois cartões — organização (senha
+única) e participante (Supabase Auth) — e nove vistas atrás dele.
+
+⚠️ **Não foi reescrita: foi PORTADA.** `public/painel/index.html` carrega o código real
+de `public/organizacao/index.html` e `public/marca/index.html`, cada um na própria IIFE
+(`PainelOrg`, `PainelMarca`) dentro do MESMO bloco `<script>` — o teste conta blocos
+(`SCRIPTS.length === 1`), então não dá pra ter um por papel. Zero função reescrita à
+mão: RPCs, `escapar()`, notificações derivadas, agenda de dois modos, acordeão do
+cadastro — tudo o mesmo comportamento já testado nos dois arquivos de origem.
+
+⚠️ **`window.PainelOrg`/`window.PainelMarca` existem só para o boot decidir qual
+casca mostrar** — `PainelOrg.temSessao()` roda primeiro (o script da organização vem
+primeiro no arquivo); se `false`, `PainelMarca.iniciar()` decide entre login e o
+próprio painel. Sem essa ordem, uma sessão de organização restaurada seria coberta de
+novo pela tela de login que `iniciar()` da marca mostra por padrão.
+
+⚠️ **A colisão que quase aconteceu: as duas páginas tinham `id="aviso"`.** Um era o
+`<div class="og-aviso">` de dentro da vista `mesa` da organização, o outro o banner
+global da marca. Viraram `aviso-org` e `aviso-marca` — `document.getElementById`
+sempre pega o primeiro do documento, então a outra metade escreveria na caixa errada
+(ou numa caixa escondida) sem erro nenhum no console.
+
+🔴 **Três classes `.pn-*` parecem compartilhadas e NÃO SÃO — são exclusivas da
+marca.** `.pn-casca` (o grid do `#vPainel`), `.pn-vista`/`.pn-vista__trilho` (a área de
+rolagem) e `.pn-abas`/`.pn-aba` (a barra de abas da marca) não têm equivalente em
+`/organizacao/`, que faz o mesmo papel por outro caminho: `#painel` por ID em vez de
+`.pn-casca`, `.og-vista` em vez de `.pn-vista`, `.og-abasapp`/`.og-abaapp` em vez de
+`.pn-abas`/`.pn-aba`. Uma primeira tentativa de "deduplicar" o CSS achou que essas
+três eram cópia do que a organização já define e cortou — resultado: `#vPainel` caía
+no `display:block` padrão de uma `<div>`, sem grid, sem colunas, sem nada. Achado só
+ao renderizar de verdade e medir `getComputedStyle`; a leitura do CSS sozinha não
+denunciava. **A lição:** nome de classe `pn-` igual não significa a mesma regra existe
+nos dois lados — cada arquivo original tinha a duplicação aceita do §5.2, e um corte
+"inteligente" tem que confirmar por classe, não por prefixo.
+
+⚠️ **O bloco de `prefers-reduced-motion` tem que ficar depois de TUDO** — inclusive do
+CSS da marca, que entra depois do da organização na concatenação. Ele morava no fim do
+CSS da organização; ficou no meio do arquivo combinado até ser movido pro fim de
+verdade. Há teste (`tests/painel.test.mjs`) que reprova isso especificamente.
+
+⚠️ **`/organizacao/` e `/marca/` não morreram — viraram só a PORTA.** `abrirPainel()`
+(organização) e `ver('painel')` (marca) continuam fazendo tudo que faziam antes e, no
+fim, chamam `location.replace('/painel/#painel=org/' + vista)` ou
+`.../marca/' + vista`. O redirecionamento é depois do login real confirmado — senha
+errada continua mostrando o erro na tela de sempre, nunca redireciona primeiro.
+`sw.js`/`app.webmanifest` das duas páginas antigas **não foram apagados** — quem já
+instalou o ícone antigo continua com um app que funciona (mostra o painel por um
+instante e sai), só precisa reinstalar a partir de `/painel/` pra ganhar o ícone novo.
+Ninguém decidiu se isso vira aviso pra equipe; ficou registrado aqui.
+
+⚠️ **`/painel/app.webmanifest` e `/painel/sw.js` são nova infra, mesma receita de
+`/organizacao/`** — escopo `/painel/` nos dois campos, `sw.js` com `no-store` no
+`vercel.json`, rewrite `/painel` → `/painel/index.html`. Os dois registros de service
+worker que já existiam dentro do código portado (`register('/organizacao/sw.js', …)` e
+`register('/marca/sw.js', …)`) foram trocados para `/painel/sw.js` — registrar o SW de
+uma pasta que a página atual não serve não dá erro, só não ajuda em nada.
+
+⚠️ **O modelo de 6 estágios da mesa (kanban) já estava resolvido, não foi decisão
+nova.** O handoff pedia parada pra decidir como os 4 status reais de
+`participacoes.status_cadastro` viram 6 colunas — mas a Fase 8 já tinha resolvido isso
+em `renderMesa()`: as 4 primeiras colunas vêm do status do formulário
+(`quero_participar.status`), e a marca com conta cai em `acesso` ou `completas`
+conforme `status_cadastro`. Conferir o código antes de tratar um "não decide sozinho"
+do handoff como pergunta em aberto — pode já estar respondido.
+
+#### Login de verdade + cor por vista, 26/08/2026 (Fase 10)
+
+A primeira versão do painel unificado reaproveitou o cartão branco de sempre
+(`.og-entrada`) pro login — visualmente pobre perto do documento que o Eloi
+mandou (o protótipo `.pn-porta`: fundo chocolate cheio, dois cartões escuros
+com disco colorido). Portado de verdade agora: `.pn-porta`/`.pn-setor*`/
+`.pn-campo__escuro` do protótipo, tokens trocados pro prefixo `--scw-`.
+
+**Cor por vista, nova.** Cada uma das 5 vistas da organização e das 4 da
+marca ganhou uma cor de acento — dentro dos 9 tokens fechados (§6.1),
+cíclica e nunca repetida no mesmo painel (§6.3): organização
+mesa=amarelo·respostas=cyan·marcas=roxo·produção=laranja·equipe=marrom;
+marca hoje=amarelo·cadastro=cyan·pedidos=laranja·arquivos=roxo. Três
+variáveis CSS, escritas por `irPara()`/`irParaMarca()` no `<body>`:
+
+| Variável | Serve pra | Regra |
+|---|---|---|
+| `--pn-acento` | tira sob o cabeçalho (fundo creme/bege), disco do ícone da vista | a cor crua |
+| `--pn-acento-tinta` | texto/ícone SOBRE o próprio acento (chapa preenchida) | roxo/marrom → creme; resto → chocolate |
+| `--pn-acento-escuro` | texto/ícone da vista ativa SOBRE CHOCOLATE (aba do celular, indicador) | roxo/marrom não sustentam leitura sobre chocolate (1,45:1/1,53:1, §6.2) e caem no amarelo — o mesmo `pageColorDark()` do site institucional |
+
+⚠️ **Testar com `getComputedStyle(el, '::after')` não prova nada.** A
+verificação inicial usava isso pra conferir a tira sob o cabeçalho e sempre
+devolvia amarelo, mesmo com a variável certa no elemento — armadilha da
+ferramenta de automação, não do CSS: o mesmo valor lido num elemento REAL
+(o botão ativo da rail) vinha certo. Ler a cor num elemento normal, não
+num pseudo-elemento, é o jeito confiável de conferir isso.
+
+🔴 **Bug de verdade, achado por essa mesma verificação:** restaurar o CSS
+"casca comum" inteiro da marca (Fase 9) trouxe de volta uma cópia SEM
+`@media` de `.pn-cabeca`/`.pn-cabeca__marca`/`__titulo`/`__sub` — a
+organização tem a versão de verdade, com `@media (max-width:900px)` real,
+em `org_css.css`; a cópia da marca dependia de uma classe `.is-estreito`
+que `marca_script.js` nunca aplica (`matchMedia` não existe nesse arquivo —
+vestígio de uma versão anterior do próprio `/marca/` original). Cascata sem
+condição sempre vence a com `@media`, então a cabeça do celular ficava
+creme (devia ser chocolate), o logo da marca não aparecia, o título não
+encolhia e o subtítulo saía marrom sobre chocolate — ~1,5:1, ilegível.
+Removida a cópia morta; sobrou só o que a marca tem de exclusivo ali
+(`.pn-cabeca button.notif`, que a organização não usa — ela usa
+`.pn-cabeca__btn`). **A lição do Fase 9 se repete, mais estreita:** um
+`.pn-*` "restaurado inteiro pra não quebrar" pode reintroduzir exatamente o
+bug que a fusão pretendia evitar. Rodar o teste ao vivo depois de qualquer
+restauração de bloco de CSS, não só depois de removê-lo.
 
 ### 10.5 Grade e layout
 

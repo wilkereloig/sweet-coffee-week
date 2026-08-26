@@ -247,7 +247,7 @@ test('a casca prende a coluna do grid, senão estoura na horizontal', () => {
     '#painel sem grid-template-columns com minmax(0,…): a coluna volta a crescer por max-content')
   // O cabeçalho e o corpo são itens do grid: sem min-width:0 eles se recusam a
   // encolher e devolvem o estouro por outro caminho (§10.5).
-  for (const sel of ['.og-topo', '.og-corpo']) {
+  for (const sel of ['.pn-cabeca', '.og-corpo']) {
     const regra = HTML.match(new RegExp(sel.replace('.', '\.') + '\{[^}]*\}'))
     assert.ok(regra, 'sumiu a regra de ' + sel)
     assert.match(regra[0], /min-width\s*:\s*0/, sel + ' sem min-width:0 — item de grid não encolhe')

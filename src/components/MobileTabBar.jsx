@@ -29,7 +29,7 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
   const corIndicador = indiceAtivo === 4 ? '#FDBB1A' : pageColorDark(ABAS[indiceAtivo].id)
 
   return (
-    <nav className="scw-abas" aria-label="Navegação rápida">
+    <nav className="scw-abas scw-casca-base" aria-label="Navegação rápida">
       <div className="scw-abas__grade">
         <span
           className="scw-abas__indicador"

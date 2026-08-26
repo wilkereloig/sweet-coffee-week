@@ -256,15 +256,19 @@ body {
    páginas. É a causa-raiz das seções saírem consistentemente mais altas que a
    referência — não era acúmulo de ajuste local nenhum.
 
-   ⚠️ A landing /em-breve fica FORA: ela tem CSS próprio, é a página que está no
-   ar e foi calibrada em content-box. Reescrevê-la não é escopo daqui (§7.7).
+   ✅ A landing /em-breve ENTROU em 25/08/2026. A exclusão foi escrita quando ela
+   era a página de antes — "calibrada em content-box e no ar" —, e a reescrita de
+   25/08 a levou para as utilitárias do sistema. A partir daí a exclusão deixou
+   de proteger e passou a custar: o `.scw-btn` dela renderizava com 84px em vez
+   de 54, e os controles da galeria com 51px em vez de 48. Não existe mais rota
+   fora do reset.
 
    `:where()` mantém a especificidade do universal em zero, então qualquer regra
    de componente continua vencendo sem precisar de prefixo.
    ========================================================================= */
 
-body:not(.route-em-breve) .scw-raiz,
-body:not(.route-em-breve) .scw-raiz :where(*, *::before, *::after) {
+.scw-raiz,
+.scw-raiz :where(*, *::before, *::after) {
   box-sizing: border-box;
 }
 
@@ -272,9 +276,12 @@ body:not(.route-em-breve) .scw-raiz :where(*, *::before, *::after) {
    inteiro vinha 16px mais estreito que a viewport, e o trilho calculava em
    cima disso. Nas rotas era só desalinhamento; numa faixa que sangra até a
    borda, era uma moldura visível da cor do body.
-   ⚠️ A landing fica de fora pelo mesmo motivo do reset acima: está no ar e não
-   é escopo desta rodada. */
-body:not(.route-em-breve) { margin: 0; }
+   ✅ A landing entrou junto, em 25/08/2026. Medido antes: a página dela ficava
+   em `x = 8` e 16px mais estreita que a viewport (374 de 390; 1424 de 1440),
+   com uma tira do fundo do <body> descendo pelos dois lados de toda faixa que
+   sangra — e a barra fixa da ação, que se posiciona contra a viewport e não
+   contra o body, saía 16px mais larga que a página a que pertence. */
+body { margin: 0; }
 
 .scw-secao {
   padding: var(--scw-sec-y) var(--scw-trilho);
@@ -682,15 +689,25 @@ body:not(.route-em-breve) { margin: 0; }
    (`compacto`, matchMedia ≤900px); aqui os dois modos são montados e o corte é
    por media query — sem isso a barra de abas aparece no desktop e o menu do
    desktop aparece no celular. */
-.scw-abas {
-  display: none;
+/* A CHAPA DAS BARRAS PRESAS NA BASE. Extraída quando apareceu a segunda cópia
+   (§5.3): a barra de abas do site e a barra da ação da landing são a mesma
+   casca de aplicativo, e o dia em que a cor ou o desfoque mudarem tem de mudar
+   nas duas. Quem continua sendo só da barra de abas fica em `.scw-abas`: a
+   grade de cinco, o indicador que desliza entre abas e o corte em 900px.
+   ⚠️ O chocolate aqui é rgba(43,14,6,.96), mais fundo que `--scw-choco`, e é
+   proposital: sob desfoque a chapa clareia com o que passa atrás dela. */
+.scw-casca-base {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 70;
-  padding: 8px 10px calc(8px + var(--scw-safe-b));
   background: rgba(43, 14, 6, .96);
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(254, 240, 221, .14);
+}
+
+.scw-abas {
+  display: none;
+  padding: 8px 10px calc(8px + var(--scw-safe-b));
 }
 .scw-abas__grade {
   position: relative;
@@ -1050,12 +1067,13 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-amarelo);
 }
 
-/* Régua de 5px nas cores dos dois acessos, na MESMA ordem dos cards: cyan é a
-   organização (entra hoje), roxo é o participante (em breve). Trocar a ordem de
-   um sem trocar a do outro desfaz a leitura. */
+/* Régua de 5px nas cores dos dois acessos, na MESMA ordem dos cards: amarelo é
+   a organização, cyan é o participante — o par que o redesenho de 25/08/2026
+   (handoff "Painel SCW app") trouxe para os dois selos abaixo. Trocar a ordem
+   de um sem trocar a do outro desfaz a leitura. */
 .scw-acesso__regua {
   height: 5px;
-  background: linear-gradient(90deg, var(--scw-cyan) 0 50%, var(--scw-roxo) 50%);
+  background: linear-gradient(90deg, var(--scw-amarelo) 0 50%, var(--scw-cyan) 50%);
 }
 
 /* Fechar sai do canto absoluto e passa a morar na faixa. */
@@ -1099,7 +1117,12 @@ body:not(.route-em-breve) { margin: 0; }
   text-wrap: pretty;
 }
 
-/* Os dois cards têm peso diferente de propósito: só um leva a algum lugar hoje. */
+/* Os dois cards levam a algum lugar desde 25/08/2026, quando `/marca/` entrou
+   no ar. O peso diferente continua — chapa cheia contra card claro —, mas agora
+   ele diz PÚBLICO, não disponibilidade: antes a diferença existia porque um dos
+   painéis não existia, e o tracejado da reserva honesta dizia "existe, ainda não
+   chegou". Dizer isso hoje seria a única porta pública do domínio negando a área
+   que ela deveria abrir. */
 .scw-acesso__cartao {
   display: flex;
   flex-direction: column;
@@ -1115,12 +1138,12 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-creme);
   box-shadow: 0 4px 0 rgba(61, 19, 8, .18);
 }
-/* Participante — a MESMA moldura tracejada da reserva honesta (§6.12): tracejado
-   quer dizer "existe, ainda não chegou". Sem hover, sem sombra, sem cursor:
-   elevação sem destino promete uma ação que não acontece (§6.15.6). */
-.scw-acesso__cartao--reserva {
+/* Participante — card claro com filete sólido. O tracejado saiu junto com o selo
+   "em breve": ele é a moldura da reserva honesta (§6.12) e só cabe onde a coisa
+   ainda não existe. */
+.scw-acesso__cartao--marca {
   background: var(--scw-bege);
-  border: 1px dashed rgba(61, 19, 8, .28);
+  border: 1px solid rgba(61, 19, 8, .22);
   color: var(--scw-choco);
 }
 .scw-acesso__cabeca {
@@ -1141,7 +1164,13 @@ body:not(.route-em-breve) { margin: 0; }
   text-wrap: pretty;
 }
 .scw-acesso__cartao--destaque .scw-acesso__cartao-txt { color: rgba(254, 240, 221, .82); }
-.scw-acesso__cartao--reserva  .scw-acesso__cartao-txt { color: var(--scw-marrom); }
+.scw-acesso__cartao--marca    .scw-acesso__cartao-txt { color: var(--scw-marrom); }
+
+/* Cada card virou o próprio formulário (25/08/2026): o rótulo do campo herda
+   `.scw-campo`, cuja tinta padrão é marrom — invisível sobre a chapa chocolate
+   da Organização (~1,5:1, §10.6). O campo em si não precisa de ajuste: o input
+   já é creme com texto chocolate nos dois cards. */
+.scw-acesso__cartao--destaque .scw-campo > span { color: rgba(254, 240, 221, .7); }
 
 /* Ação do card: o link é ELE, não o card inteiro — com um botão declarado
    dentro, um <a> por fora aninharia interativo em interativo. 48px de altura
@@ -1183,21 +1212,23 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__acao:hover { transform: none; transition: none; }
 }
 
-/* Selo de espera: `align-self` para o selo ter a largura do TEXTO, nunca a da
-   coluna — senão vira barra e parece controle. */
-.scw-acesso__espera {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 8px;
-  margin-top: auto;
-  padding: 9px 14px 8px;
-  border-radius: 999px;
-  background: rgba(61, 19, 8, .08);
-  font: 800 11px/1 var(--scw-font);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--scw-marrom);
+/* Ação do card claro: cyan cheio com tinta chocolate — 6,2:1 (§6.1), o mesmo
+   par do selo acima dele. O amarelo do outro card não serve aqui: sobre bege
+   ele é superfície, não separa de card claro (1,4:1 como tinta).
+   ⛔ O `.scw-acesso__espera` que morava aqui — o selo "Painel · em breve" — saiu
+   em 25/08/2026, quando /marca/ entrou no ar. Não recriar: selo de espera sobre
+   painel que existe é a interface mentindo sobre o produto.
+   ⚠️ Esta peça deixou de ser `<a>` em 25/08/2026 (virou botão de submit do
+   próprio formulário), mas o seletor CONTINUA prefixado — não é armadilha
+   corrigida, é regra permanente do §10.1: qualquer especificidade genérica de
+   `.scw-raiz` que ganhe cor/fundo por herança bateria aqui do mesmo jeito. */
+.scw-acesso .scw-acesso__acao--marca {
+  background: var(--scw-cyan);
+  color: var(--scw-choco);
+}
+
+@media (hover: hover) {
+  .scw-acesso .scw-acesso__acao--marca:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 
 /* Pé: informação à esquerda, saída à direita — na MESMA linha flex. O bug
@@ -1212,10 +1243,18 @@ body:not(.route-em-breve) { margin: 0; }
   padding-top: clamp(16px, 1.8vw, 22px);
   border-top: 1px solid rgba(61, 19, 8, .14);
 }
-.scw-acesso__pe-texto {
-  margin: 0;
+/* Coluna esquerda do pé: o link "Primeiro acesso da marca" e, quando aberta, a
+   nota que ele revela — junto, para que abrir a nota não empurre o botão
+   "Falar com a equipe" da direita para baixo dela numa coluna estreita. */
+.scw-acesso__pe-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   flex: 1 1 26ch;
   max-width: 44ch;
+}
+.scw-acesso__pe-texto {
+  margin: 0;
   font: 500 13.5px/1.5 var(--scw-font);
   color: var(--scw-marrom);
   text-wrap: pretty;
@@ -1250,30 +1289,14 @@ body:not(.route-em-breve) { margin: 0; }
   .scw-acesso__cta:hover { transform: none; transition: none; }
 }
 
-/* ── Passo da senha ──────────────────────────────────────────────────────────
-   O "Entrar" não sai mais do diálogo: o corpo troca de conteúdo e o mesmo
-   painel vira o campo de senha. Uma coisa por tela — voltar, o que é isto, o
-   campo, o botão. Nada mais. */
-.scw-acesso__corpo--senha {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-/* No passo da senha o título divide a linha com o selo, então não pode ter o
-   corpo do título de abertura. */
-.scw-acesso__corpo--senha .scw-acesso__titulo {
-  margin: 0;
-  font-size: clamp(22px, 2.2vw, 30px);
-}
-.scw-acesso__corpo--senha .scw-acesso__lead { margin: 0; }
-
-/* Voltar é link de texto, não botão de ação: ele desfaz, não avança. O piso de
-   44px vale para o CONTROLE (§10.2), por isso a altura mínima está NELE. */
-.scw-acesso__voltar {
+/* Link de texto secundário do rodapé — "Primeiro acesso da marca". Sublinhado,
+   marrom sobre o corpo creme (o amarelo do desenho original só funciona sobre
+   a chapa chocolate do handoff; aqui o corpo é claro, §10.6). O piso de 44px
+   vale para o CONTROLE (§10.2), por isso a altura mínima está NELE. */
+.scw-acesso__link-secundario {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  gap: 8px;
   min-height: 44px;
   padding: 0 4px;
   border: 0;
@@ -1281,12 +1304,13 @@ body:not(.route-em-breve) { margin: 0; }
   color: var(--scw-marrom);
   font: 800 13px/1 var(--scw-font);
   letter-spacing: .02em;
+  text-decoration: underline;
   cursor: pointer;
   transition: color var(--scw-transicao);
 }
 
 @media (hover: hover) {
-  .scw-acesso__voltar:hover { color: var(--scw-choco); }
+  .scw-acesso__link-secundario:hover { color: var(--scw-choco); }
 }
 
 .scw-acesso__form {

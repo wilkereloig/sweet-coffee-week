@@ -150,6 +150,10 @@ button.link{
 .aviso.erro{border-color:var(--magenta)}
 .aviso.ok{border-color:var(--cyan)}
 .aviso:empty{display:none}
+/* #aviso é o banner ÚNICO e global (login, senha e painel todos escrevem
+   nele) — virou posição fixa no topo porque o painel deixou de ter um
+   contêiner comum entre as três telas quando ganhou a casca própria. */
+#aviso{position:fixed; top:0; left:0; right:0; z-index:80; margin:0; border-radius:0; text-align:center}
 
 /* Progresso — texto primeiro, barra depois. A barra sozinha não diz quanto falta. */
 .progresso{margin:0 0 22px}
@@ -195,21 +199,194 @@ button.link{
 
 .rodape{margin-top:28px; padding-top:18px; border-top:1.5px solid var(--filete); font-size:13.5px; color:var(--marrom)}
 [hidden]{display:none !important}
+
+/* ── Casca de app (25/08/2026) ─────────────────────────────────────────────
+   Handoff "Painel SCW app": rail no desktop, abas no celular — a marca não
+   tinha NENHUMA navegação interna antes disto (uma coluna só, rolagem
+   contínua). Mesmo vocabulário `.pn-*` de /organizacao/, tokens locais
+   (--choco etc.) porque as duas páginas são estáticas e não compartilham CSS
+   de verdade — é a duplicação aceita de sempre entre os dois painéis (§5.2). */
+.pn-casca{
+  height:100dvh; display:grid;
+  grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+}
+.pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+.pn-rail{
+  grid-row:1 / span 2; display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:13px 0 12px; background:var(--choco);
+}
+.pn-rail__selo{height:29px; width:auto; display:block; margin-bottom:11px}
+.pn-rail__btn{
+  position:relative; width:52px; height:52px; flex:0 0 auto;
+  display:grid; place-items:center; border:0; border-radius:17px;
+  background:transparent; color:rgba(254,240,221,.72); cursor:pointer;
+  transition:background 180ms var(--ease),color 180ms var(--ease);
+}
+@media (hover:hover){ .pn-rail__btn:hover{background:rgba(254,240,221,.1)} }
+.pn-rail__btn[aria-current="page"]{background:var(--amarelo); color:var(--choco)}
+.pn-rail__btn svg{width:23px; height:23px}
+.pn-rail__sair{
+  width:52px; height:42px; margin-top:auto; display:grid; place-items:center;
+  border:0; border-radius:13px; background:transparent; color:rgba(254,240,221,.62); cursor:pointer;
+}
+.pn-rail__sair svg{width:19px; height:19px}
+.pn-cabeca{
+  display:flex; align-items:center; gap:12px; min-height:64px;
+  padding:0 var(--trilho); background:var(--creme); color:var(--choco);
+  border-bottom:1px solid var(--filete); min-width:0;
+}
+.is-estreito .pn-cabeca{min-height:58px; background:var(--choco); color:var(--creme); border-bottom:0; padding:0 16px}
+.pn-cabeca__marca{height:24px; width:auto; display:none; flex:0 0 auto}
+.is-estreito .pn-cabeca__marca{display:block}
+.pn-cabeca__texto{min-width:0; flex:1 1 auto}
+.pn-cabeca__titulo{font:900 20px/1.05 var(--font); letter-spacing:-.035em; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.is-estreito .pn-cabeca__titulo{font-size:16px}
+.pn-cabeca__sub{margin:3px 0 0; font:500 11.5px/1 var(--font); color:var(--marrom)}
+.is-estreito .pn-cabeca__sub{color:rgba(254,240,221,.7)}
+.pn-cabeca__dir{display:flex; align-items:center; gap:8px; flex:0 0 auto}
+.pn-cabeca button.notif{position:relative; background:none; border:0; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:inherit; cursor:pointer}
+@media (hover:hover){ .pn-cabeca button.notif:hover{background:rgba(61,19,8,.06)} }
+.is-estreito .pn-cabeca button.notif:hover{background:rgba(254,240,221,.1)}
+.pn-vista{min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+.pn-vista__trilho{max-width:720px; margin:0 auto; padding:clamp(20px,3vw,34px) var(--trilho) 48px}
+.pn-abas{background:var(--choco); padding:7px 6px calc(7px + env(safe-area-inset-bottom)); border-top:1px solid rgba(254,240,221,.12)}
+.pn-abas__grade{display:grid; grid-template-columns:repeat(4,1fr); gap:2px}
+.pn-aba{
+  min-height:52px; background:transparent; border:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:5px; padding:4px 0; color:rgba(254,240,221,.6);
+}
+.pn-aba svg{width:20px; height:20px}
+.pn-aba__rotulo{font:500 10px/1 var(--font)}
+.pn-aba[aria-current="page"]{color:var(--amarelo)}
+.pn-aba[aria-current="page"] .pn-aba__rotulo{font-weight:800}
+.pn-badge{
+  position:absolute; top:6px; right:6px; min-width:18px; height:18px; padding:0 5px;
+  display:grid; place-items:center; border-radius:999px; background:var(--magenta); color:var(--creme);
+  font:800 10px/1 var(--font); font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--creme);
+}
+
+/* Linha de notificação — mesma peça do painel da organização (§ "Painel SCW
+   app"). O painel da marca não abre gaveta cheia (decisão de escopo já
+   registrada), mas a LINHA de dentro é a mesma peça visual. */
+.pn-notif{
+  width:100%; text-align:left; cursor:pointer; border:0; border-radius:13px; padding:11px 12px;
+  background:transparent; box-shadow:inset 0 0 0 1px var(--filete);
+  display:flex; align-items:flex-start; gap:10px; margin:0 0 6px;
+  transition:background 160ms var(--ease);
+}
+.pn-notif:last-child{margin-bottom:0}
+@media (hover:hover){ .pn-notif:hover{background:var(--bege)} }
+.pn-notif.is-naolida{background:#fff; box-shadow:inset 0 0 0 1px var(--borda)}
+.pn-notif__disco{flex:0 0 auto; display:grid; place-items:center; width:28px; height:28px; border-radius:10px}
+.pn-notif__disco svg{width:15px; height:15px}
+.pn-notif__texto{display:block; font:500 13.5px/1.3 var(--font)}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
+.is-estreito .pn-cabeca button.notif .pn-badge{box-shadow:0 0 0 2px var(--choco)}
+@keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
+.pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
+/* O botão Sair do cabeçalho só existe no celular — no desktop a rail já tem
+   o próprio (piso de 44px em CADA controle real, §6.10, não um reaproveitado
+   por CSS entre os dois breakpoints). */
+#btSairCabeca{display:none}
+@media (max-width:900px){
+  .pn-rail{display:none} .pn-casca{grid-template-columns:minmax(0,1fr)}
+  #btSairCabeca{display:grid}
+}
+@media (min-width:901px){ .pn-abas{display:none} }
+
+/* ── Vagas de agenda (dentro do card de fotos) ────────────────────────────
+   Modo "abrir vagas" da organização — a marca escolhe, não pede.
+   Espelha .og-slot--aberto de /organizacao/. */
+.mc-vagas{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:14px 0 0; padding:0}
+.mc-vaga{
+  min-height:46px; padding:0 16px; border:0; border-radius:999px; cursor:pointer;
+  background:var(--bege); color:var(--choco); box-shadow:inset 0 0 0 1.5px var(--borda);
+  font:800 13.5px/1 var(--font); font-variant-numeric:tabular-nums;
+  transition:background 180ms var(--ease);
+}
+.mc-vaga.is-escolhida{background:var(--choco); color:var(--creme); box-shadow:none}
+
+/* ── Lançamento diário (view "hoje") ───────────────────────────────────── */
+.mc-venda{background:var(--choco); color:var(--creme); border-radius:var(--r); padding:clamp(18px,2.4vw,26px)}
+.mc-venda .rotulo{color:rgba(254,240,221,.7)}
+.mc-venda__linha{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-top:14px}
+.mc-venda__campo{
+  width:130px; min-height:52px; padding:10px 16px; border-radius:14px; border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.3); background:rgba(254,240,221,.06); color:var(--creme);
+  font:900 24px/1 var(--font); letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+.mc-venda__total{font:900 clamp(26px,3vw,34px)/1 var(--font); letter-spacing:-.05em; font-variant-numeric:tabular-nums}
+.mc-venda__total span{display:block; margin-top:4px; font:500 11px/1 var(--font); color:rgba(254,240,221,.7); letter-spacing:.06em; text-transform:uppercase}
+.mc-venda__dias{display:flex; gap:8px; overflow-x:auto; margin-top:18px; padding-bottom:2px}
+.mc-venda__dia{display:flex; flex-direction:column; gap:3px; padding:9px 14px; border-radius:13px; background:rgba(254,240,221,.08); min-width:72px; flex:0 0 auto}
+.mc-venda__dia.is-hoje{background:var(--amarelo); color:var(--choco)}
+.mc-venda__dia b{font:800 15px/1 var(--font); font-variant-numeric:tabular-nums}
+.mc-venda__dia span{font-size:10.5px; opacity:.8}
+.mc-venda__espera{display:flex; align-items:center; gap:10px; color:rgba(254,240,221,.85)}
+
+/* ── Acordeão do cadastro (patch §8.3) ────────────────────────────────────
+   Os 5 blocos são os REAIS (A marca/O tema/Os três itens/Preço/Onde
+   encontrar) — o handoff assumia "A casa/doce/salgado/bebida/fotos", que não
+   existe no arquivo (ver CONFERENCIA-MARCA.md). Sem prazo por bloco: não há
+   coluna de prazo individual no banco, e inventar um seria dado fabricado
+   (CLAUDE.md A4) — o selo mostra só pronto/pendente. */
+.mc-bloco{background:var(--creme); border-radius:var(--r); box-shadow:inset 0 0 0 1.5px var(--filete); overflow:hidden; margin:0 0 10px}
+.mc-bloco.is-aberto{box-shadow:inset 0 0 0 1.5px var(--choco)}
+.mc-bloco__cabeca{
+  width:100%; text-align:left; cursor:pointer; border:0; background:transparent;
+  padding:14px 16px; display:flex; align-items:center; gap:13px; min-height:64px;
+}
+.mc-bloco__disco{flex:0 0 auto; display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--bege); color:var(--choco); transition:background 220ms var(--ease),color 220ms var(--ease)}
+.mc-bloco__disco svg{width:21px; height:21px}
+.mc-bloco.is-pronto .mc-bloco__disco{background:var(--choco); color:var(--creme)}
+.mc-bloco__texto{flex:1 1 auto; min-width:0}
+.mc-bloco__texto b{display:block; font:900 16px/1.15 var(--font); letter-spacing:-.02em}
+.mc-bloco__texto span{display:block; margin-top:3px; font:500 12.5px/1.3 var(--font); color:var(--marrom)}
+.mc-bloco__chevron{flex:0 0 auto; width:15px; height:15px; transition:transform 200ms var(--ease)}
+.mc-bloco.is-aberto .mc-bloco__chevron{transform:rotate(180deg)}
+.mc-bloco__corpo{padding:2px 16px 20px}
 </style>
 </head>
 <body>
 
-<header>
+<!-- Cabeçalho simples: só as telas de login/primeiro acesso usam este. O
+     painel (#vPainel) tem cabeçalho próprio dentro da casca (.pn-cabeca),
+     com o nome da marca à vista o tempo todo — ver() esconde este e mostra
+     aquele. -->
+<header id="headerTopo">
   <img src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
-  <div class="quem" id="quem" hidden><b id="quemNome"></b><span id="quemEmail"></span></div>
-  <button type="button" id="btSair" hidden>Sair</button>
 </header>
 
-<main>
-  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<main id="mainLogin">
+  <!-- ── BOAS-VINDAS + DOIS SETORES (patch "Painel SCW app" §2) ────────────
+       Tela inicial de quem abre o app instalado (ou a página sem sessão).
+       Login da marca continua sendo Supabase Auth de verdade — este bloco só
+       antecede o formulário de sempre, ele não troca de mecanismo.
+       ⚠️ Cor trocada de roxo para cyan em 26/08/2026: o AccessDialog do site
+       passou a usar cyan para "Participante" (era roxo) no redesenho da tela
+       de login (§6.10-b item 5) — cor por PAPEL, não por aparência (§6.1), e o
+       papel "Participante" é o mesmo nos dois lugares. Chapa cyan é CLARA
+       (§6.2): tinta em chocolate, não em creme, ou o texto some. -->
+  <section id="vBoasVindas" hidden>
+    <p class="rotulo">Sweet &amp; Coffee Week</p>
+    <h1>Bem-vinda ao painel do festival.</h1>
+    <p class="lead">Escolha por onde você entra.</p>
+    <div class="card" style="margin-top:22px;background:var(--cyan);color:var(--choco);border-color:transparent">
+      <p class="rotulo" style="color:rgba(61,19,8,.65)">Participante</p>
+      <h2 style="color:var(--choco)">Área da marca</h2>
+      <p class="nota" style="color:var(--marrom);margin:8px 0 16px">Combo, dados da edição e
+        resultados do Sweet Awards.</p>
+      <button class="acao larga" type="button" id="btIrLogin" style="background:var(--choco);color:var(--creme)">Entrar como marca</button>
+    </div>
+    <p class="rodape">Ainda não tem acesso? Ele é criado pela organização depois que a
+      inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</p>
+  </section>
 
   <!-- ── LOGIN ────────────────────────────────────────────────────────────── -->
   <section id="vLogin" hidden>
+    <button class="link" type="button" id="btVoltarBoasVindas" style="margin:0 0 8px;padding-left:0">← Voltar</button>
     <p class="rotulo">Área da marca</p>
     <h1>Entrar</h1>
     <p class="lead">Use o nome do seu estabelecimento e a senha que a organização enviou.</p>
@@ -246,132 +423,260 @@ button.link{
       <button class="acao larga" id="btSenha" type="submit">Salvar e continuar</button>
     </form>
   </section>
-
-  <!-- ── PAINEL ───────────────────────────────────────────────────────────── -->
-  <section id="vPainel" hidden>
-    <p class="rotulo" id="pnRotulo">Sua participação</p>
-    <h1 id="pnTitulo">Sua participação</h1>
-    <p style="margin-top:14px"><span class="selo" id="pnSelo">—</span></p>
-
-    <!-- Sem participação aberta. Ausência honesta: a tela diz o que houve em vez
-         de mostrar um formulário que não tem onde gravar. -->
-    <div class="card" id="pnSemParticipacao" hidden>
-      <h2>Ainda não há edição aberta para você</h2>
-      <p class="nota">Sua conta está ativa, mas a organização ainda não abriu a sua
-        participação na próxima edição. Assim que abrir, o formulário aparece aqui —
-        você não precisa fazer nada agora.</p>
-    </div>
-
-    <div id="pnConteudo" hidden>
-      <div class="progresso" style="margin-top:22px">
-        <b id="progTexto">0 de 5 blocos</b>
-        <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
-      </div>
-
-      <!-- O que a organização pediu, com prazo. Vem antes do formulário porque é
-           a resposta para "o que falta de mim?", que é a pergunta com que a
-           marca abre o painel. -->
-      <div class="card" id="cardSolic" hidden>
-        <p class="rotulo">O que a organização pediu</p>
-        <h2>Pedidos e prazos</h2>
-        <div id="solicitacoes"></div>
-      </div>
-
-      <div class="salvo" id="salvo"></div>
-
-      <form id="fCadastro">
-        <div class="card">
-          <p class="rotulo">01 · A marca</p>
-          <h2>Quem participa</h2>
-          <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-          <label><span>Nome da marca</span><input id="cNome" required></label>
-          <div class="dupla">
-            <label><span>Responsável pelo festival</span><input id="cResp" required></label>
-            <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
-          </div>
-          <div class="dupla">
-            <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
-            <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
-          </div>
-          <div class="dupla">
-            <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
-            <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
-          </div>
-          <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
-        </div>
-
-        <div class="card">
-          <p class="rotulo">02 · O tema</p>
-          <h2>Sua leitura do tema da edição</h2>
-          <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
-            jeito. Conte qual foi a sua leitura.</p>
-          <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
-          <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
-            <textarea id="cTemaJust" required></textarea>
-          </label>
-        </div>
-
-        <div class="card">
-          <p class="rotulo">03 · Os três itens</p>
-          <h2>Doce, salgado e bebida</h2>
-          <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
-            Melhor Combo. Descreva como cada um conversa com o tema.</p>
-          <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
-            que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
-            As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
-          <div id="itens"></div>
-        </div>
-
-        <div class="card">
-          <p class="rotulo">04 · Preço</p>
-          <h2>Quanto custa o combo</h2>
-          <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
-            <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
-          </label>
-        </div>
-
-        <div class="card">
-          <p class="rotulo">05 · Onde encontrar</p>
-          <h2>Suas unidades</h2>
-          <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
-            continua contando como uma marca só. O horário aqui é o <b>dos dias do
-            festival</b>, que pode ser diferente do horário normal da loja.</p>
-          <div id="unidades"></div>
-          <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
-        </div>
-
-        <button class="acao larga" type="submit" id="btConcluir">Concluir cadastro</button>
-      </form>
-
-      <div class="card" id="cardFotos" hidden style="margin-top:18px">
-        <p class="rotulo">Fotos do combo</p>
-        <h2>Sua sessão</h2>
-        <p class="nota">Quem fotografa é a organização. A data e o local são definidos
-          por ela; qualquer mudança é combinada pelo canal de sempre.</p>
-        <div id="sessoes"></div>
-      </div>
-
-      <div class="card" id="cardArquivos" hidden>
-        <p class="rotulo">Downloads</p>
-        <h2>Arquivos da organização</h2>
-        <div id="arquivos"></div>
-      </div>
-    </div>
-
-    <!-- FORA de `pnConteudo` de propósito: a organização pode pedir algo antes
-         de a edição abrir, e o aviso é justamente como esse pedido chega. Um
-         canal que só existe depois do formulário chegaria tarde. -->
-    <div class="card" id="cardAvisos" style="margin-top:22px">
-      <p class="rotulo">Neste aparelho</p>
-      <h2>Avisos</h2>
-      <p class="nota">Ligue para saber na hora quando a organização pedir algo ou
-        publicar um arquivo, mesmo com esta página fechada.</p>
-      <div id="avisoEstado" style="margin-top:14px"></div>
-      <p class="nota" id="avisoRecado" hidden></p>
-      <button class="btn" type="button" id="btAvisos" hidden>Ligar avisos</button>
-    </div>
-  </section>
 </main>
+
+<!-- ── PAINEL ─────────────────────────────────────────────────────────────
+     Fora de <main> de propósito: a casca é height:100dvh própria, e main
+     carrega padding/max-width pensados para as telas de login (§ CSS acima).
+     Quatro destinos reais — a marca não tinha navegação nenhuma antes disto
+     (pedido do Eloi, 25/08/2026: "ganha navegação"). -->
+<div class="pn-casca" id="vPainel" hidden>
+  <nav class="pn-rail" aria-label="Seções" id="mcRail">
+    <img class="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <button class="pn-rail__btn" type="button" data-mvista="hoje" title="Hoje — 1">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="cadastro" title="Cadastro — 2">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z"/><rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none"/><path d="M18.8 11.6h5.2M18.8 15.8h5.2M8.4 21.6h15.6" stroke-width="2.4"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="pedidos" title="Pedidos — 3">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="arquivos" title="Arquivos — 4">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg>
+    </button>
+    <button class="pn-rail__sair" type="button" id="btSairRail" title="Sair">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 17.6 15 11l-6.4-6.6"/><path d="M15 11H3.4"/><path d="M18.6 4.4v13.2"/></svg>
+    </button>
+  </nav>
+
+  <header class="pn-cabeca">
+    <img class="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
+    <span class="pn-cabeca__texto">
+      <p class="pn-cabeca__titulo" id="mcTitulo">Hoje</p>
+      <p class="pn-cabeca__sub" id="mcSub"></p>
+    </span>
+    <span class="pn-cabeca__dir">
+      <button type="button" class="notif" id="btNotifMarca" aria-label="Notificações">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.4c-3 0-5.4 2.4-5.4 5.6v3.3L5 16.6h14l-1.6-3.3v-3.3c0-3.2-2.4-5.6-5.4-5.6Z"/><path d="M10 19.2a2 2 0 0 0 4 0"/></svg>
+        <span class="pn-badge is-novo" id="mcNotifBadge" hidden></span>
+      </button>
+      <button type="button" class="notif" id="btSairCabeca" aria-label="Sair">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 17.6 15 11l-6.4-6.6"/><path d="M15 11H3.4"/><path d="M18.6 4.4v13.2"/></svg>
+      </button>
+    </span>
+  </header>
+
+  <main class="pn-vista">
+    <div class="pn-vista__trilho">
+
+      <!-- ══ HOJE ══════════════════════════════════════════════════════ -->
+      <section id="mvHoje" hidden>
+        <div class="mc-venda" id="mcVendaBloco">
+          <p class="rotulo">Combos vendidos</p>
+          <h2 style="color:var(--creme)" id="mcVendaTitulo">Lance o número de hoje</h2>
+          <p class="nota" style="color:rgba(254,240,221,.8)" id="mcVendaTexto">Lance o número no fim do
+            expediente. A organização soma tudo para o balanço da edição.</p>
+          <div id="mcVendaAtiva">
+            <div class="mc-venda__linha">
+              <label style="margin:0"><span style="color:rgba(254,240,221,.7)" id="mcVendaRotuloData">Hoje</span>
+                <input class="mc-venda__campo" id="mcVendaQtd" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+              <button class="acao" type="button" id="mcVendaSalvar" style="background:var(--amarelo);color:var(--choco)">Salvar</button>
+              <span class="mc-venda__total"><span id="mcVendaTotal">0</span><span>no total da edição</span></span>
+            </div>
+            <div class="mc-venda__dias" id="mcVendaDias"></div>
+          </div>
+          <div class="mc-venda__espera" id="mcVendaEspera" hidden>
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.4 9.4h21.2a2.4 2.4 0 0 1 2.4 2.4v13.8a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 25.6V11.8a2.4 2.4 0 0 1 2.4-2.4Z"/><path d="M3 15.4h26"/><path d="M10.2 5v6.2M21.8 5v6.2"/></svg>
+            <span>O lançamento abre no primeiro dia da edição.</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px" id="mcFaltaBloco">
+          <p class="rotulo">O que falta</p>
+          <h2 id="mcFaltaTitulo">Cadastro entregue</h2>
+          <div id="mcFaltaLista"></div>
+        </div>
+      </section>
+
+      <!-- ══ CADASTRO ══════════════════════════════════════════════════ -->
+      <section id="mvCadastro" hidden>
+        <p class="rotulo" id="pnRotulo">Sua participação</p>
+        <h1 id="pnTitulo">Sua participação</h1>
+        <p style="margin-top:14px"><span class="selo" id="pnSelo">—</span></p>
+
+        <div class="card" id="pnSemParticipacao" hidden>
+          <h2>Ainda não há edição aberta para você</h2>
+          <p class="nota">Sua conta está ativa, mas a organização ainda não abriu a sua
+            participação na próxima edição. Assim que abrir, o formulário aparece aqui —
+            você não precisa fazer nada agora.</p>
+        </div>
+
+        <div id="pnConteudo" hidden>
+          <div class="progresso" style="margin-top:22px">
+            <b id="progTexto">0 de 5 blocos</b>
+            <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
+          </div>
+
+          <div class="salvo" id="salvo"></div>
+
+          <form id="fCadastro">
+            <div class="mc-bloco is-aberto" data-bloco="0">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="0" aria-expanded="true">
+                <span class="mc-bloco__disco" data-disco="0" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>01 · A marca</b><span>Quem participa</span></span>
+                <span class="selo" data-selo="0">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="0">
+                <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
+                <label><span>Nome da marca</span><input id="cNome" required></label>
+                <div class="dupla">
+                  <label><span>Responsável pelo festival</span><input id="cResp" required></label>
+                  <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
+                </div>
+                <div class="dupla">
+                  <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
+                  <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
+                </div>
+                <div class="dupla">
+                  <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
+                  <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
+                </div>
+                <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="1">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="1" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="1" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.4a8.4 8.4 0 0 1 4.9 15.2v2.6h-9.8v-2.6A8.4 8.4 0 0 1 16 4.4Z"/><path d="M12.2 24.4h7.6M13.4 27.6h5.2" stroke-width="2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>02 · O tema</b><span>Sua leitura do tema da edição</span></span>
+                <span class="selo" data-selo="1">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="1" hidden>
+                <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
+                  jeito. Conte qual foi a sua leitura.</p>
+                <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
+                <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
+                  <textarea id="cTemaJust" required></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="2">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="2" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="2" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" d="M2.6 17h7.4l-.8 4.6a1.3 1.3 0 0 1-1.3 1.1H4.7a1.3 1.3 0 0 1-1.3-1.1Z"/><circle cx="6.3" cy="14" r="3.4" fill="currentColor" stroke="none"/><path fill="currentColor" stroke="none" d="M12 22.6 16.2 10.2l4.2 12.4Z"/><path fill="currentColor" stroke="none" d="M22.6 14.6h7.6l-1 6.8a1.4 1.4 0 0 1-1.4 1.2h-2.8a1.4 1.4 0 0 1-1.4-1.2Z"/><path d="M1.6 25.8h28.8"/></svg></span>
+                <span class="mc-bloco__texto"><b>03 · Os três itens</b><span>Doce, salgado e bebida</span></span>
+                <span class="selo" data-selo="2">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="2" hidden>
+                <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
+                  Melhor Combo. Descreva como cada um conversa com o tema.</p>
+                <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
+                  que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
+                  As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+                <div id="itens"></div>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="3">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="3" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="3" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M27.4 15.6 16.4 26.6a2.2 2.2 0 0 1-3.1 0L5.4 18.7a2.2 2.2 0 0 1 0-3.1L16.4 4.6h9.9a1.1 1.1 0 0 1 1.1 1.1Z"/><circle cx="21.8" cy="10.2" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>04 · Preço</b><span>Quanto custa o combo</span></span>
+                <span class="selo" data-selo="3">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="3" hidden>
+                <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
+                  <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
+                </label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="4">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="4" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="4" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 28.4s8.6-9.6 8.6-15.6a8.6 8.6 0 1 0-17.2 0c0 6 8.6 15.6 8.6 15.6Z"/><rect x="12.4" y="9.2" width="7.2" height="7.2" rx="2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>05 · Onde encontrar</b><span>Suas unidades</span></span>
+                <span class="selo" data-selo="4">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="4" hidden>
+                <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
+                  continua contando como uma marca só. O horário aqui é o <b>dos dias do
+                  festival</b>, que pode ser diferente do horário normal da loja.</p>
+                <div id="unidades"></div>
+                <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
+              </div>
+            </div>
+
+            <button class="acao larga" type="submit" id="btConcluir" style="margin-top:18px">Concluir cadastro</button>
+          </form>
+
+          <div class="card" id="cardFotos" hidden style="margin-top:18px">
+            <p class="rotulo">Fotos do combo</p>
+            <h2>Sua sessão</h2>
+            <p class="nota" id="fotosTexto">Quem fotografa é a organização. A data e o local são definidos
+              por ela; qualquer mudança é combinada pelo canal de sempre.</p>
+            <div id="sessoes"></div>
+            <ul class="mc-vagas" id="mcVagas" hidden></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PEDIDOS ═══════════════════════════════════════════════════ -->
+      <section id="mvPedidos" hidden>
+        <div class="card" id="cardSolic">
+          <p class="rotulo">O que a organização pediu</p>
+          <h2>Pedidos e prazos</h2>
+          <div id="solicitacoes"></div>
+        </div>
+      </section>
+
+      <!-- ══ ARQUIVOS ══════════════════════════════════════════════════ -->
+      <section id="mvArquivos" hidden>
+        <div class="card" id="cardArquivos">
+          <p class="rotulo">Downloads</p>
+          <h2>Arquivos da organização</h2>
+          <div id="arquivos"></div>
+        </div>
+
+        <div class="card" style="margin-top:22px" id="cardAvisos">
+          <p class="rotulo">Neste aparelho</p>
+          <h2>Avisos</h2>
+          <p class="nota">Ligue para saber na hora quando a organização pedir algo ou
+            publicar um arquivo, mesmo com esta página fechada.</p>
+          <div id="avisoEstado" style="margin-top:14px"></div>
+          <p class="nota" id="avisoRecado" hidden></p>
+          <button class="btn" type="button" id="btAvisos" hidden>Ligar avisos</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <nav class="pn-abas" aria-label="Seções" id="mcAbas">
+    <div class="pn-abas__grade">
+      <button class="pn-aba" type="button" data-mvista="hoje">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg>
+        <span class="pn-aba__rotulo">hoje</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="cadastro">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z"/><rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none"/><path d="M18.8 11.6h5.2M18.8 15.8h5.2M8.4 21.6h15.6" stroke-width="2.4"/></svg>
+        <span class="pn-aba__rotulo">cadastro</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="pedidos">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <span class="pn-aba__rotulo">pedidos</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="arquivos">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg>
+        <span class="pn-aba__rotulo">arquivos</span>
+      </button>
+    </div>
+  </nav>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -406,6 +711,11 @@ button.link{
   var participacao = null
   var itens = []
   var salvando = null
+  // Fase 7 (25/08/2026): lançamento diário e as duas listas guardadas para as
+  // notificações derivadas conseguirem ler sem uma sétima consulta.
+  var vendas = []
+  var solicitacoesCache = []
+  var estadosCache = []
 
   var el = function (id) { return document.getElementById(id) }
 
@@ -672,14 +982,72 @@ button.link{
   }
 
   // ── Views e avisos ────────────────────────────────────────────────────────
+  // Quatro estados agora, não três — 'boasVindas' é a tela nova (patch §2,
+  // pedido do Eloi: "a tela inicial do app instalando no celular"). O painel
+  // (#vPainel) é uma casca própria (.pn-casca), não mais filha de <main> — por
+  // isso o cabeçalho simples (#headerTopo) some quando ela assume a tela.
   function ver (qual) {
-    ;['vLogin', 'vSenha', 'vPainel'].forEach(function (id) { el(id).hidden = true })
-    var alvo = { login: 'vLogin', senha: 'vSenha', painel: 'vPainel' }[qual]
-    if (alvo) el(alvo).hidden = false
-    var logado = qual !== 'login'
-    el('btSair').hidden = !logado
-    el('quem').hidden = !logado
+    ;['vBoasVindas', 'vLogin', 'vSenha'].forEach(function (id) { el(id).hidden = true })
+    el('vPainel').hidden = true
+    el('headerTopo').hidden = qual === 'painel'
+    var alvo = { boasVindas: 'vBoasVindas', login: 'vLogin', senha: 'vSenha', painel: 'vPainel' }[qual] || 'vBoasVindas'
+    el(alvo).hidden = false
+    if (qual === 'painel') {
+      var inicial = 'hoje'
+      var doHash = (location.hash.match(/^#painel=([a-z]+)/) || [])[1]
+      if (doHash && DESTINOS_MARCA.indexOf(doHash) > -1) {
+        inicial = doHash
+      } else {
+        try { inicial = sessionStorage.getItem('scw_marca_vista') || 'hoje' } catch (e) {}
+      }
+      irParaMarca(inicial)
+      /* O painel de verdade agora mora em /painel/ (handoff "Painel SCW
+         app", 26/08/2026) — esta página vira só a PORTA de entrada. O
+         redirecionamento é depois do login real (aqui, sessão Supabase já
+         válida), nunca antes: senha errada continua mostrando o erro nesta
+         mesma tela, e quem precisa trocar a senha do primeiro acesso passa
+         por vSenha antes de chegar aqui. `inicial` já veio certo (hash ou
+         sessionStorage), então o link continua funcionando depois do salto.
+         Quem instalou /marca/ como app precisa reinstalar a partir de
+         /painel/ — o SW e o manifest antigos continuam de pé, sem tocar. */
+      location.replace('/painel/#painel=marca/' + inicial)
+      return
+    }
     window.scrollTo(0, 0)
+  }
+
+  // ── Navegação do painel (casca comum, patch §1) ───────────────────────────
+  var DESTINOS_MARCA = ['hoje', 'cadastro', 'pedidos', 'arquivos']
+  var TITULOS_MARCA = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', arquivos: 'Arquivos' }
+  var MV_ID = { hoje: 'mvHoje', cadastro: 'mvCadastro', pedidos: 'mvPedidos', arquivos: 'mvArquivos' }
+  var vistaAtualMarca = ''
+
+  function irParaMarca (vista) {
+    if (DESTINOS_MARCA.indexOf(vista) < 0) vista = 'hoje'
+    if (vistaAtualMarca) el(MV_ID[vistaAtualMarca]).hidden = true
+    vistaAtualMarca = vista
+    el(MV_ID[vista]).hidden = false
+    el('mcTitulo').textContent = TITULOS_MARCA[vista]
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mvista]'), function (b) {
+      if (b.dataset.mvista === vista) b.setAttribute('aria-current', 'page')
+      else b.removeAttribute('aria-current')
+    })
+    try { sessionStorage.setItem('scw_marca_vista', vista) } catch (e) { /* anônima */ }
+    try { history.replaceState(null, '', '#painel=' + vista) } catch (e) { /* Safari privado, às vezes recusa */ }
+    window.scrollTo(0, 0)
+  }
+
+  function montarNavMarca () {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mvista]'), function (b) {
+      b.addEventListener('click', function () { irParaMarca(b.dataset.mvista) })
+    })
+    // 1–4 trocam de vista; não dispara com foco em campo (mesmo atalho de
+    // /organizacao/, patch §1.3).
+    document.addEventListener('keydown', function (ev) {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return
+      var n = parseInt(ev.key, 10)
+      if (n >= 1 && n <= DESTINOS_MARCA.length && !el('vPainel').hidden) irParaMarca(DESTINOS_MARCA[n - 1])
+    })
   }
 
   function aviso (texto, tipo) {
@@ -807,7 +1175,7 @@ button.link{
     participacao = null
     itens = []
     aviso('')
-    ver('login')
+    ver('boasVindas')
   }
 
   // ── A trava de primeiro uso ───────────────────────────────────────────────
@@ -872,8 +1240,7 @@ button.link{
           return null
         }
         participante = linhas[0]
-        el('quemNome').textContent = participante.nome_marca || 'Sua marca'
-        el('quemEmail').textContent = sessaoLer().email || ''
+        el('mcSub').textContent = participante.nome_marca || ''
         el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
         return api('participacoes?select=*&order=created_at.desc&limit=1')
       })
@@ -912,18 +1279,28 @@ button.link{
       api('solicitacoes?select=*&order=prazo_em.asc.nullslast'),
       api('solicitacao_estado?select=*&participacao_id=eq.' + pa),
       api('arquivos?select=*&order=created_at.desc'),
-      api('sessoes_fotos?select=*&order=data_hora.desc')
+      // 'aberto' (vaga sem dona) e as sessões desta participação vêm juntas —
+      // a RLS já filtra as abertas pela edição da marca (migration fase 7).
+      api('sessoes_fotos?select=*&order=data_hora.desc'),
+      api('vendas_diarias?select=*&participacao_id=eq.' + pa + '&order=dia.desc')
     ]).then(function (r) {
       itens = r[0] || []
+      solicitacoesCache = r[2] || []
+      estadosCache = r[3] || []
+      vendas = r[6] || []
       preencherMarca()
       preencher()
       desenharItens()
       desenharUnidades(r[1] || [])
-      desenharSolicitacoes(r[2] || [], r[3] || [])
+      desenharSolicitacoes(solicitacoesCache, estadosCache)
       desenharArquivos(r[4] || [])
       desenharSessoes(r[5] || [])
+      desenharVagas(r[5] || [])
+      renderVenda()
       selo()
       progresso()
+      abrirPrimeiroPendente()
+      atualizarBadgeMarca()
     })
   }
 
@@ -1209,6 +1586,183 @@ button.link{
     })
   }
 
+  // ── Vagas de agenda (dentro do card de fotos) ─────────────────────────────
+  // Modo "abrir vagas" da organização (migration fase 7): a marca escolhe uma
+  // vaga aberta da PRÓPRIA edição — a RLS já garante isso, o filtro por
+  // edição não precisa ser repetido aqui.
+  function desenharVagas (todasSessoes) {
+    var abertas = todasSessoes.filter(function (s) { return s.status === 'aberto' })
+    var jaTemSessao = todasSessoes.some(function (s) { return s.status !== 'aberto' })
+    var ul = el('mcVagas')
+    if (jaTemSessao || !abertas.length) { ul.hidden = true; ul.innerHTML = ''; return }
+    ul.hidden = false
+    ul.innerHTML = abertas.map(function (s) {
+      var d = new Date(s.data_hora)
+      var rotulo = d.toLocaleDateString('pt-BR', { weekday: 'short' }) + ' ' + d.getDate() +
+        ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      return '<li><button type="button" class="mc-vaga" data-vaga="' + escapar(s.id) + '">' + escapar(rotulo) + '</button></li>'
+    }).join('')
+    el('fotosTexto').textContent = 'A organização abriu horários — escolha um abaixo.'
+  }
+
+  // Atômico por construção: o filtro `status=eq.aberto` vai JUNTO do PATCH, não
+  // separado num GET antes. Duas marcas clicando a mesma vaga ao mesmo tempo —
+  // só uma tem linha afetada; a outra recebe array vazio, não erro.
+  function reservarVaga (id) {
+    return api('sessoes_fotos?id=eq.' + id + '&status=eq.aberto', {
+      metodo: 'PATCH',
+      corpo: { status: 'agendada', participacao_id: participacao.id, participante_id: participante.id },
+      prefer: 'return=representation'
+    }).then(function (r) {
+      if (!r || !r.length) aviso('Essa vaga acabou de ser escolhida por outra marca. Escolha outra.', 'erro')
+      return carregarParticipacao()
+    }).catch(function (e) {
+      if (e && e.message === 'sessao_expirada') return
+      aviso('Não deu para reservar agora. Tente de novo.', 'erro')
+    })
+  }
+
+  // ── Lançamento diário de combos vendidos (view "hoje") ────────────────────
+  // yyyy-mm-dd LOCAL, não toISOString() (que é UTC — vira o dia errado à
+  // noite, perto da virada).
+  function chaveDia (d) {
+    var p = function (n) { return String(n).padStart(2, '0') }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+  }
+
+  function renderVenda () {
+    var hoje = chaveDia(new Date())
+    var deHoje = vendas.filter(function (v) { return v.dia === hoje })[0]
+    el('mcVendaQtd').value = deHoje ? deHoje.quantidade : ''
+    el('mcVendaSalvar').textContent = deHoje ? 'Atualizar' : 'Salvar'
+    // A frase muda depois de salvar: o medo de errar o número é o que faz
+    // alguém não lançar, e dizer que dá para corrigir resolve isso.
+    el('mcVendaTexto').textContent = deHoje
+      ? 'Lançado. Dá para corrigir o número quantas vezes precisar.'
+      : 'Lance o número no fim do expediente. A organização soma tudo para o balanço da edição.'
+    var total = vendas.reduce(function (s, v) { return s + Number(v.quantidade || 0) }, 0)
+    el('mcVendaTotal').textContent = total
+    el('mcVendaDias').innerHTML = vendas.slice(0, 14).map(function (v) {
+      var d = new Date(v.dia + 'T00:00:00')
+      return '<div class="mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '') + '">' +
+        '<b>' + escapar(v.quantidade) + '</b>' +
+        '<span>' + escapar(d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })) + '</span></div>'
+    }).join('')
+  }
+
+  function salvarVenda () {
+    var qtd = parseInt(el('mcVendaQtd').value, 10)
+    if (isNaN(qtd) || qtd < 0) { aviso('Informe um número válido.', 'erro'); return }
+    var btn = el('mcVendaSalvar')
+    btn.disabled = true
+    var hoje = chaveDia(new Date())
+    var deHoje = vendas.filter(function (v) { return v.dia === hoje })[0]
+    var chamada = deHoje
+      ? api('vendas_diarias?id=eq.' + deHoje.id, { metodo: 'PATCH', corpo: { quantidade: qtd }, prefer: 'return=representation' })
+      : api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacao.id, dia: hoje, quantidade: qtd }, prefer: 'return=representation' })
+    chamada.then(function (r) {
+      btn.disabled = false
+      var linha = r && r[0]
+      if (!linha) throw new Error('sem_confirmacao')
+      if (deHoje) { deHoje.quantidade = linha.quantidade } else { vendas.unshift(linha) }
+      renderVenda()
+    }).catch(function (e) {
+      btn.disabled = false
+      if (e && e.message === 'sessao_expirada') return
+      aviso('Não deu para lançar agora. Tente de novo.', 'erro')
+    })
+  }
+
+  // ── Notificações (derivadas, nunca escritas à mão — patch §4) ─────────────
+  function blocosPendentes () {
+    var faltam = []
+    if (!(el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim())) faltam.push('A marca')
+    if (!(el('cTema').value.trim() && el('cTemaJust').value.trim())) faltam.push('O tema')
+    if (!(itensLer().every(itemCompleto) && itens.length === TIPOS.length)) faltam.push('Os três itens')
+    if (!(precoNumero() > 0)) faltam.push('Preço')
+    if (!(unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0)) faltam.push('Onde encontrar')
+    return faltam
+  }
+
+  function renderFalta () {
+    var bloco = el('mcFaltaBloco')
+    if (!bloco) return
+    var faltam = blocosPendentes()
+    if (!faltam.length) {
+      el('mcFaltaTitulo').textContent = 'Cadastro entregue'
+      el('mcFaltaLista').innerHTML = '<p class="nota" style="margin:0">Tudo preenchido. Mudou alguma coisa? Volte em Cadastro e corrija.</p>'
+      return
+    }
+    el('mcFaltaTitulo').textContent = faltam.length + (faltam.length === 1 ? ' bloco pendente' : ' blocos pendentes')
+    el('mcFaltaLista').innerHTML = '<ul class="mc-vagas" style="padding:0;margin:10px 0 0;list-style:none">' +
+      faltam.map(function (nome) {
+        return '<li><button type="button" class="mc-vaga" data-ir-cadastro="1">' + escapar(nome) + '</button></li>'
+      }).join('') + '</ul>'
+  }
+
+  function notificacoesMarca () {
+    var fila = []
+    var faltam = participacao ? blocosPendentes() : []
+    if (faltam.length) fila.push({
+      tipo: 'alerta', vista: 'cadastro',
+      texto: faltam.length === 1 ? 'Falta um bloco do cadastro: ' + faltam[0].toLowerCase() + '.'
+        : 'Faltam ' + faltam.length + ' blocos do cadastro.'
+    })
+    var pendente = solicitacoesCache.filter(function (s) {
+      var feita = estadosCache.some(function (e) { return e.solicitacao_id === s.id && e.estado === 'respondido' })
+      return !feita
+    })[0]
+    if (pendente) fila.push({ tipo: 'info', vista: 'pedidos', texto: 'A organização pediu: ' + pendente.titulo.toLowerCase() + '.' })
+    return fila
+  }
+
+  function atualizarBadgeMarca () {
+    var n = notificacoesMarca().length
+    var b = el('mcNotifBadge')
+    if (!b) return
+    b.hidden = n === 0
+    b.textContent = n
+  }
+
+  // Painel leve, não uma gaveta completa (org tem abrirFolha() pronta; a marca
+  // não tinha nenhum mecanismo de painel flutuante antes desta rodada, e
+  // construir um do zero, com toda a coreografia de folha/gaveta, era escopo
+  // maior do que esta peça pedia). Fecha ao clicar fora ou navegar.
+  // Disco (fundo, tinta, glifo) por tipo — mesmos dois usados aqui (alerta e
+  // info); grade 24/1.8, igual ao resto do arquivo (§6.11).
+  var NOTIF_ICONE = {
+    alerta: ['#FF4810', '#3D1308', '<path d="M12 4.2 21 20H3Z"/><path d="M12 10.2v4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>'],
+    info: ['#01AFCC', '#3D1308', '<circle cx="12" cy="12" r="8.8"/><path d="M12 11.1V16.6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>']
+  }
+
+  function abrirNotificacoesMarca () {
+    var fila = notificacoesMarca()
+    var painel = document.getElementById('mcNotifPainel')
+    if (painel) { painel.parentNode.removeChild(painel); return }
+    painel = document.createElement('div')
+    painel.id = 'mcNotifPainel'
+    painel.className = 'card'
+    painel.style.cssText = 'position:fixed;right:16px;top:70px;width:min(340px,90vw);z-index:90;box-shadow:0 18px 40px rgba(61,19,8,.28)'
+    painel.innerHTML = fila.length
+      ? fila.map(function (n, i) {
+          var cor = NOTIF_ICONE[n.tipo] || NOTIF_ICONE.info
+          return '<button type="button" class="pn-notif is-naolida" data-ir="' + i + '">' +
+            '<span class="pn-notif__disco" style="background:' + cor[0] + ';color:' + cor[1] + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + cor[2] + '</svg>' +
+            '</span>' +
+            '<span class="pn-notif__texto">' + escapar(n.texto) + '</span>' +
+          '</button>'
+        }).join('')
+      : '<p class="nota" style="margin:0">Nada por aqui agora.</p>'
+    document.body.appendChild(painel)
+    painel.addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-ir]')
+      if (!alvo) return
+      irParaMarca(fila[Number(alvo.dataset.ir)].vista)
+      painel.parentNode.removeChild(painel)
+    })
+  }
+
   // ── Progresso ─────────────────────────────────────────────────────────────
   // Conta BLOCO completo, não campo preenchido: "3 de 5 blocos" diz onde a
   // pessoa está; "11 de 24 campos" só diz que ainda falta alguma coisa.
@@ -1221,6 +1775,9 @@ button.link{
     if (unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0) feitos++
     el('progTexto').textContent = feitos + ' de ' + BLOCOS + ' blocos'
     el('progBarra').style.transform = 'scaleX(' + (feitos / BLOCOS) + ')'
+    atualizarSelosBlocos()
+    renderFalta()
+    atualizarBadgeMarca()
     return feitos
   }
 
@@ -1228,6 +1785,68 @@ button.link{
     var cru = el('cPreco').value.trim().replace(/\./g, '').replace(',', '.')
     var n = parseFloat(cru)
     return isNaN(n) ? 0 : n
+  }
+
+  // ── Acordeão do cadastro ───────────────────────────────────────────────
+  // Um por vez, como o resto da casca (§8.3). Puramente de apresentação: o
+  // autosave já grava o formulário inteiro a cada tecla, então abrir/fechar
+  // um bloco nunca muda o que é lido ou salvo.
+  var blocoAberto = 0
+
+  function blocoCompleto (n) {
+    if (n === 0) return !!(el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim())
+    if (n === 1) return !!(el('cTema').value.trim() && el('cTemaJust').value.trim())
+    if (n === 2) return itensLer().every(itemCompleto) && itens.length === TIPOS.length
+    if (n === 3) return precoNumero() > 0
+    if (n === 4) return unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0
+    return false
+  }
+
+  // Fecha o que estiver aberto e abre `n` (null fecha tudo). Separado do
+  // clique: o clique ALTERNA (abrir de novo o já aberto fecha); carregar a
+  // página não alterna, FORÇA o primeiro pendente a abrir, sem depender do
+  // estado anterior.
+  function abrirBloco (n) {
+    if (blocoAberto !== null && blocoAberto !== n) {
+      var anterior = document.querySelector('[data-bloco="' + blocoAberto + '"]')
+      if (anterior) {
+        anterior.classList.remove('is-aberto')
+        anterior.querySelector('[data-corpo]').hidden = true
+        anterior.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'false')
+      }
+    }
+    blocoAberto = n
+    if (n !== null) {
+      var atual = document.querySelector('[data-bloco="' + n + '"]')
+      atual.classList.add('is-aberto')
+      atual.querySelector('[data-corpo]').hidden = false
+      atual.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'true')
+    }
+  }
+
+  function alternarBloco (n) {
+    abrirBloco(blocoAberto === n ? null : n)
+  }
+
+  function atualizarSelosBlocos () {
+    for (var n = 0; n < 5; n++) {
+      var bloco = document.querySelector('[data-bloco="' + n + '"]')
+      if (!bloco) continue
+      var pronto = blocoCompleto(n)
+      bloco.classList.toggle('is-pronto', pronto)
+      var selo = bloco.querySelector('[data-selo]')
+      selo.className = 'selo' + (pronto ? ' completo' : '')
+      selo.textContent = pronto ? 'Pronto' : 'Pendente'
+    }
+  }
+
+  // Ao carregar, abre o primeiro bloco AINDA pendente — quem já preencheu
+  // tudo vê o primeiro fechado, sem forçar rolagem nenhuma.
+  function abrirPrimeiroPendente () {
+    for (var n = 0; n < 5; n++) {
+      if (!blocoCompleto(n)) { abrirBloco(n); return }
+    }
+    abrirBloco(null)
   }
 
   // ── Autosave ──────────────────────────────────────────────────────────────
@@ -1277,7 +1896,7 @@ button.link{
       participante = r[0][0]
       participacao = r[1][0]
       el('salvo').textContent = 'Salvo automaticamente.'
-      el('quemNome').textContent = participante.nome_marca || 'Sua marca'
+      el('mcSub').textContent = participante.nome_marca || ''
       el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
       selo()
     }).catch(function (e) {
@@ -1406,8 +2025,19 @@ button.link{
     el('fLogin').addEventListener('submit', entrar)
     el('fSenha').addEventListener('submit', definirSenha)
     el('fCadastro').addEventListener('submit', concluir)
+    el('fCadastro').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-alternar]')
+      if (alvo) alternarBloco(parseInt(alvo.getAttribute('data-alternar'), 10))
+    })
     el('btEsqueci').addEventListener('click', recuperar)
-    el('btSair').addEventListener('click', sair)
+    // Dois botões de sair (rail no desktop, cabeçalho no celular — só um dos
+    // dois é visível de cada vez, resolvido por CSS), mesma função.
+    el('btSairRail').addEventListener('click', sair)
+    el('btSairCabeca').addEventListener('click', sair)
+    el('btIrLogin').addEventListener('click', function () { ver('login') })
+    el('btVoltarBoasVindas').addEventListener('click', function () { ver('boasVindas') })
+    el('btNotifMarca').addEventListener('click', abrirNotificacoesMarca)
+    montarNavMarca()
     el('btAddUnidade').addEventListener('click', unidadeAdicionar)
     el('fCadastro').addEventListener('input', agendarSalvar)
     // `change` além de `input`: caixa de marcar em navegador antigo não dispara
@@ -1428,6 +2058,14 @@ button.link{
     el('arquivos').addEventListener('click', function (ev) {
       var alvo = ev.target.closest('[data-baixar]')
       if (alvo) baixar(alvo.getAttribute('data-baixar'))
+    })
+    el('mcVendaSalvar').addEventListener('click', salvarVenda)
+    el('mcVagas').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-vaga]')
+      if (alvo) reservarVaga(alvo.getAttribute('data-vaga'))
+    })
+    el('mcFaltaLista').addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-ir-cadastro]')) irParaMarca('cadastro')
     })
     el('btAvisos').addEventListener('click', function () {
       if (avisoLigado) desligarAvisos(); else ligarAvisos()
@@ -1454,8 +2092,21 @@ button.link{
       history.replaceState(null, '', location.pathname)
       if (doHash.tipo === 'recovery' || doHash.tipo === 'invite') { ver('senha'); return }
     }
-    if (sessaoLer()) { carregar(); return }
-    ver('login')
+    /* ⚠️ Não basta achar sessão pronta e ir direto pro painel. Até 25/08/2026
+       isso era seguro porque só existia UM jeito de a sessão nascer — o form
+       aqui embaixo, que sempre passa por precisaTrocarSenha() antes de chamar
+       carregar(). Desde que o diálogo de acesso do site (AccessDialog.jsx)
+       passou a autenticar e já entregar a sessão pronta em
+       sessionStorage.scw_marca, esse atalho viraria uma segunda porta que
+       pula a troca de senha obrigatória do primeiro acesso (§10.4-b) — a
+       marca cairia direto no painel ainda com a senha que veio por WhatsApp.
+       A checagem tem que valer para QUALQUER origem da sessão, não só para a
+       que nasce aqui dentro. */
+    if (sessaoLer()) {
+      precisaTrocarSenha().then(function (precisa) { if (precisa) { ver('senha') } else { carregar() } })
+      return
+    }
+    ver('boasVindas')
   }
 
   if (document.readyState === 'loading') {

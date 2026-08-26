@@ -20,11 +20,16 @@
     {
       "source": "/marca/sw.js",
       "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/painel/sw.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
     }
   ],
   "rewrites": [
     { "source": "/organizacao", "destination": "/organizacao/index.html" },
     { "source": "/marca", "destination": "/marca/index.html" },
+    { "source": "/painel", "destination": "/painel/index.html" },
     { "source": "/quero-participar", "destination": "/quero-participar/index.html" },
     { "source": "/mapa", "destination": "/" },
     { "source": "/rota", "destination": "/" },

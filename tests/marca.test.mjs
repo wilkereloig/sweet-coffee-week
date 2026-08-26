@@ -55,6 +55,8 @@ const camposDe = (nome) => {
 
 const EDGE = readFileSync(
   new URL('../supabase/functions/criar-acesso-marca/index.ts', import.meta.url), 'utf8')
+const MARCA_ACCESS = readFileSync(
+  new URL('../src/lib/marcaAccess.js', import.meta.url), 'utf8')
 
 /* ⚠️ Asserção de AUSÊNCIA tem que ler código SEM COMENTÁRIO, e isso já custou
    três reprovas falsas em 22/08/2026: `admin_ping`, `supabase` no service
@@ -69,6 +71,7 @@ const semComentarios = (fonte) => fonte
 
 const EDGE_CODIGO = semComentarios(EDGE)
 const JS_CODIGO = semComentarios(JS)
+const MARCA_ACCESS_CODIGO = semComentarios(MARCA_ACCESS)
 
 test('o HTML traz exatamente um bloco de script inline', () => {
   assert.equal(SCRIPTS.length, 1)
@@ -245,33 +248,41 @@ test('o painel lê a participação, não as colunas antigas do participante', (
    código uma coisa que o produto deixou de fazer.
    O que substituiu está abaixo. */
 
-test('as duas slugificações casam entre a página e a Edge Function', () => {
+test('as três slugificações casam — página, Edge Function e AccessDialog', () => {
   // ⚠️ A ARMADILHA CENTRAL DESTE MODELO. O login é o nome do estabelecimento
-  // slugificado, e a slugificação acontece em DOIS lugares: na Edge Function,
-  // ao criar a conta, e aqui, ao entrar. Se divergirem, a marca digita o nome
-  // certo e não entra — e como o erro de login é genérico de propósito,
-  // ninguém descobre o motivo.
-  // CÓDIGO, não fonte: as duas funções têm comentários diferentes, e comentário
+  // slugificado, e a slugificação acontece em TRÊS lugares desde que o diálogo
+  // de acesso do site passou a autenticar como marca (25/08/2026): na Edge
+  // Function, ao criar a conta; aqui, ao entrar pelo formulário estático; e em
+  // src/lib/marcaAccess.js, ao entrar pelo AccessDialog. Se uma divergir, a
+  // marca digita o nome certo e não entra — e como o erro de login é genérico
+  // de propósito, ninguém descobre o motivo.
+  // CÓDIGO, não fonte: as três têm comentários diferentes, e comentário
   // diferente não é comportamento diferente.
   const daPagina = JS_CODIGO.match(/function slugificar[\s\S]*?\n  \}/)
   const daFuncao = EDGE_CODIGO.match(/function slugificar[\s\S]*?\n\}/)
+  const doDialogo = MARCA_ACCESS_CODIGO.match(/function slugificar[\s\S]*?\n\}/)
   assert.ok(daPagina, 'sumiu slugificar() da página')
   assert.ok(daFuncao, 'sumiu slugificar() da Edge Function')
+  assert.ok(doDialogo, 'sumiu slugificar() de src/lib/marcaAccess.js')
 
   // Ignora espaço, palavra de declaração e ANOTAÇÃO DE TIPO: a Edge Function é
-  // TypeScript e a página é JS, então `(nome: string): string` e `(nome)` são a
-  // mesma função. Tipo não é comportamento; comparar o texto cru acusaria uma
-  // divergência que não existe — e um teste que reprova o correto é abandonado.
+  // TypeScript e as outras duas são JS, então `(nome: string): string` e
+  // `(nome)` são a mesma função. Tipo não é comportamento; comparar o texto
+  // cru acusaria uma divergência que não existe — e um teste que reprova o
+  // correto é abandonado.
   const normal = (t) => t
     .replace(/:\s*string/g, '')
     .replace(/\s+/g, '')
     .replace(/var|const|let/g, '')
   assert.equal(normal(daPagina[0]), normal(daFuncao[0]),
-    'as duas slugificações divergiram — o login gerado não vai abrir a página')
+    'página × Edge Function divergiram — o login gerado não vai abrir a página')
+  assert.equal(normal(daPagina[0]), normal(doDialogo[0]),
+    'página × AccessDialog divergiram — quem entra pelo diálogo do site não vai abrir a página')
 
   const dom = (t) => (t.match(/DOMINIO_LOGIN\s*=\s*'([^']+)'/) || [])[1]
   assert.ok(dom(JS_CODIGO), 'sumiu DOMINIO_LOGIN da página')
   assert.equal(dom(JS_CODIGO), dom(EDGE_CODIGO), 'o domínio de login difere entre página e função')
+  assert.equal(dom(JS_CODIGO), dom(MARCA_ACCESS_CODIGO), 'o domínio de login difere entre página e AccessDialog')
 })
 
 test('a senha entregue morre no primeiro uso', () => {
