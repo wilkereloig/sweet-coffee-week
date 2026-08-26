@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Organização — Sweet &amp; Coffee Week</title>
+<title>Organização · Sweet &amp; Coffee Week</title>
 <link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
 
 <!-- Instalável na tela inicial, em escopo próprio.
@@ -621,29 +621,29 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
        casca" abaixo). -->
   <nav class="pn-rail" aria-label="Seções do painel">
     <img class="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
-    <button class="pn-rail__btn" type="button" data-vista="mesa" title="Mesa — 1">
+    <button class="pn-rail__btn" type="button" data-vista="mesa" title="Mesa · 1">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/><path d="M3.5 20h17"/>
       </svg>
     </button>
-    <button class="pn-rail__btn" type="button" data-vista="respostas" title="Respostas — 2">
+    <button class="pn-rail__btn" type="button" data-vista="respostas" title="Respostas · 2">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/>
       </svg>
     </button>
-    <button class="pn-rail__btn" type="button" data-vista="participantes" title="Marcas — 3">
+    <button class="pn-rail__btn" type="button" data-vista="participantes" title="Marcas · 3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20"/>
         <circle cx="10" cy="7.5" r="3.5"/><path d="M17.5 13.5h4"/><path d="M19.5 11.5v4"/>
       </svg>
     </button>
-    <button class="pn-rail__btn" type="button" data-vista="producao" title="Produção — 4">
+    <button class="pn-rail__btn" type="button" data-vista="producao" title="Produção · 4">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/>
         <rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="m8.5 12 2 2 3.5-3.5"/><path d="M8.5 17h5"/>
       </svg>
     </button>
-    <button class="pn-rail__btn" type="button" data-vista="equipe" title="Equipe — 5">
+    <button class="pn-rail__btn" type="button" data-vista="equipe" title="Equipe · 5">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2"/>
         <circle cx="16.5" cy="15.5" r="2.5"/><path d="M16.5 11.5v1.2"/><path d="M16.5 18.3v1.2"/>
@@ -783,7 +783,7 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
         <div class="og-forms__cabeca og-forms__cabeca--com-acao">
           <div>
             <h2>Pedidos e prazos</h2>
-            <p>O que a organização pediu, para quem, até quando — e quem já respondeu.</p>
+            <p>O que a organização pediu, para quem, até quando, e quem já respondeu.</p>
           </div>
           <button class="og-btn og-btn--mini" type="button" id="btn-nova-solic">Novo pedido</button>
         </div>
@@ -1290,7 +1290,7 @@ async function carregar() {
       ...chaves.map(k => rpc(ORIGENS[k].rpc, { p_secret: senha })),
     ]);
     if (valida !== true) {
-      mostrarEstado('erro', 'A senha desta sessão não vale mais — ela pode ter sido trocada. ' +
+      mostrarEstado('erro', 'A senha desta sessão não vale mais. Ela pode ter sido trocada. ' +
         'Saia e entre de novo. Os dados continuam no banco.');
       return;
     }
@@ -1702,7 +1702,7 @@ function renderParticipantes() {
     area.innerHTML = '<div class="og-estado"><h2>Nenhuma marca com acesso</h2>' +
       '<p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar o botão ' +
       '<b>Criar acesso</b> na ficha dela, ou cadastrar a marca direto aqui, no botão ' +
-      '<b>Cadastrar marca</b> acima — para quem você convidou sem passar pelo formulário.</p>' +
+      '<b>Cadastrar marca</b> acima: para quem você convidou sem passar pelo formulário.</p>' +
       '<p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, ' +
       'para você entregar.</p></div>';
     return;
@@ -1747,7 +1747,7 @@ function renderParticipantes() {
       '<span class="og-item__cor" style="background:' +
         (COR_CADASTRO[p.status_cadastro] || '#6A2C15') + '" aria-hidden="true"></span>' +
       '<p class="og-item__nome">' + escapar(p.nome_marca || '(sem nome)') + '</p>' +
-      '<p class="og-item__meta">' + edicao + historico + ' — ' +
+      '<p class="og-item__meta">' + edicao + historico + ' · ' +
         (feito ? escapar(feito) : 'nada preenchido ainda') +
       '</p>' +
       '<span class="og-item__dir">' +
@@ -1816,7 +1816,7 @@ function ajustarModoAgenda(m) {
   $('modo-marcar').classList.toggle('is-ativo', m === 'marcar');
   $('agenda-nota').textContent = m === 'abrir'
     ? 'Clique num horário para abrir a vaga. As marcas escolhem entre as vagas abertas.'
-    : 'Este modo usa o botão "Agendar sessão", logo abaixo — ele já marca a marca diretamente no horário escolhido.';
+    : 'Este modo usa o botão "Agendar sessão", logo abaixo: ele já marca a marca diretamente no horário escolhido.';
 }
 
 async function abrirVagaAgenda(iso) {
@@ -1867,7 +1867,7 @@ function renderProducao() {
             (rascunho ? '#6A2C15' : (faltam ? '#FF4810' : '#01AFCC')) + '" aria-hidden="true"></span>' +
           '<p class="og-item__nome">' + escapar(s.titulo) + '</p>' +
           '<p class="og-item__meta">' + escapar(alvo) + ' · ' +
-            escapar(BLOCOS[s.bloco] || s.bloco) + ' — ' + escapar(conta) + '</p>' +
+            escapar(BLOCOS[s.bloco] || s.bloco) + ' · ' + escapar(conta) + '</p>' +
           '<span class="og-item__dir">' + prazoSelo(s.prazo_em) +
             (rascunho
               ? '<button class="og-btn og-btn--mini" type="button" data-publicar="' + escapar(s.id) + '">Publicar</button>'
@@ -1968,7 +1968,7 @@ function renderEquipe() {
       '<span class="og-item__cor" style="background:' + (c.ativo ? '#3D1308' : '#FF4810') + '" aria-hidden="true"></span>' +
       '<p class="og-item__nome">' + escapar(c.email || '(sem e-mail)') + '</p>' +
       '<p class="og-item__meta">' + escapar(c.rotulo || c.funcao || 'sem função') +
-        (pendencias ? ' — ' + escapar(pendencias) : '') + '</p>' +
+        (pendencias ? ' · ' + escapar(pendencias) : '') + '</p>' +
       '<span class="og-item__dir">' +
         '<button class="og-btn og-btn--vazado og-btn--mini" type="button" data-conta="' +
           escapar(c.user_id) + '">Mudar</button>' +
@@ -2106,7 +2106,7 @@ function abrirDetalhe(origem, id) {
 
   const acoes = [];
   if (email) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" href="mailto:' + escapar(email) +
-    '?subject=' + encodeURIComponent('Sweet & Coffee Week — ' + o.rotulo) + '">Responder por e-mail</a>');
+    '?subject=' + encodeURIComponent('Sweet & Coffee Week · ' + o.rotulo) + '">Responder por e-mail</a>');
   if (fone) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" href="https://wa.me/' +
     (fone.length <= 11 ? '55' + fone : fone) + '">WhatsApp</a>');
   if (insta) acoes.push('<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" href="https://instagram.com/' +
@@ -2195,7 +2195,7 @@ function slugPrevisto(nome) {
 
 const RECADO_MANUAL = {
   entrada_ambigua:     'Defeito do painel: mandou candidatura e cadastro manual juntos.',
-  sem_nome_de_marca:   'O nome do estabelecimento é obrigatório — é ele que vira o login.',
+  sem_nome_de_marca:   'O nome do estabelecimento é obrigatório: é ele que vira o login.',
   marca_ja_tem_acesso: 'Já existe uma marca com acesso usando esse nome.',
   existe_candidatura:  'Essa marca já se inscreveu pelo "Quero participar".',
   nao_autorizado:      'A sessão não vale mais. Saia e entre de novo.',
@@ -2212,12 +2212,12 @@ function abrirCadastroManual() {
         '<input type="text" id="man-nome" autocomplete="off" placeholder="ELOI Doces"></label>' +
       /* O login previsto fica à vista ANTES de criar: ele não se troca depois,
          e nome digitado errado vira login errado para sempre. */
-      '<p class="og-forms__nota" id="man-login">O login vai ser: <b>—</b></p>' +
+      '<p class="og-forms__nota" id="man-login">O login vai ser: <b>…</b></p>' +
       '<label class="og-campo"><span>Telefone (WhatsApp)</span>' +
         '<input type="tel" id="man-telefone" inputmode="tel" placeholder="(84) 90000-0000"></label>' +
-      '<label class="og-campo"><span>Responsável <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Responsável <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="text" id="man-responsavel" autocomplete="off"></label>' +
-      '<label class="og-campo"><span>E-mail <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>E-mail <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="email" id="man-email" autocomplete="off" placeholder="contato@marca.com.br"></label>' +
       '<div class="og-aviso" id="man-aviso" hidden></div>' +
       '<div id="man-credenciais"></div>' +
@@ -2227,7 +2227,7 @@ function abrirCadastroManual() {
   const campo = $('man-nome');
   campo.addEventListener('input', function () {
     const s = slugPrevisto(campo.value);
-    $('man-login').innerHTML = 'O login vai ser: <b>' + escapar(s || '—') + '</b>';
+    $('man-login').innerHTML = 'O login vai ser: <b>' + escapar(s || '…') + '</b>';
   });
   $('man-criar').addEventListener('click', criarMarcaManual);
   campo.focus();
@@ -2268,7 +2268,7 @@ async function criarMarcaManual() {
     /* Recusa acionável: a candidatura existe, então o caminho certo é o botão
        da ficha dela — e é isso que a mensagem diz, em vez de só reclamar. */
     if (codigo === 'existe_candidatura') {
-      recado += ' Abra a ficha dela em "Respostas" e use o botão Criar acesso — ' +
+      recado += ' Abra a ficha dela em "Respostas" e use o botão Criar acesso: ' +
         'assim a candidatura fica vinculada à conta em vez de ficar órfã.';
     }
     av.textContent = recado; av.dataset.tom = 'erro'; av.hidden = false;
@@ -2281,7 +2281,7 @@ async function criarMarcaManual() {
    longe do caso que a produziu envelhece sozinha. */
 const RECADO_APAGAR = {
   nao_autorizado:  'A sessão não vale mais. Saia e entre de novo.',
-  origem_invalida: 'Origem desconhecida — isso é defeito do painel, não seu.',
+  origem_invalida: 'Origem desconhecida. Isso é defeito do painel, não seu.',
   nao_encontrado:  'Esse registro já não existe. Alguém pode ter apagado antes.',
   tem_conta:       'Esta candidatura já virou conta de participante. Apagar aqui deixaria a ' +
                    'conta órfã, apontando para nada. Remova a conta primeiro.',
@@ -2290,7 +2290,7 @@ const RECADO_APAGAR = {
 function blocoRisco(origem, reg) {
   return '<div class="og-bloco og-risco">' +
     '<h3>Apagar</h3>' +
-    '<p class="og-forms__nota">Tira a resposta do banco de vez. <b>Não tem desfazer</b> — o ' +
+    '<p class="og-forms__nota">Tira a resposta do banco de vez. <b>Não tem desfazer</b>: o ' +
       'histórico guarda que houve exclusão, não o que foi apagado. É assim de propósito: ' +
       'auditoria que copia o dado devolve pela porta dos fundos o que a exclusão tirou.</p>' +
     '<div class="og-aviso" id="det-risco-aviso" hidden></div>' +
@@ -2367,7 +2367,7 @@ function blocoAcesso(origem, reg) {
       '<h3>Acesso da marca</h3>' +
       '<p class="og-forms__nota">Conta criada em ' + dataCurta(p.created_at) + '. ' +
         'Estado do cadastro: <b>' + escapar(ROTULO_STATUS[p.status_cadastro] || p.status_cadastro) + '</b>. ' +
-        'Ela entra em <b>/marca/</b> com o login <b>' + escapar(p.slug || '—') + '</b>.</p>' +
+        'Ela entra em <b>/marca/</b> com o login <b>' + escapar(p.slug || 'N/D') + '</b>.</p>' +
       // Honestidade: a senha não é recuperável daqui. Ela existiu uma vez, na
       // tela, e não ficou guardada em lugar nenhum — dizer isso é melhor que um
       // botão "reenviar" que não teria o que reenviar.
@@ -2391,7 +2391,7 @@ function blocoAcesso(origem, reg) {
     '<h3>Acesso da marca</h3>' +
     '<p class="og-forms__nota">Cria a conta de <b>' + escapar(reg.empresa || reg.nome || 'esta marca') +
       '</b>. O <b>login é o nome do estabelecimento</b> e a senha é gerada forte, ' +
-      'na hora. Ela aparece <b>uma vez só</b> nesta tela — depois não há como ver de novo.</p>' +
+      'na hora. Ela aparece <b>uma vez só</b> nesta tela: depois não há como ver de novo.</p>' +
     (trava ? '<p class="og-forms__nota">' + trava + '</p>' : '') +
     '<div class="og-aviso" id="det-acesso-aviso" hidden></div>' +
     '<div id="det-credenciais"></div>' +
@@ -2424,7 +2424,7 @@ function mostrarCredenciais(reg, r, alvo) {
           ? '<a class="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener" ' +
             'href="https://wa.me/' + (fone.length <= 11 ? '55' + fone : fone) +
             '?text=' + encodeURIComponent(texto) + '">Enviar no WhatsApp</a>'
-          : '<span class="og-forms__nota">Sem telefone na candidatura — dá para copiar e colar.</span>') +
+          : '<span class="og-forms__nota">Sem telefone na candidatura. Dá para copiar e colar.</span>') +
       '</div>' +
       '<p class="og-forms__nota">No primeiro acesso a marca é obrigada a trocar a senha. ' +
         'É isso que faz a mensagem do WhatsApp parar de valer depois de usada.</p>' +
@@ -2588,7 +2588,7 @@ function opcoesMarcas(selecionada) {
   return participantes.filter(p => p.participacao_id).map(p =>
     '<option value="' + escapar(p.participacao_id) + '"' +
     (p.participacao_id === selecionada ? ' selected' : '') + '>' +
-    escapar(p.nome_marca) + (p.edicao_codigo ? ' — ' + escapar(p.edicao_codigo) : '') +
+    escapar(p.nome_marca) + (p.edicao_codigo ? ' · ' + escapar(p.edicao_codigo) : '') +
     '</option>').join('');
 }
 
@@ -2629,7 +2629,7 @@ async function abrirFicha(participacaoId) {
   }
 
   $('detalhe-titulo').textContent = m.nome_marca || '(sem nome)';
-  $('detalhe-sub').textContent = 'Edição ' + (pa.edicao_codigo || '—') + ' · ' +
+  $('detalhe-sub').textContent = 'Edição ' + (pa.edicao_codigo || 'N/D') + ' · ' +
     (ROTULO_STATUS[pa.status_cadastro] || pa.status_cadastro || '');
 
   $('detalhe-corpo').innerHTML =
@@ -2674,7 +2674,7 @@ async function abrirFicha(participacaoId) {
 
     '<div class="og-bloco"><h3>Pedidos</h3>' +
       (solics.length ? solics.map(s =>
-        '<p class="og-par"><b>' + escapar(s.titulo) + '</b> — ' +
+        '<p class="og-par"><b>' + escapar(s.titulo) + '</b> · ' +
         (s.estado === 'respondido' ? 'respondido' : 'pendente') +
         (s.prazo_em ? ' · ' + prazoSelo(s.prazo_em).replace(/<[^>]+>/g, '') : '') +
         (s.estado === 'respondido' ? ''
@@ -2687,7 +2687,7 @@ async function abrirFicha(participacaoId) {
     '<div class="og-bloco"><h3>Arquivos e fotos</h3>' +
       (arqs.length ? arqs.map(a =>
         '<p class="og-par"><b>' + escapar(a.nome) + '</b>' +
-        (a.exige_leitura ? (a.lido_em ? ' — leu em ' + dataCurta(a.lido_em) : ' — ainda não leu') : '') +
+        (a.exige_leitura ? (a.lido_em ? ' · leu em ' + dataCurta(a.lido_em) : ' · ainda não leu') : '') +
         '</p>').join('')
         : '<p>Nenhum arquivo para esta marca.</p>') +
       (sess.length ? sess.map(x =>
@@ -2701,7 +2701,7 @@ async function abrirFicha(participacaoId) {
          decidir qualquer coisa sobre ela. */
       edicoes.map(e => '<p class="og-par"><b>' + escapar(e.edicao_codigo) + '</b> · ' +
         escapar(ROTULO_STATUS[e.status_cadastro] || e.status_cadastro) +
-        (e.tema_combo ? ' — ' + escapar(e.tema_combo) : '') + '</p>').join('') +
+        (e.tema_combo ? ' · ' + escapar(e.tema_combo) : '') + '</p>').join('') +
     '</div>' +
     '<div class="og-aviso" id="ficha-aviso" hidden></div>';
 }
@@ -2713,7 +2713,7 @@ function abrirNovoPedido() {
   abrirFolha('Novo pedido', 'Aparece no painel da marca, com prazo',
     '<div class="og-bloco" style="border-top:0;padding-top:0">' +
       '<p class="og-forms__nota">Ele nasce como rascunho. Só ao publicar é que a marca ' +
-        'passa a ver — e é aí que o prazo começa a valer para ela.</p>' +
+        'passa a ver, e é aí que o prazo começa a valer para ela.</p>' +
       '<label class="og-campo"><span>Título</span><input type="text" id="sol-titulo"></label>' +
       '<label class="og-campo"><span>Texto</span><textarea id="sol-texto"></textarea></label>' +
       '<label class="og-campo"><span>Para quem</span><select id="sol-escopo">' +
@@ -2723,7 +2723,7 @@ function abrirNovoPedido() {
         '<select id="sol-marca">' + opcoesMarcas() + '</select></label>' +
       '<label class="og-campo"><span>Bloco do formulário</span>' +
         '<select id="sol-bloco">' + blocos + '</select></label>' +
-      '<label class="og-campo"><span>Prazo <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Prazo <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="date" id="sol-prazo"></label>' +
       '<div class="og-aviso" id="sol-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="sol-criar">Criar rascunho</button>' +
@@ -2785,7 +2785,7 @@ async function abrirQuemFalta(id) {
     $('detalhe-corpo').innerHTML =
       '<div class="og-bloco" style="border-top:0;padding-top:0">' +
       (lista.length ? lista.map(l =>
-        '<p class="og-par"><b>' + escapar(l.marca || '(marca)') + '</b> — ' +
+        '<p class="og-par"><b>' + escapar(l.marca || '(marca)') + '</b> · ' +
         (l.estado === 'respondido' ? 'respondido' : 'pendente') +
         (l.estado === 'respondido' ? '' :
           ' <button class="og-btn og-btn--vazado og-btn--mini" type="button" data-marcar="' +
@@ -2840,9 +2840,9 @@ function abrirNovoArquivo() {
         '<option value="marca">Uma marca só</option></select></label>' +
       '<label class="og-campo" id="arq-marca-campo" hidden><span>Qual marca</span>' +
         '<select id="arq-marca">' + opcoesMarcas() + '</select></label>' +
-      '<label class="og-campo"><span>Versão <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Versão <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="text" id="arq-versao" placeholder="2"></label>' +
-      '<label class="og-campo"><span>Descrição <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Descrição <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="text" id="arq-descricao"></label>' +
       /* A capacidade existe e o padrão vem DESLIGADO (item 3.3 do comando).
          Ligar para contrato e regulamento é configuração, não código novo. */
@@ -2967,9 +2967,9 @@ function abrirNovaSessao() {
         opcoesMarcas() + '</select></label>' +
       '<label class="og-campo"><span>Data e hora</span>' +
         '<input type="datetime-local" id="ses-quando"></label>' +
-      '<label class="og-campo"><span>Local <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Local <span class="og-forms__nota">(opcional)</span></span>' +
         '<input type="text" id="ses-local"></label>' +
-      '<label class="og-campo"><span>Observações <span class="og-forms__nota">— opcional</span></span>' +
+      '<label class="og-campo"><span>Observações <span class="og-forms__nota">(opcional)</span></span>' +
         '<textarea id="ses-obs"></textarea></label>' +
       '<div class="og-aviso" id="ses-aviso" hidden></div>' +
       '<button class="og-btn" type="button" id="ses-criar">Agendar</button>' +
@@ -3008,7 +3008,7 @@ function abrirMudarSessao(id) {
   abrirFolha(s.nome_marca || 'Sessão', dataHoraCurta(s.data_hora),
     '<div class="og-bloco" style="border-top:0;padding-top:0">' +
       '<label class="og-campo"><span>Situação</span><select id="ses-status">' + opcoes + '</select></label>' +
-      '<label class="og-campo"><span>Nova data e hora <span class="og-forms__nota">— deixe em branco para manter</span></span>' +
+      '<label class="og-campo"><span>Nova data e hora <span class="og-forms__nota">(deixe em branco para manter)</span></span>' +
         '<input type="datetime-local" id="ses-nova"></label>' +
       '<label class="og-campo"><span>Local</span>' +
         '<input type="text" id="ses-local2" value="' + escapar(s.local || '') + '"></label>' +
@@ -3058,7 +3058,7 @@ function abrirNovaConta() {
     '<option value="' + escapar(f.codigo) + '">' + escapar(f.rotulo) + '</option>').join('');
   abrirFolha('Criar conta', 'Uma pessoa da equipe, com função',
     '<div class="og-bloco" style="border-top:0;padding-top:0">' +
-      '<p class="og-forms__nota">Aqui o e-mail é o de verdade — diferente da marca, que entra ' +
+      '<p class="og-forms__nota">Aqui o e-mail é o de verdade, diferente da marca, que entra ' +
         'pelo nome do estabelecimento. A senha aparece uma vez, para você entregar, e vale ' +
         'para um login só.</p>' +
       '<label class="og-campo"><span>E-mail</span>' +
@@ -3111,7 +3111,7 @@ function abrirMudarConta(userId) {
       '<button class="og-btn" type="button" id="cc-salvar">Salvar função</button> ' +
       '<button class="og-btn og-btn--vazado" type="button" id="cc-suspender">' +
         (c.ativo ? 'Suspender' : 'Reativar') + '</button>' +
-      '<p class="og-forms__nota">O banco recusa tirar o último administrador — é a trava que ' +
+      '<p class="og-forms__nota">O banco recusa tirar o último administrador: é a trava que ' +
         'impede o painel de ficar sem ninguém que possa criar conta.</p>' +
     '</div>');
   $('cc-salvar').addEventListener('click', async () => {
@@ -3291,7 +3291,7 @@ async function renderAvisos() {
       '<p class="og-item__meta">' + (assinatura
         ? 'Este aparelho recebe aviso mesmo com o painel fechado.'
         : (negado
-          ? 'A permissão foi negada. Reabrir depende das configurações do navegador para este site — o painel não consegue pedir de novo.'
+          ? 'A permissão foi negada. Reabrir depende das configurações do navegador para este site. O painel não consegue pedir de novo.'
           : 'Nada chega até você ligar aqui.')) + '</p>' +
     '</div>' +
     '<div class="og-aviso" id="av-aviso" hidden></div>' +
@@ -3315,7 +3315,7 @@ const ONDE_ESTA_O_AVISO =
 async function ligarAvisos() {
   if (Notification.permission === 'denied') {
     avisoEm('av-aviso', 'A permissão já está negada para este site. Reabrir depende ' +
-      'das configurações do navegador — o painel não consegue pedir de novo.', 'erro');
+      'das configurações do navegador. O painel não consegue pedir de novo.', 'erro');
     return;
   }
 
