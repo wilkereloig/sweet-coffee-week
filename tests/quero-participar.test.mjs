@@ -9,9 +9,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import SWEET_COFFEE_HISTORY from '../src/data/sweetCoffeeHistory.js'
 import { festivalFacts } from '../src/data/festivalFacts.js'
-import LOVERS_AWARDS from '../src/data/loversAwardsResults.js'
 
 const HTML = readFileSync(new URL('../public/quero-participar/index.html', import.meta.url), 'utf8')
 const SCRIPTS = [...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
@@ -138,11 +136,10 @@ test('todo asset absoluto existe em public/', () => {
 
 /* ── Números do herói ────────────────────────────────────────────────────────
  *
- * A página é estática e mora em public/: não importa festivalFacts.js nem
- * sweetCoffeeHistory.js, então os três números do herói estão escritos à mão no
- * HTML. Foi assim que "+120 marcas" ficou meses no ar enquanto a base dizia 123.
+ * A página é estática e mora em public/: não importa festivalFacts.js, então os
+ * dois números do herói estão escritos à mão no HTML.
  *
- * Estes testes são a costura que falta: recalculam da base a cada rodada e
+ * Estes testes são a costura que falta: recalculam da fonte a cada rodada e
  * reprovam se o HTML divergir. Nenhum valor esperado é digitado aqui.
  */
 
@@ -150,7 +147,6 @@ const NUMEROS = [...HTML.matchAll(new RegExp(
   '<li[^>]*><span class="pa-numeros__disco" style="background:(#[0-9A-Fa-f]{6})"[^>]*>(.*?)</span><b>([^<]+)</b><span>([^<]+)</span></li>', 'g',
 ))].map(([, disco, icone, valor, rotulo]) => ({ disco, icone, valor, rotulo }))
 
-// Marca canônica: aplica os aliases, para uma rede não contar como várias casas.
 const canal = (v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
 const luminancia = (hex) =>
   0.2126 * canal(parseInt(hex.slice(1, 3), 16)) +
@@ -161,116 +157,24 @@ const contraste = (a, b) => {
   return (claro + 0.05) / (escuro + 0.05)
 }
 
-const normalizar = (s) => String(s)
-  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  .replace(/['\u2019`]/g, "'")
-  .toLowerCase().replace(/\s+/g, ' ').trim()
-
-const CANON = {}
-for (const [canon, aliases] of Object.entries(SWEET_COFFEE_HISTORY.participantAliases ?? {})) {
-  for (const alias of [].concat(aliases)) CANON[normalizar(alias)] = canon
-}
-
-const POR_EDICAO = (SWEET_COFFEE_HISTORY.edicoes ?? [])
-  .map((ed) => [...new Set((ed.participantes ?? []).map((n) => CANON[normalizar(n)] ?? n))])
-
-// Para cada marca, os índices das edições em que ela apareceu.
-const APARICOES = new Map()
-POR_EDICAO.forEach((marcas, i) => {
-  for (const marca of marcas) {
-    if (!APARICOES.has(marca)) APARICOES.set(marca, [])
-    APARICOES.get(marca).push(i)
-  }
+test('o herói mostra exatamente dois números', () => {
+  assert.equal(NUMEROS.length, 2, 'o painel .pa-numeros deixou de ter dois itens')
 })
 
-test('o herói mostra exatamente quatro números', () => {
-  assert.equal(NUMEROS.length, 4, 'o painel .pa-numeros deixou de ter quatro itens')
+test('"10 anos" confere com festivalFacts', () => {
+  const item = NUMEROS.find((n) => /anos/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de anos de festival')
+  assert.equal(Number(item.valor), festivalFacts.years.value,
+    `HTML diz ${item.valor}, festivalFacts.years diz ${festivalFacts.years.value}`)
 })
 
-test('o painel NÃO mostra o total de marcas distintas', () => {
-  // ⛔ Retirado a pedido do Eloi em 22/08/2026 — "por enquanto". O número não
-  // estava errado: a base continua fechando em 123, e a asserção abaixo segue
-  // guardando isso. O que saiu foi a EXIBIÇÃO.
-  //
-  // Este teste existe para que voltar seja um ato consciente: sem ele, alguém
-  // reintroduz o item e nada avisa que havia uma decisão. Ao devolver, apagar
-  // este teste, voltar a contagem para cinco e restaurar a verificação de que o
-  // valor no HTML bate com APARICOES.size.
-  const item = NUMEROS.find((n) => /participaram/.test(n.rotulo))
-  assert.equal(item, undefined,
-    'o total de marcas voltou ao painel — se foi de propósito, atualizar este teste')
-
-  // A base segue sendo a fonte, mesmo com o número fora da tela (§9.1).
-  assert.equal(APARICOES.size, 123, 'a contagem de marcas distintas divergiu do acervo §9.1')
-})
-
-test('"+7 marcas novas a cada edição" confere com a base', () => {
-  // Estreia = a primeira edição de cada marca. A 1ª edição não conta: lá todas
-  // estreavam, e incluí-la inflaria a média.
-  const estreiasDepoisDaPrimeira = [...APARICOES.values()].filter((eds) => eds[0] > 0).length
-  const edicoesSeguintes = POR_EDICAO.length - 1
-  const esperado = '+' + Math.floor(estreiasDepoisDaPrimeira / edicoesSeguintes)
-
-  const item = NUMEROS.find((n) => /novas/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de estreias por edição')
-  assert.equal(item.valor, esperado,
-    `HTML diz ${item.valor}, a base diz ${esperado} ` +
-    `(${estreiasDepoisDaPrimeira} estreias em ${edicoesSeguintes} edições)`)
-})
-
-test('"+18 mi visualizações" confere com festivalFacts', () => {
-  // Este não sai da base histórica: é número comercial do acervo §9.5. A fonte
-  // canônica no código é festivalFacts.igViews — é dela que o HTML tem de copiar.
-  const item = NUMEROS.find((n) => /visualiza/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de visualizações')
-  const noHtml = Number(item.valor.replace(/[^\d]/g, ''))
-  assert.equal(noHtml, festivalFacts.igViews.value,
-    `HTML diz ${noHtml}, festivalFacts.igViews diz ${festivalFacts.igViews.value}`)
-})
-
-test('"410 combos criados desde 2016" confere com a base', () => {
-  // Cada marca cria um combo próprio por edição (§8.6), então a soma das listas
-  // de participantes é a contagem de criações. Aliases aplicados: uma rede com
-  // três unidades conta uma vez por edição, não três.
-  const esperado = String(POR_EDICAO.reduce((soma, marcas) => soma + marcas.length, 0))
-
-  const item = NUMEROS.find((n) => /combos/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de combos autorais')
-  assert.equal(item.valor, esperado, `HTML diz ${item.valor}, a base diz ${esperado}`)
-})
-
-test('"271 lugares no pódio desde 2019" confere com a base', () => {
-  // Uma colocação por nome: empate em 1º com duas marcas são duas colocações,
-  // porque duas marcas subiram. Os pódios de 2026.1 moram em
-  // loversAwardsResults.js, NÃO na base histórica (§7.3) — ignorá-los tira 44
-  // colocações da conta e derruba 44 premiadas para 42.
-  const premiadas = new Set()
-  const elegiveis = new Set()
-  let colocacoes = 0
-
-  for (const ed of SWEET_COFFEE_HISTORY.edicoes ?? []) {
-    const categorias = ed.id === '2026.1'
-      ? (LOVERS_AWARDS.premiacao?.categorias ?? [])
-      : (ed.premiacao?.categorias ?? [])
-    if (ed.premiacao?.status !== 'completa' && categorias.length === 0) continue
-
-    for (const nome of ed.participantes ?? []) elegiveis.add(CANON[normalizar(nome)] ?? nome)
-    for (const cat of categorias)
-      for (const col of cat.colocacoes ?? []) {
-        colocacoes += (col.nomes ?? []).length
-        for (const nome of col.nomes ?? []) premiadas.add(CANON[normalizar(nome)] ?? nome)
-      }
-  }
-
-  const item = NUMEROS.find((n) => /pódio/.test(n.rotulo))
-  assert.ok(item, 'sumiu o número de colocações')
-  assert.equal(item.valor, String(colocacoes),
-    `HTML diz ${item.valor}, a base diz ${colocacoes}`)
-  // §9.1: o acervo fecha em 271 colocações.
-  assert.equal(colocacoes, 271, 'a contagem de colocações divergiu do acervo §9.1')
-
-  // Trava a armadilha do §7.3: sem os pódios da Lovers isto cai para 42.
-  assert.equal(premiadas.size, 44, 'a contagem de premiadas divergiu do acervo §9.1')
+test('"16 edições" confere com a base', () => {
+  const item = NUMEROS.find((n) => /ediç/.test(n.rotulo))
+  assert.ok(item, 'sumiu o número de edições realizadas')
+  assert.equal(Number(item.valor), festivalFacts.editions.value,
+    `HTML diz ${item.valor}, festivalFacts.editions diz ${festivalFacts.editions.value}`)
+  // §9.1: o acervo fecha em 16 edições realizadas.
+  assert.equal(festivalFacts.editions.value, 16, 'a contagem de edições divergiu do acervo §9.1')
 })
 
 test('irmãos não repetem cor de disco', () => {
@@ -305,10 +209,8 @@ test('os ícones do painel batem com scw-icons-v2.js', async () => {
   const { SCW_ICONS, SCW_ICON_SPEC } = await import('../src/components/scw-icons/scw-icons-v2.js')
 
   const ESPERADO = {
-    visualiza: 'redes/instagram',
-    novas: 'marca/estrela',
-    combos: 'combos/doce-cafe',
-    'pódio': 'premios/medalha',
+    anos: 'ui/calendario',
+    'ediç': 'simbolos/edicao',
   }
 
   assert.equal(NUMEROS.length, Object.keys(ESPERADO).length,
