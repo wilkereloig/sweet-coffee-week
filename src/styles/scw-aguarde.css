@@ -1,0 +1,61 @@
+/* ============================================================================
+   Aguarde — página de espera que substitui Participar na porta de entrada
+   enquanto o pré-cadastro não é anunciado ao público (26/08/2026).
+   ========================================================================= */
+.ag-tela {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(14px, 2vw, 20px);
+  padding-block: clamp(32px, 6vw, 80px);
+  padding-inline: var(--scw-trilho);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.ag-marca { width: clamp(64px, 8vw, 96px); height: auto; margin-bottom: clamp(8px, 1.4vw, 16px); }
+.ag-rotulo {
+  font: 800 12px/1 var(--scw-font);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--scw-amarelo);
+}
+.ag-titulo {
+  margin: 0;
+  max-width: 16ch;
+  color: var(--scw-creme);
+  font: 900 clamp(32px, 5vw, 58px)/1.02 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.ag-lead {
+  margin: 0;
+  max-width: 46ch;
+  font: 500 clamp(16px, 1.6vw, 19px)/1.55 var(--scw-font);
+  color: rgba(254, 240, 221, .86);
+  text-wrap: pretty;
+}
+.ag-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 0 26px;
+  margin-top: clamp(8px, 1.4vw, 14px);
+  border-radius: 999px;
+  background: var(--scw-amarelo);
+  color: var(--scw-choco);
+  font: 800 15px/1 var(--scw-font);
+  text-decoration: none;
+  transition: transform var(--mo-rapido, 180ms) var(--mo-ease, ease);
+}
+.ag-cta:hover { transform: translateY(-2px); }
+.ag-cta:active { transform: translateY(0); }
+.ag-cta:focus-visible { outline: 3px solid var(--scw-cyan); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-cta { transition: none; }
+  .ag-cta:hover { transform: none; }
+}
