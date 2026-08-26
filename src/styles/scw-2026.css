@@ -417,7 +417,18 @@ body { margin: 0; }
   letter-spacing: .14em;
   text-transform: uppercase;
 }
-.scw-pill--pagina { background: var(--scw-pagina); color: var(--scw-pagina-tinta); }
+/* --pagina é o selo do herói (Participar/Apoiar/Awards) — 26/08/2026: texto
+   longo ("Para doçarias, cafeterias e restaurantes") quebrava linha dentro da
+   cápsula de 999px herdada de .scw-pill e virava um estádio esticado. Raio
+   fixo funciona em 1 ou 2 linhas; balance evita quebra torta. Escopado no
+   modificador --pagina, não em .scw-pill: os pills do Contato e da EmBreve
+   não usam --pagina e ficam de fora. */
+.scw-pill--pagina {
+  background: var(--scw-pagina);
+  color: var(--scw-pagina-tinta);
+  border-radius: 16px;
+  text-wrap: balance;
+}
 .scw-pill--bege   { background: var(--scw-bege); color: var(--scw-marrom); }
 
 /* Disco de ícone: círculo cheio com ScwIcon dentro (cards de Participar/
