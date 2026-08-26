@@ -377,14 +377,14 @@ body{
         </div>
         <div class="scw-campo">
           <label class="scw-campo__label" for="telefone">WhatsApp</label>
-          <input type="tel" id="telefone" name="telefone" autocomplete="tel" inputmode="tel" placeholder="(84) 90000-0000">
+          <input type="tel" id="telefone" name="telefone" autocomplete="tel" inputmode="tel" placeholder="(84) 900000000">
           <p class="scw-campo__dica">É por aqui que a equipe vai falar com você.</p>
           <p class="scw-campo__erro">Informe um número com DDD.</p>
         </div>
         <div class="scw-campo">
-          <label class="scw-campo__label" for="email">E-mail</label>
+          <label class="scw-campo__label" for="email">Email</label>
           <input type="email" id="email" name="email" autocomplete="email" placeholder="nome@suaempresa.com.br">
-          <p class="scw-campo__erro">Informe um e-mail válido.</p>
+          <p class="scw-campo__erro">Informe um email válido.</p>
         </div>
       </div>
     </section>
@@ -484,7 +484,7 @@ body{
   <div class="pa-indica__acoes">
     <a class="scw-btn pa-whats" id="share-whatsapp" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M27 15.6c0 5.9-4.9 10.6-11 10.6a12 12 0 0 1-3.6-.5L6 27.5l1.8-5A10.2 10.2 0 0 1 5 15.6C5 9.8 9.9 5 16 5s11 4.8 11 10.6Z"></path><circle cx="11.6" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="16" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="20.4" cy="15.6" r="1.6" fill="currentColor" stroke="none"></circle></svg><span>Enviar no WhatsApp</span></a>
     <button type="button" class="scw-btn scw-btn--vazado" id="share-copiar"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18.6 4.8h8.6v8.6"></path><path d="M27.2 4.8 16 16"></path><path d="M22.6 18.4V25a2.6 2.6 0 0 1-2.6 2.6H7A2.6 2.6 0 0 1 4.4 25V12a2.6 2.6 0 0 1 2.6-2.6h6.6"></path></svg><span>Copiar link</span></button>
-    <a class="scw-btn scw-btn--vazado" id="share-email" href="#"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.4 7.4h19.2a2.2 2.2 0 0 1 2.2 2.2v12.8a2.2 2.2 0 0 1-2.2 2.2H6.4a2.2 2.2 0 0 1-2.2-2.2V9.6a2.2 2.2 0 0 1 2.2-2.2Z"></path><path d="M4.6 9.8 16 18.6 27.4 9.8" stroke-width="2.4"></path></svg><span>Enviar por e-mail</span></a>
+    <a class="scw-btn scw-btn--vazado" id="share-email" href="#"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.4 7.4h19.2a2.2 2.2 0 0 1 2.2 2.2v12.8a2.2 2.2 0 0 1-2.2 2.2H6.4a2.2 2.2 0 0 1-2.2-2.2V9.6a2.2 2.2 0 0 1 2.2-2.2Z"></path><path d="M4.6 9.8 16 18.6 27.4 9.8" stroke-width="2.4"></path></svg><span>Enviar por email</span></a>
     <button type="button" class="scw-btn scw-btn--vazado" id="share-nativo" hidden><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7.6" cy="16" r="3.4" fill="currentColor" stroke="none"></circle><circle cx="23.6" cy="8.2" r="3.4" fill="currentColor" stroke="none"></circle><circle cx="23.6" cy="23.8" r="3.4" fill="currentColor" stroke="none"></circle><path d="M11 14.4l9.2-4.4M11 17.6l9.2 4.4"></path></svg><span>Compartilhar</span></button>
   </div>
   <p class="pa-indica__link" id="share-url"></p>
@@ -574,7 +574,7 @@ const passos = [...document.querySelectorAll('.pa-passo')];
    aprovada. ⛔ Nao devolver campo para ca sem checar o §7.4 das regras: duas
    telas pedindo o mesmo dado sao duas fontes de verdade do mesmo cadastro. */
 const ROTULOS = {
-  nome:'Nome', telefone:'WhatsApp', email:'E-mail',
+  nome:'Nome', telefone:'WhatsApp', email:'Email',
   empresa:'Estabelecimento', tipo:'Tipo de estabelecimento',
   instagram:'Instagram', cidade:'Cidade'
 };
@@ -927,8 +927,8 @@ form.addEventListener('submit', async (ev) => {
   resumoBox.setAttribute('data-visivel', '1');
   window.location.href = href;
 
-  mostrar('aviso', 'Abrimos seu e-mail com tudo preenchido',
-    '<p>O envio só se completa quando você apertar <strong>enviar</strong> no seu aplicativo de e-mail.</p>' +
+  mostrar('aviso', 'Abrimos seu email com tudo preenchido',
+    '<p>O envio só se completa quando você apertar <strong>enviar</strong> no seu aplicativo de email.</p>' +
     '<p>Se nada abriu, ou se o texto chegou cortado, suas respostas estão inteiras na caixa abaixo — copie e mande para <strong>' + CONFIG.emailDestino + '</strong>.</p>');
 
   btnEnviar.disabled = false;
@@ -971,7 +971,7 @@ if (navigator.share) {
 /* ── Barra da demonstração ──────────────────────────────────── */
 if (DEMO) {
   const EXEMPLO = {
-    nome: 'Ana Souza', telefone: '(84) 99999-8888', email: 'ana@doceriadaana.com.br',
+    nome: 'Ana Souza', telefone: '(84) 999998888', email: 'ana@doceriadaana.com.br',
     empresa: 'Doceria da Ana', instagram: '@doceriadaana', cidade: 'Natal',
     tipo: 'Confeitaria'
   };
