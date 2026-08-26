@@ -399,13 +399,13 @@ function BarraAcao() {
   return (
     <div className="eb-barra scw-casca-base" ref={ref} style={{ '--eb-lido': lido }}>
       <span className="eb-barra__indicador" aria-hidden="true" />
-      <span className="eb-barra__nota">Leva quatro passos e uma revisão antes de enviar.</span>
+      <span className="eb-barra__nota">Quatro passos rápidos — e não compromete nada.</span>
       <a
         className={`scw-btn scw-btn--solido eb-barra__btn${batendo ? ' is-convite' : ''}`}
         href={PRE_CADASTRO}
         onAnimationEnd={() => setBatendo(false)}
       >
-        Quero participar{SETA}
+        Abrir o pré-cadastro{SETA}
       </a>
     </div>
   )
