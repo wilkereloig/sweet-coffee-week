@@ -4,26 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Organização — Sweet &amp; Coffee Week</title>
+<title>Painel — Sweet &amp; Coffee Week</title>
 <link rel="icon" href="/images/logo-seal-sweet-coffee.svg">
 
-<!-- Instalável na tela inicial, em escopo próprio.
-     ⚠️ Manifest PRÓPRIO, não o /manifest.webmanifest da raiz: aquele tem
-     start_url e scope em "/" e instalaria o SITE. São dois apps distintos, com
-     escopos que não se sobrepõem porque /organizacao/ é mais específico. -->
-<link rel="manifest" href="/organizacao/app.webmanifest">
+<!-- Instalável na tela inicial, em escopo próprio. Substitui, aos poucos,
+     /organizacao/ e /marca/ como o app que as pessoas instalam de verdade —
+     os dois antigos continuam existindo (CLAUDE.md §10.4-b) e passam a
+     redirecionar para cá depois do login real de cada um. -->
+<link rel="manifest" href="/painel/app.webmanifest">
 <meta name="theme-color" content="#3D1308">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<!-- `default`, não `black-translucent`: o segundo joga o conteúdo por baixo da
-     status bar do iOS e exige compensar com env(safe-area-inset-top). Fica
-     melhor, mas eu não tenho como conferir num iPhone real — e header por baixo
-     do relógio é defeito que só aparece no aparelho. Trocar é uma linha. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="SCW Painel">
+<meta name="apple-mobile-web-app-title" content="Painel SCW">
 <link rel="apple-touch-icon" href="/favicon-180.png">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nexa-slab/NexaSlab-Bold.woff2">
 
 <style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Painel unificado — Sweet & Coffee Week (organização + participante)
+
+   Página ESTÁTICA, como /organizacao/ e /marca/ já eram — servida pelo
+   sistema de arquivos da Vercel antes do rewrite do SPA, o que a mantém
+   acessível com COMING_SOON_PUBLICATION = true sem tocar em nenhuma flag do
+   App.jsx (A3).
+
+   Handoff "Painel SCW app" (26/08/2026): os dois painéis que viviam cada um
+   na sua página estática ganham UMA casca só — rail, cabeçalho, gaveta,
+   login de dois cartões. O CONTEÚDO de cada papel (as cinco vistas da
+   organização, as quatro da marca — RPCs, gaveta, notificações, agenda,
+   push) é o código real de /organizacao/index.html e /marca/index.html,
+   movido para cá sem reescrever: cada um continua na sua própria função
+   isolada (IIFE), só a entrada (login) e a decisão de qual casca mostrar são
+   novas. Ver docs/INSTRUCAO-painel-completo.md e handoff/APLICAR.md
+   (arquivados em docs/_arquivo-instrucoes-antigas/ depois de aplicados).
+
+   Tokens: --scw-* espelham src/styles/scw-2026.css, como os dois painéis
+   antigos já faziam (um com o prefixo, outro sem — aqui os dois usam o
+   mesmo, fechando a divergência que APLICAR.md pedia).
+   ═══════════════════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════════════════
    Painel da organização — Sweet & Coffee Week
 
@@ -585,34 +603,470 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
 /* Acima de 900px o item encolhe 3px: o `__dir` volta para a mesma linha. */
 @media (min-width:901px){ .og-esqueleto li{height:99px} }
 
+/* ── Login — porta do painel (handoff "Painel SCW app", 26/08/2026) ───────
+   Fundo chocolate cheio, dois cartões escuros com o acento de cada papel no
+   disco do ícone — é a tela do documento, não a reaproveitada do painel
+   antigo. Vocabulário `.pn-porta*`/`.pn-setor*`, igual ao protótipo, com os
+   tokens já no prefixo `--scw-` do arquivo combinado. */
+.pn-porta{
+  height:100dvh;overflow-y:auto;display:grid;place-items:center;
+  padding:clamp(20px,4vw,40px);background:var(--scw-choco);color:var(--scw-creme);
+}
+.pn-porta__caixa{width:min(760px,100%)}
+.pn-porta__selo{height:52px;width:auto;display:block;margin-bottom:22px}
+.pn-porta__titulo{margin:0 0 8px;font:900 clamp(26px,3.6vw,36px)/1.02 var(--scw-font);letter-spacing:-.04em}
+.pn-porta__lead{margin:0 0 26px;max-width:46ch;font-size:14.5px;color:rgba(254,240,221,.72);text-wrap:pretty}
+.pn-porta__grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}
+.pn-porta__pe{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:22px 0 0}
+.pn-porta__nota{font-size:13px;color:rgba(254,240,221,.6)}
+
+.pn-setor{
+  display:flex;flex-direction:column;gap:13px;
+  padding:clamp(18px,2.4vw,24px);border-radius:20px;
+  background:rgba(254,240,221,.06);box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.18);
+}
+.pn-setor__disco{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--scw-choco);flex:0 0 auto}
+.pn-setor__disco svg{display:block;width:24px;height:24px}
+.pn-setor--org .pn-setor__disco{background:var(--scw-amarelo)}
+.pn-setor--marca .pn-setor__disco{background:var(--scw-cyan)}
+.pn-setor__nome{display:block;font:900 19px/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-setor__nota{display:block;margin-top:5px;font-size:13.5px;color:rgba(254,240,221,.7)}
+
+.pn-campo--porta{display:flex;flex-direction:column;gap:6px}
+.pn-campo__rotulo{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;color:rgba(254,240,221,.6)}
+.pn-campo__escuro{
+  min-height:48px;padding:10px 15px;border-radius:13px;border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.28);
+  background:rgba(254,240,221,.06);color:var(--scw-creme);
+  font:500 16px/1.4 var(--scw-font);width:100%;
+}
+.pn-campo__escuro::placeholder{color:rgba(254,240,221,.42)}
+.pn-erro{
+  display:flex;align-items:center;gap:11px;margin:0 0 4px;padding:13px 15px;
+  border-radius:15px;background:var(--scw-laranja);color:var(--scw-choco);
+  font:800 13.5px/1.35 var(--scw-font);
+}
+.pn-erro[hidden]{display:none}
+.pn-link--porta{
+  border:0;background:transparent;padding:0;min-height:44px;
+  display:inline-flex;align-items:center;color:var(--scw-amarelo);
+  font:800 13px/1 var(--scw-font);cursor:pointer;text-decoration:underline;
+}
+
+/* Cada setor precisa do próprio botão-cor, e as duas cores já existem: só
+   falta a variante escura do botão (o padrão .og-btn é claro/creme). */
+.og-btn--amarelo{background:var(--scw-amarelo);color:var(--scw-choco)}
+.og-btn--cyan-escuro{background:var(--scw-cyan);color:var(--scw-choco)}
+
+/* .pn-casca — a casca do painel da MARCA (`#vPainel`). É a única classe da
+   "casca de app" que não tem par em /organizacao/: lá o mesmo papel é feito
+   por #painel via ID (grid direto na regra da linha 62 do CSS extraído).
+   Sem esta regra o vPainel cai pro display:block de qualquer <div>. */
+.pn-casca{
+  height:100dvh; display:grid;
+  grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+}
+.pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+
+/* ── Cor por seção — dentro dos 9 tokens fechados (CLAUDE.md §6.1), nunca
+   fora. Cada vista ganha um acento (disco do cabeçalho da vista + rótulo),
+   nunca o fundo inteiro — a régua do §6.3 (nunca repetir a cor do vizinho). */
+.pn-acento-disco{
+  width:38px;height:38px;border-radius:13px;flex:0 0 auto;
+  display:grid;place-items:center;
+}
+.pn-acento-disco svg{width:20px;height:20px}
+[data-acento="amarelo"] .pn-acento-disco{background:var(--scw-amarelo);color:var(--scw-choco)}
+[data-acento="cyan"] .pn-acento-disco{background:var(--scw-cyan);color:var(--scw-choco)}
+[data-acento="magenta"] .pn-acento-disco{background:var(--scw-magenta);color:var(--scw-creme)}
+[data-acento="roxo"] .pn-acento-disco{background:var(--scw-roxo);color:var(--scw-creme)}
+[data-acento="laranja"] .pn-acento-disco{background:var(--scw-laranja);color:var(--scw-choco)}
+[data-acento="marrom"] .pn-acento-disco{background:var(--scw-marrom);color:var(--scw-creme)}
+.pn-vista-cabeca{display:flex;align-items:center;gap:13px;margin:0 0 clamp(18px,2.4vw,26px)}
+.pn-vista-cabeca__texto{min-width:0}
+.pn-vista-cabeca__titulo{display:block;font:900 clamp(19px,2.2vw,24px)/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-vista-cabeca__nota{display:block;margin-top:2px;font:500 13px/1.3 var(--scw-font);color:var(--scw-marrom)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--scw-creme); color:var(--scw-choco); font-family:var(--scw-font); font-weight:500;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+  min-height:100dvh; display:flex; flex-direction:column;
+}
+h1,h2,h3{margin:0; font-weight:900; letter-spacing:-.03em; line-height:1.05}
+p{margin:0 0 12px; text-wrap:pretty; max-width:62ch}
+a{color:var(--scw-marrom)}
+:focus-visible{outline:3px solid var(--scw-cyan); outline-offset:2px; border-radius:6px}
+
+/* Cabeçalho — a marca do festival à esquerda, nunca centralizada. */
+header{
+  background:var(--scw-choco); color:var(--scw-creme);
+  padding:16px var(--trilho); display:flex; align-items:center; gap:12px;
+}
+header img{height:38px; width:auto; display:block}
+header .quem{margin-left:auto; font-size:13px; color:var(--scw-bege); text-align:right; min-width:0}
+header .quem b{display:block; font-weight:800; color:var(--scw-creme); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+header button{
+  background:none; border:2px solid rgba(254,240,221,.45); color:var(--scw-creme);
+  font:800 13px/1 var(--scw-font); padding:11px 14px; border-radius:999px; cursor:pointer;
+  min-height:44px; transition:border-color var(--scw-transicao),background var(--scw-transicao);
+}
+header button:hover{border-color:var(--scw-creme); background:rgba(254,240,221,.1)}
+
+main{flex:1; width:100%; max-width:720px; margin:0 auto; padding:clamp(24px,5vw,44px) var(--trilho) 64px}
+
+.rotulo{font-weight:800; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--scw-marrom); margin:0 0 10px}
+.lead{max-width:46ch; color:var(--scw-marrom)}
+.nota{color:var(--scw-marrom); font-size:14.5px}
+
+.card{
+  background:var(--scw-creme); border:1.5px solid var(--scw-filete); border-radius:var(--scw-r-card);
+  padding:clamp(18px,3.5vw,26px); margin:0 0 18px;
+}
+.card > h2{font-size:clamp(19px,2.4vw,24px); margin:0 0 4px}
+.card > .rotulo{margin-bottom:6px}
+
+/* Campos. O <span> é o label de verdade — placeholder-como-label some quando a
+   pessoa digita, e some justo para quem mais precisa dele. */
+label{display:block; margin:0 0 16px}
+label > span{display:block; font-weight:800; font-size:13px; margin:0 0 6px}
+label > span em{font-style:normal; font-weight:500; color:var(--scw-marrom)}
+input,textarea,select{
+  width:100%; font:500 16px/1.4 var(--scw-font); color:var(--scw-choco);
+  background:#fff; border:1.5px solid var(--scw-borda-campo); border-radius:12px;
+  padding:13px 14px; min-height:48px; transition:border-color var(--scw-transicao);
+}
+textarea{min-height:110px; resize:vertical}
+input:hover,textarea:hover{border-color:var(--scw-marrom)}
+.dupla{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
+@media (max-width:560px){ .dupla{grid-template-columns:1fr} }
+
+/* Caixa de marcar. O alvo é a LINHA inteira, não o quadradinho de 16px: o piso
+   de 44px vale para o controle real, e um <input type=checkbox> nunca chega lá
+   sozinho (CLAUDE.md §10.2). */
+.marcar{display:flex; align-items:center; gap:10px; min-height:44px; margin:0 0 4px; cursor:pointer}
+.marcar input{width:22px; height:22px; min-height:22px; margin:0; flex:0 0 auto; accent-color:var(--scw-cyan)}
+.marcar span{font-weight:700; font-size:14.5px; display:block; margin:0}
+
+button.acao{
+  font:800 15px/1 var(--scw-font); border:none; border-radius:999px; cursor:pointer;
+  padding:17px 26px; min-height:52px; background:var(--scw-choco); color:var(--scw-creme);
+  transition:transform 180ms var(--scw-ease),background var(--scw-transicao);
+}
+button.acao:hover{transform:translateY(-2px)}
+button.acao:active{transform:translateY(0)}
+button.acao[disabled]{opacity:.45; cursor:default; pointer-events:none; transform:none}
+button.acao.larga{width:100%}
+button.secundaria{background:none; color:var(--scw-marrom); border:2px solid var(--scw-borda-campo)}
+button.link{
+  background:none; border:none; color:var(--scw-marrom); font:700 14px/1.4 var(--scw-font);
+  text-decoration:underline; cursor:pointer; padding:12px 2px; min-height:44px;
+}
+
+/* Aviso. Fundo bege, sem filete lateral. A cor é reforço, nunca o recado — o
+   texto já diz o que houve, que é o que sobra para quem não distingue as cores. */
+.aviso{
+  border-radius:12px; padding:12px 16px; margin:0 0 16px; font-size:14.5px;
+  background:var(--scw-bege); border:1.5px solid transparent;
+}
+.aviso.erro{border-color:var(--scw-magenta)}
+.aviso.ok{border-color:var(--scw-cyan)}
+.aviso:empty{display:none}
+/* #aviso é o banner ÚNICO e global (login, senha e painel todos escrevem
+   nele) — virou posição fixa no topo porque o painel deixou de ter um
+   contêiner comum entre as três telas quando ganhou a casca própria. */
+#aviso-marca{position:fixed; top:0; left:0; right:0; z-index:80; margin:0; border-radius:0; text-align:center}
+
+/* Progresso — texto primeiro, barra depois. A barra sozinha não diz quanto falta. */
+.progresso{margin:0 0 22px}
+.progresso b{font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--scw-marrom)}
+.trilha{height:6px; border-radius:999px; background:var(--scw-filete); overflow:hidden; margin-top:8px}
+/* `scaleX` com origem à esquerda, não `width`: a mesma decisão da régua de anos
+   da página Edições (CLAUDE.md §10.3). Animar `width` joga trabalho de layout
+   no compositor a cada frame; `transform` roda na GPU. */
+.trilha i{
+  display:block; height:100%; background:var(--scw-cyan); border-radius:999px;
+  transform-origin:left center; transform:scaleX(0);
+  transition:transform 300ms var(--scw-ease);
+}
+
+/* Unidades. Rede tem várias — e é a contagem delas que vira "33 lojas". */
+.unidade,.item{border:1.5px solid var(--scw-filete); border-radius:16px; padding:16px; margin:0 0 12px; background:var(--scw-bege)}
+.unidade .topo,.item .topo{display:flex; align-items:center; gap:10px; margin:0 0 12px}
+.unidade .topo b,.item .topo b{font-weight:800; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--scw-marrom)}
+.unidade .topo button{margin-left:auto}
+.unidade input,.item input,.item textarea{background:#fff}
+.canais{margin-top:4px}
+.canais > b{display:block; font-weight:800; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--scw-marrom); margin:0 0 8px}
+
+.salvo{font-size:13px; color:var(--scw-marrom); min-height:20px; margin:0 0 8px}
+
+/* Selo de estado. Cor codifica etapa, o texto carrega o sentido. */
+.selo{display:inline-block; font:800 12px/1 var(--scw-font); letter-spacing:.1em; text-transform:uppercase;
+      padding:9px 13px; border-radius:999px; background:var(--scw-bege); color:var(--scw-choco)}
+.selo.andamento{background:var(--scw-amarelo)}
+.selo.completo{background:var(--scw-cyan)}
+.selo.vencido{background:var(--scw-laranja)}
+
+/* Linha de solicitação, de arquivo e de sessão. Mesma forma para as três: são
+   três listas de "a organização mandou isto", e desenhar cada uma do seu jeito
+   só faria a pessoa reaprender três vezes. */
+.linha{border-top:1.5px solid var(--scw-filete); padding:14px 0; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap}
+.linha:first-of-type{border-top:none}
+.linha .corpo{flex:1 1 260px; min-width:0}
+.linha .corpo b{display:block; font-weight:800; font-size:16px}
+.linha .corpo span{display:block; color:var(--scw-marrom); font-size:14.5px}
+.linha .lado{flex:0 0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.linha button.link{padding:12px 8px}
+
+.rodape{margin-top:28px; padding-top:18px; border-top:1.5px solid var(--scw-filete); font-size:13.5px; color:var(--scw-marrom)}
+[hidden]{display:none !important}
+/* ── Casca de app (25/08/2026) ─────────────────────────────────────────────
+   Handoff "Painel SCW app": rail no desktop, abas no celular — a marca não
+   tinha NENHUMA navegação interna antes disto (uma coluna só, rolagem
+   contínua). Mesmo vocabulário `.pn-*` de /organizacao/, tokens locais
+   (--scw-choco etc.) porque as duas páginas são estáticas e não compartilham CSS
+   de verdade — é a duplicação aceita de sempre entre os dois painéis (§5.2). */
+.pn-casca{
+  height:100dvh; display:grid;
+  grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+}
+.pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+.pn-rail{
+  grid-row:1 / span 2; display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:13px 0 12px; background:var(--scw-choco);
+}
+.pn-rail__selo{height:29px; width:auto; display:block; margin-bottom:11px}
+.pn-rail__btn{
+  position:relative; width:52px; height:52px; flex:0 0 auto;
+  display:grid; place-items:center; border:0; border-radius:17px;
+  background:transparent; color:rgba(254,240,221,.72); cursor:pointer;
+  transition:background 180ms var(--scw-ease),color 180ms var(--scw-ease);
+}
+@media (hover:hover){ .pn-rail__btn:hover{background:rgba(254,240,221,.1)} }
+.pn-rail__btn[aria-current="page"]{background:var(--scw-amarelo); color:var(--scw-choco)}
+.pn-rail__btn svg{width:23px; height:23px}
+.pn-rail__sair{
+  width:52px; height:42px; margin-top:auto; display:grid; place-items:center;
+  border:0; border-radius:13px; background:transparent; color:rgba(254,240,221,.62); cursor:pointer;
+}
+.pn-rail__sair svg{width:19px; height:19px}
+/* ⚠️ A regra base de `.pn-cabeca` (fundo, padding, min-height) NÃO mora
+   aqui — mora em org_css.css, com o `@media (max-width:900px)` real que
+   troca pra chocolate no celular. Aqui era uma cópia que dependia de uma
+   classe `.is-estreito` que este arquivo NUNCA aplica (marca_script.js não
+   tem `matchMedia` nem `is-estreito` — vestígio de uma versão anterior).
+   Sem fundo de media query, a cópia sem condição SEMPRE vencia a de
+   org_css.css por vir depois no arquivo combinado, e a cabeça da marca
+   ficava creme no celular em vez de chocolate. Mantido aqui: só o que É
+   exclusivo da marca (os botões `button.notif`, que a organização não usa —
+   ela usa `.pn-cabeca__btn`). */
+/* .pn-cabeca__marca/__texto/__titulo/__sub/__dir NÃO se repetem aqui — as
+   versões de org_css.css (com o @media real) já cobrem os dois markups,
+   que usam os mesmos nomes de sub-classe. Só o que seria duplicata morta ou
+   duplicata CONFLITANTE (mesma especificidade, vindo depois no arquivo
+   combinado, vencendo o @media por ordem de cascata) saiu daqui. */
+.pn-cabeca button.notif{position:relative; background:none; border:0; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:inherit; cursor:pointer}
+@media (hover:hover){ .pn-cabeca button.notif:hover{background:rgba(61,19,8,.06)} }
+@media (max-width:900px){ .pn-cabeca button.notif:hover{background:rgba(254,240,221,.1)} }
+.pn-vista{min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+.pn-vista__trilho{max-width:720px; margin:0 auto; padding:clamp(20px,3vw,34px) var(--trilho) 48px}
+.pn-abas{background:var(--scw-choco); padding:7px 6px calc(7px + env(safe-area-inset-bottom)); border-top:1px solid rgba(254,240,221,.12)}
+.pn-abas__grade{display:grid; grid-template-columns:repeat(4,1fr); gap:2px}
+.pn-aba{
+  min-height:52px; background:transparent; border:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:5px; padding:4px 0; color:rgba(254,240,221,.6);
+}
+.pn-aba svg{width:20px; height:20px}
+.pn-aba__rotulo{font:500 10px/1 var(--scw-font)}
+.pn-aba[aria-current="page"]{color:var(--scw-amarelo)}
+.pn-aba[aria-current="page"] .pn-aba__rotulo{font-weight:800}
+.pn-badge{
+  position:absolute; top:6px; right:6px; min-width:18px; height:18px; padding:0 5px;
+  display:grid; place-items:center; border-radius:999px; background:var(--scw-magenta); color:var(--scw-creme);
+  font:800 10px/1 var(--scw-font); font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--scw-creme);
+}
+
+/* Linha de notificação — mesma peça do painel da organização (§ "Painel SCW
+   app"). O painel da marca não abre gaveta cheia (decisão de escopo já
+   registrada), mas a LINHA de dentro é a mesma peça visual. */
+.pn-notif{
+  width:100%; text-align:left; cursor:pointer; border:0; border-radius:13px; padding:11px 12px;
+  background:transparent; box-shadow:inset 0 0 0 1px var(--scw-filete);
+  display:flex; align-items:flex-start; gap:10px; margin:0 0 6px;
+  transition:background 160ms var(--scw-ease);
+}
+.pn-notif:last-child{margin-bottom:0}
+@media (hover:hover){ .pn-notif:hover{background:var(--scw-bege)} }
+.pn-notif.is-naolida{background:#fff; box-shadow:inset 0 0 0 1px var(--scw-borda-campo)}
+.pn-notif__disco{flex:0 0 auto; display:grid; place-items:center; width:28px; height:28px; border-radius:10px}
+.pn-notif__disco svg{width:15px; height:15px}
+.pn-notif__texto{display:block; font:500 13.5px/1.3 var(--scw-font)}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
+.is-estreito .pn-cabeca button.notif .pn-badge{box-shadow:0 0 0 2px var(--scw-choco)}
+@keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
+.pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
+/* O botão Sair do cabeçalho só existe no celular — no desktop a rail já tem
+   o próprio (piso de 44px em CADA controle real, §6.10, não um reaproveitado
+   por CSS entre os dois breakpoints). */
+#btSairCabeca{display:none}
+@media (max-width:900px){
+  .pn-rail{display:none} .pn-casca{grid-template-columns:minmax(0,1fr)}
+  #btSairCabeca{display:grid}
+}
+@media (min-width:901px){ .pn-abas{display:none} }
+/* ── Vagas de agenda (dentro do card de fotos) ────────────────────────────
+   Modo "abrir vagas" da organização — a marca escolhe, não pede.
+   Espelha .og-slot--aberto de /organizacao/. */
+.mc-vagas{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:14px 0 0; padding:0}
+.mc-vaga{
+  min-height:46px; padding:0 16px; border:0; border-radius:999px; cursor:pointer;
+  background:var(--scw-bege); color:var(--scw-choco); box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo);
+  font:800 13.5px/1 var(--scw-font); font-variant-numeric:tabular-nums;
+  transition:background 180ms var(--scw-ease);
+}
+.mc-vaga.is-escolhida{background:var(--scw-choco); color:var(--scw-creme); box-shadow:none}
+
+/* ── Lançamento diário (view "hoje") ───────────────────────────────────── */
+.mc-venda{background:var(--scw-choco); color:var(--scw-creme); border-radius:var(--scw-r-card); padding:clamp(18px,2.4vw,26px)}
+.mc-venda .rotulo{color:rgba(254,240,221,.7)}
+.mc-venda__linha{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-top:14px}
+.mc-venda__campo{
+  width:130px; min-height:52px; padding:10px 16px; border-radius:14px; border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.3); background:rgba(254,240,221,.06); color:var(--scw-creme);
+  font:900 24px/1 var(--scw-font); letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+.mc-venda__total{font:900 clamp(26px,3vw,34px)/1 var(--scw-font); letter-spacing:-.05em; font-variant-numeric:tabular-nums}
+.mc-venda__total span{display:block; margin-top:4px; font:500 11px/1 var(--scw-font); color:rgba(254,240,221,.7); letter-spacing:.06em; text-transform:uppercase}
+.mc-venda__dias{display:flex; gap:8px; overflow-x:auto; margin-top:18px; padding-bottom:2px}
+.mc-venda__dia{display:flex; flex-direction:column; gap:3px; padding:9px 14px; border-radius:13px; background:rgba(254,240,221,.08); min-width:72px; flex:0 0 auto}
+.mc-venda__dia.is-hoje{background:var(--scw-amarelo); color:var(--scw-choco)}
+.mc-venda__dia b{font:800 15px/1 var(--scw-font); font-variant-numeric:tabular-nums}
+.mc-venda__dia span{font-size:10.5px; opacity:.8}
+.mc-venda__espera{display:flex; align-items:center; gap:10px; color:rgba(254,240,221,.85)}
+
+/* ── Acordeão do cadastro (patch §8.3) ────────────────────────────────────
+   Os 5 blocos são os REAIS (A marca/O tema/Os três itens/Preço/Onde
+   encontrar) — o handoff assumia "A casa/doce/salgado/bebida/fotos", que não
+   existe no arquivo (ver CONFERENCIA-MARCA.md). Sem prazo por bloco: não há
+   coluna de prazo individual no banco, e inventar um seria dado fabricado
+   (CLAUDE.md A4) — o selo mostra só pronto/pendente. */
+.mc-bloco{background:var(--scw-creme); border-radius:var(--scw-r-card); box-shadow:inset 0 0 0 1.5px var(--scw-filete); overflow:hidden; margin:0 0 10px}
+.mc-bloco.is-aberto{box-shadow:inset 0 0 0 1.5px var(--scw-choco)}
+.mc-bloco__cabeca{
+  width:100%; text-align:left; cursor:pointer; border:0; background:transparent;
+  padding:14px 16px; display:flex; align-items:center; gap:13px; min-height:64px;
+}
+.mc-bloco__disco{flex:0 0 auto; display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--scw-bege); color:var(--scw-choco); transition:background 220ms var(--scw-ease),color 220ms var(--scw-ease)}
+.mc-bloco__disco svg{width:21px; height:21px}
+.mc-bloco.is-pronto .mc-bloco__disco{background:var(--scw-choco); color:var(--scw-creme)}
+.mc-bloco__texto{flex:1 1 auto; min-width:0}
+.mc-bloco__texto b{display:block; font:900 16px/1.15 var(--scw-font); letter-spacing:-.02em}
+.mc-bloco__texto span{display:block; margin-top:3px; font:500 12.5px/1.3 var(--scw-font); color:var(--scw-marrom)}
+.mc-bloco__chevron{flex:0 0 auto; width:15px; height:15px; transition:transform 200ms var(--scw-ease)}
+.mc-bloco.is-aberto .mc-bloco__chevron{transform:rotate(180deg)}
+.mc-bloco__corpo{padding:2px 16px 20px}
+
+/* ── Acento por vista ──────────────────────────────────────────────────────
+   `--pn-acento` é escrito no <body> por irPara()/irParaMarca() a cada troca de
+   vista (uma cor da paleta fechada por vista, nunca repetida dentro do mesmo
+   painel — CLAUDE.md §6.3). Sobrescreve por ORDEM DE CASCATA as regras que já
+   pintavam a aba ativa de amarelo fixo — por isso este bloco vem depois de
+   org_css.css e marca_css_shell.css, não antes. Sem `--pn-acento` definido
+   (JS não rodou ainda), cada regra cai no amarelo de sempre. */
+.pn-rail__btn[aria-current="page"]{
+  background:var(--pn-acento,var(--scw-amarelo));
+  color:var(--pn-acento-tinta,var(--scw-choco));
+}
+/* Texto/ícone sobre chocolate (rail já resolvido acima, com fundo próprio) —
+   usa --pn-acento-escuro, não --pn-acento cru: roxo e marrom não sustentam
+   leitura sobre chocolate (1,45:1 e 1,53:1, CLAUDE.md §6.2) e caem no
+   amarelo, igual ao pageColorDark() do site institucional. */
+.og-abaapp.is-ativa{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.og-abasapp__indicador{background:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-aba[aria-current="page"]{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-cabeca{position:relative}
+.pn-cabeca::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:var(--pn-acento,var(--scw-amarelo));transition:background 200ms var(--scw-ease);
+}
+/* ≤900px a cabeça vira chocolate (regra estrutural, §6.2/§6.7) — a tira
+   segue a mesma régua do texto sobre chocolate acima: --pn-acento-escuro. */
+.is-estreito .pn-cabeca::after{background:var(--pn-acento-escuro,var(--scw-amarelo))}
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
-   que veio acima; regra nova acrescentada depois dele escaparia do
-   `prefers-reduced-motion` sem ninguém notar. */
+   que veio acima (das duas cascas, org e marca); regra nova acrescentada
+   depois dele escaparia do `prefers-reduced-motion` sem ninguém notar. */
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
-  .og-btn:hover,.og-item:hover{transform:none}
+  .og-btn:hover,.og-item:hover,.og-cartao:hover,.og-slot:hover,
+  button.acao:hover,.mc-vaga:hover,.mc-pend:hover{transform:none}
 }
 </style>
 </head>
 <body>
 
-<!-- ── Entrada ─────────────────────────────────────────────────────────── -->
-<div class="og-entrada" id="entrada">
-  <div class="og-entrada__cartao">
-    <img class="og-entrada__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
-    <h1>Painel da organização</h1>
-    <p>Respostas dos formulários do site. Acesso restrito à equipe.</p>
-    <form id="form-entrada">
-      <label class="og-campo">
-        <span>Senha</span>
-        <input type="password" id="senha" autocomplete="current-password" required>
-      </label>
-      <div class="og-aviso" data-tom="erro" id="entrada-erro" hidden></div>
-      <button class="og-btn" type="submit" id="btn-entrar">Entrar</button>
-    </form>
+<div class="aviso" id="aviso-marca" role="status" aria-live="polite"></div>
+
+<!-- ── Login compartilhado ───────────────────────────────────────────────
+     Fundo chocolate cheio, dois cartões — cada um é a autenticação REAL do
+     painel correspondente (admin_ping da organização, Supabase Auth da
+     marca), não uma simulação. handoff "Painel SCW app" §1. -->
+<div class="pn-porta" id="login">
+  <div class="pn-porta__caixa">
+    <img class="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <h1 class="pn-porta__titulo">Área de acesso</h1>
+    <p class="pn-porta__lead">Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
+
+    <div class="pn-porta__grade">
+      <form class="pn-setor pn-setor--org" id="form-entrada">
+        <span class="pn-setor__disco" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none"/><path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8"/><circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none"/><path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4"/></svg>
+        </span>
+        <span><span class="pn-setor__nome">Organização</span><span class="pn-setor__nota">Equipe do festival. Vê todas as marcas e move o caminho.</span></span>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Senha da equipe</span>
+          <input class="pn-campo__escuro" type="password" id="senha" autocomplete="current-password" required>
+        </label>
+        <div class="pn-erro" role="alert" id="entrada-erro" hidden></div>
+        <button class="og-btn og-btn--amarelo" type="submit" id="btn-entrar">Entrar no painel</button>
+      </form>
+
+      <form class="pn-setor pn-setor--marca" id="fLogin">
+        <span class="pn-setor__disco" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg>
+        </span>
+        <span><span class="pn-setor__nome">Participante</span><span class="pn-setor__nota">Sua casa. Cadastro do combo, pedidos e a venda de cada dia.</span></span>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Nome do estabelecimento</span>
+          <input class="pn-campo__escuro" type="text" id="loginEmail" autocomplete="username" required
+                 autocapitalize="none" spellcheck="false" placeholder="ELOI Doces">
+        </label>
+        <label class="pn-campo--porta"><span class="pn-campo__rotulo">Senha</span>
+          <input class="pn-campo__escuro" type="password" id="loginSenha" autocomplete="current-password" required placeholder="sua senha">
+        </label>
+        <button class="og-btn og-btn--cyan-escuro" type="submit" id="btEntrar">Entrar no painel</button>
+        <button class="pn-link--porta" type="button" id="btEsqueci">Perdi meu acesso</button>
+      </form>
+    </div>
+
+    <div class="pn-porta__pe">
+      <span class="pn-porta__nota">Ainda não tem acesso? Ele é criado pela organização depois que a inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</span>
+    </div>
   </div>
 </div>
-
+  <section id="vSenha" hidden>
+    <p class="rotulo">Primeiro acesso</p>
+    <h1>Defina sua senha</h1>
+    <p class="lead">Ela é sua. A organização não vê e não tem como recuperar. Se você perder,
+      ela gera um acesso novo.</p>
+    <form class="card" id="fSenha" style="margin-top:22px">
+      <label><span>Nova senha <em>(mínimo 10 caracteres)</em></span>
+        <input type="password" id="senha1" autocomplete="new-password" minlength="10" required>
+      </label>
+      <label><span>Repita a senha</span>
+        <input type="password" id="senha2" autocomplete="new-password" minlength="10" required>
+      </label>
+      <button class="acao larga" id="btSenha" type="submit">Salvar e continuar</button>
+    </form>
+  </section>
 <!-- ── Painel ──────────────────────────────────────────────────────────── -->
 <div id="painel" hidden>
   <!-- Rail (desktop). Reusa os MESMOS 5 ícones e o mesmo data-vista da barra
@@ -694,7 +1148,14 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
          foram movidos inteiros, com os mesmos IDs, para que montarForms(),
          montarAbas(), montarFiltroStatus() e render() continuem funcionando. -->
     <section class="og-vista" id="vista-mesa" hidden>
-      <div class="og-aviso" id="aviso" hidden></div>
+      <div class="pn-vista-cabeca" data-acento="amarelo">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/><path d="M3.5 20h17"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">A mesa</span>
+          <span class="pn-vista-cabeca__nota">Onde cada marca está, do site até o combo fechado</span>
+        </span>
+      </div>
+      <div class="og-aviso" id="aviso-org" hidden></div>
       <div class="og-mesa" id="mesa"></div>
 
       <!-- "Os formulários" desceu para cá em 25/08/2026, quando a barra ganhou
@@ -711,6 +1172,13 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     </section>
 
     <section class="og-vista" id="vista-respostas" hidden>
+      <div class="pn-vista-cabeca" data-acento="cyan">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z"/><path d="M9 11h6"/><path d="M9 14.5h3.5"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Respostas</span>
+          <span class="pn-vista-cabeca__nota">Os quatro formulários do site, num lugar só</span>
+        </span>
+      </div>
       <ul class="og-abas" id="abas" role="tablist"></ul>
 
       <div class="og-filtros">
@@ -737,6 +1205,13 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     </section>
 
     <section class="og-vista" id="vista-participantes" hidden>
+      <div class="pn-vista-cabeca" data-acento="roxo">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20"/><circle cx="10" cy="7.5" r="3.5"/><path d="M17.5 13.5h4"/><path d="M19.5 11.5v4"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Marcas</span>
+          <span class="pn-vista-cabeca__nota">Quem já tem conta e preenche o próprio cadastro</span>
+        </span>
+      </div>
       <section class="og-forms">
         <div class="og-forms__cabeca og-forms__cabeca--com-acao">
           <div>
@@ -754,6 +1229,13 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
          documento, marcar a foto. Separá-las em três destinos faria a barra
          crescer para sete colunas para dizer a mesma coisa. -->
     <section class="og-vista" id="vista-producao" hidden>
+      <div class="pn-vista-cabeca" data-acento="laranja">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16"/><rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2"/><path d="m8.5 12 2 2 3.5-3.5"/><path d="M8.5 17h5"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Produção</span>
+          <span class="pn-vista-cabeca__nota">O que a organização manda pra marca — agenda, pedidos e arquivos</span>
+        </span>
+      </div>
       <!-- Agenda de fotos: vive no TOPO de produção (patch §7). Dois modos —
            "abrir vagas" usa a grade abaixo (RPCs abrir_vaga_fotos/
            fechar_vaga_fotos, novas); "marcar eu mesma" é o que
@@ -814,6 +1296,13 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     </section>
 
     <section class="og-vista" id="vista-equipe" hidden>
+      <div class="pn-vista-cabeca" data-acento="marrom">
+        <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="M16.5 11.5v1.2"/><path d="M16.5 18.3v1.2"/><path d="m13.6 13.2.9.6"/><path d="m18.5 16.7.9.6"/></svg></span>
+        <span class="pn-vista-cabeca__texto">
+          <span class="pn-vista-cabeca__titulo">Equipe</span>
+          <span class="pn-vista-cabeca__nota">A edição aberta e as contas de quem trabalha aqui</span>
+        </span>
+      </div>
       <section class="og-forms">
         <div class="og-forms__cabeca">
           <h2>A edição aberta</h2>
@@ -889,7 +1378,6 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
     </div>
   </nav>
 </div>
-
 <button class="og-fundo" id="fundo" hidden aria-label="Fechar detalhe"></button>
 <aside class="og-detalhe" id="detalhe" hidden role="dialog" aria-modal="true" aria-labelledby="detalhe-titulo">
   <div class="og-detalhe__topo">
@@ -901,8 +1389,289 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
   </div>
   <div class="og-detalhe__rolo" id="detalhe-corpo"></div>
 </aside>
+<div class="pn-casca" id="vPainel" hidden>
+  <nav class="pn-rail" aria-label="Seções" id="mcRail">
+    <img class="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
+    <button class="pn-rail__btn" type="button" data-mvista="hoje" title="Hoje — 1">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="cadastro" title="Cadastro — 2">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z"/><rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none"/><path d="M18.8 11.6h5.2M18.8 15.8h5.2M8.4 21.6h15.6" stroke-width="2.4"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="pedidos" title="Pedidos — 3">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button class="pn-rail__btn" type="button" data-mvista="arquivos" title="Arquivos — 4">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg>
+    </button>
+    <button class="pn-rail__sair" type="button" id="btSairRail" title="Sair">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 17.6 15 11l-6.4-6.6"/><path d="M15 11H3.4"/><path d="M18.6 4.4v13.2"/></svg>
+    </button>
+  </nav>
 
+  <header class="pn-cabeca">
+    <img class="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="">
+    <span class="pn-cabeca__texto">
+      <p class="pn-cabeca__titulo" id="mcTitulo">Hoje</p>
+      <p class="pn-cabeca__sub" id="mcSub"></p>
+    </span>
+    <span class="pn-cabeca__dir">
+      <button type="button" class="notif" id="btNotifMarca" aria-label="Notificações">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.4c-3 0-5.4 2.4-5.4 5.6v3.3L5 16.6h14l-1.6-3.3v-3.3c0-3.2-2.4-5.6-5.4-5.6Z"/><path d="M10 19.2a2 2 0 0 0 4 0"/></svg>
+        <span class="pn-badge is-novo" id="mcNotifBadge" hidden></span>
+      </button>
+      <button type="button" class="notif" id="btSairCabeca" aria-label="Sair">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 17.6 15 11l-6.4-6.6"/><path d="M15 11H3.4"/><path d="M18.6 4.4v13.2"/></svg>
+      </button>
+    </span>
+  </header>
+
+  <main class="pn-vista">
+    <div class="pn-vista__trilho">
+
+      <!-- ══ HOJE ══════════════════════════════════════════════════════ -->
+      <section id="mvHoje" hidden>
+        <div class="pn-vista-cabeca" data-acento="amarelo">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Hoje</span>
+            <span class="pn-vista-cabeca__nota">A venda do dia e o que falta no seu cadastro</span>
+          </span>
+        </div>
+        <div class="mc-venda" id="mcVendaBloco">
+          <p class="rotulo">Combos vendidos</p>
+          <h2 style="color:var(--scw-creme)" id="mcVendaTitulo">Lance o número de hoje</h2>
+          <p class="nota" style="color:rgba(254,240,221,.8)" id="mcVendaTexto">Lance o número no fim do
+            expediente. A organização soma tudo para o balanço da edição.</p>
+          <div id="mcVendaAtiva">
+            <div class="mc-venda__linha">
+              <label style="margin:0"><span style="color:rgba(254,240,221,.7)" id="mcVendaRotuloData">Hoje</span>
+                <input class="mc-venda__campo" id="mcVendaQtd" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+              <button class="acao" type="button" id="mcVendaSalvar" style="background:var(--scw-amarelo);color:var(--scw-choco)">Salvar</button>
+              <span class="mc-venda__total"><span id="mcVendaTotal">0</span><span>no total da edição</span></span>
+            </div>
+            <div class="mc-venda__dias" id="mcVendaDias"></div>
+          </div>
+          <div class="mc-venda__espera" id="mcVendaEspera" hidden>
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.4 9.4h21.2a2.4 2.4 0 0 1 2.4 2.4v13.8a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 25.6V11.8a2.4 2.4 0 0 1 2.4-2.4Z"/><path d="M3 15.4h26"/><path d="M10.2 5v6.2M21.8 5v6.2"/></svg>
+            <span>O lançamento abre no primeiro dia da edição.</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px" id="mcFaltaBloco">
+          <p class="rotulo">O que falta</p>
+          <h2 id="mcFaltaTitulo">Cadastro entregue</h2>
+          <div id="mcFaltaLista"></div>
+        </div>
+      </section>
+
+      <!-- ══ CADASTRO ══════════════════════════════════════════════════ -->
+      <section id="mvCadastro" hidden>
+        <p class="rotulo" id="pnRotulo">Sua participação</p>
+        <h1 id="pnTitulo">Sua participação</h1>
+        <p style="margin-top:14px"><span class="selo" id="pnSelo">—</span></p>
+
+        <div class="card" id="pnSemParticipacao" hidden>
+          <h2>Ainda não há edição aberta para você</h2>
+          <p class="nota">Sua conta está ativa, mas a organização ainda não abriu a sua
+            participação na próxima edição. Assim que abrir, o formulário aparece aqui —
+            você não precisa fazer nada agora.</p>
+        </div>
+
+        <div id="pnConteudo" hidden>
+          <div class="progresso" style="margin-top:22px">
+            <b id="progTexto">0 de 5 blocos</b>
+            <div class="trilha"><i id="progBarra" style="transform:scaleX(0)"></i></div>
+          </div>
+
+          <div class="salvo" id="salvo"></div>
+
+          <form id="fCadastro">
+            <div class="mc-bloco is-aberto" data-bloco="0">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="0" aria-expanded="true">
+                <span class="mc-bloco__disco" data-disco="0" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>01 · A marca</b><span>Quem participa</span></span>
+                <span class="selo" data-selo="0">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="0">
+                <p class="nota">Isto atravessa as edições. Corrija o que mudou.</p>
+                <label><span>Nome da marca</span><input id="cNome" required></label>
+                <div class="dupla">
+                  <label><span>Responsável pelo festival</span><input id="cResp" required></label>
+                  <label><span>Telefone</span><input id="cTel" inputmode="tel" required></label>
+                </div>
+                <div class="dupla">
+                  <label><span>E-mail de contato</span><input id="cEmail" type="email" inputmode="email"></label>
+                  <label><span>Instagram <em>(opcional)</em></span><input id="cInsta" placeholder="@suamarca"></label>
+                </div>
+                <div class="dupla">
+                  <label><span>Site <em>(opcional)</em></span><input id="cSite" placeholder="https://"></label>
+                  <label><span>CNPJ <em>(opcional)</em></span><input id="cCnpj" inputmode="numeric"></label>
+                </div>
+                <label><span>Razão social <em>(opcional)</em></span><input id="cRazao"></label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="1">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="1" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="1" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.4a8.4 8.4 0 0 1 4.9 15.2v2.6h-9.8v-2.6A8.4 8.4 0 0 1 16 4.4Z"/><path d="M12.2 24.4h7.6M13.4 27.6h5.2" stroke-width="2.4"/></svg></span>
+                <span class="mc-bloco__texto"><b>02 · O tema</b><span>Sua leitura do tema da edição</span></span>
+                <span class="selo" data-selo="1">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="1" hidden>
+                <p class="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
+                  jeito. Conte qual foi a sua leitura.</p>
+                <label><span>Tema escolhido pela marca</span><input id="cTema" required></label>
+                <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
+                  <textarea id="cTemaJust" required></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="2">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="2" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="2" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" d="M2.6 17h7.4l-.8 4.6a1.3 1.3 0 0 1-1.3 1.1H4.7a1.3 1.3 0 0 1-1.3-1.1Z"/><circle cx="6.3" cy="14" r="3.4" fill="currentColor" stroke="none"/><path fill="currentColor" stroke="none" d="M12 22.6 16.2 10.2l4.2 12.4Z"/><path fill="currentColor" stroke="none" d="M22.6 14.6h7.6l-1 6.8a1.4 1.4 0 0 1-1.4 1.2h-2.8a1.4 1.4 0 0 1-1.4-1.2Z"/><path d="M1.6 25.8h28.8"/></svg></span>
+                <span class="mc-bloco__texto"><b>03 · Os três itens</b><span>Doce, salgado e bebida</span></span>
+                <span class="selo" data-selo="2">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="2" hidden>
+                <p class="nota">Cada item é julgado na sua categoria, e a média dos três é o
+                  Melhor Combo. Descreva como cada um conversa com o tema.</p>
+                <p class="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
+                  que chega até você</b> — muita gente escolhe a rota pelo que consegue comer.
+                  As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+                <div id="itens"></div>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="3">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="3" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="3" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M27.4 15.6 16.4 26.6a2.2 2.2 0 0 1-3.1 0L5.4 18.7a2.2 2.2 0 0 1 0-3.1L16.4 4.6h9.9a1.1 1.1 0 0 1 1.1 1.1Z"/><circle cx="21.8" cy="10.2" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>04 · Preço</b><span>Quanto custa o combo</span></span>
+                <span class="selo" data-selo="3">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="3" hidden>
+                <label style="max-width:220px"><span>Valor do combo <em>(em reais)</em></span>
+                  <input id="cPreco" inputmode="decimal" placeholder="0,00" required>
+                </label>
+              </div>
+            </div>
+
+            <div class="mc-bloco" data-bloco="4">
+              <button type="button" class="mc-bloco__cabeca" data-alternar="4" aria-expanded="false">
+                <span class="mc-bloco__disco" data-disco="4" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 28.4s8.6-9.6 8.6-15.6a8.6 8.6 0 1 0-17.2 0c0 6 8.6 15.6 8.6 15.6Z"/><rect x="12.4" y="9.2" width="7.2" height="7.2" rx="2" fill="currentColor" stroke="none"/></svg></span>
+                <span class="mc-bloco__texto"><b>05 · Onde encontrar</b><span>Suas unidades</span></span>
+                <span class="selo" data-selo="4">Pendente</span>
+                <svg class="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2"/></svg>
+              </button>
+              <div class="mc-bloco__corpo" data-corpo="4" hidden>
+                <p class="nota">Uma por endereço. Rede com várias lojas cadastra cada uma —
+                  continua contando como uma marca só. O horário aqui é o <b>dos dias do
+                  festival</b>, que pode ser diferente do horário normal da loja.</p>
+                <div id="unidades"></div>
+                <button class="acao secundaria" type="button" id="btAddUnidade">+ Adicionar unidade</button>
+              </div>
+            </div>
+
+            <button class="acao larga" type="submit" id="btConcluir" style="margin-top:18px">Concluir cadastro</button>
+          </form>
+
+          <div class="card" id="cardFotos" hidden style="margin-top:18px">
+            <p class="rotulo">Fotos do combo</p>
+            <h2>Sua sessão</h2>
+            <p class="nota" id="fotosTexto">Quem fotografa é a organização. A data e o local são definidos
+              por ela; qualquer mudança é combinada pelo canal de sempre.</p>
+            <div id="sessoes"></div>
+            <ul class="mc-vagas" id="mcVagas" hidden></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PEDIDOS ═══════════════════════════════════════════════════ -->
+      <section id="mvPedidos" hidden>
+        <div class="pn-vista-cabeca" data-acento="laranja">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Pedidos</span>
+            <span class="pn-vista-cabeca__nota">O que a organização pediu, e até quando</span>
+          </span>
+        </div>
+        <div class="card" id="cardSolic">
+          <p class="rotulo">O que a organização pediu</p>
+          <h2>Pedidos e prazos</h2>
+          <div id="solicitacoes"></div>
+        </div>
+      </section>
+
+      <!-- ══ ARQUIVOS ══════════════════════════════════════════════════ -->
+      <section id="mvArquivos" hidden>
+        <div class="pn-vista-cabeca" data-acento="roxo">
+          <span class="pn-acento-disco" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg></span>
+          <span class="pn-vista-cabeca__texto">
+            <span class="pn-vista-cabeca__titulo">Arquivos</span>
+            <span class="pn-vista-cabeca__nota">Downloads e avisos deste aparelho</span>
+          </span>
+        </div>
+        <div class="card" id="cardArquivos">
+          <p class="rotulo">Downloads</p>
+          <h2>Arquivos da organização</h2>
+          <div id="arquivos"></div>
+        </div>
+
+        <div class="card" style="margin-top:22px" id="cardAvisos">
+          <p class="rotulo">Neste aparelho</p>
+          <h2>Avisos</h2>
+          <p class="nota">Ligue para saber na hora quando a organização pedir algo ou
+            publicar um arquivo, mesmo com esta página fechada.</p>
+          <div id="avisoEstado" style="margin-top:14px"></div>
+          <p class="nota" id="avisoRecado" hidden></p>
+          <button class="btn" type="button" id="btAvisos" hidden>Ligar avisos</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <nav class="pn-abas" aria-label="Seções" id="mcAbas">
+    <div class="pn-abas__grade">
+      <button class="pn-aba" type="button" data-mvista="hoje">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17.4" r="10.4"/><path d="M16 12v5.4l4.2 2.6"/><path d="M13.6 3.4h4.8M16 5v2.6"/></svg>
+        <span class="pn-aba__rotulo">hoje</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="cadastro">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z"/><rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none"/><path d="M18.8 11.6h5.2M18.8 15.8h5.2M8.4 21.6h15.6" stroke-width="2.4"/></svg>
+        <span class="pn-aba__rotulo">cadastro</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="pedidos">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z"/><path d="M16 13v5.6"/><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <span class="pn-aba__rotulo">pedidos</span>
+      </button>
+      <button class="pn-aba" type="button" data-mvista="arquivos">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5v14.4"/><path d="M9.4 13.6 16 20.2l6.6-6.6"/><path d="M6 25.8h20"/></svg>
+        <span class="pn-aba__rotulo">arquivos</span>
+      </button>
+    </div>
+  </nav>
+</div>
 <script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Um bloco de script só (tests/painel.test.mjs conta os blocos, igual aos
+   dois painéis antigos). Duas IIFEs dentro dele — PainelOrg e PainelMarca —
+   são o código real de /organizacao/ e /marca/, cada uma com o próprio
+   escopo, sem nenhuma variável ou função em comum entre as duas (o único
+   ponto de contato é window.PainelOrg/window.PainelMarca, expostos de
+   propósito pra o boot compartilhado, no fim do arquivo, decidir qual casca
+   mostrar). O login e a decisão de boot são o único código novo.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ┌─────────────────────────────────────────────────────────────────────┐
+   │ PainelOrg — código real de public/organizacao/index.html             │
+   └─────────────────────────────────────────────────────────────────────┘ */
+(function () {
 /* ═══════════════════════════════════════════════════════════════════════════
    Configuração
    A chave é a publicável (anon), pública por design. RLS ligado sem policy em
@@ -1029,6 +1798,14 @@ const TITULOS = {
   equipe:        ['Equipe', 'edição e contas'],
 };
 
+/* Uma cor da paleta fechada por vista, nunca repetida dentro do painel da
+   organização (CLAUDE.md §6.3). Lida por irPara() pra escrever --pn-acento
+   no <body> — quem pinta a tira do cabeçalho, a aba ativa e a rail. */
+const ACENTO_VISTA = {
+  mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo',
+  producao: 'laranja', equipe: 'marrom',
+};
+
 /* ── Estado ────────────────────────────────────────────────────────────── */
 let senha = sessionStorage.getItem('scw_org') || '';
 let dados = {};            // origem → array de registros
@@ -1053,7 +1830,7 @@ let ultimaCarga = 0;         // quando os dados chegaram, para a recarga ao volt
 let temporizadorApagar = null; // desarme automatico do botao de apagar
 
 const $ = id => document.getElementById(id);
-const entrada = $('entrada'), painel = $('painel'), aviso = $('aviso');
+const entrada = $('login'), painel = $('painel'), aviso = $('aviso-org');
 
 /* ── Acesso ao banco ───────────────────────────────────────────────────── */
 /* PostgREST direto por fetch. Sem supabase-js: seriam ~100 KB de CDN para
@@ -1160,15 +1937,6 @@ function abrirPainel() {
   montarAbasApp();
   montarFiltroStatus();
   carregar();
-  /* O painel de verdade agora mora em /painel/ (handoff "Painel SCW app",
-     26/08/2026) — esta página vira só a PORTA de entrada. O redirecionamento
-     é depois do login real (aqui, com a senha já validada por admin_ping),
-     nunca antes: quem digitou senha errada continua vendo o erro nesta
-     mesma tela. vistaAtual já veio certo de montarAbasApp() (hash ou
-     sessionStorage), então o link para cá continua funcionando depois do
-     salto. Quem instalou /organizacao/ como app precisa reinstalar a partir
-     de /painel/ — o SW e o manifest antigos continuam de pé, sem tocar. */
-  location.replace('/painel/#painel=org/' + (vistaAtual || 'mesa'));
 }
 
 /* ── Navegação da casca ────────────────────────────────────────────────── */
@@ -1209,12 +1977,30 @@ function irPara(vista) {
   $('cabeca-titulo').textContent = titulo[0];
   $('cabeca-sub').textContent = titulo[1];
 
+  /* Cor por vista (§6.3 — nunca repete a do vizinho, dentro dos 9 tokens
+     fechados de CLAUDE.md §6.1). Escrita no <body> porque a tira do
+     cabeçalho, a aba ativa e o indicador deslizante são três peças
+     diferentes que precisam ler o mesmo valor.
+     ⚠️ --pn-acento-tinta anda junto: roxo e marrom são chapa ESCURA (texto
+     creme), amarelo/cyan/laranja são chapa CLARA (texto chocolate) — a
+     mesma régua de §6.2. Sem isto, o ícone da aba ativa em roxo ficaria
+     chocolate sobre roxo, quase invisível. */
+  const cor = ACENTO_VISTA[vista] || 'amarelo';
+  const escura = cor === 'roxo' || cor === 'marrom';
+  document.body.style.setProperty('--pn-acento', 'var(--scw-' + cor + ')');
+  document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')');
+  /* Sobre chocolate (rail, tab bar) roxo e marrom não sustentam leitura —
+     1,45:1 e 1,53:1 — e caem no amarelo, a mesma régua de pageColorDark()
+     do site institucional (CLAUDE.md §6.2). Laranja e cyan passam (4,78:1 e
+     6,23:1) e continuam com a própria cor. */
+  document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')');
+
   try { sessionStorage.setItem('scw_org_vista', vista); } catch (e) { /* anônima */ }
 
   // Estado no hash (patch §10): quem trabalha o dia todo no painel recarrega a
   // página, e voltar sempre para a primeira vista custa. replaceState, não
   // pushState — não é histórico de navegação, é posição na casca.
-  try { history.replaceState(null, '', '#painel=' + vista); } catch (e) { /* Safari privado, às vezes recusa */ }
+  try { history.replaceState(null, '', '#painel=org/' + vista); } catch (e) { /* Safari privado, às vezes recusa */ }
 }
 
 function montarAbasApp() {
@@ -1233,7 +2019,7 @@ function montarAbasApp() {
   // O hash manda primeiro: um link ou uma atualização de página com
   // #painel=produção tem que abrir ali, não na última vista da sessão.
   let inicial = 'mesa';
-  const doHash = (location.hash.match(/^#painel=([a-z]+)/) || [])[1];
+  const doHash = (location.hash.match(/^#painel=org\/([a-z]+)/) || [])[1];
   if (doHash && DESTINOS.indexOf(doHash) > -1) {
     inicial = doHash;
   } else {
@@ -3419,13 +4205,1459 @@ async function testarAviso() {
    isso o catch é silencioso e não há nada dependendo do sucesso. */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/organizacao/sw.js', { scope: '/organizacao/' })
+    navigator.serviceWorker.register('/painel/sw.js', { scope: '/painel/' })
       .catch(function () { /* silêncio proposital */ });
   });
 }
 
+window.PainelOrg = {
+  temSessao: function () { return !!senha; },
+  abrirPainel: abrirPainel
+};
+
 /* ── Boot ──────────────────────────────────────────────────────────────── */
 if (senha) abrirPainel();
+})();
+
+/* ┌─────────────────────────────────────────────────────────────────────┐
+   │ PainelMarca — código real de public/marca/index.html                  │
+   └─────────────────────────────────────────────────────────────────────┘ */
+  'use strict'
+
+  var CFG = {
+    url: 'https://dgfmoibynftadsyjcclg.supabase.co',
+    key: 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
+  }
+  var CHAVE_SESSAO = 'scw_marca'
+  var BLOCOS = 5
+  var TIPOS = ['doce', 'salgado', 'bebida']
+  var ROTULO_TIPO = { doce: 'O doce', salgado: 'O salgado', bebida: 'A bebida' }
+  /* Três canais fixos, e não uma lista que a marca monta. O briefing nomeia
+     exatamente estes — aplicativo, WhatsApp, site próprio — e um construtor de
+     lista custaria um "adicionar/remover" inteiro para produzir as mesmas três
+     linhas na esmagadora maioria dos casos. Link preenchido = canal ativo. */
+  var CANAIS = [
+    { tipo: 'aplicativo', rotulo: 'Aplicativo de entrega', dica: 'https://ifood.com.br/…' },
+    { tipo: 'whatsapp', rotulo: 'WhatsApp', dica: 'https://wa.me/55…' },
+    { tipo: 'site', rotulo: 'Site próprio', dica: 'https://…' }
+  ]
+
+  var sessao = null
+  var participante = null
+  var participacao = null
+  var itens = []
+  var salvando = null
+  // Fase 7 (25/08/2026): lançamento diário e as duas listas guardadas para as
+  // notificações derivadas conseguirem ler sem uma sétima consulta.
+  var vendas = []
+  var solicitacoesCache = []
+  var estadosCache = []
+
+  var el = function (id) { return document.getElementById(id) }
+
+  // ── Sessão ────────────────────────────────────────────────────────────────
+  // sessionStorage, não localStorage: o token morre ao fechar a aba. O rascunho
+  // do formulário não depende disso — ele vive no banco, não aqui.
+  function sessaoSalvar (dados) {
+    sessao = {
+      access_token: dados.access_token,
+      refresh_token: dados.refresh_token,
+      // O servidor manda expires_in (segundos). Guardar o INSTANTE evita
+      // recalcular a partir de um relógio que pode ter andado.
+      expira_em: Date.now() + (dados.expires_in || 3600) * 1000,
+      email: (dados.user && dados.user.email) || (sessao && sessao.email) || ''
+    }
+    try { sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao)) } catch (e) { /* modo privado */ }
+  }
+
+  function sessaoLer () {
+    if (sessao) return sessao
+    try {
+      var cru = sessionStorage.getItem(CHAVE_SESSAO)
+      sessao = cru ? JSON.parse(cru) : null
+    } catch (e) { sessao = null }
+    return sessao
+  }
+
+  function sessaoLimpar () {
+    sessao = null
+    try { sessionStorage.removeItem(CHAVE_SESSAO) } catch (e) { /* ignora */ }
+  }
+
+  // ── Camada de rede ────────────────────────────────────────────────────────
+  function auth (caminho, corpo, metodo, token) {
+    var cab = { apikey: CFG.key, 'Content-Type': 'application/json' }
+    if (token) cab.Authorization = 'Bearer ' + token
+    return fetch(CFG.url + '/auth/v1/' + caminho, {
+      method: metodo || 'POST', headers: cab, body: corpo ? JSON.stringify(corpo) : undefined
+    }).then(function (r) {
+      return r.json().catch(function () { return {} }).then(function (j) {
+        return { ok: r.ok, status: r.status, dados: j }
+      })
+    })
+  }
+
+  // Renova ANTES de expirar, não depois de falhar: um 401 no meio do autosave
+  // custaria o texto que a pessoa acabou de digitar.
+  function renovar () {
+    var s = sessaoLer()
+    if (!s) return Promise.resolve(false)
+    if (Date.now() < s.expira_em - 60000) return Promise.resolve(true)
+    return auth('token?grant_type=refresh_token', { refresh_token: s.refresh_token })
+      .then(function (r) {
+        if (!r.ok || !r.dados.access_token) { sessaoLimpar(); return false }
+        sessaoSalvar(r.dados)
+        return true
+      })
+  }
+
+  /* `api` devolve o CORPO já lido — a lista, o objeto, o que o PostgREST mandar
+     — e lança em erro. Não devolve `{ ok, dados }`.
+     ⚠️ Confundir os dois formatos custou a trava de primeiro acesso: até 25/08
+     `precisaTrocarSenha` lia `r.ok && r.dados[0]` num ARRAY, achava `undefined`
+     nos dois, e devolvia `false` sempre. A flag `deve_trocar_senha` existia, a
+     Edge Function a ligava, e ninguém a lia. */
+  function api (caminho, opcoes) {
+    return renovar().then(function (viva) {
+      if (!viva) { ver('login'); return Promise.reject(new Error('sessao_expirada')) }
+      var o = opcoes || {}
+      var cab = {
+        apikey: CFG.key,
+        Authorization: 'Bearer ' + sessaoLer().access_token,
+        'Content-Type': 'application/json'
+      }
+      if (o.prefer) cab.Prefer = o.prefer
+      return fetch(CFG.url + '/rest/v1/' + caminho, {
+        method: o.metodo || 'GET', headers: cab,
+        body: o.corpo ? JSON.stringify(o.corpo) : undefined
+      }).then(function (r) {
+        return r.json().catch(function () { return null }).then(function (j) {
+          if (!r.ok) throw new Error((j && j.message) || ('http_' + r.status))
+          return j
+        })
+      })
+    })
+  }
+
+  // ── Avisos neste aparelho ─────────────────────────────────────────────────
+  // ⚠️ A CHAVE ABAIXO É PÚBLICA DE PROPÓSITO. É a metade pública do par VAPID:
+  // o navegador precisa dela para criar a assinatura, e ela não serve para
+  // mandar nada. Quem assina o envio é a metade PRIVADA, que vive só como
+  // variável de ambiente da Edge Function. ⛔ Se um dia alguém colar a privada
+  // aqui, este arquivo estático vira um remetente aberto para qualquer
+  // aparelho assinado — e ele roda no navegador de quem abrir a página.
+  //
+  // ⚠️ É a MESMA chave do painel da organização, e tem que continuar sendo:
+  // assinatura criada com uma chave não aceita envio assinado por outra, e o
+  // sintoma é o pior possível — some sem erro, porque o serviço de push
+  // devolve 403 para a função, não para a pessoa.
+  var VAPID_PUBLICA = 'BCY2ca0nu6BRWc0IeF28O6GiqYwZatuS4hGg86SuD4d02huuvBGyF63MjwBK_wBHkELl5OsLg6UOTgRZ9EIURAg'
+  var avisoLigado = false
+
+  function bytesDaChave (b64) {
+    var base = (b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/')
+    var bin = atob(base)
+    var saida = new Uint8Array(bin.length)
+    for (var i = 0; i < bin.length; i++) saida[i] = bin.charCodeAt(i)
+    return saida
+  }
+
+  // Três coisas separadas, e confundi-las é o que gera "liguei e não chega":
+  // suporte do navegador, permissão da pessoa, e assinatura gravada no banco.
+  function avisoSuportado () {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+  }
+
+  function assinaturaDoAparelho () {
+    if (!avisoSuportado()) return Promise.resolve(null)
+    return navigator.serviceWorker.ready
+      .then(function (reg) { return reg.pushManager.getSubscription() })
+      .catch(function () { return null })
+  }
+
+  function avisoRecado (texto, tom) {
+    var p = el('avisoRecado')
+    p.hidden = !texto
+    p.textContent = texto || ''
+    p.style.color = tom === 'erro' ? '#FF4810' : ''
+  }
+
+  function renderAvisos () {
+    var estado = el('avisoEstado')
+    var bt = el('btAvisos')
+
+    if (!avisoSuportado()) {
+      // iPhone: só funciona com a área INSTALADA na tela inicial. Antes disso o
+      // Safari não expõe PushManager. Não é defeito, é como o iOS funciona, e
+      // dizer isso evita a hora perdida procurando o que não quebrou.
+      estado.innerHTML = '<b>Este navegador não recebe avisos.</b>'
+      avisoRecado('No iPhone, instale esta área primeiro: botão de compartilhar do ' +
+        'Safari, depois "Adicionar à Tela de Início". Abra pelo ícone e volte aqui.', '')
+      bt.hidden = true
+      return
+    }
+
+    return assinaturaDoAparelho().then(function (assinatura) {
+      avisoLigado = !!assinatura
+      var negado = Notification.permission === 'denied'
+
+      estado.innerHTML = '<b>' + (assinatura ? 'Ligados neste aparelho'
+        : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')) + '</b>'
+
+      if (negado && !assinatura) {
+        avisoRecado('A permissão foi negada. Reabrir depende das configurações do ' +
+          'navegador para este site: esta página não consegue pedir de novo.', '')
+        bt.hidden = true
+        return
+      }
+      avisoRecado('', '')
+      bt.hidden = false
+      bt.textContent = assinatura ? 'Desligar avisos' : 'Ligar avisos'
+    })
+  }
+
+  // ⚠️ `Notification.requestPermission()` NUNCA REJEITA E PODE NÃO RESOLVER. O
+  // Chrome costuma recolher o pedido num ícone de sino na barra de endereço em
+  // vez de abrir a caixa; enquanto ninguém responde, a promessa fica pendente
+  // para sempre. Uma tela que só sabe esperar trava em "pedindo permissão" e
+  // não diz o que houve — foi o que aconteceu no primeiro teste real.
+  var ONDE_ESTA_O_AVISO =
+    'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
+    'de sino ou de cadeado na barra de endereço e responda por lá.'
+
+  function ligarAvisos () {
+    if (!participante) { avisoRecado('Entre primeiro.', 'erro'); return }
+    if (Notification.permission === 'denied') {
+      avisoRecado('A permissão já está negada para este site. Reabrir depende das ' +
+        'configurações do navegador: esta página não consegue pedir de novo.', 'erro')
+      return
+    }
+
+    avisoRecado('Pedindo permissão… ' + ONDE_ESTA_O_AVISO, '')
+    // Prazo que troca o recado sem afirmar que falhou, porque não falhou:
+    // está esperando.
+    var lembrete = setTimeout(function () {
+      avisoRecado('Ainda esperando sua resposta. ' + ONDE_ESTA_O_AVISO, '')
+    }, 8000)
+
+    // Resposta tardia não se perde: quando a permissão muda, a tela se
+    // redesenha sozinha, mesmo que a promessa abaixo tenha ficado para trás.
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'notifications' })
+        .then(function (p) { p.onchange = function () { renderAvisos() } })
+        .catch(function () { /* navegador sem a API: o caminho normal segue */ })
+    }
+
+    Notification.requestPermission().then(function (permissao) {
+      clearTimeout(lembrete)
+      if (permissao === 'denied') throw new Error('permissão negada para este site')
+      if (permissao !== 'granted') throw new Error('você fechou o aviso sem responder')
+      return navigator.serviceWorker.ready
+    }).then(function (reg) {
+      // `userVisibleOnly: true` é obrigatório nos navegadores que importam: não
+      // existe push silencioso na web, e é bom que não exista.
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: bytesDaChave(VAPID_PUBLICA)
+      })
+    }).then(function (assinatura) {
+      var bruto = assinatura.toJSON()
+      // O endpoint é UNIQUE. Apaga a linha antiga deste mesmo endpoint antes de
+      // gravar: a RLS só deixa apagar o que é desta marca, então isto não
+      // alcança aparelho de ninguém. `update` está revogado de propósito, e por
+      // isso não dá para resolver com upsert.
+      return api('push_subscriptions?endpoint=eq.' + encodeURIComponent(bruto.endpoint),
+        { metodo: 'DELETE' })
+        .catch(function () { return null })
+        .then(function () {
+          return api('push_subscriptions', {
+            metodo: 'POST',
+            prefer: 'return=minimal',
+            corpo: {
+              papel: 'marca',
+              participante_id: participante.id,
+              endpoint: bruto.endpoint,
+              p256dh: bruto.keys.p256dh,
+              auth_chave: bruto.keys.auth,
+              user_agent: navigator.userAgent.slice(0, 300)
+            }
+          })
+        })
+    }).then(function () {
+      // ⚠️ Só afirma "ligado" depois que o banco confirmar. Assinatura que
+      // existe no navegador e não existe no banco é aparelho que nunca vai
+      // receber nada, e que jura que está ligado.
+      return renderAvisos()
+    }).then(function () {
+      avisoRecado('Avisos ligados neste aparelho.', '')
+    }).catch(function (e) {
+      // Sem isto, um erro depois do lembrete agendado deixaria 'ainda esperando'
+      // sobrescrevendo a mensagem de erro oito segundos depois.
+      clearTimeout(lembrete)
+      avisoRecado('Não consegui ligar: ' + e.message, 'erro')
+    })
+  }
+
+  function desligarAvisos () {
+    avisoRecado('Desligando…', '')
+    assinaturaDoAparelho().then(function (assinatura) {
+      if (!assinatura) return null
+      // Banco primeiro. Se `unsubscribe` viesse antes e a rede caísse, o
+      // endpoint ficaria vivo no banco apontando para uma assinatura morta, e
+      // todo envio futuro carregaria esse peso.
+      return api('push_subscriptions?endpoint=eq.' + encodeURIComponent(assinatura.endpoint),
+        { metodo: 'DELETE' })
+        .then(function () { return assinatura.unsubscribe() })
+    }).then(function () {
+      return renderAvisos()
+    }).then(function () {
+      avisoRecado('Avisos desligados neste aparelho.', '')
+    }).catch(function (e) {
+      avisoRecado('Não consegui desligar: ' + e.message, 'erro')
+    })
+  }
+
+  // ── Views e avisos ────────────────────────────────────────────────────────
+  // Quatro estados agora, não três — 'boasVindas' é a tela nova (patch §2,
+  // pedido do Eloi: "a tela inicial do app instalando no celular"). O painel
+  // (#vPainel) é uma casca própria (.pn-casca), não mais filha de <main> — por
+  // isso o cabeçalho simples (#headerTopo) some quando ela assume a tela.
+  function ver (qual) {
+    ;['login', 'vSenha'].forEach(function (id) { el(id).hidden = true })
+    el('vPainel').hidden = true
+    var alvo = { boasVindas: 'login', login: 'login', senha: 'vSenha', painel: 'vPainel' }[qual] || 'login'
+    el(alvo).hidden = false
+    if (qual === 'painel') {
+      var inicial = 'hoje'
+      var doHash = (location.hash.match(/^#painel=marca\/([a-z]+)/) || [])[1]
+      if (doHash && DESTINOS_MARCA.indexOf(doHash) > -1) {
+        inicial = doHash
+      } else {
+        try { inicial = sessionStorage.getItem('scw_marca_vista') || 'hoje' } catch (e) {}
+      }
+      irParaMarca(inicial)
+    }
+    window.scrollTo(0, 0)
+  }
+
+  // ── Navegação do painel (casca comum, patch §1) ───────────────────────────
+  var DESTINOS_MARCA = ['hoje', 'cadastro', 'pedidos', 'arquivos']
+  var TITULOS_MARCA = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', arquivos: 'Arquivos' }
+  var MV_ID = { hoje: 'mvHoje', cadastro: 'mvCadastro', pedidos: 'mvPedidos', arquivos: 'mvArquivos' }
+  // Uma cor da paleta fechada por vista, nunca repetida dentro do painel da
+  // marca (CLAUDE.md §6.3) — a mesma mecânica de --pn-acento da organização.
+  var ACENTO_VISTA_MARCA = { hoje: 'amarelo', cadastro: 'cyan', pedidos: 'laranja', arquivos: 'roxo' }
+  var vistaAtualMarca = ''
+
+  function irParaMarca (vista) {
+    if (DESTINOS_MARCA.indexOf(vista) < 0) vista = 'hoje'
+    if (vistaAtualMarca) el(MV_ID[vistaAtualMarca]).hidden = true
+    vistaAtualMarca = vista
+    el(MV_ID[vista]).hidden = false
+    el('mcTitulo').textContent = TITULOS_MARCA[vista]
+    // roxo é chapa ESCURA (texto creme); amarelo/cyan/laranja são chapa CLARA
+    // (texto chocolate) — mesma régua de CLAUDE.md §6.2, ver org_script.js.
+    var corVista = ACENTO_VISTA_MARCA[vista] || 'amarelo'
+    var escuraVista = corVista === 'roxo'
+    document.body.style.setProperty('--pn-acento', 'var(--scw-' + corVista + ')')
+    document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escuraVista ? 'creme' : 'choco') + ')')
+    // Sobre chocolate (rail, tab bar) roxo não sustenta leitura — mesma régua
+    // de pageColorDark() do site institucional (CLAUDE.md §6.2): cai no amarelo.
+    document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escuraVista ? 'amarelo' : corVista) + ')')
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mvista]'), function (b) {
+      if (b.dataset.mvista === vista) b.setAttribute('aria-current', 'page')
+      else b.removeAttribute('aria-current')
+    })
+    try { sessionStorage.setItem('scw_marca_vista', vista) } catch (e) { /* anônima */ }
+    try { history.replaceState(null, '', '#painel=marca/' + vista) } catch (e) { /* Safari privado, às vezes recusa */ }
+    window.scrollTo(0, 0)
+  }
+
+  function montarNavMarca () {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mvista]'), function (b) {
+      b.addEventListener('click', function () { irParaMarca(b.dataset.mvista) })
+    })
+    // 1–4 trocam de vista; não dispara com foco em campo (mesmo atalho de
+    // /organizacao/, patch §1.3).
+    document.addEventListener('keydown', function (ev) {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return
+      var n = parseInt(ev.key, 10)
+      if (n >= 1 && n <= DESTINOS_MARCA.length && !el('vPainel').hidden) irParaMarca(DESTINOS_MARCA[n - 1])
+    })
+  }
+
+  function aviso (texto, tipo) {
+    var a = el('aviso-marca')
+    a.className = 'aviso' + (tipo ? ' ' + tipo : '')
+    a.textContent = texto || ''
+  }
+
+  function escapar (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  }
+
+  // ── Datas ─────────────────────────────────────────────────────────────────
+  function dataCurta (iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  function dataHora (iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  }
+
+  /* Quanto falta, em dias inteiros. Diferença em MILISSEGUNDOS dividida por um
+     dia, e não subtração de datas locais: o horário de verão faz um dos dias do
+     ano ter 23 horas, e "faltam 0 dias" na véspera é o tipo de erro que só
+     aparece uma vez por ano e nunca é reproduzido. */
+  function diasAte (iso) {
+    if (!iso) return null
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return null
+    return Math.ceil((d.getTime() - Date.now()) / 86400000)
+  }
+
+  function prazoTexto (iso) {
+    var n = diasAte(iso)
+    if (n === null) return { texto: '', classe: '' }
+    if (n < 0) return { texto: 'venceu em ' + dataCurta(iso), classe: 'vencido' }
+    if (n === 0) return { texto: 'vence hoje', classe: 'vencido' }
+    if (n === 1) return { texto: 'falta 1 dia', classe: 'andamento' }
+    if (n <= 7) return { texto: 'faltam ' + n + ' dias', classe: 'andamento' }
+    return { texto: 'até ' + dataCurta(iso), classe: '' }
+  }
+
+  // ── Entrar ────────────────────────────────────────────────────────────────
+  /* O login é o NOME DO ESTABELECIMENTO, não um e-mail (decisão do Eloi,
+     22/08/2026). O Supabase Auth identifica por e-mail, então o nome vira o
+     mesmo endereço interno que a Edge Function `criar-acesso-marca` gerou ao
+     criar a conta.
+     ⚠️ AS DUAS SLUGIFICAÇÕES TÊM QUE CASAR. Se esta divergir da de lá, a marca
+     digita o nome certo e não entra — e o erro é genérico de propósito, então
+     ninguém descobre o motivo. Mudou uma, muda a outra. */
+  var DOMINIO_LOGIN = 'marcas.sweetcoffeeweek.com.br'
+  function slugificar (nome) {
+    return (nome || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/&/g, ' e ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48)
+  }
+  function enderecoDeLogin (digitado) {
+    var t = (digitado || '').trim()
+    /* Quem já sabe o login exato pode digitar ele direto; quem digita o nome
+       por extenso chega no mesmo lugar. */
+    if (t.indexOf('@') > -1) return t.toLowerCase()
+    return slugificar(t) + '@' + DOMINIO_LOGIN
+  }
+
+  function entrar (ev) {
+    ev.preventDefault()
+    var email = enderecoDeLogin(el('loginEmail').value)
+    var senha = el('loginSenha').value
+    if (!email || !senha) return
+    el('btEntrar').disabled = true
+    aviso('')
+    auth('token?grant_type=password', { email: email, password: senha })
+      .then(function (r) {
+        el('btEntrar').disabled = false
+        // Erro SEMPRE genérico: "e-mail não encontrado" confirma quais endereços
+        // existem na base para quem estiver testando de fora.
+        if (!r.ok || !r.dados.access_token) {
+          aviso('E-mail ou senha não conferem.', 'erro')
+          return
+        }
+        el('loginSenha').value = ''
+        sessaoSalvar(r.dados)
+        /* A senha que a marca acabou de usar veio da organização, por WhatsApp.
+           Se `deve_trocar_senha` estiver ligada, ela troca AGORA — e só depois
+           chega no painel. É isso que faz a mensagem do WhatsApp deixar de
+           valer: sem esta checagem a flag seria uma coluna que ninguém lê. */
+        precisaTrocarSenha().then(function (precisa) {
+          if (precisa) { ver('senha'); return }
+          carregar()
+        })
+      })
+      .catch(function () {
+        el('btEntrar').disabled = false
+        aviso('Não deu para conectar. Tente de novo em instantes.', 'erro')
+      })
+  }
+
+  /* ⛔ RECUPERAÇÃO POR E-MAIL NÃO EXISTE MAIS, e não é esquecimento: o endereço
+     de login é sintético (nome@marcas.…) e não tem caixa de entrada. Mandar um
+     link para lá seria um botão que nunca entrega nada — pior que não ter.
+     Quem redefine é a organização, gerando um acesso novo pelo painel. */
+  function recuperar () {
+    aviso('A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.', 'ok')
+  }
+
+  function sair () {
+    var s = sessaoLer()
+    if (s) auth('logout', null, 'POST', s.access_token).catch(function () { /* segue */ })
+    sessaoLimpar()
+    participante = null
+    participacao = null
+    itens = []
+    aviso('')
+    ver('boasVindas')
+  }
+
+  // ── A trava de primeiro uso ───────────────────────────────────────────────
+  /* A conta nasce com `deve_trocar_senha` ligada (Edge Function
+     criar-acesso-marca). Enquanto ela estiver ligada, a senha em circulação é a
+     que a organização mandou por WhatsApp — e ela precisa morrer no 1º uso.
+     ⚠️ Erro de rede aqui devolve `false`: melhor deixar entrar do que trancar
+     alguém fora por causa de uma consulta que falhou. A senha compartilhada
+     sobrevive mais um login; a marca não fica sem acesso na véspera. */
+  function precisaTrocarSenha () {
+    return api('perfis?select=deve_trocar_senha&limit=1')
+      .then(function (linhas) {
+        return !!(linhas && linhas[0] && linhas[0].deve_trocar_senha)
+      })
+      .catch(function () { return false })
+  }
+
+  function marcarSenhaTrocada () {
+    return api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} })
+      .catch(function () { /* ver o comentário acima */ })
+  }
+
+  function definirSenha (ev) {
+    ev.preventDefault()
+    var a = el('senha1').value
+    var b = el('senha2').value
+    if (a.length < 10) { aviso('A senha precisa de pelo menos 10 caracteres.', 'erro'); return }
+    if (a !== b) { aviso('As duas senhas não são iguais.', 'erro'); return }
+    el('btSenha').disabled = true
+    var s = sessaoLer()
+    auth('user', { password: a }, 'PUT', s && s.access_token)
+      .then(function (r) {
+        el('btSenha').disabled = false
+        if (!r.ok) {
+          aviso((r.dados && r.dados.msg) || 'Não deu para salvar a senha agora. Tente de novo.', 'erro')
+          return
+        }
+        el('senha1').value = ''
+        el('senha2').value = ''
+        aviso('Senha definida.', 'ok')
+        /* Baixa a flag ANTES de seguir, senão o próximo login manda de volta
+           para esta tela. Se falhar, o pior caso é pedir a troca de novo —
+           chato, nunca inseguro. Por isso o erro não trava o fluxo. */
+        marcarSenhaTrocada().then(function () { carregar() })
+      })
+      .catch(function () {
+        el('btSenha').disabled = false
+        aviso('Não deu para salvar a senha agora.', 'erro')
+      })
+  }
+
+  // ── Carregar ──────────────────────────────────────────────────────────────
+  /* A RLS já filtra tudo por auth.uid(); nenhuma consulta daqui precisa de um
+     `where` de dono. Escrever um seria fingir que a segurança está aqui. */
+  function carregar () {
+    if (!sessaoLer()) { ver('login'); return }
+    api('participantes?select=*&order=created_at.desc')
+      .then(function (linhas) {
+        if (!linhas || !linhas.length) {
+          aviso('Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.', 'erro')
+          ver('login')
+          return null
+        }
+        participante = linhas[0]
+        el('mcSub').textContent = participante.nome_marca || ''
+        el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
+        return api('participacoes?select=*&order=created_at.desc&limit=1')
+      })
+      .then(function (pas) {
+        if (!participante) return null
+        participacao = (pas && pas[0]) || null
+        ver('painel')
+        if (!participacao) {
+          el('pnRotulo').textContent = 'Área da marca'
+          el('pnSelo').className = 'selo'
+          el('pnSelo').textContent = 'Sem edição aberta'
+          el('pnSemParticipacao').hidden = false
+          el('pnConteudo').hidden = true
+          preencherMarca()
+          return null
+        }
+        el('pnRotulo').textContent = 'Edição ' + (participacao.edicao_codigo || '')
+        el('pnSemParticipacao').hidden = true
+        el('pnConteudo').hidden = false
+        return carregarParticipacao()
+      })
+      .catch(function (e) {
+        if (e && e.message === 'sessao_expirada') return
+        aviso('Não deu para carregar seu cadastro. Tente recarregar a página.', 'erro')
+      })
+  }
+
+  /* Uma leva só. As seis consultas são independentes entre si e a página não
+     desenha nada até ter todas — servir metade do painel enquanto o resto
+     chega faz o conteúdo pular debaixo do dedo de quem já começou a rolar. */
+  function carregarParticipacao () {
+    var pa = participacao.id
+    return Promise.all([
+      api('participantes_itens?select=*&participacao_id=eq.' + pa),
+      api('participacao_unidades?select=*&participacao_id=eq.' + pa + '&order=ordem'),
+      api('solicitacoes?select=*&order=prazo_em.asc.nullslast'),
+      api('solicitacao_estado?select=*&participacao_id=eq.' + pa),
+      api('arquivos?select=*&order=created_at.desc'),
+      // 'aberto' (vaga sem dona) e as sessões desta participação vêm juntas —
+      // a RLS já filtra as abertas pela edição da marca (migration fase 7).
+      api('sessoes_fotos?select=*&order=data_hora.desc'),
+      api('vendas_diarias?select=*&participacao_id=eq.' + pa + '&order=dia.desc')
+    ]).then(function (r) {
+      itens = r[0] || []
+      solicitacoesCache = r[2] || []
+      estadosCache = r[3] || []
+      vendas = r[6] || []
+      preencherMarca()
+      preencher()
+      desenharItens()
+      desenharUnidades(r[1] || [])
+      desenharSolicitacoes(solicitacoesCache, estadosCache)
+      desenharArquivos(r[4] || [])
+      desenharSessoes(r[5] || [])
+      desenharVagas(r[5] || [])
+      renderVenda()
+      selo()
+      progresso()
+      abrirPrimeiroPendente()
+      atualizarBadgeMarca()
+    })
+  }
+
+  function selo () {
+    var s = el('pnSelo')
+    var estado = participacao ? participacao.status_cadastro : ''
+    if (estado === 'cadastro_completo') {
+      s.className = 'selo completo'
+      s.textContent = 'Cadastro completo'
+    } else if (estado === 'em_preenchimento') {
+      s.className = 'selo andamento'
+      s.textContent = 'Em preenchimento'
+    } else if (estado === 'encerrado') {
+      s.className = 'selo'
+      s.textContent = 'Edição encerrada'
+    } else {
+      s.className = 'selo'
+      s.textContent = 'Aguardando cadastro'
+    }
+  }
+
+  function preencherMarca () {
+    el('cNome').value = participante.nome_marca || ''
+    el('cResp').value = participante.responsavel || ''
+    el('cTel').value = participante.telefone || ''
+    el('cEmail').value = participante.email || ''
+    el('cInsta').value = participante.instagram || ''
+    el('cSite').value = participante.site || ''
+    el('cCnpj').value = participante.cnpj || ''
+    el('cRazao').value = participante.razao_social || ''
+  }
+
+  function preencher () {
+    el('cTema').value = participacao.tema_combo || ''
+    el('cTemaJust').value = participacao.tema_justificativa || ''
+    el('cPreco').value = participacao.combo_preco == null
+      ? '' : String(participacao.combo_preco).replace('.', ',')
+  }
+
+  // ── Os três itens ─────────────────────────────────────────────────────────
+  /* As três linhas nascem de um gatilho no banco, então existem sempre. A tela
+     desenha na ordem doce → salgado → bebida mesmo que o PostgREST devolva
+     outra: é a ordem em que o combo é servido e a que o Sweet Awards usa. */
+  function itemDe (tipo) {
+    for (var i = 0; i < itens.length; i++) if (itens[i].tipo === tipo) return itens[i]
+    return null
+  }
+
+  function desenharItens () {
+    var alvo = el('itens')
+    alvo.innerHTML = ''
+    TIPOS.forEach(function (tipo) {
+      var it = itemDe(tipo)
+      if (it) alvo.appendChild(montarItem(it))
+    })
+  }
+
+  function montarItem (it) {
+    var div = document.createElement('div')
+    div.className = 'item'
+    div.setAttribute('data-item', it.id)
+    // Os valores vêm do banco. innerHTML com dado cru é como XSS entra — o
+    // mesmo motivo pelo qual o painel da organização escapa tudo.
+    div.innerHTML =
+      '<div class="topo"><b>' + escapar(ROTULO_TIPO[it.tipo] || it.tipo) + '</b></div>' +
+      '<label><span>Nome</span><input data-i="nome" value="' + escapar(it.nome) + '"></label>' +
+      '<label><span>Descrição <em>(como conversa com o tema)</em></span>' +
+      '<textarea data-i="descricao">' + escapar(it.descricao) + '</textarea></label>' +
+      '<label><span>Ingredientes</span><input data-i="ingredientes" value="' + escapar(it.ingredientes) + '"></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="vegano"' + (it.vegano ? ' checked' : '') + '><span>Vegano</span></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="sem_gluten"' + (it.sem_gluten ? ' checked' : '') + '><span>Sem glúten</span></label>' +
+      '<label class="marcar"><input type="checkbox" data-i="sem_lactose"' + (it.sem_lactose ? ' checked' : '') + '><span>Sem lactose</span></label>'
+    return div
+  }
+
+  function itensLer () {
+    return Array.prototype.map.call(el('itens').children, function (div) {
+      var campo = function (nome) { return div.querySelector('[data-i="' + nome + '"]') }
+      var texto = function (nome) { var c = campo(nome); return c ? c.value.trim() : '' }
+      var marca = function (nome) { var c = campo(nome); return !!(c && c.checked) }
+      return {
+        id: div.getAttribute('data-item'),
+        nome: texto('nome'),
+        descricao: texto('descricao'),
+        ingredientes: texto('ingredientes'),
+        vegano: marca('vegano'),
+        sem_gluten: marca('sem_gluten'),
+        sem_lactose: marca('sem_lactose')
+      }
+    })
+  }
+
+  function itemCompleto (i) {
+    return i.nome !== '' && i.descricao !== '' && i.ingredientes !== ''
+  }
+
+  // ── Unidades ──────────────────────────────────────────────────────────────
+  function desenharUnidades (lista) {
+    var alvo = el('unidades')
+    alvo.innerHTML = ''
+    if (!lista.length) lista = [{}]
+    lista.forEach(function (u, i) { alvo.appendChild(montarUnidade(u, i)) })
+  }
+
+  function montarUnidade (u, i) {
+    var div = document.createElement('div')
+    div.className = 'unidade'
+    if (u && u.id) div.setAttribute('data-id', u.id)
+    var canais = (u && Array.isArray(u.canais_delivery)) ? u.canais_delivery : []
+    var linkDe = function (tipo) {
+      for (var k = 0; k < canais.length; k++) if (canais[k] && canais[k].tipo === tipo) return canais[k].link || ''
+      return ''
+    }
+    var entrega = !!(u && u.faz_delivery)
+    div.innerHTML =
+      '<div class="topo"><b>Unidade ' + (i + 1) + '</b>' +
+      '<button class="link" type="button" data-remove="' + i + '">remover</button></div>' +
+      '<label><span>Endereço</span><input data-u="endereco" value="' + escapar(u && u.endereco) + '"></label>' +
+      '<div class="dupla">' +
+      '<label><span>Bairro</span><input data-u="bairro" value="' + escapar(u && u.bairro) + '"></label>' +
+      '<label><span>Horário durante o festival</span><input data-u="horarios" placeholder="seg a sáb, 10h às 22h" value="' + escapar(u && u.horarios) + '"></label>' +
+      '</div>' +
+      '<label class="marcar"><input type="checkbox" data-u="faz_delivery"' + (entrega ? ' checked' : '') + '><span>Esta unidade faz delivery</span></label>' +
+      '<div class="canais" data-canais' + (entrega ? '' : ' hidden') + '><b>Link de cada canal</b>' +
+      CANAIS.map(function (c) {
+        return '<label><span>' + escapar(c.rotulo) + ' <em>(deixe em branco se não usa)</em></span>' +
+          '<input data-c="' + escapar(c.tipo) + '" placeholder="' + escapar(c.dica) + '" value="' + escapar(linkDe(c.tipo)) + '"></label>'
+      }).join('') +
+      '</div>'
+    return div
+  }
+
+  function unidadesLer () {
+    return Array.prototype.map.call(el('unidades').children, function (div, i) {
+      var pega = function (nome) {
+        var campo = div.querySelector('[data-u="' + nome + '"]')
+        return campo ? campo.value.trim() : ''
+      }
+      var entrega = div.querySelector('[data-u="faz_delivery"]')
+      var canais = []
+      CANAIS.forEach(function (c) {
+        var campo = div.querySelector('[data-c="' + c.tipo + '"]')
+        var link = campo ? campo.value.trim() : ''
+        if (link) canais.push({ tipo: c.tipo, link: link })
+      })
+      return {
+        id: div.getAttribute('data-id') || null,
+        ordem: i,
+        endereco: pega('endereco'),
+        bairro: pega('bairro'),
+        horarios: pega('horarios'),
+        faz_delivery: !!(entrega && entrega.checked),
+        canais_delivery: canais
+      }
+    })
+  }
+
+  function unidadeAdicionar () {
+    el('unidades').appendChild(montarUnidade({}, el('unidades').children.length))
+    progresso()
+  }
+
+  function unidadeRemover (indice) {
+    var divs = Array.prototype.slice.call(el('unidades').children)
+    var alvo = divs[indice]
+    if (!alvo) return
+    var id = alvo.getAttribute('data-id')
+    alvo.parentNode.removeChild(alvo)
+    // Renumera os títulos e o índice de remoção — sem isso, remover a unidade 1
+    // deixaria a antiga unidade 3 respondendo pelo índice 2 que não existe mais.
+    desenharUnidades(unidadesLer())
+    if (id) {
+      api('participacao_unidades?id=eq.' + id, { metodo: 'DELETE' })
+        .catch(function (e) {
+          if (e && e.message === 'sessao_expirada') return
+          aviso('Não deu para remover a unidade agora. Recarregue a página.', 'erro')
+        })
+    }
+    agendarSalvar()
+  }
+
+  // ── Solicitações ──────────────────────────────────────────────────────────
+  /* Quem marca como respondida é a organização, não a marca: um pedido pode ser
+     resolvido por telefone, e a linha do tempo tem que dizer o que a produção
+     considerou entregue — não o que a marca declarou. O que a tela faz é o que
+     o briefing §3.3 pede: mostrar o que falta, até quando, e o que venceu. */
+  function desenharSolicitacoes (lista, estados) {
+    var alvo = el('solicitacoes')
+    alvo.innerHTML = ''
+    var respondida = {}
+    estados.forEach(function (e) {
+      if (e.estado === 'respondido') respondida[e.solicitacao_id] = true
+    })
+    var minhas = lista.filter(function (s) {
+      // Aviso geral de OUTRA edição não é meu. `edicao_codigo` nulo é aviso que
+      // vale para sempre — regulamento, canal de contato, esse tipo de coisa.
+      if (s.escopo === 'geral' && s.edicao_codigo && s.edicao_codigo !== participacao.edicao_codigo) return false
+      return true
+    })
+    el('cardSolic').hidden = minhas.length === 0
+    minhas.forEach(function (s) {
+      var p = prazoTexto(s.prazo_em)
+      var feita = !!respondida[s.id]
+      var div = document.createElement('div')
+      div.className = 'linha'
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(s.titulo) + '</b>' +
+        '<span>' + escapar(s.texto) + '</span></div>' +
+        '<div class="lado">' +
+        (feita
+          ? '<span class="selo completo">Respondido</span>'
+          : (p.texto ? '<span class="selo ' + p.classe + '">' + escapar(p.texto) + '</span>' : '')) +
+        '</div>'
+      alvo.appendChild(div)
+    })
+  }
+
+  // ── Arquivos ──────────────────────────────────────────────────────────────
+  function desenharArquivos (lista) {
+    var alvo = el('arquivos')
+    alvo.innerHTML = ''
+    el('cardArquivos').hidden = lista.length === 0
+    lista.forEach(function (a) {
+      var div = document.createElement('div')
+      div.className = 'linha'
+      var detalhe = [a.versao ? 'versão ' + a.versao : '', a.descricao || ''].filter(Boolean).join(' · ')
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(a.nome) + '</b>' +
+        (detalhe ? '<span>' + escapar(detalhe) + '</span>' : '') + '</div>' +
+        '<div class="lado">' +
+        '<button class="link" type="button" data-baixar="' + escapar(a.path) + '">baixar</button>' +
+        '</div>'
+      alvo.appendChild(div)
+    })
+  }
+
+  /* O bucket é privado. A URL assinada é gerada com o TOKEN DA PRÓPRIA MARCA,
+     então quem decide se ela pode baixar é a policy de storage — não uma chave
+     de serviço escondida na página, que é como esse problema costuma ser
+     "resolvido". Link de vida curta: ele vai para o histórico do navegador. */
+  function baixar (caminho) {
+    return renovar().then(function (viva) {
+      if (!viva) { ver('login'); return }
+      return fetch(CFG.url + '/storage/v1/object/sign/arquivos/' + caminho, {
+        method: 'POST',
+        headers: {
+          apikey: CFG.key,
+          Authorization: 'Bearer ' + sessaoLer().access_token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ expiresIn: 300 })
+      }).then(function (r) {
+        return r.json().catch(function () { return null }).then(function (j) {
+          if (!r.ok || !j || !j.signedURL) throw new Error('sem_link')
+          window.open(CFG.url + '/storage/v1' + j.signedURL, '_blank', 'noopener')
+        })
+      })
+    }).catch(function () {
+      aviso('Não deu para abrir o arquivo agora. Tente de novo em instantes.', 'erro')
+    })
+  }
+
+  // ── Sessão de fotos ───────────────────────────────────────────────────────
+  var ROTULO_SESSAO = {
+    agendada: 'Agendada', realizada: 'Realizada',
+    cancelada: 'Cancelada', remarcada: 'Remarcada'
+  }
+
+  function desenharSessoes (lista) {
+    var alvo = el('sessoes')
+    alvo.innerHTML = ''
+    el('cardFotos').hidden = lista.length === 0
+    lista.forEach(function (s) {
+      var div = document.createElement('div')
+      div.className = 'linha'
+      var onde = [dataHora(s.data_hora), s.local || ''].filter(Boolean).join(' · ')
+      div.innerHTML =
+        '<div class="corpo"><b>' + escapar(onde) + '</b>' +
+        (s.observacoes ? '<span>' + escapar(s.observacoes) + '</span>' : '') + '</div>' +
+        '<div class="lado"><span class="selo' + (s.status === 'realizada' ? ' completo' : '') + '">' +
+        escapar(ROTULO_SESSAO[s.status] || s.status) + '</span></div>'
+      alvo.appendChild(div)
+    })
+  }
+
+  // ── Vagas de agenda (dentro do card de fotos) ─────────────────────────────
+  // Modo "abrir vagas" da organização (migration fase 7): a marca escolhe uma
+  // vaga aberta da PRÓPRIA edição — a RLS já garante isso, o filtro por
+  // edição não precisa ser repetido aqui.
+  function desenharVagas (todasSessoes) {
+    var abertas = todasSessoes.filter(function (s) { return s.status === 'aberto' })
+    var jaTemSessao = todasSessoes.some(function (s) { return s.status !== 'aberto' })
+    var ul = el('mcVagas')
+    if (jaTemSessao || !abertas.length) { ul.hidden = true; ul.innerHTML = ''; return }
+    ul.hidden = false
+    ul.innerHTML = abertas.map(function (s) {
+      var d = new Date(s.data_hora)
+      var rotulo = d.toLocaleDateString('pt-BR', { weekday: 'short' }) + ' ' + d.getDate() +
+        ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      return '<li><button type="button" class="mc-vaga" data-vaga="' + escapar(s.id) + '">' + escapar(rotulo) + '</button></li>'
+    }).join('')
+    el('fotosTexto').textContent = 'A organização abriu horários — escolha um abaixo.'
+  }
+
+  // Atômico por construção: o filtro `status=eq.aberto` vai JUNTO do PATCH, não
+  // separado num GET antes. Duas marcas clicando a mesma vaga ao mesmo tempo —
+  // só uma tem linha afetada; a outra recebe array vazio, não erro.
+  function reservarVaga (id) {
+    return api('sessoes_fotos?id=eq.' + id + '&status=eq.aberto', {
+      metodo: 'PATCH',
+      corpo: { status: 'agendada', participacao_id: participacao.id, participante_id: participante.id },
+      prefer: 'return=representation'
+    }).then(function (r) {
+      if (!r || !r.length) aviso('Essa vaga acabou de ser escolhida por outra marca. Escolha outra.', 'erro')
+      return carregarParticipacao()
+    }).catch(function (e) {
+      if (e && e.message === 'sessao_expirada') return
+      aviso('Não deu para reservar agora. Tente de novo.', 'erro')
+    })
+  }
+
+  // ── Lançamento diário de combos vendidos (view "hoje") ────────────────────
+  // yyyy-mm-dd LOCAL, não toISOString() (que é UTC — vira o dia errado à
+  // noite, perto da virada).
+  function chaveDia (d) {
+    var p = function (n) { return String(n).padStart(2, '0') }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+  }
+
+  function renderVenda () {
+    var hoje = chaveDia(new Date())
+    var deHoje = vendas.filter(function (v) { return v.dia === hoje })[0]
+    el('mcVendaQtd').value = deHoje ? deHoje.quantidade : ''
+    el('mcVendaSalvar').textContent = deHoje ? 'Atualizar' : 'Salvar'
+    // A frase muda depois de salvar: o medo de errar o número é o que faz
+    // alguém não lançar, e dizer que dá para corrigir resolve isso.
+    el('mcVendaTexto').textContent = deHoje
+      ? 'Lançado. Dá para corrigir o número quantas vezes precisar.'
+      : 'Lance o número no fim do expediente. A organização soma tudo para o balanço da edição.'
+    var total = vendas.reduce(function (s, v) { return s + Number(v.quantidade || 0) }, 0)
+    el('mcVendaTotal').textContent = total
+    el('mcVendaDias').innerHTML = vendas.slice(0, 14).map(function (v) {
+      var d = new Date(v.dia + 'T00:00:00')
+      return '<div class="mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '') + '">' +
+        '<b>' + escapar(v.quantidade) + '</b>' +
+        '<span>' + escapar(d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })) + '</span></div>'
+    }).join('')
+  }
+
+  function salvarVenda () {
+    var qtd = parseInt(el('mcVendaQtd').value, 10)
+    if (isNaN(qtd) || qtd < 0) { aviso('Informe um número válido.', 'erro'); return }
+    var btn = el('mcVendaSalvar')
+    btn.disabled = true
+    var hoje = chaveDia(new Date())
+    var deHoje = vendas.filter(function (v) { return v.dia === hoje })[0]
+    var chamada = deHoje
+      ? api('vendas_diarias?id=eq.' + deHoje.id, { metodo: 'PATCH', corpo: { quantidade: qtd }, prefer: 'return=representation' })
+      : api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacao.id, dia: hoje, quantidade: qtd }, prefer: 'return=representation' })
+    chamada.then(function (r) {
+      btn.disabled = false
+      var linha = r && r[0]
+      if (!linha) throw new Error('sem_confirmacao')
+      if (deHoje) { deHoje.quantidade = linha.quantidade } else { vendas.unshift(linha) }
+      renderVenda()
+    }).catch(function (e) {
+      btn.disabled = false
+      if (e && e.message === 'sessao_expirada') return
+      aviso('Não deu para lançar agora. Tente de novo.', 'erro')
+    })
+  }
+
+  // ── Notificações (derivadas, nunca escritas à mão — patch §4) ─────────────
+  function blocosPendentes () {
+    var faltam = []
+    if (!(el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim())) faltam.push('A marca')
+    if (!(el('cTema').value.trim() && el('cTemaJust').value.trim())) faltam.push('O tema')
+    if (!(itensLer().every(itemCompleto) && itens.length === TIPOS.length)) faltam.push('Os três itens')
+    if (!(precoNumero() > 0)) faltam.push('Preço')
+    if (!(unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0)) faltam.push('Onde encontrar')
+    return faltam
+  }
+
+  function renderFalta () {
+    var bloco = el('mcFaltaBloco')
+    if (!bloco) return
+    var faltam = blocosPendentes()
+    if (!faltam.length) {
+      el('mcFaltaTitulo').textContent = 'Cadastro entregue'
+      el('mcFaltaLista').innerHTML = '<p class="nota" style="margin:0">Tudo preenchido. Mudou alguma coisa? Volte em Cadastro e corrija.</p>'
+      return
+    }
+    el('mcFaltaTitulo').textContent = faltam.length + (faltam.length === 1 ? ' bloco pendente' : ' blocos pendentes')
+    el('mcFaltaLista').innerHTML = '<ul class="mc-vagas" style="padding:0;margin:10px 0 0;list-style:none">' +
+      faltam.map(function (nome) {
+        return '<li><button type="button" class="mc-vaga" data-ir-cadastro="1">' + escapar(nome) + '</button></li>'
+      }).join('') + '</ul>'
+  }
+
+  function notificacoesMarca () {
+    var fila = []
+    var faltam = participacao ? blocosPendentes() : []
+    if (faltam.length) fila.push({
+      tipo: 'alerta', vista: 'cadastro',
+      texto: faltam.length === 1 ? 'Falta um bloco do cadastro: ' + faltam[0].toLowerCase() + '.'
+        : 'Faltam ' + faltam.length + ' blocos do cadastro.'
+    })
+    var pendente = solicitacoesCache.filter(function (s) {
+      var feita = estadosCache.some(function (e) { return e.solicitacao_id === s.id && e.estado === 'respondido' })
+      return !feita
+    })[0]
+    if (pendente) fila.push({ tipo: 'info', vista: 'pedidos', texto: 'A organização pediu: ' + pendente.titulo.toLowerCase() + '.' })
+    return fila
+  }
+
+  function atualizarBadgeMarca () {
+    var n = notificacoesMarca().length
+    var b = el('mcNotifBadge')
+    if (!b) return
+    b.hidden = n === 0
+    b.textContent = n
+  }
+
+  // Painel leve, não uma gaveta completa (org tem abrirFolha() pronta; a marca
+  // não tinha nenhum mecanismo de painel flutuante antes desta rodada, e
+  // construir um do zero, com toda a coreografia de folha/gaveta, era escopo
+  // maior do que esta peça pedia). Fecha ao clicar fora ou navegar.
+  // Disco (fundo, tinta, glifo) por tipo — mesmos dois usados aqui (alerta e
+  // info); grade 24/1.8, igual ao resto do arquivo (§6.11).
+  var NOTIF_ICONE = {
+    alerta: ['#FF4810', '#3D1308', '<path d="M12 4.2 21 20H3Z"/><path d="M12 10.2v4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>'],
+    info: ['#01AFCC', '#3D1308', '<circle cx="12" cy="12" r="8.8"/><path d="M12 11.1V16.6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>']
+  }
+
+  function abrirNotificacoesMarca () {
+    var fila = notificacoesMarca()
+    var painel = document.getElementById('mcNotifPainel')
+    if (painel) { painel.parentNode.removeChild(painel); return }
+    painel = document.createElement('div')
+    painel.id = 'mcNotifPainel'
+    painel.className = 'card'
+    painel.style.cssText = 'position:fixed;right:16px;top:70px;width:min(340px,90vw);z-index:90;box-shadow:0 18px 40px rgba(61,19,8,.28)'
+    painel.innerHTML = fila.length
+      ? fila.map(function (n, i) {
+          var cor = NOTIF_ICONE[n.tipo] || NOTIF_ICONE.info
+          return '<button type="button" class="pn-notif is-naolida" data-ir="' + i + '">' +
+            '<span class="pn-notif__disco" style="background:' + cor[0] + ';color:' + cor[1] + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + cor[2] + '</svg>' +
+            '</span>' +
+            '<span class="pn-notif__texto">' + escapar(n.texto) + '</span>' +
+          '</button>'
+        }).join('')
+      : '<p class="nota" style="margin:0">Nada por aqui agora.</p>'
+    document.body.appendChild(painel)
+    painel.addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-ir]')
+      if (!alvo) return
+      irParaMarca(fila[Number(alvo.dataset.ir)].vista)
+      painel.parentNode.removeChild(painel)
+    })
+  }
+
+  // ── Progresso ─────────────────────────────────────────────────────────────
+  // Conta BLOCO completo, não campo preenchido: "3 de 5 blocos" diz onde a
+  // pessoa está; "11 de 24 campos" só diz que ainda falta alguma coisa.
+  function progresso () {
+    var feitos = 0
+    if (el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim()) feitos++
+    if (el('cTema').value.trim() && el('cTemaJust').value.trim()) feitos++
+    if (itensLer().every(itemCompleto) && itens.length === TIPOS.length) feitos++
+    if (precoNumero() > 0) feitos++
+    if (unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0) feitos++
+    el('progTexto').textContent = feitos + ' de ' + BLOCOS + ' blocos'
+    el('progBarra').style.transform = 'scaleX(' + (feitos / BLOCOS) + ')'
+    atualizarSelosBlocos()
+    renderFalta()
+    atualizarBadgeMarca()
+    return feitos
+  }
+
+  function precoNumero () {
+    var cru = el('cPreco').value.trim().replace(/\./g, '').replace(',', '.')
+    var n = parseFloat(cru)
+    return isNaN(n) ? 0 : n
+  }
+
+  // ── Acordeão do cadastro ───────────────────────────────────────────────
+  // Um por vez, como o resto da casca (§8.3). Puramente de apresentação: o
+  // autosave já grava o formulário inteiro a cada tecla, então abrir/fechar
+  // um bloco nunca muda o que é lido ou salvo.
+  var blocoAberto = 0
+
+  function blocoCompleto (n) {
+    if (n === 0) return !!(el('cNome').value.trim() && el('cResp').value.trim() && el('cTel').value.trim())
+    if (n === 1) return !!(el('cTema').value.trim() && el('cTemaJust').value.trim())
+    if (n === 2) return itensLer().every(itemCompleto) && itens.length === TIPOS.length
+    if (n === 3) return precoNumero() > 0
+    if (n === 4) return unidadesLer().filter(function (u) { return u.endereco !== '' }).length > 0
+    return false
+  }
+
+  // Fecha o que estiver aberto e abre `n` (null fecha tudo). Separado do
+  // clique: o clique ALTERNA (abrir de novo o já aberto fecha); carregar a
+  // página não alterna, FORÇA o primeiro pendente a abrir, sem depender do
+  // estado anterior.
+  function abrirBloco (n) {
+    if (blocoAberto !== null && blocoAberto !== n) {
+      var anterior = document.querySelector('[data-bloco="' + blocoAberto + '"]')
+      if (anterior) {
+        anterior.classList.remove('is-aberto')
+        anterior.querySelector('[data-corpo]').hidden = true
+        anterior.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'false')
+      }
+    }
+    blocoAberto = n
+    if (n !== null) {
+      var atual = document.querySelector('[data-bloco="' + n + '"]')
+      atual.classList.add('is-aberto')
+      atual.querySelector('[data-corpo]').hidden = false
+      atual.querySelector('.mc-bloco__cabeca').setAttribute('aria-expanded', 'true')
+    }
+  }
+
+  function alternarBloco (n) {
+    abrirBloco(blocoAberto === n ? null : n)
+  }
+
+  function atualizarSelosBlocos () {
+    for (var n = 0; n < 5; n++) {
+      var bloco = document.querySelector('[data-bloco="' + n + '"]')
+      if (!bloco) continue
+      var pronto = blocoCompleto(n)
+      bloco.classList.toggle('is-pronto', pronto)
+      var selo = bloco.querySelector('[data-selo]')
+      selo.className = 'selo' + (pronto ? ' completo' : '')
+      selo.textContent = pronto ? 'Pronto' : 'Pendente'
+    }
+  }
+
+  // Ao carregar, abre o primeiro bloco AINDA pendente — quem já preencheu
+  // tudo vê o primeiro fechado, sem forçar rolagem nenhuma.
+  function abrirPrimeiroPendente () {
+    for (var n = 0; n < 5; n++) {
+      if (!blocoCompleto(n)) { abrirBloco(n); return }
+    }
+    abrirBloco(null)
+  }
+
+  // ── Autosave ──────────────────────────────────────────────────────────────
+  // Debounce de 900ms: salvar a cada tecla enche o banco de escrita inútil e
+  // ainda pisa numa resposta com a seguinte.
+  function agendarSalvar () {
+    progresso()
+    el('salvo').textContent = ''
+    if (salvando) clearTimeout(salvando)
+    salvando = setTimeout(salvar, 900)
+  }
+
+  function salvar () {
+    if (!participante || !participacao) return Promise.resolve()
+    /* ⚠️ Estes dois objetos só podem citar coluna que o `grant update (...)` da
+       migration concede. RLS decide LINHA, grant decide COLUNA, e é o grant que
+       impede a marca de se declarar completa escrevendo `status_cadastro`.
+       tests/marca.test.mjs compara os dois lados. */
+    var camposMarca = {
+      nome_marca: el('cNome').value.trim(),
+      responsavel: el('cResp').value.trim(),
+      telefone: el('cTel').value.trim(),
+      email: el('cEmail').value.trim(),
+      instagram: el('cInsta').value.trim(),
+      site: el('cSite').value.trim(),
+      cnpj: el('cCnpj').value.trim(),
+      razao_social: el('cRazao').value.trim()
+    }
+    var camposParticipacao = {
+      tema_combo: el('cTema').value.trim(),
+      tema_justificativa: el('cTemaJust').value.trim(),
+      combo_preco: precoNumero() || null
+    }
+    return Promise.all([
+      api('participantes?id=eq.' + participante.id,
+        { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }),
+      api('participacoes?id=eq.' + participacao.id,
+        { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }),
+      salvarItens(),
+      salvarUnidades()
+    ]).then(function (r) {
+      // Nunca afirma "salvo" sem o servidor confirmar — regra dos formulários
+      // do site, e o motivo pelo qual ninguém percebeu que três migrations não
+      // estavam aplicadas por meses.
+      if (!r[0] || !r[0].length) throw new Error('sem_confirmacao')
+      if (!r[1] || !r[1].length) throw new Error('sem_confirmacao')
+      participante = r[0][0]
+      participacao = r[1][0]
+      el('salvo').textContent = 'Salvo automaticamente.'
+      el('mcSub').textContent = participante.nome_marca || ''
+      el('pnTitulo').textContent = participante.nome_marca || 'Sua participação'
+      selo()
+    }).catch(function (e) {
+      if (e && e.message === 'sessao_expirada') return
+      el('salvo').textContent = ''
+      aviso('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.', 'erro')
+    })
+  }
+
+  function salvarItens () {
+    var lidos = itensLer()
+    return Promise.all(lidos.map(function (i) {
+      var camposItem = {
+        nome: i.nome,
+        descricao: i.descricao,
+        ingredientes: i.ingredientes,
+        vegano: i.vegano,
+        sem_gluten: i.sem_gluten,
+        sem_lactose: i.sem_lactose
+      }
+      return api('participantes_itens?id=eq.' + i.id,
+        { metodo: 'PATCH', corpo: camposItem, prefer: 'return=representation' })
+    })).then(function (r) {
+      // Guarda o retorno: é o que mantém `itens` (usado pelo progresso) em dia
+      // com o banco sem uma segunda leitura.
+      var novos = []
+      r.forEach(function (linhas) { if (linhas && linhas[0]) novos.push(linhas[0]) })
+      if (novos.length === lidos.length) itens = novos
+      return r
+    })
+  }
+
+  /* Unidade é a única peça do painel com ciclo de vida próprio: nasce, muda e
+     morre. Linha com `id` vira PATCH; linha sem `id` vira POST e RECEBE o id de
+     volta na hora — sem isso, cada tecla digitada numa unidade nova criaria
+     outra linha no banco. A remoção acontece em `unidadeRemover`, na hora do
+     clique, porque uma linha que sumiu da tela não volta no `unidadesLer()`. */
+  function salvarUnidades () {
+    var lista = unidadesLer()
+    var divs = Array.prototype.slice.call(el('unidades').children)
+    return Promise.all(lista.map(function (u, i) {
+      var corpo = {
+        ordem: u.ordem, endereco: u.endereco, bairro: u.bairro, horarios: u.horarios,
+        faz_delivery: u.faz_delivery, canais_delivery: u.canais_delivery
+      }
+      if (u.id) {
+        return api('participacao_unidades?id=eq.' + u.id,
+          { metodo: 'PATCH', corpo: corpo, prefer: 'return=representation' })
+      }
+      // Unidade vazia não vira linha: a tela sempre mostra uma unidade em
+      // branco, e gravá-la encheria o banco de endereços que ninguém digitou.
+      if (!u.endereco) return Promise.resolve([])
+      corpo.participacao_id = participacao.id
+      return api('participacao_unidades',
+        { metodo: 'POST', corpo: corpo, prefer: 'return=representation' })
+        .then(function (linhas) {
+          if (linhas && linhas[0] && divs[i]) divs[i].setAttribute('data-id', linhas[0].id)
+          return linhas
+        })
+    }))
+  }
+
+  // ── Concluir ──────────────────────────────────────────────────────────────
+  var NOMES = {
+    nome_marca: 'nome da marca', responsavel: 'responsável', telefone: 'telefone',
+    tema_combo: 'tema escolhido', tema_justificativa: 'justificativa do tema',
+    combo_preco: 'preço do combo', unidades: 'ao menos uma unidade com endereço',
+    item_doce: 'os dados do doce', item_salgado: 'os dados do salgado',
+    item_bebida: 'os dados da bebida'
+  }
+
+  function concluir (ev) {
+    ev.preventDefault()
+    el('btConcluir').disabled = true
+    aviso('')
+    // Salva antes de concluir: quem valida é o servidor, e ele valida o que
+    // está GRAVADO. Concluir com o autosave pendente reprovaria campo cheio.
+    if (salvando) clearTimeout(salvando)
+    salvar()
+      .then(function () {
+        return api('rpc/marca_concluir_cadastro', {
+          metodo: 'POST', corpo: { p_participacao: participacao.id }
+        })
+      })
+      .then(function (r) {
+        el('btConcluir').disabled = false
+        if (!r || r.ok !== true) {
+          var faltando = (r && r.faltando) || []
+          var legivel = faltando.map(function (f) { return NOMES[f] || f }).join(', ')
+          aviso('Falta preencher: ' + legivel + '.', 'erro')
+          return
+        }
+        participacao.status_cadastro = 'cadastro_completo'
+        selo()
+        aviso('Cadastro concluído. A organização revisa e fala com você se precisar de algo. ' +
+              'Mudou alguma coisa? É só editar aqui e concluir de novo.', 'ok')
+        window.scrollTo(0, 0)
+      })
+      .catch(function (e) {
+        el('btConcluir').disabled = false
+        if (e && e.message === 'sessao_expirada') return
+        aviso('Não deu para concluir agora. Tente de novo em instantes.', 'erro')
+      })
+  }
+
+  /* ⛔ Não existe mais botão "reabrir cadastro", e a ausência é a decisão: o
+     formulário nunca sai da tela depois de concluído, então não há o que
+     reabrir. Quem concluiu continua podendo corrigir, e o estado no banco segue
+     `cadastro_completo` até ela concluir de novo — é isso que a organização
+     precisa ver, porque alguém mexeu não é o mesmo que alguém desfez. */
+
+  // ── Início ────────────────────────────────────────────────────────────────
+  function hashSessao () {
+    if (!location.hash || location.hash.length < 2) return null
+    var p = new URLSearchParams(location.hash.slice(1))
+    if (!p.get('access_token')) return null
+    return {
+      access_token: p.get('access_token'),
+      refresh_token: p.get('refresh_token'),
+      expires_in: parseInt(p.get('expires_in'), 10) || 3600,
+      tipo: p.get('type')
+    }
+  }
+
+  function iniciar () {
+    el('fLogin').addEventListener('submit', entrar)
+    el('fSenha').addEventListener('submit', definirSenha)
+    el('fCadastro').addEventListener('submit', concluir)
+    el('fCadastro').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-alternar]')
+      if (alvo) alternarBloco(parseInt(alvo.getAttribute('data-alternar'), 10))
+    })
+    el('btEsqueci').addEventListener('click', recuperar)
+    // Dois botões de sair (rail no desktop, cabeçalho no celular — só um dos
+    // dois é visível de cada vez, resolvido por CSS), mesma função.
+    el('btSairRail').addEventListener('click', sair)
+    el('btSairCabeca').addEventListener('click', sair)
+    el('btNotifMarca').addEventListener('click', abrirNotificacoesMarca)
+    montarNavMarca()
+    el('btAddUnidade').addEventListener('click', unidadeAdicionar)
+    el('fCadastro').addEventListener('input', agendarSalvar)
+    // `change` além de `input`: caixa de marcar em navegador antigo não dispara
+    // `input`, e a restrição do item é justamente o que não pode deixar de ser
+    // gravado por causa de um detalhe de evento.
+    el('fCadastro').addEventListener('change', function (ev) {
+      var alvo = ev.target.closest('[data-u="faz_delivery"]')
+      if (alvo) {
+        var caixa = alvo.closest('.unidade').querySelector('[data-canais]')
+        if (caixa) caixa.hidden = !alvo.checked
+      }
+      agendarSalvar()
+    })
+    el('unidades').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-remove]')
+      if (alvo) unidadeRemover(parseInt(alvo.getAttribute('data-remove'), 10))
+    })
+    el('arquivos').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-baixar]')
+      if (alvo) baixar(alvo.getAttribute('data-baixar'))
+    })
+    el('mcVendaSalvar').addEventListener('click', salvarVenda)
+    el('mcVagas').addEventListener('click', function (ev) {
+      var alvo = ev.target.closest('[data-vaga]')
+      if (alvo) reservarVaga(alvo.getAttribute('data-vaga'))
+    })
+    el('mcFaltaLista').addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-ir-cadastro]')) irParaMarca('cadastro')
+    })
+    el('btAvisos').addEventListener('click', function () {
+      if (avisoLigado) desligarAvisos(); else ligarAvisos()
+    })
+
+    // 🔴 `scope` explícito em /marca/. Registrado da raiz, o SW passaria a
+    // interceptar o site inteiro, inclusive a landing que está no ar — e
+    // desfazer isso não é deploy, é desregistro no navegador de cada visitante.
+    // O registro é MELHORIA, não requisito: navegador sem suporte, janela
+    // anônima ou política corporativa devolvem erro, e o painel segue igual.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/painel/sw.js', { scope: '/painel/' })
+        .then(function () { renderAvisos() })
+        .catch(function () { renderAvisos() })
+    } else {
+      renderAvisos()
+    }
+
+    var doHash = hashSessao()
+    if (doHash) {
+      sessaoSalvar(doHash)
+      // Apaga o token da barra de endereço: ele vai parar em histórico,
+      // captura de tela e no Referer de qualquer link que a página abrir.
+      history.replaceState(null, '', location.pathname)
+      if (doHash.tipo === 'recovery' || doHash.tipo === 'invite') { ver('senha'); return }
+    }
+    /* ⚠️ Não basta achar sessão pronta e ir direto pro painel. Até 25/08/2026
+       isso era seguro porque só existia UM jeito de a sessão nascer — o form
+       aqui embaixo, que sempre passa por precisaTrocarSenha() antes de chamar
+       carregar(). Desde que o diálogo de acesso do site (AccessDialog.jsx)
+       passou a autenticar e já entregar a sessão pronta em
+       sessionStorage.scw_marca, esse atalho viraria uma segunda porta que
+       pula a troca de senha obrigatória do primeiro acesso (§10.4-b) — a
+       marca cairia direto no painel ainda com a senha que veio por WhatsApp.
+       A checagem tem que valer para QUALQUER origem da sessão, não só para a
+       que nasce aqui dentro. */
+    if (sessaoLer()) {
+      precisaTrocarSenha().then(function (precisa) { if (precisa) { ver('senha') } else { carregar() } })
+      return
+    }
+    // A organização decide primeiro: se ela já tem sessão restaurada nesta
+    // aba, é o painel dela que fica visível — a marca não pode reabrir o
+    // #login por cima (as duas cascas só compartilham essa div de entrada).
+    if (window.PainelOrg && window.PainelOrg.temSessao()) return
+    ver('login')
+  }
+
+  window.PainelMarca = {
+    iniciar: iniciar,
+    sessaoLer: sessaoLer,
+    ver: ver
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar)
+  } else {
+    iniciar()
+  }
 </script>
 </body>
 </html>

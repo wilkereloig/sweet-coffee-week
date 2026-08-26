@@ -324,31 +324,27 @@ body{
       <p class="pa-hero__pill">Participar</p>
       <h1 class="scw-h1">Quer participar do próximo <span class="pa-hero__destaque">Sweet&nbsp;&amp; Coffee&nbsp;Week?</span></h1>
 
-      <p class="pa-hero__chamada">Tem uma cafeteria, doceria, confeitaria ou sorveteria — e vontade de fazer parte do festival?</p>
+      <p class="pa-hero__chamada">Tem uma cafeteria, doceria, confeitaria ou sorveteria e vontade de fazer parte do festival?</p>
 
-      <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar. Deixe seus dados — são sete campos, menos de um minuto — que a equipe entra em contato.</p>
+      <p class="pa-hero__lead">Desde 2016 o festival transforma Natal em circuito de doçaria e café. Toda edição começa do mesmo jeito: procurando marcas com algo próprio para apresentar. Deixe seus dados, são sete campos, menos de um minuto, que a equipe entra em contato.</p>
 
       <div class="pa-hero__acoes">
         <a class="scw-btn scw-btn--creme" href="#formulario">Quero participar</a>
       </div>
     </div>
 
-    <!-- Cinco números derivados de src/data/. A página é estática e não importa
-         festivalFacts.js nem sweetCoffeeHistory.js, então os valores estão escritos
-         à mão — tests/quero-participar.test.mjs recalcula os cinco da fonte e reprova
+    <!-- Dois números canônicos de festivalFacts.js (§9.1): "years" e "editions".
+         A página é estática e não importa o módulo — os valores estão escritos
+         à mão — tests/quero-participar.test.mjs reimporta festivalFacts e reprova
          se divergirem. Não editar à mão sem rodar o teste.
 
-         Ordem = arco de decisão da marca: quanto o festival aparece → em que
-         companhia você entra → cabe você → o que você cria → o que dá pra ganhar.
-
-         Réguas: ciclo do §6.3 filtrado pelo fundo chocolate — amarelo 9,5:1 ·
-         cyan 4,9:1 · magenta 3,8:1 · laranja 4,8:1 · bege 13:1. Roxo (1,45:1) e
-         marrom (1,5:1) ficam de fora: sobre chocolate não aparecem. -->
+         Ícones copiados da lib (ui/calendario, simbolos/edicao — §6.11, não editar
+         scw-icons-v2.js à mão). Réguas: ciclo do §6.3 filtrado pelo fundo chocolate
+         — amarelo 9,5:1 · cyan 4,9:1. Roxo (1,45:1) e marrom (1,5:1) ficam de fora:
+         sobre chocolate não aparecem. -->
     <ul class="pa-numeros">
-      <li><span class="pa-numeros__disco" style="background:#FDBB1A" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.6 4.6h10.8a6 6 0 0 1 6 6v10.8a6 6 0 0 1-6 6H10.6a6 6 0 0 1-6-6V10.6a6 6 0 0 1 6-6Z"></path><circle cx="16" cy="16" r="5.9"></circle><circle cx="23.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"></circle></svg></span><b>+18 mi</b><span>visualizações no Instagram</span></li>
-      <li><span class="pa-numeros__disco" style="background:#F10767" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 3.4C18.6 10.6 21.4 13.4 28.6 16 21.4 18.6 18.6 21.4 16 28.6 13.4 21.4 10.6 18.6 3.4 16 10.6 13.4 13.4 10.6 16 3.4Z"></path></svg></span><b>+7</b><span>marcas novas a cada edição</span></li>
-      <li><span class="pa-numeros__disco" style="background:#FF4810" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M3.1 17.6h9l-1.1 6.4a1.5 1.5 0 0 1-1.5 1.2H5.7a1.5 1.5 0 0 1-1.5-1.2Z"></path><path fill="currentColor" stroke="none" d="M2.2 17.6a5.4 5.4 0 0 1 10.8 0Z"></path><path stroke-width="1.6" d="M6.2 20l-.35 3.2M9 20l.35 3.2"></path><path fill="currentColor" stroke="none" d="M18.2 13.4h9.6l-1.3 9.8a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8Z"></path><path stroke-width="2.6" d="M28.2 16.2h.6a2.2 2.2 0 0 1 0 4.4h-1"></path><path d="M1.8 27.4h28.4"></path></svg></span><b>410</b><span>combos criados desde 2016</span></li>
-      <li><span class="pa-numeros__disco" style="background:#F8E4C1" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M10.4 3.8h11.2l-2.6 10.4h-6Z"></path><circle cx="16" cy="19.8" r="7.6"></circle><path fill="currentColor" stroke="none" d="M16 16.4l1.05 2.15 2.35.35-1.7 1.65.4 2.35-2.1-1.1-2.1 1.1.4-2.35-1.7-1.65 2.35-.35Z"></path></svg></span><b>271</b><span>lugares no pódio desde 2019</span></li>
+      <li><span class="pa-numeros__disco" style="background:#FDBB1A" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5.4 9.4h21.2a2.4 2.4 0 0 1 2.4 2.4v13.8a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 25.6V11.8a2.4 2.4 0 0 1 2.4-2.4Z"></path><path d="M3 15.4h26"></path><path d="M10.2 5v6.2M21.8 5v6.2"></path><circle cx="16" cy="21.6" r="2.8" fill="currentColor" stroke="none"></circle></svg></span><b>10</b><span>anos de festival</span></li>
+      <li><span class="pa-numeros__disco" style="background:#01AFCC" aria-hidden="true"><svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 4.4 28.6 11.2 16 18 3.4 11.2Z"></path><path d="M3.4 16.6 16 23.4l12.6-6.8"></path><path d="M3.4 21.6 16 28.4l12.6-6.8"></path></svg></span><b>16</b><span>edições realizadas</span></li>
     </ul>
   </div>
 </header>
@@ -436,7 +432,7 @@ body{
             <option>Escola ou ateliê de confeitaria</option>
             <option data-abre="tipoOutro">Outro</option>
           </select>
-          <p class="scw-campo__erro">Escolha uma opção — a que estiver mais perto já serve.</p>
+          <p class="scw-campo__erro">Escolha uma opção: a que estiver mais perto já serve.</p>
           <div class="scw-campo pa-outro" id="wrap-tipoOutro" hidden>
             <label class="scw-campo__label" for="tipoOutro">Então me conta: o que é o seu negócio?</label>
             <input type="text" id="tipoOutro" name="tipoOutro" maxlength="80" placeholder="Em poucas palavras">
@@ -497,7 +493,7 @@ body{
 <footer class="pa-fecho scw-secao">
   <h2 class="scw-h2">Depois é com a gente.</h2>
   <p>Vamos analisar as informações e entrar em contato para apresentar os próximos passos.</p>
-  <small>Sweet &amp; Coffee Week — festival de doçaria e café realizado em Natal desde 2016. Este formulário registra interesse; a participação em cada edição é confirmada pela organização.</small>
+  <small>Sweet &amp; Coffee Week, festival de doçaria e café realizado em Natal desde 2016. Este formulário registra interesse; a participação em cada edição é confirmada pela organização.</small>
 
   <div class="pa-realiza" id="realiza">
     <p>Realização</p>
@@ -516,7 +512,7 @@ const CONFIG = {
   // diretorio e o link cai no fallback do SPA — a pessoa que recebe o convite
   // aterrissa na home, nao no formulario.
   urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar/',
-  convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal — dá para se inscrever por aqui:',
+  convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal. Dá para se inscrever por aqui:',
   // Para onde as respostas vao.
   //
   // Hoje: Supabase, RPC submit_quero_participar. Grava na tabela
@@ -729,7 +725,7 @@ function coletar() {
 }
 
 function montarResumo(dados) {
-  const linhas = ['QUERO PARTICIPAR — SWEET & COFFEE WEEK', ''];
+  const linhas = ['QUERO PARTICIPAR: SWEET & COFFEE WEEK', ''];
   ORDEM.forEach(nome => {
     if (dados[nome]) linhas.push(ROTULOS[nome] + ': ' + dados[nome]);
   });
@@ -757,7 +753,7 @@ btnCopiar.addEventListener('click', async () => {
     mostrar('aviso', 'Respostas copiadas', '<p>O texto está na sua área de transferência e também aparece na caixa abaixo.</p>');
   } else {
     resumoBox.select();
-    mostrar('aviso', 'Respostas prontas abaixo', '<p>Não consegui copiar automaticamente neste navegador. O texto está selecionado na caixa abaixo — use Ctrl+C ou Cmd+C.</p>');
+    mostrar('aviso', 'Respostas prontas abaixo', '<p>Não consegui copiar automaticamente neste navegador. O texto está selecionado na caixa abaixo. Use Ctrl+C ou Cmd+C.</p>');
   }
 });
 
@@ -849,7 +845,7 @@ form.addEventListener('submit', async (ev) => {
      O descarte silencioso existe para robo; para gente ele e bug. */
   if (CONFIG.turnstileSiteKey && !tokenTurnstile()) {
     mostrar('erro', 'A verificação de segurança não concluiu',
-      '<p>Espere alguns segundos e envie de novo. Se continuar assim, seu navegador ou sua rede pode estar bloqueando o serviço de verificação — nesse caso use <strong>Copiar respostas</strong> e mande para a equipe por WhatsApp.</p>'
+      '<p>Espere alguns segundos e envie de novo. Se continuar assim, seu navegador ou sua rede pode estar bloqueando o serviço de verificação. Nesse caso, use <strong>Copiar respostas</strong> e mande para a equipe por WhatsApp.</p>'
       + (TURNSTILE_ERRO ? '<p class="pa-nota">Código do erro: ' + TURNSTILE_ERRO + '</p>' : ''),
       false);
     return;
@@ -857,7 +853,7 @@ form.addEventListener('submit', async (ev) => {
 
   const dados = coletar();
   const texto = montarResumo(dados);
-  const assunto = 'Quero participar — ' + dados.empresa;
+  const assunto = 'Quero participar: ' + dados.empresa;
   const primeiroNome = dados.nome.split(' ')[0];
 
   btnEnviar.disabled = true;
@@ -916,7 +912,7 @@ form.addEventListener('submit', async (ev) => {
       resumoBox.value = texto;
       resumoBox.setAttribute('data-visivel', '1');
       mostrar('erro', 'O envio não passou',
-        '<p>Não consegui confirmar o recebimento, então não vou dizer que enviou. Suas respostas estão na caixa abaixo — copie e mande para <strong>' + CONFIG.emailDestino + '</strong>, ou tente de novo em alguns minutos.</p>');
+        '<p>Não consegui confirmar o recebimento, então não vou dizer que enviou. Suas respostas estão na caixa abaixo. Copie e mande para <strong>' + CONFIG.emailDestino + '</strong>, ou tente de novo em alguns minutos.</p>');
       btnEnviar.disabled = false;
       btnEnviar.textContent = 'Enviar';
     }
@@ -933,7 +929,7 @@ form.addEventListener('submit', async (ev) => {
 
   mostrar('aviso', 'Abrimos seu e-mail com tudo preenchido',
     '<p>O envio só se completa quando você apertar <strong>enviar</strong> no seu aplicativo de e-mail.</p>' +
-    '<p>Se nada abriu, ou se o texto chegou cortado, suas respostas estão inteiras na caixa abaixo — copie e mande para <strong>' + CONFIG.emailDestino + '</strong>.</p>');
+    '<p>Se nada abriu, ou se o texto chegou cortado, suas respostas estão inteiras na caixa abaixo. Copie e mande para <strong>' + CONFIG.emailDestino + '</strong>.</p>');
 
   btnEnviar.disabled = false;
   btnEnviar.textContent = 'Enviar';
@@ -946,7 +942,7 @@ const convite = CONFIG.convite + ' ' + url;
 document.getElementById('share-url').textContent = url;
 document.getElementById('share-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(convite);
 document.getElementById('share-email').href = 'mailto:?subject=' +
-  encodeURIComponent('Sweet & Coffee Week — inscrição para participar') +
+  encodeURIComponent('Sweet & Coffee Week: inscrição para participar') +
   '&body=' + encodeURIComponent(convite);
 
 document.getElementById('share-copiar').addEventListener('click', async (ev) => {
@@ -983,7 +979,7 @@ if (DEMO) {
   const barra = document.createElement('div');
   barra.className = 'pa-demo scw-secao';
   barra.innerHTML =
-    '<p><b>Modo demonstração</b>Passeie pela página sem preencher nada — a cobrança de campo está desligada e o envio não dispara.</p>' +
+    '<p><b>Modo demonstração</b>Passeie pela página sem preencher nada. A cobrança de campo está desligada e o envio não dispara.</p>' +
     '<div class="pa-demo__acoes">' +
       '<button type="button" class="pa-demo__btn" id="demo-preencher">Preencher com exemplo</button>' +
       '<a class="pa-demo__btn" href="?">Ver como a marca vê</a>' +

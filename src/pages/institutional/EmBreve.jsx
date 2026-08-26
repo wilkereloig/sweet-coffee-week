@@ -103,13 +103,15 @@ const TEMAS = EDICOES.map((e) => e.tema).filter(Boolean)
    pelo que sustenta leitura sobre creme em texto GRANDE (3:1): chocolate 12:1,
    roxo 6,7:1, marrom 6,9:1, magenta 3,8:1. Cyan (2,2) e amarelo (1,4) ficam de
    fora — sobre creme eles são superfície, nunca tinta.
-   ⚠️ "+120 marcas" é a grafia obrigatória do §8.4 e o acervo tem 123: a dezena
-   sai de uma conta sobre a fonte, não de um número digitado que envelhece
-   sozinho no dia em que a 17ª edição entrar na base. */
+   ⚠️ 26/08/2026, pedido do Eloi: "marcas participantes" saiu — número pequeno
+   de contagem de marca gera dúvida, e a página já tem outro cartão de
+   contagem (edições). No lugar entra a movimentação (F.revenue), o mesmo
+   dado comercial de CLAUDE.md §9.5 e de Apoiar 02 — fonte única, não
+   redigitado aqui. */
 const F = festivalFacts
 const NUMEROS = [
   { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)', icone: 'simbolos/edicao' },
-  { alvo: Math.floor(F.brands.value / 10) * 10, prefixo: '+', rotulo: 'marcas participantes', cor: 'var(--scw-roxo)', icone: 'simbolos/estabelecimento' },
+  { alvo: F.revenue.value, prefixo: '+R$ ', sufixo: ' mil', rotulo: 'movimentação direta', cor: 'var(--scw-roxo)', icone: 'mecanica/promocao' },
   { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'simbolos/combo-oficial' },
 ]
 
