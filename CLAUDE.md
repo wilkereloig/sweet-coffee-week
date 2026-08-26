@@ -1653,7 +1653,7 @@ piores ao mesmo tempo — esconde a ação e faz o aviso legal parecer estorvo. 
 |---|---|
 | Topo | faixa chocolate com `MARCA_SCW`. O botão "Acesso" **não mora aqui** — vem do `<SiteHeader apenasAcesso>` do `App.jsx` |
 | Herói | **grade de duas colunas**: rótulo + H1 + lead + ação à esquerda, a **galeria das 16 edições** à direita |
-| Prova | 16 edições · +120 marcas · +34 mil combos · desde 2016 — cada um com ícone |
+| Prova | 16 edições · +R$ 712 mil movimentação direta · +34 mil combos · desde 2016 — cada um com ícone. "+120 marcas" saiu em 26/08/2026 (pedido do Eloi): contagem de marca é número pequeno e gera dúvida; entrou o dado comercial (`F.revenue`, mesma fonte de §9.5 e de Apoiar 02), não redigitado |
 | Marquee | os 16 temas, em `.scw-marquee` |
 | Para quem é | os dez tipos de casa + os três chips do combo (doce · salgado · café) |
 | Como funciona | três passos + a ação |
