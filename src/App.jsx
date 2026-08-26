@@ -113,9 +113,13 @@ export default function App() {
     if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
     // Rota direta p/ revisar a landing em DEV/preview.
     if (path.startsWith('/em-breve')) return 'em-breve'
-    // Lançamento parcial: Contato sai livre; qualquer outra rota pública vira
-    // a espera (inclusive a home). Ver AGUARDE_ONLY_PUBLICATION acima.
-    if (AGUARDE_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW && !path.startsWith('/contato')) return 'aguarde'
+    // Lançamento parcial: Contato e Participar (link direto) saem livres;
+    // qualquer outra rota pública vira a espera (inclusive a home). Ver
+    // AGUARDE_ONLY_PUBLICATION acima.
+    if (
+      AGUARDE_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW &&
+      !path.startsWith('/contato') && !path.startsWith('/participar')
+    ) return 'aguarde'
     if (path === '/' || path === '') return 'home'
     if (path.startsWith('/edicoes'))      return 'edicoes'
     if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
