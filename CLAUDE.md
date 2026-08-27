@@ -246,6 +246,12 @@ preview.**
   `submit_participation_interest` e a tabela `participation_interests` continuam no
   Supabase, intocadas:** guardam os envios antigos, e apagar schema com dado do
   outro lado não é limpeza de frontend (§4.3).
+  ⚠️ **A origem `participar` saiu do painel (`/organizacao/` e `/painel/`) em
+  27/08/2026** (pedido do Wilke) — era o cartão de "os formulários" com a nota
+  desatualizada "ainda não está público... seção 08 da página Participar", e a
+  aba/tab de Respostas e Mesa que lia `get_participation_interests`. A RPC e a
+  tabela seguem intocadas no Supabase; **as duas telas só pararam de exibi-las**
+  — quem substitui é a origem `quero_participar`, já pública.
 
   ⚠️ **Ter código de backend não é ter backend.** Em 20/08/2026 descobriu-se que
   **as três migrations de formulário nunca tinham sido aplicadas**: as tabelas
@@ -632,10 +638,14 @@ Tokens em `body.route-*`: `--scw-pagina` · `--scw-pagina-tinta` · `--scw-pagin
 - **Por isso o acento não precisa ser tom claro.** A regra antiga que exigia tom claro
   vinha de quando a cor pintava a hero inteira.
 - **Nenhuma página repete a cor da vizinha.** É o propósito da regra.
-- **Sobre superfície escura** (rodapé, folha do menu, barra de abas) cada página usa
+- **Sobre superfície escura FIXA** (rodapé, folha do menu) cada página usa
   `pageColorDark()` em vez da cor cheia: **roxo (1,45:1) e marrom (1,53:1) não sustentam
   texto sobre chocolate e caem no amarelo; laranja (4,78:1) e cyan (6,23:1) passam e
-  ficam.**
+  ficam.** Ali a chapa é chocolate fixo porque a folha lista as 6 páginas ao mesmo
+  tempo — não há uma "página corrente" para colorir o fundo.
+  ⚠️ **A barra de abas do celular NÃO usa mais `pageColorDark()`** (27/08/2026, pedido
+  do Wilke): ela é a única superfície escura com uma página corrente só, então virou a
+  própria `--scw-pagina`/`--scw-pagina-tinta` — ver §10.6.
 - **Espelho em JS:** `PAGE_COLORS` / `MENU_ESCURO` em `src/components/nav.jsx`.
   ⚠️ **Mudou o CSS, muda o JS no mesmo commit.**
 - **Hover no menu** mostra a cor daquela página — amarelo e cyan direto; as demais caem
@@ -840,19 +850,24 @@ Edições:**
 | Reserva de topo | `--scw-hero-topo` ou o valor ancorado |
 | Título | `.scw-h1`, à esquerda, `max-width:17ch` |
 | Lead | `.scw-lead`, `max-width:46ch` |
-| Selo | `.scw-pill--pagina`, usa `--scw-pagina` |
+| Selo | `.scw-pill--pagina`, usa `--scw-pagina` — **saiu de Participar, Apoiar e Sweet Awards em 27/08/2026** (pedido do Wilke); segue vivo só onde outra página o usa |
 | Foto | fundo à direita com **véu em degradê a 96°** (`.97 → 0` entre 0% e 92%) |
 | Botões | depois do lead, alinhados à esquerda |
 | Fundo | cor da página via `--scw-heroi`; **só a Home segue chocolate** |
 
-- **Sweet Awards:** como o fundo é roxo, **o selo inverte** — creme com tinta roxa
-  (mesmos 9,95:1); senão desapareceria. Título e lead seguem creme.
-  ⛔ **`.swa-hero::before` não existe mais** — o degradê chocolate que descia 340px do
+⚠️ **Sem selo, o H1 não herda mais a margem-superior que separava dele.** Nas
+três páginas acima o título virou o primeiro filho do bloco de texto do herói
+e ganhou `margin-top: 0` — regra por `:first-child` em `.pa-hero__titulo`
+(`scw-participar-apoiar.css`) e direto em `.swa-hero__texto .scw-h1`
+(`scw-awards.css`). Página que ainda tem selo (nenhuma hoje) não é afetada.
+
+- ⛔ **`.swa-hero::before` não existe mais** — o degradê chocolate que descia 340px do
   topo saiu; a própria banda de foto escurece onde a logo passa. Era o mesmo trabalho
   feito duas vezes. **Não recriar.**
 - **Home:** texto à esquerda limitado a `min(60%, 860px)`, foto ocupando o fundo à
   direita. Abaixo de 1000px o véu passa a vertical e o texto ocupa 100%.
-- **Participar e Apoiar:** herói = **rótulo + H1 + lead + duas ações. Nada mais.**
+- **Participar e Apoiar:** herói = **H1 + lead + duas ações. Nada mais** (sem selo
+  desde 27/08/2026).
   ⛔ O cartão 4:3 em crossfade e os 3 indicadores **saíram** — os três números já
   existiam idênticos na seção `03 Números`. **Não reintroduzir.**
 - Todo herói deve: identificar a página, ter boa leitura, usar imagem coerente com o
@@ -1541,7 +1556,8 @@ editorial e comercial. **Não parecer formulário genérico.**
 
 - **08 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
   chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o
-  pré-cadastro vive: quatro passos, índice pegajoso com contagem de pendências,
+  pré-cadastro vive: **dois passos** (Você / O estabelecimento, sete campos ao
+  todo — simplificado de quatro passos, sem índice pegajoso desde então),
   validação por passo e gravação em `quero_participar`.
   ⚠️ **A razão não é estética, é o banco.** O formulário que morava na página gravava
   em `participation_interests`, tabela que **nenhuma tela abre** — nem o painel da
@@ -1644,7 +1660,7 @@ Eloi: *"faz tipo como é o menu mobile, integrado, animado"*.
 |---|---|
 | Chapa | `.scw-casca-base` — **não** redeclarar cor, desfoque nem `position` aqui |
 | Indicador de 3px | é a peça da barra de abas, com **sentido próprio**: lá diz *onde* você está entre cinco destinos, aqui *quanto* da página já leu. `scaleX`, origem à esquerda, **sem transição** (§10.3) |
-| Nota "Leva quatro passos…" | acompanha o botão acima de 760px; **sai** abaixo, onde cada linha a mais é viewport a menos. A informação reaparece dentro do próprio `/quero-participar/`, que numera os passos na tela |
+| Nota "Dois passos rápidos…" | acompanha o botão acima de 760px; **sai** abaixo, onde cada linha a mais é viewport a menos. A informação reaparece dentro do próprio `/quero-participar/`, que numera os passos na tela |
 | Botão | `.eb-barra__btn`, tinta **prefixada** em chocolate (§10.1) |
 | Altura | `--eb-barra-h`, escrito **no `body`** por `ResizeObserver` |
 
@@ -2726,9 +2742,9 @@ texto** — limitar o teto do `clamp` quando o conteúdo for longo (ex.: `+R$ 71
 | Combinação | Contraste | Consequência |
 |---|---|---|
 | Marrom `#6A2C15` sobre chocolate | **~1,5:1** | falha como emblema **e** como texto → 3º lugar não é marrom |
-| Roxo `#4D257E` sobre chocolate | 1,45:1 | cai no amarelo em `pageColorDark()` |
-| Marrom sobre chocolate (menu escuro) | 1,53:1 | cai no amarelo |
-| Laranja `#FF4810` sobre chocolate | 4,78:1 | passa, fica |
+| Roxo `#4D257E` sobre chocolate | 1,45:1 | cai no amarelo em `pageColorDark()` — só rodapé e folha do menu, que são chocolate fixo (§6.2) |
+| Marrom sobre chocolate (menu escuro) | 1,53:1 | cai no amarelo, mesmo caso acima |
+| Laranja `#FF4810` sobre chocolate | 4,78:1 | passa, fica — é também o pior caso da barra de abas, que desde 27/08/2026 usa `--scw-pagina`/`--scw-pagina-tinta` como fundo (não mais chocolate fixo), então roxo e marrom nem chegam a precisar do fallback ali |
 | Cyan `#01AFCC` sobre chocolate | 6,23:1 | passa, fica |
 | Laranja como tinta pequena sobre creme | 3,0:1 | **só superfície preenchida** |
 | Magenta `#F10767` sobre creme | 3,8:1 | **só texto grande** |

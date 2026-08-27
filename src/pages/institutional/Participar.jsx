@@ -5,8 +5,9 @@
  *
  * ⚠️ A seção 08 NÃO tem mais formulário. Desde 22/08/2026 ela é uma chamada
  * para a página estática `/quero-participar/`, que é onde o pré-cadastro vive
- * de verdade — quatro passos, índice pegajoso, validação por passo e gravação
- * na tabela `quero_participar`, a que o painel da organização lê.
+ * de verdade — hoje dois passos (Você / O estabelecimento, sete campos),
+ * validação por passo e gravação na tabela `quero_participar`, a que o
+ * painel da organização lê.
  *
  * ⚠️ Em 26/08/2026 as seções 04 Circulação, 05 Quem pode, 06 Imprensa e
  * 07 Jornada saíram (pedido do Eloi): a página existia pra converter visita
@@ -107,7 +108,10 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
   const reduzido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   React.useEffect(() => {
-    if (ref.current) ref.current.muted = !ativo
+    if (!ref.current) return
+    ref.current.muted = !ativo
+    ref.current.currentTime = 0
+    ref.current.play().catch(() => {})
   }, [ativo])
 
   return (
@@ -151,7 +155,6 @@ export function ParticiparPage() {
 
         <div className="pa-hero__grade">
           <div>
-            <span className="scw-pill scw-pill--pagina pa-hero__selo">Doces, cafés e restaurantes</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               A próxima edição está a caminho{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
@@ -271,8 +274,9 @@ export function ParticiparPage() {
 
       {/* ═══ 08 Pré-cadastro ═══
           ⚠️ O FORMULÁRIO NÃO MORA MAIS AQUI (22/08/2026, pedido do Wilke). O
-          pré-cadastro é a página estática /quero-participar/, que tem os quatro
-          passos, o índice pegajoso com contagem de pendências, a validação por
+          pré-cadastro é a página estática /quero-participar/, que hoje tem
+          DOIS passos (Você / O estabelecimento, sete campos ao todo, sem
+          índice pegajoso — simplificado depois de 22/08/2026), validação por
           passo e o envio pela RPC `submit_quero_participar`.
 
           Duas telas pedindo os mesmos dados são duas fontes de verdade do mesmo
@@ -291,15 +295,15 @@ export function ParticiparPage() {
             Comece a <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>jornada da sua marca</em>.
           </h2>
           <p>
-            Leva dois minutos. Depois do envio, a equipe avalia o perfil e retorna pelos canais
+            Leva menos de um minuto. Depois do envio, a equipe avalia o perfil e retorna pelos canais
             que você informar.
           </p>
         </div>
 
         <div className="pa-cta">
           <ul className="pa-cta__lista">
-            <li><ScwIcon nome="ui/horario" tamanho={20} />Quatro passos, cerca de dois minutos</li>
-            <li><ScwIcon nome="mecanica/loja" tamanho={20} />Dados da marca, do combo e do contato</li>
+            <li><ScwIcon nome="ui/horario" tamanho={20} />Dois passos, sete campos, menos de um minuto</li>
+            <li><ScwIcon nome="mecanica/loja" tamanho={20} />Seus dados e os do estabelecimento</li>
             <li><ScwIcon nome="mecanica/regulamento" tamanho={20} />Usados só pela organização, para contato e curadoria</li>
           </ul>
           <a className="scw-btn scw-btn--solido pa-cta__botao" href="/quero-participar/">

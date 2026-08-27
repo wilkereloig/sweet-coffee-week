@@ -24,12 +24,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: fit-content;
   margin-bottom: clamp(16px, 1.8vw, 24px);
   font: 800 12px/1.25 var(--scw-font);
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--scw-amarelo);
 }
+.hm-selo > svg { flex-shrink: 0; }
+/* Texto num wrapper próprio: se a coluna do celular for mais estreita que o
+   texto (bloco de dois blocos, §6.9), quem quebra é só ele — o ícone nunca
+   perde a razão de aspecto, e a quebra fica equilibrada, não um resto de
+   uma palavra só na segunda linha (§10.5). */
+.hm-selo__texto { max-width: 30ch; text-wrap: balance; }
 /* Enquadramento por foto: cada imagem do herói traz o próprio ponto focal
    (--pos no desktop, --pos-mobile no celular), definido inline pelo sistema
    central de imagens. Os padrões repetem os de scw-2026.css. */

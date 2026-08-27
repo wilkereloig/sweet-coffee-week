@@ -269,7 +269,6 @@ export function ApoiarPage() {
 
         <div className="pa-hero__grade">
           <div>
-            <span className="scw-pill scw-pill--pagina pa-hero__selo">Empresas, marcas e instituições</span>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               Sua marca associada à{' '}
               {/* Chapa marrom, tinta creme: o acento é amarelo (6,2:1 sobre o marrom). */}

@@ -398,7 +398,6 @@ export function HistoricoAwardsPage() {
       <section className="swa-hero scw-hero-veu" aria-labelledby="swa-titulo">
         <HeroFotos fotos={FOTOS_HERO} />
         <div className="swa-hero__texto">
-          <span className="scw-pill scw-pill--pagina">Sweet Awards · desde 2019</span>
           <h1 className="scw-h1" id="swa-titulo">O prêmio que o público entrega.</h1>
           <p className="scw-lead">
             Quem percorre a rota prova, avalia e elege. De uma categoria única em 2019 a oito pódios

@@ -1,11 +1,21 @@
 import React from 'react'
-import { pageColorDark } from './nav'
 
 /*
  * Barra inferior estilo aplicativo (≤900px) — redesign 2026.
  * 5 abas: festival, edições, awards, participar e "mais" (abre a folha com as
- * páginas restantes). Ícone cresce ao ativar, rótulo assume a cor da página e
- * um indicador de 3px desliza entre abas.
+ * páginas restantes). Ícone cresce ao ativar, rótulo em peso 800 e um
+ * indicador de 3px desliza entre abas.
+ *
+ * ⚠️ 27/08/2026 (pedido do Wilke): a cor da página deixou de pintar só o
+ * ÍCONE ativo — agora pinta a BARRA INTEIRA. Antes, roxo (Awards) e marrom
+ * (Apoiar) caíam num fallback amarelo em `pageColorDark()` porque sobre o
+ * chocolate fixo davam 1,45:1/1,53:1, ilegíveis (§10.6). Virando a barra a
+ * própria `--scw-pagina` e o ícone/rótulo `--scw-pagina-tinta` — o MESMO par
+ * já testado AA no §6.2 (pior caso: laranja/chocolate 4,78:1) — o fallback
+ * deixa de ser necessário: não sobra cor nenhuma que precise de exceção.
+ * Ativo vs inativo continua por escala do ícone + peso do rótulo + indicador,
+ * nunca por cor — não há mais "cor de página" e "cor de fallback" ao mesmo
+ * tempo na barra.
  * Spec: design_handoff_site_institucional/README.md (§ Menu mobile).
  */
 
@@ -26,20 +36,17 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
     const i = ABAS.findIndex((a) => a.id === route)
     return i < 0 ? 0 : i
   })()
-  const corIndicador = indiceAtivo === 4 ? '#FDBB1A' : pageColorDark(ABAS[indiceAtivo].id)
-
   return (
     <nav className="scw-abas scw-casca-base" aria-label="Navegação rápida">
       <div className="scw-abas__grade">
         <span
           className="scw-abas__indicador"
           aria-hidden="true"
-          style={{ '--scw-aba-i': indiceAtivo, '--scw-aba-cor': corIndicador }}
+          style={{ '--scw-aba-i': indiceAtivo }}
         />
         {ABAS.map((a, i) => {
           const ehMais = a.action === 'mais'
           const ativo = i === indiceAtivo
-          const tom = ehMais ? '#FDBB1A' : pageColorDark(a.id)
           const conteudo = (
             <>
               <svg
@@ -58,7 +65,6 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
             </>
           )
           const cls = `scw-aba${ativo ? ' is-ativa' : ''}`
-          const estilo = { '--scw-aba-tom': tom }
 
           if (ehMais) {
             return (
@@ -66,7 +72,6 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
                 key={a.id}
                 type="button"
                 className={cls}
-                style={estilo}
                 onClick={onOpenMenu}
                 aria-haspopup="dialog"
                 aria-expanded={!!menuOpen}
@@ -81,7 +86,6 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
               key={a.id}
               href={`#${a.href}`}
               className={cls}
-              style={estilo}
               aria-current={ativo ? 'page' : undefined}
               aria-label={`Ir para ${a.label}`}
               onClick={(e) => {

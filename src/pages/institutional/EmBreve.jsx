@@ -401,7 +401,7 @@ function BarraAcao() {
   return (
     <div className="eb-barra scw-casca-base" ref={ref} style={{ '--eb-lido': lido }}>
       <span className="eb-barra__indicador" aria-hidden="true" />
-      <span className="eb-barra__nota">Quatro passos rápidos. Não compromete nada.</span>
+      <span className="eb-barra__nota">Dois passos rápidos. Não compromete nada.</span>
       <a
         className={`scw-btn scw-btn--solido eb-barra__btn${batendo ? ' is-convite' : ''}`}
         href={PRE_CADASTRO}
@@ -971,7 +971,7 @@ export function EmBrevePage() {
         @media (max-width: 760px) {
           /* A nota sai e o botão toma a largura: numa barra fixa, cada linha a
              mais é viewport a menos, e o que precisa estar ali é a ação. A
-             informação dos quatro passos reaparece dentro do próprio
+             informação dos passos reaparece dentro do próprio
              /quero-participar/, que os numera na tela. */
           /* 10px é o gutter da barra de abas — a mesma folga, para as duas
              lerem como a mesma peça de casca. */

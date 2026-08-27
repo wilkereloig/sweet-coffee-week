@@ -64,14 +64,9 @@
   }
 }
 
-/* O selo do herói é um dos três pontos onde a cor da página aparece (§3) — mas
-   com o herói roxo ele sumiria contra o fundo. Inverte: creme com tinta roxa,
-   mesma cor, mesmo contraste (9,95:1), agora legível. */
-.swa-hero .scw-pill--pagina { background: var(--scw-creme); color: var(--scw-roxo); }
-
 /* A entrada do herói (bloco inteiro subindo) foi para src/styles/scw-motion.css,
-   onde vira sequência: banda → selo → título → lead → números. */
-.swa-hero__texto .scw-h1{ margin-top: clamp(16px, 1.8vw, 26px); color: var(--scw-creme); }
+   onde vira sequência: banda → título → lead → números. */
+.swa-hero__texto .scw-h1{ margin-top: 0; color: var(--scw-creme); }
 .swa-hero__texto .scw-lead { margin-top: clamp(16px, 1.8vw, 26px); color: rgba(254, 240, 221, .86); }
 
 .swa-numeros {

@@ -320,7 +320,7 @@ export function HomePage({ navigate }) {
         <div className="scw-hero__topo" aria-hidden="true" />
 
         <div className="scw-hero__col">
-          <span className="hm-selo"><ScwIcon nome="marca/selo" tamanho={20} />Festival gastronômico · Natal e região</span>
+          <span className="hm-selo"><ScwIcon nome="doces/cupcake" tamanho={24} /><span className="hm-selo__texto">Festival gastronômico de Natal</span></span>
           <h1 className="scw-hero__titulo">
             Há dez anos, fazendo de Natal a cidade <em className="hm-hero__enfase">mais doce do Brasil.</em>
           </h1>

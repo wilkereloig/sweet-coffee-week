@@ -719,6 +719,13 @@ body { margin: 0; }
 .scw-abas {
   display: none;
   padding: 8px 10px calc(8px + var(--scw-safe-b));
+  /* 27/08/2026: a barra vira a cor da página (--scw-pagina/--scw-pagina-tinta,
+     §6.2) em vez do chocolate fixo de `.scw-casca-base` — mesmo par já AA em
+     todas as rotas (pior caso 4,78:1). Sobrescreve dentro da PRÓPRIA regra
+     `.scw-abas`, sem seletor novo: como ela já vem depois de `.scw-casca-base`
+     no arquivo e tem a mesma especificidade, a ordem de código já resolve. */
+  background: var(--scw-pagina);
+  color: var(--scw-pagina-tinta);
 }
 .scw-abas__grade {
   position: relative;
@@ -733,7 +740,7 @@ body { margin: 0; }
   width: 20%;
   height: 3px;
   border-radius: 3px;
-  background: var(--scw-aba-cor, var(--scw-amarelo));
+  background: var(--scw-pagina-tinta);
   transform: translateX(calc(var(--scw-aba-i, 0) * 100%));
   transition: transform 360ms cubic-bezier(.22, .92, .24, 1), background-color 300ms linear;
 }
@@ -754,9 +761,10 @@ body { margin: 0; }
   background: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* .9 sobre o chocolate da barra = 12,6:1. A aba ativa continua distinta por
-     cor de página + peso 800 + escala do ícone + indicador de 3px. */
-  color: rgba(254, 240, 221, .9);
+  /* Mesma tinta ativa e inativa — é o par já AA da própria página (§6.2), não
+     um creme fixo. Ativo vs inativo é peso do rótulo + escala do ícone +
+     indicador de 3px, nunca cor (27/08/2026). */
+  color: var(--scw-pagina-tinta);
 }
 .scw-aba__icone {
   width: 26px;
@@ -768,14 +776,12 @@ body { margin: 0; }
 }
 .scw-aba__rotulo {
   /* 10.5px → 11.5px: no menor tamanho a Nexa Slab perde o serifado e o
-     rótulo vira mancha. O tracking cai junto (.04em → .02em) porque letra
-     clara sobre escuro já espalha sozinha. */
+     rótulo vira mancha. O tracking caiu junto (.04em → .02em). */
   font: 700 11.5px/1 var(--scw-font);
   letter-spacing: .02em;
   text-transform: lowercase;
   transition: color 240ms linear;
 }
-.scw-abas .scw-aba.is-ativa { color: var(--scw-aba-tom); }
 .scw-abas .scw-aba.is-ativa .scw-aba__icone { transform: translateY(-2px) scale(1.1); }
 .scw-abas .scw-aba.is-ativa .scw-aba__rotulo { font-weight: 800; }
 
