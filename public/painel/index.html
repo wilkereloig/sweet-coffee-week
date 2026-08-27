@@ -1738,7 +1738,15 @@ button.link{
       else if (iOS) alert('No iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".')
     })
   })
-})()
+})();
+/* ⚠️ O `;` acima não é estilo — sem ele o parser funde esta IIFE com a
+   próxima (`(function(){` de PainelOrg logo abaixo) num só statement:
+   `(...)()  (function(){...})()` vira `(...)()(function(){...})()`, ou
+   seja, chama o RETORNO desta IIFE (undefined) como função passando a
+   PRÓXIMA IIFE inteira como argumento. PainelOrg nunca executa, nem
+   PainelMarca, nem o boot — silêncio total, sem erro visível no clique,
+   só "TypeError: (intermediate value)... is not a function" no console.
+   Custou a tela de escolha inteira parecer surda (27/08/2026). */
 
 /* ┌─────────────────────────────────────────────────────────────────────┐
    │ PainelOrg — código real de public/organizacao/index.html             │
