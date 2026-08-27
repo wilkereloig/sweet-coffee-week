@@ -1105,6 +1105,21 @@ para o mesmo passo (§5.2).
   e os três botões usam 18–20px. `ChaveIcon` (hand-rolled, fora de
   `scw-icons-v2.js`, já usado em dois dos três antes desta mudança) continua
   sendo a peça certa nesse tamanho — não um ícone improvisado.
+- **`public/painel/index.html` ganhou a MESMA reversão, mesmo dia.** A tela de
+  login estática (`.pn-porta`) tinha o próprio desenho — dois `.pn-setor`
+  sempre visíveis, nunca passou pela fusão de 25/08/2026 nem pela reversão do
+  React ao mesmo tempo — e ficou divergente do diálogo do site: duas telas de
+  "entrar no painel" com desenhos diferentes é exatamente a confusão que a
+  reversão do item 6 tentava resolver. Mesmo padrão agora: `#pnEscolha`
+  (default) mostra os dois `.pn-setor--escolha` sem campo (`<button>`, não
+  `<form>`), `#pnOrg`/`#pnMarca` (escondidos por `hidden`) carregam os forms
+  reais, cada um com "‹ Voltar" (`.pn-porta__voltar`) chamando
+  `verEntrada('escolha')`. `ver('login')` sempre reseta pra `'escolha'` — reabrir
+  o login (inclusive depois de `sair()`) nunca pousa num formulário de senha
+  achado. `.pn-setor` ganhou o mesmo reset de chrome nativo do
+  `.scw-acesso__cartao` acima (`border:0; appearance:none; text-align:left;
+  font:inherit; width:100%`), e só o modificador `.pn-setor--escolha` leva
+  `cursor:pointer`.
 
 ### 6.11 Iconografia v2
 

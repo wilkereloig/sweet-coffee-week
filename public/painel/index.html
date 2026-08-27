@@ -624,7 +624,12 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
   display:flex;flex-direction:column;gap:13px;
   padding:clamp(18px,2.4vw,24px);border-radius:20px;
   background:rgba(254,240,221,.06);box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.18);
+  /* Os dois cards de escolha (27/08/2026) usam isto num <button>, não só num
+     <form> — reset explícito, senão o navegador acrescenta chrome nativo
+     (borda, centralização de texto). Sem efeito nos formulários de login. */
+  border:0;appearance:none;text-align:left;font:inherit;width:100%;color:inherit;
 }
+.pn-setor--escolha{cursor:pointer}
 .pn-setor__disco{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--scw-choco);flex:0 0 auto}
 .pn-setor__disco svg{display:block;width:24px;height:24px}
 .pn-setor--org .pn-setor__disco{background:var(--scw-amarelo)}
@@ -652,6 +657,9 @@ div.og-item:hover{transform:none;border-color:var(--scw-filete)}
   display:inline-flex;align-items:center;color:var(--scw-amarelo);
   font:800 13px/1 var(--scw-font);cursor:pointer;text-decoration:underline;
 }
+/* Fora do flex de .pn-setor (é irmão do form, não filho) — precisa do
+   próprio respiro antes do card de login. */
+.pn-porta__voltar{display:block;margin-bottom:14px}
 
 /* Cada setor precisa do próprio botão-cor, e as duas cores já existem: só
    falta a variante escura do botão (o padrão .og-btn é claro/creme). */
@@ -1018,10 +1026,35 @@ button.link{
 <div class="pn-porta" id="login">
   <div class="pn-porta__caixa">
     <img class="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week">
-    <h1 class="pn-porta__titulo">Bem-vindo ao Painel SCW</h1>
-    <p class="pn-porta__lead">Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
 
-    <div class="pn-porta__grade">
+    <div id="pnEscolha">
+      <h1 class="pn-porta__titulo">Bem-vindo ao Painel SCW</h1>
+      <p class="pn-porta__lead">Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
+
+      <div class="pn-porta__grade">
+        <button type="button" class="pn-setor pn-setor--org pn-setor--escolha" id="btEscolhaOrg">
+          <span class="pn-setor__disco" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none"/><path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8"/><circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none"/><path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4"/></svg>
+          </span>
+          <span><span class="pn-setor__nome">Sou da organização</span><span class="pn-setor__nota">Equipe do festival. Vê todas as marcas e move o caminho.</span></span>
+        </button>
+
+        <button type="button" class="pn-setor pn-setor--marca pn-setor--escolha" id="btEscolhaMarca">
+          <span class="pn-setor__disco" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg>
+          </span>
+          <span><span class="pn-setor__nome">Sou participante</span><span class="pn-setor__nota">Sua casa. Cadastro do combo, pedidos e a venda de cada dia.</span></span>
+        </button>
+      </div>
+
+      <div class="pn-porta__pe">
+        <span class="pn-porta__nota">Ainda não tem acesso? Ele é criado pela organização depois que a inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</span>
+        <button class="pn-link--porta" type="button" id="btInstalar" hidden>Instalar app no aparelho</button>
+      </div>
+    </div>
+
+    <div id="pnOrg" hidden>
+      <button type="button" class="pn-link--porta pn-porta__voltar" id="btVoltarOrg">‹ Voltar</button>
       <form class="pn-setor pn-setor--org" id="form-entrada">
         <span class="pn-setor__disco" aria-hidden="true">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none"/><path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8"/><circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none"/><path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4"/></svg>
@@ -1033,7 +1066,10 @@ button.link{
         <div class="pn-erro" role="alert" id="entrada-erro" hidden></div>
         <button class="og-btn og-btn--amarelo" type="submit" id="btn-entrar">Entrar no painel</button>
       </form>
+    </div>
 
+    <div id="pnMarca" hidden>
+      <button type="button" class="pn-link--porta pn-porta__voltar" id="btVoltarMarca">‹ Voltar</button>
       <form class="pn-setor pn-setor--marca" id="fLogin">
         <span class="pn-setor__disco" aria-hidden="true">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z"/><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4"/></svg>
@@ -1049,11 +1085,6 @@ button.link{
         <button class="og-btn og-btn--cyan-escuro" type="submit" id="btEntrar">Entrar no painel</button>
         <button class="pn-link--porta" type="button" id="btEsqueci">Perdi meu acesso</button>
       </form>
-    </div>
-
-    <div class="pn-porta__pe">
-      <span class="pn-porta__nota">Ainda não tem acesso? Ele é criado pela organização depois que a inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</span>
-      <button class="pn-link--porta" type="button" id="btInstalar" hidden>Instalar app no aparelho</button>
     </div>
   </div>
 </div>
@@ -4568,6 +4599,9 @@ if (senha) abrirPainel();
     el('vPainel').hidden = true
     var alvo = { boasVindas: 'login', login: 'login', senha: 'vSenha', painel: 'vPainel' }[qual] || 'login'
     el(alvo).hidden = false
+    // Reabrir o login nunca deveria pousar num formulário de senha que
+    // ninguém pediu pra ver de novo (27/08/2026, ver verEntrada abaixo).
+    if (alvo === 'login') verEntrada('escolha')
     if (qual === 'painel') {
       var inicial = 'hoje'
       var doHash = (location.hash.match(/^#painel=marca\/([a-z]+)/) || [])[1]
@@ -4579,6 +4613,17 @@ if (senha) abrirPainel();
       irParaMarca(inicial)
     }
     window.scrollTo(0, 0)
+  }
+
+  // A escolha (organização/participante) voltou a ser passo próprio dentro
+  // do login — pedido do Eloi 27/08/2026, mesma reversão do AccessDialog.jsx
+  // do site (§6.10-b item 6): as duas telas de acesso (React e esta) tinham
+  // desenhos divergentes, e unificar os dois é o pedido. 'Voltar' só troca a
+  // visão, nunca limpa o que já foi digitado no outro formulário.
+  function verEntrada (qual) {
+    el('pnEscolha').hidden = qual !== 'escolha'
+    el('pnOrg').hidden = qual !== 'organizacao'
+    el('pnMarca').hidden = qual !== 'marca'
   }
 
   // ── Navegação do painel (casca comum, patch §1) ───────────────────────────
@@ -5607,6 +5652,10 @@ if (senha) abrirPainel();
       if (alvo) alternarBloco(parseInt(alvo.getAttribute('data-alternar'), 10))
     })
     el('btEsqueci').addEventListener('click', recuperar)
+    el('btEscolhaOrg').addEventListener('click', function () { verEntrada('organizacao') })
+    el('btEscolhaMarca').addEventListener('click', function () { verEntrada('marca') })
+    el('btVoltarOrg').addEventListener('click', function () { verEntrada('escolha') })
+    el('btVoltarMarca').addEventListener('click', function () { verEntrada('escolha') })
     // Dois botões de sair (rail no desktop, cabeçalho no celular — só um dos
     // dois é visível de cada vez, resolvido por CSS), mesma função.
     el('btSairRail').addEventListener('click', sair)
