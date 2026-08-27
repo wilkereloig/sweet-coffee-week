@@ -14,12 +14,6 @@
   "categories": ["food", "events", "lifestyle"],
   "icons": [
     {
-      "src": "/favicon-sweet.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/favicon-512-maskable.png",
       "type": "image/png",
       "sizes": "512x512",
