@@ -809,6 +809,10 @@ body { margin: 0; }
   margin-bottom: 14px;
   border-radius: 5px;
   background: rgba(254, 240, 221, .32);
+  /* Arrasta pra fechar (JS): sem isto o navegador brigaria o toque com scroll
+     nativo, e o cursor não avisaria ao mouse que dá pra puxar. */
+  touch-action: none;
+  cursor: grab;
 }
 .scw-folha__topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .scw-folha__topo img { height: 56px; width: auto; }
@@ -1012,6 +1016,8 @@ body { margin: 0; }
     border-radius: 5px;
     /* Dentro da faixa chocolate, então o mesmo creme a 32% do menu. */
     background: rgba(254, 240, 221, .32);
+    touch-action: none;
+    cursor: grab;
   }
   /* O respiro da barra de gestos entra no fim do corpo, não na caixa: com
      `overflow` na caixa, um padding embaixo dela ficaria fora da área rolável. */

@@ -1,6 +1,7 @@
 import React from 'react'
 import { NAV_LINKS, MARCA_SCW, pageColorDark } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
+import { useArrastarFechar } from '../hooks/useArrastarFechar'
 
 /*
  * Folha "mais" do mobile — redesign 2026.
@@ -14,6 +15,7 @@ const SAIDA = 260
 
 export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
   const folhaRef = React.useRef(null)
+  const puxadorRef = useArrastarFechar(onClose)
   // A folha entra por animação mas sumia seca ao fechar. Ela sobrevive ao
   // `open: false` pelo tempo da animação de saída e só então desmonta.
   const [montada, setMontada] = React.useState(open)
@@ -88,7 +90,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
         aria-hidden={fechando ? 'true' : undefined}
         ref={folhaRef}
       >
-        <span className="scw-folha__puxador" aria-hidden="true" />
+        <span className="scw-folha__puxador" aria-hidden="true" ref={puxadorRef} />
 
         <div className="scw-folha__topo">
           <img src={MARCA_SCW} alt="Sweet & Coffee Week" />

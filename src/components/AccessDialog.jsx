@@ -3,6 +3,7 @@ import { INSTAGRAM_URL } from '../config/channels'
 import { supabase } from '../lib/supabase'
 import { entrarNaOrganizacao, RECADO } from '../lib/adminAccess'
 import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
+import { useArrastarFechar } from '../hooks/useArrastarFechar'
 
 /*
  * Tela de acesso — refeita em 22/08/2026 a pedido do Eloi, em três frentes:
@@ -108,18 +109,14 @@ const rpc = async (nome, corpo) => {
   return data
 }
 
-/* Arrastar pra baixo fecha, como puxar uma folha de verdade. Só o cabeçalho
-   escuta o gesto (não a caixa inteira): o corpo rola por dentro, e um gesto
-   pego em qualquer lugar do formulário confundiria "arrastar pra ler" com
-   "arrastar pra fechar". Sem seguir o dedo em tempo real (rubber-band) — só
-   detecta o gesto e reusa o mesmo `onClose()` do X e do Esc, com a mesma
-   animação de saída. */
-const LIMIAR_ARRASTO = 60
-
 export function AccessDialog({ open, onClose }) {
   const caixaRef = React.useRef(null)
   const campoOrgRef = React.useRef(null)
-  const arrastoInicioY = React.useRef(null)
+  /* Arrastar pra baixo fecha, como puxar uma folha de verdade — mesmo gesto
+     do puxador da folha de menu (§5.3). Só o puxador escuta (não a caixa
+     inteira nem o cabeçalho): um gesto pego em qualquer lugar do formulário
+     confundiria "arrastar pra ler" com "arrastar pra fechar". */
+  const puxadorRef = useArrastarFechar(onClose)
 
   const [montada, setMontada] = React.useState(open)
   const [fechando, setFechando] = React.useState(false)
@@ -233,14 +230,6 @@ export function AccessDialog({ open, onClose }) {
     window.location.href = '/marca/'
   }
 
-  const arrastoComeca = (ev) => { arrastoInicioY.current = ev.touches[0].clientY }
-  const arrastoTermina = (ev) => {
-    if (arrastoInicioY.current == null) return
-    const delta = ev.changedTouches[0].clientY - arrastoInicioY.current
-    arrastoInicioY.current = null
-    if (delta > LIMIAR_ARRASTO) onClose()
-  }
-
   return (
     <div
       className={'scw-acesso' + (fechando ? ' is-fechando' : '')}
@@ -261,16 +250,12 @@ export function AccessDialog({ open, onClose }) {
             (`position: sticky`). Como a rolagem é da própria caixa, sem isto o
             X saía de cena assim que o conteúdo rolava — na gaveta do desktop,
             que é alta, isso é perder a saída. */}
-        <div
-          className="scw-acesso__cabecalho"
-          onTouchStart={arrastoComeca}
-          onTouchEnd={arrastoTermina}
-        >
+        <div className="scw-acesso__cabecalho">
         <div className="scw-acesso__topo">
           {/* O puxador mora DENTRO da faixa chocolate, não acima dela: como
               irmão anterior ele caía numa tira creme de 15px que sobrava sobre
               a faixa e lia como falha de render, não como pega. */}
-          <span className="scw-acesso__puxador" aria-hidden="true" />
+          <span className="scw-acesso__puxador" aria-hidden="true" ref={puxadorRef} />
           <div className="scw-acesso__marca">
             <img src="/logos/lockup-scw-creme.svg" alt="Sweet &amp; Coffee Week" />
             <span className="scw-acesso__eyebrow">Área<br />de acesso</span>
