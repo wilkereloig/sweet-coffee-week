@@ -1,8 +1,14 @@
 /*
  * Vista Respostas — lógica pura, sem DOM. Porta fiel de `public/painel/
- * index.html` (ORIGENS, todos, filtrados, escapar, dataCurta), com
- * `participar` já fora — saiu do painel em 27/08/2026 (ver CLAUDE.md),
- * substituído por `quero_participar`.
+ * index.html` (ORIGENS, todos, filtrados, dataCurta), com `participar` já
+ * fora — saiu do painel em 27/08/2026 (ver CLAUDE.md), substituído por
+ * `quero_participar`.
+ *
+ * ⚠️ NÃO tem `escapar()`. A versão estática precisa dela porque monta HTML
+ * por concatenação de string (`innerHTML`); componente React não — JSX
+ * escapa sozinho todo texto interpolado. Adicionar `escapar()` aqui
+ * escaparia DUAS vezes e mostraria entidade HTML crua na tela
+ * ("Duart&#39;s" em vez de "Duart's").
  */
 export const ORIGENS = {
   quero_participar: {
@@ -51,10 +57,6 @@ export function filtrados(dados, { aba, status, dias, termo }) {
     }
     return true
   })
-}
-
-export function escapar(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
 export function dataCurta(iso) {

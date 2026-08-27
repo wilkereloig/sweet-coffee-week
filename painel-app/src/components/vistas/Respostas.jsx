@@ -1,6 +1,7 @@
 import React from 'react'
 import { rpc } from '../../lib/rpc'
-import { ORIGENS, filtrados, escapar, dataCurta } from '../../lib/respostas'
+import { ORIGENS, filtrados, dataCurta } from '../../lib/respostas'
+import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 
 export function Respostas() {
   const [dados, setDados] = React.useState(null) // null = carregando
@@ -12,7 +13,7 @@ export function Respostas() {
 
   const carregar = React.useCallback(async () => {
     setErro(null)
-    const senha = sessionStorage.getItem('scw_org') || ''
+    const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
     const chaves = Object.keys(ORIGENS)
     try {
       const [valida, ...listas] = await Promise.all([
@@ -102,8 +103,12 @@ export function Respostas() {
                 <li key={origem + ':' + reg.id}>
                   <button type="button" className="og-item">
                     <span className="og-item__cor" style={{ background: o.cor }} />
-                    <p className="og-item__nome">{escapar(o.titulo(reg) || '(sem nome)')}</p>
-                    <p className="og-item__meta">{escapar(o.rotulo + (o.meta(reg) ? ' · ' + o.meta(reg) : ''))}</p>
+                    {/* Sem escapar(): JSX já escapa texto interpolado sozinho —
+                        aplicar escapar() aqui mostraria "Duart&#39;s" na tela em
+                        vez de "Duart's" (escapar() existe pra innerHTML, que
+                        nenhum componente React usa). */}
+                    <p className="og-item__nome">{o.titulo(reg) || '(sem nome)'}</p>
+                    <p className="og-item__meta">{o.rotulo + (o.meta(reg) ? ' · ' + o.meta(reg) : '')}</p>
                     <span className="og-item__dir">
                       <span className="og-selo" data-novo={reg.status === 'novo' ? '1' : '0'}>{reg.status}</span>
                       <span className="og-item__data">{dataCurta(reg.created_at)}</span>

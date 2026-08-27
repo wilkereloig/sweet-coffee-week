@@ -10,7 +10,7 @@ process.env.TZ = 'America/Sao_Paulo'
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ORIGENS, todos, filtrados, escapar, dataCurta } from '../painel-app/src/lib/respostas.js'
+import { ORIGENS, todos, filtrados, dataCurta } from '../painel-app/src/lib/respostas.js'
 
 test('ORIGENS tem as três origens vivas, participar não voltou', () => {
   assert.deepEqual(Object.keys(ORIGENS).sort(), ['apoiar', 'contato', 'quero_participar'])
@@ -47,10 +47,6 @@ test('filtrados por termo de busca casa nome, empresa e e-mail', () => {
   const naoAchou = filtrados(dados, { aba: 'tudo', status: '', dias: null, termo: 'zzz' })
   assert.equal(achou.length, 1)
   assert.equal(naoAchou.length, 0)
-})
-
-test('escapar neutraliza os cinco caracteres perigosos de HTML', () => {
-  assert.equal(escapar(`<b>"'&`), '&lt;b&gt;&quot;&#39;&amp;')
 })
 
 test('dataCurta formata no padrão dd/mm/aa, no fuso de quem vê', () => {
