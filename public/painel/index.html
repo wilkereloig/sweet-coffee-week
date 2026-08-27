@@ -1053,6 +1053,7 @@ button.link{
 
     <div class="pn-porta__pe">
       <span class="pn-porta__nota">Ainda não tem acesso? Ele é criado pela organização depois que a inscrição é aprovada, e chega pelo mesmo canal em que vocês já falam.</span>
+      <button class="pn-link--porta" type="button" id="btInstalar" hidden>Instalar app no aparelho</button>
     </div>
   </div>
 </div>
@@ -1671,6 +1672,42 @@ button.link{
    propósito pra o boot compartilhado, no fim do arquivo, decidir qual casca
    mostrar). O login e a decisão de boot são o único código novo.
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ┌─────────────────────────────────────────────────────────────────────┐
+   │ Instalar app — botão da tela de login (#login), fora das duas IIFEs  │
+   │ de propósito: não pertence nem à organização nem à marca, e o        │
+   │ listener de beforeinstallprompt precisa estar armado desde já —      │
+   │ o navegador dispara o evento quando quiser, não sob demanda.         │
+   └─────────────────────────────────────────────────────────────────────┘ */
+(function () {
+  var prompt = null
+  var iOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream
+  var jaInstalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault()
+    prompt = e
+    var b = document.getElementById('btInstalar')
+    if (b) b.hidden = false
+  })
+  window.addEventListener('appinstalled', function () {
+    prompt = null
+    var b = document.getElementById('btInstalar')
+    if (b) b.hidden = true
+  })
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var b = document.getElementById('btInstalar')
+    if (!b || jaInstalado) return
+    /* iOS não tem beforeinstallprompt — Safari não expõe essa API (mesmo
+       motivo do push do §10.4-b). O botão aparece direto, com instrução. */
+    if (iOS) b.hidden = false
+    b.addEventListener('click', function () {
+      if (prompt) { prompt.prompt(); prompt.userChoice.then(function () { prompt = null }) }
+      else if (iOS) alert('No iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".')
+    })
+  })
+})()
 
 /* ┌─────────────────────────────────────────────────────────────────────┐
    │ PainelOrg — código real de public/organizacao/index.html             │

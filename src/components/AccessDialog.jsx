@@ -406,6 +406,14 @@ export function AccessDialog({ open, onClose }) {
                   organização mandou. Depois de entrar, você escolhe uma sua.
                 </p>
               )}
+              {/* Atalho pro app web do painel. O botão de instalar de verdade
+                  (captura do beforeinstallprompt) mora em /painel/: é lá que o
+                  <link rel="manifest"> do painel existe, e o navegador só
+                  oferece instalação para o manifest da página em que o evento
+                  disparou — daqui, sem navegar, seria o manifest do SITE. */}
+              <a className="scw-acesso__link-secundario" href="/painel/">
+                Instalar app do painel
+              </a>
             </div>
             <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
               Falar com a equipe
