@@ -4,8 +4,8 @@
  * fazer POSTs). `fetchImpl` é injetado com default `fetch` global — em
  * produção ninguém passa o terceiro argumento; o teste passa um fake.
  */
-const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
-const SUPABASE_KEY = import.meta.env?.VITE_SUPABASE_KEY || 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
+export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
+export const SUPABASE_KEY = import.meta.env?.VITE_SUPABASE_KEY || 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
 
 export async function rpc(nome, corpo, fetchImpl = fetch) {
   const r = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/' + nome, {
