@@ -19,6 +19,11 @@ export const ORIGENS = {
     status: ['novo', 'em_analise', 'contatado', 'aprovado', 'nao_selecionado', 'aguardando_cadastro', 'cadastro_completo'],
     titulo: (r) => r.empresa || r.nome,
     meta: (r) => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
+    campos: {
+      nome: 'Responsável', telefone: 'Telefone', email: 'E-mail', empresa: 'Negócio',
+      tipo: 'Tipo', cidade: 'Cidade', instagram: 'Instagram', site: 'Site',
+      carro_chefe: 'Carro-chefe',
+    },
   },
   apoiar: {
     rotulo: 'Apoiar', cor: '#FF4810', rpc: 'get_support_interests',
@@ -26,6 +31,10 @@ export const ORIGENS = {
     status: ['novo', 'em_analise', 'contatado', 'em_negociacao', 'fechado', 'arquivado'],
     titulo: (r) => r.empresa,
     meta: (r) => [r.nome, r.segmento, r.interesse].filter(Boolean).join(' · '),
+    campos: {
+      nome: 'Contato', empresa: 'Empresa', email: 'E-mail', whatsapp: 'WhatsApp',
+      segmento: 'Segmento', interesse: 'Interesse', mensagem: 'Mensagem',
+    },
   },
   contato: {
     rotulo: 'Contato', cor: '#4D257E', rpc: 'get_contact_requests',
@@ -33,7 +42,63 @@ export const ORIGENS = {
     status: ['novo', 'em_analise', 'respondido', 'encerrado'],
     titulo: (r) => r.name,
     meta: (r) => [r.subject].filter(Boolean).join(' · '),
+    campos: {
+      name: 'Nome', email: 'E-mail', whatsapp: 'WhatsApp',
+      subject: 'Assunto', message: 'Mensagem', source: 'Origem',
+    },
   },
+}
+
+// Rótulo legível por status — todo status que qualquer origem aceita.
+// ⚠️ Status novo no CHECK do banco precisa de entrada aqui NO MESMO COMMIT
+// (CLAUDE.md §10.4-b), senão aparece como string crua na ficha.
+export const ROTULO_STATUS = {
+  novo: 'Novo', em_analise: 'Em análise', contatado: 'Contatado', respondido: 'Respondido',
+  aprovado: 'Aprovado', nao_selecionado: 'Não selecionado', aguardando_cadastro: 'Aguardando cadastro',
+  cadastro_completo: 'Cadastro completo', em_negociacao: 'Em negociação',
+  fechado: 'Fechado', arquivado: 'Arquivado', encerrado: 'Encerrado',
+}
+
+// Motivo por código de erro de `organizacao_apagar_registro` — porta fiel de
+// RECADO_APAGAR em public/organizacao/index.html.
+export const RECADO_APAGAR = {
+  nao_autorizado: 'A sessão não vale mais. Saia e entre de novo.',
+  origem_invalida: 'Origem desconhecida. Isso é defeito do painel, não seu.',
+  nao_encontrado: 'Esse registro já não existe. Alguém pode ter apagado antes.',
+  tem_conta: 'Esta candidatura já virou conta de participante. Apagar aqui deixaria a ' +
+    'conta órfã, apontando para nada. Remova a conta primeiro.',
+}
+
+// Motivo por código de erro de `criar-acesso-marca` quando chamada com
+// `origem_id` (candidatura aprovada) — subconjunto do RECADO_MANUAL de
+// participantes.js, que cobre o caminho de cadastro manual.
+export const RECADO_ACESSO = {
+  nao_autorizado: 'A sessão não vale mais. Saia e entre de novo.',
+  candidatura_nao_encontrada: 'Essa candidatura não existe mais.',
+  conta_ja_existe: 'Esta candidatura já tem conta. Veja em "Marcas".',
+}
+
+// O /quero-participar guarda as respostas longas no payload; os rótulos
+// vieram do próprio formulário.
+const ROT_PAYLOAD = {
+  serve: 'O que serve', carroChefe: 'Carro-chefe', historia: 'A história',
+  especial: 'O que tem de especial', experiencia: 'Experiência com o festival', extra: 'Mais alguma coisa',
+}
+
+// Campos conhecidos de um registro, com rótulo legível — nunca JSON cru.
+// Pura e testável sem DOM: devolve pares [rótulo, valor], não HTML.
+export function camposDetalhe(origem, reg) {
+  const o = ORIGENS[origem]
+  if (!o || !reg) return []
+  const pares = Object.entries(o.campos)
+    .filter(([k]) => reg[k])
+    .map(([k, rot]) => [rot, String(reg[k])])
+  if (reg.payload && typeof reg.payload === 'object') {
+    Object.entries(ROT_PAYLOAD)
+      .filter(([k]) => reg.payload[k] && !o.campos[k])
+      .forEach(([k, rot]) => pares.push([rot, String(reg.payload[k])]))
+  }
+  return pares
 }
 
 const CHAVES_BUSCA = { nome: ['nome', 'name', 'responsavel', 'marca'], empresa: ['empresa', 'marca'], email: ['email'] }

@@ -27,9 +27,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/organizacao", "destination": "/organizacao/index.html" },
-    { "source": "/marca", "destination": "/marca/index.html" },
-    { "source": "/painel", "destination": "/painel/index.html" },
+    { "source": "/organizacao", "destination": "/painel-app/index.html" },
+    { "source": "/organizacao/", "destination": "/painel-app/index.html" },
+    { "source": "/marca", "destination": "/painel-app/index.html" },
+    { "source": "/marca/", "destination": "/painel-app/index.html" },
+    { "source": "/painel", "destination": "/painel-app/index.html" },
+    { "source": "/painel/", "destination": "/painel-app/index.html" },
     { "source": "/quero-participar", "destination": "/quero-participar/index.html" },
     { "source": "/mapa", "destination": "/" },
     { "source": "/rota", "destination": "/" },

@@ -10,7 +10,7 @@ process.env.TZ = 'America/Sao_Paulo'
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ORIGENS, todos, filtrados, dataCurta } from '../painel-app/src/lib/respostas.js'
+import { ORIGENS, todos, filtrados, dataCurta, camposDetalhe, ROTULO_STATUS } from '../painel-app/src/lib/respostas.js'
 
 test('ORIGENS tem as três origens vivas, participar não voltou', () => {
   assert.deepEqual(Object.keys(ORIGENS).sort(), ['apoiar', 'contato', 'quero_participar'])
@@ -47,6 +47,28 @@ test('filtrados por termo de busca casa nome, empresa e e-mail', () => {
   const naoAchou = filtrados(dados, { aba: 'tudo', status: '', dias: null, termo: 'zzz' })
   assert.equal(achou.length, 1)
   assert.equal(naoAchou.length, 0)
+})
+
+test('camposDetalhe só mostra campos conhecidos e preenchidos, com rótulo legível', () => {
+  const reg = { empresa: 'Bolomania', nome: 'Ana', cidade: '', instagram: '@bolomania', lixo: 'não devia aparecer' }
+  const pares = camposDetalhe('quero_participar', reg)
+  assert.deepEqual(pares, [['Responsável', 'Ana'], ['Negócio', 'Bolomania'], ['Instagram', '@bolomania']])
+})
+
+test('camposDetalhe soma o payload do quero_participar quando o campo não é conhecido', () => {
+  const reg = { empresa: 'Bolomania', payload: { historia: 'Começou em casa', extra: '' } }
+  const pares = camposDetalhe('quero_participar', reg)
+  assert.deepEqual(pares, [['Negócio', 'Bolomania'], ['A história', 'Começou em casa']])
+})
+
+test('camposDetalhe devolve lista vazia para origem ou registro ausente', () => {
+  assert.deepEqual(camposDetalhe('inexistente', { empresa: 'x' }), [])
+  assert.deepEqual(camposDetalhe('quero_participar', null), [])
+})
+
+test('ROTULO_STATUS cobre todo status que as três origens aceitam', () => {
+  const todosStatus = new Set(Object.values(ORIGENS).flatMap((o) => o.status))
+  for (const s of todosStatus) assert.ok(ROTULO_STATUS[s], 'status sem rótulo: ' + s)
 })
 
 test('dataCurta formata no padrão dd/mm/aa, no fuso de quem vê', () => {

@@ -62,6 +62,18 @@ function paginasEstaticasDev() {
          entrega o arquivo continua sendo o middleware de `public/` do Vite. */
       server.middlewares.use((req, res, next) => {
         const caminho = (req.url || '').split('?')[0]
+
+        // /organizacao, /marca e /painel não são mais páginas estáticas de
+        // `public/` — viraram rewrite pro painel React (vercel.json espelha
+        // isto em produção). Sem este atalho, a mesma classe de bug do
+        // comentário acima volta: a URL abre, só que a página errada (a
+        // landing), porque não existe mais `public/<nome>/index.html` pra
+        // resolução de índice achar.
+        if (/^\/(organizacao|marca|painel)\/?$/.test(caminho)) {
+          req.url = '/painel-app/index.html'
+          return next()
+        }
+
         if (!/^\/[a-z0-9-]+\/?$/i.test(caminho)) return next()
 
         const nome = caminho.replace(/^\/|\/$/g, '')

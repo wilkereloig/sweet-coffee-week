@@ -22,7 +22,7 @@
     "focal-points": "node scripts/compute-focal-points.mjs",
     "variantes": "node scripts/gerar-variantes.mjs",
     "test:quero-participar": "node --test tests/quero-participar.test.mjs",
-    "test:organizacao": "node --test tests/organizacao.test.mjs",
+    "test:organizacao": "node --test tests/painel-infra.test.mjs tests/painel-app-marcaApi.test.mjs tests/painel-app-respostas.test.mjs",
     "test:rls": "node --test tests/rls-marcas.test.mjs",
     "backup": "node scripts/backup-supabase.mjs"
   },

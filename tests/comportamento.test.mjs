@@ -1,13 +1,20 @@
 /*
  * Testes que EXECUTAM o código, em vez de conferir o texto dele.
  *
- * POR QUE ESTE ARQUIVO EXISTE, e é a lição mais cara desta série de fases:
- *   `tests/marca.test.mjs` e `tests/organizacao.test.mjs` medem a FONTE por
- *   expressão regular. É útil — pega chave secreta, arrow function, dado indo
- *   cru para innerHTML —, mas não pega comportamento. Em 25/08/2026 o `rpc()`
- *   do painel quebrava em TODA função `returns void` do Postgres, e sete RPCs
- *   caem nessa categoria: cinco botões da Fase 6 estavam mortos e a suíte
- *   inteira passava.
+ * ⚠️ A seção "O rpc() do painel da organização" que existia aqui saiu em
+ * 27/08/2026, junto com public/organizacao/index.html: /organizacao passou a
+ * servir o painel React (painel-app/), e o `rpc()` que ela testava por
+ * extração de texto + `new Function` agora é um módulo de verdade —
+ * `painel-app/src/lib/rpc.js`, importado direto (sem extração, sem eval) por
+ * tests/painel-app-rpc.test.mjs. Isso é estritamente melhor que o que saiu:
+ * import real de módulo ES, não recorte de string por posição de chave.
+ *
+ * POR QUE O RESTO DESTE ARQUIVO EXISTE, e é a lição mais cara desta série de
+ * fases: medir a FONTE por expressão regular é útil — pega chave secreta,
+ * arrow function, dado indo cru para innerHTML —, mas não pega comportamento.
+ * Em 25/08/2026 o `rpc()` do painel quebrava em TODA função `returns void` do
+ * Postgres, e sete RPCs caem nessa categoria: cinco botões da Fase 6 estavam
+ * mortos e a suíte inteira passava.
  *
  *   A prova daquela fase também não pegou, e o motivo importa: ela chamou as
  *   RPCs por `curl`, lendo o corpo FORA do painel. **Chamada por HTTP não é
@@ -27,73 +34,6 @@ import { transformSync } from 'esbuild'
 
 const RAIZ = new URL('../', import.meta.url)
 const ler = (p) => readFileSync(new URL(p, RAIZ), 'utf8')
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   1 · O `rpc()` do painel da organização
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-const PAINEL = ler('public/organizacao/index.html')
-const JS_PAINEL = (PAINEL.match(/<script>([\s\S]*?)<\/script>/) || [, ''])[1]
-
-// Recorta a função do arquivo real e a devolve chamável, com fetch injetado.
-function rpcCom(resposta) {
-  const inicio = JS_PAINEL.indexOf('async function rpc(')
-  assert.ok(inicio > -1, 'não achei rpc() no painel')
-  // A função é de nível superior, então a chave que a fecha é a única na
-  // coluna 0. Cortar por "até a próxima função" ou por comentário mutila o
-  // corpo — `rpc()` tem um bloco `/* */` dentro, e foi assim que este teste
-  // nasceu quebrado.
-  const fim = JS_PAINEL.indexOf('\n}\n', inicio)
-  assert.ok(fim > inicio, 'não achei o fim de rpc()')
-  const fonte = JS_PAINEL.slice(inicio, fim + 2)
-
-  const fabrica = new Function('SUPABASE_URL', 'SUPABASE_KEY', 'fetch',
-    'return (' + fonte + ')')
-  return fabrica('https://exemplo.invalido', 'chave', async () => resposta)
-}
-
-// Imita o que o `fetch` do navegador devolve, no que `rpc()` usa.
-const resposta = (status, corpo) => ({
-  ok: status >= 200 && status < 300,
-  status,
-  text: async () => corpo,
-  json: async () => JSON.parse(corpo),
-})
-
-test('rpc() devolve null quando a RPC não retorna nada (204)', async () => {
-  // 🐛 O defeito real: PostgREST responde 204 SEM CORPO para função
-  // `returns void`, e `r.json()` em cima do vazio estoura com "Unexpected end
-  // of JSON input" — erro que parece de rede e é de leitura.
-  const rpc = rpcCom(resposta(204, ''))
-  assert.equal(await rpc('registrar_push_organizacao', {}), null)
-})
-
-test('rpc() devolve o corpo convertido quando há corpo', async () => {
-  const rpc = rpcCom(resposta(200, '{"edicao_atual":"2027"}'))
-  assert.deepEqual(await rpc('get_config_admin', {}), { edicao_atual: '2027' })
-})
-
-test('rpc() aceita os tipos simples que as RPCs de guard devolvem', async () => {
-  assert.equal(await rpcCom(resposta(200, 'true'))('admin_ping', {}), true)
-  assert.equal(await rpcCom(resposta(200, 'false'))('admin_ping', {}), false)
-  assert.equal(await rpcCom(resposta(200, 'null'))('get_config_admin', {}), null)
-})
-
-test('rpc() não engole corpo inválido — isso continua sendo erro', async () => {
-  // A correção não pode ter virado "engole tudo": resposta corrompida tem que
-  // doer, senão um proxy devolvendo HTML de erro passaria por sucesso vazio.
-  await assert.rejects(rpcCom(resposta(200, '<html>erro do proxy</html>'))('x', {}))
-})
-
-test('rpc() propaga o motivo que o servidor deu, não só o código', async () => {
-  await assert.rejects(
-    rpcCom(resposta(401, '{"message":"nao_autorizado"}'))('suspender_conta', {}),
-    /nao_autorizado/)
-})
-
-test('rpc() ainda falha de forma legível quando o erro não tem corpo', async () => {
-  await assert.rejects(rpcCom(resposta(500, ''))('x', {}), /HTTP 500/)
-})
 
 /* ═══════════════════════════════════════════════════════════════════════════
    2 · O validador de caminho da Edge Function `arquivo-url`
@@ -270,15 +210,18 @@ test('o aud acompanha o serviço de push, e não fica preso ao Google', async ()
 })
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   4 · A regra de declaração, nas três páginas estáticas
+   4 · A regra de declaração, na página estática que resta
    ═══════════════════════════════════════════════════════════════════════════ */
 
-test('nenhuma função declarada como arrow nas páginas estáticas', () => {
+// ⚠️ 'marca' e 'organizacao' saíram em 27/08/2026 — /marca e /organizacao
+// passaram a servir o painel React (painel-app/), que passa pelo Vite e não
+// tem esta classe de bug (build falha antes). 'quero-participar' continua
+// estático, fora do bundle, e continua exposto ao mesmo risco.
+test('nenhuma função declarada como arrow na página estática que resta', () => {
   // O motivo é hoisting: arrow em `const` referenciada acima da própria linha
   // estoura em ReferenceError, e como esses scripts nunca passam pelo Vite,
   // isso só apareceria com a tela aberta na frente de alguém.
-  // A revisão final de 25/08/2026 achou duas, dentro de `abrirFicha`.
-  for (const pagina of ['marca', 'organizacao', 'quero-participar']) {
+  for (const pagina of ['quero-participar']) {
     const js = (ler('public/' + pagina + '/index.html')
       .match(/<script>([\s\S]*?)<\/script>/) || [, ''])[1]
     const achadas = [...js.matchAll(
@@ -288,8 +231,8 @@ test('nenhuma função declarada como arrow nas páginas estáticas', () => {
   }
 })
 
-test('cada página estática traz exatamente um bloco de script', () => {
-  for (const pagina of ['marca', 'organizacao', 'quero-participar']) {
+test('a página estática que resta traz exatamente um bloco de script', () => {
+  for (const pagina of ['quero-participar']) {
     const html = ler('public/' + pagina + '/index.html')
     assert.equal((html.match(/<script[\s>]/g) || []).length, 1, pagina + ': mais de um <script>')
   }
