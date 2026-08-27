@@ -24,7 +24,7 @@ nova).
   `public/painel/` continuam intocados e são o que serve `/organizacao`,
   `/marca` e `/painel` em produção até o corte final (fora do escopo desta
   fase — ver spec). O novo entry mora em caminho separado
-  (`/painel-novo/` em dev), inalcançável de qualquer link real do site.
+  (`/painel-app/` em dev), inalcançável de qualquer link real do site.
 - **Sem lib nova.** Sem React Router, sem Redux/Zustand, sem
   `@testing-library/react`. `useState`/`useContext` bastam; nenhuma vista
   desta fase tem estado complexo o bastante para justificar mais.
@@ -56,7 +56,7 @@ nova).
 - Modify: `vite.config.js`
 
 **Interfaces:**
-- Produces: rota de dev `http://localhost:<porta>/painel-novo/` renderizando
+- Produces: rota de dev `http://localhost:<porta>/painel-app/` renderizando
   `<App />`. Nenhuma outra task depende de símbolo nenhum daqui além dessa
   URL existir.
 
