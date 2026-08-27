@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Plugin DEV-only: grava src/design/visualOverrides.json a partir do Visual
 // Refinement Mode. configureServer só roda no dev server → nada disso entra no
@@ -84,6 +85,14 @@ function paginasEstaticasDev() {
 
 export default defineConfig({
   plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        painel: fileURLToPath(new URL('./painel-app/index.html', import.meta.url)),
+      },
+    },
+  },
   server: {
     // Honra a porta atribuída pelo harness (autoPort) via env PORT; cai para 5173 local.
     port: Number(process.env.PORT) || 5173,
