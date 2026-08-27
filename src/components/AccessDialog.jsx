@@ -426,8 +426,15 @@ export function AccessDialog({ open, onClose }) {
                   (captura do beforeinstallprompt) mora em /painel/: é lá que o
                   <link rel="manifest"> do painel existe, e o navegador só
                   oferece instalação para o manifest da página em que o evento
-                  disparou — daqui, sem navegar, seria o manifest do SITE. */}
-              <a className="scw-acesso__link-secundario" href="/painel/">
+                  disparou — daqui, sem navegar, seria o manifest do SITE.
+                  Nova aba de propósito: /painel/ é página estática sem volta
+                  pro site (§10.4-b) — sem isto, quem clica fica preso lá. */}
+              <a
+                className="scw-acesso__link-secundario"
+                href="/painel/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Instalar app do painel
               </a>
             </div>
