@@ -1068,6 +1068,43 @@ marca" é um link que revela uma nota, não uma tela nova: o primeiro acesso já
 usa os MESMOS dois campos, e quem troca a senha é `/marca/`, depois do login
 (item 4 acima) — duplicar aqui a tela de senha nova seria um segundo caminho
 para o mesmo passo (§5.2).
+⛔ **REVERTIDO no item 6 abaixo (27/08/2026).**
+
+**6 · A escolha volta a ser passo próprio, e o botão de entrada padroniza —
+27/08/2026.** Pedido do Eloi. Dois ajustes juntos:
+
+- **Três estados, não um.** `passo` (`'boasVindas' | 'organizacao' | 'marca'`)
+  em vez dos dois formulários sempre visíveis do item 5. Abre em
+  `'boasVindas'`: título **"Bem-vindo ao Painel SCW"**, lead, e os MESMOS dois
+  cartões de antes — mas sem campo nenhum, só ícone + "Sou da organização" /
+  "Sou participante" + descrição. O cartão inteiro é o gatilho (`<button
+  type="button">`, não mais `<form>`) que troca `passo`. Clicar leva à tela de
+  login correspondente, com um "‹ Voltar" que só troca `passo` de volta — não
+  limpa o que já foi digitado (só fechar o diálogo limpa tudo, efeito que já
+  existia). **Nada mudou na autenticação** — `enviarOrg`/`enviarMarca`,
+  `RECADO`/`RECADO_MARCA`, tudo igual; só a ORDEM DE REVELAÇÃO voltou a ser
+  passo próprio.
+  ⚠️ **`.scw-acesso__cartao` virou alvo de `<button>` também** (era só
+  `<form>`): ganhou `border:0; background:none; appearance:none; font:inherit`
+  na regra base — mesma armadilha do item 3 acima (borda 2px outset do
+  navegador), resolvida na fonte em vez de repetida por cartão. Só os dois
+  cartões de ESCOLHA levam o modificador `.scw-acesso__cartao--escolha`
+  (`width:100%; cursor:pointer`) — os de login continuam `<form>`, sem isso.
+  Hover/press (`translateY(-3px)`/`scale(.985)`) já existiam na classe base e
+  vieram de graça pros dois cartões novos.
+- **Botão de entrada padronizado em todo o site: ícone `ChaveIcon` + texto
+  "Painel SCW".** Antes eram três variações — `.scw-acesso-topo` (nav.jsx +
+  Edicoes.jsx, que já duplicava a mesma marcação) dizia "Acesso" com
+  `ChaveIcon`; `.scw-folha__acesso` do MobileMenu dizia "Área de acesso" com
+  um SVG de pessoa desenhado à mão, sem relação com o resto do sistema. Os
+  três agora dizem "Painel SCW"; o MobileMenu trocou o SVG solto por
+  `ChaveIcon` importado de `nav.jsx` — mesma peça, três lugares, zero ícone
+  inventado.
+  ⚠️ **`redes/perfil` existe no sistema oficial** (§6.11) e é visualmente quase
+  idêntico ao SVG de pessoa que saiu — mas é ícone **expressivo** (piso 24px),
+  e os três botões usam 18–20px. `ChaveIcon` (hand-rolled, fora de
+  `scw-icons-v2.js`, já usado em dois dos três antes desta mudança) continua
+  sendo a peça certa nesse tamanho — não um ícone improvisado.
 
 ### 6.11 Iconografia v2
 

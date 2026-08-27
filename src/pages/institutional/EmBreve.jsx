@@ -34,7 +34,7 @@
  * zera animação e transição de tudo que está dentro dela; o contador respeita
  * a preferência em JS, mostrando o valor final de saída.
  *
- * O cabeçalho com o botão "Acesso" NÃO mora aqui: é o `<SiteHeader apenasAcesso>`
+ * O cabeçalho com o botão "Painel SCW" NÃO mora aqui: é o `<SiteHeader apenasAcesso>`
  * que o `App.jsx` renderiza só nesta rota. ⛔ Não desenhar um segundo — duas
  * portas para o mesmo painel é fonte de verdade duplicada em forma de interface.
  */
@@ -419,7 +419,7 @@ export function EmBrevePage() {
 
   return (
     <div className="eb-page" ref={rootRef}>
-      {/* 1 — TOPO: a marca. O botão "Acesso" vem do cabeçalho fixo do App. */}
+      {/* 1 — TOPO: a marca. O botão "Painel SCW" vem do cabeçalho fixo do App. */}
       <div className="eb-topo">
         <img className="eb-topo__marca" src={MARCA_SCW} alt="Sweet &amp; Coffee Week" />
       </div>
@@ -606,7 +606,7 @@ export function EmBrevePage() {
           display: flex;
           align-items: center;
           /* Altura mínima = a do cabeçalho fixo (padding + botão de 46px), para
-             o "Acesso" pousar DENTRO da faixa e não sobre o herói. */
+             o "Painel SCW" pousar DENTRO da faixa e não sobre o herói. */
           min-height: clamp(86px, 9vw, 104px);
           padding: clamp(18px, 2.4vw, 28px) var(--scw-trilho) 0;
           background: var(--scw-choco);

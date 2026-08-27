@@ -52,7 +52,7 @@ const COMING_SOON_PUBLICATION = false
 // de quem navega, "não acontece nada" (pedido do Eloi). As três páginas
 // estáticas fora do bundle (/quero-participar/, /marca/, /organizacao/ —
 // §10.4-b) não passam por aqui e continuam no ar normalmente, inclusive o
-// botão "Acesso" do cabeçalho. Preview institucional completo
+// botão "Painel SCW" do cabeçalho. Preview institucional completo
 // (INSTITUTIONAL_PREVIEW) segue liberado em DEV e em *.vercel.app?preview=1,
 // para revisar as páginas trancadas (Participar incluída) antes de
 // destrancar de verdade.

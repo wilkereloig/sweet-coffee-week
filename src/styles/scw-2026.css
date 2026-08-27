@@ -1124,6 +1124,20 @@ body { margin: 0; }
   padding: clamp(18px, 2vw, 24px);
   border-radius: var(--scw-r-interno);
   text-align: left;
+  /* A tela de escolha (27/08/2026) usa este card como <button>, não só
+     <form>: reset explícito, senão o navegador acrescenta borda 2px outset
+     (§6.10-b). Sem efeito nos dois formulários — eles não têm esse chrome. */
+  border: 0;
+  background: none;
+  appearance: none;
+  font: inherit;
+}
+/* Só os dois cards de ESCOLHA (Sou da organização / Sou participante) são
+   clicáveis por inteiro — os de login continuam sendo <form>, cujo alvo real
+   é o botão "Entrar no painel" lá dentro. */
+.scw-acesso__cartao--escolha {
+  width: 100%;
+  cursor: pointer;
 }
 /* Organização — chapa cheia. A sombra é filete sólido, não difusa: o card é
    superfície, não elemento flutuante. */

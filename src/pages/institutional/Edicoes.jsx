@@ -849,7 +849,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                   aria-label="Acessar área restrita"
                 >
                   <ChaveIcon width="20" height="20" strokeWidth="2.4" />
-                  <span>Acesso</span>
+                  <span>Painel SCW</span>
                 </button>
               )}
             </div>

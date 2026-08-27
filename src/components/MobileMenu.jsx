@@ -1,5 +1,5 @@
 import React from 'react'
-import { NAV_LINKS, MARCA_SCW, pageColorDark } from './nav'
+import { NAV_LINKS, MARCA_SCW, pageColorDark, ChaveIcon } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
 
@@ -128,11 +128,8 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
           onClick={() => { onClose(); if (onOpenAccess) onOpenAccess() }}
           aria-haspopup="dialog"
         >
-          Área de acesso
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M2.5 15.5c0-3.038 2.91-5.5 6.5-5.5s6.5 2.462 6.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          Painel SCW
+          <ChaveIcon width="18" height="18" strokeWidth="2.4" />
         </button>
 
         <a className="scw-folha__insta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
