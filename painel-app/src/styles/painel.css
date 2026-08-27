@@ -1,0 +1,993 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Painel unificado — Sweet & Coffee Week (organização + participante)
+
+   Página ESTÁTICA, como /organizacao/ e /marca/ já eram — servida pelo
+   sistema de arquivos da Vercel antes do rewrite do SPA, o que a mantém
+   acessível com COMING_SOON_PUBLICATION = true sem tocar em nenhuma flag do
+   App.jsx (A3).
+
+   Handoff "Painel SCW app" (26/08/2026): os dois painéis que viviam cada um
+   na sua página estática ganham UMA casca só — rail, cabeçalho, gaveta,
+   login de dois cartões. O CONTEÚDO de cada papel (as cinco vistas da
+   organização, as quatro da marca — RPCs, gaveta, notificações, agenda,
+   push) é o código real de /organizacao/index.html e /marca/index.html,
+   movido para cá sem reescrever: cada um continua na sua própria função
+   isolada (IIFE), só a entrada (login) e a decisão de qual casca mostrar são
+   novas. Ver docs/INSTRUCAO-painel-completo.md e handoff/APLICAR.md
+   (arquivados em docs/_arquivo-instrucoes-antigas/ depois de aplicados).
+
+   Tokens: --scw-* espelham src/styles/scw-2026.css, como os dois painéis
+   antigos já faziam (um com o prefixo, outro sem — aqui os dois usam o
+   mesmo, fechando a divergência que APLICAR.md pedia).
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Painel da organização — Sweet & Coffee Week
+
+   Página ESTÁTICA, servida pelo sistema de arquivos da Vercel antes do rewrite
+   do SPA. É o que a mantém acessível com COMING_SOON_PUBLICATION = true, sem
+   tocar em nenhuma flag do App.jsx.
+
+   Não passa pelo Vite, então não há import.meta.env: a URL e a chave publicável
+   ficam escritas aqui embaixo, visíveis no código-fonte. Isso é esperado — a
+   chave anon é pública por design. A segurança vem do RLS (habilitado sem
+   policy em todas as tabelas) e da senha que protege cada RPC de leitura.
+   ⛔ A chave SECRETA do projeto (a de serviço, do painel do Supabase) nunca
+   entra aqui — ela ignora o RLS e leria a base inteira. tests/organizacao.test.mjs
+   reprova o arquivo se ela aparecer, inclusive dentro de comentário.
+
+   Tokens copiados resolvidos de src/styles/scw-2026.css. Painel interno não
+   precisa de festa visual: legibilidade, densidade e alvo de toque grande.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-xBold.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlabBlack.woff2') format('woff2');font-weight:900;font-display:swap}
+
+:root{
+  --scw-creme:#FEF0DD; --scw-bege:#F8E4C1; --scw-choco:#3D1308; --scw-marrom:#6A2C15;
+  --scw-amarelo:#FDBB1A; --scw-cyan:#01AFCC; --scw-roxo:#4D257E; --scw-magenta:#F10767;
+  --scw-laranja:#FF4810;
+  --scw-filete:rgba(61,19,8,.14); --scw-borda-campo:rgba(61,19,8,.22);
+  --scw-font:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --scw-r-card:20px;
+  --scw-ease:cubic-bezier(.22,.9,.24,1);
+  --scw-transicao:200ms var(--scw-ease);
+  --trilho:clamp(16px,3vw,40px);
+  /* O painel não importa scw-2026.css, então --scw-safe-b é declarado aqui.
+     É o vão do notch na base do iPhone: sem ele a barra de abas fica por baixo
+     do indicador de home e a última aba deixa de ser tocável. */
+  --scw-safe-b:env(safe-area-inset-bottom, 0px);
+  --og-abas-h:68px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--scw-creme);color:var(--scw-choco);
+  font:500 15px/1.5 var(--scw-font);
+  -webkit-font-smoothing:antialiased;
+  /* A CASCA NÃO ROLA — quem rola é a vista ativa, por dentro. É o que separa
+     "página web" de "app": aqui a barra de abas e o cabeçalho ficam parados por
+     construção, não por `sticky`. `overscroll-behavior:none` mata o
+     pull-to-refresh, que num painel interno só serve para perder o filtro. */
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+:focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:4px}
+button,input,select,textarea{font:inherit;color:inherit}
+
+/* ── Casca ─────────────────────────────────────────────────────────────── */
+/* Três faixas: topo · conteúdo · abas. O topo NÃO é mais `sticky` — numa casca
+   em grid ele é a primeira linha e já fica parado por construção, então
+   `position` e `z-index` viraram peso morto. */
+#painel{
+  height:100dvh;                      /* dvh, não vh: no iOS o vh conta a barra
+                                         do Safari e as abas somem atrás dela */
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  /* ⚠️ A COLUNA PRECISA SER DECLARADA. Declarar só `grid-template-rows` deixa a
+     coluna implícita em `auto`, e coluna `auto` dimensiona por MAX-CONTENT: o
+     grid inteiro cresce até a largura que o item mais largo gostaria de ter. O
+     cabeçalho é um flex sem quebra e pedia 671px, então a casca ficava com
+     671px em QUALQUER viewport menor — estourava de 430 a 671 e passava
+     despercebido nos extremos. `minmax(0,1fr)` prende a coluna à largura real. */
+  grid-template-columns:minmax(0, 1fr);
+}
+/* Cabeçalho — substitui a antiga `.og-topo` (marca fixa "Painel SCW") em
+   25/08/2026: o handoff "Painel SCW app" pede o TÍTULO DA VISTA ativa aqui,
+   não a marca do app — quem já mostra a marca é a rail (>900px) ou a chapa
+   escura do cabeçalho (≤900px, `is-estreito` em `public/marca/index.html`;
+   aqui a mesma leitura vem de puro CSS, sem estado JS). Mesmos valores de
+   `public/marca/index.html`, que já espelhava esta peça do handoff. */
+.pn-cabeca{
+  display:flex;align-items:center;gap:12px;min-height:64px;
+  padding:0 var(--trilho);background:var(--scw-creme);color:var(--scw-choco);
+  border-bottom:1px solid var(--scw-filete);min-width:0;   /* item de grid encolhe (§10.5) */
+}
+.pn-cabeca__marca{height:24px;width:auto;display:none;flex:0 0 auto}
+.pn-cabeca__texto{min-width:0;flex:1 1 auto}
+.pn-cabeca__titulo{
+  font:900 20px/1.05 var(--scw-font);letter-spacing:-.035em;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pn-cabeca__sub{margin:3px 0 0;font:500 11.5px/1 var(--scw-font);color:var(--scw-marrom)}
+.pn-cabeca__dir{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+/* Sair só existe aqui ≤900px — no desktop a rail já tem o próprio, e um
+   controle repetido nos dois lugares só confunde qual é "o" botão de sair. */
+@media (min-width:901px){ #btn-sair{display:none} }
+.pn-cabeca__btn{
+  position:relative;flex:0 0 auto;width:40px;height:40px;
+  display:grid;place-items:center;border:0;border-radius:14px;
+  background:transparent;color:inherit;cursor:pointer;
+  transition:background var(--scw-transicao);
+}
+@media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(61,19,8,.08)} }
+
+@media (max-width:900px){
+  .pn-cabeca{min-height:58px;background:var(--scw-choco);color:var(--scw-creme);border-bottom:0;padding:0 16px}
+  .pn-cabeca__marca{display:block}
+  .pn-cabeca__titulo{font-size:16px}
+  .pn-cabeca__sub{color:rgba(254,240,221,.7)}
+  .pn-cabeca__btn{width:44px;height:44px;background:rgba(254,240,221,.1)}
+  @media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(254,240,221,.2)} }
+}
+
+/* ⛔ O segmented control do cabeçalho SAIU em 25/08/2026 — a rail assumiu a
+   navegação de desktop. Não recriar `.og-topo__destinos`: ela e a rail
+   diriam a mesma coisa duas vezes (§5.2). */
+
+.og-corpo{min-height:0;min-width:0;position:relative}   /* min-height:0 deixa a linha 1fr encolher */
+
+/* Quem rola é a vista ativa. */
+.og-vista{
+  height:100%;
+  overflow-y:auto;
+  overscroll-behavior:contain;        /* sem isto, rolar até o fim da lista
+                                         arrasta a casca inteira no iOS e a
+                                         ilusão de app morre na 1ª interação */
+  -webkit-overflow-scrolling:touch;
+  padding:clamp(20px,3vw,34px) var(--trilho) calc(24px + var(--scw-safe-b));
+  max-width:1600px;margin:0 auto;width:100%;
+}
+.og-vista[hidden]{display:none}
+
+/* ── Barra de abas (≤900px) ────────────────────────────────────────────── */
+/* Espelha a `.scw-abas` do site (MobileTabBar.jsx): mesma geometria, mesmo
+   indicador deslizante. Não é uma segunda linguagem de navegação. */
+.og-abasapp{
+  background:var(--scw-choco);
+  padding-bottom:var(--scw-safe-b);
+  border-top:1px solid rgba(254,240,221,.14);
+}
+/* O 5 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
+   aqui — o indicador deslizante mede a coluna, não o botão. */
+.og-abasapp__grade{
+  position:relative;
+  display:grid;grid-template-columns:repeat(5,1fr);
+  height:var(--og-abas-h);
+}
+.og-abasapp__indicador{
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / 5);
+  background:var(--scw-amarelo);border-radius:0 0 3px 3px;
+  transform:translateX(calc(var(--og-i,0) * 100%));
+  transition:transform 300ms var(--scw-ease);
+}
+.og-abaapp{
+  min-height:44px;                    /* piso de toque no CONTROLE (§6.10/§10.2) */
+  background:transparent;border:0;cursor:pointer;color:var(--scw-creme);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  opacity:.62;transition:opacity var(--scw-transicao);
+}
+.og-abaapp.is-ativa{opacity:1;color:var(--scw-amarelo)}
+.og-abaapp__icone{width:22px;height:22px;transition:transform 180ms var(--scw-ease)}
+.og-abaapp.is-ativa .og-abaapp__icone{transform:scale(1.12)}
+.og-abaapp__rotulo{font:700 11px/1 var(--scw-font);text-transform:lowercase}
+
+/* ── Rail (>900px) ─────────────────────────────────────────────────────── */
+/* Casca comum com o painel da marca (handoff "Painel SCW app", §1). Reusa os
+   MESMOS 5 ícones e o mesmo `data-vista` da barra de abas — é a mesma
+   navegação, só de pé em vez de deitada. Zero token novo: cor e raio já
+   existem no site (§6.1/§6.10), só ganham prefixo `pn-` porque a peça é nova. */
+.pn-rail{
+  grid-row:1 / span 2;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:13px 0 12px;background:var(--scw-choco);
+}
+.pn-rail__selo{height:29px;width:auto;display:block;margin-bottom:11px}
+.pn-rail__btn{
+  position:relative;width:52px;height:52px;flex:0 0 auto;
+  display:grid;place-items:center;border:0;border-radius:17px;
+  background:transparent;color:rgba(254,240,221,.72);cursor:pointer;
+  transition:background var(--scw-transicao),color var(--scw-transicao);
+}
+@media (hover:hover){ .pn-rail__btn:hover{background:rgba(254,240,221,.1)} }
+.pn-rail__btn[aria-current="page"]{background:var(--scw-amarelo);color:var(--scw-choco)}
+.pn-rail__btn svg{width:23px;height:23px}
+.pn-rail__sair{
+  width:52px;height:42px;margin-top:auto;
+  display:grid;place-items:center;border:0;border-radius:13px;
+  background:transparent;color:rgba(254,240,221,.62);cursor:pointer;
+}
+.pn-rail__sair svg{width:19px;height:19px}
+
+/* Badge de contagem — mesmo desenho nos dois painéis (rail, abas e sino). Três
+   repetições, nunca laço: chama a atenção uma vez e para (§6.15, teto de dois
+   movimentos contínuos; num painel interno o certo é zero). */
+.pn-badge{
+  position:absolute;top:6px;right:6px;min-width:18px;height:18px;padding:0 5px;
+  display:grid;place-items:center;border-radius:999px;
+  background:var(--scw-magenta);color:var(--scw-creme);
+  font:800 10px/1 var(--scw-font);font-variant-numeric:tabular-nums;
+  box-shadow:0 0 0 2px var(--scw-choco);
+}
+.og-aba .pn-badge,.og-abaapp .pn-badge{position:static;box-shadow:none;margin-left:6px}
+@keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
+.pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
+
+/* Linha de notificação — mesma peça do handoff (`.pn-notif`, ver
+   public/marca/index.html): disco com o ícone do tipo, texto, ponto de "não
+   lida". Substitui `.og-item` na gaveta 'notif', que não distinguia lida de
+   não lida a não ser pelo peso da fonte. */
+.pn-notif{
+  width:100%;text-align:left;cursor:pointer;border:0;border-radius:14px;padding:12px 13px;
+  background:transparent;box-shadow:inset 0 0 0 1px var(--scw-filete);
+  display:flex;align-items:flex-start;gap:11px;
+  transition:background var(--scw-transicao);
+}
+@media (hover:hover){ .pn-notif:hover{background:var(--scw-bege)} }
+.pn-notif.is-naolida{background:#fff;box-shadow:inset 0 0 0 1px var(--scw-borda-campo)}
+.pn-notif__disco{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:11px}
+.pn-notif__disco svg{width:17px;height:17px}
+.pn-notif__texto{display:block;font:500 14px/1.25 var(--scw-font);text-wrap:pretty}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
+.pn-notif__ponto{flex:0 0 auto;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--scw-magenta)}
+
+/* Acima de 900px a barra de abas sai, a rail entra, e os destinos deixam de
+   caber no cabeçalho (§6.14). */
+@media (min-width:901px){
+  .og-abasapp{display:none}
+  #painel{grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto 1fr}
+}
+@media (max-width:900px){ .pn-rail{display:none} }
+
+/* ── Botões ────────────────────────────────────────────────────────────── */
+.og-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:0 18px;border:0;border-radius:999px;
+  background:var(--scw-choco);color:var(--scw-creme);
+  font:800 14px/1 var(--scw-font);cursor:pointer;
+  transition:transform 180ms var(--scw-ease),background var(--scw-transicao);
+}
+.og-btn:hover{transform:translateY(-2px)}
+.og-btn:active{transform:translateY(0)}
+.og-btn[disabled]{opacity:.45;cursor:default;pointer-events:none}
+.og-btn--claro{background:var(--scw-creme);color:var(--scw-choco)}
+.og-btn--vazado{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 2px var(--scw-borda-campo)}
+.og-btn--mini{min-height:38px;padding:0 14px;font-size:13px}
+
+/* ── Campos ────────────────────────────────────────────────────────────── */
+.og-campo{display:flex;flex-direction:column;gap:6px}
+.og-campo > span{font:800 11px/1 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.og-campo input,.og-campo select,.og-campo textarea{
+  min-height:44px;padding:10px 14px;border-radius:12px;
+  border:1px solid var(--scw-borda-campo);background:#fff;
+  font:500 15px/1.4 var(--scw-font);width:100%;
+}
+.og-campo textarea{min-height:110px;resize:vertical}
+
+/* ── Entrada ───────────────────────────────────────────────────────────── */
+/* `height` + `overflow-y:auto`, não `min-height`: agora que o body é
+   `overflow:hidden`, um cartão mais alto que a tela ficaria cortado sem saída
+   — o teclado do celular aberto produz exatamente esse caso. */
+.og-entrada{height:100dvh;overflow-y:auto;display:grid;place-items:center;padding:24px}
+.og-entrada__cartao{
+  width:min(420px,100%);background:#fff;border-radius:var(--scw-r-card);
+  border:1px solid var(--scw-filete);padding:clamp(26px,4vw,38px);
+}
+.og-entrada__marca{height:64px;width:auto;display:block;margin-bottom:22px}
+.og-entrada h1{font:900 clamp(24px,3vw,30px)/1.05 var(--scw-font);letter-spacing:-.035em;margin:0 0 8px}
+.og-entrada p{margin:0 0 22px;color:var(--scw-marrom);font-size:14px}
+.og-entrada form{display:flex;flex-direction:column;gap:16px}
+
+/* ── A mesa ────────────────────────────────────────────────────────────── */
+/* Substitui o resumo por origem (25/08/2026, patch "Painel SCW app" §5): seis
+   colunas por ETAPA da candidatura dizem onde está o gargalo — quatro
+   contadores soltos não diziam. */
+.og-mesa{display:flex;gap:11px;overflow-x:auto;padding-bottom:6px;margin:0 0 clamp(24px,3vw,34px)}
+.og-mesa__col{flex:0 0 auto;width:250px;background:var(--scw-bege);border-radius:var(--scw-r-card);padding:12px 11px 11px}
+.og-mesa__cabeca{display:flex;align-items:center;gap:9px;padding:0 3px 10px}
+.og-mesa__disco{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto}
+.og-mesa__disco svg{width:18px;height:18px}
+.og-mesa__nome{display:block;font:800 12.5px/1.15 var(--scw-font)}
+.og-mesa__legenda{display:block;margin-top:2px;font:500 11px/1 var(--scw-font);color:var(--scw-marrom)}
+.og-mesa__n{margin-left:auto;font:900 16px/1 var(--scw-font);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.og-mesa__vazio{text-align:center;font-size:12px;color:var(--scw-marrom);padding:18px 0;margin:0}
+
+/* Reusa o vocabulário de card do painel (mesma peça que a lista de marcas),
+   só que empilhado dentro de uma coluna da mesa. */
+.og-cartao{
+  width:100%;text-align:left;cursor:pointer;
+  border:0;border-radius:13px;padding:10px 12px;margin:0 0 8px;
+  background:#fff;box-shadow:inset 0 0 0 1px var(--scw-filete);
+  display:flex;flex-direction:column;gap:6px;
+  transition:transform 160ms var(--scw-ease),box-shadow 160ms var(--scw-ease);
+}
+.og-cartao:last-child{margin-bottom:0}
+@media (hover:hover){
+  .og-cartao:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo)}
+}
+.og-cartao__topo{display:flex;align-items:center;gap:6px}
+.og-cartao__ponto{width:7px;height:7px;border-radius:50%;background:var(--scw-magenta);flex:0 0 auto}
+.og-cartao__nome{font:800 13px/1.2 var(--scw-font);margin:0}
+.og-cartao__meta{font-size:12px;color:var(--scw-marrom);margin:0}
+.og-cartao__combo{display:flex;gap:6px}
+.og-cartao__combo svg{width:15px;height:15px}
+.og-regua{display:block;width:44px;height:4px;border-radius:2px;margin-bottom:12px}
+
+/* ── Agenda de fotos (dois modos) ──────────────────────────────────────── */
+.og-agenda__topo{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.og-agenda__modos{display:flex;gap:8px;flex:0 0 auto}
+.og-agenda__modos button{
+  min-height:38px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;
+  font:700 13px/1 var(--scw-font);background:#fff;box-shadow:inset 0 0 0 1px var(--scw-borda-campo);
+}
+.og-agenda__modos button.is-ativo{background:var(--scw-choco);color:var(--scw-creme);box-shadow:none;font-weight:800}
+.og-agenda__dias{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.og-agenda__col{flex:0 0 auto;width:158px;display:flex;flex-direction:column;gap:7px}
+.og-agenda__coldata{font:800 11px/1.2 var(--scw-font);color:var(--scw-marrom);text-align:center;margin:0 0 2px;text-transform:capitalize}
+.og-slot{
+  width:100%;text-align:left;cursor:pointer;border:0;border-radius:13px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:3px;transition:transform 160ms var(--scw-ease);
+}
+@media (hover:hover){ .og-slot:hover{transform:translateY(-2px)} }
+.og-slot__hora{font:900 14px/1 var(--scw-font);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.og-slot__quem{font:500 11px/1.2 var(--scw-font);opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 'aberto' é cyan (mesma leitura da tela da marca); 'reservado' é chapa
+   chocolate SEM cursor de clique — reservada não fecha por aqui, de propósito. */
+.og-slot--aberto{background:var(--scw-cyan);color:var(--scw-choco)}
+.og-slot--reservado{background:var(--scw-choco);color:var(--scw-creme);cursor:default}
+.og-slot--fechado{background:#fff;color:var(--scw-marrom);box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo)}
+.og-agenda__legenda{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--scw-marrom)}
+.og-agenda__legenda span{display:inline-flex;align-items:center;gap:6px}
+.og-agenda__legenda i{width:10px;height:10px;border-radius:3px;display:inline-block;font-style:normal}
+
+/* ── Os formulários ────────────────────────────────────────────────────── */
+.og-forms{
+  background:var(--scw-bege);border-radius:var(--scw-r-card);
+  padding:clamp(20px,2.6vw,28px);margin:0 0 clamp(24px,3vw,34px);
+}
+.og-forms__cabeca--com-acao{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.og-forms__cabeca--com-acao > div{flex:1 1 220px;min-width:0}
+.og-forms__cabeca--com-acao .og-btn{flex:0 0 auto}
+.og-forms__cabeca h2{font:900 18px/1.1 var(--scw-font);letter-spacing:-.03em;margin:0}
+.og-forms__cabeca p{margin:6px 0 0;font-size:13.5px;color:var(--scw-marrom)}
+.og-forms__lista{
+  display:grid;gap:12px;margin:18px 0 0;padding:0;list-style:none;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));
+}
+.og-forms__item{
+  background:#fff;border:1px solid var(--scw-filete);border-radius:14px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:8px;
+}
+.og-forms__topo{display:flex;align-items:center;gap:9px}
+.og-forms__ponto{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.og-forms__nome{font:800 15px/1.2 var(--scw-font);margin:0}
+.og-forms__acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+/* Ausência honesta: o formulário existe, mas não está público. Nada de link
+   morto nem de botão desabilitado sem explicação. */
+.og-forms__nota{margin:0;font-size:13px;color:var(--scw-marrom)}
+.og-forms__url{
+  font-size:12px;color:var(--scw-marrom);margin:0;
+  overflow-wrap:anywhere;
+}
+
+/* ── Abas ──────────────────────────────────────────────────────────────── */
+.og-abas{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin:0 0 18px;list-style:none;padding-inline-start:0}
+.og-abas::-webkit-scrollbar{display:none}
+.og-abas li{flex:0 0 auto}
+.og-aba{
+  min-height:44px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;
+  background:transparent;box-shadow:inset 0 0 0 1px var(--scw-borda-campo);
+  font:700 14px/1 var(--scw-font);display:inline-flex;align-items:center;gap:8px;
+  transition:background var(--scw-transicao),box-shadow var(--scw-transicao);
+}
+.og-aba[aria-selected="true"]{background:var(--scw-choco);color:var(--scw-creme);box-shadow:none;font-weight:800}
+.og-aba__ponto{width:9px;height:9px;border-radius:50%;display:block}
+.og-aba__n{font-variant-numeric:tabular-nums;opacity:.72}
+
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+.og-filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:0 0 20px}
+.og-filtros .og-campo{min-width:190px;flex:1 1 190px}
+.og-filtros .og-campo--busca{flex:2 1 280px}
+
+/* ── Lista ─────────────────────────────────────────────────────────────── */
+.og-lista{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.og-item{
+  width:100%;text-align:left;background:#fff;cursor:pointer;
+  border:1px solid var(--scw-filete);border-radius:14px;
+  padding:14px 16px;display:grid;gap:4px 16px;align-items:center;
+  grid-template-columns:10px 1fr auto;
+  transition:border-color var(--scw-transicao),transform 180ms var(--scw-ease);
+}
+.og-item:hover{transform:translateY(-2px);border-color:var(--scw-borda-campo)}
+.og-item[aria-current="true"]{border-color:var(--scw-choco);box-shadow:inset 0 0 0 1px var(--scw-choco)}
+.og-item__cor{width:10px;height:38px;border-radius:5px;grid-row:span 2}
+.og-item__nome{font:800 15px/1.25 var(--scw-font);margin:0}
+.og-item__meta{font-size:13px;color:var(--scw-marrom);margin:0;grid-column:2}
+.og-item__dir{grid-row:span 2;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.og-item__data{font-size:12px;color:var(--scw-marrom);font-variant-numeric:tabular-nums}
+
+.og-selo{
+  display:inline-block;padding:4px 10px;border-radius:999px;
+  font:800 10px/1.4 var(--scw-font);letter-spacing:.1em;text-transform:uppercase;
+  background:var(--scw-bege);color:var(--scw-choco);white-space:nowrap;
+}
+.og-selo[data-novo="1"]{background:var(--scw-amarelo)}
+/* Selo de acesso: anda LADO A LADO com o selo de status, então não pode repetir
+   a cor dele (§6.3). O amarelo é do "novo"; sobram laranja (4,78:1 sobre
+   chocolate), cyan (5,6:1) e o chocolate cheio com tinta creme (12:1). */
+.og-selo[data-acesso="aguardando_cadastro"]{background:var(--scw-laranja)}
+.og-selo[data-acesso="em_preenchimento"]{background:var(--scw-cyan)}
+.og-selo[data-acesso="cadastro_completo"]{background:var(--scw-choco);color:var(--scw-creme)}
+
+/* Marca sem folha de detalhe própria: reusa a linha da lista, mas sem cursor de
+   clique e sem a elevação do hover. Card que sobe sem ter para onde levar
+   promete uma tela que não existe (§6.15, regra 6). */
+div.og-item{cursor:default}
+div.og-item:hover{transform:none;border-color:var(--scw-filete)}
+
+/* ── Estados ───────────────────────────────────────────────────────────── */
+.og-estado{
+  border:1px dashed var(--scw-borda-campo);border-radius:var(--scw-r-card);
+  padding:clamp(28px,5vw,52px);text-align:center;color:var(--scw-marrom);
+}
+.og-estado h2{font:900 20px/1.15 var(--scw-font);letter-spacing:-.03em;margin:0 0 8px;color:var(--scw-choco)}
+.og-estado p{margin:0 auto;max-width:52ch;font-size:14px}
+.og-estado[data-tom="erro"]{border-style:solid;border-color:var(--scw-magenta);background:rgba(241,7,103,.06)}
+
+.og-aviso{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:14px;background:var(--scw-bege)}
+.og-aviso[data-tom="erro"]{background:rgba(241,7,103,.1);box-shadow:inset 0 0 0 1px var(--scw-magenta)}
+.og-aviso[data-tom="ok"]{background:rgba(1,175,204,.12);box-shadow:inset 0 0 0 1px var(--scw-cyan)}
+.og-aviso[hidden]{display:none}
+
+/* ── Detalhe ───────────────────────────────────────────────────────────── */
+.og-fundo{position:fixed;inset:0;background:rgba(61,19,8,.5);z-index:30;border:0;padding:0;cursor:pointer}
+.og-fundo[hidden],.og-detalhe[hidden]{display:none}
+.og-detalhe{
+  position:fixed;z-index:31;top:0;right:0;bottom:0;width:min(560px,100%);
+  background:var(--scw-creme);border-left:1px solid var(--scw-filete);
+  display:flex;flex-direction:column;
+}
+.og-detalhe__topo{
+  padding:18px var(--trilho);border-bottom:1px solid var(--scw-filete);
+  display:flex;align-items:flex-start;gap:14px;background:var(--scw-bege);
+}
+.og-detalhe__topo h2{font:900 19px/1.15 var(--scw-font);letter-spacing:-.03em;margin:0}
+.og-detalhe__topo p{margin:6px 0 0;font-size:13px;color:var(--scw-marrom)}
+.og-detalhe__fechar{margin-left:auto;flex:0 0 auto}
+.og-detalhe__rolo{overflow-y:auto;padding:22px var(--trilho) 40px;flex:1}
+
+.og-campos{margin:0 0 26px;display:flex;flex-direction:column;gap:14px}
+.og-campos div{display:flex;flex-direction:column;gap:3px}
+.og-campos dt{font:800 10px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.og-campos dd{margin:0;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.og-acoes-rapidas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.og-bloco{border-top:1px solid var(--scw-filete);padding-top:22px;display:flex;flex-direction:column;gap:14px}
+.og-bloco h3{font:900 15px/1.15 var(--scw-font);letter-spacing:-.02em;margin:0}
+/* Linha de ficha: rótulo em peso, valor em seguida. O `<b>` carrega a
+   hierarquia; a linha inteira fica no mesmo tamanho de corpo, porque uma ficha
+   é para LER de cima a baixo, não para varrer. */
+.og-par{margin:0;font-size:14.5px;line-height:1.5}
+.og-par b{font-weight:800}
+/* Caixa de marcar: o alvo é a LINHA, não o quadradinho de 16px. O piso de 44px
+   vale para o controle real, e um <input type=checkbox> nunca chega lá sozinho
+   (CLAUDE.md §10.2). */
+.og-campo--linha{flex-direction:row;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.og-campo--linha input{width:22px;height:22px;min-height:22px;flex:0 0 auto;accent-color:var(--scw-cyan)}
+.og-campo--linha span{margin:0;font-weight:700}
+
+/* Saída com movimento nas duas telas: gaveta sai pela direita, folha desce.
+   Sem isso o detalhe some com um corte, e corte denuncia que não é app. */
+.og-detalhe.is-fechando{animation:ogGavetaSai 260ms var(--scw-ease) forwards}
+@keyframes ogGavetaSai{to{transform:translateX(100%)}}
+
+@media (max-width:900px){
+  /* No celular o padrão é folha subindo da base — a mesma peça do site
+     (`.scw-folha`, do MobileMenu), não uma gaveta lateral encolhida. */
+  .og-detalhe{
+    top:auto;right:0;left:0;bottom:0;width:100%;
+    max-height:88svh;                 /* svh, não vh: teclado aberto não empurra */
+    border-radius:30px 30px 0 0;border-left:0;
+    animation:ogFolha 340ms var(--scw-ease);
+  }
+  .og-detalhe.is-fechando{animation:ogFolhaSai 260ms var(--scw-ease) forwards}
+  /* ⚠️ O topo precisa ser sticky: numa folha alta, sem isto o botão Fechar sai
+     de cena junto com a rolagem e a pessoa perde a saída do painel. */
+  .og-detalhe__topo{border-radius:30px 30px 0 0;position:sticky;top:0;z-index:1}
+  /* ⚠️ `--mini` nasceu com 38px, que serve de sobra no desktop e reprova no
+     celular: o piso do §6.10 é 44px no CONTROLE. Vale para Fechar e Sair —
+     os dois só existem como `--mini`. A largura encolhe para compensar. */
+  .og-btn--mini{min-height:44px;padding:0 12px}
+  .og-item{grid-template-columns:10px 1fr}
+  .og-item__dir{grid-row:auto;grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-top:4px}
+}
+@keyframes ogFolha{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes ogFolhaSai{to{transform:translateY(100%)}}
+/* ── Credenciais recém-criadas ─────────────────────────────────────────── */
+/* Chapa amarela: é a única coisa da ficha que a pessoa PRECISA agir agora, e
+   some para sempre se ela fechar sem copiar. Amarelo sobre chocolate dá 9,5:1. */
+.og-cred{
+  background:var(--scw-amarelo);border-radius:14px;
+  padding:16px 18px;margin:0 0 14px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.og-cred__aviso{margin:0;font:800 13px/1.4 var(--scw-font);color:var(--scw-choco)}
+.og-cred__par{margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.og-cred__par dt{
+  font:800 10px/1.3 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--scw-marrom);flex:0 0 52px;
+}
+/* `user-select:all` para o toque longo do celular pegar o valor inteiro de uma
+   vez: senha selecionada pela metade é o erro que ninguém percebe na hora. */
+.og-cred__par dd{
+  margin:0;font:900 17px/1.2 var(--scw-font);letter-spacing:-.01em;
+  color:var(--scw-choco);overflow-wrap:anywhere;user-select:all;
+}
+.og-cred__acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.og-cred .og-btn{background:var(--scw-choco);color:var(--scw-creme)}
+.og-cred .og-btn--vazado{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 2px rgba(61,19,8,.4)}
+.og-cred .og-forms__nota{color:var(--scw-marrom)}
+
+/* ── Zona de risco da ficha ────────────────────────────────────────────── */
+/* Sem vermelho: a paleta não tem (§6.1). Quem carrega o alarme é o filete
+   laranja, o mesmo recurso de `.og-aviso[data-tom="erro"]` — laranja sobre
+   creme fecha 3:1 como superfície preenchida, e a tinta segue chocolate. */
+.og-risco{border-top-color:var(--scw-laranja)}
+.og-risco h3{color:var(--scw-marrom)}
+.og-risco__acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+/* O botão só fica chapado DEPOIS de armado: enquanto é o primeiro toque ele é
+   discreto, para não competir com Salvar, que é a ação do dia a dia. */
+#det-apagar.is-armado{
+  background:var(--scw-laranja);color:var(--scw-choco);
+  box-shadow:none;font-weight:800;
+}
+
+/* ── Movimento ─────────────────────────────────────────────────────────── */
+/* Só `opacity` e `transform`: nada que cause layout (§6.15, regra 3). */
+.og-vista{animation:ogEntra 220ms var(--scw-ease)}
+@keyframes ogEntra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Esqueleto: enquanto os dados vêm, a lista mostra a FORMA do conteúdo, não uma
+   frase.
+   ⚠️ A ALTURA É MEDIDA, NÃO CALCULADA. Um `.og-item` real dá **102px até 900px**
+   e **99px acima** — abaixo de 900px o `.og-item__dir` ganha linha própria e o
+   card cresce. A conta "padding + conteúdo" dava 74px e esquecia o selo e a
+   data: a lista pularia 28px por item quando os dados chegassem, que é pior que
+   a tela em branco. Mexeu no `.og-item`? Remeça isto. */
+/* O esqueleto é `aria-hidden` — forma não é conteúdo. Quem usa leitor de tela
+   recebe o aviso por texto, nesta classe, que some da tela mas não da árvore. */
+.og-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.og-esqueleto{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.og-esqueleto li{
+  height:102px;border-radius:14px;
+  background:linear-gradient(90deg,
+    rgba(61,19,8,.05) 25%, rgba(61,19,8,.09) 37%, rgba(61,19,8,.05) 63%);
+  background-size:400% 100%;
+  animation:ogBrilho 1400ms ease-in-out infinite;
+}
+@keyframes ogBrilho{from{background-position:100% 0}to{background-position:0 0}}
+/* Acima de 900px o item encolhe 3px: o `__dir` volta para a mesma linha. */
+@media (min-width:901px){ .og-esqueleto li{height:99px} }
+
+/* ── Login — porta do painel (handoff "Painel SCW app", 26/08/2026) ───────
+   Fundo chocolate cheio, dois cartões escuros com o acento de cada papel no
+   disco do ícone — é a tela do documento, não a reaproveitada do painel
+   antigo. Vocabulário `.pn-porta*`/`.pn-setor*`, igual ao protótipo, com os
+   tokens já no prefixo `--scw-` do arquivo combinado. */
+.pn-porta{
+  height:100dvh;overflow-y:auto;display:grid;place-items:center;
+  padding:clamp(20px,4vw,40px);background:var(--scw-choco);color:var(--scw-creme);
+}
+.pn-porta__caixa{width:min(760px,100%)}
+.pn-porta__selo{height:52px;width:auto;display:block;margin-bottom:22px}
+.pn-porta__titulo{margin:0 0 8px;font:900 clamp(26px,3.6vw,36px)/1.02 var(--scw-font);letter-spacing:-.04em}
+.pn-porta__lead{margin:0 0 26px;max-width:46ch;font-size:14.5px;color:rgba(254,240,221,.72);text-wrap:pretty}
+.pn-porta__grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}
+.pn-porta__pe{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:22px 0 0}
+.pn-porta__nota{font-size:13px;color:rgba(254,240,221,.6)}
+
+.pn-setor{
+  display:flex;flex-direction:column;gap:13px;
+  padding:clamp(18px,2.4vw,24px);border-radius:20px;
+  background:rgba(254,240,221,.06);box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.18);
+  /* Os dois cards de escolha (27/08/2026) usam isto num <button>, não só num
+     <form> — reset explícito, senão o navegador acrescenta chrome nativo
+     (borda, centralização de texto). Sem efeito nos formulários de login. */
+  border:0;appearance:none;text-align:left;font:inherit;width:100%;color:inherit;
+}
+.pn-setor--escolha{cursor:pointer}
+.pn-setor__disco{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--scw-choco);flex:0 0 auto}
+.pn-setor__disco svg{display:block;width:24px;height:24px}
+.pn-setor--org .pn-setor__disco{background:var(--scw-amarelo)}
+.pn-setor--marca .pn-setor__disco{background:var(--scw-cyan)}
+.pn-setor__nome{display:block;font:900 19px/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-setor__nota{display:block;margin-top:5px;font-size:13.5px;color:rgba(254,240,221,.7)}
+
+.pn-campo--porta{display:flex;flex-direction:column;gap:6px}
+.pn-campo__rotulo{font:800 10px/1 var(--scw-font);letter-spacing:.16em;text-transform:uppercase;color:rgba(254,240,221,.6)}
+.pn-campo__escuro{
+  min-height:48px;padding:10px 15px;border-radius:13px;border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.28);
+  background:rgba(254,240,221,.06);color:var(--scw-creme);
+  font:500 16px/1.4 var(--scw-font);width:100%;
+}
+.pn-campo__escuro::placeholder{color:rgba(254,240,221,.42)}
+.pn-erro{
+  display:flex;align-items:center;gap:11px;margin:0 0 4px;padding:13px 15px;
+  border-radius:15px;background:var(--scw-laranja);color:var(--scw-choco);
+  font:800 13.5px/1.35 var(--scw-font);
+}
+.pn-erro[hidden]{display:none}
+.pn-link--porta{
+  border:0;background:transparent;padding:0;min-height:44px;
+  display:inline-flex;align-items:center;color:var(--scw-amarelo);
+  font:800 13px/1 var(--scw-font);cursor:pointer;text-decoration:underline;
+}
+/* Fora do flex de .pn-setor (é irmão do form, não filho) — precisa do
+   próprio respiro antes do card de login. */
+.pn-porta__voltar{display:block;margin-bottom:14px}
+
+/* Cada setor precisa do próprio botão-cor, e as duas cores já existem: só
+   falta a variante escura do botão (o padrão .og-btn é claro/creme). */
+.og-btn--amarelo{background:var(--scw-amarelo);color:var(--scw-choco)}
+.og-btn--cyan-escuro{background:var(--scw-cyan);color:var(--scw-choco)}
+
+/* .pn-casca — a casca do painel da MARCA (`#vPainel`). É a única classe da
+   "casca de app" que não tem par em /organizacao/: lá o mesmo papel é feito
+   por #painel via ID (grid direto na regra da linha 62 do CSS extraído).
+   Sem esta regra o vPainel cai pro display:block de qualquer <div>. */
+.pn-casca{
+  height:100dvh; display:grid;
+  grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+}
+.pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+
+/* ── Cor por seção — dentro dos 9 tokens fechados (CLAUDE.md §6.1), nunca
+   fora. Cada vista ganha um acento (disco do cabeçalho da vista + rótulo),
+   nunca o fundo inteiro — a régua do §6.3 (nunca repetir a cor do vizinho). */
+.pn-acento-disco{
+  width:38px;height:38px;border-radius:13px;flex:0 0 auto;
+  display:grid;place-items:center;
+}
+.pn-acento-disco svg{width:20px;height:20px}
+[data-acento="amarelo"] .pn-acento-disco{background:var(--scw-amarelo);color:var(--scw-choco)}
+[data-acento="cyan"] .pn-acento-disco{background:var(--scw-cyan);color:var(--scw-choco)}
+[data-acento="magenta"] .pn-acento-disco{background:var(--scw-magenta);color:var(--scw-creme)}
+[data-acento="roxo"] .pn-acento-disco{background:var(--scw-roxo);color:var(--scw-creme)}
+[data-acento="laranja"] .pn-acento-disco{background:var(--scw-laranja);color:var(--scw-choco)}
+[data-acento="marrom"] .pn-acento-disco{background:var(--scw-marrom);color:var(--scw-creme)}
+.pn-vista-cabeca{display:flex;align-items:center;gap:13px;margin:0 0 clamp(18px,2.4vw,26px)}
+.pn-vista-cabeca__texto{min-width:0}
+.pn-vista-cabeca__titulo{display:block;font:900 clamp(19px,2.2vw,24px)/1.1 var(--scw-font);letter-spacing:-.03em}
+.pn-vista-cabeca__nota{display:block;margin-top:2px;font:500 13px/1.3 var(--scw-font);color:var(--scw-marrom)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--scw-creme); color:var(--scw-choco); font-family:var(--scw-font); font-weight:500;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+  min-height:100dvh; display:flex; flex-direction:column;
+}
+h1,h2,h3{margin:0; font-weight:900; letter-spacing:-.03em; line-height:1.05}
+p{margin:0 0 12px; text-wrap:pretty; max-width:62ch}
+a{color:var(--scw-marrom)}
+:focus-visible{outline:3px solid var(--scw-cyan); outline-offset:2px; border-radius:6px}
+
+/* Cabeçalho — a marca do festival à esquerda, nunca centralizada. */
+header{
+  background:var(--scw-choco); color:var(--scw-creme);
+  padding:16px var(--trilho); display:flex; align-items:center; gap:12px;
+}
+header img{height:38px; width:auto; display:block}
+header .quem{margin-left:auto; font-size:13px; color:var(--scw-bege); text-align:right; min-width:0}
+header .quem b{display:block; font-weight:800; color:var(--scw-creme); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+header button{
+  background:none; border:2px solid rgba(254,240,221,.45); color:var(--scw-creme);
+  font:800 13px/1 var(--scw-font); padding:11px 14px; border-radius:999px; cursor:pointer;
+  min-height:44px; transition:border-color var(--scw-transicao),background var(--scw-transicao);
+}
+header button:hover{border-color:var(--scw-creme); background:rgba(254,240,221,.1)}
+
+main{flex:1; width:100%; max-width:720px; margin:0 auto; padding:clamp(24px,5vw,44px) var(--trilho) 64px}
+
+.rotulo{font-weight:800; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--scw-marrom); margin:0 0 10px}
+.lead{max-width:46ch; color:var(--scw-marrom)}
+.nota{color:var(--scw-marrom); font-size:14.5px}
+
+.card{
+  background:var(--scw-creme); border:1.5px solid var(--scw-filete); border-radius:var(--scw-r-card);
+  padding:clamp(18px,3.5vw,26px); margin:0 0 18px;
+}
+.card > h2{font-size:clamp(19px,2.4vw,24px); margin:0 0 4px}
+.card > .rotulo{margin-bottom:6px}
+
+/* Campos. O <span> é o label de verdade — placeholder-como-label some quando a
+   pessoa digita, e some justo para quem mais precisa dele. */
+label{display:block; margin:0 0 16px}
+label > span{display:block; font-weight:800; font-size:13px; margin:0 0 6px}
+label > span em{font-style:normal; font-weight:500; color:var(--scw-marrom)}
+input,textarea,select{
+  width:100%; font:500 16px/1.4 var(--scw-font); color:var(--scw-choco);
+  background:#fff; border:1.5px solid var(--scw-borda-campo); border-radius:12px;
+  padding:13px 14px; min-height:48px; transition:border-color var(--scw-transicao);
+}
+textarea{min-height:110px; resize:vertical}
+input:hover,textarea:hover{border-color:var(--scw-marrom)}
+.dupla{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
+@media (max-width:560px){ .dupla{grid-template-columns:1fr} }
+
+/* Caixa de marcar. O alvo é a LINHA inteira, não o quadradinho de 16px: o piso
+   de 44px vale para o controle real, e um <input type=checkbox> nunca chega lá
+   sozinho (CLAUDE.md §10.2). */
+.marcar{display:flex; align-items:center; gap:10px; min-height:44px; margin:0 0 4px; cursor:pointer}
+.marcar input{width:22px; height:22px; min-height:22px; margin:0; flex:0 0 auto; accent-color:var(--scw-cyan)}
+.marcar span{font-weight:700; font-size:14.5px; display:block; margin:0}
+
+button.acao{
+  font:800 15px/1 var(--scw-font); border:none; border-radius:999px; cursor:pointer;
+  padding:17px 26px; min-height:52px; background:var(--scw-choco); color:var(--scw-creme);
+  transition:transform 180ms var(--scw-ease),background var(--scw-transicao);
+}
+button.acao:hover{transform:translateY(-2px)}
+button.acao:active{transform:translateY(0)}
+button.acao[disabled]{opacity:.45; cursor:default; pointer-events:none; transform:none}
+button.acao.larga{width:100%}
+button.secundaria{background:none; color:var(--scw-marrom); border:2px solid var(--scw-borda-campo)}
+button.link{
+  background:none; border:none; color:var(--scw-marrom); font:700 14px/1.4 var(--scw-font);
+  text-decoration:underline; cursor:pointer; padding:12px 2px; min-height:44px;
+}
+
+/* Aviso. Fundo bege, sem filete lateral. A cor é reforço, nunca o recado — o
+   texto já diz o que houve, que é o que sobra para quem não distingue as cores. */
+.aviso{
+  border-radius:12px; padding:12px 16px; margin:0 0 16px; font-size:14.5px;
+  background:var(--scw-bege); border:1.5px solid transparent;
+}
+.aviso.erro{border-color:var(--scw-magenta)}
+.aviso.ok{border-color:var(--scw-cyan)}
+.aviso:empty{display:none}
+/* #aviso é o banner ÚNICO e global (login, senha e painel todos escrevem
+   nele) — virou posição fixa no topo porque o painel deixou de ter um
+   contêiner comum entre as três telas quando ganhou a casca própria. */
+#aviso-marca{position:fixed; top:0; left:0; right:0; z-index:80; margin:0; border-radius:0; text-align:center}
+
+/* Progresso — texto primeiro, barra depois. A barra sozinha não diz quanto falta. */
+.progresso{margin:0 0 22px}
+.progresso b{font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--scw-marrom)}
+.trilha{height:6px; border-radius:999px; background:var(--scw-filete); overflow:hidden; margin-top:8px}
+/* `scaleX` com origem à esquerda, não `width`: a mesma decisão da régua de anos
+   da página Edições (CLAUDE.md §10.3). Animar `width` joga trabalho de layout
+   no compositor a cada frame; `transform` roda na GPU. */
+.trilha i{
+  display:block; height:100%; background:var(--scw-cyan); border-radius:999px;
+  transform-origin:left center; transform:scaleX(0);
+  transition:transform 300ms var(--scw-ease);
+}
+
+/* Unidades. Rede tem várias — e é a contagem delas que vira "33 lojas". */
+.unidade,.item{border:1.5px solid var(--scw-filete); border-radius:16px; padding:16px; margin:0 0 12px; background:var(--scw-bege)}
+.unidade .topo,.item .topo{display:flex; align-items:center; gap:10px; margin:0 0 12px}
+.unidade .topo b,.item .topo b{font-weight:800; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--scw-marrom)}
+.unidade .topo button{margin-left:auto}
+.unidade input,.item input,.item textarea{background:#fff}
+.canais{margin-top:4px}
+.canais > b{display:block; font-weight:800; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--scw-marrom); margin:0 0 8px}
+
+.salvo{font-size:13px; color:var(--scw-marrom); min-height:20px; margin:0 0 8px}
+
+/* Selo de estado. Cor codifica etapa, o texto carrega o sentido. */
+.selo{display:inline-block; font:800 12px/1 var(--scw-font); letter-spacing:.1em; text-transform:uppercase;
+      padding:9px 13px; border-radius:999px; background:var(--scw-bege); color:var(--scw-choco)}
+.selo.andamento{background:var(--scw-amarelo)}
+.selo.completo{background:var(--scw-cyan)}
+.selo.vencido{background:var(--scw-laranja)}
+
+/* Linha de solicitação, de arquivo e de sessão. Mesma forma para as três: são
+   três listas de "a organização mandou isto", e desenhar cada uma do seu jeito
+   só faria a pessoa reaprender três vezes. */
+.linha{border-top:1.5px solid var(--scw-filete); padding:14px 0; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap}
+.linha:first-of-type{border-top:none}
+.linha .corpo{flex:1 1 260px; min-width:0}
+.linha .corpo b{display:block; font-weight:800; font-size:16px}
+.linha .corpo span{display:block; color:var(--scw-marrom); font-size:14.5px}
+.linha .lado{flex:0 0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.linha button.link{padding:12px 8px}
+
+.rodape{margin-top:28px; padding-top:18px; border-top:1.5px solid var(--scw-filete); font-size:13.5px; color:var(--scw-marrom)}
+[hidden]{display:none !important}
+/* ── Casca de app (25/08/2026) ─────────────────────────────────────────────
+   Handoff "Painel SCW app": rail no desktop, abas no celular — a marca não
+   tinha NENHUMA navegação interna antes disto (uma coluna só, rolagem
+   contínua). Mesmo vocabulário `.pn-*` de /organizacao/, tokens locais
+   (--scw-choco etc.) porque as duas páginas são estáticas e não compartilham CSS
+   de verdade — é a duplicação aceita de sempre entre os dois painéis (§5.2). */
+.pn-casca{
+  height:100dvh; display:grid;
+  grid-template-columns:72px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+}
+.pn-casca.is-estreito{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto }
+.pn-rail{
+  grid-row:1 / span 2; display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:13px 0 12px; background:var(--scw-choco);
+}
+.pn-rail__selo{height:29px; width:auto; display:block; margin-bottom:11px}
+.pn-rail__btn{
+  position:relative; width:52px; height:52px; flex:0 0 auto;
+  display:grid; place-items:center; border:0; border-radius:17px;
+  background:transparent; color:rgba(254,240,221,.72); cursor:pointer;
+  transition:background 180ms var(--scw-ease),color 180ms var(--scw-ease);
+}
+@media (hover:hover){ .pn-rail__btn:hover{background:rgba(254,240,221,.1)} }
+.pn-rail__btn[aria-current="page"]{background:var(--scw-amarelo); color:var(--scw-choco)}
+.pn-rail__btn svg{width:23px; height:23px}
+.pn-rail__sair{
+  width:52px; height:42px; margin-top:auto; display:grid; place-items:center;
+  border:0; border-radius:13px; background:transparent; color:rgba(254,240,221,.62); cursor:pointer;
+}
+.pn-rail__sair svg{width:19px; height:19px}
+/* ⚠️ A regra base de `.pn-cabeca` (fundo, padding, min-height) NÃO mora
+   aqui — mora em org_css.css, com o `@media (max-width:900px)` real que
+   troca pra chocolate no celular. Aqui era uma cópia que dependia de uma
+   classe `.is-estreito` que este arquivo NUNCA aplica (marca_script.js não
+   tem `matchMedia` nem `is-estreito` — vestígio de uma versão anterior).
+   Sem fundo de media query, a cópia sem condição SEMPRE vencia a de
+   org_css.css por vir depois no arquivo combinado, e a cabeça da marca
+   ficava creme no celular em vez de chocolate. Mantido aqui: só o que É
+   exclusivo da marca (os botões `button.notif`, que a organização não usa —
+   ela usa `.pn-cabeca__btn`). */
+/* .pn-cabeca__marca/__texto/__titulo/__sub/__dir NÃO se repetem aqui — as
+   versões de org_css.css (com o @media real) já cobrem os dois markups,
+   que usam os mesmos nomes de sub-classe. Só o que seria duplicata morta ou
+   duplicata CONFLITANTE (mesma especificidade, vindo depois no arquivo
+   combinado, vencendo o @media por ordem de cascata) saiu daqui. */
+.pn-cabeca button.notif{position:relative; background:none; border:0; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:inherit; cursor:pointer}
+@media (hover:hover){ .pn-cabeca button.notif:hover{background:rgba(61,19,8,.06)} }
+@media (max-width:900px){ .pn-cabeca button.notif:hover{background:rgba(254,240,221,.1)} }
+.pn-vista{min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+.pn-vista__trilho{max-width:720px; margin:0 auto; padding:clamp(20px,3vw,34px) var(--trilho) 48px}
+.pn-abas{background:var(--scw-choco); padding:7px 6px calc(7px + env(safe-area-inset-bottom)); border-top:1px solid rgba(254,240,221,.12)}
+.pn-abas__grade{display:grid; grid-template-columns:repeat(4,1fr); gap:2px}
+.pn-aba{
+  min-height:52px; background:transparent; border:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:5px; padding:4px 0; color:rgba(254,240,221,.6);
+}
+.pn-aba svg{width:20px; height:20px}
+.pn-aba__rotulo{font:500 10px/1 var(--scw-font)}
+.pn-aba[aria-current="page"]{color:var(--scw-amarelo)}
+.pn-aba[aria-current="page"] .pn-aba__rotulo{font-weight:800}
+.pn-badge{
+  position:absolute; top:6px; right:6px; min-width:18px; height:18px; padding:0 5px;
+  display:grid; place-items:center; border-radius:999px; background:var(--scw-magenta); color:var(--scw-creme);
+  font:800 10px/1 var(--scw-font); font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--scw-creme);
+}
+
+/* Linha de notificação — mesma peça do painel da organização (§ "Painel SCW
+   app"). O painel da marca não abre gaveta cheia (decisão de escopo já
+   registrada), mas a LINHA de dentro é a mesma peça visual. */
+.pn-notif{
+  width:100%; text-align:left; cursor:pointer; border:0; border-radius:13px; padding:11px 12px;
+  background:transparent; box-shadow:inset 0 0 0 1px var(--scw-filete);
+  display:flex; align-items:flex-start; gap:10px; margin:0 0 6px;
+  transition:background 160ms var(--scw-ease);
+}
+.pn-notif:last-child{margin-bottom:0}
+@media (hover:hover){ .pn-notif:hover{background:var(--scw-bege)} }
+.pn-notif.is-naolida{background:#fff; box-shadow:inset 0 0 0 1px var(--scw-borda-campo)}
+.pn-notif__disco{flex:0 0 auto; display:grid; place-items:center; width:28px; height:28px; border-radius:10px}
+.pn-notif__disco svg{width:15px; height:15px}
+.pn-notif__texto{display:block; font:500 13.5px/1.3 var(--scw-font)}
+.pn-notif.is-naolida .pn-notif__texto{font-weight:800}
+.is-estreito .pn-cabeca button.notif .pn-badge{box-shadow:0 0 0 2px var(--scw-choco)}
+@keyframes pnPulso{0%{box-shadow:0 0 0 0 rgba(241,7,103,.5)}70%{box-shadow:0 0 0 10px rgba(241,7,103,0)}100%{box-shadow:0 0 0 0 rgba(241,7,103,0)}}
+.pn-badge.is-novo{animation:pnPulso 2.4s ease-out 3}
+/* O botão Sair do cabeçalho só existe no celular — no desktop a rail já tem
+   o próprio (piso de 44px em CADA controle real, §6.10, não um reaproveitado
+   por CSS entre os dois breakpoints). */
+#btSairCabeca{display:none}
+@media (max-width:900px){
+  .pn-rail{display:none} .pn-casca{grid-template-columns:minmax(0,1fr)}
+  #btSairCabeca{display:grid}
+  /* Título + nota repetem o que .pn-cabeca (fixo, sempre visível) já diz —
+     no mobile isso é espaço puro sem informação nova. A cor por vista
+     continua na tira sob o cabeçalho, então nada de wayfinding se perde. */
+  .pn-vista-cabeca{display:none}
+}
+@media (min-width:901px){ .pn-abas{display:none} }
+/* ── Vagas de agenda (dentro do card de fotos) ────────────────────────────
+   Modo "abrir vagas" da organização — a marca escolhe, não pede.
+   Espelha .og-slot--aberto de /organizacao/. */
+.mc-vagas{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:14px 0 0; padding:0}
+.mc-vaga{
+  min-height:46px; padding:0 16px; border:0; border-radius:999px; cursor:pointer;
+  background:var(--scw-bege); color:var(--scw-choco); box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo);
+  font:800 13.5px/1 var(--scw-font); font-variant-numeric:tabular-nums;
+  transition:background 180ms var(--scw-ease);
+}
+.mc-vaga.is-escolhida{background:var(--scw-choco); color:var(--scw-creme); box-shadow:none}
+
+/* ── Lançamento diário (view "hoje") ───────────────────────────────────── */
+.mc-venda{background:var(--scw-choco); color:var(--scw-creme); border-radius:var(--scw-r-card); padding:clamp(18px,2.4vw,26px)}
+.mc-venda .rotulo{color:rgba(254,240,221,.7)}
+.mc-venda__linha{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-top:14px}
+.mc-venda__campo{
+  width:130px; min-height:52px; padding:10px 16px; border-radius:14px; border:0;
+  box-shadow:inset 0 0 0 1.5px rgba(254,240,221,.3); background:rgba(254,240,221,.06); color:var(--scw-creme);
+  font:900 24px/1 var(--scw-font); letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+.mc-venda__total{font:900 clamp(26px,3vw,34px)/1 var(--scw-font); letter-spacing:-.05em; font-variant-numeric:tabular-nums}
+.mc-venda__total span{display:block; margin-top:4px; font:500 11px/1 var(--scw-font); color:rgba(254,240,221,.7); letter-spacing:.06em; text-transform:uppercase}
+.mc-venda__dias{display:flex; gap:8px; overflow-x:auto; margin-top:18px; padding-bottom:2px}
+.mc-venda__dia{display:flex; flex-direction:column; gap:3px; padding:9px 14px; border-radius:13px; background:rgba(254,240,221,.08); min-width:72px; flex:0 0 auto}
+.mc-venda__dia.is-hoje{background:var(--scw-amarelo); color:var(--scw-choco)}
+.mc-venda__dia b{font:800 15px/1 var(--scw-font); font-variant-numeric:tabular-nums}
+.mc-venda__dia span{font-size:10.5px; opacity:.8}
+.mc-venda__espera{display:flex; align-items:center; gap:10px; color:rgba(254,240,221,.85)}
+
+/* ── Acordeão do cadastro (patch §8.3) ────────────────────────────────────
+   Os 5 blocos são os REAIS (A marca/O tema/Os três itens/Preço/Onde
+   encontrar) — o handoff assumia "A casa/doce/salgado/bebida/fotos", que não
+   existe no arquivo (ver CONFERENCIA-MARCA.md). Sem prazo por bloco: não há
+   coluna de prazo individual no banco, e inventar um seria dado fabricado
+   (CLAUDE.md A4) — o selo mostra só pronto/pendente. */
+.mc-bloco{background:var(--scw-creme); border-radius:var(--scw-r-card); box-shadow:inset 0 0 0 1.5px var(--scw-filete); overflow:hidden; margin:0 0 10px}
+.mc-bloco.is-aberto{box-shadow:inset 0 0 0 1.5px var(--scw-choco)}
+.mc-bloco__cabeca{
+  width:100%; text-align:left; cursor:pointer; border:0; background:transparent;
+  padding:14px 16px; display:flex; align-items:center; gap:13px; min-height:64px;
+}
+.mc-bloco__disco{flex:0 0 auto; display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--scw-bege); color:var(--scw-choco); transition:background 220ms var(--scw-ease),color 220ms var(--scw-ease)}
+.mc-bloco__disco svg{width:21px; height:21px}
+.mc-bloco.is-pronto .mc-bloco__disco{background:var(--scw-choco); color:var(--scw-creme)}
+.mc-bloco__texto{flex:1 1 auto; min-width:0}
+.mc-bloco__texto b{display:block; font:900 16px/1.15 var(--scw-font); letter-spacing:-.02em}
+.mc-bloco__texto span{display:block; margin-top:3px; font:500 12.5px/1.3 var(--scw-font); color:var(--scw-marrom)}
+.mc-bloco__chevron{flex:0 0 auto; width:15px; height:15px; transition:transform 200ms var(--scw-ease)}
+.mc-bloco.is-aberto .mc-bloco__chevron{transform:rotate(180deg)}
+.mc-bloco__corpo{padding:2px 16px 20px}
+
+/* ── Acento por vista ──────────────────────────────────────────────────────
+   `--pn-acento` é escrito no <body> por irPara()/irParaMarca() a cada troca de
+   vista (uma cor da paleta fechada por vista, nunca repetida dentro do mesmo
+   painel — CLAUDE.md §6.3). Sobrescreve por ORDEM DE CASCATA as regras que já
+   pintavam a aba ativa de amarelo fixo — por isso este bloco vem depois de
+   org_css.css e marca_css_shell.css, não antes. Sem `--pn-acento` definido
+   (JS não rodou ainda), cada regra cai no amarelo de sempre. */
+.pn-rail__btn[aria-current="page"]{
+  background:var(--pn-acento,var(--scw-amarelo));
+  color:var(--pn-acento-tinta,var(--scw-choco));
+}
+/* Texto/ícone sobre chocolate (rail já resolvido acima, com fundo próprio) —
+   usa --pn-acento-escuro, não --pn-acento cru: roxo e marrom não sustentam
+   leitura sobre chocolate (1,45:1 e 1,53:1, CLAUDE.md §6.2) e caem no
+   amarelo, igual ao pageColorDark() do site institucional. */
+.og-abaapp.is-ativa{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.og-abasapp__indicador{background:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-aba[aria-current="page"]{color:var(--pn-acento-escuro,var(--scw-amarelo))}
+.pn-cabeca{position:relative}
+.pn-cabeca::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:var(--pn-acento,var(--scw-amarelo));transition:background 200ms var(--scw-ease);
+}
+/* ≤900px a cabeça vira chocolate (regra estrutural, §6.2/§6.7) — a tira
+   segue a mesma régua do texto sobre chocolate acima: --pn-acento-escuro. */
+.is-estreito .pn-cabeca::after{background:var(--pn-acento-escuro,var(--scw-amarelo))}
+/* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
+   que veio acima (das duas cascas, org e marca); regra nova acrescentada
+   depois dele escaparia do `prefers-reduced-motion` sem ninguém notar. */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .og-btn:hover,.og-item:hover,.og-cartao:hover,.og-slot:hover,
+  button.acao:hover,.mc-vaga:hover,.mc-pend:hover{transform:none}
+}
