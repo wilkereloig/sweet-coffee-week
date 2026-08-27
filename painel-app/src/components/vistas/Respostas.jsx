@@ -2,8 +2,10 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { ORIGENS, filtrados, dataCurta } from '../../lib/respostas'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
+import { VistaCabeca } from '../VistaCabeca'
+import { ICONE } from '../PainelShell'
 
-export function Respostas() {
+export function Respostas({ registrarAtualizar, reportarEstado }) {
   const [dados, setDados] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
   const [aba, setAba] = React.useState('tudo')
@@ -27,12 +29,20 @@ export function Respostas() {
       const novo = {}
       chaves.forEach((k, i) => { novo[k] = listas[i] || [] })
       setDados(novo)
+      // Alimenta o sino de notificações do cabeçalho (NotificacoesOrg vive no
+      // PainelShell, que não tem como ler o estado interno desta vista).
+      if (reportarEstado) reportarEstado({ dados: novo })
     } catch (e) {
       setErro(e.message)
     }
-  }, [])
+  }, [reportarEstado])
 
   React.useEffect(() => { carregar() }, [carregar])
+  // Registra esta vista como dona do botão "atualizar" do cabeçalho
+  // (PainelShell §Task 6) — sem isso o botão existiria e não faria nada.
+  React.useEffect(() => {
+    if (registrarAtualizar) registrarAtualizar(carregar)
+  }, [registrarAtualizar, carregar])
 
   const vocabStatus = aba === 'tudo'
     ? [...new Set(Object.values(ORIGENS).flatMap((o) => o.status))]
@@ -44,6 +54,12 @@ export function Respostas() {
 
   return (
     <section className="og-vista">
+      <VistaCabeca
+        acento="cyan"
+        icone={ICONE.respostas}
+        titulo="Respostas"
+        nota="Os três formulários do site, num lugar só"
+      />
       <ul className="og-abas" role="tablist">
         {[['tudo', 'Tudo', null], ...Object.entries(ORIGENS).map(([k, o]) => [k, o.rotulo, o.cor])].map(([chave, rotulo, cor]) => (
           <li key={chave}>

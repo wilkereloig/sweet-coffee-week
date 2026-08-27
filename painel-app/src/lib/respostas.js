@@ -13,18 +13,23 @@
 export const ORIGENS = {
   quero_participar: {
     rotulo: 'Quero participar', cor: '#01AFCC', rpc: 'get_quero_participar',
+    // Único formulário público hoje — página estática, fora do SPA. Barra
+    // final obrigatória (senão cai no fallback do SPA e abre a landing).
+    form: '/quero-participar/',
     status: ['novo', 'em_analise', 'contatado', 'aprovado', 'nao_selecionado', 'aguardando_cadastro', 'cadastro_completo'],
     titulo: (r) => r.empresa || r.nome,
     meta: (r) => [r.nome, r.cidade, r.tipo].filter(Boolean).join(' · '),
   },
   apoiar: {
     rotulo: 'Apoiar', cor: '#FF4810', rpc: 'get_support_interests',
+    form: null, formNota: 'seção 06 da página Apoiar',
     status: ['novo', 'em_analise', 'contatado', 'em_negociacao', 'fechado', 'arquivado'],
     titulo: (r) => r.empresa,
     meta: (r) => [r.nome, r.segmento, r.interesse].filter(Boolean).join(' · '),
   },
   contato: {
     rotulo: 'Contato', cor: '#4D257E', rpc: 'get_contact_requests',
+    form: null, formNota: 'seção 04 da página Contato',
     status: ['novo', 'em_analise', 'respondido', 'encerrado'],
     titulo: (r) => r.name,
     meta: (r) => [r.subject].filter(Boolean).join(' · '),
@@ -33,7 +38,7 @@ export const ORIGENS = {
 
 const CHAVES_BUSCA = { nome: ['nome', 'name', 'responsavel', 'marca'], empresa: ['empresa', 'marca'], email: ['email'] }
 
-function campo(reg, quais) {
+export function campo(reg, quais) {
   for (const k of quais) if (reg[k]) return String(reg[k])
   return ''
 }

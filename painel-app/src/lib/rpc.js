@@ -27,3 +27,29 @@ export async function rpc(nome, corpo, fetchImpl = fetch) {
   const bruto = await r.text()
   return bruto ? JSON.parse(bruto) : null
 }
+
+// Edge Functions (não é PostgREST) — porta fiel de chamarFuncao em
+// public/painel/index.html (~1940-1962). Diferente de rpc(): sempre lê o
+// corpo como JSON (as functions sempre respondem JSON, nunca 204 vazio) e,
+// em erro, o corpo viaja junto (`err.dados`) — recusas de colisão devolvem
+// dados que a tela usa (ex.: candidatura_id), perder isso no throw vira
+// queixa sem saída.
+export async function chamarFuncao(nome, corpo, fetchImpl = fetch) {
+  const r = await fetchImpl(SUPABASE_URL + '/functions/v1/' + nome, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(corpo),
+  })
+  let dados = null
+  try { dados = await r.json() } catch { /* corpo não é JSON */ }
+  if (!r.ok) {
+    const err = new Error((dados && (dados.detalhe || dados.erro)) || ('HTTP ' + r.status))
+    err.dados = dados
+    throw err
+  }
+  return dados || {}
+}
