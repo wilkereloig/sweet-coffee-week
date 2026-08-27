@@ -167,10 +167,13 @@ test('o manifest do painel tem escopo próprio, com barra final', () => {
   assert.equal(APP_MANIFEST.start_url, '/organizacao/')
 })
 
-test('os dois manifests não se sobrepõem', () => {
-  // São dois apps distintos: /manifest.webmanifest instala o site.
+test('organização continua com escopo próprio, mesmo com site+painel unificados', () => {
+  // Decisão do Eloi, 27/08/2026: /manifest.webmanifest passou a instalar o
+  // painel (não mais "o site solto"), pro botão de instalar do diálogo de
+  // acesso disparar em um clique — ver tests/painel.test.mjs. Organização
+  // segue de fora dessa fusão, com escopo próprio.
   const site = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'))
-  assert.equal(site.scope, '/', 'o manifest do site mudou de escopo')
+  assert.equal(site.scope, '/painel/', 'o manifest do site deveria instalar o painel agora')
   assert.notEqual(site.scope, APP_MANIFEST.scope)
 })
 

@@ -1,12 +1,12 @@
 {
-  "id": "/",
-  "name": "Sweet & Coffee Week",
-  "short_name": "Sweet & Coffee",
-  "description": "O festival que transforma Natal em uma rota de sabores: 16 edições, o Sweet Awards, as marcas e como fazer parte.",
+  "id": "/painel/",
+  "name": "Painel SCW",
+  "short_name": "Painel SCW",
+  "description": "Painel do Sweet & Coffee Week — organização e participante.",
   "lang": "pt-BR",
   "dir": "ltr",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/painel/",
+  "scope": "/painel/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FEF0DD",
@@ -18,6 +18,12 @@
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any"
+    },
+    {
+      "src": "/favicon-512-maskable.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     },
     {
       "src": "/favicon-192.png",

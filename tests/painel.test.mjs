@@ -183,12 +183,19 @@ test('o manifest do painel tem escopo próprio, com barra final', () => {
   assert.equal(APP_MANIFEST.start_url, '/painel/')
 })
 
-test('os três manifests (site, organização, marca, painel) não se sobrepõem', () => {
+test('site e painel compartilham escopo de propósito; organização e marca continuam próprios', () => {
+  // Decisão do Eloi, 27/08/2026: manifest.webmanifest do site passou a
+  // instalar o painel (mesmo start_url/scope), pro botão "Instalar app do
+  // painel" do diálogo de acesso disparar o prompt nativo num clique só —
+  // beforeinstallprompt só honra .prompt() com gesto no documento dono do
+  // manifest, e navegar pra /painel/ antes de clicar de novo perderia esse
+  // gesto (verificado contra MDN/web.dev, não é suposição).
   const site = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'))
   const org = JSON.parse(readFileSync(new URL('../public/organizacao/app.webmanifest', import.meta.url), 'utf8'))
   const marca = JSON.parse(readFileSync(new URL('../public/marca/app.webmanifest', import.meta.url), 'utf8'))
-  const escopos = new Set([site.scope, org.scope, marca.scope, APP_MANIFEST.scope])
-  assert.equal(escopos.size, 4, 'dois manifests compartilham escopo — um instalaria o outro')
+  assert.equal(site.scope, APP_MANIFEST.scope, 'site e painel deveriam ser o mesmo app instalável agora')
+  const escopos = new Set([org.scope, marca.scope, APP_MANIFEST.scope])
+  assert.equal(escopos.size, 3, 'organização, marca e painel continuam sem se sobrepor entre si')
 })
 
 test('o service worker do painel não cacheia dado do banco', () => {

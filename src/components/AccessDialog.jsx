@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { entrarNaOrganizacao, RECADO } from '../lib/adminAccess'
 import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
+import { instalarPainel } from '../hooks/useInstallPrompt'
 
 /*
  * Tela de acesso — refeita em 22/08/2026 a pedido do Eloi, em três frentes:
@@ -407,21 +408,22 @@ export function AccessDialog({ open, onClose }) {
                   organização mandou. Depois de entrar, você escolhe uma sua.
                 </p>
               )}
-              {/* Atalho pro app web do painel. O botão de instalar de verdade
-                  (captura do beforeinstallprompt) mora em /painel/: é lá que o
-                  <link rel="manifest"> do painel existe, e o navegador só
-                  oferece instalação para o manifest da página em que o evento
-                  disparou — daqui, sem navegar, seria o manifest do SITE.
-                  Nova aba de propósito: /painel/ é página estática sem volta
-                  pro site (§10.4-b) — sem isto, quem clica fica preso lá. */}
-              <a
+              {/* Um clique de verdade agora: `manifest.webmanifest` do site
+                  passou a apontar pro painel (start_url/scope = /painel/,
+                  decisão do Eloi 27/08/2026), então o `beforeinstallprompt`
+                  capturado em useInstallPrompt.js já é o do painel — não
+                  precisa navegar pra disparar o `.prompt()` nativo. Se o
+                  evento ainda não chegou (engajamento insuficiente, iOS sem
+                  essa API, ou já instalado), cai no caminho de sempre: abre
+                  /painel/ numa aba nova, que tem a própria captura como
+                  reserva. */}
+              <button
+                type="button"
                 className="scw-acesso__link-secundario"
-                href="/painel/"
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={instalarPainel}
               >
                 Instalar app do painel
-              </a>
+              </button>
             </div>
             <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
               Falar com a equipe

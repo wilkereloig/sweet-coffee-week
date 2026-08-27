@@ -2354,10 +2354,33 @@ handler de `fetch`. E **o nome do serviço não aparece no `sw.js` nem em
 comentário**: sem o host escrito, não há o que copiar e colar quando alguém for
 "fazer o offline funcionar". Offline está fora de escopo de propósito.
 
-⚠️ **Dois manifests, escopos disjuntos.** `/manifest.webmanifest` instala o
-**site**; `/organizacao/app.webmanifest` instala o **painel**. Barra final nos
-dois campos de escopo dos dois arquivos — sem ela o escopo vira a raiz e
-instalar o painel instalaria o site.
+⚠️ **`/organizacao/app.webmanifest` e `/marca/app.webmanifest` continuam com
+escopo próprio**, disjunto de tudo. Barra final nos dois campos de escopo dos
+dois arquivos — sem ela o escopo vira a raiz e instalar o painel instalaria o
+site.
+
+✅ **`/manifest.webmanifest` (o do SITE) passou a instalar o PAINEL —
+decisão do Eloi, 27/08/2026.** Até então era disjunto de propósito (instalar
+o site nunca instalava o painel, e vice-versa). O botão "Instalar app do
+painel" no diálogo de acesso (`AccessDialog.jsx`) precisava de um clique só,
+e `beforeinstallprompt.prompt()` só funciona com gesto do usuário no MESMO
+documento onde o evento disparou — não atravessa navegação pra `/painel/`
+(verificado contra MDN/web.dev antes de mudar, não é suposição). A única
+forma de um clique real é o SITE já ser dono do manifest do painel:
+`start_url`/`scope`/`id`/`name`/ícones de `manifest.webmanifest` viraram
+idênticos aos de `/painel/app.webmanifest`.
+⚠️ **Custo aceito conscientemente:** quem instalar o site por QUALQUER via —
+ícone da barra de endereço, "Adicionar à tela de início" do navegador, não só
+este botão — instala o Painel SCW, não a vitrine institucional. Instalar "o
+site" e instalar "o painel" viraram a mesma coisa. A captura do
+`beforeinstallprompt` do site mora em `src/hooks/useInstallPrompt.js`
+(módulo, não hook — precisa armar o listener antes de qualquer componente
+montar). Se o evento ainda não chegou (engajamento insuficiente, iOS sem essa
+API, já instalado), o botão cai no caminho antigo: abre `/painel/` numa aba
+nova, que tem a própria captura como reserva (§10.4-b abaixo).
+`tests/painel.test.mjs` e `tests/organizacao.test.mjs` foram atualizados pra
+afirmar que site e painel COMPARTILHAM escopo de propósito, e que
+organização/marca continuam de fora dessa fusão.
 
 ⚠️ **Ícone maskable: a caixa é 326px em 512, não 410.** A máscara do Android
 recorta um círculo inscrito. Medido em pixel: com 410px sobravam **2191 pontos
