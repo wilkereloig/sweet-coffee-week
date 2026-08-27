@@ -1,3 +1,13 @@
+// `dataCurta` mostra o dia no FUSO DE QUEM VÊ (é o que a produção já faz —
+// `public/painel/index.html`, `public/organizacao/index.html` e
+// `public/marca/index.html` usam o mesmo `toLocaleDateString` sem fuso
+// fixo). Isso é o comportamento certo pro público real (equipe em
+// Natal/RN), mas torna o teste dependente do fuso da MÁQUINA que roda —
+// sem fixar, o mesmo `assert` passa numa máquina e falha noutra. Fixar
+// aqui resolve o determinismo SEM mudar o comportamento real (o código
+// de produção nunca fixa fuso — só este teste fixa, pra ele mesmo).
+process.env.TZ = 'America/Sao_Paulo'
+
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ORIGENS, todos, filtrados, escapar, dataCurta } from '../painel-app/src/lib/respostas.js'
@@ -43,6 +53,10 @@ test('escapar neutraliza os cinco caracteres perigosos de HTML', () => {
   assert.equal(escapar(`<b>"'&`), '&lt;b&gt;&quot;&#39;&amp;')
 })
 
-test('dataCurta formata no padrão dd/mm/aa', () => {
-  assert.equal(dataCurta('2026-03-05T00:00:00Z'), '05/03/26')
+test('dataCurta formata no padrão dd/mm/aa, no fuso de quem vê', () => {
+  // 2026-03-05T00:00:00Z em America/Sao_Paulo (UTC-3) ainda é 04/03 às
+  // 21h — é ESSE dia que o calendário de quem vê deve mostrar, não o dia
+  // UTC. Confirma com `new Date(...).getDate()` local antes de mudar este
+  // valor: ele tem que bater com o fuso fixado no topo do arquivo.
+  assert.equal(dataCurta('2026-03-05T00:00:00Z'), '04/03/26')
 })

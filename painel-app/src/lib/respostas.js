@@ -58,9 +58,5 @@ export function escapar(s) {
 }
 
 export function dataCurta(iso) {
-  const d = new Date(iso)
-  const dia = String(d.getUTCDate()).padStart(2, '0')
-  const mes = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const ano = String(d.getUTCFullYear()).slice(-2)
-  return `${dia}/${mes}/${ano}`
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
 }
