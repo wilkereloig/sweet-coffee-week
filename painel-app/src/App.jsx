@@ -1,5 +1,6 @@
 import React from 'react'
 import { LoginOrganizacao } from './components/LoginOrganizacao'
+import { PainelShell } from './components/PainelShell'
 
 export function App() {
   const [logado, setLogado] = React.useState(() => !!sessionStorage.getItem('scw_org'))
@@ -7,5 +8,11 @@ export function App() {
   if (!logado) {
     return <LoginOrganizacao onEntrar={() => setLogado(true)} />
   }
-  return <p>Logado! A casca entra na Task 4.</p>
+
+  function sair() {
+    sessionStorage.removeItem('scw_org')
+    setLogado(false)
+  }
+
+  return <PainelShell vistas={{}} onSair={sair} />
 }
