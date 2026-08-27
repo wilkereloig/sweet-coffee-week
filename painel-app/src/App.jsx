@@ -1,6 +1,7 @@
 import React from 'react'
 import { LoginOrganizacao } from './components/LoginOrganizacao'
 import { PainelShell } from './components/PainelShell'
+import { Respostas } from './components/vistas/Respostas'
 
 export function App() {
   const [logado, setLogado] = React.useState(() => !!sessionStorage.getItem('scw_org'))
@@ -14,5 +15,5 @@ export function App() {
     setLogado(false)
   }
 
-  return <PainelShell vistas={{}} onSair={sair} />
+  return <PainelShell vistas={{ respostas: Respostas }} onSair={sair} />
 }
