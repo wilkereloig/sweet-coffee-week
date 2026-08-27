@@ -41,15 +41,26 @@ export function PainelShell({ vistas, onSair }) {
   const Vista = vistas[vista]
 
   return (
-    <>
+    // O CSS copiado (Task 7) tem um seletor de ID, `#painel{display:grid;
+    // grid-template-rows:auto 1fr auto}`, que rege a casca inteira: linha 1
+    // cabeçalho, linha 2 conteúdo, linha 3 barra de abas do celular. Sem
+    // este `<div id="painel">` envolvendo tudo, nenhuma dessas regras se
+    // aplica — a rail vira uma barra full-width em vez de coluna de 72px.
+    // Achado na revisão da Task 7 (CSS correto, JSX incompleto).
+    <div id="painel">
       <nav className="pn-rail" aria-label="Seções do painel">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         {DESTINOS.map((d) => (
           <button
             key={d}
-            className={'pn-rail__btn' + (d === vista ? ' is-ativa' : '')}
+            className="pn-rail__btn"
             type="button"
             title={TITULOS[d][0]}
+            // O estado ativo do rail é por atributo, não por classe — é
+            // `.pn-rail__btn[aria-current="page"]` no CSS copiado, não
+            // `.is-ativa` (essa classe é da OUTRA peça, `.og-abaapp`, da
+            // barra de abas do celular logo abaixo).
+            aria-current={d === vista ? 'page' : undefined}
             onClick={() => setVista(d)}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -77,6 +88,31 @@ export function PainelShell({ vistas, onSair }) {
       <main className="og-corpo">
         {Vista ? <Vista /> : <p>Em construção — chega na Fase 2.</p>}
       </main>
-    </>
+
+      {/* Barra de abas do celular (≤900px) — equivalente mobile da rail.
+          Faltava inteira: sem ela, o celular não tinha navegação nenhuma
+          (a rail já se esconde em ≤900px por CSS). Markup e classes
+          copiados de public/painel/index.html:1377-1410, mesmo padrão de
+          MobileTabBar.jsx do site (indicador de 3px por --og-i). */}
+      <nav className="og-abasapp" aria-label="Seções do painel">
+        <div className="og-abasapp__grade" style={{ '--og-i': DESTINOS.indexOf(vista) }}>
+          <span className="og-abasapp__indicador" aria-hidden="true" />
+          {DESTINOS.map((d) => (
+            <button
+              key={d}
+              className={'og-abaapp' + (d === vista ? ' is-ativa' : '')}
+              type="button"
+              aria-current={d === vista ? 'page' : undefined}
+              onClick={() => setVista(d)}
+            >
+              <svg className="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                {ICONE[d]}
+              </svg>
+              <span className="og-abaapp__rotulo">{TITULOS[d][0].split(' ').pop().toLowerCase()}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+    </div>
   )
 }
