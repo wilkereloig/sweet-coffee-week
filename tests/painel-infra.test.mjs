@@ -29,6 +29,12 @@ const semComentarios = (fonte) => fonte
   .replace(/\/\*[\s\S]*?\*\//g, ' ')
   .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
 
+// `semComentarios` é pra JS/TS (/* */ e //) — SQL usa `--`. Migration nova
+// (20260827_fase1_funcoes_organizacao.sql) tem comentário explicando uma
+// decisão em aberto e citando, como exemplo, a própria linha que o teste
+// abaixo teria que rejeitar se estivesse no SQL de verdade.
+const semComentariosSql = (fonte) => fonte.replace(/--[^\n]*/g, '')
+
 /* ── Migrations, na ordem que o Postgres aplicou — última grant/revoke vale ── */
 const MIGDIR = new URL('../supabase/migrations/', import.meta.url)
 const MIGRATIONS = readdirSync(MIGDIR)
@@ -50,11 +56,14 @@ const colunasConcedidas = (tabela) => {
 const EDGE_ACESSO = ler('supabase/functions/criar-acesso-marca/index.ts')
 const EDGE_CONTA = ler('supabase/functions/criar-conta-organizacao/index.ts')
 const EDGE_ARQ = ler('supabase/functions/arquivo-url/index.ts')
+const EDGE_REGERAR = ler('supabase/functions/regerar-senha-conta/index.ts')
 const PUSH = ler('supabase/functions/enviar-push/index.ts')
 const EDGE_ACESSO_CODIGO = semComentarios(EDGE_ACESSO)
 
 const MARCA_ACCESS = ler('src/lib/marcaAccess.js')
 const MARCA_ACCESS_CODIGO = semComentarios(MARCA_ACCESS)
+const ORG_ACCESS = ler('src/lib/orgAccess.js')
+const ORG_ACCESS_CODIGO = semComentarios(ORG_ACCESS)
 
 const VERCEL = lerJson('vercel.json')
 
@@ -72,6 +81,9 @@ const MARCA_API_JS = ler('painel-app/src/lib/marcaApi.js')
 const PAINEL_SHELL_JSX = ler('painel-app/src/components/PainelShell.jsx')
 const PAINEL_MARCA_SHELL_JSX = ler('painel-app/src/components/PainelMarcaShell.jsx')
 const PAINEL_CSS = ler('painel-app/src/styles/painel.css')
+const APP_JSX = ler('painel-app/src/App.jsx')
+const DEFINIR_SENHA_JSX = ler('painel-app/src/components/DefinirSenha.jsx')
+const LOGIN_ORG_JSX = ler('painel-app/src/components/LoginOrganizacao.jsx')
 
 const contarDestinos = (txt) => {
   const m = txt.match(/const DESTINOS\s*=\s*\[([^\]]+)\]/)
@@ -289,6 +301,29 @@ test('a senha entregue por WhatsApp morre no primeiro uso', () => {
 test('a senha é gerada com aleatoriedade de verdade', () => {
   assert.match(EDGE_ACESSO, /crypto\.getRandomValues/)
   assert.ok(!/Math\.random/.test(EDGE_ACESSO_CODIGO), 'há Math.random na geração de credenciais')
+})
+
+test('as outras duas Edge Functions que geram credencial também usam CSPRNG, nunca Math.random', () => {
+  // criar-conta-organizacao e regerar-senha-conta entregam senha por
+  // mensagem, igual a criar-acesso-marca — mesma régua, sem exceção.
+  for (const [nome, txt] of [['criar-conta-organizacao', EDGE_CONTA], ['regerar-senha-conta', EDGE_REGERAR]]) {
+    assert.match(txt, /crypto\.getRandomValues/, nome + ': falta crypto.getRandomValues')
+    assert.ok(!/Math\.random/.test(semComentarios(txt)), nome + ': há Math.random na geração de credenciais')
+  }
+})
+
+test('regerar-senha-conta religa a trava ANTES de trocar a senha no Auth', () => {
+  // Ordem, não só presença: se a trava falhar DEPOIS de updateUserById, a
+  // conta fica com senha nova que ninguém recebeu (irreversível — ao
+  // contrário da criação de conta, aqui não há "desfazer" a senha antiga).
+  // Checar só a posição de "senha: novaSenha" (a resposta final) não pegaria
+  // essa mutação — a trava continuaria "antes do return" mesmo com a ordem
+  // errada entre ela e updateUserById. O par certo é ESTE.
+  const semC = semComentarios(EDGE_REGERAR)
+  const posTrava = semC.indexOf('deve_trocar_senha: true')
+  const posUpdate = semC.indexOf('updateUserById')
+  assert.ok(posTrava > -1 && posUpdate > -1, 'faltou a trava ou a troca de senha no Auth')
+  assert.ok(posTrava < posUpdate, 'a trava tem que religar ANTES de updateUserById — se essa chamada falhar depois, a senha antiga continua funcionando')
 })
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -543,8 +578,8 @@ test('criar conta da organização é coisa de administrador', () => {
   assert.match(EDGE_CONTA, /from\('funcoes'\)/, 'a lista de funções vem da tabela, não de um array no código')
 })
 
-test('nenhuma chave de serviço nas duas Edge Functions novas', () => {
-  ;[EDGE_CONTA, EDGE_ARQ].forEach((f) => {
+test('nenhuma chave de serviço nas três Edge Functions de conta', () => {
+  ;[EDGE_CONTA, EDGE_ARQ, EDGE_REGERAR].forEach((f) => {
     assert.match(f, /Deno\.env\.get\('SUPABASE_SERVICE_ROLE_KEY'\)/, 'a chave tem que vir do ambiente')
     assert.ok(!/\bsb_secret_|\beyJ[\w-]+\.[\w-]+\.[\w-]+/.test(f), 'parece haver chave literal no arquivo')
   })
@@ -674,6 +709,93 @@ function arquivosEm(dirRel) {
     .map((n) => dirRel + '/' + n.replace(/\\/g, '/'))
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Fase 1 do plano de funções da organização (27/08/2026) — minhas_permissoes,
+   relatorio.ler e regerar-senha-conta. Nenhuma das duas migrations abaixo
+   está aplicada; estes testes cobrem o TEXTO, do mesmo jeito que o resto
+   deste arquivo cobre migrations não aplicadas.
+   ───────────────────────────────────────────────────────────────────────── */
+
+const MIG_FASE1_ORG = ler('supabase/migrations/20260827_fase1_funcoes_organizacao.sql')
+const MIG_FASE2_ATOR = ler('supabase/migrations/20260827_fase2_marcar_senha_trocada_ator_rotulo.sql')
+
+const RELATORIOS_SENSIVEIS = [
+  'get_audit_report', 'get_suspicious_votes', 'get_pesquisa_report',
+  'get_feedback_report', 'get_rankings_admin',
+]
+const RELATORIOS_COMUNS = [
+  'get_contact_requests', 'get_feedback_admin', 'get_organizacao_resumo',
+  'get_participation_interests', 'get_quero_participar', 'get_support_interests',
+]
+
+test('relatorio.ler nasce só pra administrador — se Curadoria também entrar, é decisão de quem aplica, não desta migration', () => {
+  const semC = semComentariosSql(MIG_FASE1_ORG)
+  assert.match(semC, /insert into public\.permissoes[\s\S]{0,80}'administrador', 'relatorio\.ler'/)
+  // A menção a curadoria no COMENTÁRIO (sugestão de linha a acrescentar) é
+  // esperada — o que não pode é aparecer no SQL que de fato roda.
+  assert.ok(!/'curadoria', 'relatorio\.ler'/.test(semC), 'curadoria não deveria ganhar relatorio.ler sem decisão explícita')
+})
+
+test('os 5 relatórios sensíveis mapeiam pra relatorio.ler, os outros 6 pra dado.ler, 11 no total — nenhum a mais nem a menos', () => {
+  const arr = MIG_FASE1_ORG.match(/v_esperados constant text\[\] := array\[([\s\S]*?)\];/)
+  assert.ok(arr, 'não achei o array v_esperados na migration')
+  const nomes = [...arr[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1])
+  assert.equal(nomes.length, 11, 'esperava 11 nomes em v_esperados, achei ' + nomes.length)
+  assert.deepEqual([...nomes].sort(), [...RELATORIOS_SENSIVEIS, ...RELATORIOS_COMUNS].sort())
+
+  for (const nome of RELATORIOS_SENSIVEIS) {
+    assert.match(MIG_FASE1_ORG, new RegExp("when '" + nome + "'\\s+then 'relatorio\\.ler'"), nome + ' devia mapear pra relatorio.ler')
+  }
+  // Os "comuns" não têm when próprio — caem no else 'dado.ler'. Confirma que
+  // NENHUM deles ganhou um when acidental pra relatorio.ler.
+  for (const nome of RELATORIOS_COMUNS) {
+    assert.ok(!new RegExp("when '" + nome + "'\\s+then 'relatorio\\.ler'").test(MIG_FASE1_ORG),
+      nome + ' não deveria mapear pra relatorio.ler')
+  }
+})
+
+test('a uniformização de guard aborta se algum dos 11 nomes faltar ou o guard não aparecer 1x — mesma técnica de contas_organizacao_por_funcao', () => {
+  assert.match(MIG_FASE1_ORG, /<>\s*1\s+then\s+raise exception/, 'falta a checagem de exatamente 1 ocorrência do guard por função')
+  assert.match(MIG_FASE1_ORG, /v_trocas <> 11[\s\S]{0,80}then\s+raise exception/, 'falta a checagem de que as 11 trocas aconteceram')
+  assert.match(MIG_FASE1_ORG, /distinct unnest\(v_nomes_trocados\)/, 'a contagem final tem que ser por nome distinto, não por linha do loop — sobrecarga de função não pode mascarar um nome faltando')
+  assert.ok(!/pode_organizacao\(p_secret\)[\s\S]{0,200}\$\$;\s*\n\s*create/.test(semComentariosSql(MIG_FASE1_ORG)),
+    'parece haver corpo de função copiado — a técnica é reescrever a partir de pg_get_functiondef, não colar o corpo')
+})
+
+test('minhas_permissoes() é security definer, resolve por auth.uid() sem p_secret, e fecha pra anon', () => {
+  const semC = semComentariosSql(MIG_FASE1_ORG)
+  assert.match(semC, /create or replace function public\.minhas_permissoes\(\)/)
+  assert.match(semC, /minhas_permissoes[\s\S]{0,400}security definer/)
+  // A explicação em comentário cita p_secret conceitualmente (é assunto do
+  // parágrafo) — o que a checagem real precisa é o CÓDIGO não declarar o
+  // parâmetro: a assinatura tem que ser exatamente "()".
+  assert.match(semC, /create or replace function public\.minhas_permissoes\(\)\s*\n\s*returns table/,
+    'minhas_permissoes não deveria receber nenhum argumento, incluindo p_secret')
+  assert.match(semC, /pf\.user_id = auth\.uid\(\)/)
+  assert.match(semC, /revoke all on function public\.minhas_permissoes\(\) from public, anon/)
+  assert.match(semC, /grant execute on function public\.minhas_permissoes\(\) to authenticated/)
+})
+
+test('regerar-senha-conta autoriza (acesso.gerir) antes de tocar no Auth, e só reseta conta de organização', () => {
+  const semC = semComentarios(EDGE_REGERAR)
+  const posAutoriza = semC.indexOf("p_acao: 'acesso.gerir'")
+  const posUpdate = semC.indexOf('updateUserById')
+  assert.ok(posAutoriza > -1 && posUpdate > -1, 'faltou a chamada de guard ou o update de senha')
+  assert.ok(posAutoriza < posUpdate, 'o guard tem que rodar ANTES de mexer no Auth')
+
+  assert.match(semC, /papel !== 'organizacao'/, 'precisa recusar conta que não é de organização')
+  // A senha não fica em lugar nenhum além do hash do Auth — nunca grava a
+  // VARIÁVEL da senha em tabela. Recorta só o CORPO de cada `.insert({...})`
+  // (não uma janela de N caracteres, que vazaria pro `return json(...)`
+  // seguinte, onde `novaSenha` aparece de propósito na resposta).
+  const chamadasInsert = [...semC.matchAll(/\.insert\(\{[\s\S]*?\}\)/g)].map((m) => m[0])
+  assert.ok(chamadasInsert.length > 0, 'não achei nenhum .insert({...}) pra conferir')
+  for (const chamada of chamadasInsert) {
+    assert.ok(!/novaSenha|senhaInicial/.test(chamada), 'a senha não deveria ser gravada em nenhuma tabela: ' + chamada)
+  }
+  assert.match(semC, /deve_trocar_senha: true/, 'precisa religar a trava de primeiro uso')
+})
+
 test('nenhum arquivo vivo cita um teste apagado no corte (tests/marca.test.mjs, tests/painel.test.mjs, tests/organizacao.test.mjs)', () => {
   const apagados = ['tests/marca.test.mjs', 'tests/painel.test.mjs', 'tests/organizacao.test.mjs']
   const alvos = [...arquivosEm('src'), ...arquivosEm('painel-app'), ...arquivosEm('supabase')]
@@ -685,4 +807,101 @@ test('nenhum arquivo vivo cita um teste apagado no corte (tests/marca.test.mjs, 
     }
   }
   assert.deepEqual(achados, [], 'arquivo apagado ainda citado:\n' + achados.join('\n'))
+})
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Fase 2 do plano de funções da organização (27/08/2026) — login nominal,
+   convivendo com a senha única. rpc.js/orgAccess.js têm cobertura de
+   comportamento em tests/painel-app-rpc.test.mjs e tests/orgAccess.test.mjs;
+   aqui são invariantes de FIAÇÃO entre os arquivos, no espírito do resto
+   deste arquivo.
+   ───────────────────────────────────────────────────────────────────────── */
+
+test('orgAccess.js não reimplementa o login por senha, nem slugifica o e-mail', () => {
+  assert.ok(!/grant_type=password/.test(ORG_ACCESS_CODIGO), 'orgAccess.js chamou a rede direto em vez de reusar signInComSenha')
+  assert.ok(!/normalize\('NFD'\)/.test(ORG_ACCESS_CODIGO), 'orgAccess.js não deveria ter a regex de slugificação — o e-mail da equipe é real, sem domínio sintético')
+})
+
+test('LoginOrganizacao.jsx oferece as duas portas — senha única E conta nominal', () => {
+  assert.match(LOGIN_ORG_JSX, /entrarNaOrganizacao/)
+  assert.match(LOGIN_ORG_JSX, /entrarComoContaOrganizacao/)
+  assert.match(LOGIN_ORG_JSX, /onEntrarConta/)
+})
+
+test('DefinirSenha.jsx foi generalizado — não importa mais nada de marcaAccess.js nem marcarSenhaTrocada fixo', () => {
+  const semC = semComentarios(DEFINIR_SENHA_JSX)
+  assert.ok(!/marcaAccess/.test(semC), 'DefinirSenha.jsx voltou a importar direto de marcaAccess.js — quebra o uso pela organização')
+  assert.ok(!/marcarSenhaTrocada/.test(semC), 'DefinirSenha.jsx voltou a chamar marcarSenhaTrocada() fixo — quebra o uso pela organização')
+  assert.match(semC, /chaveSessao/)
+  assert.match(semC, /aoMarcarTrocada/)
+})
+
+test('App.jsx passa a chave de sessão CERTA pra cada DefinirSenha — não troca uma pela outra', () => {
+  const semC = semComentarios(APP_JSX)
+  const blocoMarca = semC.match(/estado === 'definir-senha'\)\s*\{[\s\S]*?\n  \}/)
+  const blocoOrg = semC.match(/estado === 'definir-senha-org'\)\s*\{[\s\S]*?\n  \}/)
+  assert.ok(blocoMarca && blocoOrg, 'não achei os dois blocos de DefinirSenha em App.jsx')
+  assert.match(blocoMarca[0], /chaveSessao=\{CHAVE_SESSAO_MARCA\}/)
+  assert.match(blocoOrg[0], /chaveSessao=\{CHAVE_SESSAO_ORG_CONTA\}/)
+  assert.ok(!/CHAVE_SESSAO_ORG_CONTA/.test(blocoMarca[0]), 'bloco da marca não pode usar a chave da conta de organização')
+  assert.ok(!/CHAVE_SESSAO_MARCA/.test(blocoOrg[0]), 'bloco da organização não pode usar a chave da marca')
+})
+
+test("'conferindo-org': sessão morta chama sairOrg e NÃO sobrescreve com setEstado depois", () => {
+  const semC = semComentarios(APP_JSX)
+  const bloco = semC.match(/estado !== 'conferindo-org'\) return[\s\S]*?return \(\) => \{ cancelado = true \}/)
+  assert.ok(bloco, 'não achei o efeito de conferindo-org')
+  const corpo = bloco[0]
+  const posSessaoExpirada = corpo.indexOf("'sessao_expirada'")
+  const posSairOrg = corpo.indexOf('sairOrg()', posSessaoExpirada)
+  assert.ok(posSessaoExpirada > -1 && posSairOrg > -1 && posSairOrg > posSessaoExpirada,
+    "sessao_expirada tem que chamar sairOrg() no mesmo bloco 'if'")
+  // Depois de chamar sairOrg(), tem que RETORNAR — não pode cair pra um
+  // setEstado('painel-org'/'definir-senha-org') logo depois, que sobrescreveria
+  // o 'boas-vindas' que sairOrg() acabou de aplicar.
+  const restoAposSairOrg = corpo.slice(posSairOrg, posSairOrg + 40)
+  assert.match(restoAposSairOrg, /sairOrg\(\);\s*return/)
+})
+
+test('rpc.js só zera p_secret quando o chamador já mandou essa chave — nunca acrescenta em corpo vazio', () => {
+  assert.match(semComentarios(RPC_JS), /'p_secret' in corpo/)
+})
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Achados da revisão adversarial da Fase 2 — corrigidos na mesma leva.
+   ───────────────────────────────────────────────────────────────────────── */
+
+test('estadoInicial checa a conta nominal ANTES da senha única — mesma ordem de prioridade que rpc.js usa pras requisições', () => {
+  const semC = semComentarios(APP_JSX)
+  const bloco = semC.match(/function estadoInicial\(\)[\s\S]*?\n\}/)
+  assert.ok(bloco, 'não achei estadoInicial()')
+  const posOrgConta = bloco[0].indexOf('CHAVE_SESSAO_ORG_CONTA')
+  const posOrg = bloco[0].indexOf("getItem(CHAVE_SESSAO_ORG)")
+  assert.ok(posOrgConta > -1 && posOrg > -1, 'não achei as duas checagens de sessão de organização')
+  assert.ok(posOrgConta < posOrg, 'a UI (estadoInicial) tem que concordar com rpc.js sobre qual sessão de organização manda quando as duas coexistem')
+})
+
+test("conferindo-org: conjunto vazio ou conta inativa NÃO entra em painel-org — vai pra 'bloqueado-org'", () => {
+  const semC = semComentarios(APP_JSX)
+  const bloco = semC.match(/estado !== 'conferindo-org'\) return[\s\S]*?return \(\) => \{ cancelado = true \}/)
+  assert.ok(bloco, 'não achei o efeito de conferindo-org')
+  const corpo = bloco[0]
+  assert.match(corpo, /linhas\.length === 0[\s\S]{0,60}'bloqueado-org'/, "conjunto vazio (não é conta de organização) tinha que virar 'bloqueado-org', não 'painel-org'")
+  assert.match(corpo, /ativo === false[\s\S]{0,60}'bloqueado-org'/, "conta suspensa (ativo:false) tinha que virar 'bloqueado-org'")
+})
+
+test('sairOrg() apaga as DUAS chaves de sessão de organização', () => {
+  const semC = semComentarios(APP_JSX)
+  const bloco = semC.match(/function sairOrg\(\)[\s\S]*?\n  \}/)
+  assert.ok(bloco, 'não achei sairOrg()')
+  assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG\)/)
+  assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG_CONTA\)/)
+})
+
+test('marcar_senha_trocada() lê o papel de verdade da linha, não crava "marca" à mão', () => {
+  assert.match(MIG_FASE2_ATOR, /returning papel into v_papel/)
+  assert.match(MIG_FASE2_ATOR, /coalesce\(v_papel, 'marca'\)/)
+  // O literal solto (sem vir de v_papel) é o bug original — não pode reaparecer aqui.
+  assert.ok(!/values \(auth\.uid\(\), 'marca',/.test(semComentariosSql(MIG_FASE2_ATOR)),
+    "'marca' não pode voltar a ser cravado direto no insert de auditoria")
 })
