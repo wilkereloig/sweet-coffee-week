@@ -661,3 +661,28 @@ test('as três origens de respostas.js têm nome de RPC e vocabulário com o sta
   assert.equal(origens.length, 3, 'esperava três vocabulários de status, achei ' + origens.length)
   origens.forEach((v, i) => assert.ok(v.includes("'novo'"), 'vocabulário ' + i + ' sem o status inicial'))
 })
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Nenhum arquivo vivo cita um teste apagado no corte
+   ───────────────────────────────────────────────────────────────────────── */
+
+function arquivosEm(dirRel) {
+  const raiz = new URL('../' + dirRel + '/', import.meta.url)
+  const nomes = readdirSync(raiz, { recursive: true })
+  return nomes
+    .filter((n) => /\.(js|jsx|mjs|ts|css|sql|json|html|md)$/.test(n))
+    .map((n) => dirRel + '/' + n.replace(/\\/g, '/'))
+}
+
+test('nenhum arquivo vivo cita um teste apagado no corte (tests/marca.test.mjs, tests/painel.test.mjs, tests/organizacao.test.mjs)', () => {
+  const apagados = ['tests/marca.test.mjs', 'tests/painel.test.mjs', 'tests/organizacao.test.mjs']
+  const alvos = [...arquivosEm('src'), ...arquivosEm('painel-app'), ...arquivosEm('supabase')]
+  const achados = []
+  for (const rel of alvos) {
+    const txt = ler(rel)
+    for (const apagado of apagados) {
+      if (txt.includes(apagado)) achados.push(rel + ' cita ' + apagado)
+    }
+  }
+  assert.deepEqual(achados, [], 'arquivo apagado ainda citado:\n' + achados.join('\n'))
+})

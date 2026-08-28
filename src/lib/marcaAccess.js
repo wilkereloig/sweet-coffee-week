@@ -3,12 +3,14 @@
  * adminAccess.js (§4.1): a lib NÃO importa supabase, a função de rede é
  * injetada. Isso a torna testável sem cliente e sem rede.
  *
- * ⚠️ `slugificar`/`enderecoDeLogin` são a TERCEIRA cópia do mesmo algoritmo —
- * as outras duas são `public/marca/index.html` (o próprio login estático, que
- * este diálogo agora antecede) e a Edge Function `criar-acesso-marca` (que
- * cria a conta). AS TRÊS TÊM QUE CASAR: divergir uma vírgula faz a marca
- * digitar o nome certo e não entrar, com erro genérico de propósito — ninguém
- * descobre o motivo. `tests/marca.test.mjs` compara as três.
+ * ⚠️ `slugificar`/`enderecoDeLogin` são a segunda cópia do mesmo algoritmo —
+ * a outra é a Edge Function `criar-acesso-marca` (que cria a conta). AS DUAS
+ * TÊM QUE CASAR: divergir uma vírgula faz a marca digitar o nome certo e não
+ * entrar, com erro genérico de propósito — ninguém descobre o motivo.
+ * `tests/painel-infra.test.mjs` compara as duas ("as duas slugificações que
+ * restam casam"). Havia uma terceira cópia em `public/marca/index.html`, o
+ * login estático que este diálogo antecipava — apagada no corte pro painel
+ * React (§10.4-b do CLAUDE.md).
  * O corpo de `slugificar` foi extraído byte a byte da página estática (a regex
  * de acentos combinantes não se redigita à mão), não escrito de novo aqui.
  *
@@ -22,8 +24,8 @@
  *
  * ⚠️ Erro de login é SEMPRE genérico ("E-mail ou senha não conferem.") — nunca
  * diz qual dos dois está errado. Confirmar que o e-mail existe é a mesma fuga
- * de informação que `public/marca/index.html` já evita (`tests/marca.test.mjs`,
- * "erro de login não confirma se o e-mail existe").
+ * de informação que o login já evitava antes do corte (`tests/painel-infra.test.mjs`,
+ * "erro de login da marca não confirma se o e-mail existe").
  */
 
 export const CHAVE_SESSAO = 'scw_marca'

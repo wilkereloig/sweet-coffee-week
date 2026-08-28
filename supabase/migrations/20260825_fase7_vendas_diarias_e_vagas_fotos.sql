@@ -7,10 +7,12 @@
 -- retornou nada para "venda diária" nem para "vaga/slot de agenda"). Esta
 -- migration é o alicerce das duas — a UI vem depois, numa fase separada.
 --
--- ⚠️ ESTA MIGRATION NÃO ESTÁ APLICADA NO BANCO. Escrita e revisável aqui;
--- aplicar é ação manual e deliberada (§4.1 do CLAUDE.md — não há CLI/config.toml
--- neste projeto), e mexe em schema de produção sem backup automático. Pedir
--- confirmação explícita antes de rodar.
+-- ✅ APLICADA NO BANCO (confirmado por leitura direta do projeto em
+-- 27/08/2026: `vendas_diarias` existe com as 3 policies; `abrir_vaga_fotos` e
+-- `fechar_vaga_fotos` existem). NÃO RODAR DE NOVO — não há CLI/config.toml
+-- neste projeto (§4.1 do CLAUDE.md), então reaplicar exigiria colar o corpo
+-- no SQL Editor, e ele contém `drop constraint`/`drop policy` que em
+-- produção derrubam a coerência de `sessoes_fotos` e a política de vagas.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ═══ 1 · Lançamento diário de combos vendidos ═══════════════════════════════

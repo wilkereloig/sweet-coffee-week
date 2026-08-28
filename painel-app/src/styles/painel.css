@@ -32,7 +32,7 @@
    chave anon é pública por design. A segurança vem do RLS (habilitado sem
    policy em todas as tabelas) e da senha que protege cada RPC de leitura.
    ⛔ A chave SECRETA do projeto (a de serviço, do painel do Supabase) nunca
-   entra aqui — ela ignora o RLS e leria a base inteira. tests/organizacao.test.mjs
+   entra aqui — ela ignora o RLS e leria a base inteira. tests/painel-infra.test.mjs
    reprova o arquivo se ela aparecer, inclusive dentro de comentário.
 
    Tokens copiados resolvidos de src/styles/scw-2026.css. Painel interno não

@@ -22,7 +22,7 @@
     "focal-points": "node scripts/compute-focal-points.mjs",
     "variantes": "node scripts/gerar-variantes.mjs",
     "test:quero-participar": "node --test tests/quero-participar.test.mjs",
-    "test:organizacao": "node --test tests/painel-infra.test.mjs tests/painel-app-marcaApi.test.mjs tests/painel-app-respostas.test.mjs",
+    "test:organizacao": "node --test tests/painel-infra.test.mjs tests/painel-app-avisos.test.mjs tests/painel-app-cadastro.test.mjs tests/painel-app-hoje.test.mjs tests/painel-app-marcaApi.test.mjs tests/painel-app-mesa.test.mjs tests/painel-app-notificacoes.test.mjs tests/painel-app-painelFormat.test.mjs tests/painel-app-participantes.test.mjs tests/painel-app-pedidosMarca.test.mjs tests/painel-app-producao.test.mjs tests/painel-app-pwa.test.mjs tests/painel-app-respostas.test.mjs tests/painel-app-rpc.test.mjs",
     "test:rls": "node --test tests/rls-marcas.test.mjs",
     "backup": "node scripts/backup-supabase.mjs"
   },
