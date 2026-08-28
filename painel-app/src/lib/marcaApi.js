@@ -61,6 +61,20 @@ function salvarSessao(sessao) {
   try { sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao)) } catch { /* modo privado */ }
 }
 
+/*
+ * Caminho A da decisão de sessão (handoff de correções, Etapa 2): quem decide
+ * o que fazer quando a sessão morre EM PLENO USO — painel já aberto, não no
+ * boot — é o App, não esta lib. Ela só registra o callback uma vez (no mount)
+ * e avisa antes de lançar `sessao_expirada`; continua sem importar DOM/rota.
+ */
+let aoSessaoExpirar = null
+export function registrarAoSessaoExpirar(fn) { aoSessaoExpirar = fn }
+
+function sessaoMorta() {
+  if (aoSessaoExpirar) aoSessaoExpirar()
+  throw new Error('sessao_expirada')
+}
+
 /**
  * PostgREST autenticado. Renova o token antes de chamar (nunca depois de um
  * 401) e lança erro se a resposta não for ok — nunca devolve corpo parcial
@@ -69,7 +83,7 @@ function salvarSessao(sessao) {
 export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
   const atual = lerSessao()
   const viva = await renovar(atual, fetchImpl)
-  if (!viva) throw new Error('sessao_expirada')
+  if (!viva) sessaoMorta()
   if (viva !== atual) salvarSessao(viva)
 
   const cab = {
@@ -89,13 +103,21 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
   return dados
 }
 
-/* A trava de primeiro uso: erro de rede devolve `false` — deixar entrar é
-   melhor que trancar alguém fora por causa de uma consulta que falhou. */
+/**
+ * A trava de primeiro uso, com os DOIS desfechos de falha distinguidos (antes
+ * colapsavam no mesmo `catch { return false }`): rede caiu → deixa entrar é
+ * melhor que trancar alguém fora por causa de uma consulta que falhou; sessão
+ * MORTA (refresh token não vale mais) → não tem painel pra entrar, o boot
+ * precisa voltar pro login em vez de tentar montar em cima de sessão inválida.
+ * @returns {Promise<'trocar'|'ok'|'morta'>}
+ */
 export async function precisaTrocarSenha(fetchImpl = fetch) {
   try {
     const linhas = await api('perfis?select=deve_trocar_senha&limit=1', {}, fetchImpl)
-    return !!(linhas && linhas[0] && linhas[0].deve_trocar_senha)
-  } catch { return false }
+    return (linhas && linhas[0] && linhas[0].deve_trocar_senha) ? 'trocar' : 'ok'
+  } catch (e) {
+    return (e && e.message === 'sessao_expirada') ? 'morta' : 'ok'
+  }
 }
 
 export async function marcarSenhaTrocada(fetchImpl = fetch) {
@@ -114,7 +136,7 @@ export async function marcarSenhaTrocada(fetchImpl = fetch) {
 export async function assinarDownload(caminho, fetchImpl = fetch) {
   const atual = lerSessao()
   const viva = await renovar(atual, fetchImpl)
-  if (!viva) throw new Error('sessao_expirada')
+  if (!viva) sessaoMorta()
   if (viva !== atual) salvarSessao(viva)
 
   const r = await fetchImpl(SUPABASE_URL + '/storage/v1/object/sign/arquivos/' + caminho, {

@@ -49,7 +49,11 @@ export function Arquivos() {
     let ativo = true
     api('arquivos?select=*&order=created_at.desc')
       .then((linhas) => { if (ativo) setArquivos(linhas || []) })
-      .catch((e) => { if (ativo) setErro(e.message) })
+      .catch((e) => {
+        if (!ativo) return
+        if (e && e.message === 'sessao_expirada') return
+        setErro(e.message)
+      })
     return () => { ativo = false }
   }, [])
 

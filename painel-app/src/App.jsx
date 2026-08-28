@@ -16,7 +16,7 @@ import { Producao } from './components/vistas/Producao'
 import { Equipe } from './components/vistas/Equipe'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
-import { auth, precisaTrocarSenha } from './lib/marcaApi'
+import { auth, precisaTrocarSenha, registrarAoSessaoExpirar } from './lib/marcaApi'
 
 function estadoInicial() {
   if (sessionStorage.getItem(CHAVE_SESSAO_ORG)) return 'painel-org'
@@ -47,12 +47,25 @@ function BotaoVoltarFlutuante({ onClick }) {
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
 
+  // Caminho A (handoff de correções, Etapa 2): registrado uma vez, no mount —
+  // é quem trata a sessão de marca morrendo EM PLENO USO (painel já aberto),
+  // chamado pelas 4 vistas via marcaApi.api()/assinarDownload(). Mesma função
+  // que o botão "Sair" chama; sairMarca() é segura de chamar mais de uma vez
+  // (idempotente o bastante — best-effort no logout de rede, sessionStorage
+  // já vazio não quebra o removeItem).
+  React.useEffect(() => { registrarAoSessaoExpirar(sairMarca) }, [])
+
   React.useEffect(() => {
     if (estado !== 'conferindo-marca') return
     let cancelado = false
-    precisaTrocarSenha().then((precisa) => {
+    precisaTrocarSenha().then((resultado) => {
       if (cancelado) return
-      setEstado(precisa ? 'definir-senha' : 'painel-marca')
+      // 'morta' já foi tratado por sairMarca() via o registro acima (a mesma
+      // chamada de api() que gerou esse resultado disparou o callback antes
+      // de lançar) — só falta não sobrescrever o 'boas-vindas' que ele já
+      // aplicou.
+      if (resultado === 'morta') return
+      setEstado(resultado === 'trocar' ? 'definir-senha' : 'painel-marca')
     })
     return () => { cancelado = true }
   }, [estado])
@@ -95,7 +108,19 @@ export function App() {
     return <LoginMarca onEntrar={() => setEstado('conferindo-marca')} onVoltar={() => setEstado('boas-vindas')} />
   }
 
-  if (estado === 'conferindo-marca') return null
+  if (estado === 'conferindo-marca') {
+    return (
+      <div className="pn-porta" id="login">
+        <div className="pn-porta__caixa">
+          <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
+          <div>
+            <h1 className="pn-porta__titulo">Um instante…</h1>
+            <p className="pn-porta__lead">Conferindo sua sessão.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (estado === 'definir-senha') {
     return <DefinirSenha onConcluido={() => setEstado('painel-marca')} />
