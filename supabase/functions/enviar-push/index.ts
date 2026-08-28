@@ -21,9 +21,13 @@
 //   service_role, e ela nunca devolve endpoint na resposta.
 //
 // Deploy: supabase functions deploy enviar-push --no-verify-jwt
+//   (--no-verify-jwt porque a porta de sempre foi o secret no CORPO, nunca o
+//    gateway. Fase 4 do plano de funções da organização, 28/08/2026: sem
+//    secret, aceita o JWT da sessão nominal no cabeçalho Authorization.)
 //
 // Entrada (POST JSON):
 //   { secret, alvo: 'organizacao' | 'marca', participante_id?, titulo, corpo, url? }
+//   — ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, enviados, falharam, removidos }
 // =============================================================================
 
@@ -173,10 +177,28 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
 
-  const { data: autorizado, error: authErr } = await admin.rpc('pode', {
-    p_secret: secret, p_acao: 'producao.gerir',
-  })
-  if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+  // Duas portas (Fase 4, 28/08/2026): com `secret`, a senha única; sem, o
+  // JWT nominal no cabeçalho, resolvido por `pode_por_user`.
+  let autorizado = false
+  if (secret) {
+    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: 'producao.gerir' })
+    if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+    autorizado = data === true
+  } else {
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim()
+    const { data: userRes, error: jwtErr } = jwt ? await admin.auth.getUser(jwt) : { data: null, error: null }
+    // gotrue-js não lança em falha de rede — devolve { data: { user: null }, error }.
+    // Sem distinguir, um blip do serviço de auth viraria "sessão não vale mais"
+    // (401), igual a um token realmente inválido — achado de revisão adversarial.
+    if (jwtErr && jwtErr.name === 'AuthRetryableFetchError') {
+      return json({ erro: 'auth_indisponivel', detalhe: jwtErr.message }, 503)
+    }
+    if (userRes?.user) {
+      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: 'producao.gerir' })
+      if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+      autorizado = data === true
+    }
+  }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
   // ⚠️ A conferência do ambiente vem DEPOIS de autorizar, de propósito. Antes,

@@ -83,7 +83,28 @@ test('chamarFuncao sem JSON no erro cai no HTTP status', async () => {
    Dois modos (Fase 2 do plano de funções da organização, 27/08/2026):
    sessão nominal de conta troca a chave publicável pelo token da pessoa e
    zera `p_secret`; sem sessão, comportamento idêntico ao de sempre.
+   chamarFuncao() ganhou o mesmo mecanismo na Fase 4 (28/08/2026) — as
+   cinco Edge Functions de conta aprenderam a ler esse Bearer como JWT.
    ───────────────────────────────────────────────────────────────────────── */
+
+test('chamarFuncao em modo nominal manda o Bearer da pessoa, não a chave publicável', async () => {
+  shimSessionStorage({ access_token: 'tok-nominal', refresh_token: 'r1', expira_em: Date.now() + 5 * 60 * 1000, email: 'x@scw.com' })
+  const fetchFalso = async (url, opcoes) => {
+    assert.equal(opcoes.headers.Authorization, 'Bearer tok-nominal')
+    assert.equal(opcoes.headers.apikey, 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R', 'apikey continua identificando o projeto, só a Authorization muda')
+    return { ok: true, json: async () => ({ ok: true }) }
+  }
+  await chamarFuncao('criar-conta-organizacao', { secret: '', email: 'a@a.com', funcao: 'curadoria' }, fetchFalso)
+})
+
+test('chamarFuncao sem sessão nominal continua mandando a chave publicável', async () => {
+  shimSessionStorage(null)
+  const fetchFalso = async (url, opcoes) => {
+    assert.match(opcoes.headers.Authorization, /^Bearer sb_publishable_/)
+    return { ok: true, json: async () => ({ ok: true }) }
+  }
+  await chamarFuncao('criar-conta-organizacao', { secret: 'senha-da-equipe' }, fetchFalso)
+})
 
 test('rpc em modo nominal manda o Bearer da pessoa e zera p_secret que o chamador tenha mandado', async () => {
   shimSessionStorage({ access_token: 'tok-nominal', refresh_token: 'r1', expira_em: Date.now() + 5 * 60 * 1000, email: 'x@scw.com' })

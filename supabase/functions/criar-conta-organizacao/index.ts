@@ -20,9 +20,13 @@
 // mensagem vale para um login só.
 //
 // Deploy: supabase functions deploy criar-conta-organizacao --no-verify-jwt
-//   (a porta é a senha/conta do painel, conferida por `pode`, não um JWT)
+//   (--no-verify-jwt porque a porta de sempre foi o secret no CORPO, nunca o
+//    gateway. Fase 4 do plano de funções da organização, 28/08/2026: sem
+//    secret, aceita o JWT da sessão nominal no cabeçalho Authorization —
+//    quem valida é este código, via pode()/pode_por_user, não o gateway.)
 //
-// Entrada (POST JSON): { secret, email, funcao }
+// Entrada (POST JSON): { secret, email, funcao } — ou, sem secret, o JWT da
+// sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, user_id, login, senha, troca_obrigatoria }
 // =============================================================================
 
@@ -70,10 +74,32 @@ Deno.serve(async (req) => {
   // ── 1. AUTORIZAR ANTES DE QUALQUER COISA ───────────────────────────────────
   // `acesso.gerir`, que só o administrador tem. Curadoria e produção não criam
   // conta — é a diferença entre "mexe no trabalho" e "mexe em quem trabalha".
-  const { data: autorizado, error: authErr } = await admin.rpc('pode', {
-    p_secret: secret, p_acao: 'acesso.gerir',
-  })
-  if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+  //
+  // Duas portas (Fase 4, 28/08/2026): com `secret`, é a senha única de
+  // sempre. Sem `secret`, é o JWT da sessão nominal no cabeçalho —
+  // `admin.auth.getUser` verifica esse token (roda com service_role, aceita
+  // qualquer JWT emitido pelo próprio projeto) e `pode_por_user` decide pela
+  // mesma tabela perfis/permissões que `pode()` usa pra sessão nominal.
+  let autorizado = false
+  if (secret) {
+    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: 'acesso.gerir' })
+    if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+    autorizado = data === true
+  } else {
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim()
+    const { data: userRes, error: jwtErr } = jwt ? await admin.auth.getUser(jwt) : { data: null, error: null }
+    // gotrue-js não lança em falha de rede — devolve { data: { user: null }, error }.
+    // Sem distinguir, um blip do serviço de auth viraria "sessão não vale mais"
+    // (401), igual a um token realmente inválido — achado de revisão adversarial.
+    if (jwtErr && jwtErr.name === 'AuthRetryableFetchError') {
+      return json({ erro: 'auth_indisponivel', detalhe: jwtErr.message }, 503)
+    }
+    if (userRes?.user) {
+      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: 'acesso.gerir' })
+      if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+      autorizado = data === true
+    }
+  }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
   // ── 2. Validar antes de tocar no Auth ──────────────────────────────────────

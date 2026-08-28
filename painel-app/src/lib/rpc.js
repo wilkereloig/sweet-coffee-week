@@ -85,12 +85,21 @@ export async function rpc(nome, corpo = {}, fetchImpl = fetch) {
 // em erro, o corpo viaja junto (`err.dados`) — recusas de colisão devolvem
 // dados que a tela usa (ex.: candidatura_id), perder isso no throw vira
 // queixa sem saída.
+//
+// Fase 4 do plano de funções da organização (28/08/2026): reusa o mesmo
+// modoDeAcesso() de rpc() — sessão nominal manda o TOKEN da pessoa em vez da
+// chave publicável, e as cinco funções de conta aprenderam a validar esse
+// JWT (admin.auth.getUser + pode_por_user) quando o corpo não traz `secret`.
+// `corpo.secret` continua vindo do chamador tal como hoje (vazio numa sessão
+// nominal, porque a chave que ele lê não existe) — não precisa ser zerado
+// aqui: vazio já é falsy do lado da função, que cai pro caminho do JWT.
 export async function chamarFuncao(nome, corpo, fetchImpl = fetch) {
+  const modo = await modoDeAcesso(fetchImpl)
   const r = await fetchImpl(SUPABASE_URL + '/functions/v1/' + nome, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_KEY,
-      Authorization: 'Bearer ' + SUPABASE_KEY,
+      Authorization: modo.authorization,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(corpo),

@@ -21,8 +21,14 @@
 //
 // Deploy:
 //   supabase functions deploy criar-acesso-marca --no-verify-jwt
-//   (--no-verify-jwt porque a porta desta função é a senha do painel, via
-//    admin_ok, não um JWT — enquanto durar a Fase 1. Ver AUTORIZAÇÃO abaixo.)
+//   (--no-verify-jwt porque a porta de sempre foi o secret no CORPO, nunca o
+//    gateway. Fase 4 do plano de funções da organização, 28/08/2026: a
+//    autorização deixou de ser só `admin_ok` — virou `pode`/`pode_por_user`,
+//    ação `marca.liberar`, a mesma que a UI já usa pra mostrar ou esconder
+//    "Criar acesso"/"Cadastrar marca". Sem isso, uma sessão nominal de
+//    Curadoria via essa ação liberada na tela e recebia 401 aqui — a única
+//    escrita que justifica a função existir ficava permanentemente fora do
+//    alcance de quem a UI dizia poder usá-la.)
 //
 // Secrets: nenhum próprio. Esta função não envia e-mail — o endereço de login
 // é sintético e não recebe nada; quem entrega o acesso é a organização.
@@ -30,10 +36,11 @@
 //   SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY
 //
 //
-// Depende de: public.admin_ok, public.vincular_conta_marca, tabelas
-//             public.participantes e public.perfis.
+// Depende de: public.pode, public.pode_por_user, public.vincular_conta_marca,
+//             tabelas public.participantes e public.perfis.
 //
-// Entrada (POST JSON): { secret, origem_id }
+// Entrada (POST JSON): { secret, origem_id } — ou, sem secret, o JWT da
+// sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, participante_id, login, senha, email_contato, troca_obrigatoria }
 //        A senha aparece SÓ nesta resposta. Não fica gravada em lugar nenhum.
 // =============================================================================
@@ -130,10 +137,40 @@ Deno.serve(async (req) => {
 
   // ── 1. AUTORIZAR ANTES DE QUALQUER COISA ───────────────────────────────────
   // Nada de ler a candidatura, resolver e-mail ou tocar no Auth antes daqui.
-  // Enquanto durar a Fase 1 a porta é a senha do painel; na Fase 2 vira
-  // `pode_organizacao`, e esta é a única linha que muda.
-  const { data: autorizado, error: authErr } = await admin.rpc('admin_ok', { p_secret: secret })
-  if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+  // `marca.liberar` — a mesma ação que Respostas.jsx e Marcas.jsx checam pra
+  // mostrar "Criar acesso"/"Cadastrar marca" (Fase 3 do plano de funções).
+  //
+  // Duas portas (Fase 4, 28/08/2026): sem `secret`, o JWT da sessão nominal
+  // no cabeçalho, resolvido por `pode_por_user`.
+  //
+  // Com `secret`, `pode()` — NÃO é o mesmo comportamento de `admin_ok`, é
+  // mais estrito: `pode()` acrescenta duas condições que `admin_ok` sozinho
+  // não tinha (ver 20260825_contas_organizacao_por_funcao.sql) —
+  // `senha_unica_ativa` (a organização pode desligar a senha compartilhada)
+  // e `acesso_travado()` (o limite de tentativas). Antes deste diff,
+  // criar-acesso-marca era a ÚNICA das cinco funções de conta que continuava
+  // aceitando a senha única mesmo depois de desligada — um buraco que esta
+  // troca fecha, não um rename.
+  let autorizado = false
+  if (secret) {
+    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: 'marca.liberar' })
+    if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+    autorizado = data === true
+  } else {
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim()
+    const { data: userRes, error: jwtErr } = jwt ? await admin.auth.getUser(jwt) : { data: null, error: null }
+    // gotrue-js não lança em falha de rede — devolve { data: { user: null }, error }.
+    // Sem distinguir, um blip do serviço de auth viraria "sessão não vale mais"
+    // (401), igual a um token realmente inválido — achado de revisão adversarial.
+    if (jwtErr && jwtErr.name === 'AuthRetryableFetchError') {
+      return json({ erro: 'auth_indisponivel', detalhe: jwtErr.message }, 503)
+    }
+    if (userRes?.user) {
+      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: 'marca.liberar' })
+      if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+      autorizado = data === true
+    }
+  }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
   /* ── 2. QUAL DOS DOIS PONTOS DE ENTRADA ────────────────────────────────────

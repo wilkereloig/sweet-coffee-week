@@ -1008,3 +1008,103 @@ test('Mesa.jsx continua sem nenhum controle de escrita — nada a gatear nesta v
   assert.ok(!/onClick=\{.*\}[\s\S]{0,40}og-cartao/.test(semC) && !/className="og-cartao"[\s\S]{0,120}onClick=/.test(semC),
     'og-cartao ganhou onClick — se virou escrita, precisa de pode(\'triagem.editar\') igual Respostas.jsx')
 })
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Fase 4 do plano de funções da organização (28/08/2026) — "as Edge
+   Functions aprendem JWT". As cinco funções de conta ganham uma segunda
+   porta: sem `secret` no corpo, aceitam o JWT da sessão nominal no cabeçalho
+   Authorization, validado por admin.auth.getUser() e resolvido pela nova RPC
+   pode_por_user(). Escopo estendido além dos "três" do plano original: o
+   próprio plano listava só criar-conta-organizacao/arquivo-url/enviar-push,
+   mas regerar-senha-conta (mesma ação e mesmo formato de guard de
+   criar-conta-organizacao) e criar-acesso-marca (guardada até aqui só por
+   admin_ok, sem ação nenhuma) ficariam inconsistentes se deixadas de fora —
+   a segunda em especial: marca.liberar é a ÚNICA escrita de Curadoria, e sem
+   este arquivo ela continuaria 401 pra qualquer sessão nominal mesmo depois
+   da Fase 3 ter liberado o botão na tela.
+   ───────────────────────────────────────────────────────────────────────── */
+
+test('pode_por_user espelha a perna nominal de pode() — mesma tabela, mesmo filtro, por parâmetro em vez de auth.uid()', () => {
+  const semC = semComentariosSql(MIGRATIONS)
+  assert.match(semC, /create or replace function public\.pode_por_user\(p_user uuid, p_acao text\)/)
+  assert.match(semC, /pode_por_user[\s\S]{0,200}security definer/)
+  assert.match(semC, /pode_por_user[\s\S]{0,400}pf\.user_id = p_user[\s\S]{0,200}pf\.papel = 'organizacao'[\s\S]{0,100}pm\.acao = p_acao/)
+  // As três roles na MESMA linha de revoke — CLAUDE.md §4.1: separadas, uma
+  // das duas listas concede EXECUTE por padrão e a outra revogação não pega.
+  assert.match(semC, /revoke execute on function public\.pode_por_user\(uuid, text\) from public, anon, authenticated/)
+})
+
+function assertPortasDuasVias(nome, fonte, acao) {
+  // `acao` pode ser um literal ('acesso.gerir') ou o nome de uma variável
+  // (arquivo-url usa `acaoNecessaria`, resolvida em runtime) — ambos batem
+  // com a mesma regex porque não exige aspas.
+  const semC = semComentarios(fonte)
+  assert.match(semC, new RegExp("admin\\.rpc\\('pode_por_user',\\s*\\{\\s*p_user:\\s*userRes\\.user\\.id,\\s*p_acao:\\s*" + acao + "\\s*\\}\\)"),
+    nome + ': falta a chamada a pode_por_user com a ação certa')
+  assert.match(semC, /admin\.auth\.getUser\(jwt\)/, nome + ': falta validar o JWT recebido')
+  assert.match(semC, /req\.headers\.get\('Authorization'\)/, nome + ': falta ler o cabeçalho Authorization')
+  // A perna do secret continua existindo e continua sendo tentada primeiro
+  // (if (secret) { ... } else { ... jwt ... }) — Fase 4 é ADITIVA, nunca
+  // troca a senha única por JWT.
+  const posIfSecret = semC.indexOf('if (secret)')
+  const posJwt = semC.indexOf('admin.auth.getUser(jwt)')
+  assert.ok(posIfSecret > -1 && posJwt > -1 && posIfSecret < posJwt,
+    nome + ': o caminho do secret precisa vir ANTES do caminho do JWT, não substituí-lo')
+}
+
+test('criar-conta-organizacao aceita JWT nominal além do secret, sem perder a ação acesso.gerir', () => {
+  assertPortasDuasVias('criar-conta-organizacao', EDGE_CONTA, "'acesso\\.gerir'")
+})
+
+test('regerar-senha-conta aceita JWT nominal além do secret, sem perder a ação acesso.gerir', () => {
+  assertPortasDuasVias('regerar-senha-conta', EDGE_REGERAR, "'acesso\\.gerir'")
+})
+
+test('enviar-push aceita JWT nominal além do secret, sem perder a ação producao.gerir', () => {
+  assertPortasDuasVias('enviar-push', PUSH, "'producao\\.gerir'")
+})
+
+test('arquivo-url aceita JWT nominal além do secret, com a MESMA ação calculada (subir=producao.gerir, baixar=dado.ler)', () => {
+  assertPortasDuasVias('arquivo-url', EDGE_ARQ, 'acaoNecessaria')
+  // A variável, não um literal fixo — senão o caminho do JWT poderia liberar
+  // upload pra quem só tem dado.ler.
+  assert.ok(!/p_acao:\s*'producao\.gerir'/.test(semComentarios(EDGE_ARQ)), 'arquivo-url não deveria ter ação fixa — teria que ser a calculada')
+})
+
+test('criar-acesso-marca trocou admin_ok por pode/pode_por_user, ação marca.liberar — a mesma que Marcas.jsx e Respostas.jsx checam', () => {
+  const semC = semComentarios(EDGE_ACESSO)
+  assert.ok(!/admin_ok/.test(semC), 'criar-acesso-marca ainda chama admin_ok — devia ter migrado pra pode(), que aceita ação')
+  assert.match(semC, /admin\.rpc\('pode',\s*\{\s*p_secret:\s*secret,\s*p_acao:\s*'marca\.liberar'\s*\}\)/,
+    'o caminho do secret precisa continuar aceitando a senha única, agora via pode()')
+  assertPortasDuasVias('criar-acesso-marca', EDGE_ACESSO, "'marca\\.liberar'")
+})
+
+test('chamarFuncao() também tem duas portas — não fica preso na chave publicável quando existe sessão nominal', () => {
+  const semC = semComentarios(RPC_JS)
+  const corpo = semC.slice(semC.indexOf('export async function chamarFuncao'))
+  assert.ok(corpo.length > 0, 'não achei chamarFuncao em rpc.js')
+  assert.match(corpo.slice(0, 400), /const modo = await modoDeAcesso\(fetchImpl\)/,
+    'chamarFuncao precisa decidir o modo de acesso, igual rpc() já faz')
+  assert.match(corpo.slice(0, 400), /Authorization:\s*modo\.authorization/,
+    'chamarFuncao ainda manda a chave publicável fixa — sessão nominal nunca chegaria como JWT na Edge Function')
+  assert.ok(!/Authorization:\s*'Bearer '\s*\+\s*SUPABASE_KEY/.test(corpo.slice(0, 400)),
+    'sobrou o Authorization fixo antigo dentro de chamarFuncao')
+})
+
+test('as cinco funções distinguem falha de rede do serviço de auth de token inválido — achado de revisão adversarial', () => {
+  // gotrue-js não lança em falha de rede: devolve { data: { user: null },
+  // error } (AuthRetryableFetchError). Sem capturar esse `error`, um blip do
+  // serviço de auth virava 401 "sessão não vale mais", indistinguível de
+  // token realmente inválido — mesma classe do commit 6374f84 (distingue
+  // sessão morta de falha de rede).
+  for (const [nome, fonte] of [
+    ['criar-conta-organizacao', EDGE_CONTA], ['regerar-senha-conta', EDGE_REGERAR],
+    ['arquivo-url', EDGE_ARQ], ['enviar-push', PUSH], ['criar-acesso-marca', EDGE_ACESSO],
+  ]) {
+    const semC = semComentarios(fonte)
+    assert.match(semC, /const \{ data: userRes, error: jwtErr \} = jwt \? await admin\.auth\.getUser\(jwt\) : \{ data: null, error: null \}/,
+      nome + ': getUser precisa capturar o error, não só o data')
+    assert.match(semC, /jwtErr\.name === 'AuthRetryableFetchError'[\s\S]{0,80}503/,
+      nome + ': falha de rede do auth precisa virar 503, não cair muda pro 401 de token inválido')
+  }
+})
