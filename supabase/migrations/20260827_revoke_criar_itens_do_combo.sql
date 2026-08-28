@@ -1,0 +1,27 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Fecha o endpoint público de criar_itens_do_combo()
+-- 27/08/2026 — achado do diagnóstico read-only da mesma data (Etapa 3 do
+-- handoff de correções do painel React).
+--
+-- ⚠️ ESTA MIGRATION NÃO ESTÁ APLICADA NO BANCO. Escrita e revisável aqui;
+-- aplicar é ação manual e deliberada do Eloi (§4.1 do CLAUDE.md — não há
+-- CLI/config.toml neste projeto).
+--
+-- `criar_itens_do_combo()` é o gatilho de `20260825_fase4_*.sql` (linha ~125)
+-- que cria os três itens do combo (doce/salgado/bebida) a cada INSERT em
+-- `participacoes`. A investigação de 27/08/2026 achou a função exposta em
+-- `/rest/v1/rpc/criar_itens_do_combo` para `anon` e `authenticated` — todo
+-- `create or replace function` sem `revoke` explícito nasce com EXECUTE
+-- concedido a `PUBLIC` (e `anon` herda de `PUBLIC`), regra já registrada no
+-- CLAUDE.md §4.1 pra outras funções de guarda deste mesmo projeto.
+--
+-- Por que `revoke` e não `drop`: derrubar a função quebraria a criação
+-- automática dos três itens a cada cadastro novo. A função é
+-- `security definer` — o gatilho dispara como DONO da tabela, não com o
+-- privilégio de quem inseriu a linha, e por isso NÃO depende do EXECUTE do
+-- chamador pra continuar funcionando como gatilho. `revoke` tira só o
+-- endpoint direto (`rpc/criar_itens_do_combo` chamado à mão), sem tocar no
+-- comportamento do INSERT em `participacoes`.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+revoke execute on function public.criar_itens_do_combo() from anon, authenticated;
