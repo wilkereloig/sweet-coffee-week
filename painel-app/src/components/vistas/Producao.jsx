@@ -45,8 +45,12 @@ function Prazo({ iso }) {
   return <span className="og-selo" data-acesso={p.tom || undefined}>{p.texto}</span>
 }
 
+// Título explicativo, mesmo texto nas 5 folhas — uma ação só governa a
+// vista inteira (producao.gerir), então não há por que variar a frase.
+const SEM_PERMISSAO_PRODUCAO = 'Sua função não gerencia produção'
+
 /* ── Novo pedido ───────────────────────────────────────────────────────── */
-function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, onFechar, onCriado }) {
+function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeGerir, onFechar, onCriado }) {
   const [titulo, setTitulo] = React.useState('')
   const [texto, setTexto] = React.useState('')
   const [escopo, setEscopo] = React.useState('geral')
@@ -125,14 +129,21 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, onFec
           <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
         </label>
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-        <button className="og-btn" type="button" disabled={enviando} onClick={criar}>Criar rascunho</button>
+        <button
+          className="og-btn" type="button"
+          disabled={enviando || !podeGerir}
+          title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+          onClick={criar}
+        >
+          Criar rascunho
+        </button>
       </div>
     </Folha>
   )
 }
 
 /* ── Quem falta responder a um pedido ─────────────────────────────────── */
-function FolhaQuemFalta({ aberto, solicitacao, onFechar, onRespondido }) {
+function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido }) {
   const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
   const [lista, setLista] = React.useState([])
@@ -182,7 +193,8 @@ function FolhaQuemFalta({ aberto, solicitacao, onFechar, onRespondido }) {
                 {' '}
                 <button
                   className="og-btn og-btn--vazado og-btn--mini" type="button"
-                  disabled={marcando === l.participacao_id}
+                  disabled={marcando === l.participacao_id || !podeGerir}
+                  title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
                   onClick={() => marcar(l.participacao_id)}
                 >
                   Dar por respondido
@@ -198,7 +210,7 @@ function FolhaQuemFalta({ aberto, solicitacao, onFechar, onRespondido }) {
 }
 
 /* ── Publicar arquivo ──────────────────────────────────────────────────── */
-function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, onFechar, onPublicado }) {
+function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onPublicado }) {
   const [file, setFile] = React.useState(null)
   const [nome, setNome] = React.useState('')
   const [escopo, setEscopo] = React.useState('geral')
@@ -293,14 +305,21 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, onFechar, onPubli
           <span>Pedir confirmação de leitura</span>
         </label>
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-        <button className="og-btn" type="button" disabled={enviando} onClick={publicar}>Publicar</button>
+        <button
+          className="og-btn" type="button"
+          disabled={enviando || !podeGerir}
+          title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+          onClick={publicar}
+        >
+          Publicar
+        </button>
       </div>
     </Folha>
   )
 }
 
 /* ── Agendar sessão ────────────────────────────────────────────────────── */
-function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, onFechar, onCriada }) {
+function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onCriada }) {
   const [marca, setMarca] = React.useState(marcaPadrao)
   const [quando, setQuando] = React.useState('')
   const [local, setLocal] = React.useState('')
@@ -354,14 +373,21 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, onFechar, onCriada
           <textarea value={obs} onChange={(e) => setObs(e.target.value)} />
         </label>
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-        <button className="og-btn" type="button" disabled={enviando} onClick={criar}>Agendar</button>
+        <button
+          className="og-btn" type="button"
+          disabled={enviando || !podeGerir}
+          title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+          onClick={criar}
+        >
+          Agendar
+        </button>
       </div>
     </Folha>
   )
 }
 
 /* ── Mudar uma sessão já agendada ──────────────────────────────────────── */
-function FolhaEditarSessao({ aberto, sessao, onFechar, onSalva }) {
+function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
   const [status, setStatus] = React.useState('')
   const [nova, setNova] = React.useState('')
   const [local, setLocal] = React.useState('')
@@ -409,7 +435,14 @@ function FolhaEditarSessao({ aberto, sessao, onFechar, onSalva }) {
             <input type="text" value={local} onChange={(e) => setLocal(e.target.value)} />
           </label>
           {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-          <button className="og-btn" type="button" disabled={salvando} onClick={salvar}>Salvar</button>
+          <button
+            className="og-btn" type="button"
+            disabled={salvando || !podeGerir}
+            title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+            onClick={salvar}
+          >
+            Salvar
+          </button>
         </div>
       )}
     </Folha>
@@ -417,7 +450,8 @@ function FolhaEditarSessao({ aberto, sessao, onFechar, onSalva }) {
 }
 
 /* ── A vista ───────────────────────────────────────────────────────────── */
-export function Producao({ registrarAtualizar, reportarEstado }) {
+export function Producao({ registrarAtualizar, reportarEstado, pode = () => true }) {
+  const podeGerir = pode('producao.gerir')
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
   const [arquivos, setArquivos] = React.useState(null)
   const [sessoes, setSessoes] = React.useState(null)
@@ -426,6 +460,15 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
   const [erro, setErro] = React.useState(null)
   const [avisoGeral, setAvisoGeral] = React.useState(null) // {texto, tom}
   const [modoAgenda, setModoAgenda] = React.useState('abrir') // 'abrir' | 'marcar' — só UI, nunca gravado
+
+  // A edição aberta — movida de Equipe.jsx na Fase 3 do plano de funções
+  // (27/08/2026, achado de revisão adversarial): ela é governada por
+  // producao.gerir, e Equipe inteira só aparece pra quem tem acesso.gerir.
+  // Uma conta de função "produção" tinha producao.gerir e nunca via Equipe —
+  // ficava sem como abrir a edição que a própria agenda desta vista exige.
+  const [codigoEdicao, setCodigoEdicao] = React.useState('')
+  const [avisoEdicao, setAvisoEdicao] = React.useState(null)
+  const [salvandoEdicao, setSalvandoEdicao] = React.useState(false)
 
   // Uma folha por vez: qual está aberta, e o dado que ela precisa.
   const [folha, setFolha] = React.useState(null)
@@ -484,8 +527,25 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
   const edicaoAtual = config && config.edicao_atual
   const grade = React.useMemo(() => montarAgendaGrade(sessoes || []), [sessoes])
 
+  React.useEffect(() => {
+    setCodigoEdicao((config && config.edicao_atual) || '')
+  }, [config])
+
+  async function salvarEdicao(codigo) {
+    setSalvandoEdicao(true)
+    setAvisoEdicao(null)
+    try {
+      await rpc('definir_edicao_atual', { p_secret: lerSenha(), p_codigo: codigo })
+      await carregar()
+    } catch (e) {
+      setAvisoEdicao({ texto: e.message, tom: 'erro' })
+    } finally {
+      setSalvandoEdicao(false)
+    }
+  }
+
   async function clicarSlot(slot) {
-    if (modoAgenda !== 'abrir' || slot.estado === 'reservado') return
+    if (!podeGerir || modoAgenda !== 'abrir' || slot.estado === 'reservado') return
     try {
       if (slot.estado === 'aberto') {
         await rpc('fechar_vaga_fotos', { p_secret: lerSenha(), p_sessao_id: slot.sessaoId })
@@ -535,8 +595,62 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
         </div>
       )}
 
+      {/* Explicação VISÍVEL, não só `title` — botão desabilitado não recebe
+          hover nem foco de teclado (`pointer-events:none` + `disabled` no
+          CSS), então um `title` sozinho nunca é lido por ninguém. Achado de
+          revisão adversarial: os `title` abaixo continuam existindo (não
+          custam nada pra quem usa leitor de tela via outra rota), mas quem
+          de fato explica é este parágrafo. */}
+      {!erro && !podeGerir && (
+        <p className="og-forms__nota" style={{ marginBottom: 14 }}>{SEM_PERMISSAO_PRODUCAO}. As ações desta página aparecem desabilitadas.</p>
+      )}
+
       {!erro && (
         <>
+          <section className="og-forms" style={{ marginBottom: 22 }}>
+            <div className="og-forms__cabeca">
+              <h2>A edição aberta</h2>
+              <p>É ela que decide qual formulário a marca vê ao entrar, e é o que a agenda logo abaixo precisa pra existir.</p>
+            </div>
+            <div className="og-item" style={{ cursor: 'default' }}>
+              <span className="og-item__cor" style={{ background: edicaoAtual ? '#01AFCC' : '#FF4810' }} aria-hidden="true" />
+              <p className="og-item__nome">{edicaoAtual || 'Nenhuma edição aberta'}</p>
+              <p className="og-item__meta">
+                {edicaoAtual
+                  ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
+                  : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.'}
+              </p>
+            </div>
+            <label className="og-campo" style={{ marginTop: 12 }}><span>Código da edição</span>
+              <input
+                type="text" placeholder="2027"
+                value={codigoEdicao} onChange={(e) => setCodigoEdicao(e.target.value)}
+                disabled={!podeGerir}
+              />
+            </label>
+            {avisoEdicao && <div className="og-aviso" data-tom={avisoEdicao.tom}>{avisoEdicao.texto}</div>}
+            <button
+              className="og-btn" type="button"
+              disabled={salvandoEdicao || !podeGerir}
+              title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+              onClick={() => salvarEdicao(codigoEdicao.trim())}
+            >
+              Salvar edição
+            </button>
+            {/* Só aparece com edição aberta: fechar sem ter aberto não é um
+                gesto que exista. */}
+            {edicaoAtual && (
+              <button
+                className="og-btn og-btn--vazado" type="button"
+                disabled={salvandoEdicao || !podeGerir}
+                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                onClick={() => salvarEdicao('')}
+              >
+                Fechar a edição
+              </button>
+            )}
+          </section>
+
           <section className="og-forms" style={{ marginBottom: 22 }}>
             <div className="og-agenda__topo">
               <div>
@@ -558,7 +672,7 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
             </div>
             <div className="og-agenda__dias">
               {!edicaoAtual ? (
-                <p className="og-forms__nota">Abra uma edição em Equipe antes de montar a agenda.</p>
+                <p className="og-forms__nota">Abra uma edição acima antes de montar a agenda.</p>
               ) : (
                 grade.map((dia, i) => (
                   <div className="og-agenda__col" key={i}>
@@ -568,6 +682,8 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                         key={slot.hhmm}
                         type="button"
                         className={'og-slot og-slot--' + slot.estado}
+                        disabled={!podeGerir}
+                        title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
                         onClick={() => clicarSlot(slot)}
                       >
                         <span className="og-slot__hora">{slot.hhmm}</span>
@@ -591,7 +707,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                 <h2>Pedidos e prazos</h2>
                 <p>O que a organização pediu, para quem, até quando, e quem já respondeu.</p>
               </div>
-              <button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'pedido' })}>Novo pedido</button>
+              <button
+                className="og-btn og-btn--mini" type="button"
+                disabled={!podeGerir}
+                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                onClick={() => setFolha({ tipo: 'pedido' })}
+              >
+                Novo pedido
+              </button>
             </div>
             {solicitacoes && solicitacoes.length === 0 && (
               <EstadoVazio
@@ -616,7 +739,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                         <span className="og-item__dir">
                           <Prazo iso={s.prazo_em} />
                           {rascunho
-                            ? <button className="og-btn og-btn--mini" type="button" onClick={() => publicarPedido(s.id)}>Publicar</button>
+                            ? <button
+                                className="og-btn og-btn--mini" type="button"
+                                disabled={!podeGerir}
+                                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                                onClick={() => publicarPedido(s.id)}
+                              >
+                                Publicar
+                              </button>
                             : <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'quemFalta', solicitacao: s })}>Quem falta</button>}
                         </span>
                       </div>
@@ -633,7 +763,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                 <h2>Arquivos</h2>
                 <p>Documentos para download. Gerais, ou de uma marca só.</p>
               </div>
-              <button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'arquivo' })}>Publicar arquivo</button>
+              <button
+                className="og-btn og-btn--mini" type="button"
+                disabled={!podeGerir}
+                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                onClick={() => setFolha({ tipo: 'arquivo' })}
+              >
+                Publicar arquivo
+              </button>
             </div>
             {arquivos && arquivos.length === 0 && (
               <EstadoVazio titulo="Nenhum arquivo publicado" texto="O que você publicar aqui aparece para download no painel da marca." />
@@ -670,7 +807,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                 <h2>Sessões de fotos</h2>
                 <p>Quem fotografa é a organização. A marca só vê a data.</p>
               </div>
-              <button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'sessaoNova' })}>Agendar sessão</button>
+              <button
+                className="og-btn og-btn--mini" type="button"
+                disabled={!podeGerir}
+                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                onClick={() => setFolha({ tipo: 'sessaoNova' })}
+              >
+                Agendar sessão
+              </button>
             </div>
             {sessoes && sessoes.length === 0 && (
               <EstadoVazio titulo="Nenhuma sessão agendada" texto="A marca vê a data assim que você agenda. Ela não escolhe horário nem remarca por lá." />
@@ -687,7 +831,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
                       </p>
                       <span className="og-item__dir">
                         <span className="og-selo">{ROTULO_SESSAO[f.status] || f.status}</span>
-                        <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'sessaoEditar', sessao: f })}>Mudar</button>
+                        <button
+                          className="og-btn og-btn--vazado og-btn--mini" type="button"
+                          disabled={!podeGerir}
+                          title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                          onClick={() => setFolha({ tipo: 'sessaoEditar', sessao: f })}
+                        >
+                          Mudar
+                        </button>
                       </span>
                     </div>
                   </li>
@@ -703,12 +854,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
         opcoesMarcas={opcoesMarcas}
         marcaPadrao={marcaPadrao}
         edicaoAtual={edicaoAtual}
+        podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
         onCriado={carregar}
       />
       <FolhaQuemFalta
         aberto={!!folha && folha.tipo === 'quemFalta'}
         solicitacao={folha && folha.tipo === 'quemFalta' ? folha.solicitacao : null}
+        podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
         onRespondido={carregar}
       />
@@ -716,6 +869,7 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
         aberto={!!folha && folha.tipo === 'arquivo'}
         opcoesMarcas={opcoesMarcas}
         marcaPadrao={marcaPadrao}
+        podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
         onPublicado={carregar}
       />
@@ -723,12 +877,14 @@ export function Producao({ registrarAtualizar, reportarEstado }) {
         aberto={!!folha && folha.tipo === 'sessaoNova'}
         opcoesMarcas={opcoesMarcas}
         marcaPadrao={marcaPadrao}
+        podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
         onCriada={carregar}
       />
       <FolhaEditarSessao
         aberto={!!folha && folha.tipo === 'sessaoEditar'}
         sessao={folha && folha.tipo === 'sessaoEditar' ? folha.sessao : null}
+        podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
         onSalva={carregar}
       />

@@ -39,7 +39,25 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
 
-export function PainelShell({ vistas, onSair }) {
+export function PainelShell({ vistas, onSair, permissoes = null }) {
+  // Fase 3 do plano de funções da organização (27/08/2026): a UI reflete o
+  // que a sessão pode fazer. `permissoes === null` é a senha única — o banco
+  // libera qualquer ação por ela (pode(), segunda perna do OR), então a UI
+  // não pode mentir mostrando restrição que não existe. `permissoes` é o
+  // array `acoes` de `minhas_permissoes()` (Fase 1) só pra sessão nominal.
+  // ⚠️ A UI é conveniência, não segurança — todo botão aqui desabilitado
+  // continua protegido pela RPC/guard correspondente, que é quem decide de
+  // verdade (CLAUDE.md, este mesmo princípio vale pra todo o painel).
+  // (Inline, não extraído num "hook" à parte: um nome fora do padrão
+  // `use*` chamando `useCallback` por dentro engana ferramenta de lint —
+  // achado de revisão adversarial. Único chamador, não valia a indireção.)
+  const pode = React.useCallback((acao) => permissoes === null || permissoes.includes(acao), [permissoes])
+  // Equipe é a única vista inteiramente administrativa (plano, Fase 3, item
+  // 3) — some da navegação pra quem não tem acesso.gerir, em vez de aparecer
+  // com botão desabilitado. As outras quatro continuam visíveis: elas têm
+  // leitura útil pra todo mundo, só a ESCRITA é que varia por ação.
+  const visiveis = pode('acesso.gerir') ? DESTINOS : DESTINOS.filter((d) => d !== 'equipe')
+
   // 'mesa' é a vista inicial de verdade (public/painel/index.html, irPara()).
   const [vista, setVista] = React.useState('mesa')
   // A vista ativa "registra" sua própria função de recarregar aqui — é o
@@ -84,7 +102,7 @@ export function PainelShell({ vistas, onSair }) {
     <div id="painel">
       <nav className="pn-rail" aria-label="Seções do painel">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
-        {DESTINOS.map((d) => (
+        {visiveis.map((d) => (
           <button
             key={d}
             className="pn-rail__btn"
@@ -136,7 +154,7 @@ export function PainelShell({ vistas, onSair }) {
       </header>
 
       <main className="og-corpo">
-        {Vista ? <Vista registrarAtualizar={registrarAtualizar} reportarEstado={reportarEstado} /> : <p>Em construção — chega na Fase 2.</p>}
+        {Vista ? <Vista registrarAtualizar={registrarAtualizar} reportarEstado={reportarEstado} pode={pode} /> : <p>Em construção — chega na Fase 2.</p>}
       </main>
 
       {/* Barra de abas do celular (≤900px) — equivalente mobile da rail.
@@ -145,9 +163,9 @@ export function PainelShell({ vistas, onSair }) {
           copiados de public/painel/index.html:1377-1410, mesmo padrão de
           MobileTabBar.jsx do site (indicador de 3px por --og-i). */}
       <nav className="og-abasapp" aria-label="Seções do painel">
-        <div className="og-abasapp__grade" style={{ '--og-i': DESTINOS.indexOf(vista) }}>
+        <div className="og-abasapp__grade" style={{ '--og-i': visiveis.indexOf(vista), '--og-cols': visiveis.length }}>
           <span className="og-abasapp__indicador" aria-hidden="true" />
-          {DESTINOS.map((d) => (
+          {visiveis.map((d) => (
             <button
               key={d}
               className={'og-abaapp' + (d === vista ? ' is-ativa' : '')}

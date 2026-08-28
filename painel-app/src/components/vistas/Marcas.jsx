@@ -130,7 +130,7 @@ function FichaCorpo({ estado }) {
   )
 }
 
-export function Marcas({ registrarAtualizar, reportarEstado }) {
+export function Marcas({ registrarAtualizar, reportarEstado, pode = () => true }) {
   const [participantes, setParticipantes] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
 
@@ -240,8 +240,19 @@ export function Marcas({ registrarAtualizar, reportarEstado }) {
             <h2>Marcas com acesso</h2>
             <p>Quem já tem conta para preencher o próprio cadastro.</p>
           </div>
-          <button className="og-btn og-btn--mini" type="button" onClick={abrirCadastro}>Cadastrar marca</button>
+          <button
+            className="og-btn og-btn--mini" type="button"
+            disabled={!pode('marca.liberar')}
+            title={pode('marca.liberar') ? undefined : 'Sua função não cadastra marca'}
+            onClick={abrirCadastro}
+          >
+            Cadastrar marca
+          </button>
         </div>
+        {/* Texto visível, não só title: botão disabled não recebe hover nem
+            foco de teclado (pointer-events:none no CSS) — achado de revisão
+            adversarial. */}
+        {!pode('marca.liberar') && <p className="og-forms__nota">Sua função não cadastra marca.</p>}
 
         {erro && (
           <div className="og-estado" data-tom="erro">
@@ -317,7 +328,12 @@ export function Marcas({ registrarAtualizar, reportarEstado }) {
           {manCredenciais && (
             <Credenciais nomeMarca={manNome} telefone={manTelefone} login={manCredenciais.login} senha={manCredenciais.senha} />
           )}
-          <button className="og-btn" type="button" disabled={manCriando || manCriada} onClick={criarMarcaManual}>
+          <button
+            className="og-btn" type="button"
+            disabled={manCriando || manCriada || !pode('marca.liberar')}
+            title={pode('marca.liberar') ? undefined : 'Sua função não cadastra marca'}
+            onClick={criarMarcaManual}
+          >
             {manCriando ? 'Criando…' : manCriada ? 'Criada' : 'Criar marca e acesso'}
           </button>
         </div>

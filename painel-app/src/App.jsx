@@ -70,6 +70,11 @@ function TelaConferindo() {
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
   const [motivoBloqueio, setMotivoBloqueio] = React.useState(null)
+  // null = senha única (pode() libera tudo pra ela; PainelShell trata null
+  // como "sem restrição", Fase 3 do plano). Array = as `acoes` da conta
+  // nominal, carregadas uma vez em 'conferindo-org' — nunca refeito depois,
+  // então zera no logout pra não vazar pra uma sessão diferente na mesma aba.
+  const [acoesPermitidas, setAcoesPermitidas] = React.useState(null)
 
   // Caminho A (handoff de correções, Etapa 2): registrado uma vez, no mount —
   // é quem trata a sessão de marca morrendo EM PLENO USO (painel já aberto),
@@ -117,12 +122,20 @@ export function App() {
       if (cancelado) return
       if (!linhas || linhas.length === 0) { setMotivoBloqueio('sem-perfil'); setEstado('bloqueado-org'); return }
       if (linhas[0].ativo === false) { setMotivoBloqueio('suspenso'); setEstado('bloqueado-org'); return }
+      setAcoesPermitidas(linhas[0].acoes || [])
       setEstado(linhas[0].deve_trocar_senha ? 'definir-senha-org' : 'painel-org')
     }).catch((e) => {
       if (cancelado) return
       if (e && e.message === 'sessao_expirada') { sairOrg(); return }
-      // Falha de rede (não sessão morta) — mesma política do lado marca:
-      // deixar entrar é melhor que trancar por uma consulta que caiu.
+      // Falha de rede (não sessão morta) — mesma política do lado marca pra
+      // ENTRAR no painel: deixar entrar é melhor que trancar por uma
+      // consulta que caiu. Mas isso é só sobre a PORTA — dentro do painel,
+      // `acoesPermitidas` continuaria `null`, e PainelShell lê `null` como
+      // "senha única, tudo liberado". Pra uma sessão NOMINAL cujas permissões
+      // não deram pra carregar, "tudo liberado" seria mentir na direção
+      // errada (achado de revisão adversarial) — `[]` deixa entrar sem
+      // assumir permissão nenhuma até a próxima checagem real.
+      setAcoesPermitidas([])
       setEstado('painel-org')
     })
     return () => { cancelado = true }
@@ -137,6 +150,7 @@ export function App() {
     if (sessaoConta) auth('logout', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     sessionStorage.removeItem(CHAVE_SESSAO_ORG_CONTA)
+    setAcoesPermitidas(null)
     setEstado('boas-vindas')
   }
 
@@ -231,6 +245,7 @@ export function App() {
     <PainelShell
       vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, producao: Producao, equipe: Equipe }}
       onSair={sairOrg}
+      permissoes={acoesPermitidas}
     />
   )
 }

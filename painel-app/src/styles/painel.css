@@ -160,15 +160,17 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding-bottom:var(--scw-safe-b);
   border-top:1px solid rgba(254,240,221,.14);
 }
-/* O 5 das duas linhas abaixo é `DESTINOS.length` no script. Mudou lá, muda
-   aqui — o indicador deslizante mede a coluna, não o botão. */
+/* 5 é o padrão de DESTINOS.length, mas quem manda é `--og-cols` — escrito
+   pelo PainelShell (Fase 3, plano de funções: Equipe some pra quem não tem
+   acesso.gerir, e a grade encolhe pra 4 colunas nesse caso). Sem essa
+   variável (ex.: painel da marca, que não a escreve) cai no 5 de sempre. */
 .og-abasapp__grade{
   position:relative;
-  display:grid;grid-template-columns:repeat(5,1fr);
+  display:grid;grid-template-columns:repeat(var(--og-cols,5),1fr);
   height:var(--og-abas-h);
 }
 .og-abasapp__indicador{
-  position:absolute;top:0;left:0;height:3px;width:calc(100% / 5);
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / var(--og-cols,5));
   background:var(--scw-amarelo);border-radius:0 0 3px 3px;
   transform:translateX(calc(var(--og-i,0) * 100%));
   transition:transform 300ms var(--scw-ease);

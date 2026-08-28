@@ -177,10 +177,6 @@ export function Equipe({ registrarAtualizar }) {
   const [contas, setContas] = React.useState([])
   const [erro, setErro] = React.useState(null)
 
-  const [codigoEdicao, setCodigoEdicao] = React.useState('')
-  const [avisoEdicao, setAvisoEdicao] = React.useState(null)
-  const [salvandoEdicao, setSalvandoEdicao] = React.useState(false)
-
   const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'mudar', conta}
 
   const [assinatura, setAssinatura] = React.useState(null)
@@ -217,23 +213,6 @@ export function Equipe({ registrarAtualizar }) {
   React.useEffect(() => {
     if (registrarAtualizar) registrarAtualizar(carregar)
   }, [registrarAtualizar, carregar])
-
-  React.useEffect(() => {
-    setCodigoEdicao((config && config.edicao_atual) || '')
-  }, [config])
-
-  async function salvarEdicao(codigo) {
-    setSalvandoEdicao(true)
-    setAvisoEdicao(null)
-    try {
-      await rpc('definir_edicao_atual', { p_secret: lerSenha(), p_codigo: codigo })
-      await carregar()
-    } catch (e) {
-      setAvisoEdicao({ texto: e.message, tom: 'erro' })
-    } finally {
-      setSalvandoEdicao(false)
-    }
-  }
 
   async function ligarAvisos() {
     if (Notification.permission === 'denied') {
@@ -338,50 +317,27 @@ export function Equipe({ registrarAtualizar }) {
     }
   }
 
-  const atual = config && config.edicao_atual
   const funcoes = (config && config.funcoes) || []
   const suportado = avisoSuportado()
 
   return (
     <section className="og-vista">
-      <VistaCabeca acento="marrom" icone={ICONE.equipe} titulo="Equipe" nota="A edição aberta e as contas de quem trabalha aqui" />
+      <VistaCabeca acento="marrom" icone={ICONE.equipe} titulo="Equipe" nota="As contas de quem trabalha aqui" />
+
+      {/* Erro de carga cobre a vista inteira agora — antes ficava só dentro
+          da seção "A edição aberta", que saiu daqui (comentário abaixo). */}
+      {erro && <div className="og-estado" data-tom="erro"><h2>Não consegui carregar</h2><p>{erro}</p></div>}
+
+      {/* A edição aberta mudou de casa na Fase 3 do plano de funções
+          (27/08/2026): ela é governada por producao.gerir, não por
+          acesso.gerir — mas Equipe inteira só aparece pra quem tem
+          acesso.gerir (a natureza administrativa da vista, plano item 3).
+          Uma conta de função "produção" tem producao.gerir e nunca vê
+          Equipe: deixar a edição aqui a deixava sem como abrir uma edição,
+          justamente a mensagem que Producao.jsx dá ("Abra uma edição em
+          Equipe"). Achado de revisão adversarial — movida pra lá. */}
 
       <section className="og-forms">
-        <div className="og-forms__cabeca">
-          <h2>A edição aberta</h2>
-          <p>É ela que decide qual formulário a marca vê ao entrar. Sem edição aberta, conta nova entra e não tem o que preencher.</p>
-        </div>
-        {erro && <div className="og-estado" data-tom="erro"><h2>Não consegui ler a configuração</h2><p>{erro}</p></div>}
-        {!erro && (
-          <>
-            <div className="og-item" style={{ cursor: 'default' }}>
-              <span className="og-item__cor" style={{ background: atual ? '#01AFCC' : '#FF4810' }} aria-hidden="true" />
-              <p className="og-item__nome">{atual || 'Nenhuma edição aberta'}</p>
-              <p className="og-item__meta">
-                {atual
-                  ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
-                  : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.'}
-              </p>
-            </div>
-            <label className="og-campo" style={{ marginTop: 12 }}><span>Código da edição</span>
-              <input type="text" placeholder="2027" value={codigoEdicao} onChange={(e) => setCodigoEdicao(e.target.value)} />
-            </label>
-            {avisoEdicao && <div className="og-aviso" data-tom={avisoEdicao.tom}>{avisoEdicao.texto}</div>}
-            <button className="og-btn" type="button" disabled={salvandoEdicao} onClick={() => salvarEdicao(codigoEdicao.trim())}>
-              Salvar edição
-            </button>
-            {/* Só aparece com edição aberta: fechar sem ter aberto não é um
-                gesto que exista. */}
-            {atual && (
-              <button className="og-btn og-btn--vazado" type="button" disabled={salvandoEdicao} onClick={() => salvarEdicao('')}>
-                Fechar a edição
-              </button>
-            )}
-          </>
-        )}
-      </section>
-
-      <section className="og-forms" style={{ marginTop: 22 }}>
         <div className="og-forms__cabeca og-forms__cabeca--com-acao">
           <div>
             <h2>Contas da organização</h2>

@@ -20,7 +20,7 @@ const APAGAR_TIMEOUT = 6000
 // abrirDetalhe()/salvar()/apagarRegistro()/criarAcesso() da versão estática
 // — CLAUDE.md §5.3, restaurado no corte para React (era perda real, não
 // decisão de design).
-function DetalheResposta({ origem, reg, onAtualizado, onApagado }) {
+function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
   const o = ORIGENS[origem]
   const [status, setStatus] = React.useState(reg.status)
   const [nota, setNota] = React.useState(reg.internal_notes || '')
@@ -130,7 +130,16 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado }) {
           <textarea placeholder="Só a equipe vê." value={nota} onChange={(e) => setNota(e.target.value)} />
         </label>
         {avisoSalvar && <div className="og-aviso" data-tom={avisoSalvar.tom}>{avisoSalvar.texto}</div>}
-        <button className="og-btn" type="button" disabled={salvando} onClick={salvar}>
+        {/* Texto visível, não só title: botão disabled não recebe hover nem
+            foco de teclado (pointer-events:none no CSS) — achado de revisão
+            adversarial. */}
+        {!pode('triagem.editar') && <p className="og-forms__nota">Sua função não edita triagem.</p>}
+        <button
+          className="og-btn" type="button"
+          disabled={salvando || !pode('triagem.editar')}
+          title={pode('triagem.editar') ? undefined : 'Sua função não edita triagem'}
+          onClick={salvar}
+        >
           {salvando ? 'Salvando…' : 'Salvar'}
         </button>
       </div>
@@ -149,8 +158,14 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado }) {
                 {' '}<b>login é o nome do estabelecimento</b> e a senha é gerada forte, na hora. Ela aparece
                 {' '}<b>uma vez só</b> nesta tela: depois não há como ver de novo.</p>
               {naoAprovado && <p className="og-forms__nota">Marque o status como <b>Aprovado</b> antes de criar o acesso.</p>}
+              {!pode('marca.liberar') && <p className="og-forms__nota">Sua função não libera acesso de marca.</p>}
               {avisoAcesso && <div className="og-aviso" data-tom={avisoAcesso.tom}>{avisoAcesso.texto}</div>}
-              <button className="og-btn" type="button" disabled={naoAprovado || criandoAcesso} onClick={criarAcesso}>
+              <button
+                className="og-btn" type="button"
+                disabled={naoAprovado || criandoAcesso || !pode('marca.liberar')}
+                title={pode('marca.liberar') ? undefined : 'Sua função não libera acesso de marca'}
+                onClick={criarAcesso}
+              >
                 {criandoAcesso ? 'Criando…' : 'Criar acesso'}
               </button>
             </>
@@ -163,8 +178,14 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado }) {
         <p className="og-forms__nota">Tira a resposta do banco de vez. <b>Não tem desfazer</b>: o histórico
           guarda que houve exclusão, não o que foi apagado.</p>
         {avisoApagar && <div className="og-aviso" data-tom={avisoApagar.tom}>{avisoApagar.texto}</div>}
+        {!pode('registro.apagar') && <p className="og-forms__nota">Sua função não apaga registro.</p>}
         <div className="og-risco__acoes">
-          <button className="og-btn og-btn--vazado" type="button" disabled={apagando} onClick={apagar}>
+          <button
+            className="og-btn og-btn--vazado" type="button"
+            disabled={apagando || !pode('registro.apagar')}
+            title={pode('registro.apagar') ? undefined : 'Sua função não apaga registro'}
+            onClick={apagar}
+          >
             {apagando ? 'Apagando…' : armado ? 'Confirmar exclusão' : 'Apagar este registro'}
           </button>
         </div>
@@ -173,7 +194,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado }) {
   )
 }
 
-export function Respostas({ registrarAtualizar, reportarEstado }) {
+export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true }) {
   const [dados, setDados] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
   const [aba, setAba] = React.useState('tudo')
@@ -316,6 +337,7 @@ export function Respostas({ registrarAtualizar, reportarEstado }) {
           <DetalheResposta
             origem={selecionado.origem}
             reg={selecionado.reg}
+            pode={pode}
             onAtualizado={(regNovo) => {
               setDados((d) => ({ ...d, [selecionado.origem]: d[selecionado.origem].map((r) => (r.id === regNovo.id ? regNovo : r)) }))
               setSelecionado((s) => (s ? { ...s, reg: regNovo } : s))

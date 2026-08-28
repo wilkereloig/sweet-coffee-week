@@ -243,12 +243,22 @@ test('a casca do painel prende a coluna do grid, senão estoura na horizontal', 
 test('as barras de abas têm tantas colunas quanto DESTINOS', () => {
   assert.ok(DESTINOS_ORG >= 3, 'não consegui contar DESTINOS em PainelShell.jsx')
   assert.ok(DESTINOS_MARCA >= 3, 'não consegui contar DESTINOS em PainelMarcaShell.jsx')
-  assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(' + DESTINOS_ORG + ',1fr)'),
-    'a grade da barra de abas da organização não tem ' + DESTINOS_ORG + ' colunas')
-  assert.ok(PAINEL_CSS.includes('width:calc(100% / ' + DESTINOS_ORG + ')'),
-    'o indicador da barra da organização não mede 1/' + DESTINOS_ORG)
+  // A grade da organização é DINÂMICA desde a Fase 3 (Equipe some pra quem
+  // não tem acesso.gerir, a grade encolhe de 5 pra 4) — o fallback da
+  // variável CSS é que tem que bater com DESTINOS_ORG, não um repeat() fixo.
+  assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(var(--og-cols,' + DESTINOS_ORG + '),1fr)'),
+    'a grade da barra de abas da organização não tem fallback de ' + DESTINOS_ORG + ' colunas')
+  assert.ok(PAINEL_CSS.includes('width:calc(100% / var(--og-cols,' + DESTINOS_ORG + '))'),
+    'o indicador da barra da organização não mede 1/' + DESTINOS_ORG + ' de fallback')
   assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(' + DESTINOS_MARCA + ',1fr)'),
     'a grade da barra de abas da marca não tem ' + DESTINOS_MARCA + ' colunas')
+})
+
+test("PainelShell filtra 'equipe' da navegação pra quem não tem acesso.gerir, e ajusta --og-cols junto", () => {
+  const semC = semComentarios(PAINEL_SHELL_JSX)
+  assert.match(semC, /DESTINOS\.filter\(\(d\) => d !== 'equipe'\)/)
+  assert.match(semC, /'--og-cols': visiveis\.length/)
+  assert.match(semC, /pode\('acesso\.gerir'\)/)
 })
 
 test('o bloco de prefers-reduced-motion é o último do CSS do painel', () => {
@@ -592,7 +602,11 @@ test('a foto do combo é da participação, e a marca não a escreve', () => {
 })
 
 test('a edição aberta tem tela, e é ela que dá formulário à conta nova', () => {
-  assert.match(EQUIPE_JSX, /definir_edicao_atual/, 'sem esta tela, abrir edição é rodar SQL à mão')
+  // A tela mudou de Equipe.jsx pra Producao.jsx na Fase 3 do plano de
+  // funções (achado de revisão adversarial: governada por producao.gerir,
+  // não por acesso.gerir) — ver o teste dedicado logo abaixo pra essa
+  // mudança. Aqui só confirma que ELA EXISTE em algum lugar vivo.
+  assert.match(PRODUCAO_JSX, /definir_edicao_atual/, 'sem esta tela, abrir edição é rodar SQL à mão')
   assert.match(MIG_FASE5, /perform public\.abrir_participacao_interna\(v_id, v_ed\)/,
     'a conta nova precisa nascer com a participação da edição corrente')
 })
@@ -890,6 +904,19 @@ test("conferindo-org: conjunto vazio ou conta inativa NÃO entra em painel-org �
   assert.match(corpo, /ativo === false[\s\S]{0,60}'bloqueado-org'/, "conta suspensa (ativo:false) tinha que virar 'bloqueado-org'")
 })
 
+test('conferindo-org: falha de rede (não sessão morta) entra no painel SEM assumir acesso total — achado de revisão adversarial', () => {
+  // null (o default) é lido por PainelShell como "senha única, tudo
+  // liberado". Uma sessão NOMINAL cujas permissões falharam de carregar por
+  // rede não pode herdar esse sentido — []  deixa entrar sem permissão
+  // nenhuma assumida, em vez de mentir pro lado mais permissivo.
+  const semC = semComentarios(APP_JSX)
+  const bloco = semC.match(/estado !== 'conferindo-org'\) return[\s\S]*?return \(\) => \{ cancelado = true \}/)
+  assert.ok(bloco, 'não achei o efeito de conferindo-org')
+  const posCatch = bloco[0].indexOf('}).catch(')
+  const trechoCatch = bloco[0].slice(posCatch)
+  assert.match(trechoCatch, /setAcoesPermitidas\(\[\]\)/, 'a falha de rede precisa zerar acoesPermitidas pra [], não deixar em null')
+})
+
 test('sairOrg() apaga as DUAS chaves de sessão de organização', () => {
   const semC = semComentarios(APP_JSX)
   const bloco = semC.match(/function sairOrg\(\)[\s\S]*?\n  \}/)
@@ -904,4 +931,80 @@ test('marcar_senha_trocada() lê o papel de verdade da linha, não crava "marca"
   // O literal solto (sem vir de v_papel) é o bug original — não pode reaparecer aqui.
   assert.ok(!/values \(auth\.uid\(\), 'marca',/.test(semComentariosSql(MIG_FASE2_ATOR)),
     "'marca' não pode voltar a ser cravado direto no insert de auditoria")
+})
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Fase 3 do plano de funções da organização — a UI reflete o que a sessão
+   pode fazer. Mapa (plano, item 2): Mesa/Respostas → triagem.editar, apagar
+   → registro.apagar; Marcas → marca.liberar; Produção → producao.gerir;
+   Equipe some inteira sem acesso.gerir (já coberto acima, na seção de
+   PainelShell). "UI é conveniência, não segurança" — estes testes conferem
+   só que a UI PEDE a ação certa, nunca que ela é a única barreira (isso
+   quem garante é o guard da RPC, testado em outro lugar).
+   ───────────────────────────────────────────────────────────────────────── */
+
+test('Respostas.jsx: salvar pede triagem.editar, criar acesso pede marca.liberar, apagar pede registro.apagar', () => {
+  const semC = semComentarios(RESPOSTAS_JSX)
+  assert.match(semC, /disabled=\{salvando \|\| !pode\('triagem\.editar'\)\}/)
+  assert.match(semC, /disabled=\{naoAprovado \|\| criandoAcesso \|\| !pode\('marca\.liberar'\)\}/)
+  assert.match(semC, /disabled=\{apagando \|\| !pode\('registro\.apagar'\)\}/)
+  // As três têm título explicativo quando desabilitadas (D4 do plano —
+  // desabilitar com explicação, não sumir o controle).
+  assert.equal((semC.match(/title=\{pode\(/g) || []).length, 3, 'esperava 3 títulos explicativos em Respostas.jsx')
+  // ⚠️ `title` sozinho não basta: botão disabled tem pointer-events:none no
+  // CSS, então a tooltip nunca é alcançada por mouse OU teclado (achado de
+  // revisão adversarial). Texto VISÍVEL é a explicação de verdade.
+  assert.equal((semC.match(/!pode\('(triagem\.editar|marca\.liberar|registro\.apagar)'\) && <p/g) || []).length, 3,
+    'esperava 3 notas VISÍVEIS (não só title) em Respostas.jsx')
+})
+
+test('Marcas.jsx: cadastrar marca (abrir e criar) pede marca.liberar', () => {
+  const semC = semComentarios(MARCAS_JSX)
+  assert.match(semC, /disabled=\{!pode\('marca\.liberar'\)\}/, 'faltou gate no botão que ABRE o cadastro')
+  assert.match(semC, /disabled=\{manCriando \|\| manCriada \|\| !pode\('marca\.liberar'\)\}/, 'faltou gate no botão que CRIA a marca')
+  assert.match(semC, /!pode\('marca\.liberar'\) && <p/, 'falta nota VISÍVEL (title sozinho não é alcançável em botão disabled)')
+})
+
+test('Producao.jsx: toda escrita pede producao.gerir — vaga, pedido, publicar, quem falta, arquivo, sessão', () => {
+  const semC = semComentarios(PRODUCAO_JSX)
+  assert.match(semC, /const podeGerir = pode\('producao\.gerir'\)/)
+  // 16 controles de escrita nesta vista: clicarSlot (guard de função) + slot
+  // da agenda + 3 pares trigger/submit (pedido, arquivo, sessão nova) + mudar
+  // sessão (trigger + salvar) + publicar pedido + dar por respondido + a
+  // edição aberta (campo, salvar, fechar — movida de Equipe.jsx, achado de
+  // revisão adversarial) + o banner visível do topo. Número EXATO de
+  // propósito — uma contagem "pelo menos N" não pega UM controle esquecido
+  // (confirmado por mutação: tirar 1 dos 12 originais não derrubava o teste
+  // quando o piso era "pelo menos 9").
+  const ocorrencias = (semC.match(/!podeGerir/g) || []).length
+  assert.equal(ocorrencias, 16, 'esperava exatamente 16 usos de !podeGerir em Producao.jsx, achei ' + ocorrencias)
+  // Texto VISÍVEL, não só title — botão disabled não recebe hover/foco de
+  // teclado (pointer-events:none no CSS), achado de revisão adversarial.
+  assert.match(semC, /!podeGerir && \(/, 'falta o banner visível de "sua função não gerencia produção"')
+  // "Baixar" arquivo é LEITURA — não pode ficar preso atrás de producao.gerir,
+  // senão Consulta (só dado.ler) não conseguiria nem baixar o que já foi
+  // publicado.
+  assert.ok(!/baixarArquivo[\s\S]{0,80}podeGerir/.test(semC), 'baixar arquivo não deveria depender de producao.gerir')
+})
+
+test('a edição aberta mora em Producao.jsx (producao.gerir), não em Equipe.jsx (acesso.gerir) — achado de revisão adversarial', () => {
+  // Equipe inteira some da navegação pra quem não tem acesso.gerir
+  // (PainelShell), mas quem abre/fecha edição precisa só de producao.gerir
+  // — uma conta de função "produção" tinha essa ação e nunca via Equipe,
+  // ficando sem como abrir a edição que a própria agenda dela exige.
+  const semEquipe = semComentarios(EQUIPE_JSX)
+  const semProducao = semComentarios(PRODUCAO_JSX)
+  assert.ok(!/definir_edicao_atual/.test(semEquipe), 'Equipe.jsx não deveria mais chamar definir_edicao_atual')
+  assert.ok(!/codigoEdicao/.test(semEquipe), 'Equipe.jsx não deveria mais ter estado de edição')
+  assert.match(semProducao, /definir_edicao_atual/, 'Producao.jsx precisa gerenciar a edição aberta')
+  assert.match(semProducao, /codigoEdicao/)
+})
+
+test('Mesa.jsx continua sem nenhum controle de escrita — nada a gatear nesta vista', () => {
+  // Mesa é kanban de leitura (colunasMesa) — os cartões não têm onClick. Se
+  // algum dia ganharem um, a Fase 3 do plano pede triagem.editar aqui
+  // também (mesma ação de Respostas) — este teste é o lembrete.
+  const semC = semComentarios(MESA_JSX)
+  assert.ok(!/onClick=\{.*\}[\s\S]{0,40}og-cartao/.test(semC) && !/className="og-cartao"[\s\S]{0,120}onClick=/.test(semC),
+    'og-cartao ganhou onClick — se virou escrita, precisa de pode(\'triagem.editar\') igual Respostas.jsx')
 })
