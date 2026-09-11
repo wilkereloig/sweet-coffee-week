@@ -581,6 +581,12 @@ hover e ativo usam a cor da própria página.
 - placeholder de foto = `--scw-bege`
 - card claro = `--scw-creme` (o filete é que carrega o recorte visual)
 
+⚠️ **Cor de acento não é tinta** (11/09/2026). Amarelo, cyan, laranja e magenta em
+**texto pequeno** sobre creme ou chocolate reprovam — a tabela do §6.3 diz quais, e a do
+§10.6 diz por quanto. Onde a cor precisa aparecer num rótulo, **a tinta é `#6A2C15`
+(9,4:1) ou `#3D1308` e a cor vira filete de 4px ao lado**, que é o padrão já usado no
+sistema. Magenta sobre chocolate só a partir de 24px/700.
+
 **Proibido:** `#E52C4B` (vermelho-coral, removido da paleta — não usar em nada); verde;
 cinza frio aleatório; preto puro; **qualquer hex fora da tabela**; hex escrito direto em
 componente quando existe token.
@@ -1051,7 +1057,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Marquee | `.scw-marquee` | `__palavra` `__ponto` |
 | Reserva | `.scw-reserva` | — |
 | Destaque | `.scw-destaque` | — |
-| Régua de dado | `.scw-stat__regua` | 4px, padrão StatBlock |
+| Métrica | `.scw-disco` + `.scw-numeral` | disco na cor do ciclo **+ ícone que diz do que o número fala** → numeral chocolate (`white-space: nowrap`) → rótulo. **Número sem ícone não existe** |
 
 **Prefixos por página:** Home `.hm-` · Edições `.scw-` (cena própria) · Sweet Awards
 `.swa-` · Contato `.ctt-` · Participar e Apoiar `.pa-`.
@@ -1258,8 +1264,13 @@ conscientes ficam na allowlist do próprio teste.
 **Regras de uso:**
 
 - Foto real sempre que existir; `object-fit: cover`; proporção preservada; alt adequado.
-- Logo real: `object-fit: contain`, nunca distorcer, limite de altura. **Nunca inventar
-  logo** — `resolveParticipant` com fallback em iniciais.
+- **Logo preenche 100% do slot** (11/09/2026): logo de participante e marca de edição
+  usam `object-fit: cover` no slot inteiro — o arquivo já traz fundo e respiro próprios, e
+  `contain` com margem interna soma respiro em cima de respiro, deixando a marca pequena
+  no meio de um vazio. ⛔ Nunca `contain` com margem interna. Sem logo, iniciais sobre
+  bege. **Nunca inventar logo** — `resolveParticipant` com fallback em iniciais.
+  ⚠️ A regra vale para o **slot de marca**, não para toda imagem de logo: a marca da F2
+  e a logo do cabeçalho são assets de proporção própria e seguem como estão.
 - **Coerência de conteúdo é obrigatória:** página de edição mostra fotos daquela edição;
   página de participante mostra o participante certo; **Sweet Awards mostra a peça
   premiada** (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor Bebida → a bebida,
@@ -1376,6 +1387,34 @@ institucional.
 | `--mo-passo-card` | **70ms** | card a card dentro de uma grade |
 | `--mo-respiro` | **26s** | laço de respiração da imagem |
 
+**Quatro camadas — para que serve cada duração** (Caderno cap. 09, 11/09/2026). Os tokens
+não mudam; o que entra é o critério de quando cada um cabe:
+
+| Camada | Token | Gatilho | Repetição | No celular |
+|---|---|---|---|---|
+| **1 · Resposta** | `--mo-rapido` 180ms | ação direta | a cada ação | igual, sem hover |
+| **2 · Continuidade** | `--mo-estado` 300ms | navegação | a cada troca | 260ms; folha sobe de baixo |
+| **3 · Narrativa** | `--mo-entra` 620ms | seção entra na tela | **uma vez por sessão** | deslocamento 22 → 14px, degrau 70ms |
+| **4 · Atmosfera** | 26–28s, linear | carga da página | infinita, **com pausa** | só um por tela |
+
+**Resposta** confirma que o sistema ouviu: botão, chip, ícone, validação — e o gesto é o
+deslocamento de 1px no `active` e de 4px na seta, nunca o `gap` do botão crescendo.
+**Continuidade** diz que mudou de lugar, não de página: abas, acordeão, folha, filtro.
+**Narrativa** estabelece hierarquia pela ordem de entrada. **Atmosfera** é o único
+movimento sem gatilho — e por isso **a pausa visível é obrigatória**, nunca escondida no
+hover.
+
+⚠️ **Atmosfera nunca carrega informação.** A faixa de rótulos repete o que já está escrito
+na página; se a animação não rodar, nada se perde. **Conteúdo que só existe dentro de um
+laço contínuo é conteúdo que alguém vai perder** — ver a pendência da fita de galerias da
+Home no §7.1.
+
+⚠️ **Marquee — invariante de laço.** Em faixa contínua com duas cópias e
+`translateX(-50%)`, **metade da largura tem que ser exatamente uma cópia**. `gap` no
+contêiner animado quebra isso e o laço salta a cada volta: o espaçamento vai como
+`padding-right` **dentro** de cada cópia. ✅ `.scw-marquee` já faz assim — conferido em
+11/09/2026; a regra existe para a próxima faixa, não para corrigir esta.
+
 **Curvas:** `--mo-ease` (saída suave, **igual a `--scw-ease`**) · `--mo-mola` (chegada que
 pousa) · `--mo-suave` (laços de ida e volta).
 
@@ -1446,6 +1485,52 @@ existente** a menos que diga explicitamente que toca.
 
 ---
 
+### 6.16 Cards — seis famílias, comportamento próprio
+
+**Revisão de 11/09/2026** (Caderno cap. 05). **Interativo não é subir 2px.** Cada família
+de conteúdo responde do seu jeito, e o essencial fica visível **sem hover**. Teclado e
+toque fazem o mesmo caminho do ponteiro.
+
+| Família | Comportamento próprio |
+|---|---|
+| **Participante** | fundo vira bege, filete escurece, seta avança 4px. O card inteiro é o link |
+| **Combo** | foto protagonista 1:1; troca de foto **só por escolha** — crossfade 620ms, a que entra chega em `scale(1.04)` e assenta em 880ms; indicador alonga 8 → 28px |
+| **Edição** | expande a curiosidade **no lugar** (300ms, seta gira), sem sair da lista. O botão de destino leva a cor da página de destino |
+| **Percurso** | seleção com **três pistas simultâneas** — chapa vira a cor do destino, disco cresce, ponto preenche. Nunca só cor. Funciona como `radiogroup` |
+| **Editorial** | resumo → detalhe crescendo no lugar (620ms): a foto recua de 1,04 para 1 e o véu sobe. Sem modal para conteúdo curto |
+| **Operacional** | a situação muda em disco + numeral + texto da próxima ação, tudo junto |
+
+**Anatomia comum.** Raio 20, padding 20. **Três superfícies legítimas:** creme com filete
+(lista, operação) · fotográfica (foto sangrada, véu chocolate, tinta creme) · chapada (cor
+da paleta com a tinta que passa). **Nunca branco.** Rodapé do card em `margin-top: auto`
+para irmãos fecharem na mesma altura.
+
+**Estados.** Inicial já diz tudo que importa · hover em 200ms muda **cor**, nunca só
+sombra · foco é o anel cyan de 3px · toque responde com `active` de 1px · seleção com
+três pistas · expansão no lugar, 300–620ms.
+
+⚠️ **Hover só onde existe ação, e isso não mudou** (§6.15, regra 6). Card sem link não
+sobe e não acende: elevação sem destino promete o que não acontece. Nas rotas e nas
+etapas da Home quem leva ao destino é o CTA — por isso o card ali não tem estado, e isso
+é decisão, não falta.
+
+**Prazo e situação em card operacional:** numeral à direita, separado por filete vertical
+— dígito grande em Slab Black, unidade em caixa-alta embaixo. ⛔ **Não usar filete
+colorido na lateral do card** (genérico) **nem selo pousado na borda** (colide com o card
+vizinho). Respondido vira disco chocolate com a marca de feito.
+
+⛔ **Evitar:** flip que esconde texto · inclinação 3D · informação que só aparece no hover
+· card inteiro clicável com botão dentro sem área própria · autoplay de fotos dentro de
+card · card idêntico para conteúdos diferentes — participante não é combo, combo não é
+edição.
+
+**No celular:** raio cai de 20 para **16** dentro de trilha ou agrupador; **hover não
+existe** — o retorno é o `active`; participante vira linha (logo 64px, nome, seta); combo
+mantém a foto 1:1 em largura total e a troca vira gesto de arrastar com os mesmos
+indicadores; editorial fica em 4:5 e a expansão abre **abaixo** da foto, não sobre ela.
+
+---
+
 ## 7 · As páginas
 
 ### 7.1 Home / O Festival — `/`, amarelo `#FDBB1A`
@@ -1476,7 +1561,16 @@ mude o comportamento visual** — validar idêntico.
   `src/components/scw-icons/anatomia-combo.js`, **fora** de `scw-icons-v2.js`: é desenho
   próprio desta seção, com traço 2,6, e a biblioteca não se edita à mão (§6.11).
   Com `prefers-reduced-motion` fica só o primeiro desenho, parado. Duas galerias irmãs de mesmo peso: combos de edições anteriores e
-  **Sweet Gift** (2×2, fotos 1:1).
+  **Sweet Gift**. ⚠️ **Não são mais grade 2×2** — desde 21/08/2026 são a **fita**
+  (`GaleriaCarrossel` → `.hm-fita`), que corre sozinha em 46s e para no hover e no foco.
+  ⏳ **Pendência declarada, não esquecimento:** o arranjo "faixa" do Caderno (cap. 04,
+  arranjo 5) pede `scroll-snap`, setas no desktop, gesto no celular e **nunca autoplay**,
+  e o §6.15 diz que atmosfera **nunca carrega informação** — a fita carrega: nome da
+  marca, tema e ano. Mas a fita contínua é **decisão escrita do Eloi** (21/08/2026:
+  a grade mostrava quatro e escondia o resto), e o comentário do próprio componente
+  registra "não tem setas nem pontos — não é navegação, é vitrine". **Regra nova contra
+  decisão de produto não se resolve sozinha:** converter exige o ok do Eloi, e até lá a
+  fita fica como está.
 - **05 Números:** 4 numerais grandes em uma linha, com `.scw-grade-fixa` — sem ela a
   faixa quebra a 3+1.
 - **07 Realização:** KV da F2 Experience — a exceção declarada de paleta e fonte (§6.1).
