@@ -224,10 +224,18 @@ preview.**
 - **Roteamento:** router customizado em `src/router.js` (`useRoute`). **Não** usar React
   Router. O hash routing **deixou de ser obrigatório** — os QR Codes que o exigiam foram
   aposentados junto com a edição Lovers (§Anexo A-C).
-- **Fontes:** Nexa Slab self-hosted em `public/fonts/nexa-slab/` (woff2, pesos 100–900 +
-  itálicos + alias `'Nexa Slab Black'`), declarada em `src/styles/fonts-nexa-slab.css`.
-  **Nenhum serviço externo de fonte** — o Adobe Fonts/Typekit servia só a Sofia Pro Comp
-  do KV Lovers, que morreu.
+- **Fontes:** **duas vozes da mesma família** desde 11/09/2026 (§6.5). A **Nexa Slab**
+  continua self-hosted em `public/fonts/nexa-slab/` (woff2, pesos 100–900 + itálicos +
+  alias `'Nexa Slab Black'`), declarada em `src/styles/fonts-nexa-slab.css`. A **Nexa** e
+  a **Nexa Text** vêm do **Typekit, kit `ngx4uek`**, pelo `<link>` do `index.html`.
+  ⚠️ **A regra "nenhum serviço externo de fonte" CAIU** — e ela já estava falsa antes
+  disto: o `index.html` carrega a **Archivo do Google Fonts** desde o patch da F2, para a
+  seção 07 da Home. Eram duas afirmações e só uma era verdade.
+  ⚠️ É o mesmo kit `ngx4uek` que o Anexo A.1 registra como morto: ele servia a Sofia Pro
+  Comp do KV Lovers e morreu com ele. **Voltou com outro conteúdo.** O outro kit,
+  `kgh7res`, segue fora.
+  **Sem o Typekit nada quebra:** o fallback declarado nos dois tokens é a própria Nexa
+  Slab — a página fica como era antes da revisão, mais pesada e nunca faltando.
 - **Backend:** Supabase (`src/lib/supabase.js`). ⚠️ **Os três formulários TÊM backend** —
   conferido no código em 07/08/2026, contra três versões incompatíveis na documentação
   antiga. Cada um grava por RPC do Supabase, com a **lógica pura isolada numa lib sem
@@ -728,38 +736,93 @@ Codificam colocação, não decoram.
 **Numeral sempre chocolate.** O 2º passou a **cyan** em 20/08/2026 (handoff `06-SWEET-AWARDS.md`) — 4,9:1 sobre chocolate, e separa melhor do amarelo do 1º que o bege separava. ⚠️ **O 3º lugar não é marrom:** marrom sobre chocolate dá
 ~1,5:1 e falha tanto como emblema quanto como texto solto — testado e descartado.
 
-### 6.5 Tipografia — Nexa Slab, fonte única
+### 6.5 Tipografia — uma família, duas vozes
 
-Pesos **500** (Regular), **700** (Bold), **800** (xBold), **900** (Black). O 900 também é
-servido como família separada `'Nexa Slab Black'`.
+**Revisão de 11/09/2026.** A regra anterior ("Nexa Slab, fonte única") está **superada**:
+a slab em tudo deixou a leitura carregada — o título não sobressai quando o corpo também
+tem serifa e peso. A Nexa Slab volta a ser a **voz** do festival; a **Nexa** (sem serifa,
+mesma família) assume a interface e a leitura.
+
+| Voz | Família | Token | Papel |
+|---|---|---|---|
+| **Expressão** | Nexa Slab (arquivo local) | `--scw-font-slab` / `--scw-font-black` | H1, H2, H3 de card, numeral, chamada editorial, citação, ênfase em itálico Black, marquee |
+| **Interface** | `nexa` (Typekit `ngx4uek`) | `--scw-font-ui` | rótulo/eyebrow, botão, pill, chip, aba, menu, nome em lista, dado, data, **lead**, selo de estado, casca do painel |
+| **Leitura** | `nexa-text` (Typekit `ngx4uek`) | `--scw-font-texto` | parágrafo, descrição, legenda, crédito, texto de campo, célula de tabela |
 
 ```css
---scw-font:       'Nexa Slab', system-ui, sans-serif;
+--scw-font-slab:  'Nexa Slab', system-ui, sans-serif;
 --scw-font-black: 'Nexa Slab Black', 'Nexa Slab', Georgia, serif;
+--scw-font-ui:    'nexa', 'Nexa Slab', system-ui, sans-serif;
+--scw-font-texto: 'nexa-text', 'Nexa Slab', system-ui, sans-serif;
+--scw-font:       var(--scw-font-slab);   /* LEGADO — ver abaixo */
 ```
+
+⚠️ **`--scw-font` é nome legado, não apelido permanente da slab.** Ele aponta para a
+Slab, que é o que sempre significou, e existe só enquanto as páginas migram uma a uma: o
+CSS de página que ainda o consome fica com a aparência de hoje em vez de trocar de fonte
+sem ninguém ter olhado. **Sai quando a última página migrar.** Estado da migração:
+
+| Arquivo | Estado |
+|---|---|
+| `scw-2026.css` (o sistema: corpo, lead, rótulo, botão, pill, menu, campo, casca) | ✅ migrado — **e isso alcança as seis páginas de uma vez** |
+| `scw-home.css` | ✅ migrado |
+| `scw-edicoes.css` · `scw-awards.css` · `scw-participar-apoiar.css` · `scw-contato.css` · `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
+| `em-breve.css` · `painel-app/src/styles/painel.css` | ⏳ idem |
+
+⛔ **O kit não tem 500, 800 nem 900 na sem serifa.** Por isso `font-synthesis: none` no
+reset: peso que falta é peso que não existe, e deixar o navegador simular engorda o traço
+sem avisar. **Não substituir a Nexa por outra sem serifa "parecida".**
 
 | Papel | Classe | Valor |
 |---|---|---|
-| H1 de herói | `.scw-h1` | `900 clamp(38px,4.8vw,84px)/.9`, `-.045em`, `max-width:17ch` |
-| H1 compacto (Contato) | `.scw-h1--compacto` | `900 clamp(28px,3vw,44px)/1`, `-.035em` |
-| H2 de seção | `.scw-h2` | `900 clamp(32px,3.8vw,58px)/.94`, `-.04em`, **22ch** |
-| H3 de card | `.scw-h3` | `900 clamp(18px,1.7vw,22px)/1.06`, `-.026em`, **28ch** |
-| Numeral grande | `.scw-numeral` | `900 clamp(38px,4.4vw,74px)/.84`, `-.06em`, `tabular-nums` |
-| Corpo | `.scw-corpo` | `500 clamp(15.5px,1.35vw,18px)/1.55`, `text-wrap:pretty`, **62ch** (limite absoluto 68) |
-| Lead de herói | `.scw-lead` | `500 clamp(17px,1.4vw,21px)/1.5`, **46ch** |
-| Rótulo | `.scw-rotulo` | `800 12px/1`, `.16em`, uppercase, `#6A2C15` |
-| Rótulo com ícone | `.scw-rotulo--com-icone` | **32ch, uma linha** |
-| Botão | `.scw-btn` | `800 15px/1` |
-| Item de menu | — | `700 14px/1.4` (ativo `800 italic`), lowercase |
+| H1 de herói | `.scw-h1` | Slab `900 clamp(38px,4.8vw,84px)/.9`, `-.045em`, **17ch** |
+| H1 compacto (Contato) | `.scw-h1--compacto` | Slab `900 clamp(28px,3vw,44px)/1`, `-.035em` |
+| H2 de seção | `.scw-h2` | Slab `900 clamp(32px,3.8vw,58px)/.94`, `-.04em`, **22ch** |
+| H3 de card | `.scw-h3` | Slab `900 clamp(18px,1.7vw,22px)/1.06`, `-.026em`, **28ch** |
+| Numeral grande | `.scw-numeral` | Slab `900 clamp(38px,4.4vw,74px)/.84`, `-.06em`, `tabular-nums` |
+| Ênfase editorial | `.scw-italico` | Slab Black `900` itálico — **uma por título** |
+| Corpo | `.scw-corpo` | **Nexa Text** `400 clamp(15.5px,1.2vw,17px)/1.6`, `pretty`, **62ch** (limite absoluto 68) |
+| Lead | `.scw-lead` · `.scw-hero__lead` | **Nexa** `400 clamp(17px,1.4vw,21px)/1.5`, **46ch** |
+| Rótulo | `.scw-rotulo` | **Nexa** `700 12px/1`, **`.14em`**, uppercase, `#6A2C15` |
+| Rótulo com ícone | `.scw-rotulo--com-icone` | **42ch, uma linha** |
+| Botão | `.scw-btn` | Nexa `700 15px/1`, sem caixa-alta |
+| Item de menu | `.scw-nav a` | Nexa `700 14px/1.4` (ativo itálico), lowercase |
+| Campo | `.scw-campo input` | Nexa Text `400 16px/1.4`; rótulo Nexa `700 11px` |
 
-⚠️ **O que segura a leitura não é mais o trilho — é a medida de linha.** Com trilho de
-2200px e sem esses tetos, um parágrafo daria ~200 caracteres por linha. **Não remover
-teto de medida "porque agora tem espaço": é o inverso — agora eles são obrigatórios.**
-`tests/redesign-2026.test.mjs` reprova se saírem.
+**Pesos por voz, e nada entre eles:** Slab 900 (título, numeral, ênfase) · Slab 800
+(chamada curta em card) · Nexa 700 (rótulo, botão, menu, nome, dado) · Nexa Text 400
+(corpo, legenda, campo) e 700 (destaque em linha). **Slab 500 e Slab 700 em texto corrido
+estão superados** — eram o peso de leitura antes da Nexa entrar. 600 não existe em
+nenhuma das três.
 
-**Rótulo / eyebrow voltou e é o padrão.** A regra antiga "não usar eyebrow acima dos
-títulos" está **superada**. Forma canônica `.scw-rotulo`. **Continua proibido rótulo sem
-função:** repetir o título, anunciar o óbvio, enfeitar.
+**Três regras de convívio:**
+
+1. **Uma troca de família por bloco.** Slab no título, Nexa no resto do mesmo bloco.
+   Alternar dentro do parágrafo, Slab em botão ou Nexa em H2 quebra o contrato.
+2. **O tamanho compensa a troca.** A Nexa Text tem olho maior que a Slab: o corpo desce
+   de `…18px/1,55` para **`…17px/1,6`** e lê maior, não menor. Rótulo caixa-alta baixa o
+   tracking de `.16em` para **`.14em`** — a Nexa é mais estreita e o valor antigo abria
+   buraco entre as letras.
+3. **Piso de leitura não muda:** corpo nunca abaixo de 15px no celular, rótulo nunca
+   abaixo de 11px em qualquer tela.
+
+⚠️ **O que segura a leitura não é o trilho — é a medida de linha.** Com trilho de 2200px
+e sem esses tetos, um parágrafo daria ~200 caracteres por linha. **Não remover teto de
+medida "porque agora tem espaço": é o inverso.** `tests/redesign-2026.test.mjs` reprova
+se saírem.
+
+⚠️ **O teste de peso mudou junto** (`tests/regua-visual.mjs`, item 4). Ele afere o par
+**peso + família na mesma declaração**, não o número solto: 400 só com `--scw-font-ui` ou
+`--scw-font-texto`; 600 em lugar nenhum; 500 ainda permitido enquanto houver página em
+`--scw-font`. **Quem escrever `font-weight: 400` solto, longe da família, é reprovado** —
+é a forma de escapar do par sem ninguém notar.
+
+**Rótulo / eyebrow é o padrão.** A regra antiga "não usar eyebrow acima dos títulos" está
+**superada**. Forma canônica `.scw-rotulo`. **Continua proibido rótulo sem função:**
+repetir o título, anunciar o óbvio, enfeitar.
+
+**Itálico** só no Black e **só em uma expressão por título**. Dois itálicos na mesma tela
+cancelam o efeito. A única exceção fora da Slab é a legenda de foto em Nexa Text itálico.
 
 **Compensação óptica:** caixa-alta dentro de pill leva **1px a mais de padding no topo e
 1px a menos na base** — o caixa-alta da Nexa Slab renderiza ~2px acima do centro.

@@ -93,6 +93,25 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="/fonts/nexa-slab/NexaSlabBlack.woff2" />
 
+<!-- Nexa e Nexa Text (Typekit ngx4uek) — a segunda voz, 11/09/2026.
+     ⚠️ É o MESMO kit que o comentário acima diz ter morrido, e não é engano: ele
+     servia a Sofia Pro Comp do KV Lovers, que morreu junto com o KV. Volta com
+     outro conteúdo — `nexa` e `nexa-text`, 400 e 700, normal e itálico —, que
+     são a interface e o texto corrido do sistema de duas vozes (scw-2026.css,
+     bloco "tipografia"). A Slab continua local e continua sendo o título.
+
+     `preconnect` nos dois hosts porque são dois saltos de rede em série: o CSS
+     vem de use.typekit.net e os .woff2 que ele declara vêm de p.typekit.net.
+     Sem o segundo, o navegador só descobre o host da fonte depois de baixar e
+     ler o CSS, e paga o DNS+TLS com o texto já na tela.
+
+     Sem o kit (rede fora, bloqueio de terceiros) nada quebra: o fallback
+     declarado nos dois tokens é a própria Nexa Slab. A página fica como era
+     antes desta revisão — mais pesada, nunca ilegível. -->
+<link rel="preconnect" href="https://use.typekit.net" crossorigin />
+<link rel="preconnect" href="https://p.typekit.net" crossorigin />
+<link rel="stylesheet" href="https://use.typekit.net/ngx4uek.css" />
+
 <!-- Google Analytics 4 + Consent Mode (LGPD) — coleta só após aceite no banner -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-FM5ZJXL3MV"></script>
 <script>

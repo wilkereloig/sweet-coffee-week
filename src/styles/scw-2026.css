@@ -92,8 +92,36 @@
     transform        180ms var(--scw-ease);
 
   /* --- tipografia -------------------------------------------------------- */
-  --scw-font:         'Nexa Slab', system-ui, sans-serif;
+  /* DUAS VOZES, uma família (Caderno Institucional cap. 03, 11/09/2026). A regra
+     anterior — "Nexa Slab, fonte única" — está SUPERADA: a slab em tudo deixou
+     a leitura carregada, porque o título não sobressai quando o corpo também
+     tem serifa e peso. A Slab volta a ser a VOZ do festival (título, numeral,
+     ênfase, marquee); a Nexa — sem serifa, mesma família — assume a interface,
+     e a Nexa Text assume o texto que se lê.
+
+     ⚠️ De onde vem cada uma. A Slab é arquivo local (public/fonts/nexa-slab/,
+     declarada em fonts-nexa-slab.css). As duas sem serifa vêm do Typekit, kit
+     `ngx4uek`, pelo <link> do index.html. Sem o kit carregado o fallback
+     declarado é a própria Slab: a página continua legível, só volta a pesar.
+     É a primeira dependência externa de fonte do projeto — a regra do §4.1
+     ("nenhum serviço externo de fonte") cai com este commit.
+
+     ⛔ O kit NÃO tem 500, 800 nem 900 na sem serifa. Por isso o reset traz
+     `font-synthesis: none`: peso que falta é peso que não existe, e deixar o
+     navegador simular engorda o traço sem avisar. Pesos em uso, e nada entre
+     eles: Slab 900 (título, numeral, ênfase) · Slab 800 (chamada curta em card)
+     · Nexa 700 (rótulo, botão, menu, nome, dado) · Nexa Text 400 (corpo,
+     legenda, campo) e 700 (destaque em linha). */
+  --scw-font-slab:    'Nexa Slab', system-ui, sans-serif;
   --scw-font-black:   'Nexa Slab Black', 'Nexa Slab', Georgia, serif;
+  --scw-font-ui:      'nexa', 'Nexa Slab', system-ui, sans-serif;
+  --scw-font-texto:   'nexa-text', 'Nexa Slab', system-ui, sans-serif;
+  /* Nome LEGADO, mantido só enquanto as páginas migram uma a uma: aponta para a
+     Slab, que é o que ele sempre significou. Quem ainda o consome (o CSS das
+     páginas que não foram para as duas vozes) continua com a aparência de hoje,
+     em vez de trocar de fonte sem ninguém ter olhado. Sai quando a última
+     página migrar — não vira apelido permanente da slab. */
+  --scw-font:         var(--scw-font-slab);
 
   /* cor da página corrente — sobrescrita por body.route-* (ver abaixo) */
   --scw-pagina:       var(--scw-amarelo);
@@ -157,7 +185,7 @@ body.route-apoiar,
 body.route-contato {
   background: var(--scw-creme);
   color: var(--scw-choco);
-  font-family: var(--scw-font);
+  font-family: var(--scw-font-texto);
 }
 
 /* Fundação de aplicativo no celular (ago/2026). Quatro comportamentos que o
@@ -182,8 +210,12 @@ body {
   overflow-x: clip;
   background: var(--scw-creme);
   color: var(--scw-choco);
-  font-family: var(--scw-font);
+  font-family: var(--scw-font-texto);
   line-height: 1.55;
+  /* O kit da Nexa não tem 500, 800 nem 900. Sem esta linha o navegador fabrica
+     os que faltam engrossando o traço, e o resultado é um falso-negrito que não
+     casa com nenhum peso real do sistema. Peso que falta é peso que não existe. */
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -205,7 +237,7 @@ body {
 .scw-raiz a { color: inherit; text-decoration: none; }
 .scw-raiz input,
 .scw-raiz select,
-.scw-raiz textarea { font-family: var(--scw-font); }
+.scw-raiz textarea { font-family: var(--scw-font-texto); }
 
 .scw-raiz a:focus-visible,
 .scw-raiz button:focus-visible,
@@ -233,7 +265,7 @@ body {
   border-radius: 0 0 14px 0;
   background: var(--scw-choco);
   color: var(--scw-creme);
-  font: 800 14px/1 var(--scw-font);
+  font: 700 14px/1 var(--scw-font-ui);
 }
 .scw-skip:focus { left: 0; }
 
@@ -355,25 +387,32 @@ body { margin: 0; }
 .scw-corpo {
   margin: 0;
   max-width: 62ch;   /* medida de leitura; limite absoluto 68ch */
-  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
+  /* O teto desce de 18 para 17px e a entrelinha sobe de 1,55 para 1,6: a Nexa
+     Text tem olho maior que a Slab, então o mesmo corpo em px lê maior. A
+     medida de 62ch não muda — é ela, e não o trilho, que segura a leitura. */
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
   text-wrap: pretty;
 }
+/* O lead é INTERFACE, não leitura: abre a página, não se lê em bloco. Vai na
+   Nexa, não na Nexa Text — é a única peça de texto grande que troca de voz. */
 .scw-lead {
   margin: 0;
   max-width: 46ch;
-  font: 500 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font);
+  font: 400 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font-ui);
   text-wrap: pretty;
 }
 .scw-rotulo {
   display: block;
-  font: 800 12px/1 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 12px/1 var(--scw-font-ui);
+  /* .16em era o tracking da Slab em caixa-alta; a Nexa é mais estreita e o mesmo
+     valor abre buraco entre as letras. Cai para .14em (Caderno cap. 03). */
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
 }
 .scw-rotulo--micro {
-  font: 800 10px/1.1 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 10px/1.1 var(--scw-font-ui);
+  letter-spacing: .14em;
 }
 /* Rótulo com ícone de tópico (Iconografia.dc.html) — cor herdada do .scw-rotulo,
    currentColor no SVG, então as cores de contexto (seção escura etc.) continuam
@@ -397,7 +436,10 @@ body { margin: 0; }
   max-width: 42ch;
 }
 .scw-rotulo--com-icone > svg { flex-shrink: 0; }
-.scw-italico { font-style: italic; }
+/* Ênfase editorial: Slab Black em itálico, UMA por título (dois itálicos na
+   mesma tela cancelam o efeito). É a voz do festival dentro do título — nunca
+   itálico da Nexa, que é a voz que organiza. */
+.scw-italico { font-family: var(--scw-font-black); font-weight: 900; font-style: italic; }
 
 /* Destaque animado dos títulos (scwDestaque, ver keyframes no fim). */
 .scw-destaque { font-style: normal; color: var(--scw-choco); --base: var(--scw-choco); --dest: var(--scw-magenta); }
@@ -413,7 +455,7 @@ body { margin: 0; }
   gap: 8px;
   padding: 8px 15px 6px calc(15px + .14em);
   border-radius: 999px;
-  font: 800 11px/1.2 var(--scw-font);
+  font: 700 11px/1.2 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
 }
@@ -453,7 +495,7 @@ body { margin: 0; }
   padding: 15px 28px;
   border: 0;
   border-radius: 999px;
-  font: 800 15px/1 var(--scw-font);
+  font: 700 15px/1 var(--scw-font-ui);
   cursor: pointer;
   transition: var(--scw-transicao);
 }
@@ -524,7 +566,7 @@ body { margin: 0; }
   border: 1px dashed rgba(61, 19, 8, .14);
   background: var(--scw-creme);
   color: var(--scw-marrom);
-  font: 700 12px/1.35 var(--scw-font);
+  font: 700 12px/1.35 var(--scw-font-ui);
   letter-spacing: .04em;
   text-align: center;
 }
@@ -606,7 +648,7 @@ body { margin: 0; }
   padding: 8px 12px;
   border-radius: 0;
   background: transparent;
-  font: 700 14px/1.4 var(--scw-font);
+  font: 700 14px/1.4 var(--scw-font-ui);
   font-style: normal;
   text-transform: lowercase;
   color: rgba(255, 244, 236, .92);
@@ -642,7 +684,7 @@ body { margin: 0; }
   border-radius: 999px;
   background: var(--scw-creme);
   color: var(--scw-choco);
-  font: 800 13px/1 var(--scw-font);
+  font: 700 13px/1 var(--scw-font-ui);
   letter-spacing: .02em;
   cursor: pointer;
   /* Chapado: os botões do site não têm relevo (decisão de jul/2026). O clique
@@ -777,7 +819,7 @@ body { margin: 0; }
 .scw-aba__rotulo {
   /* 10.5px → 11.5px: no menor tamanho a Nexa Slab perde o serifado e o
      rótulo vira mancha. O tracking caiu junto (.04em → .02em). */
-  font: 700 11.5px/1 var(--scw-font);
+  font: 700 11.5px/1 var(--scw-font-ui);
   letter-spacing: .02em;
   text-transform: lowercase;
   transition: color 240ms linear;
@@ -855,7 +897,7 @@ body { margin: 0; }
   margin-top: clamp(22px, 4vw, 32px);
   padding: 16px 20px;
   border-radius: 999px;
-  font: 800 15px/1 var(--scw-font);
+  font: 700 15px/1 var(--scw-font-ui);
 }
 .scw-folha__insta {
   display: inline-flex;
@@ -864,7 +906,7 @@ body { margin: 0; }
   min-height: 48px;
   margin-top: auto;
   padding-top: 26px;
-  font: 800 15px/1 var(--scw-font);
+  font: 700 15px/1 var(--scw-font-ui);
   color: var(--scw-cyan);
 }
 
@@ -905,7 +947,7 @@ body { margin: 0; }
 }
 .cookie-consent__text {
   margin: 0;
-  font: 500 14px/1.45 var(--scw-font);
+  font: 400 14px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .84);   /* .84 sobre chocolate = 9,2:1 */
 }
 .cookie-consent__actions { display: flex; gap: 8px; }
@@ -916,7 +958,7 @@ body { margin: 0; }
   padding: 13px 20px;
   border: 0;
   border-radius: 999px;
-  font: 800 14px/1 var(--scw-font);
+  font: 700 14px/1 var(--scw-font-ui);
   cursor: pointer;
   transition: var(--scw-transicao);
 }
@@ -1084,7 +1126,7 @@ body { margin: 0; }
 .scw-acesso__eyebrow {
   padding-left: clamp(12px, 1.6vw, 18px);
   border-left: 1px solid rgba(254, 240, 221, .24);
-  font: 800 11.5px/1.3 var(--scw-font);
+  font: 700 11.5px/1.3 var(--scw-font-ui);
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--scw-amarelo);
@@ -1112,7 +1154,7 @@ body { margin: 0; }
 .scw-acesso__lead {
   margin: 0 0 clamp(20px, 2.4vw, 28px);
   max-width: 46ch;
-  font: 500 15px/1.5 var(--scw-font);
+  font: 400 15px/1.5 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
@@ -1174,7 +1216,7 @@ body { margin: 0; }
   border-radius: 999px;
 }
 .scw-acesso__cartao-txt {
-  font: 500 14.5px/1.5 var(--scw-font);
+  font: 400 14.5px/1.5 var(--scw-font-texto);
   text-wrap: pretty;
 }
 .scw-acesso__cartao--destaque .scw-acesso__cartao-txt { color: rgba(254, 240, 221, .82); }
@@ -1204,7 +1246,7 @@ body { margin: 0; }
   border-radius: 14px;
   background: var(--scw-amarelo);
   color: var(--scw-choco);
-  font: 800 13.5px/1 var(--scw-font);
+  font: 700 13.5px/1 var(--scw-font-ui);
   letter-spacing: .02em;
   text-decoration: none;
   transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
@@ -1269,7 +1311,7 @@ body { margin: 0; }
 }
 .scw-acesso__pe-texto {
   margin: 0;
-  font: 500 13.5px/1.5 var(--scw-font);
+  font: 400 13.5px/1.5 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
@@ -1288,7 +1330,7 @@ body { margin: 0; }
   border-radius: 999px;
   background: var(--scw-choco);
   color: var(--scw-creme);
-  font: 800 13px/1 var(--scw-font);
+  font: 700 13px/1 var(--scw-font-ui);
   letter-spacing: .02em;
   text-decoration: none;
   transition: transform 180ms var(--scw-ease), background var(--scw-transicao);
@@ -1316,7 +1358,7 @@ body { margin: 0; }
   border: 0;
   background: none;
   color: var(--scw-marrom);
-  font: 800 13px/1 var(--scw-font);
+  font: 700 13px/1 var(--scw-font-ui);
   letter-spacing: .02em;
   text-decoration: underline;
   cursor: pointer;
@@ -1361,13 +1403,13 @@ body { margin: 0; }
   border-left: 3px solid var(--scw-laranja);
   border-radius: 0 10px 10px 0;
   background: rgba(255, 72, 16, .08);
-  font: 700 13.5px/1.45 var(--scw-font);
+  font: 700 13.5px/1.45 var(--scw-font-ui);
   color: var(--scw-marrom);
 }
 .scw-acesso__nota {
   margin: 0;
   max-width: 52ch;
-  font: 500 12.5px/1.5 var(--scw-font);
+  font: 400 12.5px/1.5 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
@@ -1400,7 +1442,7 @@ body { margin: 0; }
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  font: 700 14.5px/1 var(--scw-font);
+  font: 700 14.5px/1 var(--scw-font-ui);
   text-transform: lowercase;
   color: rgba(254, 240, 221, .84);
   transition: color 200ms var(--scw-ease);
@@ -1422,7 +1464,7 @@ body { margin: 0; }
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  font: 800 14.5px/1 var(--scw-font);
+  font: 700 14.5px/1 var(--scw-font-ui);
   color: var(--scw-cyan);
   transition: color 200ms var(--scw-ease);
 }
@@ -1436,7 +1478,7 @@ body { margin: 0; }
   justify-content: space-between;
   gap: 6px 20px;
   padding-top: clamp(14px, 1.6vw, 18px);
-  font: 500 12.5px/1.45 var(--scw-font);
+  font: 400 12.5px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .62);
 }
 .scw-footer__base strong { color: var(--scw-creme); font-weight: 800; }
@@ -1543,7 +1585,7 @@ body { margin: 0; }
   max-width: 46ch;
   margin: 0;
   color: rgba(254, 240, 221, .9);
-  font: 500 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font);
+  font: 400 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font-ui);
   text-wrap: pretty;
 }
 
@@ -1879,7 +1921,7 @@ body { margin: 0; }
   border-radius: 999px;
   background: var(--scw-choco);
   color: var(--scw-creme);
-  font: 800 12.5px/1 var(--scw-font);
+  font: 700 12.5px/1 var(--scw-font-ui);
   letter-spacing: .1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -1894,7 +1936,7 @@ body { margin: 0; }
 
 .scw-campo { display: flex; flex-direction: column; gap: 7px; }
 .scw-campo > span {
-  font: 800 11px/1 var(--scw-font);
+  font: 700 11px/1 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
@@ -1911,7 +1953,7 @@ body { margin: 0; }
   color: var(--scw-choco);
   /* 16px não é escolha de escala: abaixo disso o Safari do iPhone dá zoom na
      página ao focar o campo. O desenho já traz esse valor. */
-  font: 500 16px/1.4 var(--scw-font);
+  font: 400 16px/1.4 var(--scw-font-texto);
 }
 /* Sem min-height: quem governa a altura é o `rows` do próprio campo, como no
    desenho (rows=3 -> ~83px). O 132px fixo deixava o formulário 49px mais alto

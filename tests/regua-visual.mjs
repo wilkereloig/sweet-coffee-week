@@ -108,20 +108,52 @@ test('contraste calculado: --scw-heroi × --scw-heroi-tinta', () => {
 })
 
 /* ============================================================================
-   Item 4 da régua — tipografia: só 500/700/800/900, nenhuma fonte mono em rótulo
+   Item 4 da régua — tipografia: peso real, nenhuma fonte mono em rótulo
+
+   A régua dizia "só 500/700/800/900; 400 é erro". Isso valia enquanto o sistema
+   tinha UMA fonte: a Nexa Slab começa no 500, então 400 ali era peso que não
+   existe e o navegador fabricava. Com as duas vozes (11/09/2026) o 400 passa a
+   ser o peso de LEITURA da Nexa Text — e continua sendo erro na Slab.
+
+   Por isso o teste deixou de olhar o número sozinho e passa a olhar o par
+   peso + família na mesma declaração:
+   · 400 só acompanhado de --scw-font-ui ou --scw-font-texto;
+   · 600 não existe em nenhuma das três famílias, em lugar nenhum.
+   O 500 segue permitido: é o peso da Slab nas páginas que ainda não migraram
+   (o alias --scw-font). Quando a última migrar, este teste passa a reprová-lo.
    ========================================================================= */
 
-test('nenhum peso 400 ou 600 nos estilos do redesign (fora da exceção F2)', () => {
+test('peso 400 só nas famílias sem serifa; 600 em lugar nenhum (fora da exceção F2)', () => {
   const violacoes = []
   for (const arquivo of ESTILOS_REDESIGN) {
     const fonte = foraDoBlocoF2(semComentarioCss(ler(arquivo)))
     const linhas = fonte.split('\n')
     linhas.forEach((linha, i) => {
       const m = linha.match(/\bfont(?:-weight)?:\s*(400|600)\b/)
-      if (m) violacoes.push(`${arquivo}:${i + 1}: peso ${m[1]} — "${linha.trim().slice(0, 72)}"`)
+      if (!m) return
+      if (m[1] === '400' && /--scw-font-(ui|texto)\b/.test(linha)) return
+      const motivo = m[1] === '600'
+        ? 'peso 600 não existe em nenhuma das três famílias'
+        : 'peso 400 fora da Nexa/Nexa Text (na Slab ele é fabricado)'
+      violacoes.push(`${arquivo}:${i + 1}: ${motivo} — "${linha.trim().slice(0, 72)}"`)
     })
   }
   assert.equal(violacoes.length, 0, `\n${violacoes.join('\n')}`)
+})
+
+/* A regra acima só vale enquanto peso e família vierem na mesma linha, na forma
+   abreviada — que é o padrão do projeto inteiro. Um `font-weight: 400` solto,
+   longe da família, escaparia dela sem ninguém notar. */
+test('peso e família na mesma declaração (nenhum font-weight: 400 solto)', () => {
+  for (const arquivo of ESTILOS_REDESIGN) {
+    const fonte = foraDoBlocoF2(semComentarioCss(ler(arquivo)))
+    fonte.split('\n').forEach((linha, i) => {
+      assert.ok(
+        !/\bfont-weight:\s*400\b/.test(linha),
+        `${arquivo}:${i + 1}: font-weight: 400 solto — use \`font: 400 …/… var(--scw-font-texto)\``,
+      )
+    })
+  }
 })
 
 test('nenhuma fonte mono em seletor de rótulo/label', () => {
