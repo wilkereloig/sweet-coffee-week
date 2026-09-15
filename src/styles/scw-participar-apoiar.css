@@ -371,10 +371,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 @media (hover: hover) {
   .pa-depo__som:hover { background: rgba(61, 19, 8, .82); }
 }
-/* 34px basta para o ponteiro, não para o polegar — no celular vai a 44. */
-@media (max-width: 900px) {
-  .pa-depo__som { width: 44px; height: 44px; }
-}
+/* Mudança de estado anima UMA vez (§6.11): ligar o som pulsa o ícone. */
+.pa-depo__som[aria-pressed="true"] svg { animation: paSomLiga var(--mo-entra) var(--mo-ease) both; }
+@keyframes paSomLiga { 40% { scale: 1.22; } }
+@media (prefers-reduced-motion: reduce) { .pa-depo__som svg { animation: none; } }
 .pa-depo__selo {
   position: absolute;
   right: 16px;
@@ -390,7 +390,13 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   border: 3px solid var(--cor, var(--scw-amarelo));
 }
 .pa-depo__selo img { width: 100%; height: 100%; object-fit: cover; }
+/* Sem logo, iniciais sobre bege (§6.12) — preenchendo o slot inteiro. */
 .pa-depo__iniciais {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--scw-bege);
   font: 900 17px/1 var(--scw-font-black);
   color: var(--scw-choco);
 }
@@ -767,6 +773,16 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 
 @media (hover: hover) {
   .pa-sucesso button:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
+
+/* No celular o raio de card cai de 20 para 16 (§6.16) — em todo card destas
+   duas páginas, não só nos de Participar. */
+@media (max-width: 760px) {
+  .pa-depo,
+  .pa-numeros li,
+  .pa-card,
+  .pa-onde > li,
+  .pa-cta { border-radius: 16px; }
 }
 
 /* ============================================================================

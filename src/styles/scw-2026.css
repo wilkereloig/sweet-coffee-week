@@ -1901,6 +1901,55 @@ body { margin: 0; }
   border-radius: 50%;
   background: var(--scw-creme);
 }
+/* Pausa visível (§6.15, atmosfera). Para o deslize E o gradiente: meia pausa
+   continua sendo movimento. */
+.scw-marquee.is-pausado,
+.scw-marquee.is-pausado ul { animation-play-state: paused; }
+.scw-raiz .scw-marquee__pausa {
+  position: absolute;
+  top: 50%;
+  right: var(--scw-trilho);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  cursor: pointer;
+  transition: transform var(--mo-rapido) var(--mo-ease);
+}
+.scw-raiz .scw-marquee__pausa:active { transform: translateY(1px); }
+/* Com movimento reduzido a faixa já não anda — o botão não teria o que pausar. */
+@media (prefers-reduced-motion: reduce) { .scw-raiz .scw-marquee__pausa { display: none; } }
+
+/* Botão só com ícone (§6.11): `aria-label` + 44px + o nome visível no hover E no
+   foco. O elemento precisa já estar posicionado. */
+.scw-icone-rotulo::after {
+  content: attr(data-rotulo);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 8px);
+  padding: 8px 12px 7px;
+  border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  font: 700 12px/1 var(--scw-font-ui);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  pointer-events: none;
+  transition: opacity var(--mo-rapido) var(--mo-ease), transform var(--mo-rapido) var(--mo-ease);
+}
+.scw-icone-rotulo--esquerda::after { left: auto; right: calc(100% + 8px); transform: translate(4px, -50%); }
+.scw-icone-rotulo:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+@media (hover: hover) {
+  .scw-icone-rotulo:hover::after { opacity: 1; transform: translate(0, -50%); }
+}
 
 
 /* ============================================================================

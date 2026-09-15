@@ -151,8 +151,9 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
         aria-describedby={describedBy}
         onClick={onToggle}
       />
-      <button type="button" className="pa-depo__som" onClick={onToggle} aria-pressed={ativo}
-        aria-label={ativo ? 'Silenciar depoimento' : 'Ativar som do depoimento'}>
+      <button type="button" className="pa-depo__som scw-icone-rotulo" onClick={onToggle} aria-pressed={ativo}
+        aria-label={ativo ? 'Silenciar depoimento' : 'Ativar som do depoimento'}
+        data-rotulo={ativo ? 'Silenciar' : 'Ouvir'}>
         {ativo ? <I.sound width={14} height={14} /> : <I.soundOff width={14} height={14} />}
       </button>
     </>
@@ -198,7 +199,7 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      <Marquee palavras={PALAVRAS} />
+      <Marquee palavras={PALAVRAS} comPausa />
 
       {/* ═══ 02 Depoimentos ═══
           Sobe logo depois da abertura (a pedido do Wilke, 30/07/2026): é a

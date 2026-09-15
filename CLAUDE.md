@@ -1416,6 +1416,13 @@ contêiner animado quebra isso e o laço salta a cada volta: o espaçamento vai 
 `padding-right` **dentro** de cada cópia. ✅ `.scw-marquee` já faz assim — conferido em
 11/09/2026; a regra existe para a próxima faixa, não para corrigir esta.
 
+⚠️ **Pausa visível da faixa — `<Marquee comPausa />`** (15/09/2026). Botão chocolate de
+44px na ponta direita do trilho, pausa o deslize **e** o gradiente, some com movimento
+reduzido. **Ligado só em Participar.** Home (A6), Apoiar e Awards seguem sem pausa até
+pedido explícito — hoje elas descumprem a camada 4. O nome do botão aparece no hover e no
+foco pela utilitária `.scw-icone-rotulo` (`data-rotulo`, `--esquerda`), a mesma do botão
+de som dos depoimentos: é a peça do §6.11 para botão só com ícone.
+
 **Curvas:** `--mo-ease` (saída suave, **igual a `--scw-ease`**) · `--mo-mola` (chegada que
 pousa) · `--mo-suave` (laços de ida e volta).
 
