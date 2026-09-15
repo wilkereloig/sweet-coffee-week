@@ -239,6 +239,13 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 @media (min-width: 560px) { .pa-numeros--quatro { --cols: 2; } }
 @media (min-width: 1280px) { .pa-numeros--quatro { --cols: 4; } }
+/* Card chapado, uma cor por dado: fundo --card, tinta --card-tinta em tudo, e o
+   disco inverte (chapa na tinta, ícone na cor do card) para separar do fundo.
+   Contrastes: chocolate/amarelo 9,5 · chocolate/cyan 5,6 · creme/roxo 10 ·
+   chocolate/laranja 4,78 — todos ≥ 4,5 em texto pequeno. */
+.pa-numeros.pa-numeros--quatro li { background: var(--card); color: var(--card-tinta); }
+.pa-numeros.pa-numeros--quatro li > :is(b, strong, span:last-child) { color: var(--card-tinta); }
+.pa-numeros.pa-numeros--quatro .pa-num__disco { --c: var(--card-tinta); --tinta: var(--card); }
 /* Largura útil de um card × .17. "+R$ 712 mil" ocupa 5,52em (medido), então cabe
    até ×.181 — .17 deixa folga. */
 .pa-numeros--quatro b {

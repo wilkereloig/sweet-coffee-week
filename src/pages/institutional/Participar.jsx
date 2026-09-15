@@ -46,10 +46,12 @@ const PALAVRAS = [
    Mesma dupla (movimentação + combos) que Apoiar usa em 02 Alcance — dado
    compartilhado, mesma fonte (festivalFacts.js), mesma leitura (§5.2). */
 const NUMEROS = [
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
-  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
-  { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'ui/calendario' },
-  { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao' },
+// Uma cor por card (15/09/2026, pedido do Wilke), na ordem do ciclo do §6.3 sem o
+// magenta — nenhuma tinta fecha 4,5:1 sobre ele em texto pequeno.
+  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+  { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'ui/calendario', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
+  { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
 ]
 
 // 05 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
@@ -282,7 +284,7 @@ export function ParticiparPage() {
         </div>
         <ul className="pa-numeros pa-numeros--quatro">
           {NUMEROS.map((n) => (
-            <li key={n.t}>
+            <li key={n.t} style={{ '--card': n.cor, '--card-tinta': n.tinta }}>
               <span className="scw-disco pa-num__disco" aria-hidden="true">
                 <ScwIcon nome={n.i} tamanho={32} />
               </span>

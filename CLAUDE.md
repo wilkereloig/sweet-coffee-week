@@ -727,7 +727,8 @@ de só colorir. **Não recriar.**
 | Onde | Disco | Cor |
 |---|---|---|
 | Home `05 Números` | `clamp(64px, 6vw, 80px)`, ícone a 60% | **uma cor por dado** — a faixa é o resumo do festival, cada número é um assunto |
-| Participar `03` e Apoiar `02` | `54px`, ícone a 58%, dentro de card creme | **cor da página em todos** (`--scw-pagina` / `--scw-pagina-tinta`) — ali a cor diz "isto é Participar"; quem distingue o dado é o ícone |
+| Apoiar `02` | `54px`, ícone a 58%, dentro de card creme | **cor da página em todos** (`--scw-pagina` / `--scw-pagina-tinta`) — ali a cor diz "isto é Apoiar"; quem distingue o dado é o ícone |
+| Participar `03` | `54px`, **card chapado** na cor do ciclo | **uma cor por card** — amarelo · cyan · roxo · laranja (15/09/2026, pedido do Wilke; magenta fica fora, não fecha texto pequeno). O disco inverte: chapa na tinta do card, ícone na cor dele |
 
 ### 6.4 Medalhas do Sweet Awards
 
