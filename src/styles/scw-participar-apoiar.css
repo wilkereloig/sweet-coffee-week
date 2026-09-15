@@ -227,11 +227,23 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 /* Quatro dados (Participar): a fórmula base limita a 3 colunas e quebrava 3+1.
    Aqui é 1 → 2 → 4, nunca 3. O numeral é `nowrap`, então na fileira de 4 o teto
    dele passa a seguir a largura do card (cqi), não a da tela (§10.5). */
-.pa-numeros--quatro { grid-template-columns: 1fr; }
-@media (min-width: 560px) { .pa-numeros--quatro { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1280px) { .pa-numeros--quatro { grid-template-columns: repeat(4, 1fr); } }
-.pa-numeros--quatro li { container-type: inline-size; }
-.pa-numeros--quatro b { font-size: min(clamp(38px, 4.4vw, 74px), 14cqi); }
+.pa-numeros--quatro {
+  --cols: 1;
+  --g: clamp(14px, 1.6vw, 20px);
+  --pad: clamp(20px, 2.2vw, 28px);
+  grid-template-columns: repeat(var(--cols), 1fr);
+  /* ⚠️ O contêiner é a GRADE, nunca o card: `container-type` no <li> desliga o
+     subgrid e cada card passa a calcular as próprias linhas — títulos e notas
+     saíam 5–16px fora de altura entre vizinhos (medido em 1440px). */
+  container-type: inline-size;
+}
+@media (min-width: 560px) { .pa-numeros--quatro { --cols: 2; } }
+@media (min-width: 1280px) { .pa-numeros--quatro { --cols: 4; } }
+/* Largura útil de um card × .17. "+R$ 712 mil" ocupa 5,52em (medido), então cabe
+   até ×.181 — .17 deixa folga. */
+.pa-numeros--quatro b {
+  font-size: min(clamp(38px, 4.4vw, 74px), calc(((100cqi - (var(--cols) - 1) * var(--g)) / var(--cols) - 2 * var(--pad)) * .17));
+}
 .pa-numeros strong {
   align-self: start;
   color: var(--scw-choco);
