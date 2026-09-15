@@ -101,6 +101,34 @@ function useBarra() {
   return visivel
 }
 
+// Faixa de depoimentos (15/09/2026): rolagem nativa com encaixe; as setas só
+// empurram a rolagem um card por vez e ficam `disabled` de verdade nas pontas.
+function useFaixa() {
+  const ref = React.useRef(null)
+  const [pontas, setPontas] = React.useState({ inicio: true, fim: false })
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    const medir = () => setPontas({
+      inicio: el.scrollLeft <= 4,
+      fim: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
+    })
+    medir()
+    el.addEventListener('scroll', medir, { passive: true })
+    window.addEventListener('resize', medir)
+    return () => { el.removeEventListener('scroll', medir); window.removeEventListener('resize', medir) }
+  }, [])
+  const passar = (dir) => {
+    const el = ref.current
+    const card = el?.firstElementChild
+    if (!card) return
+    const passo = card.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || 0)
+    const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollBy({ left: dir * passo, behavior: reduzido ? 'auto' : 'smooth' })
+  }
+  return { ref, pontas, passar }
+}
+
 // Cartão de depoimento em vídeo. Toca SOB DEMANDA (15/09/2026, pedido do Wilke):
 // cinco vídeos em laço ao mesmo tempo violavam §6.15/§6.16. Com ponteiro, toca
 // no hover/foco do card; no toque, quando o vídeo entra ≥60% na tela (a grade é
@@ -165,6 +193,7 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
 export function ParticiparPage() {
   const barraVisivel = useBarra()
   const [audioAtivo, setAudioAtivo] = React.useState(null) // slug do depoimento com som ligado
+  const faixa = useFaixa()
 
   const irPara = (id) => (e) => {
     if (e) e.preventDefault()
@@ -208,15 +237,23 @@ export function ParticiparPage() {
           prova social da página — quem decide participar quer ouvir quem já
           participou antes de ler número ou processo. */}
       <section id="depoimentos" className="scw-secao scw-secao--creme">
-        <div className="pa-cabeca pa-cabeca--simples">
+        <div className="pa-cabeca pa-cabeca--faixa">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Quem participou conta com as <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>próprias palavras</em>.
             </h2>
           </div>
+          <div className="pa-faixa__setas">
+            <button type="button" className="pa-faixa__seta" onClick={() => faixa.passar(-1)} disabled={faixa.pontas.inicio} aria-controls="pa-depos" aria-label="Depoimento anterior">
+              <ScwIcon nome="ui/seta-esquerda" tamanho={20} />
+            </button>
+            <button type="button" className="pa-faixa__seta" onClick={() => faixa.passar(1)} disabled={faixa.pontas.fim} aria-controls="pa-depos" aria-label="Próximo depoimento">
+              <ScwIcon nome="ui/seta-direita" tamanho={20} />
+            </button>
+          </div>
         </div>
-        <ul className="pa-depos">
+        <ul id="pa-depos" className="pa-depos" ref={faixa.ref} tabIndex={0} aria-label="Depoimentos de marcas participantes">
           {DEPOIMENTOS.map((d) => {
             const fotoCombo = comboMain(d.slug)
             const marca = resolveParticipant(d.slug)

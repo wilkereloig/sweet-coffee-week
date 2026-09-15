@@ -314,24 +314,63 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    Participar 05 — depoimentos
    ========================================================================= */
 
+/* FAIXA, não grade (15/09/2026, pedido do Wilke): seis cards iguais em 3×2 davam
+   1.865px de seção. Uma fileira com encaixe, sangrando até a borda direita — o
+   card cortado na borda é o que anuncia que tem mais. Arranjo "faixa" do §6.16:
+   setas no desktop, gesto no celular, nunca autoplay. */
+.pa-cabeca--faixa { grid-template-columns: 1fr auto; }
+@media (max-width: 759px) { .pa-cabeca--faixa { grid-template-columns: 1fr; } }
+.pa-faixa__setas { display: flex; gap: 10px; }
+.scw-raiz .pa-faixa__seta {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1.5px solid var(--scw-choco);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--scw-choco);
+  cursor: pointer;
+  transition: background-color var(--mo-rapido) var(--mo-ease), color var(--mo-rapido) var(--mo-ease);
+}
+.scw-raiz .pa-faixa__seta:active:not(:disabled) { transform: translateY(1px); }
+.scw-raiz .pa-faixa__seta:disabled { opacity: .45; cursor: default; pointer-events: none; }
+@media (hover: hover) {
+  .scw-raiz .pa-faixa__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
+/* No celular não há ponteiro: o arraste é a navegação. */
+@media (max-width: 759px) { .pa-faixa__setas { display: none; } }
+
 .pa-depos {
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(240px, calc((100% - 2 * clamp(14px, 1.8vw, 24px)) / 3))), 1fr));
+  display: flex;
   gap: clamp(14px, 1.8vw, 24px);
-  margin: 0;
-  padding: 0;
+  margin: 0 calc(-1 * var(--scw-trilho));
+  padding: 4px var(--scw-trilho) 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--scw-trilho);
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
+.pa-depos::-webkit-scrollbar { display: none; }
+.pa-depos:focus-visible { outline-offset: -4px; }
 .pa-depo {
+  flex: 0 0 clamp(272px, 25vw, 380px);
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   border-radius: var(--scw-r-card);
   overflow: hidden;
-  /* Borda transparente em todos; só o card bege sobre creme a pinta (--anel). */
-  border: 1px solid var(--anel, transparent);
+  /* Filete só no card bege (--anel). `outline` e não `border`: borda transparente
+     pinta o fundo do card por baixo e desenhava um contorno colorido no vídeo. */
+  outline: 1px solid var(--anel, transparent);
+  outline-offset: -1px;
   background: var(--cor, var(--scw-amarelo));
   color: var(--tinta, var(--scw-choco));
 }
+@media (max-width: 759px) { .pa-depo { flex-basis: 84%; } }
 .pa-depo__media { position: relative; }
 .pa-depo__foto {
   position: relative;

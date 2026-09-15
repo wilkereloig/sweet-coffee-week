@@ -1717,6 +1717,10 @@ a anunciar a próxima edição e empurrar para o pré-cadastro. A numeração 08
   hover/foco do card com ponteiro; no toque, quando o vídeo entra ≥60% na tela. Cinco
   laços simultâneos violavam §6.15 (um laço de atmosfera por tela) e §6.16 (⛔ autoplay
   dentro de card). Com `prefers-reduced-motion`, só toca pelo botão de som.
+  ⚠️ **Faixa, não grade** (15/09/2026, pedido do Wilke): os seis cards correm numa fileira
+  com `scroll-snap`, sangrando até a borda direita (`.pa-depos`), setas de 54px na cabeça
+  (`.pa-cabeca--faixa`, somem abaixo de 760px, onde o arraste navega) e `disabled` real
+  nas pontas. A grade 3×2 dava 1.865px de seção; a faixa dá 1.078. ⛔ Não voltar à grade.
 - **03 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
   3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
   `14cqi` na fileira de 4 porque é `nowrap` (§10.5).
