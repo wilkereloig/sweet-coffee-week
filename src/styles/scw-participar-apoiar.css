@@ -175,27 +175,6 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .scw-secao--choco .pa-cabeca__apoio { color: rgba(254, 240, 221, .74); }
 .scw-secao--choco .pa-cabeca .scw-rotulo { color: var(--scw-amarelo); }
-/* `width: fit-content` porque o filete é do LINK, não da coluna: item de grade
-   é blocificado (o `inline-flex` vira `flex`) e estica na célula inteira, então
-   o sublinhado atravessava a coluna. O irmão `.hm-link--sublinhado` já estava
-   protegido por `justify-self:start`. */
-.pa-cabeca__link {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 9px;
-  min-height: 44px;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--scw-marrom);
-  color: var(--scw-marrom);
-  font: 700 15px/1 var(--scw-font-ui);
-  transition: var(--scw-transicao);
-}
-
-@media (hover: hover) {
-  .pa-cabeca__link:hover { color: var(--scw-choco); border-color: var(--scw-choco); }
-}
-
 /* Destaque editorial no título: mesmo keyframe do sistema (scwDestaque).
    Cor de base e cor final vêm inline (--base / --dest). */
 .pa-destaque {

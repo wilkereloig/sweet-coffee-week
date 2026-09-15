@@ -206,16 +206,13 @@ export function ParticiparPage() {
           prova social da página — quem decide participar quer ouvir quem já
           participou antes de ler número ou processo. */}
       <section id="depoimentos" className="scw-secao scw-secao--creme">
-        <div className="pa-cabeca">
+        <div className="pa-cabeca pa-cabeca--simples">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
             <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
               Quem participou conta com as <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>próprias palavras</em>.
             </h2>
           </div>
-          <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
-            Fazer pré-cadastro <I.arrow width={17} height={17} />
-          </a>
         </div>
         <ul className="pa-depos">
           {DEPOIMENTOS.map((d) => {

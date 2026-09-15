@@ -224,15 +224,13 @@
 .hm-link svg,
 .hm-rota__cta svg,
 .hm-voz__link svg,
-.ctt-porta__link svg,
-.pa-cabeca__link svg { transition: transform var(--mo-estado) var(--mo-mola); }
+.ctt-porta__link svg { transition: transform var(--mo-estado) var(--mo-mola); }
 
 @media (hover: hover) {
   .hm-link:hover svg,
   .hm-rota__cta:hover svg,
   .hm-voz__link:hover svg,
-  .ctt-porta__link:hover svg,
-  .pa-cabeca__link:hover svg { transform: translateX(5px); }
+  .ctt-porta__link:hover svg { transform: translateX(5px); }
 }
 
 /* Cards que levam a algum lugar — e só esses. Card sem link não recebe hover:
@@ -310,7 +308,6 @@
   .ctt-item__link:active,
   .ctt-ok__acao:active,
   .ctt-direto a:active,
-  .pa-cabeca__link:active,
   .f2-realiza__cta:active,
   .scw-footer__nav a:active,
   .scw-footer__insta:active { opacity: .62; }

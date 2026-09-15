@@ -893,7 +893,6 @@ Edições:**
 
 - Ícone do rótulo de seção: `tamanho={20}`. **16 fica só em chip e legenda.**
 - Gap do rótulo: **10px**.
-- **O filete é do link, não da coluna** — `.pa-cabeca__link` tem `width: fit-content`.
 - **Lead só quando informa** o que o H2 não dá; senão rótulo + H2 em bloco único.
 
 ### 6.7 Zona de segurança entre menu e herói — regra estrutural
@@ -1720,7 +1719,7 @@ a anunciar a próxima edição e empurrar para o pré-cadastro. A numeração 08
 - **03 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
   3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
   `14cqi` na fileira de 4 porque é `nowrap` (§10.5).
-- **Uma ação, um rótulo:** herói, link da 02, CTA da 08 e barra fixa dizem todos
+- **Uma ação, um rótulo:** herói, CTA da 08 e barra fixa dizem todos
   **"Fazer pré-cadastro"**. O botão da 08 usa a cor do destino (`.scw-btn--pagina`,
   cyan) com anel chocolate de 2px, porque cyan sobre o card bege não fecha 3:1.
 
