@@ -156,7 +156,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   margin: 0;
   max-width: 34ch;
   color: var(--scw-marrom);
-  font: 500 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font);
+  font: 400 clamp(15.5px, 1.35vw, 18px)/1.55 var(--scw-font-ui);
   text-wrap: pretty;
 }
 /* Lead alinhado à direita e à base (KV § Cabeça de seção): rótulo+H2 à
@@ -188,7 +188,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   padding-bottom: 6px;
   border-bottom: 2px solid var(--scw-marrom);
   color: var(--scw-marrom);
-  font: 800 15px/1 var(--scw-font);
+  font: 700 15px/1 var(--scw-font-ui);
   transition: var(--scw-transicao);
 }
 
@@ -243,10 +243,18 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* Quatro dados (Participar): a fórmula base limita a 3 colunas e quebrava 3+1.
+   Aqui é 1 → 2 → 4, nunca 3. O numeral é `nowrap`, então na fileira de 4 o teto
+   dele passa a seguir a largura do card (cqi), não a da tela (§10.5). */
+.pa-numeros--quatro { grid-template-columns: 1fr; }
+@media (min-width: 560px) { .pa-numeros--quatro { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1280px) { .pa-numeros--quatro { grid-template-columns: repeat(4, 1fr); } }
+.pa-numeros--quatro li { container-type: inline-size; }
+.pa-numeros--quatro b { font-size: min(clamp(38px, 4.4vw, 74px), 14cqi); }
 .pa-numeros strong {
   align-self: start;
   color: var(--scw-choco);
-  font: 800 15.5px/1.25 var(--scw-font);
+  font: 700 15.5px/1.25 var(--scw-font-ui);
 }
 /* A nota do dado. ⚠️ O seletor é `li > span:last-child`, não `span`: o disco de
    ícone também é um <span> aqui, e `.pa-numeros span` (0,1,1) venceria
@@ -255,7 +263,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-numeros li > span:last-child {
   align-self: start;
   max-width: 24ch;
-  font: 500 13.5px/1.4 var(--scw-font);
+  font: 400 14px/1.45 var(--scw-font-texto);
   color: var(--scw-marrom);
 }
 
@@ -288,8 +296,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-cards--largos .pa-card { gap: 14px; padding: clamp(20px, 2.2vw, 28px); border-radius: var(--scw-r-card); }
 /* O disco de ícone dos cards é o .scw-disco de scw-2026.css (46px padrão). */
 .pa-card__txt { display: flex; flex-direction: column; gap: 5px; }
-.pa-card__txt b { font: 800 15.5px/1.2 var(--scw-font); }
-.pa-card__txt span { font: 500 13px/1.35 var(--scw-font); color: var(--scw-marrom); }
+.pa-card__txt b { font: 700 15.5px/1.2 var(--scw-font-ui); }
+.pa-card__txt span { font: 400 13.5px/1.4 var(--scw-font-texto); color: var(--scw-marrom); }
 .pa-card h3 {
   margin: 0;
   font: 900 clamp(18px, 1.7vw, 22px)/1.06 var(--scw-font-black);
@@ -297,7 +305,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-card p {
   margin: 0;
-  font: 500 14.5px/1.5 var(--scw-font);
+  font: 400 15px/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
@@ -317,8 +325,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-depo {
   display: flex;
   flex-direction: column;
-  border-radius: var(--scw-r-secao);
+  border-radius: var(--scw-r-card);
   overflow: hidden;
+  /* Borda transparente em todos; só o card bege sobre creme a pinta (--anel). */
+  border: 1px solid var(--anel, transparent);
   background: var(--cor, var(--scw-amarelo));
   color: var(--tinta, var(--scw-choco));
 }
@@ -407,8 +417,9 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   padding-top: 16px;
   border-top: 1px solid var(--filete, rgba(61, 19, 8, .22));
 }
-.pa-depo__quem b { font: 800 15.5px/1.2 var(--scw-font); }
-.pa-depo__quem span { font: 500 14px/1.3 var(--scw-font); opacity: .75; }
+.pa-depo__quem b { font: 700 15.5px/1.2 var(--scw-font-ui); }
+/* Tinta cheia, sem opacidade: chocolate a 75% sobre cyan cai abaixo de 4,5:1. */
+.pa-depo__quem span { font: 400 14px/1.35 var(--scw-font-texto); }
 
 /* ============================================================================
    Apoiar 04 — onde a marca aparece
@@ -425,7 +436,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-onde > li {
   display: flex;
   flex-direction: column;
-  border-radius: var(--scw-r-secao);
+  border-radius: var(--scw-r-card);
   overflow: hidden;
   background: var(--scw-creme);
   border: 1px solid rgba(61, 19, 8, .14);
@@ -457,8 +468,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   border-radius: 999px;
   background: var(--c, var(--scw-roxo));
   color: var(--tinta, var(--scw-creme));
-  font: 800 11px/1 var(--scw-font);
-  letter-spacing: .12em;
+  font: 700 11px/1 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 .pa-onde ul {
@@ -473,7 +484,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font: 500 14.5px/1.35 var(--scw-font);
+  font: 400 15px/1.4 var(--scw-font-texto);
   color: var(--scw-choco);
 }
 .pa-onde ul li::before {
@@ -511,7 +522,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   border-bottom: 1px solid rgba(254, 240, 221, .2);
 }
 .pa-quem__indice {
-  font: 900 clamp(13px, 1.1vw, 14px)/1 var(--scw-font);
+  font: 900 clamp(13px, 1.1vw, 14px)/1 var(--scw-font-slab);
   letter-spacing: .1em;
   color: var(--scw-amarelo);
 }
@@ -519,7 +530,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    lista era o defeito. */
 .pa-quem__texto {
   max-width: 24ch;
-  font: 700 clamp(17px, 1.6vw, 21px)/1.32 var(--scw-font);
+  font: 700 clamp(17px, 1.6vw, 21px)/1.32 var(--scw-font-ui);
   color: var(--scw-creme);
   text-wrap: pretty;
 }
@@ -535,8 +546,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-veiculos__bloco .pa-veiculos { grid-column: span 2; }
 .pa-veiculos__rotulo {
   display: block;
-  font: 800 11.5px/1.4 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11.5px/1.4 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-bege);
 }
@@ -552,7 +563,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   padding: 11px 16px;
   border-radius: 999px;
   border: 1px solid rgba(254, 240, 221, .28);
-  font: 800 13.5px/1 var(--scw-font);
+  font: 700 13.5px/1 var(--scw-font-ui);
   color: var(--scw-creme);
 }
 
@@ -574,15 +585,15 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   margin: 16px 0 0;
   max-width: 52ch;
   color: var(--scw-marrom);
-  font: 500 16.5px/1.55 var(--scw-font);
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
   text-wrap: pretty;
 }
 /* ─── Chamada do pré-cadastro (substituiu o formulário embutido, 22/08/2026) ───
    Mesma largura e mesma posição do .pa-form__intro logo acima (980px,
    margin-inline:auto): a peça nasce em esquadro com a cabeça, que é o defeito
    que a rodada de alinhamento deste dia foi corrigir em três lugares.
-   Card creme com filete, como todo card institucional (§6.1: card claro é creme
-   e quem carrega o recorte é o filete). */
+   A seção é creme (a vizinha 03 Números é bege, §10.5), então o card inverte:
+   chapa bege, sem filete — quem recorta é o próprio fundo. */
 .pa-cta {
   display: flex;
   flex-wrap: wrap;
@@ -592,9 +603,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   max-width: 980px;
   margin: clamp(30px, 3.4vw, 48px) auto 0;
   padding: clamp(26px, 3vw, 40px);
-  border: 1px solid rgba(61, 19, 8, .14);
-  border-radius: var(--scw-r-secao);
-  background: var(--scw-creme);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-bege);
 }
 .pa-cta__lista {
   flex: 1 1 340px;
@@ -609,13 +619,24 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   align-items: center;
   gap: 12px;
   min-height: 24px;
-  font: 500 clamp(15px, 1.25vw, 17px)/1.45 var(--scw-font);
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.5 var(--scw-font-texto);
   color: var(--scw-choco);
 }
 /* O ícone não encolhe quando o texto quebra em duas linhas. */
 .pa-cta__lista svg { flex: 0 0 auto; color: var(--scw-marrom); }
 /* Piso de toque de 54px: é a ação principal da página (§6.10). */
-.pa-cta__botao { flex: 0 0 auto; min-height: 54px; }
+/* Cor do destino (o pré-cadastro é de Participar → cyan, tinta chocolate 5,6:1).
+   Cyan sobre bege não fecha 3:1 de forma, então entra o anel de 2px (§6.2); e o
+   anel de foco global é cyan, por isso o foco troca para chocolate. */
+.pa-cta__botao {
+  flex: 0 0 auto;
+  min-height: 54px;
+  box-shadow: inset 0 0 0 2px var(--scw-choco);
+}
+.pa-cta__botao:focus-visible { outline-color: var(--scw-choco); }
+@media (hover: hover) {
+  .scw-raiz .pa-cta__botao:hover { background: var(--scw-choco); color: var(--scw-creme); }
+}
 @media (max-width: 620px) {
   .pa-cta { flex-direction: column; align-items: stretch; }
   /* ⚠️ `flex-basis` mede o EIXO PRINCIPAL. Em linha, os 340px lá em cima são
@@ -643,8 +664,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-form legend {
   padding: 0;
-  font: 800 11.5px/1 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11.5px/1 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
 }
@@ -666,7 +687,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-form .scw-campo :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--scw-laranja); }
 .pa-erro {
-  font: 700 12.5px/1.35 var(--scw-font);
+  font: 700 12.5px/1.35 var(--scw-font-ui);
   color: var(--scw-marrom);
 }
 .pa-form__pe {
@@ -680,7 +701,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-form__consent {
   max-width: 44ch;
   margin: 0;
-  font: 500 13px/1.5 var(--scw-font);
+  font: 400 13.5px/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
 }
 .pa-form__enviar {
@@ -695,7 +716,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-form__status {
   grid-column: 1 / -1;
   margin: clamp(16px, 1.8vw, 22px) 0 0;
-  font: 700 14px/1.5 var(--scw-font);
+  font: 700 14px/1.5 var(--scw-font-ui);
   color: var(--scw-marrom);
 }
 .pa-form__status:empty { margin: 0; }
@@ -729,7 +750,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 .pa-sucesso p {
   margin: 14px auto 24px;
   max-width: 44ch;
-  font: 500 15.5px/1.55 var(--scw-font);
+  font: 400 15.5px/1.6 var(--scw-font-texto);
   color: var(--scw-marrom);
 }
 .pa-sucesso button {
@@ -739,7 +760,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   border: 1px solid var(--scw-choco);
   background: transparent;
   color: var(--scw-choco);
-  font: 800 14px/1 var(--scw-font);
+  font: 700 14px/1 var(--scw-font-ui);
   cursor: pointer;
   transition: var(--scw-transicao);
 }
@@ -769,7 +790,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 .pa-barra.is-visivel { transform: none; }
 .pa-barra span {
-  font: 700 14px/1 var(--scw-font);
+  font: 700 14px/1 var(--scw-font-ui);
   color: rgba(254, 240, 221, .86);
   white-space: nowrap;
   overflow: hidden;

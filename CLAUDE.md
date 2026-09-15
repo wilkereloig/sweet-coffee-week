@@ -118,7 +118,7 @@ de sete páginas descrito no §2.4, não uma reescrita futura. Publicar é `fals
 | **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
-| **Participar** (`/participar`) | Converter marcas | existe, 8 seções (§7.4) |
+| **Participar** (`/participar`) | Converter marcas | existe, 4 seções (§7.4) |
 | **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 6 seções (§7.5) |
 | **Contato** (`/contato`) | Triar e responder | existe, 4 seções (§7.6) |
 
@@ -772,7 +772,8 @@ sem ninguém ter olhado. **Sai quando a última página migrar.** Estado da migr
 |---|---|
 | `scw-2026.css` (o sistema: corpo, lead, rótulo, botão, pill, menu, campo, casca) | ✅ migrado — **e isso alcança as seis páginas de uma vez** |
 | `scw-home.css` | ✅ migrado |
-| `scw-edicoes.css` · `scw-awards.css` · `scw-participar-apoiar.css` · `scw-contato.css` · `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
+| `scw-participar-apoiar.css` | ✅ migrado em 15/09/2026 — alcança Participar **e** Apoiar |
+| `scw-edicoes.css` · `scw-awards.css` · `scw-contato.css` · `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
 | `em-breve.css` · `painel-app/src/styles/painel.css` | ⏳ idem |
 
 ⛔ **O kit não tem 500, 800 nem 900 na sem serifa.** Por isso `font-synthesis: none` no
@@ -1695,21 +1696,26 @@ Segue a lógica visual da Home. Precisa de: proposta clara; fotos quando dispon�
 **depoimentos**; **formulário em destaque**; linguagem voltada a participantes; visual
 editorial e comercial. **Não parecer formulário genérico.**
 
-**Oito seções:** `01 Abertura` · `02 Depoimentos` · `03 Números` · `04 Circulação` ·
-`05 Quem pode` · `06 Imprensa` · `07 Jornada` · `08 Pré-cadastro`.
+**Quatro seções:** `01 Abertura` (herói cyan) · `02 Depoimentos` (creme) ·
+`03 Números` (bege) · `08 Pré-cadastro` (creme). ⛔ `04 Circulação`, `05 Quem pode`,
+`06 Imprensa` e `07 Jornada` **saíram em 26/08/2026** (pedido do Eloi): a página passou
+a anunciar a próxima edição e empurrar para o pré-cadastro. A numeração 08 ficou.
 
-- Herói = rótulo do público + H1 + lead + **duas ações, nada mais**. No celular a foto
-  continua, sangrando na `.scw-hero-banda`.
-- **Circulação: três faixas** alternando lado, imagem e texto com **larguras iguais** —
-  a coluna acompanha o trilho, o texto para na medida de linha.
-  ⛔ A 4ª faixa (`04 · Materiais`) **saiu em 20/08/2026**, junto com o H2 que dizia
-  "Quatro frentes": o desenho fechou a seção em três. Se voltar, o H2 volta junto.
-- **06 Imprensa** é cabeça + chips de veículo + a nota das 17 matérias.
-  ⛔ A galeria de 3 registros em TV que abria a seção **saiu em 20/08/2026** — o desenho
-  deixou a seção só com os chips. As fotos seguem em `public/images/imprensa/`.
+- Herói = H1 + lead + **duas ações, nada mais**. No celular a foto continua, na
+  `.scw-hero-banda` em 4:3.
 - **Depoimentos vêm logo depois da abertura** (decisão do Eloi, 30/07/2026): são a prova
   social; quem cogita participar quer ouvir quem já participou antes de ler número ou
   processo, e vários depoimentos são em vídeo.
+  ⚠️ **Os vídeos tocam sob demanda, não em autoplay** (15/09/2026, pedido do Wilke):
+  hover/foco do card com ponteiro; no toque, quando o vídeo entra ≥60% na tela. Cinco
+  laços simultâneos violavam §6.15 (um laço de atmosfera por tela) e §6.16 (⛔ autoplay
+  dentro de card). Com `prefers-reduced-motion`, só toca pelo botão de som.
+- **03 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
+  3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
+  `14cqi` na fileira de 4 porque é `nowrap` (§10.5).
+- **Uma ação, um rótulo:** herói, link da 02, CTA da 08 e barra fixa dizem todos
+  **"Fazer pré-cadastro"**. O botão da 08 usa a cor do destino (`.scw-btn--pagina`,
+  cyan) com anel chocolate de 2px, porque cyan sobre o card bege não fecha 3:1.
 
 - **08 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
   chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o

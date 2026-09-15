@@ -99,20 +99,43 @@ function useBarra() {
   return visivel
 }
 
-// Cartão de depoimento em vídeo: autoplay mudo em loop (movimento tipo Reels);
-// toque ativa o som deste (a trilha some quando ativo === false). O `muted`
-// é sincronizado via ref porque a prop React não reflete de forma confiável
-// a propriedade DOM depois da montagem.
+// Cartão de depoimento em vídeo. Toca SOB DEMANDA (15/09/2026, pedido do Wilke):
+// cinco vídeos em laço ao mesmo tempo violavam §6.15/§6.16. Com ponteiro, toca
+// no hover/foco do card; no toque, quando o vídeo entra ≥60% na tela (a grade é
+// uma coluna, então na prática um por vez). Com som ligado, não pausa ao sair.
+// O `muted` é sincronizado via ref porque a prop React não reflete de forma
+// confiável a propriedade DOM depois da montagem.
 function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
   const ref = React.useRef(null)
   const reduzido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   React.useEffect(() => {
-    if (!ref.current) return
-    ref.current.muted = !ativo
-    ref.current.currentTime = 0
-    ref.current.play().catch(() => {})
+    const v = ref.current
+    if (!v) return
+    v.muted = !ativo
+    if (ativo) {
+      v.currentTime = 0
+      v.play().catch(() => {})
+    }
   }, [ativo])
+
+  React.useEffect(() => {
+    const v = ref.current
+    const card = v?.closest('.pa-depo')
+    if (!v || !card || reduzido) return undefined
+    const tocar = () => v.play().catch(() => {})
+    const parar = () => { if (v.muted) v.pause() }
+
+    if (window.matchMedia('(hover: hover)').matches) {
+      const eventos = [['pointerenter', tocar], ['pointerleave', parar], ['focusin', tocar], ['focusout', parar]]
+      eventos.forEach(([e, fn]) => card.addEventListener(e, fn))
+      return () => eventos.forEach(([e, fn]) => card.removeEventListener(e, fn))
+    }
+    if (typeof IntersectionObserver === 'undefined') return undefined
+    const io = new IntersectionObserver(([e]) => (e.intersectionRatio >= 0.6 ? tocar() : parar()), { threshold: [0, 0.6] })
+    io.observe(v)
+    return () => io.disconnect()
+  }, [reduzido])
 
   return (
     <>
@@ -123,7 +146,6 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
         muted={!ativo}
         loop
         playsInline
-        autoPlay={!reduzido}
         preload="metadata"
         aria-label={alt}
         aria-describedby={describedBy}
@@ -191,7 +213,7 @@ export function ParticiparPage() {
             </h2>
           </div>
           <a href="#pre-cadastro" className="pa-cabeca__link" onClick={irPara('pre-cadastro')}>
-            Quero estar nessa lista <I.arrow width={17} height={17} />
+            Fazer pré-cadastro <I.arrow width={17} height={17} />
           </a>
         </div>
         <ul className="pa-depos">
@@ -207,6 +229,8 @@ export function ParticiparPage() {
                 '--cor': d.cor,
                 '--tinta': d.tinta,
                 '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)',
+                // Bege sobre a seção creme: sem filete o recorte do card some.
+                '--anel': d.cor === 'var(--scw-bege)' ? 'rgba(61,19,8,.14)' : undefined,
               }}
             >
               <div className="pa-depo__media">
@@ -250,7 +274,7 @@ export function ParticiparPage() {
         <div className="pa-cabeca">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />A potência do festival</span>
-            <h2 className="scw-h2" style={{ color: 'var(--scw-marrom)' }}>
+            <h2 className="scw-h2">
               O tamanho da <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>vitrine</em> que sua marca ocupa.
             </h2>
           </div>
@@ -258,7 +282,7 @@ export function ParticiparPage() {
             Dez anos de rota e público que se organiza para provar cada edição.
           </p>
         </div>
-        <ul className="pa-numeros">
+        <ul className="pa-numeros pa-numeros--quatro">
           {NUMEROS.map((n) => (
             <li key={n.t}>
               <span className="scw-disco pa-num__disco" aria-hidden="true">
@@ -288,7 +312,7 @@ export function ParticiparPage() {
 
           ⛔ A barra final de /quero-participar/ não é opcional (§10.4-b): sem
           ela o servidor cai no fallback do SPA e a pessoa vê a landing. */}
-      <section id="pre-cadastro" className="scw-secao scw-secao--bege">
+      <section id="pre-cadastro" className="scw-secao scw-secao--creme">
         <div className="pa-form__intro">
           <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mecanica/inscricao" tamanho={20} />Pré-cadastro</span>
           <h2 className="scw-h2">
@@ -306,8 +330,8 @@ export function ParticiparPage() {
             <li><ScwIcon nome="mecanica/loja" tamanho={20} />Seus dados e os do estabelecimento</li>
             <li><ScwIcon nome="mecanica/regulamento" tamanho={20} />Usados só pela organização, para contato e curadoria</li>
           </ul>
-          <a className="scw-btn scw-btn--solido pa-cta__botao" href="/quero-participar/">
-            Abrir o pré-cadastro <I.arrow width={17} height={17} />
+          <a className="scw-btn scw-btn--pagina pa-cta__botao" href="/quero-participar/">
+            Fazer pré-cadastro <I.arrow width={17} height={17} />
           </a>
         </div>
       </section>
@@ -315,7 +339,7 @@ export function ParticiparPage() {
       <div className={`pa-barra${barraVisivel ? ' is-visivel' : ''}`}>
         <span>Inscrições passam por curadoria.</span>
         <a href="#pre-cadastro" className="scw-btn scw-btn--solido" onClick={irPara('pre-cadastro')}>
-          Iniciar pré-cadastro <I.arrow />
+          Fazer pré-cadastro <I.arrow />
         </a>
       </div>
     </>
