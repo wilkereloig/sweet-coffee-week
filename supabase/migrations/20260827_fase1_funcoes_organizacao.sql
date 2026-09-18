@@ -2,7 +2,8 @@
 -- Fase 1 do plano de funções da organização · 27/08/2026
 -- Handoff "Plano · Implementação e aprimoramento das funções (organização)".
 --
--- ⚠️ ESTA MIGRATION NÃO ESTÁ APLICADA NO BANCO. Escrita e revisável aqui;
+-- ✅ APLICADA em 18/09/2026, pelo MCP do Supabase, registrada como `fase1_funcoes_organizacao`.
+-- (Texto histórico abaixo.) Escrita e revisável aqui;
 -- aplicar é ação manual e deliberada do Eloi (§4.1 do CLAUDE.md — não há
 -- CLI/config.toml neste projeto).
 --

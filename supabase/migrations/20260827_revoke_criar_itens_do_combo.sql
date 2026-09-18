@@ -3,7 +3,8 @@
 -- 27/08/2026 — achado do diagnóstico read-only da mesma data (Etapa 3 do
 -- handoff de correções do painel React).
 --
--- ⚠️ ESTA MIGRATION NÃO ESTÁ APLICADA NO BANCO. Escrita e revisável aqui;
+-- ✅ APLICADA em 18/09/2026, pelo MCP do Supabase, registrada como `revoke_criar_itens_do_combo`.
+-- (Texto histórico abaixo.) Escrita e revisável aqui;
 -- aplicar é ação manual e deliberada do Eloi (§4.1 do CLAUDE.md — não há
 -- CLI/config.toml neste projeto).
 --

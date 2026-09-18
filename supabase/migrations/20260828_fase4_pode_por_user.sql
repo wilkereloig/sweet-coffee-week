@@ -1,3 +1,4 @@
+-- ✅ APLICADA em 18/09/2026, pelo MCP do Supabase, registrada como `fase4_pode_por_user`.
 -- Fase 4 do plano de funções da organização (27/08/2026): "as Edge Functions
 -- aprendem JWT". As cinco funções de conta (criar-conta-organizacao,
 -- regerar-senha-conta, arquivo-url, enviar-push, criar-acesso-marca) rodam

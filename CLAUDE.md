@@ -307,6 +307,29 @@ preview.**
   os do banco usam o carimbo cheio (`20260820212953`): parecidos o bastante
   para enganar quem confere de olho.
 
+  ✅ **Plano de funções da organização no banco e nas Edge Functions — 18/09/2026.**
+  As quatro migrations que estavam só em arquivo foram aplicadas pelo MCP, cada uma
+  registrada: `revoke_criar_itens_do_combo` · `fase1_funcoes_organizacao` ·
+  `fase2_marcar_senha_trocada_ator_rotulo` · `fase4_pode_por_user`. Com elas, as 11
+  RPCs que chamavam `pode_organizacao(p_secret)` passaram a chamar `pode()` direto
+  (5 relatórios sensíveis exigem `relatorio.ler`, **só Administrador**, decisão do
+  Wilke), e nasceram `minhas_permissoes()` e `pode_por_user()`. As cinco Edge
+  Functions de conta foram publicadas a partir de `supabase/functions/`:
+  `regerar-senha-conta` (nova), `criar-conta-organizacao`, `arquivo-url`,
+  `enviar-push` e `criar-acesso-marca`. Conferido por `has_function_privilege`,
+  teste de fumaça (401 sem credencial nas cinco) e Security Advisor sem alerta
+  novo.
+  ⚠️ **O `revoke` de `criar_itens_do_combo` estava escrito só para `anon,
+  authenticated`** e deixaria o EXECUTE de `PUBLIC` — corrigido antes de aplicar.
+  Antes dele, `anon` executava a função (conferido).
+  ⚠️ **O painel publicado já dependia dessas peças desde o merge de 18/09**; a
+  senha única e o login das marcas nunca dependeram, e seguem pelo caminho de
+  sempre. Contas nominais de organização: **zero** — a porta nova existe, vazia.
+  ⚠️ **O MCP do Supabase recusou o SQL por horas com `password authentication
+  failed for user "postgres"`** enquanto a API de gestão respondia. Não era a
+  senha: o conector estava **desativado na sessão**. Religado, entrou na hora.
+  Antes de redefinir senha de banco por causa desse erro, conferir o conector.
+
   ✅ **Fase 2 da autenticação aplicada em 23/08/2026** (migrations
   `pode_organizacao_fase2` + `pode_organizacao_revoke_anon`). As **14 RPCs da
   organização** deixaram de chamar `admin_ok(p_secret)` e passaram a chamar

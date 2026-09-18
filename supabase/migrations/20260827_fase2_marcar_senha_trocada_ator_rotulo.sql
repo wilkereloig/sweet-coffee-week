@@ -3,7 +3,8 @@
 -- 27/08/2026 — achado da revisão adversarial da Fase 2 do plano de funções
 -- da organização.
 --
--- ⚠️ ESTA MIGRATION NÃO ESTÁ APLICADA NO BANCO. Escrita e revisável aqui;
+-- ✅ APLICADA em 18/09/2026, pelo MCP do Supabase, registrada como `fase2_marcar_senha_trocada_ator_rotulo`.
+-- (Texto histórico abaixo.) Escrita e revisável aqui;
 -- aplicar é ação manual e deliberada do Eloi (§4.1 do CLAUDE.md).
 --
 -- `20260822_marcar_senha_trocada.sql` foi escrita quando só marca chamava
