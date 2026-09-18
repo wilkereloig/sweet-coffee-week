@@ -20,7 +20,7 @@
 import React from 'react'
 import { I } from '../../components/icons'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
-import { comboMain, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
+import { comboMain, fotoGanho, heroPhotos, RESERVA, SIZES, srcSet } from '../../data/imageLibrary'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
@@ -38,6 +38,18 @@ const FOTOS_HERO = heroPhotos('participar')
 const PALAVRAS = [
   'um combo autoral', 'presença na campanha', 'nova relação com o público',
   'sua marca na rota', 'sweet lovers',
+]
+
+/* 02 O que a marca ganha (18/09/2026, pedido do Wilke). Quatro ganhos, cada um
+   sobre uma foto do acervo (fotoGanho, em imageLibrary). Nada de promessa: o
+   pré-cadastro não garante vaga nem prêmio (§8.4) — o texto diz o que a edição
+   faz por quem participa. Selo numa cor do ciclo sem o magenta, que não fecha
+   4,5:1 em texto pequeno com nenhuma das duas tintas. */
+const GANHOS = [
+  { chave: 'combo', selo: 'Criação', titulo: 'Um combo autoral, no tema da edição', texto: 'Doce, salgado e bebida inéditos, criados pela sua casa a partir do tema que abre cada edição.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { chave: 'imprensa', selo: 'Visibilidade', titulo: 'Presença na campanha e na imprensa', texto: 'A campanha oficial e a cobertura de imprensa de cada edição apresentam as casas participantes.', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+  { chave: 'publico', selo: 'Público', titulo: 'Sweet Lovers batendo à sua porta', texto: 'Gente que se organiza para provar os combos e sai atrás de endereços que ainda não conhecia.', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
+  { chave: 'awards', selo: 'Reconhecimento', titulo: 'Concorrer ao Sweet Awards', texto: 'Os combos disputam as categorias da edição, a partir da avaliação do público.', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
 ]
 
 /* 03 Números — reformulada em 26/08/2026 (pedido do Eloi): fora os números de
@@ -62,7 +74,7 @@ const DEPOIMENTOS = [
   { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Pâtisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
   { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake Confeitaria', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
   { frase: '“Foi além das expectativas. Foram onze dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.”', pessoa: 'Edvan Barreto', marca: 'Casa 1190 - Restaurant e Coffee', slug: 'casa-1190', cor: 'var(--scw-choco)', tinta: 'var(--scw-creme)' },
-  { frase: null, pessoa: null, marca: 'Caroli Douces', slug: 'caroli-douces', cor: 'var(--scw-bege)', tinta: 'var(--scw-choco)' },
+  { frase: null, pessoa: null, marca: 'Caroli Douces', slug: 'caroli-douces', cor: 'var(--scw-creme)', tinta: 'var(--scw-choco)' },
 ]
 
 // Depoimentos em vídeo (mesmo slug do participante). Ausente = mantém foto.
@@ -232,11 +244,38 @@ export function ParticiparPage() {
 
       <Marquee palavras={PALAVRAS} comPausa />
 
-      {/* ═══ 02 Depoimentos ═══
+      {/* ═══ 02 O que a marca ganha ═══ */}
+      <section id="ganhos" className="scw-secao scw-secao--creme">
+        <div className="pa-cabeca pa-cabeca--simples">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="simbolos/destaque" tamanho={20} />O que a marca ganha</span>
+          <h2 className="scw-h2">
+            O que a edição <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>coloca na mesa</em> da sua marca.
+          </h2>
+        </div>
+        <ul className="pa-ganhos">
+          {GANHOS.map((g) => {
+            const foto = fotoGanho(g.chave)
+            return (
+              <li className="pa-ganho" key={g.chave} style={{ '--c': g.cor, '--tinta': g.tinta }}>
+                {foto
+                  ? <img src={foto.src} srcSet={srcSet(foto.src)} sizes={SIZES.cheia} alt={foto.alt} style={{ objectPosition: foto.position }} loading="lazy" decoding="async" />
+                  : <div className="scw-reserva">{RESERVA}</div>}
+                <span className="scw-pill pa-ganho__selo">{g.selo}</span>
+                <div className="pa-ganho__texto">
+                  <h3 className="scw-h3">{g.titulo}</h3>
+                  <p>{g.texto}</p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {/* ═══ 03 Depoimentos ═══
           Sobe logo depois da abertura (a pedido do Wilke, 30/07/2026): é a
           prova social da página — quem decide participar quer ouvir quem já
           participou antes de ler número ou processo. */}
-      <section id="depoimentos" className="scw-secao scw-secao--creme">
+      <section id="depoimentos" className="scw-secao scw-secao--bege">
         <div className="pa-cabeca pa-cabeca--faixa">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
@@ -266,8 +305,8 @@ export function ParticiparPage() {
                 '--cor': d.cor,
                 '--tinta': d.tinta,
                 '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)',
-                // Bege sobre a seção creme: sem filete o recorte do card some.
-                '--anel': d.cor === 'var(--scw-bege)' ? 'rgba(61,19,8,.14)' : undefined,
+                // Creme sobre a seção bege: sem filete o recorte do card some.
+                '--anel': d.cor === 'var(--scw-creme)' ? 'rgba(61,19,8,.14)' : undefined,
               }}
             >
               <div className="pa-depo__media">
@@ -307,7 +346,7 @@ export function ParticiparPage() {
       </section>
 
       {/* ═══ 03 Números ═══ */}
-      <section id="numeros" className="scw-secao scw-secao--bege">
+      <section id="numeros" className="scw-secao scw-secao--creme">
         <div className="pa-cabeca">
           <div>
             <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />A potência do festival</span>

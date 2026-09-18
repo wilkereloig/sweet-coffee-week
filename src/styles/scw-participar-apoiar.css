@@ -186,6 +186,83 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
+   Participar 02 — o que a marca ganha (18/09/2026)
+   ========================================================================= */
+
+/* Mosaico fotográfico, não grade de cards com disco: a foto é o argumento
+   (§2.2) e a superfície é a fotográfica do §6.16 — foto sangrada, véu
+   chocolate, tinta creme. Sem link, então sem hover (§6.15, regra 6).
+   Uma coluna → 2×2 a partir de 760px → zigue-zague 7/5 · 5/7 a partir de
+   1100px, onde cada peça é larga o bastante para o texto ocupar só a base. */
+.pa-ganhos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 1.4vw, 20px);
+  margin: 0;
+  padding: 0;
+}
+.pa-ganho {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  aspect-ratio: 4 / 3;
+  padding: clamp(18px, 2vw, 28px);
+  border-radius: var(--scw-r-card);
+  overflow: hidden;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.pa-ganho > img,
+.pa-ganho > .scw-reserva {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+/* Véu em px, não em %: o texto tem altura fixa (~170px) e o véu segura essa
+   faixa inteira a .86 ou mais, qualquer que seja a altura da peça. Três
+   paradas (§10.4) — com duas, a rampa marca aresta onde começa. */
+.pa-ganho::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(61, 19, 8, .95) 0, rgba(61, 19, 8, .86) 190px, rgba(61, 19, 8, 0) 330px);
+}
+/* Selo na cor do ciclo, pousado na foto. Pares: chocolate/amarelo 9,5 ·
+   chocolate/cyan 5,6 · creme/roxo 10 · chocolate/laranja 4,78. */
+.pa-ganho__selo { background: var(--c); color: var(--tinta); }
+.pa-ganho__texto { display: grid; gap: 10px; }
+.pa-ganho__texto .scw-h3 { color: var(--scw-creme); }
+.pa-ganho__texto p {
+  margin: 0;
+  max-width: 40ch;
+  font: 400 clamp(15px, 1.1vw, 16.5px)/1.5 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .9);
+  text-wrap: pretty;
+}
+@media (min-width: 760px) {
+  .pa-ganhos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pa-ganho { aspect-ratio: 4 / 5; }
+}
+@media (min-width: 1100px) {
+  .pa-ganhos {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-rows: clamp(320px, 28vw, 520px);
+  }
+  .pa-ganho { aspect-ratio: auto; grid-column: span 5; }
+  .pa-ganho:is(:nth-child(1), :nth-child(4)) { grid-column: span 7; }
+}
+
+/* ============================================================================
    Faixa de números (Participar 02 · Apoiar 02)
    ========================================================================= */
 
@@ -363,7 +440,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   flex-direction: column;
   border-radius: var(--scw-r-card);
   overflow: hidden;
-  /* Filete só no card bege (--anel). `outline` e não `border`: borda transparente
+  /* Filete só no card creme sobre a seção bege (--anel). `outline` e não `border`: borda transparente
      pinta o fundo do card por baixo e desenhava um contorno colorido no vídeo. */
   outline: 1px solid var(--anel, transparent);
   outline-offset: -1px;
@@ -817,6 +894,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    duas páginas, não só nos de Participar. */
 @media (max-width: 760px) {
   .pa-depo,
+  .pa-ganho,
   .pa-numeros li,
   .pa-card,
   .pa-onde > li,

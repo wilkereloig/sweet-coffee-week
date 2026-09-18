@@ -25,7 +25,7 @@
 
 import { EDITION_GALLERY } from './editionGallery.js'
 import { focalPosition } from './focalPoints.js'
-import { resolveParticipant } from './participantAssets.js'
+import { BRAND_LIST, resolveParticipant } from './participantAssets.js'
 import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory.js'
 import { VARIANTES } from './imageVariants.js'
 
@@ -120,7 +120,8 @@ export function comboPhotos(nomeOuSlug, { limite } = {}) {
   const slug = COMBO_COUNT[nomeOuSlug] ? nomeOuSlug : resolveParticipant(nomeOuSlug).slug
   const total = slug ? COMBO_COUNT[slug] : 0
   if (!total) return []
-  const nome = COMBO_COUNT[nomeOuSlug] ? nomeOuSlug : nomeOuSlug
+  // Chamado com slug, o alt leva o nome da marca, não o slug.
+  const nome = COMBO_COUNT[nomeOuSlug] ? (BRAND_LIST.find((b) => b.slug === slug)?.name ?? slug) : nomeOuSlug
   const n = limite ? Math.min(limite, total) : total
   return Array.from({ length: n }, (_, i) => {
     const src = comboPath(slug, i)
@@ -261,6 +262,25 @@ const SWEET_GIFT = [
 /** As quatro fotos do Sweet Gift, na ordem em que a galeria da Home as mostra. */
 export function sweetGiftPhotos() {
   return SWEET_GIFT
+}
+
+/* ----------------------------------------------------------------------------
+   Participar 02 — o que a marca ganha (18/09/2026)
+   Uma foto por ganho, escolhida pelo assunto e conferida no acervo. O combo
+   sai do acervo da Lovers (vínculo marca↔foto confirmado); as outras três
+   não atribuem nada a quem o acervo não identifica. Ficaram de fora os
+   displays de mesa de `campanha/`: trazem preço e data impressos (§2.2).
+   -------------------------------------------------------------------------- */
+
+const GANHOS = {
+  imprensa: { src: '/images/imprensa/01.jpg', alt: 'Wow Cookies em estúdio de TV, na cobertura de imprensa do Sweet & Coffee Week', position: 'center 30%' },
+  publico: { src: '/images/lovers-publico/08.jpg', alt: 'Sweet Lovers à mesa com combos da edição Lovers do Sweet & Coffee Week', position: 'center 55%' },
+  awards: { src: '/images/awards-bastidores/01.jpg', alt: 'Equipe comemorando um prêmio do Sweet Awards em edição anterior', position: 'center 35%' },
+}
+
+/** Foto de um ganho da página Participar (`combo` · `imprensa` · `publico` · `awards`), ou `null`. */
+export function fotoGanho(chave) {
+  return chave === 'combo' ? comboMain('Rollab Confeitaria') : GANHOS[chave] || null
 }
 
 /** Fotos do herói de uma rota (podem entrar em crossfade). Vazio = sem foto. */
