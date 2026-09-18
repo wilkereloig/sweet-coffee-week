@@ -1,7 +1,7 @@
 import React from 'react'
 
 /*
- * Botão "Topo" — redesign 2026 (patch 29/07/2026).
+ * Botão "Topo" — redesign 2026 (patch 29/07/2026). Só o ícone desde 18/09/2026.
  * Aparece depois de uma tela e meia de rolagem: antes disso é ruído sobre o herói.
  */
 export function BotaoTopo() {
@@ -27,11 +27,16 @@ export function BotaoTopo() {
   }
 
   return (
-    <button type="button" className="scw-topo" onClick={subir}>
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <button
+      type="button"
+      className="scw-topo scw-icone-rotulo scw-icone-rotulo--esquerda"
+      aria-label="Voltar ao topo"
+      data-rotulo="Voltar ao topo"
+      onClick={subir}
+    >
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path d="M8 13V3M4 7l4-4 4 4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      Topo
     </button>
   )
 }

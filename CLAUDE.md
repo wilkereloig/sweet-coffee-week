@@ -1039,7 +1039,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
 | Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
 | Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ **Desde 25/08/2026 a ação do cartão também não é mais `<a>`:** igual à Organização, ela abre um passo de login dentro do MESMO diálogo (nome do estabelecimento + senha), com Supabase Auth de verdade — ver §6.10-b, ponto 4. **Reformulado em 22/08/2026 e 25/08/2026** (§6.10-b) |
-| Voltar ao topo | — | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela** |
+| Voltar ao topo | `.scw-topo` | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela**. **Só o ícone** desde 18/09/2026 (pedido do Wilke): disco chocolate de 46px, `aria-label` e o nome no hover/foco por `.scw-icone-rotulo--esquerda` (§6.11) |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
 
@@ -1416,12 +1416,16 @@ contêiner animado quebra isso e o laço salta a cada volta: o espaçamento vai 
 `padding-right` **dentro** de cada cópia. ✅ `.scw-marquee` já faz assim — conferido em
 11/09/2026; a regra existe para a próxima faixa, não para corrigir esta.
 
-⚠️ **Pausa visível da faixa — `<Marquee comPausa />`** (15/09/2026). Botão chocolate de
-44px na ponta direita do trilho, pausa o deslize **e** o gradiente, some com movimento
-reduzido. **Ligado só em Participar.** Home (A6), Apoiar e Awards seguem sem pausa até
-pedido explícito — hoje elas descumprem a camada 4. O nome do botão aparece no hover e no
-foco pela utilitária `.scw-icone-rotulo` (`data-rotulo`, `--esquerda`), a mesma do botão
-de som dos depoimentos: é a peça do §6.11 para botão só com ícone.
+⛔ **A faixa de palavras NÃO tem pausa em página nenhuma — exceção declarada, decisão
+do Wilke em 18/09/2026.** O botão `<Marquee comPausa />` (15/09/2026) existia só em
+Participar e saiu a pedido dele, avisado de que isso descumpre a camada 4 e a WCAG 2.2.2
+(nível A). Com ele saíram a prop, `.is-pausado` e `.scw-marquee__pausa`. **As quatro
+faixas (Home, Participar, Apoiar, Awards) descumprem a camada 4 hoje.** O que ainda
+segura: com `prefers-reduced-motion` a faixa não anda, e ela é `aria-hidden` — repete o
+que a página já diz (atmosfera nunca carrega informação). Se a regra voltar a pesar, o
+caminho é religar a pausa na fonte (`Marquee.jsx`), não página a página.
+A utilitária `.scw-icone-rotulo` (`data-rotulo`, `--esquerda`) **fica**: é a peça do
+§6.11 para botão só com ícone, usada pelo som do palco de depoimentos e pelo botão Topo.
 
 **Curvas:** `--mo-ease` (saída suave, **igual a `--scw-ease`**) · `--mo-mola` (chegada que
 pousa) · `--mo-suave` (laços de ida e volta).

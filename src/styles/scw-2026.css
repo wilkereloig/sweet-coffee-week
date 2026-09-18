@@ -1901,32 +1901,6 @@ body { margin: 0; }
   border-radius: 50%;
   background: var(--scw-creme);
 }
-/* Pausa visível (§6.15, atmosfera). Para o deslize E o gradiente: meia pausa
-   continua sendo movimento. */
-.scw-marquee.is-pausado,
-.scw-marquee.is-pausado ul { animation-play-state: paused; }
-.scw-raiz .scw-marquee__pausa {
-  position: absolute;
-  top: 50%;
-  right: var(--scw-trilho);
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-top: -22px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-  cursor: pointer;
-  transition: transform var(--mo-rapido) var(--mo-ease);
-}
-.scw-raiz .scw-marquee__pausa:active { transform: translateY(1px); }
-/* Com movimento reduzido a faixa já não anda — o botão não teria o que pausar. */
-@media (prefers-reduced-motion: reduce) { .scw-raiz .scw-marquee__pausa { display: none; } }
-
 /* Botão só com ícone (§6.11): `aria-label` + 44px + o nome visível no hover E no
    foco. O elemento precisa já estar posicionado. */
 .scw-icone-rotulo::after {
@@ -1956,23 +1930,23 @@ body { margin: 0; }
    Botão "Topo" — flutuante, some acima da barra de abas no modo aplicativo
    ========================================================================= */
 
+/* Só o ícone desde 18/09/2026 (pedido do Wilke). Botão só com ícone segue o
+   §6.11: `aria-label` + o nome visível no hover e no foco (.scw-icone-rotulo,
+   à esquerda porque o botão encosta na borda direita). */
 .scw-topo {
   position: fixed;
   right: clamp(16px, 2.4vw, 32px);
   bottom: clamp(18px, 2.4vw, 32px);
   z-index: 70;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 46px;
-  padding: 0 18px 0 15px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: var(--scw-choco);
   color: var(--scw-creme);
-  font: 700 12.5px/1 var(--scw-font-ui);
-  letter-spacing: .1em;
-  text-transform: uppercase;
   cursor: pointer;
 }
 @media (max-width: 900px) {

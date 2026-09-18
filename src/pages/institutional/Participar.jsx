@@ -259,7 +259,7 @@ export function ParticiparPage() {
         </div>
       </section>
 
-      <Marquee palavras={PALAVRAS} comPausa />
+      <Marquee palavras={PALAVRAS} />
 
       {/* ═══ 02 Depoimentos ═══
           Sobe logo depois da abertura (a pedido do Wilke, 30/07/2026): é a

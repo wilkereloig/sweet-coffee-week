@@ -16,23 +16,23 @@
  */
 
 import React from 'react'
-import ScwIcon from './scw-icons/ScwIcon'
 
 /* Três voltas é o mínimo que cobre a tela mais larga sem vão no laço. */
 const VOLTAS = [0, 1, 2]
 
-/**
+/*
+ * ⚠️ O botão de pausa (`comPausa`, 15/09/2026) saiu em 18/09/2026, pedido do
+ * Wilke — Participar era a única página que o ligava. Ver §6.15: a faixa
+ * descumpre a camada 4 em todas as páginas, por decisão registrada.
+ *
  * @param {object}   props
  * @param {string[]} props.palavras  as palavras da faixa, em minúsculas
- * @param {boolean}  [props.comPausa] botão de pausa visível (§6.15, camada 4:
- *   atmosfera exige pausa à vista). Opt-in enquanto a Home (A6) não pedir.
  */
-export function Marquee({ palavras, comPausa = false }) {
-  const [pausado, setPausado] = React.useState(false)
+export function Marquee({ palavras }) {
   if (!palavras || !palavras.length) return null
 
   const voltas = VOLTAS.map((volta) => (
-    <ul key={volta} aria-hidden={comPausa ? 'true' : undefined}>
+    <ul key={volta}>
       {palavras.map((palavra) => (
         <li key={palavra}>
           <span className="scw-marquee__palavra">{palavra}</span>
@@ -42,24 +42,7 @@ export function Marquee({ palavras, comPausa = false }) {
     </ul>
   ))
 
-  if (!comPausa) return <div className="scw-marquee" aria-hidden="true">{voltas}</div>
-
-  const rotulo = pausado ? 'Retomar a faixa' : 'Pausar a faixa'
-  return (
-    <div className={`scw-marquee${pausado ? ' is-pausado' : ''}`}>
-      {voltas}
-      <button
-        type="button"
-        className="scw-marquee__pausa scw-icone-rotulo scw-icone-rotulo--esquerda"
-        aria-label={rotulo}
-        aria-pressed={pausado}
-        data-rotulo={rotulo}
-        onClick={() => setPausado((v) => !v)}
-      >
-        <ScwIcon nome={pausado ? 'ui/play' : 'ui/pausa'} tamanho={20} />
-      </button>
-    </div>
-  )
+  return <div className="scw-marquee" aria-hidden="true">{voltas}</div>
 }
 
 export default Marquee
