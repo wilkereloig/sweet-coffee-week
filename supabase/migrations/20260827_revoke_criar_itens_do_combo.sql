@@ -24,4 +24,8 @@
 -- comportamento do INSERT em `participacoes`.
 -- ═══════════════════════════════════════════════════════════════════════════
 
-revoke execute on function public.criar_itens_do_combo() from anon, authenticated;
+-- ⚠️ Corrigido em 18/09/2026, antes de aplicar: a versão escrita revogava só
+-- de `anon, authenticated` e deixava o EXECUTE de `PUBLIC` — de onde `anon`
+-- herda. É a lição do §4.1: os três alvos na mesma linha, e a conferência é
+-- por `has_function_privilege`, nunca por ter escrito o revoke.
+revoke execute on function public.criar_itens_do_combo() from public, anon, authenticated;

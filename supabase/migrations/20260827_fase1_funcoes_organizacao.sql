@@ -26,10 +26,9 @@
 -- e pesquisa/feedback com dado pessoal de público. A função Consulta não
 -- deveria alcançar isso.
 --
--- ⚠️ DECISÃO PENDENTE DE CONFIRMAÇÃO ANTES DE APLICAR: esta migration dá
--- `relatorio.ler` só para Administrador. O plano original cogitava "e talvez
--- Curadoria" sem decidir — se Curadoria também deve enxergar estes 5
--- relatórios, acrescente antes de aplicar:
+-- ✅ DECIDIDO em 18/09/2026 (Wilke): `relatorio.ler` só para Administrador. O
+-- plano original cogitava "e talvez Curadoria"; ficou de fora. Se um dia
+-- entrar, é uma linha:
 --   insert into public.permissoes (funcao, acao) values ('curadoria', 'relatorio.ler');
 insert into public.permissoes (funcao, acao) values
   ('administrador', 'relatorio.ler')
