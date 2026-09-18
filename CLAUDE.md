@@ -118,7 +118,7 @@ de sete páginas descrito no §2.4, não uma reescrita futura. Publicar é `fals
 | **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
-| **Participar** (`/participar`) | Converter marcas | existe, 4 seções (§7.4) |
+| **Participar** (`/participar`) | Converter marcas | existe, 6 seções (§7.4) |
 | **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 6 seções (§7.5) |
 | **Contato** (`/contato`) | Triar e responder | existe, 4 seções (§7.6) |
 
@@ -728,7 +728,7 @@ de só colorir. **Não recriar.**
 |---|---|---|
 | Home `05 Números` | `clamp(64px, 6vw, 80px)`, ícone a 60% | **uma cor por dado** — a faixa é o resumo do festival, cada número é um assunto |
 | Apoiar `02` | `54px`, ícone a 58%, dentro de card creme | **cor da página em todos** (`--scw-pagina` / `--scw-pagina-tinta`) — ali a cor diz "isto é Apoiar"; quem distingue o dado é o ícone |
-| Participar `03` | `54px`, **card chapado** na cor do ciclo | **uma cor por card** — amarelo · cyan · roxo · laranja (15/09/2026, pedido do Wilke; magenta fica fora, não fecha texto pequeno). O disco inverte: chapa na tinta do card, ícone na cor dele |
+| Participar `04` | `54px`, **card chapado** na cor do ciclo | **uma cor por card** — amarelo · cyan · roxo · laranja (15/09/2026, pedido do Wilke; magenta fica fora, não fecha texto pequeno). O disco inverte: chapa na tinta do card, ícone na cor dele |
 
 ### 6.4 Medalhas do Sweet Awards
 
@@ -1703,10 +1703,39 @@ Segue a lógica visual da Home. Precisa de: proposta clara; fotos quando dispon�
 **depoimentos**; **formulário em destaque**; linguagem voltada a participantes; visual
 editorial e comercial. **Não parecer formulário genérico.**
 
-**Quatro seções:** `01 Abertura` (herói cyan) · `02 Depoimentos` (creme) ·
-`03 Números` (bege) · `08 Pré-cadastro` (creme). ⛔ `04 Circulação`, `05 Quem pode`,
-`06 Imprensa` e `07 Jornada` **saíram em 26/08/2026** (pedido do Eloi): a página passou
-a anunciar a próxima edição e empurrar para o pré-cadastro. A numeração 08 ficou.
+**Seis seções:** `01 Abertura` (herói cyan) · `02 Depoimentos` (creme) ·
+`03 O que a marca ganha` (bege) · `04 Números` (creme) · `05 Como funciona` (chocolate) ·
+`06 Pré-cadastro` (creme). ⛔ `04 Circulação`, `05 Quem pode`, `06 Imprensa` e
+`07 Jornada` **saíram em 26/08/2026** (pedido do Eloi): a página passou a anunciar a
+próxima edição e empurrar para o pré-cadastro.
+
+**Refeita em 18/09/2026** (pedido do Wilke: *"visual genérico"*). As seções do meio
+repetiam a mesma receita — grade de cards com disco de ícone. Entraram duas que saem
+dela, e a numeração foi refeita de 01 a 06 (a antiga 08 só guardava o lugar das que
+saíram):
+
+- **03 O que a marca ganha** — mosaico fotográfico (`.pa-ganhos`), superfície
+  fotográfica do §6.16: foto sangrada, véu chocolate, tinta creme. Quatro ganhos
+  (combo autoral · campanha e imprensa · Sweet Lovers · Sweet Awards), fotos em
+  `fotoGanho()` de `imageLibrary.js`. 1 coluna → 2×2 a partir de 760px → zigue-zague
+  7/5 · 5/7 a partir de 1100px. Selo na cor do ciclo sem o magenta. **Sem link, sem
+  hover** (§6.15, regra 6).
+  ⚠️ **O véu é em px, não em %:** o texto tem altura fixa (~170px), e a faixa inteira
+  fica sob véu a .86 ou mais em qualquer altura de peça. Em % a peça baixa deixava o
+  parágrafo sobre foto clara.
+  ⛔ **Os displays de mesa de `campanha/` ficaram de fora de propósito:** trazem preço
+  e data impressos, e o site não exibe dado volátil (§2.2).
+  ⚠️ **Nada de promessa (§8.4):** o texto diz o que a edição faz por quem participa;
+  o FAQ já registra que o pré-cadastro não garante vaga nem prêmio.
+- **05 Como funciona** — trilha de cinco passos sobre chocolate (`.pa-passos`):
+  pré-cadastro · curadoria · aprovação e painel da marca · o combo · a edição. Só
+  passos que existem de fato. Nó numerado na cor do ciclo filtrada pelo chocolate
+  (amarelo · cyan · magenta · laranja · creme). **A espinha é desenhada por passo**,
+  não por uma linha só no contêiner: a mesma regra serve em coluna (até 999px) e em
+  linha (a partir de 1000), sem conta de onde fica o último nó.
+  ⚠️ **Não confundir com o `04 Ciclo` da Home**, que também se chama "Como funciona":
+  lá é o ciclo do festival contado com fotos; aqui é o caminho da casa até a edição,
+  sem foto.
 
 - Herói = H1 + lead + **duas ações, nada mais**. No celular a foto continua, na
   `.scw-hero-banda` em 4:3.
@@ -1721,14 +1750,14 @@ a anunciar a próxima edição e empurrar para o pré-cadastro. A numeração 08
   com `scroll-snap`, sangrando até a borda direita (`.pa-depos`), setas de 54px na cabeça
   (`.pa-cabeca--faixa`, somem abaixo de 760px, onde o arraste navega) e `disabled` real
   nas pontas. A grade 3×2 dava 1.865px de seção; a faixa dá 1.078. ⛔ Não voltar à grade.
-- **03 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
+- **04 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
   3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
   `14cqi` na fileira de 4 porque é `nowrap` (§10.5).
-- **Uma ação, um rótulo:** herói, CTA da 08 e barra fixa dizem todos
-  **"Fazer pré-cadastro"**. O botão da 08 usa a cor do destino (`.scw-btn--pagina`,
+- **Uma ação, um rótulo:** herói, CTA da 06 e barra fixa dizem todos
+  **"Fazer pré-cadastro"**. O botão da 06 usa a cor do destino (`.scw-btn--pagina`,
   cyan) com anel chocolate de 2px, porque cyan sobre o card bege não fecha 3:1.
 
-- **08 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
+- **06 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
   chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o
   pré-cadastro vive: **dois passos** (Você / O estabelecimento, sete campos ao
   todo — simplificado de quatro passos, sem índice pegajoso desde então),
