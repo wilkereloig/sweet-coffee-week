@@ -248,7 +248,7 @@ export function ParticiparPage() {
               organização para a próxima edição do Sweet & Coffee Week.
             </p>
             <div className="pa-hero__acoes">
-              <a href="#pre-cadastro" className="scw-btn scw-btn--solido" onClick={irPara('pre-cadastro')}>
+              <a href="/quero-participar/" className="scw-btn scw-btn--solido">
                 Fazer pré-cadastro <I.arrow width={17} height={17} />
               </a>
               <a href="#ganhos" className="scw-btn scw-btn--contorno-claro" onClick={irPara('ganhos')}>
@@ -448,7 +448,7 @@ export function ParticiparPage() {
 
       <div className={`pa-barra${barraVisivel ? ' is-visivel' : ''}`}>
         <span>Inscrições passam por curadoria.</span>
-        <a href="#pre-cadastro" className="scw-btn scw-btn--solido" onClick={irPara('pre-cadastro')}>
+        <a href="/quero-participar/" className="scw-btn scw-btn--solido">
           Fazer pré-cadastro <I.arrow />
         </a>
       </div>

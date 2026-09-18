@@ -1814,6 +1814,10 @@ saíram):
 - **Uma ação, um rótulo:** herói, CTA da 06 e barra fixa dizem todos
   **"Fazer pré-cadastro"**. O botão da 06 usa a cor do destino (`.scw-btn--pagina`,
   cyan) com anel chocolate de 2px, porque cyan sobre o card bege não fecha 3:1.
+  ⚠️ **Os três levam DIRETO ao formulário `/quero-participar/`** (18/09/2026, pedido
+  do Wilke). Até então o do herói e o da barra fixa só rolavam até a seção 06 — um
+  clique a mais entre a decisão e o formulário. `<a href>` com a barra final,
+  nunca `navigate()` (§10.4-b).
 
 - **06 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
   chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o
