@@ -67,6 +67,29 @@ export function ChaveIcon(props) {
 }
 
 /*
+ * Botão "Painel SCW" do topo — SÓ O ÍCONE, discreto (18/09/2026, pedido do
+ * Wilke). Uma peça para os dois cabeçalhos (o do site e o próprio de Edições),
+ * que antes repetiam a mesma marcação (§5.3). Botão só com ícone segue o
+ * §6.11: o nome visível no hover e no foco (.scw-icone-rotulo) é também o nome
+ * acessível — o que se lê é o que o leitor de tela anuncia.
+ */
+export function AcessoTopo({ onOpenAccess, accessOpen }) {
+  return (
+    <button
+      type="button"
+      className="scw-acesso-topo scw-icone-rotulo scw-icone-rotulo--esquerda"
+      onClick={onOpenAccess}
+      aria-haspopup="dialog"
+      aria-expanded={!!accessOpen}
+      aria-label="Painel SCW"
+      data-rotulo="Painel SCW"
+    >
+      <ChaveIcon width="18" height="18" strokeWidth="2.4" />
+    </button>
+  )
+}
+
+/*
  * `apenasAcesso` — cabeçalho reduzido ao botão de acesso, para a landing
  * /em-breve. Ela é a única página pública enquanto o gate está ligado, e as
  * rotas do menu não existem para o visitante: um link para /participar levaria
@@ -143,17 +166,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAc
         </nav>
         )}
 
-        <button
-          type="button"
-          className="scw-acesso-topo"
-          onClick={onOpenAccess}
-          aria-haspopup="dialog"
-          aria-expanded={!!accessOpen}
-          aria-label="Acessar área restrita"
-        >
-          <ChaveIcon width="20" height="20" strokeWidth="2.4" />
-          <span>Painel SCW</span>
-        </button>
+        <AcessoTopo onOpenAccess={onOpenAccess} accessOpen={accessOpen} />
       </div>
     </header>
   )

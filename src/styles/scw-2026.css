@@ -672,33 +672,31 @@ body { margin: 0; }
   .scw-nav a.is-ativo:hover { color: var(--scw-nav-tinta); }
 }
 
+/* Só o ícone, discreto (18/09/2026, pedido do Wilke). O disco não sai — ele é
+   o que mantém a chave legível num cabeçalho FIXO, que passa por herói cyan
+   (Participar), foto escura (Home) e, rolando, seção creme sob véu. Creme a
+   78% com a chave chocolate fecha acima de 7:1 em qualquer um deles; sem
+   disco, a chave sumiria em pelo menos um. 44px de alvo (§6.10). */
 .scw-acesso-topo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
+  position: relative;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
-  min-height: 46px;
-  padding: 0 20px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
-  background: var(--scw-creme);
+  border-radius: 50%;
+  background: rgba(254, 240, 221, .78);
   color: var(--scw-choco);
-  font: 700 13px/1 var(--scw-font-ui);
-  letter-spacing: .02em;
   cursor: pointer;
-  /* Chapado: os botões do site não têm relevo (decisão de jul/2026). O clique
-     responde com deslocamento, não com sombra. */
   transition: var(--scw-transicao);
 }
 
 @media (hover: hover) {
-  .scw-acesso-topo:hover {
-    background: var(--scw-amarelo);
-    transform: translateY(-2px);
-  }
+  .scw-acesso-topo:hover { background: var(--scw-creme); }
 }
-.scw-acesso-topo:active { transform: translateY(0) scale(.985); }
+.scw-acesso-topo:active { transform: scale(.94); }
 
 /* ── Cabeçalho reduzido: só o botão de acesso ────────────────────────────────
    Usado pela landing /em-breve, que é a única página pública enquanto o gate

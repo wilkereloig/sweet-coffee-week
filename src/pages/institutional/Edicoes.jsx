@@ -53,7 +53,7 @@ import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
 import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
 import { editionPhotos, bgStyle, SIZES, srcSet } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
-import { NAV_LINKS, pageColor, ChaveIcon } from '../../components/nav'
+import { NAV_LINKS, pageColor, AcessoTopo } from '../../components/nav'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 
 // Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
@@ -839,19 +839,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
               {/* O cabeçalho do site não é renderizado nesta rota, então o botão de
                   acesso vive aqui — o gatilho do diálogo vem do App por prop. */}
-              {onOpenAccess && (
-                <button
-                  type="button"
-                  className="scw-acesso-topo"
-                  onClick={onOpenAccess}
-                  aria-haspopup="dialog"
-                  aria-expanded={!!accessOpen}
-                  aria-label="Acessar área restrita"
-                >
-                  <ChaveIcon width="20" height="20" strokeWidth="2.4" />
-                  <span>Painel SCW</span>
-                </button>
-              )}
+              {onOpenAccess && <AcessoTopo onOpenAccess={onOpenAccess} accessOpen={accessOpen} />}
             </div>
           </header>
 

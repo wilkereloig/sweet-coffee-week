@@ -1203,6 +1203,15 @@ para o mesmo passo (§5.2).
   e os três botões usam 18–20px. `ChaveIcon` (hand-rolled, fora de
   `scw-icons-v2.js`, já usado em dois dos três antes desta mudança) continua
   sendo a peça certa nesse tamanho — não um ícone improvisado.
+  ⚠️ **No topo, desde 18/09/2026, é SÓ o ícone** (pedido do Wilke: "só o ícone,
+  mas discreto"). O botão do cabeçalho virou o componente **`AcessoTopo`**
+  (`nav.jsx`), usado pelos dois cabeçalhos — o do site e o próprio de Edições,
+  que repetiam a marcação. Disco de 44px em creme a 78%, chave chocolate de
+  18px, sem texto e sem relevo; o nome "Painel SCW" aparece no hover e no foco
+  (`.scw-icone-rotulo--esquerda`) e é o `aria-label`. ⛔ **Não tirar o disco:**
+  o cabeçalho é fixo e passa por herói cyan, foto escura e seção creme sob
+  véu — a chave solta sumiria em pelo menos um. A folha "mais" do celular
+  segue com ícone + texto: ali é item de lista, não botão flutuante.
 - **`public/painel/index.html` ganhou a MESMA reversão, mesmo dia.** A tela de
   login estática (`.pn-porta`) tinha o próprio desenho — dois `.pn-setor`
   sempre visíveis, nunca passou pela fusão de 25/08/2026 nem pela reversão do
