@@ -41,7 +41,7 @@ const ROTULO = '.scw-rotulo, .scw-pill, [class$="__rotulo"], [class*="__rotulo "
 const GRADE =
   'ul, ol, dl, ' +
   '.hm-rotas, .hm-ciclo, .hm-galerias, .hm-prova, .hm-ingredientes, ' +
-  '.pa-faixas, .pa-cards, .pa-depos, .pa-numeros, .pa-jornada, .pa-onde, ' +
+  '.pa-faixas, .pa-cards, .pa-palco__marcas, .pa-numeros, .pa-jornada, .pa-onde, ' +
   '.ctt-portas, .ctt-colunas, ' +
   '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats, .swa-trilha'
 

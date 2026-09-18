@@ -235,7 +235,7 @@
 
 /* Cards que levam a algum lugar — e só esses. Card sem link não recebe hover:
    elevação sem destino é decoração (§5) e promete uma ação que não existe.
-   `.hm-etapa`, `.pa-card`, `.pa-depo` e as fotos das galerias ficam de fora
+   `.hm-etapa`, `.pa-card`, `.pa-palco` e as fotos das galerias ficam de fora
    de propósito. */
 .hm-rota,
 .ctt-porta {
@@ -288,7 +288,7 @@
   .scw-gal__seta:active,
   .scw-edx__seta:active,
   .scw-edx__fechar:active,
-  .pa-depo__som:active,
+  .pa-palco__som:active,
   .scw-topo:active { transform: scale(.94); }
 
   /* pílulas e anos: só o suficiente para acusar o toque sem parecer que caiu */

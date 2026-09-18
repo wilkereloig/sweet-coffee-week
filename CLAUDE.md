@@ -1746,10 +1746,18 @@ saíram):
   hover/foco do card com ponteiro; no toque, quando o vídeo entra ≥60% na tela. Cinco
   laços simultâneos violavam §6.15 (um laço de atmosfera por tela) e §6.16 (⛔ autoplay
   dentro de card). Com `prefers-reduced-motion`, só toca pelo botão de som.
-  ⚠️ **Faixa, não grade** (15/09/2026, pedido do Wilke): os seis cards correm numa fileira
-  com `scroll-snap`, sangrando até a borda direita (`.pa-depos`), setas de 54px na cabeça
-  (`.pa-cabeca--faixa`, somem abaixo de 760px, onde o arraste navega) e `disabled` real
-  nas pontas. A grade 3×2 dava 1.865px de seção; a faixa dá 1.078. ⛔ Não voltar à grade.
+  ⚠️ **Palco, não faixa** (18/09/2026, pedido do Wilke: *"refaz essa"*): **um
+  depoimento por vez**, grande — vídeo 1:1 à esquerda e a frase na chapa da cor da
+  marca à direita (`.pa-palco`) — e as cinco marcas embaixo como **abas**
+  (`role="tablist"`, setas em laço, Home/End, foco que percorre as abas). A faixa de seis cards iguais
+  (15/09) era a receita de card que deixava a página genérica, e a grade 3×2 antes
+  dela já tinha caído por altura (1.865px). ⛔ Não voltar a nenhuma das duas.
+  Até 759px o palco empilha com o vídeo em 4:3 e a aba vira só o logo (o nome segue
+  como `aria-label`); a partir de 760 vídeo e frase ficam lado a lado — empilhado, em
+  800px, o palco media 823px. **Um `<video>` só no DOM:** a troca de aba remonta
+  pela `key`, e o som desliga a cada troca.
+  ⛔ **A reserva da Caroli Douces saiu** (18/09/2026, pedido do Wilke): no palco, uma
+  marca sem depoimento viraria uma aba que não diz nada. Voltam cinco, todos em vídeo.
 - **04 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
   3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
   `14cqi` na fileira de 4 porque é `nowrap` (§10.5).

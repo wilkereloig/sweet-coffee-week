@@ -85,14 +85,14 @@ const PASSOS = [
 ]
 
 // 02 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
-// O 6º card é reserva editorial honesta: a marca existe, o depoimento ainda não.
+// A reserva da Caroli Douces (marca sem depoimento) saiu em 18/09/2026, pedido
+// do Wilke: no palco, um depoimento vazio viraria uma aba que não diz nada.
 const DEPOIMENTOS = [
   { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café Pâtisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
   { frase: '“É uma coisa avassaladora. Uma demanda que a gente não imaginava, essa avalanche de Sweet Lovers. O festival é uma grande vitrine para mostrar quem somos.”', pessoa: 'João Dantas', marca: 'O Maestro Café', slug: 'o-maestro-cafe', cor: 'var(--scw-marrom)', tinta: 'var(--scw-creme)' },
   { frase: '“O Sweet & Coffee Week hoje é como um carnaval das docerias de Natal. É uma oportunidade de negócio, de fazer novos amigos e conquistar novos clientes.”', pessoa: 'Fernando Gurgel', marca: 'Paneer Pâtisserie', slug: 'paneer-patisserie', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
   { frase: '“O festival abriu uma janela incrível para a gente. Ficamos mais conhecidos na cidade, ganhamos fôlego e o movimento permaneceu depois da participação.”', pessoa: 'César e Tiago', marca: 'Mr. Cupcake Confeitaria', slug: 'mr-cupcake-confeitaria', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
   { frase: '“Foi além das expectativas. Foram onze dias extremamente exaustivos e satisfatórios, trazendo um público diferenciado para a casa.”', pessoa: 'Edvan Barreto', marca: 'Casa 1190 - Restaurant e Coffee', slug: 'casa-1190', cor: 'var(--scw-choco)', tinta: 'var(--scw-creme)' },
-  { frase: null, pessoa: null, marca: 'Caroli Douces', slug: 'caroli-douces', cor: 'var(--scw-bege)', tinta: 'var(--scw-choco)' },
 ]
 
 // Depoimentos em vídeo (mesmo slug do participante). Ausente = mantém foto.
@@ -118,6 +118,18 @@ function iniciais(nome) {
     .toUpperCase()
 }
 
+// Logo da marca preenchendo o slot (§6.12); sem logo, iniciais sobre bege.
+function LogoMarca({ slug, marca, classe }) {
+  const { logo } = resolveParticipant(slug)
+  return (
+    <span className={classe} aria-hidden="true">
+      {logo
+        ? <img src={logo} alt="" loading="lazy" decoding="async" />
+        : <span className="pa-palco__iniciais">{iniciais(marca)}</span>}
+    </span>
+  )
+}
+
 // Barra de ação fixa: só depois de o herói sair da tela.
 function useBarra() {
   const [visivel, setVisivel] = React.useState(false)
@@ -131,38 +143,10 @@ function useBarra() {
   return visivel
 }
 
-// Faixa de depoimentos (15/09/2026): rolagem nativa com encaixe; as setas só
-// empurram a rolagem um card por vez e ficam `disabled` de verdade nas pontas.
-function useFaixa() {
-  const ref = React.useRef(null)
-  const [pontas, setPontas] = React.useState({ inicio: true, fim: false })
-  React.useEffect(() => {
-    const el = ref.current
-    if (!el) return undefined
-    const medir = () => setPontas({
-      inicio: el.scrollLeft <= 4,
-      fim: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
-    })
-    medir()
-    el.addEventListener('scroll', medir, { passive: true })
-    window.addEventListener('resize', medir)
-    return () => { el.removeEventListener('scroll', medir); window.removeEventListener('resize', medir) }
-  }, [])
-  const passar = (dir) => {
-    const el = ref.current
-    const card = el?.firstElementChild
-    if (!card) return
-    const passo = card.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || 0)
-    const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollBy({ left: dir * passo, behavior: reduzido ? 'auto' : 'smooth' })
-  }
-  return { ref, pontas, passar }
-}
-
-// Cartão de depoimento em vídeo. Toca SOB DEMANDA (15/09/2026, pedido do Wilke):
-// cinco vídeos em laço ao mesmo tempo violavam §6.15/§6.16. Com ponteiro, toca
-// no hover/foco do card; no toque, quando o vídeo entra ≥60% na tela (a grade é
-// uma coluna, então na prática um por vez). Com som ligado, não pausa ao sair.
+// Vídeo do palco. Toca SOB DEMANDA (15/09/2026, pedido do Wilke; §6.15/§6.16):
+// com ponteiro, no hover/foco do palco; no toque, quando o vídeo entra ≥60% na
+// tela. Com som ligado, não pausa ao sair. Cada troca de aba monta um vídeo
+// novo (key = slug), então só existe um no DOM.
 // O `muted` é sincronizado via ref porque a prop React não reflete de forma
 // confiável a propriedade DOM depois da montagem.
 function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
@@ -181,7 +165,7 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
 
   React.useEffect(() => {
     const v = ref.current
-    const card = v?.closest('.pa-depo')
+    const card = v?.closest('.pa-palco')
     if (!v || !card || reduzido) return undefined
     const tocar = () => v.play().catch(() => {})
     const parar = () => { if (v.muted) v.pause() }
@@ -211,7 +195,7 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
         aria-describedby={describedBy}
         onClick={onToggle}
       />
-      <button type="button" className="pa-depo__som scw-icone-rotulo" onClick={onToggle} aria-pressed={ativo}
+      <button type="button" className="pa-palco__som scw-icone-rotulo" onClick={onToggle} aria-pressed={ativo}
         aria-label={ativo ? 'Silenciar depoimento' : 'Ativar som do depoimento'}
         data-rotulo={ativo ? 'Silenciar' : 'Ouvir'}>
         {ativo ? <I.sound width={14} height={14} /> : <I.soundOff width={14} height={14} />}
@@ -222,8 +206,23 @@ function DepoVideo({ src, poster, alt, ativo, onToggle, describedBy }) {
 
 export function ParticiparPage() {
   const barraVisivel = useBarra()
-  const [audioAtivo, setAudioAtivo] = React.useState(null) // slug do depoimento com som ligado
-  const faixa = useFaixa()
+  const [somLigado, setSomLigado] = React.useState(null) // slug do depoimento com som ligado
+  const [depo, setDepo] = React.useState(0) // aba do palco
+  const escolher = (i) => { setDepo(i); setSomLigado(null) }
+  // Abas (padrão WAI-ARIA): setas andam em laço, Home/End vão às pontas, e o
+  // foco acompanha a seleção — só a aba ativa entra na tabulação.
+  const teclasAbas = (e) => {
+    const n = DEPOIMENTOS.length
+    const alvo = { ArrowRight: depo + 1, ArrowLeft: depo - 1, Home: 0, End: n - 1 }[e.key]
+    if (alvo === undefined) return
+    e.preventDefault()
+    const i = (alvo + n) % n
+    escolher(i)
+    e.currentTarget.querySelectorAll('[role="tab"]')[i]?.focus()
+  }
+  const d = DEPOIMENTOS[depo]
+  const fotoDepo = comboMain(d.slug)
+  const videoDepo = depoVideoSrc(d.slug)
 
   const irPara = (id) => (e) => {
     if (e) e.preventDefault()
@@ -267,73 +266,66 @@ export function ParticiparPage() {
           prova social da página — quem decide participar quer ouvir quem já
           participou antes de ler número ou processo. */}
       <section id="depoimentos" className="scw-secao scw-secao--creme">
-        <div className="pa-cabeca pa-cabeca--faixa">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
-            <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
-              Quem participou conta com as <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>próprias palavras</em>.
-            </h2>
-          </div>
-          <div className="pa-faixa__setas">
-            <button type="button" className="pa-faixa__seta" onClick={() => faixa.passar(-1)} disabled={faixa.pontas.inicio} aria-controls="pa-depos" aria-label="Depoimento anterior">
-              <ScwIcon nome="ui/seta-esquerda" tamanho={20} />
-            </button>
-            <button type="button" className="pa-faixa__seta" onClick={() => faixa.passar(1)} disabled={faixa.pontas.fim} aria-controls="pa-depos" aria-label="Próximo depoimento">
-              <ScwIcon nome="ui/seta-direita" tamanho={20} />
-            </button>
-          </div>
+        <div className="pa-cabeca pa-cabeca--simples">
+          <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/depoimento" tamanho={20} />Marcas que já viveram a edição</span>
+          <h2 className="scw-h2" style={{ maxWidth: '22ch' }}>
+            Quem participou conta com as <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>próprias palavras</em>.
+          </h2>
         </div>
-        <ul id="pa-depos" className="pa-depos" ref={faixa.ref} tabIndex={0} aria-label="Depoimentos de marcas participantes">
-          {DEPOIMENTOS.map((d) => {
-            const fotoCombo = comboMain(d.slug)
-            const marca = resolveParticipant(d.slug)
-            const videoSrc = depoVideoSrc(d.slug)
-            return (
-            <li
-              className="pa-depo"
-              key={d.slug}
-              style={{
-                '--cor': d.cor,
-                '--tinta': d.tinta,
-                '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)',
-                // Bege sobre a seção creme: sem filete o recorte do card some.
-                '--anel': d.cor === 'var(--scw-bege)' ? 'rgba(61,19,8,.14)' : undefined,
-              }}
+
+        {/* PALCO (18/09/2026, pedido do Wilke): um depoimento por vez, grande, e as
+            marcas embaixo como abas. Substituiu a faixa de seis cards iguais. */}
+        <div
+          className="pa-palco"
+          id="pa-palco"
+          role="tabpanel"
+          aria-labelledby={`pa-aba-${d.slug}`}
+          style={{ '--cor': d.cor, '--tinta': d.tinta, '--filete': d.tinta === 'var(--scw-creme)' ? 'rgba(254,240,221,.24)' : 'rgba(61,19,8,.22)' }}
+        >
+          <div className="pa-palco__video">
+            {videoDepo
+              ? <DepoVideo
+                  key={d.slug}
+                  src={videoDepo}
+                  poster={fotoDepo?.src}
+                  alt={`${d.pessoa} falando sobre a experiência da ${d.marca} no Sweet & Coffee Week`}
+                  ativo={somLigado === d.slug}
+                  onToggle={() => setSomLigado((atual) => (atual === d.slug ? null : d.slug))}
+                  describedBy="pa-palco-frase"
+                />
+              : fotoDepo
+                ? <img src={fotoDepo.src} srcSet={srcSet(fotoDepo.src)} sizes={SIZES.cartao} alt={fotoDepo.alt} style={{ objectPosition: fotoDepo.position }} loading="lazy" decoding="async" />
+                : <div className="scw-reserva">{RESERVA}</div>}
+          </div>
+          <figure className="pa-palco__fala" key={d.slug}>
+            <blockquote id="pa-palco-frase">{d.frase}</blockquote>
+            <figcaption className="pa-palco__quem">
+              <LogoMarca slug={d.slug} marca={d.marca} classe="pa-palco__logo" />
+              <span className="pa-palco__nome"><b>{d.pessoa}</b><span>{d.marca}</span></span>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div className="pa-palco__marcas" role="tablist" aria-label="Escolha o depoimento" onKeyDown={teclasAbas}>
+          {DEPOIMENTOS.map((m, i) => (
+            <button
+              type="button"
+              role="tab"
+              key={m.slug}
+              id={`pa-aba-${m.slug}`}
+              className="pa-palco__aba"
+              aria-selected={i === depo}
+              aria-controls="pa-palco"
+              aria-label={m.marca}
+              tabIndex={i === depo ? 0 : -1}
+              style={{ '--cor': m.cor, '--tinta': m.tinta }}
+              onClick={() => escolher(i)}
             >
-              <div className="pa-depo__media">
-                <div className="pa-depo__foto">
-                  {videoSrc
-                    ? <DepoVideo
-                        src={videoSrc}
-                        poster={fotoCombo?.src}
-                        alt={`${d.pessoa} falando sobre a experiência da ${d.marca} no Sweet & Coffee Week`}
-                        ativo={audioAtivo === d.slug}
-                        onToggle={() => setAudioAtivo((atual) => (atual === d.slug ? null : d.slug))}
-                        describedBy={d.frase ? `pa-depo-frase-${d.slug}` : undefined}
-                      />
-                    : fotoCombo
-                      ? <img src={fotoCombo.src} srcSet={srcSet(fotoCombo.src)} sizes={SIZES.cartao} alt={fotoCombo.alt} style={{ objectPosition: fotoCombo.position }} loading="lazy" decoding="async" />
-                      : <div className="scw-reserva">{RESERVA}</div>}
-                </div>
-                <span className="pa-depo__selo" aria-hidden="true">
-                  {marca.logo
-                    ? <img src={marca.logo} alt="" loading="lazy" decoding="async" />
-                    : <span className="pa-depo__iniciais">{iniciais(d.marca)}</span>}
-                </span>
-              </div>
-              <div className="pa-depo__corpo">
-                {d.frase
-                  ? <blockquote id={`pa-depo-frase-${d.slug}`}>{d.frase}</blockquote>
-                  : <p className="pa-depo__espera">Depoimento desta marca chegando em breve.</p>}
-                <span className="pa-depo__quem">
-                  {d.pessoa && <b>{d.pessoa}</b>}
-                  <span>{d.marca}</span>
-                </span>
-              </div>
-            </li>
-            )
-          })}
-        </ul>
+              <LogoMarca slug={m.slug} marca={m.marca} classe="pa-palco__aba-logo" />
+              <span className="pa-palco__aba-nome" aria-hidden="true">{m.marca}</span>
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* ═══ 03 O que a marca ganha ═══ */}

@@ -388,89 +388,46 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 02 — depoimentos
+   Participar 02 — depoimentos em palco (18/09/2026)
    ========================================================================= */
 
-/* FAIXA, não grade (15/09/2026, pedido do Wilke): seis cards iguais em 3×2 davam
-   1.865px de seção. Uma fileira com encaixe, sangrando até a borda direita — o
-   card cortado na borda é o que anuncia que tem mais. Arranjo "faixa" do §6.16:
-   setas no desktop, gesto no celular, nunca autoplay. */
-.pa-cabeca--faixa { grid-template-columns: 1fr auto; }
-@media (max-width: 759px) { .pa-cabeca--faixa { grid-template-columns: 1fr; } }
-.pa-faixa__setas { display: flex; gap: 10px; }
-.scw-raiz .pa-faixa__seta {
+/* PALCO, não faixa (18/09/2026, pedido do Wilke: "refaz essa"). Um depoimento
+   por vez, grande: vídeo quadrado + a frase na chapa da cor da marca, e as
+   cinco marcas embaixo como abas. A faixa de seis cards iguais (15/09) era a
+   mesma receita de card que deixava a página genérica. Até 759px o palco
+   empilha, com o vídeo em 4:3 para não comer a tela; a partir de 760 vira
+   vídeo 1:1 à esquerda e frase à direita (empilhado, em 800px ele media
+   823px de altura). */
+.pa-palco {
   display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  padding: 0;
-  border: 1.5px solid var(--scw-choco);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--scw-choco);
-  cursor: pointer;
-  transition: background-color var(--mo-rapido) var(--mo-ease), color var(--mo-rapido) var(--mo-ease);
-}
-.scw-raiz .pa-faixa__seta:active:not(:disabled) { transform: translateY(1px); }
-.scw-raiz .pa-faixa__seta:disabled { opacity: .45; cursor: default; pointer-events: none; }
-@media (hover: hover) {
-  .scw-raiz .pa-faixa__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
-}
-/* No celular não há ponteiro: o arraste é a navegação. */
-@media (max-width: 759px) { .pa-faixa__setas { display: none; } }
-
-.pa-depos {
-  list-style: none;
-  display: flex;
-  gap: clamp(14px, 1.8vw, 24px);
-  margin: 0 calc(-1 * var(--scw-trilho));
-  padding: 4px var(--scw-trilho) 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--scw-trilho);
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-}
-.pa-depos::-webkit-scrollbar { display: none; }
-.pa-depos:focus-visible { outline-offset: -4px; }
-.pa-depo {
-  flex: 0 0 clamp(272px, 25vw, 380px);
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
   border-radius: var(--scw-r-card);
   overflow: hidden;
-  /* Filete só no card bege (--anel). `outline` e não `border`: borda transparente
-     pinta o fundo do card por baixo e desenhava um contorno colorido no vídeo. */
-  outline: 1px solid var(--anel, transparent);
-  outline-offset: -1px;
-  background: var(--cor, var(--scw-amarelo));
-  color: var(--tinta, var(--scw-choco));
+  background: var(--cor);
+  color: var(--tinta);
+  /* Continuidade (§6.15, camada 2): trocar de aba troca a chapa, não a página. */
+  transition: background-color var(--mo-estado) var(--mo-ease), color var(--mo-estado) var(--mo-ease);
 }
-@media (max-width: 759px) { .pa-depo { flex-basis: 84%; } }
-.pa-depo__media { position: relative; }
-.pa-depo__foto {
+.pa-palco__video {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--scw-choco);
 }
-.pa-depo__foto img,
-.pa-depo__foto video {
+.pa-palco__video :is(img, video) {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.pa-depo__som {
+.pa-palco__som {
   position: absolute;
   z-index: 2;
   left: 14px;
   bottom: 14px;
   display: grid;
   place-items: center;
-  /* 34 → 44px: piso de toque do PATCH 02 §2, medido no controle real. */
+  /* Piso de toque do PATCH 02 §2, medido no controle real. */
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -481,67 +438,129 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   transition: var(--scw-transicao);
 }
 /* `[aria-pressed]` é estado real do botão e vale nas duas telas; o hover fica
-   no ponteiro, senão o toque para ativar o som deixava o botão aceso como se
-   ainda estivesse ligado depois de desligar. */
-.pa-depo__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
+   no ponteiro, senão o toque deixava o botão aceso depois de desligar o som. */
+.pa-palco__som[aria-pressed="true"] { background: rgba(61, 19, 8, .82); }
 @media (hover: hover) {
-  .pa-depo__som:hover { background: rgba(61, 19, 8, .82); }
+  .pa-palco__som:hover { background: rgba(61, 19, 8, .82); }
 }
 /* Mudança de estado anima UMA vez (§6.11): ligar o som pulsa o ícone. */
-.pa-depo__som[aria-pressed="true"] svg { animation: paSomLiga var(--mo-entra) var(--mo-ease) both; }
+.pa-palco__som[aria-pressed="true"] svg { animation: paSomLiga var(--mo-entra) var(--mo-ease) both; }
 @keyframes paSomLiga { 40% { scale: 1.22; } }
-@media (prefers-reduced-motion: reduce) { .pa-depo__som svg { animation: none; } }
-.pa-depo__selo {
-  position: absolute;
-  right: 16px;
-  bottom: -24px;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
+
+.pa-palco__fala {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  margin: 0;
+  padding: clamp(24px, 3.4vw, 56px);
+}
+/* A frase entra de novo a cada troca (a figura remonta pela key). */
+.pa-palco__fala > * { animation: paFalaEntra var(--mo-estado) var(--mo-ease) both; }
+@keyframes paFalaEntra { from { opacity: 0; transform: translateY(var(--mo-y-texto)); } }
+/* Citação é voz de expressão (§6.5): Slab. 800 e não 900 — é frase longa, e o
+   Black em cinco linhas pesava como o card antigo. */
+.pa-palco__fala blockquote {
+  margin: 0;
+  max-width: 30ch;
+  font: 800 clamp(20px, 2.1vw, 32px)/1.24 var(--scw-font-slab);
+  letter-spacing: -.018em;
+  text-wrap: pretty;
+}
+.pa-palco__quem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--filete, rgba(61, 19, 8, .22));
+}
+.pa-palco__logo {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--scw-creme);
-  border: 3px solid var(--cor, var(--scw-amarelo));
 }
-.pa-depo__selo img { width: 100%; height: 100%; object-fit: cover; }
-/* Sem logo, iniciais sobre bege (§6.12) — preenchendo o slot inteiro. */
-.pa-depo__iniciais {
+.pa-palco__nome { display: grid; gap: 2px; }
+.pa-palco__nome b { font: 700 15.5px/1.2 var(--scw-font-ui); }
+/* Tinta cheia, sem opacidade: chocolate a 75% sobre cyan cai abaixo de 4,5:1. */
+.pa-palco__nome span { font: 400 14px/1.35 var(--scw-font-texto); }
+
+/* Logo preenche o slot inteiro (§6.12). Sem logo, iniciais sobre bege. */
+:is(.pa-palco__logo, .pa-palco__aba-logo) img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pa-palco__iniciais {
   display: grid;
   place-items: center;
   width: 100%;
   height: 100%;
   background: var(--scw-bege);
-  font: 900 17px/1 var(--scw-font-black);
+  font: 900 15px/1 var(--scw-font-black);
   color: var(--scw-choco);
 }
-.pa-depo__corpo {
+
+/* Abas. Seleção com mais de uma pista (§6.16, Percurso): a chapa vira a cor da
+   marca, o logo ganha anel e a aba sai do filete — nunca só cor. Pares da
+   chapa: chocolate/amarelo 9,5 · creme/marrom 9,4 · chocolate/cyan 5,6 ·
+   creme/roxo 10 · creme/chocolate 12. */
+.pa-palco__marcas {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1;
-  padding: clamp(30px, 3vw, 38px) clamp(22px, 2.4vw, 30px) clamp(22px, 2.4vw, 30px);
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(14px, 1.6vw, 20px);
 }
-.pa-depo blockquote,
-.pa-depo__espera {
-  margin: 0;
-  font: 900 clamp(17px, 1.6vw, 21px)/1.22 var(--scw-font-black);
-  letter-spacing: -.022em;
-  text-wrap: pretty;
+.scw-raiz .pa-palco__aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 18px 6px 6px;
+  border: 1.5px solid rgba(61, 19, 8, .22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--scw-choco);
+  font: 700 14px/1.2 var(--scw-font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--mo-estado) var(--mo-ease), border-color var(--mo-estado) var(--mo-ease), color var(--mo-estado) var(--mo-ease);
 }
-.pa-depo__espera { opacity: .78; font-style: italic; }
-.pa-depo__quem {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--filete, rgba(61, 19, 8, .22));
+.pa-palco__aba-logo {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--scw-creme);
+  transition: box-shadow var(--mo-estado) var(--mo-ease);
 }
-.pa-depo__quem b { font: 700 15.5px/1.2 var(--scw-font-ui); }
-/* Tinta cheia, sem opacidade: chocolate a 75% sobre cyan cai abaixo de 4,5:1. */
-.pa-depo__quem span { font: 400 14px/1.35 var(--scw-font-texto); }
+.scw-raiz .pa-palco__aba[aria-selected="true"] {
+  border-color: var(--cor);
+  background: var(--cor);
+  color: var(--tinta);
+  cursor: default;
+}
+.pa-palco__aba[aria-selected="true"] .pa-palco__aba-logo { box-shadow: 0 0 0 3px var(--scw-creme); }
+.scw-raiz .pa-palco__aba:active { transform: translateY(1px); }
+@media (hover: hover) {
+  .scw-raiz .pa-palco__aba:not([aria-selected="true"]):hover { border-color: var(--scw-choco); background: var(--scw-bege); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pa-palco__som svg,
+  .pa-palco__fala > * { animation: none; }
+}
+/* No celular a aba é só o logo: cinco nomes em pílula quebrariam em três
+   linhas. O nome continua sendo o nome acessível (aria-label). 44 + 6 de
+   respiro + 3 de filete = 53px de alvo; cinco cabem em 312px (tela de 360). */
+@media (max-width: 759px) {
+  .pa-palco__marcas { flex-wrap: nowrap; justify-content: space-between; gap: 4px; }
+  .scw-raiz .pa-palco__aba { min-height: 0; padding: 3px; }
+  .pa-palco__aba-logo { width: 44px; height: 44px; }
+  .pa-palco__aba-nome { display: none; }
+}
+@media (min-width: 760px) {
+  .pa-palco { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .pa-palco__video { aspect-ratio: 1; }
+}
 
 /* ============================================================================
    Apoiar 04 — onde a marca aparece
@@ -966,7 +985,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 /* No celular o raio de card cai de 20 para 16 (§6.16) — em todo card destas
    duas páginas, não só nos de Participar. */
 @media (max-width: 760px) {
-  .pa-depo,
+  .pa-palco,
   .pa-ganho,
   .pa-numeros li,
   .pa-card,
