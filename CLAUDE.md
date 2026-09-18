@@ -326,9 +326,10 @@ preview.**
   senha única e o login das marcas nunca dependeram, e seguem pelo caminho de
   sempre. Contas nominais de organização: **zero** — a porta nova existe, vazia.
   ⚠️ **O MCP do Supabase recusou o SQL por horas com `password authentication
-  failed for user "postgres"`** enquanto a API de gestão respondia. Não era a
-  senha: o conector estava **desativado na sessão**. Religado, entrou na hora.
-  Antes de redefinir senha de banco por causa desse erro, conferir o conector.
+  failed for user "postgres"`** enquanto a API de gestão (Edge Functions)
+  respondia e o SQL Editor do painel funcionava. **Religar o conector resolveu
+  na hora, sem trocar senha nenhuma** — a causa exata não foi apurada. Antes de
+  redefinir a senha do banco por causa desse erro, religar o conector.
 
   ✅ **Fase 2 da autenticação aplicada em 23/08/2026** (migrations
   `pode_organizacao_fase2` + `pode_organizacao_revoke_anon`). As **14 RPCs da
