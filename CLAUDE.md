@@ -102,13 +102,21 @@ Três regras que atravessam tudo:
 
 ### 2.3 Estado de publicação
 
-O que está no ar em `sweetcoffeeweek.com.br` hoje é **só a landing `/em-breve`**, por
-causa da flag `COMING_SOON_PUBLICATION = true`. Apagar essa página ou essa flag tira o
-site do ar. Ver §3.4.
+**Desde 18/09/2026 (pedido do Wilke) o domínio abre na página Participar, e só nela:**
+`PARTICIPAR_ONLY_PUBLICATION = true` faz **qualquer endereço** — inclusive `/` e
+`/contato` — renderizar Participar, **sem menu**: o cabeçalho fica com a marca e o
+botão "Painel SCW", o rodapé perde os links de página e a barra de abas do celular não
+entra. As páginas estáticas (`/quero-participar/`, `/painel/`) seguem no ar. Ver §3.4.
 
-**A versão que vai substituir a landing é a de `dev/site-completo`** — o institucional
-de sete páginas descrito no §2.4, não uma reescrita futura. Publicar é `false` na flag
-(§3.4) mais o merge em `master` (A2): duas decisões do Eloi, nenhuma automática.
+⚠️ **Esta seção estava atrasada duas publicações** e foi corrigida junto: dizia que o
+ar era a landing `/em-breve` (`COMING_SOON_PUBLICATION`), que saiu em 26/08/2026; entre
+26/08 e 18/09 o que valeu foi `AGUARDE_ONLY_PUBLICATION` (página de espera em `/`, com
+Contato e Participar por link direto), que nunca chegou a ser registrada aqui.
+
+**O institucional completo continua em `dev/site-completo`** — as sete páginas do
+§2.4, visíveis em DEV e em `*.vercel.app?preview=1`. Publicá-lo é desligar
+`PARTICIPAR_ONLY_PUBLICATION` (§3.4) mais o merge em `master` (A2): duas decisões do
+Wilke, nenhuma automática.
 
 ### 2.4 Mapa de páginas — alvo institucional
 
@@ -184,11 +192,16 @@ arquivos da tarefa em questão.
 | Flag | Valor atual | O que faz |
 |---|---|---|
 | `AWARDS_ONLY_PUBLICATION` | `false` | modo "só Awards", desligado |
-| `COMING_SOON_PUBLICATION` | **`true`** | **gate ativo** — o domínio oficial renderiza só a landing `EmBreve` |
-| `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras duas |
+| `COMING_SOON_PUBLICATION` | `false` | landing `EmBreve` em toda rota — desligada em 26/08/2026 |
+| `AGUARDE_ONLY_PUBLICATION` | `false` | página de espera em `/`, Contato e Participar por link — desligada em 18/09/2026 |
+| `PARTICIPAR_ONLY_PUBLICATION` | **`true`** | **gate ativo** — toda rota renderiza Participar, sem menu (`SiteHeader semNav`, `SiteFooter semLinks`, sem barra de abas) |
+| `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras |
 
-Publicar o institucional completo é `COMING_SOON_PUBLICATION = false` — **decisão do
-Eloi, nunca automática**. **Não alterar flag para "ver a página em produção": use o
+⚠️ **O gate some em DEV** (`INSTITUTIONAL_PREVIEW` é `true` no `npm run dev`). Para ver
+a versão que vai ao ar, é o deploy de Preview da Vercel **sem** `?preview=1`.
+
+Publicar o institucional completo é `PARTICIPAR_ONLY_PUBLICATION = false` — **decisão do
+Wilke, nunca automática**. **Não alterar flag para "ver a página em produção": use o
 preview.**
 
 ### 3.5 Escopo, qualidade e segurança

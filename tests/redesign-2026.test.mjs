@@ -276,10 +276,11 @@ test('os números citados no texto editorial batem com a base', async () => {
 test('flags de publicação seguem intactas', () => {
   const app = ler('src/App.jsx')
   assert.match(app, /AWARDS_ONLY_PUBLICATION\s*=\s*false/)
-  // Publicação parcial desde 26/08/2026 (decisão do Eloi): EmBreve saiu,
-  // só Participar e Contato ficam abertos ao público.
+  // Desde 18/09/2026 (pedido do Wilke): o domínio abre só na Participar,
+  // sem menu. A espera ('aguarde') e a EmBreve ficam desligadas.
   assert.match(app, /COMING_SOON_PUBLICATION\s*=\s*false/)
-  assert.match(app, /AGUARDE_ONLY_PUBLICATION\s*=\s*true/)
+  assert.match(app, /AGUARDE_ONLY_PUBLICATION\s*=\s*false/)
+  assert.match(app, /PARTICIPAR_ONLY_PUBLICATION\s*=\s*true/)
 })
 
 test('rotas dos QR Codes da Lovers continuam congeladas', () => {

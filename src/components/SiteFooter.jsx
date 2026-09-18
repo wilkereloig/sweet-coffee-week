@@ -7,8 +7,12 @@ import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
  * Uma faixa com logo, navegação em linha, Instagram e contato; barra final com
  * direitos e realização. Não aparece em Edições (ver App.jsx).
  * Spec: design_handoff_site_institucional/README.md (§ Casca / Rodapé).
+ *
+ * `semLinks` — publicação "só Participar" (18/09/2026): saem a navegação e o
+ * "Falar com a gente", que levariam de volta à própria Participar. Ficam a
+ * marca, o Instagram e a barra final.
  */
-export function SiteFooter({ navigate, route }) {
+export function SiteFooter({ navigate, route, semLinks = false }) {
   const ir = (href) => (e) => {
     e.preventDefault()
     navigate(href.replace('#', ''))
@@ -24,6 +28,7 @@ export function SiteFooter({ navigate, route }) {
           <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
         </a>
 
+        {!semLinks && (
         <nav className="scw-footer__nav" aria-label="Navegação do rodapé">
           {NAV_LINKS.map((l) => {
             const ativo = route === l.id
@@ -40,6 +45,7 @@ export function SiteFooter({ navigate, route }) {
             )
           })}
         </nav>
+        )}
 
         <div className="scw-footer__extras">
           <a className="scw-footer__insta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
@@ -50,10 +56,12 @@ export function SiteFooter({ navigate, route }) {
             </svg>
             {INSTAGRAM_HANDLE}
           </a>
+          {!semLinks && (
           <a href="#/contato" onClick={ir('#/contato')}
              style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, font: "700 14.5px/1 'Nexa Slab',sans-serif", color: 'rgba(254,240,221,.84)' }}>
             Falar com a gente
           </a>
+          )}
         </div>
       </div>
 

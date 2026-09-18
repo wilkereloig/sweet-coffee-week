@@ -39,6 +39,16 @@ const AWARDS_ONLY_PUBLICATION = false
 // DESLIGADO em 26/08/2026 (decisão do Eloi): entra o lançamento parcial abaixo.
 const COMING_SOON_PUBLICATION = false
 
+// Publicação "SÓ PARTICIPAR" (18/09/2026, pedido do Wilke): o domínio oficial
+// abre direto na página Participar, e QUALQUER endereço do site — inclusive
+// '/' e '/contato' — mostra essa página. Sem menu: o cabeçalho fica só com a
+// marca e o botão "Painel SCW" (`semNav`), o rodapé perde os links de página
+// (`semLinks`) e a barra de abas do celular não entra. As páginas estáticas
+// fora do bundle (/quero-participar/, /painel/ — §10.4-b) não passam por aqui
+// e seguem no ar. O institucional completo continua em DEV e em
+// *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
+const PARTICIPAR_ONLY_PUBLICATION = true
+
 // Lançamento parcial "SÓ PARTICIPANTES" (26/08/2026, decisão do Eloi): o
 // domínio oficial mostra só Contato como página institucional real — o
 // resto (inclusive a home, '/') cai na página de espera 'aguarde'
@@ -56,7 +66,8 @@ const COMING_SOON_PUBLICATION = false
 // (INSTITUTIONAL_PREVIEW) segue liberado em DEV e em *.vercel.app?preview=1,
 // para revisar as páginas trancadas (Participar incluída) antes de
 // destrancar de verdade.
-const AGUARDE_ONLY_PUBLICATION = true
+// DESLIGADO em 18/09/2026 (pedido do Wilke): entra PARTICIPAR_ONLY_PUBLICATION.
+const AGUARDE_ONLY_PUBLICATION = false
 
 // PREVIEW DEV-only do institucional: permite revisar Edições,
 // Participar, Apoiar, Contato e o Histórico do Sweet Awards SEM desligar a flag
@@ -104,6 +115,8 @@ export default function App() {
     if (RETIRED_PUBLIC_PATHS.some((retiredPath) => path.startsWith(retiredPath))) navigate('/edicoes')
   }, [path, navigate])
 
+  const soParticipar = PARTICIPAR_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW
+
   const route = (() => {
     // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
     // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
@@ -111,6 +124,8 @@ export default function App() {
     if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'historico-awards'
     // Modo "em breve": toda rota pública renderiza a landing (ver flag acima).
     if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
+    // Modo "só Participar": toda rota pública renderiza Participar (ver flag).
+    if (soParticipar) return 'participar'
     // Rota direta p/ revisar a landing em DEV/preview.
     if (path.startsWith('/em-breve')) return 'em-breve'
     // Lançamento parcial: Contato e Participar (link direto) saem livres;
@@ -175,7 +190,7 @@ export default function App() {
 
   // Nav mobile (tab bar + menu full-screen): só nas rotas públicas institucionais
   // (mesma lista do rodapé). Fecha o menu ao trocar de rota.
-  const showMobileNav = FOOTER_ROUTES.includes(route)
+  const showMobileNav = FOOTER_ROUTES.includes(route) && !soParticipar
   React.useEffect(() => { setMenuOpen(false) }, [route])
 
   // Edições substitui a casca do site pelo cabeçalho próprio da página (mesma
@@ -199,6 +214,7 @@ export default function App() {
             navigate={navigate}
             accessOpen={accessOpen}
             onOpenAccess={() => setAccessOpen(true)}
+            semNav={soParticipar}
           />
         </>
       )}
@@ -228,7 +244,7 @@ export default function App() {
       {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
           na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
           showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
-      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} />}
+      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} semLinks={soParticipar} />}
       {showMobileNav && (
         <>
           <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />

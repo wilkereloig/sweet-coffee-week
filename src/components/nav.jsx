@@ -73,10 +73,15 @@ export function ChaveIcon(props) {
  * de volta à própria landing. Então some a navegação e some a marca, que a
  * landing já traz em tamanho grande no herói.
  *
+ * `semNav` — publicação "só Participar" (18/09/2026): a marca e o botão de
+ * acesso ficam, a navegação sai. Toda rota mostra Participar, então um link de
+ * menu levaria de volta à mesma página; e sem barra de abas, o botão também
+ * precisa ficar no celular.
+ *
  * É variante, não cópia: o botão, o aria e a geometria continuam sendo os
  * mesmos deste componente (§5.3).
  */
-export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAcesso = false }) {
+export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAcesso = false, semNav = false }) {
   // Rolou → o véu do cabeçalho fecha, para o menu não competir com a foto que
   // passa por baixo. Só a opacidade do véu muda: a geometria (padding de 50px,
   // logo transbordando metade abaixo da linha) é regra estrutural do §4.1 e
@@ -104,7 +109,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAc
   }
 
   return (
-    <header className={'scw-header' + (rolado ? ' is-rolado' : '') + (apenasAcesso ? ' scw-header--so-acesso' : '')}>
+    <header className={'scw-header' + (rolado ? ' is-rolado' : '') + (apenasAcesso ? ' scw-header--so-acesso' : '') + (semNav ? ' scw-header--sem-nav' : '')}>
       <div className="scw-header__veu" aria-hidden="true" />
       <div className="scw-header__linha">
         {!apenasAcesso && (
@@ -113,7 +118,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAc
         </a>
         )}
 
-        {!apenasAcesso && (
+        {!apenasAcesso && !semNav && (
         <nav className="scw-nav" aria-label="Navegação principal">
           {NAV_LINKS.map((l) => {
             const ativo = route === l.id

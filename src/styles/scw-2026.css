@@ -707,6 +707,9 @@ body { margin: 0; }
    O véu sai junto: ele existe para separar o menu da foto que passa por baixo,
    e aqui não há menu para separar — sobraria como faixa escura sem função. */
 .scw-header--so-acesso .scw-header__veu { display: none; }
+/* Sem o menu (publicação "só Participar"), quem empurra o botão para a direita
+   é ele mesmo — antes era o margin-left:auto da .scw-nav. */
+.scw-header--sem-nav .scw-acesso-topo { margin-left: auto; }
 .scw-header--so-acesso .scw-header__linha {
   justify-content: flex-end;
   padding-top: clamp(18px, 2.4vw, 28px);
@@ -725,10 +728,11 @@ body { margin: 0; }
   .scw-marca img { height: 52px; }
   .scw-nav { display: none; }
   /* O botão some porque a função migra pra folha "mais" da barra de abas.
-     A landing /em-breve não tem barra de abas — ali o cabeçalho reduzido é a
-     única porta de acesso e o botão precisa continuar visível. Escrito como
-     exceção no próprio seletor, não como regra concorrente depois (§5.7). */
-  .scw-header:not(.scw-header--so-acesso) .scw-acesso-topo { display: none; }
+     A landing /em-breve e a publicação "só Participar" não têm barra de abas —
+     ali o cabeçalho é a única porta de acesso e o botão precisa continuar
+     visível. Escrito como exceção no próprio seletor, não como regra
+     concorrente depois (§5.7). */
+  .scw-header:not(.scw-header--so-acesso):not(.scw-header--sem-nav) .scw-acesso-topo { display: none; }
   .scw-header__linha { padding: 18px var(--scw-trilho); }
   /* A liberação de .scw-abas / .scw-folha fica no bloco ≤900px lá embaixo:
      precisa vir DEPOIS das regras base delas, senão o display:none vence. */
@@ -1949,8 +1953,10 @@ body { margin: 0; }
   color: var(--scw-creme);
   cursor: pointer;
 }
+/* O recuo de 86px existe para não cobrir a barra de abas — sem ela (publicação
+   "só Participar"), o botão fica na base como no desktop. */
 @media (max-width: 900px) {
-  .scw-topo { bottom: calc(86px + var(--scw-safe-b)); }
+  .tem-abas .scw-topo { bottom: calc(86px + var(--scw-safe-b)); }
 }
 
 /* ============================================================================
