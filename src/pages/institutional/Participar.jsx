@@ -1,9 +1,15 @@
 /*
  * PÁGINA INSTITUCIONAL — "Participar" (redesign 2026).
  *
- * Seções: 01 Abertura · 02 Depoimentos · 03 Números · 08 Pré-cadastro.
+ * Seções: 01 Abertura · 02 O que a marca ganha · 03 Depoimentos · 04 Números ·
+ * 05 Como funciona · 06 Pré-cadastro.
  *
- * ⚠️ A seção 08 NÃO tem mais formulário. Desde 22/08/2026 ela é uma chamada
+ * Refeita em 18/09/2026 (pedido do Wilke: "visual genérico"). Entraram 02 e 05,
+ * que saem da receita grade-de-cards-com-disco das outras seções: 02 é mosaico
+ * fotográfico, 05 é trilha de passos sobre chocolate. A 06 era 08 — a numeração
+ * velha só guardava o lugar das seções que saíram em 26/08.
+ *
+ * ⚠️ A seção 06 NÃO tem mais formulário. Desde 22/08/2026 ela é uma chamada
  * para a página estática `/quero-participar/`, que é onde o pré-cadastro vive
  * de verdade — hoje dois passos (Você / O estabelecimento, sete campos),
  * validação por passo e gravação na tabela `quero_participar`, a que o
@@ -31,7 +37,7 @@ import '../../styles/scw-participar-apoiar.css'
 // banda sangrando no celular. O véu por cima usa a cor da página.
 const FOTOS_HERO = heroPhotos('participar')
 
-/* Os três indicadores do herói saíram com o cartão (PATCH 01 §6): a seção 03
+/* Os três indicadores do herói saíram com o cartão (PATCH 01 §6): a seção 04
    Números abaixo já cobre a prova de escala, e repetir os mesmos valores em
    seções vizinhas era a duplicação que ela resolvia. */
 
@@ -52,7 +58,7 @@ const GANHOS = [
   { chave: 'awards', selo: 'Reconhecimento', titulo: 'Concorrer ao Sweet Awards', texto: 'Os combos disputam as categorias da edição, a partir da avaliação do público.', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
 ]
 
-/* 03 Números — reformulada em 26/08/2026 (pedido do Eloi): fora os números de
+/* 04 Números — reformulada em 26/08/2026 (pedido do Eloi): fora os números de
    QUANTIDADE de participante (lojas/marcas por edição) — são pequenos e
    geram dúvida. Ficam só os expressivos: venda, combos, tempo de festival.
    Mesma dupla (movimentação + combos) que Apoiar usa em 02 Alcance — dado
@@ -246,8 +252,8 @@ export function ParticiparPage() {
               <a href="#pre-cadastro" className="scw-btn scw-btn--solido" onClick={irPara('pre-cadastro')}>
                 Fazer pré-cadastro <I.arrow width={17} height={17} />
               </a>
-              <a href="#numeros" className="scw-btn scw-btn--contorno-claro" onClick={irPara('numeros')}>
-                Ver o que o festival entrega
+              <a href="#ganhos" className="scw-btn scw-btn--contorno-claro" onClick={irPara('ganhos')}>
+                Ver o que sua marca ganha
               </a>
             </div>
           </div>
@@ -357,7 +363,7 @@ export function ParticiparPage() {
         </ul>
       </section>
 
-      {/* ═══ 03 Números ═══ */}
+      {/* ═══ 04 Números ═══ */}
       <section id="numeros" className="scw-secao scw-secao--creme">
         <div className="pa-cabeca">
           <div>
