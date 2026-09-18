@@ -265,7 +265,7 @@ export function sweetGiftPhotos() {
 }
 
 /* ----------------------------------------------------------------------------
-   Participar 02 — o que a marca ganha (18/09/2026)
+   Participar 03 — o que a marca ganha (18/09/2026)
    Uma foto por ganho, escolhida pelo assunto e conferida no acervo. O combo
    sai do acervo da Lovers (vínculo marca↔foto confirmado); as outras três
    não atribuem nada a quem o acervo não identifica. Ficaram de fora os

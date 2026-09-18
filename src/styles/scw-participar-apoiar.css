@@ -186,7 +186,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 02 — o que a marca ganha (18/09/2026)
+   Participar 03 — o que a marca ganha (18/09/2026)
    ========================================================================= */
 
 /* Mosaico fotográfico, não grade de cards com disco: a foto é o argumento
@@ -388,7 +388,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 05 — depoimentos
+   Participar 02 — depoimentos
    ========================================================================= */
 
 /* FAIXA, não grade (15/09/2026, pedido do Wilke): seis cards iguais em 3×2 davam
@@ -440,7 +440,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   flex-direction: column;
   border-radius: var(--scw-r-card);
   overflow: hidden;
-  /* Filete só no card creme sobre a seção bege (--anel). `outline` e não `border`: borda transparente
+  /* Filete só no card bege (--anel). `outline` e não `border`: borda transparente
      pinta o fundo do card por baixo e desenhava um contorno colorido no vídeo. */
   outline: 1px solid var(--anel, transparent);
   outline-offset: -1px;
