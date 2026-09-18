@@ -66,7 +66,19 @@ const NUMEROS = [
   { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
 ]
 
-// 05 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
+/* 05 Como funciona (18/09/2026, pedido do Wilke). Só passos que existem de fato:
+   o pré-cadastro de dois passos, a curadoria (critérios do FAQ de Participação),
+   o painel da marca que a organização libera na aprovação (§10.4-b) e a edição
+   com o Sweet Awards. Nó numa cor do ciclo filtrada pelo chocolate (§6.3). */
+const PASSOS = [
+  { titulo: 'Pré-cadastro', texto: 'Você conta sobre a casa e o estabelecimento em dois passos rápidos.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { titulo: 'Curadoria', texto: 'A organização avalia o perfil, a capacidade de atendimento e o alinhamento com a proposta da edição.', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+  { titulo: 'Aprovação e painel', texto: 'Casa aprovada recebe acesso ao painel da marca, onde cadastra o combo e acompanha os pedidos da organização.', cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)' },
+  { titulo: 'O combo nasce', texto: 'Doce, salgado e bebida inéditos, criados para o tema e aprovados antes da estreia.', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
+  { titulo: 'A edição acontece', texto: 'Os Sweet Lovers visitam as casas, avaliam os combos e o Sweet Awards reconhece os destaques.', cor: 'var(--scw-creme)', tinta: 'var(--scw-choco)' },
+]
+
+// 03 Depoimentos REAIS (transcritos do protótipo — não editar o sentido).
 // O 6º card é reserva editorial honesta: a marca existe, o depoimento ainda não.
 const DEPOIMENTOS = [
   { frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal, e isso mudou até a nossa história de faturamento.”', pessoa: 'Carol Barreto', marca: 'Jolie Café Pâtisserie', slug: 'jolie-cafe-patisserie', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
@@ -372,7 +384,31 @@ export function ParticiparPage() {
         </ul>
       </section>
 
-      {/* ═══ 08 Pré-cadastro ═══
+      {/* ═══ 05 Como funciona ═══ */}
+      <section id="como-funciona" className="scw-secao scw-secao--choco">
+        <div className="pa-cabeca">
+          <div>
+            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Como funciona</span>
+            <h2 className="scw-h2">
+              Do pré-cadastro <em className="pa-destaque" style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>à estreia do combo</em>.
+            </h2>
+          </div>
+          <p className="pa-cabeca__apoio">
+            O pré-cadastro registra o interesse. A participação depende da curadoria e das vagas de cada edição.
+          </p>
+        </div>
+        <ol className="pa-passos">
+          {PASSOS.map((p, i) => (
+            <li className="pa-passo" key={p.titulo} style={{ '--c': p.cor, '--tinta': p.tinta }}>
+              <span className="pa-passo__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="scw-h3">{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ═══ 06 Pré-cadastro ═══
           ⚠️ O FORMULÁRIO NÃO MORA MAIS AQUI (22/08/2026, pedido do Wilke). O
           pré-cadastro é a página estática /quero-participar/, que hoje tem
           DOIS passos (Você / O estabelecimento, sete campos ao todo, sem

@@ -690,6 +690,79 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
+   Participar 05 — como funciona (18/09/2026)
+   ========================================================================= */
+
+/* Trilha de cinco passos sobre chocolate: nó numerado + título + texto. A
+   espinha é desenhada por PASSO (um segmento do nó até o próximo), não por uma
+   linha só no contêiner — assim a mesma regra serve em coluna e em linha, sem
+   conta de onde fica o último nó. Vertical até 999px, horizontal a partir de
+   1000 (o ponto do herói, §6.14). */
+.pa-passos {
+  --no: 56px;
+  --vao: 30px;
+  list-style: none;
+  display: grid;
+  gap: var(--vao);
+  margin: 0;
+  padding: 0;
+}
+.pa-passo {
+  position: relative;
+  min-height: var(--no);
+  padding-left: calc(var(--no) + 20px);
+}
+.pa-passo:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--no) / 2 - 1.5px);
+  top: var(--no);
+  bottom: calc(var(--vao) * -1);
+  width: 3px;
+  background: repeating-linear-gradient(180deg, rgba(254, 240, 221, .28) 0 9px, transparent 9px 18px);
+}
+/* Nó na cor do ciclo filtrada pelo chocolate (§6.3): amarelo 9,5 · cyan 4,9 ·
+   magenta 3,8 · laranja 4,8 · creme 12 como forma. O numeral é texto grande
+   (22px/900), então magenta com tinta creme fecha os 3:1 que ele exige. */
+.pa-passo__no {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: var(--no);
+  height: var(--no);
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--tinta);
+  font: 900 22px/1 var(--scw-font-black);
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+.pa-passo .scw-h3 { padding-top: 14px; color: var(--scw-creme); }
+.pa-passo p {
+  margin: 10px 0 0;
+  max-width: 34ch;
+  font: 400 clamp(15px, 1.1vw, 16.5px)/1.55 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .82);
+  text-wrap: pretty;
+}
+@media (min-width: 1000px) {
+  .pa-passos { --vao: clamp(20px, 2.2vw, 40px); grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .pa-passo { padding: calc(var(--no) + 24px) 0 0; }
+  .pa-passo:not(:last-child)::before {
+    left: var(--no);
+    right: calc(var(--vao) * -1);
+    top: calc(var(--no) / 2 - 1.5px);
+    bottom: auto;
+    width: auto;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, rgba(254, 240, 221, .28) 0 9px, transparent 9px 18px);
+  }
+  .pa-passo .scw-h3 { padding-top: 0; }
+}
+
+/* ============================================================================
    Formulários em destaque (pré-cadastro · proposta de apoio)
    ========================================================================= */
 
@@ -713,7 +786,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
    Mesma largura e mesma posição do .pa-form__intro logo acima (980px,
    margin-inline:auto): a peça nasce em esquadro com a cabeça, que é o defeito
    que a rodada de alinhamento deste dia foi corrigir em três lugares.
-   A seção é creme (a vizinha 03 Números é bege, §10.5), então o card inverte:
+   A seção é creme (em Participar a vizinha 05 Como funciona é chocolate, §10.5), então o card inverte:
    chapa bege, sem filete — quem recorta é o próprio fundo. */
 .pa-cta {
   display: flex;
