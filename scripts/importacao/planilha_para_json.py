@@ -26,6 +26,9 @@ def texto(v):
     if v is None:
         return None
     if isinstance(v, datetime.datetime):
+        # O xlsx guarda hora como fração de dia: 18:41:41 pode chegar como
+        # 18:41:40.9999. Arredonda para o segundo, em vez de truncar.
+        v = (v + datetime.timedelta(microseconds=500000)).replace(microsecond=0)
         return v.date().isoformat() if v.time() == datetime.time(0) else v.isoformat(timespec='seconds')
     if isinstance(v, datetime.date):
         return v.isoformat()

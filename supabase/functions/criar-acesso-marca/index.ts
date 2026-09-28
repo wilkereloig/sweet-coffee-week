@@ -39,7 +39,8 @@
 // Depende de: public.pode, public.pode_por_user, public.vincular_conta_marca,
 //             tabelas public.participantes e public.perfis.
 //
-// Entrada (POST JSON): { secret, origem_id } — ou, sem secret, o JWT da
+// Entrada (POST JSON): { secret, origem_id } · { secret, participante_id }
+// (estabelecimento já existente, 29/09/2026) · { secret, marca } — ou, sem secret, o JWT da
 // sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, participante_id, login, senha, email_contato, troca_obrigatoria }
 //        A senha aparece SÓ nesta resposta. Não fica gravada em lugar nenhum.
@@ -121,12 +122,17 @@ Deno.serve(async (req) => {
   let payload: {
     secret?: string
     origem_id?: string
+    participante_id?: string
     marca?: { nome?: string; responsavel?: string; telefone?: string; email?: string }
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
   const origemId = (payload.origem_id || '').trim()
+  // Desde 29/09/2026: estabelecimento que JÁ existe em `participantes` (ex.:
+  // importado da planilha da edição). A conta se liga a ele — sem isto, criar
+  // o acesso de uma marca importada criaria um segundo estabelecimento.
+  const participanteExistente = (payload.participante_id || '').trim()
   const manual = payload.marca || null
 
   const admin = createClient(
@@ -179,8 +185,9 @@ Deno.serve(async (req) => {
      entre dois nomes de marca diferentes é exatamente como se cria conta com o
      nome errado, que é o erro que não tem conserto (o login não se troca).
      Recusar é a resposta honesta. */
-  if (origemId && manual) return json({ erro: 'entrada_ambigua' }, 400)
-  if (!origemId && !manual) return json({ erro: 'origem_obrigatoria' }, 400)
+  const entradas = [origemId, participanteExistente, manual].filter(Boolean).length
+  if (entradas > 1) return json({ erro: 'entrada_ambigua' }, 400)
+  if (entradas === 0) return json({ erro: 'origem_obrigatoria' }, 400)
 
   let email = ''
   let nomeMarca = ''
@@ -207,6 +214,17 @@ Deno.serve(async (req) => {
     const { data: jaTem } = await admin
       .from('participantes').select('id').eq('origem_id', origemId).maybeSingle()
     if (jaTem) return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
+  } else if (participanteExistente) {
+    const { data: part, error: partErr } = await admin
+      .from('participantes').select('id, user_id, nome_marca, responsavel, telefone, email')
+      .eq('id', participanteExistente).maybeSingle()
+    if (partErr) return json({ erro: 'db_error', detalhe: partErr.message }, 500)
+    if (!part) return json({ erro: 'participante_nao_encontrado' }, 404)
+    if (part.user_id) return json({ erro: 'conta_ja_existe', participante_id: part.id }, 409)
+    nomeMarca = (part.nome_marca || '').trim()
+    responsavel = (part.responsavel || '').trim()
+    telefone = (part.telefone || '').trim()
+    email = (part.email || '').trim().toLowerCase()
   } else {
     nomeMarca = (manual!.nome || '').trim()
     responsavel = (manual!.responsavel || '').trim()
@@ -288,6 +306,8 @@ Deno.serve(async (req) => {
      que impede o cadastro manual de escapar da trava de primeiro uso. */
   const vinculo = origemId
     ? await admin.rpc('vincular_conta_marca', { p_user: userId, p_origem: origemId })
+    : participanteExistente
+    ? await admin.rpc('vincular_conta_participante', { p_user: userId, p_participante: participanteExistente })
     : await admin.rpc('vincular_marca_manual', {
         p_user: userId,
         p_nome: nomeMarca,
@@ -295,7 +315,12 @@ Deno.serve(async (req) => {
         p_telefone: telefone || null,
         p_email: email || null,
       })
-  if (vinculo.error) return json({ erro: 'vinculo_falhou', detalhe: vinculo.error.message }, 500)
+  if (vinculo.error) {
+    // Usuário do Auth sem estabelecimento seria uma conta que entra e não vê
+    // nada — e ocuparia o login. Desfaz antes de reportar.
+    await admin.auth.admin.deleteUser(userId)
+    return json({ erro: 'vinculo_falhou', detalhe: vinculo.error.message }, 500)
+  }
   const participanteId = vinculo.data
 
   // ── 6. TRAVA DE PRIMEIRO USO ───────────────────────────────────────────────
@@ -330,6 +355,6 @@ Deno.serve(async (req) => {
     senha: senhaInicial,
     email_contato: email,
     troca_obrigatoria: true,
-    origem: origemId ? 'candidatura' : 'manual',
+    origem: origemId ? 'candidatura' : participanteExistente ? 'estabelecimento' : 'manual',
   })
 })
