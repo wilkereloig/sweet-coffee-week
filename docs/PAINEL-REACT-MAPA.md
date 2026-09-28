@@ -1,7 +1,8 @@
 # Painel SCW (React) — mapa técnico
 
 Referência de arquitetura. Estado de `dev/site-completo` depois da revisão
-geral de 28/09/2026 (`docs/AUDITORIA-PAINEL-2026-09-28.md`). Não é regra de
+geral de 28/09/2026 (`docs/AUDITORIA-PAINEL-2026-09-28.md`) e da evolução
+estrutural de 29/09/2026 (`docs/EVOLUCAO-PAINEL-2026-09.md`). Não é regra de
 projeto (isso é `CLAUDE.md`, §10.4-b). Se divergir do código, vale o código.
 
 ## 1 · O que é
@@ -34,15 +35,19 @@ painel-app/
       Folha.jsx             gaveta/folha acessível (Esc, foco preso e devolvido)
       Credenciais.jsx       senha de uso único (copiar / WhatsApp)
       Login*/BoasVindas/DefinirSenha
-      vistas/     Mesa · Respostas · Marcas (ficha com abas) · Producao ·
-                  GuiaFotos · Equipe (usuários, acesso, histórico geral)
+      vistas/     Mesa · Respostas · Marcas (ficha: Cadastro, Operação,
+                  Mensagens, Trajetória, Histórico, Acesso — FichaOperacao.jsx) ·
+                  Edicao (configuração, cronograma, temas, vendas, revisão,
+                  importações, edições) · Producao · Contatos (relacionamento
+                  e Press Kit) · GuiaFotos · Equipe
       vistas-marca/  Hoje (próximos passos) · Cadastro · Pedidos (responder) ·
                      Mensagens · Arquivos (leitura + avisos) · GuiaFotos
     lib/          lógica pura, testada em tests/painel-app-*.test.mjs
       rpc.js, marcaApi.js   rede (renovação única por refresh token, 401 = sessão morta)
       central.js            links de aviso, tempo relativo, texto do histórico
       push.js               suporte/permissão/assinatura (injeta quem grava)
-      hoje.js               próximos passos da marca
+      hoje.js               próxima ação da marca (única; lê cronograma, tema, combo, foto, venda)
+      operacao.js           rótulos, momento da edição, cronograma, trajetória, filtros de contato, temas, vendas
       cadastro.js, mesa.js, respostas.js, participantes.js, producao.js,
       painelFormat.js, pedidosMarca.js, notificacoes.js (pendências da mesa), avisos.js
 ```
@@ -69,6 +74,15 @@ painel-app/
 **novas (28/09):** `get_conversas` · `get_mensagens` · `enviar_mensagem` ·
 `ler_mensagens_org` · `get_notificacoes_org` · `ler_notificacoes_org` ·
 `get_atividade` · `adicionar_observacao`.
+**novas (29/09):** `get_edicoes` · `salvar_edicao` · `salvar_cronograma_item` ·
+`remover_cronograma_item` · `get_historia` · `buscar_marcas_acervo` ·
+`decidir_vinculo` · `marcar_participante_novo` · `get_revisao` ·
+`resolver_revisao` · `corrigir_participante` · `definir_liberacao_foto` ·
+`definir_pagamento` · `get_temas` · `decidir_tema` · `revisar_combo` ·
+`get_materiais` · `salvar_material` · `remover_material` · `get_vendas_resumo` ·
+`registrar_venda_org` · `get_contatos` · `get_contato` · `salvar_contato` ·
+`definir_presskit` · `get_ficha_360` · `definir_responsaveis_sessao` ·
+`get_importacoes` · `get_importacao_linhas` · `importacao_*` (administrador).
 
 **Edge Functions:** `criar-acesso-marca` · `criar-conta-organizacao` ·
 `regerar-senha-conta` (organização **e** marca) · `arquivo-url` ·
@@ -79,7 +93,8 @@ painel-app/
 `solicitacao_estado` · `arquivos` · `arquivo_leitura` · `push_subscriptions` ·
 `perfis` · `mensagens` · `notificacoes` · RPCs `marca_concluir_cadastro`,
 `marcar_senha_trocada`, `marca_enviar_mensagem`, `marca_ler_mensagens`,
-`marca_ler_notificacoes`, `marca_responder_solicitacao`.
+`marca_ler_notificacoes`, `marca_responder_solicitacao`, `marca_minha_historia`;
+leitura por RLS de `edicoes`, `edicao_cronograma`, `temas_propostos`, `materiais`.
 
 ## 4 · Avisos e push
 

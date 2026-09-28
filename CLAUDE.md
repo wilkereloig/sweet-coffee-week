@@ -3019,6 +3019,51 @@ passou a valer:
   Até publicar: o aviso aparece no sino, mas o push automático não sai; a
   senha nova de marca recusa com recado claro na tela.
 
+#### Evolução estrutural — 29/09/2026 (Fase 12)
+
+Relatório completo, divergências e pendências em
+`docs/EVOLUCAO-PAINEL-2026-09.md`. O que passou a valer:
+
+- **A edição é configuração, não código.** `edicoes` + `edicao_cronograma`
+  (datas, taxa, regra de foto, horário do lembrete, prazos). A marca, a mesa,
+  os lembretes e a próxima ação leem dali. ⛔ Nunca escrever data de edição em
+  constante no front.
+- **O acervo existe no banco**: `historico_marcas/_aliases/_participacoes` e
+  `premiacoes`, GERADOS de `src/data` por `scripts/historico-para-sql.mjs`.
+  Mudou o acervo? Rodar o script de novo (idempotente). ⛔ Não digitar.
+- **Alias não é prova.** Estabelecimento ⇄ marca do acervo só por
+  `participante_vinculos.status = 'confirmado'`, decidido por uma pessoa.
+  "Primeira edição" só com `novo_confirmado`; ausência no acervo é
+  `sem_correspondencia_no_acervo`. A marca só vê história confirmada.
+- **Tema:** a marca escreve `tema_combo`; cada mudança vira proposta em
+  `temas_propostos` (30 min de salvamento automático reescrevem a mesma). A
+  regra "não repete" é um índice único na APROVAÇÃO; a prioridade (pagamento
+  em dia, depois chegada) é calculada e mostrada, a decisão é humana.
+- **Foto ≠ pagamento.** `foto_liberacao` e `pagamento_status` são campos
+  separados; não presumir que um implica o outro.
+- **Importação rastreável**: `import_lotes` → `import_linhas`
+  (`dados_originais` nunca reescritos) → `revisao_pendencias`. Nada é
+  corrigido sozinho; a promoção PARA se a conferência divergir; reverter por
+  lote enquanto nenhuma marca do lote tiver conta. ⛔ **Planilha e JSON cru
+  nunca no repositório — ele é público.** Ficam em `ELOI SITES/scw-dados-importacao/`.
+- **Migration grande entra pelo arquivo do commit**: o banco busca o `.sql`
+  por `pg_net` no raw do GitHub, fixado no SHA do commit, e só executa se o
+  sha256 bater. Evita transcrever centenas de linhas (e o arquivo divergir do
+  banco). O registro da migration guarda o SHA e o hash.
+- **Marca importada ganha conta pela ficha** (Acesso → Criar acesso →
+  `criar-acesso-marca { participante_id }` → `vincular_conta_participante`).
+  ⛔ O cadastro manual recusa nome de marca que já existe.
+- **Conta de marca desativada** perde o acesso na hora (`conta_ativa()` na
+  RLS de `participantes`).
+- **Autoria em lote**: só função interna define `scw.ator_rotulo` na
+  transação; `scw.silencioso` cala avisos e push (importação).
+- **Lembretes** por `pg_cron`: `scw-lembrar-vendas` (hora em hora, só no
+  festival, a partir de `edicoes.lembrete_vendas_hora`) e `scw-lembrar-prazos`.
+- **Testes do banco**: `supabase/testes/verificacao-2026-09-29.sql`
+  (autorização + ponta a ponta; sempre termina em exceção e desfaz).
+- ⚠️ **4 Edge Functions pendentes de publicação**: as três acima e
+  `criar-acesso-marca`.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
