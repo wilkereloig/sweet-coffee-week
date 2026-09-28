@@ -62,7 +62,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, vistaInicial = 
   // leitura útil pra todo mundo, só a ESCRITA é que varia por ação.
   const permitidas = pode('acesso.gerir') ? DESTINOS : DESTINOS.filter((d) => d !== 'equipe')
   // Só entra na barra a vista que o chamador entregou. No login real são
-  // todas; no atalho de DEV (/painel?guia-fotos, main.jsx) é só o guia.
+  // todas; a filtragem fica para quem montar o shell com menos vistas.
   const visiveis = permitidas.filter((d) => vistas[d])
 
   // 'mesa' é a vista inicial de verdade (public/painel/index.html, irPara()).

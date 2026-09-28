@@ -1,8 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
-import { PainelShell } from './components/PainelShell'
-import { GuiaFotos } from './components/vistas/GuiaFotos'
 
 // O corte já aconteceu: /painel/, /organizacao/ e /marca/ são a URL REAL que
 // o navegador vê — o rewrite do Vercel (e o plugin dev espelho em
@@ -15,15 +13,8 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/painel/sw.js', { scope: '/painel/' }).catch(() => {})
 }
 
-// Só em DEV: /painel?guia-fotos abre a vista do guia sem login, para editar
-// o layout. A vista não lê o banco; as outras abas ficam vazias nesse modo.
-// Em produção `import.meta.env.DEV` é false e o atalho some do bundle.
-const guiaFotosDev = import.meta.env.DEV && new URLSearchParams(location.search).has('guia-fotos')
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {guiaFotosDev
-      ? <PainelShell vistas={{ fotos: GuiaFotos }} vistaInicial="fotos" onSair={() => location.assign('/painel')} />
-      : <App />}
+    <App />
   </React.StrictMode>
 )

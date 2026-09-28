@@ -21,6 +21,14 @@ import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar } from './lib/marcaApi'
 import { rpc } from './lib/rpc'
 
+// Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
+// (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca, e os dois
+// cartões da boas-vindas entram direto. Sem sessão o banco não responde:
+// as telas abrem, os dados não. Em produção `import.meta.env.DEV` é false e
+// o bloco some do bundle.
+const DEV_LIVRE = import.meta.env.DEV
+const PARAMS_DEV = DEV_LIVRE ? new URLSearchParams(location.search) : null
+
 function estadoInicial() {
   // Conta nominal decide primeiro — mesma ordem que rpc.js usa pra escolher
   // o modo de acesso (lê scw_org_conta antes de qualquer coisa). As duas
@@ -34,6 +42,8 @@ function estadoInicial() {
   // Sessão de marca ainda precisa checar `deve_trocar_senha` antes de decidir
   // pra onde ir, daí o estado intermediário 'conferindo-marca'.
   if (sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return 'conferindo-marca'
+  if (DEV_LIVRE && (PARAMS_DEV.has('org') || PARAMS_DEV.has('guia-fotos'))) return 'painel-org'
+  if (DEV_LIVRE && PARAMS_DEV.has('marca')) return 'painel-marca'
   return 'boas-vindas'
 }
 
@@ -83,7 +93,14 @@ export function App() {
   // que o botão "Sair" chama; sairMarca() é segura de chamar mais de uma vez
   // (idempotente o bastante — best-effort no logout de rede, sessionStorage
   // já vazio não quebra o removeItem).
-  React.useEffect(() => { registrarAoSessaoExpirar(sairMarca) }, [])
+  // Em DEV sem sessão de marca não há o que expirar: expulsar só devolveria
+  // a boas-vindas a cada leitura que falha.
+  React.useEffect(() => {
+    registrarAoSessaoExpirar(() => {
+      if (DEV_LIVRE && !sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return
+      sairMarca()
+    })
+  }, [])
 
   React.useEffect(() => {
     if (estado !== 'conferindo-marca') return
@@ -166,8 +183,8 @@ export function App() {
   if (estado === 'boas-vindas') {
     return (
       <BoasVindas
-        onEscolherOrg={() => setEstado('login-org')}
-        onEscolherMarca={() => setEstado('login-marca')}
+        onEscolherOrg={() => setEstado(DEV_LIVRE ? 'painel-org' : 'login-org')}
+        onEscolherMarca={() => setEstado(DEV_LIVRE ? 'painel-marca' : 'login-marca')}
       />
     )
   }
@@ -247,6 +264,7 @@ export function App() {
       vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, producao: Producao, fotos: GuiaFotos, equipe: Equipe }}
       onSair={sairOrg}
       permissoes={acoesPermitidas}
+      vistaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'mesa'}
     />
   )
 }

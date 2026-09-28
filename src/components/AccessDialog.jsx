@@ -283,7 +283,7 @@ export function AccessDialog({ open, onClose }) {
                 <button
                   type="button"
                   className="scw-acesso__cartao scw-acesso__cartao--destaque scw-acesso__cartao--escolha"
-                  onClick={() => setPasso('organizacao')}
+                  onClick={() => (import.meta.env.DEV ? window.location.assign('/painel?org') : setPasso('organizacao'))}
                 >
                   <div className="scw-acesso__cabeca">
                     <span
@@ -306,7 +306,7 @@ export function AccessDialog({ open, onClose }) {
                 <button
                   type="button"
                   className="scw-acesso__cartao scw-acesso__cartao--marca scw-acesso__cartao--escolha"
-                  onClick={() => setPasso('marca')}
+                  onClick={() => (import.meta.env.DEV ? window.location.assign('/painel?marca') : setPasso('marca'))}
                 >
                   <div className="scw-acesso__cabeca">
                     <span
