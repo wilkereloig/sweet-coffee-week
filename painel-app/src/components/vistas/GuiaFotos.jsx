@@ -13,45 +13,38 @@ import { ICONE } from '../PainelShell'
 const IMG = '/images/guia-fotos/'
 
 const ENTREGAS = [
-  'Combo completo, os 3 itens inteiros',
-  'Combo com espaço livre para texto',
-  'Versão vertical para Stories',
-  'Salgado inteiro e aberto, se tiver recheio',
-  'Doce inteiro e cortado, se fizer sentido',
-  'Bebida no copo em que será servida',
-  'Um detalhe que dá vontade: textura, recheio, calda',
+  'Combo completo: salgado, doce e bebida inteiros, fáceis de identificar, com espaço ao redor',
+  'Salgado: foto individual, com o produto inteiro',
+  'Doce: foto individual, com o produto inteiro',
+  'Bebida: foto individual, no recipiente em que será servida',
+  'Detalhe, quando o produto justificar (recheio, textura, cobertura, camadas, finalização). Complementa, nunca substitui a foto individual',
 ]
 
 const PARES = [
-  { titulo: 'Os 3 itens à vista', arq: '01-combo',
-    fazer: 'Cada item inteiro, com espaço próprio.', evitar: 'Copo e guardanapo escondendo a comida.' },
-  { titulo: 'Luz suave', arq: '02-luz',
-    fazer: 'Luz difusa de lado: textura e brilho.', evitar: 'Flash direto: sombra dura e reflexo estourado.' },
-  { titulo: 'Tema sem exagero', arq: '03-cenario',
-    fazer: 'O cenário sugere o tema, a comida lidera.', evitar: 'Adereço demais: a comida some.' },
-  { titulo: 'Margem para recortar', arq: '04-quadro', alto: true,
-    fazer: 'Folga em volta: serve ao feed e ao Stories.', evitar: 'Fechado demais: prato e copo cortados.' },
-  { titulo: 'Bebida sem marca', arq: '05-bebida',
-    fazer: 'No copo, como o público vai receber.', evitar: 'Lata ou rótulo de marca à vista.' },
-  { titulo: 'Recheio bem mostrado', arq: '06-corte',
-    fazer: 'Corte limpo, recheio para a câmera.', evitar: 'Massa esmagada e migalha espalhada.' },
+  { titulo: 'Leitura clara do combo', fazer: ['combo-arranjo', 'Cada item visível, nenhum escondendo outro.'], evitar: ['evitar-leitura', 'Copo na frente do doce, guardanapo cobrindo o salgado.'] },
+  { titulo: 'Margem ao redor', fazer: ['combo', 'Comida na área segura, com respiro para as adaptações.'], evitar: ['evitar-margem', 'Quadro cheio: pratos e doce cortados pelas bordas.'] },
+  { titulo: 'Decoração em equilíbrio', fazer: ['combo-decoracao', 'O tema aparece e a comida continua protagonista.'], evitar: ['evitar-decoracao', 'Excesso de objetos: a comida se perde.'] },
+  { titulo: 'Luz suave e controlada', fazer: ['combo-45', 'Luz difusa, sombras suaves, cor real.'], evitar: ['evitar-luz', 'Flash direto: áreas estouradas, reflexo e sombra dura.'] },
+  { titulo: 'Cor próxima da real', fazer: ['doce', 'Tratamento natural.'], evitar: ['evitar-cor', 'Saturação, contraste e temperatura exagerados.'] },
+  { titulo: 'Proporção equilibrada', fazer: ['combo', 'Os três itens em escala coerente.'], evitar: ['evitar-proporcao', 'Item colado na lente: parece enorme, o resto some.'] },
+  { titulo: 'Bebida sem marca comercial', fazer: ['bebida', 'Bebida em copo neutro.'], evitar: ['evitar-marca', 'Lata e garrafa de marca como protagonistas.'] },
 ]
 
 const LEMBRETES = [
-  'Fotografe tudo intacto antes de cortar.',
-  'Cor real da comida: acerte o branco com cartão cinza.',
-  'Sem personagem, super-herói ou logo de terceiros.',
-  'Na vertical, com folga. O design recorta para 4:5 e 9:16.',
-  'Entregue os originais em resolução máxima, sem texto.',
+  'Individual mostra o produto completo; detalhe aproxima para destacar algo. Foto muito fechada é detalhe.',
+  'Deixe margem nas laterais, em cima e embaixo: a foto vai para feed, Stories, site, displays e peças.',
+  'Composição e ângulo são escolha do fotógrafo: o que importa é a leitura clara dos três itens.',
+  'Fundo e decoração podem ser livres, desde que não cubram nem compitam com a comida.',
+  'Guia completo em PDF: Produção › Arquivos.',
 ]
 
-function Foto({ arq, lado, alto, texto }) {
+function Foto({ arq, lado, texto }) {
   const fazer = lado === 'fazer'
   return (
     <figure className="gf-foto">
-      <div className={'gf-foto__img' + (alto ? ' gf-foto__img--alto' : '')}>
-        <img src={IMG + arq + '-' + lado + '.jpg'} alt={(fazer ? 'Faça: ' : 'Evite: ') + texto}
-          loading="lazy" decoding="async" width={alto ? 893 : 900} height={alto ? 1600 : 1117} />
+      <div className="gf-foto__img">
+        <img src={IMG + arq + '.jpg'} alt={(fazer ? 'Faça: ' : 'Evite: ') + texto}
+          loading="lazy" decoding="async" width={1400} height={1738} />
         <span className={'gf-selo gf-selo--' + lado}>{fazer ? '✓ Faça' : '✕ Evite'}</span>
       </div>
       <figcaption>{texto}</figcaption>
@@ -64,10 +57,10 @@ export function GuiaFotos() {
     <section className="og-vista gf">
       <VistaCabeca acento="magenta" icone={ICONE.fotos} titulo="Guia de fotos" nota="combos da edição Cartoon · para o fotógrafo" />
 
-      <p className="gf-tese">O público precisa <strong>reconhecer os 3 itens</strong> de relance e <strong>querer provar</strong>.</p>
+      <p className="gf-tese">Todas as fotos fazem parte da entrega. A <strong>comida é sempre a protagonista</strong>.</p>
 
       <div className="gf-bloco">
-        <h2 className="gf-h2">Por combo, fotografe</h2>
+        <h2 className="gf-h2">Em cada combo, fotografe</h2>
         <ul className="gf-entregas">
           {ENTREGAS.map((t) => <li key={t}>{t}</li>)}
         </ul>
@@ -77,11 +70,11 @@ export function GuiaFotos() {
         <h2 className="gf-h2">Faça e evite</h2>
         <div className="gf-pares">
           {PARES.map((p) => (
-            <article className="gf-par" key={p.arq}>
+            <article className="gf-par" key={p.titulo}>
               <h3 className="gf-par__titulo">{p.titulo}</h3>
               <div className="gf-par__fotos">
-                <Foto arq={p.arq} lado="fazer" alto={p.alto} texto={p.fazer} />
-                <Foto arq={p.arq} lado="evitar" alto={p.alto} texto={p.evitar} />
+                <Foto arq={p.fazer[0]} lado="fazer" texto={p.fazer[1]} />
+                <Foto arq={p.evitar[0]} lado="evitar" texto={p.evitar[1]} />
               </div>
             </article>
           ))}
@@ -89,7 +82,7 @@ export function GuiaFotos() {
       </div>
 
       <div className="gf-bloco">
-        <h2 className="gf-h2">No set, lembre</h2>
+        <h2 className="gf-h2">Para lembrar</h2>
         <ul className="gf-lembretes">
           {LEMBRETES.map((t) => <li key={t}>{t}</li>)}
         </ul>

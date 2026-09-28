@@ -63,38 +63,21 @@
   /* ── entregas ── */
   .entregas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm 4mm; margin-top: 5mm; }
   .entrega__foto { aspect-ratio: 4/5; border-radius: 3mm; overflow: hidden; position: relative; background: var(--bege); }
-  .entrega__foto--alto { aspect-ratio: auto; height: 100%; }
   .entrega__cabeca { display: flex; gap: 2mm; align-items: center; margin: 2.4mm 0 1.2mm; }
   .entrega p { font-size: 8.3pt; line-height: 1.35; }
-  .caixa-texto { position: absolute; left: 7%; right: 7%; top: 6%; height: 36%; border: .5mm dashed var(--magenta); border-radius: 2mm; display: grid; place-items: center; font: 800 7pt/1 'Nexa Slab'; letter-spacing: .1em; text-transform: uppercase; color: var(--magenta); background: rgba(254,240,221,.35); }
-  .resumo { background: var(--choco); color: var(--creme); border-radius: 3mm; padding: 5mm; display: flex; flex-direction: column; gap: 2.4mm; }
-  .resumo h3 { color: var(--amarelo); }
-  .resumo p { font-size: 8.3pt; }
 
   /* ── set ── */
-  .set { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; margin-top: 4mm; }
   .bloco { background: var(--bege); border-radius: 3mm; padding: 4.5mm; }
   .bloco h3 { margin-bottom: 2mm; }
   .bloco ul { list-style: none; display: grid; gap: 1.6mm; font-size: 8.5pt; }
   .bloco li { padding-left: 4mm; position: relative; }
   .bloco li::before { content: ''; position: absolute; left: 0; top: 1.6mm; width: 1.8mm; height: 1.8mm; border-radius: 50%; background: var(--c); }
-  .angulos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 5mm; }
+  .angulos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 5mm; }
   .angulo__foto { aspect-ratio: 4/5; border-radius: 3mm; overflow: hidden; position: relative; }
-  .grau { position: absolute; left: 2.5mm; top: 2.5mm; font: 900 13pt/1 'Nexa Slab'; background: var(--choco); color: var(--creme); padding: 1.6mm 2.4mm 1.2mm; border-radius: 1.6mm; }
   .angulo h3 { margin: 2.4mm 0 1mm; }
   .angulo p { font-size: 8.3pt; }
 
   /* ── enquadramento ── */
-  .quadro { display: grid; grid-template-columns: 88mm 1fr; gap: 7mm; margin-top: 5mm; align-items: start; }
-  .quadro__foto { aspect-ratio: 9/16; position: relative; border-radius: 3mm; overflow: hidden; }
-  .zona { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, rgba(61,19,8,.55) 0 2mm, rgba(61,19,8,.35) 2mm 4mm); color: var(--creme); font: 800 6.5pt/1 'Nexa Slab'; letter-spacing: .1em; text-transform: uppercase; display: grid; place-items: center; }
-  .zona--topo { top: 0; height: 13%; }
-  .zona--base { bottom: 0; height: 18%; }
-  .corte45 { position: absolute; left: 0; right: 0; top: 21.9%; height: 56.2%; border: .6mm dashed var(--amarelo); outline: .3mm solid rgba(61,19,8,.4); }
-  .corte45 span { position: absolute; right: 1.5mm; top: 1.5mm; background: var(--amarelo); color: var(--choco); font: 800 6.5pt/1 'Nexa Slab'; letter-spacing: .08em; padding: 1.2mm 1.6mm; border-radius: 1mm; }
-  .legenda-quadro { display: grid; gap: 3.5mm; font-size: 9pt; }
-  .legenda-quadro div { display: flex; gap: 3mm; align-items: flex-start; }
-  .amostra { flex: none; width: 9mm; height: 6mm; border-radius: 1mm; margin-top: .5mm; }
 
   /* ── faça × evite ── */
   .pares { display: grid; gap: 4mm; margin-top: 4mm; }
@@ -103,9 +86,7 @@
   .par__texto h3 { margin: 2mm 0 2mm; }
   .par__texto p { font-size: 8.5pt; }
   .par__porque { margin-top: 2.4mm; font-size: 8pt !important; color: var(--marrom); }
-  .par--alto { grid-template-columns: 1fr 42mm 42mm; }
   .foto { position: relative; border-radius: 3mm; overflow: hidden; aspect-ratio: 4/5; }
-  .par--alto .foto { aspect-ratio: 9/16; }
   .selo { position: absolute; left: 2.4mm; top: 2.4mm; font: 800 7.5pt/1 'Nexa Slab'; letter-spacing: .06em; text-transform: uppercase; padding: 1.6mm 2.4mm 1.2mm; border-radius: 10mm; color: var(--choco); }
   .selo--fazer { background: var(--cyan); }
   .selo--evitar { background: var(--laranja); }
@@ -118,15 +99,40 @@
   .check li::before { content: ''; flex: none; width: 4.2mm; height: 4.2mm; border: .5mm solid var(--choco); border-radius: 1mm; margin-top: .2mm; }
   .check li { padding-left: 0; }
   .check li::before { position: static; background: none; }
-  .nomes li::before { display: none; }
-  .nomes li { padding-left: 0; }
   .g { font-family: Georgia, serif; font-weight: 700; }
-  .arquivo { font: 700 8.5pt/1.4 'Nexa Slab'; background: var(--creme); border: 1px solid var(--filete); border-radius: 2mm; padding: 2.4mm 3mm; margin: 2mm 0; }
-  .nomes { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 4mm; font-size: 8.3pt; margin-top: 2mm; }
-  .nomes b { font-weight: 800; }
   .aviso { margin-top: 6mm; background: var(--choco); color: var(--creme); border-radius: 3mm; padding: 5mm 6mm; display: flex; gap: 5mm; align-items: center; }
   .aviso h3 { color: var(--amarelo); margin-bottom: 1mm; }
   .aviso p { font-size: 8.5pt; }
+
+  /* ── revisão 2 ── */
+  .grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+  .entrega--detalhe { grid-column: span 4; display: grid; grid-template-columns: 40mm 1fr; gap: 5mm; align-items: center; background: var(--bege); border-radius: 3mm; padding: 4mm; }
+  .entrega--detalhe .entrega__foto { aspect-ratio: 4/5; }
+  .etiqueta { display: inline-block; font: 800 7pt/1 'Nexa Slab'; letter-spacing: .08em; text-transform: uppercase; padding: 1.4mm 2.2mm 1mm; border-radius: 10mm; }
+  .etiqueta--ind { background: var(--cyan); color: var(--choco); }
+  .etiqueta--det { background: var(--roxo); color: var(--creme); }
+  .etiqueta--opc { background: var(--choco); color: var(--creme); }
+  .comparar { display: grid; grid-template-columns: 1fr 52mm 52mm; gap: 4mm; align-items: start; padding-top: 4mm; margin-top: 4mm; border-top: 1px solid var(--filete); }
+  .comparar h3 { margin-top: 1mm; }
+  .foto .etiqueta { position: absolute; left: 2.4mm; top: 2.4mm; }
+  .diagrama { display: grid; grid-template-columns: 92mm 1fr; gap: 6mm; margin-top: 4mm; align-items: start; }
+  .diagrama__foto { aspect-ratio: 4/5; position: relative; border-radius: 3mm; overflow: hidden; }
+  .margem-corte { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(61,19,8,.34) 0 2mm, rgba(61,19,8,.16) 2mm 4mm); clip-path: polygon(0 0,100% 0,100% 100%,0 100%,0 24%,8% 24%,8% 76%,92% 76%,92% 24%,0 24%); }
+  .area-segura { position: absolute; left: 8%; right: 8%; top: 24%; bottom: 24%; border: .6mm solid var(--cyan); border-radius: 1.5mm; }
+  .area-segura span, .margem-rotulo { position: absolute; font: 800 6.5pt/1 'Nexa Slab'; letter-spacing: .08em; text-transform: uppercase; padding: 1.2mm 1.6mm; border-radius: 1mm; }
+  .area-segura span { left: 1.5mm; top: 1.5mm; background: var(--cyan); color: var(--choco); }
+  .margem-rotulo { left: 50%; transform: translateX(-50%); top: 9%; background: var(--choco); color: var(--creme); white-space: nowrap; }
+  .legenda { display: grid; gap: 3mm; font-size: 8.8pt; }
+  .legenda > div { display: flex; gap: 3mm; align-items: flex-start; }
+  .amostra { flex: none; width: 9mm; height: 6mm; border-radius: 1mm; margin-top: .5mm; }
+  .recortes { display: flex; gap: 3mm; align-items: flex-end; margin-top: 5mm; }
+  .recortes figure { flex: none; }
+  .recorte { border-radius: 2mm; overflow: hidden; }
+  .usos { display: flex; flex-wrap: wrap; gap: 1.6mm; margin-top: 2mm; }
+  .usos span { font: 700 7.5pt/1 'Nexa Slab'; padding: 1.4mm 2.2mm 1mm; border-radius: 10mm; background: var(--bege); }
+  .angulo__foto .etiqueta { position: absolute; left: 2.4mm; top: 2.4mm; }
+  .nota { font-size: 8.3pt; color: var(--marrom); margin-top: 3mm; }
+  .composicao { display: grid; grid-template-columns: 1fr 40mm 40mm; gap: 4mm; margin-top: 3mm; align-items: start; }
 </style>
 </head>
 <body>
@@ -134,152 +140,237 @@
 <!-- 1 · CAPA -->
 <section class="pg capa">
   <div class="capa__foto">
-    <img src="../../public/images/guia-fotos/02-luz-fazer.jpg" alt="">
+    <img src="../../public/images/guia-fotos/combo.jpg" alt="">
     <img class="capa__selo" src="../../public/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week" style="object-fit:contain">
   </div>
   <div class="capa__texto">
     <span class="rotulo">Sweet &amp; Coffee Week · edição Cartoon</span>
     <h1>Guia de fotos<br>dos <em>combos</em></h1>
-    <p class="lead">Cada foto tem uma missão: o público precisa <b>reconhecer os 3 itens do combo de relance</b> — salgado, doce e bebida — e <b>ter vontade de provar</b>. Este guia mostra, com exemplos, como chegar lá.</p>
+    <p class="lead">Referência prática para fotografar os combos do festival: o que entregar, como enquadrar, como deixar margem para as adaptações e quais erros evitar. A comida é sempre a protagonista.</p>
   </div>
   <div class="capa__meta">
-    <span><b>Para quem</b>fotógrafo e casas participantes</span>
-    <span><b>Por combo</b>7 fotos</span>
-    <span><b>Formatos</b>feed 4:5 · Stories 9:16</span>
+    <span><b>Para quem</b>fotógrafo responsável pelos combos</span>
+    <span><b>Por participante</b>combo · salgado · doce · bebida</span>
+    <span><b>Usos</b>feed, Stories, site e peças</span>
   </div>
 </section>
 
-<!-- 2 · O QUE ENTREGAR -->
+<!-- 2 · ENTREGAS -->
 <section class="pg">
-  <span class="rotulo" style="--c:var(--amarelo)">A lista</span>
+  <span class="rotulo" style="--c:var(--amarelo)">As entregas</span>
   <h2>O que fotografar em cada combo</h2>
-  <p class="lead">Sete fotos, nesta ordem. A primeira é a mais importante: se só der tempo de uma, é ela.</p>
+  <p class="lead">Todas as fotos abaixo fazem parte da entrega e precisam ser produzidas corretamente.</p>
   <div class="entregas">
     <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/02-luz-fazer.jpg" alt=""></div>
-      <div class="entrega__cabeca"><span class="num">1</span><h3>Combo completo</h3></div>
-      <p>Os 3 itens inteiros, a 45<span class="g">°</span>, cada um com espaço próprio.</p>
+      <div class="entrega__foto"><img src="../../public/images/guia-fotos/combo.jpg" alt=""></div>
+      <div class="entrega__cabeca"><h3>Combo completo</h3></div>
+      <p>Salgado, doce e bebida juntos. Os três inteiros, fáceis de identificar, com espaço ao redor.</p>
     </div>
     <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/entrega-espaco.jpg" alt=""><span class="caixa-texto">área do título</span></div>
-      <div class="entrega__cabeca"><span class="num">2</span><h3>Com espaço para texto</h3></div>
-      <p>Combo na metade de baixo. Fundo liso em cima, para o design escrever.</p>
+      <div class="entrega__foto"><img src="../../public/images/guia-fotos/salgado.jpg" alt=""></div>
+      <div class="entrega__cabeca"><h3>Salgado</h3></div>
+      <p>Foto individual: o produto inteiro, com respiro.</p>
     </div>
     <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/04-quadro-fazer.jpg" alt="" style="object-position:50% 45%"></div>
-      <div class="entrega__cabeca"><span class="num">3</span><h3>Vertical, Stories</h3></div>
-      <p>Na vertical, com folga em cima e embaixo. Veja a página 4.</p>
+      <div class="entrega__foto"><img src="../../public/images/guia-fotos/doce.jpg" alt=""></div>
+      <div class="entrega__cabeca"><h3>Doce</h3></div>
+      <p>Foto individual: o produto inteiro, com respiro.</p>
     </div>
     <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/06-corte-fazer.jpg" alt=""></div>
-      <div class="entrega__cabeca"><span class="num">4</span><h3>Salgado</h3></div>
-      <p>Um inteiro e um aberto, com o recheio virado para a câmera.</p>
+      <div class="entrega__foto"><img src="../../public/images/guia-fotos/bebida.jpg" alt=""></div>
+      <div class="entrega__cabeca"><h3>Bebida</h3></div>
+      <p>Foto individual: no recipiente em que será servida.</p>
     </div>
-    <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/entrega-doce.jpg" alt=""></div>
-      <div class="entrega__cabeca"><span class="num">5</span><h3>Doce</h3></div>
-      <p>Inteiro e cortado. Câmera baixa para as camadas aparecerem.</p>
-    </div>
-    <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/05-bebida-fazer.jpg" alt=""></div>
-      <div class="entrega__cabeca"><span class="num">6</span><h3>Bebida</h3></div>
-      <p>No copo em que o público vai receber, na altura do copo.</p>
-    </div>
-    <div class="entrega">
-      <div class="entrega__foto"><img src="../../public/images/guia-fotos/entrega-detalhe.jpg" alt=""></div>
-      <div class="entrega__cabeca"><span class="num">7</span><h3>Detalhe</h3></div>
-      <p>Bem de perto: recheio, calda, crocância. É a foto que dá fome.</p>
-    </div>
-    <div class="resumo">
-      <h3>Regra de ouro</h3>
-      <p>Fotografe <b>tudo inteiro antes de cortar</b>. Cortou, não volta.</p>
-      <p>Troque de ângulo, não de cenário: as 7 fotos de uma casa devem parecer da mesma sessão.</p>
+    <div class="entrega entrega--detalhe">
+      <div class="entrega__foto"><img src="../../public/images/guia-fotos/salgado-detalhe.jpg" alt=""></div>
+      <div>
+        <span class="etiqueta etiqueta--opc">Complementar</span>
+        <h3 style="margin:2.4mm 0 1.6mm">Detalhe, quando o produto justificar</h3>
+        <p style="font-size:9pt">Feita quando há algo relevante a mostrar: recheio, textura, cobertura, camadas, finalização, interior do produto ou algum acabamento específico.</p>
+        <p style="font-size:9pt;margin-top:2mm"><b>A foto de detalhe nunca substitui a foto individual completa.</b></p>
+      </div>
     </div>
   </div>
   <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>2</span></div>
 </section>
 
-<!-- 3 · O SET -->
+<!-- 3 · INDIVIDUAL × DETALHE -->
 <section class="pg">
-  <span class="rotulo" style="--c:var(--cyan)">O set</span>
-  <h2>Luz, fundo e ângulo</h2>
-  <p class="lead">Monte uma vez e fotografe todos os itens da casa no mesmo set.</p>
-  <div class="set">
+  <span class="rotulo" style="--c:var(--roxo)">Individual e detalhe</span>
+  <h2>Duas fotos diferentes, com funções diferentes</h2>
+  <div class="grade2">
     <div class="bloco" style="--c:var(--cyan)">
-      <h3>Luz</h3>
+      <span class="etiqueta etiqueta--ind">Foto individual</span>
+      <h3 style="margin:2.4mm 0 2mm">Mostra o produto completo</h3>
       <ul>
-        <li>Uma fonte grande e suave, <b>de lado</b>: janela ou softbox.</li>
-        <li>Rebatedor branco do outro lado para abrir a sombra.</li>
-        <li>Sem flash na câmera. Apague a luz amarela do teto.</li>
+        <li>Produto inteiro, sem cortes acidentais.</li>
+        <li>Longe das bordas, com área de respiro.</li>
+        <li>Valoriza forma, textura, volume e acabamento.</li>
+        <li>Ângulo escolhido para favorecer aquele produto.</li>
       </ul>
     </div>
-    <div class="bloco" style="--c:var(--magenta)">
-      <h3>Fundo e tema</h3>
+    <div class="bloco" style="--c:var(--roxo)">
+      <span class="etiqueta etiqueta--det">Foto de detalhe</span>
+      <h3 style="margin:2.4mm 0 2mm">Aproxima para destacar uma característica</h3>
       <ul>
-        <li>Fundo liso e claro, em tom creme ou bege.</li>
-        <li>O tema Cartoon entra em <b>um elemento só</b>, fora de foco.</li>
-        <li>Nada de personagem, boneco ou logo de terceiros.</li>
-      </ul>
-    </div>
-    <div class="bloco" style="--c:var(--laranja)">
-      <h3>Câmera</h3>
-      <ul>
-        <li>Tripé. ISO baixo (100 a 400).</li>
-        <li>f/5.6 no combo, para os 3 itens em foco. f/2.8 no detalhe.</li>
-        <li>Balanço de branco num cartão cinza, no começo da sessão.</li>
+        <li>O enquadramento fechado é intencional.</li>
+        <li>Recheio, corte, textura, cobertura, calda, crocância, camadas, espuma, finalização, ingredientes aparentes.</li>
+        <li>Uma foto muito fechada é detalhe: não vale como foto individual.</li>
       </ul>
     </div>
   </div>
-  <div class="angulos">
-    <div class="angulo">
-      <div class="angulo__foto"><img src="../../public/images/guia-fotos/02-luz-fazer.jpg" alt=""><span class="grau">45<span class="g">°</span></span></div>
-      <h3>45<span class="g">°</span> · o padrão</h3>
-      <p>Use no combo completo. Mostra o topo e a lateral dos itens ao mesmo tempo.</p>
-    </div>
-    <div class="angulo">
-      <div class="angulo__foto"><img src="../../public/images/guia-fotos/01-combo-fazer.jpg" alt=""><span class="grau">90<span class="g">°</span></span></div>
-      <h3>90<span class="g">°</span> · de cima</h3>
-      <p>Para itens baixos e para ver a composição inteira. Evite em bolo alto e copo.</p>
-    </div>
-    <div class="angulo">
-      <div class="angulo__foto"><img src="../../public/images/guia-fotos/03-cenario-fazer.jpg" alt=""><span class="grau">0<span class="g">°</span></span></div>
-      <h3>0<span class="g">°</span> · na altura</h3>
-      <p>Para o que é alto: bebida, bolo em camadas, sanduíche. Mostra a altura.</p>
-    </div>
+  <div class="comparar">
+    <div><h3>Salgado</h3></div>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/salgado.jpg" alt=""><span class="etiqueta etiqueta--ind">Individual</span></div><figcaption>Inteiro, com espaço em volta.</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/salgado-detalhe.jpg" alt=""><span class="etiqueta etiqueta--det">Detalhe</span></div><figcaption>Aberto e de perto, para mostrar o recheio.</figcaption></figure>
+  </div>
+  <div class="comparar">
+    <div><h3>Doce</h3></div>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/doce.jpg" alt=""><span class="etiqueta etiqueta--ind">Individual</span></div><figcaption>A fatia inteira, com as camadas à vista.</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/doce-detalhe.jpg" alt=""><span class="etiqueta etiqueta--det">Detalhe</span></div><figcaption>Textura da massa, recheio e confeitos.</figcaption></figure>
   </div>
   <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>3</span></div>
 </section>
 
-<!-- 4 · ENQUADRAMENTO -->
+<!-- 4 · COMBO E ÁREA DE SEGURANÇA -->
 <section class="pg">
-  <span class="rotulo" style="--c:var(--roxo)">O quadro</span>
-  <h2>Fotografe com folga: o design recorta</h2>
-  <p class="lead">A mesma foto vira post de feed (4:5) e Stories (9:16). Fotografe na vertical, deixe margem e mantenha os 3 itens no centro.</p>
-  <div class="quadro">
-    <div class="quadro__foto">
-      <img src="../../public/images/guia-fotos/04-quadro-fazer.jpg" alt="">
-      <div class="zona zona--topo">interface do app</div>
-      <div class="corte45"><span>recorte 4:5</span></div>
-      <div class="zona zona--base">interface do app</div>
+  <span class="rotulo" style="--c:var(--cyan)">Combo completo</span>
+  <h2>Enquadre aberto: a foto vai ser adaptada</h2>
+  <p class="lead">A mesma foto será usada em vários formatos. Não fotografe pensando em um único corte final: preserve informação ao redor da composição.</p>
+  <div class="usos"><span>Feed do Instagram</span><span>Stories</span><span>Site</span><span>Materiais promocionais</span><span>Displays</span><span>Peças gráficas</span></div>
+  <div class="diagrama">
+    <div class="diagrama__foto">
+      <img src="../../public/images/guia-fotos/combo.jpg" alt="">
+      <div class="margem-corte"></div>
+      <span class="margem-rotulo">margem · pode ser cortada na adaptação</span>
+      <div class="area-segura"><span>área segura</span></div>
     </div>
-    <div class="legenda-quadro">
-      <div><span class="amostra" style="border:.6mm dashed var(--amarelo)"></span><p><b>Recorte do feed (4:5).</b> Os 3 itens inteiros precisam caber aqui dentro. É o miolo da foto vertical.</p></div>
-      <div><span class="amostra" style="background:repeating-linear-gradient(135deg,rgba(61,19,8,.55) 0 2mm,rgba(61,19,8,.35) 2mm 4mm)"></span><p><b>Faixas cobertas no Stories.</b> Em cima fica o nome do perfil; embaixo, a caixa de resposta. Nada importante ali.</p></div>
-      <div><span class="amostra" style="background:var(--bege);border:1px solid var(--filete)"></span><p><b>Margem.</b> Deixe fundo e mesa em volta. Sobra é fácil de cortar; o que ficou fora não dá para recuperar.</p></div>
-      <div class="bloco" style="--c:var(--roxo);margin-top:2mm">
-        <h3>Na prática</h3>
+    <div class="legenda">
+      <div><span class="amostra" style="border:.6mm solid var(--cyan)"></span><p><b>Área segura.</b> Salgado, doce e bebida ficam aqui dentro, com espaço entre eles e a borda.</p></div>
+      <div><span class="amostra" style="background:repeating-linear-gradient(135deg,rgba(61,19,8,.34) 0 2mm,rgba(61,19,8,.16) 2mm 4mm)"></span><p><b>Margem.</b> Fundo e mesa ao redor, nas laterais, em cima e embaixo. É o que permite recortar sem perder a comida.</p></div>
+      <div class="bloco" style="--c:var(--cyan)">
+        <h3>Na foto do combo</h3>
         <ul>
-          <li>Câmera na vertical, sempre.</li>
-          <li>Nenhum prato ou copo encostando na borda.</li>
-          <li>Na dúvida, dê um passo para trás.</li>
+          <li>Os três itens aparecem integralmente.</li>
+          <li>Nenhum prato, copo ou produto cortado pela borda.</li>
+          <li>Nenhum item encostado na borda nem escondido por outro.</li>
+          <li>Não preencha o quadro inteiro com a comida.</li>
         </ul>
       </div>
     </div>
   </div>
+  <p style="font-size:8.8pt;margin-top:5mm"><b>A mesma foto, recortada para outros usos</b> — como a comida está na área segura, ela continua inteira:</p>
+  <div class="recortes">
+    <figure><div class="recorte" style="width:44mm;aspect-ratio:4/5"><img src="../../public/images/guia-fotos/combo.jpg" alt=""></div><figcaption>Original</figcaption></figure>
+    <figure><div class="recorte" style="width:44mm;aspect-ratio:1/1"><img src="../../public/images/guia-fotos/combo.jpg" alt=""></div><figcaption>Quadrado</figcaption></figure>
+    <figure><div class="recorte" style="width:84mm;aspect-ratio:16/9"><img src="../../public/images/guia-fotos/combo.jpg" alt=""></div><figcaption>Horizontal (site, banners)</figcaption></figure>
+  </div>
   <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>4</span></div>
 </section>
 
-<!-- 5 · FAÇA × EVITE (1) -->
+<!-- 5 · COMPOSIÇÃO E ÂNGULOS -->
+<section class="pg">
+  <span class="rotulo" style="--c:var(--laranja)">Composição</span>
+  <h2>Leitura clara, sem posição fixa</h2>
+  <div class="composicao">
+    <div>
+      <p style="font-size:9pt">Na foto do combo deve ser fácil identificar qual é o salgado, qual é o doce e qual é a bebida. A composição pode ser dinâmica e criativa: não existe posição fixa para cada item. O fotógrafo define a melhor para cada combo.</p>
+      <div class="bloco" style="--c:var(--laranja);margin-top:3mm">
+        <h3>Evite</h3>
+        <ul>
+          <li>Sobreposição excessiva e produtos escondidos.</li>
+          <li>Pratos em posições confusas.</li>
+          <li>Objetos decorativos atravessando os alimentos.</li>
+          <li>Um item tão perto da lente que fique desproporcional aos outros, sem intenção estética clara.</li>
+        </ul>
+      </div>
+    </div>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-45.jpg" alt=""></div><figcaption>Um arranjo…</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-arranjo.jpg" alt=""></div><figcaption>…e outro. Os dois com leitura clara e equilibrada.</figcaption></figure>
+  </div>
+
+  <span class="rotulo" style="--c:var(--roxo);margin-top:7mm">Ângulos</span>
+  <h2 style="font-size:18pt">Escolha o ângulo que valoriza cada produto</h2>
+  <p style="font-size:9pt">Nenhum ângulo é obrigatório. A escolha considera a forma do alimento e o que precisa ser valorizado. Exemplos de possibilidades:</p>
+  <div class="angulos">
+    <div class="angulo">
+      <div class="angulo__foto"><img src="../../public/images/guia-fotos/bebida.jpg" alt=""><span class="etiqueta etiqueta--opc">Frontal</span></div>
+      <p style="margin-top:2mm">Pode funcionar melhor para produtos com altura, camadas ou recheios aparentes.</p>
+    </div>
+    <div class="angulo">
+      <div class="angulo__foto"><img src="../../public/images/guia-fotos/combo.jpg" alt=""><span class="etiqueta etiqueta--opc">45<span class="g">°</span></span></div>
+      <p style="margin-top:2mm">Mostra o topo e a lateral dos itens ao mesmo tempo.</p>
+    </div>
+    <div class="angulo">
+      <div class="angulo__foto"><img src="../../public/images/guia-fotos/combo-cima.jpg" alt=""><span class="etiqueta etiqueta--opc">Superior</span></div>
+      <p style="margin-top:2mm">Composições distribuídas sobre a mesa podem funcionar bem vistas de cima.</p>
+    </div>
+    <div class="angulo">
+      <div class="angulo__foto"><img src="../../public/images/guia-fotos/doce-detalhe.jpg" alt=""><span class="etiqueta etiqueta--opc">Aproximação</span></div>
+      <p style="margin-top:2mm">Para destacar uma característica: é a foto de detalhe.</p>
+    </div>
+  </div>
+  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>5</span></div>
+</section>
+
+<!-- 6 · LUZ, COR, FUNDO, DECORAÇÃO -->
+<section class="pg">
+  <span class="rotulo" style="--c:var(--magenta)">Luz, cor e cenário</span>
+  <h2>O produto deve parecer apetitoso e real</h2>
+  <div class="grade2">
+    <div class="bloco" style="--c:var(--amarelo)">
+      <h3>Iluminação</h3>
+      <p style="font-size:8.5pt;margin-bottom:2mm">Sempre que possível, luz suave e bem controlada, que valorize textura, volume, cor, brilho, frescor e acabamento.</p>
+      <ul>
+        <li>Evite sombras extremamente duras sem intenção.</li>
+        <li>Evite áreas estouradas e reflexos excessivos em copos ou embalagens.</li>
+        <li>Evite comida escura demais ou luz que altere a cor real do produto.</li>
+      </ul>
+    </div>
+    <div class="bloco" style="--c:var(--cyan)">
+      <h3>Cor e tratamento</h3>
+      <p style="font-size:8.5pt;margin-bottom:2mm">O tratamento valoriza a foto sem deixá-la artificial. O alimento precisa parecer o que será entregue ao consumidor.</p>
+      <ul>
+        <li>Evite saturação exagerada e contraste excessivo.</li>
+        <li>Evite filtros fortes e temperatura de cor artificial.</li>
+        <li>Evite alterar significativamente a cor do alimento.</li>
+      </ul>
+    </div>
+    <div class="bloco" style="--c:var(--roxo)">
+      <h3>Fundo</h3>
+      <p style="font-size:8.5pt;margin-bottom:2mm">Pode ser neutro, colorido, temático ou decorado. Não há regra única. Verifique se ele:</p>
+      <ul>
+        <li>combina com o combo;</li>
+        <li>tem contraste suficiente com a comida;</li>
+        <li>não prejudica a leitura nem compete com os alimentos.</li>
+      </ul>
+    </div>
+    <div class="bloco" style="--c:var(--laranja)">
+      <h3>Marcas e embalagens</h3>
+      <p style="font-size:8.5pt;margin-bottom:2mm">Evite exposição indevida de marcas comerciais que não fazem parte da comunicação oficial.</p>
+      <ul>
+        <li>Quando necessário, prefira copos, taças, xícaras ou recipientes neutros ou adequados à proposta da casa.</li>
+        <li>Confira também o cenário: objetos com marca visível.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="composicao" style="grid-template-columns:1fr 46mm;margin-top:5mm">
+    <div class="bloco" style="--c:var(--magenta)">
+      <h3>Decoração e elementos temáticos</h3>
+      <p style="font-size:8.5pt;margin-bottom:2mm">Cada casa monta e decora o combo de acordo com sua proposta e com o tema do festival. A decoração pode contextualizar o tema, criar personalidade e complementar a composição. O princípio é equilíbrio: o tema é percebido, a comida lidera.</p>
+      <ul>
+        <li>Observe proporção, posição, escala e relação dos elementos com os alimentos: eles complementam a cena, não parecem colocados ao acaso.</li>
+        <li>Evite excesso de objetos, muitos elementos competindo, objetos muito grandes e fundos carregados.</li>
+        <li>Nada na frente dos produtos, cobrindo ou encostando demais na comida.</li>
+        <li>Se a decoração estiver prejudicando a foto, o fotógrafo pode orientar a casa e sugerir ajustes.</li>
+      </ul>
+    </div>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-decoracao.jpg" alt=""></div><figcaption>Tema presente, comida protagonista.</figcaption></figure>
+  </div>
+  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>6</span></div>
+</section>
+
+<!-- 7 · FAÇA × EVITE (1) -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--laranja)">Faça e evite</span>
   <h2>Os erros mais comuns, lado a lado</h2>
@@ -287,110 +378,94 @@
     <div class="par">
       <div class="par__texto">
         <span class="num">1</span>
-        <h3>Os 3 itens à vista</h3>
-        <p>O público precisa ver salgado, doce e bebida inteiros.</p>
-        <p class="par__porque">Por quê: é o combo que está à venda, não um item só.</p>
+        <h3>Leitura clara do combo</h3>
+        <p>Salgado, doce e bebida inteiros e fáceis de identificar.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/01-combo-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Cada item com espaço próprio, nada na frente.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/01-combo-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Copo na frente do bolo, guardanapo e celular na mesa.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-arranjo.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Cada item visível, nenhum escondendo outro.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-leitura.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Copo na frente do doce, guardanapo cobrindo o salgado.</figcaption></figure>
     </div>
     <div class="par">
       <div class="par__texto">
         <span class="num">2</span>
-        <h3>Luz suave, de lado</h3>
-        <p>Luz difusa lateral desenha textura e mantém a cor real.</p>
-        <p class="par__porque">Por quê: flash direto achata a comida e estoura o brilho.</p>
+        <h3>Margem ao redor</h3>
+        <p>Espaço nas laterais, em cima e embaixo, para as adaptações.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/02-luz-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Janela ou softbox de lado, sombra macia.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/02-luz-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Flash do celular: reflexo estourado e sombra dura.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/combo.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Comida na área segura, com respiro.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-margem.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Quadro cheio: pratos e doce cortados pelas bordas.</figcaption></figure>
     </div>
     <div class="par">
       <div class="par__texto">
         <span class="num">3</span>
-        <h3>Tema sem exagero</h3>
-        <p>Um elemento do Cartoon basta. Quem lidera é a comida.</p>
-        <p class="par__porque">Por quê: adereço demais compete com o produto.</p>
+        <h3>Decoração em equilíbrio</h3>
+        <p>O tema complementa a cena sem sufocar a comida.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/03-cenario-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Um balão de papel no fundo sugere o tema.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/03-cenario-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Balões, confete e estampa: a comida some.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-decoracao.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Elementos no fundo e nas bordas, longe dos pratos.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-decoracao.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Excesso de objetos: a comida se perde.</figcaption></figure>
     </div>
   </div>
-  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>5</span></div>
+  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>7</span></div>
 </section>
 
-<!-- 6 · FAÇA × EVITE (2) -->
+<!-- 8 · FAÇA × EVITE (2) -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--laranja)">Faça e evite</span>
   <div class="pares">
     <div class="par">
       <div class="par__texto">
         <span class="num">4</span>
-        <h3>Bebida sem marca</h3>
-        <p>No copo em que o público vai receber, sem rótulo.</p>
-        <p class="par__porque">Por quê: marca de terceiro não pode aparecer na divulgação.</p>
+        <h3>Luz suave e controlada</h3>
+        <p>Valoriza textura, volume e cor sem estourar.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/05-bebida-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Copo limpo, bebida pronta, na altura do copo.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/05-bebida-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Lata e garrafa com rótulo virado para a câmera.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-45.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Luz difusa, sombras suaves, cor real.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-luz.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Flash direto: áreas estouradas, reflexo e sombra dura.</figcaption></figure>
     </div>
     <div class="par">
       <div class="par__texto">
         <span class="num">5</span>
-        <h3>Recheio bem mostrado</h3>
-        <p>Corte com faca afiada e limpe a lâmina entre um corte e outro.</p>
-        <p class="par__porque">Por quê: o recheio é o que diferencia o item.</p>
+        <h3>Cor próxima da real</h3>
+        <p>O produto na foto precisa ser o produto entregue.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/06-corte-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Corte limpo, recheio virado para a câmera.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/06-corte-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Massa esmagada, recheio espalhado, migalha na mesa.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/doce.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Tratamento natural.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-cor.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>A mesma foto com saturação, contraste e temperatura exagerados.</figcaption></figure>
     </div>
-    <div class="par par--alto">
+    <div class="par">
       <div class="par__texto">
         <span class="num">6</span>
-        <h3>Folga para recortar</h3>
-        <p>Deixe margem em volta de todos os itens.</p>
-        <p class="par__porque">Por quê: sem margem, a foto não serve nem ao feed nem ao Stories.</p>
+        <h3>Proporção equilibrada</h3>
+        <p>A perspectiva não deve distorcer a escala entre os itens.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/04-quadro-fazer.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Tudo inteiro, com respiro.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/04-quadro-evitar.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Prato e copo cortados pela borda.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/combo.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Os três itens em escala coerente.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-proporcao.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Salgado colado na lente: parece enorme, o resto some.</figcaption></figure>
     </div>
   </div>
-  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>6</span></div>
+  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>8</span></div>
 </section>
 
-<!-- 7 · CHECKLIST E ENTREGA -->
+<!-- 9 · MARCAS + CHECKLIST -->
 <section class="pg">
-  <span class="rotulo" style="--c:var(--magenta)">Antes de ir embora</span>
-  <h2>Checklist e entrega</h2>
-  <div class="duas">
-    <div class="bloco" style="--c:var(--magenta)">
-      <h3 style="margin-bottom:3.5mm">No set, por combo</h3>
-      <ul class="check">
-        <li>As 7 fotos da lista, na ordem.</li>
-        <li>Tudo fotografado inteiro antes de cortar.</li>
-        <li>Prato, copo e mesa limpos: sem digital, gota ou migalha.</li>
-        <li>Balanço de branco conferido no cartão cinza.</li>
-        <li>Foco no item principal, conferido com zoom na tela.</li>
-        <li>Nenhuma marca, personagem ou logo de terceiros.</li>
-        <li>Pelo menos uma foto na vertical com folga.</li>
-        <li>Nome da casa anotado antes de trocar de combo.</li>
-      </ul>
+  <span class="rotulo" style="--c:var(--laranja)">Faça e evite</span>
+  <div class="pares">
+    <div class="par">
+      <div class="par__texto">
+        <span class="num">7</span>
+        <h3>Bebida sem marca comercial</h3>
+        <p>Marca de terceiro não deve ser o elemento principal da bebida.</p>
+      </div>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/bebida.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Bebida em copo neutro.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-marca.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Lata e garrafa de marca como protagonistas.</figcaption></figure>
     </div>
-    <div class="bloco" style="--c:var(--cyan)">
-      <h3>Como entregar</h3>
-      <ul style="margin-top:2mm">
-        <li>JPG na resolução máxima da câmera (RAW também, se tiver).</li>
-        <li>Sem texto, sem marca d'água, sem filtro.</li>
-        <li>Uma pasta por casa, com o nome dela.</li>
-      </ul>
-      <p style="font-size:8.5pt;margin-top:4mm"><b>Nome de cada arquivo</b></p>
-      <div class="arquivo">nome-da-casa_01-combo.jpg</div>
-      <ul class="nomes">
-        <li><b>01</b>-combo</li><li><b>05</b>-doce</li>
-        <li><b>02</b>-espaco-texto</li><li><b>06</b>-bebida</li>
-        <li><b>03</b>-vertical</li><li><b>07</b>-detalhe</li>
-        <li><b>04</b>-salgado</li>
-      </ul>
-      <p style="font-size:8pt;margin-top:3mm;color:var(--marrom)">Mais de uma opção da mesma foto? Acrescente uma letra: <b>01-combo-a</b>, <b>01-combo-b</b>.</p>
-    </div>
+  </div>
+  <div class="bloco" style="--c:var(--magenta);margin-top:7mm">
+    <h3 style="margin-bottom:3.5mm">Antes de encerrar cada combo, confira</h3>
+    <ul class="check">
+      <li>Combo completo: salgado, doce e bebida inteiros e fáceis de identificar.</li>
+      <li>Fotos individuais do salgado, do doce e da bebida, com o produto completo.</li>
+      <li>Foto de detalhe, se o produto tiver algo relevante a mostrar.</li>
+      <li>Margem ao redor da composição: nada cortado ou encostado nas bordas.</li>
+      <li>Decoração sem cobrir nem competir com a comida.</li>
+      <li>Luz sem áreas estouradas e cor próxima da real.</li>
+      <li>Nenhuma marca comercial indevida à vista.</li>
+    </ul>
   </div>
   <div class="aviso">
     <img src="../../public/images/logo-seal-sweet-coffee.svg" alt="" style="width:20mm;height:20mm;object-fit:contain;flex:none;background:var(--creme);border-radius:50%;padding:1.5mm">
@@ -399,7 +474,7 @@
       <p>São exemplos gerados por IA, feitos só para mostrar a direção. Não são produtos das casas e não entram na divulgação do festival.</p>
     </div>
   </div>
-  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>7</span></div>
+  <div class="rodape"><span>Guia de fotos · edição Cartoon</span><span>9</span></div>
 </section>
 
 </body>

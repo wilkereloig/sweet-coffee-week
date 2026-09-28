@@ -1003,7 +1003,6 @@ button.link{
 .gf-foto{margin:0;display:grid;gap:8px}
 .gf-foto figcaption{font:500 13.5px/1.35 var(--scw-font);text-wrap:pretty}
 .gf-foto__img{position:relative;aspect-ratio:4/5;border-radius:14px;overflow:hidden;background:var(--scw-creme)}
-.gf-foto__img--alto{aspect-ratio:9/16}
 .gf-foto__img img{display:block;width:100%;height:100%;object-fit:cover}
 .gf-selo{position:absolute;top:8px;left:8px;padding:7px 10px 6px;border-radius:999px;font:800 11px/1 var(--scw-font);letter-spacing:.06em;text-transform:uppercase;color:var(--scw-choco)}
 .gf-selo--fazer{background:var(--scw-cyan)}
