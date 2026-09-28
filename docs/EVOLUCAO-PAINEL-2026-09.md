@@ -140,12 +140,35 @@ PWA e push da revisão de 28/09. Novo: `pg_cron` com `lembrar_vendas` (de hora e
 
 1. **Publicar 4 Edge Functions** (o conector MCP recusa o deploy): `enviar-push`, `regerar-senha-conta`, `criar-conta-organizacao`, `criar-acesso-marca` — `supabase functions deploy <nome> --no-verify-jwt`. Sem a última, "Criar acesso" de marca importada mostra o recado de publicação pendente (não cria duplicata).
 2. **Merge em `master`** quando aprovar (A2).
-3. **Revisão de dados** (Edição → Revisão): 23 avisos — Sweet Duo, Paneer, 8 "instagram" que são veículos, 4 contatos sem endereço, 2 "Indicacao Suzi", duplicidades Arthur e Valeska / Diana Petta, observação "2 pontos (confirmar)" da Paneer.
+3. **Revisão de dados** (Edição → Revisão): 22 avisos — Paneer (razão social), 8 "instagram" que são veículos, 4 contatos sem endereço, 2 "Indicacao Suzi", duplicidades Arthur e Valeska / Diana Petta, observação "2 pontos (confirmar)" da Paneer.
 4. **Trajetória**: confirmar ou descartar as 10 sugestões de acervo (Bolomania, Caffè Basilico's, Canuto's, Casa 1190, Just, Sweet Duo, Marlon Vinicius, Padoca, Paneer, Parma).
 5. **Edição**: preencher o tema (se for "Cartoon", confirmar), a taxa e o horário do lembrete de venda.
 6. **Supabase → Authentication → Leaked password protection**: ligar (configuração de segurança do projeto; não é algo que eu mude).
 7. MFA para a equipe: o Supabase Auth suporta TOTP; exigir exige tela de cadastro do segundo fator e checagem de `aal2` em `pode()` — proposta para a próxima rodada.
 8. As 9 migrations de junho sem arquivo: CSV do SQL Editor (regra: não transcrever).
+
+## Nomes dos participantes (pedido de 29/09/2026)
+
+"Sempre padronize os nomes dos participantes, que devem ser o nome do empreendimento." Regra no banco (`20260929_fase12_padrao_nomes.sql`) — ver `CLAUDE.md` §10.4-b. Aplicada às 16 marcas:
+
+| Na planilha | Padronizado | Regra |
+|---|---|---|
+| BOLDFOOD CONFEITARIA INCLUSIVA | Boldfood Confeitaria Inclusiva | grafia |
+| BOLOMANIA | Bolomania | acervo |
+| Caffè Basilicos | Caffè Basilico's | acervo |
+| Canuto’s | Canuto's | acervo |
+| Casa Alice doceria | Casa Alice Doceria | grafia |
+| COOKITOS | Cookitos | grafia |
+| DELAS CAFÉ BISTRÔ | Delas Café Bistrô | grafia |
+| DIVA DO CAFÉ | Diva do Café | grafia |
+| JUST Food&Coffee | Just Food&Coffee | acervo |
+| Mariana machado ramalho da silva | Sweet Duo Confeitaria | nome do empreendimento (era nome de pessoa) |
+| Mariana’s confeitaria | Mariana's Confeitaria | grafia |
+| PADOCA DO BOSQUE | Padoca do Bosque | acervo |
+| Paneer | Paneer Pâtisserie | acervo (§9.3, forma longa) |
+| Casa 1190 Restaurante e Coffee · Marlon Vinicius - Confeitaria e Café · Parma Doces | sem mudança | já no padrão |
+
+**Para o Wilke decidir:** o site grafa "Casa 1190 - Restaurant e Coffee" e "Marlon Vinicius"; a planilha, "Casa 1190 Restaurante e Coffee" e "Marlon Vinicius - Confeitaria e Café". Enquanto não houver decisão, vale o nome declarado pela marca. Decidido, corrige-se num lugar só (o acervo em `src/data` ou a ficha da marca) e a regra passa a usá-lo.
 
 ## Deixado de fora, com motivo
 

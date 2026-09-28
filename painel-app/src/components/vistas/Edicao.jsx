@@ -265,7 +265,8 @@ function AbaRevisao({ pode, irPara }) {
           <button key={v} type="button" className="ui-chip" aria-pressed={status === v} onClick={() => setStatus(v)}>{rot}</button>
         ))}
       </div>
-      <p className="ui-nota">Nada aqui foi corrigido sozinho: o sistema aponta, uma pessoa decide. Toda correção guarda o valor anterior.</p>
+      <p className="ui-nota">O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p>
+      {status === 'aberta' && <NomesPadrao pode={pode} />}
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && !lista && <Carregando />}
       {lista && lista.length === 0 && <Vazio titulo={status === 'aberta' ? 'Nada para revisar' : 'Nada por aqui'} />}
@@ -292,6 +293,38 @@ function AbaRevisao({ pode, irPara }) {
         ))}</ul>
       )}
     </div>
+  )
+}
+
+/* ── Nomes das marcas: o padrão (nome do empreendimento, grafia correta) ── */
+const ROTULO_REGRA_NOME = { acervo: 'mesma grafia do acervo', grafia: 'grafia corrigida', nome_informado_pela_organizacao: 'nome do empreendimento informado pela organização', revisar: 'precisa de uma pessoa' }
+function NomesPadrao({ pode }) {
+  const [lista, setLista] = React.useState(null)
+  const [aviso, setAviso] = React.useState(null)
+  const carregar = React.useCallback(async () => {
+    try { setLista((await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: false })) || []) } catch (e) { setAviso(traduzirErro(e.message)) }
+  }, [])
+  React.useEffect(() => { carregar() }, [carregar])
+  async function aplicar() {
+    if (!window.confirm('Aplicar o padrão aos nomes listados? O nome anterior fica guardado no histórico.')) return
+    try {
+      const r = (await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: true })) || []
+      const naoAplicados = r.filter((x) => !x.aplicado)
+      setAviso(naoAplicados.length ? naoAplicados.length + ' não mudaram: ' + naoAplicados.map((x) => x.anterior + ' (' + (x.motivo || ROTULO_REGRA_NOME[x.regra]) + ')').join('; ') : { ok: 'Nomes padronizados.' })
+      carregar()
+    } catch (e) { setAviso(traduzirErro(e.message)) }
+  }
+  if (!lista) return null
+  return (
+    <Secao titulo="Nomes das marcas" nota="Padrão: o nome do empreendimento (nunca pessoa nem razão social), na grafia do acervo quando é a mesma marca, senão com maiúsculas, acentos e conectivos corretos. Marca com conta só recebe formatação — ela entra no painel pelo nome."
+      acoes={pode('curadoria.decidir') && lista.some((x) => x.regra !== 'revisar') && <button className="og-btn og-btn--mini" type="button" onClick={aplicar}>Aplicar padrão</button>}>
+      {lista.length === 0 ? <p className="ui-nota">Todos os nomes estão no padrão.</p> : (
+        <ul className="ui-lista-simples">{lista.map((x) => (
+          <li key={x.participante_id}><b>{x.anterior} → {x.nome}</b><span>{ROTULO_REGRA_NOME[x.regra] || x.regra}{x.motivo ? ' · ' + x.motivo : ''}</span></li>
+        ))}</ul>
+      )}
+      {aviso && (aviso.ok ? <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p> : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>)}
+    </Secao>
   )
 }
 

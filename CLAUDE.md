@@ -3050,6 +3050,17 @@ Relatório completo, divergências e pendências em
   por `pg_net` no raw do GitHub, fixado no SHA do commit, e só executa se o
   sha256 bater. Evita transcrever centenas de linhas (e o arquivo divergir do
   banco). O registro da migration guarda o SHA e o hash.
+- **Nome do participante: SEMPRE padronizado** (pedido do Wilke, 29/09/2026).
+  É o nome do EMPREENDIMENTO — nunca pessoa, nunca razão social (sem LTDA/ME).
+  Mesma marca escrita diferente → grafia canônica do acervo (a do site, §9.3);
+  senão, grafia correta: maiúscula de título, conectivos minúsculos, acentos
+  (Café, Bistrô, Pâtisserie), apóstrofo reto, espaço simples; estilo próprio da
+  marca (Food&Coffee) fica. Regra única no banco
+  (`20260929_fase12_padrao_nomes.sql`): gatilho formata toda gravação;
+  importação aplica a regra completa; `padronizar_nomes` revisa/aplica pelo
+  painel (Edição → Revisão). O original vira alias e fica em
+  `snapshot.nome_informado`. ⚠️ Marca **com conta** só recebe formatação: ela
+  entra no painel digitando o nome, e trocar o nome quebraria o login.
 - **Marca importada ganha conta pela ficha** (Acesso → Criar acesso →
   `criar-acesso-marca { participante_id }` → `vincular_conta_participante`).
   ⛔ O cadastro manual recusa nome de marca que já existe.
