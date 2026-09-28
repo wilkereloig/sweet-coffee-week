@@ -416,7 +416,7 @@ export function ContatoPage({ navigate }) {
               Doçarias, cafeterias, confeitarias e restaurantes fazem o pré-cadastro na página Participar. A
               participação passa por curadoria.
             </span>
-            <a className="ctt-porta__link" href="#/participar" onClick={irPara('/participar')}>
+            <a className="ctt-porta__link" href="/participar" onClick={irPara('/participar')}>
               Ir para Participar <SetaDireita />
             </a>
           </li>
@@ -432,7 +432,7 @@ export function ContatoPage({ navigate }) {
               Patrocínio, ativação de marca, mídia e brindes: a proposta entra pela página Apoiar e a
               organização responde com formatos e prazos.
             </span>
-            <a className="ctt-porta__link" href="#/apoiar" onClick={irPara('/apoiar')}>
+            <a className="ctt-porta__link" href="/apoiar" onClick={irPara('/apoiar')}>
               Ir para Apoiar <SetaDireita />
             </a>
           </li>
