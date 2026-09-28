@@ -12,6 +12,11 @@ import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Carregando, Vazio, Erro, Secao, Abas, traduzirErro } from '../ui'
 import { ICONE } from '../PainelShell'
+import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
+import { ROTULO_HISTORICO } from '../../lib/operacao'
+
+// Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
+const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -83,11 +88,16 @@ function AbaCadastro({ participante }) {
           <Linha rotulo="Tema" valor={pa.tema_combo} />
           <Linha rotulo="Justificativa" valor={pa.tema_justificativa} />
           <Linha rotulo="Preço" valor={preco(pa.combo_preco)} />
+          <Linha rotulo="Para viagem" valor={pa.combo_para_viagem == null ? null : pa.combo_para_viagem ? 'sim' : 'não'} />
+          <Linha rotulo="Vegano" valor={pa.combo_vegano == null ? null : pa.combo_vegano ? 'sim' : 'não'} />
+          <Linha rotulo="Diet" valor={pa.combo_diet == null ? null : pa.combo_diet ? 'sim' : 'não'} />
+          <Linha rotulo="Delivery" valor={pa.combo_delivery} />
+          <Linha rotulo="Proposta criativa" valor={pa.combo_proposta} />
         </dl>
         {itens.length
-          ? <ul className="ui-lista-simples">{itens.map((i) => (
+          ? <ul className="ui-lista-simples">{[...itens].sort((a, b) => (a.posicao || 0) - (b.posicao || 0)).map((i) => (
               <li key={i.id}>
-                <b>{(i.tipo || '').toUpperCase()} · {i.nome || '(sem nome)'}</b>
+                <b>{i.posicao ? 'ITEM ' + i.posicao + ' · ' : ''}{(i.tipo || '').toUpperCase()} · {i.nome || '(sem nome)'}</b>
                 {i.descricao && <span>{i.descricao}</span>}
                 {i.ingredientes && <span><i>{i.ingredientes}</i></span>}
                 {restricoes(i) && <span>{restricoes(i)}</span>}
@@ -247,10 +257,31 @@ function AbaHistorico({ participante, pode }) {
 }
 
 /* ── Aba "Acesso": gerar senha nova para a marca ─────────────────────────── */
-function AbaAcesso({ participante, pode }) {
+function AbaAcesso({ participante, pode, onMudou }) {
   const [gerando, setGerando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const [cred, setCred] = React.useState(null)
+
+  // Estabelecimento que já existe (ex.: importado da planilha da edição): a
+  // conta se liga A ELE, em vez de nascer uma marca nova com o mesmo nome.
+  async function criarParaExistente() {
+    if (!window.confirm('Criar o acesso de ' + participante.nome_marca + '?\n\nO login vai ser o nome do estabelecimento e a senha aparece UMA VEZ, aqui.')) return
+    setGerando(true)
+    setErro(null)
+    try {
+      const r = await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: participante.id })
+      if (!r || !r.senha) throw new Error('a função não devolveu as credenciais.')
+      setCred({ login: r.login, senha: r.senha })
+      onMudou && onMudou()
+    } catch (e) {
+      const c = e.dados && e.dados.erro
+      setErro(['origem_obrigatoria', 'entrada_ambigua'].includes(c)
+        ? 'A função de criar acesso ainda não foi atualizada no servidor para marcas importadas. Publique a Edge Function criar-acesso-marca.'
+        : RECADO_MANUAL[c] || traduzirErro(c || e.message))
+    } finally {
+      setGerando(false)
+    }
+  }
 
   async function gerar() {
     if (!window.confirm('Gerar uma senha nova para ' + participante.nome_marca + '?\n\nA senha atual deixa de valer agora. A nova aparece UMA VEZ, aqui na tela.')) return
@@ -271,7 +302,15 @@ function AbaAcesso({ participante, pode }) {
   }
 
   if (!participante.user_id) {
-    return <Vazio titulo="Sem acesso criado">Esta marca ainda não tem conta. Crie o acesso pela candidatura em Respostas (botão Criar acesso) ou pelo cadastro manual em Marcas.</Vazio>
+    return (
+      <Secao titulo="Sem acesso criado" nota="A marca ainda não entra no painel. Ao criar, o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar por WhatsApp.">
+        {cred
+          ? <Credenciais nomeMarca={participante.nome_marca} telefone={participante.telefone} login={cred.login} senha={cred.senha} />
+          : <button className="og-btn og-btn--mini" type="button" disabled={gerando || !pode('marca.liberar')} onClick={criarParaExistente}>{gerando ? 'Criando…' : 'Criar acesso para esta marca'}</button>}
+        {!pode('marca.liberar') && <p className="ui-nota">Sua função não libera acesso de marca.</p>}
+        {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+      </Secao>
+    )
   }
   return (
     <div className="ui-pilha">
@@ -290,7 +329,7 @@ function AbaAcesso({ participante, pode }) {
 }
 
 /* ── A ficha (folha larga com abas) ──────────────────────────────────────── */
-function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLidas }) {
+function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLidas, onMudou }) {
   const [aba, setAba] = React.useState(abaInicial || 'cadastro')
   React.useEffect(() => { setAba(abaInicial || 'cadastro') }, [participante && participante.id, abaInicial])
   const p = participante
@@ -299,7 +338,7 @@ function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLida
       aberto={!!p}
       larga
       titulo={p ? p.nome_marca || '(sem nome)' : ''}
-      sub={p ? (p.edicao_codigo ? 'Edição ' + p.edicao_codigo + ' · ' : '') + rotuloStatus(p.status_cadastro) : ''}
+      sub={p ? [p.edicao_codigo && 'Edição ' + p.edicao_codigo, rotuloStatus(p.status_cadastro), ROTULO_HISTORICO[p.historico_status]].filter(Boolean).join(' · ') : ''}
       onFechar={onFechar}
     >
       {p && (
@@ -310,16 +349,20 @@ function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLida
             onMudar={setAba}
             abas={[
               { chave: 'cadastro', rotulo: 'Cadastro' },
+              { chave: 'operacao', rotulo: 'Operação', n: Number(p.pendencias || 0) },
               { chave: 'mensagens', rotulo: 'Mensagens', n: naoLidas },
+              { chave: 'trajetoria', rotulo: 'Trajetória' },
               { chave: 'historico', rotulo: 'Histórico' },
               { chave: 'acesso', rotulo: 'Acesso' },
             ]}
           />
           <div role="tabpanel" className="ui-painel-aba">
             {aba === 'cadastro' && <AbaCadastro participante={p} />}
+            {aba === 'operacao' && <AbaOperacao participante={p} pode={pode} />}
+            {aba === 'trajetoria' && <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />}
             {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
             {aba === 'historico' && <AbaHistorico participante={p} pode={pode} />}
-            {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} />}
+            {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} />}
           </div>
         </>
       )}
@@ -328,7 +371,7 @@ function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLida
 }
 
 /* ── Cadastro manual ─────────────────────────────────────────────────────── */
-function FolhaCadastroManual({ aberto, pode, onFechar, onCriada }) {
+function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = [] }) {
   const [nome, setNome] = React.useState('')
   const [telefone, setTelefone] = React.useState('')
   const [responsavel, setResponsavel] = React.useState('')
@@ -342,9 +385,14 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada }) {
     setNome(''); setTelefone(''); setResponsavel(''); setEmail(''); setAviso(null); setCriando(false); setCred(null)
   }, [aberto])
 
+  // Marca com esse nome já cadastrada (ex.: importada da planilha): o certo é
+  // criar o acesso NELA, pela ficha — senão nasce um segundo estabelecimento.
+  const jaExiste = nome.trim().length > 2 && existentes.find((p) => compacto(p.nome_marca) === compacto(nome))
+
   async function criarMarcaManual(ev) {
     ev.preventDefault()
     if (!nome.trim()) { setAviso('Escreva o nome do estabelecimento.'); return }
+    if (jaExiste) { setAviso('Já existe uma marca com esse nome. Abra a ficha dela em Marcas e use Acesso → Criar acesso.'); return }
     if (!telefone.trim()) { setAviso('O telefone é como você entrega o acesso.'); return }
     setCriando(true)
     setAviso(null)
@@ -374,6 +422,7 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada }) {
           <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} />
         </label>
         <p className="ui-nota">O login vai ser: <b>{slugPrevisto(nome) || '…'}</b></p>
+        {jaExiste && <p className="ui-nota ui-nota--erro" role="alert">“{jaExiste.nome_marca}” já está cadastrada{jaExiste.user_id ? ' e tem acesso' : ''}. Abra a ficha dela para criar ou regerar o acesso.</p>}
         <label className="og-campo"><span>Telefone (WhatsApp) <abbr title="obrigatório">*</abbr></span>
           <input type="tel" inputMode="tel" autoComplete="off" required placeholder="(84) 90000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
         </label>
@@ -386,7 +435,7 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada }) {
         {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
         {cred && <Credenciais nomeMarca={nome} telefone={telefone} login={cred.login} senha={cred.senha} />}
         {!cred && (
-          <button className="og-btn" type="submit" disabled={criando || !pode('marca.liberar')}>
+          <button className="og-btn" type="submit" disabled={criando || !pode('marca.liberar') || !!jaExiste}>
             {criando ? 'Criando…' : 'Criar marca e acesso'}
           </button>
         )}
@@ -437,7 +486,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
   // Aviso ou outra vista pediu uma marca específica (e talvez uma aba).
   React.useEffect(() => {
     if (!alvo || !alvo.id) return
-    setFicha({ id: alvo.id, aba: alvo.sub === 'mensagens' ? 'mensagens' : alvo.sub === 'historico' ? 'historico' : 'cadastro' })
+    setFicha({ id: alvo.id, aba: ['mensagens', 'historico', 'operacao', 'trajetoria', 'acesso'].includes(alvo.sub) ? alvo.sub : 'cadastro' })
     consumirAlvo && consumirAlvo()
   }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -447,7 +496,11 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
     return (participantes || [])
       .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
       .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
-      .filter((p) => !status || (status === 'mensagens' ? p._naoLidas > 0 : p.status_cadastro === status))
+      .filter((p) => !status || (status === 'mensagens' ? p._naoLidas > 0
+        : status === 'pendencias' ? Number(p.pendencias) > 0
+        : status === 'sem_conta' ? !p.user_id
+        : status === 'possivel' ? p.historico_status === 'possivel_correspondencia'
+        : p.status_cadastro === status))
       .sort(ORDENS[ordem])
   }, [participantes, porMarca, termo, status, ordem])
 
@@ -456,7 +509,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
 
   return (
     <section className="og-vista">
-      <VistaCabeca acento="roxo" icone={ICONE.participantes} titulo="Marcas" nota="Quem tem acesso ao painel: cadastro, conversa e histórico de cada uma" />
+      <VistaCabeca acento="roxo" icone={ICONE.participantes} titulo="Marcas" nota="Cada estabelecimento: cadastro, operação da edição, conversa e trajetória" />
 
       <div className="ui-barra">
         <div className="og-filtros">
@@ -467,6 +520,9 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">Todas</option>
               <option value="mensagens">Com mensagem não lida{totalNaoLidas ? ' (' + totalNaoLidas + ')' : ''}</option>
+              <option value="pendencias">Com dado para revisar</option>
+              <option value="possivel">Possível participação anterior</option>
+              <option value="sem_conta">Sem acesso ao painel</option>
               <option value="aguardando_cadastro">Aguardando cadastro</option>
               <option value="em_preenchimento">Em preenchimento</option>
               <option value="cadastro_completo">Cadastro completo</option>
@@ -488,7 +544,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && participantes === null && <Carregando />}
       {!erro && participantes && participantes.length === 0 && (
-        <Vazio titulo="Nenhuma marca com acesso">
+        <Vazio titulo="Nenhuma marca ainda">
           <p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar <b>Criar acesso</b> na ficha dela, em Respostas, ou cadastrar a marca direto aqui, em <b>Cadastrar marca</b>.</p>
           <p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar.</p>
         </Vazio>
@@ -506,6 +562,10 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
                   <span className="og-item__meta">{resumoParticipante(p)}</span>
                   <span className="og-item__dir">
                     {p._naoLidas > 0 && <span className="og-selo" data-tom="alerta">{p._naoLidas} {p._naoLidas === 1 ? 'mensagem nova' : 'mensagens novas'}</span>}
+                    {Number(p.pendencias) > 0 && <span className="og-selo" data-tom="revisar">{p.pendencias} para revisar</span>}
+                    {p.historico_status === 'recorrente_confirmado' && <span className="og-selo" data-tom="recorrente">recorrente</span>}
+                    {p.historico_status === 'possivel_correspondencia' && <span className="og-selo" data-tom="revisar">já participou?</span>}
+                    {!p.user_id && <span className="og-selo" data-tom="neutro">sem acesso</span>}
                     <span className="og-selo" data-acesso={p.status_cadastro}>{rotuloStatus(p.status_cadastro)}</span>
                     <span className="og-item__data">{dataCurta(p.created_at)}</span>
                   </span>
@@ -523,8 +583,9 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
         naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
         onLidas={() => rpc('get_conversas', { p_secret: lerSenha() }).then((c) => setConversas(c || [])).catch(() => {})}
         onFechar={() => setFicha(null)}
+        onMudou={carregar}
       />
-      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
+      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
     </section>
   )
 }

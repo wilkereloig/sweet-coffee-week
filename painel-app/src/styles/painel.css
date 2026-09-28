@@ -190,11 +190,11 @@ h1,h2,h3{margin:0}
 }
 .og-abasapp__grade{
   position:relative;
-  display:grid;grid-template-columns:repeat(var(--og-cols,6),1fr);
+  display:grid;grid-template-columns:repeat(var(--og-cols,8),1fr);
   height:var(--og-abas-h);
 }
 .og-abasapp__indicador{
-  position:absolute;top:0;left:0;height:3px;width:calc(100% / var(--og-cols,6));
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / var(--og-cols,8));
   background:var(--pn-acento-escuro,var(--scw-amarelo));border-radius:0 0 3px 3px;
   transform:translateX(calc(var(--og-i,0) * 100%));
   transition:transform 300ms var(--scw-ease);
@@ -678,6 +678,10 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 .mc-bloco__corpo .marcar{display:flex;align-items:center;gap:10px;min-height:44px;margin:0 0 4px}
 .mc-bloco__corpo .marcar input{width:22px;height:22px;min-height:22px;margin:0;flex:0 0 auto;accent-color:var(--scw-cyan)}
 .mc-bloco__corpo .marcar span{font:700 14.5px/1.3 var(--f-ui);display:block;margin:0}
+/* Sim/Não e doce/salgado lado a lado; a pergunta ocupa a linha de cima. */
+.mc-bloco__corpo .marcar-grupo{display:flex;flex-wrap:wrap;gap:0 20px;align-items:center;margin:0 0 6px}
+.mc-bloco__corpo .marcar-grupo .marcar{margin:0}
+.mc-bloco__corpo .marcar-grupo__pergunta{flex:1 1 100%;font:700 14px/1.3 var(--f-ui);margin:6px 0 0}
 .pn-vista .aviso{border-radius:12px;padding:12px 16px;margin:0 0 16px;font:400 14.5px/1.45 var(--f-texto);background:var(--scw-bege)}
 .pn-vista .aviso.erro{background:rgba(241,7,103,.08);box-shadow:inset 3px 0 0 var(--scw-magenta)}
 .pn-vista .aviso.ok{background:rgba(1,175,204,.1);box-shadow:inset 3px 0 0 var(--scw-cyan)}
@@ -827,6 +831,68 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 .pn-campo__escuro::placeholder{color:rgba(254,240,221,.5)}
 .pn-erro{display:flex;align-items:center;gap:11px;margin:0 0 4px;padding:13px 15px;border-radius:15px;background:var(--scw-laranja);color:var(--scw-choco);font:700 14px/1.35 var(--f-ui)}
 .pn-link--porta{border:0;background:transparent;padding:0;min-height:44px;display:inline-flex;align-items:center;color:var(--scw-amarelo);font:700 14px/1 var(--f-ui);text-decoration:underline;text-underline-offset:3px}
+
+/* ═══ Operação da edição, trajetória, relacionamento (29/09/2026) ══════════ */
+[data-acento="choco"] .pn-acento-disco{background:var(--scw-choco);color:var(--scw-creme)}
+
+/* Selos de estado: a cor diz a natureza, o texto diz o fato. */
+.og-selo[data-tom="revisar"]{background:var(--scw-amarelo)}
+.og-selo[data-tom="recorrente"]{background:var(--scw-cyan)}
+.og-selo[data-tom="neutro"]{background:transparent;box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo)}
+.og-item__cor[data-tom="bloqueio"]{background:var(--scw-magenta)}
+.og-item__cor[data-tom="aviso"]{background:var(--scw-amarelo)}
+.og-item__cor[data-chave="fotos"]{background:var(--scw-cyan)}
+.og-item__cor[data-chave="festival"]{background:var(--scw-laranja)}
+.og-item__cor[data-chave="tema"],.og-item__cor[data-chave="combo"]{background:var(--scw-amarelo)}
+.og-item__cor[data-tipo="influenciador"]{background:var(--scw-roxo)}
+.og-item__cor[data-tipo="convidado"]{background:var(--scw-cyan)}
+
+/* Botão que se lê como link (ação secundária dentro de uma frase). */
+.ui-link{border:0;background:transparent;padding:0;min-height:44px;color:var(--scw-choco);font:700 14px/1.3 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* Formulário em duas colunas a partir do tablet; o botão ocupa a linha toda. */
+.ui-form--linha-dupla{display:grid;gap:14px 20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){
+  .ui-form--linha-dupla{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ui-form--linha-dupla > .og-campo--linha,
+  .ui-form--linha-dupla > .ui-nota,
+  .ui-form--linha-dupla > .ui-linha-acoes,
+  .ui-form--linha-dupla > button{grid-column:1 / -1;justify-self:start}
+}
+.ui-form--destaque{margin-top:18px;padding-top:18px;border-top:2px solid var(--scw-choco)}
+
+/* Números pequenos, sem hover: não levam a lugar nenhum (§6.15, regra 6). */
+.ui-numeros--compacto{margin:0 0 4px;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}
+.ui-numeros--compacto .ui-numero{padding:12px 14px;cursor:default}
+.ui-numeros--compacto .ui-numero:hover{transform:none;background:var(--scw-bege)}
+.ui-numeros--compacto .ui-numero__n{font-size:clamp(22px,2.2vw,30px)}
+
+/* Trajetória: uma edição por linha, prêmios como fitas curtas. */
+.ui-trajetoria{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-left:2px solid var(--scw-filete);margin-left:6px}
+.ui-trajetoria__item{position:relative;padding:0 0 14px 20px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.ui-trajetoria__item::before{content:'';position:absolute;left:-7px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--scw-creme);box-shadow:inset 0 0 0 2px var(--scw-choco)}
+.ui-trajetoria__item > b{font:700 15px/1.3 var(--f-ui);flex:1 1 100%}
+.ui-trajetoria__premio{font:700 12px/1.2 var(--f-ui);padding:4px 9px;border-radius:999px;background:var(--scw-bege)}
+.ui-trajetoria__premio[data-pos="1"]{background:var(--scw-amarelo)}
+.ui-trajetoria__premio[data-pos="2"]{background:var(--scw-cyan)}
+.ui-trajetoria__premio[data-pos="3"]{background:var(--scw-laranja)}
+
+/* Tabela de vendas: rola na horizontal dentro dela, nunca a página. */
+.ui-tabela-rolagem{overflow-x:auto;max-width:100%;border-top:1px solid var(--scw-filete)}
+.ui-tabela-rolagem:focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px}
+.ui-tabela{border-collapse:collapse;width:100%;font:400 14px/1.3 var(--f-texto);font-variant-numeric:tabular-nums}
+.ui-tabela th,.ui-tabela td{padding:0 8px;border-bottom:1px solid var(--scw-filete);text-align:right;white-space:nowrap;height:44px}
+.ui-tabela thead th{font:700 11px/1 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--scw-marrom)}
+.ui-tabela th[scope="row"]{text-align:left;font:700 14px/1.2 var(--f-ui);position:sticky;left:0;background:var(--scw-creme);min-width:150px;white-space:normal}
+.ui-tabela td[data-vazio="1"]{background:rgba(253,187,26,.16)}
+.ui-tabela__celula{border:0;background:transparent;min-width:44px;min-height:44px;font:inherit;color:inherit;cursor:pointer;border-radius:8px}
+.ui-tabela__celula:hover{background:var(--scw-bege)}
+.ui-tabela__nota{font:400 12px/1 var(--f-ui);color:var(--scw-marrom)}
+
+/* Boas-vindas da marca: trajetória em uma frase, sem caixa. */
+.ui-boasvindas{margin:0 0 var(--espaco-secao)}
+.ui-boasvindas__titulo{margin:0;font:900 clamp(24px,2.6vw,36px)/1.05 var(--f-titulo);letter-spacing:-.035em;text-wrap:balance}
+.ui-boasvindas__linha{margin:8px 0 0;font:400 clamp(15.5px,1.2vw,17px)/1.5 var(--f-texto);color:var(--scw-marrom);max-width:62ch}
 
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do

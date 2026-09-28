@@ -1,4 +1,6 @@
 import React from 'react'
+import { agruparTemas, textoPrazo, diasAte, dataDoItem } from '../../lib/operacao'
+import { chaveDia } from '../../lib/hoje'
 import { rpc } from '../../lib/rpc'
 import { ORIGENS } from '../../lib/respostas'
 import { ETAPAS, colunasMesa } from '../../lib/mesa'
@@ -38,7 +40,7 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
-  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null })
+  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null })
   const [erro, setErro] = React.useState(null)
   const [copiado, setCopiado] = React.useState(null)
 
@@ -64,15 +66,17 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
       setParticipantes([])
     }
     const pegar = (nome, corpo) => rpc(nome, { p_secret: senha, ...corpo }).catch(() => null)
-    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade] = await Promise.all([
+    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes] = await Promise.all([
       pegar(ORIGENS.apoiar.rpc), pegar(ORIGENS.contato.rpc),
       pegar('get_solicitacoes_admin'), pegar('get_sessoes_fotos'),
       pegar('get_conversas'), pegar('get_atividade', { p_limite: 12 }),
+      pegar('get_revisao', { p_status: 'aberta' }), pegar('get_temas'), pegar('get_edicoes'),
     ])
     setExtra({
       dados: { apoiar: apoiar || [], contato: contato || [] },
       solicitacoes: solicitacoes || [], sessoes: sessoes || [], conversas: conversas || [],
-      atividade: atividade || [],
+      atividade: atividade || [], revisao: revisao || [], temas: temas || [],
+      edicao: (edicoes || []).find((e) => e.atual) || null,
     })
   }, [])
 
@@ -88,10 +92,18 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
   })
   const conversasNovas = extra.conversas.filter((c) => Number(c.nao_lidas || 0) > 0)
   const avisosNaoLidos = avisos.filter((n) => !n.lida).length
+  // Da edição como configuração: prazos que estão chegando e temas em conflito.
+  const hoje = chaveDia(new Date())
+  const prazosProximos = ((extra.edicao && extra.edicao.cronograma) || [])
+    .filter((i) => i.tipo === 'prazo' && diasAte(dataDoItem(i), hoje) >= 0 && diasAte(dataDoItem(i), hoje) <= 5)
+  const conflitosTema = agruparTemas(extra.temas).filter((g) => g.conflito && !g.aprovado)
+  const naEdicao = participantes.filter((p) => extra.edicao && p.edicao_codigo === extra.edicao.codigo)
 
   const numeros = [
     { rotulo: 'candidaturas novas', n: (candidaturas || []).filter((r) => r.status === 'novo').length, ir: () => irPara('respostas') },
-    { rotulo: 'marcas com acesso', n: participantes.length, ir: () => irPara('participantes') },
+    { rotulo: 'marcas na edição', n: naEdicao.length, ir: () => irPara('participantes') },
+    { rotulo: 'com acesso ao painel', n: naEdicao.filter((p) => p.user_id).length, ir: () => irPara('participantes') },
+    { rotulo: 'dados para revisar', n: extra.revisao.length, ir: () => irPara('edicao', { vista: 'edicao', sub: 'revisao' }) },
     { rotulo: 'cadastros completos', n: participantes.filter((p) => p.status_cadastro === 'cadastro_completo').length, ir: () => irPara('participantes') },
     { rotulo: 'mensagens não lidas', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: () => irPara('participantes') },
     { rotulo: 'respostas de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => irPara('producao') },
@@ -129,10 +141,24 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
           </ul>
 
           <Secao titulo="Precisa de atenção" nota={avisosNaoLidos ? avisosNaoLidos + (avisosNaoLidos === 1 ? ' aviso não lido no sino' : ' avisos não lidos no sino') : 'Pendências tiradas dos dados de agora'} className="ui-area-atencao">
-            {pendencias.length === 0 && conversasNovas.length === 0
+            {pendencias.length === 0 && conversasNovas.length === 0 && prazosProximos.length === 0 && conflitosTema.length === 0
               ? <p className="ui-nota">Nada pendente agora.</p>
               : (
                 <ul className="ui-atencao">
+                  {prazosProximos.map((i) => (
+                    <li key={'prazo:' + i.id}>
+                      <button type="button" className="ui-atencao__item" data-tipo="agenda" onClick={() => irPara('edicao', { vista: 'edicao', sub: 'configuracao' })}>
+                        <b>{i.titulo}</b>: {textoPrazo(i, hoje)}
+                      </button>
+                    </li>
+                  ))}
+                  {conflitosTema.map((g) => (
+                    <li key={'tema:' + g.chave}>
+                      <button type="button" className="ui-atencao__item" data-tipo="alerta" onClick={() => irPara('edicao', { vista: 'edicao', sub: 'temas' })}>
+                        Tema <b>{g.tema}</b> pedido por {g.itens.length} marcas: decidir
+                      </button>
+                    </li>
+                  ))}
                   {conversasNovas.map((c) => (
                     <li key={'msg:' + c.participante_id}>
                       <button type="button" className="ui-atencao__item" data-tipo="mensagem" onClick={() => abrirLink('marcas/' + c.participante_id + '/mensagens')}>

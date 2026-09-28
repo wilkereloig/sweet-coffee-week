@@ -7,13 +7,16 @@ import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Erro, Secao } from '../ui'
 import { ICONE_MARCA } from '../PainelMarcaShell'
+import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo, itemDoCronograma, dataDoItem } from '../../lib/operacao'
+
+const dataBr = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '')
 
 /*
  * Hoje (marca) — a tela de entrada. Em um olhar: o que já foi feito, o que
  * falta, o que é urgente, se a organização escreveu, quando são as fotos. Cada
  * passo leva ao lugar exato. Embaixo, a venda do dia.
  */
-export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
+export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, consumirAlvo }) {
   const [estado, setEstado] = React.useState('carregando') // carregando | sem-marca | sem-participacao | pronto | erro
   const [marca, setMarca] = React.useState(null)
   const [participacao, setParticipacao] = React.useState(null)
@@ -25,6 +28,11 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
   const [qtd, setQtd] = React.useState('')
   const [salvando, setSalvando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
+  // Edição como configuração: datas e cronograma vêm do banco.
+  const [edicao, setEdicao] = React.useState(null)
+  const [cronograma, setCronograma] = React.useState([])
+  const [tema, setTema] = React.useState(null)
+  const [historia, setHistoria] = React.useState(null)
 
   const hoje = chaveDia(new Date())
   const deHoje = vendas.find((v) => v.dia === hoje)
@@ -36,10 +44,21 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
       const participante = participantes && participantes[0]
       if (!participante) { setEstado('sem-marca'); return }
       setMarca(participante)
+      // A história é só a CONFIRMADA pela organização (o banco decide).
+      api('rpc/marca_minha_historia', { metodo: 'POST', corpo: {} }).then(setHistoria).catch(() => setHistoria(null))
       const participacoes = await api('participacoes?select=*&order=created_at.desc&limit=1')
       const pa = (participacoes && participacoes[0]) || null
       setParticipacao(pa)
       if (!pa) { setEstado('sem-participacao'); return }
+      const ed = encodeURIComponent(pa.edicao_codigo)
+      const [eds, crono, temas] = await Promise.all([
+        api('edicoes?select=*&codigo=eq.' + ed).catch(() => []),
+        api('edicao_cronograma?select=*&edicao_codigo=eq.' + ed + '&order=ordem').catch(() => []),
+        api('temas_propostos?select=*&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1').catch(() => []),
+      ])
+      setEdicao((eds && eds[0]) || null)
+      setCronograma(crono || [])
+      setTema((temas && temas[0]) || null)
       const [itens, unidades, vendasLinhas, solics, estados, sess, arqs, leituras] = await Promise.all([
         api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
         api('participacao_unidades?select=*&participacao_id=eq.' + pa.id),
@@ -68,6 +87,15 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
 
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { setQtd(deHoje ? String(deHoje.quantidade) : '') }, [deHoje])
+  // Aviso "registre as vendas de hoje" ou passo da lista: rola até a venda.
+  React.useEffect(() => {
+    if (!alvo) return
+    if (alvo.id === 'venda' && estado === 'pronto') {
+      const el = document.getElementById('venda-do-dia')
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); const campo = el.querySelector('input'); if (campo) campo.focus({ preventScroll: true }) }
+    }
+    if (estado !== 'carregando') consumirAlvo && consumirAlvo()
+  }, [alvo, estado]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function salvar(ev) {
     ev.preventDefault()
@@ -94,13 +122,22 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
 
   const minhaSessao = sessoes.find((s) => s.participante_id && s.status !== 'cancelada') || null
   const vagas = sessoes.filter((s) => s.status === 'aberto').length
+  const momento = momentoEdicao(edicao, hoje)
+  const prazoComboItem = itemDoCronograma(cronograma, 'combo', hoje)
   const { passos, feitos } = proximosPassos({
     semParticipacao: estado === 'sem-participacao',
     faltam, statusCadastro: participacao ? participacao.status_cadastro : '',
     pedidosPendentes: pedidos.pendentes, prazoMaisProximo: pedidos.prazo,
     msgsNaoLidas: contadores.mensagens || 0,
     sessao: minhaSessao, vagasAbertas: minhaSessao ? 0 : vagas, arquivosParaLer,
+    momento, vendaHojeRegistrada: !!deHoje,
+    tema: tema ? { status: tema.status, tema: tema.tema, observacao: tema.observacao } : null,
+    combo: participacao ? { status: participacao.combo_status, nota: participacao.combo_revisao_nota } : null,
+    fotoLiberacao: participacao ? participacao.foto_liberacao : null,
+    prazoCombo: prazoComboItem ? dataDoItem(prazoComboItem) : null,
   })
+  const trajetoria = resumoTrajetoria(historia)
+  const proximos = proximosDoCronograma(cronograma, hoje, 5)
   const total = vendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
   const ultimosAvisos = avisos.slice(0, 4)
 
@@ -115,6 +152,37 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
       {estado === 'carregando' && <Carregando linhas={3} texto="Carregando o seu dia…" />}
       {estado === 'erro' && <Erro texto="Não deu para carregar agora." onTentar={carregar} />}
       {estado === 'sem-marca' && <Erro titulo="Conta sem marca" texto="Sua conta existe, mas ainda não há marca ligada a ela. Fale com a organização pelo WhatsApp." />}
+
+      {(estado === 'pronto' || estado === 'sem-participacao') && marca && (
+        <header className="ui-boasvindas">
+          {trajetoria.tipo === 'recorrente' && (
+            <>
+              <h2 className="ui-boasvindas__titulo">Bem-vindo de volta, {marca.nome_marca}.</h2>
+              <p className="ui-boasvindas__linha">
+                {trajetoria.participacoes} participações no Sweet &amp; Coffee Week
+                {trajetoria.desde ? ' · desde ' + trajetoria.desde + ' (' + trajetoria.desdeCodigo + ')' : ''}
+                {trajetoria.premios ? ' · ' + trajetoria.premios + (trajetoria.premios === 1 ? ' pódio' : ' pódios') + ' no Sweet Awards' : ''}.
+              </p>
+            </>
+          )}
+          {trajetoria.tipo === 'primeira' && (
+            <>
+              <h2 className="ui-boasvindas__titulo">Bem-vindo ao Sweet &amp; Coffee Week.</h2>
+              <p className="ui-boasvindas__linha">Esta é a sua primeira edição. Comece pelos próximos passos logo abaixo — cada um leva ao lugar certo.</p>
+            </>
+          )}
+          {trajetoria.tipo === 'neutro' && (
+            <h2 className="ui-boasvindas__titulo">Olá, {marca.nome_marca}.</h2>
+          )}
+          {edicao && momento !== 'indefinido' && (
+            <p className="ui-boasvindas__linha">
+              {momento === 'antes' && edicao.nome + ' · o festival começa em ' + dataBr(edicao.festival_inicio) + '.'}
+              {momento === 'durante' && edicao.nome + ' · o festival está acontecendo, até ' + dataBr(edicao.festival_fim) + '.'}
+              {momento === 'depois' && edicao.nome + ' · o festival terminou. Obrigado por fazer parte.'}
+            </p>
+          )}
+        </header>
+      )}
 
       {(estado === 'pronto' || estado === 'sem-participacao') && (
         <div className="ui-grade-painel ui-grade-painel--marca">
@@ -160,6 +228,22 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
             />
           </Secao>
 
+          {proximos.length > 0 && (
+            <Secao titulo="Cronograma da edição" nota="As datas vêm da organização e podem mudar — o painel acompanha.">
+              <ul className="ui-lista-simples">
+                {proximos.map((i) => (
+                  <li key={i.id}>
+                    <b>{i.titulo}</b>
+                    <span>
+                      {i.tipo === 'periodo' ? dataBr(i.inicio) + ' a ' + dataBr(i.fim) : i.tipo === 'prazo' ? 'até ' + dataBr(i.fim) : dataBr(i.inicio)}
+                      {' · '}{textoPrazo(i, hoje)}{i.condicao ? ' · ' + i.condicao : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Secao>
+          )}
+
           <Secao titulo="Últimos avisos" className="ui-area-atividade">
             {ultimosAvisos.length === 0
               ? <p className="ui-nota">Nenhum aviso ainda.</p>
@@ -175,8 +259,13 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
               )}
           </Secao>
 
-          {estado === 'pronto' && (
-            <Secao titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'} className="ui-area-esteira">
+          {estado === 'pronto' && momento === 'antes' && (
+            <Secao titulo="Combos vendidos" className="ui-area-esteira">
+              <p className="ui-nota">O registro diário de combos vendidos começa no primeiro dia do festival{edicao && edicao.festival_inicio ? ', ' + dataBr(edicao.festival_inicio) : ''}. Aqui mesmo, em menos de um minuto por dia.</p>
+            </Secao>
+          )}
+          {estado === 'pronto' && momento !== 'antes' && (
+            <Secao id="venda-do-dia" titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'} className="ui-area-esteira">
               <form className="mc-venda" onSubmit={salvar}>
                 <div className="mc-venda__linha">
                   <label className="mc-venda__rotulo">
@@ -201,6 +290,21 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
                 )}
                 {erro && <p className="mc-venda__erro" role="alert">{erro}</p>}
               </form>
+            </Secao>
+          )}
+          {trajetoria.tipo === 'recorrente' && historia && (historia.edicoes || []).length > 0 && (
+            <Secao titulo="Minha história no Sweet & Coffee Week" nota="Registrada pela organização a partir do acervo do festival.">
+              <ol className="ui-trajetoria">
+                {historia.edicoes.map((e) => {
+                  const premios = (historia.premiacoes || []).filter((p) => p.edicao_codigo === e.codigo)
+                  return (
+                    <li key={e.codigo} className="ui-trajetoria__item">
+                      <b>{e.codigo} · {e.nome}</b>
+                      {premios.map((p, i) => <span key={i} className="ui-trajetoria__premio" data-pos={p.colocacao}>{p.colocacao}º lugar · {p.categoria}</span>)}
+                    </li>
+                  )
+                })}
+              </ol>
             </Secao>
           )}
         </div>

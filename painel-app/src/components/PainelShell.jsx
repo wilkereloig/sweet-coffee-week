@@ -4,19 +4,23 @@ import { rpc } from '../lib/rpc'
 import { interpretarLink } from '../lib/central'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
 
-export const DESTINOS = ['mesa', 'respostas', 'participantes', 'producao', 'fotos', 'equipe']
+export const DESTINOS = ['mesa', 'respostas', 'participantes', 'edicao', 'producao', 'contatos', 'fotos', 'equipe']
 
 export const TITULOS = {
   mesa: ['A mesa', 'o que precisa de atenção hoje'],
   respostas: ['Respostas', 'dos formulários do site'],
-  participantes: ['Marcas', 'cadastro, mensagens e histórico'],
+  participantes: ['Marcas', 'cadastro, operação e trajetória'],
+  edicao: ['Edição', 'cronograma, temas, vendas e revisão'],
+  contatos: ['Contatos', 'relacionamento e Press Kit'],
   producao: ['Produção', 'pedidos, arquivos e fotos'],
   fotos: ['Guia de fotos', 'combos da edição Cartoon'],
   equipe: ['Equipe', 'usuários, acesso e histórico'],
 }
 
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
-const ACENTO_VISTA = { mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo', producao: 'laranja', fotos: 'magenta', equipe: 'marrom' }
+// Oito destinos, seis cores de acento: o ciclo recomeça (§6.3) — edição fica
+// no chocolate e contatos volta ao amarelo, longe da mesa na ordem.
+const ACENTO_VISTA = { mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo', edicao: 'choco', producao: 'laranja', contatos: 'amarelo', fotos: 'magenta', equipe: 'marrom' }
 
 // Exportado: é a mesma peça que VistaCabeca usa no topo de cada vista
 // (§5.3 — não duplicar o SVG por página).
@@ -30,6 +34,8 @@ export const ICONE = {
     <circle cx="16.5" cy="15.5" r="2.5" /><path d="M16.5 11.5v1.2" /><path d="M16.5 18.3v1.2" />
     <path d="m13.6 13.2.9.6" /><path d="m18.5 16.7.9.6" />
   </>,
+  edicao: <><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 9.5h17" /><path d="M8 3v4" /><path d="M16 3v4" /><path d="M7.5 13.5h3" /><path d="M7.5 16.5h6" /></>,
+  contatos: <><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10Z" /></>,
   fotos: <><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" /><circle cx="12" cy="13" r="3.5" /></>,
 }
 const ICONE_SAIR = <><path d="M8.6 17.6 15 11l-6.4-6.6" /><path d="M15 11H3.4" /><path d="M18.6 4.4v13.2" /></>
@@ -39,7 +45,7 @@ function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
   // Magenta entra aqui também: sobre chocolate dá 3,8:1 e não segura o
   // rótulo pequeno da aba (§6.3), então cai no amarelo como roxo e marrom.
-  const escura = cor === 'roxo' || cor === 'marrom' || cor === 'magenta'
+  const escura = cor === 'roxo' || cor === 'marrom' || cor === 'magenta' || cor === 'choco'
   document.body.style.setProperty('--pn-acento', 'var(--scw-' + cor + ')')
   document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')')
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')

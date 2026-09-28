@@ -31,6 +31,10 @@ export function proximosPassos({
   semParticipacao = false, faltam = [], statusCadastro = '', pedidosPendentes = 0,
   prazoMaisProximo = null, msgsNaoLidas = 0, sessao = null, vagasAbertas = 0,
   arquivosParaLer = 0, agora = Date.now(),
+  // Desde a evolução de 29/09/2026 (tudo opcional — sem estes dados o
+  // resultado é o mesmo de antes):
+  momento = 'indefinido', vendaHojeRegistrada = true, tema = null, combo = null,
+  fotoLiberacao = null, prazoCombo = null,
 } = {}) {
   const passos = []
   const feitos = []
@@ -53,12 +57,38 @@ export function proximosPassos({
     })
   }
 
-  if (faltam.length) {
-    passos.push({ chave: 'cadastro', texto: 'Completar o cadastro', detalhe: 'Falta: ' + faltam.join(', ') + '.', tom: 'normal', destino: 'cadastro' })
+  // Durante o festival, a venda do dia vem antes de tudo o que não é conversa.
+  if (momento === 'durante' && !vendaHojeRegistrada) {
+    passos.push({ chave: 'venda', texto: 'Registrar os combos vendidos hoje', detalhe: 'Leva menos de um minuto, logo abaixo.', tom: 'urgente', destino: 'hoje/venda' })
+  }
+
+  if (tema && tema.status === 'recusado') {
+    passos.push({ chave: 'tema', texto: 'Escolher outro tema', detalhe: tema.observacao || 'A organização pediu outro tema para o seu combo.', tom: 'urgente', destino: 'cadastro' })
+  } else if (tema && tema.status === 'aprovado') {
+    feitos.push({ chave: 'tema', texto: 'Tema aprovado: ' + tema.tema })
+  } else if (tema && tema.status === 'proposto') {
+    feitos.push({ chave: 'tema', texto: 'Tema enviado — em análise pela organização' })
+  }
+
+  if (combo && combo.status === 'correcao_solicitada') {
+    passos.push({ chave: 'combo', texto: 'Ajustar o combo', detalhe: combo.nota || 'A organização pediu um ajuste.', tom: 'urgente', destino: 'cadastro' })
+  }
+
+  // Prazo do combo (vem do cronograma da edição, nunca de constante).
+  const prazoDias = prazoCombo ? Math.round((new Date(prazoCombo + 'T23:59:00').getTime() - agora) / 864e5) : null
+  const detalhePrazo = prazoDias === null ? '' : prazoDias < 0 ? ' O prazo do combo já passou.' : prazoDias === 0 ? ' O prazo do combo vence hoje.' : prazoDias <= 5 ? ' O prazo do combo vence em ' + prazoDias + (prazoDias === 1 ? ' dia.' : ' dias.') : ''
+  const prazoApertado = prazoDias !== null && prazoDias <= 3
+
+  if (combo && combo.status === 'correcao_solicitada') {
+    // o passo do ajuste já cobre o cadastro
+  } else if (faltam.length) {
+    passos.push({ chave: 'cadastro', texto: 'Completar o cadastro', detalhe: 'Falta: ' + faltam.join(', ') + '.' + detalhePrazo, tom: prazoApertado ? 'urgente' : 'normal', destino: 'cadastro' })
   } else if (statusCadastro !== 'cadastro_completo') {
     passos.push({ chave: 'concluir', texto: 'Concluir o cadastro', detalhe: 'Está tudo preenchido. Toque em "Concluir cadastro" para entregar à organização.', tom: 'urgente', destino: 'cadastro' })
   } else {
     feitos.push({ chave: 'cadastro', texto: 'Cadastro entregue à organização' })
+    if (combo && combo.status === 'aprovado') feitos.push({ chave: 'combo', texto: 'Combo aprovado' })
+    else if (combo && combo.status === 'em_analise') feitos.push({ chave: 'combo', texto: 'Combo em análise pela organização' })
   }
 
   if (sessao && sessao.status !== 'cancelada' && sessao.status !== 'aberto') {
@@ -67,6 +97,10 @@ export function proximosPassos({
     else passos.push({ chave: 'fotos', texto: 'Preparar o combo para a sessão de fotos', detalhe: null, quando: sessao.data_hora, local: sessao.local || null, tom: 'normal', destino: 'fotos' })
   } else if (vagasAbertas) {
     passos.push({ chave: 'vaga', texto: 'Escolher o horário da sessão de fotos', detalhe: vagasAbertas + (vagasAbertas === 1 ? ' horário disponível.' : ' horários disponíveis.'), tom: 'urgente', destino: 'cadastro/fotos' })
+  } else if (fotoLiberacao === 'nao_liberado' || fotoLiberacao === 'pendente') {
+    // Não diz o motivo: a regra de liberação é da organização (instrução de
+    // 28/09/2026 — não presumir que é só pagamento).
+    passos.push({ chave: 'foto_liberacao', texto: 'Sessão de fotos aguardando liberação', detalhe: 'A organização libera o agendamento. Dúvidas? Escreva em Mensagens.', tom: 'normal', destino: 'mensagens' })
   }
 
   if (arquivosParaLer) passos.push({ chave: 'ler', texto: arquivosParaLer === 1 ? 'Confirmar a leitura de 1 documento' : 'Confirmar a leitura de ' + arquivosParaLer + ' documentos', tom: 'normal', destino: 'arquivos' })

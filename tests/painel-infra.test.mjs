@@ -541,9 +541,13 @@ test('o cadastro manual passa pela MESMA função de acesso da Edge Function', (
 })
 
 test('a função de acesso recusa entrada ambígua e entrada vazia', () => {
-  assert.match(EDGE_ACESSO, /origemId\s*&&\s*manual[\s\S]{0,80}entrada_ambigua/,
-    'aceitar candidatura e cadastro manual juntos cria conta com o nome errado')
-  assert.match(EDGE_ACESSO, /!origemId\s*&&\s*!manual[\s\S]{0,80}origem_obrigatoria/)
+  // Três entradas desde 29/09/2026 (candidatura, estabelecimento existente,
+  // cadastro manual): mais de uma é ambígua, nenhuma é erro.
+  assert.match(EDGE_ACESSO, /\[origemId,\s*participanteExistente,\s*manual\]\.filter\(Boolean\)\.length/,
+    'a contagem de entradas tem que incluir as três portas')
+  assert.match(EDGE_ACESSO, /entradas\s*>\s*1\)\s*return json\(\{ erro: 'entrada_ambigua' \}/,
+    'aceitar duas entradas juntas cria conta com o nome errado')
+  assert.match(EDGE_ACESSO, /entradas\s*===\s*0\)\s*return json\(\{ erro: 'origem_obrigatoria' \}/)
 })
 
 test('a colisão é checada ANTES de criar o usuário', () => {
@@ -568,7 +572,7 @@ test('a RPC do vínculo manual não é chamável pelo navegador', () => {
 })
 
 test('o estado vazio das marcas não descreve o fluxo de convite por e-mail removido', () => {
-  const vazio = MARCAS_JSX.slice(MARCAS_JSX.indexOf('Nenhuma marca com acesso'))
+  const vazio = MARCAS_JSX.slice(MARCAS_JSX.indexOf('Nenhuma marca ainda'))
   assert.ok(!/convite por e-mail/.test(vazio.slice(0, 700)), 'o estado vazio ainda promete convite por e-mail')
   assert.match(vazio.slice(0, 700), /Cadastrar marca/, 'o estado vazio não menciona o caminho do cadastro manual')
 })
@@ -979,7 +983,8 @@ test('Respostas.jsx: salvar pede triagem.editar, criar acesso pede marca.liberar
 test('Marcas.jsx: cadastrar marca (abrir e criar) pede marca.liberar', () => {
   const semC = semComentarios(MARCAS_JSX)
   assert.match(semC, /disabled=\{!pode\('marca\.liberar'\)\}/, 'faltou gate no botão que ABRE o cadastro')
-  assert.match(semC, /disabled=\{criando \|\| !pode\('marca\.liberar'\)\}/, 'faltou gate no botão que CRIA a marca')
+  // Desde 29/09/2026 o botão também trava quando a marca já existe (importada).
+  assert.match(semC, /disabled=\{criando \|\| !pode\('marca\.liberar'\)( \|\| !!jaExiste)?\}/, 'faltou gate no botão que CRIA a marca')
   assert.match(semC, /!pode\('marca\.liberar'\) && <p/, 'falta nota VISÍVEL (title sozinho não é alcançável em botão disabled)')
 })
 

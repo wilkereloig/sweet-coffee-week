@@ -8,6 +8,13 @@
  */
 export const TIPOS = ['doce', 'salgado', 'bebida']
 export const ROTULO_TIPO = { doce: 'O doce', salgado: 'O salgado', bebida: 'A bebida' }
+// Posição no combo (planilha da organização: ITEM 1 doce · ITEM 2 doce ou
+// salgado · ITEM 3 bebida). O tipo só é escolhível no item 2.
+export const ROTULO_POSICAO = { 1: 'Item 1 · doce', 2: 'Item 2 · doce ou salgado', 3: 'Item 3 · bebida' }
+export function itensEmOrdem(itens) {
+  const ordem = { doce: 1, salgado: 2, bebida: 3 }
+  return [...(itens || [])].sort((a, b) => (a.posicao || ordem[a.tipo] || 9) - (b.posicao || ordem[b.tipo] || 9))
+}
 
 // Três canais fixos, não uma lista que a marca monta — mesmo motivo do
 // arquivo estático: o briefing nomeia exatamente estes três.
@@ -27,7 +34,7 @@ export const NOMES_FALTANDO = {
   tema_combo: 'tema escolhido', tema_justificativa: 'justificativa do tema',
   combo_preco: 'preço do combo', unidades: 'ao menos uma unidade com endereço',
   item_doce: 'os dados do doce', item_salgado: 'os dados do salgado',
-  item_bebida: 'os dados da bebida',
+  item_bebida: 'os dados da bebida', item_segundo: 'os dados do segundo item',
 }
 
 // Preço chega como string em formato brasileiro ("1.234,56"): milhar por

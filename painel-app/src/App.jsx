@@ -20,6 +20,8 @@ import { Marcas } from './components/vistas/Marcas'
 import { Producao } from './components/vistas/Producao'
 import { Equipe } from './components/vistas/Equipe'
 import { GuiaFotos } from './components/vistas/GuiaFotos'
+import { Edicao } from './components/vistas/Edicao'
+import { Contatos } from './components/vistas/Contatos'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../src/lib/orgAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
@@ -316,7 +318,7 @@ export function App() {
     <>
       <Conexao />
       <PainelShell
-        vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, producao: Producao, fotos: GuiaFotos, equipe: Equipe }}
+        vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, edicao: Edicao, producao: Producao, contatos: Contatos, fotos: GuiaFotos, equipe: Equipe }}
         onSair={() => sairOrg()}
         permissoes={acoesPermitidas}
         vistaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'mesa'}

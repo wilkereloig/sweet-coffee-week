@@ -4,8 +4,8 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
 import { Carregando } from '../ui'
 import {
-  TIPOS, ROTULO_TIPO, CANAIS, BLOCOS, NOMES_FALTANDO,
-  precoNumero, itemDe, blocoCompleto, progresso,
+  TIPOS, ROTULO_TIPO, CANAIS, BLOCOS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
+  precoNumero, blocoCompleto, progresso,
   primeiroBlocoPendente, canaisParaObjeto, canaisParaArray,
 } from '../../lib/cadastro'
 
@@ -62,8 +62,14 @@ function seloParticipacao(status) {
 
 const MARCA_VAZIA = { nome_marca: '', responsavel: '', telefone: '', email: '', instagram: '', site: '', cnpj: '', razao_social: '' }
 const TEMA_VAZIO = { tema_combo: '', tema_justificativa: '' }
+// Campos do combo que a planilha da organização pede (29/09/2026). Nenhum é
+// obrigatório para concluir: a regra atual só exige tema, itens, preço e endereço.
+const EXTRAS_VAZIO = { combo_para_viagem: null, combo_vegano: null, combo_diet: null, combo_delivery: '', combo_proposta: '' }
+const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
 
 export function Cadastro({ alvo, consumirAlvo } = {}) {
+  const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
+  const [revisao, setRevisao] = React.useState({ comboStatus: 'rascunho', comboNota: null, tema: null })
   const [carregando, setCarregando] = React.useState(true)
   const [erroCarregar, setErroCarregar] = React.useState(null)
   const [semParticipacao, setSemParticipacao] = React.useState(false)
@@ -145,6 +151,13 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
         setTema({ tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' })
         const precoInicial = pa.combo_preco == null ? '' : String(pa.combo_preco).replace('.', ',')
         setPrecoStr(precoInicial)
+        setExtras({
+          combo_para_viagem: pa.combo_para_viagem ?? null, combo_vegano: pa.combo_vegano ?? null, combo_diet: pa.combo_diet ?? null,
+          combo_delivery: pa.combo_delivery || '', combo_proposta: pa.combo_proposta || '',
+        })
+        api('temas_propostos?select=status,tema,observacao&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1')
+          .then((t) => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: (t && t[0]) || null }))
+          .catch(() => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: null }))
 
         const [itensRows, unidadesRows, sessoesRows] = await Promise.all([
           api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
@@ -190,12 +203,15 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
     const camposParticipacao = {
       tema_combo: tema.tema_combo.trim(), tema_justificativa: tema.tema_justificativa.trim(),
       combo_preco: precoNumero(precoStr) || null,
+      combo_para_viagem: extras.combo_para_viagem, combo_vegano: extras.combo_vegano, combo_diet: extras.combo_diet,
+      combo_delivery: extras.combo_delivery.trim() || null, combo_proposta: extras.combo_proposta.trim() || null,
     }
     const salvarItens = () => Promise.all(itens.map((i) => api('participantes_itens?id=eq.' + i.id, {
       metodo: 'PATCH',
       corpo: {
         nome: (i.nome || '').trim(), descricao: (i.descricao || '').trim(), ingredientes: (i.ingredientes || '').trim(),
         vegano: !!i.vegano, sem_gluten: !!i.sem_gluten, sem_lactose: !!i.sem_lactose,
+        ...(i.posicao === 2 ? { tipo: i.tipo } : {}),
       },
       prefer: 'return=representation',
     })))
@@ -241,7 +257,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       setErroSalvar('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participanteId, participacaoId, marca, tema, precoStr, itens, unidades])
+  }, [participanteId, participacaoId, marca, tema, precoStr, itens, unidades, extras])
 
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
 
@@ -273,6 +289,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   function alterarMarca(campo, valor) { setMarca((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarTema(campo, valor) { setTema((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarPreco(valor) { setPrecoStr(valor); agendarSalvar() }
+  function alterarExtra(campo, valor) { setExtras((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarItem(id, campo, valor) {
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, [campo]: valor } : i)))
     agendarSalvar()
@@ -435,6 +452,13 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
             <Bloco indice={1} aberto={blocoAberto === 1} completo={blocoCompleto(1, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 1 ? null : 1))}>
               <p className="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
                 jeito. Conte qual foi a sua leitura.</p>
+              {revisao.tema && (
+                <div className={'aviso' + (revisao.tema.status === 'recusado' ? ' erro' : '')} role={revisao.tema.status === 'recusado' ? 'alert' : 'status'}>
+                  {ROTULO_TEMA_STATUS[revisao.tema.status]}{revisao.tema.observacao ? ' “' + revisao.tema.observacao + '”' : ''}
+                  {revisao.tema.status === 'aprovado' && ' Mudar o tema agora manda a escolha para nova análise.'}
+                </div>
+              )}
+              <p className="nota">Na edição, cada tema é de uma marca só. Se duas pedirem o mesmo, a organização decide pela ordem de chegada e pelo pagamento em dia.</p>
               <label><span>Tema escolhido pela marca</span><input required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /></label>
               <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
                 <textarea required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
@@ -447,19 +471,27 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
               <p className="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
                 que chega até você</b>: muita gente escolhe a rota pelo que consegue comer.
                 As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+              {revisao.comboStatus === 'correcao_solicitada' && (
+                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{revisao.comboNota ? ': “' + revisao.comboNota + '”' : '.'} Corrija e conclua o cadastro de novo.</div>
+              )}
+              {revisao.comboStatus === 'aprovado' && <div className="aviso" role="status">Combo aprovado pela organização.{revisao.comboNota ? ' “' + revisao.comboNota + '”' : ''}</div>}
               {itens.length < TIPOS.length && (
                 <div className="aviso erro" role="alert">
-                  Faltam itens do combo na sua participação ({TIPOS.filter((t) => !itemDe(t, itens)).map((t) => ROTULO_TIPO[t].toLowerCase()).join(', ')}).
-                  Fale com a organização para liberar.
+                  Faltam itens do combo na sua participação. Fale com a organização para liberar.
                 </div>
               )}
               <div>
-                {TIPOS.map((tipo) => {
-                  const it = itemDe(tipo, itens)
-                  if (!it) return null
+                {itensEmOrdem(itens).map((it) => {
+                  const tipo = it.tipo
                   return (
                     <div className="item" key={it.id}>
-                      <div className="topo"><b>{ROTULO_TIPO[tipo]}</b></div>
+                      <div className="topo"><b>{it.posicao ? ROTULO_POSICAO[it.posicao] : ROTULO_TIPO[tipo]}</b></div>
+                      {it.posicao === 2 && (
+                        <div className="marcar-grupo" role="radiogroup" aria-label="O item 2 é doce ou salgado?">
+                          <label className="marcar"><input type="radio" name={'tipo-' + it.id} checked={tipo === 'salgado'} onChange={() => alterarItem(it.id, 'tipo', 'salgado')} /><span>Salgado</span></label>
+                          <label className="marcar"><input type="radio" name={'tipo-' + it.id} checked={tipo === 'doce'} onChange={() => alterarItem(it.id, 'tipo', 'doce')} /><span>Doce</span></label>
+                        </div>
+                      )}
                       <label><span>Nome</span><input value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /></label>
                       <label><span>Descrição <em>(como conversa com o tema)</em></span>
                         <textarea value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
@@ -477,6 +509,20 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
             <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
               <label style={{ maxWidth: 220 }}><span>Valor do combo <em>(em reais)</em></span>
                 <input inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
+              </label>
+              <p className="nota">Sobre o combo inteiro <em>(opcional — ajuda a organização a divulgar)</em>:</p>
+              {[['combo_para_viagem', 'Pode ser para viagem?'], ['combo_vegano', 'O combo é vegano?'], ['combo_diet', 'O combo é diet?']].map(([campo, pergunta]) => (
+                <div className="marcar-grupo" role="radiogroup" aria-label={pergunta} key={campo}>
+                  <span className="marcar-grupo__pergunta">{pergunta}</span>
+                  <label className="marcar"><input type="radio" name={campo} checked={extras[campo] === true} onChange={() => alterarExtra(campo, true)} /><span>Sim</span></label>
+                  <label className="marcar"><input type="radio" name={campo} checked={extras[campo] === false} onChange={() => alterarExtra(campo, false)} /><span>Não</span></label>
+                </div>
+              ))}
+              <label><span>Sobre o delivery do combo <em>(opcional)</em></span>
+                <input value={extras.combo_delivery} onChange={(e) => alterarExtra('combo_delivery', e.target.value)} placeholder="ex.: só retirada; delivery pelo app X" />
+              </label>
+              <label><span>A proposta criativa: qual é a história do combo? <em>(opcional)</em></span>
+                <textarea value={extras.combo_proposta} onChange={(e) => alterarExtra('combo_proposta', e.target.value)} />
               </label>
             </Bloco>
 
