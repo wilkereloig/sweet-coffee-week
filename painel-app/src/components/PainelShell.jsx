@@ -60,7 +60,10 @@ export function PainelShell({ vistas, onSair, permissoes = null, vistaInicial = 
   // 3) — some da navegação pra quem não tem acesso.gerir, em vez de aparecer
   // com botão desabilitado. As outras quatro continuam visíveis: elas têm
   // leitura útil pra todo mundo, só a ESCRITA é que varia por ação.
-  const visiveis = pode('acesso.gerir') ? DESTINOS : DESTINOS.filter((d) => d !== 'equipe')
+  const permitidas = pode('acesso.gerir') ? DESTINOS : DESTINOS.filter((d) => d !== 'equipe')
+  // Só entra na barra a vista que o chamador entregou. No login real são
+  // todas; no atalho de DEV (/painel?guia-fotos, main.jsx) é só o guia.
+  const visiveis = permitidas.filter((d) => vistas[d])
 
   // 'mesa' é a vista inicial de verdade (public/painel/index.html, irPara()).
   const [vista, setVista] = React.useState(vistaInicial)
