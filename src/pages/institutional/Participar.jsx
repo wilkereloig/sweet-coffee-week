@@ -242,7 +242,7 @@ export function ParticiparPage() {
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
               A próxima edição chega em {PROX.mes}{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
-              <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>e o pré-cadastro já abriu.</em>
+              <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>e o <span style={{ whiteSpace: 'nowrap' }}>pré-cadastro</span> já abriu.</em>
             </h1>
             <p className="scw-lead pa-hero__lead">
               Faça o pré-cadastro da sua marca e entre na curadoria da organização.
