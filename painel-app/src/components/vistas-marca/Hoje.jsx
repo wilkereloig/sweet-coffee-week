@@ -2,7 +2,7 @@ import React from 'react'
 import { api } from '../../lib/marcaApi'
 import { blocosPendentes, chaveDia, proximosPassos } from '../../lib/hoje'
 import { minhasSolicitacoes } from '../../lib/pedidosMarca'
-import { dataHoraExtensa, tempoRelativo, rotuloStatus } from '../../lib/central'
+import { dataHoraExtensa, rotuloStatus } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Erro, Secao } from '../ui'
@@ -12,11 +12,11 @@ import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo, item
 const dataBr = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '')
 
 /*
- * Hoje (marca) — a tela de entrada. Em um olhar: o que já foi feito, o que
- * falta, o que é urgente, se a organização escreveu, quando são as fotos. Cada
- * passo leva ao lugar exato. Embaixo, a venda do dia.
+ * Hoje (marca) — a tela de entrada. Primeiro o próximo passo (cada um leva ao
+ * lugar exato); no festival, a venda do dia logo abaixo. O resto — cronograma,
+ * história, o que já foi feito — é consulta e fica depois ou recolhido.
  */
-export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, consumirAlvo }) {
+export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo }) {
   const [estado, setEstado] = React.useState('carregando') // carregando | sem-marca | sem-participacao | pronto | erro
   const [marca, setMarca] = React.useState(null)
   const [participacao, setParticipacao] = React.useState(null)
@@ -139,7 +139,6 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
   const trajetoria = resumoTrajetoria(historia)
   const proximos = proximosDoCronograma(cronograma, hoje, 5)
   const total = vendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
-  const ultimosAvisos = avisos.slice(0, 4)
 
   return (
     <section className="ui-vista-marca">
@@ -154,36 +153,32 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
       {estado === 'sem-marca' && <Erro titulo="Conta sem marca" texto="Sua conta existe, mas ainda não há marca ligada a ela. Fale com a organização pelo WhatsApp." />}
 
       {(estado === 'pronto' || estado === 'sem-participacao') && marca && (
-        <header className="ui-boasvindas">
+        // Contexto em uma ou duas linhas, sem título próprio: o título da tela
+        // já é a VistaCabeca (desktop) ou a barra fixa (celular).
+        <div className="ui-boasvindas">
           {trajetoria.tipo === 'recorrente' && (
-            <>
-              <h2 className="ui-boasvindas__titulo">Bem-vindo de volta, {marca.nome_marca}.</h2>
-              <p className="ui-boasvindas__linha">
-                {trajetoria.participacoes} participações no Sweet &amp; Coffee Week
-                {trajetoria.desde ? ' · desde ' + trajetoria.desde + ' (' + trajetoria.desdeCodigo + ')' : ''}
-                {trajetoria.premios ? ' · ' + trajetoria.premios + (trajetoria.premios === 1 ? ' pódio' : ' pódios') + ' no Sweet Awards' : ''}.
-              </p>
-            </>
+            <p className="ui-boasvindas__linha">
+              Bem-vindo de volta: {trajetoria.participacoes} participações no Sweet &amp; Coffee Week
+              {trajetoria.desde ? ', desde ' + trajetoria.desde + ' (' + trajetoria.desdeCodigo + ')' : ''}
+              {trajetoria.premios ? ', ' + trajetoria.premios + (trajetoria.premios === 1 ? ' pódio' : ' pódios') + ' no Sweet Awards' : ''}.
+            </p>
           )}
           {trajetoria.tipo === 'primeira' && (
-            <>
-              <h2 className="ui-boasvindas__titulo">Bem-vindo ao Sweet &amp; Coffee Week.</h2>
-              <p className="ui-boasvindas__linha">Esta é a sua primeira edição. Comece pelos próximos passos logo abaixo — cada um leva ao lugar certo.</p>
-            </>
-          )}
-          {trajetoria.tipo === 'neutro' && (
-            <h2 className="ui-boasvindas__titulo">Olá, {marca.nome_marca}.</h2>
+            <p className="ui-boasvindas__linha">Esta é a sua primeira edição no Sweet &amp; Coffee Week. Comece pelo primeiro passo abaixo.</p>
           )}
           {edicao && momento !== 'indefinido' && (
             <p className="ui-boasvindas__linha">
-              {momento === 'antes' && edicao.nome + ' · o festival começa em ' + dataBr(edicao.festival_inicio) + '.'}
-              {momento === 'durante' && edicao.nome + ' · o festival está acontecendo, até ' + dataBr(edicao.festival_fim) + '.'}
-              {momento === 'depois' && edicao.nome + ' · o festival terminou. Obrigado por fazer parte.'}
+              {momento === 'antes' && edicao.nome + ': o festival começa em ' + dataBr(edicao.festival_inicio) + '.'}
+              {momento === 'durante' && edicao.nome + ': o festival está acontecendo, até ' + dataBr(edicao.festival_fim) + '.'}
+              {momento === 'depois' && edicao.nome + ': o festival terminou. Obrigado por fazer parte.'}
             </p>
           )}
-        </header>
+        </div>
       )}
 
+      {/* Ordem = prioridade: o próximo passo; no festival, a venda do dia (o
+          gesto diário); depois o cronograma e a história. No desktop o
+          cronograma vai para a coluna da direita. Avisos ficam no sino. */}
       {(estado === 'pronto' || estado === 'sem-participacao') && (
         <div className="ui-grade-painel ui-grade-painel--marca">
           <Secao titulo="Próximos passos" className="ui-area-atencao">
@@ -212,10 +207,14 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
                   ))}
                 </ol>
               )}
+            {/* O que já foi feito é consulta, não tarefa: fica recolhido. */}
             {feitos.length > 0 && (
-              <ul className="ui-feitos" aria-label="Já feito">
-                {feitos.map((f) => <li key={f.chave}>{f.texto}</li>)}
-              </ul>
+              <details className="ui-recolhe">
+                <summary>Já feito ({feitos.length})</summary>
+                <ul className="ui-feitos">
+                  {feitos.map((f) => <li key={f.chave}>{f.texto}</li>)}
+                </ul>
+              </details>
             )}
             <AvisosAparelho
               compacto
@@ -228,42 +227,6 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
             />
           </Secao>
 
-          {proximos.length > 0 && (
-            <Secao titulo="Cronograma da edição" nota="As datas vêm da organização e podem mudar — o painel acompanha.">
-              <ul className="ui-lista-simples">
-                {proximos.map((i) => (
-                  <li key={i.id}>
-                    <b>{i.titulo}</b>
-                    <span>
-                      {i.tipo === 'periodo' ? dataBr(i.inicio) + ' a ' + dataBr(i.fim) : i.tipo === 'prazo' ? 'até ' + dataBr(i.fim) : dataBr(i.inicio)}
-                      {' · '}{textoPrazo(i, hoje)}{i.condicao ? ' · ' + i.condicao : ''}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Secao>
-          )}
-
-          <Secao titulo="Últimos avisos" className="ui-area-atividade">
-            {ultimosAvisos.length === 0
-              ? <p className="ui-nota">Nenhum aviso ainda.</p>
-              : (
-                <ul className="ui-lista-simples">
-                  {ultimosAvisos.map((n) => (
-                    <li key={n.id}>
-                      <button type="button" className="og-link" onClick={() => n.link && abrirLink(n.link)}>{n.titulo}</button>
-                      <span className="ui-nota">{tempoRelativo(n.criada_em)}{n.lida_em ? '' : ' · novo'}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-          </Secao>
-
-          {estado === 'pronto' && momento === 'antes' && (
-            <Secao titulo="Combos vendidos" className="ui-area-esteira">
-              <p className="ui-nota">O registro diário de combos vendidos começa no primeiro dia do festival{edicao && edicao.festival_inicio ? ', ' + dataBr(edicao.festival_inicio) : ''}. Aqui mesmo, em menos de um minuto por dia.</p>
-            </Secao>
-          )}
           {estado === 'pronto' && momento !== 'antes' && (
             <Secao id="venda-do-dia" titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'} className="ui-area-esteira">
               <form className="mc-venda" onSubmit={salvar}>
@@ -276,7 +239,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
                   <span className="mc-venda__total"><b>{total}</b><span>no total da edição</span></span>
                 </div>
                 {vendas.length > 0 && (
-                  <div className="mc-venda__dias">
+                  <div className="mc-venda__dias" aria-label="Últimos dias lançados">
                     {vendas.slice(0, 14).map((v) => {
                       const d = new Date(v.dia + 'T00:00:00')
                       return (
@@ -292,8 +255,31 @@ export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [], alvo, co
               </form>
             </Secao>
           )}
+
+          {proximos.length > 0 && (
+            <Secao
+              titulo="Cronograma da edição"
+              className="ui-area-atividade"
+              nota={estado === 'pronto' && momento === 'antes'
+                ? 'O registro diário de combos vendidos abre aqui no primeiro dia do festival. As datas vêm da organização e podem mudar.'
+                : 'As datas vêm da organização e podem mudar — o painel acompanha.'}
+            >
+              <ul className="ui-lista-simples">
+                {proximos.map((i) => (
+                  <li key={i.id}>
+                    <b>{i.titulo}</b>
+                    <span>
+                      {i.tipo === 'periodo' ? dataBr(i.inicio) + ' a ' + dataBr(i.fim) : i.tipo === 'prazo' ? 'até ' + dataBr(i.fim) : dataBr(i.inicio)}
+                      {' · '}{textoPrazo(i, hoje)}{i.condicao ? ' · ' + i.condicao : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Secao>
+          )}
+
           {trajetoria.tipo === 'recorrente' && historia && (historia.edicoes || []).length > 0 && (
-            <Secao titulo="Minha história no Sweet & Coffee Week" nota="Registrada pela organização a partir do acervo do festival.">
+            <Secao titulo="Minha história no Sweet & Coffee Week" nota="Registrada pela organização a partir do acervo do festival." className="ui-area-historia">
               <ol className="ui-trajetoria">
                 {historia.edicoes.map((e) => {
                   const premios = (historia.premiacoes || []).filter((p) => p.edicao_codigo === e.codigo)

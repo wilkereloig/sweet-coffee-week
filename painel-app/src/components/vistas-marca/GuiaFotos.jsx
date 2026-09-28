@@ -1,6 +1,7 @@
 import React from 'react'
 import { ParesFotos, BaixarPdf } from '../vistas/GuiaFotos'
-import { ICONE } from '../PainelShell'
+import { ICONE_MARCA } from '../PainelMarcaShell'
+import { VistaCabeca } from '../VistaCabeca'
 
 /*
  * Guia de fotos — lado da MARCA: como preparar o combo para a sessão de
@@ -38,17 +39,7 @@ const SESSAO = [
 export function GuiaFotos() {
   return (
     <section className="gf">
-      <div className="pn-vista-cabeca" data-acento="magenta">
-        <span className="pn-acento-disco" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            {ICONE.fotos}
-          </svg>
-        </span>
-        <span className="pn-vista-cabeca__texto">
-          <span className="pn-vista-cabeca__titulo">Guia de fotos</span>
-          <span className="pn-vista-cabeca__nota">Como preparar o seu combo para a sessão</span>
-        </span>
-      </div>
+      <VistaCabeca acento="magenta" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.fotos} titulo="Guia de fotos" nota="Como preparar o seu combo para a sessão" />
 
       <div className="gf-topo">
         <p className="gf-tese">Da foto para a mesa: <strong>a mesma experiência</strong>.</p>

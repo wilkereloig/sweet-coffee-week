@@ -29,7 +29,7 @@ function DiscoOrganizacao() {
  * de virar um terceiro cartão em BoasVindas — "áreas diferentes" ali quer
  * dizer org × marca, não os dois jeitos de entrar como organização.
  */
-export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
+export function LoginOrganizacao({ onEntrar, onEntrarConta, onVoltar }) {
   // Conta pessoal é a porta principal desde 28/09/2026: é ela que assina o
   // histórico com o nome de quem fez. A senha compartilhada segue como
   // reserva (e pode ser desligada em Equipe quando todos tiverem conta).
@@ -79,17 +79,15 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
   if (modo === 'conta') {
     return (
       <div className="pn-porta" id="login">
-        <div className="pn-porta__caixa">
+        <div className="pn-porta__caixa pn-porta__caixa--estreita">
           <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
-          <button type="button" className="pn-link--porta pn-porta__voltar" onClick={() => setModo('senha')}>
-            Usar a senha compartilhada da equipe
-          </button>
+          <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}>‹ Voltar</button>
           <form className="pn-setor pn-setor--org" onSubmit={enviarConta}>
             <DiscoOrganizacao />
-            <span>
-              <span className="pn-setor__nome">Organização</span>
-              <span className="pn-setor__nota">Entre com o seu e-mail. É o seu nome que aparece no histórico do que você fizer.</span>
-            </span>
+            <div>
+              <h1 className="pn-setor__nome">Organização</h1>
+              <p className="pn-setor__nota">Entre com o seu e-mail. É o seu nome que aparece no histórico do que você fizer.</p>
+            </div>
             <label className="pn-campo--porta">
               <span className="pn-campo__rotulo">E-mail</span>
               <input
@@ -113,13 +111,18 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
               />
             </label>
             {erroConta && <div className="pn-erro" role="alert">{erroConta}</div>}
-            {avisoConta && <div className="pn-erro" role="status">{avisoConta}</div>}
+            {avisoConta && <div className="pn-info" role="status">{avisoConta}</div>}
             <button className="og-btn og-btn--amarelo" type="submit" disabled={carregandoConta}>
               {carregandoConta ? 'Conferindo…' : 'Entrar no painel'}
             </button>
-            <button className="pn-link--porta" type="button" onClick={() => setAvisoConta(AVISO_ESQUECI_CONTA)}>
-              Perdi meu acesso
-            </button>
+            <div className="pn-setor__pe">
+              <button className="pn-link--porta" type="button" onClick={() => setAvisoConta(AVISO_ESQUECI_CONTA)}>
+                Perdi meu acesso
+              </button>
+              <button className="pn-link--porta" type="button" onClick={() => setModo('senha')}>
+                Usar a senha compartilhada
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -128,14 +131,15 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
 
   return (
     <div className="pn-porta" id="login">
-      <div className="pn-porta__caixa">
+      <div className="pn-porta__caixa pn-porta__caixa--estreita">
         <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
+        <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}>‹ Voltar</button>
         <form className="pn-setor pn-setor--org" onSubmit={enviar}>
           <DiscoOrganizacao />
-          <span>
-            <span className="pn-setor__nome">Senha compartilhada</span>
-            <span className="pn-setor__nota">Acesso de reserva da equipe. O que for feito por aqui fica no histórico como “Acesso compartilhado”, sem o seu nome.</span>
-          </span>
+          <div>
+            <h1 className="pn-setor__nome">Senha compartilhada</h1>
+            <p className="pn-setor__nota">Acesso de reserva da equipe. O que for feito por aqui fica no histórico como “Acesso compartilhado”, sem o seu nome.</p>
+          </div>
           <label className="pn-campo--porta">
             <span className="pn-campo__rotulo">Senha da equipe</span>
             <input
@@ -151,9 +155,11 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
           <button className="og-btn og-btn--amarelo" type="submit" disabled={carregando}>
             {carregando ? 'Conferindo…' : 'Entrar no painel'}
           </button>
-          <button className="pn-link--porta" type="button" onClick={() => setModo('conta')}>
-            ‹ Entrar com a minha conta
-          </button>
+          <div className="pn-setor__pe">
+            <button className="pn-link--porta" type="button" onClick={() => setModo('conta')}>
+              Entrar com a minha conta
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { NivelTitulo } from './ui'
 
 /*
  * Painel deslizante genérico (gaveta no desktop, folha no celular) — usado
@@ -82,7 +83,9 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
         </div>
-        <div className="og-detalhe__rolo">{children}</div>
+        <div className="og-detalhe__rolo">
+          <NivelTitulo.Provider value={3}>{children}</NivelTitulo.Provider>
+        </div>
       </aside>
     </>
   )

@@ -2,7 +2,9 @@ import React from 'react'
 import { api, registrarPendente } from '../../lib/marcaApi'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
-import { Carregando } from '../ui'
+import { Carregando, Erro, Vazio } from '../ui'
+import { VistaCabeca } from '../VistaCabeca'
+import { ICONE_MARCA } from '../PainelMarcaShell'
 import {
   TIPOS, ROTULO_TIPO, CANAIS, BLOCOS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
   precoNumero, blocoCompleto, progresso,
@@ -16,9 +18,9 @@ import {
  * acordeão/autosave/concluir (~4855-5634). Sem DOM: todo campo é controlado
  * por estado React; a lógica de completude vive em lib/cadastro.js.
  *
- * ⚠️ Não recebe props do Shell — PainelMarcaShell.jsx hoje monta `<Vista />`
- * sem nada. O cabeçalho (`pn-cabeca__sub`, badge de notificação) segue vazio
- * até uma fase futura ligar isso; não é escopo desta vista.
+ * O resumo (situação, progresso e "salvo") fica preso ao topo da rolagem:
+ * os blocos são longos, e quem preenche precisa ver o progresso e o
+ * salvamento sem voltar ao início.
  */
 
 const ICONE_BLOCO = [
@@ -31,8 +33,8 @@ const ICONE_BLOCO = [
 const TITULO_BLOCO = [
   { b: '01 · A marca', s: 'Quem participa' },
   { b: '02 · O tema', s: 'Sua leitura do tema da edição' },
-  { b: '03 · Os três itens', s: 'Doce, salgado e bebida' },
-  { b: '04 · Preço', s: 'Quanto custa o combo' },
+  { b: '03 · Os três itens', s: 'Dois itens de comer e uma bebida' },
+  { b: '04 · Preço e detalhes', s: 'Valor, viagem, delivery e a proposta' },
   { b: '05 · Onde encontrar', s: 'Suas unidades' },
 ]
 
@@ -40,15 +42,15 @@ function Bloco({ indice, aberto, completo, onToggle, children }) {
   const t = TITULO_BLOCO[indice]
   return (
     <div className={'mc-bloco' + (aberto ? ' is-aberto' : '') + (completo ? ' is-pronto' : '')} data-bloco={indice}>
-      <button type="button" className="mc-bloco__cabeca" aria-expanded={aberto} onClick={onToggle}>
+      <button type="button" className="mc-bloco__cabeca" aria-expanded={aberto} aria-controls={'bloco-' + indice} onClick={onToggle}>
         <span className="mc-bloco__disco" aria-hidden="true">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">{ICONE_BLOCO[indice]}</svg>
         </span>
         <span className="mc-bloco__texto"><b>{t.b}</b><span>{t.s}</span></span>
         <span className={'selo' + (completo ? ' completo' : '')}>{completo ? 'Pronto' : 'Pendente'}</span>
-        <svg className="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="#6A2C15" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2" /></svg>
+        <svg className="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2" /></svg>
       </button>
-      <div className="mc-bloco__corpo" hidden={!aberto}>{children}</div>
+      <div className="mc-bloco__corpo" id={'bloco-' + indice} hidden={!aberto}>{children}</div>
     </div>
   )
 }
@@ -71,7 +73,8 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
   const [revisao, setRevisao] = React.useState({ comboStatus: 'rascunho', comboNota: null, tema: null })
   const [carregando, setCarregando] = React.useState(true)
-  const [erroCarregar, setErroCarregar] = React.useState(null)
+  const [erroCarregar, setErroCarregar] = React.useState(null) // { titulo, texto, tentar }
+  const [tentativa, setTentativa] = React.useState(0)
   const [semParticipacao, setSemParticipacao] = React.useState(false)
 
   const [participanteId, setParticipanteId] = React.useState(null)
@@ -125,7 +128,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
         const linhas = await api('participantes?select=*&order=created_at.desc')
         if (cancelado) return
         if (!linhas || !linhas.length) {
-          setErroCarregar('Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.')
+          setErroCarregar({ titulo: 'Conta sem marca', texto: 'Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.', tentar: false })
           setCarregando(false)
           return
         }
@@ -184,13 +187,13 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       } catch (e) {
         if (cancelado) return
         if (e && e.message === 'sessao_expirada') return
-        setErroCarregar('Não deu para carregar seu cadastro. Tente recarregar a página.')
+        setErroCarregar({ titulo: 'Não consegui carregar o cadastro', texto: e && e.message, tentar: true })
         setCarregando(false)
       }
     })()
     return () => { cancelado = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [tentativa])
 
   // ── Autosave (debounce 900ms, mesmo tempo do arquivo estático) ───────────
   const salvar = React.useCallback(async () => {
@@ -384,10 +387,11 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
 
   if (erroCarregar) {
     return (
-      <div className="card">
-        <h2>Não consegui carregar</h2>
-        <p className="nota">{erroCarregar}</p>
-      </div>
+      <Erro
+        titulo={erroCarregar.titulo}
+        texto={erroCarregar.texto}
+        onTentar={erroCarregar.tentar ? () => { setErroCarregar(null); setCarregando(true); setTentativa((n) => n + 1) } : null}
+      />
     )
   }
 
@@ -399,27 +403,31 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
 
   return (
     <>
-      <p className="rotulo">{semParticipacao ? 'Área da marca' : 'Edição ' + edicaoCodigo}</p>
-      <h1>{marca.nome_marca || 'Sua participação'}</h1>
-      <p style={{ marginTop: 14 }}><span className={selo.classe}>{selo.texto}</span></p>
+      <VistaCabeca
+        acento="cyan" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.cadastro}
+        titulo={marca.nome_marca || 'Sua participação'}
+        nota={semParticipacao ? 'Área da marca' : 'Edição ' + edicaoCodigo + ' · os dados da sua participação'}
+      />
 
       {semParticipacao && (
-        <div className="card" style={{ marginTop: 22 }}>
-          <h2>Ainda não há edição aberta para você</h2>
-          <p className="nota">Sua conta está ativa, mas a organização ainda não abriu a sua
-            participação na próxima edição. Assim que abrir, o formulário aparece aqui.
-            Você não precisa fazer nada agora.</p>
-        </div>
+        <Vazio titulo="Ainda não há edição aberta para você">
+          Sua conta está ativa, mas a organização ainda não abriu a sua participação na próxima
+          edição. Assim que abrir, o formulário aparece aqui. Você não precisa fazer nada agora.
+        </Vazio>
       )}
 
       {!semParticipacao && (
         <div>
-          <div className="progresso" style={{ marginTop: 22 }}>
-            <b>{feitos} de {BLOCOS} blocos</b>
-            <div className="trilha"><i style={{ transform: 'scaleX(' + feitos / BLOCOS + ')' }} /></div>
+          <div className="mc-resumo">
+            <span className={selo.classe}>{selo.texto}</span>
+            <div className="progresso">
+              <b>{feitos} de {BLOCOS} blocos prontos</b>
+              <div className="trilha" role="progressbar" aria-label="Blocos prontos" aria-valuemin={0} aria-valuemax={BLOCOS} aria-valuenow={feitos}>
+                <i style={{ '--p': feitos / BLOCOS }} />
+              </div>
+            </div>
+            <p className="salvo" role="status">{salvoTexto}</p>
           </div>
-
-          <div className="salvo">{salvoTexto}</div>
           {erroSalvar && (
             <div className="aviso erro" role="alert">
               {erroSalvar}{' '}
@@ -507,7 +515,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
             </Bloco>
 
             <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
-              <label style={{ maxWidth: 220 }}><span>Valor do combo <em>(em reais)</em></span>
+              <label className="mc-campo-curto"><span>Valor do combo <em>(em reais)</em></span>
                 <input inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
               </label>
               <p className="nota">Sobre o combo inteiro <em>(opcional — ajuda a organização a divulgar)</em>:</p>
@@ -535,7 +543,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                   <div className="unidade" key={u._key}>
                     <div className="topo">
                       <b>Unidade {i + 1}</b>
-                      <button className="link" type="button" onClick={() => removerUnidade(u._key)}>remover</button>
+                      <button className="link" type="button" aria-label={'Remover a unidade ' + (i + 1)} onClick={() => removerUnidade(u._key)}>remover</button>
                     </div>
                     <label><span>Endereço</span><input value={u.endereco} onChange={(e) => alterarUnidade(u._key, 'endereco', e.target.value)} /></label>
                     <div className="dupla">
@@ -563,15 +571,15 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
               <button className="acao secundaria" type="button" onClick={adicionarUnidade}>+ Adicionar unidade</button>
             </Bloco>
 
-            <button className="acao larga" type="submit" style={{ marginTop: 18 }} disabled={concluindo}>
+            <button className="acao larga" type="submit" disabled={concluindo}>
               {concluindo ? 'Concluindo…' : 'Concluir cadastro'}
             </button>
           </form>
 
-          {concluirAviso && <div className={'aviso ' + concluirAviso.tom} style={{ marginTop: 12 }}>{concluirAviso.texto}</div>}
+          {concluirAviso && <div className={'aviso mc-concluir-aviso ' + concluirAviso.tom} role={concluirAviso.tom === 'erro' ? 'alert' : 'status'}>{concluirAviso.texto}</div>}
 
           {sessoes.length > 0 && (
-            <div className="card" id="fotos-sessao" style={{ marginTop: 18 }}>
+            <div className="card" id="fotos-sessao">
               <p className="rotulo">Fotos do combo</p>
               <h2>Sua sessão</h2>
               <p className="nota">

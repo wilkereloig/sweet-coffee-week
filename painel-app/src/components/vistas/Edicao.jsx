@@ -88,8 +88,8 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
 
       <Secao titulo="Cronograma" nota="O mesmo dado alimenta o painel da marca, a mesa, os lembretes e a próxima ação."
         acoes={podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => setItem({ titulo: '', tipo: 'prazo', chave: '', inicio: '', fim: '', ordem: 100, obrigatorio: false, visivel_participante: true, condicao: '' })}>Adicionar item</button>}>
-        {(edicao.cronograma || []).length === 0 && <Vazio titulo="Sem cronograma" />}
-        <ul className="og-lista">{(edicao.cronograma || []).map((i) => (
+        {(edicao.cronograma || []).length === 0 && <Vazio titulo="Sem cronograma">Adicione os prazos e períodos da edição: eles alimentam o painel da marca e os lembretes.</Vazio>}
+        {(edicao.cronograma || []).length > 0 && <ul className="og-lista">{(edicao.cronograma || []).map((i) => (
           <li key={i.id}>
             <div className="og-item og-item--info">
               <span className="og-item__cor" data-chave={i.chave} aria-hidden="true" />
@@ -104,7 +104,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
               </span>}
             </div>
           </li>
-        ))}</ul>
+        ))}</ul>}
         {item && (
           <form className="ui-form ui-form--linha-dupla ui-form--destaque" onSubmit={salvarItem}>
             <label className="og-campo"><span>Título</span><input type="text" required value={item.titulo} onChange={(e) => setItem({ ...item, titulo: e.target.value })} /></label>
@@ -205,7 +205,8 @@ function AbaVendas({ edicao, pode }) {
         <li className="ui-numero"><span className="ui-numero__n">{r.faltamHoje}</span><span className="ui-numero__rotulo">faltam hoje</span></li>
       </ul>
       {momento !== 'durante' && <p className="ui-nota">{momento === 'antes' ? 'O festival ainda não começou: as vendas aparecem aqui a partir de ' + dataBr(dados.festival_inicio) + '.' : momento === 'depois' ? 'O festival terminou. A tabela é o fechamento.' : 'Configure as datas do festival na aba Configuração.'}</p>}
-      {dias.length > 0 && (
+      {(dados.marcas || []).length === 0 && <Vazio titulo="Nenhuma marca nesta edição">As vendas aparecem aqui quando houver marcas na edição.</Vazio>}
+      {dias.length > 0 && (dados.marcas || []).length > 0 && (
         <div className="ui-tabela-rolagem" role="region" aria-label="Vendas por dia" tabIndex={0}>
           <table className="ui-tabela">
             <thead><tr><th scope="col">Marca</th>{dias.map((d) => <th key={d} scope="col">{dataBr(d).slice(0, 5)}</th>)}<th scope="col">Total</th></tr></thead>
@@ -262,7 +263,7 @@ function AbaRevisao({ pode, irPara }) {
     <div className="ui-pilha">
       <div className="ui-filtros-mini" role="group" aria-label="Situação">
         {[['aberta', 'Abertas'], ['resolvida', 'Resolvidas'], ['descartada', 'Descartadas']].map(([v, rot]) => (
-          <button key={v} type="button" className="ui-chip" aria-pressed={status === v} onClick={() => setStatus(v)}>{rot}</button>
+          <button key={v} type="button" className="ui-chip" aria-pressed={status === v} onClick={() => { if (v !== status) { setLista(null); setStatus(v) } }}>{rot}</button>
         ))}
       </div>
       <p className="ui-nota">O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p>
@@ -300,9 +301,11 @@ function AbaRevisao({ pode, irPara }) {
 const ROTULO_REGRA_NOME = { acervo: 'mesma grafia do acervo', grafia: 'grafia corrigida', nome_informado_pela_organizacao: 'nome do empreendimento informado pela organização', revisar: 'precisa de uma pessoa' }
 function NomesPadrao({ pode }) {
   const [lista, setLista] = React.useState(null)
+  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const carregar = React.useCallback(async () => {
-    try { setLista((await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: false })) || []) } catch (e) { setAviso(traduzirErro(e.message)) }
+    setErro(null)
+    try { setLista((await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: false })) || []) } catch (e) { setErro(e.message) }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   async function aplicar() {
@@ -314,7 +317,13 @@ function NomesPadrao({ pode }) {
       carregar()
     } catch (e) { setAviso(traduzirErro(e.message)) }
   }
-  if (!lista) return null
+  if (!lista) {
+    return (
+      <Secao titulo="Nomes das marcas">
+        {erro ? <Erro texto={erro} onTentar={carregar} /> : <Carregando linhas={2} texto="Conferindo os nomes…" />}
+      </Secao>
+    )
+  }
   return (
     <Secao titulo="Nomes das marcas" nota="Padrão: o nome do empreendimento (nunca pessoa nem razão social), na grafia do acervo quando é a mesma marca, senão com maiúsculas, acentos e conectivos corretos. Marca com conta só recebe formatação — ela entra no painel pelo nome."
       acoes={pode('curadoria.decidir') && lista.some((x) => x.regra !== 'revisar') && <button className="og-btn og-btn--mini" type="button" onClick={aplicar}>Aplicar padrão</button>}>

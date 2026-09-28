@@ -1,6 +1,7 @@
 import React from 'react'
 import { ICONE as ICONE_ORG } from './PainelShell'
 import { Central } from './Central'
+import { AbasCelular } from './AbasCelular'
 import { api } from '../lib/marcaApi'
 import { interpretarLink } from '../lib/central'
 
@@ -9,6 +10,8 @@ import { interpretarLink } from '../lib/central'
  * e navegação por link (aviso do sino, push, próximos passos do Hoje).
  */
 const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'mensagens', 'arquivos', 'fotos']
+// Barra do celular: os quatro de todo dia; Arquivos e Guia de fotos em "Mais".
+const ATALHOS = ['hoje', 'cadastro', 'pedidos', 'mensagens']
 const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', mensagens: 'Mensagens', arquivos: 'Arquivos', fotos: 'Guia de fotos' }
 const SUBS = {
   hoje: 'o que já foi feito e o que vem agora',
@@ -155,6 +158,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
       <header className="pn-cabeca">
         <img className="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="" />
         <div className="pn-cabeca__texto">
+          <p className="pn-cabeca__contexto">Painel SCW · Participante</p>
           <h1 className="pn-cabeca__titulo">{TITULOS[vista]}</h1>
           <p className="pn-cabeca__sub">{SUBS[vista]}</p>
         </div>
@@ -193,27 +197,23 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
         </div>
       </main>
 
-      <nav className="pn-abas" aria-label="Seções">
-        <div className="pn-abas__grade">
-          {DESTINOS.map((d) => (
-            <button
-              key={d}
-              className="pn-aba"
-              type="button"
-              aria-current={d === vista ? 'page' : undefined}
-              onClick={() => irPara(d)}
-            >
-              <span className="pn-aba__icone">
-                <svg fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 32 32" aria-hidden="true">
-                  {ICONE_MARCA[d]}
-                </svg>
-                {contadores[d] > 0 && <span className="pn-badge" aria-hidden="true">{contadores[d]}</span>}
-              </span>
-              <span className="pn-aba__rotulo">{d === 'fotos' ? 'fotos' : TITULOS[d].toLowerCase()}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* Barra de abas do celular (≤900px): quatro atalhos + "Mais". */}
+      <AbasCelular
+        atalhos={ATALHOS}
+        mais={DESTINOS.filter((d) => !ATALHOS.includes(d))}
+        vista={vista}
+        rotulo={(d) => TITULOS[d].toLowerCase()}
+        titulo={(d) => TITULOS[d]}
+        descricao={(d) => SUBS[d]}
+        acento={(d) => ACENTO_VISTA[d]}
+        contadores={contadores}
+        icone={(d) => (
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {ICONE_MARCA[d]}
+          </svg>
+        )}
+        onIr={(d) => irPara(d)}
+      />
     </div>
   )
 }

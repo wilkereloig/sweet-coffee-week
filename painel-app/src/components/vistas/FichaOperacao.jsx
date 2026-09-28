@@ -54,7 +54,7 @@ function Decisao({ titulo, nota, opcoes, valor, texto, rotuloTexto, exigeTexto, 
       <form className="ui-form" onSubmit={salvar}>
         <div className="ui-filtros-mini" role="radiogroup" aria-label={titulo}>
           {Object.entries(opcoes).map(([k, r]) => (
-            <button key={k} type="button" role="radio" className="ui-chip" aria-checked={v === k} aria-pressed={v === k}
+            <button key={k} type="button" role="radio" className="ui-chip" aria-checked={v === k}
               disabled={!podeMudar} onClick={() => setV(k)}>{r}</button>
           ))}
         </div>

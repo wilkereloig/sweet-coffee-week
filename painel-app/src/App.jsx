@@ -79,21 +79,6 @@ function estadoInicial() {
   return 'boas-vindas'
 }
 
-// Volta para BoasVindas sem tocar em LoginOrganizacao.jsx (que a Fase 2A já
-// fechou e não deve ser reaberta aqui).
-function BotaoVoltarFlutuante({ onClick }) {
-  return (
-    <button
-      type="button"
-      className="pn-link--porta"
-      style={{ position: 'fixed', top: 18, left: 18, zIndex: 5 }}
-      onClick={onClick}
-    >
-      ‹ Voltar
-    </button>
-  )
-}
-
 // 'conferindo-marca' e 'conferindo-org' (Fase 2 do plano de funções) mostram
 // a mesma tela — extraído pra não repetir o mesmo bloco a segunda vez (§5.3).
 function TelaConferindo() {
@@ -237,13 +222,11 @@ export function App() {
 
   if (estado === 'login-org') {
     return (
-      <>
-        <BotaoVoltarFlutuante onClick={() => setEstado('boas-vindas')} />
-        <LoginOrganizacao
-          onEntrar={() => setEstado('painel-org')}
-          onEntrarConta={() => setEstado('conferindo-org')}
-        />
-      </>
+      <LoginOrganizacao
+        onEntrar={() => setEstado('painel-org')}
+        onEntrarConta={() => setEstado('conferindo-org')}
+        onVoltar={() => setEstado('boas-vindas')}
+      />
     )
   }
 

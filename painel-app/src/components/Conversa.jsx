@@ -1,6 +1,6 @@
 import React from 'react'
 import { agruparPorDia, dataHoraExtensa } from '../lib/central'
-import { traduzirErro } from './ui'
+import { traduzirErro, Carregando, Erro, Vazio } from './ui'
 
 /*
  * Conversa organização ⇄ marca — a mesma peça nos dois painéis. `lado` é
@@ -48,15 +48,14 @@ export function Conversa({ mensagens, lado, onEnviar, podeEnviar = true, semPerm
 
   return (
     <div className="ui-conversa">
-      <div className="ui-conversa__rolo" aria-live="polite">
-        {carregando && !(mensagens && mensagens.length) && <p className="ui-nota">Carregando a conversa…</p>}
-        {erro && (
-          <p className="ui-nota" role="alert">
-            {traduzirErro(erro)} {onTentar && <button className="og-link" type="button" onClick={onTentar}>Tentar de novo</button>}
-          </p>
-        )}
+      {/* role="log": leitor de tela anuncia só o que CHEGA, não o histórico inteiro. */}
+      <div className="ui-conversa__rolo" role="log" aria-label="Mensagens">
+        {carregando && !(mensagens && mensagens.length) && <Carregando linhas={3} texto="Carregando a conversa…" />}
+        {erro && <Erro titulo="Não consegui carregar a conversa" texto={erro} onTentar={onTentar} />}
         {!carregando && !erro && grupos.length === 0 && (
-          <p className="ui-nota">Nenhuma mensagem ainda. {lado === 'marca' ? 'Escreva para a organização quando precisar.' : 'Escreva a primeira mensagem para a marca.'}</p>
+          <Vazio titulo="Nenhuma mensagem ainda">
+            {lado === 'marca' ? 'Escreva para a organização quando precisar.' : 'Escreva a primeira mensagem para a marca.'}
+          </Vazio>
         )}
         {grupos.map((g) => (
           <div className="ui-conversa__dia" key={g.rotulo}>

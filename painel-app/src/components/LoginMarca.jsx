@@ -36,7 +36,7 @@ export function LoginMarca({ onEntrar, onVoltar }) {
 
   return (
     <div className="pn-porta" id="login">
-      <div className="pn-porta__caixa">
+      <div className="pn-porta__caixa pn-porta__caixa--estreita">
         <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}>‹ Voltar</button>
         <form className="pn-setor pn-setor--marca" onSubmit={enviar}>
@@ -46,10 +46,10 @@ export function LoginMarca({ onEntrar, onVoltar }) {
               <path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4" />
             </svg>
           </span>
-          <span>
-            <span className="pn-setor__nome">Participante</span>
-            <span className="pn-setor__nota">Sua casa. Cadastro do combo, pedidos e a venda de cada dia.</span>
-          </span>
+          <div>
+            <h1 className="pn-setor__nome">Participante</h1>
+            <p className="pn-setor__nota">Entre com o nome do estabelecimento e a senha que a organização enviou.</p>
+          </div>
           <label className="pn-campo--porta">
             <span className="pn-campo__rotulo">Nome do estabelecimento</span>
             <input
@@ -76,13 +76,15 @@ export function LoginMarca({ onEntrar, onVoltar }) {
             />
           </label>
           {erro && <div className="pn-erro" role="alert">{erro}</div>}
-          {aviso && <div className="pn-erro" role="status">{aviso}</div>}
+          {aviso && <div className="pn-info" role="status">{aviso}</div>}
           <button className="og-btn og-btn--cyan-escuro" type="submit" disabled={carregando}>
             {carregando ? 'Conferindo…' : 'Entrar no painel'}
           </button>
-          <button className="pn-link--porta" type="button" onClick={() => setAviso(AVISO_ESQUECI)}>
-            Perdi meu acesso
-          </button>
+          <div className="pn-setor__pe">
+            <button className="pn-link--porta" type="button" onClick={() => setAviso(AVISO_ESQUECI)}>
+              Perdi meu acesso
+            </button>
+          </div>
         </form>
       </div>
     </div>

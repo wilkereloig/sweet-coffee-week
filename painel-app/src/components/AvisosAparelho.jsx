@@ -94,7 +94,7 @@ export function AvisosAparelho({ registrar, remover, testar, explicacao, compact
       <div className="ui-convite">
         <p>{explicacao}</p>
         <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={ligar}>Ligar avisos</button>
-        {aviso && aviso.tom === 'erro' && <p className="ui-nota ui-nota--erro" role="alert">{aviso.texto}</p>}
+        {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : '')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
       </div>
     )
   }

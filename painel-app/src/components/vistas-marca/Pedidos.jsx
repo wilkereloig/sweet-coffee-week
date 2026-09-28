@@ -43,20 +43,24 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
 
   return (
     <li ref={ref} className={'ui-pedido' + (aberto ? ' is-aberto' : '') + (feito ? ' is-feito' : '')}>
-      <button type="button" className="ui-pedido__cabeca" aria-expanded={aberto} onClick={onAbrir}>
+      <button type="button" className="ui-pedido__cabeca" aria-expanded={aberto} aria-controls={'pedido-' + s.id} onClick={onAbrir}>
         <span className="ui-pedido__titulo">{s.titulo}</span>
         <span className={'selo' + (feito ? ' completo' : p.classe ? ' ' + p.classe : '')}>
           {feito ? 'Respondido' : (p.texto || 'Pendente')}
         </span>
+        <svg className="ui-pedido__chevron" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2" /></svg>
       </button>
       {aberto && (
-        <div className="ui-pedido__corpo">
+        <div className="ui-pedido__corpo" id={'pedido-' + s.id}>
+          {s.prazo_em && <p className="ui-pedido__prazo">Prazo: {dataHoraExtensa(s.prazo_em)}</p>}
           <p className="ui-pedido__texto">{s.texto}</p>
-          {s.prazo_em && <p className="ui-nota">Prazo: {dataHoraExtensa(s.prazo_em)}</p>}
           {feito && (
-            <div className="ui-citacao">
-              {estado.resposta ? <p>Sua resposta: {estado.resposta}</p> : <p>A organização deu este pedido como resolvido.</p>}
-              {estado.respondido_em && <p className="ui-nota">{dataHoraExtensa(estado.respondido_em)}</p>}
+            <div className="ui-resposta">
+              <p className="ui-resposta__rotulo">
+                {estado.resposta ? 'Sua resposta' : 'Resolvido pela organização'}
+                {estado.respondido_em ? ' · ' + dataHoraExtensa(estado.respondido_em) : ''}
+              </p>
+              {estado.resposta && <p className="ui-citacao">{estado.resposta}</p>}
             </div>
           )}
           <form className="ui-form" onSubmit={responder}>
@@ -115,7 +119,7 @@ export function Pedidos({ alvo, consumirAlvo }) {
     <section className="ui-vista-marca">
       <VistaCabeca acento="laranja" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.pedidos} titulo="Pedidos" nota="O que a organização pediu, até quando, e a sua resposta" />
 
-      {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={carregar} />}
+      {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={() => { setCarregando(true); carregar() }} />}
       {!erro && carregando && <Carregando linhas={3} />}
       {!erro && !carregando && !participacao && <Vazio titulo="Nenhuma edição aberta para você">Os pedidos aparecem aqui quando a organização abrir a sua participação.</Vazio>}
       {!erro && !carregando && participacao && minhas.length === 0 && <Vazio titulo="Nenhum pedido no momento">Quando a organização pedir algo, chega um aviso e o pedido aparece aqui.</Vazio>}

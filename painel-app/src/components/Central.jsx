@@ -1,5 +1,6 @@
 import React from 'react'
 import { Folha } from './Folha'
+import { Carregando, Erro, Vazio } from './ui'
 import { tempoRelativo, contarNaoLidas } from '../lib/central'
 
 /*
@@ -48,10 +49,10 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
             <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={onLerTodas}>Marcar todos como lidos</button>
           </div>
         )}
-        {carregando && !lista.length && <p className="ui-nota">Carregando os avisos…</p>}
-        {erro && <p className="ui-nota" role="alert">Não deu para atualizar os avisos agora. {erro}</p>}
+        {carregando && !lista.length && <Carregando linhas={3} texto="Carregando os avisos…" />}
+        {erro && <Erro titulo="Não deu para atualizar os avisos" texto={erro} onTentar={onRecarregar} />}
         {!carregando && !erro && lista.length === 0 && (
-          <p className="ui-nota">Nada por aqui ainda. Quando chegar mensagem, pedido, arquivo ou mudança na agenda, aparece aqui.</p>
+          <Vazio titulo="Nada por aqui ainda">Quando chegar mensagem, pedido, arquivo ou mudança na agenda, aparece aqui.</Vazio>
         )}
         {lista.length > 0 && (
           <ul className="ui-avisos">

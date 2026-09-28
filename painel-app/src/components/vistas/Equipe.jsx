@@ -330,7 +330,7 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
               {lista.map((c) => (
                 <li key={c.user_id}>
                   <button type="button" className="og-item" onClick={() => setFolha({ tipo: 'conta', conta: c })}>
-                    <span className="og-item__cor" style={{ background: c.ativo ? 'var(--scw-choco)' : 'var(--scw-laranja)' }} aria-hidden="true" />
+                    <span className="og-item__cor" data-tom={c.ativo ? 'ok' : 'alerta'} aria-hidden="true" />
                     <span className="og-item__nome">{c.nome || c.email}</span>
                     <span className="og-item__meta">{(c.nome ? c.email + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
                     <span className="og-item__dir">
@@ -348,7 +348,7 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
           <Secao titulo="Acesso compartilhado" nota="A senha única da organização. Ações feitas por ela aparecem no histórico como “Acesso compartilhado”, sem nome.">
             <p className="ui-estado-linha">
               <span className="ui-ponto" data-tom={config && config.senha_unica_ativa ? 'neutro' : 'ok'} aria-hidden="true" />
-              <b>{config ? (config.senha_unica_ativa ? 'Ligado' : 'Desligado — só contas pessoais entram') : '…'}</b>
+              <b>{config ? (config.senha_unica_ativa ? 'Ligado' : 'Desligado — só contas pessoais entram') : 'Verificando…'}</b>
             </p>
             {config && config.senha_unica_ativa && admsAtivos === 0 && <p className="ui-nota">Para desligar, primeiro crie pelo menos um administrador com conta própria.</p>}
             {config && (

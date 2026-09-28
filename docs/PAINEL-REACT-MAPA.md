@@ -25,13 +25,18 @@ painel-app/
     components/
       PainelShell.jsx       casca org: rail (nomes ≥1280), cabeçalho com quem
                             está logado, Central, links para item (alvo)
-      PainelMarcaShell.jsx  casca marca: idem, 6 abas
+      PainelMarcaShell.jsx  casca marca: idem, 6 destinos
+      AbasCelular.jsx       barra do celular (≤900px) dos dois painéis: no
+                            máximo 4 atalhos + "Mais" (folha com o resto)
       Central.jsx           sino + lista de avisos (os dois painéis)
       Conversa.jsx          mensagens org ⇄ marca (os dois painéis)
       Atividade.jsx         linha do tempo do histórico
       AvisosAparelho.jsx    push deste aparelho (os dois painéis)
       Conexao.jsx           faixa offline / versão nova
-      ui.jsx                Carregando, Vazio, Erro, Secao, Abas, traduzirErro
+      ui.jsx                Carregando, Vazio, Erro, Secao (h2; h3 dentro de
+                            Folha), Abas, traduzirErro
+      VistaCabeca.jsx       título da vista (<h1> no desktop; no celular o
+                            título é o da barra fixa)
       Folha.jsx             gaveta/folha acessível (Esc, foco preso e devolvido)
       Credenciais.jsx       senha de uso único (copiar / WhatsApp)
       Login*/BoasVindas/DefinirSenha
@@ -112,4 +117,4 @@ clique, manda a aba aberta ir ao item (postMessage) ou abre `/painel/?ir=…`.
   (invariantes de segurança, CSS, SW, contratos com as Edge Functions).
 - Sem teste de componente React e sem teste responsivo automatizado do
   painel (`tests/responsive.mjs` cobre só o site). Conferência visual é manual.
-- Produção: o que muda em `dev/site-completo` só vai ao ar com merge em `master`, que é decisão do Wilke (A2). O banco e as Edge Functions são os mesmos para os dois — migration aplicada vale na hora para o painel publicado também.
+- Produção: o que muda em `dev/site-completo` só vai ao ar com merge em `master`, que é decisão do Wilker (A2). O banco e as Edge Functions são os mesmos para os dois — migration aplicada vale na hora para o painel publicado também.

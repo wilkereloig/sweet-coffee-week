@@ -1,10 +1,13 @@
 import React from 'react'
 import { Central } from './Central'
+import { AbasCelular } from './AbasCelular'
 import { rpc } from '../lib/rpc'
 import { interpretarLink } from '../lib/central'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
 
 export const DESTINOS = ['mesa', 'respostas', 'participantes', 'edicao', 'producao', 'contatos', 'fotos', 'equipe']
+// Os quatro de todo dia viram atalho na barra do celular; o resto fica em "Mais".
+export const ATALHOS = ['mesa', 'respostas', 'participantes', 'producao']
 
 export const TITULOS = {
   mesa: ['A mesa', 'o que precisa de atenção hoje'],
@@ -183,6 +186,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, vistaInicial = 
       <header className="pn-cabeca">
         <img className="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         <div className="pn-cabeca__texto">
+          <p className="pn-cabeca__contexto">Painel SCW · Organização</p>
           <h1 className="pn-cabeca__titulo">{titulo}</h1>
           <p className="pn-cabeca__sub">{sub}</p>
         </div>
@@ -220,26 +224,22 @@ export function PainelShell({ vistas, onSair, permissoes = null, vistaInicial = 
           : null}
       </main>
 
-      {/* Barra de abas do celular (≤900px) — equivalente mobile da rail. */}
-      <nav className="og-abasapp" aria-label="Seções do painel">
-        <div className="og-abasapp__grade" style={{ '--og-i': visiveis.indexOf(vista), '--og-cols': visiveis.length }}>
-          <span className="og-abasapp__indicador" aria-hidden="true" />
-          {visiveis.map((d) => (
-            <button
-              key={d}
-              className={'og-abaapp' + (d === vista ? ' is-ativa' : '')}
-              type="button"
-              aria-current={d === vista ? 'page' : undefined}
-              onClick={() => irPara(d)}
-            >
-              <svg className="og-abaapp__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {ICONE[d]}
-              </svg>
-              <span className="og-abaapp__rotulo">{TITULOS[d][0].split(' ').pop().toLowerCase()}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* Barra de abas do celular (≤900px): quatro atalhos + "Mais". */}
+      <AbasCelular
+        atalhos={ATALHOS.filter((d) => visiveis.includes(d))}
+        mais={visiveis.filter((d) => !ATALHOS.includes(d))}
+        vista={vista}
+        rotulo={(d) => TITULOS[d][0].split(' ').pop().toLowerCase()}
+        titulo={(d) => TITULOS[d][0]}
+        descricao={(d) => TITULOS[d][1]}
+        acento={(d) => ACENTO_VISTA[d]}
+        icone={(d) => (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {ICONE[d]}
+          </svg>
+        )}
+        onIr={(d) => irPara(d)}
+      />
     </div>
   )
 }

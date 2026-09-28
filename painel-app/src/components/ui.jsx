@@ -63,18 +63,23 @@ export function traduzirErro(msg) {
   return m
 }
 
+// Nível do título de seção. Dentro de uma Folha (gaveta) o título da própria
+// folha já é o <h2>; as seções de dentro descem para <h3> sozinhas.
+export const NivelTitulo = React.createContext(2)
+
 /*
  * Seção de vista: título, nota curta e ações à direita, conteúdo embaixo —
  * SEM caixa. A hierarquia vem de tipografia e espaço; o filete no topo separa
  * uma seção da outra (auditoria: "caixa dentro de caixa").
  */
 export function Secao({ titulo, nota, acoes, id, children, className = '' }) {
+  const H = React.useContext(NivelTitulo) >= 3 ? 'h3' : 'h2'
   return (
     <section className={'ui-secao ' + className} id={id}>
       {(titulo || acoes) && (
         <header className="ui-secao__cabeca">
           <div className="ui-secao__titulos">
-            {titulo && <h2 className="ui-secao__titulo">{titulo}</h2>}
+            {titulo && <H className="ui-secao__titulo">{titulo}</H>}
             {nota && <p className="ui-secao__nota">{nota}</p>}
           </div>
           {acoes && <div className="ui-secao__acoes">{acoes}</div>}

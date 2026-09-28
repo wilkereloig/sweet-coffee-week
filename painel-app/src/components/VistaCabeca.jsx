@@ -1,9 +1,10 @@
 import React from 'react'
 
 /*
- * Cabeçalho de vista — disco colorido + título + nota. Espelha
- * .pn-vista-cabeca/.pn-acento-disco/.pn-vista-cabeca__texto/__titulo/__nota
- * de public/painel/index.html (uma seção por vista, linhas 1186-1341).
+ * Cabeçalho de vista — disco colorido + título + nota. No desktop é ELE o
+ * título da página (<h1>): a barra fixa mostra só o contexto. No celular
+ * some (display:none) e o <h1> passa a ser o da barra fixa — um título
+ * visível por tela, nunca o mesmo duas vezes.
  *
  * `viewBox`/`strokeWidth` são opcionais porque a fonte usa DOIS sistemas de
  * ícone: as vistas da organização desenham em 24×24/1.8 (padrão daqui), as
@@ -19,10 +20,10 @@ export function VistaCabeca({ acento, icone, titulo, nota, viewBox = '0 0 24 24'
           {icone}
         </svg>
       </span>
-      <span className="pn-vista-cabeca__texto">
-        <span className="pn-vista-cabeca__titulo">{titulo}</span>
-        <span className="pn-vista-cabeca__nota">{nota}</span>
-      </span>
+      <div className="pn-vista-cabeca__texto">
+        <h1 className="pn-vista-cabeca__titulo">{titulo}</h1>
+        {nota && <p className="pn-vista-cabeca__nota">{nota}</p>}
+      </div>
     </div>
   )
 }

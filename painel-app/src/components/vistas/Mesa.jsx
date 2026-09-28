@@ -214,12 +214,13 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
                       return (
                         <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
                           <span className="og-cartao__topo">
-                            {it.novo && <span className="og-cartao__ponto" aria-label="Nova" />}
                             <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
+                            {it.novo && <span className="og-selo" data-novo="1">nova</span>}
                           </span>
                           <span className="og-cartao__meta">{it.meta || ''}</span>
                           {it.tipo === 'marca' && (
-                            <span className="og-cartao__combo" aria-label={it.itensProntos + ' de 3 itens do combo prontos'}>
+                            <span className="og-cartao__combo">
+                              <span className="ui-oculto">{it.itensProntos} de 3 itens do combo prontos</span>
                               {[0, 1, 2].map((i) => (
                                 <span key={i} title={ROTULO_COMBO[i]} className={i < it.itensProntos ? 'is-pronto' : ''}>
                                   <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_COMBO[i]}</svg>

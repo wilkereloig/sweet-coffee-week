@@ -244,24 +244,45 @@ test('a casca do painel prende a coluna do grid, senão estoura na horizontal', 
   }
 })
 
-test('as barras de abas têm tantas colunas quanto DESTINOS', () => {
+// Revisão visual de 29/09/2026: a barra do celular deixou de ter uma coluna
+// por destino (oito em 390px davam rótulo cortado). São no máximo QUATRO
+// atalhos + "Mais", e todo destino continua alcançável — na barra ou na folha.
+const ABAS_CELULAR_JSX = ler('painel-app/src/components/AbasCelular.jsx')
+const lerAtalhos = (txt) => {
+  const m = txt.match(/const ATALHOS\s*=\s*\[([^\]]+)\]/)
+  return m ? (m[1].match(/'[a-z]+'/g) || []).map((x) => x.slice(1, -1)) : []
+}
+const lerDestinos = (txt) => {
+  const m = txt.match(/const DESTINOS\s*=\s*\[([^\]]+)\]/)
+  return m ? (m[1].match(/'[a-z]+'/g) || []).map((x) => x.slice(1, -1)) : []
+}
+
+test('a barra do celular tem no máximo 4 atalhos + Mais, e todo destino fica alcançável', () => {
   assert.ok(DESTINOS_ORG >= 3, 'não consegui contar DESTINOS em PainelShell.jsx')
   assert.ok(DESTINOS_MARCA >= 3, 'não consegui contar DESTINOS em PainelMarcaShell.jsx')
-  // A grade da organização é DINÂMICA desde a Fase 3 (Equipe some pra quem
-  // não tem acesso.gerir, a grade encolhe de 5 pra 4) — o fallback da
-  // variável CSS é que tem que bater com DESTINOS_ORG, não um repeat() fixo.
-  assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(var(--og-cols,' + DESTINOS_ORG + '),1fr)'),
-    'a grade da barra de abas da organização não tem fallback de ' + DESTINOS_ORG + ' colunas')
-  assert.ok(PAINEL_CSS.includes('width:calc(100% / var(--og-cols,' + DESTINOS_ORG + '))'),
-    'o indicador da barra da organização não mede 1/' + DESTINOS_ORG + ' de fallback')
-  assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(' + DESTINOS_MARCA + ',1fr)'),
-    'a grade da barra de abas da marca não tem ' + DESTINOS_MARCA + ' colunas')
+  for (const [nome, txt] of [['PainelShell', PAINEL_SHELL_JSX], ['PainelMarcaShell', PAINEL_MARCA_SHELL_JSX]]) {
+    const atalhos = lerAtalhos(txt)
+    const destinos = lerDestinos(txt)
+    assert.ok(atalhos.length > 0 && atalhos.length <= 4, nome + ': ATALHOS precisa ter de 1 a 4 destinos')
+    for (const a of atalhos) assert.ok(destinos.includes(a), nome + ': atalho ' + a + ' não é destino')
+    // O que não é atalho vai para "Mais" — a casca passa os dois grupos.
+    assert.match(semComentarios(txt), /mais=\{[^}]*!ATALHOS\.includes\(d\)/, nome + ': o resto dos destinos não vai para "Mais"')
+    assert.match(txt, /<AbasCelular/, nome + ' não usa a barra comum do celular')
+  }
+  // 4 atalhos + Mais = 5 células de fallback; a quantidade real vem do componente.
+  assert.ok(PAINEL_CSS.includes('grid-template-columns:repeat(var(--og-cols,5),1fr)'), 'a grade da barra do celular não tem fallback de 5 colunas')
+  assert.ok(PAINEL_CSS.includes('width:calc(100% / var(--og-cols,5))'), 'o indicador da barra não mede 1/5 de fallback')
+  assert.match(semComentarios(ABAS_CELULAR_JSX), /'--og-cols': celulas/, 'a grade não recebe o número real de células')
+  assert.match(ABAS_CELULAR_JSX, /<Folha/, '"Mais" precisa abrir na Folha (Esc, foco preso e devolvido)')
+  assert.match(ABAS_CELULAR_JSX, /aria-expanded=\{aberta\}/, 'o botão "Mais" precisa dizer se a folha está aberta')
 })
 
-test("PainelShell filtra 'equipe' da navegação pra quem não tem acesso.gerir, e ajusta --og-cols junto", () => {
+test("PainelShell filtra 'equipe' da navegação pra quem não tem acesso.gerir", () => {
   const semC = semComentarios(PAINEL_SHELL_JSX)
   assert.match(semC, /DESTINOS\.filter\(\(d\) => d !== 'equipe'\)/)
-  assert.match(semC, /'--og-cols': visiveis\.length/)
+  // A barra do celular recebe só o que é visível — atalhos e "Mais".
+  assert.match(semC, /atalhos=\{ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)\}/)
+  assert.match(semC, /mais=\{visiveis\.filter/)
   assert.match(semC, /pode\('acesso\.gerir'\)/)
 })
 

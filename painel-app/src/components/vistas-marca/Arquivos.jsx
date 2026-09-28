@@ -110,7 +110,7 @@ export function Arquivos({ alvo, consumirAlvo }) {
 
   return (
     <section className="ui-vista-marca">
-      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="Documentos da organização e os avisos deste aparelho" />
+      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="O que a organização publicou para você baixar e, quando pedido, confirmar a leitura" />
 
       <div className="ui-grade-duas">
         <Secao titulo="Documentos da organização">
@@ -127,7 +127,9 @@ export function Arquivos({ alvo, consumirAlvo }) {
                     <div className="ui-arquivo__corpo">
                       <b>{a.nome}</b>
                       {detalhe && <span>{detalhe}</span>}
-                      {a.exige_leitura && <span className="ui-nota">{lido ? 'Leitura confirmada em ' + dataHoraExtensa(lido) : 'A organização pede que você confirme a leitura.'}</span>}
+                      {a.exige_leitura && (lido
+                        ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
+                        : <span className="og-selo" data-tom="revisar">Confirme a leitura</span>)}
                     </div>
                     <div className="ui-linha-acoes">
                       <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>

@@ -8,7 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { ICONE } from '../PainelShell'
-import { Carregando, Erro } from '../ui'
+import { Carregando, Erro, Vazio } from '../ui'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -32,18 +32,15 @@ function lerSenha() {
 }
 
 function EstadoVazio({ titulo, texto }) {
-  return (
-    <div className="og-estado">
-      <h2>{titulo}</h2>
-      <p>{texto}</p>
-    </div>
-  )
+  return <Vazio titulo={titulo}>{texto}</Vazio>
 }
 
 function Prazo({ iso }) {
   const p = prazoSelo(iso)
   if (!p) return null
-  return <span className="og-selo" data-acesso={p.tom || undefined}>{p.texto}</span>
+  // vencido/hoje = alerta (laranja); até 7 dias = revisar (amarelo). O texto diz o fato.
+  const tom = p.tom === 'aguardando_cadastro' ? 'alerta' : p.tom === 'em_preenchimento' ? 'revisar' : undefined
+  return <span className="og-selo" data-tom={tom}>{p.texto}</span>
 }
 
 // Título explicativo, mesmo texto nas 5 folhas — uma ação só governa a
@@ -101,7 +98,7 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
 
   return (
     <Folha aberto={aberto} titulo="Novo pedido" sub="Aparece no painel da marca, com prazo" onFechar={onFechar}>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
+      <div className="og-bloco og-bloco--colado">
         <p className="og-forms__nota">
           Ele nasce como rascunho. Só ao publicar é que a marca passa a ver, e é aí que o
           prazo começa a valer para ela.
@@ -130,7 +127,7 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
             {Object.entries(BLOCOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </label>
-        <label className="og-campo"><span>Prazo <span className="og-forms__nota">(opcional)</span></span>
+        <label className="og-campo"><span>Prazo <em>(opcional)</em></span>
           <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
         </label>
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
@@ -186,10 +183,10 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
 
   return (
     <Folha aberto={aberto} titulo={solicitacao ? solicitacao.titulo : 'Pedido'} sub="Quem já respondeu, e quem não" onFechar={onFechar}>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
-        {carregando && <p>Carregando.</p>}
-        {!carregando && erro && <p>{erro}</p>}
-        {!carregando && !erro && lista.length === 0 && <p>Este pedido ainda não alcançou nenhuma marca.</p>}
+      <div className="og-bloco og-bloco--colado">
+        {carregando && <Carregando linhas={3} texto="Carregando quem respondeu…" />}
+        {!carregando && erro && <Erro texto={erro} />}
+        {!carregando && !erro && lista.length === 0 && <Vazio titulo="Ninguém ainda">Este pedido ainda não alcançou nenhuma marca.</Vazio>}
         {!carregando && !erro && solicitacao && solicitacao.texto && <p className="ui-citacao">{solicitacao.texto}</p>}
         {!carregando && !erro && lista.length > 0 && (
           <ul className="ui-lista-simples">
@@ -283,7 +280,7 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
 
   return (
     <Folha aberto={aberto} titulo="Publicar arquivo" sub="Aparece para download no painel da marca" onFechar={onFechar}>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
+      <div className="og-bloco og-bloco--colado">
         <label className="og-campo"><span>Arquivo</span>
           <input type="file" onChange={(e) => escolher(e.target.files && e.target.files[0])} />
         </label>
@@ -303,10 +300,10 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
             </select>
           </label>
         )}
-        <label className="og-campo"><span>Versão <span className="og-forms__nota">(opcional)</span></span>
+        <label className="og-campo"><span>Versão <em>(opcional)</em></span>
           <input type="text" placeholder="2" value={versao} onChange={(e) => setVersao(e.target.value)} />
         </label>
-        <label className="og-campo"><span>Descrição <span className="og-forms__nota">(opcional)</span></span>
+        <label className="og-campo"><span>Descrição <em>(opcional)</em></span>
           <input type="text" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
         </label>
         {/* A capacidade existe e o padrão vem DESLIGADO — ligar para
@@ -368,7 +365,7 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFecha
 
   return (
     <Folha aberto={aberto} titulo="Agendar sessão" sub="A marca vê a data; ela não escolhe nem remarca por lá" onFechar={onFechar}>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
+      <div className="og-bloco og-bloco--colado">
         <label className="og-campo"><span>Marca</span>
           <select value={marca} onChange={(e) => setMarca(e.target.value)}>
             {opcoesMarcas.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -377,10 +374,10 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFecha
         <label className="og-campo"><span>Data e hora</span>
           <input type="datetime-local" value={quando} onChange={(e) => setQuando(e.target.value)} />
         </label>
-        <label className="og-campo"><span>Local <span className="og-forms__nota">(opcional)</span></span>
+        <label className="og-campo"><span>Local <em>(opcional)</em></span>
           <input type="text" value={local} onChange={(e) => setLocal(e.target.value)} />
         </label>
-        <label className="og-campo"><span>Observações <span className="og-forms__nota">(opcional)</span></span>
+        <label className="og-campo"><span>Observações <em>(opcional)</em></span>
           <textarea value={obs} onChange={(e) => setObs(e.target.value)} />
         </label>
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
@@ -437,13 +434,13 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
   return (
     <Folha aberto={aberto} titulo={(sessao && sessao.nome_marca) || 'Sessão'} sub={sessao ? dataHoraCurta(sessao.data_hora) : ''} onFechar={onFechar}>
       {sessao && (
-        <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
+        <div className="og-bloco og-bloco--colado">
           <label className="og-campo"><span>Situação</span>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               {Object.entries(ROTULO_SESSAO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
-          <label className="og-campo"><span>Nova data e hora <span className="og-forms__nota">(deixe em branco para manter)</span></span>
+          <label className="og-campo"><span>Nova data e hora <em>(deixe em branco para manter)</em></span>
             <input type="datetime-local" value={nova} onChange={(e) => setNova(e.target.value)} />
           </label>
           <label className="og-campo"><span>Local</span>
@@ -473,7 +470,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
   const [arquivos, setArquivos] = React.useState(null)
   const [sessoes, setSessoes] = React.useState(null)
-  const [config, setConfig] = React.useState(null)
+  // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
+  const [config, setConfig] = React.useState(undefined)
   const [participantes, setParticipantes] = React.useState([])
   const [erro, setErro] = React.useState(null)
   const [avisoGeral, setAvisoGeral] = React.useState(null) // {texto, tom}
@@ -646,7 +644,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
           custam nada pra quem usa leitor de tela via outra rota), mas quem
           de fato explica é este parágrafo. */}
       {!erro && !podeGerir && (
-        <p className="og-forms__nota" style={{ marginBottom: 14 }}>{SEM_PERMISSAO_PRODUCAO}. As ações desta página aparecem desabilitadas.</p>
+        <p className="og-aviso">{SEM_PERMISSAO_PRODUCAO}. As ações desta página aparecem desabilitadas.</p>
       )}
 
       {!erro && (
@@ -658,15 +656,17 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               <p>É ela que decide qual formulário a marca vê ao entrar, e é o que a agenda logo abaixo precisa pra existir.</p>
             </div>
             <div className="og-item og-item--info">
-              <span className="og-item__cor" style={{ background: edicaoAtual ? 'var(--scw-cyan)' : 'var(--scw-laranja)' }} aria-hidden="true" />
-              <p className="og-item__nome">{edicaoAtual || 'Nenhuma edição aberta'}</p>
+              <span className="og-item__cor" data-tom={config === undefined ? undefined : edicaoAtual ? 'ok' : 'aviso'} aria-hidden="true" />
+              <p className="og-item__nome">{config === undefined ? 'Carregando…' : (edicaoAtual || 'Nenhuma edição aberta')}</p>
               <p className="og-item__meta">
-                {edicaoAtual
-                  ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
-                  : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.'}
+                {config === undefined
+                  ? 'Lendo a configuração da edição.'
+                  : edicaoAtual
+                    ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
+                    : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.'}
               </p>
             </div>
-            <label className="og-campo" style={{ marginTop: 12 }}><span>Código da edição</span>
+            <label className="og-campo og-campo--espaco"><span>Código da edição</span>
               <input
                 type="text" placeholder="2027"
                 value={codigoEdicao} onChange={(e) => setCodigoEdicao(e.target.value)}
@@ -698,9 +698,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
           <section className="og-forms" id="agenda-fotos">
             <div className="og-agenda__topo">
-              <div>
-                <h2 style={{ margin: 0 }}>Agenda de fotos</h2>
-                <p style={{ margin: '6px 0 0', fontSize: '13.5px', color: 'var(--scw-marrom)' }}>
+              <div className="og-forms__cabeca">
+                <h2>Agenda de fotos</h2>
+                <p>
                   {modoAgenda === 'abrir'
                     ? 'Clique num horário para abrir a vaga. As marcas escolhem entre as vagas abertas.'
                     : 'Este modo usa o botão "Agendar sessão", logo abaixo: ele já marca a marca diretamente no horário escolhido.'}
@@ -716,7 +716,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               </div>
             </div>
             <div className="og-agenda__dias">
-              {!edicaoAtual ? (
+              {config === undefined ? (
+                <Carregando linhas={2} texto="Carregando a agenda…" />
+              ) : !edicaoAtual ? (
                 <p className="og-forms__nota">Abra uma edição acima antes de montar a agenda.</p>
               ) : (
                 grade.map((dia, i) => (
@@ -740,8 +742,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               )}
             </div>
             <div className="og-agenda__legenda">
-              <span><i style={{ background: 'var(--scw-cyan)' }} />vaga aberta</span>
-              <span><i style={{ background: 'var(--scw-choco)' }} />reservada</span>
+              <span><i className="is-aberta" />vaga aberta</span>
+              <span><i className="is-reservada" />reservada</span>
               <span><i className="is-fechada" />fechada</span>
             </div>
           </section>
@@ -778,7 +780,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                   return (
                     <li key={s.id}>
                       <div className="og-item">
-                        <span className="og-item__cor" style={{ background: rascunho ? 'var(--scw-marrom)' : (faltam ? 'var(--scw-laranja)' : 'var(--scw-cyan)') }} aria-hidden="true" />
+                        <span className="og-item__cor" data-tom={rascunho ? undefined : (faltam ? 'aviso' : 'ok')} aria-hidden="true" />
                         <p className="og-item__nome">{s.titulo}</p>
                         <p className="og-item__meta">{alvo + ' · ' + (BLOCOS[s.bloco] || s.bloco) + ' · ' + conta}</p>
                         <span className="og-item__dir">
@@ -831,7 +833,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                   return (
                     <li key={a.id}>
                       <div className="og-item">
-                        <span className="og-item__cor" style={{ background: 'var(--scw-roxo)' }} aria-hidden="true" />
+                        <span className="og-item__cor" data-chave="arquivo" aria-hidden="true" />
                         <p className="og-item__nome">{a.nome}</p>
                         <p className="og-item__meta">{detalhe}</p>
                         <span className="og-item__dir">
@@ -869,7 +871,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 {sessoesComMarca.map((f) => (
                   <li key={f.id}>
                     <div className="og-item">
-                      <span className="og-item__cor" style={{ background: 'var(--scw-amarelo)' }} aria-hidden="true" />
+                      <span className="og-item__cor" data-chave="sessao" aria-hidden="true" />
                       <p className="og-item__nome">{f.nome_marca || '(marca)'}</p>
                       <p className="og-item__meta">
                         {dataHoraCurta(f.data_hora) + (f.local ? ' · ' + f.local : '') + (f.edicao_codigo ? ' · edição ' + f.edicao_codigo : '')}

@@ -118,7 +118,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
         ))}
       </dl>
 
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
+      <div className="og-bloco og-bloco--colado">
         <h3>Triagem</h3>
         <label className="og-campo">
           <span>Status</span>
@@ -259,16 +259,17 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
         titulo="Respostas"
         nota="Os três formulários do site, num lugar só"
       />
-      <ul className="og-abas" role="tablist">
+      {/* Filtro, não abas: os botões mudam a MESMA lista (aria-pressed). */}
+      <ul className="og-abas" aria-label="Filtrar por formulário">
         {[['tudo', 'Tudo', null], ...Object.entries(ORIGENS).map(([k, o]) => [k, o.rotulo, o.cor])].map(([chave, rotulo, cor]) => (
           <li key={chave}>
             <button
-              type="button" role="tab" className="og-aba"
-              aria-selected={aba === chave}
+              type="button" className="og-aba"
+              aria-pressed={aba === chave}
               onClick={() => { setAba(chave); setStatus('') }}
             >
-              {cor && <span className="og-aba__ponto" style={{ background: cor }} />}
-              {rotulo} <span className="og-aba__n">{contagem[chave] ?? 0}</span>
+              {cor && <span className="og-aba__ponto" style={{ background: cor }} aria-hidden="true" />}
+              {rotulo} {dados && <span className="og-aba__n">{contagem[chave] ?? 0}</span>}
             </button>
           </li>
         ))}
@@ -311,7 +312,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
               return (
                 <li key={origem + ':' + reg.id}>
                   <button type="button" className="og-item" onClick={() => setSelecionado({ origem, reg })}>
-                    <span className="og-item__cor" style={{ background: o.cor }} />
+                    <span className="og-item__cor" style={{ background: o.cor }} aria-hidden="true" />
                     {/* Sem escapar(): JSX já escapa texto interpolado sozinho —
                         aplicar escapar() aqui mostraria "Duart&#39;s" na tela em
                         vez de "Duart's" (escapar() existe pra innerHTML, que

@@ -557,7 +557,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
             {lista.map((p) => (
               <li key={p.id}>
                 <button type="button" className="og-item" onClick={() => setFicha({ id: p.id, aba: p._naoLidas ? 'mensagens' : 'cadastro' })}>
-                  <span className="og-item__cor" style={{ background: COR_CADASTRO[p.status_cadastro] || '#6A2C15' }} aria-hidden="true" />
+                  <span className="og-item__cor" style={{ background: COR_CADASTRO[p.status_cadastro] || 'var(--scw-marrom)' }} aria-hidden="true" />
                   <span className="og-item__nome">{p.nome_marca || '(sem nome)'}</span>
                   <span className="og-item__meta">{resumoParticipante(p)}</span>
                   <span className="og-item__dir">

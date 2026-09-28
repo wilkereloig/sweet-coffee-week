@@ -61,6 +61,7 @@ function FichaContato({ id, atual, pode, onFechar, onMudou }) {
   return (
     <Folha aberto={!!id} larga titulo={c ? c.nome : 'Novo contato'} sub={c ? ROTULO_TIPO_CONTATO[c.tipo] : 'Influenciador, convidado ou parceiro'} onFechar={onFechar}>
       {erro && <Erro texto={erro} onTentar={carregar} />}
+      {!erro && !form && <Carregando linhas={4} texto="Carregando o contato…" />}
       {form && (
         <div className="ui-pilha">
           {c && (c.pendencias || []).length > 0 && (
@@ -100,13 +101,13 @@ function FichaContato({ id, atual, pode, onFechar, onMudou }) {
           {c && (
             <Secao titulo="Histórico de relacionamento" nota="De onde veio cada registro fica guardado — as listas antigas viraram histórico, não campanha.">
               {(c.envios || []).length === 0 && <p className="ui-nota">Nenhum registro de Press Kit.</p>}
-              <ul className="ui-lista-simples">{(c.envios || []).map((e) => (
+              {(c.envios || []).length > 0 && <ul className="ui-lista-simples">{(c.envios || []).map((e) => (
                 <li key={e.id}>
                   <b>{e.edicao_codigo ? e.edicao_codigo + (e.edicao_nome ? ' · ' + e.edicao_nome : '') : e.edicao_texto} — {ROTULO_PRESSKIT[e.status]}</b>
                   <span>{[e.itens, e.voucher && 'voucher: ' + e.voucher, e.data && dataCurta(e.data), e.endereco_confirmado && 'endereço: ' + e.endereco_confirmado, e.observacao].filter(Boolean).join(' · ')}</span>
                   <span>Fonte: {e.fonte || '—'}</span>
                 </li>
-              ))}</ul>
+              ))}</ul>}
             </Secao>
           )}
         </div>
@@ -156,9 +157,9 @@ export function Contatos({ registrarAtualizar, pode = () => true, alvo, consumir
       <p className="ui-nota">Os filtros ajudam a olhar o histórico; ninguém é escolhido automaticamente. A lista desta edição é montada abrindo cada contato.</p>
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && !lista && <Carregando />}
-      {lista && lista.length === 0 && <Vazio titulo="Nenhum contato ainda" />}
-      {lista && lista.length > 0 && visiveis.length === 0 && <Vazio titulo="Ninguém com esse filtro" />}
-      {visiveis.length > 0 && (
+      {!erro && lista && lista.length === 0 && <Vazio titulo="Nenhum contato ainda" />}
+      {!erro && lista && lista.length > 0 && visiveis.length === 0 && <Vazio titulo="Ninguém com esse filtro" />}
+      {!erro && visiveis.length > 0 && (
         <>
           <p className="ui-contagem">{visiveis.length} {visiveis.length === 1 ? 'contato' : 'contatos'}</p>
           <ul className="og-lista og-lista--tabela">{visiveis.map((c) => (
