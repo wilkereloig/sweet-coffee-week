@@ -43,7 +43,7 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
 
-export function PainelShell({ vistas, onSair, permissoes = null }) {
+export function PainelShell({ vistas, onSair, permissoes = null, vistaInicial = 'mesa' }) {
   // Fase 3 do plano de funções da organização (27/08/2026): a UI reflete o
   // que a sessão pode fazer. `permissoes === null` é a senha única — o banco
   // libera qualquer ação por ela (pode(), segunda perna do OR), então a UI
@@ -63,7 +63,7 @@ export function PainelShell({ vistas, onSair, permissoes = null }) {
   const visiveis = pode('acesso.gerir') ? DESTINOS : DESTINOS.filter((d) => d !== 'equipe')
 
   // 'mesa' é a vista inicial de verdade (public/painel/index.html, irPara()).
-  const [vista, setVista] = React.useState('mesa')
+  const [vista, setVista] = React.useState(vistaInicial)
   // A vista ativa "registra" sua própria função de recarregar aqui — é o
   // botão "atualizar" do cabeçalho que chama, sem o shell saber como cada
   // vista busca os próprios dados (abrirFolha é a mesma ideia: uma função
