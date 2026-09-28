@@ -794,14 +794,16 @@ test('minhas_permissoes() é security definer, resolve por auth.uid() sem p_secr
   assert.match(semC, /grant execute on function public\.minhas_permissoes\(\) to authenticated/)
 })
 
-test('regerar-senha-conta autoriza (acesso.gerir) antes de tocar no Auth, e só reseta conta de organização', () => {
+test('regerar-senha-conta autoriza antes de tocar no Auth, e o papel do alvo casa com a porta usada', () => {
   const semC = semComentarios(EDGE_REGERAR)
-  const posAutoriza = semC.indexOf("p_acao: 'acesso.gerir'")
+  const posAutoriza = semC.indexOf('p_acao: acaoNecessaria')
   const posUpdate = semC.indexOf('updateUserById')
   assert.ok(posAutoriza > -1 && posUpdate > -1, 'faltou a chamada de guard ou o update de senha')
   assert.ok(posAutoriza < posUpdate, 'o guard tem que rodar ANTES de mexer no Auth')
 
-  assert.match(semC, /papel !== 'organizacao'/, 'precisa recusar conta que não é de organização')
+  // acesso.gerir reseta só organização; marca.liberar reseta só marca —
+  // curadoria (marca.liberar) nunca reseta a senha de um administrador.
+  assert.match(semC, /perfil\.papel !== \(ehMarca \? 'marca' : 'organizacao'\)/, 'o papel do alvo tem que casar com a ação exigida')
   // A senha não fica em lugar nenhum além do hash do Auth — nunca grava a
   // VARIÁVEL da senha em tabela. Recorta só o CORPO de cada `.insert({...})`
   // (não uma janela de N caracteres, que vazaria pro `return json(...)`
@@ -1061,7 +1063,9 @@ test('criar-conta-organizacao aceita JWT nominal além do secret, sem perder a a
 })
 
 test('regerar-senha-conta aceita JWT nominal além do secret, sem perder a ação acesso.gerir', () => {
-  assertPortasDuasVias('regerar-senha-conta', EDGE_REGERAR, "'acesso\\.gerir'")
+  // A ação sai da forma do pedido: user_id → acesso.gerir, participante_id → marca.liberar.
+  assertPortasDuasVias('regerar-senha-conta', EDGE_REGERAR, 'acaoNecessaria')
+  assert.match(EDGE_REGERAR, /ehMarca \? 'marca\.liberar' : 'acesso\.gerir'/)
 })
 
 test('enviar-push aceita JWT nominal além do secret, sem perder a ação producao.gerir', () => {

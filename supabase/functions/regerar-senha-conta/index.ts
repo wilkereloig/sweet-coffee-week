@@ -12,16 +12,20 @@
 //   encrypted_password) contornaria o Auth em vez de usá-lo, e este projeto já
 //   tem o padrão certo pronto: as três Edge Functions de criação de conta.
 //
-// Escopo: só CONTA DE ORGANIZAÇÃO. Marca troca a própria senha depois de
-// entrar (DefinirSenha.jsx) — não é este caminho.
+// Escopo: conta de ORGANIZAÇÃO ({ user_id }, exige acesso.gerir) e, desde
+// 28/09/2026, conta de MARCA ({ participante_id }, exige marca.liberar — a
+// mesma ação de criar o acesso). A marca entra com e-mail sintético que não
+// recebe mensagem, então "esqueci minha senha" só se resolve por aqui: a
+// organização gera uma senha nova, entrega por WhatsApp, e a trava de
+// primeiro uso obriga a marca a trocar ao entrar.
 //
 // Deploy: supabase functions deploy regerar-senha-conta --no-verify-jwt
 //   (--no-verify-jwt porque a porta de sempre foi o secret no CORPO, nunca o
 //    gateway. Fase 4 do plano de funções da organização, 28/08/2026: sem
 //    secret, aceita o JWT da sessão nominal no cabeçalho Authorization.)
 //
-// Entrada (POST JSON): { secret, user_id } — ou, sem secret, o JWT da sessão
-// nominal em Authorization: Bearer <token>.
+// Entrada (POST JSON): { secret, user_id } ou { secret, participante_id } —
+// ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, user_id, login, senha, troca_obrigatoria }
 // =============================================================================
 
@@ -53,11 +57,16 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return json({ erro: 'method_not_allowed' }, 405)
 
-  let payload: { secret?: string; user_id?: string }
+  let payload: { secret?: string; user_id?: string; participante_id?: string }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
-  const userId = (payload.user_id || '').trim()
+  const participanteId = (payload.participante_id || '').trim()
+  let userId = (payload.user_id || '').trim()
+  // A ação exigida sai da FORMA do pedido, antes de ler qualquer coisa do
+  // banco: quem não pode não descobre nem se o alvo existe.
+  const ehMarca = !!participanteId
+  const acaoNecessaria = ehMarca ? 'marca.liberar' : 'acesso.gerir'
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -73,8 +82,10 @@ Deno.serve(async (req) => {
   // organizacao — com `secret`, a senha única; sem, o JWT nominal no
   // cabeçalho, resolvido por `pode_por_user`.
   let autorizado = false
+  // Quem pediu, para a autoria (auditoria). Senha única = null = "Acesso compartilhado".
+  let atorId: string | null = null
   if (secret) {
-    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: 'acesso.gerir' })
+    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: acaoNecessaria })
     if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
     autorizado = data === true
   } else {
@@ -87,23 +98,33 @@ Deno.serve(async (req) => {
       return json({ erro: 'auth_indisponivel', detalhe: jwtErr.message }, 503)
     }
     if (userRes?.user) {
-      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: 'acesso.gerir' })
+      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: acaoNecessaria })
       if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
       autorizado = data === true
+      atorId = userRes.user.id
     }
   }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
   // ── 2. Validar o alvo ANTES de tocar no Auth ───────────────────────────────
+  // O papel do perfil tem que bater com a porta usada: acesso.gerir reseta só
+  // organização, marca.liberar reseta só marca. Sem isso, curadoria (que tem
+  // marca.liberar) resetaria a senha de um administrador.
+  let loginMarca = ''
+  if (ehMarca) {
+    const { data: part, error: partErr } = await admin
+      .from('participantes').select('user_id, nome_marca').eq('id', participanteId).maybeSingle()
+    if (partErr) return json({ erro: 'db_error', detalhe: partErr.message }, 500)
+    if (!part || !part.user_id) return json({ erro: 'marca_sem_acesso' }, 404)
+    userId = part.user_id
+    loginMarca = part.nome_marca
+  }
   if (!userId) return json({ erro: 'user_id_ausente' }, 422)
 
-  // Só reseta conta de ORGANIZAÇÃO. Sem este filtro, o mesmo endpoint
-  // resetaria senha de marca — escopo errado, e a marca já tem o próprio
-  // caminho (DefinirSenha.jsx, depois de entrar).
   const { data: perfil, error: perfilErr } = await admin
     .from('perfis').select('user_id, papel').eq('user_id', userId).maybeSingle()
   if (perfilErr) return json({ erro: 'db_error', detalhe: perfilErr.message }, 500)
-  if (!perfil || perfil.papel !== 'organizacao') {
+  if (!perfil || perfil.papel !== (ehMarca ? 'marca' : 'organizacao')) {
     return json({ erro: 'conta_nao_encontrada' }, 404)
   }
 
@@ -125,11 +146,16 @@ Deno.serve(async (req) => {
   if (updErr) return json({ erro: 'senha_nao_atualizada', detalhe: updErr.message }, 500)
 
   await admin.from('auditoria').insert({
-    acao: 'regerar_senha_conta', alvo_tabela: 'perfis', alvo_id: userId, detalhe: {},
+    ator_user_id: atorId,
+    acao: 'regerar_senha_conta',
+    alvo_tabela: ehMarca ? 'participantes' : 'perfis',
+    alvo_id: ehMarca ? participanteId : userId,
+    detalhe: {},
   })
 
   // ── 5. As credenciais, uma vez só ──────────────────────────────────────────
   // Igual à criação: a senha não fica gravada em lugar nenhum além do hash do
   // Auth. Reabrir a tela depois não a mostra de novo — se sumiu, gera-se outra.
-  return json({ ok: true, user_id: userId, login: usuario.user.email, senha: novaSenha, troca_obrigatoria: true })
+  // Marca entra pelo NOME do estabelecimento (o e-mail é sintético).
+  return json({ ok: true, user_id: userId, login: ehMarca ? loginMarca : usuario.user.email, senha: novaSenha, troca_obrigatoria: true })
 })

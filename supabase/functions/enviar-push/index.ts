@@ -25,9 +25,16 @@
 //    gateway. Fase 4 do plano de funções da organização, 28/08/2026: sem
 //    secret, aceita o JWT da sessão nominal no cabeçalho Authorization.)
 //
-// Entrada (POST JSON):
-//   { secret, alvo: 'organizacao' | 'marca', participante_id?, titulo, corpo, url? }
-//   — ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
+// Entrada (POST JSON), dois modos:
+//   1. AUTOMÁTICO (28/09/2026) — { notificacao_id }, chamado pelo gatilho
+//      `disparar_push` do banco (pg_net) a cada notificação nova. Não precisa
+//      de credencial porque não carrega nada além do id: a função relê a
+//      notificação com a chave de serviço e TRAVA o envio (push_enviado_em)
+//      antes de mandar. Id que não existe ou já foi enviado não faz nada —
+//      chamar de fora não permite nem escolher texto nem destinatário.
+//   2. MANUAL (botão "Enviar um teste") —
+//      { secret, alvo: 'organizacao' | 'marca', participante_id?, titulo, corpo, url? }
+//      — ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, enviados, falharam, removidos }
 // =============================================================================
 
@@ -146,6 +153,63 @@ async function cifrar(carga: string, p256dh: string, authChave: string): Promise
   return juntar(salt, rs, new Uint8Array([asPublica.length]), asPublica, cifrado)
 }
 
+// ── Envio para as assinaturas de um destino ─────────────────────────────────
+// deno-lint-ignore no-explicit-any
+async function enviarPara(admin: any, alvo: string, participanteId: string | null, carga: string,
+                          vapid: { publica: Uint8Array, privadaD: string, sub: string }) {
+  let consulta = admin.from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth_chave')
+    .eq('papel', alvo).eq('ativo', true)
+  if (alvo === 'marca') consulta = consulta.eq('participante_id', participanteId)
+
+  const { data: assinaturas, error: lerErr } = await consulta
+  if (lerErr) throw new Error(lerErr.message)
+  if (!assinaturas || assinaturas.length === 0) return { enviados: 0, falharam: 0, removidos: 0 }
+
+  let enviados = 0
+  const mortas: string[] = []
+  const falhas: string[] = []
+
+  for (const a of assinaturas) {
+    try {
+      const corpoCifrado = await cifrar(carga, a.p256dh, a.auth_chave)
+      const r = await fetch(a.endpoint, {
+        method: 'POST',
+        headers: {
+          'TTL': '86400',
+          'Content-Encoding': 'aes128gcm',
+          'Content-Type': 'application/octet-stream',
+          'Authorization': await assinaturaVapid(a.endpoint, vapid.publica, vapid.privadaD, vapid.sub),
+        },
+        body: corpoCifrado,
+      })
+      if (r.ok) { enviados++; continue }
+      // 404/410: o navegador desinstalou ou a pessoa revogou. Não é erro de
+      // envio — é assinatura que deixou de existir, e insistir nela vira ruído
+      // em todo envio futuro.
+      if (r.status === 404 || r.status === 410) mortas.push(a.id)
+      else falhas.push(a.id)
+    } catch {
+      falhas.push(a.id)
+    }
+  }
+
+  if (mortas.length) {
+    // Desativa, não apaga: apagar dado é decisão de quem toca o festival, não
+    // de um laço de envio.
+    await admin.from('push_subscriptions').update({ ativo: false }).in('id', mortas)
+  }
+  return { enviados, falharam: falhas.length, removidos: mortas.length }
+}
+
+function lerVapid() {
+  const publicaB64 = Deno.env.get('VAPID_PUBLIC_KEY') || ''
+  const privadaD = Deno.env.get('VAPID_PRIVATE_KEY') || ''
+  const sub = Deno.env.get('VAPID_SUBJECT') || ''
+  if (!publicaB64 || !privadaD || !sub) return null
+  return { publica: deB64url(publicaB64), privadaD, sub }
+}
+
 // ── A função ─────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -153,9 +217,46 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; alvo?: string; participante_id?: string
-    titulo?: string; corpo?: string; url?: string
+    titulo?: string; corpo?: string; url?: string; notificacao_id?: string
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
+
+  // ── Modo automático: uma notificação do banco ─────────────────────────────
+  if (payload.notificacao_id) {
+    const id = String(payload.notificacao_id)
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ erro: 'id_invalido' }, 422)
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    )
+    const vapid = lerVapid()
+    // Sem chaves não trava a notificação: ela continua no sino do painel. Nada
+    // do ambiente é descrito na resposta (quem chama aqui não se identifica).
+    if (!vapid) { console.error('enviar-push: VAPID ausente'); return json({ ok: true, enviados: 0 }) }
+
+    // Trava de envio único: só quem conseguir marcar push_enviado_em envia.
+    const { data: n, error: travaErr } = await admin.from('notificacoes')
+      .update({ push_enviado_em: new Date().toISOString() })
+      .eq('id', id).is('push_enviado_em', null)
+      .select('para, participante_id, titulo, texto, link')
+      .maybeSingle()
+    if (travaErr) return json({ erro: 'db_error' }, 500)
+    if (!n) return json({ ok: true, enviados: 0 })
+
+    const carga = JSON.stringify({
+      titulo: String(n.titulo).slice(0, 80),
+      corpo: String(n.texto || '').slice(0, 240),
+      url: '/painel/' + (n.link ? '?ir=' + encodeURIComponent(n.link) : ''),
+      tag: 'scw-' + id,
+    })
+    try {
+      const r = await enviarPara(admin, n.para, n.participante_id, carga, vapid)
+      return json({ ok: true, ...r })
+    } catch {
+      return json({ erro: 'db_error' }, 500)
+    }
+  }
 
   const secret = (payload.secret || '').trim()
   const alvo = (payload.alvo || '').trim()
@@ -205,60 +306,18 @@ Deno.serve(async (req) => {
   // qualquer um que chamasse a função descobria se as chaves estão postas — é
   // pouca coisa, e é exatamente o tipo de pouca coisa que descreve o servidor
   // para quem não devia estar perguntando.
-  const publicaB64 = Deno.env.get('VAPID_PUBLIC_KEY') || ''
-  const privadaD = Deno.env.get('VAPID_PRIVATE_KEY') || ''
-  const sub = Deno.env.get('VAPID_SUBJECT') || ''
-  if (!publicaB64 || !privadaD || !sub) {
+  const vapid = lerVapid()
+  if (!vapid) {
     // Recado explícito: sem as três variáveis a função não tem como assinar, e
     // "falhou em silêncio" num canal de aviso é o pior defeito possível.
     return json({ erro: 'vapid_ausente', detalhe: 'faltam VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY ou VAPID_SUBJECT' }, 503)
   }
 
-  let consulta = admin.from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth_chave')
-    .eq('papel', alvo).eq('ativo', true)
-  if (alvo === 'marca') consulta = consulta.eq('participante_id', payload.participante_id)
-
-  const { data: assinaturas, error: lerErr } = await consulta
-  if (lerErr) return json({ erro: 'db_error', detalhe: lerErr.message }, 500)
-  if (!assinaturas || assinaturas.length === 0) return json({ ok: true, enviados: 0, falharam: 0, removidos: 0 })
-
-  const carga = JSON.stringify({ titulo, corpo, url: destino || (alvo === 'marca' ? '/marca/' : '/organizacao/') })
-  const publica = deB64url(publicaB64)
-
-  let enviados = 0
-  const mortas: string[] = []
-  const falhas: string[] = []
-
-  for (const a of assinaturas) {
-    try {
-      const corpoCifrado = await cifrar(carga, a.p256dh, a.auth_chave)
-      const r = await fetch(a.endpoint, {
-        method: 'POST',
-        headers: {
-          'TTL': '86400',
-          'Content-Encoding': 'aes128gcm',
-          'Content-Type': 'application/octet-stream',
-          'Authorization': await assinaturaVapid(a.endpoint, publica, privadaD, sub),
-        },
-        body: corpoCifrado,
-      })
-      if (r.ok) { enviados++; continue }
-      // 404/410: o navegador desinstalou ou a pessoa revogou. Não é erro de
-      // envio — é assinatura que deixou de existir, e insistir nela vira ruído
-      // em todo envio futuro.
-      if (r.status === 404 || r.status === 410) mortas.push(a.id)
-      else falhas.push(a.id)
-    } catch {
-      falhas.push(a.id)
-    }
+  const carga = JSON.stringify({ titulo, corpo, url: destino || '/painel/' })
+  try {
+    const r = await enviarPara(admin, alvo, alvo === 'marca' ? payload.participante_id! : null, carga, vapid)
+    return json({ ok: true, ...r })
+  } catch (e) {
+    return json({ erro: 'db_error', detalhe: (e as Error).message }, 500)
   }
-
-  if (mortas.length) {
-    // Desativa, não apaga: apagar dado é decisão de quem toca o festival, não
-    // de um laço de envio.
-    await admin.from('push_subscriptions').update({ ativo: false }).in('id', mortas)
-  }
-
-  return json({ ok: true, enviados, falharam: falhas.length, removidos: mortas.length })
 })

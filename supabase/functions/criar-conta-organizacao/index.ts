@@ -58,12 +58,14 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return json({ erro: 'method_not_allowed' }, 405)
 
-  let payload: { secret?: string; email?: string; funcao?: string }
+  let payload: { secret?: string; email?: string; funcao?: string; nome?: string }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
   const email = (payload.email || '').trim().toLowerCase()
   const funcao = (payload.funcao || '').trim()
+  // Nome de exibição (histórico, "Enviado por"). Opcional: sem ele, o e-mail.
+  const nome = (payload.nome || '').trim().slice(0, 80) || null
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -81,6 +83,8 @@ Deno.serve(async (req) => {
   // qualquer JWT emitido pelo próprio projeto) e `pode_por_user` decide pela
   // mesma tabela perfis/permissões que `pode()` usa pra sessão nominal.
   let autorizado = false
+  // Quem criou, para a autoria. Senha única = null = "Acesso compartilhado".
+  let atorId: string | null = null
   if (secret) {
     const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: 'acesso.gerir' })
     if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
@@ -98,6 +102,7 @@ Deno.serve(async (req) => {
       const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: 'acesso.gerir' })
       if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
       autorizado = data === true
+      atorId = userRes.user.id
     }
   }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
@@ -135,7 +140,7 @@ Deno.serve(async (req) => {
   // `deve_trocar_senha` é o que transforma isso num bilhete de uso único.
   // ⛔ Desligar reabre o risco inteiro.
   const { error: perfilErr } = await admin.from('perfis').upsert({
-    user_id: userId, papel: 'organizacao', funcao, ativo: true, deve_trocar_senha: true,
+    user_id: userId, papel: 'organizacao', funcao, nome, ativo: true, deve_trocar_senha: true,
   }, { onConflict: 'user_id' })
 
   if (perfilErr) {
@@ -146,8 +151,9 @@ Deno.serve(async (req) => {
   }
 
   await admin.from('auditoria').insert({
+    ator_user_id: atorId,
     acao: 'criar_conta_organizacao', alvo_tabela: 'perfis', alvo_id: userId,
-    detalhe: { email, funcao },
+    detalhe: { email, funcao, nome },
   })
 
   // ── 5. As credenciais, uma vez só ──────────────────────────────────────────
