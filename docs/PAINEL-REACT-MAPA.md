@@ -46,13 +46,14 @@ painel-app/
         Respostas.jsx      333 3 origens (quero_participar/apoiar/contato)
         Marcas.jsx         327 lista + ficha + cadastro manual de marca
         Producao.jsx       737 agenda de fotos, pedidos, arquivos
-        GuiaFotos.jsx          guia de fotos dos combos (só leitura, fotos em public/images/guia-fotos/)
+        GuiaFotos.jsx          guia de fotos do fotógrafo (só leitura) + botão do PDF em public/guias/
         Equipe.jsx         483 edição atual, contas, push
-      vistas-marca/               (marca — 4)
+      vistas-marca/               (marca — 5)
         Hoje.jsx           169 vendas do dia + pendências do cadastro
         Cadastro.jsx       506 os 5 blocos (marca/tema/itens/preço/unidades)
         Pedidos.jsx        101 lista somente-leitura
         Arquivos.jsx       262 downloads assinados + config de push
+        GuiaFotos.jsx          guia "Da foto para a mesa" (só leitura) + PDF; reusa ParesFotos/BaixarPdf da vista da organização
     lib/                        (lógica pura, sem DOM — testada isolada)
       rpc.js               55  rpc()/chamarFuncao() — PostgREST + Edge Functions
       marcaApi.js          129 auth()/renovar()/api()/assinarDownload() — Auth da marca

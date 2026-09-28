@@ -860,7 +860,7 @@ button.link{
 .pn-vista{min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
 .pn-vista__trilho{max-width:720px; margin:0 auto; padding:clamp(20px,3vw,34px) var(--trilho) 48px}
 .pn-abas{background:var(--scw-choco); padding:7px 6px calc(7px + env(safe-area-inset-bottom)); border-top:1px solid rgba(254,240,221,.12)}
-.pn-abas__grade{display:grid; grid-template-columns:repeat(4,1fr); gap:2px}
+.pn-abas__grade{display:grid; grid-template-columns:repeat(5,1fr); gap:2px}
 .pn-aba{
   min-height:52px; background:transparent; border:0; cursor:pointer;
   display:flex; flex-direction:column; align-items:center; gap:5px; padding:4px 0; color:rgba(254,240,221,.6);
@@ -1011,6 +1011,8 @@ button.link{
 .gf-lembretes li{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(61,19,8,.14);font:500 15px/1.45 var(--scw-font)}
 .gf-lembretes li::before{content:'';flex:0 0 8px;height:8px;border-radius:50%;background:var(--scw-choco);transform:translateY(-2px)}
 .gf-nota{margin:0;font:500 12.5px/1.4 var(--scw-font);color:var(--scw-marrom)}
+.gf-topo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px}
+.gf-baixar{text-decoration:none;flex:0 0 auto}
 
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima (das duas cascas, org e marca); regra nova acrescentada

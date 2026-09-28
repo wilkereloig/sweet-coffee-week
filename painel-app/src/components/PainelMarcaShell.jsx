@@ -1,4 +1,5 @@
 import React from 'react'
+import { ICONE as ICONE_ORG } from './PainelShell'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (mobile). Porte
@@ -7,12 +8,12 @@ import React from 'react'
  * `vistas` por prop e cai no placeholder quando a chave ainda não existe —
  * a próxima fase só PREENCHE `vistas`, não precisa tocar este arquivo.
  */
-const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'arquivos']
-const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', arquivos: 'Arquivos' }
+const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'arquivos', 'fotos']
+const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', arquivos: 'Arquivos', fotos: 'Guia de fotos' }
 
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3) —
 // mesmo ciclo de ACENTO_VISTA_MARCA em public/painel/index.html.
-const ACENTO_VISTA = { hoje: 'amarelo', cadastro: 'cyan', pedidos: 'laranja', arquivos: 'roxo' }
+const ACENTO_VISTA = { hoje: 'amarelo', cadastro: 'cyan', pedidos: 'laranja', arquivos: 'roxo', fotos: 'magenta' }
 
 const ICONE = {
   hoje: <><circle cx="16" cy="17.4" r="10.4" /><path d="M16 12v5.4l4.2 2.6" /><path d="M13.6 3.4h4.8M16 5v2.6" /></>,
@@ -23,6 +24,9 @@ const ICONE = {
   </>,
   pedidos: <><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z" /><path d="M16 13v5.6" /><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none" /></>,
   arquivos: <><path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" /></>,
+  // O desenho é o da organização (grade 24); a escala leva à grade 32 e o
+  // traço compensa, para fechar nos mesmos 2.2 das outras abas.
+  fotos: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
 }
 
 const ICONE_SAIR = <><path d="M8.6 17.6 15 11l-6.4-6.6" /><path d="M15 11H3.4" /><path d="M18.6 4.4v13.2" /></>
@@ -30,9 +34,9 @@ const ICONE_SINO = <><path d="M12 4.4c-3 0-5.4 2.4-5.4 5.6v3.3L5 16.6h14l-1.6-3.
 
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
-  // roxo é chapa escura (texto creme); amarelo/cyan/laranja são chapa clara —
+  // roxo e magenta são chapa escura (texto creme); amarelo/cyan/laranja são chapa clara —
   // mesma régua de CLAUDE.md §6.2/§6.3 que o lado organização já aplica.
-  const escura = cor === 'roxo'
+  const escura = cor === 'roxo' || cor === 'magenta'
   document.body.style.setProperty('--pn-acento', 'var(--scw-' + cor + ')')
   document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')')
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')

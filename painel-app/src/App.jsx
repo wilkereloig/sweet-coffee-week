@@ -9,6 +9,7 @@ import { Cadastro } from './components/vistas-marca/Cadastro'
 import { Pedidos as PedidosMarca } from './components/vistas-marca/Pedidos'
 import { Hoje } from './components/vistas-marca/Hoje'
 import { Arquivos as ArquivosMarca } from './components/vistas-marca/Arquivos'
+import { GuiaFotos as GuiaFotosMarca } from './components/vistas-marca/GuiaFotos'
 import { Mesa } from './components/vistas/Mesa'
 import { Respostas } from './components/vistas/Respostas'
 import { Marcas } from './components/vistas/Marcas'
@@ -257,7 +258,7 @@ export function App() {
   }
 
   if (estado === 'painel-marca') {
-    return <PainelMarcaShell vistas={{ hoje: Hoje, cadastro: Cadastro, pedidos: PedidosMarca, arquivos: ArquivosMarca }} onSair={sairMarca} />
+    return <PainelMarcaShell vistas={{ hoje: Hoje, cadastro: Cadastro, pedidos: PedidosMarca, arquivos: ArquivosMarca, fotos: GuiaFotosMarca }} onSair={sairMarca} />
   }
 
   return (

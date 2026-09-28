@@ -4,11 +4,12 @@
 
   Gerar o PDF (a partir da raiz do repositório):
     "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless=new \
-      --no-pdf-header-footer --print-to-pdf="docs/guia-fotos-cartoon/guia-de-fotos-cartoon.pdf" \
+      --no-pdf-header-footer --print-to-pdf="public/guias/guia-de-fotos-fotografo.pdf" \
       "file:///$(pwd)/docs/guia-fotos-cartoon/guia.html"
 
   Estilo em guia.css, compartilhado com guia-participantes.html.
-  O PDF vai para o painel por Produção › Arquivos › "Publicar arquivo".
+  O PDF sai em public/guias/ e é baixado pela aba Guia de fotos do painel
+  (organização: este; marca: guia-participantes.html).
   As fotos são as mesmas da vista Guia de fotos (public/images/guia-fotos/) e
   são exemplos gerados por IA — o próprio guia diz isso (CLAUDE.md §6.12).
 -->
