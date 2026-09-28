@@ -371,8 +371,11 @@ begin
   -- sobrou sem classificação. Se os nomes não casam com os participantes do
   -- lote, a aba é de OUTRA edição (herança de planilha copiada) → histórico
   -- incerto, não importado.
+  -- Só abas SEM tratamento próprio: Participantes, agenda e Press Kit já
+  -- classificaram as suas linhas (inclusive as que ficaram em revisão).
   for v_rotulo_aba in select distinct aba from public.import_linhas
-                       where lote_id = p_lote and classificacao = 'revisar' loop
+                       where lote_id = p_lote and classificacao = 'revisar'
+                         and aba not in ('Participantes', 'FOTOS AGENDAMENTO') and aba not ilike 'PRESS KIT%' loop
     -- Linha de dado = não é a primeira da aba, não é só zeros de fórmula e não
     -- é um cabeçalho repetido ("PARTICIPANTE(S)" na primeira célula).
     select count(*), count(*) filter (where (select linha_id from public.imp_casar_participante(
