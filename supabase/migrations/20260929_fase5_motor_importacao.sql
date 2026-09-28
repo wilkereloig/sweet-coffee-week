@@ -512,6 +512,10 @@ begin
         or public.imp_compacto(a ->> 1) in (public.imp_compacto(n ->> 'nome_fantasia'), public.imp_compacto(n ->> 'razao_social'))
     on conflict do nothing;
 
+    -- Nome do empreendimento na grafia padrão (20260929_fase12_padrao_nomes.sql):
+    -- o valor da planilha vira alias e fica em snapshot.nome_informado.
+    perform public.aplicar_padrao_nome(v_part);
+
     -- Sugestões de correspondência com o acervo (NUNCA confirmadas aqui)
     insert into public.participante_vinculos (participante_id, chave, status, origem, motivo)
     select distinct v_part, h.chave, 'possivel', 'importacao',
