@@ -409,6 +409,12 @@ export function AccessDialog({ open, onClose }) {
                   )}
                 </button>
               </form>
+              {/* Conta pessoal (e-mail + senha) entra pelo próprio painel, que
+                  abre nela por padrão — é a que assina o histórico com o nome
+                  de quem fez (auditoria 28/09/2026). */}
+              <a className="scw-acesso__link-secundario" href="/painel/">
+                Tem conta pessoal? Entrar com e-mail
+              </a>
             </>
           )}
 

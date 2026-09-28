@@ -9,6 +9,7 @@ import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { ICONE } from '../PainelShell'
+import { Carregando, Vazio, Erro } from '../ui'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
 // diálogo nativo quebra a casca de app. 6s é o mesmo tempo da versão
@@ -194,7 +195,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
   )
 }
 
-export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true }) {
+export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true, alvo, consumirAlvo }) {
   const [dados, setDados] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
   const [aba, setAba] = React.useState('tudo')
@@ -219,7 +220,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
       const novo = {}
       chaves.forEach((k, i) => { novo[k] = listas[i] || [] })
       setDados(novo)
-      // Alimenta o sino de notificações do cabeçalho (NotificacoesOrg vive no
+      // Alimenta quem pedir o estado (o sino hoje lê a tabela de avisos; isto
       // PainelShell, que não tem como ler o estado interno desta vista).
       if (reportarEstado) reportarEstado({ dados: novo })
     } catch (e) {
@@ -237,6 +238,14 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
   const vocabStatus = aba === 'tudo'
     ? [...new Set(Object.values(ORIGENS).flatMap((o) => o.status))]
     : ORIGENS[aba].status
+
+  // Aviso (sino/push) ou a mesa pediu uma resposta específica: abre a ficha dela.
+  React.useEffect(() => {
+    if (!alvo || !alvo.id || !dados) return
+    const reg = (dados[alvo.origem] || []).find((r) => r.id === alvo.id)
+    if (reg) setSelecionado({ origem: alvo.origem, reg })
+    if (consumirAlvo) consumirAlvo()
+  }, [alvo, dados]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const itens = dados ? filtrados(dados, { aba, status, dias, termo }) : []
   const contagem = { tudo: 0 }
@@ -274,7 +283,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
           <span>Status</span>
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">Todos</option>
-            {vocabStatus.map((s) => <option key={s} value={s}>{s}</option>)}
+            {vocabStatus.map((s) => <option key={s} value={s}>{ROTULO_STATUS[s] || s}</option>)}
           </select>
         </label>
         <label className="og-campo">
@@ -289,18 +298,12 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
       </div>
 
       <div>
-        {erro && (
-          <div className="og-estado" data-tom="erro">
-            <h2>Não consegui carregar</h2>
-            <p>{erro}</p>
-          </div>
-        )}
+        {erro && <Erro texto={erro} onTentar={carregar} />}
+        {!erro && !dados && <Carregando />}
         {!erro && dados && itens.length === 0 && (
-          <div className="og-estado">
-            <h2>Nenhuma resposta aqui</h2>
-            <p>{contagem.tudo === 0 ? 'Ainda não chegou nenhuma resposta.' : 'Nada com esses filtros.'}</p>
-          </div>
+          <Vazio titulo="Nenhuma resposta aqui">{contagem.tudo === 0 ? 'Ainda não chegou nenhuma resposta.' : 'Nada com esses filtros.'}</Vazio>
         )}
+        {!erro && dados && itens.length > 0 && <p className="ui-contagem">{itens.length} {itens.length === 1 ? 'resposta' : 'respostas'}</p>}
         {!erro && dados && itens.length > 0 && (
           <ul className="og-lista">
             {itens.map(({ origem, reg }) => {
@@ -316,7 +319,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
                     <p className="og-item__nome">{o.titulo(reg) || '(sem nome)'}</p>
                     <p className="og-item__meta">{o.rotulo + (o.meta(reg) ? ' · ' + o.meta(reg) : '')}</p>
                     <span className="og-item__dir">
-                      <span className="og-selo" data-novo={reg.status === 'novo' ? '1' : '0'}>{reg.status}</span>
+                      <span className="og-selo" data-novo={reg.status === 'novo' ? '1' : '0'}>{ROTULO_STATUS[reg.status] || reg.status}</span>
                       <span className="og-item__data">{dataCurta(reg.created_at)}</span>
                     </span>
                   </button>

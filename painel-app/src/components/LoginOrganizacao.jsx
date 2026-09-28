@@ -30,7 +30,10 @@ function DiscoOrganizacao() {
  * dizer org × marca, não os dois jeitos de entrar como organização.
  */
 export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
-  const [modo, setModo] = React.useState('senha') // 'senha' | 'conta'
+  // Conta pessoal é a porta principal desde 28/09/2026: é ela que assina o
+  // histórico com o nome de quem fez. A senha compartilhada segue como
+  // reserva (e pode ser desligada em Equipe quando todos tiverem conta).
+  const [modo, setModo] = React.useState('conta') // 'conta' | 'senha'
 
   const [senha, setSenha] = React.useState('')
   const [carregando, setCarregando] = React.useState(false)
@@ -79,13 +82,13 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
         <div className="pn-porta__caixa">
           <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
           <button type="button" className="pn-link--porta pn-porta__voltar" onClick={() => setModo('senha')}>
-            ‹ Entrar com a senha da equipe
+            Usar a senha compartilhada da equipe
           </button>
           <form className="pn-setor pn-setor--org" onSubmit={enviarConta}>
             <DiscoOrganizacao />
             <span>
-              <span className="pn-setor__nome">Minha conta</span>
-              <span className="pn-setor__nota">Acesso pessoal, criado por um administrador.</span>
+              <span className="pn-setor__nome">Organização</span>
+              <span className="pn-setor__nota">Entre com o seu e-mail. É o seu nome que aparece no histórico do que você fizer.</span>
             </span>
             <label className="pn-campo--porta">
               <span className="pn-campo__rotulo">E-mail</span>
@@ -130,8 +133,8 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
         <form className="pn-setor pn-setor--org" onSubmit={enviar}>
           <DiscoOrganizacao />
           <span>
-            <span className="pn-setor__nome">Organização</span>
-            <span className="pn-setor__nota">Equipe do festival. Vê todas as marcas e move o caminho.</span>
+            <span className="pn-setor__nome">Senha compartilhada</span>
+            <span className="pn-setor__nota">Acesso de reserva da equipe. O que for feito por aqui fica no histórico como “Acesso compartilhado”, sem o seu nome.</span>
           </span>
           <label className="pn-campo--porta">
             <span className="pn-campo__rotulo">Senha da equipe</span>
@@ -149,7 +152,7 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta }) {
             {carregando ? 'Conferindo…' : 'Entrar no painel'}
           </button>
           <button className="pn-link--porta" type="button" onClick={() => setModo('conta')}>
-            Entrar com minha conta
+            ‹ Entrar com a minha conta
           </button>
         </form>
       </div>

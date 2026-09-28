@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Painel SCW</title>
     <link rel="manifest" href="/painel/app.webmanifest" />
@@ -10,6 +10,17 @@
     <!-- Sem isso o iOS não expõe PushManager mesmo instalado na tela inicial
          (CLAUDE.md §Fase 7 — "notificações"). -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Painel SCW" />
+    <link rel="apple-touch-icon" href="/favicon-180.png" />
+    <link rel="icon" href="/favicon-sweet.svg" type="image/svg+xml" />
+    <!-- Nexa (interface) e Nexa Text (leitura), a mesma família do site
+         (CLAUDE.md §6.5, kit ngx4uek). Sem o Typekit nada quebra: o fallback
+         dos dois tokens é a Nexa Slab local. -->
+    <link rel="preconnect" href="https://use.typekit.net" crossorigin />
+    <link rel="preconnect" href="https://p.typekit.net" crossorigin />
+    <link rel="stylesheet" href="https://use.typekit.net/ngx4uek.css" />
     <link rel="stylesheet" href="/painel-app/src/styles/painel.css" />
   </head>
   <body>

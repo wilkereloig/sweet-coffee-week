@@ -67,7 +67,7 @@ export function montarRecado({ nomeMarca, login, senha, origem }) {
   return [
     'Oi, ' + nomeMarca + '! Seu acesso ao Sweet & Coffee Week está pronto.',
     '',
-    'Endereço: ' + origem + '/marca/',
+    'Endereço: ' + origem + '/painel/',
     'Login: ' + login,
     'Senha: ' + senha,
     '',

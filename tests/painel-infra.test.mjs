@@ -233,12 +233,12 @@ test('escopo e start_url dos três manifests terminam em barra e não se sobrep�
    ───────────────────────────────────────────────────────────────────────── */
 
 test('a casca do painel prende a coluna do grid, senão estoura na horizontal', () => {
-  const painel = PAINEL_CSS.match(/#painel\{[^}]*\}/)
+  const painel = PAINEL_CSS.match(/#painel,\.pn-casca\{[^}]*\}/)
   assert.ok(painel, 'sumiu a regra de #painel')
   assert.match(painel[0], /grid-template-columns\s*:\s*minmax\(\s*0/,
     '#painel sem grid-template-columns com minmax(0,…): a coluna volta a crescer por max-content')
   for (const sel of ['.pn-cabeca', '.og-corpo']) {
-    const regra = PAINEL_CSS.match(new RegExp(sel.replace('.', '\\.') + '\\{[^}]*\\}'))
+    const regra = PAINEL_CSS.match(new RegExp('\\n' + sel.replace('.', '\\.') + '\\{[^}]*\\}'))
     assert.ok(regra, 'sumiu a regra de ' + sel)
     assert.match(regra[0], /min-width\s*:\s*0/, sel + ' sem min-width:0 — item de grid não encolhe')
   }
@@ -483,9 +483,15 @@ test('não tenta upsert em push_subscriptions, e a marca grava antes de afirmar'
   assert.ok(!/merge-duplicates/.test(ARQUIVOS_JSX), 'upsert não funciona: update está revogado')
   assert.match(ARQUIVOS_JSX, /push_subscriptions\?endpoint=eq\./, 'falta apagar o endpoint antigo antes de inserir')
   assert.match(MIGRATIONS, /revoke update on public\.push_subscriptions from anon, authenticated/)
-  const gravou = ARQUIVOS_JSX.indexOf("api('push_subscriptions'")
-  const afirmou = ARQUIVOS_JSX.indexOf('Avisos ligados neste aparelho')
-  assert.ok(gravou > -1 && afirmou > gravou, 'a área da marca afirma que ligou antes de gravar no banco')
+  assert.match(ARQUIVOS_JSX, /api\('push_subscriptions',/, 'a marca precisa gravar a assinatura')
+  // Quem afirma "ligado" é o componente comum, e só DEPOIS de `registrar`
+  // (a gravação no banco) resolver dentro de ligarAvisos().
+  const avisos = ler('painel-app/src/components/AvisosAparelho.jsx')
+  const push = ler('painel-app/src/lib/push.js')
+  const gravou = avisos.indexOf('await ligarAvisos(registrar)')
+  const afirmou = avisos.indexOf("'Avisos ligados neste aparelho.'")
+  assert.ok(gravou > -1 && afirmou > gravou, 'a tela afirma que ligou antes de gravar no banco')
+  assert.ok(push.indexOf('await registrar(') > push.indexOf('pushManager.subscribe'), 'grava depois de assinar')
   assert.match(ARQUIVOS_JSX, /papel:\s*'marca'/, 'sem papel, o envio não sabe a quem serve')
   assert.match(ARQUIVOS_JSX, /participante_id:/, 'assinatura precisa de dono')
 })
@@ -493,18 +499,24 @@ test('não tenta upsert em push_subscriptions, e a marca grava antes de afirmar'
 test('a área da marca é instalável, e o iPhone recebe instrução em vez de botão morto', () => {
   assert.match(PAINEL_APP_HTML, /<link rel="manifest" href="\/painel\/app\.webmanifest"/)
   assert.match(PAINEL_APP_HTML, /apple-mobile-web-app-capable/, 'sem isso o iPhone não expõe PushManager mesmo instalado')
-  assert.match(ARQUIVOS_JSX, /Adicionar à Tela de Início/)
-  assert.match(ARQUIVOS_JSX, /function avisoSuportado/, 'a tela precisa distinguir suporte de permissão')
+  const avisos = ler('painel-app/src/components/AvisosAparelho.jsx')
+  assert.match(avisos, /Adicionar à Tela de Início/)
+  assert.match(ler('painel-app/src/lib/push.js'), /function avisoSuportado/, 'a tela precisa distinguir suporte de permissão')
+  assert.match(ARQUIVOS_JSX, /<AvisosAparelho/, 'a área da marca perdeu o bloco de avisos')
 })
 
 test('pedir permissão de aviso não é beco sem saída, nos dois painéis', () => {
+  // Os dois painéis usam o MESMO componente (AvisosAparelho.jsx) — antes eram
+  // duas cópias. Cada painel só injeta como grava a assinatura.
   for (const [nome, arq] of [['organização', EQUIPE_JSX], ['marca', ARQUIVOS_JSX]]) {
-    assert.match(arq, /ONDE_ESTA_O_AVISO/, nome + ': não ensina onde o pedido se escondeu')
-    assert.match(arq, /Ainda esperando sua resposta/, nome + ': falta o prazo que troca o recado')
-    assert.match(arq, /clearTimeout\(lembrete\)/, nome + ': o lembrete precisa ser cancelado')
-    assert.match(arq, /permissions\.query\(\{ name: 'notifications' \}\)/, nome + ': sem ouvir a mudança de permissão')
-    assert.match(arq, /Notification\.permission === 'denied'/, nome + ': precisa checar a negativa antes de pedir')
+    assert.match(arq, /<AvisosAparelho/, nome + ': não usa o bloco comum de avisos')
   }
+  const avisos = ler('painel-app/src/components/AvisosAparelho.jsx')
+  assert.match(avisos, /ONDE_ESTA_O_AVISO/, 'não ensina onde o pedido se escondeu')
+  assert.match(avisos, /Ainda esperando sua resposta/, 'falta o prazo que troca o recado')
+  assert.match(avisos, /clearTimeout\(lembrete\)/, 'o lembrete precisa ser cancelado')
+  assert.match(avisos, /permissions\.query\(\{ name: 'notifications' \}\)/, 'sem ouvir a mudança de permissão')
+  assert.match(ler('painel-app/src/lib/push.js'), /Notification\.permission === 'denied'/, 'precisa checar a negativa antes de pedir')
 })
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -873,14 +885,14 @@ test("'conferindo-org': sessão morta chama sairOrg e NÃO sobrescreve com setEs
   assert.ok(bloco, 'não achei o efeito de conferindo-org')
   const corpo = bloco[0]
   const posSessaoExpirada = corpo.indexOf("'sessao_expirada'")
-  const posSairOrg = corpo.indexOf('sairOrg()', posSessaoExpirada)
+  const posSairOrg = corpo.indexOf('sairOrg(', posSessaoExpirada)
   assert.ok(posSessaoExpirada > -1 && posSairOrg > -1 && posSairOrg > posSessaoExpirada,
     "sessao_expirada tem que chamar sairOrg() no mesmo bloco 'if'")
   // Depois de chamar sairOrg(), tem que RETORNAR — não pode cair pra um
   // setEstado('painel-org'/'definir-senha-org') logo depois, que sobrescreveria
   // o 'boas-vindas' que sairOrg() acabou de aplicar.
   const restoAposSairOrg = corpo.slice(posSairOrg, posSairOrg + 40)
-  assert.match(restoAposSairOrg, /sairOrg\(\);\s*return/)
+  assert.match(restoAposSairOrg, /sairOrg\(\{ expirou: true \}\);\s*return/)
 })
 
 test('rpc.js só zera p_secret quando o chamador já mandou essa chave — nunca acrescenta em corpo vazio', () => {
@@ -925,7 +937,7 @@ test('conferindo-org: falha de rede (não sessão morta) entra no painel SEM ass
 
 test('sairOrg() apaga as DUAS chaves de sessão de organização', () => {
   const semC = semComentarios(APP_JSX)
-  const bloco = semC.match(/function sairOrg\(\)[\s\S]*?\n  \}/)
+  const bloco = semC.match(/function sairOrg\([^)]*\)[\s\S]*?\n  \}/)
   assert.ok(bloco, 'não achei sairOrg()')
   assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG\)/)
   assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG_CONTA\)/)
@@ -967,7 +979,7 @@ test('Respostas.jsx: salvar pede triagem.editar, criar acesso pede marca.liberar
 test('Marcas.jsx: cadastrar marca (abrir e criar) pede marca.liberar', () => {
   const semC = semComentarios(MARCAS_JSX)
   assert.match(semC, /disabled=\{!pode\('marca\.liberar'\)\}/, 'faltou gate no botão que ABRE o cadastro')
-  assert.match(semC, /disabled=\{manCriando \|\| manCriada \|\| !pode\('marca\.liberar'\)\}/, 'faltou gate no botão que CRIA a marca')
+  assert.match(semC, /disabled=\{criando \|\| !pode\('marca\.liberar'\)\}/, 'faltou gate no botão que CRIA a marca')
   assert.match(semC, /!pode\('marca\.liberar'\) && <p/, 'falta nota VISÍVEL (title sozinho não é alcançável em botão disabled)')
 })
 
@@ -1006,13 +1018,15 @@ test('a edição aberta mora em Producao.jsx (producao.gerir), não em Equipe.js
   assert.match(semProducao, /codigoEdicao/)
 })
 
-test('Mesa.jsx continua sem nenhum controle de escrita — nada a gatear nesta vista', () => {
-  // Mesa é kanban de leitura (colunasMesa) — os cartões não têm onClick. Se
-  // algum dia ganharem um, a Fase 3 do plano pede triagem.editar aqui
-  // também (mesma ação de Respostas) — este teste é o lembrete.
+test('Mesa.jsx continua sem nenhum controle de escrita — os cartões só NAVEGAM', () => {
+  // Desde 28/09/2026 o cartão abre a ficha certa (abrirLink). Se algum dia
+  // passar a ESCREVER (mudar etapa arrastando, por exemplo), a Fase 3 do
+  // plano pede triagem.editar aqui — este teste é o lembrete.
   const semC = semComentarios(MESA_JSX)
-  assert.ok(!/onClick=\{.*\}[\s\S]{0,40}og-cartao/.test(semC) && !/className="og-cartao"[\s\S]{0,120}onClick=/.test(semC),
-    'og-cartao ganhou onClick — se virou escrita, precisa de pode(\'triagem.editar\') igual Respostas.jsx')
+  const escritas = ['organizacao_atualizar_registro', 'organizacao_apagar_registro', 'criar_solicitacao',
+    'publicar_solicitacao', 'marcar_solicitacao', 'enviar_mensagem', 'adicionar_observacao', 'criar-acesso-marca']
+  for (const e of escritas) assert.ok(!semC.includes(e), 'Mesa.jsx passou a escrever (' + e + ') — precisa de gate por pode()')
+  assert.match(semC, /className="og-cartao"[^>]*onClick=\{\(\) => abrirLink\(destino\)\}/, 'o cartão deveria só navegar')
 })
 
 /* ─────────────────────────────────────────────────────────────────────────

@@ -35,7 +35,8 @@ test('linkWhatsApp antepõe 55 a telefone de até 11 dígitos, null sem telefone
 
 test('montarRecado é puro (origem injetada, sem `location`)', () => {
   const texto = montarRecado({ nomeMarca: 'Bocaditos', login: 'bocaditos', senha: 'abc123', origem: 'https://x.test' })
-  assert.match(texto, /Endereço: https:\/\/x\.test\/marca\//)
+  // /painel/ — o escopo do service worker (/marca/ só redireciona).
+  assert.match(texto, /Endereço: https:\/\/x\.test\/painel\//)
   assert.match(texto, /Login: bocaditos/)
   assert.match(texto, /Senha: abc123/)
 })

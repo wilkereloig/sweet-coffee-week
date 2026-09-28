@@ -2,38 +2,71 @@ import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta, preco, prazoSelo } from '../../lib/painelFormat'
-import {
-  COR_CADASTRO, ROTULO_SESSAO, RECADO_MANUAL,
-  slugPrevisto, resumoParticipante,
-} from '../../lib/participantes'
+import { COR_CADASTRO, ROTULO_SESSAO, RECADO_MANUAL, slugPrevisto, resumoParticipante } from '../../lib/participantes'
+import { rotuloStatus, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
+import { Conversa } from '../Conversa'
+import { Atividade } from '../Atividade'
+import { Carregando, Vazio, Erro, Secao, Abas, traduzirErro } from '../ui'
 import { ICONE } from '../PainelShell'
 
-// Linha de "Contato:" — só aparece quando o valor existe, como
-// `linha()` na versão estática.
+const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
+
 function Linha({ rotulo, valor }) {
   if (!valor) return null
-  return <p className="og-par"><b>{rotulo}</b> {valor}</p>
+  return <div className="ui-dado"><dt>{rotulo}</dt><dd>{valor}</dd></div>
 }
 
 function restricoes(i) {
-  return [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '', i.sem_lactose ? 'sem lactose' : '']
-    .filter(Boolean).join(' · ')
+  return [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '', i.sem_lactose ? 'sem lactose' : ''].filter(Boolean).join(' · ')
 }
 
-// A ficha completa de uma marca (get_ficha_participacao) — leitura, sem os
-// botões de "enviar foto"/"dar por respondido" da versão estática: esses
-// mutam Storage e solicitações, área da vista Produção, que ainda não existe
-// em painel-app. Ver relatório da tarefa.
-function FichaCorpo({ estado }) {
-  if (estado.carregando) return <div className="og-bloco"><p>Buscando a ficha.</p></div>
-  if (estado.erro) return <div className="og-bloco"><p>{estado.erro}</p></div>
+/* ── Aba "Cadastro": o que a marca preencheu ─────────────────────────────── */
+function AbaCadastro({ participante }) {
+  const [estado, setEstado] = React.useState({ carregando: !!participante.participacao_id, dados: null, erro: null })
+
+  const carregar = React.useCallback(async () => {
+    if (!participante.participacao_id) return
+    setEstado({ carregando: true, dados: null, erro: null })
+    try {
+      const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participante.participacao_id })
+      setEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.' })
+    } catch (e) {
+      setEstado({ carregando: false, dados: null, erro: e.message })
+    }
+  }, [participante.participacao_id])
+  React.useEffect(() => { carregar() }, [carregar])
+
+  const m = (estado.dados && estado.dados.marca) || participante
+  const contato = (
+    <Secao titulo="Contato">
+      <dl className="ui-dados">
+        <Linha rotulo="Responsável" valor={m.responsavel} />
+        <Linha rotulo="Telefone" valor={m.telefone} />
+        <Linha rotulo="E-mail" valor={m.email} />
+        <Linha rotulo="Instagram" valor={m.instagram} />
+        <Linha rotulo="Site" valor={m.site} />
+        <Linha rotulo="CNPJ" valor={m.cnpj} />
+        <Linha rotulo="Razão social" valor={m.razao_social} />
+      </dl>
+    </Secao>
+  )
+
+  if (!participante.participacao_id) {
+    return (
+      <>
+        {contato}
+        <Vazio titulo="Sem edição aberta">A marca tem conta, mas não há participação aberta para ela. Abra a edição atual em Produção para o formulário aparecer.</Vazio>
+      </>
+    )
+  }
+  if (estado.carregando) return <Carregando linhas={3} />
+  if (estado.erro) return <Erro texto={estado.erro} onTentar={carregar} />
 
   const f = estado.dados
-  const m = f.marca || {}
   const pa = f.participacao || {}
   const itens = f.itens || []
   const unidades = f.unidades || []
@@ -43,301 +76,455 @@ function FichaCorpo({ estado }) {
   const edicoes = f.edicoes || []
 
   return (
-    <>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
-        <h3>Contato</h3>
-        <Linha rotulo="Responsável:" valor={m.responsavel} />
-        <Linha rotulo="Telefone:" valor={m.telefone} />
-        <Linha rotulo="E-mail:" valor={m.email} />
-        <Linha rotulo="Instagram:" valor={m.instagram} />
-        <Linha rotulo="Site:" valor={m.site} />
-        <Linha rotulo="CNPJ:" valor={m.cnpj} />
-        <Linha rotulo="Razão social:" valor={m.razao_social} />
-      </div>
-
-      <div className="og-bloco">
-        <h3>O combo</h3>
-        <Linha rotulo="Tema:" valor={pa.tema_combo} />
-        <Linha rotulo="Justificativa:" valor={pa.tema_justificativa} />
-        <Linha rotulo="Preço:" valor={preco(pa.combo_preco)} />
+    <div className="ui-pilha">
+      {contato}
+      <Secao titulo="O combo" nota={'Edição ' + (pa.edicao_codigo || '—') + ' · ' + rotuloStatus(pa.status_cadastro)}>
+        <dl className="ui-dados">
+          <Linha rotulo="Tema" valor={pa.tema_combo} />
+          <Linha rotulo="Justificativa" valor={pa.tema_justificativa} />
+          <Linha rotulo="Preço" valor={preco(pa.combo_preco)} />
+        </dl>
         {itens.length
-          ? itens.map((i) => (
-              <div className="og-par" style={{ marginTop: 10 }} key={i.id}>
-                <b>{(i.tipo || '').toUpperCase()}</b> {i.nome || '(sem nome)'}
-                {i.descricao && <><br />{i.descricao}</>}
-                {i.ingredientes && <><br /><i>{i.ingredientes}</i></>}
-                {restricoes(i) && <><br />{restricoes(i)}</>}
-              </div>
-            ))
-          : <p>Os três itens ainda não foram criados.</p>}
-      </div>
-
-      <div className="og-bloco">
-        <h3>Unidades</h3>
+          ? <ul className="ui-lista-simples">{itens.map((i) => (
+              <li key={i.id}>
+                <b>{(i.tipo || '').toUpperCase()} · {i.nome || '(sem nome)'}</b>
+                {i.descricao && <span>{i.descricao}</span>}
+                {i.ingredientes && <span><i>{i.ingredientes}</i></span>}
+                {restricoes(i) && <span>{restricoes(i)}</span>}
+              </li>
+            ))}</ul>
+          : <p className="ui-nota">Os três itens ainda não foram criados.</p>}
+      </Secao>
+      <Secao titulo="Unidades">
         {unidades.length
-          ? unidades.map((u, i) => (
-              <p className="og-par" key={u.id || i}>
-                <b>{u.endereco || '(sem endereço)'}</b>{u.bairro ? ' · ' + u.bairro : ''}
-                {u.horarios && <><br />{u.horarios}</>}
-                <br />
-                {u.faz_delivery
-                  ? 'delivery: ' + ((u.canais_delivery || []).map((c) => c.tipo).join(', ') || 'sem canal informado')
-                  : 'sem delivery'}
-              </p>
-            ))
-          : <p>Nenhuma unidade cadastrada.</p>}
-      </div>
-
-      <div className="og-bloco">
-        <h3>Pedidos</h3>
+          ? <ul className="ui-lista-simples">{unidades.map((u, i) => (
+              <li key={u.id || i}>
+                <b>{u.endereco || '(sem endereço)'}{u.bairro ? ' · ' + u.bairro : ''}</b>
+                {u.horarios && <span>{u.horarios}</span>}
+                <span>{u.faz_delivery ? 'delivery: ' + ((u.canais_delivery || []).map((c) => c.tipo).join(', ') || 'sem canal informado') : 'sem delivery'}</span>
+              </li>
+            ))}</ul>
+          : <p className="ui-nota">Nenhuma unidade cadastrada.</p>}
+      </Secao>
+      <Secao titulo="Pedidos">
         {solics.length
-          ? solics.map((s) => {
+          ? <ul className="ui-lista-simples">{solics.map((s) => {
               const prazo = s.prazo_em ? prazoSelo(s.prazo_em) : null
-              return (
-                <p className="og-par" key={s.id}>
-                  <b>{s.titulo}</b> · {s.estado === 'respondido' ? 'respondido' : 'pendente'}
-                  {prazo ? ' · ' + prazo.texto : ''}
-                </p>
-              )
-            })
-          : <p>Nenhum pedido publicado para esta marca.</p>}
-      </div>
-
-      <div className="og-bloco">
-        <h3>Arquivos e fotos</h3>
-        {arqs.length
-          ? arqs.map((a) => (
-              <p className="og-par" key={a.id}>
-                <b>{a.nome}</b>
-                {a.exige_leitura ? (a.lido_em ? ' · leu em ' + dataCurta(a.lido_em) : ' · ainda não leu') : ''}
-              </p>
-            ))
-          : <p>Nenhum arquivo para esta marca.</p>}
-        {sess.length
-          ? sess.map((x) => (
-              <p className="og-par" key={x.id}><b>Sessão</b> {dataHoraCurta(x.data_hora)} · {ROTULO_SESSAO[x.status] || x.status}</p>
-            ))
-          : <p>Nenhuma sessão de fotos agendada.</p>}
-      </div>
-
-      <div className="og-bloco">
-        <h3>Histórico</h3>
-        {edicoes.map((e) => (
-          <p className="og-par" key={e.id}><b>{e.edicao_codigo}</b> · {e.status_cadastro}{e.tema_combo ? ' · ' + e.tema_combo : ''}</p>
-        ))}
-      </div>
-    </>
+              return <li key={s.id}><b>{s.titulo}</b><span>{s.estado === 'respondido' ? 'respondido' + (s.respondido_em ? ' ' + tempoRelativo(s.respondido_em) : '') : 'pendente'}{prazo ? ' · ' + prazo.texto : ''}</span></li>
+            })}</ul>
+          : <p className="ui-nota">Nenhum pedido publicado para esta marca.</p>}
+      </Secao>
+      <Secao titulo="Arquivos e fotos">
+        {arqs.length > 0 && <ul className="ui-lista-simples">{arqs.map((a) => (
+          <li key={a.id}><b>{a.nome}</b><span>{a.exige_leitura ? (a.lido_em ? 'leu em ' + dataCurta(a.lido_em) : 'ainda não confirmou a leitura') : 'sem confirmação de leitura'}</span></li>
+        ))}</ul>}
+        {sess.length > 0 && <ul className="ui-lista-simples">{sess.map((x) => (
+          <li key={x.id}><b>Sessão de fotos · {dataHoraCurta(x.data_hora)}</b><span>{ROTULO_SESSAO[x.status] || x.status}{x.local ? ' · ' + x.local : ''}</span></li>
+        ))}</ul>}
+        {!arqs.length && !sess.length && <p className="ui-nota">Nenhum arquivo nem sessão de fotos ainda.</p>}
+      </Secao>
+      {edicoes.length > 0 && (
+        <Secao titulo="Edições">
+          <ul className="ui-lista-simples">{edicoes.map((e) => (
+            <li key={e.id}><b>{e.edicao_codigo}</b><span>{rotuloStatus(e.status_cadastro)}{e.tema_combo ? ' · ' + e.tema_combo : ''}</span></li>
+          ))}</ul>
+        </Secao>
+      )}
+    </div>
   )
 }
 
-export function Marcas({ registrarAtualizar, reportarEstado, pode = () => true }) {
-  const [participantes, setParticipantes] = React.useState(null) // null = carregando
+/* ── Aba "Mensagens": conversa com a marca ───────────────────────────────── */
+function AbaMensagens({ participante, pode, onLidas }) {
+  const [msgs, setMsgs] = React.useState([])
+  const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
+  // Ref: o pai recria a função a cada render, e ela não pode reiniciar a busca.
+  const lidasRef = React.useRef(onLidas)
+  lidasRef.current = onLidas
 
-  const [fichaAberta, setFichaAberta] = React.useState(false)
-  const [fichaEstado, setFichaEstado] = React.useState(null) // { carregando, dados, erro }
+  const carregar = React.useCallback(async () => {
+    try {
+      const l = await rpc('get_mensagens', { p_secret: lerSenha(), p_participante: participante.id })
+      setMsgs(l || [])
+      setErro(null)
+      // Abrir a conversa é ler: marca as mensagens da marca como lidas.
+      if ((l || []).some((m) => m.de === 'marca' && !m.lida_em)) {
+        await rpc('ler_mensagens_org', { p_secret: lerSenha(), p_participante: participante.id })
+        if (lidasRef.current) lidasRef.current()
+      }
+    } catch (e) {
+      setErro(e.message)
+    } finally {
+      setCarregando(false)
+    }
+  }, [participante.id])
 
-  const [cadastroAberto, setCadastroAberto] = React.useState(false)
-  const [manNome, setManNome] = React.useState('')
-  const [manTelefone, setManTelefone] = React.useState('')
-  const [manResponsavel, setManResponsavel] = React.useState('')
-  const [manEmail, setManEmail] = React.useState('')
-  const [manAviso, setManAviso] = React.useState(null) // { tom, texto }
-  const [manCriando, setManCriando] = React.useState(false)
-  const [manCriada, setManCriada] = React.useState(false)
-  const [manCredenciais, setManCredenciais] = React.useState(null) // { login, senha }
+  React.useEffect(() => {
+    carregar()
+    const t = setInterval(() => { if (document.visibilityState === 'visible') carregar() }, 20000)
+    return () => clearInterval(t)
+  }, [carregar])
+
+  async function enviar(corpo) {
+    await rpc('enviar_mensagem', { p_secret: lerSenha(), p_participante: participante.id, p_corpo: corpo })
+    await carregar()
+  }
+
+  return (
+    <Conversa
+      mensagens={msgs} lado="organizacao" rotuloOutro={participante.nome_marca}
+      carregando={carregando} erro={erro} onTentar={carregar}
+      onEnviar={enviar}
+      podeEnviar={pode('mensagem.enviar') && !!participante.user_id}
+      semPermissao={!participante.user_id ? 'A marca ainda não tem acesso ao painel: crie o acesso para poder conversar por aqui.' : 'Sua função só lê as mensagens.'}
+    />
+  )
+}
+
+/* ── Aba "Histórico": quem fez o quê + observações internas ──────────────── */
+function AbaHistorico({ participante, pode }) {
+  const [linhas, setLinhas] = React.useState(null)
+  const [erro, setErro] = React.useState(null)
+  const [texto, setTexto] = React.useState('')
+  const [salvando, setSalvando] = React.useState(false)
+  const [avisoObs, setAvisoObs] = React.useState(null)
+  const [filtro, setFiltro] = React.useState('')
 
   const carregar = React.useCallback(async () => {
     setErro(null)
-    const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
     try {
-      // admin_ping junto, como em Respostas: RPC de leitura não dá erro com
-      // senha inválida, só devolve lista vazia — sem isso, sessão vencida
-      // pareceria "nenhuma marca" em vez de "sessão vencida".
+      setLinhas((await rpc('get_atividade', { p_secret: lerSenha(), p_participante: participante.id, p_limite: 300 })) || [])
+    } catch (e) {
+      setErro(e.message)
+    }
+  }, [participante.id])
+  React.useEffect(() => { carregar() }, [carregar])
+
+  async function salvarObs(ev) {
+    ev.preventDefault()
+    if (!texto.trim()) return
+    setSalvando(true)
+    setAvisoObs(null)
+    try {
+      await rpc('adicionar_observacao', { p_secret: lerSenha(), p_participante: participante.id, p_texto: texto.trim() })
+      setTexto('')
+      await carregar()
+    } catch (e) {
+      setAvisoObs(traduzirErro(e.message))
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  const visiveis = (linhas || []).filter((a) => !filtro || (filtro === 'observacao' ? a.acao === 'observacao' : a.acao !== 'observacao'))
+
+  return (
+    <div className="ui-pilha">
+      {pode('triagem.editar') ? (
+        <form className="ui-form-linha" onSubmit={salvarObs}>
+          <label className="og-campo">
+            <span>Observação interna</span>
+            <textarea rows={2} placeholder="Ex.: informou por telefone que envia a foto nova amanhã. Só a equipe vê." value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={2000} />
+          </label>
+          <button className="og-btn og-btn--mini" type="submit" disabled={salvando || !texto.trim()}>{salvando ? 'Salvando…' : 'Registrar observação'}</button>
+          {avisoObs && <p className="ui-nota ui-nota--erro" role="alert">{avisoObs}</p>}
+        </form>
+      ) : <p className="ui-nota">Sua função lê o histórico, mas não registra observação.</p>}
+
+      <div className="ui-filtros-mini" role="group" aria-label="Filtrar histórico">
+        {[['', 'Tudo'], ['observacao', 'Só observações'], ['acoes', 'Só ações']].map(([v, r]) => (
+          <button key={v} type="button" className="ui-chip" aria-pressed={filtro === v} onClick={() => setFiltro(v)}>{r}</button>
+        ))}
+      </div>
+
+      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {!erro && linhas === null && <Carregando linhas={4} />}
+      {!erro && linhas && visiveis.length === 0 && <Vazio titulo="Nada registrado ainda">As mudanças de status, mensagens, pedidos e observações desta marca aparecem aqui, com quem fez e quando.</Vazio>}
+      {!erro && linhas && visiveis.length > 0 && <Atividade linhas={visiveis} comMarca={false} />}
+    </div>
+  )
+}
+
+/* ── Aba "Acesso": gerar senha nova para a marca ─────────────────────────── */
+function AbaAcesso({ participante, pode }) {
+  const [gerando, setGerando] = React.useState(false)
+  const [erro, setErro] = React.useState(null)
+  const [cred, setCred] = React.useState(null)
+
+  async function gerar() {
+    if (!window.confirm('Gerar uma senha nova para ' + participante.nome_marca + '?\n\nA senha atual deixa de valer agora. A nova aparece UMA VEZ, aqui na tela.')) return
+    setGerando(true)
+    setErro(null)
+    try {
+      const r = await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), participante_id: participante.id })
+      if (!r || !r.senha) throw new Error('a função não devolveu a senha.')
+      setCred({ login: r.login, senha: r.senha })
+    } catch (e) {
+      const c = e.dados && e.dados.erro
+      setErro(c === 'user_id_ausente'
+        ? 'A função de senha ainda não foi atualizada no servidor para contas de marca. Publique a Edge Function regerar-senha-conta.'
+        : traduzirErro(c || e.message))
+    } finally {
+      setGerando(false)
+    }
+  }
+
+  if (!participante.user_id) {
+    return <Vazio titulo="Sem acesso criado">Esta marca ainda não tem conta. Crie o acesso pela candidatura em Respostas (botão Criar acesso) ou pelo cadastro manual em Marcas.</Vazio>
+  }
+  return (
+    <div className="ui-pilha">
+      <Secao titulo="Login" nota="A marca entra pelo nome do estabelecimento.">
+        <dl className="ui-dados"><Linha rotulo="Login" valor={participante.nome_marca} /></dl>
+      </Secao>
+      <Secao titulo="Esqueceu a senha?" nota="O login da marca não recebe e-mail. Gere uma senha nova e entregue por WhatsApp: no primeiro acesso ela é obrigada a trocar.">
+        {cred
+          ? <Credenciais nomeMarca={participante.nome_marca} telefone={participante.telefone} login={cred.login} senha={cred.senha} />
+          : <button className="og-btn og-btn--mini" type="button" disabled={gerando || !pode('marca.liberar')} onClick={gerar}>{gerando ? 'Gerando…' : 'Gerar senha nova'}</button>}
+        {!pode('marca.liberar') && <p className="ui-nota">Sua função não libera acesso de marca.</p>}
+        {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+      </Secao>
+    </div>
+  )
+}
+
+/* ── A ficha (folha larga com abas) ──────────────────────────────────────── */
+function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLidas }) {
+  const [aba, setAba] = React.useState(abaInicial || 'cadastro')
+  React.useEffect(() => { setAba(abaInicial || 'cadastro') }, [participante && participante.id, abaInicial])
+  const p = participante
+  return (
+    <Folha
+      aberto={!!p}
+      larga
+      titulo={p ? p.nome_marca || '(sem nome)' : ''}
+      sub={p ? (p.edicao_codigo ? 'Edição ' + p.edicao_codigo + ' · ' : '') + rotuloStatus(p.status_cadastro) : ''}
+      onFechar={onFechar}
+    >
+      {p && (
+        <>
+          <Abas
+            rotulo="Seções da ficha"
+            ativa={aba}
+            onMudar={setAba}
+            abas={[
+              { chave: 'cadastro', rotulo: 'Cadastro' },
+              { chave: 'mensagens', rotulo: 'Mensagens', n: naoLidas },
+              { chave: 'historico', rotulo: 'Histórico' },
+              { chave: 'acesso', rotulo: 'Acesso' },
+            ]}
+          />
+          <div role="tabpanel" className="ui-painel-aba">
+            {aba === 'cadastro' && <AbaCadastro participante={p} />}
+            {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
+            {aba === 'historico' && <AbaHistorico participante={p} pode={pode} />}
+            {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} />}
+          </div>
+        </>
+      )}
+    </Folha>
+  )
+}
+
+/* ── Cadastro manual ─────────────────────────────────────────────────────── */
+function FolhaCadastroManual({ aberto, pode, onFechar, onCriada }) {
+  const [nome, setNome] = React.useState('')
+  const [telefone, setTelefone] = React.useState('')
+  const [responsavel, setResponsavel] = React.useState('')
+  const [email, setEmail] = React.useState('')
+  const [aviso, setAviso] = React.useState(null)
+  const [criando, setCriando] = React.useState(false)
+  const [cred, setCred] = React.useState(null)
+
+  React.useEffect(() => {
+    if (!aberto) return
+    setNome(''); setTelefone(''); setResponsavel(''); setEmail(''); setAviso(null); setCriando(false); setCred(null)
+  }, [aberto])
+
+  async function criarMarcaManual(ev) {
+    ev.preventDefault()
+    if (!nome.trim()) { setAviso('Escreva o nome do estabelecimento.'); return }
+    if (!telefone.trim()) { setAviso('O telefone é como você entrega o acesso.'); return }
+    setCriando(true)
+    setAviso(null)
+    try {
+      const r = await chamarFuncao('criar-acesso-marca', {
+        secret: lerSenha(),
+        marca: { nome: nome.trim(), telefone: telefone.trim(), responsavel: responsavel.trim(), email: email.trim() },
+      })
+      if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
+      setCred({ login: r.login, senha: r.senha })
+      await onCriada()
+    } catch (e) {
+      const codigo = e.dados && e.dados.erro
+      let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + traduzirErro(e.message))
+      if (codigo === 'existe_candidatura') recado += ' Abra a ficha dela em "Respostas" e use Criar acesso: assim a candidatura fica ligada à conta.'
+      setAviso(recado)
+    } finally {
+      setCriando(false)
+    }
+  }
+
+  return (
+    <Folha aberto={aberto} titulo="Cadastrar marca" sub="Para quem você convidou sem passar pelo formulário" onFechar={onFechar}>
+      <form className="ui-form" onSubmit={criarMarcaManual} noValidate>
+        <p className="ui-nota">A conta nasce agora, com login e senha. Nome e telefone são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>
+        <label className="og-campo"><span>Nome do estabelecimento <abbr title="obrigatório">*</abbr></span>
+          <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} />
+        </label>
+        <p className="ui-nota">O login vai ser: <b>{slugPrevisto(nome) || '…'}</b></p>
+        <label className="og-campo"><span>Telefone (WhatsApp) <abbr title="obrigatório">*</abbr></span>
+          <input type="tel" inputMode="tel" autoComplete="off" required placeholder="(84) 90000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+        </label>
+        <label className="og-campo"><span>Responsável <em>(opcional)</em></span>
+          <input type="text" autoComplete="off" value={responsavel} onChange={(e) => setResponsavel(e.target.value)} />
+        </label>
+        <label className="og-campo"><span>E-mail <em>(opcional)</em></span>
+          <input type="email" autoComplete="off" placeholder="contato@marca.com.br" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+        {cred && <Credenciais nomeMarca={nome} telefone={telefone} login={cred.login} senha={cred.senha} />}
+        {!cred && (
+          <button className="og-btn" type="submit" disabled={criando || !pode('marca.liberar')}>
+            {criando ? 'Criando…' : 'Criar marca e acesso'}
+          </button>
+        )}
+      </form>
+    </Folha>
+  )
+}
+
+/* ── A vista ─────────────────────────────────────────────────────────────── */
+const ORDENS = {
+  recentes: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+  nome: (a, b) => (a.nome_marca || '').localeCompare(b.nome_marca || '', 'pt-BR'),
+  mensagens: (a, b) => (b._naoLidas || 0) - (a._naoLidas || 0) || new Date(b._ultimaMsg || 0) - new Date(a._ultimaMsg || 0),
+}
+
+export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAlvo }) {
+  const [participantes, setParticipantes] = React.useState(null)
+  const [conversas, setConversas] = React.useState([])
+  const [erro, setErro] = React.useState(null)
+  const [termo, setTermo] = React.useState('')
+  const [status, setStatus] = React.useState('')
+  const [ordem, setOrdem] = React.useState('recentes')
+  const [ficha, setFicha] = React.useState(null) // { id, aba }
+  const [cadastroAberto, setCadastroAberto] = React.useState(false)
+
+  const carregar = React.useCallback(async () => {
+    setErro(null)
+    const senha = lerSenha()
+    try {
+      // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
+      // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
       const [valida, lista] = await Promise.all([
         rpc('admin_ping', { p_secret: senha }),
         rpc('get_participantes', { p_secret: senha }),
       ])
-      if (valida !== true) {
-        setErro('A senha desta sessão não vale mais. Saia e entre de novo.')
-        return
-      }
-      const novo = lista || []
-      setParticipantes(novo)
-      if (reportarEstado) reportarEstado({ participantes: novo })
+      if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
+      setParticipantes(lista || [])
     } catch (e) {
       setErro(e.message)
     }
-  }, [reportarEstado])
+    // Leitura à parte: conversas não podem derrubar a lista (§10.4-b).
+    try { setConversas((await rpc('get_conversas', { p_secret: senha })) || []) } catch { setConversas([]) }
+  }, [])
 
   React.useEffect(() => { carregar() }, [carregar])
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+
+  // Aviso ou outra vista pediu uma marca específica (e talvez uma aba).
   React.useEffect(() => {
-    if (registrarAtualizar) registrarAtualizar(carregar)
-  }, [registrarAtualizar, carregar])
+    if (!alvo || !alvo.id) return
+    setFicha({ id: alvo.id, aba: alvo.sub === 'mensagens' ? 'mensagens' : alvo.sub === 'historico' ? 'historico' : 'cadastro' })
+    consumirAlvo && consumirAlvo()
+  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function abrirFicha(participacaoId) {
-    setFichaAberta(true)
-    setFichaEstado({ carregando: true, dados: null, erro: null })
-    const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
-    try {
-      const f = await rpc('get_ficha_participacao', { p_secret: senha, p_participacao: participacaoId })
-      setFichaEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.' })
-    } catch (e) {
-      setFichaEstado({ carregando: false, dados: null, erro: e.message })
-    }
-  }
+  const porMarca = React.useMemo(() => Object.fromEntries(conversas.map((c) => [c.participante_id, c])), [conversas])
+  const lista = React.useMemo(() => {
+    const t = termo.trim().toLowerCase()
+    return (participantes || [])
+      .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
+      .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
+      .filter((p) => !status || (status === 'mensagens' ? p._naoLidas > 0 : p.status_cadastro === status))
+      .sort(ORDENS[ordem])
+  }, [participantes, porMarca, termo, status, ordem])
 
-  function abrirCadastro() {
-    setManNome(''); setManTelefone(''); setManResponsavel(''); setManEmail('')
-    setManAviso(null); setManCriando(false); setManCriada(false); setManCredenciais(null)
-    setCadastroAberto(true)
-  }
-
-  async function criarMarcaManual() {
-    const nome = manNome.trim()
-    const telefone = manTelefone.trim()
-    if (!nome) { setManAviso({ tom: 'erro', texto: 'Escreva o nome do estabelecimento.' }); return }
-    if (!telefone) { setManAviso({ tom: 'erro', texto: 'O telefone é como você entrega o acesso.' }); return }
-
-    setManCriando(true)
-    setManAviso(null)
-    const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
-    try {
-      const r = await chamarFuncao('criar-acesso-marca', {
-        secret: senha,
-        marca: { nome, telefone, responsavel: manResponsavel.trim(), email: manEmail.trim() },
-      })
-      if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
-
-      await carregar()
-      setManAviso({ tom: 'ok', texto: 'Marca criada. Copie ou envie agora.' })
-      setManCriada(true)
-      setManCredenciais({ login: r.login, senha: r.senha })
-    } catch (e) {
-      const codigo = e.dados && e.dados.erro
-      let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + e.message)
-      if (codigo === 'existe_candidatura') {
-        recado += ' Abra a ficha dela em "Respostas" e use o botão Criar acesso: assim a candidatura fica vinculada à conta em vez de ficar órfã.'
-      }
-      setManAviso({ tom: 'erro', texto: recado })
-    } finally {
-      setManCriando(false)
-    }
-  }
-
-  const tituloFicha = fichaEstado?.dados?.marca?.nome_marca || (fichaEstado?.carregando ? 'Carregando…' : 'Ficha')
-  const subFicha = fichaEstado?.dados
-    ? 'Edição ' + (fichaEstado.dados.participacao.edicao_codigo || 'N/D') + ' · ' + (fichaEstado.dados.participacao.status_cadastro || '')
-    : ''
+  const participanteFicha = ficha && (participantes || []).find((p) => p.id === ficha.id)
+  const totalNaoLidas = conversas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0)
 
   return (
     <section className="og-vista">
-      <VistaCabeca acento="roxo" icone={ICONE.participantes} titulo="Marcas" nota="Quem já tem conta e preenche o próprio cadastro" />
+      <VistaCabeca acento="roxo" icone={ICONE.participantes} titulo="Marcas" nota="Quem tem acesso ao painel: cadastro, conversa e histórico de cada uma" />
 
-      <section className="og-forms">
-        <div className="og-forms__cabeca og-forms__cabeca--com-acao">
-          <div>
-            <h2>Marcas com acesso</h2>
-            <p>Quem já tem conta para preencher o próprio cadastro.</p>
-          </div>
-          <button
-            className="og-btn og-btn--mini" type="button"
-            disabled={!pode('marca.liberar')}
-            title={pode('marca.liberar') ? undefined : 'Sua função não cadastra marca'}
-            onClick={abrirCadastro}
-          >
-            Cadastrar marca
-          </button>
+      <div className="ui-barra">
+        <div className="og-filtros">
+          <label className="og-campo og-campo--busca"><span>Buscar</span>
+            <input type="search" placeholder="marca, responsável, e-mail ou telefone" value={termo} onChange={(e) => setTermo(e.target.value)} />
+          </label>
+          <label className="og-campo"><span>Situação</span>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">Todas</option>
+              <option value="mensagens">Com mensagem não lida{totalNaoLidas ? ' (' + totalNaoLidas + ')' : ''}</option>
+              <option value="aguardando_cadastro">Aguardando cadastro</option>
+              <option value="em_preenchimento">Em preenchimento</option>
+              <option value="cadastro_completo">Cadastro completo</option>
+              <option value="sem_participacao">Sem edição aberta</option>
+            </select>
+          </label>
+          <label className="og-campo"><span>Ordenar</span>
+            <select value={ordem} onChange={(e) => setOrdem(e.target.value)}>
+              <option value="recentes">Mais recentes</option>
+              <option value="nome">Nome (A–Z)</option>
+              <option value="mensagens">Mensagens</option>
+            </select>
+          </label>
         </div>
-        {/* Texto visível, não só title: botão disabled não recebe hover nem
-            foco de teclado (pointer-events:none no CSS) — achado de revisão
-            adversarial. */}
-        {!pode('marca.liberar') && <p className="og-forms__nota">Sua função não cadastra marca.</p>}
+        <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
+      </div>
+      {!pode('marca.liberar') && <p className="ui-nota">Sua função não cadastra marca.</p>}
 
-        {erro && (
-          <div className="og-estado" data-tom="erro">
-            <h2>Não consegui listar as marcas</h2>
-            <p>{erro}</p>
-            <p>Se a mensagem fala em função inexistente, a migration das contas ainda não foi aplicada no banco. O resto do painel não depende dela e segue funcionando.</p>
-          </div>
-        )}
-
-        {!erro && participantes && participantes.length === 0 && (
-          <div className="og-estado">
-            <h2>Nenhuma marca com acesso</h2>
-            <p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar o botão <b>Criar acesso</b> na ficha dela, ou cadastrar a marca direto aqui, no botão <b>Cadastrar marca</b> acima: para quem você convidou sem passar pelo formulário.</p>
-            <p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar.</p>
-          </div>
-        )}
-
-        {!erro && participantes && participantes.length > 0 && (
-          <ul className="og-lista">
-            {participantes.map((p) => {
-              // `<button>` e não `<div>`: a linha ABRE a ficha, e ação de
-              // navegação em elemento morto não recebe foco nem tecla
-              // (CLAUDE.md §13). Marca sem participação não abre nada.
-              const clicavel = !!p.participacao_id
-              const Item = clicavel ? 'button' : 'div'
-              return (
-                <li key={p.id}>
-                  <Item
-                    className="og-item"
-                    type={clicavel ? 'button' : undefined}
-                    onClick={clicavel ? () => abrirFicha(p.participacao_id) : undefined}
-                  >
-                    <span className="og-item__cor" style={{ background: COR_CADASTRO[p.status_cadastro] || '#6A2C15' }} aria-hidden="true" />
-                    <p className="og-item__nome">{p.nome_marca || '(sem nome)'}</p>
-                    <p className="og-item__meta">{resumoParticipante(p)}</p>
-                    <span className="og-item__dir">
-                      <span className="og-selo" data-acesso={p.status_cadastro}>{p.status_cadastro}</span>
-                      <span className="og-item__data">{dataCurta(p.created_at)}</span>
-                    </span>
-                  </Item>
-                </li>
-              )
-            })}
+      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {!erro && participantes === null && <Carregando />}
+      {!erro && participantes && participantes.length === 0 && (
+        <Vazio titulo="Nenhuma marca com acesso">
+          <p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar <b>Criar acesso</b> na ficha dela, em Respostas, ou cadastrar a marca direto aqui, em <b>Cadastrar marca</b>.</p>
+          <p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar.</p>
+        </Vazio>
+      )}
+      {!erro && participantes && participantes.length > 0 && lista.length === 0 && <Vazio titulo="Nenhuma marca com esses filtros" />}
+      {!erro && lista.length > 0 && (
+        <>
+          <p className="ui-contagem">{lista.length} {lista.length === 1 ? 'marca' : 'marcas'}</p>
+          <ul className="og-lista og-lista--tabela">
+            {lista.map((p) => (
+              <li key={p.id}>
+                <button type="button" className="og-item" onClick={() => setFicha({ id: p.id, aba: p._naoLidas ? 'mensagens' : 'cadastro' })}>
+                  <span className="og-item__cor" style={{ background: COR_CADASTRO[p.status_cadastro] || '#6A2C15' }} aria-hidden="true" />
+                  <span className="og-item__nome">{p.nome_marca || '(sem nome)'}</span>
+                  <span className="og-item__meta">{resumoParticipante(p)}</span>
+                  <span className="og-item__dir">
+                    {p._naoLidas > 0 && <span className="og-selo" data-tom="alerta">{p._naoLidas} {p._naoLidas === 1 ? 'mensagem nova' : 'mensagens novas'}</span>}
+                    <span className="og-selo" data-acesso={p.status_cadastro}>{rotuloStatus(p.status_cadastro)}</span>
+                    <span className="og-item__data">{dataCurta(p.created_at)}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
-        )}
-      </section>
+        </>
+      )}
 
-      <Folha aberto={fichaAberta} titulo={tituloFicha} sub={subFicha} onFechar={() => setFichaAberta(false)}>
-        {fichaEstado && <FichaCorpo estado={fichaEstado} />}
-      </Folha>
-
-      <Folha aberto={cadastroAberto} titulo="Cadastrar marca" sub="Para quem você convidou sem passar pelo formulário" onFechar={() => setCadastroAberto(false)}>
-        <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
-          <p className="og-forms__nota">A conta nasce agora, com login e senha. Nome e telefone são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>
-          <label className="og-campo">
-            <span>Nome do estabelecimento</span>
-            <input type="text" autoComplete="off" value={manNome} onChange={(e) => setManNome(e.target.value)} />
-          </label>
-          <p className="og-forms__nota">O login vai ser: <b>{slugPrevisto(manNome) || '…'}</b></p>
-          <label className="og-campo">
-            <span>Telefone (WhatsApp)</span>
-            <input type="tel" inputMode="tel" placeholder="(84) 90000-0000" value={manTelefone} onChange={(e) => setManTelefone(e.target.value)} />
-          </label>
-          <label className="og-campo">
-            <span>Responsável <span className="og-forms__nota">(opcional)</span></span>
-            <input type="text" autoComplete="off" value={manResponsavel} onChange={(e) => setManResponsavel(e.target.value)} />
-          </label>
-          <label className="og-campo">
-            <span>E-mail <span className="og-forms__nota">(opcional)</span></span>
-            <input type="email" autoComplete="off" placeholder="contato@marca.com.br" value={manEmail} onChange={(e) => setManEmail(e.target.value)} />
-          </label>
-          {manAviso && <div className="og-aviso" data-tom={manAviso.tom}>{manAviso.texto}</div>}
-          {manCredenciais && (
-            <Credenciais nomeMarca={manNome} telefone={manTelefone} login={manCredenciais.login} senha={manCredenciais.senha} />
-          )}
-          <button
-            className="og-btn" type="button"
-            disabled={manCriando || manCriada || !pode('marca.liberar')}
-            title={pode('marca.liberar') ? undefined : 'Sua função não cadastra marca'}
-            onClick={criarMarcaManual}
-          >
-            {manCriando ? 'Criando…' : manCriada ? 'Criada' : 'Criar marca e acesso'}
-          </button>
-        </div>
-      </Folha>
+      <FichaMarca
+        participante={participanteFicha}
+        abaInicial={ficha && ficha.aba}
+        pode={pode}
+        naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
+        onLidas={() => rpc('get_conversas', { p_secret: lerSenha() }).then((c) => setConversas(c || [])).catch(() => {})}
+        onFechar={() => setFicha(null)}
+      />
+      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
     </section>
   )
 }

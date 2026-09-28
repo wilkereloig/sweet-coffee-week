@@ -10,6 +10,10 @@ import { Pedidos as PedidosMarca } from './components/vistas-marca/Pedidos'
 import { Hoje } from './components/vistas-marca/Hoje'
 import { Arquivos as ArquivosMarca } from './components/vistas-marca/Arquivos'
 import { GuiaFotos as GuiaFotosMarca } from './components/vistas-marca/GuiaFotos'
+import { Mensagens as MensagensMarca } from './components/vistas-marca/Mensagens'
+import { Conexao } from './components/Conexao'
+import { lerIrDaUrl } from './lib/central'
+import { desligarAvisos } from './lib/push'
 import { Mesa } from './components/vistas/Mesa'
 import { Respostas } from './components/vistas/Respostas'
 import { Marcas } from './components/vistas/Marcas'
@@ -19,7 +23,7 @@ import { GuiaFotos } from './components/vistas/GuiaFotos'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../src/lib/orgAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
-import { auth, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
+import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
@@ -30,6 +34,30 @@ import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
 // o bloco some do bundle.
 const DEV_LIVRE = import.meta.env.DEV
 const PARAMS_DEV = DEV_LIVRE ? new URLSearchParams(location.search) : null
+
+// Destino vindo de uma notificação push aberta com o painel fechado
+// (/painel/?ir=pedidos/<id>). Guardado na aba para sobreviver ao login, e
+// tirado da barra de endereço para não reabrir o mesmo item a cada recarga.
+const CHAVE_IR = 'scw_ir'
+;(function guardarDestino() {
+  const ir = lerIrDaUrl(location.search)
+  if (!ir) return
+  try { sessionStorage.setItem(CHAVE_IR, ir) } catch { /* modo privado */ }
+  history.replaceState(null, '', location.pathname)
+})()
+function tirarDestino() {
+  try { const v = sessionStorage.getItem(CHAVE_IR); sessionStorage.removeItem(CHAVE_IR); return v } catch { return null }
+}
+
+// Quem está usando o painel da organização — o mesmo nome que assina o
+// histórico. Senha compartilhada não identifica ninguém, e a tela diz isso.
+function quemOrg(funcaoRotulo) {
+  try {
+    const conta = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA) || 'null')
+    if (conta) return { nome: conta.email, funcao: funcaoRotulo || 'conta pessoal' }
+  } catch { /* sessão ilegível */ }
+  return { nome: 'Acesso compartilhado', funcao: 'sem identificação no histórico' }
+}
 
 function estadoInicial() {
   // Conta nominal decide primeiro — mesma ordem que rpc.js usa pra escolher
@@ -88,6 +116,8 @@ export function App() {
   // nominal, carregadas uma vez em 'conferindo-org' — nunca refeito depois,
   // então zera no logout pra não vazar pra uma sessão diferente na mesma aba.
   const [acoesPermitidas, setAcoesPermitidas] = React.useState(null)
+  const [funcaoRotulo, setFuncaoRotulo] = React.useState(null)
+  const [destino] = React.useState(tirarDestino)
 
   // Caminho A (handoff de correções, Etapa 2): registrado uma vez, no mount —
   // é quem trata a sessão de marca morrendo EM PLENO USO (painel já aberto),
@@ -100,11 +130,11 @@ export function App() {
   React.useEffect(() => {
     registrarAoSessaoExpirar(() => {
       if (DEV_LIVRE && !sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return
-      sairMarca()
+      sairMarca({ expirou: true })
     })
     // Mesmo contrato do lado org: conta nominal morrendo em pleno uso volta
     // ao login em vez de deixar cada vista mostrando "não deu para carregar".
-    registrarAoSessaoExpirarOrg(() => sairOrg())
+    registrarAoSessaoExpirarOrg(() => sairOrg({ expirou: true }))
   }, [])
 
   React.useEffect(() => {
@@ -146,10 +176,11 @@ export function App() {
       if (!linhas || linhas.length === 0) { setMotivoBloqueio('sem-perfil'); setEstado('bloqueado-org'); return }
       if (linhas[0].ativo === false) { setMotivoBloqueio('suspenso'); setEstado('bloqueado-org'); return }
       setAcoesPermitidas(linhas[0].acoes || [])
+      setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
       setEstado(linhas[0].deve_trocar_senha ? 'definir-senha-org' : 'painel-org')
     }).catch((e) => {
       if (cancelado) return
-      if (e && e.message === 'sessao_expirada') { sairOrg(); return }
+      if (e && e.message === 'sessao_expirada') { sairOrg({ expirou: true }); return }
       // Falha de rede (não sessão morta) — mesma política do lado marca pra
       // ENTRAR no painel: deixar entrar é melhor que trancar por uma
       // consulta que caiu. Mas isso é só sobre a PORTA — dentro do painel,
@@ -164,7 +195,12 @@ export function App() {
     return () => { cancelado = true }
   }, [estado])
 
-  function sairOrg() {
+  async function sairOrg({ expirou = false } = {}) {
+    // Sair tira os avisos DESTE aparelho: num computador compartilhado, a
+    // próxima pessoa não continua recebendo o que era da conta anterior.
+    // ⚠️ Não quando a saída é por sessão morta: a remoção precisaria da
+    // própria sessão, e a falha dela chamaria a saída de novo (laço).
+    if (!expirou) await desligarAvisos((endpoint) => rpc('remover_push_organizacao', { p_secret: sessionStorage.getItem(CHAVE_SESSAO_ORG) || '', p_endpoint: endpoint })).catch(() => {})
     // Cobre as duas portas de organização (senha única e conta nominal) com
     // uma função só, porque as duas caem no MESMO PainelShell lá embaixo —
     // não há como saber, olhando só pra `estado`, qual das duas está ativa.
@@ -177,9 +213,10 @@ export function App() {
     setEstado('boas-vindas')
   }
 
-  async function sairMarca() {
+  async function sairMarca({ expirou = false } = {}) {
     // Autosave pendente vai antes: depois do removeItem não há token.
-    await descarregarPendentes()
+    if (!expirou) await descarregarPendentes()
+    if (!expirou) await desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {})
     let sessao = null
     try { sessao = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
     if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
@@ -263,15 +300,29 @@ export function App() {
   }
 
   if (estado === 'painel-marca') {
-    return <PainelMarcaShell vistas={{ hoje: Hoje, cadastro: Cadastro, pedidos: PedidosMarca, arquivos: ArquivosMarca, fotos: GuiaFotosMarca }} onSair={sairMarca} />
+    return (
+      <>
+        <Conexao />
+        <PainelMarcaShell
+          vistas={{ hoje: Hoje, cadastro: Cadastro, pedidos: PedidosMarca, mensagens: MensagensMarca, arquivos: ArquivosMarca, fotos: GuiaFotosMarca }}
+          onSair={() => sairMarca()}
+          linkInicial={destino}
+        />
+      </>
+    )
   }
 
   return (
-    <PainelShell
-      vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, producao: Producao, fotos: GuiaFotos, equipe: Equipe }}
-      onSair={sairOrg}
-      permissoes={acoesPermitidas}
-      vistaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'mesa'}
-    />
+    <>
+      <Conexao />
+      <PainelShell
+        vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, producao: Producao, fotos: GuiaFotos, equipe: Equipe }}
+        onSair={() => sairOrg()}
+        permissoes={acoesPermitidas}
+        vistaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'mesa'}
+        linkInicial={destino}
+        quem={quemOrg(funcaoRotulo)}
+      />
+    </>
   )
 }

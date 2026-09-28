@@ -1,24 +1,27 @@
 import React from 'react'
 import { api } from '../../lib/marcaApi'
-import { blocosPendentes, chaveDia } from '../../lib/hoje'
+import { blocosPendentes, chaveDia, proximosPassos } from '../../lib/hoje'
+import { minhasSolicitacoes } from '../../lib/pedidosMarca'
+import { dataHoraExtensa, tempoRelativo, rotuloStatus } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
+import { AvisosAparelho } from '../AvisosAparelho'
+import { Carregando, Erro, Secao } from '../ui'
+import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
- * Vista Hoje (marca) — venda do dia + o que falta no cadastro. Porte de
- * public/painel/index.html: markup #mvHoje, .mc-venda* e #mcFaltaBloco
- * (~1469-1502), renderVenda/salvarVenda (~5255-5296), renderFalta (~5309).
- * blocosPendentes/chaveDia vivem em lib/hoje.js (lógica pura, testável).
- *
- * PainelMarcaShell monta `<Vista />` sem props — cada vista carrega os
- * próprios dados (mesmo formato de api() usado pelo resto do app).
+ * Hoje (marca) — a tela de entrada. Em um olhar: o que já foi feito, o que
+ * falta, o que é urgente, se a organização escreveu, quando são as fotos. Cada
+ * passo leva ao lugar exato. Embaixo, a venda do dia.
  */
-
-export function Hoje() {
+export function Hoje({ irPara, abrirLink, contadores = {}, avisos = [] }) {
   const [estado, setEstado] = React.useState('carregando') // carregando | sem-marca | sem-participacao | pronto | erro
-  const [participacaoId, setParticipacaoId] = React.useState(null)
-  const [statusCadastro, setStatusCadastro] = React.useState('')
+  const [marca, setMarca] = React.useState(null)
+  const [participacao, setParticipacao] = React.useState(null)
   const [vendas, setVendas] = React.useState([])
   const [faltam, setFaltam] = React.useState([])
+  const [pedidos, setPedidos] = React.useState({ pendentes: 0, prazo: null })
+  const [sessoes, setSessoes] = React.useState([])
+  const [arquivosParaLer, setArquivosParaLer] = React.useState(0)
   const [qtd, setQtd] = React.useState('')
   const [salvando, setSalvando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
@@ -32,18 +35,30 @@ export function Hoje() {
       const participantes = await api('participantes?select=*&order=created_at.desc')
       const participante = participantes && participantes[0]
       if (!participante) { setEstado('sem-marca'); return }
+      setMarca(participante)
       const participacoes = await api('participacoes?select=*&order=created_at.desc&limit=1')
-      const participacao = (participacoes && participacoes[0]) || null
-      if (!participacao) { setEstado('sem-participacao'); return }
-      const [itens, unidades, vendasLinhas] = await Promise.all([
-        api('participantes_itens?select=*&participacao_id=eq.' + participacao.id),
-        api('participacao_unidades?select=*&participacao_id=eq.' + participacao.id),
-        api('vendas_diarias?select=*&participacao_id=eq.' + participacao.id + '&order=dia.desc'),
+      const pa = (participacoes && participacoes[0]) || null
+      setParticipacao(pa)
+      if (!pa) { setEstado('sem-participacao'); return }
+      const [itens, unidades, vendasLinhas, solics, estados, sess, arqs, leituras] = await Promise.all([
+        api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
+        api('participacao_unidades?select=*&participacao_id=eq.' + pa.id),
+        api('vendas_diarias?select=*&participacao_id=eq.' + pa.id + '&order=dia.desc'),
+        api('solicitacoes?select=id,titulo,prazo_em,escopo,edicao_codigo').catch(() => []),
+        api('solicitacao_estado?select=solicitacao_id,estado&participacao_id=eq.' + pa.id).catch(() => []),
+        api('sessoes_fotos?select=*&order=data_hora.asc').catch(() => []),
+        api('arquivos?select=id,exige_leitura').catch(() => []),
+        api('arquivo_leitura?select=arquivo_id').catch(() => []),
       ])
-      setParticipacaoId(participacao.id)
-      setStatusCadastro(participacao.status_cadastro || '')
       setVendas(vendasLinhas || [])
-      setFaltam(blocosPendentes({ participante, participacao, itens: itens || [], unidades: unidades || [] }))
+      setFaltam(blocosPendentes({ participante, participacao: pa, itens: itens || [], unidades: unidades || [] }))
+      const feitos = new Set((estados || []).filter((e) => e.estado === 'respondido').map((e) => e.solicitacao_id))
+      const abertos = minhasSolicitacoes(solics || [], pa).filter((s) => !feitos.has(s.id))
+      const prazos = abertos.map((s) => s.prazo_em).filter(Boolean).sort()
+      setPedidos({ pendentes: abertos.length, prazo: prazos[0] || null })
+      setSessoes(sess || [])
+      const lidos = new Set((leituras || []).map((l) => l.arquivo_id))
+      setArquivosParaLer((arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id)).length)
       setEstado('pronto')
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
@@ -54,122 +69,141 @@ export function Hoje() {
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { setQtd(deHoje ? String(deHoje.quantidade) : '') }, [deHoje])
 
-  async function salvar() {
+  async function salvar(ev) {
+    ev.preventDefault()
     const n = parseInt(qtd, 10)
-    if (isNaN(n) || n < 0) { setErro('Informe um número válido.'); return }
+    if (isNaN(n) || n < 0) { setErro('Informe um número inteiro, zero ou mais.'); return }
     setSalvando(true)
     setErro(null)
     try {
       const r = deHoje
         ? await api('vendas_diarias?id=eq.' + deHoje.id, { metodo: 'PATCH', corpo: { quantidade: n }, prefer: 'return=representation' })
-        : await api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacaoId, dia: hoje, quantidade: n }, prefer: 'return=representation' })
+        : await api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacao.id, dia: hoje, quantidade: n }, prefer: 'return=representation' })
       const linha = r && r[0]
       if (!linha) throw new Error('sem_confirmacao')
       setVendas((atual) => (deHoje ? atual.map((v) => (v.id === deHoje.id ? linha : v)) : [linha, ...atual]))
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
+      // Outro aparelho lançou primeiro (UNIQUE do dia): recarrega em vez de erro genérico.
+      if (/duplicate|unique|23505/i.test(e.message || '')) { await carregar(); setErro('Já havia um número lançado hoje em outro aparelho. Confira e atualize.'); return }
       setErro('Não deu para lançar agora. Tente de novo.')
     } finally {
       setSalvando(false)
     }
   }
 
+  const minhaSessao = sessoes.find((s) => s.participante_id && s.status !== 'cancelada') || null
+  const vagas = sessoes.filter((s) => s.status === 'aberto').length
+  const { passos, feitos } = proximosPassos({
+    semParticipacao: estado === 'sem-participacao',
+    faltam, statusCadastro: participacao ? participacao.status_cadastro : '',
+    pedidosPendentes: pedidos.pendentes, prazoMaisProximo: pedidos.prazo,
+    msgsNaoLidas: contadores.mensagens || 0,
+    sessao: minhaSessao, vagasAbertas: minhaSessao ? 0 : vagas, arquivosParaLer,
+  })
   const total = vendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
+  const ultimosAvisos = avisos.slice(0, 4)
 
   return (
-    <section>
+    <section className="ui-vista-marca">
       <VistaCabeca
-        acento="amarelo"
-        icone={<><circle cx="12" cy="13" r="7.8" /><path d="M12 9v4l3.1 2" /><path d="M10.2 2.6h3.6M12 3.8v2" /></>}
-        titulo="Hoje"
-        nota="A venda do dia e o que falta no seu cadastro"
+        acento="amarelo" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.hoje}
+        titulo={marca ? 'Olá, ' + marca.nome_marca : 'Hoje'}
+        nota={participacao ? 'Edição ' + participacao.edicao_codigo + ' · ' + rotuloStatus(participacao.status_cadastro) : 'O que já foi feito e o que vem agora'}
       />
 
-      {estado === 'carregando' && <p className="nota">Carregando.</p>}
-      {estado === 'erro' && <p className="nota">Não deu para carregar. Recarregue a página.</p>}
-      {estado === 'sem-marca' && <p className="nota">Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.</p>}
+      {estado === 'carregando' && <Carregando linhas={3} texto="Carregando o seu dia…" />}
+      {estado === 'erro' && <Erro texto="Não deu para carregar agora." onTentar={carregar} />}
+      {estado === 'sem-marca' && <Erro titulo="Conta sem marca" texto="Sua conta existe, mas ainda não há marca ligada a ela. Fale com a organização pelo WhatsApp." />}
 
-      {estado === 'sem-participacao' && (
-        <div className="mc-venda">
-          <p className="rotulo">Combos vendidos</p>
-          <div className="mc-venda__espera">
-            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5.4 9.4h21.2a2.4 2.4 0 0 1 2.4 2.4v13.8a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 25.6V11.8a2.4 2.4 0 0 1 2.4-2.4Z" />
-              <path d="M3 15.4h26" /><path d="M10.2 5v6.2M21.8 5v6.2" />
-            </svg>
-            <span>A organização ainda não abriu a sua participação na próxima edição. O lançamento aparece aqui quando abrir.</span>
-          </div>
-        </div>
-      )}
+      {(estado === 'pronto' || estado === 'sem-participacao') && (
+        <div className="ui-grade-painel ui-grade-painel--marca">
+          <Secao titulo="Próximos passos" className="ui-area-atencao">
+            {passos.length === 0
+              ? <p className="ui-nota">Nada pendente agora. Quando a organização pedir algo ou escrever, chega um aviso.</p>
+              : (
+                <ol className="ui-passos">
+                  {passos.map((p) => (
+                    <li key={p.chave}>
+                      {p.destino
+                        ? (
+                          <button type="button" className="ui-passo" data-tom={p.tom} onClick={() => (p.destino.includes('/') ? abrirLink(p.destino) : irPara(p.destino))}>
+                            <span className="ui-passo__texto">{p.texto}</span>
+                            {p.detalhe && <span className="ui-passo__detalhe">{p.detalhe}</span>}
+                            {p.quando && <span className="ui-passo__detalhe">{dataHoraExtensa(p.quando)}{p.local ? ' · ' + p.local : ''}</span>}
+                            <span className="ui-passo__ir" aria-hidden="true">→</span>
+                          </button>
+                        )
+                        : (
+                          <div className="ui-passo" data-tom={p.tom}>
+                            <span className="ui-passo__texto">{p.texto}</span>
+                            {p.detalhe && <span className="ui-passo__detalhe">{p.detalhe}</span>}
+                          </div>
+                        )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            {feitos.length > 0 && (
+              <ul className="ui-feitos" aria-label="Já feito">
+                {feitos.map((f) => <li key={f.chave}>{f.texto}</li>)}
+              </ul>
+            )}
+            <AvisosAparelho
+              compacto
+              explicacao="Quer saber na hora quando a organização escrever ou pedir algo? Ligue os avisos neste aparelho."
+              registrar={async (a) => {
+                await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
+                await api('push_subscriptions', { metodo: 'POST', prefer: 'return=minimal', corpo: { papel: 'marca', participante_id: marca && marca.id, endpoint: a.endpoint, p256dh: a.p256dh, auth_chave: a.auth, user_agent: a.userAgent } })
+              }}
+              remover={(endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })}
+            />
+          </Secao>
 
-      {estado === 'pronto' && (
-        <>
-          <div className="mc-venda">
-            <p className="rotulo">Combos vendidos</p>
-            <h2 style={{ color: 'var(--scw-creme)' }}>{deHoje ? 'Atualize o número de hoje' : 'Lance o número de hoje'}</h2>
-            <p className="nota" style={{ color: 'rgba(254,240,221,.8)' }}>
-              {deHoje
-                ? 'Lançado. Dá para corrigir o número quantas vezes precisar.'
-                : 'Lance o número no fim do expediente. A organização soma tudo para o balanço da edição.'}
-            </p>
-            <div className="mc-venda__linha">
-              <label style={{ margin: 0 }}>
-                <span style={{ color: 'rgba(254,240,221,.7)' }}>Hoje</span>
-                <input
-                  className="mc-venda__campo" type="number" inputMode="numeric" min="0" placeholder="0"
-                  value={qtd} onChange={(e) => setQtd(e.target.value)}
-                />
-              </label>
-              <button
-                className="acao" type="button" style={{ background: 'var(--scw-amarelo)', color: 'var(--scw-choco)' }}
-                disabled={salvando} onClick={salvar}
-              >
-                {deHoje ? 'Atualizar' : 'Salvar'}
-              </button>
-              <span className="mc-venda__total"><span>{total}</span><span>no total da edição</span></span>
-            </div>
-            <div className="mc-venda__dias">
-              {vendas.slice(0, 14).map((v) => {
-                const d = new Date(v.dia + 'T00:00:00')
-                return (
-                  <div className={'mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '')} key={v.id}>
-                    <b>{v.quantidade}</b>
-                    <span>{d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                  </div>
-                )
-              })}
-            </div>
-            {erro && <div className="aviso erro" style={{ marginTop: 14 }}>{erro}</div>}
-          </div>
-
-          <div className="card" style={{ marginTop: 18 }}>
-            <p className="rotulo">O que falta</p>
-            {faltam.length === 0 && statusCadastro === 'cadastro_completo' ? (
-              <>
-                <h2>Cadastro entregue</h2>
-                <p className="nota" style={{ margin: 0 }}>Mudou alguma coisa? Volte em Cadastro, corrija e conclua de novo.</p>
-              </>
-            ) : faltam.length === 0 ? (
-              <>
-                <h2>Tudo preenchido, falta concluir</h2>
-                <p className="nota" style={{ margin: 0 }}>Abra Cadastro e toque em "Concluir cadastro" para entregar à organização.</p>
-              </>
-            ) : (
-              <>
-                <h2>{faltam.length + (faltam.length === 1 ? ' bloco pendente' : ' blocos pendentes')}</h2>
-                <ul className="mc-vagas" style={{ padding: 0, margin: '10px 0 0', listStyle: 'none' }}>
-                  {/* ponytail: sem navegação pra aba Cadastro ainda — o Shell
-                      não passa função de troca de vista pras vistas da marca.
-                      Vira botão de verdade (data-ir-cadastro na origem) quando
-                      essa fiação existir; até lá, pílula só informativa. */}
-                  {faltam.map((nome) => (
-                    <li key={nome}><span className="mc-vaga" style={{ cursor: 'default' }}>{nome}</span></li>
+          <Secao titulo="Últimos avisos" className="ui-area-atividade">
+            {ultimosAvisos.length === 0
+              ? <p className="ui-nota">Nenhum aviso ainda.</p>
+              : (
+                <ul className="ui-lista-simples">
+                  {ultimosAvisos.map((n) => (
+                    <li key={n.id}>
+                      <button type="button" className="og-link" onClick={() => n.link && abrirLink(n.link)}>{n.titulo}</button>
+                      <span className="ui-nota">{tempoRelativo(n.criada_em)}{n.lida_em ? '' : ' · novo'}</span>
+                    </li>
                   ))}
                 </ul>
-              </>
-            )}
-          </div>
-        </>
+              )}
+          </Secao>
+
+          {estado === 'pronto' && (
+            <Secao titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'} className="ui-area-esteira">
+              <form className="mc-venda" onSubmit={salvar}>
+                <div className="mc-venda__linha">
+                  <label className="mc-venda__rotulo">
+                    <span>Hoje</span>
+                    <input className="mc-venda__campo" type="number" inputMode="numeric" min="0" step="1" placeholder="0" value={qtd} onChange={(e) => setQtd(e.target.value)} />
+                  </label>
+                  <button className="acao acao--amarela" type="submit" disabled={salvando}>{deHoje ? 'Atualizar' : 'Salvar'}</button>
+                  <span className="mc-venda__total"><b>{total}</b><span>no total da edição</span></span>
+                </div>
+                {vendas.length > 0 && (
+                  <div className="mc-venda__dias">
+                    {vendas.slice(0, 14).map((v) => {
+                      const d = new Date(v.dia + 'T00:00:00')
+                      return (
+                        <div className={'mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '')} key={v.id}>
+                          <b>{v.quantidade}</b>
+                          <span>{d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {erro && <p className="mc-venda__erro" role="alert">{erro}</p>}
+              </form>
+            </Secao>
+          )}
+        </div>
       )}
     </section>
   )

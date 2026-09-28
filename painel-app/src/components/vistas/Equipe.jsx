@@ -1,187 +1,276 @@
 import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
-import { bytesDaChave, VAPID_PUBLICA } from '../../lib/avisos'
+import { GRUPOS_ACAO, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
+import { Atividade } from '../Atividade'
+import { AvisosAparelho } from '../AvisosAparelho'
+import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
 import { ICONE } from '../PainelShell'
 
 /*
- * Vista Equipe — porta fiel de public/painel/index.html: edição aberta
- * (renderEquipe/salvarEdicao, ~2782/~3901), contas da organização
- * (abrirNovaConta/criarConta/abrirMudarConta, ~3914-3995) e avisos push
- * neste aparelho (bytesDaChave.../testarAviso, ~4103-4269).
+ * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
+ * organização, com que função, e o histórico de tudo que a equipe fez.
+ *
+ * Cada pessoa tem conta própria (e-mail real + senha), e é o login dela que
+ * assina cada ação no histórico — quem fez vem da sessão, no banco, nunca de
+ * um nome mandado pela tela. Conta não se apaga: desativa. Assim os registros
+ * antigos continuam com o nome de quem fez.
  */
+const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
-function lerSenha() {
-  return sessionStorage.getItem(CHAVE_SESSAO) || ''
-}
-
-const ONDE_ESTA_O_AVISO =
-  'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
-  'de sino ou de cadeado na barra de endereço e responda por lá.'
-
-// Três coisas separadas, e confundi-las é o que gera "liguei e não chega":
-// suporte do navegador, permissão da pessoa, e assinatura registrada no banco.
-function avisoSuportado() {
-  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
-}
-
-async function assinaturaDoAparelho() {
-  if (!avisoSuportado()) return null
-  try {
-    const reg = await navigator.serviceWorker.ready
-    return await reg.pushManager.getSubscription()
-  } catch {
-    return null
+// A senha gerada aparece UMA vez: copiar é o único jeito de não perdê-la.
+function SenhaUmaVez({ login, senha }) {
+  const [copiado, setCopiado] = React.useState(false)
+  async function copiar() {
+    try { await navigator.clipboard.writeText('Login: ' + login + '\nSenha: ' + senha); setCopiado(true) } catch { setCopiado('manual') }
+    setTimeout(() => setCopiado(false), 2400)
   }
+  return (
+    <div className="og-cred">
+      <p className="og-cred__aviso">Anote ou envie agora. <b>Esta senha não aparece de novo.</b></p>
+      <dl className="og-cred__par"><dt>Login</dt><dd>{login}</dd></dl>
+      <dl className="og-cred__par"><dt>Senha</dt><dd>{senha}</dd></dl>
+      <div className="og-cred__acoes">
+        <button className="og-btn og-btn--mini" type="button" onClick={copiar}>{copiado === true ? 'Copiado' : copiado === 'manual' ? 'Selecione acima' : 'Copiar dados'}</button>
+      </div>
+      <p className="ui-nota">No primeiro acesso a pessoa é obrigada a trocar a senha.</p>
+    </div>
+  )
 }
 
 function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
   const [email, setEmail] = React.useState('')
-  const [funcao, setFuncao] = React.useState((funcoes[0] && funcoes[0].codigo) || '')
+  const [nome, setNome] = React.useState('')
+  const [funcao, setFuncao] = React.useState('')
   const [erro, setErro] = React.useState(null)
   const [criando, setCriando] = React.useState(false)
-  const [credenciais, setCredenciais] = React.useState(null)
+  const [cred, setCred] = React.useState(null)
 
   React.useEffect(() => {
     if (!aberto) return
-    setEmail('')
-    setErro(null)
-    setCriando(false)
-    setCredenciais(null)
-    setFuncao((funcoes[0] && funcoes[0].codigo) || '')
+    setEmail(''); setNome(''); setErro(null); setCriando(false); setCred(null)
+    setFuncao((funcoes.find((f) => f.codigo === 'producao') || funcoes[0] || {}).codigo || '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
 
-  async function criar() {
-    const valor = email.trim()
-    if (!valor) { setErro('Informe o e-mail.'); return }
+  async function criar(ev) {
+    ev.preventDefault()
+    if (!nome.trim()) { setErro('Informe o nome: é ele que aparece no histórico.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setErro('Informe um e-mail válido.'); return }
     setCriando(true)
     setErro(null)
     try {
-      const r = await chamarFuncao('criar-conta-organizacao', { secret: lerSenha(), email: valor, funcao })
-      setCredenciais(r)
+      const r = await chamarFuncao('criar-conta-organizacao', { secret: lerSenha(), email: email.trim(), funcao, nome: nome.trim() })
+      // Grava o nome também pela RPC: funciona mesmo antes de a Edge Function
+      // nova (que já aceita `nome`) estar publicada.
+      if (r && r.user_id) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: r.user_id, p_nome: nome.trim() }).catch(() => {})
+      setCred(r)
       await onCriada()
     } catch (e) {
-      setErro(e.message)
+      setErro(traduzirErro((e.dados && e.dados.erro) || e.message))
+    } finally {
       setCriando(false)
     }
   }
 
   return (
-    <Folha aberto={aberto} titulo="Criar conta" sub="Uma pessoa da equipe, com função" onFechar={onFechar}>
-      <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
-        <p className="og-forms__nota">
-          Aqui o e-mail é o de verdade, diferente da marca, que entra pelo nome do
-          estabelecimento. A senha aparece uma vez, para você entregar, e vale para um login só.
-        </p>
-        <label className="og-campo"><span>E-mail</span>
-          <input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} />
+    <Folha aberto={aberto} titulo="Nova pessoa na equipe" sub="Cada pessoa com o próprio acesso" onFechar={onFechar}>
+      <form className="ui-form" onSubmit={criar} noValidate>
+        <p className="ui-nota">A senha inicial aparece uma vez, para você entregar, e vale para um login só: no primeiro acesso a pessoa cria a dela.</p>
+        <label className="og-campo"><span>Nome <abbr title="obrigatório">*</abbr></span>
+          <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} disabled={!!cred} />
+        </label>
+        <label className="og-campo"><span>E-mail <abbr title="obrigatório">*</abbr></span>
+          <input type="email" inputMode="email" autoComplete="off" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!cred} />
         </label>
         <label className="og-campo"><span>Função</span>
-          <select value={funcao} onChange={(e) => setFuncao(e.target.value)}>
+          <select value={funcao} onChange={(e) => setFuncao(e.target.value)} disabled={!!cred}>
             {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
           </select>
         </label>
-        {erro && <div className="og-aviso" data-tom="erro">{erro}</div>}
-        {credenciais && <div className="og-aviso" data-tom="ok">Conta criada.</div>}
-        {credenciais && (
-          // A senha aparece UMA vez. Não fica gravada em lugar nenhum — o banco
-          // só tem o hash. Fechar esta folha sem copiar significa gerar outra.
-          <div className="og-bloco">
-            <h3>Entregue estes dados</h3>
-            <p className="og-par"><b>Login:</b> {credenciais.login}</p>
-            <p className="og-par"><b>Senha:</b> {credenciais.senha}</p>
-            <p className="og-forms__nota">Ela vale para um login: no primeiro acesso a pessoa troca.</p>
-          </div>
-        )}
-        <button className="og-btn" type="button" disabled={criando || !!credenciais} onClick={criar}>
-          {criando ? 'Criando…' : 'Criar conta'}
-        </button>
-      </div>
+        <ul className="ui-nota ui-lista-funcoes">
+          <li><b>Administrador</b>: tudo, inclusive contas da equipe.</li>
+          <li><b>Curadoria</b>: triagem, mensagens e acesso de marcas.</li>
+          <li><b>Produção</b>: pedidos, arquivos, fotos, triagem e mensagens.</li>
+          <li><b>Consulta</b>: só lê.</li>
+        </ul>
+        {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+        {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
+        {!cred && <button className="og-btn" type="submit" disabled={criando}>{criando ? 'Criando…' : 'Criar acesso'}</button>}
+      </form>
     </Folha>
   )
 }
 
-function FolhaMudarConta({ aberto, conta, funcoes, onFechar, onSalvo }) {
-  // Guarda a última conta não-nula: `conta` vira null no mesmo render em que
-  // `aberto` vira false, e a folha ainda precisa de conteúdo pra animar a
-  // saída (Folha.jsx mantém `children` montado durante o fechamento).
+function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico }) {
+  // Guarda a última conta não-nula: a folha ainda precisa de conteúdo para
+  // animar a saída depois que `conta` vira null.
   const [c, setC] = React.useState(conta)
-  const [funcao, setFuncao] = React.useState((conta && conta.funcao) || '')
+  const [nome, setNome] = React.useState('')
+  const [funcao, setFuncao] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
-  const [salvando, setSalvando] = React.useState(false)
-  const [suspendendo, setSuspendendo] = React.useState(false)
+  const [ocupado, setOcupado] = React.useState(null)
+  const [cred, setCred] = React.useState(null)
 
   React.useEffect(() => {
     if (!conta) return
-    setC(conta)
-    setFuncao(conta.funcao || '')
-    setAviso(null)
+    setC(conta); setNome(conta.nome || ''); setFuncao(conta.funcao || ''); setAviso(null); setCred(null)
   }, [conta])
 
-  async function salvarFuncao() {
-    setSalvando(true)
+  async function acao(chave, fn, ok) {
+    setOcupado(chave)
+    setAviso(null)
     try {
-      await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
-      setAviso({ texto: 'Função salva.', tom: 'ok' })
+      await fn()
+      if (ok) setAviso({ tom: 'ok', texto: ok })
       await onSalvo()
     } catch (e) {
-      setAviso({ texto: e.message, tom: 'erro' })
+      setAviso({ tom: 'erro', texto: traduzirErro((e.dados && e.dados.erro) || e.message) })
     } finally {
-      setSalvando(false)
+      setOcupado(null)
     }
   }
 
-  async function alternarSuspensao() {
-    setSuspendendo(true)
-    try {
-      await rpc('suspender_conta', { p_secret: lerSenha(), p_user: c.user_id, p_ativo: !c.ativo })
-      setAviso({ texto: c.ativo ? 'Conta suspensa.' : 'Conta reativada.', tom: 'ok' })
-      await onSalvo()
-    } catch (e) {
-      setAviso({ texto: e.message, tom: 'erro' })
-    } finally {
-      setSuspendendo(false)
-    }
+  const salvar = (ev) => {
+    ev.preventDefault()
+    acao('salvar', async () => {
+      if ((nome || '') !== (c.nome || '')) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: c.user_id, p_nome: nome })
+      if (funcao !== c.funcao) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
+    }, 'Salvo.')
+  }
+  const alternar = () => {
+    if (c.ativo && !window.confirm('Desativar ' + (c.nome || c.email) + '? A pessoa deixa de entrar agora. O histórico continua com o nome dela.')) return
+    acao('ativo', () => rpc('suspender_conta', { p_secret: lerSenha(), p_user: c.user_id, p_ativo: !c.ativo }), c.ativo ? 'Conta desativada.' : 'Conta reativada.')
+  }
+  const novaSenha = () => {
+    if (!window.confirm('Gerar uma senha nova para ' + (c.nome || c.email) + '? A atual deixa de valer agora.')) return
+    acao('senha', async () => {
+      const r = await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), user_id: c.user_id })
+      setCred(r)
+    })
   }
 
   return (
-    <Folha aberto={aberto} titulo={(c && c.email) || 'Conta'} sub={(c && c.rotulo) || ''} onFechar={onFechar}>
+    <Folha aberto={aberto} titulo={(c && (c.nome || c.email)) || 'Conta'} sub={c ? c.email + ' · ' + (c.rotulo || c.funcao || 'sem função') : ''} onFechar={onFechar}>
       {c && (
-        <div className="og-bloco" style={{ borderTop: 0, paddingTop: 0 }}>
-          <label className="og-campo"><span>Função</span>
-            <select value={funcao} onChange={(e) => setFuncao(e.target.value)}>
-              {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
-            </select>
-          </label>
-          {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-          <button className="og-btn" type="button" disabled={salvando} onClick={salvarFuncao}>Salvar função</button>{' '}
-          <button className="og-btn og-btn--vazado" type="button" disabled={suspendendo} onClick={alternarSuspensao}>
-            {c.ativo ? 'Suspender' : 'Reativar'}
-          </button>
-          <p className="og-forms__nota">
-            O banco recusa tirar o último administrador: é a trava que impede o painel de
-            ficar sem ninguém que possa criar conta.
-          </p>
+        <div className="ui-pilha">
+          <dl className="ui-dados">
+            <div className="ui-dado"><dt>Situação</dt><dd>{c.ativo ? 'Ativa' : 'Desativada'}{c.deve_trocar_senha ? ' · ainda não trocou a senha inicial' : ''}</dd></div>
+            <div className="ui-dado"><dt>Criada em</dt><dd>{dataCurta(c.criado_em)}</dd></div>
+            <div className="ui-dado"><dt>Último acesso</dt><dd>{c.ultimo_acesso ? tempoRelativo(c.ultimo_acesso) : 'nunca entrou'}</dd></div>
+          </dl>
+          <form className="ui-form" onSubmit={salvar}>
+            <label className="og-campo"><span>Nome (aparece no histórico)</span>
+              <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={80} />
+            </label>
+            <label className="og-campo"><span>Função</span>
+              <select value={funcao} onChange={(e) => setFuncao(e.target.value)}>
+                {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
+              </select>
+            </label>
+            <button className="og-btn" type="submit" disabled={!!ocupado}>{ocupado === 'salvar' ? 'Salvando…' : 'Salvar'}</button>
+          </form>
+          {aviso && <p className={'ui-nota ' + (aviso.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role="status">{aviso.texto}</p>}
+          {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
+          <Secao titulo="Acesso">
+            <div className="ui-linha-acoes">
+              <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={!!ocupado} onClick={novaSenha}>Gerar senha nova</button>
+              <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={!!ocupado} onClick={alternar}>{c.ativo ? 'Desativar' : 'Reativar'}</button>
+              <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => onVerHistorico(c.user_id)}>Ver o que fez</button>
+            </div>
+            <p className="ui-nota">Contas não são apagadas: desativar tira o acesso e mantém o nome em tudo o que a pessoa registrou. O banco recusa desativar o último administrador.</p>
+          </Secao>
         </div>
       )}
     </Folha>
   )
 }
 
-export function Equipe({ registrarAtualizar }) {
-  const [config, setConfig] = React.useState(null)
-  const [contas, setContas] = React.useState([])
+/* ── Histórico geral, com filtros ──────────────────────────────────────── */
+const PERIODOS = { '': 'Sempre', '1': 'Hoje', '7': 'Últimos 7 dias', '30': 'Últimos 30 dias', '90': 'Últimos 90 dias' }
+
+function Historico({ contas, atorInicial, abrirLink }) {
+  const [ator, setAtor] = React.useState(atorInicial || '')
+  const [acao, setAcao] = React.useState('')
+  const [dias, setDias] = React.useState('30')
+  const [marca, setMarca] = React.useState('')
+  const [linhas, setLinhas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
 
-  const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'mudar', conta}
+  React.useEffect(() => { if (atorInicial) setAtor(atorInicial) }, [atorInicial])
 
-  const [assinatura, setAssinatura] = React.useState(null)
-  const [negado, setNegado] = React.useState(false)
-  const [avisoPush, setAvisoPush] = React.useState(null)
+  const carregar = React.useCallback(async () => {
+    setErro(null)
+    setLinhas(null)
+    try {
+      const de = dias ? new Date(Date.now() - (dias === '1' ? 0 : Number(dias)) * 864e5) : null
+      if (de && dias === '1') de.setHours(0, 0, 0, 0)
+      const l = await rpc('get_atividade', {
+        p_secret: lerSenha(),
+        p_ator: ator && ator !== 'compartilhado' ? ator : null,
+        p_acao: acao || null,
+        p_de: de ? de.toISOString() : null,
+        p_limite: 500,
+      })
+      setLinhas(l || [])
+    } catch (e) {
+      setErro(e.message)
+    }
+  }, [ator, acao, dias])
+  React.useEffect(() => { carregar() }, [carregar])
+
+  const t = marca.trim().toLowerCase()
+  const visiveis = (linhas || [])
+    .filter((a) => ator !== 'compartilhado' || !a.ator_user_id)
+    .filter((a) => !t || (a.marca || '').toLowerCase().includes(t))
+
+  return (
+    <>
+      <div className="og-filtros">
+        <label className="og-campo"><span>Quem</span>
+          <select value={ator} onChange={(e) => setAtor(e.target.value)}>
+            <option value="">Todas as pessoas</option>
+            <option value="compartilhado">Acesso compartilhado</option>
+            {contas.map((c) => <option key={c.user_id} value={c.user_id}>{c.nome || c.email}</option>)}
+          </select>
+        </label>
+        <label className="og-campo"><span>Ação</span>
+          <select value={acao} onChange={(e) => setAcao(e.target.value)}>
+            {GRUPOS_ACAO.map((g) => <option key={g.valor} value={g.valor}>{g.rotulo}</option>)}
+          </select>
+        </label>
+        <label className="og-campo"><span>Período</span>
+          <select value={dias} onChange={(e) => setDias(e.target.value)}>
+            {Object.entries(PERIODOS).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+          </select>
+        </label>
+        <label className="og-campo og-campo--busca"><span>Marca</span>
+          <input type="search" placeholder="filtrar pelo nome da marca" value={marca} onChange={(e) => setMarca(e.target.value)} />
+        </label>
+      </div>
+      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {!erro && linhas === null && <Carregando linhas={4} />}
+      {!erro && linhas && visiveis.length === 0 && <Vazio titulo="Nada registrado com esses filtros" />}
+      {!erro && linhas && visiveis.length > 0 && (
+        <>
+          <p className="ui-contagem">{visiveis.length} {visiveis.length === 1 ? 'registro' : 'registros'}{linhas.length === 500 ? ' (mostrando os 500 mais recentes)' : ''}</p>
+          <Atividade linhas={visiveis} onAbrirMarca={(id) => abrirLink('marcas/' + id + '/historico')} />
+        </>
+      )}
+    </>
+  )
+}
+
+export function Equipe({ registrarAtualizar, abrirLink }) {
+  const [config, setConfig] = React.useState(null)
+  const [contas, setContas] = React.useState(null)
+  const [erro, setErro] = React.useState(null)
+  const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'conta', conta}
+  const [atorHistorico, setAtorHistorico] = React.useState('')
+  const [avisoCompartilhado, setAvisoCompartilhado] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -200,239 +289,109 @@ export function Equipe({ registrarAtualizar }) {
     }
   }, [])
 
-  const atualizarStatusPush = React.useCallback(async () => {
-    if (!avisoSuportado()) { setAssinatura(null); setNegado(false); return }
-    setNegado(Notification.permission === 'denied')
-    setAssinatura(await assinaturaDoAparelho())
-  }, [])
-
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { atualizarStatusPush() }, [atualizarStatusPush])
-  // Só a edição/contas entram no botão "Atualizar" do cabeçalho — os avisos
-  // deste aparelho não dependem de o banco ter respondido (§renderEquipe).
-  React.useEffect(() => {
-    if (registrarAtualizar) registrarAtualizar(carregar)
-  }, [registrarAtualizar, carregar])
-
-  async function ligarAvisos() {
-    if (Notification.permission === 'denied') {
-      setAvisoPush({
-        texto: 'A permissão já está negada para este site. Reabrir depende das ' +
-          'configurações do navegador. O painel não consegue pedir de novo.',
-        tom: 'erro',
-      })
-      return
-    }
-
-    setAvisoPush({ texto: 'Pedindo permissão… ' + ONDE_ESTA_O_AVISO, tom: '' })
-    const lembrete = setTimeout(() => {
-      setAvisoPush({ texto: 'Ainda esperando sua resposta. ' + ONDE_ESTA_O_AVISO, tom: '' })
-    }, 8000)
-
-    // Resposta tardia não se perde: quando a permissão muda, a tela se
-    // redesenha sozinha, mesmo que a promessa abaixo tenha ficado para trás.
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'notifications' })
-        .then((p) => { p.onchange = () => atualizarStatusPush() })
-        .catch(() => { /* navegador sem a API: o caminho normal segue */ })
-    }
-
-    try {
-      const permissao = await Notification.requestPermission()
-      clearTimeout(lembrete)
-      if (permissao !== 'granted') {
-        setAvisoPush({
-          texto: permissao === 'denied'
-            ? 'Permissão negada. Nada pode ser enviado para este aparelho.'
-            : 'Você fechou o aviso sem responder. Clique em "Ligar avisos" de novo.',
-          tom: 'erro',
-        })
-        await atualizarStatusPush()
-        return
-      }
-
-      const reg = await navigator.serviceWorker.ready
-      // `userVisibleOnly: true` é obrigatório nos navegadores que importam:
-      // não existe push silencioso na web, e é bom que não exista.
-      const nova = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: bytesDaChave(VAPID_PUBLICA),
-      })
-
-      const bruto = nova.toJSON()
-      // Só afirma "ligado" depois que o banco confirmar. Assinatura que existe
-      // no navegador e não existe no banco é aparelho que nunca vai receber
-      // nada — e que jura que está ligado.
-      await rpc('registrar_push_organizacao', {
-        p_secret: lerSenha(),
-        p_endpoint: bruto.endpoint,
-        p_p256dh: bruto.keys.p256dh,
-        p_auth: bruto.keys.auth,
-        p_user_agent: navigator.userAgent.slice(0, 300),
-      })
-
-      await atualizarStatusPush()
-      setAvisoPush({ texto: 'Avisos ligados neste aparelho.', tom: 'ok' })
-    } catch (e) {
-      clearTimeout(lembrete)
-      setAvisoPush({ texto: 'Não consegui ligar: ' + e.message, tom: 'erro' })
-    }
-  }
-
-  async function desligarAvisos() {
-    setAvisoPush({ texto: 'Desligando…', tom: '' })
-    try {
-      const atual = await assinaturaDoAparelho()
-      if (atual) {
-        // Banco primeiro. Se `unsubscribe` viesse antes e a rede caísse, o
-        // endpoint ficaria vivo no banco apontando pra uma assinatura morta.
-        await rpc('remover_push_organizacao', { p_secret: lerSenha(), p_endpoint: atual.endpoint })
-        await atual.unsubscribe()
-      }
-      await atualizarStatusPush()
-      setAvisoPush({ texto: 'Avisos desligados neste aparelho.', tom: 'ok' })
-    } catch (e) {
-      setAvisoPush({ texto: 'Não consegui desligar: ' + e.message, tom: 'erro' })
-    }
-  }
-
-  async function testarAviso() {
-    setAvisoPush({ texto: 'Enviando…', tom: '' })
-    try {
-      const r = await chamarFuncao('enviar-push', {
-        secret: lerSenha(), alvo: 'organizacao',
-        titulo: 'Teste do painel',
-        corpo: 'Se esta notificação apareceu, o canal está de pé.',
-        url: '/organizacao/',
-      })
-      const enviados = Number(r.enviados || 0)
-      setAvisoPush({
-        texto: enviados
-          ? 'Enviado para ' + enviados + (enviados === 1 ? ' aparelho.' : ' aparelhos.')
-          : 'A função respondeu, mas nenhum aparelho recebeu.',
-        tom: enviados ? 'ok' : 'erro',
-      })
-    } catch (e) {
-      setAvisoPush({ texto: 'Falhou: ' + e.message, tom: 'erro' })
-    }
-  }
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
   const funcoes = (config && config.funcoes) || []
-  const suportado = avisoSuportado()
+  const lista = contas || []
+  const admsAtivos = lista.filter((c) => c.ativo && c.funcao === 'administrador').length
+
+  async function alternarCompartilhado() {
+    const ligar = !(config && config.senha_unica_ativa)
+    if (!ligar && !window.confirm('Desligar o acesso compartilhado (senha única)?\n\nDepois disso só entra quem tem conta própria. Confira antes que você mesmo entra com a sua conta.')) return
+    setAvisoCompartilhado(null)
+    try {
+      await rpc('senha_unica_definir', { p_secret: lerSenha(), p_ativa: ligar })
+      await carregar()
+      setAvisoCompartilhado({ tom: 'ok', texto: ligar ? 'Acesso compartilhado ligado.' : 'Acesso compartilhado desligado. Só contas pessoais entram.' })
+    } catch (e) {
+      setAvisoCompartilhado({ tom: 'erro', texto: /sem_administrador_nominal/.test(e.message) ? 'Crie e ative pelo menos um administrador com conta própria antes de desligar.' : traduzirErro(e.message) })
+    }
+  }
 
   return (
     <section className="og-vista">
-      <VistaCabeca acento="marrom" icone={ICONE.equipe} titulo="Equipe" nota="As contas de quem trabalha aqui" />
+      <VistaCabeca acento="marrom" icone={ICONE.equipe} titulo="Equipe" nota="Quem entra no painel, com que função, e o que cada pessoa fez" />
 
-      {/* Erro de carga cobre a vista inteira agora — antes ficava só dentro
-          da seção "A edição aberta", que saiu daqui (comentário abaixo). */}
-      {erro && <div className="og-estado" data-tom="erro"><h2>Não consegui carregar</h2><p>{erro}</p></div>}
+      {erro && <Erro texto={erro} onTentar={carregar} />}
 
-      {/* A edição aberta mudou de casa na Fase 3 do plano de funções
-          (27/08/2026): ela é governada por producao.gerir, não por
-          acesso.gerir — mas Equipe inteira só aparece pra quem tem
-          acesso.gerir (a natureza administrativa da vista, plano item 3).
-          Uma conta de função "produção" tem producao.gerir e nunca vê
-          Equipe: deixar a edição aqui a deixava sem como abrir uma edição,
-          justamente a mensagem que Producao.jsx dá ("Abra uma edição em
-          Equipe"). Achado de revisão adversarial — movida pra lá. */}
-
-      <section className="og-forms">
-        <div className="og-forms__cabeca og-forms__cabeca--com-acao">
-          <div>
-            <h2>Contas da organização</h2>
-            <p>Quem entra por conta nominal, e o que cada função pode fazer.</p>
-          </div>
-          <button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'nova' })}>Criar conta</button>
-        </div>
-        {!erro && contas.length === 0 && (
-          <div className="og-estado">
-            <h2>Nenhuma conta nominal</h2>
-            <p>Ou ninguém tem conta própria ainda, ou a sua função não gerencia contas. Criar conta é coisa de administrador.</p>
-          </div>
-        )}
-        {!erro && contas.length > 0 && (
-          <ul className="og-lista">
-            {contas.map((c) => {
-              const pendencias = [c.ativo ? '' : 'suspensa', c.deve_trocar_senha ? 'ainda não trocou a senha' : '']
-                .filter(Boolean).join(' · ')
-              return (
+      <div className="ui-grade-duas">
+        <Secao
+          titulo="Usuários da equipe"
+          nota="Cada pessoa com o próprio acesso. É o nome dela que assina o que faz no painel."
+          acoes={<button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'nova' })}>Adicionar pessoa</button>}
+        >
+          {!erro && contas === null && <Carregando linhas={3} />}
+          {!erro && contas && lista.length === 0 && (
+            <Vazio titulo="Ninguém com conta própria ainda">Hoje todo mundo entra pelo acesso compartilhado, e o histórico não consegue dizer quem fez cada coisa. Adicione cada pessoa da equipe — começando por você, como administrador.</Vazio>
+          )}
+          {lista.length > 0 && (
+            <ul className="og-lista og-lista--tabela">
+              {lista.map((c) => (
                 <li key={c.user_id}>
-                  <div className="og-item">
-                    <span className="og-item__cor" style={{ background: c.ativo ? '#3D1308' : '#FF4810' }} aria-hidden="true" />
-                    <p className="og-item__nome">{c.email || '(sem e-mail)'}</p>
-                    <p className="og-item__meta">{(c.rotulo || c.funcao || 'sem função') + (pendencias ? ' · ' + pendencias : '')}</p>
+                  <button type="button" className="og-item" onClick={() => setFolha({ tipo: 'conta', conta: c })}>
+                    <span className="og-item__cor" style={{ background: c.ativo ? 'var(--scw-choco)' : 'var(--scw-laranja)' }} aria-hidden="true" />
+                    <span className="og-item__nome">{c.nome || c.email}</span>
+                    <span className="og-item__meta">{(c.nome ? c.email + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
                     <span className="og-item__dir">
-                      <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'mudar', conta: c })}>
-                        Mudar
-                      </button>
-                      <span className="og-item__data">{dataCurta(c.criado_em)}</span>
+                      <span className="og-selo" data-tom={c.ativo ? undefined : 'alerta'}>{c.ativo ? 'ativa' : 'desativada'}</span>
+                      <span className="og-item__data">{c.ultimo_acesso ? 'entrou ' + tempoRelativo(c.ultimo_acesso) : 'nunca entrou'}</span>
                     </span>
-                  </div>
+                  </button>
                 </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+              ))}
+            </ul>
+          )}
+        </Secao>
 
-      {/* Aviso é POR APARELHO, não por conta: a assinatura pertence a este
-          navegador. Por isso este bloco não depende de `erro`/`config`. */}
-      <section className="og-forms" style={{ marginTop: 22 }}>
-        <div className="og-forms__cabeca">
-          <h2>Avisos neste aparelho</h2>
-          <p>Chega notificação quando uma marca responde ou envia cadastro, mesmo com o painel fechado.</p>
-        </div>
-        {!suportado && (
-          <div className="og-estado">
-            <h2>Este navegador não recebe avisos</h2>
-            <p>
-              No iPhone, instale o painel primeiro: botão de compartilhar do Safari → "Adicionar
-              à Tela de Início". Depois abra pelo ícone e volte aqui.
+        <div className="ui-pilha">
+          <Secao titulo="Acesso compartilhado" nota="A senha única da organização. Ações feitas por ela aparecem no histórico como “Acesso compartilhado”, sem nome.">
+            <p className="ui-estado-linha">
+              <span className="ui-ponto" data-tom={config && config.senha_unica_ativa ? 'neutro' : 'ok'} aria-hidden="true" />
+              <b>{config ? (config.senha_unica_ativa ? 'Ligado' : 'Desligado — só contas pessoais entram') : '…'}</b>
             </p>
-          </div>
-        )}
-        {suportado && (
-          <>
-            <div className="og-item" style={{ cursor: 'default' }}>
-              <span className="og-item__cor" style={{ background: assinatura ? '#01AFCC' : (negado ? '#FF4810' : '#6A2C15') }} aria-hidden="true" />
-              <p className="og-item__nome">
-                {assinatura ? 'Ligados neste aparelho' : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')}
-              </p>
-              <p className="og-item__meta">
-                {assinatura
-                  ? 'Este aparelho recebe aviso mesmo com o painel fechado.'
-                  : (negado
-                    ? 'A permissão foi negada. Reabrir depende das configurações do navegador para este site. O painel não consegue pedir de novo.'
-                    : 'Nada chega até você ligar aqui.')}
-              </p>
-            </div>
-            {avisoPush && <div className="og-aviso" data-tom={avisoPush.tom}>{avisoPush.texto}</div>}
-            {assinatura && (
-              <>
-                <button className="og-btn og-btn--vazado" type="button" onClick={desligarAvisos}>Desligar</button>{' '}
-                <button className="og-btn og-btn--vazado" type="button" onClick={testarAviso}>Enviar um teste</button>
-              </>
+            {config && config.senha_unica_ativa && admsAtivos === 0 && <p className="ui-nota">Para desligar, primeiro crie pelo menos um administrador com conta própria.</p>}
+            {config && (
+              <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={alternarCompartilhado} disabled={config.senha_unica_ativa && admsAtivos === 0}>
+                {config.senha_unica_ativa ? 'Desligar acesso compartilhado' : 'Religar acesso compartilhado'}
+              </button>
             )}
-            {!assinatura && !negado && (
-              <button className="og-btn" type="button" onClick={ligarAvisos}>Ligar avisos</button>
-            )}
-          </>
-        )}
-      </section>
+            {avisoCompartilhado && <p className={'ui-nota ' + (avisoCompartilhado.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role="status">{avisoCompartilhado.texto}</p>}
+          </Secao>
 
-      <FolhaNovaConta
-        aberto={!!folha && folha.tipo === 'nova'}
-        funcoes={funcoes}
-        onFechar={() => setFolha(null)}
-        onCriada={carregar}
-      />
-      <FolhaMudarConta
-        aberto={!!folha && folha.tipo === 'mudar'}
-        conta={folha && folha.tipo === 'mudar' ? folha.conta : null}
+          <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho, não por conta.">
+            <AvisosAparelho
+              explicacao="Ligue para saber na hora quando uma marca escreve, responde um pedido, conclui o cadastro ou reserva vaga de fotos — mesmo com o painel fechado."
+              registrar={(a) => rpc('registrar_push_organizacao', { p_secret: lerSenha(), p_endpoint: a.endpoint, p_p256dh: a.p256dh, p_auth: a.auth, p_user_agent: a.userAgent })}
+              remover={(endpoint) => rpc('remover_push_organizacao', { p_secret: lerSenha(), p_endpoint: endpoint })}
+              testar={async () => {
+                const r = await chamarFuncao('enviar-push', {
+                  secret: lerSenha(), alvo: 'organizacao', titulo: 'Teste do painel',
+                  corpo: 'Se esta notificação apareceu, o canal está de pé.', url: '/painel/',
+                })
+                return Number(r.enviados || 0)
+              }}
+            />
+          </Secao>
+        </div>
+      </div>
+
+      <Secao titulo="Histórico da equipe" nota="Tudo o que foi feito no painel: quem, o quê, quando e em qual marca." id="historico-equipe">
+        <Historico contas={lista} atorInicial={atorHistorico} abrirLink={abrirLink} />
+      </Secao>
+
+      <FolhaNovaConta aberto={!!folha && folha.tipo === 'nova'} funcoes={funcoes} onFechar={() => setFolha(null)} onCriada={carregar} />
+      <FolhaConta
+        aberto={!!folha && folha.tipo === 'conta'}
+        conta={folha && folha.tipo === 'conta' ? lista.find((x) => x.user_id === folha.conta.user_id) || folha.conta : null}
         funcoes={funcoes}
         onFechar={() => setFolha(null)}
         onSalvo={carregar}
+        onVerHistorico={(id) => {
+          setFolha(null)
+          setAtorHistorico(id)
+          setTimeout(() => { const el = document.getElementById('historico-equipe'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 300)
+        }}
       />
     </section>
   )

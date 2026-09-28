@@ -53,3 +53,26 @@ test('chaveDia formata yyyy-mm-dd local, com zero à esquerda', () => {
   assert.equal(chaveDia(new Date(2026, 0, 5)), '2026-01-05')
   assert.equal(chaveDia(new Date(2026, 11, 31)), '2026-12-31')
 })
+
+import { proximosPassos } from '../painel-app/src/lib/hoje.js'
+
+test('proximosPassos: sem participação, só espera (e mensagem, se houver)', () => {
+  const r = proximosPassos({ semParticipacao: true, msgsNaoLidas: 1 })
+  assert.deepEqual(r.passos.map((p) => p.chave), ['msg', 'espera'])
+})
+
+test('proximosPassos: urgente primeiro, e cadastro concluído vira feito', () => {
+  const agora = new Date('2026-10-01T12:00:00').getTime()
+  const r = proximosPassos({
+    faltam: [], statusCadastro: 'cadastro_completo', pedidosPendentes: 2,
+    prazoMaisProximo: '2026-10-02T23:59:00', vagasAbertas: 3, agora,
+  })
+  assert.equal(r.passos[0].tom, 'urgente')
+  assert.ok(r.passos.some((p) => p.chave === 'vaga' && p.destino === 'cadastro/fotos'))
+  assert.ok(r.feitos.some((f) => f.chave === 'cadastro'))
+})
+
+test('proximosPassos: tudo preenchido e não concluído pede para concluir', () => {
+  const r = proximosPassos({ faltam: [], statusCadastro: 'em_preenchimento' })
+  assert.equal(r.passos[0].chave, 'concluir')
+})

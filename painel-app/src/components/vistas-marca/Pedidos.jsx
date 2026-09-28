@@ -1,100 +1,144 @@
 import React from 'react'
 import { api } from '../../lib/marcaApi'
-import { minhasSolicitacoes, mapaRespondidas, prazoTexto } from '../../lib/pedidosMarca'
+import { minhasSolicitacoes, prazoTexto } from '../../lib/pedidosMarca'
+import { dataHoraExtensa } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
+import { Carregando, Vazio, Erro, traduzirErro } from '../ui'
+import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
- * Vista Pedidos (marca) — porta fiel de public/painel/index.html: markup
- * #mvPedidos (~1631-1644) e desenharSolicitacoes (~5112-5144).
- *
- * Só leitura. Quem marca um pedido como respondido é a ORGANIZAÇÃO
- * (marcarRespondido, ~3662, do lado dela) — um pedido pode ser resolvido por
- * telefone, e a fonte não dá nenhum botão de ação pra marca aqui. Esta vista
- * só mostra o quê, pra quem e até quando.
- *
- * ⚠️ Igual à fonte: sem participação aberta, `carregarParticipacao` nunca
- * roda do lado estático — as solicitações não chegam a ser buscadas.
+ * Pedidos (marca) — o que a organização pediu, até quando, e a RESPOSTA da
+ * marca. Responder grava pelo banco (`marca_responder_solicitacao`, que só
+ * alcança pedidos da própria marca) e avisa a organização. A organização
+ * continua podendo dar por respondido um pedido resolvido por telefone.
  */
-const ICONE_PEDIDOS = (
-  <>
-    <path d="M16 5.2 28.8 26.8H3.2L16 5.2Z" />
-    <path d="M16 13v5.6" />
-    <circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none" />
-  </>
-)
+function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
+  const [texto, setTexto] = React.useState('')
+  const [enviando, setEnviando] = React.useState(false)
+  const [erro, setErro] = React.useState(null)
+  const ref = React.useRef(null)
+  const feito = estado && estado.estado === 'respondido'
+  const p = prazoTexto(s.prazo_em)
 
-export function Pedidos() {
+  React.useEffect(() => {
+    if (aberto && ref.current) ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [aberto])
+
+  async function responder(ev) {
+    ev.preventDefault()
+    if (!texto.trim()) return
+    setEnviando(true)
+    setErro(null)
+    try {
+      await api('rpc/marca_responder_solicitacao', { metodo: 'POST', corpo: { p_solicitacao: s.id, p_resposta: texto.trim() } })
+      setTexto('')
+      await onRespondido()
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      setErro(traduzirErro(e.message) + ' O texto continua no campo.')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <li ref={ref} className={'ui-pedido' + (aberto ? ' is-aberto' : '') + (feito ? ' is-feito' : '')}>
+      <button type="button" className="ui-pedido__cabeca" aria-expanded={aberto} onClick={onAbrir}>
+        <span className="ui-pedido__titulo">{s.titulo}</span>
+        <span className={'selo' + (feito ? ' completo' : p.classe ? ' ' + p.classe : '')}>
+          {feito ? 'Respondido' : (p.texto || 'Pendente')}
+        </span>
+      </button>
+      {aberto && (
+        <div className="ui-pedido__corpo">
+          <p className="ui-pedido__texto">{s.texto}</p>
+          {s.prazo_em && <p className="ui-nota">Prazo: {dataHoraExtensa(s.prazo_em)}</p>}
+          {feito && (
+            <div className="ui-citacao">
+              {estado.resposta ? <p>Sua resposta: {estado.resposta}</p> : <p>A organização deu este pedido como resolvido.</p>}
+              {estado.respondido_em && <p className="ui-nota">{dataHoraExtensa(estado.respondido_em)}</p>}
+            </div>
+          )}
+          <form className="ui-form" onSubmit={responder}>
+            <label className="og-campo"><span>{feito ? 'Complementar a resposta' : 'Sua resposta'}</span>
+              <textarea rows={3} maxLength={4000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escreva o que foi feito ou o que você precisa." />
+            </label>
+            <button className="acao" type="submit" disabled={enviando || !texto.trim()}>{enviando ? 'Enviando…' : feito ? 'Enviar complemento' : 'Responder'}</button>
+            {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+          </form>
+        </div>
+      )}
+    </li>
+  )
+}
+
+export function Pedidos({ alvo, consumirAlvo }) {
   const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
   const [participacao, setParticipacao] = React.useState(null)
   const [lista, setLista] = React.useState([])
-  const [feitos, setFeitos] = React.useState({})
+  const [estados, setEstados] = React.useState({})
+  const [aberto, setAberto] = React.useState(null)
 
-  React.useEffect(() => {
-    let ativo = true
-    setCarregando(true)
+  const carregar = React.useCallback(async () => {
     setErro(null)
-    api('participacoes?select=*&order=created_at.desc&limit=1')
-      .then((pas) => {
-        const pa = (pas && pas[0]) || null
-        if (!ativo) return null
-        setParticipacao(pa)
-        if (!pa) return null
-        return Promise.all([
+    try {
+      const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
+      const pa = (pas && pas[0]) || null
+      setParticipacao(pa)
+      if (pa) {
+        const [s, e] = await Promise.all([
           api('solicitacoes?select=*&order=prazo_em.asc.nullslast'),
           api('solicitacao_estado?select=*&participacao_id=eq.' + pa.id),
-        ]).then(([s, e]) => {
-          if (!ativo) return
-          setLista(s || [])
-          setFeitos(mapaRespondidas(e || []))
-        })
-      })
-      .catch((e) => {
-        if (!ativo || (e && e.message === 'sessao_expirada')) return
-        setErro('Não deu para carregar os pedidos agora. Recarregue a página.')
-      })
-      .finally(() => { if (ativo) setCarregando(false) })
-    return () => { ativo = false }
+        ])
+        setLista(s || [])
+        setEstados(Object.fromEntries((e || []).map((x) => [x.solicitacao_id, x])))
+      }
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      setErro(e.message)
+    } finally {
+      setCarregando(false)
+    }
   }, [])
+  React.useEffect(() => { carregar() }, [carregar])
+
+  React.useEffect(() => {
+    if (alvo && alvo.id) { setAberto(alvo.id); if (consumirAlvo) consumirAlvo() }
+  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const minhas = React.useMemo(() => minhasSolicitacoes(lista, participacao), [lista, participacao])
+  const pendentes = minhas.filter((s) => !(estados[s.id] && estados[s.id].estado === 'respondido'))
+  const feitos = minhas.filter((s) => estados[s.id] && estados[s.id].estado === 'respondido')
 
   return (
-    <section>
-      <VistaCabeca
-        acento="laranja" viewBox="0 0 32 32" strokeWidth={2.2}
-        icone={ICONE_PEDIDOS} titulo="Pedidos" nota="O que a organização pediu, e até quando"
-      />
+    <section className="ui-vista-marca">
+      <VistaCabeca acento="laranja" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.pedidos} titulo="Pedidos" nota="O que a organização pediu, até quando, e a sua resposta" />
 
-      {erro && <div className="aviso erro">{erro}</div>}
-      {!erro && carregando && <p className="nota">Carregando.</p>}
-      {!erro && !carregando && !participacao && (
-        <p className="nota">Nenhuma edição aberta para você no momento.</p>
+      {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={carregar} />}
+      {!erro && carregando && <Carregando linhas={3} />}
+      {!erro && !carregando && !participacao && <Vazio titulo="Nenhuma edição aberta para você">Os pedidos aparecem aqui quando a organização abrir a sua participação.</Vazio>}
+      {!erro && !carregando && participacao && minhas.length === 0 && <Vazio titulo="Nenhum pedido no momento">Quando a organização pedir algo, chega um aviso e o pedido aparece aqui.</Vazio>}
+
+      {pendentes.length > 0 && (
+        <>
+          <h2 className="ui-subtitulo">Para responder ({pendentes.length})</h2>
+          <ul className="ui-pedidos">
+            {pendentes.map((s) => (
+              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={carregar} />
+            ))}
+          </ul>
+        </>
       )}
-
-      {!erro && !carregando && participacao && (
-        <div className="card">
-          <p className="rotulo">O que a organização pediu</p>
-          <h2>Pedidos e prazos</h2>
-          {minhas.length === 0 && <p className="nota">Nenhum pedido no momento.</p>}
-          {minhas.map((s) => {
-            const feita = !!feitos[s.id]
-            const p = prazoTexto(s.prazo_em)
-            return (
-              <div className="linha" key={s.id}>
-                <div className="corpo">
-                  <b>{s.titulo}</b>
-                  <span>{s.texto}</span>
-                </div>
-                <div className="lado">
-                  {feita
-                    ? <span className="selo completo">Respondido</span>
-                    : (p.texto ? <span className={p.classe ? 'selo ' + p.classe : 'selo'}>{p.texto}</span> : null)}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+      {feitos.length > 0 && (
+        <>
+          <h2 className="ui-subtitulo">Respondidos ({feitos.length})</h2>
+          <ul className="ui-pedidos">
+            {feitos.map((s) => (
+              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={carregar} />
+            ))}
+          </ul>
+        </>
       )}
     </section>
   )

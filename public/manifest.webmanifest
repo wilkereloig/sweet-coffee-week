@@ -8,16 +8,25 @@
   "start_url": "/painel/",
   "scope": "/painel/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#FEF0DD",
   "theme_color": "#3D1308",
-  "categories": ["food", "events", "lifestyle"],
+  "categories": [
+    "food",
+    "events",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/favicon-512-maskable.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
+    },
+    {
+      "src": "/favicon-sweet.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     },
     {
       "src": "/favicon-192.png",
@@ -36,6 +45,18 @@
       "type": "image/png",
       "sizes": "96x96",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Avisos e mensagens",
+      "url": "/painel/?ir=mensagens",
+      "icons": [
+        {
+          "src": "/favicon-96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

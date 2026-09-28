@@ -2,6 +2,7 @@ import React from 'react'
 import { api, registrarPendente } from '../../lib/marcaApi'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
+import { Carregando } from '../ui'
 import {
   TIPOS, ROTULO_TIPO, CANAIS, BLOCOS, NOMES_FALTANDO,
   precoNumero, itemDe, blocoCompleto, progresso,
@@ -62,7 +63,7 @@ function seloParticipacao(status) {
 const MARCA_VAZIA = { nome_marca: '', responsavel: '', telefone: '', email: '', instagram: '', site: '', cnpj: '', razao_social: '' }
 const TEMA_VAZIO = { tema_combo: '', tema_justificativa: '' }
 
-export function Cadastro() {
+export function Cadastro({ alvo, consumirAlvo } = {}) {
   const [carregando, setCarregando] = React.useState(true)
   const [erroCarregar, setErroCarregar] = React.useState(null)
   const [semParticipacao, setSemParticipacao] = React.useState(false)
@@ -354,7 +355,15 @@ export function Cadastro() {
     }
   }
 
-  if (carregando) return <p className="nota">Carregando…</p>
+  // Vindo de "escolher horário das fotos" (Hoje ou aviso): rola até a agenda.
+  React.useEffect(() => {
+    if (carregando || !alvo || alvo.sub !== 'fotos') return
+    const el = document.getElementById('fotos-sessao')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (consumirAlvo) consumirAlvo()
+  }, [carregando, alvo]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (carregando) return <Carregando linhas={4} texto="Carregando o seu cadastro…" />
 
   if (erroCarregar) {
     return (
@@ -516,7 +525,7 @@ export function Cadastro() {
           {concluirAviso && <div className={'aviso ' + concluirAviso.tom} style={{ marginTop: 12 }}>{concluirAviso.texto}</div>}
 
           {sessoes.length > 0 && (
-            <div className="card" style={{ marginTop: 18 }}>
+            <div className="card" id="fotos-sessao" style={{ marginTop: 18 }}>
               <p className="rotulo">Fotos do combo</p>
               <h2>Sua sessão</h2>
               <p className="nota">

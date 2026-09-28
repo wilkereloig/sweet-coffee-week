@@ -8,6 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { ICONE } from '../PainelShell'
+import { Carregando, Erro } from '../ui'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -167,14 +168,14 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
   // Quem dá por respondido é a organização, de propósito: um pedido pode ser
   // resolvido por telefone. O estado é o que a PRODUÇÃO considera entregue,
   // não o que a marca declarou.
-  async function marcar(participacaoId) {
+  async function marcar(participacaoId, respondido = true) {
     setMarcando(participacaoId)
     setErroAcao(null)
     try {
       await rpc('marcar_solicitacao', {
-        p_secret: lerSenha(), p_solicitacao: solicitacao.id, p_participacao: participacaoId, p_respondido: true,
+        p_secret: lerSenha(), p_solicitacao: solicitacao.id, p_participacao: participacaoId, p_respondido: respondido,
       })
-      setLista((l) => l.map((x) => (x.participacao_id === participacaoId ? { ...x, estado: 'respondido' } : x)))
+      setLista((l) => l.map((x) => (x.participacao_id === participacaoId ? { ...x, estado: respondido ? 'respondido' : 'pendente', resposta: respondido ? x.resposta : null } : x)))
       await onRespondido()
     } catch (e) {
       setErroAcao(e.message)
@@ -189,24 +190,30 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
         {carregando && <p>Carregando.</p>}
         {!carregando && erro && <p>{erro}</p>}
         {!carregando && !erro && lista.length === 0 && <p>Este pedido ainda não alcançou nenhuma marca.</p>}
-        {!carregando && !erro && lista.map((l) => (
-          <p className="og-par" key={l.participacao_id}>
-            <b>{l.marca || '(marca)'}</b> · {l.estado === 'respondido' ? 'respondido' : 'pendente'}
-            {l.estado !== 'respondido' && (
-              <>
-                {' '}
-                <button
-                  className="og-btn og-btn--vazado og-btn--mini" type="button"
-                  disabled={marcando === l.participacao_id || !podeGerir}
-                  title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-                  onClick={() => marcar(l.participacao_id)}
-                >
-                  Dar por respondido
-                </button>
-              </>
-            )}
-          </p>
-        ))}
+        {!carregando && !erro && solicitacao && solicitacao.texto && <p className="ui-citacao">{solicitacao.texto}</p>}
+        {!carregando && !erro && lista.length > 0 && (
+          <ul className="ui-lista-simples">
+            {lista.map((l) => (
+              <li key={l.participacao_id}>
+                <b>{(l.marca || '(marca)') + ' · ' + (l.estado === 'respondido' ? 'respondido' : 'pendente')}</b>
+                {l.resposta && <span className="ui-citacao">{l.resposta}</span>}
+                {l.estado === 'respondido' && l.respondido_em && (
+                  <span className="ui-nota">{(l.respondido_por || '') + ' · ' + dataHoraCurta(l.respondido_em)}</span>
+                )}
+                <span className="ui-linha-acoes">
+                  <button
+                    className="og-btn og-btn--vazado og-btn--mini" type="button"
+                    disabled={marcando === l.participacao_id || !podeGerir}
+                    title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                    onClick={() => marcar(l.participacao_id, l.estado !== 'respondido')}
+                  >
+                    {l.estado === 'respondido' ? 'Reabrir' : 'Dar por respondido'}
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
         {erroAcao && <div className="og-aviso" data-tom="erro">{erroAcao}</div>}
       </div>
     </Folha>
@@ -461,7 +468,7 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
 }
 
 /* ── A vista ───────────────────────────────────────────────────────────── */
-export function Producao({ registrarAtualizar, reportarEstado, pode = () => true }) {
+export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, alvo, consumirAlvo }) {
   const podeGerir = pode('producao.gerir')
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
   const [arquivos, setArquivos] = React.useState(null)
@@ -506,7 +513,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
       setSolicitacoes(solicitacoesOk)
       setArquivos(a || [])
       setSessoes(sessoesOk)
-      // Alimenta o sino de notificações do cabeçalho (NotificacoesOrg vive no
+      // Alimenta quem pedir o estado (o sino hoje lê a tabela de avisos; isto
       // PainelShell, que não sabe como esta vista busca os próprios dados).
       if (reportarEstado) reportarEstado({ solicitacoes: solicitacoesOk, sessoes: sessoesOk })
     } catch (e) {
@@ -545,6 +552,22 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   React.useEffect(() => {
     setCodigoEdicao((config && config.edicao_atual) || '')
   }, [config])
+
+  // Aviso pediu um pedido específico (ou a agenda): abre/rola até ele.
+  React.useEffect(() => {
+    if (!alvo) return
+    if (alvo.sub === 'fotos') {
+      const el = document.getElementById('agenda-fotos')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (consumirAlvo) consumirAlvo()
+      return
+    }
+    if (alvo.sub === 'pedido' && solicitacoes) {
+      const s = solicitacoes.find((x) => x.id === alvo.id)
+      if (s) setFolha({ tipo: 'quemFalta', solicitacao: s })
+      if (consumirAlvo) consumirAlvo()
+    }
+  }, [alvo, solicitacoes]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function salvarEdicao(codigo) {
     setSalvandoEdicao(true)
@@ -613,12 +636,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
       {avisoGeral && <div className="og-aviso" data-tom={avisoGeral.tom}>{avisoGeral.texto}</div>}
 
-      {erro && (
-        <div className="og-estado" data-tom="erro">
-          <h2>Não consegui carregar</h2>
-          <p>{erro}</p>
-        </div>
-      )}
+      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {!erro && solicitacoes === null && <Carregando linhas={3} />}
 
       {/* Explicação VISÍVEL, não só `title` — botão desabilitado não recebe
           hover nem foco de teclado (`pointer-events:none` + `disabled` no
@@ -632,13 +651,14 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
       {!erro && (
         <>
-          <section className="og-forms" style={{ marginBottom: 22 }}>
+          <div className="ui-grade-duas">
+          <section className="og-forms">
             <div className="og-forms__cabeca">
               <h2>A edição aberta</h2>
               <p>É ela que decide qual formulário a marca vê ao entrar, e é o que a agenda logo abaixo precisa pra existir.</p>
             </div>
-            <div className="og-item" style={{ cursor: 'default' }}>
-              <span className="og-item__cor" style={{ background: edicaoAtual ? '#01AFCC' : '#FF4810' }} aria-hidden="true" />
+            <div className="og-item og-item--info">
+              <span className="og-item__cor" style={{ background: edicaoAtual ? 'var(--scw-cyan)' : 'var(--scw-laranja)' }} aria-hidden="true" />
               <p className="og-item__nome">{edicaoAtual || 'Nenhuma edição aberta'}</p>
               <p className="og-item__meta">
                 {edicaoAtual
@@ -676,7 +696,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             )}
           </section>
 
-          <section className="og-forms" style={{ marginBottom: 22 }}>
+          <section className="og-forms" id="agenda-fotos">
             <div className="og-agenda__topo">
               <div>
                 <h2 style={{ margin: 0 }}>Agenda de fotos</h2>
@@ -722,7 +742,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             <div className="og-agenda__legenda">
               <span><i style={{ background: 'var(--scw-cyan)' }} />vaga aberta</span>
               <span><i style={{ background: 'var(--scw-choco)' }} />reservada</span>
-              <span><i style={{ background: '#fff', boxShadow: 'inset 0 0 0 1.5px var(--scw-borda-campo)' }} />fechada</span>
+              <span><i className="is-fechada" />fechada</span>
             </div>
           </section>
 
@@ -758,7 +778,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                   return (
                     <li key={s.id}>
                       <div className="og-item">
-                        <span className="og-item__cor" style={{ background: rascunho ? '#6A2C15' : (faltam ? '#FF4810' : '#01AFCC') }} aria-hidden="true" />
+                        <span className="og-item__cor" style={{ background: rascunho ? 'var(--scw-marrom)' : (faltam ? 'var(--scw-laranja)' : 'var(--scw-cyan)') }} aria-hidden="true" />
                         <p className="og-item__nome">{s.titulo}</p>
                         <p className="og-item__meta">{alvo + ' · ' + (BLOCOS[s.bloco] || s.bloco) + ' · ' + conta}</p>
                         <span className="og-item__dir">
@@ -782,7 +802,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             )}
           </section>
 
-          <section className="og-forms" style={{ marginTop: 22 }}>
+          <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
                 <h2>Arquivos</h2>
@@ -811,7 +831,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                   return (
                     <li key={a.id}>
                       <div className="og-item">
-                        <span className="og-item__cor" style={{ background: '#4D257E' }} aria-hidden="true" />
+                        <span className="og-item__cor" style={{ background: 'var(--scw-roxo)' }} aria-hidden="true" />
                         <p className="og-item__nome">{a.nome}</p>
                         <p className="og-item__meta">{detalhe}</p>
                         <span className="og-item__dir">
@@ -826,7 +846,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             )}
           </section>
 
-          <section className="og-forms" style={{ marginTop: 22 }}>
+          <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
                 <h2>Sessões de fotos</h2>
@@ -849,7 +869,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 {sessoesComMarca.map((f) => (
                   <li key={f.id}>
                     <div className="og-item">
-                      <span className="og-item__cor" style={{ background: '#FDBB1A' }} aria-hidden="true" />
+                      <span className="og-item__cor" style={{ background: 'var(--scw-amarelo)' }} aria-hidden="true" />
                       <p className="og-item__nome">{f.nome_marca || '(marca)'}</p>
                       <p className="og-item__meta">
                         {dataHoraCurta(f.data_hora) + (f.local ? ' · ' + f.local : '') + (f.edicao_codigo ? ' · edição ' + f.edicao_codigo : '')}
@@ -871,6 +891,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               </ul>
             )}
           </section>
+          </div>
         </>
       )}
 

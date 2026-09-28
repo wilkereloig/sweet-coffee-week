@@ -1,265 +1,159 @@
 import React from 'react'
 import { api, assinarDownload } from '../../lib/marcaApi'
-import { bytesDaChave, VAPID_PUBLICA } from '../../lib/avisos'
+import { dataHoraExtensa } from '../../lib/central'
+import { VistaCabeca } from '../VistaCabeca'
+import { AvisosAparelho } from '../AvisosAparelho'
+import { Carregando, Vazio, Erro, Secao } from '../ui'
+import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
- * Vista Arquivos (marca) — porta fiel de public/painel/index.html: downloads
- * publicados pela organização (desenharArquivos/baixar, ~5144-5194) e avisos
- * push deste aparelho (bytesDaChave.../desligarAvisos, ~4426-4590). As duas
- * coisas moram na mesma aba, diferente do lado organização (Equipe.jsx),
- * onde avisos é seção própria.
+ * Arquivos (marca) — documentos publicados pela organização, confirmação de
+ * leitura (quando o arquivo pede) e os avisos deste aparelho.
  *
- * `arquivos` e o id do participante são leituras À PARTE, cada uma com o
- * próprio catch — mesma regra de Producao.jsx/Marcas.jsx (CLAUDE.md
- * §10.4-b): uma falhar não pode apagar a outra.
+ * `arquivos`, `arquivo_leitura` e o id do participante são leituras À PARTE,
+ * cada uma com o próprio catch — uma falhar não apaga a outra (§10.4-b).
  */
-
-const ONDE_ESTA_O_AVISO =
-  'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
-  'de sino ou de cadeado na barra de endereço e responda por lá.'
-
-// Três coisas separadas, e confundi-las é o que gera "liguei e não chega":
-// suporte do navegador, permissão da pessoa, e assinatura registrada no banco.
-function avisoSuportado() {
-  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
-}
-
-async function assinaturaDoAparelho() {
-  if (!avisoSuportado()) return null
-  try {
-    const reg = await navigator.serviceWorker.ready
-    return await reg.pushManager.getSubscription()
-  } catch {
-    return null
-  }
-}
-
-export function Arquivos() {
+export function Arquivos({ alvo, consumirAlvo }) {
   const [arquivos, setArquivos] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
+  const [lidos, setLidos] = React.useState({})
+  const [participacaoId, setParticipacaoId] = React.useState(null)
   const [participanteId, setParticipanteId] = React.useState(null)
+  const [erro, setErro] = React.useState(null)
   const [baixando, setBaixando] = React.useState(null)
-  const [avisoBaixar, setAvisoBaixar] = React.useState(null)
+  const [confirmando, setConfirmando] = React.useState(null)
+  const [aviso, setAviso] = React.useState(null)
+  const [destaque, setDestaque] = React.useState(null)
 
-  const [assinatura, setAssinatura] = React.useState(null)
-  const [negado, setNegado] = React.useState(false)
-  const [avisoPush, setAvisoPush] = React.useState(null)
+  const carregar = React.useCallback(async () => {
+    setErro(null)
+    try {
+      setArquivos((await api('arquivos?select=*&order=created_at.desc')) || [])
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      setErro(e.message)
+    }
+    try {
+      const [p, pa, l] = await Promise.all([
+        api('participantes?select=id&order=created_at.desc&limit=1'),
+        api('participacoes?select=id&order=created_at.desc&limit=1'),
+        api('arquivo_leitura?select=arquivo_id,lido_em'),
+      ])
+      setParticipanteId((p && p[0] && p[0].id) || null)
+      setParticipacaoId((pa && pa[0] && pa[0].id) || null)
+      setLidos(Object.fromEntries((l || []).map((x) => [x.arquivo_id, x.lido_em])))
+    } catch { /* sem isso só perde a confirmação de leitura; a lista segue */ }
+  }, [])
+  React.useEffect(() => { carregar() }, [carregar])
 
   React.useEffect(() => {
-    let ativo = true
-    api('arquivos?select=*&order=created_at.desc')
-      .then((linhas) => { if (ativo) setArquivos(linhas || []) })
-      .catch((e) => {
-        if (!ativo) return
-        if (e && e.message === 'sessao_expirada') return
-        setErro(e.message)
-      })
-    return () => { ativo = false }
-  }, [])
-
-  React.useEffect(() => {
-    let ativo = true
-    api('participantes?select=id&order=created_at.desc&limit=1')
-      .then((linhas) => { if (ativo) setParticipanteId((linhas && linhas[0] && linhas[0].id) || null) })
-      .catch(() => { if (ativo) setParticipanteId(null) })
-    return () => { ativo = false }
-  }, [])
-
-  const atualizarStatusPush = React.useCallback(async () => {
-    if (!avisoSuportado()) { setAssinatura(null); setNegado(false); return }
-    setNegado(Notification.permission === 'denied')
-    setAssinatura(await assinaturaDoAparelho())
-  }, [])
-
-  React.useEffect(() => { atualizarStatusPush() }, [atualizarStatusPush])
+    if (alvo && alvo.id) { setDestaque(alvo.id); if (consumirAlvo) consumirAlvo() }
+  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function baixar(path) {
+    // A janela abre no clique, antes do await: aberta depois, o bloqueador de
+    // pop-up (principalmente no iPhone) a barra.
+    const janela = window.open('', '_blank')
     setBaixando(path)
-    setAvisoBaixar(null)
+    setAviso(null)
     try {
       const url = await assinarDownload(path)
-      window.open(url, '_blank', 'noopener')
+      if (janela) { janela.opener = null; janela.location.href = url } else window.location.href = url
     } catch {
-      setAvisoBaixar('Não deu para abrir o arquivo agora. Tente de novo em instantes.')
+      if (janela) janela.close()
+      setAviso('Não deu para abrir o arquivo agora. Tente de novo em instantes.')
     } finally {
       setBaixando(null)
     }
   }
 
-  async function ligarAvisos() {
-    if (!participanteId) { setAvisoPush({ texto: 'Entre primeiro.', tom: 'erro' }); return }
-    if (Notification.permission === 'denied') {
-      setAvisoPush({
-        texto: 'A permissão já está negada para este site. Reabrir depende das ' +
-          'configurações do navegador: esta página não consegue pedir de novo.',
-        tom: 'erro',
-      })
-      return
-    }
-
-    setAvisoPush({ texto: 'Pedindo permissão… ' + ONDE_ESTA_O_AVISO, tom: '' })
-    const lembrete = setTimeout(() => {
-      setAvisoPush({ texto: 'Ainda esperando sua resposta. ' + ONDE_ESTA_O_AVISO, tom: '' })
-    }, 8000)
-
-    // Resposta tardia não se perde: quando a permissão muda, a tela se
-    // redesenha sozinha, mesmo que a promessa abaixo tenha ficado para trás.
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'notifications' })
-        .then((p) => { p.onchange = () => atualizarStatusPush() })
-        .catch(() => { /* navegador sem a API: o caminho normal segue */ })
-    }
-
+  async function confirmarLeitura(arquivoId) {
+    if (!participacaoId) { setAviso('Sua participação ainda não foi aberta: a confirmação fica disponível quando ela abrir.'); return }
+    setConfirmando(arquivoId)
+    setAviso(null)
     try {
-      const permissao = await Notification.requestPermission()
-      clearTimeout(lembrete)
-      if (permissao !== 'granted') {
-        setAvisoPush({
-          texto: permissao === 'denied'
-            ? 'Permissão negada. Nada pode ser enviado para este aparelho.'
-            : 'Você fechou o aviso sem responder. Clique em "Ligar avisos" de novo.',
-          tom: 'erro',
-        })
-        await atualizarStatusPush()
-        return
-      }
-
-      const reg = await navigator.serviceWorker.ready
-      // `userVisibleOnly: true` é obrigatório nos navegadores que importam:
-      // não existe push silencioso na web, e é bom que não exista.
-      const nova = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: bytesDaChave(VAPID_PUBLICA),
-      })
-      const bruto = nova.toJSON()
-
-      // O endpoint é UNIQUE e `update` está revogado de propósito — não dá
-      // para resolver com upsert. Apaga a linha antiga deste mesmo endpoint
-      // antes de gravar; a RLS só deixa apagar o que é desta marca.
-      await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(bruto.endpoint), { metodo: 'DELETE' }).catch(() => null)
-      await api('push_subscriptions', {
+      await api('arquivo_leitura', {
         metodo: 'POST',
-        prefer: 'return=minimal',
-        corpo: {
-          papel: 'marca',
-          participante_id: participanteId,
-          endpoint: bruto.endpoint,
-          p256dh: bruto.keys.p256dh,
-          auth_chave: bruto.keys.auth,
-          user_agent: navigator.userAgent.slice(0, 300),
-        },
+        prefer: 'return=minimal,resolution=ignore-duplicates',
+        corpo: { arquivo_id: arquivoId, participacao_id: participacaoId },
       })
-
-      // Só afirma "ligado" depois que o banco confirmar. Assinatura que
-      // existe no navegador e não existe no banco é aparelho que nunca vai
-      // receber nada — e que jura que está ligado.
-      await atualizarStatusPush()
-      setAvisoPush({ texto: 'Avisos ligados neste aparelho.', tom: 'ok' })
+      setLidos((l) => ({ ...l, [arquivoId]: new Date().toISOString() }))
     } catch (e) {
-      clearTimeout(lembrete)
-      setAvisoPush({ texto: 'Não consegui ligar: ' + e.message, tom: 'erro' })
+      if (e && e.message === 'sessao_expirada') return
+      setAviso('Não deu para registrar a leitura agora. Tente de novo.')
+    } finally {
+      setConfirmando(null)
     }
   }
 
-  async function desligarAvisos() {
-    setAvisoPush({ texto: 'Desligando…', tom: '' })
-    try {
-      const atual = await assinaturaDoAparelho()
-      if (atual) {
-        // Banco primeiro: se a rede caísse depois do unsubscribe, o endpoint
-        // ficaria vivo no banco apontando para uma assinatura morta.
-        await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(atual.endpoint), { metodo: 'DELETE' })
-        await atual.unsubscribe()
-      }
-      await atualizarStatusPush()
-      setAvisoPush({ texto: 'Avisos desligados neste aparelho.', tom: 'ok' })
-    } catch (e) {
-      setAvisoPush({ texto: 'Não consegui desligar: ' + e.message, tom: 'erro' })
-    }
+  // Grava a assinatura do push pela tabela, sob RLS. O endpoint é UNIQUE e
+  // `update` está revogado de propósito — não dá upsert: apaga a linha antiga
+  // deste endpoint (a RLS só deixa apagar o que é desta marca) e insere.
+  async function registrarPush(a) {
+    if (!participanteId) throw new Error('Sua conta ainda não está ligada a uma marca.')
+    await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
+    await api('push_subscriptions', {
+      metodo: 'POST',
+      prefer: 'return=minimal',
+      corpo: {
+        papel: 'marca',
+        participante_id: participanteId,
+        endpoint: a.endpoint,
+        p256dh: a.p256dh,
+        auth_chave: a.auth,
+        user_agent: a.userAgent,
+      },
+    })
   }
-
-  const suportado = avisoSuportado()
-  const mostrarBotao = suportado && (!!assinatura || !negado)
+  async function removerPush(endpoint) {
+    await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })
+  }
 
   return (
-    <section id="mvArquivos">
-      <div className="pn-vista-cabeca" data-acento="roxo">
-        <span className="pn-acento-disco" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" />
-          </svg>
-        </span>
-        <span className="pn-vista-cabeca__texto">
-          <span className="pn-vista-cabeca__titulo">Arquivos</span>
-          <span className="pn-vista-cabeca__nota">Downloads e avisos deste aparelho</span>
-        </span>
-      </div>
+    <section className="ui-vista-marca">
+      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="Documentos da organização e os avisos deste aparelho" />
 
-      {erro && <p className="nota">{erro}</p>}
+      <div className="ui-grade-duas">
+        <Secao titulo="Documentos da organização">
+          {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={carregar} />}
+          {!erro && arquivos === null && <Carregando linhas={3} />}
+          {!erro && arquivos && arquivos.length === 0 && <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar um documento (regulamento, material de divulgação), ele aparece aqui e chega um aviso.</Vazio>}
+          {arquivos && arquivos.length > 0 && (
+            <ul className="ui-arquivos">
+              {arquivos.map((a) => {
+                const detalhe = [a.versao ? 'versão ' + a.versao : '', a.descricao || ''].filter(Boolean).join(' · ')
+                const lido = lidos[a.id]
+                return (
+                  <li key={a.id} className={'ui-arquivo' + (destaque === a.id ? ' is-destaque' : '')}>
+                    <div className="ui-arquivo__corpo">
+                      <b>{a.nome}</b>
+                      {detalhe && <span>{detalhe}</span>}
+                      {a.exige_leitura && <span className="ui-nota">{lido ? 'Leitura confirmada em ' + dataHoraExtensa(lido) : 'A organização pede que você confirme a leitura.'}</span>}
+                    </div>
+                    <div className="ui-linha-acoes">
+                      <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
+                        {baixando === a.path ? 'Abrindo…' : 'Baixar'}
+                      </button>
+                      {a.exige_leitura && !lido && (
+                        <button className="og-btn og-btn--mini" type="button" disabled={confirmando === a.id} onClick={() => confirmarLeitura(a.id)}>
+                          {confirmando === a.id ? 'Registrando…' : 'Li e estou de acordo'}
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+        </Secao>
 
-      {arquivos && arquivos.length > 0 && (
-        <div className="card">
-          <p className="rotulo">Downloads</p>
-          <h2>Arquivos da organização</h2>
-          <div>
-            {arquivos.map((a) => {
-              const detalhe = [a.versao ? 'versão ' + a.versao : '', a.descricao || ''].filter(Boolean).join(' · ')
-              return (
-                <div className="linha" key={a.id}>
-                  <div className="corpo">
-                    <b>{a.nome}</b>
-                    {detalhe && <span>{detalhe}</span>}
-                  </div>
-                  <div className="lado">
-                    <button className="link" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
-                      {baixando === a.path ? 'abrindo…' : 'baixar'}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {avisoBaixar && <p className="nota" style={{ color: '#FF4810' }}>{avisoBaixar}</p>}
-        </div>
-      )}
-
-      <div className="card" style={{ marginTop: 22 }}>
-        <p className="rotulo">Neste aparelho</p>
-        <h2>Avisos</h2>
-        <p className="nota">
-          Ligue para saber na hora quando a organização pedir algo ou publicar um arquivo,
-          mesmo com esta página fechada.
-        </p>
-
-        {!suportado && (
-          <p className="nota" style={{ marginTop: 14 }}>
-            <b>Este navegador não recebe avisos.</b> No iPhone, instale esta área primeiro:
-            botão de compartilhar do Safari, depois "Adicionar à Tela de Início". Abra pelo
-            ícone e volte aqui.
-          </p>
-        )}
-
-        {suportado && (
-          <>
-            <p style={{ marginTop: 14 }}>
-              <b>{assinatura ? 'Ligados neste aparelho' : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')}</b>
-            </p>
-            {negado && !assinatura && (
-              <p className="nota">
-                A permissão foi negada. Reabrir depende das configurações do navegador para
-                este site: esta página não consegue pedir de novo.
-              </p>
-            )}
-            {avisoPush && (
-              <p className="nota" style={avisoPush.tom === 'erro' ? { color: '#FF4810' } : undefined}>{avisoPush.texto}</p>
-            )}
-            {mostrarBotao && (
-              <button className="btn" type="button" onClick={assinatura ? desligarAvisos : ligarAvisos}>
-                {assinatura ? 'Desligar avisos' : 'Ligar avisos'}
-              </button>
-            )}
-          </>
-        )}
+        <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho: ligue em cada celular ou computador que você usa.">
+          <AvisosAparelho
+            explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado."
+            registrar={registrarPush}
+            remover={removerPush}
+          />
+        </Secao>
       </div>
     </section>
   )
