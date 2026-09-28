@@ -29,7 +29,7 @@ import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import '../../styles/scw-participar-apoiar.css'
 
-const INSTAGRAM_URL = 'https://instagram.com/sweetcoffeeweek'
+import { INSTAGRAM_URL, INSTAGRAM_HANDLE } from '../../config/channels'
 
 // Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
 // banda sangrando no celular. O véu por cima usa a cor da página.
@@ -476,7 +476,7 @@ export function ApoiarPage() {
               {state === 'error' && (
                 <>Não conseguimos registrar sua proposta agora. Tente de novo em instantes ou fale
                   com a organização no{' '}
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">@sweetcoffeeweek</a>.</>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>.</>
               )}
             </p>
           </form>
