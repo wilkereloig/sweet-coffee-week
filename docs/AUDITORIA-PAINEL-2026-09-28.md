@@ -112,3 +112,43 @@ Cada item diz onde está; a seção final ("Reauditoria") diz o que foi feito.
 4. **Layout** — tirar a coluna de 720 px, achatar caixas, grade larga.
 5. **PWA** — escopo único `/painel/`, safe-area, offline, versão nova.
 6. **Refino** — estados de carregamento, Folha acessível, docs, testes.
+
+## Reauditoria (fim do trabalho, 28/09/2026)
+
+Commits em `dev/site-completo`: `5c2e506` (bugs críticos), `336d0e6` (banco
+e Edge Functions), `6c71832` (fluxos, UI, layout, PWA), e o de documentação.
+
+| Item do diagnóstico | Situação |
+|---|---|
+| Painel preso em coluna de ~560 px | ✅ CSS reescrito sem regra global; conteúdo até 1760 px, grades 1→2 colunas, rail com nomes ≥1280 |
+| Caixa dentro de caixa, título 3× | ✅ seções sem caixa, listas em linhas; título da vista some no celular |
+| Sem estados de carregamento/erro | ✅ Carregando/Vazio/Erro com "tentar de novo" em todas as vistas |
+| Mensagens org ⇄ marca | ✅ tabela + RPCs + gatilho; lida/enviada nos dois lados |
+| Notificações persistidas, lida no servidor, link ao item | ✅ sino nos dois painéis, marcar todos, deep link |
+| Push automático | ✅ banco: gatilho → pg_net → enviar-push · ⚠️ **código da função pendente de publicação** |
+| Push travado fora de `/painel/` | ✅ redirects + SW; clique leva ao item; sair desliga o aparelho |
+| Autoria / histórico / observações / filtros | ✅ autor pela sessão, antes/depois por gatilho, observação interna, histórico por marca e geral |
+| Usuários da equipe (nome, último acesso, desativar, senha nova) | ✅ Equipe · ⚠️ nome na criação vai também por RPC (funciona antes do deploy) |
+| Conta pessoal como porta principal | ✅ login abre em conta pessoal; senha compartilhada pode ser desligada em Equipe |
+| Marca responde pedido, confirma leitura | ✅ |
+| "Esqueci a senha" da marca | ✅ organização gera senha nova na ficha · ⚠️ depende do deploy de `regerar-senha-conta` |
+| Hoje sem próximo passo | ✅ próximos passos por urgência + o que já foi feito |
+| Bugs de preço, prazo, concluir, autosave, duplicatas | ✅ com teste onde é lógica pura |
+| RPCs só no banco | ✅ capturadas em `20260928_painel_mensagens_avisos_autoria.sql` |
+| PWA (safe-area, ícones, offline, versão nova) | ✅ · offline mostra a casca e avisa; dados exigem rede (decisão) |
+| Mesa: cartões mortos | ✅ abrem a ficha certa |
+| Paginação | ⏸ não feita: são 3 respostas e 0 marcas no banco; busca/filtro/ordenação resolvem até centenas |
+| Ações em massa | ⏸ não feitas: nenhum fluxo atual pede (publicar pedido já alcança todas) |
+| Upload de arquivo pela marca | ⏸ não feito: exige política de Storage nova; pedidos respondem por texto |
+| Foto de item do combo (`registrar_foto_item`) | ⏸ segue sem tela |
+| Prazo próximo como aviso automático | ⏸ exige `pg_cron`; hoje aparece nos próximos passos e na mesa |
+| 9 migrations de junho sem arquivo | ⏸ precisa do CSV do SQL Editor (regra: não transcrever à mão) |
+| Validação visual e teste logado | ⏸ não feita por mim (regra do projeto); build e 184 testes verdes |
+
+**Pendências que dependem do Wilke:**
+1. Publicar `enviar-push`, `regerar-senha-conta` e `criar-conta-organizacao`
+   a partir de `supabase/functions/` (`supabase functions deploy <nome> --no-verify-jwt`).
+2. Conferir que as três variáveis VAPID estão na função `enviar-push`.
+3. Criar a própria conta de administrador em Equipe e, quando a equipe toda
+   tiver conta, desligar o acesso compartilhado.
+4. Merge em `master` quando aprovar (A2).

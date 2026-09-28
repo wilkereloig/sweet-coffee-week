@@ -2980,6 +2980,45 @@ Removida a cópia morta; sobrou só o que a marca tem de exclusivo ali
 bug que a fusão pretendia evitar. Rodar o teste ao vivo depois de qualquer
 restauração de bloco de CSS, não só depois de removê-lo.
 
+#### Revisão geral do painel — 28/09/2026 (Fase 11)
+
+Diagnóstico e reauditoria em `docs/AUDITORIA-PAINEL-2026-09-28.md`. O que
+passou a valer:
+
+- **O painel só vive em `/painel/`.** `/organizacao` e `/marca` redirecionam
+  (vercel.json + plugin de dev). Motivo: o SW tem escopo `/painel/`; entrando
+  por `/organizacao/` o push travava esperando `serviceWorker.ready`.
+- **Autoria vem da sessão, no banco.** `auditoria.ator_user_id` e
+  `ator_rotulo` têm default (`auth.uid()` / `ator_rotulo_atual()`), e o
+  gatilho `auditoria_vincular` corrige o rótulo quando uma Edge Function grava
+  com `ator_user_id` explícito. O rótulo é GRAVADO na hora: desativar ou
+  renomear a conta não reescreve o passado. ⛔ Nunca aceitar nome de autor
+  vindo do navegador.
+- **Histórico** = tabela `auditoria` (gatilhos de antes/depois em candidatura,
+  cadastro, pedido, vaga; RPCs que já gravavam seguem gravando). Observação
+  interna é linha `acao = 'observacao'` — não se edita nem apaga.
+  `get_atividade` filtra por marca, pessoa, ação e período.
+- **Mensagens** (`mensagens`) e **avisos** (`notificacoes` +
+  `notificacao_leitura`, leitura por pessoa na organização) nascem por
+  gatilho. A marca lê as suas por RLS e **não vê** o nome interno de quem
+  escreveu (grant de coluna sem `autor_rotulo`/`ator_rotulo`).
+- **Push automático:** gatilho `disparar_push` → `pg_net` → `enviar-push`
+  com `{notificacao_id}`. A função trava o envio (`push_enviado_em`) e relê
+  tudo com a chave de serviço: o chamador não escolhe texto nem destinatário.
+- **Conta pessoal é a porta principal** da organização; a senha
+  compartilhada é reserva e pode ser desligada em Equipe
+  (`senha_unica_definir`, que recusa se não houver administrador nominal).
+- **Contas não se apagam:** desativar (`suspender_conta`) mantém o nome no
+  histórico. `regerar-senha-conta` também atende marca (`participante_id`,
+  exige `marca.liberar`) — é o "esqueci a senha" da marca.
+- **CSS:** `painel.css` foi reescrito sem regra de elemento solta. ⛔ Não
+  voltar a escrever `main{…}`, `label{…}`, `header button{…}` globais: foi o
+  que prendeu o painel numa coluna de 560px em qualquer monitor.
+- ⚠️ **Edge Functions pendentes de publicação** (o MCP desta sessão recusou
+  o deploy): `enviar-push`, `regerar-senha-conta`, `criar-conta-organizacao`.
+  Até publicar: o aviso aparece no sino, mas o push automático não sai; a
+  senha nova de marca recusa com recado claro na tela.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
