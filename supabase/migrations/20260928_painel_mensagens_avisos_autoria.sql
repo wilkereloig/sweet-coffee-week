@@ -613,7 +613,10 @@ create trigger gerar_notificacoes after insert on public.support_interests for e
 -- existe, ou que já foi enviado, não faz nada.
 -- ⚠️ Se as três variáveis VAPID não estiverem na função, o aviso continua
 -- aparecendo no painel (sino) e o push simplesmente não sai.
-create extension if not exists pg_net;
+-- Schema `extensions`, não `public` (Security Advisor: extension_in_public).
+-- Aplicado primeiro em public e corrigido na mesma data pela migration
+-- `pg_net_no_schema_extensions` (drop + create: pg_net não é relocável).
+create extension if not exists pg_net with schema extensions;
 
 create or replace function public.notificacao_disparar_push()
 returns trigger language plpgsql security definer set search_path = public, extensions as $$
