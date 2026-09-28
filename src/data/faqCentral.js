@@ -2,7 +2,7 @@
    Origem: design_handoff_site_institucional/faq-dados.js (conteúdo novo do redesign 2026).
    Fonte única: alimenta a interface (busca, filtros, accordions) e o schema FAQPage.
    Dados que mudam a cada edição ficam em EDICAO; links ficam em LINKS. */
-import { proximaEdicao as PROX } from './proximaEdicao'
+import { proximaEdicao as PROX } from './proximaEdicao.js'
 
 const FAQ_DADOS = (function () {
   var EDICAO = {
