@@ -126,17 +126,17 @@ PWA e push da revisão de 28/09. Novo: `pg_cron` com `lembrar_vendas` (de hora e
 
 - `npm run test:organizacao` 197 (13 novos em `tests/painel-app-operacao.test.mjs`), `npm test` 8, `test:redesign` 23, `test:imagens` 9 — todos passam; build ok.
 - Banco: `supabase/testes/verificacao-2026-09-29.sql` — autorização (marca A × B, conta desativada, curadoria × administrador, anônimo) e ponta a ponta (tema → conflito → aprovação → duplicata bloqueada → combo → ajuste → vínculo → história → lembrete). Rodado em 29/09 com o resultado esperado; tudo desfeito ao fim.
-- Sem teste visual/navegador (regra do projeto): a conferência visual é do Wilke.
+- Sem teste visual/navegador (regra do projeto): a conferência visual é do Wilker.
 
 ## Fases 19–20 — Cutover e documentação
 
-- Dados da 2026.2 **já estão no banco de produção** (o banco é um só). O painel publicado (`master`) enxerga as 16 marcas e as 12 sessões; as telas novas só aparecem com o merge `dev/site-completo` → `master` (**decisão do Wilke, A2**).
+- Dados da 2026.2 **já estão no banco de produção** (o banco é um só). O painel publicado (`master`) enxerga as 16 marcas e as 12 sessões; as telas novas só aparecem com o merge `dev/site-completo` → `master` (**decisão do Wilker, A2**).
 - Compatibilidade com o painel publicado: o gatilho `garantir_edicao` cria a edição quando um código novo aparece (definir edição atual, abrir vaga, abrir participação), para a chave estrangeira nova não quebrar o fluxo antigo. Código fora do padrão AAAA/AAAA.N continua recusado. As RPCs que mudaram de retorno (`get_participantes`, `get_sessoes_fotos`) só ganharam colunas no fim; os códigos de "falta" do cadastro foram mantidos.
 - Documentação: este arquivo, `CLAUDE.md` §10.4-b (Fase 12), `docs/PAINEL-REACT-MAPA.md`.
 
 ---
 
-## Pendências que dependem do Wilke
+## Pendências que dependem do Wilker
 
 1. **Publicar 4 Edge Functions** (o conector MCP recusa o deploy): `enviar-push`, `regerar-senha-conta`, `criar-conta-organizacao`, `criar-acesso-marca` — `supabase functions deploy <nome> --no-verify-jwt`. Sem a última, "Criar acesso" de marca importada mostra o recado de publicação pendente (não cria duplicata).
 2. **Merge em `master`** quando aprovar (A2).
@@ -168,7 +168,7 @@ PWA e push da revisão de 28/09. Novo: `pg_cron` com `lembrar_vendas` (de hora e
 | Paneer | Paneer Pâtisserie | acervo (§9.3, forma longa) |
 | Casa 1190 Restaurante e Coffee · Marlon Vinicius - Confeitaria e Café · Parma Doces | sem mudança | já no padrão |
 
-**Para o Wilke decidir:** o site grafa "Casa 1190 - Restaurant e Coffee" e "Marlon Vinicius"; a planilha, "Casa 1190 Restaurante e Coffee" e "Marlon Vinicius - Confeitaria e Café". Enquanto não houver decisão, vale o nome declarado pela marca. Decidido, corrige-se num lugar só (o acervo em `src/data` ou a ficha da marca) e a regra passa a usá-lo.
+**Para o Wilker decidir:** o site grafa "Casa 1190 - Restaurant e Coffee" e "Marlon Vinicius"; a planilha, "Casa 1190 Restaurante e Coffee" e "Marlon Vinicius - Confeitaria e Café". Enquanto não houver decisão, vale o nome declarado pela marca. Decidido, corrige-se num lugar só (o acervo em `src/data` ou a ficha da marca) e a regra passa a usá-lo.
 
 ## Deixado de fora, com motivo
 
