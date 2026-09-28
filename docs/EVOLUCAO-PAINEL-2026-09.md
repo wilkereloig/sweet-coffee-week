@@ -131,6 +131,7 @@ PWA e push da revisão de 28/09. Novo: `pg_cron` com `lembrar_vendas` (de hora e
 ## Fases 19–20 — Cutover e documentação
 
 - Dados da 2026.2 **já estão no banco de produção** (o banco é um só). O painel publicado (`master`) enxerga as 16 marcas e as 12 sessões; as telas novas só aparecem com o merge `dev/site-completo` → `master` (**decisão do Wilke, A2**).
+- Compatibilidade com o painel publicado: o gatilho `garantir_edicao` cria a edição quando um código novo aparece (definir edição atual, abrir vaga, abrir participação), para a chave estrangeira nova não quebrar o fluxo antigo. Código fora do padrão AAAA/AAAA.N continua recusado. As RPCs que mudaram de retorno (`get_participantes`, `get_sessoes_fotos`) só ganharam colunas no fim; os códigos de "falta" do cadastro foram mantidos.
 - Documentação: este arquivo, `CLAUDE.md` §10.4-b (Fase 12), `docs/PAINEL-REACT-MAPA.md`.
 
 ---
