@@ -20,7 +20,7 @@
  * fria; agora ela anuncia a próxima edição chegando e empurra pro
  * pré-cadastro, que já está aberto. Depoimentos e Números ficaram por serem
  * prova social direta. Nada de dado inventado: depoimentos e números vêm do
- * acervo/festivalFacts.js — nenhuma data ou tema da próxima edição é citado,
+ * acervo/festivalFacts.js — só o mês da próxima edição (proximaEdicao.js); data e tema não,
  * porque não foram anunciados (A4).
  */
 import React from 'react'
@@ -31,6 +31,7 @@ import { HeroFotos } from '../../components/HeroFotos'
 import { Marquee } from '../../components/Marquee'
 import { resolveParticipant } from '../../data/participantAssets'
 import { festivalFacts as F } from '../../data/festivalFacts'
+import { proximaEdicao as PROX } from '../../data/proximaEdicao'
 import '../../styles/scw-participar-apoiar.css'
 
 // Fotos do herói desta rota (sistema central): cartão em crossfade no desktop,
@@ -239,13 +240,13 @@ export function ParticiparPage() {
         <div className="pa-hero__grade">
           <div>
             <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">
-              A próxima edição está a caminho{' '}
+              A próxima edição chega em {PROX.mes}{' '}
               {/* Chapa cyan, tinta chocolate: o acento é roxo (4,25:1 — texto grande). */}
               <em className="pa-destaque" style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-roxo)' }}>e o pré-cadastro já abriu.</em>
             </h1>
             <p className="scw-lead pa-hero__lead">
-              Faça o pré-cadastro da sua marca agora e entre na fila de curadoria da
-              organização para a próxima edição do Sweet & Coffee Week.
+              Faça o pré-cadastro da sua marca e entre na curadoria da organização.
+              Tema e datas saem no anúncio oficial do Sweet & Coffee Week.
             </p>
             <div className="pa-hero__acoes">
               <a href="/quero-participar/" className="scw-btn scw-btn--solido">
