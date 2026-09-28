@@ -6,23 +6,27 @@
  * landing /em-breve, que está no ar. Um SW nesse escopo servindo versão velha
  * não se desfaz por deploy: exige desregistro no navegador de CADA visitante.
  *
- * Mesmo padrão de /organizacao/sw.js e /marca/sw.js (que continuam existindo,
- * intactos, para quem já instalou o ícone antigo — CLAUDE.md §10.4-b).
+ * /organizacao/ e /marca/ redirecionam para /painel/ desde 28/09/2026 — é o
+ * único endereço dentro deste escopo. Os sw.js daquelas pastas continuam
+ * existindo para quem instalou o ícone antigo (CLAUDE.md §10.4-b).
  *
- * Offline está FORA DE ESCOPO. Este SW existe por dois motivos, nada além:
- *   1. satisfazer o critério de instalabilidade do Chrome, que exige um handler
- *      de `fetch`;
- *   2. servir a casca (fonte e marca) rápido na segunda abertura.
+ * O que ele faz, e nada além:
+ *   1. critério de instalabilidade (handler de `fetch`);
+ *   2. casca offline: o HTML vem da rede e, sem rede, do cache; os arquivos
+ *      com hash (/assets/) ficam no cache na primeira visita — sem eles o HTML
+ *      guardado abria uma tela em branco. O painel mostra "sem conexão" e não
+ *      finge ter dado;
+ *   3. push e clique na notificação levando ao item.
  * NÃO cacheia dado do banco. Ver o corte de origem no handler.
  *
  * ⚠️ O nome do serviço de banco não aparece neste arquivo NEM EM COMENTÁRIO —
- * `tests/painel.test.mjs` reprova por regex, e a regra é boa: o jeito mais
- * fácil de um cache de PII nascer é alguém acrescentar o host "só para o
+ * `tests/painel-infra.test.mjs` reprova por regex, e a regra é boa: o jeito
+ * mais fácil de um cache de PII nascer é alguém acrescentar o host "só para o
  * offline funcionar". Sem o nome escrito aqui, não há o que copiar e colar.
  */
-const VERSAO = 'scw-painel-v1';
+const VERSAO = 'scw-painel-v2';
 
-/* Só a casca. O HTML não entra aqui — ele é sempre da rede (ver abaixo). */
+/* Só a casca. O HTML entra só como reserva de rede caída (ver abaixo). */
 const CASCA = [
   '/painel/',
   '/images/logo-seal-sweet-coffee.svg',
@@ -64,13 +68,36 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== self.location.origin) return;
   if (e.request.method !== 'GET') return;
 
-  /* O HTML é SEMPRE da rede. Como o JS do painel é inline no documento,
-     cachear o HTML congelaria o painel inteiro numa versão antiga — e uma
-     correção só chegaria quando a pessoa limpasse o navegador. O cache aqui é
-     socorro de rede caída, não estratégia. */
+  /* O HTML é SEMPRE da rede. Cachear o HTML congelaria o painel numa versão
+     antiga — e uma correção só chegaria quando a pessoa limpasse o
+     navegador. O cache aqui é socorro de rede caída, não estratégia. A cópia
+     de reserva é renovada a cada navegação que dá certo. */
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(function () { return caches.match('/painel/'); })
+      fetch(e.request).then(function (r) {
+        if (r.ok && url.pathname === '/painel/') {
+          const copia = r.clone();
+          caches.open(VERSAO).then(function (c) { c.put('/painel/', copia); });
+        }
+        return r;
+      }).catch(function () { return caches.match('/painel/'); })
+    );
+    return;
+  }
+
+  /* Arquivos com hash no nome (/assets/…) são imutáveis: o nome muda a cada
+     build. Guardar na primeira visita é o que deixa a casca abrir offline. */
+  if (url.pathname.indexOf('/assets/') === 0) {
+    e.respondWith(
+      caches.match(e.request).then(function (r) {
+        return r || fetch(e.request).then(function (resp) {
+          if (resp.ok) {
+            const copia = resp.clone();
+            caches.open(VERSAO).then(function (c) { c.put(e.request, copia); });
+          }
+          return resp;
+        });
+      })
     );
     return;
   }
@@ -85,45 +112,45 @@ self.addEventListener('fetch', function (e) {
 /* ── Notificação ───────────────────────────────────────────────────────────
  * O corpo vem cifrado da função de envio e chega aqui já decifrado pelo
  * navegador. ⚠️ Ele é DADO, nunca marcação: o título e o texto entram por
- * campo de notificação, que não interpreta HTML. É a mesma regra do
- * `escapar()` do painel, aplicada no outro lado do canal.
+ * campo de notificação, que não interpreta HTML.
  */
+function destinoSeguro(url) {
+  /* Só caminho interno, e dentro do painel. Notificação que abre outro site é
+     phishing com a marca do festival — e quem clica não vê a URL antes. */
+  return (typeof url === 'string' && url.charAt(0) === '/' && url.indexOf('/painel/') === 0)
+    ? url : '/painel/';
+}
+
 self.addEventListener('push', function (e) {
   let dados = {};
   try { dados = e.data ? e.data.json() : {}; } catch (err) { dados = {}; }
 
-  const titulo = dados.titulo || 'Sweet & Coffee Week';
-  const corpo = dados.corpo || '';
-  /* Só caminho interno. Notificação que abre outro site é phishing com a marca
-     do festival — e quem clica não vê a URL antes. */
-  const destino = (typeof dados.url === 'string' && dados.url.charAt(0) === '/')
-    ? dados.url : '/painel/';
-
-  e.waitUntil(self.registration.showNotification(titulo, {
-    body: corpo,
+  e.waitUntil(self.registration.showNotification(dados.titulo || 'Sweet & Coffee Week', {
+    body: dados.corpo || '',
     icon: '/favicon-192.png',
     badge: '/favicon-96.png',
     lang: 'pt-BR',
-    /* `tag` fixa: dois avisos da mesma coisa se substituem em vez de empilhar.
-       Aparelho com quatro cópias do mesmo recado é aparelho que a pessoa
-       silencia. */
-    tag: 'scw-painel',
+    /* Uma tag por aviso (vem da função de envio): avisos diferentes empilham,
+       o MESMO aviso reenviado substitui em vez de duplicar. */
+    tag: typeof dados.tag === 'string' ? dados.tag : 'scw-painel',
     renotify: true,
-    data: { url: destino },
+    data: { url: destinoSeguro(dados.url) },
   }));
 });
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
-  const destino = (e.notification.data && e.notification.data.url) || '/painel/';
+  const destino = destinoSeguro(e.notification.data && e.notification.data.url);
 
-  /* Se o painel já está aberto numa aba, foca essa aba em vez de abrir outra.
-     Duas abas do mesmo painel é como se perde trabalho não salvo. */
+  /* Painel já aberto numa aba: foca e manda a aba ir até o item (mensagem,
+     não recarga — recarregar perderia o que estiver sendo digitado). Sem aba,
+     abre uma nova no destino; o `?ir=` sobrevive ao login. */
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(function (abas) {
         for (let i = 0; i < abas.length; i++) {
           if (abas[i].url.indexOf('/painel/') !== -1 && 'focus' in abas[i]) {
+            abas[i].postMessage({ tipo: 'abrir', url: destino });
             return abas[i].focus();
           }
         }

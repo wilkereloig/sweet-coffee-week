@@ -16,6 +16,7 @@ import { VistaCabeca } from '../VistaCabeca'
 export function Hoje() {
   const [estado, setEstado] = React.useState('carregando') // carregando | sem-marca | sem-participacao | pronto | erro
   const [participacaoId, setParticipacaoId] = React.useState(null)
+  const [statusCadastro, setStatusCadastro] = React.useState('')
   const [vendas, setVendas] = React.useState([])
   const [faltam, setFaltam] = React.useState([])
   const [qtd, setQtd] = React.useState('')
@@ -40,6 +41,7 @@ export function Hoje() {
         api('vendas_diarias?select=*&participacao_id=eq.' + participacao.id + '&order=dia.desc'),
       ])
       setParticipacaoId(participacao.id)
+      setStatusCadastro(participacao.status_cadastro || '')
       setVendas(vendasLinhas || [])
       setFaltam(blocosPendentes({ participante, participacao, itens: itens || [], unidades: unidades || [] }))
       setEstado('pronto')
@@ -95,7 +97,7 @@ export function Hoje() {
               <path d="M5.4 9.4h21.2a2.4 2.4 0 0 1 2.4 2.4v13.8a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 25.6V11.8a2.4 2.4 0 0 1 2.4-2.4Z" />
               <path d="M3 15.4h26" /><path d="M10.2 5v6.2M21.8 5v6.2" />
             </svg>
-            <span>O lançamento abre no primeiro dia da edição.</span>
+            <span>A organização ainda não abriu a sua participação na próxima edição. O lançamento aparece aqui quando abrir.</span>
           </div>
         </div>
       )}
@@ -142,10 +144,15 @@ export function Hoje() {
 
           <div className="card" style={{ marginTop: 18 }}>
             <p className="rotulo">O que falta</p>
-            {faltam.length === 0 ? (
+            {faltam.length === 0 && statusCadastro === 'cadastro_completo' ? (
               <>
                 <h2>Cadastro entregue</h2>
-                <p className="nota" style={{ margin: 0 }}>Tudo preenchido. Mudou alguma coisa? Volte em Cadastro e corrija.</p>
+                <p className="nota" style={{ margin: 0 }}>Mudou alguma coisa? Volte em Cadastro, corrija e conclua de novo.</p>
+              </>
+            ) : faltam.length === 0 ? (
+              <>
+                <h2>Tudo preenchido, falta concluir</h2>
+                <p className="nota" style={{ margin: 0 }}>Abra Cadastro e toque em "Concluir cadastro" para entregar à organização.</p>
               </>
             ) : (
               <>

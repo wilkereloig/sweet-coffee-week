@@ -19,8 +19,8 @@ import { GuiaFotos } from './components/vistas/GuiaFotos'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../src/lib/orgAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
-import { auth, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar } from './lib/marcaApi'
-import { rpc } from './lib/rpc'
+import { auth, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
+import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
 // (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca. Sem sessão
@@ -102,6 +102,9 @@ export function App() {
       if (DEV_LIVRE && !sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return
       sairMarca()
     })
+    // Mesmo contrato do lado org: conta nominal morrendo em pleno uso volta
+    // ao login em vez de deixar cada vista mostrando "não deu para carregar".
+    registrarAoSessaoExpirarOrg(() => sairOrg())
   }, [])
 
   React.useEffect(() => {
@@ -174,7 +177,9 @@ export function App() {
     setEstado('boas-vindas')
   }
 
-  function sairMarca() {
+  async function sairMarca() {
+    // Autosave pendente vai antes: depois do removeItem não há token.
+    await descarregarPendentes()
     let sessao = null
     try { sessao = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
     if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })

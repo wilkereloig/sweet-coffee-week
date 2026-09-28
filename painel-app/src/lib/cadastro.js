@@ -31,9 +31,13 @@ export const NOMES_FALTANDO = {
 }
 
 // Preço chega como string em formato brasileiro ("1.234,56"): milhar por
-// ponto, decimal por vírgula.
+// ponto, decimal por vírgula. Sem vírgula, um ponto seguido de 1–2 dígitos no
+// fim é decimal ("29.90" é R$ 29,90, não 2990 — teclado numérico do celular
+// muitas vezes só oferece ponto).
 export function precoNumero(str) {
-  const cru = String(str || '').trim().replace(/\./g, '').replace(',', '.')
+  let cru = String(str || '').trim().replace(/[^\d.,]/g, '')
+  if (cru.includes(',')) cru = cru.replace(/\./g, '').replace(',', '.')
+  else if (!/^\d+\.\d{1,2}$/.test(cru)) cru = cru.replace(/\./g, '')
   const n = parseFloat(cru)
   return isNaN(n) ? 0 : n
 }

@@ -72,6 +72,10 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
       setAviso({ texto: 'Título e texto são obrigatórios.', tom: 'erro' })
       return
     }
+    if (escopo === 'marca' && !marca) {
+      setAviso({ texto: 'Nenhuma marca com acesso ainda. Envie para todas ou crie o acesso da marca primeiro.', tom: 'erro' })
+      return
+    }
     setEnviando(true)
     setAviso(null)
     try {
@@ -391,6 +395,7 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
   const [status, setStatus] = React.useState('')
   const [nova, setNova] = React.useState('')
   const [local, setLocal] = React.useState('')
+  const [obs, setObs] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
 
@@ -399,6 +404,7 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
     setStatus(sessao.status || '')
     setNova('')
     setLocal(sessao.local || '')
+    setObs(sessao.observacoes || '')
     setAviso(null)
     setSalvando(false)
   }, [sessao])
@@ -406,9 +412,11 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
   async function salvar() {
     setSalvando(true)
     try {
+      // String vazia (não null) apaga: o SQL faz coalesce(p_x, x), e null
+      // manteria o valor antigo sem a pessoa conseguir limpar o campo.
       await rpc('atualizar_sessao_fotos', {
         p_secret: lerSenha(), p_sessao_id: sessao.id,
-        p_status: status, p_data_hora: isoDoCampo(nova), p_local: local.trim() || null, p_observacoes: null,
+        p_status: status, p_data_hora: isoDoCampo(nova), p_local: local.trim(), p_observacoes: obs.trim(),
       })
       setAviso({ texto: 'Salvo.', tom: 'ok' })
       await onSalva()
@@ -433,6 +441,9 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
           </label>
           <label className="og-campo"><span>Local</span>
             <input type="text" value={local} onChange={(e) => setLocal(e.target.value)} />
+          </label>
+          <label className="og-campo"><span>Observações</span>
+            <textarea value={obs} onChange={(e) => setObs(e.target.value)} />
           </label>
           {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
           <button
@@ -460,6 +471,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const [erro, setErro] = React.useState(null)
   const [avisoGeral, setAvisoGeral] = React.useState(null) // {texto, tom}
   const [modoAgenda, setModoAgenda] = React.useState('abrir') // 'abrir' | 'marcar' — só UI, nunca gravado
+  const [slotOcupado, setSlotOcupado] = React.useState(null)
 
   // A edição aberta — movida de Equipe.jsx na Fase 3 do plano de funções
   // (27/08/2026, achado de revisão adversarial): ela é governada por
@@ -526,6 +538,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const marcaPadrao = opcoesMarcas.length ? opcoesMarcas[0].value : ''
   const edicaoAtual = config && config.edicao_atual
   const grade = React.useMemo(() => montarAgendaGrade(sessoes || []), [sessoes])
+  // Vaga aberta (sem marca) mora na agenda; na lista de sessões ela aparecia
+  // como "(marca)" com botão "Mudar".
+  const sessoesComMarca = sessoes && sessoes.filter((s) => s.status !== 'aberto')
 
   React.useEffect(() => {
     setCodigoEdicao((config && config.edicao_atual) || '')
@@ -546,6 +561,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
   async function clicarSlot(slot) {
     if (!podeGerir || modoAgenda !== 'abrir' || slot.estado === 'reservado') return
+    // Clique duplo abria duas vagas no mesmo horário: uma operação por vez.
+    if (slotOcupado) return
+    setSlotOcupado(slot.quandoIso)
     try {
       if (slot.estado === 'aberto') {
         await rpc('fechar_vaga_fotos', { p_secret: lerSenha(), p_sessao_id: slot.sessaoId })
@@ -560,10 +578,13 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         texto: 'Não deu para ' + (slot.estado === 'aberto' ? 'fechar' : 'abrir') + ' a vaga: ' + e.message,
         tom: 'erro',
       })
+    } finally {
+      setSlotOcupado(null)
     }
   }
 
   async function publicarPedido(id) {
+    if (!window.confirm('Publicar este pedido? A marca passa a ver e o prazo começa a valer. Não dá para despublicar.')) return
     try {
       const n = await rpc('publicar_solicitacao', { p_secret: lerSenha(), p_id: id })
       await carregar()
@@ -574,10 +595,14 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   async function baixarArquivo(path) {
+    // A janela abre NO clique, antes do await: aberta depois, o bloqueador de
+    // pop-up (principalmente no iOS) a barra.
+    const janela = window.open('', '_blank')
     try {
       const r = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'arquivos', path })
-      window.open(r.url, '_blank', 'noopener')
+      if (janela) { janela.opener = null; janela.location.href = r.url } else window.location.href = r.url
     } catch (e) {
+      if (janela) janela.close()
       setAvisoGeral({ texto: 'Não deu para abrir o arquivo: ' + e.message, tom: 'erro' })
     }
   }
@@ -644,7 +669,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 className="og-btn og-btn--vazado" type="button"
                 disabled={salvandoEdicao || !podeGerir}
                 title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-                onClick={() => salvarEdicao('')}
+                onClick={() => { if (window.confirm('Fechar a edição? Contas novas de marca deixam de ganhar formulário até você abrir outra.')) salvarEdicao('') }}
               >
                 Fechar a edição
               </button>
@@ -682,7 +707,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                         key={slot.hhmm}
                         type="button"
                         className={'og-slot og-slot--' + slot.estado}
-                        disabled={!podeGerir}
+                        disabled={!podeGerir || slotOcupado === slot.quandoIso}
                         title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
                         onClick={() => clicarSlot(slot)}
                       >
@@ -816,12 +841,12 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 Agendar sessão
               </button>
             </div>
-            {sessoes && sessoes.length === 0 && (
+            {sessoesComMarca && sessoesComMarca.length === 0 && (
               <EstadoVazio titulo="Nenhuma sessão agendada" texto="A marca vê a data assim que você agenda. Ela não escolhe horário nem remarca por lá." />
             )}
-            {sessoes && sessoes.length > 0 && (
+            {sessoesComMarca && sessoesComMarca.length > 0 && (
               <ul className="og-lista">
-                {sessoes.map((f) => (
+                {sessoesComMarca.map((f) => (
                   <li key={f.id}>
                     <div className="og-item">
                       <span className="og-item__cor" style={{ background: '#FDBB1A' }} aria-hidden="true" />

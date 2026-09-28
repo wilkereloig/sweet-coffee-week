@@ -43,6 +43,33 @@ export async function renovar(sessao, fetchImpl = fetch) {
   }
 }
 
+/*
+ * Uma renovação por refresh token de cada vez. Vistas carregam em paralelo
+ * (Promise.all); sem isto, três chamadas com o token vencendo disparariam três
+ * refresh com o MESMO refresh token — o Supabase gira o token no primeiro e as
+ * outras duas podem voltar como sessão morta.
+ */
+const emVoo = new Map()
+export function renovarCompartilhado(sessao, fetchImpl = fetch) {
+  if (!sessao || Date.now() < sessao.expira_em - 60000) return renovar(sessao, fetchImpl)
+  const chave = sessao.refresh_token
+  if (!emVoo.has(chave)) {
+    emVoo.set(chave, renovar(sessao, fetchImpl).finally(() => emVoo.delete(chave)))
+  }
+  return emVoo.get(chave)
+}
+
+/*
+ * Gravações pendentes (autosave com debounce) que precisam ir ao servidor
+ * ANTES de a sessão ser apagada — sair da conta limpa o sessionStorage na
+ * hora, e o salvamento do desmonte chegaria sem token.
+ */
+const pendentes = new Set()
+export function registrarPendente(fn) { pendentes.add(fn); return () => pendentes.delete(fn) }
+export async function descarregarPendentes() {
+  await Promise.allSettled([...pendentes].map((fn) => fn()))
+}
+
 /** signIn no formato que src/lib/marcaAccess.js#entrarComoMarca espera injetar. */
 export async function signInComSenha(email, senha, fetchImpl = fetch) {
   const r = await auth('token?grant_type=password', { email, password: senha }, 'POST', undefined, fetchImpl)
@@ -82,7 +109,7 @@ function sessaoMorta() {
  */
 export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
   const atual = lerSessao()
-  const viva = await renovar(atual, fetchImpl)
+  const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
   if (viva !== atual) salvarSessao(viva)
 
@@ -99,6 +126,10 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }
+  // 401 com token recém-renovado = sessão revogada no servidor (senha nova,
+  // conta suspensa). Tratar como erro genérico deixaria a pessoa num painel
+  // que nunca mais carrega.
+  if (r.status === 401) sessaoMorta()
   if (!r.ok) throw new Error((dados && dados.message) || ('http_' + r.status))
   return dados
 }
@@ -135,7 +166,7 @@ export async function marcarSenhaTrocada(fetchImpl = fetch) {
  */
 export async function assinarDownload(caminho, fetchImpl = fetch) {
   const atual = lerSessao()
-  const viva = await renovar(atual, fetchImpl)
+  const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
   if (viva !== atual) salvarSessao(viva)
 

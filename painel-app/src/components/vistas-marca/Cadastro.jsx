@@ -1,5 +1,5 @@
 import React from 'react'
-import { api } from '../../lib/marcaApi'
+import { api, registrarPendente } from '../../lib/marcaApi'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
 import {
@@ -89,6 +89,13 @@ export function Cadastro() {
   const timerRef = React.useRef(null)
   const salvarRef = React.useRef(() => Promise.resolve())
   const tempSeqRef = React.useRef(0)
+  // Unidades com POST em voo e ids já devolvidos pelo servidor (por _key):
+  // o estado React só vê o id depois do próximo render.
+  const postandoRef = React.useRef(new Set())
+  const idsCriadosRef = React.useRef(new Map())
+  // Há edição que ainda não foi confirmada pelo servidor (debounce correndo
+  // ou última gravação falhou).
+  const pendenteRef = React.useRef(false)
 
   function unidadeVazia() {
     tempSeqRef.current += 1
@@ -196,24 +203,35 @@ export function Cadastro() {
         ordem: i, endereco: u.endereco.trim(), bairro: u.bairro.trim(), horarios: u.horarios.trim(),
         faz_delivery: !!u.faz_delivery, canais_delivery: canaisParaArray(u.canais),
       }
-      if (u.id) return api('participacao_unidades?id=eq.' + u.id, { metodo: 'PATCH', corpo, prefer: 'return=representation' })
+      const id = u.id || idsCriadosRef.current.get(u._key)
+      if (id) return api('participacao_unidades?id=eq.' + id, { metodo: 'PATCH', corpo, prefer: 'return=representation' })
       // Unidade vazia não vira linha — a tela sempre mostra uma em branco.
       if (!corpo.endereco) return Promise.resolve([])
+      // POST já em voo para esta unidade (rede lenta, segundo autosave antes do
+      // id voltar): não cria outra linha — a próxima rodada faz PATCH.
+      if (postandoRef.current.has(u._key)) return Promise.resolve([])
+      postandoRef.current.add(u._key)
       return api('participacao_unidades', { metodo: 'POST', corpo: { ...corpo, participacao_id: participacaoId }, prefer: 'return=representation' })
         .then((linhas) => {
           const novoId = linhas && linhas[0] && linhas[0].id
-          if (novoId) setUnidades((prev) => prev.map((x) => (x._key === u._key ? { ...x, id: novoId } : x)))
+          if (novoId) {
+            idsCriadosRef.current.set(u._key, novoId)
+            setUnidades((prev) => prev.map((x) => (x._key === u._key ? { ...x, id: novoId } : x)))
+          }
           return linhas
         })
+        .finally(() => postandoRef.current.delete(u._key))
     }))
     try {
-      const [rm, rp] = await Promise.all([
+      const [rm, rp, ri] = await Promise.all([
         api('participantes?id=eq.' + participanteId, { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }),
         api('participacoes?id=eq.' + participacaoId, { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }),
         salvarItens(),
         salvarUnidades(),
       ])
-      if (!rm || !rm.length || !rp || !rp.length) throw new Error('sem_confirmacao')
+      // PATCH que volta vazio = a RLS recusou a linha: não é "salvo".
+      if (!rm || !rm.length || !rp || !rp.length || ri.some((l) => !l || !l.length)) throw new Error('sem_confirmacao')
+      pendenteRef.current = false
       setSalvoTexto('Salvo automaticamente.')
       setErroSalvar(null)
     } catch (e) {
@@ -225,9 +243,26 @@ export function Cadastro() {
   }, [participanteId, participacaoId, marca, tema, precoStr, itens, unidades])
 
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
-  React.useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+
+  // Nada digitado se perde: trocar de aba (desmonte), sair da conta
+  // (descarregarPendentes no App) e fechar a página (beforeunload avisa).
+  React.useEffect(() => {
+    function descarregar() {
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
+      return pendenteRef.current ? salvarRef.current() : Promise.resolve()
+    }
+    const tirar = registrarPendente(descarregar)
+    function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
+    window.addEventListener('beforeunload', avisar)
+    return () => {
+      tirar()
+      window.removeEventListener('beforeunload', avisar)
+      descarregar()
+    }
+  }, [])
 
   function agendarSalvar() {
+    pendenteRef.current = true
     setSalvoTexto('')
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => { salvarRef.current() }, 900)
@@ -255,7 +290,11 @@ export function Cadastro() {
   }
   function removerUnidade(chave) {
     const alvo = unidades.find((u) => u._key === chave)
-    setUnidades((prev) => prev.filter((u) => u._key !== chave))
+    // Sempre sobra uma unidade em branco para preencher.
+    setUnidades((prev) => {
+      const resto = prev.filter((u) => u._key !== chave)
+      return resto.length ? resto : [unidadeVazia()]
+    })
     if (alvo && alvo.id) {
       api('participacao_unidades?id=eq.' + alvo.id, { metodo: 'DELETE' }).catch((e) => {
         if (e && e.message === 'sessao_expirada') return
@@ -296,6 +335,9 @@ export function Cadastro() {
       if (!r || r.ok !== true) {
         const faltando = (r && r.faltando) || []
         setConcluirAviso({ tom: 'erro', texto: 'Falta preencher: ' + faltando.map((f) => NOMES_FALTANDO[f] || f).join(', ') + '.' })
+        // Abre o primeiro bloco pendente para a pessoa ver onde está a falta.
+        const pend = primeiroBlocoPendente({ marca, tema, itens, unidades, precoStr })
+        if (pend !== null) setBlocoAberto(pend)
       } else {
         setStatusCadastro('cadastro_completo')
         setConcluirAviso({
@@ -352,9 +394,17 @@ export function Cadastro() {
           </div>
 
           <div className="salvo">{salvoTexto}</div>
-          {erroSalvar && <div className="aviso erro">{erroSalvar}</div>}
+          {erroSalvar && (
+            <div className="aviso erro" role="alert">
+              {erroSalvar}{' '}
+              <button className="link" type="button" onClick={() => { setErroSalvar(null); salvar() }}>Tentar de novo</button>
+            </div>
+          )}
 
-          <form onSubmit={concluir}>
+          {/* noValidate: campos obrigatórios moram em blocos fechados (hidden),
+              e o navegador travava o envio sem mostrar balão nenhum. Quem
+              valida é o servidor (marca_concluir_cadastro), que diz o que falta. */}
+          <form onSubmit={concluir} noValidate>
             <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
               <label><span>Nome da marca</span><input required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /></label>
@@ -388,6 +438,12 @@ export function Cadastro() {
               <p className="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
                 que chega até você</b>: muita gente escolhe a rota pelo que consegue comer.
                 As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
+              {itens.length < TIPOS.length && (
+                <div className="aviso erro" role="alert">
+                  Faltam itens do combo na sua participação ({TIPOS.filter((t) => !itemDe(t, itens)).map((t) => ROTULO_TIPO[t].toLowerCase()).join(', ')}).
+                  Fale com a organização para liberar.
+                </div>
+              )}
               <div>
                 {TIPOS.map((tipo) => {
                   const it = itemDe(tipo, itens)

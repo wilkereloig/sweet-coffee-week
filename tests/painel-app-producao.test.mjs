@@ -43,3 +43,9 @@ test('isoDoCampo lê datetime-local como hora local, não UTC', () => {
   assert.equal(new Date(iso).getHours(), 14)
   assert.equal(new Date(iso).getMinutes(), 30)
 })
+
+test('isoDoCampo com só a data (prazo) vale até o fim do MESMO dia local', () => {
+  const d = new Date(isoDoCampo('2027-03-04'))
+  assert.equal(d.getDate(), 4)
+  assert.equal(d.getHours(), 23)
+})

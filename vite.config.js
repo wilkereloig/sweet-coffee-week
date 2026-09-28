@@ -69,9 +69,17 @@ function paginasEstaticasDev() {
         // comentário acima volta: a URL abre, só que a página errada (a
         // landing), porque não existe mais `public/<nome>/index.html` pra
         // resolução de índice achar.
-        if (/^\/(organizacao|marca|painel)\/?$/.test(caminho)) {
-          req.url = '/painel-app/index.html'
+        // Espelha os redirects do vercel.json: o painel só vive em /painel/
+        // (escopo do service worker). As outras formas redirecionam.
+        if (caminho === '/painel/') {
+          req.url = '/painel-app/index.html' + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '')
           return next()
+        }
+        if (/^\/(organizacao|marca|painel)\/?$/.test(caminho)) {
+          const q = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
+          res.statusCode = 307
+          res.setHeader('Location', '/painel/' + q)
+          return res.end()
         }
 
         if (!/^\/[a-z0-9-]+\/?$/i.test(caminho)) return next()

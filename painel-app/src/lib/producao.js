@@ -57,8 +57,11 @@ export function nomeSeguro(nome) {
 
 // `datetime-local` devolve "2027-03-04T14:30" SEM fuso; `new Date()` sobre
 // essa string lê como hora LOCAL, que é o que a pessoa digitou.
+// ⚠️ `type="date"` devolve "2027-03-04" SEM hora — e essa forma o JS lê como
+// meia-noite UTC, que no Brasil é 21h do dia ANTERIOR (o prazo aparecia um dia
+// antes). Prazo só com data vale até o fim do dia, na hora local.
 export function isoDoCampo(valor) {
   if (!valor) return null
-  const d = new Date(valor)
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor + 'T23:59' : valor)
   return isNaN(d.getTime()) ? null : d.toISOString()
 }

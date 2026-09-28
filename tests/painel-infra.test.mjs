@@ -132,17 +132,21 @@ test('a porta de entrada do site usa a forma com barra final', () => {
   // diretório (§10.4-b). O destino em si (painel React) já é coberto pelo
   // teste de vercel.json logo abaixo.
   const dialog = ler('src/components/AccessDialog.jsx')
-  assert.match(dialog, /window\.location\.href = '\/organizacao\/'/, 'organização sem barra final')
-  assert.match(dialog, /window\.location\.href = '\/marca\/'/, 'marca sem barra final')
-  assert.ok(!/window\.location\.href = '\/organizacao'[^/]/.test(dialog), 'forma sem barra de organização')
-  assert.ok(!/window\.location\.href = '\/marca'[^/]/.test(dialog), 'forma sem barra de marca')
+  // Os dois logins levam a /painel/ — o escopo do service worker. Por
+  // /organizacao/ ou /marca/ a página fica fora dele e o push trava.
+  const destinos = [...dialog.matchAll(/window\.location\.href = '([^']*)'/g)].map((m) => m[1])
+  assert.ok(destinos.length >= 2 && destinos.every((d) => d === '/painel/'), 'destinos: ' + destinos.join(', '))
 })
 
-test('organização, marca e painel apontam pro build do painel React', () => {
-  for (const rota of ['/organizacao', '/organizacao/', '/marca', '/marca/', '/painel', '/painel/']) {
-    const r = VERCEL.rewrites.find((x) => x.source === rota)
-    assert.ok(r, 'sem rewrite para ' + rota)
-    assert.equal(r.destination, '/painel-app/index.html')
+test('/painel/ serve o painel React; as outras formas redirecionam para ele', () => {
+  const r = VERCEL.rewrites.find((x) => x.source === '/painel/')
+  assert.ok(r, 'sem rewrite para /painel/')
+  assert.equal(r.destination, '/painel-app/index.html')
+  for (const rota of ['/organizacao', '/organizacao/', '/marca', '/marca/', '/painel']) {
+    assert.ok(!VERCEL.rewrites.some((x) => x.source === rota), rota + ' não pode servir o painel fora do escopo do SW')
+    const d = (VERCEL.redirects || []).find((x) => x.source === rota)
+    assert.ok(d, 'sem redirect para ' + rota)
+    assert.equal(d.destination, '/painel/')
   }
 })
 

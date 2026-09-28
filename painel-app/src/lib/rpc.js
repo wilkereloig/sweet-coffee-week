@@ -20,7 +20,7 @@
  * `{p_secret: senha, ...campos}` exatamente como hoje, sem precisar mudar —
  * é essa chave que vira `null` quando existe sessão nominal.
  */
-import { renovar } from './marcaApi.js'
+import { renovarCompartilhado } from './marcaApi.js'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../../src/lib/orgAccess.js'
 
 export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
@@ -45,12 +45,21 @@ function salvarSessaoOrgConta(sessao) {
  * marca — sessão morta não pode se disfarçar de falha de rede).
  * @returns {Promise<{authorization: string, nominal: boolean}>}
  */
+// Sessão nominal morrendo EM PLENO USO (refresh falhou, 401 do servidor): o
+// App registra aqui o que fazer (voltar ao login), igual ao lado marca.
+let aoExpirarOrg = null
+export function registrarAoSessaoExpirarOrg(fn) { aoExpirarOrg = fn }
+function orgMorta() {
+  if (aoExpirarOrg) aoExpirarOrg()
+  throw new Error('sessao_expirada')
+}
+
 async function modoDeAcesso(fetchImpl) {
   const atual = lerSessaoOrgConta()
   if (!atual) return { authorization: 'Bearer ' + SUPABASE_KEY, nominal: false }
 
-  const viva = await renovar(atual, fetchImpl)
-  if (!viva) throw new Error('sessao_expirada')
+  const viva = await renovarCompartilhado(atual, fetchImpl)
+  if (!viva) orgMorta()
   if (viva !== atual) salvarSessaoOrgConta(viva)
   return { authorization: 'Bearer ' + viva.access_token, nominal: true }
 }
@@ -68,6 +77,7 @@ export async function rpc(nome, corpo = {}, fetchImpl = fetch) {
     },
     body: JSON.stringify(corpoFinal),
   })
+  if (r.status === 401 && modo.nominal) orgMorta()
   if (!r.ok) {
     let detalhe = ''
     try { detalhe = (await r.json()).message || '' } catch { /* corpo não é JSON */ }

@@ -10,6 +10,11 @@ test('precoNumero lê formato brasileiro (milhar por ponto, decimal por vírgula
   assert.equal(precoNumero('35,00'), 35)
   assert.equal(precoNumero(''), 0)
   assert.equal(precoNumero('abc'), 0)
+  // Ponto como decimal (teclado do celular): não pode virar 2990.
+  assert.equal(precoNumero('29.90'), 29.9)
+  assert.equal(precoNumero('29.9'), 29.9)
+  assert.equal(precoNumero('R$ 32,50'), 32.5)
+  assert.equal(precoNumero('1.234'), 1234)
 })
 
 test('itemCompleto exige nome, descrição e ingredientes preenchidos', () => {

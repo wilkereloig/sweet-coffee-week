@@ -7,44 +7,133 @@
   "headers": [
     {
       "source": "/",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/index.html",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/organizacao/sw.js",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/marca/sw.js",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/painel/sw.js",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
-    { "source": "/organizacao", "destination": "/painel-app/index.html" },
-    { "source": "/organizacao/", "destination": "/painel-app/index.html" },
-    { "source": "/marca", "destination": "/painel-app/index.html" },
-    { "source": "/marca/", "destination": "/painel-app/index.html" },
-    { "source": "/painel", "destination": "/painel-app/index.html" },
-    { "source": "/painel/", "destination": "/painel-app/index.html" },
-    { "source": "/quero-participar", "destination": "/quero-participar/index.html" },
-    { "source": "/mapa", "destination": "/" },
-    { "source": "/rota", "destination": "/" },
-    { "source": "/participantes", "destination": "/" },
-    { "source": "/vencedores", "destination": "/" },
-    { "source": "/premiacao", "destination": "/" },
-    { "source": "/edicoes", "destination": "/" },
-    { "source": "/curiosidades", "destination": "/" },
-    { "source": "/participar", "destination": "/" },
-    { "source": "/apoiar", "destination": "/" },
-    { "source": "/contato", "destination": "/" },
-    { "source": "/edicoes/:path*", "destination": "/" },
-    { "source": "/lovers/:path*", "destination": "/" }
+    {
+      "source": "/painel/",
+      "destination": "/painel-app/index.html"
+    },
+    {
+      "source": "/quero-participar",
+      "destination": "/quero-participar/index.html"
+    },
+    {
+      "source": "/mapa",
+      "destination": "/"
+    },
+    {
+      "source": "/rota",
+      "destination": "/"
+    },
+    {
+      "source": "/participantes",
+      "destination": "/"
+    },
+    {
+      "source": "/vencedores",
+      "destination": "/"
+    },
+    {
+      "source": "/premiacao",
+      "destination": "/"
+    },
+    {
+      "source": "/edicoes",
+      "destination": "/"
+    },
+    {
+      "source": "/curiosidades",
+      "destination": "/"
+    },
+    {
+      "source": "/participar",
+      "destination": "/"
+    },
+    {
+      "source": "/apoiar",
+      "destination": "/"
+    },
+    {
+      "source": "/contato",
+      "destination": "/"
+    },
+    {
+      "source": "/edicoes/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/lovers/:path*",
+      "destination": "/"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/organizacao",
+      "destination": "/painel/",
+      "permanent": false
+    },
+    {
+      "source": "/organizacao/",
+      "destination": "/painel/",
+      "permanent": false
+    },
+    {
+      "source": "/marca",
+      "destination": "/painel/",
+      "permanent": false
+    },
+    {
+      "source": "/marca/",
+      "destination": "/painel/",
+      "permanent": false
+    },
+    {
+      "source": "/painel",
+      "destination": "/painel/",
+      "permanent": false
+    }
   ]
 }

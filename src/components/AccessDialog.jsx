@@ -53,7 +53,7 @@ import { instalarPainel } from '../hooks/useInstallPrompt'
  *    `<slug>@marcas.…`, ver `src/lib/marcaAccess.js`). O diálogo só antecipa o
  *    PASSO; a sessão que ele grava em `sessionStorage.scw_marca` é o formato
  *    exato que a página estática já lê no boot (`sessaoSalvar()` de lá) — é
- *    por isso que `window.location.href = '/marca/'`, depois de autenticado,
+ *    por isso que `window.location.href = '/painel/'`, depois de autenticado,
  *    abre direto no painel em vez de pedir login de novo.
  *    ⚠️ Isso só é seguro porque `public/marca/index.html` passou a checar
  *    `deve_trocar_senha` também ao achar sessão PRONTA no boot, não só dentro
@@ -208,10 +208,11 @@ export function AccessDialog({ open, onClose }) {
       if (campoOrgRef.current) campoOrgRef.current.focus()
       return
     }
-    /* Navegação normal do navegador, não `navigate()`: /organizacao/ é página
-       estática fora do bundle, e a barra final é o que faz o servidor resolver
-       o índice do diretório em vez de cair no fallback do SPA (§10.4-b). */
-    window.location.href = '/organizacao/'
+    /* Navegação normal do navegador, não `navigate()`: o painel é outro
+       bundle. Sempre /painel/ (com barra): é o escopo do service worker —
+       entrar por /organizacao/ deixava o push travado esperando um SW que
+       nunca controla a página (§10.4-b, auditoria 28/09/2026). */
+    window.location.href = '/painel/'
   }
 
   const enviarMarca = async (ev) => {
@@ -230,11 +231,10 @@ export function AccessDialog({ open, onClose }) {
       setErroMarca(r.erro)
       return
     }
-    /* Mesma navegação de navegador que a organização usa, e pelo mesmo motivo:
-       /marca/ é página estática fora do bundle (§10.4-b). A sessão que acabou
-       de ser gravada em sessionStorage.scw_marca é o que a página lê no boot
-       para abrir direto — sem passar pelo próprio formulário de login dela. */
-    window.location.href = '/marca/'
+    /* Mesma navegação e mesmo motivo da organização. A sessão que acabou de
+       ser gravada em sessionStorage.scw_marca é o que o painel lê no boot
+       para abrir direto — sem passar pelo próprio formulário de login dele. */
+    window.location.href = '/painel/'
   }
 
   return (
