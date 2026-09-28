@@ -22,9 +22,10 @@ import { auth, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar 
 import { rpc } from './lib/rpc'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
-// (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca, e os dois
-// cartões da boas-vindas entram direto. Sem sessão o banco não responde:
-// as telas abrem, os dados não. Em produção `import.meta.env.DEV` é false e
+// (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca. Sem sessão
+// o banco não responde: as telas abrem, os dados não. Para ver dados, a
+// boas-vindas continua levando ao login de verdade.
+// Em produção `import.meta.env.DEV` é false e
 // o bloco some do bundle.
 const DEV_LIVRE = import.meta.env.DEV
 const PARAMS_DEV = DEV_LIVRE ? new URLSearchParams(location.search) : null
@@ -183,8 +184,8 @@ export function App() {
   if (estado === 'boas-vindas') {
     return (
       <BoasVindas
-        onEscolherOrg={() => setEstado(DEV_LIVRE ? 'painel-org' : 'login-org')}
-        onEscolherMarca={() => setEstado(DEV_LIVRE ? 'painel-marca' : 'login-marca')}
+        onEscolherOrg={() => setEstado('login-org')}
+        onEscolherMarca={() => setEstado('login-marca')}
       />
     )
   }
