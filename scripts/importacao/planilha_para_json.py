@@ -26,7 +26,7 @@ def texto(v):
     if v is None:
         return None
     if isinstance(v, datetime.datetime):
-        return v.date().isoformat() if v.time() == datetime.time(0) else v.isoformat(timespec='minutes')
+        return v.date().isoformat() if v.time() == datetime.time(0) else v.isoformat(timespec='seconds')
     if isinstance(v, datetime.date):
         return v.isoformat()
     if isinstance(v, float) and v.is_integer():

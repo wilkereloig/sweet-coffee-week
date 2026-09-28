@@ -156,10 +156,14 @@ begin
       n := jsonb_build_object(
         'liberado_foto', case when v_lib in ('sim','s') then true when v_lib in ('não','nao','n') then false end,
         'liberado_foto_original', public.imp_cel(r.dados_originais, i_lib),
-        -- O carimbo do Google Forms é hora de Natal (UTC−3): mesmos dígitos, fuso explícito.
-        'inscrito_em', (select to_char(to_timestamp(public.imp_cel(r.dados_originais, i_carimbo), 'DD/MM/YYYY HH24:MI:SS'),
-                          'YYYY-MM-DD"T"HH24:MI:SS') || '-03:00'
-                        where public.imp_cel(r.dados_originais, i_carimbo) ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$'),
+        -- O carimbo do Google Forms é hora de Natal (UTC−3): mesmos dígitos, fuso
+        -- explícito. Chega como "DD/MM/AAAA HH:MM:SS" (texto) ou ISO (célula de data).
+        'inscrito_em', (select case
+                          when x.c ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$'
+                            then to_char(to_timestamp(x.c, 'DD/MM/YYYY HH24:MI:SS'), 'YYYY-MM-DD"T"HH24:MI:SS') || '-03:00'
+                          when x.c ~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$'
+                            then x.c || case when length(x.c) = 16 then ':00' else '' end || '-03:00' end
+                          from (select public.imp_cel(r.dados_originais, i_carimbo) as c) x),
         'razao_social', public.imp_cel(r.dados_originais, i_razao),
         'nome_fantasia', public.imp_cel(r.dados_originais, i_fant),
         'cnpj', public.imp_cel(r.dados_originais, i_cnpj),
@@ -304,6 +308,18 @@ begin
         'tipo', v_tipo, 'edicao_codigo', v_ed_pk, 'edicao_texto', v_rotulo_aba);
       n := n || jsonb_build_object('instagram_norm',
              nullif(lower(regexp_replace(coalesce(n ->> 'instagram', ''), '[^A-Za-z0-9._]', '', 'g')), ''));
+      -- Linha só com o nome (ex.: "Indicacao Suzi") não é um contato: fica em
+      -- revisão e não é importada.
+      if n ->> 'instagram_original' is null and public.imp_cel(r.dados_originais, i_end) is null
+         and n ->> 'bairro' is null and n ->> 'telefone' is null and n ->> 'voucher' is null
+         and n ->> 'observacao' is null then
+        update public.import_linhas set dados_normalizados = n, classificacao = 'revisar' where id = r.id;
+        insert into public.revisao_pendencias (tipo, severidade, titulo, descricao, valor_original, lote_id, linha_id)
+        values ('dado_ausente', 'aviso', 'Linha só com nome — não importada',
+                'Sem Instagram, endereço nem contato. Completar na planilha ou cadastrar à mão.',
+                n ->> 'nome', p_lote, r.id);
+        continue;
+      end if;
       update public.import_linhas set dados_normalizados = n,
              classificacao = case when v_ed_pk = v_ed then 'atual_confirmado' else 'historico_confirmado' end
        where id = r.id;
@@ -419,6 +435,10 @@ begin
     'vendas', (select count(*) from public.import_linhas where lote_id = p_lote and aba = 'VENDAS COMBOS' and classificacao not in ('modelo_vazio')),
     'contatos_press_kit', (select count(*) from public.import_linhas where lote_id = p_lote and aba ilike 'PRESS KIT%'
                         and classificacao in ('atual_confirmado','historico_confirmado')),
+    'linhas_press_kit', (select coalesce(jsonb_object_agg(aba, qtd), '{}'::jsonb) from (
+                          select il.aba, count(*) filter (where il.dados_normalizados ->> 'cabecalho' is null) qtd
+                            from public.import_linhas il where il.lote_id = p_lote and il.aba ilike 'PRESS KIT%'
+                           group by il.aba) t),
     'pendencias_bloqueio', (select count(*) from public.revisao_pendencias where lote_id = p_lote and status = 'aberta' and severidade = 'bloqueio'),
     'pendencias_aviso', (select count(*) from public.revisao_pendencias where lote_id = p_lote and status = 'aberta' and severidade = 'aviso'));
 
