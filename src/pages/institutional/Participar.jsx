@@ -66,8 +66,8 @@ const GANHOS = [
 const NUMEROS = [
 // Uma cor por card (15/09/2026, pedido do Wilke), na ordem do ciclo do §6.3 sem o
 // magenta — nenhuma tinta fecha 4,5:1 sobre ele em texto pequeno.
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
-  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+  { n: F.revenue.curto, t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+  { n: F.combosSold.curto, t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
   { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'ui/calendario', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
   { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
 ]

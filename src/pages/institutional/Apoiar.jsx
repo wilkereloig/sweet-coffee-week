@@ -50,12 +50,12 @@ const PALAVRAS = [
 // A referência à população de Natal usa a estimativa do IBGE 2025: 784.249 habitantes.
 // Cor vive na régua (StatBlock), ciclo de seis sem repetir.
 const ALCANCE = [
-  { n: '+R$ 712 mil', t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
-  { n: '+18 mi', t: 'visualizações no Instagram', d: 'cerca de 23 vezes a população de Natal', i: 'redes/instagram' },
-  { n: '+200 mil', t: 'de alcance', d: 'contas alcançadas, 1 em cada 4 moradores de Natal', i: 'mecanica/publico' },
-  { n: '+290 mil', t: 'interações', d: 'curtidas, comentários, salvamentos e compartilhamentos', i: 'mecanica/avaliar' },
-  { n: '+65 mil', t: 'seguidores no Instagram', d: 'comunidade Sweet Lovers que acompanha combos e resultados', i: 'simbolos/sweet-lovers' },
-  { n: '+34 mil', t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
+  { n: F.revenue.curto, t: 'movimentação direta', d: F.revenue.mede, i: 'mecanica/promocao' },
+  { n: F.igViews.curto, t: 'visualizações no Instagram', d: 'cerca de 23 vezes a população de Natal', i: 'redes/instagram' },
+  { n: F.igReach.curto, t: 'de alcance', d: 'contas alcançadas, 1 em cada 4 moradores de Natal', i: 'mecanica/publico' },
+  { n: F.igInteractions.curto, t: 'interações', d: 'curtidas, comentários, salvamentos e compartilhamentos', i: 'mecanica/avaliar' },
+  { n: F.igFollowers.curto, t: 'seguidores no Instagram', d: 'comunidade Sweet Lovers que acompanha combos e resultados', i: 'simbolos/sweet-lovers' },
+  { n: F.combosSold.curto, t: 'combos vendidos', d: F.combosSold.mede, i: 'combos/doce-cafe' },
 ]
 
 // 03 Por que apoiar — ícones desenhados para cada argumento (24×24, traço).
