@@ -1,18 +1,19 @@
 import React from 'react'
 import { NotificacoesOrg } from './NotificacoesOrg'
 
-export const DESTINOS = ['mesa', 'respostas', 'participantes', 'producao', 'equipe']
+export const DESTINOS = ['mesa', 'respostas', 'participantes', 'producao', 'fotos', 'equipe']
 
 export const TITULOS = {
   mesa: ['A mesa', 'onde cada marca está'],
   respostas: ['Respostas', 'dos formulários do site'],
   participantes: ['Marcas', 'com acesso ao cadastro'],
   producao: ['Produção', 'pedidos, arquivos e fotos'],
+  fotos: ['Guia de fotos', 'combos da edição Cartoon'],
   equipe: ['Equipe', 'edição e contas'],
 }
 
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
-const ACENTO_VISTA = { mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo', producao: 'laranja', equipe: 'marrom' }
+const ACENTO_VISTA = { mesa: 'amarelo', respostas: 'cyan', participantes: 'roxo', producao: 'laranja', fotos: 'magenta', equipe: 'marrom' }
 
 // Exportado: é a mesma peça que VistaCabeca usa no topo de cada vista
 // (§5.3 — não duplicar o SVG por página).
@@ -29,11 +30,14 @@ export const ICONE = {
     <circle cx="16.5" cy="15.5" r="2.5" /><path d="M16.5 11.5v1.2" /><path d="M16.5 18.3v1.2" />
     <path d="m13.6 13.2.9.6" /><path d="m18.5 16.7.9.6" />
   </>,
+  fotos: <><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" /><circle cx="12" cy="13" r="3.5" /></>,
 }
 
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
-  const escura = cor === 'roxo' || cor === 'marrom'
+  // Magenta entra aqui também: sobre chocolate dá 3,8:1 e não segura o
+  // rótulo pequeno da aba (§6.3), então cai no amarelo como roxo e marrom.
+  const escura = cor === 'roxo' || cor === 'marrom' || cor === 'magenta'
   document.body.style.setProperty('--pn-acento', 'var(--scw-' + cor + ')')
   document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')')
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')

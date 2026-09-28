@@ -160,17 +160,17 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding-bottom:var(--scw-safe-b);
   border-top:1px solid rgba(254,240,221,.14);
 }
-/* 5 é o padrão de DESTINOS.length, mas quem manda é `--og-cols` — escrito
+/* 6 é o padrão de DESTINOS.length, mas quem manda é `--og-cols` — escrito
    pelo PainelShell (Fase 3, plano de funções: Equipe some pra quem não tem
-   acesso.gerir, e a grade encolhe pra 4 colunas nesse caso). Sem essa
-   variável (ex.: painel da marca, que não a escreve) cai no 5 de sempre. */
+   acesso.gerir, e a grade encolhe pra 5 colunas nesse caso). Sem essa
+   variável (ex.: painel da marca, que não a escreve) cai no 6 de sempre. */
 .og-abasapp__grade{
   position:relative;
-  display:grid;grid-template-columns:repeat(var(--og-cols,5),1fr);
+  display:grid;grid-template-columns:repeat(var(--og-cols,6),1fr);
   height:var(--og-abas-h);
 }
 .og-abasapp__indicador{
-  position:absolute;top:0;left:0;height:3px;width:calc(100% / var(--og-cols,5));
+  position:absolute;top:0;left:0;height:3px;width:calc(100% / var(--og-cols,6));
   background:var(--scw-amarelo);border-radius:0 0 3px 3px;
   transform:translateX(calc(var(--og-i,0) * 100%));
   transition:transform 300ms var(--scw-ease);
@@ -985,6 +985,34 @@ button.link{
 /* ≤900px a cabeça vira chocolate (regra estrutural, §6.2/§6.7) — a tira
    segue a mesma régua do texto sobre chocolate acima: --pn-acento-escuro. */
 .is-estreito .pn-cabeca::after{background:var(--pn-acento-escuro,var(--scw-amarelo))}
+
+/* ── Guia de fotos (vista "fotos", só leitura) ─────────────────────────────
+   Selos: cyan (5,6:1) e laranja (4,78:1) com tinta chocolate — cor de acento
+   como chapa, nunca como tinta pequena (§6.1). */
+.gf{display:grid;gap:clamp(28px,3.4vw,44px);max-width:1320px}
+.gf-tese{margin:0;max-width:30ch;font:900 clamp(22px,2.6vw,32px)/1.14 var(--scw-font);letter-spacing:-.03em;text-wrap:balance}
+.gf-tese strong{font-weight:900;box-shadow:inset 0 -.3em 0 var(--scw-amarelo)}
+.gf-h2{margin:0 0 14px;font:800 12px/1 var(--scw-font);letter-spacing:.14em;text-transform:uppercase;color:var(--scw-marrom)}
+.gf-entregas{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.gf-entregas li{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 16px;border-radius:999px;background:var(--scw-bege);font:700 14px/1.25 var(--scw-font)}
+.gf-entregas li::before{content:'✓';font-weight:900}
+.gf-pares{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:18px;align-items:start}
+.gf-par{display:grid;gap:12px;padding:16px;border-radius:20px;background:var(--scw-bege)}
+.gf-par__titulo{margin:0;font:900 18px/1.1 var(--scw-font);letter-spacing:-.02em}
+.gf-par__fotos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.gf-foto{margin:0;display:grid;gap:8px}
+.gf-foto figcaption{font:500 13.5px/1.35 var(--scw-font);text-wrap:pretty}
+.gf-foto__img{position:relative;aspect-ratio:4/5;border-radius:14px;overflow:hidden;background:var(--scw-creme)}
+.gf-foto__img--alto{aspect-ratio:9/16}
+.gf-foto__img img{display:block;width:100%;height:100%;object-fit:cover}
+.gf-selo{position:absolute;top:8px;left:8px;padding:7px 10px 6px;border-radius:999px;font:800 11px/1 var(--scw-font);letter-spacing:.06em;text-transform:uppercase;color:var(--scw-choco)}
+.gf-selo--fazer{background:var(--scw-cyan)}
+.gf-selo--evitar{background:var(--scw-laranja)}
+.gf-lembretes{margin:0;padding:0;list-style:none;max-width:62ch}
+.gf-lembretes li{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(61,19,8,.14);font:500 15px/1.45 var(--scw-font)}
+.gf-lembretes li::before{content:'';flex:0 0 8px;height:8px;border-radius:50%;background:var(--scw-choco);transform:translateY(-2px)}
+.gf-nota{margin:0;font:500 12.5px/1.4 var(--scw-font);color:var(--scw-marrom)}
+
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima (das duas cascas, org e marca); regra nova acrescentada
    depois dele escaparia do `prefers-reduced-motion` sem ninguém notar. */

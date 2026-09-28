@@ -41,11 +41,12 @@ painel-app/
       Folha.jsx              57 drawer genérico (detalhe, formulário)
       NotificacoesOrg.jsx    93 sino + badge + lista (organização)
       Credenciais.jsx        42 exibição única de senha gerada (copiar/whatsapp)
-      vistas/                    (organização — 5)
+      vistas/                    (organização — 6)
         Mesa.jsx           181 kanban de 6 etapas
         Respostas.jsx      333 3 origens (quero_participar/apoiar/contato)
         Marcas.jsx         327 lista + ficha + cadastro manual de marca
         Producao.jsx       737 agenda de fotos, pedidos, arquivos
+        GuiaFotos.jsx          guia de fotos dos combos (só leitura, fotos em public/images/guia-fotos/)
         Equipe.jsx         483 edição atual, contas, push
       vistas-marca/               (marca — 4)
         Hoje.jsx           169 vendas do dia + pendências do cadastro
@@ -229,7 +230,8 @@ Cada vista tem acento cíclico dentro dos 9 tokens fechados do site
 (`--scw-*`), nunca repetido no mesmo painel:
 
 - **Organização**: mesa=amarelo · respostas=cyan · marcas=roxo ·
-  produção=laranja · equipe=marrom.
+  produção=laranja · fotos=magenta · equipe=marrom.
+  Magenta cai no amarelo sobre chocolate, como roxo e marrom (3,8:1).
 - **Marca**: hoje=amarelo · cadastro=cyan · pedidos=laranja ·
   arquivos=roxo.
 
