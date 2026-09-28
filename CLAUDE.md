@@ -410,10 +410,10 @@ public/images/  logos, combos/<slug>/, edicoes/<code>/, marcas-edicoes/<code>/,
                 + variantes `NN-480.webp` / `NN-960.webp` ao lado do original
 public/fonts/nexa-slab/
 public/manifest.webmanifest   camada de aplicativo (theme-color, ícones, iOS)
-public/marca/ · public/quero-participar/ · public/organizacao/ · public/painel/
-                estáticas, fora do bundle (§10.4-b). painel/ é o painel unificado
-                (organização + marca); os outros dois viraram porta de entrada
-                que redireciona para lá depois do login real
+public/quero-participar/   estática, fora do bundle (§10.4-b)
+public/painel/ · public/organizacao/ · public/marca/
+                só sw.js + app.webmanifest (ícone instalado). O painel em si é
+                o app React em painel-app/ (docs/PAINEL-REACT-MAPA.md)
 acervo-bruto/   ~58 GB, na RAIZ, fora de public/ e fora do git
 ```
 
@@ -465,8 +465,8 @@ do `main.jsx`. **Resultado medido no build:**
 | Tempo de build | 9,0 s | **2,5 s** |
 
 O `exceljs` (939 KB, exportação de planilha do painel admin) saiu do bundle inteiro.
-⚠️ **`exceljs` e `qrcode` continuam no `package.json` sem nenhum importador em `src/`** —
-podem sair numa limpeza de dependências.
+✅ `exceljs` não está mais em lugar nenhum (28/09/2026: não constava no `package.json`,
+só restos no `package-lock.json`, removidos). `qrcode` ainda tem um importador.
 
 #### O arquivo novo: `src/styles/em-breve.css`
 
@@ -1074,7 +1074,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
 | Barra inferior mobile | — | `MobileTabBar.jsx` (**5 abas, ≤900px**) — compõe `.scw-casca-base` |
 | Folha "mais" | `.scw-folha*` | `MobileMenu.jsx` |
-| Painel da organização | `.og-*` | `public/organizacao/index.html` — **fora do bundle**, casca de app própria (§10.4-b) |
+| Painel (organização + marca) | `.og-*` / `.pn-*` | `painel-app/` — app React, entry Vite próprio, servido em `/painel`, `/organizacao` e `/marca` por rewrite (`docs/PAINEL-REACT-MAPA.md`) |
 | Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ **Desde 25/08/2026 a ação do cartão também não é mais `<a>`:** igual à Organização, ela abre um passo de login dentro do MESMO diálogo (nome do estabelecimento + senha), com Supabase Auth de verdade — ver §6.10-b, ponto 4. **Reformulado em 22/08/2026 e 25/08/2026** (§6.10-b) |
 | Voltar ao topo | `.scw-topo` | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela**. **Só o ícone** desde 18/09/2026 (pedido do Wilke): disco chocolate de 46px, `aria-label` e o nome no hover/foco por `.scw-icone-rotulo--esquerda` (§6.11) |
 | Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
@@ -2450,6 +2450,12 @@ chocolate.
 nas duas telas com enquadramento diferente **tem** que mandar `--foco` e `--foco-mobile`.
 
 ### 10.4-b Páginas estáticas fora do bundle
+
+⚠️ **Desde 27/08/2026 o painel é o app React em `painel-app/`** (mapa em
+`docs/PAINEL-REACT-MAPA.md`). Tudo abaixo que descreve `public/painel/`,
+`public/organizacao/` ou `public/marca/index.html` como página estática é
+**histórico**: esses HTML não existem mais; nas três pastas restam só `sw.js` e
+`app.webmanifest`. As lições (sessão, RPC, push, SW) continuam valendo.
 
 Existem **três**: **`/marca/`** (área da marca participante — login, definir senha,
 cadastro da edição e status, tudo numa página que troca de view conforme o estado),
