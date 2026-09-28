@@ -2,13 +2,15 @@
    Origem: design_handoff_site_institucional/faq-dados.js (conteúdo novo do redesign 2026).
    Fonte única: alimenta a interface (busca, filtros, accordions) e o schema FAQPage.
    Dados que mudam a cada edição ficam em EDICAO; links ficam em LINKS. */
+import { proximaEdicao as PROX } from './proximaEdicao'
+
 const FAQ_DADOS = (function () {
   var EDICAO = {
-    // Preencher quando a próxima edição for anunciada. null => resposta segura.
-    tema: null,
-    periodo: null,
-    duracao: null,
-    valorCombo: null,
+    // Fonte: proximaEdicao.js. null => resposta segura.
+    tema: PROX.tema,
+    periodo: PROX.periodo,
+    duracao: PROX.duracao,
+    valorCombo: PROX.valorCombo,
     formatoCombo: '1 doce + 1 salgado + 1 bebida',
     cidades: 'Natal e Parnamirim',
     avaliacoes: null,
