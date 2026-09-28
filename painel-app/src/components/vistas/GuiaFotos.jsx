@@ -50,7 +50,7 @@ function Foto({ arq, lado, alto, texto }) {
   return (
     <figure className="gf-foto">
       <div className={'gf-foto__img' + (alto ? ' gf-foto__img--alto' : '')}>
-        <img src={IMG + arq + '-' + lado + '.webp'} alt={(fazer ? 'Faça: ' : 'Evite: ') + texto}
+        <img src={IMG + arq + '-' + lado + '.jpg'} alt={(fazer ? 'Faça: ' : 'Evite: ') + texto}
           loading="lazy" decoding="async" width={alto ? 893 : 900} height={alto ? 1600 : 1117} />
         <span className={'gf-selo gf-selo--' + lado}>{fazer ? '✓ Faça' : '✕ Evite'}</span>
       </div>
