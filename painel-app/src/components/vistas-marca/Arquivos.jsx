@@ -8,14 +8,16 @@ import { Carregando, Vazio, Erro, Secao } from '../ui'
 import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
- * Downloads (marca) — o que a organização publicou, por categoria, e a
- * confirmação de leitura quando o arquivo pede. Os avisos do aparelho foram
- * para o botão Conta (etapa 7, 29/09/2026).
+ * Arquivos (marca) — o que a organização publicou, por categoria, e a
+ * confirmação de leitura quando o arquivo pede. As fotos oficiais do combo
+ * (categoria combo) aparecem na aba Fotos, pelo mesmo componente (29/09/2026).
  *
  * `arquivos`, `arquivo_leitura` e o id do participante são leituras À PARTE,
  * cada uma com o próprio catch — uma falhar não apaga a outra (§10.4-b).
  */
-export function Arquivos({ alvo, consumirAlvo, irPara }) {
+// `fotos`: a lista das fotos oficiais (categoria combo), embutida na aba
+// Fotos. Sem ela: a aba Arquivos, com todo o resto.
+export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregarResumo }) {
   const [arquivos, setArquivos] = React.useState(null)
   const [lidos, setLidos] = React.useState({})
   const [participacaoId, setParticipacaoId] = React.useState(null)
@@ -76,6 +78,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara }) {
         corpo: { arquivo_id: arquivoId, participacao_id: participacaoId },
       })
       setLidos((l) => ({ ...l, [arquivoId]: new Date().toISOString() }))
+      if (recarregarResumo) recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
       setAviso('Não deu para registrar a leitura agora. Tente de novo.')
@@ -84,16 +87,15 @@ export function Arquivos({ alvo, consumirAlvo, irPara }) {
     }
   }
 
-  return (
-    <section className="ui-vista-marca">
-      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Downloads" nota="Fotos do seu combo, marca do festival, guias e documentos" />
-
-      <div className="ui-grade-duas">
-        <Secao titulo="Para baixar">
+  const visiveis = arquivos && arquivos.filter((a) => (fotos ? a.categoria === 'combo' : a.categoria !== 'combo'))
+  const lista = (
+        <Secao titulo={fotos ? 'Fotos oficiais' : 'Para baixar'}>
           {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={carregar} />}
           {!erro && arquivos === null && <Carregando linhas={3} />}
-          {!erro && arquivos && arquivos.length === 0 && <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar um documento (regulamento, material de divulgação), ele aparece aqui e chega um aviso.</Vazio>}
-          {arquivos && arquivos.length > 0 && agruparPorCategoria(arquivos).map((g) => (
+          {!erro && visiveis && visiveis.length === 0 && (fotos
+            ? <p className="ui-nota">Ainda não disponíveis. Você será avisado quando as fotos forem liberadas.</p>
+            : <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar um documento (regulamento, material de divulgação), ele aparece aqui e chega um aviso.</Vazio>)}
+          {visiveis && visiveis.length > 0 && agruparPorCategoria(visiveis).map((g) => (
             <div className="ui-downloads__grupo" key={g.chave}>
               <h3 className="ui-downloads__titulo">{g.rotulo}</h3>
               {g.descricao && <p className="ui-nota">{g.descricao}</p>}
@@ -130,12 +132,13 @@ export function Arquivos({ alvo, consumirAlvo, irPara }) {
           ))}
           {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
         </Secao>
+  )
+  if (fotos) return lista
 
-        <Secao titulo="Guia de fotos" nota="Como preparar o combo para a sessão de fotos">
-          <p className="ui-nota">As regras da foto, o que fazer e o que evitar, e o que levar no dia.</p>
-          <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => irPara && irPara('fotos')}>Abrir o guia</button>
-        </Secao>
-      </div>
+  return (
+    <section className="ui-vista-marca">
+      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="Marca do festival, guias e documentos" />
+      {lista}
     </section>
   )
 }

@@ -1026,6 +1026,103 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 .ui-boasvindas__linha{margin:6px 0 0;font:400 clamp(15.5px,1.2vw,17px)/1.5 var(--f-texto);color:var(--scw-marrom);max-width:62ch}
 .ui-boasvindas__linha:first-child{margin-top:0}
 
+/* ── Guia da marca (29/09/2026): Início, estado de campo, níveis de aviso ──
+   Cor em superfície/disco, tinta sempre chocolate ou creme (§6.1, §6.3):
+   amarelo, cyan e laranja nunca viram texto pequeno sobre creme. Estado
+   nunca só por cor — cada um leva ícone e texto. */
+.pn-badge--ok{background:var(--scw-cyan);color:var(--scw-choco)}
+.gm-inicio{display:flex;flex-direction:column;gap:18px}
+.gm-progresso{height:10px;border-radius:999px;background:var(--scw-bege);overflow:hidden;margin:4px 0 14px}
+.gm-progresso > span{display:block;height:100%;background:var(--scw-choco);border-radius:inherit}
+.gm-etapas{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px}
+.gm-etapa{width:100%;min-height:52px;display:grid;grid-template-columns:28px 1fr;grid-template-areas:"i r" "i e";column-gap:10px;align-items:center;text-align:left;
+  padding:9px 12px;border:1px solid var(--scw-filete);border-radius:14px;background:var(--scw-creme);color:var(--scw-choco);cursor:pointer}
+.gm-etapa__icone{grid-area:i;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--scw-bege);color:var(--scw-choco)}
+.gm-etapa__icone svg{width:16px;height:16px}
+.gm-etapa__rotulo{grid-area:r;font:700 13.5px/1.25 var(--f-ui)}
+.gm-etapa__estado{grid-area:e;font:400 12px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.gm-etapa[data-estado="feito"] .gm-etapa__icone{background:var(--scw-choco);color:var(--scw-creme)}
+.gm-etapa[data-estado="atencao"] .gm-etapa__icone{background:var(--scw-roxo);color:var(--scw-creme)}
+.gm-etapa[data-estado="andamento"] .gm-etapa__icone{background:var(--scw-cyan)}
+@media (hover:hover){ .gm-etapa:hover{background:var(--scw-bege)} }
+.gm-proxima{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:0;border-radius:18px;
+  padding:16px 18px;background:var(--scw-amarelo);color:var(--scw-choco);cursor:pointer;margin-bottom:12px;transition:transform var(--scw-transicao, 180ms)}
+@media (hover:hover){ .gm-proxima:hover{transform:translateY(-2px)} }
+.gm-proxima:active{transform:translateY(1px)}
+.gm-proxima__rotulo{font:700 11px/1 var(--f-ui);letter-spacing:.14em;text-transform:uppercase}
+.gm-proxima__titulo{font:700 18px/1.25 var(--f-ui)}
+.gm-proxima__texto{font:400 14px/1.4 var(--f-texto)}
+.gm-proxima__acao{font:700 14px/1.2 var(--f-ui);margin-top:4px}
+.gm-pendencias{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.gm-pendencia{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--scw-filete)}
+.gm-pendencia__icone{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--scw-bege);color:var(--scw-choco)}
+.gm-pendencia__icone svg{width:18px;height:18px}
+.gm-pendencia[data-tipo="correcao"] .gm-pendencia__icone{background:var(--scw-roxo);color:var(--scw-creme)}
+.gm-pendencia[data-tipo="pedido"] .gm-pendencia__icone{background:var(--scw-laranja)}
+.gm-pendencia[data-tipo="arquivo"] .gm-pendencia__icone,.gm-pendencia[data-tipo="fotos"] .gm-pendencia__icone{background:var(--scw-cyan)}
+.gm-pendencia__corpo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gm-pendencia__corpo b{font:700 14.5px/1.3 var(--f-ui)}
+.gm-pendencia__corpo span{font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
+@media (max-width:520px){ .gm-pendencia{grid-template-columns:34px 1fr} .gm-pendencia > .og-btn{grid-column:2;justify-self:start} }
+.gm-aguardando{display:flex;align-items:center;gap:8px;margin:12px 0 0;font:400 14px/1.4 var(--f-texto);color:var(--scw-marrom)}
+.gm-aguardando svg{width:18px;height:18px;flex:0 0 auto}
+.gm-combo__linha{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 10px}
+.gm-avisos__lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.gm-aviso{width:100%;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:0;background:transparent;
+  padding:10px 4px;border-bottom:1px solid var(--scw-filete);color:var(--scw-choco);cursor:pointer}
+.gm-aviso b{font:700 14.5px/1.3 var(--f-ui)}
+.gm-aviso:disabled{cursor:default}
+.gm-atalhos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.gm-atalho{position:relative;min-height:88px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:10px;text-align:left;
+  padding:14px;border:1px solid var(--scw-filete);border-radius:16px;background:var(--scw-creme);color:var(--scw-choco);font:700 14px/1.25 var(--f-ui);cursor:pointer}
+.gm-atalho svg{width:26px;height:26px}
+.gm-atalho .pn-badge{position:absolute;top:10px;right:10px}
+@media (hover:hover){ .gm-atalho:hover{background:var(--scw-bege)} }
+
+/* Estado de cada campo do formulário da marca. */
+.gm-campo-estado{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 8px 1px;border-radius:999px;vertical-align:middle;
+  font:700 11px/1.4 var(--f-ui);letter-spacing:.02em;background:var(--scw-bege);color:var(--scw-choco)}
+.gm-campo-estado[data-estado="falta"]{background:var(--scw-laranja);color:var(--scw-choco)}
+.gm-campo-estado[data-estado="alteracao"]{background:var(--scw-roxo);color:var(--scw-creme)}
+.gm-campo-estado[data-estado="analise"]{background:var(--scw-cyan);color:var(--scw-choco)}
+.gm-campo-estado[data-estado="aprovado"]{background:var(--scw-choco);color:var(--scw-creme)}
+.gm-correcao{display:block;margin-top:6px;padding:8px 12px;border-radius:10px;background:var(--scw-bege);
+  font:400 14px/1.4 var(--f-texto);color:var(--scw-choco)}
+.gm-campo-erro{display:block;margin-top:5px;font:400 12.5px/1.35 var(--f-texto);color:var(--scw-choco)}
+.gm-campo-erro::before{content:"! ";font-weight:700}
+
+/* Nível do aviso no sino (marca). */
+.ui-aviso__nivel{align-self:flex-start;padding:2px 8px 1px;border-radius:999px;font:700 10.5px/1.4 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;
+  background:var(--scw-bege);color:var(--scw-choco)}
+.ui-aviso__nivel[data-nivel="alteracao"],.ui-aviso__disco[data-nivel="alteracao"]{background:var(--scw-roxo);color:var(--scw-creme)}
+.ui-aviso__nivel[data-nivel="pendencia"],.ui-aviso__disco[data-nivel="pendencia"]{background:var(--scw-laranja);color:var(--scw-choco)}
+.ui-aviso__nivel[data-nivel="aprovado"],.ui-aviso__disco[data-nivel="aprovado"]{background:var(--scw-choco);color:var(--scw-creme)}
+.ui-aviso__nivel[data-nivel="arquivo"],.ui-aviso__disco[data-nivel="arquivo"]{background:var(--scw-cyan);color:var(--scw-choco)}
+.ui-aviso__nivel[data-nivel="atencao"],.ui-aviso__disco[data-nivel="atencao"]{background:var(--scw-amarelo);color:var(--scw-choco)}
+.ui-aviso__acao{margin-top:4px;font:700 13px/1.2 var(--f-ui);color:var(--scw-choco)}
+
+/* ── Acessos das marcas (organização, 29/09/2026) ─────────────────────── */
+.og-cred--compacto{padding:12px 14px;gap:8px}
+.ac-selecao{margin:4px 0 6px}
+.ac-marcar{display:inline-flex;align-items:center;gap:10px;min-height:44px;font:400 14px/1.3 var(--f-ui);color:var(--scw-marrom);cursor:pointer}
+.ac-marcar input,.ac-item__sel input{width:20px;height:20px;accent-color:var(--scw-choco)}
+.ac-barra-lote{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin:0 0 10px;border-radius:14px;background:var(--scw-bege)}
+.ac-item{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:stretch}
+.ac-item__sel{display:grid;place-items:center;min-width:44px;min-height:44px;cursor:pointer}
+.ac-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.ac-linha{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:10px 18px;align-items:start;padding:14px 0;border-bottom:1px solid var(--scw-filete)}
+.ac-linha > .ui-nota--erro{grid-column:2 / -1;margin:0}
+.ac-linha__quem{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ac-linha__quem b{font:700 15px/1.3 var(--f-ui)}
+.ac-linha__quem span{font:400 13px/1.35 var(--f-texto);color:var(--scw-marrom)}
+.ac-linha__cred{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline}
+.ac-linha__cred dt{font:700 10.5px/1.3 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--scw-marrom)}
+.ac-linha__cred dd{margin:0;font:700 15px/1.3 var(--f-ui);overflow-wrap:anywhere;user-select:all}
+.ac-linha__estado,.ac-linha__acoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ac-linha__acoes{grid-column:1 / -1}
+@media (max-width:760px){ .ac-linha{grid-template-columns:minmax(0,1fr)} .ac-linha > .ui-nota--erro{grid-column:1} }
+.ac-acoes{display:flex;flex-wrap:wrap;gap:8px}
+
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
    `prefers-reduced-motion` sem ninguém notar. */

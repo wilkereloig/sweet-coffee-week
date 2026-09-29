@@ -3,36 +3,41 @@ import { ICONE as ICONE_ORG } from './PainelShell'
 import { Central } from './Central'
 import { AbasCelular } from './AbasCelular'
 import { api } from '../lib/marcaApi'
-import { interpretarLink } from '../lib/central'
+import { interpretarLinkMarca, nivelDoAviso, NIVEIS } from '../lib/guia'
+import { useResumoMarca } from './vistas-marca/useResumoMarca'
 import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
- * e navegação por link (aviso do sino, push, próximos passos do Hoje).
+ * e navegação por link (aviso do sino, push, pendências do Início).
  */
-// Cinco destinos (reestruturação 29/09/2026, etapa 7). O Guia de fotos mora
-// dentro de Downloads; os avisos do aparelho, no botão Conta.
-const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'mensagens', 'arquivos']
+// Cinco destinos (guia da marca, 29/09/2026 — decisão do Wilker): Início ·
+// Meu cadastro · Meu combo · Fotos · Arquivos. Pedidos e Mensagens abrem do
+// Início e do sino; o Guia de fotos, de dentro de Fotos.
+const DESTINOS = ['inicio', 'cadastro', 'combo', 'fotos', 'arquivos']
 // Vistas que existem sem estar no menu (abertas a partir de outra).
-const OCULTAS = ['fotos']
+const OCULTAS = ['pedidos', 'mensagens', 'guia']
 // Barra do celular: os cinco cabem, sem "Mais".
 const ATALHOS = DESTINOS
-const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', mensagens: 'Mensagens', arquivos: 'Downloads', fotos: 'Guia de fotos' }
+const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Pedidos', mensagens: 'Mensagens', guia: 'Guia de fotos' }
 const SUBS = {
-  hoje: 'o que já foi feito e o que vem agora',
-  cadastro: 'os dados da sua participação',
+  inicio: 'o que falta e o que vem agora',
+  cadastro: 'o estabelecimento e onde encontrar',
+  combo: 'tema, os três itens e o preço',
+  fotos: 'sessão de fotos e fotos oficiais',
+  arquivos: 'marca, guias e documentos',
   pedidos: 'o que a organização pediu',
   mensagens: 'conversa com a organização',
-  arquivos: 'fotos do combo, marca, guias e documentos',
-  fotos: 'como preparar o combo para as fotos',
+  guia: 'como preparar o combo para as fotos',
 }
 
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
-const ACENTO_VISTA = { hoje: 'amarelo', cadastro: 'cyan', pedidos: 'laranja', mensagens: 'roxo', arquivos: 'marrom', fotos: 'magenta' }
+const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta' }
 
 export const ICONE_MARCA = {
-  hoje: <><circle cx="16" cy="17.4" r="10.4" /><path d="M16 12v5.4l4.2 2.6" /><path d="M13.6 3.4h4.8M16 5v2.6" /></>,
+  inicio: <><path d="M4.6 15.4 16 5.4l11.4 10" /><path d="M8 12.6v13.2h16V12.6" /><path d="M13.4 25.8v-6.6h5.2v6.6" /></>,
+  combo: <><path d="M6.4 12.4h15.2v6.2a6.8 6.8 0 0 1-6.8 6.8h-1.6a6.8 6.8 0 0 1-6.8-6.8Z" /><path d="M21.6 14.4h1.8a3.4 3.4 0 0 1 0 6.8h-2.2" /><path d="M11.4 4.6c-1.2 1.5 1.2 2.6 0 4.2M16.4 4.6c-1.2 1.5 1.2 2.6 0 4.2" /></>,
   cadastro: <>
     <path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z" />
     <rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none" />
@@ -43,6 +48,7 @@ export const ICONE_MARCA = {
   arquivos: <><path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" /></>,
   // O desenho é o da organização (grade 24); a escala leva à grade 32.
   fotos: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
+  guia: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
 }
 
 const ICONE_CONTA = <><circle cx="12" cy="8.2" r="3.6" /><path d="M4.8 20v-1.2A5.2 5.2 0 0 1 10 13.6h4a5.2 5.2 0 0 1 5.2 5.2V20" /></>
@@ -59,12 +65,18 @@ function aplicarAcento(vista) {
 
 const INTERVALO = 60000
 
-// Rota da marca no endereço: #cadastro/2?campo=item-2-descricao (bloco na
+// Rota da marca no endereço: #combo/2?campo=item-2-descricao (bloco na
 // "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
+// Endereços de antes da navegação nova: #hoje → Início; #cadastro/1..3 → Meu combo.
 const VALIDAS = [...DESTINOS, ...OCULTAS]
-const normalizar = (r) => (r && VALIDAS.includes(r.vista)
-  ? { vista: r.vista, aba: r.aba || '', filtros: r.filtros || {} }
-  : { vista: 'hoje', aba: '', filtros: {} })
+const normalizar = (r) => {
+  if (!r) return { vista: 'inicio', aba: '', filtros: {} }
+  let vista = r.vista === 'hoje' ? 'inicio' : r.vista
+  if (vista === 'cadastro' && ['1', '2', '3'].includes(r.aba)) vista = 'combo'
+  return VALIDAS.includes(vista)
+    ? { vista, aba: r.aba || '', filtros: r.filtros || {} }
+    : { vista: 'inicio', aba: '', filtros: {} }
+}
 
 export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
@@ -75,6 +87,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   const [avisosErro, setAvisosErro] = React.useState(null)
   const [centralAberta, setCentralAberta] = React.useState(false)
   const [msgsNaoLidas, setMsgsNaoLidas] = React.useState(0)
+  // Estado da marca numa leitura só: números das abas e o guia do Início.
+  const { dados: dadosMarca, resumo, carregar: recarregarResumo } = useResumoMarca()
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
@@ -110,7 +124,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   }, [montarRota(rota)]) // eslint-disable-line react-hooks/exhaustive-deps
   const consumirAlvo = React.useCallback(() => navegar({ vista }, { substituir: true }), [navegar, vista])
   const abrirLink = React.useCallback((link) => {
-    const d = interpretarLink(link)
+    const d = interpretarLinkMarca(link)
     if (d) irPara(d.vista, d)
   }, [irPara])
 
@@ -123,13 +137,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
       setAvisos(n || [])
       setMsgsNaoLidas((m || []).length)
       setAvisosErro(null)
+      recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
       setAvisosErro(e.message)
     } finally {
       setAvisosCarregando(false)
     }
-  }, [])
+  }, [recarregarResumo])
 
   React.useEffect(() => {
     carregar()
@@ -167,7 +182,12 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   }
 
   const Vista = vistas[vista]
-  const contadores = { mensagens: msgsNaoLidas }
+  // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
+  const cont = (resumo && resumo.contagem) || {}
+  const contadores = { ...cont, inicio: (cont.inicio || 0) + msgsNaoLidas, mensagens: msgsNaoLidas }
+  // Aba sem pendência e com a etapa pronta ganha ✓ (nunca só cor).
+  const pronto = (d) => resumo && !contadores[d] && (d === 'cadastro' ? resumo.etapas.some((e) => e.chave === 'estabelecimento' && e.estado === 'feito')
+    : d === 'combo' ? ['tema', 'itens', 'preco'].every((k) => (resumo.etapas.find((e) => e.chave === k) || {}).estado === 'feito') : false)
 
   return (
     <div className="pn-casca">
@@ -178,7 +198,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
             key={d}
             className="pn-rail__btn"
             type="button"
-            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + ' não lidas)' : '')}
+            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (concluído)' : '')}
             aria-current={d === vista ? 'page' : undefined}
             onClick={() => irPara(d)}
           >
@@ -187,6 +207,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
             </svg>
             <span className="pn-rail__rotulo">{TITULOS[d]}</span>
             {contadores[d] > 0 && <span className="pn-badge" aria-hidden="true">{contadores[d]}</span>}
+            {pronto(d) && <span className="pn-badge pn-badge--ok" aria-hidden="true">✓</span>}
           </button>
         ))}
         <button className="pn-rail__sair" type="button" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
@@ -213,6 +234,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
             onAbrir={abrirAviso}
             onLerTodas={lerTodas}
             onRecarregar={carregar}
+            niveis={{ nivelDe: nivelDoAviso, NIVEIS }}
           />
           {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
               desktop, no pé da rail. */}
@@ -234,12 +256,15 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
               contadores={contadores}
               avisos={avisos}
               aoMudarMensagens={carregar}
+              resumo={resumo}
+              dadosMarca={dadosMarca}
+              recarregarResumo={recarregarResumo}
             />
           ) : null}
         </div>
       </main>
 
-      {/* Barra de abas do celular (≤900px): quatro atalhos + "Mais". */}
+      {/* Barra de abas do celular (≤900px): os cinco destinos. */}
       <AbasCelular
         atalhos={ATALHOS}
         mais={DESTINOS.filter((d) => !ATALHOS.includes(d))}

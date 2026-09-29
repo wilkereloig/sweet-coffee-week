@@ -26,6 +26,9 @@ const CHECKS = {
   revisao: ['aberta', 'resolvida', 'descartada'],
   importacao_lote: ['staging', 'validado', 'promovido', 'revertido', 'cancelado'],
   importacao_linha: ['pendente', 'importado', 'ignorado', 'rejeitado'],
+  envio: ['copiado', 'whatsapp_aberto', 'enviado_manual'],
+  correcao: ['aberta', 'corrigida', 'resolvida'],
+  prioridade: ['normal', 'importante'],
 }
 
 test('todo valor dos CHECKs do banco tem rótulo e tom válido', () => {

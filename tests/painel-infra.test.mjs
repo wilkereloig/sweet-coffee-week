@@ -435,9 +435,9 @@ test('quem decide se o cadastro está completo é o servidor, com o argumento no
 
 test('o autosave da marca não afirma gravação sem o servidor confirmar', () => {
   const guarda = CADASTRO_JSX.indexOf("throw new Error('sem_confirmacao')")
-  const sucesso = CADASTRO_JSX.indexOf("'Salvo automaticamente.'")
+  const sucesso = CADASTRO_JSX.indexOf("'Informações salvas.'")
   assert.ok(guarda > -1, 'sumiu a checagem do retorno do PATCH em Cadastro.jsx')
-  assert.ok(sucesso > guarda, '"Salvo automaticamente." aparece antes de confirmar a gravação')
+  assert.ok(sucesso > guarda, '"Informações salvas." aparece antes de confirmar a gravação')
 })
 
 // A ficha de resposta (DetalheResposta em Respostas.jsx) é a porta de

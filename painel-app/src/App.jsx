@@ -8,6 +8,7 @@ import { PainelMarcaShell } from './components/PainelMarcaShell'
 import { Cadastro } from './components/vistas-marca/Cadastro'
 import { Pedidos as PedidosMarca } from './components/vistas-marca/Pedidos'
 import { Hoje } from './components/vistas-marca/Hoje'
+import { Fotos as FotosMarca } from './components/vistas-marca/Fotos'
 import { Arquivos as ArquivosMarca } from './components/vistas-marca/Arquivos'
 import { GuiaFotos as GuiaFotosMarca } from './components/vistas-marca/GuiaFotos'
 import { Mensagens as MensagensMarca } from './components/vistas-marca/Mensagens'
@@ -92,6 +93,14 @@ function TelaConferindo() {
 // aviso do aparelho, salvar o rascunho) ganha um teto e a saída segue.
 const comTeto = (p, ms) => Promise.race([p, new Promise((ok) => setTimeout(ok, ms))])
 
+// Meu cadastro e Meu combo são o mesmo formulário, cada um com os seus blocos.
+const MeuCadastro = (p) => <Cadastro {...p} blocos={[0, 4]} />
+const MeuCombo = (p) => <Cadastro {...p} blocos={[1, 2, 3]} />
+const VISTAS_MARCA = {
+  inicio: Hoje, cadastro: MeuCadastro, combo: MeuCombo, fotos: FotosMarca, arquivos: ArquivosMarca,
+  pedidos: PedidosMarca, mensagens: MensagensMarca, guia: GuiaFotosMarca,
+}
+
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
   const [motivoBloqueio, setMotivoBloqueio] = React.useState(null)
@@ -136,7 +145,7 @@ export function App() {
       // de lançar) — só falta não sobrescrever o 'boas-vindas' que ele já
       // aplicou.
       if (resultado === 'morta') return
-      setEstado(resultado === 'trocar' ? 'definir-senha' : 'painel-marca')
+      setEstado(resultado === 'trocar' ? 'definir-senha' : resultado === 'pausada' ? 'pausada-marca' : 'painel-marca')
     })
     return () => { cancelado = true }
   }, [estado])
@@ -260,6 +269,21 @@ export function App() {
     return <TelaConferindo />
   }
 
+  if (estado === 'pausada-marca') {
+    return (
+      <div className="pn-porta" id="login">
+        <div className="pn-porta__caixa">
+          <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
+          <div>
+            <h1 className="pn-porta__titulo">Seu acesso está pausado</h1>
+            <p className="pn-porta__lead">A organização pausou o acesso desta marca ao painel. Fale com ela pelo WhatsApp para saber o motivo e voltar a entrar.</p>
+            <button className="pn-link--porta" type="button" onClick={() => sairMarca()}>‹ Sair</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (estado === 'bloqueado-org') {
     return (
       <div className="pn-porta" id="login">
@@ -308,7 +332,7 @@ export function App() {
       <>
         <Conexao />
         <PainelMarcaShell
-          vistas={{ hoje: Hoje, cadastro: Cadastro, pedidos: PedidosMarca, mensagens: MensagensMarca, arquivos: ArquivosMarca, fotos: GuiaFotosMarca }}
+          vistas={VISTAS_MARCA}
           onSair={() => sairMarca()}
           linkInicial={destino}
         />

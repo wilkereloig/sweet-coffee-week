@@ -1,4 +1,5 @@
 import React from 'react'
+import { CAMPOS_APONTAVEIS } from '../../lib/guia'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataHoraCurta, prazoSelo } from '../../lib/painelFormat'
 import { BLOCOS, ROTULO_SESSAO, montarAgendaGrade, nomeSeguro, isoDoCampo, campoDoIso } from '../../lib/producao'
@@ -53,6 +54,10 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
   const [escopo, setEscopo] = React.useState('geral')
   const [marca, setMarca] = React.useState(marcaPadrao)
   const [bloco, setBloco] = React.useState('livre')
+  // Pedido ligado a um campo e com prioridade (29/09/2026): a marca vê no
+  // sino, nas pendências do Início e com um botão que abre o campo.
+  const [campo, setCampo] = React.useState('')
+  const [prioridade, setPrioridade] = React.useState('normal')
   const [prazo, setPrazo] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
@@ -60,7 +65,7 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
   React.useEffect(() => {
     if (!aberto) return
     setTitulo(''); setTexto(''); setEscopo('geral'); setMarca(marcaPadrao)
-    setBloco('livre'); setPrazo(''); setAviso(null); setEnviando(false)
+    setBloco('livre'); setCampo(''); setPrioridade('normal'); setPrazo(''); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
   // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
@@ -86,6 +91,8 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         p_edicao: edicaoAtual || null,
         p_bloco: bloco,
         p_prazo: isoDoCampo(prazo),
+        p_campo: campo || null,
+        p_prioridade: prioridade,
       })
       // Nunca afirma antes do servidor confirmar: a linha acima ou gravou ou
       // lançou. Só depois dela a tela diz que existe.
@@ -127,6 +134,18 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         <label className="og-campo"><span>Bloco do formulário</span>
           <select value={bloco} onChange={(e) => setBloco(e.target.value)}>
             {Object.entries(BLOCOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </label>
+        <label className="og-campo"><span>Campo relacionado <em>(opcional)</em></span>
+          <select value={campo} onChange={(e) => setCampo(e.target.value)}>
+            <option value="">Nenhum campo específico</option>
+            {CAMPOS_APONTAVEIS.map(([k, r]) => <option key={k} value={k}>{r}</option>)}
+          </select>
+        </label>
+        <label className="og-campo"><span>Prioridade</span>
+          <select value={prioridade} onChange={(e) => setPrioridade(e.target.value)}>
+            <option value="normal">Normal</option>
+            <option value="importante">Importante</option>
           </select>
         </label>
         <label className="og-campo"><span>Prazo <em>(opcional)</em></span>

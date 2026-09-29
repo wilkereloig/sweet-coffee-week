@@ -21,6 +21,15 @@ A navegação abaixo foi reorganizada por assunto. Resumo técnico (regras em
 | Materiais da edição (Operação) | `components/vistas/MateriaisEdicao.jsx` |
 | Conta da marca (avisos do aparelho, sair) | `components/ContaMarca.jsx` |
 | Vouchers na área da marca (registrar o código) | `components/vistas-marca/VouchersMarca.jsx` |
+| Acesso da marca: ficha › Acesso, lote e resultado (Fase 14) | `components/vistas/AcessoMarca.jsx`, `components/Credenciais.jsx` |
+| Guia da marca: estado numa leitura, pendências, progresso, avisos por nível | `src/lib/guia.js`, `components/vistas-marca/useResumoMarca.js` |
+| Início da marca (antigo Hoje) | `components/vistas-marca/Hoje.jsx` |
+| Meu cadastro / Meu combo (o mesmo formulário com `blocos`) | `components/vistas-marca/Cadastro.jsx`, `App.jsx` (`VISTAS_MARCA`) |
+| Fotos da marca (sessão, fotos oficiais, guia) | `components/vistas-marca/Fotos.jsx` |
+
+Marca, desde a Fase 14: **Início · Meu cadastro · Meu combo · Fotos · Arquivos**
+(+ Pedidos, Mensagens e Guia fora do menu). Onde as seções abaixo falam em
+"Hoje", "Cadastro" ou "Downloads" da marca, leia estes.
 
 Produção (`vistas/Producao.jsx`) virou seções (`secao="pedidos" | "fotos" |
 "edicao"`); Edição (`vistas/Edicao.jsx`) exporta as abas para os módulos.

@@ -145,11 +145,18 @@ Deno.serve(async (req) => {
   const { error: updErr } = await admin.auth.admin.updateUserById(userId, { password: novaSenha })
   if (updErr) return json({ erro: 'senha_nao_atualizada', detalhe: updErr.message }, 500)
 
+  // Senha temporária nova: o envio anterior deixa de contar (status volta a
+  // "aguardando envio") e as sessões abertas caem — quem estava dentro com a
+  // senha antiga precisa entrar de novo (29/09/2026).
+  await admin.from('perfis').update({ senha_emitida_em: new Date().toISOString() }).eq('user_id', userId)
+  await admin.rpc('encerrar_sessoes_usuario', { p_user: userId })
+
   await admin.from('auditoria').insert({
     ator_user_id: atorId,
     acao: 'regerar_senha_conta',
     alvo_tabela: ehMarca ? 'participantes' : 'perfis',
     alvo_id: ehMarca ? participanteId : userId,
+    participante_id: ehMarca ? participanteId : null,
     detalhe: {},
   })
 

@@ -5,6 +5,7 @@ import { dataHoraExtensa } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, traduzirErro } from '../ui'
 import { ICONE_MARCA } from '../PainelMarcaShell'
+import { blocoDoCampo, linkDoCampo } from '../../lib/guia'
 
 /*
  * Pedidos (marca) — o que a organização pediu, até quando, e a RESPOSTA da
@@ -12,7 +13,7 @@ import { ICONE_MARCA } from '../PainelMarcaShell'
  * alcança pedidos da própria marca) e avisa a organização. A organização
  * continua podendo dar por respondido um pedido resolvido por telefone.
  */
-function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
+function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
   const [texto, setTexto] = React.useState('')
   const [enviando, setEnviando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
@@ -44,7 +45,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
   return (
     <li ref={ref} className={'ui-pedido' + (aberto ? ' is-aberto' : '') + (feito ? ' is-feito' : '')}>
       <button type="button" className="ui-pedido__cabeca" aria-expanded={aberto} aria-controls={'pedido-' + s.id} onClick={onAbrir}>
-        <span className="ui-pedido__titulo">{s.titulo}</span>
+        <span className="ui-pedido__titulo">{s.titulo}{s.prioridade === 'importante' && <span className="og-selo" data-tom="atencao"> Importante</span>}</span>
         <span className={'selo' + (feito ? ' completo' : p.classe ? ' ' + p.classe : '')}>
           {feito ? 'Respondido' : (p.texto || 'Pendente')}
         </span>
@@ -54,6 +55,10 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
         <div className="ui-pedido__corpo" id={'pedido-' + s.id}>
           {s.prazo_em && <p className="ui-pedido__prazo">Prazo: {dataHoraExtensa(s.prazo_em)}</p>}
           <p className="ui-pedido__texto">{s.texto}</p>
+          {/* Pedido ligado a um campo: um clique leva direto a ele. */}
+          {s.campo && blocoDoCampo(s.campo) !== null && abrirLink && (
+            <button className="og-btn og-btn--mini" type="button" onClick={() => abrirLink(linkDoCampo(blocoDoCampo(s.campo), s.campo))}>Ir para o campo →</button>
+          )}
           {feito && (
             <div className="ui-resposta">
               <p className="ui-resposta__rotulo">
@@ -76,7 +81,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido }) {
   )
 }
 
-export function Pedidos({ alvo, consumirAlvo }) {
+export function Pedidos({ alvo, consumirAlvo, abrirLink, recarregarResumo }) {
   const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
   const [participacao, setParticipacao] = React.useState(null)
@@ -129,7 +134,7 @@ export function Pedidos({ alvo, consumirAlvo }) {
           <h2 className="ui-subtitulo">Para responder ({pendentes.length})</h2>
           <ul className="ui-pedidos">
             {pendentes.map((s) => (
-              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={carregar} />
+              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={async () => { await carregar(); if (recarregarResumo) recarregarResumo() }} abrirLink={abrirLink} />
             ))}
           </ul>
         </>
@@ -139,7 +144,7 @@ export function Pedidos({ alvo, consumirAlvo }) {
           <h2 className="ui-subtitulo">Respondidos ({feitos.length})</h2>
           <ul className="ui-pedidos">
             {feitos.map((s) => (
-              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={carregar} />
+              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={async () => { await carregar(); if (recarregarResumo) recarregarResumo() }} abrirLink={abrirLink} />
             ))}
           </ul>
         </>

@@ -7,6 +7,7 @@ import {
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
+import { registrarEnvio } from './AcessoMarca'
 import { Carregando, Vazio, Erro } from '../ui'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
@@ -97,7 +98,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
       const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id })
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
       setAvisoAcesso({ tom: 'ok', texto: 'Acesso criado. Copie ou envie agora.' })
-      setCredenciais({ login: r.login, senha: r.senha })
+      setCredenciais({ login: reg.empresa || r.login, senha: r.senha, participanteId: r.participante_id })
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       setAvisoAcesso({ tom: 'erro', texto: RECADO_ACESSO[codigo] || ('Não criou: ' + e.message) })
@@ -149,7 +150,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
           {credenciais ? (
             <>
               {avisoAcesso && <div className="og-aviso" data-tom={avisoAcesso.tom}>{avisoAcesso.texto}</div>}
-              <Credenciais nomeMarca={reg.empresa || reg.nome} telefone={reg.telefone} login={credenciais.login} senha={credenciais.senha} />
+              <Credenciais nomeMarca={reg.empresa || reg.nome} responsavel={reg.nome} telefone={reg.telefone} login={credenciais.login} senha={credenciais.senha} onRegistrar={credenciais.participanteId ? (c) => registrarEnvio([credenciais.participanteId], c) : undefined} />
             </>
           ) : (
             <>
