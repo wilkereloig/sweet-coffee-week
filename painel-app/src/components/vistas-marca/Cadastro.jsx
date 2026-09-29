@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icone } from '../Icone'
-import { api, registrarPendente } from '../../lib/marcaApi'
+import { LogoEditor } from '../LogoEditor'
+import { api, registrarPendente, subirLogo } from '../../lib/marcaApi'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos } from '../../lib/guia'
 import { Carregando, Erro, Vazio } from '../ui'
@@ -89,6 +90,13 @@ const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organi
 // mesmo salvamento automático, mesmo envio para análise.
 export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4], resumo = null, recarregarResumo } = {}) {
   const mostra = (n) => blocos.includes(n)
+  const adaptadorLogo = React.useMemo(() => ({
+    carregar: () => api('rpc/marca_minha_logo', { metodo: 'POST', corpo: {} }),
+    subir: (path, blob, mime) => subirLogo(path, blob, mime),
+    definir: (dados) => api('rpc/marca_definir_logo', { metodo: 'POST', corpo: { p_dados: dados } }),
+    usarAcervo: () => api('rpc/marca_usar_logo_acervo', { metodo: 'POST', corpo: {} }),
+    manter: () => api('rpc/marca_manter_logo', { metodo: 'POST', corpo: {} }),
+  }), [])
   const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
   const [revisao, setRevisao] = React.useState({ comboStatus: 'rascunho', comboNota: null, tema: null })
@@ -431,7 +439,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     )
   }
 
-  const dadosProgresso = { marca, tema, itens, unidades, precoStr }
+  // A logo é o 17º campo: quem sabe se está confirmada é o resumo (banco).
+  const logoOk = !!(resumo && resumo.campo && (resumo.campo('logo') || {}).estado !== 'falta')
+  const dadosProgresso = { marca, tema, itens, unidades, precoStr, logo: logoOk }
   const prog = progressoCampos(dadosProgresso)
   const selo = semParticipacao ? { classe: 'selo', texto: 'Sem edição aberta' } : seloParticipacao(statusCadastro)
   // Estado de cada campo: completo/falta ao vivo; o que a organização disse
@@ -493,6 +503,14 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
             {mostra(0) && <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
               <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /></span><input id="campo-nome_marca" required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /><Correcao e={est('nome_marca')} /></label>
+              {/* A logo oficial: sobe na hora (não espera o salvamento automático). */}
+              {participanteId && (
+                <div className="mc-campo-logo">
+                  <span className="mc-campo-logo__rotulo">Logo do estabelecimento <EstadoCampo e={est('logo')} /></span>
+                  <LogoEditor participanteId={participanteId} nomeMarca={marca.nome_marca} adaptador={adaptadorLogo} modo="marca" onMudou={recarregarResumo} />
+                  <Correcao e={est('logo')} />
+                </div>
+              )}
               <div className="dupla">
                 <label><span>Responsável pelo festival <EstadoCampo e={est('responsavel')} /></span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /><Correcao e={est('responsavel')} /></label>
                 {/* O telefone de cadastro É o WhatsApp: é por ele que a organização fala com a marca. */}
@@ -565,9 +583,13 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                         <Correcao e={est('item-' + it.posicao + '-descricao')} />
                       </label>
                       <label><span>Ingredientes <EstadoCampo e={est('item-' + it.posicao + '-ingredientes')} /></span><input id={'campo-item-' + it.posicao + '-ingredientes'} value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-ingredientes')} /></label>
-                      <label className="marcar"><input type="checkbox" checked={!!it.vegano} onChange={(e) => alterarItem(it.id, 'vegano', e.target.checked)} /><span>Vegano</span></label>
-                      <label className="marcar"><input type="checkbox" checked={!!it.sem_gluten} onChange={(e) => alterarItem(it.id, 'sem_gluten', e.target.checked)} /><span>Sem glúten</span></label>
-                      <label className="marcar"><input type="checkbox" checked={!!it.sem_lactose} onChange={(e) => alterarItem(it.id, 'sem_lactose', e.target.checked)} /><span>Sem lactose</span></label>
+                      {/* As três restrições são UM assunto: ficam juntas numa linha. */}
+                      <fieldset className="marcar-grupo mc-restricoes">
+                        <legend className="marcar-grupo__pergunta">Restrições alimentares</legend>
+                        <label className="marcar"><input type="checkbox" checked={!!it.vegano} onChange={(e) => alterarItem(it.id, 'vegano', e.target.checked)} /><span>Vegano</span></label>
+                        <label className="marcar"><input type="checkbox" checked={!!it.sem_gluten} onChange={(e) => alterarItem(it.id, 'sem_gluten', e.target.checked)} /><span>Sem glúten</span></label>
+                        <label className="marcar"><input type="checkbox" checked={!!it.sem_lactose} onChange={(e) => alterarItem(it.id, 'sem_lactose', e.target.checked)} /><span>Sem lactose</span></label>
+                      </fieldset>
                     </div>
                   )
                 })}
@@ -629,7 +651,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                   </div>
                 ))}
               </div>
-              <button className="acao secundaria" type="button" onClick={adicionarUnidade}>+ Adicionar unidade</button>
+              <button className="acao secundaria" type="button" onClick={adicionarUnidade}><Icone nome="mais" tamanho={16} />Adicionar unidade</button>
             </Bloco>}
 
             {/* Enviar vale para o cadastro inteiro (as duas abas): quem confere o

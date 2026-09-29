@@ -1,13 +1,13 @@
 import React from 'react'
-import { Icone } from '../Icone'
+import { Icone, MODULO_ICONE } from '../Icone'
+import { urlLogo } from '../../lib/logos'
 import { api } from '../../lib/marcaApi'
 import { chaveDia } from '../../lib/hoje'
-import { rotulo, tom } from '../../lib/status'
 import { tempoRelativo } from '../../lib/central'
 import { nivelDoAviso, NIVEIS } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
-import { Carregando, Erro, Secao, Selo } from '../ui'
+import { Carregando, Erro, Secao, Selo, Modulo, MacroSecao, GradeModulos, Botao, LogoMarca } from '../ui'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
 
@@ -142,96 +142,117 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
 
       {estado === 'pronto' && resumo && (
         <div className="gm-inicio">
-          {/* 1 · Situação */}
-          <Secao titulo={'Seu cadastro está ' + resumo.progresso.pct + '% concluído'}
-            nota={resumo.progresso.feitos + ' de ' + resumo.progresso.total + ' informações obrigatórias preenchidas'} className="gm-situacao">
-            <div className="gm-progresso" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={resumo.progresso.pct} aria-label="Cadastro concluído">
-              <span style={{ width: resumo.progresso.pct + '%' }} />
-            </div>
-            <ol className="gm-etapas">
-              {resumo.etapas.map((e) => (
-                <li key={e.chave}>
-                  <button type="button" className="gm-etapa" data-estado={e.estado} onClick={() => irPara(e.vista)}>
-                    <span className="gm-etapa__icone"><Icone nome={e.estado} tamanho={16} /></span>
-                    <span className="gm-etapa__rotulo">{e.rotulo}</span>
-                    <span className="gm-etapa__estado">{e.faltam ? e.faltam + (e.faltam === 1 ? ' falta' : ' faltam') : ROTULO_ESTADO[e.estado]}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </Secao>
-
-          {/* 2 e 3 · Ação necessária, com a próxima em destaque */}
-          <Secao titulo={pendencias.length ? 'Ação necessária' : 'Nada pendente'}
-            nota={pendencias.length ? (pendencias.length === 1 ? 'Você tem 1 pendência.' : 'Você tem ' + pendencias.length + ' pendências.') : 'Quando a organização pedir algo, aparece aqui e no sino.'}
-            className="gm-acoes">
-            {proxima && (
-              <button type="button" className="gm-proxima" onClick={() => ir(proxima.link, proxima.vista)}>
-                <span className="gm-proxima__rotulo">{proxima.tipo === 'campo' ? 'Continue de onde parou' : 'Próxima ação'}</span>
-                <span className="gm-proxima__titulo">{proxima.titulo}</span>
-                {proxima.texto && <span className="gm-proxima__texto">{proxima.texto}</span>}
-                <span className="gm-proxima__acao">{proxima.acao || 'Abrir'} →</span>
-              </button>
-            )}
-            {outras.length > 0 && (
-              <ul className="gm-pendencias">
-                {outras.map((p, i) => (
-                  <li key={i} className="gm-pendencia" data-tipo={p.tipo} data-prioridade={p.prioridade || undefined}>
-                    <span className="gm-pendencia__icone"><Icone nome={p.tipo} tamanho={20} /></span>
-                    <span className="gm-pendencia__corpo">
-                      <b>{p.titulo}{p.prioridade === 'importante' ? ' · importante' : ''}</b>
-                      {p.texto && <span>{p.texto}</span>}
-                    </span>
-                    {p.link
-                      ? <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => ir(p.link, p.vista)}>{p.acao || 'Abrir'}</button>
-                      : <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => irPara('mensagens')}>Escrever</button>}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {emAnalise && (
-              <p className="gm-aguardando"><Icone nome="andamento" tamanho={20} /> Aguardando a organização: seu cadastro está em análise.</p>
-            )}
-            {concluidas.length > 0 && (
-              <details className="ui-recolhe">
-                <summary>Concluído ({concluidas.length} {concluidas.length === 1 ? 'etapa' : 'etapas'})</summary>
-                <ul className="ui-feitos">{concluidas.map((e) => <li key={e.chave}>{e.rotulo}</li>)}</ul>
-              </details>
-            )}
-          </Secao>
-
-          {/* 4 · Status do combo */}
-          <Secao titulo="Status do combo" className="gm-combo">
-            <p className="gm-combo__linha">
-              <Selo tom={tom('combo', resumo.combo.status)}>{rotulo('combo', resumo.combo.status)}</Selo>
-              {resumo.combo.status === 'em_analise' && <span className="ui-nota">A organização está conferindo. Você recebe um aviso quando ela responder.</span>}
-            </p>
-            {resumo.combo.status === 'correcao_solicitada' && resumo.combo.nota && <p className="ui-nota">{resumo.combo.nota}</p>}
-            <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('combo')}>Abrir meu combo</button>
-          </Secao>
-
-          {/* 5 · Avisos recentes */}
-          {recentes.length > 0 && (
-            <Secao titulo="Avisos recentes" className="gm-avisos">
-              <ul className="gm-avisos__lista">
-                {recentes.map((n) => {
-                  const nivel = nivelDoAviso(n)
-                  return (
-                    <li key={n.id}>
-                      <button type="button" className="gm-aviso" onClick={() => n.link && abrirLink(n.link)} disabled={!n.link}>
-                        <span className="ui-aviso__nivel" data-nivel={nivel}>{NIVEIS[nivel].rotulo}</span>
-                        <b>{n.titulo}</b>
-                        <span className="ui-nota">{tempoRelativo(n.criada_em)}</span>
+          {/* 1 · Sua marca: quem é (logo, contato) e quanto do cadastro está pronto */}
+          <MacroSecao rotulo="Sua marca" titulo={'Seu cadastro está ' + resumo.progresso.pct + '% concluído'}
+            nota={resumo.progresso.feitos + ' de ' + resumo.progresso.total + ' informações obrigatórias preenchidas'}>
+            <GradeModulos className="ui-modulos--dois">
+              <Modulo icone={MODULO_ICONE.estabelecimento} titulo="Meu estabelecimento" sub={participante.nome_marca}
+                status={<Selo dominio="logo" valor={(dadosMarca.logo && dadosMarca.logo.estado) || 'nao_enviada'} />}
+                acoes={<>
+                  <Botao icone="editar" variante="secundario" onClick={() => irPara('cadastro')}>Editar dados</Botao>
+                  {!(dadosMarca.logo && dadosMarca.logo.estado === 'confirmada') && <Botao icone="imagem" onClick={() => abrirLink('cadastro/0/logo')}>Enviar logo</Botao>}
+                </>}>
+                <div className="gm-estab">
+                  <LogoMarca url={urlLogo(dadosMarca.logo && dadosMarca.logo.atual && dadosMarca.logo.atual.path)} nome={participante.nome_marca} tamanho={72} />
+                  <dl className="ui-dados">
+                    <div className="ui-dado"><dt>Responsável</dt><dd>{participante.responsavel || 'Não informado'}</dd></div>
+                    <div className="ui-dado"><dt>WhatsApp</dt><dd>{participante.telefone || 'Não informado'}</dd></div>
+                  </dl>
+                </div>
+              </Modulo>
+              <Modulo icone="cadastro" titulo="Etapas do cadastro" className="gm-situacao">
+                <div className="gm-progresso" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={resumo.progresso.pct} aria-label="Cadastro concluído">
+                  <span style={{ width: resumo.progresso.pct + '%' }} />
+                </div>
+                <ol className="gm-etapas">
+                  {resumo.etapas.map((e) => (
+                    <li key={e.chave}>
+                      <button type="button" className="gm-etapa" data-estado={e.estado} onClick={() => irPara(e.vista)}>
+                        <span className="gm-etapa__icone"><Icone nome={e.estado} tamanho={16} /></span>
+                        <span className="gm-etapa__rotulo">{e.rotulo}</span>
+                        <span className="gm-etapa__estado">{e.faltam ? e.faltam + (e.faltam === 1 ? ' falta' : ' faltam') : ROTULO_ESTADO[e.estado]}</span>
                       </button>
                     </li>
-                  )
-                })}
-              </ul>
-            </Secao>
-          )}
+                  ))}
+                </ol>
+              </Modulo>
+            </GradeModulos>
+          </MacroSecao>
 
-          {/* 6 e 7 · Arquivos e atalhos */}
-          <Secao titulo="Atalhos" className="gm-atalhos-secao">
+          {/* 2 e 3 · Ação necessária, com a próxima em destaque */}
+          <MacroSecao rotulo="Agora" titulo={pendencias.length ? 'Ação necessária' : 'Nada pendente'}
+            nota={pendencias.length ? (pendencias.length === 1 ? 'Você tem 1 pendência.' : 'Você tem ' + pendencias.length + ' pendências.') : 'Quando a organização pedir algo, aparece aqui e no sino.'}>
+            <Modulo icone={MODULO_ICONE.pendencias} titulo="Pendências" largo
+              status={pendencias.length ? <Selo tom="atencao">{pendencias.length === 1 ? '1 aberta' : pendencias.length + ' abertas'}</Selo> : <Selo tom="ok">Em dia</Selo>}>
+              {proxima && (
+                <button type="button" className="gm-proxima" onClick={() => ir(proxima.link, proxima.vista)}>
+                  <span className="gm-proxima__rotulo">{proxima.tipo === 'campo' ? 'Continue de onde parou' : 'Próxima ação'}</span>
+                  <span className="gm-proxima__titulo">{proxima.titulo}</span>
+                  {proxima.texto && <span className="gm-proxima__texto">{proxima.texto}</span>}
+                  <span className="gm-proxima__acao">{proxima.acao || 'Abrir'} →</span>
+                </button>
+              )}
+              {outras.length > 0 && (
+                <ul className="gm-pendencias">
+                  {outras.map((p, i) => (
+                    <li key={i} className="gm-pendencia" data-tipo={p.tipo} data-prioridade={p.prioridade || undefined}>
+                      <span className="gm-pendencia__icone"><Icone nome={p.tipo} tamanho={20} /></span>
+                      <span className="gm-pendencia__corpo">
+                        <b>{p.titulo}{p.prioridade === 'importante' ? ' · importante' : ''}</b>
+                        {p.texto && <span>{p.texto}</span>}
+                      </span>
+                      {p.link
+                        ? <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => ir(p.link, p.vista)}>{p.acao || 'Abrir'}</button>
+                        : <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => irPara('mensagens')}>Escrever</button>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {emAnalise && (
+                <p className="gm-aguardando"><Icone nome="andamento" tamanho={20} /> Aguardando a organização: seu cadastro está em análise.</p>
+              )}
+              {concluidas.length > 0 && (
+                <details className="ui-recolhe">
+                  <summary>Concluído ({concluidas.length} {concluidas.length === 1 ? 'etapa' : 'etapas'})</summary>
+                  <ul className="ui-feitos">{concluidas.map((e) => <li key={e.chave}>{e.rotulo}</li>)}</ul>
+                </details>
+              )}
+            </Modulo>
+          </MacroSecao>
+
+          {/* 4 e 5 · Status do combo e avisos recentes, lado a lado */}
+          <MacroSecao rotulo="Acompanhamento" titulo="Combo e avisos">
+            <GradeModulos className="ui-modulos--dois">
+              <Modulo icone={MODULO_ICONE.combo} titulo="Status do combo" status={<Selo dominio="combo" valor={resumo.combo.status} />}
+                acoes={<Botao icone="combo" variante="secundario" onClick={() => irPara('combo')}>Abrir meu combo</Botao>}>
+                {resumo.combo.status === 'em_analise' && <p className="ui-nota">A organização está conferindo. Você recebe um aviso quando ela responder.</p>}
+                {resumo.combo.status === 'correcao_solicitada' && resumo.combo.nota && <p className="ui-nota">{resumo.combo.nota}</p>}
+                {resumo.combo.status === 'rascunho' && <p className="ui-nota">Preencha o combo e envie para análise.</p>}
+              </Modulo>
+              <Modulo icone={MODULO_ICONE.notificacoes} titulo="Avisos recentes" className="gm-avisos">
+                {recentes.length === 0 && <p className="ui-nota">Nenhum aviso ainda.</p>}
+                {recentes.length > 0 && (
+                  <ul className="gm-avisos__lista">
+                    {recentes.map((n) => {
+                      const nivel = nivelDoAviso(n)
+                      return (
+                        <li key={n.id}>
+                          <button type="button" className="gm-aviso" onClick={() => n.link && abrirLink(n.link)} disabled={!n.link}>
+                            <span className="ui-aviso__nivel" data-nivel={nivel}>{NIVEIS[nivel].rotulo}</span>
+                            <b>{n.titulo}</b>
+                            <span className="ui-nota">{tempoRelativo(n.criada_em)}</span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </Modulo>
+            </GradeModulos>
+          </MacroSecao>
+
+          {/* 6 e 7 · Atalhos */}
+          <MacroSecao rotulo="Atalhos" titulo="Ir direto para">
             <div className="gm-atalhos">
               {[
                 ['cadastro', 'Meu cadastro', contadores.cadastro],
@@ -257,7 +278,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
               }}
               remover={(endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })}
             />
-          </Secao>
+          </MacroSecao>
 
           {momento !== 'antes' && (
             <Secao id="venda-do-dia" titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'}>
