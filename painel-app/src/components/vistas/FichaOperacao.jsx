@@ -2,6 +2,7 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { tempoRelativo } from '../../lib/central'
+import { rotulo } from '../../lib/status'
 import {
   ROTULO_FOTO, ROTULO_PAGAMENTO, ROTULO_COMBO, ROTULO_TEMA, ROTULO_HISTORICO, ROTULO_MATERIAL,
   ROTULO_MATERIAL_STATUS, ROTULO_PENDENCIA,
@@ -159,10 +160,10 @@ export function AbaOperacao({ participante, pode }) {
       <Secao titulo="Sessões de fotos">
         {sessoes.length
           ? <ul className="ui-lista-simples">{sessoes.map((s) => (
-              <li key={s.id}><b>{dataHoraCurta(s.data_hora)} · {s.status}</b>
+              <li key={s.id}><b>{dataHoraCurta(s.data_hora)} · {rotulo('sessao', s.status)}</b>
                 <span>{[s.local, s.responsavel_participante && 'na marca: ' + s.responsavel_participante, s.responsavel_organizacao && 'na organização: ' + s.responsavel_organizacao].filter(Boolean).join(' · ')}</span></li>
             ))}</ul>
-          : <p className="ui-nota">Nenhuma sessão marcada. A agenda fica em Produção.</p>}
+          : <p className="ui-nota">Nenhuma sessão marcada. A agenda fica em Operação › Fotos.</p>}
       </Secao>
     </div>
   )

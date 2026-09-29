@@ -65,3 +65,12 @@ export function isoDoCampo(valor) {
   const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor + 'T23:59' : valor)
   return isNaN(d.getTime()) ? null : d.toISOString()
 }
+
+// O inverso de isoDoCampo: ISO → "2027-03-04T14:30" na hora LOCAL, para
+// pré-preencher um `datetime-local` (clique num horário da agenda).
+export function campoDoIso(iso) {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const p = (n) => String(n).padStart(2, '0')
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes())
+}

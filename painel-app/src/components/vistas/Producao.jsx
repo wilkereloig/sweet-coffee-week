@@ -2,13 +2,12 @@ import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta, prazoSelo } from '../../lib/painelFormat'
-import { BLOCOS, ROTULO_SESSAO, montarAgendaGrade, nomeSeguro, isoDoCampo } from '../../lib/producao'
+import { BLOCOS, ROTULO_SESSAO, montarAgendaGrade, nomeSeguro, isoDoCampo, campoDoIso } from '../../lib/producao'
 import { marcasParaOpcoes } from '../../lib/participantes'
+import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
-import { ICONE } from '../PainelShell'
-import { Carregando, Erro, Vazio } from '../ui'
+import { Carregando, Erro, Vazio, Selo } from '../ui'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -195,7 +194,7 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
           <ul className="ui-lista-simples">
             {lista.map((l) => (
               <li key={l.participacao_id}>
-                <b>{(l.marca || '(marca)') + ' · ' + (l.estado === 'respondido' ? 'respondido' : 'pendente')}</b>
+                <b>{(l.marca || '(marca)') + ' · ' + rotulo('pedido', l.estado === 'respondido' ? 'respondido' : 'pendente')}</b>
                 {l.resposta && <span className="ui-citacao">{l.resposta}</span>}
                 {l.estado === 'respondido' && l.respondido_em && (
                   <span className="ui-nota">{(l.respondido_por || '') + ' · ' + dataHoraCurta(l.respondido_em)}</span>
@@ -334,7 +333,7 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
 }
 
 /* ── Agendar sessão ────────────────────────────────────────────────────── */
-function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onCriada }) {
+function FolhaNovaSessao({ aberto, quandoInicial = '', opcoesMarcas, marcaPadrao, podeGerir, onFechar, onCriada }) {
   const [marca, setMarca] = React.useState(marcaPadrao)
   const [quando, setQuando] = React.useState('')
   const [local, setLocal] = React.useState('')
@@ -344,7 +343,7 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFecha
 
   React.useEffect(() => {
     if (!aberto) return
-    setMarca(marcaPadrao); setQuando(''); setLocal(''); setObs(''); setAviso(null); setEnviando(false)
+    setMarca(marcaPadrao); setQuando(quandoInicial ? campoDoIso(quandoInicial) : ''); setLocal(''); setObs(''); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
   // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
@@ -475,7 +474,15 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
 }
 
 /* ── A vista ───────────────────────────────────────────────────────────── */
-export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, alvo, consumirAlvo }) {
+/*
+ * `secao` (reestruturação 29/09/2026): a antiga Produção virou pedaços de
+ * três módulos — 'pedidos' e 'fotos' (Operação), 'arquivos' (Arquivos) e
+ * 'edicao' (Edição › Configuração). Cada módulo mostra só a sua seção.
+ * ponytail: a vista ainda carrega os três conjuntos (pedidos, arquivos,
+ * sessões) mesmo mostrando um só — são listas pequenas; separar a carga
+ * quando alguma crescer.
+ */
+export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, secao = 'pedidos' }) {
   const podeGerir = pode('producao.gerir')
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
   const [arquivos, setArquivos] = React.useState(null)
@@ -563,21 +570,18 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
     setCodigoEdicao(edicaoAtual || '')
   }, [edicaoAtual])
 
-  // Aviso pediu um pedido específico (ou a agenda): abre/rola até ele.
+  // Pedido pedido pelo endereço (aviso "X marcas ainda não responderam"):
+  // abre "Quem falta" dele.
+  const itemPedido = secao === 'pedidos' && rota ? rota.filtros.item : null
   React.useEffect(() => {
-    if (!alvo) return
-    if (alvo.sub === 'fotos') {
-      const el = document.getElementById('agenda-fotos')
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (consumirAlvo) consumirAlvo()
-      return
-    }
-    if (alvo.sub === 'pedido' && solicitacoes) {
-      const s = solicitacoes.find((x) => x.id === alvo.id)
-      if (s) setFolha({ tipo: 'quemFalta', solicitacao: s })
-      if (consumirAlvo) consumirAlvo()
-    }
-  }, [alvo, solicitacoes]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!itemPedido || !solicitacoes) return
+    const s = solicitacoes.find((x) => x.id === itemPedido)
+    if (s) setFolha({ tipo: 'quemFalta', solicitacao: s })
+  }, [itemPedido, solicitacoes])
+  function fecharFolha() {
+    if (folha && folha.tipo === 'quemFalta' && itemPedido && navegar) navegar({ filtros: {} }, { substituir: true })
+    setFolha(null)
+  }
 
   async function salvarEdicao(codigo) {
     setSalvandoEdicao(true)
@@ -593,7 +597,11 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   async function clicarSlot(slot) {
-    if (!podeGerir || modoAgenda !== 'abrir' || slot.estado === 'reservado') return
+    if (!podeGerir || slot.estado === 'reservado') return
+    if (modoAgenda === 'marcar') {
+      if (slot.estado === 'fechado') setFolha({ tipo: 'sessaoNova', quando: slot.quandoIso })
+      return
+    }
     // Clique duplo abria duas vagas no mesmo horário: uma operação por vez.
     if (slotOcupado) return
     setSlotOcupado(slot.quandoIso)
@@ -641,8 +649,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   return (
-    <section className="og-vista">
-      <VistaCabeca acento="laranja" icone={ICONE.producao} titulo="Produção" nota="O que a organização manda pra marca: agenda, pedidos e arquivos" />
+    <div className="og-embutida">
 
       {avisoGeral && <div className="og-aviso" data-tom={avisoGeral.tom}>{avisoGeral.texto}</div>}
 
@@ -661,8 +668,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
       {!erro && (
         <>
-          <div className="ui-grade-duas">
-          <section className="og-forms">
+          <div className={secao === 'fotos' ? 'ui-grade-duas' : 'ui-pilha'}>
+          {secao === 'edicao' && <section className="og-forms">
             <div className="og-forms__cabeca">
               <h2>A edição aberta</h2>
               <p>É ela que decide qual formulário a marca vê ao entrar, e é o que a agenda logo abaixo precisa pra existir.</p>
@@ -706,16 +713,16 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 Fechar a edição
               </button>
             )}
-          </section>
+          </section>}
 
-          <section className="og-forms" id="agenda-fotos">
+          {secao === 'fotos' && <section className="og-forms" id="agenda-fotos">
             <div className="og-agenda__topo">
               <div className="og-forms__cabeca">
                 <h2>Agenda de fotos</h2>
                 <p>
                   {modoAgenda === 'abrir'
                     ? 'Clique num horário para abrir a vaga. As marcas escolhem entre as vagas abertas.'
-                    : 'Este modo usa o botão "Agendar sessão", logo abaixo: ele já marca a marca diretamente no horário escolhido.'}
+                    : 'Neste modo, clique num horário livre para agendar uma marca direto nele.'}
                 </p>
               </div>
               <div className="og-agenda__modos">
@@ -759,9 +766,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               <span><i className="is-reservada" />reservada</span>
               <span><i className="is-fechada" />fechada</span>
             </div>
-          </section>
+          </section>}
 
-          <section className="og-forms">
+          {secao === 'pedidos' && <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
                 <h2>Pedidos e prazos</h2>
@@ -815,9 +822,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 })}
               </ul>
             )}
-          </section>
+          </section>}
 
-          <section className="og-forms">
+          {secao === 'arquivos' && <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
                 <h2>Arquivos</h2>
@@ -859,9 +866,9 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 })}
               </ul>
             )}
-          </section>
+          </section>}
 
-          <section className="og-forms">
+          {secao === 'fotos' && <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
                 <h2>Sessões de fotos</h2>
@@ -890,7 +897,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                         {dataHoraCurta(f.data_hora) + (f.local ? ' · ' + f.local : '') + (f.edicao_codigo ? ' · edição ' + f.edicao_codigo : '')}
                       </p>
                       <span className="og-item__dir">
-                        <span className="og-selo">{ROTULO_SESSAO[f.status] || f.status}</span>
+                        <Selo dominio="sessao" valor={f.status} />
                         <button
                           className="og-btn og-btn--vazado og-btn--mini" type="button"
                           disabled={!podeGerir}
@@ -905,7 +912,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 ))}
               </ul>
             )}
-          </section>
+          </section>}
           </div>
         </>
       )}
@@ -923,7 +930,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         aberto={!!folha && folha.tipo === 'quemFalta'}
         solicitacao={folha && folha.tipo === 'quemFalta' ? folha.solicitacao : null}
         podeGerir={podeGerir}
-        onFechar={() => setFolha(null)}
+        onFechar={fecharFolha}
         onRespondido={carregar}
       />
       <FolhaNovoArquivo
@@ -936,6 +943,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
       />
       <FolhaNovaSessao
         aberto={!!folha && folha.tipo === 'sessaoNova'}
+        quandoInicial={folha && folha.tipo === 'sessaoNova' ? folha.quando || '' : ''}
         opcoesMarcas={opcoesMarcas}
         marcaPadrao={marcaPadrao}
         podeGerir={podeGerir}
@@ -949,6 +957,6 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         onFechar={() => setFolha(null)}
         onSalva={carregar}
       />
-    </section>
+    </div>
   )
 }

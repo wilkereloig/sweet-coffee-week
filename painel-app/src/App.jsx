@@ -14,14 +14,7 @@ import { Mensagens as MensagensMarca } from './components/vistas-marca/Mensagens
 import { Conexao } from './components/Conexao'
 import { lerIrDaUrl } from './lib/central'
 import { desligarAvisos } from './lib/push'
-import { Mesa } from './components/vistas/Mesa'
-import { Respostas } from './components/vistas/Respostas'
-import { Marcas } from './components/vistas/Marcas'
-import { Producao } from './components/vistas/Producao'
-import { Equipe } from './components/vistas/Equipe'
-import { GuiaFotos } from './components/vistas/GuiaFotos'
-import { Edicao } from './components/vistas/Edicao'
-import { Contatos } from './components/vistas/Contatos'
+import { MODULOS_ORG } from './components/Modulos'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../src/lib/orgAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
@@ -327,10 +320,10 @@ export function App() {
     <>
       <Conexao />
       <PainelShell
-        vistas={{ mesa: Mesa, respostas: Respostas, participantes: Marcas, edicao: Edicao, producao: Producao, contatos: Contatos, fotos: GuiaFotos, equipe: Equipe }}
+        vistas={MODULOS_ORG}
         onSair={() => sairOrg()}
         permissoes={acoesPermitidas}
-        vistaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'mesa'}
+        rotaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'visao'}
         linkInicial={destino}
         quem={quemOrg(funcaoRotulo)}
       />

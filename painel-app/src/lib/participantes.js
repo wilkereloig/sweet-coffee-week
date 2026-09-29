@@ -5,6 +5,7 @@
  * montarRecado ~3308, opcoesMarcas ~3445).
  */
 import { preco } from './painelFormat.js'
+import { rotulos } from './status.js'
 
 export const COR_CADASTRO = {
   aguardando_cadastro: '#FF4810', em_preenchimento: '#01AFCC',
@@ -12,10 +13,7 @@ export const COR_CADASTRO = {
   sem_participacao: '#6A2C15',
 }
 
-export const ROTULO_SESSAO = {
-  agendada: 'Agendada', realizada: 'Realizada', cancelada: 'Cancelada', remarcada: 'Remarcada',
-  aberto: 'Vaga aberta',
-}
+export const ROTULO_SESSAO = rotulos('sessao')
 
 export const RECADO_MANUAL = {
   entrada_ambigua: 'Defeito do painel: mandou candidatura e cadastro manual juntos.',

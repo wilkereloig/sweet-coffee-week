@@ -1,6 +1,4 @@
 import React from 'react'
-import { VistaCabeca } from '../VistaCabeca'
-import { ICONE } from '../PainelShell'
 
 /*
  * Guia de fotos dos combos — edição Cartoon, lado da ORGANIZAÇÃO (para o
@@ -96,8 +94,8 @@ export function BaixarPdf({ href, rotulo }) {
 
 export function GuiaFotos() {
   return (
-    <section className="og-vista gf">
-      <VistaCabeca acento="magenta" icone={ICONE.fotos} titulo="Guia de fotos" nota="combos da edição Cartoon · para o fotógrafo" />
+    <div className="og-embutida gf">
+      <h2 className="gf-h2">Guia de fotos · para o fotógrafo</h2>
 
       <div className="gf-topo">
         <p className="gf-tese">Todas as fotos fazem parte da entrega. A <strong>comida é sempre a protagonista</strong>.</p>
@@ -131,6 +129,6 @@ export function GuiaFotos() {
       </div>
 
       <p className="gf-nota">Fotos de exemplo geradas por IA. Não são produtos das casas e não entram na divulgação.</p>
-    </section>
+    </div>
   )
 }

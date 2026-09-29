@@ -1,4 +1,5 @@
 import React from 'react'
+import { rotulo as rotuloDe, tom as tomDe } from '../lib/status'
 
 /*
  * Peças de estado e de estrutura usadas pelas vistas dos dois painéis — uma
@@ -124,5 +125,22 @@ export function Abas({ abas, ativa, onMudar, rotulo }) {
         </button>
       ))}
     </div>
+  )
+}
+
+// Selo de estado — rótulo e cor vêm do dicionário único (lib/status.js).
+// `children` substitui o texto quando a tela precisa de uma forma mais curta.
+export function Selo({ dominio, valor, children }) {
+  return <span className="og-selo" data-tom={tomDe(dominio, valor)}>{children || rotuloDe(dominio, valor)}</span>
+}
+
+// Ajuda recolhida: a regra fica a um toque, não ocupando a tela (<details>
+// nativo — teclado e leitor de tela de graça).
+export function Ajuda({ titulo = 'Como funciona', children }) {
+  return (
+    <details className="ui-ajuda">
+      <summary><span className="ui-ajuda__i" aria-hidden="true">i</span>{titulo}</summary>
+      <div className="ui-ajuda__texto">{children}</div>
+    </details>
   )
 }

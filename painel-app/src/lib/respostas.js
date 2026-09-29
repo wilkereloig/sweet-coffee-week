@@ -10,6 +10,8 @@
  * escaparia DUAS vezes e mostraria entidade HTML crua na tela
  * ("Duart&#39;s" em vez de "Duart's").
  */
+
+import { rotulos } from './status.js'
 export const ORIGENS = {
   quero_participar: {
     rotulo: 'Quero participar', cor: '#01AFCC', rpc: 'get_quero_participar',
@@ -52,12 +54,7 @@ export const ORIGENS = {
 // Rótulo legível por status — todo status que qualquer origem aceita.
 // ⚠️ Status novo no CHECK do banco precisa de entrada aqui NO MESMO COMMIT
 // (CLAUDE.md §10.4-b), senão aparece como string crua na ficha.
-export const ROTULO_STATUS = {
-  novo: 'Novo', em_analise: 'Em análise', contatado: 'Contatado', respondido: 'Respondido',
-  aprovado: 'Aprovado', nao_selecionado: 'Não selecionado', aguardando_cadastro: 'Aguardando cadastro',
-  cadastro_completo: 'Cadastro completo', em_negociacao: 'Em negociação',
-  fechado: 'Fechado', arquivado: 'Arquivado', encerrado: 'Encerrado',
-}
+export const ROTULO_STATUS = rotulos('candidatura')
 
 // Motivo por código de erro de `organizacao_apagar_registro` — porta fiel de
 // RECADO_APAGAR em public/organizacao/index.html.

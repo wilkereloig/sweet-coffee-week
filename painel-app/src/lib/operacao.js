@@ -8,23 +8,19 @@
  * mora aqui é como ler essas datas.
  */
 
-export const ROTULO_FOTO = { pendente: 'Liberação pendente', liberado: 'Liberado para foto', nao_liberado: 'Não liberado para foto' }
-export const ROTULO_PAGAMENTO = { nao_informado: 'Pagamento não informado', pendente: 'Pagamento pendente', parcial: 'Pagamento parcial', quitado: 'Taxa quitada', isento: 'Isento' }
-export const ROTULO_COMBO = { rascunho: 'Combo em preenchimento', em_analise: 'Combo em análise', correcao_solicitada: 'Ajuste pedido no combo', aprovado: 'Combo aprovado' }
-export const ROTULO_TEMA = { proposto: 'Tema em análise', aprovado: 'Tema aprovado', recusado: 'Tema recusado', substituido: 'Tema substituído' }
-export const ROTULO_HISTORICO = {
-  nao_avaliado: 'Trajetória não avaliada',
-  recorrente_confirmado: 'Participante recorrente',
-  novo_confirmado: 'Primeira edição (confirmado)',
-  possivel_correspondencia: 'Possível participação anterior',
-  sem_correspondencia_no_acervo: 'Sem registro no acervo',
-  revisar: 'Trajetória em revisão',
-}
-export const ROTULO_MATERIAL = { mesas: 'Mesas', adesivo_prisma: 'Adesivo de prisma', prisma_mesa: 'Prisma de mesa', placa_externa: 'Placa externa', display_balcao: 'Display de balcão', voucher: 'Vouchers', outro: 'Outro' }
-export const ROTULO_MATERIAL_STATUS = { previsto: 'Previsto', separado: 'Separado', entregue: 'Entregue', cancelado: 'Cancelado' }
-export const ROTULO_PRESSKIT = { constou_na_lista: 'Constou na lista', selecionado: 'Selecionado', confirmado: 'Endereço confirmado', enviado: 'Enviado', entregue: 'Entregue', nao_entregue: 'Não entregue', cancelado: 'Cancelado' }
-export const ROTULO_TIPO_CONTATO = { influenciador: 'Influenciador', convidado: 'Convidado', parceiro: 'Parceiro', imprensa: 'Imprensa', outro: 'Outro' }
-export const ROTULO_PENDENCIA = { dado_inconsistente: 'Dado inconsistente', possivel_correspondencia: 'Possível correspondência', possivel_duplicidade: 'Possível duplicidade', conflito_tema: 'Conflito de tema', dado_ausente: 'Dado ausente', outro: 'Outro' }
+import { rotulos } from './status.js'
+
+// Rótulos: fonte única em ./status.js (reestruturação 29/09/2026).
+export const ROTULO_FOTO = rotulos('foto')
+export const ROTULO_PAGAMENTO = rotulos('pagamento')
+export const ROTULO_COMBO = rotulos('combo')
+export const ROTULO_TEMA = rotulos('tema')
+export const ROTULO_HISTORICO = rotulos('historico')
+export const ROTULO_MATERIAL = rotulos('material')
+export const ROTULO_MATERIAL_STATUS = rotulos('material_status')
+export const ROTULO_PRESSKIT = rotulos('presskit')
+export const ROTULO_TIPO_CONTATO = rotulos('tipo_contato')
+export const ROTULO_PENDENCIA = rotulos('pendencia')
 
 // "AAAA-MM-DD" → número de dias entre duas datas de calendário (sem fuso).
 function dias(iso) {
