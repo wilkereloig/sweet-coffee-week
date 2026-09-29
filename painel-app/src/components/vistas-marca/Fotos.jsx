@@ -3,7 +3,7 @@ import { api } from '../../lib/marcaApi'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
 import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Secao } from '../ui'
+import { Carregando, Secao, Selo } from '../ui'
 import { Arquivos } from './Arquivos'
 
 /*
@@ -69,7 +69,7 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
               {minhas.map((s) => (
                 <li key={s.id}>
                   <b>{[dataHoraCurta(s.data_hora), s.local || ''].filter(Boolean).join(' · ')}</b>
-                  <span><span className="og-selo" data-tom={s.status === 'realizada' ? 'ok' : s.status === 'cancelada' ? 'encerrado' : 'andamento'}>{ROTULO_SESSAO[s.status] || s.status}</span>{s.observacoes ? ' ' + s.observacoes : ''}</span>
+                  <span><Selo tom={s.status === 'realizada' ? 'ok' : s.status === 'cancelada' ? 'encerrado' : 'andamento'}>{ROTULO_SESSAO[s.status] || s.status}</Selo>{s.observacoes ? ' ' + s.observacoes : ''}</span>
                 </li>
               ))}
             </ul>

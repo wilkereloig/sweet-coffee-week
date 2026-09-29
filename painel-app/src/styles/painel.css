@@ -1249,6 +1249,10 @@ button.ui-modulo:active{transform:translateY(0)}
 .og-item__pend{font:700 14px/1 var(--f-ui);font-variant-numeric:tabular-nums}
 .og-item__pend[data-n="0"]{font-weight:400;color:var(--scw-marrom)}
 .og-lista__cabeca{display:none}
+/* Linha com logo (vouchers por marca): logo no lugar do ponto. */
+.og-item--logo{grid-template-columns:36px minmax(0,1fr) auto}
+.og-item--logo .ui-logo{grid-row:span 2;align-self:center}
+@media (max-width:760px){ .og-item--logo{grid-template-columns:36px minmax(0,1fr)} }
 @media (min-width:1100px){
   .og-item--marca,.og-lista__cabeca{grid-template-columns:40px minmax(0,1.6fr) minmax(150px,1fr) 104px 112px minmax(150px,1fr)}
   .og-item--marca .ui-logo{grid-row:auto;align-self:center}

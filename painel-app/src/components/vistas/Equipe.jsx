@@ -6,7 +6,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
-import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo } from '../ui'
 
 /*
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
@@ -346,7 +346,7 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
                     <span className="og-item__nome">{c.nome || c.email}</span>
                     <span className="og-item__meta">{(c.nome ? c.email + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
                     <span className="og-item__dir">
-                      <span className="og-selo" data-tom={c.ativo ? undefined : 'alerta'}>{c.ativo ? 'ativa' : 'desativada'}</span>
+                      <Selo tom={c.ativo ? 'ok' : 'atencao'}>{c.ativo ? 'ativa' : 'desativada'}</Selo>
                       <span className="og-item__data">{c.ultimo_acesso ? 'entrou ' + tempoRelativo(c.ultimo_acesso) : 'nunca entrou'}</span>
                     </span>
                   </button>

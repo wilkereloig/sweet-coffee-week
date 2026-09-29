@@ -3,7 +3,7 @@ import { api } from '../../lib/marcaApi'
 import { minhasSolicitacoes, prazoTexto } from '../../lib/pedidosMarca'
 import { dataHoraExtensa } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Vazio, Erro, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, traduzirErro, Selo } from '../ui'
 import { blocoDoCampo, linkDoCampo } from '../../lib/guia'
 
 /*
@@ -44,7 +44,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
   return (
     <li ref={ref} className={'ui-pedido' + (aberto ? ' is-aberto' : '') + (feito ? ' is-feito' : '')}>
       <button type="button" className="ui-pedido__cabeca" aria-expanded={aberto} aria-controls={'pedido-' + s.id} onClick={onAbrir}>
-        <span className="ui-pedido__titulo">{s.titulo}{s.prioridade === 'importante' && <span className="og-selo" data-tom="atencao"> Importante</span>}</span>
+        <span className="ui-pedido__titulo">{s.titulo}{s.prioridade === 'importante' && <Selo tom="atencao">Importante</Selo>}</span>
         <span className={'selo' + (feito ? ' completo' : p.classe ? ' ' + p.classe : '')}>
           {feito ? 'Respondido' : (p.texto || 'Pendente')}
         </span>

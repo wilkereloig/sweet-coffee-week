@@ -2,12 +2,11 @@ import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { RECADO_MANUAL, textoAcesso, textoTodosAcessos, linkWhatsApp, montarRecado, validarWhatsApp } from '../../lib/participantes'
-import { rotulo, tom } from '../../lib/status'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Atividade } from '../Atividade'
-import { Secao, traduzirErro } from '../ui'
+import { Secao, traduzirErro, Selo } from '../ui'
 
 /*
  * Acesso das marcas ao painel (29/09/2026, spec acessos-e-guia-da-marca).
@@ -28,9 +27,6 @@ export const lerAcessos = async () => Object.fromEntries(((await rpc('get_acesso
 
 const ACOES_DO_HISTORICO = /^(acesso\.|criar_acesso_marca|regerar_senha_conta|senha\.trocada)/
 
-function Selo({ dominio, valor }) {
-  return <span className="og-selo" data-tom={tom(dominio, valor)}>{rotulo(dominio, valor)}</span>
-}
 
 /* ── Criar / regerar, uma marca por vez (a função cria usuário no Auth) ──── */
 export async function emitirCredenciais(marcas, modo, aoAvancar) {

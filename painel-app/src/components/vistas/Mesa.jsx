@@ -9,7 +9,7 @@ import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
-import { Carregando, Erro, Secao } from '../ui'
+import { Carregando, Erro, Secao, Selo } from '../ui'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -194,7 +194,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                         <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
                           <span className="og-cartao__topo">
                             <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
-                            {it.novo && <span className="og-selo" data-novo="1">nova</span>}
+                            {it.novo && <Selo tom="atencao">Nova</Selo>}
                           </span>
                           <span className="og-cartao__meta">{it.meta || ''}</span>
                           {it.tipo === 'marca' && (
