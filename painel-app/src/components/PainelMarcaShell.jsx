@@ -62,7 +62,9 @@ const INTERVALO = 60000
 // Rota da marca no endereço: #cadastro/2?campo=item-2-descricao (bloco na
 // "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
 const VALIDAS = [...DESTINOS, ...OCULTAS]
-const normalizar = (r) => (r && VALIDAS.includes(r.vista) ? r : { vista: 'hoje', aba: '', filtros: {} })
+const normalizar = (r) => (r && VALIDAS.includes(r.vista)
+  ? { vista: r.vista, aba: r.aba || '', filtros: r.filtros || {} }
+  : { vista: 'hoje', aba: '', filtros: {} })
 
 export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))

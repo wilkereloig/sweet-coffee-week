@@ -107,7 +107,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   const [titulo, sub] = TITULOS[vista] || TITULOS.visao
   const Vista = vistas[vista]
 
-  function registrarAtualizar(fn) { atualizarRef.current = fn }
+  const registrarAtualizar = React.useCallback((fn) => { atualizarRef.current = fn }, [])
   function atualizar() { if (atualizarRef.current) atualizarRef.current(); carregarAvisos() }
 
   /*
