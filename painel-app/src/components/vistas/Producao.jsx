@@ -111,11 +111,6 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         <label className="og-campo"><span>Texto</span>
           <textarea value={texto} onChange={(e) => setTexto(e.target.value)} />
         </label>
-        <label className="og-campo"><span>Categoria</span>
-          <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-            {CATEGORIAS_ARQUIVO.map((c) => <option key={c.chave} value={c.chave}>{c.rotuloOrg}</option>)}
-          </select>
-        </label>
         <label className="og-campo"><span>Para quem</span>
           <select value={escopo} onChange={(e) => setEscopo(e.target.value)}>
             <option value="geral">Todas as marcas</option>
@@ -300,6 +295,11 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
         </label>
         <label className="og-campo"><span>Nome que a marca vê</span>
           <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} />
+        </label>
+        <label className="og-campo"><span>Categoria</span>
+          <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+            {CATEGORIAS_ARQUIVO.map((c) => <option key={c.chave} value={c.chave}>{c.rotuloOrg}</option>)}
+          </select>
         </label>
         <label className="og-campo"><span>Para quem</span>
           <select value={escopo} onChange={(e) => setEscopo(e.target.value)}>

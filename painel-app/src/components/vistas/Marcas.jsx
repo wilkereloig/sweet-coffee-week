@@ -142,7 +142,7 @@ function AbaHistorico({ participante, pode }) {
 }
 
 /* ── Aba "Acesso": gerar senha nova para a marca ─────────────────────────── */
-function AbaAcesso({ participante, pode, onMudou }) {
+function AbaAcesso({ participante, pode, onMudou, onFechar }) {
   const [gerando, setGerando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const [cred, setCred] = React.useState(null)
@@ -193,7 +193,8 @@ function AbaAcesso({ participante, pode, onMudou }) {
         const vai = !participante.arquivado_em
         if (vai && !window.confirm('Arquivar ' + participante.nome_marca + '? Ela sai das listas; dá para restaurar depois.')) return
         setErro(null)
-        try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onMudou && onMudou() }
+        // A marca sai da lista em que está: a ficha fecha (e o endereço perde o item).
+        try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onFechar && onFechar(); onMudou && onMudou() }
         catch (e) { setErro(traduzirErro(e.message)) }
       }}>{participante.arquivado_em ? 'Restaurar marca' : 'Arquivar marca'}</button>
     </Secao>
@@ -267,7 +268,7 @@ function FichaMarca({ participante, aba: abaPedida, onAba, pode, onFechar, naoLi
             {aba === 'trajetoria' && <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />}
             {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
             {aba === 'historico' && <AbaHistorico participante={p} pode={pode} />}
-            {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} />}
+            {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onFechar} />}
           </div>
         </>
       )}

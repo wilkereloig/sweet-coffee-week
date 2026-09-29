@@ -56,7 +56,13 @@ export const erroContato = (m) => {
 }
 
 export function FichaContato({ id, pode, onFechar, onMudou }) {
-  const [c, setC] = React.useState(null)
+  const [cBruto, setC] = React.useState(null)
+  // Durante a saída (260 ms) `id` já é null: a ficha continua mostrando o que
+  // mostrava. E ao trocar de pessoa, os dados da anterior nunca aparecem.
+  const ultimoId = React.useRef(id)
+  if (id) ultimoId.current = id
+  const idVisivel = id || ultimoId.current
+  const c = cBruto && cBruto.id === idVisivel ? cBruto : null
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [marcas, setMarcas] = React.useState(null)
@@ -117,7 +123,7 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
     catch (e) { setAviso(erroContato(e.message)) }
   }
 
-  const novo = id === 'novo'
+  const novo = idVisivel === 'novo'
   const gruposVoucher = vouchersPorEdicao(c ? c.vouchers : [])
   const totalVouchers = c ? (c.vouchers || []).filter((v) => v.status !== 'cancelado').length : 0
 
