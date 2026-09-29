@@ -231,6 +231,80 @@ function AbaAcesso({ participante, pode, onMudou, onFechar }) {
   )
 }
 
+/* ── Criar acesso em lote: todas as marcas sem conta ─────────────────────── */
+// Mesma Edge Function da ficha, uma marca por vez (em sequência: a função
+// cria usuário no Auth e não precisa de 18 chamadas simultâneas). As senhas
+// só existem nesta tela — fechar pede confirmação.
+function FolhaAcessoEmLote({ aberto, marcas, onFechar, onMudou }) {
+  const [resultados, setResultados] = React.useState([])
+  const [rodando, setRodando] = React.useState(false)
+  const [copiado, setCopiado] = React.useState(false)
+  React.useEffect(() => { if (aberto) { setResultados([]); setCopiado(false) } }, [aberto])
+
+  const criados = resultados.filter((r) => r.senha)
+
+  async function criarTodos() {
+    if (!window.confirm('Criar o acesso de ' + marcas.length + ' marcas?\n\nAs senhas aparecem UMA VEZ, nesta tela. Copie ou envie antes de fechar.')) return
+    setRodando(true)
+    const feitos = []
+    for (const p of marcas) {
+      try {
+        const r = await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: p.id })
+        if (!r || !r.senha) throw new Error('a função não devolveu as credenciais.')
+        feitos.push({ p, login: r.login, senha: r.senha })
+      } catch (e) {
+        const c = e.dados && e.dados.erro
+        feitos.push({ p, erro: RECADO_MANUAL[c] || traduzirErro(c || e.message) })
+      }
+      setResultados([...feitos])
+    }
+    setRodando(false)
+    onMudou && onMudou()
+  }
+
+  async function copiarTudo() {
+    const texto = criados.map((r) => r.p.nome_marca + '\nLogin: ' + r.login + '\nSenha: ' + r.senha).join('\n\n')
+    try { await navigator.clipboard.writeText(texto); setCopiado(true) } catch { setCopiado('manual') }
+  }
+
+  function fechar() {
+    if (rodando) return
+    if (criados.length && !window.confirm('Fechar? As senhas desta tela não aparecem de novo.')) return
+    onFechar()
+  }
+
+  return (
+    <Folha aberto={aberto} larga titulo="Criar acesso em lote" sub={marcas.length + (marcas.length === 1 ? ' marca sem acesso' : ' marcas sem acesso')} onFechar={fechar}>
+      <div className="ui-pilha">
+        {!resultados.length && (
+          <Secao titulo="Quem recebe acesso" nota="O login de cada uma é o nome do estabelecimento. No primeiro acesso a marca é obrigada a trocar a senha.">
+            <ul className="ui-lista-simples">{marcas.map((p) => <li key={p.id}><b>{p.nome_marca}</b></li>)}</ul>
+            <button className="og-btn" type="button" disabled={rodando || !marcas.length} onClick={criarTodos}>Criar acesso para {marcas.length} {marcas.length === 1 ? 'marca' : 'marcas'}</button>
+          </Secao>
+        )}
+        {resultados.length > 0 && (
+          <Secao titulo={rodando ? 'Criando… ' + resultados.length + ' de ' + marcas.length : criados.length + ' de ' + marcas.length + ' acessos criados'}
+            nota="Anote ou envie agora. Estas senhas não aparecem de novo.">
+            {!rodando && criados.length > 0 && (
+              <button className="og-btn og-btn--mini" type="button" onClick={copiarTudo}>
+                {copiado === true ? 'Copiado' : copiado === 'manual' ? 'Selecione abaixo' : 'Copiar todos os logins e senhas'}
+              </button>
+            )}
+            {resultados.map((r) => (
+              <div key={r.p.id} className="ui-pilha">
+                <b>{r.p.nome_marca}</b>
+                {r.senha
+                  ? <Credenciais nomeMarca={r.p.nome_marca} telefone={r.p.telefone} login={r.login} senha={r.senha} />
+                  : <p className="ui-nota ui-nota--erro" role="alert">{r.erro}</p>}
+              </div>
+            ))}
+          </Secao>
+        )}
+      </div>
+    </Folha>
+  )
+}
+
 /* ── A ficha (folha larga com abas) ──────────────────────────────────────── */
 const ABAS_FICHA = ['cadastro', 'operacao', 'mensagens', 'trajetoria', 'historico', 'acesso']
 
@@ -365,6 +439,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const [erro, setErro] = React.useState(null)
   const [termo, setTermo] = React.useState('')
   const [cadastroAberto, setCadastroAberto] = React.useState(false)
+  const [loteAberto, setLoteAberto] = React.useState(false)
   // Filtros e ficha aberta moram no endereço (reestruturação 29/09/2026):
   // um contador da Visão geral chega aqui já filtrado, e Voltar fecha a ficha.
   const f = rota.filtros
@@ -416,6 +491,8 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       .sort(ORDENS[ordem])
   }, [participantes, porMarca, termo, status, ordem, f.edicao])
 
+  // Lote: marcas com participação aberta e sem conta (arquivadas ficam de fora).
+  const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id)
   const participanteFicha = ficha && (participantes || []).find((p) => p.id === ficha.id)
   const totalNaoLidas = conversas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0)
 
@@ -450,6 +527,9 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
             </select>
           </label>
         </div>
+        {semAcesso.length > 0 && (
+          <button className="og-btn og-btn--vazado" type="button" disabled={!pode('marca.liberar')} onClick={() => setLoteAberto(true)}>Criar acesso em lote ({semAcesso.length})</button>
+        )}
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
       {f.edicao && (
@@ -502,6 +582,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         onFechar={() => setFicha(null)}
         onMudou={carregar}
       />
+      <FolhaAcessoEmLote aberto={loteAberto} marcas={semAcesso} onFechar={() => setLoteAberto(false)} onMudou={carregar} />
       <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
     </div>
   )
