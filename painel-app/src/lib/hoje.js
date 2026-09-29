@@ -36,6 +36,8 @@ export function proximosPassos({
   // resultado é o mesmo de antes):
   momento = 'indefinido', vendaHojeRegistrada = true, tema = null, combo = null,
   fotoLiberacao = null, prazoCombo = null,
+  // Etapa 7: pendências campo a campo (lib/cadastro.js pendenciasDeLinhas).
+  pendencias = [],
 } = {}) {
   const passos = []
   const feitos = []
@@ -83,7 +85,15 @@ export function proximosPassos({
   if (combo && combo.status === 'correcao_solicitada') {
     // o passo do ajuste já cobre o cadastro
   } else if (faltam.length) {
-    passos.push({ chave: 'cadastro', texto: 'Completar o cadastro', detalhe: 'Falta: ' + faltam.join(', ') + '.' + detalhePrazo, tom: prazoApertado ? 'urgente' : 'normal', destino: 'cadastro' })
+    const primeira = pendencias.find((x) => x.campo)
+    passos.push({
+      chave: 'cadastro',
+      texto: pendencias.length ? 'Seu cadastro tem ' + pendencias.length + (pendencias.length === 1 ? ' pendência' : ' pendências') : 'Completar o cadastro',
+      detalhe: (pendencias.length ? '' : 'Falta: ' + faltam.join(', ') + '.') + detalhePrazo || null,
+      tom: prazoApertado ? 'urgente' : 'normal',
+      destino: primeira ? 'cadastro/' + primeira.bloco + '/' + primeira.campo : 'cadastro',
+      pendencias,
+    })
   } else if (statusCadastro !== 'cadastro_completo') {
     passos.push({ chave: 'concluir', texto: 'Concluir o cadastro', detalhe: 'Está tudo preenchido. Toque em "Concluir cadastro" para entregar à organização.', tom: 'urgente', destino: 'cadastro' })
   } else {

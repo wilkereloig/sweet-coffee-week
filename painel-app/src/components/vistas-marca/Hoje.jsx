@@ -1,6 +1,7 @@
 import React from 'react'
 import { api } from '../../lib/marcaApi'
 import { blocosPendentes, chaveDia, proximosPassos } from '../../lib/hoje'
+import { pendenciasDeLinhas, linkDaPendencia } from '../../lib/cadastro'
 import { minhasSolicitacoes } from '../../lib/pedidosMarca'
 import { dataHoraExtensa, rotuloStatus } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
@@ -23,6 +24,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
   const [participacao, setParticipacao] = React.useState(null)
   const [vendas, setVendas] = React.useState([])
   const [faltam, setFaltam] = React.useState([])
+  const [pendencias, setPendencias] = React.useState([])
   const [pedidos, setPedidos] = React.useState({ pendentes: 0, prazo: null })
   const [sessoes, setSessoes] = React.useState([])
   const [arquivosParaLer, setArquivosParaLer] = React.useState(0)
@@ -72,6 +74,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
       ])
       setVendas(vendasLinhas || [])
       setFaltam(blocosPendentes({ participante, participacao: pa, itens: itens || [], unidades: unidades || [] }))
+      setPendencias(pendenciasDeLinhas({ participante, participacao: pa, itens: itens || [], unidades: unidades || [] }))
       const feitos = new Set((estados || []).filter((e) => e.estado === 'respondido').map((e) => e.solicitacao_id))
       const abertos = minhasSolicitacoes(solics || [], pa).filter((s) => !feitos.has(s.id))
       const prazos = abertos.map((s) => s.prazo_em).filter(Boolean).sort()
@@ -129,7 +132,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
   const prazoComboItem = itemDoCronograma(cronograma, 'combo', hoje)
   const { passos, feitos } = proximosPassos({
     semParticipacao: estado === 'sem-participacao',
-    faltam, statusCadastro: participacao ? participacao.status_cadastro : '',
+    faltam, pendencias, statusCadastro: participacao ? participacao.status_cadastro : '',
     pedidosPendentes: pedidos.pendentes, prazoMaisProximo: pedidos.prazo,
     msgsNaoLidas: contadores.mensagens || 0,
     sessao: minhaSessao, vagasAbertas: minhaSessao ? 0 : vagas, arquivosParaLer,
@@ -210,6 +213,19 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
                   ))}
                 </ol>
               )}
+            {/* Cada pendência do cadastro com o caminho direto até o campo. */}
+            {(passos.find((p) => p.chave === 'cadastro') || {}).pendencias?.length > 0 && (
+              <ul className="ui-pendencias" aria-label="Pendências do cadastro">
+                {passos.find((p) => p.chave === 'cadastro').pendencias.map((x, i) => (
+                  <li key={i}>
+                    <span>{x.texto}</span>
+                    {x.campo
+                      ? <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => abrirLink(linkDaPendencia(x))}>Resolver →</button>
+                      : <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => irPara('mensagens')}>Escrever →</button>}
+                  </li>
+                ))}
+              </ul>
+            )}
             {/* O que já foi feito é consulta, não tarefa: fica recolhido. */}
             {feitos.length > 0 && (
               <details className="ui-recolhe">

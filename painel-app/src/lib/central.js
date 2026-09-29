@@ -26,7 +26,7 @@ export function interpretarLink(link) {
   if (seg === 'respostas') return { vista, origem: a, id: b }
   if (seg === 'producao') return { vista, sub: a, id: b }
   if (seg === 'marcas') return { vista, id: a, sub: b }
-  if (seg === 'cadastro') return { vista, sub: a }
+  if (seg === 'cadastro') return b ? { vista, sub: a, campo: b } : { vista, sub: a }
   return a ? { vista, id: a } : { vista }
 }
 

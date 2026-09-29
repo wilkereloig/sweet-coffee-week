@@ -4,22 +4,21 @@ import { dataHoraExtensa } from '../../lib/central'
 import { dataCurta } from '../../lib/respostas'
 import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
-import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Vazio, Erro, Secao } from '../ui'
 import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
- * Arquivos (marca) — documentos publicados pela organização, confirmação de
- * leitura (quando o arquivo pede) e os avisos deste aparelho.
+ * Downloads (marca) — o que a organização publicou, por categoria, e a
+ * confirmação de leitura quando o arquivo pede. Os avisos do aparelho foram
+ * para o botão Conta (etapa 7, 29/09/2026).
  *
  * `arquivos`, `arquivo_leitura` e o id do participante são leituras À PARTE,
  * cada uma com o próprio catch — uma falhar não apaga a outra (§10.4-b).
  */
-export function Arquivos({ alvo, consumirAlvo }) {
+export function Arquivos({ alvo, consumirAlvo, irPara }) {
   const [arquivos, setArquivos] = React.useState(null)
   const [lidos, setLidos] = React.useState({})
   const [participacaoId, setParticipacaoId] = React.useState(null)
-  const [participanteId, setParticipanteId] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [baixando, setBaixando] = React.useState(null)
   const [confirmando, setConfirmando] = React.useState(null)
@@ -35,12 +34,10 @@ export function Arquivos({ alvo, consumirAlvo }) {
       setErro(e.message)
     }
     try {
-      const [p, pa, l] = await Promise.all([
-        api('participantes?select=id&order=created_at.desc&limit=1'),
+      const [pa, l] = await Promise.all([
         api('participacoes?select=id&order=created_at.desc&limit=1'),
         api('arquivo_leitura?select=arquivo_id,lido_em'),
       ])
-      setParticipanteId((p && p[0] && p[0].id) || null)
       setParticipacaoId((pa && pa[0] && pa[0].id) || null)
       setLidos(Object.fromEntries((l || []).map((x) => [x.arquivo_id, x.lido_em])))
     } catch { /* sem isso só perde a confirmação de leitura; a lista segue */ }
@@ -85,29 +82,6 @@ export function Arquivos({ alvo, consumirAlvo }) {
     } finally {
       setConfirmando(null)
     }
-  }
-
-  // Grava a assinatura do push pela tabela, sob RLS. O endpoint é UNIQUE e
-  // `update` está revogado de propósito — não dá upsert: apaga a linha antiga
-  // deste endpoint (a RLS só deixa apagar o que é desta marca) e insere.
-  async function registrarPush(a) {
-    if (!participanteId) throw new Error('Sua conta ainda não está ligada a uma marca.')
-    await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
-    await api('push_subscriptions', {
-      metodo: 'POST',
-      prefer: 'return=minimal',
-      corpo: {
-        papel: 'marca',
-        participante_id: participanteId,
-        endpoint: a.endpoint,
-        p256dh: a.p256dh,
-        auth_chave: a.auth,
-        user_agent: a.userAgent,
-      },
-    })
-  }
-  async function removerPush(endpoint) {
-    await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })
   }
 
   return (
@@ -157,12 +131,9 @@ export function Arquivos({ alvo, consumirAlvo }) {
           {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
         </Secao>
 
-        <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho: ligue em cada celular ou computador que você usa.">
-          <AvisosAparelho
-            explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado."
-            registrar={registrarPush}
-            remover={removerPush}
-          />
+        <Secao titulo="Guia de fotos" nota="Como preparar o combo para a sessão de fotos">
+          <p className="ui-nota">As regras da foto, o que fazer e o que evitar, e o que levar no dia.</p>
+          <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => irPara && irPara('fotos')}>Abrir o guia</button>
         </Secao>
       </div>
     </section>

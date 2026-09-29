@@ -61,3 +61,26 @@ test('canaisParaObjeto/canaisParaArray fazem a volta sem perder nem inventar can
   assert.deepEqual(canaisParaArray(obj), [{ tipo: 'whatsapp', link: 'https://wa.me/55' }])
   assert.deepEqual(canaisParaArray({}), [])
 })
+
+test('pendências campo a campo: cada uma diz o que falta e onde (etapa 7)', async () => {
+  const { pendenciasCadastro, linkDaPendencia, blocosPendentes } = await import('../painel-app/src/lib/cadastro.js')
+  const dados = {
+    marca: { nome_marca: 'Casa', responsavel: '', telefone: '84 9' },
+    tema: { tema_combo: 'Moana', tema_justificativa: '' },
+    itens: [
+      { tipo: 'doce', posicao: 1, nome: 'Bolo', descricao: 'x', ingredientes: 'y' },
+      { tipo: 'salgado', posicao: 2, nome: 'Coxinha', descricao: '', ingredientes: '' },
+      { tipo: 'bebida', posicao: 3, nome: 'Café', descricao: 'x', ingredientes: 'y' },
+    ],
+    unidades: [{ endereco: '' }],
+    precoStr: '',
+  }
+  const p = pendenciasCadastro(dados)
+  assert.deepEqual(p.map((x) => [x.bloco, x.campo]), [[0, 'responsavel'], [1, 'tema_justificativa'], [2, 'item-2-descricao'], [3, 'combo_preco'], [4, 'unidade-endereco']])
+  assert.equal(p[2].texto, 'Completar o salgado: descrição, ingredientes')
+  assert.equal(linkDaPendencia(p[2]), 'cadastro/2/item-2-descricao')
+  // A regra é a mesma dos blocos: bloco com pendência = bloco pendente.
+  assert.equal(new Set(p.map((x) => x.bloco)).size, blocosPendentes(dados).length)
+  const completo = { ...dados, marca: { ...dados.marca, responsavel: 'Ana' }, tema: { ...dados.tema, tema_justificativa: 'j' }, itens: dados.itens.map((i) => ({ ...i, descricao: 'd', ingredientes: 'i' })), unidades: [{ endereco: 'Rua 1' }], precoStr: '29,90' }
+  assert.deepEqual(pendenciasCadastro(completo), [])
+})
