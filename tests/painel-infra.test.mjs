@@ -1024,8 +1024,14 @@ test('Producao.jsx: toda escrita pede producao.gerir — vaga, pedido, publicar,
   // propósito — uma contagem "pelo menos N" não pega UM controle esquecido
   // (confirmado por mutação: tirar 1 dos 12 originais não derrubava o teste
   // quando o piso era "pelo menos 9").
+  // Etapa 4 (29/09/2026): o botão "Publicar arquivo" saiu daqui para o módulo
+  // Arquivos (ArquivosOrg.jsx), que guarda as escritas pelo mesmo podeGerir.
   const ocorrencias = (semC.match(/!podeGerir/g) || []).length
-  assert.equal(ocorrencias, 16, 'esperava exatamente 16 usos de !podeGerir em Producao.jsx, achei ' + ocorrencias)
+  assert.equal(ocorrencias, 15, 'esperava exatamente 15 usos de !podeGerir em Producao.jsx, achei ' + ocorrencias)
+  const arq = semComentarios(ler('painel-app/src/components/vistas/ArquivosOrg.jsx'))
+  assert.match(arq, /const podeGerir = pode\('producao\.gerir'\)/)
+  assert.match(arq, /disabled=\{!podeGerir\} onClick=\{\(\) => setFolha\(\{ tipo: 'novo' \}\)\}/)
+  assert.ok(/podeGerir && !a\.arquivado/.test(arq), 'editar/substituir/arquivar precisam de producao.gerir')
   // Texto VISÍVEL, não só title — botão disabled não recebe hover/foco de
   // teclado (pointer-events:none no CSS), achado de revisão adversarial.
   assert.match(semC, /!podeGerir && \(/, 'falta o banner visível de "sua função não gerencia produção"')

@@ -50,3 +50,8 @@ test('linkDeAlvo traduz o irPara antigo', async () => {
   assert.deepEqual(rotaDoLink(linkDeAlvo('respostas')), { vista: 'participantes', aba: 'candidaturas', filtros: {} })
   assert.deepEqual(rotaDoLink(linkDeAlvo('producao')), { vista: 'operacao', aba: 'pedidos', filtros: {} })
 })
+
+test('link de arquivo não vira nome de aba', () => {
+  assert.deepEqual(rotaDoLink('arquivos/abc-123'), { vista: 'arquivos', aba: 'gerais', filtros: { item: 'abc-123' } })
+  assert.deepEqual(rotaDoLink('arquivos/arquivados'), { vista: 'arquivos', aba: 'arquivados', filtros: {} })
+})
