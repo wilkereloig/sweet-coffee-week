@@ -3088,6 +3088,47 @@ Relatório completo, divergências e pendências em
   com escopo local, login por OAuth em `/mcp`. `verify_jwt: false` nas quatro
   (a autorização é o próprio código).
 
+#### Reestruturação do painel — 29/09/2026 (Fase 13)
+
+Pedido do Wilker: organizar o painel por assunto. Spec em
+`docs/superpowers/specs/2026-09-29-painel-reestruturacao-design.md`, plano em
+`docs/superpowers/plans/2026-09-29-painel-reestruturacao.md`. O que passou a valer:
+
+- **Organização: 7 módulos** (`components/Modulos.jsx`), cada um com abas:
+  Visão geral · Participantes (Marcas, Candidaturas, Temas, Vendas) · Contatos
+  (Pessoas, Press Kit, Vouchers, Recebidos do site) · Operação (Pedidos, Fotos,
+  Materiais) · Arquivos (para todas, por participante, Guia de fotos,
+  arquivados) · Edição (Configuração com a edição atual, Todas as edições) ·
+  Administração (Equipe, Revisão, Importações, Histórico, Formulários).
+  **Marca: 5 destinos** (Hoje, Cadastro, Pedidos, Mensagens, Downloads) + botão
+  Conta (avisos do aparelho e sair).
+- **A tela mora no endereço, depois do `#`** (`lib/rota.js`):
+  `#participantes/lista?item=<id>&sub=mensagens`. Recarregar volta ao lugar,
+  Voltar fecha a ficha, contador da Visão geral abre a lista filtrada. Links
+  antigos gravados no banco (`marcas/…`, `producao/…`, `respostas/…`,
+  `edicao/temas`) seguem valendo por `rotaDoLink`. ⛔ Nada de biblioteca de rota.
+- **Status: uma fonte só** (`lib/status.js`, rótulo + tom). Os `ROTULO_*`
+  antigos derivam dela. ⚠️ Status novo num CHECK entra lá no mesmo commit — o
+  teste `painel-app-status` compara com os CHECKs.
+- **Excluir = arquivar + restaurar** (decisão do Wilker). Exclusão definitiva
+  só de resposta de formulário, como antes.
+- **O administrador edita o cadastro da marca** (ação `cadastro.editar`, só
+  Administrador), em blocos, pelas RPCs `org_salvar_*`, com antes/depois na
+  auditoria. ⚠️ Nome de marca COM conta só muda de grafia: o nome é o login.
+- **Arquivos têm categoria** (combo · identidade · guia · documento · outro),
+  editar, substituir (mesma pasta, versão +1) e arquivar.
+- **Contatos: várias categorias por pessoa** (`categorias text[]`; `tipo`
+  segue como a primeira, por gatilho). Press Kit ganha responsável pelo envio
+  e recebimento; "constou na lista" aparece como **Sugerido** e "confirmado"
+  como **Preparando**.
+- **Vouchers:** cada marca da edição cede `edicoes.vouchers_por_participante`
+  (padrão 7) vouchers, código `SCW-XXXXX`, válido só nela. A organização gera,
+  destina e marca o envio; **a marca registra o uso** pelo código. ⛔ A marca
+  não lê a tabela `vouchers` — se visse os códigos não usados, poderia "usar"
+  sozinha; ela recebe contagem e os que ela mesma usou (`marca_meus_vouchers`).
+- **Pendências da marca campo a campo** (`pendenciasCadastro`, mesma regra dos
+  blocos): cada uma abre o bloco e põe o cursor no campo (`campo-<campo>`).
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
