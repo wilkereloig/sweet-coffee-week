@@ -91,7 +91,8 @@ export function Bloco({
 
   const textos = campos.filter((c) => !ehSimNao(c)).map((c) => [c, mostrar(c, valores[c.chave])]).filter(([, v]) => v)
   const chips = campos.filter(ehSimNao).map((c) => [c, mostrar(c, valores[c.chave])]).filter(([, v]) => v)
-  const vazio = !textos.length && !chips.length
+  // Sim/não nasce "não" no banco (default false): não conta como preenchido.
+  const vazio = !textos.length
   const selo = status !== undefined ? status
     : comStatus ? (vazio ? <Selo tom="atencao">Pendente</Selo> : <Selo tom="ok">Preenchido</Selo>) : null
   const acaoEditar = podeEditar && !editando && (
@@ -108,7 +109,7 @@ export function Bloco({
               {textos.map(([c, v]) => <div className="ui-dado" key={c.chave}><dt>{c.rotulo}</dt><dd>{v}</dd></div>)}
             </dl>
           )}
-          {chips.length > 0 && <Chips rotulo={titulo} itens={chips.map(([c, v]) => ({ rotulo: c.rotulo, valor: v, sim: v === 'sim' }))} />}
+          {!vazio && chips.length > 0 && <Chips rotulo={titulo} itens={chips.map(([c, v]) => ({ rotulo: c.rotulo, valor: v, sim: v === 'sim' }))} />}
           {vazio && <p className="ui-nota">Nenhuma informação cadastrada.</p>}
         </>
       )}

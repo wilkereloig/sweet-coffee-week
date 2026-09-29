@@ -57,7 +57,9 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
     try { setInfo(await adaptador.carregar()); setErro(null) } catch (e) { setErro(erroLegivel(e)) }
   }, [adaptador])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => () => { if (escolha && escolha.url) URL.revokeObjectURL(escolha.url) }, [escolha])
+  // Revoga a prévia só quando ELA muda (anexar o vetor não troca a imagem).
+  const urlPrevia = escolha && escolha.url
+  React.useEffect(() => () => { if (urlPrevia) URL.revokeObjectURL(urlPrevia) }, [urlPrevia])
 
   async function depois(texto) {
     setEscolha(null); setEnviando(false); setAviso({ ok: true, texto })
@@ -111,6 +113,8 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
 
   return (
     <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}>
+      {/* Sempre montado: "Trocar arquivo" da prévia também usa este campo. */}
+      <input ref={inputRef} className="ui-oculto" type="file" accept={ACEITA_EXIBICAO} tabIndex={-1} aria-hidden="true" onChange={(e) => { aoEscolher(e.target.files[0]); e.target.value = '' }} />
       <div className="ui-logo-editor__topo">
         <LogoMarca url={urlLogo(atual && atual.path)} nome={nomeMarca} tamanho={96} />
         <div className="ui-logo-editor__texto">
@@ -162,7 +166,6 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
               <p className="ui-nota">De preferência SVG ou PNG com fundo transparente. Evite print, imagem de rede social, foto da logo ou arquivo pixelado.</p>
             </>
           )}
-          <input ref={inputRef} className="ui-oculto" type="file" accept={ACEITA_EXIBICAO} onChange={(e) => { aoEscolher(e.target.files[0]); e.target.value = '' }} />
           <div className="ui-acoes">
             <Botao icone="imagem" variante={estado === 'confirmada' && !enviando ? 'secundario' : undefined} onClick={() => inputRef.current && inputRef.current.click()}>
               {estado === 'confirmada' ? 'Trocar logo' : 'Selecionar arquivo'}
