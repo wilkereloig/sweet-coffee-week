@@ -164,6 +164,31 @@ export async function marcarSenhaTrocada(fetchImpl = fetch) {
 }
 
 /**
+ * Sobe a logo da própria marca direto no bucket público `logos` (29/09/2026).
+ * Quem decide se pode é a policy do Storage (só a pasta `<participante>/` da
+ * conta, e só com a conta ativa) — não uma chave escondida na página. Nunca
+ * por cima: `x-upsert: false`, cada versão é um arquivo novo.
+ */
+export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
+  const atual = lerSessao()
+  const viva = await renovarCompartilhado(atual, fetchImpl)
+  if (!viva) sessaoMorta()
+  if (viva !== atual) salvarSessao(viva)
+  const r = await fetchImpl(SUPABASE_URL + '/storage/v1/object/logos/' + caminho, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': tipo, 'x-upsert': 'false' },
+    body: arquivo,
+  })
+  if (r.status === 401) sessaoMorta()
+  if (!r.ok) {
+    let dados = null
+    try { dados = await r.json() } catch { /* sem corpo */ }
+    throw new Error((dados && (dados.message || dados.error)) || ('http_' + r.status))
+  }
+  return caminho
+}
+
+/**
  * URL assinada para baixar um arquivo do bucket privado 'arquivos' — porta
  * fiel de `baixar()` em public/painel/index.html (~5166-5186). Assina com o
  * TOKEN DA PRÓPRIA MARCA via storage direto: quem decide se ela pode baixar

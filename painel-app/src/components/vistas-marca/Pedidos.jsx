@@ -4,7 +4,6 @@ import { minhasSolicitacoes, prazoTexto } from '../../lib/pedidosMarca'
 import { dataHoraExtensa } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, traduzirErro } from '../ui'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 import { blocoDoCampo, linkDoCampo } from '../../lib/guia'
 
 /*
@@ -122,7 +121,7 @@ export function Pedidos({ alvo, consumirAlvo, abrirLink, recarregarResumo }) {
 
   return (
     <section className="ui-vista-marca">
-      <VistaCabeca acento="laranja" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.pedidos} titulo="Pedidos" nota="O que a organização pediu, até quando, e a sua resposta" />
+      <VistaCabeca acento="laranja" icone="pedidos" titulo="Pedidos" nota="O que a organização pediu, até quando, e a sua resposta" />
 
       {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={() => { setCarregando(true); carregar() }} />}
       {!erro && carregando && <Carregando linhas={3} />}

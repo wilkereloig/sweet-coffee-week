@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from '../Icone'
 import { agruparTemas, textoPrazo, diasAte, dataDoItem } from '../../lib/operacao'
 import { chaveDia } from '../../lib/hoje'
 import { rpc } from '../../lib/rpc'
@@ -18,19 +19,7 @@ import { Carregando, Erro, Secao } from '../ui'
  * Só LEITURA e navegação: nenhum cartão escreve nada. Quem muda status é a
  * ficha (Respostas/Marcas), com a permissão de cada ação.
  */
-const ICONE_ETAPA = {
-  novas: <><path d="M7.4 4.6h17.2a2 2 0 0 1 2 2v18.8a2 2 0 0 1-2 2H7.4a2 2 0 0 1-2-2V6.6a2 2 0 0 1 2-2Z" /><path d="M10.6 11.4h10.8M10.6 16h10.8M10.6 20.6h5.4" strokeWidth="2.4" /></>,
-  analise: <><path d="M4.6 8.6h22.8a2 2 0 0 1 2 2v10.8a2 2 0 0 1-2 2H4.6a2 2 0 0 1-2-2V10.6a2 2 0 0 1 2-2Z" /><circle cx="10" cy="16" r="2.2" fill="currentColor" stroke="none" /><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none" /><circle cx="22" cy="16" r="2.2" fill="currentColor" stroke="none" /></>,
-  contatadas: <><path d="M28.4 4.6 3.6 14.4l9.2 3.6 3.6 9.2Z" /><path d="M28.4 4.6 12.8 18" strokeWidth="2.4" /></>,
-  aprovadas: <><circle cx="16" cy="16" r="12.2" strokeDasharray="0.1 6.2" /><path d="M10.8 16.4l4.2 4.2 6.6-8" /></>,
-  acesso: <><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z" /><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4" /></>,
-  completas: <><circle cx="16" cy="16" r="11.8" /><path fill="currentColor" stroke="none" d="M16 8.2c1.4 4 3.6 6.2 7.6 7.6-4 1.4-6.2 3.6-7.6 7.6-1.4-4-3.6-6.2-7.6-7.6 4-1.4 6.2-3.6 7.6-7.6Z" /></>,
-}
-const ICONE_COMBO = [
-  <><path d="M7 13.4a9 9 0 0 1 18 0Z" /><path d="M7.8 13.4h16.4l-2 11.6a2.2 2.2 0 0 1-2.2 1.8h-8a2.2 2.2 0 0 1-2.2-1.8Z" /></>,
-  <><circle cx="11.4" cy="18.4" r="7.6" /><circle cx="22.4" cy="12" r="6.4" /></>,
-  <><path d="M6 12h13.6v4.4a6.8 6.8 0 0 1-13.6 0Z" /><path d="M19.6 13.8h2.2a2.8 2.8 0 0 1 0 5.6h-2.2" /><path d="M4.4 27.8h17.2" /></>,
-]
+const ICONE_COMBO = ['item-doce', 'item-salgado', 'item-bebida']
 const ROTULO_COMBO = ['doce', 'salgado', 'bebida']
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
@@ -185,7 +174,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                 <div className="og-mesa__col" key={e.chave}>
                   <div className="og-mesa__cabeca">
                     <span className="og-mesa__disco" style={{ background: e.cor, color: e.tinta }} aria-hidden="true">
-                      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ICONE_ETAPA[e.chave]}</svg>
+                      <Icone nome={'etapa-' + e.chave} tamanho={20} />
                     </span>
                     <span>
                       <span className="og-mesa__nome">{e.nome}</span>
@@ -213,7 +202,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                               <span className="ui-oculto">{it.itensProntos} de 3 itens do combo prontos</span>
                               {[0, 1, 2].map((i) => (
                                 <span key={i} title={ROTULO_COMBO[i]} className={i < it.itensProntos ? 'is-pronto' : ''}>
-                                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_COMBO[i]}</svg>
+                                  <Icone nome={ICONE_COMBO[i]} tamanho={16} />
                                 </span>
                               ))}
                             </span>

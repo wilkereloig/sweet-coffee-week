@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from './Icone'
 import { NivelTitulo } from './ui'
 
 /*
@@ -88,7 +89,7 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
             {sub && <p>{sub}</p>}
           </div>
           <button className="og-detalhe__fechar" type="button" aria-label="Fechar" onClick={onFechar}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            <Icone nome="fechar" tamanho={20} />
           </button>
         </div>
         <div className="og-detalhe__rolo">

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Central } from './Central'
+import { Icone } from './Icone'
 import { AbasCelular } from './AbasCelular'
 import { rpc } from '../lib/rpc'
 import { lerRota, montarRota, rotaDoLink, linkDeAlvo, ABA_INICIAL } from '../lib/rota'
@@ -28,29 +29,17 @@ const ROTULO_CURTO = { visao: 'visão', participantes: 'participantes', contatos
 // Uma cor da paleta fechada por módulo, nenhuma repetida (CLAUDE.md §6.3).
 export const ACENTO_VISTA = { visao: 'amarelo', participantes: 'roxo', contatos: 'cyan', operacao: 'laranja', arquivos: 'magenta', edicao: 'choco', admin: 'marrom' }
 
-// Exportado: é a mesma peça que VistaCabeca usa no topo de cada módulo
-// (§5.3 — não duplicar o SVG por página).
-export const ICONE = {
-  visao: <><path d="M5 20V11" /><path d="M12 20V5" /><path d="M19 20v-6" /><path d="M3.5 20h17" /></>,
-  participantes: <><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3A4.5 4.5 0 0 1 16 18.5V20" /><circle cx="10" cy="7.5" r="3.5" /><path d="M17.5 13.5h4" /><path d="M19.5 11.5v4" /></>,
-  operacao: <><path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16" /><rect x="8.5" y="2.5" width="7" height="3.5" rx="1.2" /><path d="m8.5 12 2 2 3.5-3.5" /><path d="M8.5 17h5" /></>,
-  admin: <>
-    <circle cx="9" cy="8" r="3" /><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2" />
-    <circle cx="16.5" cy="15.5" r="2.5" /><path d="M16.5 11.5v1.2" /><path d="M16.5 18.3v1.2" />
-    <path d="m13.6 13.2.9.6" /><path d="m18.5 16.7.9.6" />
-  </>,
-  edicao: <><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 9.5h17" /><path d="M8 3v4" /><path d="M16 3v4" /><path d="M7.5 13.5h3" /><path d="M7.5 16.5h6" /></>,
-  contatos: <><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10Z" /></>,
-  arquivos: <><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4.2l2 2.2H19a1.5 1.5 0 0 1 1.5 1.5v8.8A1.5 1.5 0 0 1 19 20H5a1.5 1.5 0 0 1-1.5-1.5Z" /><path d="M12 11.5v5" /><path d="m9.8 14.5 2.2 2.2 2.2-2.2" /></>,
-  fotos: <><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" /><circle cx="12" cy="13" r="3.5" /></>,
-  respostas: <><path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12Z" /><path d="M9 11h6" /><path d="M9 14.5h3.5" /></>,
-}
-// Nomes antigos continuam valendo para quem ainda importa o ícone por eles.
-ICONE.mesa = ICONE.visao
-ICONE.producao = ICONE.operacao
-ICONE.equipe = ICONE.admin
-const ICONE_SAIR = <><path d="M8.6 17.6 15 11l-6.4-6.6" /><path d="M15 11H3.4" /><path d="M18.6 4.4v13.2" /></>
-const ICONE_ATUALIZAR = <><path d="M4.6 12a7.4 7.4 0 0 1 12.6-5.2l1.8 1.7" /><path d="M19 4.6v4.4h-4.4" /><path d="M19.4 12a7.4 7.4 0 0 1-12.6 5.2l-1.8-1.7" /><path d="M5 19.4V15h4.4" /></>
+// Ícone de cada módulo: nome no registro único (components/Icone.jsx) —
+// a mesma peça na rail, na barra do celular e no topo do módulo.
+export const ICONE_DESTINO = { visao: 'visao', participantes: 'participantes', contatos: 'contatos', operacao: 'operacao', arquivos: 'pasta', edicao: 'edicao', admin: 'admin' }
+// Menu por assunto (reconstrução visual, 29/09/2026): o grupo aparece como
+// rótulo na rail larga (≥1280px) e como separador na estreita.
+const GRUPOS = [
+  ['Operação', ['visao', 'participantes', 'operacao']],
+  ['Relacionamento', ['contatos']],
+  ['Conteúdo', ['arquivos']],
+  ['Administração', ['edicao', 'admin']],
+]
 
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
@@ -199,23 +188,30 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
     <div id="painel">
       <nav className="pn-rail" aria-label="Seções do painel">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
-        {visiveis.map((d) => (
-          <button
-            key={d}
-            className="pn-rail__btn"
-            type="button"
-            aria-label={TITULOS[d][0]}
-            aria-current={d === vista ? 'page' : undefined}
-            onClick={() => navegar({ vista: d })}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              {ICONE[d]}
-            </svg>
-            <span className="pn-rail__rotulo">{TITULOS[d][0]}</span>
-          </button>
-        ))}
+        {GRUPOS.map(([nome, ds]) => {
+          const doGrupo = ds.filter((d) => visiveis.includes(d))
+          if (!doGrupo.length) return null
+          return (
+            <div className="pn-rail__grupo" role="group" aria-label={nome} key={nome}>
+              <span className="pn-rail__grupo-nome" aria-hidden="true">{nome}</span>
+              {doGrupo.map((d) => (
+                <button
+                  key={d}
+                  className="pn-rail__btn"
+                  type="button"
+                  aria-label={TITULOS[d][0]}
+                  aria-current={d === vista ? 'page' : undefined}
+                  onClick={() => navegar({ vista: d })}
+                >
+                  <Icone nome={ICONE_DESTINO[d]} tamanho={24} />
+                  <span className="pn-rail__rotulo">{TITULOS[d][0]}</span>
+                </button>
+              ))}
+            </div>
+          )
+        })}
         <button className="pn-rail__sair" type="button" aria-label="Sair" onClick={onSair}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_SAIR}</svg>
+          <Icone nome="sair" tamanho={24} />
           <span className="pn-rail__rotulo">Sair</span>
         </button>
       </nav>
@@ -235,7 +231,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
             </p>
           )}
           <button className="pn-cabeca__btn" type="button" aria-label="Atualizar" onClick={atualizar}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_ATUALIZAR}</svg>
+            <Icone nome="atualizar" tamanho={20} />
           </button>
           <Central
             itens={avisos}
@@ -250,7 +246,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
           />
           {/* Sair só aparece aqui ≤900px (CSS por id) — no desktop a rail já tem o dela. */}
           <button className="pn-cabeca__btn" type="button" id="btn-sair" aria-label="Sair" onClick={onSair}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_SAIR}</svg>
+            <Icone nome="sair" tamanho={20} />
           </button>
         </div>
       </header>
@@ -270,11 +266,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
         titulo={(d) => TITULOS[d][0]}
         descricao={(d) => TITULOS[d][1]}
         acento={(d) => ACENTO_VISTA[d]}
-        icone={(d) => (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {ICONE[d]}
-          </svg>
-        )}
+        icone={(d) => <Icone nome={ICONE_DESTINO[d]} tamanho={24} />}
         onIr={(d) => navegar({ vista: d })}
       />
     </div>

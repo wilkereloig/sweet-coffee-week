@@ -1,5 +1,5 @@
 import React from 'react'
-import { ICONE as ICONE_ORG } from './PainelShell'
+import { Icone } from './Icone'
 import { Central } from './Central'
 import { AbasCelular } from './AbasCelular'
 import { api, precisaTrocarSenha } from '../lib/marcaApi'
@@ -35,23 +35,6 @@ const SUBS = {
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
 const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta' }
 
-export const ICONE_MARCA = {
-  inicio: <><path d="M4.6 15.4 16 5.4l11.4 10" /><path d="M8 12.6v13.2h16V12.6" /><path d="M13.4 25.8v-6.6h5.2v6.6" /></>,
-  combo: <><path d="M6.4 12.4h15.2v6.2a6.8 6.8 0 0 1-6.8 6.8h-1.6a6.8 6.8 0 0 1-6.8-6.8Z" /><path d="M21.6 14.4h1.8a3.4 3.4 0 0 1 0 6.8h-2.2" /><path d="M11.4 4.6c-1.2 1.5 1.2 2.6 0 4.2M16.4 4.6c-1.2 1.5 1.2 2.6 0 4.2" /></>,
-  cadastro: <>
-    <path d="M6.6 6.4h18.8a2 2 0 0 1 2 2v15.2a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V8.4a2 2 0 0 1 2-2Z" />
-    <rect x="8.4" y="10.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" stroke="none" />
-    <path d="M18.8 11.6h5.2M18.8 15.8h5.2M8.4 21.6h15.6" strokeWidth="2.4" />
-  </>,
-  pedidos: <><path d="M16 5.2 28.8 26.8H3.2L16 5.2Z" /><path d="M16 13v5.6" /><circle cx="16" cy="22.6" r="1.5" fill="currentColor" stroke="none" /></>,
-  mensagens: <><path d="M26.6 16a10 10 0 0 1-14.5 8.9L5.4 26.6l1.7-5.5A10 10 0 1 1 26.6 16Z" /><path d="M11.4 14.6h9.2M11.4 19h5.6" /></>,
-  arquivos: <><path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" /></>,
-  // O desenho é o da organização (grade 24); a escala leva à grade 32.
-  fotos: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
-  guia: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
-}
-
-const ICONE_CONTA = <><circle cx="12" cy="8.2" r="3.6" /><path d="M4.8 20v-1.2A5.2 5.2 0 0 1 10 13.6h4a5.2 5.2 0 0 1 5.2 5.2V20" /></>
 
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
@@ -209,16 +192,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             aria-current={d === vista ? 'page' : undefined}
             onClick={() => irPara(d)}
           >
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              {ICONE_MARCA[d]}
-            </svg>
+            <Icone nome={d} tamanho={24} />
             <span className="pn-rail__rotulo">{TITULOS[d]}</span>
             {contadores[d] > 0 && <span className="pn-badge" aria-hidden="true">{contadores[d]}</span>}
             {pronto(d) && <span className="pn-badge pn-badge--ok" aria-hidden="true">✓</span>}
           </button>
         ))}
         <button className="pn-rail__sair" type="button" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_CONTA}</svg>
+          <Icone nome="conta" tamanho={24} />
           <span className="pn-rail__rotulo">Conta</span>
         </button>
       </nav>
@@ -246,7 +227,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
               desktop, no pé da rail. */}
           <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_CONTA}</svg>
+            <Icone nome="conta" tamanho={20} />
           </button>
         </div>
       </header>
@@ -283,9 +264,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         acento={(d) => ACENTO_VISTA[d]}
         contadores={contadores}
         icone={(d) => (
-          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {ICONE_MARCA[d]}
-          </svg>
+          <Icone nome={d} tamanho={24} />
         )}
         onIr={(d) => irPara(d)}
       />

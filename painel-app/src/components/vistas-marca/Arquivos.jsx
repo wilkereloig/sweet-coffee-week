@@ -5,7 +5,6 @@ import { dataCurta } from '../../lib/respostas'
 import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, Secao } from '../ui'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
  * Arquivos (marca) — o que a organização publicou, por categoria, e a
@@ -141,7 +140,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
 
   return (
     <section className="ui-vista-marca">
-      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="Marca do festival, guias e documentos" />
+      <VistaCabeca acento="marrom" icone="arquivos" titulo="Arquivos" nota="Marca do festival, guias e documentos" />
       {lista}
     </section>
   )

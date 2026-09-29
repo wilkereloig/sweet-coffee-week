@@ -4,7 +4,6 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Secao } from '../ui'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 import { Arquivos } from './Arquivos'
 
 /*
@@ -58,7 +57,7 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
 
   return (
     <section className="ui-vista-marca">
-      <VistaCabeca acento="magenta" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.fotos} titulo="Fotos" nota="Sessão de fotos, fotos oficiais e o guia" />
+      <VistaCabeca acento="magenta" icone="fotos" titulo="Fotos" nota="Sessão de fotos, fotos oficiais e o guia" />
       <div className="ui-grade-duas">
         <Secao titulo="Sessão de fotos" nota="Quem fotografa é a organização. Data e local são definidos por ela.">
           {sessoes === null && <Carregando linhas={2} />}

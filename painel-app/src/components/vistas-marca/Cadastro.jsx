@@ -1,10 +1,10 @@
 import React from 'react'
+import { Icone } from '../Icone'
 import { api, registrarPendente } from '../../lib/marcaApi'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos } from '../../lib/guia'
 import { Carregando, Erro, Vazio } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 import {
   TIPOS, ROTULO_TIPO, CANAIS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
   precoNumero, blocoCompleto,
@@ -45,13 +45,7 @@ function Correcao({ e }) {
  * salvamento sem voltar ao início.
  */
 
-const ICONE_BLOCO = [
-  <><path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z" /><path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4" /></>,
-  <><path d="M16 4.4a8.4 8.4 0 0 1 4.9 15.2v2.6h-9.8v-2.6A8.4 8.4 0 0 1 16 4.4Z" /><path d="M12.2 24.4h7.6M13.4 27.6h5.2" strokeWidth="2.4" /></>,
-  <><path fill="currentColor" stroke="none" d="M2.6 17h7.4l-.8 4.6a1.3 1.3 0 0 1-1.3 1.1H4.7a1.3 1.3 0 0 1-1.3-1.1Z" /><circle cx="6.3" cy="14" r="3.4" fill="currentColor" stroke="none" /><path fill="currentColor" stroke="none" d="M12 22.6 16.2 10.2l4.2 12.4Z" /><path fill="currentColor" stroke="none" d="M22.6 14.6h7.6l-1 6.8a1.4 1.4 0 0 1-1.4 1.2h-2.8a1.4 1.4 0 0 1-1.4-1.2Z" /><path d="M1.6 25.8h28.8" /></>,
-  <><path d="M27.4 15.6 16.4 26.6a2.2 2.2 0 0 1-3.1 0L5.4 18.7a2.2 2.2 0 0 1 0-3.1L16.4 4.6h9.9a1.1 1.1 0 0 1 1.1 1.1Z" /><circle cx="21.8" cy="10.2" r="2.2" fill="currentColor" stroke="none" /></>,
-  <><path d="M16 28.4s8.6-9.6 8.6-15.6a8.6 8.6 0 1 0-17.2 0c0 6 8.6 15.6 8.6 15.6Z" /><rect x="12.4" y="9.2" width="7.2" height="7.2" rx="2" fill="currentColor" stroke="none" /></>,
-]
+const ICONE_BLOCO = ['bloco-marca', 'bloco-tema', 'bloco-itens', 'bloco-preco', 'bloco-local']
 const TITULO_BLOCO = [
   { b: '01 · A marca', s: 'Quem participa' },
   { b: '02 · O tema', s: 'Sua leitura do tema da edição' },
@@ -66,7 +60,7 @@ function Bloco({ indice, aberto, completo, onToggle, children }) {
     <div className={'mc-bloco' + (aberto ? ' is-aberto' : '') + (completo ? ' is-pronto' : '')} data-bloco={indice}>
       <button type="button" className="mc-bloco__cabeca" aria-expanded={aberto} aria-controls={'bloco-' + indice} onClick={onToggle}>
         <span className="mc-bloco__disco" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">{ICONE_BLOCO[indice]}</svg>
+          <Icone nome={ICONE_BLOCO[indice]} tamanho={24} />
         </span>
         <span className="mc-bloco__texto"><b>{t.b}</b><span>{t.s}</span></span>
         <span className={'selo' + (completo ? ' completo' : '')}>{completo ? 'Pronto' : 'Pendente'}</span>
@@ -456,7 +450,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   return (
     <>
       <VistaCabeca
-        acento={ehCombo ? 'laranja' : 'cyan'} viewBox="0 0 32 32" strokeWidth={2.2} icone={ehCombo ? ICONE_MARCA.combo : ICONE_MARCA.cadastro}
+        acento={ehCombo ? 'laranja' : 'cyan'} icone={ehCombo ? 'combo' : 'cadastro'}
         titulo={ehCombo ? 'Meu combo' : 'Meu cadastro'}
         nota={semParticipacao ? 'Área da marca' : (marca.nome_marca || 'Sua marca') + ' · edição ' + edicaoCodigo}
       />

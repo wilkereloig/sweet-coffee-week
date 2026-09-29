@@ -1,7 +1,7 @@
 import React from 'react'
 import { VistaCabeca } from './VistaCabeca'
 import { Abas } from './ui'
-import { ACENTO_VISTA, ICONE, TITULOS } from './PainelShell'
+import { ACENTO_VISTA, ICONE_DESTINO, TITULOS } from './PainelShell'
 import { Mesa, Formularios } from './vistas/Mesa'
 import { Marcas } from './vistas/Marcas'
 import { Respostas } from './vistas/Respostas'
@@ -29,7 +29,7 @@ function Modulo({ id, rota, navegar, abas, nota }) {
   const ativa = visiveis.find((a) => a.chave === rota.aba) || visiveis[0]
   return (
     <section className="og-vista">
-      <VistaCabeca acento={ACENTO_VISTA[id]} icone={ICONE[id]} titulo={TITULOS[id][0]} nota={nota || TITULOS[id][1]} />
+      <VistaCabeca acento={ACENTO_VISTA[id]} icone={ICONE_DESTINO[id]} titulo={TITULOS[id][0]} nota={nota || TITULOS[id][1]} />
       {visiveis.length > 1 && (
         <Abas
           rotulo={'Seções de ' + TITULOS[id][0]}

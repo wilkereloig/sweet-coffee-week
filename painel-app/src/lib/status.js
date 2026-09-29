@@ -171,6 +171,13 @@ export const STATUS = {
     corrigida: s('Corrigida, em análise', 'andamento'),
     resolvida: s('Resolvida', 'ok'),
   },
+  // Logo do estabelecimento (logo_info no banco, 29/09/2026) — derivado, não CHECK.
+  logo: {
+    confirmada: s('Logo confirmada', 'ok'),
+    anterior: s('Logo de edição anterior', 'andamento'),
+    acervo: s('Logo do acervo disponível', 'andamento'),
+    nao_enviada: s('Logo pendente', 'atencao'),
+  },
   prioridade: {
     normal: s('Normal', 'neutro'),
     importante: s('Importante', 'atencao'),
