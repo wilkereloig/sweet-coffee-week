@@ -5,10 +5,8 @@ import {
   ROTULO_STATUS, RECADO_APAGAR, RECADO_ACESSO,
 } from '../../lib/respostas'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
-import { ICONE } from '../PainelShell'
 import { Carregando, Vazio, Erro } from '../ui'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
@@ -195,19 +193,24 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
   )
 }
 
-export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true, alvo, consumirAlvo }) {
+// `origens`: quais formulários esta lista mostra. Candidaturas (Participantes)
+// é só o "Quero participar"; Recebidos do site (Contatos) é Apoiar + Contato.
+export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, origens = Object.keys(ORIGENS) }) {
   const [dados, setDados] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
-  const [aba, setAba] = React.useState('tudo')
-  const [status, setStatus] = React.useState('')
   const [dias, setDias] = React.useState('')
   const [termo, setTermo] = React.useState('')
-  const [selecionado, setSelecionado] = React.useState(null) // { origem, reg }
+  // Formulário, status e ficha aberta moram no endereço.
+  const f = rota.filtros
+  const mudar = (novos, substituir = true) => navegar({ filtros: { ...f, ...novos } }, { substituir })
+  const aba = origens.length === 1 ? origens[0] : (origens.includes(f.origem) ? f.origem : 'tudo')
+  const status = f.status || ''
+  const setStatus = (v) => mudar({ status: v })
 
   const carregar = React.useCallback(async () => {
     setErro(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
-    const chaves = Object.keys(ORIGENS)
+    const chaves = origens
     try {
       const [valida, ...listas] = await Promise.all([
         rpc('admin_ping', { p_secret: senha }),
@@ -226,7 +229,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
     } catch (e) {
       setErro(e.message)
     }
-  }, [reportarEstado])
+  }, [reportarEstado, origens.join()]) // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => { carregar() }, [carregar])
   // Registra esta vista como dona do botão "atualizar" do cabeçalho
@@ -236,44 +239,42 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
   }, [registrarAtualizar, carregar])
 
   const vocabStatus = aba === 'tudo'
-    ? [...new Set(Object.values(ORIGENS).flatMap((o) => o.status))]
+    ? [...new Set(origens.flatMap((o) => ORIGENS[o].status))]
     : ORIGENS[aba].status
 
-  // Aviso (sino/push) ou a mesa pediu uma resposta específica: abre a ficha dela.
-  React.useEffect(() => {
-    if (!alvo || !alvo.id || !dados) return
-    const reg = (dados[alvo.origem] || []).find((r) => r.id === alvo.id)
-    if (reg) setSelecionado({ origem: alvo.origem, reg })
-    if (consumirAlvo) consumirAlvo()
-  }, [alvo, dados]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Ficha aberta: vem do endereço (item + origem). Sem origem, procura nas
+  // listas carregadas.
+  const selecionado = React.useMemo(() => {
+    if (!f.item || !dados) return null
+    for (const o of (f.origem ? [f.origem] : origens)) {
+      const reg = (dados[o] || []).find((r) => r.id === f.item)
+      if (reg) return { origem: o, reg }
+    }
+    return null
+  }, [f.item, f.origem, dados]) // eslint-disable-line react-hooks/exhaustive-deps
+  const setSelecionado = (s) => mudar(s ? { item: s.reg.id, origem: s.origem } : { item: '', origem: origens.length === 1 ? '' : (aba === 'tudo' ? '' : aba) }, false)
 
   const itens = dados ? filtrados(dados, { aba, status, dias, termo }) : []
   const contagem = { tudo: 0 }
-  Object.keys(ORIGENS).forEach((o) => { contagem[o] = (dados && dados[o] || []).length; contagem.tudo += contagem[o] })
+  origens.forEach((o) => { contagem[o] = (dados && dados[o] || []).length; contagem.tudo += contagem[o] })
 
   return (
-    <section className="og-vista">
-      <VistaCabeca
-        acento="cyan"
-        icone={ICONE.respostas}
-        titulo="Respostas"
-        nota="Os três formulários do site, num lugar só"
-      />
+    <div className="og-embutida">
       {/* Filtro, não abas: os botões mudam a MESMA lista (aria-pressed). */}
-      <ul className="og-abas" aria-label="Filtrar por formulário">
-        {[['tudo', 'Tudo', null], ...Object.entries(ORIGENS).map(([k, o]) => [k, o.rotulo, o.cor])].map(([chave, rotulo, cor]) => (
+      {origens.length > 1 && <ul className="og-abas" aria-label="Filtrar por formulário">
+        {[['tudo', 'Tudo', null], ...origens.map((k) => [k, ORIGENS[k].rotulo, ORIGENS[k].cor])].map(([chave, rotulo, cor]) => (
           <li key={chave}>
             <button
               type="button" className="og-aba"
               aria-pressed={aba === chave}
-              onClick={() => { setAba(chave); setStatus('') }}
+              onClick={() => mudar({ origem: chave === 'tudo' ? '' : chave, status: '' })}
             >
               {cor && <span className="og-aba__ponto" style={{ background: cor }} aria-hidden="true" />}
               {rotulo} {dados && <span className="og-aba__n">{contagem[chave] ?? 0}</span>}
             </button>
           </li>
         ))}
-      </ul>
+      </ul>}
 
       <div className="og-filtros">
         <label className="og-campo og-campo--busca">
@@ -345,7 +346,6 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
             pode={pode}
             onAtualizado={(regNovo) => {
               setDados((d) => ({ ...d, [selecionado.origem]: d[selecionado.origem].map((r) => (r.id === regNovo.id ? regNovo : r)) }))
-              setSelecionado((s) => (s ? { ...s, reg: regNovo } : s))
             }}
             onApagado={(id) => {
               setDados((d) => ({ ...d, [selecionado.origem]: d[selecionado.origem].filter((r) => r.id !== id) }))
@@ -354,7 +354,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
           />
         )}
       </Folha>
-    </section>
+    </div>
   )
 }
 

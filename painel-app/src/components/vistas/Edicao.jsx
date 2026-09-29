@@ -6,10 +6,9 @@ import {
   ROTULO_PENDENCIA, ROTULO_PAGAMENTO, agruparTemas, resumoVendas, diasDoFestival, momentoEdicao, textoPrazo,
 } from '../../lib/operacao'
 import { chaveDia } from '../../lib/hoje'
+import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Vazio, Erro, Secao, Abas, traduzirErro } from '../ui'
-import { ICONE } from '../PainelShell'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda } from '../ui'
 
 /*
  * Edição — a edição como CONFIGURAÇÃO (docs/EVOLUCAO-PAINEL-2026-09.md):
@@ -160,10 +159,10 @@ function AbaTemas({ edicao, pode, irPara }) {
   const grupos = agruparTemas(temas)
   return (
     <div className="ui-pilha">
-      <p className="ui-nota">Regra da edição: o tema não se repete. Quando duas marcas pedem o mesmo, a prioridade é de quem está com o pagamento em dia e, entre elas, de quem informou primeiro. O painel mostra a ordem; quem aprova é a organização.</p>
+      <Ajuda titulo="Regra dos temas"><p>O tema não se repete na edição. Quando duas marcas pedem o mesmo, a prioridade é de quem está com o pagamento em dia e, entre elas, de quem informou primeiro. O painel mostra a ordem; quem aprova é a organização.</p></Ajuda>
       {grupos.length === 0 && <Vazio titulo="Nenhum tema informado ainda">Os temas aparecem aqui assim que as marcas preenchem o cadastro.</Vazio>}
       {grupos.map((g) => (
-        <Secao key={g.chave} titulo={g.tema} nota={g.conflito ? 'Conflito: ' + g.itens.length + ' marcas pediram este tema' : g.aprovado ? 'Aprovado' : 'Em análise'}>
+        <Secao key={g.chave} titulo={g.tema} nota={g.conflito ? 'Conflito: ' + g.itens.length + ' marcas pediram este tema' : g.aprovado ? rotulo('tema', 'aprovado') : rotulo('tema', 'proposto')}>
           <ol className="ui-lista-simples">{g.itens.map((t) => (
             <li key={t.id}>
               <b>{g.conflito ? t.prioridade + 'º · ' : ''}{t.marca}</b>
@@ -280,7 +279,7 @@ function AbaRevisao({ pode, irPara }) {
           <button key={v} type="button" className="ui-chip" aria-pressed={status === v} onClick={() => { if (v !== status) { setLista(null); setStatus(v) } }}>{rot}</button>
         ))}
       </div>
-      <p className="ui-nota">O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p>
+      <Ajuda titulo="Como a revisão funciona"><p>O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p></Ajuda>
       {status === 'aberta' && <NomesPadrao pode={pode} />}
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && !lista && <Carregando />}
@@ -370,7 +369,7 @@ function AbaImportacoes({ pode }) {
       const p = (l.totais && l.totais.promovido) || {}
       return (
         <li key={l.id}>
-          <b>{l.fonte} · {l.status}</b>
+          <b>{l.fonte} · {rotulo('importacao_lote', l.status)}</b>
           <span>{dataCurta(l.created_at)} · por {l.importado_rotulo} · arquivo {l.arquivo_nome} · sha256 {String(l.arquivo_sha256 || '').slice(0, 12)}…</span>
           <span>Conferência: {c.participantes} participantes · {c.liberados_foto} liberados para foto · {c.agendamentos} agendamentos · {c.contatos_press_kit} linhas de Press Kit · {c.pendencias_aviso} avisos, {c.pendencias_bloqueio} bloqueios</span>
           {l.status === 'promovido' && <span>Promovido: {p.participantes_criados} estabelecimentos · {p.sessoes_criadas} sessões · {p.contatos_criados} contatos</span>}
@@ -396,58 +395,30 @@ function AbaEdicoes({ edicoes }) {
   )
 }
 
-/* ── A vista ─────────────────────────────────────────────────────────────── */
-export function Edicao({ registrarAtualizar, pode = () => true, alvo, consumirAlvo, irPara }) {
+/* ── Edições carregadas (reestruturação 29/09/2026) ───────────────────────
+ * As abas desta vista foram para os módulos: Configuração e Todas as edições
+ * ficam em Edição; Temas e Vendas em Participantes; Revisão e Importações em
+ * Administração. Quem precisa da edição atual usa este gancho.
+ */
+export function useEdicoes(registrarAtualizar) {
   const [edicoes, setEdicoes] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const [aba, setAba] = React.useState('configuracao')
-  const [nRevisao, setNRevisao] = React.useState(0)
-
   const carregar = React.useCallback(async () => {
     setErro(null)
-    try {
-      setEdicoes((await rpc('get_edicoes', { p_secret: lerSenha() })) || [])
-      const rev = await rpc('get_revisao', { p_secret: lerSenha(), p_status: 'aberta' }).catch(() => null)
-      setNRevisao((rev || []).length)
-    } catch (e) { setErro(e.message) }
+    try { setEdicoes((await rpc('get_edicoes', { p_secret: lerSenha() })) || []) } catch (e) { setErro(e.message) }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  React.useEffect(() => {
-    if (!alvo) return
-    // Link de aviso 'edicao/temas' chega como { id: 'temas' }; de outra vista, como { sub }.
-    const destino = alvo.sub || alvo.id
-    if (destino) setAba(destino)
-    consumirAlvo && consumirAlvo()
-  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const atual = (edicoes || []).find((e) => e.atual)
-  return (
-    <section className="og-vista">
-      <VistaCabeca acento="choco" icone={ICONE.edicao} titulo={atual ? atual.nome : 'Edição'} nota="Datas, cronograma, temas, vendas e a qualidade dos dados — tudo configurável, nada fixo no código" />
-      {erro && <Erro texto={erro} onTentar={carregar} />}
-      {!erro && !edicoes && <Carregando />}
-      {!erro && edicoes && (
-        <>
-          <Abas rotulo="Seções da edição" ativa={aba} onMudar={setAba} abas={[
-            { chave: 'configuracao', rotulo: 'Configuração' },
-            { chave: 'temas', rotulo: 'Temas' },
-            { chave: 'vendas', rotulo: 'Vendas' },
-            { chave: 'revisao', rotulo: 'Revisão de dados', n: nRevisao },
-            { chave: 'importacoes', rotulo: 'Importações' },
-            { chave: 'edicoes', rotulo: 'Todas as edições' },
-          ]} />
-          <div role="tabpanel" className="ui-painel-aba">
-            {!atual && ['configuracao', 'temas', 'vendas'].includes(aba) && <Vazio titulo="Nenhuma edição marcada como atual">Defina a edição atual em Produção. Revisão de dados, importações e o histórico de edições funcionam sem ela.</Vazio>}
-            {atual && aba === 'configuracao' && <AbaConfiguracao edicao={atual} pode={pode} onMudou={carregar} />}
-            {atual && aba === 'temas' && <AbaTemas edicao={atual} pode={pode} irPara={irPara} />}
-            {atual && aba === 'vendas' && <AbaVendas edicao={atual} pode={pode} />}
-            {aba === 'revisao' && <AbaRevisao pode={pode} irPara={irPara} />}
-            {aba === 'importacoes' && <AbaImportacoes pode={pode} />}
-            {aba === 'edicoes' && <AbaEdicoes edicoes={edicoes} />}
-          </div>
-        </>
-      )}
-    </section>
-  )
+  return { edicoes, atual: (edicoes || []).find((e) => e.atual) || null, erro, carregar }
 }
+
+// Renderiza `filho(atual)` quando a edição atual existe; senão diz o que fazer.
+export function ComEdicaoAtual({ registrarAtualizar, children }) {
+  const { edicoes, atual, erro, carregar } = useEdicoes(registrarAtualizar)
+  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (!edicoes) return <Carregando />
+  if (!atual) return <Vazio titulo="Nenhuma edição marcada como atual">Abra a edição em Edição › Configuração.</Vazio>
+  return children(atual, carregar, edicoes)
+}
+
+export { AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes }

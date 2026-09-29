@@ -3,10 +3,8 @@ import { rpc } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { FILTROS_CONTATO, filtrarContatos, ROTULO_PRESSKIT, ROTULO_TIPO_CONTATO, ROTULO_PENDENCIA } from '../../lib/operacao'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
-import { ICONE } from '../PainelShell'
 
 /*
  * Contatos — relacionamento e Press Kit (docs/EVOLUCAO-PAINEL-2026-09.md §48–55).
@@ -126,12 +124,16 @@ function FichaContato({ id, atual, pode, onFechar, onMudou }) {
   )
 }
 
-export function Contatos({ registrarAtualizar, pode = () => true, alvo, consumirAlvo }) {
+export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar }) {
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const [filtro, setFiltro] = React.useState('todos')
   const [busca, setBusca] = React.useState('')
-  const [aberto, setAberto] = React.useState(null)
+  // Filtro e ficha aberta no endereço (reestruturação 29/09/2026).
+  const fr = rota.filtros
+  const filtro = fr.filtro || 'todos'
+  const aberto = fr.item || null
+  const setFiltro = (v) => navegar({ filtros: { ...fr, filtro: v === 'todos' ? '' : v } }, { substituir: true })
+  const setAberto = (id) => navegar({ filtros: { ...fr, item: id || '' } })
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -144,17 +146,12 @@ export function Contatos({ registrarAtualizar, pode = () => true, alvo, consumir
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  React.useEffect(() => {
-    if (!alvo || !alvo.id) return
-    setAberto(alvo.id); consumirAlvo && consumirAlvo()
-  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const visiveis = filtrarContatos(lista || [], filtro, busca)
   const selecionados = (lista || []).filter((c) => c.atual && c.atual.status !== 'cancelado').length
 
   return (
-    <section className="og-vista">
-      <VistaCabeca acento="amarelo" icone={ICONE.contatos} titulo="Contatos" nota="Influenciadores, convidados e parceiros — quem já recebeu Press Kit e a lista desta edição" />
+    <div className="og-embutida">
       <div className="ui-barra">
         <div className="og-filtros">
           <label className="og-campo og-campo--busca"><span>Buscar</span>
@@ -196,6 +193,6 @@ export function Contatos({ registrarAtualizar, pode = () => true, alvo, consumir
       )}
       {/* O status desta edição vem da lista (o banco sabe qual é a edição atual). */}
       <FichaContato id={aberto} atual={((lista || []).find((c) => c.id === aberto) || {}).atual || null} pode={pode} onFechar={() => setAberto(null)} onMudou={carregar} />
-    </section>
+    </div>
   )
 }

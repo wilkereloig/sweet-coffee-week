@@ -16,6 +16,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     fila.push({
       tipo: 'info',
       vista: 'respostas',
+      rota: { vista: 'participantes', aba: 'candidaturas', filtros: { status: 'novo' } },
       texto: candidaturasNovas + (candidaturasNovas === 1 ? ' candidatura nova' : ' candidaturas novas') + ' em Quero participar.',
     })
   }
@@ -25,6 +26,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     fila.push({
       tipo: 'info',
       vista: 'respostas',
+      rota: { vista: 'contatos', aba: 'recebidos', filtros: { status: 'novo' } },
       texto: outrasNovas + (outrasNovas === 1 ? ' resposta nova' : ' respostas novas') + ' sem triagem, fora de Quero participar.',
     })
   }
@@ -34,6 +36,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     fila.push({
       tipo: 'alerta',
       vista: 'producao',
+      rota: { vista: 'operacao', aba: 'pedidos', filtros: { item: s.id } },
       texto: '"' + s.titulo + '": ' + n + (n === 1 ? ' marca ainda não respondeu.' : ' marcas ainda não responderam.'),
     })
   })
@@ -43,6 +46,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     fila.push({
       tipo: 'agenda',
       vista: 'producao',
+      rota: { vista: 'operacao', aba: 'fotos' },
       texto: vagasAbertas + (vagasAbertas === 1 ? ' vaga aberta' : ' vagas abertas') + ' na agenda de fotos, aguardando escolha da marca.',
     })
   }
@@ -55,6 +59,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
       fila.push({
         tipo: 'agenda',
         vista: 'producao',
+        rota: { vista: 'operacao', aba: 'fotos' },
         texto: 'Sessão de fotos de ' + (s.nome_marca || 'uma marca') + ': ' + dataHoraCurta(s.data_hora) + '.',
       })
     })
@@ -64,6 +69,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     fila.push({
       tipo: 'ok',
       vista: 'participantes',
+      rota: { vista: 'participantes', aba: 'lista', filtros: { situacao: 'cadastro_completo' } },
       texto: completas + (completas === 1 ? ' marca com cadastro completo, pronta para produção.' : ' marcas com cadastro completo, prontas para produção.'),
     })
   }

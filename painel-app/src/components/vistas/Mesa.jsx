@@ -6,11 +6,9 @@ import { ORIGENS } from '../../lib/respostas'
 import { ETAPAS, colunasMesa } from '../../lib/mesa'
 import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Erro, Secao } from '../ui'
-import { ICONE } from '../PainelShell'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -37,12 +35,11 @@ const ROTULO_COMBO = ['doce', 'salgado', 'bebida']
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
-export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
+export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
   const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null })
   const [erro, setErro] = React.useState(null)
-  const [copiado, setCopiado] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -99,30 +96,23 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
   const conflitosTema = agruparTemas(extra.temas).filter((g) => g.conflito && !g.aprovado)
   const naEdicao = participantes.filter((p) => extra.edicao && p.edicao_codigo === extra.edicao.codigo)
 
+  // Cada número abre a lista JÁ FILTRADA pelo que ele conta (o filtro vai no
+  // endereço — reestruturação 29/09/2026).
+  const edCodigo = extra.edicao ? extra.edicao.codigo : undefined
+  const lista = (filtros) => () => navegar({ vista: 'participantes', aba: 'lista', filtros })
   const numeros = [
-    { rotulo: 'candidaturas novas', n: (candidaturas || []).filter((r) => r.status === 'novo').length, ir: () => irPara('respostas') },
-    { rotulo: 'marcas na edição', n: naEdicao.length, ir: () => irPara('participantes') },
-    { rotulo: 'com acesso ao painel', n: naEdicao.filter((p) => p.user_id).length, ir: () => irPara('participantes') },
-    { rotulo: 'dados para revisar', n: extra.revisao.length, ir: () => irPara('edicao', { vista: 'edicao', sub: 'revisao' }) },
-    { rotulo: 'cadastros completos', n: participantes.filter((p) => p.status_cadastro === 'cadastro_completo').length, ir: () => irPara('participantes') },
-    { rotulo: 'mensagens não lidas', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: () => irPara('participantes') },
-    { rotulo: 'respostas de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => irPara('producao') },
+    { rotulo: 'candidaturas novas', n: (candidaturas || []).filter((r) => r.status === 'novo').length, ir: () => navegar({ vista: 'participantes', aba: 'candidaturas', filtros: { status: 'novo' } }) },
+    { rotulo: 'marcas na edição', n: naEdicao.length, ir: lista({ edicao: edCodigo }) },
+    { rotulo: 'com acesso ao painel', n: naEdicao.filter((p) => p.user_id).length, ir: lista({ edicao: edCodigo, situacao: 'com_conta' }) },
+    { rotulo: 'sem acesso ao painel', n: naEdicao.filter((p) => !p.user_id).length, ir: lista({ edicao: edCodigo, situacao: 'sem_conta' }) },
+    { rotulo: 'cadastros completos', n: participantes.filter((p) => p.status_cadastro === 'cadastro_completo').length, ir: lista({ situacao: 'cadastro_completo' }) },
+    { rotulo: 'mensagens não lidas', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: lista({ situacao: 'mensagens' }) },
+    { rotulo: 'dados para revisar', n: extra.revisao.length, ir: () => navegar({ vista: 'admin', aba: 'revisao' }) },
+    { rotulo: 'respostas de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => navegar({ vista: 'operacao', aba: 'pedidos' }) },
   ]
 
-  async function copiarLink(chave, url) {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopiado(chave)
-    } catch {
-      // Sem clipboard: a URL já está na tela — não fingir que copiou.
-      setCopiado(chave + ':manual')
-    }
-    setTimeout(() => setCopiado(null), 2400)
-  }
-
   return (
-    <section className="og-vista">
-      <VistaCabeca acento="amarelo" icone={ICONE.mesa} titulo="A mesa" nota="O que precisa de atenção, e onde cada marca está" />
+    <div className="og-embutida">
 
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && candidaturas === null && <Carregando linhas={3} />}
@@ -147,14 +137,14 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
                 <ul className="ui-atencao">
                   {prazosProximos.map((i) => (
                     <li key={'prazo:' + i.id}>
-                      <button type="button" className="ui-atencao__item" data-tipo="agenda" onClick={() => irPara('edicao', { vista: 'edicao', sub: 'configuracao' })}>
+                      <button type="button" className="ui-atencao__item" data-tipo="agenda" onClick={() => navegar({ vista: 'edicao', aba: 'configuracao' })}>
                         <b>{i.titulo}</b>: {textoPrazo(i, hoje)}
                       </button>
                     </li>
                   ))}
                   {conflitosTema.map((g) => (
                     <li key={'tema:' + g.chave}>
-                      <button type="button" className="ui-atencao__item" data-tipo="alerta" onClick={() => irPara('edicao', { vista: 'edicao', sub: 'temas' })}>
+                      <button type="button" className="ui-atencao__item" data-tipo="alerta" onClick={() => navegar({ vista: 'participantes', aba: 'temas' })}>
                         Tema <b>{g.tema}</b> pedido por {g.itens.length} marcas: decidir
                       </button>
                     </li>
@@ -168,7 +158,7 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
                   ))}
                   {pendencias.map((p, i) => (
                     <li key={i}>
-                      <button type="button" className="ui-atencao__item" data-tipo={p.tipo} onClick={() => irPara(p.vista)}>{p.texto}</button>
+                      <button type="button" className="ui-atencao__item" data-tipo={p.tipo} onClick={() => navegar(p.rota)}>{p.texto}</button>
                     </li>
                   ))}
                 </ul>
@@ -237,7 +227,31 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
             </div>
           </Secao>
 
-          <Secao titulo="Os formulários" nota="Onde cada resposta nasce" className="ui-area-forms">
+        </div>
+      )}
+    </div>
+  )
+}
+
+/*
+ * Os formulários do site — onde cada resposta nasce. Saiu da mesa na
+ * reestruturação (29/09/2026): é referência, não pendência. Mora em
+ * Administração › Formulários.
+ */
+export function Formularios() {
+  const [copiado, setCopiado] = React.useState(null)
+  async function copiarLink(chave, url) {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiado(chave)
+    } catch {
+      // Sem clipboard: a URL já está na tela — não fingir que copiou.
+      setCopiado(chave + ':manual')
+    }
+    setTimeout(() => setCopiado(null), 2400)
+  }
+  return (
+    <Secao titulo="Os formulários do site" nota="Onde cada resposta nasce">
             <ul className="og-forms__lista">
               {Object.entries(ORIGENS).map(([chave, o]) => {
                 const publico = !!o.form
@@ -262,9 +276,6 @@ export function Mesa({ registrarAtualizar, abrirLink, irPara, avisos = [] }) {
                 )
               })}
             </ul>
-          </Secao>
-        </div>
-      )}
-    </section>
+    </Secao>
   )
 }

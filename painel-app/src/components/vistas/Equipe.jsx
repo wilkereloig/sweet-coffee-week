@@ -3,12 +3,10 @@ import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { GRUPOS_ACAO, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
-import { ICONE } from '../PainelShell'
 
 /*
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
@@ -275,12 +273,17 @@ function Historico({ contas, atorInicial, abrirLink }) {
   )
 }
 
-export function Equipe({ registrarAtualizar, abrirLink }) {
+// `secao`: 'equipe' (pessoas, acesso compartilhado, avisos) ou 'historico'
+// — duas abas de Administração (reestruturação 29/09/2026). O filtro de
+// pessoa do histórico vem do endereço (`ator`), que é o que "Ver o que fez"
+// preenche.
+export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = 'equipe' }) {
   const [config, setConfig] = React.useState(null)
   const [contas, setContas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'conta', conta}
-  const [atorHistorico, setAtorHistorico] = React.useState(null)
+  const ator = rota && rota.filtros.ator
+  const atorHistorico = React.useMemo(() => (ator ? { id: ator } : null), [ator])
   const [avisoCompartilhado, setAvisoCompartilhado] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
@@ -321,12 +324,10 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
   }
 
   return (
-    <section className="og-vista">
-      <VistaCabeca acento="marrom" icone={ICONE.equipe} titulo="Equipe" nota="Quem entra no painel, com que função, e o que cada pessoa fez" />
-
+    <div className="og-embutida">
       {erro && <Erro texto={erro} onTentar={carregar} />}
 
-      <div className="ui-grade-duas">
+      {secao === 'equipe' && <div className="ui-grade-duas">
         <Secao
           titulo="Usuários da equipe"
           nota="Cada pessoa com o próprio acesso. É o nome dela que assina o que faz no painel."
@@ -385,11 +386,11 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
             />
           </Secao>
         </div>
-      </div>
+      </div>}
 
-      <Secao titulo="Histórico da equipe" nota="Tudo o que foi feito no painel: quem, o quê, quando e em qual marca." id="historico-equipe">
+      {secao === 'historico' && <Secao titulo="Histórico da equipe" nota="Tudo o que foi feito no painel: quem, o quê, quando e em qual marca." id="historico-equipe">
         <Historico contas={lista} atorInicial={atorHistorico} abrirLink={abrirLink} />
-      </Secao>
+      </Secao>}
 
       <FolhaNovaConta aberto={!!folha && folha.tipo === 'nova'} funcoes={funcoes} onFechar={() => setFolha(null)} onCriada={carregar} />
       <FolhaConta
@@ -400,10 +401,9 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
         onSalvo={carregar}
         onVerHistorico={(id) => {
           setFolha(null)
-          setAtorHistorico({ id })
-          setTimeout(() => { const el = document.getElementById('historico-equipe'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 300)
+          navegar({ vista: 'admin', aba: 'historico', filtros: { ator: id } })
         }}
       />
-    </section>
+    </div>
   )
 }

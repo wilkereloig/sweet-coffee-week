@@ -4,14 +4,13 @@ import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta, preco, prazoSelo } from '../../lib/painelFormat'
 import { COR_CADASTRO, ROTULO_SESSAO, RECADO_MANUAL, slugPrevisto, resumoParticipante } from '../../lib/participantes'
 import { rotuloStatus, tempoRelativo } from '../../lib/central'
+import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { VistaCabeca } from '../VistaCabeca'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Carregando, Vazio, Erro, Secao, Abas, traduzirErro } from '../ui'
-import { ICONE } from '../PainelShell'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { ROTULO_HISTORICO } from '../../lib/operacao'
 
@@ -120,7 +119,7 @@ function AbaCadastro({ participante }) {
         {solics.length
           ? <ul className="ui-lista-simples">{solics.map((s) => {
               const prazo = s.prazo_em ? prazoSelo(s.prazo_em) : null
-              return <li key={s.id}><b>{s.titulo}</b><span>{s.estado === 'respondido' ? 'respondido' + (s.respondido_em ? ' ' + tempoRelativo(s.respondido_em) : '') : 'pendente'}{prazo ? ' · ' + prazo.texto : ''}</span></li>
+              return <li key={s.id}><b>{s.titulo}</b><span>{rotulo('pedido', s.estado === 'respondido' ? 'respondido' : 'pendente') + (s.estado === 'respondido' && s.respondido_em ? ' ' + tempoRelativo(s.respondido_em) : '')}{prazo ? ' · ' + prazo.texto : ''}</span></li>
             })}</ul>
           : <p className="ui-nota">Nenhum pedido publicado para esta marca.</p>}
       </Secao>
@@ -329,9 +328,12 @@ function AbaAcesso({ participante, pode, onMudou }) {
 }
 
 /* ── A ficha (folha larga com abas) ──────────────────────────────────────── */
-function FichaMarca({ participante, abaInicial, pode, onFechar, naoLidas, onLidas, onMudou }) {
-  const [aba, setAba] = React.useState(abaInicial || 'cadastro')
-  React.useEffect(() => { setAba(abaInicial || 'cadastro') }, [participante && participante.id, abaInicial])
+const ABAS_FICHA = ['cadastro', 'operacao', 'mensagens', 'trajetoria', 'historico', 'acesso']
+
+// A aba da ficha mora no endereço (`sub`): o link de um aviso abre direto nela.
+function FichaMarca({ participante, aba: abaPedida, onAba, pode, onFechar, naoLidas, onLidas, onMudou }) {
+  const aba = ABAS_FICHA.includes(abaPedida) ? abaPedida : 'cadastro'
+  const setAba = onAba
   const p = participante
   return (
     <Folha
@@ -453,15 +455,22 @@ const ORDENS = {
   mensagens: (a, b) => (b._naoLidas || 0) - (a._naoLidas || 0) || new Date(b._ultimaMsg || 0) - new Date(a._ultimaMsg || 0),
 }
 
-export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAlvo }) {
+export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar }) {
   const [participantes, setParticipantes] = React.useState(null)
   const [conversas, setConversas] = React.useState([])
   const [erro, setErro] = React.useState(null)
   const [termo, setTermo] = React.useState('')
-  const [status, setStatus] = React.useState('')
-  const [ordem, setOrdem] = React.useState('recentes')
-  const [ficha, setFicha] = React.useState(null) // { id, aba }
   const [cadastroAberto, setCadastroAberto] = React.useState(false)
+  // Filtros e ficha aberta moram no endereço (reestruturação 29/09/2026):
+  // um contador da Visão geral chega aqui já filtrado, e Voltar fecha a ficha.
+  const f = rota.filtros
+  const status = f.situacao || ''
+  const ordem = f.ordem || 'recentes'
+  const ficha = f.item ? { id: f.item, aba: f.sub } : null
+  const mudar = (novos, substituir = true) => navegar({ filtros: { ...f, ...novos } }, { substituir })
+  const setStatus = (v) => mudar({ situacao: v })
+  const setOrdem = (v) => mudar({ ordem: v === 'recentes' ? '' : v })
+  const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'cadastro' ? x.aba : '' } : { item: '', sub: '' }, false)
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -485,33 +494,27 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
-  // Aviso ou outra vista pediu uma marca específica (e talvez uma aba).
-  React.useEffect(() => {
-    if (!alvo || !alvo.id) return
-    setFicha({ id: alvo.id, aba: ['mensagens', 'historico', 'operacao', 'trajetoria', 'acesso'].includes(alvo.sub) ? alvo.sub : 'cadastro' })
-    consumirAlvo && consumirAlvo()
-  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const porMarca = React.useMemo(() => Object.fromEntries(conversas.map((c) => [c.participante_id, c])), [conversas])
   const lista = React.useMemo(() => {
     const t = termo.trim().toLowerCase()
     return (participantes || [])
       .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
       .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
+      .filter((p) => !f.edicao || p.edicao_codigo === f.edicao)
       .filter((p) => !status || (status === 'mensagens' ? p._naoLidas > 0
         : status === 'pendencias' ? Number(p.pendencias) > 0
         : status === 'sem_conta' ? !p.user_id
+        : status === 'com_conta' ? !!p.user_id
         : status === 'possivel' ? p.historico_status === 'possivel_correspondencia'
         : p.status_cadastro === status))
       .sort(ORDENS[ordem])
-  }, [participantes, porMarca, termo, status, ordem])
+  }, [participantes, porMarca, termo, status, ordem, f.edicao])
 
   const participanteFicha = ficha && (participantes || []).find((p) => p.id === ficha.id)
   const totalNaoLidas = conversas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0)
 
   return (
-    <section className="og-vista">
-      <VistaCabeca acento="roxo" icone={ICONE.participantes} titulo="Marcas" nota="Cada estabelecimento: cadastro, operação da edição, conversa e trajetória" />
+    <div className="og-embutida">
 
       <div className="ui-barra">
         <div className="og-filtros">
@@ -524,6 +527,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
               <option value="mensagens">Com mensagem não lida{totalNaoLidas ? ' (' + totalNaoLidas + ')' : ''}</option>
               <option value="pendencias">Com dado para revisar</option>
               <option value="possivel">Possível participação anterior</option>
+              <option value="com_conta">Com acesso ao painel</option>
               <option value="sem_conta">Sem acesso ao painel</option>
               <option value="aguardando_cadastro">Aguardando cadastro</option>
               <option value="em_preenchimento">Em preenchimento</option>
@@ -541,6 +545,9 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
         </div>
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
+      {f.edicao && (
+        <p className="ui-filtro-ativo">Só a edição {f.edicao} <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => mudar({ edicao: '' })}>Ver todas</button></p>
+      )}
       {!pode('marca.liberar') && <p className="ui-nota">Sua função não cadastra marca.</p>}
 
       {erro && <Erro texto={erro} onTentar={carregar} />}
@@ -580,7 +587,8 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
 
       <FichaMarca
         participante={participanteFicha}
-        abaInicial={ficha && ficha.aba}
+        aba={ficha && ficha.aba}
+        onAba={(a) => mudar({ sub: a === 'cadastro' ? '' : a })}
         pode={pode}
         naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
         onLidas={() => rpc('get_conversas', { p_secret: lerSenha() }).then((c) => setConversas(c || [])).catch(() => {})}
@@ -588,6 +596,6 @@ export function Marcas({ registrarAtualizar, pode = () => true, alvo, consumirAl
         onMudou={carregar}
       />
       <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
-    </section>
+    </div>
   )
 }

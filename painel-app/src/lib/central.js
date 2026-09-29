@@ -7,6 +7,8 @@
  * painel. `interpretarLink` traduz esse caminho para a vista e o item.
  */
 
+import { rotulos } from './status.js'
+
 // Segmento do link → chave da vista no painel (DESTINOS dos dois shells).
 const VISTA_DO_SEGMENTO = { marcas: 'participantes' }
 
@@ -66,13 +68,8 @@ export function dataHoraExtensa(iso) {
     ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
-const ROTULO_STATUS = {
-  novo: 'Novo', em_analise: 'Em análise', contatado: 'Contatado', aprovado: 'Aprovado',
-  nao_selecionado: 'Não selecionado', aguardando_cadastro: 'Aguardando cadastro',
-  cadastro_completo: 'Cadastro completo', em_preenchimento: 'Em preenchimento',
-  encerrado: 'Encerrado', pendente: 'Pendente', respondido: 'Respondido', arquivado: 'Arquivado',
-  lido: 'Lido', respondida: 'Respondida',
-}
+// Fonte única em ./status.js; a central lê de candidatura, cadastro e pedido.
+const ROTULO_STATUS = { ...rotulos('candidatura', 'cadastro', 'pedido', 'sessao'), lido: 'Lido', respondida: 'Respondida' }
 export function rotuloStatus(s) { return ROTULO_STATUS[s] || (s ? String(s).replace(/_/g, ' ') : '—') }
 
 // Filtro do histórico: grupos de ação que fazem sentido para quem administra.

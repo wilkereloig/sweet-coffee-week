@@ -277,13 +277,16 @@ test('a barra do celular tem no máximo 4 atalhos + Mais, e todo destino fica al
   assert.match(ABAS_CELULAR_JSX, /aria-expanded=\{aberta\}/, 'o botão "Mais" precisa dizer se a folha está aberta')
 })
 
-test("PainelShell filtra 'equipe' da navegação pra quem não tem acesso.gerir", () => {
+test("Equipe e Histórico (Administração) só aparecem pra quem tem acesso.gerir", () => {
+  // Reestruturação 29/09/2026: Equipe deixou de ser destino e virou aba de
+  // Administração — o filtro por permissão mora na aba (Modulos.jsx).
+  const modulos = semComentarios(readFileSync(new URL('../painel-app/src/components/Modulos.jsx', import.meta.url), 'utf8'))
+  assert.match(modulos, /chave: 'equipe', rotulo: 'Equipe', mostrar: pode\('acesso\.gerir'\)/)
+  assert.match(modulos, /chave: 'historico', rotulo: 'Histórico', mostrar: pode\('acesso\.gerir'\)/)
   const semC = semComentarios(PAINEL_SHELL_JSX)
-  assert.match(semC, /DESTINOS\.filter\(\(d\) => d !== 'equipe'\)/)
   // A barra do celular recebe só o que é visível — atalhos e "Mais".
   assert.match(semC, /atalhos=\{ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)\}/)
   assert.match(semC, /mais=\{visiveis\.filter/)
-  assert.match(semC, /pode\('acesso\.gerir'\)/)
 })
 
 test('o bloco de prefers-reduced-motion é o último do CSS do painel', () => {
