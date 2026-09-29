@@ -122,3 +122,50 @@ export function canaisParaArray(obj) {
   return CANAIS.filter((c) => ((obj && obj[c.tipo]) || '').trim() !== '')
     .map((c) => ({ tipo: c.tipo, link: obj[c.tipo].trim() }))
 }
+
+/*
+ * Pendências do cadastro, CAMPO a campo (reestruturação 29/09/2026, etapa 7).
+ * Mesma regra de `blocoCompleto` (uma fonte só), só que devolvendo O QUE
+ * falta e ONDE: { bloco, campo, texto }. `campo` é o sufixo do id do input
+ * em Cadastro.jsx (`campo-<campo>`) — a pendência abre o bloco e põe o
+ * cursor no lugar certo. Sem campo = não há o que a marca preencher sozinha.
+ */
+const ROTULO_ITEM = { doce: 'o doce', salgado: 'o salgado', bebida: 'a bebida' }
+const NOME_CAMPO_ITEM = { nome: 'nome', descricao: 'descrição', ingredientes: 'ingredientes' }
+
+export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades = [], precoStr = '' } = {}) {
+  const p = []
+  const vazio = (v) => !String(v || '').trim()
+  if (vazio(marca.nome_marca)) p.push({ bloco: 0, campo: 'nome_marca', texto: 'Informar o nome da marca' })
+  if (vazio(marca.responsavel)) p.push({ bloco: 0, campo: 'responsavel', texto: 'Informar o responsável pelo festival' })
+  if (vazio(marca.telefone)) p.push({ bloco: 0, campo: 'telefone', texto: 'Informar o telefone' })
+  if (vazio(tema.tema_combo)) p.push({ bloco: 1, campo: 'tema_combo', texto: 'Escolher o tema do combo' })
+  if (vazio(tema.tema_justificativa)) p.push({ bloco: 1, campo: 'tema_justificativa', texto: 'Explicar a escolha do tema' })
+  if (itens.length < TIPOS.length) {
+    p.push({ bloco: 2, campo: null, texto: 'O combo ainda não tem os três itens: fale com a organização' })
+  }
+  for (const i of itens) {
+    const faltam = ['nome', 'descricao', 'ingredientes'].filter((k) => vazio(i[k]))
+    if (faltam.length) {
+      p.push({ bloco: 2, campo: 'item-' + i.posicao + '-' + faltam[0], texto: 'Completar ' + (ROTULO_ITEM[i.tipo] || 'o item') + ': ' + faltam.map((k) => NOME_CAMPO_ITEM[k]).join(', ') })
+    }
+  }
+  if (!(precoNumero(precoStr) > 0)) p.push({ bloco: 3, campo: 'combo_preco', texto: 'Informar o preço do combo' })
+  if (!unidades.some(unidadeTemEndereco)) p.push({ bloco: 4, campo: 'unidade-endereco', texto: 'Cadastrar ao menos um endereço' })
+  return p
+}
+
+/** Link do painel da marca para resolver uma pendência. */
+export function linkDaPendencia(p) {
+  return 'cadastro/' + p.bloco + (p.campo ? '/' + p.campo : '')
+}
+
+// Mesma leitura, direto das linhas do banco (vista Hoje).
+export function pendenciasDeLinhas({ participante = {}, participacao = {}, itens = [], unidades = [] } = {}) {
+  return pendenciasCadastro({
+    marca: { nome_marca: participante.nome_marca, responsavel: participante.responsavel, telefone: participante.telefone },
+    tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
+    itens, unidades,
+    precoStr: participacao.combo_preco == null ? '' : String(participacao.combo_preco).replace('.', ','),
+  })
+}

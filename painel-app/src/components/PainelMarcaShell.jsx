@@ -4,21 +4,27 @@ import { Central } from './Central'
 import { AbasCelular } from './AbasCelular'
 import { api } from '../lib/marcaApi'
 import { interpretarLink } from '../lib/central'
+import { lerRota, montarRota } from '../lib/rota'
+import { ContaMarca } from './ContaMarca'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
  * e navegação por link (aviso do sino, push, próximos passos do Hoje).
  */
-const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'mensagens', 'arquivos', 'fotos']
-// Barra do celular: os quatro de todo dia; Arquivos e Guia de fotos em "Mais".
-const ATALHOS = ['hoje', 'cadastro', 'pedidos', 'mensagens']
-const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', mensagens: 'Mensagens', arquivos: 'Arquivos', fotos: 'Guia de fotos' }
+// Cinco destinos (reestruturação 29/09/2026, etapa 7). O Guia de fotos mora
+// dentro de Downloads; os avisos do aparelho, no botão Conta.
+const DESTINOS = ['hoje', 'cadastro', 'pedidos', 'mensagens', 'arquivos']
+// Vistas que existem sem estar no menu (abertas a partir de outra).
+const OCULTAS = ['fotos']
+// Barra do celular: os cinco cabem, sem "Mais".
+const ATALHOS = DESTINOS
+const TITULOS = { hoje: 'Hoje', cadastro: 'Cadastro', pedidos: 'Pedidos', mensagens: 'Mensagens', arquivos: 'Downloads', fotos: 'Guia de fotos' }
 const SUBS = {
   hoje: 'o que já foi feito e o que vem agora',
   cadastro: 'os dados da sua participação',
   pedidos: 'o que a organização pediu',
   mensagens: 'conversa com a organização',
-  arquivos: 'documentos e avisos do aparelho',
+  arquivos: 'fotos do combo, marca, guias e documentos',
   fotos: 'como preparar o combo para as fotos',
 }
 
@@ -39,7 +45,7 @@ export const ICONE_MARCA = {
   fotos: <g transform="scale(1.3333)" strokeWidth="1.65">{ICONE_ORG.fotos}</g>,
 }
 
-const ICONE_SAIR = <><path d="M8.6 17.6 15 11l-6.4-6.6" /><path d="M15 11H3.4" /><path d="M18.6 4.4v13.2" /></>
+const ICONE_CONTA = <><circle cx="12" cy="8.2" r="3.6" /><path d="M4.8 20v-1.2A5.2 5.2 0 0 1 10 13.6h4a5.2 5.2 0 0 1 5.2 5.2V20" /></>
 
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
@@ -53,9 +59,15 @@ function aplicarAcento(vista) {
 
 const INTERVALO = 60000
 
+// Rota da marca no endereço: #cadastro/2?campo=item-2-descricao (bloco na
+// "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
+const VALIDAS = [...DESTINOS, ...OCULTAS]
+const normalizar = (r) => (r && VALIDAS.includes(r.vista) ? r : { vista: 'hoje', aba: '', filtros: {} })
+
 export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
-  const [vista, setVista] = React.useState('hoje')
-  const [alvo, setAlvo] = React.useState(null)
+  const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
+  const vista = rota.vista
+  const [contaAberta, setContaAberta] = React.useState(false)
   const [avisos, setAvisos] = React.useState([])
   const [avisosCarregando, setAvisosCarregando] = React.useState(true)
   const [avisosErro, setAvisosErro] = React.useState(null)
@@ -64,11 +76,37 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
-  const irPara = React.useCallback((v, novoAlvo = null) => {
-    if (!DESTINOS.includes(v)) return
-    setVista(v)
-    setAlvo(novoAlvo)
+  // Voltar/Avançar do navegador e endereço colado.
+  React.useEffect(() => {
+    const h = montarRota(rota)
+    if (location.hash !== h) history.replaceState(history.state, '', h)
+    const mudou = () => setRota(normalizar(lerRota(location.hash)))
+    window.addEventListener('hashchange', mudou)
+    window.addEventListener('popstate', mudou)
+    return () => { window.removeEventListener('hashchange', mudou); window.removeEventListener('popstate', mudou) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const navegar = React.useCallback((r, { substituir = false } = {}) => {
+    const destino = normalizar(r)
+    const h = montarRota(destino)
+    setRota(destino)
+    if (h === location.hash) return
+    if (substituir) history.replaceState(history.state, '', h)
+    else history.pushState({}, '', h)
   }, [])
+
+  // `alvo` (o item/bloco/campo pedido) vem do endereço. A vista o consome e
+  // o endereço volta a ser só a vista — recarregar não repete o salto.
+  const irPara = React.useCallback((v, novoAlvo = null) => {
+    if (!VALIDAS.includes(v)) return
+    const a = novoAlvo || {}
+    navegar({ vista: v, aba: a.sub || '', filtros: { item: a.id || '', campo: a.campo || '' } })
+  }, [navegar])
+  const alvo = React.useMemo(() => {
+    const f = rota.filtros
+    return rota.aba || f.item || f.campo ? { vista: rota.vista, sub: rota.aba || undefined, id: f.item, campo: f.campo } : null
+  }, [montarRota(rota)]) // eslint-disable-line react-hooks/exhaustive-deps
+  const consumirAlvo = React.useCallback(() => navegar({ vista }, { substituir: true }), [navegar, vista])
   const abrirLink = React.useCallback((link) => {
     const d = interpretarLink(link)
     if (d) irPara(d.vista, d)
@@ -149,9 +187,9 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
             {contadores[d] > 0 && <span className="pn-badge" aria-hidden="true">{contadores[d]}</span>}
           </button>
         ))}
-        <button className="pn-rail__sair" type="button" aria-label="Sair" onClick={onSair}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_SAIR}</svg>
-          <span className="pn-rail__rotulo">Sair</span>
+        <button className="pn-rail__sair" type="button" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_CONTA}</svg>
+          <span className="pn-rail__rotulo">Conta</span>
         </button>
       </nav>
 
@@ -174,8 +212,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
             onLerTodas={lerTodas}
             onRecarregar={carregar}
           />
-          <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sair" onClick={onSair}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_SAIR}</svg>
+          {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
+              desktop, no pé da rail. */}
+          <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_CONTA}</svg>
           </button>
         </div>
       </header>
@@ -187,8 +227,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
               key={vista}
               irPara={irPara}
               abrirLink={abrirLink}
-              alvo={alvo && alvo.vista === vista ? alvo : null}
-              consumirAlvo={() => setAlvo(null)}
+              alvo={alvo}
+              consumirAlvo={consumirAlvo}
               contadores={contadores}
               avisos={avisos}
               aoMudarMensagens={carregar}
@@ -214,6 +254,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
         )}
         onIr={(d) => irPara(d)}
       />
+      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
     </div>
   )
 }

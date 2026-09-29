@@ -76,7 +76,9 @@ const PRODUCAO_JSX = ler('painel-app/src/components/vistas/Producao.jsx')
 const EQUIPE_JSX = ler('painel-app/src/components/vistas/Equipe.jsx')
 const RESPOSTAS_JSX = ler('painel-app/src/components/vistas/Respostas.jsx')
 const CADASTRO_JSX = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
-const ARQUIVOS_JSX = ler('painel-app/src/components/vistas-marca/Arquivos.jsx')
+// Etapa 7 (29/09/2026): os avisos do aparelho da marca saíram de Arquivos
+// (agora Downloads) para o botão Conta.
+const ARQUIVOS_JSX = ler('painel-app/src/components/ContaMarca.jsx')
 const MARCA_API_JS = ler('painel-app/src/lib/marcaApi.js')
 const PAINEL_SHELL_JSX = ler('painel-app/src/components/PainelShell.jsx')
 const PAINEL_MARCA_SHELL_JSX = ler('painel-app/src/components/PainelMarcaShell.jsx')
@@ -261,9 +263,12 @@ test('a barra do celular tem no máximo 4 atalhos + Mais, e todo destino fica al
   assert.ok(DESTINOS_ORG >= 3, 'não consegui contar DESTINOS em PainelShell.jsx')
   assert.ok(DESTINOS_MARCA >= 3, 'não consegui contar DESTINOS em PainelMarcaShell.jsx')
   for (const [nome, txt] of [['PainelShell', PAINEL_SHELL_JSX], ['PainelMarcaShell', PAINEL_MARCA_SHELL_JSX]]) {
-    const atalhos = lerAtalhos(txt)
     const destinos = lerDestinos(txt)
-    assert.ok(atalhos.length > 0 && atalhos.length <= 4, nome + ': ATALHOS precisa ter de 1 a 4 destinos')
+    // A marca tem 5 destinos desde a etapa 7 (29/09/2026): cabem todos na
+    // barra, sem "Mais" (ATALHOS = DESTINOS). A organização segue 4 + Mais.
+    const todos = /const ATALHOS = DESTINOS$/m.test(txt)
+    const atalhos = todos ? destinos : lerAtalhos(txt)
+    assert.ok(atalhos.length > 0 && atalhos.length <= (todos ? 5 : 4), nome + ': ATALHOS precisa ter de 1 a 4 destinos (ou os 5, sem Mais)')
     for (const a of atalhos) assert.ok(destinos.includes(a), nome + ': atalho ' + a + ' não é destino')
     // O que não é atalho vai para "Mais" — a casca passa os dois grupos.
     assert.match(semComentarios(txt), /mais=\{[^}]*!ATALHOS\.includes\(d\)/, nome + ': o resto dos destinos não vai para "Mais"')

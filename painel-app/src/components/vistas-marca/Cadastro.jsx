@@ -396,11 +396,25 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   }
 
   // Vindo de "escolher horário das fotos" (Hoje ou aviso): rola até a agenda.
+  // Vindo de uma pendência (`cadastro/<bloco>/<campo>`, etapa 7): abre o
+  // bloco e põe o cursor no campo que falta.
   React.useEffect(() => {
-    if (carregando || !alvo || alvo.sub !== 'fotos') return
-    const el = document.getElementById('fotos-sessao')
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    if (consumirAlvo) consumirAlvo()
+    if (carregando || !alvo) return
+    if (alvo.sub === 'fotos') {
+      const el = document.getElementById('fotos-sessao')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (consumirAlvo) consumirAlvo()
+      return
+    }
+    if (/^[0-4]$/.test(String(alvo.sub || ''))) {
+      setBlocoAberto(Number(alvo.sub))
+      const campo = alvo.campo
+      window.setTimeout(() => {
+        const el = campo ? document.getElementById('campo-' + campo) : document.getElementById('bloco-' + alvo.sub)
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (el.focus) el.focus({ preventScroll: true }) }
+      }, 60)
+      if (consumirAlvo) consumirAlvo()
+    }
   }, [carregando, alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (carregando) return <Carregando linhas={4} texto="Carregando o seu cadastro…" />
@@ -466,10 +480,10 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
           >
             <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-              <label><span>Nome da marca</span><input required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /></label>
+              <label><span>Nome da marca</span><input id="campo-nome_marca" required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /></label>
               <div className="dupla">
-                <label><span>Responsável pelo festival</span><input required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /></label>
-                <label><span>Telefone</span><input inputMode="tel" required value={marca.telefone} onChange={(e) => alterarMarca('telefone', e.target.value)} /></label>
+                <label><span>Responsável pelo festival</span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /></label>
+                <label><span>Telefone</span><input id="campo-telefone" inputMode="tel" required value={marca.telefone} onChange={(e) => alterarMarca('telefone', e.target.value)} /></label>
               </div>
               <div className="dupla">
                 <label><span>E-mail de contato</span><input type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /></label>
@@ -492,9 +506,9 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                 </div>
               )}
               <p className="nota">Na edição, cada tema é de uma marca só. Se duas pedirem o mesmo, a organização decide pela ordem de chegada e pelo pagamento em dia.</p>
-              <label><span>Tema escolhido pela marca</span><input required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /></label>
+              <label><span>Tema escolhido pela marca</span><input id="campo-tema_combo" required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /></label>
               <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
-                <textarea required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
+                <textarea id="campo-tema_justificativa" required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
               </label>
             </Bloco>
 
@@ -525,11 +539,11 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                           <label className="marcar"><input type="radio" name={'tipo-' + it.id} checked={tipo === 'doce'} onChange={() => alterarItem(it.id, 'tipo', 'doce')} /><span>Doce</span></label>
                         </div>
                       )}
-                      <label><span>Nome</span><input value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /></label>
+                      <label><span>Nome</span><input id={'campo-item-' + it.posicao + '-nome'} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /></label>
                       <label><span>Descrição <em>(como conversa com o tema)</em></span>
-                        <textarea value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
+                        <textarea id={'campo-item-' + it.posicao + '-descricao'} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
                       </label>
-                      <label><span>Ingredientes</span><input value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} /></label>
+                      <label><span>Ingredientes</span><input id={'campo-item-' + it.posicao + '-ingredientes'} value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} /></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.vegano} onChange={(e) => alterarItem(it.id, 'vegano', e.target.checked)} /><span>Vegano</span></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.sem_gluten} onChange={(e) => alterarItem(it.id, 'sem_gluten', e.target.checked)} /><span>Sem glúten</span></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.sem_lactose} onChange={(e) => alterarItem(it.id, 'sem_lactose', e.target.checked)} /><span>Sem lactose</span></label>
@@ -541,7 +555,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
 
             <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
               <label className="mc-campo-curto"><span>Valor do combo <em>(em reais)</em></span>
-                <input inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
+                <input id="campo-combo_preco" inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
               </label>
               <p className="nota">Sobre o combo inteiro <em>(opcional — ajuda a organização a divulgar)</em>:</p>
               {[['combo_para_viagem', 'Pode ser para viagem?'], ['combo_vegano', 'O combo é vegano?'], ['combo_diet', 'O combo é diet?']].map(([campo, pergunta]) => (
@@ -570,7 +584,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                       <b>Unidade {i + 1}</b>
                       <button className="link" type="button" aria-label={'Remover a unidade ' + (i + 1)} onClick={() => removerUnidade(u._key)}>remover</button>
                     </div>
-                    <label><span>Endereço</span><input value={u.endereco} onChange={(e) => alterarUnidade(u._key, 'endereco', e.target.value)} /></label>
+                    <label><span>Endereço</span><input id={i === 0 ? 'campo-unidade-endereco' : undefined} value={u.endereco} onChange={(e) => alterarUnidade(u._key, 'endereco', e.target.value)} /></label>
                     <div className="dupla">
                       <label><span>Bairro</span><input value={u.bairro} onChange={(e) => alterarUnidade(u._key, 'bairro', e.target.value)} /></label>
                       <label><span>Horário durante o festival</span>
