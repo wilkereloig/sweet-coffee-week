@@ -3014,10 +3014,9 @@ passou a valer:
 - **CSS:** `painel.css` foi reescrito sem regra de elemento solta. ⛔ Não
   voltar a escrever `main{…}`, `label{…}`, `header button{…}` globais: foi o
   que prendeu o painel numa coluna de 560px em qualquer monitor.
-- ⚠️ **Edge Functions pendentes de publicação** (o MCP desta sessão recusou
-  o deploy): `enviar-push`, `regerar-senha-conta`, `criar-conta-organizacao`.
-  Até publicar: o aviso aparece no sino, mas o push automático não sai; a
-  senha nova de marca recusa com recado claro na tela.
+- ✅ **Edge Functions publicadas em 28/09/2026** (`enviar-push`,
+  `regerar-senha-conta`, `criar-conta-organizacao`), pelo MCP `supabase-scw`
+  (ver Fase 12).
 
 #### Evolução estrutural — 29/09/2026 (Fase 12)
 
@@ -3072,8 +3071,14 @@ Relatório completo, divergências e pendências em
   festival, a partir de `edicoes.lembrete_vendas_hora`) e `scw-lembrar-prazos`.
 - **Testes do banco**: `supabase/testes/verificacao-2026-09-29.sql`
   (autorização + ponta a ponta; sempre termina em exceção e desfaz).
-- ⚠️ **4 Edge Functions pendentes de publicação**: as três acima e
-  `criar-acesso-marca`.
+- ✅ **As 4 Edge Functions publicadas em 28/09/2026** (as três acima e
+  `criar-acesso-marca`), conferidas com teste de fumaça (401 sem credencial).
+  ⚠️ **Deploy de Edge Function é pelo MCP `supabase-scw`**, não pelo conector
+  "Supabase" do claude.ai: nesta app o conector chega sem tipos de parâmetro
+  e recusa `verify_jwt`/`files` (ZodError). `supabase-scw` é o MCP oficial
+  (`https://mcp.supabase.com/mcp?project_ref=…`) cadastrado no Claude Code
+  com escopo local, login por OAuth em `/mcp`. `verify_jwt: false` nas quatro
+  (a autorização é o próprio código).
 
 ### 10.5 Grade e layout
 
