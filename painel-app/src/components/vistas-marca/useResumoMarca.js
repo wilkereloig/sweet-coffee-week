@@ -21,7 +21,7 @@ export function useResumoMarca() {
       const participacao = (pas && pas[0]) || null
       if (!participacao) { setDados({ participante, participacao: null }); return }
       const id = participacao.id
-      const [itens, unidades, correcoes, solics, estados, sessoes, arqs, leituras, temas] = await Promise.all([
+      const [itens, unidades, correcoes, solics, estados, sessoes, arqs, leituras, temas, logo] = await Promise.all([
         api('participantes_itens?select=*&participacao_id=eq.' + id),
         api('participacao_unidades?select=*&participacao_id=eq.' + id),
         // Leituras novas: sem a migration, a tela segue sem elas (§10.4-b).
@@ -32,6 +32,8 @@ export function useResumoMarca() {
         api('arquivos?select=id,nome,categoria,exige_leitura,publicado_em&arquivado=eq.false&order=publicado_em.desc').catch(() => []),
         api('arquivo_leitura?select=arquivo_id').catch(() => []),
         api('temas_propostos?select=status,observacao&participacao_id=eq.' + id + '&status=neq.substituido&order=created_at.desc&limit=1').catch(() => []),
+        // Logo oficial (cabeçalho e Início); sem a migration, segue sem ela.
+        api('rpc/marca_minha_logo', { metodo: 'POST', corpo: {} }).catch(() => null),
       ])
       const estadoDe = Object.fromEntries((estados || []).map((e) => [e.solicitacao_id, e.estado]))
       const pedidos = minhasSolicitacoes(solics || [], participacao)
@@ -48,6 +50,7 @@ export function useResumoMarca() {
         arquivosParaLer: (arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id) && a.categoria !== 'combo').length,
         fotosParaLer: (arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id) && a.categoria === 'combo').length,
         tema: (temas && temas[0]) || null,
+        logo,
       })
       setErro(null)
     } catch (e) {

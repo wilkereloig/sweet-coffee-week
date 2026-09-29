@@ -1,5 +1,7 @@
 import React from 'react'
 import { Icone } from './Icone'
+import { LogoMarca } from './ui'
+import { urlLogo } from '../lib/logos'
 import { Central } from './Central'
 import { AbasCelular } from './AbasCelular'
 import { api, precisaTrocarSenha } from '../lib/marcaApi'
@@ -211,6 +213,16 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           <h1 className="pn-cabeca__titulo">{TITULOS[vista]}</h1>
           <p className="pn-cabeca__sub">{SUBS[vista]}</p>
         </div>
+        {/* A marca se reconhece no topo: logo, nome, edição e quanto falta. */}
+        {dadosMarca && dadosMarca.participante && (
+          <div className="pn-cabeca__ident">
+            <LogoMarca url={urlLogo(dadosMarca.logo && dadosMarca.logo.atual && dadosMarca.logo.atual.path)} nome={dadosMarca.participante.nome_marca} tamanho={36} />
+            <span className="pn-cabeca__ident-texto">
+              <span className="pn-cabeca__ident-nome">{dadosMarca.participante.nome_marca}</span>
+              <span className="pn-cabeca__ident-sub">{[dadosMarca.participacao && 'Edição ' + dadosMarca.participacao.edicao_codigo, resumo && !resumo.semParticipacao && 'Cadastro ' + resumo.progresso.pct + '% concluído'].filter(Boolean).join(' · ')}</span>
+            </span>
+          </div>
+        )}
         <div className="pn-cabeca__dir">
           <Central
             itens={avisos}

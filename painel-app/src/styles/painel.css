@@ -814,8 +814,12 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 /* scaleX com origem à esquerda, não width (§10.3). */
 .pn-vista .trilha i{display:block;height:100%;background:var(--scw-cyan);border-radius:999px;transform-origin:left center;transform:scaleX(var(--p,0));transition:transform 260ms var(--scw-ease)}
 .pn-vista .salvo{font:400 13px/1.3 var(--f-ui);color:var(--scw-marrom);min-height:20px;margin:0 0 8px}
-.pn-vista .unidade,.pn-vista .item{padding:18px 0 4px;margin:0;border-top:1px dashed var(--scw-borda-campo)}
-.pn-vista .unidade:first-child,.pn-vista .item:first-child{border-top:0;padding-top:4px}
+/* Cada item e cada unidade é um bloco interno (nível 2) dentro do card. */
+.pn-vista .unidade,.pn-vista .item{padding:16px 16px 6px;margin:0 0 12px;background:var(--sup-2);border-radius:var(--r-bloco)}
+.mc-restricoes{border:0;padding:0;margin:4px 0 10px;min-width:0}
+.mc-restricoes > legend{padding:0;float:left;width:100%;margin:0 0 4px}
+.mc-campo-logo{display:flex;flex-direction:column;gap:10px;margin:0 0 20px;padding:16px;border-radius:var(--r-bloco);background:var(--sup-2)}
+.mc-campo-logo__rotulo{font:700 13px/1.3 var(--f-ui)}
 .pn-vista .unidade .topo,.pn-vista .item .topo{display:flex;align-items:center;gap:10px;margin:0 0 12px}
 .pn-vista .unidade .topo b,.pn-vista .item .topo b{font:700 14px/1.2 var(--f-ui);color:var(--scw-marrom)}
 .pn-vista .unidade .topo button{margin-left:auto}
@@ -1045,7 +1049,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
    amarelo, cyan e laranja nunca viram texto pequeno sobre creme. Estado
    nunca só por cor — cada um leva ícone e texto. */
 .pn-badge--ok{background:var(--scw-cyan);color:var(--scw-choco)}
-.gm-inicio{display:flex;flex-direction:column;gap:18px}
+.gm-inicio{display:flex;flex-direction:column;gap:var(--e-6)}
 .gm-progresso{height:10px;border-radius:999px;background:var(--scw-bege);overflow:hidden;margin:4px 0 14px}
 .gm-progresso > span{display:block;height:100%;background:var(--scw-choco);border-radius:inherit}
 .gm-etapas{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px}
@@ -1291,6 +1295,9 @@ button.ui-modulo:active{transform:translateY(0)}
 .pn-cabeca__ident-nome{font:700 14.5px/1.2 var(--f-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pn-cabeca__ident-sub{font:400 12.5px/1.2 var(--f-ui);color:var(--scw-marrom);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:900px){ .pn-cabeca__ident{display:none} }
+.gm-estab{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.gm-estab .ui-dados{flex:1 1 200px}
+.gm-inicio > .ui-macro{margin-bottom:0}
 
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
