@@ -76,3 +76,11 @@ test('descreverAtividade cobre a edição de cadastro pela organização (etapa 
     'Cadastro editado pela organização · Bolomania · dados da participação (combo preco, status cadastro)')
   assert.equal(descreverAtividade({ acao: 'participante.arquivado', marca: 'X' }), 'Marca arquivada · X')
 })
+
+test('descreverAtividade cobre vouchers, Press Kit e arquivos (etapas 4–6)', async () => {
+  const { descreverAtividade } = await import('../painel-app/src/lib/central.js')
+  assert.equal(descreverAtividade({ acao: 'voucher.utilizado', marca: 'Cookitos', detalhe: { codigo: 'SCW-AB2CD' } }), 'Voucher SCW-AB2CD · utilizado · Cookitos')
+  assert.equal(descreverAtividade({ acao: 'vouchers.destinados', detalhe: { quantidade: 2, contato: 'Bia' } }), '2 vouchers destinados a Bia')
+  assert.equal(descreverAtividade({ acao: 'presskit.confirmado', detalhe: {} }), 'Press Kit · preparando')
+  assert.equal(descreverAtividade({ acao: 'arquivo.substituido', detalhe: { nome: 'Logo', versao_para: '2' } }), 'Arquivo "Logo" substituído (versão 2)')
+})

@@ -122,6 +122,14 @@ export const STATUS = {
     parceiro: s('Parceiro', 'neutro'), convidado: s('Convidado', 'neutro'),
     outro: s('Outro', 'neutro'),
   },
+  // vouchers.status (etapa 6)
+  voucher: {
+    disponivel: s('Disponível', 'neutro'),
+    destinado: s('Destinado', 'andamento'),
+    enviado: s('Enviado', 'andamento'),
+    utilizado: s('Utilizado', 'ok'),
+    cancelado: s('Cancelado', 'encerrado'),
+  },
   pendencia: {
     dado_inconsistente: s('Dado inconsistente', 'atencao'),
     possivel_correspondencia: s('Possível correspondência', 'atencao'),

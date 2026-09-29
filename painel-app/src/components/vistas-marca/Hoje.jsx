@@ -7,6 +7,7 @@ import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Erro, Secao } from '../ui'
 import { ICONE_MARCA } from '../PainelMarcaShell'
+import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo, itemDoCronograma, dataDoItem } from '../../lib/operacao'
 
 const dataBr = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '')
@@ -257,6 +258,8 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
               </form>
             </Secao>
           )}
+
+          <VouchersMarca />
 
           {proximos.length > 0 && (
             <Secao

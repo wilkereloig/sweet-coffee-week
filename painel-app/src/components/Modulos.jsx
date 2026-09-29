@@ -6,6 +6,8 @@ import { Mesa, Formularios } from './vistas/Mesa'
 import { Marcas } from './vistas/Marcas'
 import { Respostas } from './vistas/Respostas'
 import { Contatos } from './vistas/Contatos'
+import { PressKit } from './vistas/PressKit'
+import { Vouchers } from './vistas/Vouchers'
 import { Producao } from './vistas/Producao'
 import { MateriaisEdicao } from './vistas/MateriaisEdicao'
 import { ArquivosOrg } from './vistas/ArquivosOrg'
@@ -61,6 +63,8 @@ export function Participantes(props) {
 export function ModContatos(props) {
   return <Modulo id="contatos" {...props} abas={[
     { chave: 'pessoas', rotulo: 'Pessoas', render: () => <Contatos {...props} /> },
+    { chave: 'presskit', rotulo: 'Press Kit', render: () => <PressKit {...props} /> },
+    { chave: 'vouchers', rotulo: 'Vouchers', render: () => <Vouchers {...props} /> },
     { chave: 'recebidos', rotulo: 'Recebidos do site', render: () => <Respostas {...props} origens={['apoiar', 'contato']} /> },
   ]} />
 }
