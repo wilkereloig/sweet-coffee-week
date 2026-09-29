@@ -113,11 +113,13 @@ Deno.serve(async (req) => {
   let loginMarca = ''
   if (ehMarca) {
     const { data: part, error: partErr } = await admin
-      .from('participantes').select('user_id, nome_marca').eq('id', participanteId).maybeSingle()
+      .from('participantes').select('user_id, nome_marca, slug').eq('id', participanteId).maybeSingle()
     if (partErr) return json({ erro: 'db_error', detalhe: partErr.message }, 500)
     if (!part || !part.user_id) return json({ erro: 'marca_sem_acesso' }, 404)
     userId = part.user_id
-    loginMarca = part.nome_marca
+    // O login é o slug (o mesmo que criar-acesso-marca devolve): um slug com
+    // sufixo ("nome-2") não se alcança digitando só o nome.
+    loginMarca = part.slug || part.nome_marca
   }
   if (!userId) return json({ erro: 'user_id_ausente' }, 422)
 

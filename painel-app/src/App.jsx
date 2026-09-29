@@ -334,6 +334,7 @@ export function App() {
         <PainelMarcaShell
           vistas={VISTAS_MARCA}
           onSair={() => sairMarca()}
+          onPausada={() => setEstado('pausada-marca')}
           linkInicial={destino}
         />
       </>

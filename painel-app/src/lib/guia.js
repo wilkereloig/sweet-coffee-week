@@ -157,6 +157,10 @@ export function resumoMarca(d = {}) {
     pendencias.push({ tipo: 'arquivo', titulo: d.arquivosParaLer === 1 ? 'Um arquivo para ler' : d.arquivosParaLer + ' arquivos para ler',
       texto: 'A organização pediu confirmação de leitura.', acao: 'Ver arquivos', vista: 'arquivos', link: 'arquivos' })
   }
+  if (Number(d.fotosParaLer) > 0) {
+    pendencias.push({ tipo: 'arquivo', titulo: d.fotosParaLer === 1 ? 'Uma foto oficial para conferir' : d.fotosParaLer + ' fotos oficiais para conferir',
+      texto: 'A organização pediu confirmação de leitura.', acao: 'Ver fotos', vista: 'fotos', link: 'fotos' })
+  }
 
   const cadastroCompleto = campos.every((x) => x.ok)
   // Tudo preenchido mas ainda não enviado: enviar é a próxima ação.

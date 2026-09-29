@@ -2,7 +2,7 @@ import React from 'react'
 import { ICONE as ICONE_ORG } from './PainelShell'
 import { Central } from './Central'
 import { AbasCelular } from './AbasCelular'
-import { api } from '../lib/marcaApi'
+import { api, precisaTrocarSenha } from '../lib/marcaApi'
 import { interpretarLinkMarca, nivelDoAviso, NIVEIS } from '../lib/guia'
 import { useResumoMarca } from './vistas-marca/useResumoMarca'
 import { lerRota, montarRota } from '../lib/rota'
@@ -73,12 +73,13 @@ const normalizar = (r) => {
   if (!r) return { vista: 'inicio', aba: '', filtros: {} }
   let vista = r.vista === 'hoje' ? 'inicio' : r.vista
   if (vista === 'cadastro' && ['1', '2', '3'].includes(r.aba)) vista = 'combo'
+  if (vista === 'cadastro' && r.aba === 'fotos') return { vista: 'fotos', aba: '', filtros: r.filtros || {} }
   return VALIDAS.includes(vista)
     ? { vista, aba: r.aba || '', filtros: r.filtros || {} }
     : { vista: 'inicio', aba: '', filtros: {} }
 }
 
-export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
+export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
@@ -88,7 +89,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
   const [centralAberta, setCentralAberta] = React.useState(false)
   const [msgsNaoLidas, setMsgsNaoLidas] = React.useState(0)
   // Estado da marca numa leitura só: números das abas e o guia do Início.
-  const { dados: dadosMarca, resumo, carregar: recarregarResumo } = useResumoMarca()
+  const { dados: dadosMarca, resumo, erro: erroResumo, carregar: recarregarResumo } = useResumoMarca()
+  // Em ref: a função do App muda a cada render e não deve reiniciar o intervalo.
+  const pausadaRef = React.useRef(onPausada)
+  pausadaRef.current = onPausada
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
@@ -138,6 +142,9 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
       setMsgsNaoLidas((m || []).length)
       setAvisosErro(null)
       recarregarResumo()
+      // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias
+      // (sem erro), então só o perfil conta a verdade.
+      if (pausadaRef.current && (await precisaTrocarSenha()) === 'pausada') pausadaRef.current()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
       setAvisosErro(e.message)
@@ -258,6 +265,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, linkInicial = null }) {
               aoMudarMensagens={carregar}
               resumo={resumo}
               dadosMarca={dadosMarca}
+              erroResumo={erroResumo}
               recarregarResumo={recarregarResumo}
             />
           ) : null}

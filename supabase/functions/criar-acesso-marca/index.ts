@@ -194,10 +194,11 @@ Deno.serve(async (req) => {
       .from('participantes').select('id, user_id, nome_marca, slug').eq('id', pid).maybeSingle()
     if (partErr) return json({ erro: 'db_error', detalhe: partErr.message }, 500)
     if (!part || !part.user_id) return json({ erro: 'marca_sem_acesso' }, 404)
-    const novoLogin = await slugLivre(slugificar(novoNome), async (s) => {
-      const { data } = await admin.from('participantes').select('id').eq('slug', s).neq('id', pid).maybeSingle()
-      return !!data
-    })
+    /* Sem sufixo aqui: a marca entra digitando o NOME, e "nome-2" não é o que
+       ela digita — o nome novo cairia no login de outra marca. Colidiu, recusa. */
+    const novoLogin = slugificar(novoNome) || 'marca'
+    const { data: dono } = await admin.from('participantes').select('id').eq('slug', novoLogin).neq('id', pid).maybeSingle()
+    if (dono) return json({ erro: 'marca_ja_tem_acesso' }, 409)
     const { data: antes } = await admin.auth.admin.getUserById(part.user_id)
     const emailAntigo = antes?.user?.email || ''
     const { error: authErr } = await admin.auth.admin.updateUserById(part.user_id, {
