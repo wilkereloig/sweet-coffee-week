@@ -222,7 +222,7 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
         marca: { nome: nome.trim(), telefone: telefone.trim(), responsavel: responsavel.trim(), email: email.trim() },
       })
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
-      setCred({ login: nome.trim(), senha: r.senha, participanteId: r.participante_id })
+      setCred({ login: r.login || nome.trim(), senha: r.senha, participanteId: r.participante_id })
       await onCriada()
     } catch (e) {
       const codigo = e.dados && e.dados.erro
@@ -378,7 +378,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         setLote({ modo: 'regerar', marcas: selComConta }); return
       }
       if (acao === 'copiar') {
-        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.nome_marca })), window.location.origin)
+        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.slug || p.nome_marca })), window.location.origin)
         await navigator.clipboard.writeText(texto)
         setLoteAviso('Acessos de ' + nome + ' copiados, sem senha. Para mandar senha, gere senhas novas.'); return
       }

@@ -47,8 +47,12 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
   React.useEffect(() => { carregar() }, [carregar])
 
   React.useEffect(() => {
-    if (alvo && alvo.id) { setDestaque(alvo.id); if (consumirAlvo) consumirAlvo() }
-  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!alvo || !alvo.id || !arquivos) return
+    // Aviso antigo `arquivos/<id>` de uma foto oficial: ela mora na aba Fotos.
+    const a = arquivos.find((x) => x.id === alvo.id)
+    if (!fotos && a && a.categoria === 'combo' && irPara) { irPara('fotos', { id: alvo.id }); return }
+    setDestaque(alvo.id); if (consumirAlvo) consumirAlvo()
+  }, [alvo, arquivos]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function baixar(path) {
     // A janela abre no clique, antes do await: aberta depois, o bloqueador de

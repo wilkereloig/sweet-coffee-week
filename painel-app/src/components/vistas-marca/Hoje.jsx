@@ -40,7 +40,7 @@ const Svg = ({ children }) => (
  * festival, vouchers, cronograma e história. Os dados do guia vêm da casca
  * (`resumo`); aqui só se carrega o que é desta tela.
  */
-export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, resumo, dadosMarca, avisos = [] }) {
+export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, resumo, dadosMarca, erroResumo, recarregarResumo, avisos = [] }) {
   const [vendas, setVendas] = React.useState([])
   const [edicao, setEdicao] = React.useState(null)
   const [cronograma, setCronograma] = React.useState([])
@@ -126,7 +126,9 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
         nota={participacao ? participante.nome_marca + ' · edição ' + participacao.edicao_codigo : 'O que falta e o que vem agora'}
       />
 
-      {estado === 'carregando' && <Carregando linhas={3} texto="Carregando o seu painel…" />}
+      {estado === 'carregando' && (erroResumo
+        ? <Erro texto={erroResumo} onTentar={recarregarResumo} />
+        : <Carregando linhas={3} texto="Carregando o seu painel…" />)}
       {estado === 'sem-marca' && <Erro titulo="Conta sem marca" texto="Sua conta existe, mas ainda não há marca ligada a ela. Fale com a organização pelo WhatsApp." />}
 
       {participante && (

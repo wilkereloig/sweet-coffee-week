@@ -41,7 +41,8 @@ export async function emitirCredenciais(marcas, modo, aoAvancar) {
         ? await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: p.id })
         : await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), participante_id: p.id })
       if (!r || !r.senha) throw new Error('a função não devolveu as credenciais.')
-      feitos.push({ p, login: p.nome_marca, senha: r.senha })
+      // O login real é o que a função devolve (o slug): "nome-2" não se alcança digitando o nome.
+      feitos.push({ p, login: r.login || p.slug || p.nome_marca, senha: r.senha })
     } catch (e) {
       const c = e.dados && e.dados.erro
       feitos.push({ p, erro: c === 'conta_ja_existe' ? 'Já tem acesso: use "Gerar novas senhas".' : RECADO_MANUAL[c] || traduzirErro(c || e.message) })
@@ -195,10 +196,13 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
     const novo = window.prompt('Novo nome do estabelecimento (é o login da marca):', participante.nome_marca)
     if (!novo || novo.trim() === participante.nome_marca) return
     if (!window.confirm('Trocar o login de "' + participante.nome_marca + '" para "' + novo.trim() + '"?\n\nA marca passa a entrar com o nome novo. A senha continua a mesma.')) return
-    executar(() => chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: participante.id, novo_nome: novo.trim() }), 'Login alterado. Avise a marca do nome novo.')
+    executar(async () => {
+      const r = await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: participante.id, novo_nome: novo.trim() })
+      setAviso('Login alterado para "' + (r && r.login) + '". Avise a marca.')
+    })
   }
   async function copiarAcesso() {
-    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.nome_marca, origem: window.location.origin })
+    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.slug || participante.nome_marca, origem: window.location.origin })
     try { await navigator.clipboard.writeText(texto); setAviso('Acesso copiado (sem senha: a definitiva só a marca conhece).') } catch { setAviso('Sem área de transferência neste navegador.') }
   }
 

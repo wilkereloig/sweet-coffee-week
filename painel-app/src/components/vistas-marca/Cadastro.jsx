@@ -93,7 +93,7 @@ const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organi
 
 // Meu cadastro = blocos 0 e 4; Meu combo = 1, 2 e 3. Mesmo formulário,
 // mesmo salvamento automático, mesmo envio para análise.
-export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo = null, recarregarResumo } = {}) {
+export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4], resumo = null, recarregarResumo } = {}) {
   const mostra = (n) => blocos.includes(n)
   const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
@@ -272,11 +272,16 @@ export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo 
         .finally(() => postandoRef.current.delete(u._key))
     }))
     try {
+      /* Só grava os blocos DESTA aba (Meu cadastro = 0 e 4; Meu combo = 1, 2 e 3).
+         As duas abas são instâncias separadas: gravar tudo deixaria o salvamento
+         de uma escrever, com o valor velho que ela leu, o que a outra acabou de
+         salvar. `[true]` = bloco fora desta aba, nada a confirmar. */
+      const nada = Promise.resolve([true])
       const [rm, rp, ri] = await Promise.all([
-        api('participantes?id=eq.' + participanteId, { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }),
-        api('participacoes?id=eq.' + participacaoId, { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }),
-        salvarItens(),
-        salvarUnidades(),
+        mostra(0) ? api('participantes?id=eq.' + participanteId, { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }) : nada,
+        mostra(1) || mostra(3) ? api('participacoes?id=eq.' + participacaoId, { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }) : nada,
+        mostra(2) ? salvarItens() : Promise.resolve([]),
+        mostra(4) ? salvarUnidades() : nada,
       ])
       // PATCH que volta vazio = a RLS recusou a linha: não é "salvo".
       if (!rm || !rm.length || !rp || !rp.length || ri.some((l) => !l || !l.length)) throw new Error('sem_confirmacao')
@@ -381,6 +386,8 @@ export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo 
         // Abre o primeiro bloco pendente para a pessoa ver onde está a falta.
         const pend = primeiroBlocoPendente({ marca, tema, itens, unidades, precoStr })
         if (pend !== null && blocos.includes(pend)) setBlocoAberto(pend)
+        // A falta está na OUTRA aba (Meu cadastro × Meu combo): leva até ela.
+        else if (pend !== null && irPara) setConcluirAviso((a) => ({ ...a, ir: { vista: [0, 4].includes(pend) ? 'cadastro' : 'combo', sub: String(pend) } }))
       } else {
         const reenvio = revisao.comboStatus === 'correcao_solicitada'
         setStatusCadastro('cadastro_completo')
@@ -504,8 +511,8 @@ export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo 
                 </label>
               </div>
               <div className="dupla">
-                <label><span>E-mail de contato</span><input type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /></label>
-                <label><span>Instagram <em>(opcional)</em></span><input placeholder="@suamarca" value={marca.instagram} onChange={(e) => alterarMarca('instagram', e.target.value)} /></label>
+                <label><span>E-mail de contato <EstadoCampo e={est('email')} /></span><input id="campo-email" type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /><Correcao e={est('email')} /></label>
+                <label><span>Instagram <em>(opcional)</em> <EstadoCampo e={est('instagram')} /></span><input id="campo-instagram" placeholder="@suamarca" value={marca.instagram} onChange={(e) => alterarMarca('instagram', e.target.value)} /><Correcao e={est('instagram')} /></label>
               </div>
               <div className="dupla">
                 <label><span>Site <em>(opcional)</em></span><input placeholder="https://" value={marca.site} onChange={(e) => alterarMarca('site', e.target.value)} /></label>
@@ -638,7 +645,9 @@ export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo 
             </button>
           </form>
 
-          {concluirAviso && <div className={'aviso mc-concluir-aviso ' + concluirAviso.tom} role={concluirAviso.tom === 'erro' ? 'alert' : 'status'}>{concluirAviso.texto}</div>}
+          {concluirAviso && <div className={'aviso mc-concluir-aviso ' + concluirAviso.tom} role={concluirAviso.tom === 'erro' ? 'alert' : 'status'}>{concluirAviso.texto}
+            {concluirAviso.ir && <> <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => irPara(concluirAviso.ir.vista, { sub: concluirAviso.ir.sub })}>{concluirAviso.ir.vista === 'combo' ? 'Ir para Meu combo' : 'Ir para Meu cadastro'}</button></>}
+          </div>}
         </div>
       )}
     </>

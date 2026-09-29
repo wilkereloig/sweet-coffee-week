@@ -26,7 +26,8 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
     }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (alvo && consumirAlvo) consumirAlvo() }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Alvo com id (aviso de foto oficial) é da lista de fotos, que o consome.
+  React.useEffect(() => { if (alvo && !alvo.id && consumirAlvo) consumirAlvo() }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // A reserva é atômica por construção: só muda a linha que ainda está aberta.
   async function reservar(id) {
@@ -100,7 +101,7 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
           <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => irPara('guia')}>Abrir o guia</button>
         </Secao>
       </div>
-      <Arquivos fotos irPara={irPara} recarregarResumo={recarregarResumo} />
+      <Arquivos fotos alvo={alvo} consumirAlvo={consumirAlvo} irPara={irPara} recarregarResumo={recarregarResumo} />
     </section>
   )
 }

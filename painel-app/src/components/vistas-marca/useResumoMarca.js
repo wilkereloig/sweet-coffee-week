@@ -43,7 +43,10 @@ export function useResumoMarca() {
         correcoes: correcoes || [], pedidos, sessoes: minhas,
         vagasAbertas: (sessoes || []).filter((s) => s.status === 'aberto').length,
         arquivos: arqs || [],
-        arquivosParaLer: (arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id)).length,
+        // Fotos oficiais (categoria combo) moram na aba Fotos: contadas à parte,
+        // senão a pendência levaria a Arquivos, onde elas não aparecem.
+        arquivosParaLer: (arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id) && a.categoria !== 'combo').length,
+        fotosParaLer: (arqs || []).filter((a) => a.exige_leitura && !lidos.has(a.id) && a.categoria === 'combo').length,
         tema: (temas && temas[0]) || null,
       })
       setErro(null)

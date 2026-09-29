@@ -98,7 +98,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
       const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id })
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
       setAvisoAcesso({ tom: 'ok', texto: 'Acesso criado. Copie ou envie agora.' })
-      setCredenciais({ login: reg.empresa || r.login, senha: r.senha, participanteId: r.participante_id })
+      setCredenciais({ login: r.login || reg.empresa, senha: r.senha, participanteId: r.participante_id })
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       setAvisoAcesso({ tom: 'erro', texto: RECADO_ACESSO[codigo] || ('Não criou: ' + e.message) })
