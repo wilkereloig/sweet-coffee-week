@@ -974,6 +974,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
   .ui-form--linha-dupla > .ui-nota,
   .ui-form--linha-dupla > .ui-linha-acoes,
   .ui-form--linha-dupla > button{grid-column:1 / -1;justify-self:start}
+  .ui-form--linha-dupla > .og-campo--largo{grid-column:1 / -1}
 }
 .ui-form--destaque{margin-top:18px;padding-top:18px;border-top:2px solid var(--scw-choco)}
 

@@ -12,6 +12,7 @@ import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Carregando, Vazio, Erro, Secao, Abas, traduzirErro } from '../ui'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
+import { AbaCadastro } from './FichaCadastro'
 import { ROTULO_HISTORICO } from '../../lib/operacao'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
@@ -26,121 +27,6 @@ function Linha({ rotulo, valor }) {
 
 function restricoes(i) {
   return [i.vegano ? 'vegano' : '', i.sem_gluten ? 'sem glúten' : '', i.sem_lactose ? 'sem lactose' : ''].filter(Boolean).join(' · ')
-}
-
-/* ── Aba "Cadastro": o que a marca preencheu ─────────────────────────────── */
-function AbaCadastro({ participante }) {
-  const [estado, setEstado] = React.useState({ carregando: !!participante.participacao_id, dados: null, erro: null })
-
-  const carregar = React.useCallback(async () => {
-    if (!participante.participacao_id) return
-    setEstado({ carregando: true, dados: null, erro: null })
-    try {
-      const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participante.participacao_id })
-      setEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.' })
-    } catch (e) {
-      setEstado({ carregando: false, dados: null, erro: e.message })
-    }
-  }, [participante.participacao_id])
-  React.useEffect(() => { carregar() }, [carregar])
-
-  const m = (estado.dados && estado.dados.marca) || participante
-  const contato = (
-    <Secao titulo="Contato">
-      <dl className="ui-dados">
-        <Linha rotulo="Responsável" valor={m.responsavel} />
-        <Linha rotulo="Telefone" valor={m.telefone} />
-        <Linha rotulo="E-mail" valor={m.email} />
-        <Linha rotulo="Instagram" valor={m.instagram} />
-        <Linha rotulo="Site" valor={m.site} />
-        <Linha rotulo="CNPJ" valor={m.cnpj} />
-        <Linha rotulo="Razão social" valor={m.razao_social} />
-      </dl>
-    </Secao>
-  )
-
-  if (!participante.participacao_id) {
-    return (
-      <>
-        {contato}
-        <Vazio titulo="Sem edição aberta">A marca tem conta, mas não há participação aberta para ela. Abra a edição atual em Produção para o formulário aparecer.</Vazio>
-      </>
-    )
-  }
-  if (estado.carregando) return <Carregando linhas={3} />
-  if (estado.erro) return <Erro texto={estado.erro} onTentar={carregar} />
-
-  const f = estado.dados
-  const pa = f.participacao || {}
-  const itens = f.itens || []
-  const unidades = f.unidades || []
-  const solics = f.solicitacoes || []
-  const arqs = f.arquivos || []
-  const sess = f.sessoes || []
-  const edicoes = f.edicoes || []
-
-  return (
-    <div className="ui-pilha">
-      {contato}
-      <Secao titulo="O combo" nota={'Edição ' + (pa.edicao_codigo || '—') + ' · ' + rotuloStatus(pa.status_cadastro)}>
-        <dl className="ui-dados">
-          <Linha rotulo="Tema" valor={pa.tema_combo} />
-          <Linha rotulo="Justificativa" valor={pa.tema_justificativa} />
-          <Linha rotulo="Preço" valor={preco(pa.combo_preco)} />
-          <Linha rotulo="Para viagem" valor={pa.combo_para_viagem == null ? null : pa.combo_para_viagem ? 'sim' : 'não'} />
-          <Linha rotulo="Vegano" valor={pa.combo_vegano == null ? null : pa.combo_vegano ? 'sim' : 'não'} />
-          <Linha rotulo="Diet" valor={pa.combo_diet == null ? null : pa.combo_diet ? 'sim' : 'não'} />
-          <Linha rotulo="Delivery" valor={pa.combo_delivery} />
-          <Linha rotulo="Proposta criativa" valor={pa.combo_proposta} />
-        </dl>
-        {itens.length
-          ? <ul className="ui-lista-simples">{[...itens].sort((a, b) => (a.posicao || 0) - (b.posicao || 0)).map((i) => (
-              <li key={i.id}>
-                <b>{i.posicao ? 'ITEM ' + i.posicao + ' · ' : ''}{(i.tipo || '').toUpperCase()} · {i.nome || '(sem nome)'}</b>
-                {i.descricao && <span>{i.descricao}</span>}
-                {i.ingredientes && <span><i>{i.ingredientes}</i></span>}
-                {restricoes(i) && <span>{restricoes(i)}</span>}
-              </li>
-            ))}</ul>
-          : <p className="ui-nota">Os três itens ainda não foram criados.</p>}
-      </Secao>
-      <Secao titulo="Unidades">
-        {unidades.length
-          ? <ul className="ui-lista-simples">{unidades.map((u, i) => (
-              <li key={u.id || i}>
-                <b>{u.endereco || '(sem endereço)'}{u.bairro ? ' · ' + u.bairro : ''}</b>
-                {u.horarios && <span>{u.horarios}</span>}
-                <span>{u.faz_delivery ? 'delivery: ' + ((u.canais_delivery || []).map((c) => c.tipo).join(', ') || 'sem canal informado') : 'sem delivery'}</span>
-              </li>
-            ))}</ul>
-          : <p className="ui-nota">Nenhuma unidade cadastrada.</p>}
-      </Secao>
-      <Secao titulo="Pedidos">
-        {solics.length
-          ? <ul className="ui-lista-simples">{solics.map((s) => {
-              const prazo = s.prazo_em ? prazoSelo(s.prazo_em) : null
-              return <li key={s.id}><b>{s.titulo}</b><span>{rotulo('pedido', s.estado === 'respondido' ? 'respondido' : 'pendente') + (s.estado === 'respondido' && s.respondido_em ? ' ' + tempoRelativo(s.respondido_em) : '')}{prazo ? ' · ' + prazo.texto : ''}</span></li>
-            })}</ul>
-          : <p className="ui-nota">Nenhum pedido publicado para esta marca.</p>}
-      </Secao>
-      <Secao titulo="Arquivos e fotos">
-        {arqs.length > 0 && <ul className="ui-lista-simples">{arqs.map((a) => (
-          <li key={a.id}><b>{a.nome}</b><span>{a.exige_leitura ? (a.lido_em ? 'leu em ' + dataCurta(a.lido_em) : 'ainda não confirmou a leitura') : 'sem confirmação de leitura'}</span></li>
-        ))}</ul>}
-        {sess.length > 0 && <ul className="ui-lista-simples">{sess.map((x) => (
-          <li key={x.id}><b>Sessão de fotos · {dataHoraCurta(x.data_hora)}</b><span>{ROTULO_SESSAO[x.status] || x.status}{x.local ? ' · ' + x.local : ''}</span></li>
-        ))}</ul>}
-        {!arqs.length && !sess.length && <p className="ui-nota">Nenhum arquivo nem sessão de fotos ainda.</p>}
-      </Secao>
-      {edicoes.length > 0 && (
-        <Secao titulo="Edições">
-          <ul className="ui-lista-simples">{edicoes.map((e) => (
-            <li key={e.id}><b>{e.edicao_codigo}</b><span>{rotuloStatus(e.status_cadastro)}{e.tema_combo ? ' · ' + e.tema_combo : ''}</span></li>
-          ))}</ul>
-        </Secao>
-      )}
-    </div>
-  )
 }
 
 /* ── Aba "Mensagens": conversa com a marca ───────────────────────────────── */
@@ -300,8 +186,22 @@ function AbaAcesso({ participante, pode, onMudou }) {
     }
   }
 
+  const arquivar = pode('cadastro.editar') && (
+    <Secao titulo={participante.arquivado_em ? 'Marca arquivada' : 'Arquivar marca'}
+      nota={participante.arquivado_em ? 'Fora das listas desde ' + dataCurta(participante.arquivado_em) + '. Restaurar devolve tudo como estava.' : 'Tira a marca das listas sem apagar nada: cadastro, fotos e histórico ficam guardados.'}>
+      <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={gerando} onClick={async () => {
+        const vai = !participante.arquivado_em
+        if (vai && !window.confirm('Arquivar ' + participante.nome_marca + '? Ela sai das listas; dá para restaurar depois.')) return
+        setErro(null)
+        try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onMudou && onMudou() }
+        catch (e) { setErro(traduzirErro(e.message)) }
+      }}>{participante.arquivado_em ? 'Restaurar marca' : 'Arquivar marca'}</button>
+    </Secao>
+  )
+
   if (!participante.user_id) {
     return (
+      <div className="ui-pilha">
       <Secao titulo="Sem acesso criado" nota="A marca ainda não entra no painel. Ao criar, o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar por WhatsApp.">
         {cred
           ? <Credenciais nomeMarca={participante.nome_marca} telefone={participante.telefone} login={cred.login} senha={cred.senha} />
@@ -309,6 +209,8 @@ function AbaAcesso({ participante, pode, onMudou }) {
         {!pode('marca.liberar') && <p className="ui-nota">Sua função não libera acesso de marca.</p>}
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
       </Secao>
+      {arquivar}
+      </div>
     )
   }
   return (
@@ -323,6 +225,7 @@ function AbaAcesso({ participante, pode, onMudou }) {
         {!pode('marca.liberar') && <p className="ui-nota">Sua função não libera acesso de marca.</p>}
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
       </Secao>
+      {arquivar}
     </div>
   )
 }
@@ -359,7 +262,7 @@ function FichaMarca({ participante, aba: abaPedida, onAba, pode, onFechar, naoLi
             ]}
           />
           <div role="tabpanel" className="ui-painel-aba">
-            {aba === 'cadastro' && <AbaCadastro participante={p} />}
+            {aba === 'cadastro' && <AbaCadastro participante={p} pode={pode} onMudou={onMudou} />}
             {aba === 'operacao' && <AbaOperacao participante={p} pode={pode} />}
             {aba === 'trajetoria' && <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />}
             {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
@@ -470,6 +373,8 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const mudar = (novos, substituir = true) => navegar({ filtros: { ...f, ...novos } }, { substituir })
   const setStatus = (v) => mudar({ situacao: v })
   const setOrdem = (v) => mudar({ ordem: v === 'recentes' ? '' : v })
+  // Arquivadas é outra leitura (o banco só devolve arquivadas quando pedidas).
+  const arquivadas = status === 'arquivadas'
   const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'cadastro' ? x.aba : '' } : { item: '', sub: '' }, false)
 
   const carregar = React.useCallback(async () => {
@@ -480,7 +385,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
       const [valida, lista] = await Promise.all([
         rpc('admin_ping', { p_secret: senha }),
-        rpc('get_participantes', { p_secret: senha }),
+        rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
       ])
       if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
       setParticipantes(lista || [])
@@ -489,7 +394,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
     }
     // Leitura à parte: conversas não podem derrubar a lista (§10.4-b).
     try { setConversas((await rpc('get_conversas', { p_secret: senha })) || []) } catch { setConversas([]) }
-  }, [])
+  }, [arquivadas])
 
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
@@ -501,7 +406,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
       .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
       .filter((p) => !f.edicao || p.edicao_codigo === f.edicao)
-      .filter((p) => !status || (status === 'mensagens' ? p._naoLidas > 0
+      .filter((p) => !status || status === 'arquivadas' || (status === 'mensagens' ? p._naoLidas > 0
         : status === 'pendencias' ? Number(p.pendencias) > 0
         : status === 'sem_conta' ? !p.user_id
         : status === 'com_conta' ? !!p.user_id
@@ -533,6 +438,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
               <option value="em_preenchimento">Em preenchimento</option>
               <option value="cadastro_completo">Cadastro completo</option>
               <option value="sem_participacao">Sem edição aberta</option>
+              <option value="arquivadas">Arquivadas</option>
             </select>
           </label>
           <label className="og-campo"><span>Ordenar</span>
