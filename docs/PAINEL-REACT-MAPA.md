@@ -26,6 +26,11 @@ A navegação abaixo foi reorganizada por assunto. Resumo técnico (regras em
 | Início da marca (antigo Hoje) | `components/vistas-marca/Hoje.jsx` |
 | Meu cadastro / Meu combo (o mesmo formulário com `blocos`) | `components/vistas-marca/Cadastro.jsx`, `App.jsx` (`VISTAS_MARCA`) |
 | Fotos da marca (sessão, fotos oficiais, guia) | `components/vistas-marca/Fotos.jsx` |
+| Registro único de ícones (painel + sistema do site), `MODULO_ICONE`, `ICONE_TOM` (Fase 15) | `components/Icone.jsx` |
+| Peças da reconstrução: MacroSecao, Modulo, GradeModulos, Chips, Botao, MaisAcoes, LogoMarca | `components/ui.jsx` |
+| Ficha do participante como página (cabeçalho-resumo + 9 abas) | `components/vistas/FichaMarcaPagina.jsx` |
+| Abas Cadastro / Combo / Unidades da ficha (Bloco = Módulo) | `components/vistas/FichaCadastro.jsx` |
+| Logo do participante: editor único (org e marca), validação, URL, iniciais | `components/LogoEditor.jsx`, `src/lib/logos.js` |
 
 Marca, desde a Fase 14: **Início · Meu cadastro · Meu combo · Fotos · Arquivos**
 (+ Pedidos, Mensagens e Guia fora do menu). Onde as seções abaixo falam em

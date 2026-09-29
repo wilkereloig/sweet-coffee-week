@@ -812,7 +812,8 @@ sem ninguém ter olhado. **Sai quando a última página migrar.** Estado da migr
 | `scw-home.css` | ✅ migrado |
 | `scw-participar-apoiar.css` | ✅ migrado em 15/09/2026 — alcança Participar **e** Apoiar |
 | `scw-edicoes.css` · `scw-awards.css` · `scw-contato.css` · `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
-| `em-breve.css` · `painel-app/src/styles/painel.css` | ⏳ idem |
+| `em-breve.css` | ⏳ idem |
+| `painel-app/src/styles/painel.css` | ✅ usa `--f-titulo`/`--f-ui`/`--f-texto` (Slab só em título; Fase 15) |
 
 ⛔ **O kit não tem 500, 800 nem 900 na sem serifa.** Por isso `font-synthesis: none` no
 reset: peso que falta é peso que não existe, e deixar o navegador simular engorda o traço
@@ -1318,6 +1319,8 @@ conscientes ficam na allowlist do próprio teste.
   bege. **Nunca inventar logo** — `resolveParticipant` com fallback em iniciais.
   ⚠️ A regra vale para o **slot de marca**, não para toda imagem de logo: a marca da F2
   e a logo do cabeçalho são assets de proporção própria e seguem como estão.
+  ⚠️ **Exceção do PAINEL (29/09/2026):** a logo enviada pela marca usa `contain` com
+  margem interna (`LogoMarca`), porque vem em proporção qualquer — ver §10.4-b, Fase 15.
 - **Coerência de conteúdo é obrigatória:** página de edição mostra fotos daquela edição;
   página de participante mostra o participante certo; **Sweet Awards mostra a peça
   premiada** (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor Bebida → a bebida,
@@ -3185,6 +3188,50 @@ sha256 conferido) + `20260930_acessos_ajustes_advisor.sql`. O que passou a valer
   Pedido da organização ganha `campo` e `prioridade`.
 - **Conta pausada**: a marca bloqueada/desativada vê "Seu acesso está pausado"
   em vez de um painel vazio (`precisaTrocarSenha` → `'pausada'`).
+
+#### Reconstrução visual + logo do participante — 29/09/2026 (Fase 15)
+
+Spec em `docs/superpowers/specs/2026-09-29-reconstrucao-visual-painel-design.md`.
+Migration `20260930_logos_marca.sql` (aplicada pelo arquivo do commit, sha256
+conferido). O que passou a valer:
+
+- **Três níveis e três camadas.** Página (VistaCabeca) → macroseção
+  (`MacroSecao`) → módulo (`Modulo`, um card por assunto). Camadas da paleta:
+  `--sup-0` (fundo da aplicação, bege-claro por `color-mix`), `--sup-1` (card
+  creme com filete), `--sup-2` (bloco interno). Espaço `--e-1..--e-8`. A seção
+  perdeu o filete: **o espaço separa, a linha é recurso complementar**.
+- **Tipografia do painel.** Slab só em título de página/seção, nome da marca
+  e número grande; `h3`/título de card em Nexa. **Caixa-alta só em
+  `.ui-macro__rotulo`** — `painel-app-reconstrucao.test.mjs` reprova outra.
+  ⚠️ Se o painel parecer "todo em Slab", é o kit Typekit fora do ar (em
+  29/09/2026 `ngx4uek` respondia 412): o fallback das duas vozes é a Slab.
+- **Ícones: um registro só** (`components/Icone.jsx`). Nome com "/" vem do
+  sistema do site (`scw-icons-v2.js`, ⛔ não editar à mão); os do painel têm
+  a grade deles e o traço normalizado ao peso do site. `MODULO_ICONE` é o mapa
+  assunto → ícone; `ICONE_TOM` dá ícone a todo tom de status. `<Selo>` sempre
+  com ícone + texto + cor — ⛔ nada de `<span className="og-selo">` à mão.
+- **Ação sempre nomeada** ("Editar bebida", "Adicionar unidade"); uma
+  principal, secundárias contornadas, o raro em `MaisAcoes`.
+- **Ficha do participante é PÁGINA** (decisão do Wilker), no mesmo endereço
+  (`#participantes/lista?item=…&sub=…`): cabeçalho-resumo e subnavegação
+  Resumo · Cadastro · Combo · Unidades · Operação · Mensagens · Trajetória ·
+  Acesso · Histórico (`vistas/FichaMarcaPagina.jsx`). `sub` vazio = Resumo.
+- **Menu da organização em grupos**: Operação · Relacionamento · Conteúdo ·
+  Administração (`GRUPOS` em `PainelShell.jsx`).
+- **Logo do participante.** `logos_marca` (uma linha por arquivo, nunca
+  apagada), `participantes.logo_id` (oficial da marca) e
+  `participacoes.logo_id` (confirmada para a edição) apontam para a mesma
+  linha. Estado derivado: confirmada · anterior · acervo · não enviada. Bucket
+  **público** `logos`: a marca sobe na própria pasta (policy com
+  `meu_participante()`), a organização por `arquivo-url` (`cadastro.editar`),
+  nunca por cima. `acervo_logos` é GERADO de `src/data/participants.js` por
+  `scripts/acervo-logos-para-sql.mjs` — ⛔ não digitar. A organização vê
+  sugestão por nome ou vínculo; **a marca só por vínculo confirmado**.
+  Raster com lado maior < 500px e SVG com código são recusados.
+- **A logo é o 17º campo** do progresso (`campos_cadastro` e
+  `camposObrigatorios`, mesma lista). Não trava o envio para análise.
+- ⚠️ **Logo no painel é `contain`**, exceção declarada à §6.12: aqui o arquivo é
+  enviado pela marca, com proporção qualquer; `cover` recortaria a marca.
 
 ### 10.5 Grade e layout
 
