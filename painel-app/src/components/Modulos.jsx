@@ -8,6 +8,7 @@ import { Respostas } from './vistas/Respostas'
 import { Contatos } from './vistas/Contatos'
 import { Producao } from './vistas/Producao'
 import { MateriaisEdicao } from './vistas/MateriaisEdicao'
+import { ArquivosOrg } from './vistas/ArquivosOrg'
 import { GuiaFotos } from './vistas/GuiaFotos'
 import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
@@ -74,8 +75,10 @@ export function Operacao(props) {
 
 export function ModArquivos(props) {
   return <Modulo id="arquivos" {...props} abas={[
-    { chave: 'gerais', rotulo: 'Arquivos publicados', render: () => <Producao {...props} secao="arquivos" /> },
-    { chave: 'guias', rotulo: 'Guias', render: () => <GuiaFotos /> },
+    { chave: 'gerais', rotulo: 'Para todas as marcas', render: () => <ArquivosOrg {...props} aba="gerais" /> },
+    { chave: 'participantes', rotulo: 'Por participante', render: () => <ArquivosOrg {...props} aba="participantes" /> },
+    { chave: 'guias', rotulo: 'Guia de fotos', render: () => <GuiaFotos /> },
+    { chave: 'arquivados', rotulo: 'Arquivados', render: () => <ArquivosOrg {...props} aba="arquivados" /> },
   ]} />
 }
 

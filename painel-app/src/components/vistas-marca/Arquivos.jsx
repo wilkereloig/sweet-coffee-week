@@ -1,6 +1,8 @@
 import React from 'react'
 import { api, assinarDownload } from '../../lib/marcaApi'
 import { dataHoraExtensa } from '../../lib/central'
+import { dataCurta } from '../../lib/respostas'
+import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Vazio, Erro, Secao } from '../ui'
@@ -27,7 +29,7 @@ export function Arquivos({ alvo, consumirAlvo }) {
   const carregar = React.useCallback(async () => {
     setErro(null)
     try {
-      setArquivos((await api('arquivos?select=*&order=created_at.desc')) || [])
+      setArquivos((await api('arquivos?select=*&order=publicado_em.desc.nullslast')) || [])
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
       setErro(e.message)
@@ -110,42 +112,48 @@ export function Arquivos({ alvo, consumirAlvo }) {
 
   return (
     <section className="ui-vista-marca">
-      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Arquivos" nota="O que a organização publicou para você baixar e, quando pedido, confirmar a leitura" />
+      <VistaCabeca acento="marrom" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.arquivos} titulo="Downloads" nota="Fotos do seu combo, marca do festival, guias e documentos" />
 
       <div className="ui-grade-duas">
-        <Secao titulo="Documentos da organização">
+        <Secao titulo="Para baixar">
           {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={carregar} />}
           {!erro && arquivos === null && <Carregando linhas={3} />}
           {!erro && arquivos && arquivos.length === 0 && <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar um documento (regulamento, material de divulgação), ele aparece aqui e chega um aviso.</Vazio>}
-          {arquivos && arquivos.length > 0 && (
-            <ul className="ui-arquivos">
-              {arquivos.map((a) => {
-                const detalhe = [a.versao ? 'versão ' + a.versao : '', a.descricao || ''].filter(Boolean).join(' · ')
-                const lido = lidos[a.id]
-                return (
-                  <li key={a.id} className={'ui-arquivo' + (destaque === a.id ? ' is-destaque' : '')}>
-                    <div className="ui-arquivo__corpo">
-                      <b>{a.nome}</b>
-                      {detalhe && <span>{detalhe}</span>}
-                      {a.exige_leitura && (lido
-                        ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
-                        : <span className="og-selo" data-tom="revisar">Confirme a leitura</span>)}
-                    </div>
-                    <div className="ui-linha-acoes">
-                      <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
-                        {baixando === a.path ? 'Abrindo…' : 'Baixar'}
-                      </button>
-                      {a.exige_leitura && !lido && (
-                        <button className="og-btn og-btn--mini" type="button" disabled={confirmando === a.id} onClick={() => confirmarLeitura(a.id)}>
-                          {confirmando === a.id ? 'Registrando…' : 'Li e estou de acordo'}
+          {arquivos && arquivos.length > 0 && agruparPorCategoria(arquivos).map((g) => (
+            <div className="ui-downloads__grupo" key={g.chave}>
+              <h3 className="ui-downloads__titulo">{g.rotulo}</h3>
+              {g.descricao && <p className="ui-nota">{g.descricao}</p>}
+              <ul className="ui-arquivos">
+                {g.itens.map((a) => {
+                  const detalhe = [tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho), a.versao ? 'versão ' + a.versao : '', dataCurta(a.publicado_em || a.created_at)].filter(Boolean).join(' · ')
+                  const lido = lidos[a.id]
+                  return (
+                    <li key={a.id} className={'ui-arquivo' + (destaque === a.id ? ' is-destaque' : '')}>
+                      <div className="ui-arquivo__corpo">
+                        <b>{a.nome}</b>
+                        <span>{detalhe}</span>
+                        {a.descricao && <span>{a.descricao}</span>}
+                        <span className="og-selo" data-tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</span>
+                        {a.exige_leitura && (lido
+                          ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
+                          : <span className="og-selo" data-tom="atencao">Confirme a leitura</span>)}
+                      </div>
+                      <div className="ui-linha-acoes">
+                        <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
+                          {baixando === a.path ? 'Abrindo…' : 'Baixar'}
                         </button>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+                        {a.exige_leitura && !lido && (
+                          <button className="og-btn og-btn--mini" type="button" disabled={confirmando === a.id} onClick={() => confirmarLeitura(a.id)}>
+                            {confirmando === a.id ? 'Registrando…' : 'Li e estou de acordo'}
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
           {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
         </Secao>
 

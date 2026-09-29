@@ -1,10 +1,10 @@
 import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
-import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta, prazoSelo } from '../../lib/painelFormat'
 import { BLOCOS, ROTULO_SESSAO, montarAgendaGrade, nomeSeguro, isoDoCampo, campoDoIso } from '../../lib/producao'
 import { marcasParaOpcoes } from '../../lib/participantes'
 import { rotulo } from '../../lib/status'
+import { CATEGORIAS_ARQUIVO } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Carregando, Erro, Vazio, Selo } from '../ui'
@@ -110,6 +110,11 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         </label>
         <label className="og-campo"><span>Texto</span>
           <textarea value={texto} onChange={(e) => setTexto(e.target.value)} />
+        </label>
+        <label className="og-campo"><span>Categoria</span>
+          <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+            {CATEGORIAS_ARQUIVO.map((c) => <option key={c.chave} value={c.chave}>{c.rotuloOrg}</option>)}
+          </select>
         </label>
         <label className="og-campo"><span>Para quem</span>
           <select value={escopo} onChange={(e) => setEscopo(e.target.value)}>
@@ -220,7 +225,7 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
 }
 
 /* ── Publicar arquivo ──────────────────────────────────────────────────── */
-function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onPublicado }) {
+export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onPublicado, categoriaInicial = 'documento', escopoInicial = 'geral' }) {
   const [file, setFile] = React.useState(null)
   const [nome, setNome] = React.useState('')
   const [escopo, setEscopo] = React.useState('geral')
@@ -228,12 +233,14 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
   const [versao, setVersao] = React.useState('')
   const [descricao, setDescricao] = React.useState('')
   const [leitura, setLeitura] = React.useState(false)
+  const [categoria, setCategoria] = React.useState(categoriaInicial)
   const [aviso, setAviso] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
 
   React.useEffect(() => {
     if (!aberto) return
-    setFile(null); setNome(''); setEscopo('geral'); setMarca(marcaPadrao)
+    setCategoria(categoriaInicial)
+    setFile(null); setNome(''); setEscopo(escopoInicial); setMarca(marcaPadrao)
     setVersao(''); setDescricao(''); setLeitura(false); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
@@ -274,6 +281,7 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
         p_mime: file.type || null,
         p_tamanho: file.size,
         p_exige_leitura: leitura,
+        p_categoria: categoria,
       })
       setAviso({ texto: 'Publicado.', tom: 'ok' })
       await onPublicado()
@@ -476,16 +484,14 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
 /* ── A vista ───────────────────────────────────────────────────────────── */
 /*
  * `secao` (reestruturação 29/09/2026): a antiga Produção virou pedaços de
- * três módulos — 'pedidos' e 'fotos' (Operação), 'arquivos' (Arquivos) e
- * 'edicao' (Edição › Configuração). Cada módulo mostra só a sua seção.
- * ponytail: a vista ainda carrega os três conjuntos (pedidos, arquivos,
- * sessões) mesmo mostrando um só — são listas pequenas; separar a carga
- * quando alguma crescer.
+ * dois módulos — 'pedidos' e 'fotos' (Operação) e 'edicao' (Edição ›
+ * Configuração). Arquivos ganharam vista própria (ArquivosOrg.jsx, etapa 4).
+ * ponytail: a vista carrega pedidos e sessões mesmo mostrando um só — são
+ * listas pequenas; separar a carga quando alguma crescer.
  */
 export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, secao = 'pedidos' }) {
   const podeGerir = pode('producao.gerir')
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
-  const [arquivos, setArquivos] = React.useState(null)
   const [sessoes, setSessoes] = React.useState(null)
   // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
   const [config, setConfig] = React.useState(undefined)
@@ -507,16 +513,15 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   // Uma folha por vez: qual está aberta, e o dado que ela precisa.
   const [folha, setFolha] = React.useState(null)
   // null | {tipo:'pedido'} | {tipo:'quemFalta', solicitacao}
-  // | {tipo:'arquivo'} | {tipo:'sessaoNova'} | {tipo:'sessaoEditar', sessao}
+  // | {tipo:'sessaoNova'} | {tipo:'sessaoEditar', sessao}
 
   const carregar = React.useCallback(async () => {
     setErro(null)
     const senha = lerSenha()
     try {
-      const [valida, s, a, f] = await Promise.all([
+      const [valida, s, f] = await Promise.all([
         rpc('admin_ping', { p_secret: senha }),
         rpc('get_solicitacoes_admin', { p_secret: senha }),
-        rpc('get_arquivos_admin', { p_secret: senha }),
         rpc('get_sessoes_fotos', { p_secret: senha }),
       ])
       if (valida !== true) {
@@ -526,7 +531,6 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
       const solicitacoesOk = s || []
       const sessoesOk = f || []
       setSolicitacoes(solicitacoesOk)
-      setArquivos(a || [])
       setSessoes(sessoesOk)
       // Alimenta quem pedir o estado (o sino hoje lê a tabela de avisos; isto
       // PainelShell, que não sabe como esta vista busca os próprios dados).
@@ -632,19 +636,6 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
       setAvisoGeral({ texto: 'Publicado para ' + n + (n === 1 ? ' marca.' : ' marcas.'), tom: 'ok' })
     } catch (e) {
       setAvisoGeral({ texto: 'Não deu para publicar: ' + e.message, tom: 'erro' })
-    }
-  }
-
-  async function baixarArquivo(path) {
-    // A janela abre NO clique, antes do await: aberta depois, o bloqueador de
-    // pop-up (principalmente no iOS) a barra.
-    const janela = window.open('', '_blank')
-    try {
-      const r = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'arquivos', path })
-      if (janela) { janela.opener = null; janela.location.href = r.url } else window.location.href = r.url
-    } catch (e) {
-      if (janela) janela.close()
-      setAvisoGeral({ texto: 'Não deu para abrir o arquivo: ' + e.message, tom: 'erro' })
     }
   }
 
@@ -824,50 +815,6 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             )}
           </section>}
 
-          {secao === 'arquivos' && <section className="og-forms">
-            <div className="og-forms__cabeca og-forms__cabeca--com-acao">
-              <div>
-                <h2>Arquivos</h2>
-                <p>Documentos para download. Gerais, ou de uma marca só.</p>
-              </div>
-              <button
-                className="og-btn og-btn--mini" type="button"
-                disabled={!podeGerir}
-                title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-                onClick={() => setFolha({ tipo: 'arquivo' })}
-              >
-                Publicar arquivo
-              </button>
-            </div>
-            {arquivos && arquivos.length === 0 && (
-              <EstadoVazio titulo="Nenhum arquivo publicado" texto="O que você publicar aqui aparece para download no painel da marca." />
-            )}
-            {arquivos && arquivos.length > 0 && (
-              <ul className="og-lista">
-                {arquivos.map((a) => {
-                  const detalhe = [
-                    a.escopo === 'geral' ? 'para todas' : (a.marca || 'uma marca'),
-                    a.versao ? 'versão ' + a.versao : '',
-                    a.exige_leitura ? Number(a.leituras || 0) + ' confirmaram leitura' : '',
-                  ].filter(Boolean).join(' · ')
-                  return (
-                    <li key={a.id}>
-                      <div className="og-item">
-                        <span className="og-item__cor" data-chave="arquivo" aria-hidden="true" />
-                        <p className="og-item__nome">{a.nome}</p>
-                        <p className="og-item__meta">{detalhe}</p>
-                        <span className="og-item__dir">
-                          <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => baixarArquivo(a.path)}>Baixar</button>
-                          <span className="og-item__data">{dataCurta(a.publicado_em)}</span>
-                        </span>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>}
-
           {secao === 'fotos' && <section className="og-forms">
             <div className="og-forms__cabeca og-forms__cabeca--com-acao">
               <div>
@@ -932,14 +879,6 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         podeGerir={podeGerir}
         onFechar={fecharFolha}
         onRespondido={carregar}
-      />
-      <FolhaNovoArquivo
-        aberto={!!folha && folha.tipo === 'arquivo'}
-        opcoesMarcas={opcoesMarcas}
-        marcaPadrao={marcaPadrao}
-        podeGerir={podeGerir}
-        onFechar={() => setFolha(null)}
-        onPublicado={carregar}
       />
       <FolhaNovaSessao
         aberto={!!folha && folha.tipo === 'sessaoNova'}
