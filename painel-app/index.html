@@ -20,7 +20,19 @@
          dos dois tokens é a Nexa Slab local. -->
     <link rel="preconnect" href="https://use.typekit.net" crossorigin />
     <link rel="preconnect" href="https://p.typekit.net" crossorigin />
-    <link rel="stylesheet" href="https://use.typekit.net/ngx4uek.css" />
+    <!-- O kit carrega pelo JS: desde 29/09/2026 o endereço ngx4uek.css responde 412
+         (ao que tudo indica, o kit passou a servir só pelo embed JS) e o
+         <link> deixava tudo cair no fallback, a Slab. -->
+    <script>
+      (function(d) {
+        var config = {
+          kitId: 'ngx4uek',
+          scriptTimeout: 3000,
+          async: true
+        },
+        h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+      })(document);
+    </script>
     <link rel="stylesheet" href="/painel-app/src/styles/painel.css" />
   </head>
   <body>

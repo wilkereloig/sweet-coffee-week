@@ -240,7 +240,10 @@ preview.**
 - **Fontes:** **duas vozes da mesma família** desde 11/09/2026 (§6.5). A **Nexa Slab**
   continua self-hosted em `public/fonts/nexa-slab/` (woff2, pesos 100–900 + itálicos +
   alias `'Nexa Slab Black'`), declarada em `src/styles/fonts-nexa-slab.css`. A **Nexa** e
-  a **Nexa Text** vêm do **Typekit, kit `ngx4uek`**, pelo `<link>` do `index.html`.
+  a **Nexa Text** vêm do **Typekit, kit `ngx4uek`**, pelo **embed JS** do `index.html`
+  (e do `painel-app/index.html`).
+  ⚠️ **Não voltar ao `<link>` do `ngx4uek.css`:** desde 29/09/2026 esse endereço responde
+  412 e só o `ngx4uek.js` serve o kit — com o `<link>`, site e painel caíam inteiros na Slab.
   ⚠️ **A regra "nenhum serviço externo de fonte" CAIU** — e ela já estava falsa antes
   disto: o `index.html` carrega a **Archivo do Google Fonts** desde o patch da F2, para a
   seção 07 da Home. Eram duas afirmações e só uma era verdade.
@@ -3188,8 +3191,9 @@ conferido). O que passou a valer:
 - **Tipografia do painel.** Slab só em título de página/seção, nome da marca
   e número grande; `h3`/título de card em Nexa. **Caixa-alta só em
   `.ui-macro__rotulo`** — `painel-app-reconstrucao.test.mjs` reprova outra.
-  ⚠️ Se o painel parecer "todo em Slab", é o kit Typekit fora do ar (em
-  29/09/2026 `ngx4uek` respondia 412): o fallback das duas vozes é a Slab.
+  ⚠️ Se o painel parecer "todo em Slab", confira o kit: o fallback das duas vozes
+  é a Slab. Em 29/09/2026 a causa era o `<link>` para `ngx4uek.css` (412); o kit
+  passou a carregar pelo embed JS (`ngx4uek.js`), que responde.
 - **Ícones: um registro só** (`components/Icone.jsx`). Nome com "/" vem do
   sistema do site (`scw-icons-v2.js`, ⛔ não editar à mão); os do painel têm
   a grade deles e o traço normalizado ao peso do site. `MODULO_ICONE` é o mapa
