@@ -414,6 +414,13 @@ button.og-item{cursor:pointer}
 .og-selo[data-tom="ok"]{background:var(--scw-choco);color:var(--scw-creme)}
 .og-selo[data-tom="encerrado"]{background:var(--scw-bege);color:var(--scw-marrom)}
 
+/* Linha que abre no lugar (vouchers de uma marca). */
+.ui-expandido{margin:6px 0 14px 22px;padding-left:14px;border-left:2px solid var(--scw-filete)}
+
+/* Grupo de caixas de marcar (categorias do contato). */
+.ui-multi{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:0 18px}
+.ui-multi legend{flex-basis:100%;padding:0;margin:0 0 4px;font:700 12px/1.2 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--scw-marrom)}
+
 /* Downloads da marca, por categoria (etapa 4). */
 .ui-downloads__grupo + .ui-downloads__grupo{margin-top:28px}
 .ui-downloads__titulo{margin:0 0 4px;font:900 clamp(18px,1.7vw,22px)/1.06 var(--f-titulo);letter-spacing:-.02em;color:var(--scw-choco)}

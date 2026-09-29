@@ -99,26 +99,36 @@ export function resumoTrajetoria(historia) {
  * Relacionamento: filtros de apoio à escolha do Press Kit. Mostram contexto;
  * não ordenam por "mérito" nem escolhem ninguém.
  */
+// Categorias de relacionamento (contatos_relacionamento.categorias — uma
+// pessoa pode ter várias). Press Kit e Voucher não são categoria digitada:
+// saem dos envios e dos vouchers da edição (etapa 5, 29/09/2026).
+export const CATEGORIAS_CONTATO = [
+  ['influenciador', 'Influenciadores'], ['imprensa', 'Imprensa'], ['parceiro', 'Parceiros'],
+  ['convidado', 'Convidados'], ['outro', 'Outros'],
+]
 export const FILTROS_CONTATO = [
   ['todos', 'Todos'],
-  ['influenciador', 'Influenciadores'],
-  ['ja_receberam', 'Já receberam'],
+  ...CATEGORIAS_CONTATO,
+  ['presskit', 'Press Kit nesta edição'],
+  ['voucher', 'Voucher nesta edição'],
+  ['ja_receberam', 'Já receberam Press Kit'],
   ['nunca_receberam', 'Nunca receberam'],
   ['receberam_ultima', 'Receberam na última'],
   ['incompleto', 'Cadastro incompleto'],
-  ['selecionados', 'Selecionados nesta edição'],
 ]
+const categoriasDe = (c) => (Array.isArray(c.categorias) && c.categorias.length ? c.categorias : [c.tipo].filter(Boolean))
 export function filtrarContatos(lista, filtro, busca = '') {
   const t = String(busca || '').trim().toLowerCase()
   return (lista || []).filter((c) => {
-    if (t && ![c.nome, c.instagram, c.bairro].filter(Boolean).join(' ').toLowerCase().includes(t)) return false
+    if (t && ![c.nome, c.instagram, c.bairro, c.cidade, c.email].filter(Boolean).join(' ').toLowerCase().includes(t)) return false
+    if (CATEGORIAS_CONTATO.some(([k]) => k === filtro)) return categoriasDe(c).includes(filtro)
     switch (filtro) {
-      case 'influenciador': return c.tipo === 'influenciador'
       case 'ja_receberam': return Number(c.recebimentos) > 0
       case 'nunca_receberam': return Number(c.recebimentos) === 0
       case 'receberam_ultima': return !!c.recebeu_ultima
       case 'incompleto': return !!c.incompleto
-      case 'selecionados': return !!(c.atual && c.atual.status !== 'cancelado')
+      case 'presskit': case 'selecionados': return !!(c.atual && c.atual.status !== 'cancelado')
+      case 'voucher': return Number(c.vouchers_edicao) > 0
       default: return true
     }
   })

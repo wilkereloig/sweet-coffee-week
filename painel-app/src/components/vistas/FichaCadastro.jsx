@@ -30,6 +30,7 @@ const erroLegivel = (e) => {
 }
 
 function mostrar(campo, v) {
+  if (campo.tipo === 'multi') return Array.isArray(v) && v.length ? v.map((k) => campo.opcoes[k] || k).join(', ') : null
   if (campo.tipo === 'sim_nao' || campo.tipo === 'check') return v == null || v === '' ? null : (v === true || v === 'true' ? 'sim' : 'não')
   if (campo.tipo === 'preco') return v == null || v === '' ? null : preco(v)
   if (campo.tipo === 'select') return v ? (campo.opcoes[v] || v) : null
@@ -37,6 +38,7 @@ function mostrar(campo, v) {
 }
 // Valor do banco → valor do campo de formulário.
 function paraCampo(campo, v) {
+  if (campo.tipo === 'multi') return Array.isArray(v) ? v : []
   if (campo.tipo === 'check') return !!v
   if (campo.tipo === 'sim_nao') return v == null ? '' : String(!!v)
   if (campo.tipo === 'preco') return v == null ? '' : String(v).replace('.', ',')
@@ -51,17 +53,19 @@ function doCampo(campo, v) {
  * Um bloco: lê em <dl>, edita no lugar. `onSalvar(valores)` recebe só os
  * campos do bloco, já no formato do banco, e devolve uma promessa.
  */
-function Bloco({ titulo, nota, campos, valores, podeEditar, onSalvar, acoes, children }) {
-  const [editando, setEditando] = React.useState(false)
-  const [form, setForm] = React.useState({})
+export function Bloco({ titulo, nota, campos, valores, podeEditar, onSalvar, acoes, children, abertoInicial = false, onCancelar, rotuloSalvar = 'Salvar' }) {
+  const inicial = () => {
+    const f = {}
+    campos.forEach((c) => { f[c.chave] = paraCampo(c, valores[c.chave]) })
+    return f
+  }
+  // `abertoInicial`: o bloco já nasce editando (cadastro novo).
+  const [editando, setEditando] = React.useState(!!abertoInicial)
+  const [form, setForm] = React.useState(() => (abertoInicial ? inicial() : {}))
   const [salvando, setSalvando] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
 
-  function abrir() {
-    const f = {}
-    campos.forEach((c) => { f[c.chave] = paraCampo(c, valores[c.chave]) })
-    setForm(f); setAviso(null); setEditando(true)
-  }
+  function abrir() { setForm(inicial()); setAviso(null); setEditando(true) }
   async function salvar(ev) {
     ev.preventDefault()
     setSalvando(true); setAviso(null)
@@ -69,7 +73,7 @@ function Bloco({ titulo, nota, campos, valores, podeEditar, onSalvar, acoes, chi
       const saida = {}
       campos.forEach((c) => { saida[c.chave] = doCampo(c, form[c.chave]) })
       await onSalvar(saida)
-      setEditando(false)
+      if (!abertoInicial) setEditando(false)
     } catch (e) { setAviso(erroLegivel(e)) } finally { setSalvando(false) }
   }
 
@@ -94,8 +98,8 @@ function Bloco({ titulo, nota, campos, valores, podeEditar, onSalvar, acoes, chi
           ))}
           {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
           <div className="ui-linha-acoes">
-            <button className="og-btn og-btn--mini" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</button>
-            <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={salvando} onClick={() => setEditando(false)}>Cancelar</button>
+            <button className="og-btn og-btn--mini" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : rotuloSalvar}</button>
+            <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={salvando} onClick={() => (onCancelar ? onCancelar() : setEditando(false))}>Cancelar</button>
           </div>
         </form>
       )}
@@ -106,6 +110,20 @@ function Bloco({ titulo, nota, campos, valores, podeEditar, onSalvar, acoes, chi
 
 function Campo({ campo, valor, onMudar }) {
   const c = campo
+  if (c.tipo === 'multi') {
+    const lista = Array.isArray(valor) ? valor : []
+    return (
+      <fieldset className="og-campo og-campo--largo ui-multi">
+        <legend>{c.rotulo}</legend>
+        {Object.entries(c.opcoes).map(([k, r]) => (
+          <label key={k} className="og-campo og-campo--linha">
+            <input type="checkbox" checked={lista.includes(k)} onChange={(e) => onMudar(e.target.checked ? [...lista, k] : lista.filter((x) => x !== k))} />
+            <span>{r}</span>
+          </label>
+        ))}
+      </fieldset>
+    )
+  }
   if (c.tipo === 'check') {
     return <label className="og-campo og-campo--linha"><input type="checkbox" checked={!!valor} onChange={(e) => onMudar(e.target.checked)} /><span>{c.rotulo}</span></label>
   }

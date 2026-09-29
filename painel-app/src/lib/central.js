@@ -7,7 +7,7 @@
  * painel. `interpretarLink` traduz esse caminho para a vista e o item.
  */
 
-import { rotulos } from './status.js'
+import { rotulos, rotulo } from './status.js'
 
 // Segmento do link → chave da vista no painel (DESTINOS dos dois shells).
 const VISTA_DO_SEGMENTO = { marcas: 'participantes' }
@@ -166,9 +166,20 @@ export function descreverAtividade(a, { comMarca = true } = {}) {
       return 'Marca arquivada' + marca
     case 'participante.restaurado':
       return 'Marca restaurada' + marca
+    case 'vouchers.gerados':
+      return Number(d.quantidade || 0) + ' vouchers gerados para a edição ' + (d.edicao || '')
+    case 'vouchers.destinados':
+      return Number(d.quantidade || 0) + (Number(d.quantidade) === 1 ? ' voucher destinado' : ' vouchers destinados') + ' a ' + (d.contato || 'um contato') + marca
+    case 'voucher.enviado': case 'voucher.cancelado': case 'voucher.disponivel': case 'voucher.destinado': case 'voucher.utilizado':
+      return 'Voucher ' + (d.codigo || '') + ' · ' + rotulo('voucher', a.acao.split('.')[1]).toLowerCase() + (d.contato ? ' (' + d.contato + ')' : '') + marca
+    case 'contato.salvo':
+      return 'Contato ' + (d.nome || '') + ' salvo'
+    case 'arquivo.editado': case 'arquivo.substituido': case 'arquivo.arquivado': case 'arquivo.restaurado':
+      return 'Arquivo "' + (d.nome || '') + '" ' + { editado: 'editado', substituido: 'substituído' + (d.versao_para ? ' (versão ' + d.versao_para + ')' : ''), arquivado: 'arquivado', restaurado: 'restaurado' }[a.acao.split('.')[1]] + marca
     case 'registro.apagado':
       return 'Registro apagado' + (d.origem ? ' (' + d.origem + ')' : '')
     default:
+      if (String(a.acao).startsWith('presskit.')) return 'Press Kit · ' + rotulo('presskit', a.acao.slice(9)).toLowerCase() + marca
       return String(a.acao || 'Ação').replace(/[._]/g, ' ') + marca
   }
 }
