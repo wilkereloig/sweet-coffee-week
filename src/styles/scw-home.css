@@ -1,92 +1,39 @@
 /* ============================================================================
-   Home / "O festival" — ajustes próprios da página (redesign 2026).
-   Só o que NÃO existe em scw-2026.css. Tokens, tipografia, botões, pills,
-   cards, reserva, hero e marquee vêm de lá — aqui nada é redefinido.
-   Nenhuma cor fora da paleta do handoff (#E52C4B não existe).
+   Home / "O festival" — reconstrução de 28/09/2026.
+   Só o que NÃO existe em scw-2026.css (tokens, tipografia, botões, seções,
+   disco e numeral vêm de lá). Nenhuma cor fora da paleta: onde há transparência
+   é rgba() da própria paleta (chocolate 61,19,8 · creme 254,240,221).
+   Movimento da abertura: scw-motion.css (fonte única de movimento).
    ========================================================================= */
 
 .hm { background: var(--scw-creme); color: var(--scw-choco); }
-.hm ul { list-style: none; margin: 0; padding: 0; }
+/* Reset com especificidade ZERO (:where): `.hm ul` (0,1,1) vencia a margem
+   de `.hm-passos`/`.hm-ganhos` (0,1,0) — a armadilha do §10.1. */
+:where(.hm) ul, :where(.hm) ol { list-style: none; margin: 0; padding: 0; }
+:where(.hm) figure { margin: 0; }
 
 /* Palavra destacada dos títulos: a cor final vem de --dest via scwDestaque,
    a inicial de --base (definidas inline por título). */
 .hm .scw-destaque { color: var(--base, var(--scw-choco)); }
 
-/* ============================================================================
-   01 Abertura
-   ========================================================================= */
-
-/* Selo do herói: um respiro a mais que a pill padrão (compensação óptica
-   do caixa-alta da Nexa Slab já vem de .scw-pill). */
-/* O selo do herói da Home é RÓTULO, não pill: sem chapa, tinta amarela direto
-   sobre a foto. A pill voltaria a competir com o H1 logo abaixo. */
-.hm-selo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-  margin-bottom: clamp(16px, 1.8vw, 24px);
-  font: 700 12px/1.25 var(--scw-font-ui);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--scw-amarelo);
+/* Foto de acervo dentro de moldura com proporção: absoluta, porque a moldura
+   só tem altura por `aspect-ratio` e `height: 100%` não resolveria. */
+.hm-festival__foto,
+.hm-voz__foto,
+.hm-mosaico__item,
+.hm-destino__capa,
+.hm-destino__foto { position: relative; overflow: hidden; background: var(--scw-bege); }
+.hm-festival__foto img,
+.hm-voz__foto img,
+.hm-mosaico__item img,
+.hm-destino__capa img,
+.hm-destino__foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.hm-selo > svg { flex-shrink: 0; }
-/* Texto num wrapper próprio: se a coluna do celular for mais estreita que o
-   texto (bloco de dois blocos, §6.9), quem quebra é só ele — o ícone nunca
-   perde a razão de aspecto, e a quebra fica equilibrada, não um resto de
-   uma palavra só na segunda linha (§10.5). */
-.hm-selo__texto { max-width: 30ch; text-wrap: balance; }
-/* Enquadramento por foto: cada imagem do herói traz o próprio ponto focal
-   (--pos no desktop, --pos-mobile no celular), definido inline pelo sistema
-   central de imagens. Os padrões repetem os de scw-2026.css. */
-.hm .scw-hero__foto { background-position: var(--pos, 68% center); }
-
-/* Véu do herói na COR DA PÁGINA: chocolate puxado para --scw-pagina, nunca um
-   hex fixo. A foto é ambientação — nos 46% da esquerda, onde ficam título,
-   lead e botões, o véu passa de 84% de opacidade, mantendo o creme em AA. */
-.hm .scw-hero__veu,
-.hm .scw-hero__topo,
-.hm .scw-hero__base { --veu: color-mix(in srgb, var(--scw-pagina) 14%, var(--scw-choco)); }
-.hm .scw-hero__veu {
-  background: linear-gradient(96deg,
-    color-mix(in srgb, var(--veu) 97%, transparent) 0%,
-    color-mix(in srgb, var(--veu) 95%, transparent) 26%,
-    color-mix(in srgb, var(--veu) 84%, transparent) 46%,
-    color-mix(in srgb, var(--veu) 58%, transparent) 62%,
-    color-mix(in srgb, var(--veu) 18%, transparent) 78%,
-    transparent 92%);
-}
-.hm .scw-hero__topo {
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--veu) 72%, transparent), transparent);
-}
-.hm .scw-hero__base {
-  background: linear-gradient(to top, color-mix(in srgb, var(--veu) 78%, transparent), transparent);
-}
-
-@media (max-width: 1000px) {
-  .hm .scw-hero__foto {
-    /* No celular entra a variante de 960px — a mesma foto, no tamanho da tela. */
-    background-image: var(--foto-mobile, var(--foto));
-    background-position: var(--pos-mobile, center 32%);
-  }
-  /* No celular a foto fica quase limpa: o texto desce para o bloco chocolate. */
-  .hm .scw-hero__veu {
-    background: linear-gradient(180deg,
-      color-mix(in srgb, var(--veu) 44%, transparent) 0%,
-      color-mix(in srgb, var(--veu) 6%, transparent) 24%,
-      color-mix(in srgb, var(--veu) 6%, transparent) 60%,
-      color-mix(in srgb, var(--veu) 52%, transparent) 86%,
-      var(--scw-choco) 100%);
-  }
-  .hm .scw-hero__topo {
-    background: linear-gradient(to bottom, color-mix(in srgb, var(--veu) 66%, transparent), transparent);
-  }
-}
-
-.hm-hero__enfase { color: var(--scw-magenta); font-style: italic; }
-.hm-hero__texto { flex: 1 1 340px; }
-.hm-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* ============================================================================
    Cabeçalho de seção (rótulo + título à esquerda, apoio à direita)
@@ -97,41 +44,27 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: clamp(20px, 3vw, 56px);
   align-items: end;
-  margin-bottom: clamp(34px, 3.8vw, 56px);
+  margin-bottom: var(--scw-gap-cabeca);
 }
 .hm-cab .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
 .hm-h2--claro { color: var(--scw-creme); }
-.hm-h2--marrom { color: var(--scw-marrom); max-width: 24ch; }
 .hm-rotulo--amarelo { color: var(--scw-amarelo); }
-.hm-rotulo--claro { color: rgba(254, 240, 221, .68); }
+.hm-rotulo--bege { color: var(--scw-bege); }
 
 .hm-apoio {
   margin: 0;
-  max-width: 34ch;
+  max-width: 38ch;
   color: var(--scw-marrom);
-  /* Mesma medida do .scw-corpo do sistema: a Nexa Text lê maior em menos px. */
   font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
   text-wrap: pretty;
 }
-.hm-apoio--clara { color: rgba(254, 240, 221, .74); }
-/* Lead ancorado no fim da linha, como em Participar/Apoiar e no Sweet Awards:
-   rótulo+H2 à esquerda, apoio encostado na borda direita do trilho. Só quando
-   a cabeça tem DUAS colunas — numa coluna só (celular) `justify-self:end`
-   jogaria o parágrafo contra a margem direita, longe do título que ele explica. */
+.hm-apoio--clara { color: rgba(254, 240, 221, .78); }
 @media (min-width: 760px) {
-  .hm-apoio { justify-self: end; }
+  .hm-cab .hm-apoio { justify-self: end; }
 }
-/* O par da guarda acima: abaixo de 760 a cabeça é UMA coluna por decreto. O
-   auto-fit sozinho ainda abria duas por volta de ~700px de viewport (a conta é
-   do CONTAINER, não da tela), e aí o apoio ficava em duas colunas SEM o
-   alinhamento — exatamente o defeito que a regra acima corrige. */
 @media (max-width: 759px) {
   .hm-cab { grid-template-columns: 1fr; }
-  /* Em coluna única o link volta para a esquerda: encostado na margem direita
-     ele ficaria longe do título que ele continua. Mesma lógica do apoio. */
-  .hm-link--sublinhado { justify-self: start; }
 }
-.hm-apoio strong { color: var(--scw-choco); font-weight: 800; }
 
 .hm-link {
   display: inline-flex;
@@ -139,129 +72,280 @@
   gap: 9px;
   min-height: 44px;
   color: var(--scw-marrom);
-  font: 700 13px/1 var(--scw-font-ui);
+  font: 700 14.5px/1 var(--scw-font-ui);
   transition: var(--scw-transicao);
 }
-
 @media (hover: hover) {
   .hm-link:hover { color: var(--scw-choco); }
 }
-/* PATCH 01 §4, link com filete: quem recebe a cor do DESTINO é o filete, não a
-   tinta — a tinta de um link de 15px sobre creme precisa de 4,5:1 e só roxo e
-   marrom fecham isso; o filete é objeto gráfico e se resolve em 3:1.
-   Único uso hoje é o link para o Sweet Awards (roxo, 9,95:1 sobre creme); o
-   --destino existe para o próximo. */
-.hm-link--sublinhado {
-  align-self: end;
-  /* Ancorado no fim da linha, como o apoio: é o mesmo papel de coluna direita
-     da cabeça de seção. Volta para `start` em coluna única (guarda acima). */
-  justify-self: end;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--destino, var(--scw-marrom));
-  font-size: 15px;
+/* Prefixado: o reset `.scw-raiz a { color: inherit }` (0,1,1) venceria. */
+.scw-raiz .hm-link--escuro { color: var(--scw-choco); }
+
+/* Palavra com hífen que não pode quebrar no hífen (§10.5). */
+.hm-inteiro { white-space: nowrap; }
+.hm-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Botões fora do trio do sistema: chapa + tinta que fecham contraste no fundo
+   da seção onde vivem (chocolate sobre cyan 5,6:1 · chocolate sobre bege 13:1). */
+.scw-raiz .hm-btn--choco { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-raiz .hm-btn--bege { background: var(--scw-bege); color: var(--scw-choco); }
+@media (hover: hover) {
+  .scw-raiz .hm-btn--choco:hover { background: var(--scw-creme); color: var(--scw-choco); }
+  .scw-raiz .hm-btn--bege:hover { background: var(--scw-creme); color: var(--scw-choco); }
+}
+.scw-raiz .hm-btn--choco:active,
+.scw-raiz .hm-btn--bege:active { transform: translateY(1px); }
+
+/* ============================================================================
+   01 Abertura — a próxima edição
+   Texto à esquerda, fotos à direita. Não é mais herói de tela cheia: a altura
+   é a do conteúdo, e a seção seguinte aparece na primeira dobra.
+   ========================================================================= */
+
+.hm-abre {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, .94fr);
+  gap: clamp(36px, 5vw, 96px);
+  align-items: center;
+  /* A reserva de topo do sistema (§6.7): a logo transborda metade abaixo do
+     cabeçalho, e nada do herói pode encostar nela. */
+  padding: var(--scw-hero-topo) var(--scw-trilho) clamp(56px, 5.6vw, 96px);
+  background: var(--scw-choco);
+  color: var(--scw-creme);
 }
 
-@media (hover: hover) {
-  .hm-link--sublinhado:hover { border-color: var(--scw-choco); }
+.hm-abre__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0;
+  font: 700 12px/1.25 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-amarelo);
+}
+/* Selo de estado: a única pill da abertura. O ponto pulsa três vezes e para —
+   anuncia que a informação é de agora, sem virar laço (§6.15). */
+.hm-abre__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  /* 1px a mais em cima: o caixa-alta renderiza acima do centro (§6.5). */
+  padding: 9px 15px 8px;
+  border-radius: 999px;
+  background: var(--scw-amarelo);
+  color: var(--scw-choco);
+}
+.hm-abre__selo i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.hm-abre__selo i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+}
+
+.hm-abre__titulo {
+  margin-top: clamp(18px, 2vw, 26px);
+  color: var(--scw-creme);
+}
+.hm-abre__enfase { color: var(--scw-magenta); font-style: italic; }
+
+.hm-abre__lead {
+  max-width: 44ch;
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  color: rgba(254, 240, 221, .9);
+  font: 400 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font-ui);
+  text-wrap: pretty;
+}
+.hm-abre .hm-acoes { margin-top: clamp(26px, 2.8vw, 36px); }
+
+/* Ficha da edição: o que se sabe, e o que ainda não se diz, em três linhas. */
+.hm-abre__ficha {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  justify-content: start;
+  gap: 14px clamp(24px, 3vw, 48px);
+  margin: clamp(30px, 3.2vw, 44px) 0 0;
+  padding-top: clamp(20px, 2vw, 26px);
+  border-top: 1px solid rgba(254, 240, 221, .2);
+}
+.hm-abre__ficha dt {
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .72);
+}
+.hm-abre__ficha dd {
+  margin: 7px 0 0;
+  font: 700 15.5px/1.3 var(--scw-font-ui);
+  color: var(--scw-creme);
+}
+
+/* Fotos: pessoas em primeiro plano, o combo em recorte redondo sobreposto. */
+.hm-abre__fotos { position: relative; }
+.hm-abre__pessoas {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+  background: var(--scw-marrom);
+}
+.hm-abre__combo {
+  position: absolute;
+  left: -9%;
+  bottom: 12%;
+  z-index: 2;
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 6px solid var(--scw-choco);
+  background: var(--scw-marrom);
+}
+.hm-abre__foto {
+  position: absolute;
+  inset: 0;
+  background-image: var(--foto);
+  background-size: cover;
+  background-position: var(--pos, center);
+  opacity: 0;
+  transition: opacity 900ms var(--mo-ease);
+}
+.hm-abre__foto.is-ativa { opacity: 1; }
+.hm-abre__legenda {
+  margin-top: 14px;
+  padding-left: 28%;
+  font: 400 13px/1.45 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .72);
+}
+
+/* Celular: foto no topo, largura cheia (§6.9), texto embaixo na chapa. */
+@media (max-width: 999px) {
+  .hm-abre {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-top: 0;
+  }
+  .hm-abre__fotos {
+    order: -1;
+    margin: 0 calc(-1 * var(--scw-trilho)) 22px;
+  }
+  /* 16:10 e não o quadrado do §6.9: aqui a mensagem e o botão precisam caber
+     acima da barra de abas no primeiro quadro (em 390×844 o botão fica em
+     ~y 560, a barra começa em 769). */
+  .hm-abre__pessoas {
+    aspect-ratio: 16 / 10;
+    border-radius: 0;
+  }
+  .hm-abre__pessoas .hm-abre__foto { background-image: var(--foto-mobile, var(--foto)); }
+  /* Emenda de três paradas na cor do bloco (§6.9 e §10.4). */
+  .hm-abre__pessoas::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 46%;
+    z-index: 1;
+    background: linear-gradient(to top,
+      var(--scw-choco) 0%,
+      rgba(61, 19, 8, .55) 42%,
+      rgba(61, 19, 8, 0) 100%);
+  }
+  .hm-abre__combo {
+    left: auto;
+    right: var(--scw-trilho);
+    bottom: -10px;
+    width: clamp(92px, 26vw, 150px);
+    border-width: 4px;
+  }
+  .hm-abre__legenda {
+    position: absolute;
+    left: var(--scw-trilho);
+    right: calc(var(--scw-trilho) + clamp(100px, 28vw, 160px));
+    bottom: 8px;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    color: rgba(254, 240, 221, .82);
+  }
+}
+@media (min-width: 600px) and (max-width: 999px) {
+  .hm-abre__pessoas { aspect-ratio: 2 / 1; }
+}
+@media (max-width: 520px) {
+  .hm-abre__ficha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hm-abre__ficha > div:last-child { grid-column: 1 / -1; }
 }
 
 /* ============================================================================
-   02 O que é — anatomia do combo + duas galerias irmãs
+   02 O festival — texto, anatomia e laços à esquerda; um combo à direita
    ========================================================================= */
 
-/* As duas metades não têm o mesmo peso: a anatomia são três discos grandes com
-   nome embaixo e precisa de largura para respirar, enquanto o card de preço é
-   um parágrafo curto. Em colunas iguais os discos ficavam espremidos à
-   esquerda e sobrava ar entre eles e o card — daí a proporção 1,18 / 0,82.
-   O `auto-fit` continua valendo abaixo de 900px, onde vira coluna única. */
-.hm-anatomia {
+.hm-festival {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(300px, .82fr);
-  gap: clamp(24px, 3vw, 48px) clamp(32px, 5vw, 88px);
-  align-items: center;
-  padding-bottom: clamp(34px, 3.8vw, 56px);
-  border-bottom: 1px solid rgba(61, 19, 8, .14);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(36px, 5vw, 96px);
+  align-items: start;
 }
-@media (max-width: 900px) {
-  .hm-anatomia { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.hm-festival .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
+.hm-festival .hm-apoio { max-width: 48ch; margin-top: clamp(18px, 2vw, 24px); }
+.hm-festival__foto {
+  aspect-ratio: 4 / 5;
+  border-radius: var(--scw-r-secao);
 }
-.hm-anatomia__rotulo { margin-bottom: clamp(18px, 2vw, 26px); }
+.hm-festival__foto figcaption,
+.hm-mosaico__item figcaption {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 1;
+  max-width: calc(100% - 28px);
+  padding: 8px 12px 7px;
+  border-radius: 10px;
+  background: rgba(61, 19, 8, .88);
+  color: var(--scw-creme);
+  font: 700 12px/1.25 var(--scw-font-ui);
+}
 
-/* O bloco de preço deixou de ser parágrafo de apoio e virou CARD (desenho de
-   20/08/2026): ao lado da anatomia ele competia com os três discos coloridos e
-   sumia. Com chapa creme, filete e disco roxo, vira o quarto elemento da
-   composição em vez de uma nota de rodapé. */
-.hm-preco {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(14px, 1.6vw, 18px);
-  /* ⚠️ Sem teto de medida NA CAIXA. `max-width:38ch` aqui fazia o card parar
-     73px antes do trilho, enquanto o lead logo acima encosta nele por
-     `justify-self:end` — dois blocos ancorados à direita terminando em x
-     diferente. Teto de linha é do TEXTO (§6.5), e ele está em
-     .hm-preco__texto; a caixa preenche a coluna da grade. */
-  padding: clamp(20px, 2.2vw, 28px);
-  border-radius: var(--scw-r-card);
-  border: 1px solid rgba(61, 19, 8, .14);
-  background: var(--scw-creme);
+.hm-anatomia {
+  margin-top: clamp(30px, 3.4vw, 48px);
+  padding-top: clamp(24px, 2.6vw, 34px);
+  border-top: 1px solid rgba(61, 19, 8, .14);
 }
-.hm-preco__topo { display: flex; align-items: center; gap: 12px; }
-.hm-preco__disco { --tam: 46px; --c: var(--scw-roxo); --tinta: var(--scw-creme); }
-.hm-preco__rotulo {
-  font: 700 12px/1.3 var(--scw-font-ui);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--scw-marrom);
-}
-.hm-preco__titulo {
-  font: 900 clamp(21px, 2.1vw, 30px)/1.06 var(--scw-font-black);
-  letter-spacing: -.028em;
-  color: var(--scw-choco);
-  text-wrap: balance;
-}
-.hm-preco__texto {
-  max-width: 42ch;
-  margin: 0;
-  font: 400 clamp(15px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
-  color: var(--scw-marrom);
-  text-wrap: pretty;
-}
-/* Os três ingredientes ocupam a largura da coluna, com o "+" respirando entre
-   eles: o gap saiu de 6–18px para 14–34px quando a coluna alargou. Sem isso o
-   sinal encostava nos discos e a leitura "doce + salgado + bebida" virava um
-   bloco só. */
+.hm-anatomia > .scw-rotulo { margin-bottom: clamp(18px, 2vw, 26px); }
+
+/* Os três ingredientes em UMA linha, inclusive no celular (decisão do Eloi,
+   22/08/2026). As duas medidas vivem aqui e só aqui; o "+" é derivado delas. */
 .hm-ingredientes {
-  /* As duas medidas da composição vivem AQUI, e só aqui: o disco do ingrediente
-     e o disco do "+". O alinhamento do "+" é derivado das duas por cálculo, e a
-     escala de celular troca os dois valores num lugar só (§5.2). Antes os dois
-     `clamp()` estavam escritos três vezes — no disco, no "+" e de novo no bloco
-     do celular —, com um comentário avisando "mexeu num, mexe aqui". */
-  --ing-disco: clamp(84px, 8vw, 124px);
-  --ing-mais: clamp(30px, 2.8vw, 40px);
+  --ing-disco: clamp(84px, 7.4vw, 116px);
+  --ing-mais: clamp(30px, 2.6vw, 38px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
   justify-items: center;
-  gap: clamp(14px, 2.2vw, 34px);
+  gap: clamp(14px, 2vw, 30px);
+  max-width: 560px;
 }
 .hm-ing { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
 .hm-ing__disco {
+  position: relative;
   display: grid;
   place-items: center;
   width: var(--ing-disco);
   aspect-ratio: 1;
   border-radius: 50%;
-  /* A tinta vem do item: creme sobre magenta, chocolate sobre amarelo e cyan. */
-  color: var(--scw-choco);
-  position: relative;
 }
-
-/* Cada ingrediente percorre QUATRO desenhos da própria família, um por quarto
-   de ciclo (desenho de 20/08/2026). Os quatro ficam empilhados no mesmo lugar e
-   o que muda é a opacidade — nada entra e sai do fluxo, então não há salto de
-   layout. O atraso de 2200ms por peça é 8800/4: quando um sai, o próximo entra.
-   O desenho fica em 58% do disco, como o resto do sistema (ver a medida
-   explícita logo abaixo). */
+/* Cada ingrediente percorre quatro desenhos da família, um por quarto de um
+   ciclo de 8,8s. Só a opacidade muda: nada sai do fluxo. */
 @keyframes scwIcnCiclo {
     0% { opacity: 0; transform: scale(.9); }
     3% { opacity: 1; transform: scale(1); }
@@ -269,16 +353,9 @@
    29% { opacity: 0; transform: scale(1.06); }
   100% { opacity: 0; transform: scale(1.06); }
 }
-/* ⚠️ Medida EXPLÍCITA, nunca `inset` + `width: auto` (22/08/2026).
-   O `<svg>` desta seção não traz atributo `width`/`height` — só `viewBox` —,
-   então ele é elemento substituído sem dimensão intrínseca, e `width: auto`
-   fica a cargo do motor: o Chromium estica a caixa até os `inset`, o Safari
-   resolve em 100% do bloco que o contém. No iPhone o desenho saía do tamanho
-   do DISCO INTEIRO, ancorado em 21%/21%, transbordando embaixo e à direita —
-   era o "ícone desalinhado" que aparecia na tela e não na medição headless.
-   Com `top`/`left` e `width`/`height` escritos, não sobra nada para o motor
-   decidir: a caixa é 58% do disco (100 − 2 × 21), centrada, em todo navegador.
-   ⛔ Não voltar para `inset` com medida automática. */
+/* ⚠️ Medida EXPLÍCITA, nunca `inset` + `width: auto`: o <svg> não tem
+   dimensão intrínseca e o Safari o resolvia do tamanho do disco inteiro
+   (22/08/2026). ⛔ Não voltar para `inset`. */
 .hm-ing__icone {
   position: absolute;
   top: 21%;
@@ -289,22 +366,17 @@
   opacity: 0;
   animation: scwIcnCiclo 8800ms cubic-bezier(.22, .7, .24, 1) infinite;
 }
-/* Sem movimento, o primeiro desenho fica: o ciclo é enriquecimento, não
-   informação — os outros três não dizem nada que este já não diga. */
 @media (prefers-reduced-motion: reduce) {
   .hm-ing__icone { animation: none; opacity: 0; }
   .hm-ing__icone:first-child { opacity: 1; }
 }
 .hm-ing__nome {
   display: block;
-  margin-top: clamp(12px, 1.4vw, 18px);
-  font: 900 clamp(19px, 2vw, 28px)/1 var(--scw-font-black);
+  margin-top: clamp(12px, 1.4vw, 16px);
+  font: 900 clamp(18px, 1.8vw, 26px)/1 var(--scw-font-black);
   letter-spacing: -.025em;
   color: var(--scw-choco);
 }
-/* O "+" é disco, não caractere: como texto ele pousava na linha de base do
-   rótulo e ficava fora do eixo dos discos. Sendo peça, ele se alinha ao CENTRO
-   do disco maior — daí o margin-top ser metade da diferença entre os dois. */
 .hm-mais {
   display: grid;
   place-items: center;
@@ -317,225 +389,288 @@
   color: var(--scw-marrom);
 }
 
-/* As duas galerias são irmãs e precisam começar na mesma linha. Cada coluna
-   empilhava por conta própria: quando o parágrafo de apoio quebrava em número
-   diferente de linhas, a grade de fotos de uma começava acima da outra. Com
-   subgrid as três faixas — rótulo, texto e fotos — passam a ser compartilhadas.
-   O respiro vertical vem das margens dos filhos, por isso `row-gap: 0`. */
-.hm-galerias {
+/* Para quem é: três linhas com filete, não cards. */
+.hm-lacos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  grid-template-rows: auto auto auto;
-  column-gap: clamp(24px, 4vw, 72px);
-  /* As três faixas partilhadas (rótulo · texto · fotos) respiram entre si; o
-     subgrid é que as mantém na mesma linha nas duas colunas. */
-  row-gap: clamp(28px, 3.4vw, 56px);
-  margin-top: clamp(34px, 3.8vw, 56px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 20px clamp(20px, 2.4vw, 36px);
+  margin: clamp(30px, 3.4vw, 48px) 0 0;
 }
-.hm-galeria {
-  display: grid;
-  grid-row: span 3;
-  grid-template-rows: subgrid;
-  /* ⚠️ `min-width: 0` é o que segura a fita dentro da coluna. Item de grade
-     tem `min-width: auto`, e a trilha da fita é `width: max-content` — sem
-     isto a coluna cresce até caber a fita inteira e invade a galeria vizinha,
-     com os cards de uma passando por cima dos da outra. */
-  min-width: 0;
-}
-/* Navegador sem subgrid volta ao empilhamento simples — desalinha, mas não quebra. */
-@supports not (grid-template-rows: subgrid) {
-  .hm-galerias { row-gap: clamp(28px, 3.4vw, 56px); }
-  .hm-galeria { display: flex; flex-direction: column; }
-}
-.hm-galeria__topo {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: clamp(14px, 1.6vw, 20px);
-}
-.hm-galeria__texto {
-  margin: 0 0 clamp(16px, 1.8vw, 22px);
-  max-width: 42ch;
+.hm-lacos > div { padding-top: 16px; border-top: 2px solid var(--scw-choco); }
+.hm-lacos dt { font: 700 15.5px/1.25 var(--scw-font-ui); color: var(--scw-choco); }
+.hm-lacos dd {
+  max-width: 30ch;
+  margin: 8px 0 0;
   font: 400 15px/1.5 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
-.hm-galeria__foto {
-  position: relative;   /* âncora da foto absoluta abaixo */
-  margin: 0;
-  aspect-ratio: 1;
-  border-radius: var(--scw-r-card);
-  overflow: hidden;
-  /* O bege continua sendo o que se vê enquanto a foto não chegou — é a mesma
-     reserva honesta do §6.12, agora com função dupla: com `loading="lazy"` a
-     foto entra depois, e sem uma cor por baixo o quadro piscaria branco. */
-  background-color: var(--scw-bege);
-}
-/* A foto virou `<img>` para poder ser preguiçosa (ver GaleriaCarrossel.jsx).
-   O enquadramento que era `background-position: center` vira `object-position`;
-   o recorte, `object-fit`. Mesmo resultado, com carga sob demanda. */
-/* Absoluta, e não `height: 100%`: a moldura tem altura por `aspect-ratio`, sem
-   altura explícita, então a percentagem do filho não resolve e o `<img>` volta
-   ao tamanho intrínseco — o que crescia a página em 11px. Fora do fluxo, a
-   moldura manda sozinha. */
-.hm-galeria__foto img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-.hm-galeria__reserva { aspect-ratio: 1; border-radius: var(--scw-r-card); }
 
-/* ----------------------------------------------------------------------------
-   Fita de fotos (componente GaleriaCarrossel) — 21/08/2026
-   As duas galerias da seção 02 eram grades 2×2: mostravam quatro fotos e
-   escondiam o resto do acervo. Agora correm sozinhas.
-
-   A técnica é a do marquee — a lista renderizada duas vezes, deslocando -50%,
-   de modo que a emenda caia onde a segunda cópia começa e o laço não tenha
-   costura. Keyframe próprio porque `scwMarquee` desloca -100%, que é o certo
-   para AQUELA estrutura (três trilhas completas) e não para esta (uma trilha
-   com duas cópias).
-   -------------------------------------------------------------------------- */
-
-.hm-fita {
-  min-width: 0;
-  /* ⚠️ NÃO sangrar pelo trilho aqui. As duas galerias são COLUNAS de uma grade
-     lado a lado: margem negativa faz cada fita invadir a vizinha, e os cards
-     de uma se sobrepõem aos da outra. (Testado e reprovado em 21/08/2026.)
-     A fita vive dentro da própria coluna; quem sugere continuidade é a máscara
-     das pontas. */
-  margin-top: auto;
-  overflow: hidden;
-  /* Esfuma as duas pontas: sem isso os cards são cortados em aresta dura e a
-     fita lê como conteúdo faltando, não como movimento. */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+@media (max-width: 899px) {
+  .hm-festival { grid-template-columns: minmax(0, 1fr); }
+  .hm-festival__foto { aspect-ratio: 4 / 3; }
 }
-.hm-fita__trilha {
-  display: flex;
-  gap: clamp(12px, 1.4vw, 18px);
-  width: max-content;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  animation: hmFita var(--fita-duracao, 46s) linear infinite;
-}
-/* Parar é obrigatório, não cortesia: ler a legenda de um item em movimento é
-   impossível, e o item é a informação. */
-.hm-fita:focus-within .hm-fita__trilha { animation-play-state: paused; }
-/* A metade de hover fica no ponteiro. No toque o iOS emula `:hover` e o estado
-   gruda: um encostar de dedo parava a fita e ela só voltava quando você tocava
-   em outro lugar — parecia travada. Quem lê no celular tem o `:focus-within`,
-   que continua valendo nas duas telas. */
-@media (hover: hover) {
-  .hm-fita:hover .hm-fita__trilha { animation-play-state: paused; }
-}
-
-.hm-fita__trilha > li {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 0 0 auto;
-  width: clamp(170px, 14vw, 220px);
-}
-/* A legenda empilha nome e edição em vez de correr na mesma linha: com uma
-   linha aqui e duas ali, as bases dos cards ficavam em alturas diferentes e a
-   fita parecia desalinhada. */
-.hm-fita .hm-galeria__nome { display: block; }
-.hm-fita .hm-galeria__nome b { display: block; margin-top: 3px; }
-@keyframes hmFita { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-@media (prefers-reduced-motion: reduce) {
-  /* Sem movimento a fita não some: vira faixa de rolagem manual, com o
-     conteúdo todo alcançável. */
-  .hm-fita { overflow-x: auto; }
-  .hm-fita__trilha { animation: none; }
-}
-.hm-galeria__nome {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  font: 900 13.5px/1.15 var(--scw-font-black);
-  letter-spacing: -.02em;
-  color: var(--scw-choco);
-}
-.hm-galeria__nome b {
-  font: 700 11px/1 var(--scw-font-ui);
-  letter-spacing: .1em;
-  color: var(--scw-marrom);
+@media (max-width: 560px) {
+  /* ⛔ Não empilhar os ingredientes (22/08/2026): muda só a escala. */
+  .hm-ingredientes {
+    --ing-disco: clamp(58px, 17vw, 84px);
+    --ing-mais: clamp(22px, 6vw, 30px);
+    gap: 8px;
+  }
+  .hm-ing__nome { font-size: clamp(14px, 4vw, 18px); margin-top: 10px; }
 }
 
 /* ============================================================================
-   03 Rotas — três portas de entrada
+   03 Como participar — chapa cyan, a cor do destino (Participar)
    ========================================================================= */
 
-.hm-rotas {
+.hm-participa {
+  background: var(--scw-cyan);
+  color: var(--scw-choco);
+}
+/* Chapa clara: rótulo, links e anel de foco em chocolate (§6.2 — o anel cyan
+   do sistema sumiria aqui). */
+.hm-participa .scw-rotulo { color: var(--scw-choco); }
+.scw-raiz .hm-participa a:focus-visible { outline-color: var(--scw-choco); }
+
+.hm-participa__cab {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(16px, 3vw, 56px);
+  align-items: end;
+}
+.hm-participa__cab .scw-rotulo { grid-column: 1 / -1; }
+.hm-participa__cab .scw-h2 { max-width: 16ch; }
+.hm-participa__nota {
+  max-width: 40ch;
+  margin: 0;
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
+  text-wrap: pretty;
+}
+@media (min-width: 760px) {
+  .hm-participa__nota { justify-self: end; }
+}
+
+.hm-passos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: clamp(28px, 3vw, 48px) clamp(24px, 3vw, 56px);
+  margin-top: var(--scw-gap-cabeca);
+}
+.hm-passo { padding-top: clamp(18px, 2vw, 24px); border-top: 2px solid var(--scw-choco); }
+.hm-passo__topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.hm-passo__num {
+  font: 900 clamp(44px, 4.4vw, 72px)/.84 var(--scw-font-black);
+  letter-spacing: -.06em;
+  font-variant-numeric: tabular-nums;
+}
+.hm-passo__disco { --tam: 54px; --c: var(--scw-choco); --tinta: var(--scw-cyan); }
+.hm-passo__titulo {
+  margin: clamp(18px, 2vw, 24px) 0 8px;
+  font: 900 clamp(21px, 2vw, 28px)/1.06 var(--scw-font-black);
+  letter-spacing: -.026em;
+  text-wrap: balance;
+}
+.hm-passo__texto {
+  max-width: 34ch;
+  margin: 0;
+  font: 400 16px/1.55 var(--scw-font-texto);
+  text-wrap: pretty;
+}
+.hm-participa__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 28px;
+  margin-top: var(--scw-gap-cabeca);
+}
+
+/* ============================================================================
+   04 Por que participar — foto + depoimento, e os ganhos com dado
+   ========================================================================= */
+
+.hm-voz {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 4.4vw, 88px);
+  align-items: center;
+}
+.hm-voz__foto { aspect-ratio: 4 / 5; border-radius: var(--scw-r-secao); }
+.hm-voz__texto { display: flex; flex-direction: column; align-items: flex-start; gap: clamp(20px, 2.2vw, 28px); }
+.hm-voz__frase {
+  margin: 0;
+  max-width: 22ch;
+  font: 900 clamp(26px, 2.9vw, 46px)/1.1 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.hm-voz__assinatura { display: flex; align-items: center; gap: 14px; }
+.hm-voz__marca {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--scw-bege);
+  border: 3px solid var(--scw-magenta);
+  font: 700 15px/1 var(--scw-font-ui);
+}
+.hm-voz__marca img { width: 100%; height: 100%; object-fit: cover; }
+.hm-voz__id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hm-voz__id b { font: 700 16.5px/1.2 var(--scw-font-ui); }
+.hm-voz__id > span { font: 400 14.5px/1.3 var(--scw-font-texto); color: var(--scw-marrom); }
+
+.hm-ganhos {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(210px, calc((100% - 3 * clamp(24px, 2.6vw, 44px)) / 4))), 1fr)
+  );
+  gap: clamp(30px, 3vw, 44px) clamp(24px, 2.6vw, 44px);
+  margin-top: clamp(52px, 5.6vw, 96px);
+}
+.hm-ganho {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(61, 19, 8, .2);
+}
+.hm-ganho__cabeca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 12px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-choco);
+}
+/* Irmãos nunca repetem cor (§6.3): a cor vai no ícone, que é grafismo (3:1
+   sobre creme — roxo 6,7 · magenta 3,8 · laranja 3,0 · marrom 6,9). */
+.hm-ganho:nth-child(1) svg { color: var(--scw-roxo); }
+.hm-ganho:nth-child(2) svg { color: var(--scw-magenta); }
+.hm-ganho:nth-child(3) svg { color: var(--scw-laranja); }
+.hm-ganho:nth-child(4) svg { color: var(--scw-marrom); }
+.hm-ganho__valor { color: var(--scw-choco); font-size: clamp(40px, 3.8vw, 64px); }
+/* A palavra ocupa a faixa do numeral sem fingir ser número. */
+.hm-ganho__valor--palavra {
+  display: block;
+  font: 900 clamp(28px, 2.6vw, 42px)/.9 var(--scw-font-black);
+  letter-spacing: -.035em;
+  padding-top: clamp(6px, .6vw, 12px);
+}
+.hm-ganho__texto {
+  max-width: 30ch;
+  margin: 0;
+  font: 400 15px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+
+@media (max-width: 759px) {
+  .hm-voz { grid-template-columns: minmax(0, 1fr); }
+  .hm-voz__foto { aspect-ratio: 4 / 3; }
+}
+
+/* ============================================================================
+   05 O festival em movimento — mosaico editorial (sem laço, sem autoplay)
+   Tamanhos diferentes de propósito: a pessoa grande, o combo e o detalhe
+   menores ao lado. A entrada é a do motor (useSiteMotion), item a item.
+   ========================================================================= */
+
+.hm-mosaico {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: clamp(150px, 14vw, 250px);
+  gap: clamp(10px, 1.2vw, 16px);
+}
+.hm-mosaico__item { border-radius: var(--scw-r-card); background: var(--scw-marrom); }
+.hm-mosaico__item:nth-child(1) { grid-column: 1 / 8;  grid-row: span 2; }
+.hm-mosaico__item:nth-child(2) { grid-column: 8 / 13; }
+.hm-mosaico__item:nth-child(3) { grid-column: 8 / 13; }
+.hm-mosaico__item:nth-child(4) { grid-column: 1 / 5;  grid-row: span 2; }
+.hm-mosaico__item:nth-child(5) { grid-column: 5 / 9;  grid-row: span 2; }
+.hm-mosaico__item:nth-child(6) { grid-column: 9 / 13; grid-row: span 2; }
+
+@media (max-width: 759px) {
+  .hm-mosaico {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: clamp(150px, 42vw, 240px);
+  }
+  .hm-mosaico__item:nth-child(n) { grid-column: auto; grid-row: auto; }
+  .hm-mosaico__item:nth-child(1),
+  .hm-mosaico__item:nth-child(6) { grid-column: 1 / -1; }
+  .hm-mosaico__item figcaption { left: 8px; bottom: 8px; max-width: calc(100% - 16px); font-size: 11px; padding: 7px 10px 6px; }
+}
+
+/* ============================================================================
+   06 Trajetória — dois destinos (cor do DESTINO, §6.2) e a imprensa
+   ========================================================================= */
+
+.hm-destinos {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: clamp(14px, 1.8vw, 24px);
 }
-.hm-rota {
+.hm-destino {
   display: flex;
   flex-direction: column;
   border-radius: var(--scw-r-secao);
   overflow: hidden;
+  transition: var(--scw-transicao);
 }
-/* O CARD é a cor do DESTINO, não a da Home (desenho de 20/08/2026): a cor
-   chega antes do texto, então quem vê o card já sabe para onde ele leva. Antes
-   quem carregava o destino era só o CTA lá embaixo. */
-.hm-rota--marcas    { background: var(--scw-cyan);    color: var(--scw-choco); }  /* → Participar */
-.hm-rota--publico   { background: var(--scw-laranja); color: var(--scw-choco); }  /* → Edições    */
-.hm-rota--parceiros { background: var(--scw-marrom);  color: var(--scw-creme); }  /* → Apoiar     */
+.scw-raiz .hm-destino--edicoes { background: var(--scw-laranja); color: var(--scw-choco); }  /* → Edições 4,78:1 */
+.scw-raiz .hm-destino--awards  { background: var(--scw-roxo);    color: var(--scw-creme); }  /* → Awards 9,95:1 */
 
-.hm-rota__foto {
-  position: relative;
-  margin: 0;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: var(--scw-bege);
-}
-/* Três fotos em transição por card desde 21/08/2026 (componente HeroFotos):
-   as camadas são as do sistema, `.scw-hero-banda__foto`, que já são absolutas
-   e cobrem a caixa. O `<img>` de foto única saiu, e com ele a variante
-   `--reserva` do card de Parceiros, que não tem mais o que reservar. */
-
-.hm-rota__corpo {
+.hm-destino__fotos {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px 6px 0;
+}
+/* As capas absorvem a sobra de altura: o cartão vizinho (Awards) define a
+   linha, e sem isto o laranja sobrava vazio embaixo do texto. */
+.hm-destino--edicoes .hm-destino__fotos { flex: 1; }
+.hm-destino--edicoes .hm-destino__corpo { flex: 0 0 auto; }
+.hm-destino__capa { min-height: clamp(170px, 16vw, 280px); border-radius: 16px; }
+.hm-destino__capa b {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 1;
+  padding: 6px 9px 5px;
+  border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+  font: 700 12px/1 var(--scw-font-ui);
+}
+.hm-destino__foto { aspect-ratio: 16 / 10; }
+.hm-destino__fotos img,
+.hm-destino__foto img { transition: scale var(--mo-longo) var(--mo-ease); }
+
+.hm-destino__corpo {
+  display: flex;
   flex: 1;
-  padding: clamp(22px, 2.4vw, 32px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: clamp(22px, 2.6vw, 36px);
 }
-.hm-rota__eixo {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  align-self: start;
-  font: 700 11.5px/1 var(--scw-font-ui);
-  letter-spacing: .18em;
+.hm-destino__eixo {
+  font: 700 12px/1 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
-  color: currentColor;
 }
-/* Sobre o card marrom o eixo é bege: o cyan de antes vivia sobre chocolate e,
-   sobre marrom, cai para ~2,6:1. */
-.hm-rota__eixo--bege { color: var(--scw-bege); }
-.hm-rota__texto { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; height: 100%; }
-.hm-rota__titulo {
-  margin: 0;
-  max-width: 15ch;
-  font: 900 clamp(24px, 2.4vw, 34px)/.96 var(--scw-font-black);
-  letter-spacing: -.032em;
-  color: currentColor;
+.hm-destino__titulo {
+  max-width: 20ch;
+  font: 900 clamp(24px, 2.4vw, 36px)/1 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
 }
-.hm-rota__texto p { margin: 0; max-width: 32ch; font: 400 15px/1.5 var(--scw-font-texto); color: currentColor; text-wrap: pretty; }
-.hm-rota--marcas .hm-rota__texto p { color: rgba(61, 19, 8, .88); }
-.hm-rota--parceiros .hm-rota__texto p { color: rgba(254, 240, 221, .8); }
-.hm-rota__cta {
+.hm-destino__texto { max-width: 38ch; font: 400 15.5px/1.5 var(--scw-font-texto); text-wrap: pretty; }
+.hm-destino__cta {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -543,242 +678,40 @@
   margin-top: auto;
   padding: 12px 22px;
   border-radius: 999px;
-  font: 700 14px/1 var(--scw-font-ui);
-  transition: var(--scw-transicao);
-}
-
-/* Camada 1 do movimento — RESPOSTA (Caderno cap. 09): o retorno do ponteiro é a
-   seta avançando 4px em 180ms, e a cor do botão trocando em 200ms. Antes era o
-   `gap` do botão crescendo de 10 para 14px: parece a mesma coisa e não é —
-   animar `gap` reflui a caixa a cada quadro, e o §6.15 manda animar só
-   transform/opacity/filter. O deslocamento é o mesmo; o custo não.
-   `:focus-visible` recebe o mesmo gesto: teclado faz o caminho do ponteiro. */
-.hm-rota__cta > svg,
-.hm-voz__link > svg,
-.hm-link > svg { transition: transform 180ms var(--scw-ease); }
-
-@media (hover: hover) {
-  .hm-rota__cta:hover > svg,
-  .hm-voz__link:hover > svg,
-  .hm-link:hover > svg { transform: translateX(4px); }
-}
-.hm-rota__cta:focus-visible > svg,
-.hm-voz__link:focus-visible > svg,
-.hm-link:focus-visible > svg { transform: translateX(4px); }
-
-/* Toque: 1px, o mesmo do .scw-btn — nunca sombra. */
-.hm-rota__cta:active,
-.hm-voz__link:active { transform: translateY(1px); }
-/* Com o destino já no card, o CTA vira contraste puro: chapa escura sobre card
-   claro, chapa clara sobre card escuro. Sem anel — o anel de 2px existia porque
-   o botão colorido não separava do card colorido; agora separa sozinho.
-   Prefixado com .scw-raiz porque o reset `.scw-raiz a { color: inherit }`
-   (0,1,1) venceria um modificador de um nível só. */
-.scw-raiz .hm-rota--marcas .hm-rota__cta,
-.scw-raiz .hm-rota--publico .hm-rota__cta {
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-}
-.scw-raiz .hm-rota--parceiros .hm-rota__cta {
-  background: var(--scw-bege);
-  color: var(--scw-choco);
-}
-
-/* ============================================================================
-   04 Ciclo — quatro etapas
-   ========================================================================= */
-
-.hm-ciclo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
-  gap: 12px;
-}
-.hm-etapa__moldura {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--scw-r-card);
-  overflow: hidden;
-  background: var(--scw-marrom);
-}
-/* Três fotos em transição por etapa desde 21/08/2026 (componente HeroFotos):
-   a caixa é esta, as camadas são as do sistema (.scw-hero-banda__foto). */
-.hm-etapa__fotos { position: absolute; inset: 0; }
-/* Indicador de etapa: 54px (PATCH 02 §5). Disco de indicador 54, disco de
-   ícone dentro de card 46 — dois tamanhos, dois papéis, nada entre eles. */
-.hm-etapa__num {
-  position: absolute;
-  left: 16px;
-  top: 16px;
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  font: 900 16px/1 var(--scw-font-black);
-  letter-spacing: -.02em;
-}
-.hm-etapa__titulo {
-  margin: 20px 0 8px;
-  font: 900 clamp(18px, 1.7vw, 23px)/1.08 var(--scw-font-black);
-  letter-spacing: -.025em;
-  color: var(--scw-creme);
-}
-.hm-etapa__texto { margin: 0; font: 400 15px/1.5 var(--scw-font-texto); color: rgba(254, 240, 221, .7); text-wrap: pretty; }
-
-/* ============================================================================
-   05 Números — quatro numerais numa linha (fórmula ciente do gap)
-   ========================================================================= */
-
-.hm-numeros {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, max(164px, calc((100% - 3 * clamp(20px, 2.4vw, 40px)) / 4))), 1fr)
-  );
-  grid-template-rows: auto auto auto auto;
-  gap: clamp(28px, 3.2vw, 48px) clamp(20px, 2.4vw, 40px);
-  margin: 0;
-  /* O filete separa a cabeça da faixa de dados — a faixa é leitura própria,
-     não continuação do texto acima. */
-  padding-top: clamp(30px, 3.2vw, 48px);
-  border-top: 1px solid rgba(61, 19, 8, .2);
-}
-.hm-num { display: grid; grid-row: span 4; grid-template-rows: subgrid; gap: clamp(12px, 1.4vw, 18px); }
-/* Disco maior que o padrão de card (46px): aqui ele abre a coluna do dado, não
-   acompanha um título. O ícone fica a 60% do disco, então acompanha o clamp em
-   vez de travar num degrau da escala. */
-.hm-num__disco { --tam: clamp(64px, 6vw, 80px); align-self: start; }
-.hm-num__disco svg { width: 60%; height: 60%; }
-.hm-num__valor { color: var(--scw-choco); font-size: clamp(44px, 5.2vw, 92px); line-height: .82; }
-.hm-num__rotulo {
-  margin: 0;
-  align-self: start;
-  color: var(--scw-choco);
-  font: 700 16px/1.25 var(--scw-font-ui);
-}
-.hm-num__nota {
-  margin: 0;
-  align-self: start;
-  max-width: 22ch;
-  font: 400 13.5px/1.4 var(--scw-font-texto);
-  color: rgba(61, 19, 8, .74);
-}
-
-/* ============================================================================
-   06 Prova — depoimento + imprensa
-   ========================================================================= */
-
-.hm-prova {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: clamp(28px, 4vw, 64px);
-  align-items: start;
-}
-
-.hm-voz {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(22px, 2.4vw, 30px);
-  margin: 0;
-  padding: clamp(26px, 2.8vw, 40px);
-  border-radius: var(--scw-r-secao);
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-}
-.hm-voz .scw-rotulo { color: rgba(254, 240, 221, .82); }
-.hm-voz__frase {
-  margin: 0;
-  font: 900 clamp(21px, 2.2vw, 32px)/1.16 var(--scw-font-black);
-  letter-spacing: -.028em;
-  text-wrap: balance;
-}
-.hm-voz__assinatura {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: clamp(18px, 2vw, 24px);
-  /* Divisor claro: o card agora é chocolate (era vinho), e um traço escuro
-     sobre chocolate não aparece. */
-  border-top: 1px solid rgba(254, 240, 221, .22);
-}
-.hm-voz__retrato {
-  position: relative;
-  flex: 0 0 auto;
-  width: clamp(112px, 12vw, 152px);
-  height: clamp(112px, 12vw, 152px);
-}
-.hm-voz__retrato > img,
-.hm-voz__reserva {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.hm-voz__reserva { padding: 12px; font-size: 11px; }
-.hm-voz__marca {
-  position: absolute;
-  right: -6px;
-  bottom: -6px;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--scw-creme);
-  border: 3px solid var(--scw-magenta);
-  pointer-events: none;
-}
-.hm-voz__marca img { width: 100%; height: 100%; object-fit: cover; }
-.hm-voz__id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.hm-voz__id b { font: 700 16.5px/1.2 var(--scw-font-ui); }
-.hm-voz__id > span { font: 400 14px/1.3 var(--scw-font-texto); color: rgba(254, 240, 221, .84); }
-.hm-voz__fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.hm-voz__foto {
-  display: block;
-  aspect-ratio: 1;
-  border-radius: 16px;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-}
-.hm-voz__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 44px;
   font: 700 14.5px/1 var(--scw-font-ui);
-  color: var(--scw-choco);
   transition: var(--scw-transicao);
 }
+.hm-destino--edicoes .hm-destino__cta { background: var(--scw-choco); color: var(--scw-creme); }
+.hm-destino--awards  .hm-destino__cta { background: var(--scw-creme); color: var(--scw-choco); }
+.hm-destino__cta > svg { transition: transform 180ms var(--scw-ease); }
 
-
-
-.hm-imprensa__h2 { margin: 14px 0 clamp(20px, 2vw, 28px); max-width: 18ch; }
-.hm-materia {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: clamp(20px, 2.4vw, 32px);
-  align-items: center;
-  padding: 24px 0;
-  border-top: 1px solid rgba(61, 19, 8, .2);
-  border-bottom: 1px solid rgba(61, 19, 8, .2);
-  color: var(--scw-choco);
-  transition: var(--scw-transicao);
-}
-/* A matéria em destaque é um <a> de largura cheia e não tinha estado nenhum —
-   nem hover, nem toque. O card responde como a família "participante" do
-   Caderno cap. 05: o filete escurece e a foto amplia 1,04. Não muda a tinta do
-   título: chocolate já é o valor mais escuro da paleta, e clarear no hover
-   pioraria o contraste em vez de responder. */
-.hm-materia__foto img { transition: transform 180ms var(--scw-ease); }
-
+/* O card inteiro é o link (família "edição", §6.16): a seta avança e a foto
+   se aproxima — no ponteiro e no teclado, pelo mesmo caminho. */
 @media (hover: hover) {
-  .hm-materia:hover { border-color: rgba(61, 19, 8, .45); }
-  .hm-materia:hover .hm-materia__foto img { transform: scale(1.04); }
+  .hm-destino:hover .hm-destino__cta > svg { transform: translateX(4px); }
+  .hm-destino:hover img { scale: 1.04; }
 }
-.hm-materia:focus-visible .hm-materia__foto img { transform: scale(1.04); }
-.hm-materia:active { transform: translateY(1px); }
+.hm-destino:focus-visible .hm-destino__cta > svg { transform: translateX(4px); }
+.hm-destino:active { transform: translateY(1px); }
+
+@media (max-width: 899px) {
+  .hm-destinos { grid-template-columns: minmax(0, 1fr); }
+}
+
+.hm-imprensa {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(24px, 4vw, 80px);
+  align-items: start;
+  margin-top: clamp(56px, 6vw, 104px);
+  padding-top: clamp(28px, 3vw, 44px);
+  border-top: 1px solid rgba(61, 19, 8, .2);
+}
+.hm-materia {
+  display: block;
+  margin-top: 16px;
+  color: var(--scw-choco);
+}
 .hm-materia__veiculo {
   display: block;
   color: var(--scw-marrom);
@@ -789,20 +722,17 @@
 .hm-materia__titulo {
   display: block;
   margin-top: 12px;
-  max-width: 20ch;
-  font: 900 clamp(21px, 2.1vw, 30px)/1.06 var(--scw-font-black);
-  letter-spacing: -.028em;
+  max-width: 18ch;
+  font: 900 clamp(24px, 2.4vw, 38px)/1.04 var(--scw-font-black);
+  letter-spacing: -.03em;
   text-wrap: balance;
+  text-decoration: underline 2px transparent;
+  text-underline-offset: 6px;
+  transition: text-decoration-color 200ms var(--scw-ease);
 }
-.hm-materia__foto {
-  display: block;
-  aspect-ratio: 1;
-  border-radius: var(--scw-r-card);
-  overflow: hidden;
-  background: var(--scw-bege);
+@media (hover: hover) {
+  .hm-materia:hover .hm-materia__titulo { text-decoration-color: var(--scw-magenta); }
 }
-.hm-materia__foto img { width: 100%; height: 100%; object-fit: cover; }
-
 .hm-linha {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 52px;
@@ -814,7 +744,6 @@
   color: var(--scw-choco);
   transition: var(--scw-transicao);
 }
-
 @media (hover: hover) {
   .hm-linha:hover { background: var(--scw-creme); }
 }
@@ -832,7 +761,7 @@
   align-items: center;
   gap: 9px;
   min-height: 44px;
-  margin-top: 20px;
+  margin-top: 16px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -841,16 +770,73 @@
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-
 @media (hover: hover) {
   .hm-imprensa__toggle:hover { color: var(--scw-choco); }
+}
+@media (max-width: 759px) {
+  .hm-imprensa { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .hm-linha { grid-template-columns: minmax(0, 1fr); }
+  .hm-linha__ano { text-align: left; }
+}
+
+/* ============================================================================
+   07 Apoio — convite curto a parceiros, na cor da página Apoiar (marrom)
+   Não lista patrocinador (§9.6): é a porta para Apoiar, não uma vitrine.
+   ========================================================================= */
+
+.hm-apoiar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto;
+  gap: 20px clamp(24px, 4vw, 72px);
+  align-items: end;
+  background: var(--scw-marrom);
+  color: var(--scw-creme);
+}
+.scw-raiz .hm-apoiar a:focus-visible { outline-color: var(--scw-creme); }
+.hm-apoiar__titulo {
+  margin: 12px 0 0;
+  font: 900 clamp(28px, 3vw, 46px)/1 var(--scw-font-black);
+  letter-spacing: -.035em;
+}
+.hm-apoiar__texto {
+  max-width: 44ch;
+  margin: 0;
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .86);
+  text-wrap: pretty;
+}
+@media (max-width: 899px) {
+  .hm-apoiar { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .hm-apoiar .scw-btn { justify-self: start; }
+}
+
+/* ============================================================================
+   Resposta dos links (camada 1, §6.15): a seta avança 4px, só transform.
+   ========================================================================= */
+.hm-link > svg,
+.hm-imprensa__toggle > svg { transition: transform 180ms var(--scw-ease); }
+@media (hover: hover) {
+  .hm-link:hover > svg,
+  .hm-imprensa__toggle:hover > svg { transform: translateX(4px); }
+}
+.hm-link:focus-visible > svg { transform: translateX(4px); }
+.hm-link:active,
+.hm-imprensa__toggle:active,
+.hm-linha:active,
+.hm-materia:active { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-abre__foto { transition: none; }
+  .hm-destino:hover img { scale: 1; }
 }
 
 /* ============================================================================
    07 Realização — KV F2 Experience (quebra de marca proposital)
    ----------------------------------------------------------------------------
    Única seção do site fora da paleta do festival e fora da Nexa Slab: usa o KV
-   da agência que realiza o Sweet & Coffee Week. Decisão do Wilke (jul/2026),
+   da agência que realiza o Sweet & Coffee Week. Decisão do Wilker (jul/2026),
    registrada no CLAUDE.md. Nenhuma outra seção carrega Archivo.
    Contraste medido: #F5F5F5 sobre #0B0B0C = 18,05:1. O magenta da F2 dá 4,18:1
    — passa em texto grande (AA pede 3:1) e em elemento gráfico, mas NÃO em texto
@@ -1000,50 +986,4 @@
 
 @media (prefers-reduced-motion: reduce) {
   .f2-realiza__kv { animation: none; opacity: .08; }
-}
-
-/* ============================================================================
-   Responsivo — escala 1000 · 760 · 560 · 420
-   ========================================================================= */
-
-@media (max-width: 1000px) {
-  .hm-selo { margin-bottom: 18px; }
-  .hm-link--sublinhado { justify-self: start; }
-}
-
-@media (max-width: 760px) {
-  .hm-rota__corpo { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .hm-rota__eixo { writing-mode: horizontal-tb; transform: none; }
-  .hm-materia { grid-template-columns: minmax(0, 1fr); }
-  .hm-materia__foto { max-width: 320px; }
-}
-
-@media (max-width: 560px) {
-  /* ⛔ O empilhamento vertical SAIU em 22/08/2026 (pedido do Eloi: "coloque o
-     combo em uma única linha"). Um ingrediente por linha custava três telas de
-     rolagem para dizer "doce + salgado + bebida", e o "+" entre duas linhas
-     lia como marcador de lista, não como soma. **Não empilhar de novo.**
-     A linha do desktop continua valendo aqui; o que muda é a escala, e ela
-     muda nas duas medidas de uma vez porque as duas são token da composição.
-     Conta em 390px: 3 discos de 66px + 2 sinais de 23px + 4 vãos de 8px = 276
-     numa faixa de 342 — sobra folga. Em 320px dá 232 numa faixa de 272. */
-  .hm-ingredientes {
-    --ing-disco: clamp(58px, 17vw, 84px);
-    --ing-mais: clamp(22px, 6vw, 30px);
-    gap: 8px;
-  }
-  /* O nome desce junto: a 19px "salgado" não cabia na coluna de 88px e
-     quebrava em duas linhas, desalinhando os três. */
-  .hm-ing__nome { font-size: clamp(14px, 4vw, 19px); margin-top: 10px; }
-  .hm-voz__assinatura { flex-wrap: wrap; }
-}
-
-@media (max-width: 760px) {
-  /* Em uma coluna só, o row-gap: 0 encostaria uma galeria na outra. */
-  .hm-galeria + .hm-galeria { margin-top: clamp(28px, 3.4vw, 56px); }
-}
-
-@media (max-width: 420px) {
-  .hm-linha { grid-template-columns: minmax(0, 1fr); }
-  .hm-linha__ano { text-align: left; }
 }

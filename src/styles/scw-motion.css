@@ -136,15 +136,23 @@
   to   { opacity: 1; transform: none; }
 }
 
-/* --- Home ---------------------------------------------------------------- */
-.scw-hero .scw-hero__fotos { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
-.scw-hero .scw-hero__veu,
-.scw-hero .scw-hero__topo,
-.scw-hero .scw-hero__base { animation: moSurge var(--mo-longo) var(--mo-ease) 80ms both; }
-.scw-hero .hm-selo          { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
-.scw-hero .scw-hero__titulo { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
-.scw-hero .scw-hero__info   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 460ms both; }
-.scw-hero .hm-acoes         { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 600ms both; }
+/* --- Home (abertura da próxima edição, 28/09/2026) ------------------------
+   Estado → título → lead → ações → ficha; as fotos surgem por trás e o combo
+   pousa por último. O ponto do selo pulsa três vezes e para (convite finito,
+   não laço). */
+.hm-abre .hm-abre__pessoas { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
+.hm-abre .hm-abre__combo   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 700ms both; }
+.hm-abre .hm-abre__estado  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
+.hm-abre .hm-abre__titulo  { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
+.hm-abre .hm-abre__lead    { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 420ms both; }
+.hm-abre .hm-acoes         { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 540ms both; }
+.hm-abre .hm-abre__ficha,
+.hm-abre .hm-abre__legenda { animation: moSurge var(--mo-entra) var(--mo-ease) 760ms both; }
+.hm-abre__selo i::after    { animation: hmPulso 1600ms var(--mo-ease) 1200ms 3; }
+@keyframes hmPulso {
+  from { opacity: .8; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(2.6); }
+}
 
 /* --- Participar e Apoiar ------------------------------------------------- */
 .pa-hero .scw-hero-banda    { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
@@ -525,6 +533,7 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   /* Heróis, laços de respiração, menu e transição de página: sem movimento,
      conteúdo já no estado final. */
   .scw-hero *,
+  .hm-abre *,
   .pa-hero *,
   .ctt-abertura *,
   .swa-hero *,
@@ -545,6 +554,8 @@ main.page-enter { animation: moPagina 300ms var(--mo-ease) both; }
   /* As fotos empilhadas do herói continuam trocando por opacidade — só a ativa
      é visível, senão as quatro apareceriam sobrepostas. */
   .scw-hero__foto:not(.is-ativa) { opacity: 0; }
+  .hm-abre__foto:not(.is-ativa) { opacity: 0; }
+  .hm-abre__selo i::after { animation: none; }
 
   .scw-btn:hover,
   .scw-btn:hover svg,

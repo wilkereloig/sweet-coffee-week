@@ -33,7 +33,7 @@ const TELAS = [
   { nome: 'celular', w: 390, h: 844, phone: true },
 ]
 const TITULO_HEROI =
-  '.scw-hero__titulo, .pa-hero__titulo, .ctt-abertura__titulo, .swa-hero .scw-h1, ' +
+  '.scw-hero__titulo, .hm-abre__titulo, .pa-hero__titulo, .ctt-abertura__titulo, .swa-hero .scw-h1, ' +
   '.scw-edx__tema, .scw-edx-mob__tema'
 
 const falhas = []

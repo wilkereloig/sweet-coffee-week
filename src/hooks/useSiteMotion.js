@@ -31,7 +31,7 @@ import { useEffect } from 'react'
 /* Fora do alcance: heróis (coreografados no CSS) e blocos que precisam ficar
    calmos ou já têm animação própria. */
 const FORA =
-  '.scw-hero, .pa-hero, .ctt-abertura, .swa-hero, ' +
+  '.scw-hero, .hm-abre, .pa-hero, .ctt-abertura, .swa-hero, ' +
   '.scw-marquee, .scw-header, .scw-folha, .scw-abas, [data-mo-fora]'
 
 /* Rótulo de seção: reinicia a contagem da sequência. */
@@ -40,7 +40,7 @@ const ROTULO = '.scw-rotulo, .scw-pill, [class$="__rotulo"], [class*="__rotulo "
 /* Contêineres cujos FILHOS entram em sequência (cards, listas, faixas). */
 const GRADE =
   'ul, ol, dl, ' +
-  '.hm-rotas, .hm-ciclo, .hm-galerias, .hm-prova, .hm-ingredientes, ' +
+  '.hm-ingredientes, .hm-mosaico, .hm-destinos, .hm-voz, .hm-festival, ' +
   '.pa-faixas, .pa-cards, .pa-palco__marcas, .pa-numeros, .pa-jornada, .pa-onde, ' +
   '.ctt-portas, .ctt-colunas, ' +
   '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats, .swa-trilha'
