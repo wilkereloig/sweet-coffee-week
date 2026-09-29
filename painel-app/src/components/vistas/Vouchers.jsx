@@ -5,7 +5,8 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { resumoPorMarca, resumoPorContato } from '../../lib/vouchers'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca } from '../ui'
+import { urlLogo } from '../../lib/logos'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -19,6 +20,7 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
   const [dados, setDados] = React.useState(null)
   const [contatos, setContatos] = React.useState([])
+  const [logos, setLogos] = React.useState({})
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [visao, setVisao] = React.useState('marcas')
@@ -36,6 +38,8 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
       setDados(d)
     } catch (e) { setErro(e.message) }
     try { setContatos((await rpc('get_contatos', { p_secret: lerSenha() })) || []) } catch { setContatos([]) }
+    // Logo de cada marca (leitura à parte: sem ela a lista segue com iniciais).
+    try { setLogos(Object.fromEntries(((await rpc('get_logos', { p_secret: lerSenha() })) || []).map((l) => [l.participante_id, l.path]))) } catch { setLogos({}) }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
@@ -100,11 +104,11 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
           {porMarca.length === 0 && <Vazio titulo="Nenhuma marca na edição" />}
           <ul className="og-lista">{porMarca.map((m) => (
             <li key={m.participacao_id}>
-              <button type="button" className="og-item" aria-expanded={aberta === m.participacao_id} onClick={() => setAberta(aberta === m.participacao_id ? null : m.participacao_id)}>
-                <span className="og-item__cor" data-tom={m.disponiveis ? 'aviso' : 'ok'} aria-hidden="true" />
+              <button type="button" className="og-item og-item--logo" aria-expanded={aberta === m.participacao_id} onClick={() => setAberta(aberta === m.participacao_id ? null : m.participacao_id)}>
+                <LogoMarca url={urlLogo(logos[m.participante_id])} nome={m.marca} tamanho={36} />
                 <span className="og-item__nome">{m.marca}</span>
                 <span className="og-item__meta">{m.gerados} de {m.cota} gerados · {m.disponiveis} disponíveis · {m.destinados} destinados · {m.enviados} enviados · {m.utilizados} usados</span>
-                <span className="og-item__dir">{m.faltaGerar > 0 && <span className="og-selo" data-tom="atencao">faltam gerar {m.faltaGerar}</span>}</span>
+                <span className="og-item__dir">{m.faltaGerar > 0 && <Selo tom="atencao">Faltam gerar {m.faltaGerar}</Selo>}</span>
               </button>
               {aberta === m.participacao_id && (
                 <div className="ui-pilha ui-expandido">

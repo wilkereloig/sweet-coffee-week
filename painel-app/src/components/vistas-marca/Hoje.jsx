@@ -7,7 +7,7 @@ import { tempoRelativo } from '../../lib/central'
 import { nivelDoAviso, NIVEIS } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
-import { Carregando, Erro, Secao } from '../ui'
+import { Carregando, Erro, Secao, Selo } from '../ui'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
 
@@ -203,7 +203,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
           {/* 4 · Status do combo */}
           <Secao titulo="Status do combo" className="gm-combo">
             <p className="gm-combo__linha">
-              <span className="og-selo" data-tom={tom('combo', resumo.combo.status)}>{rotulo('combo', resumo.combo.status)}</span>
+              <Selo tom={tom('combo', resumo.combo.status)}>{rotulo('combo', resumo.combo.status)}</Selo>
               {resumo.combo.status === 'em_analise' && <span className="ui-nota">A organização está conferindo. Você recebe um aviso quando ela responder.</span>}
             </p>
             {resumo.combo.status === 'correcao_solicitada' && resumo.combo.nota && <p className="ui-nota">{resumo.combo.nota}</p>}

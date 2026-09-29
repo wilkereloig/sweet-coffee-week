@@ -231,7 +231,7 @@ function EnvioDaEdicao({ contato, podeMudar, onSalvar }) {
   return (
     <Bloco
       titulo="Press Kit desta edição" nota={atual.responsavel_rotulo ? 'última mudança por ' + atual.responsavel_rotulo : undefined}
-      acoes={<Selo dominio="presskit" valor={atual.status} />}
+      status={<Selo dominio="presskit" valor={atual.status} />} rotuloEditar="Editar Press Kit"
       campos={CAMPOS_PRESSKIT} valores={atual} podeEditar={podeMudar}
       onSalvar={async (v) => { const { status, ...dados } = v; await onSalvar(status, dados) }}
     />
@@ -294,10 +294,10 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
                 <span className="og-item__meta">{[c.instagram, c.cidade || c.bairro, (c.categorias && c.categorias.length ? c.categorias : [c.tipo]).map((k) => rotulo('tipo_contato', k)).join(', ')].filter(Boolean).join(' · ')}</span>
                 <span className="og-item__dir">
                   {c.atual && <Selo dominio="presskit" valor={c.atual.status}>Press Kit: {rotulo('presskit', c.atual.status)}</Selo>}
-                  {Number(c.vouchers_edicao) > 0 && <span className="og-selo" data-tom="andamento">{c.vouchers_edicao} {Number(c.vouchers_edicao) === 1 ? 'voucher' : 'vouchers'}</span>}
-                  <span className="og-selo" data-tom="neutro">{Number(c.recebimentos) === 0 ? 'nunca recebeu' : Number(c.recebimentos) === 1 ? '1 Press Kit' : c.recebimentos + ' Press Kits'}{c.ultima_edicao ? ' · último ' + c.ultima_edicao : ''}</span>
-                  {c.incompleto && <span className="og-selo" data-tom="atencao">cadastro incompleto</span>}
-                  {Number(c.pendencias) > 0 && <span className="og-selo" data-tom="atencao">{c.pendencias} para revisar</span>}
+                  {Number(c.vouchers_edicao) > 0 && <Selo tom="andamento">{c.vouchers_edicao} {Number(c.vouchers_edicao) === 1 ? 'voucher' : 'vouchers'}</Selo>}
+                  <Selo tom="neutro">{Number(c.recebimentos) === 0 ? 'nunca recebeu' : Number(c.recebimentos) === 1 ? '1 Press Kit' : c.recebimentos + ' Press Kits'}{c.ultima_edicao ? ' · último ' + c.ultima_edicao : ''}</Selo>
+                  {c.incompleto && <Selo tom="atencao">cadastro incompleto</Selo>}
+                  {Number(c.pendencias) > 0 && <Selo tom="atencao">{c.pendencias} para revisar</Selo>}
                 </span>
               </button>
             </li>

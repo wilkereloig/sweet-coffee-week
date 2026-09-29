@@ -8,7 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { registrarEnvio } from './AcessoMarca'
-import { Carregando, Vazio, Erro } from '../ui'
+import { Carregando, Vazio, Erro, Selo } from '../ui'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
 // diálogo nativo quebra a casca de app. 6s é o mesmo tempo da versão
@@ -322,7 +322,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
                     <p className="og-item__nome">{o.titulo(reg) || '(sem nome)'}</p>
                     <p className="og-item__meta">{o.rotulo + (o.meta(reg) ? ' · ' + o.meta(reg) : '')}</p>
                     <span className="og-item__dir">
-                      <span className="og-selo" data-novo={reg.status === 'novo' ? '1' : '0'}>{ROTULO_STATUS[reg.status] || reg.status}</span>
+                      <Selo tom={reg.status === 'novo' ? 'atencao' : 'neutro'}>{ROTULO_STATUS[reg.status] || reg.status}</Selo>
                       <span className="og-item__data">{dataCurta(reg.created_at)}</span>
                     </span>
                   </button>

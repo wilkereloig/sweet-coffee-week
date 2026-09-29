@@ -71,3 +71,12 @@ export function iniciais(nome) {
 
 // Estado vindo do banco (logo_info) → rótulo e tom (lib/status.js, domínio `logo`).
 export const ESTADOS_LOGO = ['confirmada', 'anterior', 'acervo', 'nao_enviada']
+
+/** Estado da logo a partir de uma linha de get_logos ({ path, confirmada, sugestao }). */
+export function estadoLogoLista(l) {
+  if (!l) return 'nao_enviada'
+  if (l.confirmada) return 'confirmada'
+  if (l.path) return 'anterior'
+  if (l.sugestao) return 'acervo'
+  return 'nao_enviada'
+}

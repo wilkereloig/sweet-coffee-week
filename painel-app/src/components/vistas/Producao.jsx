@@ -40,7 +40,7 @@ function Prazo({ iso }) {
   if (!p) return null
   // vencido/hoje = alerta (laranja); até 7 dias = revisar (amarelo). O texto diz o fato.
   const tom = p.tom === 'aguardando_cadastro' ? 'alerta' : p.tom === 'em_preenchimento' ? 'revisar' : undefined
-  return <span className="og-selo" data-tom={tom}>{p.texto}</span>
+  return <Selo tom={tom}>{p.texto}</Selo>
 }
 
 // Título explicativo, mesmo texto nas 5 folhas — uma ação só governa a

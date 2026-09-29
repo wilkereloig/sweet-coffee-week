@@ -4,7 +4,7 @@ import { dataHoraExtensa } from '../../lib/central'
 import { dataCurta } from '../../lib/respostas'
 import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Vazio, Erro, Secao } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo } from '../ui'
 
 /*
  * Arquivos (marca) — o que a organização publicou, por categoria, e a
@@ -112,10 +112,10 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
                         <b>{a.nome}</b>
                         <span>{detalhe}</span>
                         {a.descricao && <span>{a.descricao}</span>}
-                        <span className="og-selo" data-tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</span>
+                        <Selo tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</Selo>
                         {a.exige_leitura && (lido
                           ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
-                          : <span className="og-selo" data-tom="atencao">Confirme a leitura</span>)}
+                          : <Selo tom="atencao">Confirme a leitura</Selo>)}
                       </div>
                       <div className="ui-linha-acoes">
                         <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
