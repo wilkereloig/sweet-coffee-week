@@ -5,6 +5,28 @@ geral de 28/09/2026 (`docs/AUDITORIA-PAINEL-2026-09-28.md`) e da evolução
 estrutural de 29/09/2026 (`docs/EVOLUCAO-PAINEL-2026-09.md`). Não é regra de
 projeto (isso é `CLAUDE.md`, §10.4-b). Se divergir do código, vale o código.
 
+## 0 · Reestruturação de 29/09/2026 (leia primeiro)
+
+A navegação abaixo foi reorganizada por assunto. Resumo técnico (regras em
+`CLAUDE.md` §10.4-b, "Fase 13"):
+
+| Peça | Arquivo |
+|---|---|
+| Endereço por `#` (vista/aba/filtros) e tradução de links antigos | `src/lib/rota.js` |
+| Dicionário único de status (rótulo + tom) e `<Selo>` | `src/lib/status.js`, `components/ui.jsx` |
+| Os 7 módulos da organização e suas abas | `components/Modulos.jsx` |
+| Ficha da marca, aba Cadastro editável em blocos (`Bloco`) | `components/vistas/FichaCadastro.jsx` |
+| Arquivos por categoria (organização) | `components/vistas/ArquivosOrg.jsx`, `src/lib/arquivos.js` |
+| Contatos, Press Kit, Vouchers | `components/vistas/Contatos.jsx`, `PressKit.jsx`, `Vouchers.jsx`, `src/lib/vouchers.js` |
+| Materiais da edição (Operação) | `components/vistas/MateriaisEdicao.jsx` |
+| Conta da marca (avisos do aparelho, sair) | `components/ContaMarca.jsx` |
+| Vouchers na área da marca (registrar o código) | `components/vistas-marca/VouchersMarca.jsx` |
+
+Produção (`vistas/Producao.jsx`) virou seções (`secao="pedidos" | "fotos" |
+"edicao"`); Edição (`vistas/Edicao.jsx`) exporta as abas para os módulos.
+Onde as seções abaixo falam em "8 destinos", "Mesa" ou "Produção", leia os
+módulos acima.
+
 ## 1 · O que é
 
 Painel único (organização + marca participante), app React/Vite em
