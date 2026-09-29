@@ -1,15 +1,37 @@
 import React from 'react'
 import { api, registrarPendente } from '../../lib/marcaApi'
-import { dataHoraCurta } from '../../lib/painelFormat'
-import { ROTULO_SESSAO } from '../../lib/participantes'
+import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
+import { camposObrigatorios, progressoCampos } from '../../lib/guia'
 import { Carregando, Erro, Vazio } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
 import { ICONE_MARCA } from '../PainelMarcaShell'
 import {
-  TIPOS, ROTULO_TIPO, CANAIS, BLOCOS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
-  precoNumero, blocoCompleto, progresso,
+  TIPOS, ROTULO_TIPO, CANAIS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
+  precoNumero, blocoCompleto,
   primeiroBlocoPendente, canaisParaObjeto, canaisParaArray,
 } from '../../lib/cadastro'
+
+/*
+ * Estado de cada campo obrigatório (guia da marca, 29/09/2026): ícone + texto
+ * ao lado do rótulo, nunca só cor. "Completo/Falta" é calculado ao vivo;
+ * "Alteração solicitada" e "Em análise" vêm da organização (correcoes_campo).
+ */
+const ESTADO_CAMPO = {
+  completo: { icone: '✓', texto: 'Completo' },
+  falta: { icone: '!', texto: 'Falta' },
+  alteracao: { icone: '↺', texto: 'Alteração solicitada' },
+  analise: { icone: '◔', texto: 'Em análise' },
+  aprovado: { icone: '✓', texto: 'Aprovado' },
+}
+function EstadoCampo({ e }) {
+  if (!e) return null
+  const x = ESTADO_CAMPO[e.estado]
+  return <span className="gm-campo-estado" data-estado={e.estado}><span aria-hidden="true">{x.icone}</span> {x.texto}</span>
+}
+function Correcao({ e }) {
+  if (!e || e.estado !== 'alteracao' || !e.comentario) return null
+  return <span className="gm-correcao" role="note"><b>A organização pediu:</b> {e.comentario}</span>
+}
 
 /*
  * Vista "Cadastro" da marca — porte de public/painel/index.html (#mvCadastro,
@@ -69,7 +91,11 @@ const TEMA_VAZIO = { tema_combo: '', tema_justificativa: '' }
 const EXTRAS_VAZIO = { combo_para_viagem: null, combo_vegano: null, combo_diet: null, combo_delivery: '', combo_proposta: '' }
 const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
 
-export function Cadastro({ alvo, consumirAlvo } = {}) {
+// Meu cadastro = blocos 0 e 4; Meu combo = 1, 2 e 3. Mesmo formulário,
+// mesmo salvamento automático, mesmo envio para análise.
+export function Cadastro({ alvo, consumirAlvo, blocos = [0, 1, 2, 3, 4], resumo = null, recarregarResumo } = {}) {
+  const mostra = (n) => blocos.includes(n)
+  const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
   const [revisao, setRevisao] = React.useState({ comboStatus: 'rascunho', comboNota: null, tema: null })
   const [carregando, setCarregando] = React.useState(true)
@@ -87,12 +113,10 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   const [precoStr, setPrecoStr] = React.useState('')
   const [itens, setItens] = React.useState([])
   const [unidades, setUnidades] = React.useState([])
-  const [sessoes, setSessoes] = React.useState([])
 
   const [blocoAberto, setBlocoAberto] = React.useState(0)
   const [salvoTexto, setSalvoTexto] = React.useState('')
   const [erroSalvar, setErroSalvar] = React.useState(null)
-  const [reservando, setReservando] = React.useState(null)
   const [concluindo, setConcluindo] = React.useState(false)
   const [concluirAviso, setConcluirAviso] = React.useState(null)
 
@@ -112,14 +136,6 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
     tempSeqRef.current += 1
     return { _key: 'novo-' + tempSeqRef.current, id: null, endereco: '', bairro: '', horarios: '', faz_delivery: false, canais: canaisParaObjeto([]) }
   }
-
-  const carregarSessoes = React.useCallback(async () => {
-    try {
-      setSessoes((await api('sessoes_fotos?select=*&order=data_hora.desc')) || [])
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-    }
-  }, [])
 
   // ── Carregar ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -163,10 +179,9 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
           .then((t) => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: (t && t[0]) || null }))
           .catch(() => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: null }))
 
-        const [itensRows, unidadesRows, sessoesRows] = await Promise.all([
+        const [itensRows, unidadesRows] = await Promise.all([
           api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
           api('participacao_unidades?select=*&participacao_id=eq.' + pa.id + '&order=ordem'),
-          api('sessoes_fotos?select=*&order=data_hora.desc'),
         ])
         if (cancelado) return
         const listaItens = itensRows || []
@@ -178,12 +193,17 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
           : [unidadeVazia()]
         setItens(listaItens)
         setUnidades(listaUnidades)
-        setSessoes(sessoesRows || [])
-        setBlocoAberto(primeiroBlocoPendente({
+        // Abre o primeiro bloco pendente DESTA aba (ou o primeiro dela).
+        const pend = primeiroBlocoPendente({
           marca: { nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '' },
           tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
           itens: listaItens, unidades: listaUnidades, precoStr: precoInicial,
-        }))
+        })
+        setBlocoAberto(blocos.includes(pend) ? pend : blocos.find((n) => !blocoCompleto(n, {
+          marca: { nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '' },
+          tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
+          itens: listaItens, unidades: listaUnidades, precoStr: precoInicial,
+        })) ?? blocos[0])
         setCarregando(false)
       } catch (e) {
         if (cancelado) return
@@ -260,8 +280,10 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       ])
       // PATCH que volta vazio = a RLS recusou a linha: não é "salvo".
       if (!rm || !rm.length || !rp || !rp.length || ri.some((l) => !l || !l.length)) throw new Error('sem_confirmacao')
-      if (!pendenteRef.current) setSalvoTexto('Salvo automaticamente.')
+      if (!pendenteRef.current) setSalvoTexto('Informações salvas.')
       setErroSalvar(null)
+      // Pendências, progresso e números das abas acompanham o que foi gravado.
+      if (recarregarResumo) recarregarResumo()
       return true
     } catch (e) {
       pendenteRef.current = true
@@ -343,24 +365,6 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
     agendarSalvar()
   }
 
-  async function reservarVaga(id) {
-    setReservando(id)
-    try {
-      const r = await api('sessoes_fotos?id=eq.' + id + '&status=eq.aberto', {
-        metodo: 'PATCH',
-        corpo: { status: 'agendada', participacao_id: participacaoId, participante_id: participanteId },
-        prefer: 'return=representation',
-      })
-      if (!r || !r.length) setErroSalvar('Essa vaga acabou de ser escolhida por outra marca. Escolha outra.')
-      await carregarSessoes()
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-      setErroSalvar('Não deu para reservar agora. Tente de novo.')
-    } finally {
-      setReservando(null)
-    }
-  }
-
   async function concluir(ev) {
     ev.preventDefault()
     setConcluindo(true)
@@ -376,15 +380,18 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
         setConcluirAviso({ tom: 'erro', texto: 'Falta preencher: ' + faltando.map((f) => NOMES_FALTANDO[f] || f).join(', ') + '.' })
         // Abre o primeiro bloco pendente para a pessoa ver onde está a falta.
         const pend = primeiroBlocoPendente({ marca, tema, itens, unidades, precoStr })
-        if (pend !== null) setBlocoAberto(pend)
+        if (pend !== null && blocos.includes(pend)) setBlocoAberto(pend)
       } else {
+        const reenvio = revisao.comboStatus === 'correcao_solicitada'
         setStatusCadastro('cadastro_completo')
         // O banco já passou o combo para análise: o pedido de ajuste sai da tela.
         setRevisao((rv) => (rv.comboStatus === 'rascunho' || rv.comboStatus === 'correcao_solicitada' ? { ...rv, comboStatus: 'em_analise' } : rv))
         setConcluirAviso({
           tom: 'ok',
-          texto: 'Cadastro concluído. A organização revisa e fala com você se precisar de algo. Mudou alguma coisa? É só editar aqui e concluir de novo.',
+          texto: (reenvio ? 'Alterações enviadas novamente' : 'Enviado para análise') + ' em ' + new Date().toLocaleDateString('pt-BR') +
+            '. A organização confere e avisa aqui. Mudou alguma coisa? É só editar e enviar de novo.',
         })
+        if (recarregarResumo) recarregarResumo()
       }
     } catch (e) {
       if (!(e && e.message === 'sessao_expirada')) {
@@ -400,12 +407,6 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   // bloco e põe o cursor no campo que falta.
   React.useEffect(() => {
     if (carregando || !alvo) return
-    if (alvo.sub === 'fotos') {
-      const el = document.getElementById('fotos-sessao')
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (consumirAlvo) consumirAlvo()
-      return
-    }
     if (/^[0-4]$/.test(String(alvo.sub || ''))) {
       setBlocoAberto(Number(alvo.sub))
       const campo = alvo.campo
@@ -430,17 +431,27 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   }
 
   const dadosProgresso = { marca, tema, itens, unidades, precoStr }
-  const feitos = progresso(dadosProgresso)
+  const prog = progressoCampos(dadosProgresso)
   const selo = semParticipacao ? { classe: 'selo', texto: 'Sem edição aberta' } : seloParticipacao(statusCadastro)
-  const vagas = sessoes.filter((s) => s.status === 'aberto')
-  const jaTemSessao = sessoes.some((s) => s.status !== 'aberto' && s.status !== 'cancelada')
+  // Estado de cada campo: completo/falta ao vivo; o que a organização disse
+  // (alteração pedida, em análise, aprovado) vem do resumo.
+  const vivo = Object.fromEntries(camposObrigatorios(dadosProgresso).filter((c) => c.campo).map((c) => [c.campo, c.ok]))
+  const est = (id) => {
+    const org = resumo && resumo.campo ? resumo.campo(id) : null
+    if (org && (org.estado === 'alteracao' || (org.estado === 'analise' && vivo[id]))) return org
+    if (!(id in vivo)) return null
+    if (!vivo[id]) return { estado: 'falta' }
+    return org && (org.estado === 'aprovado' || org.estado === 'analise') ? org : { estado: 'completo' }
+  }
+  const erroWhats = validarWhatsApp(marca.telefone)
+  const reenviar = revisao.comboStatus === 'correcao_solicitada'
 
   return (
     <>
       <VistaCabeca
-        acento="cyan" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.cadastro}
-        titulo={marca.nome_marca || 'Sua participação'}
-        nota={semParticipacao ? 'Área da marca' : 'Edição ' + edicaoCodigo + ' · os dados da sua participação'}
+        acento={ehCombo ? 'laranja' : 'cyan'} viewBox="0 0 32 32" strokeWidth={2.2} icone={ehCombo ? ICONE_MARCA.combo : ICONE_MARCA.cadastro}
+        titulo={ehCombo ? 'Meu combo' : 'Meu cadastro'}
+        nota={semParticipacao ? 'Área da marca' : (marca.nome_marca || 'Sua marca') + ' · edição ' + edicaoCodigo}
       />
 
       {semParticipacao && (
@@ -455,9 +466,9 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
           <div className="mc-resumo">
             <span className={selo.classe}>{selo.texto}</span>
             <div className="progresso">
-              <b>{feitos} de {BLOCOS} blocos prontos</b>
-              <div className="trilha" role="progressbar" aria-label="Blocos prontos" aria-valuemin={0} aria-valuemax={BLOCOS} aria-valuenow={feitos}>
-                <i style={{ '--p': feitos / BLOCOS }} />
+              <b>Cadastro {prog.pct}% concluído</b>
+              <div className="trilha" role="progressbar" aria-label="Cadastro concluído" aria-valuemin={0} aria-valuemax={100} aria-valuenow={prog.pct}>
+                <i style={{ '--p': prog.pct / 100 }} />
               </div>
             </div>
             <p className="salvo" role="status">{salvoTexto}</p>
@@ -478,12 +489,19 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
             // conclui o cadastro: concluir avisa a organização. Só o botão.
             onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault() }}
           >
-            <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
+            {mostra(0) && <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-              <label><span>Nome da marca</span><input id="campo-nome_marca" required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /></label>
+              <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /></span><input id="campo-nome_marca" required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /><Correcao e={est('nome_marca')} /></label>
               <div className="dupla">
-                <label><span>Responsável pelo festival</span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /></label>
-                <label><span>Telefone</span><input id="campo-telefone" inputMode="tel" required value={marca.telefone} onChange={(e) => alterarMarca('telefone', e.target.value)} /></label>
+                <label><span>Responsável pelo festival <EstadoCampo e={est('responsavel')} /></span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /><Correcao e={est('responsavel')} /></label>
+                {/* O telefone de cadastro É o WhatsApp: é por ele que a organização fala com a marca. */}
+                <label><span>WhatsApp <EstadoCampo e={est('telefone')} /></span>
+                  <input id="campo-telefone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(84) 99999-9999" required
+                    aria-invalid={!!erroWhats} aria-describedby={erroWhats ? 'erro-telefone' : undefined}
+                    value={marca.telefone} onChange={(e) => alterarMarca('telefone', mascaraWhatsApp(e.target.value))} />
+                  {erroWhats && <span className="gm-campo-erro" id="erro-telefone">{erroWhats}</span>}
+                  <Correcao e={est('telefone')} />
+                </label>
               </div>
               <div className="dupla">
                 <label><span>E-mail de contato</span><input type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /></label>
@@ -494,9 +512,9 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                 <label><span>CNPJ <em>(opcional)</em></span><input inputMode="numeric" value={marca.cnpj} onChange={(e) => alterarMarca('cnpj', e.target.value)} /></label>
               </div>
               <label><span>Razão social <em>(opcional)</em></span><input value={marca.razao_social} onChange={(e) => alterarMarca('razao_social', e.target.value)} /></label>
-            </Bloco>
+            </Bloco>}
 
-            <Bloco indice={1} aberto={blocoAberto === 1} completo={blocoCompleto(1, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 1 ? null : 1))}>
+            {mostra(1) && <Bloco indice={1} aberto={blocoAberto === 1} completo={blocoCompleto(1, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 1 ? null : 1))}>
               <p className="nota">O festival nasce de um tema, e cada marca lê esse tema do seu
                 jeito. Conte qual foi a sua leitura.</p>
               {revisao.tema && (
@@ -506,20 +524,21 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                 </div>
               )}
               <p className="nota">Na edição, cada tema é de uma marca só. Se duas pedirem o mesmo, a organização decide pela ordem de chegada e pelo pagamento em dia.</p>
-              <label><span>Tema escolhido pela marca</span><input id="campo-tema_combo" required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /></label>
-              <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em></span>
+              <label><span>Tema escolhido pela marca <EstadoCampo e={est('tema_combo')} /></span><input id="campo-tema_combo" required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /><Correcao e={est('tema_combo')} /></label>
+              <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em> <EstadoCampo e={est('tema_justificativa')} /></span>
                 <textarea id="campo-tema_justificativa" required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
+                <Correcao e={est('tema_justificativa')} />
               </label>
-            </Bloco>
+            </Bloco>}
 
-            <Bloco indice={2} aberto={blocoAberto === 2} completo={blocoCompleto(2, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 2 ? null : 2))}>
+            {mostra(2) && <Bloco indice={2} aberto={blocoAberto === 2} completo={blocoCompleto(2, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 2 ? null : 2))}>
               <p className="nota">Cada item é julgado na sua categoria, e a média dos três é o
                 Melhor Combo. Descreva como cada um conversa com o tema.</p>
               <p className="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
                 que chega até você</b>: muita gente escolhe a rota pelo que consegue comer.
                 As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
               {revisao.comboStatus === 'correcao_solicitada' && (
-                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{revisao.comboNota ? ': “' + revisao.comboNota + '”' : '.'} Corrija e conclua o cadastro de novo.</div>
+                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{revisao.comboNota ? ': “' + revisao.comboNota + '”' : '.'} Corrija os campos marcados e envie novamente para análise.</div>
               )}
               {revisao.comboStatus === 'aprovado' && <div className="aviso" role="status">Combo aprovado pela organização.{revisao.comboNota ? ' “' + revisao.comboNota + '”' : ''}</div>}
               {itens.length < TIPOS.length && (
@@ -539,11 +558,12 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                           <label className="marcar"><input type="radio" name={'tipo-' + it.id} checked={tipo === 'doce'} onChange={() => alterarItem(it.id, 'tipo', 'doce')} /><span>Doce</span></label>
                         </div>
                       )}
-                      <label><span>Nome</span><input id={'campo-item-' + it.posicao + '-nome'} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /></label>
-                      <label><span>Descrição <em>(como conversa com o tema)</em></span>
+                      <label><span>Nome <EstadoCampo e={est('item-' + it.posicao + '-nome')} /></span><input id={'campo-item-' + it.posicao + '-nome'} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-nome')} /></label>
+                      <label><span>Descrição <em>(como conversa com o tema)</em> <EstadoCampo e={est('item-' + it.posicao + '-descricao')} /></span>
                         <textarea id={'campo-item-' + it.posicao + '-descricao'} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
+                        <Correcao e={est('item-' + it.posicao + '-descricao')} />
                       </label>
-                      <label><span>Ingredientes</span><input id={'campo-item-' + it.posicao + '-ingredientes'} value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} /></label>
+                      <label><span>Ingredientes <EstadoCampo e={est('item-' + it.posicao + '-ingredientes')} /></span><input id={'campo-item-' + it.posicao + '-ingredientes'} value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-ingredientes')} /></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.vegano} onChange={(e) => alterarItem(it.id, 'vegano', e.target.checked)} /><span>Vegano</span></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.sem_gluten} onChange={(e) => alterarItem(it.id, 'sem_gluten', e.target.checked)} /><span>Sem glúten</span></label>
                       <label className="marcar"><input type="checkbox" checked={!!it.sem_lactose} onChange={(e) => alterarItem(it.id, 'sem_lactose', e.target.checked)} /><span>Sem lactose</span></label>
@@ -551,11 +571,12 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                   )
                 })}
               </div>
-            </Bloco>
+            </Bloco>}
 
-            <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
-              <label className="mc-campo-curto"><span>Valor do combo <em>(em reais)</em></span>
+            {mostra(3) && <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
+              <label className="mc-campo-curto"><span>Valor do combo <em>(em reais)</em> <EstadoCampo e={est('combo_preco')} /></span>
                 <input id="campo-combo_preco" inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
+                <Correcao e={est('combo_preco')} />
               </label>
               <p className="nota">Sobre o combo inteiro <em>(opcional — ajuda a organização a divulgar)</em>:</p>
               {[['combo_para_viagem', 'Pode ser para viagem?'], ['combo_vegano', 'O combo é vegano?'], ['combo_diet', 'O combo é diet?']].map(([campo, pergunta]) => (
@@ -571,9 +592,9 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
               <label><span>A proposta criativa: qual é a história do combo? <em>(opcional)</em></span>
                 <textarea value={extras.combo_proposta} onChange={(e) => alterarExtra('combo_proposta', e.target.value)} />
               </label>
-            </Bloco>
+            </Bloco>}
 
-            <Bloco indice={4} aberto={blocoAberto === 4} completo={blocoCompleto(4, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 4 ? null : 4))}>
+            {mostra(4) && <Bloco indice={4} aberto={blocoAberto === 4} completo={blocoCompleto(4, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 4 ? null : 4))}>
               <p className="nota">Uma por endereço. Rede com várias lojas cadastra cada uma.
                 Continua contando como uma marca só. O horário aqui é o <b>dos dias do
                 festival</b>, que pode ser diferente do horário normal da loja.</p>
@@ -584,7 +605,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                       <b>Unidade {i + 1}</b>
                       <button className="link" type="button" aria-label={'Remover a unidade ' + (i + 1)} onClick={() => removerUnidade(u._key)}>remover</button>
                     </div>
-                    <label><span>Endereço</span><input id={i === 0 ? 'campo-unidade-endereco' : undefined} value={u.endereco} onChange={(e) => alterarUnidade(u._key, 'endereco', e.target.value)} /></label>
+                    <label><span>Endereço {i === 0 && <EstadoCampo e={est('unidade-endereco')} />}</span><input id={i === 0 ? 'campo-unidade-endereco' : undefined} value={u.endereco} onChange={(e) => alterarUnidade(u._key, 'endereco', e.target.value)} />{i === 0 && <Correcao e={est('unidade-endereco')} />}</label>
                     <div className="dupla">
                       <label><span>Bairro</span><input value={u.bairro} onChange={(e) => alterarUnidade(u._key, 'bairro', e.target.value)} /></label>
                       <label><span>Horário durante o festival</span>
@@ -608,55 +629,16 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
                 ))}
               </div>
               <button className="acao secundaria" type="button" onClick={adicionarUnidade}>+ Adicionar unidade</button>
-            </Bloco>
+            </Bloco>}
 
+            {/* Enviar vale para o cadastro inteiro (as duas abas): quem confere o
+                que falta é o servidor (marca_concluir_cadastro). */}
             <button className="acao larga" type="submit" disabled={concluindo}>
-              {concluindo ? 'Concluindo…' : 'Concluir cadastro'}
+              {concluindo ? 'Enviando…' : reenviar ? 'Enviar novamente para análise' : 'Enviar para análise'}
             </button>
           </form>
 
           {concluirAviso && <div className={'aviso mc-concluir-aviso ' + concluirAviso.tom} role={concluirAviso.tom === 'erro' ? 'alert' : 'status'}>{concluirAviso.texto}</div>}
-
-          {sessoes.length > 0 && (
-            <div className="card" id="fotos-sessao">
-              <p className="rotulo">Fotos do combo</p>
-              <h2>Sua sessão</h2>
-              <p className="nota">
-                {vagas.length > 0 && !jaTemSessao
-                  ? 'A organização abriu horários. Escolha um abaixo.'
-                  : 'Quem fotografa é a organização. A data e o local são definidos por ela; qualquer mudança é combinada pelo canal de sempre.'}
-              </p>
-              <div>
-                {sessoes.map((s) => (
-                  <div className="linha" key={s.id}>
-                    <div className="corpo">
-                      <b>{[dataHoraCurta(s.data_hora), s.local || ''].filter(Boolean).join(' · ')}</b>
-                      {s.observacoes && <span>{s.observacoes}</span>}
-                    </div>
-                    <div className="lado">
-                      <span className={'selo' + (s.status === 'realizada' ? ' completo' : '')}>{ROTULO_SESSAO[s.status] || s.status}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {vagas.length > 0 && !jaTemSessao && (
-                <ul className="mc-vagas">
-                  {vagas.map((s) => {
-                    const d = new Date(s.data_hora)
-                    const rotulo = d.toLocaleDateString('pt-BR', { weekday: 'short' }) + ' ' + d.getDate() +
-                      ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                    return (
-                      <li key={s.id}>
-                        <button type="button" className="mc-vaga" disabled={reservando === s.id} onClick={() => reservarVaga(s.id)}>
-                          {reservando === s.id ? 'Reservando…' : rotulo}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
       )}
     </>

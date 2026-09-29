@@ -144,12 +144,16 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
  * melhor que trancar alguém fora por causa de uma consulta que falhou; sessão
  * MORTA (refresh token não vale mais) → não tem painel pra entrar, o boot
  * precisa voltar pro login em vez de tentar montar em cima de sessão inválida.
- * @returns {Promise<'trocar'|'ok'|'morta'>}
+ * Conta bloqueada ou desativada pela organização (29/09/2026) → 'pausada':
+ * a tela diz isso em vez de montar um painel que a RLS deixaria vazio.
+ * @returns {Promise<'trocar'|'ok'|'morta'|'pausada'>}
  */
 export async function precisaTrocarSenha(fetchImpl = fetch) {
   try {
-    const linhas = await api('perfis?select=deve_trocar_senha&limit=1', {}, fetchImpl)
-    return (linhas && linhas[0] && linhas[0].deve_trocar_senha) ? 'trocar' : 'ok'
+    const linhas = await api('perfis?select=deve_trocar_senha,ativo,bloqueado_em&limit=1', {}, fetchImpl)
+    const p = linhas && linhas[0]
+    if (p && (p.ativo === false || p.bloqueado_em)) return 'pausada'
+    return (p && p.deve_trocar_senha) ? 'trocar' : 'ok'
   } catch (e) {
     return (e && e.message === 'sessao_expirada') ? 'morta' : 'ok'
   }

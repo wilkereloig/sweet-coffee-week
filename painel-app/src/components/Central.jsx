@@ -21,9 +21,19 @@ const ICONE_TIPO = {
   cadastro: <><circle cx="12" cy="12" r="8.8" /><path d="M7.8 12.3l3 3 5.4-6.4" /></>,
   formulario: <><path d="M7 4h10a1.5 1.5 0 0 1 1.5 1.5v13A1.5 1.5 0 0 1 17 20H7a1.5 1.5 0 0 1-1.5-1.5v-13A1.5 1.5 0 0 1 7 4Z" /><path d="M9 9h6M9 12.5h6M9 16h3.5" /></>,
 }
+// Nível do aviso (painel da marca, 29/09/2026): ícone + rótulo, nunca só cor.
+const ICONE_NIVEL = {
+  informacao: <><circle cx="12" cy="12" r="8.8" /><path d="M12 11v5.4" /><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none" /></>,
+  atencao: <><circle cx="12" cy="12" r="8.8" /><path d="M12 7.4v5.6" /><circle cx="12" cy="16.4" r="1" fill="currentColor" stroke="none" /></>,
+  pendencia: ICONE_TIPO.pedido,
+  alteracao: <><path d="M5 12a7 7 0 0 1 12-4.9L19 9" /><path d="M19 4.6V9h-4.4" /><path d="M19 12a7 7 0 0 1-12 4.9L5 15" /><path d="M5 19.4V15h4.4" /></>,
+  aprovado: ICONE_TIPO.cadastro,
+  arquivo: ICONE_TIPO.arquivo,
+}
 const ICONE_SINO = <><path d="M12 4.4c-3 0-5.4 2.4-5.4 5.6v3.3L5 16.6h14l-1.6-3.3v-3.3c0-3.2-2.4-5.6-5.4-5.6Z" /><path d="M10 19.2a2 2 0 0 0 4 0" /></>
 
-export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral }) {
+// `niveis` (opcional): { nivelDe(aviso) → chave, NIVEIS[chave] → { rotulo, acao } }.
+export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null }) {
   const naoLidas = contarNaoLidas(itens)
   const lista = itens || []
 
@@ -58,21 +68,25 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
           <ul className="ui-avisos">
             {lista.map((n) => {
               const lida = !!(n.lida || n.lida_em)
+              const nivel = niveis ? niveis.nivelDe(n) : null
+              const info = nivel ? niveis.NIVEIS[nivel] : null
               return (
                 <li key={n.id}>
                   <button type="button" className={'ui-aviso' + (lida ? '' : ' is-naolida')} onClick={() => onAbrir(n)}>
-                    <span className="ui-aviso__disco" data-tipo={n.tipo} aria-hidden="true">
+                    <span className="ui-aviso__disco" data-tipo={n.tipo} data-nivel={nivel || undefined} aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        {ICONE_TIPO[n.tipo] || ICONE_TIPO.formulario}
+                        {(nivel && ICONE_NIVEL[nivel]) || ICONE_TIPO[n.tipo] || ICONE_TIPO.formulario}
                       </svg>
                     </span>
                     <span className="ui-aviso__corpo">
+                      {info && <span className="ui-aviso__nivel" data-nivel={nivel}>{info.rotulo}</span>}
                       <span className="ui-aviso__titulo">{n.titulo}</span>
                       {n.texto && <span className="ui-aviso__texto">{n.texto}</span>}
                       <span className="ui-aviso__meta">
                         {tempoRelativo(n.criada_em)}
                         {n.ator_rotulo && n.ator_rotulo !== 'Acesso compartilhado' && !n.ator_rotulo.startsWith('Marca ·') ? ' · por ' + n.ator_rotulo : ''}
                       </span>
+                      {info && n.link && <span className="ui-aviso__acao">{info.acao} →</span>}
                     </span>
                     {!lida && <span className="ui-aviso__ponto"><span className="ui-oculto">Não lido</span></span>}
                   </button>

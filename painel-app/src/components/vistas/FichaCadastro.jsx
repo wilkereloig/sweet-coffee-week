@@ -6,6 +6,8 @@ import { rotulo, rotulos } from '../../lib/status'
 import { tempoRelativo } from '../../lib/central'
 import { CANAIS, canaisParaObjeto, canaisParaArray } from '../../lib/cadastro'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
+import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
+import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro } from '../ui'
 
 /*
@@ -140,6 +142,12 @@ function Campo({ campo, valor, onMudar }) {
           <option value="">Não informado</option><option value="true">Sim</option><option value="false">Não</option>
         </select>
       )}
+      {c.tipo === 'whatsapp' && (
+        <>
+          <input type="tel" inputMode="tel" value={valor} placeholder="(84) 99999-9999" onChange={(e) => onMudar(mascaraWhatsApp(e.target.value))} aria-invalid={!!validarWhatsApp(valor)} />
+          {validarWhatsApp(valor) && <span className="gm-campo-erro">{validarWhatsApp(valor)}</span>}
+        </>
+      )}
       {(!c.tipo || c.tipo === 'texto' || c.tipo === 'preco') && (
         <input type="text" inputMode={c.tipo === 'preco' ? 'decimal' : undefined} value={valor} onChange={(e) => onMudar(e.target.value)} placeholder={c.dica} />
       )}
@@ -150,7 +158,8 @@ function Campo({ campo, valor, onMudar }) {
 const CAMPOS_MARCA = [
   { chave: 'nome_marca', rotulo: 'Nome do estabelecimento' },
   { chave: 'responsavel', rotulo: 'Responsável' },
-  { chave: 'telefone', rotulo: 'Telefone' },
+  // O telefone de cadastro É o WhatsApp da marca (29/09/2026).
+  { chave: 'telefone', rotulo: 'WhatsApp', tipo: 'whatsapp' },
   { chave: 'email', rotulo: 'E-mail' },
   { chave: 'instagram', rotulo: 'Instagram' },
   { chave: 'site', rotulo: 'Site' },
@@ -207,6 +216,71 @@ function valoresParaUnidade(id, v) {
     id, endereco: v.endereco, bairro: v.bairro, horarios: v.horarios, mesas: v.mesas,
     faz_delivery: !!v.faz_delivery, so_delivery: !!v.so_delivery, canais_delivery: canaisParaArray(canais),
   }
+}
+
+/*
+ * Pedir alteração num campo (29/09/2026). A marca vê o motivo junto do campo,
+ * corrige e envia de novo para análise; aprovar o cadastro resolve os pedidos.
+ */
+const ROTULO_CAMPO = Object.fromEntries(CAMPOS_APONTAVEIS)
+function CorrecoesCampo({ participacaoId, pode, onMudou }) {
+  const [lista, setLista] = React.useState(null)
+  const [campo, setCampo] = React.useState('')
+  const [motivo, setMotivo] = React.useState('')
+  const [salvando, setSalvando] = React.useState(false)
+  const [aviso, setAviso] = React.useState(null)
+  const podeDecidir = pode('curadoria.decidir')
+  const carregar = React.useCallback(async () => {
+    try { setLista((await rpc('get_correcoes', { p_secret: lerSenha(), p_participacao: participacaoId })) || []) } catch { setLista([]) }
+  }, [participacaoId])
+  React.useEffect(() => { carregar() }, [carregar])
+
+  async function pedir(ev) {
+    ev.preventDefault()
+    if (!campo || !motivo.trim()) return
+    setSalvando(true); setAviso(null)
+    try {
+      await rpc('pedir_correcao_campo', { p_secret: lerSenha(), p_participacao: participacaoId, p_bloco: blocoDoCampo(campo), p_campo: campo, p_comentario: motivo.trim() })
+      setCampo(''); setMotivo('')
+      setAviso({ tom: 'ok', texto: 'Pedido enviado. A marca recebe um aviso que abre o campo.' })
+      await carregar(); onMudou && onMudou()
+    } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) } finally { setSalvando(false) }
+  }
+  async function resolver(id) {
+    if (!window.confirm('Dar este pedido de alteração por resolvido?')) return
+    try { await rpc('resolver_correcao', { p_secret: lerSenha(), p_id: id }); await carregar(); onMudou && onMudou() } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) }
+  }
+  const abertas = (lista || []).filter((c) => c.estado !== 'resolvida')
+  return (
+    <Secao titulo="Pedir alteração" nota="Aponte o campo e diga o motivo. O cadastro volta para a marca corrigir; aprovar o combo resolve os pedidos.">
+      {podeDecidir ? (
+        <form className="ui-form-linha" onSubmit={pedir}>
+          <label className="og-campo"><span>Campo</span>
+            <select value={campo} onChange={(e) => setCampo(e.target.value)} required>
+              <option value="">Escolha o campo</option>
+              {CAMPOS_APONTAVEIS.map(([k, r]) => <option key={k} value={k}>{r}</option>)}
+            </select>
+          </label>
+          <label className="og-campo og-campo--largo"><span>Motivo (a marca lê)</span>
+            <textarea rows={2} maxLength={500} value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: a descrição precisa dizer o recheio do salgado." />
+          </label>
+          <button className="og-btn og-btn--mini" type="submit" disabled={salvando || !campo || !motivo.trim()}>{salvando ? 'Enviando…' : 'Pedir alteração'}</button>
+        </form>
+      ) : <p className="ui-nota">Sua função não pede alteração de cadastro.</p>}
+      {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : '')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
+      {abertas.length > 0 && (
+        <ul className="ui-lista-simples">
+          {abertas.map((c) => (
+            <li key={c.id}>
+              <b>{ROTULO_CAMPO[c.campo] || c.campo} · <Selo dominio="correcao" valor={c.estado} /></b>
+              <span>"{c.comentario}" · {c.criada_por_rotulo ? 'por ' + c.criada_por_rotulo + ' · ' : ''}{tempoRelativo(c.criada_em)}</span>
+              {podeDecidir && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => resolver(c.id)}>Dar por resolvido</button></div>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Secao>
+  )
 }
 
 export function AbaCadastro({ participante, pode, onMudou }) {
@@ -276,6 +350,7 @@ export function AbaCadastro({ participante, pode, onMudou }) {
         campos={CAMPOS_STATUS} valores={pa} podeEditar={podeEditar} onSalvar={salvarParticipacao}
         acoes={<Selo dominio="cadastro" valor={pa.status_cadastro} />}
       />
+      {pa.id && <CorrecoesCampo participacaoId={pa.id} pode={pode} onMudou={() => { carregar(); onMudou && onMudou() }} />}
       {blocoMarca}
       <Bloco titulo="O tema" campos={CAMPOS_TEMA} valores={pa} podeEditar={podeEditar} onSalvar={salvarParticipacao}
         nota="Tema novo entra como proposta; a aprovação é em Participantes › Temas" />

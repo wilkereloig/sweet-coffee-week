@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
     origem_id?: string
     participante_id?: string
     marca?: { nome?: string; responsavel?: string; telefone?: string; email?: string }
+    novo_nome?: string
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
@@ -178,6 +179,44 @@ Deno.serve(async (req) => {
     }
   }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
+
+  /* ── ALTERAR LOGIN (29/09/2026) ────────────────────────────────────────────
+     O login da marca É o nome do estabelecimento; trocar o login é renomear a
+     marca e o endereço interno JUNTOS. Mora aqui, e não numa função própria,
+     para a slugificação continuar em um lugar só deste lado (as três cópias
+     que têm de casar — CLAUDE.md §6.10-b/4). Auth primeiro: se ele recusar,
+     nada mudou; se o banco falhar depois, o e-mail antigo volta. */
+  const novoNome = (payload.novo_nome || '').trim()
+  if (novoNome) {
+    const pid = (payload.participante_id || '').trim()
+    if (!pid) return json({ erro: 'participante_obrigatorio' }, 400)
+    const { data: part, error: partErr } = await admin
+      .from('participantes').select('id, user_id, nome_marca, slug').eq('id', pid).maybeSingle()
+    if (partErr) return json({ erro: 'db_error', detalhe: partErr.message }, 500)
+    if (!part || !part.user_id) return json({ erro: 'marca_sem_acesso' }, 404)
+    const novoLogin = await slugLivre(slugificar(novoNome), async (s) => {
+      const { data } = await admin.from('participantes').select('id').eq('slug', s).neq('id', pid).maybeSingle()
+      return !!data
+    })
+    const { data: antes } = await admin.auth.admin.getUserById(part.user_id)
+    const emailAntigo = antes?.user?.email || ''
+    const { error: authErr } = await admin.auth.admin.updateUserById(part.user_id, {
+      email: `${novoLogin}@${DOMINIO_LOGIN}`, email_confirm: true,
+      user_metadata: { ...(antes?.user?.user_metadata || {}), nome_marca: novoNome, login: novoLogin },
+    })
+    if (authErr) return json({ erro: 'login_ja_existe', detalhe: authErr.message }, 409)
+    const { error: updErr } = await admin.from('participantes')
+      .update({ nome_marca: novoNome, slug: novoLogin }).eq('id', pid)
+    if (updErr) {
+      if (emailAntigo) await admin.auth.admin.updateUserById(part.user_id, { email: emailAntigo, email_confirm: true })
+      return json({ erro: 'db_error', detalhe: updErr.message }, 500)
+    }
+    await admin.from('auditoria').insert({
+      acao: 'acesso.login_alterado', alvo_tabela: 'participantes', alvo_id: pid, participante_id: pid,
+      detalhe: { de: part.nome_marca, para: novoNome },
+    })
+    return json({ ok: true, participante_id: pid, login: novoLogin, nome: novoNome })
+  }
 
   /* ── 2. QUAL DOS DOIS PONTOS DE ENTRADA ────────────────────────────────────
      Candidatura aprovada (`origem_id`) OU cadastro manual (`marca`), nunca os
@@ -333,7 +372,7 @@ Deno.serve(async (req) => {
   // ⛔ Desligar isto transforma a mensagem num segredo permanente vazado.
   const { error: flagErr } = await admin
     .from('perfis')
-    .update({ deve_trocar_senha: true })
+    .update({ deve_trocar_senha: true, senha_emitida_em: new Date().toISOString() })
     .eq('user_id', userId)
   if (flagErr) {
     // Conta criada sem a trava seria pior que conta nenhuma: a senha

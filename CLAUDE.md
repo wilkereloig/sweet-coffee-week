@@ -3129,6 +3129,48 @@ Pedido do Wilker: organizar o painel por assunto. Spec em
 - **Pendências da marca campo a campo** (`pendenciasCadastro`, mesma regra dos
   blocos): cada uma abre o bloco e põe o cursor no campo (`campo-<campo>`).
 
+#### Acessos das marcas + guia da marca — 29/09/2026 (Fase 14)
+
+Spec em `docs/superpowers/specs/2026-09-29-acessos-e-guia-da-marca-design.md`.
+Migration `20260930_acessos_e_correcoes.sql` (aplicada pelo arquivo do commit,
+sha256 conferido) + `20260930_acessos_ajustes_advisor.sql`. O que passou a valer:
+
+- **Status do acesso, uma regra só** (`status_acesso_marca`): não criado ·
+  aguardando envio · aguardando primeiro acesso · ativo · bloqueado ·
+  desativado. **Bloquear ≠ desativar** (decisão do Wilker): bloquear é pausa
+  (`perfis.bloqueado_em`), desativar é conta encerrada (`perfis.ativo`); os
+  dois tiram a RLS da marca (`conta_ativa()`) e são reversíveis.
+- **Envio das credenciais é registrado** (`acesso_envios`: copiado · WhatsApp
+  aberto · enviado). ⛔ Abrir o WhatsApp nunca vira "enviado": só o clique em
+  "Marcar como enviado". Senha nova (`perfis.senha_emitida_em`) zera o envio.
+- **Ninguém vê a senha definitiva** (hash no Auth). Controlar a conta é gerar
+  senha temporária nova, bloquear, encerrar sessões, forçar troca
+  (`gerir_acesso_marca`, um RPC para ficha e lote, guardado por `marca.liberar`).
+  ⚠️ Encerrar sessões corta a renovação na hora; o token aberto vale até vencer
+  (~1 h). `regerar-senha-conta` também encerra as sessões.
+- **Alterar login = renomear a marca**: `criar-acesso-marca` com `novo_nome`
+  troca o endereço interno junto (a slugificação continua num lugar só).
+- **Lista de marcas**: seleção + ações em lote, "Cadastro N% · N pendências",
+  status do acesso e filtros novos. Resultado do lote com "Copiar todos os
+  acessos" (`textoTodosAcessos`) e WhatsApp com o texto do pedido.
+- **WhatsApp = telefone de cadastro**: rótulo, máscara e validação
+  (`mascaraWhatsApp`/`validarWhatsApp` em `lib/participantes.js`).
+- **Marca: Início · Meu cadastro · Meu combo · Fotos · Arquivos** (decisão do
+  Wilker). Pedidos, Mensagens e Guia de fotos ficam fora do menu (abertos do
+  Início e do sino). Meu cadastro e Meu combo são o mesmo `Cadastro.jsx` com
+  `blocos`. Links antigos (`hoje`, `cadastro/2/…`, `cadastro/fotos`) seguem
+  valendo por `interpretarLinkMarca`.
+- **Uma leitura do estado da marca** (`useResumoMarca` → `resumoMarca` em
+  `lib/guia.js`): progresso = campos obrigatórios preenchidos ÷ 16 (a MESMA
+  lista de `campos_cadastro` no banco — mudou lá, muda cá), pendências,
+  próxima ação, números das abas, estado de cada campo.
+- **Correção por campo**: `pedir_correcao_campo` (motivo obrigatório) põe o
+  combo em "alteração solicitada"; a marca vê o motivo junto do campo e envia
+  de novo (o gatilho existente devolve para análise); aprovar resolve.
+  Pedido da organização ganha `campo` e `prioridade`.
+- **Conta pausada**: a marca bloqueada/desativada vê "Seu acesso está pausado"
+  em vez de um painel vazio (`precisaTrocarSenha` → `'pausada'`).
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4

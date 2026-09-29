@@ -140,7 +140,34 @@ export function descreverAtividade(a, { comMarca = true } = {}) {
     case 'criar_acesso_marca':
       return 'Acesso da marca criado' + marca
     case 'regerar_senha_conta':
-      return 'Senha gerada de novo' + (a.alvo_tabela === 'participantes' ? marca : ' para uma conta da equipe')
+      return (a.alvo_tabela === 'participantes' ? 'Senha temporária nova gerada' + marca : 'Senha gerada de novo para uma conta da equipe')
+    // Acesso da marca (29/09/2026). Nunca a senha: só a ação.
+    case 'acesso.copiado':
+      return 'Credenciais copiadas' + marca
+    case 'acesso.whatsapp_aberto':
+      return 'WhatsApp aberto com as credenciais' + marca
+    case 'acesso.enviado_manual':
+      return 'Credenciais marcadas como enviadas' + marca
+    case 'acesso.bloquear':
+      return 'Acesso bloqueado' + marca + (d.motivo ? ': ' + d.motivo : '')
+    case 'acesso.desbloquear':
+      return 'Acesso desbloqueado' + marca
+    case 'acesso.desativar':
+      return 'Conta desativada' + marca
+    case 'acesso.reativar':
+      return 'Conta reativada' + marca
+    case 'acesso.encerrar_sessoes':
+      return 'Sessões encerradas' + marca
+    case 'acesso.forcar_troca':
+      return 'Troca de senha exigida no próximo acesso' + marca
+    case 'acesso.login_alterado':
+      return 'Login alterado de "' + (d.de || '') + '" para "' + (d.para || '') + '"' + marca
+    case 'senha.trocada':
+      return 'Senha definida pela marca' + marca
+    case 'correcao.pedida':
+      return 'Alteração solicitada' + marca + (d.motivo ? ': "' + d.motivo + '"' : '')
+    case 'correcao.resolvida':
+      return 'Pedido de alteração resolvido' + marca
     case 'criar_conta_organizacao':
       return 'Conta da equipe criada: ' + (d.nome || d.email || '')
     case 'definir_funcao':

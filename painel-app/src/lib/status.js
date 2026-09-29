@@ -150,6 +150,31 @@ export const STATUS = {
     revertido: s('Revertido', 'encerrado'),
     cancelado: s('Cancelado', 'encerrado'),
   },
+  // Acesso da marca ao painel (status_acesso_marca no banco, 29/09/2026).
+  acesso: {
+    nao_criado: s('Sem acesso', 'neutro'),
+    aguardando_envio: s('Aguardando envio', 'atencao'),
+    aguardando_primeiro_acesso: s('Aguardando primeiro acesso', 'andamento'),
+    ativo: s('Ativo', 'ok'),
+    bloqueado: s('Bloqueado', 'atencao'),
+    desativado: s('Desativado', 'encerrado'),
+  },
+  // acesso_envios.canal (+ nao_enviado). Abrir o WhatsApp NÃO é "enviado".
+  envio: {
+    nao_enviado: s('Não enviado', 'neutro'),
+    copiado: s('Copiado', 'andamento'),
+    whatsapp_aberto: s('WhatsApp aberto', 'andamento'),
+    enviado_manual: s('Enviado', 'ok'),
+  },
+  correcao: {
+    aberta: s('Alteração solicitada', 'atencao'),
+    corrigida: s('Corrigida, em análise', 'andamento'),
+    resolvida: s('Resolvida', 'ok'),
+  },
+  prioridade: {
+    normal: s('Normal', 'neutro'),
+    importante: s('Importante', 'atencao'),
+  },
   importacao_linha: {
     pendente: s('Pendente', 'atencao'),
     importado: s('Importado', 'ok'),

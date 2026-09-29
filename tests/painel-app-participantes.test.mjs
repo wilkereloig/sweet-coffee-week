@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   slugPrevisto, resumoParticipante, montarRecado, linkWhatsApp, soDigitos,
+  textoTodosAcessos, mascaraWhatsApp, validarWhatsApp, whatsappNormalizado,
 } from '../painel-app/src/lib/participantes.js'
 
 test('slugPrevisto normaliza acento, & e espaço, e casa com a Edge Function', () => {
@@ -33,10 +34,36 @@ test('linkWhatsApp antepõe 55 a telefone de até 11 dígitos, null sem telefone
   assert.match(link, /^https:\/\/wa\.me\/5584900000000\?text=oi$/)
 })
 
-test('montarRecado é puro (origem injetada, sem `location`)', () => {
-  const texto = montarRecado({ nomeMarca: 'Bocaditos', login: 'bocaditos', senha: 'abc123', origem: 'https://x.test' })
+test('montarRecado é puro (origem injetada, sem `location`) e usa o texto do pedido', () => {
+  const texto = montarRecado({ nomeMarca: 'Bocaditos', responsavel: 'Ana Souza', login: 'Bocaditos', senha: 'abc123', origem: 'https://x.test' })
   // /painel/ — o escopo do service worker (/marca/ só redireciona).
-  assert.match(texto, /Endereço: https:\/\/x\.test\/painel\//)
-  assert.match(texto, /Login: bocaditos/)
-  assert.match(texto, /Senha: abc123/)
+  assert.match(texto, /^Olá, Ana\./)
+  assert.match(texto, /Acesse: https:\/\/x\.test\/painel\//)
+  assert.match(texto, /Login: Bocaditos/)
+  assert.match(texto, /Senha temporária: abc123/)
+  assert.match(montarRecado({ nomeMarca: 'Bocaditos', login: 'b', senha: 's', origem: 'o' }), /^Olá, Bocaditos\./)
+})
+
+test('Copiar todos os acessos: um bloco por marca, separados, sem senha quando não há', () => {
+  const t = textoTodosAcessos([
+    { nomeMarca: 'A', responsavel: 'Ana', login: 'A', senha: 'S1' },
+    { nomeMarca: 'B', login: 'B' },
+  ], 'https://x.test')
+  const [a, b] = t.split('\n\n---\n\n')
+  assert.equal(a, 'Estabelecimento: A\nResponsável: Ana\nLogin: A\nSenha temporária: S1\nAcesso: https://x.test/painel/')
+  assert.equal(b, 'Estabelecimento: B\nResponsável: —\nLogin: B\nAcesso: https://x.test/painel/')
+})
+
+test('WhatsApp: máscara brasileira, validação de DDD/dígitos e forma normalizada', () => {
+  assert.equal(mascaraWhatsApp('84999998888'), '(84) 99999-8888')
+  assert.equal(mascaraWhatsApp('8433334444'), '(84) 3333-4444')
+  assert.equal(mascaraWhatsApp('5584999998888'), '(84) 99999-8888')
+  assert.equal(mascaraWhatsApp('849'), '(84) 9')
+  assert.equal(mascaraWhatsApp(''), '')
+  assert.equal(validarWhatsApp('(84) 99999-8888'), '')
+  assert.equal(validarWhatsApp(''), '')
+  assert.match(validarWhatsApp('(20) 99999-8888'), /DDD 20/)
+  assert.match(validarWhatsApp('84 9999'), /10 ou 11/)
+  assert.match(validarWhatsApp('(84) 89999-8888'), /começa com 9/)
+  assert.equal(whatsappNormalizado('(84) 99999-8888'), '5584999998888')
 })
