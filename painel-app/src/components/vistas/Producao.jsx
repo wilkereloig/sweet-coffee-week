@@ -499,6 +499,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const [erro, setErro] = React.useState(null)
   const [avisoGeral, setAvisoGeral] = React.useState(null) // {texto, tom}
   const [modoAgenda, setModoAgenda] = React.useState('abrir') // 'abrir' | 'marcar' — só UI, nunca gravado
+  // Pedidos arquivados saem da lista (e do painel da marca); restaurar devolve.
+  const [verArquivados, setVerArquivados] = React.useState(false)
   const [slotOcupado, setSlotOcupado] = React.useState(null)
 
   // A edição aberta — movida de Equipe.jsx na Fase 3 do plano de funções
@@ -625,6 +627,16 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
       })
     } finally {
       setSlotOcupado(null)
+    }
+  }
+
+  async function arquivarPedido(s, sim) {
+    if (sim && !window.confirm('Arquivar o pedido "' + s.titulo + '"? Ele sai do painel da marca; dá para restaurar depois.')) return
+    try {
+      await rpc('atualizar_solicitacao', { p_secret: lerSenha(), p_id: s.id, p_arquivada: sim })
+      await carregar()
+    } catch (e) {
+      setAvisoGeral({ texto: 'Não deu para ' + (sim ? 'arquivar' : 'restaurar') + ': ' + e.message, tom: 'erro' })
     }
   }
 
@@ -780,9 +792,15 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 texto="Um pedido é o que aparece no painel da marca com prazo. Aviso para todas ou cobrança de uma só."
               />
             )}
+            {solicitacoes && solicitacoes.some((s) => s.arquivada) && (
+              <div className="ui-filtros-mini" role="group" aria-label="Pedidos">
+                <button type="button" className="ui-chip" aria-pressed={!verArquivados} onClick={() => setVerArquivados(false)}>Ativos</button>
+                <button type="button" className="ui-chip" aria-pressed={verArquivados} onClick={() => setVerArquivados(true)}>Arquivados ({solicitacoes.filter((s) => s.arquivada).length})</button>
+              </div>
+            )}
             {solicitacoes && solicitacoes.length > 0 && (
               <ul className="og-lista">
-                {solicitacoes.map((s) => {
+                {solicitacoes.filter((s) => !!s.arquivada === verArquivados).map((s) => {
                   const rascunho = !s.publicada_em
                   const alvo = s.escopo === 'geral' ? 'todas as marcas' : (s.marca || 'uma marca')
                   const feitas = Number(s.respondidas || 0)
@@ -806,6 +824,11 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                                 Publicar
                               </button>
                             : <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'quemFalta', solicitacao: s })}>Quem falta</button>}
+                          {podeGerir && (
+                            <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => arquivarPedido(s, !s.arquivada)}>
+                              {s.arquivada ? 'Restaurar' : 'Arquivar'}
+                            </button>
+                          )}
                         </span>
                       </div>
                     </li>
