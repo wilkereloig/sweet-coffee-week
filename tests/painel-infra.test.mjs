@@ -609,7 +609,8 @@ const MIG_FASE5 = ler('supabase/migrations/20260825_fase5_painel_da_marca.sql')
 const MIG_FASE6 = ler('supabase/migrations/20260825_fase6_leitura_da_organizacao.sql')
 
 test('a ficha da marca vem da participação, numa chamada só', () => {
-  assert.match(MARCAS_JSX, /get_ficha_participacao/, 'Marcas.jsx não usa a RPC da ficha')
+  // Desde a etapa 3 (29/09/2026) a aba Cadastro mora em FichaCadastro.jsx.
+  assert.match(ler('painel-app/src/components/vistas/FichaCadastro.jsx'), /get_ficha_participacao/, 'a aba Cadastro não usa a RPC da ficha')
   assert.match(MIG_FASE6, /create or replace function public\.get_ficha_participacao/)
 })
 

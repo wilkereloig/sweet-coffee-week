@@ -153,6 +153,19 @@ export function descreverAtividade(a, { comMarca = true } = {}) {
       return 'Nome de uma conta da equipe: "' + (d.de || '—') + '" → "' + (d.para || '—') + '"'
     case 'senha_unica':
       return 'Acesso compartilhado ' + (d.ativa ? 'ligado' : 'desligado')
+    case 'cadastro.editado': {
+      // Etapa 3: o administrador editou um bloco do cadastro.
+      const BLOCO = { marca: 'dados da marca', participacao: 'dados da participação', item: 'item do combo', unidade: 'unidade' }
+      const campos = d.campos ? Object.keys(d.campos).join(', ').replace(/_/g, ' ') : ''
+      const nome = d.bloco === 'item' && d.nome_para ? ' "' + d.nome_para + '"' : d.bloco === 'unidade' && d.endereco ? ' ' + d.endereco : ''
+      return 'Cadastro editado pela organização' + marca + ' · ' + (BLOCO[d.bloco] || 'cadastro') + nome + (campos ? ' (' + campos + ')' : '')
+    }
+    case 'cadastro.unidade_removida':
+      return 'Unidade removida' + marca + (d.endereco ? ': ' + d.endereco : '')
+    case 'participante.arquivado':
+      return 'Marca arquivada' + marca
+    case 'participante.restaurado':
+      return 'Marca restaurada' + marca
     case 'registro.apagado':
       return 'Registro apagado' + (d.origem ? ' (' + d.origem + ')' : '')
     default:

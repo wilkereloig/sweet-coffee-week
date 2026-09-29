@@ -68,3 +68,11 @@ test('contarNaoLidas entende os dois formatos (org: lida; marca: lida_em)', () =
   assert.equal(contarNaoLidas([{ lida: false }, { lida: true }, { lida_em: null }, { lida_em: '2026-01-01' }]), 2)
   assert.equal(rotuloStatus('em_analise'), 'Em análise')
 })
+
+test('descreverAtividade cobre a edição de cadastro pela organização (etapa 3)', async () => {
+  const { descreverAtividade } = await import('../painel-app/src/lib/central.js')
+  assert.equal(
+    descreverAtividade({ acao: 'cadastro.editado', marca: 'Bolomania', detalhe: { bloco: 'participacao', campos: { combo_preco: {}, status_cadastro: {} } } }),
+    'Cadastro editado pela organização · Bolomania · dados da participação (combo preco, status cadastro)')
+  assert.equal(descreverAtividade({ acao: 'participante.arquivado', marca: 'X' }), 'Marca arquivada · X')
+})
