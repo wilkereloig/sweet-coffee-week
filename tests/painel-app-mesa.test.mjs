@@ -27,7 +27,7 @@ test('nao_selecionado fica fora de todas as colunas', () => {
 
 test('candidatura já vinculada a uma conta sai das quatro primeiras colunas', () => {
   const candidaturas = [{ id: 1, status: 'aprovado', empresa: 'Bocaditos', created_at: '2020-01-01T00:00:00Z' }]
-  const participantes = [{ origem_id: 1, participacao_id: 9, nome_marca: 'Bocaditos', status_cadastro: 'em_preenchimento' }]
+  const participantes = [{ origem_id: 1, user_id: 'u1', participacao_id: 9, nome_marca: 'Bocaditos', status_cadastro: 'em_preenchimento' }]
   const colunas = colunasMesa({ candidaturas, participantes })
   assert.equal(acha(colunas, 'aprovadas').itens.length, 0)
   assert.equal(acha(colunas, 'acesso').itens.length, 1)
@@ -37,15 +37,23 @@ test('participante com cadastro completo ou encerrado cai em completas, o resto 
   const participantes = [
     { participacao_id: 1, nome_marca: 'A', status_cadastro: 'cadastro_completo' },
     { participacao_id: 2, nome_marca: 'B', status_cadastro: 'encerrado' },
-    { participacao_id: 3, nome_marca: 'C', status_cadastro: 'em_preenchimento' },
+    { participacao_id: 3, user_id: 'u3', nome_marca: 'C', status_cadastro: 'em_preenchimento' },
   ]
   const colunas = colunasMesa({ candidaturas: [], participantes })
   assert.equal(acha(colunas, 'completas').itens.length, 2)
   assert.equal(acha(colunas, 'acesso').itens.length, 1)
 })
 
+test('marca sem conta (importada) fica em aprovadas, não em "com acesso"', () => {
+  const participantes = [{ participacao_id: 4, nome_marca: 'D', status_cadastro: 'em_preenchimento', edicao_codigo: '2026.2' }]
+  const colunas = colunasMesa({ candidaturas: [], participantes })
+  assert.equal(acha(colunas, 'acesso').itens.length, 0)
+  assert.equal(acha(colunas, 'aprovadas').itens.length, 1)
+  assert.match(acha(colunas, 'aprovadas').itens[0].meta, /sem acesso ainda/)
+})
+
 test('itensProntos vem como string do banco (bigint) e vira Number', () => {
-  const participantes = [{ participacao_id: 1, nome_marca: 'A', status_cadastro: 'em_preenchimento', itens_prontos: '2' }]
+  const participantes = [{ participacao_id: 1, user_id: 'u1', nome_marca: 'A', status_cadastro: 'em_preenchimento', itens_prontos: '2' }]
   const colunas = colunasMesa({ candidaturas: [], participantes })
   assert.equal(acha(colunas, 'acesso').itens[0].itensProntos, 2)
 })

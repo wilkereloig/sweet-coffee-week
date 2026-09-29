@@ -51,7 +51,7 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
     setSenha2('')
     // Baixa a flag ANTES de seguir — se falhar, o próximo login pede a troca
     // de novo (chato, nunca inseguro), então o erro não trava o fluxo.
-    await aoMarcarTrocada()
+    try { await aoMarcarTrocada() } catch { /* senha já trocada; o próximo login pede de novo */ }
     onConcluido()
   }
 

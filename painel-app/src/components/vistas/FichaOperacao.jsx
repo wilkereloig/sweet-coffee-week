@@ -23,10 +23,12 @@ function useFicha(participacaoId) {
   const [estado, setEstado] = React.useState({ carregando: true, dados: null, erro: null })
   const carregar = React.useCallback(async () => {
     if (!participacaoId) { setEstado({ carregando: false, dados: null, erro: null }); return }
-    setEstado((e) => ({ ...e, carregando: !e.dados, erro: null }))
+    // Recarga da MESMA ficha mantém o conteúdo na tela; ficha de outra marca
+    // não — senão os dados da anterior aparecem sob o nome da nova.
+    setEstado((e) => ({ ...e, carregando: !e.dados || e.dados.participacao_id_pedida !== participacaoId, erro: null }))
     try {
       const f = await rpc('get_ficha_360', { p_secret: lerSenha(), p_participacao: participacaoId })
-      setEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.' })
+      setEstado({ carregando: false, dados: f && { ...f, participacao_id_pedida: participacaoId }, erro: f ? null : 'Ficha não encontrada.' })
     } catch (e) {
       setEstado({ carregando: false, dados: null, erro: e.message })
     }
@@ -242,8 +244,14 @@ export function AbaTrajetoria({ participante, pode, onMudou }) {
 
   const carregar = React.useCallback(async () => {
     setErro(null)
-    try { setH(await rpc('get_historia', { p_secret: lerSenha(), p_participante: participante.id })) } catch (e) { setErro(e.message) }
+    try {
+      const d = await rpc('get_historia', { p_secret: lerSenha(), p_participante: participante.id })
+      if (!d) throw new Error('nao_autorizado') // null = sem permissão; sem isto o esqueleto nunca sai
+      setH(d)
+    } catch (e) { setErro(e.message) }
   }, [participante.id])
+  // Outra marca: zera a trajetória e a busca da anterior.
+  React.useEffect(() => { setH(null); setBusca(''); setAchados([]); setAviso(null) }, [participante.id])
   React.useEffect(() => { carregar() }, [carregar])
 
   async function decidir(chave, status) {

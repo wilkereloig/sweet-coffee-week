@@ -24,15 +24,25 @@ function FichaContato({ id, atual, pode, onFechar, onMudou }) {
   const [form, setForm] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const carregar = React.useCallback(async () => {
-    if (!id || id === 'novo') { setC(null); setForm({ nome: '', instagram: '', telefone: '', endereco: '', bairro: '', observacoes: '', tipo: 'influenciador' }); return }
+    if (!id || id === 'novo') return
     setErro(null)
     try {
       const d = await rpc('get_contato', { p_secret: lerSenha(), p_id: id })
+      // null = sessão sem permissão (a RPC não lança): erro, não tela quebrada.
+      if (!d) throw new Error('nao_autorizado')
       setC(d)
       setForm({ nome: d.nome || '', instagram: d.instagram || '', telefone: d.telefone || '', endereco: d.endereco || '', bairro: d.bairro || '', observacoes: d.observacoes || '', tipo: d.tipo, ativo: d.ativo })
     } catch (e) { setErro(e.message) }
   }, [id])
-  React.useEffect(() => { carregar() }, [carregar])
+  // Trocar de contato zera a ficha ANTES de buscar: sem isso o formulário do
+  // anterior (ou um "Novo contato" em branco) ficava editável até a resposta.
+  React.useEffect(() => {
+    if (!id) return // fechando: mantém o conteúdo durante a animação de saída
+    setErro(null); setAviso(null)
+    if (id === 'novo') { setC(null); setForm({ nome: '', instagram: '', telefone: '', endereco: '', bairro: '', observacoes: '', tipo: 'influenciador' }); return }
+    setC(null); setForm(null)
+    carregar()
+  }, [id, carregar])
   const podeMudar = pode('relacionamento.gerir')
 
   async function salvar(ev) {
@@ -125,7 +135,12 @@ export function Contatos({ registrarAtualizar, pode = () => true, alvo, consumir
 
   const carregar = React.useCallback(async () => {
     setErro(null)
-    try { setLista((await rpc('get_contatos', { p_secret: lerSenha() })) || []) } catch (e) { setErro(e.message) }
+    try {
+      const l = await rpc('get_contatos', { p_secret: lerSenha() })
+      // null = sem permissão; lista vazia seria mentir "nenhum contato ainda".
+      if (l == null) throw new Error('nao_autorizado')
+      setLista(l)
+    } catch (e) { setErro(e.message) }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])

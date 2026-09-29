@@ -14,17 +14,20 @@ test('prazoTexto: sem data devolve vazio', () => {
 })
 
 test('prazoTexto: vencido, hoje, 1 dia (singular), poucos dias e distante', () => {
-  const dia = 864e5
-  assert.equal(prazoTexto(new Date(Date.now() - 2 * dia).toISOString()).classe, 'vencido')
-  assert.match(prazoTexto(new Date(Date.now() - 2 * dia).toISOString()).texto, /^venceu em /)
+  // "Agora" fixo às 10h: o resultado não depende da hora em que o teste roda.
+  const agora = new Date(2026, 8, 10, 10, 0).getTime()
+  const em = (d, h = 23, m = 59) => new Date(2026, 8, 10 + d, h, m).toISOString()
+  assert.equal(prazoTexto(em(-2), agora).classe, 'vencido')
+  assert.match(prazoTexto(em(-2), agora).texto, /^venceu em /)
 
-  assert.deepEqual(prazoTexto(new Date(Date.now() - 1000).toISOString()), { texto: 'vence hoje', classe: 'vencido' })
+  // Prazo às 23h59 de HOJE: ainda é hoje, não "falta 1 dia".
+  assert.deepEqual(prazoTexto(em(0), agora), { texto: 'vence hoje', classe: 'vencido' })
 
-  assert.deepEqual(prazoTexto(new Date(Date.now() + dia * 0.5).toISOString()), { texto: 'falta 1 dia', classe: 'andamento' })
+  assert.deepEqual(prazoTexto(em(1, 0, 30), agora), { texto: 'falta 1 dia', classe: 'andamento' })
 
-  assert.deepEqual(prazoTexto(new Date(Date.now() + 3 * dia).toISOString()), { texto: 'faltam 3 dias', classe: 'andamento' })
+  assert.deepEqual(prazoTexto(em(3), agora), { texto: 'faltam 3 dias', classe: 'andamento' })
 
-  const distante = prazoTexto(new Date(Date.now() + 30 * dia).toISOString())
+  const distante = prazoTexto(em(30), agora)
   assert.equal(distante.classe, '')
   assert.match(distante.texto, /^até /)
 })

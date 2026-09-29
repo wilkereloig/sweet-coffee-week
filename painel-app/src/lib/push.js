@@ -54,7 +54,14 @@ export async function ligarAvisos(registrar) {
   const bruto = nova.toJSON()
   // Só diz "ligado" depois que o banco confirmar: assinatura que existe no
   // navegador e não no banco é aparelho que jura que está ligado e não recebe.
-  await registrar({ endpoint: bruto.endpoint, p256dh: bruto.keys.p256dh, auth: bruto.keys.auth, userAgent: navigator.userAgent.slice(0, 300) })
+  // Banco recusou: desfaz a assinatura do navegador. Senão a tela lê a
+  // assinatura órfã, diz "Ligados" e esconde o botão de tentar de novo.
+  try {
+    await registrar({ endpoint: bruto.endpoint, p256dh: bruto.keys.p256dh, auth: bruto.keys.auth, userAgent: navigator.userAgent.slice(0, 300) })
+  } catch (e) {
+    await nova.unsubscribe().catch(() => {})
+    throw e
+  }
 }
 
 /** Banco primeiro, depois o navegador: se a rede cair no meio, não sobra endpoint vivo apontando para nada. */

@@ -608,6 +608,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
   animation:ogGaveta 260ms var(--scw-ease);
 }
 .og-detalhe--larga{width:min(920px,100%)}
+.og-detalhe:focus{outline:none}
 .og-detalhe__topo{padding:18px var(--trilho) 14px;border-bottom:1px solid var(--scw-filete);display:flex;align-items:flex-start;gap:14px}
 .og-detalhe__titulos{min-width:0;flex:1 1 auto}
 .og-detalhe__topo h2{font:900 clamp(20px,2vw,24px)/1.12 var(--f-titulo);letter-spacing:-.03em;overflow-wrap:anywhere}

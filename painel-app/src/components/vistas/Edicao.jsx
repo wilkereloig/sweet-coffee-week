@@ -30,13 +30,18 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
   const [form, setForm] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [item, setItem] = React.useState(null)
+  const [avisoItem, setAvisoItem] = React.useState(null)
+  // Salvar ou remover um item do cronograma recarrega a edição: o formulário
+  // de cima só volta ao valor do banco quando a EDIÇÃO muda, senão o que foi
+  // digitado e ainda não salvo some.
   React.useEffect(() => {
     setForm({
       nome: edicao.nome || '', tema: edicao.tema || '', festival_inicio: edicao.festival_inicio || '',
       festival_fim: edicao.festival_fim || '', taxa_inscricao: edicao.taxa_inscricao ?? '',
       foto_exige_pagamento: !!edicao.foto_exige_pagamento, lembrete_vendas_hora: (edicao.lembrete_vendas_hora || '').slice(0, 5),
     })
-  }, [edicao])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edicao.codigo])
   const podeMudar = pode('edicao.gerir')
   if (!form) return null
 
@@ -57,14 +62,16 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
   }
   async function salvarItem(ev) {
     ev.preventDefault()
+    setAvisoItem(null)
     try {
       await rpc('salvar_cronograma_item', { p_secret: lerSenha(), p_item: { ...item, edicao_codigo: edicao.codigo } })
       setItem(null); onMudou()
-    } catch (e) { setAviso(traduzirErro(e.message)) }
+    } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
   async function removerItem(i) {
     if (!window.confirm('Remover "' + i.titulo + '" do cronograma?')) return
-    try { await rpc('remover_cronograma_item', { p_secret: lerSenha(), p_id: i.id }); onMudou() } catch (e) { setAviso(traduzirErro(e.message)) }
+    setAvisoItem(null)
+    try { await rpc('remover_cronograma_item', { p_secret: lerSenha(), p_id: i.id }); onMudou() } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
   const campo = (k) => ({ value: form[k], disabled: !podeMudar, onChange: (e) => setForm({ ...form, [k]: e.target.value }) })
   const hoje = chaveDia(new Date())
@@ -87,7 +94,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
       </Secao>
 
       <Secao titulo="Cronograma" nota="O mesmo dado alimenta o painel da marca, a mesa, os lembretes e a próxima ação."
-        acoes={podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => setItem({ titulo: '', tipo: 'prazo', chave: '', inicio: '', fim: '', ordem: 100, obrigatorio: false, visivel_participante: true, condicao: '' })}>Adicionar item</button>}>
+        acoes={podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => { setAvisoItem(null); setItem({ titulo: '', tipo: 'prazo', chave: '', inicio: '', fim: '', ordem: 100, obrigatorio: false, visivel_participante: true, condicao: '' }) }}>Adicionar item</button>}>
         {(edicao.cronograma || []).length === 0 && <Vazio titulo="Sem cronograma">Adicione os prazos e períodos da edição: eles alimentam o painel da marca e os lembretes.</Vazio>}
         {(edicao.cronograma || []).length > 0 && <ul className="og-lista">{(edicao.cronograma || []).map((i) => (
           <li key={i.id}>
@@ -122,10 +129,12 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
             <label className="og-campo og-campo--linha"><input type="checkbox" checked={item.visivel_participante} onChange={(e) => setItem({ ...item, visivel_participante: e.target.checked })} /><span>A marca vê este item</span></label>
             <div className="ui-linha-acoes">
               <button className="og-btn og-btn--mini" type="submit">Salvar item</button>
-              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => setItem(null)}>Cancelar</button>
+              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => { setItem(null); setAvisoItem(null) }}>Cancelar</button>
             </div>
+            {avisoItem && <p className="ui-nota ui-nota--erro" role="alert">{avisoItem}</p>}
           </form>
         )}
+        {!item && avisoItem && <p className="ui-nota ui-nota--erro" role="alert">{avisoItem}</p>}
       </Secao>
     </div>
   )
@@ -179,7 +188,7 @@ function AbaVendas({ edicao, pode }) {
   const [erro, setErro] = React.useState(null)
   const carregar = React.useCallback(async () => {
     setErro(null)
-    try { setDados(await rpc('get_vendas_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) } catch (e) { setErro(e.message) }
+    try { setDados((await rpc('get_vendas_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { marcas: [] }) } catch (e) { setErro(e.message) }
   }, [edicao.codigo])
   React.useEffect(() => { carregar() }, [carregar])
   async function registrar(m, dia) {
@@ -237,9 +246,14 @@ function AbaRevisao({ pode, irPara }) {
   const [status, setStatus] = React.useState('aberta')
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
+  const pedido = React.useRef(0)
   const carregar = React.useCallback(async () => {
     setErro(null)
-    try { setLista((await rpc('get_revisao', { p_secret: lerSenha(), p_status: status })) || []) } catch (e) { setErro(e.message) }
+    const meu = ++pedido.current // trocar de filtro rápido: só a última resposta vale
+    try {
+      const l = (await rpc('get_revisao', { p_secret: lerSenha(), p_status: status })) || []
+      if (meu === pedido.current) setLista(l)
+    } catch (e) { if (meu === pedido.current) setErro(e.message) }
   }, [status])
   React.useEffect(() => { carregar() }, [carregar])
   const podeResolver = pode('curadoria.decidir')
@@ -413,8 +427,7 @@ export function Edicao({ registrarAtualizar, pode = () => true, alvo, consumirAl
       <VistaCabeca acento="choco" icone={ICONE.edicao} titulo={atual ? atual.nome : 'Edição'} nota="Datas, cronograma, temas, vendas e a qualidade dos dados — tudo configurável, nada fixo no código" />
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && !edicoes && <Carregando />}
-      {!erro && edicoes && !atual && <Vazio titulo="Nenhuma edição marcada como atual">Defina a edição atual em Produção.</Vazio>}
-      {atual && (
+      {!erro && edicoes && (
         <>
           <Abas rotulo="Seções da edição" ativa={aba} onMudar={setAba} abas={[
             { chave: 'configuracao', rotulo: 'Configuração' },
@@ -425,9 +438,10 @@ export function Edicao({ registrarAtualizar, pode = () => true, alvo, consumirAl
             { chave: 'edicoes', rotulo: 'Todas as edições' },
           ]} />
           <div role="tabpanel" className="ui-painel-aba">
-            {aba === 'configuracao' && <AbaConfiguracao edicao={atual} pode={pode} onMudou={carregar} />}
-            {aba === 'temas' && <AbaTemas edicao={atual} pode={pode} irPara={irPara} />}
-            {aba === 'vendas' && <AbaVendas edicao={atual} pode={pode} />}
+            {!atual && ['configuracao', 'temas', 'vendas'].includes(aba) && <Vazio titulo="Nenhuma edição marcada como atual">Defina a edição atual em Produção. Revisão de dados, importações e o histórico de edições funcionam sem ela.</Vazio>}
+            {atual && aba === 'configuracao' && <AbaConfiguracao edicao={atual} pode={pode} onMudou={carregar} />}
+            {atual && aba === 'temas' && <AbaTemas edicao={atual} pode={pode} irPara={irPara} />}
+            {atual && aba === 'vendas' && <AbaVendas edicao={atual} pode={pode} />}
             {aba === 'revisao' && <AbaRevisao pode={pode} irPara={irPara} />}
             {aba === 'importacoes' && <AbaImportacoes pode={pode} />}
             {aba === 'edicoes' && <AbaEdicoes edicoes={edicoes} />}

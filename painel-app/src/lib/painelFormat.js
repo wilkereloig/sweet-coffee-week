@@ -25,14 +25,21 @@ export function preco(v) {
   return v == null ? '' : 'R$ ' + Number(v).toFixed(2).replace('.', ',')
 }
 
-// Dias inteiros até o prazo, por diferença em milissegundos (não subtração de
-// datas locais — o horário de verão dá um dia de 23h, e "vence hoje" na
-// véspera é o erro que só aparece uma vez por ano).
-export function prazoSelo(iso) {
+// Dias de CALENDÁRIO entre hoje e a data (local). O prazo é gravado às 23h59
+// do dia marcado: contar por milissegundos dizia "falta 1 dia" no próprio dia
+// do vencimento. O Math.round absorve um dia de 23h ou 25h, se voltar o
+// horário de verão.
+export function diasCalendario(iso, agora = Date.now()) {
   if (!iso) return null
   const d = new Date(iso)
   if (isNaN(d.getTime())) return null
-  const n = Math.ceil((d.getTime() - Date.now()) / 864e5)
+  const meiaNoite = (t) => { const x = new Date(t); return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime() }
+  return Math.round((meiaNoite(d) - meiaNoite(agora)) / 864e5)
+}
+
+export function prazoSelo(iso, agora = Date.now()) {
+  const n = diasCalendario(iso, agora)
+  if (n === null) return null
   if (n < 0) return { tom: 'aguardando_cadastro', texto: 'venceu ' + dataCurta(iso) }
   if (n === 0) return { tom: 'aguardando_cadastro', texto: 'vence hoje' }
   if (n <= 7) return { tom: 'em_preenchimento', texto: 'faltam ' + n + ' dias' }

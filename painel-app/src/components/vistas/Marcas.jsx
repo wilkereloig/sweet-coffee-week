@@ -387,7 +387,9 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
 
   // Marca com esse nome já cadastrada (ex.: importada da planilha): o certo é
   // criar o acesso NELA, pela ficha — senão nasce um segundo estabelecimento.
-  const jaExiste = nome.trim().length > 2 && existentes.find((p) => compacto(p.nome_marca) === compacto(nome))
+  // Depois de criar, a própria marca nova entra em `existentes`: sem o `!cred`
+  // a tela acusaria "já cadastrada" ao lado das credenciais que acabou de dar.
+  const jaExiste = !cred && nome.trim().length > 2 && existentes.find((p) => compacto(p.nome_marca) === compacto(nome))
 
   async function criarMarcaManual(ev) {
     ev.preventDefault()
@@ -419,12 +421,12 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
       <form className="ui-form" onSubmit={criarMarcaManual} noValidate>
         <p className="ui-nota">A conta nasce agora, com login e senha. Nome e telefone são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>
         <label className="og-campo"><span>Nome do estabelecimento <abbr title="obrigatório">*</abbr></span>
-          <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} />
+          <input type="text" autoComplete="off" required disabled={!!cred} value={nome} onChange={(e) => setNome(e.target.value)} />
         </label>
         <p className="ui-nota">O login vai ser: <b>{slugPrevisto(nome) || '…'}</b></p>
         {jaExiste && <p className="ui-nota ui-nota--erro" role="alert">“{jaExiste.nome_marca}” já está cadastrada{jaExiste.user_id ? ' e tem acesso' : ''}. Abra a ficha dela para criar ou regerar o acesso.</p>}
         <label className="og-campo"><span>Telefone (WhatsApp) <abbr title="obrigatório">*</abbr></span>
-          <input type="tel" inputMode="tel" autoComplete="off" required placeholder="(84) 90000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+          <input type="tel" inputMode="tel" autoComplete="off" required disabled={!!cred} placeholder="(84) 90000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
         </label>
         <label className="og-campo"><span>Responsável <em>(opcional)</em></span>
           <input type="text" autoComplete="off" value={responsavel} onChange={(e) => setResponsavel(e.target.value)} />

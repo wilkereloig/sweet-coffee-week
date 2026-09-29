@@ -64,6 +64,9 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
     setBloco('livre'); setPrazo(''); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
+  // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
+  // abrir: sem isto o <select> mostra a primeira marca e o estado fica vazio.
+  React.useEffect(() => { if (aberto && !marca && marcaPadrao) setMarca(marcaPadrao) }, [aberto, marcaPadrao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function criar() {
     if (!titulo.trim() || !texto.trim()) {
@@ -133,7 +136,7 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
         <button
           className="og-btn" type="button"
-          disabled={enviando || !podeGerir}
+          disabled={enviando || !podeGerir || (aviso && aviso.tom === 'ok')}
           title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
           onClick={criar}
         >
@@ -235,10 +238,14 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
     setVersao(''); setDescricao(''); setLeitura(false); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
+  // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
+  // abrir: sem isto o <select> mostra a primeira marca e o estado fica vazio.
+  React.useEffect(() => { if (aberto && !marca && marcaPadrao) setMarca(marcaPadrao) }, [aberto, marcaPadrao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function escolher(f) {
+    // O nome acompanha a troca de arquivo enquanto a pessoa não o reescreveu.
+    if (f && (!nome.trim() || (file && nome === file.name))) setNome(f.name)
     setFile(f || null)
-    if (f && !nome.trim()) setNome(f.name)
   }
 
   async function publicar() {
@@ -315,7 +322,7 @@ function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFech
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
         <button
           className="og-btn" type="button"
-          disabled={enviando || !podeGerir}
+          disabled={enviando || !podeGerir || (aviso && aviso.tom === 'ok')}
           title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
           onClick={publicar}
         >
@@ -340,6 +347,9 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFecha
     setMarca(marcaPadrao); setQuando(''); setLocal(''); setObs(''); setAviso(null); setEnviando(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
+  // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
+  // abrir: sem isto o <select> mostra a primeira marca e o estado fica vazio.
+  React.useEffect(() => { if (aberto && !marca && marcaPadrao) setMarca(marcaPadrao) }, [aberto, marcaPadrao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function criar() {
     if (!marca) {
@@ -383,7 +393,7 @@ function FolhaNovaSessao({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFecha
         {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
         <button
           className="og-btn" type="button"
-          disabled={enviando || !podeGerir}
+          disabled={enviando || !podeGerir || (aviso && aviso.tom === 'ok')}
           title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
           onClick={criar}
         >
@@ -437,7 +447,7 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
         <div className="og-bloco og-bloco--colado">
           <label className="og-campo"><span>Situação</span>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              {Object.entries(ROTULO_SESSAO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {Object.entries(ROTULO_SESSAO).filter(([k]) => k !== 'aberto' || k === status).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
           <label className="og-campo"><span>Nova data e hora <em>(deixe em branco para manter)</em></span>
@@ -547,9 +557,11 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   // como "(marca)" com botão "Mudar".
   const sessoesComMarca = sessoes && sessoes.filter((s) => s.status !== 'aberto')
 
+  // Sincroniza só quando o VALOR do banco muda: recarregar a vista (abrir uma
+  // vaga, publicar um pedido) não pode apagar o que está sendo digitado.
   React.useEffect(() => {
-    setCodigoEdicao((config && config.edicao_atual) || '')
-  }, [config])
+    setCodigoEdicao(edicaoAtual || '')
+  }, [edicaoAtual])
 
   // Aviso pediu um pedido específico (ou a agenda): abre/rola até ele.
   React.useEffect(() => {
@@ -676,7 +688,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             {avisoEdicao && <div className="og-aviso" data-tom={avisoEdicao.tom}>{avisoEdicao.texto}</div>}
             <button
               className="og-btn" type="button"
-              disabled={salvandoEdicao || !podeGerir}
+              disabled={salvandoEdicao || !podeGerir || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
               title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
               onClick={() => salvarEdicao(codigoEdicao.trim())}
             >
@@ -707,10 +719,10 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 </p>
               </div>
               <div className="og-agenda__modos">
-                <button type="button" className={modoAgenda === 'abrir' ? 'is-ativo' : undefined} onClick={() => setModoAgenda('abrir')}>
+                <button type="button" className={modoAgenda === 'abrir' ? 'is-ativo' : undefined} aria-pressed={modoAgenda === 'abrir'} onClick={() => setModoAgenda('abrir')}>
                   Abrir vagas
                 </button>
-                <button type="button" className={modoAgenda === 'marcar' ? 'is-ativo' : undefined} onClick={() => setModoAgenda('marcar')}>
+                <button type="button" className={modoAgenda === 'marcar' ? 'is-ativo' : undefined} aria-pressed={modoAgenda === 'marcar'} onClick={() => setModoAgenda('marcar')}>
                   Marcar eu mesma
                 </button>
               </div>
@@ -731,6 +743,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                         className={'og-slot og-slot--' + slot.estado}
                         disabled={!podeGerir || slotOcupado === slot.quandoIso}
                         title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                        aria-label={dia.dataLabel + ', ' + slot.hhmm + ': ' + (slot.estado === 'fechado' ? 'fechado' : slot.quem)}
                         onClick={() => clicarSlot(slot)}
                       >
                         <span className="og-slot__hora">{slot.hhmm}</span>

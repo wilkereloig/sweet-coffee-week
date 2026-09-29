@@ -90,7 +90,9 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo })
   // Aviso "registre as vendas de hoje" ou passo da lista: rola até a venda.
   React.useEffect(() => {
     if (!alvo) return
-    if (alvo.id === 'venda' && estado === 'pronto') {
+    // O lembrete automático do banco aponta só para 'hoje' (sem sub): também
+    // leva ao campo, que só existe durante o festival.
+    if ((alvo.id === 'venda' || !alvo.id) && estado === 'pronto') {
       const el = document.getElementById('venda-do-dia')
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); const campo = el.querySelector('input'); if (campo) campo.focus({ preventScroll: true }) }
     }

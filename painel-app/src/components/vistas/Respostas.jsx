@@ -339,6 +339,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
       >
         {selecionado && (
           <DetalheResposta
+            key={selecionado.origem + ':' + selecionado.reg.id}
             origem={selecionado.origem}
             reg={selecionado.reg}
             pode={pode}

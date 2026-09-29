@@ -5,6 +5,8 @@
  * Sem DOM: devolve dados, o componente decide o JSX.
  */
 
+import { diasCalendario } from './painelFormat.js'
+
 export function dataCurta(iso) {
   if (!iso) return ''
   const d = new Date(iso)
@@ -12,15 +14,8 @@ export function dataCurta(iso) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function diasAte(iso) {
-  if (!iso) return null
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return null
-  return Math.ceil((d.getTime() - Date.now()) / 86400000)
-}
-
-export function prazoTexto(iso) {
-  const n = diasAte(iso)
+export function prazoTexto(iso, agora = Date.now()) {
+  const n = diasCalendario(iso, agora)
   if (n === null) return { texto: '', classe: '' }
   if (n < 0) return { texto: 'venceu em ' + dataCurta(iso), classe: 'vencido' }
   if (n === 0) return { texto: 'vence hoje', classe: 'vencido' }

@@ -103,6 +103,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   // o estado React só vê o id depois do próximo render.
   const postandoRef = React.useRef(new Set())
   const idsCriadosRef = React.useRef(new Map())
+  const removidasRef = React.useRef(new Set()) // removidas com o POST ainda em voo
   // Há edição que ainda não foi confirmada pelo servidor (debounce correndo
   // ou última gravação falhou).
   const pendenteRef = React.useRef(false)
@@ -197,7 +198,10 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
 
   // ── Autosave (debounce 900ms, mesmo tempo do arquivo estático) ───────────
   const salvar = React.useCallback(async () => {
-    if (!participanteId || !participacaoId) return
+    if (!participanteId || !participacaoId) return false
+    // Baixa a pendência ANTES do voo: o que for digitado enquanto este
+    // salvamento corre volta a marcá-la, e o "Salvo" não mente sobre isso.
+    pendenteRef.current = false
     const camposMarca = {
       nome_marca: marca.nome_marca.trim(), responsavel: marca.responsavel.trim(), telefone: marca.telefone.trim(),
       email: marca.email.trim(), instagram: marca.instagram.trim(), site: marca.site.trim(),
@@ -234,6 +238,11 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       return api('participacao_unidades', { metodo: 'POST', corpo: { ...corpo, participacao_id: participacaoId }, prefer: 'return=representation' })
         .then((linhas) => {
           const novoId = linhas && linhas[0] && linhas[0].id
+          if (novoId && removidasRef.current.has(u._key)) {
+            removidasRef.current.delete(u._key)
+            api('participacao_unidades?id=eq.' + novoId, { metodo: 'DELETE' }).catch(() => {})
+            return linhas
+          }
           if (novoId) {
             idsCriadosRef.current.set(u._key, novoId)
             setUnidades((prev) => prev.map((x) => (x._key === u._key ? { ...x, id: novoId } : x)))
@@ -251,13 +260,15 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       ])
       // PATCH que volta vazio = a RLS recusou a linha: não é "salvo".
       if (!rm || !rm.length || !rp || !rp.length || ri.some((l) => !l || !l.length)) throw new Error('sem_confirmacao')
-      pendenteRef.current = false
-      setSalvoTexto('Salvo automaticamente.')
+      if (!pendenteRef.current) setSalvoTexto('Salvo automaticamente.')
       setErroSalvar(null)
+      return true
     } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
+      pendenteRef.current = true
+      if (e && e.message === 'sessao_expirada') return false
       setSalvoTexto('')
       setErroSalvar('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.')
+      return false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participanteId, participacaoId, marca, tema, precoStr, itens, unidades, extras])
@@ -273,10 +284,15 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
     }
     const tirar = registrarPendente(descarregar)
     function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
+    // No celular o beforeunload não dispara: trocar de app ou bloquear a tela
+    // esconde a página, e é aí que o rascunho precisa ir para o servidor.
+    function aoEsconder() { if (document.visibilityState === 'hidden') descarregar() }
     window.addEventListener('beforeunload', avisar)
+    document.addEventListener('visibilitychange', aoEsconder)
     return () => {
       tirar()
       window.removeEventListener('beforeunload', avisar)
+      document.removeEventListener('visibilitychange', aoEsconder)
       descarregar()
     }
   }, [])
@@ -316,8 +332,10 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
       const resto = prev.filter((u) => u._key !== chave)
       return resto.length ? resto : [unidadeVazia()]
     })
-    if (alvo && alvo.id) {
-      api('participacao_unidades?id=eq.' + alvo.id, { metodo: 'DELETE' }).catch((e) => {
+    const idAlvo = alvo && (alvo.id || idsCriadosRef.current.get(alvo._key))
+    if (alvo && !idAlvo && postandoRef.current.has(alvo._key)) removidasRef.current.add(alvo._key)
+    if (idAlvo) {
+      api('participacao_unidades?id=eq.' + idAlvo, { metodo: 'DELETE' }).catch((e) => {
         if (e && e.message === 'sessao_expirada') return
         setErroSalvar('Não deu para remover a unidade agora. Recarregue a página.')
       })
@@ -350,7 +368,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
     // Salva antes de concluir: quem valida é o servidor, sobre o que está
     // GRAVADO — concluir com o autosave pendente reprovaria campo cheio.
-    await salvar()
+    if (!(await salvar())) { setConcluindo(false); return } // o erro de salvar já está na tela
     try {
       const r = await api('rpc/marca_concluir_cadastro', { metodo: 'POST', corpo: { p_participacao: participacaoId } })
       if (!r || r.ok !== true) {
@@ -361,6 +379,8 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
         if (pend !== null) setBlocoAberto(pend)
       } else {
         setStatusCadastro('cadastro_completo')
+        // O banco já passou o combo para análise: o pedido de ajuste sai da tela.
+        setRevisao((rv) => (rv.comboStatus === 'rascunho' || rv.comboStatus === 'correcao_solicitada' ? { ...rv, comboStatus: 'em_analise' } : rv))
         setConcluirAviso({
           tom: 'ok',
           texto: 'Cadastro concluído. A organização revisa e fala com você se precisar de algo. Mudou alguma coisa? É só editar aqui e concluir de novo.',
@@ -399,7 +419,7 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
   const feitos = progresso(dadosProgresso)
   const selo = semParticipacao ? { classe: 'selo', texto: 'Sem edição aberta' } : seloParticipacao(statusCadastro)
   const vagas = sessoes.filter((s) => s.status === 'aberto')
-  const jaTemSessao = sessoes.some((s) => s.status !== 'aberto')
+  const jaTemSessao = sessoes.some((s) => s.status !== 'aberto' && s.status !== 'cancelada')
 
   return (
     <>
@@ -438,7 +458,12 @@ export function Cadastro({ alvo, consumirAlvo } = {}) {
           {/* noValidate: campos obrigatórios moram em blocos fechados (hidden),
               e o navegador travava o envio sem mostrar balão nenhum. Quem
               valida é o servidor (marca_concluir_cadastro), que diz o que falta. */}
-          <form onSubmit={concluir} noValidate>
+          <form
+            onSubmit={concluir} noValidate
+            // Enter num campo de uma linha (o "Ir" do teclado do celular) não
+            // conclui o cadastro: concluir avisa a organização. Só o botão.
+            onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault() }}
+          >
             <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
               <label><span>Nome da marca</span><input required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /></label>

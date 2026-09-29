@@ -8,6 +8,7 @@
  * lida (CLAUDE.md §5.2: uma fonte só para "o que falta no cadastro").
  */
 import { blocosPendentesDeLinhas } from './cadastro.js'
+import { diasCalendario } from './painelFormat.js'
 
 export function naoVazio(s) {
   return !!(s && String(s).trim())
@@ -47,7 +48,7 @@ export function proximosPassos({
   if (msgsNaoLidas) passos.push({ chave: 'msg', texto: msgsNaoLidas === 1 ? 'Ler a mensagem da organização' : 'Ler ' + msgsNaoLidas + ' mensagens da organização', tom: 'urgente', destino: 'mensagens' })
 
   if (pedidosPendentes) {
-    const vence = prazoMaisProximo ? Math.ceil((new Date(prazoMaisProximo).getTime() - agora) / 864e5) : null
+    const vence = prazoMaisProximo ? diasCalendario(prazoMaisProximo, agora) : null
     passos.push({
       chave: 'pedidos',
       texto: pedidosPendentes === 1 ? 'Responder 1 pedido da organização' : 'Responder ' + pedidosPendentes + ' pedidos da organização',
@@ -75,7 +76,7 @@ export function proximosPassos({
   }
 
   // Prazo do combo (vem do cronograma da edição, nunca de constante).
-  const prazoDias = prazoCombo ? Math.round((new Date(prazoCombo + 'T23:59:00').getTime() - agora) / 864e5) : null
+  const prazoDias = prazoCombo ? diasCalendario(prazoCombo + 'T12:00:00', agora) : null
   const detalhePrazo = prazoDias === null ? '' : prazoDias < 0 ? ' O prazo do combo já passou.' : prazoDias === 0 ? ' O prazo do combo vence hoje.' : prazoDias <= 5 ? ' O prazo do combo vence em ' + prazoDias + (prazoDias === 1 ? ' dia.' : ' dias.') : ''
   const prazoApertado = prazoDias !== null && prazoDias <= 3
 

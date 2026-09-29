@@ -95,6 +95,10 @@ function TelaConferindo() {
   )
 }
 
+// Sair não pode ficar preso numa rede ruim: o que depende de rede (limpar o
+// aviso do aparelho, salvar o rascunho) ganha um teto e a saída segue.
+const comTeto = (p, ms) => Promise.race([p, new Promise((ok) => setTimeout(ok, ms))])
+
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
   const [motivoBloqueio, setMotivoBloqueio] = React.useState(null)
@@ -104,7 +108,12 @@ export function App() {
   // então zera no logout pra não vazar pra uma sessão diferente na mesma aba.
   const [acoesPermitidas, setAcoesPermitidas] = React.useState(null)
   const [funcaoRotulo, setFuncaoRotulo] = React.useState(null)
-  const [destino] = React.useState(tirarDestino)
+  // O destino do aviso vale para UMA entrada: sair e entrar de novo na mesma
+  // aba não reabre a mesma ficha.
+  const [destino, setDestino] = React.useState(tirarDestino)
+  // Permissões da conta nominal que não carregaram (rede): o painel entra sem
+  // permissão nenhuma e tenta de novo, em vez de ficar travado até recarregar.
+  const [permissoesFalharam, setPermissoesFalharam] = React.useState(false)
 
   // Caminho A (handoff de correções, Etapa 2): registrado uma vez, no mount —
   // é quem trata a sessão de marca morrendo EM PLENO USO (painel já aberto),
@@ -177,17 +186,31 @@ export function App() {
       // errada (achado de revisão adversarial) — `[]` deixa entrar sem
       // assumir permissão nenhuma até a próxima checagem real.
       setAcoesPermitidas([])
+      setPermissoesFalharam(true)
       setEstado('painel-org')
     })
     return () => { cancelado = true }
   }, [estado])
+
+  React.useEffect(() => {
+    if (estado !== 'painel-org' || !permissoesFalharam) return
+    const t = setInterval(() => {
+      rpc('minhas_permissoes', {}).then((linhas) => {
+        if (!linhas || !linhas.length) return
+        setAcoesPermitidas(linhas[0].acoes || [])
+        setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
+        setPermissoesFalharam(false)
+      }).catch(() => { /* tenta de novo no próximo ciclo */ })
+    }, 20000)
+    return () => clearInterval(t)
+  }, [estado, permissoesFalharam])
 
   async function sairOrg({ expirou = false } = {}) {
     // Sair tira os avisos DESTE aparelho: num computador compartilhado, a
     // próxima pessoa não continua recebendo o que era da conta anterior.
     // ⚠️ Não quando a saída é por sessão morta: a remoção precisaria da
     // própria sessão, e a falha dela chamaria a saída de novo (laço).
-    if (!expirou) await desligarAvisos((endpoint) => rpc('remover_push_organizacao', { p_secret: sessionStorage.getItem(CHAVE_SESSAO_ORG) || '', p_endpoint: endpoint })).catch(() => {})
+    if (!expirou) await comTeto(desligarAvisos((endpoint) => rpc('remover_push_organizacao', { p_secret: sessionStorage.getItem(CHAVE_SESSAO_ORG) || '', p_endpoint: endpoint })).catch(() => {}), 4000)
     // Cobre as duas portas de organização (senha única e conta nominal) com
     // uma função só, porque as duas caem no MESMO PainelShell lá embaixo —
     // não há como saber, olhando só pra `estado`, qual das duas está ativa.
@@ -197,17 +220,20 @@ export function App() {
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     sessionStorage.removeItem(CHAVE_SESSAO_ORG_CONTA)
     setAcoesPermitidas(null)
+    setPermissoesFalharam(false)
+    setDestino(null)
     setEstado('boas-vindas')
   }
 
   async function sairMarca({ expirou = false } = {}) {
     // Autosave pendente vai antes: depois do removeItem não há token.
-    if (!expirou) await descarregarPendentes()
-    if (!expirou) await desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {})
+    if (!expirou) await comTeto(descarregarPendentes(), 8000)
+    if (!expirou) await comTeto(desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {}), 4000)
     let sessao = null
     try { sessao = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
     if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
     sessionStorage.removeItem(CHAVE_SESSAO_MARCA)
+    setDestino(null)
     setEstado('boas-vindas')
   }
 

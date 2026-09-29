@@ -2773,9 +2773,17 @@ estavam postas. É pouca coisa, e é exatamente o tipo de pouca coisa que descre
 o servidor para quem não devia estar perguntando.
 
 ⚠️ **Endpoint de push é credencial.** Quem tem o endpoint de alguém manda
-notificação para o aparelho dessa pessoa. Por isso `push_subscriptions` **não
-tem policy de SELECT para ninguém** — quem lê é a Edge Function, com
-`service_role` — e a resposta do envio nunca devolve endpoint.
+notificação para o aparelho dessa pessoa. Por isso `push_subscriptions` só
+deixa a marca ler **as próprias linhas** (`push_marca_le`), e nenhum papel lê
+a de outra conta — quem envia é a Edge Function, com `service_role` — e a
+resposta do envio nunca devolve endpoint.
+🐛 **Sem SELECT nenhum, o DELETE da marca apagava 0 linhas, em silêncio**
+(achado em 28/09/2026): DELETE que filtra por coluna (`?endpoint=eq.`) precisa
+LER a linha, e o Postgres aplica também as policies de SELECT. "Desligar
+avisos" e "Sair" deixavam o aparelho recebendo push, e religar batia no
+`unique(endpoint)`. Migration `20260929_push_marca_le_proprias.sql`.
+**Policy de DELETE/UPDATE sem a de SELECT correspondente é policy que não
+funciona** — conferir com `row_count`, não com a ausência de erro.
 
 ⚠️ **A marca grava a própria assinatura pelo PostgREST, não por RPC** (a policy
 de insert já existia). Como `update` está revogado de `authenticated`, **upsert

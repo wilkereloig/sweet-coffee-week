@@ -28,6 +28,11 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
     }
     if (!montada) return
     const devolver = () => {
+      // Se outra folha já puxou o foco (aviso que fecha a central e abre uma
+      // ficha), não arranca de lá: só devolve se o foco ficou sem dono.
+      const ativo = document.activeElement
+      const semDono = !ativo || ativo === document.body || (caixaRef.current && caixaRef.current.contains(ativo))
+      if (!semDono) return
       const o = origemRef.current
       if (o && typeof o.focus === 'function' && document.contains(o)) o.focus()
     }
@@ -72,6 +77,9 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
+        // Focável sem entrar no Tab: clicar num espaço vazio da folha deixa o
+        // foco NELA (não no body), e Esc e o laço do Tab continuam valendo.
+        tabIndex={-1}
         onKeyDown={tecla}
       >
         <div className="og-detalhe__topo">

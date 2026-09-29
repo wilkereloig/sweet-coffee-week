@@ -33,22 +33,18 @@ test('prazoSelo: sem data devolve null', () => {
 })
 
 test('prazoSelo: prazo vencido, hoje, próximo e distante', () => {
-  const dia = 864e5
-  const vencido = new Date(Date.now() - 2 * dia).toISOString()
-  const hoje = new Date(Date.now() - 1000).toISOString() // poucos ms atrás, ainda "hoje" (diff <= 0)
-  const proximo = new Date(Date.now() + 3 * dia).toISOString()
-  const distante = new Date(Date.now() + 30 * dia).toISOString()
+  const agora = new Date(2026, 8, 10, 10, 0).getTime()
+  const em = (d) => new Date(2026, 8, 10 + d, 23, 59).toISOString() // prazo gravado às 23h59
+  assert.equal(prazoSelo(em(-2), agora).tom, 'aguardando_cadastro')
+  assert.match(prazoSelo(em(-2), agora).texto, /^venceu /)
 
-  assert.equal(prazoSelo(vencido).tom, 'aguardando_cadastro')
-  assert.match(prazoSelo(vencido).texto, /^venceu /)
+  assert.deepEqual(prazoSelo(em(0), agora), { tom: 'aguardando_cadastro', texto: 'vence hoje' })
 
-  assert.deepEqual(prazoSelo(hoje), { tom: 'aguardando_cadastro', texto: 'vence hoje' })
+  assert.equal(prazoSelo(em(3), agora).tom, 'em_preenchimento')
+  assert.equal(prazoSelo(em(3), agora).texto, 'faltam 3 dias')
 
-  assert.equal(prazoSelo(proximo).tom, 'em_preenchimento')
-  assert.equal(prazoSelo(proximo).texto, 'faltam 3 dias')
-
-  assert.equal(prazoSelo(distante).tom, null)
-  assert.match(prazoSelo(distante).texto, /^até /)
+  assert.equal(prazoSelo(em(30), agora).tom, null)
+  assert.match(prazoSelo(em(30), agora).texto, /^até /)
 })
 
 test('acessoDe só liga quero_participar, pelo origem_id', () => {

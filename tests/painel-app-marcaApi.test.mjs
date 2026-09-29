@@ -43,6 +43,14 @@ test('renovar devolve null quando o refresh falha', async () => {
   assert.equal(r, null)
 })
 
+test('renovar lança (não mata a sessão) quando o servidor de auth falha de passagem', async () => {
+  const sessao = { access_token: 'velho', refresh_token: 'r1', expira_em: Date.now() - 1000, email: 'x@y.z' }
+  for (const status of [429, 500, 503]) {
+    const fetchFalso = async () => ({ ok: false, status, json: async () => ({}) })
+    await assert.rejects(() => renovar(sessao, fetchFalso), new RegExp('http_' + status))
+  }
+})
+
 test('renovar devolve null sem sessão nenhuma, sem chamar fetch', async () => {
   let chamouFetch = false
   const r = await renovar(null, async () => { chamouFetch = true })

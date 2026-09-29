@@ -34,6 +34,10 @@ export async function renovar(sessao, fetchImpl = fetch) {
   if (!sessao) return null
   if (Date.now() < sessao.expira_em - 60000) return sessao
   const r = await auth('token?grant_type=refresh_token', { refresh_token: sessao.refresh_token }, 'POST', undefined, fetchImpl)
+  // Só 4xx de credencial mata a sessão. 429/5xx (servidor acordando, pico)
+  // é falha passageira: vira erro comum e a tela oferece tentar de novo, em
+  // vez de deslogar a pessoa e jogar fora o que ela digitou.
+  if (!r.ok && (r.status === 429 || r.status >= 500)) throw new Error('http_' + r.status)
   if (!r.ok || !r.dados.access_token) return null
   return {
     access_token: r.dados.access_token,

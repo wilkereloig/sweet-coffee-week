@@ -115,10 +115,16 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
   const [ocupado, setOcupado] = React.useState(null)
   const [cred, setCred] = React.useState(null)
 
+  // Recarregar a lista depois de salvar entrega um objeto `conta` novo da
+  // MESMA pessoa: isso atualiza a ficha, mas não pode apagar a senha recém-
+  // gerada nem o "Salvo." — o formulário só zera quando a pessoa muda.
+  React.useEffect(() => { if (conta) setC(conta) }, [conta])
+  const idConta = conta && conta.user_id
   React.useEffect(() => {
     if (!conta) return
-    setC(conta); setNome(conta.nome || ''); setFuncao(conta.funcao || ''); setAviso(null); setCred(null)
-  }, [conta])
+    setNome(conta.nome || ''); setFuncao(conta.funcao || ''); setAviso(null); setCred(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idConta])
 
   async function acao(chave, fn, ok) {
     setOcupado(chave)
@@ -138,7 +144,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
     ev.preventDefault()
     acao('salvar', async () => {
       if ((nome || '') !== (c.nome || '')) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: c.user_id, p_nome: nome })
-      if (funcao !== c.funcao) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
+      if (funcao && funcao !== (c.funcao || '')) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
     }, 'Salvo.')
   }
   const alternar = () => {
@@ -168,6 +174,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
             </label>
             <label className="og-campo"><span>Função</span>
               <select value={funcao} onChange={(e) => setFuncao(e.target.value)}>
+                {!funcao && <option value="">Sem função — escolha uma</option>}
                 {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
               </select>
             </label>
@@ -193,18 +200,22 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
 const PERIODOS = { '': 'Sempre', '1': 'Hoje', '7': 'Últimos 7 dias', '30': 'Últimos 30 dias', '90': 'Últimos 90 dias' }
 
 function Historico({ contas, atorInicial, abrirLink }) {
-  const [ator, setAtor] = React.useState(atorInicial || '')
+  const [ator, setAtor] = React.useState((atorInicial && atorInicial.id) || '')
   const [acao, setAcao] = React.useState('')
   const [dias, setDias] = React.useState('30')
   const [marca, setMarca] = React.useState('')
   const [linhas, setLinhas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
+  const pedido = React.useRef(0)
 
-  React.useEffect(() => { if (atorInicial) setAtor(atorInicial) }, [atorInicial])
+  // `atorInicial` é um pedido ({ id }), não o id solto: clicar "Ver o que
+  // fez" duas vezes na mesma pessoa, depois de mexer no filtro, reaplica.
+  React.useEffect(() => { if (atorInicial) setAtor(atorInicial.id) }, [atorInicial])
 
   const carregar = React.useCallback(async () => {
     setErro(null)
     setLinhas(null)
+    const meu = ++pedido.current // mexer nos filtros rápido: só a última resposta vale
     try {
       const de = dias ? new Date(Date.now() - (dias === '1' ? 0 : Number(dias)) * 864e5) : null
       if (de && dias === '1') de.setHours(0, 0, 0, 0)
@@ -215,9 +226,9 @@ function Historico({ contas, atorInicial, abrirLink }) {
         p_de: de ? de.toISOString() : null,
         p_limite: 500,
       })
-      setLinhas(l || [])
+      if (meu === pedido.current) setLinhas(l || [])
     } catch (e) {
-      setErro(e.message)
+      if (meu === pedido.current) setErro(e.message)
     }
   }, [ator, acao, dias])
   React.useEffect(() => { carregar() }, [carregar])
@@ -269,7 +280,7 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
   const [contas, setContas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'conta', conta}
-  const [atorHistorico, setAtorHistorico] = React.useState('')
+  const [atorHistorico, setAtorHistorico] = React.useState(null)
   const [avisoCompartilhado, setAvisoCompartilhado] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
@@ -389,7 +400,7 @@ export function Equipe({ registrarAtualizar, abrirLink }) {
         onSalvo={carregar}
         onVerHistorico={(id) => {
           setFolha(null)
-          setAtorHistorico(id)
+          setAtorHistorico({ id })
           setTimeout(() => { const el = document.getElementById('historico-equipe'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 300)
         }}
       />
