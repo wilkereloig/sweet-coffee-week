@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from '../Icone'
 import { api } from '../../lib/marcaApi'
 import { chaveDia } from '../../lib/hoje'
 import { rotulo, tom } from '../../lib/status'
@@ -7,31 +8,13 @@ import { nivelDoAviso, NIVEIS } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Erro, Secao } from '../ui'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
 
 const dataBr = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '')
 
-// Estado de etapa e de pendência: ícone + texto, nunca só cor.
-const ICONE_ESTADO = {
-  feito: <path d="M6.4 12.4l3.6 3.6 7.6-8" />,
-  atencao: <><path d="M12 6.8v6.4" /><circle cx="12" cy="17" r="1.1" fill="currentColor" stroke="none" /></>,
-  andamento: <><circle cx="12" cy="12" r="7.4" /><path d="M12 8v4.4l2.8 1.8" /></>,
-  pendente: <circle cx="12" cy="12" r="7.4" />,
-}
+// Estado de etapa e de pendência: ícone + texto, nunca só cor (ícones em components/Icone.jsx).
 const ROTULO_ESTADO = { feito: 'concluído', atencao: 'alteração pedida', andamento: 'em andamento', pendente: 'falta' }
-const ICONE_PENDENCIA = {
-  correcao: <><path d="M5 12a7 7 0 0 1 12-4.9L19 9" /><path d="M19 4.6V9h-4.4" /><path d="M19 12a7 7 0 0 1-12 4.9L5 15" /><path d="M5 19.4V15h4.4" /></>,
-  campo: <><path d="M5 19h14" /><path d="M14.6 5.4l3.4 3.4-8.4 8.4H6.2v-3.4Z" /></>,
-  pedido: <><path d="M12 4.2 21 20H3Z" /><path d="M12 10.2v4" /><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" /></>,
-  arquivo: <><path d="M12 4v11" /><path d="m7.5 10.5 4.5 4.5 4.5-4.5" /><path d="M5 20h14" /></>,
-  fotos: <><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" /><circle cx="12" cy="13" r="3.5" /></>,
-  enviar: <><path d="M4 12 20 4l-4.4 16-4.2-6.4Z" /><path d="M11.4 13.6 20 4" /></>,
-}
-const Svg = ({ children }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
-)
 
 /*
  * Início (marca) — guia de entrada (29/09/2026). Nesta ordem: situação (% e
@@ -121,7 +104,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
   return (
     <section className="ui-vista-marca">
       <VistaCabeca
-        acento="amarelo" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.inicio}
+        acento="amarelo" icone="inicio"
         titulo={nomePessoa ? 'Olá, ' + nomePessoa : participante ? 'Olá, ' + participante.nome_marca : 'Início'}
         nota={participacao ? participante.nome_marca + ' · edição ' + participacao.edicao_codigo : 'O que falta e o que vem agora'}
       />
@@ -169,7 +152,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
               {resumo.etapas.map((e) => (
                 <li key={e.chave}>
                   <button type="button" className="gm-etapa" data-estado={e.estado} onClick={() => irPara(e.vista)}>
-                    <span className="gm-etapa__icone"><Svg>{ICONE_ESTADO[e.estado]}</Svg></span>
+                    <span className="gm-etapa__icone"><Icone nome={e.estado} tamanho={16} /></span>
                     <span className="gm-etapa__rotulo">{e.rotulo}</span>
                     <span className="gm-etapa__estado">{e.faltam ? e.faltam + (e.faltam === 1 ? ' falta' : ' faltam') : ROTULO_ESTADO[e.estado]}</span>
                   </button>
@@ -194,7 +177,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
               <ul className="gm-pendencias">
                 {outras.map((p, i) => (
                   <li key={i} className="gm-pendencia" data-tipo={p.tipo} data-prioridade={p.prioridade || undefined}>
-                    <span className="gm-pendencia__icone"><Svg>{ICONE_PENDENCIA[p.tipo]}</Svg></span>
+                    <span className="gm-pendencia__icone"><Icone nome={p.tipo} tamanho={20} /></span>
                     <span className="gm-pendencia__corpo">
                       <b>{p.titulo}{p.prioridade === 'importante' ? ' · importante' : ''}</b>
                       {p.texto && <span>{p.texto}</span>}
@@ -207,7 +190,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
               </ul>
             )}
             {emAnalise && (
-              <p className="gm-aguardando"><Svg>{ICONE_ESTADO.andamento}</Svg> Aguardando a organização: seu cadastro está em análise.</p>
+              <p className="gm-aguardando"><Icone nome="andamento" tamanho={20} /> Aguardando a organização: seu cadastro está em análise.</p>
             )}
             {concluidas.length > 0 && (
               <details className="ui-recolhe">
@@ -259,7 +242,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                 ['mensagens', 'Falar com a organização', contadores.mensagens],
               ].map(([v, r, n]) => (
                 <button key={v} type="button" className="gm-atalho" onClick={() => irPara(v)}>
-                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONE_MARCA[v]}</svg>
+                  <Icone nome={v} tamanho={24} />
                   <span>{r}</span>
                   {n > 0 && <span className="pn-badge">{n}</span>}
                 </button>

@@ -1,5 +1,7 @@
 import React from 'react'
 import { rotulo as rotuloDe, tom as tomDe } from '../lib/status'
+import { Icone, ICONE_TOM } from './Icone'
+import { iniciais } from '../lib/logos'
 
 /*
  * Peças de estado e de estrutura usadas pelas vistas dos dois painéis — uma
@@ -21,11 +23,16 @@ export function Carregando({ linhas = 4, texto = 'Carregando…' }) {
   )
 }
 
-export function Vazio({ titulo, children }) {
+// Estado vazio: o que não há, por quê, e (quando existe) a ação que resolve.
+export function Vazio({ titulo, icone, acao, children }) {
   return (
-    <div className="ui-vazio">
-      <p className="ui-vazio__titulo">{titulo}</p>
-      {children && <div className="ui-vazio__texto">{children}</div>}
+    <div className={'ui-vazio' + (icone ? ' ui-vazio--icone' : '')}>
+      {icone && <span className="ui-vazio__disco" aria-hidden="true"><Icone nome={icone} tamanho={24} /></span>}
+      <div className="ui-vazio__corpo">
+        <p className="ui-vazio__titulo">{titulo}</p>
+        {children && <div className="ui-vazio__texto">{children}</div>}
+        {acao && <div className="ui-acoes">{acao}</div>}
+      </div>
     </div>
   )
 }
@@ -128,10 +135,149 @@ export function Abas({ abas, ativa, onMudar, rotulo }) {
   )
 }
 
-// Selo de estado — rótulo e cor vêm do dicionário único (lib/status.js).
+// Selo de estado — rótulo e cor vêm do dicionário único (lib/status.js), e o
+// ÍCONE vem do tom (ICONE_TOM): o estado se reconhece sem depender da cor.
 // `children` substitui o texto quando a tela precisa de uma forma mais curta.
-export function Selo({ dominio, valor, children }) {
-  return <span className="og-selo" data-tom={tomDe(dominio, valor)}>{children || rotuloDe(dominio, valor)}</span>
+// `tom` direto serve a estados que não moram num domínio (ex.: "Pendente").
+export function Selo({ dominio, valor, tom, children }) {
+  const t = tom || tomDe(dominio, valor)
+  return (
+    <span className="og-selo" data-tom={t}>
+      <Icone nome={ICONE_TOM[t] || 'circulo'} tamanho={16} />
+      {children || rotuloDe(dominio, valor)}
+    </span>
+  )
+}
+export const Status = Selo
+
+/*
+ * ── Peças da reconstrução visual (29/09/2026) ─────────────────────────────
+ * Três níveis: página (VistaCabeca) → macroseção → módulo (card). Cada
+ * assunto tem o seu card; a separação vem de espaço e superfície, não de
+ * linha. Ver docs/superpowers/specs/2026-09-29-reconstrucao-visual-painel-design.md.
+ */
+
+// Macroseção: rótulo curto em caixa-alta (o ÚNICO uso de caixa-alta do
+// painel) + título. Agrupa módulos de um mesmo assunto.
+export function MacroSecao({ rotulo, titulo, nota, acoes, id, children }) {
+  const H = React.useContext(NivelTitulo) >= 3 ? 'h3' : 'h2'
+  return (
+    <section className="ui-macro" id={id}>
+      <header className="ui-macro__cabeca">
+        <div className="ui-macro__titulos">
+          {rotulo && <p className="ui-macro__rotulo">{rotulo}</p>}
+          {titulo && <H className="ui-macro__titulo">{titulo}</H>}
+          {nota && <p className="ui-macro__nota">{nota}</p>}
+        </div>
+        {acoes && <div className="ui-acoes">{acoes}</div>}
+      </header>
+      {children}
+    </section>
+  )
+}
+
+// Grade que põe módulos lado a lado quando cabe (320px por card).
+export function GradeModulos({ children, className = '' }) {
+  return <div className={'ui-modulos ' + className}>{children}</div>
+}
+
+/*
+ * Módulo: uma unidade funcional (ex.: "Bebida", "Onde encontrar"). Cabeça com
+ * disco de ícone + título + status; corpo; pé com a ação principal NOMEADA
+ * ("Editar bebida", nunca só "Editar"). `onClick` torna o card inteiro um
+ * atalho (resumo) — nesse caso ele não leva ações dentro.
+ */
+export function Modulo({ icone, titulo, sub, status, acoes, largo, onClick, rotuloIr, children, className = '', id }) {
+  const H = React.useContext(NivelTitulo) >= 3 ? 'h4' : 'h3'
+  const cabeca = (
+    <div className="ui-modulo__cabeca">
+      {icone && <span className="ui-modulo__disco" aria-hidden="true"><Icone nome={icone} tamanho={24} /></span>}
+      <div className="ui-modulo__titulos">
+        <H className="ui-modulo__titulo">{titulo}</H>
+        {sub && <p className="ui-modulo__sub">{sub}</p>}
+      </div>
+      {status && <div className="ui-modulo__status">{status}</div>}
+    </div>
+  )
+  const cls = 'ui-modulo' + (largo ? ' ui-modulo--largo' : '') + (onClick ? ' ui-modulo--atalho' : '') + (className ? ' ' + className : '')
+  if (onClick) {
+    return (
+      <button type="button" className={cls} onClick={onClick} id={id}>
+        {cabeca}
+        {children && <div className="ui-modulo__corpo">{children}</div>}
+        <span className="ui-modulo__ir">{rotuloIr || 'Abrir'} <Icone nome="ir" tamanho={16} /></span>
+      </button>
+    )
+  }
+  return (
+    <section className={cls} id={id}>
+      {cabeca}
+      {children && <div className="ui-modulo__corpo">{children}</div>}
+      {acoes && <div className="ui-modulo__pe ui-acoes">{acoes}</div>}
+    </section>
+  )
+}
+
+// Valores curtos do mesmo assunto, juntos numa linha: [Vegano: não] [Sem glúten: sim].
+export function Chips({ itens, rotulo }) {
+  const lista = (itens || []).filter(Boolean)
+  if (!lista.length) return null
+  return (
+    <ul className="ui-chips" aria-label={rotulo}>
+      {lista.map((c, i) => (
+        <li key={i} className="ui-chip-info" data-sim={c.sim === true ? '1' : c.sim === false ? '0' : undefined}>
+          {c.rotulo}{c.valor != null && <>: <b>{c.valor}</b></>}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// Botão com ícone + texto (ação importante nunca é só ícone).
+export function Botao({ icone, children, variante, mini = true, className = '', ...resto }) {
+  const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (className ? ' ' + className : '')
+  return <button type="button" className={cls} {...resto}>{icone && <Icone nome={icone} tamanho={16} />}{children}</button>
+}
+
+/*
+ * "Mais ações": o que é raro não disputa espaço com a ação principal.
+ * <details> nativo — teclado e leitor de tela de graça; fecha ao escolher.
+ */
+export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
+  const ref = React.useRef(null)
+  const lista = (itens || []).filter(Boolean)
+  if (!lista.length) return null
+  function escolher(fn) { if (ref.current) ref.current.open = false; fn() }
+  return (
+    <details className="ui-mais-acoes" ref={ref}>
+      <summary className="og-btn og-btn--mini og-btn--vazado"><Icone nome="mais-acoes" tamanho={16} />{rotulo}</summary>
+      <ul className="ui-mais-acoes__menu">
+        {lista.map((a, i) => (
+          <li key={i}>
+            <button type="button" className={'ui-mais-acoes__item' + (a.perigo ? ' is-perigo' : '')} disabled={a.desativado} onClick={() => escolher(a.onClick)}>
+              {a.icone && <Icone nome={a.icone} tamanho={16} />}{a.rotulo}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
+/*
+ * Logo do estabelecimento num slot padrão: proporção original, `contain`,
+ * margem interna, nunca recortada (exceção do PAINEL à §6.12 do site: aqui a
+ * logo é enviada pela marca, com proporção qualquer). Sem logo: iniciais —
+ * nunca imagem genérica.
+ */
+export function LogoMarca({ url, nome, tamanho = 40, className = '' }) {
+  const [falhou, setFalhou] = React.useState(false)
+  React.useEffect(() => { setFalhou(false) }, [url])
+  const estilo = { '--logo-t': tamanho + 'px' }
+  if (url && !falhou) {
+    return <span className={'ui-logo ' + className} style={estilo}><img src={url} alt={'Logo de ' + (nome || 'marca')} loading="lazy" onError={() => setFalhou(true)} /></span>
+  }
+  return <span className={'ui-logo ui-logo--iniciais ' + className} style={estilo} role="img" aria-label={'Sem logo: ' + (nome || 'marca')}>{iniciais(nome)}</span>
 }
 
 // Ajuda recolhida: a regra fica a um toque, não ocupando a tela (<details>

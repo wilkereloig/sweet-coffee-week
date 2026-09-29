@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from './Icone'
 import { Folha } from './Folha'
 
 /*
@@ -9,12 +10,7 @@ import { Folha } from './Folha'
  * sem animação com prefers-reduced-motion). Quem decide QUAIS áreas existem
  * continua sendo a casca (permissões) — aqui só se decide onde aparecem.
  */
-const ICONE_MAIS = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
-    <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
-  </svg>
-)
+const ICONE_MAIS = <Icone nome="grade" tamanho={22} />
 
 export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, icone, acento, contadores = {}, onIr }) {
   const [aberta, setAberta] = React.useState(false)

@@ -1,6 +1,5 @@
 import React from 'react'
 import { ParesFotos, BaixarPdf } from '../vistas/GuiaFotos'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 import { VistaCabeca } from '../VistaCabeca'
 
 /*
@@ -39,7 +38,7 @@ const SESSAO = [
 export function GuiaFotos() {
   return (
     <section className="gf">
-      <VistaCabeca acento="magenta" viewBox="0 0 32 32" strokeWidth={2.2} icone={ICONE_MARCA.fotos} titulo="Guia de fotos" nota="Como preparar o seu combo para a sessão" />
+      <VistaCabeca acento="magenta" icone="fotos" titulo="Guia de fotos" nota="Como preparar o seu combo para a sessão" />
 
       <div className="gf-topo">
         <p className="gf-tese">Da foto para a mesa: <strong>a mesma experiência</strong>.</p>

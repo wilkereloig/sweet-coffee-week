@@ -2,7 +2,6 @@ import React from 'react'
 import { api } from '../../lib/marcaApi'
 import { VistaCabeca } from '../VistaCabeca'
 import { Conversa } from '../Conversa'
-import { ICONE_MARCA } from '../PainelMarcaShell'
 
 /*
  * Mensagens (marca) — a conversa com a organização. A marca lê pela própria
@@ -48,8 +47,7 @@ export function Mensagens({ aoMudarMensagens }) {
   return (
     <section className="ui-vista-marca">
       <VistaCabeca
-        acento="roxo" viewBox="0 0 32 32" strokeWidth={2.2}
-        icone={ICONE_MARCA.mensagens} titulo="Mensagens" nota="Fale com a organização por aqui. A resposta chega como aviso."
+        acento="roxo" icone="mensagens" titulo="Mensagens" nota="Fale com a organização por aqui. A resposta chega como aviso."
       />
       <Conversa mensagens={msgs} lado="marca" carregando={carregando} erro={erro} onTentar={carregar} onEnviar={enviar} />
     </section>

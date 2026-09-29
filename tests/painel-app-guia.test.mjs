@@ -12,14 +12,15 @@ const itens = [
 ]
 const base = {
   participante: { nome_marca: 'Casa', responsavel: 'Ana', telefone: '(84) 99999-8888' },
-  participacao: { id: 'pa', tema_combo: 'Moana', tema_justificativa: 'x', combo_preco: 39.9, combo_status: 'rascunho', status_cadastro: 'em_preenchimento' },
+  participacao: { id: 'pa', logo_id: 'l1', tema_combo: 'Moana', tema_justificativa: 'x', combo_preco: 39.9, combo_status: 'rascunho', status_cadastro: 'em_preenchimento' },
   itens,
   unidades: [{ endereco: 'Rua A' }],
 }
 
-test('16 campos obrigatórios, a mesma conta do banco (campos_cadastro)', () => {
+test('17 campos obrigatórios, a mesma conta do banco (campos_cadastro, com a logo)', () => {
   const lista = camposObrigatorios({ marca: {}, tema: {}, itens: [], unidades: [], precoStr: '' })
-  assert.equal(lista.length, 16)
+  assert.equal(lista.length, 17)
+  assert.ok(lista.some((c) => c.campo === 'logo' && c.bloco === 0), 'a logo é campo do bloco 0')
   assert.equal(lista.filter((c) => c.ok).length, 0)
   // Sem item criado não há campo para abrir.
   assert.equal(lista.filter((c) => c.bloco === 2 && c.campo === null).length, 9)
@@ -27,8 +28,8 @@ test('16 campos obrigatórios, a mesma conta do banco (campos_cadastro)', () => 
 
 test('progresso é campo preenchido ÷ obrigatório, nada inventado', () => {
   const r = resumoMarca(base)
-  assert.deepEqual(r.progresso, { feitos: 15, total: 16, pct: 94 })
-  assert.deepEqual(progressoCampos({ marca: {}, tema: {}, itens: [], unidades: [] }), { feitos: 0, total: 16, pct: 0 })
+  assert.deepEqual(r.progresso, { feitos: 16, total: 17, pct: 94 })
+  assert.deepEqual(progressoCampos({ marca: {}, tema: {}, itens: [], unidades: [] }), { feitos: 0, total: 17, pct: 0 })
 })
 
 test('pendência de campo leva ao campo exato, na aba certa', () => {

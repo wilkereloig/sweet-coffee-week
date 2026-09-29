@@ -22,7 +22,7 @@ export function linkDoCampo(bloco, campo) {
 // Bloco do formulário a partir do id do campo (`campo-<id>` em Cadastro.jsx).
 export function blocoDoCampo(campo) {
   const c = String(campo || '')
-  if (/^(nome_marca|responsavel|telefone|email|instagram|site|cnpj|razao_social)$/.test(c)) return 0
+  if (/^(nome_marca|responsavel|telefone|email|instagram|site|cnpj|razao_social|logo)$/.test(c)) return 0
   if (/^tema_/.test(c)) return 1
   if (/^item-/.test(c)) return 2
   if (/^combo_/.test(c)) return 3
@@ -33,7 +33,7 @@ export function blocoDoCampo(campo) {
 // Campos que a organização pode apontar num pedido ou numa correção.
 export const CAMPOS_APONTAVEIS = [
   ['nome_marca', 'A marca · Nome'], ['responsavel', 'A marca · Responsável'], ['telefone', 'A marca · WhatsApp'],
-  ['email', 'A marca · E-mail'], ['instagram', 'A marca · Instagram'],
+  ['email', 'A marca · E-mail'], ['instagram', 'A marca · Instagram'], ['logo', 'A marca · Logo do estabelecimento'],
   ['tema_combo', 'Tema · Tema escolhido'], ['tema_justificativa', 'Tema · Justificativa'],
   ...[1, 2, 3].flatMap((n) => [['item-' + n + '-nome', 'Item ' + n + ' · Nome'], ['item-' + n + '-descricao', 'Item ' + n + ' · Descrição'], ['item-' + n + '-ingredientes', 'Item ' + n + ' · Ingredientes']]),
   ['combo_preco', 'Preço · Valor do combo'], ['unidade-endereco', 'Onde encontrar · Endereço'],
@@ -44,16 +44,17 @@ const CAMPO_ITEM = { nome: 'Nome', descricao: 'Descrição', ingredientes: 'Ingr
 const vazio = (v) => !String(v == null ? '' : v).trim()
 
 /*
- * Os 16 campos obrigatórios — a MESMA lista de `campos_cadastro` no banco
- * (migration 20260930_acessos_e_correcoes.sql), que dá o % na lista da
- * organização. Mudou aqui, muda lá.
+ * Os 17 campos obrigatórios — a MESMA lista de `campos_cadastro` no banco
+ * (migration 20260930_logos_marca.sql: a logo confirmada para a edição é o
+ * 17º), que dá o % na lista da organização. Mudou aqui, muda lá.
  */
-export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades = [], precoStr = '' } = {}) {
+export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades = [], precoStr = '', logo = false } = {}) {
   const c = (bloco, campo, rotulo, ok) => ({ bloco, campo, rotulo, ok: !!ok })
   const lista = [
     c(0, 'nome_marca', 'Nome da marca', !vazio(marca.nome_marca)),
     c(0, 'responsavel', 'Responsável', !vazio(marca.responsavel)),
     c(0, 'telefone', 'WhatsApp', !vazio(marca.telefone)),
+    c(0, 'logo', 'Logo do estabelecimento', logo),
     c(1, 'tema_combo', 'Tema do combo', !vazio(tema.tema_combo)),
     c(1, 'tema_justificativa', 'Por que esse tema', !vazio(tema.tema_justificativa)),
   ]
@@ -84,6 +85,7 @@ export function dadosDeLinhas({ participante = {}, participacao = {}, itens = []
     marca: { nome_marca: participante.nome_marca, responsavel: participante.responsavel, telefone: participante.telefone },
     tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
     itens, unidades,
+    logo: !!participacao.logo_id,
     precoStr: participacao.combo_preco == null ? '' : String(participacao.combo_preco).replace('.', ','),
   }
 }
@@ -115,7 +117,7 @@ const ETAPAS = [
 export function resumoMarca(d = {}) {
   const participacao = d.participacao || null
   if (!participacao) {
-    return { semParticipacao: true, progresso: { feitos: 0, total: 16, pct: 0 }, etapas: [], pendencias: [], proxima: null,
+    return { semParticipacao: true, progresso: { feitos: 0, total: 17, pct: 0 }, etapas: [], pendencias: [], proxima: null,
       contagem: {}, campo: () => null, combo: null }
   }
   const dados = dadosDeLinhas(d)
@@ -142,7 +144,7 @@ export function resumoMarca(d = {}) {
   // Campo vazio: uma pendência por campo (a mais precisa possível).
   for (const c of campos.filter((x) => !x.ok)) {
     if (abertas.some((a) => a.campo === c.campo)) continue
-    pendencias.push({ tipo: 'campo', titulo: c.rotulo, texto: c.campo ? 'Ainda não preenchido.' : 'O combo ainda não tem os três itens: fale com a organização.',
+    pendencias.push({ tipo: 'campo', titulo: c.rotulo, texto: c.campo === 'logo' ? 'Envie a logo oficial da marca em alta resolução.' : c.campo ? 'Ainda não preenchido.' : 'O combo ainda não tem os três itens: fale com a organização.',
       acao: c.campo ? 'Completar agora' : null, vista: vistaDoBloco(c.bloco), link: c.campo ? linkDoCampo(c.bloco, c.campo) : null,
       bloco: c.bloco, campo: c.campo })
   }

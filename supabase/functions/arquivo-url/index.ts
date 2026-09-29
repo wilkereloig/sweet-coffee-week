@@ -35,7 +35,11 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const BUCKETS = ['arquivos', 'combos']
+// `logos` (29/09/2026): a logo oficial de cada participante. Bucket público
+// (logo é identidade pública), mas ESCREVER continua passando por aqui: pasta
+// = UUID do participante, ação `cadastro.editar` (só Administrador), e nunca
+// por cima — cada versão é um arquivo novo (quem versiona é logos_marca).
+const BUCKETS = ['arquivos', 'combos', 'logos']
 
 // Uma pasta e um arquivo, nada mais. A pasta é `geral` ou um UUID de
 // participação; o arquivo é o que sobra depois de tirar tudo que não seja letra,
@@ -72,6 +76,7 @@ Deno.serve(async (req) => {
   if (acao !== 'subir' && acao !== 'baixar') return json({ erro: 'acao_invalida' }, 400)
   if (!BUCKETS.includes(bucket)) return json({ erro: 'bucket_invalido' }, 400)
   if (!caminhoValido(path)) return json({ erro: 'caminho_invalido' }, 422)
+  if (bucket === 'logos' && path.startsWith('geral/')) return json({ erro: 'caminho_invalido' }, 422)
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -85,7 +90,7 @@ Deno.serve(async (req) => {
   // Duas portas (Fase 4, 28/08/2026): com `secret`, a senha única; sem, o
   // JWT nominal no cabeçalho, resolvido por `pode_por_user` — mesma ação,
   // mesma tabela perfis/permissões que `pode()` já usa pra sessão nominal.
-  const acaoNecessaria = acao === 'subir' ? 'producao.gerir' : 'dado.ler'
+  const acaoNecessaria = acao === 'subir' ? (bucket === 'logos' ? 'cadastro.editar' : 'producao.gerir') : 'dado.ler'
   let autorizado = false
   if (secret) {
     const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: acaoNecessaria })
@@ -113,7 +118,7 @@ Deno.serve(async (req) => {
     // escrever por cima do mesmo caminho. Quem versiona é `arquivos.versao`,
     // que é dado — não o nome do arquivo em disco.
     const { data, error } = await admin.storage.from(bucket)
-      .createSignedUploadUrl(path, { upsert: true })
+      .createSignedUploadUrl(path, { upsert: bucket !== 'logos' })
     if (error) return json({ erro: 'assinatura_falhou', detalhe: error.message }, 500)
     return json({ ok: true, url: data.signedUrl, path })
   }
