@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { entrarComoContaOrganizacao, CHAVE_SESSAO, RECADO } from '../src/lib/orgAccess.js'
+import { readFileSync } from 'node:fs'
+import { entrarComoContaOrganizacao, CHAVE_SESSAO, RECADO, DOMINIO_EQUIPE, USUARIO_VALIDO, loginDaConta } from '../src/lib/orgAccess.js'
 
 // Lógica pura (signIn e guardar injetados, sem DOM/rede) — mesmo padrão de
 // adminAccess.js e marcaAccess.js.
@@ -45,17 +46,24 @@ test('sucesso: guarda a sessão no formato certo, e-mail minúsculo e sem espaç
   assert.ok(sessao.expira_em > Date.now(), 'expira_em tem que ser o INSTANTE calculado, não o expires_in cru')
 })
 
-test('e-mail sem @ ainda é aceito como digitado — não há slugificação aqui (diferente da marca)', async () => {
-  // orgAccess não desvia pra um domínio sintético: o e-mail é sempre real,
-  // digitado direto. Se vier errado, quem recusa é o próprio Auth.
-  let recebido = null
-  await entrarComoContaOrganizacao({
-    email: 'nome-sem-arroba',
-    senha: 'x',
-    signIn: async (email) => { recebido = email; return { data: {}, error: { message: 'invalid' } } },
-    guardar: () => {},
-  })
-  assert.equal(recebido, 'nome-sem-arroba')
+test('usuário sem @ vira o endereço interno da equipe; com @ segue como e-mail', async () => {
+  const recebidos = []
+  for (const digitado of ['Ana.Producao ', 'maria@scw.com']) {
+    await entrarComoContaOrganizacao({
+      email: digitado, senha: 'x',
+      signIn: async (email) => { recebidos.push(email); return { data: {}, error: { message: 'invalid' } } },
+      guardar: () => {},
+    })
+  }
+  assert.deepEqual(recebidos, ['ana.producao@' + DOMINIO_EQUIPE, 'maria@scw.com'])
+  assert.equal(loginDaConta('ana.producao@' + DOMINIO_EQUIPE), 'ana.producao')
+  assert.equal(loginDaConta('maria@scw.com'), 'maria@scw.com')
+})
+
+test('o domínio da equipe é o mesmo na lib e na Edge Function que cria a conta', () => {
+  const fn = readFileSync(new URL('../supabase/functions/criar-conta-organizacao/index.ts', import.meta.url), 'utf8')
+  assert.ok(fn.includes("'" + DOMINIO_EQUIPE + "'"), 'criar-conta-organizacao usa outro domínio — a conta nasceria num endereço que o login não monta')
+  assert.ok(fn.includes(USUARIO_VALIDO.source), 'a regra do usuário divergiu entre a lib e a Edge Function')
 })
 
 test('credenciais erradas: erro genérico, não confirma qual campo está errado', async () => {

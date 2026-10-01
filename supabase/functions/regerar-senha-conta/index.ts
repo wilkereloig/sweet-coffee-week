@@ -166,5 +166,5 @@ Deno.serve(async (req) => {
   // Igual à criação: a senha não fica gravada em lugar nenhum além do hash do
   // Auth. Reabrir a tela depois não a mostra de novo — se sumiu, gera-se outra.
   // Marca entra pelo NOME do estabelecimento (o e-mail é sintético).
-  return json({ ok: true, user_id: userId, login: ehMarca ? loginMarca : usuario.user.email, senha: novaSenha, troca_obrigatoria: true })
+  return json({ ok: true, user_id: userId, login: ehMarca ? loginMarca : (usuario.user.email || '').replace(/@equipe\.sweetcoffeeweek\.com\.br$/i, ''), senha: novaSenha, troca_obrigatoria: true })
 })

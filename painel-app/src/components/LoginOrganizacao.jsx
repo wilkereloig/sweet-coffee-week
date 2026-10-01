@@ -86,13 +86,15 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta, onVoltar }) {
             <DiscoOrganizacao />
             <div>
               <h1 className="pn-setor__nome">Organização</h1>
-              <p className="pn-setor__nota">Entre com o seu e-mail. É o seu nome que aparece no histórico do que você fizer.</p>
+              <p className="pn-setor__nota">Entre com o seu usuário. É o seu nome que aparece no histórico do que você fizer.</p>
             </div>
             <label className="pn-campo--porta">
-              <span className="pn-campo__rotulo">E-mail</span>
+              <span className="pn-campo__rotulo">Usuário</span>
               <input
                 className="pn-campo__escuro"
-                type="email"
+                type="text"
+                autoCapitalize="none"
+                spellCheck={false}
                 autoComplete="username"
                 required
                 value={email}

@@ -3,6 +3,7 @@ import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { GRUPOS_ACAO, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
+import { USUARIO_VALIDO, loginDaConta } from '../../../../src/lib/orgAccess'
 import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
@@ -12,7 +13,7 @@ import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo } from '../ui'
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
  * organização, com que função, e o histórico de tudo que a equipe fez.
  *
- * Cada pessoa tem conta própria (e-mail real + senha), e é o login dela que
+ * Cada pessoa tem conta própria (usuário + senha, sem e-mail), e é o login dela que
  * assina cada ação no histórico — quem fez vem da sessão, no banco, nunca de
  * um nome mandado pela tela. Conta não se apaga: desativa. Assim os registros
  * antigos continuam com o nome de quem fez.
@@ -40,7 +41,7 @@ function SenhaUmaVez({ login, senha }) {
 }
 
 function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
-  const [email, setEmail] = React.useState('')
+  const [usuario, setUsuario] = React.useState('')
   const [nome, setNome] = React.useState('')
   const [funcao, setFuncao] = React.useState('')
   const [erro, setErro] = React.useState(null)
@@ -49,7 +50,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
 
   React.useEffect(() => {
     if (!aberto) return
-    setEmail(''); setNome(''); setErro(null); setCriando(false); setCred(null)
+    setUsuario(''); setNome(''); setErro(null); setCriando(false); setCred(null)
     setFuncao((funcoes.find((f) => f.codigo === 'producao') || funcoes[0] || {}).codigo || '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
@@ -57,11 +58,12 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
   async function criar(ev) {
     ev.preventDefault()
     if (!nome.trim()) { setErro('Informe o nome: é ele que aparece no histórico.'); return }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setErro('Informe um e-mail válido.'); return }
+    const u = usuario.trim().toLowerCase()
+    if (u.length < 3 || u.length > 30 || !USUARIO_VALIDO.test(u)) { setErro('Usuário: de 3 a 30 caracteres, só letras minúsculas sem acento, números e . _ - entre eles (ex.: ana.producao).'); return }
     setCriando(true)
     setErro(null)
     try {
-      const r = await chamarFuncao('criar-conta-organizacao', { secret: lerSenha(), email: email.trim(), funcao, nome: nome.trim() })
+      const r = await chamarFuncao('criar-conta-organizacao', { secret: lerSenha(), usuario: u, funcao, nome: nome.trim() })
       // Grava o nome também pela RPC: funciona mesmo antes de a Edge Function
       // nova (que já aceita `nome`) estar publicada.
       if (r && r.user_id) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: r.user_id, p_nome: nome.trim() }).catch(() => {})
@@ -81,8 +83,8 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
         <label className="og-campo"><span>Nome <abbr title="obrigatório">*</abbr></span>
           <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} disabled={!!cred} />
         </label>
-        <label className="og-campo"><span>E-mail <abbr title="obrigatório">*</abbr></span>
-          <input type="email" inputMode="email" autoComplete="off" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!cred} />
+        <label className="og-campo"><span>Usuário para entrar <abbr title="obrigatório">*</abbr></span>
+          <input type="text" autoComplete="off" autoCapitalize="none" spellCheck={false} required maxLength={30} placeholder="ana.producao" value={usuario} onChange={(e) => setUsuario(e.target.value.toLowerCase())} disabled={!!cred} />
         </label>
         <label className="og-campo"><span>Função</span>
           <select value={funcao} onChange={(e) => setFuncao(e.target.value)} disabled={!!cred}>
@@ -93,6 +95,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
           <li><b>Administrador</b>: tudo, inclusive contas da equipe.</li>
           <li><b>Curadoria</b>: triagem, mensagens e acesso de marcas.</li>
           <li><b>Produção</b>: pedidos, arquivos, fotos, triagem e mensagens.</li>
+          <li><b>Comercial</b>: contatos, Press Kit, vouchers e mensagens.</li>
           <li><b>Consulta</b>: só lê.</li>
         </ul>
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
@@ -146,11 +149,11 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
     }, 'Salvo.')
   }
   const alternar = () => {
-    if (c.ativo && !window.confirm('Desativar ' + (c.nome || c.email) + '? A pessoa deixa de entrar agora. O histórico continua com o nome dela.')) return
+    if (c.ativo && !window.confirm('Desativar ' + (c.nome || loginDaConta(c.email)) + '? A pessoa deixa de entrar agora. O histórico continua com o nome dela.')) return
     acao('ativo', () => rpc('suspender_conta', { p_secret: lerSenha(), p_user: c.user_id, p_ativo: !c.ativo }), c.ativo ? 'Conta desativada.' : 'Conta reativada.')
   }
   const novaSenha = () => {
-    if (!window.confirm('Gerar uma senha nova para ' + (c.nome || c.email) + '? A atual deixa de valer agora.')) return
+    if (!window.confirm('Gerar uma senha nova para ' + (c.nome || loginDaConta(c.email)) + '? A atual deixa de valer agora.')) return
     acao('senha', async () => {
       const r = await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), user_id: c.user_id })
       setCred(r)
@@ -158,7 +161,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
   }
 
   return (
-    <Folha aberto={aberto} titulo={(c && (c.nome || c.email)) || 'Conta'} sub={c ? c.email + ' · ' + (c.rotulo || c.funcao || 'sem função') : ''} onFechar={onFechar}>
+    <Folha aberto={aberto} titulo={(c && (c.nome || loginDaConta(c.email))) || 'Conta'} sub={c ? loginDaConta(c.email) + ' · ' + (c.rotulo || c.funcao || 'sem função') : ''} onFechar={onFechar}>
       {c && (
         <div className="ui-pilha">
           <dl className="ui-dados">
@@ -243,7 +246,7 @@ function Historico({ contas, atorInicial, abrirLink }) {
           <select value={ator} onChange={(e) => setAtor(e.target.value)}>
             <option value="">Todas as pessoas</option>
             <option value="compartilhado">Acesso compartilhado</option>
-            {contas.map((c) => <option key={c.user_id} value={c.user_id}>{c.nome || c.email}</option>)}
+            {contas.map((c) => <option key={c.user_id} value={c.user_id}>{c.nome || loginDaConta(c.email)}</option>)}
           </select>
         </label>
         <label className="og-campo"><span>Ação</span>
@@ -343,8 +346,8 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
                 <li key={c.user_id}>
                   <button type="button" className="og-item" onClick={() => setFolha({ tipo: 'conta', conta: c })}>
                     <span className="og-item__cor" data-tom={c.ativo ? 'ok' : 'alerta'} aria-hidden="true" />
-                    <span className="og-item__nome">{c.nome || c.email}</span>
-                    <span className="og-item__meta">{(c.nome ? c.email + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
+                    <span className="og-item__nome">{c.nome || loginDaConta(c.email)}</span>
+                    <span className="og-item__meta">{(c.nome ? loginDaConta(c.email) + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
                     <span className="og-item__dir">
                       <Selo tom={c.ativo ? 'ok' : 'atencao'}>{c.ativo ? 'ativa' : 'desativada'}</Selo>
                       <span className="og-item__data">{c.ultimo_acesso ? 'entrou ' + tempoRelativo(c.ultimo_acesso) : 'nunca entrou'}</span>

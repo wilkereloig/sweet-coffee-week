@@ -3222,6 +3222,22 @@ conferido). O que passou a valer:
 - ⚠️ **Logo no painel é `contain`**, exceção declarada à §6.12: aqui o arquivo é
   enviado pela marca, com proporção qualquer; `cover` recortaria a marca.
 
+#### Contas da equipe sem e-mail + função Comercial — 01/10/2026 (Fase 16)
+
+- **Conta da equipe = usuário + senha**, criada pelo administrador em
+  Administração › Equipe (`criar-conta-organizacao { usuario }`). O Auth guarda
+  `<usuario>@equipe.sweetcoffeeweek.com.br`, endereço interno que não recebe
+  mensagem. O login monta o mesmo endereço (`enderecoDaConta` em
+  `src/lib/orgAccess.js`); quem digita "@" entra pelo e-mail — as contas antigas
+  com e-mail real seguem valendo. ⚠️ Domínio e regra do usuário têm cópia na
+  Edge Function; `tests/orgAccess.test.mjs` compara.
+- **Usuário é VALIDADO, não slugificado** (`USUARIO_VALIDO`, 3–30 caracteres):
+  converter faria dois usuários diferentes virarem a mesma conta.
+- **Funções:** Administrador · Curadoria · Produção · **Comercial** (novo:
+  `dado.ler`, `relacionamento.gerir`, `mensagem.enviar` — Contatos, Press Kit,
+  Vouchers, mensagens) · Consulta. Migration `20261001_funcao_comercial.sql`.
+  Função nova é linha em `funcoes`/`permissoes`, nunca lista no código.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4
