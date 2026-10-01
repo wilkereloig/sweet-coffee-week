@@ -3260,7 +3260,9 @@ conferido). O que passou a valer:
 
 #### Refinamento: conversa, fotos, logo, substituição, ajuda e app — 01/10/2026 (Fase 17)
 
-Migration `20261001_painel_refinamento.sql` (**rodar no SQL Editor**: o MCP recusa escrita).
+Migration `20261001_painel_refinamento.sql` — ✅ **aplicada em 01/10/2026** pelo arquivo do
+commit `2c960e6` (pg_net + sha256 conferido), registrada como `painel_refinamento`; publicada
+em `master` no mesmo dia (`3031b90`, só o painel — a Home nova segue em `dev/site-completo`).
 - **Conversa a um toque:** botão "Falar com a organização" no cabeçalho da marca, em
   toda tela, com o número de não lidas; mensagem nova vira a primeira "Próxima ação" do
   Início. Abrir a conversa marca como lido também o aviso de mensagem do sino.
