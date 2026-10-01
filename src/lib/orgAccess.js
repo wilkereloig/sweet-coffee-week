@@ -28,6 +28,34 @@
 
 export const CHAVE_SESSAO = 'scw_org_conta'
 
+/*
+ * Conta SEM e-mail (01/10/2026, pedido do Wilker): o administrador cria um
+ * USUÁRIO curto (ex.: ana.producao) e o Auth guarda <usuario>@DOMINIO_EQUIPE —
+ * endereço interno que não recebe mensagem, mesmo arranjo da marca
+ * (marcas.sweetcoffeeweek.com.br). Contas antigas com e-mail real continuam
+ * entrando pelo e-mail: quem digita "@" está digitando um e-mail.
+ * ⚠️ O domínio tem cópia em supabase/functions/criar-conta-organizacao (Deno
+ * não importa daqui); tests/orgAccess.test.mjs compara as duas.
+ * Sem slugificação: o usuário é VALIDADO (USUARIO_VALIDO), não convertido —
+ * converter faria "Ana Produção" e "ana-producao" virarem a mesma conta.
+ */
+export const DOMINIO_EQUIPE = 'equipe.sweetcoffeeweek.com.br'
+export const USUARIO_VALIDO = /^[a-z0-9]+([._-][a-z0-9]+)*$/
+
+/** O que a pessoa digitou → endereço do Auth. */
+export function enderecoDaConta(digitado) {
+  const t = String(digitado == null ? '' : digitado).trim().toLowerCase()
+  if (!t || t.includes('@')) return t
+  return t + '@' + DOMINIO_EQUIPE
+}
+
+/** Endereço do Auth → o que mostrar como login (o usuário, sem o domínio interno). */
+export function loginDaConta(email) {
+  const e = String(email == null ? '' : email)
+  const fim = '@' + DOMINIO_EQUIPE
+  return e.toLowerCase().endsWith(fim) ? e.slice(0, -fim.length) : e
+}
+
 /**
  * @param {object}   p
  * @param {string}   p.email    e-mail real da pessoa (sem slugificação)
@@ -37,7 +65,7 @@ export const CHAVE_SESSAO = 'scw_org_conta'
  * @returns {Promise<{ok: boolean, erro?: 'vazio'|'credenciais'|'rede'|'sessao'}>}
  */
 export async function entrarComoContaOrganizacao({ email, senha, signIn, guardar }) {
-  const emailLimpo = String(email == null ? '' : email).trim().toLowerCase()
+  const emailLimpo = enderecoDaConta(email)
   const senhaLimpa = String(senha == null ? '' : senha)
   if (!emailLimpo || !senhaLimpa) return { ok: false, erro: 'vazio' }
 
@@ -70,8 +98,8 @@ export async function entrarComoContaOrganizacao({ email, senha, signIn, guardar
 
 /* Texto por motivo, junto da lógica que o produz (mesmo padrão das outras duas libs). */
 export const RECADO = {
-  vazio: 'Preencha o e-mail e a senha.',
-  credenciais: 'E-mail ou senha não conferem.',
+  vazio: 'Preencha o usuário e a senha.',
+  credenciais: 'Usuário ou senha não conferem.',
   rede: 'Não deu para conectar agora. Tente de novo em instantes.',
   sessao: 'A senha confere, mas o navegador não deixou guardar a sessão. Tente fora da janela anônima.',
 }

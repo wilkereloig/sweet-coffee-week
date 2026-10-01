@@ -10,10 +10,9 @@
 //   página. A chave vive aqui, em variável de ambiente.
 //
 // A DIFERENÇA PARA `criar-acesso-marca`, e ela importa:
-//   a marca entra pelo NOME do estabelecimento, num endereço sintético que não
-//   recebe mensagem. Aqui o e-mail é REAL — é a pessoa da equipe, e ela tem
-//   caixa de entrada. Por isso não há slugificação, não há domínio interno, e o
-//   e-mail digitado é o login.
+//   a marca entra pelo NOME do estabelecimento, slugificado. Aqui o login é um
+//   USUÁRIO escolhido pelo administrador e VALIDADO, não convertido (ver
+//   "SEM E-MAIL" abaixo); contas antigas com e-mail real seguem valendo.
 //
 // O que NÃO muda: a senha é gerada aqui, entregue uma vez, e nasce com
 // `deve_trocar_senha`. Mesma trava, mesmo motivo — o que for entregue por
@@ -25,8 +24,15 @@
 //    secret, aceita o JWT da sessão nominal no cabeçalho Authorization —
 //    quem valida é este código, via pode()/pode_por_user, não o gateway.)
 //
-// Entrada (POST JSON): { secret, email, funcao } — ou, sem secret, o JWT da
-// sessão nominal em Authorization: Bearer <token>.
+// SEM E-MAIL (01/10/2026, pedido do Wilker): o normal agora é `usuario`
+// (ex.: ana.producao). A conta nasce em <usuario>@DOMINIO_EQUIPE, endereço
+// interno que não recebe mensagem — mesmo arranjo da marca. `email` real
+// segue aceito para quem preferir. ⚠️ DOMINIO_EQUIPE e a regra do usuário têm
+// cópia em src/lib/orgAccess.js (o login monta o mesmo endereço);
+// tests/orgAccess.test.mjs compara as duas.
+//
+// Entrada (POST JSON): { secret, usuario | email, funcao, nome } — ou, sem
+// secret, o JWT da sessão nominal em Authorization: Bearer <token>.
 // Saída: { ok, user_id, login, senha, troca_obrigatoria }
 // =============================================================================
 
@@ -51,6 +57,9 @@ function gerarSenha(): string {
                   chars.slice(8, 12).join('')
 }
 
+const DOMINIO_EQUIPE = 'equipe.sweetcoffeeweek.com.br'
+const USUARIO_VALIDO = /^[a-z0-9]+([._-][a-z0-9]+)*$/
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 
@@ -58,11 +67,12 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return json({ erro: 'method_not_allowed' }, 405)
 
-  let payload: { secret?: string; email?: string; funcao?: string; nome?: string }
+  let payload: { secret?: string; usuario?: string; email?: string; funcao?: string; nome?: string }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
-  const email = (payload.email || '').trim().toLowerCase()
+  const usuario = (payload.usuario || '').trim().toLowerCase()
+  const email = usuario ? usuario + '@' + DOMINIO_EQUIPE : (payload.email || '').trim().toLowerCase()
   const funcao = (payload.funcao || '').trim()
   // Nome de exibição (histórico, "Enviado por"). Opcional: sem ele, o e-mail.
   const nome = (payload.nome || '').trim().slice(0, 80) || null
@@ -108,6 +118,9 @@ Deno.serve(async (req) => {
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
 
   // ── 2. Validar antes de tocar no Auth ──────────────────────────────────────
+  if (usuario && (usuario.length < 3 || usuario.length > 30 || !USUARIO_VALIDO.test(usuario))) {
+    return json({ erro: 'usuario_invalido' }, 422)
+  }
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return json({ erro: 'email_invalido' }, 422)
   }
@@ -131,7 +144,12 @@ Deno.serve(async (req) => {
     user_metadata: { papel: 'organizacao', funcao },
   })
   if (criarErr || !criado?.user) {
-    return json({ erro: 'usuario_nao_criado', detalhe: criarErr?.message || '' }, 409)
+    // Endereço repetido é o caso comum (usuário já em uso): erro próprio,
+    // para a tela dizer "escolha outro" em vez de um genérico.
+    // Qualquer outra falha (limite, Auth fora) é 502, não 409: não é "já existe".
+    const repetido = (criarErr as { code?: string } | null)?.code === 'email_exists' ||
+      /already|registered|exists/i.test(criarErr?.message || '')
+    return json({ erro: repetido ? 'usuario_ja_existe' : 'usuario_nao_criado', detalhe: criarErr?.message || '' }, repetido ? 409 : 502)
   }
   const userId = criado.user.id
 
@@ -153,11 +171,11 @@ Deno.serve(async (req) => {
   await admin.from('auditoria').insert({
     ator_user_id: atorId,
     acao: 'criar_conta_organizacao', alvo_tabela: 'perfis', alvo_id: userId,
-    detalhe: { email, funcao, nome },
+    detalhe: { email, usuario: usuario || null, funcao, nome },
   })
 
   // ── 5. As credenciais, uma vez só ──────────────────────────────────────────
   // A senha não fica gravada em lugar nenhum: o banco só tem o hash do Auth.
   // Reabrir a tela depois não a mostra de novo — se sumiu, gera-se outra.
-  return json({ ok: true, user_id: userId, login: email, senha: senhaInicial, troca_obrigatoria: true })
+  return json({ ok: true, user_id: userId, login: usuario || email, senha: senhaInicial, troca_obrigatoria: true })
 })

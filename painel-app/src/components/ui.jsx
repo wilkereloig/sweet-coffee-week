@@ -53,6 +53,9 @@ export function Erro({ titulo = 'Não consegui carregar', texto, onTentar }) {
 const ERROS = {
   nao_autorizado: 'Sua função não permite esta ação, ou a sessão não vale mais.',
   sessao_expirada: 'Sua sessão terminou. Entre de novo.',
+  usuario_invalido: 'Usuário inválido: de 3 a 30 caracteres, só letras minúsculas sem acento, números e . _ - entre eles (ex.: ana.producao).',
+  usuario_ja_existe: 'Esse usuário já existe. Escolha outro.',
+  funcao_invalida: 'Escolha uma função da lista.',
   'Failed to fetch': 'Sem conexão com o servidor. Confira a internet e tente de novo.',
   'Load failed': 'Sem conexão com o servidor. Confira a internet e tente de novo.',
   NetworkError: 'Sem conexão com o servidor. Confira a internet e tente de novo.',

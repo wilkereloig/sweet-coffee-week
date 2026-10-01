@@ -17,7 +17,7 @@ import { lerIrDaUrl } from './lib/central'
 import { desligarAvisos } from './lib/push'
 import { MODULOS_ORG } from './components/Modulos'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG } from '../../src/lib/adminAccess'
-import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../src/lib/orgAccess'
+import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA, loginDaConta } from '../../src/lib/orgAccess'
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
@@ -50,7 +50,7 @@ function tirarDestino() {
 function quemOrg(funcaoRotulo) {
   try {
     const conta = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA) || 'null')
-    if (conta) return { nome: conta.email, funcao: funcaoRotulo || 'conta pessoal' }
+    if (conta) return { nome: loginDaConta(conta.email), funcao: funcaoRotulo || 'conta pessoal' }
   } catch { /* sessão ilegível */ }
   return { nome: 'Acesso compartilhado', funcao: 'sem identificação no histórico' }
 }
