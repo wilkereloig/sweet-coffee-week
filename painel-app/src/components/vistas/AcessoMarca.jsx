@@ -54,20 +54,27 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
   const [rodando, setRodando] = React.useState(false)
   const [envios, setEnvios] = React.useState({})
   const [copiado, setCopiado] = React.useState(false)
+  const [erroEnvio, setErroEnvio] = React.useState(null)
   const iniciou = React.useRef(false)
 
   React.useEffect(() => {
     if (!aberto) { iniciou.current = false; return }
     if (iniciou.current) return
     iniciou.current = true
-    setResultados([]); setEnvios({}); setCopiado(false); setRodando(true)
+    setResultados([]); setEnvios({}); setCopiado(false); setErroEnvio(null); setRodando(true)
     emitirCredenciais(marcas, modo, setResultados).then(() => { setRodando(false); onMudou && onMudou() })
   }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const criados = resultados.filter((r) => r.senha)
-  const registrar = (ids, canal) => {
-    setEnvios((e) => ({ ...e, ...Object.fromEntries(ids.map((id) => [id, canal])) }))
-    return registrarEnvio(ids, canal).catch(() => {})
+  // O selo de envio só muda depois de o servidor gravar; falha aparece.
+  const registrar = async (ids, canal) => {
+    setErroEnvio(null)
+    try {
+      await registrarEnvio(ids, canal)
+      setEnvios((e) => ({ ...e, ...Object.fromEntries(ids.map((id) => [id, canal])) }))
+    } catch (e) {
+      setErroEnvio('Não registrou o envio: ' + traduzirErro(e.message))
+    }
   }
   async function copiarTodos() {
     const origem = window.location.origin
@@ -99,6 +106,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
             Marcar todos como enviados
           </button>
         </div>
+        {erroEnvio && <p className="ui-nota ui-nota--erro" role="alert">{erroEnvio}</p>}
         <p className="og-cred__aviso">Anote ou envie agora. <b>As senhas não aparecem de novo.</b> Abrir o WhatsApp não conta como enviado.</p>
         <ul className="ac-lista">
           {resultados.map((r) => {

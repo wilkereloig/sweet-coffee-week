@@ -48,11 +48,15 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
     setAvisoSalvar(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
     try {
+      // Status só vai se a pessoa mudou: o servidor faz coalesce, e mandar o
+      // valor do select de volta regrediria um status que mudou por fora
+      // (ex.: "Criar acesso" leva a candidatura a aguardando_cadastro).
+      const mudouStatus = status !== reg.status
       const ok = await rpc('organizacao_atualizar_registro', {
-        p_secret: senha, p_origem: origem, p_id: reg.id, p_status: status, p_nota: nota,
+        p_secret: senha, p_origem: origem, p_id: reg.id, p_status: mudouStatus ? status : null, p_nota: nota,
       })
       if (ok !== true) throw new Error('O servidor não confirmou a gravação.')
-      onAtualizado({ ...reg, status, internal_notes: nota })
+      onAtualizado({ ...reg, status: mudouStatus ? status : reg.status, internal_notes: nota })
       setAvisoSalvar({ tom: 'ok', texto: 'Salvo.' })
     } catch (e) {
       // O que a pessoa escreveu continua na tela — erro de rede não apaga texto.
@@ -99,6 +103,10 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
       setAvisoAcesso({ tom: 'ok', texto: 'Acesso criado. Copie ou envie agora.' })
       setCredenciais({ login: r.login || reg.empresa, senha: r.senha, participanteId: r.participante_id })
+      // O banco moveu a candidatura para aguardando_cadastro
+      // (vincular_conta_marca): a ficha e a lista acompanham.
+      setStatus('aguardando_cadastro')
+      onAtualizado({ ...reg, status: 'aguardando_cadastro' })
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       setAvisoAcesso({ tom: 'erro', texto: RECADO_ACESSO[codigo] || ('Não criou: ' + e.message) })

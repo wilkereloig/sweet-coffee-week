@@ -55,7 +55,7 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + traduzirErro(e.message))
-      if (codigo === 'existe_candidatura') recado += ' Abra a ficha dela em "Respostas" e use Criar acesso: assim a candidatura fica ligada à conta.'
+      if (codigo === 'existe_candidatura') recado += ' Abra a ficha dela em Participantes › Candidaturas e use Criar acesso: assim a candidatura fica ligada à conta.'
       setAviso(recado)
     } finally {
       setCriando(false)
@@ -124,9 +124,11 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const arquivadas = status === 'arquivadas'
   const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '' } : { item: '', sub: '' }, false)
 
+  const pedido = React.useRef(0)
   const carregar = React.useCallback(async () => {
     setErro(null)
     const senha = lerSenha()
+    const meu = ++pedido.current // trocar Arquivadas rápido: só a última resposta vale
     try {
       // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
       // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
@@ -134,16 +136,20 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         rpc('admin_ping', { p_secret: senha }),
         rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
       ])
+      if (meu !== pedido.current) return
       if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
       setParticipantes(lista || [])
     } catch (e) {
-      setErro(e.message)
+      if (meu === pedido.current) setErro(e.message)
     }
     // Leitura à parte: conversas não podem derrubar a lista (§10.4-b).
     try { setConversas((await rpc('get_conversas', { p_secret: senha })) || []) } catch { setConversas([]) }
     try { setLogos(Object.fromEntries(((await rpc('get_logos', { p_secret: senha })) || []).map((l) => [l.participante_id, l]))) } catch { setLogos({}) }
   }, [arquivadas])
 
+  // Trocou entre ativas e arquivadas: a lista anterior sai da tela (e da
+  // seleção) enquanto a outra carrega — senão o lote agiria sobre a errada.
+  React.useEffect(() => { setParticipantes(null); setSel(new Set()) }, [arquivadas])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
@@ -172,7 +178,9 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
 
   // Lote: marcas com participação aberta e sem conta (arquivadas ficam de fora).
   const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id)
-  const selecionadas = (participantes || []).filter((p) => sel.has(p.id))
+  // Só o que está selecionado E visível: marca escondida por busca ou filtro
+  // não entra no lote (nem na contagem que a confirmação mostra).
+  const selecionadas = lista.filter((p) => sel.has(p.id))
   const selSemConta = selecionadas.filter((p) => !p.user_id)
   const selComConta = selecionadas.filter((p) => p.user_id)
   const alternar = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -311,7 +319,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       {!erro && participantes === null && <Carregando />}
       {!erro && participantes && participantes.length === 0 && (
         <Vazio titulo="Nenhuma marca ainda">
-          <p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar <b>Criar acesso</b> na ficha dela, em Respostas, ou cadastrar a marca direto aqui, em <b>Cadastrar marca</b>.</p>
+          <p>Há dois caminhos: aprovar uma candidatura do "Quero participar" e usar <b>Criar acesso</b> na ficha dela, em Participantes › Candidaturas, ou cadastrar a marca direto aqui, em <b>Cadastrar marca</b>.</p>
           <p>Nos dois casos o login é o nome do estabelecimento e a senha aparece uma vez, para você entregar.</p>
         </Vazio>
       )}
@@ -321,10 +329,10 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
           <div className="ac-selecao">
             <label className="ac-marcar">
               <input type="checkbox" checked={todasVisiveis} onChange={() => setSel(todasVisiveis ? new Set() : new Set(lista.map((p) => p.id)))} />
-              <span>{lista.length} {lista.length === 1 ? 'marca' : 'marcas'}{sel.size ? ' · ' + sel.size + (sel.size === 1 ? ' selecionada' : ' selecionadas') : ' · selecionar todas'}</span>
+              <span>{lista.length} {lista.length === 1 ? 'marca' : 'marcas'}{selecionadas.length ? ' · ' + selecionadas.length + (selecionadas.length === 1 ? ' selecionada' : ' selecionadas') : ' · selecionar todas'}</span>
             </label>
           </div>
-          {sel.size > 0 && pode('marca.liberar') && (
+          {selecionadas.length > 0 && pode('marca.liberar') && (
             <div className="ac-barra-lote" role="toolbar" aria-label="Ações nas marcas selecionadas">
               <button className="og-btn og-btn--mini" type="button" onClick={() => emLote('gerar')}>Gerar acessos{selSemConta.length ? ' (' + selSemConta.length + ')' : ''}</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('regerar')}>Gerar novas senhas{selComConta.length ? ' (' + selComConta.length + ')' : ''}</button>

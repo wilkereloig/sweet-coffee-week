@@ -508,7 +508,7 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
  * ponytail: a vista carrega pedidos e sessões mesmo mostrando um só — são
  * listas pequenas; separar a carga quando alguma crescer.
  */
-export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, secao = 'pedidos' }) {
+export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, secao = 'pedidos', onEdicaoMudou }) {
   const podeGerir = pode('producao.gerir')
   const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
   const [sessoes, setSessoes] = React.useState(null)
@@ -596,12 +596,16 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }, [edicaoAtual])
 
   // Pedido pedido pelo endereço (aviso "X marcas ainda não responderam"):
-  // abre "Quem falta" dele.
+  // abre "Quem falta" dele UMA vez. Sem o ref, cada recarga de `solicitacoes`
+  // (marcar alguém como respondido) reabria a folha e passava por cima da
+  // que a pessoa tivesse aberto à mão.
   const itemPedido = secao === 'pedidos' && rota ? rota.filtros.item : null
+  const itemAberto = React.useRef(null)
   React.useEffect(() => {
-    if (!itemPedido || !solicitacoes) return
+    if (!itemPedido) { itemAberto.current = null; return }
+    if (!solicitacoes || itemAberto.current === itemPedido) return
     const s = solicitacoes.find((x) => x.id === itemPedido)
-    if (s) setFolha({ tipo: 'quemFalta', solicitacao: s })
+    if (s) { itemAberto.current = itemPedido; setFolha({ tipo: 'quemFalta', solicitacao: s }) }
   }, [itemPedido, solicitacoes])
   function fecharFolha() {
     if (folha && folha.tipo === 'quemFalta' && itemPedido && navegar) navegar({ filtros: {} }, { substituir: true })
@@ -614,6 +618,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
     try {
       await rpc('definir_edicao_atual', { p_secret: lerSenha(), p_codigo: codigo })
       await carregar()
+      // O bloco de baixo (Configuração) lê a edição atual por outra RPC.
+      if (onEdicaoMudou) onEdicaoMudou()
     } catch (e) {
       setAvisoEdicao({ texto: e.message, tom: 'erro' })
     } finally {

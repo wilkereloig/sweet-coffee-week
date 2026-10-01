@@ -27,7 +27,7 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
-  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null })
+  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
   const [erro, setErro] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
@@ -45,20 +45,19 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
       return
     }
     // Carga apartada e que NÃO derruba a mesa (CLAUDE.md §10.4-b): cada
-    // leitura extra tem o próprio catch.
-    try {
-      setParticipantes((await rpc('get_participantes', { p_secret: senha })) || [])
-    } catch {
-      setParticipantes([])
-    }
-    const pegar = (nome, corpo) => rpc(nome, { p_secret: senha, ...corpo }).catch(() => null)
+    // leitura extra tem o próprio catch — mas a falha é DITA, não vira lista
+    // vazia: "Nada pendente agora" com metade das leituras caídas é mentira.
+    const falhas = []
+    const pegar = (nome, corpo, oQue) => rpc(nome, { p_secret: senha, ...corpo }).catch(() => { falhas.push(oQue); return null })
+    setParticipantes((await pegar('get_participantes', {}, 'as marcas')) || [])
     const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes] = await Promise.all([
-      pegar(ORIGENS.apoiar.rpc), pegar(ORIGENS.contato.rpc),
-      pegar('get_solicitacoes_admin'), pegar('get_sessoes_fotos'),
-      pegar('get_conversas'), pegar('get_atividade', { p_limite: 12 }),
-      pegar('get_revisao', { p_status: 'aberta' }), pegar('get_temas'), pegar('get_edicoes'),
+      pegar(ORIGENS.apoiar.rpc, {}, 'as respostas do Apoiar'), pegar(ORIGENS.contato.rpc, {}, 'as mensagens do Contato'),
+      pegar('get_solicitacoes_admin', {}, 'os pedidos'), pegar('get_sessoes_fotos', {}, 'as sessões de fotos'),
+      pegar('get_conversas', {}, 'as mensagens das marcas'), pegar('get_atividade', { p_limite: 12 }, 'a atividade recente'),
+      pegar('get_revisao', { p_status: 'aberta' }, 'a revisão de dados'), pegar('get_temas', {}, 'os temas'), pegar('get_edicoes', {}, 'a edição atual'),
     ])
     setExtra({
+      falhas,
       dados: { apoiar: apoiar || [], contato: contato || [] },
       solicitacoes: solicitacoes || [], sessoes: sessoes || [], conversas: conversas || [],
       atividade: atividade || [], revisao: revisao || [], temas: temas || [],
@@ -120,8 +119,9 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
           </ul>
 
           <Secao titulo="Precisa de atenção" nota={avisosNaoLidos ? avisosNaoLidos + (avisosNaoLidos === 1 ? ' aviso não lido no sino' : ' avisos não lidos no sino') : 'Pendências tiradas dos dados de agora'} className="ui-area-atencao">
+            {extra.falhas.length > 0 && <Erro texto={'Faltou ler ' + extra.falhas.join(', ') + '. O que aparece aqui pode estar incompleto.'} onTentar={carregar} />}
             {pendencias.length === 0 && conversasNovas.length === 0 && prazosProximos.length === 0 && conflitosTema.length === 0
-              ? <p className="ui-nota">Nada pendente agora.</p>
+              ? (extra.falhas.length ? null : <p className="ui-nota">Nada pendente agora.</p>)
               : (
                 <ul className="ui-atencao">
                   {prazosProximos.map((i) => (
@@ -162,7 +162,9 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
 
           <Secao titulo="Atividade recente" nota="Quem fez o quê, por último" className="ui-area-atividade">
             {extra.atividade === null && <Carregando linhas={3} />}
-            {extra.atividade && extra.atividade.length === 0 && <p className="ui-nota">Nenhuma ação registrada ainda.</p>}
+            {extra.atividade && extra.atividade.length === 0 && (extra.falhas.includes('a atividade recente')
+              ? <Erro texto="A atividade recente não carregou." onTentar={carregar} />
+              : <p className="ui-nota">Nenhuma ação registrada ainda.</p>)}
             {extra.atividade && extra.atividade.length > 0 && (
               <Atividade linhas={extra.atividade} onAbrirMarca={(id) => abrirLink('marcas/' + id)} />
             )}

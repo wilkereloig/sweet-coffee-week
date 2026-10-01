@@ -8,7 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Icone, MODULO_ICONE } from '../Icone'
-import { Carregando, Vazio, Erro, Abas, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro } from '../ui'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
@@ -202,6 +202,7 @@ function AbaResumo({ p, logo, naoLidas, onAba }) {
 export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba, onVoltar, pode, onMudou, naoLidas = 0, onLidas }) {
   const aba = ABAS_FICHA.includes(abaPedida) ? abaPedida : 'resumo'
   const titulo = React.useRef(null)
+  const idAbas = React.useId()
   React.useEffect(() => { if (titulo.current) titulo.current.focus({ preventScroll: true }) }, [p && p.id])
   if (!p) return <Carregando linhas={4} />
   const pct = pctCadastro(p)
@@ -243,6 +244,7 @@ export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba,
       </header>
 
       <Abas
+        idBase={idAbas}
         rotulo={'Seções da ficha de ' + p.nome_marca}
         ativa={aba}
         onMudar={onAba}
@@ -258,7 +260,7 @@ export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba,
           { chave: 'historico', rotulo: 'Histórico' },
         ]}
       />
-      <div role="tabpanel" className="ui-painel-aba">
+      <div {...painelDaAba(idAbas, aba)} className="ui-painel-aba">
         {aba === 'resumo' && <AbaResumo p={p} logo={logo} naoLidas={naoLidas} onAba={onAba} />}
         {aba === 'cadastro' && <AbaCadastroMarca participante={p} pode={pode} onMudou={onMudou} />}
         {aba === 'combo' && <AbaCombo participante={p} pode={pode} onMudou={onMudou} />}

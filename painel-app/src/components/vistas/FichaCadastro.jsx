@@ -66,6 +66,7 @@ const ehSimNao = (c) => c.tipo === 'check' || c.tipo === 'sim_nao'
 export function Bloco({
   titulo, nota, campos, valores, podeEditar, onSalvar, acoes, children, abertoInicial = false, onCancelar,
   rotuloSalvar = 'Salvar', icone, rotuloEditar, comStatus = false, status, largo, id,
+  erroDe = erroLegivel, // quem chama pode trazer o próprio tradutor (ex.: erroContato)
 }) {
   const inicial = () => {
     const f = {}
@@ -86,7 +87,7 @@ export function Bloco({
       campos.forEach((c) => { saida[c.chave] = doCampo(c, form[c.chave]) })
       await onSalvar(saida)
       if (!abertoInicial) setEditando(false)
-    } catch (e) { setAviso(erroLegivel(e)) } finally { setSalvando(false) }
+    } catch (e) { setAviso(erroDe(e)) } finally { setSalvando(false) }
   }
 
   const textos = campos.filter((c) => !ehSimNao(c)).map((c) => [c, mostrar(c, valores[c.chave])]).filter(([, v]) => v)

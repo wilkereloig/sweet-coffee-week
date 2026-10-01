@@ -87,7 +87,14 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   React.useEffect(() => {
     const h = montarRota(rota)
     if (location.hash !== h) history.replaceState(history.state, '', h)
-    function mudou() { setRota(normalizar(lerRota(location.hash))) }
+    function mudou() {
+      const nova = normalizar(lerRota(location.hash))
+      setRota((ant) => {
+        // Voltar/Avançar para outra aba: o "atualizar" da aba anterior sai.
+        if (nova.vista !== ant.vista || nova.aba !== ant.aba) atualizarRef.current = null
+        return nova
+      })
+    }
     window.addEventListener('hashchange', mudou)
     window.addEventListener('popstate', mudou)
     return () => { window.removeEventListener('hashchange', mudou); window.removeEventListener('popstate', mudou) }
@@ -106,15 +113,17 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
    * busca não viram vinte "Voltar". Fechar uma ficha que ACABOU de ser
    * aberta volta no histórico em vez de empilhar a lista de novo: o Voltar
    * do navegador e o X da ficha fazem a mesma coisa.
-   * ⚠️ Zera o "atualizar" ao trocar de vista, síncrono: o efeito do FILHO (a
-   * vista registrando `carregar`) dispara antes do efeito do PAI.
+   * ⚠️ Zera o "atualizar" ao trocar de vista OU de aba, síncrono: o efeito do
+   * FILHO (a vista registrando `carregar`) dispara antes do efeito do PAI. Aba
+   * que não registra nada fica sem refresh próprio, em vez de herdar o da
+   * anterior.
    */
   const navegar = React.useCallback((r, { substituir = false } = {}) => {
     if (!r) return
     const outra = r.vista && r.vista !== vista
     const destino = normalizar({ vista: r.vista || vista, aba: r.aba || (outra ? '' : rota.aba), filtros: r.filtros || {} })
     const h = montarRota(destino)
-    if (destino.vista !== vista) atualizarRef.current = null
+    if (destino.vista !== vista || destino.aba !== rota.aba) atualizarRef.current = null
     setRota(destino)
     if (h === location.hash) return
     const estado = history.state || {}

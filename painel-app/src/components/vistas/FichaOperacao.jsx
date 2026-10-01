@@ -101,7 +101,7 @@ export function AbaOperacao({ participante, pode }) {
   return (
     <div className="ui-pilha">
       {pendencias.length > 0 && (
-        <Secao titulo="Revisão de dados" nota="Itens que a importação ou o sistema pediram para uma pessoa conferir. Resolva em Edição → Revisão.">
+        <Secao titulo="Revisão de dados" nota="Itens que a importação ou o sistema pediram para uma pessoa conferir. Resolva em Administração › Revisão de dados.">
           <ul className="ui-lista-simples">{pendencias.map((r) => (
             <li key={r.id}><b>{r.titulo}</b><span>{ROTULO_PENDENCIA[r.tipo] || r.tipo}{r.valor_original ? ' · valor recebido: “' + r.valor_original + '”' : ''}</span></li>
           ))}</ul>
@@ -138,7 +138,7 @@ export function AbaOperacao({ participante, pode }) {
                 <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => decidirTema('recusado')}>Pedir outro tema</button>
               </div>
             )}
-            <p className="ui-nota">Conflitos com outras marcas e a ordem de prioridade ficam em Edição → Temas.</p>
+            <p className="ui-nota">Conflitos com outras marcas e a ordem de prioridade ficam em Participantes › Temas.</p>
           </>
         ) : null}
       </Secao>
