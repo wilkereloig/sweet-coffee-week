@@ -253,3 +253,26 @@ export async function assinarDownload(caminho, fetchImpl = fetch) {
   if (!r.ok || !dados || !dados.signedURL) throw new Error('sem_link')
   return SUPABASE_URL + '/storage/v1' + dados.signedURL
 }
+
+/**
+ * Avisos deste aparelho para a marca, sob RLS (antes eram duas cópias, no
+ * Início e na Conta). O endpoint é UNIQUE: apaga a linha própria e insere de
+ * novo (update está revogado). A de OUTRA conta no mesmo aparelho o gatilho
+ * `push_substitui_aparelho` tira. `conferir` diz se a assinatura do navegador
+ * é desta marca — a RLS só devolve as próprias linhas.
+ */
+export function pushMarca(participanteId) {
+  const linha = (endpoint) => 'push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint)
+  return {
+    registrar: async (a) => {
+      if (!participanteId) throw new Error('Sua conta ainda não está ligada a uma marca.')
+      await api(linha(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
+      await api('push_subscriptions', {
+        metodo: 'POST', prefer: 'return=minimal',
+        corpo: { papel: 'marca', participante_id: participanteId, endpoint: a.endpoint, p256dh: a.p256dh, auth_chave: a.auth, user_agent: a.userAgent },
+      })
+    },
+    remover: (endpoint) => api(linha(endpoint), { metodo: 'DELETE' }),
+    conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&'))) || []).length > 0,
+  }
+}

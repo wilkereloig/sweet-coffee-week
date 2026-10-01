@@ -588,6 +588,10 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   // Vaga aberta (sem marca) mora na agenda; na lista de sessões ela aparecia
   // como "(marca)" com botão "Mudar".
   const sessoesComMarca = sessoes && sessoes.filter((s) => s.status !== 'aberto')
+  // Vaga aberta fora da grade (vencida ou além dos dias mostrados): sem isto
+  // ela ficava invisível aqui e continuava valendo para a marca.
+  const vagasForaDaGrade = (sessoes || []).filter((s) => s.status === 'aberto'
+    && !grade.some((d) => d.slots.some((sl) => sl.sessaoId === s.id)))
 
   // Sincroniza só quando o VALOR do banco muda: recarregar a vista (abrir uma
   // vaga, publicar um pedido) não pode apagar o que está sendo digitado.
@@ -789,6 +793,20 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 ))
               )}
             </div>
+            {vagasForaDaGrade.length > 0 && (
+              <div className="og-agenda__fora">
+                <p className="og-forms__nota">Vagas abertas fora destes dias:</p>
+                <ul className="ui-lista-simples">
+                  {vagasForaDaGrade.map((v) => (
+                    <li key={v.id}>
+                      <b>{dataHoraCurta(v.data_hora)}{new Date(v.data_hora) < new Date() ? ' · vencida' : ''}</b>
+                      <button type="button" className="og-btn og-btn--mini og-btn--vazado" disabled={!podeGerir || slotOcupado === v.id}
+                        onClick={() => clicarSlot({ estado: 'aberto', sessaoId: v.id, quandoIso: v.id })}>Fechar vaga</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="og-agenda__legenda">
               <span><i className="is-aberta" />vaga aberta</span>
               <span><i className="is-reservada" />reservada</span>

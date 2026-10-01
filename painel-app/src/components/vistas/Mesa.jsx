@@ -8,7 +8,7 @@ import { ETAPAS, colunasMesa } from '../../lib/mesa'
 import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Atividade } from '../Atividade'
-import { AvisosAparelho } from '../AvisosAparelho'
+import { ConviteApp, PUSH_ORGANIZACAO } from '../AppNoAparelho'
 import { Carregando, Erro, Secao, Selo } from '../ui'
 
 /*
@@ -152,12 +152,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                   ))}
                 </ul>
               )}
-            <AvisosAparelho
-              compacto
-              explicacao="Receba estes avisos no celular ou no computador, mesmo com o painel fechado."
-              registrar={(a) => rpc('registrar_push_organizacao', { p_secret: lerSenha(), p_endpoint: a.endpoint, p_p256dh: a.p256dh, p_auth: a.auth, p_user_agent: a.userAgent })}
-              remover={(endpoint) => rpc('remover_push_organizacao', { p_secret: lerSenha(), p_endpoint: endpoint })}
-            />
+            <ConviteApp papel="organizacao" {...PUSH_ORGANIZACAO} />
           </Secao>
 
           <Secao titulo="Atividade recente" nota="Quem fez o quê, por último" className="ui-area-atividade">

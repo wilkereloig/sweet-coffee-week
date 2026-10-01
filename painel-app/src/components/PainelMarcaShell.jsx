@@ -9,6 +9,10 @@ import { interpretarLinkMarca, nivelDoAviso, NIVEIS } from '../lib/guia'
 import { useResumoMarca } from './vistas-marca/useResumoMarca'
 import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
+import { AjudaRapida } from './AjudaRapida'
+import { InstalarApp } from './AppNoAparelho'
+import { AvisosAparelho } from './AvisosAparelho'
+import { pushMarca } from '../lib/marcaApi'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
@@ -68,6 +72,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
+  const [ajudaAberta, setAjudaAberta] = React.useState(false)
   const [avisos, setAvisos] = React.useState([])
   const [avisosCarregando, setAvisosCarregando] = React.useState(true)
   const [avisosErro, setAvisosErro] = React.useState(null)
@@ -97,8 +102,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     setRota(destino)
     if (h === location.hash) return
     if (substituir) history.replaceState(history.state, '', h)
-    else history.pushState({}, '', h)
+    // `interno`: a entrada nasceu dentro do painel, então "Voltar" pode
+    // usar o histórico sem sair do app (link colado ou push abrem sem ele).
+    else history.pushState({ interno: true }, '', h)
   }, [])
+  const voltar = React.useCallback(() => {
+    if (history.state && history.state.interno) history.back()
+    else navegar({ vista: 'inicio' })
+  }, [navegar])
 
   // `alvo` (o item/bloco/campo pedido) vem do endereço. A vista o consome e
   // o endereço volta a ser só a vista — recarregar não repete o salto.
@@ -225,6 +236,19 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           </div>
         )}
         <div className="pn-cabeca__dir">
+          {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
+          {vista !== 'mensagens' && (
+            <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto"
+              aria-label={'Falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
+              onClick={() => irPara('mensagens')}>
+              <Icone nome="mensagens" tamanho={20} />
+              <span className="pn-cabeca__btn-rotulo" aria-hidden="true">Falar com a organização</span>
+              {msgsNaoLidas > 0 && <span className="pn-badge" aria-hidden="true">{msgsNaoLidas}</span>}
+            </button>
+          )}
+          <button type="button" className="pn-cabeca__btn" aria-label="Ajuda rápida" aria-haspopup="dialog" onClick={() => setAjudaAberta(true)}>
+            <Icone nome="informacao" tamanho={20} />
+          </button>
           <Central
             itens={avisos}
             carregando={avisosCarregando}
@@ -251,6 +275,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             <Vista
               key={vista}
               irPara={irPara}
+              voltar={voltar}
               abrirLink={abrirLink}
               alvo={alvo}
               consumirAlvo={consumirAlvo}
@@ -281,6 +306,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         )}
         onIr={(d) => irPara(d)}
       />
+      <AjudaRapida aberto={ajudaAberta} onFechar={() => setAjudaAberta(false)} papel="marca" onIr={(l) => abrirLink(l)}
+        aparelho={<><InstalarApp />{dadosMarca && dadosMarca.participante && <AvisosAparelho
+          explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
+          {...pushMarca(dadosMarca.participante.id)} />}</>} />
       <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
     </div>
   )

@@ -1,8 +1,9 @@
 import React from 'react'
-import { api, auth, tokenVivo, recadoSenha } from '../lib/marcaApi'
+import { api, auth, tokenVivo, recadoSenha, pushMarca } from '../lib/marcaApi'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess'
 import { Folha } from './Folha'
 import { AvisosAparelho } from './AvisosAparelho'
+import { InstalarApp } from './AppNoAparelho'
 import { Secao } from './ui'
 
 /*
@@ -60,26 +61,17 @@ export function ContaMarca({ aberto, onFechar, onSair }) {
       .then((l) => setMarca((l && l[0]) || null)).catch(() => setMarca(null))
   }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function registrar(a) {
-    if (!marca) throw new Error('Sua conta ainda não está ligada a uma marca.')
-    await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
-    await api('push_subscriptions', {
-      metodo: 'POST',
-      prefer: 'return=minimal',
-      corpo: { papel: 'marca', participante_id: marca.id, endpoint: a.endpoint, p256dh: a.p256dh, auth_chave: a.auth, user_agent: a.userAgent },
-    })
-  }
-  const remover = (endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })
+  const push = pushMarca(marca && marca.id)
 
   return (
     <Folha aberto={aberto} titulo="Sua conta" sub={marca ? marca.nome_marca : 'Painel SCW · Participante'} onFechar={onFechar}>
       <div className="ui-pilha">
-        <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho: ligue em cada celular ou computador que você usa.">
-          <AvisosAparelho
+        <Secao titulo="Este aparelho" nota="Instalar e avisos valem por aparelho: faça em cada celular ou computador que você usa.">
+          <InstalarApp />
+          {marca && <AvisosAparelho
             explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado."
-            registrar={registrar}
-            remover={remover}
-          />
+            {...push}
+          />}
         </Secao>
         <Secao titulo="Alterar minha senha" nota="Pelo menos 10 caracteres. Esqueceu a senha? Peça uma nova à organização pelo WhatsApp.">
           <AlterarSenha />

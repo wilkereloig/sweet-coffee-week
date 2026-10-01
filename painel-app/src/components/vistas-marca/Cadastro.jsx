@@ -132,6 +132,9 @@ function pedidoItem(i) {
       nome: (i.nome || '').trim(), descricao: (i.descricao || '').trim(), ingredientes: (i.ingredientes || '').trim(),
       vegano: !!i.vegano, sem_gluten: !!i.sem_gluten, sem_lactose: !!i.sem_lactose,
       ...(i.posicao === 2 ? { tipo: i.tipo } : {}),
+      // Só vai se a coluna veio do banco: antes da migration de 01/10/2026 o
+      // PATCH com coluna desconhecida derrubaria o salvamento do item inteiro.
+      ...('tem_substituicao' in i ? { tem_substituicao: !!i.tem_substituicao, substituicao: (i.substituicao || '').trim() || null } : {}),
     },
   }
 }
@@ -676,6 +679,24 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                         <label className="marcar"><input type="checkbox" checked={!!it.sem_gluten} onChange={(e) => alterarItem(it.id, 'sem_gluten', e.target.checked)} /><span>Sem glúten</span></label>
                         <label className="marcar"><input type="checkbox" checked={!!it.sem_lactose} onChange={(e) => alterarItem(it.id, 'sem_lactose', e.target.checked)} /><span>Sem lactose</span></label>
                       </fieldset>
+                      {'tem_substituicao' in it && (
+                        <>
+                          <div className="marcar-grupo" role="radiogroup" aria-label={'Existe substituição para o item ' + it.posicao + '?'}>
+                            <span className="marcar-grupo__pergunta">Existe substituição para este item?</span>
+                            <label className="marcar"><input type="radio" name={'subst-' + it.id} checked={!it.tem_substituicao} onChange={() => alterarItem(it.id, 'tem_substituicao', false)} /><span>Não</span></label>
+                            <label className="marcar"><input type="radio" name={'subst-' + it.id} checked={!!it.tem_substituicao} onChange={() => alterarItem(it.id, 'tem_substituicao', true)} /><span>Sim</span></label>
+                          </div>
+                          {it.tem_substituicao && (
+                            <label><span>Qual é a substituição?</span>
+                              <textarea id={'campo-item-' + it.posicao + '-substituicao'} maxLength={500} value={it.substituicao || ''}
+                                placeholder="Ex.: troca por versão sem glúten, ou outro sabor quando acabar."
+                                aria-describedby={!(it.substituicao || '').trim() ? 'subst-falta-' + it.id : undefined}
+                                onChange={(e) => alterarItem(it.id, 'substituicao', e.target.value)} />
+                              {!(it.substituicao || '').trim() && <span className="gm-campo-erro" id={'subst-falta-' + it.id}>Descreva a substituição.</span>}
+                            </label>
+                          )}
+                        </>
+                      )}
                     </div>
                   )
                 })}

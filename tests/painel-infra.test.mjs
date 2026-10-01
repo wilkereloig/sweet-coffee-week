@@ -80,7 +80,9 @@ const RESPOSTAS_JSX = ler('painel-app/src/components/vistas/Respostas.jsx')
 const CADASTRO_JSX = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
 // Etapa 7 (29/09/2026): os avisos do aparelho da marca saíram de Arquivos
 // (agora Downloads) para o botão Conta.
-const ARQUIVOS_JSX = ler('painel-app/src/components/ContaMarca.jsx')
+// A tela da conta da marca + o adaptador de push dela (pushMarca, em
+// marcaApi.js desde 01/10/2026: era repetido no Início e na Conta).
+const ARQUIVOS_JSX = ler('painel-app/src/components/ContaMarca.jsx') + ler('painel-app/src/lib/marcaApi.js')
 const MARCA_API_JS = ler('painel-app/src/lib/marcaApi.js')
 const PAINEL_SHELL_JSX = ler('painel-app/src/components/PainelShell.jsx')
 const PAINEL_MARCA_SHELL_JSX = ler('painel-app/src/components/PainelMarcaShell.jsx')
@@ -1033,8 +1035,9 @@ test('Producao.jsx: toda escrita pede producao.gerir — vaga, pedido, publicar,
   // quando o piso era "pelo menos 9").
   // Etapa 4 (29/09/2026): o botão "Publicar arquivo" saiu daqui para o módulo
   // Arquivos (ArquivosOrg.jsx), que guarda as escritas pelo mesmo podeGerir.
+  // 01/10/2026: + "Fechar vaga" das vagas abertas fora da grade.
   const ocorrencias = (semC.match(/!podeGerir/g) || []).length
-  assert.equal(ocorrencias, 15, 'esperava exatamente 15 usos de !podeGerir em Producao.jsx, achei ' + ocorrencias)
+  assert.equal(ocorrencias, 16, 'esperava exatamente 16 usos de !podeGerir em Producao.jsx, achei ' + ocorrencias)
   const arq = semComentarios(ler('painel-app/src/components/vistas/ArquivosOrg.jsx'))
   assert.match(arq, /const podeGerir = pode\('producao\.gerir'\)/)
   assert.match(arq, /disabled=\{!podeGerir\} onClick=\{\(\) => setFolha\(\{ tipo: 'novo' \}\)\}/)

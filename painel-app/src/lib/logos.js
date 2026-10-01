@@ -28,20 +28,27 @@ export function validarLogo({ nome, tamanho, largura, altura, textoSvg } = {}) {
   const ext = extensao(nome)
   if (!TIPOS_EXIBICAO[ext]) return 'Formato não aceito. Envie SVG, PNG, WEBP ou JPG (PDF, EPS e AI vão no campo da versão vetorial).'
   if (Number(tamanho) > LIMITE_BYTES) return 'Arquivo maior que 10 MB.'
-  if (ext === 'svg') {
-    // SVG com código embutido não entra: a logo é exibida para todo mundo.
-    if (/<script|\son[a-z]+\s*=|javascript:/i.test(String(textoSvg || ''))) return 'Esse SVG tem código embutido. Exporte de novo, só com o desenho.'
-    return null
-  }
+  if (ext === 'svg') return svgInseguro(textoSvg)
   const lado = Math.max(Number(largura) || 0, Number(altura) || 0)
   if (lado && lado < LADO_MINIMO) return 'Imagem pequena demais (' + lado + 'px). Envie em alta resolução: pelo menos ' + LADO_MINIMO + 'px no lado maior, ou SVG.'
   return null
 }
 
-export function validarVetor({ nome, tamanho } = {}) {
+export function validarVetor({ nome, tamanho, textoSvg } = {}) {
   if (!TIPOS_VETOR[extensao(nome)]) return 'A versão vetorial precisa ser PDF, EPS, AI ou SVG.'
   if (Number(tamanho) > LIMITE_BYTES) return 'Arquivo maior que 10 MB.'
+  if (extensao(nome) === 'svg') return svgInseguro(textoSvg)
   return null
+}
+
+// SVG com código ou conteúdo externo não entra: o bucket é público e o arquivo
+// pode ser aberto sozinho, fora de um <img>. Entidade (&#…;) fica de fora
+// porque é como se esconde "javascript:" de um filtro de texto.
+// ponytail: filtro no navegador; quem chama a API direto passa. Validação de
+// verdade é numa Edge Function que leia o arquivo antes de registrar.
+const SVG_PERIGOSO = /<script|<foreignobject|<iframe|<embed|<object|<!entity|\son[a-z]+\s*=|javascript:|data:text\/html|&#|(?:xlink:)?href\s*=\s*["']?\s*(?!#|data:image\/)[a-z]/i
+export function svgInseguro(textoSvg) {
+  return SVG_PERIGOSO.test(String(textoSvg || '')) ? 'Esse SVG tem código ou conteúdo externo embutido. Exporte de novo, só com o desenho.' : null
 }
 
 /** Caminho no bucket `logos`: `<participante>/<carimbo>-<sufixo>.<ext>` (nunca por cima de outro). */

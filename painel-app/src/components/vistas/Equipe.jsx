@@ -181,7 +181,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
             </label>
             <button className="og-btn" type="submit" disabled={!!ocupado}>{ocupado === 'salvar' ? 'Salvando…' : 'Salvar'}</button>
           </form>
-          {aviso && <p className={'ui-nota ' + (aviso.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role="status">{aviso.texto}</p>}
+          {aviso && <p className={'ui-nota ' + (aviso.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
           {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
           <Secao titulo="Acesso">
             <div className="ui-linha-acoes">
@@ -371,7 +371,7 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
                 {config.senha_unica_ativa ? 'Desligar acesso compartilhado' : 'Religar acesso compartilhado'}
               </button>
             )}
-            {avisoCompartilhado && <p className={'ui-nota ' + (avisoCompartilhado.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role="status">{avisoCompartilhado.texto}</p>}
+            {avisoCompartilhado && <p className={'ui-nota ' + (avisoCompartilhado.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role={avisoCompartilhado.tom === 'erro' ? 'alert' : 'status'}>{avisoCompartilhado.texto}</p>}
           </Secao>
 
           <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho, não por conta.">

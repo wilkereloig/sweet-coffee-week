@@ -3243,6 +3243,34 @@ conferido). O que passou a valer:
   Vouchers, mensagens) · Consulta. Migration `20261001_funcao_comercial.sql`.
   Função nova é linha em `funcoes`/`permissoes`, nunca lista no código.
 
+#### Refinamento: conversa, fotos, logo, substituição, ajuda e app — 01/10/2026 (Fase 17)
+
+Migration `20261001_painel_refinamento.sql` (**rodar no SQL Editor**: o MCP recusa escrita).
+- **Conversa a um toque:** botão "Falar com a organização" no cabeçalho da marca, em
+  toda tela, com o número de não lidas; mensagem nova vira a primeira "Próxima ação" do
+  Início. Abrir a conversa marca como lido também o aviso de mensagem do sino.
+- **Fotos:** a policy `fotos_marca_reserva` passou a exigir `foto_liberacao = 'liberado'`
+  e vaga futura; índice `sessoes_fotos_uma_ativa` (uma sessão agendada/remarcada por
+  participação). Vaga aberta fora da grade aparece para a organização, com "Fechar vaga".
+- **Logo:** continua valendo na hora (decisão do Wilker); a organização recebe aviso. A
+  marca vê as próprias versões. ⚠️ A checagem de SVG é **só no navegador**
+  (`svgInseguro`): quem chama a API do Storage direto passa. Fechar isso é uma Edge
+  Function que leia o arquivo antes de `registrar_logo`.
+- **Substituição por item:** `participantes_itens.tem_substituicao` + `substituicao`
+  (≤500). Opcional, não conta no progresso. O front só envia as colunas se elas vieram do
+  banco — antes da migration o PATCH não quebra.
+- **Push com dono:** `push_subscriptions.user_id`; gatilho `push_substitui_aparelho`
+  (outra conta no mesmo aparelho substitui a anterior) e `push_segue_conta` (conta
+  desativada/bloqueada pausa os aparelhos). Assinaturas antigas da organização ficam sem
+  dono até serem religadas.
+- **Ajuda rápida** (`AjudaRapida.jsx`, conteúdo em `lib/ajuda.js`) no botão de
+  informação do cabeçalho dos dois painéis. `tests/painel-app-ajuda` reprova link que não
+  abre tela.
+- **Painel como app:** `lib/instalar.js` captura `beforeinstallprompt` (importado no
+  `main.jsx`, antes do render). `ConviteApp` (Início e Visão geral) junta instalar +
+  avisos, com "Agora não" em `localStorage`; reabre pela Ajuda e pela Conta. Nunca pede
+  permissão sozinho.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4

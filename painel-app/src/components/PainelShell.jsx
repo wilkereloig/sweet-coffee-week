@@ -2,6 +2,9 @@ import React from 'react'
 import { Central } from './Central'
 import { Icone } from './Icone'
 import { AbasCelular } from './AbasCelular'
+import { AjudaRapida } from './AjudaRapida'
+import { InstalarApp, PUSH_ORGANIZACAO } from './AppNoAparelho'
+import { AvisosAparelho } from './AvisosAparelho'
 import { rpc } from '../lib/rpc'
 import { lerRota, montarRota, rotaDoLink, linkDeAlvo, ABA_INICIAL } from '../lib/rota'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
@@ -79,6 +82,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   const [avisosCarregando, setAvisosCarregando] = React.useState(true)
   const [avisosErro, setAvisosErro] = React.useState(null)
   const [centralAberta, setCentralAberta] = React.useState(false)
+  const [ajudaAberta, setAjudaAberta] = React.useState(false)
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
@@ -242,6 +246,9 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
           <button className="pn-cabeca__btn" type="button" aria-label="Atualizar" onClick={atualizar}>
             <Icone nome="atualizar" tamanho={20} />
           </button>
+          <button type="button" className="pn-cabeca__btn" aria-label="Ajuda rápida" aria-haspopup="dialog" onClick={() => setAjudaAberta(true)}>
+            <Icone nome="informacao" tamanho={20} />
+          </button>
           <Central
             itens={avisos}
             carregando={avisosCarregando}
@@ -278,6 +285,10 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
         icone={(d) => <Icone nome={ICONE_DESTINO[d]} tamanho={24} />}
         onIr={(d) => navegar({ vista: d })}
       />
+      <AjudaRapida aberto={ajudaAberta} onFechar={() => setAjudaAberta(false)} papel="organizacao" onIr={abrirLink}
+        aparelho={<><InstalarApp /><AvisosAparelho
+          explicacao="Receba os avisos da organização no celular ou no computador, mesmo com o painel fechado."
+          {...PUSH_ORGANIZACAO} /></>} />
     </div>
   )
 }

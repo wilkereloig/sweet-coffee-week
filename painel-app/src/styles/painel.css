@@ -180,6 +180,10 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
 }
 @media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(61,19,8,.08)} }
 .pn-cabeca__btn .pn-badge{position:absolute;top:4px;right:2px}
+/* Botão com rótulo (Falar com a organização): texto no desktop, só ícone no celular. */
+.pn-cabeca__btn--texto{width:auto;padding:0 14px;display:inline-flex;gap:8px;font:700 14px/1 var(--f-ui)}
+.pn-cabeca__btn--texto .pn-badge{position:static}
+@media (max-width:1100px){ .pn-cabeca__btn--texto{width:44px;padding:0;justify-content:center} .pn-cabeca__btn-rotulo{display:none} .pn-cabeca__btn--texto .pn-badge{position:absolute} }
 @media (min-width:901px){ #btn-sair{display:none} }
 @media (max-width:1000px){ .pn-cabeca__quem{display:none} }
 @media (max-width:900px){
@@ -331,6 +335,10 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
 @media (hover:hover){ .og-btn:hover,.acao:hover{transform:translateY(-2px)} }
 .og-btn:active,.acao:active{transform:translateY(0)}
 .og-btn[disabled],.acao[disabled]{opacity:.45;cursor:default;pointer-events:none;transform:none}
+/* Desabilitado tem um estado só (§6.6), também nos controles fora do .og-btn. */
+.ui-chip:disabled,.mc-vaga:disabled,.ui-link:disabled,.og-agenda__modos button:disabled{opacity:.45;cursor:default;pointer-events:none}
+/* Trabalhando (salvar, enviar): o cursor diz que a tela não travou. */
+[aria-busy="true"]{cursor:progress}
 .og-btn--vazado,.acao.secundaria{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo)}
 @media (hover:hover){ .og-btn--vazado:hover,.acao.secundaria:hover{box-shadow:inset 0 0 0 1.5px var(--scw-choco)} }
 .og-btn--mini{min-height:44px;padding:0 16px;font-size:13.5px}
@@ -342,7 +350,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
   color:var(--scw-marrom);font:700 14px/1.3 var(--f-ui);text-decoration:underline;text-underline-offset:3px;text-align:left;
 }
 .ui-chip{
-  min-height:40px;padding:0 14px;border:0;border-radius:999px;
+  min-height:44px;padding:0 14px;border:0;border-radius:999px;
   background:transparent;box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo);font:700 13px/1 var(--f-ui);
 }
 .ui-chip[aria-pressed="true"]{background:var(--scw-choco);color:var(--scw-creme);box-shadow:none}
@@ -524,12 +532,24 @@ button.og-item{cursor:pointer}
 }
 .ui-conexao[data-tom="offline"]{background:var(--scw-laranja);color:var(--scw-choco)}
 .ui-conexao[data-tom="versao"]{background:var(--scw-choco);color:var(--scw-creme)}
-.ui-conexao__btn{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:var(--scw-amarelo);color:var(--scw-choco);font:700 13px/1 var(--f-ui)}
+.ui-conexao__btn{min-height:44px;padding:0 14px;border:0;border-radius:999px;background:var(--scw-amarelo);color:var(--scw-choco);font:700 13px/1 var(--f-ui)}
 
 /* Convite para ligar avisos (compacto). */
 .ui-convite{margin-top:20px;padding-top:16px;border-top:1px solid var(--scw-filete);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
 .ui-convite > .ui-nota{flex:1 1 100%}
 .ui-convite p{margin:0;flex:1 1 240px;font:400 14px/1.45 var(--f-texto)}
+/* Convite do app: instalar + avisos num bloco só; o convite de avisos de
+   dentro perde o próprio filete para não virar caixa dentro de caixa. */
+.ui-convite--app{align-items:flex-start}
+.ui-convite--app > p{flex:1 1 100%}
+.ui-convite--app .ui-convite{margin:0;padding:0;border:0;flex:1 1 100%}
+.ui-instalar{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 100%;margin-bottom:6px}
+/* Ajuda rápida: lista curta, uma ação por item. */
+.ui-ajuda{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ui-ajuda__item{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0;border-top:1px solid var(--scw-filete)}
+.ui-ajuda__item:first-child{border-top:0;padding-top:0}
+.ui-ajuda__item > b{font:700 15px/1.3 var(--f-ui)}
+.ui-ajuda__item > .ui-nota{margin:0}
 
 /* ═══ Painel inicial ═══════════════════════════════════════════════════════ */
 .ui-numeros{list-style:none;margin:0 0 var(--espaco-secao);padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
@@ -736,7 +756,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 }
 @media (hover:hover){ .og-cartao:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(61,19,8,.12)} }
 .og-cartao__topo{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.og-cartao__topo .og-selo{flex:0 0 auto;padding:3px 7px;font-size:10px}
+.og-cartao__topo .og-selo{flex:0 0 auto;padding:3px 7px;font-size:11px}
 .og-cartao__nome{font:700 14px/1.2 var(--f-ui);margin:0;overflow-wrap:anywhere}
 .og-cartao__meta{font:400 12.5px/1.3 var(--f-texto);color:var(--scw-marrom);margin:0}
 .og-cartao__combo{display:flex;gap:6px;color:rgba(106,44,21,.5)}
@@ -1307,5 +1327,6 @@ button.ui-modulo:active{transform:translateY(0)}
    `prefers-reduced-motion` sem ninguém notar. */
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
-  .og-btn:hover,.acao:hover,.og-cartao:hover,.og-slot:hover,.ui-numero:hover,.pn-setor--escolha:hover{transform:none}
+  .og-btn:hover,.acao:hover,.og-cartao:hover,.og-slot:hover,.ui-numero:hover,.pn-setor--escolha:hover,
+  .gm-proxima:hover,.gm-proxima:active,button.ui-modulo:hover,button.ui-modulo:active,.og-abaapp:active,.og-btn:active,.acao:active{transform:none}
 }

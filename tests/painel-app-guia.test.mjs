@@ -123,6 +123,11 @@ test('fotos: só a sessão desta participação e as vagas da edição dela', ()
   assert.deepEqual(f.minhas.map((s) => s.id), [2])
   assert.deepEqual(f.vagas.map((s) => s.id), [3])
   assert.deepEqual(fotosDaParticipacao(sessoes, null), { minhas: [], vagas: [] })
+  // Vaga vencida sai da lista: o banco recusa a reserva.
+  const agora = new Date('2026-10-10T12:00:00Z')
+  const comData = [{ id: 5, status: 'aberto', edicao_codigo: '2026.2', data_hora: '2026-10-09T12:00:00Z' },
+    { id: 6, status: 'aberto', edicao_codigo: '2026.2', data_hora: '2026-10-11T12:00:00Z' }]
+  assert.deepEqual(fotosDaParticipacao(comData, pa, agora).vagas.map((s) => s.id), [6])
   // A sessão realizada em 2025 não dá a etapa Fotos desta edição por feita.
   const r = resumoMarca({ ...base, sessoes: fotosDaParticipacao([sessoes[0]], pa).minhas })
   assert.equal(r.etapas.find((e) => e.chave === 'fotos').estado, 'pendente')
