@@ -1322,8 +1322,9 @@ conscientes ficam na allowlist do próprio teste.
   bege. **Nunca inventar logo** — `resolveParticipant` com fallback em iniciais.
   ⚠️ A regra vale para o **slot de marca**, não para toda imagem de logo: a marca da F2
   e a logo do cabeçalho são assets de proporção própria e seguem como estão.
-  ⚠️ **Exceção do PAINEL (29/09/2026):** a logo enviada pela marca usa `contain` com
-  margem interna (`LogoMarca`), porque vem em proporção qualquer — ver §10.4-b, Fase 15.
+  ✅ **O PAINEL segue a mesma regra (01/10/2026, pedido do Wilker):** `LogoMarca` /
+  `.ui-logo` preenche 100% da caixa com `cover`, sem margem interna. A exceção de
+  29/09/2026 (`contain` com margem) foi revogada — ver §10.4-b, Fase 15.
 - **Coerência de conteúdo é obrigatória:** página de edição mostra fotos daquela edição;
   página de participante mostra o participante certo; **Sweet Awards mostra a peça
   premiada** (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor Bebida → a bebida,
@@ -3219,8 +3220,12 @@ conferido). O que passou a valer:
   Raster com lado maior < 500px e SVG com código são recusados.
 - **A logo é o 17º campo** do progresso (`campos_cadastro` e
   `camposObrigatorios`, mesma lista). Não trava o envio para análise.
-- ⚠️ **Logo no painel é `contain`**, exceção declarada à §6.12: aqui o arquivo é
-  enviado pela marca, com proporção qualquer; `cover` recortaria a marca.
+- ✅ **Logo no painel preenche 100% da caixa (`cover`)**, como na §6.12 (revisado em
+  01/10/2026; antes era `contain` com margem). O filete de borda do slot é um `::after`
+  por cima da imagem, porque `box-shadow inset` do próprio slot ficaria atrás dela.
+  ⚠️ Logo enviada que não seja quadrada é cortada nas bordas — as do acervo são
+  1080×1080. Se isso virar problema, o ajuste é validar a proporção no envio, não
+  devolver a margem.
 
 #### Contas da equipe sem e-mail + função Comercial — 01/10/2026 (Fase 16)
 
