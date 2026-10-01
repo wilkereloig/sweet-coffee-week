@@ -22,7 +22,7 @@ export function interpretarLink(link) {
   const partes = link.split('/').filter(Boolean)
   if (!partes.length) return null
   const [seg, a, b] = partes
-  const vista = VISTA_DO_SEGMENTO[seg] || seg
+  const vista = (Object.hasOwn(VISTA_DO_SEGMENTO, seg) && VISTA_DO_SEGMENTO[seg]) || seg
   if (seg === 'respostas') return { vista, origem: a, id: b }
   if (seg === 'producao') return { vista, sub: a, id: b }
   if (seg === 'marcas') return { vista, id: a, sub: b }

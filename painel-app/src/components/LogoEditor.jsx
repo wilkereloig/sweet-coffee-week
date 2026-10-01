@@ -61,9 +61,14 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
   const urlPrevia = escolha && escolha.url
   React.useEffect(() => () => { if (urlPrevia) URL.revokeObjectURL(urlPrevia) }, [urlPrevia])
 
+  // `texto` pode depender do estado novo (logo guardada sem participação aberta
+  // não está "valendo", e a tela não pode dizer que está).
   async function depois(texto) {
-    setEscolha(null); setEnviando(false); setAviso({ ok: true, texto })
-    await carregar(); if (onMudou) onMudou()
+    setEscolha(null); setEnviando(false)
+    let novo = null
+    try { novo = await adaptador.carregar(); setInfo(novo); setErro(null) } catch (e) { setErro(erroLegivel(e)) }
+    setAviso({ ok: true, texto: typeof texto === 'function' ? texto(novo) : texto })
+    if (onMudou) onMudou()
   }
   async function executar(fn, texto) {
     setOcupado(true); setAviso(null)
@@ -79,9 +84,10 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
     if (problema) { setAviso({ texto: problema }); return }
     setEscolha({ file, url: URL.createObjectURL(file), meta, vetor: null })
   }
-  function aoEscolherVetor(file) {
+  async function aoEscolherVetor(file) {
     if (!file) return
-    const problema = validarVetor({ nome: file.name, tamanho: file.size })
+    const textoSvg = extensao(file.name) === 'svg' ? await file.text().catch(() => '') : undefined
+    const problema = validarVetor({ nome: file.name, tamanho: file.size, textoSvg })
     if (problema) { setAviso({ texto: problema }); return }
     setEscolha((e) => ({ ...e, vetor: file }))
   }
@@ -100,7 +106,9 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
         dadosVetor = { path_vetor: pv, mime_vetor: mv, nome_vetor: vetor.name }
       }
       await adaptador.definir({ path, mime, nome_original: file.name, tamanho: file.size, largura: meta.largura || null, altura: meta.altura || null, ...dadosVetor })
-    }, 'Logo confirmada. Ela já aparece no painel.')
+    }, (novo) => (novo && novo.estado !== 'confirmada'
+      ? 'Logo guardada. Ela passa a valer na edição quando sua participação for aberta.'
+      : modo === 'marca' ? 'Logo enviada e já valendo. A organização foi avisada e pode pedir ajuste.' : 'Logo confirmada. Ela já aparece no painel.'))
   }
 
   // O alvo `#campo-logo` existe desde o primeiro render: "Enviar logo" rola
@@ -199,15 +207,15 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
 
       {aviso && <p className={'ui-nota ' + (aviso.ok ? 'ui-nota--ok' : 'ui-nota--erro')} role={aviso.ok ? 'status' : 'alert'}>{aviso.texto}</p>}
 
-      {/* Organização: histórico de versões, restaurar e remover. */}
-      {modo === 'org' && (info.versoes || []).length > 1 && (
+      {/* Histórico de versões: nenhuma é apagada. Restaurar e remover são da organização. */}
+      {(info.versoes || []).length > 1 && (
         <details className="ui-recolhe">
-          <summary>Versões anteriores ({info.versoes.length - 1})</summary>
+          <summary>{modo === 'marca' ? 'Suas versões anteriores' : 'Versões anteriores'} ({info.versoes.length - 1})</summary>
           <ul className="ui-lista-simples">
             {info.versoes.filter((v) => !atual || v.id !== atual.id).map((v) => (
               <li key={v.id} className="ui-logo-editor__versao">
                 <LogoMarca url={urlLogo(v.path)} nome={nomeMarca} tamanho={40} />
-                <span>{ORIGEM[v.origem]} · {dataCurta(v.criado_em)}{v.criado_por_rotulo ? ' · ' + v.criado_por_rotulo : ''}{v.edicao_codigo ? ' · edição ' + v.edicao_codigo : ''}</span>
+                <span>{ORIGEM[v.origem]} · {dataCurta(v.criado_em)}{modo === 'org' && v.criado_por_rotulo ? ' · ' + v.criado_por_rotulo : ''}{v.edicao_codigo ? ' · edição ' + v.edicao_codigo : ''}</span>
                 {podeEditar && adaptador.restaurar && <Botao icone="historico" variante="secundario" disabled={ocupado} onClick={() => executar(() => adaptador.restaurar(v.id), 'Versão restaurada como logo oficial.')}>Usar esta versão</Botao>}
               </li>
             ))}

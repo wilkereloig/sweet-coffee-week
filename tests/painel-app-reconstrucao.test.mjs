@@ -71,7 +71,13 @@ test('logo: aceita alta resolução e recusa print, formato errado e SVG com có
   assert.equal(validarLogo({ nome: 'logo.svg', tamanho: 3000, textoSvg: '<svg><path d="M0 0"/></svg>' }), null)
   assert.match(validarLogo({ nome: 'print.jpg', tamanho: 50000, largura: 320, altura: 320 }), /pequena demais/)
   assert.match(validarLogo({ nome: 'logo.gif', tamanho: 5000 }), /Formato não aceito/)
-  assert.match(validarLogo({ nome: 'logo.svg', tamanho: 5000, textoSvg: '<svg onload="x()"></svg>' }), /código embutido/)
+  assert.match(validarLogo({ nome: 'logo.svg', tamanho: 5000, textoSvg: '<svg onload="x()"></svg>' }), /código/)
+  // Os caminhos que a regex antiga deixava passar.
+  for (const t of ['<svg><foreignObject><div/></foreignObject></svg>', '<svg><a href="&#106;avascript:x"/></svg>',
+    '<svg><image href="https://x.test/a.png"/></svg>', '<svg><iframe/></svg>', '<!DOCTYPE s [<!ENTITY x "y">]><svg/>'])
+    assert.ok(validarLogo({ nome: 'logo.svg', tamanho: 10, textoSvg: t }), t)
+  // Referência interna e imagem embutida seguem valendo.
+  assert.equal(validarLogo({ nome: 'logo.svg', tamanho: 10, textoSvg: '<svg><use href="#a"/><image href="data:image/png;base64,AA"/></svg>' }), null)
   assert.match(validarLogo({ nome: 'logo.png', tamanho: 11 * 1024 * 1024, largura: 2000 }), /10 MB/)
   assert.equal(validarLogo({ nome: 'logo.png', tamanho: 100, largura: LADO_MINIMO, altura: 100 }), null)
   assert.equal(validarVetor({ nome: 'marca.pdf', tamanho: 1000 }), null)

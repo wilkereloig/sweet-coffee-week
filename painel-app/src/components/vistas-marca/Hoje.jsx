@@ -1,12 +1,12 @@
 import React from 'react'
 import { Icone, MODULO_ICONE } from '../Icone'
 import { urlLogo } from '../../lib/logos'
-import { api } from '../../lib/marcaApi'
+import { api, pushMarca } from '../../lib/marcaApi'
 import { chaveDia } from '../../lib/hoje'
 import { tempoRelativo } from '../../lib/central'
 import { nivelDoAviso, NIVEIS } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
-import { AvisosAparelho } from '../AvisosAparelho'
+import { ConviteApp } from '../AppNoAparelho'
 import { Carregando, Erro, Secao, Selo, Modulo, MacroSecao, GradeModulos, Botao, LogoMarca } from '../ui'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
@@ -93,8 +93,14 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
   const total = vendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
   const nomePessoa = participante && String(participante.responsavel || '').trim().split(/\s+/)[0]
 
-  const pendencias = (resumo && resumo.pendencias) || []
-  const proxima = resumo && resumo.proxima
+  // Mensagem nova da organização vem antes de tudo: é alguém esperando resposta.
+  const msgsNovas = contadores.mensagens || 0
+  const pendMsg = msgsNovas ? {
+    tipo: 'mensagens', link: 'mensagens', acao: 'Ler mensagens', texto: 'Leia e responda por aqui.',
+    titulo: msgsNovas === 1 ? '1 mensagem nova da organização' : msgsNovas + ' mensagens novas da organização',
+  } : null
+  const pendencias = [...(pendMsg ? [pendMsg] : []), ...((resumo && resumo.pendencias) || [])]
+  const proxima = pendMsg || (resumo && resumo.proxima)
   const outras = pendencias.filter((p) => p !== proxima)
   const concluidas = resumo ? resumo.etapas.filter((e) => e.estado === 'feito') : []
   const emAnalise = resumo && resumo.combo && resumo.combo.status === 'em_analise'
@@ -269,15 +275,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                 </button>
               ))}
             </div>
-            <AvisosAparelho
-              compacto
-              explicacao="Quer saber na hora quando a organização escrever ou pedir algo? Ligue os avisos neste aparelho."
-              registrar={async (a) => {
-                await api('push_subscriptions?endpoint=eq.' + encodeURIComponent(a.endpoint), { metodo: 'DELETE' }).catch(() => null)
-                await api('push_subscriptions', { metodo: 'POST', prefer: 'return=minimal', corpo: { papel: 'marca', participante_id: participante && participante.id, endpoint: a.endpoint, p256dh: a.p256dh, auth_chave: a.auth, user_agent: a.userAgent } })
-              }}
-              remover={(endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })}
-            />
+            <ConviteApp papel="marca" {...pushMarca(participante && participante.id)} />
           </MacroSecao>
 
           {momento !== 'antes' && (

@@ -57,3 +57,12 @@ test('link de arquivo não vira nome de aba', () => {
   assert.deepEqual(rotaDoLink('arquivos/abc-123'), { vista: 'arquivos', aba: 'gerais', filtros: { item: 'abc-123' } })
   assert.deepEqual(rotaDoLink('arquivos/arquivados'), { vista: 'arquivos', aba: 'arquivados', filtros: {} })
 })
+
+test('link forjado com chave do protótipo não derruba o painel', () => {
+  for (const l of ['producao/constructor', 'edicao/__proto__', 'constructor', '__proto__/x', 'operacao/toString', 'edicao/hasOwnProperty']) {
+    const r = rotaDoLink(l)
+    assert.equal(typeof r.vista, 'string', l)
+    assert.equal(typeof r.aba, 'string', l)
+  }
+  assert.deepEqual(rotaDoLink('edicao/constructor'), { vista: 'edicao', aba: 'configuracao', filtros: {} })
+})

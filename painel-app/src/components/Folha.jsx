@@ -13,7 +13,7 @@ import { NivelTitulo } from './ui'
  */
 const SAIDA = 260 // espelha .og-detalhe.is-fechando (260ms) em painel.css
 
-const FOCAVEIS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+export const FOCAVEIS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }) {
   const [montada, setMontada] = React.useState(aberto)

@@ -87,11 +87,9 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
       registrar([r.p.id], 'copiado')
     } catch { /* os dados estão na tela */ }
   }
-  function fechar() {
-    if (rodando) return
-    if (criados.length && !window.confirm('Fechar? As senhas desta tela não aparecem de novo.')) return
-    onFechar()
-  }
+  // Sair da tela por qualquer caminho (Fechar ou Gerenciar) descarta as senhas.
+  const podeSair = () => !rodando && (!criados.length || window.confirm('Sair desta tela? As senhas geradas não aparecem de novo.'))
+  function fechar() { if (podeSair()) onFechar() }
 
   const titulo = modo === 'gerar' ? 'Gerar acessos' : 'Gerar novas senhas temporárias'
   return (
@@ -131,7 +129,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                         ? <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => registrar([r.p.id], 'whatsapp_aberto')}>WhatsApp</a>
                         : <span className="ui-nota">Sem WhatsApp</span>}
                       <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={envio === 'enviado_manual'} onClick={() => registrar([r.p.id], 'enviado_manual')}>{envio === 'enviado_manual' ? 'Enviado' : 'Marcar enviado'}</button>
-                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => onGerenciar(r.p)}>Gerenciar</button>}
+                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => { if (podeSair()) onGerenciar(r.p) }}>Gerenciar</button>}
                     </div>
                   </>
                 ) : <p className="ui-nota ui-nota--erro" role="alert">{r.erro}</p>}

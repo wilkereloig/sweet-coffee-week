@@ -102,12 +102,14 @@ export const vistaDoPedido = (bloco) => VISTA_DO_PEDIDO[bloco] || 'inicio'
  * devolve as sessões de todas as edições da marca: uma sessão de edição
  * passada não pode esconder as vagas nem dar a etapa Fotos por feita.
  */
-export function fotosDaParticipacao(sessoes, participacao) {
+export function fotosDaParticipacao(sessoes, participacao, agora = new Date()) {
   if (!participacao) return { minhas: [], vagas: [] }
   const lista = sessoes || []
   return {
     minhas: lista.filter((s) => s.participante_id && s.status !== 'aberto' && s.participacao_id === participacao.id),
-    vagas: lista.filter((s) => s.status === 'aberto' && !s.participante_id && s.edicao_codigo === participacao.edicao_codigo),
+    // Vaga vencida não se reserva (o banco também recusa): sai da lista.
+    vagas: lista.filter((s) => s.status === 'aberto' && !s.participante_id && s.edicao_codigo === participacao.edicao_codigo
+      && (!s.data_hora || new Date(s.data_hora) > agora)),
   }
 }
 

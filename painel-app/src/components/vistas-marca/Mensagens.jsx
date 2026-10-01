@@ -2,13 +2,14 @@ import React from 'react'
 import { api } from '../../lib/marcaApi'
 import { VistaCabeca } from '../VistaCabeca'
 import { Conversa } from '../Conversa'
+import { Icone } from '../Icone'
 
 /*
  * Mensagens (marca) — a conversa com a organização. A marca lê pela própria
  * RLS (só as suas) e escreve pela RPC `marca_enviar_mensagem`, que resolve a
  * marca pela sessão: a tela nunca diz de quem é a mensagem.
  */
-export function Mensagens({ aoMudarMensagens }) {
+export function Mensagens({ aoMudarMensagens, voltar }) {
   const [msgs, setMsgs] = React.useState([])
   const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
@@ -46,6 +47,7 @@ export function Mensagens({ aoMudarMensagens }) {
 
   return (
     <section className="ui-vista-marca">
+      {voltar && <button type="button" className="og-link fm-voltar" onClick={voltar}><Icone nome="voltar" tamanho={16} /> Voltar</button>}
       <VistaCabeca
         acento="roxo" icone="mensagens" titulo="Mensagens" nota="Fale com a organização por aqui. A resposta chega como aviso."
       />

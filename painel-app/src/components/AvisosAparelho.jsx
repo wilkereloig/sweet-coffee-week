@@ -14,8 +14,15 @@ const ONDE_ESTA_O_AVISO =
   'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
   'de sino ou de cadeado na barra de endereço e responda por lá.'
 
-export function AvisosAparelho({ registrar, remover, testar, explicacao, compacto = false, onMudou }) {
+export function AvisosAparelho({ registrar, remover, conferir, testar, explicacao, compacto = false, onMudou }) {
   const [assinatura, setAssinatura] = React.useState(null)
+  // Assinatura do navegador que o banco não reconhece como desta conta (outra
+  // marca ou a organização usou este aparelho): não é "ligados".
+  const [deOutraConta, setDeOutraConta] = React.useState(false)
+  // Em ref: quem chama costuma passar função nova a cada render, e ela não
+  // pode reiniciar a leitura (seria um laço de efeito).
+  const conferirRef = React.useRef(conferir)
+  conferirRef.current = conferir
   const [negado, setNegado] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
   const [ocupado, setOcupado] = React.useState(false)
@@ -24,7 +31,13 @@ export function AvisosAparelho({ registrar, remover, testar, explicacao, compact
   const atualizar = React.useCallback(async () => {
     if (!avisoSuportado()) return
     setNegado(Notification.permission === 'denied')
-    setAssinatura(await assinaturaDoAparelho())
+    let a = await assinaturaDoAparelho()
+    let outra = false
+    // Falha ao conferir (rede) não desliga nada: fica o que o navegador diz.
+    if (a && conferirRef.current) outra = !(await conferirRef.current(a.endpoint).catch(() => true))
+    if (outra) a = null
+    setDeOutraConta(outra)
+    setAssinatura(a)
   }, [])
   React.useEffect(() => { atualizar() }, [atualizar])
 
@@ -118,9 +131,11 @@ export function AvisosAparelho({ registrar, remover, testar, explicacao, compact
       <p className="ui-nota">
         {assinatura ? 'Este aparelho recebe aviso mesmo com o painel fechado.'
           : negado ? 'A permissão foi negada. Libere nas configurações do navegador para este site — o painel não consegue pedir de novo.'
+          : deOutraConta ? 'Este aparelho recebe os avisos de outra conta. Ligue para passar a receber os desta.'
+          : Notification.permission === 'granted' ? 'O navegador já permite avisos, mas este aparelho ainda não está registrado. Toque em "Ligar avisos".'
           : explicacao}
       </p>
-      {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : aviso.tom === 'ok' ? ' ui-nota--ok' : '')} role="status">{aviso.texto}</p>}
+      {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : aviso.tom === 'ok' ? ' ui-nota--ok' : '')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
       <div className="ui-linha-acoes">
         {assinatura && <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={ocupado} onClick={desligar}>Desligar</button>}
         {assinatura && testar && <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={enviarTeste}>Enviar um teste</button>}

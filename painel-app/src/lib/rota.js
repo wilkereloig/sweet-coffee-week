@@ -95,11 +95,13 @@ function rotaCrua(link) {
       return { vista: 'participantes', aba: 'lista', filtros: { item: a, sub: b } }
     case 'respostas': return rotaResposta(a, b)
     case 'producao': case 'operacao': {
-      const [vista, aba] = PRODUCAO_ABA[a] || ['operacao', a || 'pedidos']
+      // hasOwn: `constructor`/`__proto__` num link forjado vinham do protótipo e
+      // derrubavam o painel na desestruturação.
+      const [vista, aba] = (Object.hasOwn(PRODUCAO_ABA, a) && PRODUCAO_ABA[a]) || ['operacao', a || 'pedidos']
       return { vista, aba, filtros: b ? { item: b } : {} }
     }
     case 'edicao': {
-      const [vista, aba] = EDICAO_ABA[a] || ['edicao', 'configuracao']
+      const [vista, aba] = (Object.hasOwn(EDICAO_ABA, a) && EDICAO_ABA[a]) || ['edicao', 'configuracao']
       return { vista, aba, filtros: {} }
     }
     case 'contatos':
@@ -111,7 +113,7 @@ function rotaCrua(link) {
     case 'equipe': return { vista: 'admin', aba: 'equipe', filtros: {} }
     case 'fotos': return { vista: 'arquivos', aba: 'guias', filtros: {} }
     default:
-      return { vista: seg, aba: a || ABA_INICIAL[seg] || '', filtros: b ? { item: b } : {} }
+      return { vista: seg, aba: a || (Object.hasOwn(ABA_INICIAL, seg) && ABA_INICIAL[seg]) || '', filtros: b ? { item: b } : {} }
   }
 }
 

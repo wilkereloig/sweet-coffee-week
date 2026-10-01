@@ -1322,8 +1322,9 @@ conscientes ficam na allowlist do próprio teste.
   bege. **Nunca inventar logo** — `resolveParticipant` com fallback em iniciais.
   ⚠️ A regra vale para o **slot de marca**, não para toda imagem de logo: a marca da F2
   e a logo do cabeçalho são assets de proporção própria e seguem como estão.
-  ⚠️ **Exceção do PAINEL (29/09/2026):** a logo enviada pela marca usa `contain` com
-  margem interna (`LogoMarca`), porque vem em proporção qualquer — ver §10.4-b, Fase 15.
+  ✅ **O PAINEL segue a mesma regra (01/10/2026, pedido do Wilker):** `LogoMarca` /
+  `.ui-logo` preenche 100% da caixa com `cover`, sem margem interna. A exceção de
+  29/09/2026 (`contain` com margem) foi revogada — ver §10.4-b, Fase 15.
 - **Coerência de conteúdo é obrigatória:** página de edição mostra fotos daquela edição;
   página de participante mostra o participante certo; **Sweet Awards mostra a peça
   premiada** (Melhor Doce → o doce, Melhor Salgado → o salgado, Melhor Bebida → a bebida,
@@ -3219,8 +3220,12 @@ conferido). O que passou a valer:
   Raster com lado maior < 500px e SVG com código são recusados.
 - **A logo é o 17º campo** do progresso (`campos_cadastro` e
   `camposObrigatorios`, mesma lista). Não trava o envio para análise.
-- ⚠️ **Logo no painel é `contain`**, exceção declarada à §6.12: aqui o arquivo é
-  enviado pela marca, com proporção qualquer; `cover` recortaria a marca.
+- ✅ **Logo no painel preenche 100% da caixa (`cover`)**, como na §6.12 (revisado em
+  01/10/2026; antes era `contain` com margem). O filete de borda do slot é um `::after`
+  por cima da imagem, porque `box-shadow inset` do próprio slot ficaria atrás dela.
+  ⚠️ Logo enviada que não seja quadrada é cortada nas bordas — as do acervo são
+  1080×1080. Se isso virar problema, o ajuste é validar a proporção no envio, não
+  devolver a margem.
 
 #### Contas da equipe sem e-mail + função Comercial — 01/10/2026 (Fase 16)
 
@@ -3237,6 +3242,43 @@ conferido). O que passou a valer:
   `dado.ler`, `relacionamento.gerir`, `mensagem.enviar` — Contatos, Press Kit,
   Vouchers, mensagens) · Consulta. Migration `20261001_funcao_comercial.sql`.
   Função nova é linha em `funcoes`/`permissoes`, nunca lista no código.
+
+#### Refinamento: conversa, fotos, logo, substituição, ajuda e app — 01/10/2026 (Fase 17)
+
+Migration `20261001_painel_refinamento.sql` (**rodar no SQL Editor**: o MCP recusa escrita).
+- **Conversa a um toque:** botão "Falar com a organização" no cabeçalho da marca, em
+  toda tela, com o número de não lidas; mensagem nova vira a primeira "Próxima ação" do
+  Início. Abrir a conversa marca como lido também o aviso de mensagem do sino.
+- **Fotos:** a policy `fotos_marca_reserva` passou a exigir `foto_liberacao = 'liberado'`
+  e vaga futura; índice `sessoes_fotos_uma_ativa` (uma sessão agendada/remarcada por
+  participação). Vaga aberta fora da grade aparece para a organização, com "Fechar vaga".
+- **Logo:** continua valendo na hora (decisão do Wilker); a organização recebe aviso. A
+  marca vê as próprias versões. ⚠️ A checagem de SVG é **só no navegador**
+  (`svgInseguro`): quem chama a API do Storage direto passa. Fechar isso é uma Edge
+  Function que leia o arquivo antes de `registrar_logo`.
+- **Substituição por item:** `participantes_itens.tem_substituicao` + `substituicao`
+  (≤500). Opcional, não conta no progresso. O front só envia as colunas se elas vieram do
+  banco — antes da migration o PATCH não quebra.
+- **Push com dono:** `push_subscriptions.user_id`; gatilho `push_substitui_aparelho`
+  (outra conta no mesmo aparelho substitui a anterior) e `push_segue_conta` (conta
+  desativada/bloqueada pausa os aparelhos). Assinaturas antigas da organização ficam sem
+  dono até serem religadas.
+- **Tour guiado** (`components/Tour.jsx`, etapas em `lib/ajuda.js`) — substituiu a
+  "Ajuda rápida" em lista, que era o manual que o pedido recusava. Camada sobre o painel,
+  sem rota: recorte em volta do elemento real (`data-tour="…"`, primeiro visível vence,
+  com reserva — no celular "Arquivos" aponta para "mais"), balão com seta, progresso,
+  Voltar/Próximo/Pular/Concluir e "Abrir esta tela". Etapa some sem âncora na tela ou sem a
+  ação de `pode()` que ela exige; o texto diz o que a função **não** faz. Abre sozinho uma
+  vez por usuário neste aparelho (`scw_tour_<papel>_<usuario>`, localStorage — não vai ao
+  banco), nunca por cima de link de aviso/push; reabre pelo botão de informação.
+  `tests/painel-app-ajuda` reprova link que não abre tela e `data-tour` que não existe.
+  ⚠️ **Botão novo que o tour explica precisa do `data-tour`** — sem ele a etapa some calada.
+  ⚠️ A regra `.ui-ajuda` da lista antiga colidia com o `<Ajuda>` recolhível de `ui.jsx`
+  (Edição, Press Kit, Vouchers); saiu junto.
+- **Painel como app:** `lib/instalar.js` captura `beforeinstallprompt` (importado no
+  `main.jsx`, antes do render). `ConviteApp` (Início e Visão geral) junta instalar +
+  avisos, com "Agora não" em `localStorage`; reabre pela última etapa do tour e pela
+  Conta. Nunca pede permissão sozinho.
 
 ### 10.5 Grade e layout
 

@@ -213,6 +213,8 @@ function camposItem(posicao) {
     { chave: 'vegano', rotulo: 'Vegano', tipo: 'check' },
     { chave: 'sem_gluten', rotulo: 'Sem glúten', tipo: 'check' },
     { chave: 'sem_lactose', rotulo: 'Sem lactose', tipo: 'check' },
+    { chave: 'tem_substituicao', rotulo: 'Existe substituição', tipo: 'sim_nao' },
+    { chave: 'substituicao', rotulo: 'Qual é a substituição', tipo: 'area' },
   ]
 }
 const CAMPOS_UNIDADE = [

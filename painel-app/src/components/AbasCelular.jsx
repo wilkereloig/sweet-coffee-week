@@ -23,7 +23,7 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
 
   return (
     <>
-      <nav className="og-abasapp" aria-label="Seções do painel">
+      <nav className="og-abasapp" aria-label="Seções do painel" data-tour="menu">
         <div className="og-abasapp__grade" style={{ '--og-i': posicao, '--og-cols': celulas }}>
           {posicao >= 0 && <span className="og-abasapp__indicador" aria-hidden="true" />}
           {atalhos.map((d) => (
@@ -31,6 +31,7 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
               key={d}
               className={'og-abaapp' + (d === vista ? ' is-ativa' : '')}
               type="button"
+              data-tour={'menu-' + d}
               aria-current={d === vista ? 'page' : undefined}
               aria-label={contadores[d] ? titulo(d) + ' (' + contadores[d] + ' não lidas)' : undefined}
               onClick={() => ir(d)}
@@ -46,6 +47,7 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
             <button
               className={'og-abaapp' + (naMais ? ' is-ativa' : '')}
               type="button"
+              data-tour="menu-mais"
               aria-haspopup="dialog"
               aria-expanded={aberta}
               aria-label={'Mais áreas' + (naMais ? ' — aberta: ' + titulo(vista) : '') + (nMais ? ' (' + nMais + ' não lidas)' : '')}

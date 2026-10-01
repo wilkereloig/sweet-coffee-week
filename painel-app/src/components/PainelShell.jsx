@@ -2,6 +2,9 @@ import React from 'react'
 import { Central } from './Central'
 import { Icone } from './Icone'
 import { AbasCelular } from './AbasCelular'
+import { Tour, useTour } from './Tour'
+import { InstalarApp, PUSH_ORGANIZACAO } from './AppNoAparelho'
+import { AvisosAparelho } from './AvisosAparelho'
 import { rpc } from '../lib/rpc'
 import { lerRota, montarRota, rotaDoLink, linkDeAlvo, ABA_INICIAL } from '../lib/rota'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
@@ -79,6 +82,8 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   const [avisosCarregando, setAvisosCarregando] = React.useState(true)
   const [avisosErro, setAvisosErro] = React.useState(null)
   const [centralAberta, setCentralAberta] = React.useState(false)
+  // Progresso do tour por usuário: o login da conta pessoal, ou a senha compartilhada.
+  const tour = useTour('organizacao', quem ? quem.nome : 'compartilhada', { pode, telas: visiveis, autoIniciar: !linkInicial })
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
@@ -195,7 +200,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
 
   return (
     <div id="painel">
-      <nav className="pn-rail" aria-label="Seções do painel">
+      <nav className="pn-rail" aria-label="Seções do painel" data-tour="menu">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         {GRUPOS.map(([nome, ds]) => {
           const doGrupo = ds.filter((d) => visiveis.includes(d))
@@ -208,6 +213,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
                   key={d}
                   className="pn-rail__btn"
                   type="button"
+                  data-tour={'menu-' + d}
                   aria-label={TITULOS[d][0]}
                   aria-current={d === vista ? 'page' : undefined}
                   onClick={() => navegar({ vista: d })}
@@ -239,8 +245,11 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
               <span className="pn-cabeca__quem-funcao">{quem.funcao}</span>
             </p>
           )}
-          <button className="pn-cabeca__btn" type="button" aria-label="Atualizar" onClick={atualizar}>
+          <button className="pn-cabeca__btn" type="button" aria-label="Atualizar" data-tour="atualizar" onClick={atualizar}>
             <Icone nome="atualizar" tamanho={20} />
+          </button>
+          <button type="button" className="pn-cabeca__btn" aria-label="Ver o tour do painel" aria-haspopup="dialog" data-tour="ver-tour" onClick={tour.abrir}>
+            <Icone nome="informacao" tamanho={20} />
           </button>
           <Central
             itens={avisos}
@@ -278,6 +287,10 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
         icone={(d) => <Icone nome={ICONE_DESTINO[d]} tamanho={24} />}
         onIr={(d) => navegar({ vista: d })}
       />
+      {tour.aberto && <Tour etapas={tour.etapas} onFechar={tour.fechar} onIr={abrirLink}
+        aparelho={<><InstalarApp compacto /><AvisosAparelho compacto
+          explicacao="Receba os avisos da organização no celular ou no computador, mesmo com o painel fechado."
+          {...PUSH_ORGANIZACAO} /></>} />}
     </div>
   )
 }

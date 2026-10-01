@@ -40,12 +40,14 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
         corpo: { status: 'agendada', participacao_id: participacao.id, participante_id: participante.id },
         prefer: 'return=representation',
       })
-      setAviso(r && r.length ? { tom: 'ok', texto: 'Horário reservado.' } : { tom: 'erro', texto: 'Esse horário acabou de ser escolhido por outra marca. Escolha outro.' })
+      setAviso(r && r.length ? { tom: 'ok', texto: 'Horário reservado. A organização é avisada.' } : { tom: 'erro', texto: 'Esse horário não está mais livre. Escolha outro.' })
       await carregar()
       if (recarregarResumo) recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
-      setAviso({ tom: 'erro', texto: 'Não deu para reservar agora. Tente de novo.' })
+      // Índice "uma sessão ativa por participação" (23505): já há sessão marcada.
+      setAviso({ tom: 'erro', texto: /23505|duplicate|unique/i.test((e && e.message) || '') ? 'Sua marca já tem uma sessão marcada.' : 'Não deu para reservar agora. Tente de novo.' })
+      await carregar()
     } finally {
       setReservando(null)
     }
@@ -54,6 +56,7 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
   // Só a sessão desta participação e as vagas da edição dela (a RLS devolve todas).
   const { minhas, vagas } = fotosDaParticipacao(sessoes, participacao)
   const jaTem = minhas.some((s) => s.status !== 'cancelada')
+  const realizada = minhas.some((s) => s.status === 'realizada')
   const liberado = participacao && participacao.foto_liberacao === 'liberado'
 
   return (
@@ -62,8 +65,11 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
       <div className="ui-grade-duas">
         <Secao titulo="Sessão de fotos" nota="Quem fotografa é a organização. Data e local são definidos por ela.">
           {sessoes === null && <Carregando linhas={2} />}
-          {sessoes && minhas.length === 0 && vagas.length === 0 && (
-            <p className="ui-nota">{liberado ? 'Ainda sem horário. Quando a organização abrir a agenda, você recebe um aviso.' : 'A sessão é marcada depois da liberação para foto. Você recebe um aviso.'}</p>
+          {sessoes && !jaTem && !liberado && (
+            <p className="ui-nota">Aguardando liberação para foto. A sessão é marcada depois dela, e você recebe um aviso quando for liberado.</p>
+          )}
+          {sessoes && !jaTem && liberado && vagas.length === 0 && (
+            <p className="ui-nota">Liberado para foto, ainda sem horário livre. Quando a organização abrir a agenda, os horários aparecem aqui.</p>
           )}
           {minhas.length > 0 && (
             <ul className="ui-lista-simples">
@@ -75,7 +81,8 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
               ))}
             </ul>
           )}
-          {vagas.length > 0 && !jaTem && (
+          {realizada && <p className="ui-nota">Sessão realizada. As fotos oficiais aparecem logo abaixo quando a organização publicar, e você recebe um aviso.</p>}
+          {liberado && vagas.length > 0 && !jaTem && (
             <>
               <p className="ui-nota">A organização abriu horários. Escolha um:</p>
               <ul className="mc-vagas">
