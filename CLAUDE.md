@@ -122,7 +122,7 @@ Wilke, nenhuma automática.
 
 | Página | Papel | Estado |
 |---|---|---|
-| **Home** (`/`) | Explicar e seduzir | existe, 7 seções (§7.1) |
+| **Home** (`/`) | Anunciar a próxima edição e explicar o festival | existe, 7 seções (§7.1) |
 | **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
@@ -975,8 +975,8 @@ e ganhou `margin-top: 0` — regra por `:first-child` em `.pa-hero__titulo`
 - ⛔ **`.swa-hero::before` não existe mais** — o degradê chocolate que descia 340px do
   topo saiu; a própria banda de foto escurece onde a logo passa. Era o mesmo trabalho
   feito duas vezes. **Não recriar.**
-- **Home:** texto à esquerda limitado a `min(60%, 860px)`, foto ocupando o fundo à
-  direita. Abaixo de 1000px o véu passa a vertical e o texto ocupa 100%.
+- **Home:** desde 28/09/2026 **não usa `.scw-hero`**: é a abertura `.hm-abre`, em duas
+  colunas (texto + fotos em moldura), altura do conteúdo — ver §7.1.
 - **Participar e Apoiar:** herói = **H1 + lead + duas ações. Nada mais** (sem selo
   desde 27/08/2026).
   ⛔ O cartão 4:3 em crossfade e os 3 indicadores **saíram** — os três números já
@@ -1017,7 +1017,7 @@ mudança, junto com o título caindo sobre rostos e áreas claras.
 de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
 a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
 
-**Alturas medidas em 390×844:** Home 905px · **Participar e Apoiar 886px** · Contato
+**Alturas medidas em 390×844:** Home 920px (foto 16:10, §7.1) · **Participar e Apoiar 886px** · Contato
 770px · Awards 826px.
 
 ⚠️ **Participar e Apoiar são a exceção da proporção: a foto delas é 4:3, não 1:1**
@@ -1055,7 +1055,7 @@ séries em crossfade**, montadas por `HeroFotos.jsx` a cada 6,2s:
 
 | Rota | Série | Nº |
 |---|---|---|
-| Home | combos e momentos de várias edições | 4 |
+| Home | pessoas da Lovers (`lovers-publico/08, 07, 04`) + um combo por foto | 3 |
 | Participar | `participantes-lojas/01–11` | 11 |
 | Apoiar | `participantes-lojas/12–22` | 11 |
 | Contato | `sweet-lovers/01–05` | 5 |
@@ -1519,8 +1519,9 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
 
 - **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140 a 760ms.
   Em Awards a banda surge e o texto sobe atrás dela.
-- **Ciclo da anatomia** (Home 02) — quatro desenhos por ingrediente em 8,8s. É o terceiro
-  laço contínuo da Home, ao lado da respiração das fotos e do marquee.
+- **Ciclo da anatomia** (Home 02) — quatro desenhos por ingrediente em 8,8s. Desde
+  28/09/2026 é o **único laço contínuo** da Home, além do crossfade da abertura: a faixa
+  de palavras, a respiração das fotos e as fitas saíram dela.
 - **Respiração da imagem** — laço `alternate` na propriedade **`scale`** (nunca em
   `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo caminho e
   **não existe salto de reinício**. Nas fotos dos heróis e, só no desktop, nas três fotos
@@ -1605,40 +1606,54 @@ referência de margem, largura máxima, respiro, hierarquia, ritmo, nível de ac
 tom institucional-afetivo. Extrair componente ou constante é permitido **desde que não
 mude o comportamento visual** — validar idêntico.
 
-**Sete seções:** `01 Abertura` · `02 O que é` · `03 Rotas` · `04 Ciclo` · `05 Números` ·
-`06 Prova` · `07 Realização`.
+**Reconstruída em 28/09/2026** (pedido do Wilker): a Home tem duas funções —
+anunciar a **edição de novembro com o pré-cadastro aberto** ("agora") e apresentar o
+festival ("sempre"). **Sete seções:** `01 Abertura` · `02 O festival` ·
+`03 Como participar` · `04 Por que participar` · `05 O festival em movimento` ·
+`06 Trajetória` · `07 Apoio` + `Realização` (F2).
 
-- **Herói, desktop:** texto à esquerda limitado a `min(60%,860px)`, foto ocupando o
-  fundo à direita, véu em degradê a 96°.
-- **Herói, celular (<1000px): dois blocos** — foto quadrada de largura cheia em cima,
-  esfumada na base, e o texto embaixo em chapa chocolate sólida. Ver §6.9, que traz a
-  geometria e o motivo. ⛔ Não unificar com o desktop de novo.
-- **02 O que é:** anatomia do combo — três ingredientes ligados por "+" — **sem card**,
-  com filete separando. ⛔ **Sempre em UMA LINHA, inclusive no celular** (pedido do Eloi,
-  22/08/2026): `disco + disco + disco`, com o nome embaixo de cada um. O empilhamento
-  vertical que valia abaixo de 560px saiu — custava três telas de rolagem para dizer
-  "doce + salgado + bebida", e o "+" entre duas linhas lia como marcador de lista, não
-  como soma. O que muda no celular é só a escala, e ela vem de **dois tokens na própria
-  grade** (`--ing-disco` / `--ing-mais`), de onde o alinhamento do "+" é derivado por
-  cálculo. **Não empilhar de novo, e não reescrever os dois `clamp()` em outro lugar.** Cada ingrediente **percorre quatro desenhos da própria família**,
-  um por quarto de um ciclo de 8,8s (`scwIcnCiclo`, atraso de 2200ms por peça). Os quatro
-  ficam empilhados e só a opacidade muda — nada entra ou sai do fluxo. A arte vive em
-  `src/components/scw-icons/anatomia-combo.js`, **fora** de `scw-icons-v2.js`: é desenho
-  próprio desta seção, com traço 2,6, e a biblioteca não se edita à mão (§6.11).
-  Com `prefers-reduced-motion` fica só o primeiro desenho, parado. Duas galerias irmãs de mesmo peso: combos de edições anteriores e
-  **Sweet Gift**. ⚠️ **Não são mais grade 2×2** — desde 21/08/2026 são a **fita**
-  (`GaleriaCarrossel` → `.hm-fita`), que corre sozinha em 46s e para no hover e no foco.
-  ⏳ **Pendência declarada, não esquecimento:** o arranjo "faixa" do Caderno (cap. 04,
-  arranjo 5) pede `scroll-snap`, setas no desktop, gesto no celular e **nunca autoplay**,
-  e o §6.15 diz que atmosfera **nunca carrega informação** — a fita carrega: nome da
-  marca, tema e ano. Mas a fita contínua é **decisão escrita do Eloi** (21/08/2026:
-  a grade mostrava quatro e escondia o resto), e o comentário do próprio componente
-  registra "não tem setas nem pontos — não é navegação, é vitrine". **Regra nova contra
-  decisão de produto não se resolve sozinha:** converter exige o ok do Eloi, e até lá a
-  fita fica como está.
-- **05 Números:** 4 numerais grandes em uma linha, com `.scw-grade-fixa` — sem ela a
-  faixa quebra a 3+1.
-- **07 Realização:** KV da F2 Experience — a exceção declarada de paleta e fonte (§6.1).
+- **01 Abertura (`.hm-abre`)** — não é mais herói de tela cheia: altura do conteúdo, e a
+  seção seguinte aparece na primeira dobra do desktop. Texto à esquerda (estado
+  "Próxima edição" + selo "Cadastro aberto", H1 `.scw-h1`, lead, duas ações, ficha de
+  três linhas), fotos à direita: **pessoas** em crossfade de 6,2s com um **combo** em
+  recorte redondo sobreposto, trocando juntos. Tudo que fala da edição lê
+  `src/data/proximaEdicao.js` — **campo `null` não aparece** (tema, datas, valor).
+  ⚠️ **As fotos são todas da Lovers (2026.1) e a legenda diz isso** ("Registros da
+  edição Lovers · 2026"). Ficam de fora de propósito: fantasias (Heróis & Vilões),
+  personagens de desenho ou de contos (Padoca do Bosque, a luva do Mickey em
+  `2023/04`) e a faixa do Sebrae (§9.6) — qualquer uma seria lida como pista do tema de
+  novembro, que não foi anunciado.
+  Celular (<1000px): foto no topo, largura cheia, **16:10** (2:1 entre 600 e 999px) —
+  não o quadrado do §6.9, para o botão caber acima da barra de abas em 390×844.
+- **02 O festival** — texto, anatomia do combo e três laços (casas · público · Natal)
+  à esquerda; um combo completo à direita. A anatomia continua como era: ⛔ **sempre em
+  UMA LINHA, inclusive no celular** (pedido do Eloi, 22/08/2026), escala por
+  `--ing-disco`/`--ing-mais`, quatro desenhos por ingrediente em 8,8s (`scwIcnCiclo`,
+  arte em `anatomia-combo.js`, fora de `scw-icons-v2.js`), só o primeiro com
+  `prefers-reduced-motion`. **Não empilhar de novo.**
+  ⚠️ O texto não diz "onze dias" nem "preço único": são fatos das edições passadas que
+  soariam como regra de novembro, e duração e valor dela são `null`.
+- **03 Como participar** — chapa **cyan** (cor do destino, Participar), três passos
+  reais (pré-cadastro · curadoria · painel da marca e combo), a nota "o pré-cadastro não
+  garante vaga" e a ação. Chapa clara: rótulo, links e **anel de foco em chocolate**.
+- **04 Por que participar** — foto da equipe da Jolie com os prêmios + o depoimento
+  da Carol Barreto; embaixo, quatro ganhos com dado (`festivalFacts`: +18 mi · +34 mil
+  · +R$ 712 mil — contadores que sobem uma vez) e "Sweet Awards". A cor vai no ícone,
+  uma por irmão (§6.3).
+- **05 O festival em movimento** — mosaico editorial de seis fotos de tamanhos
+  diferentes, cada uma com legenda que o acervo sustenta. **Sem laço, sem autoplay**: a
+  entrada é a do motor. ⛔ A fita automática (`GaleriaCarrossel`/`.hm-fita`) **saiu** —
+  era a pendência declarada aqui (atmosfera carregando informação); o Wilker pediu
+  galeria controlada e sem movimento contínuo competindo com o texto.
+- **06 Trajetória** — dois cartões-link na cor do destino (Edições laranja, Awards
+  roxo; o número de edições premiadas sai de `AWARDS_DADOS`) e a lista de imprensa com
+  "ver todas".
+- **07 Apoio** (marrom, convite para Apoiar, sem patrocinador — §9.6) e **Realização**:
+  KV da F2 Experience, a exceção declarada de paleta e fonte (§6.1).
+- ⛔ **Saíram:** a faixa de palavras (`Marquee`), as Rotas, o Ciclo de quatro etapas e o
+  cartão "preço único". O conteúdo válido foi redistribuído nas seções acima.
+- Fotos das seções: `fotosHome(chave)` em `imageLibrary.js`; da abertura,
+  `heroPhotos('home')`. Movimento da abertura: `scw-motion.css` (`.hm-abre …`).
 
 > **Alvo do plano institucional:** a Home passa a ter oito seções, com "O festival
 > transforma Natal" e "Os temas de todas as edições" ganhando bloco próprio. Ver

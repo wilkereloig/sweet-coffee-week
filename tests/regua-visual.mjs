@@ -210,6 +210,14 @@ test('ScwIcon: tamanho na escala 16/20/24/32/48; família premios só no Sweet A
     }
   }
   assert.ok(achou, 'nenhum uso de <ScwIcon> encontrado — checagem ficaria vazia')
+  /* O nome também chega por DADO (`nome={item.icone}`), e aí a regex acima não
+     o vê. Qualquer string 'premios/…' fora do Awards reprova. */
+  for (const arquivo of candidatos) {
+    if (arquivo === 'src/pages/institutional/HistoricoAwards.jsx') continue
+    const fonte = ler(arquivo)
+    const solto = fonte.match(/['"`]premios\/[a-z-]+/)
+    assert.ok(!solto, `${arquivo}: família premios (${solto && solto[0]}) só é permitida no Sweet Awards`)
+  }
 })
 
 /* ============================================================================

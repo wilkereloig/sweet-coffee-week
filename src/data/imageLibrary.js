@@ -167,11 +167,15 @@ export function awardPhoto(nome, code, variacao = 0) {
  * porque o mesmo recorte não serve para uma faixa larga e para uma banda alta.
  */
 const HEROES = {
+  /* Home (28/09/2026): a abertura anuncia a edição de novembro, então as fotos
+     são de PESSOAS e todas de uma edição só, a Lovers — a legenda diz isso, e
+     nenhuma pode ser lida como KV ou tema da próxima. Ficaram de fora de
+     propósito: fantasias (Heróis & Vilões, Harley Quinn), personagens de
+     contos (a foto da Padoca do Bosque) e a faixa do Sebrae (§9.6). */
   home: [
-    { src: '/images/edicoes/2026.1/04.webp', alt: 'Combo da edição Lovers do Sweet & Coffee Week', position: '68% center', mobilePosition: 'center 32%' },
-    { src: '/images/edicoes/2025/09.webp', alt: 'Combo da edição Celebration do Sweet & Coffee Week', position: '68% center', mobilePosition: 'center 32%' },
-    { src: '/images/momentos/02.jpg', alt: 'Público percorrendo a rota do Sweet & Coffee Week', position: '62% center', mobilePosition: 'center 38%' },
-    { src: '/images/edicoes/2023/04.webp', alt: 'Combo da edição Trip do Sweet & Coffee Week', position: '68% center', mobilePosition: 'center 32%' },
+    { src: '/images/lovers-publico/08.jpg', alt: 'Sweet Lovers à mesa com combos da edição Lovers do Sweet & Coffee Week', position: 'center 55%', mobilePosition: 'center 55%' },
+    { src: '/images/lovers-publico/07.jpg', alt: 'Público à mesa na calçada da Caffè Basilico’s, com o selo do Sweet & Coffee Week na porta', position: 'center 60%', mobilePosition: 'center 60%' },
+    { src: '/images/lovers-publico/04.jpg', alt: 'Grupo de Sweet Lovers reunido durante a edição Lovers do Sweet & Coffee Week', position: 'center 45%', mobilePosition: 'center 45%' },
   ],
   /* As 22 fotos das visitas às lojas participantes (acervo, agosto/2026)
      dividem-se entre as duas páginas: nenhuma imagem se repete de um herói
@@ -281,6 +285,56 @@ const GANHOS = {
 /** Foto de um ganho da página Participar (`combo` · `imprensa` · `publico` · `awards`), ou `null`. */
 export function fotoGanho(chave) {
   return chave === 'combo' ? comboMain('Rollab Confeitaria') : GANHOS[chave] || null
+}
+
+/* ----------------------------------------------------------------------------
+   Home — as fotos das seções de baixo (28/09/2026). Critério de cada uma: o
+   sujeito (pessoa, casa, combo, detalhe) e a legenda que o acervo SUSTENTA —
+   edição quando a pasta a identifica, marca só quando há vínculo confirmado
+   (combos/ da Lovers, sweet-gift/ curado pelo Wilke, imprensa/01).
+   -------------------------------------------------------------------------- */
+
+const fotoEdicao = (code, n, legenda) => ({
+  src: `/images/edicoes/${code}/${n}.webp`,
+  alt: `${legenda} do Sweet & Coffee Week`,
+  position: focalPosition(`/images/edicoes/${code}/${n}.webp`),
+  legenda,
+})
+
+const HOME = {
+  /* Combos que acompanham as pessoas do herói, um por foto (mesma edição). */
+  heroiCombos: [
+    { ...comboMain("Canuto's"), legenda: "Canuto's" },
+    { ...comboMain("Caffè Basilico's"), legenda: "Caffè Basilico's" },
+    { ...comboMain('O Maestro Café'), legenda: 'O Maestro Café' },
+  ],
+  /* 02 O festival — um combo completo: doce, salgado e bebida à vista. */
+  combo: fotoEdicao('2026.1', '03', 'Combo completo da edição Lovers'),
+  /* 04 Por que participar — a casa do depoimento, com os prêmios. */
+  jolie: { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 32%' },
+  /* 05 O festival em movimento — pessoas, casas, combos e detalhe, alternados. */
+  mosaico: [
+    { src: '/images/lovers-publico/06.jpg', alt: 'Amigas posando juntas durante a edição Lovers do Sweet & Coffee Week', position: 'center 40%', legenda: 'Sweet Lovers · Lovers 2026' },
+    { ...fotoEdicao('2025', '03', 'Combo da edição Celebration'), position: 'center 72%' },
+    { src: '/images/sweet-gift/02.jpg', alt: 'Morango sendo mergulhado no creme de chocolate em um combo do Sweet & Coffee Week', position: 'center 55%', legenda: 'Sweet Gift · Rafaela Fontes Chocolateria · 2020' },
+    { src: '/images/imprensa/01.jpg', alt: 'Wow Cookies em estúdio de TV, na cobertura de imprensa do Sweet & Coffee Week', position: 'center 30%', legenda: 'Wow Cookies na TV' },
+    { src: '/images/participantes-lojas/22.jpg', alt: 'Equipe de uma casa participante reunida em frente à loja durante o Sweet & Coffee Week', position: 'center 45%', legenda: 'Equipe de uma casa participante' },
+    fotoEdicao('2024', '09', 'Combo da edição Books'),
+  ],
+  /* 06 Trajetória — capas de quatro edições e a entrega de um prêmio.
+     Nenhuma com personagem de desenho (a 2023/04 tem uma luva do Mickey). */
+  edicoes: [
+    { ...fotoEdicao('2016', '01', 'Primeira edição'), ano: '2016' },
+    { ...fotoEdicao('2021.2', '02', 'Terras Potiguares'), ano: '2021' },
+    { ...fotoEdicao('2023', '08', 'Trip'), ano: '2023' },
+    { ...fotoEdicao('2025', '09', 'Celebration'), ano: '2025' },
+  ],
+  premio: { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%' },
+}
+
+/** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */
+export function fotosHome(chave) {
+  return HOME[chave]
 }
 
 /** Fotos do herói de uma rota (podem entrar em crossfade). Vazio = sem foto. */

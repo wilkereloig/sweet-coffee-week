@@ -1,24 +1,23 @@
 import React from 'react'
 import '../../styles/scw-home.css'
-import { festivalFacts } from '../../data/festivalFacts'
-import { bgStyle, comboPhotos, editionPhotos, fotoAte, heroPhotos, LARGURA_HEROI_MOBILE, RESERVA, sweetGiftPhotos } from '../../data/imageLibrary'
+import { festivalFacts as F } from '../../data/festivalFacts'
+import { proximaEdicao as PROX } from '../../data/proximaEdicao'
+import { AWARDS_DADOS } from '../../data/handoff/awardsData'
+import { fotoAte, fotosHome, heroPhotos, LARGURA_HEROI_MOBILE, SIZES, srcSet } from '../../data/imageLibrary'
 import { resolveParticipant } from '../../data/participantAssets'
-import { GaleriaCarrossel } from '../../components/GaleriaCarrossel'
-import { HeroFotos } from '../../components/HeroFotos'
-import { Marquee } from '../../components/Marquee'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { ANATOMIA_COMBO } from '../../components/scw-icons/anatomia-combo'
 
 /* ============================================================================
-   Home / "O festival" — redesign 2026.
-   Sete seções: 01 Abertura · 02 O que é · 03 Rotas · 04 Ciclo · 05 Números ·
-   06 Prova · 07 Realização (+ faixa de palavras logo após a hero).
-   Sistema visual: src/styles/scw-2026.css (tokens e classes .scw-*).
-   Ajustes próprios da página: src/styles/scw-home.css (classes .hm-*).
-   Nenhuma cor fora da paleta do handoff. Nenhum asset inventado.
+   Home / "O festival" — reconstrução de 28/09/2026 (pedido do Wilker).
+   Duas funções: anunciar a edição de novembro com o pré-cadastro aberto
+   ("agora") e apresentar o festival ("sempre"). Sete seções:
+   01 Abertura · 02 O festival · 03 Como participar · 04 Por que participar ·
+   05 O festival em movimento · 06 Trajetória · 07 Apoio e realização.
+   O que a edição de novembro pode dizer vem de proximaEdicao.js — campo null
+   não aparece (A4). Fotos: fotosHome()/heroPhotos() de imageLibrary.js.
    ========================================================================= */
 
-/* Seta usada em todos os CTAs (mesmo traço do protótipo). */
 function Seta({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -27,145 +26,63 @@ function Seta({ size = 17 }) {
   )
 }
 
-/* --- 01 Abertura: fotos do herói da rota, no sistema central de imagens.
-   Cada foto traz o próprio enquadramento (desktop e celular) e o alt contextual;
-   o véu por cima usa a cor da página (--scw-pagina) — ver scw-home.css. */
-const HERO = heroPhotos('home')
+const semMovimento = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const PALAVRAS = [
-  'dez anos de festival',
-  'combos autorais',
-  'marcas locais',
-  'uma cidade em movimento',
-  'memória de cada edição',
+/* --- 01 Abertura ---------------------------------------------------------- */
+const PESSOAS = heroPhotos('home')
+const COMBOS_HEROI = fotosHome('heroiCombos')
+// ponytail: só o estado de hoje tem texto; outro status some com o selo até a Home ser revista.
+const ESTADO = { 'pre-cadastro': 'Cadastro aberto' }[PROX.status]
+const maiuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+const FICHA = [
+  ['Quando', PROX.periodo || maiuscula(PROX.mes)],
+  ['Quem', 'Casas de Natal e região'],
+  ['Tema e datas', PROX.tema || 'No anúncio oficial'],
 ]
 
-/* Números da F2 Experience — fornecidos pelo Wilke no patch da seção 07.
-   Não saem do acervo do festival; só "16 edições" é conferível aqui. */
-const F2_NUMEROS = [
-  ['01', '+1', 'K', 'projetos realizados'],
-  ['02', '+400', 'K', 'pessoas impactadas'],
-  ['03', '16', '', 'edições do festival assinadas'],
-  ['04', 'BR', '', 'atuação nacional'],
-]
-
-/* --- 02 O que é: anatomia do combo. */
+/* --- 02 O festival -------------------------------------------------------- */
 const INGREDIENTES = [
-  {
-    nome: 'doce',
-    tinta: 'var(--scw-creme)',
-    cor: 'var(--scw-magenta)',
-  },
-  {
-    nome: 'salgado',
-    tinta: 'var(--scw-choco)',
-    cor: 'var(--scw-amarelo)',
-  },
-  {
-    nome: 'bebida',
-    tinta: 'var(--scw-choco)',
-    cor: 'var(--scw-cyan)',
-  },
+  { nome: 'doce', tinta: 'var(--scw-creme)', cor: 'var(--scw-magenta)' },
+  { nome: 'salgado', tinta: 'var(--scw-choco)', cor: 'var(--scw-amarelo)' },
+  { nome: 'bebida', tinta: 'var(--scw-choco)', cor: 'var(--scw-cyan)' },
+]
+const LACOS = [
+  ['Para as casas', 'Um produto novo, criado para o tema, que muitas mantêm no cardápio depois.'],
+  ['Para o público', 'Uma rota de descobertas: escolher por onde começar, provar e avaliar.'],
+  ['Para Natal', 'A gastronomia local tratada como programa cultural, edição após edição.'],
 ]
 
-/* Frame curado do acervo de cada edição (o índice é a foto escolhida na
-   galeria daquela edição — src/data/imageLibrary.js resolve caminho, alt e
-   ponto focal). */
-const frame = (code, i) => editionPhotos(code)[i]
-
-/* Dez edições em vez das quatro que a grade 2×2 comportava (21/08/2026): a
-   galeria virou fita e o limite deixou de ser o espaço na tela. A ordem é
-   cronológica invertida, da mais recente à primeira — a fita corre para a
-   esquerda, então é assim que a leitura acompanha o tempo. */
-const COMBOS = [
-  { foto: frame('2026.1', 3), titulo: 'Lovers', ano: '2026' },
-  { foto: frame('2025', 8), titulo: 'Celebration', ano: '2025' },
-  { foto: frame('2024', 2), titulo: 'Books', ano: '2024' },
-  { foto: frame('2023', 3), titulo: 'Trip', ano: '2023' },
-  { foto: frame('2022', 2), titulo: 'Movies', ano: '2022' },
-  { foto: frame('2021.2', 1), titulo: 'Terras Potiguares', ano: '2021' },
-  { foto: frame('2021.1', 1), titulo: 'Séries', ano: '2021' },
-  { foto: frame('2020.2', 1), titulo: 'Heróis & Vilões', ano: '2020' },
-  { foto: frame('2019.2', 3), titulo: 'Contos de Fadas', ano: '2019' },
-  { foto: frame('2016', 0), titulo: 'Primeira edição', ano: '2016' },
+/* --- 03 Como participar: os passos que existem de fato (os mesmos de
+   Participar 05, resumidos) — pré-cadastro, curadoria, painel da marca. */
+const PASSOS = [
+  ['mecanica/inscricao', 'Faça o pré-cadastro', 'Dois passos rápidos: você e o estabelecimento.'],
+  ['mecanica/avaliar', 'Passe pela curadoria', 'A organização avalia perfil, capacidade de atendimento e alinhamento com a edição.'],
+  ['simbolos/combo-oficial', 'Crie o seu combo', 'Casa aprovada recebe acesso ao painel da marca, cadastra o combo e segue as orientações da produção.'],
 ]
 
-/* --- 03 Rotas. Cada card mostra TRÊS fotos em transição (pedido do Wilke,
-   21/08/2026), pelo mesmo mecanismo dos heróis — o componente HeroFotos com a
-   classe do card. Cada eixo puxa do acervo que lhe diz respeito:
-   · Marcas   → as visitas às lojas participantes;
-   · Público  → os Sweet Lovers e um registro de rua;
-   · Parceiros→ a entrega dos prêmios e o público reunido. Este card vivia em
-     RESERVA porque não há foto de ativação de patrocinador no acervo, e §9.6
-     proíbe exibir patrocinador de qualquer modo. A saída não é mostrar marca
-     nenhuma: é mostrar o que o apoio SUSTENTA — festival cheio, gente
-     recebendo prêmio. */
-const loja = (n, alt) => ({ src: `/images/participantes-lojas/${n}.jpg`, alt, position: 'center 40%' })
-const lover = (n, alt) => ({ src: `/images/sweet-lovers/0${n}.jpg`, alt, position: 'center 38%' })
-const premio = (n, alt) => ({ src: `/images/awards-entrega/0${n}.jpg`, alt, position: 'center 38%' })
+/* --- 04 Por que participar: número só com o que ele mede (festivalFacts). */
+const GANHOS = [
+  { icone: 'redes/instagram', alvo: F.igViews.value, antes: '+', depois: ' mi', titulo: 'Visibilidade', texto: 'visualizações no Instagram do festival, além de TV, rádio e portais.' },
+  { icone: 'combos/doce-cafe', alvo: F.combosSold.value, antes: '+', depois: ' mil', titulo: 'Vendas', texto: `combos vendidos somando as ${F.editions.value} edições.` },
+  { icone: 'mecanica/loja', alvo: F.revenue.value, antes: '+R$ ', depois: ' mil', titulo: 'Movimento na casa', texto: 'no caixa das marcas participantes, somando todas as edições.' },
+  { icone: 'simbolos/destaque', palavra: 'Sweet Awards', titulo: 'Reconhecimento', texto: 'o público avalia os combos e o festival premia os destaques de cada edição.' },
+]
+const CONTADOS = GANHOS.filter((g) => g.alvo)
 
-const FOTOS_MARCAS = [
-  frame('2019.2', 3),
-  loja('03', 'Equipe de uma marca participante do Sweet & Coffee Week'),
-  loja('09', 'Vitrine de uma loja participante do Sweet & Coffee Week'),
-]
-const FOTOS_PUBLICO = [
-  HERO[2],
-  lover(1, 'Sweet Lovers durante uma edição do Sweet & Coffee Week'),
-  lover(4, 'Público reunido em uma edição do Sweet & Coffee Week'),
-]
-const FOTOS_PARCEIROS = [
-  lover(2, 'Público de uma edição do Sweet & Coffee Week'),
-  premio(4, 'Entrega de prêmio do Sweet Awards a uma marca participante'),
-  loja('01', 'Marcas participantes reunidas em uma edição do Sweet & Coffee Week'),
-]
-
-/* --- 04 Ciclo. Cada etapa mostra TRÊS fotos em transição (pedido do Wilke,
-   21/08/2026), e cada trio ilustra o que aquele passo é de fato — antes eram
-   quatro fotos avulsas, e a etapa 04 ("a memória continua") abria com um
-   registro de festa que não dizia nada sobre memória. Agora:
-   01 tema      → combos de edições diferentes, que é onde o tema vira sabor;
-   02 marcas    → as equipes nas próprias lojas;
-   03 cidade    → o público na rua e nas visitas;
-   04 memória   → a entrega dos prêmios, que é o que fica depois. */
-const ETAPAS = [
-  ['01', 'Um tema abre a conversa', 'Cada edição nasce de um universo que inspira sabores e vitrines.',
-    [frame('2016', 0), frame('2022', 2), frame('2021.1', 1)], 'var(--scw-laranja)', 'var(--scw-choco)'],
-  ['02', 'As marcas criam o percurso', 'Os participantes transformam a ideia em combos que estreiam no festival.',
-    [frame('2019.2', 3), loja('06', 'Equipe de uma loja participante do Sweet & Coffee Week'), loja('12', 'Marca participante do Sweet & Coffee Week em sua loja')], 'var(--scw-roxo)', 'var(--scw-creme)'],
-  ['03', 'A cidade entra na rota', 'Durante a edição, o público sai atrás dos combos e descobre novos endereços e bairros.',
-    [frame('2025', 2), lover(3, 'Sweet Lovers percorrendo a rota do Sweet & Coffee Week'), loja('17', 'Público em uma loja participante do Sweet & Coffee Week')], 'var(--scw-cyan)', 'var(--scw-choco)'],
-  ['04', 'A memória continua', 'Sweet Lovers, marcas e Sweet Awards deixam a edição viva depois da última visita.',
-    [premio(1, 'Equipe premiada no Sweet Awards do Sweet & Coffee Week'), premio(3, 'Marca recebendo o prêmio do Sweet Awards'), lover(5, 'Sweet Lovers em uma edição do Sweet & Coffee Week')], 'var(--scw-amarelo)', 'var(--scw-choco)'],
-]
-
-/* --- 05 Números: valores vêm de src/data/festivalFacts.js (fonte canônica).
-   Cor vive na régua (StatBlock — bege só sustenta 4 tintas de texto; ver
-   docs/FLUXO-DESIGN-CODIGO.md), o numeral fica sempre em chocolate. */
-/* O dado entra por disco de ícone, não mais pela régua de 4px (desenho de
-   20/08/2026). A tinta segue o fundo do disco: chocolate sobre amarelo e cyan,
-   creme sobre magenta e roxo — magenta e roxo não sustentam tinta escura. */
-const NUMEROS = [
-  { alvo: festivalFacts.brands.value, prefixo: '', sufixo: '', rotulo: 'marcas participantes', nota: 'casas de Natal e região: doçarias, cafeterias, confeitarias e restaurantes', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)', icone: 'simbolos/estabelecimento' },
-  { alvo: festivalFacts.participations.value, prefixo: '', sufixo: '', rotulo: 'combos autorais criados', nota: 'uma criação por marca em cada edição', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)', icone: 'simbolos/combo-oficial' },
-  { alvo: festivalFacts.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', nota: `somando as ${festivalFacts.editions.value} edições`, cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)', icone: 'combos/doce-cafe' },
-  { alvo: festivalFacts.igViews.value, prefixo: '+', sufixo: ' mi', rotulo: 'visualizações no Instagram', nota: 'cerca de 23 vezes a população de Natal', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)', icone: 'redes/instagram' },
-]
-
-/* --- 06 Prova: depoimento real da Jolie (mesma fonte já usada em Participar). */
+const JOLIE = resolveParticipant('Jolie Café Pâtisserie')
 const VOZ = {
   frase: '“Para a Jolie, foi um divisor de águas. Foi quando a nossa coxinha realmente passou a ser conhecida em Natal.”',
   pessoa: 'Carol Barreto',
   marca: 'Jolie Café Pâtisserie',
-  logo: resolveParticipant('Jolie Café Pâtisserie').logo,
-  // Retrato autorizado não existe no acervo → círculo fica como reserva honesta.
-  retrato: null,
-  fotos: comboPhotos('Jolie Café Pâtisserie', { limite: 2 }),
-  iniciais: resolveParticipant('Jolie Café Pâtisserie').fallback,
 }
 
-/* Matérias reais, com link (o protótipo lista sem URL; aqui os endereços são
-   os já verificados no repositório). A primeira abre a seção em destaque. */
+/* --- 06 Trajetória -------------------------------------------------------- */
+const EDICOES_PREMIADAS = AWARDS_DADOS.edicoes.length
+
+/* Matérias reais, com link verificado. A primeira abre em destaque. */
 const IMPRENSA = [
   { veiculo: 'Diário do RN', ano: '2026', titulo: '10 anos de festival e economia criativa', href: 'https://diariodorn.com.br/sweet-coffee-week-chega-aos-10-anos-e-reforca-forca-da-economia-criativa-em-natal/' },
   { veiculo: '96 FM', ano: '2026', titulo: 'Sweet Coffee Week celebra 10 anos', href: 'https://96fm.com.br/post/sweet-coffee-week-celebra-10-anos' },
@@ -186,28 +103,39 @@ const IMPRENSA = [
   { veiculo: '98 FM Natal', ano: '', titulo: 'Sweet Coffee Week movimenta a economia criativa em Natal', href: 'https://98fmnatal.com.br/ultimas/sweet-coffee-week-comeca-hoje-e-movimenta-a-economia-criativa-em-natal/339772/' },
 ]
 
-const semMovimento = () =>
-  typeof window !== 'undefined' &&
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/* Números da F2 Experience — fornecidos pelo Wilker no patch da seção de
+   realização. Não saem do acervo do festival; só "16 edições" é conferível. */
+const F2_NUMEROS = [
+  ['01', '+1', 'K', 'projetos realizados'],
+  ['02', '+400', 'K', 'pessoas impactadas'],
+  ['03', '16', '', 'edições do festival assinadas'],
+  ['04', 'BR', '', 'atuação nacional'],
+]
+
+/* Foto de acervo como <img> responsiva: o `sizes` vem dos três papéis fechados. */
+function Foto({ foto, papel = 'cartao', className, carregar = 'lazy' }) {
+  return (
+    <img
+      className={className}
+      src={foto.src}
+      srcSet={srcSet(foto.src)}
+      sizes={SIZES[papel]}
+      alt={foto.alt}
+      loading={carregar}
+      decoding="async"
+      style={{ objectPosition: foto.position || 'center' }}
+    />
+  )
+}
 
 export function HomePage({ navigate }) {
   const raizRef = React.useRef(null)
-  const [heroAtiva, setHeroAtiva] = React.useState(0)
-  /* Quais camadas do herói já podem pedir a foto (ver o `style` da camada). */
-  const [heroPedidas, setHeroPedidas] = React.useState(() => HERO.map((_, i) => i === 0))
-  React.useEffect(() => {
-    setHeroPedidas((antes) => {
-      const proxima = (heroAtiva + 1) % HERO.length
-      if (antes[heroAtiva] && antes[proxima]) return antes
-      const agora = antes.slice()
-      agora[heroAtiva] = true
-      agora[proxima] = true
-      return agora
-    })
-  }, [heroAtiva])
+  const [ativa, setAtiva] = React.useState(0)
+  /* Só a camada visível e a próxima pedem a foto (mesma técnica de HeroFotos):
+     quem já passou fica, para voltar sem piscar. */
+  const [pedidas, setPedidas] = React.useState(() => PESSOAS.map((_, i) => i === 0))
   const [contagens, setContagens] = React.useState(() =>
-    semMovimento() ? NUMEROS.map((n) => n.alvo) : NUMEROS.map(() => 0),
+    semMovimento() ? CONTADOS.map((g) => g.alvo) : CONTADOS.map(() => 0),
   )
   const [verTudo, setVerTudo] = React.useState(false)
 
@@ -215,25 +143,35 @@ export function HomePage({ navigate }) {
     evento.preventDefault()
     navigate(rota)
   }
-
   const rolarPara = (id) => (evento) => {
     evento.preventDefault()
     document.getElementById(id)?.scrollIntoView({ behavior: semMovimento() ? 'auto' : 'smooth', block: 'start' })
   }
 
-  /* Crossfade da hero: troca a foto a cada 6,2s. Sem movimento → foto fixa. */
+  React.useEffect(() => {
+    setPedidas((antes) => {
+      const proxima = (ativa + 1) % PESSOAS.length
+      if (antes[ativa] && antes[proxima]) return antes
+      const agora = antes.slice()
+      agora[ativa] = true
+      agora[proxima] = true
+      return agora
+    })
+  }, [ativa])
+
+  /* Crossfade da abertura: pessoa e combo trocam juntos a cada 6,2s. */
   React.useEffect(() => {
     if (semMovimento()) return
-    const t = setInterval(() => setHeroAtiva((i) => (i + 1) % HERO.length), 6200)
+    const t = setInterval(() => setAtiva((i) => (i + 1) % PESSOAS.length), 6200)
     return () => clearInterval(t)
   }, [])
 
-  /* Contadores da seção 05: sobem uma única vez, quando a faixa entra na tela. */
+  /* Contadores da seção 04: sobem uma única vez, quando a faixa entra na tela. */
   React.useEffect(() => {
-    const alvo = raizRef.current?.querySelector('.hm-numeros')
+    const alvo = raizRef.current?.querySelector('.hm-ganhos')
     if (!alvo) return
     if (semMovimento() || typeof IntersectionObserver === 'undefined') {
-      setContagens(NUMEROS.map((n) => n.alvo))
+      setContagens(CONTADOS.map((g) => g.alvo))
       return
     }
     let raf = 0
@@ -241,39 +179,32 @@ export function HomePage({ navigate }) {
     const suave = (t) => 1 - Math.pow(1 - t, 3)
     const passo = (ts) => {
       if (!inicio) inicio = ts
-      // 1400ms deliberado (mais lento que --mo-longo/880ms): contagem precisa
-      // de tempo pra ler os dígitos subindo, não é uma entrada de bloco comum.
+      // 1400ms: a contagem precisa de tempo para os dígitos serem lidos subindo.
       const p = Math.min(1, (ts - inicio) / 1400)
-      setContagens(NUMEROS.map((n) => Math.round(suave(p) * n.alvo)))
+      setContagens(CONTADOS.map((g) => Math.round(suave(p) * g.alvo)))
       if (p < 1) raf = requestAnimationFrame(passo)
     }
     const io = new IntersectionObserver((entradas) => {
-      entradas.forEach((e) => {
-        if (!e.isIntersecting) return
-        io.disconnect()
-        raf = requestAnimationFrame(passo)
-      })
-    }, { threshold: 0.25 })
+      if (!entradas.some((e) => e.isIntersecting)) return
+      io.disconnect()
+      raf = requestAnimationFrame(passo)
+    }, { threshold: 0.3 })
     io.observe(alvo)
     return () => { io.disconnect(); if (raf) cancelAnimationFrame(raf) }
   }, [])
 
-  /* Palavra destacada dos títulos: vira itálico colorido ao entrar na tela.
-     Sem movimento → estado final aplicado direto, sem animação. */
+  /* Palavra destacada dos títulos: vira itálico colorido ao entrar na tela. */
   React.useEffect(() => {
     const alvos = raizRef.current?.querySelectorAll('[data-destaque]')
     if (!alvos || !alvos.length) return
     if (semMovimento() || typeof IntersectionObserver === 'undefined') {
-      alvos.forEach((el) => {
-        el.style.color = 'var(--dest)'
-        el.style.fontStyle = 'italic'
-      })
+      alvos.forEach((el) => { el.style.color = 'var(--dest)'; el.style.fontStyle = 'italic' })
       return
     }
     const io = new IntersectionObserver((entradas) => {
       entradas.forEach((e) => {
         if (!e.isIntersecting) return
-        e.target.style.animation = `scwDestaque var(--mo-longo) var(--mo-mola) 1100ms both`
+        e.target.style.animation = 'scwDestaque var(--mo-longo) var(--mo-mola) 600ms both'
         io.unobserve(e.target)
       })
     }, { rootMargin: '0px 0px -18% 0px', threshold: 0.6 })
@@ -281,87 +212,94 @@ export function HomePage({ navigate }) {
     return () => io.disconnect()
   }, [])
 
-  const materias = verTudo ? IMPRENSA.slice(1) : IMPRENSA.slice(1, 5)
   const destaque = IMPRENSA[0]
+  const materias = verTudo ? IMPRENSA.slice(1) : IMPRENSA.slice(1, 5)
+  let k = 0 // índice do contador de cada ganho
 
   return (
     <div className="hm" ref={raizRef}>
 
-      {/* ---------------------------------------------- 01 Abertura --------- */}
-      <section className="scw-hero">
-        <div className="scw-hero__fotos">
-          {HERO.map((foto, i) => (
-            <span
-              key={foto.src}
-              className={'scw-hero__foto' + (i === heroAtiva ? ' is-ativa' : '')}
-              /* --pos/--pos-mobile: o enquadramento muda entre a faixa larga do
-                 desktop e a foto alta do celular (scw-home.css lê as duas). */
-              style={{
-                /* Só a camada visível e a próxima pedem a foto — as quatro juntas
-                   eram ~2 MB para mostrar uma. A próxima é pedida um intervalo
-                   inteiro (6,2s) antes de entrar, folga de sobra para a rede, e
-                   quem já passou fica (voltar não pode piscar). Mesma técnica de
-                   `HeroFotos`, que faz isto para as outras cinco páginas. */
-                '--foto': heroPedidas[i] ? `url("${foto.src}")` : undefined,
-                '--foto-mobile': heroPedidas[i]
-                  ? `url("${fotoAte(foto.src, LARGURA_HEROI_MOBILE)}")`
-                  : undefined,
-                '--pos': foto.position,
-                '--pos-mobile': foto.mobilePosition,
-              }}
-              role={i === heroAtiva ? 'img' : undefined}
-              aria-label={i === heroAtiva ? foto.alt : undefined}
-              aria-hidden={i === heroAtiva ? undefined : 'true'}
-            />
-          ))}
-        </div>
-        <div className="scw-hero__veu" aria-hidden="true" />
-        <div className="scw-hero__base" aria-hidden="true" />
-        <div className="scw-hero__topo" aria-hidden="true" />
-
-        <div className="scw-hero__col">
-          <span className="hm-selo"><ScwIcon nome="doces/cupcake" tamanho={24} /><span className="hm-selo__texto">Festival gastronômico de Natal</span></span>
-          <h1 className="scw-hero__titulo">
-            Há dez anos, fazendo de Natal a cidade <em className="hm-hero__enfase">mais doce do Brasil.</em>
+      {/* ------------------------------------------ 01 Abertura ------------ */}
+      <section className="hm-abre" aria-labelledby="hm-abre-titulo">
+        <div className="hm-abre__texto">
+          <p className="hm-abre__estado">
+            <span>Próxima edição</span>
+            {ESTADO && <span className="hm-abre__selo"><i aria-hidden="true" />{ESTADO}</span>}
+          </p>
+          <h1 id="hm-abre-titulo" className="scw-h1 hm-abre__titulo">
+            O Sweet &amp; Coffee Week volta <em className="hm-abre__enfase">em&nbsp;{PROX.mes}.</em>
           </h1>
-          <div className="scw-hero__info">
-            <div className="hm-hero__texto">
-              <p className="scw-hero__lead">
-                A cada edição, marcas da cidade inteira criam combos a partir de um tema, e a cidade vira roteiro por onze dias.
-              </p>
-            </div>
-            <div className="hm-acoes">
-              <a className="scw-btn scw-btn--solido" href="#rotas" onClick={rolarPara('rotas')}>
-                Como entrar <Seta />
-              </a>
-              <a className="scw-btn scw-btn--contorno-claro" href="#/participar" onClick={ir('/participar')}>
-                Levar minha marca <Seta />
-              </a>
-            </div>
+          <p className="hm-abre__lead">
+            Cafeterias, confeitarias, docerias, padarias, sorveterias, bistrôs e restaurantes já podem fazer o <span className="hm-inteiro">pré-cadastro</span> para a curadoria.
+          </p>
+          <div className="hm-acoes">
+            <a className="scw-btn scw-btn--solido" href={PROX.preCadastro}>
+              Fazer pré-cadastro <Seta />
+            </a>
+            <a className="scw-btn scw-btn--contorno-claro" href="#festival" onClick={rolarPara('festival')}>
+              Conhecer o festival
+            </a>
           </div>
+          <dl className="hm-abre__ficha">
+            {FICHA.map(([rotulo, valor]) => (
+              <div key={rotulo}>
+                <dt>{rotulo}</dt>
+                <dd>{valor}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
+
+        <figure className="hm-abre__fotos">
+          <div className="hm-abre__pessoas">
+            {PESSOAS.map((foto, i) => (
+              <span
+                key={foto.src}
+                className={'hm-abre__foto' + (i === ativa ? ' is-ativa' : '')}
+                style={{
+                  '--foto': pedidas[i] ? `url("${foto.src}")` : undefined,
+                  '--foto-mobile': pedidas[i] ? `url("${fotoAte(foto.src, LARGURA_HEROI_MOBILE)}")` : undefined,
+                  '--pos': foto.position,
+                }}
+                role={i === ativa ? 'img' : undefined}
+                aria-label={i === ativa ? foto.alt : undefined}
+                aria-hidden={i === ativa ? undefined : 'true'}
+              />
+            ))}
+          </div>
+          <div className="hm-abre__combo">
+            {COMBOS_HEROI.map((foto, i) => (
+              <span
+                key={foto.src}
+                className={'hm-abre__foto' + (i === ativa ? ' is-ativa' : '')}
+                style={{ '--foto': pedidas[i] ? `url("${fotoAte(foto.src, 480)}")` : undefined, '--pos': foto.position }}
+                role={i === ativa ? 'img' : undefined}
+                aria-label={i === ativa ? foto.alt : undefined}
+                aria-hidden={i === ativa ? undefined : 'true'}
+              />
+            ))}
+          </div>
+          {/* A legenda existe para ninguém ler estas fotos como material da
+              edição de novembro: são registros da Lovers (2026.1). */}
+          <figcaption className="hm-abre__legenda">
+            Registros da edição Lovers · 2026 · combo {COMBOS_HEROI[ativa].legenda}
+          </figcaption>
+        </figure>
       </section>
 
-      {/* Faixa de palavras em movimento (3 trilhas iguais = laço contínuo). */}
-      <Marquee palavras={PALAVRAS} />
-
-      {/* ---------------------------------------------- 02 O que é ---------- */}
-      <section className="scw-secao scw-secao--creme">
-        <div className="hm-cab">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="combos/doce-cafe" tamanho={20} />O que é</span>
-            <h2 className="scw-h2">
-              Um tema, <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>um combo por marca</em>, onze dias.
-            </h2>
-          </div>
+      {/* ------------------------------------------ 02 O festival ---------- */}
+      <section id="festival" className="scw-secao scw-secao--creme hm-festival">
+        <div className="hm-festival__texto">
+          <span className="scw-rotulo">O festival</span>
+          <h2 className="scw-h2">
+            Um tema, <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>um combo por casa</em>, a cidade como rota.
+          </h2>
           <p className="hm-apoio">
-            Doçarias, cafeterias e restaurantes de Natal e região criam uma composição exclusiva a partir do tema da edição, e muitos combos ganham lugar fixo no menu depois.
+            Desde 2016, casas de Natal e região criam uma composição exclusiva a partir do tema de cada edição. O público percorre a rota, prova e avalia.
           </p>
-        </div>
 
-        <div className="hm-anatomia">
-          <div>
-            <span className="scw-rotulo hm-anatomia__rotulo">A anatomia do combo</span>
+          <div className="hm-anatomia">
+            <span className="scw-rotulo">A anatomia do combo</span>
             <div className="hm-ingredientes">
               {INGREDIENTES.map((item, i) => (
                 <React.Fragment key={item.nome}>
@@ -374,9 +312,9 @@ export function HomePage({ navigate }) {
                   )}
                   <div className="hm-ing">
                     <span className="hm-ing__disco" style={{ background: item.cor, color: item.tinta }} aria-hidden="true">
-                      {ANATOMIA_COMBO[item.nome].map((desenho, k) => (
+                      {ANATOMIA_COMBO[item.nome].map((desenho, j) => (
                         <svg
-                          key={k}
+                          key={j}
                           className="hm-ing__icone"
                           viewBox="0 0 32 32"
                           fill="none"
@@ -384,7 +322,7 @@ export function HomePage({ navigate }) {
                           strokeWidth="2.6"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          style={{ animationDelay: `${k * 2200}ms` }}
+                          style={{ animationDelay: `${j * 2200}ms` }}
                           dangerouslySetInnerHTML={{ __html: desenho }}
                         />
                       ))}
@@ -395,227 +333,186 @@ export function HomePage({ navigate }) {
               ))}
             </div>
           </div>
-          <div className="hm-preco">
-            <span className="hm-preco__topo">
-              <span className="scw-disco hm-preco__disco" aria-hidden="true">
-                <ScwIcon nome="sweet-gift/etiqueta" tamanho={24} />
+
+          <dl className="hm-lacos">
+            {LACOS.map(([quem, texto]) => (
+              <div key={quem}>
+                <dt>{quem}</dt>
+                <dd>{texto}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <figure className="hm-festival__foto">
+          <Foto foto={fotosHome('combo')} papel="cartao" />
+          <figcaption>Doce, salgado e bebida · Lovers 2026</figcaption>
+        </figure>
+      </section>
+
+      {/* ------------------------------------------ 03 Como participar ----- */}
+      <section className="scw-secao hm-participa" aria-labelledby="hm-participa-titulo">
+        <div className="hm-participa__cab">
+          <span className="scw-rotulo">Como participar</span>
+          <h2 id="hm-participa-titulo" className="scw-h2">Três passos até a rota de {PROX.mes}.</h2>
+          <p className="hm-participa__nota">
+            O pré-cadastro registra o interesse. A participação depende da curadoria e das vagas da edição.
+          </p>
+        </div>
+
+        <ol className="hm-passos">
+          {PASSOS.map(([icone, titulo, texto], i) => (
+            <li className="hm-passo" key={titulo}>
+              <span className="hm-passo__topo">
+                <span className="hm-passo__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <span className="scw-disco hm-passo__disco" aria-hidden="true"><ScwIcon nome={icone} tamanho={24} /></span>
               </span>
-              <b className="hm-preco__rotulo">Preço único</b>
-            </span>
-            <strong className="hm-preco__titulo">O mesmo valor em toda a rota.</strong>
-            <p className="hm-preco__texto">
-              Em cada edição, o público escolhe por onde começar, compara combos e monta o próprio percurso pela cidade.
-            </p>
-          </div>
-        </div>
-
-        <div className="hm-galerias">
-          <div className="hm-galeria">
-            <div className="hm-galeria__topo">
-              <span className="scw-rotulo">Combos de outras edições</span>
-              <a className="hm-link" href="#/edicoes" onClick={ir('/edicoes')}>ver todas →</a>
-            </div>
-            <p className="hm-galeria__texto">
-              Cada edição rende uma coleção nova de doce, salgado e bebida. Alguns viraram clássicos da casa.
-            </p>
-            <GaleriaCarrossel
-              itens={COMBOS.map(({ foto, titulo, ano }) => ({
-                src: foto && foto.src, alt: foto && foto.alt, titulo, legenda: ano, reserva: RESERVA,
-              }))}
-            />
-          </div>
-
-          <div className="hm-galeria">
-            <div className="hm-galeria__topo">
-              <span className="scw-rotulo">Sweet Gift</span>
-              <span className="scw-rotulo scw-rotulo--micro">em algumas edições</span>
-            </div>
-            <p className="hm-galeria__texto">
-              A versão para levar: sem bebida, uma caixa com vários doces para presentear ou seguir viagem.
-            </p>
-            {/* Dez fotos desde 21/08/2026 — até então a modalidade não tinha
-                nenhuma no acervo e a galeria era feita de reservas honestas. */}
-            <GaleriaCarrossel
-              itens={sweetGiftPhotos().map((f) => ({
-                src: f.src, alt: f.alt, titulo: f.marca, legenda: f.edicao,
-              }))}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ---------------------------------------------- 03 Rotas ------------ */}
-      <section id="rotas" className="scw-secao scw-secao--bege">
-        <div className="hm-cab">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="mapa/trajeto" tamanho={20} />Como entrar</span>
-            <h2 className="scw-h2">
-              Três jeitos de <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>entrar no festival</em>.
-            </h2>
-          </div>
-          <p className="hm-apoio">
-            Escolha de onde você chega: cada porta leva a uma parte diferente da rota.
-          </p>
-        </div>
-
-        <div className="hm-rotas">
-          <article className="hm-rota hm-rota--marcas">
-            <HeroFotos fotos={FOTOS_MARCAS} classe="hm-rota__foto" />
-            <div className="hm-rota__corpo">
-              <span className="hm-rota__eixo">Marcas</span>
-              <div className="hm-rota__texto">
-                <h3 className="hm-rota__titulo">Leve sua marca para o festival.</h3>
-                <p>Crie um combo autoral, encontre novos públicos e entre na próxima edição.</p>
-                <a className="hm-rota__cta" href="#/participar" onClick={ir('/participar')}>
-                  Quero participar <Seta size={16} />
-                </a>
-              </div>
-            </div>
-          </article>
-
-          <article className="hm-rota hm-rota--publico">
-            <HeroFotos fotos={FOTOS_PUBLICO} classe="hm-rota__foto" />
-            <div className="hm-rota__corpo">
-              <span className="hm-rota__eixo">Público</span>
-              <div className="hm-rota__texto">
-                <h3 className="hm-rota__titulo">Descubra a cidade a cada edição.</h3>
-                <p>Quando uma edição abre, o público visita, experimenta e volta.</p>
-                <a className="hm-rota__cta" href="#/edicoes" onClick={ir('/edicoes')}>
-                  Conhecer as edições <Seta size={16} />
-                </a>
-              </div>
-            </div>
-          </article>
-
-          <article className="hm-rota hm-rota--parceiros">
-            <HeroFotos fotos={FOTOS_PARCEIROS} classe="hm-rota__foto" />
-            <div className="hm-rota__corpo">
-              <span className="hm-rota__eixo hm-rota__eixo--bege">Parceiros</span>
-              <div className="hm-rota__texto">
-                <h3 className="hm-rota__titulo">Apoie uma cidade em movimento.</h3>
-                <p>Conecte sua marca a gastronomia, cultura e economia criativa.</p>
-                <a className="hm-rota__cta" href="#/apoiar" onClick={ir('/apoiar')}>
-                  Quero apoiar <Seta size={16} />
-                </a>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      {/* ---------------------------------------------- 04 Ciclo ------------ */}
-      <section className="scw-secao scw-secao--choco">
-        <div className="hm-cab">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--amarelo"><ScwIcon nome="topicos/ciclo" tamanho={20} />Como funciona</span>
-            <h2 className="scw-h2 hm-h2--claro">
-              De uma ideia para a <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>cidade</em>.
-            </h2>
-          </div>
-          <p className="hm-apoio hm-apoio--clara">
-            O festival não começa no cardápio. Começa numa direção criativa e termina quando a cidade guarda a memória daquela edição.
-          </p>
-        </div>
-
-        <div className="hm-ciclo">
-          {ETAPAS.map(([numero, titulo, texto, fotos, cor, tinta]) => (
-            <article className="hm-etapa" key={numero}>
-              <div className="hm-etapa__moldura">
-                <HeroFotos fotos={fotos} classe="hm-etapa__fotos" />
-                <span className="hm-etapa__num" style={{ background: cor, color: tinta }} aria-hidden="true">{numero}</span>
-              </div>
-              <h3 className="hm-etapa__titulo">{titulo}</h3>
-              <p className="hm-etapa__texto">{texto}</p>
-            </article>
+              <h3 className="hm-passo__titulo">{titulo}</h3>
+              <p className="hm-passo__texto">{texto}</p>
+            </li>
           ))}
-        </div>
-      </section>
+        </ol>
 
-      {/* ---------------------------------------------- 05 Números ---------- */}
-      <section className="scw-secao scw-secao--bege">
-        <div className="hm-cab">
-          <div>
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/alcance" tamanho={20} />Dez anos em números</span>
-            <h2 className="scw-h2 hm-h2--marrom">
-              Uma década que <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-cyan)' }}>continua em circulação</em>.
-            </h2>
-          </div>
-          <a
-            className="hm-link hm-link--sublinhado"
-            style={{ '--destino': 'var(--scw-roxo)' }}
-            href="#/sweet-awards"
-            onClick={ir('/sweet-awards')}
-          >
-            Conhecer o Sweet Awards <Seta />
+        <div className="hm-participa__acoes">
+          <a className="scw-btn hm-btn--choco" href={PROX.preCadastro}>
+            Fazer pré-cadastro <Seta />
+          </a>
+          <a className="hm-link hm-link--escuro" href="/participar" onClick={ir('/participar')}>
+            Tudo sobre participar <Seta size={16} />
           </a>
         </div>
-
-        <dl className="hm-numeros">
-          {NUMEROS.map((numero, i) => (
-            <div className="hm-num" key={numero.rotulo}>
-              <span className="scw-disco hm-num__disco" aria-hidden="true" style={{ '--c': numero.cor, '--tinta': numero.tinta }}>
-                <ScwIcon nome={numero.icone} tamanho={48} />
-              </span>
-              <dt className="scw-numeral hm-num__valor">
-                {numero.prefixo}{contagens[i]}{numero.sufixo}
-              </dt>
-              <dd className="hm-num__rotulo">{numero.rotulo}</dd>
-              <dd className="hm-num__nota">{numero.nota}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
-      {/* ---------------------------------------------- 06 Prova ------------ */}
+      {/* ------------------------------------------ 04 Por que participar -- */}
       <section className="scw-secao scw-secao--creme">
-        <div className="hm-prova">
-          <figure className="hm-voz">
-            <span className="scw-rotulo scw-rotulo--com-icone hm-rotulo--claro"><ScwIcon nome="topicos/depoimento" tamanho={20} />Quem já entrou na rota</span>
+        <div className="hm-cab">
+          <div>
+            <span className="scw-rotulo">Por que participar</span>
+            <h2 className="scw-h2">
+              O que a rota <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>deixa na casa</em>.
+            </h2>
+          </div>
+          <p className="hm-apoio">Dez anos de números, prêmios e histórias de quem já entrou.</p>
+        </div>
+
+        <div className="hm-voz">
+          <figure className="hm-voz__foto">
+            <Foto foto={fotosHome('jolie')} papel="cartao" />
+          </figure>
+          <figure className="hm-voz__texto">
             <blockquote className="hm-voz__frase">{VOZ.frase}</blockquote>
             <figcaption className="hm-voz__assinatura">
-              <span className="hm-voz__retrato">
-                {VOZ.retrato
-                  ? <img src={VOZ.retrato} alt={`${VOZ.pessoa}, da ${VOZ.marca}`} loading="lazy" decoding="async" />
-                  : <span className="scw-reserva hm-voz__reserva">{RESERVA}</span>}
-                {/* Sem logo no acervo o <img> sairia sem src e quebraria na
-                    tela — nesse caso ficam as iniciais da marca. */}
-                <span className="hm-voz__marca">
-                  {VOZ.logo
-                    ? <img src={VOZ.logo} alt={VOZ.marca} loading="lazy" decoding="async" />
-                    : <span aria-hidden="true">{VOZ.iniciais}</span>}
-                </span>
+              <span className="hm-voz__marca">
+                {JOLIE.logo
+                  ? <img src={JOLIE.logo} alt="" loading="lazy" decoding="async" />
+                  : <span aria-hidden="true">{JOLIE.fallback}</span>}
               </span>
               <span className="hm-voz__id">
                 <b>{VOZ.pessoa}</b>
                 <span>{VOZ.marca}</span>
               </span>
             </figcaption>
-            <div className="hm-voz__fotos">
-              {VOZ.fotos.map((foto) => (
-                <span key={foto.src} className="hm-voz__foto" role="img" aria-label={foto.alt} style={bgStyle(foto)} />
-              ))}
-            </div>
-            <a className="hm-voz__link" href="#/participar?scrollTo=depoimentos" onClick={ir('/participar?scrollTo=depoimentos')}>
-              Ver mais depoimentos <Seta size={16} />
+            <a className="hm-link" href="/participar?scrollTo=depoimentos" onClick={ir('/participar?scrollTo=depoimentos')}>
+              Ver os depoimentos em vídeo <Seta size={16} />
             </a>
           </figure>
+        </div>
 
-          <div className="hm-imprensa">
-            <span className="scw-rotulo scw-rotulo--com-icone"><ScwIcon nome="topicos/imprensa" tamanho={20} />Na imprensa</span>
-            <h2 className="scw-h2 hm-imprensa__h2">
-              E quem já <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>contou a história</em>.
+        <ul className="hm-ganhos">
+          {GANHOS.map((g) => {
+            const i = g.alvo ? k++ : -1
+            return (
+              <li className="hm-ganho" key={g.titulo}>
+                <span className="hm-ganho__cabeca">
+                  <ScwIcon nome={g.icone} tamanho={24} />
+                  <b>{g.titulo}</b>
+                </span>
+                {g.alvo
+                  ? <strong className="scw-numeral hm-ganho__valor">{g.antes}{contagens[i]}{g.depois}</strong>
+                  : <strong className="hm-ganho__valor hm-ganho__valor--palavra">{g.palavra}</strong>}
+                <p className="hm-ganho__texto">{g.texto}</p>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {/* ------------------------------------------ 05 Em movimento -------- */}
+      <section className="scw-secao scw-secao--choco hm-movimento">
+        <div className="hm-cab">
+          <div>
+            <span className="scw-rotulo hm-rotulo--amarelo">O festival em movimento</span>
+            <h2 className="scw-h2 hm-h2--claro">
+              Gente à mesa, casas cheias, <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-creme)', '--dest': 'var(--scw-amarelo)' }}>combos que viram assunto</em>.
             </h2>
+          </div>
+          <p className="hm-apoio hm-apoio--clara">Registros de edições anteriores: pessoas, equipes, combos e os detalhes que fazem cada um.</p>
+        </div>
 
+        <div className="hm-mosaico">
+          {fotosHome('mosaico').map((foto) => (
+            <figure className="hm-mosaico__item" key={foto.src}>
+              <Foto foto={foto} papel="cartao" />
+              <figcaption>{foto.legenda}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* ------------------------------------------ 06 Trajetória ---------- */}
+      <section className="scw-secao scw-secao--bege">
+        <div className="hm-cab">
+          <div>
+            <span className="scw-rotulo">Trajetória</span>
+            <h2 className="scw-h2">
+              Dez anos que <em className="scw-destaque" data-destaque style={{ '--base': 'var(--scw-choco)', '--dest': 'var(--scw-magenta)' }}>continuam na rota</em>.
+            </h2>
+          </div>
+          <p className="hm-apoio">
+            {F.editions.value} edições, {F.brands.value} marcas e um prêmio decidido pelo público. A história inteira está nas páginas do festival.
+          </p>
+        </div>
+
+        <div className="hm-destinos">
+          <a className="hm-destino hm-destino--edicoes" href="/edicoes" onClick={ir('/edicoes')}>
+            <span className="hm-destino__fotos">
+              {fotosHome('edicoes').map((foto) => (
+                <span className="hm-destino__capa" key={foto.src}>
+                  <Foto foto={foto} papel="miniatura" />
+                  <b>{foto.ano}</b>
+                </span>
+              ))}
+            </span>
+            <span className="hm-destino__corpo">
+              <span className="hm-destino__eixo">Edições</span>
+              <strong className="hm-destino__titulo">Um tema novo a cada edição, desde 2016.</strong>
+              <span className="hm-destino__texto">Veja os temas, as casas participantes e as fotos de cada ano.</span>
+              <span className="hm-destino__cta">Explorar as edições <Seta size={16} /></span>
+            </span>
+          </a>
+
+          <a className="hm-destino hm-destino--awards" href="/sweet-awards" onClick={ir('/sweet-awards')}>
+            <span className="hm-destino__foto">
+              <Foto foto={fotosHome('premio')} papel="cartao" />
+            </span>
+            <span className="hm-destino__corpo">
+              <span className="hm-destino__eixo">Sweet Awards</span>
+              <strong className="hm-destino__titulo">{EDICOES_PREMIADAS} edições premiadas pela avaliação do público.</strong>
+              <span className="hm-destino__texto">Pódios por categoria e as casas que mais subiram nele.</span>
+              <span className="hm-destino__cta">Ver o Sweet Awards <Seta size={16} /></span>
+            </span>
+          </a>
+        </div>
+
+        <div className="hm-imprensa">
+          <div className="hm-imprensa__cab">
+            <span className="scw-rotulo">Na imprensa</span>
             <a className="hm-materia" href={destaque.href} target="_blank" rel="noopener noreferrer">
-              <span>
-                <span className="hm-materia__veiculo">{destaque.veiculo} · {destaque.ano}</span>
-                <strong className="hm-materia__titulo">{destaque.titulo}</strong>
-              </span>
-              <span className="hm-materia__foto">
-                <img src="/images/imprensa/02.jpg" alt="Cobertura de imprensa do Sweet &amp; Coffee Week" loading="lazy" decoding="async" />
-              </span>
+              <span className="hm-materia__veiculo">{destaque.veiculo} · {destaque.ano}</span>
+              <strong className="hm-materia__titulo">{destaque.titulo}</strong>
             </a>
-
+          </div>
+          <div>
             <div id="hm-materias">
               {materias.map((item) => (
                 <a className="hm-linha" href={item.href} key={item.href} target="_blank" rel="noopener noreferrer">
@@ -627,7 +524,6 @@ export function HomePage({ navigate }) {
                 </a>
               ))}
             </div>
-
             <button
               type="button"
               className="hm-imprensa__toggle"
@@ -641,17 +537,30 @@ export function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* ---------------------------------------------- 07 Realização -------
-          Quebra de marca proposital: a seção de realização usa o KV da F2
-          Experience (preto #0B0B0C, acento #E50053, tipografia Archivo), não o
-          sistema visual do festival. É a única seção do site fora da paleta e
-          fora da Nexa Slab — decisão do Wilke, registrada no CLAUDE.md. */}
+      {/* ------------------------------------------ 07 Apoio -------------- */}
+      <section className="scw-secao scw-secao--compacta hm-apoiar">
+        <div>
+          <span className="scw-rotulo hm-rotulo--bege">Para parceiros</span>
+          <h2 className="hm-apoiar__titulo">Apoie a próxima edição.</h2>
+        </div>
+        <p className="hm-apoiar__texto">
+          Conecte sua marca à gastronomia, à cultura e à economia criativa de Natal, ao lado das casas e do público do festival.
+        </p>
+        <a className="scw-btn hm-btn--bege" href="/apoiar" onClick={ir('/apoiar')}>
+          Quero apoiar <Seta />
+        </a>
+      </section>
+
+      {/* ------------------------------------------ 07 Realização ----------
+          Quebra de marca proposital: KV da F2 Experience (preto #0B0B0C,
+          acento #E50053, Archivo). Única seção fora da paleta e da Nexa —
+          decisão do Wilker, registrada no CLAUDE.md §6.1. */}
       <section className="scw-secao scw-secao--compacta f2-realiza">
         <div className="f2-realiza__kv" aria-hidden="true" />
 
         <div className="f2-realiza__conteudo">
           <div className="f2-realiza__topo">
-            <span className="f2-realiza__indice">07 <i /> Realização</span>
+            <span className="f2-realiza__indice">Realização <i /></span>
             <img className="f2-realiza__logo" src="/images/logo-f2experience.svg" alt="F2 Experience" loading="lazy" />
             <span className="f2-realiza__meta">Live Marketing · desde 2004</span>
           </div>
@@ -666,12 +575,7 @@ export function HomePage({ navigate }) {
                 Sweet &amp; Coffee Week: eventos, ativações e experiências de marca para
                 quem quer conexão e resultado.
               </p>
-              <a
-                className="f2-realiza__cta"
-                href="https://www.f2experience.com.br/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a className="f2-realiza__cta" href="https://www.f2experience.com.br/" target="_blank" rel="noopener noreferrer">
                 Conhecer a F2 Experience <Seta />
               </a>
             </div>
