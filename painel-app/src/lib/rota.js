@@ -19,7 +19,11 @@ export function lerRota(hash) {
   const h = String(hash || '').replace(/^#/, '')
   const i = h.indexOf('?')
   const caminho = i < 0 ? h : h.slice(0, i)
-  const [vista = '', aba = ''] = caminho.split('/').filter(Boolean).map(decodeURIComponent)
+  let partes
+  // Endereço colado com % solto ("#marcas%") faz decodeURIComponent lançar;
+  // lido no useState inicial, derrubaria o painel. Vira rota vazia.
+  try { partes = caminho.split('/').filter(Boolean).map(decodeURIComponent) } catch { return { vista: '', aba: '', filtros: {} } }
+  const [vista = '', aba = ''] = partes
   const filtros = {}
   if (i >= 0) for (const [k, v] of new URLSearchParams(h.slice(i + 1))) if (v !== '') filtros[k] = v
   return { vista, aba, filtros }

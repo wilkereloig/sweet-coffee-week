@@ -44,10 +44,12 @@ const MIGRATIONS = readdirSync(MIGDIR)
 const colunasConcedidas = (tabela) => {
   const passo = new RegExp(
     'grant\\s+update\\s*\\(([^)]+)\\)\\s*(?:\\n\\s*)?on\\s+public\\.' + tabela + '\\b' +
-    '|revoke\\s+(?:all|update)[^;]*?\\son\\s+public\\.' + tabela + '\\b[^;]*?;', 'g')
+    '|revoke\\s+(?:all|update)\\s*(?:\\(([^)]+)\\))?[^;]*?\\son\\s+public\\.' + tabela + '\\b[^;]*?;', 'g')
   let atual = new Set()
   for (const m of MIGRATIONS.matchAll(passo)) {
     if (m[1]) m[1].split(',').forEach((c) => atual.add(c.trim()))
+    // revoke de coluna tira só aquelas; revoke da tabela zera tudo.
+    else if (m[2]) m[2].split(',').forEach((c) => atual.delete(c.trim()))
     else atual = new Set()
   }
   return atual

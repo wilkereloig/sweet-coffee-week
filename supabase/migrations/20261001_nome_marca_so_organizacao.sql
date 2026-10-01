@@ -1,0 +1,14 @@
+-- =============================================================================
+-- A marca não renomeia a si mesma — 01/10/2026 (revisão de bugs).
+--
+-- O login da marca é o nome do estabelecimento (slug no endereço interno). A
+-- marca podia editar `nome_marca` pelo próprio cadastro, com salvamento
+-- automático a cada pausa: corrigia uma letra e, no próximo login, digitava o
+-- nome novo e recebia "Usuário ou senha não conferem". Renomear é da
+-- organização (Ficha › Acesso › alterar login, que troca nome e login juntos).
+--
+-- ⚠️ Aplicar JUNTO com o painel que já não manda `nome_marca` no PATCH: o
+-- painel antigo mandava o campo em todo salvamento, e o PATCH inteiro seria
+-- recusado.
+-- =============================================================================
+revoke update (nome_marca) on public.participantes from authenticated;

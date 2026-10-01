@@ -25,10 +25,13 @@ export function prazoTexto(iso, agora = Date.now()) {
 }
 
 // Um pedido geral de OUTRA edição não é meu. `edicao_codigo` nulo é aviso que
-// vale sempre (regulamento, canal de contato).
+// vale sempre (regulamento, canal de contato). Pedido individual é de UMA
+// participação: a RLS devolve os de todas as edições da marca, e o de uma
+// edição passada não pode aparecer como pendência desta.
 export function minhasSolicitacoes(lista, participacao) {
   return (lista || []).filter((s) => {
     if (s.escopo === 'geral' && s.edicao_codigo && s.edicao_codigo !== (participacao && participacao.edicao_codigo)) return false
+    if (s.escopo !== 'geral' && s.participacao_id !== (participacao && participacao.id)) return false
     return true
   })
 }

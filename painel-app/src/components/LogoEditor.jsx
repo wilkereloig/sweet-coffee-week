@@ -103,8 +103,10 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
     }, 'Logo confirmada. Ela já aparece no painel.')
   }
 
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
-  if (!info) return <Carregando linhas={2} />
+  // O alvo `#campo-logo` existe desde o primeiro render: "Enviar logo" rola
+  // até aqui antes de a RPC responder.
+  if (erro) return <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}><Erro texto={erro} onTentar={carregar} /></div>
+  if (!info) return <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}><Carregando linhas={2} /></div>
 
   const atual = info.atual
   const sug = info.sugestao

@@ -77,20 +77,55 @@ export async function descarregarPendentes() {
 /** signIn no formato que src/lib/marcaAccess.js#entrarComoMarca espera injetar. */
 export async function signInComSenha(email, senha, fetchImpl = fetch) {
   const r = await auth('token?grant_type=password', { email, password: senha }, 'POST', undefined, fetchImpl)
+  // 429/5xx não é senha errada: lança, e quem chama cai no recado de rede.
+  if (!r.ok && (r.status === 429 || r.status >= 500)) throw new Error('http_' + r.status)
   if (!r.ok || !r.dados.access_token) return { data: {}, error: new Error('credenciais') }
   return { data: { session: r.dados, user: r.dados.user }, error: null }
 }
 
-function lerSessao() {
+function lerSessao(chave = CHAVE_SESSAO) {
   try {
-    const cru = sessionStorage.getItem(CHAVE_SESSAO)
+    const cru = sessionStorage.getItem(chave)
     return cru ? JSON.parse(cru) : null
   } catch { return null }
 }
 
-function salvarSessao(sessao) {
-  try { sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao)) } catch { /* modo privado */ }
+function salvarSessao(sessao, chave = CHAVE_SESSAO) {
+  try { sessionStorage.setItem(chave, JSON.stringify(sessao)) } catch { /* modo privado */ }
 }
+
+/**
+ * Token vivo da sessão guardada em `chave` (marca ou conta da organização):
+ * renova antes de usar e grava a renovada. Quem chama /auth/v1 direto (trocar
+ * a senha) precisa disto — o token cru do sessionStorage vence em 1 h.
+ * @returns {Promise<string|null>} null = sessão morta; 429/5xx lança.
+ */
+export async function tokenVivo(chave = CHAVE_SESSAO, fetchImpl = fetch) {
+  const atual = lerSessao(chave)
+  const viva = await renovarCompartilhado(atual, fetchImpl)
+  if (viva && viva !== atual) salvarSessao(viva, chave)
+  return viva ? viva.access_token : null
+}
+
+/** Recado legível para a falha do PUT /auth/v1/user (o GoTrue responde em inglês). */
+export function recadoSenha(r) {
+  const cod = (r && r.dados && (r.dados.error_code || r.dados.code)) || ''
+  if (r && r.status === 401) return 'Sua sessão expirou. Saia e entre de novo.'
+  if (cod === 'same_password') return 'A nova senha precisa ser diferente da atual.'
+  if (cod === 'weak_password') return 'Essa senha é fraca demais. Use uma mais longa, misturando letras e números.'
+  return 'Não deu para salvar a senha agora. Tente de novo.'
+}
+
+/*
+ * Leitura opcional (tabela, função ou coluna que só existe com uma migration
+ * nova): SÓ a ausência no banco vira vazio. Falha passageira (5xx, rede)
+ * propaga — senão a tela diria "Nada pendente" com o servidor fora do ar.
+ */
+const CODIGOS_AUSENTE = ['PGRST202', 'PGRST205', '42P01', '42883', '42703']
+export function faltaNoBanco(e) {
+  return !!e && (e.status === 404 || CODIGOS_AUSENTE.includes(e.codigo))
+}
+export const seFaltar = (vazio) => (e) => { if (faltaNoBanco(e)) return vazio; throw e }
 
 /*
  * Caminho A da decisão de sessão (handoff de correções, Etapa 2): quem decide
@@ -134,7 +169,12 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
   // conta suspensa). Tratar como erro genérico deixaria a pessoa num painel
   // que nunca mais carrega.
   if (r.status === 401) sessaoMorta()
-  if (!r.ok) throw new Error((dados && dados.message) || ('http_' + r.status))
+  if (!r.ok) {
+    const erro = new Error((dados && dados.message) || ('http_' + r.status))
+    erro.status = r.status
+    erro.codigo = (dados && dados.code) || null
+    throw erro
+  }
   return dados
 }
 

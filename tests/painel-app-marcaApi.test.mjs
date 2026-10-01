@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { renovar, auth, api, precisaTrocarSenha, registrarAoSessaoExpirar } from '../painel-app/src/lib/marcaApi.js'
+import { renovar, auth, api, precisaTrocarSenha, registrarAoSessaoExpirar, signInComSenha, faltaNoBanco, seFaltar, tokenVivo, recadoSenha } from '../painel-app/src/lib/marcaApi.js'
 
 // api()/precisaTrocarSenha() leem a sessão de sessionStorage, que Node não
 // tem — um shim em memória, mínimo, mantém a lib sem DOM de verdade e testa
@@ -122,4 +122,41 @@ test('sessão morta dispara o callback registrado antes de api() lançar sessao_
   } finally {
     registrarAoSessaoExpirar(null) // não vaza pros próximos testes do arquivo
   }
+})
+
+test('signInComSenha: senha errada é "credenciais"; 429/5xx lança (vira recado de rede, não de senha)', async () => {
+  const resp = (status, corpo = {}) => async () => ({ ok: status < 400, status, json: async () => corpo })
+  const errada = await signInComSenha('a@b.c', 'x', resp(400, { error: 'invalid_grant' }))
+  assert.equal(errada.error.message, 'credenciais')
+  await assert.rejects(() => signInComSenha('a@b.c', 'x', resp(429)), /http_429/)
+  await assert.rejects(() => signInComSenha('a@b.c', 'x', resp(503)), /http_503/)
+})
+
+test('api() leva status e código do PostgREST no erro; só a ausência no banco vira vazio', async () => {
+  shimSessionStorage({ access_token: 'a', refresh_token: 'r', expira_em: Date.now() + 5 * 60 * 1000, email: 'x@y.z' })
+  const resp = (status, corpo) => async () => ({ ok: false, status, json: async () => corpo })
+  const ausente = await api('tabela_nova?select=*', {}, resp(404, { code: 'PGRST205', message: 'relation not found' })).catch((e) => e)
+  assert.equal(ausente.status, 404)
+  assert.equal(ausente.codigo, 'PGRST205')
+  assert.ok(faltaNoBanco(ausente))
+  assert.deepEqual(seFaltar([])(ausente), [])
+  const fora = await api('tabela?select=*', {}, resp(503, null)).catch((e) => e)
+  assert.equal(fora.status, 503)
+  assert.ok(!faltaNoBanco(fora))
+  assert.throws(() => seFaltar([])(fora), /http_503/)
+})
+
+test('tokenVivo renova o token vencido antes de usar e grava a sessão nova', async () => {
+  shimSessionStorage({ access_token: 'velho', refresh_token: 'r1', expira_em: Date.now() - 1000, email: 'x@y.z' })
+  const token = await tokenVivo('scw_marca', async () => ({ ok: true, status: 200, json: async () => ({ access_token: 'novo', refresh_token: 'r2', expires_in: 3600 }) }))
+  assert.equal(token, 'novo')
+  assert.equal(JSON.parse(sessionStorage.getItem('scw_marca')).access_token, 'novo')
+  shimSessionStorage(null)
+  assert.equal(await tokenVivo('scw_marca', async () => { throw new Error('não deveria chamar') }), null)
+})
+
+test('recadoSenha não repassa a mensagem crua do GoTrue', () => {
+  assert.match(recadoSenha({ status: 422, dados: { error_code: 'same_password', msg: 'New password should be different' } }), /diferente/)
+  assert.match(recadoSenha({ status: 401, dados: {} }), /sessão expirou/)
+  assert.doesNotMatch(recadoSenha({ status: 500, dados: { msg: 'Internal error' } }), /Internal/)
 })

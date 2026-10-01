@@ -112,30 +112,31 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     return rota.aba || f.item || f.campo ? { vista: rota.vista, sub: rota.aba || undefined, id: f.item, campo: f.campo } : null
   }, [montarRota(rota)]) // eslint-disable-line react-hooks/exhaustive-deps
   const consumirAlvo = React.useCallback(() => navegar({ vista }, { substituir: true }), [navegar, vista])
-  const abrirLink = React.useCallback((link) => {
-    const d = interpretarLinkMarca(link)
+  // `tipo` (do aviso) desfaz links genéricos como "hoje" e "cadastro".
+  const abrirLink = React.useCallback((link, tipo) => {
+    const d = interpretarLinkMarca(link, tipo)
     if (d) irPara(d.vista, d)
   }, [irPara])
 
+  const seqAvisos = React.useRef(0)
   const carregar = React.useCallback(async () => {
-    try {
-      const [n, m] = await Promise.all([
-        api('notificacoes?select=id,criada_em,tipo,titulo,texto,link,lida_em&order=criada_em.desc&limit=60'),
-        api('mensagens?select=id&de=eq.organizacao&lida_em=is.null'),
-      ])
-      setAvisos(n || [])
-      setMsgsNaoLidas((m || []).length)
-      setAvisosErro(null)
-      recarregarResumo()
-      // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias
-      // (sem erro), então só o perfil conta a verdade.
-      if (pausadaRef.current && (await precisaTrocarSenha()) === 'pausada') pausadaRef.current()
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-      setAvisosErro(e.message)
-    } finally {
-      setAvisosCarregando(false)
-    }
+    const minha = ++seqAvisos.current
+    // Cada leitura por si: avisos fora do ar não congelam o resumo nem a
+    // detecção de conta pausada.
+    recarregarResumo()
+    // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias
+    // (sem erro), então só o perfil conta a verdade.
+    if (pausadaRef.current) precisaTrocarSenha().then((s) => { if (s === 'pausada' && pausadaRef.current) pausadaRef.current() })
+    const [n, m] = await Promise.allSettled([
+      api('notificacoes?select=id,criada_em,tipo,titulo,texto,link,lida_em&order=criada_em.desc&limit=60'),
+      api('mensagens?select=id&de=eq.organizacao&lida_em=is.null'),
+    ])
+    // Resposta velha (rede lenta) não sobrescreve a mais nova.
+    if (minha !== seqAvisos.current) return
+    if (n.status === 'fulfilled') { setAvisos(n.value || []); setAvisosErro(null) }
+    else if (!(n.reason && n.reason.message === 'sessao_expirada')) setAvisosErro(n.reason && n.reason.message)
+    if (m.status === 'fulfilled') setMsgsNaoLidas((m.value || []).length)
+    setAvisosCarregando(false)
   }, [recarregarResumo])
 
   React.useEffect(() => {
@@ -166,7 +167,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
       setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: new Date().toISOString() } : x)))
       api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch(() => {})
     }
-    if (n.link) abrirLink(n.link)
+    if (n.link) abrirLink(n.link, n.tipo)
   }
   async function lerTodas() {
     setAvisos((l) => l.map((x) => ({ ...x, lida_em: x.lida_em || new Date().toISOString() })))
