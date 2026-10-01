@@ -469,7 +469,7 @@ button.og-item{cursor:pointer}
 }
 
 .og-selo,.selo{
-  display:inline-flex;align-items:center;padding:4px 10px 4px 8px;border-radius:999px;
+  display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;
   gap:5px;font:700 12.5px/1.3 var(--f-ui);
   background:var(--scw-bege);color:var(--scw-choco);white-space:nowrap;
 }
@@ -978,7 +978,6 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .pn-vista .canais > b{display:block;font:700 13.5px/1.2 var(--f-ui);color:var(--scw-marrom);margin:0 0 8px}
 /* .selo (formulário da marca) usa a peça e o mapa do .og-selo:
    andamento = cyan, feito = chocolate, atrasado = laranja — em todo o painel. */
-.selo{padding-left:10px}
 .selo.andamento{background:var(--scw-cyan)}
 .selo.completo{background:var(--scw-choco);color:var(--scw-creme)}
 .selo.vencido{background:var(--scw-laranja)}

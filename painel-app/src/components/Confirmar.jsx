@@ -27,7 +27,7 @@ export function confirmar(texto, opcoes = {}) {
     const pedido = { ...opcoes, texto: String(texto || ''), resolver }
     if (mostrar) mostrar(pedido)
     else if (opcoes.aviso) { window.alert(pedido.texto); resolver(true) }
-    else resolver(opcoes.campo ? window.prompt(pedido.texto, opcoes.campo.valor || '') : window.confirm(pedido.texto))
+    else resolver(opcoes.campo ? window.prompt(pedido.texto, String(opcoes.campo.valor ?? '')) : window.confirm(pedido.texto))
   })
 }
 export const pedirTexto = (texto, campo = {}, opcoes = {}) => confirmar(texto, { ...opcoes, campo })
@@ -39,12 +39,15 @@ function partes(p) {
   if (p.aviso && !p.titulo && p.texto.length > 90) return { titulo: 'Atenção', paragrafos: [p.texto], acao: p.acao, perigo: false }
   const i = p.texto.indexOf('?')
   const titulo = p.titulo || (i > 0 ? p.texto.slice(0, i + 1) : p.texto)
-  const resto = p.titulo ? p.texto : i > 0 ? p.texto.slice(i + 1).trim() : ''
+  const resto = p.titulo ? (p.texto !== p.titulo ? p.texto : '') : i > 0 ? p.texto.slice(i + 1).trim() : ''
   const verbo = (VERBOS.exec(p.texto) || [])[1]
+  // "Cancelar" e "Fechar" sozinhos soam como sair da janela: levam o objeto
+  // ("Cancelar o voucher X?" → [Cancelar voucher]).
+  const objeto = /^(Cancelar|Fechar) (?:o|a|os|as) (\S+)/.exec(p.texto)
   return {
     titulo,
     paragrafos: resto ? resto.split(/\n{2,}|\n/).filter(Boolean) : [],
-    acao: p.acao || verbo || (p.campo ? 'Salvar' : 'Confirmar'),
+    acao: p.acao || (objeto ? objeto[1] + ' ' + objeto[2].replace(/\?$/, '') : verbo) || (p.campo ? 'Salvar' : 'Confirmar'),
     perigo: p.perigo != null ? p.perigo : !!(verbo && PERIGO.test(verbo)),
   }
 }
@@ -58,7 +61,7 @@ export function Confirmacoes() {
   React.useEffect(() => {
     mostrar = (p) => {
       setPedido((antes) => { if (antes) antes.resolver(antes.campo ? null : false); return p })
-      setValor((p.campo && p.campo.valor) || '')
+      setValor(String((p.campo && p.campo.valor) ?? ''))
     }
     return () => { mostrar = null }
   }, [])
