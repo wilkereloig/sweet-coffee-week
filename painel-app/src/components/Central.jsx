@@ -26,7 +26,7 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
   return (
     <>
       <button
-        className="pn-cabeca__btn" type="button"
+        className="pn-cabeca__btn" type="button" data-tour="sino"
         aria-label={naoLidas ? 'Avisos: ' + naoLidas + (naoLidas === 1 ? ' não lido' : ' não lidos') : 'Avisos'}
         onClick={() => { onAbrirCentral(); if (onRecarregar) onRecarregar() }}
       >

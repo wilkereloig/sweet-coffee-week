@@ -9,7 +9,7 @@ import { interpretarLinkMarca, nivelDoAviso, NIVEIS } from '../lib/guia'
 import { useResumoMarca } from './vistas-marca/useResumoMarca'
 import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
-import { AjudaRapida } from './AjudaRapida'
+import { Tour, useTour } from './Tour'
 import { InstalarApp } from './AppNoAparelho'
 import { AvisosAparelho } from './AvisosAparelho'
 import { pushMarca } from '../lib/marcaApi'
@@ -72,7 +72,6 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
-  const [ajudaAberta, setAjudaAberta] = React.useState(false)
   const [avisos, setAvisos] = React.useState([])
   const [avisosCarregando, setAvisosCarregando] = React.useState(true)
   const [avisosErro, setAvisosErro] = React.useState(null)
@@ -185,6 +184,9 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) { setAvisosErro(e.message) }
   }
 
+  // Progresso do tour pela marca; espera o id chegar. Aberto por aviso ou push, não se impõe.
+  const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial })
+
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
   const cont = (resumo && resumo.contagem) || {}
@@ -195,13 +197,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
 
   return (
     <div className="pn-casca">
-      <nav className="pn-rail" aria-label="Seções">
+      <nav className="pn-rail" aria-label="Seções" data-tour="menu">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         {DESTINOS.map((d) => (
           <button
             key={d}
             className="pn-rail__btn"
             type="button"
+            data-tour={'menu-' + d}
             aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (concluído)' : '')}
             aria-current={d === vista ? 'page' : undefined}
             onClick={() => irPara(d)}
@@ -212,7 +215,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             {pronto(d) && <span className="pn-badge pn-badge--ok" aria-hidden="true">✓</span>}
           </button>
         ))}
-        <button className="pn-rail__sair" type="button" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
+        <button className="pn-rail__sair" type="button" aria-label="Sua conta" data-tour="conta" onClick={() => setContaAberta(true)}>
           <Icone nome="conta" tamanho={24} />
           <span className="pn-rail__rotulo">Conta</span>
         </button>
@@ -238,7 +241,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         <div className="pn-cabeca__dir">
           {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
           {vista !== 'mensagens' && (
-            <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto"
+            <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto" data-tour="conversa"
               aria-label={'Falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
               onClick={() => irPara('mensagens')}>
               <Icone nome="mensagens" tamanho={20} />
@@ -246,7 +249,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
               {msgsNaoLidas > 0 && <span className="pn-badge" aria-hidden="true">{msgsNaoLidas}</span>}
             </button>
           )}
-          <button type="button" className="pn-cabeca__btn" aria-label="Ajuda rápida" aria-haspopup="dialog" onClick={() => setAjudaAberta(true)}>
+          <button type="button" className="pn-cabeca__btn" aria-label="Ver o tour do painel" aria-haspopup="dialog" data-tour="ver-tour" onClick={tour.abrir}>
             <Icone nome="informacao" tamanho={20} />
           </button>
           <Central
@@ -263,7 +266,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           />
           {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
               desktop, no pé da rail. */}
-          <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sua conta" onClick={() => setContaAberta(true)}>
+          <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sua conta" data-tour="conta" onClick={() => setContaAberta(true)}>
             <Icone nome="conta" tamanho={20} />
           </button>
         </div>
@@ -306,10 +309,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         )}
         onIr={(d) => irPara(d)}
       />
-      <AjudaRapida aberto={ajudaAberta} onFechar={() => setAjudaAberta(false)} papel="marca" onIr={(l) => abrirLink(l)}
-        aparelho={<><InstalarApp />{dadosMarca && dadosMarca.participante && <AvisosAparelho
+      {tour.aberto && <Tour etapas={tour.etapas} onFechar={tour.fechar} onIr={(l) => abrirLink(l)}
+        aparelho={<><InstalarApp compacto />{dadosMarca && dadosMarca.participante && <AvisosAparelho compacto
           explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
-          {...pushMarca(dadosMarca.participante.id)} />}</>} />
+          {...pushMarca(dadosMarca.participante.id)} />}</>} />}
       <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
     </div>
   )

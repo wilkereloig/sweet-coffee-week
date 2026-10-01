@@ -11,7 +11,7 @@ import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
  *   <ConviteApp>  — o convite de contexto (Início da marca, Visão geral da
  *                   organização), com "Agora não" lembrado por aparelho.
  * Os avisos continuam no <AvisosAparelho> de sempre: aqui não há segunda
- * implementação de push. Reabrir depois de dispensar: Ajuda rápida (as duas
+ * implementação de push. Reabrir depois de dispensar: última etapa do tour (as duas
  * pontas) e Conta (marca).
  */
 // Avisos da organização: por RPC (a senha compartilhada ou a sessão nominal).
@@ -36,7 +36,7 @@ export function InstalarApp({ compacto = false }) {
   async function instalar() {
     setAviso(null)
     const aceitou = await pedirInstalacao()
-    setAviso(aceitou ? 'Instalando. O ícone do Painel SCW aparece na tela inicial.' : 'Instalação cancelada. Dá para instalar depois pela Ajuda.')
+    setAviso(aceitou ? 'Instalando. O ícone do Painel SCW aparece na tela inicial.' : 'Instalação cancelada. Dá para instalar depois pelo tour (botão de informação no topo).')
   }
 
   if (estado === 'instalado') {

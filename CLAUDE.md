@@ -3278,13 +3278,22 @@ Migration `20261001_painel_refinamento.sql` (**rodar no SQL Editor**: o MCP recu
   (outra conta no mesmo aparelho substitui a anterior) e `push_segue_conta` (conta
   desativada/bloqueada pausa os aparelhos). Assinaturas antigas da organização ficam sem
   dono até serem religadas.
-- **Ajuda rápida** (`AjudaRapida.jsx`, conteúdo em `lib/ajuda.js`) no botão de
-  informação do cabeçalho dos dois painéis. `tests/painel-app-ajuda` reprova link que não
-  abre tela.
+- **Tour guiado** (`components/Tour.jsx`, etapas em `lib/ajuda.js`) — substituiu a
+  "Ajuda rápida" em lista, que era o manual que o pedido recusava. Camada sobre o painel,
+  sem rota: recorte em volta do elemento real (`data-tour="…"`, primeiro visível vence,
+  com reserva — no celular "Arquivos" aponta para "mais"), balão com seta, progresso,
+  Voltar/Próximo/Pular/Concluir e "Abrir esta tela". Etapa some sem âncora na tela ou sem a
+  ação de `pode()` que ela exige; o texto diz o que a função **não** faz. Abre sozinho uma
+  vez por usuário neste aparelho (`scw_tour_<papel>_<usuario>`, localStorage — não vai ao
+  banco), nunca por cima de link de aviso/push; reabre pelo botão de informação.
+  `tests/painel-app-ajuda` reprova link que não abre tela e `data-tour` que não existe.
+  ⚠️ **Botão novo que o tour explica precisa do `data-tour`** — sem ele a etapa some calada.
+  ⚠️ A regra `.ui-ajuda` da lista antiga colidia com o `<Ajuda>` recolhível de `ui.jsx`
+  (Edição, Press Kit, Vouchers); saiu junto.
 - **Painel como app:** `lib/instalar.js` captura `beforeinstallprompt` (importado no
   `main.jsx`, antes do render). `ConviteApp` (Início e Visão geral) junta instalar +
-  avisos, com "Agora não" em `localStorage`; reabre pela Ajuda e pela Conta. Nunca pede
-  permissão sozinho.
+  avisos, com "Agora não" em `localStorage`; reabre pela última etapa do tour e pela
+  Conta. Nunca pede permissão sozinho.
 
 ### 10.5 Grade e layout
 

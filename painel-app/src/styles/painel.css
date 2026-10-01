@@ -544,12 +544,48 @@ button.og-item{cursor:pointer}
 .ui-convite--app > p{flex:1 1 100%}
 .ui-convite--app .ui-convite{margin:0;padding:0;border:0;flex:1 1 100%}
 .ui-instalar{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 100%;margin-bottom:6px}
-/* Ajuda rápida: lista curta, uma ação por item. */
-.ui-ajuda{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.ui-ajuda__item{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0;border-top:1px solid var(--scw-filete)}
-.ui-ajuda__item:first-child{border-top:0;padding-top:0}
-.ui-ajuda__item > b{font:700 15px/1.3 var(--f-ui)}
-.ui-ajuda__item > .ui-nota{margin:0}
+/* Tour guiado (components/Tour.jsx): fundo que engole o toque, recorte em
+   volta do elemento real e o balão com seta. Acima de tudo do painel (a
+   folha é 30/31, o aviso flutuante 60). Recorte e balão sem transição de
+   posição: remedidos a cada quadro de rolagem, ficariam 300ms atrás do alvo. */
+.ui-tour__fundo{position:fixed;inset:0;z-index:80}
+.ui-tour__fundo.is-cheio{background:rgba(43,14,6,.62)}
+.ui-tour__foco{
+  position:fixed;z-index:81;pointer-events:none;border-radius:14px;
+  box-shadow:0 0 0 3px var(--scw-amarelo),0 0 0 9999px rgba(43,14,6,.62);
+}
+.ui-tour__balao{
+  position:fixed;z-index:82;width:min(360px,calc(100vw - 24px));
+  border-radius:var(--r-modulo);background:var(--scw-creme);color:var(--scw-choco);
+  box-shadow:0 18px 42px rgba(43,14,6,.34);
+}
+/* Quem rola é o corpo, não o balão: a seta fica de fora, sem ser cortada. */
+.ui-tour__corpo{display:flex;flex-direction:column;gap:10px;max-height:calc(100dvh - 24px);overflow:auto;padding:16px 18px 14px;border-radius:inherit}
+.ui-tour__balao.is-centro{left:50%;top:50%;transform:translate(-50%,-50%)}
+/* A seta: um quadrado girado na borda do lado do alvo, no centro dele. */
+.ui-tour__balao::before{content:'';position:absolute;width:14px;height:14px;background:var(--scw-creme);transform:rotate(45deg)}
+.ui-tour__balao.is-centro::before{display:none}
+.ui-tour__balao.is-baixo::before{top:-7px;left:calc(var(--tour-seta) - 7px)}
+.ui-tour__balao.is-cima::before{bottom:-7px;left:calc(var(--tour-seta) - 7px)}
+.ui-tour__balao.is-direita::before{left:-7px;top:calc(var(--tour-seta) - 7px)}
+.ui-tour__balao.is-esquerda::before{right:-7px;top:calc(var(--tour-seta) - 7px)}
+.ui-tour__topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-6px -8px -4px 0}
+.ui-tour__passo{margin:0;font:700 12px/1 var(--f-ui);letter-spacing:.02em;color:var(--scw-marrom)}
+.ui-tour__fechar{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--scw-choco);cursor:pointer}
+.ui-tour__fechar:hover{background:var(--scw-bege)}
+.ui-tour__progresso{height:4px;border-radius:2px;background:var(--scw-bege);overflow:hidden}
+.ui-tour__progresso span{display:block;height:100%;background:var(--scw-choco);transition:width 300ms var(--scw-ease)}
+.ui-tour__titulo{margin:4px 0 0;font:900 20px/1.1 var(--f-titulo);letter-spacing:-.02em}
+.ui-tour__titulo:focus{outline:none}
+.ui-tour__titulo:focus-visible{outline:3px solid var(--scw-cyan);outline-offset:3px;border-radius:4px}
+.ui-tour__texto{margin:0;font:400 15px/1.5 var(--f-texto)}
+.ui-tour__extra{padding:12px;border-radius:var(--r-bloco);background:var(--sup-2)}
+.ui-tour__extra .ui-convite{margin:0;padding:0;border:0}
+/* Já instalado e avisos já ligados: os dois somem, e a caixa com eles. */
+.ui-tour__extra:not(:has(> :not(:empty))){display:none}
+.ui-tour__ir{align-self:flex-start}
+.ui-tour__acoes{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.ui-tour__nav{display:flex;gap:8px;margin-left:auto}
 
 /* ═══ Painel inicial ═══════════════════════════════════════════════════════ */
 .ui-numeros{list-style:none;margin:0 0 var(--espaco-secao);padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
