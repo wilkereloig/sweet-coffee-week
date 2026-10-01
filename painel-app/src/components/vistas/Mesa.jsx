@@ -90,16 +90,23 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   // endereço — reestruturação 29/09/2026).
   const edCodigo = extra.edicao ? extra.edicao.codigo : undefined
   const lista = (filtros) => () => navegar({ vista: 'participantes', aba: 'lista', filtros })
-  const numeros = [
-    { rotulo: 'candidaturas novas', n: (candidaturas || []).filter((r) => r.status === 'novo').length, ir: () => navegar({ vista: 'participantes', aba: 'candidaturas', filtros: { status: 'novo' } }) },
-    { rotulo: 'marcas na edição', n: naEdicao.length, ir: lista({ edicao: edCodigo }) },
-    { rotulo: 'com acesso ao painel', n: naEdicao.filter((p) => p.user_id).length, ir: lista({ edicao: edCodigo, situacao: 'com_conta' }) },
-    { rotulo: 'sem acesso ao painel', n: naEdicao.filter((p) => !p.user_id).length, ir: lista({ edicao: edCodigo, situacao: 'sem_conta' }) },
-    { rotulo: 'cadastros completos', n: participantes.filter((p) => p.status_cadastro === 'cadastro_completo').length, ir: lista({ situacao: 'cadastro_completo' }) },
-    { rotulo: 'mensagens não lidas', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: lista({ situacao: 'mensagens' }) },
-    { rotulo: 'dados para revisar', n: extra.revisao.length, ir: () => navegar({ vista: 'admin', aba: 'revisao' }) },
-    { rotulo: 'respostas de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => navegar({ vista: 'operacao', aba: 'pedidos' }) },
+  // A edição em frações do total; o resto só pede atenção quando passa de zero.
+  const comAcesso = naEdicao.filter((p) => p.user_id).length
+  const semAcesso = naEdicao.length - comAcesso
+  const completos = naEdicao.filter((p) => p.status_cadastro === 'cadastro_completo').length
+  const progresso = [
+    { rotulo: 'com acesso ao painel', n: comAcesso, ir: lista({ edicao: edCodigo, situacao: 'com_conta' }) },
+    { rotulo: 'cadastros completos', n: completos, ir: lista({ edicao: edCodigo, situacao: 'cadastro_completo' }) },
   ]
+  const acoes = [
+    { rotulo: 'candidaturas novas', um: 'candidatura nova', n: (candidaturas || []).filter((r) => r.status === 'novo').length, ir: () => navegar({ vista: 'participantes', aba: 'candidaturas', filtros: { status: 'novo' } }) },
+    { rotulo: 'mensagens não lidas', um: 'mensagem não lida', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: lista({ situacao: 'mensagens' }) },
+    { rotulo: 'marcas sem acesso ao painel', um: 'marca sem acesso ao painel', n: semAcesso, ir: lista({ edicao: edCodigo, situacao: 'sem_conta' }) },
+    { rotulo: 'dados para revisar', um: 'dado para revisar', n: extra.revisao.length, ir: () => navegar({ vista: 'admin', aba: 'revisao' }) },
+    { rotulo: 'respostas de pedido faltando', um: 'resposta de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => navegar({ vista: 'operacao', aba: 'pedidos' }) },
+  ]
+  const abertas = acoes.filter((a) => a.n > 0)
+  const emDia = acoes.filter((a) => a.n === 0)
 
   return (
     <div className="og-embutida">
@@ -109,16 +116,52 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
 
       {!erro && candidaturas && (
         <div className="ui-grade-painel">
-          <ul className="ui-numeros" aria-label="Resumo">
-            {numeros.map((x) => (
-              <li key={x.rotulo}>
-                <button type="button" className="ui-numero" onClick={x.ir}>
-                  <span className="ui-numero__n">{x.n}</span>
-                  <span className="ui-numero__rotulo">{x.rotulo}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="ui-resumo">
+            <section className="ui-resumo__bloco" aria-labelledby="resumo-edicao">
+              <h2 className="ui-resumo__rotulo" id="resumo-edicao">{extra.edicao ? 'Edição ' + extra.edicao.codigo : 'A edição'}</h2>
+              <button type="button" className="ui-resumo__total" onClick={lista({ edicao: edCodigo })}>
+                <span className="ui-resumo__n">{naEdicao.length}</span>
+                <span className="ui-resumo__texto">{naEdicao.length === 1 ? 'marca na edição' : 'marcas na edição'}</span>
+              </button>
+              <ul className="ui-resumo__barras">
+                {progresso.map((x) => {
+                  const pct = naEdicao.length ? Math.round((x.n / naEdicao.length) * 100) : 0
+                  return (
+                    <li key={x.rotulo}>
+                      <button type="button" className="ui-resumo__barra" onClick={x.ir}>
+                        <span className="ui-resumo__linha"><span>{x.rotulo}</span><b>{x.n} de {naEdicao.length}</b></span>
+                        <span className="ui-resumo__trilho" role="progressbar" aria-label={x.rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+                          <span style={{ width: pct + '%' }} />
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+
+            <section className="ui-resumo__bloco" aria-labelledby="resumo-acoes">
+              <h2 className="ui-resumo__rotulo" id="resumo-acoes">Para resolver</h2>
+              {abertas.length === 0
+                ? <p className="ui-resumo__ok"><Icone nome="ok-circulo" tamanho={20} /> Tudo em dia.</p>
+                : (
+                  <ul className="ui-resumo__acoes">
+                    {abertas.map((x) => (
+                      <li key={x.rotulo}>
+                        <button type="button" className="ui-resumo__acao" onClick={x.ir}>
+                          <span className="ui-resumo__n ui-resumo__n--acao">{x.n}</span>
+                          <span className="ui-resumo__texto">{x.n === 1 ? x.um : x.rotulo}</span>
+                          <span className="ui-resumo__ir" aria-hidden="true">›</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              {abertas.length > 0 && emDia.length > 0 && (
+                <p className="ui-resumo__emdia"><b>Em dia:</b> {emDia.map((x) => x.rotulo).join(' · ')}</p>
+              )}
+            </section>
+          </div>
 
           <Secao titulo="Precisa de atenção" nota={avisosNaoLidos ? avisosNaoLidos + (avisosNaoLidos === 1 ? ' aviso não lido no sino' : ' avisos não lidos no sino') : 'Pendências tiradas dos dados de agora'} className="ui-area-atencao">
             {extra.falhas.length > 0 && <Erro texto={'Faltou ler ' + extra.falhas.join(', ') + '. O que aparece aqui pode estar incompleto.'} onTentar={carregar} />}
