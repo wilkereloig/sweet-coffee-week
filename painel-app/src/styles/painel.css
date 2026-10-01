@@ -121,7 +121,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
   background:var(--scw-choco);color:var(--scw-creme);
   overflow-y:auto;
 }
-.pn-rail__selo{height:30px;width:auto;display:block;margin:0 0 14px}
+.pn-rail__selo{height:52px;width:auto;display:block;margin:2px 0 16px}
 .pn-rail__btn,.pn-rail__sair{
   position:relative;width:100%;min-height:50px;flex:0 0 auto;
   display:flex;align-items:center;justify-content:center;gap:12px;
@@ -137,7 +137,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
 .pn-rail .pn-badge{position:absolute;top:6px;right:6px}
 @media (min-width:1280px){
   .pn-rail{align-items:stretch;padding-left:calc(14px + var(--scw-safe-l));padding-right:14px}
-  .pn-rail__selo{align-self:flex-start;margin-left:8px}
+  .pn-rail__selo{height:76px;align-self:flex-start;margin-left:6px}
   .pn-rail__btn,.pn-rail__sair{justify-content:flex-start}
   .pn-rail__rotulo{display:block}
   .pn-rail .pn-badge{position:static}
@@ -157,7 +157,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
   content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;
   background:var(--pn-acento,var(--scw-amarelo));transition:background var(--scw-transicao);
 }
-.pn-cabeca__marca{height:26px;width:auto;display:none;flex:0 0 auto}
+.pn-cabeca__marca{height:40px;width:auto;display:none;flex:0 0 auto}
 .pn-cabeca__texto{min-width:0;flex:1 1 auto}
 .pn-cabeca__titulo{font:900 20px/1.05 var(--f-titulo);letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pn-cabeca__sub{margin:3px 0 0;font:400 12.5px/1.2 var(--f-ui);color:var(--scw-marrom);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1045,7 +1045,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:rgba(248,228,193,
 /* Login e primeiro acesso: um formulário só — coluna de leitura, não 820px. */
 .pn-porta__caixa--estreita{width:min(480px,100%)}
 .pn-porta__etapa{margin:0 0 8px;font:700 13px/1.2 var(--f-ui);color:var(--scw-amarelo)}
-.pn-porta__selo{height:56px;width:auto;display:block;margin-bottom:22px}
+.pn-porta__selo{height:88px;width:auto;display:block;margin-bottom:24px}
 .pn-porta__titulo{margin:0 0 8px;font:900 clamp(28px,3.6vw,40px)/1.02 var(--f-titulo);letter-spacing:-.04em}
 .pn-porta__lead{margin:0 0 26px;max-width:48ch;font:400 15px/1.5 var(--f-texto);color:rgba(254,240,221,.78);text-wrap:pretty}
 .pn-porta__grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
