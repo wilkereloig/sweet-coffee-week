@@ -455,7 +455,10 @@ button.og-item{cursor:pointer}
 .og-item__meta{font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom);margin:0;grid-column:2}
 .og-item__dir{grid-row:span 2;grid-column:3;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:flex-end}
 .og-item__data{font:400 12.5px/1 var(--f-ui);color:var(--scw-marrom);font-variant-numeric:tabular-nums;white-space:nowrap}
-.og-item--info{padding-left:0;padding-right:0;cursor:default}
+/* Linha informativa: sem recuo quando solta na seção; dentro de lista em
+   card mantém o recuo da linha (senão o ponto encosta na borda do card). */
+.og-item--info{cursor:default}
+.og-item--info:not(.og-lista .og-item){padding-left:0;padding-right:0}
 .og-item--info:hover{background:transparent}
 @media (min-width:1280px){
   .og-lista--tabela .og-item{grid-template-columns:10px minmax(200px,1.1fr) minmax(0,2fr) auto}
@@ -1429,7 +1432,7 @@ button.ui-modulo:active{transform:translateY(0)}
   .og-item--marca,.og-lista__cabeca{grid-template-columns:40px minmax(0,1.6fr) minmax(150px,1fr) 104px 112px minmax(150px,1fr)}
   .og-item--marca .ui-logo{grid-row:auto;align-self:center}
   .og-item--marca .og-item__col{grid-column:auto}
-  .og-lista__cabeca{display:grid;gap:4px 14px;padding:12px 20px;background:var(--sup-2);border-bottom:1px solid var(--scw-filete);font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
+  .og-lista__cabeca{display:grid;gap:4px 14px;padding:12px 20px;border-bottom:1px solid var(--scw-filete);font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
   .og-lista__cabeca > span:first-child{grid-column:1 / span 2}
   .ac-item .og-lista__cabeca{padding-left:0}
 }

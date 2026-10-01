@@ -726,6 +726,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               />
             </label>
             {avisoEdicao && <div className="og-aviso" data-tom={avisoEdicao.tom}>{avisoEdicao.texto}</div>}
+            <div className="ui-linha-acoes og-campo--espaco">
             <button
               className="og-btn" type="button"
               disabled={salvandoEdicao || !podeGerir || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
@@ -746,6 +747,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 Fechar a edição
               </button>
             )}
+            </div>
           </section>}
 
           {secao === 'fotos' && <section className="og-forms" id="agenda-fotos">
