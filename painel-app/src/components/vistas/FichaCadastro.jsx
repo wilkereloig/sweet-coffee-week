@@ -11,6 +11,7 @@ import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
 import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips, Botao, traduzirErro } from '../ui'
 import { LogoEditor } from '../LogoEditor'
 import { MODULO_ICONE } from '../Icone'
+import { confirmar } from '../Confirmar'
 
 /*
  * Ficha da marca, abas de conteúdo — reconstrução visual 29/09/2026.
@@ -292,7 +293,7 @@ function CorrecoesCampo({ participacaoId, pode, onMudou }) {
     } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) } finally { setSalvando(false) }
   }
   async function resolver(id) {
-    if (!window.confirm('Dar este pedido de alteração por resolvido?')) return
+    if (!await confirmar('Dar este pedido de alteração por resolvido?')) return
     try { await rpc('resolver_correcao', { p_secret: lerSenha(), p_id: id }); await carregar(); onMudou && onMudou() } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) }
   }
   const abertas = (lista || []).filter((c) => c.estado !== 'resolvida')
@@ -466,7 +467,7 @@ export function AbaUnidades({ participante, pode, onMudou }) {
   const salvarParticipacao = async (v) => { await rpc('org_salvar_participacao', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: v }); await f.depois() }
 
   async function removerUnidade(u) {
-    if (!window.confirm('Remover a unidade ' + (u.endereco || 'sem endereço') + '? O histórico guarda que ela existiu.')) return
+    if (!await confirmar('Remover a unidade ' + (u.endereco || 'sem endereço') + '? O histórico guarda que ela existiu.')) return
     setAviso(null)
     try { await rpc('org_remover_unidade', { p_secret: lerSenha(), p_unidade: u.id }); await f.depois() } catch (e) { setAviso(erroLegivel(e)) }
   }

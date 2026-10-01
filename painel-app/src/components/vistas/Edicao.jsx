@@ -9,6 +9,7 @@ import { chaveDia } from '../../lib/hoje'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda } from '../ui'
+import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
  * Edição — a edição como CONFIGURAÇÃO (docs/EVOLUCAO-PAINEL-2026-09.md):
@@ -68,7 +69,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
     } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
   async function removerItem(i) {
-    if (!window.confirm('Remover "' + i.titulo + '" do cronograma?')) return
+    if (!await confirmar('Remover "' + i.titulo + '" do cronograma?')) return
     setAvisoItem(null)
     try { await rpc('remover_cronograma_item', { p_secret: lerSenha(), p_id: i.id }); onMudou() } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
@@ -150,10 +151,10 @@ function AbaTemas({ edicao, pode, irPara, registrarAtualizar }) {
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   async function decidir(t, status) {
-    const obs = status === 'recusado' ? window.prompt('Por que ' + t.marca + ' precisa trocar de tema? A marca recebe este texto.') : null
+    const obs = status === 'recusado' ? await pedirTexto('Por que ' + t.marca + ' precisa trocar de tema? A marca recebe este texto.', {}) : null
     if (status === 'recusado' && !obs) return
     try { await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: t.id, p_status: status, p_obs: obs }); carregar() }
-    catch (e) { window.alert(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
+    catch (e) { avisar(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
   }
   if (erro) return <Erro texto={erro} onTentar={carregar} />
   if (!temas) return <Carregando />
@@ -194,12 +195,12 @@ function AbaVendas({ edicao, pode, registrarAtualizar }) {
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   async function registrar(m, dia) {
     const atual = (m.dias || {})[dia]
-    const q = window.prompt('Combos vendidos por ' + m.marca + ' em ' + dataBr(dia) + ':', atual ?? '')
+    const q = await pedirTexto('Combos vendidos por ' + m.marca + ' em ' + dataBr(dia) + ':', { valor: atual ?? '' })
     if (q === null) return
     const n = parseInt(q, 10)
-    if (isNaN(n) || n < 0) { window.alert('Informe um número inteiro, zero ou mais.'); return }
+    if (isNaN(n) || n < 0) { avisar('Informe um número inteiro, zero ou mais.'); return }
     try { await rpc('registrar_venda_org', { p_secret: lerSenha(), p_participacao: m.participacao_id, p_dia: dia, p_quantidade: n, p_obs: 'Registrado pela organização' }); carregar() }
-    catch (e) { window.alert(traduzirErro(e.message)) }
+    catch (e) { avisar(traduzirErro(e.message)) }
   }
   if (erro) return <Erro texto={erro} onTentar={carregar} />
   if (!dados) return <Carregando />
@@ -261,18 +262,18 @@ function AbaRevisao({ pode, irPara, registrarAtualizar }) {
   const podeResolver = pode('curadoria.decidir')
 
   async function resolver(r, novo) {
-    const txt = window.prompt(novo === 'resolvida' ? 'O que foi feito? (fica no histórico)' : 'Por que descartar? (fica no histórico)')
+    const txt = await pedirTexto(novo === 'resolvida' ? 'O que foi feito? (fica no histórico)' : 'Por que descartar? (fica no histórico)', {})
     if (txt === null) return
-    try { await rpc('resolver_revisao', { p_secret: lerSenha(), p_id: r.id, p_status: novo, p_resolucao: txt }); carregar() } catch (e) { window.alert(traduzirErro(e.message)) }
+    try { await rpc('resolver_revisao', { p_secret: lerSenha(), p_id: r.id, p_status: novo, p_resolucao: txt }); carregar() } catch (e) { avisar(traduzirErro(e.message)) }
   }
   async function corrigir(r) {
     const campo = r.campo === 'nome_marca' || r.campo === 'razao_social' || r.campo === 'cnpj' || r.campo === 'telefone' || r.campo === 'email' ? r.campo : null
     if (!campo || !r.participante_id) return
     const sugestao = r.sugestao && r.sugestao.razao_social ? r.sugestao.razao_social.trim() : r.valor_original
-    const novo = window.prompt('Valor correto para "' + campo + '" (o anterior fica guardado no histórico):', sugestao || '')
+    const novo = await pedirTexto('Valor correto para "' + campo + '" (o anterior fica guardado no histórico):', { valor: sugestao || '' })
     if (novo === null) return
     try { await rpc('corrigir_participante', { p_secret: lerSenha(), p_participante: r.participante_id, p_campo: campo, p_valor: novo, p_pendencia: r.id }); carregar() }
-    catch (e) { window.alert(traduzirErro(e.message)) }
+    catch (e) { avisar(traduzirErro(e.message)) }
   }
 
   return (
@@ -325,7 +326,7 @@ function NomesPadrao({ pode }) {
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
   async function aplicar() {
-    if (!window.confirm('Aplicar o padrão aos nomes listados? O nome anterior fica guardado no histórico.')) return
+    if (!await confirmar('Aplicar o padrão aos nomes listados? O nome anterior fica guardado no histórico.')) return
     try {
       const r = (await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: true })) || []
       const naoAplicados = r.filter((x) => !x.aplicado)

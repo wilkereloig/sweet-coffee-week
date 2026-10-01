@@ -4,6 +4,7 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro } from '../ui'
+import { pedirTexto } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -31,7 +32,7 @@ export function MateriaisEdicao({ registrarAtualizar, pode, abrirLink }) {
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
   async function entregar(m) {
-    const quem = window.prompt('Quem recebeu na marca?')
+    const quem = await pedirTexto('Quem recebeu na marca?', {})
     if (!quem) return
     setAviso(null)
     try { await rpc('salvar_material', { p_secret: lerSenha(), p_item: { ...m, status: 'entregue', recebido_por: quem } }); carregar() }

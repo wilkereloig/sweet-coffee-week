@@ -3280,6 +3280,35 @@ Migration `20261001_painel_refinamento.sql` (**rodar no SQL Editor**: o MCP recu
   avisos, com "Agora não" em `localStorage`; reabre pela última etapa do tour e pela
   Conta. Nunca pede permissão sozinho.
 
+#### Redesenho "mesa de trabalho" — 01/10/2026 (Fase 18)
+
+Pedido do Wilker ("faça diferente e melhor todos os componentes"). Só visual e
+confirmações; nenhuma regra de negócio mudou.
+- **Três raios, três sombras, nada à mão.** `--r-1` 10 (controle pequeno) ·
+  `--r-2` 14 (campo, bloco, disco, aviso) · `--r-3` 22 (card, janela);
+  `--sombra-1` repouso · `--sombra-2` sob o ponteiro/menu/barra presa ·
+  `--sombra-3` janela. `--contorno` é o anel de 1px do card. O teste
+  `painel-app-reconstrucao` reprova raio literal fora de pílula/círculo/traço.
+- **Card tem UMA definição** (bloco "Superfície elevada" no topo do
+  `painel.css`): quem é card entra na lista do seletor; nenhuma regra redeclara
+  fundo, borda ou sombra de card. Atalho (`button.`) sobe e acende; card sem
+  destino não.
+- **Disco de módulo segue o ciclo da paleta** na ordem da grade (§6.3), não um
+  bege único; card solto fica amarelo. A cabeça do módulo com corpo vira barra
+  de título com filete.
+- **Uma peça por papel:** abas (filtro, conteúdo e modo da agenda) = controle
+  segmentado; campo = um desenho (48px); aviso = `.og-aviso` (o `.aviso` da
+  marca usa a mesma regra); link = uma família; selo = mapa único (andamento
+  cyan, feito chocolate, atenção laranja).
+- **Folha** com topo chocolate e corpo creme arredondado por cima; puxador no
+  celular. **Confirmação própria** (`components/Confirmar.jsx`: `confirmar`,
+  `pedirTexto`, `avisar`, `<dialog>` nativo montado uma vez no `App`) —
+  ⛔ `window.confirm/prompt/alert` não voltam (teste reprova). Ação que desfaz
+  algo sai em laranja (`.og-btn--perigo`); o foco entra em "Voltar".
+- ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
+  cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
+  página.
+
 ### 10.5 Grade e layout
 
 ⚠️ **`.scw-grade-fixa` desconta o gap na fórmula de largura** — sem ela, faixas de 4

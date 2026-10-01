@@ -9,6 +9,7 @@ import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { registrarEnvio } from './AcessoMarca'
 import { Carregando, Vazio, Erro, Selo } from '../ui'
+import { confirmar } from '../Confirmar'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
 // diálogo nativo quebra a casca de app. 6s é o mesmo tempo da versão
@@ -94,7 +95,7 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
     const alvo = reg.empresa || reg.nome || 'esta marca'
     // Confirmação porque a conta nasce agora e o login fica preso ao nome do
     // estabelecimento: trocar depois é apagar e refazer.
-    if (!window.confirm('Criar a conta de ' + alvo + '?\n\nA senha aparece UMA VEZ SÓ, aqui na tela. Tenha o WhatsApp à mão.')) return
+    if (!await confirmar('Criar a conta de ' + alvo + '?\n\nA senha aparece UMA VEZ SÓ, aqui na tela. Tenha o WhatsApp à mão.')) return
     setCriandoAcesso(true)
     setAvisoAcesso(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''

@@ -8,6 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { FolhaNovoArquivo } from './Producao'
 import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
+import { confirmar } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -72,7 +73,7 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
   }
 
   async function arquivar(a, sim) {
-    if (sim && !window.confirm('Arquivar "' + a.nome + '"? Sai do painel da marca; fica guardado em Arquivados.')) return
+    if (sim && !await confirmar('Arquivar "' + a.nome + '"? Sai do painel da marca; fica guardado em Arquivados.')) return
     setAviso(null); setOcupado(a.id)
     try { await rpc('arquivar_arquivo', { p_secret: lerSenha(), p_id: a.id, p_arquivar: sim }); await carregar() }
     catch (e) { setAviso(traduzirErro(e.message)) } finally { setOcupado(null) }

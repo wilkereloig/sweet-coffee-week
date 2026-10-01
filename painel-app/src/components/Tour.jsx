@@ -212,7 +212,7 @@ export function Tour({ etapas, onFechar, onIr, aparelho = null }) {
             </button>
           </div>
           <div className="ui-tour__progresso" aria-hidden="true">
-            <span style={{ width: ((i + 1) / total) * 100 + '%' }} />
+            <span style={{ '--p': (i + 1) / total }} />
           </div>
           <h2 id={tituloId} className="ui-tour__titulo" tabIndex={-1}>{etapa.titulo}</h2>
           <p id={textoId} className="ui-tour__texto">{etapa.texto}</p>

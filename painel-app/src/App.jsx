@@ -13,6 +13,7 @@ import { Arquivos as ArquivosMarca } from './components/vistas-marca/Arquivos'
 import { GuiaFotos as GuiaFotosMarca } from './components/vistas-marca/GuiaFotos'
 import { Mensagens as MensagensMarca } from './components/vistas-marca/Mensagens'
 import { Conexao } from './components/Conexao'
+import { Confirmacoes } from './components/Confirmar'
 import { lerIrDaUrl } from './lib/central'
 import { desligarAvisos } from './lib/push'
 import { MODULOS_ORG } from './components/Modulos'
@@ -331,6 +332,7 @@ export function App() {
     return (
       <>
         <Conexao />
+        <Confirmacoes />
         <PainelMarcaShell
           vistas={VISTAS_MARCA}
           onSair={() => sairMarca()}
@@ -344,6 +346,7 @@ export function App() {
   return (
     <>
       <Conexao />
+      <Confirmacoes />
       <PainelShell
         vistas={MODULOS_ORG}
         onSair={() => sairOrg()}

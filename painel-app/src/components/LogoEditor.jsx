@@ -3,6 +3,7 @@ import { Selo, LogoMarca, Botao, Carregando, Erro, traduzirErro } from './ui'
 import { Icone } from './Icone'
 import { validarLogo, validarVetor, caminhoLogo, mimeDe, urlLogo, extensao, ACEITA_EXIBICAO, ACEITA_VETOR } from '../lib/logos'
 import { dataCurta } from '../lib/respostas'
+import { confirmar } from './Confirmar'
 
 /*
  * Logo do estabelecimento — o MESMO editor na ficha da organização e no Meu
@@ -223,7 +224,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
         </details>
       )}
       {modo === 'org' && podeEditar && atual && adaptador.remover && (
-        <p><button type="button" className="ui-link" disabled={ocupado} onClick={() => window.confirm('Remover a logo oficial? O arquivo fica no histórico e pode ser restaurado.') && executar(adaptador.remover, 'Logo removida. Ela continua no histórico de versões.')}>Remover logo oficial</button></p>
+        <p><button type="button" className="ui-link" disabled={ocupado} onClick={async () => await confirmar('Remover a logo oficial? O arquivo fica no histórico e pode ser restaurado.') && executar(adaptador.remover, 'Logo removida. Ela continua no histórico de versões.')}>Remover logo oficial</button></p>
       )}
     </div>
   )

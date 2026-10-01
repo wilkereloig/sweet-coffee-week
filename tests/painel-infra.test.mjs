@@ -488,7 +488,7 @@ test('apagar exige dois toques e só fecha a ficha depois do servidor confirmar'
 test('criar acesso pede confirmação, e a credencial só existe na resposta da função', () => {
   const corpo = RESPOSTAS_JSX.slice(RESPOSTAS_JSX.indexOf('async function criarAcesso'))
   assert.ok(corpo.length > 0, 'sumiu a função criarAcesso')
-  const confirma = corpo.indexOf('window.confirm(')
+  const confirma = corpo.indexOf('await confirmar(')
   const chama = corpo.indexOf("chamarFuncao('criar-acesso-marca'")
   assert.ok(confirma > -1, 'a conta nasce sem confirmar com quem está na tela')
   assert.ok(chama > confirma, 'a Edge Function é chamada antes da confirmação')

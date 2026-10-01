@@ -7,6 +7,7 @@ import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Atividade } from '../Atividade'
 import { Secao, traduzirErro, Selo } from '../ui'
+import { confirmar, pedirTexto } from '../Confirmar'
 
 /*
  * Acesso das marcas ao painel (29/09/2026, spec acessos-e-guia-da-marca).
@@ -88,8 +89,8 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
     } catch { /* os dados estão na tela */ }
   }
   // Sair da tela por qualquer caminho (Fechar ou Gerenciar) descarta as senhas.
-  const podeSair = () => !rodando && (!criados.length || window.confirm('Sair desta tela? As senhas geradas não aparecem de novo.'))
-  function fechar() { if (podeSair()) onFechar() }
+  const podeSair = async () => !rodando && (!criados.length || await confirmar('Sair desta tela? As senhas geradas não aparecem de novo.'))
+  async function fechar() { if (await podeSair()) onFechar() }
 
   const titulo = modo === 'gerar' ? 'Gerar acessos' : 'Gerar novas senhas temporárias'
   return (
@@ -100,7 +101,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
             {copiado === true ? 'Copiado' : copiado === 'manual' ? 'Sem área de transferência: copie da lista' : 'Copiar todos os acessos'}
           </button>
           <button className="og-btn og-btn--vazado" type="button" disabled={rodando || !criados.length}
-            onClick={() => { if (window.confirm('Marcar os ' + criados.length + ' acessos como enviados?')) registrar(criados.map((r) => r.p.id), 'enviado_manual') }}>
+            onClick={async () => { if (await confirmar('Marcar os ' + criados.length + ' acessos como enviados?')) registrar(criados.map((r) => r.p.id), 'enviado_manual') }}>
             Marcar todos como enviados
           </button>
         </div>
@@ -129,7 +130,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                         ? <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => registrar([r.p.id], 'whatsapp_aberto')}>WhatsApp</a>
                         : <span className="ui-nota">Sem WhatsApp</span>}
                       <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={envio === 'enviado_manual'} onClick={() => registrar([r.p.id], 'enviado_manual')}>{envio === 'enviado_manual' ? 'Enviado' : 'Marcar enviado'}</button>
-                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => { if (podeSair()) onGerenciar(r.p) }}>Gerenciar</button>}
+                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => { if (await podeSair()) onGerenciar(r.p) }}>Gerenciar</button>}
                     </div>
                   </>
                 ) : <p className="ui-nota ui-nota--erro" role="alert">{r.erro}</p>}
@@ -168,36 +169,36 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
     finally { setOcupado(false) }
   }
 
-  const criar = () => {
-    if (!window.confirm('Criar o acesso de ' + participante.nome_marca + '?\n\nO login vai ser o nome do estabelecimento e a senha temporária aparece UMA VEZ, aqui.')) return
+  const criar = async () => {
+    if (!await confirmar('Criar o acesso de ' + participante.nome_marca + '?\n\nO login vai ser o nome do estabelecimento e a senha temporária aparece UMA VEZ, aqui.')) return
     executar(async () => {
       const [r] = await emitirCredenciais([participante], 'gerar')
       if (r.erro) throw new Error(r.erro)
       setCred({ login: r.login, senha: r.senha })
     })
   }
-  const regerar = () => {
+  const regerar = async () => {
     // Nunca troca a senha de conta ativa sem avisar (spec §15).
     const msg = acesso && acesso.status === 'ativo'
       ? participante.nome_marca + ' já tem um acesso ativo. Gerar nova senha temporária?\n\nA senha atual deixa de valer e as sessões abertas caem.'
       : 'Gerar uma nova senha temporária para ' + participante.nome_marca + '?\n\nA anterior deixa de valer.'
-    if (!window.confirm(msg)) return
+    if (!await confirmar(msg)) return
     executar(async () => {
       const [r] = await emitirCredenciais([participante], 'regerar')
       if (r.erro) throw new Error(r.erro)
       setCred({ login: r.login, senha: r.senha })
     })
   }
-  const acao = (a, pergunta, ok, comMotivo = false) => {
+  const acao = async (a, pergunta, ok, comMotivo = false) => {
     let motivo = null
-    if (comMotivo) { motivo = window.prompt(pergunta + '\n\nMotivo (opcional, fica no histórico):', ''); if (motivo === null) return }
-    else if (!window.confirm(pergunta)) return
+    if (comMotivo) { motivo = await pedirTexto(pergunta, { rotulo: 'Motivo (opcional, fica no histórico)' }); if (motivo === null) return }
+    else if (!await confirmar(pergunta)) return
     executar(() => gerirAcesso([participante.id], a, motivo), ok)
   }
-  const alterarLogin = () => {
-    const novo = window.prompt('Novo nome do estabelecimento (é o login da marca):', participante.nome_marca)
+  const alterarLogin = async () => {
+    const novo = await pedirTexto('Trocar o login da marca', { rotulo: 'Novo nome do estabelecimento (é o login da marca)', valor: participante.nome_marca }, { titulo: 'Trocar o login da marca', acao: 'Continuar', perigo: false })
     if (!novo || novo.trim() === participante.nome_marca) return
-    if (!window.confirm('Trocar o login de "' + participante.nome_marca + '" para "' + novo.trim() + '"?\n\nA marca passa a entrar com o nome novo. A senha continua a mesma.')) return
+    if (!await confirmar('Trocar o login de "' + participante.nome_marca + '" para "' + novo.trim() + '"?\n\nA marca passa a entrar com o nome novo. A senha continua a mesma.')) return
     executar(async () => {
       const r = await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: participante.id, novo_nome: novo.trim() })
       setAviso('Login alterado para "' + (r && r.login) + '". Avise a marca.')
@@ -214,7 +215,7 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
       nota={participante.arquivado_em ? 'Fora das listas desde ' + dataHoraCurta(participante.arquivado_em) + '. Restaurar devolve tudo como estava.' : 'Tira a marca das listas sem apagar nada: cadastro, fotos e histórico ficam guardados.'}>
       <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado} onClick={async () => {
         const vai = !participante.arquivado_em
-        if (vai && !window.confirm('Arquivar ' + participante.nome_marca + '? Ela sai das listas; dá para restaurar depois.')) return
+        if (vai && !await confirmar('Arquivar ' + participante.nome_marca + '? Ela sai das listas; dá para restaurar depois.')) return
         setErro(null)
         // A marca sai da lista em que está: a ficha fecha (e o endereço perde o item).
         try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onFechar && onFechar(); onMudou && onMudou() }
