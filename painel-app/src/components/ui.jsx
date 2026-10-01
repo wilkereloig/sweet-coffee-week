@@ -101,8 +101,11 @@ export function Secao({ titulo, nota, acoes, id, children, className = '' }) {
   )
 }
 
-// Abas acessíveis (setas mudam a aba, como o padrão WAI-ARIA).
-export function Abas({ abas, ativa, onMudar, rotulo }) {
+// Abas acessíveis (setas mudam a aba, como o padrão WAI-ARIA). `idBase`
+// (de React.useId() no dono) liga cada aba ao painel: o painel é UM só, cujo
+// conteúdo troca — quem o monta espalha `painelDaAba(idBase, ativa)` nele.
+export const painelDaAba = (idBase, ativa) => ({ role: 'tabpanel', id: idBase + '-painel', 'aria-labelledby': idBase + '-aba-' + ativa })
+export function Abas({ abas, ativa, onMudar, rotulo, idBase }) {
   const refs = React.useRef({})
   function tecla(ev, i) {
     const n = abas.length
@@ -124,6 +127,8 @@ export function Abas({ abas, ativa, onMudar, rotulo }) {
           key={a.chave}
           ref={(el) => { refs.current[a.chave] = el }}
           type="button" role="tab"
+          id={idBase ? idBase + '-aba-' + a.chave : undefined}
+          aria-controls={idBase ? idBase + '-painel' : undefined}
           className="ui-aba"
           aria-selected={ativa === a.chave}
           tabIndex={ativa === a.chave ? 0 : -1}

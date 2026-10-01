@@ -127,5 +127,8 @@ export function filtrados(dados, { aba, status, dias, termo }) {
 }
 
 export function dataCurta(iso) {
+  // Coluna DATE ("2026-11-05") vira meia-noite UTC no new Date() e, em UTC-3,
+  // aparece um dia antes. Data sem hora é lida como meio-dia local.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) iso += 'T12:00:00'
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
 }

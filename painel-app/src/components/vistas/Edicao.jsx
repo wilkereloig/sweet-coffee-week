@@ -140,7 +140,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
 }
 
 /* ── Temas ───────────────────────────────────────────────────────────────── */
-function AbaTemas({ edicao, pode, irPara }) {
+function AbaTemas({ edicao, pode, irPara, registrarAtualizar }) {
   const [temas, setTemas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const carregar = React.useCallback(async () => {
@@ -148,6 +148,7 @@ function AbaTemas({ edicao, pode, irPara }) {
     try { setTemas((await rpc('get_temas', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []) } catch (e) { setErro(e.message) }
   }, [edicao.codigo])
   React.useEffect(() => { carregar() }, [carregar])
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   async function decidir(t, status) {
     const obs = status === 'recusado' ? window.prompt('Por que ' + t.marca + ' precisa trocar de tema? A marca recebe este texto.') : null
     if (status === 'recusado' && !obs) return
@@ -182,7 +183,7 @@ function AbaTemas({ edicao, pode, irPara }) {
 }
 
 /* ── Vendas ──────────────────────────────────────────────────────────────── */
-function AbaVendas({ edicao, pode }) {
+function AbaVendas({ edicao, pode, registrarAtualizar }) {
   const [dados, setDados] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const carregar = React.useCallback(async () => {
@@ -190,6 +191,7 @@ function AbaVendas({ edicao, pode }) {
     try { setDados((await rpc('get_vendas_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { marcas: [] }) } catch (e) { setErro(e.message) }
   }, [edicao.codigo])
   React.useEffect(() => { carregar() }, [carregar])
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   async function registrar(m, dia) {
     const atual = (m.dias || {})[dia]
     const q = window.prompt('Combos vendidos por ' + m.marca + ' em ' + dataBr(dia) + ':', atual ?? '')
@@ -241,7 +243,7 @@ function AbaVendas({ edicao, pode }) {
 }
 
 /* ── Revisão de dados ────────────────────────────────────────────────────── */
-function AbaRevisao({ pode, irPara }) {
+function AbaRevisao({ pode, irPara, registrarAtualizar }) {
   const [status, setStatus] = React.useState('aberta')
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
@@ -255,6 +257,7 @@ function AbaRevisao({ pode, irPara }) {
     } catch (e) { if (meu === pedido.current) setErro(e.message) }
   }, [status])
   React.useEffect(() => { carregar() }, [carregar])
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   const podeResolver = pode('curadoria.decidir')
 
   async function resolver(r, novo) {
@@ -351,7 +354,7 @@ function NomesPadrao({ pode }) {
 }
 
 /* ── Importações ─────────────────────────────────────────────────────────── */
-function AbaImportacoes({ pode }) {
+function AbaImportacoes({ pode, registrarAtualizar }) {
   const [lotes, setLotes] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const carregar = React.useCallback(async () => {
@@ -359,6 +362,7 @@ function AbaImportacoes({ pode }) {
     try { setLotes((await rpc('get_importacoes', { p_secret: lerSenha() })) || []) } catch (e) { setErro(e.message) }
   }, [])
   React.useEffect(() => { carregar() }, [carregar])
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   if (!pode('importacao.gerir')) return <Vazio titulo="Só o administrador vê as importações" />
   if (erro) return <Erro texto={erro} onTentar={carregar} />
   if (!lotes) return <Carregando />

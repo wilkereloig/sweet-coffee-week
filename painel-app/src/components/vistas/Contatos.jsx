@@ -54,6 +54,8 @@ export const erroContato = (m) => {
   if (s.includes('invalid input syntax for type date')) return 'Data em formato errado. Use AAAA-MM-DD (ex.: 2026-11-05).'
   return traduzirErro(s)
 }
+// O Bloco entrega o erro inteiro; os recados de contato vêm daqui, não do cadastro da marca.
+const erroBloco = (e) => erroContato(e && e.message)
 
 export function FichaContato({ id, pode, onFechar, onMudou }) {
   const [cBruto, setC] = React.useState(null)
@@ -130,7 +132,7 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
   return (
     <Folha aberto={!!id} larga titulo={novo ? 'Novo contato' : c ? c.nome : ''} sub={c ? (c.categorias || []).map((k) => rotulo('tipo_contato', k)).join(' · ') : 'Influenciador, imprensa, parceiro ou convidado'} onFechar={onFechar}>
       {novo && (
-        <Bloco titulo="Informações gerais" campos={[...CAMPOS_GERAIS, CAMPOS_RELACAO[0]]} valores={{ categorias: ['influenciador'] }}
+        <Bloco erroDe={erroBloco} titulo="Informações gerais" campos={[...CAMPOS_GERAIS, CAMPOS_RELACAO[0]]} valores={{ categorias: ['influenciador'] }}
           podeEditar={podeMudar} abertoInicial rotuloSalvar="Cadastrar contato" onCancelar={onFechar} onSalvar={salvar} />
       )}
       {!novo && erro && <Erro texto={erro} onTentar={carregar} />}
@@ -144,8 +146,8 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
               <ul className="ui-lista-simples">{c.pendencias.map((r) => <li key={r.id}><b>{r.titulo}</b><span>{rotulo('pendencia', r.tipo)}{r.valor_original ? ' · “' + r.valor_original + '”' : ''}{r.descricao ? ' · ' + r.descricao : ''}</span></li>)}</ul>
             </Secao>
           )}
-          <Bloco titulo="Informações gerais" campos={CAMPOS_GERAIS} valores={c} podeEditar={podeMudar} onSalvar={salvar} />
-          <Bloco titulo="Relacionamento com o evento" campos={CAMPOS_RELACAO} valores={{ ...c, ativo: c.ativo !== false }} podeEditar={podeMudar}
+          <Bloco erroDe={erroBloco} titulo="Informações gerais" campos={CAMPOS_GERAIS} valores={c} podeEditar={podeMudar} onSalvar={salvar} />
+          <Bloco erroDe={erroBloco} titulo="Relacionamento com o evento" campos={CAMPOS_RELACAO} valores={{ ...c, ativo: c.ativo !== false }} podeEditar={podeMudar}
             onSalvar={(v) => salvar({ nome: c.nome, ...v })} />
 
           <EnvioDaEdicao contato={c} podeMudar={podeMudar} onSalvar={presskit} />
@@ -198,7 +200,7 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
             ))}</ul>}
           </Secao>
 
-          <Bloco titulo="Observações internas" campos={CAMPOS_OBS} valores={c} podeEditar={podeMudar} onSalvar={(v) => salvar({ nome: c.nome, ...v })} />
+          <Bloco erroDe={erroBloco} titulo="Observações internas" campos={CAMPOS_OBS} valores={c} podeEditar={podeMudar} onSalvar={(v) => salvar({ nome: c.nome, ...v })} />
         </div>
       )}
     </Folha>
@@ -230,6 +232,7 @@ function EnvioDaEdicao({ contato, podeMudar, onSalvar }) {
   }
   return (
     <Bloco
+      erroDe={erroBloco}
       titulo="Press Kit desta edição" nota={atual.responsavel_rotulo ? 'última mudança por ' + atual.responsavel_rotulo : undefined}
       status={<Selo dominio="presskit" valor={atual.status} />} rotuloEditar="Editar Press Kit"
       campos={CAMPOS_PRESSKIT} valores={atual} podeEditar={podeMudar}
