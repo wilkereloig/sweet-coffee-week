@@ -251,9 +251,11 @@ Deno.serve(async (req) => {
 
     /* IDEMPOTÊNCIA. Quem garante é o `unique` de participantes.origem_id; este
        select só produz mensagem melhor que uma violação de constraint. */
+    // Casa sem conta (tentativa anterior desfeita) não bloqueia: o vínculo
+    // reaproveita a linha pelo `on conflict (origem_id)`.
     const { data: jaTem } = await admin
-      .from('participantes').select('id').eq('origem_id', origemId).maybeSingle()
-    if (jaTem) return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
+      .from('participantes').select('id, user_id').eq('origem_id', origemId).maybeSingle()
+    if (jaTem?.user_id) return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
   } else if (participanteExistente) {
     const { data: part, error: partErr } = await admin
       .from('participantes').select('id, user_id, nome_marca, responsavel, telefone, email')
@@ -359,9 +361,20 @@ Deno.serve(async (req) => {
     // Usuário do Auth sem estabelecimento seria uma conta que entra e não vê
     // nada — e ocuparia o login. Desfaz antes de reportar.
     await admin.auth.admin.deleteUser(userId)
+    // Outro clique chegou primeiro e a marca já tem conta (o vínculo agora
+    // recusa em vez de sobrescrever): é colisão, não falha do servidor.
+    if (/marca_ja_tem_conta/.test(vinculo.error.message)) return json({ erro: 'conta_ja_existe' }, 409)
     return json({ erro: 'vinculo_falhou', detalhe: vinculo.error.message }, 500)
   }
   const participanteId = vinculo.data
+
+  // Desfazer depois do vínculo: some o usuário e, no cadastro manual, o
+  // estabelecimento que ESTA chamada criou — senão sobra uma casa sem conta e
+  // sem slug, e a nova tentativa cria a mesma marca de novo.
+  const desfazer = async () => {
+    await admin.auth.admin.deleteUser(userId!)
+    if (manual) await admin.from('participantes').delete().eq('id', participanteId)
+  }
 
   // ── 6. TRAVA DE PRIMEIRO USO ───────────────────────────────────────────────
   // ⚠️ ESTA FLAG É O QUE TORNA ACEITÁVEL MANDAR SENHA POR WHATSAPP.
@@ -378,12 +391,18 @@ Deno.serve(async (req) => {
   if (flagErr) {
     // Conta criada sem a trava seria pior que conta nenhuma: a senha
     // compartilhada viraria permanente sem ninguém saber. Desfaz e reporta.
-    await admin.auth.admin.deleteUser(userId)
+    await desfazer()
     return json({ erro: 'trava_falhou', detalhe: flagErr.message }, 500)
   }
 
   // O login também é o slug do participante, e é por ele que a marca entra.
-  await admin.from('participantes').update({ slug: login }).eq('id', participanteId)
+  // Sem o slug gravado o painel mostra o login errado e a colisão de nomes
+  // deixa de enxergar esta casa: falhou, desfaz como os outros passos.
+  const { error: slugErr } = await admin.from('participantes').update({ slug: login }).eq('id', participanteId)
+  if (slugErr) {
+    await desfazer()
+    return json({ erro: 'slug_falhou', detalhe: slugErr.message }, 500)
+  }
 
   // ── 7. AS CREDENCIAIS, UMA VEZ SÓ ──────────────────────────────────────────
   // Não há e-mail de convite: o endereço de login é sintético e não recebe
