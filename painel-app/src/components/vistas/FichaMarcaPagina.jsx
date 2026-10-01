@@ -8,7 +8,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Icone, MODULO_ICONE } from '../Icone'
-import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro, Escolha } from '../ui'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
@@ -130,11 +130,8 @@ function AbaHistorico({ participante, pode }) {
         ) : <p className="ui-nota">Sua função lê o histórico, mas não registra observação.</p>}
       </Modulo>
       <Modulo icone={MODULO_ICONE.historico} titulo="Linha do tempo" largo>
-        <div className="ui-filtros-mini" role="group" aria-label="Filtrar histórico">
-          {[['', 'Tudo'], ['observacao', 'Só observações'], ['acoes', 'Só ações']].map(([v, r]) => (
-            <button key={v} type="button" className="ui-chip" aria-pressed={filtro === v} onClick={() => setFiltro(v)}>{r}</button>
-          ))}
-        </div>
+        <Escolha rotulo="Mostrar" valor={filtro} onMudar={setFiltro}
+          opcoes={[['', 'Tudo'], ['observacao', 'Só observações'], ['acoes', 'Só ações']]} />
         {erro && <Erro texto={erro} onTentar={carregar} />}
         {!erro && linhas === null && <Carregando linhas={4} />}
         {!erro && linhas && visiveis.length === 0 && <Vazio titulo="Nada registrado ainda">As mudanças de status, mensagens, pedidos e observações desta marca aparecem aqui, com quem fez e quando.</Vazio>}

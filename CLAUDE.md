@@ -3305,6 +3305,12 @@ confirmações; nenhuma regra de negócio mudou.
   `pedirTexto`, `avisar`, `<dialog>` nativo montado uma vez no `App`) —
   ⛔ `window.confirm/prompt/alert` não voltam (teste reprova). Ação que desfaz
   algo sai em laranja (`.og-btn--perigo`); o foco entra em "Voltar".
+- **Escolha de uma entre várias = caixa de seleção** (`Escolha` em `ui.jsx`,
+  `<select>` nativo com seta própria): filtros, situação de foto/pagamento/combo,
+  "ver por". ⛔ Fileira de botões `ui-chip` não volta (teste reprova). Abas de
+  navegação (`Abas`, `.og-abas`) seguem como controle segmentado.
+- Cartão da esteira mostra a **logo da marca** (`get_logos`, leitura à parte:
+  falhou, ficam as iniciais).
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.

@@ -9,7 +9,8 @@ import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Atividade } from '../Atividade'
 import { ConviteApp, PUSH_ORGANIZACAO } from '../AppNoAparelho'
-import { Carregando, Erro, Secao, Selo } from '../ui'
+import { Carregando, Erro, Secao, Selo, LogoMarca } from '../ui'
+import { urlLogo } from '../../lib/logos'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -30,6 +31,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
   const [erro, setErro] = React.useState(null)
   const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
+  const [logos, setLogos] = React.useState({}) // participante_id → logo oficial
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -51,6 +53,10 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
     const falhas = []
     const pegar = (nome, corpo, oQue) => rpc(nome, { p_secret: senha, ...corpo }).catch(() => { falhas.push(oQue); return null })
     setParticipantes((await pegar('get_participantes', {}, 'as marcas')) || [])
+    // Logo é enfeite do cartão: falhou, ficam as iniciais — não entra em `falhas`.
+    rpc('get_logos', { p_secret: senha })
+      .then((ls) => setLogos(Object.fromEntries((ls || []).map((l) => [l.participante_id, l]))))
+      .catch(() => setLogos({}))
     const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes] = await Promise.all([
       pegar(ORIGENS.apoiar.rpc, {}, 'as respostas do Apoiar'), pegar(ORIGENS.contato.rpc, {}, 'as mensagens do Contato'),
       pegar('get_solicitacoes_admin', {}, 'os pedidos'), pegar('get_sessoes_fotos', {}, 'as sessões de fotos'),
@@ -245,6 +251,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                     return (
                       <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
                         <span className="og-cartao__topo">
+                          <LogoMarca url={it.tipo === 'marca' ? urlLogo(logos[it.participanteId] && logos[it.participanteId].path) : null} nome={it.nome} tamanho={40} />
                           <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
                           {it.novo && <Selo tom="atencao">Nova</Selo>}
                         </span>

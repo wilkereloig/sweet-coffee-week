@@ -8,7 +8,7 @@ import {
   ROTULO_MATERIAL_STATUS, ROTULO_PENDENCIA,
 } from '../../lib/operacao'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Escolha } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
@@ -56,12 +56,7 @@ function Decisao({ titulo, nota, opcoes, valor, texto, rotuloTexto, exigeTexto, 
   return (
     <Secao titulo={titulo} nota={nota}>
       <form className="ui-form" onSubmit={salvar}>
-        <div className="ui-filtros-mini" role="radiogroup" aria-label={titulo}>
-          {Object.entries(opcoes).map(([k, r]) => (
-            <button key={k} type="button" role="radio" className="ui-chip" aria-checked={v === k}
-              disabled={!podeMudar} onClick={() => setV(k)}>{r}</button>
-          ))}
-        </div>
+        <Escolha rotulo="Situação" valor={v} onMudar={setV} disabled={!podeMudar} opcoes={Object.entries(opcoes)} />
         <label className="og-campo"><span>{rotuloTexto}</span>
           <textarea rows={2} value={t} disabled={!podeMudar} onChange={(e) => setT(e.target.value)} maxLength={1000} />
         </label>

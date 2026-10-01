@@ -8,7 +8,7 @@ import { vouchersPorEdicao } from '../../lib/vouchers'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Bloco } from './FichaCadastro'
-import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha } from '../ui'
 import { confirmar } from '../Confirmar'
 
 /*
@@ -276,13 +276,8 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
         </div>
         <button className="og-btn" type="button" disabled={!pode('relacionamento.gerir')} onClick={() => setAberto('novo')}>Novo contato</button>
       </div>
-      <div className="ui-filtros-mini" role="group" aria-label="Filtrar contatos">
-        {FILTROS_CONTATO.map(([v, r]) => (
-          <button key={v} type="button" className="ui-chip" aria-pressed={filtro === v} onClick={() => setFiltro(v)}>
-            {r}{lista && v !== 'todos' ? ' (' + contar(v) + ')' : ''}
-          </button>
-        ))}
-      </div>
+      <Escolha rotulo="Mostrar" valor={filtro} onMudar={setFiltro}
+        opcoes={FILTROS_CONTATO.map(([v, r]) => [v, r + (lista && v !== 'todos' ? ' (' + contar(v) + ')' : '')])} />
       {erro && <Erro texto={erro} onTentar={carregar} />}
       {!erro && !lista && <Carregando />}
       {!erro && lista && lista.length === 0 && <Vazio titulo="Nenhum contato ainda" />}

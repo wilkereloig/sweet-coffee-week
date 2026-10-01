@@ -3,7 +3,7 @@ import { rpc } from '../../lib/rpc'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha } from '../ui'
 import { pedirTexto } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
@@ -51,13 +51,9 @@ export function MateriaisEdicao({ registrarAtualizar, pode, abrirLink }) {
 
   return (
     <div className="og-embutida">
-      <div className="ui-filtros-mini" role="group" aria-label="Situação dos materiais">
-        {[['abertos', 'A entregar'], ['previsto', 'Previstos'], ['separado', 'Separados'], ['entregue', 'Entregues'], ['todos', 'Todos']].map(([v, r]) => (
-          <button key={v} type="button" className="ui-chip" aria-pressed={filtro === v} onClick={() => setFiltro(v)}>
-            {r}{v !== 'todos' && v !== 'abertos' ? ' (' + contar(v) + ')' : ''}
-          </button>
-        ))}
-      </div>
+      <Escolha rotulo="Mostrar" valor={filtro} onMudar={setFiltro}
+        opcoes={[['abertos', 'A entregar'], ['previsto', 'Previstos'], ['separado', 'Separados'], ['entregue', 'Entregues'], ['todos', 'Todos']]
+          .map(([v, r]) => [v, r + (v !== 'todos' && v !== 'abertos' ? ' (' + contar(v) + ')' : '')])} />
       {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
       {itens.length === 0 && <Vazio titulo="Nenhum material registrado nesta edição">Registre na ficha de cada marca, aba Operação.</Vazio>}
       {itens.length > 0 && grupos.length === 0 && <Vazio titulo="Nada com esse filtro" />}
