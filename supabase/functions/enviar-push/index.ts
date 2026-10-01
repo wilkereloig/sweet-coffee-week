@@ -182,6 +182,8 @@ async function enviarPara(admin: any, alvo: string, participanteId: string | nul
           'Authorization': await assinaturaVapid(a.endpoint, vapid.publica, vapid.privadaD, vapid.sub),
         },
         body: corpoCifrado,
+        // Um serviço de push pendurado não pode travar o laço inteiro.
+        signal: AbortSignal.timeout(10000),
       })
       if (r.ok) { enviados++; continue }
       // 404/410: o navegador desinstalou ou a pessoa revogou. Não é erro de
@@ -254,6 +256,9 @@ Deno.serve(async (req) => {
       const r = await enviarPara(admin, n.para, n.participante_id, carga, vapid)
       return json({ ok: true, ...r })
     } catch {
+      // Nada saiu: solta a trava, senão a notificação fica marcada como
+      // enviada para sempre e nenhuma nova tentativa a alcança.
+      await admin.from('notificacoes').update({ push_enviado_em: null }).eq('id', id)
       return json({ erro: 'db_error' }, 500)
     }
   }
@@ -269,7 +274,8 @@ Deno.serve(async (req) => {
   if (!corpo || corpo.length > 240) return json({ erro: 'corpo_invalido' }, 422)
   // O destino vira o link da notificação. Caminho interno, nunca URL absoluta:
   // notificação que abre outro site é phishing com a marca do festival.
-  if (destino && !/^\/[A-Za-z0-9/_-]*$/.test(destino)) return json({ erro: 'url_invalida' }, 422)
+  // `//host` seria endereço de outro site (protocolo-relativo): recusado.
+  if (destino && !/^\/(?!\/)[A-Za-z0-9/_-]*$/.test(destino)) return json({ erro: 'url_invalida' }, 422)
   if (alvo === 'marca' && !payload.participante_id) return json({ erro: 'participante_ausente' }, 422)
 
   const admin = createClient(
