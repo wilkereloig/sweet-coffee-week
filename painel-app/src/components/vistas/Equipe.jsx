@@ -8,6 +8,7 @@ import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo } from '../ui'
+import { confirmar } from '../Confirmar'
 
 /*
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
@@ -148,12 +149,12 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
       if (funcao && funcao !== (c.funcao || '')) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
     }, 'Salvo.')
   }
-  const alternar = () => {
-    if (c.ativo && !window.confirm('Desativar ' + (c.nome || loginDaConta(c.email)) + '? A pessoa deixa de entrar agora. O histórico continua com o nome dela.')) return
+  const alternar = async () => {
+    if (c.ativo && !await confirmar('Desativar ' + (c.nome || loginDaConta(c.email)) + '? A pessoa deixa de entrar agora. O histórico continua com o nome dela.')) return
     acao('ativo', () => rpc('suspender_conta', { p_secret: lerSenha(), p_user: c.user_id, p_ativo: !c.ativo }), c.ativo ? 'Conta desativada.' : 'Conta reativada.')
   }
-  const novaSenha = () => {
-    if (!window.confirm('Gerar uma senha nova para ' + (c.nome || loginDaConta(c.email)) + '? A atual deixa de valer agora.')) return
+  const novaSenha = async () => {
+    if (!await confirmar('Gerar uma senha nova para ' + (c.nome || loginDaConta(c.email)) + '? A atual deixa de valer agora.')) return
     acao('senha', async () => {
       const r = await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), user_id: c.user_id })
       setCred(r)
@@ -315,7 +316,7 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
 
   async function alternarCompartilhado() {
     const ligar = !(config && config.senha_unica_ativa)
-    if (!ligar && !window.confirm('Desligar o acesso compartilhado (senha única)?\n\nDepois disso só entra quem tem conta própria. Confira antes que você mesmo entra com a sua conta.')) return
+    if (!ligar && !await confirmar('Desligar o acesso compartilhado (senha única)?\n\nDepois disso só entra quem tem conta própria. Confira antes que você mesmo entra com a sua conta.')) return
     setAvisoCompartilhado(null)
     try {
       await rpc('senha_unica_definir', { p_secret: lerSenha(), p_ativa: ligar })

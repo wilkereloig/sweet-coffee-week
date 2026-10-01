@@ -9,6 +9,7 @@ import {
 } from '../../lib/operacao'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
+import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
  * Ficha 360 — as duas abas novas da ficha da marca (docs/EVOLUCAO-PAINEL-2026-09.md):
@@ -90,12 +91,12 @@ export function AbaOperacao({ participante, pode }) {
   const pendencias = f.pendencias || []
 
   async function decidirTema(status) {
-    const obs = status === 'recusado' ? window.prompt('Por que o tema precisa mudar? A marca recebe este texto.') : ''
+    const obs = status === 'recusado' ? await pedirTexto('Por que o tema precisa mudar? A marca recebe este texto.', {}) : ''
     if (status === 'recusado' && !obs) return
     try {
       await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: temaAtivo.id, p_status: status, p_obs: obs || null })
       await carregar()
-    } catch (e) { window.alert(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
+    } catch (e) { avisar(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
   }
 
   return (
@@ -192,12 +193,12 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
             <span>{ROTULO_MATERIAL_STATUS[m.status]}{m.recebido_por ? ' · recebido por ' + m.recebido_por : ''}{m.entregue_em ? ' · ' + dataHoraCurta(m.entregue_em) : ''}{m.observacao ? ' · ' + m.observacao : ''}</span>
             {podeMudar && m.status !== 'entregue' && (
               <div className="ui-linha-acoes">
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => {
-                  const quem = window.prompt('Quem recebeu na marca?')
+                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => {
+                  const quem = await pedirTexto('Quem recebeu na marca?', {})
                   if (quem) salvar({ ...m, status: 'entregue', recebido_por: quem })
                 }}>Marcar entregue</button>
                 <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => {
-                  if (!window.confirm('Remover este material?')) return
+                  if (!await confirmar('Remover este material?')) return
                   try { await rpc('remover_material', { p_secret: lerSenha(), p_id: m.id }); await onMudou() } catch (e) { setAviso(traduzirErro(e.message)) }
                 }}>Remover</button>
               </div>
@@ -257,9 +258,9 @@ export function AbaTrajetoria({ participante, pode, onMudou }) {
 
   async function decidir(chave, status) {
     setAviso(null)
-    const motivo = window.prompt(status === 'confirmado'
+    const motivo = await pedirTexto(status === 'confirmado'
       ? 'Por que é a mesma marca? (ex.: mesmo CNPJ, confirmado com o responsável)'
-      : 'Por que NÃO é a mesma marca? (opcional)')
+      : 'Por que NÃO é a mesma marca? (opcional)', {})
     if (motivo === null) return // cancelou
     if (status === 'confirmado' && !motivo.trim()) return
     try {
@@ -268,7 +269,7 @@ export function AbaTrajetoria({ participante, pode, onMudou }) {
     } catch (e) { setAviso(e.message.includes('duplicate') ? 'Essa marca do acervo já está ligada a outro estabelecimento.' : traduzirErro(e.message)) }
   }
   async function marcarNovo() {
-    const motivo = window.prompt('Confirmar que esta é a PRIMEIRA participação da marca? Diga como foi confirmado.')
+    const motivo = await pedirTexto('Confirmar que esta é a PRIMEIRA participação da marca? Diga como foi confirmado.', {})
     if (!motivo) return
     try { await rpc('marcar_participante_novo', { p_secret: lerSenha(), p_participante: participante.id, p_motivo: motivo }); await carregar(); onMudou && onMudou() }
     catch (e) { setAviso(e.message.includes('ja_tem_historico') ? 'Há vínculo confirmado com o acervo: desfaça antes.' : traduzirErro(e.message)) }

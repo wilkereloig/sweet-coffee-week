@@ -2,7 +2,7 @@
 // voltar atrás sem ninguém notar: caixa-alta, ícones, tons, logos.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { SCW_ICONS } from '../src/components/scw-icons/scw-icons-v2.js'
 import { TONS, STATUS, rotulo } from '../painel-app/src/lib/status.js'
 import {
@@ -113,4 +113,28 @@ test('a migration das logos mantém o 17º campo em campos_cadastro e protege as
   for (const f of ['logo_info(uuid, boolean)', 'registrar_logo(uuid, jsonb, text)', 'aplicar_logo(uuid, uuid, text)'])
     assert.ok(sql.includes('revoke execute on function public.' + f + ' from public, anon, authenticated'), 'interna exposta: ' + f)
   assert.match(sql, /\(storage\.foldername\(name\)\)\[1\] = public\.meu_participante\(\)::text/)
+})
+
+// Redesenho 01/10/2026: raio e sombra de card só pelos tokens (--r-1..3,
+// --sombra-1..3). Literal permitido: pílula, círculo, traço fino e o balão
+// da conversa — o que não é card.
+test('raio só por token, pílula, círculo ou traço fino', () => {
+  const corpo = CSS.slice(CSS.indexOf('}', CSS.indexOf(':root{')))
+  const PERMITIDOS = new Set(['999px', '50%', '2px', '3px', '4px', '6px', '16px 16px 16px 4px', '16px 16px 4px 16px', '0 0 3px 3px', '0', 'inherit'])
+  for (const m of corpo.matchAll(/border-radius:([^;}]+)/g)) {
+    const v = m[1].trim()
+    if (v.startsWith('var(--r-') || v.startsWith('calc(var(--logo-t)')) continue
+    if (/^var\(--r-\d\) var\(--r-\d\) 0 0$/.test(v)) continue
+    assert.ok(PERMITIDOS.has(v), 'raio solto: ' + v)
+  }
+})
+
+test('nenhuma caixa nativa do navegador: confirmação passa por Confirmar.jsx', () => {
+  const dir = new URL('../painel-app/src/components/', import.meta.url)
+  const arquivos = readdirSync(dir, { recursive: true }).filter((f) => String(f).endsWith('.jsx') && !String(f).endsWith('Confirmar.jsx'))
+  for (const f of arquivos) {
+    const txt = readFileSync(new URL(String(f).split(String.fromCharCode(92)).join('/'), dir), 'utf8')
+    assert.doesNotMatch(txt, /window\.(confirm|prompt|alert)\(/, f + ' abre caixa nativa')
+  }
+  assert.match(ler('painel-app/src/App.jsx'), /<Confirmacoes \/>/, 'App não monta <Confirmacoes />')
 })

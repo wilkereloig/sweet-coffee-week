@@ -7,6 +7,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
 import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca } from '../ui'
 import { urlLogo } from '../../lib/logos'
+import { confirmar } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -63,7 +64,7 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
     } catch (e) { setAviso(erroContato(e.message)) }
   }
   async function mudar(v, status) {
-    if (status === 'cancelado' && !window.confirm('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
+    if (status === 'cancelado' && !await confirmar('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
     setAviso(null)
     try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await carregar() }
     catch (e) { setAviso(erroContato(e.message)) }

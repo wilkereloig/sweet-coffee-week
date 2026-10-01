@@ -9,6 +9,7 @@ import { CATEGORIAS_ARQUIVO } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Carregando, Erro, Vazio, Selo } from '../ui'
+import { confirmar } from '../Confirmar'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -660,7 +661,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   async function arquivarPedido(s, sim) {
-    if (sim && !window.confirm('Arquivar o pedido "' + s.titulo + '"? Ele sai do painel da marca; dá para restaurar depois.')) return
+    if (sim && !await confirmar('Arquivar o pedido "' + s.titulo + '"? Ele sai do painel da marca; dá para restaurar depois.')) return
     try {
       await rpc('atualizar_solicitacao', { p_secret: lerSenha(), p_id: s.id, p_arquivada: sim })
       await carregar()
@@ -670,7 +671,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   async function publicarPedido(id) {
-    if (!window.confirm('Publicar este pedido? A marca passa a ver e o prazo começa a valer. Não dá para despublicar.')) return
+    if (!await confirmar('Publicar este pedido? A marca passa a ver e o prazo começa a valer. Não dá para despublicar.')) return
     try {
       const n = await rpc('publicar_solicitacao', { p_secret: lerSenha(), p_id: id })
       await carregar()
@@ -740,7 +741,7 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                 className="og-btn og-btn--vazado" type="button"
                 disabled={salvandoEdicao || !podeGerir}
                 title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-                onClick={() => { if (window.confirm('Fechar a edição? Contas novas de marca deixam de ganhar formulário até você abrir outra.')) salvarEdicao('') }}
+                onClick={async () => { if (await confirmar('Fechar a edição? Contas novas de marca deixam de ganhar formulário até você abrir outra.')) salvarEdicao('') }}
               >
                 Fechar a edição
               </button>

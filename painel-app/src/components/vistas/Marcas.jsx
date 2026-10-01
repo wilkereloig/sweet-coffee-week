@@ -9,6 +9,7 @@ import { Carregando, Vazio, Erro, Selo, LogoMarca, traduzirErro } from '../ui'
 import { FolhaResultadoAcessos, registrarEnvio, gerirAcesso } from './AcessoMarca'
 import { FichaMarcaPagina, pendenciasDe, pctCadastro } from './FichaMarcaPagina'
 import { urlLogo } from '../../lib/logos'
+import { confirmar, pedirTexto } from '../Confirmar'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -201,7 +202,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       if (acao === 'regerar') {
         const ativas = selComConta.filter((p) => p.status_acesso === 'ativo').length
         const pre = ativas ? ativas + (ativas === 1 ? ' marca já tem acesso ativo. ' : ' marcas já têm acesso ativo. ') : ''
-        if (!window.confirm(pre + 'Gerar nova senha temporária para ' + nome + '?\n\nA senha atual deixa de valer e as sessões abertas caem.')) return
+        if (!await confirmar(pre + 'Gerar nova senha temporária para ' + nome + '?\n\nA senha atual deixa de valer e as sessões abertas caem.')) return
         setLote({ modo: 'regerar', marcas: selComConta }); return
       }
       if (acao === 'copiar') {
@@ -210,7 +211,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         setLoteAviso('Acessos de ' + nome + ' copiados, sem senha. Para mandar senha, gere senhas novas.'); return
       }
       if (acao === 'enviado') {
-        if (!window.confirm('Marcar as credenciais de ' + nome + ' como enviadas?')) return
+        if (!await confirmar('Marcar as credenciais de ' + nome + ' como enviadas?')) return
         await registrarEnvio(ids, 'enviado_manual')
       } else {
         const pergunta = {
@@ -219,8 +220,8 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
           forcar_troca: 'Exigir troca de senha no próximo acesso de ' + nome + '?',
         }[acao]
         let motivo = null
-        if (acao === 'bloquear') { motivo = window.prompt(pergunta + '\n\nMotivo (opcional, fica no histórico):', ''); if (motivo === null) return }
-        else if (!window.confirm(pergunta)) return
+        if (acao === 'bloquear') { motivo = await pedirTexto(pergunta, { rotulo: 'Motivo (opcional, fica no histórico)' }); if (motivo === null) return }
+        else if (!await confirmar(pergunta)) return
         await gerirAcesso(ids, acao, motivo)
       }
       setLoteAviso('Feito para ' + nome + '.')

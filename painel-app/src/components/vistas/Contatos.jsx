@@ -9,6 +9,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Bloco } from './FichaCadastro'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro } from '../ui'
+import { confirmar } from '../Confirmar'
 
 /*
  * Contatos › Pessoas (reestruturação 29/09/2026, etapa 5).
@@ -119,7 +120,7 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
     } catch (e) { setAviso(erroContato(e.message)) }
   }
   async function voucher(v, status) {
-    if (status === 'cancelado' && !window.confirm('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
+    if (status === 'cancelado' && !await confirmar('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
     setAviso(null)
     try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await carregar(); onMudou() }
     catch (e) { setAviso(erroContato(e.message)) }
