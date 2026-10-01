@@ -29,6 +29,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   const [participantes, setParticipantes] = React.useState([])
   const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
   const [erro, setErro] = React.useState(null)
+  const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -69,6 +70,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
   const colunas = candidaturas ? colunasMesa({ candidaturas, participantes }) : ETAPAS.map((e) => ({ ...e, itens: [] }))
+  const etapa = colunas.find((c) => c.chave === etapaSel) || colunas.find((c) => c.itens.length) || colunas[0]
 
   // O que pede ação: derivado dos dados (pendências), mais mensagens não lidas.
   const pendencias = notificacoesOrg({
@@ -166,50 +168,59 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
           </Secao>
 
           <Secao titulo="A esteira" nota="Do formulário do site até o combo fechado" className="ui-area-esteira">
-            <div className="og-mesa">
+            {/* Trilha das seis etapas, todas à vista (sem rolagem lateral), e
+                abaixo só os cartões da etapa escolhida. Abre na primeira com gente. */}
+            <div className="og-esteira" role="group" aria-label="Etapas da esteira">
               {colunas.map((e) => (
-                <div className="og-mesa__col" key={e.chave}>
-                  <div className="og-mesa__cabeca">
-                    <span className="og-mesa__disco" style={{ background: e.cor, color: e.tinta }} aria-hidden="true">
-                      <Icone nome={'etapa-' + e.chave} tamanho={20} />
-                    </span>
-                    <span>
-                      <span className="og-mesa__nome">{e.nome}</span>
-                      <span className="og-mesa__legenda">{e.legenda}</span>
-                    </span>
-                    <span className="og-mesa__n">{e.itens.length}</span>
-                  </div>
-                  {e.itens.length === 0 ? (
-                    <p className="og-mesa__vazio">Ninguém aqui</p>
-                  ) : (
-                    e.itens.map((it) => {
-                      const chave = it.tipo === 'marca' ? 'marca:' + it.participacaoId + ':' + it.participanteId : 'cand:' + it.id
-                      // Navegação, não escrita: abre a ficha certa (candidatura
-                      // em Respostas, conta em Marcas).
-                      const destino = it.tipo === 'marca' ? 'marcas/' + it.participanteId : 'respostas/quero_participar/' + it.id
-                      return (
-                        <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
-                          <span className="og-cartao__topo">
-                            <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
-                            {it.novo && <Selo tom="atencao">Nova</Selo>}
-                          </span>
-                          <span className="og-cartao__meta">{it.meta || ''}</span>
-                          {it.tipo === 'marca' && (
-                            <span className="og-cartao__combo">
-                              <span className="ui-oculto">{it.itensProntos} de 3 itens do combo prontos</span>
-                              {[0, 1, 2].map((i) => (
-                                <span key={i} title={ROTULO_COMBO[i]} className={i < it.itensProntos ? 'is-pronto' : ''}>
-                                  <Icone nome={ICONE_COMBO[i]} tamanho={16} />
-                                </span>
-                              ))}
-                            </span>
-                          )}
-                        </button>
-                      )
-                    })
-                  )}
-                </div>
+                <button type="button" key={e.chave}
+                  className={'og-esteira__etapa' + (e === etapa ? ' is-ativa' : '') + (e.itens.length ? '' : ' is-vazia')}
+                  aria-pressed={e === etapa}
+                  aria-label={e.nome + ': ' + e.itens.length + ' — ' + e.legenda}
+                  onClick={() => setEtapaSel(e.chave)}>
+                  <span className="og-mesa__disco" style={{ background: e.cor, color: e.tinta }} aria-hidden="true">
+                    <Icone nome={'etapa-' + e.chave} tamanho={20} />
+                  </span>
+                  <span className="og-esteira__texto" aria-hidden="true">
+                    <span className="og-mesa__nome">{e.nome}</span>
+                    <span className="og-mesa__legenda">{e.legenda}</span>
+                  </span>
+                  <span className="og-mesa__n" aria-hidden="true">{e.itens.length}</span>
+                </button>
               ))}
+            </div>
+            <div className="og-esteira__painel">
+              <p className="og-esteira__titulo" aria-live="polite"><b>{etapa.nome}</b> · {etapa.itens.length === 1 ? '1 marca' : etapa.itens.length + ' marcas'}</p>
+              {etapa.itens.length === 0 ? (
+                <p className="og-mesa__vazio">{candidaturas ? 'Nenhuma marca nesta etapa.' : 'Carregando…'}</p>
+              ) : (
+                <div className="og-esteira__cartoes">
+                  {etapa.itens.map((it) => {
+                    const chave = it.tipo === 'marca' ? 'marca:' + it.participacaoId + ':' + it.participanteId : 'cand:' + it.id
+                    // Navegação, não escrita: abre a ficha certa (candidatura
+                    // em Respostas, conta em Marcas).
+                    const destino = it.tipo === 'marca' ? 'marcas/' + it.participanteId : 'respostas/quero_participar/' + it.id
+                    return (
+                      <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
+                        <span className="og-cartao__topo">
+                          <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
+                          {it.novo && <Selo tom="atencao">Nova</Selo>}
+                        </span>
+                        <span className="og-cartao__meta">{it.meta || ''}</span>
+                        {it.tipo === 'marca' && (
+                          <span className="og-cartao__combo">
+                            <span className="ui-oculto">{it.itensProntos} de 3 itens do combo prontos</span>
+                            {[0, 1, 2].map((i) => (
+                              <span key={i} title={ROTULO_COMBO[i]} className={i < it.itensProntos ? 'is-pronto' : ''}>
+                                <Icone nome={ICONE_COMBO[i]} tamanho={16} />
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </Secao>
 
