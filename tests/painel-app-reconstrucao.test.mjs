@@ -129,12 +129,13 @@ test('raio só por token, pílula, círculo ou traço fino', () => {
   }
 })
 
-test('nenhuma caixa nativa do navegador: confirmação passa por Confirmar.jsx', () => {
+test('nenhuma caixa nativa do navegador nem fileira de botões de escolha', () => {
   const dir = new URL('../painel-app/src/components/', import.meta.url)
   const arquivos = readdirSync(dir, { recursive: true }).filter((f) => String(f).endsWith('.jsx') && !String(f).endsWith('Confirmar.jsx'))
   for (const f of arquivos) {
     const txt = readFileSync(new URL(String(f).split(String.fromCharCode(92)).join('/'), dir), 'utf8')
     assert.doesNotMatch(txt, /window\.(confirm|prompt|alert)\(/, f + ' abre caixa nativa')
+    assert.doesNotMatch(txt, /ui-filtros-mini|className="ui-chip"/, f + ': escolha entre opções é <Escolha> (caixa de seleção), não fileira de botões')
   }
   assert.match(ler('painel-app/src/App.jsx'), /<Confirmacoes \/>/, 'App não monta <Confirmacoes />')
 })

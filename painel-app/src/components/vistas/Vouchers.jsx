@@ -5,7 +5,7 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { resumoPorMarca, resumoPorContato } from '../../lib/vouchers'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca, Escolha } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { confirmar } from '../Confirmar'
 
@@ -81,10 +81,8 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
   return (
     <div className="og-embutida">
       <div className="ui-barra">
-        <div className="ui-filtros-mini" role="group" aria-label="Ver por">
-          <button type="button" className="ui-chip" aria-pressed={visao === 'marcas'} onClick={() => setVisao('marcas')}>Por marca</button>
-          <button type="button" className="ui-chip" aria-pressed={visao === 'pessoas'} onClick={() => setVisao('pessoas')}>Por pessoa ({porPessoa.length})</button>
-        </div>
+        <Escolha rotulo="Ver por" valor={visao} onMudar={setVisao}
+          opcoes={[['marcas', 'Por marca'], ['pessoas', 'Por pessoa (' + porPessoa.length + ')']]} />
         {podeMudar && faltaGerar > 0 && (
           <button className="og-btn" type="button" disabled={gerando} onClick={gerar}>{gerando ? 'Gerando…' : 'Gerar ' + faltaGerar + ' vouchers da edição'}</button>
         )}

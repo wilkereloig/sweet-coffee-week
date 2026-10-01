@@ -8,7 +8,7 @@ import {
 import { chaveDia } from '../../lib/hoje'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
@@ -278,11 +278,8 @@ function AbaRevisao({ pode, irPara, registrarAtualizar }) {
 
   return (
     <div className="ui-pilha">
-      <div className="ui-filtros-mini" role="group" aria-label="Situação">
-        {[['aberta', 'Abertas'], ['resolvida', 'Resolvidas'], ['descartada', 'Descartadas']].map(([v, rot]) => (
-          <button key={v} type="button" className="ui-chip" aria-pressed={status === v} onClick={() => { if (v !== status) { setLista(null); setStatus(v) } }}>{rot}</button>
-        ))}
-      </div>
+      <Escolha rotulo="Situação" valor={status} onMudar={(v) => { if (v !== status) { setLista(null); setStatus(v) } }}
+        opcoes={[['aberta', 'Abertas'], ['resolvida', 'Resolvidas'], ['descartada', 'Descartadas']]} />
       <Ajuda titulo="Como a revisão funciona"><p>O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p></Ajuda>
       {status === 'aberta' && <NomesPadrao pode={pode} />}
       {erro && <Erro texto={erro} onTentar={carregar} />}

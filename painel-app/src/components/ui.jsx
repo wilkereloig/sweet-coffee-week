@@ -241,6 +241,27 @@ export function Chips({ itens, rotulo }) {
   )
 }
 
+/*
+ * Escolha de uma entre várias (filtro, situação, modo): UMA caixa de seleção
+ * nativa, no lugar das fileiras de botões (pedido do Wilker, 01/10/2026).
+ * <select> nativo — teclado, leitor de tela e roda do celular de graça.
+ * `opcoes` = [[valor, texto], …]. Valor fora da lista (ainda sem situação)
+ * mostra "Escolha…" em vez de fingir que a primeira opção está marcada.
+ */
+export function Escolha({ rotulo, valor, opcoes, onMudar, disabled, className = '' }) {
+  const v = valor == null ? '' : String(valor)
+  const conhecido = opcoes.some(([k]) => String(k) === v)
+  return (
+    <label className={'og-campo ui-escolha' + (className ? ' ' + className : '')}>
+      <span>{rotulo}</span>
+      <select value={conhecido ? v : ''} disabled={disabled} onChange={(e) => onMudar(e.target.value)}>
+        {!conhecido && <option value="" disabled>Escolha…</option>}
+        {opcoes.map(([k, r]) => <option key={String(k)} value={String(k)}>{r}</option>)}
+      </select>
+    </label>
+  )
+}
+
 // Botão com ícone + texto (ação importante nunca é só ícone).
 export function Botao({ icone, children, variante, mini = true, className = '', ...resto }) {
   const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (className ? ' ' + className : '')

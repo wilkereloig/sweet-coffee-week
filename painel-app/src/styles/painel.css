@@ -371,7 +371,7 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 .og-btn:active,.acao:active{transform:translateY(0)}
 .og-btn[disabled],.acao[disabled]{opacity:.45;cursor:default;pointer-events:none;transform:none}
 /* Desabilitado tem um estado só (§6.6), também nos controles fora do .og-btn. */
-.ui-chip:disabled,.mc-vaga:disabled,.ui-link:disabled,.og-agenda__modos button:disabled{opacity:.45;cursor:default;pointer-events:none}
+.mc-vaga:disabled,.ui-link:disabled,.og-agenda__modos button:disabled{opacity:.45;cursor:default;pointer-events:none}
 /* Trabalhando (salvar, enviar): o cursor diz que a tela não travou. */
 [aria-busy="true"]{cursor:progress}
 .og-btn--vazado,.acao.secundaria{background:transparent;color:var(--scw-choco);box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo)}
@@ -392,14 +392,10 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
   transition:text-decoration-color var(--scw-transicao);
 }
 @media (hover:hover){ .og-link:hover,.link:hover,.ui-link:hover{text-decoration-color:currentColor} }
-.ui-chip{
-  min-height:44px;padding:0 14px;border:0;border-radius:999px;
-  background:transparent;box-shadow:inset 0 0 0 1.5px var(--scw-borda-campo);font:700 13px/1 var(--f-ui);
-}
-.ui-chip[aria-pressed="true"]{background:var(--scw-choco);color:var(--scw-creme);box-shadow:none}
-.ui-filtros-mini{display:flex;gap:8px;flex-wrap:wrap}
-.ui-barra + .ui-filtros-mini{margin:0 0 12px}
-.ui-filtros-mini + .ui-nota{margin:0 0 18px}
+/* Caixa de seleção (Escolha, ui.jsx): toda escolha de uma entre várias —
+   filtro, situação, modo — é UM <select>, nunca uma fileira de botões. */
+.ui-escolha{width:min(100%,340px);margin:0 0 18px}
+.ui-barra > .ui-escolha{margin:0}
 
 /* ═══ Campos ═══════════════════════════════════════════════════════════════ */
 .og-campo{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -410,11 +406,18 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 .og-campo input,.og-campo select,.og-campo textarea,.ui-conversa__envio textarea,
 .mc-bloco__corpo input:not([type="checkbox"]):not([type="radio"]),.mc-bloco__corpo textarea,.mc-bloco__corpo select{
   width:100%;min-height:48px;padding:11px 14px;border-radius:var(--r-2);
-  border:1.5px solid var(--scw-borda-campo);background:var(--scw-creme);color:var(--scw-choco);
+  border:1.5px solid var(--scw-borda-campo);background-color:var(--scw-creme);color:var(--scw-choco);
   font:400 16px/1.4 var(--f-texto);
   transition:border-color var(--scw-transicao),background var(--scw-transicao);
 }
 .og-campo textarea,.mc-bloco__corpo textarea{min-height:104px;resize:vertical}
+/* Seta própria da caixa de seleção (a do sistema muda de navegador para
+   navegador); a cor do traço é o chocolate da paleta. */
+.og-campo select,.mc-bloco__corpo select{
+  appearance:none;padding-right:42px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%233D1308' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:16px;
+}
 .og-campo input:hover,.og-campo textarea:hover,.og-campo select:hover,
 .mc-bloco__corpo input:hover,.mc-bloco__corpo textarea:hover,.mc-bloco__corpo select:hover{border-color:var(--scw-marrom)}
 .og-campo input:focus,.og-campo textarea:focus,.og-campo select:focus,.ui-conversa__envio textarea:focus,
@@ -901,9 +904,9 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
   width:100%;text-align:left;border-radius:var(--r-2);padding:12px 14px;
   display:flex;flex-direction:column;gap:5px;
 }
-.og-cartao__topo{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.og-cartao__topo{display:flex;align-items:center;gap:10px}
 .og-cartao__topo .og-selo{flex:0 0 auto;padding:3px 7px;font-size:11px}
-.og-cartao__nome{font:700 14px/1.2 var(--f-ui);margin:0;overflow-wrap:anywhere}
+.og-cartao__nome{flex:1 1 auto;min-width:0;font:700 14.5px/1.2 var(--f-ui);margin:0;overflow-wrap:anywhere}
 .og-cartao__meta{font:400 12.5px/1.3 var(--f-texto);color:var(--scw-marrom);margin:0}
 .og-cartao__combo{display:flex;gap:6px;color:rgba(106,44,21,.5)}
 .og-cartao__combo .is-pronto{color:var(--scw-choco)}

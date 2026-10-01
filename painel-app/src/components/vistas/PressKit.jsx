@@ -4,7 +4,7 @@ import { dataCurta } from '../../lib/respostas'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha } from '../ui'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -68,11 +68,9 @@ export function PressKit({ registrarAtualizar, pode, rota, navegar }) {
         <p>Sugerido → Selecionado → Preparando (endereço confirmado) → Enviado → Entregue. Abra a pessoa para registrar endereço, responsável pelo envio, datas e o que vai no kit.</p>
         <p>As sugestões abaixo são de quem recebeu em edições anteriores. Ninguém entra na lista sozinho.</p>
       </Ajuda>
-      <div className="ui-filtros-mini" role="group" aria-label="Situação">
-        {[['ativos', 'Na lista'], ...ORDEM.map((s) => [s, rotulo('presskit', s)]), ['todos', 'Todos']].map(([v, r]) => (
-          <button key={v} type="button" className="ui-chip" aria-pressed={situacao === v} onClick={() => setSituacao(v)}>{r}{ORDEM.includes(v) ? ' (' + contar(v) + ')' : ''}</button>
-        ))}
-      </div>
+      <Escolha rotulo="Situação" valor={situacao} onMudar={setSituacao}
+        opcoes={[['ativos', 'Na lista'], ...ORDEM.map((s) => [s, rotulo('presskit', s)]), ['todos', 'Todos']]
+          .map(([v, r]) => [v, r + (ORDEM.includes(v) ? ' (' + contar(v) + ')' : '')])} />
       {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
 
       <Secao titulo="Lista desta edição" nota={naLista.length + (naLista.length === 1 ? ' pessoa' : ' pessoas')}>

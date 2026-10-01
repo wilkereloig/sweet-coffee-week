@@ -8,7 +8,7 @@ import { rotulo } from '../../lib/status'
 import { CATEGORIAS_ARQUIVO } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
-import { Carregando, Erro, Vazio, Selo } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Escolha } from '../ui'
 import { confirmar } from '../Confirmar'
 
 /*
@@ -839,10 +839,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
               />
             )}
             {solicitacoes && solicitacoes.some((s) => s.arquivada) && (
-              <div className="ui-filtros-mini" role="group" aria-label="Pedidos">
-                <button type="button" className="ui-chip" aria-pressed={!verArquivados} onClick={() => setVerArquivados(false)}>Ativos</button>
-                <button type="button" className="ui-chip" aria-pressed={verArquivados} onClick={() => setVerArquivados(true)}>Arquivados ({solicitacoes.filter((s) => s.arquivada).length})</button>
-              </div>
+              <Escolha rotulo="Mostrar" valor={verArquivados ? '1' : '0'} onMudar={(v) => setVerArquivados(v === '1')}
+                opcoes={[['0', 'Pedidos ativos'], ['1', 'Arquivados (' + solicitacoes.filter((s) => s.arquivada).length + ')']]} />
             )}
             {solicitacoes && solicitacoes.length > 0 && (
               <ul className="og-lista">
