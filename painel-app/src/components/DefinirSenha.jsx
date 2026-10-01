@@ -1,5 +1,5 @@
 import React from 'react'
-import { auth } from '../lib/marcaApi'
+import { auth, tokenVivo, recadoSenha } from '../lib/marcaApi'
 
 /*
  * Primeiro acesso: troca a senha via Supabase Auth e só então baixa
@@ -30,13 +30,17 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
     if (senha1.length < 10) { setErro('A senha precisa de pelo menos 10 caracteres.'); return }
     if (senha1 !== senha2) { setErro('As duas senhas não são iguais.'); return }
 
-    let sessao = null
-    try { sessao = JSON.parse(sessionStorage.getItem(chaveSessao) || 'null') } catch { /* sessão ilegível */ }
-
     setCarregando(true)
     let r
     try {
-      r = await auth('user', { password: senha1 }, 'PUT', sessao && sessao.access_token)
+      // Renova antes: quem deixou esta tela aberta por mais de 1 h tem o token vencido.
+      const token = await tokenVivo(chaveSessao)
+      if (!token) {
+        setCarregando(false)
+        setErro('Sua sessão expirou. Entre de novo com a senha que você recebeu.')
+        return
+      }
+      r = await auth('user', { password: senha1 }, 'PUT', token)
     } catch {
       setCarregando(false)
       setErro('Não deu para salvar a senha agora.')
@@ -44,7 +48,7 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
     }
     setCarregando(false)
     if (!r.ok) {
-      setErro((r.dados && r.dados.msg) || 'Não deu para salvar a senha agora. Tente de novo.')
+      setErro(recadoSenha(r))
       return
     }
     setSenha1('')

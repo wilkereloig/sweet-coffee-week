@@ -37,10 +37,19 @@ test('minhasSolicitacoes: exclui aviso geral de OUTRA edição, mantém geral se
     { id: 1, escopo: 'geral', edicao_codigo: '2026.1' },
     { id: 2, escopo: 'geral', edicao_codigo: '2025' },
     { id: 3, escopo: 'geral', edicao_codigo: null },
-    { id: 4, escopo: 'marca', edicao_codigo: '2025' },
+    { id: 4, escopo: 'marca', participacao_id: 'pa-atual', edicao_codigo: '2025' },
   ]
-  const minhas = minhasSolicitacoes(lista, { edicao_codigo: '2026.1' })
+  const minhas = minhasSolicitacoes(lista, { id: 'pa-atual', edicao_codigo: '2026.1' })
   assert.deepEqual(minhas.map((s) => s.id), [1, 3, 4])
+})
+
+test('minhasSolicitacoes: pedido individual de OUTRA participação da mesma marca não vaza', () => {
+  const lista = [
+    { id: 1, escopo: 'marca', participacao_id: 'pa-2025' },
+    { id: 2, escopo: 'marca', participacao_id: 'pa-atual' },
+  ]
+  assert.deepEqual(minhasSolicitacoes(lista, { id: 'pa-atual', edicao_codigo: '2026.1' }).map((s) => s.id), [2])
+  assert.deepEqual(minhasSolicitacoes(lista, null).map((s) => s.id), [])
 })
 
 test('minhasSolicitacoes: sem participação, só sobra o aviso geral sem edição', () => {

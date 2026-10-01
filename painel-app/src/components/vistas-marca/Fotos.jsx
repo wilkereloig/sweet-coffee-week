@@ -2,6 +2,7 @@ import React from 'react'
 import { api } from '../../lib/marcaApi'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
+import { fotosDaParticipacao } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Secao, Selo } from '../ui'
 import { Arquivos } from './Arquivos'
@@ -50,8 +51,8 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
     }
   }
 
-  const minhas = (sessoes || []).filter((s) => s.participante_id && s.status !== 'aberto')
-  const vagas = (sessoes || []).filter((s) => s.status === 'aberto')
+  // Só a sessão desta participação e as vagas da edição dela (a RLS devolve todas).
+  const { minhas, vagas } = fotosDaParticipacao(sessoes, participacao)
   const jaTem = minhas.some((s) => s.status !== 'cancelada')
   const liberado = participacao && participacao.foto_liberacao === 'liberado'
 

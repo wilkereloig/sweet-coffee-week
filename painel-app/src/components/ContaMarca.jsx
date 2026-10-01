@@ -1,5 +1,5 @@
 import React from 'react'
-import { api, auth } from '../lib/marcaApi'
+import { api, auth, tokenVivo, recadoSenha } from '../lib/marcaApi'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess'
 import { Folha } from './Folha'
 import { AvisosAparelho } from './AvisosAparelho'
@@ -26,12 +26,13 @@ function AlterarSenha() {
     setAviso(null)
     if (s1.length < 10) { setAviso({ tom: 'erro', texto: 'A senha precisa de pelo menos 10 caracteres.' }); return }
     if (s1 !== s2) { setAviso({ tom: 'erro', texto: 'As duas senhas não são iguais.' }); return }
-    let sessao = null
-    try { sessao = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO) || 'null') } catch { /* sessão ilegível */ }
     setSalvando(true)
     try {
-      const r = await auth('user', { password: s1 }, 'PUT', sessao && sessao.access_token)
-      if (!r.ok) { setAviso({ tom: 'erro', texto: (r.dados && r.dados.msg) || 'Não deu para trocar a senha agora.' }); return }
+      // Renova antes: com o painel aberto há mais de 1 h, o token guardado já venceu.
+      const token = await tokenVivo(CHAVE_SESSAO)
+      if (!token) { setAviso({ tom: 'erro', texto: 'Sua sessão expirou. Saia e entre de novo.' }); return }
+      const r = await auth('user', { password: s1 }, 'PUT', token)
+      if (!r.ok) { setAviso({ tom: 'erro', texto: recadoSenha(r) }); return }
       await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }).catch(() => null)
       setS1(''); setS2('')
       setAviso({ tom: 'ok', texto: 'Senha alterada.' })

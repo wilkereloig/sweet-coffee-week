@@ -97,6 +97,20 @@ const VISTA_DO_PEDIDO = {
 }
 export const vistaDoPedido = (bloco) => VISTA_DO_PEDIDO[bloco] || 'inicio'
 
+/*
+ * Sessões de fotos DESTA participação e vagas abertas da edição dela. A RLS
+ * devolve as sessões de todas as edições da marca: uma sessão de edição
+ * passada não pode esconder as vagas nem dar a etapa Fotos por feita.
+ */
+export function fotosDaParticipacao(sessoes, participacao) {
+  if (!participacao) return { minhas: [], vagas: [] }
+  const lista = sessoes || []
+  return {
+    minhas: lista.filter((s) => s.participante_id && s.status !== 'aberto' && s.participacao_id === participacao.id),
+    vagas: lista.filter((s) => s.status === 'aberto' && !s.participante_id && s.edicao_codigo === participacao.edicao_codigo),
+  }
+}
+
 const ETAPAS = [
   { chave: 'estabelecimento', rotulo: 'Dados do estabelecimento', blocos: [0, 4] },
   { chave: 'tema', rotulo: 'Tema', blocos: [1] },
@@ -237,11 +251,15 @@ export function nivelDoAviso(n) {
 /*
  * Os links gravados no banco antes da navegação nova ("hoje", "cadastro",
  * "cadastro/2/item-1-nome", "cadastro/fotos") seguem abrindo o lugar certo.
+ * `tipo` (do aviso, quando há) desfaz o link genérico: o lembrete de vendas
+ * grava só "hoje" e vai ao lançamento; prazo, tema e combo gravam só
+ * "cadastro" e falam do combo, não do estabelecimento.
  */
-export function interpretarLinkMarca(link) {
+export function interpretarLinkMarca(link, tipo) {
   if (!link || typeof link !== 'string') return null
   const [seg, a, b] = link.split('/').filter(Boolean)
-  if (seg === 'hoje' || seg === 'inicio') return { vista: 'inicio' }
+  if (seg === 'hoje' || seg === 'inicio') return a === 'venda' || (!a && tipo === 'venda') ? { vista: 'inicio', id: 'venda' } : { vista: 'inicio' }
+  if (seg === 'cadastro' && a === undefined && ['prazo', 'combo', 'tema'].includes(tipo)) return { vista: 'combo' }
   if (seg === 'cadastro' && a === 'fotos') return { vista: 'fotos' }
   if ((seg === 'cadastro' || seg === 'combo') && a !== undefined && /^\d$/.test(a)) {
     return b ? { vista: vistaDoBloco(a), sub: a, campo: b } : { vista: vistaDoBloco(a), sub: a }

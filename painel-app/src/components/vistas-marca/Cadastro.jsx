@@ -86,6 +86,72 @@ const TEMA_VAZIO = { tema_combo: '', tema_justificativa: '' }
 const EXTRAS_VAZIO = { combo_para_viagem: null, combo_vegano: null, combo_diet: null, combo_delivery: '', combo_proposta: '' }
 const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
 
+/*
+ * Linha do banco → estado da tela, e estado da tela → corpo do PATCH. A mesma
+ * conta, aplicada ao que o servidor devolveu, é a "foto" do que está gravado
+ * (baseRef): cada salvamento manda só o que mudou desde ela, para não
+ * escrever por cima, com o valor lido na abertura, o que a organização
+ * editou com a tela aberta.
+ */
+const marcaDeLinha = (p) => ({
+  nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '',
+  email: p.email || '', instagram: p.instagram || '', site: p.site || '', cnpj: p.cnpj || '',
+  razao_social: p.razao_social || '',
+})
+// O nome da marca NÃO vai no corpo: ele é o login dela (§10.4-b) e só a
+// organização o muda.
+function corpoMarca(marca) {
+  const camposMarca = {
+    responsavel: marca.responsavel.trim(), telefone: marca.telefone.trim(),
+    email: marca.email.trim(), instagram: marca.instagram.trim(), site: marca.site.trim(),
+    cnpj: marca.cnpj.trim(), razao_social: marca.razao_social.trim(),
+  }
+  return camposMarca
+}
+const participacaoDeLinha = (pa) => ({
+  tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
+  precoStr: pa.combo_preco == null ? '' : String(pa.combo_preco).replace('.', ','),
+  extras: {
+    combo_para_viagem: pa.combo_para_viagem ?? null, combo_vegano: pa.combo_vegano ?? null, combo_diet: pa.combo_diet ?? null,
+    combo_delivery: pa.combo_delivery || '', combo_proposta: pa.combo_proposta || '',
+  },
+})
+function corpoParticipacao({ tema, precoStr, extras }) {
+  const camposParticipacao = {
+    tema_combo: tema.tema_combo.trim(), tema_justificativa: tema.tema_justificativa.trim(),
+    combo_preco: precoNumero(precoStr) || null,
+    combo_para_viagem: extras.combo_para_viagem, combo_vegano: extras.combo_vegano, combo_diet: extras.combo_diet,
+    combo_delivery: extras.combo_delivery.trim() || null, combo_proposta: extras.combo_proposta.trim() || null,
+  }
+  return camposParticipacao
+}
+function pedidoItem(i) {
+  return {
+    caminho: 'participantes_itens?id=eq.' + i.id,
+    corpo: {
+      nome: (i.nome || '').trim(), descricao: (i.descricao || '').trim(), ingredientes: (i.ingredientes || '').trim(),
+      vegano: !!i.vegano, sem_gluten: !!i.sem_gluten, sem_lactose: !!i.sem_lactose,
+      ...(i.posicao === 2 ? { tipo: i.tipo } : {}),
+    },
+  }
+}
+const unidadeDeLinha = (u) => ({
+  _key: u.id, id: u.id, endereco: u.endereco || '', bairro: u.bairro || '',
+  horarios: u.horarios || '', faz_delivery: !!u.faz_delivery, canais: canaisParaObjeto(u.canais_delivery),
+})
+const corpoUnidade = (u, ordem) => ({
+  ordem, endereco: u.endereco.trim(), bairro: u.bairro.trim(), horarios: u.horarios.trim(),
+  faz_delivery: !!u.faz_delivery, canais_delivery: canaisParaArray(u.canais),
+})
+// PATCH só com as colunas que mudaram desde a foto `antes`. Nada mudou →
+// nem chama a rede, e conta como confirmado (`[true]`).
+function patchMudancas(caminho, corpo, antes) {
+  const mudou = {}
+  for (const k of Object.keys(corpo)) if (!antes || JSON.stringify(corpo[k]) !== JSON.stringify(antes[k])) mudou[k] = corpo[k]
+  if (!Object.keys(mudou).length) return Promise.resolve([true])
+  return api(caminho, { metodo: 'PATCH', corpo: mudou, prefer: 'return=representation' })
+}
+
 // Meu cadastro = blocos 0 e 4; Meu combo = 1, 2 e 3. Mesmo formulário,
 // mesmo salvamento automático, mesmo envio para análise.
 export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4], resumo = null, recarregarResumo } = {}) {
@@ -99,7 +165,15 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   }), [])
   const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
-  const [revisao, setRevisao] = React.useState({ comboStatus: 'rascunho', comboNota: null, tema: null })
+  const [revisao, setRevisao] = React.useState({ tema: null })
+  // Situação do combo vem do resumo (lido a cada minuto): aprovar ou pedir
+  // ajuste na organização aparece aqui sem remontar a tela. `comboLocal` só
+  // cobre o instante entre enviar e o resumo novo chegar.
+  const [comboLocal, setComboLocal] = React.useState(null)
+  const comboResumo = resumo && resumo.combo ? resumo.combo : null
+  const comboStatus = comboLocal || (comboResumo && comboResumo.status) || 'rascunho'
+  const comboNota = comboResumo ? comboResumo.nota : null
+  React.useEffect(() => { setComboLocal(null) }, [comboResumo && comboResumo.status])
   const [carregando, setCarregando] = React.useState(true)
   const [erroCarregar, setErroCarregar] = React.useState(null) // { titulo, texto, tentar }
   const [tentativa, setTentativa] = React.useState(0)
@@ -133,6 +207,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   // Há edição que ainda não foi confirmada pelo servidor (debounce correndo
   // ou última gravação falhou).
   const pendenteRef = React.useRef(false)
+  // Foto do que o servidor tem gravado (ver patchMudancas).
+  const baseRef = React.useRef({ marca: null, participacao: null, itens: {}, unidades: {} })
+  // Gravação em voo (uma por vez, ver salvarEmOrdem).
+  const vooRef = React.useRef(null)
 
   function unidadeVazia() {
     tempSeqRef.current += 1
@@ -153,11 +231,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         }
         const p = linhas[0]
         setParticipanteId(p.id)
-        setMarca({
-          nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '',
-          email: p.email || '', instagram: p.instagram || '', site: p.site || '', cnpj: p.cnpj || '',
-          razao_social: p.razao_social || '',
-        })
+        const marcaInicial = marcaDeLinha(p)
+        setMarca(marcaInicial)
+        baseRef.current.marca = corpoMarca(marcaInicial)
 
         const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
         if (cancelado) return
@@ -170,16 +246,15 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         setParticipacaoId(pa.id)
         setEdicaoCodigo(pa.edicao_codigo || '')
         setStatusCadastro(pa.status_cadastro || '')
-        setTema({ tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' })
-        const precoInicial = pa.combo_preco == null ? '' : String(pa.combo_preco).replace('.', ',')
+        const daParticipacao = participacaoDeLinha(pa)
+        const precoInicial = daParticipacao.precoStr
+        setTema(daParticipacao.tema)
         setPrecoStr(precoInicial)
-        setExtras({
-          combo_para_viagem: pa.combo_para_viagem ?? null, combo_vegano: pa.combo_vegano ?? null, combo_diet: pa.combo_diet ?? null,
-          combo_delivery: pa.combo_delivery || '', combo_proposta: pa.combo_proposta || '',
-        })
+        setExtras(daParticipacao.extras)
+        baseRef.current.participacao = corpoParticipacao(daParticipacao)
         api('temas_propostos?select=status,tema,observacao&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1')
-          .then((t) => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: (t && t[0]) || null }))
-          .catch(() => setRevisao({ comboStatus: pa.combo_status || 'rascunho', comboNota: pa.combo_revisao_nota || null, tema: null }))
+          .then((t) => setRevisao({ tema: (t && t[0]) || null }))
+          .catch(() => setRevisao({ tema: null }))
 
         const [itensRows, unidadesRows] = await Promise.all([
           api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
@@ -188,13 +263,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         if (cancelado) return
         const listaItens = itensRows || []
         const listaUnidades = (unidadesRows && unidadesRows.length)
-          ? unidadesRows.map((u) => ({
-              _key: u.id, id: u.id, endereco: u.endereco || '', bairro: u.bairro || '',
-              horarios: u.horarios || '', faz_delivery: !!u.faz_delivery, canais: canaisParaObjeto(u.canais_delivery),
-            }))
+          ? unidadesRows.map(unidadeDeLinha)
           : [unidadeVazia()]
         setItens(listaItens)
         setUnidades(listaUnidades)
+        baseRef.current.itens = Object.fromEntries(listaItens.map((i) => [i.id, pedidoItem(i).corpo]))
+        baseRef.current.unidades = Object.fromEntries((unidadesRows || []).map((u) => [u.id, corpoUnidade(unidadeDeLinha(u), u.ordem)]))
         // Abre o primeiro bloco pendente DESTA aba (ou o primeiro dela).
         const pend = primeiroBlocoPendente({
           marca: { nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '' },
@@ -224,38 +298,20 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     // Baixa a pendência ANTES do voo: o que for digitado enquanto este
     // salvamento corre volta a marcá-la, e o "Salvo" não mente sobre isso.
     pendenteRef.current = false
-    const camposMarca = {
-      nome_marca: marca.nome_marca.trim(), responsavel: marca.responsavel.trim(), telefone: marca.telefone.trim(),
-      email: marca.email.trim(), instagram: marca.instagram.trim(), site: marca.site.trim(),
-      cnpj: marca.cnpj.trim(), razao_social: marca.razao_social.trim(),
-    }
-    const camposParticipacao = {
-      tema_combo: tema.tema_combo.trim(), tema_justificativa: tema.tema_justificativa.trim(),
-      combo_preco: precoNumero(precoStr) || null,
-      combo_para_viagem: extras.combo_para_viagem, combo_vegano: extras.combo_vegano, combo_diet: extras.combo_diet,
-      combo_delivery: extras.combo_delivery.trim() || null, combo_proposta: extras.combo_proposta.trim() || null,
-    }
-    const salvarItens = () => Promise.all(itens.map((i) => api('participantes_itens?id=eq.' + i.id, {
-      metodo: 'PATCH',
-      corpo: {
-        nome: (i.nome || '').trim(), descricao: (i.descricao || '').trim(), ingredientes: (i.ingredientes || '').trim(),
-        vegano: !!i.vegano, sem_gluten: !!i.sem_gluten, sem_lactose: !!i.sem_lactose,
-        ...(i.posicao === 2 ? { tipo: i.tipo } : {}),
-      },
-      prefer: 'return=representation',
-    })))
+    const base = baseRef.current
+    const salvarItens = () => Promise.all(itens.map((i) => {
+      const { caminho, corpo } = pedidoItem(i)
+      return patchMudancas(caminho, corpo, base.itens[i.id])
+    }))
     const salvarUnidades = () => Promise.all(unidades.map((u, i) => {
-      const corpo = {
-        ordem: i, endereco: u.endereco.trim(), bairro: u.bairro.trim(), horarios: u.horarios.trim(),
-        faz_delivery: !!u.faz_delivery, canais_delivery: canaisParaArray(u.canais),
-      }
+      const corpo = corpoUnidade(u, i)
       const id = u.id || idsCriadosRef.current.get(u._key)
-      if (id) return api('participacao_unidades?id=eq.' + id, { metodo: 'PATCH', corpo, prefer: 'return=representation' })
+      if (id) return patchMudancas('participacao_unidades?id=eq.' + id, corpo, base.unidades[id])
       // Unidade vazia não vira linha — a tela sempre mostra uma em branco.
-      if (!corpo.endereco) return Promise.resolve([])
+      if (!corpo.endereco) return Promise.resolve([true])
       // POST já em voo para esta unidade (rede lenta, segundo autosave antes do
       // id voltar): não cria outra linha — a próxima rodada faz PATCH.
-      if (postandoRef.current.has(u._key)) return Promise.resolve([])
+      if (postandoRef.current.has(u._key)) return Promise.resolve([true])
       postandoRef.current.add(u._key)
       return api('participacao_unidades', { metodo: 'POST', corpo: { ...corpo, participacao_id: participacaoId }, prefer: 'return=representation' })
         .then((linhas) => {
@@ -277,16 +333,23 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       /* Só grava os blocos DESTA aba (Meu cadastro = 0 e 4; Meu combo = 1, 2 e 3).
          As duas abas são instâncias separadas: gravar tudo deixaria o salvamento
          de uma escrever, com o valor velho que ela leu, o que a outra acabou de
-         salvar. `[true]` = bloco fora desta aba, nada a confirmar. */
+         salvar. `[true]` = nada a confirmar (bloco fora desta aba ou sem mudança). */
       const nada = Promise.resolve([true])
-      const [rm, rp, ri] = await Promise.all([
-        mostra(0) ? api('participantes?id=eq.' + participanteId, { metodo: 'PATCH', corpo: camposMarca, prefer: 'return=representation' }) : nada,
-        mostra(1) || mostra(3) ? api('participacoes?id=eq.' + participacaoId, { metodo: 'PATCH', corpo: camposParticipacao, prefer: 'return=representation' }) : nada,
+      const [rm, rp, ri, ru] = await Promise.all([
+        mostra(0) ? patchMudancas('participantes?id=eq.' + participanteId, corpoMarca(marca), base.marca) : nada,
+        mostra(1) || mostra(3) ? patchMudancas('participacoes?id=eq.' + participacaoId, corpoParticipacao({ tema, precoStr, extras }), base.participacao) : nada,
         mostra(2) ? salvarItens() : Promise.resolve([]),
-        mostra(4) ? salvarUnidades() : nada,
+        mostra(4) ? salvarUnidades() : Promise.resolve([]),
       ])
+      // A foto passa a ser o que o servidor devolveu (linha gravada de verdade).
+      const linha = (l) => (l && l[0] && typeof l[0] === 'object' ? l[0] : null)
+      if (linha(rm)) base.marca = corpoMarca(marcaDeLinha(linha(rm)))
+      if (linha(rp)) base.participacao = corpoParticipacao(participacaoDeLinha(linha(rp)))
+      ri.forEach((l) => { const x = linha(l); if (x) base.itens[x.id] = pedidoItem(x).corpo })
+      ru.forEach((l) => { const x = linha(l); if (x) base.unidades[x.id] = corpoUnidade(unidadeDeLinha(x), x.ordem) })
       // PATCH que volta vazio = a RLS recusou a linha: não é "salvo".
-      if (!rm || !rm.length || !rp || !rp.length || ri.some((l) => !l || !l.length)) throw new Error('sem_confirmacao')
+      const vazio = (l) => !l || !l.length
+      if (vazio(rm) || vazio(rp) || ri.some(vazio) || ru.some(vazio)) throw new Error('sem_confirmacao')
       if (!pendenteRef.current) setSalvoTexto('Informações salvas.')
       setErroSalvar(null)
       // Pendências, progresso e números das abas acompanham o que foi gravado.
@@ -304,12 +367,34 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
 
+  /*
+   * Uma gravação por vez. Timer, tela escondida, desmonte e "Enviar" podem
+   * pedir juntos, e a mais velha chegaria por último, desfazendo a nova.
+   * Pedido durante o voo marca "de novo": roda mais uma vez no fim, com o
+   * estado mais recente, e quem pediu recebe o resultado dessa última.
+   */
+  const salvarEmOrdem = React.useCallback(() => {
+    if (vooRef.current) { vooRef.current.deNovo = true; return vooRef.current.fim }
+    const voo = { deNovo: false }
+    vooRef.current = voo
+    voo.fim = (async () => {
+      try {
+        let ok
+        do { voo.deNovo = false; ok = await salvarRef.current() } while (voo.deNovo)
+        return ok
+      } finally { vooRef.current = null }
+    })()
+    return voo.fim
+  }, [])
+
   // Nada digitado se perde: trocar de aba (desmonte), sair da conta
   // (descarregarPendentes no App) e fechar a página (beforeunload avisa).
   React.useEffect(() => {
     function descarregar() {
       if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
-      return pendenteRef.current ? salvarRef.current() : Promise.resolve()
+      if (pendenteRef.current) return salvarEmOrdem()
+      // Sem pendência, mas com gravação em voo: quem sai espera ela terminar.
+      return vooRef.current ? vooRef.current.fim : Promise.resolve()
     }
     const tirar = registrarPendente(descarregar)
     function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
@@ -324,13 +409,13 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       document.removeEventListener('visibilitychange', aoEsconder)
       descarregar()
     }
-  }, [])
+  }, [salvarEmOrdem])
 
   function agendarSalvar() {
     pendenteRef.current = true
     setSalvoTexto('')
     if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => { salvarRef.current() }, 900)
+    timerRef.current = setTimeout(() => { salvarEmOrdem() }, 900)
   }
 
   // ── Campos ────────────────────────────────────────────────────────────────
@@ -379,7 +464,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
     // Salva antes de concluir: quem valida é o servidor, sobre o que está
     // GRAVADO — concluir com o autosave pendente reprovaria campo cheio.
-    if (!(await salvar())) { setConcluindo(false); return } // o erro de salvar já está na tela
+    if (!(await salvarEmOrdem())) { setConcluindo(false); return } // o erro de salvar já está na tela
     try {
       const r = await api('rpc/marca_concluir_cadastro', { metodo: 'POST', corpo: { p_participacao: participacaoId } })
       if (!r || r.ok !== true) {
@@ -391,10 +476,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         // A falta está na OUTRA aba (Meu cadastro × Meu combo): leva até ela.
         else if (pend !== null && irPara) setConcluirAviso((a) => ({ ...a, ir: { vista: [0, 4].includes(pend) ? 'cadastro' : 'combo', sub: String(pend) } }))
       } else {
-        const reenvio = revisao.comboStatus === 'correcao_solicitada'
+        const reenvio = comboStatus === 'correcao_solicitada'
         setStatusCadastro('cadastro_completo')
         // O banco já passou o combo para análise: o pedido de ajuste sai da tela.
-        setRevisao((rv) => (rv.comboStatus === 'rascunho' || rv.comboStatus === 'correcao_solicitada' ? { ...rv, comboStatus: 'em_analise' } : rv))
+        if (comboStatus === 'rascunho' || comboStatus === 'correcao_solicitada') setComboLocal('em_analise')
         setConcluirAviso({
           tom: 'ok',
           texto: (reenvio ? 'Alterações enviadas novamente' : 'Enviado para análise') + ' em ' + new Date().toLocaleDateString('pt-BR') +
@@ -455,7 +540,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     return org && (org.estado === 'aprovado' || org.estado === 'analise') ? org : { estado: 'completo' }
   }
   const erroWhats = validarWhatsApp(marca.telefone)
-  const reenviar = revisao.comboStatus === 'correcao_solicitada'
+  const reenviar = comboStatus === 'correcao_solicitada'
 
   return (
     <>
@@ -487,7 +572,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           {erroSalvar && (
             <div className="aviso erro" role="alert">
               {erroSalvar}{' '}
-              <button className="link" type="button" onClick={() => { setErroSalvar(null); salvar() }}>Tentar de novo</button>
+              <button className="link" type="button" onClick={() => { setErroSalvar(null); salvarEmOrdem() }}>Tentar de novo</button>
             </div>
           )}
 
@@ -502,7 +587,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           >
             {mostra(0) && <Bloco indice={0} aberto={blocoAberto === 0} completo={blocoCompleto(0, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 0 ? null : 0))}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-              <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /></span><input id="campo-nome_marca" required value={marca.nome_marca} onChange={(e) => alterarMarca('nome_marca', e.target.value)} /><Correcao e={est('nome_marca')} /></label>
+              {/* Só leitura: o nome é o login da marca (§10.4-b). Mudar aqui a deixaria sem entrar. */}
+              <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /></span><input id="campo-nome_marca" readOnly aria-describedby="nota-nome_marca" value={marca.nome_marca} /><span className="nota" id="nota-nome_marca">Para mudar o nome, fale com a organização.</span><Correcao e={est('nome_marca')} /></label>
               {/* A logo oficial: sobe na hora (não espera o salvamento automático). */}
               {participanteId && (
                 <div className="mc-campo-logo">
@@ -556,10 +642,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
               <p className="nota"><b>Marcar vegano, sem glúten ou sem lactose amplia o público
                 que chega até você</b>: muita gente escolhe a rota pelo que consegue comer.
                 As restrições valem por item: o doce pode ser vegano e o salgado não.</p>
-              {revisao.comboStatus === 'correcao_solicitada' && (
-                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{revisao.comboNota ? ': “' + revisao.comboNota + '”' : '.'} Corrija os campos marcados e envie novamente para análise.</div>
+              {comboStatus === 'correcao_solicitada' && (
+                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{comboNota ? ': “' + comboNota + '”' : '.'} Corrija os campos marcados e envie novamente para análise.</div>
               )}
-              {revisao.comboStatus === 'aprovado' && <div className="aviso" role="status">Combo aprovado pela organização.{revisao.comboNota ? ' “' + revisao.comboNota + '”' : ''}</div>}
+              {comboStatus === 'aprovado' && <div className="aviso" role="status">Combo aprovado pela organização.{comboNota ? ' “' + comboNota + '”' : ''}</div>}
               {itens.length < TIPOS.length && (
                 <div className="aviso erro" role="alert">
                   Faltam itens do combo na sua participação. Fale com a organização para liberar.

@@ -17,6 +17,8 @@ test('lerRota tolera vazio e lixo', () => {
   assert.deepEqual(lerRota(''), { vista: '', aba: '', filtros: {} })
   assert.deepEqual(lerRota('#'), { vista: '', aba: '', filtros: {} })
   assert.deepEqual(lerRota('#visao?'), { vista: 'visao', aba: '', filtros: {} })
+  // % solto não derruba o painel (decodeURIComponent lançaria URIError).
+  assert.deepEqual(lerRota('#marcas%/x'), { vista: '', aba: '', filtros: {} })
 })
 
 test('links antigos gravados no banco caem no módulo novo', () => {

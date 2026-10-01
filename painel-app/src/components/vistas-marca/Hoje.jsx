@@ -237,7 +237,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                       const nivel = nivelDoAviso(n)
                       return (
                         <li key={n.id}>
-                          <button type="button" className="gm-aviso" onClick={() => n.link && abrirLink(n.link)} disabled={!n.link}>
+                          <button type="button" className="gm-aviso" onClick={() => n.link && abrirLink(n.link, n.tipo)} disabled={!n.link}>
                             <span className="ui-aviso__nivel" data-nivel={nivel}>{NIVEIS[nivel].rotulo}</span>
                             <b>{n.titulo}</b>
                             <span className="ui-nota">{tempoRelativo(n.criada_em)}</span>

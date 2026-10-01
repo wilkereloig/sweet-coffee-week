@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  camposObrigatorios, progressoCampos, resumoMarca, nivelDoAviso, interpretarLinkMarca,
+  camposObrigatorios, progressoCampos, resumoMarca, nivelDoAviso, interpretarLinkMarca, fotosDaParticipacao,
   vistaDoBloco, linkDoCampo, vistaDoPedido,
 } from '../painel-app/src/lib/guia.js'
 
@@ -99,6 +99,33 @@ test('links antigos da marca abrem o lugar novo', () => {
   assert.deepEqual(interpretarLinkMarca('combo'), { vista: 'combo' })
   assert.deepEqual(interpretarLinkMarca('pedidos/abc'), { vista: 'pedidos', id: 'abc' })
   assert.deepEqual(interpretarLinkMarca('arquivos/x'), { vista: 'arquivos', id: 'x' })
+})
+
+test('o tipo do aviso desfaz os links genéricos "hoje" e "cadastro"', () => {
+  assert.deepEqual(interpretarLinkMarca('hoje/venda'), { vista: 'inicio', id: 'venda' })
+  assert.deepEqual(interpretarLinkMarca('hoje', 'venda'), { vista: 'inicio', id: 'venda' })
+  assert.deepEqual(interpretarLinkMarca('hoje', 'mensagem'), { vista: 'inicio' })
+  assert.deepEqual(interpretarLinkMarca('cadastro', 'prazo'), { vista: 'combo' })
+  assert.deepEqual(interpretarLinkMarca('cadastro', 'combo'), { vista: 'combo' })
+  assert.deepEqual(interpretarLinkMarca('cadastro', 'tema'), { vista: 'combo' })
+  assert.deepEqual(interpretarLinkMarca('cadastro/0', 'prazo'), { vista: 'cadastro', sub: '0' })
+})
+
+test('fotos: só a sessão desta participação e as vagas da edição dela', () => {
+  const pa = { id: 'pa-atual', edicao_codigo: '2026.2' }
+  const sessoes = [
+    { id: 1, status: 'realizada', participante_id: 'p', participacao_id: 'pa-2025' },
+    { id: 2, status: 'agendada', participante_id: 'p', participacao_id: 'pa-atual' },
+    { id: 3, status: 'aberto', participante_id: null, edicao_codigo: '2026.2' },
+    { id: 4, status: 'aberto', participante_id: null, edicao_codigo: '2025' },
+  ]
+  const f = fotosDaParticipacao(sessoes, pa)
+  assert.deepEqual(f.minhas.map((s) => s.id), [2])
+  assert.deepEqual(f.vagas.map((s) => s.id), [3])
+  assert.deepEqual(fotosDaParticipacao(sessoes, null), { minhas: [], vagas: [] })
+  // A sessão realizada em 2025 não dá a etapa Fotos desta edição por feita.
+  const r = resumoMarca({ ...base, sessoes: fotosDaParticipacao([sessoes[0]], pa).minhas })
+  assert.equal(r.etapas.find((e) => e.chave === 'fotos').estado, 'pendente')
 })
 
 test('bloco → aba, e o link do banco (link_campo_marca) tem o mesmo formato', () => {
