@@ -147,6 +147,20 @@ export function Abas({ abas, ativa, onMudar, rotulo, idBase }) {
 // ÍCONE vem do tom (ICONE_TOM): o estado se reconhece sem depender da cor.
 // `children` substitui o texto quando a tela precisa de uma forma mais curta.
 // `tom` direto serve a estados que não moram num domínio (ex.: "Pendente").
+/*
+ * Botão só com ícone (pedido do Wilker, 02/10/2026: ícone no lugar de texto).
+ * O nome não some: é o aria-label ("Editar Fulano") e aparece no hover e no
+ * foco (data-rotulo), como o botão Topo do site (§6.11). Alvo de 44px.
+ */
+export function BotaoIcone({ icone, rotulo, alvo, perigo, className = '', ...resto }) {
+  return (
+    <button type="button" {...resto} className={'ui-icone-btn' + (perigo ? ' ui-icone-btn--perigo' : '') + (className ? ' ' + className : '')}
+      aria-label={alvo ? rotulo + ' ' + alvo : rotulo} data-rotulo={rotulo}>
+      <Icone nome={icone} tamanho={20} />
+    </button>
+  )
+}
+
 export function Selo({ dominio, valor, tom, children }) {
   const t = tom || tomDe(dominio, valor)
   return (

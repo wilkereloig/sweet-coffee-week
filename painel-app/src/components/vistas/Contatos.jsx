@@ -8,7 +8,7 @@ import { vouchersPorEdicao } from '../../lib/vouchers'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Bloco } from './FichaCadastro'
-import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
 
 /*
@@ -328,10 +328,10 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
                   {podeMudar && (
                     <span className="og-item__acoes">
                       {c.ativo === false
-                        ? <button type="button" className="og-btn og-btn--mini og-btn--vazado" disabled={ocupado === c.id} onClick={() => mudarAtivo(c, true)} aria-label={'Restaurar ' + c.nome}>Restaurar</button>
+                        ? <BotaoIcone icone="restaurar" rotulo="Restaurar" alvo={c.nome} disabled={ocupado === c.id} onClick={() => mudarAtivo(c, true)} />
                         : <>
-                          <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => setAberto(c.id)} aria-label={'Editar ' + c.nome}>Editar</button>
-                          <button type="button" className="og-btn og-btn--mini og-btn--vazado og-item__apagar" disabled={ocupado === c.id} onClick={() => mudarAtivo(c, false)} aria-label={'Apagar ' + c.nome}>Apagar</button>
+                          <BotaoIcone icone="editar" rotulo="Editar" alvo={c.nome} onClick={() => setAberto(c.id)} />
+                          <BotaoIcone icone="lixeira" rotulo="Apagar" alvo={c.nome} perigo disabled={ocupado === c.id} onClick={() => mudarAtivo(c, false)} />
                         </>}
                     </span>
                   )}
