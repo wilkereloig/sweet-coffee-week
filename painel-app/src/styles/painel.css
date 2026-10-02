@@ -69,11 +69,26 @@
   /* Área segura (notch/ilha no topo, indicador de home na base). Só vale com
      viewport-fit=cover no index.html. */
   --scw-safe-t:env(safe-area-inset-top,0px);
+  /* Onde o conteúdo pode começar no topo. Igual à área segura, salvo no app
+     instalado do iPhone (abaixo). */
+  --topo-app:var(--scw-safe-t);
   --scw-safe-b:env(safe-area-inset-bottom,0px);
   --scw-safe-l:env(safe-area-inset-left,0px);
   --scw-safe-r:env(safe-area-inset-right,0px);
   --og-abas-h:64px;
   --rail-w:76px;
+}
+
+/* App instalado no iPhone (iOS 26+): o sistema desenha um desfoque
+   ("Liquid Glass") por cima do topo, ~40pt além da barra de status, e nenhum
+   CSS ou meta o desliga — nem cabeçalho fixo/preso com fundo sólido
+   (testado no aparelho em 02/10/2026, não resolveu). O que funciona é o
+   conteúdo começar abaixo dele: 2.5rem de folga, só no app instalado do
+   iPhone em pé. No navegador e no Android nada muda. */
+@supports (-webkit-touch-callout:none){
+  @media (display-mode:standalone) and (orientation:portrait){
+    :root{--topo-app:calc(var(--scw-safe-t) + 2.5rem)}
+  }
 }
 
 *{box-sizing:border-box}
@@ -178,14 +193,9 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 
 /* ── Cabeçalho ─────────────────────────────────────────────────────────── */
 .pn-cabeca{
-  /* sticky, não relative: o iOS 26 desenha um desfoque ("Liquid Glass") por
-     cima do topo do app instalado, ~40pt além da barra de status, e só o
-     dispensa quando uma caixa FIXA ou PRESA com fundo cobre a borda de cima
-     (02/10/2026). A casca não rola, então sticky não muda nada na tela —
-     só avisa o sistema. O fundo do cabeçalho tem que continuar sólido. */
-  position:sticky;top:0;z-index:5;
+  position:relative;
   display:flex;align-items:center;gap:14px;min-height:64px;min-width:0;
-  padding:var(--scw-safe-t) calc(var(--trilho) + var(--scw-safe-r)) 0 var(--trilho);
+  padding:var(--topo-app) calc(var(--trilho) + var(--scw-safe-r)) 0 var(--trilho);
   background:var(--scw-creme);color:var(--scw-choco);
   border-bottom:1px solid var(--scw-filete);
 }
@@ -587,7 +597,7 @@ button.og-item{cursor:pointer}
 
 /* Faixa de conexão / versão nova — fixa no topo, acima de tudo. */
 .ui-conexao{
-  position:fixed;z-index:60;left:50%;top:calc(10px + var(--scw-safe-t));transform:translateX(-50%);
+  position:fixed;z-index:60;left:50%;top:calc(10px + var(--topo-app));transform:translateX(-50%);
   width:min(640px,calc(100% - 24px));padding:10px 16px;border-radius:var(--r-2);
   display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
   font:700 14px/1.4 var(--f-texto);box-shadow:var(--sombra-3);
@@ -802,7 +812,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
   /* Chapa chocolate atrás: o topo é chocolate e o corpo creme arredonda por cima. */
   background:var(--scw-choco);color:var(--scw-choco);box-shadow:var(--sombra-3);
   display:flex;flex-direction:column;
-  padding-top:var(--scw-safe-t);
+  padding-top:var(--topo-app);
   animation:ogGaveta 260ms var(--scw-ease);
 }
 .og-detalhe--larga{width:min(920px,100%)}
@@ -824,7 +834,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 @keyframes ogGavetaSai{to{transform:translateX(100%)}}
 @media (max-width:900px){
   .og-detalhe,.og-detalhe--larga{
-    top:auto;left:0;right:0;bottom:0;width:100%;max-height:92svh;padding-top:0;
+    top:auto;left:0;right:0;bottom:0;width:100%;max-height:min(92svh,calc(100svh - var(--topo-app)));padding-top:0;
     border-radius:var(--r-3) var(--r-3) 0 0;box-shadow:var(--sombra-3);
     animation:ogFolha 260ms var(--scw-ease);overflow:hidden;
   }
@@ -1096,7 +1106,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 /* ═══ Porta (boas-vindas e login) ══════════════════════════════════════════ */
 .pn-porta{
   height:100dvh;overflow-y:auto;display:grid;place-items:center;
-  padding:calc(clamp(20px,4vw,40px) + var(--scw-safe-t)) clamp(20px,4vw,40px) calc(clamp(20px,4vw,40px) + var(--scw-safe-b));
+  padding:calc(clamp(20px,4vw,40px) + var(--topo-app)) clamp(20px,4vw,40px) calc(clamp(20px,4vw,40px) + var(--scw-safe-b));
   background:var(--scw-choco);color:var(--scw-creme);
 }
 .pn-porta__caixa{width:min(820px,100%)}
