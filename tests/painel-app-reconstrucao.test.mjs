@@ -59,6 +59,24 @@ test('as vistas usam só nomes de ícone que existem', () => {
   }
 })
 
+// Botão só com ícone (02/10/2026): o nome é o aria-label e o rótulo do hover.
+// Sem rotulo, o leitor de tela anuncia "botão" e a pessoa não sabe o que faz.
+test('todo BotaoIcone tem rótulo e ícone que existe', () => {
+  const pasta = new URL('../painel-app/src/components/', import.meta.url)
+  const arquivos = readdirSync(pasta, { recursive: true }).filter((a) => String(a).endsWith('.jsx'))
+  let n = 0
+  for (const a of arquivos) {
+    const txt = readFileSync(new URL(String(a).replace(/\\/g, '/'), pasta), 'utf8')
+    for (const m of txt.matchAll(/<BotaoIcone\b([\s\S]*?)\/>/g)) {
+      n++
+      assert.match(m[1], /\brotulo=/, a + ': BotaoIcone sem rotulo')
+      const ic = /\bicone="([a-z0-9/-]+)"/.exec(m[1])
+      assert.ok(ic && existe(ic[1]), a + ': BotaoIcone com ícone inexistente ' + (ic ? ic[1] : '(nenhum)'))
+    }
+  }
+  assert.ok(n >= 10, 'esperava os botões-ícone das listas')
+})
+
 test('estado da logo tem rótulo e tom no dicionário único', () => {
   for (const e of ESTADOS_LOGO) {
     assert.ok(STATUS.logo[e], 'sem entrada: ' + e)

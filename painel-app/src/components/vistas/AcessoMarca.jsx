@@ -6,7 +6,7 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Atividade } from '../Atividade'
-import { Secao, traduzirErro, Selo } from '../ui'
+import { Secao, traduzirErro, Selo, BotaoIcone, Botao } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 
 /*
@@ -125,7 +125,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                       <Selo dominio="envio" valor={envio} />
                     </div>
                     <div className="ac-linha__acoes">
-                      <button className="og-btn og-btn--mini" type="button" onClick={() => copiarUm(r)}>Copiar</button>
+                      <BotaoIcone icone="copiar" rotulo="Copiar acesso" alvo={r.p && r.p.nome_marca} onClick={() => copiarUm(r)} />
                       {wa
                         ? <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => registrar([r.p.id], 'whatsapp_aberto')}>WhatsApp</a>
                         : <span className="ui-nota">Sem WhatsApp</span>}
@@ -262,8 +262,8 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
 
       <Secao titulo="Ações" nota={podeGerir ? 'A senha que a marca escolheu ninguém vê. Para devolver o acesso, gere uma senha temporária nova.' : 'Sua função só consulta o acesso.'}>
         <div className="ac-acoes">
-          <button className="og-btn og-btn--mini" type="button" disabled={ocupado || !podeGerir} onClick={regerar}>Gerar nova senha temporária</button>
-          <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado} onClick={copiarAcesso}>Copiar acesso</button>
+          <Botao icone="chave" disabled={ocupado || !podeGerir} onClick={regerar}>Gerar nova senha temporária</Botao>
+          <Botao icone="copiar" variante="secundario" disabled={ocupado} onClick={copiarAcesso}>Copiar acesso</Botao>
           <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado || !podeGerir || a.envio === 'enviado_manual'} onClick={() => executar(() => registrarEnvio([participante.id], 'enviado_manual'), 'Marcado como enviado.')}>Marcar credenciais como enviadas</button>
           <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado || !podeGerir} onClick={alterarLogin}>Alterar login</button>
           {bloqueado

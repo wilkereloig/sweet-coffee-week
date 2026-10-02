@@ -1,6 +1,6 @@
 import React from 'react'
 import { avisoSuportado, assinaturaDoAparelho, ligarAvisos, desligarAvisos, ehIOS, instalado } from '../lib/push'
-import { traduzirErro } from './ui'
+import { traduzirErro, Botao } from './ui'
 
 /*
  * "Avisos neste aparelho" — o mesmo bloco nos dois painéis. A permissão só é
@@ -106,7 +106,7 @@ export function AvisosAparelho({ registrar, remover, conferir, testar, explicaca
     return (
       <div className="ui-convite">
         <p>{explicacao}</p>
-        <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={ligar}>Ligar avisos</button>
+        <Botao icone="sino" disabled={ocupado} onClick={ligar}>Ligar avisos</Botao>
         {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : '')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
       </div>
     )
@@ -138,8 +138,8 @@ export function AvisosAparelho({ registrar, remover, conferir, testar, explicaca
       {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : aviso.tom === 'ok' ? ' ui-nota--ok' : '')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
       <div className="ui-linha-acoes">
         {assinatura && <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={ocupado} onClick={desligar}>Desligar</button>}
-        {assinatura && testar && <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={enviarTeste}>Enviar um teste</button>}
-        {!assinatura && !negado && <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={ligar}>Ligar avisos</button>}
+        {assinatura && testar && <Botao icone="enviar" variante="secundario" onClick={enviarTeste}>Enviar um teste</Botao>}
+        {!assinatura && !negado && <Botao icone="sino" disabled={ocupado} onClick={ligar}>Ligar avisos</Botao>}
       </div>
     </div>
   )

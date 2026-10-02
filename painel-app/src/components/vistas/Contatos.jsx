@@ -10,6 +10,7 @@ import { Folha } from '../Folha'
 import { Bloco } from './FichaCadastro'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
+import { Icone } from '../Icone'
 
 /*
  * Contatos › Pessoas (reestruturação 29/09/2026, etapa 5).
@@ -287,7 +288,7 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
           <label className="og-campo og-campo--busca"><span>Buscar</span>
             <input type="search" placeholder="nome, @instagram, cidade, bairro ou e-mail" value={busca} onChange={(e) => setBusca(e.target.value)} /></label>
         </div>
-        <button className="og-btn" type="button" disabled={!pode('relacionamento.gerir')} onClick={() => setAberto('novo')}>Novo contato</button>
+        <button className="og-btn" type="button" disabled={!pode('relacionamento.gerir')} onClick={() => setAberto('novo')}><Icone nome="mais" tamanho={16} />Novo contato</button>
       </div>
       <Escolha rotulo="Mostrar" valor={filtro} onMudar={setFiltro}
         opcoes={FILTROS_CONTATO.map(([v, r]) => [v, r + (lista && v !== 'todos' ? ' (' + contar(v) + ')' : '')])} />

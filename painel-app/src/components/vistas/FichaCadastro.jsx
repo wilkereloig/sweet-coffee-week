@@ -8,7 +8,7 @@ import { CANAIS, canaisParaObjeto, canaisParaArray } from '../../lib/cadastro'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
-import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips, Botao, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips, Botao, BotaoIcone, traduzirErro } from '../ui'
 import { LogoEditor } from '../LogoEditor'
 import { MODULO_ICONE } from '../Icone'
 import { confirmar } from '../Confirmar'
@@ -494,7 +494,7 @@ export function AbaUnidades({ participante, pode, onMudou }) {
             {unidades.map((u, i) => (
               <Bloco key={u.id} icone={MODULO_ICONE.unidades} titulo={'Unidade ' + (i + 1)} nota={[u.bairro, u.endereco].filter(Boolean).join(' · ') || 'Sem endereço'}
                 campos={CAMPOS_UNIDADE} valores={unidadeParaValores(u)} podeEditar={podeEditar} comStatus rotuloEditar={'Editar unidade ' + (i + 1)}
-                acoes={podeEditar && <Botao icone="arquivar" variante="secundario" onClick={() => removerUnidade(u)}>Remover</Botao>}
+                acoes={podeEditar && <BotaoIcone icone="lixeira" rotulo="Remover" alvo={'unidade ' + (i + 1)} perigo onClick={() => removerUnidade(u)} />}
                 onSalvar={async (v) => { await rpc('org_salvar_unidade', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: valoresParaUnidade(u.id, v) }); await f.depois() }} />
             ))}
           </GradeModulos>
