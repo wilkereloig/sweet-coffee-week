@@ -121,11 +121,19 @@ test('o painel React pede para não ser indexado', () => {
   assert.match(PAINEL_APP_HTML, /<meta\s+name="robots"\s+content="noindex/, 'falta o meta robots noindex')
 })
 
-test('a sessão da marca vive em sessionStorage, nunca em localStorage', () => {
+// 02/10/2026 (pedido do Wilker): a sessão por token fica no aparelho até "Sair",
+// para o app instalado abrir já logado. Uma porta só para isso: sessaoGuardada.js.
+// A senha compartilhada continua fora do aparelho.
+test('sessão por token fica no aparelho só por sessaoGuardada.js; a senha compartilhada não', () => {
+  const GUARDADA = readFileSync(new URL('../painel-app/src/lib/sessaoGuardada.js', import.meta.url), 'utf8')
+  assert.match(GUARDADA, /localStorage/)
+  assert.match(MARCA_API_JS, /lerGuardada\(chave\)/)
+  assert.match(MARCA_API_JS, /gravarGuardada\(chave,/)
   for (const [nome, txt] of [['marcaApi.js', semComentarios(MARCA_API_JS)], ['marcaAccess.js', MARCA_ACCESS_CODIGO]]) {
-    assert.ok(!/localStorage\s*\./.test(txt), nome + ': token em localStorage sobrevive ao fechar a aba')
+    assert.ok(!/localStorage\s*\./.test(txt), nome + ': localStorage direto, fora de sessaoGuardada.js')
   }
-  assert.match(MARCA_API_JS, /sessionStorage\s*\./)
+  const LOGIN_ORG = readFileSync(new URL('../painel-app/src/components/LoginOrganizacao.jsx', import.meta.url), 'utf8')
+  assert.match(LOGIN_ORG, /entrarNaOrganizacao\(\{[\s\S]*?guardar: \(chave, valor\) => sessionStorage\.setItem/, 'a senha compartilhada não pode ir para o aparelho')
 })
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -978,7 +986,7 @@ test('sairOrg() apaga as DUAS chaves de sessão de organização', () => {
   const bloco = semC.match(/function sairOrg\([^)]*\)[\s\S]*?\n  \}/)
   assert.ok(bloco, 'não achei sairOrg()')
   assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG\)/)
-  assert.match(bloco[0], /removeItem\(CHAVE_SESSAO_ORG_CONTA\)/)
+  assert.match(bloco[0], /apagarGuardada\(CHAVE_SESSAO_ORG_CONTA\)/)
 })
 
 test('marcar_senha_trocada() lê o papel de verdade da linha, não crava "marca" à mão', () => {
@@ -1175,4 +1183,24 @@ test('as cinco funções distinguem falha de rede do serviço de auth de token i
     assert.match(semC, /jwtErr\.name === 'AuthRetryableFetchError'[\s\S]{0,80}503/,
       nome + ': falha de rede do auth precisa virar 503, não cair muda pro 401 de token inválido')
   }
+})
+
+test('sessaoGuardada: muda a sessão da aba para o aparelho, e Sair apaga das duas', async () => {
+  const memoria = () => { const d = new Map(); return { getItem: (k) => (d.has(k) ? d.get(k) : null), setItem: (k, v) => d.set(k, String(v)), removeItem: (k) => d.delete(k) } }
+  const antes = [globalThis.localStorage, globalThis.sessionStorage]
+  globalThis.localStorage = memoria(); globalThis.sessionStorage = memoria()
+  try {
+    const { lerGuardada, gravarGuardada, apagarGuardada } = await import('../painel-app/src/lib/sessaoGuardada.js')
+    sessionStorage.setItem('scw_marca', 'x') // como o diálogo do site grava
+    assert.equal(lerGuardada('scw_marca'), 'x')
+    assert.equal(localStorage.getItem('scw_marca'), 'x')
+    assert.equal(sessionStorage.getItem('scw_marca'), null)
+    gravarGuardada('scw_marca', 'y')
+    assert.equal(lerGuardada('scw_marca'), 'y')
+    apagarGuardada('scw_marca')
+    assert.equal(lerGuardada('scw_marca'), null)
+    globalThis.localStorage = undefined // modo privado: cai na aba
+    gravarGuardada('scw_marca', 'z')
+    assert.equal(sessionStorage.getItem('scw_marca'), 'z')
+  } finally { [globalThis.localStorage, globalThis.sessionStorage] = antes }
 })

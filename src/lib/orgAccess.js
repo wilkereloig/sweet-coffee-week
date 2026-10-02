@@ -19,8 +19,8 @@
  * não dá pra reaproveitar a mesma chave (decisão D3 do plano). `App.jsx`
  * confere as duas na inicialização.
  *
- * Sessão em sessionStorage, nunca localStorage — morre com a aba, mesmo
- * motivo de marcaAccess.js.
+ * O painel guarda esta sessão no aparelho até "Sair"
+ * (painel-app/src/lib/sessaoGuardada.js, 02/10/2026).
  *
  * ⚠️ Erro de login é SEMPRE genérico ("E-mail ou senha não conferem.") —
  * nunca diz qual dos dois está errado, mesma regra de marcaAccess.js.

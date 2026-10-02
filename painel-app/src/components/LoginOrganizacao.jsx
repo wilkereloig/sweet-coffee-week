@@ -1,3 +1,4 @@
+import { gravarGuardada } from '../lib/sessaoGuardada'
 import React from 'react'
 import { entrarNaOrganizacao, RECADO } from '../../../src/lib/adminAccess'
 import { entrarComoContaOrganizacao, RECADO as RECADO_CONTA } from '../../../src/lib/orgAccess'
@@ -68,7 +69,7 @@ export function LoginOrganizacao({ onEntrar, onEntrarConta, onVoltar }) {
       email,
       senha: senhaConta,
       signIn: signInComSenha,
-      guardar: (chave, valor) => sessionStorage.setItem(chave, valor),
+      guardar: gravarGuardada,
     })
     setCarregandoConta(false)
     if (!r.ok) { setErroConta(RECADO_CONTA[r.erro]); return }

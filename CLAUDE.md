@@ -3325,6 +3325,14 @@ confirmações; nenhuma regra de negócio mudou.
   2.5rem só com `-webkit-touch-callout` + `display-mode: standalone` em pé),
   usado no cabeçalho, na faixa de conexão, na folha e no login. Elemento novo
   preso ao topo usa `--topo-app`, nunca `--scw-safe-t` direto.
+- **Login fica até "Sair"** (02/10/2026, pedido do Wilker): a sessão por token
+  da marca (`scw_marca`) e da conta da equipe (`scw_org_conta`) mora no
+  aparelho (`localStorage`), só por `lib/sessaoGuardada.js`. Revoga a regra
+  antiga "morre com a aba": o iOS apagava o `sessionStorage` ao fechar o app e
+  a marca entrava de novo a cada visita. A sessão gravada pelo diálogo do site
+  (aba) muda para o aparelho na primeira leitura. ⛔ A senha compartilhada
+  (`scw_org`) segue só na aba — é senha em texto puro. Risco aceito: em
+  computador compartilhado, quem não tocar em Sair deixa a conta aberta.
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.

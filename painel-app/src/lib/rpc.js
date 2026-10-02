@@ -21,6 +21,7 @@
  * é essa chave que vira `null` quando existe sessão nominal.
  */
 import { renovarCompartilhado } from './marcaApi.js'
+import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../../src/lib/orgAccess.js'
 
 export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
@@ -28,13 +29,13 @@ export const SUPABASE_KEY = import.meta.env?.VITE_SUPABASE_KEY || 'sb_publishabl
 
 function lerSessaoOrgConta() {
   try {
-    const cru = sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA)
+    const cru = lerGuardada(CHAVE_SESSAO_ORG_CONTA)
     return cru ? JSON.parse(cru) : null
   } catch { return null }
 }
 
 function salvarSessaoOrgConta(sessao) {
-  try { sessionStorage.setItem(CHAVE_SESSAO_ORG_CONTA, JSON.stringify(sessao)) } catch { /* modo privado */ }
+  gravarGuardada(CHAVE_SESSAO_ORG_CONTA, JSON.stringify(sessao))
 }
 
 /**
