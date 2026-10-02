@@ -3311,6 +3311,13 @@ confirmações; nenhuma regra de negócio mudou.
   navegação (`Abas`, `.og-abas`) seguem como controle segmentado.
 - Cartão da esteira mostra a **logo da marca** (`get_logos`, leitura à parte:
   falhou, ficam as iniciais).
+- **Versão nova chega ao app instalado** (02/10/2026): o `sw.js` não muda entre
+  publicações, então o aviso pelo service worker nunca disparava e o celular
+  seguia dias na versão antiga. `Conexao.jsx` compara o arquivo de entrada da
+  aba com o do HTML publicado (`lib/versao.js`, `fetch('/painel/?v=…')` — o
+  `?v=` foge do cache do SW): ao abrir, ao voltar ao app e a cada 10 min. Voltando
+  ao app sem janela aberta nem campo em uso, recarrega sozinho (uma vez por
+  versão); senão, a faixa "Atualizar agora".
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.
