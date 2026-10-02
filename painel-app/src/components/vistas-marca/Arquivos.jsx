@@ -4,7 +4,6 @@ import { dataHoraExtensa } from '../../lib/central'
 import { dataCurta } from '../../lib/respostas'
 import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
-import { BaixarGuias } from '../vistas/GuiaFotos'
 import { Carregando, Vazio, Erro, Secao, Selo } from '../ui'
 
 /*
@@ -143,13 +142,6 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
     <section className="ui-vista-marca">
       <VistaCabeca acento="marrom" icone="arquivos" titulo="Arquivos" nota="Marca do festival, guias e documentos" />
       {lista}
-      {/* Os guias são arquivos fixos do site (public/guias/), não linhas de
-          `arquivos`: ficam aqui sempre, mesmo sem nada publicado. */}
-      <Secao titulo="Guias de fotos">
-        <p className="ui-nota">Como preparar o combo para a sessão e o que o fotógrafo vai entregar.</p>
-        <BaixarGuias deQuem="participante" />
-        {irPara && <p><button className="og-link" type="button" onClick={() => irPara('guia')}>Ver o guia no painel</button></p>}
-      </Secao>
     </section>
   )
 }

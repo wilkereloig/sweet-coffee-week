@@ -108,10 +108,12 @@ function rotaCrua(link) {
       if (a && ABA_CONTATOS.has(a)) return { vista: 'contatos', aba: a, filtros: b ? { item: b } : {} }
       return { vista: 'contatos', aba: 'pessoas', filtros: a ? { item: a } : {} }
     case 'arquivos':
+      // A aba Guia de fotos saiu (02/10/2026): os guias são arquivos publicados.
+      if (a === 'guias') return { vista: 'arquivos', aba: 'gerais', filtros: {} }
       if (a && ABA_ARQUIVOS.has(a)) return { vista: 'arquivos', aba: a, filtros: {} }
       return { vista: 'arquivos', aba: 'gerais', filtros: a ? { item: a } : {} }
     case 'equipe': return { vista: 'admin', aba: 'equipe', filtros: {} }
-    case 'fotos': return { vista: 'arquivos', aba: 'guias', filtros: {} }
+    case 'fotos': return { vista: 'arquivos', aba: 'gerais', filtros: {} }
     default:
       return { vista: seg, aba: a || (Object.hasOwn(ABA_INICIAL, seg) && ABA_INICIAL[seg]) || '', filtros: b ? { item: b } : {} }
   }
@@ -119,7 +121,7 @@ function rotaCrua(link) {
 
 const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas'])
 const ABA_CONTATOS = new Set(['pessoas', 'presskit', 'vouchers', 'recebidos'])
-const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'guias', 'arquivados'])
+const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'arquivados'])
 
 /**
  * Compatibilidade com o `irPara(vista, { id, sub, origem })` das vistas de
