@@ -97,7 +97,7 @@ export function AbaOperacao({ participante, pode }) {
   return (
     <div className="ui-pilha">
       {pendencias.length > 0 && (
-        <Secao titulo="Revisão de dados" nota="Itens que a importação ou o sistema pediram para uma pessoa conferir. Resolva em Administração › Revisão de dados.">
+        <Secao titulo="Revisão de dados" nota="Para conferir em Revisão de dados.">
           <ul className="ui-lista-simples">{pendencias.map((r) => (
             <li key={r.id}><b>{r.titulo}</b><span>{ROTULO_PENDENCIA[r.tipo] || r.tipo}{r.valor_original ? ' · valor recebido: “' + r.valor_original + '”' : ''}</span></li>
           ))}</ul>
@@ -134,7 +134,6 @@ export function AbaOperacao({ participante, pode }) {
                 <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => decidirTema('recusado')}>Pedir outro tema</button>
               </div>
             )}
-            <p className="ui-nota">Conflitos com outras marcas e a ordem de prioridade ficam em Participantes › Temas.</p>
           </>
         ) : null}
       </Secao>
@@ -180,7 +179,7 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
     if (await salvar(novo)) setNovo(vazio)
   }
   return (
-    <Secao titulo="Materiais" nota="Mesas, prismas, placa, display e vouchers desta edição — por unidade quando fizer diferença.">
+    <Secao titulo="Materiais" nota="Materiais desta edição.">
       {itens.length > 0 && (
         <ul className="ui-lista-simples">{itens.map((m) => (
           <li key={m.id}>
@@ -224,7 +223,7 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
           </label>
           <Botao icone="mais" type="submit">Adicionar material</Botao>
         </form>
-      ) : <p className="ui-nota">Sua função lê os materiais, mas não registra.</p>}
+      ) : <p className="ui-nota">Só leitura.</p>}
       {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
     </Secao>
   )

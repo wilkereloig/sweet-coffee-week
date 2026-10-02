@@ -98,7 +98,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
           {!erro && arquivos === null && <Carregando linhas={3} />}
           {!erro && visiveis && visiveis.length === 0 && (fotos
             ? <p className="ui-nota">Ainda não disponíveis. Você será avisado quando as fotos forem liberadas.</p>
-            : <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar um documento (regulamento, material de divulgação), ele aparece aqui e chega um aviso.</Vazio>)}
+            : <Vazio titulo="Nenhum arquivo ainda">Chega aqui, com aviso.</Vazio>)}
           {visiveis && visiveis.length > 0 && agruparPorCategoria(visiveis).map((g) => (
             <div className="ui-downloads__grupo" key={g.chave}>
               <h3 className="ui-downloads__titulo">{g.rotulo}</h3>

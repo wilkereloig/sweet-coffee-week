@@ -73,7 +73,7 @@ export function ContaMarca({ aberto, onFechar, onSair }) {
             {...push}
           />}
         </Secao>
-        <Secao titulo="Alterar minha senha" nota="Pelo menos 10 caracteres. Esqueceu a senha? Peça uma nova à organização pelo WhatsApp.">
+        <Secao titulo="Alterar minha senha" nota="Mínimo 10 caracteres.">
           <AlterarSenha />
         </Secao>
         <Secao titulo="Sair" nota="Neste aparelho. Para entrar de novo, use o nome do estabelecimento e a sua senha.">

@@ -334,12 +334,12 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
       {secao === 'equipe' && <div className="ui-grade-duas">
         <Secao
           titulo="Usuários da equipe"
-          nota="Cada pessoa com o próprio acesso. É o nome dela que assina o que faz no painel."
+          nota="Cada pessoa assina o que faz."
           acoes={<Botao icone="mais" onClick={() => setFolha({ tipo: 'nova' })}>Adicionar pessoa</Botao>}
         >
           {!erro && contas === null && <Carregando linhas={3} />}
           {!erro && contas && lista.length === 0 && (
-            <Vazio titulo="Ninguém com conta própria ainda">Hoje todo mundo entra pelo acesso compartilhado, e o histórico não consegue dizer quem fez cada coisa. Adicione cada pessoa da equipe — começando por você, como administrador.</Vazio>
+            <Vazio titulo="Ninguém com conta própria ainda">Comece por você, como administrador.</Vazio>
           )}
           {lista.length > 0 && (
             <ul className="og-lista og-lista--tabela">
@@ -361,7 +361,7 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
         </Secao>
 
         <div className="ui-pilha">
-          <Secao titulo="Acesso compartilhado" nota="A senha única da organização. Ações feitas por ela aparecem no histórico como “Acesso compartilhado”, sem nome.">
+          <Secao titulo="Acesso compartilhado" nota="Ações por ela ficam sem nome no histórico.">
             <p className="ui-estado-linha">
               <span className="ui-ponto" data-tom={config && config.senha_unica_ativa ? 'neutro' : 'ok'} aria-hidden="true" />
               <b>{config ? (config.senha_unica_ativa ? 'Ligado' : 'Desligado — só contas pessoais entram') : 'Verificando…'}</b>

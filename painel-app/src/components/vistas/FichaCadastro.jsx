@@ -366,7 +366,7 @@ export function AbaCadastroMarca({ participante, pode, onMudou }) {
 
   return (
     <>
-      {!podeEditar && <p className="ui-nota">Só a função Administrador edita o cadastro. Você está vendo o que foi preenchido.</p>}
+      {!podeEditar && <p className="ui-nota">Só leitura.</p>}
       <MacroSecao rotulo="Cadastro" titulo="Situação e identidade">
         <GradeModulos>
           {pa.id ? (
@@ -427,7 +427,7 @@ export function AbaCombo({ participante, pode, onMudou }) {
       <MacroSecao rotulo="Informações comerciais" titulo="Tema e preço">
         <GradeModulos className="ui-modulos--dois">
           <Bloco icone={MODULO_ICONE.tema} titulo="Tema" campos={CAMPOS_TEMA} valores={pa} podeEditar={podeEditar} onSalvar={salvarParticipacao}
-            nota="Tema novo entra como proposta; a aprovação é em Participantes › Temas" rotuloEditar="Editar tema" comStatus />
+            nota="Tema novo vira proposta." rotuloEditar="Editar tema" comStatus />
           <Bloco icone={MODULO_ICONE.preco} titulo="Preço e detalhes" campos={CAMPOS_PRECO} valores={pa} podeEditar={podeEditar}
             onSalvar={salvarParticipacao} rotuloEditar="Editar preço e detalhes" comStatus />
         </GradeModulos>
@@ -435,12 +435,11 @@ export function AbaCombo({ participante, pode, onMudou }) {
       <MacroSecao rotulo="Materiais" titulo="Aprovação, fotos e arquivos">
         <GradeModulos>
           <Modulo icone={MODULO_ICONE.aprovado} titulo="Status de aprovação" status={<Selo dominio="combo" valor={pa.combo_status} />}>
-            <p className="ui-nota">Aprovar ou pedir ajuste no combo é na aba Operação.</p>
           </Modulo>
           <Modulo icone={MODULO_ICONE.fotos} titulo="Sessão de fotos" status={sess.length ? <Selo dominio="sessao" valor={sess[0].status} /> : <Selo tom="neutro">Sem sessão</Selo>}>
             {sess.length > 0
               ? <ul className="ui-lista-simples">{sess.map((x) => <li key={x.id}><b>{dataHoraCurta(x.data_hora)}</b><span>{rotulo('sessao', x.status)}{x.local ? ' · ' + x.local : ''}</span></li>)}</ul>
-              : <p className="ui-nota">Nenhuma sessão agendada. A agenda fica em Operação › Fotos.</p>}
+              : <p className="ui-nota">Nenhuma sessão agendada.</p>}
           </Modulo>
           <Modulo icone={MODULO_ICONE.arquivos} titulo="Arquivos enviados à marca" status={<Selo tom="neutro">{arqs.length === 1 ? '1 arquivo' : arqs.length + ' arquivos'}</Selo>}>
             {arqs.length > 0
@@ -512,7 +511,7 @@ export function AbaUnidades({ participante, pode, onMudou }) {
                   const prazo = s.prazo_em ? prazoSelo(s.prazo_em) : null
                   return <li key={s.id}><b>{s.titulo}</b><span>{rotulo('pedido', s.estado === 'respondido' ? 'respondido' : 'pendente') + (s.estado === 'respondido' && s.respondido_em ? ' ' + tempoRelativo(s.respondido_em) : '')}{prazo ? ' · ' + prazo.texto : ''}</span></li>
                 })}</ul>
-              : <p className="ui-nota">Nenhum pedido publicado para esta marca. Pedidos novos são em Operação › Pedidos.</p>}
+              : <p className="ui-nota">Nenhum pedido.</p>}
           </Modulo>
         </GradeModulos>
       </MacroSecao>

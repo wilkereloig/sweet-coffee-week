@@ -141,7 +141,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
       )}
 
       {estado === 'sem-participacao' && (
-        <Secao titulo="Sem edição aberta" nota="Sua marca ainda não tem participação aberta na edição atual. Quando a organização abrir, o cadastro aparece aqui.">
+        <Secao titulo="Sem edição aberta" nota="O cadastro abre aqui quando a edição abrir.">
           <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('mensagens')}>Falar com a organização</button>
         </Secao>
       )}

@@ -78,7 +78,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
 
   return (
     <div className="ui-pilha">
-      <Secao titulo="Dados da edição" nota="Tudo aqui pode mudar: as datas vêm da organização e o painel se ajusta sozinho.">
+      <Secao titulo="Dados da edição">
         <form className="ui-form ui-form--linha-dupla" onSubmit={salvar}>
           <label className="og-campo"><span>Nome</span><input type="text" {...campo('nome')} /></label>
           <label className="og-campo"><span>Tema da edição <em>(opcional)</em></span><input type="text" {...campo('tema')} /></label>
@@ -93,7 +93,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
         </form>
       </Secao>
 
-      <Secao titulo="Cronograma" nota="O mesmo dado alimenta o painel da marca, a mesa, os lembretes e a próxima ação."
+      <Secao titulo="Cronograma" nota="Alimenta o painel da marca e os lembretes."
         acoes={podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => { setAvisoItem(null); setItem({ titulo: '', tipo: 'prazo', chave: '', inicio: '', fim: '', ordem: 100, obrigatorio: false, visivel_participante: true, condicao: '' }) }}>Adicionar item</button>}>
         {(edicao.cronograma || []).length === 0 && <Vazio titulo="Sem cronograma">Adicione os prazos e períodos da edição: eles alimentam o painel da marca e os lembretes.</Vazio>}
         {(edicao.cronograma || []).length > 0 && <ul className="og-lista">{(edicao.cronograma || []).map((i) => (
