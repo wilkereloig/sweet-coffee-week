@@ -7,7 +7,8 @@ import { CATEGORIAS_ARQUIVO, agruparPorCategoria, tamanhoLegivel, tipoLegivel, c
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { FolhaNovoArquivo } from './Producao'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, BotaoIcone } from '../ui'
+import { Carregando, Vazio, Erro, traduzirErro, BotaoIcone, Escolha } from '../ui'
+import { Icone } from '../Icone'
 import { confirmar } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
@@ -81,63 +82,62 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
 
   if (erro) return <Erro texto={erro} onTentar={carregar} />
   if (!arquivos) return <Carregando />
-  const grupos = agruparPorCategoria(visiveis)
+  // Uma tabela só, na ordem das categorias, com a categoria como coluna
+  // (02/10/2026, pedido do Wilker: a página estava confusa). Antes era uma
+  // seção com título por categoria, e cada linha juntava tudo numa frase.
+  const linhas = agruparPorCategoria(visiveis).flatMap((g) => g.itens.map((a) => ({ a, categoria: g.rotuloOrg })))
+  const nAcoes = 1 + (podeGerir ? (aba === 'arquivados' ? 1 : 3) : 0)
 
   return (
     <div className="og-embutida">
       <div className="ui-barra">
-        {aba === 'participantes' ? (
-          <div className="og-filtros">
-            <label className="og-campo"><span>Marca</span>
-              <select value={marcaFiltro} onChange={(e) => setMarcaFiltro(e.target.value)}>
-                <option value="">Todas</option>
-                {opcoesMarcas.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </label>
-          </div>
-        ) : <span />}
+        {aba === 'participantes'
+          ? <Escolha rotulo="Marca" valor={marcaFiltro} onMudar={setMarcaFiltro} opcoes={[['', 'Todas'], ...opcoesMarcas.map((o) => [o.value, o.label])]} />
+          : <p className="ui-contagem ui-barra__contagem">{linhas.length === 1 ? '1 arquivo' : linhas.length + ' arquivos'}</p>}
         {aba !== 'arquivados' && (
-          <button className="og-btn" type="button" disabled={!podeGerir} onClick={() => setFolha({ tipo: 'novo' })}>Publicar arquivo</button>
+          <button className="og-btn" type="button" disabled={!podeGerir} onClick={() => setFolha({ tipo: 'novo' })}><Icone nome="mais" tamanho={16} />Publicar arquivo</button>
         )}
       </div>
-      {!podeGerir && <p className="ui-nota">Sua função baixa os arquivos, mas não publica nem altera.</p>}
+      {!podeGerir && <p className="ui-nota">Só leitura.</p>}
       {aviso && (typeof aviso === 'string'
         ? <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>
         : <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p>)}
 
-      {grupos.length === 0 && (
+      {linhas.length === 0 && (
         <Vazio titulo={aba === 'arquivados' ? 'Nada arquivado' : 'Nenhum arquivo aqui'}>
-          {aba === 'gerais' && 'O que você publicar para todas as marcas aparece aqui e no painel de cada uma.'}
-          {aba === 'participantes' && 'Fotos oficiais do combo, artes e documentos de uma marca só.'}
+          {aba === 'gerais' && 'Aparece aqui e no painel de cada marca.'}
+          {aba === 'participantes' && 'Fotos do combo, artes e documentos de uma marca só.'}
         </Vazio>
       )}
-      {grupos.map((g) => (
-        <Secao key={g.chave} titulo={g.rotuloOrg} nota={g.itens.length === 1 ? '1 arquivo' : g.itens.length + ' arquivos'}>
-          <ul className="og-lista">{g.itens.map((a) => (
+      {linhas.length > 0 && (
+        <ul className="og-lista og-lista--colunas og-lista--arquivos og-lista--acoes" style={{ '--acoes-l': (nAcoes * 48 + 16) + 'px' }}>
+          <li className="og-lista__cabeca" aria-hidden="true">
+            <span>Arquivo</span><span>Para</span><span>Categoria</span><span>Formato</span><span>Publicado</span><span>Leitura</span>
+          </li>
+          {linhas.map(({ a, categoria }) => (
             <li key={a.id}>
               <div className="og-item og-item--info">
                 <span className="og-item__cor" data-chave="arquivo" aria-hidden="true" />
-                <p className="og-item__nome">{a.nome}</p>
-                <p className="og-item__meta">{[
-                  a.escopo === 'geral' ? 'todas as marcas' : (a.marca || 'uma marca'),
-                  tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho),
-                  a.versao ? 'versão ' + a.versao : '', dataCurta(a.publicado_em || a.created_at),
-                  a.exige_leitura ? Number(a.leituras || 0) + ' confirmaram leitura' : '',
-                ].filter(Boolean).join(' · ')}</p>
-                <span className="og-item__dir">
-                  <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixar(a)} />
-                  {podeGerir && !a.arquivado && <>
-                    <BotaoIcone icone="editar" rotulo="Editar" alvo={a.nome} onClick={() => setFolha({ tipo: 'editar', arquivo: a })} />
-                    <BotaoSubstituir alvo={a.nome} ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />
-                    <BotaoIcone icone="arquivar" rotulo="Arquivar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, true)} />
-                  </>}
-                  {podeGerir && a.arquivado && <BotaoIcone icone="restaurar" rotulo="Restaurar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, false)} />}
-                </span>
+                <span className="og-item__nome">{a.nome}{a.versao > 1 && <span className="og-item__versao"> · v{a.versao}</span>}</span>
+                <span className="og-item__cel"><span className="ui-oculto">Para: </span>{a.escopo === 'geral' ? 'Todas as marcas' : (a.marca || 'Uma marca')}</span>
+                <span className="og-item__cel"><span className="ui-oculto">Categoria: </span>{categoria}</span>
+                <span className="og-item__cel"><span className="ui-oculto">Formato: </span>{[tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho)].filter(Boolean).join(' · ')}</span>
+                <span className="og-item__cel"><span className="ui-oculto">Publicado: </span>{dataCurta(a.publicado_em || a.created_at)}</span>
+                <span className="og-item__cel" data-vazio={a.exige_leitura ? undefined : '1'}><span className="ui-oculto">Leitura: </span>{a.exige_leitura ? (Number(a.leituras || 0) === 1 ? '1 confirmou' : Number(a.leituras || 0) + ' confirmaram') : '—'}</span>
               </div>
+              <span className="og-item__acoes">
+                <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixar(a)} />
+                {podeGerir && !a.arquivado && <>
+                  <BotaoIcone icone="editar" rotulo="Editar" alvo={a.nome} onClick={() => setFolha({ tipo: 'editar', arquivo: a })} />
+                  <BotaoSubstituir alvo={a.nome} ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />
+                  <BotaoIcone icone="arquivar" rotulo="Arquivar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, true)} />
+                </>}
+                {podeGerir && a.arquivado && <BotaoIcone icone="restaurar" rotulo="Restaurar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, false)} />}
+              </span>
             </li>
-          ))}</ul>
-        </Secao>
-      ))}
+          ))}
+        </ul>
+      )}
 
       <FolhaNovoArquivo
         aberto={!!folha && folha.tipo === 'novo'}
