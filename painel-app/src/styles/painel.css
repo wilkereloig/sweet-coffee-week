@@ -517,6 +517,9 @@ button.og-item{cursor:pointer}
 .og-item__cel--selos{display:flex;flex-wrap:wrap;gap:5px}
 .og-lista--colunas .og-item__cor{grid-row:span 6}
 .og-lista--colunas .og-item__cel[data-vazio="1"]{display:none}
+.og-lista--arquivos{--colunas:10px minmax(180px,1.7fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,.7fr) minmax(0,.7fr)}
+.og-item__versao{font:400 13px/1 var(--f-ui);color:var(--scw-marrom)}
+.ui-barra__contagem{margin:0;align-self:center}
 .og-lista--contatos{--colunas:10px minmax(170px,1.4fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1.1fr) minmax(150px,1fr)}
 @media (min-width:1100px){
   .og-lista--colunas .og-item,
