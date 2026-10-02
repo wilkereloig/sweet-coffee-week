@@ -178,7 +178,12 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 
 /* ── Cabeçalho ─────────────────────────────────────────────────────────── */
 .pn-cabeca{
-  position:relative;
+  /* sticky, não relative: o iOS 26 desenha um desfoque ("Liquid Glass") por
+     cima do topo do app instalado, ~40pt além da barra de status, e só o
+     dispensa quando uma caixa FIXA ou PRESA com fundo cobre a borda de cima
+     (02/10/2026). A casca não rola, então sticky não muda nada na tela —
+     só avisa o sistema. O fundo do cabeçalho tem que continuar sólido. */
+  position:sticky;top:0;z-index:5;
   display:flex;align-items:center;gap:14px;min-height:64px;min-width:0;
   padding:var(--scw-safe-t) calc(var(--trilho) + var(--scw-safe-r)) 0 var(--trilho);
   background:var(--scw-creme);color:var(--scw-choco);
