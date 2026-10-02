@@ -487,7 +487,18 @@ button.og-item{cursor:pointer}
 /* Lista em colunas: mesma grade em toda linha (sem coluna "auto", que mudava
    de largura por linha e desalinhava tudo) + cabeçalho. A lista define as
    colunas em --colunas. Abaixo de 1100px cada linha empilha. */
-.og-lista__cabeca{display:none}
+/* Atalhos da linha (Editar · Apagar) ficam FORA do botão da linha (botão não
+   entra em botão): a li vira grade linha | atalhos, com largura fixa para os
+   atalhos, e o cabeçalho reserva a mesma largura à direita. */
+.og-lista--acoes{--acoes-l:184px}
+.og-lista--acoes > li:not(.og-lista__cabeca){display:grid;grid-template-columns:minmax(0,1fr) var(--acoes-l);align-items:center}
+.og-item__acoes{display:flex;gap:8px;justify-content:flex-end;padding-right:20px}
+.og-item__apagar{color:var(--scw-marrom)}
+@media (hover:hover){ .og-item__apagar:hover{background:var(--scw-laranja);color:var(--scw-choco);box-shadow:none} }
+@media (max-width:760px){
+  .og-lista--acoes > li:not(.og-lista__cabeca){grid-template-columns:minmax(0,1fr)}
+  .og-item__acoes{justify-content:flex-start;padding:0 20px 14px 48px}
+}
 .og-item__cel{font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom);grid-column:2;min-width:0;overflow-wrap:anywhere}
 .og-item__cel--pilha{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
 .og-item__cel--selos{display:flex;flex-wrap:wrap;gap:5px}
@@ -501,6 +512,7 @@ button.og-item{cursor:pointer}
   .og-lista--colunas .og-item__cor{grid-row:auto;align-self:center;margin-top:0}
   .og-lista--colunas .og-item__cel{grid-column:auto}
   .og-lista--colunas .og-item__cel[data-vazio="1"]{display:block;opacity:.5}
+  .og-lista--acoes .og-lista__cabeca{padding-right:calc(20px + var(--acoes-l))}
 }
 @media (max-width:760px){
   .og-item{grid-template-columns:10px minmax(0,1fr)}

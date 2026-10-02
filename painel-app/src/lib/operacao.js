@@ -115,12 +115,15 @@ export const FILTROS_CONTATO = [
   ['nunca_receberam', 'Nunca receberam'],
   ['receberam_ultima', 'Receberam na última'],
   ['incompleto', 'Cadastro incompleto'],
+  ['arquivados', 'Apagados (arquivo)'],
 ]
 const categoriasDe = (c) => (Array.isArray(c.categorias) && c.categorias.length ? c.categorias : [c.tipo].filter(Boolean))
 export function filtrarContatos(lista, filtro, busca = '') {
   const t = String(busca || '').trim().toLowerCase()
   return (lista || []).filter((c) => {
     if (t && ![c.nome, c.instagram, c.bairro, c.cidade, c.email].filter(Boolean).join(' ').toLowerCase().includes(t)) return false
+    // "Apagar" arquiva (ativo = false): some de toda lista, menos da do arquivo.
+    if ((filtro === 'arquivados') !== (c.ativo === false)) return false
     if (CATEGORIAS_CONTATO.some(([k]) => k === filtro)) return categoriasDe(c).includes(filtro)
     switch (filtro) {
       case 'ja_receberam': return Number(c.recebimentos) > 0
