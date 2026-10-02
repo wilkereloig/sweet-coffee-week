@@ -13,6 +13,20 @@ import React from 'react'
  */
 const IMG = '/images/guia-fotos/'
 export const PDF_FOTOGRAFO = '/guias/guia-de-fotos-fotografo.pdf'
+export const PDF_PARTICIPANTES = '/guias/guia-de-fotos-participantes.pdf'
+
+// Os dois guias nos dois painéis (pedido do Wilker, 02/10/2026): cada lado
+// sabe o que o outro recebeu. O guia da tela vem primeiro e é o principal.
+export function BaixarGuias({ deQuem }) {
+  const fotografo = { de: 'fotografo', href: PDF_FOTOGRAFO, rotulo: 'Guia do fotógrafo (PDF)' }
+  const participante = { de: 'participante', href: PDF_PARTICIPANTES, rotulo: 'Guia do participante (PDF)' }
+  const guias = deQuem === 'participante' ? [participante, fotografo] : [fotografo, participante]
+  return (
+    <div className="ui-linha-acoes">
+      {guias.map((g, i) => <BaixarPdf key={g.de} href={g.href} rotulo={g.rotulo} vazado={i > 0} />)}
+    </div>
+  )
+}
 
 const ENTREGAS = [
   'Combo completo: salgado, doce e bebida inteiros, fáceis de identificar, com espaço ao redor',
@@ -81,9 +95,9 @@ export function ParesFotos({ pares }) {
   )
 }
 
-export function BaixarPdf({ href, rotulo }) {
+export function BaixarPdf({ href, rotulo, vazado }) {
   return (
-    <a className="og-btn gf-baixar" href={href} download>
+    <a className={'og-btn gf-baixar' + (vazado ? ' og-btn--vazado' : '')} href={href} download>
       <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" />
       </svg>
@@ -99,7 +113,7 @@ export function GuiaFotos() {
 
       <div className="gf-topo">
         <p className="gf-tese">Todas as fotos fazem parte da entrega. A <strong>comida é sempre a protagonista</strong>.</p>
-        <BaixarPdf href={PDF_FOTOGRAFO} rotulo="Baixar o guia em PDF" />
+        <BaixarGuias deQuem="fotografo" />
       </div>
 
       <div className="gf-bloco">
