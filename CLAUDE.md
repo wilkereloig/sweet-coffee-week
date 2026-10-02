@@ -3361,6 +3361,14 @@ confirmações; nenhuma regra de negócio mudou.
   (senhas intactas; o e-mail real de quem entrava por e-mail ficou em
   `raw_user_meta_data.email_anterior`). ⛔ Slugificação com hífen não volta:
   mudar a regra é migrar o login de todas as contas.
+- **Valor do combo é da organização** (02/10/2026, pedido do Wilker): um valor
+  por edição em `edicoes.valor_combo` (Edição › Configuração); a marca vê e não
+  muda (`combo_preco` saiu do grant da marca e da tela). A marca informa
+  `custo_embalagem` — obrigatório se o combo pode ser para viagem — e
+  `custo_delivery` — obrigatório se alguma unidade faz delivery; zero vale.
+  Progresso = 16 campos fixos + os custos que se aplicam, mesma regra em
+  `custosFaltando()` (cadastro.js), `camposObrigatorios()` (guia.js),
+  `campos_cadastro` e `marca_concluir_cadastro`.
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.

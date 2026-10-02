@@ -422,8 +422,10 @@ test('a marca não escreve o caminho de foto nenhuma', () => {
   assert.ok(!colunasConcedidas('participantes_itens').has('foto_path'), 'foto_path voltou ao grant dos itens')
 })
 
-test('preço, endereço e horário são da PARTICIPAÇÃO, não da marca', () => {
-  assert.ok(colunasConcedidas('participacoes').has('combo_preco'), 'combo_preco precisa ser escrevível na participação')
+test('custos, endereço e horário são da PARTICIPAÇÃO, não da marca; o valor do combo é da organização', () => {
+  const daParticipacao = colunasConcedidas('participacoes')
+  assert.ok(daParticipacao.has('custo_embalagem') && daParticipacao.has('custo_delivery'), 'a marca precisa escrever os custos')
+  assert.ok(!daParticipacao.has('combo_preco'), 'a marca voltou a poder escrever o valor do combo (é da organização, 02/10/2026)')
   const daMarca = [...colunasConcedidas('participantes')].join(' ')
   assert.ok(!/preco|endereco|horario/.test(daMarca), 'dado volátil vazou para a tabela publicável')
   assert.match(CADASTRO_JSX, /participacao_unidades/, 'endereço e horário precisam vir de participacao_unidades')
