@@ -41,3 +41,32 @@ test('nenhum host de banco em texto nos arquivos novos', () => {
     assert.ok(!/service_role/.test(texto), nome + ' menciona service_role')
   }
 })
+
+// Versão nova pela publicação (02/10/2026): o sw.js não muda entre deploys,
+// então o aviso de versão compara o arquivo de entrada do HTML publicado.
+import { entradaDoHtml, entradaAtual, podeRecarregarSozinho } from '../painel-app/src/lib/versao.js'
+
+test('versão: lê o arquivo de entrada do HTML publicado', () => {
+  const html = '<script src="https://use.typekit.net/ngx4uek.js"></script><script type="module" crossorigin src="/assets/painel-AH0SDHQz.js"></script>'
+  assert.equal(entradaDoHtml(html), '/assets/painel-AH0SDHQz.js')
+  assert.equal(entradaDoHtml('<html></html>'), null)
+  assert.equal(entradaDoHtml(null), null)
+})
+
+test('versão: sem arquivo com hash (dev) não compara nada', () => {
+  assert.equal(entradaAtual({ querySelector: () => null }), null)
+  assert.equal(entradaAtual({ querySelector: () => ({ getAttribute: () => '/assets/painel-X.js' }) }), '/assets/painel-X.js')
+})
+
+test('versão: só recarrega sozinho sem janela aberta nem campo em uso', () => {
+  const doc = (aberto, tag) => ({ querySelector: () => (aberto ? {} : null), activeElement: tag ? { tagName: tag } : null })
+  assert.equal(podeRecarregarSozinho(doc(false, 'BODY')), true)
+  assert.equal(podeRecarregarSozinho(doc(true, 'BODY')), false)
+  assert.equal(podeRecarregarSozinho(doc(false, 'TEXTAREA')), false)
+})
+
+test('versão: a checagem foge do cache do service worker', () => {
+  const c = readFileSync(new URL('../painel-app/src/components/Conexao.jsx', import.meta.url), 'utf8')
+  assert.match(c, /fetch\('\/painel\/\?v=' \+ Date\.now\(\)/)
+  assert.match(c, /sessionStorage\.getItem\(CHAVE_RECARGA\)/, 'recarga automática sem trava de uma vez por versão')
+})
