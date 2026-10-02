@@ -3333,6 +3333,17 @@ confirmações; nenhuma regra de negócio mudou.
   (aba) muda para o aparelho na primeira leitura. ⛔ A senha compartilhada
   (`scw_org`) segue só na aba — é senha em texto puro. Risco aceito: em
   computador compartilhado, quem não tocar em Sair deixa a conta aberta.
+- **Só conta pessoal + logins padronizados** (02/10/2026, pedido do Wilker): a
+  senha compartilhada saiu do login do painel, do diálogo do site e da tela
+  Equipe (no banco já estava desligada). Login da equipe é **gerado**, não
+  digitado: nome e sobrenome juntos + sigla da função (`wilkereloi.adm`;
+  adm · cur · prod · com · cons), por `usuarioDaEquipe()` em `orgAccess.js`;
+  trocar a função depois não troca o login. Login da marca **sem hífen**: só
+  letras e números (`caffebasilicos`), então qualquer grafia do nome entra.
+  As contas existentes mudaram pela migration `20261002_logins_padrao.sql`
+  (senhas intactas; o e-mail real de quem entrava por e-mail ficou em
+  `raw_user_meta_data.email_anterior`). ⛔ Slugificação com hífen não volta:
+  mudar a regra é migrar o login de todas as contas.
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.
