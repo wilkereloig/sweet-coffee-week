@@ -253,7 +253,6 @@ export function App() {
   if (estado === 'login-org') {
     return (
       <LoginOrganizacao
-        onEntrar={() => setEstado('painel-org')}
         onEntrarConta={() => setEstado('conferindo-org')}
         onVoltar={() => setEstado('boas-vindas')}
       />

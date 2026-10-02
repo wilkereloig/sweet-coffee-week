@@ -28,11 +28,10 @@ export const RECADO_MANUAL = {
 // Aqui ela só PREVÊ o login antes de criar a conta.
 export function slugPrevisto(nome) {
   return String(nome || '')
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/&/g, ' e ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, '')
     .slice(0, 48)
 }
 

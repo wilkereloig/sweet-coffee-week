@@ -42,6 +42,21 @@ export const CHAVE_SESSAO = 'scw_org_conta'
 export const DOMINIO_EQUIPE = 'equipe.sweetcoffeeweek.com.br'
 export const USUARIO_VALIDO = /^[a-z0-9]+([._-][a-z0-9]+)*$/
 
+/*
+ * Login padrão da equipe (02/10/2026, pedido do Wilker): nome e sobrenome
+ * juntos + ponto + sigla da função — wilkereloi.adm. Gerado na CRIAÇÃO da
+ * conta, nunca no login (lá o usuário é só validado). Trocar a função depois
+ * não troca o login: login é fixo.
+ */
+export const SIGLA_FUNCAO = { administrador: 'adm', curadoria: 'cur', producao: 'prod', comercial: 'com', consulta: 'cons' }
+
+export function usuarioDaEquipe(nome, funcao) {
+  const base = String(nome == null ? '' : nome).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const sigla = SIGLA_FUNCAO[funcao] || String(funcao || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 4)
+  if (!base || !sigla) return ''
+  return base.slice(0, 30 - sigla.length - 1) + '.' + sigla
+}
+
 /** O que a pessoa digitou → endereço do Auth. */
 export function enderecoDaConta(digitado) {
   const t = String(digitado == null ? '' : digitado).trim().toLowerCase()

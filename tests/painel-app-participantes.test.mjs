@@ -6,8 +6,8 @@ import {
 } from '../painel-app/src/lib/participantes.js'
 
 test('slugPrevisto normaliza acento, & e espaço, e casa com a Edge Function', () => {
-  assert.equal(slugPrevisto("Mr. Cupcake & Café"), 'mr-cupcake-e-cafe')
-  assert.equal(slugPrevisto('  Duart\'s  '), 'duart-s')
+  assert.equal(slugPrevisto("Mr. Cupcake & Café"), 'mrcupcakeecafe')
+  assert.equal(slugPrevisto('  Duart\'s  '), 'duarts')
   assert.equal(slugPrevisto(''), '')
 })
 

@@ -13,6 +13,9 @@
  * React (§10.4-b do CLAUDE.md).
  * O corpo de `slugificar` foi extraído byte a byte da página estática (a regex
  * de acentos combinantes não se redigita à mão), não escrito de novo aqui.
+ * Login SEM hífen desde 02/10/2026 (pedido do Wilker): tudo que não é letra
+ * ou número sai, então "Caffè Basilico's", "caffe basilicos" e
+ * "caffebasilicos" entram na mesma conta (caffebasilicos@…).
  *
  * COMO A SESSÃO CASA COM /marca/: o formulário estático lê
  * `sessionStorage.scw_marca` no boot e, achando uma sessão válida, pula direto
@@ -34,11 +37,10 @@ const DOMINIO_LOGIN = 'marcas.sweetcoffeeweek.com.br'
 
 function slugificar (nome) {
     return (nome || '')
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .replace(/&/g, ' e ')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(/[^a-z0-9]+/g, '')
       .slice(0, 48)
 }
 

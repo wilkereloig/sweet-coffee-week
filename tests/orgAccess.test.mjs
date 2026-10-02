@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { entrarComoContaOrganizacao, CHAVE_SESSAO, RECADO, DOMINIO_EQUIPE, USUARIO_VALIDO, loginDaConta } from '../src/lib/orgAccess.js'
+import { entrarComoContaOrganizacao, CHAVE_SESSAO, RECADO, DOMINIO_EQUIPE, USUARIO_VALIDO, loginDaConta, usuarioDaEquipe } from '../src/lib/orgAccess.js'
 
 // Lógica pura (signIn e guardar injetados, sem DOM/rede) — mesmo padrão de
 // adminAccess.js e marcaAccess.js.
@@ -95,4 +95,13 @@ test('sessão bloqueada: credenciais corretas, mas guardar() falha (janela anôn
   })
   assert.equal(r.ok, false)
   assert.equal(r.erro, 'sessao')
+})
+
+test('login da equipe: nome e sobrenome juntos + sigla da função', () => {
+  assert.equal(usuarioDaEquipe('Wilker Eloi', 'administrador'), 'wilkereloi.adm')
+  assert.equal(usuarioDaEquipe('Tássia Consulin', 'producao'), 'tassiaconsulin.prod')
+  assert.equal(usuarioDaEquipe('Ana Maria', 'comercial'), 'anamaria.com')
+  assert.equal(usuarioDaEquipe('', 'consulta'), '')
+  const longo = usuarioDaEquipe('Maria Aparecida da Conceição Albuquerque', 'curadoria')
+  assert.ok(longo.length <= 30 && longo.endsWith('.cur') && USUARIO_VALIDO.test(longo))
 })

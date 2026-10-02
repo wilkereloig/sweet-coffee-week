@@ -1,7 +1,7 @@
 import React from 'react'
 import { INSTAGRAM_URL } from '../config/channels'
 import { supabase } from '../lib/supabase'
-import { entrarNaOrganizacao, RECADO } from '../lib/adminAccess'
+import { entrarComoContaOrganizacao, RECADO } from '../lib/orgAccess'
 import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
 import { instalarPainel } from '../hooks/useInstallPrompt'
@@ -22,10 +22,11 @@ import { instalarPainel } from '../hooks/useInstallPrompt'
  * 2. "ENTRAR" NÃO SAI DAQUI. Antes o botão era um <a> para /organizacao/, e a
  *    senha era pedida lá. Agora o próprio diálogo vira o campo de senha: um
  *    passo só, sem troca de página antes de a pessoa provar quem é.
- *    A porta continua sendo a MESMA do painel — `admin_ping` no banco e a
- *    sessão em `sessionStorage.scw_org`, que é o que /organizacao/ já lê na
- *    abertura (ver src/lib/adminAccess.js). Não há mecanismo novo de
- *    autenticação aqui: há o mesmo, um passo antes.
+ *    A porta continua sendo a MESMA do painel: a conta pessoal (usuário +
+ *    senha, src/lib/orgAccess.js) e a sessão em `sessionStorage.scw_org_conta`,
+ *    que o painel lê no boot. Desde 02/10/2026 a senha compartilhada não entra
+ *    mais por aqui. Não há mecanismo novo de autenticação: há o mesmo, um
+ *    passo antes.
  *    ⚠️ E vale a regra dos formulários: nada afirma que entrou sem o banco ter
  *    confirmado. Erro de senha, de rede e de sessão têm recados diferentes.
  *
@@ -106,14 +107,6 @@ const semMovimento = () =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/* A `rpc` que a lib recebe. Fica aqui e não na lib para a lógica seguir
-   testável sem cliente de banco (§4.1). */
-const rpc = async (nome, corpo) => {
-  const { data, error } = await supabase.rpc(nome, corpo)
-  if (error) throw error
-  return data
-}
-
 export function AccessDialog({ open, onClose }) {
   const caixaRef = React.useRef(null)
   const campoOrgRef = React.useRef(null)
@@ -126,6 +119,7 @@ export function AccessDialog({ open, onClose }) {
   const [montada, setMontada] = React.useState(open)
   const [fechando, setFechando] = React.useState(false)
   const [passo, setPasso] = React.useState('boasVindas')
+  const [usuarioOrg, setUsuarioOrg] = React.useState('')
   const [senhaOrg, setSenhaOrg] = React.useState('')
   const [nomeMarca, setNomeMarca] = React.useState('')
   const [senhaMarca, setSenhaMarca] = React.useState('')
@@ -152,6 +146,7 @@ export function AccessDialog({ open, onClose }) {
   React.useEffect(() => {
     if (open) return
     setPasso('boasVindas')
+    setUsuarioOrg('')
     setSenhaOrg('')
     setNomeMarca('')
     setSenhaMarca('')
@@ -197,9 +192,13 @@ export function AccessDialog({ open, onClose }) {
     if (enviandoOrg) return
     setErroOrg(null)
     setEnviandoOrg(true)
-    const r = await entrarNaOrganizacao({
+    /* Só conta pessoal desde 02/10/2026 (a senha compartilhada saiu). A
+       sessão vai para sessionStorage.scw_org_conta; o painel a lê no boot e
+       a muda para o aparelho (painel-app/src/lib/sessaoGuardada.js). */
+    const r = await entrarComoContaOrganizacao({
+      email: usuarioOrg,
       senha: senhaOrg,
-      rpc,
+      signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
       guardar: (chave, valor) => window.sessionStorage.setItem(chave, valor),
     })
     if (!r.ok) {
@@ -379,9 +378,25 @@ export function AccessDialog({ open, onClose }) {
                 </span>
 
                 <label className="scw-campo">
-                  <span>Senha da equipe</span>
+                  <span>Usuário</span>
                   <input
                     ref={campoOrgRef}
+                    type="text"
+                    name="usuario"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    placeholder="ex.: wilkereloi.adm"
+                    value={usuarioOrg}
+                    onChange={(e) => { setUsuarioOrg(e.target.value); if (erroOrg) setErroOrg(null) }}
+                    aria-invalid={erroOrg ? 'true' : undefined}
+                    aria-describedby={erroOrg ? 'scw-acesso-erro-org' : undefined}
+                  />
+                </label>
+
+                <label className="scw-campo">
+                  <span>Senha</span>
+                  <input
                     type="password"
                     name="senha"
                     autoComplete="current-password"
@@ -409,12 +424,6 @@ export function AccessDialog({ open, onClose }) {
                   )}
                 </button>
               </form>
-              {/* Conta pessoal (e-mail + senha) entra pelo próprio painel, que
-                  abre nela por padrão — é a que assina o histórico com o nome
-                  de quem fez (auditoria 28/09/2026). */}
-              <a className="scw-acesso__link-secundario" href="/painel/">
-                Tem conta pessoal? Entrar com e-mail
-              </a>
             </>
           )}
 
