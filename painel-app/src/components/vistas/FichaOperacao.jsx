@@ -8,7 +8,7 @@ import {
   ROTULO_MATERIAL_STATUS, ROTULO_PENDENCIA,
 } from '../../lib/operacao'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Escolha, BotaoIcone, Botao } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
@@ -192,10 +192,10 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
                   const quem = await pedirTexto('Quem recebeu na marca?', {})
                   if (quem) salvar({ ...m, status: 'entregue', recebido_por: quem })
                 }}>Marcar entregue</button>
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => {
+                <BotaoIcone icone="lixeira" rotulo="Remover" alvo={ROTULO_MATERIAL[m.item] || m.item} perigo onClick={async () => {
                   if (!await confirmar('Remover este material?')) return
                   try { await rpc('remover_material', { p_secret: lerSenha(), p_id: m.id }); await onMudou() } catch (e) { setAviso(traduzirErro(e.message)) }
-                }}>Remover</button>
+                }} />
               </div>
             )}
           </li>
@@ -222,7 +222,7 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
           <label className="og-campo"><span>Observação <em>(opcional)</em></span>
             <input type="text" value={novo.observacao} onChange={(e) => setNovo({ ...novo, observacao: e.target.value })} />
           </label>
-          <button className="og-btn og-btn--mini" type="submit">Adicionar material</button>
+          <Botao icone="mais" type="submit">Adicionar material</Botao>
         </form>
       ) : <p className="ui-nota">Sua função lê os materiais, mas não registra.</p>}
       {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}

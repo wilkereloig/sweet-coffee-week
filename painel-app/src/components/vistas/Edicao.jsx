@@ -8,7 +8,7 @@ import {
 import { chaveDia } from '../../lib/hoje'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 /*
@@ -106,8 +106,8 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
                 {' · '}{textoPrazo(i, hoje)}{i.condicao ? ' · ' + i.condicao : ''}{i.visivel_participante ? '' : ' · só a equipe vê'}
               </span>
               {podeMudar && <span className="og-item__dir">
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => setItem({ ...i, inicio: i.inicio || '', fim: i.fim || '', condicao: i.condicao || '', chave: i.chave || '' })}>Editar</button>
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => removerItem(i)}>Remover</button>
+                <BotaoIcone icone="editar" rotulo="Editar" alvo={i.titulo} onClick={() => setItem({ ...i, inicio: i.inicio || '', fim: i.fim || '', condicao: i.condicao || '', chave: i.chave || '' })} />
+                <BotaoIcone icone="lixeira" rotulo="Remover" alvo={i.titulo} perigo onClick={() => removerItem(i)} />
               </span>}
             </div>
           </li>

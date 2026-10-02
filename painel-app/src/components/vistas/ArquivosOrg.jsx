@@ -7,7 +7,7 @@ import { CATEGORIAS_ARQUIVO, agruparPorCategoria, tamanhoLegivel, tipoLegivel, c
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { FolhaNovoArquivo } from './Producao'
-import { Carregando, Vazio, Erro, Secao, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
@@ -125,13 +125,13 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
                   a.exige_leitura ? Number(a.leituras || 0) + ' confirmaram leitura' : '',
                 ].filter(Boolean).join(' · ')}</p>
                 <span className="og-item__dir">
-                  <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => baixar(a)}>Baixar</button>
+                  <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixar(a)} />
                   {podeGerir && !a.arquivado && <>
-                    <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => setFolha({ tipo: 'editar', arquivo: a })}>Editar</button>
-                    <BotaoSubstituir ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />
-                    <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado === a.id} onClick={() => arquivar(a, true)}>Arquivar</button>
+                    <BotaoIcone icone="editar" rotulo="Editar" alvo={a.nome} onClick={() => setFolha({ tipo: 'editar', arquivo: a })} />
+                    <BotaoSubstituir alvo={a.nome} ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />
+                    <BotaoIcone icone="arquivar" rotulo="Arquivar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, true)} />
                   </>}
-                  {podeGerir && a.arquivado && <button className="og-btn og-btn--mini" type="button" disabled={ocupado === a.id} onClick={() => arquivar(a, false)}>Restaurar</button>}
+                  {podeGerir && a.arquivado && <BotaoIcone icone="restaurar" rotulo="Restaurar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, false)} />}
                 </span>
               </div>
             </li>
@@ -159,13 +159,12 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
 }
 
 // Botão de verdade (teclado e leitor de tela) que abre o seletor de arquivo.
-function BotaoSubstituir({ ocupado, onArquivo }) {
+function BotaoSubstituir({ alvo, ocupado, onArquivo }) {
   const ref = React.useRef(null)
   return (
     <>
-      <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={ocupado} onClick={() => ref.current && ref.current.click()}>
-        {ocupado ? 'Enviando…' : 'Substituir'}
-      </button>
+      <BotaoIcone icone="atualizar" rotulo={ocupado ? 'Enviando…' : 'Substituir'} alvo={alvo} disabled={ocupado} aria-busy={ocupado || undefined}
+        onClick={() => ref.current && ref.current.click()} />
       <input ref={ref} type="file" hidden onChange={(e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; onArquivo(f) }} />
     </>
   )

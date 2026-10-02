@@ -8,7 +8,7 @@ import { rotulo } from '../../lib/status'
 import { CATEGORIAS_ARQUIVO } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
-import { Carregando, Erro, Vazio, Selo, Escolha } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
 
 /*
@@ -803,8 +803,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
                   {vagasForaDaGrade.map((v) => (
                     <li key={v.id}>
                       <b>{dataHoraCurta(v.data_hora)}{new Date(v.data_hora) < new Date() ? ' · vencida' : ''}</b>
-                      <button type="button" className="og-btn og-btn--mini og-btn--vazado" disabled={!podeGerir || slotOcupado === v.id}
-                        onClick={() => clicarSlot({ estado: 'aberto', sessaoId: v.id, quandoIso: v.id })}>Fechar vaga</button>
+                      <BotaoIcone icone="fechar" rotulo="Fechar vaga" alvo={dataHoraCurta(v.data_hora)} disabled={!podeGerir || slotOcupado === v.id}
+                        onClick={() => clicarSlot({ estado: 'aberto', sessaoId: v.id, quandoIso: v.id })} />
                     </li>
                   ))}
                 </ul>

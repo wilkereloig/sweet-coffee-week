@@ -7,7 +7,7 @@ import { USUARIO_VALIDO, loginDaConta } from '../../../../src/lib/orgAccess'
 import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo, Botao } from '../ui'
 import { confirmar } from '../Confirmar'
 
 /*
@@ -186,7 +186,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
           {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
           <Secao titulo="Acesso">
             <div className="ui-linha-acoes">
-              <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={!!ocupado} onClick={novaSenha}>Gerar senha nova</button>
+              <Botao icone="chave" variante="secundario" disabled={!!ocupado} onClick={novaSenha}>Gerar senha nova</Botao>
               <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={!!ocupado} onClick={alternar}>{c.ativo ? 'Desativar' : 'Reativar'}</button>
               <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => onVerHistorico(c.user_id)}>Ver o que fez</button>
             </div>
@@ -335,7 +335,7 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
         <Secao
           titulo="Usuários da equipe"
           nota="Cada pessoa com o próprio acesso. É o nome dela que assina o que faz no painel."
-          acoes={<button className="og-btn og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'nova' })}>Adicionar pessoa</button>}
+          acoes={<Botao icone="mais" onClick={() => setFolha({ tipo: 'nova' })}>Adicionar pessoa</Botao>}
         >
           {!erro && contas === null && <Carregando linhas={3} />}
           {!erro && contas && lista.length === 0 && (

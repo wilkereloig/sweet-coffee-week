@@ -5,7 +5,7 @@ import { RECADO_MANUAL, slugPrevisto, resumoParticipante, textoTodosAcessos, mas
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
-import { Carregando, Vazio, Erro, Selo, LogoMarca, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Selo, LogoMarca, traduzirErro, Botao } from '../ui'
 import { FolhaResultadoAcessos, registrarEnvio, gerirAcesso } from './AcessoMarca'
 import { FichaMarcaPagina, pendenciasDe, pctCadastro } from './FichaMarcaPagina'
 import { urlLogo } from '../../lib/logos'
@@ -307,7 +307,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
           </label>
         </div>
         {semAcesso.length > 0 && (
-          <button className="og-btn og-btn--vazado" type="button" disabled={!pode('marca.liberar')} onClick={() => setLote({ modo: 'gerar', marcas: semAcesso })}>Gerar acessos ({semAcesso.length})</button>
+          <Botao icone="chave" variante="secundario" mini={false} disabled={!pode('marca.liberar')} onClick={() => setLote({ modo: 'gerar', marcas: semAcesso })}>Gerar acessos ({semAcesso.length})</Botao>
         )}
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
@@ -337,7 +337,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
             <div className="ac-barra-lote" role="toolbar" aria-label="Ações nas marcas selecionadas">
               <button className="og-btn og-btn--mini" type="button" onClick={() => emLote('gerar')}>Gerar acessos{selSemConta.length ? ' (' + selSemConta.length + ')' : ''}</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('regerar')}>Gerar novas senhas{selComConta.length ? ' (' + selComConta.length + ')' : ''}</button>
-              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('copiar')}>Copiar acessos</button>
+              <Botao icone="copiar" variante="secundario" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('enviado')}>Marcar como enviados</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('bloquear')}>Bloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('desbloquear')}>Desbloquear</button>
