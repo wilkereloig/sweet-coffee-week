@@ -1,3 +1,4 @@
+import { gravarGuardada } from '../lib/sessaoGuardada'
 import React from 'react'
 import { entrarComoMarca, RECADO } from '../../../src/lib/marcaAccess'
 import { signInComSenha } from '../lib/marcaApi'
@@ -26,7 +27,7 @@ export function LoginMarca({ onEntrar, onVoltar }) {
       nome,
       senha,
       signIn: signInComSenha,
-      guardar: (chave, valor) => sessionStorage.setItem(chave, valor),
+      guardar: gravarGuardada,
     })
     setCarregando(false)
     if (!r.ok) { setErro(RECADO[r.erro]); return }

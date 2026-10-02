@@ -22,6 +22,7 @@ import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA, loginDaConta } from '../../src/
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
+import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
 // (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca. Sem sessão
@@ -50,7 +51,7 @@ function tirarDestino() {
 // histórico. Senha compartilhada não identifica ninguém, e a tela diz isso.
 function quemOrg(funcaoRotulo) {
   try {
-    const conta = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA) || 'null')
+    const conta = JSON.parse(lerGuardada(CHAVE_SESSAO_ORG_CONTA) || 'null')
     if (conta) return { nome: loginDaConta(conta.email), funcao: funcaoRotulo || 'conta pessoal' }
   } catch { /* sessão ilegível */ }
   return { nome: 'Acesso compartilhado', funcao: 'sem identificação no histórico' }
@@ -64,11 +65,11 @@ function estadoInicial() {
   // aba que já tinha uma sessão nominal viva, mesma origem), quem decide a
   // UI e quem decide as requisições precisam concordar — senão a tela mostra
   // "senha única" enquanto toda chamada sai autenticada como a pessoa.
-  if (sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA)) return 'conferindo-org'
+  if (lerGuardada(CHAVE_SESSAO_ORG_CONTA)) return 'conferindo-org'
   if (sessionStorage.getItem(CHAVE_SESSAO_ORG)) return 'painel-org'
   // Sessão de marca ainda precisa checar `deve_trocar_senha` antes de decidir
   // pra onde ir, daí o estado intermediário 'conferindo-marca'.
-  if (sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return 'conferindo-marca'
+  if (lerGuardada(CHAVE_SESSAO_MARCA)) return 'conferindo-marca'
   if (DEV_LIVRE && (PARAMS_DEV.has('org') || PARAMS_DEV.has('guia-fotos'))) return 'painel-org'
   if (DEV_LIVRE && PARAMS_DEV.has('marca')) return 'painel-marca'
   return 'boas-vindas'
@@ -128,7 +129,7 @@ export function App() {
   // a boas-vindas a cada leitura que falha.
   React.useEffect(() => {
     registrarAoSessaoExpirar(() => {
-      if (DEV_LIVRE && !sessionStorage.getItem(CHAVE_SESSAO_MARCA)) return
+      if (DEV_LIVRE && !lerGuardada(CHAVE_SESSAO_MARCA)) return
       sairMarca({ expirou: true })
     })
     // Mesmo contrato do lado org: conta nominal morrendo em pleno uso volta
@@ -218,10 +219,10 @@ export function App() {
     // uma função só, porque as duas caem no MESMO PainelShell lá embaixo —
     // não há como saber, olhando só pra `estado`, qual das duas está ativa.
     let sessaoConta = null
-    try { sessaoConta = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_ORG_CONTA) || 'null') } catch { /* sessão ilegível */ }
+    try { sessaoConta = JSON.parse(lerGuardada(CHAVE_SESSAO_ORG_CONTA) || 'null') } catch { /* sessão ilegível */ }
     if (sessaoConta) auth('logout', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
-    sessionStorage.removeItem(CHAVE_SESSAO_ORG_CONTA)
+    apagarGuardada(CHAVE_SESSAO_ORG_CONTA)
     setAcoesPermitidas(null)
     setPermissoesFalharam(false)
     setDestino(null)
@@ -233,9 +234,9 @@ export function App() {
     if (!expirou) await comTeto(descarregarPendentes(), 8000)
     if (!expirou) await comTeto(desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {}), 4000)
     let sessao = null
-    try { sessao = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
+    try { sessao = JSON.parse(lerGuardada(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
     if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
-    sessionStorage.removeItem(CHAVE_SESSAO_MARCA)
+    apagarGuardada(CHAVE_SESSAO_MARCA)
     setDestino(null)
     setEstado('boas-vindas')
   }
@@ -298,7 +299,7 @@ export function App() {
             <button
               className="pn-link--porta"
               type="button"
-              onClick={() => { sessionStorage.removeItem(CHAVE_SESSAO_ORG_CONTA); setEstado('boas-vindas') }}
+              onClick={() => { apagarGuardada(CHAVE_SESSAO_ORG_CONTA); setEstado('boas-vindas') }}
             >
               ‹ Voltar
             </button>

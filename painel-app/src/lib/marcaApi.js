@@ -11,6 +11,7 @@
  */
 import { SUPABASE_URL, SUPABASE_KEY } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess.js'
+import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 
 export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = fetch) {
   const cab = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }
@@ -65,7 +66,7 @@ export function renovarCompartilhado(sessao, fetchImpl = fetch) {
 
 /*
  * Gravações pendentes (autosave com debounce) que precisam ir ao servidor
- * ANTES de a sessão ser apagada — sair da conta limpa o sessionStorage na
+ * ANTES de a sessão ser apagada — sair da conta apaga a sessão guardada na
  * hora, e o salvamento do desmonte chegaria sem token.
  */
 const pendentes = new Set()
@@ -85,19 +86,19 @@ export async function signInComSenha(email, senha, fetchImpl = fetch) {
 
 function lerSessao(chave = CHAVE_SESSAO) {
   try {
-    const cru = sessionStorage.getItem(chave)
+    const cru = lerGuardada(chave)
     return cru ? JSON.parse(cru) : null
   } catch { return null }
 }
 
 function salvarSessao(sessao, chave = CHAVE_SESSAO) {
-  try { sessionStorage.setItem(chave, JSON.stringify(sessao)) } catch { /* modo privado */ }
+  gravarGuardada(chave, JSON.stringify(sessao))
 }
 
 /**
  * Token vivo da sessão guardada em `chave` (marca ou conta da organização):
  * renova antes de usar e grava a renovada. Quem chama /auth/v1 direto (trocar
- * a senha) precisa disto — o token cru do sessionStorage vence em 1 h.
+ * a senha) precisa disto — o token cru guardado vence em 1 h.
  * @returns {Promise<string|null>} null = sessão morta; 429/5xx lança.
  */
 export async function tokenVivo(chave = CHAVE_SESSAO, fetchImpl = fetch) {

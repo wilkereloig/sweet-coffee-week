@@ -234,7 +234,7 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 @media (min-width:901px){ #btn-sair{display:none} }
 @media (max-width:1000px){ .pn-cabeca__quem{display:none} }
 @media (max-width:900px){
-  .pn-cabeca{min-height:58px;background:var(--scw-choco);color:var(--scw-creme);border-bottom:0;padding-left:calc(16px + var(--scw-safe-l));padding-right:calc(12px + var(--scw-safe-r));gap:12px}
+  .pn-cabeca{min-height:58px;background:var(--scw-choco);color:var(--scw-creme);border-bottom:0;padding-left:calc(16px + var(--scw-safe-l));padding-right:calc(12px + var(--scw-safe-r));padding-bottom:12px;gap:12px}
   .pn-cabeca::after{background:var(--pn-acento-escuro,var(--scw-amarelo))}
   .pn-cabeca__marca{display:block}
   .pn-cabeca__titulo{font-size:17px}

@@ -20,7 +20,8 @@
  * `public/marca/index.html`). Esta lib grava exatamente o mesmo formato que o
  * `sessaoSalvar()` de lá produz: `access_token`, `refresh_token`, `expira_em`
  * (instante calculado, não o `expires_in` cru) e `email`. Sessão em
- * sessionStorage, nunca localStorage — ela morre com a aba, de propósito.
+ * sessionStorage; o painel a muda para o aparelho ao abrir e ela fica até
+ * "Sair" (painel-app/src/lib/sessaoGuardada.js, 02/10/2026).
  *
  * ⚠️ Erro de login é SEMPRE genérico ("E-mail ou senha não conferem.") — nunca
  * diz qual dos dois está errado. Confirmar que o e-mail existe é a mesma fuga
