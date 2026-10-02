@@ -60,18 +60,18 @@ const CORS = {
 // caixa de entrada.
 //
 // O Supabase Auth identifica por e-mail, então o nome vira um endereço interno
-// determinístico: "ELOI Doces" → eloi-doces@DOMINIO_LOGIN. Esse endereço NÃO
+// determinístico: "ELOI Doces" → eloidoces@DOMINIO_LOGIN (sem hífen desde
+// 02/10/2026: só letras e números). Esse endereço NÃO
 // recebe mensagem e não é o e-mail da marca — o de verdade continua guardado em
 // `participantes.email`, que é para onde a organização escreve.
 const DOMINIO_LOGIN = 'marcas.sweetcoffeeweek.com.br'
 
 function slugificar(nome: string): string {
   return (nome || '')
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // tira acento
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // tira acento
     .toLowerCase()
     .replace(/&/g, ' e ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, '')
     .slice(0, 48)
 }
 
@@ -104,12 +104,12 @@ function gerarSenha(): string {
 async function slugLivre(base: string, ocupado: (s: string) => Promise<boolean>): Promise<string> {
   const raiz = base || 'marca'
   for (let i = 0; i < 50; i++) {
-    const tentativa = i === 0 ? raiz : `${raiz}-${i + 1}`
+    const tentativa = i === 0 ? raiz : `${raiz}${i + 1}`
     if (!(await ocupado(tentativa))) return tentativa
   }
   /* 50 marcas com o mesmo nome é cenário que não existe; se existir, o carimbo
      de tempo garante que ninguém entra na conta de outro. */
-  return `${raiz}-${Date.now()}`
+  return `${raiz}${Date.now()}`
 }
 
 const json = (body: unknown, status = 200) =>

@@ -3,7 +3,7 @@ import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { GRUPOS_ACAO, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { USUARIO_VALIDO, loginDaConta } from '../../../../src/lib/orgAccess'
+import { USUARIO_VALIDO, loginDaConta, usuarioDaEquipe } from '../../../../src/lib/orgAccess'
 import { Folha } from '../Folha'
 import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
@@ -42,7 +42,6 @@ function SenhaUmaVez({ login, senha }) {
 }
 
 function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
-  const [usuario, setUsuario] = React.useState('')
   const [nome, setNome] = React.useState('')
   const [funcao, setFuncao] = React.useState('')
   const [erro, setErro] = React.useState(null)
@@ -51,7 +50,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
 
   React.useEffect(() => {
     if (!aberto) return
-    setUsuario(''); setNome(''); setErro(null); setCriando(false); setCred(null)
+    setNome(''); setErro(null); setCriando(false); setCred(null)
     setFuncao((funcoes.find((f) => f.codigo === 'producao') || funcoes[0] || {}).codigo || '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
@@ -59,8 +58,9 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
   async function criar(ev) {
     ev.preventDefault()
     if (!nome.trim()) { setErro('Informe o nome: é ele que aparece no histórico.'); return }
-    const u = usuario.trim().toLowerCase()
-    if (u.length < 3 || u.length > 30 || !USUARIO_VALIDO.test(u)) { setErro('Usuário: de 3 a 30 caracteres, só letras minúsculas sem acento, números e . _ - entre eles (ex.: ana.producao).'); return }
+    // Login padrão: nome e sobrenome + sigla da função (wilkereloi.adm), gerado, não digitado.
+    const u = usuarioDaEquipe(nome, funcao)
+    if (u.length < 3 || !USUARIO_VALIDO.test(u)) { setErro('O nome precisa ter letras para virar o login.'); return }
     setCriando(true)
     setErro(null)
     try {
@@ -84,14 +84,12 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
         <label className="og-campo"><span>Nome <abbr title="obrigatório">*</abbr></span>
           <input type="text" autoComplete="off" required value={nome} onChange={(e) => setNome(e.target.value)} disabled={!!cred} />
         </label>
-        <label className="og-campo"><span>Usuário para entrar <abbr title="obrigatório">*</abbr></span>
-          <input type="text" autoComplete="off" autoCapitalize="none" spellCheck={false} required maxLength={30} placeholder="ana.producao" value={usuario} onChange={(e) => setUsuario(e.target.value.toLowerCase())} disabled={!!cred} />
-        </label>
         <label className="og-campo"><span>Função</span>
           <select value={funcao} onChange={(e) => setFuncao(e.target.value)} disabled={!!cred}>
             {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
           </select>
         </label>
+        <p className="ui-nota">Login: <b>{usuarioDaEquipe(nome, funcao) || 'nomesobrenome.sigla'}</b></p>
         <ul className="ui-nota ui-lista-funcoes">
           <li><b>Administrador</b>: tudo, inclusive contas da equipe.</li>
           <li><b>Curadoria</b>: triagem, mensagens e acesso de marcas.</li>
@@ -277,7 +275,7 @@ function Historico({ contas, atorInicial, abrirLink }) {
   )
 }
 
-// `secao`: 'equipe' (pessoas, acesso compartilhado, avisos) ou 'historico'
+// `secao`: 'equipe' (pessoas e avisos) ou 'historico'
 // — duas abas de Administração (reestruturação 29/09/2026). O filtro de
 // pessoa do histórico vem do endereço (`ator`), que é o que "Ver o que fez"
 // preenche.
@@ -288,7 +286,6 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
   const [folha, setFolha] = React.useState(null) // null | {tipo:'nova'} | {tipo:'conta', conta}
   const ator = rota && rota.filtros.ator
   const atorHistorico = React.useMemo(() => (ator ? { id: ator } : null), [ator])
-  const [avisoCompartilhado, setAvisoCompartilhado] = React.useState(null)
 
   const carregar = React.useCallback(async () => {
     setErro(null)
@@ -312,20 +309,6 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
 
   const funcoes = (config && config.funcoes) || []
   const lista = contas || []
-  const admsAtivos = lista.filter((c) => c.ativo && c.funcao === 'administrador').length
-
-  async function alternarCompartilhado() {
-    const ligar = !(config && config.senha_unica_ativa)
-    if (!ligar && !await confirmar('Desligar o acesso compartilhado (senha única)?\n\nDepois disso só entra quem tem conta própria. Confira antes que você mesmo entra com a sua conta.')) return
-    setAvisoCompartilhado(null)
-    try {
-      await rpc('senha_unica_definir', { p_secret: lerSenha(), p_ativa: ligar })
-      await carregar()
-      setAvisoCompartilhado({ tom: 'ok', texto: ligar ? 'Acesso compartilhado ligado.' : 'Acesso compartilhado desligado. Só contas pessoais entram.' })
-    } catch (e) {
-      setAvisoCompartilhado({ tom: 'erro', texto: /sem_administrador_nominal/.test(e.message) ? 'Crie e ative pelo menos um administrador com conta própria antes de desligar.' : traduzirErro(e.message) })
-    }
-  }
 
   return (
     <div className="og-embutida">
@@ -361,20 +344,6 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
         </Secao>
 
         <div className="ui-pilha">
-          <Secao titulo="Acesso compartilhado" nota="Ações por ela ficam sem nome no histórico.">
-            <p className="ui-estado-linha">
-              <span className="ui-ponto" data-tom={config && config.senha_unica_ativa ? 'neutro' : 'ok'} aria-hidden="true" />
-              <b>{config ? (config.senha_unica_ativa ? 'Ligado' : 'Desligado — só contas pessoais entram') : 'Verificando…'}</b>
-            </p>
-            {config && config.senha_unica_ativa && admsAtivos === 0 && <p className="ui-nota">Para desligar, primeiro crie pelo menos um administrador com conta própria.</p>}
-            {config && (
-              <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={alternarCompartilhado} disabled={config.senha_unica_ativa && admsAtivos === 0}>
-                {config.senha_unica_ativa ? 'Desligar acesso compartilhado' : 'Religar acesso compartilhado'}
-              </button>
-            )}
-            {avisoCompartilhado && <p className={'ui-nota ' + (avisoCompartilhado.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role={avisoCompartilhado.tom === 'erro' ? 'alert' : 'status'}>{avisoCompartilhado.texto}</p>}
-          </Secao>
-
           <Secao titulo="Avisos neste aparelho" nota="Aviso é por aparelho, não por conta.">
             <AvisosAparelho
               explicacao="Ligue para saber na hora quando uma marca escreve, responde um pedido, conclui o cadastro ou reserva vaga de fotos — mesmo com o painel fechado."

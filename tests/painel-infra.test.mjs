@@ -132,8 +132,6 @@ test('sessão por token fica no aparelho só por sessaoGuardada.js; a senha comp
   for (const [nome, txt] of [['marcaApi.js', semComentarios(MARCA_API_JS)], ['marcaAccess.js', MARCA_ACCESS_CODIGO]]) {
     assert.ok(!/localStorage\s*\./.test(txt), nome + ': localStorage direto, fora de sessaoGuardada.js')
   }
-  const LOGIN_ORG = readFileSync(new URL('../painel-app/src/components/LoginOrganizacao.jsx', import.meta.url), 'utf8')
-  assert.match(LOGIN_ORG, /entrarNaOrganizacao\(\{[\s\S]*?guardar: \(chave, valor\) => sessionStorage\.setItem/, 'a senha compartilhada não pode ir para o aparelho')
 })
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -897,13 +895,20 @@ test('nenhum arquivo vivo cita um teste apagado no corte (tests/marca.test.mjs, 
 
 test('orgAccess.js não reimplementa o login por senha, nem slugifica o e-mail', () => {
   assert.ok(!/grant_type=password/.test(ORG_ACCESS_CODIGO), 'orgAccess.js chamou a rede direto em vez de reusar signInComSenha')
-  assert.ok(!/normalize\('NFD'\)/.test(ORG_ACCESS_CODIGO), 'orgAccess.js não deveria ter a regex de slugificação — o e-mail da equipe é real, sem domínio sintético')
+  // O login digitado é VALIDADO, não convertido. A conversão (NFD) só existe
+  // em usuarioDaEquipe(), que gera o login na criação da conta.
+  const login = ORG_ACCESS_CODIGO.slice(ORG_ACCESS_CODIGO.indexOf('export function enderecoDaConta'))
+  assert.ok(!/normalize\('NFD'\)/.test(login), 'o login digitado não pode ser slugificado — converter juntaria duas contas')
 })
 
-test('LoginOrganizacao.jsx oferece as duas portas — senha única E conta nominal', () => {
-  assert.match(LOGIN_ORG_JSX, /entrarNaOrganizacao/)
+// 02/10/2026: a senha compartilhada saiu das telas (pedido do Wilker). Só conta pessoal.
+test('login da organização é só por conta pessoal — sem senha compartilhada nas telas', () => {
   assert.match(LOGIN_ORG_JSX, /entrarComoContaOrganizacao/)
   assert.match(LOGIN_ORG_JSX, /onEntrarConta/)
+  assert.ok(!/entrarNaOrganizacao/.test(LOGIN_ORG_JSX), 'LoginOrganizacao voltou a oferecer a senha compartilhada')
+  const DIALOGO = readFileSync(new URL('../src/components/AccessDialog.jsx', import.meta.url), 'utf8')
+  assert.ok(!/entrarNaOrganizacao/.test(DIALOGO), 'o diálogo do site voltou a pedir a senha compartilhada')
+  assert.match(DIALOGO, /entrarComoContaOrganizacao/)
 })
 
 test('DefinirSenha.jsx foi generalizado — não importa mais nada de marcaAccess.js nem marcarSenhaTrocada fixo', () => {
