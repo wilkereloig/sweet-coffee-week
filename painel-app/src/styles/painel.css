@@ -490,15 +490,28 @@ button.og-item{cursor:pointer}
 /* Atalhos da linha (Editar · Apagar) ficam FORA do botão da linha (botão não
    entra em botão): a li vira grade linha | atalhos, com largura fixa para os
    atalhos, e o cabeçalho reserva a mesma largura à direita. */
-.og-lista--acoes{--acoes-l:184px}
+.og-lista--acoes{--acoes-l:116px}
 .og-lista--acoes > li:not(.og-lista__cabeca){display:grid;grid-template-columns:minmax(0,1fr) var(--acoes-l);align-items:center}
-.og-item__acoes{display:flex;gap:8px;justify-content:flex-end;padding-right:20px}
-.og-item__apagar{color:var(--scw-marrom)}
-@media (hover:hover){ .og-item__apagar:hover{background:var(--scw-laranja);color:var(--scw-choco);box-shadow:none} }
+.og-item__acoes{display:flex;gap:4px;justify-content:flex-end;padding-right:16px}
 @media (max-width:760px){
-  .og-lista--acoes > li:not(.og-lista__cabeca){grid-template-columns:minmax(0,1fr)}
-  .og-item__acoes{justify-content:flex-start;padding:0 20px 14px 48px}
+  .og-lista--acoes > li:not(.og-lista__cabeca){grid-template-columns:minmax(0,1fr) auto}
+  .og-item__acoes{padding-right:10px}
 }
+/* Botão só com ícone (BotaoIcone): disco de 44px, o nome no hover e no foco. */
+.ui-icone-btn{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;flex:0 0 44px;padding:0;border:0;border-radius:50%;
+  background:transparent;color:var(--scw-choco);cursor:pointer;transition:background var(--scw-transicao),color var(--scw-transicao)}
+/* Nome à ESQUERDA, não em cima: a lista em card corta o que passa da borda
+   (overflow:hidden), e em cima a 1ª linha perderia o rótulo. */
+.ui-icone-btn::after{content:attr(data-rotulo);position:absolute;top:50%;right:calc(100% + 6px);transform:translate(4px,-50%);
+  padding:6px 10px 5px;border-radius:999px;background:var(--scw-choco);color:var(--scw-creme);font:700 12px/1 var(--f-ui);
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--scw-transicao),transform var(--scw-transicao);z-index:5}
+.ui-icone-btn:focus-visible::after{opacity:1;transform:translate(0,-50%)}
+@media (hover:hover){
+  .ui-icone-btn:hover{background:var(--sup-toque)}
+  .ui-icone-btn:hover::after{opacity:1;transform:translate(0,-50%)}
+  .ui-icone-btn--perigo:hover{background:var(--scw-laranja);color:var(--scw-choco)}
+}
+.ui-icone-btn:disabled{opacity:.45;cursor:default;pointer-events:none}
 .og-item__cel{font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom);grid-column:2;min-width:0;overflow-wrap:anywhere}
 .og-item__cel--pilha{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
 .og-item__cel--selos{display:flex;flex-wrap:wrap;gap:5px}
