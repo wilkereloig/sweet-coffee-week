@@ -197,7 +197,9 @@ const CAMPOS_STATUS = [
 ]
 delete CAMPOS_STATUS[0].opcoes.sem_participacao
 const CAMPOS_PRECO = [
-  { chave: 'combo_preco', rotulo: 'Preço do combo (R$)', tipo: 'preco', dica: '29,90' },
+  // Valor do combo é da edição (Edição › Configuração); a marca informa os custos.
+  { chave: 'custo_embalagem', rotulo: 'Custo da embalagem para viagem (R$)', tipo: 'preco', dica: '0,00' },
+  { chave: 'custo_delivery', rotulo: 'Custo do delivery (R$)', tipo: 'preco', dica: '0,00' },
   { chave: 'combo_proposta', rotulo: 'Proposta criativa', tipo: 'area' },
   { chave: 'combo_para_viagem', rotulo: 'Para viagem', tipo: 'sim_nao' },
   { chave: 'combo_vegano', rotulo: 'Opção vegana', tipo: 'sim_nao' },
@@ -428,7 +430,7 @@ export function AbaCombo({ participante, pode, onMudou }) {
         <GradeModulos className="ui-modulos--dois">
           <Bloco icone={MODULO_ICONE.tema} titulo="Tema" campos={CAMPOS_TEMA} valores={pa} podeEditar={podeEditar} onSalvar={salvarParticipacao}
             nota="Tema novo vira proposta." rotuloEditar="Editar tema" comStatus />
-          <Bloco icone={MODULO_ICONE.preco} titulo="Preço e detalhes" campos={CAMPOS_PRECO} valores={pa} podeEditar={podeEditar}
+          <Bloco icone={MODULO_ICONE.preco} titulo="Custos e detalhes" campos={CAMPOS_PRECO} valores={pa} podeEditar={podeEditar}
             onSalvar={salvarParticipacao} rotuloEditar="Editar preço e detalhes" comStatus />
         </GradeModulos>
       </MacroSecao>

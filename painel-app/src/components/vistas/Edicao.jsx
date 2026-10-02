@@ -37,7 +37,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
   React.useEffect(() => {
     setForm({
       nome: edicao.nome || '', tema: edicao.tema || '', festival_inicio: edicao.festival_inicio || '',
-      festival_fim: edicao.festival_fim || '', taxa_inscricao: edicao.taxa_inscricao ?? '',
+      festival_fim: edicao.festival_fim || '', taxa_inscricao: edicao.taxa_inscricao ?? '', valor_combo: edicao.valor_combo ?? '',
       foto_exige_pagamento: !!edicao.foto_exige_pagamento, lembrete_vendas_hora: (edicao.lembrete_vendas_hora || '').slice(0, 5),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,6 +53,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
         codigo: edicao.codigo, nome: form.nome, tema: form.tema,
         festival_inicio: form.festival_inicio || null, festival_fim: form.festival_fim || null,
         taxa_inscricao: form.taxa_inscricao === '' ? null : Number(form.taxa_inscricao),
+        valor_combo: form.valor_combo === '' ? null : Number(form.valor_combo),
         foto_exige_pagamento: form.foto_exige_pagamento,
         lembrete_vendas_hora: form.lembrete_vendas_hora || null,
       } })
@@ -84,6 +85,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
           <label className="og-campo"><span>Tema da edição <em>(opcional)</em></span><input type="text" {...campo('tema')} /></label>
           <label className="og-campo"><span>Festival começa</span><input type="date" {...campo('festival_inicio')} /></label>
           <label className="og-campo"><span>Festival termina</span><input type="date" {...campo('festival_fim')} /></label>
+          <label className="og-campo"><span>Valor do combo (R$) <em>(o mesmo para todas as marcas)</em></span><input type="number" min="0" step="0.01" inputMode="decimal" {...campo('valor_combo')} /></label>
           <label className="og-campo"><span>Taxa de inscrição (R$) <em>(opcional)</em></span><input type="number" min="0" step="0.01" inputMode="decimal" {...campo('taxa_inscricao')} /></label>
           <label className="og-campo"><span>Lembrete da venda do dia <em>(vazio = sem lembrete)</em></span><input type="time" {...campo('lembrete_vendas_hora')} /></label>
           <label className="og-campo og-campo--linha"><input type="checkbox" checked={form.foto_exige_pagamento} disabled={!podeMudar} onChange={(e) => setForm({ ...form, foto_exige_pagamento: e.target.checked })} />

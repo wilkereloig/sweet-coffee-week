@@ -8,7 +8,7 @@ import { Carregando, Erro, Vazio } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
 import {
   TIPOS, ROTULO_TIPO, CANAIS, NOMES_FALTANDO, ROTULO_POSICAO, itensEmOrdem,
-  precoNumero, blocoCompleto,
+  precoNumero, blocoCompleto, valorInformado, custosDeLinhas,
   primeiroBlocoPendente, canaisParaObjeto, canaisParaArray,
 } from '../../lib/cadastro'
 
@@ -51,7 +51,7 @@ const TITULO_BLOCO = [
   { b: '01 · A marca', s: 'Quem participa' },
   { b: '02 · O tema', s: 'Sua leitura do tema da edição' },
   { b: '03 · Os três itens', s: 'Dois itens de comer e uma bebida' },
-  { b: '04 · Preço e detalhes', s: 'Valor, viagem, delivery e a proposta' },
+  { b: '04 · Custos e detalhes', s: 'Valor do combo, embalagem, delivery e a proposta' },
   { b: '05 · Onde encontrar', s: 'Suas unidades' },
 ]
 
@@ -82,7 +82,8 @@ function seloParticipacao(status) {
 const MARCA_VAZIA = { nome_marca: '', responsavel: '', telefone: '', email: '', instagram: '', site: '', cnpj: '', razao_social: '' }
 const TEMA_VAZIO = { tema_combo: '', tema_justificativa: '' }
 // Campos do combo que a planilha da organização pede (29/09/2026). Nenhum é
-// obrigatório para concluir: a regra atual só exige tema, itens, preço e endereço.
+// obrigatório para concluir: a regra exige tema, itens, endereço e os custos que
+// se aplicam (embalagem se pode ser para viagem; delivery se alguma unidade entrega).
 const EXTRAS_VAZIO = { combo_para_viagem: null, combo_vegano: null, combo_diet: null, combo_delivery: '', combo_proposta: '' }
 const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
 
@@ -108,18 +109,21 @@ function corpoMarca(marca) {
   }
   return camposMarca
 }
+const paraStr = (n) => (n == null ? '' : String(n).replace('.', ','))
+const numeroOuNulo = (s) => (valorInformado(s) ? precoNumero(s) : null)
 const participacaoDeLinha = (pa) => ({
   tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
-  precoStr: pa.combo_preco == null ? '' : String(pa.combo_preco).replace('.', ','),
+  // Valor do combo é da organização (edicoes.valor_combo); a marca informa os custos.
+  custosStr: { embalagem: paraStr(pa.custo_embalagem), delivery: paraStr(pa.custo_delivery) },
   extras: {
     combo_para_viagem: pa.combo_para_viagem ?? null, combo_vegano: pa.combo_vegano ?? null, combo_diet: pa.combo_diet ?? null,
     combo_delivery: pa.combo_delivery || '', combo_proposta: pa.combo_proposta || '',
   },
 })
-function corpoParticipacao({ tema, precoStr, extras }) {
+function corpoParticipacao({ tema, custosStr, extras }) {
   const camposParticipacao = {
     tema_combo: tema.tema_combo.trim(), tema_justificativa: tema.tema_justificativa.trim(),
-    combo_preco: precoNumero(precoStr) || null,
+    custo_embalagem: numeroOuNulo(custosStr.embalagem), custo_delivery: numeroOuNulo(custosStr.delivery),
     combo_para_viagem: extras.combo_para_viagem, combo_vegano: extras.combo_vegano, combo_diet: extras.combo_diet,
     combo_delivery: extras.combo_delivery.trim() || null, combo_proposta: extras.combo_proposta.trim() || null,
   }
@@ -189,9 +193,16 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
   const [marca, setMarca] = React.useState(MARCA_VAZIA)
   const [tema, setTema] = React.useState(TEMA_VAZIO)
-  const [precoStr, setPrecoStr] = React.useState('')
+  const [custosStr, setCustosStr] = React.useState({ embalagem: '', delivery: '' })
+  const [valorCombo, setValorCombo] = React.useState(undefined)
   const [itens, setItens] = React.useState([])
   const [unidades, setUnidades] = React.useState([])
+  // Custos que se aplicam (cadastro.js · custosFaltando): embalagem se pode ser
+  // para viagem; delivery se alguma unidade entrega.
+  const custos = {
+    viagem: extras.combo_para_viagem === true, delivery: unidades.some((u) => u.faz_delivery),
+    embalagemStr: custosStr.embalagem, deliveryStr: custosStr.delivery,
+  }
 
   const [blocoAberto, setBlocoAberto] = React.useState(0)
   const [salvoTexto, setSalvoTexto] = React.useState('')
@@ -250,9 +261,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         setEdicaoCodigo(pa.edicao_codigo || '')
         setStatusCadastro(pa.status_cadastro || '')
         const daParticipacao = participacaoDeLinha(pa)
-        const precoInicial = daParticipacao.precoStr
         setTema(daParticipacao.tema)
-        setPrecoStr(precoInicial)
+        setCustosStr(daParticipacao.custosStr)
+        if (pa.edicao_codigo) {
+          api('edicoes?select=valor_combo&codigo=eq.' + encodeURIComponent(pa.edicao_codigo))
+            .then((e) => setValorCombo((e && e[0] && e[0].valor_combo) ?? null)).catch(() => setValorCombo(null))
+        } else setValorCombo(null)
         setExtras(daParticipacao.extras)
         baseRef.current.participacao = corpoParticipacao(daParticipacao)
         api('temas_propostos?select=status,tema,observacao&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1')
@@ -276,12 +290,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         const pend = primeiroBlocoPendente({
           marca: { nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '' },
           tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
-          itens: listaItens, unidades: listaUnidades, precoStr: precoInicial,
+          itens: listaItens, unidades: listaUnidades, custos: custosDeLinhas(pa, unidadesRows || []),
         })
         setBlocoAberto(blocos.includes(pend) ? pend : blocos.find((n) => !blocoCompleto(n, {
           marca: { nome_marca: p.nome_marca || '', responsavel: p.responsavel || '', telefone: p.telefone || '' },
           tema: { tema_combo: pa.tema_combo || '', tema_justificativa: pa.tema_justificativa || '' },
-          itens: listaItens, unidades: listaUnidades, precoStr: precoInicial,
+          itens: listaItens, unidades: listaUnidades, custos: custosDeLinhas(pa, unidadesRows || []),
         })) ?? blocos[0])
         setCarregando(false)
       } catch (e) {
@@ -340,7 +354,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       const nada = Promise.resolve([true])
       const [rm, rp, ri, ru] = await Promise.all([
         mostra(0) ? patchMudancas('participantes?id=eq.' + participanteId, corpoMarca(marca), base.marca) : nada,
-        mostra(1) || mostra(3) ? patchMudancas('participacoes?id=eq.' + participacaoId, corpoParticipacao({ tema, precoStr, extras }), base.participacao) : nada,
+        mostra(1) || mostra(3) ? patchMudancas('participacoes?id=eq.' + participacaoId, corpoParticipacao({ tema, custosStr, extras }), base.participacao) : nada,
         mostra(2) ? salvarItens() : Promise.resolve([]),
         mostra(4) ? salvarUnidades() : Promise.resolve([]),
       ])
@@ -366,7 +380,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       return false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participanteId, participacaoId, marca, tema, precoStr, itens, unidades, extras])
+  }, [participanteId, participacaoId, marca, tema, custosStr, itens, unidades, extras])
 
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
 
@@ -424,7 +438,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   // ── Campos ────────────────────────────────────────────────────────────────
   function alterarMarca(campo, valor) { setMarca((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarTema(campo, valor) { setTema((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
-  function alterarPreco(valor) { setPrecoStr(valor); agendarSalvar() }
+  function alterarCusto(campo, valor) { setCustosStr((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarExtra(campo, valor) { setExtras((prev) => ({ ...prev, [campo]: valor })); agendarSalvar() }
   function alterarItem(id, campo, valor) {
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, [campo]: valor } : i)))
@@ -474,7 +488,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         const faltando = (r && r.faltando) || []
         setConcluirAviso({ tom: 'erro', texto: 'Falta preencher: ' + faltando.map((f) => NOMES_FALTANDO[f] || f).join(', ') + '.' })
         // Abre o primeiro bloco pendente para a pessoa ver onde está a falta.
-        const pend = primeiroBlocoPendente({ marca, tema, itens, unidades, precoStr })
+        const pend = primeiroBlocoPendente({ marca, tema, itens, unidades, custos })
         if (pend !== null && blocos.includes(pend)) setBlocoAberto(pend)
         // A falta está na OUTRA aba (Meu cadastro × Meu combo): leva até ela.
         else if (pend !== null && irPara) setConcluirAviso((a) => ({ ...a, ir: { vista: [0, 4].includes(pend) ? 'cadastro' : 'combo', sub: String(pend) } }))
@@ -529,7 +543,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
   // A logo é o 17º campo: quem sabe se está confirmada é o resumo (banco).
   const logoOk = !!(resumo && resumo.campo && (resumo.campo('logo') || {}).estado !== 'falta')
-  const dadosProgresso = { marca, tema, itens, unidades, precoStr, logo: logoOk }
+  const dadosProgresso = { marca, tema, itens, unidades, custos, logo: logoOk }
   const prog = progressoCampos(dadosProgresso)
   const selo = semParticipacao ? { classe: 'selo', texto: 'Sem edição aberta' } : seloParticipacao(statusCadastro)
   // Estado de cada campo: completo/falta ao vivo; o que a organização disse
@@ -704,10 +718,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
             </Bloco>}
 
             {mostra(3) && <Bloco indice={3} aberto={blocoAberto === 3} completo={blocoCompleto(3, dadosProgresso)} onToggle={() => setBlocoAberto((a) => (a === 3 ? null : 3))}>
-              <label className="mc-campo-curto"><span>Valor do combo <em>(em reais)</em> <EstadoCampo e={est('combo_preco')} /></span>
-                <input id="campo-combo_preco" inputMode="decimal" placeholder="0,00" required value={precoStr} onChange={(e) => alterarPreco(e.target.value)} />
-                <Correcao e={est('combo_preco')} />
-              </label>
+              {/* Valor do combo: a organização define, um para todas as marcas. */}
+              <p className="mc-valor-combo">
+                <span>Valor do combo</span>
+                <b>{valorCombo === undefined ? '…' : valorCombo == null ? 'a definir' : 'R$ ' + Number(valorCombo).toFixed(2).replace('.', ',')}</b>
+                <em>definido pela organização</em>
+              </p>
               <p className="nota">Sobre o combo inteiro <em>(opcional — ajuda a organização a divulgar)</em>:</p>
               {[['combo_para_viagem', 'Pode ser para viagem?'], ['combo_vegano', 'O combo é vegano?'], ['combo_diet', 'O combo é diet?']].map(([campo, pergunta]) => (
                 <div className="marcar-grupo" role="radiogroup" aria-label={pergunta} key={campo}>
@@ -716,6 +732,20 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                   <label className="marcar"><input type="radio" name={campo} checked={extras[campo] === false} onChange={() => alterarExtra(campo, false)} /><span>Não</span></label>
                 </div>
               ))}
+              {custos.viagem && (
+                <label className="mc-campo-curto"><span>Custo da embalagem para viagem <em>(em reais)</em> <EstadoCampo e={est('custo_embalagem')} /></span>
+                  <input id="campo-custo_embalagem" inputMode="decimal" placeholder="0,00" required value={custosStr.embalagem} onChange={(e) => alterarCusto('embalagem', e.target.value)} />
+                  <Correcao e={est('custo_embalagem')} />
+                </label>
+              )}
+              {custos.delivery
+                ? (
+                  <label className="mc-campo-curto"><span>Custo do delivery <em>(em reais)</em> <EstadoCampo e={est('custo_delivery')} /></span>
+                    <input id="campo-custo_delivery" inputMode="decimal" placeholder="0,00" required value={custosStr.delivery} onChange={(e) => alterarCusto('delivery', e.target.value)} />
+                    <Correcao e={est('custo_delivery')} />
+                  </label>
+                )
+                : <p className="nota">Custo do delivery: pedido só se alguma unidade fizer delivery (em Meu cadastro).</p>}
               <label><span>Sobre o delivery do combo <em>(opcional)</em></span>
                 <input value={extras.combo_delivery} onChange={(e) => alterarExtra('combo_delivery', e.target.value)} placeholder="ex.: só retirada; delivery pelo app X" />
               </label>

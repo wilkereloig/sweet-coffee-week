@@ -25,14 +25,15 @@ export const CANAIS = [
 ]
 
 export const BLOCOS = 5
-const NOMES_BLOCO = ['A marca', 'O tema', 'Os três itens', 'Preço', 'Onde encontrar']
+const NOMES_BLOCO = ['A marca', 'O tema', 'Os três itens', 'Custos e detalhes', 'Onde encontrar']
 
 // Mapeia os códigos que `rpc/marca_concluir_cadastro` devolve em `faltando`
 // para texto legível.
 export const NOMES_FALTANDO = {
   nome_marca: 'nome da marca', responsavel: 'responsável', telefone: 'telefone',
   tema_combo: 'tema escolhido', tema_justificativa: 'justificativa do tema',
-  combo_preco: 'preço do combo', unidades: 'ao menos uma unidade com endereço',
+  combo_preco: 'preço do combo', custo_embalagem: 'custo da embalagem para viagem',
+  custo_delivery: 'custo do delivery', unidades: 'ao menos uma unidade com endereço',
   item_doce: 'os dados do doce', item_salgado: 'os dados do salgado',
   item_bebida: 'os dados da bebida', item_segundo: 'os dados do segundo item',
 }
@@ -49,6 +50,32 @@ export function precoNumero(str) {
   return isNaN(n) ? 0 : n
 }
 
+/*
+ * Valor do combo é da ORGANIZAÇÃO, um só para a edição (edicoes.valor_combo,
+ * 02/10/2026, decisão do Wilker). A marca informa só os custos: embalagem,
+ * quando o combo pode ser para viagem; delivery, quando alguma unidade faz
+ * delivery. Custo pode ser zero ("0,00" vale): o que conta é ter respondido.
+ * Mesma regra de `campos_cadastro` e `marca_concluir_cadastro` no banco.
+ */
+export const valorInformado = (str) => /\d/.test(String(str == null ? '' : str))
+
+export function custosFaltando({ viagem = false, delivery = false, embalagemStr = '', deliveryStr = '' } = {}) {
+  const f = []
+  if (viagem && !valorInformado(embalagemStr)) f.push('custo_embalagem')
+  if (delivery && !valorInformado(deliveryStr)) f.push('custo_delivery')
+  return f
+}
+
+const paraStr = (n) => (n == null ? '' : String(n).replace('.', ','))
+export function custosDeLinhas(participacao = {}, unidades = []) {
+  return {
+    viagem: participacao.combo_para_viagem === true,
+    delivery: (unidades || []).some((u) => u && u.faz_delivery),
+    embalagemStr: paraStr(participacao.custo_embalagem),
+    deliveryStr: paraStr(participacao.custo_delivery),
+  }
+}
+
 export function itemDe(tipo, itens) {
   return (itens || []).find((i) => i.tipo === tipo) || null
 }
@@ -62,11 +89,11 @@ export function unidadeTemEndereco(u) {
   return !!(u && (u.endereco || '').trim() !== '')
 }
 
-export function blocoCompleto(n, { marca = {}, tema = {}, itens = [], unidades = [], precoStr = '' } = {}) {
+export function blocoCompleto(n, { marca = {}, tema = {}, itens = [], unidades = [], custos = {} } = {}) {
   if (n === 0) return !!((marca.nome_marca || '').trim() && (marca.responsavel || '').trim() && (marca.telefone || '').trim())
   if (n === 1) return !!((tema.tema_combo || '').trim() && (tema.tema_justificativa || '').trim())
   if (n === 2) return itens.length === TIPOS.length && itens.every(itemCompleto)
-  if (n === 3) return precoNumero(precoStr) > 0
+  if (n === 3) return custosFaltando(custos).length === 0
   if (n === 4) return unidades.filter(unidadeTemEndereco).length > 0
   return false
 }
@@ -100,10 +127,7 @@ export function blocosPendentesDeLinhas({ participante = {}, participacao = {}, 
     tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
     itens,
     unidades,
-    // Number -> string BR e de volta: um decimal do Postgres nunca carrega
-    // separador de milhar, então o par replace('.',',')/precoNumero fecha
-    // sem perda (29.9 -> "29,9" -> 29.9).
-    precoStr: participacao.combo_preco == null ? '' : String(participacao.combo_preco).replace('.', ','),
+    custos: custosDeLinhas(participacao, unidades),
   })
 }
 
@@ -133,7 +157,7 @@ export function canaisParaArray(obj) {
 const ROTULO_ITEM = { doce: 'o doce', salgado: 'o salgado', bebida: 'a bebida' }
 const NOME_CAMPO_ITEM = { nome: 'nome', descricao: 'descrição', ingredientes: 'ingredientes' }
 
-export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades = [], precoStr = '' } = {}) {
+export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades = [], custos = {} } = {}) {
   const p = []
   const vazio = (v) => !String(v || '').trim()
   if (vazio(marca.nome_marca)) p.push({ bloco: 0, campo: 'nome_marca', texto: 'Informar o nome da marca' })
@@ -150,7 +174,9 @@ export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades
       p.push({ bloco: 2, campo: 'item-' + i.posicao + '-' + faltam[0], texto: 'Completar ' + (ROTULO_ITEM[i.tipo] || 'o item') + ': ' + faltam.map((k) => NOME_CAMPO_ITEM[k]).join(', ') })
     }
   }
-  if (!(precoNumero(precoStr) > 0)) p.push({ bloco: 3, campo: 'combo_preco', texto: 'Informar o preço do combo' })
+  for (const c of custosFaltando(custos)) {
+    p.push({ bloco: 3, campo: c, texto: c === 'custo_embalagem' ? 'Informar o custo da embalagem para viagem' : 'Informar o custo do delivery' })
+  }
   if (!unidades.some(unidadeTemEndereco)) p.push({ bloco: 4, campo: 'unidade-endereco', texto: 'Cadastrar ao menos um endereço' })
   return p
 }
@@ -166,6 +192,6 @@ export function pendenciasDeLinhas({ participante = {}, participacao = {}, itens
     marca: { nome_marca: participante.nome_marca, responsavel: participante.responsavel, telefone: participante.telefone },
     tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
     itens, unidades,
-    precoStr: participacao.combo_preco == null ? '' : String(participacao.combo_preco).replace('.', ','),
+    custos: custosDeLinhas(participacao, unidades),
   })
 }

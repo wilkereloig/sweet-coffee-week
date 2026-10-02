@@ -1074,6 +1074,10 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .pn-vista form > .acao.larga{max-width:980px;margin-top:18px}
 .pn-vista .mc-concluir-aviso{margin:12px 0 0;max-width:980px}
 .pn-vista .mc-campo-curto{max-width:220px}
+.pn-vista .mc-valor-combo{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 var(--e-4);padding:12px 16px;border-radius:var(--r-2);background:var(--sup-2)}
+.pn-vista .mc-valor-combo span{font:700 13px/1.2 var(--f-ui);color:var(--scw-marrom)}
+.pn-vista .mc-valor-combo b{font:700 18px/1.2 var(--f-ui);color:var(--scw-choco)}
+.pn-vista .mc-valor-combo em{font:400 13px/1.2 var(--f-texto);color:var(--scw-marrom)}
 .mc-bloco__chevron{color:var(--scw-marrom)}
 
 .mc-vagas{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:14px 0 0;padding:0}
