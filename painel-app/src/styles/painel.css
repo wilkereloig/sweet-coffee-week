@@ -1095,6 +1095,9 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .gf-foto__img img{display:block;width:100%;height:100%;object-fit:cover}
 .gf-selo{position:absolute;top:8px;left:8px;padding:7px 10px 6px;border-radius:999px;font:700 12px/1 var(--f-ui);color:var(--scw-choco)}
 .gf-selo--fazer{background:var(--scw-cyan)}
+.gf-selo--etapa{background:var(--scw-choco);color:var(--scw-creme)}
+.gf-foto__img--quadrada{aspect-ratio:1}
+.gf-par__fotos + .gf-lembretes{margin-top:16px}
 .gf-selo--evitar{background:var(--scw-laranja)}
 .gf-lembretes{margin:0;padding:0;list-style:none;max-width:72ch}
 .gf-lembretes li{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--scw-filete);font:400 15px/1.45 var(--f-texto)}
