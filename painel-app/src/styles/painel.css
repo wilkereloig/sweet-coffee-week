@@ -484,6 +484,24 @@ button.og-item{cursor:pointer}
   .og-lista--tabela .og-item__meta{grid-column:3}
   .og-lista--tabela .og-item__dir{grid-row:auto;grid-column:4}
 }
+/* Lista em colunas: mesma grade em toda linha (sem coluna "auto", que mudava
+   de largura por linha e desalinhava tudo) + cabeçalho. A lista define as
+   colunas em --colunas. Abaixo de 1100px cada linha empilha. */
+.og-lista__cabeca{display:none}
+.og-item__cel{font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom);grid-column:2;min-width:0;overflow-wrap:anywhere}
+.og-item__cel--pilha{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.og-item__cel--selos{display:flex;flex-wrap:wrap;gap:5px}
+.og-lista--colunas .og-item__cor{grid-row:span 6}
+.og-lista--colunas .og-item__cel[data-vazio="1"]{display:none}
+.og-lista--contatos{--colunas:10px minmax(170px,1.4fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1.1fr) minmax(150px,1fr)}
+@media (min-width:1100px){
+  .og-lista--colunas .og-item,
+  .og-lista--colunas .og-lista__cabeca{grid-template-columns:var(--colunas)}
+  .og-lista--colunas .og-lista__cabeca{display:grid;gap:3px 18px;padding:11px 20px;background:var(--sup-2);font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
+  .og-lista--colunas .og-item__cor{grid-row:auto;align-self:center;margin-top:0}
+  .og-lista--colunas .og-item__cel{grid-column:auto}
+  .og-lista--colunas .og-item__cel[data-vazio="1"]{display:block;opacity:.5}
+}
 @media (max-width:760px){
   .og-item{grid-template-columns:10px minmax(0,1fr)}
   .og-item__dir{grid-row:auto;grid-column:2;justify-content:flex-start;margin-top:4px}
