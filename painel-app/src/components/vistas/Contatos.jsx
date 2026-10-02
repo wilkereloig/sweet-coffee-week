@@ -264,6 +264,19 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
 
+  // Atalho da linha. "Apagar" arquiva (ativo = false), como o resto do painel
+  // (decisão do Wilker: excluir = arquivar + restaurar); o histórico de Press
+  // Kit e vouchers do contato fica.
+  const [ocupado, setOcupado] = React.useState(null)
+  const mudarAtivo = async (c, ativo) => {
+    if (!ativo && !await confirmar('Apagar "' + c.nome + '"? Sai da lista de contatos e vai para "Apagados (arquivo)". O histórico de Press Kit fica, e dá para restaurar.', { acao: 'Apagar', perigo: true })) return
+    setOcupado(c.id)
+    try { await rpc('salvar_contato', { p_secret: lerSenha(), p_dados: { id: c.id, nome: c.nome, ativo } }); await carregar() }
+    catch (e) { setErro(e.message) }
+    finally { setOcupado(null) }
+  }
+  const podeMudar = pode('relacionamento.gerir')
+
   const visiveis = filtrarContatos(lista || [], filtro, busca)
   const contar = (f) => filtrarContatos(lista || [], f, '').length
 
@@ -286,13 +299,13 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
         <>
           <p className="ui-contagem">{visiveis.length} {visiveis.length === 1 ? 'contato' : 'contatos'}</p>
           {/* Colunas fixas, iguais em toda linha: cada dado no seu lugar (02/10/2026). */}
-          <ul className="og-lista og-lista--colunas og-lista--contatos">
+          <ul className={'og-lista og-lista--colunas og-lista--contatos' + (podeMudar ? ' og-lista--acoes' : '')}>
+            {/* Sem span vazio para o ponto: o 1º rótulo cobre ponto + nome (regra do cabeçalho de Marcas). */}
             <li className="og-lista__cabeca" aria-hidden="true">
-              <span /><span>Nome</span><span>Instagram</span><span>Local</span><span>Categoria</span><span>Press Kit</span><span>Situação</span>
+              <span>Nome</span><span>Instagram</span><span>Local</span><span>Categoria</span><span>Press Kit</span><span>Situação</span>
             </li>
             {visiveis.map((c) => {
               const situacao = [
-                c.ativo === false && <Selo key="i" tom="neutro">inativo</Selo>,
                 c.incompleto && <Selo key="c" tom="atencao">cadastro incompleto</Selo>,
                 Number(c.pendencias) > 0 && <Selo key="p" tom="atencao">{c.pendencias} para revisar</Selo>,
                 Number(c.vouchers_edicao) > 0 && <Selo key="v" tom="andamento">{c.vouchers_edicao} {Number(c.vouchers_edicao) === 1 ? 'voucher' : 'vouchers'}</Selo>,
@@ -312,6 +325,16 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
                     </span>
                     <span className="og-item__cel og-item__cel--selos" data-vazio={situacao.length ? undefined : '1'}>{situacao.length ? situacao : '—'}</span>
                   </button>
+                  {podeMudar && (
+                    <span className="og-item__acoes">
+                      {c.ativo === false
+                        ? <button type="button" className="og-btn og-btn--mini og-btn--vazado" disabled={ocupado === c.id} onClick={() => mudarAtivo(c, true)} aria-label={'Restaurar ' + c.nome}>Restaurar</button>
+                        : <>
+                          <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => setAberto(c.id)} aria-label={'Editar ' + c.nome}>Editar</button>
+                          <button type="button" className="og-btn og-btn--mini og-btn--vazado og-item__apagar" disabled={ocupado === c.id} onClick={() => mudarAtivo(c, false)} aria-label={'Apagar ' + c.nome}>Apagar</button>
+                        </>}
+                    </span>
+                  )}
                 </li>
               )
             })}

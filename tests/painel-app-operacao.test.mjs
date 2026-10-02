@@ -69,6 +69,9 @@ test('filtros de relacionamento mostram contexto, não escolhem', () => {
   assert.deepEqual(filtrarContatos(L, 'receberam_ultima').map((c) => c.nome), ['A'])
   assert.deepEqual(filtrarContatos(L, 'selecionados').map((c) => c.nome), ['C'])
   assert.deepEqual(filtrarContatos(L, 'todos').map((c) => c.nome), ['A', 'B', 'C'], 'a ordem é a do banco (nome), sem ranking')
+  const comApagado = [...L, { nome: 'D', ativo: false, recebimentos: 0 }]
+  assert.deepEqual(filtrarContatos(comApagado, 'todos').map((c) => c.nome), ['A', 'B', 'C'], 'apagado some da lista')
+  assert.deepEqual(filtrarContatos(comApagado, 'arquivados').map((c) => c.nome), ['D'], 'e só aparece no arquivo')
 })
 
 test('temas iguais viram conflito, na ordem de prioridade do banco', () => {
