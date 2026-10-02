@@ -1,5 +1,5 @@
 import React from 'react'
-import { ParesFotos, BaixarPdf } from '../vistas/GuiaFotos'
+import { ParesFotos, BaixarGuias } from '../vistas/GuiaFotos'
 import { VistaCabeca } from '../VistaCabeca'
 
 /*
@@ -9,8 +9,6 @@ import { VistaCabeca } from '../VistaCabeca'
  * que a vista oferece para baixar. Pares e botão vêm da vista irmã da
  * organização, para as duas não divergirem no desenho.
  */
-const PDF_PARTICIPANTES = '/guias/guia-de-fotos-participantes.pdf'
-
 const REGRAS = [
   'O que aparece na foto é o que o cliente recebe: mesma receita, recheio, cobertura e porção.',
   'Mesmo jeito de servir: prato, copo, xícara ou taça. Café na xícara não chega ao cliente em copo plástico.',
@@ -42,7 +40,7 @@ export function GuiaFotos() {
 
       <div className="gf-topo">
         <p className="gf-tese">Da foto para a mesa: <strong>a mesma experiência</strong>.</p>
-        <BaixarPdf href={PDF_PARTICIPANTES} rotulo="Baixar o guia em PDF" />
+        <BaixarGuias deQuem="participante" />
       </div>
 
       <div className="gf-bloco">
