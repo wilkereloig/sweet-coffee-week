@@ -4,7 +4,6 @@
  * o resumo de linha em renderParticipantes ~2591-2609, soDigitos ~2945,
  * montarRecado ~3308, opcoesMarcas ~3445).
  */
-import { preco } from './painelFormat.js'
 import { rotulos } from './status.js'
 
 export const COR_CADASTRO = {
@@ -50,7 +49,6 @@ export function resumoParticipante(p) {
     p.tema_combo || '',
     nItens ? nItens + ' de 3 itens' : '',
     nUnidades ? nUnidades + (nUnidades === 1 ? ' unidade' : ' unidades') : '',
-    preco(p.combo_preco),
   ].filter(Boolean).join(' · ')
   const edicao = p.edicao_codigo ? 'edição ' + p.edicao_codigo : 'sem edição aberta'
   const historico = nEdicoes > 1 ? ' · ' + nEdicoes + ' edições' : ''

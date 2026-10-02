@@ -16,14 +16,14 @@ test('cadastro completo não deixa nada pendente', () => {
   assert.deepEqual(faltam, [])
 })
 
-test('cada bloco incompleto aparece na lista, na ordem A marca -> O tema -> Os três itens -> Preço -> Onde encontrar', () => {
+test('cada bloco incompleto aparece na lista, na ordem A marca -> O tema -> Os três itens -> Custos -> Onde encontrar', () => {
   const faltam = blocosPendentes({
     participante: { nome_marca: '', responsavel: '', telefone: '' },
-    participacao: { tema_combo: '', tema_justificativa: '', combo_preco: null },
+    participacao: { tema_combo: '', tema_justificativa: '', combo_para_viagem: true, custo_embalagem: null },
     itens: [],
     unidades: [],
   })
-  assert.deepEqual(faltam, ['A marca', 'O tema', 'Os três itens', 'Preço', 'Onde encontrar'])
+  assert.deepEqual(faltam, ['A marca', 'O tema', 'Os três itens', 'Custos e detalhes', 'Onde encontrar'])
 })
 
 test('item com campo vazio conta como incompleto mesmo com os três tipos presentes', () => {
@@ -32,9 +32,13 @@ test('item com campo vazio conta como incompleto mesmo com os três tipos presen
   assert.ok(faltam.includes('Os três itens'))
 })
 
-test('preço zero ou negativo continua pendente', () => {
-  const faltam = blocosPendentes({ participante: PARTICIPANTE_OK, participacao: { ...PARTICIPACAO_OK, combo_preco: 0 }, itens: ITENS_OK, unidades: UNIDADES_OK })
-  assert.ok(faltam.includes('Preço'))
+// Valor do combo é da organização (02/10/2026): a marca responde só os custos
+// que se aplicam. Delivery vem das unidades; zero vale.
+test('custo de delivery só é pedido quando alguma unidade entrega', () => {
+  const comDelivery = [{ endereco: 'Rua A', faz_delivery: true }]
+  assert.ok(blocosPendentes({ participante: PARTICIPANTE_OK, participacao: PARTICIPACAO_OK, itens: ITENS_OK, unidades: comDelivery }).includes('Custos e detalhes'))
+  assert.deepEqual(blocosPendentes({ participante: PARTICIPANTE_OK, participacao: { ...PARTICIPACAO_OK, custo_delivery: 0 }, itens: ITENS_OK, unidades: comDelivery }), [])
+  assert.deepEqual(blocosPendentes({ participante: PARTICIPANTE_OK, participacao: PARTICIPACAO_OK, itens: ITENS_OK, unidades: UNIDADES_OK }), [])
 })
 
 test('unidade sem endereço não conta como "Onde encontrar" resolvido', () => {

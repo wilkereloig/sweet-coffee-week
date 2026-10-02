@@ -37,19 +37,22 @@ const dadosCompletos = {
     { tipo: 'bebida', nome: 'a', descricao: 'b', ingredientes: 'c' },
   ],
   unidades: [{ endereco: 'Rua X' }],
-  precoStr: '35,00',
+  // Para viagem e com delivery: os dois custos se aplicam. Zero vale.
+  custos: { viagem: true, delivery: true, embalagemStr: '0,00', deliveryStr: '5,00' },
 }
 
 test('blocoCompleto cobre os 5 blocos e falha um por vez', () => {
   for (let n = 0; n < 5; n++) assert.equal(blocoCompleto(n, dadosCompletos), true, 'bloco ' + n)
   assert.equal(blocoCompleto(2, { ...dadosCompletos, itens: dadosCompletos.itens.slice(0, 2) }), false)
-  assert.equal(blocoCompleto(3, { ...dadosCompletos, precoStr: '0,00' }), false)
+  assert.equal(blocoCompleto(3, { ...dadosCompletos, custos: { ...dadosCompletos.custos, deliveryStr: '' } }), false)
+  // Custo que não se aplica não é cobrado.
+  assert.equal(blocoCompleto(3, { ...dadosCompletos, custos: { viagem: false, delivery: false } }), true)
   assert.equal(blocoCompleto(4, { ...dadosCompletos, unidades: [{ endereco: '' }] }), false)
 })
 
 test('blocosPendentes e progresso concordam sobre o que falta', () => {
-  const parcial = { ...dadosCompletos, precoStr: '' }
-  assert.deepEqual(blocosPendentes(parcial), ['Preço'])
+  const parcial = { ...dadosCompletos, custos: { ...dadosCompletos.custos, embalagemStr: '' } }
+  assert.deepEqual(blocosPendentes(parcial), ['Custos e detalhes'])
   assert.equal(progresso(parcial), 4)
   assert.equal(progresso(dadosCompletos), 5)
   assert.deepEqual(blocosPendentes(dadosCompletos), [])
@@ -73,14 +76,14 @@ test('pendências campo a campo: cada uma diz o que falta e onde (etapa 7)', asy
       { tipo: 'bebida', posicao: 3, nome: 'Café', descricao: 'x', ingredientes: 'y' },
     ],
     unidades: [{ endereco: '' }],
-    precoStr: '',
+    custos: { viagem: true, delivery: false, embalagemStr: '' },
   }
   const p = pendenciasCadastro(dados)
-  assert.deepEqual(p.map((x) => [x.bloco, x.campo]), [[0, 'responsavel'], [1, 'tema_justificativa'], [2, 'item-2-descricao'], [3, 'combo_preco'], [4, 'unidade-endereco']])
+  assert.deepEqual(p.map((x) => [x.bloco, x.campo]), [[0, 'responsavel'], [1, 'tema_justificativa'], [2, 'item-2-descricao'], [3, 'custo_embalagem'], [4, 'unidade-endereco']])
   assert.equal(p[2].texto, 'Completar o salgado: descrição, ingredientes')
   assert.equal(linkDaPendencia(p[2]), 'cadastro/2/item-2-descricao')
   // A regra é a mesma dos blocos: bloco com pendência = bloco pendente.
   assert.equal(new Set(p.map((x) => x.bloco)).size, blocosPendentes(dados).length)
-  const completo = { ...dados, marca: { ...dados.marca, responsavel: 'Ana' }, tema: { ...dados.tema, tema_justificativa: 'j' }, itens: dados.itens.map((i) => ({ ...i, descricao: 'd', ingredientes: 'i' })), unidades: [{ endereco: 'Rua 1' }], precoStr: '29,90' }
+  const completo = { ...dados, marca: { ...dados.marca, responsavel: 'Ana' }, tema: { ...dados.tema, tema_justificativa: 'j' }, itens: dados.itens.map((i) => ({ ...i, descricao: 'd', ingredientes: 'i' })), unidades: [{ endereco: 'Rua 1' }], custos: { viagem: true, embalagemStr: '1,50' } }
   assert.deepEqual(pendenciasCadastro(completo), [])
 })

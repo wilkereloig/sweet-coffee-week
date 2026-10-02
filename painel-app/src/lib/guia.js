@@ -7,7 +7,7 @@
  * pendências há em cada aba. A casca usa para os números das abas; o Início,
  * para tudo.
  */
-import { TIPOS, precoNumero, unidadeTemEndereco, itensEmOrdem } from './cadastro.js'
+import { TIPOS, unidadeTemEndereco, itensEmOrdem, custosFaltando, custosDeLinhas } from './cadastro.js'
 import { interpretarLink } from './central.js'
 
 // Meu cadastro = A marca (0) + Onde encontrar (4); Meu combo = tema, itens, preço.
@@ -25,7 +25,7 @@ export function blocoDoCampo(campo) {
   if (/^(nome_marca|responsavel|telefone|email|instagram|site|cnpj|razao_social|logo)$/.test(c)) return 0
   if (/^tema_/.test(c)) return 1
   if (/^item-/.test(c)) return 2
-  if (/^combo_/.test(c)) return 3
+  if (/^(combo_|custo_)/.test(c)) return 3
   if (/^unidade-/.test(c)) return 4
   return null
 }
@@ -36,7 +36,8 @@ export const CAMPOS_APONTAVEIS = [
   ['email', 'A marca · E-mail'], ['instagram', 'A marca · Instagram'], ['logo', 'A marca · Logo do estabelecimento'],
   ['tema_combo', 'Tema · Tema escolhido'], ['tema_justificativa', 'Tema · Justificativa'],
   ...[1, 2, 3].flatMap((n) => [['item-' + n + '-nome', 'Item ' + n + ' · Nome'], ['item-' + n + '-descricao', 'Item ' + n + ' · Descrição'], ['item-' + n + '-ingredientes', 'Item ' + n + ' · Ingredientes']]),
-  ['combo_preco', 'Preço · Valor do combo'], ['unidade-endereco', 'Onde encontrar · Endereço'],
+  ['custo_embalagem', 'Custos · Embalagem para viagem'], ['custo_delivery', 'Custos · Delivery'],
+  ['unidade-endereco', 'Onde encontrar · Endereço'],
 ]
 
 const ROTULO_ITEM = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
@@ -44,11 +45,13 @@ const CAMPO_ITEM = { nome: 'Nome', descricao: 'Descrição', ingredientes: 'Ingr
 const vazio = (v) => !String(v == null ? '' : v).trim()
 
 /*
- * Os 17 campos obrigatórios — a MESMA lista de `campos_cadastro` no banco
- * (migration 20260930_logos_marca.sql: a logo confirmada para a edição é o
- * 17º), que dá o % na lista da organização. Mudou aqui, muda lá.
+ * Os campos obrigatórios — a MESMA lista de `campos_cadastro` no banco
+ * (migration 20261002_valor_combo_edicao.sql), que dá o % na lista da
+ * organização. São 16 fixos + os custos que se aplicam (embalagem se o combo
+ * pode ser para viagem, delivery se alguma unidade entrega). O valor do combo
+ * saiu: é da organização. Mudou aqui, muda lá.
  */
-export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades = [], precoStr = '', logo = false } = {}) {
+export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades = [], custos = {}, logo = false } = {}) {
   const c = (bloco, campo, rotulo, ok) => ({ bloco, campo, rotulo, ok: !!ok })
   const lista = [
     c(0, 'nome_marca', 'Nome da marca', !vazio(marca.nome_marca)),
@@ -68,7 +71,9 @@ export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades
         : c(2, null, CAMPO_ITEM[k] + ' do item ' + (i + 1), false))
     }
   }
-  lista.push(c(3, 'combo_preco', 'Preço do combo', precoNumero(precoStr) > 0))
+  const faltam = custosFaltando(custos)
+  if (custos.viagem) lista.push(c(3, 'custo_embalagem', 'Custo da embalagem para viagem', !faltam.includes('custo_embalagem')))
+  if (custos.delivery) lista.push(c(3, 'custo_delivery', 'Custo do delivery', !faltam.includes('custo_delivery')))
   lista.push(c(4, 'unidade-endereco', 'Endereço', unidades.some(unidadeTemEndereco)))
   return lista
 }
@@ -86,7 +91,7 @@ export function dadosDeLinhas({ participante = {}, participacao = {}, itens = []
     tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
     itens, unidades,
     logo: !!participacao.logo_id,
-    precoStr: participacao.combo_preco == null ? '' : String(participacao.combo_preco).replace('.', ','),
+    custos: custosDeLinhas(participacao, unidades),
   }
 }
 
@@ -117,7 +122,7 @@ const ETAPAS = [
   { chave: 'estabelecimento', rotulo: 'Dados do estabelecimento', blocos: [0, 4] },
   { chave: 'tema', rotulo: 'Tema', blocos: [1] },
   { chave: 'itens', rotulo: 'Os três itens', blocos: [2] },
-  { chave: 'preco', rotulo: 'Preço e detalhes', blocos: [3] },
+  { chave: 'preco', rotulo: 'Custos e detalhes', blocos: [3] },
 ]
 
 /*

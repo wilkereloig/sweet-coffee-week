@@ -14,9 +14,9 @@ test('slugPrevisto normaliza acento, & e espaço, e casa com a Edge Function', (
 test('resumoParticipante conta contagens que chegam como STRING (bigint do Postgres)', () => {
   const linha = resumoParticipante({
     edicao_codigo: '2026.1', edicoes: '3', tema_combo: 'Lovers',
-    itens_prontos: '2', unidades: '1', combo_preco: 18.5,
+    itens_prontos: '2', unidades: '1',
   })
-  assert.equal(linha, 'edição 2026.1 · 3 edições · Lovers · 2 de 3 itens · 1 unidade · R$ 18,50')
+  assert.equal(linha, 'edição 2026.1 · 3 edições · Lovers · 2 de 3 itens · 1 unidade')
 })
 
 test('resumoParticipante sem edição aberta e nada preenchido', () => {
