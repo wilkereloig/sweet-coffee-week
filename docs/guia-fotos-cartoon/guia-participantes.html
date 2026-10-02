@@ -4,7 +4,9 @@
   (estabelecimentos). Fonte de public/guias/guia-de-fotos-participantes.pdf,
   baixado pela aba Guia de fotos do painel da marca.
   O guia do fotógrafo é guia.html; os dois usam guia.css e as fotos de
-  public/images/guia-fotos/ (exemplos gerados por IA, CLAUDE.md §6.12).
+  public/images/guia-fotos/participantes/ (exemplos gerados por IA com combo e
+  desenho inventados, CLAUDE.md §6.12; originais no Dropbox da edição,
+  03_COMBOS/02_ARTES/_guia-participantes/).
 
   Gerar o PDF: mesmo comando do cabeçalho de guia.html, trocando o nome do
   arquivo de entrada e o de saída.
@@ -22,6 +24,12 @@
   .checklist .check { gap: 1.8mm; }
   .checklist .check li { font-size: 8.6pt; }
   .fecho { margin-top: 6mm; text-align: left; }
+  .processo { display: grid; grid-template-columns: 1fr 9mm 1fr; gap: 3mm; align-items: center; margin-top: 4mm; }
+  .processo .foto { aspect-ratio: 1; }
+  .processo__seta { font: 900 20pt/1 'Nexa Slab'; text-align: center; color: var(--marrom); }
+  .obrigatorias { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3mm; margin-top: 3mm; }
+  .obrigatorias .foto { aspect-ratio: 1; }
+  .obrigatorias figcaption { font-weight: 700; }
   .fecho p:first-child { font: 900 17pt/1.08 'Nexa Slab'; letter-spacing: -.02em; }
 </style>
 </head>
@@ -30,7 +38,7 @@
 <!-- 1 · CAPA -->
 <section class="pg capa">
   <div class="capa__foto">
-    <img src="../../public/images/guia-fotos/combo-decoracao.jpg" alt="">
+    <img src="../../public/images/guia-fotos/participantes/combo.jpg" alt="">
     <img class="capa__selo" src="../../public/images/logo-seal-sweet-coffee.svg" alt="Sweet &amp; Coffee Week" style="object-fit:contain">
   </div>
   <div class="capa__texto">
@@ -45,7 +53,49 @@
   </div>
 </section>
 
-<!-- 2 · O COMBO DA FOTO É O COMBO REAL -->
+<!-- 2 · COMO A FOTO VIRA ARTE -->
+<section class="pg">
+  <span class="rotulo" style="--c:var(--roxo)">O processo</span>
+  <h2>Como sua foto vira arte</h2>
+  <p style="font-size:9.5pt;max-width:170mm">Na sessão, o fotógrafo registra o seu combo real, com a decoração do seu desenho. Depois, a organização transforma essa foto em arte de estúdio para a divulgação.</p>
+  <div class="processo">
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/bastidor.jpg" alt=""><span class="etiqueta etiqueta--opc">Na sessão</span></div><figcaption>O combo real, fotografado na sua casa.</figcaption></figure>
+    <div class="processo__seta" aria-hidden="true">→</div>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/combo.jpg" alt=""><span class="etiqueta etiqueta--ind">Arte final</span></div><figcaption>A mesma comida, com fundo, luz e acabamento de estúdio.</figcaption></figure>
+  </div>
+  <div class="grade2">
+    <div class="bloco" style="--c:var(--roxo)">
+      <h3>O que a organização faz</h3>
+      <ul class="regras" style="--c:var(--roxo);margin-top:2mm">
+        <li>Troca o fundo e a luz por uma cena de estúdio.</li>
+        <li>Mantém a decoração do seu desenho, organizada em volta da comida.</li>
+        <li>Limpa o que é acidente: migalha solta, mancha, respingo.</li>
+      </ul>
+    </div>
+    <div class="bloco" style="--c:var(--amarelo)">
+      <h3>O que nunca muda</h3>
+      <ul class="regras" style="--c:var(--amarelo);margin-top:2mm">
+        <li>A comida: receita, recheio, cobertura e porção.</li>
+        <li>A louça, o copo e a xícara em que o cliente recebe.</li>
+        <li>Por isso o produto precisa chegar perfeito à sessão.</li>
+      </ul>
+    </div>
+  </div>
+  <span class="rotulo" style="--c:var(--cyan);margin-top:6mm">Fotos obrigatórias</span>
+  <h2 style="font-size:16pt">O combo, cada item e o recheio de cada um</h2>
+  <div class="obrigatorias">
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/combo.jpg" alt=""></div><figcaption>Combo completo</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/salgado.jpg" alt=""></div><figcaption>Salgado</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/salgado-detalhe.jpg" alt=""></div><figcaption>Salgado aberto</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/doce.jpg" alt=""></div><figcaption>Doce</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/doce-detalhe.jpg" alt=""></div><figcaption>Doce por dentro</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/bebida.jpg" alt=""></div><figcaption>Bebida</figcaption></figure>
+  </div>
+  <p class="nota">Sem a foto de dentro, a arte não tem como mostrar o recheio certo. Tem opção ou substituição? Ela também entra.</p>
+  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>2</span></div>
+</section>
+
+<!-- 3 · O COMBO DA FOTO É O COMBO REAL -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--amarelo)">A regra principal</span>
   <h2>O que aparece na foto é o que o cliente recebe</h2>
@@ -75,22 +125,21 @@
         <h3>A bebida no recipiente real</h3>
         <p>Como ela é fotografada é como ela é servida.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/bebida.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>O copo em que o cliente recebe.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-copo-plastico.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Copo plástico no lugar do copo da casa.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/bebida.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>O copo em que o cliente recebe.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/evitar-copo-plastico.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Copo plástico no lugar do copo da casa.</figcaption></figure>
     </div>
-    <div class="par">
+    <div class="par" style="grid-template-columns:1fr 104mm">
       <div class="par__texto">
         <h3>Para viagem</h3>
         <p>Se houver, defina a embalagem do salgado, do doce e da bebida (tampa, suporte, sacola) e como os itens vão organizados. Se for relevante, ela também pode ser fotografada.</p>
       </div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/viagem.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Embalagem definida e organizada.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/doce-opcao.jpg" alt=""><span class="etiqueta etiqueta--opc" style="position:absolute;left:2.4mm;top:2.4mm">Opção vegana</span></div><figcaption>Opções e substituições também são fotografadas.</figcaption></figure>
+      <figure><div class="foto" style="aspect-ratio:16/10"><img src="../../public/images/guia-fotos/participantes/viagem.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Embalagem definida e organizada.</figcaption></figure>
     </div>
   </div>
-  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>2</span></div>
+  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>3</span></div>
 </section>
 
-<!-- 3 · MARCAS E LOUÇA -->
+<!-- 4 · MARCAS E LOUÇA -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--laranja)">Marcas e utensílios</span>
   <h2>Sem marcas de terceiros, louça impecável</h2>
@@ -115,34 +164,34 @@
   <div class="pares" style="margin-top:5mm">
     <div class="par">
       <div class="par__texto"><h3>Xícara neutra</h3><p>A marca do fornecedor de café não aparece.</p></div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/xicara-neutra.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Xícara sem marca.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-xicara-marca.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Xícara e sachê com marca.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/xicara-neutra.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Xícara sem marca.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/evitar-xicara-marca.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Xícara e sachê com marca.</figcaption></figure>
     </div>
     <div class="par">
       <div class="par__texto"><h3>Louça e acabamento</h3><p>Pequenos detalhes aparecem muito na foto: bordas, respingos, migalhas.</p></div>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/doce.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Prato limpo, produto bem acabado.</figcaption></figure>
-      <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-louca.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Prato lascado, talher manchado, calda escorrendo.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/doce.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Prato limpo, produto bem acabado.</figcaption></figure>
+      <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/evitar-louca.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Prato lascado, talher manchado, calda escorrendo.</figcaption></figure>
     </div>
   </div>
-  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>3</span></div>
+  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>4</span></div>
 </section>
 
-<!-- 4 · APRESENTAÇÃO E SESSÃO -->
+<!-- 5 · APRESENTAÇÃO E SESSÃO -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--magenta)">Apresentação</span>
   <h2>A comida é sempre a protagonista</h2>
   <div class="composicao" style="grid-template-columns:1fr 48mm 48mm;margin-top:3mm">
     <div class="bloco" style="--c:var(--magenta)">
-      <p style="font-size:9pt;margin-bottom:2.4mm">Decore com a identidade da casa e o tema Cartoon, do seu jeito. Não há quantidade certa de objetos: o que vale é <b>equilíbrio, personalidade e comida em destaque</b>.</p>
+      <p style="font-size:9pt;margin-bottom:2.4mm">Traga a decoração do desenho escolhido pela sua casa: silhueta do personagem, objetos e cores do tema. Ela fica <b>atrás e ao lado da comida, nunca na frente nem em cima</b>.</p>
       <ul class="regras" style="--c:var(--magenta);font-size:9pt">
-        <li>Nada na frente da comida ou cobrindo o produto.</li>
+        <li>Nenhum enfeite cobre o salgado, o doce ou a bebida.</li>
         <li>Salgado, doce e bebida fáceis de identificar, nenhum escondendo outro.</li>
         <li>Sem excesso de objetos nem cenário carregado.</li>
-        <li>O fotógrafo pode sugerir tirar, mover ou acrescentar elementos.</li>
+        <li>O fotógrafo e a organização podem tirar ou mover elementos.</li>
       </ul>
     </div>
-    <figure><div class="foto"><img src="../../public/images/guia-fotos/combo-decoracao.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Tema presente, comida em destaque.</figcaption></figure>
-    <figure><div class="foto"><img src="../../public/images/guia-fotos/evitar-decoracao.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Decoração sufocando a comida.</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/combo.jpg" alt=""><span class="selo selo--fazer">✓ Faça</span></div><figcaption>Desenho presente, comida em destaque.</figcaption></figure>
+    <figure><div class="foto"><img src="../../public/images/guia-fotos/participantes/evitar-decoracao.jpg" alt=""><span class="selo selo--evitar">✕ Evite</span></div><figcaption>Decoração na frente e em cima da comida.</figcaption></figure>
   </div>
 
   <span class="rotulo" style="--c:var(--cyan);margin-top:7mm">Na sessão</span>
@@ -166,17 +215,17 @@
     </div>
     <div class="bloco" style="--c:var(--magenta)">
       <h3>O que será fotografado</h3>
-      <p style="font-size:9pt;margin-top:1.6mm">O combo completo, o salgado, o doce e a bebida separados, cada opção ou substituição e, quando houver recheio ou camadas, uma foto de detalhe.</p>
+      <p style="font-size:9pt;margin-top:1.6mm">O combo completo, o salgado, o doce e a bebida separados, <b>cada um aberto ou cortado mostrando o recheio</b>, e cada opção ou substituição.</p>
     </div>
     <div class="bloco" style="--c:var(--cyan)">
-      <h3>O fotógrafo cuida</h3>
-      <p style="font-size:9pt;margin-top:1.6mm">Da luz e da cor real, do ângulo e de deixar espaço ao redor para a foto servir ao feed, aos Stories, ao site e aos displays.</p>
+      <h3>Quem cuida da imagem</h3>
+      <p style="font-size:9pt;margin-top:1.6mm">Na sessão, o fotógrafo cuida do ângulo e da cor real. Depois, a organização cuida do fundo, da luz final e do acabamento para feed, Stories, site e displays.</p>
     </div>
   </div>
-  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>4</span></div>
+  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>5</span></div>
 </section>
 
-<!-- 5 · CHECKLIST -->
+<!-- 6 · CHECKLIST -->
 <section class="pg">
   <span class="rotulo" style="--c:var(--amarelo)">O que levar para a sessão</span>
   <h2>Checklist</h2>
@@ -188,9 +237,9 @@
     <div class="bloco"><h3 style="margin-bottom:2.4mm">Para viagem, se houver</h3><ul class="check">
       <li>Embalagem do salgado</li><li>Embalagem do doce</li><li>Copo e tampa da bebida</li><li>Sacola</li><li>Outros itens da entrega</li></ul></div>
     <div class="bloco"><h3 style="margin-bottom:2.4mm">Ambientação</h3><ul class="check">
-      <li>Elementos decorativos escolhidos</li><li>Objetos limpos</li><li>Sem marcas de terceiros</li><li>Sem excesso de elementos</li></ul></div>
+      <li>Decoração do seu desenho</li><li>Objetos limpos</li><li>Sem marcas de terceiros</li><li>Nada na frente da comida</li></ul></div>
     <div class="bloco" style="grid-column:span 2"><h3 style="margin-bottom:2.4mm">Conferência final</h3><ul class="check">
-      <li>A montagem é o combo real, na quantidade certa</li><li>Recheios e bebida corretos</li><li>A louça é a mesma de servir</li><li>O que for fotografado pode ser repetido para o cliente</li></ul></div>
+      <li>A montagem é o combo real, na quantidade certa</li><li>Unidade extra para abrir e mostrar o recheio</li><li>Recheios e bebida corretos</li><li>A louça é a mesma de servir</li><li>O que for fotografado pode ser repetido para o cliente</li></ul></div>
   </div>
   <div class="aviso fecho">
     <img src="../../public/images/logo-seal-sweet-coffee.svg" alt="" style="width:22mm;height:22mm;object-fit:contain;flex:none;background:var(--creme);border-radius:50%;padding:1.5mm">
@@ -199,8 +248,8 @@
       <p style="font-size:9pt;margin-top:2.4mm">Não se trata de uma versão "melhor" do combo só para a foto: é apresentar da melhor forma o combo que o cliente vai encontrar no Sweet &amp; Coffee Week.</p>
     </div>
   </div>
-  <p style="font-size:7.5pt;color:var(--marrom);margin-top:4mm">As fotos deste guia são exemplos gerados por IA, só para mostrar a direção. Não são produtos das casas e não entram na divulgação do festival.</p>
-  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>5</span></div>
+  <p style="font-size:7.5pt;color:var(--marrom);margin-top:4mm">As imagens deste guia foram geradas por IA com um combo e um desenho inventados, só para mostrar a direção. Não são produtos nem personagens das casas e não entram na divulgação do festival.</p>
+  <div class="rodape"><span>Da foto para a mesa · edição Cartoon</span><span>6</span></div>
 </section>
 
 </body>
