@@ -227,7 +227,7 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
   if (!participante.user_id) {
     return (
       <div className="ui-pilha">
-        <Secao titulo="Sem acesso criado" nota="A marca ainda não entra no painel. Ao criar, o login é o nome do estabelecimento e a senha temporária aparece uma vez, para você entregar por WhatsApp.">
+        <Secao titulo="Sem acesso criado" nota="Sem acesso. A senha temporária aparece uma vez só.">
           {cred
             ? <Credenciais nomeMarca={participante.nome_marca} responsavel={participante.responsavel} telefone={participante.telefone} login={cred.login} senha={cred.senha} onRegistrar={(c) => registrarEnvio([participante.id], c).then(carregar)} />
             : <button className="og-btn og-btn--mini" type="button" disabled={ocupado || !podeGerir} onClick={criar}>{ocupado ? 'Criando…' : 'Criar acesso para esta marca'}</button>}

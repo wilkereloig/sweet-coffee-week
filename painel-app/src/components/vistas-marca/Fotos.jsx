@@ -63,13 +63,13 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
     <section className="ui-vista-marca">
       <VistaCabeca acento="magenta" icone="fotos" titulo="Fotos" nota="Sessão de fotos, fotos oficiais e o guia" />
       <div className="ui-grade-duas">
-        <Secao titulo="Sessão de fotos" nota="Quem fotografa é a organização. Data e local são definidos por ela.">
+        <Secao titulo="Sessão de fotos">
           {sessoes === null && <Carregando linhas={2} />}
           {sessoes && !jaTem && !liberado && (
-            <p className="ui-nota">Aguardando liberação para foto. A sessão é marcada depois dela, e você recebe um aviso quando for liberado.</p>
+            <p className="ui-nota">Aguardando liberação. Você recebe um aviso.</p>
           )}
           {sessoes && !jaTem && liberado && vagas.length === 0 && (
-            <p className="ui-nota">Liberado para foto, ainda sem horário livre. Quando a organização abrir a agenda, os horários aparecem aqui.</p>
+            <p className="ui-nota">Liberado. Os horários aparecem aqui.</p>
           )}
           {minhas.length > 0 && (
             <ul className="ui-lista-simples">
@@ -81,7 +81,7 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
               ))}
             </ul>
           )}
-          {realizada && <p className="ui-nota">Sessão realizada. As fotos oficiais aparecem logo abaixo quando a organização publicar, e você recebe um aviso.</p>}
+          {realizada && <p className="ui-nota">Sessão feita. As fotos chegam aqui, com aviso.</p>}
           {liberado && vagas.length > 0 && !jaTem && (
             <>
               <p className="ui-nota">A organização abriu horários. Escolha um:</p>

@@ -161,7 +161,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
       {!escolha && estado === 'anterior' && podeEditar && (
         <div className="ui-bloco-interno">
           <b>{usadaEm.length ? 'Arquivo utilizado na edição ' + usadaEm[usadaEm.length - 1] : 'Logo da sua marca'}</b>
-          <p className="ui-nota">Continua a mesma identidade? Confirme para esta edição, ou envie a versão nova.</p>
+          <p className="ui-nota">Mesma logo? Confirme ou envie a nova.</p>
           <div className="ui-acoes">
             <Botao icone="feito" disabled={ocupado} onClick={() => executar(adaptador.manter || (() => adaptador.restaurar(atual.id)), 'Logo mantida para esta edição.')}>Manter esta logo</Botao>
             <Botao icone="baixar" variante="secundario" onClick={() => setEnviando(true)}>Enviar uma nova versão</Botao>
@@ -174,7 +174,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
           {(estado !== 'confirmada' || enviando) && (
             <>
               <b>Envie sua logo em alta resolução</b>
-              <p className="ui-nota">De preferência SVG ou PNG com fundo transparente. Evite print, imagem de rede social, foto da logo ou arquivo pixelado.</p>
+              <p className="ui-nota">SVG ou PNG com fundo transparente. Nada de print ou foto.</p>
             </>
           )}
           <div className="ui-acoes">

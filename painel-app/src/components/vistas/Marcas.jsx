@@ -66,7 +66,7 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
   return (
     <Folha aberto={aberto} titulo="Cadastrar marca" sub="Para quem você convidou sem passar pelo formulário" onFechar={onFechar}>
       <form className="ui-form" onSubmit={criarMarcaManual} noValidate>
-        <p className="ui-nota">A conta nasce agora, com login e senha temporária. Nome e WhatsApp são obrigatórios: um vira o login, o outro é o botão do WhatsApp.</p>
+        <p className="ui-nota">Nome vira o login; WhatsApp é obrigatório.</p>
         <label className="og-campo"><span>Nome do estabelecimento <abbr title="obrigatório">*</abbr></span>
           <input type="text" autoComplete="off" required disabled={!!cred} value={nome} onChange={(e) => setNome(e.target.value)} />
         </label>
