@@ -3319,11 +3319,12 @@ confirmações; nenhuma regra de negócio mudou.
   ao app sem janela aberta nem campo em uso, recarrega sozinho (uma vez por
   versão); senão, a faixa "Atualizar agora".
 - **Desfoque do iOS 26 no topo do app instalado** (02/10/2026): o sistema desenha um
-  "Liquid Glass" ~40pt além da barra de status e só o dispensa se uma caixa
-  **fixa ou presa (`sticky`) com fundo** cobrir a borda de cima. Por isso
-  `.pn-cabeca` é `position:sticky;top:0` (a casca não rola: nada muda na tela).
-  ⛔ Não voltar para `relative` nem deixar o fundo do cabeçalho transparente.
-  A tela de login (`.pn-porta`) não tem essa barra e ainda recebe o desfoque.
+  "Liquid Glass" ~40pt além da barra de status, e nenhum CSS ou meta o desliga.
+  ⛔ Cabeçalho `sticky` com fundo sólido **foi testado no iPhone e não resolveu**.
+  O que vale é o conteúdo começar abaixo dele: token `--topo-app` (área segura +
+  2.5rem só com `-webkit-touch-callout` + `display-mode: standalone` em pé),
+  usado no cabeçalho, na faixa de conexão, na folha e no login. Elemento novo
+  preso ao topo usa `--topo-app`, nunca `--scw-safe-t` direto.
 - ⚠️ Ficou de fora: rodapé fixo de ações nas folhas (as ações moram dentro de
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.
