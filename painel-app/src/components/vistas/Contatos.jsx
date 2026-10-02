@@ -285,22 +285,37 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
       {!erro && visiveis.length > 0 && (
         <>
           <p className="ui-contagem">{visiveis.length} {visiveis.length === 1 ? 'contato' : 'contatos'}</p>
-          <ul className="og-lista og-lista--tabela">{visiveis.map((c) => (
-            <li key={c.id}>
-              <button type="button" className="og-item" onClick={() => setAberto(c.id)}>
-                <span className="og-item__cor" data-tipo={c.tipo} aria-hidden="true" />
-                <span className="og-item__nome">{c.nome}{c.ativo === false ? ' (inativo)' : ''}</span>
-                <span className="og-item__meta">{[c.instagram, c.cidade || c.bairro, (c.categorias && c.categorias.length ? c.categorias : [c.tipo]).map((k) => rotulo('tipo_contato', k)).join(', ')].filter(Boolean).join(' · ')}</span>
-                <span className="og-item__dir">
-                  {c.atual && <Selo dominio="presskit" valor={c.atual.status}>Press Kit: {rotulo('presskit', c.atual.status)}</Selo>}
-                  {Number(c.vouchers_edicao) > 0 && <Selo tom="andamento">{c.vouchers_edicao} {Number(c.vouchers_edicao) === 1 ? 'voucher' : 'vouchers'}</Selo>}
-                  <Selo tom="neutro">{Number(c.recebimentos) === 0 ? 'nunca recebeu' : Number(c.recebimentos) === 1 ? '1 Press Kit' : c.recebimentos + ' Press Kits'}{c.ultima_edicao ? ' · último ' + c.ultima_edicao : ''}</Selo>
-                  {c.incompleto && <Selo tom="atencao">cadastro incompleto</Selo>}
-                  {Number(c.pendencias) > 0 && <Selo tom="atencao">{c.pendencias} para revisar</Selo>}
-                </span>
-              </button>
+          {/* Colunas fixas, iguais em toda linha: cada dado no seu lugar (02/10/2026). */}
+          <ul className="og-lista og-lista--colunas og-lista--contatos">
+            <li className="og-lista__cabeca" aria-hidden="true">
+              <span /><span>Nome</span><span>Instagram</span><span>Local</span><span>Categoria</span><span>Press Kit</span><span>Situação</span>
             </li>
-          ))}</ul>
+            {visiveis.map((c) => {
+              const situacao = [
+                c.ativo === false && <Selo key="i" tom="neutro">inativo</Selo>,
+                c.incompleto && <Selo key="c" tom="atencao">cadastro incompleto</Selo>,
+                Number(c.pendencias) > 0 && <Selo key="p" tom="atencao">{c.pendencias} para revisar</Selo>,
+                Number(c.vouchers_edicao) > 0 && <Selo key="v" tom="andamento">{c.vouchers_edicao} {Number(c.vouchers_edicao) === 1 ? 'voucher' : 'vouchers'}</Selo>,
+              ].filter(Boolean)
+              const local = c.cidade || c.bairro
+              return (
+                <li key={c.id}>
+                  <button type="button" className="og-item" onClick={() => setAberto(c.id)}>
+                    <span className="og-item__cor" data-tipo={c.tipo} aria-hidden="true" />
+                    <span className="og-item__nome">{c.nome}</span>
+                    <span className="og-item__cel" data-vazio={c.instagram ? undefined : '1'}><span className="ui-oculto">Instagram: </span>{c.instagram || '—'}</span>
+                    <span className="og-item__cel" data-vazio={local ? undefined : '1'}><span className="ui-oculto">Local: </span>{local || '—'}</span>
+                    <span className="og-item__cel"><span className="ui-oculto">Categoria: </span>{(c.categorias && c.categorias.length ? c.categorias : [c.tipo]).map((k) => rotulo('tipo_contato', k)).join(', ')}</span>
+                    <span className="og-item__cel og-item__cel--pilha">
+                      <span><span className="ui-oculto">Press Kit: </span>{Number(c.recebimentos) === 0 ? 'nunca recebeu' : (Number(c.recebimentos) === 1 ? '1 recebido' : c.recebimentos + ' recebidos')}{c.ultima_edicao ? ' · último ' + c.ultima_edicao : ''}</span>
+                      {c.atual && <Selo dominio="presskit" valor={c.atual.status}>{rotulo('presskit', c.atual.status)}</Selo>}
+                    </span>
+                    <span className="og-item__cel og-item__cel--selos" data-vazio={situacao.length ? undefined : '1'}>{situacao.length ? situacao : '—'}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
         </>
       )}
       <FichaContato id={aberto} pode={pode} onFechar={() => setAberto(null)} onMudou={carregar} />
