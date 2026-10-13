@@ -347,11 +347,15 @@
   color: var(--scw-choco);
 }
 /* A data é chapa: amarelo sobre chocolate (9,5:1) — sobre o fundo amarelo,
-   amarelo em texto não existiria. */
+   amarelo em texto não existiria.
+   Padding assimétrico de propósito: com line-height 1, a Nexa Slab Black põe
+   a tinta dos algarismos ~.17em acima do centro (o espaço de descendente sobra
+   embaixo, e "5 a 15 de novembro" não tem letra que desça). Medido por
+   measureText: .33em em cima e .04em embaixo deixam a tinta centrada. */
 .hm-ed__data {
   display: inline-block;
   margin: clamp(12px, 1.3vw, 18px) 0 0;
-  padding: .16em .42em .2em;
+  padding: .33em .42em .04em;
   border-radius: 16px;
   background: var(--scw-choco);
   color: var(--scw-amarelo);
