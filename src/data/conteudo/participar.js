@@ -13,14 +13,17 @@
 import { festivalFacts as F } from '../festivalFacts.js'
 import { proximaEdicao as PROX } from '../proximaEdicao.js'
 
-/* O mês da próxima edição aparece UMA vez, aqui, vindo do dado. O resto da
-   página é permanente e fala de "cada edição". */
+/* A próxima edição aparece UMA vez, aqui, vindo do dado: tema e período
+   quando proximaEdicao.js os confirma (desde 13/10/2026), senão só o mês. O
+   resto da página é permanente e fala de "cada edição". */
 /** O `mede` de festivalFacts sem repetir o rótulo que vem antes dele
     ("movimentação direta" + "movimentação direta no caixa…" → "no caixa…"). */
 export const semRepetir = (rotulo, mede) =>
   mede.toLowerCase().startsWith(rotulo.toLowerCase()) ? mede.slice(rotulo.length).trim() : mede
 
-const edicaoDoMes = PROX.mes ? `a edição de ${PROX.mes}` : 'a próxima edição'
+const edicaoDoMes = PROX.tema && PROX.periodo
+  ? `a edição ${PROX.tema}, de ${PROX.periodo},`
+  : PROX.mes ? `a edição de ${PROX.mes}` : 'a próxima edição'
 
 export const ABERTURA = {
   titulo: 'Sua marca na',

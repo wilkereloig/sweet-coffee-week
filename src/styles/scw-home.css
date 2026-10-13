@@ -23,8 +23,7 @@
 .hm-voz__foto,
 .hm-mosaico__item,
 .hm-destino__capa,
-.hm-awards__foto,
-.hm-abre--destaque .hm-abre__pessoas { position: relative; overflow: hidden; background: var(--scw-bege); }
+.hm-awards__foto { position: relative; overflow: hidden; background: var(--scw-bege); }
 .hm-festival__foto img,
 .hm-voz__foto img,
 .hm-mosaico__item img,
@@ -222,7 +221,6 @@
   font: 400 13px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .72);
 }
-.hm-abre--destaque .hm-abre__legenda { padding-left: 0; }
 
 /* Celular: foto no topo, largura cheia (§6.9), texto embaixo na chapa. */
 @media (max-width: 999px) {
@@ -280,7 +278,6 @@
     color: rgba(254, 240, 221, .82);
   }
   .hm-abre__fotos.tem-pausa .hm-abre__legenda { left: calc(var(--scw-trilho) + 56px); }
-  .hm-abre--destaque .hm-abre__legenda { right: var(--scw-trilho); }
 }
 @media (min-width: 600px) and (max-width: 999px) {
   .hm-abre__pessoas { aspect-ratio: 2 / 1; }
@@ -295,6 +292,86 @@
 @media (max-width: 379px) {
   .hm-abre__pessoas { aspect-ratio: 2 / 1; }
 }
+/* ============================================================================
+   01 Abertura — modo EDIÇÃO (destaqueEdicao.js ligado, 13/10/2026)
+   Composição própria, com força de anúncio: o lettering oficial do tema é o
+   maior peso da tela e a data vem logo abaixo, em amarelo. Mesma chapa
+   chocolate da abertura institucional; o KV da edição fica só aqui.
+   Altura do conteúdo, nunca tela cheia: a seção seguinte segue à vista.
+   ========================================================================= */
+/* Só acima de 1000px: fora da media query esta regra viria depois da coluna
+   única do celular e venceria por ordem (mesma especificidade). */
+@media (min-width: 1000px) {
+  .hm-abre--edicao { grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); }
+}
+
+.hm-ed__titulo {
+  display: grid;
+  justify-items: start;
+  gap: clamp(6px, .8vw, 12px);
+  margin: clamp(14px, 1.4vw, 20px) 0 0;
+}
+.hm-ed__festival {
+  font: 900 clamp(26px, 2.6vw, 44px)/1 var(--scw-font-black);
+  letter-spacing: -.035em;
+  color: var(--scw-creme);
+}
+/* O teto em `svh` segura a tela baixa (1440×900, 1024×768): tema, data e as
+   duas ações cabem na primeira dobra sem o aviso de cookies por cima. */
+.hm-ed__tema {
+  display: block;
+  width: min(100%, 680px, calc(32svh * 1.95));
+  height: auto;
+  aspect-ratio: 1400 / 718;
+}
+/* Sem o arquivo da marca, o tema sai em tipografia real — nunca simulado. */
+.hm-ed__tema--texto {
+  width: auto;
+  aspect-ratio: auto;
+  font: 900 clamp(64px, 9vw, 150px)/.86 var(--scw-font-black);
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+  color: var(--scw-amarelo);
+}
+.hm-ed__data {
+  margin: clamp(10px, 1.2vw, 18px) 0 0;
+  font: 900 clamp(30px, 3.4vw, 56px)/1 var(--scw-font-black);
+  letter-spacing: -.035em;
+  color: var(--scw-amarelo);   /* 9,5:1 sobre chocolate */
+}
+.hm-ed__apoio { max-width: 40ch; margin-top: clamp(12px, 1.4vw, 18px); }
+.hm-abre--edicao .hm-acoes { margin-top: clamp(20px, 2.2vw, 30px); }
+
+.hm-ed__moldura {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  border-radius: var(--scw-r-secao);
+  overflow: hidden;
+  background: var(--scw-marrom);
+}
+.hm-abre--edicao .hm-abre__legenda { padding-left: 0; }
+
+/* Celular: texto primeiro (tema e data são o anúncio), foto depois das ações.
+   Seletores com o modificador vencem as regras da abertura institucional do
+   mesmo bloco (foto no topo, legenda sobre a foto). */
+@media (max-width: 999px) {
+  .hm-abre--edicao { padding-top: var(--scw-hero-topo); padding-bottom: clamp(40px, 8vw, 64px); }
+  .hm-abre--edicao .hm-abre__fotos { order: 0; margin: clamp(28px, 6vw, 40px) 0 0; }
+  .hm-ed__tema { width: min(100%, 560px); }
+  /* 9vw: a data cresce com a tela e cabe numa linha até 360px. */
+  .hm-ed__data { font-size: clamp(30px, 9vw, 44px); }
+  .hm-ed__moldura { aspect-ratio: 16 / 10; border-radius: var(--scw-r-card); }
+  .hm-abre--edicao .hm-abre__legenda {
+    position: static;
+    margin-top: 10px;
+    font-size: 12.5px;
+  }
+}
+/* ≤900px a logo volta ao fluxo (52px, §6.7): a reserva de topo encolhe. */
+@media (max-width: 900px) {
+  .hm-abre--edicao { padding-top: 100px; }
+}
+
 @media (max-width: 520px) {
   .hm-abre__ficha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .hm-abre__ficha > div:last-child:nth-child(odd) { grid-column: 1 / -1; }

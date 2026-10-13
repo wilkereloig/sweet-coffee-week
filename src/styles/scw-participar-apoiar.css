@@ -74,6 +74,12 @@ body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: va
 @media (min-width: 600px) and (max-width: 1000px) {
   .pa-hero .scw-hero-banda { aspect-ratio: 2 / 1; }
 }
+/* Abaixo de 380px, 16:10: desde 13/10/2026 o lead de Participar traz tema e
+   período da edição (uma linha a mais), e em 360×800 o aviso de cookies
+   voltava a cobrir "Ver como funciona". */
+@media (max-width: 379px) {
+  .pa-hero .scw-hero-banda { aspect-ratio: 16 / 10; }
+}
 
 /* Desktop: chapa clara (cyan) pede véu mais fechado que a escura — quem tem de
    se manter íntegro é o FUNDO, não a tinta. Apoiar usa os valores padrão. */

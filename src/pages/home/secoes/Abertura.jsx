@@ -13,8 +13,9 @@ import { Seta } from '../../../components/Seta'
    01 Abertura — dois modos, uma decisão só: `destaqueValido()`.
    · sem destaque válido (o estado normal): abertura do FESTIVAL, permanente e
      completa — o que é, um caminho, e as fotos de pessoas da última edição;
-   · com destaque válido: a edição assume a abertura (rótulo, título, texto,
-     foto com legenda, ação) e o resto da Home segue igual, logo abaixo.
+   · com destaque válido (ligado desde 13/10/2026): a EDIÇÃO assume a abertura
+     — tema em lettering oficial, período, uma frase e as ações; tema e datas
+     vêm de proximaEdicao.js — e o resto da Home segue igual, logo abaixo.
    Nunca decidir por `ativo` direto: um campo faltando abriria bloco vazio.
    A classe `.hm-abre` fica nos dois modos — scw-motion.css coreografa por ela.
    ========================================================================= */
@@ -110,32 +111,48 @@ function AberturaFestival({ ir, rolarPara }) {
   )
 }
 
-/* Composição pequena e explícita: mesma grade e mesmas classes da abertura,
-   uma foto só (sem rotação, sem pausa), e o caminho para o resto da Home. */
+/* Abertura da EDIÇÃO (13/10/2026): composição própria, com força de anúncio.
+   Hierarquia: rótulo → nome do festival → TEMA (o lettering oficial, o maior
+   peso da tela) → período → uma frase → ações. Nada de ficha de números, selo
+   ou parágrafo longo competindo com tema e data. A foto é gastronomia do
+   acervo, identificada como registro anterior; o KV da edição não sai daqui
+   para o resto do site. Sem rotação: uma foto, nenhum relógio. */
 function AberturaDestaque({ d, ir, rolarPara }) {
-  const href = d.acao.href
+  const acao = d.acao
   /* Rota do SPA navega sem recarregar; página estática (barra final, §10.4-b)
      e endereço externo seguem como link de navegador. */
-  const interna = href.startsWith('/') && !href.endsWith('/')
+  const interna = !!acao && acao.href.startsWith('/') && !acao.href.endsWith('/')
   return (
-    <section className="hm-abre hm-abre--destaque" data-mo-fora aria-labelledby="hm-abre-titulo">
-      <div className="hm-abre__texto">
+    <section className="hm-abre hm-abre--edicao" data-mo-fora aria-labelledby="hm-abre-titulo">
+      <div className="hm-abre__texto hm-ed">
         {temTexto(d.rotulo) && <p className="hm-abre__estado">{d.rotulo}</p>}
-        <h1 id="hm-abre-titulo" className="scw-h1 hm-abre__titulo">{d.titulo}</h1>
-        <p className="hm-abre__lead">{d.texto}</p>
+        <h1 id="hm-abre-titulo" className="hm-abre__titulo hm-ed__titulo">
+          <span className="hm-ed__festival">{d.titulo}</span>
+          {d.marca
+            ? <FotoAcervo foto={d.marca} papel="cheia" prioridade className="hm-ed__tema" />
+            : <span className="hm-ed__tema hm-ed__tema--texto">{d.tema}</span>}
+        </h1>
+        <p className="hm-ed__data">{d.periodo}</p>
+        <p className="hm-abre__lead hm-ed__apoio">{d.texto}</p>
         <div className="hm-acoes">
-          <a className="scw-btn scw-btn--solido" href={href} onClick={interna ? ir(href) : undefined}>
-            {d.acao.rotulo} <Seta />
-          </a>
-          <a className="scw-btn scw-btn--contorno-claro" href="#festival" onClick={rolarPara('festival')}>
+          {acao && (
+            <a className="scw-btn scw-btn--solido" href={acao.href} onClick={interna ? ir(acao.href) : undefined}>
+              {acao.rotulo} <Seta />
+            </a>
+          )}
+          <a
+            className={'scw-btn ' + (acao ? 'scw-btn--contorno-claro' : 'scw-btn--solido')}
+            href="#festival"
+            onClick={rolarPara('festival')}
+          >
             {T.destaqueSecundaria}
           </a>
         </div>
       </div>
 
-      <figure className="hm-abre__fotos">
-        <div className="hm-abre__pessoas">
-          <FotoAcervo foto={d.imagem} papel="cheia" prioridade className="hm-abre__img" />
+      <figure className="hm-abre__fotos hm-ed__foto">
+        <div className="hm-ed__moldura">
+          <FotoAcervo foto={d.imagem} papel="cheia" className="hm-abre__img" />
         </div>
         <figcaption className="hm-abre__legenda">{d.legenda}</figcaption>
       </figure>

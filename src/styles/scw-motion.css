@@ -140,6 +140,7 @@
 .hm-abre .hm-abre__combo   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 700ms both; }
 .hm-abre .hm-abre__estado  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
 .hm-abre .hm-abre__titulo  { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
+.hm-abre .hm-ed__data      { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 340ms both; }
 .hm-abre .hm-abre__lead    { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 420ms both; }
 .hm-abre .hm-acoes         { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 540ms both; }
 .hm-abre .hm-abre__ficha,

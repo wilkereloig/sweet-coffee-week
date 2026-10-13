@@ -415,6 +415,7 @@ export const VARIANTES = new Map([
   ['/images/marcas-edicoes/2024/logo.png', { larguras: [480], original: 792 }],
   ['/images/marcas-edicoes/2025/logo.png', { larguras: [480], original: 799 }],
   ['/images/marcas-edicoes/2026.1/logo.png', { larguras: [480], original: 806 }],
+  ['/images/marcas-edicoes/2026.2/tema.webp', { larguras: [480, 960], original: 1400 }],
   ['/images/moldura-lovers-01.png', { larguras: [480, 960], original: 1081 }],
   ['/images/moldura-lovers-02.png', { larguras: [480, 960], original: 1081 }],
   ['/images/moldura-lovers-namorados.png', { larguras: [480, 960], original: 1081 }],

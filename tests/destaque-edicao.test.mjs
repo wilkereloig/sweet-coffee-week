@@ -1,25 +1,32 @@
 // Destaque de edição na abertura da Home (src/data/destaqueEdicao.js).
-// Garante: desligado na entrega, nada de ativação pela metade, e a Home usa o
-// contrato (não um segundo jeito de decidir).
+// Garante: tema e período vêm da fonte única (proximaEdicao.js), nada de
+// ativação pela metade, e a Home usa o contrato (não um segundo jeito de decidir).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { destaqueEdicao, destaqueValido } from '../src/data/destaqueEdicao.js'
+import { proximaEdicao } from '../src/data/proximaEdicao.js'
 
 const completo = {
   ativo: true,
   rotulo: 'Edição de exemplo',
   titulo: 'Título aprovado',
+  tema: 'Tema aprovado',
+  periodo: '1 a 10 de mês',
   texto: 'Texto aprovado.',
   imagem: { src: '/images/x.webp', alt: 'Descrição da foto' },
   legenda: 'O que a foto mostra',
   acao: { rotulo: 'Saiba mais', href: '/participar' },
 }
 
-test('o destaque sai desligado nesta entrega', () => {
-  assert.equal(destaqueEdicao.ativo, false)
-  assert.equal(destaqueValido(), false)
+test('ligado com o anúncio autorizado: tema, período e pré-cadastro vêm de proximaEdicao.js', () => {
+  assert.equal(destaqueValido(), true)
+  assert.equal(destaqueEdicao.tema, proximaEdicao.tema)
+  assert.equal(destaqueEdicao.periodo, proximaEdicao.periodo)
+  const aberto = proximaEdicao.status === 'pre-cadastro' && !!proximaEdicao.preCadastro
+  assert.equal(destaqueEdicao.acao?.href ?? null, aberto ? proximaEdicao.preCadastro : null)
+  assert.match(destaqueEdicao.legenda, /anterior/i, 'a foto é registro de edição anterior e a legenda precisa dizer')
 })
 
 test('ligado e completo vale', () => {
@@ -27,12 +34,17 @@ test('ligado e completo vale', () => {
 })
 
 test('faltou qualquer campo obrigatório → não vale (nunca bloco pela metade)', () => {
-  for (const campo of ['titulo', 'texto', 'legenda', 'imagem', 'acao']) {
+  for (const campo of ['titulo', 'tema', 'periodo', 'texto', 'legenda', 'imagem']) {
     assert.equal(destaqueValido({ ...completo, [campo]: null }), false, campo)
   }
   assert.equal(destaqueValido({ ...completo, titulo: '   ' }), false, 'título em branco')
   assert.equal(destaqueValido({ ...completo, imagem: { src: '/x.webp', alt: '' } }), false, 'foto sem alt')
   assert.equal(destaqueValido({ ...completo, acao: { rotulo: 'Ir' } }), false, 'ação sem destino')
+  assert.equal(destaqueValido({ ...completo, marca: { src: '/x.webp', alt: '' } }), false, 'marca sem alt')
+})
+
+test('sem pré-cadastro aberto a ação principal some, e o destaque continua valendo', () => {
+  assert.equal(destaqueValido({ ...completo, acao: null }), true)
 })
 
 test('só `ativo === true` liga — não há ativação por data nem por valor "verdadeiro"', () => {

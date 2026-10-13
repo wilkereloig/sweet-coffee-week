@@ -335,6 +335,27 @@ const HOME = {
   premio: { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%', legenda: 'O Maestro Café com os prêmios do Sweet Awards' },
 }
 
+/* ----------------------------------------------------------------------------
+   Próxima edição — abertura da Home em modo destaque (13/10/2026)
+   · marca: o lettering CARTOON da marca oficial 2026.2 (Dropbox F2,
+     01_IDENTIDADE_VISUAL/01_MARCA/PNG — o mesmo do selo aprovado), recortado
+     da margem transparente e convertido para WebP. Não redesenhar.
+   · foto: fotografia gastronômica do acervo. É registro de edição ANTERIOR, e
+     a legenda diz qual — nunca ler como combo da próxima edição.
+   -------------------------------------------------------------------------- */
+const PROXIMA_EDICAO = {
+  marca: { src: '/images/marcas-edicoes/2026.2/tema.webp', alt: 'Cartoon' },
+  foto: {
+    ...comboMain("Caffè Basilico's"),
+    legenda: "Registro de edição anterior: Lovers, junho de 2026 · combo Caffè Basilico's",
+  },
+}
+
+/** Peça da abertura da próxima edição (`marca` · `foto`), ou `null`. */
+export function fotoProximaEdicao(chave) {
+  return PROXIMA_EDICAO[chave] || null
+}
+
 /** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */
 export function fotosHome(chave) {
   return HOME[chave]

@@ -355,6 +355,28 @@ const FAQ_DADOS = (function () {
       k: ['contato', 'falar', 'atendimento', 'email', 'instagram'], link: 'formulario' },
   ];
 
+  /* Respostas marcadas com `dyn` dependem da próxima edição. Com o dado
+     confirmado em proximaEdicao.js, a resposta cita o dado; com null, fica a
+     genérica escrita acima (A4). Tela e schema FAQPage leem o mesmo `P`. */
+  var ANO = PROX.ano ? ' de ' + PROX.ano : '';
+  var DINAMICA = {
+    periodo: EDICAO.periodo && {
+      r: ['A próxima edição acontece de ' + EDICAO.periodo + ANO + (EDICAO.tema ? ', com o tema ' + EDICAO.tema : '') +
+        '. Participantes, combos e valor são divulgados no site e nos canais oficiais do Sweet & Coffee Week.'],
+    },
+    tema: EDICAO.tema && {
+      p: 'Qual é o tema da próxima edição?',
+      r: ['O tema da próxima edição é ' + EDICAO.tema + (EDICAO.periodo ? ', de ' + EDICAO.periodo + ANO : '') +
+        '. Cada participante cria o próprio combo a partir dele.'],
+    },
+  };
+  P.forEach(function (q) {
+    var d = q.dyn && DINAMICA[q.dyn];
+    if (!d) return;
+    if (d.p) q.p = d.p;
+    q.r = d.r;
+  });
+
   return { edicao: EDICAO, links: LINKS, aviso: AVISO, categorias: CATEGORIAS, perguntas: P };
 })();
 
