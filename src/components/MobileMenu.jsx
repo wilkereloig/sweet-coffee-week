@@ -2,6 +2,7 @@ import React from 'react'
 import { NAV_LINKS, MARCA_SCW, pageColorDark, ChaveIcon } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
+import { precarregar } from '../pages/carregadores'
 
 /*
  * Folha "mais" do mobile — redesign 2026.
@@ -35,6 +36,12 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  /* `onClose` chega do App como função nova a cada render. Com ele na lista de
+     dependências, qualquer re-render com a folha aberta desfazia e refazia o
+     efeito: o foco voltava ao gatilho e pulava de novo para o "fechar". */
+  const fecharRef = React.useRef(onClose)
+  fecharRef.current = onClose
+
   React.useEffect(() => {
     if (!open) return
     const gatilho = document.activeElement
@@ -47,7 +54,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
     if (fechar) fechar.focus()
 
     const onKey = (e) => {
-      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'Escape') { fecharRef.current(); return }
       if (e.key !== 'Tab') return
       const itens = focaveis()
       if (!itens.length) return
@@ -62,9 +69,13 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = overflowAnterior
-      if (gatilho && typeof gatilho.focus === 'function') gatilho.focus()
+      // Só devolve o foco se ele ainda estiver na folha (ou solto no body):
+      // quem fechou navegando já teve o foco levado ao conteúdo pelo App.
+      const ativo = document.activeElement
+      const soltou = !ativo || ativo === document.body || (folha && folha.contains(ativo))
+      if (soltou && gatilho && typeof gatilho.focus === 'function') gatilho.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!montada) return null
 
@@ -111,6 +122,8 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
                 className={ativo ? 'is-ativo' : undefined}
                 aria-current={ativo ? 'page' : undefined}
                 onClick={ativo ? (e) => { e.preventDefault(); onClose() } : ir(l.href)}
+                onTouchStart={() => precarregar(l.id)}
+                onFocus={() => precarregar(l.id)}
                 style={{ '--scw-folha-cor': pageColorDark(l.id) }}
               >
                 {l.label}

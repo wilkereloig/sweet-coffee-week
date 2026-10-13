@@ -1,4 +1,5 @@
 import React from 'react'
+import { precarregar } from '../pages/carregadores'
 
 /*
  * Casca do site institucional — redesign 2026.
@@ -90,6 +91,42 @@ export function AcessoTopo({ onOpenAccess, accessOpen }) {
 }
 
 /*
+ * NavPrincipal — os seis links do menu de desktop. Uma peça para os dois
+ * cabeçalhos (o do site e o próprio de Edições), que repetiam a marcação e já
+ * tinham divergido: o de Edições usava a cor crua da página no hover, e roxo e
+ * marrom somem sobre o chocolate da cápsula (§6.2). `aoNavegar(href)` devolve o
+ * handler de clique de cada cabeçalho.
+ */
+export function NavPrincipal({ route, aoNavegar }) {
+  return (
+    <nav className="scw-nav" aria-label="Navegação principal">
+      {NAV_LINKS.map((l) => {
+        const ativo = route === l.id
+        const c = pageColor(l.id)
+        return (
+          <a
+            key={l.id}
+            href={l.href}
+            className={ativo ? 'is-ativo' : undefined}
+            aria-current={ativo ? 'page' : undefined}
+            onClick={ativo ? (e) => e.preventDefault() : aoNavegar(l.href)}
+            onPointerEnter={() => precarregar(l.id)}
+            onFocus={() => precarregar(l.id)}
+            style={{
+              '--scw-nav-cor': c.menu,
+              '--scw-nav-tinta': c.tinta,
+              '--scw-nav-hover': hoverColor(l.id),
+            }}
+          >
+            {l.label}
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
+
+/*
  * `apenasAcesso` — cabeçalho reduzido ao botão de acesso, para a landing
  * /em-breve. Ela é a única página pública enquanto o gate está ligado, e as
  * rotas do menu não existem para o visitante: um link para /participar levaria
@@ -141,30 +178,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAc
         </a>
         )}
 
-        {!apenasAcesso && !semNav && (
-        <nav className="scw-nav" aria-label="Navegação principal">
-          {NAV_LINKS.map((l) => {
-            const ativo = route === l.id
-            const c = pageColor(l.id)
-            return (
-              <a
-                key={l.id}
-                href={l.href}
-                className={ativo ? 'is-ativo' : undefined}
-                aria-current={ativo ? 'page' : undefined}
-                onClick={ativo ? (e) => e.preventDefault() : go(l.href)}
-                style={{
-                  '--scw-nav-cor': c.menu,
-                  '--scw-nav-tinta': c.tinta,
-                  '--scw-nav-hover': hoverColor(l.id),
-                }}
-              >
-                {l.label}
-              </a>
-            )
-          })}
-        </nav>
-        )}
+        {!apenasAcesso && !semNav && <NavPrincipal route={route} aoNavegar={go} />}
 
         <AcessoTopo onOpenAccess={onOpenAccess} accessOpen={accessOpen} />
       </div>

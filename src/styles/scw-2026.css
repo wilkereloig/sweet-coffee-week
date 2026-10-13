@@ -61,6 +61,13 @@
      inteiro e a peça perde o respiro que ela tinha. */
   --scw-safe-b: env(safe-area-inset-bottom, 0px);
 
+  /* Chapa do menu de desktop. O cabeçalho é fixo e passa por fotos de qualquer
+     luminância (faixa clara do Sebrae em Participar, céu, parede branca) — o
+     degradê do véu dependia de a foto ser escura ali por acaso. Na cápsula a
+     tinta creme fecha 6,4:1 no pior caso (foto branca atrás) e 12:1 sobre o
+     chocolate da Home. Sem desfoque: atrás dela há crossfade (§10.3). */
+  --scw-chapa-menu: rgba(43, 14, 6, .76);
+
   /* Pisos de leitura no CELULAR. No desktop cada peça mantém o tamanho que foi
      desenhado — a tela está a 60cm dos olhos e o rótulo de 9,5px cumpre o papel.
      No celular, a 30cm e em movimento, ele deixa de ser lido. Só sobem as peças
@@ -268,6 +275,28 @@ body {
   font: 700 14px/1 var(--scw-font-ui);
 }
 .scw-skip:focus { left: 0; }
+
+/* Texto só para leitor de tela (status de carregamento, rótulos de apoio). */
+.scw-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* O <main> recebe foco por script a cada troca de página (App.jsx) — foco de
+   leitura, não de controle: sem anel. */
+#conteudo:focus { outline: none; }
+
+/* Troca de página com o chunk ainda chegando: a chapa ocupa a tela na cor do
+   herói da rota, então o rodapé não sobe e não há clarão. */
+.scw-carregando {
+  min-height: 100svh;
+  background: var(--scw-heroi, var(--scw-choco));
+}
 
 /* ============================================================================
    Utilitárias de layout
@@ -639,8 +668,11 @@ body { margin: 0; }
 .scw-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   margin-left: auto;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--scw-chapa-menu);
   font-size: 14px;
 }
 .scw-nav a {
@@ -926,10 +958,21 @@ body { margin: 0; }
 
 .cookie-consent {
   position: fixed;
-  left: clamp(12px, 2vw, 24px);
-  bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b));
+  /* À DIREITA no desktop: as ações dos heróis são alinhadas à esquerda, e era
+     exatamente ali que o cartão antigo pousava. */
+  right: clamp(12px, 2vw, 24px);
+  /* `--scw-base-ocupada`: altura de um controle da página preso à base (a
+     régua de Edições), declarada por useReservaDaBase — o aviso sobe acima. */
+  bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
   z-index: 1000;
-  width: min(340px, calc(100vw - 24px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  width: min(520px, calc(100vw - 24px));
+  max-height: 40svh;
+  overflow-y: auto;
+  padding: 12px 12px 12px 18px;
   border: 1px solid rgba(254, 240, 221, .28);
   border-radius: var(--scw-r-card);
   background: var(--scw-choco);
@@ -941,23 +984,23 @@ body { margin: 0; }
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
-.cookie-consent__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 18px;
-}
+/* Base de 150px: abaixo disso (telas de 360px ou zoom alto) o texto ganha a
+   linha inteira e as ações descem para a direita, em vez de virar uma coluna
+   de cinco linhas espremida ao lado dos botões. */
 .cookie-consent__text {
+  flex: 1 1 150px;
+  min-width: 0;
   margin: 0;
   font: 400 14px/1.45 var(--scw-font-texto);
-  color: rgba(254, 240, 221, .84);   /* .84 sobre chocolate = 9,2:1 */
+  color: rgba(254, 240, 221, .9);   /* .9 sobre chocolate ≈ 10:1 */
+  text-wrap: pretty;
 }
-.cookie-consent__actions { display: flex; gap: 8px; }
-/* 46px é o piso do §6.10 para pílula de ação dentro de card — o botão media 31. */
+.cookie-consent__actions { display: flex; flex: 0 0 auto; gap: 8px; margin-left: auto; }
+/* 46px é o piso do §6.10 para pílula de ação dentro de card. */
 .cookie-consent__btn {
   appearance: none;
   min-height: 46px;
-  padding: 13px 20px;
+  padding: 0 18px;
   border: 0;
   border-radius: 999px;
   font: 700 14px/1 var(--scw-font-ui);
@@ -989,14 +1032,26 @@ body { margin: 0; }
    conteúdo respira acima delas. Este bloco vem depois das regras base acima —
    é o que faz o display vencer o `none` padrão. */
 @media (max-width: 900px) {
-  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); }
+  /* Faixa de largura cheia: texto à esquerda, as duas ações à direita, numa
+     linha só sempre que couber. Fica colada acima da barra de abas e nunca
+     sobre ela — as abas continuam tocáveis com o aviso aberto. */
+  .cookie-consent {
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
+    width: auto;
+    padding: 10px 10px 10px 14px;
+    border-radius: 16px;
+  }
+  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); line-height: 1.35; }
+  .cookie-consent__btn { padding: 0 14px; }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }
   .scw-raiz.tem-abas { padding-bottom: calc(76px + var(--scw-safe-b)); }
   /* O aviso de cookies mora em `bottom:16px` e cobria a barra de abas — os
      cliques nas abas eram interceptados por ele. Sobe acima da barra. */
-  .scw-raiz.tem-abas .cookie-consent { bottom: calc(88px + var(--scw-safe-b)); }
+  .scw-raiz.tem-abas .cookie-consent { bottom: calc(84px + var(--scw-safe-b) + var(--scw-base-ocupada, 0px)); }
 }
 
 /* ============================================================================
@@ -1423,7 +1478,10 @@ body { margin: 0; }
 .scw-footer {
   background: var(--scw-choco);
   color: rgba(254, 240, 221, .86);
-  padding: clamp(30px, 3.2vw, 44px) var(--scw-trilho) clamp(18px, 2vw, 24px);
+  /* `--scw-aviso-h` é a altura do aviso de cookies enquanto ele estiver na
+     tela (CookieConsent.jsx mede e escreve no body). O fim da página ganha esse
+     respiro para que nada fique para sempre embaixo do aviso. */
+  padding: clamp(30px, 3.2vw, 44px) var(--scw-trilho) calc(clamp(18px, 2vw, 24px) + var(--scw-aviso-h, 0px));
 }
 .scw-footer__linha {
   display: flex;
@@ -1692,6 +1750,36 @@ body { margin: 0; }
   .scw-hero-banda__foto { transition: none; }
 }
 
+/* Pausa da série em crossfade (HeroFotos e abertura da Home). Só ícone, com o
+   nome no hover/foco (§6.11). Mesma chapa do menu: a foto atrás pode ser de
+   qualquer luminância, e o ícone creme sobre ela fecha 6,4:1 no pior caso.
+   Fica na base da foto, à direita — no desktop sobe a altura do aviso de
+   cookies enquanto ele estiver na tela, para não morar embaixo dele. */
+.scw-pausa-fotos {
+  position: absolute;
+  right: clamp(12px, 1.6vw, 20px);
+  bottom: clamp(12px, 1.6vw, 20px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scw-chapa-menu);
+  color: var(--scw-creme);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+@media (hover: hover) {
+  .scw-pausa-fotos:hover { background: var(--scw-choco); }
+}
+.scw-pausa-fotos:active { transform: scale(.94); }
+@media (min-width: 1001px) {
+  .scw-hero-banda .scw-pausa-fotos { bottom: calc(clamp(12px, 1.6vw, 20px) + var(--scw-aviso-h, 0px)); }
+}
+
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */
 @media (max-width: 1000px) {
   .scw-hero { min-height: 0; display: block; }
@@ -1938,7 +2026,7 @@ body { margin: 0; }
 .scw-topo {
   position: fixed;
   right: clamp(16px, 2.4vw, 32px);
-  bottom: clamp(18px, 2.4vw, 32px);
+  bottom: calc(clamp(18px, 2.4vw, 32px) + var(--scw-aviso-h, 0px));
   z-index: 70;
   display: grid;
   place-items: center;
@@ -1954,7 +2042,7 @@ body { margin: 0; }
 /* O recuo de 86px existe para não cobrir a barra de abas — sem ela (publicação
    "só Participar"), o botão fica na base como no desktop. */
 @media (max-width: 900px) {
-  .tem-abas .scw-topo { bottom: calc(86px + var(--scw-safe-b)); }
+  .tem-abas .scw-topo { bottom: calc(86px + var(--scw-safe-b) + var(--scw-aviso-h, 0px)); }
 }
 
 /* ============================================================================

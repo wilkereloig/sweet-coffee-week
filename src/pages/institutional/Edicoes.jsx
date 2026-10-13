@@ -53,7 +53,8 @@ import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
 import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa'
 import { editionPhotos, bgStyle, SIZES, srcSet } from '../../data/imageLibrary'
 import { editionMark } from '../../data/editionAssets'
-import { NAV_LINKS, pageColor, AcessoTopo } from '../../components/nav'
+import { NavPrincipal, AcessoTopo } from '../../components/nav'
+import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 
 // Identidade das 16 cenas (handoff de design). A frase de abertura NÃO mora
@@ -574,6 +575,11 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
 
   // ---- régua mobile: rola e centraliza no ano ativo -----------------------
   const reguaRef = React.useRef(null)
+  // A régua do celular e o rodapé do desktop moram na base: o aviso de
+  // cookies sobe a altura deles em vez de cobrir os anos (useReservaDaBase).
+  const reguaBaseRef = React.useRef(null)
+  const rodapeRef = React.useRef(null)
+  useReservaDaBase(reguaBaseRef, rodapeRef)
   React.useEffect(() => {
     const trilho = reguaRef.current
     if (!trilho) return
@@ -719,7 +725,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
           </div>
 
           {/* peça 1 — régua de anos fixa na base, acima da tab bar do site */}
-          <nav className="scw-edx-mob__regua" aria-label="Linha do tempo das edições">
+          <nav className="scw-edx-mob__regua" aria-label="Linha do tempo das edições" ref={reguaBaseRef}>
             <div className="scw-edx-mob__regua-topo">
               <span className="scw-edx-mob__regua-code"><b>{e.code}</b><span>{e.tema}</span></span>
               <span className="scw-edx-mob__regua-rot">linha do tempo</span>
@@ -818,24 +824,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
                 </span>
               </span>
 
-              <nav className="scw-nav" aria-label="Navegação principal">
-                {NAV_LINKS.map((l) => {
-                  const ativo = l.id === 'edicoes'
-                  const c = pageColor(l.id)
-                  return (
-                    <a
-                      key={l.id}
-                      href={l.href}
-                      className={ativo ? 'is-ativo' : undefined}
-                      aria-current={ativo ? 'page' : undefined}
-                      onClick={ativo ? (ev) => ev.preventDefault() : ir(l.href)}
-                      style={{ '--scw-nav-cor': c.menu, '--scw-nav-tinta': c.tinta, '--scw-nav-hover': c.menu }}
-                    >
-                      {l.label}
-                    </a>
-                  )
-                })}
-              </nav>
+              <NavPrincipal route="edicoes" aoNavegar={ir} />
 
               {/* O cabeçalho do site não é renderizado nesta rota, então o botão de
                   acesso vive aqui — o gatilho do diálogo vem do App por prop. */}
@@ -934,7 +923,7 @@ export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpe
         </div>
 
         {/* rodapé: trilha das 16 edições (dots + anos), setas e progresso */}
-        <footer className="scw-edx__rodape">
+        <footer className="scw-edx__rodape" ref={rodapeRef}>
           <div className="scw-edx__rodape-linha">
             <button
               type="button"

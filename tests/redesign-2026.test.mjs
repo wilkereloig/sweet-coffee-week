@@ -166,14 +166,15 @@ test('a casca troca de modo em 900px, e na ordem certa', () => {
 
 test('o aviso de cookies não cobre a barra de abas', () => {
   const sistema = ler(SISTEMA)
-  // O deslocamento continua sendo 88px + o recorte seguro da base; o que mudou
-  // em ago/2026 é que o recorte virou o token --scw-safe-b, porque aparecia cru
-  // em sete lugares e metade deles sem o fallback `0px`.
-  assert.match(
-    sistema,
-    /\.scw-raiz\.tem-abas \.cookie-consent \{ bottom: calc\(88px \+ var\(--scw-safe-b\)\); \}/,
-    'sem esse deslocamento o aviso intercepta os cliques das abas',
+  // O aviso pousa ACIMA da barra de abas (76px) + o recorte seguro da base. Em
+  // ago/2026 o recorte virou o token --scw-safe-b; em 12/10/2026 o aviso virou
+  // faixa compacta (84px = barra + 8 de folga) e passou a somar também
+  // --scw-base-ocupada, a régua fixa de Edições (useReservaDaBase).
+  const regra = sistema.match(
+    /\.scw-raiz\.tem-abas \.cookie-consent \{ bottom: calc\((\d+)px \+ var\(--scw-safe-b\)( \+ var\(--scw-base-ocupada, 0px\))?\); \}/,
   )
+  assert.ok(regra, 'sem esse deslocamento o aviso intercepta os cliques das abas')
+  assert.ok(Number(regra[1]) >= 80, `o aviso precisa ficar acima dos 76px da barra (está em ${regra[1]}px)`)
   assert.match(
     sistema,
     /--scw-safe-b:\s*env\(safe-area-inset-bottom,\s*0px\)/,
