@@ -1,5 +1,6 @@
 /* ============================================================================
-   Home / "O festival" — reconstrução de 28/09/2026.
+   Home / "O festival" — reequilíbrio de 12/10/2026 (estrutura em
+   src/pages/home/, uma seção por arquivo).
    Só o que NÃO existe em scw-2026.css (tokens, tipografia, botões, seções,
    disco e numeral vêm de lá). Nenhuma cor fora da paleta: onde há transparência
    é rgba() da própria paleta (chocolate 61,19,8 · creme 254,240,221).
@@ -7,8 +8,8 @@
    ========================================================================= */
 
 .hm { background: var(--scw-creme); color: var(--scw-choco); }
-/* Reset com especificidade ZERO (:where): `.hm ul` (0,1,1) vencia a margem
-   de `.hm-passos`/`.hm-ganhos` (0,1,0) — a armadilha do §10.1. */
+/* Reset com especificidade ZERO (:where): `.hm ul` (0,1,1) venceria a margem
+   das listas da página (0,1,0) — a armadilha do §10.1. */
 :where(.hm) ul, :where(.hm) ol { list-style: none; margin: 0; padding: 0; }
 :where(.hm) figure { margin: 0; }
 
@@ -22,17 +23,35 @@
 .hm-voz__foto,
 .hm-mosaico__item,
 .hm-destino__capa,
-.hm-destino__foto { position: relative; overflow: hidden; background: var(--scw-bege); }
+.hm-awards__foto,
+.hm-abre--destaque .hm-abre__pessoas { position: relative; overflow: hidden; background: var(--scw-bege); }
 .hm-festival__foto img,
 .hm-voz__foto img,
 .hm-mosaico__item img,
 .hm-destino__capa img,
-.hm-destino__foto img {
+.hm-awards__foto img,
+.hm-abre__img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Legenda sobre a foto: diz o que o registro mostra e de qual edição é. */
+.hm-festival__foto figcaption,
+.hm-mosaico__item figcaption,
+.hm-awards__foto figcaption {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 1;
+  max-width: calc(100% - 28px);
+  padding: 8px 12px 7px;
+  border-radius: 10px;
+  background: rgba(61, 19, 8, .88);
+  color: var(--scw-creme);
+  font: 700 12px/1.25 var(--scw-font-ui);
 }
 
 /* ============================================================================
@@ -46,10 +65,10 @@
   align-items: end;
   margin-bottom: var(--scw-gap-cabeca);
 }
-.hm-cab .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
+.hm .scw-rotulo + .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
 .hm-h2--claro { color: var(--scw-creme); }
-.hm-rotulo--amarelo { color: var(--scw-amarelo); }
-.hm-rotulo--bege { color: var(--scw-bege); }
+/* Rótulo sobre chapa escura (chocolate, roxo): amarelo, 9,5:1 e 6,5:1. */
+.hm .hm-rotulo--amarelo { color: var(--scw-amarelo); }
 
 .hm-apoio {
   margin: 0;
@@ -58,7 +77,7 @@
   font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
   text-wrap: pretty;
 }
-.hm-apoio--clara { color: rgba(254, 240, 221, .78); }
+.hm-apoio--clara { color: rgba(254, 240, 221, .8); }
 @media (min-width: 760px) {
   .hm-cab .hm-apoio { justify-self: end; }
 }
@@ -80,26 +99,32 @@
 }
 /* Prefixado: o reset `.scw-raiz a { color: inherit }` (0,1,1) venceria. */
 .scw-raiz .hm-link--escuro { color: var(--scw-choco); }
+.scw-raiz .hm-link--claro { color: var(--scw-creme); }
+@media (hover: hover) {
+  .scw-raiz .hm-link--claro:hover { color: var(--scw-amarelo); }
+}
 
-/* Palavra com hífen que não pode quebrar no hífen (§10.5). */
-.hm-inteiro { white-space: nowrap; }
 .hm-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* Botões fora do trio do sistema: chapa + tinta que fecham contraste no fundo
-   da seção onde vivem (chocolate sobre cyan 5,6:1 · chocolate sobre bege 13:1). */
+   onde vivem (chocolate sobre cyan 5,6:1 · chocolate sobre bege 13:1 ·
+   chocolate sobre creme 12:1, este no roxo). */
 .scw-raiz .hm-btn--choco { background: var(--scw-choco); color: var(--scw-creme); }
 .scw-raiz .hm-btn--bege { background: var(--scw-bege); color: var(--scw-choco); }
+.scw-raiz .hm-btn--creme { background: var(--scw-creme); color: var(--scw-choco); }
 @media (hover: hover) {
-  .scw-raiz .hm-btn--choco:hover { background: var(--scw-creme); color: var(--scw-choco); }
+  .scw-raiz .hm-btn--choco:hover,
   .scw-raiz .hm-btn--bege:hover { background: var(--scw-creme); color: var(--scw-choco); }
+  .scw-raiz .hm-btn--creme:hover { background: var(--scw-amarelo); color: var(--scw-choco); }
 }
 .scw-raiz .hm-btn--choco:active,
-.scw-raiz .hm-btn--bege:active { transform: translateY(1px); }
+.scw-raiz .hm-btn--bege:active,
+.scw-raiz .hm-btn--creme:active { transform: translateY(1px); }
 
 /* ============================================================================
-   01 Abertura — a próxima edição
-   Texto à esquerda, fotos à direita. Não é mais herói de tela cheia: a altura
-   é a do conteúdo, e a seção seguinte aparece na primeira dobra.
+   01 Abertura — o festival (ou a edição em destaque, mesma grade)
+   Texto à esquerda, fotos à direita. Não é herói de tela cheia: a altura é a
+   do conteúdo, e a seção seguinte aparece na primeira dobra.
    ========================================================================= */
 
 .hm-abre {
@@ -115,42 +140,11 @@
 }
 
 .hm-abre__estado {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
   margin: 0;
   font: 700 12px/1.25 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-amarelo);
-}
-/* Selo de estado: a única pill da abertura. O ponto pulsa três vezes e para —
-   anuncia que a informação é de agora, sem virar laço (§6.15). */
-.hm-abre__selo {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  /* 1px a mais em cima: o caixa-alta renderiza acima do centro (§6.5). */
-  padding: 9px 15px 8px;
-  border-radius: 999px;
-  background: var(--scw-amarelo);
-  color: var(--scw-choco);
-}
-.hm-abre__selo i {
-  position: relative;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.hm-abre__selo i::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0;
 }
 
 .hm-abre__titulo {
@@ -168,7 +162,8 @@
 }
 .hm-abre .hm-acoes { margin-top: clamp(26px, 2.8vw, 36px); }
 
-/* Ficha da edição: o que se sabe, e o que ainda não se diz, em três linhas. */
+/* Ficha: o que o festival é em três linhas (a próxima edição só com o que
+   proximaEdicao.js confirma). */
 .hm-abre__ficha {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, auto));
@@ -227,6 +222,7 @@
   font: 400 13px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .72);
 }
+.hm-abre--destaque .hm-abre__legenda { padding-left: 0; }
 
 /* Celular: foto no topo, largura cheia (§6.9), texto embaixo na chapa. */
 @media (max-width: 999px) {
@@ -239,11 +235,14 @@
     order: -1;
     margin: 0 calc(-1 * var(--scw-trilho)) 22px;
   }
-  /* 16:10 e não o quadrado do §6.9: aqui a mensagem e o botão precisam caber
-     acima da barra de abas no primeiro quadro (em 390×844 o botão fica em
-     ~y 560, a barra começa em 769). */
+  /* 16:10 e não o quadrado do §6.9: aqui o título, o lead e a ação principal
+     precisam caber acima do aviso de cookies na primeira visita. */
   .hm-abre__pessoas {
     aspect-ratio: 16 / 10;
+    /* Tela larga e baixa (tablet deitado, 900×900): a proporção sozinha
+       empurrava a ação para baixo do aviso de cookies. O teto em altura de
+       tela segura a foto; a largura continua cheia (cover recorta). */
+    max-height: 44svh;
     border-radius: 0;
   }
   .hm-abre__pessoas .hm-abre__foto { background-image: var(--foto-mobile, var(--foto)); }
@@ -266,6 +265,9 @@
     width: clamp(92px, 26vw, 150px);
     border-width: 4px;
   }
+  /* A pausa sai do canto direito (onde pousa o combo) para o esquerdo, e a
+     legenda começa depois dela — só quando há pausa (sem movimento, não há). */
+  .hm-abre .scw-pausa-fotos { left: var(--scw-trilho); right: auto; bottom: 10px; }
   .hm-abre__legenda {
     position: absolute;
     left: var(--scw-trilho);
@@ -277,17 +279,24 @@
     font-size: 12px;
     color: rgba(254, 240, 221, .82);
   }
+  .hm-abre__fotos.tem-pausa .hm-abre__legenda { left: calc(var(--scw-trilho) + 56px); }
+  .hm-abre--destaque .hm-abre__legenda { right: var(--scw-trilho); }
 }
 @media (min-width: 600px) and (max-width: 999px) {
   .hm-abre__pessoas { aspect-ratio: 2 / 1; }
 }
+/* Telefone estreito: 16:9 devolve ~22px para a ação principal ficar inteira
+   acima do aviso de cookies em 360×800 (critério medido, sem mexer no corpo). */
+@media (max-width: 420px) {
+  .hm-abre__pessoas { aspect-ratio: 16 / 9; }
+}
 @media (max-width: 520px) {
   .hm-abre__ficha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .hm-abre__ficha > div:last-child { grid-column: 1 / -1; }
+  .hm-abre__ficha > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
 /* ============================================================================
-   02 O festival — texto, anatomia e laços à esquerda; um combo à direita
+   02 Como funciona — texto, anatomia e laços à esquerda; um combo à direita
    ========================================================================= */
 
 .hm-festival {
@@ -296,24 +305,13 @@
   gap: clamp(36px, 5vw, 96px);
   align-items: start;
 }
-.hm-festival .scw-h2 { margin-top: clamp(14px, 1.6vw, 20px); }
+/* Recebe o foco quando "Como funciona" é acionado na abertura (leitor de
+   tela e teclado continuam dali); não é controle, então sem anel. */
+.hm-festival .scw-h2:focus { outline: none; }
 .hm-festival .hm-apoio { max-width: 48ch; margin-top: clamp(18px, 2vw, 24px); }
 .hm-festival__foto {
   aspect-ratio: 4 / 5;
   border-radius: var(--scw-r-secao);
-}
-.hm-festival__foto figcaption,
-.hm-mosaico__item figcaption {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  z-index: 1;
-  max-width: calc(100% - 28px);
-  padding: 8px 12px 7px;
-  border-radius: 10px;
-  background: rgba(61, 19, 8, .88);
-  color: var(--scw-creme);
-  font: 700 12px/1.25 var(--scw-font-ui);
 }
 
 .hm-anatomia {
@@ -421,161 +419,8 @@
 }
 
 /* ============================================================================
-   03 Como participar — chapa cyan, a cor do destino (Participar)
-   ========================================================================= */
-
-.hm-participa {
-  background: var(--scw-cyan);
-  color: var(--scw-choco);
-}
-/* Chapa clara: rótulo, links e anel de foco em chocolate (§6.2 — o anel cyan
-   do sistema sumiria aqui). */
-.hm-participa .scw-rotulo { color: var(--scw-choco); }
-.scw-raiz .hm-participa a:focus-visible { outline-color: var(--scw-choco); }
-
-.hm-participa__cab {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: clamp(16px, 3vw, 56px);
-  align-items: end;
-}
-.hm-participa__cab .scw-rotulo { grid-column: 1 / -1; }
-.hm-participa__cab .scw-h2 { max-width: 16ch; }
-.hm-participa__nota {
-  max-width: 40ch;
-  margin: 0;
-  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
-  text-wrap: pretty;
-}
-@media (min-width: 760px) {
-  .hm-participa__nota { justify-self: end; }
-}
-
-.hm-passos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: clamp(28px, 3vw, 48px) clamp(24px, 3vw, 56px);
-  margin-top: var(--scw-gap-cabeca);
-}
-.hm-passo { padding-top: clamp(18px, 2vw, 24px); border-top: 2px solid var(--scw-choco); }
-.hm-passo__topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.hm-passo__num {
-  font: 900 clamp(44px, 4.4vw, 72px)/.84 var(--scw-font-black);
-  letter-spacing: -.06em;
-  font-variant-numeric: tabular-nums;
-}
-.hm-passo__disco { --tam: 54px; --c: var(--scw-choco); --tinta: var(--scw-cyan); }
-.hm-passo__titulo {
-  margin: clamp(18px, 2vw, 24px) 0 8px;
-  font: 900 clamp(21px, 2vw, 28px)/1.06 var(--scw-font-black);
-  letter-spacing: -.026em;
-  text-wrap: balance;
-}
-.hm-passo__texto {
-  max-width: 34ch;
-  margin: 0;
-  font: 400 16px/1.55 var(--scw-font-texto);
-  text-wrap: pretty;
-}
-.hm-participa__acoes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px 28px;
-  margin-top: var(--scw-gap-cabeca);
-}
-
-/* ============================================================================
-   04 Por que participar — foto + depoimento, e os ganhos com dado
-   ========================================================================= */
-
-.hm-voz {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: clamp(28px, 4.4vw, 88px);
-  align-items: center;
-}
-.hm-voz__foto { aspect-ratio: 4 / 5; border-radius: var(--scw-r-secao); }
-.hm-voz__texto { display: flex; flex-direction: column; align-items: flex-start; gap: clamp(20px, 2.2vw, 28px); }
-.hm-voz__frase {
-  margin: 0;
-  max-width: 22ch;
-  font: 900 clamp(26px, 2.9vw, 46px)/1.1 var(--scw-font-black);
-  letter-spacing: -.03em;
-  text-wrap: balance;
-}
-.hm-voz__assinatura { display: flex; align-items: center; gap: 14px; }
-.hm-voz__marca {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--scw-bege);
-  border: 3px solid var(--scw-magenta);
-  font: 700 15px/1 var(--scw-font-ui);
-}
-.hm-voz__marca img { width: 100%; height: 100%; object-fit: cover; }
-.hm-voz__id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.hm-voz__id b { font: 700 16.5px/1.2 var(--scw-font-ui); }
-.hm-voz__id > span { font: 400 14.5px/1.3 var(--scw-font-texto); color: var(--scw-marrom); }
-
-.hm-ganhos {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, max(210px, calc((100% - 3 * clamp(24px, 2.6vw, 44px)) / 4))), 1fr)
-  );
-  gap: clamp(30px, 3vw, 44px) clamp(24px, 2.6vw, 44px);
-  margin-top: clamp(52px, 5.6vw, 96px);
-}
-.hm-ganho {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(61, 19, 8, .2);
-}
-.hm-ganho__cabeca {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font: 700 12px/1.2 var(--scw-font-ui);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--scw-choco);
-}
-/* Irmãos nunca repetem cor (§6.3): a cor vai no ícone, que é grafismo (3:1
-   sobre creme — roxo 6,7 · magenta 3,8 · laranja 3,0 · marrom 6,9). */
-.hm-ganho:nth-child(1) svg { color: var(--scw-roxo); }
-.hm-ganho:nth-child(2) svg { color: var(--scw-magenta); }
-.hm-ganho:nth-child(3) svg { color: var(--scw-laranja); }
-.hm-ganho:nth-child(4) svg { color: var(--scw-marrom); }
-.hm-ganho__valor { color: var(--scw-choco); font-size: clamp(40px, 3.8vw, 64px); }
-/* A palavra ocupa a faixa do numeral sem fingir ser número. */
-.hm-ganho__valor--palavra {
-  display: block;
-  font: 900 clamp(28px, 2.6vw, 42px)/.9 var(--scw-font-black);
-  letter-spacing: -.035em;
-  padding-top: clamp(6px, .6vw, 12px);
-}
-.hm-ganho__texto {
-  max-width: 30ch;
-  margin: 0;
-  font: 400 15px/1.5 var(--scw-font-texto);
-  color: var(--scw-marrom);
-  text-wrap: pretty;
-}
-
-@media (max-width: 759px) {
-  .hm-voz { grid-template-columns: minmax(0, 1fr); }
-  .hm-voz__foto { aspect-ratio: 4 / 3; }
-}
-
-/* ============================================================================
-   05 O festival em movimento — mosaico editorial (sem laço, sem autoplay)
+   03 Em registros — mosaico editorial (sem laço, sem autoplay) e a voz de
+   uma casa participante
    Tamanhos diferentes de propósito: a pessoa grande, o combo e o detalhe
    menores ao lado. A entrada é a do motor (useSiteMotion), item a item.
    ========================================================================= */
@@ -605,35 +450,117 @@
   .hm-mosaico__item figcaption { left: 8px; bottom: 8px; max-width: calc(100% - 16px); font-size: 11px; padding: 7px 10px 6px; }
 }
 
+/* A voz: foto da casa + a frase, assinada (pessoa e marca). Fica no chocolate
+   da seção — creme sobre chocolate 12:1. */
+.hm-voz {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 4.4vw, 88px);
+  align-items: center;
+  margin-top: clamp(56px, 6vw, 104px);
+}
+.hm-voz__foto { aspect-ratio: 4 / 5; border-radius: var(--scw-r-secao); }
+.hm-voz__texto { display: flex; flex-direction: column; align-items: flex-start; gap: clamp(18px, 2vw, 26px); }
+.hm-voz__frase {
+  margin: 0;
+  max-width: 22ch;
+  color: var(--scw-creme);
+  font: 900 clamp(26px, 2.9vw, 46px)/1.1 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.hm-voz__assinatura { display: flex; align-items: center; gap: 14px; }
+.hm-voz__marca {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--scw-bege);
+  color: var(--scw-choco);
+  border: 3px solid var(--scw-amarelo);
+  font: 700 15px/1 var(--scw-font-ui);
+}
+.hm-voz__marca img { width: 100%; height: 100%; object-fit: cover; }
+.hm-voz__id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hm-voz__id b { font: 700 16.5px/1.2 var(--scw-font-ui); color: var(--scw-creme); }
+.hm-voz__id > span { font: 400 14.5px/1.3 var(--scw-font-texto); color: rgba(254, 240, 221, .78); }
+
+@media (max-width: 759px) {
+  .hm-voz { grid-template-columns: minmax(0, 1fr); }
+  .hm-voz__foto { aspect-ratio: 4 / 3; }
+}
+
 /* ============================================================================
-   06 Trajetória — dois destinos (cor do DESTINO, §6.2) e a imprensa
+   04 Trajetória — números (com o que medem), a porta para Edições e a imprensa
    ========================================================================= */
 
-.hm-destinos {
+.hm-numeros {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: clamp(14px, 1.8vw, 24px);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(210px, calc((100% - 3 * clamp(24px, 2.6vw, 44px)) / 4))), 1fr)
+  );
+  gap: clamp(30px, 3vw, 44px) clamp(24px, 2.6vw, 44px);
 }
-.hm-destino {
+.hm-numero {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(61, 19, 8, .2);
+}
+.hm-numero__cabeca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 12px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-choco);
+}
+/* Irmãos nunca repetem cor (§6.3). Sobre bege, laranja e amarelo não fecham
+   3:1 como grafismo; a cor vai no ícone: roxo 6,0 · magenta 3,4 · marrom 6,3
+   · chocolate 13. */
+.hm-numero:nth-child(1) svg { color: var(--scw-roxo); }
+.hm-numero:nth-child(2) svg { color: var(--scw-magenta); }
+.hm-numero:nth-child(3) svg { color: var(--scw-marrom); }
+.hm-numero:nth-child(4) svg { color: var(--scw-choco); }
+.hm-numero__valor { color: var(--scw-choco); font-size: clamp(40px, 3.8vw, 64px); }
+.hm-numero__texto {
+  max-width: 30ch;
+  margin: 0;
+  font: 400 15px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+.hm-numeros__nota {
+  margin: clamp(18px, 2vw, 24px) 0 0;
+  font: 400 13.5px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+}
+
+/* A porta para Edições: o cartão inteiro é o link (família "edição", §6.16),
+   na cor do DESTINO (laranja; chocolate sobre ele 4,78:1, texto grande e
+   rótulo em caixa-alta de 12px com peso 700). */
+.hm-destino {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  margin-top: clamp(44px, 5vw, 80px);
   border-radius: var(--scw-r-secao);
   overflow: hidden;
   transition: var(--scw-transicao);
 }
-.scw-raiz .hm-destino--edicoes { background: var(--scw-laranja); color: var(--scw-choco); }  /* → Edições 4,78:1 */
-.scw-raiz .hm-destino--awards  { background: var(--scw-roxo);    color: var(--scw-creme); }  /* → Awards 9,95:1 */
+.scw-raiz .hm-destino--edicoes { background: var(--scw-laranja); color: var(--scw-choco); }
 
 .hm-destino__fotos {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
-  padding: 6px 6px 0;
+  padding: 6px;
 }
-/* As capas absorvem a sobra de altura: o cartão vizinho (Awards) define a
-   linha, e sem isto o laranja sobrava vazio embaixo do texto. */
-.hm-destino--edicoes .hm-destino__fotos { flex: 1; }
-.hm-destino--edicoes .hm-destino__corpo { flex: 0 0 auto; }
 .hm-destino__capa { min-height: clamp(170px, 16vw, 280px); border-radius: 16px; }
 .hm-destino__capa b {
   position: absolute;
@@ -646,17 +573,15 @@
   color: var(--scw-creme);
   font: 700 12px/1 var(--scw-font-ui);
 }
-.hm-destino__foto { aspect-ratio: 16 / 10; }
-.hm-destino__fotos img,
-.hm-destino__foto img { transition: scale var(--mo-longo) var(--mo-ease); }
+.hm-destino__fotos img { transition: scale var(--mo-longo) var(--mo-ease); }
 
 .hm-destino__corpo {
   display: flex;
-  flex: 1;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 12px;
-  padding: clamp(22px, 2.6vw, 36px);
+  padding: clamp(22px, 2.6vw, 40px);
 }
 .hm-destino__eixo {
   font: 700 12px/1 var(--scw-font-ui);
@@ -664,7 +589,7 @@
   text-transform: uppercase;
 }
 .hm-destino__titulo {
-  max-width: 20ch;
+  max-width: 18ch;
   font: 900 clamp(24px, 2.4vw, 36px)/1 var(--scw-font-black);
   letter-spacing: -.03em;
   text-wrap: balance;
@@ -675,18 +600,18 @@
   align-items: center;
   gap: 10px;
   min-height: 46px;
-  margin-top: auto;
+  margin-top: 6px;
   padding: 12px 22px;
   border-radius: 999px;
+  background: var(--scw-choco);
+  color: var(--scw-creme);
   font: 700 14.5px/1 var(--scw-font-ui);
   transition: var(--scw-transicao);
 }
-.hm-destino--edicoes .hm-destino__cta { background: var(--scw-choco); color: var(--scw-creme); }
-.hm-destino--awards  .hm-destino__cta { background: var(--scw-creme); color: var(--scw-choco); }
 .hm-destino__cta > svg { transition: transform 180ms var(--scw-ease); }
 
-/* O card inteiro é o link (família "edição", §6.16): a seta avança e a foto
-   se aproxima — no ponteiro e no teclado, pelo mesmo caminho. */
+/* A seta avança e as fotos se aproximam — no ponteiro e no teclado, pelo
+   mesmo caminho. */
 @media (hover: hover) {
   .hm-destino:hover .hm-destino__cta > svg { transform: translateX(4px); }
   .hm-destino:hover img { scale: 1.04; }
@@ -695,7 +620,12 @@
 .hm-destino:active { transform: translateY(1px); }
 
 @media (max-width: 899px) {
-  .hm-destinos { grid-template-columns: minmax(0, 1fr); }
+  .hm-destino { grid-template-columns: minmax(0, 1fr); }
+  .hm-destino__fotos { padding-bottom: 0; }
+}
+@media (max-width: 520px) {
+  .hm-destino__fotos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hm-destino__capa { min-height: clamp(120px, 34vw, 170px); }
 }
 
 .hm-imprensa {
@@ -782,34 +712,123 @@
 }
 
 /* ============================================================================
-   07 Apoio — convite curto a parceiros, na cor da página Apoiar (marrom)
-   Não lista patrocinador (§9.6): é a porta para Apoiar, não uma vitrine.
+   05 Sweet Awards — chapa roxa, a cor do DESTINO (creme sobre roxo 9,95:1)
    ========================================================================= */
 
-.hm-apoiar {
+.hm-awards {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto;
-  gap: 20px clamp(24px, 4vw, 72px);
-  align-items: end;
-  background: var(--scw-marrom);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(28px, 4.4vw, 88px);
+  align-items: center;
+  background: var(--scw-roxo);
   color: var(--scw-creme);
 }
-.scw-raiz .hm-apoiar a:focus-visible { outline-color: var(--scw-creme); }
-.hm-apoiar__titulo {
-  margin: 12px 0 0;
-  font: 900 clamp(28px, 3vw, 46px)/1 var(--scw-font-black);
-  letter-spacing: -.035em;
+.hm-awards__foto { aspect-ratio: 4 / 5; border-radius: var(--scw-r-secao); background: var(--scw-marrom); }
+.hm-awards__texto { display: flex; flex-direction: column; align-items: flex-start; }
+.hm-awards__texto .hm-apoio { max-width: 46ch; margin-top: clamp(18px, 2vw, 24px); }
+.hm-awards__numero {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: clamp(26px, 2.8vw, 36px) 0 clamp(26px, 2.8vw, 36px);
+  font: 700 15px/1.3 var(--scw-font-ui);
 }
-.hm-apoiar__texto {
+.hm-awards__numero .scw-disco { --tam: 56px; --c: var(--scw-amarelo); --tinta: var(--scw-choco); }
+.hm-awards__numero .scw-numeral { font-size: clamp(44px, 4.2vw, 68px); }
+.scw-raiz .hm-awards a:focus-visible { outline-color: var(--scw-amarelo); }
+
+@media (max-width: 759px) {
+  .hm-awards { grid-template-columns: minmax(0, 1fr); }
+  .hm-awards__foto { aspect-ratio: 4 / 3; }
+}
+
+/* ============================================================================
+   06 Faça parte — duas portas curtas, cada uma na cor do DESTINO (§6.2):
+   Participar (cyan, tinta chocolate 5,6:1) e Apoiar (marrom, tinta creme
+   9,44:1). Não lista patrocinador (§9.6).
+   ========================================================================= */
+
+.hm-parte__cab { margin-bottom: var(--scw-gap-cabeca); }
+.hm-portas {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(14px, 1.8vw, 24px);
+}
+.hm-porta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: clamp(26px, 3vw, 48px);
+  border-radius: var(--scw-r-secao);
+}
+.hm-porta--participar { background: var(--scw-cyan); color: var(--scw-choco); }
+.hm-porta--apoiar { background: var(--scw-marrom); color: var(--scw-creme); }
+/* Chapa clara: anel de foco em chocolate (o cyan do sistema sumiria, §6.2). */
+.scw-raiz .hm-porta--participar a:focus-visible { outline-color: var(--scw-choco); }
+.scw-raiz .hm-porta--apoiar a:focus-visible { outline-color: var(--scw-creme); }
+
+.hm-porta__eixo {
+  font: 700 12px/1 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.hm-porta__titulo {
+  margin: 0;
+  max-width: 20ch;
+  font: 900 clamp(26px, 2.6vw, 40px)/1.02 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.hm-porta__texto {
   max-width: 44ch;
   margin: 0;
-  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
-  color: rgba(254, 240, 221, .86);
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.55 var(--scw-font-texto);
   text-wrap: pretty;
 }
+.hm-porta--apoiar .hm-porta__texto { color: rgba(254, 240, 221, .88); }
+/* A próxima edição como informação, não manchete: uma linha com filete. */
+.hm-porta__estado {
+  margin: 6px 0 0;
+  padding-top: 14px;
+  border-top: 1.5px solid rgba(61, 19, 8, .35);
+  font: 700 16px/1.3 var(--scw-font-ui);
+}
+.hm-porta__estado > span {
+  display: block;
+  margin-bottom: 6px;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.hm-porta__nota {
+  max-width: 46ch;
+  margin: 0;
+  font: 400 14.5px/1.5 var(--scw-font-texto);
+  text-wrap: pretty;
+}
+.hm-porta__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 26px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.hm-parte__contato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  margin: clamp(26px, 3vw, 40px) 0 0;
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+}
+
 @media (max-width: 899px) {
-  .hm-apoiar { grid-template-columns: minmax(0, 1fr); align-items: start; }
-  .hm-apoiar .scw-btn { justify-self: start; }
+  .hm-portas { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ============================================================================

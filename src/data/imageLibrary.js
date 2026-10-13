@@ -288,17 +288,21 @@ export function fotoGanho(chave) {
 }
 
 /* ----------------------------------------------------------------------------
-   Home — as fotos das seções de baixo (28/09/2026). Critério de cada uma: o
-   sujeito (pessoa, casa, combo, detalhe) e a legenda que o acervo SUSTENTA —
-   edição quando a pasta a identifica, marca só quando há vínculo confirmado
-   (combos/ da Lovers, sweet-gift/ curado pelo Wilke, imprensa/01).
+   Home — as fotos das seções de baixo (28/09/2026; legendas revistas em
+   12/10/2026). Critério de cada uma: o sujeito (pessoa, casa, combo, detalhe)
+   e a legenda que o acervo SUSTENTA — edição quando a pasta a identifica,
+   marca só quando há vínculo confirmado (combos/ da Lovers, sweet-gift/
+   curado pelo Wilke, imprensa/01). Registro antigo nunca se apresenta como
+   material da próxima edição: a legenda diz de qual edição ele é.
    -------------------------------------------------------------------------- */
 
-const fotoEdicao = (code, n, legenda) => ({
+/* Foto de edição com legenda "assunto · Tema ano" (editionLabel), e o alt
+   dizendo a mesma coisa por extenso. */
+const fotoEdicao = (code, n, assunto) => ({
   src: `/images/edicoes/${code}/${n}.webp`,
-  alt: `${legenda} do Sweet & Coffee Week`,
+  alt: `${assunto} da edição ${editionLabel(code)} do Sweet & Coffee Week`,
   position: focalPosition(`/images/edicoes/${code}/${n}.webp`),
-  legenda,
+  legenda: `${assunto} · ${editionLabel(code)}`,
 })
 
 const HOME = {
@@ -308,28 +312,29 @@ const HOME = {
     { ...comboMain("Caffè Basilico's"), legenda: "Caffè Basilico's" },
     { ...comboMain('O Maestro Café'), legenda: 'O Maestro Café' },
   ],
-  /* 02 O festival — um combo completo: doce, salgado e bebida à vista. */
-  combo: fotoEdicao('2026.1', '03', 'Combo completo da edição Lovers'),
-  /* 04 Por que participar — a casa do depoimento, com os prêmios. */
+  /* 02 Como funciona — um combo completo: doce, salgado e bebida à vista. */
+  combo: fotoEdicao('2026.1', '03', 'Combo completo'),
+  /* 03 Em registros — a casa do depoimento, com os prêmios. */
   jolie: { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 32%' },
-  /* 05 O festival em movimento — pessoas, casas, combos e detalhe, alternados. */
+  /* 03 Em registros — pessoas, casas, combos e detalhe, alternados. */
   mosaico: [
-    { src: '/images/lovers-publico/06.jpg', alt: 'Amigas posando juntas durante a edição Lovers do Sweet & Coffee Week', position: 'center 40%', legenda: 'Sweet Lovers · Lovers 2026' },
-    { ...fotoEdicao('2025', '03', 'Combo da edição Celebration'), position: 'center 72%' },
-    { src: '/images/sweet-gift/02.jpg', alt: 'Morango sendo mergulhado no creme de chocolate em um combo do Sweet & Coffee Week', position: 'center 55%', legenda: 'Sweet Gift · Rafaela Fontes Chocolateria · 2020' },
-    { src: '/images/imprensa/01.jpg', alt: 'Wow Cookies em estúdio de TV, na cobertura de imprensa do Sweet & Coffee Week', position: 'center 30%', legenda: 'Wow Cookies na TV' },
+    { src: '/images/lovers-publico/06.jpg', alt: 'Amigas posando juntas durante a edição Lovers do Sweet & Coffee Week', position: 'center 40%', legenda: 'Sweet Lovers · Lovers 2026.1' },
+    { ...fotoEdicao('2025', '03', 'Combo'), position: 'center 72%' },
+    { src: '/images/sweet-gift/02.jpg', alt: 'Morango sendo mergulhado no creme de chocolate em um combo do Sweet & Coffee Week', position: 'center 55%', legenda: 'Sweet Gift · Rafaela Fontes Chocolateria · 2020.1' },
+    { src: '/images/imprensa/01.jpg', alt: 'Wow Cookies em estúdio de TV, na cobertura de imprensa do Sweet & Coffee Week', position: 'center 30%', legenda: 'Wow Cookies na TV · cobertura de imprensa' },
     { src: '/images/participantes-lojas/22.jpg', alt: 'Equipe de uma casa participante reunida em frente à loja durante o Sweet & Coffee Week', position: 'center 45%', legenda: 'Equipe de uma casa participante' },
-    fotoEdicao('2024', '09', 'Combo da edição Books'),
+    fotoEdicao('2024', '09', 'Combo'),
   ],
-  /* 06 Trajetória — capas de quatro edições e a entrega de um prêmio.
+  /* 04 Trajetória — capas de quatro edições.
      Nenhuma com personagem de desenho (a 2023/04 tem uma luva do Mickey). */
   edicoes: [
-    { ...fotoEdicao('2016', '01', 'Primeira edição'), ano: '2016' },
-    { ...fotoEdicao('2021.2', '02', 'Terras Potiguares'), ano: '2021' },
-    { ...fotoEdicao('2023', '08', 'Trip'), ano: '2023' },
-    { ...fotoEdicao('2025', '09', 'Celebration'), ano: '2025' },
+    { ...fotoEdicao('2016', '01', 'Registro'), ano: '2016' },
+    { ...fotoEdicao('2021.2', '02', 'Registro'), ano: '2021' },
+    { ...fotoEdicao('2023', '08', 'Registro'), ano: '2023' },
+    { ...fotoEdicao('2025', '09', 'Registro'), ano: '2025' },
   ],
-  premio: { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%' },
+  /* 05 Sweet Awards — a entrega de um prêmio (edição não identificada no acervo). */
+  premio: { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%', legenda: 'O Maestro Café com os prêmios do Sweet Awards' },
 }
 
 /** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */
