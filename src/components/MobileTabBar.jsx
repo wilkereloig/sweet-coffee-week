@@ -1,4 +1,5 @@
 import React from 'react'
+import { precarregar } from '../pages/carregadores'
 
 /*
  * Barra inferior estilo aplicativo (≤900px) — redesign 2026.
@@ -88,6 +89,8 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
               className={cls}
               aria-current={ativo ? 'page' : undefined}
               aria-label={`Ir para ${a.label}`}
+              onTouchStart={() => precarregar(a.id)}
+              onFocus={() => precarregar(a.id)}
               onClick={(e) => {
                 e.preventDefault()
                 navigate(a.href)

@@ -12,14 +12,34 @@ import { BotaoTopo } from './components/BotaoTopo'
 import { useSiteMotion } from './hooks/useSiteMotion'
 import { applyPageMeta } from './lib/pageMeta'
 
-import { HomePage }         from './pages/institutional/Home'
-import { EdicoesPage }      from './pages/institutional/Edicoes'
-import { ParticiparPage }   from './pages/institutional/Participar'
-import { ApoiarPage }       from './pages/institutional/Apoiar'
-import { ContatoPage }      from './pages/institutional/Contato'
-import { HistoricoAwardsPage } from './pages/institutional/HistoricoAwards'
-import { EmBrevePage } from './pages/institutional/EmBreve'
-import { AguardePage } from './pages/institutional/Aguarde'
+import { CARREGADORES } from './pages/carregadores'
+
+// Uma página, um chunk (src/pages/carregadores.js). O gate abaixo decide a ROTA
+// antes de qualquer página ser pedida: sob PARTICIPAR_ONLY só o chunk de
+// Participar chega ao visitante.
+const PAGINAS = Object.fromEntries(
+  Object.entries(CARREGADORES).map(([rota, carregar]) => [rota, React.lazy(carregar)]),
+)
+
+/* O motor de movimento varre o DOM da página. Com a página em chunk próprio, um
+   efeito no App rodaria com o fallback na tela e não acharia nada. Dentro do
+   Suspense, este efeito só roda quando a página real já montou — React só
+   confirma a árvore suspensa inteira, filhos primeiro. */
+function MovimentoDaPagina({ raizRef, ativo, children }) {
+  useSiteMotion(raizRef, [], ativo)
+  return children
+}
+
+/* Fallback da troca de página: ocupa a altura da tela na cor do herói da rota
+   (body.route-* já está aplicado), então não há clarão branco nem salto do
+   rodapé subindo. O texto existe para leitor de tela; visualmente é a chapa. */
+function CarregandoPagina() {
+  return (
+    <div className="scw-carregando" role="status" aria-live="polite">
+      <span className="scw-sr">Carregando a página…</span>
+    </div>
+  )
+}
 
 // A edição Lovers foi encerrada e suas páginas públicas removidas. As rotas antigas
 // (incluindo QR Codes impressos: /lovers/combos/:slug, /lovers/awards, e os aliases
@@ -146,20 +166,12 @@ export default function App() {
     return 'home'
   })()
 
-  let page
-  switch (route) {
-    case 'home':         page = <HomePage navigate={navigate} />; break
-    // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
-    // o botão de acesso precisa do gatilho do diálogo vindo daqui.
-    case 'edicoes':      page = <EdicoesPage navigate={navigate} onOpenAccess={() => setAccessOpen(true)} accessOpen={accessOpen} />; break
-    case 'participar':   page = <ParticiparPage navigate={navigate} />; break
-    case 'apoiar':       page = <ApoiarPage navigate={navigate} />; break
-    case 'contato':      page = <ContatoPage navigate={navigate} />; break
-    case 'historico-awards': page = <HistoricoAwardsPage navigate={navigate} />; break
-    case 'em-breve':     page = <EmBrevePage />; break
-    case 'aguarde':      page = <AguardePage />; break
-    default:             page = <HomePage navigate={navigate} />
-  }
+  const Pagina = PAGINAS[route] || PAGINAS.home
+  // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
+  // o botão de acesso precisa do gatilho do diálogo vindo daqui.
+  const propsDaPagina = route === 'edicoes'
+    ? { navigate, onOpenAccess: () => setAccessOpen(true), accessOpen }
+    : route === 'em-breve' || route === 'aguarde' ? {} : { navigate }
 
   React.useEffect(() => {
     const cls = `route-${route}`
@@ -202,7 +214,17 @@ export default function App() {
   // apresentação, e dos painéis internos, que são ferramenta de trabalho.
   const conteudoRef = React.useRef(null)
   const comMovimento = !isInternal && route !== 'edicoes'
-  useSiteMotion(conteudoRef, [route, comMovimento], comMovimento)
+
+  // Trocou de página: o foco vai para o conteúdo novo (o <main>, que é
+  // focável só por script). Sem isso, quem navega por teclado ou leitor de
+  // tela continuaria no link do menu da página anterior. Não roda na carga
+  // inicial — ali o foco é do navegador.
+  const primeiraRota = React.useRef(true)
+  React.useEffect(() => {
+    if (primeiraRota.current) { primeiraRota.current = false; return }
+    const main = conteudoRef.current
+    if (main && typeof main.focus === 'function') main.focus({ preventScroll: true })
+  }, [route])
 
   return (
     <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
@@ -234,10 +256,12 @@ export default function App() {
       )}
       {/* O respiro acima da barra de abas vem de `.scw-raiz.tem-abas`; a classe
           legada `has-mobile-tabbar` somava um segundo padding, em 959px. */}
-      <main id="conteudo" key={route} className="page-enter" ref={conteudoRef}>
+      <main id="conteudo" key={route} className="page-enter" ref={conteudoRef} tabIndex={-1}>
         <ErrorBoundary key={route}>
-          <React.Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center', opacity: 0.6 }}>Carregando…</div>}>
-            {page}
+          <React.Suspense fallback={<CarregandoPagina />}>
+            <MovimentoDaPagina raizRef={conteudoRef} ativo={comMovimento}>
+              <Pagina {...propsDaPagina} />
+            </MovimentoDaPagina>
           </React.Suspense>
         </ErrorBoundary>
       </main>

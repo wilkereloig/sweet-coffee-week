@@ -28,26 +28,35 @@ import { useEffect } from 'react'
    - não toca em áreas que precisam de concentração — FAQ, formulários (§20).
    ========================================================================= */
 
-/* Fora do alcance: heróis (coreografados no CSS) e blocos que precisam ficar
-   calmos ou já têm animação própria. */
+/* CONTRATO DE MARCAÇÃO (12/10/2026). As seções dizem o que querem por atributo,
+   em vez de o motor conhecer as classes de cada página:
+     data-mo-fora       — nada aqui dentro anima (herói, FAQ, formulário, barra);
+     data-mo-sequencia  — os FILHOS entram um a um (cards, passos, faixa);
+     data-mo-bloco      — entra como um bloco só (lista longa de consulta).
+   As classes de página abaixo são o legado anterior ao contrato e saem quando a
+   última página que as usa for migrada — página nova usa só os atributos.
+
+   Formulário e central de dúvidas ficam FORA, não "em bloco": quem chega para
+   preencher ou consultar não espera uma entrada animada para começar (§6.15). */
 const FORA =
+  '[data-mo-fora], form, .ctt-perguntas, .ctt-cats, ' +
   '.scw-hero, .hm-abre, .pa-hero, .ctt-abertura, .swa-hero, ' +
-  '.scw-marquee, .scw-header, .scw-folha, .scw-abas, [data-mo-fora]'
+  '.scw-marquee, .scw-header, .scw-folha, .scw-abas'
 
 /* Rótulo de seção: reinicia a contagem da sequência. */
 const ROTULO = '.scw-rotulo, .scw-pill, [class$="__rotulo"], [class*="__rotulo "], [class$="__eixo"], [class$="__ordem"]'
 
 /* Contêineres cujos FILHOS entram em sequência (cards, listas, faixas). */
 const GRADE =
-  'ul, ol, dl, ' +
+  'ul, ol, dl, [data-mo-sequencia], ' +
   '.hm-ingredientes, .hm-mosaico, .hm-destinos, .hm-voz, .hm-festival, ' +
   '.pa-faixas, .pa-cards, .pa-palco__marcas, .pa-numeros, .pa-jornada, .pa-onde, ' +
   '.ctt-portas, .ctt-colunas, ' +
   '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats, .swa-trilha'
 
 /* Listas longas ou de leitura concentrada: entram como bloco único, sem
-   sequência item a item (§20 — a central de dúvidas tem 93 perguntas). */
-const SEM_SEQUENCIA = '.ctt-perguntas, .ctt-cats, .pa-imprensa, .pa-veiculos, .swa-edicao__cats, #hm-materias'
+   sequência item a item. */
+const SEM_SEQUENCIA = '[data-mo-bloco], .ctt-perguntas, .ctt-cats, .pa-imprensa, .pa-veiculos, .swa-edicao__cats, #hm-materias'
 
 /* Tudo que pode receber entrada própria. A ordem aqui não importa: o filtro de
    profundidade abaixo é que decide quem sobra. */
@@ -57,7 +66,6 @@ const ITEM = [
   '.scw-h1, .scw-h2, .scw-h3',
   'p, blockquote',
   'figure, img, picture, .scw-reserva',
-  'form',
   GRADE,
   SEM_SEQUENCIA,
   '.scw-btn, [class$="__cta"], [class$="__link"], [class$="__toggle"], [class$="__acoes"]',
@@ -153,12 +161,23 @@ export function useSiteMotion(raizRef, deps = [], ativo = true) {
     })
 
     // --- 3. revela ao entrar na tela, uma vez por elemento ------------------
+    // REDE DE SEGURANÇA: revelar um item revela também todos os anteriores na
+    // ordem do documento. Sem isso, um salto por âncora (índice do Awards,
+    // "Ver as perguntas") ou a rolagem restaurada pelo navegador deixava os
+    // blocos pulados invisíveis até alguém rolar de volta por cima deles.
+    const posicao = new Map(itens.map((el, k) => [el, k]))
+    let revelados = -1
+    const revelarAte = (k) => {
+      for (let j = revelados + 1; j <= k; j += 1) {
+        itens[j].classList.add('is-in')
+        io.unobserve(itens[j])
+      }
+      if (k > revelados) revelados = k
+    }
     const io = new IntersectionObserver(
       (entradas) => {
         entradas.forEach((entrada) => {
-          if (!entrada.isIntersecting) return
-          entrada.target.classList.add('is-in')
-          io.unobserve(entrada.target)
+          if (entrada.isIntersecting) revelarAte(posicao.get(entrada.target))
         })
       },
       // threshold 0 + margem negativa: dispara assim que o topo do elemento
@@ -167,6 +186,11 @@ export function useSiteMotion(raizRef, deps = [], ativo = true) {
       { threshold: 0, rootMargin: '0px 0px -6% 0px' },
     )
     itens.forEach((el) => io.observe(el))
+    // O que já está ACIMA da tela na varredura (rolagem restaurada) aparece
+    // direto: a entrada é para o que vem, não para o que já passou.
+    let acima = -1
+    itens.forEach((el, k) => { if (el.getBoundingClientRect().bottom < 0) acima = k })
+    if (acima >= 0) revelarAte(acima)
 
     return () => {
       io.disconnect()

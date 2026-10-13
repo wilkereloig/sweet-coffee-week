@@ -1,6 +1,13 @@
 import React from 'react'
 import { INSTAGRAM_URL } from '../config/channels'
-import { supabase } from '../lib/supabase'
+/* O cliente do Supabase (145 kB) chega sob demanda, no envio do login: antes
+   ele viajava no carregamento inicial de TODA página, para todo visitante.
+   Falha ao baixar cai no mesmo `catch` de rede das libs (orgAccess/marcaAccess
+   aguardam `signIn` dentro de try) — a mensagem é a de sempre. */
+const entrarNoSupabase = async (email, password) => {
+  const { supabase } = await import('../lib/supabase')
+  return supabase.auth.signInWithPassword({ email, password })
+}
 import { entrarComoContaOrganizacao, RECADO } from '../lib/orgAccess'
 import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
@@ -198,7 +205,7 @@ export function AccessDialog({ open, onClose }) {
     const r = await entrarComoContaOrganizacao({
       email: usuarioOrg,
       senha: senhaOrg,
-      signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
+      signIn: entrarNoSupabase,
       guardar: (chave, valor) => window.sessionStorage.setItem(chave, valor),
     })
     if (!r.ok) {
@@ -222,7 +229,7 @@ export function AccessDialog({ open, onClose }) {
     const r = await entrarComoMarca({
       nome: nomeMarca,
       senha: senhaMarca,
-      signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
+      signIn: entrarNoSupabase,
       guardar: (chave, valor) => window.sessionStorage.setItem(chave, valor),
     })
     if (!r.ok) {
