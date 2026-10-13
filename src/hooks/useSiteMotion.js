@@ -49,14 +49,14 @@ const ROTULO = '.scw-rotulo, .scw-pill, [class$="__rotulo"], [class*="__rotulo "
 /* Contêineres cujos FILHOS entram em sequência (cards, listas, faixas). */
 const GRADE =
   'ul, ol, dl, [data-mo-sequencia], ' +
-  '.hm-ingredientes, .hm-mosaico, .hm-destinos, .hm-voz, .hm-festival, ' +
-  '.pa-faixas, .pa-cards, .pa-palco__marcas, .pa-numeros, .pa-jornada, .pa-onde, ' +
-  '.ctt-portas, .ctt-colunas, ' +
+  '.hm-ingredientes, .hm-mosaico, .hm-voz, .hm-festival, ' +
+  '.pa-palco__marcas, .pa-numeros, .pa-onde, ' +
+  '.ctt-colunas, ' +
   '.swa-cats, .swa-edicoes, .swa-podio, .swa-hall, .swa-hist-cats, .swa-trilha'
 
 /* Listas longas ou de leitura concentrada: entram como bloco único, sem
    sequência item a item. */
-const SEM_SEQUENCIA = '[data-mo-bloco], .ctt-perguntas, .ctt-cats, .pa-imprensa, .pa-veiculos, .swa-edicao__cats, #hm-materias'
+const SEM_SEQUENCIA = '[data-mo-bloco], .ctt-perguntas, .ctt-cats, .pa-veiculos, .swa-edicao__cats, #hm-materias'
 
 /* Tudo que pode receber entrada própria. A ordem aqui não importa: o filtro de
    profundidade abaixo é que decide quem sobra. */

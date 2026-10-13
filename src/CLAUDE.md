@@ -859,7 +859,6 @@ institucional.
 | `--mo-longo` | **880ms** | herói e imagem grande |
 | `--mo-passo` | **90ms** | intervalo entre itens de uma sequência |
 | `--mo-passo-card` | **70ms** | card a card dentro de uma grade |
-| `--mo-respiro` | **26s** | laço de respiração da imagem |
 
 **Quatro camadas — para que serve cada duração** (Caderno cap. 09, 11/09/2026). Os tokens
 não mudam; o que entra é o critério de quando cada um cabe:
@@ -1089,8 +1088,9 @@ transição de página é só opacidade.
 ⚠️ **Elemento `position: fixed`/`sticky` nunca entra na zona de disparo do observer** —
 ficaria invisível para sempre. Por isso fica fora do motor de movimento.
 
-⚠️ **A respiração da imagem usa a propriedade `scale`, nunca `transform`** — senão haveria
-salto de reinício.
+⚠️ **Laço contínuo em imagem usa a propriedade `scale`, nunca `transform`** — senão haveria
+salto de reinício. (A respiração do herói e o token `--mo-respiro` saíram em 13/10/2026:
+nenhum elemento os usava desde que os heróis passaram a ser `HeroFotos` em crossfade.)
 
 ### 10.4 Degradês, máscaras e emendas
 
