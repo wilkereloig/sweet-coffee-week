@@ -43,12 +43,24 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
     aprovada no Dropbox F2; `alt="Cartoon"`, então o nome acessível do H1 é "Sweet & Coffee
     Week Cartoon") → **período em amarelo** → uma frase → ações (**"Quero participar"** →
     `/quero-participar/` só enquanto o pré-cadastro estiver aberto; **"Conhecer o
-    festival"** rola até `#festival`). Sem ficha de números nem selo. Foto à direita:
-    combo da Caffè Basilico's, **legendado como registro da Lovers** — nunca combo da
-    edição nova. Uma foto, sem relógio. Tema, período e ano vêm de `proximaEdicao.js`; o
-    KV Cartoon fica só nesta abertura. Sem o arquivo da marca, o tema sai em tipografia
-    (`.hm-ed__tema--texto`). Celular: texto primeiro, foto depois das ações; o lettering
-    tem teto de `32svh` no desktop para tudo caber na primeira dobra (1440×900, 1024×768).
+    festival"** rola até `#festival`). Sem ficha de números nem selo. Tema, período e ano
+    vêm de `proximaEdicao.js`. **Só peças da edição nova — nenhuma foto de edição anterior**
+    (pedido do Wilker, 13/10/2026):
+    - **fundo** ilustrado gerado no Magnific (Nano Banana Pro, dois quadros do vídeo de
+      lançamento como referência de estilo; original no Dropbox em
+      `05_SITE/02_ASSETS/fundo-heroi-home_magnific_v1.png`). Chapa amarela, tinta
+      chocolate; a **data vira chapa chocolate com amarelo** (amarelo em texto sumiria);
+    - **vídeo de lançamento** (versão sem "Natal e região", a que está no Instagram) em
+      cartão vertical 9:16 com contorno e sombra chapada, `public/videos/edicao-2026-2/
+      lancamento.mp4` (720×1280, ~9,7 MB), **`preload="none"`, sem autoplay**, controles
+      nativos — só baixa quando a pessoa dá o play;
+    - botão **"Ver no Instagram"** (ícone `redes/instagram`, 24px) para o reel oficial,
+      em nova aba, link sem parâmetro de rastreio (`REEL_LANCAMENTO` em `destaqueEdicao.js`).
+    Desktop: coluna do vídeo presa ao topo do texto e tela com teto `48svh`, para o botão
+    do Instagram ficar acima do aviso de cookies (que mora no canto inferior direito).
+    Celular: texto primeiro sobre a área calma do fundo; o vídeo vem depois das ações num
+    painel arredondado com a parte dos raios do mesmo fundo. O KV fica só nesta abertura;
+    sem o arquivo da marca, o tema sai em tipografia (`.hm-ed__tema--texto`).
   ⚠️ **As fotos de pessoas são todas da Lovers (2026.1) e a legenda diz isso**
   ("Registros da edição Lovers · 2026 · combo …"). Ficam de fora de propósito:
   fantasias (Heróis & Vilões), personagens de desenho ou de contos (Padoca do Bosque, a
@@ -743,7 +755,7 @@ cada página carrega no próprio chunk (`React.lazy` via `src/pages/carregadores
 | Mudar uma seção (layout, ordem interna, peça) | `src/pages/<pagina>/secoes/<Secao>.jsx`. A ordem das seções está no `index.jsx` da pasta |
 | Mudar texto | `src/data/conteudo/<pagina>.js` (`home`, `edicoes`, `sweet-awards`, `participar`, `apoiar`, `contato`). JSX não guarda texto (§5.6). Perguntas da central: `src/data/faqCentral.js` |
 | Trocar foto | `src/data/imageLibrary.js` (`heroPhotos`, `fotosHome`, `fotoGanho`…). ⛔ **Nunca `imageVariants.js`** — é gerado por `scripts/gerar-variantes.mjs` |
-| Ligar/desligar o destaque de edição na Home | **Ligado desde 13/10/2026.** `src/data/destaqueEdicao.js`: `ativo` liga/desliga; tema, período e ano vêm de `proximaEdicao.js` (nunca escritos aqui); foto e lettering de `fotoProximaEdicao()` em `imageLibrary.js`; a ação só existe com pré-cadastro aberto. Obrigatórios: `titulo`, `tema`, `periodo`, `texto`, `imagem` com `src` e `alt`, `legenda`. Faltou um campo, `destaqueValido()` devolve `false` e a abertura institucional continua — nunca um bloco pela metade. Conferir com `npm run test:destaque`. Nada liga por data, e não mexe em flag de publicação (sob o gate atual a Home nem aparece). Decisão do Wilker, nunca automática |
+| Ligar/desligar o destaque de edição na Home | **Ligado desde 13/10/2026.** `src/data/destaqueEdicao.js`: `ativo` liga/desliga; tema, período e ano vêm de `proximaEdicao.js` (nunca escritos aqui); lettering, fundo e vídeo de `fotoProximaEdicao()` em `imageLibrary.js`; o link do reel é `REEL_LANCAMENTO`; a ação só existe com pré-cadastro aberto. Obrigatórios: `titulo`, `tema`, `periodo`, `texto`; vídeo, marca e ação são opcionais, mas inteiros. Faltou um campo, `destaqueValido()` devolve `false` e a abertura institucional continua — nunca um bloco pela metade. Conferir com `npm run test:destaque`. Nada liga por data, e não mexe em flag de publicação (sob o gate atual a Home nem aparece). Decisão do Wilker, nunca automática |
 | Validar antes de commitar | `npm run build && npm run test:casca-institucional` · `npm run test:motion` (depois de um build) · `node tests/responsive.mjs` — e o build de verificação fora do projeto (§3.2 da raiz) |
 
 ---

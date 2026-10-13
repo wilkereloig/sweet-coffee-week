@@ -434,7 +434,7 @@ no Awards; as outras quatro sobrescrevem no CSS da página:
 
 | Página | <600px | 600–999/1000px | Onde |
 |---|---|---|---|
-| Home | **16:10** (16:9 até 420px), teto `44svh` | **2:1** | `.hm-abre__pessoas`, `scw-home.css` (corte em 999px). ⚠️ Vale para a abertura institucional; a de **edição** (ligada desde 13/10/2026) põe o texto primeiro e a foto 16:10 depois das ações (`.hm-ed__moldura`) |
+| Home | **16:10** (16:9 até 420px), teto `44svh` | **2:1** | `.hm-abre__pessoas`, `scw-home.css` (corte em 999px). ⚠️ Vale para a abertura institucional; a de **edição** (ligada desde 13/10/2026) põe o texto primeiro e o vídeo de lançamento depois das ações, sem foto (`.hm-ed__video`) |
 | Participar · Apoiar | **4:3** (**16:10** abaixo de 380px) | **2:1** | `.pa-hero .scw-hero-banda`, `scw-participar-apoiar.css` (corte em 1000px) |
 | Contato | **16:10**, teto `44svh` | **2:1** | `.ctt-abertura .scw-hero-banda`, `scw-contato.css` (corte em 1000px) |
 | Sweet Awards | **1:1** | **1:1** | regra do sistema, sem sobrescrita |
