@@ -341,9 +341,12 @@ const HOME = {
    · marca: o lettering CARTOON da marca oficial (Dropbox F2,
      01_IDENTIDADE_VISUAL/01_MARCA/PNG — o mesmo do selo aprovado), recortado
      da margem transparente e convertido para WebP. Não redesenhar.
-   · fundo: ilustração gerada no Magnific (Nano Banana Pro) com dois quadros
-     do vídeo de lançamento como referência de estilo; original em
-     05_SITE/02_ASSETS/fundo-heroi-home_magnific_v1.png. Sem texto, sem pessoa.
+   · fundo: ilustração gerada no Magnific com GPT 2.5 (o modelo das artes
+     aprovadas), com três artes aprovadas como referência (Confirmado
+     Bolomania v05, Stories B02 e B03): amarelo #FAC506 da logo, raios
+     chapados da paleta da edição, xícara, bolo e coxinha no traço borracha.
+     Original em 05_SITE/02_ASSETS/fundo-heroi-home_gpt25_v2b_USADO.png. Sem
+     texto, sem pessoa, sem adereço de animação (decisão de 03/10/2026).
    · video: o vídeo de lançamento (versão sem "Natal e região", a que está no
      Instagram), reduzido para 720×1280; capa = o quadro de 37,5 s.
    -------------------------------------------------------------------------- */
