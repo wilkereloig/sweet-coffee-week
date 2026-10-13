@@ -515,7 +515,7 @@ Seguem no acervo.
 | Raiz | `.scw-raiz` | `scw-2026.css` |
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
 | Menu de desktop | `.scw-nav` em **cápsula** (`--scw-chapa-menu`, chocolate a .76) | `NavPrincipal` em `nav.jsx` — usado pelos DOIS cabeçalhos (site e Edições). ✅ Desde 12/10/2026 os links não dependem mais de a foto do herói ser escura ali: na cápsula o creme fecha **6,4:1 com foto branca atrás** (antes ficavam ilegíveis sobre a faixa clara do Sebrae em Participar). Sem desfoque: atrás há crossfade (§10.3) |
-| Aviso de cookies | `.cookie-consent` + diálogo `.scw-pref` | `CookieConsent.jsx` + `PreferenciasCookies.jsx`; preferência em `src/lib/consentimento.js` (fonte única: `scw_privacidade` com versão, escolha, data e validade de 180 dias); Analytics em `src/lib/analytics.js` (o `index.html` não traz mais o gtag). **Modelo desde 13/10/2026 (pedido do Wilker, "coletar todos os dados possíveis", aviso simples): medição LIGADA por padrão, base declarada = legítimo interesse, recusa a um clique.** O aviso é uma frase ("Usamos cookies para entender as visitas e melhorar o site. Saiba mais") e dois botões: **"Ok, entendi"** (amarelo, principal) e **"Recusar"** (contorno, visível). Aparece até haver escolha salva; Global Privacy Control chega recusado. Região nomeada, não modal. Desktop: cartão de 400px no canto inferior direito (~124px). ≤900px: faixa acima da barra de abas (~119px, texto no piso de 15px) — **não cobre a ação dos heróis** (`tests/casca-institucional.mjs`, estrito). ⚠️ Em `localhost` o Analytics não liga (testes e DEV não viram visita), salvo `localStorage.scw_ga_local = "1"`. A altura real vai para `--scw-aviso-h`; peça da página presa à base declara `--scw-base-ocupada` com `useReservaDaBase` (régua de Edições e a barra fixa de Participar/Apoiar) e o aviso sobe acima dela. O diálogo (interruptor + "Salvar") abre por `abrirPreferencias()`: rodapé, folha "mais", rodapé de Edições no desktop e a Política de Cookies |
+| Aviso de cookies | `.cookie-consent` + diálogo `.scw-pref` | `CookieConsent.jsx` + `PreferenciasCookies.jsx`; preferência em `src/lib/consentimento.js` (fonte única: `scw_privacidade` com versão, escolha, data e validade de 180 dias); Analytics em `src/lib/analytics.js` (o `index.html` não traz mais o gtag). **Modelo desde 13/10/2026 (pedido do Wilker, "coletar todos os dados possíveis", aviso simples): medição LIGADA por padrão, base declarada = legítimo interesse, recusa a um clique.** O aviso é uma frase ("Usamos cookies para entender as visitas e melhorar o site. Saiba mais") e dois botões: **"Ok, entendi"** (amarelo, principal) e **"Recusar"** (contorno, visível). Aparece até haver escolha salva; Global Privacy Control chega recusado. Região nomeada, não modal. Desktop: cartão de 400px no canto inferior direito (~124px). ≤900px: faixa acima da barra de abas (~119px, texto no piso de 15px) — **não cobre a ação dos heróis** (`tests/casca-institucional.mjs`, estrito). ⚠️ Em `localhost` o Analytics não liga (testes e DEV não viram visita), salvo `localStorage.scw_ga_local = "1"`. A altura real vai para `--scw-aviso-h`; peça da página presa à base declara `--scw-base-ocupada` com `useReservaDaBase` (a barra fixa de Participar/Apoiar) e o aviso sobe acima dela. O diálogo (interruptor + "Salvar") abre por `abrirPreferencias()`: rodapé (em todas as páginas, Edições inclusive), folha "mais" e a Política de Cookies |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
@@ -544,7 +544,7 @@ Seguem no acervo.
 | Destaque | `.scw-destaque` | — |
 | Métrica | `.scw-disco` + `.scw-numeral` | disco na cor do ciclo **+ ícone que diz do que o número fala** → numeral chocolate (`white-space: nowrap`) → rótulo. **Número sem ícone não existe** |
 
-**Prefixos por página:** Home `.hm-` · Edições `.scw-` (cena própria) · Sweet Awards
+**Prefixos por página:** Home `.hm-` · Edições `.edx-` · Sweet Awards
 `.swa-` · Contato `.ctt-` · Participar e Apoiar `.pa-`.
 
 **Regra:** peça usada por **2+ páginas** vira utilitária `.scw-*` em `scw-2026.css`. Peça
@@ -954,8 +954,8 @@ motor conhecer as classes de cada página:
 `ul`/`ol`/`dl` já entram em sequência sozinhos. As listas de classes de página que ainda
 existem no motor são legado anterior ao contrato — **seção nova usa só os atributos**.
 
-**Fica de fora:** heróis (coreografados por `@keyframes`), página Edições (apresentação
-própria), **formulários e a central de dúvidas** (quem chega para preencher ou consultar
+**Fica de fora:** heróis (coreografados por `@keyframes`), página Edições (arquivo de
+consulta: coleção e galeria aparecem prontas), **formulários e a central de dúvidas** (quem chega para preencher ou consultar
 não espera uma entrada animada — ficam disponíveis de imediato), e **qualquer elemento
 `position: fixed` ou `sticky`** — barra presa à base nunca entra na zona de disparo do
 observer e ficaria invisível para sempre.
@@ -1103,15 +1103,17 @@ tabulação.
 ⚠️ **Não usar `backdrop-filter` sobre trilho animado.** Blur + readback de GPU a cada
 frame congela o compositor — usar fundo semi-opaco.
 
-⚠️ **16 cenas full-viewport de uma vez congelam o compositor.** Por isso a janela
-`live/near ±1-2` em Edições.
+⚠️ **16 cenas full-viewport de uma vez congelam o compositor.** Foi o que levou a antiga
+apresentação de Edições a montar uma cena só; a página atual é coleção + detalhe e só
+carrega as capas na visão geral.
 
 ⚠️ **Não colocar `transition` em `width`/`transform` de barra de progresso que precise de
-valor exato** — travava o valor. A régua de anos usa `transform: scaleX` com origem à
+valor exato** — travava o valor. Barra de progresso usa `transform: scaleX` com origem à
 esquerda, sem transição.
 
 ⚠️ **Não pôr `transform` em `<main>`.** Criaria bloco de contenção e **quebraria os
-`position: fixed` de dentro das páginas** (a régua de anos de Edições). Por isso a
+`position: fixed` de dentro das páginas** (a barra fixa de Participar/Apoiar) e o
+`sticky` da navegação por ano de Edições. Por isso a
 transição de página é só opacidade.
 
 ⚠️ **Elemento `position: fixed`/`sticky` nunca entra na zona de disparo do observer** —

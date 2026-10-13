@@ -125,7 +125,7 @@ escopo estava errado: quebre por seção.
 **não vê a Home**. Para o resultado visual existe o snapshot em `paginas/`.
 
 ⚠️ **O snapshot não tem interatividade** (sem React: acordeão, busca, filtros e
-formulários ficam no estado inicial), traz **Edições em uma cena só** e **congela o
+formulários ficam no estado inicial), traz **Edições só na visão geral** (o detalhe de cada edição é rota própria) e **congela o
 movimento no estado final** — que é justamente como se edita layout sem lutar com
 animação.
 

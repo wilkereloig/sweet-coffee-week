@@ -119,112 +119,104 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
 > `acervo/plano-site-institucional.md`. **Isso é plano, não estado — e depende de pedido
 > explícito para ser executado (A6).**
 
-### 7.2 Edições — `/edicoes`, laranja `#FF4810`
+### 7.2 Edições — `/edicoes` e `/edicoes/<código>`, laranja `#FF4810`
 
-Experiência de tela cheia: apresentação editorial photo-first da história do festival.
-**16 cenas, uma por edição.**
+**Arquivo visual do festival em duas camadas — reconstruída em 13/10/2026** (pedido do
+Wilker: a apresentação de slides não foi aprovada; "o visitante precisa perceber o
+conjunto da história antes de entrar numa edição"). ⛔ **A apresentação de tela única
+(16 cenas, régua fixa na base, cabeçalho próprio, painéis flutuantes, troca de edição
+por seta/arraste na página inteira) saiu e não volta.**
 
-**Onde mora (12/10/2026):** `src/pages/edicoes/` — `index.jsx` escolhe a montagem
-(desktop × celular); `useEdicoes.js` guarda estado e comportamento (cena em foco,
-painel aberto, teclado, arraste, aquecimento das vizinhas); `teclado.js` decide quando
-uma tecla troca de edição; `icones.jsx` tem os glifos de controle. Peças em `secoes/`:
-desktop = `CabecalhoDesktop` · `Galeria` (mosaico) · `ColunaDesktop` ·
-`PaineisDesktop` · `RodapeDesktop`; celular = `CapaMobile` · `Galeria` (pares) ·
-`CorpoMobile` · `ReguaMobile`; comuns = `DadosEdicao`, `Editorial`, `SetaEdicao`. Texto
-de interface, identidade das cenas (etapa, ícone) e os tons em
-`src/data/conteudo/edicoes.js`; CSS em `scw-edicoes.css`.
+**Onde mora:** `src/pages/edicoes/` — `index.jsx` lê o caminho e escolhe a camada;
+`acervo.js` deriva tudo das fontes (funções puras: `EDICOES`, `anos()`,
+`identificacao()`, `quando()`, `codigoDaRota()`, `detalhe()`, `fotosAbertura()`);
+`teclado.js` decide quando uma tecla é da galeria; `icones.jsx` tem os glifos. Peças em
+`secoes/`: visão geral = `Abertura` · `NavAnos` · `Colecao`; detalhe = `Detalhe` (topo e
+ficha) · `GaleriaEdicao` · `Historia` · `Participantes` · `Premiacao` · `Continuidade`.
+Texto de interface, etapa e **capa escolhida de cada edição** em
+`src/data/conteudo/edicoes.js`; CSS em `scw-edicoes.css` (prefixo `.edx-`).
 
-Em Edições o `App.jsx` **não renderiza** o cabeçalho do site nem o rodapé: a página tem
-**cabeçalho próprio com a mesma geometria** — mesmo `--scw-trilho`, mesmo padding vertical
-de 50px, marca da edição no slot da logo. **O menu não muda de lugar entre páginas.** A
-barra de abas mobile continua montada por fora.
+**Rota:** as duas camadas são a MESMA rota do App (`'edicoes'`, `resolverRota` em
+`src/lib/rotas.js`); o App passa `path` e a página não remonta ao entrar e sair de uma
+edição. `codigoDaRota()` só aceita código do acervo — `/edicoes/2026.2` ou um código
+inexistente mostram a coleção. Título da aba por edição em `pageMeta.js`; o Analytics
+registra tudo como `/edicoes` (`rotaLimpa`). **Voltar à coleção** (pelo link ou pelo
+voltar do navegador) rola até o cartão da última edição vista e põe o foco nele (o
+roteador leva ao topo; a página corrige dois quadros depois).
 
-**Desktop (>900px):** cena de `100dvh`. Metade direita com **mosaico de 3 fotos** sangrando
-(uma larga em cima, duas embaixo, filete de 3px) — a galeria da edição, paginada de 3 em
-3. Metade esquerda (`ColunaDesktop`): **identificação junto do título** — selo (ícone +
-etapa) e, na mesma linha, o ano e a posição na linha do tempo —, depois tema (`<h1>`),
-frase, ficha (período / marcas / Sweet Awards) e dois botões que abrem painéis
-flutuantes de participantes e de texto editorial (Esc fecha; o foco volta ao gatilho).
-O texto ao lado da marca no cabeçalho (tema + "2016 · edição 01") **saiu em
-12/10/2026**: a identificação mora na coluna. Fundo: a **última** foto do acervo com
-`blur(64px)` sob véu chocolate a 87%, com deriva lenta de 46s — a primeira já abre o
-mosaico, então não aparece duas vezes. Rodapé (`RodapeDesktop`): `seta · anos · seta`,
-progresso e a legenda (edição em foco + "← → trocam de edição · clique num ano ou
-arraste a cena"). ⛔ Saíram do rodapé (12/10/2026) os três laços sem pausa: o brilho que
-varria o trilho, o anel que pulsava no cursor e o empurrão da seta "próxima".
+**Casca do site:** Edições usa cabeçalho, rodapé (com os documentos legais e
+"Preferências de cookies") e abas como as outras páginas. Fica **fora do motor de
+movimento** (arquivo de consulta: nada encenado).
 
-**Celular (≤900px):** capítulo vertical. Capa 4:5 (`CapaMobile`) com a marca da edição
-no alto e, no canto, **o ano e "edição N/16"** (antes só "01/16"); etapa e tema (`<h1>`)
-embaixo. Depois a galeria em pares 1:1 (a capa é a 1ª foto, nada se repete), frase,
-ficha, palavras do tema e duas sanfonas (marcas e texto editorial) que abrem no lugar.
-Navegação em **uma peça só**: a régua de anos fixa na base, com as setas dentro.
+**Visão geral (`/edicoes`):**
+- **Abertura compacta na chapa laranja** (`--scw-heroi`): rótulo, H1 "Cada edição, uma
+  nova história à mesa.", uma frase sobre temas e criações, a linha de números de
+  `festivalFacts` (edições · marcas · participações — nunca digitados) e quatro registros
+  de edições diferentes (`FOTOS_ABERTURA`). Altura do conteúdo: a coleção espia na
+  primeira dobra do desktop. ⚠️ No celular a faixa de anos tem de caber **acima do aviso
+  de cookies** em 360×800 — por isso o lead é uma frase só e as fotos ficam quadradas.
+- **Coleção por ano**, do mais recente à estreia; dentro do ano, 1ª antes da 2ª
+  (calendário). Cada ano é um grupo com numeral em Slab e filete chocolate; ano com duas
+  edições diz "duas edições", e cada cartão diz "1ª do ano · abril" (`quando()`, mês
+  lido do período) — **nunca depende do ".1"/".2"**. A estreia diz "A estreia · setembro".
+- **Grade de 4 colunas (2 abaixo de 1180px) com subgrid**: cada ano ocupa 1 ou 2
+  colunas; o ano mais recente abre em **largura dupla** e a estreia fecha em **largura
+  inteira** (foto e texto lado a lado). Com isso as linhas fecham sem buraco — conferido
+  em `tests/edicoes.test.mjs`. ⚠️ Mudou o número de edições por ano? Rodar o teste: ele
+  diz se a grade passou a deixar vão.
+- **Cartão = foto + legenda, sem caixa**: capa 1:1 (`capa` em `conteudo/edicoes.js`,
+  escolhida em 13/10/2026 entre as 190 fotos, alternando combo de perto, mesa montada e
+  gente), marca oficial da edição no tamanho natural, quando, tema (Slab), "N marcas" e
+  "Explorar →". O cartão inteiro é o link (nome acessível: tema + identificação +
+  marcas). Nenhuma cor muda por edição: ⛔ os `TONS` por cena saíram.
+- **Navegação por ano** (`NavAnos`): `<button>`, nunca âncora (`#ano` trocaria de rota);
+  rola até o grupo e foca o numeral; `aria-current` acompanha a leitura e o ano clicado
+  vale até sair da faixa (2020 e 2019 dividem a linha). Desktop: coluna à esquerda,
+  presa em `--edx-topo-fixo` (160px — a linha do cabeçalho fixo termina em 144).
+  Celular: faixa rolável presa no **topo** (o cabeçalho some ao rolar), longe das abas e
+  do aviso. Presa só dentro da coleção.
+- **Só as capas carregam** na visão geral (`tests/edicoes-navegador.mjs` reprova foto de
+  galeria baixada ali).
 
-**Controles nomeados (12/10/2026).** A seta de passar edição é uma peça só
-(`SetaEdicao`), no rodapé e na régua: **o nome da edição de destino** ("Próxima: Páscoa
-· 2017.1") é o nome acessível **e** aparece no hover/foco (`.scw-icone-rotulo`, §6.11).
-Sem destino, "Esta é a primeira/última edição" e `disabled`.
+**Detalhe (`/edicoes/<código>`), rolagem natural:**
+1. **Topo bege**: "← Todas as edições", identificação ("2ª edição de 2019 · Imaginação";
+   a primeira é "A estreia, em 2016" — o dado histórico não muda), tema (`<h1>`, recebe
+   o foco ao abrir, sem anel), lead da narrativa, ficha (período · marcas · Sweet Awards)
+   e a **marca da edição em posição própria**, no tamanho natural do arquivo, sem chapa
+   atrás (§7.7). A marca permanente do festival continua no cabeçalho, levando à Home.
+2. **Fotos** (`GaleriaEdicao`): visor de proporção fixa (4:3 desktop, 1:1 celular) com
+   **`contain`** — o acervo mistura retrato, paisagem e quadrado, e nenhuma foto perde o
+   produto; por isso o ponto focal é ignorado aqui (ele é para recorte). Miniaturas são a
+   sequência manual (botões com `aria-current`), setas de 44px, contador "03 / 12",
+   legenda "Registro N de 12 · tema, ano" e a nota de que as fotos não identificam a
+   marca. Teclado ←/→/Home/End **só com o foco dentro da galeria**. "Ampliar" (ou clique
+   na foto) abre `<dialog>` de tela cheia: foco no fechar, Tab preso, ←/→, Esc fecha, foco
+   volta à foto; a foto grande só baixa ao ampliar. ⛔ Sem autoplay.
+3. **História** no fluxo (nada atrás de botão): o começo do festival (só na estreia), por
+   que marcou, um destaque, o que ficou, e as curiosidades do acervo ao lado (sem preço).
+4. **Marcas participantes** (bege): título com a contagem total, lista tipográfica em
+   colunas, 18 visíveis e "Mostrar as N marcas" (`aria-expanded`). **Logo só na Lovers
+   (2026.1)**, a única edição com vínculo marca × logo no acervo; nas outras, o nome.
+5. **Sweet Awards** (chocolate, o contraponto escuro) **só quando houve**: 1º lugar de
+   cada categoria (trilha só quando a categoria se repete), a nota pública de
+   `awardsData.js` e "Ver o Sweet Awards" → `/sweet-awards` (cor do destino, anel creme).
+   Sem premiação: uma linha na ficha ("Sem premiação nesta edição"), sem bloco.
+6. **Continuidade** (chapa laranja): edição anterior e próxima com capa, tema e ano, e
+   "Todas as edições". A Lovers não tem próxima: Cartoon não é histórico.
 
-**Teclado em contexto (`teclado.js`, testado em `tests/edicoes-teclado.test.mjs`).** A
-página escuta a janela inteira, então ←/→ **só trocam de edição quando a tecla é dela**.
-Não troca: com modificador (Alt+← é "voltar"), evento já tratado ou composição de IME,
-foco em campo/select/editável, foco em diálogo ou com modal aberto, e foco numa região
-com `data-teclas-proprias` — a galeria usa ←/→/Home/End para FOTOS e o painel de texto
-usa as mesmas teclas para rolar (lá só o Esc é da página). O mesmo atributo tira a
-região do arraste que troca de edição. No celular PageUp/PageDown/Home/End continuam
-rolando a página; só ←/→ trocam.
+**Teclado (`teclado.js`, `tests/edicoes-teclado.test.mjs`):** ⛔ a página **não captura**
+setas, PageUp/PageDown, Home/End nem gestos. `teclaDaGaleria` só responde com o foco numa
+região `data-teclas-proprias`, e nunca com modificador, campo editável ou diálogo aberto.
 
-**Tons por edição (`TONS` em `conteudo/edicoes.js`):** roxo · **laranja** · cyan ·
-amarelo, rodando pelas cenas, cada um com a tinta que passa sobre ele. ⚠️ **O segundo tom
-era magenta até 12/10/2026** — creme sobre magenta dá 3,8:1 e reprovava no texto pequeno
-da pill, do botão e da sanfona (§6.3). Entrou o laranja da própria página (chocolate
-sobre ele 4,78:1). Roxo sobre chocolate dá 1,45:1, por isso o texto dele cai no creme.
+**Dados (NÃO inventar):** período, marcas, curiosidades de `handoff/edicoesData.js`;
+premiação de `handoff/awardsData.js`; fotos de `editionPhotos()`; marca de
+`editionMark()`; texto longo de `edicoesNarrativa.js`. Nada copiado para outro catálogo.
 
-1. **Régua de anos fixa na base** — trilha horizontal com os 16 anos + barra de progresso
-   (`transform: scaleX` com origem à esquerda, **sem transição**). Rola e centraliza no
-   ano ativo. O deslocamento acima da barra de abas é **condicional, nunca literal**.
-   Fundo **chapado** (`rgb(43,14,6)`) e **sem `backdrop-filter`** — blur sobre cena
-   animada trava o compositor (§10.3), e os 4% de transparência que havia antes
-   deixavam o contador da galeria aparecer como texto fantasma atrás dos anos.
-2. **As setas de passar vivem NA régua**, flanqueando os anos: `seta · anos · seta`, o
-   **mesmo arranjo e a mesma peça** do rodapé do desktop (`.scw-edx__seta` e
-   `--proxima`). Os anos são a única parte elástica (`flex: 1` + `min-width: 0`).
-3. Nos extremos a seta sem destino recebe **`disabled`** de verdade — não só
-   `opacity:0` —, para sair da tabulação. Dentro da régua ela fica no estado padrão
-   do sistema (`.45`): sumir deixaria um buraco na linha.
-
-⛔ **As setas laterais saíram em 22/08/2026** (pedido do Eloi) — 62×52px a 31% da altura,
-metade fora da tela, com laço de pulso de 2,8s cada. Flutuavam sobre a cena, longe da
-régua que comandam, e precisavam do pulso para se anunciar. **Não recriar.**
-
-**Selo da cena (só no desktop, na coluna):** disco de 54px (`.scw-edx__cena-disco`) com
-**um ícone por edição**, no tom da cena, ao lado da pill da etapa, dentro de
-`.scw-edx__cena-selo`. O ícone é o campo `icone` de cada cena em
-`src/data/conteudo/edicoes.js` (o antigo `ICONE_EDICAO` de `Edicoes.jsx` saiu com a
-reorganização). ⚠️ A classe é `.scw-edx__cena-selo`, **não** `.scw-edx__marca`: essa
-última já é a marca da edição no cabeçalho, e o nome colide.
-
-**Dados:** `src/data/handoff/edicoesData.js`, derivado de `sweetCoffeeHistory.js`; fotos
-por `editionPhotos()`, marca por `editionMark()`, texto longo de `edicoesNarrativa.js`.
-**Performance:** **só a cena em foco existe no DOM**; as três primeiras fotos das cenas
-vizinhas (±1) são aquecidas no cache, sem nó no DOM (§10.3). A janela `live/near ±1-2`
-saiu.
-
-**Galeria da edição (`Galeria.jsx`)** — o acervo inteiro da edição (11–12 fotos), em
-páginas de 3 (mosaico) ou 2 (pares); a última página é ancorada no fim, sem buraco.
-⛔ **Sem giro automático desde 12/10/2026:** a troca de 6s saiu — foto que troca sozinha é
-conteúdo que alguém perde (§6.15, §6.16) e, sem pausa visível, descumpria a WCAG 2.2.2.
-Só anda por escolha: setas ("Fotos anteriores/Próximas fotos desta edição"), teclado e
-arraste. A barra (`.scw-gal__barra`) é **`seta · contador · seta` — três
-peças, nada mais.** ⛔ **Não reintroduzir** pontos, rótulo `Fotos · <ano>` nem "N de N"
-por extenso. As duas variantes (`--mosaico` no desktop, `--par` no celular) usam o
-**mesmo** flex. Se voltar a precisar de layouts diferentes, é sinal de que peça a mais
-entrou. O que **não** se mexe ao simplificar: as setas de 44px e o teclado ←/→/Home/End.
-
-O numeral da edição é sempre `#FEF0DD` — o vinho sobre foto dava 2,08:1.
-
-**Não usar:** stickers; grade comum de cards; `backdrop-filter` sobre o trilho animado. A
-navegação das edições parece **controle de apresentação**, não segunda navbar — não pode
-brigar com o menu.
+**Testes:** `npm run test:edicoes` (dados e teclado, sem navegador) ·
+`npm run build && npm run test:edicoes-navegador` (as 16 edições por link direto nas duas
+telas, voltar/avançar e recarregar, galeria e foto ampliada, marcas e premiação,
+movimento reduzido, documentos legais, sobreposição; capturas em
+`tests/capturas-edicoes/`, não versionadas).
 
 ### 7.3 Sweet Awards — `/sweet-awards` e `/historico-sweet-awards`, roxo `#4D257E`
 
@@ -756,7 +748,7 @@ rota resolve em `src/lib/rotas.js` **antes de qualquer flag de publicação**: c
 site restrito a uma página, os quatro documentos continuam abrindo — e só eles
 (`tests/consentimento.test.mjs`, item 12). Os rewrites da Vercel servem o link limpo
 (`/privacidade`); o hash (`#/privacidade`) também funciona. Links no rodapé (sempre,
-inclusive com `semLinks`), na folha "mais" e no rodapé de Edições do desktop — nunca
+inclusive com `semLinks`; em Edições também) e na folha "mais" — nunca
 no menu principal. Sem movimento de entrada (`data-mo-fora`).
 
 **Dados confirmados pelo Wilker em 13/10/2026** (`src/config/channels.js`):

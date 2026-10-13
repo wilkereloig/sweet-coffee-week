@@ -131,7 +131,7 @@ Wilker por escrito.
 | Página | Papel | Estado |
 |---|---|---|
 | **Home** (`/`) | Anunciar a próxima edição (Cartoon, 5 a 15 de novembro — autorizado em 13/10/2026, `src/data/destaqueEdicao.js`) e apresentar o festival | existe, 7 seções (§7.1) |
-| **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
+| **Edições** (`/edicoes`, `/edicoes/<código>`) | Memória e vitrine | existe — coleção por ano + detalhe de cada edição, desde 13/10/2026 (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
 | **Participar** (`/participar`) | Converter marcas | existe, 6 seções (§7.4) |
@@ -176,7 +176,8 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npm run dev` | servidor de desenvolvimento (porta = `PORT` ou 5173) |
 | `npm run build` | build |
 | `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
-| `npm run build && npm run test:casca-institucional` | sem `?preview` cada rota abre a própria página, com menu, e baixa só o chunk dela; aviso de cookies não cobre ação principal, régua nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
+| `npm run build && npm run test:casca-institucional` | sem `?preview` cada rota abre a própria página, com menu, e baixa só o chunk dela; aviso de cookies não cobre ação principal, anos de Edições nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
+| `npm run test:edicoes` · `npm run build && npm run test:edicoes-navegador` | Edições: ordem, anos, contagens, vizinhas, rota e teclado (sem navegador); as 16 edições por link direto, voltar/avançar, galeria, foto ampliada, sobreposição e capturas em `tests/capturas-edicoes/` (com navegador) |
 | `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
 | `npm run test:consentimento` | preferência de cookies (medição ligada por padrão, recusa, Global Privacy Control, inválida, vencida, storage quebrado, outra aba), endereço limpo do Analytics e documentos legais sob cada gate |
 | `npm run build && npm run test:privacidade` | pela REDE: primeira visita carrega o Analytics uma vez com endereço limpo; "Recusar", preferências e Global Privacy Control cortam os envios e apagam `_ga`; diálogo (foco, Tab, Escape); documentos por link direto; capturas em `tests/capturas-privacidade/`. ⚠️ O Analytics não liga em `localhost` — o teste liga com `localStorage.scw_ga_local = '1'` |

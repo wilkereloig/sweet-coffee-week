@@ -165,7 +165,7 @@ src/
   pages/<pagina>/  uma pasta por página (12/10/2026): home · edicoes · sweet-awards ·
                 participar · apoiar · contato. index.jsx monta a página na ordem;
                 secoes/*.jsx = uma seção (ou peça) por arquivo; hooks e funções
-                puras locais ao lado (useHome, useEdicoes, teclado.js,
+                puras locais ao lado (useHome, acervo.js de Edições, teclado.js,
                 consulta.js, useCentralDuvidas, useFormularioContato,
                 usePropostaApoio). participar/comum.jsx serve Participar e Apoiar
   pages/carregadores.js  React.lazy das páginas — uma página, um chunk — e
