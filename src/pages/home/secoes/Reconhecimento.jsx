@@ -1,5 +1,6 @@
 import React from 'react'
 import { AWARDS_DADOS } from '../../../data/handoff/awardsData'
+import { estatisticas } from '../../sweet-awards/consulta'
 import { fotosHome } from '../../../data/imageLibrary'
 import { RECONHECIMENTO as T } from '../../../data/conteudo/home'
 import ScwIcon from '../../../components/scw-icons/ScwIcon'
@@ -10,11 +11,12 @@ import { TituloDestaque } from '../TituloDestaque'
 
 /* ============================================================================
    05 Reconhecimento — o Sweet Awards, na chapa roxa (a cor do DESTINO, §6.2).
-   Foto de uma entrega real e a regra de quem dá a nota; o número de edições
-   premiadas sai de AWARDS_DADOS, nunca digitado.
+   Foto de uma entrega real e a regra de quem dá a nota; o total de prêmios
+   entregues sai de AWARDS_DADOS pela mesma conta do herói do Sweet Awards
+   (`estatisticas`), nunca digitado — as duas páginas mostram o mesmo número.
    ========================================================================= */
 
-const EDICOES_PREMIADAS = AWARDS_DADOS.edicoes.length
+const PREMIOS_ENTREGUES = estatisticas(AWARDS_DADOS.edicoes).premios
 
 export function Reconhecimento({ ir }) {
   const foto = fotosHome('premio')
@@ -32,7 +34,7 @@ export function Reconhecimento({ ir }) {
         <p className="hm-apoio hm-apoio--clara">{T.texto}</p>
         <p className="hm-awards__numero">
           <span className="scw-disco" aria-hidden="true"><ScwIcon nome="simbolos/destaque" tamanho={24} /></span>
-          <strong className="scw-numeral">{EDICOES_PREMIADAS}</strong>
+          <strong className="scw-numeral">{PREMIOS_ENTREGUES}</strong>
           <span>{T.numero}</span>
         </p>
         <a className="scw-btn hm-btn--creme" href="/sweet-awards" onClick={ir('/sweet-awards')}>

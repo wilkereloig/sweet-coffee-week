@@ -94,7 +94,7 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
   "ver todas".
 - **05 Sweet Awards (`Reconhecimento.jsx`, chapa roxa — cor do destino)** — foto de uma
   entrega real (`fotosHome('premio')`), quem dá a nota (premiação desde 2019; só Sweet
-  Lovers desde 2022), o número de edições premiadas de `AWARDS_DADOS` (nunca digitado) e
+  Lovers desde 2022), o total de prêmios entregues (271, `estatisticas()` de `sweet-awards/consulta.js` sobre `AWARDS_DADOS` — a mesma conta do herói do Awards, nunca digitado) e
   a ação "Ver o Sweet Awards".
 - **06 Faça parte (`FacaParte.jsx`, creme)** — duas portas curtas na cor do destino:
   **casas → Participar (cyan)** e **empresas → Apoiar (marrom)**; embaixo, a linha

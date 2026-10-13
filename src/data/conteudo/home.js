@@ -114,7 +114,7 @@ export const RECONHECIMENTO = {
   /* §7.3: premiação desde 2019; desde 2022 só os Sweet Lovers dão a nota. */
   texto:
     'A premiação começou em 2019. Desde 2022, quem dá a nota são os Sweet Lovers: o público avalia os combos e o festival reconhece os destaques de cada categoria.',
-  numero: 'edições premiadas',
+  numero: 'prêmios entregues',
   cta: 'Ver o Sweet Awards',
 }
 
