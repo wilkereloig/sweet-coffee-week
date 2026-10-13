@@ -28,7 +28,7 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
   direto: um campo faltando abriria bloco vazio. A classe `.hm-abre` fica nos dois
   modos — `scw-motion.css` coreografa por ela. Altura do conteúdo, não de tela: a seção
   seguinte aparece na primeira dobra do desktop.
-  - **Sem destaque válido (o estado de hoje — `ativo: false`):** apresentação do
+  - **Sem destaque válido (`ativo: false`, ou campo faltando):** apresentação do
     festival. Texto à esquerda: rótulo, H1 ("O festival dos *combos autorais* de
     Natal."), lead, duas ações (**"Explorar as edições"** → `/edicoes`; **"Como
     funciona"** rola até `#festival`) e uma ficha de até três linhas (edições desde o
@@ -36,13 +36,25 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
     Fotos à direita: **pessoas** em crossfade (`useCrossfade`, 6,2s) com um **combo** em
     recorte redondo sobreposto, trocando juntos, e o botão `PausaFotos` quando há
     rotação. Sem movimento, uma camada só.
-  - **Com destaque válido:** a edição assume — rótulo, título, texto, **uma** foto com
-    legenda (sem rotação, sem pausa) e a ação. Ligar é decisão do Wilker (ver §7.8).
+  - **Com destaque válido (o estado de hoje — ligado em 13/10/2026, autorização do
+    Wilker para tema Cartoon e datas 5 a 15 de novembro):** `.hm-abre--edicao`, composição
+    própria de anúncio. Rótulo "Próxima edição · 2026" → H1 com "Sweet & Coffee Week" e o
+    **lettering oficial CARTOON** (`marcas-edicoes/2026.2/tema.webp`, do PNG da marca
+    aprovada no Dropbox F2; `alt="Cartoon"`, então o nome acessível do H1 é "Sweet & Coffee
+    Week Cartoon") → **período em amarelo** → uma frase → ações (**"Quero participar"** →
+    `/quero-participar/` só enquanto o pré-cadastro estiver aberto; **"Conhecer o
+    festival"** rola até `#festival`). Sem ficha de números nem selo. Foto à direita:
+    combo da Caffè Basilico's, **legendado como registro da Lovers** — nunca combo da
+    edição nova. Uma foto, sem relógio. Tema, período e ano vêm de `proximaEdicao.js`; o
+    KV Cartoon fica só nesta abertura. Sem o arquivo da marca, o tema sai em tipografia
+    (`.hm-ed__tema--texto`). Celular: texto primeiro, foto depois das ações; o lettering
+    tem teto de `32svh` no desktop para tudo caber na primeira dobra (1440×900, 1024×768).
   ⚠️ **As fotos de pessoas são todas da Lovers (2026.1) e a legenda diz isso**
   ("Registros da edição Lovers · 2026 · combo …"). Ficam de fora de propósito:
   fantasias (Heróis & Vilões), personagens de desenho ou de contos (Padoca do Bosque, a
   luva do Mickey em `2023/04`) e a faixa do Sebrae (§9.6) — qualquer uma seria lida como
-  pista do tema da próxima edição, que não foi anunciado.
+  pista do tema da próxima edição (anunciado em 13/10/2026, mas só a abertura de edição
+  fala dele).
   Celular (<1000px): foto no topo, largura cheia, **16:10** (16:9 até 420px; 2:1 entre
   600 e 999px; teto `44svh`) — não o quadrado do §6.9, para título, lead e ação caberem
   acima do aviso de cookies na primeira visita.
@@ -308,7 +320,9 @@ quando entraram o mosaico de ganhos e a trilha de passos.
 - **01 Abertura (`Abertura.jsx`)** — título **"Sua marca na *próxima edição.*"**
   (destaque roxo, 4,25:1, texto grande), encurtado em 12/10/2026: a frase antiga juntava
   anúncio e pré-cadastro e quebrava em cinco linhas no celular, empurrando a ação para
-  baixo do aviso de cookies. O mês da edição fica no lead, vindo de `proximaEdicao.js`.
+  baixo do aviso de cookies. A edição aparece no lead, vinda de `proximaEdicao.js`:
+  desde 13/10/2026 "a edição Cartoon, de 5 a 15 de novembro" (sem tema e período, só o
+  mês). A linha a mais levou a foto do herói a **16:10 abaixo de 380px**.
   Duas ações: **"Fazer pré-cadastro"** e **"Ver como funciona"** (rola até
   `#como-funciona` e leva o foco). Fotos em crossfade por `HeroFotos` (§6.9).
 - **03 Para quem é e como funciona (`ParaQuem.jsx`, `#como-funciona`)** — uma seção,
@@ -729,7 +743,7 @@ cada página carrega no próprio chunk (`React.lazy` via `src/pages/carregadores
 | Mudar uma seção (layout, ordem interna, peça) | `src/pages/<pagina>/secoes/<Secao>.jsx`. A ordem das seções está no `index.jsx` da pasta |
 | Mudar texto | `src/data/conteudo/<pagina>.js` (`home`, `edicoes`, `sweet-awards`, `participar`, `apoiar`, `contato`). JSX não guarda texto (§5.6). Perguntas da central: `src/data/faqCentral.js` |
 | Trocar foto | `src/data/imageLibrary.js` (`heroPhotos`, `fotosHome`, `fotoGanho`…). ⛔ **Nunca `imageVariants.js`** — é gerado por `scripts/gerar-variantes.mjs` |
-| Ligar o destaque de edição na Home | `src/data/destaqueEdicao.js`: preencher **todos** os campos (`titulo`, `texto`, `imagem` com `src` e `alt` — registrada antes em `imageLibrary.js` —, `legenda`, `acao` com `rotulo` e `href`) e só então `ativo: true`. Faltou um campo, `destaqueValido()` devolve `false` e a abertura institucional continua — nunca um bloco pela metade. Conferir com `npm run test:destaque`. Nada liga por data, e não mexe em flag de publicação (sob o gate atual a Home nem aparece). Decisão do Wilker, nunca automática |
+| Ligar/desligar o destaque de edição na Home | **Ligado desde 13/10/2026.** `src/data/destaqueEdicao.js`: `ativo` liga/desliga; tema, período e ano vêm de `proximaEdicao.js` (nunca escritos aqui); foto e lettering de `fotoProximaEdicao()` em `imageLibrary.js`; a ação só existe com pré-cadastro aberto. Obrigatórios: `titulo`, `tema`, `periodo`, `texto`, `imagem` com `src` e `alt`, `legenda`. Faltou um campo, `destaqueValido()` devolve `false` e a abertura institucional continua — nunca um bloco pela metade. Conferir com `npm run test:destaque`. Nada liga por data, e não mexe em flag de publicação (sob o gate atual a Home nem aparece). Decisão do Wilker, nunca automática |
 | Validar antes de commitar | `npm run build && npm run test:casca-institucional` · `npm run test:motion` (depois de um build) · `node tests/responsive.mjs` — e o build de verificação fora do projeto (§3.2 da raiz) |
 
 ---

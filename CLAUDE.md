@@ -125,7 +125,7 @@ Wilke, nenhuma automática.
 
 | Página | Papel | Estado |
 |---|---|---|
-| **Home** (`/`) | Apresentar o festival; o destaque da próxima edição liga só com conteúdo público completo (`src/data/destaqueEdicao.js`) | existe, 7 seções (§7.1) |
+| **Home** (`/`) | Anunciar a próxima edição (Cartoon, 5 a 15 de novembro — autorizado em 13/10/2026, `src/data/destaqueEdicao.js`) e apresentar o festival | existe, 7 seções (§7.1) |
 | **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
