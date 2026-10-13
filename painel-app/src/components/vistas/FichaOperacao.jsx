@@ -252,13 +252,9 @@ export function AbaTrajetoria({ participante, pode, onMudou }) {
 
   async function decidir(chave, status) {
     setAviso(null)
-    const motivo = await pedirTexto(status === 'confirmado'
-      ? 'Por que é a mesma marca? (ex.: mesmo CNPJ, confirmado com o responsável)'
-      : 'Por que NÃO é a mesma marca? (opcional)', {})
-    if (motivo === null) return // cancelou
-    if (status === 'confirmado' && !motivo.trim()) return
+    // Sem pedir motivo (pedido do Wilker, 12/10/2026): o clique decide; quem e quando ficam na auditoria.
     try {
-      await rpc('decidir_vinculo', { p_secret: lerSenha(), p_participante: participante.id, p_chave: chave, p_status: status, p_motivo: motivo || null })
+      await rpc('decidir_vinculo', { p_secret: lerSenha(), p_participante: participante.id, p_chave: chave, p_status: status, p_motivo: null })
       await carregar(); onMudou && onMudou()
     } catch (e) { setAviso(e.message.includes('duplicate') ? 'Essa marca do acervo já está ligada a outro estabelecimento.' : traduzirErro(e.message)) }
   }
