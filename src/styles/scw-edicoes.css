@@ -1,30 +1,34 @@
 /* ============================================================================
-   Sweet & Coffee Week — página EDIÇÕES (experiência de tela cheia, redesign 2026)
-   Fonte: design_handoff_site_institucional/README.md (§ "Edições — experiência
-   de tela cheia") + protótipo Edicoes.dc.html. Valores hifi (finais).
+   Sweet & Coffee Week — página EDIÇÕES (experiência de tela cheia)
+   Componentes em src/pages/edicoes/ (uma peça por arquivo).
 
    Regras seguidas aqui:
    - nenhuma cor fora da paleta de scw-2026.css (nunca #E52C4B);
-   - NADA de backdrop-filter sobre o trilho/cena animada — fundo semi-opaco
-     (blur + readback de GPU a cada frame congela o compositor);
-   - o deslocamento da tab bar mobile é UMA variável (--scw-edx-abas), nunca
-     literal espalhado: a página pode ser embutida no site (tab bar montada por
-     fora) ou aberta sozinha (modificador --solta);
-   - só transform/opacity/filter animam; a barra de progresso da régua mobile
-     não tem transition em width/transform (travava o valor no meio do caminho).
+   - NADA de backdrop-filter sobre a cena animada — fundo semi-opaco
+     (blur + readback de GPU a cada frame congela o compositor, §10.3);
+   - o deslocamento da tab bar mobile é UMA variável (--scw-edx-abas);
+   - só transform/opacity/filter/clip-path animam; a barra de progresso da
+     régua mobile não tem transition em transform (travava o valor);
+   - duas vozes (§6.5, migrada em 12/10/2026): Nexa Slab só em título, tema,
+     numeral e chamada; Nexa (--scw-font-ui) em rótulo, botão, dado e frase;
+     Nexa Text (--scw-font-texto) no texto corrido. A sem serifa só tem 400 e
+     700 — nada de 500/800 nela;
+   - nenhum laço contínuo sem pausa além da deriva do fundo (atmosfera,
+     desfocada a 64px sob véu de 87%). O brilho do trilho, o pulso do cursor e
+     o empurrão da seta "próxima" saíram em 12/10/2026.
    ========================================================================= */
 
 .scw-edx {
   /* Tab bar do site (76px + safe-area) montada POR FORA da página. */
   --scw-edx-abas: calc(76px + var(--scw-safe-b));
-  /* Acento da edição em foco — trocado inline por cena (ver Edicoes.jsx). */
+  /* Acento da edição em foco — trocado inline por cena (useEdicoes/TONS). */
   --scw-edx-tom: var(--scw-cyan);
   --scw-edx-tinta: var(--scw-choco);   /* texto SOBRE o acento (AA) */
   --scw-edx-tom-txt: var(--scw-cyan);  /* acento usado como TEXTO no escuro */
 
   background: var(--scw-choco);
   color: var(--scw-creme);
-  font-family: var(--scw-font);
+  font-family: var(--scw-font-ui);
 }
 /* Página aberta sozinha (sem a casca do site): régua encosta na base. */
 .scw-edx--solta { --scw-edx-abas: 0px; }
@@ -42,8 +46,7 @@
 
 /* ============================================================================
    DESKTOP — cena de 100vh
-   Grade de 2 linhas: cena (1fr) + rodapé de navegação (auto). Sem medir altura
-   de rodapé em JS: a própria grade reserva o espaço do trilho das 16 edições.
+   Grade de 2 linhas: cena (1fr) + rodapé de navegação (auto).
    ========================================================================= */
 
 .scw-edx__palco {
@@ -61,7 +64,7 @@
   touch-action: pan-y;
 }
 
-/* --- fundo: foto do combo desfocada sob véu chocolate a 87% ---------------- */
+/* --- fundo: foto do acervo desfocada sob véu chocolate a 87% --------------- */
 .scw-edx__fundo {
   position: absolute;
   inset: 0;
@@ -86,9 +89,9 @@
 }
 
 /* ============================================================================
-   GALERIA DA EDIÇÃO — carrossel do acervo (11–12 fotos por edição)
+   GALERIA DA EDIÇÃO — o acervo (11–12 fotos por edição), só anda por escolha
    Duas variantes da MESMA peça: `--mosaico` (metade direita do desktop, 3 fotos
-   por página) e `--par` (mobile, 2 fotos 1:1 por página). O quadro define a
+   por página) e `--par` (celular, 2 fotos 1:1 por página). O quadro define a
    proporção, então a troca de foto nunca mexe no layout.
    ========================================================================= */
 
@@ -103,7 +106,7 @@
   margin: 0;
   overflow: hidden;
   background: var(--scw-marrom);
-  /* wipe direcional de 820ms — dispara na troca de EDIÇÃO (a cena remonta) */
+  /* wipe direcional de 820ms — dispara na troca de EDIÇÃO (a galeria remonta) */
   animation: scwEdxRevelaDir 820ms var(--scw-ease) both;
 }
 .scw-edx.is-tras .scw-gal__quadro { animation-name: scwEdxRevelaEsq; }
@@ -122,8 +125,7 @@
 /* A que sai fica embaixo, parada, até o fim do crossfade — nunca tela vazia. */
 .scw-gal__foto--sai { z-index: 0; }
 /* A que entra vem por cima. Deslize em `translate` e ken burns em `scale`:
-   propriedades independentes, então uma não anula a outra (como aconteceria
-   se as duas animassem `transform`). */
+   propriedades independentes, então uma não anula a outra. */
 .scw-gal__foto--entra {
   z-index: 1;
   animation: scwEdxFotoEntra 320ms var(--scw-ease) both,
@@ -147,22 +149,24 @@
   grid-template-columns: 1fr 1fr;
 }
 
-/* --- variante par: mobile, duas fotos 1:1 --------------------------------- */
+/* --- variante par: celular, duas fotos 1:1 -------------------------------- */
 .scw-gal--par .scw-gal__quadros { grid-template-columns: 1fr 1fr; }
 .scw-gal--par .scw-gal__quadro { aspect-ratio: 1; }
 
-/* --- barra de controle (parece controle de apresentação, não navbar) -------
-   Três peças em linha: seta · contador · seta. As duas variantes usam o MESMO
-   layout — a `par` só troca as cores e ocupa a largura toda. O grid de áreas
-   que existia aqui só servia pra reposicionar rótulo e pontos, que saíram. */
+/* --- barra: seta · contador · seta (três peças, §7.2) ---------------------- */
 .scw-gal__barra {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+/* No desktop a barra pousa no PÉ DA FOTO LARGA (a linha de 1.42fr do
+   mosaico), não no pé da cena: ali embaixo, à direita, mora o aviso de cookies
+   da primeira visita, e ele cobria a seta "próximas fotos" de 1024 a 1440px. */
 .scw-gal--mosaico .scw-gal__barra {
   position: absolute;
-  left: 14px; bottom: 14px;
+  left: 14px;
+  top: calc((100% - 3px) * 1.42 / 2.42 - 14px);
+  transform: translateY(-100%);
   z-index: 2;
   padding: 4px 8px;
   border-radius: 999px;
@@ -185,26 +189,22 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease);
+  transition: background var(--mo-rapido) var(--scw-ease), border-color var(--mo-rapido) var(--scw-ease);
 }
-
 @media (hover: hover) {
   .scw-gal--mosaico .scw-gal__seta:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
+  .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
 }
 .scw-gal--par .scw-gal__seta { border-color: rgba(61, 19, 8, .14); background: var(--scw-creme); }
 
-@media (hover: hover) {
-  .scw-gal--par .scw-gal__seta:hover { background: var(--scw-choco); color: var(--scw-creme); }
-}
-
 .scw-gal__contador {
   padding-inline: 2px;
-  font: 800 10.5px/1.2 var(--scw-font);
-  letter-spacing: .08em;
+  font: 700 12px/1.2 var(--scw-font-ui);
+  letter-spacing: .06em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.scw-gal__contador span { opacity: .62; }
+.scw-gal__contador span { opacity: .7; }
 
 /* Sem foto no acervo: reserva editorial honesta, nunca imagem inventada. */
 .scw-edx__reserva {
@@ -217,7 +217,7 @@
   background: repeating-linear-gradient(
     135deg, rgba(254, 240, 221, .05) 0 12px, rgba(254, 240, 221, .09) 12px 24px);
   color: rgba(254, 240, 221, .74);
-  font: 800 10.5px/1.3 var(--scw-font);
+  font: 700 11px/1.3 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   text-align: center;
@@ -230,7 +230,9 @@
   background: linear-gradient(to bottom, rgba(61, 19, 8, .74), rgba(61, 19, 8, 0));
   pointer-events: none;
 }
-/* --- cabeçalho próprio (mesma geometria da casca do site) ------------------ */
+
+/* --- cabeçalho próprio (mesma geometria da casca do site) ------------------
+   Fora da cena que remonta: trocar de edição não derruba o foco do menu. */
 .scw-edx__cab {
   position: absolute;
   left: 0; right: 0; top: 0;
@@ -250,7 +252,6 @@
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 14px;
   min-width: 0;
 }
 .scw-edx__marca-img {
@@ -271,33 +272,17 @@
   width: clamp(96px, 9vw, 132px);
   border: 1px dashed rgba(254, 240, 221, .34);
   border-radius: var(--scw-r-card);
-  font: 800 9.5px/1.3 var(--scw-font);
-  letter-spacing: .14em;
+  font: 700 11px/1.3 var(--scw-font-ui);
+  letter-spacing: .12em;
   text-transform: uppercase;
   text-align: center;
   color: rgba(254, 240, 221, .7);
 }
-.scw-edx__marca-txt {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.scw-edx__marca-tema {
-  font: 900 13px/1.1 var(--scw-font-black);
-  white-space: nowrap;
-  color: var(--scw-creme);
-}
-.scw-edx__marca-code {
-  font: 800 10px/1.1 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--scw-edx-tom-txt);
-  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
-}
 
-/* --- coluna editorial (metade esquerda) ----------------------------------- */
+/* --- coluna editorial (metade esquerda) -----------------------------------
+   A caixa da coluna (52vw) passa por cima da borda esquerda do mosaico (50vw):
+   sem o `pointer-events: none`, ela engolia o clique na seta "fotos
+   anteriores". Quem recebe o ponteiro são só os blocos de dentro. */
 .scw-edx__coluna {
   position: relative;
   z-index: 10;
@@ -306,18 +291,24 @@
   width: min(52vw, 860px);
   display: grid;
   align-content: safe center;
-  gap: clamp(6px, 1.1vw, 26px);
+  gap: clamp(8px, 1.1vw, 24px);
   padding: clamp(112px, 13vw, 250px) clamp(28px, 3vw, 52px) clamp(24px, 3vw, 44px) var(--scw-trilho);
+  pointer-events: none;
 }
-/* Selo da CENA (não confundir com .scw-edx__marca, que é a marca da edição no
-   cabeçalho): disco no tom da edição + rótulo. O disco é vazado — contorno no
-   tom, fundo quase transparente — para não competir com a pill sólida ao lado.
-   As duas peças dizem a mesma coisa em pesos diferentes. */
+.scw-edx__coluna > * { pointer-events: auto; }
+/* O invólucro só existe para a `key` (o texto remonta por edição, as ações
+   não): não gera caixa, os filhos continuam itens da grade da coluna. */
+.scw-edx__coluna-texto { display: contents; }
+
+/* Selo da CENA (não confundir com .scw-edx__marca, a marca da edição no
+   cabeçalho): disco no tom da edição + etapa + ano e posição na linha do
+   tempo. */
 .scw-edx__cena-selo {
   justify-self: start;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 13px;
+  gap: 10px 13px;
   animation: scwEdxCenaDir 520ms var(--scw-ease) both;
 }
 .scw-edx__cena-disco {
@@ -327,19 +318,13 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  /* Traço e ícone vêm de `--scw-edx-tom-txt`, não do tom cru: sobre a cena
-     escura o roxo dá 1,45:1 e o magenta 3,8:1 (§10.6) — o disco sumia. É o
-     mesmo par que o resto da página já usa como TEXTO no escuro, onde roxo e
-     magenta caem no creme e cyan/amarelo ficam. A pill ao lado segue no tom
-     cru porque lá ele é SUPERFÍCIE, não tinta. */
+  /* Traço e ícone em `--scw-edx-tom-txt`: sobre a cena escura o roxo dá
+     1,45:1 (§10.6) — o disco sumia. A pill ao lado segue no tom cru porque lá
+     ele é SUPERFÍCIE, não tinta. */
   border: 2px solid var(--scw-edx-tom-txt);
   background: rgba(254, 240, 221, .05);
   color: var(--scw-edx-tom-txt);
-  transition: border-color 460ms cubic-bezier(.2, .75, .2, 1),
-              color 460ms cubic-bezier(.2, .75, .2, 1);
-}
-@media (max-width: 900px) {
-  .scw-edx__cena-disco { width: 44px; height: 44px; }
+  transition: border-color 460ms var(--scw-ease), color 460ms var(--scw-ease);
 }
 
 .scw-edx__rotulo {
@@ -349,11 +334,27 @@
   border-radius: 999px;
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
-  font: 800 11px/1.2 var(--scw-font);
+  font: 700 11px/1.2 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
-  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1);
-  animation: scwEdxCenaDir 520ms var(--scw-ease) both;
+  transition: background-color 460ms var(--scw-ease);
+}
+/* Ano + posição: identifica a edição junto do título (12/10/2026). Numeral em
+   Slab, sempre creme (§7.2). */
+.scw-edx__quando {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .74);
+}
+.scw-edx__quando b {
+  font: 900 clamp(20px, 1.6vw, 28px)/1 var(--scw-font-black);
+  letter-spacing: -.02em;
+  text-transform: none;
+  color: var(--scw-creme);
 }
 .scw-edx__tema {
   margin: 0;
@@ -367,31 +368,30 @@
 .scw-edx__lead {
   margin: 0;
   max-width: 44ch;
-  font: 500 clamp(14px, 1.15vw, 20px)/1.45 var(--scw-font);
-  color: rgba(254, 240, 221, .86);
+  font: 400 clamp(15px, 1.15vw, 20px)/1.5 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .88);
   text-wrap: pretty;
   animation: scwEdxCenaDir 560ms var(--scw-ease) 120ms both;
 }
 .scw-edx__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(9px, 1.2vw, 34px);
+  gap: clamp(10px, 1.2vw, 34px);
   margin: 0;
   padding-top: clamp(9px, 1.2vw, 20px);
   border-top: 1px solid rgba(254, 240, 221, .2);
   animation: scwEdxCenaDir 560ms var(--scw-ease) 180ms both;
 }
-.scw-edx__meta > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.scw-edx__meta > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .scw-edx__meta dt {
-  font: 800 10.5px/1.1 var(--scw-font);
+  font: 700 11px/1.1 var(--scw-font-ui);
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: rgba(254, 240, 221, .5);
+  color: rgba(254, 240, 221, .6);
 }
 .scw-edx__meta dd {
   margin: 0;
-  font: 900 clamp(12.5px, 1.05vw, 16px)/1.2 var(--scw-font-black);
-  letter-spacing: -.02em;
+  font: 700 clamp(13px, 1.05vw, 16px)/1.25 var(--scw-font-ui);
 }
 .scw-edx__acoes {
   display: flex;
@@ -400,41 +400,38 @@
   animation: scwEdxCenaDir 560ms var(--scw-ease) 240ms both;
 }
 /* Direção "voltando": as camadas entram pela esquerda. */
-.scw-edx.is-tras .scw-edx__rotulo,
+.scw-edx.is-tras .scw-edx__cena-selo,
 .scw-edx.is-tras .scw-edx__tema,
 .scw-edx.is-tras .scw-edx__lead,
-.scw-edx.is-tras .scw-edx__meta,
-.scw-edx.is-tras .scw-edx__acoes { animation-name: scwEdxCenaEsq; }
+.scw-edx.is-tras .scw-edx__meta { animation-name: scwEdxCenaEsq; }
 
 .scw-edx__botao {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 11px 18px;
+  min-height: 46px;
+  padding: 12px 18px;
   border-radius: 999px;
   border: 0;
   cursor: pointer;
   white-space: nowrap;
-  font: 800 13px/1 var(--scw-font);
+  font: 700 14px/1 var(--scw-font-ui);
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
-  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1), transform 120ms ease;
+  transition: background-color 460ms var(--scw-ease), transform var(--mo-rapido) var(--scw-ease);
 }
 .scw-edx__botao:active { transform: translateY(1px); }
 .scw-edx__botao--vazado {
   border: 1px solid rgba(254, 240, 221, .34);
   background: rgba(61, 19, 8, .4);
   color: var(--scw-creme);
-  box-shadow: none;
 }
-
 @media (hover: hover) {
   .scw-edx__botao--vazado:hover { background: rgba(254, 240, 221, .14); border-color: var(--scw-creme); }
 }
-.scw-edx__botao--vazado:active { transform: none; box-shadow: none; }
+.scw-edx__botao--vazado:active { transform: none; }
 
-/* --- painéis flutuantes (participantes / curiosidades) -------------------- */
+/* --- painéis flutuantes (participantes / texto editorial) ----------------- */
 .scw-edx__painel {
   position: absolute;
   left: var(--scw-trilho);
@@ -445,16 +442,15 @@
   max-height: min(64vh, 560px);
   border-radius: 28px;
   box-shadow: 0 34px 80px rgba(0, 0, 0, .5);
-  animation: scwEdxPainel 320ms cubic-bezier(.2, .75, .2, 1) both;
+  animation: scwEdxPainel 320ms var(--scw-ease) both;
 }
 .scw-edx__painel--claro {
   width: min(660px, 52vw);
   background: var(--scw-creme);
   color: var(--scw-choco);
 }
-/* O painel editorial carrega texto longo (história do festival, marco,
-   curiosidade, legado e achados do acervo): um pouco mais largo e mais alto que
-   o de participantes, mas ainda dentro da cena — quem rola é o corpo. */
+/* O painel editorial carrega texto longo: um pouco mais alto que o de
+   participantes, mas dentro da cena — quem rola é o corpo. */
 .scw-edx__painel--escuro {
   width: min(640px, 50vw);
   max-height: min(70vh, 640px);
@@ -471,8 +467,8 @@
 }
 .scw-edx__painel-rot {
   display: block;
-  font: 800 10.5px/1.2 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11px/1.3 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
 }
@@ -494,9 +490,9 @@
   background: var(--scw-creme);
   color: var(--scw-choco);
 }
-
 @media (hover: hover) {
   .scw-edx__fechar:hover { background: var(--scw-choco); color: var(--scw-creme); }
+  .scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
 }
 .scw-edx__painel--escuro .scw-edx__fechar {
   border-color: rgba(254, 240, 221, .3);
@@ -504,25 +500,24 @@
   color: var(--scw-creme);
 }
 
-@media (hover: hover) {
-  .scw-edx__painel--escuro .scw-edx__fechar:hover { background: var(--scw-creme); color: var(--scw-choco); }
-}
-
 .scw-edx__marcas {
+  flex: 1 1 auto;
+  min-height: 0;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 2px 20px;
   margin: 0;
-  padding: 0 clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px);
+  padding: 0 clamp(20px, 2.2vw, 30px) 12px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .scw-edx__marcas li {
   display: flex;
   align-items: baseline;
   gap: 9px;
   padding: 6px 0;
-  font: 500 14px/1.35 var(--scw-font);
+  font: 400 15px/1.35 var(--scw-font-ui);
 }
 .scw-edx__ponto {
   flex: 0 0 auto;
@@ -530,17 +525,25 @@
   border-radius: 50%;
   background: var(--scw-edx-tom);
 }
+/* Nota da lista: as fotos são da edição, não de uma casa da lista. */
+.scw-edx__nota {
+  margin: 0;
+  padding: 12px clamp(20px, 2.2vw, 30px) clamp(18px, 2vw, 26px);
+  border-top: 1px solid rgba(61, 19, 8, .14);
+  font: 400 13px/1.45 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+
 /* --- corpo editorial (mesma peça no painel do desktop e na sanfona do mobile)
-   Fundo chocolate nos dois contextos, então cor de texto é uma só. O filete da
-   cor da edição à esquerda separa os blocos sem virar caixa dentro de caixa. */
+   Fundo chocolate nos dois contextos. O filete da cor da edição à esquerda
+   separa os blocos sem virar caixa dentro de caixa. */
 .scw-edx__editorial {
   display: flex;
   flex-direction: column;
   gap: clamp(18px, 2vw, 26px);
 }
-/* No painel flutuante ESTE bloco é o que rola — o topo (rótulo + fechar) fica
-   parado e a cena de 100vh não cresce. `min-height:0` porque em coluna flex o
-   padrão `auto` impede o filho de encolher e o scroll nunca aparece. */
+/* No painel flutuante ESTE bloco é o que rola — o topo fica parado. */
 .scw-edx__editorial--painel {
   flex: 1 1 auto;
   min-height: 0;
@@ -567,11 +570,11 @@
 }
 .scw-edx__bloco-rot {
   margin: 0;
-  font: 800 11px/1.35 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11px/1.35 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-edx-tom-txt);
-  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+  transition: color 460ms var(--scw-ease);
 }
 .scw-edx__bloco-lede {
   margin: 0;
@@ -582,8 +585,9 @@
 }
 .scw-edx__bloco-txt {
   margin: 0;
-  font: 500 15px/1.6 var(--scw-font);
-  color: rgba(254, 240, 221, .86);
+  max-width: 62ch;
+  font: 400 16px/1.6 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .88);
   text-wrap: pretty;
 }
 
@@ -596,24 +600,31 @@
   padding: 0;
 }
 .scw-edx__curios li { display: flex; flex-direction: column; gap: 5px; }
-.scw-edx__curios b { font: 900 15.5px/1.2 var(--scw-font-black); letter-spacing: -.02em; }
-.scw-edx__curios-x { font: 500 14.5px/1.55 var(--scw-font); color: rgba(254, 240, 221, .84); text-wrap: pretty; }
-.scw-edx__curios-v { font: 800 12px/1.2 var(--scw-font); letter-spacing: .06em; color: var(--scw-edx-tom-txt); }
+.scw-edx__curios b { font: 800 16px/1.2 var(--scw-font-slab); letter-spacing: -.02em; }
+.scw-edx__curios-x { font: 400 15px/1.55 var(--scw-font-texto); color: rgba(254, 240, 221, .86); text-wrap: pretty; }
+.scw-edx__curios-v { font: 700 12px/1.2 var(--scw-font-ui); letter-spacing: .06em; color: var(--scw-edx-tom-txt); }
 
-/* --- rodapé: trilha das 16 edições, setas e progresso ---------------------- */
+/* --- rodapé: linha do tempo das 16 edições, setas e progresso -------------- */
 .scw-edx__rodape {
   position: relative;
   z-index: 24;
-  padding: clamp(10px, 1.2vw, 16px) var(--scw-trilho) clamp(16px, 1.8vw, 24px);
+  padding: clamp(10px, 1.2vw, 16px) var(--scw-trilho) clamp(14px, 1.6vw, 22px);
   background: var(--scw-choco);
   border-top: 1px solid rgba(254, 240, 221, .16);
 }
 .scw-edx__rodape-linha {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: clamp(12px, 1.6vw, 22px);
 }
+/* O centro da seta (46px) cai na altura do trilho (16px do topo da trilha),
+   com rótulos numa linha ou em duas (ver o escalonamento abaixo). */
+.scw-edx__rodape-linha > .scw-edx__seta { margin-top: -7px; }
+/* Seta de passar EDIÇÃO — mesma peça no rodapé e na régua do celular. É
+   `position: relative` para o nome do destino (.scw-icone-rotulo) aparecer
+   no hover e no foco. */
 .scw-edx__seta {
+  position: relative;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -623,71 +634,82 @@
   background: transparent;
   color: var(--scw-creme);
   cursor: pointer;
-  transition: background 240ms var(--scw-ease), border-color 240ms var(--scw-ease), opacity 260ms linear;
+  transition: background var(--mo-rapido) var(--scw-ease), border-color var(--mo-rapido) var(--scw-ease), opacity 260ms linear;
 }
-
 @media (hover: hover) {
   .scw-edx__seta:hover:not(:disabled) { background: rgba(254, 240, 221, .12); border-color: var(--scw-creme); }
 }
-.scw-edx__seta:disabled { opacity: .45; cursor: default; }  /* PATCH 02 §3 */
+.scw-edx__seta:disabled { opacity: .45; cursor: default; pointer-events: none; }
+/* O nome do destino (.scw-icone-rotulo) aparece ACIMA da seta, alinhado à
+   borda de fora. Ao lado, como no resto do site, ele caía sobre os anos da
+   trilha, chocolate sobre o chocolate do rodapé — e na régua do celular a
+   seta da direita o empurraria para fora da tela. */
+.scw-edx__seta.scw-icone-rotulo::after {
+  top: auto;
+  bottom: calc(100% + 10px);
+  left: 0;
+  right: auto;
+  transform: translateY(4px);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+.scw-edx__seta--proxima.scw-icone-rotulo::after { left: auto; right: 0; }
+.scw-edx__seta.scw-icone-rotulo:focus-visible::after { transform: none; }
+@media (hover: hover) {
+  .scw-edx__seta.scw-icone-rotulo:hover::after { transform: none; }
+}
+/* A "próxima" é a ação principal da linha do tempo: chapada no tom da edição,
+   sem sombra (botão é chapado, §6.6) e sem laço de empurrão. */
 .scw-edx__seta--proxima {
   border: 0;
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
-  box-shadow: 0 5px 0 rgba(0, 0, 0, .3);
-  animation: scwEdxEmpurra 2.8s cubic-bezier(.4, 0, .6, 1) infinite;
-  transition: background-color 460ms cubic-bezier(.2, .75, .2, 1), opacity 260ms linear;
+  transition: background-color 460ms var(--scw-ease), opacity 260ms linear;
 }
-.scw-edx__seta--proxima:disabled { animation: none; }
 
 .scw-edx__trilha {
   position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
 }
+/* Trilho, progresso e cursor medidos a partir do TOPO (o ponto de cada ano
+   fica a 14px): assim os rótulos podem descer para uma segunda linha sem
+   arrastar a linha do tempo junto. */
 .scw-edx__trilho,
-.scw-edx__brilho,
 .scw-edx__progresso {
   position: absolute;
   left: 0;
-  bottom: 26px;
+  right: 0;
+  top: 15px;
   height: 2px;
   border-radius: 2px;
   pointer-events: none;
 }
-.scw-edx__trilho { right: 0; background: rgba(254, 240, 221, .14); }
-.scw-edx__brilho {
-  right: 0;
-  background-image: linear-gradient(90deg, rgba(254, 240, 221, 0) 0%, rgba(254, 240, 221, .55) 50%, rgba(254, 240, 221, 0) 100%);
-  background-size: 150px 100%;
-  background-repeat: no-repeat;
-  animation: scwEdxVarrer 3.4s linear infinite;
-}
+.scw-edx__trilho { background: rgba(254, 240, 221, .14); }
 /* Progresso por scaleX (não width): animar largura força layout a cada frame. */
 .scw-edx__progresso {
-  right: 0;
+  top: 14.5px;
   height: 3px;
   border-radius: 3px;
   background: var(--scw-edx-tom);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--scw-edx-tom) 40%, transparent);
   transform: scaleX(var(--scw-edx-prog-n, 0));
   transform-origin: left center;
-  transition: transform 560ms var(--scw-ease), background-color 460ms cubic-bezier(.2, .75, .2, 1);
+  transition: transform 560ms var(--scw-ease), background-color 460ms var(--scw-ease);
 }
-.scw-edx__cursor,
-.scw-edx__cursor-anel {
+.scw-edx__cursor {
   position: absolute;
   left: var(--scw-edx-prog, 0%);
-  bottom: 27.5px;
-  width: 9px; height: 9px;
+  top: 16px;
+  width: 11px; height: 11px;
   border-radius: 50%;
   pointer-events: none;
-  transition: left 560ms var(--scw-ease), background-color 460ms cubic-bezier(.2, .75, .2, 1);
+  transform: translate(-50%, -50%);
+  background: var(--scw-edx-tom);
+  box-shadow: 0 0 0 3px var(--scw-choco);
+  transition: left 560ms var(--scw-ease), background-color 460ms var(--scw-ease);
 }
-.scw-edx__cursor { transform: translate(-50%, 50%); background: var(--scw-edx-tom); }
-.scw-edx__cursor-anel { border: 2px solid var(--scw-edx-tom); animation: scwEdxPulso 2.2s cubic-bezier(.2, .6, .2, 1) infinite; }
 
 .scw-edx__ano {
   flex: 1;
@@ -696,6 +718,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 14px 0 0;
   border: 0;
   background: none;
@@ -706,16 +729,15 @@
   width: 3px; height: 3px;
   border-radius: 50%;
   background: rgba(254, 240, 221, .34);
-  transition: background-color 300ms cubic-bezier(.2, .75, .2, 1);
+  transition: background-color var(--mo-estado) var(--scw-ease);
 }
 .scw-edx__ano.is-ativo .scw-edx__ano-tick { background: transparent; }
 .scw-edx__ano-rot {
-  font: 800 10.5px/1.2 var(--scw-font);
-  letter-spacing: .06em;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .02em;
   white-space: nowrap;
-  color: rgba(254, 240, 221, .64);
+  color: rgba(254, 240, 221, .66);
 }
-
 @media (hover: hover) {
   .scw-edx__ano:hover .scw-edx__ano-rot { color: var(--scw-creme); }
 }
@@ -729,32 +751,32 @@
   margin-top: 8px;
 }
 .scw-edx__rodape-atual {
-  font: 800 11px/1.2 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-edx-tom-txt);
-  transition: color 460ms cubic-bezier(.2, .75, .2, 1);
+  transition: color 460ms var(--scw-ease);
 }
 .scw-edx__rodape-dica {
-  font: 500 11.5px/1.2 var(--scw-font);
-  color: rgba(254, 240, 221, .6);
+  font: 400 12px/1.2 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .66);
 }
 
-/* Telas médias: a trilha de 16 anos aperta — esconde os rótulos, mantém dots. */
-@media (max-width: 1080px) {
-  .scw-edx__ano-rot { font-size: 9.5px; letter-spacing: 0; }
-  .scw-edx__rodape-dica { display: none; }
+/* Telas de 901 a 1180px: 16 rótulos de 11px não cabem numa linha (a 901px
+   sobram ~43px por ano e "2020.1" ocupa ~40px — os anos colavam). Em vez de
+   descer a fonte abaixo do piso de 11px, um ano sim, um não desce para uma
+   segunda linha: cada rótulo ganha o dobro de espaço. */
+@media (max-width: 1180px) {
+  .scw-edx__ano:nth-of-type(even) .scw-edx__ano-rot { margin-top: 15px; }
 }
 
 /* ============================================================================
-   MOBILE — capítulo vertical + três peças de navegação
+   MOBILE — capítulo vertical + régua de anos
    ========================================================================= */
 
 .scw-edx-mob {
   position: relative;
-  /* `svh` pelo mesmo motivo dos heróis (scw-2026.css §Base): `vh` no iOS é o
-     viewport com a barra recolhida, e a cena da edição nascia mais alta que a
-     área visível. */
+  /* `svh`: `vh` no iOS é o viewport com a barra recolhida. */
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -765,13 +787,19 @@
 .scw-edx-mob__conteudo {
   flex: 1;
   /* reserva só a régua de anos: a tab bar do site já empurra .scw-raiz */
-  padding-bottom: 104px;
+  padding-bottom: 112px;
   touch-action: pan-y;
 }
 
 .scw-edx-mob__capa {
   position: relative;
   aspect-ratio: 4 / 5;
+  /* No tablet em pé (768–900px) o 4:5 dava 960px a 1125px de altura: tema e
+     etapa, que moram no pé da capa, caíam atrás da régua e ninguém via QUAL
+     edição estava na tela. O teto deixa a capa mais baixa só ali — no
+     celular o 4:5 fica abaixo dele. */
+  max-height: 62svh;
+  width: 100%;          /* largura definida: sem ela o teto encolhia a capa pela proporção */
   overflow: hidden;
   background: var(--scw-marrom);
 }
@@ -821,22 +849,34 @@
   height: 84px; width: 104px;
   border: 1px dashed rgba(254, 240, 221, .4);
   border-radius: var(--scw-r-card);
-  font: 800 9.5px/1.3 var(--scw-font);
+  font: 700 11px/1.3 var(--scw-font-ui);
   letter-spacing: .12em;
   text-transform: uppercase;
   text-align: center;
   color: rgba(254, 240, 221, .78);
 }
-.scw-edx-mob__contagem {
+/* Ano da edição + posição na linha do tempo, no canto da capa. */
+.scw-edx-mob__quando {
   display: flex;
-  align-items: baseline;
-  gap: 5px;
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin: 0 0 0 auto;
+  text-align: right;
   text-shadow: 0 2px 10px rgba(43, 14, 6, .6);
 }
-.scw-edx-mob__contagem b { font: 900 24px/1 var(--scw-font-black); color: var(--scw-creme); }
-.scw-edx-mob__contagem span { font: 800 11px/1 var(--scw-font); letter-spacing: .1em; color: rgba(254, 240, 221, .62); }
+.scw-edx-mob__quando b {
+  font: 900 26px/1 var(--scw-font-black);
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--scw-creme);
+}
+.scw-edx-mob__quando span {
+  font: 700 var(--scw-piso-rotulo-mob)/1 var(--scw-font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .8);
+}
 
 .scw-edx-mob__titulo {
   position: absolute;
@@ -850,7 +890,7 @@
   border-radius: 999px;
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
-  font: 800 10.5px/1.2 var(--scw-font);
+  font: 700 var(--scw-piso-rotulo-mob)/1.2 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   animation: scwEdxCenaDir 560ms var(--scw-ease) both;
@@ -870,7 +910,7 @@
 .scw-edx-mob__corpo { padding: 22px 14px 8px; }
 .scw-edx-mob__lead {
   margin: 0;
-  font: 500 16.5px/1.6 var(--scw-font);
+  font: 400 17px/1.55 var(--scw-font-ui);
   text-wrap: pretty;
   animation: scwEdxCenaDir 560ms var(--scw-ease) 120ms both;
 }
@@ -883,21 +923,29 @@
   padding: 18px 0 0;
   border-top: 1px solid rgba(61, 19, 8, .14);
 }
-.scw-edx-mob__meta > div { display: flex; flex-direction: column; gap: 4px; }
+.scw-edx-mob__meta > div { display: flex; flex-direction: column; gap: 5px; }
 .scw-edx-mob__meta dt {
-  font: 800 10px/1.1 var(--scw-font);
-  letter-spacing: .14em;
+  font: 700 var(--scw-piso-rotulo-mob)/1.1 var(--scw-font-ui);
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--scw-marrom);
 }
-.scw-edx-mob__meta dd { margin: 0; font: 900 14.5px/1.15 var(--scw-font-black); }
+.scw-edx-mob__meta dd { margin: 0; font: 700 15px/1.25 var(--scw-font-ui); }
 
+.scw-edx-mob__tema-palavras { margin-top: 22px; }
+.scw-edx-mob__palavras-rot {
+  display: block;
+  font: 700 var(--scw-piso-rotulo-mob)/1.1 var(--scw-font-ui);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
 .scw-edx-mob__palavras {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin: 20px 0 0;
+  margin: 10px 0 0;
   padding: 0;
 }
 .scw-edx-mob__palavras li {
@@ -906,7 +954,7 @@
   padding: 8px 13px;
   border-radius: 999px;
   background: var(--scw-bege);
-  font: 700 12.5px/1.2 var(--scw-font);
+  font: 700 13px/1.2 var(--scw-font-ui);
   color: var(--scw-marrom);
 }
 
@@ -924,8 +972,9 @@
   background: var(--scw-edx-tom);
   color: var(--scw-edx-tinta);
   cursor: pointer;
-  font: 800 15px/1.2 var(--scw-font);
+  font: 700 15px/1.2 var(--scw-font-ui);
   text-align: left;
+  transition: transform var(--mo-rapido) var(--scw-ease);
 }
 .scw-edx-mob__sanfona--vazada {
   margin-top: 10px;
@@ -940,54 +989,56 @@
   width: 30px; height: 30px;
   border-radius: 50%;
   background: rgba(61, 19, 8, .16);
-  transition: transform 280ms cubic-bezier(.22, .92, .24, 1);
+  transition: transform 280ms var(--scw-ease);
 }
 .scw-edx-mob__sanfona--vazada .scw-edx-mob__chevron { background: rgba(61, 19, 8, .08); }
 .scw-edx-mob__sanfona[aria-expanded="true"] .scw-edx-mob__chevron { transform: rotate(180deg); }
 
 .scw-edx-mob__lista {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   margin: 10px 0 0;
-  padding: 16px 20px;
   border-radius: var(--scw-r-card);
   background: var(--scw-creme);
   border: 1px solid rgba(61, 19, 8, .14);
+  overflow: hidden;
   animation: scwEdxPainel 300ms var(--scw-ease) both;
 }
-.scw-edx-mob__lista li {
+.scw-edx-mob__lista .scw-edx__nota { padding: 12px 20px 16px; }
+.scw-edx-mob__marcas {
+  list-style: none;
+  /* uma coluna no celular, duas ou três no tablet: 37 nomes em fila única
+     viravam uma rolagem de 1.500px */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 2px 20px;
+  margin: 0;
+  padding: 12px 20px 8px;
+}
+.scw-edx-mob__marcas li {
   display: flex;
   align-items: baseline;
   gap: 9px;
   padding: 8px 0;
-  font: 500 14.5px/1.35 var(--scw-font);
+  font: 400 15px/1.35 var(--scw-font-ui);
   border-bottom: 1px solid rgba(61, 19, 8, .07);
 }
-.scw-edx-mob__lista li:last-child { border-bottom: 0; }
-/* O texto editorial do celular usa a MESMA peça do desktop
-   (.scw-edx__editorial--cartao) — não há mais lista de curiosidades própria. */
+.scw-edx-mob__marcas li:last-child { border-bottom: 0; }
 
-/* --- peça 1: régua de anos fixa na base ----------------------------------- */
+/* --- régua de anos fixa na base ------------------------------------------- */
 .scw-edx-mob__regua {
   position: fixed;
   left: 0; right: 0;
   bottom: var(--scw-edx-abas);
   z-index: 8;
-  padding: 13px 0 14px;
-  /* Sem backdrop-filter de propósito: blur sobre cena animada trava o
-     compositor (blur + readback de GPU a cada frame, §10.3). O que era
-     `rgba(43,14,6,.96)` virou CHAPADO em 22/08/2026 — aqueles 4% deixavam a
-     barra da galeria passar por baixo da régua, e o contador "02–03 / 12"
-     aparecia como texto fantasma atrás dos anos. Sem blur, 96% não lê como
-     vidro: lê como sujeira. A cor é a mesma, só a transparência saiu. */
+  padding: 12px 0 13px;
+  /* Chapado e sem backdrop-filter: blur sobre cena animada trava o
+     compositor (§10.3), e os 4% de transparência que havia antes deixavam o
+     contador da galeria aparecer como texto fantasma atrás dos anos. */
   background: rgb(43, 14, 6);
   border-top: 1px solid rgba(254, 240, 221, .14);
   box-shadow: 0 -12px 28px rgba(43, 14, 6, .34);
   color: var(--scw-creme);
 }
-.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(14px + var(--scw-safe-b)); }
+.scw-edx--solta .scw-edx-mob__regua { padding-bottom: calc(13px + var(--scw-safe-b)); }
 .scw-edx-mob__regua-topo {
   display: flex;
   align-items: baseline;
@@ -1002,22 +1053,22 @@
   min-width: 0;
 }
 .scw-edx-mob__regua-code b {
-  font: 900 14px/1 var(--scw-font-black);
+  font: 900 15px/1 var(--scw-font-black);
   letter-spacing: -.02em;
   white-space: nowrap;
 }
 .scw-edx-mob__regua-code span {
-  font: 700 12px/1 var(--scw-font);
-  color: rgba(254, 240, 221, .66);
+  font: 700 13px/1 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .72);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .scw-edx-mob__regua-rot {
-  font: 800 9px/1 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 var(--scw-piso-rotulo-mob)/1 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
-  color: rgba(254, 240, 221, .62);
+  color: rgba(254, 240, 221, .66);
   white-space: nowrap;
 }
 .scw-edx-mob__regua-barra {
@@ -1033,12 +1084,11 @@
   border-radius: 2px;
   background: var(--scw-edx-tom);
   transform-origin: left center;
-  /* SEM transition em width/transform: travava o valor no meio do caminho. */
+  /* SEM transition em transform: travava o valor no meio do caminho. */
   transition: background-color 420ms linear;
 }
-/* `seta · anos · seta`, o mesmo arranjo do rodapé do desktop
-   (.scw-edx__rodape-linha). Os anos são a única peça elástica: as setas ficam
-   em `flex: 0 0 auto` pela própria .scw-edx__seta. */
+/* `seta · anos · seta`, o mesmo arranjo do rodapé do desktop. Os anos são a
+   única peça elástica. */
 .scw-edx-mob__regua-linha {
   display: flex;
   align-items: center;
@@ -1048,8 +1098,7 @@
 .scw-edx-mob__regua-anos {
   display: flex;
   flex: 1 1 auto;
-  /* Item de flex tem `min-width: auto`: sem isto a faixa dos 16 anos cresce
-     até caber inteira e empurra a seta da direita para fora da tela. */
+  /* sem isto a faixa dos 16 anos cresce até caber e empurra a seta direita */
   min-width: 0;
   gap: 4px;
   padding: 0 4px;
@@ -1057,11 +1106,8 @@
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* Sem `contain` o arrasto da régua encadeava no documento assim que chegava
-     ao 2016 ou ao 2026.1 — no iOS isso vira o gesto de voltar página, e você
-     saía de Edições tentando escolher um ano. */
+  /* o arrasto não encadeia no documento (no iOS viraria "voltar página") */
   overscroll-behavior-x: contain;
-  /* O ano encostava na borda do trilho ao ser centralizado pelo JS. */
   scroll-padding-inline: 6px;
 }
 .scw-edx-mob__regua-anos::-webkit-scrollbar { display: none; }
@@ -1080,15 +1126,14 @@
   scroll-snap-align: center;
   -webkit-tap-highlight-color: transparent;
 }
-/* Caixa fixa de 14px; o ponto cresce por scale (animar width/height reflui a
-   régua inteira a cada troca de edição). */
+/* Caixa fixa de 14px; o ponto cresce por scale. */
 .scw-edx-mob__ano-tick {
   display: block;
   width: 14px; height: 14px;
   border-radius: 999px;
   background: rgba(254, 240, 221, .32);
   transform: scale(.43);
-  transition: transform 320ms cubic-bezier(.22, .92, .24, 1), background-color 320ms linear;
+  transition: transform 320ms var(--scw-ease), background-color 320ms linear;
 }
 .scw-edx-mob__ano.is-visto .scw-edx-mob__ano-tick { background: color-mix(in srgb, var(--scw-edx-tom) 80%, transparent); }
 .scw-edx-mob__ano.is-ativo .scw-edx-mob__ano-tick {
@@ -1097,11 +1142,11 @@
   box-shadow: 0 0 0 4px rgba(43, 14, 6, .94), 0 0 0 6px color-mix(in srgb, var(--scw-edx-tom) 30%, transparent);
 }
 .scw-edx-mob__ano-rot {
-  font: 800 11px/1 var(--scw-font);
-  letter-spacing: .04em;
+  font: 700 11.5px/1 var(--scw-font-ui);
+  letter-spacing: .02em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  color: rgba(254, 240, 221, .56);
+  color: rgba(254, 240, 221, .62);
 }
 .scw-edx-mob__ano.is-ativo .scw-edx-mob__ano-rot {
   font: 900 13px/1 var(--scw-font-black);
@@ -1109,13 +1154,8 @@
   color: var(--scw-creme);
 }
 
-/* ⛔ As setas laterais fixas (62×52 a 31% da altura, metade fora do quadro,
-   com laço de pulso de 2,8s cada) SAÍRAM em 22/08/2026, a pedido do Eloi: as
-   setas de passar passaram a viver dentro da régua, flanqueando os anos.
-   Não recriar — o controle é um só, e é a peça do rodapé do desktop.
-   Nos extremos a seta sem destino continua com `disabled` de verdade, agora no
-   estado padrão do sistema (.45), não em `opacity: 0`: dentro da régua, sumir
-   deixaria um buraco na linha. */
+/* ⛔ As setas laterais fixas (62×52 a 31% da altura, com laço de pulso) SAÍRAM
+   em 22/08/2026: as setas de passar vivem dentro da régua. Não recriar. */
 
 /* ============================================================================
    Animações — só transform / opacity / filter / clip-path
@@ -1126,7 +1166,7 @@
 @keyframes scwEdxRevelaDir { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
 @keyframes scwEdxRevelaEsq { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes scwEdxKen { from { transform: scale(1.06); } to { transform: scale(1.001); } }
-/* Ken burns do carrossel em `scale` (não `transform`), pra conviver com o
+/* Ken burns da galeria em `scale` (não `transform`), pra conviver com o
    deslize em `translate` no mesmo elemento. */
 @keyframes scwEdxKenS { from { scale: 1.06; } to { scale: 1.001; } }
 @keyframes scwEdxFotoEntra { from { opacity: 0; translate: 22px 0; } to { opacity: 1; translate: none; } }
@@ -1142,13 +1182,6 @@
   50%  { transform: scale(1.38) translate3d(1.8%, 1.4%, 0); }
   100% { transform: scale(1.26) translate3d(-1.6%, -1.2%, 0); }
 }
-@keyframes scwEdxPulso {
-  0%   { transform: translate(-50%, 50%) scale(1); opacity: .5; }
-  70%  { transform: translate(-50%, 50%) scale(2.8); opacity: 0; }
-  100% { transform: translate(-50%, 50%) scale(2.8); opacity: 0; }
-}
-@keyframes scwEdxVarrer { from { background-position: -150px center; } to { background-position: calc(100% + 150px) center; } }
-@keyframes scwEdxEmpurra { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
 @keyframes scwEdxPainel { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
 
 /* Sem movimento: a apresentação continua inteiramente navegável (a regra
@@ -1156,20 +1189,9 @@
 @media (prefers-reduced-motion: reduce) {
   .scw-edx-mob__capa-foto { animation: none; clip-path: none; transform: none; }
   .scw-edx__fundo-foto { animation: none; }
-  .scw-edx__cursor-anel { display: none; }
-  /* Carrossel sem animação: a troca é seca e o giro automático já é desligado
-     no JS — a navegação manual continua inteira. */
   .scw-gal__quadro,
   .scw-gal__foto--entra { animation: none; clip-path: none; translate: none; scale: none; }
   .scw-gal__foto--sai { display: none; }
-}
-
-/* ============================================================================
-   Pisos de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
-   O rótulo da régua vinha a 9px e o "Período" da ficha a 10px. O bloco desktop
-   (.scw-edx__meta) fica intocado: lá a distância de leitura é outra.
-   ========================================================================= */
-@media (max-width: 900px) {
-  .scw-edx-mob__regua-rot { font-size: var(--scw-piso-rotulo-mob); }
-  .scw-edx-mob__meta dt   { font-size: var(--scw-piso-rotulo-mob); }
+  .scw-edx__progresso,
+  .scw-edx__cursor { transition: none; }
 }
