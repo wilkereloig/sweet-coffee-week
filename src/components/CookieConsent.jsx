@@ -47,7 +47,7 @@ export function CookieConsent() {
   return (
     <div className="cookie-consent" role="region" aria-label="Aviso de cookies" ref={ref}>
       <p className="cookie-consent__text">
-        Podemos usar cookies para medir o acesso ao site?
+        Aceita cookies para medir o acesso?
       </p>
       <div className="cookie-consent__actions">
         <button type="button" className="cookie-consent__btn cookie-consent__btn--ghost" onClick={reject}>

@@ -969,7 +969,10 @@ body { margin: 0; }
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 16px;
-  width: min(520px, calc(100vw - 24px));
+  /* 400px, não 520: em 1024px o cartão largo alcançava o 2º botão dos heróis
+     (Apoiar, "Ver alcance e formatos"). Estreito, as ações descem para baixo
+     do texto e o cartão fica à direita de qualquer par de botões. */
+  width: min(400px, calc(100vw - 24px));
   max-height: 40svh;
   overflow-y: auto;
   padding: 12px 12px 12px 18px;
@@ -1043,7 +1046,10 @@ body { margin: 0; }
     padding: 10px 10px 10px 14px;
     border-radius: 16px;
   }
-  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); line-height: 1.35; }
+  /* Base de 120px (não 150): em 360px o texto fica ao lado dos botões, em três
+     linhas, e o cartão perde ~40px de altura — com 150 ele quebrava em duas
+     faixas e cobria o 2º botão do herói de Participar, Apoiar e da Home. */
+  .cookie-consent__text { flex-basis: 120px; font-size: var(--scw-piso-corpo-mob); line-height: 1.35; }
   .cookie-consent__btn { padding: 0 14px; }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }

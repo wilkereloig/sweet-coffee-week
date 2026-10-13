@@ -290,6 +290,11 @@
 @media (max-width: 420px) {
   .hm-abre__pessoas { aspect-ratio: 16 / 9; }
 }
+/* Abaixo de 380px nem 16:9 basta: em 360×800 o aviso de cookies ainda cobria
+   metade de "Como funciona". Em 2:1 (180px) as duas ações ficam acima dele. */
+@media (max-width: 379px) {
+  .hm-abre__pessoas { aspect-ratio: 2 / 1; }
+}
 @media (max-width: 520px) {
   .hm-abre__ficha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .hm-abre__ficha > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
