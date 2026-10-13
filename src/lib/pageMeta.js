@@ -6,12 +6,18 @@
 // leem o HTML estático e NÃO executam JS — esses crawlers usam as meta tags
 // fixas de index.html, não as definidas aqui.
 
+import { CENAS } from '../data/conteudo/edicoes.js'
+
 const BASE = 'Sweet & Coffee Week'
 
 // Retorna { title, description } para um caminho (sem o '#').
 export function metaForPath(path) {
   const p = path || '/'
 
+  const edicao = /^\/edicoes\/([^/?#]+)/.exec(p)
+  const cena = edicao && CENAS.find((c) => c.code === edicao[1])
+  if (cena)
+    return { title: `${cena.tema} (${cena.code.slice(0, 4)}) · Edições | ${BASE}`, description: `Fotos, história e marcas participantes da edição ${cena.tema} do Sweet & Coffee Week.` }
   if (p.startsWith('/edicoes'))
     return { title: `Edições | ${BASE}`, description: 'Veja a linha do tempo das edições do Sweet & Coffee Week, com temas, períodos, participantes e memórias do festival desde 2016.' }
   if (p.startsWith('/curiosidades'))

@@ -6,8 +6,8 @@
  *   node tests/imagens-navegador.mjs
  *
  * Confere o que só existe em runtime: imagem que não carregou, alt ausente ou
- * genérico, requisição de imagem com erro, e o carrossel de Edições realmente
- * trocando de foto por clique e por teclado.
+ * genérico, requisição de imagem com erro, e a galeria de uma edição realmente
+ * trocando de foto por clique.
  */
 import { chromium } from 'playwright'
 
@@ -57,18 +57,18 @@ for (const [tela, w, h] of [['desktop',1440,900],['mobile',390,844]]) {
     console.log(`${tela.padEnd(7)} ${rota.padEnd(11)} imgs=${String(est.total).padStart(3)} fundos=${String(est.comFundo).padStart(3)} quebradas=${est.quebradas.length} semAlt=${est.semAlt.length}`)
   }
 
-  // carrossel de Edições: clique e teclado precisam trocar a foto
-  await page.goto(`${B}#/edicoes`, { waitUntil: 'networkidle' })
+  // galeria de uma edição: o clique em "Próxima foto" precisa trocar a foto principal
+  await page.goto(`${B}#/edicoes/2019.2`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(900)
-  const antes = await page.evaluate(`[...document.querySelectorAll('[data-galeria] img')].map(i => i.getAttribute('src')).join('|')`)
-  const proxima = await page.$('[data-galeria] button[aria-label*="róxim"], [data-galeria] button[aria-label*="eguinte"], [data-galeria] button[aria-label*="Próxima"]')
+  const antes = await page.evaluate(`document.querySelector('[data-galeria] .edx-gal__foto')?.getAttribute('src')`)
+  const proxima = await page.$('[data-galeria] button[aria-label="Próxima foto"]')
   if (!proxima) {
-    P.push(`${tela} edicoes: carrossel sem botão de próxima foto`)
+    P.push(`${tela} edicoes: galeria sem botão de próxima foto`)
   } else {
     await proxima.click(); await page.waitForTimeout(700)
-    const depois = await page.evaluate(`[...document.querySelectorAll('[data-galeria] img')].map(i => i.getAttribute('src')).join('|')`)
+    const depois = await page.evaluate(`document.querySelector('[data-galeria] .edx-gal__foto')?.getAttribute('src')`)
     if (antes === depois) P.push(`${tela} edicoes: clique em "próxima" não trocou a foto`)
-    else console.log(`${tela.padEnd(7)} carrossel: clique troca a foto ✓`)
+    else console.log(`${tela.padEnd(7)} galeria: clique troca a foto ✓`)
   }
   falhas.forEach((f) => P.push(`${tela}: requisição de imagem falhou — ${f}`))
   await ctx.close()

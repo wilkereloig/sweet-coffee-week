@@ -268,22 +268,21 @@
   .hm-linha:active,
   .ctt-item__botao:active,
   .swa-edicao__botao:active,
-  .scw-edx-mob__sanfona:active,
+  .edx-cartao:active,
+  .edx-seq__item:active,
   .scw-acesso__cartao:active { transform: scale(.985); }
 
   /* controles redondos e pequenos: setas, fechar, som. O alvo é menor, então o
      recuo é maior para o dedo perceber sem olhar. */
-  .scw-gal__seta:active,
-  .scw-edx__seta:active,
-  .scw-edx__fechar:active,
+  .edx-gal__seta:active,
+  .edx-ampliada__fechar:active,
   .pa-palco__som:active,
   .scw-topo:active { transform: scale(.94); }
 
   /* pílulas e anos: só o suficiente para acusar o toque sem parecer que caiu */
   .ctt-cat:active,
   .ctt-limpar:active,
-  .scw-edx__ano:active,
-  .scw-edx-mob__ano:active,
+  .edx-anos__ano:active,
   .scw-aba:active { transform: scale(.96); }
 
   /* links de texto com filete ou seta: não escalam (o texto borra), escurecem */

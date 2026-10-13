@@ -1,102 +1,59 @@
 /*
- * PÁGINA INSTITUCIONAL — "Edições": a história do festival em 16 cenas, uma
- * por edição, numa apresentação photo-first (CLAUDE.md §7.2). Estilos em
- * src/styles/scw-edicoes.css; estado e comportamento em ./useEdicoes.js; a
- * regra do teclado em ./teclado.js; o texto de interface e a identidade das
- * cenas em src/data/conteudo/edicoes.js.
+ * PÁGINA INSTITUCIONAL — "Edições": o arquivo visual do festival em duas
+ * camadas (reconstrução de 13/10/2026, src/pages/CLAUDE.md §7.2).
  *
- * Desktop (>900px): cena de 100dvh — marca da edição no cabeçalho próprio,
- * coluna editorial à esquerda, mosaico do acervo à direita, painéis
- * flutuantes de marcas e de texto, linha do tempo no rodapé.
- * Celular (≤900px): capítulo vertical — capa 4:5, galeria em pares, frase,
- * ficha, palavras do tema, sanfonas — e a régua de anos fixa na base.
+ *   /edicoes          → visão geral: abertura compacta + coleção por ano
+ *   /edicoes/<código> → detalhe de uma edição, com rolagem natural
  *
- * Uma cena só no DOM, carregamento controlado (useEdicoes). Edições fica fora
- * do motor de movimento do site: a coreografia é própria (scw-edicoes.css).
+ * As duas moram na mesma rota do App ('edicoes'), então a página continua
+ * montada quando o visitante entra numa edição e volta: é isso que permite
+ * devolver a coleção ao cartão de onde ele saiu. O roteador (router.js) leva a
+ * janela ao topo a cada troca de hash; aqui a coleção, depois disso, rola até
+ * o cartão da última edição vista e põe o foco nele.
  *
- * Dados (NÃO inventar): período, marcas e premiação de handoff/edicoesData.js;
- * fotos de imageLibrary.js (editionPhotos); marca da edição de editionMark();
- * texto longo de edicoesNarrativa.js. O acervo não identifica a marca de cada
- * foto: a galeria é o registro da EDIÇÃO e a lista de marcas segue textual.
- * Preço não aparece na página.
+ * Dados: ./acervo.js (funções puras, derivadas das fontes). Estilos:
+ * src/styles/scw-edicoes.css (prefixo .edx-). A casca (cabeçalho, rodapé,
+ * abas) é a do site — Edições não tem mais cabeçalho próprio.
  */
 import React from 'react'
 import '../../styles/scw-edicoes.css'
-import { bgStyle } from '../../data/imageLibrary'
-import { TEXTOS } from '../../data/conteudo/edicoes'
-import { useEdicoes, TOTAL } from './useEdicoes'
-import { Galeria } from './secoes/Galeria'
-import { CabecalhoDesktop } from './secoes/CabecalhoDesktop'
-import { ColunaDesktop } from './secoes/ColunaDesktop'
-import { PaineisDesktop } from './secoes/PaineisDesktop'
-import { RodapeDesktop } from './secoes/RodapeDesktop'
-import { CapaMobile } from './secoes/CapaMobile'
-import { CorpoMobile } from './secoes/CorpoMobile'
-import { ReguaMobile } from './secoes/ReguaMobile'
+import { codigoDaRota } from './acervo'
+import { Abertura } from './secoes/Abertura'
+import { Colecao } from './secoes/Colecao'
+import { Detalhe } from './secoes/Detalhe'
 
-export function EdicoesPage({ navigate, embutido = true, onOpenAccess, accessOpen }) {
-  const ed = useEdicoes({ accessOpen })
-  const { cena, fotos, numero, estreito, dir, gestos } = ed
+/* A última edição aberta nesta visita. Fica fora do React de propósito: a
+   página é remontada se o visitante passar por outra rota, e o ponto de
+   consulta precisa sobreviver a isso. */
+let ultimaVista = null
 
-  // memo: sem isto a lista nasceria nova a cada render e a galeria do celular
-  // refaria páginas (e o aquecimento de cache) por render.
-  const fotosDepoisDaCapa = React.useMemo(() => fotos.slice(1), [fotos])
+/* Duas voltas de quadro: a primeira é a do roteador (scrollTo(0) depois da
+   troca de hash); só na segunda a coleção pode rolar sem ser desfeita. */
+const depoisDoRoteador = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
 
-  const ir = (href) => (ev) => {
-    ev.preventDefault()
-    navigate(href.replace('#', ''))
-    if (typeof window !== 'undefined') window.scrollTo(0, 0)
-  }
+export function EdicoesPage({ path = '/edicoes' }) {
+  const code = codigoDaRota(path)
 
-  const raiz = ['scw-edx', dir < 0 ? 'is-tras' : '', embutido ? '' : 'scw-edx--solta'].filter(Boolean).join(' ')
-  const tokens = {
-    '--scw-edx-tom': ed.tom.cor,
-    '--scw-edx-tinta': ed.tom.tinta,
-    '--scw-edx-tom-txt': ed.tom.txt,
-    '--scw-edx-prog': `${((ed.i + 0.5) / TOTAL) * 100}%`,
-    '--scw-edx-prog-n': (ed.i + 0.5) / TOTAL,
-  }
-  const anuncio = `Edição ${numero} de ${TOTAL}: ${cena.tema}, ${cena.code}`
-  const etiquetaGaleria = `Fotos da edição ${cena.tema}, ${cena.code}`
-  const navegacao = { i: ed.i, numero, cena, anterior: ed.anterior, proxima: ed.proxima, vaiPara: ed.vaiPara, passo: ed.passo }
+  React.useEffect(() => {
+    if (code) { ultimaVista = code; return undefined }
+    if (!ultimaVista) return undefined
+    const alvo = ultimaVista
+    ultimaVista = null
+    let vivo = true
+    depoisDoRoteador(() => {
+      const link = vivo && document.querySelector(`[data-edicao="${CSS.escape(alvo)}"]`)
+      if (!link) return
+      link.scrollIntoView({ block: 'center' })
+      link.focus({ preventScroll: true })
+    })
+    return () => { vivo = false }
+  }, [code])
 
-  if (estreito) {
-    return (
-      <div className={raiz} style={tokens}>
-        <p className="scw-edx__sr" aria-live="polite">{anuncio}</p>
-        <section className="scw-edx-mob" aria-label={TEXTOS.rotuloPagina}>
-          <div className="scw-edx-mob__conteudo" {...gestos}>
-            <CapaMobile key={`capa-${cena.code}`} cena={cena} numero={numero} marca={ed.marca} capa={fotos[0] || null} />
-            {/* o resto do acervo em pares 1:1 — a capa é a 1ª foto, nada se repete */}
-            <Galeria key={`galeria-${cena.code}`} fotos={fotosDepoisDaCapa} total={fotos.length} porPagina={2} variante="par" etiqueta={etiquetaGaleria} />
-            <CorpoMobile {...ed} />
-          </div>
-          <ReguaMobile {...navegacao} />
-        </section>
-      </div>
-    )
-  }
-
-  /* Fundo do desktop: a ÚLTIMA foto do acervo, desfocada sob véu de 87% —
-     assim a foto que abre o mosaico não aparece duas vezes na mesma cena. */
-  const fotoFundo = fotos.length ? fotos[fotos.length - 1] : null
-
+  if (code) return <Detalhe key={code} code={code} />
   return (
-    <div className={raiz} style={tokens}>
-      <p className="scw-edx__sr" aria-live="polite">{anuncio}</p>
-      <section className="scw-edx__palco" aria-roledescription="apresentação" aria-label={TEXTOS.rotuloPagina}>
-        <CabecalhoDesktop marca={ed.marca} tema={cena.tema} ir={ir} onOpenAccess={onOpenAccess} accessOpen={accessOpen} />
-        <div className="scw-edx__cena" {...gestos}>
-          <div className="scw-edx__fundo" aria-hidden="true" key={`fundo-${cena.code}`}>
-            {fotoFundo && <span className="scw-edx__fundo-foto" style={bgStyle(fotoFundo)} />}
-            <span className="scw-edx__veu" />
-          </div>
-          <Galeria key={`galeria-${cena.code}`} fotos={fotos} porPagina={3} variante="mosaico" etiqueta={etiquetaGaleria} />
-          <ColunaDesktop {...ed} />
-          <PaineisDesktop {...ed} />
-        </div>
-        <RodapeDesktop {...navegacao} />
-      </section>
+    <div className="edx">
+      <Abertura />
+      <Colecao />
     </div>
   )
 }

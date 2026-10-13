@@ -1,12 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { deveNavegarPorTecla, teclaDaGaleria } from '../src/pages/edicoes/teclado.js'
+import * as T from '../src/pages/edicoes/teclado.js'
+
+const { teclaDaGaleria } = T
 
 /*
- * Edições escuta o teclado na janela inteira. A regra que este teste guarda:
- * a página só troca de edição quando a tecla é dela — nunca por cima de campo
- * de texto, diálogo aberto, atalho com modificador, região com teclas próprias
- * (galeria, painel de texto) ou, no celular, das teclas que rolam o documento.
+ * Desde 13/10/2026 Edições não captura teclas na página inteira: setas,
+ * PageUp/PageDown e Home/End são do navegador. A regra que este teste guarda:
+ * só a galeria de uma edição troca foto por ←/→/Home/End, e só com o foco
+ * DENTRO dela — nunca por cima de campo de texto, diálogo aberto ou atalho
+ * com modificador.
  *
  * Os "elementos" são objetos com a mesma API mínima do DOM que a função lê
  * (tagName, parentElement, getAttribute, isContentEditable, open).
@@ -22,76 +25,52 @@ function no(tagName, atributos = {}, pai = null, extra = {}) {
 }
 
 const corpo = no('BODY')
-const pagina = no('DIV', { class: 'scw-edx' }, corpo)
-const botao = no('BUTTON', {}, pagina)
+const pagina = no('DIV', { class: 'edx' }, corpo)
+const galeria = no('DIV', { 'data-teclas-proprias': '' }, pagina)
+const seta = no('BUTTON', {}, galeria)
 const evento = (key, target = corpo, extra = {}) => ({ key, target, ...extra })
 
-test('setas trocam de edição com o foco na página ou num botão dela', () => {
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight')), 'proxima')
-  assert.equal(deveNavegarPorTecla(evento('ArrowLeft', botao)), 'anterior')
-  assert.equal(deveNavegarPorTecla(evento('Escape', botao)), 'fechar')
-  assert.equal(deveNavegarPorTecla(evento('a')), null)
-  assert.equal(deveNavegarPorTecla(evento('Enter', botao)), null, 'Enter é do botão, não da página')
+test('a página não tem mais regra de teclado própria', () => {
+  assert.equal(T.deveNavegarPorTecla, undefined, 'trocar de edição por tecla na janela inteira saiu')
 })
 
-test('campo de texto, select e conteúdo editável ficam com as próprias teclas', () => {
-  for (const tag of ['INPUT', 'TEXTAREA', 'SELECT']) {
-    const campo = no(tag, {}, pagina)
-    for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End', 'Escape']) {
-      assert.equal(deveNavegarPorTecla(evento(key, campo)), null, `${key} em ${tag}`)
-    }
+test('fora da galeria nenhuma tecla é dela', () => {
+  for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End', 'PageDown', 'PageUp']) {
+    assert.equal(teclaDaGaleria(evento(key)), null, `${key} no body`)
+    assert.equal(teclaDaGaleria(evento(key, no('A', {}, pagina))), null, `${key} num link da página`)
   }
-  // isContentEditable já vem herdado pelo navegador nos descendentes
-  const editavel = no('P', {}, pagina, { isContentEditable: true })
-  assert.equal(deveNavegarPorTecla(evento('ArrowLeft', editavel)), null)
 })
 
-test('dentro de diálogo (ou com modal aberto) a página não reage — nem ao Esc', () => {
-  const dialogo = no('DIV', { role: 'dialog', 'aria-modal': 'true' }, corpo)
-  const dentro = no('BUTTON', {}, no('DIV', {}, dialogo))
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight', dentro)), null)
-  assert.equal(deveNavegarPorTecla(evento('Escape', dentro)), null, 'o Esc fecha o diálogo, não o painel da página')
-
-  const nativo = no('DIALOG', {}, corpo, { open: true })
-  assert.equal(deveNavegarPorTecla(evento('ArrowLeft', no('A', {}, nativo))), null)
-  const fechado = no('DIALOG', {}, corpo, { open: false })
-  assert.equal(deveNavegarPorTecla(evento('ArrowLeft', no('A', {}, fechado))), 'anterior')
-
-  // foco solto no body, mas um modal aberto na tela
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight'), { modalAberto: true }), null)
+test('com o foco na galeria, ←/→/Home/End trocam a foto; o resto passa', () => {
+  assert.equal(teclaDaGaleria(evento('ArrowRight', seta)), 'proxima')
+  assert.equal(teclaDaGaleria(evento('ArrowLeft', seta)), 'anterior')
+  assert.equal(teclaDaGaleria(evento('Home', seta)), 'primeira')
+  assert.equal(teclaDaGaleria(evento('End', seta)), 'ultima')
+  for (const key of ['PageDown', 'PageUp', 'Enter', ' ', 'Escape', 'a']) {
+    assert.equal(teclaDaGaleria(evento(key, seta)), null, `${JSON.stringify(key)} é do navegador ou do botão`)
+  }
 })
 
 test('modificadores, evento já tratado e composição de IME passam direto', () => {
   for (const mod of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey']) {
-    assert.equal(deveNavegarPorTecla(evento('ArrowLeft', corpo, { [mod]: true })), null, `${mod}+←`)
+    assert.equal(teclaDaGaleria(evento('ArrowLeft', seta, { [mod]: true })), null, `${mod}+←`)
   }
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight', corpo, { defaultPrevented: true })), null)
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight', corpo, { isComposing: true })), null)
+  assert.equal(teclaDaGaleria(evento('ArrowRight', seta, { defaultPrevented: true })), null)
+  assert.equal(teclaDaGaleria(evento('ArrowRight', seta, { isComposing: true })), null)
 })
 
-test('região com teclas próprias (galeria, painel de texto) só cede o Esc', () => {
-  const galeria = no('SECTION', { 'data-teclas-proprias': '' }, pagina)
-  const seta = no('BUTTON', {}, galeria)
-  for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End', 'PageDown']) {
-    assert.equal(deveNavegarPorTecla(evento(key, seta)), null, `${key} na galeria`)
+test('campo de texto, select e conteúdo editável ficam com as próprias teclas', () => {
+  for (const tag of ['INPUT', 'TEXTAREA', 'SELECT']) {
+    assert.equal(teclaDaGaleria(evento('ArrowRight', no(tag, {}, galeria))), null, tag)
   }
-  assert.equal(deveNavegarPorTecla(evento('Escape', seta)), 'fechar')
+  assert.equal(teclaDaGaleria(evento('ArrowLeft', no('P', {}, galeria, { isContentEditable: true }))), null)
 })
 
-test('no celular PageUp/PageDown/Home/End rolam o documento; no desktop trocam de edição', () => {
-  const casos = { PageDown: 'proxima', PageUp: 'anterior', Home: 'primeira', End: 'ultima' }
-  for (const [key, acao] of Object.entries(casos)) {
-    assert.equal(deveNavegarPorTecla(evento(key)), acao, `${key} no desktop`)
-    assert.equal(deveNavegarPorTecla(evento(key), { estreito: true }), null, `${key} no celular`)
-  }
-  assert.equal(deveNavegarPorTecla(evento('ArrowRight'), { estreito: true }), 'proxima')
-})
-
-test('a galeria segue a mesma regra de modificador e de campo', () => {
-  const galeria = no('SECTION', { 'data-teclas-proprias': '' }, pagina)
-  const seta = no('BUTTON', {}, galeria)
-  assert.equal(teclaDaGaleria(evento('ArrowRight', seta)), 'proxima')
-  assert.equal(teclaDaGaleria(evento('End', seta)), 'ultima')
-  assert.equal(teclaDaGaleria(evento('ArrowLeft', seta, { altKey: true })), null)
-  assert.equal(teclaDaGaleria(evento('PageDown', seta)), null)
+test('dentro de diálogo aberto (a foto ampliada, o acesso) a regra não vale', () => {
+  const nativo = no('DIALOG', {}, galeria, { open: true })
+  assert.equal(teclaDaGaleria(evento('ArrowRight', no('BUTTON', {}, nativo))), null)
+  const aria = no('DIV', { role: 'dialog', 'aria-modal': 'true' }, galeria)
+  assert.equal(teclaDaGaleria(evento('ArrowRight', no('BUTTON', {}, aria))), null)
+  const fechado = no('DIALOG', {}, galeria, { open: false })
+  assert.equal(teclaDaGaleria(evento('ArrowRight', no('BUTTON', {}, fechado))), 'proxima')
 })

@@ -1,20 +1,16 @@
 /*
- * Teclado de Edições — a decisão "esta tecla troca de edição?" num lugar só,
+ * Teclado de Edições — a decisão "esta tecla é da galeria?" num lugar só,
  * sem React e sem DOM real (tests/edicoes-teclado.test.mjs).
  *
- * A página escuta o teclado na janela inteira, então precisa saber quando NÃO é
- * com ela:
- *   · tecla com modificador (Alt+← é "voltar" do navegador; Ctrl/⌘ são atalhos);
- *   · evento já tratado por alguém (`defaultPrevented`) ou composição de IME;
- *   · foco em campo de texto, select ou conteúdo editável;
- *   · foco dentro de um diálogo (o de acesso, a folha "mais") ou com um modal
- *     aberto em qualquer lugar da tela;
- *   · foco numa região que tem teclas próprias (`data-teclas-proprias`): a
- *     galeria usa ←/→/Home/End para FOTOS e o painel de texto usa as mesmas
- *     teclas para rolar — lá só o Esc é da página. O mesmo atributo tira a
- *     região do arraste que troca de edição (useEdicoes);
- *   · no celular a página é um documento que rola: PageUp/PageDown/Home/End
- *     continuam rolando a página, e só ←/→ trocam de edição.
+ * Desde 13/10/2026 a página NÃO escuta o teclado na janela: setas, PageUp/
+ * PageDown e Home/End voltaram a ser do navegador. Só a galeria de uma edição
+ * troca foto por ←/→/Home/End, e só com o foco dentro dela (o evento nasce
+ * na região `data-teclas-proprias`). Mesmo lá a tecla não é dela quando:
+ *   · vem com modificador (Alt+← é "voltar" do navegador; Ctrl/⌘ são atalhos);
+ *   · já foi tratada por alguém (`defaultPrevented`) ou é composição de IME;
+ *   · o foco está em campo de texto, select ou conteúdo editável;
+ *   · o foco está dentro de um diálogo (a foto ampliada tem as próprias teclas)
+ *     ou há um modal aberto.
  *
  * Usa só a API que qualquer elemento do DOM tem (`tagName`, `parentElement`,
  * `getAttribute`, `isContentEditable`, `open`) — por isso roda em teste com
@@ -56,25 +52,11 @@ export function teclaLivre(ev, { modalAberto = false } = {}) {
 }
 
 /**
- * O que a tecla faz na página de Edições:
- * 'anterior' | 'proxima' | 'primeira' | 'ultima' | 'fechar' | null (não é com ela).
+ * O que a tecla faz na galeria: 'anterior' | 'proxima' | 'primeira' | 'ultima'
+ * | null. Fora de uma região `data-teclas-proprias` nunca é com ela.
  */
-export function deveNavegarPorTecla(ev, { estreito = false, modalAberto = false } = {}) {
-  if (!teclaLivre(ev, { modalAberto })) return null
-  if (ev.key === 'Escape') return 'fechar'
-  if (contextoDoAlvo(ev.target).regiaoPropria) return null
-  if (ev.key === 'ArrowRight') return 'proxima'
-  if (ev.key === 'ArrowLeft') return 'anterior'
-  if (estreito) return null
-  if (ev.key === 'PageDown') return 'proxima'
-  if (ev.key === 'PageUp') return 'anterior'
-  if (ev.key === 'Home') return 'primeira'
-  if (ev.key === 'End') return 'ultima'
-  return null
-}
-
-/** Teclas da galeria (o evento já nasce dentro dela). */
 export function teclaDaGaleria(ev) {
   if (!teclaLivre(ev)) return null
+  if (!contextoDoAlvo(ev.target).regiaoPropria) return null
   return { ArrowRight: 'proxima', ArrowLeft: 'anterior', Home: 'primeira', End: 'ultima' }[ev.key] || null
 }

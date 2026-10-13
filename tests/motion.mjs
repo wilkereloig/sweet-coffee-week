@@ -34,7 +34,7 @@ const TELAS = [
 ]
 const TITULO_HEROI =
   '.scw-hero__titulo, .hm-abre__titulo, .pa-hero__titulo, .ctt-abertura__titulo, .swa-hero .scw-h1, ' +
-  '.scw-edx__tema, .scw-edx-mob__tema'
+  '.edx-abre__titulo'
 
 const falhas = []
 

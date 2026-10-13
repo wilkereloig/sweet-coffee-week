@@ -10,7 +10,7 @@
  *  1. GATE — sem `?preview=1`, qualquer endereço mostra Participar, sem menu, e o
  *     navegador NÃO baixa o chunk de nenhuma outra página (nem o do Supabase).
  *  2. COOKIES — na primeira visita o aviso não cobre a ação principal do herói
- *     (360×800, 390×844, 1440×900), nem a régua de Edições, nem a barra de abas;
+ *     (360×800, 390×844, 1440×900), nem a navegação por ano de Edições, nem a barra de abas;
  *     aceitar some com ele e com a reserva `--scw-aviso-h`.
  *  3. ROTAS DIFERIDAS — navegando pelo menu entre páginas carregadas sob demanda,
  *     o motor de movimento liga na página real (não no fallback) e nenhum bloco
@@ -130,8 +130,13 @@ async function cookies(navegador) {
       const rot = `${rota} @${w}×${h}`
       if (!aviso) { falha(`${rot}: aviso não apareceu na primeira visita`); await ctx.close(); continue }
       if (rota === '/edicoes') {
-        const regua = await retanguloDe(page, '.scw-edx-mob__regua, .scw-edx__rodape')
-        if (cruza(aviso, regua)) falha(`${rot}: o aviso cobre a régua de anos`)
+        // Edições não tem ação no herói: o que não pode ficar sob o aviso é a
+        // navegação por ano, que abre a coleção.
+        const anos = await retanguloDe(page, '.edx-anos')
+        if (!anos) falha(`${rot}: navegação por ano não encontrada`)
+        // no desktop é uma coluna de 11 anos: basta o primeiro estar na dobra
+        else if (anos.top + 44 > h) falha(`${rot}: navegação por ano abaixo da dobra (y=${Math.round(anos.top)})`)
+        else if (cruza(aviso, anos)) falha(`${rot}: o aviso cobre a navegação por ano`)
       } else {
         const acao = await retanguloAcao(page)
         if (!acao) falha(`${rot}: ação principal do herói não encontrada`)
@@ -150,7 +155,7 @@ async function cookies(navegador) {
       await ctx.close()
     }
   }
-  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação, régua nem abas; recusar limpa a reserva')
+  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação, anos de Edições nem abas; recusar limpa a reserva')
 }
 
 async function rotasDiferidas(navegador) {

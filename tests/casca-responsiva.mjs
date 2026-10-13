@@ -59,7 +59,7 @@ for (const [nomeTela, w, h] of TELAS) {
       acesso: await page.evaluate(visivel('.scw-acesso-topo')),
       header: await page.evaluate(visivel('.scw-header')),
       rodape: await page.evaluate(visivel('.scw-footer')),
-      h1: await page.evaluate(`document.querySelectorAll('main h1, .scw-edx h1, .scw-edx-mob h1').length`),
+      h1: await page.evaluate(`document.querySelectorAll('main h1').length`),
       rolagemH: await page.evaluate(`document.documentElement.scrollWidth - document.documentElement.clientWidth`),
       corPagina: await page.evaluate(`getComputedStyle(document.body).getPropertyValue('--scw-pagina').trim()`),
     }
@@ -71,17 +71,13 @@ for (const [nomeTela, w, h] of TELAS) {
     if (desktop && est.abas === 'visivel') problemas.push(`${linha} barra de abas do celular visível no desktop`)
     if (!desktop && est.navDesktop === 'visivel') problemas.push(`${linha} menu do desktop visível no celular`)
     if (!desktop && est.acesso === 'visivel') problemas.push(`${linha} botão de acesso do topo visível no celular`)
-    if (desktop && rota !== 'edicoes' && est.navDesktop !== 'visivel') problemas.push(`${linha} menu do desktop ausente (${est.navDesktop})`)
+    if (desktop && est.navDesktop !== 'visivel') problemas.push(`${linha} menu do desktop ausente (${est.navDesktop})`)
     if (!desktop && est.abas !== 'visivel') problemas.push(`${linha} barra de abas ausente no celular (${est.abas})`)
 
-    // 2. casca por rota: Edições tem cabeçalho próprio, sem header/rodapé do site
-    if (rota === 'edicoes') {
-      if (est.header === 'visivel') problemas.push(`${linha} header do site aparece em Edições`)
-      if (est.rodape === 'visivel') problemas.push(`${linha} rodapé aparece em Edições`)
-    } else {
-      if (est.header !== 'visivel') problemas.push(`${linha} header do site ausente (${est.header})`)
-      if (est.rodape !== 'visivel') problemas.push(`${linha} rodapé ausente (${est.rodape})`)
-    }
+    // 2. casca: todas as rotas usam cabeçalho e rodapé do site — Edições
+    //    inclusive, desde 13/10/2026 (o cabeçalho próprio do palco saiu)
+    if (est.header !== 'visivel') problemas.push(`${linha} header do site ausente (${est.header})`)
+    if (est.rodape !== 'visivel') problemas.push(`${linha} rodapé ausente (${est.rodape})`)
 
     // 3. um H1 por página
     if (est.h1 !== 1) problemas.push(`${linha} ${est.h1} elementos h1 (esperado 1)`)

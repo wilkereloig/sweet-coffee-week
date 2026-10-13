@@ -154,10 +154,10 @@ export default function App() {
   })
 
   const Pagina = PAGINAS[route] || PAGINAS.home
-  // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
-  // o botão de acesso precisa do gatilho do diálogo vindo daqui.
+  // Edições lê o caminho: /edicoes é a coleção, /edicoes/<código> o detalhe
+  // de uma edição — as duas na mesma rota, sem remontar a página.
   const propsDaPagina = route === 'edicoes'
-    ? { navigate, onOpenAccess: () => setAccessOpen(true), accessOpen }
+    ? { navigate, path }
     : route === 'legal' ? { navigate, documento: documentoLegal(path) }
     : route === 'em-breve' || route === 'aguarde' ? {} : { navigate }
 
@@ -176,7 +176,7 @@ export default function App() {
   // de uma vez sem duplicar a lógica de cada flag aqui.
   React.useEffect(() => {
     const pathPorRota = {
-      home: '/', edicoes: '/edicoes', 'historico-awards': '/sweet-awards',
+      home: '/', edicoes: path.startsWith('/edicoes/') ? path : '/edicoes', 'historico-awards': '/sweet-awards',
       participar: '/participar', apoiar: '/apoiar', contato: '/contato',
       'em-breve': '/', aguarde: '/',
       legal: `/${documentoLegal(path)}`,
@@ -194,13 +194,14 @@ export default function App() {
   const showMobileNav = FOOTER_ROUTES.includes(route) && !soParticipar
   React.useEffect(() => { setMenuOpen(false) }, [route])
 
-  // Edições substitui a casca do site pelo cabeçalho próprio da página (mesma
-  // geometria) — header, barra de página e rodapé saem; a tab bar continua.
-  const showShell = !isInternal && route !== 'edicoes'
+  // Desde 13/10/2026 Edições usa a casca do site como as outras páginas
+  // (o cabeçalho próprio da apresentação de slides saiu).
+  const showShell = !isInternal
 
   // Motor de movimento (src/hooks/useSiteMotion.js): um único ponto para todas
-  // as institucionais. Fica de fora de Edições, que tem coreografia própria de
-  // apresentação, e dos painéis internos, que são ferramenta de trabalho.
+  // as institucionais. Fica de fora de Edições — arquivo de consulta: a coleção
+  // e a galeria aparecem prontas, sem entrada encenada — e dos painéis
+  // internos, que são ferramenta de trabalho.
   const conteudoRef = React.useRef(null)
   const comMovimento = !isInternal && route !== 'edicoes'
 
@@ -254,10 +255,7 @@ export default function App() {
           </React.Suspense>
         </ErrorBoundary>
       </main>
-      {/* Edições = apresentação de tela única: sem rodapé (a nav do site continua
-          na tab bar). FOOTER_ROUTES também controla o mobile nav (linha
-          showMobileNav), por isso a exclusão é só aqui no render do rodapé. */}
-      {FOOTER_ROUTES.includes(route) && route !== 'edicoes' && <SiteFooter navigate={navigate} route={route} semLinks={soParticipar} />}
+      {FOOTER_ROUTES.includes(route) && <SiteFooter navigate={navigate} route={route} semLinks={soParticipar} />}
       {showMobileNav && (
         <>
           <MobileTabBar route={route} navigate={navigate} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
