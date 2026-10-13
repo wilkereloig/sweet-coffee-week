@@ -156,20 +156,38 @@
 src/
   components/   nav.jsx (SiteHeader + PAGE_COLORS/pageColorDark), SiteFooter.jsx,
                 MobileTabBar.jsx, MobileMenu.jsx, AccessDialog.jsx,
-                BotaoTopo.jsx, icons.jsx
+                BotaoTopo.jsx, icons.jsx,
+                HeroFotos.jsx (banda em crossfade + PausaFotos, o botão de pausa),
+                FotoAcervo.jsx (<img> responsiva do acervo, sizes por papel),
+                Rotulo.jsx (rótulo de seção com ícone de 20px), Seta.jsx (seta de ação)
   components/scw-icons/  ScwIcon.jsx + scw-icons-v2.js (136 ícones, 16 famílias,
                 traço 3.2 — gerado no Design, NÃO editar à mão)
-  pages/institutional/   Home · Edicoes · HistoricoAwards · Participar · Apoiar ·
-                Contato · EmBreve
+  pages/<pagina>/  uma pasta por página (12/10/2026): home · edicoes · sweet-awards ·
+                participar · apoiar · contato. index.jsx monta a página na ordem;
+                secoes/*.jsx = uma seção (ou peça) por arquivo; hooks e funções
+                puras locais ao lado (useHome, useEdicoes, teclado.js,
+                consulta.js, useCentralDuvidas, useFormularioContato,
+                usePropostaApoio). participar/comum.jsx serve Participar e Apoiar
+  pages/carregadores.js  React.lazy das páginas — uma página, um chunk — e
+                precarregar(rota) para os menus
+  pages/institutional/   SÓ REEXPORTAÇÃO das pastas acima (Home · Edicoes ·
+                HistoricoAwards · Participar · Apoiar · Contato), mantida para o
+                carregador e os testes. EmBreve.jsx e Aguarde.jsx continuam
+                sendo a página inteira
   data/         sweetCoffeeHistory.js, loversAwardsResults.js, participants.js,
                 sweetAwards.js, participantAssets.js, editionAssets.js,
                 faqCentral.js (93 dúvidas), imageLibrary.js,
                 imageVariants.js (GERADO — não editar à mão),
-                handoff/{edicoesData,awardsData}.js
+                handoff/{edicoesData,awardsData}.js,
+                destaqueEdicao.js (destaque de edição na Home; desligado)
+  data/conteudo/  texto editorial de cada página: home · edicoes · sweet-awards ·
+                participar · apoiar · contato (.js). JSX não guarda texto (§5.6)
   data/_arquivo/  dados aposentados, FORA do bundle — não importar em código vivo
   lib/          supabase.js, pageMeta.js, analytics.js, adminAccess.js, marcaAccess.js,
                 contactRequest.js, supportInterest.js
   hooks/        useSiteMotion.js (motor de movimento do institucional)
+                useCrossfade.js (relógio único das fotos em crossfade + pausa)
+                useReservaDaBase.js (peça presa à base declara --scw-base-ocupada)
                 useRevealOnScroll.js (sistema anterior, só /em-breve)
   styles/scw-2026.css      SISTEMA VISUAL ATUAL: tokens --scw-*, casca, utilitárias
   styles/scw-motion.css    MOVIMENTO: tokens --mo-*, reveal, heróis, hover

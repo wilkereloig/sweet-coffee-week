@@ -125,13 +125,13 @@ Wilke, nenhuma automática.
 
 | Página | Papel | Estado |
 |---|---|---|
-| **Home** (`/`) | Anunciar a próxima edição e explicar o festival | existe, 7 seções (§7.1) |
+| **Home** (`/`) | Apresentar o festival; o destaque da próxima edição liga só com conteúdo público completo (`src/data/destaqueEdicao.js`) | existe, 7 seções (§7.1) |
 | **Edições** (`/edicoes`) | Memória e vitrine | existe, 16 cenas (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
 | **Participar** (`/participar`) | Converter marcas | existe, 6 seções (§7.4) |
-| **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 6 seções (§7.5) |
-| **Contato** (`/contato`) | Triar e responder | existe, 4 seções (§7.6) |
+| **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 5 seções (§7.5) |
+| **Contato** (`/contato`) | Triar e responder | existe, 3 seções (§7.6) |
 
 O plano completo de conteúdo por página está em `acervo/plano-site-institucional.md`.
 Este documento cobre **como construir**; o plano cobre **o que dizer**.

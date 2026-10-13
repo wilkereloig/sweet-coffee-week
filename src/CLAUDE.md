@@ -224,8 +224,9 @@ sem ninguém ter olhado. **Sai quando a última página migrar.** Estado da migr
 | `scw-2026.css` (o sistema: corpo, lead, rótulo, botão, pill, menu, campo, casca) | ✅ migrado — **e isso alcança as seis páginas de uma vez** |
 | `scw-home.css` | ✅ migrado |
 | `scw-participar-apoiar.css` | ✅ migrado em 15/09/2026 — alcança Participar **e** Apoiar |
-| `scw-edicoes.css` · `scw-awards.css` · `scw-contato.css` · `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
-| `em-breve.css` | ⏳ idem |
+| `scw-edicoes.css` · `scw-awards.css` · `scw-contato.css` | ✅ migrados em 12/10/2026 — Slab (`--scw-font-black`, uma vez `--scw-font-slab` em Edições) em título, tema e numeral; `--scw-font-ui` em rótulo, botão e dado; `--scw-font-texto` no texto corrido. Nenhum consome mais `--scw-font` |
+| `scw-aguarde.css` | ⏳ ainda em `--scw-font` (Slab) |
+| `em-breve.css` | ⏳ idem — escreve `'Nexa Slab'` / `'Nexa Slab Black'` direto, sem token |
 | `painel-app/src/styles/painel.css` | ✅ usa `--f-titulo`/`--f-ui`/`--f-texto` (Slab só em título; Fase 15) |
 
 ⛔ **O kit não tem 500, 800 nem 900 na sem serifa.** Por isso `font-synthesis: none` no
@@ -404,7 +405,7 @@ embaixo sobre a chapa sólida da página.
 
 | Peça | Regra |
 |---|---|
-| Foto | `.scw-hero-banda` (`.scw-hero__fotos` na Home) **no fluxo**, `aspect-ratio: 1`, largura cheia. Em 390px são 390px — ~46% de um viewport de 844 |
+| Foto | `.scw-hero-banda` (`.hm-abre__pessoas` na Home) **no fluxo**, largura cheia. A regra do sistema é `aspect-ratio: 1`; **só o Awards a usa inteira hoje** — as proporções reais por página estão na tabela mais abaixo |
 | Emenda | `::after` na própria foto, rampa de **três** paradas, na cor do bloco. A foto dissolve na chapa em vez de terminar numa aresta |
 | Chapa | `background: var(--scw-heroi)` + `color: var(--scw-heroi-tinta)` — chocolate na Home, cyan em Participar, marrom em Apoiar, bege em Contato, roxo no Awards |
 | Véu | `display: none`. Existia para segurar texto SOBRE foto, e não há mais texto sobre foto |
@@ -427,14 +428,33 @@ mudança, junto com o título caindo sobre rostos e áreas claras.
 de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
 a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
 
-**Alturas medidas em 390×844:** Home 920px (foto 16:10, §7.1) · **Participar e Apoiar 886px** · Contato
-770px · Awards 826px.
+**Proporção da foto por página, conferida no CSS em 13/10/2026** — o quadrado do
+sistema (`.scw-hero-banda`, `aspect-ratio: 1` em `scw-2026.css`) hoje só vale inteiro
+no Awards; as outras quatro sobrescrevem no CSS da página:
 
-⚠️ **Participar e Apoiar são a exceção da proporção: a foto delas é 4:3, não 1:1**
-(`.pa-hero .scw-hero-banda`, pedido do Eloi em 22/08/2026 — "encurtar o herói"). Eram as
-duas mais altas das cinco, com 983px, porque levam 89px de conteúdo que as outras não
-têm: o selo quebra em duas linhas (48px) e há a nota de curadoria embaixo das ações
-(41px). O 4:3 tirou 98px e trouxe a última ação para dentro do viewport.
+| Página | <600px | 600–999/1000px | Onde |
+|---|---|---|---|
+| Home | **16:10** (16:9 até 420px), teto `44svh` | **2:1** | `.hm-abre__pessoas`, `scw-home.css` (corte em 999px) |
+| Participar · Apoiar | **4:3** | **2:1** | `.pa-hero .scw-hero-banda`, `scw-participar-apoiar.css` (corte em 1000px) |
+| Contato | **16:10**, teto `44svh` | **2:1** | `.ctt-abertura .scw-hero-banda`, `scw-contato.css` (corte em 1000px) |
+| Sweet Awards | **1:1** | **1:1** | regra do sistema, sem sobrescrita |
+
+O motivo é o mesmo nas quatro: **a ação principal (na Home, o título e a ação; no
+Contato, a busca) tem que caber acima do aviso de cookies na primeira visita**, em
+390×844 e 360×800; o teto em `svh` segura a tela baixa e larga (tablet deitado,
+900×900). Desde 13/10/2026 vale também para a **2ª ação** do herói: a foto da Home
+vai a **2:1 abaixo de 380px** para "Como funciona" caber acima do aviso em 360×800. Medido e anotado no CSS de Participar: base do botão em y=581 (390×844) e
+y=558 (360×800).
+⚠️ As alturas totais medidas em 22/08/2026 (Home 920 · Participar e Apoiar 886 ·
+Contato 770 · Awards 826px, em 390×844) **não valem mais** — as proporções e os títulos
+mudaram depois. Medir de novo antes de citar número.
+
+⚠️ **Participar e Apoiar foram a primeira exceção ao quadrado: 4:3**, pedido do Eloi em
+22/08/2026 ("encurtar o herói"). Eram as duas mais altas das cinco porque levavam o selo
+em duas linhas e a nota de curadoria embaixo das ações; os dois saíram depois (selo em
+27/08/2026), e o título encurtou em 12/10/2026. Entre 600 e 1000px passaram a **2:1**:
+em 4:3 a foto passava de 600px de altura e a ação descia abaixo da dobra (y=909 em
+900×900).
 
 ⛔ **A alavanca das "ações lado a lado" não existe, e está medido:** os dois botões dão
 **241px + 287px numa linha de 342px**. Lado a lado quebrariam o rótulo dentro do botão e
@@ -446,7 +466,7 @@ para a mesma proporção**, não devolver estas duas para o quadrado.
 recortada por `mask-image` em smoothstep `t²(3−2t)`, com os tokens `--scw-esfuma` /
 `--scw-esfuma-topo` e `--scw-banda-base`. **Os três tokens não existem mais no CSS**, e a
 geometria de `44vh / 340px` da banda de desktop do Awards saiu junto: as cinco páginas
-usam a mesma foto quadrada no fluxo. A emenda hoje é a linha da tabela acima — `::after`
+usam a mesma foto no fluxo (a proporção de cada uma está na tabela acima). A emenda hoje é a linha da tabela acima — `::after`
 na própria foto, rampa de três paradas, na cor do bloco.
 
 > **O que continua valendo dessa história, e por que:** degradê **linear** em alpha lê
@@ -474,14 +494,17 @@ cada componente; só o tempo mora no hook.
 | Rota | Série | Nº |
 |---|---|---|
 | Home | pessoas da Lovers (`lovers-publico/08, 07, 04`) + um combo por foto | 3 |
-| Participar | `participantes-lojas/01–11` | 11 |
+| Participar | `participantes-lojas/02, 04–11` | 9 |
 | Apoiar | `participantes-lojas/12–22` | 11 |
-| Contato | `sweet-lovers/01–05` | 5 |
+| Contato | `sweet-lovers/03–05` | 3 |
 | Sweet Awards | `awards-entrega/01–06` | 6 |
 
 ⚠️ **As 22 fotos de loja são divididas, não compartilhadas:** Participar leva a primeira
 metade, Apoiar a segunda, e **nenhuma imagem se repete entre os dois heróis**. Ao
 acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar nada visível.
+⛔ **`participantes-lojas/01` e `03` e `sweet-lovers/01` e `02` saíram dos heróis em
+13/10/2026:** mostram o painel de apoio do Sebrae, e o site não exibe patrocinador (§2.2).
+Seguem no acervo.
 
 ### 6.10 Componentes
 
@@ -492,7 +515,7 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 | Raiz | `.scw-raiz` | `scw-2026.css` |
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
 | Menu de desktop | `.scw-nav` em **cápsula** (`--scw-chapa-menu`, chocolate a .76) | `NavPrincipal` em `nav.jsx` — usado pelos DOIS cabeçalhos (site e Edições). ✅ Desde 12/10/2026 os links não dependem mais de a foto do herói ser escura ali: na cápsula o creme fecha **6,4:1 com foto branca atrás** (antes ficavam ilegíveis sobre a faixa clara do Sebrae em Participar). Sem desfoque: atrás há crossfade (§10.3) |
-| Aviso de cookies | `.cookie-consent` | `CookieConsent.jsx` — região nomeada, não modal. **Desktop:** cartão de uma linha no canto **inferior direito** (os heróis têm as ações à esquerda — era exatamente onde o cartão antigo pousava). **≤900px:** faixa de largura cheia logo acima da barra de abas. A altura real vai para `--scw-aviso-h` no `<body>` (ResizeObserver): o rodapé ganha esse respiro e o botão Topo sobe. Peça da PÁGINA presa à base (régua de Edições) declara `--scw-base-ocupada` com `useReservaDaBase` e o aviso sobe acima dela. `tests/casca-institucional.mjs` reprova aviso sobre ação principal, régua ou abas |
+| Aviso de cookies | `.cookie-consent` | `CookieConsent.jsx` — região nomeada, não modal. **Desktop:** cartão de **400px** no canto **inferior direito**, ações abaixo do texto (os heróis têm as ações à esquerda — era exatamente onde o cartão antigo pousava; com 520px ele ainda alcançava o 2º botão de Apoiar em 1024×768). **≤900px:** faixa de largura cheia logo acima da barra de abas, texto (base 120px) ao lado dos botões. Pergunta curta, "Aceita cookies para medir o acesso?": cada linha a mais empurrava o cartão sobre o 2º botão dos heróis em 360×800. A altura real vai para `--scw-aviso-h` no `<body>` (ResizeObserver): o rodapé ganha esse respiro e o botão Topo sobe. Peça da PÁGINA presa à base (régua de Edições) declara `--scw-base-ocupada` com `useReservaDaBase` e o aviso sobe acima dela. `tests/casca-institucional.mjs` reprova aviso sobre ação principal, régua ou abas |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
@@ -588,9 +611,11 @@ em `sessionStorage.scw_marca` é o formato exato que `sessaoSalvar()` de
 calculado, `email`) — é por isso que `window.location.href = '/marca/'`, já autenticado,
 abre direto no painel em vez de pedir login de novo.
 ⚠️ **`slugificar`/`enderecoDeLogin` viraram TRÊS cópias**, não duas: a página estática, a
-Edge Function `criar-acesso-marca` e agora `marcaAccess.js`. `tests/marca.test.mjs`
-("as três slugificações casam") compara as três — divergir uma faz a marca digitar o nome
-certo e não entrar, com erro genérico de propósito.
+Edge Function `criar-acesso-marca` e agora `marcaAccess.js`. Com a saída de
+`public/marca/index.html` (corte para o painel React) restam **duas**, e
+`tests/painel-infra.test.mjs` ("as duas slugificações que restam casam") compara as
+duas — divergir uma faz a marca digitar o nome certo e não entrar, com erro genérico de
+propósito.
 🔴 **A brecha que isso quase abriu:** `public/marca/index.html` decidia, no boot, "achei
 sessão em sessionStorage → `carregar()` direto", sem checar `deve_trocar_senha`. Era
 seguro só porque a ÚNICA forma de a sessão nascer era o próprio formulário, que sempre
@@ -879,8 +904,8 @@ hover.
 
 ⚠️ **Atmosfera nunca carrega informação.** A faixa de rótulos repete o que já está escrito
 na página; se a animação não rodar, nada se perde. **Conteúdo que só existe dentro de um
-laço contínuo é conteúdo que alguém vai perder** — ver a pendência da fita de galerias da
-Home no §7.1.
+laço contínuo é conteúdo que alguém vai perder** — foi por isso que a fita de galerias da
+Home (28/09/2026) e o giro automático da galeria de Edições (12/10/2026) saíram.
 
 ⚠️ **Marquee — invariante de laço.** Em faixa contínua com duas cópias e
 `translateX(-50%)`, **metade da largura tem que ser exatamente uma cópia**. `gap` no
@@ -891,9 +916,13 @@ contêiner animado quebra isso e o laço salta a cada volta: o espaçamento vai 
 ⛔ **A faixa de palavras NÃO tem pausa em página nenhuma — exceção declarada, decisão
 do Wilke em 18/09/2026.** O botão `<Marquee comPausa />` (15/09/2026) existia só em
 Participar e saiu a pedido dele, avisado de que isso descumpre a camada 4 e a WCAG 2.2.2
-(nível A). Com ele saíram a prop, `.is-pausado` e `.scw-marquee__pausa`. **As quatro
-faixas (Home, Participar, Apoiar, Awards) descumprem a camada 4 hoje.** O que ainda
-segura: com `prefers-reduced-motion` a faixa não anda, e ela é `aria-hidden` — repete o
+(nível A). Com ele saíram a prop, `.is-pausado` e `.scw-marquee__pausa`.
+✅ **Desde 12/10/2026 só resta UMA faixa no institucional: a do Sweet Awards**
+(`<Marquee>` em `src/pages/sweet-awards/index.jsx`, com as categorias da edição em
+destaque). A da Home saiu em 28/09/2026; as de Participar e Apoiar, em 12/10/2026 — laço
+sem pausa que só repetia a página. Fora do institucional, a landing `/em-breve` monta a
+marcação `.scw-marquee` direto em `EmBreve.jsx`, sem o componente. É essa faixa do Awards
+que descumpre a camada 4 hoje. O que ainda segura: com `prefers-reduced-motion` a faixa não anda, e ela é `aria-hidden` — repete o
 que a página já diz (atmosfera nunca carrega informação). Se a regra voltar a pesar, o
 caminho é religar a pausa na fonte (`Marquee.jsx`), não página a página.
 A utilitária `.scw-icone-rotulo` (`data-rotulo`, `--esquerda`) **fica**: é a peça do
@@ -965,10 +994,10 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
 - **Ciclo da anatomia** (Home 02) — quatro desenhos por ingrediente em 8,8s. Desde
   28/09/2026 é o **único laço contínuo** da Home, além do crossfade da abertura: a faixa
   de palavras, a respiração das fotos e as fitas saíram dela.
-- **Respiração da imagem** — laço `alternate` na propriedade **`scale`** (nunca em
-  `transform`, que fica livre para reveal e hover), então a volta refaz o mesmo caminho e
-  **não existe salto de reinício**. Nas fotos dos heróis e, só no desktop, nas três fotos
-  de Rotas da Home.
+- **Crossfade dos heróis** — 6,2s por foto, relógio único em `useCrossfade.js`, com o
+  botão `PausaFotos` sempre que há rotação (§6.9). ⛔ A **respiração da imagem** (laço
+  `alternate` em `scale`) e o token `--mo-respiro` saíram em 13/10/2026: nenhum elemento
+  os usava desde que os heróis viraram crossfade (§10.3).
 - **Transição de página** — `main.page-enter` em **opacidade, 300ms. Sem transform, de
   propósito** (ver §10.3).
 - **Cabeçalho** — `.is-rolado` adensa o véu no desktop e recolhe o overhang da logo.

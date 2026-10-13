@@ -9,54 +9,82 @@ referência de margem, largura máxima, respiro, hierarquia, ritmo, nível de ac
 tom institucional-afetivo. Extrair componente ou constante é permitido **desde que não
 mude o comportamento visual** — validar idêntico.
 
-**Reconstruída em 28/09/2026** (pedido do Wilker): a Home tem duas funções —
-anunciar a **edição de novembro com o pré-cadastro aberto** ("agora") e apresentar o
-festival ("sempre"). **Sete seções:** `01 Abertura` · `02 O festival` ·
-`03 Como participar` · `04 Por que participar` · `05 O festival em movimento` ·
-`06 Trajetória` · `07 Apoio` + `Realização` (F2).
+**Reequilibrada em 12/10/2026** (pedido do Wilker): a Home **apresenta o festival o
+ano inteiro**; quando houver lançamento autorizado, a edição assume a abertura e o resto
+segue igual. A reconstrução de 28/09/2026 abria anunciando a edição de novembro com o
+pré-cadastro — isso saiu da abertura e virou uma linha na porta de Participar (06).
 
-- **01 Abertura (`.hm-abre`)** — não é mais herói de tela cheia: altura do conteúdo, e a
-  seção seguinte aparece na primeira dobra do desktop. Texto à esquerda (estado
-  "Próxima edição" + selo "Cadastro aberto", H1 `.scw-h1`, lead, duas ações, ficha de
-  três linhas), fotos à direita: **pessoas** em crossfade de 6,2s com um **combo** em
-  recorte redondo sobreposto, trocando juntos. Tudo que fala da edição lê
-  `src/data/proximaEdicao.js` — **campo `null` não aparece** (tema, datas, valor).
-  ⚠️ **As fotos são todas da Lovers (2026.1) e a legenda diz isso** ("Registros da
-  edição Lovers · 2026"). Ficam de fora de propósito: fantasias (Heróis & Vilões),
-  personagens de desenho ou de contos (Padoca do Bosque, a luva do Mickey em
-  `2023/04`) e a faixa do Sebrae (§9.6) — qualquer uma seria lida como pista do tema de
-  novembro, que não foi anunciado.
-  Celular (<1000px): foto no topo, largura cheia, **16:10** (2:1 entre 600 e 999px) —
-  não o quadrado do §6.9, para o botão caber acima da barra de abas em 390×844.
-- **02 O festival** — texto, anatomia do combo e três laços (casas · público · Natal)
-  à esquerda; um combo completo à direita. A anatomia continua como era: ⛔ **sempre em
-  UMA LINHA, inclusive no celular** (pedido do Eloi, 22/08/2026), escala por
-  `--ing-disco`/`--ing-mais`, quatro desenhos por ingrediente em 8,8s (`scwIcnCiclo`,
-  arte em `anatomia-combo.js`, fora de `scw-icons-v2.js`), só o primeiro com
-  `prefers-reduced-motion`. **Não empilhar de novo.**
+**Onde mora:** `src/pages/home/` — `index.jsx` monta as seções na ordem abaixo; uma
+seção por arquivo em `secoes/`; `useHome.js` (destaque dos títulos) e
+`TituloDestaque.jsx`. Texto editorial em `src/data/conteudo/home.js`; CSS em
+`scw-home.css`. Fotos: `heroPhotos('home')` e `fotosHome(chave)` de `imageLibrary.js`.
+Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
+
+**Sete seções:** `01 Abertura` · `02 Como funciona` · `03 Em registros` ·
+`04 Trajetória` · `05 Sweet Awards` · `06 Faça parte` · `07 Realização` (F2).
+
+- **01 Abertura (`secoes/Abertura.jsx`, `.hm-abre`)** — dois modos, **uma decisão só:
+  `destaqueValido()`** de `src/data/destaqueEdicao.js`. Nunca decidir por `ativo`
+  direto: um campo faltando abriria bloco vazio. A classe `.hm-abre` fica nos dois
+  modos — `scw-motion.css` coreografa por ela. Altura do conteúdo, não de tela: a seção
+  seguinte aparece na primeira dobra do desktop.
+  - **Sem destaque válido (o estado de hoje — `ativo: false`):** apresentação do
+    festival. Texto à esquerda: rótulo, H1 ("O festival dos *combos autorais* de
+    Natal."), lead, duas ações (**"Explorar as edições"** → `/edicoes`; **"Como
+    funciona"** rola até `#festival`) e uma ficha de até três linhas (edições desde o
+    primeiro ano · marcas · "Próxima edição" **só se `proximaEdicao.js` tiver o mês**).
+    Fotos à direita: **pessoas** em crossfade (`useCrossfade`, 6,2s) com um **combo** em
+    recorte redondo sobreposto, trocando juntos, e o botão `PausaFotos` quando há
+    rotação. Sem movimento, uma camada só.
+  - **Com destaque válido:** a edição assume — rótulo, título, texto, **uma** foto com
+    legenda (sem rotação, sem pausa) e a ação. Ligar é decisão do Wilker (ver §7.8).
+  ⚠️ **As fotos de pessoas são todas da Lovers (2026.1) e a legenda diz isso**
+  ("Registros da edição Lovers · 2026 · combo …"). Ficam de fora de propósito:
+  fantasias (Heróis & Vilões), personagens de desenho ou de contos (Padoca do Bosque, a
+  luva do Mickey em `2023/04`) e a faixa do Sebrae (§9.6) — qualquer uma seria lida como
+  pista do tema da próxima edição, que não foi anunciado.
+  Celular (<1000px): foto no topo, largura cheia, **16:10** (16:9 até 420px; 2:1 entre
+  600 e 999px; teto `44svh`) — não o quadrado do §6.9, para título, lead e ação caberem
+  acima do aviso de cookies na primeira visita.
+- **02 Como funciona (`ComoFunciona.jsx`, `#festival`)** — texto, anatomia do combo e
+  três laços (para as casas · para o público · para Natal) à esquerda; um combo completo
+  à direita. A anatomia continua como era: ⛔ **sempre em UMA LINHA, inclusive no
+  celular** (pedido do Eloi, 22/08/2026), escala por `--ing-disco`/`--ing-mais`, quatro
+  desenhos por ingrediente em 8,8s (`scwIcnCiclo`, arte em `anatomia-combo.js`, fora de
+  `scw-icons-v2.js`), só o primeiro com `prefers-reduced-motion`. **Não empilhar de
+  novo.**
   ⚠️ O texto não diz "onze dias" nem "preço único": são fatos das edições passadas que
-  soariam como regra de novembro, e duração e valor dela são `null`.
-- **03 Como participar** — chapa **cyan** (cor do destino, Participar), três passos
-  reais (pré-cadastro · curadoria · painel da marca e combo), a nota "o pré-cadastro não
-  garante vaga" e a ação. Chapa clara: rótulo, links e **anel de foco em chocolate**.
-- **04 Por que participar** — foto da equipe da Jolie com os prêmios + o depoimento
-  da Carol Barreto; embaixo, quatro ganhos com dado (`festivalFacts`: +18 mi · +34 mil
-  · +R$ 712 mil — contadores que sobem uma vez) e "Sweet Awards". A cor vai no ícone,
-  uma por irmão (§6.3).
-- **05 O festival em movimento** — mosaico editorial de seis fotos de tamanhos
-  diferentes, cada uma com legenda que o acervo sustenta. **Sem laço, sem autoplay**: a
-  entrada é a do motor. ⛔ A fita automática (`GaleriaCarrossel`/`.hm-fita`) **saiu** —
-  era a pendência declarada aqui (atmosfera carregando informação); o Wilker pediu
-  galeria controlada e sem movimento contínuo competindo com o texto.
-- **06 Trajetória** — dois cartões-link na cor do destino (Edições laranja, Awards
-  roxo; o número de edições premiadas sai de `AWARDS_DADOS`) e a lista de imprensa com
+  soariam como regra da próxima, e duração e valor dela são `null`.
+- **03 Em registros (`Registros.jsx`, chocolate)** — mosaico de seis fotos reais de
+  edições passadas (`fotosHome('mosaico')`), cada legenda dizendo de onde é o registro,
+  e a voz de uma casa participante sempre identificada (pessoa + marca: Carol Barreto,
+  Jolie Café Pâtisserie), com a foto da equipe (`fotosHome('jolie')`) e o link para os
+  depoimentos em vídeo. **Sem laço, sem autoplay**: a entrada é a do motor, item a
+  item. ⛔ A fita automática (`GaleriaCarrossel`/`.hm-fita`) **saiu** em 28/09/2026 e
+  não volta.
+- **04 Trajetória (`Trajetoria.jsx`, bege)** — quatro números (participações · combos
+  vendidos · movimento nas casas · visualizações), contados uma vez ao entrar, **cada um
+  com o que mede** (`festivalFacts.*.mede`) e os comerciais com a data em que foram
+  apurados; a porta para Edições na cor do destino (laranja), com quatro fotos
+  (`fotosHome('edicoes')`); e a imprensa — uma matéria em destaque, quatro na lista e
   "ver todas".
-- **07 Apoio** (marrom, convite para Apoiar, sem patrocinador — §9.6) e **Realização**:
-  KV da F2 Experience, a exceção declarada de paleta e fonte (§6.1).
-- ⛔ **Saíram:** a faixa de palavras (`Marquee`), as Rotas, o Ciclo de quatro etapas e o
-  cartão "preço único". O conteúdo válido foi redistribuído nas seções acima.
-- Fotos das seções: `fotosHome(chave)` em `imageLibrary.js`; da abertura,
-  `heroPhotos('home')`. Movimento da abertura: `scw-motion.css` (`.hm-abre …`).
+- **05 Sweet Awards (`Reconhecimento.jsx`, chapa roxa — cor do destino)** — foto de uma
+  entrega real (`fotosHome('premio')`), quem dá a nota (premiação desde 2019; só Sweet
+  Lovers desde 2022), o número de edições premiadas de `AWARDS_DADOS` (nunca digitado) e
+  a ação "Ver o Sweet Awards".
+- **06 Faça parte (`FacaParte.jsx`, creme)** — duas portas curtas na cor do destino:
+  **casas → Participar (cyan)** e **empresas → Apoiar (marrom)**; embaixo, a linha
+  "Outra dúvida?" para o Contato. **O pré-cadastro mora aqui, como linha da porta de
+  Participar:** "Próxima edição · <período ou mês> · pré-cadastro aberto", a nota de
+  curadoria e o botão "Fazer pré-cadastro" (`<a href>` com barra final, §10.4-b) — e
+  **só aparecem quando `proximaEdicao.js` traz `status: 'pre-cadastro'` e o endereço**.
+  Outro status some com a linha.
+- **07 Realização (`Realizacao.jsx`)** — KV da F2 Experience, a exceção declarada de
+  paleta e fonte (§6.1).
+- ⛔ **Saíram:** a faixa de palavras (`Marquee`), as Rotas, o Ciclo de quatro etapas, o
+  cartão "preço único" (28/09/2026); a chapa cyan "Como participar", "Por que
+  participar" e o convite marrom "Apoio" como seções próprias (12/10/2026 — o conteúdo
+  válido foi redistribuído: depoimento em 03, números em 04, portas em 06).
 
 > **Alvo do plano institucional:** a Home passa a ter oito seções, com "O festival
 > transforma Natal" e "Os temas de todas as edições" ganhando bloco próprio. Ver
@@ -68,21 +96,60 @@ festival ("sempre"). **Sete seções:** `01 Abertura` · `02 O festival` ·
 Experiência de tela cheia: apresentação editorial photo-first da história do festival.
 **16 cenas, uma por edição.**
 
+**Onde mora (12/10/2026):** `src/pages/edicoes/` — `index.jsx` escolhe a montagem
+(desktop × celular); `useEdicoes.js` guarda estado e comportamento (cena em foco,
+painel aberto, teclado, arraste, aquecimento das vizinhas); `teclado.js` decide quando
+uma tecla troca de edição; `icones.jsx` tem os glifos de controle. Peças em `secoes/`:
+desktop = `CabecalhoDesktop` · `Galeria` (mosaico) · `ColunaDesktop` ·
+`PaineisDesktop` · `RodapeDesktop`; celular = `CapaMobile` · `Galeria` (pares) ·
+`CorpoMobile` · `ReguaMobile`; comuns = `DadosEdicao`, `Editorial`, `SetaEdicao`. Texto
+de interface, identidade das cenas (etapa, ícone) e os tons em
+`src/data/conteudo/edicoes.js`; CSS em `scw-edicoes.css`.
+
 Em Edições o `App.jsx` **não renderiza** o cabeçalho do site nem o rodapé: a página tem
 **cabeçalho próprio com a mesma geometria** — mesmo `--scw-trilho`, mesmo padding vertical
 de 50px, marca da edição no slot da logo. **O menu não muda de lugar entre páginas.** A
 barra de abas mobile continua montada por fora.
 
-**Desktop:** cena de 100vh. Metade direita com **mosaico de 3 fotos** sangrando (uma larga
-em cima, duas embaixo, filete de 3px). Metade esquerda com rótulo, tema, frase, meta
-(período / marcas / Sweet Awards) e dois botões que abrem painéis flutuantes de
-participantes e curiosidades. Fundo: foto do combo com `blur(64px)` sob véu chocolate a
-87%, com deriva lenta de 46s. Rodapé com trilha das 16 edições (dots + anos), setas e
-barra de progresso. Navegação por setas do teclado, clique na trilha e arraste.
+**Desktop (>900px):** cena de `100dvh`. Metade direita com **mosaico de 3 fotos** sangrando
+(uma larga em cima, duas embaixo, filete de 3px) — a galeria da edição, paginada de 3 em
+3. Metade esquerda (`ColunaDesktop`): **identificação junto do título** — selo (ícone +
+etapa) e, na mesma linha, o ano e a posição na linha do tempo —, depois tema (`<h1>`),
+frase, ficha (período / marcas / Sweet Awards) e dois botões que abrem painéis
+flutuantes de participantes e de texto editorial (Esc fecha; o foco volta ao gatilho).
+O texto ao lado da marca no cabeçalho (tema + "2016 · edição 01") **saiu em
+12/10/2026**: a identificação mora na coluna. Fundo: a **última** foto do acervo com
+`blur(64px)` sob véu chocolate a 87%, com deriva lenta de 46s — a primeira já abre o
+mosaico, então não aparece duas vezes. Rodapé (`RodapeDesktop`): `seta · anos · seta`,
+progresso e a legenda (edição em foco + "← → trocam de edição · clique num ano ou
+arraste a cena"). ⛔ Saíram do rodapé (12/10/2026) os três laços sem pausa: o brilho que
+varria o trilho, o anel que pulsava no cursor e o empurrão da seta "próxima".
 
-**Mobile:** cabeçalho compacto com a marca da edição e progresso `01/16`; foto 4:5 com
-tema; mosaico de 2 fotos 1:1; dados; palavras-chave; sanfonas de marcas e curiosidades.
+**Celular (≤900px):** capítulo vertical. Capa 4:5 (`CapaMobile`) com a marca da edição
+no alto e, no canto, **o ano e "edição N/16"** (antes só "01/16"); etapa e tema (`<h1>`)
+embaixo. Depois a galeria em pares 1:1 (a capa é a 1ª foto, nada se repete), frase,
+ficha, palavras do tema e duas sanfonas (marcas e texto editorial) que abrem no lugar.
 Navegação em **uma peça só**: a régua de anos fixa na base, com as setas dentro.
+
+**Controles nomeados (12/10/2026).** A seta de passar edição é uma peça só
+(`SetaEdicao`), no rodapé e na régua: **o nome da edição de destino** ("Próxima: Páscoa
+· 2017.1") é o nome acessível **e** aparece no hover/foco (`.scw-icone-rotulo`, §6.11).
+Sem destino, "Esta é a primeira/última edição" e `disabled`.
+
+**Teclado em contexto (`teclado.js`, testado em `tests/edicoes-teclado.test.mjs`).** A
+página escuta a janela inteira, então ←/→ **só trocam de edição quando a tecla é dela**.
+Não troca: com modificador (Alt+← é "voltar"), evento já tratado ou composição de IME,
+foco em campo/select/editável, foco em diálogo ou com modal aberto, e foco numa região
+com `data-teclas-proprias` — a galeria usa ←/→/Home/End para FOTOS e o painel de texto
+usa as mesmas teclas para rolar (lá só o Esc é da página). O mesmo atributo tira a
+região do arraste que troca de edição. No celular PageUp/PageDown/Home/End continuam
+rolando a página; só ←/→ trocam.
+
+**Tons por edição (`TONS` em `conteudo/edicoes.js`):** roxo · **laranja** · cyan ·
+amarelo, rodando pelas cenas, cada um com a tinta que passa sobre ele. ⚠️ **O segundo tom
+era magenta até 12/10/2026** — creme sobre magenta dá 3,8:1 e reprovava no texto pequeno
+da pill, do botão e da sanfona (§6.3). Entrou o laranja da própria página (chocolate
+sobre ele 4,78:1). Roxo sobre chocolate dá 1,45:1, por isso o texto dele cai no creme.
 
 1. **Régua de anos fixa na base** — trilha horizontal com os 16 anos + barra de progresso
    (`transform: scaleX` com origem à esquerda, **sem transição**). Rola e centraliza no
@@ -101,15 +168,25 @@ Navegação em **uma peça só**: a régua de anos fixa na base, com as setas de
 metade fora da tela, com laço de pulso de 2,8s cada. Flutuavam sobre a cena, longe da
 régua que comandam, e precisavam do pulso para se anunciar. **Não recriar.**
 
-**Selo da cena:** disco vazado de 54px (44px em ≤900px) com **um ícone por edição**,
-no tom da cena, ao lado da pill do rótulo — `ICONE_EDICAO` em `Edicoes.jsx`, mapeado
-um a um do desenho. ⚠️ A classe é `.scw-edx__cena-selo`, **não** `.scw-edx__marca`:
-essa última já é a marca da edição no cabeçalho, e o nome colide.
+**Selo da cena (só no desktop, na coluna):** disco de 54px (`.scw-edx__cena-disco`) com
+**um ícone por edição**, no tom da cena, ao lado da pill da etapa, dentro de
+`.scw-edx__cena-selo`. O ícone é o campo `icone` de cada cena em
+`src/data/conteudo/edicoes.js` (o antigo `ICONE_EDICAO` de `Edicoes.jsx` saiu com a
+reorganização). ⚠️ A classe é `.scw-edx__cena-selo`, **não** `.scw-edx__marca`: essa
+última já é a marca da edição no cabeçalho, e o nome colide.
 
-**Dados:** `src/data/handoff/edicoesData.js`, derivado de `sweetCoffeeHistory.js`.
-**Performance:** janela `live/near ±1-2` monta foto e mosaico só perto do foco.
+**Dados:** `src/data/handoff/edicoesData.js`, derivado de `sweetCoffeeHistory.js`; fotos
+por `editionPhotos()`, marca por `editionMark()`, texto longo de `edicoesNarrativa.js`.
+**Performance:** **só a cena em foco existe no DOM**; as três primeiras fotos das cenas
+vizinhas (±1) são aquecidas no cache, sem nó no DOM (§10.3). A janela `live/near ±1-2`
+saiu.
 
-**Barra da galeria de fotos** (`.scw-gal__barra`) é **`seta · contador · seta` — três
+**Galeria da edição (`Galeria.jsx`)** — o acervo inteiro da edição (11–12 fotos), em
+páginas de 3 (mosaico) ou 2 (pares); a última página é ancorada no fim, sem buraco.
+⛔ **Sem giro automático desde 12/10/2026:** a troca de 6s saiu — foto que troca sozinha é
+conteúdo que alguém perde (§6.15, §6.16) e, sem pausa visível, descumpria a WCAG 2.2.2.
+Só anda por escolha: setas ("Fotos anteriores/Próximas fotos desta edição"), teclado e
+arraste. A barra (`.scw-gal__barra`) é **`seta · contador · seta` — três
 peças, nada mais.** ⛔ **Não reintroduzir** pontos, rótulo `Fotos · <ano>` nem "N de N"
 por extenso. As duas variantes (`--mosaico` no desktop, `--par` no celular) usam o
 **mesmo** flex. Se voltar a precisar de layouts diferentes, é sinal de que peça a mais
@@ -123,37 +200,67 @@ brigar com o menu.
 
 ### 7.3 Sweet Awards — `/sweet-awards` e `/historico-sweet-awards`, roxo `#4D257E`
 
-Arquivo: `src/pages/institutional/HistoricoAwards.jsx`, componente
-`HistoricoAwardsPage`, rota interna `historico-awards`. ⛔ **Não existe
+**Onde mora (12/10/2026):** `src/pages/sweet-awards/` — `index.jsx` monta a página
+(componente `HistoricoAwardsPage`, rota interna `historico-awards`); uma seção por
+arquivo em `secoes/` (`Abertura`, `Indice`, `Resultados`, `QuemDaANota`, `Hall`,
+`Historico`, mais `Cabeca.jsx` e `medalha.js`); **as contas e consultas são funções
+puras em `consulta.js`** (filtro, índice, Hall, contagens), testadas em
+`tests/sweet-awards.test.mjs` contra o acervo. Texto em
+`src/data/conteudo/sweet-awards.js`; CSS em `scw-awards.css`.
+`src/pages/institutional/HistoricoAwards.jsx` só reexporta. ⛔ **Não existe
 `SweetAwards.jsx` — não criar arquivo novo só para casar com documentação antiga.**
+
+**Ordem real (`index.jsx`):** `01 Abertura` · faixa de palavras (`Marquee` — a única que
+resta no institucional, §6.15) · `Índice` · `02 Resultados 2026.1` · `03 Quem dá a nota`
+· `04 Hall` · `05 Histórico`. A página é de **consulta**, e cada coisa tem um caminho só:
+categoria se escolhe no filtro, edição no acordeão, e o índice é o único atalho entre
+seções. Reorganizada em 12/10/2026: de ~13,8 mil para ~7,6 mil px de altura.
 
 Aparência de premiação e hall de vencedores — **não embeds de Instagram**. **A página
 pode ser alterada com pedido explícito** (layout, seções, movimento, conteúdo editorial).
 O que não muda sem autorização: flags de publicação, dados oficiais e deploy.
 
-- **Herói:** banda de foto (desktop **e** celular) + título editorial + **3 números**
-  (edições premiadas · categorias julgadas · marcas premiadas) + índice das 8 categorias.
-  Fundo roxo; o selo inverte para creme com tinta roxa.
+- **01 Abertura:** banda de foto (desktop **e** celular) + título ("O prêmio que o
+  público entrega.") + lead + **3 números** (edições premiadas · prêmios entregues ·
+  marcas premiadas), e nada mais. Fundo roxo. As classes `.swa-hero`, `.swa-hero__texto`
+  e `.swa-numeros` são as que `scw-motion.css` coreografa — não renomear.
+- **Índice ("Nesta página"):** as quatro áreas de consulta abaixo, cada uma com o que há
+  nela (contado dos dados em `indiceDaPagina`). O salto rola até a seção e leva o foco
+  ao H2 (o roteador é por hash: `href="#swa-hall"` cru trocaria de rota). ⛔ O índice
+  das 8 categorias que ficava no herói **saiu**: categoria se escolhe no filtro.
   ⛔ **A vitrine com as fotos dos 4 primeiros lugares saiu em 06/08/2026. Não
   reintroduzir** — eram as mesmas quatro fotos que abrem a seção 02 logo abaixo, lá com
   pódio completo e medalha. Sem ela o desktop ficava com 216–268px de roxo chapado no
   topo; por isso a banda de foto passou a valer também no desktop.
-- **Vencedores da última edição:** 8 categorias × 3 colocações, cada card com a **foto da
-  peça premiada**. **Medalha dentro da legenda do card**, ao lado do rótulo de colocação,
+- **02 Resultados 2026.1:** 8 categorias × 3 colocações, cada card com a **foto da
+  peça premiada**. **Filtro por categoria** ("Ver categoria"): "Todas" mostra os oito
+  pódios em duas colunas no desktop; escolher uma mostra só o pódio dela, maior. Botões
+  com `aria-pressed` e uma região viva que diz o que a tela passou a mostrar — o foco
+  fica no botão. **Medalha dentro da legenda do card**, ao lado do rótulo de colocação,
   **não solta no canto da foto**. Numeral sempre chocolate. 1º lugar em coluna larga
   (span de 2 linhas), 2º e 3º empilhados ao lado — **as três fotos sempre 1:1**; o 1º só é
   maior por ocupar coluna mais larga, não por aspect-ratio próprio. Empates no mesmo
   card. No celular (≤820px) vira carrossel de arrasto com snap.
-- **Quem dá a nota:** **trilha do tempo de três momentos cronológicos** — 2019 (categoria
+- **03 Quem dá a nota:** **trilha do tempo de três momentos cronológicos** — 2019 (categoria
   única) → 2020.2–2021.2 (Júri Técnico) → 2022 em diante (só Sweet Lovers, com selo
   "hoje"). ⛔ **Não** dois cards gêmeos lado a lado: isso escondia que a régua mudou ao
   longo do tempo. Espinha tracejada atrás dos discos; no celular vira vertical com o
   disco fora do fluxo.
-- **Hall dos mais premiados:** barra segmentada por colocação, contagem por posição e
-  total.
-- **Histórico:** acordeão por edição, pódio completo por categoria, separado por trilha
-  quando houve júri e público.
-- **Antes de 2019:** as cinco primeiras edições não tiveram premiação — **dizer isso**.
+- **04 Hall dos mais premiados:** os **dez** participantes com mais colocações
+  (`consulta.ranking`), com logo real ou iniciais, barra segmentada por colocação,
+  contagem por posição e total. Ranking só entre participantes, nunca entre edições
+  (§8.5).
+- **05 Histórico:** **acordeão por edição**, da mais recente à estreia da premiação; cada
+  edição abre e fecha sozinha (dá para comparar duas abertas), botão com
+  `aria-expanded` e painel `role="region"`. Dentro, pódio completo por categoria,
+  separado por trilha (Júri Técnico · Sweet Lovers) quando houve as duas. Sem foto: o
+  acervo não liga foto e marca nessas edições.
+  ⚠️ **Nome da época quando o nome repete:** duas categorias da mesma edição unidas pelo
+  alias no mesmo nome canônico mostram embaixo **"na época, “…”"** com o nome original
+  (`nomeOriginal`, derivado em `awardsData.js`). O §8.2 vale para o nome canônico; o da
+  época é o que distingue as duas.
+- **Antes de 2019:** fecha o histórico — as cinco primeiras edições não tiveram
+  premiação, e a página **diz isso**.
 - ⛔ A seção **"O momento de receber o prêmio"** (bastidores, 3 fotos) **saiu em
   20/08/2026**: não estava no desenho nem nesta lista de seções. As fotos seguem em
   `public/images/awards-bastidores/`.
@@ -178,18 +285,39 @@ Segue a lógica visual da Home. Precisa de: proposta clara; fotos quando dispon�
 **depoimentos**; **formulário em destaque**; linguagem voltada a participantes; visual
 editorial e comercial. **Não parecer formulário genérico.**
 
-**Seis seções:** `01 Abertura` (herói cyan) · `02 Depoimentos` (creme) ·
-`03 O que a marca ganha` (bege) · `04 Números` (creme) · `05 Como funciona` (chocolate) ·
-`06 Pré-cadastro` (creme). ⛔ `04 Circulação`, `05 Quem pode`, `06 Imprensa` e
-`07 Jornada` **saíram em 26/08/2026** (pedido do Eloi): a página passou a anunciar a
-próxima edição e empurrar para o pré-cadastro.
+⚠️ **É a única página pública hoje:** `PARTICIPAR_ONLY_PUBLICATION` faz o domínio
+inteiro abrir nela (flag em `src/App.jsx`, não mexer — A3).
 
-**Refeita em 18/09/2026** (pedido do Wilke: *"visual genérico"*). As seções do meio
-repetiam a mesma receita — grade de cards com disco de ícone. Entraram duas que saem
-dela, e a numeração foi refeita de 01 a 06 (a antiga 08 só guardava o lugar das que
-saíram):
+**Onde mora (12/10/2026):** `src/pages/participar/` — `index.jsx` monta a jornada; uma
+seção por arquivo em `secoes/`; `comum.jsx` guarda as peças que Participar e Apoiar
+dividem (`HeroPa`, `Cabeca`, `Destaque`, `BarraAcao`, `irPara`). Texto em
+`src/data/conteudo/participar.js`; CSS em `scw-participar-apoiar.css` (prefixo `.pa-`,
+o mesmo de Apoiar).
 
-- **03 O que a marca ganha** — mosaico fotográfico (`.pa-ganhos`), superfície
+**Jornada em seis seções (12/10/2026):** `01 Abertura` (herói cyan) · `02 Depoimentos`
+· `03 Para quem é e como funciona` (bege) · `04 O que a participação oferece` (creme) ·
+`05 Depois do pré-cadastro` (chocolate) · `06 Próximo passo` (creme), mais a barra fixa
+de ação. ⛔ **A faixa de palavras (`Marquee`) saiu em 12/10/2026:** repetia o que a
+página já diz e era laço contínuo sem pausa, como a Home decidiu em 28/09. ⛔ A seção
+própria `04 Números` virou a escala dentro da 04; `05 Como funciona` virou
+`05 Depois do pré-cadastro`; os três passos da edição foram para a 03.
+Histórico: `04 Circulação`, `05 Quem pode`, `06 Imprensa` e `07 Jornada` saíram em
+26/08/2026; a página foi refeita em 18/09/2026 (pedido do Wilke: *"visual genérico"*),
+quando entraram o mosaico de ganhos e a trilha de passos.
+
+- **01 Abertura (`Abertura.jsx`)** — título **"Sua marca na *próxima edição.*"**
+  (destaque roxo, 4,25:1, texto grande), encurtado em 12/10/2026: a frase antiga juntava
+  anúncio e pré-cadastro e quebrava em cinco linhas no celular, empurrando a ação para
+  baixo do aviso de cookies. O mês da edição fica no lead, vindo de `proximaEdicao.js`.
+  Duas ações: **"Fazer pré-cadastro"** e **"Ver como funciona"** (rola até
+  `#como-funciona` e leva o foco). Fotos em crossfade por `HeroFotos` (§6.9).
+- **03 Para quem é e como funciona (`ParaQuem.jsx`, `#como-funciona`)** — uma seção,
+  duas colunas: à esquerda quem cabe na edição (os tipos de casa em frase corrida, onde,
+  e a regra para marca sem loja física); à direita "Como a edição funciona" em três
+  passos (um tema por edição · um combo inédito · os dias de festival).
+- **04 O que a participação oferece (`Oferece.jsx`, `#ganhos`)** — mosaico fotográfico
+  (`.pa-ganhos`) e, embaixo, a escala "Dez anos em números". Eram duas seções com duas
+  cabeças; viraram uma: os números são a prova do que o mosaico afirma. Mosaico: superfície
   fotográfica do §6.16: foto sangrada, véu chocolate, tinta creme. Quatro ganhos
   (combo autoral · campanha e imprensa · Sweet Lovers · Sweet Awards), fotos em
   `fotoGanho()` de `imageLibrary.js`. 1 coluna → 2×2 a partir de 760px → zigue-zague
@@ -202,18 +330,18 @@ saíram):
   e data impressos, e o site não exibe dado volátil (§2.2).
   ⚠️ **Nada de promessa (§8.4):** o texto diz o que a edição faz por quem participa;
   o FAQ já registra que o pré-cadastro não garante vaga nem prêmio.
-- **05 Como funciona** — trilha de cinco passos sobre chocolate (`.pa-passos`):
-  pré-cadastro · curadoria · aprovação e painel da marca · o combo · a edição. Só
-  passos que existem de fato. Nó numerado na cor do ciclo filtrada pelo chocolate
+- **05 Depois do pré-cadastro (`Depois.jsx`)** — título "Do pré-cadastro *à estreia do
+  combo.*"; trilha de cinco passos sobre chocolate (`.pa-passos`): pré-cadastro ·
+  curadoria · aprovação e painel · combo aprovado · a edição acontece. O apoio da cabeça
+  é o que não pode se perder: **pré-cadastro não é vaga**. Só passos que existem de fato. Nó numerado na cor do ciclo filtrada pelo chocolate
   (amarelo · cyan · magenta · laranja · creme). **A espinha é desenhada por passo**,
   não por uma linha só no contêiner: a mesma regra serve em coluna (até 999px) e em
   linha (a partir de 1000), sem conta de onde fica o último nó.
-  ⚠️ **Não confundir com o `04 Ciclo` da Home**, que também se chama "Como funciona":
-  lá é o ciclo do festival contado com fotos; aqui é o caminho da casa até a edição,
-  sem foto.
+  ⚠️ **Não confundir com a `02 Como funciona` da Home:** lá é o que é o combo e como a
+  edição acontece; aqui é o caminho da casa até a edição, sem foto.
 
 - Herói = H1 + lead + **duas ações, nada mais**. No celular a foto continua, na
-  `.scw-hero-banda` em 4:3.
+  `.scw-hero-banda` em 4:3 (2:1 entre 600 e 1000px — §6.9).
 - **Depoimentos vêm logo depois da abertura** (decisão do Eloi, 30/07/2026): são a prova
   social; quem cogita participar quer ouvir quem já participou antes de ler número ou
   processo, e vários depoimentos são em vídeo.
@@ -233,18 +361,21 @@ saíram):
   pela `key`, e o som desliga a cada troca.
   ⛔ **A reserva da Caroli Douces saiu** (18/09/2026, pedido do Wilke): no palco, uma
   marca sem depoimento viraria uma aba que não diz nada. Voltam cinco, todos em vídeo.
-- **04 Números tem quatro dados** → `.pa-numeros--quatro`: **1 → 2 → 4 colunas, nunca
-  3** (a base `.pa-numeros` limita a 3 e é o que Apoiar usa). O numeral tem teto em
-  `14cqi` na fileira de 4 porque é `nowrap` (§10.5).
-- **Uma ação, um rótulo:** herói, CTA da 06 e barra fixa dizem todos
-  **"Fazer pré-cadastro"**. O botão da 06 usa a cor do destino (`.scw-btn--pagina`,
+- **A escala da 04 tem quatro dados** (movimentação direta · combos vendidos · anos ·
+  edições, com a nota de quando os históricos foram apurados) → `.pa-numeros--quatro`:
+  **1 → 2 (560px) → 4 (1280px) colunas, nunca 3** (a base `.pa-numeros` limita a 3).
+  Card chapado, uma cor por dado. O numeral é `nowrap`, então o teto dele segue a largura
+  do card (`cqi` na grade, nunca no `<li>`) — §10.5.
+- **Uma ação, um rótulo:** herói, CTA da 06 e barra fixa ("Inscrições passam por
+  curadoria.") dizem todos **"Fazer pré-cadastro"**. O botão da 06 usa a cor do destino (`.scw-btn--pagina`,
   cyan) com anel chocolate de 2px, porque cyan sobre o card bege não fecha 3:1.
   ⚠️ **Os três levam DIRETO ao formulário `/quero-participar/`** (18/09/2026, pedido
   do Wilke). Até então o do herói e o da barra fixa só rolavam até a seção 06 — um
   clique a mais entre a decisão e o formulário. `<a href>` com a barra final,
   nunca `navigate()` (§10.4-b).
 
-- **06 Pré-cadastro NÃO tem formulário** (22/08/2026, pedido do Eloi). A seção é uma
+- **06 Próximo passo (`ProximoPasso.jsx`, `#pre-cadastro`) NÃO tem formulário**
+  (22/08/2026, pedido do Eloi). Título "Comece a *jornada da sua marca.*"; a seção é uma
   chamada (`.pa-cta`) para a página estática **`/quero-participar/`**, que é onde o
   pré-cadastro vive: **dois passos** (Você / O estabelecimento, sete campos ao
   todo — simplificado de quatro passos, sem índice pegajoso desde então),
@@ -265,44 +396,106 @@ Precisa de: **formulário em destaque**; explicação visual das oportunidades d
 benefícios para marcas; exemplos de presença da marca no festival; linguagem comercial
 alinhada ao tom. **Não parecer página institucional fria.**
 
-**Seis seções:** `01 Abertura` · `02 Alcance` · `03 Por que apoiar` · `04 Onde aparece` ·
-`05 Quem vive` · `06 Proposta`. Mesma estrutura de herói de Participar — sem cartão e sem
-indicadores.
+**Onde mora (12/10/2026):** `src/pages/apoiar/` — `index.jsx` monta as seções; uma por
+arquivo em `secoes/`; `usePropostaApoio.js` guarda o estado do formulário. Peças
+comuns (herói, cabeça, barra fixa, `irPara`) vêm de `src/pages/participar/comum.jsx`;
+CSS é o mesmo de Participar (`scw-participar-apoiar.css`). Texto em
+`src/data/conteudo/apoiar.js`.
 
-- Os três indicadores de audiência **mudaram de lugar, não sumiram**: abrem a seção
-  `02 Alcance`. Diferente de Participar, **não se repetem** — são dado próprio. Padrão
-  disco + ícone + numeral + rótulo, com o disco de 54px na cor da página.
-- **`05 Quem vive` é grade editorial**, não duas listas de bullets lado a lado: os seis
+**Cinco seções (12/10/2026):** `01 Abertura` · `02 Alcance` (bege) · `03 Quem vive o
+festival` (chocolate) · `04 Onde a marca aparece` (creme, com os formatos que já
+aconteceram) · `05 Proposta`, mais a barra fixa ("Falar sobre apoio"). ⛔ **Saíram em
+12/10/2026:** `03 Por que apoiar` (seis "motivos" em card — cada um repetia o público, o
+alcance ou um ponto de contato) e a faixa de palavras (laço sem pausa, só atmosfera).
+Mesma estrutura de herói de Participar — sem cartão e sem indicadores.
+
+- **01 Abertura** — título curto **"Apoie o *Sweet & Coffee Week.*"** (destaque amarelo,
+  6,2:1 sobre o marrom; espaço inseparável para o "&" nunca ficar sozinho no fim da
+  linha), lead com os anos do festival, ações "Conversar sobre apoio" e "Ver alcance e
+  formatos".
+- **02 Alcance — métricas separadas, com data.** Dois grupos, **um por fonte**: "Nas
+  casas participantes" (histórico comercial das edições: movimentação direta · combos
+  vendidos) e "No Instagram oficial" (painel do perfil: visualizações · alcance ·
+  interações · seguidores). **Cada grupo diz a fonte e "apurado em …"**
+  (`festivalFacts.*.apurado`). ⚠️ **Visualizações, alcance e interações são métricas
+  distintas: nunca somar, nunca chamar visualização de alcance** — a nota do grupo diz
+  isso. Antes eram seis cards iguais lado a lado, e o leitor somava o que não se soma.
+  ⛔ As comparações com a população de Natal saíram: visualização não é pessoa, e conta
+  alcançada não é morador. Disco na cor da página em todos (§6.3, leitura de Apoiar):
+  quem distingue o dado é o ícone.
+- **`03 Quem vive o festival` é grade editorial**, não duas listas de bullets lado a lado: os seis
   traços do público viram itens com índice `01`–`06` e **filete horizontal** entre eles —
   bolinha de 7px é indicador de item de lista, **não de dado**. O texto do traço é
   `700 17–21px`: **ele é o argumento da seção**. A imprensa sai de dentro da grade e vira
   **bloco irmão embaixo, separado por 44–72px** — a distância entre argumento e prova é
   maior **de propósito**. ⛔ Não usar `--scw-gap-bloco` aí.
+- **04 Onde a marca aparece (`OndeAparece.jsx`, `#formatos`)** — quatro canais (no
+  digital · nas casas · relacionamento · Sweet Awards), cada um com foto e legenda de
+  `imageLibrary.js` e o que cabe nele numa linha. Embaixo, **"Formatos que já
+  aconteceram"**: seis exemplos reais de ativação (benefício cruzado, sorteio, prêmio de
+  avaliação, ativação temática, título oficial da edição, parceria de origem), **sem
+  nomear a marca**. ⛔ Saíram em 12/10/2026 as fotos `campanha/03`, `17` e `18` (display,
+  adesivo e press kit: preço e data impressos e texto deformado — §2.2, §6.12) e
+  `momentos/05`, cuja legenda afirmava uma "ação de marca" que o acervo não confirma.
 - **A página não exibe patrocinadores.** Em vez de vitrine de logos, mostra **formatos de
   ativação** — o que já foi feito, sem nomear a marca (§9.6).
+- **05 Proposta (`Proposta.jsx`)** — o formulário em destaque, fora do motor de
+  movimento. Contrato de envio inalterado: `submit_support_interest` pela porta
+  protegida (`src/lib/enviarFormulario.js`), lógica pura em `src/lib/supportInterest.js`.
+  Erro junto do campo, foco no primeiro campo com erro, pelo menos um contato (e-mail
+  ou WhatsApp). **Nunca afirma "enviado" se a gravação falhar** — sucesso ("Proposta
+  registrada.") só quando o banco confirma.
 - Os números vêm da fonte canônica, cada um com o que mede e quando foi apurado (§9.5).
 
 ### 7.6 Contato — `/contato`, bege `#F8E4C1`
 
-**Quatro seções:** `01 Abertura` · `02 Dúvidas` · `03 Caminhos` · `04 Mensagem`.
+**Onde mora (12/10/2026):** `src/pages/contato/` — `index.jsx` monta as seções e guarda
+o estado da central (`useCentralDuvidas.js`), porque **duas seções escrevem nele**: a
+busca da abertura e a da própria central (mais o "Ver dúvidas de suporte" da triagem).
+`useFormularioContato.js` é o formulário; `rolar.js` faz as âncoras internas (o
+roteador é por hash: `href="#mensagem"` cru trocaria de rota). Texto em
+`src/data/conteudo/contato.js`; perguntas em `src/data/faqCentral.js`; CSS em
+`scw-contato.css`.
 
-A abertura é **coluna única**, como as outras cinco: rótulo, H1 (`.scw-h1` cheio, sem
-teto próprio de medida — é o 17ch que faz o título quebrar em duas linhas), lead e as
-duas ações. ⛔ A coluna de apoio à direita, com a nota "a central reúne N respostas",
-**saiu em 20/08/2026**: dizia em nota o que a seção 02 logo abaixo mostra inteiro.
+**Três seções (12/10/2026):** `01 Abertura` · `02 Central de dúvidas` ·
+`03 Falar com a equipe`. ⛔ `03 Caminhos` ("Cada assunto tem uma porta certa", três
+cards) e `04 Mensagem` **viraram uma seção só**: a triagem é a coluna "Antes de
+escrever", ao lado do formulário.
+
+**01 Abertura — a busca É a ação principal.** Coluna única: rótulo, H1 ("Sua dúvida,
+respondida aqui." — `.scw-h1` cheio, sem teto próprio de medida), lead com a contagem
+real de respostas (`{total}`, nunca digitada) e o **campo de busca**, que escreve no
+MESMO estado da central: "Buscar" rola até a lista já filtrada e leva o foco ao título
+do resultado. Escrever para a organização é a segunda ação, em link. ⛔ Os dois botões
+que só rolavam a página ("Ver as perguntas" / "Ir para o formulário") saíram — no
+celular caíam embaixo do aviso de cookies. **Altura do conteúdo, não da tela**
+(`min-height: 0`): a central já espia na primeira dobra do desktop. Celular: foto
+**16:10** com teto `44svh` (2:1 entre 600 e 1000px), para a busca inteira caber acima do
+aviso de cookies (§6.9). ⛔ A coluna de apoio à direita, com a nota "a central reúne N
+respostas", **saiu em 20/08/2026**.
 
 ⛔ **A regra antiga "Contato é página simples, SEM hero" está superada** — a página abre
 com herói compacto e banda de foto no mobile.
 
 **Central de dúvidas: 93 perguntas em 10 assuntos** — Sobre o festival 9 · Edição atual 7
 · Combos 10 · Atendimento 10 · Ingredientes e acessibilidade 7 · Rota da Doçura 9 · Sweet
-Awards 13 · Participação 13 · Parcerias 8 · Suporte 7. **Fonte única das perguntas:
-`src/data/faqCentral.js`** (import default em `Contato.jsx`).
+Awards 13 · Participação 13 · Parcerias 8 · Suporte 7 (conferido em 13/10/2026).
+**Fonte única das perguntas: `src/data/faqCentral.js`** (import default em
+`src/pages/contato/index.jsx`). A central fica **fora do motor de movimento**
+(`data-mo-fora`): quem chega para consultar não espera animação.
+
+- **Entrada "Comece por aqui"** (`COMECE` em `conteudo/contato.js`): seleção editorial
+  de oito perguntas — é o que a lista mostra antes de qualquer escolha.
+- **"Todas" e o resultado da busca entram de 10 em 10, com "Mostrar mais"**
+  (`LISTA = { inicial: 10, passo: 10 }`): 93 acordeões de uma vez eram uma parede. Um
+  assunto escolhido (7 a 13 perguntas) aparece inteiro. O schema `FAQPage` leva as 93,
+  inclusive as que a lista ainda não mostrou.
+- **Só a primeira resposta abre sozinha** (eram duas).
 
 ⚠️ **`src/data/contactFaq.js` NÃO está morto** — conferido no código em 07/08/2026. Ele
 exporta `FAQ_CATEGORIES`, `FAQ_ITEMS` e **`CONTACT_SUBJECTS`**, e é o `CONTACT_SUBJECTS`
-que alimenta a triagem do formulário, importado por `Contato.jsx` e por
-`src/lib/contactRequest.js`. **São duas coisas diferentes que a documentação antiga
+que alimenta a triagem do formulário, importado por
+`src/pages/contato/secoes/Mensagem.jsx` e por `src/lib/contactRequest.js`. **São duas coisas diferentes que a documentação antiga
 confundia:** `faqCentral.js` são as 93 perguntas; `contactFaq.js` são os assuntos do
 formulário. **Não remover.** O que sobra dele — `FAQ_CATEGORIES` e `FAQ_ITEMS`, a lista
 de perguntas antiga — é que está morto, e some quando alguém confirmar que ninguém
@@ -312,18 +505,31 @@ importa esses dois nomes.
   sublinhado de 2px na cor da página) e busca como linha com traço inferior.
 - **No mobile o índice vira chips roláveis** — `flex: 0 0 auto` **obrigatório** no `<li>`,
   senão os chips colapsam.
-- A busca **ignora acentos e maiúsculas, casa múltiplos termos e muda o filtro para
-  "Todas" automaticamente**.
+- A busca **ignora acentos e maiúsculas, exige todos os termos (E) — pergunta, resposta,
+  palavras-chave, rótulo e id do assunto — e muda o filtro para "Todas"
+  automaticamente**; apagar volta à entrada.
 - Cada pergunta é `h3 > button` com `aria-expanded`/`aria-controls`, painel
   `role="region"`. Schema `FAQPage` gerado da mesma fonte de dados.
-- Os campos `mapa`, `regulamentoRota`, `regulamentoAwards`, `areaAvaliacao`, `imprensa` e
-  `pressKit` estão `null`. **Isso não é bug:** quando `null`, o link não aparece;
-  preencher faz o link surgir sozinho. **Mapa, rota e avaliação pertencem à camada de
-  edição e ficam `null` até a próxima edição existir.**
+- Os campos `mapa`, `regulamentoRota`, `regulamentoAwards`, `areaAvaliacao` e
+  `pressKit` estão `null` (`imprensa` não: aponta para o formulário desta página).
+  **Isso não é bug:** quando `null`, o link não aparece; preencher faz o link surgir
+  sozinho. **Mapa, rota e avaliação pertencem à camada de edição e ficam `null` até a
+  próxima edição existir.**
 
 **O bloco "Edição atual" é reescrito para o estado entre-edições.** As perguntas que
 apontavam para mapa, regulamento e área de avaliação passam a **explicar como funciona**,
 sem prometer link que não existe.
+
+**03 Falar com a equipe (`Mensagem.jsx`, `#mensagem`)** — triagem e formulário na MESMA
+seção, lado a lado. A coluna **"Antes de escrever"** traz três caminhos (levar a marca
+para a rota → Participar · apoiar ou patrocinar → Apoiar · problema com um pedido → as
+dúvidas de suporte da central); no celular ela vem **antes** do formulário, que é quando
+evita uma mensagem no lugar errado. Formulário (nome · e-mail · assunto · mensagem;
+assuntos de `CONTACT_SUBJECTS`): rótulo real em cada campo, **erro junto do campo**
+(`aria-invalid` + `aria-describedby`), foco no primeiro campo com problema, validação da
+lib e não a bolha do navegador (`noValidate`). **Sem sucesso falso:** `submitContact`
+(`src/lib/contactRequest.js`) só devolve sucesso quando a gravação confirma, e a tela só
+diz "enviada" nesse caso; na falha, o que a pessoa escreveu fica no formulário.
 
 ### 7.7 Em breve — `/em-breve`
 
@@ -511,6 +717,20 @@ código antes de aplicar.
 `sweetHistoryStats.js`, `loversAwardsResults.js` e as fotos seguem intactos — só
 deixaram de ser importados ali. **Consequência a não esquecer: o resultado oficial da
 Lovers deixou de ter endereço público** até o institucional ir ao ar.
+
+### 7.8 Como manter — o caminho curto de cada pedido
+
+Desde 12/10/2026 cada página do institucional é uma pasta (`src/pages/<pagina>/`) e
+cada página carrega no próprio chunk (`React.lazy` via `src/pages/carregadores.js`).
+`src/pages/institutional/*.jsx` só reexporta — **não editar ali**.
+
+| Pedido | Onde mexer |
+|---|---|
+| Mudar uma seção (layout, ordem interna, peça) | `src/pages/<pagina>/secoes/<Secao>.jsx`. A ordem das seções está no `index.jsx` da pasta |
+| Mudar texto | `src/data/conteudo/<pagina>.js` (`home`, `edicoes`, `sweet-awards`, `participar`, `apoiar`, `contato`). JSX não guarda texto (§5.6). Perguntas da central: `src/data/faqCentral.js` |
+| Trocar foto | `src/data/imageLibrary.js` (`heroPhotos`, `fotosHome`, `fotoGanho`…). ⛔ **Nunca `imageVariants.js`** — é gerado por `scripts/gerar-variantes.mjs` |
+| Ligar o destaque de edição na Home | `src/data/destaqueEdicao.js`: preencher **todos** os campos (`titulo`, `texto`, `imagem` com `src` e `alt` — registrada antes em `imageLibrary.js` —, `legenda`, `acao` com `rotulo` e `href`) e só então `ativo: true`. Faltou um campo, `destaqueValido()` devolve `false` e a abertura institucional continua — nunca um bloco pela metade. Conferir com `npm run test:destaque`. Nada liga por data, e não mexe em flag de publicação (sob o gate atual a Home nem aparece). Decisão do Wilker, nunca automática |
+| Validar antes de commitar | `npm run build && npm run test:casca-institucional` · `npm run test:motion` (depois de um build) · `node tests/responsive.mjs` — e o build de verificação fora do projeto (§3.2 da raiz) |
 
 ---
 
