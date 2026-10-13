@@ -75,6 +75,9 @@ function categoriasDe(ed) {
     const colocacoes = (fonte ? fonte.colocacoes : c.colocacoes) || []
     return {
       nome: categoria(c.categoria),
+      // Nome usado NAQUELA edição. Só aparece quando o alias junta duas
+      // categorias da mesma edição no mesmo nome (2020.1: Take Away e Delivery).
+      nomeOriginal: c.categoria || null,
       trilha: c.trilha || null,
       desc: c.descricao || '',
       pod: colocacoes.map((p) => ({ pos: p.pos, nomes: (p.nomes || []).map(marca) })),

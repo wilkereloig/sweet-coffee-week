@@ -1,19 +1,20 @@
 /* ============================================================================
-   Sweet Awards — página institucional (redesign 2026)
-   Fonte: design_handoff_site_institucional/README.md + "Sweet Awards.dc.html".
-   Consome os tokens de src/styles/scw-2026.css (--scw-*). Nenhuma cor fora da
-   paleta do README; o vermelho #E52C4B não existe aqui.
+   Sweet Awards — página institucional (redesign 2026, reorganizada 12/10/2026)
+   Componentes em src/pages/sweet-awards/. Consome os tokens de scw-2026.css
+   (--scw-*) e de scw-motion.css (--mo-*). Nenhuma cor fora da paleta.
 
-   Medalhas (redesign 29/07/2026, paleta fechada): 1º amarelo, 2º bege, 3º
-   laranja — sempre com numeral chocolate. Marrom foi cogitado para o 3º e
-   descartado: marrom sobre chocolate dá ~1,5:1 (falha como emblema e como
-   texto solto no Hall, que tem fundo chocolate); laranja fecha 4,8:1 nos dois
-   usos. Vivem na legenda do card, não soltas no canto da foto.
-   A cor da página (roxo #4D257E) vem de body.route-historico-awards.
+   Tipografia em duas vozes (§6.5): Slab só em título, numeral e nome premiado;
+   Nexa (--scw-font-ui) em rótulo, botão, dado; Nexa Text (--scw-font-texto)
+   em parágrafo e legenda.
+
+   Medalhas (§6.4): 1º amarelo, 2º cyan, 3º laranja — numeral SEMPRE chocolate.
+   Vivem na legenda do card, não soltas no canto da foto.
+   A cor da página (roxo) vem de body.route-historico-awards.
    ========================================================================= */
 
 /* ----------------------------------------------------------------------------
-   01 Abertura (herói) — banda de foto no topo, título, lead e três números.
+   01 Abertura (herói) — banda de foto, título, lead e três números.
+   Classes coreografadas por scw-motion.css: não renomear.
    -------------------------------------------------------------------------- */
 
 .swa-hero {
@@ -24,38 +25,18 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  /* Sem reserva de topo: quem ocupa a faixa por onde passa o cabeçalho fixo é
-     a própria banda de foto, nas duas telas. */
-  padding: 0 var(--scw-trilho);
+  /* Conteúdo ancorado embaixo (§6.7): quem ocupa a faixa do cabeçalho fixo é a
+     própria banda de foto. */
+  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
   background: var(--scw-roxo);
   color: var(--scw-creme);
 }
-/* ⚠️ Só o TEXTO sobe. Este seletor já foi `.swa-hero > *`, e nessa forma ele
-   alcançava também a banda de foto: ela virava `position: relative`, perdia o
-   `inset: 0`, colapsava a zero (os filhos são absolutos) e o herói ficava roxo
-   chapado — a galeria inteira sumia da tela sem sumir do DOM. */
+/* ⚠️ Só o TEXTO sobe. `.swa-hero > *` alcançaria a banda de foto, que perderia
+   o `inset: 0`, colapsaria a zero e o herói ficaria roxo chapado. */
 .swa-hero__texto { position: relative; z-index: 1; }
 
-/* A foto do herói: as seis imagens da entrega dos prêmios se revezam aqui.
-   Camadas e crossfade são do sistema (.scw-hero-banda__foto, montadas pelo
-   componente HeroFotos); a leitura é do véu (.scw-hero-veu), com os alfas
-   padrão dele — chapa escura, tinta creme, foto aparecendo no terço direito.
-   Foi deste herói que a construção saiu, em 21/08/2026.
-
-   Sem reserva de topo herdada: o conteúdo é ancorado embaixo, como em
-   Home/Participar/Apoiar (§6.7). A logo do cabeçalho transborda metade abaixo
-   da linha do header, então a reserva é maior que a intuitiva. */
-.swa-hero {
-  padding-top: var(--scw-hero-reserva);
-  padding-bottom: var(--scw-hero-fecho);
-}
-
-/* No celular o Awards entra na MESMA construção das outras quatro (22/08/2026,
-   pedido do Eloi): foto quadrada em cima, esfumada na base, texto embaixo na
-   chapa roxa. A geometria da banda e o esfumado são do sistema
-   (`.scw-hero-banda` em scw-2026.css); aqui fica só o que é desta seção — o
-   piso de altura e o padding, que moram neste arquivo e venceriam a regra
-   compartilhada por ordem de import. */
+/* Celular: foto quadrada em cima, texto embaixo na chapa roxa (§6.9). A
+   geometria da banda é do sistema (`.scw-hero-banda`). */
 @media (max-width: 1000px) {
   .swa-hero {
     min-height: 0;
@@ -64,9 +45,7 @@
   }
 }
 
-/* A entrada do herói (bloco inteiro subindo) foi para src/styles/scw-motion.css,
-   onde vira sequência: banda → título → lead → números. */
-.swa-hero__texto .scw-h1{ margin-top: 0; color: var(--scw-creme); }
+.swa-hero__texto .scw-h1 { margin-top: 0; color: var(--scw-creme); }
 .swa-hero__texto .scw-lead { margin-top: clamp(16px, 1.8vw, 26px); color: rgba(254, 240, 221, .86); }
 
 .swa-numeros {
@@ -77,26 +56,86 @@
   padding: clamp(18px, 2vw, 26px) 0 0;
   border-top: 1px solid rgba(254, 240, 221, .28);
 }
-.swa-numeros > div { display: flex; flex-direction: column; gap: 5px; }
-/* Celular: com flex-wrap os três números caíam 2+1, e a órfã embaixo lia como
-   erro de layout. Grade fixa de 3 colunas — os numerais são curtos (11/82/44)
-   e só os rótulos quebram em duas linhas, o que é regular nas três. */
-@media (max-width: 820px) {
-  .swa-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .swa-numeros dt { hyphens: none; }
-}
+.swa-numeros > div { display: flex; flex-direction: column; gap: 6px; }
 .swa-numeros dt {
-  font: 800 9.5px/1.1 var(--scw-font);
-  letter-spacing: .16em;
+  font: 700 11px/1.15 var(--scw-font-ui);
+  letter-spacing: .14em;
   text-transform: uppercase;
-  /* piso de opacidade sobre o roxo do herói (§3): .74 dá ~5:1 */
-  color: rgba(254, 240, 221, .74);
+  /* piso de opacidade sobre o roxo do herói: .78 dá ~6:1 */
+  color: rgba(254, 240, 221, .78);
 }
 .swa-numeros dd {
   margin: 0;
   font: 900 clamp(26px, 2.4vw, 38px)/1 var(--scw-font-black);
   letter-spacing: -.04em;
   font-variant-numeric: tabular-nums;
+}
+/* Celular: grade fixa de 3 — com flex-wrap os números caíam 2+1. */
+@media (max-width: 820px) {
+  .swa-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .swa-numeros dt { hyphens: none; font-size: var(--scw-piso-rotulo-mob); }
+}
+
+/* ----------------------------------------------------------------------------
+   Índice da página — quatro atalhos, cada um com o que há lá
+   -------------------------------------------------------------------------- */
+
+.swa-indice {
+  display: grid;
+  gap: clamp(14px, 1.4vw, 20px);
+  /* faixa de navegação, não seção de conteúdo: respiro menor que o compacto */
+  padding-block: clamp(28px, 3vw, 48px);
+}
+.swa-indice__lista {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(61, 19, 8, .14);
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+.swa-indice__lista > li + li { border-left: 1px solid rgba(61, 19, 8, .14); }
+.swa-indice__link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  height: 100%;
+  min-height: 44px;
+  padding: clamp(14px, 1.6vw, 22px) clamp(12px, 1.4vw, 22px);
+  color: var(--scw-choco);
+  transition: background-color var(--mo-estado) var(--mo-ease);
+}
+/* Cor da página em todos os discos (como Apoiar 02): a cor diz "isto é o
+   Awards"; quem distingue o destino é o ícone. */
+.swa-indice__disco { --tam: 44px; --c: var(--scw-roxo); --tinta: var(--scw-creme); }
+.swa-indice__texto { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.swa-indice__texto b { font: 700 clamp(15px, 1.15vw, 17px)/1.2 var(--scw-font-ui); }
+.swa-indice__texto span {
+  font: 400 14px/1.4 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+.swa-indice__seta {
+  display: grid;
+  color: var(--scw-marrom);
+  transition: transform var(--mo-rapido) var(--mo-ease);
+}
+@media (hover: hover) {
+  .swa-indice__link:hover { background-color: rgba(61, 19, 8, .05); }
+  .swa-indice__link:hover .swa-indice__seta { transform: translateY(4px); }
+}
+@media (max-width: 1100px) {
+  .swa-indice__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .swa-indice__lista > li:nth-child(odd) { border-left: 0; }
+  .swa-indice__lista > li:nth-child(n + 3) { border-top: 1px solid rgba(61, 19, 8, .14); }
+}
+@media (max-width: 560px) {
+  .swa-indice__lista { grid-template-columns: 1fr; }
+  .swa-indice__lista > li + li { border-left: 0; border-top: 1px solid rgba(61, 19, 8, .14); }
+  .swa-indice__link { padding: 12px 0; gap: 12px; }
+  .swa-indice__disco { --tam: 40px; }
 }
 
 /* ----------------------------------------------------------------------------
@@ -108,19 +147,28 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: clamp(20px, 3vw, 56px);
   align-items: end;
-  margin: 0 0 clamp(30px, 3.4vw, 48px);
+  margin: 0 0 clamp(28px, 3.2vw, 46px);
 }
 .swa-cab .scw-h2 { margin-top: 14px; max-width: 22ch; }
+/* Foco de leitura (o índice leva o foco ao título da seção), não de controle. */
+.swa-cab .scw-h2:focus { outline: none; }
 .swa-apoio {
   justify-self: end;
   align-self: end;
-  max-width: 38ch;
-  font: 500 clamp(15px, 1.2vw, 18px)/1.55 var(--scw-font);
+  max-width: 40ch;
+  margin: 0;
+  font: 400 clamp(15px, 1.2vw, 17px)/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
 @media (max-width: 760px) {
   .swa-apoio { justify-self: start; max-width: 56ch; }
+}
+
+/* Destino do índice. No celular o cabeçalho sai de cena ao rolar (§6.15), então
+   a reserva de 120px do sistema viraria um vão creme acima do título. */
+@media (max-width: 900px) {
+  section.scw-secao[id^='swa-'] { scroll-margin-top: 16px; }
 }
 
 /* Seções em chocolate: rótulo dourado, título e apoio em creme. */
@@ -129,49 +177,145 @@
 .swa-escura .swa-apoio { color: rgba(254, 240, 221, .86); }
 
 /* ----------------------------------------------------------------------------
-   02 Vencedores Lovers 2026 — 8 categorias × 3 colocações
+   02 Resultados da edição em destaque — filtro + pódios
    -------------------------------------------------------------------------- */
 
-.swa-cats { display: grid; gap: clamp(30px, 3.4vw, 52px); }
+.swa-consulta {
+  display: grid;
+  /* minmax(0, …): sem isso a fileira de botões e os carrosséis do celular
+     (min-content larga) alargavam a coluna além da tela, e o texto saía cortado. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(24px, 2.6vw, 38px);
+}
 
-.swa-cat__cab {
+/* Filtro de categoria: botões com aria-pressed. O estado escolhido é roxo (a
+   cor da página) com tinta creme, 10:1; o resto é contorno sobre creme. */
+.swa-filtro { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.swa-filtro__rotulo {
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.swa-filtro__lista {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.swa-filtro__op {
+  display: inline-flex;
   align-items: center;
-  gap: clamp(10px, 1.4vw, 18px);
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(61, 19, 8, .22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--scw-choco);
+  font: 700 14px/1 var(--scw-font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--mo-rapido) var(--mo-ease),
+    border-color var(--mo-rapido) var(--mo-ease),
+    color var(--mo-rapido) var(--mo-ease);
+}
+.swa-filtro__op[aria-pressed='true'] {
+  border-color: var(--scw-roxo);
+  background: var(--scw-roxo);
+  color: var(--scw-creme);
+}
+.swa-filtro__n {
+  padding: 4px 7px 3px;
+  border-radius: 999px;
+  background: rgba(61, 19, 8, .08);
+  font: 700 12px/1 var(--scw-font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.swa-filtro__op[aria-pressed='true'] .swa-filtro__n { background: rgba(254, 240, 221, .2); }
+@media (hover: hover) {
+  .swa-filtro__op[aria-pressed='false']:hover { border-color: var(--scw-choco); background: rgba(61, 19, 8, .05); }
+}
+/* Celular: uma linha que rola de lado, sangrando até a borda pelo mesmo
+   trilho — nove botões em quatro linhas empurravam os pódios para baixo. */
+@media (max-width: 760px) {
+  .swa-filtro { gap: 10px; }
+  .swa-filtro__lista {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    width: calc(100% + 2 * var(--scw-trilho));
+    margin-inline: calc(-1 * var(--scw-trilho));
+    /* respiro para o anel de foco não ser cortado pela rolagem */
+    padding: 6px var(--scw-trilho);
+  }
+  .swa-filtro__lista::-webkit-scrollbar { display: none; }
+  .swa-filtro__lista > li { flex: 0 0 auto; }
+}
+
+/* As categorias. "Todas": duas colunas a partir de 1200px. Uma só, ou de 821 a
+   1199px: fileira com a cabeça à esquerda e o pódio à direita, para o 1º
+   lugar não passar da altura da tela. */
+.swa-cats { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(36px, 3.6vw, 56px) clamp(28px, 3vw, 48px); }
+/* Duas colunas: cada categoria ocupa duas linhas da grade (cabeça, pódio) por
+   subgrid, então os pódios vizinhos começam na mesma altura mesmo quando uma
+   descrição tem duas linhas e a outra uma. */
+@media (min-width: 1200px) {
+  .swa-cats[data-vista='todas'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .swa-cats[data-vista='todas'] .swa-cat { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 0; }
+}
+@media (min-width: 821px) and (max-width: 1199px) {
+  .swa-cats[data-vista='todas'] .swa-cat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(20px, 2.6vw, 36px); align-items: start; }
+}
+@media (min-width: 821px) {
+  .swa-cats[data-vista='uma'] .swa-cat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(24px, 3vw, 56px); align-items: start; }
+}
+
+.swa-cat__cab {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  /* na subgrid a linha pode ser mais alta que a cabeça: o conteúdo sobe */
+  align-content: start;
+  gap: 8px 14px;
   margin-bottom: clamp(14px, 1.6vw, 20px);
   padding-bottom: clamp(12px, 1.4vw, 16px);
   border-bottom: 1px solid rgba(61, 19, 8, .14);
 }
-.swa-selo {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: clamp(40px, 3.4vw, 52px);
-  height: clamp(40px, 3.4vw, 52px);
-  border-radius: 50%;
-  background: var(--swa-selo, var(--scw-roxo));
-  color: var(--swa-selo-tinta, var(--scw-creme));
-}
-.swa-selo svg { width: 58%; height: 58%; }
-.swa-cat__nome { font-size: clamp(20px, 2vw, 30px); letter-spacing: -.035em; }
+.swa-cat__selo { --tam: clamp(44px, 3.4vw, 52px); }
+.swa-cat__nome { margin: 0; font-size: clamp(20px, 1.9vw, 28px); letter-spacing: -.035em; }
 .swa-cat__desc {
-  flex: 1 1 220px;
-  min-width: 0;
+  grid-column: 1 / -1;
   margin: 0;
-  font: 500 13.5px/1.45 var(--scw-font);
+  max-width: 52ch;
+  font: 400 14.5px/1.5 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
+/* Fileira (cabeça | pódio): a cabeça vira coluna e o filete passa para o topo. */
+@media (min-width: 821px) and (max-width: 1199px) {
+  .swa-cats[data-vista='todas'] .swa-cat { padding-top: clamp(18px, 2vw, 24px); border-top: 1px solid rgba(61, 19, 8, .14); }
+  .swa-cats[data-vista='todas'] .swa-cat__cab { grid-template-columns: 1fr; justify-items: start; margin: 0; padding: 0; border: 0; }
+}
+@media (min-width: 821px) {
+  .swa-cats[data-vista='uma'] .swa-cat { padding-top: clamp(18px, 2vw, 24px); border-top: 1px solid rgba(61, 19, 8, .14); }
+  .swa-cats[data-vista='uma'] .swa-cat__cab { grid-template-columns: 1fr; justify-items: start; gap: 14px; margin: 0; padding: 0; border: 0; }
+  .swa-cats[data-vista='uma'] .swa-cat__nome { font-size: clamp(26px, 2.6vw, 40px); }
+  .swa-cats[data-vista='uma'] .swa-cat__desc { font-size: clamp(15px, 1.2vw, 17px); }
+}
 
-/* Fileira: 1º na coluna larga (linha inteira, span 2), 2º e 3º empilhados ao
-   lado. A hierarquia vem do tamanho da coluna/span, não de um recorte de foto
-   diferente — ver comentário em .swa-card__foto abaixo. */
+/* Pódio: 1º na coluna larga (span 2), 2º e 3º empilhados ao lado. A
+   hierarquia vem da coluna, não de um recorte próprio: as três fotos 1:1
+   (§7.3 — o 1º em 4:5 foi testado e reprovado, §11). */
 .swa-podio {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   grid-auto-rows: 1fr;
-  gap: clamp(10px, 1.2vw, 18px);
+  gap: clamp(10px, 1vw, 16px);
   align-items: stretch;
   margin: 0;
   padding: 0;
@@ -179,12 +323,10 @@
 }
 .swa-podio > li:first-child { grid-row: span 2; }
 
-/* Celular: 24 cards (8 categorias × 3) empilhados não cabem — vira carrossel
-   de arrasto, um cartão aparecendo na borda como convite. */
+/* Celular: carrossel de arrasto com snap, um cartão aparecendo na borda. */
 @media (max-width: 820px) {
   .swa-podio {
     display: flex;
-    align-items: stretch;
     grid-auto-rows: auto;
     gap: 12px;
     padding-bottom: 6px;
@@ -196,8 +338,7 @@
   }
   .swa-podio::-webkit-scrollbar { display: none; }
   .swa-podio > li {
-    flex: 0 0 min(80%, 320px);
-    grid-column: auto;
+    flex: 0 0 min(78%, 300px);
     grid-row: auto;
     scroll-snap-align: start;
   }
@@ -209,20 +350,10 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  border-radius: var(--scw-r-interno);
+  border-radius: var(--scw-r-card);
   background: var(--scw-bege);
-  box-shadow: 0 10px 24px rgba(61, 19, 8, .14);
 }
-.swa-card--primeiro {
-  border-radius: var(--scw-r-secao);
-  box-shadow: 0 18px 40px rgba(61, 19, 8, .22);
-}
-/* Foto: mesma direção (1:1, cover) nas três colocações — o 1º lugar já é
-   maior por ocupar coluna mais larga e span de 2 linhas, não precisa de um
-   recorte próprio; um aspect-ratio mais alto (4/5) só cortava a foto de
-   forma inconsistente com as outras duas e, em fotos sem espaço vertical de
-   sobra, cortava demais. O ponto focal por imagem vem inline; isto é
-   fallback. */
+.swa-card--primeiro { border-radius: var(--scw-r-interno); }
 .swa-card__foto {
   display: block;
   overflow: hidden;
@@ -239,8 +370,7 @@
   object-position: center 42%;
 }
 
-/* Reserva honesta quando o acervo não tem foto da marca (§8) — mesma moldura
-   editorial do .scw-reserva genérico (scw-2026.css), não um terceiro tratamento. */
+/* Reserva honesta quando falta foto — mesma moldura do .scw-reserva do sistema. */
 .swa-reserva {
   display: grid;
   place-items: center;
@@ -248,7 +378,7 @@
   background: var(--scw-creme);
   border: 1px dashed rgba(61, 19, 8, .14);
   color: var(--scw-marrom);
-  font: 700 12px/1.35 var(--scw-font);
+  font: 700 12px/1.35 var(--scw-font-ui);
   letter-spacing: .04em;
   text-align: center;
 }
@@ -258,18 +388,17 @@
   inset: auto 0 0 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 40px 14px 14px;
+  gap: 6px;
+  padding: 34px 12px 12px;
+  /* três paradas: a derivada quebra no meio e a emenda não vira faixa (§10.4) */
   background: linear-gradient(to top,
     rgba(61, 19, 8, .94), rgba(61, 19, 8, .55) 58%, rgba(61, 19, 8, 0));
 }
 .swa-card--primeiro .swa-card__legenda { gap: 10px; padding: 54px 18px 18px; }
-.swa-card__cabeca { display: flex; align-items: center; gap: 10px; }
+.swa-card__cabeca { display: flex; align-items: center; gap: 9px; }
 
-/* Medalha entra na legenda (dado, não enfeite) — numeral SEMPRE chocolate:
-   creme sobre o marrom do 3º dava 2,7:1. */
+/* Medalha na legenda (dado, não enfeite) — numeral SEMPRE chocolate. */
 .swa-medalha {
-  position: static;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -281,26 +410,29 @@
   font: 900 12px/1 var(--scw-font-black);
 }
 .swa-card--primeiro .swa-medalha { width: 34px; height: 34px; font-size: 14px; }
-
-/* A cor da colocação vive na medalha; o rótulo é creme nos três. */
 .swa-card__rotulo {
-  font: 800 10px/1.1 var(--scw-font);
-  letter-spacing: .14em;
+  font: 700 11px/1.15 var(--scw-font-ui);
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: rgba(254, 240, 221, .82);
+  color: rgba(254, 240, 221, .86);
 }
-.swa-card--primeiro .swa-card__rotulo { font-size: 10.5px; }
 .swa-card__marca {
-  font: 900 clamp(16px, 1.3vw, 20px)/1.08 var(--scw-font-black);
-  letter-spacing: -.03em;
+  font: 900 clamp(15px, 1.15vw, 18px)/1.1 var(--scw-font-black);
+  letter-spacing: -.025em;
   color: var(--scw-creme);
   text-wrap: balance;
 }
 .swa-card--primeiro .swa-card__marca { font-size: clamp(19px, 1.7vw, 26px); }
 
+.swa-fotos-nota {
+  margin: 0;
+  max-width: 62ch;
+  font: italic 400 14px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+}
+
 /* ----------------------------------------------------------------------------
-   03 Como é decidido — trilha do tempo (três momentos, não dois cards gêmeos:
-   a régua mudou três vezes desde 2019, e isso é cronológico, não simétrico)
+   03 Quem dá a nota — trilha do tempo (três momentos, cronológica)
    -------------------------------------------------------------------------- */
 
 .swa-trilha {
@@ -308,6 +440,9 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 2vw, 34px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 /* A linha passa atrás; o anel de 6px no disco abre o "buraco" por onde ela entra. */
 .swa-trilha::before {
@@ -315,13 +450,11 @@
   position: absolute;
   left: 22px;
   right: 22px;
-  top: 20px;
+  top: 25px;
   height: 3px;
   background: repeating-linear-gradient(90deg, rgba(61, 19, 8, .2) 0 9px, transparent 9px 18px);
 }
 .swa-trilha > * { position: relative; }
-/* Indicador de etapa: 54px (PATCH 02 §5). O anel de 6px continua sendo o que
-   abre o buraco por onde a espinha tracejada passa. */
 .swa-trilha__selo {
   display: grid;
   place-items: center;
@@ -334,8 +467,10 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-top: 16px;
-  font: 800 11px/1 var(--scw-font);
+  /* altura da pílula "hoje": os três títulos ficam na mesma linha */
+  min-height: 24px;
+  margin-top: 14px;
+  font: 700 12px/1 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
@@ -345,33 +480,31 @@
   border-radius: 999px;
   background: var(--scw-amarelo);
   color: var(--scw-choco);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 .swa-trilha__titulo {
   display: block;
-  margin-top: 9px;
+  margin-top: 10px;
   font: 900 clamp(19px, 1.7vw, 24px)/1.05 var(--scw-font-black);
   letter-spacing: -.03em;
 }
 .swa-trilha__texto {
   margin: 9px 0 0;
-  max-width: 30ch;
-  font: 500 15px/1.55 var(--scw-font);
+  max-width: 34ch;
+  font: 400 15px/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
 }
-
-/* No celular a linha gira e vira vertical; o disco sai do fluxo pra espinha
-   não atravessar o texto. */
+/* Celular: a linha gira e vira vertical; o disco sai do fluxo. */
 @media (max-width: 760px) {
   .swa-trilha { grid-template-columns: 1fr; gap: 26px; }
   .swa-trilha::before {
-    left: 20px; right: auto; top: 22px; bottom: 26px; width: 3px; height: auto;
+    left: 25px; right: auto; top: 22px; bottom: 26px; width: 3px; height: auto;
     background: repeating-linear-gradient(180deg, rgba(61, 19, 8, .2) 0 9px, transparent 9px 18px);
   }
-  .swa-trilha > * { padding-left: 72px; min-height: 44px; }
+  .swa-trilha > * { padding-left: 72px; min-height: 54px; }
   .swa-trilha > * > .swa-trilha__selo { position: absolute; left: 0; top: 0; }
-  .swa-trilha > * > :nth-child(2) { margin-top: 0; }
+  .swa-trilha > * > :nth-child(2) { margin-top: 4px; }
 }
 
 /* ----------------------------------------------------------------------------
@@ -382,7 +515,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: clamp(14px, 1.8vw, 26px);
-  margin: 0 0 clamp(18px, 2vw, 26px);
+  margin: 0 0 clamp(14px, 1.6vw, 22px);
   padding: 0;
   list-style: none;
 }
@@ -390,7 +523,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font: 800 10.5px/1.2 var(--scw-font);
+  font: 700 11px/1.2 var(--scw-font-ui);
   letter-spacing: .12em;
   text-transform: uppercase;
   color: rgba(254, 240, 221, .86);
@@ -402,13 +535,13 @@
   background: var(--swa-medalha, var(--scw-amarelo));
 }
 
-.swa-hall { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.swa-hall { display: grid; margin: 0; padding: 0; list-style: none; }
 .swa-hall li {
   display: grid;
   grid-template-columns: 32px auto minmax(0, 1fr) auto;
   gap: clamp(12px, 1.6vw, 22px);
   align-items: center;
-  padding: 13px 0;
+  padding: 14px 0;
   border-bottom: 1px solid rgba(254, 240, 221, .14);
 }
 .swa-hall__rank {
@@ -416,6 +549,8 @@
   color: rgba(254, 240, 221, .6);
   font-variant-numeric: tabular-nums;
 }
+/* Logo da marca: o arquivo traz fundo e respiro próprios — preenche o slot
+   (§6.12). Sem logo, iniciais sobre bege. */
 .swa-marca {
   display: grid;
   place-items: center;
@@ -423,9 +558,9 @@
   height: 40px;
   border-radius: 11px;
   overflow: hidden;
-  background: var(--scw-creme);
+  background: var(--scw-bege);
 }
-.swa-marca img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.swa-marca img { width: 100%; height: 100%; object-fit: cover; }
 .swa-marca span {
   font: 900 13px/1 var(--scw-font-black);
   letter-spacing: -.02em;
@@ -445,24 +580,25 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.swa-hall__cont span { font: 800 11.5px/1.2 var(--scw-font); }
+.swa-hall__cont > span { font: 700 12px/1.2 var(--scw-font-ui); }
 .swa-hall__total {
   min-width: 2.4ch;
   text-align: right;
   font: 900 17px/1.1 var(--scw-font-black);
 }
+/* Celular: a contagem desce para baixo do nome, alinhada com ele. */
 @media (max-width: 560px) {
-  .swa-hall li { grid-template-columns: 28px auto minmax(0, 1fr); row-gap: 10px; }
-  .swa-hall__cont { grid-column: 1 / -1; }
+  .swa-hall li { grid-template-columns: 24px auto minmax(0, 1fr); column-gap: 12px; row-gap: 8px; padding: 12px 0; }
+  .swa-hall__cont { grid-column: 3 / -1; }
 }
 
 /* ----------------------------------------------------------------------------
-   05 Histórico 2019–2025 — acordeão por edição
+   05 Histórico — acordeão por edição, fechado com "antes de 2019"
    -------------------------------------------------------------------------- */
 
-.swa-edicoes { display: grid; gap: 12px; }
+.swa-edicoes { display: grid; gap: 10px; }
 .swa-edicao {
-  border-radius: var(--scw-r-secao);
+  border-radius: var(--scw-r-card);
   background: var(--scw-creme);
   border: 1px solid rgba(61, 19, 8, .14);
   overflow: hidden;
@@ -470,21 +606,19 @@
 .swa-edicao__h { margin: 0; font: inherit; }
 .swa-edicao__botao {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: clamp(12px, 1.8vw, 26px);
+  gap: clamp(12px, 1.6vw, 22px);
   width: 100%;
   min-height: 44px;
-  padding: clamp(16px, 1.8vw, 24px);
+  padding: clamp(12px, 1.2vw, 16px) clamp(14px, 1.6vw, 22px);
   border: 0;
   background: none;
   color: inherit;
+  font: inherit;
   text-align: left;
   cursor: pointer;
-  /* transition vem de scw-motion.css (mesmo seletor) — não redeclarar aqui,
-     senão a regra local vence e derruba a transição de color do token. */
+  /* transition vem de scw-motion.css (mesmo seletor) — não redeclarar. */
 }
-
 @media (hover: hover) {
   .swa-edicao__botao:hover { background: rgba(61, 19, 8, .04); }
 }
@@ -492,46 +626,44 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: clamp(56px, 6vw, 84px);
-  height: clamp(56px, 6vw, 84px);
-  border-radius: var(--scw-r-card);
+  width: clamp(48px, 4.4vw, 60px);
+  height: clamp(48px, 4.4vw, 60px);
+  border-radius: 14px;
   background: var(--scw-choco);
   overflow: hidden;
 }
-.swa-edicao__marca img { width: 76%; height: 76%; object-fit: contain; }
+/* Marca da edição: PNG transparente e não quadrado — preenche a caixa sem
+   margem interna; `contain` porque `cover` cortaria a marca. */
+.swa-edicao__marca img { width: 100%; height: 100%; object-fit: contain; }
 .swa-edicao__marca span {
-  padding: 6px;
-  font: 800 9.5px/1.2 var(--scw-font);
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  padding: 4px;
+  font: 700 11px/1.15 var(--scw-font-ui);
   color: var(--scw-creme);
   text-align: center;
 }
-.swa-edicao__id { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1 1 200px; }
-.swa-edicao__titulo {
-  font: 900 clamp(19px, 1.9vw, 27px)/1.05 var(--scw-font-black);
-  letter-spacing: -.035em;
+.swa-edicao__id {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
-.swa-edicao__nota {
-  font: 500 13.5px/1.45 var(--scw-font);
-  color: var(--scw-marrom);
-  text-wrap: pretty;
+.swa-edicao__ano {
+  font: 900 clamp(22px, 2vw, 30px)/1 var(--scw-font-black);
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
 }
+.swa-edicao__titulo { font: 700 clamp(15px, 1.2vw, 18px)/1.2 var(--scw-font-ui); color: var(--scw-marrom); }
 .swa-edicao__cats {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-left: auto;
-  text-align: right;
+  align-items: baseline;
+  gap: 6px;
   white-space: nowrap;
-}
-.swa-edicao__cats b { font: 900 15px/1.1 var(--scw-font-black); }
-.swa-edicao__cats span {
-  font: 800 10.5px/1.1 var(--scw-font);
-  letter-spacing: .12em;
-  text-transform: uppercase;
   color: var(--scw-marrom);
 }
+.swa-edicao__cats b { font: 900 17px/1 var(--scw-font-black); color: var(--scw-choco); }
+.swa-edicao__cats span { font: 700 11px/1 var(--scw-font-ui); letter-spacing: .12em; text-transform: uppercase; }
 .swa-edicao__seta {
   display: grid;
   place-items: center;
@@ -541,42 +673,52 @@
   border-radius: 50%;
   background: rgba(61, 19, 8, .08);
   color: var(--scw-choco);
-  /* transform vem de scw-motion.css (--mo-mola) — não redeclarar aqui. */
-  transition: var(--scw-transicao);
+  /* transform vem de scw-motion.css (--mo-mola). */
 }
-.swa-edicao__botao[aria-expanded="true"] .swa-edicao__seta {
+.swa-edicao__botao[aria-expanded='true'] .swa-edicao__seta {
   background: var(--scw-amarelo);
   transform: rotate(180deg);
 }
+@media (max-width: 560px) {
+  .swa-edicao__cats { flex-direction: column; align-items: flex-end; gap: 4px; }
+}
 
 .swa-edicao__painel {
-  padding: 0 clamp(16px, 1.8vw, 24px) clamp(20px, 2.2vw, 30px);
-  animation: swaAbre var(--mo-estado) var(--scw-ease) both;
+  padding: 4px clamp(14px, 1.6vw, 22px) clamp(18px, 2vw, 26px);
+  animation: swaAbre var(--mo-estado) var(--mo-ease) both;
 }
 .swa-edicao__periodo {
-  margin: 0 0 18px;
-  font: 800 10.5px/1.2 var(--scw-font);
+  margin: 0;
+  font: 700 11px/1.2 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--scw-marrom);
 }
+.swa-edicao__nota {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font: 400 15px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+.swa-grupo { margin-top: 18px; }
 .swa-grupo + .swa-grupo { margin-top: 22px; }
 .swa-grupo__rotulo {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   padding: 7px 13px 5px calc(13px + .14em);
   border-radius: 999px;
   background: var(--swa-grupo, var(--scw-cyan));
   color: var(--swa-grupo-tinta, var(--scw-choco));
-  font: 800 10px/1.2 var(--scw-font);
+  font: 700 11px/1.2 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
 }
 .swa-hist-cats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -585,14 +727,21 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 18px;
-  border-radius: var(--scw-r-card);
-  background: var(--scw-creme);
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--scw-bege);
 }
 .swa-hist-cat > b {
-  font: 800 12px/1.2 var(--scw-font);
-  letter-spacing: .06em;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .1em;
   text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+/* Nome da época (2020.1: Take Away × Delivery viraram a mesma categoria
+   canônica). Leitura, não rótulo: Nexa Text, marrom sobre bege (6,3:1). */
+.swa-hist-cat__epoca {
+  margin-top: -6px;
+  font: 400 13px/1.35 var(--scw-font-texto);
   color: var(--scw-marrom);
 }
 .swa-hist-podio { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
@@ -612,95 +761,76 @@
   color: var(--scw-choco);
   font: 900 11px/1 var(--scw-font-black);
 }
-.swa-hist-nome { font: 700 14.5px/1.25 var(--scw-font); color: var(--scw-marrom); }
+.swa-hist-nome { font: 700 14.5px/1.3 var(--scw-font-ui); color: var(--scw-marrom); }
 .swa-hist-nome--primeiro {
   font: 900 16px/1.25 var(--scw-font-black);
   letter-spacing: -.02em;
   color: var(--scw-choco);
 }
-/* Ausência honesta: pódio incompleto no acervo não vira dado inventado. */
-.swa-hist-vazio { font: 500 13px/1.4 var(--scw-font); color: var(--scw-marrom); }
+/* Ausência honesta: colocação que o acervo não registra, dita como tal. */
+.swa-hist-nome--vazio { font: italic 400 14px/1.3 var(--scw-font-texto); }
+.swa-hist-vazio { font: 400 14px/1.4 var(--scw-font-texto); color: var(--scw-marrom); }
 
-/* ----------------------------------------------------------------------------
-   06 Antes de 2019
-   -------------------------------------------------------------------------- */
-
-/* À esquerda, como as outras cabeças (ver .pa-form__intro). */
-.swa-antes { max-width: 900px; }
-.swa-antes .scw-h2 {
-  max-width: none;
-  margin-top: 14px;
-  font-size: clamp(26px, 2.8vw, 40px);
-  line-height: 1;
-  letter-spacing: -.035em;
+/* Menção Honrosa — só a 2021.1 tem. Não é pódio: sem medalha, sem numeral,
+   fora do Hall. Roxo no rótulo (texto grande o bastante: 6,7:1 sobre creme). */
+.swa-mencao {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(61, 19, 8, .14);
 }
-.swa-antes .scw-corpo {
-  max-width: 60ch;
-  /* ⚠️ `auto` centrava este parágrafo dentro do bloco de 900px enquanto o
-     rótulo e o H2 ficavam à esquerda — 101px fora de esquadro. */
-  margin: 16px 0 0;
-  font-size: clamp(15px, 1.2vw, 18px);
-  line-height: 1.6;
+.swa-mencao__rotulo {
+  display: inline-block;
+  font: 700 12px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-roxo);
+}
+.swa-mencao__nomes {
+  margin: 10px 0 0;
+  font: 700 clamp(15px, 1.3vw, 18px)/1.4 var(--scw-font-ui);
+  color: var(--scw-choco);
+  text-wrap: pretty;
+}
+.swa-mencao__nota { margin: 6px 0 0; font: 400 14px/1.45 var(--scw-font-texto); color: var(--scw-marrom); }
+
+/* Fecho do histórico: as cinco primeiras edições não tiveram premiação. Sem
+   botão — não há o que abrir —, numa chapa bege em vez do cartão das edições. */
+.swa-antes {
+  margin-top: 6px;
+  padding: clamp(18px, 2vw, 28px) clamp(16px, 1.8vw, 26px);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-bege);
+}
+.swa-antes__periodo {
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
   color: var(--scw-marrom);
+}
+.swa-antes__titulo {
+  margin: 8px 0 0;
+  max-width: 30ch;
+  font: 900 clamp(20px, 2vw, 28px)/1.05 var(--scw-font-black);
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.swa-antes__texto {
+  margin: 10px 0 0;
+  max-width: 62ch;
+  font: 400 clamp(15px, 1.15vw, 17px)/1.6 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
 }
 
 /* ----------------------------------------------------------------------------
    Movimento (desligado por prefers-reduced-motion no bloco global do scw-2026)
    -------------------------------------------------------------------------- */
 
-@keyframes swaSobe { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes swaAbre { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
-.swa-sr {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ---------------------------------------------------------------------------
-   MENÇÃO HONROSA — só a 2021.1 tem. Não é pódio: sem medalha, sem numeral e
-   sem entrar no Hall. O bloco fecha o painel do acordeão daquela edição, com
-   filete superior separando-o das categorias com colocação.
-   Cor: roxo da página, no filete e no rótulo — a mesma lógica do §6.3 (quando
-   o fundo não sustenta a tinta, a cor vai para o grafismo).
-   ------------------------------------------------------------------------ */
-.swa-mencao {
-  margin-top: var(--scw-gap-bloco, 24px);
-  padding-top: var(--scw-gap-bloco, 24px);
-  border-top: 1px solid rgba(61, 19, 8, .14);
-}
-.swa-mencao__rotulo {
-  display: inline-block;
-  font: 800 12px/1 var(--scw-font);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--scw-roxo);
-}
-.swa-mencao__nomes {
-  margin: 10px 0 0;
-  font: 700 clamp(15px, 1.3vw, 18px)/1.4 var(--scw-font);
-  color: var(--scw-choco);
-  text-wrap: pretty;
-}
-.swa-mencao__nota {
-  margin: 6px 0 0;
-  font: 500 13px/1.45 var(--scw-font);
-  color: var(--scw-marrom);
-}
-
-/* ============================================================================
-   Pisos de leitura no celular (ago/2026) — ver --scw-piso-* em scw-2026.css.
-   Medido a 390px: a descrição da categoria vinha a 13,5px com 46 caracteres por
-   linha, e três rótulos ficavam em 9,5px. Nada disso muda no desktop.
-   ========================================================================= */
+/* Pisos de leitura no celular (§6.5). */
 @media (max-width: 900px) {
-  .swa-cat__desc        { font-size: var(--scw-piso-corpo-mob); }
-  .swa-numeros dt       { font-size: var(--scw-piso-rotulo-mob); }
-  .swa-trilha__hoje     { font-size: var(--scw-piso-rotulo-mob); }
-  .swa-edicao__marca span { font-size: var(--scw-piso-rotulo-mob); }
-  .swa-edicao__periodo  { font-size: var(--scw-piso-rotulo-mob); }
+  .swa-cat__desc { font-size: var(--scw-piso-corpo-mob); }
+  .swa-trilha__hoje,
+  .swa-edicao__periodo { font-size: var(--scw-piso-rotulo-mob); }
 }
