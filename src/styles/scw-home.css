@@ -336,7 +336,7 @@
   display: block;
   width: min(100%, 680px, calc(30svh * 1.95));
   height: auto;
-  aspect-ratio: 1400 / 718;
+  aspect-ratio: 1400 / 717;
 }
 /* Sem o arquivo da marca, o tema sai em tipografia real — nunca simulado. */
 .hm-ed__tema--texto {

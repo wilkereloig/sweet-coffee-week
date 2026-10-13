@@ -40,7 +40,7 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
     Wilker para tema Cartoon e datas 5 a 15 de novembro):** `.hm-abre--edicao`, composição
     própria de anúncio. Rótulo "Próxima edição · 2026" → H1 com "Sweet & Coffee Week" e o
     **lettering oficial CARTOON** (`marcas-edicoes/2026.2/tema.webp`, do PNG da marca
-    aprovada no Dropbox F2; `alt="Cartoon"`, então o nome acessível do H1 é "Sweet & Coffee
+    aprovada no Dropbox F2 — refeito do arquivo "(2)" novo em 13/10/2026; `alt="Cartoon"`, então o nome acessível do H1 é "Sweet & Coffee
     Week Cartoon") → **período em amarelo** → uma frase → ações (**"Quero participar"** →
     `/quero-participar/` só enquanto o pré-cadastro estiver aberto; **"Conhecer o
     festival"** rola até `#festival`). Sem ficha de números nem selo. Tema, período e ano
@@ -56,6 +56,10 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
       nativos — só baixa quando a pessoa dá o play;
     - botão **"Ver no Instagram"** (ícone `redes/instagram`, 24px) para o reel oficial,
       em nova aba, link sem parâmetro de rastreio (`REEL_LANCAMENTO` em `destaqueEdicao.js`).
+    O lettering tem um **laço "boing"** (`moBoing` em `scw-motion.css`, 3,6s, começa
+    depois da entrada do título): achata, estica e pousa, parado ~60% do ciclo. Único
+    laço da abertura; some com `prefers-reduced-motion`. ⚠️ Sem botão de pausa, como a
+    faixa do Awards (§6.15) — decisão do Wilker.
     Desktop: coluna do vídeo presa ao topo do texto e tela com teto `48svh`, para o botão
     do Instagram ficar acima do aviso de cookies (que mora no canto inferior direito).
     Celular: texto primeiro sobre a área calma do fundo; o vídeo vem depois das ações num

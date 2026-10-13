@@ -147,6 +147,24 @@
 .hm-abre .hm-abre__ficha,
 .hm-abre .hm-abre__legenda { animation: moSurge var(--mo-entra) var(--mo-ease) 760ms both; }
 
+/* Lettering da edição (CARTOON): um "boing" de desenho animado a cada 3,6s,
+   depois da entrada do título — achata, estica, pousa e fica parado o resto
+   do ciclo. Pedido do Wilker (13/10/2026). É o único laço da abertura (o vídeo
+   só toca por escolha), e usa as propriedades `scale`/`rotate`/`translate`,
+   não `transform`, para não brigar com a entrada do título (§10.3). Com
+   movimento reduzido, `.hm-abre *` já zera a animação (bloco no fim). */
+.hm-abre .hm-ed__tema:not(.hm-ed__tema--texto) {
+  transform-origin: 50% 85%;
+  animation: moBoing 3600ms var(--mo-suave) 1400ms infinite both;
+}
+@keyframes moBoing {
+  0%, 62%, 100% { scale: 1; rotate: 0deg; translate: 0 0; }
+  68% { scale: 1.06 .92; rotate: 0deg;    translate: 0 2%; }
+  76% { scale: .97 1.05; rotate: -1.6deg; translate: 0 -4%; }
+  84% { scale: 1.02 .98; rotate: 1deg;    translate: 0 0; }
+  91% { scale: .995 1.005; rotate: -.3deg; translate: 0 -.6%; }
+}
+
 /* --- Participar e Apoiar ------------------------------------------------- */
 .pa-hero .scw-hero-banda    { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
 .pa-hero .pa-hero__titulo   { animation: moSobe var(--mo-longo) var(--mo-mola) 240ms both; }
