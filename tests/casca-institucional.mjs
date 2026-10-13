@@ -136,21 +136,7 @@ async function cookies(navegador) {
         const acao = await retanguloAcao(page)
         if (!acao) falha(`${rot}: ação principal do herói não encontrada`)
         else if (acao.bottom > h) falha(`${rot}: ação principal "${acao.texto}" abaixo da dobra (y=${Math.round(acao.bottom)})`)
-        else if (cruza(aviso, acao) && w > 900) falha(`${rot}: o aviso cobre a ação principal "${acao.texto}"`)
-        else if (cruza(aviso, acao)) {
-          // Celular (13/10/2026): o aviso com título, texto no piso de 15px e
-          // três ações em linhas tem ~240px e cobre a ação do herói na primeira
-          // visita — decisão registrada em src/CLAUDE.md §6.10. O que não pode é
-          // BLOQUEAR: rolar a página o tanto da sobreposição revela a ação
-          // inteira acima do aviso.
-          const sobra = Math.ceil(acao.bottom - aviso.top) + 16
-          await page.evaluate((y) => window.scrollBy(0, y), sobra)
-          await page.waitForTimeout(250)
-          const depois = await retanguloAcao(page)
-          const avisoDepois = await retanguloDe(page, '.cookie-consent')
-          if (!depois || depois.top < 0 || cruza(avisoDepois, depois)) falha(`${rot}: a ação "${acao.texto}" não fica alcançável acima do aviso rolando a página`)
-          await page.evaluate(() => window.scrollTo(0, 0))
-        }
+        else if (cruza(aviso, acao)) falha(`${rot}: o aviso cobre a ação principal "${acao.texto}"`)
       }
       if (w <= 900) {
         const abas = await retanguloDe(page, '.scw-abas')
@@ -164,7 +150,7 @@ async function cookies(navegador) {
       await ctx.close()
     }
   }
-  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação (desktop), régua nem abas; no celular a ação fica alcançável; recusar limpa a reserva')
+  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação, régua nem abas; recusar limpa a reserva')
 }
 
 async function rotasDiferidas(navegador) {

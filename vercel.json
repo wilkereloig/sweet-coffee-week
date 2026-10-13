@@ -124,6 +124,10 @@
       "destination": "/"
     },
     {
+      "source": "/uso-de-imagem",
+      "destination": "/"
+    },
+    {
       "source": "/edicoes/:path*",
       "destination": "/"
     },

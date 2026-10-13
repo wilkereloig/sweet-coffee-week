@@ -18,13 +18,14 @@
  * lista de pendências em src/pages/CLAUDE.md §7.9. Não completar com
  * suposição.
  */
-import { RESPONSAVEL, CONTATO_EMAIL, PRIVACIDADE_MAILTO } from '../../config/channels'
+import { RESPONSAVEL, CONTATO_EMAIL, PRIVACIDADE_MAILTO, IMAGEM_MAILTO } from '../../config/channels'
 import { VALIDADE_DIAS } from '../../lib/consentimento'
 import { GA_ID } from '../../lib/analytics'
 
 export const ATUALIZADO_EM = '13 de outubro de 2026'
 
 const CANAL = `[${CONTATO_EMAIL}](${PRIVACIDADE_MAILTO})`
+const CANAL_IMAGEM = `[${CONTATO_EMAIL}](${IMAGEM_MAILTO})`
 const RESP = `${RESPONSAVEL.razaoSocial} (${RESPONSAVEL.nome}), CNPJ ${RESPONSAVEL.cnpj}`
 
 /* Cookies do Google Analytics: validade CONFIGURADA em src/lib/analytics.js
@@ -37,7 +38,7 @@ export const DOCUMENTOS = {
     titulo: 'Política de Privacidade',
     resumo: [
       `Quem cuida dos dados é a ${RESP}, que realiza o Sweet & Coffee Week.`,
-      'Para visitar o site você não precisa se cadastrar. Tratamos os dados que você envia nos formulários e, só se você permitir, dados de navegação para medir o acesso.',
+      'Para visitar o site você não precisa se cadastrar. Tratamos os dados que você envia nos formulários e dados de navegação para medir o acesso — dá para recusar a medição com um clique.',
       `Para pedir acesso, correção, exclusão ou tirar dúvidas sobre seus dados, escreva para ${CANAL}.`,
     ],
     secoes: [
@@ -65,7 +66,7 @@ export const DOCUMENTOS = {
           '**Formulário de Contato.** Nome, e-mail, assunto e mensagem, usados para responder o que você escreveu.',
           '**Formulário de Apoio.** Nome, empresa ou marca, e-mail e/ou WhatsApp, segmento, tipo de apoio e mensagem, usados para analisar a proposta e falar com você sobre ela.',
           '**Pré-cadastro (/quero-participar).** Nome, WhatsApp, e-mail, nome do estabelecimento, tipo de negócio, Instagram e cidade, usados para analisar o interesse em participar e falar com você sobre as próximas edições. O pré-cadastro não garante vaga.',
-          '**Análise de acesso — só com a sua permissão.** Se você aceitar, o Google Analytics registra as páginas visitadas, o título da página e dados técnicos do navegador e do dispositivo, com um identificador guardado em cookie. Mandamos o endereço reduzido à página (sem parâmetros que possam conter dados digitados) e nenhum conteúdo de formulário. Os recursos de anúncios e de personalização ficam desligados. Sem permissão, a ferramenta não é carregada.',
+          '**Análise de acesso.** Para saber quantas pessoas visitam o site e quais páginas funcionam melhor, usamos o Google Analytics, com base no legítimo interesse do festival em medir a própria audiência. Ele registra as páginas visitadas, o título da página e dados técnicos do navegador e do dispositivo, com um identificador guardado em cookie. Mandamos o endereço reduzido à página (sem parâmetros que possam conter dados digitados) e nenhum conteúdo de formulário. Os recursos de anúncios e de personalização ficam desligados. Você pode recusar no aviso ou em “Preferências de cookies”, no rodapé; navegadores com o sinal Global Privacy Control ligado já chegam com a medição recusada.',
           '**Proteção contra abuso.** Os formulários passam por verificações automáticas antes de gravar: um campo escondido que só robôs preenchem e um tempo mínimo de preenchimento. No pré-cadastro, a página também carrega a verificação Turnstile, da Cloudflare. Tentativas bloqueadas podem gerar um registro técnico com o endereço IP no serviço que recebe os envios.',
         ],
       },
@@ -86,10 +87,17 @@ export const DOCUMENTOS = {
               '**Vercel** — hospedagem do site.',
               '**Supabase** — banco de dados, recebimento dos formulários e login do painel.',
               '**Adobe Fonts** e **Google Fonts** — fontes de texto, carregadas em todas as páginas. Esses serviços recebem os dados técnicos da requisição.',
-              '**Google Analytics** — análise de acesso, só depois do seu aceite.',
+              '**Google Analytics** — análise de acesso, enquanto você não recusar.',
               '**Cloudflare Turnstile** — verificação contra envio automatizado no pré-cadastro.',
             ],
           },
+        ],
+      },
+      {
+        id: 'imagens',
+        titulo: 'Fotos de pessoas',
+        blocos: [
+          'O site mostra fotos das edições do festival, e algumas mostram pessoas. Se você aparece em uma e não quer que ela fique no site, peça a retirada — como fazer está em [Uso de imagem](#/uso-de-imagem).',
         ],
       },
       {
@@ -154,8 +162,8 @@ export const DOCUMENTOS = {
   cookies: {
     titulo: 'Política de Cookies',
     resumo: [
-      'O site guarda poucas coisas no seu navegador: a sua escolha sobre cookies, o login do Painel SCW (só para quem entra nele) e, se você permitir, os cookies do Google Analytics.',
-      'A análise de acesso começa desligada. Você pode aceitar, recusar e mudar de ideia quando quiser.',
+      'O site guarda poucas coisas no seu navegador: a sua escolha sobre cookies, o login do Painel SCW (só para quem entra nele) e os cookies do Google Analytics, que medem as visitas.',
+      'A medição vem ligada e não é usada para anúncios. Você pode recusar com um clique e mudar de ideia quando quiser.',
     ],
     secoes: [
       {
@@ -170,7 +178,7 @@ export const DOCUMENTOS = {
         titulo: 'As duas categorias',
         blocos: [
           '**Funcionamento e segurança — sempre ativo.** Guarda a sua escolha sobre cookies e, se você entrar no Painel SCW, mantém o login enquanto a aba estiver aberta. No pré-cadastro, a verificação da Cloudflare protege o formulário contra envio automatizado. Nada disso mede audiência.',
-          '**Análise de acesso — opcional, começa desligada.** O Google Analytics conta visitas e mostra quais páginas são mais acessadas. O script só é carregado depois do seu aceite; antes disso, ou depois de recusar, o site não envia nada ao Google Analytics.',
+          '**Análise de acesso — ligada, com recusa a um clique.** O Google Analytics conta visitas e mostra quais páginas são mais acessadas. Depois de recusar, o site não carrega a ferramenta nem envia nada ao Google Analytics. Navegadores com o sinal Global Privacy Control ligado já chegam com a medição recusada.',
           'Não há cookies de publicidade, de personalização ou de marketing no site.',
         ],
       },
@@ -182,11 +190,11 @@ export const DOCUMENTOS = {
             tabela: {
               colunas: ['Nome', 'Tecnologia', 'Fornecedor', 'Para que serve', 'Categoria', 'Quando é criado', 'Duração'],
               linhas: [
-                ['scw_privacidade', 'localStorage', 'Sweet & Coffee Week', 'Lembrar a sua escolha sobre cookies', 'Funcionamento', 'Quando você escolhe no aviso ou nas preferências', `${VALIDADE_DIAS} dias`],
+                ['scw_privacidade', 'localStorage', 'Sweet & Coffee Week', 'Lembrar a sua escolha sobre cookies', 'Funcionamento', 'Quando você responde ao aviso ou salva as preferências', `${VALIDADE_DIAS} dias`],
                 ['scw_org, scw_org_conta', 'sessionStorage', 'Sweet & Coffee Week', 'Manter o login da organização no Painel SCW', 'Funcionamento', 'Só ao entrar no painel', 'Até fechar a aba'],
                 ['scw_marca', 'sessionStorage', 'Sweet & Coffee Week', 'Manter o login da marca participante no Painel SCW', 'Funcionamento', 'Só ao entrar no painel', 'Até fechar a aba'],
-                ['_ga', 'Cookie', 'Google (Google Analytics)', 'Distinguir visitantes para contar visitas', 'Análise', 'Só depois de aceitar a análise', DURACAO_GA],
-                [`_ga_${GA_ID.replace(/^G-/, '')}`, 'Cookie', 'Google (Google Analytics)', 'Manter a sessão de medição', 'Análise', 'Só depois de aceitar a análise', DURACAO_GA],
+                ['_ga', 'Cookie', 'Google (Google Analytics)', 'Distinguir visitantes para contar visitas', 'Análise', 'Na visita, se a análise não foi recusada', DURACAO_GA],
+                [`_ga_${GA_ID.replace(/^G-/, '')}`, 'Cookie', 'Google (Google Analytics)', 'Manter a sessão de medição', 'Análise', 'Na visita, se a análise não foi recusada', DURACAO_GA],
               ],
             },
           },
@@ -195,9 +203,9 @@ export const DOCUMENTOS = {
       },
       {
         id: 'escolha',
-        titulo: 'Como aceitar, recusar ou mudar',
+        titulo: 'Como recusar ou mudar',
         blocos: [
-          'Na primeira visita, o aviso “Sua privacidade importa” oferece **Recusar opcionais**, **Aceitar análise** e **Configurar**. Fechar a página ou continuar navegando não conta como aceite.',
+          'Na primeira visita, um aviso curto explica que o site mede as visitas e oferece **Ok, entendi** e **Recusar**.',
           'Para mudar depois, use **Preferências de cookies** no rodapé de qualquer página, no menu “mais” do celular ou o botão abaixo.',
           { acao: 'preferencias' },
         ],
@@ -215,7 +223,7 @@ export const DOCUMENTOS = {
         id: 'validade',
         titulo: 'Validade da escolha',
         blocos: [
-          `A escolha vale por ${VALIDADE_DIAS} dias. Depois disso, ou se o aviso mudar de versão por causa de uma finalidade nova, o site pergunta outra vez. Se o navegador não permitir guardar a escolha, ela vale só até a aba fechar, e a análise fica desligada.`,
+          `A escolha vale por ${VALIDADE_DIAS} dias. Depois disso, ou se o aviso mudar por causa de uma finalidade nova, o aviso aparece outra vez. Se o navegador não permitir guardar a escolha, ela vale só até a aba fechar.`,
         ],
       },
     ],
@@ -255,6 +263,7 @@ export const DOCUMENTOS = {
         blocos: [
           'Os textos, as fotos e a identidade visual do festival podem ser vistos e compartilhados por link para uso pessoal. Outros usos, em especial comerciais ou que sugiram parceria com o festival, precisam de autorização da organização.',
           'Marcas, logos, fotos e produtos de participantes, parceiros e veículos de imprensa pertencem aos seus titulares e aparecem aqui para registrar a participação de cada um.',
+          'Fotos de pessoas e o pedido de retirada da sua imagem: ver [Uso de imagem](#/uso-de-imagem).',
         ],
       },
       {
@@ -321,6 +330,52 @@ export const DOCUMENTOS = {
         titulo: 'Mudanças nestes termos',
         blocos: [
           'Quando estes termos mudarem, a data no topo muda junto.',
+        ],
+      },
+    ],
+  },
+
+  'uso-de-imagem': {
+    titulo: 'Uso de imagem',
+    resumo: [
+      'O site mostra fotos das edições do Sweet & Coffee Week, e algumas mostram pessoas: público, equipes das casas participantes, premiados.',
+      `Se você aparece em uma foto e não quer que ela fique no site, escreva para ${CANAL_IMAGEM} e a foto sai.`,
+    ],
+    secoes: [
+      {
+        id: 'fotos',
+        titulo: 'De onde vêm as fotos',
+        blocos: [
+          'São registros das edições do festival: o público nas casas participantes, as equipes, os combos e as entregas do Sweet Awards. Elas aparecem para contar a história do festival, não para identificar quem está nelas.',
+        ],
+      },
+      {
+        id: 'retirada',
+        titulo: 'Como pedir a retirada',
+        blocos: [
+          `Escreva para ${CANAL_IMAGEM}, com o assunto “Retirada de imagem — Sweet & Coffee Week”. Para a equipe achar a foto, mande:`,
+          {
+            lista: [
+              'o endereço da página onde a foto aparece;',
+              'uma descrição curta da foto ou uma captura de tela;',
+              'como você aparece nela (por exemplo, “de camisa azul, à esquerda”).',
+            ],
+          },
+          'Não precisa explicar o motivo. A equipe confirma pelo mesmo e-mail quando a foto sair do site.',
+        ],
+      },
+      {
+        id: 'outros',
+        titulo: 'Fotos em outros lugares',
+        blocos: [
+          'Este pedido vale para o site. Fotos publicadas no Instagram do festival ou por veículos de imprensa seguem as regras de cada lugar; para o Instagram do festival, use o mesmo e-mail.',
+        ],
+      },
+      {
+        id: 'dados',
+        titulo: 'Seus dados',
+        blocos: [
+          'A sua imagem é um dado pessoal. Os outros direitos que você tem estão na [Política de Privacidade](#/privacidade).',
         ],
       },
     ],

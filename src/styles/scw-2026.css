@@ -980,19 +980,19 @@ body { margin: 0; }
      exatamente ali que o cartão antigo pousava. */
   right: clamp(12px, 2vw, 24px);
   /* `--scw-base-ocupada`: altura de um controle da página preso à base (a
-     régua de Edições), declarada por useReservaDaBase — o aviso sobe acima. */
+     régua de Edições, a barra de Participar/Apoiar) — o aviso sobe acima. */
   bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
   z-index: 1000;
-  display: grid;
-  gap: 10px;
-  /* 13/10/2026: título, texto, duas ações iguais e "Configurar" + política.
-     Continua estreito e à direita para não alcançar os botões dos heróis. */
-  width: min(420px, calc(100vw - 24px));
-  /* Tela baixa ou zoom alto: o cartão rola por dentro, nunca sai da tela. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  /* Uma frase e dois botões (13/10/2026, versão simples): 400px bastam e não
+     alcançam as ações dos heróis em 1024px. */
+  width: min(400px, calc(100vw - 24px));
   max-height: calc(100svh - 24px - var(--scw-safe-b) - var(--scw-base-ocupada, 0px));
   overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 16px 16px 12px 18px;
+  padding: 12px 12px 12px 18px;
   border: 1px solid rgba(254, 240, 221, .28);
   border-radius: var(--scw-r-card);
   background: var(--scw-choco);
@@ -1004,91 +1004,44 @@ body { margin: 0; }
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
-.cookie-consent__titulo {
-  margin: 0;
-  font: 900 18px/1.1 var(--scw-font-black);
-  letter-spacing: -.01em;
-  color: var(--scw-creme);
-}
 .cookie-consent__text {
+  flex: 1 1 150px;
+  min-width: 0;
   margin: 0;
   font: 400 14.5px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .9);   /* .9 sobre chocolate ≈ 10:1 */
   text-wrap: pretty;
 }
-/* Recusar e aceitar: mesma largura, mesma altura, mesmo peso. Em cartão
-   estreito (360px com zoom) cada um ganha a linha inteira. */
-.cookie-consent__actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
-  gap: 8px;
-  margin-top: 2px;
+.scw-raiz .cookie-consent__link {
+  font-weight: 700;
+  color: var(--scw-creme);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
 }
-.cookie-consent__mais {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 12px;
-}
-/* 46px é o piso do §6.10 para pílula de ação dentro de card. */
+.cookie-consent__actions { display: flex; flex: 0 0 auto; gap: 8px; margin-left: auto; }
+/* 46px é o piso do §6.10 para pílula de ação dentro de card. "Ok, entendi" é a
+   ação principal (amarelo); "Recusar" fica visível, em contorno. */
 .cookie-consent__btn {
   appearance: none;
   min-height: 46px;
-  padding: 0 16px;
+  padding: 0 18px;
   border: 0;
   border-radius: 999px;
-  font: 700 14px/1.15 var(--scw-font-ui);
+  font: 700 14px/1 var(--scw-font-ui);
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.scw-raiz .cookie-consent__btn--recusar { background: var(--scw-creme); color: var(--scw-choco); }
 .scw-raiz .cookie-consent__btn--aceitar { background: var(--scw-amarelo); color: var(--scw-choco); }
-.scw-raiz .cookie-consent__btn--configurar {
-  min-height: 44px;
+.scw-raiz .cookie-consent__btn--recusar {
   border: 1px solid rgba(254, 240, 221, .5);
   background: transparent;
   color: var(--scw-creme);
 }
-.scw-raiz .cookie-consent__link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font: 700 14px/1 var(--scw-font-ui);
-  color: var(--scw-creme);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-/* Desktop largo: as três ações numa linha só e a política ao lado do
-   título — o cartão fica com ~160px em vez de ~250px e não alcança o botão do
-   Instagram na abertura da Home. Abaixo de 1200px o cartão continua estreito
-   (420px), para não chegar às ações dos heróis em 1024px. */
-@media (min-width: 1200px) {
-  .cookie-consent {
-    width: min(580px, calc(100vw - 24px));
-    grid-template-columns: 1fr 1fr auto;
-    grid-template-areas:
-      "titulo titulo link"
-      "texto texto texto"
-      "recusar aceitar configurar";
-    column-gap: 8px;
-    row-gap: 8px;
-    padding-bottom: 16px;
-  }
-  .cookie-consent__actions,
-  .cookie-consent__mais { display: contents; }
-  .cookie-consent__titulo { grid-area: titulo; align-self: center; }
-  .cookie-consent__text { grid-area: texto; }
-  .cookie-consent__btn--recusar { grid-area: recusar; }
-  .cookie-consent__btn--aceitar { grid-area: aceitar; }
-  .scw-raiz .cookie-consent__btn--configurar { grid-area: configurar; min-height: 46px; }
-  .scw-raiz .cookie-consent__link { grid-area: link; justify-self: end; margin-block: -8px; }
-}
 @media (hover: hover) {
   .cookie-consent__btn:hover { transform: translateY(-1px); }
-  .scw-raiz .cookie-consent__btn--recusar:hover,
   .scw-raiz .cookie-consent__btn--aceitar:hover { background: var(--scw-bege); }
-  .scw-raiz .cookie-consent__btn--configurar:hover { border-color: var(--scw-creme); background: rgba(254, 240, 221, .08); }
+  .scw-raiz .cookie-consent__btn--recusar:hover { border-color: var(--scw-creme); background: rgba(254, 240, 221, .08); }
 }
 .cookie-consent__btn:active { transform: translateY(0) scale(.985); }
 
@@ -1232,19 +1185,18 @@ body { margin: 0; }
   /* Faixa de largura cheia: texto à esquerda, as duas ações à direita, numa
      linha só sempre que couber. Fica colada acima da barra de abas e nunca
      sobre ela — as abas continuam tocáveis com o aviso aberto. */
-  /* Faixa de largura cheia, ações em linhas: título, texto, recusar | aceitar,
-     configurar | política. Fonte no piso do corpo (§6.5), nunca menor. */
+  /* Faixa de largura cheia: a frase e os dois botões, numa linha sempre que
+     couber. Fonte no piso do corpo (§6.5), nunca menor. */
   .cookie-consent {
     left: 8px;
     right: 8px;
     bottom: calc(8px + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
     width: auto;
-    gap: 8px;
-    padding: 14px 12px 8px 14px;
+    padding: 10px 10px 10px 14px;
     border-radius: 16px;
   }
-  .cookie-consent__titulo { font-size: 16px; }
-  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); line-height: 1.4; }
+  .cookie-consent__text { flex-basis: 140px; font-size: var(--scw-piso-corpo-mob); line-height: 1.35; }
+  .cookie-consent__btn { padding: 0 14px; }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }

@@ -9,6 +9,7 @@ export const LINKS_LEGAIS = [
   ['/privacidade', 'Política de Privacidade'],
   ['/cookies', 'Política de Cookies'],
   ['/termos', 'Termos de Uso'],
+  ['/uso-de-imagem', 'Uso de imagem'],
 ]
 
 /**

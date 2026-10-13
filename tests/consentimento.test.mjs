@@ -18,6 +18,9 @@ class Armazem {
 }
 globalThis.window = new EventTarget()
 window.localStorage = new Armazem()
+// Global Privacy Control trocável por teste.
+let gpc = false
+Object.defineProperty(globalThis, 'navigator', { value: { get globalPrivacyControl () { return gpc } }, configurable: true })
 
 const C = await import('../src/lib/consentimento.js')
 const A = await import('../src/lib/analytics.js')
@@ -26,12 +29,21 @@ const R = await import('../src/lib/rotas.js')
 const DIA = 864e5
 beforeEach(() => {
   window.localStorage = new Armazem()
+  gpc = false
   C._zerarMemoria()
 })
 
-test('1 · primeira visita: sem escolha, análise bloqueada', () => {
+test('1 · primeira visita: sem escolha, análise ligada e aviso visível', () => {
   assert.equal(C.lerPreferencia(), null)
+  assert.equal(C.precisaAviso(), true)
+  assert.equal(C.analisePermitida(), true, 'legítimo interesse: mede por padrão')
+})
+
+test('1b · Global Privacy Control conta como recusa até a pessoa escolher', () => {
+  gpc = true
   assert.equal(C.analisePermitida(), false)
+  C.salvarPreferencia(true)
+  assert.equal(C.analisePermitida(), true, 'escolha explícita vale mais que o sinal')
 })
 
 test('2 · recusa grava versão, escolha, momento e validade', () => {
@@ -40,12 +52,13 @@ test('2 · recusa grava versão, escolha, momento e validade', () => {
   const r = JSON.parse(window.localStorage.getItem(C.CHAVE))
   assert.deepEqual(r, { v: C.VERSAO_AVISO, analise: false, em: agora, ate: agora + C.VALIDADE_DIAS * DIA })
   assert.equal(C.analisePermitida(agora + 1), false)
-  assert.notEqual(C.lerPreferencia(agora + 1), null, 'recusa é escolha válida: o aviso não volta')
+  assert.equal(C.precisaAviso(agora + 1), false, 'recusa é escolha válida: o aviso não volta')
 })
 
-test('3 · aceite libera a análise', () => {
+test('3 · "Ok, entendi" mantém a análise e some com o aviso', () => {
   C.salvarPreferencia(true)
   assert.equal(C.analisePermitida(), true)
+  assert.equal(C.precisaAviso(), false)
 })
 
 test('4 · alteração posterior vale na hora', () => {
@@ -63,13 +76,14 @@ test('5 · revogação avisa quem escuta (o Analytics desliga sem recarregar)', 
   assert.deepEqual(vistos, [true, false])
 })
 
-test('6 · retorno com preferência salva (memória zerada = nova visita)', () => {
-  C.salvarPreferencia(true)
+test('6 · retorno com recusa salva (memória zerada = nova visita)', () => {
+  C.salvarPreferencia(false)
   C._zerarMemoria()
-  assert.equal(C.analisePermitida(), true)
+  assert.equal(C.analisePermitida(), false)
+  assert.equal(C.precisaAviso(), false)
 })
 
-test('7 · registro inválido, versão antiga, vencido ou chave antiga não autorizam', () => {
+test('7 · registro inválido, versão antiga ou vencido = sem escolha (aviso volta)', () => {
   const agora = Date.now()
   for (const bruto of [
     'lixo', '{}', 'null', '"granted"',
@@ -80,21 +94,21 @@ test('7 · registro inválido, versão antiga, vencido ou chave antiga não auto
   ]) {
     window.localStorage.setItem(C.CHAVE, bruto)
     assert.equal(C.lerPreferencia(agora), null, bruto)
-    assert.equal(C.analisePermitida(agora), false, bruto)
+    assert.equal(C.precisaAviso(agora), true, bruto)
   }
   window.localStorage = new Armazem()
-  window.localStorage.setItem(C.CHAVE_ANTIGA, 'granted')
-  assert.equal(C.analisePermitida(), false, '"granted" sem versão não autoriza nada')
+  window.localStorage.setItem(C.CHAVE_ANTIGA, 'denied')
+  assert.equal(C.precisaAviso(), true, 'chave antiga não vale como escolha')
   assert.equal(window.localStorage.getItem(C.CHAVE_ANTIGA), null, 'a chave antiga é apagada')
 })
 
-test('8 · armazenamento indisponível: vale só nesta sessão, depois volta bloqueado', () => {
+test('8 · armazenamento indisponível: a recusa vale só nesta sessão', () => {
   window.localStorage.quebrado = true
   assert.equal(C.lerPreferencia(), null)
-  C.salvarPreferencia(true)
-  assert.equal(C.analisePermitida(), true, 'a escolha vale enquanto a aba estiver aberta')
+  C.salvarPreferencia(false)
+  assert.equal(C.analisePermitida(), false, 'a recusa vale enquanto a aba estiver aberta')
   C._zerarMemoria()
-  assert.equal(C.analisePermitida(), false, 'nova visita sem storage: bloqueado')
+  assert.equal(C.precisaAviso(), true, 'nova visita sem storage: o aviso volta')
 })
 
 test('9 · outra aba mudou a escolha: o evento storage chega aos ouvintes', () => {
@@ -131,7 +145,7 @@ test('12 · documentos legais abrem sob qualquer gate; o resto continua protegid
     {},
   ]
   for (const f of gates) {
-    for (const doc of ['privacidade', 'cookies', 'termos']) {
+    for (const doc of ['privacidade', 'cookies', 'termos', 'uso-de-imagem']) {
       assert.equal(R.resolverRota(`/${doc}`, f), 'legal', `${doc} com ${JSON.stringify(f)}`)
       assert.equal(R.documentoLegal(`/${doc}`), doc)
     }

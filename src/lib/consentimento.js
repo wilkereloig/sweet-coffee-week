@@ -1,23 +1,23 @@
 /*
- * Preferência de cookies — FONTE ÚNICA (13/10/2026).
+ * Preferência de cookies — FONTE ÚNICA (13/10/2026, revisto no mesmo dia).
  *
- * Guarda só o necessário para lembrar a escolha, numa chave de localStorage:
+ * MODELO: análise LIGADA POR PADRÃO, com recusa a um clique (pedido do Wilker:
+ * "coletar todos os dados possíveis", aviso simples). A base declarada para o
+ * Google Analytics é o legítimo interesse de medir a audiência do site — não o
+ * consentimento. Por isso:
+ *   - sem escolha salva, a análise roda e o aviso aparece UMA vez, só para
+ *     informar ("Ok, entendi") e oferecer "Recusar";
+ *   - "Recusar" (no aviso ou nas preferências) desliga na hora e fica salvo;
+ *   - navegador com Global Privacy Control ligado conta como recusa até a
+ *     pessoa escolher outra coisa;
+ *   - a escolha salva vale VALIDADE_DIAS; vencida, o aviso informa de novo.
+ * ⚠️ O legítimo interesse pede uma avaliação escrita do caso (pendência em
+ * src/pages/CLAUDE.md §7.9). Mudou a finalidade? Sobe VERSAO_AVISO.
+ *
+ * Registro em localStorage:
  *   scw_privacidade = {"v":1,"analise":true|false,"em":<ms>,"ate":<ms>}
- *     v       versão do aviso. Subiu a versão (finalidade nova, texto que muda o
- *             que se autoriza) → a escolha antiga deixa de valer e o aviso volta.
- *     analise a única categoria opcional que existe de fato: Google Analytics.
- *     em/ate  quando a escolha foi feita e até quando vale.
- *
- * VALIDADE = 180 dias. Decisão de produto, não prazo da LGPD: depois disso o
- * aviso volta a perguntar. Mudar aqui muda a Política de Cookies junto (ela lê
- * VALIDADE_DIAS, não repete o número).
- *
- * Sem escolha válida (ausente, ilegível, versão antiga, vencida) = análise
- * BLOQUEADA. A chave antiga `scw_consent` ("granted"/"denied", sem versão nem
- * validade) não autoriza nada: é lida como "sem escolha" e apagada.
- *
- * Armazenamento indisponível (modo privado, bloqueio de site): a escolha vale
- * em memória até a aba fechar, e o aviso reaparece na próxima visita.
+ * Inválido ou de versão antiga = sem escolha. A chave antiga `scw_consent`
+ * é apagada. Storage indisponível: a escolha vale em memória até a aba fechar.
  *
  * Nada aqui guarda IP, identificador ou registro no servidor.
  */
@@ -69,10 +69,21 @@ export function lerPreferencia (agora = Date.now()) {
   return memoria && memoria.ate > agora ? memoria : null
 }
 
-/** Análise só com escolha válida e explícita. */
+/** Navegador pediu para não rastrear (Global Privacy Control). */
+export function pediuNaoRastrear () {
+  try { return typeof navigator !== 'undefined' && navigator.globalPrivacyControl === true } catch { return false }
+}
+
+/** Análise: a escolha salva manda; sem escolha, ligada — salvo GPC. */
 export function analisePermitida (agora = Date.now()) {
   const p = lerPreferencia(agora)
-  return !!(p && p.analise === true)
+  if (p) return p.analise === true
+  return !pediuNaoRastrear()
+}
+
+/** O aviso aparece enquanto não houver escolha salva e válida. */
+export function precisaAviso (agora = Date.now()) {
+  return !lerPreferencia(agora)
 }
 
 /** Grava a escolha. Devolve a preferência gravada (em disco ou só em memória). */

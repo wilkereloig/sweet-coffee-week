@@ -1,5 +1,5 @@
 import React from 'react'
-import { lerPreferencia, salvarPreferencia } from '../lib/consentimento'
+import { analisePermitida, salvarPreferencia } from '../lib/consentimento'
 
 /*
  * Diálogo "Preferências de cookies" (13/10/2026).
@@ -7,10 +7,10 @@ import { lerPreferencia, salvarPreferencia } from '../lib/consentimento'
  * <dialog> nativo com showModal(): o resto da página fica inerte (o foco não
  * sai do diálogo), Escape dispara `cancel` e fecha SEM salvar. O foco volta a
  * quem abriu. Só duas categorias, porque só duas existem no site:
- * funcionamento (sempre ativo) e análise (Google Analytics, opcional).
+ * funcionamento (sempre ativo) e análise (Google Analytics, ligada por padrão).
  *
  * Fechar sem salvar não muda nada: o interruptor só vale quando a pessoa
- * aperta um dos três botões.
+ * aperta "Salvar". Texto curto de propósito (pedido do Wilker).
  */
 export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
   const ref = React.useRef(null)
@@ -21,8 +21,7 @@ export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
     const d = ref.current
     if (!d) return
     if (aberto && !d.open) {
-      const p = lerPreferencia()
-      setAnalise(!!(p && p.analise))
+      setAnalise(analisePermitida())
       d.showModal()
       if (tituloRef.current) tituloRef.current.focus()
     } else if (!aberto && d.open) {
@@ -89,8 +88,7 @@ export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
         </div>
 
         <p id="scw-pref-intro" className="scw-pref__intro">
-          Escolha o que o site pode usar no seu navegador. Dá para mudar quando quiser, pelo
-          link “Preferências de cookies” no rodapé.
+          Você pode mudar isso quando quiser, pelo rodapé do site.
         </p>
 
         <section className="scw-pref__cat" aria-labelledby="scw-pref-func">
@@ -99,9 +97,7 @@ export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
             <span className="scw-pref__sempre">Sempre ativo</span>
           </div>
           <p>
-            Guarda a sua escolha sobre cookies e, se você entrar no Painel SCW, mantém o login
-            enquanto a aba estiver aberta. Sem isso o site não lembra o que você decidiu. Não
-            mede audiência.
+            Lembra a sua escolha e mantém o login do Painel SCW.
           </p>
         </section>
 
@@ -121,21 +117,13 @@ export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
             </button>
           </div>
           <p>
-            Com o Google Analytics, contamos visitas e vemos quais páginas são mais acessadas,
-            para melhorar o site. Fica desligada até você permitir. Não é usada para anúncios
-            nem para personalizar o que você vê.
+            Conta as visitas pelo Google Analytics para melhorar o site. Sem anúncios.
           </p>
         </section>
 
         <div className="scw-pref__acoes">
           <button type="button" className="scw-pref__btn scw-pref__btn--salvar" onClick={() => decidir(analise)}>
-            Salvar preferências
-          </button>
-          <button type="button" className="scw-pref__btn" onClick={() => decidir(false)}>
-            Recusar opcionais
-          </button>
-          <button type="button" className="scw-pref__btn" onClick={() => decidir(true)}>
-            Aceitar análise
+            Salvar
           </button>
         </div>
 

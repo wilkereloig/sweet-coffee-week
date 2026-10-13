@@ -4,7 +4,7 @@ import { abrirPreferencias } from '../../lib/consentimento'
 import '../../styles/scw-legal.css'
 
 /*
- * Documentos legais — /privacidade, /cookies, /termos (13/10/2026).
+ * Documentos legais — /privacidade, /cookies, /termos, /uso-de-imagem (13/10/2026).
  *
  * Uma página para os três: o texto vem de src/data/conteudo/legal.js e a
  * rota resolve ANTES dos gates de publicação (src/lib/rotas.js), então os
@@ -17,6 +17,7 @@ const ORDEM = [
   ['privacidade', 'Privacidade'],
   ['cookies', 'Cookies'],
   ['termos', 'Termos de Uso'],
+  ['uso-de-imagem', 'Uso de imagem'],
 ]
 
 /* Rola até a seção e leva o foco ao título dela. */

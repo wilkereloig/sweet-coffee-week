@@ -23,3 +23,9 @@ export const CONTATO_EMAIL = 'contato@fabrica2.com.br'
 export const PRIVACIDADE_ASSUNTO = 'Privacidade — Sweet & Coffee Week'
 export const PRIVACIDADE_MAILTO =
   `mailto:${CONTATO_EMAIL}?subject=${encodeURIComponent(PRIVACIDADE_ASSUNTO)}`
+
+/* Pedido de retirada de imagem (13/10/2026): mesmo canal, assunto próprio
+   para a equipe separar dos demais. */
+export const IMAGEM_ASSUNTO = 'Retirada de imagem — Sweet & Coffee Week'
+export const IMAGEM_MAILTO =
+  `mailto:${CONTATO_EMAIL}?subject=${encodeURIComponent(IMAGEM_ASSUNTO)}`

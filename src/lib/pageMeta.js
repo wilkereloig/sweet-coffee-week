@@ -26,6 +26,8 @@ export function metaForPath(path) {
     return { title: `Política de Privacidade | ${BASE}`, description: 'Como o Sweet & Coffee Week trata os dados enviados nos formulários e a análise de acesso, e como pedir acesso, correção ou exclusão.' }
   if (p.startsWith('/cookies'))
     return { title: `Política de Cookies | ${BASE}`, description: 'O que o site do Sweet & Coffee Week guarda no seu navegador e como aceitar, recusar ou mudar a sua escolha.' }
+  if (p.startsWith('/uso-de-imagem'))
+    return { title: `Uso de imagem | ${BASE}`, description: 'Fotos de pessoas no site do Sweet & Coffee Week e como pedir a retirada da sua imagem.' }
   if (p.startsWith('/termos'))
     return { title: `Termos de Uso | ${BASE}`, description: 'Regras de uso do site institucional do Sweet & Coffee Week.' }
   if (p.startsWith('/contato'))

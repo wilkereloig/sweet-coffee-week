@@ -1,15 +1,15 @@
 /*
- * Google Analytics 4 — carregado SÓ depois do aceite (13/10/2026).
+ * Google Analytics 4 — controlado pela preferência (13/10/2026).
  *
- * Antes desta revisão o gtag.js vinha no index.html para todo visitante e, com
- * o Consent Mode em "denied", ainda mandava pings sem cookie para
- * google-analytics.com/g/collect na primeira visita. Agora:
+ * Quem decide é `analisePermitida()` (consentimento.js): ligado por padrão,
+ * desligado com a recusa salva ou com Global Privacy Control. O gtag.js NÃO
+ * mora no index.html: entra por aqui, uma vez.
  *
- *   sem escolha válida ou recusa → nenhum script do Google Analytics, nenhum
- *     dataLayer, nenhum evento guardado para depois, cookies _ga removidos;
- *   aceite → o script entra uma vez, o consentimento é declarado ANTES do
- *     config (análise sim; anúncio, dados de anúncio e personalização não),
- *     e a página atual é registrada uma vez;
+ *   recusa → nenhum script do Google Analytics, nenhum dataLayer, nenhum
+ *     evento guardado para depois, cookies _ga removidos;
+ *   permitido → o script entra uma vez, o estado de consentimento é declarado
+ *     ANTES do config (análise sim; anúncio, dados de anúncio e personalização
+ *     não), e a página atual é registrada uma vez;
  *   revogação → `ga-disable-<ID>` (opt-out oficial do gtag) corta qualquer envio
  *     na hora, o script pendente é descartado e os cookies _ga saem. Preferência
  *     e sessões do painel ficam intactas.
@@ -21,8 +21,7 @@
  * sem isso levariam o endereço cru. Nenhum evento próprio com dado de
  * formulário, nome, e-mail, telefone ou token.
  *
- * Os cookies _ga duram o mesmo que a escolha (VALIDADE_DIAS): nunca
- * sobrevivem a ela. Escolha vencida → `desativar()` apaga os que sobraram.
+ * Os cookies _ga duram VALIDADE_DIAS (a mesma validade da escolha).
  */
 import { analisePermitida, aoMudar, VALIDADE_DIAS } from './consentimento.js'
 
@@ -32,7 +31,7 @@ const DESLIGA = `ga-disable-${GA_ID}`
 
 /* Rotas que existem. Qualquer outra coisa vira "/" — um caminho estranho pode
    carregar texto digitado por alguém, e não vai para relatório nenhum. */
-const ROTAS = ['edicoes', 'sweet-awards', 'historico-sweet-awards', 'participar', 'apoiar', 'contato', 'privacidade', 'cookies', 'termos']
+const ROTAS = ['edicoes', 'sweet-awards', 'historico-sweet-awards', 'participar', 'apoiar', 'contato', 'privacidade', 'cookies', 'termos', 'uso-de-imagem']
 const UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
 
 let ativo = false
@@ -74,8 +73,16 @@ function enderecoAtual () {
   }
 }
 
+/* Em localhost (servidor de desenvolvimento, testes contra o build) o
+   Analytics não liga: senão cada teste viraria visita na propriedade real.
+   tests/privacidade-navegador.mjs liga de propósito com `scw_ga_local = 1`. */
+function localSemPermissao () {
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)) return false
+  try { return window.localStorage.getItem('scw_ga_local') !== '1' } catch { return true }
+}
+
 function ativar () {
-  if (typeof window === 'undefined' || !analisePermitida()) return
+  if (typeof window === 'undefined' || !analisePermitida() || localSemPermissao()) return
   window[DESLIGA] = false
   if (ativo) return
   ativo = true
@@ -155,12 +162,12 @@ export function trackPageView () {
   gtag('event', 'page_view', endereco)
 }
 
-/** Chamado uma vez pelo App: liga se já houver aceite válido e segue a escolha. */
+/** Chamado uma vez pelo App: liga se a análise estiver permitida e segue a escolha. */
 let iniciado = false
 export function iniciarAnalytics () {
   if (iniciado || typeof window === 'undefined') return
   iniciado = true
   if (analisePermitida()) ativar()
   else desativar()
-  aoMudar((p) => (p && p.analise ? ativar() : desativar()))
+  aoMudar(() => (analisePermitida() ? ativar() : desativar()))
 }

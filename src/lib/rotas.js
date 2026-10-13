@@ -6,15 +6,15 @@
  * continuam no App.jsx; aqui só a regra.
  *
  * Os documentos legais vêm ANTES de qualquer gate: com o site restrito a uma
- * página (só Participar, só Awards, em breve, aguarde), /privacidade, /cookies
- * e /termos seguem abrindo. Só eles — nenhuma outra rota passa por aqui.
+ * página (só Participar, só Awards, em breve, aguarde), /privacidade, /cookies,
+ * /termos e /uso-de-imagem seguem abrindo. Só eles — nenhuma outra rota passa por aqui.
  */
 
-export const DOCUMENTOS_LEGAIS = ['privacidade', 'cookies', 'termos']
+export const DOCUMENTOS_LEGAIS = ['privacidade', 'cookies', 'termos', 'uso-de-imagem']
 
-/** 'privacidade' | 'cookies' | 'termos' | null, para um caminho (sem '#'). */
+/** 'privacidade' | 'cookies' | 'termos' | 'uso-de-imagem' | null, para um caminho (sem '#'). */
 export function documentoLegal (path = '') {
-  const m = /^\/(privacidade|cookies|termos)\/?$/.exec(String(path).split(/[?#]/)[0])
+  const m = /^\/(privacidade|cookies|termos|uso-de-imagem)\/?$/.exec(String(path).split(/[?#]/)[0])
   return m ? m[1] : null
 }
 
