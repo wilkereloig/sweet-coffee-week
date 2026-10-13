@@ -15,8 +15,7 @@ const completo = {
   tema: 'Tema aprovado',
   periodo: '1 a 10 de mês',
   texto: 'Texto aprovado.',
-  imagem: { src: '/images/x.webp', alt: 'Descrição da foto' },
-  legenda: 'O que a foto mostra',
+  video: { src: '/videos/x.mp4', capa: '/images/x.webp', titulo: 'Vídeo', instagram: 'https://www.instagram.com/reel/x/', rotulo: 'Ver no Instagram' },
   acao: { rotulo: 'Saiba mais', href: '/participar' },
 }
 
@@ -26,7 +25,8 @@ test('ligado com o anúncio autorizado: tema, período e pré-cadastro vêm de p
   assert.equal(destaqueEdicao.periodo, proximaEdicao.periodo)
   const aberto = proximaEdicao.status === 'pre-cadastro' && !!proximaEdicao.preCadastro
   assert.equal(destaqueEdicao.acao?.href ?? null, aberto ? proximaEdicao.preCadastro : null)
-  assert.match(destaqueEdicao.legenda, /anterior/i, 'a foto é registro de edição anterior e a legenda precisa dizer')
+  assert.equal(destaqueEdicao.imagem, undefined, 'nenhuma foto de edição anterior na abertura da edição')
+  assert.match(destaqueEdicao.video.instagram, /^https:\/\/www\.instagram\.com\/reel\/[\w-]+\/$/, 'link do reel limpo, sem parâmetro de rastreio')
 })
 
 test('ligado e completo vale', () => {
@@ -34,17 +34,18 @@ test('ligado e completo vale', () => {
 })
 
 test('faltou qualquer campo obrigatório → não vale (nunca bloco pela metade)', () => {
-  for (const campo of ['titulo', 'tema', 'periodo', 'texto', 'legenda', 'imagem']) {
+  for (const campo of ['titulo', 'tema', 'periodo', 'texto']) {
     assert.equal(destaqueValido({ ...completo, [campo]: null }), false, campo)
   }
   assert.equal(destaqueValido({ ...completo, titulo: '   ' }), false, 'título em branco')
-  assert.equal(destaqueValido({ ...completo, imagem: { src: '/x.webp', alt: '' } }), false, 'foto sem alt')
+  assert.equal(destaqueValido({ ...completo, video: { ...completo.video, instagram: '' } }), false, 'vídeo sem o link do Instagram')
   assert.equal(destaqueValido({ ...completo, acao: { rotulo: 'Ir' } }), false, 'ação sem destino')
   assert.equal(destaqueValido({ ...completo, marca: { src: '/x.webp', alt: '' } }), false, 'marca sem alt')
 })
 
-test('sem pré-cadastro aberto a ação principal some, e o destaque continua valendo', () => {
+test('ação e vídeo são opcionais: sem eles o destaque continua valendo', () => {
   assert.equal(destaqueValido({ ...completo, acao: null }), true)
+  assert.equal(destaqueValido({ ...completo, video: null }), true)
 })
 
 test('só `ativo === true` liga — não há ativação por data nem por valor "verdadeiro"', () => {

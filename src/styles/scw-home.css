@@ -294,17 +294,30 @@
 }
 /* ============================================================================
    01 Abertura — modo EDIÇÃO (destaqueEdicao.js ligado, 13/10/2026)
-   Composição própria, com força de anúncio: o lettering oficial do tema é o
-   maior peso da tela e a data vem logo abaixo, em amarelo. Mesma chapa
-   chocolate da abertura institucional; o KV da edição fica só aqui.
+   Cara própria da edição: chapa amarela com o fundo ilustrado (gerado com o
+   vídeo de lançamento como referência), tinta chocolate, lettering oficial do
+   tema como maior peso e o vídeo num cartão vertical sobre o centro dos raios.
+   O KV fica só aqui; o resto da Home segue institucional.
    Altura do conteúdo, nunca tela cheia: a seção seguinte segue à vista.
    ========================================================================= */
+.hm-abre--edicao {
+  background-color: var(--scw-amarelo);
+  color: var(--scw-choco);
+}
+.hm-abre--edicao.tem-fundo {
+  background-image: var(--fundo);
+  background-size: cover;
+  background-position: 72% 50%;
+}
 /* Só acima de 1000px: fora da media query esta regra viria depois da coluna
    única do celular e venceria por ordem (mesma especificidade). */
 @media (min-width: 1000px) {
-  .hm-abre--edicao { grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); }
+  .hm-abre--edicao { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
 }
 
+/* Tinta chocolate sobre o amarelo do fundo: ~9:1 (o amarelo do rótulo e do
+   lead da abertura institucional sumiria aqui). */
+.hm-abre--edicao .hm-abre__estado { color: var(--scw-choco); }
 .hm-ed__titulo {
   display: grid;
   justify-items: start;
@@ -314,13 +327,13 @@
 .hm-ed__festival {
   font: 900 clamp(26px, 2.6vw, 44px)/1 var(--scw-font-black);
   letter-spacing: -.035em;
-  color: var(--scw-creme);
+  color: var(--scw-choco);
 }
 /* O teto em `svh` segura a tela baixa (1440×900, 1024×768): tema, data e as
    duas ações cabem na primeira dobra sem o aviso de cookies por cima. */
 .hm-ed__tema {
   display: block;
-  width: min(100%, 680px, calc(32svh * 1.95));
+  width: min(100%, 680px, calc(30svh * 1.95));
   height: auto;
   aspect-ratio: 1400 / 718;
 }
@@ -331,41 +344,80 @@
   font: 900 clamp(64px, 9vw, 150px)/.86 var(--scw-font-black);
   letter-spacing: -.05em;
   text-transform: uppercase;
-  color: var(--scw-amarelo);
+  color: var(--scw-choco);
 }
+/* A data é chapa: amarelo sobre chocolate (9,5:1) — sobre o fundo amarelo,
+   amarelo em texto não existiria. */
 .hm-ed__data {
-  margin: clamp(10px, 1.2vw, 18px) 0 0;
-  font: 900 clamp(30px, 3.4vw, 56px)/1 var(--scw-font-black);
-  letter-spacing: -.035em;
-  color: var(--scw-amarelo);   /* 9,5:1 sobre chocolate */
+  display: inline-block;
+  margin: clamp(12px, 1.3vw, 18px) 0 0;
+  padding: .16em .42em .2em;
+  border-radius: 16px;
+  background: var(--scw-choco);
+  color: var(--scw-amarelo);
+  font: 900 clamp(28px, 3vw, 50px)/1 var(--scw-font-black);
+  letter-spacing: -.03em;
 }
-.hm-ed__apoio { max-width: 40ch; margin-top: clamp(12px, 1.4vw, 18px); }
+.hm-abre--edicao .hm-ed__apoio {
+  max-width: 40ch;
+  margin-top: clamp(14px, 1.4vw, 20px);
+  color: var(--scw-choco);
+}
 .hm-abre--edicao .hm-acoes { margin-top: clamp(20px, 2.2vw, 30px); }
 
-.hm-ed__moldura {
-  position: relative;
-  aspect-ratio: 5 / 4;
-  border-radius: var(--scw-r-secao);
-  overflow: hidden;
-  background: var(--scw-marrom);
+/* Vídeo: cartão vertical com contorno e sombra chapada de desenho — o
+   vocabulário do KV, escopado nesta abertura. */
+/* Coluna presa ao topo do texto e tela com teto em `svh`: o botão do
+   Instagram termina acima do aviso de cookies, que mora no canto inferior
+   direito (1440×900 e 1024×768 medidos). */
+.hm-ed__video {
+  display: grid;
+  justify-items: center;
+  align-self: start;
+  gap: 18px;
 }
-.hm-abre--edicao .hm-abre__legenda { padding-left: 0; }
+.hm-ed__tela {
+  height: min(48svh, 560px);
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 6px solid var(--scw-choco);
+  border-radius: 28px;
+  background: var(--scw-choco);
+  box-shadow: 10px 10px 0 var(--scw-choco);
+}
+.hm-ed__player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--scw-choco);
+}
+.hm-ed__video-pe { margin: 0; }
+.hm-ed__instagram { gap: 10px; }
 
-/* Celular: texto primeiro (tema e data são o anúncio), foto depois das ações.
-   Seletores com o modificador vencem as regras da abertura institucional do
-   mesmo bloco (foto no topo, legenda sobre a foto). */
+/* Celular: texto primeiro (tema e data são o anúncio), vídeo depois das
+   ações, num painel com a parte dos raios do mesmo fundo. Seletores com o
+   modificador vencem as regras da abertura institucional do mesmo bloco. */
 @media (max-width: 999px) {
   .hm-abre--edicao { padding-top: var(--scw-hero-topo); padding-bottom: clamp(40px, 8vw, 64px); }
-  .hm-abre--edicao .hm-abre__fotos { order: 0; margin: clamp(28px, 6vw, 40px) 0 0; }
+  /* Atrás do texto, só a área calma (à esquerda) do fundo. */
+  .hm-abre--edicao.tem-fundo { background-image: var(--fundo-mobile); background-position: 0% 50%; }
   .hm-ed__tema { width: min(100%, 560px); }
   /* 9vw: a data cresce com a tela e cabe numa linha até 360px. */
-  .hm-ed__data { font-size: clamp(30px, 9vw, 44px); }
-  .hm-ed__moldura { aspect-ratio: 16 / 10; border-radius: var(--scw-r-card); }
-  .hm-abre--edicao .hm-abre__legenda {
-    position: static;
-    margin-top: 10px;
-    font-size: 12.5px;
+  .hm-ed__data { font-size: clamp(26px, 8vw, 40px); }
+  .hm-abre--edicao .hm-abre__fotos {
+    order: 0;
+    margin: clamp(28px, 6vw, 40px) 0 0;
+    padding: clamp(28px, 7vw, 44px) 16px;
+    border-radius: var(--scw-r-secao);
+    background-color: var(--scw-choco);
   }
+  .hm-abre--edicao.tem-fundo .hm-ed__video {
+    background-image: var(--fundo-mobile);
+    background-size: cover;
+    background-position: 78% 50%;
+  }
+  .hm-ed__tela { height: auto; width: min(66vw, 300px); }
 }
 /* ≤900px a logo volta ao fluxo (52px, §6.7): a reserva de topo encolhe. */
 @media (max-width: 900px) {

@@ -8,6 +8,7 @@ import { useCrossfade } from '../../../hooks/useCrossfade'
 import { PausaFotos } from '../../../components/HeroFotos'
 import { FotoAcervo } from '../../../components/FotoAcervo'
 import { Seta } from '../../../components/Seta'
+import ScwIcon from '../../../components/scw-icons/ScwIcon'
 
 /* ============================================================================
    01 Abertura — dois modos, uma decisão só: `destaqueValido()`.
@@ -113,17 +114,29 @@ function AberturaFestival({ ir, rolarPara }) {
 
 /* Abertura da EDIÇÃO (13/10/2026): composição própria, com força de anúncio.
    Hierarquia: rótulo → nome do festival → TEMA (o lettering oficial, o maior
-   peso da tela) → período → uma frase → ações. Nada de ficha de números, selo
-   ou parágrafo longo competindo com tema e data. A foto é gastronomia do
-   acervo, identificada como registro anterior; o KV da edição não sai daqui
-   para o resto do site. Sem rotação: uma foto, nenhum relógio. */
+   peso da tela) → período → uma frase → ações. Ao lado, o vídeo de lançamento
+   e o botão para o reel no Instagram. Só peças da edição nova: nenhuma foto de
+   edição anterior. O fundo ilustrado (gerado com o vídeo como referência de
+   estilo) fica só aqui — o KV da edição não sai para o resto do site.
+   O vídeo não toca sozinho: `preload="none"` e capa; quem dá o play é a pessoa,
+   com som e controles nativos (nada de laço sem pausa, §6.15). */
 function AberturaDestaque({ d, ir, rolarPara }) {
   const acao = d.acao
   /* Rota do SPA navega sem recarregar; página estática (barra final, §10.4-b)
      e endereço externo seguem como link de navegador. */
   const interna = !!acao && acao.href.startsWith('/') && !acao.href.endsWith('/')
+  /* Mesmo arranjo do HeroFotos: as duas urls como propriedade custom e o CSS
+     escolhe pela tela (style inline venceria a media query, §10.4). */
+  const fundo = d.fundo
+    ? { '--fundo': `url("${d.fundo.src}")`, '--fundo-mobile': `url("${fotoAte(d.fundo.src, 960)}")` }
+    : undefined
   return (
-    <section className="hm-abre hm-abre--edicao" data-mo-fora aria-labelledby="hm-abre-titulo">
+    <section
+      className={'hm-abre hm-abre--edicao' + (d.fundo ? ' tem-fundo' : '')}
+      style={fundo}
+      data-mo-fora
+      aria-labelledby="hm-abre-titulo"
+    >
       <div className="hm-abre__texto hm-ed">
         {temTexto(d.rotulo) && <p className="hm-abre__estado">{d.rotulo}</p>}
         <h1 id="hm-abre-titulo" className="hm-abre__titulo hm-ed__titulo">
@@ -136,12 +149,12 @@ function AberturaDestaque({ d, ir, rolarPara }) {
         <p className="hm-abre__lead hm-ed__apoio">{d.texto}</p>
         <div className="hm-acoes">
           {acao && (
-            <a className="scw-btn scw-btn--solido" href={acao.href} onClick={interna ? ir(acao.href) : undefined}>
+            <a className="scw-btn hm-btn--choco" href={acao.href} onClick={interna ? ir(acao.href) : undefined}>
               {acao.rotulo} <Seta />
             </a>
           )}
           <a
-            className={'scw-btn ' + (acao ? 'scw-btn--contorno-claro' : 'scw-btn--solido')}
+            className={'scw-btn ' + (acao ? 'scw-btn--contorno-escuro' : 'hm-btn--choco')}
             href="#festival"
             onClick={rolarPara('festival')}
           >
@@ -150,12 +163,32 @@ function AberturaDestaque({ d, ir, rolarPara }) {
         </div>
       </div>
 
-      <figure className="hm-abre__fotos hm-ed__foto">
-        <div className="hm-ed__moldura">
-          <FotoAcervo foto={d.imagem} papel="cheia" className="hm-abre__img" />
-        </div>
-        <figcaption className="hm-abre__legenda">{d.legenda}</figcaption>
-      </figure>
+      {d.video && (
+        <figure className="hm-abre__fotos hm-ed__video">
+          <div className="hm-ed__tela">
+            <video
+              className="hm-ed__player"
+              src={d.video.src}
+              poster={d.video.capa}
+              preload="none"
+              controls
+              playsInline
+              aria-label={d.video.titulo}
+            />
+          </div>
+          <figcaption className="hm-ed__video-pe">
+            <a
+              className="scw-btn hm-btn--choco hm-ed__instagram"
+              href={d.video.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${d.video.rotulo} (abre em nova aba)`}
+            >
+              <ScwIcon nome="redes/instagram" tamanho={24} /> {d.video.rotulo}
+            </a>
+          </figcaption>
+        </figure>
+      )}
     </section>
   )
 }

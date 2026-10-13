@@ -337,21 +337,26 @@ const HOME = {
 
 /* ----------------------------------------------------------------------------
    Próxima edição — abertura da Home em modo destaque (13/10/2026)
-   · marca: o lettering CARTOON da marca oficial 2026.2 (Dropbox F2,
+   Peças da EDIÇÃO 2026.2, nenhuma foto de edição anterior:
+   · marca: o lettering CARTOON da marca oficial (Dropbox F2,
      01_IDENTIDADE_VISUAL/01_MARCA/PNG — o mesmo do selo aprovado), recortado
      da margem transparente e convertido para WebP. Não redesenhar.
-   · foto: fotografia gastronômica do acervo. É registro de edição ANTERIOR, e
-     a legenda diz qual — nunca ler como combo da próxima edição.
+   · fundo: ilustração gerada no Magnific (Nano Banana Pro) com dois quadros
+     do vídeo de lançamento como referência de estilo; original em
+     05_SITE/02_ASSETS/fundo-heroi-home_magnific_v1.png. Sem texto, sem pessoa.
+   · video: o vídeo de lançamento (versão sem "Natal e região", a que está no
+     Instagram), reduzido para 720×1280; capa = o quadro de 37,5 s.
    -------------------------------------------------------------------------- */
 const PROXIMA_EDICAO = {
   marca: { src: '/images/marcas-edicoes/2026.2/tema.webp', alt: 'Cartoon' },
-  foto: {
-    ...comboMain("Caffè Basilico's"),
-    legenda: "Registro de edição anterior: Lovers, junho de 2026 · combo Caffè Basilico's",
+  fundo: { src: '/images/marcas-edicoes/2026.2/fundo-heroi.webp', alt: '' },
+  video: {
+    src: '/videos/edicao-2026-2/lancamento.mp4',
+    capa: '/images/marcas-edicoes/2026.2/video-capa.webp',
   },
 }
 
-/** Peça da abertura da próxima edição (`marca` · `foto`), ou `null`. */
+/** Peça da abertura da próxima edição (`marca` · `fundo` · `video`), ou `null`. */
 export function fotoProximaEdicao(chave) {
   return PROXIMA_EDICAO[chave] || null
 }

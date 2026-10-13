@@ -17,11 +17,17 @@
  *
  * ⚠️ Nada de dado não confirmado: participantes, combos, preço e duração ficam
  * fora até a organização divulgar (A4). Não usar "em cartaz" antes do início.
+ * Nenhuma foto de edição anterior aqui (pedido do Wilker, 13/10/2026): a
+ * abertura usa só peças da edição nova — marca, fundo ilustrado e o vídeo.
  */
 import { proximaEdicao as PROX } from './proximaEdicao.js'
 import { fotoProximaEdicao } from './imageLibrary.js'
 
-const foto = fotoProximaEdicao('foto')
+/* Reel oficial do lançamento (@sweetcoffeeweek, 07/10/2026), sem os
+   parâmetros de rastreio do link compartilhado. */
+const REEL_LANCAMENTO = 'https://www.instagram.com/reel/DeNRdZvBubh/'
+
+const video = fotoProximaEdicao('video')
 
 export const destaqueEdicao = {
   ativo: true,
@@ -32,8 +38,16 @@ export const destaqueEdicao = {
   /* Lettering oficial do tema. Sem ele, o tema sai em tipografia real. */
   marca: fotoProximaEdicao('marca'),
   texto: 'Uma nova edição para descobrir sabores e celebrar o universo da animação.',
-  imagem: foto,             // obrigatório — objeto de imageLibrary.js: { src, alt, position }
-  legenda: foto?.legenda,   // obrigatório — diz que a foto é registro de edição anterior
+  /* Fundo ilustrado da edição (imageLibrary.js). Sem ele, a chapa amarela. */
+  fundo: fotoProximaEdicao('fundo'),
+  /* Opcional: o vídeo de lançamento, com o botão para o reel no Instagram.
+     Só entra inteiro — arquivo, capa e link. */
+  video: video && {
+    ...video,
+    titulo: 'Vídeo de lançamento da edição Cartoon',
+    instagram: REEL_LANCAMENTO,
+    rotulo: 'Ver no Instagram',
+  },
   /* Opcional: sem pré-cadastro aberto, a abertura fica só com "Conhecer o
      festival". href externo ou com barra final (§10.4-b). */
   acao: PROX.status === 'pre-cadastro' && PROX.preCadastro
@@ -42,24 +56,23 @@ export const destaqueEdicao = {
 }
 
 /**
- * O destaque só vale com tudo que o torna honesto: título, tema, período e
- * texto para dizer o que é; foto COM alt e legenda para não parecer peça da
- * edição nova. Ação e marca são opcionais, mas não pela metade. Faltou um →
- * abertura institucional, nunca um bloco incompleto.
+ * O destaque só vale com o que o torna honesto: título, tema, período e texto
+ * para dizer o que é. Vídeo, marca e ação são opcionais, mas nunca pela
+ * metade. Faltou um → abertura institucional, nunca um bloco incompleto.
  */
 export function destaqueValido(d = destaqueEdicao) {
   if (!d || d.ativo !== true) return false
   const texto = (v) => typeof v === 'string' && v.trim().length > 0
   const acaoOk = d.acao == null || (texto(d.acao.rotulo) && texto(d.acao.href))
   const marcaOk = d.marca == null || (texto(d.marca.src) && texto(d.marca.alt))
+  const videoOk = d.video == null ||
+    (texto(d.video.src) && texto(d.video.capa) && texto(d.video.titulo) && texto(d.video.instagram) && texto(d.video.rotulo))
   return (
     texto(d.titulo) &&
     texto(d.tema) &&
     texto(d.periodo) &&
     texto(d.texto) &&
-    texto(d.legenda) &&
-    !!d.imagem && texto(d.imagem.src) && texto(d.imagem.alt) &&
-    acaoOk && marcaOk
+    acaoOk && marcaOk && videoOk
   )
 }
 
