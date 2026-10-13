@@ -67,7 +67,9 @@ const COMING_SOON_PUBLICATION = false
 // fora do bundle (/quero-participar/, /painel/ — §10.4-b) não passam por aqui
 // e seguem no ar. O institucional completo continua em DEV e em
 // *.vercel.app?preview=1 (INSTITUTIONAL_PREVIEW).
-const PARTICIPAR_ONLY_PUBLICATION = true
+// DESLIGADO em 13/10/2026 (pedido do Wilker: "pode publicar o site completo"):
+// o domínio passa a mostrar o institucional inteiro, com menu e abas.
+const PARTICIPAR_ONLY_PUBLICATION = false
 
 // Lançamento parcial "SÓ PARTICIPANTES" (26/08/2026, decisão do Eloi): o
 // domínio oficial mostra só Contato como página institucional real — o

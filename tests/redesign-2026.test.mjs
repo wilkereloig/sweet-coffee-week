@@ -279,11 +279,11 @@ test('os números citados no texto editorial batem com a base', async () => {
 test('flags de publicação seguem intactas', () => {
   const app = ler('src/App.jsx')
   assert.match(app, /AWARDS_ONLY_PUBLICATION\s*=\s*false/)
-  // Desde 18/09/2026 (pedido do Wilke): o domínio abre só na Participar,
-  // sem menu. A espera ('aguarde') e a EmBreve ficam desligadas.
+  // Desde 13/10/2026 (pedido do Wilker): institucional completo publicado.
+  // Os gates "só Participar", espera ('aguarde') e EmBreve ficam desligados.
   assert.match(app, /COMING_SOON_PUBLICATION\s*=\s*false/)
   assert.match(app, /AGUARDE_ONLY_PUBLICATION\s*=\s*false/)
-  assert.match(app, /PARTICIPAR_ONLY_PUBLICATION\s*=\s*true/)
+  assert.match(app, /PARTICIPAR_ONLY_PUBLICATION\s*=\s*false/)
 })
 
 test('rotas dos QR Codes da Lovers continuam congeladas', () => {

@@ -87,21 +87,33 @@ const retanguloDe = (page, seletor) => page.evaluate((s) => {
 }, seletor)
 const cruza = (a, b) => a && b && a.bottom > b.top && a.top < b.bottom && a.right > b.left && a.left < b.right
 
+/* Publicação do institucional completo (13/10/2026, PARTICIPAR_ONLY_PUBLICATION
+   = false): sem ?preview=1 cada endereço abre a PRÓPRIA página, com menu, e
+   baixa só o chunk dela — nada de Supabase na carga. */
+const PUBLICADAS = [
+  ['/', 'home', 'Home'],
+  ['/#/participar', 'participar', 'Participar'],
+  ['/#/contato', 'contato', 'Contato'],
+  ['/#/sweet-awards', 'historico-awards', 'HistoricoAwards'],
+]
 async function gate(navegador) {
-  console.log('\n1 · gate (sem ?preview=1)')
-  for (const caminho of ['/', '/edicoes', '/contato', '/#/sweet-awards']) {
+  console.log('\n1 · domínio publicado (sem ?preview=1)')
+  const CHUNK = /\/assets\/(Home|Edicoes|HistoricoAwards|Participar|Apoiar|Contato|EmBreve|Aguarde)-[\w-]+\.js/
+  for (const [caminho, rota, chunk] of PUBLICADAS) {
     const ctx = await navegador.newContext({ viewport: { width: 1440, height: 900 } })
     const page = await ctx.newPage()
     const js = []
     page.on('request', (r) => { if (r.url().includes('/assets/') && r.url().endsWith('.js')) js.push(r.url()) })
     await page.goto(`${BASE}${caminho}`, { waitUntil: 'networkidle' })
-    const rota = await page.evaluate(() => document.body.className)
-    if (!/route-participar/.test(rota)) falha(`${caminho}: o gate deveria mostrar Participar (body: ${rota})`)
-    if (await page.locator('.scw-nav').count()) falha(`${caminho}: o gate não tem menu, mas .scw-nav apareceu`)
-    const intrusos = js.filter((u) => OUTRAS_PAGINAS.test(u) || /supabase-/.test(u))
-    if (intrusos.length) falha(`${caminho}: baixou chunk de outra página: ${intrusos.map((u) => u.split('/').pop()).join(', ')}`)
-    if (!js.some((u) => /\/Participar-[\w-]+\.js/.test(u))) falha(`${caminho}: o chunk de Participar não foi pedido`)
-    if (!falhas.some((f) => f.startsWith(caminho))) ok(`${caminho} → Participar, só o chunk dela`)
+    const corpo = await page.evaluate(() => document.body.className)
+    if (!corpo.split(/\s+/).includes(`route-${rota}`)) falha(`${caminho}: deveria abrir ${rota} (body: ${corpo})`)
+    if (!(await page.locator('.scw-nav').count())) falha(`${caminho}: publicado sem menu (.scw-nav ausente)`)
+    const paginas = js.filter((u) => CHUNK.test(u)).map((u) => u.match(CHUNK)[1])
+    const intrusos = paginas.filter((n) => n !== chunk)
+    if (intrusos.length) falha(`${caminho}: baixou chunk de outra página: ${intrusos.join(', ')}`)
+    if (js.some((u) => /supabase-/.test(u))) falha(`${caminho}: baixou o cliente do Supabase na carga`)
+    if (!paginas.includes(chunk)) falha(`${caminho}: o chunk de ${chunk} não foi pedido`)
+    if (!falhas.some((f) => f.startsWith(caminho))) ok(`${caminho} → ${rota}, com menu, só o chunk dela`)
     await ctx.close()
   }
 }

@@ -105,7 +105,12 @@ Três regras que atravessam tudo:
 
 ### 2.3 Estado de publicação
 
-**Desde 18/09/2026 (pedido do Wilke) o domínio abre na página Participar, e só nela:**
+✅ **Desde 13/10/2026 o institucional completo está no ar** (pedido do Wilker: "pode
+publicar o site completo"): `PARTICIPAR_ONLY_PUBLICATION = false` e merge de
+`dev/site-completo` em `master`. O domínio mostra as seis páginas com menu e abas, e a
+Home abre anunciando a edição Cartoon (§7.1). O histórico abaixo fica como registro.
+
+**De 18/09 a 13/10/2026 (pedido do Wilke) o domínio abria na página Participar, e só nela:**
 `PARTICIPAR_ONLY_PUBLICATION = true` faz **qualquer endereço** — inclusive `/` e
 `/contato` — renderizar Participar, **sem menu**: o cabeçalho fica com a marca e o
 botão "Painel SCW", o rodapé perde os links de página e a barra de abas do celular não
@@ -116,10 +121,10 @@ ar era a landing `/em-breve` (`COMING_SOON_PUBLICATION`), que saiu em 26/08/2026
 26/08 e 18/09 o que valeu foi `AGUARDE_ONLY_PUBLICATION` (página de espera em `/`, com
 Contato e Participar por link direto), que nunca chegou a ser registrada aqui.
 
-**O institucional completo continua em `dev/site-completo`** — as sete páginas do
-§2.4, visíveis em DEV e em `*.vercel.app?preview=1`. Publicá-lo é desligar
-`PARTICIPAR_ONLY_PUBLICATION` (§3.4) mais o merge em `master` (A2): duas decisões do
-Wilke, nenhuma automática.
+**Até 13/10/2026 o institucional completo vivia só em `dev/site-completo`** (DEV e
+`*.vercel.app?preview=1`). A publicação foram as duas decisões previstas: desligar
+`PARTICIPAR_ONLY_PUBLICATION` (§3.4) e o merge em `master` (A2), ambas autorizadas pelo
+Wilker por escrito.
 
 ### 2.4 Mapa de páginas — alvo institucional
 
@@ -153,8 +158,8 @@ tronco que está à frente" e passou a ser **a versão do site**, ponto.
 
 | Branch | O que carrega |
 |---|---|
-| `dev/site-completo` | o site institucional inteiro — **é o que vai substituir a `/em-breve`** |
-| `master` | só o publicado: a landing `/em-breve` e as três páginas estáticas |
+| `dev/site-completo` | onde se trabalha — o site institucional inteiro, à frente de `master` até o próximo merge |
+| `master` | o publicado (Vercel publica no push). Desde 13/10/2026 = o institucional completo + as páginas estáticas |
 
 ⚠️ **Commit que entrar por `master` tem que voltar para `dev/site-completo` na mesma
 leva.** Foi a divergência dos dois troncos que gerou duas implementações da área da
@@ -170,7 +175,7 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npm run dev` | servidor de desenvolvimento (porta = `PORT` ou 5173) |
 | `npm run build` | build |
 | `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
-| `npm run build && npm run test:casca-institucional` | gate sem `?preview` só baixa Participar; aviso de cookies não cobre ação principal, régua nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
+| `npm run build && npm run test:casca-institucional` | sem `?preview` cada rota abre a própria página, com menu, e baixa só o chunk dela; aviso de cookies não cobre ação principal, régua nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
 | `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
 | `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
 | `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
@@ -199,14 +204,13 @@ arquivos da tarefa em questão.
 | `AWARDS_ONLY_PUBLICATION` | `false` | modo "só Awards", desligado |
 | `COMING_SOON_PUBLICATION` | `false` | landing `EmBreve` em toda rota — desligada em 26/08/2026 |
 | `AGUARDE_ONLY_PUBLICATION` | `false` | página de espera em `/`, Contato e Participar por link — desligada em 18/09/2026 |
-| `PARTICIPAR_ONLY_PUBLICATION` | **`true`** | **gate ativo** — toda rota renderiza Participar, sem menu (`SiteHeader semNav`, `SiteFooter semLinks`, sem barra de abas) |
+| `PARTICIPAR_ONLY_PUBLICATION` | `false` | toda rota renderizava Participar, sem menu — **desligada em 13/10/2026**: institucional completo publicado |
 | `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras |
 
-⚠️ **O gate some em DEV** (`INSTITUTIONAL_PREVIEW` é `true` no `npm run dev`). Para ver
-a versão que vai ao ar, é o deploy de Preview da Vercel **sem** `?preview=1`.
-
-Publicar o institucional completo é `PARTICIPAR_ONLY_PUBLICATION = false` — **decisão do
-Wilke, nunca automática**. **Não alterar flag para "ver a página em produção": use o
+⚠️ Com todas as flags desligadas, DEV e produção mostram o mesmo site. Religar um gate
+(manutenção, edição ao vivo) é **decisão do Wilker, nunca automática**; o
+`INSTITUTIONAL_PREVIEW` continua valendo para revisar atrás de um gate em
+`*.vercel.app?preview=1`. **Não alterar flag para "ver a página em produção": use o
 preview.**
 
 ### 3.5 Escopo, qualidade e segurança
