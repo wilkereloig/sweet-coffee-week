@@ -59,3 +59,14 @@ test('links pendentes seguem null — não viram link quebrado', () => {
 test('imprensa aponta para uma rota que existe de verdade (contato)', () => {
   assert.equal(links.imprensa.rota, 'contato')
 })
+
+/* "Comece por aqui" (src/data/conteudo/contato.js) é uma seleção editorial por
+   id. Um id errado não quebra nada visível: a pergunta só some da lista, em
+   silêncio. Aqui ele reprova. */
+test('"Comece por aqui" só aponta para perguntas que existem', async () => {
+  const { COMECE } = await import('../src/data/conteudo/contato.js')
+  const ids = new Set(perguntas.map((p) => p.id))
+  assert.ok(COMECE.perguntas.length > 0, 'a seleção não pode ficar vazia')
+  for (const id of COMECE.perguntas) assert.ok(ids.has(id), `id inexistente em COMECE: ${id}`)
+  assert.equal(new Set(COMECE.perguntas).size, COMECE.perguntas.length, 'id repetido em COMECE')
+})
