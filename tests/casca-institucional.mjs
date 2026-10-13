@@ -98,7 +98,7 @@ const PUBLICADAS = [
 ]
 async function gate(navegador) {
   console.log('\n1 · domínio publicado (sem ?preview=1)')
-  const CHUNK = /\/assets\/(Home|Edicoes|HistoricoAwards|Participar|Apoiar|Contato|EmBreve|Aguarde)-[\w-]+\.js/
+  const CHUNK = /\/assets\/(Home|Edicoes|HistoricoAwards|Participar|Apoiar|Contato|EmBreve|Aguarde|Legal)-[\w-]+\.js/
   for (const [caminho, rota, chunk] of PUBLICADAS) {
     const ctx = await navegador.newContext({ viewport: { width: 1440, height: 900 } })
     const page = await ctx.newPage()
@@ -136,7 +136,21 @@ async function cookies(navegador) {
         const acao = await retanguloAcao(page)
         if (!acao) falha(`${rot}: ação principal do herói não encontrada`)
         else if (acao.bottom > h) falha(`${rot}: ação principal "${acao.texto}" abaixo da dobra (y=${Math.round(acao.bottom)})`)
-        else if (cruza(aviso, acao)) falha(`${rot}: o aviso cobre a ação principal "${acao.texto}"`)
+        else if (cruza(aviso, acao) && w > 900) falha(`${rot}: o aviso cobre a ação principal "${acao.texto}"`)
+        else if (cruza(aviso, acao)) {
+          // Celular (13/10/2026): o aviso com título, texto no piso de 15px e
+          // três ações em linhas tem ~240px e cobre a ação do herói na primeira
+          // visita — decisão registrada em src/CLAUDE.md §6.10. O que não pode é
+          // BLOQUEAR: rolar a página o tanto da sobreposição revela a ação
+          // inteira acima do aviso.
+          const sobra = Math.ceil(acao.bottom - aviso.top) + 16
+          await page.evaluate((y) => window.scrollBy(0, y), sobra)
+          await page.waitForTimeout(250)
+          const depois = await retanguloAcao(page)
+          const avisoDepois = await retanguloDe(page, '.cookie-consent')
+          if (!depois || depois.top < 0 || cruza(avisoDepois, depois)) falha(`${rot}: a ação "${acao.texto}" não fica alcançável acima do aviso rolando a página`)
+          await page.evaluate(() => window.scrollTo(0, 0))
+        }
       }
       if (w <= 900) {
         const abas = await retanguloDe(page, '.scw-abas')
@@ -144,20 +158,20 @@ async function cookies(navegador) {
       }
       const reserva = await page.evaluate(() => document.body.style.getPropertyValue('--scw-aviso-h'))
       if (!reserva) falha(`${rot}: --scw-aviso-h não foi escrito`)
-      await page.locator('.cookie-consent__btn--primary').click()
+      await page.locator('.cookie-consent__btn--recusar').click()
       const sobrou = await page.evaluate(() => [!!document.querySelector('.cookie-consent'), document.body.style.getPropertyValue('--scw-aviso-h')])
-      if (sobrou[0] || sobrou[1]) falha(`${rot}: aceitar deveria remover o aviso e a reserva`)
+      if (sobrou[0] || sobrou[1]) falha(`${rot}: recusar deveria remover o aviso e a reserva`)
       await ctx.close()
     }
   }
-  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação, régua nem abas; aceitar limpa a reserva')
+  if (!falhas.some((f) => f.includes('aviso'))) ok('aviso não cobre ação (desktop), régua nem abas; no celular a ação fica alcançável; recusar limpa a reserva')
 }
 
 async function rotasDiferidas(navegador) {
   console.log('\n3 · rotas diferidas, reveal e foco')
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const ctx = await navegador.newContext({ viewport: { width: w, height: h } })
-    await ctx.addInitScript(() => localStorage.setItem('scw_consent', 'denied'))
+    await ctx.addInitScript(() => localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 })))
     const page = await ctx.newPage()
     const erros = []
     page.on('pageerror', (e) => erros.push(e.message))
@@ -186,7 +200,7 @@ async function rotasDiferidas(navegador) {
 async function folhaMais(navegador) {
   console.log('\n4 · folha "mais" no celular')
   const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } })
-  await ctx.addInitScript(() => localStorage.setItem('scw_consent', 'denied'))
+  await ctx.addInitScript(() => localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 })))
   const page = await ctx.newPage()
   await page.goto(`${BASE}/?preview=1#/participar`, { waitUntil: 'networkidle' })
   const mais = page.locator('.scw-abas button[aria-haspopup="dialog"]')
@@ -207,7 +221,7 @@ async function folhaMais(navegador) {
 async function movimentoETimers(navegador) {
   console.log('\n5 · movimento reduzido e timers do crossfade')
   const reduzido = await navegador.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
-  await reduzido.addInitScript(() => localStorage.setItem('scw_consent', 'denied'))
+  await reduzido.addInitScript(() => localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 })))
   let page = await reduzido.newPage()
   await page.goto(`${BASE}/?preview=1#/participar`, { waitUntil: 'networkidle' })
   const r = await page.evaluate(() => ({
@@ -222,7 +236,7 @@ async function movimentoETimers(navegador) {
 
   const normal = await navegador.newContext({ viewport: { width: 1440, height: 900 } })
   await normal.addInitScript(() => {
-    localStorage.setItem('scw_consent', 'denied')
+    localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 }))
     const pendentes = new Map()
     const st = window.setTimeout.bind(window)
     const ct = window.clearTimeout.bind(window)

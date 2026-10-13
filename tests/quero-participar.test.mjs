@@ -126,7 +126,8 @@ test('só afirma envio depois de confirmar a gravação', () => {
 })
 
 test('todo asset absoluto existe em public/', () => {
-  const pedidos = [...HTML.matchAll(/(?:url\('|src="|href=")(\/[^"')]+)/g)].map((m) => m[1])
+  // `/#/…` é rota do site (a Política de Privacidade), não arquivo de public/.
+  const pedidos = [...HTML.matchAll(/(?:url\('|src="|href=")(\/[^"')]+)/g)].map((m) => m[1]).filter((p) => !p.startsWith('/#/'))
   for (const p of new Set(pedidos)) {
     const alvo = new URL('../public' + p, import.meta.url)
     // Caixa exata importa: a Vercel roda Linux, o Windows não denuncia.

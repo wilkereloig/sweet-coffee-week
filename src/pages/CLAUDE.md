@@ -748,6 +748,50 @@ código antes de aplicar.
 deixaram de ser importados ali. **Consequência a não esquecer: o resultado oficial da
 Lovers deixou de ter endereço público** até o institucional ir ao ar.
 
+### 7.9 Documentos legais — `/privacidade`, `/cookies`, `/termos` (13/10/2026)
+
+**Onde mora:** `src/pages/legal/index.jsx` (uma página para os três, chunk `Legal`);
+texto em `src/data/conteudo/legal.js`; CSS em `scw-legal.css` (prefixo `.lg-`). A
+rota resolve em `src/lib/rotas.js` **antes de qualquer flag de publicação**: com o
+site restrito a uma página, os três documentos continuam abrindo — e só eles
+(`tests/consentimento.test.mjs`, item 12). Os rewrites da Vercel servem o link limpo
+(`/privacidade`); o hash (`#/privacidade`) também funciona. Links no rodapé (sempre,
+inclusive com `semLinks`), na folha "mais" e no rodapé de Edições do desktop — nunca
+no menu principal. Sem movimento de entrada (`data-mo-fora`).
+
+**Dados confirmados pelo Wilker em 13/10/2026** (`src/config/channels.js`):
+F2 EXPERIENCE LIVE MARKETING LTDA, CNPJ 26.723.343/0001-78, canal
+`contato@fabrica2.com.br` com o assunto "Privacidade — Sweet & Coffee Week"
+(`PRIVACIDADE_MAILTO`). ⚠️ `/quero-participar/` repete o e-mail em
+`CONFIG.emailDestino` (página estática, fora do bundle).
+
+**Formulários:** Contato, Apoiar e `/quero-participar/` têm nota de finalidade com link
+para a Política de Privacidade (`NotaPrivacidade.jsx`; no estático, `.pa-nota`). É
+ciência, não consentimento: **sem checkbox**, e o envio nunca depende do aviso de
+cookies.
+
+⛔ **Pendências de validação interna — NÃO preencher no texto público por suposição:**
+1. encarregado (DPO): não há pessoa nomeada; a LGPD pede a identidade e o contato
+   do encarregado — decidir quem é, ou registrar a dispensa aplicável;
+2. base legal de cada finalidade (Contato, Apoio, pré-cadastro, registros técnicos,
+   painel) — só a análise de acesso tem base declarada (consentimento);
+3. prazos de guarda dos formulários, dos registros técnicos da Edge Function e a
+   retenção configurada na propriedade do Google Analytics (`G-FM5ZJXL3MV`);
+4. onde ficam os servidores (região do projeto Supabase, Vercel, Google, Adobe,
+   Cloudflare) e se há transferência internacional;
+5. contratos/termos de tratamento com os fornecedores;
+6. se o segredo do Turnstile está configurado na Edge Function (o widget carrega no
+   pré-cadastro; a conferência no servidor depende de `TURNSTILE_SECRET_KEY`);
+7. Archivo via Google Fonts e Nexa via Adobe Fonts falam com terceiros em toda
+   página, sem depender de escolha — considerar hospedar a Archivo localmente;
+8. quem lê `contato@fabrica2.com.br` e como os pedidos de titular são registrados e
+   respondidos;
+9. o Painel SCW tem dados próprios (contas, operação das marcas) descritos só em
+   linhas gerais — detalhar se o painel ganhar política própria;
+10. regulamentos de edição, participação, premiação e uso de imagem são documentos
+    distintos e não existem no site — revisar quando houver;
+11. revisão jurídica dos três textos antes de tratá-los como finais.
+
 ### 7.8 Como manter — o caminho curto de cada pedido
 
 Desde 12/10/2026 cada página do institucional é uma pasta (`src/pages/<pagina>/`) e

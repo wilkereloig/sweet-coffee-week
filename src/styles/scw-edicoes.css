@@ -761,6 +761,22 @@
   font: 400 12px/1.2 var(--scw-font-ui);
   color: rgba(254, 240, 221, .66);
 }
+.scw-edx__rodape-legal { display: inline-flex; gap: 16px; margin-left: auto; }
+.scw-raiz .scw-edx__rodape-legal a,
+.scw-edx__rodape-legal button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-block: -14px;   /* alvo de 44px sem engordar a linha da legenda */
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 700 12px/1.2 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .84);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 
 /* Telas de 901 a 1180px: 16 rótulos de 11px não cabem numa linha (a 901px
    sobram ~43px por ano e "2020.1" ocupa ~40px — os anos colavam). Em vez de

@@ -1,33 +1,41 @@
 import React from 'react'
-import { getConsent, grantConsent, denyConsent } from '../lib/analytics'
+import { lerPreferencia, salvarPreferencia, aoMudar, aoPedirPreferencias } from '../lib/consentimento'
+import { PreferenciasCookies } from './PreferenciasCookies'
 
 /*
- * Aviso de consentimento de cookies (LGPD). O GA4 só coleta depois de
- * "Aceitar" (lib/analytics.js); aparece só enquanto não houver escolha salva.
+ * Aviso de cookies + diálogo de preferências (revisão de 13/10/2026).
  *
- * Compacto de propósito (12/10/2026): o cartão antigo, de 340×153px no canto
- * ESQUERDO, cobria as ações dos heróis — que são alinhadas à esquerda — em
- * Home, Participar, Apoiar e Contato, e no celular ocupava 179px acima da
- * barra de abas. Agora:
- *   - desktop: cartão de uma linha no canto DIREITO, onde os heróis têm foto;
- *   - ≤900px: faixa de largura cheia logo acima da barra de abas.
- * A altura real vai para `--scw-aviso-h` no <body>: o rodapé e o botão Topo a
- * descontam, então nenhum conteúdo fica para sempre embaixo do aviso.
+ * O aviso aparece enquanto não houver escolha VÁLIDA (consentimento.js: sem
+ * registro, registro ilegível, versão antiga ou vencido). Fechar a aba, rolar
+ * ou continuar navegando não decide nada — só os botões decidem.
  *
- * Não é diálogo modal: não prende foco nem bloqueia a página. É uma região
- * nomeada, e os dois botões entram na ordem normal de tabulação.
+ * Recusar e aceitar têm o MESMO tamanho e o mesmo peso de botão: a recusa não
+ * vira link discreto. "Configurar" abre o diálogo, que também abre de qualquer
+ * lugar por `abrirPreferencias()` (rodapé, folha "mais", Edições, Política de
+ * Cookies).
+ *
+ * Não é modal: região nomeada, sem prender foco nem bloquear a página.
+ * Desktop: cartão no canto inferior DIREITO (os heróis têm as ações à
+ * esquerda). ≤900px: faixa de largura cheia acima da barra de abas, com as
+ * ações em linhas. A altura real vai para `--scw-aviso-h` no <body>: o rodapé
+ * e o botão Topo a descontam.
  */
 export function CookieConsent() {
-  const [visible, setVisible] = React.useState(false)
+  const [visivel, setVisivel] = React.useState(false)
+  const [pref, setPref] = React.useState({ aberto: false, gatilho: null })
   const ref = React.useRef(null)
 
   React.useEffect(() => {
-    if (!getConsent()) setVisible(true)
+    setVisivel(!lerPreferencia())
+    // Escolha feita aqui, no diálogo ou em outra aba: o aviso segue o estado.
+    const sair = aoMudar((p) => setVisivel(!p))
+    const pedir = aoPedirPreferencias((gatilho) => setPref({ aberto: true, gatilho }))
+    return () => { sair(); pedir() }
   }, [])
 
   React.useLayoutEffect(() => {
     const el = ref.current
-    if (!visible || !el) return
+    if (!visivel || !el) return
     const corpo = document.body
     const escrever = () => corpo.style.setProperty('--scw-aviso-h', `${Math.ceil(el.getBoundingClientRect().height)}px`)
     escrever()
@@ -37,26 +45,41 @@ export function CookieConsent() {
       if (ro) ro.disconnect()
       corpo.style.removeProperty('--scw-aviso-h')
     }
-  }, [visible])
+  }, [visivel])
 
-  if (!visible) return null
-
-  const accept = () => { grantConsent(); setVisible(false) }
-  const reject = () => { denyConsent(); setVisible(false) }
+  const fecharPref = React.useCallback(() => setPref({ aberto: false, gatilho: null }), [])
 
   return (
-    <div className="cookie-consent" role="region" aria-label="Aviso de cookies" ref={ref}>
-      <p className="cookie-consent__text">
-        Aceita cookies para medir o acesso?
-      </p>
-      <div className="cookie-consent__actions">
-        <button type="button" className="cookie-consent__btn cookie-consent__btn--ghost" onClick={reject}>
-          Recusar
-        </button>
-        <button type="button" className="cookie-consent__btn cookie-consent__btn--primary" onClick={accept}>
-          Aceitar
-        </button>
-      </div>
-    </div>
+    <>
+      {visivel && (
+        <div className="cookie-consent" role="region" aria-labelledby="cookie-consent-titulo" ref={ref}>
+          <p id="cookie-consent-titulo" className="cookie-consent__titulo">Sua privacidade importa</p>
+          <p className="cookie-consent__text">
+            Com sua autorização, usamos cookies de análise para entender como o site é utilizado e
+            melhorar a experiência. Você pode recusar ou mudar sua escolha depois.
+          </p>
+          <div className="cookie-consent__actions">
+            <button type="button" className="cookie-consent__btn cookie-consent__btn--recusar" onClick={() => salvarPreferencia(false)}>
+              Recusar opcionais
+            </button>
+            <button type="button" className="cookie-consent__btn cookie-consent__btn--aceitar" onClick={() => salvarPreferencia(true)}>
+              Aceitar análise
+            </button>
+          </div>
+          <div className="cookie-consent__mais">
+            <button
+              type="button"
+              className="cookie-consent__btn cookie-consent__btn--configurar"
+              aria-haspopup="dialog"
+              onClick={(e) => setPref({ aberto: true, gatilho: e.currentTarget })}
+            >
+              Configurar
+            </button>
+            <a className="cookie-consent__link" href="#/cookies">Política de Cookies</a>
+          </div>
+        </div>
+      )}
+      <PreferenciasCookies aberto={pref.aberto} gatilho={pref.gatilho} onFechar={fecharPref} />
+    </>
   )
 }

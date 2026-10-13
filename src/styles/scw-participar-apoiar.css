@@ -1063,6 +1063,7 @@ body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: va
   font: 400 13.5px/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
 }
+.scw-raiz .pa-form__consent a { font-weight: 700; color: var(--scw-choco); text-decoration: underline; text-underline-offset: 3px; }
 .pa-form__enviar {
   background: var(--scw-choco);
   color: var(--scw-creme);

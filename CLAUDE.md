@@ -137,6 +137,7 @@ Wilker por escrito.
 | **Participar** (`/participar`) | Converter marcas | existe, 6 seções (§7.4) |
 | **Apoiar** (`/apoiar`) | Converter patrocínio | existe, 5 seções (§7.5) |
 | **Contato** (`/contato`) | Triar e responder | existe, 3 seções (§7.6) |
+| **Documentos legais** (`/privacidade`, `/cookies`, `/termos`) | Privacidade, cookies e termos de uso | existem desde 13/10/2026 — abrem antes de qualquer gate (§7.9) |
 
 O plano completo de conteúdo por página está em `acervo/plano-site-institucional.md`.
 Este documento cobre **como construir**; o plano cobre **o que dizer**.
@@ -177,6 +178,8 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
 | `npm run build && npm run test:casca-institucional` | sem `?preview` cada rota abre a própria página, com menu, e baixa só o chunk dela; aviso de cookies não cobre ação principal, régua nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
 | `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
+| `npm run test:consentimento` | preferência de cookies (ausente, inválida, vencida, versão antiga, storage quebrado, outra aba), endereço limpo do Analytics e documentos legais sob cada gate |
+| `npm run build && npm run test:privacidade` | pela REDE: nenhum pedido ao Google Analytics antes do aceite nem depois de recusar; aceite carrega uma vez; revogação apaga `_ga` e para os envios; diálogo (foco, Tab, Escape); documentos por link direto; capturas em `tests/capturas-privacidade/` |
 | `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
 | `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
 | `npm run test:imagens` | reprova componente que monta caminho de imagem na mão |

@@ -17,6 +17,7 @@ import { CONTACT_SUBJECTS } from '../../../data/contactFaq'
 import ScwIcon from '../../../components/scw-icons/ScwIcon'
 import Rotulo from '../../../components/Rotulo'
 import Seta from '../../../components/Seta'
+import { NotaPrivacidade } from '../../../components/NotaPrivacidade'
 import { CAMINHOS, FORMULARIO as F, MENSAGEM } from '../../../data/conteudo/contato'
 import { idCampo, useFormularioContato } from '../useFormularioContato'
 
@@ -100,7 +101,7 @@ function Formulario() {
       )}
 
       <div className="ctt-form__pe">
-        <span className="ctt-form__nota">{F.nota}</span>
+        <NotaPrivacidade className="ctt-form__nota" texto={F.nota} />
         <button type="submit" className="scw-btn ctt-btn-choco ctt-enviar" disabled={enviando}>
           {enviando ? F.enviando : F.enviar} <Seta size={17} />
         </button>

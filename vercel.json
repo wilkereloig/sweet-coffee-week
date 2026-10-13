@@ -112,6 +112,18 @@
       "destination": "/"
     },
     {
+      "source": "/privacidade",
+      "destination": "/"
+    },
+    {
+      "source": "/cookies",
+      "destination": "/"
+    },
+    {
+      "source": "/termos",
+      "destination": "/"
+    },
+    {
       "source": "/edicoes/:path*",
       "destination": "/"
     },

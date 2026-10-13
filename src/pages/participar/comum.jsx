@@ -6,6 +6,7 @@
 import React from 'react'
 import { HeroFotos } from '../../components/HeroFotos'
 import { Rotulo } from '../../components/Rotulo'
+import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 
 const movimentoReduzido = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -61,9 +62,13 @@ export function HeroPa({ fotos, titulo, lead, children }) {
   )
 }
 
-/** Barra de ação fixa do desktop: entra depois de o herói sair da tela. */
+/** Barra de ação fixa do desktop: entra depois de o herói sair da tela.
+ *  Reserva a base (useReservaDaBase): o aviso de cookies, que mora no canto
+ *  inferior direito, sobe acima dela em vez de cobrir o botão da barra. */
 export function BarraAcao({ texto, children }) {
   const [visivel, setVisivel] = React.useState(false)
+  const ref = React.useRef(null)
+  useReservaDaBase(ref)
   React.useEffect(() => {
     const onScroll = () => setVisivel(window.scrollY > window.innerHeight * 0.9)
     onScroll()
@@ -73,7 +78,7 @@ export function BarraAcao({ texto, children }) {
   // Escondida (fora da tela), a barra sai também da tabulação: `inert` em string,
   // que o React 18 repassa ao DOM como atributo.
   return (
-    <div className={`pa-barra${visivel ? ' is-visivel' : ''}`} data-mo-fora {...(visivel ? {} : { inert: '' })}>
+    <div ref={ref} className={`pa-barra${visivel ? ' is-visivel' : ''}`} data-mo-fora {...(visivel ? {} : { inert: '' })}>
       <span>{texto}</span>
       {children}
     </div>

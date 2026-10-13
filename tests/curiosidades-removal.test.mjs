@@ -11,12 +11,14 @@ test('Curiosidades is retired without changing the Home page', () => {
   const app = read('src/App.jsx')
   const nav = read('src/components/nav.jsx')
   const home = read('src/pages/institutional/Home.jsx')
+  // A tabela de rotas saiu do App para src/lib/rotas.js (13/10/2026).
+  const rotas = read('src/lib/rotas.js')
 
   assert.doesNotMatch(app, /CuriosidadesPage|route-curiosidades|case ['"]curiosidades['"]|FOOTER_ROUTES[^\n]*curiosidades/)
   assert.doesNotMatch(nav, /id:\s*['"]curiosidades['"]|href:\s*['"]#\/curiosidades['"]|label:\s*['"]Curiosidades['"]/) 
   assert.match(app, /RETIRED_PUBLIC_PATHS\s*=\s*\[['"]\/curiosidades['"]\]/)
   assert.match(app, /RETIRED_PUBLIC_PATHS[\s\S]*navigate\(['"]\/edicoes['"]\)/)
-  assert.match(app, /path\.startsWith\(['"]\/curiosidades['"]\)\) return ['"]edicoes['"]/) 
+  assert.match(rotas, /path\.startsWith\(['"]\/curiosidades['"]\)\) return ['"]edicoes['"]/)
   assert.ok(existsSync(new URL('src/pages/institutional/Curiosidades.jsx', root)) === false)
   assert.ok(existsSync(new URL('src/styles/curiosidades.css', root)) === false)
   // O trabalho paralelo da Home foi concluído: o CTA de Curiosidades virou Edições

@@ -111,7 +111,7 @@ export const FORMULARIO = {
     message: { rotulo: 'Mensagem', exemplo: 'Escreva sua dúvida ou mensagem.' },
   },
   obrigatorio: 'Todos os campos são obrigatórios.',
-  nota: 'Seus dados são usados apenas para responder esta mensagem.',
+  nota: 'Usamos seus dados só para responder esta mensagem.',
   enviar: 'Enviar mensagem',
   enviando: 'Enviando…',
   enviandoAviso: 'Enviando sua mensagem…',

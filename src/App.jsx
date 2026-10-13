@@ -13,6 +13,8 @@ import { useSiteMotion } from './hooks/useSiteMotion'
 import { applyPageMeta } from './lib/pageMeta'
 
 import { CARREGADORES } from './pages/carregadores'
+import { resolverRota, documentoLegal } from './lib/rotas'
+import { iniciarAnalytics } from './lib/analytics'
 
 // Uma página, um chunk (src/pages/carregadores.js). O gate abaixo decide a ROTA
 // antes de qualquer página ser pedida: sob PARTICIPAR_ONLY só o chunk de
@@ -113,7 +115,7 @@ const INSTITUTIONAL_PREVIEW = (() => {
 // Rodapé institucional: páginas onde o SiteFooter aparece. Nunca no painel interno.
 // 'vencedores' fica de fora por ora (Awards publicado ainda não revisado com footer);
 // liberar quando o institucional/Awards forem revisados.
-const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards']
+const FOOTER_ROUTES = ['home', 'edicoes', 'participar', 'apoiar', 'contato', 'historico-awards', 'legal']
 
 const LEGACY_LOVERS_PATHS = ['/mapa', '/rota', '/participantes']
 const RETIRED_PUBLIC_PATHS = ['/curiosidades']
@@ -128,6 +130,8 @@ export default function App() {
   const [accessOpen, setAccessOpen] = React.useState(false)
 
   React.useEffect(() => { applyPalette() }, [])
+  // Analytics só entra com aceite válido (src/lib/analytics.js).
+  React.useEffect(() => { iniciarAnalytics() }, [])
 
   React.useEffect(() => {
     if (isLegacyLoversPath(path)) navigate('/')
@@ -139,40 +143,22 @@ export default function App() {
 
   const soParticipar = PARTICIPAR_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW
 
-  const route = (() => {
-    // Modo Awards-only: qualquer rota pública renderiza a página de vencedores.
-    // Exceção DEV-only: com o preview institucional ligado (ver acima), a tabela
-    // de rotas normal assume — sem alterar a flag de produção.
-    if (AWARDS_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'historico-awards'
-    // Modo "em breve": toda rota pública renderiza a landing (ver flag acima).
-    if (COMING_SOON_PUBLICATION && !INSTITUTIONAL_PREVIEW) return 'em-breve'
-    // Modo "só Participar": toda rota pública renderiza Participar (ver flag).
-    if (soParticipar) return 'participar'
-    // Rota direta p/ revisar a landing em DEV/preview.
-    if (path.startsWith('/em-breve')) return 'em-breve'
-    // Lançamento parcial: Contato e Participar (link direto) saem livres;
-    // qualquer outra rota pública vira a espera (inclusive a home). Ver
-    // AGUARDE_ONLY_PUBLICATION acima.
-    if (
-      AGUARDE_ONLY_PUBLICATION && !INSTITUTIONAL_PREVIEW &&
-      !path.startsWith('/contato') && !path.startsWith('/participar')
-    ) return 'aguarde'
-    if (path === '/' || path === '') return 'home'
-    if (path.startsWith('/edicoes'))      return 'edicoes'
-    if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
-    // Curiosidades foi descontinuada; o endereço antigo continua seguro via Edições.
-    if (path.startsWith('/curiosidades')) return 'edicoes'
-    if (path.startsWith('/participar'))   return 'participar'
-    if (path.startsWith('/apoiar'))       return 'apoiar'
-    if (path.startsWith('/contato'))      return 'contato'
-    return 'home'
-  })()
+  // A regra mora em src/lib/rotas.js (testada com cada flag ligada). Os
+  // documentos legais resolvem antes de qualquer gate; o resto segue igual.
+  const route = resolverRota(path, {
+    awardsOnly: AWARDS_ONLY_PUBLICATION,
+    comingSoon: COMING_SOON_PUBLICATION,
+    soParticipar,
+    aguarde: AGUARDE_ONLY_PUBLICATION,
+    preview: INSTITUTIONAL_PREVIEW,
+  })
 
   const Pagina = PAGINAS[route] || PAGINAS.home
   // Edições tem cabeçalho próprio (o do site não é renderizado nessa rota), então
   // o botão de acesso precisa do gatilho do diálogo vindo daqui.
   const propsDaPagina = route === 'edicoes'
     ? { navigate, onOpenAccess: () => setAccessOpen(true), accessOpen }
+    : route === 'legal' ? { navigate, documento: documentoLegal(path) }
     : route === 'em-breve' || route === 'aguarde' ? {} : { navigate }
 
   React.useEffect(() => {
@@ -193,9 +179,10 @@ export default function App() {
       home: '/', edicoes: '/edicoes', 'historico-awards': '/sweet-awards',
       participar: '/participar', apoiar: '/apoiar', contato: '/contato',
       'em-breve': '/', aguarde: '/',
+      legal: `/${documentoLegal(path)}`,
     }
     applyPageMeta(pathPorRota[route] || '/')
-  }, [route])
+  }, [route, path])
 
   // Áreas internas (painéis) e as duas landings de espera ("em breve" e
   // "aguarde") são tela cheia: sem header/menu público (o menu levaria

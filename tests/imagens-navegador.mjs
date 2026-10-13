@@ -18,7 +18,7 @@ const GENERICO = /^(imagem|foto|banner|doce|combo|logo)\.?$/i
 
 const b = await chromium.launch()
 const P = []
-const SEED = { storageState: { cookies: [], origins: [{ origin: 'http://localhost:5204', localStorage: [{ name: 'scw_consent', value: 'denied' }] }] } }
+const SEED = { storageState: { cookies: [], origins: [{ origin: 'http://localhost:5204', localStorage: [{ name: 'scw_privacidade', value: JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 }) }] }] } }
 
 for (const [tela, w, h] of [['desktop',1440,900],['mobile',390,844]]) {
   const ctx = await b.newContext({ ...SEED, viewport: { width: w, height: h } })

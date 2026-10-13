@@ -5,6 +5,7 @@ import { SEGMENTOS, INTERESSES } from '../../../lib/supportInterest'
 import { INSTAGRAM_URL, INSTAGRAM_HANDLE } from '../../../config/channels'
 import { PROPOSTA as P } from '../../../data/conteudo/apoiar'
 import { Destaque } from '../../participar/comum'
+import { NotaPrivacidade } from '../../../components/NotaPrivacidade'
 import { usePropostaApoio } from '../usePropostaApoio'
 
 const ID_CONTATO = 'pa-apoio-contato-err'
@@ -122,7 +123,7 @@ export function Proposta() {
           </div>
 
           <div className="pa-form__pe">
-            <p className="pa-form__consent">{P.privacidade}</p>
+            <p className="pa-form__consent"><NotaPrivacidade texto={P.privacidade} /></p>
             <button type="submit" className="scw-btn pa-form__enviar" disabled={sending}>
               {sending ? 'Enviando…' : <>Enviar proposta <Seta /></>}
             </button>

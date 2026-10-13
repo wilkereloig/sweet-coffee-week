@@ -1,6 +1,15 @@
 import React from 'react'
 import { NAV_LINKS, MARCA_SCW } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
+import { abrirPreferencias } from '../lib/consentimento'
+
+/* Documentos legais: ficam no rodapé de toda página, inclusive com a
+   navegação reduzida (`semLinks`) — nunca no menu principal. */
+export const LINKS_LEGAIS = [
+  ['/privacidade', 'Política de Privacidade'],
+  ['/cookies', 'Política de Cookies'],
+  ['/termos', 'Termos de Uso'],
+]
 
 /**
  * Rodapé institucional — redesign 2026.
@@ -10,7 +19,8 @@ import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
  *
  * `semLinks` — publicação "só Participar" (18/09/2026): saem a navegação e o
  * "Falar com a gente", que levariam de volta à própria Participar. Ficam a
- * marca, o Instagram e a barra final.
+ * marca, o Instagram e a barra final. Os documentos legais e as
+ * preferências de cookies ficam SEMPRE (13/10/2026).
  */
 export function SiteFooter({ navigate, route, semLinks = false }) {
   const ir = (href) => (e) => {
@@ -64,6 +74,13 @@ export function SiteFooter({ navigate, route, semLinks = false }) {
           )}
         </div>
       </div>
+
+      <nav className="scw-footer__legal" aria-label="Privacidade e termos">
+        {LINKS_LEGAIS.map(([href, rotulo]) => (
+          <a key={href} href={`#${href}`} onClick={ir(`#${href}`)}>{rotulo}</a>
+        ))}
+        <button type="button" aria-haspopup="dialog" onClick={abrirPreferencias}>Preferências de cookies</button>
+      </nav>
 
       <div className="scw-footer__base">
         <span>&copy; {ano} Sweet &amp; Coffee Week · Natal e Parnamirim, RN</span>

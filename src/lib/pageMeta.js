@@ -22,6 +22,12 @@ export function metaForPath(path) {
     return { title: `Participar | Inscreva sua marca no ${BASE}`, description: 'Docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas podem demonstrar interesse em participar das próximas edições do Sweet & Coffee Week.' }
   if (p.startsWith('/apoiar'))
     return { title: `Apoiar | Patrocínio e parcerias ${BASE}`, description: 'Conheça oportunidades de apoio, patrocínio e ativação de marca no Sweet & Coffee Week, festival gastronômico que movimenta Natal e conecta marcas aos Sweet Lovers.' }
+  if (p.startsWith('/privacidade'))
+    return { title: `Política de Privacidade | ${BASE}`, description: 'Como o Sweet & Coffee Week trata os dados enviados nos formulários e a análise de acesso, e como pedir acesso, correção ou exclusão.' }
+  if (p.startsWith('/cookies'))
+    return { title: `Política de Cookies | ${BASE}`, description: 'O que o site do Sweet & Coffee Week guarda no seu navegador e como aceitar, recusar ou mudar a sua escolha.' }
+  if (p.startsWith('/termos'))
+    return { title: `Termos de Uso | ${BASE}`, description: 'Regras de uso do site institucional do Sweet & Coffee Week.' }
   if (p.startsWith('/contato'))
     return { title: `Contato | ${BASE}`, description: 'Fale com a organização do Sweet & Coffee Week para dúvidas, imprensa, participação, patrocínio, parcerias e informações gerais.' }
   return { title: `${BASE} | Festival gastronômico em Natal/RN`, description: 'Conheça o Sweet & Coffee Week, festival gastronômico criado em Natal que reúne marcas locais em uma rota de combos exclusivos, temas criativos e experiências por tempo limitado.' }

@@ -3,6 +3,8 @@ import { NAV_LINKS, MARCA_SCW, pageColorDark, ChaveIcon } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
 import { precarregar } from '../pages/carregadores'
+import { LINKS_LEGAIS } from './SiteFooter'
+import { abrirPreferencias } from '../lib/consentimento'
 
 /*
  * Folha "mais" do mobile — redesign 2026.
@@ -148,6 +150,17 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
         <a className="scw-folha__insta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
           {INSTAGRAM_HANDLE} no Instagram
         </a>
+
+        {/* Privacidade: a folha é a navegação inteira no celular, inclusive em
+            Edições, que não tem o rodapé comum. */}
+        <div className="scw-folha__legal">
+          {LINKS_LEGAIS.map(([href, rotulo]) => (
+            <a key={href} href={`#${href}`} onClick={(e) => { e.preventDefault(); onClose(); navigate(href) }}>{rotulo}</a>
+          ))}
+          <button type="button" aria-haspopup="dialog" onClick={() => { onClose(); abrirPreferencias() }}>
+            Preferências de cookies
+          </button>
+        </div>
       </div>
     </>
   )

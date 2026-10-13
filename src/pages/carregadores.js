@@ -20,6 +20,7 @@ export const CARREGADORES = {
   contato: () => import('./institutional/Contato').then(comoPadrao('ContatoPage')),
   'em-breve': () => import('./institutional/EmBreve').then(comoPadrao('EmBrevePage')),
   aguarde: () => import('./institutional/Aguarde').then(comoPadrao('AguardePage')),
+  legal: () => import('./institutional/Legal').then(comoPadrao('LegalPage')),
 }
 
 /** Adianta o download da página de uma rota (hover/foco/toque no link). */

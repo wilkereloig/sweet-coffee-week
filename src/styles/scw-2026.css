@@ -943,6 +943,24 @@ body { margin: 0; }
   font: 700 15px/1 var(--scw-font-ui);
   color: var(--scw-cyan);
 }
+.scw-folha__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+  margin-top: 6px;
+}
+.scw-raiz .scw-folha__legal a,
+.scw-folha__legal button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 700 13.5px/1.2 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .84);
+  cursor: pointer;
+}
 
 /* ============================================================================
    Casca — aviso de cookies (LGPD)
@@ -965,17 +983,16 @@ body { margin: 0; }
      régua de Edições), declarada por useReservaDaBase — o aviso sobe acima. */
   bottom: calc(clamp(12px, 2vw, 24px) + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
   z-index: 1000;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 16px;
-  /* 400px, não 520: em 1024px o cartão largo alcançava o 2º botão dos heróis
-     (Apoiar, "Ver alcance e formatos"). Estreito, as ações descem para baixo
-     do texto e o cartão fica à direita de qualquer par de botões. */
-  width: min(400px, calc(100vw - 24px));
-  max-height: 40svh;
+  display: grid;
+  gap: 10px;
+  /* 13/10/2026: título, texto, duas ações iguais e "Configurar" + política.
+     Continua estreito e à direita para não alcançar os botões dos heróis. */
+  width: min(420px, calc(100vw - 24px));
+  /* Tela baixa ou zoom alto: o cartão rola por dentro, nunca sai da tela. */
+  max-height: calc(100svh - 24px - var(--scw-safe-b) - var(--scw-base-ocupada, 0px));
   overflow-y: auto;
-  padding: 12px 12px 12px 18px;
+  overscroll-behavior: contain;
+  padding: 16px 16px 12px 18px;
   border: 1px solid rgba(254, 240, 221, .28);
   border-radius: var(--scw-r-card);
   background: var(--scw-choco);
@@ -987,48 +1004,225 @@ body { margin: 0; }
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
-/* Base de 150px: abaixo disso (telas de 360px ou zoom alto) o texto ganha a
-   linha inteira e as ações descem para a direita, em vez de virar uma coluna
-   de cinco linhas espremida ao lado dos botões. */
-.cookie-consent__text {
-  flex: 1 1 150px;
-  min-width: 0;
+.cookie-consent__titulo {
   margin: 0;
-  font: 400 14px/1.45 var(--scw-font-texto);
+  font: 900 18px/1.1 var(--scw-font-black);
+  letter-spacing: -.01em;
+  color: var(--scw-creme);
+}
+.cookie-consent__text {
+  margin: 0;
+  font: 400 14.5px/1.45 var(--scw-font-texto);
   color: rgba(254, 240, 221, .9);   /* .9 sobre chocolate ≈ 10:1 */
   text-wrap: pretty;
 }
-.cookie-consent__actions { display: flex; flex: 0 0 auto; gap: 8px; margin-left: auto; }
+/* Recusar e aceitar: mesma largura, mesma altura, mesmo peso. Em cartão
+   estreito (360px com zoom) cada um ganha a linha inteira. */
+.cookie-consent__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+.cookie-consent__mais {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
 /* 46px é o piso do §6.10 para pílula de ação dentro de card. */
 .cookie-consent__btn {
   appearance: none;
   min-height: 46px;
-  padding: 0 18px;
+  padding: 0 16px;
   border: 0;
   border-radius: 999px;
-  font: 700 14px/1 var(--scw-font-ui);
+  font: 700 14px/1.15 var(--scw-font-ui);
   cursor: pointer;
   transition: var(--scw-transicao);
 }
-.cookie-consent__btn--primary { background: var(--scw-amarelo); color: var(--scw-choco); }
-.cookie-consent__btn--ghost {
-  border: 1px solid rgba(254, 240, 221, .28);
+.scw-raiz .cookie-consent__btn--recusar { background: var(--scw-creme); color: var(--scw-choco); }
+.scw-raiz .cookie-consent__btn--aceitar { background: var(--scw-amarelo); color: var(--scw-choco); }
+.scw-raiz .cookie-consent__btn--configurar {
+  min-height: 44px;
+  border: 1px solid rgba(254, 240, 221, .5);
   background: transparent;
   color: var(--scw-creme);
 }
+.scw-raiz .cookie-consent__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font: 700 14px/1 var(--scw-font-ui);
+  color: var(--scw-creme);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Desktop largo: as três ações numa linha só e a política ao lado do
+   título — o cartão fica com ~160px em vez de ~250px e não alcança o botão do
+   Instagram na abertura da Home. Abaixo de 1200px o cartão continua estreito
+   (420px), para não chegar às ações dos heróis em 1024px. */
+@media (min-width: 1200px) {
+  .cookie-consent {
+    width: min(580px, calc(100vw - 24px));
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-areas:
+      "titulo titulo link"
+      "texto texto texto"
+      "recusar aceitar configurar";
+    column-gap: 8px;
+    row-gap: 8px;
+    padding-bottom: 16px;
+  }
+  .cookie-consent__actions,
+  .cookie-consent__mais { display: contents; }
+  .cookie-consent__titulo { grid-area: titulo; align-self: center; }
+  .cookie-consent__text { grid-area: texto; }
+  .cookie-consent__btn--recusar { grid-area: recusar; }
+  .cookie-consent__btn--aceitar { grid-area: aceitar; }
+  .scw-raiz .cookie-consent__btn--configurar { grid-area: configurar; min-height: 46px; }
+  .scw-raiz .cookie-consent__link { grid-area: link; justify-self: end; margin-block: -8px; }
+}
 @media (hover: hover) {
   .cookie-consent__btn:hover { transform: translateY(-1px); }
-  .cookie-consent__btn--primary:hover { background: var(--scw-bege); }
-  .cookie-consent__btn--ghost:hover {
-    border-color: rgba(254, 240, 221, .6);
-    background: rgba(254, 240, 221, .06);
-  }
+  .scw-raiz .cookie-consent__btn--recusar:hover,
+  .scw-raiz .cookie-consent__btn--aceitar:hover { background: var(--scw-bege); }
+  .scw-raiz .cookie-consent__btn--configurar:hover { border-color: var(--scw-creme); background: rgba(254, 240, 221, .08); }
 }
 .cookie-consent__btn:active { transform: translateY(0) scale(.985); }
+
+/* ---- Diálogo "Preferências de cookies" -----------------------------------
+   <dialog> nativo em modal: o resto da página fica inerte, Escape fecha sem
+   salvar. Creme sobre véu chocolate, como as folhas do sistema. */
+.scw-pref {
+  width: min(580px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100svh - 24px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--scw-r-secao);
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+  box-shadow: var(--scw-sombra-card);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.scw-pref[open] { animation: moSurge var(--mo-estado) var(--mo-ease) both; }
+.scw-pref::backdrop { background: rgba(43, 14, 6, .62); }
+.scw-pref__caixa { padding: clamp(20px, 3vw, 32px); }
+.scw-pref__topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.scw-pref__titulo {
+  margin: 4px 0 0;
+  font: 900 clamp(24px, 2.4vw, 30px)/1 var(--scw-font-black);
+  letter-spacing: -.03em;
+}
+.scw-pref__titulo:focus { outline: none; }
+.scw-pref__titulo:focus-visible { outline: 3px solid var(--scw-cyan); outline-offset: 4px; }
+.scw-pref__fechar {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scw-bege);
+  color: var(--scw-choco);
+  cursor: pointer;
+}
+.scw-pref__intro,
+.scw-pref__cat p {
+  margin: 12px 0 0;
+  font: 400 15.5px/1.55 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  max-width: 62ch;
+}
+.scw-pref__cat { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(61, 19, 8, .14); }
+.scw-pref__cat-cabeca { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.scw-pref__cat-titulo { margin: 0; font: 700 17px/1.2 var(--scw-font-ui); }
+.scw-pref__sempre {
+  padding: 7px 12px 6px;
+  border-radius: 999px;
+  background: var(--scw-bege);
+  font: 700 12px/1 var(--scw-font-ui);
+  letter-spacing: .04em;
+  color: var(--scw-marrom);
+}
+/* Interruptor: estado em três pistas — posição da bolinha, chapa cheia e a
+   palavra ao lado. Marrom e chocolate sobre creme passam 3:1 de componente. */
+.scw-pref__chave {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--scw-choco);
+  font: 700 14px/1 var(--scw-font-ui);
+  cursor: pointer;
+}
+.scw-pref__chave-trilho {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  border: 2px solid var(--scw-marrom);
+  border-radius: 999px;
+  background: transparent;
+  transition: background var(--mo-rapido) var(--mo-ease), border-color var(--mo-rapido) var(--mo-ease);
+}
+.scw-pref__chave-trilho > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--scw-marrom);
+  transition: translate var(--mo-rapido) var(--mo-ease), background var(--mo-rapido) var(--mo-ease);
+}
+.scw-pref__chave[aria-checked="true"] .scw-pref__chave-trilho { background: var(--scw-choco); border-color: var(--scw-choco); }
+.scw-pref__chave[aria-checked="true"] .scw-pref__chave-trilho > span { translate: 22px 0; background: var(--scw-amarelo); }
+.scw-pref__chave-estado { min-width: 7.5ch; text-align: left; }
+.scw-pref__acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.scw-pref__btn {
+  flex: 1 1 160px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 2px solid var(--scw-choco);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--scw-choco);
+  font: 700 15px/1.15 var(--scw-font-ui);
+  cursor: pointer;
+  transition: var(--scw-transicao);
+}
+.scw-pref__btn--salvar { background: var(--scw-choco); color: var(--scw-creme); }
+@media (hover: hover) {
+  .scw-pref__btn:hover { background: var(--scw-bege); }
+  .scw-pref__btn--salvar:hover { background: var(--scw-marrom); border-color: var(--scw-marrom); }
+}
+.scw-raiz .scw-pref__link,
+.scw-pref__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 10px;
+  font: 700 14px/1 var(--scw-font-ui);
+  color: var(--scw-choco);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .cookie-consent { animation: none; }
   .cookie-consent__btn { transition: none; }
+  .scw-pref[open] { animation: none; }
+  .scw-pref__chave-trilho,
+  .scw-pref__chave-trilho > span,
+  .scw-pref__btn { transition: none; }
 }
 
 /* ≤900px o modo aplicativo assume: entram a barra de abas e a folha "mais", e o
@@ -1038,19 +1232,19 @@ body { margin: 0; }
   /* Faixa de largura cheia: texto à esquerda, as duas ações à direita, numa
      linha só sempre que couber. Fica colada acima da barra de abas e nunca
      sobre ela — as abas continuam tocáveis com o aviso aberto. */
+  /* Faixa de largura cheia, ações em linhas: título, texto, recusar | aceitar,
+     configurar | política. Fonte no piso do corpo (§6.5), nunca menor. */
   .cookie-consent {
     left: 8px;
     right: 8px;
     bottom: calc(8px + var(--scw-safe-b) + var(--scw-base-ocupada, 0px));
     width: auto;
-    padding: 10px 10px 10px 14px;
+    gap: 8px;
+    padding: 14px 12px 8px 14px;
     border-radius: 16px;
   }
-  /* Base de 120px (não 150): em 360px o texto fica ao lado dos botões, em três
-     linhas, e o cartão perde ~40px de altura — com 150 ele quebrava em duas
-     faixas e cobria o 2º botão do herói de Participar, Apoiar e da Home. */
-  .cookie-consent__text { flex-basis: 120px; font-size: var(--scw-piso-corpo-mob); line-height: 1.35; }
-  .cookie-consent__btn { padding: 0 14px; }
+  .cookie-consent__titulo { font-size: 16px; }
+  .cookie-consent__text { font-size: var(--scw-piso-corpo-mob); line-height: 1.4; }
   .scw-abas { display: block; }
   .scw-folha-veu { display: block; }
   .scw-folha { display: flex; }
@@ -1548,6 +1742,33 @@ body { margin: 0; }
   color: rgba(254, 240, 221, .62);
 }
 .scw-footer__base strong { color: var(--scw-creme); font-weight: 800; }
+
+/* Documentos legais e preferências de cookies (13/10/2026): no rodapé de toda
+   página, inclusive com a navegação reduzida. O botão tem a mesma cara dos
+   links — abre o diálogo de preferências. */
+.scw-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  padding-top: 6px;
+}
+.scw-raiz .scw-footer__legal a,
+.scw-footer__legal button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 700 13.5px/1.2 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .84);
+  text-decoration: none;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .scw-raiz .scw-footer__legal a:hover,
+  .scw-footer__legal button:hover { color: var(--scw-creme); text-decoration: underline; text-underline-offset: 3px; }
+}
 
 /* ============================================================================
    Herói institucional (Home, Participar, Apoiar, Contato)

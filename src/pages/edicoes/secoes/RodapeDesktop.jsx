@@ -2,6 +2,7 @@ import React from 'react'
 import { CENAS, TEXTOS } from '../../../data/conteudo/edicoes'
 import { useReservaDaBase } from '../../../hooks/useReservaDaBase'
 import { SetaEdicao } from './SetaEdicao'
+import { abrirPreferencias } from '../../../lib/consentimento'
 
 /*
  * RODAPÉ DO DESKTOP — a linha do tempo das 16 edições: `seta · anos · seta`,
@@ -49,6 +50,12 @@ export function RodapeDesktop({ i, numero, cena, anterior, proxima, vaiPara, pas
       <div className="scw-edx__rodape-legenda">
         <span className="scw-edx__rodape-atual">{numero} · {cena.tema}</span>
         <span className="scw-edx__rodape-dica">{TEXTOS.dica}</span>
+        {/* Edições não tem o rodapé comum: privacidade e cookies moram aqui
+            no desktop (no celular, na folha "mais"). */}
+        <span className="scw-edx__rodape-legal">
+          <a href="#/privacidade">Privacidade</a>
+          <button type="button" aria-haspopup="dialog" onClick={abrirPreferencias}>Preferências de cookies</button>
+        </span>
       </div>
     </footer>
   )

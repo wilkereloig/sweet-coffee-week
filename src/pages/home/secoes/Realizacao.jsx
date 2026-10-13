@@ -1,6 +1,7 @@
 import React from 'react'
 import { F2_NUMEROS } from '../../../data/conteudo/home'
 import { Seta } from '../../../components/Seta'
+import { CONTATO_EMAIL } from '../../../config/channels'
 
 /* ============================================================================
    07 Realização — bloco oficial da F2 Experience, preservado como estava.
@@ -49,7 +50,7 @@ export function Realizacao() {
 
         <div className="f2-realiza__assinatura">
           <span>F2 <em>realiza.</em></span>
-          <span className="f2-realiza__meta">contato@fabrica2.com.br · @f2experience</span>
+          <span className="f2-realiza__meta">{CONTATO_EMAIL} · @f2experience</span>
         </div>
       </div>
     </section>

@@ -127,7 +127,7 @@ export const PROPOSTA = {
   texto: 'A organização responde pelo contato informado para conversar sobre formatos, disponibilidade e condições.',
   sucessoTitulo: 'Proposta registrada.',
   sucesso: 'A organização do Sweet & Coffee Week recebeu sua proposta e retorna pelo contato informado para conversar sobre formato e disponibilidade.',
-  privacidade: 'Seus dados são usados pela organização apenas para contato e análise da proposta.',
+  privacidade: 'Usamos estes dados só para analisar a proposta e falar com você sobre ela.',
   barra: 'Apoio para a próxima edição: fale com a organização.',
   barraAcao: 'Falar sobre apoio',
 }
