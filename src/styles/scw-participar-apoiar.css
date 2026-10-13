@@ -11,25 +11,15 @@
    Herói (abertura das duas páginas) — usa .scw-hero-bloco + .scw-hero-banda
    ========================================================================= */
 
-/* Herói na cor da própria página (redesign 29/07/2026) — --scw-heroi/--tinta
-   (scw-2026.css), par dedicado porque --scw-pagina não fecha AA em toda rota
-   (Participar é magenta puro; creme sobre esse rosa dá 3,8:1). */
+/* Herói na cor da própria página — --scw-heroi/--tinta (scw-2026.css): cyan
+   de tinta chocolate em Participar, marrom de tinta creme em Apoiar. O véu
+   (.scw-hero-veu) lê --scw-heroi por padrão: nenhum hex aqui. */
 .pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
 
-/* A cor do véu é a do próprio herói (cyan em Participar, marrom em Apoiar):
-   `.scw-hero-veu` lê --scw-heroi por padrão, então não há nada a declarar
-   aqui. Um hex fixo nunca — a cor vem da página. */
-
-/* PATCH 01 §6: a abertura é rótulo + H1 + lead + ações, nada mais. Sem a coluna
-   de apoio o grid perdeu a função — quem limita a medida é o próprio papel
-   (.scw-h1 17ch, .scw-lead 46ch), não uma largura de coluna inventada aqui. */
+/* A abertura é H1 + lead + ações, nada mais (§6.8; o selo saiu em 27/08/2026).
+   Quem limita a medida é o próprio papel (.scw-h1 17ch, .scw-lead 46ch). */
 .pa-hero__grade { position: relative; z-index: 1; }
-.pa-hero__selo { padding: 11px 18px 9px calc(18px + .16em); font-size: 11.5px; }
-.pa-hero__titulo { margin: clamp(20px, 2.2vw, 28px) 0 0; color: var(--scw-heroi-tinta); }
-/* Sem selo antes (Participar, que teve o dele retirado): a margem acima do
-   título era o respiro entre selo e H1 — sem selo ela só duplica o padding-top
-   do .pa-hero__grade. Zera só quando o H1 é o primeiro filho. */
-.pa-hero__titulo:first-child { margin-top: 0; }
+.pa-hero__titulo { margin: 0; color: var(--scw-heroi-tinta); }
 .pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: color-mix(in srgb, var(--scw-heroi-tinta) 88%, transparent); }
 .pa-hero__acoes {
   display: flex;
@@ -38,25 +28,19 @@
   margin-top: clamp(20px, 2.4vw, 30px);
 }
 
-/* Selo do herói: o pill usa --scw-pagina como fundo, e nas duas páginas a cor
-   da página é AGORA a cor da própria chapa do herói (cyan em Participar,
-   marrom em Apoiar) — cor sobre cor some. Cada uma inverte do jeito que o
-   fundo pede, e o padrão da casa para isso já existe em .swa-hero (Awards):
-   chapa clara, tinta na cor da página. */
-body.route-participar .pa-hero__selo { background: var(--scw-choco); color: var(--scw-creme); }
-body.route-apoiar .pa-hero__selo { background: var(--scw-creme); color: var(--scw-marrom); }
+/* Sem movimento, o destaque do título não anima (`.pa-hero *` zera a
+   animação em scw-motion.css) e ficaria parado na cor de BASE — igual ao
+   resto do título, ênfase perdida. Aqui ele já nasce no estado final. */
+@media (prefers-reduced-motion: reduce) {
+  .pa-hero .pa-destaque { color: var(--dest); font-style: italic; }
+}
 
-/* Participar herdou o herói CYAN, que é chapa CLARA de tinta chocolate: as
-   compensações abaixo são as que Apoiar usava enquanto era cyan — elas seguem a
-   cor, não a página. O tratamento especial do magenta (lead em texto grande,
-   nota em pílula chapada) morreu junto com o herói magenta: cyan × chocolate dá
-   6,2:1 e passa AA em texto pequeno. */
-body.route-participar .pa-hero__acoes .scw-btn--solido,
-body.route-participar .pa-hero__acoes .scw-btn--pagina {
+/* Participar herdou o herói CYAN, chapa CLARA de tinta chocolate: ações e
+   anel de foco em chocolate, porque o anel global é cyan e sumiria (§6.2). */
+body.route-participar .pa-hero__acoes .scw-btn--solido {
   background: var(--scw-choco);
   color: var(--scw-creme);
 }
-
 @media (hover: hover) {
   body.route-participar .pa-hero__acoes .scw-btn--solido:hover { background: var(--scw-marrom); }
 }
@@ -64,68 +48,35 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro {
   border-color: color-mix(in srgb, var(--scw-choco) 50%, transparent);
   color: var(--scw-choco);
 }
-
 @media (hover: hover) {
   body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:hover {
     background: color-mix(in srgb, var(--scw-choco) 10%, transparent);
     border-color: var(--scw-choco);
   }
 }
-/* O anel de foco global é cyan (scw-2026.css) — mesmo tom do herói desta
-   página, então some sobre esse fundo. Só aqui o anel troca para chocolate. */
-body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
-  outline-color: var(--scw-choco);
-}
+body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: var(--scw-choco); }
 
 /* Apoiar ficou com o marrom: chapa ESCURA de tinta creme (9,4:1). As regras
-   base já servem — botão sólido amarelo, contorno creme, anel cyan — então a
-   página não sobrescreve nada além do selo acima. */
+   base já servem — botão sólido amarelo, contorno creme, anel cyan. */
 
-/* No celular o herói vira banda de foto + informação (README § Herói no
-   celular). */
-/* A foto ocupa o herói inteiro nas duas telas, com o texto por cima; as três
-   imagens de cada página se revezam em crossfade (HeroFotos + as camadas do
-   sistema). A leitura é do véu (.scw-hero-veu).
-
-   A marca-d'água da identidade (.pa-hero__forma, um coração a 8%) saiu junto:
-   ela apoiava a leitura de uma chapa lisa e, com fotografia atrás, virava
-   ruído — elemento sem função sai (§6.13). */
-.pa-hero__grade { z-index: 1; }
-
-/* ⚠️ Participar é chapa CLARA de tinta chocolate: quem precisa se manter
-   íntegro é o FUNDO, não a tinta, então os alfas são maiores que os de Apoiar,
-   que é chapa escura de tinta creme — o caso do Sweet Awards, que usa os
-   valores padrão. */
-/* No CELULAR o texto ocupa a largura toda, então o véu horizontal está
-   desligado e quem carrega a leitura é só o vertical. Em Participar isso não
-   bastava: medido no build, o lead dava 4,33:1 sobre a foto — abaixo dos 4,5
-   exigidos. Os alfas sobem só aqui, só nesta página, porque é a única chapa
-   clara de tinta escura entre os heróis com texto sobre foto.
-   (Apoiar, marrom de tinta creme, mediu 7,75:1 nas mesmas condições.) */
+/* No celular (<1000px) o herói é foto em cima e texto embaixo, na chapa da
+   página (§6.9, peça do sistema). Aqui a foto é 4:3, não 1:1 (exceção de
+   22/08/2026, "encurtar o herói"). Com o título curto de 12/10/2026, a ação
+   principal fica inteira acima do aviso de cookies na primeira visita:
+   medido, a base do botão em y=581 (390×844) e y=558 (360×800).
+   ⚠️ Lado a lado as duas ações não cabem (241 + 287px numa linha de 342px):
+   não testar de novo. */
 @media (max-width: 1000px) {
-  body.route-participar .pa-hero {
-    --hv-topo: 40%;
-    --hv-meio: 88%;
-    --hv-base: 96%;
-  }
-
-  /* FOTO EM 4:3 SÓ AQUI — 22/08/2026, pedido do Eloi ("encurtar o herói de
-     Participar e Apoiar"). Estas duas são as mais altas das cinco: 983px num
-     viewport de 844, contra 770 do Contato e 826 do Awards. Levam 89px de
-     conteúdo que as outras não têm — o selo quebra em duas linhas (48px) e há
-     a nota de curadoria embaixo das ações (41px).
-     ⚠️ A outra alavanca que existia NÃO serve, e está medido: as duas ações
-     dão 241px + 287px numa linha de 342px, então lado a lado quebrariam o
-     rótulo dentro do botão e devolveriam a altura que economizassem.
-     Sobrou a proporção da foto. 4:3 tira 98px (390 → 292 num viewport de
-     390px) e leva as duas para 885px, à distância do Home (905).
-     Isto abre uma exceção à uniformidade pedida uma hora antes ("pra ficarem
-     com tamanho igual"): as outras três seguem em 1:1. Se um dia a
-     uniformidade voltar a pesar mais que a altura, o certo é levar as cinco
-     para a mesma proporção, não devolver estas duas para o quadrado. */
   .pa-hero .scw-hero-banda { aspect-ratio: 4 / 3; }
 }
+/* Tablet (600–1000px): em 4:3 a foto passava de 600px de altura e a ação
+   descia abaixo da dobra (y=909 em 900×900). 2:1, como a Home nessa faixa. */
+@media (min-width: 600px) and (max-width: 1000px) {
+  .pa-hero .scw-hero-banda { aspect-ratio: 2 / 1; }
+}
 
+/* Desktop: chapa clara (cyan) pede véu mais fechado que a escura — quem tem de
+   se manter íntegro é o FUNDO, não a tinta. Apoiar usa os valores padrão. */
 @media (min-width: 1001px) {
   body.route-participar .pa-hero {
     --hv-topo: 44%;
@@ -135,6 +86,10 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
     --hv-centro: 58%;
   }
 }
+
+/* Âncora interna (irPara) leva o foco à seção: sem anel em volta do bloco
+   inteiro — o destino já é evidente pela rolagem. */
+.pa-hero ~ section[tabindex="-1"]:focus { outline: none; }
 
 /* ============================================================================
    Cabeçalho de seção (rótulo + título + apoio) — repetido nas duas páginas
@@ -186,7 +141,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 03 — o que a marca ganha (18/09/2026)
+   Participar 04 — o que a participação oferece (mosaico de 18/09/2026)
    ========================================================================= */
 
 /* Mosaico fotográfico, não grade de cards com disco: a foto é o argumento
@@ -263,7 +218,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Faixa de números (Participar 02 · Apoiar 02)
+   Faixa de números (Participar 04 — a escala do festival)
    ========================================================================= */
 
 .pa-numeros {
@@ -277,8 +232,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   margin: 0;
   padding: 0;
 }
-/* Cada dado é um card creme sobre a chapa bege — o filete some, quem recorta é
-   o próprio fundo. Disco cyan uniforme: a cor aqui é a da página, não a do item. */
+/* Cada dado é um card; a variante --quatro abaixo pinta cada um numa cor. */
 .pa-numeros li {
   display: grid;
   grid-row: span 4;
@@ -315,6 +269,24 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   container-type: inline-size;
 }
 @media (min-width: 560px) { .pa-numeros--quatro { --cols: 2; } }
+/* Coluna única (celular): o card deita — disco à esquerda, dado à direita.
+   Empilhado, cada card media ~240px e os quatro passavam de uma tela inteira.
+   O subgrid só serve para alinhar vizinhos lado a lado; aqui não há vizinho. */
+@media (max-width: 559px) {
+  .pa-numeros.pa-numeros--quatro li {
+    grid-row: auto;
+    grid-template-rows: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 4px;
+  }
+  .pa-numeros--quatro .pa-num__disco { grid-row: span 3; }
+  /* O teto do numeral desconta o disco + vão (54 + 16px): "+R$ 712 mil"
+     (5,52em) cabe a partir de 360px de tela sem estourar o card. */
+  .pa-numeros.pa-numeros--quatro b {
+    font-size: min(clamp(38px, 4.4vw, 74px), calc((100cqi - 2 * var(--pad) - 70px) * .17));
+  }
+}
 @media (min-width: 1280px) { .pa-numeros--quatro { --cols: 4; } }
 /* Card chapado, uma cor por dado: fundo --card, tinta --card-tinta em tudo, e o
    disco inverte (chapa na tinta, ícone na cor do card) para separar do fundo.
@@ -345,46 +317,104 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Cards com ícone (Apoiar 03 "por que apoiar" — Participar removeu "quem
-   pode" em 26/08/2026, mas a base .pa-cards/.pa-card segue viva pra Apoiar)
+   Participar 03 — para quem é e como funciona (12/10/2026)
    ========================================================================= */
 
-.pa-cards {
+/* Duas colunas a partir de 1000px: quem cabe na edição (tipografia, à
+   esquerda) e o que a edição pede da casa (cartão creme sobre a chapa bege, à
+   direita). Antes de 1000 empilham na mesma ordem de leitura. */
+.pa-paraquem {
+  display: grid;
+  gap: clamp(30px, 4vw, 72px);
+}
+@media (min-width: 1000px) {
+  .pa-paraquem { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: start; }
+}
+.pa-paraquem__quem h2 { margin: clamp(14px, 1.6vw, 20px) 0 0; max-width: 18ch; }
+/* Os tipos de casa numa frase, em voz de interface e corpo grande: lista
+   corrida, sem pílula nem separador que órfã no fim da linha. */
+.pa-tipos {
+  margin: clamp(22px, 2.4vw, 32px) 0 0;
+  max-width: 36ch;
+  font: 700 clamp(18px, 1.7vw, 24px)/1.38 var(--scw-font-ui);
+  color: var(--scw-choco);
+  text-wrap: pretty;
+}
+.pa-paraquem__nota {
+  margin: 14px 0 0;
+  max-width: 52ch;
+  font: 400 clamp(15px, 1.15vw, 16.5px)/1.6 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
+}
+.pa-paraquem__como {
+  padding: clamp(22px, 2.6vw, 36px);
+  border-radius: var(--scw-r-card);
+  background: var(--scw-creme);
+}
+.pa-paraquem__como .scw-h3 { margin: 0 0 clamp(16px, 1.8vw, 24px); }
+/* Três passos em linha de leitura: disco na cor do ciclo (a cor vai para o
+   grafismo, §6.3), título e texto. Filete entre eles, não card dentro de card. */
+.pa-como {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
-  gap: clamp(10px, 1.2vw, 16px);
   margin: 0;
   padding: 0;
 }
-.pa-cards--largos {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(240px, calc((100% - 2 * clamp(12px, 1.6vw, 20px)) / 3))), 1fr));
-  gap: clamp(12px, 1.6vw, 20px);
+.pa-como li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: clamp(14px, 1.6vw, 20px) 0;
 }
-.pa-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: clamp(16px, 1.7vw, 22px);
-  border-radius: var(--scw-r-card);
-  border: 1px solid rgba(61, 19, 8, .14);
-  background: var(--scw-creme);
+.pa-como li:first-child { padding-top: 0; }
+.pa-como li:last-child { padding-bottom: 0; }
+.pa-como li + li { border-top: 1px solid rgba(61, 19, 8, .14); }
+.pa-como strong {
+  display: block;
+  padding-top: 4px;
+  font: 700 16.5px/1.25 var(--scw-font-ui);
+  color: var(--scw-choco);
 }
-.pa-cards--largos .pa-card { gap: 14px; padding: clamp(20px, 2.2vw, 28px); border-radius: var(--scw-r-card); }
-/* O disco de ícone dos cards é o .scw-disco de scw-2026.css (46px padrão). */
-.pa-card__txt { display: flex; flex-direction: column; gap: 5px; }
-.pa-card__txt b { font: 700 15.5px/1.2 var(--scw-font-ui); }
-.pa-card__txt span { font: 400 13.5px/1.4 var(--scw-font-texto); color: var(--scw-marrom); }
-.pa-card h3 {
-  margin: 0;
-  font: 900 clamp(18px, 1.7vw, 22px)/1.06 var(--scw-font-black);
-  letter-spacing: -.026em;
-}
-.pa-card p {
-  margin: 0;
+.pa-como p {
+  margin: 4px 0 0;
+  max-width: 44ch;
   font: 400 15px/1.55 var(--scw-font-texto);
   color: var(--scw-marrom);
   text-wrap: pretty;
+}
+
+/* ============================================================================
+   Sub-bloco com título próprio dentro de uma seção (Participar 04 · Apoiar 04)
+   ========================================================================= */
+
+/* A escala do festival (Participar) e os formatos (Apoiar) vêm DEPOIS do
+   conteúdo principal da seção, a uma distância maior que o respiro interno
+   — é outro assunto, que prova o primeiro. */
+.pa-escala,
+.pa-formatos { margin-top: clamp(48px, 5vw, 80px); }
+.pa-escala__cabeca,
+.pa-formatos__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 24px;
+  margin-bottom: clamp(18px, 2vw, 26px);
+}
+.pa-escala__titulo {
+  margin: 0;
+  max-width: 24ch;
+  font: 900 clamp(22px, 2.2vw, 32px)/1.05 var(--scw-font-black);
+  letter-spacing: -.03em;
+  color: var(--scw-choco);
+}
+.pa-escala__nota {
+  margin: 0;
+  max-width: 48ch;
+  font: 400 14px/1.5 var(--scw-font-texto);
+  color: var(--scw-marrom);
 }
 
 /* ============================================================================
@@ -563,82 +593,205 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Apoiar 04 — onde a marca aparece
+   Apoiar 02 — alcance em faixa de dados (12/10/2026)
    ========================================================================= */
 
-.pa-onde {
+/* Dois grupos, um por FONTE: o histórico comercial das edições (1/3) e o
+   painel do Instagram oficial (2/3). Cada grupo abre com a fonte e a data de
+   apuração sob um filete chocolate de 2px; os dados correm em linha, com
+   filete fino entre eles — faixa de dados, não seis cards iguais. */
+.pa-dados {
+  display: grid;
+  gap: clamp(32px, 3.4vw, 56px);
+}
+@media (min-width: 1000px) {
+  .pa-dados { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+}
+.pa-dados__grupo { min-width: 0; }
+.pa-dados__cabeca {
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--scw-choco);
+}
+.pa-dados__cabeca h3 {
+  margin: 0;
+  font: 900 clamp(20px, 1.9vw, 26px)/1.1 var(--scw-font-black);
+  letter-spacing: -.03em;
+  color: var(--scw-choco);
+}
+.pa-dados__cabeca p {
+  margin: 6px 0 0;
+  font: 400 14px/1.45 var(--scw-font-texto);
+  color: var(--scw-marrom);
+}
+/* A data de apuração não se parte: "2026" sozinho numa linha. */
+.pa-dados__cabeca p span { white-space: nowrap; }
+/* Uma coluna até 759px; duas a partir de 760 (os grupos ainda empilhados);
+   no desktop o histórico volta a uma coluna (ocupa 1/3) e o Instagram fica
+   em duas — quatro dados nunca em 3+1 (§10.5). */
+.pa-dados__lista {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: clamp(12px, 1.6vw, 20px);
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: clamp(20px, 2.4vw, 40px);
   margin: 0;
   padding: 0;
 }
+@media (min-width: 760px) {
+  .pa-dados__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1000px) {
+  .pa-dados__grupo:first-child .pa-dados__lista { grid-template-columns: minmax(0, 1fr); }
+}
+.pa-dados__lista li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "disco n" "disco t" "disco d";
+  align-content: start;
+  column-gap: 16px;
+  row-gap: 4px;
+  padding: clamp(18px, 2vw, 26px) 0;
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+/* Disco na cor da página (marrom de tinta creme) — a cor diz "isto é
+   Apoiar"; quem distingue o dado é o ícone (§6.3). 48px, ícone de 24. */
+.pa-dados .pa-num__disco { --tam: 48px; grid-area: disco; }
+.pa-dados .pa-num__disco svg { width: 24px; height: 24px; }
+.pa-dados__lista b {
+  grid-area: n;
+  color: var(--scw-choco);
+  font: 900 clamp(34px, 3.4vw, 56px)/.9 var(--scw-font-black);
+  letter-spacing: -.05em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pa-dados__lista strong {
+  grid-area: t;
+  margin-top: 6px;
+  font: 700 15.5px/1.25 var(--scw-font-ui);
+  color: var(--scw-choco);
+}
+.pa-dados__lista li > span:last-child {
+  grid-area: d;
+  max-width: 36ch;
+  font: 400 14px/1.45 var(--scw-font-texto);
+  color: var(--scw-marrom);
+}
+.pa-dados__nota {
+  margin: 14px 0 0;
+  max-width: 52ch;
+  font: 700 14px/1.45 var(--scw-font-ui);
+  color: var(--scw-choco);
+}
+
+/* ============================================================================
+   Apoiar 04 — onde a marca aparece + formatos que já aconteceram
+   ========================================================================= */
+
+/* Quatro canais: foto do acervo com legenda que diz o que ela é, o nome do
+   canal pousado na foto e o que cabe nele numa linha. Duas colunas no
+   celular (antes eram quatro cartões altos empilhados), quatro a partir de
+   1000px. Sem link, então sem hover (§6.15, regra 6). */
+.pa-onde {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 2.4vw, 32px) clamp(12px, 1.6vw, 24px);
+  margin: 0;
+  padding: 0;
+}
+@media (min-width: 1000px) {
+  .pa-onde { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 .pa-onde > li {
+  position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--scw-r-card);
-  overflow: hidden;
-  background: var(--scw-creme);
-  border: 1px solid rgba(61, 19, 8, .14);
+  gap: 12px;
+  min-width: 0;
 }
-.pa-onde figure {
-  position: relative;
-  margin: 0;
-  aspect-ratio: 1;
-  overflow: hidden;
+.pa-onde figure { display: grid; gap: 8px; margin: 0; }
+.pa-onde figure :is(img, .scw-reserva) {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--scw-r-card);
   background: var(--scw-bege);
 }
-.pa-onde figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-/* Cidade e PDV tem duas fotos reais (mesa + vitrine) em vez de uma — filete de
-   2px no meio, cada metade com a própria imagem. object-fit:cover mais o
-   position de cada foto já resolve, sem precisar de metade-figure própria. */
-.pa-onde__figura--dupla { display: flex; }
-.pa-onde__figura--dupla img {
-  position: static;
-  flex: 1 1 50%;
-  width: 50%;
-  height: 100%;
+.pa-onde figcaption {
+  font: italic 400 13px/1.4 var(--scw-font-texto);
+  color: var(--scw-marrom);
 }
-.pa-onde__figura--dupla img:first-child { border-right: 2px solid var(--scw-creme); }
+/* O nome do canal é o título do item (h3), em pílula na cor do canal sobre a
+   foto. Pares: creme/roxo 10 · creme/marrom 9,4 · chocolate/cyan 5,6 ·
+   chocolate/amarelo 9,5. */
 .pa-onde__tag {
   position: absolute;
-  left: 14px;
-  top: 14px;
+  left: 12px;
+  top: 12px;
+  margin: 0;
   padding: 8px 14px 6px;
   border-radius: 999px;
-  background: var(--c, var(--scw-roxo));
-  color: var(--tinta, var(--scw-creme));
+  background: var(--c);
+  color: var(--tinta);
   font: 700 11px/1 var(--scw-font-ui);
   letter-spacing: .14em;
   text-transform: uppercase;
 }
-.pa-onde ul {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
+.pa-onde__texto p {
   margin: 0;
-  padding: clamp(18px, 2vw, 24px);
+  font: 400 15px/1.5 var(--scw-font-texto);
+  color: var(--scw-choco);
+  text-wrap: pretty;
 }
-.pa-onde ul li {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font: 400 15px/1.4 var(--scw-font-texto);
+
+/* Formatos de ativação (§9.6): lista numerada editorial, filete chocolate em
+   cima e fino entre os itens. 1 → 2 → 3 colunas (6 itens: 3+3, nunca 4+2). */
+.pa-formatos__lista {
+  list-style: none;
+  counter-reset: formato;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: clamp(20px, 2.4vw, 40px);
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--scw-choco);
+}
+@media (min-width: 760px) {
+  .pa-formatos__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .pa-formatos__lista { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.pa-formatos__lista li {
+  counter-increment: formato;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 14px;
+  padding: clamp(16px, 1.8vw, 24px) 0;
+  border-bottom: 1px solid rgba(61, 19, 8, .14);
+}
+.pa-formatos__lista li::before {
+  content: counter(formato, decimal-leading-zero);
+  grid-row: span 2;
+  font: 900 14px/1.5 var(--scw-font-slab);
+  letter-spacing: .08em;
+  color: var(--scw-marrom);
+}
+.pa-formatos__lista strong {
+  font: 700 16px/1.3 var(--scw-font-ui);
   color: var(--scw-choco);
 }
-.pa-onde ul li::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--c, var(--scw-roxo));
+.pa-formatos__lista p {
+  margin: 4px 0 0;
+  max-width: 46ch;
+  font: 400 15px/1.55 var(--scw-font-texto);
+  color: var(--scw-marrom);
+  text-wrap: pretty;
 }
 
 /* ============================================================================
-   Apoiar 05 — quem vive o festival
+   Apoiar 03 — quem vive o festival
    ========================================================================= */
 
 /* Grade editorial: filete horizontal separando os traços, sem bullet — bolinha
@@ -709,7 +862,7 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
 }
 
 /* ============================================================================
-   Participar 05 — como funciona (18/09/2026)
+   Participar 05 — depois do pré-cadastro (trilha de 18/09/2026)
    ========================================================================= */
 
 /* Trilha de cinco passos sobre chocolate: nó numerado + título + texto. A
@@ -869,19 +1022,6 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   background: var(--scw-creme);
   border: 1px solid rgba(61, 19, 8, .14);
 }
-.pa-form fieldset { margin: 0; padding: 0; border: 0; }
-.pa-form fieldset + fieldset {
-  margin-top: clamp(24px, 2.6vw, 34px);
-  padding-top: clamp(24px, 2.6vw, 34px);
-  border-top: 1px solid rgba(61, 19, 8, .14);
-}
-.pa-form legend {
-  padding: 0;
-  font: 700 11.5px/1 var(--scw-font-ui);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--scw-marrom);
-}
 .pa-form__grade {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
@@ -988,8 +1128,8 @@ body.route-participar .pa-hero__acoes .scw-btn--contorno-claro:focus-visible {
   .pa-palco,
   .pa-ganho,
   .pa-numeros li,
-  .pa-card,
-  .pa-onde > li,
+  .pa-paraquem__como,
+  .pa-onde figure :is(img, .scw-reserva),
   .pa-cta { border-radius: 16px; }
 }
 
