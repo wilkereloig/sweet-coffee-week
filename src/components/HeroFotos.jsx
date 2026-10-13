@@ -65,7 +65,14 @@ export function HeroFotos({ fotos = [], classe = 'scw-hero-banda' }) {
      DOM, não a ativa.) */
   const camadas = reduzido ? fotos.slice(0, 1) : fotos
 
+  /* O botão de pausa existe em dois lugares, um por tela (o outro some com
+     `display: none`, que também o tira da árvore de acessibilidade):
+     - ≤1000px a foto é um bloco no topo do herói e o botão mora nela;
+     - >1000px a banda é fundo SOB o véu do herói (.scw-hero-veu::after), num
+       contexto de empilhamento próprio — dentro dela o botão ficaria embaixo
+       do véu, desbotado. Ali ele é irmão da banda, no contexto do herói. */
   return (
+    <>
     <div className={classe}>
       {camadas.map((foto, i) => (
         <span
@@ -82,8 +89,10 @@ export function HeroFotos({ fotos = [], classe = 'scw-hero-banda' }) {
           aria-hidden={i === ativa ? undefined : 'true'}
         />
       ))}
-      {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} />}
+      {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} className="scw-pausa-fotos--na-banda" />}
     </div>
+    {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} className="scw-pausa-fotos--no-heroi" />}
+    </>
   )
 }
 

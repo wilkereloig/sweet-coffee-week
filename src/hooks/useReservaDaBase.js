@@ -10,6 +10,12 @@ import { useLayoutEffect } from 'react'
  * rodapé do desktop e a régua do celular): vale a maior que estiver visível.
  * O ResizeObserver também acorda quando uma delas sai de `display: none`, que
  * é o que acontece ao cruzar o breakpoint.
+ *
+ * ⚠️ Mede só as refs que existem NA MONTAGEM. Peça montada condicionalmente
+ * (uma por breakpoint, como em Edições) chama o hook ela mesma — e só uma pode
+ * estar montada por vez, senão a última a escrever vence. O cleanup apaga a
+ * variável; o React roda todos os cleanups antes dos efeitos novos do mesmo
+ * commit, então a troca de peça não deixa a reserva zerada.
  */
 export function useReservaDaBase(...refs) {
   useLayoutEffect(() => {

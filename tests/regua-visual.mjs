@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { lerFonte } from './_fonte-pagina.mjs'
 
 /*
  * Régua visual — auditoria automatizada (rodada de verificação, ago/2026).
@@ -18,7 +19,8 @@ import { readFileSync } from 'node:fs'
  * teste — o que segue são contratos objetivos (valor, seletor, faixa numérica).
  */
 
-const ler = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8')
+// Entrada de página lê a página inteira (pasta + conteúdo): tests/_fonte-pagina.mjs
+const ler = (rel) => lerFonte(rel)
 // Troca cada comentário por espaços preservando as quebras de linha internas —
 // só apagar tudo (vira ' ') desalinha a numeração de linha de qualquer match
 // que vier depois de um comentário multi-linha (achado real da rodada de

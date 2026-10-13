@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { lerFonte } from './_fonte-pagina.mjs'
 
 /*
  * Guarda do redesign 2026 do site institucional.
@@ -13,7 +14,8 @@ import { readFileSync } from 'node:fs'
  * Aparência é conferência do usuário, não de teste.
  */
 
-const ler = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8')
+// Entrada de página lê a página inteira (pasta + conteúdo): tests/_fonte-pagina.mjs
+const ler = (rel) => lerFonte(rel)
 
 const SISTEMA = 'src/styles/scw-2026.css'
 

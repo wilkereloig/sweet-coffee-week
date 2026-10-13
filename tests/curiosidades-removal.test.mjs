@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
+import { lerFonte } from './_fonte-pagina.mjs'
 import test from 'node:test'
 
 const root = new URL('../', import.meta.url)
-const read = (relativePath) => readFileSync(new URL(relativePath, root), 'utf8')
+// Entrada de página lê a página inteira (pasta + conteúdo): tests/_fonte-pagina.mjs
+const read = (relativePath) => lerFonte(relativePath)
 
 test('Curiosidades is retired without changing the Home page', () => {
   const app = read('src/App.jsx')

@@ -463,6 +463,14 @@ escolher. É o arranjo que `HeroFotos.jsx` usa.
 imagem não se escreve à mão na página** (§6.12). ⚠️ **Deixaram de ser foto única e viraram
 séries em crossfade**, montadas por `HeroFotos.jsx` a cada 6,2s:
 
+✅ **O relógio é um só desde 12/10/2026: `src/hooks/useCrossfade.js`**, usado por
+`HeroFotos` e pela abertura da Home (que repetia a mesma lógica). Ele garante índice
+válido com lista vazia/única, **decodifica a próxima foto antes da troca** (rede lenta não
+acende camada vazia), **pausa com a aba oculta**, escuta `prefers-reduced-motion` ao vivo
+e oferece **pausa manual** — o botão `PausaFotos` (`.scw-pausa-fotos`, só ícone, nome no
+hover/foco) aparece quando há rotação de fato. A composição (banda × moldura) continua em
+cada componente; só o tempo mora no hook.
+
 | Rota | Série | Nº |
 |---|---|---|
 | Home | pessoas da Lovers (`lovers-publico/08, 07, 04`) + um combo por foto | 3 |
@@ -483,6 +491,8 @@ acrescentar foto, manter a divisão — repetir quebra a intenção sem quebrar 
 |---|---|---|
 | Raiz | `.scw-raiz` | `scw-2026.css` |
 | Cabeçalho | `.scw-header`, `.scw-header__linha`, `.scw-header__veu` | `nav.jsx` |
+| Menu de desktop | `.scw-nav` em **cápsula** (`--scw-chapa-menu`, chocolate a .76) | `NavPrincipal` em `nav.jsx` — usado pelos DOIS cabeçalhos (site e Edições). ✅ Desde 12/10/2026 os links não dependem mais de a foto do herói ser escura ali: na cápsula o creme fecha **6,4:1 com foto branca atrás** (antes ficavam ilegíveis sobre a faixa clara do Sebrae em Participar). Sem desfoque: atrás há crossfade (§10.3) |
+| Aviso de cookies | `.cookie-consent` | `CookieConsent.jsx` — região nomeada, não modal. **Desktop:** cartão de uma linha no canto **inferior direito** (os heróis têm as ações à esquerda — era exatamente onde o cartão antigo pousava). **≤900px:** faixa de largura cheia logo acima da barra de abas. A altura real vai para `--scw-aviso-h` no `<body>` (ResizeObserver): o rodapé ganha esse respiro e o botão Topo sobe. Peça da PÁGINA presa à base (régua de Edições) declara `--scw-base-ocupada` com `useReservaDaBase` e o aviso sobe acima dela. `tests/casca-institucional.mjs` reprova aviso sobre ação principal, régua ou abas |
 | Marca | `.scw-marca` → `MARCA_SCW` = `/images/logo-seal-sweet-coffee.svg` | `nav.jsx` (const exportada, reusada pelo rodapé) |
 | Navegação | `.scw-nav` | `nav.jsx` |
 | Chapa das barras da base | `.scw-casca-base` | `scw-2026.css` — fixa, `rgba(43,14,6,.96)`, `blur(14px)`, filete de creme a .14. **Duas peças a usam**: a barra de abas do site e a barra da ação da `/em-breve`. ⚠️ O chocolate é mais fundo que `--scw-choco` de propósito: sob desfoque a chapa clareia com o que passa atrás |
@@ -904,10 +914,34 @@ dentro de uma grade não é item próprio — a grade é) e carimba:
 - `--mo-i` — posição na sequência; **reinicia a cada `<section>` e a cada `.scw-rotulo`**;
 - `data-mo-grade` + `--mo-j` nos filhos — cards entram um a um, **teto de 8 degraus**.
 
+**Contrato de marcação (12/10/2026).** A seção diz o que quer por atributo, em vez de o
+motor conhecer as classes de cada página:
+
+| Atributo | Efeito |
+|---|---|
+| `data-mo-fora` | nada ali dentro anima — herói, formulário, central de dúvidas, área de consulta |
+| `data-mo-sequencia` | os filhos diretos entram um a um (cards, passos, faixa de números) |
+| `data-mo-bloco` | entra como um bloco só (lista longa) |
+
+`ul`/`ol`/`dl` já entram em sequência sozinhos. As listas de classes de página que ainda
+existem no motor são legado anterior ao contrato — **seção nova usa só os atributos**.
+
 **Fica de fora:** heróis (coreografados por `@keyframes`), página Edições (apresentação
-própria), `.ctt-perguntas` e formulários (áreas de concentração), e **qualquer elemento
+própria), **formulários e a central de dúvidas** (quem chega para preencher ou consultar
+não espera uma entrada animada — ficam disponíveis de imediato), e **qualquer elemento
 `position: fixed` ou `sticky`** — barra presa à base nunca entra na zona de disparo do
 observer e ficaria invisível para sempre.
+
+**Rede de segurança:** revelar um item revela também **todos os anteriores** na ordem do
+documento, e o que já está acima da tela na varredura aparece direto. Sem isso, um salto
+por âncora (índice do Awards, "Ver as perguntas") ou a rolagem restaurada pelo navegador
+deixava os blocos pulados invisíveis.
+
+**Páginas em chunk próprio (12/10/2026).** Cada página carrega sob demanda
+(`React.lazy`, `src/pages/carregadores.js`). O motor roda em `MovimentoDaPagina`, **dentro
+do `Suspense`** do `App.jsx`: o efeito só dispara quando a página real montou. Um efeito
+no próprio App rodaria com o fallback na tela, não acharia nada e deixaria a página sem
+movimento — é o que `tests/casca-institucional.mjs` confere navegando entre rotas.
 
 **Salvaguarda:** o estado oculto **só existe sob `html.scw-mo-on`**, classe que o próprio
 motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou

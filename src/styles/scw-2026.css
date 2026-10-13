@@ -1776,8 +1776,17 @@ body { margin: 0; }
   .scw-pausa-fotos:hover { background: var(--scw-choco); }
 }
 .scw-pausa-fotos:active { transform: scale(.94); }
+/* Uma cópia por tela (HeroFotos.jsx): na foto do celular, e no herói do
+   desktop — acima do véu, que cobre a banda inteira — subindo a altura do
+   aviso de cookies enquanto ele estiver na tela. */
+.scw-pausa-fotos--no-heroi { display: none; }
 @media (min-width: 1001px) {
-  .scw-hero-banda .scw-pausa-fotos { bottom: calc(clamp(12px, 1.6vw, 20px) + var(--scw-aviso-h, 0px)); }
+  .scw-pausa-fotos--na-banda { display: none; }
+  .scw-pausa-fotos--no-heroi {
+    display: grid;
+    z-index: 3;
+    bottom: calc(clamp(12px, 1.6vw, 20px) + var(--scw-aviso-h, 0px));
+  }
 }
 
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */

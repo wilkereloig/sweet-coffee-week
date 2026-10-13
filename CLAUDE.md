@@ -170,6 +170,8 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npm run dev` | servidor de desenvolvimento (porta = `PORT` ou 5173) |
 | `npm run build` | build |
 | `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
+| `npm run build && npm run test:casca-institucional` | gate sem `?preview` só baixa Participar; aviso de cookies não cobre ação principal, régua nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
+| `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
 | `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
 | `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
 | `npm run test:imagens` | reprova componente que monta caminho de imagem na mão |
