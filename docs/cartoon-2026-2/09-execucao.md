@@ -7,7 +7,7 @@ Registro da execução de 14/10/2026 (pedido do Wilker: "siga todas as fases at�
 | Fase | Estado | Onde |
 |---|---|---|
 | 1 · Rotas e configuração | **feita** (`2bb3b3d`) | `src/edicao/config.js`, `src/lib/rotas.js`, `src/router.js` (endereço limpo), `vercel.json` |
-| 2 · Modelo de dados e publicação | **escrita, NÃO aplicada** | `supabase/migrations/20261014_cartoon_01…04_*.sql`, `supabase/testes/edicao-cartoon.sql` |
+| 2 · Modelo de dados e publicação | **01, 02, 04 e 05 APLICADAS em 14/10/2026** (SQL Editor + MCP); testes SQL ok; **03 pendente** (vai com o merge do painel) | `supabase/migrations/20261014_cartoon_01…04_*.sql`, `supabase/testes/edicao-cartoon.sql` |
 | 3 · Cadastro e revisão no painel | **feita** (testes 213/213); depende do banco aplicado | `vistas-marca/edicao/*`, `vistas/Publicacao*.jsx`, `lib/edicaoMarca.js`, `lib/publicacao.js` |
 | 4 · Páginas públicas | **feita** (`5e25519`) | `src/edicao/**`, `src/styles/scw-cartoon.css` |
 | 5 · Mapa e Minha rota | **feita** | `src/edicao/componentes/mapa/MapaUnidades.jsx` (OpenFreeMap, sob demanda), `src/edicao/rota/*` |
@@ -20,7 +20,15 @@ Registro da execução de 14/10/2026 (pedido do Wilker: "siga todas as fases at�
 
 A aplicação pela ferramenta foi recusada na tela de permissão duas vezes, então nada foi aplicado. O backup das quatro tabelas que as migrations alteram já está no banco, no esquema `backup_20261014`.
 
-**Estado exato do banco em 14/10/2026, noite:**
+**Atualização, 14/10/2026, fim da noite:**
+- Aplicadas: 01, 02 e 04 (pelo Wilker, no SQL Editor) e 05 (fecha a execução direta das funções de gatilho, apontada pelo advisor).
+- Os dois blocos de `supabase/testes/edicao-cartoon.sql` deram o resultado esperado:
+  - autorização: 12 de 12 conferências como esperado;
+  - ponta a ponta: pendências 7 → 0, publicação v1, recorte sem combo, preço R$ 38,90, nada privado na resposta, versão pública intacta depois da alteração, retirada.
+- Advisor: "RLS sem política" nas 5 tabelas acessadas só por RPC é proposital; as funções abertas são as previstas.
+- **Falta:** a 03, junto com o merge do painel novo em `master`, e o deploy das Edge Functions `enviar-formulario` e `arquivo-url`.
+
+**Estado anterior (registro):**
 - A única mudança aplicada foi a função auxiliar `marca_dona_participacao`, que não é usada por nada.
 - Ela entrou porque, num envio, mandei por engano só o primeiro trecho da migration 1, e a ferramenta aceitou. Por isso o histórico de migrations do banco mostra uma entrada `20261014_cartoon_01_estrutura` (versão `20261014203340`) **parcial**.
 - O arquivo completo é idempotente (`create or replace`, `if not exists`): pode ser aplicado por cima sem problema.

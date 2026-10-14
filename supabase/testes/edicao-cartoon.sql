@@ -4,8 +4,9 @@
 -- Mesmo padrão de verificacao-2026-09-29.sql: cada bloco cria usuários de
 -- teste, simula papéis e TERMINA EM EXCEÇÃO de propósito — a mensagem traz o
 -- resultado e a exceção desfaz tudo. Rodar no SQL Editor (ou pelo MCP), um
--- bloco por vez. Depende de COOKITOS e Parma Doces na 2026.2.
+-- bloco por vez. Usa as duas primeiras participações ativas da 2026.2 sem conta vinculada (por id).
 --
+-- ⚠️ Como anon, `select ... from participacoes` é negado (RLS): o slug fica em variável.
 -- Esperado (entre colchetes):
 --   1. Autorização: anon le unidades/publicacoes/declaracoes=negado · anon
 --      edicao_publica sem participantes=0 · A ve unidades de B=0 · A altera
@@ -26,8 +27,9 @@ begin
   insert into auth.users (id, email, aud, role) values
     (ua, 'cartoon-a@scw.test', 'authenticated', 'authenticated'),
     (ub, 'cartoon-b@scw.test', 'authenticated', 'authenticated');
-  select id into pa from participantes where nome_marca = 'COOKITOS';
-  select id into pb from participantes where nome_marca = 'Parma Doces';
+  -- Duas marcas quaisquer da 2026.2 (nomes mudam com a padronização; ordem por id é estável).
+  select pa_.participante_id into pa from participacoes pa_ join participantes pt_ on pt_.id = pa_.participante_id where pa_.edicao_codigo = '2026.2' and pa_.status_cadastro <> 'encerrado' and pt_.user_id is null order by pa_.id limit 1;
+  select pa_.participante_id into pb from participacoes pa_ join participantes pt_ on pt_.id = pa_.participante_id where pa_.edicao_codigo = '2026.2' and pa_.status_cadastro <> 'encerrado' and pt_.user_id is null order by pa_.id offset 1 limit 1;
   select id into paa from participacoes where participante_id = pa and edicao_codigo = '2026.2';
   select id into pab from participacoes where participante_id = pb and edicao_codigo = '2026.2';
   perform vincular_conta_participante(ua, pa);
@@ -79,16 +81,16 @@ end $$;
 -- ── 2. Ponta a ponta: preencher, publicar, alterar, retirar ─────────────────
 do $$
 declare ua uuid := gen_random_uuid(); uo uuid := gen_random_uuid();
-  pa uuid; paa uuid; pu uuid; r text := ''; n int; j jsonb; t text; v_item record; asp text;
+  pa uuid; paa uuid; pu uuid; r text := ''; n int; j jsonb; t text; v_item record; asp text; slug text;
 begin
   insert into auth.users (id, email, aud, role) values
     (ua, 'cartoon-a2@scw.test', 'authenticated', 'authenticated'),
     (uo, 'cartoon-o2@scw.test', 'authenticated', 'authenticated');
-  select id into pa from participantes where nome_marca = 'COOKITOS';
+  select pa_.participante_id into pa from participacoes pa_ join participantes pt_ on pt_.id = pa_.participante_id where pa_.edicao_codigo = '2026.2' and pa_.status_cadastro <> 'encerrado' and pt_.user_id is null order by pa_.id limit 1;
   select id into paa from participacoes where participante_id = pa and edicao_codigo = '2026.2';
   perform vincular_conta_participante(ua, pa);
   update perfis set deve_trocar_senha = false, ativo = true where user_id = ua;
-  insert into perfis (user_id, papel, funcao, nome) values (uo, 'organizacao', 'administrador', 'Teste Admin Cartoon');
+  insert into perfis (user_id, papel, funcao, nome, deve_trocar_senha) values (uo, 'organizacao', 'administrador', 'Teste Admin Cartoon', false);
 
   r := r || 'pendencias antes=' || coalesce(array_length(pendencias_publicacao(paa), 1), 0) || '; ';
 
@@ -118,7 +120,7 @@ begin
   update participacoes set combo_status = 'aprovado' where id = paa;
   perform set_config('request.jwt.claims', json_build_object('sub', uo, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  j := publicar_participacao(null, paa, 'marca_e_combo'); r := r || 'publicar=' || (j ->> 'ok') || ' v' || (j ->> 'versao') || '; ';
+  j := publicar_participacao(null, paa, 'marca_e_combo'); slug := j ->> 'slug'; r := r || 'publicar=' || (j ->> 'ok') || ' v' || (j ->> 'versao') || '; ';
   perform definir_publicacao_edicao(null, '2026.2', '{"participantes_publicos": true}');
   reset role;
 
@@ -135,7 +137,7 @@ begin
   perform definir_publicacao_edicao(null, '2026.2', '{"combos_publicos": true}');
   reset role;
   set local role anon;
-  j := participante_publico('2026.2', (select slug_publico from participacoes where id = paa));
+  j := participante_publico('2026.2', slug);
   r := r || 'estado=' || (j ->> 'estado') || ' preco=' || coalesce(j #>> '{participante,combo,preco}', 'nulo')
          || ' nome=' || coalesce(j #>> '{participante,combo,nome}', 'nulo') || '; ';
   reset role;
@@ -147,7 +149,7 @@ begin
   reset role;
   r := r || 'alterado=' || (select alterado_apos_aprovacao from participacoes where id = paa);
   set local role anon;
-  j := participante_publico('2026.2', (select slug_publico from participacoes where id = paa));
+  j := participante_publico('2026.2', slug);
   r := r || ' publico segue=' || (j #>> '{participante,combo,nome}') || '; ';
   reset role;
 
@@ -164,7 +166,7 @@ begin
   perform retirar_publicacao(null, paa, 'teste');
   reset role;
   set local role anon;
-  r := r || 'retirado=' || (participante_publico('2026.2', (select slug_publico from participacoes where id = paa)) ->> 'estado') || '; ';
+  r := r || 'retirado=' || (participante_publico('2026.2', slug) ->> 'estado') || '; ';
   r := r || 'desconhecido=' || (participante_publico('2026.2', 'nao-existe') ->> 'estado') || '; ';
   reset role;
   update edicao_publicacao set combos_publicos = false, participantes_publicos = false where edicao_codigo = '2026.2';
@@ -172,5 +174,5 @@ begin
   r := r || 'fechado=' || (participante_publico('2026.2', 'qualquer') ->> 'estado') || '; ';
   reset role;
 
-  raise exception 'RESULTADO 2: %', r;
+  raise exception 'RESULTADO 2: %', coalesce(r, 'mensagem nula — algum pedaço veio nulo');
 end $$;

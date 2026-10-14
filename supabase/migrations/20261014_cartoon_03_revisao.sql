@@ -62,6 +62,8 @@ begin
   return null;
 end $$;
 
+revoke all on function public.participacao_alterou(), public.filho_alterou() from public, anon, authenticated;
+
 drop trigger if exists itens_alterou on public.participantes_itens;
 create trigger itens_alterou after update of nome, descricao, ingredientes on public.participantes_itens
   for each row execute function public.filho_alterou();
