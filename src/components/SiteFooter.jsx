@@ -1,4 +1,5 @@
 import React from 'react'
+import { INICIO_INSTITUCIONAL } from '../edicao/config'
 import { NAV_LINKS, MARCA_SCW } from './nav'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config/channels'
 import { abrirPreferencias } from '../lib/consentimento'
@@ -37,7 +38,7 @@ export function SiteFooter({ navigate, route, semLinks = false }) {
   return (
     <footer className={'scw-footer' + (semLinks ? ' scw-footer--reduzido' : '')} role="contentinfo">
       <div className="scw-footer__topo">
-        <a href="#/" className="scw-footer__marca" onClick={ir('#/')}>
+        <a href={`#${INICIO_INSTITUCIONAL}`} className="scw-footer__marca" onClick={ir(`#${INICIO_INSTITUCIONAL}`)}>
           <img src={MARCA_SCW} alt="Sweet & Coffee Week — página inicial" />
         </a>
 

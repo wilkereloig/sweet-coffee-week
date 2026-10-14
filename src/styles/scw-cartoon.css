@@ -1,0 +1,108 @@
+/*
+ * Camada Cartoon (2026.2) — tokens e casca. Fase 1 (docs/cartoon-2026-2/).
+ *
+ * Tudo sob .ct-edicao: este arquivo só entra no chunk da edição e nada aqui
+ * vaza para o institucional ou o painel (tests/rotas-edicao.test.mjs confere).
+ * Paleta = cores da marca Cartoon aprovada (KV, 03/10/2026); a tipografia de
+ * texto é a institucional até haver fonte da edição aprovada (D-04).
+ */
+.ct-edicao {
+  --ct-amarelo: #FDB901;
+  --ct-vermelho: #ED1C20;
+  --ct-azul: #0184E4;
+  --ct-turquesa: #05BEBA;
+  --ct-roxo: #6424AB;
+  --ct-creme: #FDF2DF;
+  --ct-preto: #050505;
+  --ct-branco: #FCFCFC;
+  --ct-trilho: max(clamp(16px, 5vw, 96px), calc((100% - 1440px) / 2));
+
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ct-creme);
+  color: var(--ct-preto);
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.6 var(--scw-font-texto);
+}
+
+.ct-edicao a { color: inherit; }
+.ct-edicao :focus-visible { outline: 3px solid var(--ct-azul); outline-offset: 3px; }
+
+.ct-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 16px var(--ct-trilho);
+  background: var(--ct-amarelo);
+}
+.ct-topo__marca { display: inline-flex; min-height: 44px; align-items: center; }
+.ct-topo__marca img { display: block; width: auto; height: 56px; }
+.ct-topo__nav ul { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0; padding: 0; list-style: none; }
+.ct-topo__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 22px;
+  font: 700 15px/1 var(--scw-font-ui);
+  text-decoration: none;
+}
+.ct-topo__nav a[aria-current='page'] { background: var(--ct-preto); color: var(--ct-creme); }
+
+.ct-cena {
+  flex: 1;
+  padding: clamp(48px, 8vw, 120px) var(--ct-trilho);
+}
+.ct-cena__titulo {
+  max-width: 17ch;
+  margin: 0 0 16px;
+  font: 900 clamp(34px, 4.4vw, 72px)/.95 var(--scw-font-black);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.ct-cena__apoio { max-width: 46ch; margin: 0; font: 400 clamp(17px, 1.4vw, 21px)/1.5 var(--scw-font-ui); }
+
+.ct-botao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 24px;
+  padding: 0 20px;
+  border-radius: 23px;
+  background: var(--ct-preto);
+  color: var(--ct-creme);
+  font: 700 15px/1 var(--scw-font-ui);
+  text-decoration: none;
+}
+
+.ct-rodape {
+  display: grid;
+  gap: 12px;
+  padding: 32px var(--ct-trilho) 40px;
+  background: var(--ct-preto);
+  color: var(--ct-creme);
+  font: 400 14px/1.5 var(--scw-font-texto);
+}
+.ct-rodape p { max-width: 62ch; margin: 0; }
+.ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 0; padding: 0; list-style: none; }
+.ct-rodape__links a,
+.ct-rodape__botao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font: 700 14px/1 var(--scw-font-ui);
+}
+.ct-rodape__botao {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-edicao * { transition: none; animation: none; }
+}

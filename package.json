@@ -17,6 +17,8 @@
     "test": "node --test tests/regua-visual.mjs",
     "test:casca": "node tests/casca-responsiva.mjs",
     "test:casca-institucional": "node tests/casca-institucional.mjs",
+    "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
+    "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",
     "test:privacidade": "node tests/privacidade-navegador.mjs",

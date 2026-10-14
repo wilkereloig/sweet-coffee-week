@@ -21,6 +21,7 @@ export const CARREGADORES = {
   'em-breve': () => import('./institutional/EmBreve').then(comoPadrao('EmBrevePage')),
   aguarde: () => import('./institutional/Aguarde').then(comoPadrao('AguardePage')),
   legal: () => import('./institutional/Legal').then(comoPadrao('LegalPage')),
+  cartoon: () => import('../edicao/cartoon/index.jsx').then(comoPadrao('CartoonPage')),
 }
 
 /** Adianta o download da página de uma rota (hover/foco/toque no link). */

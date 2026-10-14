@@ -1,4 +1,5 @@
 import React from 'react'
+import { INICIO_INSTITUCIONAL } from '../edicao/config'
 import { precarregar } from '../pages/carregadores'
 import IconeUi from './scw-icons/IconeUi'
 
@@ -43,7 +44,7 @@ export const pageColorDark = (id) => MENU_ESCURO[id] || '#FDBB1A'
 export const MARCA_SCW = '/images/logo-seal-sweet-coffee.svg'
 
 export const NAV_LINKS = [
-  { id: 'home',              label: 'o festival',   href: '#/' },
+  { id: 'home',              label: 'o festival',   href: `#${INICIO_INSTITUCIONAL}` },
   { id: 'edicoes',           label: 'edições',      href: '#/edicoes' },
   { id: 'historico-awards',  label: 'sweet awards', href: '#/sweet-awards' },
   { id: 'participar',        label: 'participar',   href: '#/participar' },
@@ -170,7 +171,7 @@ export function SiteHeader({ route, navigate, onOpenAccess, accessOpen, apenasAc
       <div className="scw-header__veu" aria-hidden="true" />
       <div className="scw-header__linha">
         {!apenasAcesso && (
-        <a href="#/" className="scw-marca" onClick={go('#/')}>
+        <a href={`#${INICIO_INSTITUCIONAL}`} className="scw-marca" onClick={go(`#${INICIO_INSTITUCIONAL}`)}>
           <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
         </a>
         )}

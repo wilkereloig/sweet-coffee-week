@@ -98,7 +98,9 @@ async function primeiraVisitaERecusa (nav) {
   if (pv.length !== 1) falha(`primeira visita: ${pv.length} page_view, esperado 1`)
   else {
     ok(`primeira visita: gtag.js 1×, 1 page_view (${pv[0].dl}), aviso na tela`)
-    if (!/\/participar$/.test(pv[0].dl)) falha(`endereço do page_view não é a rota limpa: ${pv[0].dl}`)
+    // Endereço limpo desde 14/10/2026: a query do hash antigo vai para a busca, e o
+    // enderecoLimpo mantém só utm_* — o e-mail nunca chega ao Analytics.
+    if (!/\/participar(\?utm_source=teste)?$/.test(pv[0].dl) || /email|ana@/.test(pv[0].dl)) falha(`endereço do page_view não é a rota limpa: ${pv[0].dl}`)
     info(`consentimento declarado no envio: gcs=${pv[0].gcs}`)
   }
   const cs = await cookiesGA(ctx)
@@ -165,7 +167,8 @@ async function okRevogacaoRetorno (nav) {
   await page.locator('.cookie-consent__btn--aceitar').click()
   await parada(page, 600)
   if (await page.locator('.cookie-consent').count()) falha('"Ok, entendi" não fechou o aviso')
-  await page.goto(`${BASE}/#/apoiar`)
+  // Troca de página DENTRO do site (mesmo documento), como um clique no menu.
+  await page.evaluate(() => { window.location.hash = '#/apoiar' })
   await ate(() => pageViews(eventos).length >= 2)
   await parada(page, 1500)
   const pv = pageViews(eventos)
@@ -177,7 +180,9 @@ async function okRevogacaoRetorno (nav) {
   await page.locator('.scw-footer__legal button').click()
   await page.locator('.scw-pref[open]').waitFor()
   const chave = page.locator('.scw-pref__chave')
-  if ((await chave.getAttribute('aria-checked')) !== 'true') falha('preferências não mostram a análise ligada')
+  // O diálogo abre e o estado chega no render seguinte: esperar, não ler na hora.
+  const ligada = await page.waitForFunction(() => document.querySelector('.scw-pref__chave')?.getAttribute('aria-checked') === 'true', null, { timeout: 3000 }).then(() => true, () => false)
+  if (!ligada) falha('preferências não mostram a análise ligada')
   await chave.click()
   await page.locator('.scw-pref__btn--salvar').click()
   await parada(page, 800)
@@ -238,7 +243,8 @@ async function dialogo (nav) {
   const chave = page.locator('.scw-pref__chave')
   await chave.focus()
   await page.keyboard.press('Space')
-  if ((await chave.getAttribute('aria-checked')) !== 'false') falha('interruptor não anunciou o estado desligado')
+  const desligou = await page.waitForFunction(() => document.querySelector('.scw-pref__chave')?.getAttribute('aria-checked') === 'false', null, { timeout: 3000 }).then(() => true, () => false)
+  if (!desligou) falha('interruptor não anunciou o estado desligado')
   await page.keyboard.press('Escape')
   await parada(page, 400)
   const depois = await page.evaluate(() => ({

@@ -31,7 +31,7 @@ const DESLIGA = `ga-disable-${GA_ID}`
 
 /* Rotas que existem. Qualquer outra coisa vira "/" — um caminho estranho pode
    carregar texto digitado por alguém, e não vai para relatório nenhum. */
-const ROTAS = ['edicoes', 'sweet-awards', 'historico-sweet-awards', 'participar', 'apoiar', 'contato', 'privacidade', 'cookies', 'termos', 'uso-de-imagem']
+const ROTAS = ['festival', 'cartoon', 'edicoes', 'sweet-awards', 'historico-sweet-awards', 'participar', 'apoiar', 'contato', 'privacidade', 'cookies', 'termos', 'uso-de-imagem']
 const UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
 
 let ativo = false
