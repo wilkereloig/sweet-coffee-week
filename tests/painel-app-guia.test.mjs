@@ -2,8 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   camposObrigatorios, progressoCampos, resumoMarca, nivelDoAviso, interpretarLinkMarca, fotosDaParticipacao,
-  vistaDoBloco, linkDoCampo, vistaDoPedido,
+  vistaDoBloco, linkDoCampo, vistaDoPedido, blocoDoCampo, CAMPOS_APONTAVEIS,
 } from '../painel-app/src/lib/guia.js'
+import { readFileSync } from 'node:fs'
 
 const itens = [
   { posicao: 1, tipo: 'doce', nome: 'Bolo', descricao: 'd', ingredientes: 'i' },
@@ -143,4 +144,33 @@ test('bloco → aba, e o link do banco (link_campo_marca) tem o mesmo formato', 
   assert.equal(linkDoCampo(2, 'item-1-nome'), 'combo/2/item-1-nome')
   assert.equal(vistaDoPedido('fotos'), 'fotos')
   assert.equal(vistaDoPedido('desconhecido'), 'inicio')
+})
+
+// Camada de edição (Cartoon 2026.2): blocos 5 a 7 e os campos novos que a
+// organização pode apontar numa correção.
+test('blocos novos: 6 e 7 em Meu cadastro, 5 em Meu combo — a mesma regra de link_campo_marca', () => {
+  const sql = readFileSync(new URL('../supabase/migrations/20261014_cartoon_03_revisao.sql', import.meta.url), 'utf8')
+  const m = /when p_bloco in \(([\d, ]+)\) then 'cadastro'/.exec(sql)
+  assert.ok(m, 'link_campo_marca não encontrado')
+  const doCadastro = m[1].split(',').map(Number)
+  for (let b = 0; b <= 7; b++) assert.equal(vistaDoBloco(b), doCadastro.includes(b) ? 'cadastro' : 'combo', 'bloco ' + b)
+  assert.match(sql, /check \(bloco between 0 and 7\)/)
+})
+
+test('todo campo apontável cai num bloco de 0 a 7, e os novos no bloco certo', () => {
+  for (const [campo] of CAMPOS_APONTAVEIS) {
+    const b = blocoDoCampo(campo)
+    assert.ok(Number.isInteger(b) && b >= 0 && b <= 7, campo + ' sem bloco')
+  }
+  assert.equal(blocoDoCampo('apresentacao_publica'), 0)
+  assert.equal(blocoDoCampo('combo_nome'), 3)
+  assert.equal(blocoDoCampo('item-2-alimentar'), 5)
+  assert.equal(blocoDoCampo('item-2-trocas'), 5)
+  assert.equal(blocoDoCampo('item-2-nome'), 2)
+  assert.equal(blocoDoCampo('unidade-whatsapp'), 4)
+  assert.equal(blocoDoCampo('atendimento-horario'), 6)
+  assert.equal(blocoDoCampo('atendimento-modos-2'), 6)
+  assert.equal(new Set(CAMPOS_APONTAVEIS.map(([k]) => k)).size, CAMPOS_APONTAVEIS.length, 'campo repetido')
+  assert.deepEqual(interpretarLinkMarca('cadastro/6/atendimento-modos'), { vista: 'cadastro', sub: '6', campo: 'atendimento-modos' })
+  assert.deepEqual(interpretarLinkMarca('combo/5/item-1-alimentar'), { vista: 'combo', sub: '5', campo: 'item-1-alimentar' })
 })

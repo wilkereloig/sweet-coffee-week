@@ -70,7 +70,8 @@ const paraStr = (n) => (n == null ? '' : String(n).replace('.', ','))
 export function custosDeLinhas(participacao = {}, unidades = []) {
   return {
     viagem: participacao.combo_para_viagem === true,
-    delivery: (unidades || []).some((u) => u && u.faz_delivery),
+    // Delivery DO COMBO (camada de edição) ou o legado faz_delivery — mesma regra do banco.
+    delivery: (unidades || []).some((u) => u && u.participa !== false && (u.faz_delivery || u.delivery_combo === 'sim')),
     embalagemStr: paraStr(participacao.custo_embalagem),
     deliveryStr: paraStr(participacao.custo_delivery),
   }
@@ -85,8 +86,10 @@ export function itemCompleto(i) {
   return (i.nome || '').trim() !== '' && (i.descricao || '').trim() !== '' && (i.ingredientes || '').trim() !== ''
 }
 
+// Mesma regra de marca_concluir_cadastro: unidade que PARTICIPA, com o
+// logradouro da unidade permanente (ou, no legado, o endereço da participação).
 export function unidadeTemEndereco(u) {
-  return !!(u && (u.endereco || '').trim() !== '')
+  return !!(u && u.participa !== false && String(u.logradouro || u.endereco || '').trim() !== '')
 }
 
 export function blocoCompleto(n, { marca = {}, tema = {}, itens = [], unidades = [], custos = {} } = {}) {

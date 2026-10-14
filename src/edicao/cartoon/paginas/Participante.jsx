@@ -64,7 +64,7 @@ function Trocas ({ lista, unidades }) {
 function Unidade ({ u, casa, navigate, comCombo, rota }) {
   const est = M.estadoAgora(u)
   const horario = comCombo ? M.horarioResumido(u.combo?.disponibilidade) : []
-  const naRota = rota.tem(u.id)
+  const naRota = !!rota && rota.tem(u.id)
   const titulo = u.nome || u.endereco?.bairro || casa.nome
   return (
     <article className="ct-unidade" aria-labelledby={`un-${u.id}`}>
@@ -85,11 +85,13 @@ function Unidade ({ u, casa, navigate, comCombo, rota }) {
       <div className="ct-acoes">
         {M.linkComoChegar(u) && <a className="ct-botao ct-botao--contorno" href={M.linkComoChegar(u)} target="_blank" rel="noopener noreferrer">{T.comoChegar}</a>}
         {u.whatsapp && <a className="ct-botao ct-botao--contorno" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer">{T.whatsapp}</a>}
-        {u.coordenada && <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}>Ver no mapa</Link>}
-        <button type="button" className={`ct-botao${naRota ? ' ct-botao--feito' : ''}`} aria-pressed={naRota}
-          onClick={() => (naRota ? rota.remover(u.id, titulo) : rota.adicionar(u.id, titulo))}>
-          {naRota ? T.rotaNaRota : T.rotaAdicionar}
-        </button>
+        {u.coordenada && navigate && <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}>Ver no mapa</Link>}
+        {rota && (
+          <button type="button" className={`ct-botao${naRota ? ' ct-botao--feito' : ''}`} aria-pressed={naRota}
+            onClick={() => (naRota ? rota.remover(u.id, titulo) : rota.adicionar(u.id, titulo))}>
+            {naRota ? T.rotaNaRota : T.rotaAdicionar}
+          </button>
+        )}
       </div>
     </article>
   )
@@ -127,7 +129,19 @@ export function Participante ({ slug, foco, navigate, edicao }) {
     )
   }
 
-  const fase = res.fase || edicao?.fase
+  return (
+    <FichaParticipante p={p} fase={res.fase || edicao?.fase} avaliacaoAberta={!!edicao?.avaliacao?.aberta}
+      navigate={navigate} rota={rota} desatualizado={res.desatualizado} demo={res.demo} />
+  )
+}
+
+/**
+ * A ficha em si — só apresentação, a partir do JSON público. É a MESMA que a
+ * prévia do painel mostra (painel-app importa daqui): o que a marca vê antes de
+ * enviar é o que o site mostraria. Sem `navigate`, os links internos somem
+ * (prévia); sem `rota`, o botão da Minha rota some.
+ */
+export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false }) {
   const encerrada = fase === 'encerrada'
   const combo = p.combo
   const itens = [...(combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
@@ -136,14 +150,14 @@ export function Participante ({ slug, foco, navigate, edicao }) {
   const resumo = M.resumoCombo(itens)
   const fotos = combo?.fotos || {}
   const galeria = [fotos.principal, ...(fotos.galeria || [])].filter(Boolean)
-  const avaliacaoAberta = !!edicao?.avaliacao?.aberta && !!combo
+  const avaliacaoAberta = aberta && !!combo && !!navigate
   const nomesUnidades = (lista) => M.juntar(lista.map((u) => u.nome || u.endereco?.bairro || p.casa.nome))
 
   return (
     <article className="ct-part">
-      <AvisoDesatualizado ativo={res.desatualizado} />
-      <AvisoDemo ativo={res.demo} />
-      <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.voltar}</Link></p>
+      <AvisoDesatualizado ativo={desatualizado} />
+      <AvisoDemo ativo={demo} />
+      {navigate && <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.voltar}</Link></p>}
 
       {/* A · Conheça a casa */}
       <header className="ct-bloco ct-casa">

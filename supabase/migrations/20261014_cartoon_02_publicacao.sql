@@ -277,7 +277,15 @@ create or replace function public.definir_publicacao_edicao(p_secret text, p_edi
 as $$
 declare v_de public.edicao_publicacao%rowtype; v_para public.edicao_publicacao%rowtype; k text;
 begin
-  if not public.pode(p_secret, 'edicao.gerir') then raise exception 'nao_autorizado'; end if;
+  -- D-18: participantes e combos públicos = curadoria (quem publica cada casa);
+  -- fase, avaliação e resultados = edicao.gerir (administrador).
+  if not public.pode(p_secret, 'edicao.gerir') then
+    if not public.pode(p_secret, 'curadoria.decidir')
+       or exists (select 1 from jsonb_object_keys(coalesce(p_dados, '{}'::jsonb)) k
+                   where k not in ('participantes_publicos', 'combos_publicos')) then
+      raise exception 'nao_autorizado';
+    end if;
+  end if;
   insert into public.edicao_publicacao (edicao_codigo) values (p_edicao) on conflict do nothing;
   select * into v_de from public.edicao_publicacao where edicao_codigo = p_edicao for update;
   for k in select jsonb_object_keys(coalesce(p_dados, '{}'::jsonb)) loop

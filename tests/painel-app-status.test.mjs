@@ -29,7 +29,18 @@ const CHECKS = {
   envio: ['copiado', 'whatsapp_aberto', 'enviado_manual'],
   correcao: ['aberta', 'corrigida', 'resolvida'],
   prioridade: ['normal', 'importante'],
+  // Camada de edição Cartoon (20261014_cartoon_01/_02).
+  midia: ['enviada', 'aprovada', 'recusada'],
+  fase_edicao: ['preparacao', 'pre_lancamento', 'em_andamento', 'encerrada'],
 }
+
+test('a dimensão de publicação (derivada, não CHECK) tem rótulo e tom', () => {
+  for (const v of ['nao_publicado', 'publicado', 'retirado', 'alteracao_em_analise']) {
+    assert.ok(STATUS.publicacao[v] && STATUS.publicacao[v].rotulo, 'publicacao.' + v + ' sem rótulo')
+    assert.ok(TONS.includes(tom('publicacao', v)))
+  }
+  assert.equal(rotulo('publicacao', 'alteracao_em_analise'), 'Alteração em análise')
+})
 
 test('todo valor dos CHECKs do banco tem rótulo e tom válido', () => {
   for (const [dom, valores] of Object.entries(CHECKS)) {

@@ -14,6 +14,8 @@ import { ArquivosOrg } from './vistas/ArquivosOrg'
 import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
 import { Carregando, Erro } from './ui'
+import { ListaPublicacao } from './vistas/Publicacao'
+import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
 
 /*
  * Os sete módulos da organização (reestruturação 29/09/2026 — spec em
@@ -59,6 +61,8 @@ export function Participantes(props) {
     { chave: 'candidaturas', rotulo: 'Candidaturas', render: () => <Respostas {...props} origens={['quero_participar']} /> },
     { chave: 'temas', rotulo: 'Temas', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <AbaTemas edicao={atual} pode={props.pode} irPara={props.irPara} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
     { chave: 'vendas', rotulo: 'Vendas', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <AbaVendas edicao={atual} pode={props.pode} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
+    // Cartoon 2026.2: o que está no site, casa a casa (filtros por revisão e publicação).
+    { chave: 'publicacao', rotulo: 'Publicação', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaPublicacao edicao={atual} rota={props.rota} navegar={props.navegar} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
   ]} />
 }
 
@@ -106,6 +110,9 @@ export function ModEdicao(props) {
         <ComEdicaoAtual key={versao} registrarAtualizar={props.registrarAtualizar}>{(atual, carregar) => <AbaConfiguracao edicao={atual} pode={props.pode} onMudou={carregar} />}</ComEdicaoAtual>
       </div>
     ) },
+    // Cartoon 2026.2: fase e chaves do site (interruptores 1 e 3–6) e o resumo das avaliações.
+    { chave: 'publicacao', rotulo: 'Publicação no site', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ChavesEdicao edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
+    { chave: 'avaliacoes', rotulo: 'Avaliações', mostrar: props.pode('relatorio.ler'), render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <Avaliacoes edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
     { chave: 'edicoes', rotulo: 'Todas as edições', render: () => <TodasEdicoes registrarAtualizar={props.registrarAtualizar} /> },
   ]} />
 }

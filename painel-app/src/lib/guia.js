@@ -10,9 +10,11 @@
 import { TIPOS, unidadeTemEndereco, itensEmOrdem, custosFaltando, custosDeLinhas } from './cadastro.js'
 import { interpretarLink } from './central.js'
 
-// Meu cadastro = A marca (0) + Onde encontrar (4); Meu combo = tema, itens, preço.
+// Meu cadastro = A marca (0) + Unidades (4) + Atendimento e horário do combo (6)
+// + Fotos (7); Meu combo = tema (1), itens (2), combo (3), alimentar e trocas (5).
+// Mesma divisão de link_campo_marca no banco (20261014_cartoon_03_revisao.sql).
 export function vistaDoBloco(bloco) {
-  return Number(bloco) === 0 || Number(bloco) === 4 ? 'cadastro' : 'combo'
+  return [0, 4, 6, 7].includes(Number(bloco)) ? 'cadastro' : 'combo'
 }
 
 export function linkDoCampo(bloco, campo) {
@@ -22,22 +24,31 @@ export function linkDoCampo(bloco, campo) {
 // Bloco do formulário a partir do id do campo (`campo-<id>` em Cadastro.jsx).
 export function blocoDoCampo(campo) {
   const c = String(campo || '')
-  if (/^(nome_marca|responsavel|telefone|email|instagram|site|cnpj|razao_social|logo)$/.test(c)) return 0
+  if (/^(nome_marca|responsavel|telefone|email|instagram|site|cnpj|razao_social|logo|apresentacao_publica)$/.test(c)) return 0
   if (/^tema_/.test(c)) return 1
+  if (/^item-\d-(alimentar|trocas)$/.test(c)) return 5
   if (/^item-/.test(c)) return 2
   if (/^(combo_|custo_)/.test(c)) return 3
   if (/^unidade-/.test(c)) return 4
+  if (/^atendimento-/.test(c)) return 6
   return null
 }
 
-// Campos que a organização pode apontar num pedido ou numa correção.
+// Campos que a organização pode apontar num pedido ou numa correção. Os de
+// unidade apontam a 1ª unidade (o id genérico); as outras levam sufixo -2, -3…
 export const CAMPOS_APONTAVEIS = [
   ['nome_marca', 'A marca · Nome'], ['responsavel', 'A marca · Responsável'], ['telefone', 'A marca · WhatsApp'],
   ['email', 'A marca · E-mail'], ['instagram', 'A marca · Instagram'], ['logo', 'A marca · Logo do estabelecimento'],
+  ['apresentacao_publica', 'A marca · Apresentação no site'],
   ['tema_combo', 'Tema · Tema escolhido'], ['tema_justificativa', 'Tema · Justificativa'],
   ...[1, 2, 3].flatMap((n) => [['item-' + n + '-nome', 'Item ' + n + ' · Nome'], ['item-' + n + '-descricao', 'Item ' + n + ' · Descrição'], ['item-' + n + '-ingredientes', 'Item ' + n + ' · Ingredientes']]),
+  ['combo_nome', 'Combo · Nome do combo'], ['combo_descricao', 'Combo · Descrição'], ['combo_condicoes', 'Combo · Condições'],
   ['custo_embalagem', 'Custos · Embalagem para viagem'], ['custo_delivery', 'Custos · Delivery'],
-  ['unidade-endereco', 'Onde encontrar · Endereço'],
+  ...[1, 2, 3].flatMap((n) => [['item-' + n + '-alimentar', 'Item ' + n + ' · Alergênicos e características'], ['item-' + n + '-trocas', 'Item ' + n + ' · Trocas']]),
+  ['unidade-endereco', 'Unidades · Endereço'], ['unidade-whatsapp', 'Unidades · WhatsApp público'],
+  ['unidade-horario-loja', 'Unidades · Horário da loja'],
+  ['atendimento-modos', 'Atendimento · Local, retirada e delivery'], ['atendimento-canais', 'Atendimento · Canais do delivery'],
+  ['atendimento-horario', 'Atendimento · Horário do combo'],
 ]
 
 const ROTULO_ITEM = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
@@ -119,9 +130,11 @@ export function fotosDaParticipacao(sessoes, participacao, agora = new Date()) {
 }
 
 const ETAPAS = [
-  { chave: 'estabelecimento', rotulo: 'Dados do estabelecimento', blocos: [0, 4] },
+  // 6 (atendimento) e 5 (alimentar) não têm campo na contagem de 17, mas uma
+  // correção pedida neles acende a etapa certa.
+  { chave: 'estabelecimento', rotulo: 'Dados do estabelecimento', blocos: [0, 4, 6] },
   { chave: 'tema', rotulo: 'Tema', blocos: [1] },
-  { chave: 'itens', rotulo: 'Os três itens', blocos: [2] },
+  { chave: 'itens', rotulo: 'Os três itens', blocos: [2, 5] },
   { chave: 'preco', rotulo: 'Custos e detalhes', blocos: [3] },
 ]
 

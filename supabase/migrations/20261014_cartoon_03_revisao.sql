@@ -317,6 +317,19 @@ grant execute on function public.org_verificar_coordenada(text, uuid, numeric, n
   public.get_publicacao(text, uuid), public.get_publicacoes_edicao(text, text), public.get_publicacao_edicao(text, text)
   to anon, authenticated;
 
+-- ---------------------------------------------------------------- correção por campo nos blocos novos
+-- Blocos do cadastro: 0 estabelecimento · 1 tema · 2 itens · 3 combo/custos · 4 unidades
+-- (existentes) + 5 informações alimentares e trocas (por item) · 6 atendimento e
+-- horário do combo (por unidade) · 7 fotos. Meu cadastro = 0, 4, 6, 7; Meu combo = 1, 2, 3, 5.
+alter table public.correcoes_campo drop constraint if exists correcoes_campo_bloco_check;
+alter table public.correcoes_campo add constraint correcoes_campo_bloco_check check (bloco between 0 and 7);
+create or replace function public.link_campo_marca(p_bloco integer, p_campo text)
+ returns text language sql immutable set search_path to 'public'
+as $function$
+  select case when p_bloco in (0, 4, 6, 7) then 'cadastro' else 'combo' end || '/' || p_bloco
+         || coalesce('/' || nullif(p_campo, ''), '')
+$function$;
+
 -- ---------------------------------------------------------------- reverter (só em emergência; ler antes)
 -- drop function if exists public.edicao_publica(text), public.participante_publico(text, text), ... ;
 -- drop table if exists public.publicacoes, public.edicao_publicacao, public.midias_participacao,
