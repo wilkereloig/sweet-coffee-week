@@ -632,13 +632,23 @@ body { margin: 0; }
      mesmo um alpha baixo (.15-.20) ainda lê como "área escura", então a
      queda precisa ser rápida logo no início, não distribuída até o fim. Uma
      rampa mais lenta (tentativa anterior: 115%/.18 aos 62%) deixava a faixa
-     de alpha médio grande o bastante pra ler como corte, não como fade. */
+     de alpha médio grande o bastante pra ler como corte, não como fade.
+     14/10/2026: com 4 paradas lineares a quebra em 22% virava faixa marrom
+     visível sobre o amarelo da Home. Agora é rampa suavizada (curva "scrim",
+     12 paradas) e o topo cai de .60 para .48 — mesma cobertura, sem degrau. */
   background: linear-gradient(to bottom,
-    rgba(61, 19, 8, .60) 0%,
-    rgba(61, 19, 8, .22) 22%,
-    rgba(61, 19, 8, .06) 42%,
-    rgba(61, 19, 8, 0) 62%,
-    rgba(61, 19, 8, 0) 100%);
+    rgba(61, 19, 8, .48) 0%,
+    rgba(61, 19, 8, .355) 12%,
+    rgba(61, 19, 8, .26) 22%,
+    rgba(61, 19, 8, .183) 31%,
+    rgba(61, 19, 8, .133) 38%,
+    rgba(61, 19, 8, .093) 44%,
+    rgba(61, 19, 8, .06) 49%,
+    rgba(61, 19, 8, .036) 54%,
+    rgba(61, 19, 8, .02) 58%,
+    rgba(61, 19, 8, .01) 62%,
+    rgba(61, 19, 8, .004) 66%,
+    rgba(61, 19, 8, 0) 70%);
   pointer-events: none;
   z-index: -1;
 }
