@@ -15,6 +15,7 @@
 import React from 'react'
 import '../../styles/scw-contato.css'
 import FAQ_DADOS from '../../data/faqCentral'
+import { Marquee } from '../../components/Marquee'
 import { useCentralDuvidas } from './useCentralDuvidas'
 import { rolarPara } from './rolar'
 import { Abertura } from './secoes/Abertura'
@@ -44,6 +45,10 @@ function useSchemaFaq() {
   }, [])
 }
 
+/* Faixa de palavras (14/10/2026, pedido do Wilker): os assuntos da central,
+   derivados da base como no Awards — nada digitado aqui. */
+const PALAVRAS = FAQ_DADOS.categorias.filter(([id]) => id !== 'todas').map(([, rotulo]) => rotulo)
+
 export function ContatoPage() {
   const central = useCentralDuvidas()
   useSchemaFaq()
@@ -57,6 +62,7 @@ export function ContatoPage() {
   return (
     <>
       <Abertura central={central} />
+      <Marquee palavras={PALAVRAS} />
       <Duvidas central={central} />
       <Mensagem verAssunto={verAssunto} />
     </>

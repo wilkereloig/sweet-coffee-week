@@ -8,17 +8,14 @@
    ========================================================================= */
 
 /* ============================================================================
-   Herói (abertura das duas páginas) — usa .scw-hero-bloco + .scw-hero-banda
+   Herói (abertura das duas páginas) — geometria do sistema (.scw-heroi-foto,
+   scw-2026.css): foto, cor e degradê vêm de lá. Aqui só a tipografia e as
+   ações. Cor = --scw-heroi/--tinta da rota (cyan + chocolate em Participar,
+   marrom + creme em Apoiar): nenhum hex aqui.
    ========================================================================= */
-
-/* Herói na cor da própria página — --scw-heroi/--tinta (scw-2026.css): cyan
-   de tinta chocolate em Participar, marrom de tinta creme em Apoiar. O véu
-   (.scw-hero-veu) lê --scw-heroi por padrão: nenhum hex aqui. */
-.pa-hero { position: relative; overflow: hidden; background: var(--scw-heroi); color: var(--scw-heroi-tinta); }
 
 /* A abertura é H1 + lead + ações, nada mais (§6.8; o selo saiu em 27/08/2026).
    Quem limita a medida é o próprio papel (.scw-h1 17ch, .scw-lead 46ch). */
-.pa-hero__grade { position: relative; z-index: 1; }
 .pa-hero__titulo { margin: 0; color: var(--scw-heroi-tinta); }
 .pa-hero__lead { margin: clamp(18px, 2vw, 26px) 0 0; color: color-mix(in srgb, var(--scw-heroi-tinta) 88%, transparent); }
 .pa-hero__acoes {
@@ -58,40 +55,6 @@ body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: va
 
 /* Apoiar ficou com o marrom: chapa ESCURA de tinta creme (9,4:1). As regras
    base já servem — botão sólido amarelo, contorno creme, anel cyan. */
-
-/* No celular (<1000px) o herói é foto em cima e texto embaixo, na chapa da
-   página (§6.9, peça do sistema). Aqui a foto é 4:3, não 1:1 (exceção de
-   22/08/2026, "encurtar o herói"). Com o título curto de 12/10/2026, a ação
-   principal fica inteira acima do aviso de cookies na primeira visita:
-   medido, a base do botão em y=581 (390×844) e y=558 (360×800).
-   ⚠️ Lado a lado as duas ações não cabem (241 + 287px numa linha de 342px):
-   não testar de novo. */
-@media (max-width: 1000px) {
-  .pa-hero .scw-hero-banda { aspect-ratio: 4 / 3; }
-}
-/* Tablet (600–1000px): em 4:3 a foto passava de 600px de altura e a ação
-   descia abaixo da dobra (y=909 em 900×900). 2:1, como a Home nessa faixa. */
-@media (min-width: 600px) and (max-width: 1000px) {
-  .pa-hero .scw-hero-banda { aspect-ratio: 2 / 1; }
-}
-/* Abaixo de 380px, 16:10: desde 13/10/2026 o lead de Participar traz tema e
-   período da edição (uma linha a mais), e em 360×800 o aviso de cookies
-   voltava a cobrir "Ver como funciona". */
-@media (max-width: 379px) {
-  .pa-hero .scw-hero-banda { aspect-ratio: 16 / 10; }
-}
-
-/* Desktop: chapa clara (cyan) pede véu mais fechado que a escura — quem tem de
-   se manter íntegro é o FUNDO, não a tinta. Apoiar usa os valores padrão. */
-@media (min-width: 1001px) {
-  body.route-participar .pa-hero {
-    --hv-topo: 44%;
-    --hv-meio: 84%;
-    --hv-base: 94%;
-    --hv-esq: 90%;
-    --hv-centro: 58%;
-  }
-}
 
 /* Âncora interna (irPara) leva o foco à seção: sem anel em volta do bloco
    inteiro — o destino já é evidente pela rolagem. */

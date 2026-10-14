@@ -181,16 +181,11 @@
 .ctt-abertura .ctt-abertura__acoes  { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 470ms both; }
 
 /* --- Sweet Awards --------------------------------------------------------
-   A banda de foto surge, o texto sobe atrás. A escada da vitrine dos
+   A banda de foto surge; o texto não anima. A escada da vitrine dos
    vencedores saiu com ela em 06/08/2026 — o pódio agora se monta na seção 02. */
+/* 14/10/2026: só a área de foto surge. O texto abre no estado final — legível
+   desde o primeiro quadro, sem esperar animação (pedido do Wilker). */
 .swa-hero .scw-hero-banda              { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
-.swa-hero .swa-hero__texto > .scw-h1   { animation: moSobe var(--mo-longo) var(--mo-mola) 120ms both; }
-.swa-hero .swa-hero__texto > .scw-lead { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 400ms both; }
-.swa-hero .swa-numeros > *             { animation: moSobeCurto var(--mo-entra) var(--mo-mola) both; }
-.swa-hero .swa-numeros > *:nth-child(1) { animation-delay: 520ms; }
-.swa-hero .swa-numeros > *:nth-child(2) { animation-delay: 590ms; }
-.swa-hero .swa-numeros > *:nth-child(3) { animation-delay: 660ms; }
-.swa-hero .swa-numeros > *:nth-child(4) { animation-delay: 730ms; }
 
 /* ============================================================================
    3. IMAGEM RESPIRANDO (§6)

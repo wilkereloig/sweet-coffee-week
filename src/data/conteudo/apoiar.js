@@ -129,3 +129,10 @@ export const PROPOSTA = {
   barra: 'Apoio para a próxima edição: fale com a organização.',
   barraAcao: 'Conversar sobre apoio',
 }
+
+/* Faixa de palavras logo abaixo do herói (Marquee). Volta em 14/10/2026, pedido
+   do Wilker; a lista é a que a página usava até 12/10/2026. */
+export const PALAVRAS = [
+  'patrocínio', 'ativação de marca', 'mídia e conteúdo',
+  'economia criativa', 'sweet lovers',
+]

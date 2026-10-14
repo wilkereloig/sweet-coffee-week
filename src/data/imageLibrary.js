@@ -242,12 +242,12 @@ const HEROES = {
      sobem de escala e mostram só a faixa central, por isso cada `position`
      mira a altura onde estão os rostos e as placas. */
   'historico-awards': [
-    { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 36%' },
-    { src: '/images/awards-entrega/02.jpg', alt: 'Equipe d’O Maestro Café reunida com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 42%', mobilePosition: 'center 38%' },
-    { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 40%' },
-    { src: '/images/awards-entrega/04.jpg', alt: 'Entrega do prêmio de 1º lugar do Sweet Awards do Sweet & Coffee Week à Bocaditos', position: 'center 38%', mobilePosition: 'center 34%' },
-    { src: '/images/awards-entrega/05.jpg', alt: 'Entrega de prêmios do Sweet Awards em uma loja participante do Sweet & Coffee Week', position: 'center 30%', mobilePosition: 'center 26%' },
-    { src: '/images/awards-entrega/06.jpg', alt: 'Equipe da Jolie Café Pâtisserie recebendo os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 44%', mobilePosition: 'center 40%' },
+    { src: '/images/awards-entrega/01.jpg', alt: 'Equipe d’O Maestro Café com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 55%', mobilePosition: 'center 40%' },
+    { src: '/images/awards-entrega/02.jpg', alt: 'Equipe d’O Maestro Café reunida com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 60%', mobilePosition: 'center 45%' },
+    { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 65%', mobilePosition: 'center 50%' },
+    { src: '/images/awards-entrega/04.jpg', alt: 'Entrega do prêmio de 1º lugar do Sweet Awards do Sweet & Coffee Week à Bocaditos', position: 'center 45%', mobilePosition: 'center 30%' },
+    { src: '/images/awards-entrega/05.jpg', alt: 'Entrega de prêmios do Sweet Awards em uma loja participante do Sweet & Coffee Week', position: 'center 40%', mobilePosition: 'center 36%' },
+    { src: '/images/awards-entrega/06.jpg', alt: 'Equipe da Jolie Café Pâtisserie recebendo os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 62%', mobilePosition: 'center 50%' },
   ],
   edicoes: [
     { src: '/images/edicoes/2016/01.webp', alt: 'Registro da primeira edição do Sweet & Coffee Week', position: 'center', mobilePosition: 'center' },
@@ -493,6 +493,9 @@ export const SIZES = {
   cartao: '(max-width: 820px) 86vw, 32vw',
   /** Foto que sangra de ponta a ponta. */
   cheia: '100vw',
+  /** Área fotográfica do herói institucional: largura cheia até 1000px, 52vw acima
+   *  (--scw-heroi-foto-largura em scw-2026.css — os dois mudam juntos). */
+  heroi: '(max-width: 1000px) 100vw, 52vw',
 }
 
 export { focalPosition }

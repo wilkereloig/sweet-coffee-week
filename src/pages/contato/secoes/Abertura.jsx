@@ -30,12 +30,12 @@ export function Abertura({ central }) {
 
   return (
     <section
-      className="scw-hero-bloco scw-hero-bloco--compacto scw-hero-veu ctt-abertura"
+      className="scw-heroi-foto ctt-abertura"
       aria-labelledby="ctt-titulo"
       data-mo-fora
     >
       <HeroFotos fotos={HERO_FOTOS} />
-      <div className="ctt-abertura__grade">
+      <div className="scw-heroi-foto__texto ctt-abertura__grade">
         <span className="scw-rotulo ctt-abertura__rotulo">{ABERTURA.rotulo}</span>
         <h1 id="ctt-titulo" className="scw-h1 ctt-abertura__titulo">{ABERTURA.titulo}</h1>
         <p className="scw-hero__lead ctt-abertura__lead">

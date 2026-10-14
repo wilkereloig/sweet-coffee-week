@@ -1894,112 +1894,109 @@ body { margin: 0; }
   text-wrap: pretty;
 }
 
-/* Herói simples (Participar, Apoiar, Contato): bloco na cor da página. O cartão
-   de foto saiu em ago/2026 (PATCH 01 §6) — a abertura é rótulo + H1 + lead +
-   ações; no celular a foto continua, sangrando em .scw-hero-banda. */
-.scw-hero-bloco {
+/* ============================================================================
+   HERÓI FOTOGRÁFICO — uma geometria só (14/10/2026, pedido do Wilker)
+   Participar, Apoiar, Sweet Awards e Contato. A Home tem abertura própria.
+
+   A PÁGINA escolhe: as fotos (heroPhotos), a cor (--scw-heroi / -tinta, §6.2)
+   e o ponto focal de cada foto (--foco / --foco-mobile). TODO o resto mora
+   aqui — proporção, largura, posição, degradê, pausa, respiro — e nenhuma
+   página redefine altura ou proporção da foto. ⛔ Não acrescentar
+   `.pa-hero .scw-hero-banda { aspect-ratio… }` e afins: foi assim que as
+   quatro chegaram a três geometrias diferentes.
+
+   Celular (≤1000px): faixa compacta no topo, texto embaixo na cor sólida.
+     <380px 16:10 · 380–599px 4:3 · 600–1000px 2:1 (a de Participar, a mais
+     compacta). A altura vem só da largura da tela.
+   Desktop (>1000px): texto à esquerda sobre a cor; a foto ocupa FISICAMENTE
+     só a área da direita (--scw-heroi-foto-largura), com um degradê curto
+     que sai opaco da cor da página e some em direção à foto. Sem véu sobre a
+     imagem. Altura de referência compartilhada; o conteúdo pode crescer.
+   ========================================================================= */
+:root {
+  /* 14/10/2026, pedido do Wilker ("aplique em todas"): ~48% texto, ~52% foto,
+     degradê suave na junção (até 46% da área) — o resto da foto fica nítido. A ÁREA da
+     foto e a RESERVA do texto são medidas separadas (vw nas duas contas). */
+  --scw-heroi-foto-largura: 52vw;
+  --scw-heroi-texto-reserva: 52vw;
+  --scw-heroi-foto-altura: clamp(640px, 54.5vw, 740px);   /* cabe o Awards (o mais alto) — as quatro ficam iguais */
+  --scw-heroi-foto-folga: clamp(32px, 4vw, 72px);   /* entre o texto e a foto */
+  /* Onde o degradê da área de foto sai opaco e onde some (em % da ÁREA). */
+  --scw-heroi-degrade-de: 0%;
+  --scw-heroi-degrade-ate: 46%;   /* 14/10/2026: "mais suave" — era 24% */
+}
+
+.scw-heroi-foto {
   position: relative;
   overflow: hidden;
-  min-height: var(--scw-hero-altura);
+  min-height: var(--scw-heroi-foto-altura);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  background: var(--scw-choco);
-  color: var(--scw-creme);
-  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
+  justify-content: center;   /* conjunto de texto centrado na área útil abaixo do cabeçalho */
+  /* À direita a reserva é a própria foto + a folga: o texto nunca entra nela. */
+  /* Topo = reserva do herói compacto (§6.7: a logo transborda metade abaixo do
+     cabeçalho). A de 232–290px era da abertura de tela cheia. */
+  padding: var(--scw-hero-topo) calc(var(--scw-heroi-texto-reserva) + var(--scw-heroi-foto-folga)) var(--scw-hero-fecho) var(--scw-trilho);
+  background: var(--scw-heroi);
+  color: var(--scw-heroi-tinta);
 }
-.scw-hero-bloco--compacto {
-  /* O "compacto" continua valendo para a TIPOGRAFIA (.scw-h1--compacto), não
-     para a caixa: a altura do herói é a mesma nas seis páginas. */
-  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
-}
-/* Banda de foto — a camada de fundo do herói, nas DUAS telas desde a
-   padronização de 21/08/2026. Antes ela existia só no celular, como faixa
-   sangrando no topo com o texto embaixo, e o corte vinha de dois pseudos
-   mascarados por uma rampa em S. Com a foto cobrindo o herói inteiro não há
-   emenda para disfarçar: quem faz a leitura é o véu (.scw-hero-veu).
-   Fica escondida por padrão — só aparece em quem tem foto de herói. */
+.scw-heroi-foto__texto { position: relative; z-index: 1; }
+
+/* A área fotográfica: caixa com limites próprios; as camadas do crossfade
+   ficam presas nela e o enquadramento é calculado sobre ELA. */
 .scw-hero-banda {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--scw-heroi-foto-largura);
   z-index: 0;
+  overflow: hidden;
   background-color: var(--scw-marrom);
 }
-
-/* ============================================================================
-   VÉU DE HERÓI — uma construção só para as seis páginas
-   Antes cada herói escurecia a foto do seu jeito: a Home num degradê a 96°, a
-   banda do celular em duas rampas mascaradas, o Awards e Participar/Apoiar num
-   ::after próprio. Isto é a peça única (§5.4): a seção recebe `.scw-hero-veu` e
-   ajusta os alfas por custom property. Ninguém escreve gradiente de novo.
-
-   Dois degradês multiplicados, sempre na cor do próprio herói:
-   · o VERTICAL adensa para a base, onde a informação se acumula;
-   · o HORIZONTAL adensa à esquerda, onde ficam selo, título e lead, e zera em
-     `--hv-fim` para a foto aparecer no terço direito.
-
-   Quem define os alfas define contraste, não gosto: a chapa clara (cyan de
-   Participar, bege do Contato) precisa de mais véu que a escura, porque lá a
-   tinta é chocolate e quem tem de se manter íntegro é o FUNDO.
-   ========================================================================= */
-
-.scw-hero-veu::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-topo, 22%), transparent) 0%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-meio, 64%), transparent) 58%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-base, 84%), transparent) 100%),
-    linear-gradient(96deg,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-esq, 74%), transparent) 0%,
-      color-mix(in srgb, var(--hv-cor, var(--scw-heroi, var(--scw-choco))) var(--hv-centro, 42%), transparent) 38%,
-      transparent var(--hv-fim, 66%));
-}
-
-/* Camadas de crossfade DENTRO da banda (componente HeroFotos): quando o herói
-   tem mais de uma foto, a banda deixa de carregar a imagem e vira só a caixa.
-   Uma camada `.is-ativa` por vez, opacidade em transição. O enquadramento vem
-   por custom property porque muda entre a faixa larga e a banda alta, e style
-   inline venceria a media query (§10.4). */
 .scw-hero-banda__foto {
   position: absolute;
   inset: 0;
   display: block;
-  /* A url vem em propriedade custom e quem escolhe a largura é o CSS: o celular
-     usa a variante de 960px e o desktop o original. Inline não dá — estilo
-     inline vence media query (§10.4). */
-  background-image: var(--foto-mobile, var(--foto));
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: var(--foco-mobile, center);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--foco, center);
   opacity: 0;
   transition: opacity 900ms cubic-bezier(.2, .7, .2, 1);
 }
 .scw-hero-banda__foto.is-ativa { opacity: 1; }
-/* As duas rampas em S acima são pseudos de z-index auto: com as fotos agora
-   filhos REAIS, a ordem do DOM as deixaria atrás delas e o escurecimento do
-   topo — o que deixa a logo do cabeçalho passar por cima — sumiria. */
-.scw-hero-banda::before,
-.scw-hero-banda::after { z-index: 1; }
-@media (min-width: 1001px) {
-  .scw-hero-banda__foto {
-    background-image: var(--foto);
-    background-position: var(--foco, center);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .scw-hero-banda__foto { transition: none; }
 }
+/* Degradê de integração: opaco na cor da página até --scw-heroi-degrade-de,
+   esfumando em várias paradas até ficar transparente em -ate (0% → 46% da
+   área, curva em S — smoothstep — para a junção não marcar aresta). Rampa de muitas paradas, não
+   duas — duas marcam aresta (§10.4). Mais da metade direita da foto fica limpa. */
+.scw-hero-banda::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  --de: var(--scw-heroi-degrade-de);
+  --faixa: calc(var(--scw-heroi-degrade-ate) - var(--scw-heroi-degrade-de));
+  background: linear-gradient(to right,
+    var(--scw-heroi) 0%,
+    var(--scw-heroi) var(--de),
+    color-mix(in srgb, var(--scw-heroi) 95.7%, transparent) calc(var(--de) + var(--faixa) * .125),
+    color-mix(in srgb, var(--scw-heroi) 84.4%, transparent) calc(var(--de) + var(--faixa) * .25),
+    color-mix(in srgb, var(--scw-heroi) 68.4%, transparent) calc(var(--de) + var(--faixa) * .375),
+    color-mix(in srgb, var(--scw-heroi) 50%, transparent) calc(var(--de) + var(--faixa) * .5),
+    color-mix(in srgb, var(--scw-heroi) 31.6%, transparent) calc(var(--de) + var(--faixa) * .625),
+    color-mix(in srgb, var(--scw-heroi) 15.6%, transparent) calc(var(--de) + var(--faixa) * .75),
+    color-mix(in srgb, var(--scw-heroi) 4.3%, transparent) calc(var(--de) + var(--faixa) * .875),
+    transparent var(--scw-heroi-degrade-ate));
+}
 
-/* Pausa da série em crossfade (HeroFotos e abertura da Home). Só ícone, com o
-   nome no hover/foco (§6.11). Mesma chapa do menu: a foto atrás pode ser de
-   qualquer luminância, e o ícone creme sobre ela fecha 6,4:1 no pior caso.
-   Fica na base da foto, à direita — no desktop sobe a altura do aviso de
-   cookies enquanto ele estiver na tela, para não morar embaixo dele. */
+/* Pausa da série em crossfade (HeroFotos e aberturas da Home). Só ícone, com
+   o nome no hover/foco (§6.11). Mesma chapa do menu: o ícone creme fecha
+   6,4:1 sobre qualquer foto. */
 .scw-pausa-fotos {
   position: absolute;
   right: clamp(12px, 1.6vw, 20px);
@@ -2021,17 +2018,59 @@ body { margin: 0; }
   .scw-pausa-fotos:hover { background: var(--scw-choco); }
 }
 .scw-pausa-fotos:active { transform: scale(.94); }
-/* Uma cópia por tela (HeroFotos.jsx): na foto do celular, e no herói do
-   desktop — acima do véu, que cobre a banda inteira — subindo a altura do
-   aviso de cookies enquanto ele estiver na tela. */
-.scw-pausa-fotos--no-heroi { display: none; }
+/* Na banda: canto inferior direito da FOTO, acima dos degradês. No desktop
+   sobe a altura do aviso de cookies enquanto ele estiver na tela. */
+/* Chapa SÓLIDA aqui: a .76 do menu deixava a foto transparecer e, sobre
+   imagem carregada (folhagem, cadeira), o botão quase sumia. Creme sobre
+   chocolate: 12:1 em qualquer foto. */
+.scw-hero-banda .scw-pausa-fotos { z-index: 2; background: var(--scw-choco); box-shadow: 0 0 0 2px color-mix(in srgb, var(--scw-creme) 55%, transparent); }
 @media (min-width: 1001px) {
-  .scw-pausa-fotos--na-banda { display: none; }
-  .scw-pausa-fotos--no-heroi {
-    display: grid;
-    z-index: 3;
-    bottom: calc(clamp(12px, 1.6vw, 20px) + var(--scw-aviso-h, 0px));
+  .scw-hero-banda .scw-pausa-fotos { bottom: calc(clamp(12px, 1.6vw, 20px) + var(--scw-aviso-h, 0px)); }
+}
+
+/* --- celular: faixa compacta em cima, texto embaixo ---------------------- */
+@media (max-width: 1000px) {
+  .scw-heroi-foto {
+    min-height: 0;
+    display: block;
+    padding: 0 0 clamp(30px, 7vw, 44px);
   }
+  .scw-heroi-foto__texto { padding: clamp(24px, 5.5vw, 36px) var(--scw-trilho) 0; }
+  .scw-hero-banda {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+  }
+  .scw-hero-banda__foto { object-position: var(--foco-mobile, var(--foco, center)); }
+  /* Emenda curta na base (até ~18% da foto) e um respiro escuro no topo para
+     a marca do cabeçalho, que pousa sobre a foto. */
+  .scw-hero-banda::before {
+    background:
+      /* base: a mesma curva em S do desktop, mais longa (14/10/2026: "mais suave") */
+      linear-gradient(to top,
+        var(--scw-heroi) 0%,
+        color-mix(in srgb, var(--scw-heroi) 95.7%, transparent) 4%,
+        color-mix(in srgb, var(--scw-heroi) 84.4%, transparent) 8%,
+        color-mix(in srgb, var(--scw-heroi) 68.4%, transparent) 12%,
+        color-mix(in srgb, var(--scw-heroi) 50%, transparent) 16%,
+        color-mix(in srgb, var(--scw-heroi) 31.6%, transparent) 20%,
+        color-mix(in srgb, var(--scw-heroi) 15.6%, transparent) 24%,
+        color-mix(in srgb, var(--scw-heroi) 4.3%, transparent) 28%,
+        transparent 32%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--scw-choco) 55%, transparent) 0%,
+        color-mix(in srgb, var(--scw-choco) 16%, transparent) 11%,
+        transparent 22%);
+  }
+}
+@media (max-width: 599px) {
+  .scw-hero-banda { aspect-ratio: 4 / 3; }
+}
+@media (max-width: 379px) {
+  .scw-hero-banda { aspect-ratio: 16 / 10; }
 }
 
 /* --- herói no celular: foto em cima, informação embaixo ------------------ */
@@ -2109,93 +2148,6 @@ body { margin: 0; }
   .scw-hero__info { margin-top: 18px; padding-top: 18px; gap: 16px; }
   .scw-hero__lead { font-size: 16px; line-height: 1.5; }
 
-  /* PADRONIZAÇÃO 21/08/2026 (pedido do Wilke): o celular passa a ter a MESMA
-     construção do desktop — a foto cobre o herói inteiro e o texto vem por
-     cima. Vale para Participar, Apoiar, Contato e Sweet Awards.
-     ⚠️ A HOME saiu dessa padronização em 22/08/2026, a pedido do Eloi: lá a
-     foto voltou a ser bloco próprio, quadrado, com o texto embaixo (ver o
-     bloco `.scw-hero__fotos` no topo desta media query). O piso de altura dela
-     saiu junto — o herói da Home passou a ser foto + texto, medido pelo
-     conteúdo, como os outros desde o ajuste de altura deste mesmo dia. */
-  /* UMA CONSTRUÇÃO SÓ PARA AS CINCO — 22/08/2026, pedido do Eloi: "aplica a
-     mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada
-     uma mantém a sua cor". É o desenho estreado na Home no mesmo dia, agora
-     como peça do sistema: foto quadrada de largura cheia em cima, esfumada na
-     base, texto embaixo sobre a chapa sólida DA PÁGINA.
-     A geometria é idêntica nas cinco; o que muda é `--scw-heroi`, que já é a
-     cor de cada rota (§6.2) — cyan em Participar, marrom em Apoiar, bege em
-     Contato, roxo no Awards, chocolate na Home.
-
-     Substitui a reserva de topo (232px/34svh) do ajuste de altura de horas
-     antes: com a foto no fluxo não existe mais o que reservar — ela ocupa o
-     topo de verdade, em vez de passar por baixo do texto. */
-  .scw-hero-bloco,
-  .scw-hero-bloco--compacto {
-    min-height: 0;
-    justify-content: flex-start;
-    /* A foto sangra até as bordas; o trilho volta no bloco de texto. */
-    padding: 0 0 clamp(30px, 7vw, 44px);
-    /* ⚠️ OBRIGATÓRIO, e é o que mais custaria caro esquecer: sem véu, quem
-       carrega a cor do herói é a CHAPA. Antes o véu é que pintava — daí o
-       bloco poder ficar no chocolate padrão. Em Contato a tinta do herói é
-       chocolate; sem esta linha o título sairia chocolate sobre chocolate. */
-    background: var(--scw-heroi);
-    color: var(--scw-heroi-tinta);
-  }
-  /* A foto deixa de cobrir o herói e vira bloco próprio, quadrado. O zoom cai
-     junto por geometria: `cover` num 1:1 corta ~33% da largura de uma foto 3:2,
-     contra ~70% na caixa alta de antes. */
-  .scw-hero-banda {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    aspect-ratio: 1;
-    flex: 0 0 auto;
-  }
-  /* O esfumado da emenda, na cor do bloco: a foto dissolve na chapa em vez de
-     terminar numa aresta. Em cima, um respiro escuro para a marca do cabeçalho,
-     que pousa sobre a foto — esse fica no chocolate em todas, porque o que ele
-     precisa sustentar é o selo, não a cor da página.
-     ⚠️ Rampa de três paradas, não duas: degradê linear em alpha lê como faixa
-     dura, e o olho enxerga a derivada, não o valor (§10.4). */
-  .scw-hero-banda::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background:
-      linear-gradient(to top,
-        var(--scw-heroi) 0%,
-        color-mix(in srgb, var(--scw-heroi) 72%, transparent) 9%,
-        color-mix(in srgb, var(--scw-heroi) 22%, transparent) 22%,
-        transparent 38%),
-      linear-gradient(to bottom,
-        color-mix(in srgb, var(--scw-choco) 62%, transparent) 0%,
-        color-mix(in srgb, var(--scw-choco) 18%, transparent) 12%,
-        transparent 26%);
-  }
-  /* Véu desligado nas cinco: ele existia para segurar a leitura de texto SOBRE
-     a foto, e não há mais texto sobre a foto. Mantê-lo só escureceria a imagem
-     que o pedido quer mostrar melhor. */
-  .scw-hero-veu::after { display: none; }
-  /* O texto recupera o trilho e o respiro de abertura. */
-  .pa-hero__grade,
-  .ctt-abertura__grade,
-  .swa-hero__texto {
-    padding: clamp(26px, 6vw, 40px) var(--scw-trilho) 0;
-  }
-  /* Tela estreita: o texto ocupa a largura toda, então o degradê horizontal
-     não tem para onde abrir — desliga, e quem carrega a leitura é o vertical,
-     bem mais fechado que no desktop. */
-  .scw-hero-veu {
-    --hv-topo: 22%;
-    --hv-meio: 78%;
-    --hv-base: 94%;
-    --hv-esq: 0%;
-    --hv-centro: 0%;
-    --hv-fim: 0%;
-  }
 }
 
 /* ============================================================================

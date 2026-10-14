@@ -49,9 +49,9 @@ export function Cabeca({ icone, rotulo, titulo, apoio, idTitulo }) {
  */
 export function HeroPa({ fotos, titulo, lead, children }) {
   return (
-    <section className="scw-hero-bloco scw-hero-veu pa-hero" aria-labelledby="pa-titulo" data-mo-fora>
+    <section className="scw-heroi-foto pa-hero" aria-labelledby="pa-titulo" data-mo-fora>
       <HeroFotos fotos={fotos} />
-      <div className="pa-hero__grade">
+      <div className="scw-heroi-foto__texto pa-hero__grade">
         <div>
           <h1 id="pa-titulo" className="scw-h1 pa-hero__titulo">{titulo}</h1>
           <p className="scw-lead pa-hero__lead">{lead}</p>

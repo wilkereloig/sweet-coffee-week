@@ -125,3 +125,11 @@ export const PROXIMO = {
 
 /* ⛔ Barra final obrigatória (§10.4-b): sem ela a rota cai no fallback do SPA. */
 export const PRE_CADASTRO = PROX.preCadastro || '/quero-participar/'
+
+/* Faixa de palavras logo abaixo do herói (Marquee). Volta em 14/10/2026, pedido
+   do Wilker ("faixa com movimento em todas as páginas, exceto a principal e
+   Edições"); a lista é a que a página usava até 12/10/2026. */
+export const PALAVRAS = [
+  'um combo autoral', 'presença na campanha', 'nova relação com o público',
+  'sua marca na rota', 'sweet lovers',
+]

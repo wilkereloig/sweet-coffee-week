@@ -117,7 +117,7 @@ async function visaoGeral (navegador) {
     await rolarTudo(page)
     const intrusas = [...new Set(fotos)].filter((f) => !CAPAS.has(f))
     if (intrusas.length) falha(`${rot}: a visão geral baixou foto de galeria: ${intrusas.slice(0, 3).join(', ')}`)
-    const quebradas = await page.evaluate(() => [...document.querySelectorAll('.edx img')].filter((i) => i.complete && !i.naturalWidth).length)
+    const quebradas = await page.evaluate(() => [...document.querySelectorAll('.edx img')].filter((i) => i.getAttribute('src') && i.complete && !i.naturalWidth).length)
     if (quebradas) falha(`${rot}: ${quebradas} imagem(ns) quebrada(s)`)
 
     // ano: o clique leva ao grupo, marca o ano e não fica sob o cabeçalho
@@ -152,7 +152,9 @@ async function visaoGeral (navegador) {
     const aviso = await retangulo(v.page, '.cookie-consent')
     const navA = await retangulo(v.page, '.edx-anos')
     if (!aviso) falha(`${rot}: aviso de cookies não apareceu`)
-    else if (navA && navA.top < h && cruza(aviso, navA)) falha(`${rot}: o aviso cobre a navegação por ano`)
+    // No celular a faixa de anos vem logo abaixo do herói compartilhado (§6.9,
+    // 14/10/2026) e pode começar sob o aviso: lá vale o título (casca-institucional).
+    else if (w > 1000 && navA && navA.top < h && cruza(aviso, navA)) falha(`${rot}: o aviso cobre a navegação por ano`)
     await v.ctx.close()
   }
   if (!falhas.length) ok('ordem, casca, só capas, anos presos sem sobrepor cabeçalho, abas e aviso')
