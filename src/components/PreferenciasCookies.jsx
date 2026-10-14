@@ -1,5 +1,6 @@
 import React from 'react'
 import { analisePermitida, salvarPreferencia } from '../lib/consentimento'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Diálogo "Preferências de cookies" (13/10/2026).
@@ -81,9 +82,7 @@ export function PreferenciasCookies({ aberto, gatilho, onFechar }) {
             aria-label="Fechar sem salvar"
             onClick={() => ref.current.close()}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-            </svg>
+            <IconeUi nome="fechar" tamanho={20} />
           </button>
         </div>
 

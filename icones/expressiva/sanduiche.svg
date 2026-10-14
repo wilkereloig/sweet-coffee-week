@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Salgado — sanduíche</title>
+  <rect x="8" y="11.5" width="32" height="7.5" rx="3.75"/>
+  <path d="M8 22.5c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2" class="detalhe"/>
+  <rect x="10" y="25" width="28" height="3.2" rx="1.6" class="solido"/>
+  <rect x="8" y="30.5" width="32" height="7.5" rx="3.75"/>
+</svg>

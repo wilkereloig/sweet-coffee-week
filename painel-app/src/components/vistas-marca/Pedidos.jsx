@@ -5,6 +5,7 @@ import { dataHoraExtensa } from '../../lib/central'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, traduzirErro, Selo } from '../ui'
 import { blocoDoCampo, linkDoCampo } from '../../lib/guia'
+import { Icone } from '../Icone'
 
 /*
  * Pedidos (marca) — o que a organização pediu, até quando, e a RESPOSTA da
@@ -48,7 +49,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
         <span className={'selo' + (feito ? ' completo' : p.classe ? ' ' + p.classe : '')}>
           {feito ? 'Respondido' : (p.texto || 'Pendente')}
         </span>
-        <svg className="ui-pedido__chevron" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2" /></svg>
+        <Icone nome="abrir" tamanho={16} className="ui-pedido__chevron" />
       </button>
       {aberto && (
         <div className="ui-pedido__corpo" id={'pedido-' + s.id}>
@@ -56,7 +57,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
           <p className="ui-pedido__texto">{s.texto}</p>
           {/* Pedido ligado a um campo: um clique leva direto a ele. */}
           {s.campo && blocoDoCampo(s.campo) !== null && abrirLink && (
-            <button className="og-btn og-btn--mini" type="button" onClick={() => abrirLink(linkDoCampo(blocoDoCampo(s.campo), s.campo))}>Ir para o campo →</button>
+            <button className="og-btn og-btn--mini" type="button" onClick={() => abrirLink(linkDoCampo(blocoDoCampo(s.campo), s.campo))}>Ir para o campo<Icone nome="seta-direita" tamanho={16} /></button>
           )}
           {feito && (
             <div className="ui-resposta">

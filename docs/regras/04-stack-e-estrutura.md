@@ -160,7 +160,8 @@ src/
                 HeroFotos.jsx (banda em crossfade + PausaFotos, o botão de pausa),
                 FotoAcervo.jsx (<img> responsiva do acervo, sizes por papel),
                 Rotulo.jsx (rótulo de seção com ícone de 20px), Seta.jsx (seta de ação)
-  components/scw-icons/  ScwIcon.jsx + scw-icons-v2.js (136 ícones, 16 famílias,
+  components/scw-icons/  ScwIcon.jsx · IconeUi.jsx · registro.jsx · gerado/ (v3, fonte em icones/ — §6.11);
+                         scw-icons-v2.js aposentado (era: 136 ícones, 16 famílias,
                 traço 3.2 — gerado no Design, NÃO editar à mão)
   pages/<pagina>/  uma pasta por página (12/10/2026): home · edicoes · sweet-awards ·
                 participar · apoiar · contato. index.jsx monta a página na ordem;

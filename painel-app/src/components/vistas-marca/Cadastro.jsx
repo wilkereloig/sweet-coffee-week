@@ -18,16 +18,16 @@ import {
  * "Alteração solicitada" e "Em análise" vêm da organização (correcoes_campo).
  */
 const ESTADO_CAMPO = {
-  completo: { icone: '✓', texto: 'Completo' },
-  falta: { icone: '!', texto: 'Falta' },
-  alteracao: { icone: '↺', texto: 'Alteração solicitada' },
-  analise: { icone: '◔', texto: 'Em análise' },
-  aprovado: { icone: '✓', texto: 'Aprovado' },
+  completo: { icone: 'feito', texto: 'Completo' },
+  falta: { icone: 'atencao', texto: 'Falta' },
+  alteracao: { icone: 'editar', texto: 'Alteração solicitada' },
+  analise: { icone: 'horario', texto: 'Em análise' },
+  aprovado: { icone: 'sucesso', texto: 'Aprovado' },
 }
 function EstadoCampo({ e }) {
   if (!e) return null
   const x = ESTADO_CAMPO[e.estado]
-  return <span className="gm-campo-estado" data-estado={e.estado}><span aria-hidden="true">{x.icone}</span> {x.texto}</span>
+  return <span className="gm-campo-estado" data-estado={e.estado}><Icone nome={x.icone} tamanho={16} />{x.texto}</span>
 }
 function Correcao({ e }) {
   if (!e || e.estado !== 'alteracao' || !e.comentario) return null
@@ -65,7 +65,7 @@ function Bloco({ indice, aberto, completo, onToggle, children }) {
         </span>
         <span className="mc-bloco__texto"><b>{t.b}</b><span>{t.s}</span></span>
         <span className={'selo' + (completo ? ' completo' : '')}>{completo ? 'Pronto' : 'Pendente'}</span>
-        <svg className="mc-bloco__chevron" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.8 12.6 16 21.8l9.2-9.2" /></svg>
+        <Icone nome="abrir" tamanho={16} className="mc-bloco__chevron" />
       </button>
       <div className="mc-bloco__corpo" id={'bloco-' + indice} hidden={!aberto}>{children}</div>
     </div>

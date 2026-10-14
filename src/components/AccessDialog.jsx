@@ -12,6 +12,7 @@ import { entrarComoContaOrganizacao, RECADO } from '../lib/orgAccess'
 import { entrarComoMarca, RECADO as RECADO_MARCA } from '../lib/marcaAccess'
 import { useArrastarFechar } from '../hooks/useArrastarFechar'
 import { instalarPainel } from '../hooks/useInstallPrompt'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Tela de acesso — refeita em 22/08/2026 a pedido do Eloi, em três frentes:
@@ -104,10 +105,9 @@ const SAIDA = 260
 
 const FOCAVEIS = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'
 
-/* Prancheta com visto: gestão e apuração. A estrela fica reservada ao Sweet Awards. */
-const TRACO_ORG = 'M8 8h16v19H8zM12 8V5h8v3M12.5 18l3 3 6-7'
-/* Toldo de loja: quem entra aqui é o estabelecimento, não o consumidor. */
-const TRACO_PART = 'M4 12l3-6h18l3 6M6 12v14h20V12M13 26v-7h6v7'
+/* Ícones das duas portas (registro v3): "operacao" (prancheta com visto —
+   gestão e apuração; a estrela fica reservada ao Sweet Awards) e "loja"
+   (toldo — quem entra é o estabelecimento). Os mesmos no login do painel. */
 
 const semMovimento = () =>
   typeof window !== 'undefined' &&
@@ -298,9 +298,7 @@ export function AccessDialog({ open, onClose }) {
                       /* Amarelo sobre chocolate fecha 9,5:1 (§6.1). */
                       style={{ background: 'var(--scw-amarelo)', color: 'var(--scw-choco)' }}
                     >
-                      <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                        <path d={TRACO_ORG} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <IconeUi nome="operacao" tamanho={24} />
                     </span>
                     <b className="scw-h3">Sou da organização</b>
                   </div>
@@ -321,9 +319,7 @@ export function AccessDialog({ open, onClose }) {
                       /* Chocolate sobre cyan fecha 6,2:1 (§6.1). */
                       style={{ background: 'var(--scw-cyan)', color: 'var(--scw-choco)' }}
                     >
-                      <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                        <path d={TRACO_PART} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <IconeUi nome="loja" tamanho={24} />
                     </span>
                     <b className="scw-h3">Sou participante</b>
                   </div>
@@ -354,9 +350,7 @@ export function AccessDialog({ open, onClose }) {
                 </div>
                 <a className="scw-acesso__cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
                   Falar com a equipe
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M4 12L12 4M6 4h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <IconeUi nome="link-externo" tamanho={16} />
                 </a>
               </div>
             </>
@@ -365,7 +359,7 @@ export function AccessDialog({ open, onClose }) {
           {passo === 'organizacao' && (
             <>
               <button type="button" className="scw-acesso__link-secundario" onClick={() => setPasso('boasVindas')}>
-                ‹ Voltar
+                <IconeUi nome="voltar" tamanho={16} />Voltar
               </button>
               <form className="scw-acesso__cartao scw-acesso__cartao--destaque" onSubmit={enviarOrg} noValidate>
                 <div className="scw-acesso__cabeca">
@@ -374,9 +368,7 @@ export function AccessDialog({ open, onClose }) {
                     aria-hidden="true"
                     style={{ background: 'var(--scw-amarelo)', color: 'var(--scw-choco)' }}
                   >
-                    <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                      <path d={TRACO_ORG} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <IconeUi nome="operacao" tamanho={24} />
                   </span>
                   <h2 className="scw-h3" id="scw-acesso-titulo">Organização</h2>
                 </div>
@@ -424,11 +416,7 @@ export function AccessDialog({ open, onClose }) {
 
                 <button type="submit" className="scw-acesso__acao" disabled={enviandoOrg}>
                   {enviandoOrg ? 'Conferindo…' : 'Entrar no painel'}
-                  {!enviandoOrg && (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                  {enviandoOrg ? <IconeUi nome="carregando" tamanho={16} className="scw-gira" /> : <IconeUi nome="seta-direita" tamanho={16} />}
                 </button>
               </form>
             </>
@@ -437,7 +425,7 @@ export function AccessDialog({ open, onClose }) {
           {passo === 'marca' && (
             <>
               <button type="button" className="scw-acesso__link-secundario" onClick={() => setPasso('boasVindas')}>
-                ‹ Voltar
+                <IconeUi nome="voltar" tamanho={16} />Voltar
               </button>
               <form className="scw-acesso__cartao scw-acesso__cartao--marca" onSubmit={enviarMarca} noValidate>
                 <div className="scw-acesso__cabeca">
@@ -446,9 +434,7 @@ export function AccessDialog({ open, onClose }) {
                     aria-hidden="true"
                     style={{ background: 'var(--scw-cyan)', color: 'var(--scw-choco)' }}
                   >
-                    <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
-                      <path d={TRACO_PART} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <IconeUi nome="loja" tamanho={24} />
                   </span>
                   <h2 className="scw-h3" id="scw-acesso-titulo">Participante</h2>
                 </div>
@@ -498,11 +484,7 @@ export function AccessDialog({ open, onClose }) {
                     autenticada. */}
                 <button type="submit" className="scw-acesso__acao scw-acesso__acao--marca" disabled={enviandoMarca}>
                   {enviandoMarca ? 'Conferindo…' : 'Entrar no painel'}
-                  {!enviandoMarca && (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                  {enviandoMarca ? <IconeUi nome="carregando" tamanho={16} className="scw-gira" /> : <IconeUi nome="seta-direita" tamanho={16} />}
                 </button>
 
                 <button

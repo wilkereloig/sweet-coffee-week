@@ -212,7 +212,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             <Icone nome={d} tamanho={24} />
             <span className="pn-rail__rotulo">{TITULOS[d]}</span>
             {contadores[d] > 0 && <span className="pn-badge" aria-hidden="true">{contadores[d]}</span>}
-            {pronto(d) && <span className="pn-badge pn-badge--ok" aria-hidden="true">✓</span>}
+            {pronto(d) && <span className="pn-badge pn-badge--ok" aria-hidden="true"><Icone nome="feito" tamanho={16} /></span>}
           </button>
         ))}
         <button className="pn-rail__sair" type="button" aria-label="Sua conta" data-tour="conta" onClick={() => setContaAberta(true)}>

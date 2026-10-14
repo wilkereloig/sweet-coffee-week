@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Aviso</title>
+  <path d="M10.3 4.5a2 2 0 0 1 3.4 0l7.6 13.2a2 2 0 0 1-1.7 3H4.4a2 2 0 0 1-1.7-3Z"/>
+  <path d="M12 10v4"/>
+  <circle cx="12" cy="17.2" r="1.25" class="solido"/>
+</svg>

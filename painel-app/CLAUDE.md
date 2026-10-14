@@ -739,7 +739,10 @@ conferido). O que passou a valer:
   ⚠️ Se o painel parecer "todo em Slab", confira o kit: o fallback das duas vozes
   é a Slab. Em 29/09/2026 a causa era o `<link>` para `ngx4uek.css` (412); o kit
   passou a carregar pelo embed JS (`ngx4uek.js`), que responde.
-- **Ícones: um registro só** (`components/Icone.jsx`). Nome com "/" vem do
+- **Ícones: um registro só.** ✅ Desde 14/10/2026 (iconografia v3) `components/Icone.jsx`
+  é só ADAPTADOR do registro do site (`icones/` → `src/components/scw-icons/gerado/`,
+  `icones/README.md`); os nomes antigos do painel valem por `icones/aliases.json`. O texto
+  abaixo é o registro de 29/09. Nome com "/" vinha do
   sistema do site (`scw-icons-v2.js`, ⛔ não editar à mão); os do painel têm
   a grade deles e o traço normalizado ao peso do site. `MODULO_ICONE` é o mapa
   assunto → ícone; `ICONE_TOM` dá ícone a todo tom de status. `<Selo>` sempre

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Movimento financeiro — moedas</title>
+  <ellipse cx="24" cy="13" rx="13" ry="5"/>
+  <path d="M11 13v7c0 2.76 5.82 5 13 5s13-2.24 13-5v-7"/>
+  <path d="M11 20v7.5c0 2.76 5.82 5 13 5s13-2.24 13-5V20"/>
+  <path d="M11 27.5V35c0 2.76 5.82 5 13 5s13-2.24 13-5v-7.5"/>
+</svg>

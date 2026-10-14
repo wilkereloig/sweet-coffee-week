@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Bebida — xícara de café</title>
+  <path d="M4.5 7.5h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5Z"/>
+  <path d="M15.5 9h1.5a2.5 2.5 0 0 1 0 5h-1.8"/>
+  <path d="M3.5 21h15"/>
+  <path d="M8.5 2.5v2M12 2.5v2" class="detalhe"/>
+</svg>

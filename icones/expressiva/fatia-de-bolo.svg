@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Doce — fatia de bolo</title>
+  <path d="M6.5 25 37.5 13c2.1-.8 4 .7 4 2.9V36a2.5 2.5 0 0 1-2.5 2.5H9A2.5 2.5 0 0 1 6.5 36Z"/>
+  <path d="M6.5 25h35"/>
+  <path d="M6.5 31.5h35" class="detalhe"/>
+  <circle cx="33" cy="11.2" r="2.8" class="solido"/>
+</svg>

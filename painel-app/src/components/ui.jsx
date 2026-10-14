@@ -156,7 +156,8 @@ export function BotaoIcone({ icone, rotulo, alvo, perigo, className = '', ...res
   return (
     <button type="button" {...resto} className={'ui-icone-btn' + (perigo ? ' ui-icone-btn--perigo' : '') + (className ? ' ' + className : '')}
       aria-label={alvo ? rotulo + ' ' + alvo : rotulo} data-rotulo={rotulo}>
-      <Icone nome={icone} tamanho={20} />
+      {/* Ocupado (aria-busy): o desenho vira "carregando", girando — o nome já diz o que acontece. */}
+      {resto['aria-busy'] ? <Icone nome="carregando" tamanho={20} className="scw-gira" /> : <Icone nome={icone} tamanho={20} />}
     </button>
   )
 }
@@ -165,7 +166,7 @@ export function Selo({ dominio, valor, tom, children }) {
   const t = tom || tomDe(dominio, valor)
   return (
     <span className="og-selo" data-tom={t}>
-      <Icone nome={ICONE_TOM[t] || 'circulo'} tamanho={16} />
+      <Icone nome={ICONE_TOM[t] || 'neutro'} tamanho={16} />
       {children || rotuloDe(dominio, valor)}
     </span>
   )

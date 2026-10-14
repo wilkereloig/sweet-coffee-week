@@ -2,6 +2,7 @@ import { gravarGuardada } from '../lib/sessaoGuardada'
 import React from 'react'
 import { entrarComoContaOrganizacao, RECADO as RECADO_CONTA } from '../../../src/lib/orgAccess'
 import { signInComSenha } from '../lib/marcaApi'
+import { Icone } from './Icone'
 
 const AVISO_ESQUECI_CONTA = 'A senha não é recuperável por aqui. Fale com um administrador — ele gera um acesso novo pelo painel.'
 
@@ -10,12 +11,7 @@ const AVISO_ESQUECI_CONTA = 'A senha não é recuperável por aqui. Fale com um 
 function DiscoOrganizacao() {
   return (
   <span className="pn-setor__disco" aria-hidden="true">
-    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none" />
-      <path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8" />
-      <circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none" />
-      <path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4" />
-    </svg>
+    <Icone nome="operacao" tamanho={24} />
   </span>
 )
 }
@@ -53,7 +49,7 @@ return (
     <div className="pn-porta" id="login">
       <div className="pn-porta__caixa pn-porta__caixa--estreita">
         <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
-        <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}>‹ Voltar</button>
+        <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}><Icone nome="voltar" tamanho={16} />Voltar</button>
         <form className="pn-setor pn-setor--org" onSubmit={enviarConta}>
           <DiscoOrganizacao />
           <div>

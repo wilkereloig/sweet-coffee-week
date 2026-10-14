@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Calendário — datas e período</title>
+  <rect x="7" y="10" width="34" height="31" rx="4.5"/>
+  <path d="M7 19h34"/>
+  <path d="M15.5 6v7M32.5 6v7"/>
+  <circle cx="15" cy="26" r="1.7" class="solido"/>
+  <circle cx="24" cy="26" r="1.7" class="solido"/>
+  <circle cx="33" cy="26" r="1.7" class="solido"/>
+  <circle cx="15" cy="33.5" r="1.7" class="solido"/>
+  <circle cx="24" cy="33.5" r="1.7" class="solido"/>
+  <circle cx="33" cy="33.5" r="1.7" class="solido"/>
+</svg>

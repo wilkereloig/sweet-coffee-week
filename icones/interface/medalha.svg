@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Medalha</title>
+  <path d="M8.5 3.5h7l-2.3 6h-2.4Z"/>
+  <circle cx="12" cy="15" r="5.5"/>
+  <path d="M12 12 12.79 13.91 14.85 14.07 13.28 15.42 13.76 17.43 12 16.35 10.24 17.43 10.72 15.42 9.15 14.07 11.21 13.91Z" class="solido"/>
+</svg>

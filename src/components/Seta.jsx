@@ -1,13 +1,11 @@
 import React from 'react'
+import IconeUi from './scw-icons/IconeUi'
 
-/* Seta de ação ("ir para") dos botões e links do institucional. Traço em
-   currentColor; o gesto de avançar 4px no hover é do CSS do botão (§6.15). */
+/* Seta de ação ("ir para") dos botões e links do institucional — adaptador do
+   registro de ícones (v3). `size` antigo encaixa na escala: até 17 → 16, acima
+   → 20. O gesto de avançar 4px no hover é do CSS do botão (§6.15). */
 export function Seta({ size = 17 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+  return <IconeUi nome="seta-direita" tamanho={size <= 17 ? 16 : 20} />
 }
 
 export default Seta

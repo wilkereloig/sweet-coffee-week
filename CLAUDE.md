@@ -184,6 +184,7 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npm run build && npm run test:motion` | 6 páginas × 2 telas; reprova herói ilegível na abertura, reveal preso invisível, rolagem horizontal, erro de console e desrespeito a `prefers-reduced-motion` |
 | `npm run test:redesign` | reprova cores/`Archivo` da F2 fora do bloco `.f2-realiza*`; reprova se os tetos de medida de linha saírem |
 | `npm run test:imagens` | reprova componente que monta caminho de imagem na mão |
+| `npm run icones` · `npm run test:icones` | gera o catálogo de ícones a partir de `icones/*.svg` (valida grade, área útil e recorte) · reprova catálogo defasado, nome inexistente, tamanho fora da escala, SVG solto e glifo de texto como ícone |
 | `node tests/responsive.mjs` | Playwright contra o **build de produção** via `vite preview`, em 6 viewports; reprova overflow horizontal, marca fora do trilho, barra de abas ausente no celular ou visível acima de 900px, aba abaixo de 44px e folha "mais" que não abre ou não fecha por Esc/véu/link |
 | `npm run build && npm run design:snapshot` | snapshot estático das 6 páginas para o Claude Design |
 
@@ -272,7 +273,7 @@ duas vezes da mesma fonte — não vira dois arquivos.
 | Dado histórico | `src/data/sweetCoffeeHistory.js` |
 | Pódios da edição 2026.1 | `src/data/loversAwardsResults.js` |
 | Perguntas frequentes | `src/data/faqCentral.js` |
-| Ícones | `src/components/scw-icons/scw-icons-v2.js` |
+| Ícones | `icones/*.svg` → `npm run icones` → `src/components/scw-icons/gerado/` (§6.11, `icones/README.md`) |
 | Cor por página em JS | `PAGE_COLORS` / `MENU_ESCURO` em `src/components/nav.jsx` |
 
 ### 5.3 Duplicação
@@ -441,7 +442,7 @@ referência como "§6.12" continua válida, só mora em outro arquivo.
 8. Desktop e mobile funcionam (1000 · 900 · 820 · 760 · 420; sem rolagem horizontal).
 9. Build de verificação **fora do projeto**, uma vez só.
 10. Mexeu em movimento? `npm run build && npm run test:motion`.
-11. Mexeu em ícone? Varredura de chaves `nome=` contra `SCW_ICONS`.
+11. Mexeu em ícone? `npm run icones && npm run test:icones` e conferir na galeria (`/icones/galeria.html`).
 12. Mexeu em cor de página? `PAGE_COLORS`/`MENU_ESCURO` no mesmo commit.
 13. **Acessibilidade:** um `<h1>` por página e hierarquia coerente; contraste ≥ 4,5:1;
     label real (`<span>`) + placeholder, nunca placeholder-como-label; ação de navegação é

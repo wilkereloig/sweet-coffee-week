@@ -195,7 +195,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                   <span className="gm-proxima__rotulo">{proxima.tipo === 'campo' ? 'Continue de onde parou' : 'Próxima ação'}</span>
                   <span className="gm-proxima__titulo">{proxima.titulo}</span>
                   {proxima.texto && <span className="gm-proxima__texto">{proxima.texto}</span>}
-                  <span className="gm-proxima__acao">{proxima.acao || 'Abrir'} →</span>
+                  <span className="gm-proxima__acao">{proxima.acao || 'Abrir'}<Icone nome="seta-direita" tamanho={16} /></span>
                 </button>
               )}
               {outras.length > 0 && (

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Casa participante — fachada com toldo</title>
+  <path d="M4 9.5 5.5 4.5h13L20 9.5"/>
+  <path d="M4 9.5a2.67 2.67 0 0 0 5.33 0 2.67 2.67 0 0 0 5.34 0 2.67 2.67 0 0 0 5.33 0"/>
+  <path d="M5.5 12.5v6a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-6"/>
+  <path d="M10 20v-4.5h4V20"/>
+</svg>

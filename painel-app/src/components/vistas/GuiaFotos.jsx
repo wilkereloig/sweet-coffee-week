@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from '../Icone'
 
 /*
  * Guia de fotos dos combos — edição Cartoon, lado da ORGANIZAÇÃO (para o
@@ -72,7 +73,7 @@ function Foto({ arq, lado, texto }) {
       <div className="gf-foto__img">
         <img src={IMG + arq + '.jpg'} alt={(fazer ? 'Faça: ' : 'Evite: ') + texto}
           loading="lazy" decoding="async" width={1400} height={1738} />
-        <span className={'gf-selo gf-selo--' + lado}>{fazer ? '✓ Faça' : '✕ Evite'}</span>
+        <span className={'gf-selo gf-selo--' + lado}>{fazer ? <><Icone nome="feito" tamanho={16} />Faça</> : <><Icone nome="fechar" tamanho={16} />Evite</>}</span>
       </div>
       <figcaption>{texto}</figcaption>
     </figure>
@@ -98,9 +99,7 @@ export function ParesFotos({ pares }) {
 export function BaixarPdf({ href, rotulo, vazado }) {
   return (
     <a className={'og-btn gf-baixar' + (vazado ? ' og-btn--vazado' : '')} href={href} download>
-      <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M16 5v14.4" /><path d="M9.4 13.6 16 20.2l6.6-6.6" /><path d="M6 25.8h20" />
-      </svg>
+      <Icone nome="baixar" tamanho={20} />
       {rotulo}
     </a>
   )

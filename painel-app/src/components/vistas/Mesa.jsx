@@ -157,7 +157,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
                         <button type="button" className="ui-resumo__acao" onClick={x.ir}>
                           <span className="ui-resumo__n ui-resumo__n--acao">{x.n}</span>
                           <span className="ui-resumo__texto">{x.n === 1 ? x.um : x.rotulo}</span>
-                          <span className="ui-resumo__ir" aria-hidden="true">›</span>
+                          <Icone nome="avancar" tamanho={16} className="ui-resumo__ir" />
                         </button>
                       </li>
                     ))}

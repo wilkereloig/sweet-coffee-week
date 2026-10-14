@@ -23,6 +23,7 @@ import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
 import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
+import { Icone } from './components/Icone'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
 // (ou `?guia-fotos`) abre a organização, `/painel?marca` a marca. Sem sessão
@@ -278,7 +279,7 @@ export function App() {
           <div>
             <h1 className="pn-porta__titulo">Seu acesso está pausado</h1>
             <p className="pn-porta__lead">A organização pausou o acesso desta marca ao painel. Fale com ela pelo WhatsApp para saber o motivo e voltar a entrar.</p>
-            <button className="pn-link--porta" type="button" onClick={() => sairMarca()}>‹ Sair</button>
+            <button className="pn-link--porta" type="button" onClick={() => sairMarca()}><Icone nome="sair" tamanho={16} />Sair</button>
           </div>
         </div>
       </div>
@@ -300,7 +301,7 @@ export function App() {
               type="button"
               onClick={() => { apagarGuardada(CHAVE_SESSAO_ORG_CONTA); setEstado('boas-vindas') }}
             >
-              ‹ Voltar
+              <Icone nome="voltar" tamanho={16} />Voltar
             </button>
           </div>
         </div>

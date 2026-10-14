@@ -1,4 +1,5 @@
 import React from 'react'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Botão "Topo" — redesign 2026 (patch 29/07/2026). Só o ícone desde 18/09/2026.
@@ -34,9 +35,7 @@ export function BotaoTopo() {
       data-rotulo="Voltar ao topo"
       onClick={subir}
     >
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path d="M8 13V3M4 7l4-4 4 4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <IconeUi nome="seta-cima" tamanho={20} />
     </button>
   )
 }

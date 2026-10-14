@@ -1,5 +1,6 @@
 import React from 'react'
 import { precarregar } from '../pages/carregadores'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Casca do site institucional — redesign 2026.
@@ -57,14 +58,10 @@ function hoverColor(id) {
   return tom === '#FDBB1A' || tom === '#01AFCC' ? tom : '#FDBB1A'
 }
 
-export function ChaveIcon(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-         stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <circle cx="8.5" cy="8.5" r="4.2" />
-      <path d="M11.6 11.6 20 20M17 17l2-2M14.4 14.4l1.6-1.6" />
-    </svg>
-  )
+/* Chave do "Painel SCW" — adaptador do registro de ícones (v3): desenho
+   "chave", 20px, mesmo nas três entradas (topo, folha, diálogo). */
+export function ChaveIcon({ tamanho = 20 }) {
+  return <IconeUi nome="chave" tamanho={tamanho} />
 }
 
 /*
@@ -85,7 +82,7 @@ export function AcessoTopo({ onOpenAccess, accessOpen }) {
       aria-label="Painel SCW"
       data-rotulo="Painel SCW"
     >
-      <ChaveIcon width="18" height="18" strokeWidth="2.4" />
+      <ChaveIcon />
     </button>
   )
 }

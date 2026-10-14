@@ -5,6 +5,7 @@ import { useArrastarFechar } from '../hooks/useArrastarFechar'
 import { precarregar } from '../pages/carregadores'
 import { LINKS_LEGAIS } from './SiteFooter'
 import { abrirPreferencias } from '../lib/consentimento'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Folha "mais" do mobile — redesign 2026.
@@ -108,9 +109,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
         <div className="scw-folha__topo">
           <img src={MARCA_SCW} alt="Sweet & Coffee Week" />
           <button type="button" className="scw-folha__fechar" onClick={onClose} aria-label="Fechar menu">
-            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-            </svg>
+            <IconeUi nome="fechar" tamanho={20} />
           </button>
         </div>
 
@@ -129,9 +128,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
                 style={{ '--scw-folha-cor': pageColorDark(l.id) }}
               >
                 {l.label}
-                <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <IconeUi nome="seta-direita" tamanho={20} />
               </a>
             )
           })}
@@ -144,7 +141,7 @@ export function MobileMenu({ open, route, navigate, onClose, onOpenAccess }) {
           aria-haspopup="dialog"
         >
           Painel SCW
-          <ChaveIcon width="18" height="18" strokeWidth="2.4" />
+          <ChaveIcon />
         </button>
 
         <a className="scw-folha__insta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">

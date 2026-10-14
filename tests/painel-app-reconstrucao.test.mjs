@@ -3,7 +3,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { SCW_ICONS } from '../src/components/scw-icons/scw-icons-v2.js'
+import { existe } from './_icones.mjs'
 import { TONS, STATUS, rotulo } from '../painel-app/src/lib/status.js'
 import {
   validarLogo, validarVetor, caminhoLogo, urlLogo, iniciais, mimeDe, ESTADOS_LOGO, LADO_MINIMO,
@@ -30,9 +30,8 @@ test('camadas vêm da paleta (sem hex novo) e o fundo da aplicação é a camada
   assert.match(CSS, /background:var\(--sup-0\);color:var\(--scw-choco\)/)
 })
 
-// Nomes do registro do painel = os `def(grade, 'a b c', …)` de Icone.jsx.
-const LOCAIS = new Set([...ICONE.matchAll(/def\((?:24|32), '([^']+)'/g)].flatMap((m) => m[1].split(' ')))
-const existe = (n) => LOCAIS.has(n) || !!SCW_ICONS[n]
+// Desde 14/10/2026 o painel lê o registro ÚNICO do site (icones/ → gerado/);
+// `existe` aceita nome canônico ou alias de icones/aliases.json.
 
 test('todo ícone do mapa de assuntos existe (registro do painel ou sistema do site)', () => {
   const bloco = ICONE.slice(ICONE.indexOf('export const MODULO_ICONE'), ICONE.indexOf('}', ICONE.indexOf('export const MODULO_ICONE')))
@@ -51,10 +50,11 @@ test('todo tom de status tem ícone (estado nunca só por cor)', () => {
 })
 
 test('as vistas usam só nomes de ícone que existem', () => {
-  const arquivos = ['PainelShell.jsx', 'PainelMarcaShell.jsx', 'Central.jsx', 'Folha.jsx', 'AbasCelular.jsx', 'LogoEditor.jsx', 'ui.jsx',
-    'vistas/Mesa.jsx', 'vistas/Marcas.jsx', 'vistas-marca/Hoje.jsx', 'vistas-marca/Cadastro.jsx']
+  const pasta = new URL('../painel-app/src/', import.meta.url)
+  const arquivos = readdirSync(pasta, { recursive: true }).map(String).filter((a) => a.endsWith('.jsx'))
+  assert.ok(arquivos.length > 30)
   for (const a of arquivos) {
-    const txt = ler('painel-app/src/components/' + a)
+    const txt = readFileSync(new URL(a.replace(/\\/g, '/'), pasta), 'utf8')
     for (const m of txt.matchAll(/(?:nome|icone)="([a-z0-9/-]+)"/g)) assert.ok(existe(m[1]), a + ': ícone inexistente "' + m[1] + '"')
   }
 })

@@ -1,0 +1,65 @@
+{
+  "versao": 3,
+  "aprovado": "14/10/2026 — nova direção pedida pelo Wilker (substitui o traço único 3.2 da v2)",
+  "familias": {
+    "interface": {
+      "uso": "navegação, ações, arquivos, pessoas, estados e operação — botão, campo, aba, lista, selo",
+      "grade": 24,
+      "margem": 2,
+      "tamanhos": [16, 20, 24],
+      "traco": { "16": 2.25, "20": 2.1, "24": 2 },
+      "detalhe": 0.85,
+      "raioCanto": 2,
+      "folgaMinima": 2.25,
+      "elementosMax": 5,
+      "regras": [
+        "traço em px na tela: 1,5 (16) · 1,75 (20) · 2 (24) — mais grosso, proporcionalmente, no menor tamanho",
+        "terminal e junção sempre redondos",
+        "canto de retângulo com raio 2 (1,5 em peça pequena)",
+        "entre dois traços paralelos, vão livre de pelo menos um traço (eixo a eixo ≥ 4,25)",
+        "ponto, contador e acento são círculos PREENCHIDOS de raio 1,1 a 1,4 — nunca um anel minúsculo",
+        "no máximo 5 traços; legibilidade acima de personalidade",
+        "seta e chevron: ponta em ângulo reto (90°), haste com o mesmo traço"
+      ]
+    },
+    "expressiva": {
+      "uso": "gastronomia e símbolos do festival — disco de seção, destaque, número, anatomia do combo",
+      "grade": 48,
+      "margem": 4,
+      "tamanhos": [32, 48, 64],
+      "traco": { "32": 3.75, "48": 3.2, "64": 2.8 },
+      "detalhe": 0.7,
+      "raioCanto": 4,
+      "folgaMinima": 4.5,
+      "elementosMax": 8,
+      "regras": [
+        "traço em px na tela: 2,5 (32) · 3,2 (48) · 3,7 (64)",
+        "silhueta primeiro: o objeto se reconhece pelo contorno, sem depender do disco nem da cor",
+        "detalhe interno (textura, nervura, recheio) com 70% do traço, em classe `detalhe`",
+        "acento sólido (granulado, cereja, migalha) em classe `solido` — conta como detalhe, não como forma",
+        "um objeto por desenho, assentado: base plana ou linha de apoio quando o objeto tem base",
+        "centro óptico: a massa visual, não a caixa, fica no centro da grade"
+      ]
+    },
+    "marcas": {
+      "uso": "marca de terceiro (rede social). Proporção oficial do glifo, traço FIXO — não acompanha a escala óptica",
+      "grade": 24,
+      "margem": 2,
+      "tamanhos": [16, 20, 24, 32],
+      "traco": { "16": 1.9, "20": 1.9, "24": 1.9, "32": 1.9 },
+      "detalhe": 1,
+      "raioCanto": 5,
+      "folgaMinima": 2,
+      "elementosMax": 3,
+      "regras": [
+        "desenho do glifo oficial, sem reinterpretação",
+        "nunca recebe disco, cor ou peso do sistema SCW"
+      ]
+    }
+  },
+  "escolhaDeFamilia": "tamanho ≤ 24 usa o desenho de interface; ≥ 32 usa o expressivo. Um nome pode ter os dois desenhos; marca de terceiro vale nos dois.",
+  "estaticos": ["public/quero-participar/index.html"],
+  "css": ["feito", "exclamacao", "abrir", "avancar"],
+  "cssPintado": [["exclamacao", "creme", "#FEF0DD"], ["exclamacao", "choco", "#3D1308"], ["exclamacao", "laranja", "#FF4810"], ["feito", "choco", "#3D1308"]],
+  "selectSeta": { "icone": "abrir", "cor": "#3D1308", "tamanho": 16 }
+}

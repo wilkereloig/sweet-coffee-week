@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Bebida — copo para viagem</title>
+  <path d="M15 12.5c1-3 3-4 9-4s8 1 9 4"/>
+  <rect x="10" y="12.5" width="28" height="7" rx="2.5"/>
+  <path d="M12 19.5l2.6 20.5a2.5 2.5 0 0 0 2.5 2H30.9a2.5 2.5 0 0 0 2.5-2L36 19.5"/>
+  <path d="M13.3 26h21.4M14.2 33.5h19.6" class="detalhe"/>
+</svg>

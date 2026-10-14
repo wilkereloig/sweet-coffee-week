@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Compartilhar</title>
+  <circle cx="17.5" cy="5.5" r="2.4" class="solido"/>
+  <circle cx="6.5" cy="12" r="2.4" class="solido"/>
+  <circle cx="17.5" cy="18.5" r="2.4" class="solido"/>
+  <path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/>
+</svg>

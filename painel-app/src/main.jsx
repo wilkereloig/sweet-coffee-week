@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
+import '../../src/components/scw-icons/gerado/icones.css'
 // Antes do render: o convite de instalação do navegador dispara uma vez, cedo.
 import './lib/instalar'
 

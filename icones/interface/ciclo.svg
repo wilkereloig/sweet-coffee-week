@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Ciclo da edição</title>
+  <path d="M14.81 5.05A7.5 7.5 0 0 1 19.43 13.04"/>
+  <path d="M16.62 17.91A7.5 7.5 0 0 1 7.38 17.91"/>
+  <path d="M4.57 13.04A7.5 7.5 0 0 1 9.19 5.05"/>
+  <circle cx="12" cy="4.5" r="1.9" class="solido"/>
+  <circle cx="18.5" cy="15.75" r="1.9" class="solido"/>
+  <circle cx="5.5" cy="15.75" r="1.9" class="solido"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Dúvida — pergunta</title>
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M9.4 9.4a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.3-2.6 4"/>
+  <circle cx="12" cy="17.3" r="1.25" class="solido"/>
+</svg>

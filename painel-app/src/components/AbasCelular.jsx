@@ -10,7 +10,7 @@ import { Folha } from './Folha'
  * sem animação com prefers-reduced-motion). Quem decide QUAIS áreas existem
  * continua sendo a casca (permissões) — aqui só se decide onde aparecem.
  */
-const ICONE_MAIS = <Icone nome="grade" tamanho={22} />
+const ICONE_MAIS = <Icone nome="mais-acoes" tamanho={24} />
 
 export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, icone, acento, contadores = {}, onIr }) {
   const [aberta, setAberta] = React.useState(false)
@@ -82,7 +82,7 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
                 {contadores[d] > 0 && <span className="pn-badge" aria-label={contadores[d] + ' não lidas'}>{contadores[d]}</span>}
                 {d === vista
                   ? <span className="ui-mais__estado">aberta</span>
-                  : <span className="ui-mais__ir" aria-hidden="true">›</span>}
+                  : <Icone nome="avancar" tamanho={16} className="ui-mais__ir" />}
               </button>
             </li>
           ))}

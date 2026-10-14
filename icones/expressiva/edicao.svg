@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>Edição do festival — calendário com estrela</title>
+  <rect x="7" y="10" width="34" height="31" rx="4.5"/>
+  <path d="M7 19h34"/>
+  <path d="M15.5 6v7M32.5 6v7"/>
+  <path d="M24 23.3 25.82 27.79 30.66 28.14 26.95 31.26 28.11 35.96 24 33.4 19.89 35.96 21.05 31.26 17.34 28.14 22.18 27.79Z" class="solido"/>
+</svg>

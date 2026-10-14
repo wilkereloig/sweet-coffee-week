@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Depoimento — balão com aspas</title>
+  <path d="M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"/>
+  <circle cx="9.6" cy="10.6" r="1.6" class="solido"/>
+  <circle cx="14.4" cy="10.6" r="1.6" class="solido"/>
+  <path d="M11.1 10.9c-.1 1.6-.9 2.7-2.3 3.4M15.9 10.9c-.1 1.6-.9 2.7-2.3 3.4" class="detalhe"/>
+</svg>

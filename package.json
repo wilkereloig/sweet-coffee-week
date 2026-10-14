@@ -20,6 +20,8 @@
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",
     "test:privacidade": "node tests/privacidade-navegador.mjs",
+    "icones": "node scripts/icones/gerar.mjs",
+    "test:icones": "node --test tests/icones.test.mjs",
     "test:sweet-awards": "node --test tests/sweet-awards.test.mjs",
     "test:edicoes": "node --test tests/edicoes.test.mjs tests/edicoes-teclado.test.mjs",
     "test:edicoes-navegador": "node tests/edicoes-navegador.mjs",

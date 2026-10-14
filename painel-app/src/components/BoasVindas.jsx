@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icone } from './Icone'
 
 /*
  * Tela de escolha do login duplo — porte de public/painel/index.html
@@ -18,12 +19,7 @@ export function BoasVindas({ onEscolherOrg, onEscolherMarca }) {
           <div className="pn-porta__grade">
             <button type="button" className="pn-setor pn-setor--org pn-setor--escolha" onClick={onEscolherOrg}>
               <span className="pn-setor__disco" aria-hidden="true">
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12.4" cy="10.6" r="5" fill="currentColor" stroke="none" />
-                  <path d="M4.6 25.6c0-4.4 3.5-7.8 7.8-7.8s7.8 3.4 7.8 7.8" />
-                  <circle cx="23.4" cy="13" r="3.4" fill="currentColor" stroke="none" />
-                  <path d="M21.8 19.6c3.4.6 5.8 3.2 5.8 6.4" />
-                </svg>
+                <Icone nome="operacao" tamanho={24} />
               </span>
               <span>
                 <span className="pn-setor__nome">Sou da organização</span>
@@ -33,10 +29,7 @@ export function BoasVindas({ onEscolherOrg, onEscolherMarca }) {
 
             <button type="button" className="pn-setor pn-setor--marca pn-setor--escolha" onClick={onEscolherMarca}>
               <span className="pn-setor__disco" aria-hidden="true">
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z" />
-                  <path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4" />
-                </svg>
+                <Icone nome="loja" tamanho={24} />
               </span>
               <span>
                 <span className="pn-setor__nome">Sou participante</span>

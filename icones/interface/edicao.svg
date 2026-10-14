@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Edição do festival — calendário com o período marcado</title>
+  <rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/>
+  <path d="M3.5 10h17"/>
+  <path d="M8 3v4M16 3v4"/>
+  <rect x="7" y="13" width="4.5" height="4.5" rx="1" class="solido"/>
+</svg>

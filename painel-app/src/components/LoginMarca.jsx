@@ -2,6 +2,7 @@ import { gravarGuardada } from '../lib/sessaoGuardada'
 import React from 'react'
 import { entrarComoMarca, RECADO } from '../../../src/lib/marcaAccess'
 import { signInComSenha } from '../lib/marcaApi'
+import { Icone } from './Icone'
 
 const AVISO_ESQUECI = 'A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.'
 
@@ -39,13 +40,10 @@ export function LoginMarca({ onEntrar, onVoltar }) {
     <div className="pn-porta" id="login">
       <div className="pn-porta__caixa pn-porta__caixa--estreita">
         <img className="pn-porta__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
-        <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}>‹ Voltar</button>
+        <button type="button" className="pn-link--porta pn-porta__voltar" onClick={onVoltar}><Icone nome="voltar" tamanho={16} />Voltar</button>
         <form className="pn-setor pn-setor--marca" onSubmit={enviar}>
           <span className="pn-setor__disco" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6.6 11.4h18.8l-1.4 14a2.2 2.2 0 0 1-2.2 2H10.2a2.2 2.2 0 0 1-2.2-2Z" />
-              <path d="M11.8 11.4V9a4.2 4.2 0 0 1 8.4 0v2.4" />
-            </svg>
+            <Icone nome="loja" tamanho={24} />
           </span>
           <div>
             <h1 className="pn-setor__nome">Participante</h1>

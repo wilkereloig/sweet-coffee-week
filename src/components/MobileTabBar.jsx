@@ -1,5 +1,6 @@
 import React from 'react'
 import { precarregar } from '../pages/carregadores'
+import IconeUi from './scw-icons/IconeUi'
 
 /*
  * Barra inferior estilo aplicativo (≤900px) — redesign 2026.
@@ -21,11 +22,11 @@ import { precarregar } from '../pages/carregadores'
  */
 
 const ABAS = [
-  { id: 'home',             label: 'festival',   href: '/',             traco: <><path d="M4 11.5 12 4l8 7.5" /><path d="M6 10.5V20h12v-9.5" /><path d="M10 20v-5h4v5" /></> },
-  { id: 'edicoes',          label: 'edições',    href: '/edicoes',      traco: <><rect x="4" y="5" width="16" height="15" rx="2.5" /><path d="M4 10h16" /><path d="M8.5 3v3M15.5 3v3" /><path d="M8.5 14h3" /></> },
-  { id: 'historico-awards', label: 'awards',     href: '/sweet-awards', traco: <><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z" /><path d="M8 5H5.5v1.5A3.5 3.5 0 0 0 8.6 10" /><path d="M16 5h2.5v1.5A3.5 3.5 0 0 1 15.4 10" /><path d="M12 12v4" /><path d="M8.5 20h7" /><path d="M9.8 16h4.4l.6 4H9.2l.6-4Z" /></> },
-  { id: 'participar',       label: 'participar', href: '/participar',   traco: <><path d="M4 9h16v11H4z" /><path d="M4 9l2-4h12l2 4" /><path d="M12 12.5v5M9.5 15h5" /></> },
-  { id: 'mais',             label: 'mais',       action: 'mais',        traco: <><circle cx="6" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="18" cy="12" r="1.4" /></> },
+  { id: 'home',             label: 'festival',   href: '/',             icone: 'inicio' },
+  { id: 'edicoes',          label: 'edições',    href: '/edicoes',      icone: 'edicao' },
+  { id: 'historico-awards', label: 'awards',     href: '/sweet-awards', icone: 'trofeu' },
+  { id: 'participar',       label: 'participar', href: '/participar',   icone: 'loja' },
+  { id: 'mais',             label: 'mais',       action: 'mais',        icone: 'mais-acoes' },
 ]
 
 /** Apoiar e Contato vivem dentro da folha "mais" — nessas rotas a 5ª aba acende. */
@@ -50,18 +51,7 @@ export function MobileTabBar({ route, navigate, onOpenMenu, menuOpen }) {
           const ativo = i === indiceAtivo
           const conteudo = (
             <>
-              <svg
-                className="scw-aba__icone"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                {a.traco}
-              </svg>
+              <IconeUi nome={a.icone} tamanho={24} className="scw-aba__icone" />
               <span className="scw-aba__rotulo">{a.label}</span>
             </>
           )

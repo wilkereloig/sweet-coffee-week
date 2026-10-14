@@ -1,0 +1,15 @@
+/* GERADO por scripts/icones/gerar.mjs — NÃO EDITAR. Fonte: icones/ */
+/* Marcadores em CSS. Na cor do texto: `mask: var(--icone-feito) center / contain no-repeat; background: currentColor`.
+   Sobre disco colorido (pintado): `background: <cor do disco> var(--icone-exclamacao-creme) center / 14px no-repeat`. */
+:root {
+  --icone-feito: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --icone-exclamacao: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v9.5'/%3E%3Ccircle cx='12' cy='19' r='1.5' fill='%23000' stroke='none'/%3E%3C/svg%3E");
+  --icone-abrir: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 9 12 15.5 18.5 9'/%3E%3C/svg%3E");
+  --icone-avancar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 5.5 16 12l-6.5 6.5'/%3E%3C/svg%3E");
+  --icone-exclamacao-creme: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FEF0DD' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v9.5'/%3E%3Ccircle cx='12' cy='19' r='1.5' fill='%23FEF0DD' stroke='none'/%3E%3C/svg%3E");
+  --icone-exclamacao-choco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233D1308' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v9.5'/%3E%3Ccircle cx='12' cy='19' r='1.5' fill='%233D1308' stroke='none'/%3E%3C/svg%3E");
+  --icone-exclamacao-laranja: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF4810' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v9.5'/%3E%3Ccircle cx='12' cy='19' r='1.5' fill='%23FF4810' stroke='none'/%3E%3C/svg%3E");
+  --icone-feito-choco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233D1308' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  /* Seta da caixa de seleção: pintada (background-image não herda currentColor). */
+  --icone-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233D1308' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 9 12 15.5 18.5 9'/%3E%3C/svg%3E");
+}

@@ -70,7 +70,7 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
                         {tempoRelativo(n.criada_em)}
                         {n.ator_rotulo && n.ator_rotulo !== 'Acesso compartilhado' && !n.ator_rotulo.startsWith('Marca ·') ? ' · por ' + n.ator_rotulo : ''}
                       </span>
-                      {info && n.link && <span className="ui-aviso__acao">{info.acao} →</span>}
+                      {info && n.link && <span className="ui-aviso__acao">{info.acao}<Icone nome="seta-direita" tamanho={16} /></span>}
                     </span>
                     {!lida && <span className="ui-aviso__ponto"><span className="ui-oculto">Não lido</span></span>}
                   </button>
