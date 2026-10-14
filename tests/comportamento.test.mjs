@@ -53,8 +53,16 @@ function daFuncao(arquivo, exportar) {
   return mod.exports
 }
 
-const { caminhoValido } = daFuncao('arquivo-url', 'exports.caminhoValido = caminhoValido')
+const { caminhoValido, caminhoEdicaoValido } = daFuncao('arquivo-url', 'exports.caminhoValido = caminhoValido; exports.caminhoEdicaoValido = caminhoEdicaoValido')
 const UUID = '3f1a2b4c-5d6e-4f70-8a9b-0c1d2e3f4a5b'
+
+test('fotos da edição: só <edição>/<participação>/<uuid>.webp', () => {
+  assert.equal(caminhoEdicaoValido(`2026.2/${UUID}/${UUID}.webp`), true)
+  for (const ruim of [`2026.2/${UUID}/foto.webp`, `2026.2/${UUID}/${UUID}.jpg`, `cartoon/${UUID}/${UUID}.webp`,
+    `2026.2/../${UUID}.webp`, `2026.2/${UUID}`, `2026.2/${UUID}/${UUID}.webp/x`, `geral/${UUID}.webp`]) {
+    assert.equal(caminhoEdicaoValido(ruim), false, 'devia recusar: ' + ruim)
+  }
+})
 
 test('caminhoValido aceita as duas pastas legítimas', () => {
   assert.equal(caminhoValido('geral/regulamento.pdf'), true)

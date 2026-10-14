@@ -71,10 +71,10 @@ Todas exigem rewrite `/cartoon/:path*` → `/` (hoje `/cartoon` daria 404 na Ver
 - **[Proposta]** Unidade com identificador público próprio: `unidade_publica_id`, curto, estável e não sequencial (ex.: `u7k2`). Serve para `?unidade=`, Minha rota e avaliação. Não usar o `uuid` interno nem a posição `ordem`.
 - **[Proposta] Identificador da edição:** `edicoes.codigo = '2026.2'` no banco; `cartoon` só no caminho. O caminho fica em `src/edicao/config.js`, que mapeia `{ codigo: '2026.2', caminho: '/cartoon', tema: 'Cartoon' }`.
 - **[Proposta] QR Codes:**
-  - Apontam para o caminho limpo do participante: `https://www.sweetcoffeeweek.com.br/cartoon/participantes/<slug>?o=qr`.
+  - Apontam para o caminho limpo do participante: `https://www.sweetcoffeeweek.com.br/cartoon/participantes/<slug>?utm_source=qr&utm_medium=impresso&utm_campaign=cartoon`.
   - Não usam hash; o roteador já lê `pathname` quando não há hash (`src/router.js:8-12`).
-  - `?o=qr` vira um evento de Analytics e é retirado do endereço registrado (o padrão de `rotaLimpa`).
-  - O gerador antigo é adaptado em `scripts/qr-edicao.mjs`, que lê a projeção publicada. Ele exige reinstalar o pacote `qrcode` como dependência de desenvolvimento.
+  - Os `utm_*` são os únicos parâmetros que o Analytics guarda (`enderecoLimpo`), então a origem "QR impresso" fica medida sem código novo. (Revisto na execução: o plano previa `?o=qr` + evento.)
+  - Gerador: `npm run qr:edicao` (`scripts/qr-edicao.mjs`, `qrcode@1.5.4` como dependência de desenvolvimento). Lê a projeção publicada e grava fora do repositório (`../sweet-coffee-week-dados/qr-cartoon-<data>/`).
   - Os QRs só são gerados **depois** que o slug está congelado.
 - **Durabilidade [Proposta]:** depois do encerramento, o QR continua abrindo a página do participante no modo registro (2.7, fase 9). Nunca abre outra marca nem outra edição.
 

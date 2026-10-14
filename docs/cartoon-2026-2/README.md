@@ -1,6 +1,6 @@
 # Sweet & Coffee Week Cartoon 2026.2 — especificação do site da edição e do painel
 
-**Estado:** planejamento. Nada aqui foi implementado, aplicado no banco ou publicado.
+**Estado (14/10/2026, noite):** fases 1, 4, 5 e 6 implementadas em `dev/site-completo` (só preview); banco escrito e **não aplicado**; roteiro de lançamento pronto — ver [09-execucao.md](09-execucao.md).
 **Data:** 14/10/2026 · **Branch analisada:** `dev/site-completo` (HEAD `066510d`, igual a `master`).
 **Escopo:** a camada de edição Cartoon (site público da 17ª edição) e o que o painel precisa ganhar para alimentá-la.
 
@@ -28,6 +28,7 @@ Nada aqui declara aprovação visual, integração operacional ou conformidade l
 | 6 | [06-mapa-rota-avaliacao.md](06-mapa-rota-avaliacao.md) | Mapa, Minha rota, avaliação e premiação |
 | 7 | [07-implementacao-e-testes.md](07-implementacao-e-testes.md) | Nove fases de execução com escopo, arquivos, critérios, testes, riscos e reversão |
 | 8 | [08-decisoes-pendentes.md](08-decisoes-pendentes.md) | O que depende da organização, com recomendação e impacto |
+| 9 | [09-execucao.md](09-execucao.md) | **Execução (14/10/2026):** estado por fase, como aplicar o banco, testes, roteiro de lançamento e de encerramento |
 
 ## O essencial em uma tela
 

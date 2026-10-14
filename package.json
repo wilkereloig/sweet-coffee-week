@@ -19,6 +19,7 @@
     "test:casca-institucional": "node tests/casca-institucional.mjs",
     "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
     "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
+    "qr:edicao": "node scripts/qr-edicao.mjs",
     "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs",
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "playwright": "^1.60.0",
+    "qrcode": "1.5.4",
     "vite": "^5.4.2"
   }
 }
