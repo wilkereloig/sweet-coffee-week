@@ -3,12 +3,15 @@ import { fotosHome } from '../../../data/imageLibrary'
 import { COMO_FUNCIONA as T } from '../../../data/conteudo/home'
 import { ANATOMIA_COMBO } from '../../../components/scw-icons/anatomia-combo'
 import { FotoAcervo } from '../../../components/FotoAcervo'
+import { PausaFotos } from '../../../components/HeroFotos'
+import { useCrossfade } from '../../../hooks/useCrossfade'
 import { Rotulo } from '../../../components/Rotulo'
 import { TituloDestaque } from '../TituloDestaque'
 
 /* ============================================================================
    02 Como funciona — o que é o combo e como a edição acontece. Texto,
-   anatomia e laços à esquerda; um combo completo à direita.
+   anatomia e laços à esquerda; combos completos de casas diferentes à
+   direita, em crossfade (relógio de useCrossfade, com pausa).
    ⛔ A anatomia fica SEMPRE em uma linha, inclusive no celular (§7.1).
    ========================================================================= */
 
@@ -20,7 +23,10 @@ const INGREDIENTES = [
 ]
 
 export function ComoFunciona() {
-  const combo = fotosHome('combo')
+  const combos = fotosHome('combos')
+  const { ativa, pedidas, reduzido, pausado, alternarPausa, temRotacao } = useCrossfade(combos.length)
+  /* Sem movimento, uma foto só (e um download só). */
+  const camadas = reduzido ? combos.slice(0, 1) : combos
   return (
     <section id="festival" className="scw-secao scw-secao--creme hm-festival" aria-labelledby="hm-festival-titulo">
       <div className="hm-festival__texto">
@@ -77,8 +83,15 @@ export function ComoFunciona() {
       </div>
 
       <figure className="hm-festival__foto">
-        <FotoAcervo foto={combo} papel="cartao" />
-        <figcaption>{combo.legenda}</figcaption>
+        {camadas.map((foto, i) => (
+          /* Camada montada sempre (sem salto); a foto só entra quando o
+             relógio a pede: a visível, a próxima e as já vistas. */
+          <span key={foto.src} className={'hm-festival__camada' + (i === ativa ? ' is-ativa' : '')} aria-hidden={i === ativa ? undefined : true}>
+            {pedidas[i] && <FotoAcervo foto={foto} papel="cartao" alt={i === ativa ? foto.alt : ''} />}
+          </span>
+        ))}
+        <figcaption>{combos[ativa].legenda}</figcaption>
+        {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} />}
       </figure>
     </section>
   )

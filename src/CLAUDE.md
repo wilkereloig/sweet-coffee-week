@@ -992,7 +992,8 @@ motor adiciona. Script que não carrega, navegador sem `IntersectionObserver` ou
 - **Heróis** — sequência foto → selo → título → apoio → ação, com atrasos de 140 a 760ms.
   Em Awards a banda surge e o texto sobe atrás dela.
 - **Ciclo da anatomia** (Home 02) — quatro desenhos por ingrediente em 8,8s. Desde
-  28/09/2026 é o **único laço contínuo** da Home, além do crossfade da abertura: a faixa
+  28/09/2026 é o **único laço contínuo** da Home, além dos crossfades (abertura e, desde
+  14/10/2026, a foto de combos da 02, com pausa): a faixa
   de palavras, a respiração das fotos e as fitas saíram dela.
 - **Crossfade dos heróis** — 6,2s por foto, relógio único em `useCrossfade.js`, com o
   botão `PausaFotos` sempre que há rotação (§6.9). ⛔ A **respiração da imagem** (laço
@@ -1128,6 +1129,10 @@ nenhum elemento os usava desde que os heróis passaram a ser `HeroFotos` em cros
 ⚠️ **Degradê linear em alpha lê como faixa dura.** *"O olho enxerga a derivada, não o
 valor."* Uma rampa de **duas** paradas marca aresta nos dois pontos onde começa e termina;
 é preciso ao menos **três**, com a do meio quebrando a reta.
+
+✅ **O véu do cabeçalho (`.scw-header__veu`) segue a mesma razão desde 14/10/2026:**
+rampa "scrim" de 12 paradas, topo a .48, zerando em 70% — as 4 paradas lineares
+anteriores marcavam uma faixa marrom sobre o amarelo da Home. Vale em todas as páginas.
 
 ⚠️ **O mecanismo mudou em 22/08/2026, o princípio não.** A rampa era uma **máscara** em
 smoothstep `t²(3−2t)` (`--scw-esfuma`); hoje é **cor sobre a foto**, em três paradas, no

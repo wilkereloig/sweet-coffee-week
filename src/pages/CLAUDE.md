@@ -75,8 +75,11 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
   600 e 999px; teto `44svh`) — não o quadrado do §6.9, para título, lead e ação caberem
   acima do aviso de cookies na primeira visita.
 - **02 Como funciona (`ComoFunciona.jsx`, `#festival`)** — texto, anatomia do combo e
-  três laços (para as casas · para o público · para Natal) à esquerda; um combo completo
-  à direita. A anatomia continua como era: ⛔ **sempre em UMA LINHA, inclusive no
+  três laços (para as casas · para o público · para Natal) à esquerda; à direita, **combos
+  completos de cinco casas da Lovers em crossfade** (`fotosHome('combos')`, relógio
+  `useCrossfade` com `PausaFotos`, legenda "Marca · Lovers 2026.1" acompanhando a foto —
+  14/10/2026, pedido do Wilker). As cinco foram escolhidas por manter doce, salgado e
+  bebida nos dois cortes da moldura (4:5 desktop, 4:3 celular). A anatomia continua como era: ⛔ **sempre em UMA LINHA, inclusive no
   celular** (pedido do Eloi, 22/08/2026), escala por `--ing-disco`/`--ing-mais`, quatro
   desenhos por ingrediente em 8,8s (`scwIcnCiclo`, arte em `anatomia-combo.js`, fora de
   `scw-icons-v2.js`), só o primeiro com `prefers-reduced-motion`. **Não empilhar de

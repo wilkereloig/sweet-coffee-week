@@ -452,6 +452,18 @@
   aspect-ratio: 4 / 5;
   border-radius: var(--scw-r-secao);
 }
+/* Combos em crossfade: uma camada .is-ativa por vez (mesma curva da banda
+   dos heróis, .scw-hero-banda__foto). A legenda acompanha a ativa. */
+.hm-festival__camada {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 900ms cubic-bezier(.2, .7, .2, 1);
+}
+.hm-festival__camada.is-ativa { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .hm-festival__camada { transition: none; }
+}
 
 .hm-anatomia {
   margin-top: clamp(30px, 3.4vw, 48px);

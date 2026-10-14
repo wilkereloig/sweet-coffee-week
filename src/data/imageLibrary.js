@@ -310,8 +310,16 @@ const HOME = {
     { ...comboMain("Caffè Basilico's"), legenda: "Caffè Basilico's" },
     { ...comboMain('O Maestro Café'), legenda: 'O Maestro Café' },
   ],
-  /* 02 Como funciona — um combo completo: doce, salgado e bebida à vista. */
-  combo: fotoEdicao('2026.1', '03', 'Combo completo'),
+  /* 02 Como funciona — combos completos de casas diferentes (doce, salgado e
+     bebida à vista), em crossfade. Marca na legenda: o vínculo é do acervo
+     combos/ da Lovers. Nenhuma repete o herói (Canuto's, Basilico's, Maestro).
+     Escolhidas (14/10/2026) por manter o combo inteiro nos DOIS cortes da
+     moldura — 4:5 no desktop e 4:3 no celular; as horizontais perdiam itens. */
+  combos: ['paneer-patisserie', 'just-food-coffee', 'casa-de-taipa-tapiocaria', 'adocee-doceria', 'wow-cookies']
+    .map((slug) => ({
+      ...comboMain(slug),
+      legenda: `${BRAND_LIST.find((b) => b.slug === slug).name} · ${editionLabel(COMBO_EDITION)}`,
+    })),
   /* 03 Em registros — a casa do depoimento, com os prêmios. */
   jolie: { src: '/images/awards-entrega/03.jpg', alt: 'Equipe da Jolie Café Pâtisserie na loja com os prêmios do Sweet Awards do Sweet & Coffee Week', position: 'center 32%' },
   /* 03 Em registros — pessoas, casas, combos e detalhe, alternados. */
