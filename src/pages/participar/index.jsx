@@ -6,12 +6,13 @@
  * Jornada (12/10/2026): 01 Abertura · 02 Depoimentos · 03 Para quem é e como
  * funciona · 04 O que a participação oferece · 05 Depois do pré-cadastro ·
  * 06 Próximo passo. Texto em src/data/conteudo/participar.js; uma seção por
- * arquivo em ./secoes. A faixa de palavras (Marquee) saiu: repetia o que a
- * página já diz e era laço contínuo sem pausa, como a Home decidiu em 28/09.
+ * arquivo em ./secoes. A faixa de palavras (Marquee) saiu em 12/10 e voltou em
+ * 14/10/2026, pedido do Wilker: em todas as páginas, exceto a Home e Edições.
  */
 import React from 'react'
 import { Seta } from '../../components/Seta'
-import { PRE_CADASTRO, PROXIMO } from '../../data/conteudo/participar'
+import { Marquee } from '../../components/Marquee'
+import { PRE_CADASTRO, PROXIMO, PALAVRAS } from '../../data/conteudo/participar'
 import { BarraAcao } from './comum'
 import { Abertura } from './secoes/Abertura'
 import { Depoimentos } from './secoes/Depoimentos'
@@ -25,6 +26,7 @@ export function ParticiparPage() {
   return (
     <>
       <Abertura />
+      <Marquee palavras={PALAVRAS} />
       <Depoimentos />
       <ParaQuem />
       <Oferece />

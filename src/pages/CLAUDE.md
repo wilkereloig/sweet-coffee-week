@@ -153,12 +153,13 @@ roteador leva ao topo; a página corrige dois quadros depois).
 movimento** (arquivo de consulta: nada encenado).
 
 **Visão geral (`/edicoes`):**
-- **Abertura compacta na chapa laranja** (`--scw-heroi`): rótulo, H1 "Cada edição, uma
-  nova história à mesa.", uma frase sobre temas e criações, a linha de números de
-  `festivalFacts` (edições · marcas · participações — nunca digitados) e quatro registros
-  de edições diferentes (`FOTOS_ABERTURA`). Altura do conteúdo: a coleção espia na
-  primeira dobra do desktop. ⚠️ No celular a faixa de anos tem de caber **acima do aviso
-  de cookies** em 360×800 — por isso o lead é uma frase só e as fotos ficam quadradas.
+- **Abertura = herói fotográfico compartilhado (§6.9, desde 14/10/2026)** na chapa laranja
+  (`--scw-heroi`): rótulo, H1 "Cada edição, uma nova história à mesa.", uma frase sobre
+  temas e criações, a linha de números de `festivalFacts` (nunca digitados); na área de
+  foto, os quatro registros de edições diferentes (`FOTOS_ABERTURA`) em crossfade. Sem
+  faixa de palavras (pedido do Wilker). ⚠️ No celular a faixa de anos começa logo abaixo
+  do herói e pode ficar sob o aviso de cookies na primeira visita; o contrato ali é o do
+  herói sem ação (o H1 acima do aviso). No desktop segue: anos na dobra, fora do aviso.
 - **Coleção por ano**, do mais recente à estreia; dentro do ano, 1ª antes da 2ª
   (calendário). Cada ano é um grupo com numeral em Slab e filete chocolate; ano com duas
   edições diz "duas edições", e cada cartão diz "1ª do ano · abril" (`quando()`, mês
@@ -244,8 +245,7 @@ puras em `consulta.js`** (filtro, índice, Hall, contagens), testadas em
 `src/pages/institutional/HistoricoAwards.jsx` só reexporta. ⛔ **Não existe
 `SweetAwards.jsx` — não criar arquivo novo só para casar com documentação antiga.**
 
-**Ordem real (`index.jsx`):** `01 Abertura` · faixa de palavras (`Marquee` — a única que
-resta no institucional, §6.15) · `Índice` · `02 Resultados 2026.1` · `03 Quem dá a nota`
+**Ordem real (`index.jsx`):** `01 Abertura` · faixa de palavras (`Marquee`, §6.15) · `Índice` · `02 Resultados 2026.1` · `03 Quem dá a nota`
 · `04 Hall` · `05 Histórico`. A página é de **consulta**, e cada coisa tem um caminho só:
 categoria se escolhe no filtro, edição no acordeão, e o índice é o único atalho entre
 seções. Reorganizada em 12/10/2026: de ~13,8 mil para ~7,6 mil px de altura.
@@ -341,8 +341,8 @@ o mesmo de Apoiar).
 **Jornada em seis seções (12/10/2026):** `01 Abertura` (herói cyan) · `02 Depoimentos`
 · `03 Para quem é e como funciona` (bege) · `04 O que a participação oferece` (creme) ·
 `05 Depois do pré-cadastro` (chocolate) · `06 Próximo passo` (creme), mais a barra fixa
-de ação. ⛔ **A faixa de palavras (`Marquee`) saiu em 12/10/2026:** repetia o que a
-página já diz e era laço contínuo sem pausa, como a Home decidiu em 28/09. ⛔ A seção
+de ação. A faixa de palavras (`Marquee`) saiu em 12/10 e **voltou em 14/10/2026**, logo depois
+da abertura (pedido do Wilker). ⛔ A seção
 própria `04 Números` virou a escala dentro da 04; `05 Como funciona` virou
 `05 Depois do pré-cadastro`; os três passos da edição foram para a 03.
 Histórico: `04 Circulação`, `05 Quem pode`, `06 Imprensa` e `07 Jornada` saíram em
@@ -452,7 +452,7 @@ CSS é o mesmo de Participar (`scw-participar-apoiar.css`). Texto em
 festival` (chocolate) · `04 Onde a marca aparece` (creme, com os formatos que já
 aconteceram) · `05 Proposta`, mais a barra fixa ("Falar sobre apoio"). ⛔ **Saíram em
 12/10/2026:** `03 Por que apoiar` (seis "motivos" em card — cada um repetia o público, o
-alcance ou um ponto de contato) e a faixa de palavras (laço sem pausa, só atmosfera).
+alcance ou um ponto de contato) A faixa de palavras saiu junto e **voltou em 14/10/2026**, logo depois da abertura.
 Mesma estrutura de herói de Participar — sem cartão e sem indicadores.
 
 - **01 Abertura** — título curto **"Apoie o *Sweet & Coffee Week.*"** (destaque amarelo,

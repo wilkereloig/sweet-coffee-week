@@ -1,33 +1,40 @@
 /*
- * HeroFotos — as fotos de fundo de um herói institucional, em crossfade.
+ * HeroFotos — a área fotográfica de um herói institucional, em crossfade.
  *
  * O RELÓGIO mora em `useCrossfade` (hooks/useCrossfade.js), compartilhado com a
  * abertura da Home: índice válido, próxima foto decodificada antes da troca,
  * pausa com a aba oculta, `prefers-reduced-motion` escutado ao vivo e pausa
- * manual. Aqui fica só a COMPOSIÇÃO da banda.
+ * manual. A GEOMETRIA mora em scw-2026.css (.scw-heroi-foto / .scw-hero-banda):
+ * faixa compacta no topo até 1000px, área à direita acima disso (14/10/2026).
  *
- * Cada camada manda o enquadramento como custom property em vez de resolver um
- * valor só: style inline vence media query (§10.4), então quem escolhe entre o
- * enquadramento do celular e o do desktop é o CSS.
+ * Cada camada é um <img> com srcset + sizes (resolvedor central,
+ * imageLibrary): o navegador escolhe a variante pela largura REAL da área e
+ * pela densidade da tela — nada de esticar a variante de 960px nem de baixar o
+ * original no celular. O enquadramento vai como custom property (--foco e
+ * --foco-mobile) porque style inline vence media query (§10.4); quem escolhe
+ * entre os dois é o CSS (object-position).
  *
- * Carga: só pedem `background-image` a camada visível, as já vistas e a
- * PRÓXIMA (um intervalo inteiro antes de aparecer). As camadas seguem montadas
- * — sai do fluxo o download, não o elemento —, então não há salto de layout.
+ * Carga: só ganham `src` a camada visível, as já vistas e a PRÓXIMA. As
+ * camadas seguem montadas e a caixa tem proporção fixa, então a troca não
+ * mexe no tamanho do herói.
  *
- * Acessibilidade: só a camada visível carrega `role="img"` e o alt; as outras
- * são `aria-hidden`. Com rotação, um botão de pausa só com ícone (§6.11: o nome
- * aparece no hover/foco e é o nome acessível).
+ * Acessibilidade: só a camada visível tem alt; as outras são `aria-hidden`.
+ * Com rotação, um botão de pausa só com ícone, dentro da área da foto (§6.11).
  */
 
 import React from 'react'
-import { fotoAte, LARGURA_HEROI_MOBILE } from '../data/imageLibrary'
+import { fotoAte, srcSet, SIZES } from '../data/imageLibrary'
 import { useCrossfade } from '../hooks/useCrossfade'
 import ScwIcon from './scw-icons/ScwIcon'
 
-/* Mesmo corte do CSS (.scw-hero-banda__foto): acima de 1000px o original. */
-const ehDesktop = () =>
-  typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
-  window.matchMedia('(min-width: 1001px)').matches
+/* Largura em pixels de tela que a área pede agora — a largura REAL da caixa
+   (medida, não suposta), para o pré-carregamento
+   do relógio baixar o MESMO arquivo que o <img> escolhe pelo `sizes`. */
+function larguraPedida (caixa) {
+  if (typeof window === 'undefined') return 960
+  const css = (caixa && caixa.clientWidth) || window.innerWidth
+  return Math.ceil(css * (window.devicePixelRatio || 1))
+}
 
 /** Botão de pausa das séries em crossfade — o mesmo na banda e na Home. */
 export function PausaFotos({ pausado, alternar, className = '' }) {
@@ -49,50 +56,45 @@ export function PausaFotos({ pausado, alternar, className = '' }) {
 /**
  * @param {object}   props
  * @param {Array}    props.fotos     itens de `heroPhotos(rota)` (src, alt, position, mobilePosition)
- * @param {string}   [props.classe]  classe do container; o padrão é a banda do sistema
+ * @param {string}   [props.classe]  classe do container; o padrão é a área do sistema
  */
 export function HeroFotos({ fotos = [], classe = 'scw-hero-banda' }) {
+  const caixa = React.useRef(null)
   const urlDe = React.useCallback(
-    (i) => (fotos[i] ? (ehDesktop() ? fotos[i].src : fotoAte(fotos[i].src, LARGURA_HEROI_MOBILE)) : null),
+    (i) => (fotos[i] ? fotoAte(fotos[i].src, larguraPedida(caixa.current)) : null),
     [fotos],
   )
   const { ativa, pedidas, reduzido, pausado, alternarPausa, temRotacao } = useCrossfade(fotos.length, { urlDe })
 
   if (!fotos.length) return null
 
-  /* Sem movimento, sem crossfade: uma camada só — e a página baixa UMA foto.
-     (Com todas montadas e `opacity: 1` pela salvaguarda, aparecia a última do
-     DOM, não a ativa.) */
+  /* Sem movimento, sem crossfade: uma camada só — e a página baixa UMA foto. */
   const camadas = reduzido ? fotos.slice(0, 1) : fotos
 
-  /* O botão de pausa existe em dois lugares, um por tela (o outro some com
-     `display: none`, que também o tira da árvore de acessibilidade):
-     - ≤1000px a foto é um bloco no topo do herói e o botão mora nela;
-     - >1000px a banda é fundo SOB o véu do herói (.scw-hero-veu::after), num
-       contexto de empilhamento próprio — dentro dela o botão ficaria embaixo
-       do véu, desbotado. Ali ele é irmão da banda, no contexto do herói. */
   return (
-    <>
-    <div className={classe}>
-      {camadas.map((foto, i) => (
-        <span
-          key={foto.src}
-          className={'scw-hero-banda__foto' + (i === ativa ? ' is-ativa' : '')}
-          style={{
-            '--foto': pedidas[i] ? `url("${foto.src}")` : undefined,
-            '--foto-mobile': pedidas[i] ? `url("${fotoAte(foto.src, LARGURA_HEROI_MOBILE)}")` : undefined,
-            '--foco': foto.position || 'center',
-            '--foco-mobile': foto.mobilePosition || foto.position || 'center',
-          }}
-          role={i === ativa ? 'img' : undefined}
-          aria-label={i === ativa ? foto.alt : undefined}
-          aria-hidden={i === ativa ? undefined : 'true'}
-        />
-      ))}
-      {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} className="scw-pausa-fotos--na-banda" />}
+    <div className={classe} ref={caixa}>
+      {camadas.map((foto, i) => {
+        const visivel = i === ativa || reduzido
+        return (
+          <img
+            key={foto.src}
+            className={'scw-hero-banda__foto' + (visivel ? ' is-ativa' : '')}
+            src={pedidas[i] || reduzido ? foto.src : undefined}
+            srcSet={pedidas[i] || reduzido ? srcSet(foto.src) : undefined}
+            sizes={SIZES.heroi}
+            alt={visivel ? foto.alt : ''}
+            aria-hidden={visivel ? undefined : 'true'}
+            decoding="async"
+            fetchPriority={i === 0 ? 'high' : undefined}
+            style={{
+              '--foco': foto.position || 'center',
+              '--foco-mobile': foto.mobilePosition || foto.position || 'center',
+            }}
+          />
+        )
+      })}
+      {temRotacao && !reduzido && <PausaFotos pausado={pausado} alternar={alternarPausa} />}
     </div>
-    {temRotacao && <PausaFotos pausado={pausado} alternar={alternarPausa} className="scw-pausa-fotos--no-heroi" />}
-    </>
   )
 }
 

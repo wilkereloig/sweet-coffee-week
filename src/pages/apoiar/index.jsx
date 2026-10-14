@@ -5,7 +5,8 @@
  * Seções (12/10/2026): 01 Abertura · 02 Alcance · 03 Quem vive o festival ·
  * 04 Onde a marca aparece (com os formatos que já aconteceram) · 05 Proposta.
  * Saíram os seis "motivos" em card — cada um repetia o público, o alcance ou
- * um ponto de contato — e a faixa de palavras (laço sem pausa, só atmosfera).
+ * um ponto de contato. A faixa de palavras saiu em 12/10 e voltou em 14/10/2026
+ * (pedido do Wilker: em todas as páginas, exceto a Home e Edições).
  * Texto em src/data/conteudo/apoiar.js; uma seção por arquivo em ./secoes.
  *
  * A proposta mantém a PERSISTÊNCIA REAL: `submit_support_interest` pela porta
@@ -14,7 +15,8 @@
  */
 import React from 'react'
 import { Seta } from '../../components/Seta'
-import { PROPOSTA } from '../../data/conteudo/apoiar'
+import { Marquee } from '../../components/Marquee'
+import { PROPOSTA, PALAVRAS } from '../../data/conteudo/apoiar'
 import { BarraAcao, irPara } from '../participar/comum'
 import { Abertura } from './secoes/Abertura'
 import { Alcance } from './secoes/Alcance'
@@ -27,6 +29,7 @@ export function ApoiarPage() {
   return (
     <>
       <Abertura />
+      <Marquee palavras={PALAVRAS} />
       <Alcance />
       <QuemVive />
       <OndeAparece />

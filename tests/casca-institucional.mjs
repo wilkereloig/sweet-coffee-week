@@ -129,9 +129,11 @@ async function cookies(navegador) {
       const aviso = await retanguloDe(page, '.cookie-consent')
       const rot = `${rota} @${w}×${h}`
       if (!aviso) { falha(`${rot}: aviso não apareceu na primeira visita`); await ctx.close(); continue }
-      if (rota === '/edicoes') {
-        // Edições não tem ação no herói: o que não pode ficar sob o aviso é a
-        // navegação por ano, que abre a coleção.
+      if (rota === '/edicoes' && w > 1000) {
+        // Edições não tem ação no herói: no desktop, o que não pode ficar sob o
+        // aviso é a navegação por ano, que abre a coleção. No celular (14/10/2026)
+        // o herói é o compartilhado (§6.9) e a faixa de anos começa logo abaixo
+        // dele — vale o título, como em todo herói sem ação (retanguloAcao).
         const anos = await retanguloDe(page, '.edx-anos')
         if (!anos) falha(`${rot}: navegação por ano não encontrada`)
         // no desktop é uma coluna de 11 anos: basta o primeiro estar na dobra
@@ -264,7 +266,9 @@ async function movimentoETimers(navegador) {
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
     document.dispatchEvent(new Event('visibilitychange'))
-    window.location.hash = '#/edicoes'
+    // Página SEM herói em crossfade (Edições ganhou o seu em 14/10/2026): o que
+    // se mede é o relógio da página anterior parar.
+    window.location.hash = '#/privacidade'
   })
   await page.waitForTimeout(1200)
   if (await conta()) falha('saiu da página: o relógio do herói anterior ficou agendado')

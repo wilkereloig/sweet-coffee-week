@@ -17,46 +17,36 @@
    Classes coreografadas por scw-motion.css: não renomear.
    -------------------------------------------------------------------------- */
 
-.swa-hero {
-  position: relative;
-  overflow: hidden;
-  /* A mesma altura das outras cinco (§6.8, token do sistema). */
-  min-height: var(--scw-hero-altura);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  /* Conteúdo ancorado embaixo (§6.7): quem ocupa a faixa do cabeçalho fixo é a
-     própria banda de foto. */
-  padding: var(--scw-hero-reserva) var(--scw-trilho) var(--scw-hero-fecho);
-  background: var(--scw-roxo);
+/* Geometria, cor e foto do sistema (.scw-heroi-foto, scw-2026.css); aqui
+   só o conjunto de texto: rótulo, título, lead, ação e números, juntos. */
+.swa-hero .swa-hero__rotulo { color: rgba(254, 240, 221, .82); }
+.swa-hero__texto .scw-h1 {
+  margin-top: clamp(10px, 1.1vw, 16px);
   color: var(--scw-creme);
+  /* duas linhas na coluna de ~48%, três só no celular estreito */
+  max-width: 14ch;
+  text-wrap: balance;
 }
-/* ⚠️ Só o TEXTO sobe. `.swa-hero > *` alcançaria a banda de foto, que perderia
-   o `inset: 0`, colapsaria a zero e o herói ficaria roxo chapado. */
-.swa-hero__texto { position: relative; z-index: 1; }
-
-/* Celular: foto quadrada em cima, texto embaixo na chapa roxa (§6.9). A
-   geometria da banda é do sistema (`.scw-hero-banda`). */
-@media (max-width: 1000px) {
-  .swa-hero {
-    min-height: 0;
-    justify-content: flex-start;
-    padding: 0 0 clamp(30px, 7vw, 44px);
-  }
+.swa-hero__texto .scw-lead {
+  margin-top: clamp(14px, 1.4vw, 20px);
+  max-width: 40ch;
+  color: rgba(254, 240, 221, .86);
 }
+.swa-hero__acao { margin-top: clamp(20px, 2vw, 28px); align-self: flex-start; }
 
-.swa-hero__texto .scw-h1 { margin-top: 0; color: var(--scw-creme); }
-.swa-hero__texto .scw-lead { margin-top: clamp(16px, 1.8vw, 26px); color: rgba(254, 240, 221, .86); }
-
+/* Grade de 3 em toda largura: com flex-wrap os números caíam 2+1 na coluna
+   estreita (1001px, celular). O rótulo quebra em duas linhas se precisar. */
 .swa-numeros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(18px, 2.4vw, 44px);
-  margin: clamp(24px, 2.8vw, 40px) 0 0;
-  padding: clamp(18px, 2vw, 26px) 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, max-content));
+  gap: 14px clamp(18px, 2.4vw, 40px);
+  margin: clamp(24px, 2.6vw, 36px) 0 0;
+  padding: clamp(16px, 1.6vw, 22px) 0 0;
   border-top: 1px solid rgba(254, 240, 221, .28);
 }
-.swa-numeros > div { display: flex; flex-direction: column; gap: 6px; }
+/* Número em destaque em cima, rótulo secundário embaixo — a ordem do <dl>
+   (dt antes de dd) fica intacta para o leitor de tela. */
+.swa-numeros > div { display: flex; flex-direction: column-reverse; gap: 6px; }
 .swa-numeros dt {
   font: 700 11px/1.15 var(--scw-font-ui);
   letter-spacing: .14em;
@@ -66,13 +56,12 @@
 }
 .swa-numeros dd {
   margin: 0;
-  font: 900 clamp(26px, 2.4vw, 38px)/1 var(--scw-font-black);
+  font: 900 clamp(28px, 2.6vw, 40px)/1 var(--scw-font-black);
   letter-spacing: -.04em;
   font-variant-numeric: tabular-nums;
 }
-/* Celular: grade fixa de 3 — com flex-wrap os números caíam 2+1. */
 @media (max-width: 820px) {
-  .swa-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .swa-numeros { grid-template-columns: repeat(3, 1fr); column-gap: 14px; }
   .swa-numeros dt { hyphens: none; font-size: var(--scw-piso-rotulo-mob); }
 }
 

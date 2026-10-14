@@ -9,7 +9,7 @@ const semMovimento = () =>
 /* O site roteia pelo hash (#/sweet-awards): um `href="#swa-hall"` puro trocaria a
    ROTA. Então o link rola até a seção sem tocar no endereço e leva o foco ao
    título dela — teclado e leitor de tela chegam onde o olho chegou. */
-function irPara(id) {
+export function irPara(id) {
   return (e) => {
     e.preventDefault()
     const alvo = document.getElementById(id)

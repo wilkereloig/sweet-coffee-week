@@ -22,7 +22,7 @@
  * IDENTIDADE: a página nasceu numa terceira paleta (espresso #2B1810 + ouro
  * #F8B511, tokens de `em-breve.css`) que era do Sweet Awards de antes do
  * redesign. Agora consome a PALETA VIVA (`--scw-*`) e as utilitárias do sistema
- * — `.scw-h1`, `.scw-btn`, `.scw-secao`, `.scw-marquee`, `.scw-hero-veu`. Some
+ * — `.scw-h1`, `.scw-btn`, `.scw-secao`, `.scw-marquee`. Some
  * a terceira identidade do projeto e o Design passa a desenhar no sistema real.
  * ⛔ `em-breve.css` continua no ar: `components/icons.jsx` e `data/participants.js`
  * ainda leem tokens dele. Sair do consumo é uma coisa; apagar o arquivo é outra.

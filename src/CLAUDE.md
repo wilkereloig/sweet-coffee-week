@@ -373,7 +373,7 @@ Edições:**
 | Título | `.scw-h1`, à esquerda, `max-width:17ch` |
 | Lead | `.scw-lead`, `max-width:46ch` |
 | Selo | `.scw-pill--pagina`, usa `--scw-pagina` — **saiu de Participar, Apoiar e Sweet Awards em 27/08/2026** (pedido do Wilke); segue vivo só onde outra página o usa |
-| Foto | fundo à direita com **véu em degradê a 96°** (`.97 → 0` entre 0% e 92%) |
+| Foto | **área própria à direita, 52% da largura** (`.scw-hero-banda`), com degradê horizontal curto na cor da página — §6.9. Sem véu de largura total |
 | Botões | depois do lead, alinhados à esquerda |
 | Fundo | cor da página via `--scw-heroi`; **só a Home segue chocolate** |
 
@@ -396,58 +396,41 @@ e ganhou `margin-top: 0` — regra por `:first-child` em `.pa-hero__titulo`
   assunto, respeitar o KV institucional, adaptar ao mobile, não ocupar espaço excessivo e
   não esconder informação.
 
-### 6.9 Herói no celular (<1000px) — regra estrutural
+### 6.9 Herói fotográfico — uma geometria para todas as páginas institucionais
 
-**DOIS BLOCOS, NAS CINCO PÁGINAS — construção fechada em 22/08/2026** (pedido do Eloi:
-*"aplica a mesma lógica e regras em todas, pra ficarem com tamanho igual, mas cada uma
-mantém a sua cor"*). Foto quadrada de largura cheia em cima, esfumada na base, texto
-embaixo sobre a chapa sólida da página.
+**Desde 14/10/2026 Participar, Apoiar, Sweet Awards, Contato e Edições usam a MESMA construção**
+(`.scw-heroi-foto` + `HeroFotos`, regras em `scw-2026.css`, seção "HERÓI FOTOGRÁFICO").
+O CSS da página só dá cor e conteúdo — **nunca geometria**. Só a Home (`.hm-abre`, Cartoon)
+fica fora (§7.1, pedido do Wilker). O detalhe de uma edição (`/edicoes/<código>`) e os
+documentos legais não têm herói fotográfico.
 
-| Peça | Regra |
-|---|---|
-| Foto | `.scw-hero-banda` (`.hm-abre__pessoas` na Home) **no fluxo**, largura cheia. A regra do sistema é `aspect-ratio: 1`; **só o Awards a usa inteira hoje** — as proporções reais por página estão na tabela mais abaixo |
-| Emenda | `::after` na própria foto, rampa de **três** paradas, na cor do bloco. A foto dissolve na chapa em vez de terminar numa aresta |
-| Chapa | `background: var(--scw-heroi)` + `color: var(--scw-heroi-tinta)` — chocolate na Home, cyan em Participar, marrom em Apoiar, bege em Contato, roxo no Awards |
-| Véu | `display: none`. Existia para segurar texto SOBRE foto, e não há mais texto sobre foto |
-| Altura | `min-height: 0` — foto + texto, sem piso (§6.8) |
+| Peça | Desktop (≥1001px) | Celular (≤1000px) |
+|---|---|---|
+| Seção | `.scw-heroi-foto`, altura `--scw-heroi-foto-altura` = `clamp(640px, 54.5vw, 740px)` — igual em todas (cabe o Awards, o mais alto); conjunto de texto centrado abaixo do cabeçalho | `display: block`, sem piso de altura |
+| Texto | `.scw-heroi-foto__texto`, à esquerda, sobre `var(--scw-heroi)`; reserva `--scw-heroi-texto-reserva` (52vw) + folga | embaixo da foto, sobre a chapa da página |
+| Foto | `.scw-hero-banda` à direita, largura `--scw-heroi-foto-largura` (**52vw**; texto ~48%), altura da seção | no fluxo, largura cheia: **2:1** (600–1000px) · **4:3** (380–599px) · **16:10** (<380px) |
+| Degradê | `::before` horizontal, tokens `--scw-heroi-degrade-de/-ate`: opaco em 0%, some em **46%** da área, curva em S (smoothstep, 9 paradas) — "mais suave", 14/10/2026 | mesma curva na base, até 32% da foto, + scrim chocolate no topo (logo e menu) |
+| Pausa | `.scw-pausa-fotos` dentro da banda: chocolate sólido, anel creme, acima do degradê; no desktop sobe a altura do aviso de cookies (`--scw-aviso-h`) | mesmo botão, canto inferior da foto |
+| Imagem | `<img>` com `srcSet` + `SIZES.heroi` (`(max-width: 1000px) 100vw, 52vw`) — mudar a largura da banda exige mudar `SIZES.heroi` junto | idem |
 
-⚠️ **A chapa é obrigatória, e é o erro que custaria caro.** Antes quem pintava a cor do
-herói era o VÉU, por cima da foto; o bloco podia ficar no chocolate padrão. Sem véu e sem
-esta linha, o título de **Contato sairia chocolate sobre chocolate** — a tinta do herói
-dele é escura.
+**Sweet Awards:** rótulo + título + lead + ação "Ver os premiados" (leva a
+`#swa-resultados` pelo `irPara` do índice) + números, num conjunto; o texto **não anima**
+(abre legível).
 
-**Contrastes medidos, todos acima de 4,5:1:** creme sobre chocolate 12:1 · chocolate
-sobre cyan 5,6:1 · creme sobre marrom 9,44:1 · chocolate sobre bege 13:1 · creme sobre
-roxo 9,95:1.
+**Medido em 14/10/2026 (build de produção), igual nas quatro páginas:** foto 360×225 ·
+390×293 · 599×449 · 600×300 · 768×384 · 1000×500 · 1001: 521×640 · 1150: 598×640 ·
+1280: 666×698 · 1440: 749×740. Rolagem horizontal zero em todas.
 
-**O zoom é consequência da caixa, não de enquadramento:** `cover` num quadrado corta ~33%
-da largura de uma foto 3:2, contra ~70% na caixa alta de antes. Foi o que motivou a
-mudança, junto com o título caindo sobre rostos e áreas claras.
+⚠️ **A chapa é obrigatória no celular**: a cor do herói é `--scw-heroi` na seção, não na
+foto. Sem ela o Contato sairia chocolate sobre chocolate.
 
-⛔ **Não devolver a foto para `inset: 0`, não recriar o véu no celular, não devolver piso
-de altura.** A construção anterior (foto cobrindo o herói, texto por cima, véu segurando
-a leitura) valeu de 21/08 a 22/08/2026 e está revogada.
+**Contrastes medidos, todos acima de 4,5:1:** chocolate sobre cyan 5,6:1 · creme sobre
+marrom 9,44:1 · chocolate sobre bege 13:1 · creme sobre roxo 9,95:1.
 
-**Proporção da foto por página, conferida no CSS em 13/10/2026** — o quadrado do
-sistema (`.scw-hero-banda`, `aspect-ratio: 1` em `scw-2026.css`) hoje só vale inteiro
-no Awards; as outras quatro sobrescrevem no CSS da página:
-
-| Página | <600px | 600–999/1000px | Onde |
-|---|---|---|---|
-| Home | **16:10** (16:9 até 420px), teto `44svh` | **2:1** | `.hm-abre__pessoas`, `scw-home.css` (corte em 999px). ⚠️ Vale para a abertura institucional; a de **edição** (ligada desde 13/10/2026) põe o texto primeiro e o vídeo de lançamento depois das ações, sem foto (`.hm-ed__video`) |
-| Participar · Apoiar | **4:3** (**16:10** abaixo de 380px) | **2:1** | `.pa-hero .scw-hero-banda`, `scw-participar-apoiar.css` (corte em 1000px) |
-| Contato | **16:10**, teto `44svh` | **2:1** | `.ctt-abertura .scw-hero-banda`, `scw-contato.css` (corte em 1000px) |
-| Sweet Awards | **1:1** | **1:1** | regra do sistema, sem sobrescrita |
-
-O motivo é o mesmo nas quatro: **a ação principal (na Home, o título e a ação; no
-Contato, a busca) tem que caber acima do aviso de cookies na primeira visita**, em
-390×844 e 360×800; o teto em `svh` segura a tela baixa e larga (tablet deitado,
-900×900). Desde 13/10/2026 vale também para a **2ª ação** do herói: a foto da Home
-vai a **2:1 abaixo de 380px** para "Como funciona" caber acima do aviso em 360×800. Medido e anotado no CSS de Participar: base do botão em y=581 (390×844) e
-y=558 (360×800).
-⚠️ As alturas totais medidas em 22/08/2026 (Home 920 · Participar e Apoiar 886 ·
-Contato 770 · Awards 826px, em 390×844) **não valem mais** — as proporções e os títulos
-mudaram depois. Medir de novo antes de citar número.
+⛔ **Não recriar:** véu de largura total, geometria por página (`.pa-hero`, `.swa-hero`,
+`.ctt-abertura` só dão cor), foto em `inset: 0` atrás do texto, proporção diferente por
+página. As construções de 21/08 (foto cobrindo o herói) e de 22/08 a 14/10/2026 (quadrado
+do sistema sobrescrito por página) estão revogadas.
 
 ⚠️ **Participar e Apoiar foram a primeira exceção ao quadrado: 4:3**, pedido do Eloi em
 22/08/2026 ("encurtar o herói"). Eram as duas mais altas das cinco porque levavam o selo
@@ -903,12 +886,13 @@ contêiner animado quebra isso e o laço salta a cada volta: o espaçamento vai 
 do Wilke em 18/09/2026.** O botão `<Marquee comPausa />` (15/09/2026) existia só em
 Participar e saiu a pedido dele, avisado de que isso descumpre a camada 4 e a WCAG 2.2.2
 (nível A). Com ele saíram a prop, `.is-pausado` e `.scw-marquee__pausa`.
-✅ **Desde 12/10/2026 só resta UMA faixa no institucional: a do Sweet Awards**
-(`<Marquee>` em `src/pages/sweet-awards/index.jsx`, com as categorias da edição em
-destaque). A da Home saiu em 28/09/2026; as de Participar e Apoiar, em 12/10/2026 — laço
-sem pausa que só repetia a página. Fora do institucional, a landing `/em-breve` monta a
-marcação `.scw-marquee` direto em `EmBreve.jsx`, sem o componente. É essa faixa do Awards
-que descumpre a camada 4 hoje. O que ainda segura: com `prefers-reduced-motion` a faixa não anda, e ela é `aria-hidden` — repete o
+✅ **Desde 14/10/2026 a faixa está logo abaixo do herói em Participar, Apoiar, Sweet
+Awards e Contato** (pedido do Wilker: "em todas as páginas, exceto a principal e
+Edições"). Palavras: Participar e Apoiar em `src/data/conteudo/*.js` (`PALAVRAS`, as
+listas que usavam até 12/10); Awards = categorias da edição em destaque; Contato = os
+assuntos da central (`faqCentral`), ambos derivados. A da Home saiu em 28/09/2026. Fora do institucional, a landing `/em-breve` monta a
+marcação `.scw-marquee` direto em `EmBreve.jsx`, sem o componente. São essas faixas que
+descumprem a camada 4 hoje. O que ainda segura: com `prefers-reduced-motion` a faixa não anda, e ela é `aria-hidden` — repete o
 que a página já diz (atmosfera nunca carrega informação). Se a regra voltar a pesar, o
 caminho é religar a pausa na fonte (`Marquee.jsx`), não página a página.
 A utilitária `.scw-icone-rotulo` (`data-rotulo`, `--esquerda`) **fica**: é a peça do
@@ -1122,7 +1106,7 @@ anteriores marcavam uma faixa marrom sobre o amarelo da Home. Vale em todas as p
 
 ⚠️ **O mecanismo mudou em 22/08/2026, o princípio não.** A rampa era uma **máscara** em
 smoothstep `t²(3−2t)` (`--scw-esfuma`); hoje é **cor sobre a foto**, em três paradas, no
-`::after` da própria imagem (§6.9). ⛔ **`--scw-esfuma`, `--scw-esfuma-topo` e
+`::before` da área de foto (`.scw-hero-banda`, §6.9). ⛔ **`--scw-esfuma`, `--scw-esfuma-topo` e
 `--scw-banda-base` não existem mais — não reintroduzir.**
 
 ⚠️ **A emenda fecha na cor do BLOCO, não do herói.** Errar isso deixa uma linha dura —

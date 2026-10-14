@@ -48,23 +48,7 @@
 /* ============================================================================
    01 Abertura — chapa bege, tinta chocolate
    ========================================================================= */
-/* Chapa CLARA: quem precisa se manter íntegro é o FUNDO, não a tinta, então o
-   véu fecha mais que nos heróis escuros. A foto é ambientação. */
-.ctt-abertura {
-  position: relative;
-  --hv-topo: 46%;
-  --hv-meio: 86%;
-  --hv-base: 94%;
-  --hv-esq: 90%;
-  --hv-centro: 64%;
-}
-/* Altura do CONTEÚDO, não da tela (12/10/2026). A página existe para consulta:
-   com o herói de 100svh a central só aparecia depois de uma tela inteira de
-   foto. Agora ela já espia na primeira dobra do desktop — como a abertura da
-   Home desde 28/09. A reserva de topo (§6.7) continua a do sistema. */
-.scw-hero-bloco.ctt-abertura { min-height: 0; }
-.ctt-abertura__grade { position: relative; z-index: 1; }
-
+/* Geometria, foto e degradê do sistema (.scw-heroi-foto, scw-2026.css). */
 .ctt-abertura .ctt-abertura__rotulo { color: var(--scw-heroi-tinta); }
 /* Sem max-width próprio: vale o 17ch de .scw-h1 (duas linhas). */
 .ctt-abertura .ctt-abertura__titulo {
@@ -131,18 +115,8 @@
   text-underline-offset: 5px;
 }
 
-/* Celular: a foto continua em cima (construção do sistema, §6.9), mas mais
-   baixa que o quadrado — 16:10, como a Home. É o que põe a BUSCA inteira
-   acima do aviso de cookies na primeira visita (390×844 e 360×800), sem
-   mexer em tamanho de letra. Entre 600 e 1000px, 2:1. */
 @media (max-width: 1000px) {
-  /* O teto em svh segura a tela baixa e larga (tablet deitado, 900×900): lá o
-     2:1 sozinho empurrava a busca para baixo do aviso. */
-  .ctt-abertura .scw-hero-banda { aspect-ratio: 16 / 10; max-height: 44svh; }
   .ctt-procura { width: 100%; }
-}
-@media (min-width: 600px) and (max-width: 1000px) {
-  .ctt-abertura .scw-hero-banda { aspect-ratio: 2 / 1; }
 }
 
 /* ============================================================================

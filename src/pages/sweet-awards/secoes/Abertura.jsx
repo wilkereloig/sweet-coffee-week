@@ -1,24 +1,30 @@
 import React from 'react'
 import { heroPhotos } from '../../../data/imageLibrary'
 import { HeroFotos } from '../../../components/HeroFotos'
-import { ABERTURA } from '../../../data/conteudo/sweet-awards'
+import Seta from '../../../components/Seta'
+import { ABERTURA, SECOES } from '../../../data/conteudo/sweet-awards'
+import { irPara } from './Indice'
 
-/* Banda de foto: a entrega dos prêmios, nas duas telas (§6.9). */
+/* Área de foto: a entrega dos prêmios, nas duas telas (§6.9). */
 const FOTOS = heroPhotos('historico-awards')
+const PREMIADOS = SECOES.resultados.id
 
 /*
- * 01 — Abertura. Título, lead e três números, e nada mais: a vitrine dos
- * quatro primeiros lugares saiu em 06/08/2026 (§7.3, §11) — as mesmas fotos
- * abrem os resultados logo abaixo. A coreografia de entrada é do scw-motion.css,
- * pelas classes `.swa-hero`, `.swa-hero__texto` e `.swa-numeros` (não renomear).
+ * 01 — Abertura. Rótulo, título, lead, a ação que leva aos premiados e os três
+ * números, num conjunto só, sobre o herói fotográfico compartilhado (§6.9). A vitrine dos quatro primeiros lugares saiu em 06/08/2026
+ * (§7.3, §11). A foto surge pelo scw-motion.css; o texto já abre legível.
  */
 export function Abertura({ numeros }) {
   return (
-    <section className="swa-hero scw-hero-veu" aria-labelledby="swa-titulo" data-mo-fora>
+    <section className="scw-heroi-foto swa-hero" aria-labelledby="swa-titulo" data-mo-fora>
       <HeroFotos fotos={FOTOS} />
-      <div className="swa-hero__texto">
+      <div className="scw-heroi-foto__texto swa-hero__texto">
+        <span className="scw-rotulo swa-hero__rotulo">{ABERTURA.rotulo}</span>
         <h1 className="scw-h1" id="swa-titulo">{ABERTURA.titulo}</h1>
         <p className="scw-lead">{ABERTURA.lead}</p>
+        <a className="scw-btn scw-btn--solido swa-hero__acao" href={`#${PREMIADOS}`} onClick={irPara(PREMIADOS)}>
+          {ABERTURA.acao} <Seta />
+        </a>
         <dl className="swa-numeros">
           <div>
             <dt>Edições premiadas</dt>
