@@ -20,14 +20,24 @@ Registro da execução de 14/10/2026 (pedido do Wilker: "siga todas as fases at�
 
 A aplicação pela ferramenta foi recusada na tela de permissão duas vezes, então nada foi aplicado. O backup das quatro tabelas que as migrations alteram já está no banco, no esquema `backup_20261014`.
 
+**Estado exato do banco em 14/10/2026, noite:**
+- A única mudança aplicada foi a função auxiliar `marca_dona_participacao`, que não é usada por nada.
+- Ela entrou porque, num envio, mandei por engano só o primeiro trecho da migration 1, e a ferramenta aceitou. Por isso o histórico de migrations do banco mostra uma entrada `20261014_cartoon_01_estrutura` (versão `20261014203340`) **parcial**.
+- O arquivo completo é idempotente (`create or replace`, `if not exists`): pode ser aplicado por cima sem problema.
+- Nenhuma tabela ou coluna nova existe no banco ainda.
+
+**Ordem segura:**
+- **Aplicar já:** migrations 1, 2 e 4. Só acrescentam, e o painel em produção continua funcionando.
+- **Aplicar junto com o merge do painel novo em `master`:** migration 3. Ela muda o que `marca_concluir_cadastro` exige, e o painel publicado hoje não tem esses campos; as marcas ficariam sem conseguir enviar.
+
 Para aplicar, há dois caminhos:
 
 - aprovar a ferramenta `apply_migration` quando eu pedir de novo; ou
 - colar cada arquivo no SQL Editor do Supabase, **nesta ordem**:
   1. `20261014_cartoon_01_estrutura.sql`
   2. `20261014_cartoon_02_publicacao.sql`
-  3. `20261014_cartoon_03_revisao.sql`
-  4. `20261014_cartoon_04_avaliacao.sql`
+  3. `20261014_cartoon_04_avaliacao.sql`
+  4. `20261014_cartoon_03_revisao.sql`, junto com o merge do painel novo
 
 Depois de aplicar:
 
