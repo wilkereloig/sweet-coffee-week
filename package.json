@@ -19,6 +19,7 @@
     "test:casca-institucional": "node tests/casca-institucional.mjs",
     "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
     "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
+    "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs",
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",
     "test:privacidade": "node tests/privacidade-navegador.mjs",
@@ -39,6 +40,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
+    "maplibre-gl": "5.24.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

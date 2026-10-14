@@ -29,6 +29,7 @@ const FORMULARIO_POR_RPC = {
   submit_support_interest: 'apoio',
   submit_pesquisa: 'pesquisa',
   submit_quero_participar: 'quero_participar',
+  submit_avaliacao: 'avaliacao',
 }
 
 /**
@@ -41,6 +42,8 @@ const FORMULARIO_POR_RPC = {
  */
 export function criarEnvioProtegido (opcoes = {}) {
   const armadilha = typeof opcoes.armadilha === 'function' ? opcoes.armadilha : () => ''
+  // Token do Turnstile, para quem desenha o widget (a avaliação da edição).
+  const token = typeof opcoes.token === 'function' ? opcoes.token : () => ''
 
   // Momento em que a tela ficou disponível. O servidor recusa envio em menos de
   // 3s: ninguém preenche um formulário nesse tempo. É carimbo do cliente, então
@@ -60,7 +63,7 @@ export function criarEnvioProtegido (opcoes = {}) {
           corpo: payload,
           armadilha: armadilha(),
           aberto_em: abertoEm,
-          token: '', // Turnstile ainda desligado por bandeira: falta o par de chaves
+          token: token(),
         }),
       })
 

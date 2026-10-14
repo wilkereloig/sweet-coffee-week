@@ -12,7 +12,7 @@ O Wilker delegou: "siga o plano, decida o melhor modo". Ficou assim:
 |---|---|---|
 | D-01 | **Só o Wilker** | T4 (`/` mostra a Cartoon) continua exigindo pedido por escrito; sugestão: 03/11 |
 | D-02 | **Só o Wilker** (contratação) · revisado | o plano gratuito pausa por **inatividade**, e o site da edição gera acesso todo dia: a pausa durante o festival é improvável [Provável]. O risco real são as cotas do plano. Fica gratuito, com uso monitorado; o pago só se a cota apertar |
-| D-03 | Decidido | Leaflet. O provedor de tiles é escolhido na fase 5, lendo os termos vigentes, e só entra provedor com uso em produção permitido |
+| D-03 | Decidido (revisto na fase 5) | **OpenFreeMap + MapLibre GL** (`maplibre-gl@5.24.0`). Conferido em 14/10: uso comercial permitido, sem chave nem cadastro, sem limite de visualização. Os tiles do OpenStreetMap são "best-effort" e avisam que serviço comercial pode perder o acesso. Só tiles vetoriais, por isso MapLibre em vez de Leaflet. Chunk de ~286 kB gzip, carregado só no toque em "Ver no mapa"; a lista funciona sem ele |
 | D-04 | Decidido | texto com a tipografia institucional (Nexa); lettering e selo sempre como arquivo. Nenhuma fonte nova sem aprovação |
 | D-05 | Provisório | nome + e-mail; uma avaliação por e-mail por casa, a última vale; Turnstile + limite; sem confirmação de e-mail (vira obrigatória se houver prêmio para o público); retenção até 90 dias depois dos resultados; novidades em caixa separada, desmarcada. Critérios provisórios = os 7 da Lovers, em tabela editável |
 | D-06 | Provisório | as 8 categorias da Lovers (`loversAwardsResults.js`) e as trilhas júri técnico + Sweet Lovers |
