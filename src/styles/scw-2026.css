@@ -853,8 +853,6 @@ body { margin: 0; }
   color: var(--scw-pagina-tinta);
 }
 .scw-aba__icone {
-  width: 26px;
-  height: 26px;
   /* O protótipo usava um easing com overshoot aqui; trocado pelo easing padrão do
      sistema (README § Movimento) — o ícone ainda cresce, sem o repique. */
   transition: transform 300ms var(--scw-ease);
@@ -1571,6 +1569,7 @@ body { margin: 0; }
 .scw-acesso__link-secundario {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   align-self: flex-start;
   min-height: 44px;
   padding: 0 4px;
@@ -1637,84 +1636,93 @@ body { margin: 0; }
    Casca — rodapé
    ========================================================================= */
 
+/* Reconstruído em 14/10/2026: identidade · Explore · Contato, depois os
+   documentos legais e a base. Os seletores de cor levam `.scw-footer` na
+   frente de propósito — o reset `.scw-raiz a { color: inherit }` (0,1,1)
+   venceria uma classe sozinha (§10.1). */
 .scw-footer {
+  /* Folga para o botão "voltar ao topo" (BotaoTopo.jsx), que é fixo: no fim
+     da página ele não pode pousar sobre texto ou link do rodapé. Os dois
+     valores repetem a geometria de `.scw-topo` (46px + distância da borda). */
+  --scw-topo-livre-x: max(0px, calc(clamp(16px, 2.4vw, 32px) + 46px + 16px - var(--scw-trilho)));
   background: var(--scw-choco);
   color: rgba(254, 240, 221, .86);
   /* `--scw-aviso-h` é a altura do aviso de cookies enquanto ele estiver na
-     tela (CookieConsent.jsx mede e escreve no body). O fim da página ganha esse
-     respiro para que nada fique para sempre embaixo do aviso. */
-  padding: clamp(30px, 3.2vw, 44px) var(--scw-trilho) calc(clamp(18px, 2vw, 24px) + var(--scw-aviso-h, 0px));
+     tela (CookieConsent.jsx mede e escreve no body); `--scw-base-ocupada`, a
+     da barra de ação fixa de Participar/Apoiar no desktop (useReservaDaBase).
+     O fim da página ganha os dois para que nada fique embaixo deles. */
+  padding: clamp(44px, 4.4vw, 68px) var(--scw-trilho)
+    calc(clamp(20px, 2vw, 28px) + var(--scw-aviso-h, 0px) + var(--scw-base-ocupada, 0px));
 }
-.scw-footer__linha {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: clamp(18px, 2.6vw, 44px);
-  padding-bottom: clamp(18px, 2vw, 26px);
+.scw-footer ul { margin: 0; padding: 0; list-style: none; }
+
+/* Identidade + grupos. Desktop: três colunas — a marca com espaço próprio à
+   esquerda, Explore e Contato à direita. */
+.scw-footer__topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(32px, 5vw, 96px);
+  align-items: start;
+  padding-bottom: clamp(30px, 3vw, 44px);
   border-bottom: 1px solid rgba(254, 240, 221, .16);
 }
-.scw-footer__marca img { height: clamp(48px, 4.4vw, 62px); width: auto; }
+.scw-footer__marca { display: inline-block; justify-self: start; border-radius: 50%; }
+.scw-footer__marca img { display: block; height: clamp(84px, 7.4vw, 112px); width: auto; }
+.scw-footer__grupos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px clamp(48px, 6vw, 112px);
+}
+.scw-footer__titulo {
+  margin: 0 0 6px;
+  font: 700 13px/1.3 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .6);
+}
+/* Seis destinos em duas colunas fixas: a ordem lê de cima para baixo e não
+   depende de onde a linha quebra. */
 .scw-footer__nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  flex: 1 1 320px;
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  column-gap: clamp(28px, 3vw, 52px);
 }
-.scw-footer__nav a {
-  min-height: 44px;
+.scw-footer .scw-footer__nav a,
+.scw-footer .scw-footer__fale {
   display: inline-flex;
   align-items: center;
-  font: 700 14.5px/1 var(--scw-font-ui);
-  text-transform: lowercase;
-  color: rgba(254, 240, 221, .84);
+  min-height: 44px;
+  font: 700 16px/1.2 var(--scw-font-ui);
+  color: rgba(254, 240, 221, .88);
   transition: color 200ms var(--scw-ease);
 }
-
-@media (hover: hover) {
-  .scw-footer__nav a:hover { color: var(--scw-creme); }
-}
-.scw-footer__nav a.is-ativo { font-weight: 800; font-style: italic; color: var(--scw-creme); }
-.scw-footer__extras {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 18px;
-  margin-left: auto;
-}
-.scw-footer__insta {
+.scw-footer .scw-footer__nav a { text-transform: lowercase; }
+.scw-footer .scw-footer__nav a.is-ativo { font-style: italic; color: var(--scw-amarelo); }
+.scw-footer .scw-footer__insta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-height: 44px;
-  font: 700 14.5px/1 var(--scw-font-ui);
+  font: 700 16px/1.2 var(--scw-font-ui);
   color: var(--scw-cyan);
+  white-space: nowrap;
   transition: color 200ms var(--scw-ease);
 }
-
+.scw-footer__insta svg { flex: 0 0 auto; }
 @media (hover: hover) {
-  .scw-footer__insta:hover { color: var(--scw-creme); }
+  .scw-footer .scw-footer__nav a:hover,
+  .scw-footer .scw-footer__fale:hover,
+  .scw-footer .scw-footer__insta:hover { color: var(--scw-creme); text-decoration: underline; text-underline-offset: 4px; }
 }
-.scw-footer__base {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 6px 20px;
-  padding-top: clamp(14px, 1.6vw, 18px);
-  font: 400 12.5px/1.45 var(--scw-font-texto);
-  color: rgba(254, 240, 221, .62);
-}
-.scw-footer__base strong { color: var(--scw-creme); font-weight: 800; }
 
 /* Documentos legais e preferências de cookies (13/10/2026): no rodapé de toda
    página, inclusive com a navegação reduzida. O botão tem a mesma cara dos
-   links — abre o diálogo de preferências. */
-.scw-footer__legal {
+   links — abre o diálogo de preferências. Menos peso que o Explore. */
+.scw-footer__legal { padding-top: clamp(14px, 1.6vw, 20px); }
+.scw-footer__legal ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 20px;
-  padding-top: 6px;
+  gap: 0 clamp(20px, 2.4vw, 36px);
 }
-.scw-raiz .scw-footer__legal a,
+.scw-footer .scw-footer__legal a,
 .scw-footer__legal button {
   display: inline-flex;
   align-items: center;
@@ -1722,14 +1730,62 @@ body { margin: 0; }
   padding: 0;
   border: 0;
   background: none;
-  font: 700 13.5px/1.2 var(--scw-font-ui);
-  color: rgba(254, 240, 221, .84);
+  font: 700 14px/1.3 var(--scw-font-ui);
+  text-align: left;
+  color: rgba(254, 240, 221, .78);
   text-decoration: none;
   cursor: pointer;
 }
 @media (hover: hover) {
-  .scw-raiz .scw-footer__legal a:hover,
+  .scw-footer .scw-footer__legal a:hover,
   .scw-footer__legal button:hover { color: var(--scw-creme); text-decoration: underline; text-underline-offset: 3px; }
+}
+
+/* Base: direitos à esquerda, realização à direita; o recuo à direita deixa o
+   canto livre para o botão "voltar ao topo". */
+.scw-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px 24px;
+  padding-top: clamp(10px, 1.2vw, 14px);
+  padding-right: var(--scw-topo-livre-x);
+  font: 400 13px/1.5 var(--scw-font-texto);
+  color: rgba(254, 240, 221, .66);
+}
+.scw-footer__base p { margin: 0; }
+.scw-footer__direitos span { display: inline-block; }
+.scw-footer__direitos span + span::before { content: '· '; }
+.scw-footer__base strong { color: var(--scw-creme); font-weight: 700; }
+
+/* Celular: marca no topo, Explore e Contato lado a lado. O Contato não aceita
+   coluna estreita — o @ não quebra —, então quando não cabe ele desce e ocupa
+   a linha toda (flex-wrap), em vez de cortar o identificador. */
+@media (max-width: 900px) {
+  .scw-footer__topo { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .scw-footer__marca img { height: 76px; }
+  .scw-footer__grupos { gap: 24px 28px; }
+  .scw-footer__grupo--explore { flex: 1 1 116px; }
+  .scw-footer__grupo--contato { flex: 1 1 auto; }
+  .scw-footer__nav { grid-template-columns: minmax(0, 1fr); }
+  /* Documentos em grade de duas colunas; as preferências fecham a lista numa
+     linha própria, fáceis de achar. */
+  .scw-footer__legal ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+  .scw-footer__pref { grid-column: 1 / -1; }
+  .scw-footer__base { flex-direction: column; gap: 4px; }
+  .scw-footer__direitos span + span::before { content: none; }
+  .scw-footer__direitos span { display: block; }
+  /* Com a barra de abas, o "voltar ao topo" sobe para 86px e invade os
+     últimos 56px do rodapé (a raiz reserva 76px): a folga vira vertical. */
+  .tem-abas .scw-footer { padding-bottom: calc(72px + var(--scw-aviso-h, 0px)); }
+  .tem-abas .scw-footer__base { padding-right: 0; }
+}
+/* Tablet (600–900px): largura sobra para a lista de uma coluna — o Explore
+   volta às duas colunas e os documentos voltam a correr em linha. */
+@media (min-width: 600px) and (max-width: 900px) {
+  .scw-footer__nav { grid-template-columns: repeat(2, max-content); column-gap: 40px; }
+  .scw-footer__legal ul { display: flex; gap: 0 28px; }
 }
 
 /* ============================================================================
@@ -2189,6 +2245,13 @@ body { margin: 0; }
   border-radius: 50%;
   background: var(--scw-creme);
 }
+/* Ícone do registro v3 (§6.11): o tamanho vem do atributo, nunca de CSS; em
+   layout flex ele não encolhe nem estica. `.scw-gira` = estado carregando. */
+.scw-icone { flex: none; }
+.scw-gira { animation: scw-gira 900ms linear infinite; transform-origin: center; }
+@keyframes scw-gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .scw-gira { animation: none; } }
+
 /* Botão só com ícone (§6.11): `aria-label` + 44px + o nome visível no hover E no
    foco. O elemento precisa já estar posicionado. */
 .scw-icone-rotulo::after {
@@ -2224,7 +2287,9 @@ body { margin: 0; }
 .scw-topo {
   position: fixed;
   right: clamp(16px, 2.4vw, 32px);
-  bottom: calc(clamp(18px, 2.4vw, 32px) + var(--scw-aviso-h, 0px));
+  /* Sobe acima da barra de ação fixa de Participar/Apoiar (desktop), que
+     ocupa a base e cobriria o botão dela. */
+  bottom: calc(clamp(18px, 2.4vw, 32px) + var(--scw-aviso-h, 0px) + var(--scw-base-ocupada, 0px));
   z-index: 70;
   display: grid;
   place-items: center;

@@ -15,7 +15,7 @@ import assert from 'node:assert/strict'
 const { AWARDS_DADOS } = await import('../src/data/handoff/awardsData.js')
 const C = await import('../src/pages/sweet-awards/consulta.js')
 const T = await import('../src/data/conteudo/sweet-awards.js')
-const { SCW_ICONS } = await import('../src/components/scw-icons/scw-icons-v2.js')
+const { temDesenho } = await import('./_icones.mjs')
 
 const EDICOES = AWARDS_DADOS.edicoes
 const { recente, historico } = C.separarEdicoes(EDICOES, T.EDICAO_RECENTE)
@@ -175,7 +175,8 @@ test('todo ícone citado no conteúdo existe no sistema (ícone ausente some sem
     ...T.TRILHA.map((m) => m.icone),
     ...Object.values(T.SECOES).map((s) => s.icone),
   ]
-  for (const n of nomes) assert.ok(SCW_ICONS[n], `ícone inexistente: ${n}`)
+  // Pódio e rótulos usam 20–24px: o nome precisa do desenho de interface.
+  for (const n of nomes) assert.ok(temDesenho(n, 24), `ícone sem desenho de interface: ${n}`)
   // Toda categoria da edição em destaque tem ícone próprio, não o padrão.
   for (const c of recente.cats) assert.ok(T.ICONE_CATEGORIA[c.nome], `${c.nome} sem ícone`)
 })

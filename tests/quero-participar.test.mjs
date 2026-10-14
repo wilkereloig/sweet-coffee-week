@@ -204,29 +204,19 @@ test('todo disco aparece sobre o fundo do painel', () => {
 })
 
 // Fonte única dos ícones (§5.2 · §6.11). A página é estática e não importa
-// ScwIcon, então o desenho está inline. Este teste é o que impede o inline de
-// virar uma segunda fonte: mexeu no Design e reexportou, aqui reprova.
-test('os ícones do painel batem com scw-icons-v2.js', async () => {
-  const { SCW_ICONS, SCW_ICON_SPEC } = await import('../src/components/scw-icons/scw-icons-v2.js')
-
-  const ESPERADO = {
-    anos: 'ui/calendario',
-    'ediç': 'simbolos/edicao',
-  }
-
+// ScwIcon: o desenho entra inline, ESCRITO PELO GERADOR (scripts/icones/gerar.mjs)
+// entre <!--icone:nome:tamanho--> e <!--/icone-->. Desenho à mão aqui reprova.
+test('os ícones do painel de números vêm do registro', async () => {
+  const { temDesenho } = await import('./_icones.mjs')
+  const ESPERADO = { anos: 'calendario', 'ediç': 'edicao' }
   assert.equal(NUMEROS.length, Object.keys(ESPERADO).length,
     'mudou a contagem de números — atualizar o mapa de ícones deste teste')
-
-  for (const { rotulo, icone, valor } of NUMEROS) {
-    const chave = Object.entries(ESPERADO).find(([frag]) => rotulo.includes(frag))?.[1]
-    assert.ok(chave, `"${rotulo}" não tem ícone previsto`)
-    assert.ok(SCW_ICONS[chave], `ícone inexistente na fonte: ${chave}`)
-    assert.ok(icone.includes(SCW_ICONS[chave]),
-      `o desenho de "${valor}" divergiu de ${chave} em scw-icons-v2.js — regerar o inline`)
-    assert.ok(icone.includes(`stroke-width="${SCW_ICON_SPEC.strokeWidth}"`),
-      `traço de "${valor}" fora do spec (${SCW_ICON_SPEC.strokeWidth})`)
-    assert.ok(icone.includes(`viewBox="${SCW_ICON_SPEC.viewBox}"`),
-      `viewBox de "${valor}" fora do spec`)
+  for (const { rotulo, icone } of NUMEROS) {
+    const nome = Object.entries(ESPERADO).find(([frag]) => rotulo.includes(frag))?.[1]
+    assert.ok(nome, `"${rotulo}" não tem ícone previsto`)
+    assert.ok(temDesenho(nome, 24), `ícone inexistente no registro: ${nome}`)
+    assert.ok(HTML.includes(`<!--icone:${nome}:24-->`), `o disco de "${rotulo}" não usa o marcador do gerador`)
+    assert.ok(icone.includes('viewBox="0 0 24 24"'), `"${rotulo}" fora da grade de interface`)
   }
 })
 
@@ -260,24 +250,16 @@ test('o verde do WhatsApp não escapa de .pa-whats', () => {
     `chocolate sobre o verde dá ${razao.toFixed(2)}:1 — mínimo 4,5:1 para texto de botão`)
 })
 
-test('os ícones dos botões de indicação batem com a fonte', async () => {
-  const { SCW_ICONS } = await import('../src/components/scw-icons/scw-icons-v2.js')
-
-  const ESPERADO = {
-    'share-whatsapp': 'redes/conversa',
-    'share-copiar': 'ui/link-externo',
-    'share-email': 'redes/e-mail',
-    'share-nativo': 'ui/compartilhar',
-  }
-
+test('os ícones dos botões de indicação vêm do registro e estão em dia', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const ESPERADO = { 'share-whatsapp': 'mensagem', 'share-copiar': 'copiar', 'share-email': 'email', 'share-nativo': 'compartilhar' }
   for (const [id, nome] of Object.entries(ESPERADO)) {
     const i = HTML.indexOf(`id="${id}"`)
     assert.ok(i > 0, `botão ${id} sumiu`)
-    const bloco = HTML.slice(i, HTML.indexOf('</', HTML.indexOf('</svg>', i)))
-    assert.ok(SCW_ICONS[nome], `ícone inexistente na fonte: ${nome}`)
-    assert.ok(bloco.includes(SCW_ICONS[nome]),
-      `o ícone de ${id} divergiu de ${nome} em scw-icons-v2.js — regerar o inline`)
+    assert.ok(HTML.slice(i, i + 200).includes(`<!--icone:${nome}:24-->`), `o ícone de ${id} não é "${nome}" do gerador`)
   }
+  // Desenho mudou na fonte e a página não foi regerada? --verificar sai com 1.
+  execFileSync(process.execPath, ['scripts/icones/gerar.mjs', '--verificar'], { cwd: new URL('..', import.meta.url), stdio: 'pipe' })
 })
 
 test('trocar o rótulo do copiar não apaga o ícone', () => {
@@ -410,7 +392,7 @@ test('a caixa de seleção não nasce com uma resposta escolhida', () => {
   // vira uma caixa de texto que não se digita, e ninguém descobre que abre.
   const css = regra('.scw-campo select')
   assert.match(css, /appearance:none/, 'o select perdeu o appearance:none')
-  assert.match(css, /background-image:url\("data:image\/svg\+xml/,
+  assert.match(css, /background-image:\/\*icone-select\*\/url\("data:image\/svg\+xml/,
     'appearance:none sem seta desenhada: o campo deixa de parecer uma caixa de seleção')
 })
 

@@ -9,7 +9,7 @@ export function QuemVive() {
   return (
     <section className="scw-secao scw-secao--choco" aria-labelledby="pa-quem-vive-titulo">
       <Cabeca
-        icone="topicos/quem-vive"
+        icone="pessoas"
         rotulo={Q.rotulo}
         idTitulo="pa-quem-vive-titulo"
         titulo={<>{Q.titulo} <Destaque base="var(--scw-creme)" dest="var(--scw-cyan)">{Q.destaque}</Destaque></>}

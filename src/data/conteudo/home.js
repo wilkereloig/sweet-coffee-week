@@ -34,14 +34,14 @@ export const COMO_FUNCIONA = {
   rotulo: 'Como funciona',
   titulo: { antes: 'Um tema, ', destaque: 'um combo por casa', depois: ', a cidade como rota.' },
   apoio:
-    'Cada edição começa com um tema. Cada casa responde com uma composição própria, criada só para aquela edição — e é ela que leva o público de um endereço a outro.',
+    'O tema muda a cada edição, e cada casa cria um combo só para ele. É esse combo que leva o público de um endereço a outro.',
   anatomia: 'A anatomia do combo',
   /* Não diz "onze dias" nem "preço único": são fatos de edições passadas que
      soariam como regra da próxima (duração e valor dela são null). */
   lacos: [
     ['Para as casas', 'Um produto novo, criado para o tema, que muitas mantêm no cardápio depois.'],
-    ['Para o público', 'Descobertas pela cidade: escolher por onde começar, provar e avaliar.'],
-    ['Para Natal', 'A gastronomia local tratada como programa cultural, edição após edição.'],
+    ['Para o público', 'Escolher por onde começar e descobrir casas que ainda não conhecia.'],
+    ['Para Natal', 'A gastronomia local como programa cultural da cidade.'],
   ],
 }
 
@@ -49,7 +49,7 @@ export const COMO_FUNCIONA = {
 export const REGISTROS = {
   rotulo: 'Em registros',
   titulo: { antes: 'Gente à mesa, casas cheias, ', destaque: 'combos que viram assunto.', depois: '' },
-  apoio: 'Pessoas, equipes e combos de edições passadas — cada legenda diz o que o registro mostra.',
+  apoio: 'Pessoas, equipes e combos de edições passadas.',
   /* Depoimento sempre identificado: pessoa + marca (gravado em vídeo,
      página Participar). */
   voz: {
@@ -67,10 +67,10 @@ export const TRAJETORIA = {
   titulo: { antes: 'Dez anos, ', destaque: 'um tema novo', depois: ' a cada edição.' },
   /* Cada número diz o que mede (texto vem de festivalFacts.*.mede). */
   numeros: [
-    { fato: 'participations', icone: 'combos/trio', titulo: 'Participações', antes: '', depois: '' },
-    { fato: 'combosSold', icone: 'combos/doce-cafe', titulo: 'Combos vendidos', antes: '+', depois: ' mil' },
-    { fato: 'revenue', icone: 'mecanica/loja', titulo: 'Movimento nas casas', antes: '+R$ ', depois: ' mil' },
-    { fato: 'igViews', icone: 'redes/instagram', titulo: 'Visualizações', antes: '+', depois: ' mi' },
+    { fato: 'participations', icone: 'loja', titulo: 'Participações', antes: '', depois: '' },
+    { fato: 'combosSold', icone: 'combo', titulo: 'Combos vendidos', antes: '+', depois: ' mil' },
+    { fato: 'revenue', icone: 'moedas', titulo: 'Movimento nas casas', antes: '+R$ ', depois: ' mil' },
+    { fato: 'igViews', icone: 'instagram', titulo: 'Visualizações', antes: '+', depois: ' mi' },
   ],
   edicoes: {
     eixo: 'Edições',
@@ -113,7 +113,7 @@ export const RECONHECIMENTO = {
   titulo: { antes: 'O público avalia. ', destaque: 'O festival reconhece.', depois: '' },
   /* §7.3: premiação desde 2019; desde 2022 só os Sweet Lovers dão a nota. */
   texto:
-    'A premiação começou em 2019. Desde 2022, quem dá a nota são os Sweet Lovers: o público avalia os combos e o festival reconhece os destaques de cada categoria.',
+    'A premiação começou em 2019. Desde 2022, a nota vem só de quem provou os combos: os Sweet Lovers.',
   numero: 'prêmios entregues',
   cta: 'Ver o Sweet Awards',
 }
@@ -136,11 +136,11 @@ export const FACA_PARTE = {
   apoiar: {
     eixo: 'Para empresas',
     titulo: 'Apoie a próxima edição.',
-    texto: 'Conecte sua marca à gastronomia, à cultura e à economia criativa de Natal, ao lado das casas e do público do festival.',
+    texto: 'Patrocínio, ativação de marca, mídia ou brindes, ao lado das casas e do público do festival.',
     acao: 'Quero apoiar',
   },
   contato: {
-    texto: 'Outra dúvida? A central de dúvidas e a equipe respondem.',
+    texto: 'Outra dúvida? Busque nas perguntas frequentes ou escreva para a equipe.',
     link: 'Falar com a equipe',
   },
 }

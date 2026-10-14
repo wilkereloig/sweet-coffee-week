@@ -39,7 +39,7 @@ function Campo({ chave, form, erros, mudarCampo, cheio, children }) {
       {children(props)}
       {erro && (
         <span id={idErro} className="ctt-campo__erro">
-          <ScwIcon nome="aviso/erro" tamanho={16} />
+          <ScwIcon nome="erro" tamanho={16} />
           {erro}
         </span>
       )}
@@ -55,7 +55,7 @@ function Formulario() {
   if (estado === 'ok') {
     return (
       <div className="ctt-ok" role="status" tabIndex={-1} ref={okRef}>
-        <span className="ctt-ok__selo" aria-hidden="true"><ScwIcon nome="ui/feito" tamanho={24} /></span>
+        <span className="ctt-ok__selo" aria-hidden="true"><ScwIcon nome="feito" tamanho={24} /></span>
         <strong>{F.okTitulo}</strong>
         <p>{F.okTexto}</p>
         <button type="button" className="scw-btn ctt-ok__acao" onClick={recomecar}>{F.okDeNovo}</button>
@@ -92,7 +92,7 @@ function Formulario() {
 
       {estado === 'erro' && (
         <p className="ctt-form__aviso" role="alert">
-          <ScwIcon nome="aviso/alerta" tamanho={20} />
+          <ScwIcon nome="alerta" tamanho={20} />
           <span>
             {F.erro}{' '}
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>.
@@ -115,7 +115,7 @@ export function Mensagem({ verAssunto }) {
   return (
     <section id="mensagem" className="ctt-sec ctt-sec--bege ctt-falar" aria-labelledby="ctt-mensagem-titulo">
       <div className="ctt-falar__cabeca">
-        <Rotulo icone="topicos/mensagem">{MENSAGEM.rotulo}</Rotulo>
+        <Rotulo icone="mensagem">{MENSAGEM.rotulo}</Rotulo>
         <h2 id="ctt-mensagem-titulo" className="scw-h2 ctt-cabeca__titulo">
           {MENSAGEM.titulo[0]}
           <span className="ctt-sem-quebra"><em className="ctt-destaque">{MENSAGEM.titulo[1]}</em>{MENSAGEM.titulo[2]}</span>
@@ -153,7 +153,7 @@ export function Mensagem({ verAssunto }) {
           <p className="ctt-direto">
             <span>{MENSAGEM.diretoTexto}</span>
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-              <ScwIcon nome="redes/instagram" tamanho={24} /> {INSTAGRAM_HANDLE}
+              <ScwIcon nome="instagram" tamanho={24} /> {INSTAGRAM_HANDLE}
             </a>
           </p>
         </div>

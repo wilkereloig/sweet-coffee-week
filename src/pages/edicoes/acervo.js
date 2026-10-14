@@ -16,8 +16,8 @@
 import { CENAS, FOTOS_ABERTURA, PREMIACAO } from '../../data/conteudo/edicoes.js'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData.js'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData.js'
-import { EDICOES_NARRATIVA, ABERTURA } from '../../data/edicoesNarrativa.js'
-import { editionPhotos } from '../../data/imageLibrary.js'
+import { EDICOES_NARRATIVA } from '../../data/edicoesNarrativa.js'
+import { editionCombos, editionPhotos } from '../../data/imageLibrary.js'
 import { editionMark } from '../../data/editionAssets.js'
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',
@@ -152,10 +152,13 @@ export function detalhe(code) {
   return {
     ...e,
     identificacao: identificacao(e),
-    fotos: editionPhotos(code),
+    // Um combo por marca quando o acervo liga foto e marca; senão, os registros
+    // da edição (2016, 2017.1, 2018.2), sem atribuir participante.
+    ...(() => {
+      const combos = editionCombos(code)
+      return combos.length ? { fotos: combos, porMarca: true } : { fotos: editionPhotos(code), porMarca: false }
+    })(),
     narrativa: EDICOES_NARRATIVA[code] || {},
-    // A história do festival entra pela edição que o começou.
-    abertura: code === PRIMEIRA ? ABERTURA : null,
     curiosidades: (d.curiosidades || []).filter(semPreco),
     participantes: d.participantes || [],
     premiacao: premiacaoDa(code),

@@ -55,8 +55,8 @@ export function Detalhe({ code }) {
         </div>
       </header>
 
-      <GaleriaEdicao fotos={d.fotos} tema={d.tema} ano={d.ano} />
-      <Historia narrativa={d.narrativa} abertura={d.abertura} curiosidades={d.curiosidades} />
+      <GaleriaEdicao fotos={d.fotos} porMarca={d.porMarca} marcas={d.n} tema={d.tema} ano={d.ano} />
+      <Historia narrativa={d.narrativa} curiosidades={d.curiosidades} />
       <Participantes participantes={d.participantes} n={d.n} code={d.code} />
       {d.premiacao.teve && <Premiacao premiacao={d.premiacao} />}
       <Continuidade anterior={d.anterior} proxima={d.proxima} />

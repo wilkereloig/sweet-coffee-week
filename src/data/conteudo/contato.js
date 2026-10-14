@@ -22,7 +22,8 @@ export const ABERTURA = {
 
 export const CENTRAL = {
   rotulo: 'Central de dúvidas',
-  titulo: ['O que a gente ', 'mais responde', '.'],
+  /* Sem "o que mais perguntam": não há medição de frequência (A4). */
+  titulo: ['As respostas, ', 'por assunto', '.'],
   buscaRotulo: 'Buscar uma dúvida',
   buscaExemplo: 'Palavra ou assunto',
   assuntos: 'Assuntos',
@@ -61,7 +62,7 @@ export const LISTA = { inicial: 10, passo: 10 }
 export const MENSAGEM = {
   rotulo: 'Falar com a equipe',
   titulo: ['Escreva para a ', 'organização', '.'],
-  lead: 'A equipe responde em dias úteis. Antes de escrever, veja se o seu assunto tem um caminho mais rápido.',
+  lead: 'A equipe responde em dias úteis.',
   caminhosRotulo: 'Antes de escrever',
   diretoTexto: 'Prefere mensagem direta?',
 }
@@ -72,17 +73,17 @@ export const MENSAGEM = {
 export const CAMINHOS = [
   {
     chave: 'estabelecimento',
-    icone: 'mecanica/loja',
+    icone: 'loja',
     cor: 'var(--scw-cyan)',
     tinta: 'var(--scw-choco)',
-    titulo: 'Quero levar minha marca para a rota.',
-    texto: 'Doçarias, cafeterias, confeitarias e restaurantes fazem o pré-cadastro na página Participar. A participação passa por curadoria.',
+    titulo: 'Quero participar com a minha casa.',
+    texto: 'O pré-cadastro fica na página Participar. A participação passa por curadoria.',
     link: 'Ir para Participar',
     rota: '/participar',
   },
   {
     chave: 'empresa',
-    icone: 'topicos/proposta',
+    icone: 'apoio',
     cor: 'var(--scw-marrom)',
     tinta: 'var(--scw-creme)',
     titulo: 'Quero apoiar ou patrocinar o festival.',
@@ -92,7 +93,7 @@ export const CAMINHOS = [
   },
   {
     chave: 'pedido',
-    icone: 'mecanica/entrega',
+    icone: 'compra',
     cor: 'var(--scw-amarelo)',
     tinta: 'var(--scw-choco)',
     titulo: 'Tive um problema com um pedido.',

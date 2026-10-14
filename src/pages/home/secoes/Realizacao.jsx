@@ -29,8 +29,8 @@ export function Realizacao() {
           <div>
             <p className="f2-realiza__texto">
               A F2 Experience é a agência de live marketing que idealiza e realiza o
-              Sweet &amp; Coffee Week: eventos, ativações e experiências de marca para
-              quem quer conexão e resultado.
+              Sweet &amp; Coffee Week. Também cria eventos, ativações e experiências
+              de marca.
             </p>
             <a className="f2-realiza__cta" href="https://www.f2experience.com.br/" target="_blank" rel="noopener noreferrer">
               Conhecer a F2 Experience <Seta />

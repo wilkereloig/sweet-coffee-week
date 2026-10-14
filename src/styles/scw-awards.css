@@ -398,18 +398,40 @@
 .swa-card__cabeca { display: flex; align-items: center; gap: 9px; }
 
 /* Medalha na legenda (dado, não enfeite) — numeral SEMPRE chocolate. */
+/* Numeral dentro de círculo — a fonte única dos dois formatos (pódio "1º" e
+   lista do histórico "1"). Elemento próprio, sem margem nem padding herdados,
+   line-height 1 e a caixa RECORTADA na altura das maiúsculas e na linha de
+   base (`text-box`): assim o centro da caixa é o centro do desenho, e o
+   place-items do círculo centraliza o algarismo de verdade. Sem o recorte, a
+   Nexa Slab Black deixava o número 1,3–3,5px acima do centro (medido
+   14/10/2026). Navegador sem `text-box` recebe uma correção única, no token
+   `--swa-num-y`, igual para todo número. */
+.swa-num {
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  text-box: trim-both cap alphabetic;
+  transform: translateY(var(--swa-num-y, 0));
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .swa-num { --swa-num-y: .14em; }
+}
 .swa-medalha {
+  --swa-selo: 28px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: var(--swa-selo);
+  height: var(--swa-selo);
   border-radius: 50%;
   background: var(--swa-medalha, var(--scw-amarelo));
   color: var(--scw-choco);
-  font: 900 12px/1 var(--scw-font-black);
+  /* "1º" é mais largo que "1": o número ocupa ~43% do selo. */
+  font: 900 calc(var(--swa-selo) * .43)/1 var(--scw-font-black);
 }
-.swa-card--primeiro .swa-medalha { width: 34px; height: 34px; font-size: 14px; }
+.swa-card--primeiro .swa-medalha { --swa-selo: 34px; }
 .swa-card__rotulo {
   font: 700 11px/1.15 var(--scw-font-ui);
   letter-spacing: .12em;
@@ -604,10 +626,14 @@
   overflow: hidden;
 }
 .swa-edicao__h { margin: 0; font: inherit; }
+/* Linha: marca · ano e tema · categorias · seta. A marca é a marca da
+   edição, não ícone de aplicativo: sem máscara, sem placa, arte inteira. */
 .swa-edicao__botao {
-  display: flex;
+  --swa-marca: clamp(80px, 6.6vw, 92px);
+  display: grid;
+  grid-template-columns: var(--swa-marca) minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: clamp(12px, 1.6vw, 22px);
+  column-gap: clamp(16px, 1.8vw, 26px);
   width: 100%;
   min-height: 44px;
   padding: clamp(12px, 1.2vw, 16px) clamp(14px, 1.6vw, 22px);
@@ -622,23 +648,46 @@
 @media (hover: hover) {
   .swa-edicao__botao:hover { background: rgba(61, 19, 8, .04); }
 }
+/* Caixa igual para todas; a arte fica inteira (`contain`), centrada, com
+   margem de segurança, e encolhe pela escala óptica do resolvedor
+   (editionAssets.js → `apresentacao`). Nunca amplia: ampliar cortaria. */
 .swa-edicao__marca {
-  flex: 0 0 auto;
   display: grid;
+  /* Faixa 1fr, não `auto`: só com a área definida a altura em % do <img>
+     resolve — senão a marca vertical (2019.2) cresce pela proporção e vaza. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
-  width: clamp(48px, 4.4vw, 60px);
-  height: clamp(48px, 4.4vw, 60px);
-  border-radius: 14px;
-  background: var(--scw-choco);
-  overflow: hidden;
+  width: var(--swa-marca);
+  height: var(--swa-marca);
+  padding: 3px;
 }
-/* Marca da edição: PNG transparente e não quadrado — preenche a caixa sem
-   margem interna; `contain` porque `cover` cortaria a marca. */
-.swa-edicao__marca img { width: 100%; height: 100%; object-fit: contain; }
-.swa-edicao__marca span {
+.swa-edicao__marca img {
+  width: calc(100% * var(--swa-marca-escala, 1));
+  height: calc(100% * var(--swa-marca-escala, 1));
+  object-fit: contain;
+}
+/* Superfície só para a arte que some no creme (hoje, a 2021.1). Disco, como
+   os selos vizinhos — a placa quadrada pesava mais que todas. A margem de 15%
+   deixa a diagonal da arte (≈1,1:1) dentro do círculo: nada passa da borda. */
+.swa-edicao__marca--choco {
+  --swa-disco: calc(var(--swa-marca) * var(--swa-marca-escala, 1));
+  justify-self: center;
+  width: var(--swa-disco);
+  height: var(--swa-disco);
+  padding: 15%;
+  border-radius: 50%;
+  background: var(--scw-choco);
+}
+.swa-edicao__marca--choco img { width: 100%; height: 100%; }
+/* Sem logo: o tema como reserva textual, em placa bege (§6.12). */
+.swa-edicao__marca--texto {
+  border-radius: 12px;
+  background: var(--scw-bege);
+}
+.swa-edicao__marca--texto span {
   padding: 4px;
-  font: 700 11px/1.15 var(--scw-font-ui);
-  color: var(--scw-creme);
+  font: 700 12px/1.15 var(--scw-font-ui);
+  color: var(--scw-choco);
   text-align: center;
 }
 .swa-edicao__id {
@@ -647,14 +696,17 @@
   flex-wrap: wrap;
   gap: 2px 12px;
   min-width: 0;
-  flex: 1 1 auto;
 }
 .swa-edicao__ano {
   font: 900 clamp(22px, 2vw, 30px)/1 var(--scw-font-black);
   letter-spacing: -.04em;
   font-variant-numeric: tabular-nums;
 }
-.swa-edicao__titulo { font: 700 clamp(15px, 1.2vw, 18px)/1.2 var(--scw-font-ui); color: var(--scw-marrom); }
+.swa-edicao__titulo {
+  font: 700 clamp(15px, 1.2vw, 18px)/1.25 var(--scw-font-ui);
+  color: var(--scw-marrom);
+  text-wrap: balance;
+}
 .swa-edicao__cats {
   display: flex;
   align-items: baseline;
@@ -679,8 +731,23 @@
   background: var(--scw-amarelo);
   transform: rotate(180deg);
 }
+/* Telas estreitas: a marca não encolhe de novo — quem cede é a contagem, que
+   desce para baixo do tema, em texto corrido e sem caixa-alta. Ano e tema
+   ficam um sobre o outro; o tema longo ganha duas linhas. */
 @media (max-width: 560px) {
-  .swa-edicao__cats { flex-direction: column; align-items: flex-end; gap: 4px; }
+  .swa-edicao__botao {
+    --swa-marca: 76px;
+    grid-template-columns: var(--swa-marca) minmax(0, 1fr) auto;
+    grid-template-areas: 'marca id seta' 'marca cats seta';
+    row-gap: 6px;
+    column-gap: 14px;
+  }
+  .swa-edicao__marca { grid-area: marca; }
+  .swa-edicao__id { grid-area: id; flex-direction: column; align-items: flex-start; gap: 3px; align-self: end; }
+  .swa-edicao__cats { grid-area: cats; align-self: start; gap: 5px; }
+  .swa-edicao__seta { grid-area: seta; }
+  .swa-edicao__cats b { font-size: 14px; }
+  .swa-edicao__cats span { font: 700 13px/1 var(--scw-font-ui); letter-spacing: 0; text-transform: none; }
 }
 
 .swa-edicao__painel {
@@ -749,17 +816,20 @@
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
   gap: 9px;
-  align-items: baseline;
+  /* O selo fica no centro do bloco do nome, mesmo quando ele quebra em duas linhas. */
+  align-items: center;
 }
 .swa-hist-medalha {
+  --swa-selo: 22px;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  flex-shrink: 0;
+  width: var(--swa-selo);
+  height: var(--swa-selo);
   border-radius: 50%;
   background: var(--swa-medalha, var(--scw-amarelo));
   color: var(--scw-choco);
-  font: 900 11px/1 var(--scw-font-black);
+  font: 900 calc(var(--swa-selo) * .5)/1 var(--scw-font-black);
 }
 .swa-hist-nome { font: 700 14.5px/1.3 var(--scw-font-ui); color: var(--scw-marrom); }
 .swa-hist-nome--primeiro {

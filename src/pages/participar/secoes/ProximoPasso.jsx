@@ -16,7 +16,7 @@ export function ProximoPasso() {
   return (
     <section id="pre-cadastro" className="scw-secao scw-secao--creme" aria-labelledby="pa-proximo-titulo">
       <div className="pa-form__intro">
-        <Rotulo icone="mecanica/inscricao">{P.rotulo}</Rotulo>
+        <Rotulo icone="documento">{P.rotulo}</Rotulo>
         <h2 className="scw-h2" id="pa-proximo-titulo">
           {P.titulo} <Destaque>{P.destaque}</Destaque>
         </h2>

@@ -2,6 +2,7 @@ import React from 'react'
 import { fotosHome } from '../../../data/imageLibrary'
 import { COMO_FUNCIONA as T } from '../../../data/conteudo/home'
 import { ANATOMIA_COMBO } from '../../../components/scw-icons/anatomia-combo'
+import ScwIcon from '../../../components/scw-icons/ScwIcon'
 import { FotoAcervo } from '../../../components/FotoAcervo'
 import { PausaFotos } from '../../../components/HeroFotos'
 import { useCrossfade } from '../../../hooks/useCrossfade'
@@ -30,7 +31,7 @@ export function ComoFunciona() {
   return (
     <section id="festival" className="scw-secao scw-secao--creme hm-festival" aria-labelledby="hm-festival-titulo">
       <div className="hm-festival__texto">
-        <Rotulo icone="topicos/ciclo">{T.rotulo}</Rotulo>
+        <Rotulo icone="ciclo">{T.rotulo}</Rotulo>
         <h2 id="hm-festival-titulo" className="scw-h2" tabIndex={-1}>
           <TituloDestaque t={T.titulo} />
         </h2>
@@ -43,25 +44,20 @@ export function ComoFunciona() {
               <React.Fragment key={item.nome}>
                 {i > 0 && (
                   <span className="hm-mais" aria-hidden="true">
-                    <svg width="52%" height="52%" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round">
-                      <path d="M16 5.8v20.4M5.8 16h20.4" />
-                    </svg>
+                    <ScwIcon nome="mais" tamanho={16} />
                   </span>
                 )}
                 <div className="hm-ing">
                   <span className="hm-ing__disco" style={{ background: item.cor, color: item.tinta }} aria-hidden="true">
-                    {ANATOMIA_COMBO[item.nome].map((desenho, j) => (
-                      <svg
-                        key={j}
+                    {/* Desenho de 64 (traço da família expressiva nesse tamanho);
+                        o CSS escala para 58% do disco. */}
+                    {ANATOMIA_COMBO[item.nome].map((nome, j) => (
+                      <ScwIcon
+                        key={nome}
+                        nome={nome}
+                        tamanho={64}
                         className="hm-ing__icone"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
                         style={{ animationDelay: `${j * 2200}ms` }}
-                        dangerouslySetInnerHTML={{ __html: desenho }}
                       />
                     ))}
                   </span>

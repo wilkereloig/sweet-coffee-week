@@ -16,13 +16,20 @@ const COR_TRILHA = {
   sweet_lovers: { cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
 }
 
-/* Marca da edição: logo real ou o tema como reserva textual. */
+/* Marca da edição: logo real ou o tema como reserva textual. A escala óptica e
+   a superfície (só para arte que some no creme) vêm do resolvedor. */
 function MarcaEdicao({ code, tema }) {
   const marca = editionMark(code)
+  const { escala, superficie } = marca.apresentacao
   const [quebrada, setQuebrada] = React.useState(false)
+  const temLogo = marca.logo && !quebrada
   return (
-    <span className="swa-edicao__marca" aria-hidden="true">
-      {marca.logo && !quebrada
+    <span
+      className={'swa-edicao__marca' + (temLogo ? '' : ' swa-edicao__marca--texto') + (temLogo && superficie ? ` swa-edicao__marca--${superficie}` : '')}
+      style={temLogo ? { '--swa-marca-escala': escala } : undefined}
+      aria-hidden="true"
+    >
+      {temLogo
         ? <img src={marca.logo} alt="" loading="lazy" decoding="async" onError={() => setQuebrada(true)} />
         : <span>{tema || code}</span>}
     </span>
@@ -43,7 +50,7 @@ function CategoriaHistorica({ cat, repetido = false }) {
         <ol className="swa-hist-podio">
           {podioCompleto(cat.pod).map((p) => (
             <li key={p.pos}>
-              <span className="swa-hist-medalha" style={{ '--swa-medalha': medalha(p.pos) }} aria-hidden="true">{p.pos}</span>
+              <span className="swa-hist-medalha" style={{ '--swa-medalha': medalha(p.pos) }} aria-hidden="true"><span className="swa-num">{p.pos}</span></span>
               <span className={`swa-hist-nome${p.pos === 1 ? ' swa-hist-nome--primeiro' : ''}${p.nomes ? '' : ' swa-hist-nome--vazio'}`}>
                 <span className="scw-sr">{p.pos}º lugar{p.empate ? ', empate' : ''}: </span>
                 {p.nomes ? p.nomes.join(' + ') : NAO_REGISTRADO}
@@ -82,7 +89,7 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
             <b>{edicao.cats.length}</b>
             <span>{edicao.cats.length === 1 ? 'categoria' : 'categorias'}</span>
           </span>
-          <span className="swa-edicao__seta" aria-hidden="true"><ScwIcon nome="ui/abrir" tamanho={20} /></span>
+          <span className="swa-edicao__seta" aria-hidden="true"><ScwIcon nome="abrir" tamanho={20} /></span>
         </button>
       </h3>
 

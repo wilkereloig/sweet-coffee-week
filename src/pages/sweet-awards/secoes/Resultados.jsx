@@ -26,6 +26,7 @@ const CICLO = [
 /* Card de colocação: foto da casa premiada + medalha DENTRO da legenda (§7.3).
    Empate fica na mesma colocação, com as marcas lado a lado. Colocação que o
    acervo não registra aparece como tal, sem foto e sem nome inventado. */
+
 function CardColocacao({ colocacao, foto, grande }) {
   const { pos, nomes, empate } = colocacao
   const primeiro = pos === 1
@@ -38,7 +39,7 @@ function CardColocacao({ colocacao, foto, grande }) {
       </span>
       <span className="swa-card__legenda">
         <span className="swa-card__cabeca">
-          <span className="swa-medalha" aria-hidden="true">{pos}º</span>
+          <span className="swa-medalha" aria-hidden="true"><span className="swa-num">{pos}º</span></span>
           <span className="swa-card__rotulo">
             {primeiro ? 'Primeiro lugar' : `${pos}º lugar`}{empate ? ' · empate' : ''}
           </span>

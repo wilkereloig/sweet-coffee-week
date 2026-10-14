@@ -81,8 +81,9 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
   14/10/2026, pedido do Wilker). As cinco foram escolhidas por manter doce, salgado e
   bebida nos dois cortes da moldura (4:5 desktop, 4:3 celular). A anatomia continua como era: ⛔ **sempre em UMA LINHA, inclusive no
   celular** (pedido do Eloi, 22/08/2026), escala por `--ing-disco`/`--ing-mais`, quatro
-  desenhos por ingrediente em 8,8s (`scwIcnCiclo`, arte em `anatomia-combo.js`, fora de
-  `scw-icons-v2.js`), só o primeiro com `prefers-reduced-motion`. **Não empilhar de
+  desenhos por ingrediente em 8,8s (`scwIcnCiclo`; desde 14/10/2026 são desenhos da família
+  expressiva do catálogo, listados por nome em `anatomia-combo.js` — capa cupcake · coxinha ·
+  xícara), só o primeiro com `prefers-reduced-motion`. **Não empilhar de
   novo.**
   ⚠️ O texto não diz "onze dias" nem "preço único": são fatos das edições passadas que
   soariam como regra da próxima, e duração e valor dela são `null`.
@@ -187,16 +188,26 @@ movimento** (arquivo de consulta: nada encenado).
    o foco ao abrir, sem anel), lead da narrativa, ficha (período · marcas · Sweet Awards)
    e a **marca da edição em posição própria**, no tamanho natural do arquivo, sem chapa
    atrás (§7.7). A marca permanente do festival continua no cabeçalho, levando à Home.
-2. **Fotos** (`GaleriaEdicao`): visor de proporção fixa (4:3 desktop, 1:1 celular) com
-   **`contain`** — o acervo mistura retrato, paisagem e quadrado, e nenhuma foto perde o
-   produto; por isso o ponto focal é ignorado aqui (ele é para recorte). Miniaturas são a
-   sequência manual (botões com `aria-current`), setas de 44px, contador "03 / 12",
-   legenda "Registro N de 12 · tema, ano" e a nota de que as fotos não identificam a
-   marca. Teclado ←/→/Home/End **só com o foco dentro da galeria**. "Ampliar" (ou clique
+2. **Fotos** (`GaleriaEdicao`): **um combo de cada marca participante** ("Os combos da
+   edição", legenda = nome da marca), de `imageLibrary.editionCombos()` — Lovers pelas
+   pastas de `/images/combos/`, 2017.2 a 2025 por `src/data/editionCombos.js`, gerado por
+   `scripts/combos-edicoes.py` a partir da escolha em `scripts/combos-edicoes.json` (uma
+   foto por marca, de preferência o combo completo, escolhida olhando as pastas "combos
+   por participante" do acervo bruto em 14/10/2026). Marca sem pasta no acervo fica de
+   fora e a nota diz "X das N marcas têm foto". 2016, 2017.1 e 2018.2 não ligam foto e
+   marca no acervo: ficam os registros da edição, sem legenda. Visor **quadrado** e
+   **`cover`** (pedido do Wilker): o quadrado corta retrato e paisagem por igual; a
+   coluna das miniaturas tem a altura da foto e rola por dentro. Miniaturas são a
+   sequência manual (botões com `aria-current`, nome da marca), setas de 44px e contador
+   "03 / 34". Nos registros sem marca, a nota diz que as fotos não identificam a marca e
+   só a foto ampliada leva "Registro N de 12 · tema, ano"; a ampliada aparece inteira
+   (`contain`). Teclado ←/→/Home/End **só com o foco dentro da galeria**. "Ampliar" (ou clique
    na foto) abre `<dialog>` de tela cheia: foco no fechar, Tab preso, ←/→, Esc fecha, foco
    volta à foto; a foto grande só baixa ao ampliar. ⛔ Sem autoplay.
-3. **História** no fluxo (nada atrás de botão): o começo do festival (só na estreia), por
-   que marcou, um destaque, o que ficou, e as curiosidades do acervo ao lado (sem preço).
+3. **História** no fluxo (nada atrás de botão): por que marcou, um destaque, o que ficou,
+   e as curiosidades do acervo ao lado (sem preço). ⛔ A narrativa não repete fato que uma
+   curiosidade do acervo, na mesma tela, já conta (revisão de 14/10/2026), e a explicação
+   geral do festival não entra no detalhe — ela é da Home.
 4. **Marcas participantes** (bege): título com a contagem total, lista tipográfica em
    colunas, 18 visíveis e "Mostrar as N marcas" (`aria-expanded`). **Logo só na Lovers
    (2026.1)**, a única edição com vínculo marca × logo no acervo; nas outras, o nome.
@@ -278,6 +289,16 @@ O que não muda sem autorização: flags de publicação, dados oficiais e deplo
   `aria-expanded` e painel `role="region"`. Dentro, pódio completo por categoria,
   separado por trilha (Júri Técnico · Sweet Lovers) quando houve as duas. Sem foto: o
   acervo não liga foto e marca nessas edições.
+  ✅ **Marca da edição na linha (14/10/2026):** logo inteira, `contain`, sem máscara nem
+  placa, numa caixa de 76px (≤560) a 92px; a linha é marca · ano e tema · categorias ·
+  seta, e abaixo de 560px a contagem desce para baixo do tema (a marca não encolhe).
+  Presença óptica e contraste vêm de `apresentacao` em `editionMark()`
+  (`src/data/editionAssets.js`): selos que enchem o arquivo em 0,9, a 2022 (quadrado
+  opaco) em 0,86, e só a 2021.1 ganha disco chocolate ("SÉRIES" é branco). Edições não
+  lê esse campo.
+  ✅ **Número no círculo (14/10/2026):** "1" da lista e "1º" do pódio usam `.swa-num`
+  (`scw-awards.css`) — caixa recortada por `text-box: trim-both cap alphabetic`, que
+  centraliza o desenho do algarismo, não a caixa da fonte; sem suporte, `--swa-num-y`.
   ⚠️ **Nome da época quando o nome repete:** duas categorias da mesma edição unidas pelo
   alias no mesmo nome canônico mostram embaixo **"na época, “…”"** com o nome original
   (`nomeOriginal`, derivado em `awardsData.js`). O §8.2 vale para o nome canônico; o da

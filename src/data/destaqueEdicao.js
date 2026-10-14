@@ -37,7 +37,7 @@ export const destaqueEdicao = {
   periodo: PROX.periodo,    // obrigatório — de proximaEdicao.js
   /* Lettering oficial do tema. Sem ele, o tema sai em tipografia real. */
   marca: fotoProximaEdicao('marca'),
-  texto: 'Uma nova edição para descobrir sabores e celebrar o universo da animação.',
+  texto: 'Combos criados pelas casas participantes a partir do universo da animação.',
   /* Fundo ilustrado da edição (imageLibrary.js). Sem ele, a chapa amarela. */
   fundo: fotoProximaEdicao('fundo'),
   /* Opcional: o vídeo de lançamento, com o botão para o reel no Instagram.
@@ -51,7 +51,7 @@ export const destaqueEdicao = {
   /* Opcional: sem pré-cadastro aberto, a abertura fica só com "Conhecer o
      festival". href externo ou com barra final (§10.4-b). */
   acao: PROX.status === 'pre-cadastro' && PROX.preCadastro
-    ? { rotulo: 'Quero participar', href: PROX.preCadastro }
+    ? { rotulo: 'Fazer pré-cadastro', href: PROX.preCadastro }
     : null,
 }
 

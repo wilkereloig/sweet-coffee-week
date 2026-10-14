@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-  COMBO_SLUGS, COMBO_EDITION, comboPhotos, editionPhotos, heroPhotos, awardPhoto,
+  COMBO_SLUGS, COMBO_EDITION, comboPhotos, editionCombos, editionPhotos, heroPhotos, awardPhoto,
 } from '../src/data/imageLibrary.js'
 import { EDITION_GALLERY } from '../src/data/editionGallery.js'
 import { PARTICIPANTS } from '../src/data/participants.js'
@@ -27,6 +27,15 @@ test('toda foto de edição existe no disco', () => {
     const fotos = editionPhotos(code)
     assert.ok(fotos.length > 0, `edição ${code} sem foto no manifesto`)
     for (const f of fotos) assert.ok(noDisco(f.src), `arquivo ausente: ${f.src}`)
+  }
+})
+
+test('todo combo por marca das edições existe no disco', () => {
+  for (const code of Object.keys(EDITION_GALLERY)) {
+    for (const f of editionCombos(code)) {
+      assert.ok(f.marca, `${code}: foto de combo sem marca`)
+      assert.ok(noDisco(f.src), `arquivo ausente: ${f.src}`)
+    }
   }
 })
 
@@ -102,6 +111,8 @@ test('nenhum componente monta caminho de imagem na mão', () => {
   const PERMITIDOS = new Set([
     'src/data/imageLibrary.js',
     'src/data/editionGallery.js',
+    // Gerado por scripts/combos-edicoes.py: manifesto de um combo por marca.
+    'src/data/editionCombos.js',
     'src/data/comboPhotos.js',
     'src/data/focalPoints.js',
     // Gerado por scripts/gerar-variantes.mjs, como focalPoints.js: é tabela de

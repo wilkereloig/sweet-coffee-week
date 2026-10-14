@@ -74,11 +74,11 @@ terceiro não entra na paleta — entra **escopada num seletor, com teste que re
 vazamento**. A regra "nenhuma cor fora da tabela" continua valendo para o festival; ela
 nunca teve como objeto a marca de outra empresa.
 
-⚠️ **Ícone de marca de terceiro é outra história.** Não existe `redes/whatsapp` em
-`scw-icons-v2.js`, e §6.11 proíbe editar esse arquivo à mão. Desenhar a marca de memória
-seria **inventar logo (A4)**. O botão usa `redes/conversa` do próprio sistema; o glifo
-oficial só entra se alguém trouxer o SVG da brand page do WhatsApp, e aí entra como
-**asset**, igual à logo da F2 — nunca como ícone SCW.
+⚠️ **Ícone de marca de terceiro é outra história.** Não há glifo oficial do WhatsApp no
+repositório, e desenhar a marca de memória seria **inventar logo (A4)**. O botão usa
+`mensagem` do próprio sistema; o glifo oficial só entra se alguém trouxer o SVG da brand
+page do WhatsApp, e aí entra em `icones/marcas/` (traço fixo, sem disco nem cor SCW) —
+como o Instagram desde 14/10/2026.
 
 ### 6.2 Cor por página
 
@@ -524,7 +524,7 @@ Seguem no acervo.
 | Painel (organização + marca) | `.og-*` / `.pn-*` | `painel-app/` — app React, entry Vite próprio, servido em `/painel`, `/organizacao` e `/marca` por rewrite (`docs/PAINEL-REACT-MAPA.md`) |
 | Diálogo de acesso | `.scw-acesso*` | `AccessDialog.jsx` — duas faixas (topo chocolate + corpo creme), botão "Acesso" **com rótulo**, sem marca-d'água. **Os dois cartões têm peso diferente de propósito**: Organização em chapa chocolate com ação amarela; Participante em card bege com filete sólido e **ação chocolate** (14,46:1). A régua de 5px segue a ordem dos cartões: cyan à esquerda, roxo à direita. ⛔ Não igualar os dois. ⚠️ **Mas o motivo do peso mudou em 25/08/2026, e a regra antiga não vale mais:** até então o cartão do participante era **reserva honesta** (§6.12) — moldura tracejada, selo "Painel · em breve", sem ação — porque `/marca/` não existia. Existe desde 25/08, e o diálogo é a **única porta pública do domínio** enquanto o gate está ligado: manter o selo seria a interface negando a área que ela abre, para a marca que acabou de receber as credenciais. Tracejado e selo saíram; o peso hoje diz **público**, não disponibilidade. ⚠️ **Desde 25/08/2026 a ação do cartão também não é mais `<a>`:** igual à Organização, ela abre um passo de login dentro do MESMO diálogo (nome do estabelecimento + senha), com Supabase Auth de verdade — ver §6.10-b, ponto 4. **Reformulado em 22/08/2026 e 25/08/2026** (§6.10-b) |
 | Voltar ao topo | `.scw-topo` | `BotaoTopo.jsx`, flutuante, aparece após **1,5 tela**. **Só o ícone** desde 18/09/2026 (pedido do Wilke): disco chocolate de 46px, `aria-label` e o nome no hover/foco por `.scw-icone-rotulo--esquerda` (§6.11) |
-| Rodapé | `.scw-footer*` | `SiteFooter.jsx` |
+| Rodapé | `.scw-footer*` | `SiteFooter.jsx` — **reconstruído em 14/10/2026**: marca · Explore (6 destinos em 2 colunas fixas) · Contato (Instagram + "Fale com a gente"); linha fina; documentos legais + "Preferências de cookies" (botão); base com direitos e realização. Celular: marca em cima, Explore e Contato lado a lado — o Contato desce para a linha toda quando o @ não cabe. Folgas: `--scw-aviso-h` + `--scw-base-ocupada` embaixo; o "voltar ao topo" ganha recuo à direita (desktop) ou 72px embaixo (com abas). `semLinks` tira Explore e "Fale com a gente" |
 | Pular para conteúdo | `.scw-skip` | `nav.jsx` |
 
 **Blocos:**
@@ -676,6 +676,8 @@ para o mesmo passo (§5.2).
   e os três botões usam 18–20px. `ChaveIcon` (hand-rolled, fora de
   `scw-icons-v2.js`, já usado em dois dos três antes desta mudança) continua
   sendo a peça certa nesse tamanho — não um ícone improvisado.
+  ✅ **Desde 14/10/2026 `ChaveIcon` é adaptador do desenho `chave` (v3, §6.11), 20px** —
+  o traço 2.4 cravado e o desenho próprio saíram.
   ⚠️ **No topo, desde 18/09/2026, é SÓ o ícone** (pedido do Wilke: "só o ícone,
   mas discreto"). O botão do cabeçalho virou o componente **`AcessoTopo`**
   (`nav.jsx`), usado pelos dois cabeçalhos — o do site e o próprio de Edições,
@@ -701,44 +703,28 @@ para o mesmo passo (§5.2).
   font:inherit; width:100%`), e só o modificador `.pn-setor--escolha` leva
   `cursor:pointer`.
 
-### 6.11 Iconografia v2
+### 6.11 Iconografia v3 (14/10/2026)
 
-`<ScwIcon nome="familia/nome" tamanho={20} />` — fonte única em
-`src/components/scw-icons/scw-icons-v2.js`: **136 ícones em 16 famílias, traço 3.2**.
-Único importador é `ScwIcon.jsx`; **nenhum CSS crava `stroke-width` de ícone
-institucional**. ⛔ **O arquivo não se edita à mão** — muda no Design e reexporta.
+Nova direção pedida pelo Wilker. **Fonte, regras de desenho e processo: `icones/README.md`**
+(inventário da migração em `icones/INVENTARIO.md`). Resumo do que vale sempre:
 
-| Regra | Valor |
-|---|---|
-| Grade / área viva | **32** · ink só entre **3 e 29** |
-| Traço | **3.2** (detalhe interno 2.4 · trilha pontilhada 4.0) |
-| Cor | `currentColor` **sempre** — nunca `fill`/`stroke` fixo, nunca cor por prop |
-| Tamanhos | **16 · 20 · 24 · 32 · 48**, e nada entre eles |
-| Objetos por ícone | **1** |
-| Vão interno livre | ≥ 2× o traço (6,4). Não cabe? a forma vira preenchida ou sai |
-| Separação entre formas | ≥ traço + 1,5 (4,7) |
-
-**Dois níveis, com piso de tamanho diferente:**
-
-- **funcional** (`ui`, `aviso`, `acesso`) — **16 a 24px**, dentro de botão, campo, aba,
-  menu e feedback. **No máximo 3 elementos**: legibilidade acima de personalidade.
-- **expressivo** (as outras 13 famílias) — **piso de 24px**. Abaixo disso o desenho perde
-  o que o torna autoral.
-
-**Onde entra hoje:** rótulo de seção (`tamanho={20}`), chip e legenda (16), disco de dado
-ou etapa. **Ícone acompanha rótulo, nunca o substitui.**
-
-**Documentação embutida no próprio arquivo** — consultar antes de inventar regra de
-ícone: `SCW_ICON_RULES`, `SCW_ICON_TIERS`, `SCW_ICON_MOTION`, `SCW_ICON_AUDIT`.
-
-**Movimento:** 7 gestos prontos em `SCW_ICON_MOTION`, cada um com gatilho — avanço
-(hover), toque (active), varredura (foco de campo), vapor (laço, só ≥32px), carimbo (ação
-concluída), rota (`stroke-dashoffset`, exceção declarada) e pulso. **Nenhum roda em laço
-solto. Ainda não aplicados no site** — a prancha existe, a decisão de animar é separada.
-
-⚠️ **Ícone que não existe não quebra a página:** `ScwIcon` devolve `null` e avisa no
-console só em DEV. Por isso a checagem é **manual** — ao mexer em ícone, **varrer as
-chaves de `nome=` contra `SCW_ICONS` antes de commitar.**
+- **Fonte versionada:** um `.svg` por significado em `icones/{interface,expressiva,marcas}/`.
+  `npm run icones` valida e gera `src/components/scw-icons/gerado/` — ⛔ o gerado não se
+  edita à mão. `scw-icons-v2.js` está aposentado (sem importador).
+- **Duas famílias, um nome; o tamanho escolhe:** interface 16 · 20 · 24 (grade 24, traço
+  ótico 1,5 → 2 px) e expressiva 32 · 48 · 64 (grade 48, 2,5 → 3,7 px). Nada entre eles.
+- **Componentes:** `ScwIcon` (as duas famílias) · `IconeUi` (só interface — casca do site:
+  menu, abas, rodapé, diálogo) · `Icone` no painel. Contrato: `nome`, `tamanho`, `titulo`.
+- **Tamanho é o atributo:** ⛔ CSS não redimensiona ícone (`svg{width}` em contêiner). O
+  disco é que cresce; o desenho fica na escala. Exceção declarada: `.hm-ing__icone`
+  (anatomia, 58% do disco fluido).
+- **Cor:** `currentColor` sempre. Decorativo = `aria-hidden`; informativo = `titulo`
+  (vira `<title>` de verdade — nunca HTML concatenado).
+- **Botão só com ícone:** nome no `aria-label` + `.scw-icone-rotulo`, desenho 20 em alvo 44.
+- **Estado:** desenho distinto + texto + cor. Carregando = `carregando` + `.scw-gira`.
+- **Sem SVG solto em tela e sem caractere como ícone** — `npm run test:icones` reprova,
+  junto com nome inexistente, tamanho fora da escala e catálogo defasado.
+- **Inspeção visual:** `npm run dev` → `/icones/galeria.html` (fora do build e da navegação).
 
 ### 6.12 Imagens
 

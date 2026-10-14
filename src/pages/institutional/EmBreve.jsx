@@ -110,28 +110,28 @@ const TEMAS = EDICOES.map((e) => e.tema).filter(Boolean)
    redigitado aqui. */
 const F = festivalFacts
 const NUMEROS = [
-  { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)', icone: 'simbolos/edicao' },
-  { alvo: F.revenue.value, prefixo: '+R$ ', sufixo: ' mil', rotulo: 'movimentação direta', cor: 'var(--scw-roxo)', icone: 'mecanica/promocao' },
-  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'simbolos/combo-oficial' },
+  { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)', icone: 'edicao' },
+  { alvo: F.revenue.value, prefixo: '+R$ ', sufixo: ' mil', rotulo: 'movimentação direta', cor: 'var(--scw-roxo)', icone: 'moedas' },
+  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'combo' },
 ]
 
 /* Os três nomeiam o que o combo É — conteúdo, não enfeite (§6.13). */
 const CATEGORIAS = [
-  { icone: 'doces/cupcake', rotulo: 'doce' },
-  { icone: 'salgados/pao-de-queijo', rotulo: 'salgado' },
-  { icone: 'bebidas/cappuccino', rotulo: 'café' },
+  { icone: 'cupcake', rotulo: 'doce' },
+  { icone: 'pao-de-queijo', rotulo: 'salgado' },
+  { icone: 'xicara', rotulo: 'café' },
 ]
 
 const PASSOS = [
-  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)', icone: 'mecanica/inscricao' },
-  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)', icone: 'topicos/depoimento' },
-  { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)', icone: 'combos/trio' },
+  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)', icone: 'documento' },
+  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)', icone: 'depoimento' },
+  { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)', icone: 'combo' },
 ]
 
 /* A seta do sistema, não um SVG solto: ela lê o traço 3,2 do `SCW_ICON_SPEC` e
    acompanha qualquer mudança futura no desenho (§6.11). 20px é o degrau de
    botão da escala — o handoff pedia 18, que não existe na régua. */
-const SETA = <ScwIcon nome="ui/seta-direita" tamanho={20} />
+const SETA = <ScwIcon nome="seta-direita" tamanho={20} />
 
 const podeAnimar = () =>
   typeof window !== 'undefined' &&
@@ -283,10 +283,10 @@ function GaleriaEdicoes() {
 
       <div className="eb-gal__controles">
         <button type="button" className="eb-gal__btn" aria-label="Edição anterior" onClick={() => andar(-1)}>
-          <ScwIcon nome="ui/seta-esquerda" tamanho={20} />
+          <ScwIcon nome="seta-esquerda" tamanho={20} />
         </button>
         <button type="button" className="eb-gal__btn" aria-label="Próxima edição" onClick={() => andar(1)}>
-          <ScwIcon nome="ui/seta-direita" tamanho={20} />
+          <ScwIcon nome="seta-direita" tamanho={20} />
         </button>
         <button
           type="button"
@@ -294,7 +294,7 @@ function GaleriaEdicoes() {
           aria-label={pausado ? 'Retomar a galeria das edições' : 'Pausar a galeria das edições'}
           onClick={() => setPausado((v) => !v)}
         >
-          <ScwIcon nome={pausado ? 'ui/play' : 'ui/pausa'} tamanho={20} />
+          <ScwIcon nome={pausado ? 'play' : 'pausa'} tamanho={20} />
         </button>
         <span className="eb-gal__barra" aria-hidden="true"><span /></span>
         <span className="eb-gal__contador">
@@ -459,7 +459,7 @@ export function EmBrevePage() {
               barra que denuncie. Escala própria resolve na origem — alargar a
               coluna traria de volta o órfão de 3+1. */}
           <li className="eb-num eb-num--palavra" style={{ color: 'var(--scw-magenta)' }}>
-            <span className="eb-num__icone"><ScwIcon nome="simbolos/memoria" tamanho={32} /></span>
+            <span className="eb-num__icone"><ScwIcon nome="historico" tamanho={32} /></span>
             <span className="scw-numeral">desde {F.firstYear}</span>
             <span className="eb-num__rotulo">a primeira edição</span>
           </li>
@@ -531,7 +531,7 @@ export function EmBrevePage() {
             A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo.
             Não compromete nada.
           </p>
-          <span className="eb-fecho__selo"><ScwIcon nome="simbolos/sweet-lovers" tamanho={32} /></span>
+          <span className="eb-fecho__selo"><ScwIcon nome="coracao" tamanho={32} /></span>
           <p className="scw-corpo eb-fecho__lover">
             É Sweet Lover? A data, o tema e as marcas confirmadas saem primeiro no{' '}
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">{INSTAGRAM_HANDLE}</a>.

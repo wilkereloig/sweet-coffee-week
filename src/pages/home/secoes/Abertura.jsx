@@ -184,7 +184,7 @@ function AberturaDestaque({ d, ir, rolarPara }) {
               rel="noopener noreferrer"
               aria-label={`${d.video.rotulo} (abre em nova aba)`}
             >
-              <ScwIcon nome="redes/instagram" tamanho={24} /> {d.video.rotulo}
+              <ScwIcon nome="instagram" tamanho={24} /> {d.video.rotulo}
             </a>
           </figcaption>
         </figure>

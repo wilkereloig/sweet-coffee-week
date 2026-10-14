@@ -13,7 +13,7 @@ export function Oferece() {
   return (
     <section id="ganhos" className="scw-secao scw-secao--creme" aria-labelledby="pa-ganhos-titulo">
       <Cabeca
-        icone="simbolos/destaque"
+        icone="estrela"
         rotulo="O que a participação oferece"
         idTitulo="pa-ganhos-titulo"
         titulo={<>O que a edição <Destaque>coloca na mesa</Destaque> da sua marca.</>}

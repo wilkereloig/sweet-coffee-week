@@ -255,6 +255,8 @@ async function galeria (navegador) {
     await page.goto(`${BASE}/#/edicoes/2019.2`, { waitUntil: 'networkidle' })
     const src = () => page.evaluate(() => document.querySelector('.edx-gal__foto')?.getAttribute('src'))
     const contador = () => page.evaluate(() => document.querySelector('.edx-gal__contador')?.textContent.replace(/\s/g, ''))
+    // Um combo por marca: o total é o da galeria (34 na 2019.2), não fixo.
+    const total = String(await page.locator('.edx-gal__mini').count()).padStart(2, '0')
 
     // tecla com o foco FORA da galeria: nada muda
     const s0 = await src()
@@ -263,18 +265,18 @@ async function galeria (navegador) {
     if ((await src()) !== s0 || !page.url().endsWith('2019.2')) falha(`${rot}: seta fora da galeria trocou foto ou edição`)
 
     await page.click('[data-galeria] button[aria-label="Próxima foto"]')
-    if ((await contador()) !== '02/12') falha(`${rot}: "Próxima foto" → ${await contador()}`)
+    if ((await contador()) !== `02/${total}`) falha(`${rot}: "Próxima foto" → ${await contador()}`)
     if ((await src()) === s0) falha(`${rot}: a foto principal não trocou`)
     await page.click('.edx-gal__mini >> nth=6')
-    if ((await contador()) !== '07/12') falha(`${rot}: miniatura 7 → ${await contador()}`)
+    if ((await contador()) !== `07/${total}`) falha(`${rot}: miniatura 7 → ${await contador()}`)
     const atual = await page.evaluate(() => [...document.querySelectorAll('.edx-gal__mini')].findIndex((b) => b.getAttribute('aria-current') === 'true'))
     if (atual !== 6) falha(`${rot}: aria-current na miniatura ${atual}`)
     await page.keyboard.press('ArrowRight')
-    if ((await contador()) !== '08/12') falha(`${rot}: → com foco na galeria → ${await contador()}`)
+    if ((await contador()) !== `08/${total}`) falha(`${rot}: → com foco na galeria → ${await contador()}`)
     await page.keyboard.press('End')
-    if ((await contador()) !== '12/12') falha(`${rot}: End → ${await contador()}`)
+    if ((await contador()) !== `${total}/${total}`) falha(`${rot}: End → ${await contador()}`)
     await page.keyboard.press('ArrowRight')
-    if ((await contador()) !== '01/12') falha(`${rot}: a sequência não dá a volta`)
+    if ((await contador()) !== `01/${total}`) falha(`${rot}: a sequência não dá a volta`)
 
     // ampliar
     await page.click('.edx-gal__ampliar')

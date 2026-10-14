@@ -34,6 +34,30 @@ const EXISTING_MARKS = {
   '2026.1': '/images/marcas-edicoes/2026.1/logo.png',
 }
 
+/* Apresentação de cada marca quando ela aparece em lista (histórico do Sweet
+   Awards, 14/10/2026). A caixa é igual para todas, mas a presença óptica não:
+   - `escala` (0–1, nunca acima de 1 — ampliar cortaria a arte): os selos
+     redondos que enchem o arquivo inteiro descem para 0,9, para não parecerem
+     maiores que os selos com ornamentos em volta (2017.2, 2018.x, 2024),
+     cujo disco ocupa só ~70% do arquivo. A 2022 é um quadrado opaco de cor
+     cheia — a mais pesada de todas — e desce para 0,86.
+   - `superficie`: só quando o arquivo transparente some no cartão creme. A
+     2021.1 tem "SÉRIES" em branco/cinza claro; sem fundo escuro, a palavra do
+     tema desaparece. Nenhuma outra recebe placa. Com superfície, a escala vale
+     para o disco inteiro (ele é o selo visível), não só para a arte.
+   Sem entrada = escala 1, sem superfície. Hoje só o Awards lê este campo;
+   Edições usa apenas `logo`. */
+const APRESENTACAO = {
+  '2016':   { escala: 0.9 },
+  '2019.1': { escala: 0.9 },
+  '2020.1': { escala: 0.9 },
+  '2021.1': { escala: 0.9, superficie: 'choco' },
+  '2021.2': { escala: 0.9 },
+  '2022':   { escala: 0.86 },
+  '2025':   { escala: 0.9 },
+  '2026.1': { escala: 0.9 },
+}
+
 const BY_CODE = Object.fromEntries(sweetEditions.map((e) => [e.code, e]))
 
 export function editionMark(code) {
@@ -45,5 +69,6 @@ export function editionMark(code) {
     logo: EXISTING_MARKS[code] || null,
     fallback: e ? e.theme : code,
     expectedPath: `/images/marcas-edicoes/${code}/logo.png`,
+    apresentacao: { escala: 1, superficie: null, ...APRESENTACAO[code] },
   }
 }

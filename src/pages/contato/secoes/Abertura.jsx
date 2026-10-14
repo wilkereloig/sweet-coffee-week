@@ -45,7 +45,7 @@ export function Abertura({ central }) {
           <form role="search" className="ctt-procura" onSubmit={buscar}>
             <label htmlFor="ctt-busca-heroi" className="ctt-procura__rotulo">{ABERTURA.buscaRotulo}</label>
             <div className="ctt-procura__linha">
-              <ScwIcon nome="ui/busca" tamanho={20} />
+              <ScwIcon nome="busca" tamanho={20} />
               <input
                 id="ctt-busca-heroi"
                 type="search"

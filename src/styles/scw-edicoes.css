@@ -462,19 +462,19 @@
 }
 .edx-gal__corpo {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(280px, 27vw, 420px);
+  grid-template-columns: auto minmax(0, 1fr);
   gap: clamp(20px, 2.4vw, 40px);
-  align-items: start;
 }
 .edx-gal__palco { margin: 0; min-width: 0; }
-/* Visor de proporção fixa e `contain`: retrato, paisagem e quadrado cabem
-   inteiros, e a caixa não pula quando a foto troca. */
+/* Visor QUADRADO, preenchido pela foto (`cover`): o acervo mistura retrato
+   (Lovers, Movies, Séries) e paisagem, e o quadrado corta as duas por igual —
+   numa caixa 4:3 o combo vertical perdia a metade. Cabe na altura da tela, e
+   a caixa não pula quando a foto troca. */
 .edx-gal__visor {
   position: relative;
   display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 74svh;
+  width: min(74svh, 720px, 56vw);
+  aspect-ratio: 1;
   padding: 0;
   border: 0;
   border-radius: var(--scw-r-card);
@@ -487,17 +487,24 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   animation: edxEntra 320ms var(--scw-ease) both;
 }
 @keyframes edxEntra { from { opacity: 0; } to { opacity: 1; } }
 .edx-gal__legenda {
   margin-top: 10px;
-  font: 400 14px/1.4 var(--scw-font-texto);
-  color: var(--scw-marrom);
+  font: 700 15px/1.35 var(--scw-font-texto);
+  color: var(--scw-choco);
 }
-
-.edx-gal__lado { display: grid; gap: 16px; min-width: 0; }
+/* A coluna das miniaturas tem a altura da foto: com 30+ marcas, a grade rola
+   por dentro em vez de passar da foto. */
+.edx-gal__lado {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
 .edx-gal__controles {
   display: flex;
   align-items: center;
@@ -545,11 +552,14 @@
 
 .edx-gal__miniaturas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  align-content: start;
   gap: 8px;
   margin: 0;
-  padding: 0;
+  padding: 5px;
   list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .edx-gal__mini {
   display: block;
@@ -576,9 +586,10 @@
 
 @media (max-width: 900px) {
   .edx-gal__corpo { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .edx-gal__visor { aspect-ratio: 1; border-radius: 16px; }
+  .edx-gal__visor { width: 100%; border-radius: 16px; }
   .edx-gal__miniaturas {
     display: flex;
+    overflow-y: visible;
     gap: 8px;
     overflow-x: auto;
     padding: 4px 4px 6px;

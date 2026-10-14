@@ -294,7 +294,8 @@
   .ctt-direto a:active,
   .f2-realiza__cta:active,
   .scw-footer__nav a:active,
-  .scw-footer__insta:active { opacity: .62; }
+  .scw-footer__insta:active,
+  .scw-footer__fale:active { opacity: .62; }
 }
 
 /* ============================================================================

@@ -2,6 +2,7 @@ import React from 'react'
 import { festivalFacts as F } from '../../../data/festivalFacts'
 import { fotosHome } from '../../../data/imageLibrary'
 import { IMPRENSA, TRAJETORIA as T } from '../../../data/conteudo/home'
+import { semRepetir } from '../../../data/conteudo/participar'
 import ScwIcon from '../../../components/scw-icons/ScwIcon'
 import { FotoAcervo } from '../../../components/FotoAcervo'
 import { Rotulo } from '../../../components/Rotulo'
@@ -14,8 +15,9 @@ import { useContagem } from '../useHome'
    apurado), a porta para Edições (cor do DESTINO, §6.2) e a imprensa.
    ========================================================================= */
 
-/* Número só com o que ele mede (festivalFacts.*.mede) — nunca solto. */
-const NUMEROS = T.numeros.map((n) => ({ ...n, alvo: F[n.fato].value, mede: F[n.fato].mede, apurado: F[n.fato].apurado }))
+/* Número só com o que ele mede (festivalFacts.*.mede) — nunca solto — e sem
+   repetir o título que vem logo acima ("Combos vendidos" + "combos vendidos…"). */
+const NUMEROS = T.numeros.map((n) => ({ ...n, alvo: F[n.fato].value, mede: semRepetir(n.titulo, F[n.fato].mede), apurado: F[n.fato].apurado }))
 const ALVOS = NUMEROS.map((n) => n.alvo)
 /* Os números comerciais não se derivam da base: dizem quando foram apurados. */
 const APURADOS = [...new Set(NUMEROS.map((n) => n.apurado).filter(Boolean))]
@@ -34,13 +36,13 @@ export function Trajetoria({ ir }) {
     <section className="scw-secao scw-secao--bege hm-trajetoria" aria-labelledby="hm-trajetoria-titulo">
       <div className="hm-cab">
         <div>
-          <Rotulo icone="topicos/legado">{T.rotulo}</Rotulo>
+          <Rotulo icone="historico">{T.rotulo}</Rotulo>
           <h2 id="hm-trajetoria-titulo" className="scw-h2">
             <TituloDestaque t={T.titulo} />
           </h2>
         </div>
         <p className="hm-apoio">
-          {F.editions.value} edições e {F.brands.value} marcas desde {F.firstYear}. Os temas, as casas e as fotos de cada ano estão no acervo.
+          {F.editions.value} edições e {F.brands.value} marcas desde {F.firstYear}.
         </p>
       </div>
 
@@ -83,7 +85,7 @@ export function Trajetoria({ ir }) {
 
       <div className="hm-imprensa">
         <div className="hm-imprensa__cab">
-          <Rotulo icone="topicos/imprensa">{T.imprensa.rotulo}</Rotulo>
+          <Rotulo icone="imprensa">{T.imprensa.rotulo}</Rotulo>
           <a className="hm-materia" href={destaque.href} target="_blank" rel="noopener noreferrer">
             <span className="hm-materia__veiculo">{destaque.veiculo} · {destaque.ano}</span>
             <strong className="hm-materia__titulo">{destaque.titulo}</strong>

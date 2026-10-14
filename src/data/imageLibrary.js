@@ -10,9 +10,12 @@
      São registros da edição (combos, lojas, público) SEM rótulo de participante:
      o acervo não diz qual foto é de qual marca. Por isso a legenda fala da
      edição, nunca de um participante específico — atribuir seria invenção.
-   · `/images/combos/<slug>/main.jpg` + `photo-NN.jpg` — fotos POR PARTICIPANTE,
-     só da edição Lovers (2026.1), 21 marcas. É o único vínculo
-     participante↔combo confirmado no acervo.
+   · `/images/combos/<slug>/main.jpg` + `photo-NN.jpg` — fotos POR PARTICIPANTE
+     da edição Lovers (2026.1), 21 marcas.
+   · `/images/edicoes/<code>/combos/<slug>.webp` — UMA foto de combo por
+     participante das edições 2017.2 a 2025, escolhida nas pastas "combos por
+     participante" do acervo bruto (14/10/2026). Manifesto em editionCombos.js.
+     2016, 2017.1 e 2018.2 não têm esse vínculo no acervo.
    · `/images/marcas-edicoes/<code>/logo.png` — marca de cada edição.
    · `/logos/participants/<slug>.png` — marca de cada participante da Lovers.
    · `/images/momentos/`, `/images/campanha/`, `/images/lovers-publico/` —
@@ -24,6 +27,7 @@
    ========================================================================= */
 
 import { EDITION_GALLERY } from './editionGallery.js'
+import { EDITION_COMBOS } from './editionCombos.js'
 import { focalPosition } from './focalPoints.js'
 import { BRAND_LIST, resolveParticipant } from './participantAssets.js'
 import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory.js'
@@ -60,6 +64,26 @@ export function editionPhotos(code) {
     // foto, então a legenda não afirma participante (ver cabeçalho).
     alt: `Registro ${i + 1} da edição ${rotulo} do Sweet & Coffee Week`,
     position: focalPosition(src),
+  }))
+}
+
+/**
+ * Um combo de cada participante da edição, com a marca: Lovers sai das pastas
+ * de /images/combos/, as edições anteriores de editionCombos.js. Vazio quando o
+ * acervo não liga foto e marca (2016, 2017.1, 2018.2).
+ * @returns {{src:string, alt:string, position:string, marca:string, indice:number}[]}
+ */
+export function editionCombos(code) {
+  const lista = code === COMBO_EDITION
+    ? BRAND_LIST.map((b) => ({ marca: b.name, src: comboMain(b.slug)?.src })).filter((c) => c.src)
+    : EDITION_COMBOS[code] || []
+  const rotulo = editionLabel(code)
+  return lista.map((c, i) => ({
+    src: c.src,
+    marca: c.marca,
+    indice: i + 1,
+    alt: `Combo da ${c.marca} na edição ${rotulo} do Sweet & Coffee Week`,
+    position: focalPosition(c.src),
   }))
 }
 

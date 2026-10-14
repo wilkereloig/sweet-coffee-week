@@ -8,7 +8,7 @@ export function Depois() {
   return (
     <section id="depois-do-pre-cadastro" className="scw-secao scw-secao--choco" aria-labelledby="pa-depois-titulo">
       <Cabeca
-        icone="mapa/trajeto"
+        icone="trajeto"
         rotulo={D.rotulo}
         idTitulo="pa-depois-titulo"
         titulo={<>{D.titulo} <Destaque base="var(--scw-creme)" dest="var(--scw-amarelo)">{D.destaque}</Destaque></>}

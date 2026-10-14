@@ -113,7 +113,7 @@ export function Depoimentos() {
   return (
     <section id="depoimentos" className="scw-secao scw-secao--creme" aria-labelledby="pa-depo-titulo">
       <Cabeca
-        icone="topicos/depoimento"
+        icone="depoimento"
         rotulo="Marcas que já viveram a edição"
         idTitulo="pa-depo-titulo"
         titulo={<>Quem participou conta com as <Destaque>próprias palavras</Destaque>.</>}

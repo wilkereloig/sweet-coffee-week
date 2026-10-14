@@ -1,6 +1,7 @@
 import React from 'react'
 import { Rotulo } from '../../../components/Rotulo'
 import { Seta } from '../../../components/Seta'
+import ScwIcon from '../../../components/scw-icons/ScwIcon'
 import { SEGMENTOS, INTERESSES } from '../../../lib/supportInterest'
 import { INSTAGRAM_URL, INSTAGRAM_HANDLE } from '../../../config/channels'
 import { PROPOSTA as P } from '../../../data/conteudo/apoiar'
@@ -76,7 +77,7 @@ export function Proposta() {
   return (
     <section id="proposta" className="scw-secao scw-secao--bege" aria-labelledby="pa-proposta-titulo" data-mo-fora>
       <div className="pa-form__intro">
-        <Rotulo icone="topicos/proposta">{P.rotulo}</Rotulo>
+        <Rotulo icone="apoio">{P.rotulo}</Rotulo>
         <h2 className="scw-h2" id="pa-proposta-titulo">
           {P.titulo} <Destaque>{P.destaque}</Destaque>
         </h2>
@@ -86,9 +87,7 @@ export function Proposta() {
       {state === 'success' ? (
         <div className="pa-sucesso" ref={sucessoRef} tabIndex={-1} role="status">
           <span className="pa-sucesso__mark" aria-hidden="true">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ScwIcon nome="feito" tamanho={24} />
           </span>
           <strong>{P.sucessoTitulo}</strong>
           <p>{P.sucesso}</p>

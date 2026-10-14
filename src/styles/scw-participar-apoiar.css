@@ -251,8 +251,9 @@ body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: va
 /* A cor do disco é a DA PÁGINA, não um literal: cyan em Participar, marrom em
    Apoiar — e a tinta acompanha sozinha (chocolate sobre cyan, creme sobre
    marrom), que é exatamente o par que `body.route-*` já define. */
+/* O desenho tem o tamanho do atributo (32 expressivo no disco de 54; 24 de
+   interface no de 48) — CSS não redimensiona ícone (§6.11). */
 .pa-num__disco { --tam: 54px; --c: var(--scw-pagina); --tinta: var(--scw-pagina-tinta); align-self: start; }
-.pa-num__disco svg { width: 58%; height: 58%; }
 .pa-numeros b {
   display: block;
   color: var(--scw-choco);
@@ -661,7 +662,6 @@ body.route-participar .pa-hero__acoes .scw-btn:focus-visible { outline-color: va
 /* Disco na cor da página (marrom de tinta creme) — a cor diz "isto é
    Apoiar"; quem distingue o dado é o ícone (§6.3). 48px, ícone de 24. */
 .pa-dados .pa-num__disco { --tam: 48px; grid-area: disco; }
-.pa-dados .pa-num__disco svg { width: 24px; height: 24px; }
 .pa-dados__lista b {
   grid-area: n;
   color: var(--scw-choco);

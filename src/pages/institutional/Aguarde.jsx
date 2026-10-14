@@ -26,7 +26,7 @@ export function AguardePage() {
         saber assim que abrir.
       </p>
       <a className="ag-cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-        <ScwIcon nome="redes/instagram" tamanho={20} />
+        <ScwIcon nome="instagram" tamanho={20} />
         Seguir {INSTAGRAM_HANDLE}
       </a>
     </section>

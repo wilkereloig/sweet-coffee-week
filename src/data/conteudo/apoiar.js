@@ -36,15 +36,15 @@ export const ALCANCE = {
   titulo: 'Dez anos de',
   destaque: 'audiência e consumo',
   depois: ' na cidade.',
-  apoio: 'Números históricos, arredondados para baixo. Mostram o que o festival já construiu, não uma projeção para a próxima edição.',
+  apoio: 'Números históricos, arredondados para baixo. Não são projeção para a próxima edição.',
   grupos: [
     {
       titulo: 'Nas casas participantes',
       fonte: `Histórico comercial das ${F.editions.value} edições`,
       apurado: F.revenue.apurado,
       itens: [
-        dado(F.revenue, 'movimentação direta', 'mecanica/promocao'),
-        dado(F.combosSold, 'combos vendidos', 'combos/doce-cafe'),
+        dado(F.revenue, 'movimentação direta', 'moedas'),
+        dado(F.combosSold, 'combos vendidos', 'combo'),
       ],
     },
     {
@@ -53,10 +53,10 @@ export const ALCANCE = {
       apurado: F.igViews.apurado,
       nota: 'Visualizações, alcance e interações medem coisas diferentes e não se somam.',
       itens: [
-        dado(F.igViews, 'visualizações', 'topicos/video'),
-        dado(F.igReach, 'alcance', 'mecanica/publico'),
-        dado(F.igInteractions, 'interações', 'mecanica/avaliar'),
-        dado(F.igFollowers, 'seguidores', 'simbolos/sweet-lovers'),
+        dado(F.igViews, 'visualizações', 'descobrir'),
+        dado(F.igReach, 'alcance', 'alcance'),
+        dado(F.igInteractions, 'interações', 'coracao'),
+        dado(F.igFollowers, 'seguidores', 'pessoas'),
       ],
     },
   ],
@@ -67,14 +67,12 @@ export const QUEM_VIVE = {
   rotulo: 'Quem vive o festival',
   titulo: 'Um público que',
   destaque: 'sai de casa para provar.',
-  apoio: 'É com essa gente que a sua marca conversa: quem circula pelas casas, acompanha o Instagram oficial e espera o resultado do Sweet Awards.',
+  apoio: 'É com esse público que a sua marca conversa.',
   publico: [
-    'Público urbano e conectado',
-    'Consumidores de experiência gastronômica',
-    'Comunidade ativa no Instagram do festival',
-    'Pessoas que circulam por cafeterias, docerias e restaurantes',
-    'Gente que monta roteiro e divide combos com os amigos pra provar mais sabores',
-    'Quem acompanha combos, participantes e resultados de cada edição',
+    'Gente que circula por cafeterias, docerias e restaurantes da cidade',
+    'Grupos que montam roteiro e dividem combos para provar mais sabores',
+    'Uma comunidade ativa no Instagram oficial do festival',
+    'Quem acompanha os participantes e espera o resultado do Sweet Awards',
   ],
   imprensaRotulo: 'Já noticiaram o festival',
   // Só nomes (sem logo inventada).
@@ -108,7 +106,7 @@ export const ONDE = {
    nomeada: os nomes ficam no acervo, não no site. */
 export const FORMATOS = {
   titulo: 'Formatos que já aconteceram',
-  nota: 'Exemplos reais de edições anteriores. As marcas parceiras não são nomeadas aqui.',
+  nota: 'Exemplos reais de edições anteriores, sem nomear as marcas parceiras.',
   itens: [
     { t: 'Benefício cruzado', d: 'O cupom fiscal do combo dava 50% de desconto num cinema parceiro.' },
     { t: 'Sorteio para o público', d: 'Curtir a publicação de um participante valia a chance de ganhar uma máquina de café.' },
@@ -129,5 +127,5 @@ export const PROPOSTA = {
   sucesso: 'A organização do Sweet & Coffee Week recebeu sua proposta e retorna pelo contato informado para conversar sobre formato e disponibilidade.',
   privacidade: 'Usamos estes dados só para analisar a proposta e falar com você sobre ela.',
   barra: 'Apoio para a próxima edição: fale com a organização.',
-  barraAcao: 'Falar sobre apoio',
+  barraAcao: 'Conversar sobre apoio',
 }

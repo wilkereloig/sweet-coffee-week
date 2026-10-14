@@ -6,13 +6,15 @@ import { SetaVolta, Xis } from '../icones'
 import { teclaDaGaleria } from '../teclado'
 
 /*
- * GALERIA DA EDIÇÃO — o acervo inteiro da edição (11–12 fotos).
+ * GALERIA DA EDIÇÃO — um combo de cada marca participante (`porMarca`), com o
+ * nome da marca na legenda; nas edições em que o acervo não liga foto e marca
+ * (2016, 2017.1, 2018.2), os 11–12 registros da edição, sem legenda.
  *
  * Uma foto principal num visor de proporção fixa (a reserva de espaço não
- * depende da foto) com `object-fit: contain`: o acervo mistura retrato,
- * paisagem e quadrado, e nenhuma foto perde o produto para caber no quadro.
+ * depende da foto), preenchendo o visor (`cover`, com o ponto focal da foto).
+ * A foto ampliada aparece inteira (`contain`).
  * Embaixo (celular) ou ao lado (desktop): as miniaturas, que são a sequência
- * manual — cada uma é um botão. Setas, contador "03 / 12" e legenda.
+ * manual — cada uma é um botão. Setas e contador "03 / 12".
  *
  * Só anda por escolha: sem autoplay. As setas do teclado trocam a foto apenas
  * com o foco DENTRO da galeria (`data-teclas-proprias`) — a página não captura
@@ -23,7 +25,7 @@ import { teclaDaGaleria } from '../teclado'
  */
 const pad2 = (n) => String(n).padStart(2, '0')
 
-export function GaleriaEdicao({ fotos, tema, ano }) {
+export function GaleriaEdicao({ fotos, porMarca = false, marcas = null, tema, ano }) {
   const [i, setI] = React.useState(0)
   const [aberta, setAberta] = React.useState(false)   // a foto grande só baixa ao ampliar
   const dialogo = React.useRef(null)
@@ -34,12 +36,18 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
 
   const ir = React.useCallback((k) => setI(((k % n) + n) % n), [n])
 
-  // A miniatura da foto atual fica à vista na faixa, sem rolar a página.
+  // A miniatura da foto atual fica à vista — na faixa do celular (horizontal)
+  // ou na coluna do desktop (vertical) —, sem rolar a página.
   React.useEffect(() => {
     const f = miniaturas.current
     const b = f && f.children[i]
-    if (!f || !b || f.scrollWidth <= f.clientWidth) return
-    f.scrollTo({ left: Math.max(0, b.offsetLeft - (f.clientWidth - b.offsetWidth) / 2) })
+    if (!f || !b) return
+    const caixa = f.getBoundingClientRect()
+    const item = b.getBoundingClientRect()
+    f.scrollTo({
+      left: f.scrollLeft + item.left - caixa.left - (caixa.width - item.width) / 2,
+      top: f.scrollTop + item.top - caixa.top - (caixa.height - item.height) / 2,
+    })
   }, [i])
 
   if (!n) {
@@ -50,10 +58,10 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
     )
   }
 
-  /* O ponto focal do acervo é para RECORTE (cover). Aqui a foto aparece
-     inteira (contain), então ela fica no centro do visor. */
-  const foto = { ...fotos[i], position: null }
-  const legenda = `Registro ${foto.indice} de ${n} · ${tema}, ${ano}`
+  const foto = fotos[i]
+  const legenda = porMarca ? foto.marca : `Registro ${foto.indice} de ${n} · ${tema}, ${ano}`
+  const titulo = porMarca ? TEXTOS.galeriaCombos : TEXTOS.galeria
+  const nomeDa = (f, k) => (porMarca ? `Combo da ${f.marca}` : `Foto ${k + 1} de ${n}`)
 
   const aoTeclar = (ev) => {
     const acao = teclaDaGaleria(ev)
@@ -89,8 +97,8 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
   return (
     <section className="edx-gal" aria-labelledby="edx-gal-titulo">
       <div className="edx-gal__cabeca">
-        <h2 id="edx-gal-titulo" className="edx-gal__titulo">{TEXTOS.galeria}</h2>
-        <p className="edx-gal__nota">{TEXTOS.notaFotos}</p>
+        <h2 id="edx-gal-titulo" className="edx-gal__titulo">{titulo}</h2>
+        <p className="edx-gal__nota">{porMarca ? TEXTOS.notaCombos(n, marcas) : TEXTOS.notaFotos}</p>
       </div>
 
       <div
@@ -99,14 +107,14 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
         data-teclas-proprias=""
         role="group"
         aria-roledescription="galeria"
-        aria-label={`${TEXTOS.galeria} ${tema}`}
+        aria-label={`${titulo} ${tema}`}
         onKeyDown={aoTeclar}
       >
         <figure className="edx-gal__palco">
-          <button type="button" className="edx-gal__visor" ref={palco} onClick={ampliar} aria-label={`Ampliar: ${legenda}`}>
+          <button type="button" className="edx-gal__visor" ref={palco} onClick={ampliar} aria-label={`Ampliar: ${nomeDa(foto, i)}`}>
             <FotoAcervo key={foto.src} foto={foto} papel="cartao" prioridade className="edx-gal__foto" />
           </button>
-          <figcaption className="edx-gal__legenda">{legenda}</figcaption>
+          {porMarca && <figcaption className="edx-gal__legenda">{foto.marca}</figcaption>}
         </figure>
 
         <div className="edx-gal__lado">
@@ -120,7 +128,7 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
             </button>
             <button type="button" className="edx-gal__ampliar" onClick={ampliar}>Ampliar</button>
           </div>
-          <p className="edx-sr" aria-live="polite" aria-atomic="true">{`Foto ${i + 1} de ${n}`}</p>
+          <p className="edx-sr" aria-live="polite" aria-atomic="true">{porMarca ? `${foto.marca}, foto ${i + 1} de ${n}` : `Foto ${i + 1} de ${n}`}</p>
 
           <ul className="edx-gal__miniaturas" ref={miniaturas}>
             {fotos.map((f, k) => (
@@ -128,7 +136,7 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
                 <button
                   type="button"
                   className="edx-gal__mini"
-                  aria-label={`Foto ${k + 1} de ${n}`}
+                  aria-label={nomeDa(f, k)}
                   aria-current={k === i ? 'true' : undefined}
                   onClick={() => ir(k)}
                 >
@@ -143,7 +151,7 @@ export function GaleriaEdicao({ fotos, tema, ano }) {
       <dialog
         ref={dialogo}
         className="edx-ampliada"
-        aria-label={`${TEXTOS.galeria} ${tema}, ampliada`}
+        aria-label={`${titulo} ${tema}, ampliada`}
         onKeyDown={noDialogo}
         onClose={() => { setAberta(false); if (palco.current) palco.current.focus() }}
       >

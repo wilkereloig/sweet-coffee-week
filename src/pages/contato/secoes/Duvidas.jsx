@@ -60,9 +60,7 @@ function Pergunta({ q, aberto, alternar, comAssunto }) {
             <span className="ctt-item__pergunta">{q.p}</span>
           </span>
           <span className="ctt-item__sinal" aria-hidden="true">
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ScwIcon nome="abrir" tamanho={16} />
           </span>
         </button>
       </h3>
@@ -100,7 +98,7 @@ export function Duvidas({ central }) {
       data-mo-fora
     >
       <div className="ctt-cabeca">
-        <Rotulo icone="topicos/duvidas">{CENTRAL.rotulo}</Rotulo>
+        <Rotulo icone="duvida">{CENTRAL.rotulo}</Rotulo>
         <h2 id="ctt-duvidas-titulo" className="scw-h2 ctt-cabeca__titulo">
           {CENTRAL.titulo[0]}
           <span className="ctt-sem-quebra"><em className="ctt-destaque">{CENTRAL.titulo[1]}</em>{CENTRAL.titulo[2]}</span>
@@ -112,7 +110,7 @@ export function Duvidas({ central }) {
           <div role="search" className="ctt-busca">
             <label htmlFor="ctt-busca" className="ctt-lateral__rotulo">{CENTRAL.buscaRotulo}</label>
             <div className="ctt-busca__linha">
-              <ScwIcon nome="ui/busca" tamanho={20} />
+              <ScwIcon nome="busca" tamanho={20} />
               <input
                 id="ctt-busca"
                 type="search"
@@ -156,7 +154,7 @@ export function Duvidas({ central }) {
             </p>
             {c.buscando && (
               <button type="button" className="ctt-limpar" onClick={c.limparBusca}>
-                <ScwIcon nome="ui/fechar" tamanho={16} />
+                <ScwIcon nome="fechar" tamanho={16} />
                 {CENTRAL.limpar}
               </button>
             )}
@@ -178,7 +176,7 @@ export function Duvidas({ central }) {
 
           {c.restantes > 0 && (
             <button type="button" className="ctt-mais" onClick={c.mostrarMais}>
-              <ScwIcon nome="ui/mais" tamanho={16} />
+              <ScwIcon nome="mais" tamanho={16} />
               Mostrar mais {c.proximoPasso}
               <span className="ctt-mais__resto">de {c.restantes} restantes</span>
             </button>

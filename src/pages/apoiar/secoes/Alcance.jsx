@@ -12,7 +12,7 @@ export function Alcance() {
   return (
     <section id="alcance" className="scw-secao scw-secao--bege" aria-labelledby="pa-alcance-titulo">
       <Cabeca
-        icone="topicos/alcance"
+        icone="alcance"
         rotulo={A.rotulo}
         idTitulo="pa-alcance-titulo"
         titulo={<>{A.titulo} <Destaque>{A.destaque}</Destaque>{A.depois}</>}

@@ -42,7 +42,7 @@ export function Indice({ itens }) {
                 <span>{item.resumo}</span>
               </span>
               <span className="swa-indice__seta" aria-hidden="true">
-                <ScwIcon nome="ui/abrir" tamanho={20} />
+                <ScwIcon nome="abrir" tamanho={20} />
               </span>
             </a>
           </li>

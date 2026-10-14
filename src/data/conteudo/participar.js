@@ -57,9 +57,9 @@ export const PARA_QUEM = {
   semLoja: 'Marca sem loja física pode ser aceita quando há estrutura de produção, retirada ou entrega compatível com o formato da edição.',
   comoTitulo: 'Como a edição funciona',
   como: [
-    { titulo: 'Um tema por edição', texto: 'Cada edição nasce de um tema, anunciado pela organização. É ele que inspira o que as casas criam.', icone: 'topicos/tema-da-edicao' },
-    { titulo: 'Um combo inédito', texto: 'Doce, salgado e bebida criados pela sua casa para o tema, seguindo as orientações do festival.', icone: 'combos/trio' },
-    { titulo: 'Os dias de festival', texto: 'O combo fica disponível nos dias e horários informados, com os materiais oficiais na casa.', icone: 'simbolos/estabelecimento' },
+    { titulo: 'Um tema por edição', texto: 'A organização anuncia o tema, e é dele que sai a criação de cada casa.', icone: 'tema' },
+    { titulo: 'Um combo inédito', texto: 'Doce, salgado e bebida criados pela sua casa para o tema, seguindo as orientações do festival.', icone: 'combo' },
+    { titulo: 'Os dias de festival', texto: 'O combo fica disponível nos dias e horários informados, com os materiais oficiais na casa.', icone: 'loja' },
   ],
 }
 
@@ -83,10 +83,10 @@ export const NUMEROS = {
   titulo: 'Dez anos em números',
   nota: `Movimentação e combos são históricos, apurados em ${F.revenue.apurado}.`,
   itens: [
-    { n: F.revenue.curto, t: 'movimentação direta', d: semRepetir('movimentação direta', F.revenue.mede), i: 'mecanica/promocao', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
-    { n: F.combosSold.curto, t: 'combos vendidos', d: semRepetir('combos vendidos', F.combosSold.mede), i: 'combos/doce-cafe', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
-    { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'ui/calendario', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
-    { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'uma curadoria e um tema autoral novos a cada edição', i: 'topicos/circulacao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
+    { n: F.revenue.curto, t: 'movimentação direta', d: semRepetir('movimentação direta', F.revenue.mede), i: 'moedas', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+    { n: F.combosSold.curto, t: 'combos vendidos', d: semRepetir('combos vendidos', F.combosSold.mede), i: 'combo', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
+    { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'calendario', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
+    { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'de Início, em 2016, a Lovers, em 2026', i: 'edicao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
   ],
 }
 
@@ -99,9 +99,9 @@ export const DEPOIS = {
   rotulo: 'Depois do pré-cadastro',
   titulo: 'Do pré-cadastro',
   destaque: 'à estreia do combo.',
-  apoio: 'O pré-cadastro registra o interesse. A participação depende da curadoria e das vagas de cada edição.',
+  apoio: 'A participação depende da curadoria e das vagas de cada edição.',
   passos: [
-    { titulo: 'Pré-cadastro', texto: 'Você conta sobre você e o estabelecimento, em dois passos rápidos.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+    { titulo: 'Pré-cadastro', texto: 'Um formulário curto sobre você e o estabelecimento.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
     { titulo: 'Curadoria', texto: 'A organização avalia o perfil, a capacidade de atendimento e o alinhamento com a edição. As condições comerciais são apresentadas nessa etapa.', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
     { titulo: 'Aprovação e painel', texto: 'Casa aprovada recebe acesso ao painel da marca, onde cadastra o combo e acompanha os pedidos da organização.', cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)' },
     { titulo: 'Combo aprovado', texto: 'A organização confere o combo antes da estreia. Mudanças depois disso passam por ela.', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
@@ -114,11 +114,11 @@ export const PROXIMO = {
   rotulo: 'Pré-cadastro',
   titulo: 'Comece a',
   destaque: 'jornada da sua marca.',
-  texto: 'Leva menos de um minuto. Depois do envio, a equipe avalia o perfil e retorna pelos canais que você informar.',
+  texto: 'Depois do envio, a equipe avalia o perfil e retorna pelos canais que você informar.',
   lista: [
-    { icone: 'ui/horario', texto: 'Dois passos, sete campos, menos de um minuto' },
-    { icone: 'mecanica/loja', texto: 'Seus dados e os do estabelecimento' },
-    { icone: 'mecanica/regulamento', texto: 'Usados só pela organização, para contato e curadoria' },
+    { icone: 'horario', texto: 'Dois passos, sete campos, menos de um minuto' },
+    { icone: 'loja', texto: 'Seus dados e os do estabelecimento' },
+    { icone: 'cadeado', texto: 'Usados só pela organização, para contato e curadoria' },
   ],
   barra: 'Inscrições passam por curadoria.',
 }

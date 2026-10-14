@@ -25,7 +25,7 @@ export function OndeAparece() {
   return (
     <section id="formatos" className="scw-secao scw-secao--creme" aria-labelledby="pa-onde-titulo">
       <Cabeca
-        icone="simbolos/descobrir"
+        icone="descobrir"
         rotulo={ONDE.rotulo}
         idTitulo="pa-onde-titulo"
         titulo={<>{ONDE.titulo} <Destaque dest="var(--scw-roxo)">{ONDE.destaque}</Destaque></>}

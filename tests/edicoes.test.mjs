@@ -95,16 +95,26 @@ test('rota: código válido abre o detalhe; o resto é a visão geral', () => {
 test('detalhe: fotos, história, marcas e vizinhas de cada edição', () => {
   for (const [i, e] of A.EDICOES.entries()) {
     const d = A.detalhe(e.code)
-    assert.ok(d.fotos.length >= 11, `${e.code}: galeria`)
-    assert.ok(d.fotos.every((f) => f.src.startsWith(`/images/edicoes/${e.code}/`)), `${e.code}: foto de outra edição`)
+    if (d.porMarca) {
+      // Um combo por marca: cada foto diz a marca, a marca é desta edição e
+      // não se repete; nunca mais fotos do que marcas.
+      const nomes = d.fotos.map((f) => f.marca)
+      assert.ok(nomes.every((m) => d.participantes.includes(m)), `${e.code}: foto de marca que não participou`)
+      assert.equal(new Set(nomes).size, nomes.length, `${e.code}: marca repetida na galeria`)
+      assert.ok(d.fotos.every((f) => f.src.startsWith(`/images/edicoes/${e.code}/combos/`) || (e.code === '2026.1' && f.src.startsWith('/images/combos/'))), `${e.code}: foto de outra edição`)
+    } else {
+      assert.ok(d.fotos.length >= 11, `${e.code}: galeria`)
+      assert.ok(d.fotos.every((f) => f.src.startsWith(`/images/edicoes/${e.code}/`)), `${e.code}: foto de outra edição`)
+    }
     assert.equal(d.participantes.length, d.n)
     assert.equal(d.anterior && d.anterior.code, i ? A.EDICOES[i - 1].code : null)
     assert.equal(d.proxima && d.proxima.code, A.EDICOES[i + 1] ? A.EDICOES[i + 1].code : null)
     assert.ok(d.curiosidades.every((c) => !/R\$/.test(`${c.x} ${c.v || ''}`)), `${e.code}: preço não entra`)
     assert.ok(d.narrativa.lead, `${e.code}: lead`)
   }
-  assert.ok(A.detalhe('2016').abertura, 'a estreia conta o começo do festival')
-  assert.equal(A.detalhe('2017.1').abertura, null)
+  // Revisão editorial de 14/10/2026: a explicação geral do festival é da Home,
+  // não se repete no detalhe da estreia.
+  assert.ok(!('abertura' in A.detalhe('2016')), 'a estreia não repete a explicação geral do festival')
   assert.equal(A.detalhe('2026.2'), null)
 })
 

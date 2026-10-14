@@ -16,7 +16,7 @@
  * imageLibrary.editionPhotos().
  */
 export const CENAS = [
-  { code: '2016',   tema: 'Início',              etapa: 'A estreia',            capa: 2 },
+  { code: '2016',   tema: 'Início',              etapa: 'O primeiro circuito',  capa: 2 },
   { code: '2017.1', tema: 'Páscoa',              etapa: 'Chocolate e presente', capa: 1 },
   { code: '2017.2', tema: 'Doces do Mundo',      etapa: 'Viagem gastronômica',  capa: 2 },
   { code: '2018.1', tema: 'Namorados',           etapa: 'Afeto à mesa',         capa: 12 },
@@ -63,6 +63,7 @@ export const TEXTOS = {
   explorar: 'Explorar',
   voltar: 'Todas as edições',
   galeria: 'Fotos da edição',
+  galeriaCombos: 'Os combos da edição',
   fotoPendente: 'Foto pendente',
   galeriaPendente: 'Galeria pendente',
   marcasPendentes: 'Lista de participantes pendente.',
@@ -70,8 +71,12 @@ export const TEXTOS = {
      o registro da EDIÇÃO, e a lista de marcas segue textual. Dizer isso evita
      que alguém leia a foto como sendo de uma casa da lista. */
   notaFotos: 'As fotos são registros da edição e não identificam a marca de cada combo.',
+  /* Galeria por marca: um combo de cada participante. Quando nem toda marca tem
+     foto no acervo, a nota diz quantas têm — a ausência fica dita. */
+  notaCombos: (fotos, marcas) => (marcas && fotos < marcas
+    ? `Um combo de cada marca participante. ${fotos} das ${marcas} marcas têm foto no acervo.`
+    : 'Um combo de cada marca participante.'),
   historia: 'A história da edição',
-  comecoFestival: 'Como o festival começou',
   marco: 'Por que essa edição marcou',
   destaque: 'Um destaque',
   legado: 'O que ficou',

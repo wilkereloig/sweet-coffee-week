@@ -22,7 +22,7 @@ export function Registros({ ir }) {
     <section className="scw-secao scw-secao--choco hm-registros" aria-labelledby="hm-registros-titulo">
       <div className="hm-cab">
         <div>
-          <Rotulo icone="simbolos/sweet-lovers" className="hm-rotulo--amarelo">{T.rotulo}</Rotulo>
+          <Rotulo icone="coracao" className="hm-rotulo--amarelo">{T.rotulo}</Rotulo>
           <h2 id="hm-registros-titulo" className="scw-h2 hm-h2--claro">
             <TituloDestaque t={T.titulo} base="var(--scw-creme)" dest="var(--scw-amarelo)" />
           </h2>

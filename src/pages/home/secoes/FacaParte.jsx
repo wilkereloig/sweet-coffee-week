@@ -24,7 +24,7 @@ export function FacaParte({ ir }) {
   return (
     <section className="scw-secao scw-secao--creme hm-parte" aria-labelledby="hm-parte-titulo">
       <div className="hm-parte__cab">
-        <Rotulo icone="simbolos/estabelecimento">{T.rotulo}</Rotulo>
+        <Rotulo icone="loja">{T.rotulo}</Rotulo>
         <h2 id="hm-parte-titulo" className="scw-h2">
           <TituloDestaque t={T.titulo} />
         </h2>

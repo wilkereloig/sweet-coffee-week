@@ -3,9 +3,8 @@ import { TEXTOS } from '../../../data/conteudo/edicoes'
 
 /*
  * HISTÓRIA — no fluxo da página, nada atrás de botão. Texto corrido à
- * esquerda (o começo do festival, só na estreia; por que a edição marcou; um
- * destaque; o que ficou) e as curiosidades do acervo ao lado. Sem texto
- * nenhum, a seção não existe.
+ * esquerda (por que a edição marcou; um destaque; o que ficou) e as
+ * curiosidades do acervo ao lado. Sem texto nenhum, a seção não existe.
  */
 function Bloco({ titulo, children }) {
   return (
@@ -16,8 +15,8 @@ function Bloco({ titulo, children }) {
   )
 }
 
-export function Historia({ narrativa, abertura, curiosidades }) {
-  const temTexto = abertura || narrativa.marco || narrativa.curiosidade || narrativa.legado
+export function Historia({ narrativa, curiosidades }) {
+  const temTexto = narrativa.marco || narrativa.curiosidade || narrativa.legado
   if (!temTexto && !curiosidades.length) return null
   return (
     <section className="scw-secao edx-hist" aria-labelledby="edx-hist-titulo">
@@ -25,11 +24,6 @@ export function Historia({ narrativa, abertura, curiosidades }) {
       <div className={`edx-hist__grade${curiosidades.length ? '' : ' edx-hist__grade--so-texto'}`}>
         {temTexto && (
           <div className="edx-hist__texto">
-            {abertura && (
-              <Bloco titulo={TEXTOS.comecoFestival}>
-                {abertura.paragrafos.map((p) => <p key={p.slice(0, 32)} className="scw-corpo">{p}</p>)}
-              </Bloco>
-            )}
             {narrativa.marco && <Bloco titulo={TEXTOS.marco}><p className="scw-corpo">{narrativa.marco}</p></Bloco>}
             {narrativa.curiosidade && <Bloco titulo={TEXTOS.destaque}><p className="scw-corpo">{narrativa.curiosidade}</p></Bloco>}
             {narrativa.legado && <Bloco titulo={TEXTOS.legado}><p className="scw-corpo">{narrativa.legado}</p></Bloco>}

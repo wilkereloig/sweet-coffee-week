@@ -27,13 +27,13 @@ export function Reconhecimento({ ir }) {
         <figcaption>{foto.legenda}</figcaption>
       </figure>
       <div className="hm-awards__texto">
-        <Rotulo icone="simbolos/avaliacao-do-publico" className="hm-rotulo--amarelo">{T.rotulo}</Rotulo>
+        <Rotulo icone="avaliacao" className="hm-rotulo--amarelo">{T.rotulo}</Rotulo>
         <h2 id="hm-awards-titulo" className="scw-h2 hm-h2--claro">
           <TituloDestaque t={T.titulo} base="var(--scw-creme)" dest="var(--scw-amarelo)" />
         </h2>
         <p className="hm-apoio hm-apoio--clara">{T.texto}</p>
         <p className="hm-awards__numero">
-          <span className="scw-disco" aria-hidden="true"><ScwIcon nome="simbolos/destaque" tamanho={24} /></span>
+          <span className="scw-disco" aria-hidden="true"><ScwIcon nome="estrela" tamanho={24} /></span>
           <strong className="scw-numeral">{PREMIOS_ENTREGUES}</strong>
           <span>{T.numero}</span>
         </p>

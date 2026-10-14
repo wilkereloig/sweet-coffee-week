@@ -41,7 +41,7 @@ export function PausaFotos({ pausado, alternar, className = '' }) {
       aria-label={rotulo}
       data-rotulo={rotulo}
     >
-      <ScwIcon nome={pausado ? 'ui/play' : 'ui/pausa'} tamanho={20} />
+      <ScwIcon nome={pausado ? 'play' : 'pausa'} tamanho={20} />
     </button>
   )
 }

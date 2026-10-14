@@ -24,7 +24,7 @@ export function ParaQuem() {
     <section id="como-funciona" className="scw-secao scw-secao--bege" aria-labelledby="pa-quem-titulo">
       <div className="pa-paraquem">
         <div className="pa-paraquem__quem">
-          <Rotulo icone="topicos/quem-pode">{P.rotulo}</Rotulo>
+          <Rotulo icone="loja">{P.rotulo}</Rotulo>
           <h2 className="scw-h2" id="pa-quem-titulo">
             {P.titulo} <Destaque>{P.destaque}</Destaque>
           </h2>
