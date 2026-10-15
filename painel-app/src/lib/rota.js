@@ -123,6 +123,30 @@ const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas'])
 const ABA_CONTATOS = new Set(['pessoas', 'presskit', 'vouchers', 'recebidos'])
 const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'arquivados'])
 
+/*
+ * Ficha do participante (15/10/2026): quatro vistas no lugar das dez abas.
+ * `sub` vazio = Visão do participante; seções da visão são âncoras (o mesmo
+ * `sub`, gravado sem empilhar histórico). Os nomes das abas antigas — de
+ * links do banco, notificações e favoritos — continuam chegando ao assunto.
+ */
+export const VISTAS_FICHA = ['visao', 'comunicacao', 'historico', 'gestao']
+const SUB_ANTIGO = {
+  '': ['visao', ''], resumo: ['visao', ''], visao: ['visao', ''],
+  cadastro: ['visao', 'cadastro'], combo: ['visao', 'combo'], tema: ['visao', 'combo'],
+  unidades: ['visao', 'unidades'], fotos: ['visao', 'fotos'],
+  operacao: ['visao', 'operacao'], publicacao: ['visao', 'publicacao'],
+  mensagens: ['comunicacao', ''], comunicacao: ['comunicacao', ''],
+  historico: ['historico', ''], trajetoria: ['historico', 'trajetoria'],
+  acesso: ['gestao', ''], gestao: ['gestao', ''],
+}
+/** `sub` do endereço → { vista, secao }. Desconhecido cai na visão, sem seção. */
+export function destinoNaFicha(sub) {
+  const [vista, secao] = (Object.hasOwn(SUB_ANTIGO, sub || '') && SUB_ANTIGO[sub || '']) || ['visao', '']
+  return { vista, secao }
+}
+/** { vista, secao } → `sub` canônico ('' para a visão sem seção). */
+export const subDaFicha = (vista, secao = '') => (vista === 'visao' || !vista ? secao || '' : vista === 'historico' && secao === 'trajetoria' ? 'trajetoria' : vista)
+
 /**
  * Compatibilidade com o `irPara(vista, { id, sub, origem })` das vistas de
  * antes dos módulos: monta o link curto equivalente, que `rotaDoLink` traduz.

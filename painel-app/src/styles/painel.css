@@ -1505,23 +1505,138 @@ button.ui-modulo:active{transform:translateY(0)}
 /* ── Ficha do participante (página) ───────────────────────────────────────── */
 .fm-pagina{display:flex;flex-direction:column;gap:var(--e-5);min-width:0}
 .fm-voltar{align-self:flex-start}
-.fm-cabeca{
-  position:sticky;top:0;z-index:4;
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px 20px;align-items:center;
-  padding:20px 22px;background:var(--sup-1);border-radius:var(--r-3);
-  box-shadow:var(--contorno),var(--sombra-2);
-}
 .fm-cabeca__nome{margin:0;font:900 clamp(22px,2.4vw,32px)/1.05 var(--f-titulo);letter-spacing:-.03em;overflow-wrap:anywhere}
-.fm-cabeca__selos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.fm-cabeca__meta{margin:8px 0 0;font:400 14px/1.4 var(--f-texto);color:var(--scw-marrom)}
-.fm-cabeca__meta b{font:700 14px/1.4 var(--f-ui);color:var(--scw-choco)}
-.fm-cabeca__acoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
-@media (max-width:1000px){
-  .fm-cabeca{position:static;grid-template-columns:auto minmax(0,1fr)}
-  .fm-cabeca__acoes{grid-column:1 / -1;justify-content:flex-start}
-}
 .fm-pagina > .ui-abas{margin:0}
-.fm-resumo-situacao{display:grid;gap:var(--e-4);grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+
+/* ── Ficha geral (15/10/2026): cabeçalho compacto, leitura em seções ──────
+   Uma superfície para o corpo, seções separadas por filete — não uma parede
+   de cards. Rótulo pequeno, valor com presença. */
+.fg-cabeca{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 22px;align-items:start;
+  padding:20px 22px;background:var(--sup-1);border-radius:var(--r-3);box-shadow:var(--contorno),var(--sombra-1);
+}
+/* Exceção pedida (15/10/2026): no cabeçalho da ficha a logo aparece INTEIRA. */
+.fg-logo .ui-logo:not(.ui-logo--iniciais){background:var(--scw-creme)}
+.fg-logo .ui-logo img{object-fit:contain}
+.fg-cabeca__texto{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fg-cabeca__edicao{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.fg-cabeca__meta{margin:0;font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
+.fg-processos{margin:0;display:flex;flex-wrap:wrap;gap:6px 18px}
+.fg-processos > div{display:flex;align-items:center;gap:6px;min-width:0}
+.fg-processos dt{font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
+.fg-processos dd{margin:0;min-width:0}
+.fg-processos .og-selo{white-space:normal;text-align:left}
+/* O nome recebe o foco ao abrir (leitor de tela anuncia a marca); não é controle, sem anel. */
+.fg-cabeca .fm-cabeca__nome:focus{outline:none;box-shadow:none}
+/* Quatro vistas: no celular, grade 2×2 em vez de trilho rolando de lado. */
+@media (max-width:520px){
+  .fm-pagina > .ui-abas{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:var(--r-2)}
+  .fm-pagina > .ui-abas .ui-aba{justify-content:center;border-radius:var(--r-1);padding:0 8px}
+}
+.fg-cabeca__acoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center;max-width:420px}
+@media (max-width:1000px){
+  .fg-cabeca{grid-template-columns:auto minmax(0,1fr)}
+  .fg-cabeca__acoes{grid-column:1 / -1;justify-content:flex-start;max-width:none}
+}
+@media (max-width:520px){
+  .fg-cabeca{padding:16px;gap:12px 14px}
+  /* --logo-t vem inline do LogoMarca: no celular a caixa encolhe por largura/altura. */
+  .fg-logo .ui-logo{width:64px;height:64px}
+  .fg-logo .ui-logo--iniciais{font-size:23px}
+}
+
+/* Âncoras da visão: lista de texto no desktop, caixa "Ir para seção" no celular. */
+.fg-ancoras{position:sticky;top:0;z-index:3;margin:0 0 var(--e-4);padding:6px 0;background:var(--sup-0)}
+.fg-ancoras__lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px 4px}
+.fg-ancora{min-height:44px;padding:0 12px;border:0;border-radius:var(--r-1);background:none;font:700 13.5px/1 var(--f-ui);color:var(--scw-choco);cursor:pointer}
+.fg-ancora:hover{background:var(--sup-toque)}
+.fg-ancora[aria-current]{background:var(--sup-2);box-shadow:inset 0 -2px 0 var(--scw-choco)}
+.fg-ancoras__celular{display:none}
+@media (max-width:760px){
+  .fg-ancoras{position:static;padding:0}
+  .fg-ancoras__lista{display:none}
+  .fg-ancoras__celular{display:flex}
+}
+
+/* Corpo: principal largo + coluna de pendências (só onde cabe). Mesma ordem
+   de leitura no celular: pendências primeiro, depois as seções. */
+.fg-visao{display:grid;gap:var(--e-5);grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:1180px){
+  .fg-visao{grid-template-columns:minmax(0,1fr) minmax(260px,320px);grid-template-areas:"principal lado"}
+  .fg-principal{grid-area:principal}
+  .fg-lado{grid-area:lado;position:sticky;top:64px}
+}
+.fg-principal{min-width:0;background:var(--sup-1);border-radius:var(--r-3);box-shadow:var(--contorno);padding:4px clamp(16px,2.2vw,32px)}
+.fg-principal > .ui-vazio{margin:20px 0}
+.fg-secao{padding:24px 0 28px;border-top:1px solid var(--scw-filete);scroll-margin-top:72px;min-width:0}
+.fg-secao:first-child{border-top:0}
+.fg-secao:focus{outline:none}
+.fg-secao__cabeca{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:16px}
+.fg-secao__titulo{margin:0;font:900 clamp(20px,2vw,26px)/1.1 var(--f-titulo);letter-spacing:-.03em}
+.fg-secao__nota{margin:4px 0 0;max-width:68ch;font:400 13.5px/1.45 var(--f-texto);color:var(--scw-marrom)}
+.fg-secao__acoes{display:flex;flex-wrap:wrap;gap:8px}
+.fg-sub{margin:22px 0 10px;font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+.fg-sub small{margin-left:8px;font:400 12.5px/1 var(--f-texto);color:var(--scw-marrom)}
+.fg-sub--menor{margin:16px 0 8px;font-size:13.5px}
+
+.fg-dados{margin:0;display:grid;gap:14px 28px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.fg-dado{min-width:0}
+.fg-dado--largo{grid-column:1 / -1}
+.fg-dado dt{font:700 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.fg-dado dd{margin:4px 0 0;font:400 15.5px/1.5 var(--f-texto);color:var(--scw-choco);overflow-wrap:anywhere;max-width:72ch}
+.fg-dado dd .og-selo{vertical-align:middle}
+.fg-vazio{font:400 14px/1.45 var(--f-texto);color:var(--scw-marrom);font-style:italic}
+p.fg-vazio{margin:0}
+.fg-texto{white-space:pre-wrap}
+.fg-texto-apoio{font:400 13.5px/1.45 var(--f-texto);color:var(--scw-marrom)}
+.fg-ler-mais{min-height:44px;display:inline-flex;align-items:center;vertical-align:middle;font-size:13.5px}
+.fg-nota-fim{margin:14px 0 0;font:400 13px/1.45 var(--f-texto);color:var(--scw-marrom)}
+.fg-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px}
+.fg-canal{display:block}
+.fg-lista{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.fg-lista li{display:flex;flex-direction:column;gap:1px;font:400 14px/1.4 var(--f-texto);color:var(--scw-marrom)}
+.fg-lista b{font:700 14.5px/1.35 var(--f-ui);color:var(--scw-choco)}
+.fg-aviso-fonte{margin-bottom:14px}
+
+/* Sub-bloco (componente, unidade): título e conteúdo, com filete tracejado. */
+.fg-bloco{padding:18px 0 4px;border-top:1px dashed var(--scw-filete)}
+.fg-bloco__titulo{margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font:700 17px/1.3 var(--f-ui);color:var(--scw-choco)}
+.fg-bloco__tipo{font:700 12.5px/1 var(--f-ui);color:var(--scw-marrom);padding:5px 9px;border-radius:999px;background:var(--sup-2)}
+.fg-bloco__com-foto{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){ .fg-bloco__com-foto{grid-template-columns:200px minmax(0,1fr)} }
+.fg-alimentar__conta{margin:0 0 8px;font:700 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.fg-trocas{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.fg-trocas li{display:flex;flex-direction:column;gap:2px;font:400 14px/1.45 var(--f-texto);color:var(--scw-marrom)}
+.fg-trocas b{font:700 15px/1.35 var(--f-ui);color:var(--scw-choco)}
+.fg-legado{margin:12px 0 0;padding:8px 12px;border-radius:var(--r-1);background:var(--sup-2);font:400 13px/1.45 var(--f-texto);color:var(--scw-marrom)}
+
+/* Fotos: miniaturas reais, papel e situação embaixo, ampliar abre o arquivo. */
+.fg-fotos{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));margin-bottom:14px}
+.fg-foto{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.fg-foto__link{display:block;border-radius:var(--r-2);overflow:hidden;background:var(--scw-bege);aspect-ratio:4 / 3}
+.fg-foto__link img{display:block;width:100%;height:100%;object-fit:cover}
+.fg-foto figcaption{display:flex;flex-direction:column;gap:2px;font:400 13px/1.4 var(--f-texto);color:var(--scw-marrom);overflow-wrap:anywhere}
+.fg-foto figcaption b{font:700 13.5px/1.3 var(--f-ui);color:var(--scw-choco)}
+.fg-foto--pequena .fg-foto__link{aspect-ratio:1}
+.fg-bloco__com-foto > .fg-foto{max-width:220px}
+@media (min-width:760px){ .fg-bloco__com-foto > .fg-foto{max-width:none} }
+
+/* Pendências: lista curta; cada item leva ao bloco. */
+.fg-pend{background:var(--sup-1);border-radius:var(--r-3);box-shadow:var(--contorno);padding:18px 18px 16px}
+.fg-pend__titulo{margin:0 0 10px;font:700 16px/1.2 var(--f-ui)}
+.fg-pend__lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fg-pend__lista li + li{border-top:1px solid var(--scw-filete)}
+.fg-pend__item{width:100%;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 2px;border:0;background:none;text-align:left;cursor:pointer;font:400 14px/1.4 var(--f-texto);color:var(--scw-choco)}
+.fg-pend__item:hover{background:var(--sup-toque)}
+.fg-pend__onde{display:inline-flex;align-items:center;gap:4px;font:700 12.5px/1 var(--f-ui);color:var(--scw-marrom)}
+.fg-pend__lista li.is-erro .fg-pend__item{color:var(--scw-marrom);font-style:italic}
+
+/* Editor aberto no lugar da seção. */
+.fg-editor{display:flex;flex-direction:column;gap:var(--e-5);padding:16px;border-radius:var(--r-3);background:var(--sup-0);box-shadow:inset 0 0 0 2px var(--scw-cyan)}
+.fg-editor__barra{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px}
+.fg-editor__titulo{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font:700 15px/1.3 var(--f-ui)}
+.fg-editor__titulo span{flex:1 1 100%;font:400 13px/1.4 var(--f-texto);color:var(--scw-marrom)}
+.fg-editor .ui-macro{margin-bottom:var(--e-5)}
 
 /* ── Casca da marca: a marca se reconhece no topo ─────────────────────────── */
 .pn-cabeca__ident{display:flex;align-items:center;gap:10px;min-width:0}

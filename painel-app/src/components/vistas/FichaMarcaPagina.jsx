@@ -1,29 +1,34 @@
 import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
-import { linkWhatsApp } from '../../lib/participantes'
+import { linkWhatsApp, mascaraWhatsApp } from '../../lib/participantes'
 import { rotulo } from '../../lib/status'
-import { urlLogo, estadoLogoLista } from '../../lib/logos'
+import { urlLogo } from '../../lib/logos'
+import { destinoNaFicha, subDaFicha } from '../../lib/rota'
+import { SECOES_VISAO, pendenciasDaFicha, processosDaFicha, edicaoDaFicha } from '../../lib/fichaGeral'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Icone, MODULO_ICONE } from '../Icone'
-import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro, Escolha, NivelTitulo } from '../ui'
+import { confirmar } from '../Confirmar'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
-import { AbaCadastroMarca, AbaCombo, AbaUnidades } from './FichaCadastro'
+import { AbaCadastroMarca, AbaCombo, AbaUnidades, CorrecoesCampo } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
-import { AbaPublicacao } from './Publicacao'
+import { AbaPublicacao, PreviaPagina, ConferirLocalizacao, RevisarFotos } from './Publicacao'
+import { useFichaGeral, VisaoParticipante } from './FichaVisao'
 
 /*
- * Ficha do participante como PÁGINA (reconstrução visual, 29/09/2026 —
- * decisão do Wilker). Mesmo endereço de antes (#participantes/lista?item=…
- * &sub=…); com `item`, a aba Marcas mostra esta página no lugar da lista e
- * "‹ Marcas" volta. Cabeçalho = resumo operacional (logo, nome, situação,
- * progresso, pendências, ações); subnavegação por assunto.
+ * Ficha do participante (15/10/2026 — ficha geral). Mesmo endereço de antes
+ * (#participantes/lista?item=…&sub=…). Quatro vistas no lugar das dez abas:
+ *   Visão do participante (padrão) → tudo que foi preenchido, para ler, com
+ *     âncoras por seção; editar abre o editor de sempre NO LUGAR da seção
+ *   Comunicação → conversa e alterações pedidas
+ *   Histórico   → atividade no painel + trajetória no festival
+ *   Gestão      → acesso e administração
+ * Os `sub` das abas antigas são traduzidos em lib/rota.js (destinoNaFicha).
  */
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
-
-export const ABAS_FICHA = ['resumo', 'cadastro', 'combo', 'unidades', 'operacao', 'publicacao', 'mensagens', 'trajetoria', 'acesso', 'historico']
 
 export const pendenciasDe = (p) => Number(p.campos_faltando || 0) + Number(p.correcoes_abertas || 0) + Number(p.pedidos_abertos || 0)
 export const pctCadastro = (p) => (p.participacao_id && Number(p.campos_total)
@@ -142,134 +147,209 @@ function AbaHistorico({ participante, pode }) {
   )
 }
 
-/* ── Resumo: a situação e um card clicável por assunto ─────────────────── */
-function AbaResumo({ p, logo, naoLidas, onAba }) {
-  const pct = pctCadastro(p)
-  const nPend = pendenciasDe(p)
-  const nUni = Number(p.unidades || 0)
-  const nItens = Number(p.itens_prontos || 0)
-  const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios)
+/* ── Editor aberto no lugar da seção ───────────────────────────────────────
+ * Reaproveita o editor de sempre (nenhum JSX de edição copiado). Formulário
+ * com digitação e ainda não enviado = alteração não salva: sair pergunta
+ * antes, e fechar a aba do navegador também avisa. */
+function EdicaoNaSecao({ titulo, onConcluir, sujoRef, children }) {
+  const ref = React.useRef(null)
+  React.useEffect(() => {
+    const el = ref.current
+    const sujos = new Set()
+    const marcar = (e) => { const f = e.target && e.target.closest && e.target.closest('form'); if (f) sujos.add(f) }
+    const limpar = (e) => { sujos.delete(e.target) }
+    const temSujo = () => [...sujos].some((f) => f.isConnected)
+    const antes = (e) => { if (temSujo()) { e.preventDefault(); e.returnValue = '' } }
+    el.addEventListener('input', marcar, true)
+    el.addEventListener('change', marcar, true)
+    el.addEventListener('submit', limpar, true)
+    window.addEventListener('beforeunload', antes)
+    sujoRef.current = temSujo
+    return () => {
+      el.removeEventListener('input', marcar, true)
+      el.removeEventListener('change', marcar, true)
+      el.removeEventListener('submit', limpar, true)
+      window.removeEventListener('beforeunload', antes)
+      sujoRef.current = () => false
+    }
+  }, [sujoRef])
   return (
-    <>
-      <MacroSecao rotulo="Situação atual" titulo={pct == null ? 'Sem edição aberta' : 'Cadastro ' + pct + '% concluído'}
-        nota={pct == null ? 'A marca não tem participação na edição atual.' : nPend ? plural(nPend, 'pendência', 'pendências') + ' para resolver.' : 'Nada pendente no cadastro.'}>
-        {pct != null && (
-          <GradeModulos>
-            <Modulo icone={MODULO_ICONE.pendencias} titulo="Pendências" sub="O que a marca ainda precisa fazer"
-              status={nPend ? <Selo tom="atencao">{plural(nPend, 'aberta', 'abertas')}</Selo> : <Selo tom="ok">Nenhuma</Selo>}>
-              <ul className="ui-lista-simples">
-                <li><b>{plural(Number(p.campos_faltando || 0), 'campo obrigatório vazio', 'campos obrigatórios vazios')}</b><span>Somam no % do cadastro (logo incluída).</span></li>
-                <li><b>{plural(Number(p.correcoes_abertas || 0), 'alteração pedida', 'alterações pedidas')}</b><span>Esperando a marca corrigir.</span></li>
-                <li><b>{plural(Number(p.pedidos_abertos || 0), 'pedido sem resposta', 'pedidos sem resposta')}</b><span>Pedidos da organização (Operação).</span></li>
-              </ul>
-            </Modulo>
-          </GradeModulos>
-        )}
-      </MacroSecao>
-      <MacroSecao rotulo="Módulos" titulo="Onde está cada coisa">
-        <GradeModulos>
-          <Modulo onClick={() => onAba('cadastro')} icone={MODULO_ICONE.cadastro} titulo="Cadastro" rotuloIr="Abrir cadastro"
-            status={p.status_cadastro && <Selo dominio="cadastro" valor={p.status_cadastro} />}>
-            {pct != null && <><span className="ui-modulo__num">{pct}%</span><span className="ui-modulo__progresso" aria-hidden="true"><span style={{ '--p': pct / 100 }} /></span></>}
-          </Modulo>
-          <Modulo onClick={() => onAba('cadastro')} icone={MODULO_ICONE.logo} titulo="Logo" rotuloIr="Ver logo"
-            status={<Selo dominio="logo" valor={estadoLogoLista(logo)} />}>
-            <LogoMarca url={urlLogo(logo && logo.path)} nome={p.nome_marca} tamanho={56} />
-          </Modulo>
-          <Modulo onClick={() => onAba('combo')} icone={MODULO_ICONE.combo} titulo="Combo" rotuloIr="Abrir combo"
-            status={p.combo_status && <Selo dominio="combo" valor={p.combo_status} />}>
-            <p className="ui-nota">{p.tema_combo ? 'Tema: ' + p.tema_combo : 'Tema ainda não escolhido.'} · {nItens}/3 itens prontos</p>
-          </Modulo>
-          <Modulo onClick={() => onAba('unidades')} icone={MODULO_ICONE.unidades} titulo="Unidades" rotuloIr="Abrir unidades"
-            status={nUni ? <Selo tom="ok">{plural(nUni, 'cadastrada', 'cadastradas')}</Selo> : <Selo tom="atencao">Nenhuma</Selo>} />
-          <Modulo onClick={() => onAba('operacao')} icone={MODULO_ICONE.operacao} titulo="Operação" rotuloIr="Abrir operação"
-            sub="Foto, pagamento, tema, aprovação, materiais"
-            status={Number(p.pendencias) > 0 ? <Selo tom="atencao">{p.pendencias} para revisar</Selo> : null} />
-          <Modulo onClick={() => onAba('mensagens')} icone={MODULO_ICONE.mensagens} titulo="Mensagens" rotuloIr="Abrir conversa"
-            status={naoLidas ? <Selo tom="atencao">{plural(naoLidas, 'nova', 'novas')}</Selo> : <Selo tom="ok">Em dia</Selo>} />
-          <Modulo onClick={() => onAba('acesso')} icone={MODULO_ICONE.acesso} titulo="Acesso ao painel" rotuloIr="Gerenciar acesso"
-            status={p.status_acesso && <Selo dominio="acesso" valor={p.status_acesso} />} />
-          <Modulo onClick={() => onAba('trajetoria')} icone={MODULO_ICONE.trajetoria} titulo="Trajetória" rotuloIr="Ver trajetória"
-            status={p.historico_status && <Selo dominio="historico" valor={p.historico_status} />} />
-        </GradeModulos>
-      </MacroSecao>
-    </>
+    <div className="fg-editor" ref={ref} role="group" aria-label={titulo}>
+      <div className="fg-editor__barra">
+        <p className="fg-editor__titulo"><Icone nome="editar" tamanho={16} />{titulo}<span>Cada bloco salva sozinho. Concluir volta à leitura com os dados novos.</span></p>
+        <Botao icone="sucesso" onClick={onConcluir}>Concluir edição</Botao>
+      </div>
+      <NivelTitulo.Provider value={3}>{children}</NivelTitulo.Provider>
+    </div>
   )
 }
 
-export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba, onVoltar, pode, onMudou, naoLidas = 0, onLidas }) {
-  const aba = ABAS_FICHA.includes(abaPedida) ? abaPedida : 'resumo'
+const TITULO_EDITOR = {
+  cadastro: 'Editando os dados da marca', combo: 'Editando tema e componentes', unidades: 'Editando as unidades',
+  coordenadas: 'Conferindo a localização das unidades', fotos: 'Revisando as fotos', operacao: 'Operação da participação',
+  publicacao: 'Publicação no site',
+}
+
+const VISTAS = [['visao', 'Visão do participante'], ['comunicacao', 'Comunicação'], ['historico', 'Histórico'], ['gestao', 'Gestão']]
+
+function rolarPara(secao) {
+  const el = document.getElementById('fg-' + secao)
+  if (!el) return
+  const reduzir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  el.scrollIntoView({ block: 'start', behavior: reduzir ? 'auto' : 'smooth' })
+  el.focus({ preventScroll: true })
+}
+const depoisDoQuadro = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
+
+export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, pode, onMudou, naoLidas = 0, onLidas }) {
+  const { vista, secao } = destinoNaFicha(sub)
+  const { fontes, recarregar } = useFichaGeral(p && p.participacao_id)
+  const [editando, setEditando] = React.useState(null) // { secao, editor }
+  const [previa, setPrevia] = React.useState(false)
+  const sujoRef = React.useRef(() => false)
   const titulo = React.useRef(null)
   const idAbas = React.useId()
-  React.useEffect(() => { if (titulo.current) titulo.current.focus({ preventScroll: true }) }, [p && p.id])
+  const id = p && p.id
+
+  // Outra marca: fecha editor e prévia da anterior; o foco vai ao nome.
+  React.useEffect(() => { setEditando(null); setPrevia(false) }, [id])
+  React.useEffect(() => { if (titulo.current && !secao) titulo.current.focus({ preventScroll: true }) }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Link para uma seção (aba antiga, pendência, recarga): rola até ela quando o
+  // conteúdo de cima já tem altura — senão a seção "fugiria" ao carregar.
+  const pronto = fontes.nucleo.estado !== 'carregando' && fontes.publicacao.estado !== 'carregando'
+  React.useEffect(() => { if (vista === 'visao' && secao) depoisDoQuadro(() => rolarPara(secao)) }, [vista, secao, id, pronto])
+  React.useEffect(() => { if (vista === 'historico' && secao === 'trajetoria') depoisDoQuadro(() => rolarPara('trajetoria')) }, [vista, secao, id])
+
   if (!p) return <Carregando linhas={4} />
-  const pct = pctCadastro(p)
-  const nPend = pendenciasDe(p)
+
+  const podeSair = async () => !sujoRef.current() || confirmar('Há alterações não salvas neste editor. Sair sem salvar?', { acao: 'Sair sem salvar', perigo: true })
+  const aposSalvar = () => { recarregar(); if (onMudou) onMudou() }
+
+  async function mudarVista(v, sec = '') {
+    if (editando && !(await podeSair())) return
+    setEditando(null)
+    onSub(subDaFicha(v, sec))
+  }
+  async function irPara(destino) {
+    if (destino === 'comunicacao') return mudarVista('comunicacao')
+    if (vista !== 'visao') return mudarVista('visao', destino)
+    onSub(destino, { substituir: true })
+    rolarPara(destino)
+  }
+  async function abrirEditor(alvo) {
+    if (editando && !(await podeSair())) return
+    setPrevia(false)
+    setEditando(alvo)
+    if (vista !== 'visao') onSub(alvo.secao)
+    depoisDoQuadro(() => rolarPara(alvo.secao))
+  }
+  async function concluir() {
+    if (!(await podeSair())) return
+    const s = editando && editando.secao
+    setEditando(null)
+    aposSalvar()
+    if (s) depoisDoQuadro(() => rolarPara(s))
+  }
+  async function voltar() {
+    if (editando && !(await podeSair())) return
+    onVoltar()
+  }
+
+  const pub = fontes.publicacao.estado === 'ok' ? fontes.publicacao.dados : null
+  function editorDe(chave) {
+    if (chave === 'cadastro') return <AbaCadastroMarca participante={p} pode={pode} onMudou={aposSalvar} />
+    if (chave === 'combo') return <AbaCombo participante={p} pode={pode} onMudou={aposSalvar} />
+    if (chave === 'unidades') return <AbaUnidades participante={p} pode={pode} onMudou={aposSalvar} />
+    if (chave === 'operacao') return <AbaOperacao participante={p} pode={pode} />
+    if (chave === 'publicacao') return <AbaPublicacao participante={p} pode={pode} onMudou={aposSalvar} />
+    if (!pub) return <p className="ui-nota">Os dados desta edição não carregaram. Feche o editor e tente de novo.</p>
+    if (chave === 'coordenadas') return <ConferirLocalizacao unidades={pub.unidades} pode={pode} onSalvo={aposSalvar} />
+    if (chave === 'fotos') return <RevisarFotos pub={pub} participacaoId={p.participacao_id} edicao={p.edicao_codigo} pode={pode} onSalvo={aposSalvar} />
+    return null
+  }
+  const renderEditor = (alvo) => (
+    <EdicaoNaSecao titulo={TITULO_EDITOR[alvo.editor] || 'Editando'} onConcluir={concluir} sujoRef={sujoRef}>{editorDe(alvo.editor)}</EdicaoNaSecao>
+  )
+
   const nome1 = String(p.responsavel || '').trim().split(/\s+/)[0]
   const wa = linkWhatsApp(p.telefone, nome1 ? 'Olá, ' + nome1 + '. ' : '')
+  const destinoWa = [p.responsavel || 'responsável', p.telefone && mascaraWhatsApp(p.telefone)].filter(Boolean).join(' · ')
+  const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null
+  const processos = processosDaFicha(p, fontes)
+  const pendencias = pendenciasDaFicha({ participante: p, fontes, naoLidas })
+  const carregandoPend = ['nucleo', 'publicacao', 'correcoes'].some((k) => fontes[k].estado === 'carregando')
+  const secoes = p.participacao_id ? SECOES_VISAO : SECOES_VISAO.slice(0, 1)
 
   return (
     <div className="fm-pagina">
-      <button type="button" className="og-link fm-voltar" onClick={onVoltar}><Icone nome="voltar" tamanho={16} /> Todas as marcas</button>
-      <header className="fm-cabeca">
-        <LogoMarca url={urlLogo(logo && logo.path)} nome={p.nome_marca} tamanho={72} />
-        <div>
-          <h2 className="fm-cabeca__nome" tabIndex={-1} ref={titulo}>{p.nome_marca || '(sem nome)'}</h2>
-          <div className="fm-cabeca__selos">
-            {p.edicao_codigo && <Selo tom="neutro">Edição {p.edicao_codigo}</Selo>}
-            {p.historico_status === 'recorrente_confirmado' && <Selo tom="andamento">Participante recorrente</Selo>}
-            <Selo dominio="cadastro" valor={p.status_cadastro} />
-            {p.status_acesso && <Selo dominio="acesso" valor={p.status_acesso} />}
-          </div>
-          <p className="fm-cabeca__meta">
-            {pct != null && <><b>{pct}% concluído</b> · </>}
-            {nPend ? nPend + (nPend === 1 ? ' pendência' : ' pendências') : 'sem pendências'}
-            {p.ultima_atividade ? ' · atualizado em ' + dataCurta(p.ultima_atividade) : ''}
-            {p.responsavel ? ' · ' + p.responsavel : ''}
+      <button type="button" className="og-link fm-voltar" onClick={voltar}><Icone nome="voltar" tamanho={16} /> Todas as marcas</button>
+      <header className="fg-cabeca">
+        <span className="fg-logo"><LogoMarca url={urlLogo(logo && logo.path)} nome={p.nome_marca} tamanho={88} /></span>
+        <div className="fg-cabeca__texto">
+          <p className="fg-cabeca__edicao">
+            {p.edicao_codigo ? 'Edição ' + p.edicao_codigo + (ed && ed.temaGeral ? ' · ' + ed.temaGeral : '') : 'Sem participação aberta'}
+            {ed && ed.atual === false && <Selo tom="atencao">Não é a edição atual</Selo>}
           </p>
+          <h2 className="fm-cabeca__nome" tabIndex={-1} ref={titulo}>{p.nome_marca || '(sem nome)'}</h2>
+          <dl className="fg-processos">
+            {processos.map((x) => (
+              <div key={x.chave}><dt>{x.rotulo}</dt><dd><Selo dominio={x.dominio || undefined} valor={x.valor} tom={x.tom}>{x.texto}</Selo></dd></div>
+            ))}
+          </dl>
+          {p.ultima_atividade && <p className="fg-cabeca__meta">Última atualização em {dataCurta(p.ultima_atividade)}</p>}
         </div>
-        <div className="fm-cabeca__acoes">
-          <Botao icone="pendencia" variante="destaque" onClick={() => onAba('resumo')}>Ver pendências</Botao>
-          {wa && <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noreferrer"><Icone nome={MODULO_ICONE.whatsapp} tamanho={16} />WhatsApp</a>}
-          <Botao icone="chave" variante="secundario" onClick={() => onAba('acesso')}>Gerenciar acesso</Botao>
+        <div className="fg-cabeca__acoes">
+          {wa && <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noreferrer" aria-label={'WhatsApp de ' + destinoWa} title={destinoWa}><Icone nome={MODULO_ICONE.whatsapp} tamanho={16} />WhatsApp{nome1 ? ' · ' + nome1 : ''}</a>}
+          {pode('cadastro.editar') && <Botao icone="editar" variante="secundario" onClick={() => abrirEditor({ secao: 'cadastro', editor: 'cadastro' })}>Editar dados</Botao>}
+          {pub && pub.atual && <Botao icone="visao" variante="secundario" onClick={() => { setPrevia(true); irPara('publicacao') }}>Ver prévia pública</Botao>}
           <MaisAcoes itens={[
-            { rotulo: 'Pedir alteração em um campo', icone: 'alteracao', onClick: () => onAba('cadastro') },
-            { rotulo: 'Ver histórico', icone: 'historico', onClick: () => onAba('historico') },
-            { rotulo: 'Ver trajetória no festival', icone: 'pessoas', onClick: () => onAba('trajetoria') },
-            { rotulo: 'Arquivar marca', icone: 'arquivar', perigo: true, onClick: () => onAba('acesso') },
+            { rotulo: 'Comunicação e alterações pedidas', icone: 'alteracao', onClick: () => mudarVista('comunicacao') },
+            { rotulo: 'Registrar observação interna', icone: 'historico', onClick: () => mudarVista('historico') },
+            { rotulo: 'Ver trajetória no festival', icone: 'pessoas', onClick: () => mudarVista('historico', 'trajetoria') },
+            { rotulo: 'Gerenciar acesso', icone: 'chave', onClick: () => mudarVista('gestao') },
+            { rotulo: 'Arquivar marca', icone: 'arquivar', perigo: true, onClick: () => mudarVista('gestao') },
           ]} />
         </div>
       </header>
 
-      <Abas
-        idBase={idAbas}
-        rotulo={'Seções da ficha de ' + p.nome_marca}
-        ativa={aba}
-        onMudar={onAba}
-        abas={[
-          { chave: 'resumo', rotulo: 'Resumo', n: nPend },
-          { chave: 'cadastro', rotulo: 'Cadastro', n: Number(p.correcoes_abertas || 0) },
-          { chave: 'combo', rotulo: 'Combo' },
-          { chave: 'unidades', rotulo: 'Unidades' },
-          { chave: 'operacao', rotulo: 'Operação', n: Number(p.pendencias || 0) },
-          p.participacao_id && { chave: 'publicacao', rotulo: 'Publicação' },
-          { chave: 'mensagens', rotulo: 'Mensagens', n: naoLidas },
-          { chave: 'trajetoria', rotulo: 'Trajetória' },
-          { chave: 'acesso', rotulo: 'Acesso' },
-          { chave: 'historico', rotulo: 'Histórico' },
-        ].filter(Boolean)}
-      />
-      <div {...painelDaAba(idAbas, aba)} className="ui-painel-aba">
-        {aba === 'resumo' && <AbaResumo p={p} logo={logo} naoLidas={naoLidas} onAba={onAba} />}
-        {aba === 'cadastro' && <AbaCadastroMarca participante={p} pode={pode} onMudou={onMudou} />}
-        {aba === 'combo' && <AbaCombo participante={p} pode={pode} onMudou={onMudou} />}
-        {aba === 'unidades' && <AbaUnidades participante={p} pode={pode} onMudou={onMudou} />}
-        {aba === 'operacao' && <AbaOperacao participante={p} pode={pode} />}
-        {aba === 'publicacao' && <AbaPublicacao participante={p} pode={pode} onMudou={onMudou} />}
-        {aba === 'trajetoria' && <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />}
-        {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
-        {aba === 'historico' && <AbaHistorico participante={p} pode={pode} />}
-        {aba === 'acesso' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onVoltar} />}
+      <Abas idBase={idAbas} rotulo={'Ficha de ' + (p.nome_marca || 'participante')} ativa={vista} onMudar={(v) => mudarVista(v)}
+        abas={VISTAS.map(([chave, r]) => ({ chave, rotulo: r, n: chave === 'comunicacao' ? naoLidas : 0 }))} />
+
+      <div {...painelDaAba(idAbas, vista)} className="ui-painel-aba">
+        {vista === 'visao' && (
+          <>
+            {secoes.length > 1 && (
+              <nav className="fg-ancoras" aria-label="Seções da visão do participante">
+                <ul className="fg-ancoras__lista">
+                  {secoes.map(([k, r]) => (
+                    <li key={k}><button type="button" className="fg-ancora" aria-current={secao === k ? 'location' : undefined} onClick={() => irPara(k)}>{r}</button></li>
+                  ))}
+                </ul>
+                <Escolha className="fg-ancoras__celular" rotulo="Ir para seção" valor={secao} opcoes={secoes} onMudar={irPara} />
+              </nav>
+            )}
+            <VisaoParticipante p={p} logo={logo} fontes={fontes} recarregar={recarregar} pode={pode}
+              pendencias={pendencias} carregandoPend={carregandoPend} editando={editando} renderEditor={renderEditor}
+              onEditar={abrirEditor} onIr={irPara} previa={previa} onPrevia={setPrevia} PreviaPagina={PreviaPagina} />
+          </>
+        )}
+        {vista === 'comunicacao' && (
+          <div className="ui-pilha">
+            <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />
+            {p.participacao_id && <CorrecoesCampo participacaoId={p.participacao_id} pode={pode} onMudou={aposSalvar} />}
+          </div>
+        )}
+        {vista === 'historico' && (
+          <>
+            <MacroSecao rotulo="Atividade" titulo="O que aconteceu nesta ficha" nota="Mudanças de situação, mensagens, pedidos e observações internas, com quem fez e quando.">
+              <AbaHistorico participante={p} pode={pode} />
+            </MacroSecao>
+            <MacroSecao id="fg-trajetoria" rotulo="Trajetória" titulo="Participação no festival" nota="Edições em que a marca esteve, prêmios e o vínculo com o acervo. Não é o histórico de mudanças da ficha.">
+              <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />
+            </MacroSecao>
+          </>
+        )}
+        {vista === 'gestao' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onVoltar} />}
       </div>
     </div>
   )

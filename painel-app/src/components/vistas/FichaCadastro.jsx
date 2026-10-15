@@ -270,7 +270,7 @@ export function useFichaParticipacao(participante, onMudou) {
  * corrige e envia de novo para análise; aprovar o cadastro resolve os pedidos.
  */
 const ROTULO_CAMPO = Object.fromEntries(CAMPOS_APONTAVEIS)
-function CorrecoesCampo({ participacaoId, pode, onMudou }) {
+export function CorrecoesCampo({ participacaoId, pode, onMudou }) {
   const [lista, setLista] = React.useState(null)
   const [campo, setCampo] = React.useState('')
   const [motivo, setMotivo] = React.useState('')

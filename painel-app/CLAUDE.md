@@ -986,3 +986,51 @@ leitura de `unidades`). O que passou a valer:
 - ⚠️ Ficou de fora: tela de fotos do bloco 7, declarações da alternativa de uma troca,
   seletor de edição com duas participações abertas, e o Início (`resumoMarca`) ainda não
   conta as pendências da camada de edição — só a barra do próprio cadastro.
+
+#### Ficha geral do participante — 15/10/2026 (pedido do Wilker)
+
+Clicar no participante abre a **Visão do participante**: tudo o que foi preenchido, numa
+página só, para LER. As dez abas (Resumo, Cadastro, Combo, Unidades, Operação, Publicação,
+Mensagens, Trajetória, Acesso, Histórico) viraram **quatro vistas**: Visão do participante ·
+Comunicação · Histórico · Gestão. ⛔ Não recriar aba por assunto nem o "Resumo" de cards-atalho.
+
+- **Composição pura em `lib/fichaGeral.js`** (teste `painel-app-ficha-geral`). Quatro
+  LEITURAS, estado próprio por fonte (carregando · ok · erro · sem_permissao ·
+  sem_participacao): `get_ficha_360` (já contém `get_ficha_participacao` — não pedir os
+  dois), `get_publicacao` (camada Cartoon: `montar_publico` com alergênicos, trocas,
+  unidades e horários; fotos; versão no ar), `get_correcoes`, `get_edicoes` (tema GERAL da
+  edição). `criarCarregadorFicha` descarta resposta velha ao trocar de marca; o hook
+  `useFichaGeral` (`vistas/FichaVisao.jsx`) guarda de qual participação é o estado.
+  ⛔ Abrir a visão não grava nada: a conversa (`ler_mensagens_org`) só monta em Comunicação
+  (o teste confere).
+- **Regras de leitura que não se negociam:** declaração ausente = "Sem resposta", nunca
+  "não contém"; "não sei" gravado ≠ sem resposta; leite (alergênico) ≠ lactose
+  (característica); selos vegano/sem glúten/sem lactose e substituição em texto saem como
+  "cadastro anterior, não confirmado"; custo/acréscimo vazio = não informado, `0` = sem
+  custo; preço da edição (`edicoes.valor_combo`) separado dos custos da marca; foto
+  recebida ≠ aprovada ≠ publicada (está no `vigente.conteudo`); papel da foto é o gravado.
+  Tema: `tema_combo` × `temas_propostos` — quando discordam a ficha diz ("mudou depois da
+  última proposta"), não escolhe um.
+- **Pendências** (`pendenciasDaFicha`): uma por chave estável (a mesma falta de duas
+  fontes conta uma vez); campos vazios agrupados por seção; fonte com erro vira "não
+  consegui verificar", nunca "nada pendente". Cada item leva à seção.
+- **Editar = o editor de sempre, no lugar da seção** (`EdicaoNaSecao` em
+  `FichaMarcaPagina.jsx`): `AbaCadastroMarca`, `AbaCombo`, `AbaUnidades`, `AbaOperacao`,
+  `AbaPublicacao`, `ConferirLocalizacao` e `RevisarFotos` (exportados de `Publicacao.jsx`).
+  Formulário com digitação não enviada pergunta antes de sair (e `beforeunload`).
+  Concluir recarrega as fontes. Ações por função em `acoesDaSecao` — o banco decide de novo.
+- **Endereço:** `sub` vazio = visão; seção = âncora (`sub=unidades`, gravado sem empilhar);
+  `comunicacao`/`historico`/`gestao`. Os `sub` antigos são traduzidos em
+  `lib/rota.js` (`destinoNaFicha`): mensagens → Comunicação, acesso → Gestão, trajetoria →
+  Histórico (âncora), cadastro/combo/tema/unidades/operacao/publicacao → seção da visão.
+- **Lista de Marcas:** busca no endereço (`busca`), clique abre sempre a visão, posição da
+  lista volta ao fechar a ficha (`.og-vista` é quem rola).
+- **Logo no cabeçalho da ficha é `contain`** (logo inteira, pedido de 15/10/2026) — exceção
+  local ao `cover` de `.ui-logo`, só em `.fg-logo`.
+- ⚠️ Ficou de fora (lacuna de backend/UI, nada alterado no banco): a organização não edita
+  pelo painel os campos da camada Cartoon (nome/descrição/condições do combo — o RPC
+  `org_salvar_dados_publicos` aceita, falta a tela —, declarações alimentares, trocas,
+  unidade permanente, modos e horário do combo) — quem preenche é a marca; o WhatsApp de unidade não autorizado não chega
+  à organização (`montar_publico` só devolve o autorizado); pagamento aparece na visão só para
+  `pagamento.gerir`, mas `get_ficha_360` entrega `pagamento_status` a qualquer `dado.ler`
+  (restringir é migration). Voltar do navegador com editor sujo não pergunta (só os botões).
