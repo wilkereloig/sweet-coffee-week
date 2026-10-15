@@ -12,6 +12,7 @@ import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, G
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
+import { AbaPublicacao } from './Publicacao'
 
 /*
  * Ficha do participante como PÁGINA (reconstrução visual, 29/09/2026 —
@@ -22,7 +23,7 @@ import { AbaAcesso } from './AcessoMarca'
  */
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
-export const ABAS_FICHA = ['resumo', 'cadastro', 'combo', 'unidades', 'operacao', 'mensagens', 'trajetoria', 'acesso', 'historico']
+export const ABAS_FICHA = ['resumo', 'cadastro', 'combo', 'unidades', 'operacao', 'publicacao', 'mensagens', 'trajetoria', 'acesso', 'historico']
 
 export const pendenciasDe = (p) => Number(p.campos_faltando || 0) + Number(p.correcoes_abertas || 0) + Number(p.pedidos_abertos || 0)
 export const pctCadastro = (p) => (p.participacao_id && Number(p.campos_total)
@@ -251,11 +252,12 @@ export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba,
           { chave: 'combo', rotulo: 'Combo' },
           { chave: 'unidades', rotulo: 'Unidades' },
           { chave: 'operacao', rotulo: 'Operação', n: Number(p.pendencias || 0) },
+          p.participacao_id && { chave: 'publicacao', rotulo: 'Publicação' },
           { chave: 'mensagens', rotulo: 'Mensagens', n: naoLidas },
           { chave: 'trajetoria', rotulo: 'Trajetória' },
           { chave: 'acesso', rotulo: 'Acesso' },
           { chave: 'historico', rotulo: 'Histórico' },
-        ]}
+        ].filter(Boolean)}
       />
       <div {...painelDaAba(idAbas, aba)} className="ui-painel-aba">
         {aba === 'resumo' && <AbaResumo p={p} logo={logo} naoLidas={naoLidas} onAba={onAba} />}
@@ -263,6 +265,7 @@ export function FichaMarcaPagina({ participante: p, logo, aba: abaPedida, onAba,
         {aba === 'combo' && <AbaCombo participante={p} pode={pode} onMudou={onMudou} />}
         {aba === 'unidades' && <AbaUnidades participante={p} pode={pode} onMudou={onMudou} />}
         {aba === 'operacao' && <AbaOperacao participante={p} pode={pode} />}
+        {aba === 'publicacao' && <AbaPublicacao participante={p} pode={pode} onMudou={onMudou} />}
         {aba === 'trajetoria' && <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />}
         {aba === 'mensagens' && <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />}
         {aba === 'historico' && <AbaHistorico participante={p} pode={pode} />}

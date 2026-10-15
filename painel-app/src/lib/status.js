@@ -182,6 +182,28 @@ export const STATUS = {
     normal: s('Normal', 'neutro'),
     importante: s('Importante', 'atencao'),
   },
+  // Camada de edição (Cartoon 2026.2, 14/10/2026). `publicacao` é DERIVADO de
+  // publicacoes (não é CHECK): nao_publicado · publicado · retirado, mais
+  // "alteração em análise" quando a versão no ar convive com alteração nova.
+  publicacao: {
+    nao_publicado: s('Não publicada', 'neutro'),
+    publicado: s('Publicada', 'ok'),
+    retirado: s('Retirada do site', 'encerrado'),
+    alteracao_em_analise: s('Alteração em análise', 'andamento'),
+  },
+  // midias_participacao.estado
+  midia: {
+    enviada: s('Foto aguardando revisão', 'atencao'),
+    aprovada: s('Foto aprovada', 'ok'),
+    recusada: s('Foto recusada', 'encerrado'),
+  },
+  // edicao_publicacao.fase
+  fase_edicao: {
+    preparacao: s('Preparação', 'neutro'),
+    pre_lancamento: s('Pré-lançamento', 'andamento'),
+    em_andamento: s('Em andamento', 'ok'),
+    encerrada: s('Encerrada', 'encerrado'),
+  },
   importacao_linha: {
     pendente: s('Pendente', 'atencao'),
     importado: s('Importado', 'ok'),

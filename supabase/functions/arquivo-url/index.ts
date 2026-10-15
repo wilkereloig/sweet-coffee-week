@@ -39,12 +39,25 @@ const CORS = {
 // (logo é identidade pública), mas ESCREVER continua passando por aqui: pasta
 // = UUID do participante, ação `cadastro.editar` (só Administrador), e nunca
 // por cima — cada versão é um arquivo novo (quem versiona é logos_marca).
-const BUCKETS = ['arquivos', 'combos', 'logos']
+// `edicao-publico` (14/10/2026, Cartoon 2026.2): fotos da edição que o site
+// mostra. Bucket público, mas o caminho é <edição>/<participação>/<uuid>.webp —
+// impossível de adivinhar — e só a projeção pública (foto APROVADA) entrega o
+// caminho. Subir exige `producao.gerir`; nunca por cima (cada foto é um uuid).
+const BUCKETS = ['arquivos', 'combos', 'logos', 'edicao-publico']
 
 // Uma pasta e um arquivo, nada mais. A pasta é `geral` ou um UUID de
 // participação; o arquivo é o que sobra depois de tirar tudo que não seja letra,
 // número, ponto, hífen ou sublinhado.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const EDICAO = /^\d{4}(\.\d)?$/
+const UUID_WEBP = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/i
+
+/** Fotos da edição: exatamente <edição>/<uuid da participação>/<uuid>.webp. */
+function caminhoEdicaoValido(path: string): boolean {
+  const partes = path.split('/')
+  return partes.length === 3 && EDICAO.test(partes[0]) && UUID.test(partes[1]) && UUID_WEBP.test(partes[2])
+}
 
 function caminhoValido(path: string): boolean {
   const partes = path.split('/')
@@ -75,7 +88,7 @@ Deno.serve(async (req) => {
 
   if (acao !== 'subir' && acao !== 'baixar') return json({ erro: 'acao_invalida' }, 400)
   if (!BUCKETS.includes(bucket)) return json({ erro: 'bucket_invalido' }, 400)
-  if (!caminhoValido(path)) return json({ erro: 'caminho_invalido' }, 422)
+  if (bucket === 'edicao-publico' ? !caminhoEdicaoValido(path) : !caminhoValido(path)) return json({ erro: 'caminho_invalido' }, 422)
   if (bucket === 'logos' && path.startsWith('geral/')) return json({ erro: 'caminho_invalido' }, 422)
 
   const admin = createClient(
@@ -118,7 +131,7 @@ Deno.serve(async (req) => {
     // escrever por cima do mesmo caminho. Quem versiona é `arquivos.versao`,
     // que é dado — não o nome do arquivo em disco.
     const { data, error } = await admin.storage.from(bucket)
-      .createSignedUploadUrl(path, { upsert: bucket !== 'logos' })
+      .createSignedUploadUrl(path, { upsert: bucket !== 'logos' && bucket !== 'edicao-publico' })
     if (error) return json({ erro: 'assinatura_falhou', detalhe: error.message }, 500)
     return json({ ok: true, url: data.signedUrl, path })
   }

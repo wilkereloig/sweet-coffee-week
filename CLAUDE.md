@@ -80,9 +80,11 @@ O ecossistema tem duas camadas, e confundi-las é a origem de metade dos erros a
 | Avaliação | resultados históricos | avaliação aberta |
 | Ações especiais | não tem | Rota da Doçura, adesivos, brindes |
 
-**É a camada institucional que este repositório constrói.** A camada de edição não
-existe hoje e não se antecipa: quando a 17ª edição for anunciada, ela nasce com KV
-próprio e páginas próprias.
+**É a camada institucional que este repositório constrói.** A camada de edição nasce
+com KV próprio e páginas próprias quando a edição é anunciada.
+✅ **Desde 14/10/2026 a camada da 17ª edição (Cartoon 2026.2) está em construção** em
+`src/edicao/` + `src/styles/scw-cartoon.css`, rota `/cartoon`, ainda só em preview.
+Plano completo, decisões e fases: `docs/cartoon-2026-2/` (comece pelo `README.md`).
 
 **O que migra da edição para o institucional quando ela termina:** (1) combos e fotos
 dos participantes, que viram a galeria daquela edição no histórico; (2) resultados do
@@ -178,6 +180,7 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npx vite build --outDir "$TEMP/scw_build_$$" --emptyOutDir && rm -rf "$TEMP/scw_build_$$"` | **build de verificação — SEMPRE fora do projeto, uma vez só** |
 | `npm run build && npm run test:casca-institucional` | sem `?preview` cada rota abre a própria página, com menu, e baixa só o chunk dela; aviso de cookies não cobre ação principal, anos de Edições nem abas; motor liga em página carregada sob demanda; folha "mais" (Escape/foco/rolagem); movimento reduzido e timers do crossfade |
 | `npm run test:edicoes` · `npm run build && npm run test:edicoes-navegador` | Edições: ordem, anos, contagens, vizinhas, rota e teclado (sem navegador); as 16 edições por link direto, voltar/avançar, galeria, foto ampliada, sobreposição e capturas em `tests/capturas-edicoes/` (com navegador) |
+| `npm run test:cartoon` (inclui `test:rotas-edicao`) · `npm run build && npm run test:cartoon-navegador` · `npm run qr:edicao` | camada de edição: interruptores do domínio desligados e coerentes, `/cartoon` só com rota pública ou preview, `/` só com entrada + rota pública, endereços Lovers nunca na edição, legais sob todas as chaves, cenas, rewrites, estilo da edição sem vazar · no navegador: link direto, recarregar, hash antigo virando caminho limpo, voltar/avançar, casca própria, 360 e 1440 |
 | `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
 | `npm run test:consentimento` | preferência de cookies (medição ligada por padrão, recusa, Global Privacy Control, inválida, vencida, storage quebrado, outra aba), endereço limpo do Analytics e documentos legais sob cada gate |
 | `npm run build && npm run test:privacidade` | pela REDE: primeira visita carrega o Analytics uma vez com endereço limpo; "Recusar", preferências e Global Privacy Control cortam os envios e apagam `_ga`; diálogo (foco, Tab, Escape); documentos por link direto; capturas em `tests/capturas-privacidade/`. ⚠️ O Analytics não liga em `localhost` — o teste liga com `localStorage.scw_ga_local = '1'` |
@@ -210,6 +213,8 @@ arquivos da tarefa em questão.
 | `COMING_SOON_PUBLICATION` | `false` | landing `EmBreve` em toda rota — desligada em 26/08/2026 |
 | `AGUARDE_ONLY_PUBLICATION` | `false` | página de espera em `/`, Contato e Participar por link — desligada em 18/09/2026 |
 | `PARTICIPAR_ONLY_PUBLICATION` | `false` | toda rota renderizava Participar, sem menu — **desligada em 13/10/2026**: institucional completo publicado |
+| `CARTOON_PUBLICA` (`src/edicao/config.js`) | `false` | `true` abre `/cartoon` ao público; `false` deixa a edição só em preview |
+| `ENTRADA_PRINCIPAL` (`src/edicao/config.js`) | `'institucional'` | `'cartoon'` faz `/` mostrar a entrada da edição e muda a Home institucional para `/festival`. Exige `CARTOON_PUBLICA`. Os outros quatro interruptores da edição (participantes, combos, avaliação, resultados) moram no banco — `docs/cartoon-2026-2/02-arquitetura-rotas-fases.md` §2.6 |
 | `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras |
 
 ⚠️ Com todas as flags desligadas, DEV e produção mostram o mesmo site. Religar um gate
@@ -217,6 +222,11 @@ arquivos da tarefa em questão.
 `INSTITUTIONAL_PREVIEW` continua valendo para revisar atrás de um gate em
 `*.vercel.app?preview=1`. **Não alterar flag para "ver a página em produção": use o
 preview.**
+
+⚠️ **Endereço limpo desde 14/10/2026** (D-14 do plano da Cartoon): a rota mora no
+caminho (`/edicoes/2022`), não no hash. `src/router.js` navega por `pushState`, converte
+`#/…` antigo no lugar e trata clique em `<a href="#/…">`. **Todo caminho novo precisa de
+rewrite no `vercel.json`** — `tests/rotas-edicao.test.mjs` confere a lista.
 
 ### 3.5 Escopo, qualidade e segurança
 

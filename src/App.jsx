@@ -15,6 +15,7 @@ import { applyPageMeta } from './lib/pageMeta'
 import { CARREGADORES } from './pages/carregadores'
 import { resolverRota, documentoLegal } from './lib/rotas'
 import { iniciarAnalytics } from './lib/analytics'
+import { CARTOON_PUBLICA, ENTRADA_PRINCIPAL } from './edicao/config'
 
 // Uma página, um chunk (src/pages/carregadores.js). O gate abaixo decide a ROTA
 // antes de qualquer página ser pedida: sob PARTICIPAR_ONLY só o chunk de
@@ -151,12 +152,15 @@ export default function App() {
     soParticipar,
     aguarde: AGUARDE_ONLY_PUBLICATION,
     preview: INSTITUTIONAL_PREVIEW,
+    // Camada de edição (src/edicao/config.js): os dois interruptores do domínio.
+    edicaoPublica: CARTOON_PUBLICA || INSTITUTIONAL_PREVIEW,
+    entradaEdicao: ENTRADA_PRINCIPAL === 'cartoon',
   })
 
   const Pagina = PAGINAS[route] || PAGINAS.home
   // Edições lê o caminho: /edicoes é a coleção, /edicoes/<código> o detalhe
   // de uma edição — as duas na mesma rota, sem remontar a página.
-  const propsDaPagina = route === 'edicoes'
+  const propsDaPagina = route === 'edicoes' || route === 'cartoon'
     ? { navigate, path }
     : route === 'legal' ? { navigate, documento: documentoLegal(path) }
     : route === 'em-breve' || route === 'aguarde' ? {} : { navigate }
@@ -180,6 +184,7 @@ export default function App() {
       participar: '/participar', apoiar: '/apoiar', contato: '/contato',
       'em-breve': '/', aguarde: '/',
       legal: `/${documentoLegal(path)}`,
+      cartoon: path.startsWith('/cartoon') ? path : '/cartoon',
     }
     applyPageMeta(pathPorRota[route] || '/')
   }, [route, path])
@@ -196,14 +201,17 @@ export default function App() {
 
   // Desde 13/10/2026 Edições usa a casca do site como as outras páginas
   // (o cabeçalho próprio da apresentação de slides saiu).
-  const showShell = !isInternal
+  // A edição tem casca própria (src/edicao/cartoon/casca.jsx): sem cabeçalho,
+  // rodapé e abas institucionais. Aviso de cookies e diálogo de acesso seguem.
+  const ehEdicao = route === 'cartoon'
+  const showShell = !isInternal && !ehEdicao
 
   // Motor de movimento (src/hooks/useSiteMotion.js): um único ponto para todas
   // as institucionais. Fica de fora de Edições — arquivo de consulta: a coleção
   // e a galeria aparecem prontas, sem entrada encenada — e dos painéis
   // internos, que são ferramenta de trabalho.
   const conteudoRef = React.useRef(null)
-  const comMovimento = !isInternal && route !== 'edicoes'
+  const comMovimento = !isInternal && route !== 'edicoes' && !ehEdicao
 
   // Trocou de página: o foco vai para o conteúdo novo (o <main>, que é
   // focável só por script). Sem isso, quem navega por teclado ou leitor de
@@ -218,6 +226,7 @@ export default function App() {
 
   return (
     <div className={`scw-raiz${showMobileNav ? ' tem-abas' : ''}`}>
+      {ehEdicao && <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>}
       {showShell && (
         <>
           <a href="#conteudo" className="scw-skip">Ir para o conteúdo</a>

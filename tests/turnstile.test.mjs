@@ -116,7 +116,9 @@ test('só exige Turnstile de formulário que DESENHA o widget', () => {
 
   for (const form of EXIGE_TURNSTILE) {
     assert.ok(RPC_PERMITIDA[form], 'formulário fora da allowlist: ' + form)
-    const pagina = ler('public/' + form.replace(/_/g, '-') + '/index.html')
+    // Página estática em public/<form>/; a avaliação da edição é componente React.
+    const PAGINA_REACT = { avaliacao: 'src/edicao/cartoon/paginas/Avaliar.jsx' }
+    const pagina = ler(PAGINA_REACT[form] || 'public/' + form.replace(/_/g, '-') + '/index.html')
     assert.match(pagina, /cf-turnstile/,
       form + ' exige Turnstile mas a página não desenha o widget')
     assert.match(pagina, new RegExp("data-action'?,\\s*'" + form + "'"),

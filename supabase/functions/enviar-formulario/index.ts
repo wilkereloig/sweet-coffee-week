@@ -33,6 +33,9 @@ const RPC_PERMITIDA: Record<string, string> = {
   contato: 'submit_contact_request',
   apoio: 'submit_support_interest',
   pesquisa: 'submit_pesquisa',
+  // Avaliação da edição (14/10/2026): submit_avaliacao NÃO tem grant para anon —
+  // esta função é a única porta, então aqui ela é trava, não caminho alternativo.
+  avaliacao: 'submit_avaliacao',
 }
 
 // ⚠️ SÓ os formulários que REALMENTE desenham o widget entram aqui, e essa é a
@@ -43,7 +46,7 @@ const RPC_PERMITIDA: Record<string, string> = {
 // descarte funciona de propósito.
 // Ganhou widget? entra na lista no MESMO commit. `tests/turnstile.test.mjs`
 // reprova quem entrar aqui sem a página correspondente desenhar o widget.
-const EXIGE_TURNSTILE = new Set(['quero_participar'])
+const EXIGE_TURNSTILE = new Set(['quero_participar', 'avaliacao'])
 
 // Pessoa nenhuma preenche um formulário de vários passos em menos que isto.
 const TEMPO_MINIMO_MS = 3000

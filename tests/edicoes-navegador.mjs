@@ -212,7 +212,8 @@ async function percurso (navegador) {
     await cartao.scrollIntoViewIfNeeded()
     await cartao.click()
     await page.waitForSelector('#edx-det-titulo')
-    if (!page.url().endsWith('#/edicoes/2018.2')) falha(`${rot}: o cartão não abriu o detalhe (${page.url()})`)
+    // Endereço limpo desde 14/10/2026 (D-14): o link #/ antigo vira /edicoes/<código>.
+    if (new URL(page.url()).pathname !== '/edicoes/2018.2' || page.url().includes('#')) falha(`${rot}: o cartão não abriu o detalhe (${page.url()})`)
     const topo = await page.evaluate(() => window.scrollY)
     if (topo > 4) falha(`${rot}: o detalhe abriu rolado (y=${topo})`)
 

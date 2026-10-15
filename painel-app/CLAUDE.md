@@ -76,7 +76,7 @@ que não busca a rede não testemunha sobre a rede** — é a mesma lição do
 
 ⚠️ **O JS delas mora inline e não passa pelo Vite**, então `npm run build` fica
 verde com o script quebrado. `tests/quero-participar.test.mjs` e
-`tests/organizacao.test.mjs` cobrem esse vão: parse, funções **declaradas** (não
+o antigo teste da organização (apagado no corte para o painel React; a cobertura hoje está em `tests/painel-app-*.test.mjs` e `tests/painel-infra.test.mjs`) cobrem esse vão: parse, funções **declaradas** (não
 só citadas), escape de tudo que vem do banco e ausência de chave secreta.
 
 **Acesso ao painel:** pelo cartão "Organização" do diálogo de acesso — inclusive
@@ -105,7 +105,7 @@ negociam:
 
 - **as duas slugificações têm que casar** — a de `public/marca/index.html` e a da
   Edge Function. Divergiram, a marca digita o nome certo e não entra, e o erro é
-  genérico de propósito, então ninguém descobre o motivo. `tests/marca.test.mjs`
+  genérico de propósito, então ninguém descobre o motivo. o antigo teste da marca (apagado no corte; hoje em `tests/painel-app-*.test.mjs`)
   compara as duas;
 - **"esqueci minha senha" por e-mail foi REMOVIDO, e não é esquecimento:**
   mandar link para um endereço sem caixa de entrada é botão que nunca entrega
@@ -218,7 +218,7 @@ ações.
 quatro origens, com `catch` próprio.** A RPC só existe depois de a migration das
 contas ser aplicada; junto das outras, um 404 dela derrubaria o painel inteiro —
 inclusive as respostas que já funcionam. **Toda leitura nova que dependa de
-migration não aplicada segue a mesma regra.** `tests/organizacao.test.mjs`
+migration não aplicada segue a mesma regra.** o antigo teste da organização (apagado no corte para o painel React; a cobertura hoje está em `tests/painel-app-*.test.mjs` e `tests/painel-infra.test.mjs`)
 reprova quem a colocar de volta no `Promise.all`.
 
 ⚠️ **Status novo no banco tem que ganhar rótulo no painel no mesmo commit.** O
@@ -232,7 +232,7 @@ deriva o vocabulário do próprio CHECK da migration.
 em `public/organizacao/sw.js` e é registrado com `scope: '/organizacao/'`.
 Servido da raiz, ele assumiria escopo `/` e passaria a interceptar **a landing
 que está no ar** — e desfazer isso não é deploy: é desregistro no navegador de
-cada visitante. `tests/organizacao.test.mjs` guarda as duas pontas.
+cada visitante. o antigo teste da organização (apagado no corte para o painel React; a cobertura hoje está em `tests/painel-app-*.test.mjs` e `tests/painel-infra.test.mjs`) guarda as duas pontas.
 
 ⚠️ **O HTML do painel é sempre `network-first`.** Como o JS é inline no
 documento, cachear o HTML congela o painel inteiro na versão antiga, e a
@@ -268,7 +268,7 @@ site" e instalar "o painel" viraram a mesma coisa. A captura do
 montar). Se o evento ainda não chegou (engajamento insuficiente, iOS sem essa
 API, já instalado), o botão cai no caminho antigo: abre `/painel/` numa aba
 nova, que tem a própria captura como reserva (§10.4-b abaixo).
-`tests/painel.test.mjs` e `tests/organizacao.test.mjs` foram atualizados pra
+o antigo teste do painel estático (apagado no corte; hoje em `tests/painel-infra.test.mjs`) e o antigo teste da organização (apagado no corte para o painel React; a cobertura hoje está em `tests/painel-app-*.test.mjs` e `tests/painel-infra.test.mjs`) foram atualizados pra
 afirmar que site e painel COMPARTILHAM escopo de propósito, e que
 organização/marca continuam de fora dessa fusão.
 
@@ -418,8 +418,8 @@ como `CONFERENCIA-MARCA.md`, entregue junto do handoff (fora do repositório).
   dois painéis; é lacuna a fechar, não algo que esta rodada tenha verificado.
 - **Conteúdo autenticado não foi conferido ao vivo.** Sem a senha real de
   nenhum dos dois painéis (que não devo ter nem simular), a verificação foi
-  por estrutura e teste (`tests/organizacao.test.mjs` 59/59,
-  `tests/marca.test.mjs` 26/26), não por navegação visual logada.
+  por estrutura e teste (o antigo teste da organização (apagado no corte para o painel React; a cobertura hoje está em `tests/painel-app-*.test.mjs` e `tests/painel-infra.test.mjs`) 59/59,
+  o antigo teste da marca (apagado no corte; hoje em `tests/painel-app-*.test.mjs`) 26/26), não por navegação visual logada.
 - **Formulários da organização (patch §9)** já existiam quase por inteiro
   antes desta rodada (`abrirNovoPedido`/`abrirNovoArquivo`/`abrirNovaSessao`/
   `abrirNovaConta`, todos via `abrirFolha`) — não foram tocados.
@@ -467,7 +467,7 @@ nos dois lados — cada arquivo original tinha a duplicação aceita do §5.2, e
 ⚠️ **O bloco de `prefers-reduced-motion` tem que ficar depois de TUDO** — inclusive do
 CSS da marca, que entra depois do da organização na concatenação. Ele morava no fim do
 CSS da organização; ficou no meio do arquivo combinado até ser movido pro fim de
-verdade. Há teste (`tests/painel.test.mjs`) que reprova isso especificamente.
+verdade. Há teste (o antigo teste do painel estático (apagado no corte; hoje em `tests/painel-infra.test.mjs`)) que reprova isso especificamente.
 
 ⚠️ **`/organizacao/` e `/marca/` não morreram — viraram só a PORTA.** `abrirPainel()`
 (organização) e `ver('painel')` (marca) continuam fazendo tudo que faziam antes e, no
@@ -905,3 +905,84 @@ confirmações; nenhuma regra de negócio mudou.
   cada formulário; mover as 25 folhas mexe em lógica) e números no cabeçalho da
   página.
 
+
+#### Cartoon 2026.2 — organização (14/10/2026)
+
+Plano: `docs/cartoon-2026-2/04-painel.md` §4.4–4.5 e `02-arquitetura-rotas-fases.md`
+§2.6–2.8. Contrato: migrations `20261014_cartoon_02_publicacao.sql` e `_03_revisao.sql`
+(e `_04_avaliacao.sql` para o resumo). O que passou a valer:
+
+- **Publicação é dimensão separada da revisão.** `status.js` ganhou `publicacao`
+  (não publicada · publicada · retirada · alteração em análise — derivado, não CHECK),
+  `midia` e `fase_edicao` (CHECKs, conferidos no teste de status). Toda a lógica pura
+  (diferença vigente × atual, tradução das pendências, espelho dos CHECKs de
+  `edicao_publicacao`, fuso de Fortaleza, coordenada de Natal, erros) mora em
+  `lib/publicacao.js`, testada em `tests/painel-app-publicacao.test.mjs`.
+- **Participantes › Publicação** (`vistas/Publicacao.jsx`, `ListaPublicacao`): uma linha
+  por casa (`get_publicacoes_edicao`), filtro no endereço (`situacao`); abre a ficha na
+  aba **Publicação** (`AbaPublicacao`): publicar a casa / casa e combo
+  (`publicar_participacao`, `curadoria.decidir`), retirar com motivo, pendências
+  traduzidas, diferença campo a campo, prévia, endereço público (só antes da 1ª
+  publicação, `cadastro.editar`), coordenada conferida (`producao.gerir`) e fotos
+  (aprovar exige texto alternativo).
+- **Prévia = o componente do site.** `vistas/edicao/PreviaPublica.jsx` importa
+  `FichaParticipante` e `scw-cartoon.css` por `React.lazy`. ⚠️ Fica numa pasta
+  `edicao/` de propósito: `tests/rotas-edicao.test.mjs` reprova o estilo da edição fora
+  de pasta de edição. ⛔ Não escrever as classes da edição em `edicao-org.css`.
+- **Edição › Publicação no site** (`vistas/PublicacaoEdicao.jsx`, `ChavesEdicao`): fase,
+  as 4 chaves e a janela da avaliação (`definir_publicacao_edicao`, `edicao.gerir`).
+  O botão desliga com o motivo quando a mudança violaria um CHECK; ligar pede
+  confirmação; desligar não. **Edição › Avaliações** (`relatorio.ler`): números por
+  casa, nenhum dado pessoal.
+- ⚠️ **Foto oficial ainda não sobe**: `arquivo-url` só aceita os buckets `arquivos`,
+  `combos` e `logos` e caminho `<pasta>/<arquivo>`. A tela já envia
+  `{ bucket: 'edicao-publico', path: '<edição>/<participação>/<uuid>.webp' }`; falta a
+  função aceitar esse bucket e esse formato de caminho (subir com `producao.gerir`,
+  sem `upsert`). Até lá a tela mostra o erro traduzido.
+
+#### Cadastro da marca na camada de edição (Cartoon 2026.2) — 14/10/2026 (fase 3, lado da marca)
+
+Plano: `docs/cartoon-2026-2/04-painel.md` §4.2–4.4. Contrato do banco: migrations
+`20261014_cartoon_01..03` (⚠️ **ainda não aplicadas** — o código as segue à letra; sem elas
+o cadastro abre e os blocos novos dizem "Esta etapa abre quando…", por `seFaltar` na
+leitura de `unidades`). O que passou a valer:
+
+- **Blocos 0 a 7, as duas abas do mesmo `Cadastro.jsx`:** Meu cadastro = 0 marca · 4
+  unidades · 6 atendimento e horário do combo (· 7 fotos, sem tela aqui); Meu combo = 1
+  tema · 2 itens · 3 combo · 5 informações alimentares e trocas. `vistaDoBloco` (guia.js)
+  espelha `link_campo_marca`; os blocos 5 e 6 entram na aba certa sem o `App.jsx` listá-los.
+- **Peças em `components/vistas-marca/edicao/`** (Unidades, Atendimento, Alimentar, Envio,
+  campos) e **lógica pura em `lib/edicaoMarca.js`** (teste `painel-app-edicao-marca`).
+  Estilo em `styles/edicao-marca.css` (prefixo `em-`).
+- **Unidade = duas linhas:** `unidades` (permanente: endereço estruturado, WhatsApp com
+  `whatsapp_autorizado`, horário da loja) + `participacao_unidades` (`participa`, modos em
+  três estados, canais, regiões, taxa, observação). Nova = POST `unidades` → POST
+  `participacao_unidades` com `unidade_id`. Unidade de outra edição aparece como **sugestão**
+  ("Usar nesta edição"), nunca copiada sozinha. `endereco`/`bairro`/`faz_delivery` da
+  participação seguem preenchidos como **espelho** para quem ainda os lê. ⛔ A marca não
+  grava `lat/lng`: vê só "conferida pela organização" ou "em conferência".
+- **Horário DO COMBO** (`unidade_disponibilidade`), por dia de `edicoes.festival_inicio..fim`:
+  "Mesmo horário todos os dias" = DELETE das linhas da unidade + POST do lote; ajuste e
+  remoção por dia. Operação imediata (`operar`) descarrega a fila antes.
+- **Declarações alimentares:** linha ausente = não respondido, **nunca** "não contém"; a
+  tela nunca pré-marca. Grava por PATCH no `id` ou POST (o `on_conflict` do PostgREST não
+  usa o índice único parcial). "Outro" sem dizer qual não grava (check do banco).
+- **Trocas** (`substituicoes`): acréscimo vazio = não informado, `0` = sem custo;
+  modalidades/unidades vazias = todas.
+- **Legado que deixou de ser escrito:** selos vegano/sem glúten/sem lactose e a
+  substituição em texto dos itens; vegano/diet/"sobre o delivery" do combo. "Para viagem"
+  fica (decide o custo da embalagem).
+- **"Faltam N itens para enviar"** = campos obrigatórios (menos a logo) + `pendenciasEdicao`,
+  espelho de `pendencias_publicacao` (mesmos códigos; o teste confere a lista de alergênicos
+  contra o SQL). O envio traduz os códigos novos (`unidade:<id>:…`, `item:<n>:alimentar`)
+  com o NOME da unidade e leva ao campo (ids `campo-unidade-endereco`, `-2`, `-3`…).
+- **Prévia** ("Ver como fica no site"): `marca_previa_publica` desenhada pela MESMA
+  `FichaParticipante` do site, carregada sob demanda (`edicao/FichaPrevia.jsx`, que importa
+  `scw-cartoon.css`). ⚠️ A classe raiz da edição só pode ser escrita dentro de uma pasta
+  `edicao/` — `tests/rotas-edicao` reprova o estilo dela no resto do painel.
+- **Publicação ≠ revisão:** `marca_minha_publicacao` dá a linha "Sua página está publicada
+  (versão N)" com o link; `alterado_apos_aprovacao` mostra o aviso e troca o botão para
+  "Enviar alterações". A marca nunca publica.
+- ⚠️ Ficou de fora: tela de fotos do bloco 7, declarações da alternativa de uma troca,
+  seletor de edição com duas participações abertas, e o Início (`resumoMarca`) ainda não
+  conta as pendências da camada de edição — só a barra do próprio cadastro.

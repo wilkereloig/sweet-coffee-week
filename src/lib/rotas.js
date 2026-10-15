@@ -20,7 +20,15 @@ export function documentoLegal (path = '') {
 
 /**
  * @param {string} path  caminho cru (hash sem '#', ou pathname)
- * @param {object} f     { awardsOnly, comingSoon, soParticipar, aguarde, preview }
+ * @param {object} f     { awardsOnly, comingSoon, soParticipar, aguarde, preview,
+ *                         edicaoPublica, entradaEdicao }
+ *
+ * Camada de edição (14/10/2026, docs/cartoon-2026-2/): `/cartoon` só vira a
+ * rota 'cartoon' com `edicaoPublica` (flag pública OU preview); fora disso cai
+ * na Home, como qualquer caminho desconhecido. `/` só mostra a edição com
+ * `entradaEdicao` E `edicaoPublica`. `/festival` é sempre a Home institucional.
+ * Os endereços Lovers (/mapa, /rota, /participantes, /lovers/*) nunca chegam
+ * à edição: o App os manda para `/` antes.
  */
 export function resolverRota (path, f = {}) {
   if (documentoLegal(path)) return 'legal'
@@ -38,7 +46,9 @@ export function resolverRota (path, f = {}) {
     f.aguarde && !f.preview &&
     !path.startsWith('/contato') && !path.startsWith('/participar')
   ) return 'aguarde'
-  if (path === '/' || path === '') return 'home'
+  if (path === '/festival' || path.startsWith('/festival/')) return 'home'
+  if (path === '/cartoon' || path.startsWith('/cartoon/')) return f.edicaoPublica ? 'cartoon' : 'home'
+  if (path === '/' || path === '') return f.entradaEdicao && f.edicaoPublica ? 'cartoon' : 'home'
   if (path.startsWith('/edicoes'))      return 'edicoes'
   if (path.startsWith('/sweet-awards') || path.startsWith('/historico-sweet-awards')) return 'historico-awards'
   // Curiosidades foi descontinuada; o endereço antigo continua seguro via Edições.

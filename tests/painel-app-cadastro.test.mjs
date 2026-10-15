@@ -26,6 +26,9 @@ test('itemCompleto exige nome, descrição e ingredientes preenchidos', () => {
 test('unidadeTemEndereco ignora espaço em branco', () => {
   assert.equal(unidadeTemEndereco({ endereco: '  ' }), false)
   assert.equal(unidadeTemEndereco({ endereco: 'Rua X, 1' }), true)
+  // Camada de edição: o logradouro da unidade permanente vale, e a que não participa não conta.
+  assert.equal(unidadeTemEndereco({ logradouro: 'Rua Y' }), true)
+  assert.equal(unidadeTemEndereco({ logradouro: 'Rua Y', participa: false }), false)
 })
 
 const dadosCompletos = {
