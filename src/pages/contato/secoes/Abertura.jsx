@@ -36,7 +36,6 @@ export function Abertura({ central }) {
     >
       <HeroFotos fotos={HERO_FOTOS} />
       <div className="scw-heroi-foto__texto ctt-abertura__grade">
-        <span className="scw-rotulo ctt-abertura__rotulo">{ABERTURA.rotulo}</span>
         <h1 id="ctt-titulo" className="scw-h1 ctt-abertura__titulo">{ABERTURA.titulo}</h1>
         <p className="scw-hero__lead ctt-abertura__lead">
           {ABERTURA.lead.replace('{total}', TOTAL)}

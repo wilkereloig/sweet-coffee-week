@@ -8,7 +8,8 @@ import { fotosAbertura } from '../acervo'
  * ABERTURA — o mesmo herói fotográfico das páginas institucionais (§6.9,
  * 14/10/2026, pedido do Wilker): texto à esquerda na chapa da página
  * (laranja), e na área de foto os quatro registros de edições diferentes, em
- * crossfade. Rótulo, título, uma frase e a linha de números.
+ * crossfade. Título, uma frase e a linha de números (sem rótulo desde
+ * 14/10/2026 — o menu já diz a página).
  *
  * A linha de números vem de festivalFacts (16 edições · 123 marcas · 410
  * participações), a mesma fonte do resto do site — nada digitado aqui.
@@ -21,7 +22,6 @@ export function Abertura() {
     <section className="scw-heroi-foto edx-abre" aria-labelledby="edx-titulo" data-mo-fora>
       <HeroFotos fotos={FOTOS} />
       <div className="scw-heroi-foto__texto edx-abre__texto">
-        <span className="scw-rotulo edx-abre__rotulo">{TEXTOS.rotulo}</span>
         <h1 id="edx-titulo" className="scw-h1 edx-abre__titulo">{TEXTOS.titulo}</h1>
         <p className="scw-lead edx-abre__lead">{TEXTOS.lead}</p>
         <p className="edx-abre__dados">

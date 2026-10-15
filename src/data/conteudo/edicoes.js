@@ -54,7 +54,6 @@ export const PREMIACAO = {
 
 /* Textos de interface. Nada aqui é dado do festival. */
 export const TEXTOS = {
-  rotulo: 'Edições',
   titulo: 'Cada edição, uma nova história à mesa.',
   lead: 'Desde 2017, cada edição tem um tema, e cada marca o transforma em doce, salgado e bebida.',
   rotuloAnos: 'Anos das edições',

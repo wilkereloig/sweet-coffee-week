@@ -18,10 +18,9 @@
    -------------------------------------------------------------------------- */
 
 /* Geometria, cor e foto do sistema (.scw-heroi-foto, scw-2026.css); aqui
-   só o conjunto de texto: rótulo, título, lead, ação e números, juntos. */
-.swa-hero .swa-hero__rotulo { color: rgba(254, 240, 221, .82); }
+   só o conjunto de texto: título, lead, ação e números, juntos. */
 .swa-hero__texto .scw-h1 {
-  margin-top: clamp(10px, 1.1vw, 16px);
+  margin-top: 0;
   color: var(--scw-creme);
   /* duas linhas na coluna de ~48%, três só no celular estreito */
   max-width: 14ch;

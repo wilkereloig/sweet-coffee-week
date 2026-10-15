@@ -400,7 +400,9 @@ e ganhou `margin-top: 0` — regra por `:first-child` em `.pa-hero__titulo`
 
 **Desde 14/10/2026 Participar, Apoiar, Sweet Awards, Contato e Edições usam a MESMA construção**
 (`.scw-heroi-foto` + `HeroFotos`, regras em `scw-2026.css`, seção "HERÓI FOTOGRÁFICO").
-O CSS da página só dá cor e conteúdo — **nunca geometria**. Só a Home (`.hm-abre`, Cartoon)
+O CSS da página só dá cor e conteúdo — **nunca geometria**. ⛔ **Sem rótulo acima do
+H1** em Edições, Sweet Awards e Contato (saiu em 14/10/2026, pedido do Wilker — o menu
+já diz a página). Só a Home (`.hm-abre`, Cartoon)
 fica fora (§7.1, pedido do Wilker). O detalhe de uma edição (`/edicoes/<código>`) e os
 documentos legais não têm herói fotográfico.
 
@@ -413,7 +415,7 @@ documentos legais não têm herói fotográfico.
 | Pausa | `.scw-pausa-fotos` dentro da banda: chocolate sólido, anel creme, acima do degradê; no desktop sobe a altura do aviso de cookies (`--scw-aviso-h`) | mesmo botão, canto inferior da foto |
 | Imagem | `<img>` com `srcSet` + `SIZES.heroi` (`(max-width: 1000px) 100vw, 52vw`) — mudar a largura da banda exige mudar `SIZES.heroi` junto | idem |
 
-**Sweet Awards:** rótulo + título + lead + ação "Ver os premiados" (leva a
+**Sweet Awards:** título + lead + ação "Ver os premiados" (leva a
 `#swa-resultados` pelo `irPara` do índice) + números, num conjunto; o texto **não anima**
 (abre legível).
 

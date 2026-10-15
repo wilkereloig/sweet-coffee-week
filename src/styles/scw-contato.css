@@ -49,10 +49,9 @@
    01 Abertura — chapa bege, tinta chocolate
    ========================================================================= */
 /* Geometria, foto e degradê do sistema (.scw-heroi-foto, scw-2026.css). */
-.ctt-abertura .ctt-abertura__rotulo { color: var(--scw-heroi-tinta); }
 /* Sem max-width próprio: vale o 17ch de .scw-h1 (duas linhas). */
 .ctt-abertura .ctt-abertura__titulo {
-  margin: clamp(12px, 1.4vw, 18px) 0 0;
+  margin: 0;
   color: var(--scw-heroi-tinta);
 }
 .ctt-abertura .ctt-abertura__lead {

@@ -154,7 +154,7 @@ movimento** (arquivo de consulta: nada encenado).
 
 **Visão geral (`/edicoes`):**
 - **Abertura = herói fotográfico compartilhado (§6.9, desde 14/10/2026)** na chapa laranja
-  (`--scw-heroi`): rótulo, H1 "Cada edição, uma nova história à mesa.", uma frase sobre
+  (`--scw-heroi`): H1 "Cada edição, uma nova história à mesa." (sem rótulo desde 14/10), uma frase sobre
   temas e criações, a linha de números de `festivalFacts` (nunca digitados); na área de
   foto, os quatro registros de edições diferentes (`FOTOS_ABERTURA`) em crossfade. Sem
   faixa de palavras (pedido do Wilker). ⚠️ No celular a faixa de anos começa logo abaixo
@@ -508,7 +508,7 @@ roteador é por hash: `href="#mensagem"` cru trocaria de rota). Texto em
 cards) e `04 Mensagem` **viraram uma seção só**: a triagem é a coluna "Antes de
 escrever", ao lado do formulário.
 
-**01 Abertura — a busca É a ação principal.** Coluna única: rótulo, H1 ("Sua dúvida,
+**01 Abertura — a busca É a ação principal.** Coluna única: H1 (sem rótulo desde 14/10/2026) ("Sua dúvida,
 respondida aqui." — `.scw-h1` cheio, sem teto próprio de medida), lead com a contagem
 real de respostas (`{total}`, nunca digitada) e o **campo de busca**, que escreve no
 MESMO estado da central: "Buscar" rola até a lista já filtrada e leva o foco ao título

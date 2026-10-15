@@ -15,7 +15,6 @@
 export const EDICAO_RECENTE = '2026.1'
 
 export const ABERTURA = {
-  rotulo: 'Sweet Awards',
   titulo: 'O prêmio que o público entrega.',
   lead: 'A cada edição, quem prova os combos dá a nota e define o pódio de cada categoria.',
   /* leva aos resultados (SECOES.resultados.id) */
